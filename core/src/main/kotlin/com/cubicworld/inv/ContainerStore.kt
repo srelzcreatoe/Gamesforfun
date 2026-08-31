@@ -36,9 +36,7 @@ class ContainerStore(private val items: ItemRegistry) {
             for (entry in inv.serialize()) sb.append('|').append(entry)
             sb.append('\n')
         }
-        val tmp = File(file.parentFile, file.name + ".tmp")
-        tmp.writeText(sb.toString())
-        if (!tmp.renameTo(file)) { file.delete(); tmp.renameTo(file) }
+        com.cubicworld.world.AtomicFiles.writeBytes(file, sb.toString().toByteArray())
     }
 
     fun load(file: File) {

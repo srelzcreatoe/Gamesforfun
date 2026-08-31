@@ -183,13 +183,11 @@ class SaveManager(private val root: File) {
             out.writeInt(Version.SAVE_FORMAT)
             out.writeInt(chunk.cx)
             out.writeInt(chunk.cz)
+            out.writeBoolean(chunk.state >= ChunkState.DECORATED)
             chunk.data.write(out)
             out.write(chunk.biomes)
         }
-        if (!tmp.renameTo(file)) {
-            file.delete()
-            tmp.renameTo(file)
-        }
+        AtomicFiles.commit(tmp, file)
     }
 
     /** Returns true when the chunk existed on disk and was loaded. */
@@ -202,6 +200,7 @@ class SaveManager(private val root: File) {
             val version = inp.readInt()
             require(version in 1..Version.SAVE_FORMAT) { "Chunk from newer save format $version" }
             inp.readInt(); inp.readInt()      // cx, cz sanity fields
+            chunk.loadedDecorated = inp.readBoolean()
             chunk.data.read(inp)
             inp.readFully(chunk.biomes)
         }
@@ -248,28 +247,38 @@ class SaveManager(private val root: File) {
     private fun quote(s: String): String =
         "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ") + "\""
 
-    /** Atomic write plus two rotating backups (.bak1 freshest). */
+    /** Atomic fsynced write plus two rotating backups (.bak1 freshest). */
     private fun atomicWriteWithBackup(file: File, bytes: ByteArray) {
         file.parentFile?.mkdirs()
         val tmp = File(file.parentFile, file.name + ".tmp")
-        FileOutputStream(tmp).use { it.write(bytes) }
+        FileOutputStream(tmp).use { out ->
+            out.write(bytes)
+            out.flush()
+            out.fd.sync()
+        }
         if (file.exists()) {
+            // best-effort rotation: copy (not move) so the current file stays
+            // in place until the final commit replaces it
             val bak1 = File(file.parentFile, file.name + ".bak1")
             val bak2 = File(file.parentFile, file.name + ".bak2")
-            if (bak1.exists()) {
-                bak2.delete()
-                bak1.renameTo(bak2)
+            try {
+                if (bak1.exists()) bak1.copyTo(bak2, overwrite = true)
+                file.copyTo(bak1, overwrite = true)
+            } catch (e: Exception) {
+                // a failed rotation must never block the actual save
             }
-            file.renameTo(bak1)
         }
-        tmp.renameTo(file)
+        AtomicFiles.commit(tmp, file)
     }
 
     private fun readJsonWithBackup(file: File): com.badlogic.gdx.utils.JsonValue? {
         for (candidate in listOf(file, File(file.parentFile, file.name + ".bak1"), File(file.parentFile, file.name + ".bak2"))) {
             if (!candidate.exists()) continue
             try {
-                return JsonReader().parse(candidate.readText())
+                // JsonReader returns null (no throw) for empty/whitespace files:
+                // treat that as corruption and fall through to the next backup
+                val parsed = JsonReader().parse(candidate.readText())
+                if (parsed != null) return parsed
             } catch (e: Exception) {
                 // fall through to older backup
             }

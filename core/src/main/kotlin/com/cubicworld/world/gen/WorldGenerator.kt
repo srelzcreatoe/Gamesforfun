@@ -66,9 +66,22 @@ class WorldGenerator(
         WorldType.FLAT_BUILDER -> 0.3f
     }
 
+    // heightAt is hot: terrain workers, decoration replays and spawn search all
+    // hit it, often for the same columns. Values are pure functions of (wx,wz).
+    private val heightCache = java.util.concurrent.ConcurrentHashMap<Long, Int>()
+
     /** Terrain height for a column, blending biome params over a small kernel. */
     fun heightAt(wx: Int, wz: Int): Int {
         if (worldType == WorldType.FLAT_BUILDER) return SEA_LEVEL + 4
+        val key = (wx.toLong() shl 32) or (wz.toLong() and 0xFFFFFFFFL)
+        heightCache[key]?.let { return it }
+        val h = computeHeight(wx, wz)
+        if (heightCache.size > 100_000) heightCache.clear()   // bound memory on long treks
+        heightCache[key] = h
+        return h
+    }
+
+    private fun computeHeight(wx: Int, wz: Int): Int {
         var base = 0f; var variance = 0f; var rough = 0f; var wsum = 0f
         var dz = -2
         while (dz <= 2) {
@@ -176,20 +189,31 @@ class WorldGenerator(
 
     // ---- spawn ------------------------------------------------------------
 
-    /** Find a safe spawn column near the origin: solid dry land with headroom. */
+    /**
+     * Find a safe spawn column near the origin: solid dry land with headroom.
+     * A cheap continental probe filters out open ocean before paying for the
+     * full biome-blended height; all-ocean seeds fall back to the highest
+     * column found, placed at water surface so the player swims, never drowns.
+     */
     fun findSpawn(): Triple<Int, Int, Int> {
+        var bestX = 0; var bestZ = 0; var bestH = Int.MIN_VALUE
         var radius = 0
-        while (radius < 64) {
+        while (radius <= 128) {
             var dx = -radius
             while (dx <= radius) {
                 var dz = -radius
                 while (dz <= radius) {
                     if (kotlin.math.abs(dx) == radius || kotlin.math.abs(dz) == radius) {
-                        val wx = dx * 8
-                        val wz = dz * 8
-                        val h = heightAt(wx, wz)
-                        if (h in (SEA_LEVEL + 1)..(HEIGHT - 12)) {
-                            return Triple(wx, h + 1, wz)
+                        val wx = dx * 12
+                        val wz = dz * 12
+                        // quick reject: deep-ocean continental values can't reach land height
+                        val est = SEA_LEVEL - 14f + continental(wx, wz) * 26f + 12f
+                        if (est > SEA_LEVEL - 12) {
+                            val h = heightAt(wx, wz)
+                            if (h in (SEA_LEVEL + 2)..(HEIGHT - 12)) {
+                                return Triple(wx, h + 1, wz)
+                            }
+                            if (h > bestH) { bestH = h; bestX = wx; bestZ = wz }
                         }
                     }
                     dz++
@@ -198,6 +222,7 @@ class WorldGenerator(
             }
             radius++
         }
-        return Triple(0, heightAt(0, 0) + 2, 0)
+        if (bestH == Int.MIN_VALUE) bestH = heightAt(0, 0)
+        return Triple(bestX, kotlin.math.max(bestH + 1, SEA_LEVEL + 1), bestZ)
     }
 }

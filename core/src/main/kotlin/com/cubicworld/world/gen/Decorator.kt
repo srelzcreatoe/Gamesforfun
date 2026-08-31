@@ -57,7 +57,9 @@ class Decorator(
             val wx = baseX + x
             val wz = baseZ + z
             val biome = biomes.byId(chunk.biomes[(z shl 4) or x].toInt())
-            val h = chunk.data.heightMap[(z shl 4) or x] - 1
+            // deterministic pre-decoration surface height: this pass may be
+            // replayed for a neighbour later, after live heightmaps changed
+            val h = generator.heightAt(wx, wz)
             if (h <= 0 || h >= HEIGHT - 8) continue
             val surfaceId = chunk.data.get(x, h, z)
             if (surfaceId != biome.surface || h < SEA_LEVEL) {
@@ -96,8 +98,10 @@ class Decorator(
     }
 
     private fun growTree(gw: GenWorld, wx: Int, wy: Int, wz: Int, type: String, kind: TreeKind) {
-        // keep the trunk base on solid ground and out of water
-        if (gw.get(wx, wy, wz).toInt() != 0) return
+        // keep the trunk base clear; its own log means this is a clipped
+        // replay of an already-placed tree, which must still emit its canopy
+        val base = gw.get(wx, wy, wz)
+        if (base.toInt() != 0 && base != kind.log) return
         val r = noise.cellRand(wx, wz, 63)
         when (type) {
             "palebark" -> {
@@ -149,7 +153,7 @@ class Decorator(
         if (noise.cellRand(chunk.cx, chunk.cz, 71) > 0.004f) return
         val baseX = (chunk.cx shl 4) + 8
         val baseZ = (chunk.cz shl 4) + 8
-        val h = gw.surfaceHeight(baseX, baseZ)
+        val h = generator.heightAt(baseX, baseZ)     // deterministic for replays
         if (h <= SEA_LEVEL || h >= HEIGHT - 10) return
         // 7x7 cracked floor
         for (dx in -3..3) for (dz in -3..3) {

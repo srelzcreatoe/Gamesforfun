@@ -152,20 +152,20 @@ class EntityManager(
     // ---- persistence ------------------------------------------------------
 
     fun save(file: File) {
+        val items = world.registries.items
         val sb = StringBuilder()
         for (e in entities) {
             when (e) {
                 is Creature -> sb.append("c|").append(e.def.name).append('|')
                     .append(e.position.x).append(',').append(e.position.y).append(',').append(e.position.z)
                     .append('|').append(e.health).append('\n')
-                is DropItem -> sb.append("d|").append(e.itemId).append('|')
+                // drops are saved by stable item NAME so they survive content updates
+                is DropItem -> sb.append("d|").append(items.byId(e.itemId).name).append('|')
                     .append(e.position.x).append(',').append(e.position.y).append(',').append(e.position.z)
                     .append('|').append(e.count).append('|').append(e.durability).append('\n')
             }
         }
-        val tmp = File(file.parentFile, file.name + ".tmp")
-        tmp.writeText(sb.toString())
-        if (!tmp.renameTo(file)) { file.delete(); tmp.renameTo(file) }
+        com.cubicworld.world.AtomicFiles.writeBytes(file, sb.toString().toByteArray())
     }
 
     fun load(file: File, items: com.cubicworld.inv.ItemRegistry) {
@@ -184,10 +184,9 @@ class EntityManager(
                         entities.add(c)
                     }
                     "d" -> {
-                        val id = parts[1].toInt()
-                        if (id < 0 || id >= items.size) continue
+                        val def = items.byName(parts[1]) ?: continue
                         val pos = parts[2].split(',')
-                        val d = DropItem(world, id, parts[3].toInt().coerceIn(1, 999), parts.getOrNull(4)?.toIntOrNull() ?: 0)
+                        val d = DropItem(world, def.id, parts[3].toInt().coerceIn(1, 999), parts.getOrNull(4)?.toIntOrNull() ?: 0)
                         d.position.set(pos[0].toFloat(), pos[1].toFloat(), pos[2].toFloat())
                         entities.add(d)
                     }

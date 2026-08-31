@@ -101,6 +101,7 @@ class GameScreen(
         world.timeOfDay = save.readWorldClock().first
         world.totalTicks = save.readWorldClock().second
         world.weather = save.readWorldClock().third
+        System.getProperty("cubic.time")?.toIntOrNull()?.let { world.timeOfDay = it }
 
         chunkManager.renderDistance = game.settings.renderDistance
         chunkManager.simulationDistance = game.settings.simulationDistance
@@ -115,10 +116,12 @@ class GameScreen(
         invUi.onClosed = { Gdx.input.inputProcessor = hud.stage }
 
         interaction.onOpenStation = { station ->
+            hud.cancelTouches()
             invUi.openStation(station)
             Gdx.input.inputProcessor = invUi.stage
         }
         interaction.onOpenContainer = { x, y, z ->
+            hud.cancelTouches()
             invUi.openContainer(containers.containerAt(x, y, z))
             Gdx.input.inputProcessor = invUi.stage
         }
@@ -305,9 +308,23 @@ class GameScreen(
 
     // ---- input ------------------------------------------------------------
 
+    private var autopilotTime = 0f
+
     private fun updateInput(delta: Float) {
         player.moveX = hud.joystick.knobPercentX
         player.moveZ = hud.joystick.knobPercentY
+
+        // dev soak-test autopilot: walk forward, slowly turning, hopping ledges
+        if (System.getProperty("cubic.autopilot") != null) {
+            autopilotTime += delta
+            player.moveZ = 1f
+            player.yaw += delta * 9f
+            val horiz = kotlin.math.sqrt(
+                player.velocity.x * player.velocity.x + player.velocity.z * player.velocity.z,
+            )
+            player.wantJump = player.onGround && horiz < 1.2f
+            if (autopilotTime > 20f && cameraMode == CameraMode.FIRST) cameraMode = CameraMode.THIRD_BACK
+        }
 
         val sens = if (cameraMode == CameraMode.FIRST) game.settings.firstPersonSensitivity
         else game.settings.thirdPersonSensitivity
@@ -591,7 +608,9 @@ class GameScreen(
     // ---- pause / persistence ---------------------------------------------
 
     private fun showPauseDialog() {
+        if (paused || state == PlayState.DEAD) return   // never stack pause dialogs
         paused = true
+        hud.cancelTouches()
         saveAll()
         hud.showSaving()
         val dialog = object : Dialog("", UiSkin.skin) {
@@ -632,7 +651,10 @@ class GameScreen(
         chunkManager.saveAllModified()
         containers.save(File(save.worldDir, "containers.dat"))
         entities.save(File(save.worldDir, "entities.dat"))
-        File(save.worldDir, "discovered.txt").writeText(crafting.serializeDiscovered())
+        com.cubicworld.world.AtomicFiles.writeBytes(
+            File(save.worldDir, "discovered.txt"),
+            crafting.serializeDiscovered().toByteArray(),
+        )
     }
 
     override fun pause() {
@@ -709,6 +731,7 @@ class GameScreen(
     override fun onOpenInventory() {
         if (invUi.open) invUi.close()
         else {
+            hud.cancelTouches()
             invUi.openPack()
             Gdx.input.inputProcessor = invUi.stage
         }

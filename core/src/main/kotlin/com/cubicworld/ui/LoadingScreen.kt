@@ -68,13 +68,19 @@ class LoadingScreen(private val game: CubicWorldGame) : ScreenAdapter() {
         } else if (error == null) {
             val autoplay = System.getProperty("cubic.autoplay")
             if (autoplay != null) {
-                // dev harness: skip menus and jump straight into a fresh world
+                // dev harness: skip menus; reopen the named world or create a fresh one
                 val save = com.cubicworld.world.SaveManager(game.worldsRoot)
-                val options = com.cubicworld.world.WorldOptions(
-                    name = "Autotest",
-                    seed = autoplay.toLongOrNull() ?: 1234L,
-                )
-                val folder = save.createWorld(options)
+                val existing = System.getProperty("cubic.world")
+                val folder = if (existing != null && java.io.File(game.worldsRoot, existing).exists()) {
+                    existing
+                } else {
+                    save.createWorld(
+                        com.cubicworld.world.WorldOptions(
+                            name = System.getProperty("cubic.world") ?: "Autotest",
+                            seed = autoplay.toLongOrNull() ?: 1234L,
+                        ),
+                    )
+                }
                 game.setScreen(GameScreen(game, folder))
             } else {
                 game.setScreen(MainMenuScreen(game))

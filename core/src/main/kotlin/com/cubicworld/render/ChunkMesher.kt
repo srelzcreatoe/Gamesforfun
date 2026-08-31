@@ -71,7 +71,9 @@ class ChunkMesher(private val blocks: BlockRegistry, private val atlas: TextureA
         )
     }
 
-    private val uvTmp = FloatArray(4)
+    // per-thread scratch: build() runs concurrently on multiple mesher workers
+    private val uvTmpLocal = ThreadLocal.withInitial { FloatArray(4) }
+    private val uvTmp: FloatArray get() = uvTmpLocal.get()
 
     fun build(input: MeshInput): MeshOutput {
         val out = MeshOutput(input.originX, input.originY, input.originZ, input.stamp)

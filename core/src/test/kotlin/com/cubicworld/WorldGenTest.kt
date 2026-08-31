@@ -78,10 +78,21 @@ class WorldGenTest {
 
     @Test
     fun `spawn search returns dry land`() {
-        for (seed in listOf(1L, 42L, 987654321L, -5L)) {
+        for (seed in listOf(1L, 42L, 987654321L, -5L, 777L, 20260831L)) {
             val gen = WorldGenerator(seed, WorldType.STANDARD, blocks, biomes)
             val (x, y, z) = gen.findSpawn()
             assertTrue(y > WorldConst.SEA_LEVEL, "seed $seed spawned at/below sea level: $x,$y,$z")
+            // verify against the actually generated chunk, not just the height function
+            val chunk = Chunk(x shr 4, z shr 4)
+            gen.generateTerrain(chunk)
+            val lx = x and 15
+            val lz = z and 15
+            val ground = blocks.byId(chunk.data.get(lx, y - 1, lz).toInt())
+            val feet = blocks.byId(chunk.data.get(lx, y, lz).toInt())
+            val head = blocks.byId(chunk.data.get(lx, y + 1, lz).toInt())
+            assertTrue(ground.solid, "seed $seed: spawn ground is ${ground.name}, not solid")
+            assertTrue(!feet.solid && !feet.isLiquid, "seed $seed: feet blocked by ${feet.name}")
+            assertTrue(!head.solid && !head.isLiquid, "seed $seed: head blocked by ${head.name}")
         }
     }
 }

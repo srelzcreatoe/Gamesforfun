@@ -12,7 +12,10 @@ import com.cubicworld.CubicWorldGame
 fun main() {
     val config = Lwjgl3ApplicationConfiguration().apply {
         setTitle("Cubic World")
-        setWindowedMode(1280, 720)
+        setWindowedMode(
+            (System.getProperty("cubic.width") ?: "1280").toInt(),
+            (System.getProperty("cubic.height") ?: "720").toInt(),
+        )
         useVsync(true)
         setForegroundFPS(60)
         if (System.getProperty("cubic.noaudio") != null) disableAudio(true)
@@ -61,7 +64,7 @@ private class AutoShotHarness(
             PixmapIO.writePNG(Gdx.files.absolute("$dir/shot_${shotIndex++}.png"), flipped)
             pixmap.dispose()
             flipped.dispose()
-            Gdx.app.log("AutoShot", "captured shot_${shotIndex - 1}")
+            Gdx.app.log("AutoShot", "captured shot_${shotIndex - 1} fps=${Gdx.graphics.framesPerSecond}")
         } catch (e: Exception) {
             Gdx.app.error("AutoShot", "capture failed", e)
         }

@@ -78,6 +78,8 @@ class Chunk(val cx: Int, val cz: Int) {
     @Volatile var state: ChunkState = ChunkState.GENERATING
     /** true when gameplay modified this chunk since last save */
     var modified = false
+    /** decorated flag read from disk; terrain-only saves re-run decoration */
+    var loadedDecorated = true
     /** per-section mesh-needs-rebuild flags, owned by the render side */
     val sectionDirty = BooleanArray(SECTIONS)
     /** monotonically increasing edit stamp used to drop stale mesh jobs */

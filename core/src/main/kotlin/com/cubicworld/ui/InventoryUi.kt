@@ -88,6 +88,10 @@ class InventoryUi(
         stage.clear()
         slotWidgets.clear()
         selectionImages.clear()
+        // a pending tap-to-move selection must never survive a rebuild
+        // invisibly (its highlight is gone after clear)
+        sourceIndex = -1
+        sourceInv = null
 
         val root = Table()
         root.setFillParent(true)

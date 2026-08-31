@@ -125,6 +125,43 @@ class WorldPipelineTest {
     }
 
     @Test
+    fun `creatures spawn near the player under valid conditions`() {
+        val reg = registries()
+        val save = SaveManager(tmp)
+        save.createWorld(WorldOptions("Spawn", 20260831L))
+        val world = World(reg, WorldOptions("Spawn", 20260831L))
+        val manager = ChunkManager(world, save)
+        manager.renderDistance = 3
+        try {
+            val (sx, sy, sz) = world.generator.findSpawn()
+            pump(world, manager, sx shr 4, sz shr 4)
+            // make sure the local biome actually lists creatures
+            val chunk = world.chunkAt(sx shr 4, sz shr 4)!!
+            val biome = reg.biomes.byId(chunk.biomes[((sz and 15) shl 4) or (sx and 15)].toInt())
+            org.junit.jupiter.api.Assumptions.assumeTrue(biome.creatures.isNotEmpty())
+
+            val entities = com.cubicworld.entity.EntityManager(world, reg.creatures)
+            val playerPos = com.badlogic.gdx.math.Vector3(sx + 0.5f, sy.toFloat(), sz + 0.5f)
+            var spawned = 0
+            for (attempt in 0 until 120) {
+                manager.update(sx shr 4, sz shr 4)
+                entities.update(3f, playerPos, GameMode.SURVIVAL, Difficulty.ADVENTUROUS)
+                spawned = entities.entities.count { it is com.cubicworld.entity.Creature }
+                if (spawned > 0) break
+            }
+            assertTrue(spawned > 0, "no creature spawned in 120 spawn cycles at daytime spawn")
+            // population caps respected
+            for (attempt in 0 until 300) {
+                entities.update(3f, playerPos, GameMode.SURVIVAL, Difficulty.ADVENTUROUS)
+            }
+            val count = entities.entities.count { it is com.cubicworld.entity.Creature }
+            assertTrue(count <= com.cubicworld.entity.EntityManager.GLOBAL_CAP, "global cap exceeded: $count")
+        } finally {
+            manager.dispose()
+        }
+    }
+
+    @Test
     fun `fluid spreads from a placed source`() {
         val reg = registries()
         val save = SaveManager(tmp)

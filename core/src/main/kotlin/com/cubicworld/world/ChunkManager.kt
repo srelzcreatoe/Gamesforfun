@@ -30,8 +30,14 @@ class ChunkManager(
     /** total chunks currently queued or generating (for the loading screen) */
     val pendingCount: Int get() = pending.size
 
+    /**
+     * Decoration writes are clipped to one target chunk: every chunk replays
+     * its neighbours' deterministic decoration passes against itself, so its
+     * final content never depends on generation order or which neighbours
+     * were already saved to disk.
+     */
     private val genWorld = object : GenWorld {
-        val touched = HashSet<Chunk>()
+        var target: Chunk? = null
         override fun get(wx: Int, wy: Int, wz: Int): Short {
             if (wy < 0 || wy >= HEIGHT) return 0
             val c = world.chunkForBlock(wx, wz) ?: return 0
@@ -39,10 +45,10 @@ class ChunkManager(
         }
         override fun set(wx: Int, wy: Int, wz: Int, id: Short, state: Byte) {
             if (wy < 0 || wy >= HEIGHT) return
-            val c = world.chunkForBlock(wx, wz) ?: return
-            c.data.set(wx and 15, wy, wz and 15, id, state)
-            c.markDirtyAt(wy)
-            touched.add(c)
+            val t = target ?: return
+            if ((wx shr 4) != t.cx || (wz shr 4) != t.cz) return
+            t.data.set(wx and 15, wy, wz and 15, id, state)
+            t.markDirtyAt(wy)
         }
         override fun surfaceHeight(wx: Int, wz: Int): Int = world.surfaceHeight(wx, wz)
     }
@@ -96,7 +102,9 @@ class ChunkManager(
         while (true) {
             val (chunk, loaded) = finished.poll() ?: break
             pending.remove(chunk.key)
-            chunk.state = if (loaded) ChunkState.DECORATED else ChunkState.TERRAIN
+            // chunks saved before their decoration pass ran re-enter as TERRAIN
+            // so they still get decorated exactly once
+            chunk.state = if (loaded && chunk.loadedDecorated) ChunkState.DECORATED else ChunkState.TERRAIN
             world.chunks[chunk.key] = chunk
             world.queueLight(chunk)
             chunk.markAllSectionsDirty()
@@ -114,17 +122,15 @@ class ChunkManager(
                 kotlin.math.abs(chunk.cz - pcz) > renderDistance + 1
             ) continue
             if (!neighborhoodHasTerrain(chunk)) continue
-            genWorld.touched.clear()
-            world.decorator.decorate(chunk, genWorld)
+            genWorld.target = chunk
+            for (dz in -1..1) for (dx in -1..1) {
+                val source = world.chunkAt(chunk.cx + dx, chunk.cz + dz) ?: continue
+                world.decorator.decorate(source, genWorld)
+            }
+            genWorld.target = null
             chunk.state = ChunkState.DECORATED
             chunk.markAllSectionsDirty()
             world.queueLight(chunk)
-            for (t in genWorld.touched) {
-                if (t !== chunk) {
-                    world.queueLight(t)
-                    if (t.state == ChunkState.ACTIVE) t.modified = true
-                }
-            }
             budget--
         }
     }

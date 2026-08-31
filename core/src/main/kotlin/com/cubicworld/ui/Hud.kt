@@ -79,8 +79,14 @@ class Hud(
     private class HotbarCell(val cell: Stack, val icon: Image, val count: Label, val selection: Image)
 
     fun build() {
+        // dialogs (death/pause/confirm) must survive rebuilds — Android fires
+        // resize when returning from background, which lands here
+        val dialogs = stage.actors.items.filterIsInstance<com.badlogic.gdx.scenes.scene2d.ui.Dialog>()
         stage.clear()
         hotbarCells.clear()
+        // drop GPU textures from the previous build; rebuilt actors get fresh ones
+        for (t in textures) t.dispose()
+        textures.clear()
 
         // ---- look region: whole screen behind everything else
         val lookRegion = object : Actor() {}
@@ -155,12 +161,13 @@ class Hud(
                 listener.onSprintToggled(sprintOn)
             }
         })
+        // stacked column above jump so nothing collides with the hotbar on
+        // narrow screens
         val bSize = 64f * s
         val bx = if (settings.leftHanded) 24f * s else stage.width - bSize - 24f * s
-        val bx2 = if (settings.leftHanded) 24f * s + bSize + 12f * s else stage.width - 2 * bSize - 36f * s
         jump.setBounds(bx, 34f * s, bSize, bSize)
-        sneak.setBounds(bx2, 22f * s, bSize * 0.85f, bSize * 0.85f)
-        sprint.setBounds(bx2, 22f * s + bSize, bSize * 0.85f, bSize * 0.85f)
+        sneak.setBounds(bx + bSize * 0.075f, 34f * s + bSize + 10f * s, bSize * 0.85f, bSize * 0.85f)
+        sprint.setBounds(bx + bSize * 0.075f, 34f * s + bSize + 10f * s + bSize * 0.95f, bSize * 0.85f, bSize * 0.85f)
         stage.addActor(jump); stage.addActor(sneak); stage.addActor(sprint)
 
         // ---- top bar: pause, camera
@@ -194,6 +201,24 @@ class Hud(
         hintLabel.width = stage.width
         hintLabel.setAlignment(com.badlogic.gdx.utils.Align.center)
         stage.addActor(hintLabel)
+
+        for (d in dialogs) {
+            stage.addActor(d)
+            d.setPosition((stage.width - d.width) / 2f, (stage.height - d.height) / 2f)
+        }
+    }
+
+    /**
+     * Forget all active touches. Must be called whenever the input processor
+     * is switched away (inventory overlay, dialogs), or the joystick and the
+     * hold-to-break state would stay stuck on their last values.
+     */
+    fun cancelTouches() {
+        stage.cancelTouchFocus()
+        lookPointer = -1
+        breakHeld = false
+        lookDeltaX = 0f
+        lookDeltaY = 0f
     }
 
     private fun positionJoystick() {
@@ -260,6 +285,11 @@ class Hud(
 
     /** Poll long-press state; the game calls this every frame. */
     fun pollBreakHeld(): Boolean {
+        if (com.badlogic.gdx.Gdx.input.inputProcessor !== stage) {
+            // another overlay owns input: any remembered touch is stale
+            if (lookPointer != -1 || breakHeld) cancelTouches()
+            return false
+        }
         if (lookPointer != -1 && !breakHeld) {
             val held = System.currentTimeMillis() - lookDownTime
             if (held >= 280 && !lookMoved) breakHeld = true
@@ -268,17 +298,7 @@ class Hud(
         return breakHeld
     }
 
-    private var debugLogged = false
-
     fun update(delta: Float, health: Int, hunger: Int, air: Int, fps: Int) {
-        if (!debugLogged) {
-            debugLogged = true
-            com.badlogic.gdx.Gdx.app.log(
-                "Hud",
-                "stage=${stage.width}x${stage.height} actors=${stage.actors.size} " +
-                    "joy=(${joystick.x},${joystick.y},${joystick.width}) hb=${healthBar.x},${healthBar.y}",
-            )
-        }
         for ((i, cell) in hotbarCells.withIndex()) {
             val slot = inventory.slots[i]
             cell.selection.isVisible = i == inventory.selectedSlot
