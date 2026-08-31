@@ -1,7 +1,7 @@
 {
  "tileSize": 16,
  "cols": 16,
- "rows": 8,
+ "rows": 16,
  "tiles": {
   "grass_top": 0,
   "grass_side": 1,
@@ -128,6 +128,9 @@
   "moon_disc": 122,
   "rain_drop": 123,
   "snow_flake": 124,
-  "satchel": 125
+  "satchel": 125,
+  "player_body": 126,
+  "player_head": 127,
+  "player_legs": 128
  }
 }

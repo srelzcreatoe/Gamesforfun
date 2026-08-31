@@ -19,7 +19,15 @@ class TextureAtlasManager {
     private var tileSize = 16
 
     fun load() {
-        val json = JsonReader().parse(Gdx.files.internal("textures/atlas.json"))
+        parseIndex(Gdx.files.internal("textures/atlas.json").readString("UTF-8"))
+        texture = Texture(Gdx.files.internal("textures/atlas.png"), false).apply {
+            setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
+        }
+    }
+
+    /** Index-only load for tests and validation (no GL required). */
+    fun parseIndex(jsonText: String) {
+        val json = JsonReader().parse(jsonText)
         cols = json.getInt("cols")
         rows = json.getInt("rows")
         tileSize = json.getInt("tileSize")
@@ -28,9 +36,6 @@ class TextureAtlasManager {
         while (t != null) {
             indexByName[t.name] = t.asInt()
             t = t.next
-        }
-        texture = Texture(Gdx.files.internal("textures/atlas.png"), false).apply {
-            setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
         }
     }
 

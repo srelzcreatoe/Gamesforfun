@@ -1,0 +1,14 @@
+{
+  "formatVersion": 1,
+  "name": "Autotest",
+  "seed": 777,
+  "mode": "SURVIVAL",
+  "difficulty": "ADVENTUROUS",
+  "worldType": "STANDARD",
+  "keepInventory": false,
+  "timeOfDay": 4981,
+  "totalTicks": 181,
+  "weather": "CLEAR",
+  "lastPlayed": 1788186279989,
+  "gameVersion": "0.1.0"
+}

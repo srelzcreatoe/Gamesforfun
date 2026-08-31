@@ -255,7 +255,8 @@ def p_glow(d, rng, base, accent, accent2):
     for y in range(T):
         for x in range(T):
             r = math.hypot(x - cx, y - cy) / (T * 0.7)
-            px[x, y] = mix(accent, base, min(1, r + rng.f() * 0.15)) + (255,)
+            alpha = clamp(255 * (1.35 - r * 1.8))
+            px[x, y] = mix(accent, base, min(1, r + rng.f() * 0.15)) + (alpha,)
 
 
 PATTERNS = {
@@ -295,6 +296,10 @@ EXTRA_TILES = [
     {"name": "rain_drop", "pattern": "liquid", "base": [90, 130, 200], "accent": [160, 200, 240], "seed": 4},
     {"name": "snow_flake", "pattern": "speckle", "base": [235, 240, 250], "accent": [255, 255, 255], "seed": 5},
     {"name": "satchel", "pattern": "gravel", "base": [140, 100, 60], "accent": [180, 140, 90], "seed": 6},
+    # original wanderer player palette: teal tunic, warm skin, slate trousers
+    {"name": "player_body", "pattern": "speckle", "base": [46, 130, 128], "accent": [66, 160, 152], "seed": 7},
+    {"name": "player_head", "pattern": "flat", "base": [214, 172, 138], "accent": [222, 184, 150], "seed": 8},
+    {"name": "player_legs", "pattern": "grain_v", "base": [70, 78, 96], "accent": [88, 98, 118], "seed": 9},
 ]
 
 

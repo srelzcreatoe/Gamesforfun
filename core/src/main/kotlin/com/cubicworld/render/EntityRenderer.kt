@@ -151,10 +151,56 @@ class EntityRenderer(
         shader.setUniformf("u_hurtFlash", 0f)
     }
 
+    // ---- player (visible in third person) ---------------------------------
+
+    private var playerMesh: Mesh? = null
+
+    private fun playerMeshLazy(): Mesh = playerMesh ?: run {
+        val verts = GdxFloatArray(1024)
+        val idx = GdxShortArray(256)
+        val body = if (atlas.hasTile("player_body")) atlas.tileIndex("player_body") else atlas.tileIndex("white")
+        val head = if (atlas.hasTile("player_head")) atlas.tileIndex("player_head") else atlas.tileIndex("white")
+        val legs = if (atlas.hasTile("player_legs")) atlas.tileIndex("player_legs") else body
+        addBox(verts, idx, 0f, 0.68f, 0f, 0.52f, 0.72f, 0.3f, body)          // torso
+        addBox(verts, idx, 0f, 1.42f, 0f, 0.42f, 0.42f, 0.42f, head)          // head
+        addBox(verts, idx, -0.14f, 0f, 0f, 0.2f, 0.68f, 0.24f, legs)          // legs
+        addBox(verts, idx, 0.14f, 0f, 0f, 0.2f, 0.68f, 0.24f, legs)
+        addBox(verts, idx, -0.36f, 0.62f, 0f, 0.18f, 0.66f, 0.22f, body)      // arms
+        addBox(verts, idx, 0.36f, 0.62f, 0f, 0.18f, 0.66f, 0.22f, body)
+        val m = buildMesh(verts, idx)
+        playerMesh = m
+        m
+    }
+
+    fun renderPlayer(
+        shader: ShaderProgram,
+        player: com.cubicworld.player.PlayerController,
+        sunLevel: Float,
+        walkCycle: Float,
+    ) {
+        val light = world.lightAt(
+            MathUtils.floor(player.position.x),
+            MathUtils.floor(player.position.y + 1f),
+            MathUtils.floor(player.position.z),
+        )
+        val sky = ((light ushr 4) and 0xF) / 15f
+        val block = (light and 0xF) / 15f
+        shader.setUniformf("u_lightOverride", maxOf(sky * sunLevel, block))
+        shader.setUniformf("u_hurtFlash", 0f)
+        val bob = MathUtils.sin(walkCycle * 6f) * 0.04f
+        model.setToTranslation(player.position.x, player.position.y + bob, player.position.z)
+        model.rotate(0f, 1f, 0f, player.yaw)
+        shader.setUniformMatrix("u_model", model)
+        playerMeshLazy().render(shader, GL20.GL_TRIANGLES)
+        shader.setUniformf("u_lightOverride", -1f)
+    }
+
     fun dispose() {
         for (m in creatureMeshes.values) m.dispose()
         for (m in dropMeshes.values) m.dispose()
         creatureMeshes.clear()
         dropMeshes.clear()
+        playerMesh?.dispose()
+        playerMesh = null
     }
 }

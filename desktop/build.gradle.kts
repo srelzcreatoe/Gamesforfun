@@ -29,4 +29,9 @@ application {
 tasks.named<JavaExec>("run") {
     workingDir = rootProject.file("assets")
     isIgnoreExitValue = true
+    // forward cubic.* dev-harness properties (autoplay, shots, noaudio, duration)
+    for ((k, v) in System.getProperties()) {
+        val key = k.toString()
+        if (key.startsWith("cubic.")) systemProperty(key, v.toString())
+    }
 }

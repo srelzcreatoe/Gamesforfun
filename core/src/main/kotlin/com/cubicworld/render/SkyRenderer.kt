@@ -69,6 +69,10 @@ class SkyRenderer(private val atlas: TextureAtlasManager) {
         }
         Gdx.gl.glClearColor(fogColor[0], fogColor[1], fogColor[2], 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
+        // celestial/menu sprites are drawn next; the previous frame's 3D pass
+        // may have left culling and depth testing enabled
+        Gdx.gl.glDisable(GL20.GL_CULL_FACE)
+        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST)
     }
 
     /** Draw sun/moon/stars as a 2D backdrop before the world renders. */

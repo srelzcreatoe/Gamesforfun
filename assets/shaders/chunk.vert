@@ -18,9 +18,9 @@ void main() {
     v_uv = a_uv;
     v_tint = a_color.rgb;
     v_ao = a_color.a;
-    float packed = a_light * 255.0;
-    v_sky = floor(packed / 16.0) / 15.0;
-    v_block = mod(packed, 16.0) / 15.0;
+    float lightBits = a_light * 255.0;
+    v_sky = floor(lightBits / 16.0) / 15.0;
+    v_block = mod(lightBits, 16.0) / 15.0;
     vec4 worldPos = u_model * vec4(a_position, 1.0);
     v_dist = distance(worldPos.xyz, u_cameraPos);
     gl_Position = u_projView * worldPos;
