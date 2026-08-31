@@ -1,0 +1,784 @@
+{
+ "tiles": [
+  {
+   "name": "sunbark_pick",
+   "pattern": "grain_v",
+   "base": [
+    166,
+    128,
+    74
+   ],
+   "accent": [
+    190,
+    150,
+    90
+   ],
+   "accent2": [
+    126,
+    92,
+    52
+   ],
+   "seed": 100
+  },
+  {
+   "name": "sunbark_hatchet",
+   "pattern": "grain_v",
+   "base": [
+    166,
+    128,
+    74
+   ],
+   "accent": [
+    190,
+    150,
+    90
+   ],
+   "accent2": [
+    126,
+    92,
+    52
+   ],
+   "seed": 101
+  },
+  {
+   "name": "sunbark_shovel",
+   "pattern": "grain_v",
+   "base": [
+    166,
+    128,
+    74
+   ],
+   "accent": [
+    190,
+    150,
+    90
+   ],
+   "accent2": [
+    126,
+    92,
+    52
+   ],
+   "seed": 102
+  },
+  {
+   "name": "sunbark_blade",
+   "pattern": "grain_v",
+   "base": [
+    178,
+    140,
+    82
+   ],
+   "accent": [
+    204,
+    164,
+    100
+   ],
+   "accent2": [
+    126,
+    92,
+    52
+   ],
+   "seed": 103
+  },
+  {
+   "name": "flint_pick",
+   "pattern": "noise",
+   "base": [
+    92,
+    90,
+    88
+   ],
+   "accent": [
+    64,
+    62,
+    60
+   ],
+   "accent2": [
+    150,
+    112,
+    66
+   ],
+   "seed": 104
+  },
+  {
+   "name": "flint_hatchet",
+   "pattern": "noise",
+   "base": [
+    92,
+    90,
+    88
+   ],
+   "accent": [
+    64,
+    62,
+    60
+   ],
+   "accent2": [
+    150,
+    112,
+    66
+   ],
+   "seed": 105
+  },
+  {
+   "name": "flint_shovel",
+   "pattern": "noise",
+   "base": [
+    92,
+    90,
+    88
+   ],
+   "accent": [
+    64,
+    62,
+    60
+   ],
+   "accent2": [
+    150,
+    112,
+    66
+   ],
+   "seed": 106
+  },
+  {
+   "name": "flint_blade",
+   "pattern": "noise",
+   "base": [
+    84,
+    82,
+    80
+   ],
+   "accent": [
+    56,
+    54,
+    52
+   ],
+   "accent2": [
+    150,
+    112,
+    66
+   ],
+   "seed": 107
+  },
+  {
+   "name": "copper_pick",
+   "pattern": "noise",
+   "base": [
+    198,
+    122,
+    66
+   ],
+   "accent": [
+    226,
+    152,
+    88
+   ],
+   "accent2": [
+    126,
+    92,
+    52
+   ],
+   "seed": 108
+  },
+  {
+   "name": "copper_hatchet",
+   "pattern": "noise",
+   "base": [
+    198,
+    122,
+    66
+   ],
+   "accent": [
+    226,
+    152,
+    88
+   ],
+   "accent2": [
+    126,
+    92,
+    52
+   ],
+   "seed": 109
+  },
+  {
+   "name": "copper_shovel",
+   "pattern": "noise",
+   "base": [
+    198,
+    122,
+    66
+   ],
+   "accent": [
+    226,
+    152,
+    88
+   ],
+   "accent2": [
+    126,
+    92,
+    52
+   ],
+   "seed": 110
+  },
+  {
+   "name": "copper_blade",
+   "pattern": "noise",
+   "base": [
+    210,
+    134,
+    74
+   ],
+   "accent": [
+    236,
+    164,
+    98
+   ],
+   "accent2": [
+    126,
+    92,
+    52
+   ],
+   "seed": 111
+  },
+  {
+   "name": "ironroot_pick",
+   "pattern": "noise",
+   "base": [
+    104,
+    98,
+    94
+   ],
+   "accent": [
+    134,
+    128,
+    124
+   ],
+   "accent2": [
+    126,
+    92,
+    52
+   ],
+   "seed": 112
+  },
+  {
+   "name": "ironroot_hatchet",
+   "pattern": "noise",
+   "base": [
+    104,
+    98,
+    94
+   ],
+   "accent": [
+    134,
+    128,
+    124
+   ],
+   "accent2": [
+    126,
+    92,
+    52
+   ],
+   "seed": 113
+  },
+  {
+   "name": "ironroot_shovel",
+   "pattern": "noise",
+   "base": [
+    104,
+    98,
+    94
+   ],
+   "accent": [
+    134,
+    128,
+    124
+   ],
+   "accent2": [
+    126,
+    92,
+    52
+   ],
+   "seed": 114
+  },
+  {
+   "name": "ironroot_blade",
+   "pattern": "noise",
+   "base": [
+    116,
+    110,
+    106
+   ],
+   "accent": [
+    148,
+    142,
+    138
+   ],
+   "accent2": [
+    126,
+    92,
+    52
+   ],
+   "seed": 115
+  },
+  {
+   "name": "fiber_wisp",
+   "pattern": "speckle",
+   "base": [
+    200,
+    190,
+    150
+   ],
+   "accent": [
+    224,
+    214,
+    176
+   ],
+   "accent2": [
+    160,
+    150,
+    110
+   ],
+   "seed": 116
+  },
+  {
+   "name": "craft_stick",
+   "pattern": "grain_v",
+   "base": [
+    150,
+    112,
+    66
+   ],
+   "accent": [
+    176,
+    138,
+    86
+   ],
+   "accent2": [
+    122,
+    90,
+    52
+   ],
+   "seed": 117
+  },
+  {
+   "name": "flint_shard",
+   "pattern": "noise",
+   "base": [
+    70,
+    68,
+    66
+   ],
+   "accent": [
+    96,
+    94,
+    92
+   ],
+   "accent2": [
+    48,
+    46,
+    46
+   ],
+   "seed": 118
+  },
+  {
+   "name": "copper_lump",
+   "pattern": "gravel",
+   "base": [
+    186,
+    114,
+    62
+   ],
+   "accent": [
+    214,
+    144,
+    82
+   ],
+   "accent2": [
+    150,
+    90,
+    50
+   ],
+   "seed": 119
+  },
+  {
+   "name": "copper_ingot",
+   "pattern": "flat",
+   "base": [
+    214,
+    138,
+    78
+   ],
+   "accent": [
+    236,
+    168,
+    104
+   ],
+   "accent2": [
+    174,
+    104,
+    56
+   ],
+   "seed": 120
+  },
+  {
+   "name": "ironroot_chunk",
+   "pattern": "gravel",
+   "base": [
+    96,
+    88,
+    82
+   ],
+   "accent": [
+    120,
+    110,
+    102
+   ],
+   "accent2": [
+    70,
+    64,
+    60
+   ],
+   "seed": 121
+  },
+  {
+   "name": "ironroot_ingot",
+   "pattern": "flat",
+   "base": [
+    142,
+    136,
+    132
+   ],
+   "accent": [
+    170,
+    164,
+    160
+   ],
+   "accent2": [
+    110,
+    104,
+    100
+   ],
+   "seed": 122
+  },
+  {
+   "name": "emberite_shard",
+   "pattern": "crystal",
+   "base": [
+    236,
+    120,
+    42
+   ],
+   "accent": [
+    255,
+    178,
+    72
+   ],
+   "accent2": [
+    200,
+    96,
+    32
+   ],
+   "seed": 123
+  },
+  {
+   "name": "resonance_shard",
+   "pattern": "crystal",
+   "base": [
+    150,
+    120,
+    230
+   ],
+   "accent": [
+    190,
+    166,
+    248
+   ],
+   "accent2": [
+    104,
+    80,
+    180
+   ],
+   "seed": 124
+  },
+  {
+   "name": "sunbean_pod",
+   "pattern": "speckle",
+   "base": [
+    122,
+    176,
+    76
+   ],
+   "accent": [
+    240,
+    206,
+    96
+   ],
+   "accent2": [
+    92,
+    140,
+    58
+   ],
+   "seed": 125
+  },
+  {
+   "name": "roasted_sunbeans",
+   "pattern": "speckle",
+   "base": [
+    206,
+    160,
+    84
+   ],
+   "accent": [
+    232,
+    192,
+    110
+   ],
+   "accent2": [
+    166,
+    122,
+    62
+   ],
+   "seed": 126
+  },
+  {
+   "name": "bluecap_fungus",
+   "pattern": "speckle",
+   "base": [
+    96,
+    140,
+    214
+   ],
+   "accent": [
+    130,
+    168,
+    230
+   ],
+   "accent2": [
+    70,
+    108,
+    178
+   ],
+   "seed": 127
+  },
+  {
+   "name": "grilled_bluecap",
+   "pattern": "speckle",
+   "base": [
+    140,
+    120,
+    96
+   ],
+   "accent": [
+    172,
+    150,
+    120
+   ],
+   "accent2": [
+    104,
+    88,
+    70
+   ],
+   "seed": 128
+  },
+  {
+   "name": "curlroot",
+   "pattern": "noise",
+   "base": [
+    216,
+    150,
+    92
+   ],
+   "accent": [
+    236,
+    176,
+    118
+   ],
+   "accent2": [
+    178,
+    118,
+    70
+   ],
+   "seed": 129
+  },
+  {
+   "name": "baked_curlroot",
+   "pattern": "noise",
+   "base": [
+    188,
+    124,
+    66
+   ],
+   "accent": [
+    216,
+    156,
+    94
+   ],
+   "accent2": [
+    150,
+    96,
+    50
+   ],
+   "seed": 130
+  },
+  {
+   "name": "lantern_berry",
+   "pattern": "speckle",
+   "base": [
+    255,
+    196,
+    92
+   ],
+   "accent": [
+    255,
+    222,
+    140
+   ],
+   "accent2": [
+    214,
+    152,
+    62
+   ],
+   "seed": 131
+  },
+  {
+   "name": "lantern_berry_compote",
+   "pattern": "noise",
+   "base": [
+    222,
+    150,
+    64
+   ],
+   "accent": [
+    246,
+    186,
+    98
+   ],
+   "accent2": [
+    178,
+    112,
+    46
+   ],
+   "seed": 132
+  },
+  {
+   "name": "reedgrain",
+   "pattern": "grain_v",
+   "base": [
+    222,
+    204,
+    120
+   ],
+   "accent": [
+    240,
+    224,
+    150
+   ],
+   "accent2": [
+    186,
+    166,
+    92
+   ],
+   "seed": 133
+  },
+  {
+   "name": "reedgrain_flatbread",
+   "pattern": "flat",
+   "base": [
+    226,
+    190,
+    124
+   ],
+   "accent": [
+    244,
+    212,
+    152
+   ],
+   "accent2": [
+    190,
+    152,
+    94
+   ],
+   "seed": 134
+  },
+  {
+   "name": "moss_snack",
+   "pattern": "speckle",
+   "base": [
+    104,
+    152,
+    80
+   ],
+   "accent": [
+    132,
+    180,
+    102
+   ],
+   "accent2": [
+    76,
+    118,
+    60
+   ],
+   "seed": 135
+  },
+  {
+   "name": "mossram_meat",
+   "pattern": "noise",
+   "base": [
+    196,
+    92,
+    88
+   ],
+   "accent": [
+    222,
+    128,
+    120
+   ],
+   "accent2": [
+    156,
+    64,
+    62
+   ],
+   "seed": 136
+  },
+  {
+   "name": "cooked_mossram",
+   "pattern": "noise",
+   "base": [
+    158,
+    100,
+    66
+   ],
+   "accent": [
+    190,
+    132,
+    92
+   ],
+   "accent2": [
+    122,
+    74,
+    48
+   ],
+   "seed": 137
+  },
+  {
+   "name": "starsteel_grain_icon",
+   "pattern": "crystal",
+   "base": [
+    200,
+    210,
+    235
+   ],
+   "accent": [
+    240,
+    245,
+    255
+   ],
+   "accent2": [
+    140,
+    155,
+    200
+   ],
+   "seed": 77
+  }
+ ]
+}

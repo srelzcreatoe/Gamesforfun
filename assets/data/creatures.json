@@ -1,0 +1,95 @@
+{
+  "creatures": [
+    {
+      "name": "spriggle",
+      "displayName": "Spriggle",
+      "hostile": false,
+      "health": 6,
+      "speed": 1.8,
+      "damage": 0,
+      "size": [0.5, 0.6],
+      "drops": [
+        { "item": "fiber_wisp", "count": [0, 2] }
+      ],
+      "tiles": { "body": "spriggle_body", "head": "spriggle_head" },
+      "spawn": { "night": false, "maxLight": 15, "minLight": 8, "weight": 12, "groupMax": 4 },
+      "sounds": "chirp"
+    },
+    {
+      "name": "mossram",
+      "displayName": "Mossram",
+      "hostile": false,
+      "health": 16,
+      "speed": 1.3,
+      "damage": 0,
+      "size": [1.1, 1.2],
+      "drops": [
+        { "item": "mossram_meat", "count": [1, 2] },
+        { "item": "moss_snack", "count": [0, 1] }
+      ],
+      "tiles": { "body": "mossram_body", "head": "mossram_head" },
+      "spawn": { "night": false, "maxLight": 15, "minLight": 8, "weight": 10, "groupMax": 3 },
+      "sounds": "bleat"
+    },
+    {
+      "name": "glowmoth",
+      "displayName": "Glowmoth",
+      "hostile": false,
+      "health": 6,
+      "speed": 2.2,
+      "damage": 0,
+      "size": [0.7, 0.5],
+      "drops": [
+        { "item": "fiber_wisp", "count": [0, 1] }
+      ],
+      "tiles": { "body": "glowmoth_body", "head": "glowmoth_head" },
+      "spawn": { "night": true, "maxLight": 7, "minLight": 0, "weight": 9, "groupMax": 3 },
+      "sounds": "flutter"
+    },
+    {
+      "name": "burrowbit",
+      "displayName": "Burrowbit",
+      "hostile": false,
+      "health": 8,
+      "speed": 2.0,
+      "damage": 0,
+      "size": [0.6, 0.5],
+      "drops": [
+        { "item": "fiber_wisp", "count": [0, 2] }
+      ],
+      "tiles": { "body": "burrowbit_body", "head": "burrowbit_head" },
+      "spawn": { "night": false, "maxLight": 11, "minLight": 0, "weight": 8, "groupMax": 2 },
+      "sounds": "snuffle"
+    },
+    {
+      "name": "duskling",
+      "displayName": "Duskling",
+      "hostile": true,
+      "health": 12,
+      "speed": 2.4,
+      "damage": 3,
+      "size": [0.6, 1.4],
+      "drops": [
+        { "item": "fiber_wisp", "count": [0, 1] }
+      ],
+      "tiles": { "body": "duskling_body", "head": "duskling_head" },
+      "spawn": { "night": true, "maxLight": 5, "minLight": 0, "weight": 8, "groupMax": 2 },
+      "sounds": "hiss"
+    },
+    {
+      "name": "shardspine",
+      "displayName": "Shardspine",
+      "hostile": true,
+      "health": 20,
+      "speed": 2.0,
+      "damage": 4,
+      "size": [1.0, 1.1],
+      "drops": [
+        { "item": "resonance_shard", "count": [1, 2] }
+      ],
+      "tiles": { "body": "shardspine_body", "head": "shardspine_head" },
+      "spawn": { "night": false, "maxLight": 15, "minLight": 0, "weight": 5, "groupMax": 1 },
+      "sounds": "rattle"
+    }
+  ]
+}

@@ -1,0 +1,183 @@
+{
+  "biomes": [
+    {
+      "name": "sunleaf_meadows",
+      "displayName": "Sunleaf Meadows",
+      "temp": [0.5, 0.75],
+      "moist": [0.0, 0.5],
+      "surface": "grass_sod",
+      "subsurface": "soil",
+      "underwater": "shell_sand",
+      "heightBase": 6,
+      "heightVar": 8,
+      "roughness": 0.35,
+      "treeType": "sunbark",
+      "treeDensity": 0.004,
+      "plants": [
+        { "block": "grass_tuft", "density": 0.08 },
+        { "block": "sunpetal", "density": 0.03 }
+      ],
+      "grassTint": [140, 205, 88],
+      "leafTint": [122, 192, 74],
+      "skyTint": [128, 182, 238],
+      "creatures": []
+    },
+    {
+      "name": "whisperwood",
+      "displayName": "Whisperwood",
+      "temp": [0.25, 0.5],
+      "moist": [0.5, 1.0],
+      "surface": "grass_sod",
+      "subsurface": "soil",
+      "underwater": "soil",
+      "heightBase": 10,
+      "heightVar": 12,
+      "roughness": 0.45,
+      "treeType": "palebark",
+      "treeDensity": 0.02,
+      "plants": [
+        { "block": "wisp_fern", "density": 0.05 },
+        { "block": "grass_tuft", "density": 0.04 },
+        { "block": "moss_clump", "density": 0.015 }
+      ],
+      "grassTint": [118, 178, 128],
+      "leafTint": [152, 202, 172],
+      "skyTint": [150, 170, 220],
+      "creatures": []
+    },
+    {
+      "name": "ruststone_barrens",
+      "displayName": "Ruststone Barrens",
+      "temp": [0.75, 1.0],
+      "moist": [0.0, 0.5],
+      "surface": "ash_gravel",
+      "subsurface": "ruststone",
+      "underwater": "ash_gravel",
+      "heightBase": 8,
+      "heightVar": 10,
+      "roughness": 0.6,
+      "treeType": "none",
+      "treeDensity": 0.0,
+      "plants": [
+        { "block": "cinderpuff", "density": 0.02 },
+        { "block": "grass_tuft", "density": 0.005 }
+      ],
+      "grassTint": [176, 140, 72],
+      "leafTint": [150, 120, 60],
+      "skyTint": [205, 160, 120],
+      "creatures": []
+    },
+    {
+      "name": "frostglass_expanse",
+      "displayName": "Frostglass Expanse",
+      "temp": [0.0, 0.25],
+      "moist": [0.0, 0.5],
+      "surface": "frostglass",
+      "subsurface": "graystone",
+      "underwater": "frostglass",
+      "heightBase": 4,
+      "heightVar": 6,
+      "roughness": 0.3,
+      "treeType": "none",
+      "treeDensity": 0.0,
+      "plants": [
+        { "block": "frostbell", "density": 0.015 },
+        { "block": "snow_slab", "density": 0.06 }
+      ],
+      "grassTint": [150, 200, 190],
+      "leafTint": [172, 212, 202],
+      "skyTint": [190, 215, 240],
+      "creatures": []
+    },
+    {
+      "name": "mirelight_fen",
+      "displayName": "Mirelight Fen",
+      "temp": [0.75, 1.0],
+      "moist": [0.5, 1.0],
+      "surface": "fen_mud",
+      "subsurface": "fen_mud",
+      "underwater": "fen_mud",
+      "heightBase": -2,
+      "heightVar": 3,
+      "roughness": 0.2,
+      "treeType": "mirewood",
+      "treeDensity": 0.012,
+      "plants": [
+        { "block": "fen_reed", "density": 0.09 },
+        { "block": "moss_clump", "density": 0.03 },
+        { "block": "gloomcap", "density": 0.02 }
+      ],
+      "grassTint": [96, 132, 70],
+      "leafTint": [88, 124, 64],
+      "skyTint": [120, 140, 150],
+      "creatures": []
+    },
+    {
+      "name": "azure_coast",
+      "displayName": "Azure Coast",
+      "temp": [0.5, 0.75],
+      "moist": [0.5, 1.0],
+      "surface": "shell_sand",
+      "subsurface": "shell_sand",
+      "underwater": "shell_sand",
+      "heightBase": -1,
+      "heightVar": 4,
+      "roughness": 0.25,
+      "treeType": "none",
+      "treeDensity": 0.0,
+      "plants": [
+        { "block": "fen_reed", "density": 0.02 },
+        { "block": "grass_tuft", "density": 0.01 }
+      ],
+      "grassTint": [150, 210, 120],
+      "leafTint": [130, 195, 100],
+      "skyTint": [110, 190, 245],
+      "creatures": []
+    },
+    {
+      "name": "starfall_highlands",
+      "displayName": "Starfall Highlands",
+      "temp": [0.0, 0.25],
+      "moist": [0.5, 1.0],
+      "surface": "grass_sod",
+      "subsurface": "graystone",
+      "underwater": "ash_gravel",
+      "heightBase": 40,
+      "heightVar": 22,
+      "roughness": 0.9,
+      "treeType": "palebark",
+      "treeDensity": 0.002,
+      "plants": [
+        { "block": "frostbell", "density": 0.03 },
+        { "block": "grass_tuft", "density": 0.04 }
+      ],
+      "grassTint": [120, 170, 110],
+      "leafTint": [136, 182, 150],
+      "skyTint": [90, 120, 200],
+      "creatures": []
+    },
+    {
+      "name": "gloomroot_depths",
+      "displayName": "Gloomroot Depths",
+      "temp": [0.25, 0.5],
+      "moist": [0.0, 0.5],
+      "surface": "graystone",
+      "subsurface": "deepstone",
+      "underwater": "ash_gravel",
+      "heightBase": 2,
+      "heightVar": 8,
+      "roughness": 0.5,
+      "treeType": "none",
+      "treeDensity": 0.0,
+      "plants": [
+        { "block": "gloomcap", "density": 0.05 },
+        { "block": "moss_clump", "density": 0.04 },
+        { "block": "wisp_fern", "density": 0.01 }
+      ],
+      "grassTint": [90, 110, 95],
+      "leafTint": [80, 105, 90],
+      "skyTint": [70, 80, 110],
+      "creatures": []
+    }
+  ]
+}

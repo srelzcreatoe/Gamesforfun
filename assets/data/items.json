@@ -1,0 +1,857 @@
+{
+ "items": [
+  {
+   "name": "grass_sod",
+   "displayName": "Grass Sod",
+   "kind": "block",
+   "block": "grass_sod",
+   "stack": 64
+  },
+  {
+   "name": "soil",
+   "displayName": "Soil",
+   "kind": "block",
+   "block": "soil",
+   "stack": 64
+  },
+  {
+   "name": "fen_mud",
+   "displayName": "Fen Mud",
+   "kind": "block",
+   "block": "fen_mud",
+   "stack": 64
+  },
+  {
+   "name": "shell_sand",
+   "displayName": "Shell Sand",
+   "kind": "block",
+   "block": "shell_sand",
+   "stack": 64
+  },
+  {
+   "name": "ash_gravel",
+   "displayName": "Ash Gravel",
+   "kind": "block",
+   "block": "ash_gravel",
+   "stack": 64
+  },
+  {
+   "name": "graystone",
+   "displayName": "Graystone",
+   "kind": "block",
+   "block": "graystone",
+   "stack": 64
+  },
+  {
+   "name": "cobbled_graystone",
+   "displayName": "Cobbled Graystone",
+   "kind": "block",
+   "block": "cobbled_graystone",
+   "stack": 64
+  },
+  {
+   "name": "graystone_brick",
+   "displayName": "Graystone Brick",
+   "kind": "block",
+   "block": "graystone_brick",
+   "stack": 64
+  },
+  {
+   "name": "graystone_slab",
+   "displayName": "Graystone Slab",
+   "kind": "block",
+   "block": "graystone_slab",
+   "stack": 64
+  },
+  {
+   "name": "ruststone",
+   "displayName": "Ruststone",
+   "kind": "block",
+   "block": "ruststone",
+   "stack": 64
+  },
+  {
+   "name": "cobbled_ruststone",
+   "displayName": "Cobbled Ruststone",
+   "kind": "block",
+   "block": "cobbled_ruststone",
+   "stack": 64
+  },
+  {
+   "name": "ruststone_brick",
+   "displayName": "Ruststone Brick",
+   "kind": "block",
+   "block": "ruststone_brick",
+   "stack": 64
+  },
+  {
+   "name": "ruststone_slab",
+   "displayName": "Ruststone Slab",
+   "kind": "block",
+   "block": "ruststone_slab",
+   "stack": 64
+  },
+  {
+   "name": "deepstone",
+   "displayName": "Deepstone",
+   "kind": "block",
+   "block": "deepstone",
+   "stack": 64
+  },
+  {
+   "name": "cobbled_deepstone",
+   "displayName": "Cobbled Deepstone",
+   "kind": "block",
+   "block": "cobbled_deepstone",
+   "stack": 64
+  },
+  {
+   "name": "deepstone_brick",
+   "displayName": "Deepstone Brick",
+   "kind": "block",
+   "block": "deepstone_brick",
+   "stack": 64
+  },
+  {
+   "name": "deepstone_slab",
+   "displayName": "Deepstone Slab",
+   "kind": "block",
+   "block": "deepstone_slab",
+   "stack": 64
+  },
+  {
+   "name": "frostglass",
+   "displayName": "Frostglass",
+   "kind": "block",
+   "block": "frostglass",
+   "stack": 64
+  },
+  {
+   "name": "frostglass_brick",
+   "displayName": "Frostglass Brick",
+   "kind": "block",
+   "block": "frostglass_brick",
+   "stack": 64
+  },
+  {
+   "name": "frostglass_slab",
+   "displayName": "Frostglass Slab",
+   "kind": "block",
+   "block": "frostglass_slab",
+   "stack": 64
+  },
+  {
+   "name": "flint_nodule",
+   "displayName": "Flint Nodule",
+   "kind": "block",
+   "block": "flint_nodule",
+   "stack": 64
+  },
+  {
+   "name": "copper_vein",
+   "displayName": "Copper Vein",
+   "kind": "block",
+   "block": "copper_vein",
+   "stack": 64
+  },
+  {
+   "name": "ironroot_vein",
+   "displayName": "Ironroot Vein",
+   "kind": "block",
+   "block": "ironroot_vein",
+   "stack": 64
+  },
+  {
+   "name": "emberite_vein",
+   "displayName": "Emberite Vein",
+   "kind": "block",
+   "block": "emberite_vein",
+   "stack": 64
+  },
+  {
+   "name": "starsteel_vein",
+   "displayName": "Starsteel Vein",
+   "kind": "block",
+   "block": "starsteel_vein",
+   "stack": 64
+  },
+  {
+   "name": "sunbark_log",
+   "displayName": "Sunbark Log",
+   "kind": "block",
+   "block": "sunbark_log",
+   "stack": 64
+  },
+  {
+   "name": "sunbark_planks",
+   "displayName": "Sunbark Planks",
+   "kind": "block",
+   "block": "sunbark_planks",
+   "stack": 64
+  },
+  {
+   "name": "sunbark_leaves",
+   "displayName": "Sunbark Leaves",
+   "kind": "block",
+   "block": "sunbark_leaves",
+   "stack": 64
+  },
+  {
+   "name": "sunbark_sapling",
+   "displayName": "Sunbark Sapling",
+   "kind": "block",
+   "block": "sunbark_sapling",
+   "stack": 64
+  },
+  {
+   "name": "sunbark_slab",
+   "displayName": "Sunbark Slab",
+   "kind": "block",
+   "block": "sunbark_slab",
+   "stack": 64
+  },
+  {
+   "name": "palebark_log",
+   "displayName": "Palebark Log",
+   "kind": "block",
+   "block": "palebark_log",
+   "stack": 64
+  },
+  {
+   "name": "palebark_planks",
+   "displayName": "Palebark Planks",
+   "kind": "block",
+   "block": "palebark_planks",
+   "stack": 64
+  },
+  {
+   "name": "palebark_leaves",
+   "displayName": "Palebark Leaves",
+   "kind": "block",
+   "block": "palebark_leaves",
+   "stack": 64
+  },
+  {
+   "name": "palebark_sapling",
+   "displayName": "Palebark Sapling",
+   "kind": "block",
+   "block": "palebark_sapling",
+   "stack": 64
+  },
+  {
+   "name": "mirewood_log",
+   "displayName": "Mirewood Log",
+   "kind": "block",
+   "block": "mirewood_log",
+   "stack": 64
+  },
+  {
+   "name": "mirewood_planks",
+   "displayName": "Mirewood Planks",
+   "kind": "block",
+   "block": "mirewood_planks",
+   "stack": 64
+  },
+  {
+   "name": "mirewood_leaves",
+   "displayName": "Mirewood Leaves",
+   "kind": "block",
+   "block": "mirewood_leaves",
+   "stack": 64
+  },
+  {
+   "name": "mirewood_sapling",
+   "displayName": "Mirewood Sapling",
+   "kind": "block",
+   "block": "mirewood_sapling",
+   "stack": 64
+  },
+  {
+   "name": "glass",
+   "displayName": "Glass",
+   "kind": "block",
+   "block": "glass",
+   "stack": 64
+  },
+  {
+   "name": "glow_lantern",
+   "displayName": "Glow Lantern",
+   "kind": "block",
+   "block": "glow_lantern",
+   "stack": 64
+  },
+  {
+   "name": "emberite_lamp",
+   "displayName": "Emberite Lamp",
+   "kind": "block",
+   "block": "emberite_lamp",
+   "stack": 64
+  },
+  {
+   "name": "handwork_mat",
+   "displayName": "Handwork Mat",
+   "kind": "block",
+   "block": "handwork_mat",
+   "stack": 64
+  },
+  {
+   "name": "forge_table",
+   "displayName": "Forge Table",
+   "kind": "block",
+   "block": "forge_table",
+   "stack": 64
+  },
+  {
+   "name": "kiln",
+   "displayName": "Kiln",
+   "kind": "block",
+   "block": "kiln",
+   "stack": 64
+  },
+  {
+   "name": "cookpot",
+   "displayName": "Cookpot",
+   "kind": "block",
+   "block": "cookpot",
+   "stack": 64
+  },
+  {
+   "name": "storage_crate",
+   "displayName": "Storage Crate",
+   "kind": "block",
+   "block": "storage_crate",
+   "stack": 64
+  },
+  {
+   "name": "waystone_stone",
+   "displayName": "Waystone Stone",
+   "kind": "block",
+   "block": "waystone_stone",
+   "stack": 64
+  },
+  {
+   "name": "waystone_core",
+   "displayName": "Waystone Core",
+   "kind": "block",
+   "block": "waystone_core",
+   "stack": 64
+  },
+  {
+   "name": "sunbean_crop",
+   "displayName": "Sunbean Crop",
+   "kind": "block",
+   "block": "sunbean_crop",
+   "stack": 64
+  },
+  {
+   "name": "bluecap_crop",
+   "displayName": "Bluecap Crop",
+   "kind": "block",
+   "block": "bluecap_crop",
+   "stack": 64
+  },
+  {
+   "name": "curlroot_crop",
+   "displayName": "Curlroot Crop",
+   "kind": "block",
+   "block": "curlroot_crop",
+   "stack": 64
+  },
+  {
+   "name": "lantern_berry_crop",
+   "displayName": "Lantern Berry Crop",
+   "kind": "block",
+   "block": "lantern_berry_crop",
+   "stack": 64
+  },
+  {
+   "name": "reedgrain_crop",
+   "displayName": "Reedgrain Crop",
+   "kind": "block",
+   "block": "reedgrain_crop",
+   "stack": 64
+  },
+  {
+   "name": "grass_tuft",
+   "displayName": "Grass Tuft",
+   "kind": "block",
+   "block": "grass_tuft",
+   "stack": 64
+  },
+  {
+   "name": "sunpetal",
+   "displayName": "Sunpetal",
+   "kind": "block",
+   "block": "sunpetal",
+   "stack": 64
+  },
+  {
+   "name": "frostbell",
+   "displayName": "Frostbell",
+   "kind": "block",
+   "block": "frostbell",
+   "stack": 64
+  },
+  {
+   "name": "gloomcap",
+   "displayName": "Gloomcap",
+   "kind": "block",
+   "block": "gloomcap",
+   "stack": 64
+  },
+  {
+   "name": "cinderpuff",
+   "displayName": "Cinderpuff",
+   "kind": "block",
+   "block": "cinderpuff",
+   "stack": 64
+  },
+  {
+   "name": "wisp_fern",
+   "displayName": "Wisp Fern",
+   "kind": "block",
+   "block": "wisp_fern",
+   "stack": 64
+  },
+  {
+   "name": "fen_reed",
+   "displayName": "Fen Reed",
+   "kind": "block",
+   "block": "fen_reed",
+   "stack": 64
+  },
+  {
+   "name": "snow_slab",
+   "displayName": "Snow Slab",
+   "kind": "block",
+   "block": "snow_slab",
+   "stack": 64
+  },
+  {
+   "name": "rope_ladder",
+   "displayName": "Rope Ladder",
+   "kind": "block",
+   "block": "rope_ladder",
+   "stack": 64
+  },
+  {
+   "name": "moss_clump",
+   "displayName": "Moss Clump",
+   "kind": "block",
+   "block": "moss_clump",
+   "stack": 64
+  },
+  {
+   "name": "reed_thatch",
+   "displayName": "Reed Thatch",
+   "kind": "block",
+   "block": "reed_thatch",
+   "stack": 64
+  },
+  {
+   "name": "sunbark_pick",
+   "displayName": "Sunbark Pick",
+   "kind": "tool",
+   "icon": "sunbark_pick",
+   "stack": 1,
+   "toolType": "pick",
+   "tier": 0,
+   "durability": 48,
+   "efficiency": 1.4,
+   "damage": 2
+  },
+  {
+   "name": "sunbark_hatchet",
+   "displayName": "Sunbark Hatchet",
+   "kind": "tool",
+   "icon": "sunbark_hatchet",
+   "stack": 1,
+   "toolType": "hatchet",
+   "tier": 0,
+   "durability": 48,
+   "efficiency": 1.4,
+   "damage": 2
+  },
+  {
+   "name": "sunbark_shovel",
+   "displayName": "Sunbark Shovel",
+   "kind": "tool",
+   "icon": "sunbark_shovel",
+   "stack": 1,
+   "toolType": "shovel",
+   "tier": 0,
+   "durability": 48,
+   "efficiency": 1.4,
+   "damage": 1
+  },
+  {
+   "name": "sunbark_blade",
+   "displayName": "Sunbark Blade",
+   "kind": "tool",
+   "icon": "sunbark_blade",
+   "stack": 1,
+   "toolType": "blade",
+   "tier": 0,
+   "durability": 48,
+   "efficiency": 1.0,
+   "damage": 3
+  },
+  {
+   "name": "flint_pick",
+   "displayName": "Flint Pick",
+   "kind": "tool",
+   "icon": "flint_pick",
+   "stack": 1,
+   "toolType": "pick",
+   "tier": 1,
+   "durability": 120,
+   "efficiency": 2.2,
+   "damage": 3
+  },
+  {
+   "name": "flint_hatchet",
+   "displayName": "Flint Hatchet",
+   "kind": "tool",
+   "icon": "flint_hatchet",
+   "stack": 1,
+   "toolType": "hatchet",
+   "tier": 1,
+   "durability": 120,
+   "efficiency": 2.2,
+   "damage": 3
+  },
+  {
+   "name": "flint_shovel",
+   "displayName": "Flint Shovel",
+   "kind": "tool",
+   "icon": "flint_shovel",
+   "stack": 1,
+   "toolType": "shovel",
+   "tier": 1,
+   "durability": 120,
+   "efficiency": 2.2,
+   "damage": 2
+  },
+  {
+   "name": "flint_blade",
+   "displayName": "Flint Blade",
+   "kind": "tool",
+   "icon": "flint_blade",
+   "stack": 1,
+   "toolType": "blade",
+   "tier": 1,
+   "durability": 120,
+   "efficiency": 1.0,
+   "damage": 4
+  },
+  {
+   "name": "copper_pick",
+   "displayName": "Copper Pick",
+   "kind": "tool",
+   "icon": "copper_pick",
+   "stack": 1,
+   "toolType": "pick",
+   "tier": 2,
+   "durability": 260,
+   "efficiency": 3.4,
+   "damage": 4
+  },
+  {
+   "name": "copper_hatchet",
+   "displayName": "Copper Hatchet",
+   "kind": "tool",
+   "icon": "copper_hatchet",
+   "stack": 1,
+   "toolType": "hatchet",
+   "tier": 2,
+   "durability": 260,
+   "efficiency": 3.4,
+   "damage": 4
+  },
+  {
+   "name": "copper_shovel",
+   "displayName": "Copper Shovel",
+   "kind": "tool",
+   "icon": "copper_shovel",
+   "stack": 1,
+   "toolType": "shovel",
+   "tier": 2,
+   "durability": 260,
+   "efficiency": 3.4,
+   "damage": 3
+  },
+  {
+   "name": "copper_blade",
+   "displayName": "Copper Blade",
+   "kind": "tool",
+   "icon": "copper_blade",
+   "stack": 1,
+   "toolType": "blade",
+   "tier": 2,
+   "durability": 260,
+   "efficiency": 1.0,
+   "damage": 6
+  },
+  {
+   "name": "ironroot_pick",
+   "displayName": "Ironroot Pick",
+   "kind": "tool",
+   "icon": "ironroot_pick",
+   "stack": 1,
+   "toolType": "pick",
+   "tier": 3,
+   "durability": 560,
+   "efficiency": 5.0,
+   "damage": 5
+  },
+  {
+   "name": "ironroot_hatchet",
+   "displayName": "Ironroot Hatchet",
+   "kind": "tool",
+   "icon": "ironroot_hatchet",
+   "stack": 1,
+   "toolType": "hatchet",
+   "tier": 3,
+   "durability": 560,
+   "efficiency": 5.0,
+   "damage": 6
+  },
+  {
+   "name": "ironroot_shovel",
+   "displayName": "Ironroot Shovel",
+   "kind": "tool",
+   "icon": "ironroot_shovel",
+   "stack": 1,
+   "toolType": "shovel",
+   "tier": 3,
+   "durability": 560,
+   "efficiency": 5.0,
+   "damage": 4
+  },
+  {
+   "name": "ironroot_blade",
+   "displayName": "Ironroot Blade",
+   "kind": "tool",
+   "icon": "ironroot_blade",
+   "stack": 1,
+   "toolType": "blade",
+   "tier": 3,
+   "durability": 560,
+   "efficiency": 1.0,
+   "damage": 8
+  },
+  {
+   "name": "fiber_wisp",
+   "displayName": "Fiber Wisp",
+   "kind": "material",
+   "icon": "fiber_wisp",
+   "stack": 64
+  },
+  {
+   "name": "craft_stick",
+   "displayName": "Craft Stick",
+   "kind": "material",
+   "icon": "craft_stick",
+   "stack": 64
+  },
+  {
+   "name": "flint_shard",
+   "displayName": "Flint Shard",
+   "kind": "material",
+   "icon": "flint_shard",
+   "stack": 64
+  },
+  {
+   "name": "copper_lump",
+   "displayName": "Copper Lump",
+   "kind": "material",
+   "icon": "copper_lump",
+   "stack": 64
+  },
+  {
+   "name": "copper_ingot",
+   "displayName": "Copper Ingot",
+   "kind": "material",
+   "icon": "copper_ingot",
+   "stack": 64
+  },
+  {
+   "name": "ironroot_chunk",
+   "displayName": "Ironroot Chunk",
+   "kind": "material",
+   "icon": "ironroot_chunk",
+   "stack": 64
+  },
+  {
+   "name": "ironroot_ingot",
+   "displayName": "Ironroot Ingot",
+   "kind": "material",
+   "icon": "ironroot_ingot",
+   "stack": 64
+  },
+  {
+   "name": "emberite_shard",
+   "displayName": "Emberite Shard",
+   "kind": "material",
+   "icon": "emberite_shard",
+   "stack": 64
+  },
+  {
+   "name": "resonance_shard",
+   "displayName": "Resonance Shard",
+   "kind": "material",
+   "icon": "resonance_shard",
+   "stack": 64
+  },
+  {
+   "name": "sunbean_pod",
+   "displayName": "Sunbean Pod",
+   "kind": "food",
+   "icon": "sunbean_pod",
+   "stack": 64,
+   "food": {
+    "hunger": 2,
+    "heal": 0
+   }
+  },
+  {
+   "name": "roasted_sunbeans",
+   "displayName": "Roasted Sunbeans",
+   "kind": "food",
+   "icon": "roasted_sunbeans",
+   "stack": 64,
+   "food": {
+    "hunger": 5,
+    "heal": 1
+   }
+  },
+  {
+   "name": "bluecap_fungus",
+   "displayName": "Bluecap Fungus",
+   "kind": "food",
+   "icon": "bluecap_fungus",
+   "stack": 64,
+   "food": {
+    "hunger": 2,
+    "heal": 0
+   }
+  },
+  {
+   "name": "grilled_bluecap",
+   "displayName": "Grilled Bluecap",
+   "kind": "food",
+   "icon": "grilled_bluecap",
+   "stack": 64,
+   "food": {
+    "hunger": 5,
+    "heal": 1
+   }
+  },
+  {
+   "name": "curlroot",
+   "displayName": "Curlroot",
+   "kind": "food",
+   "icon": "curlroot",
+   "stack": 64,
+   "food": {
+    "hunger": 3,
+    "heal": 0
+   }
+  },
+  {
+   "name": "baked_curlroot",
+   "displayName": "Baked Curlroot",
+   "kind": "food",
+   "icon": "baked_curlroot",
+   "stack": 64,
+   "food": {
+    "hunger": 6,
+    "heal": 1
+   }
+  },
+  {
+   "name": "lantern_berry",
+   "displayName": "Lantern Berry",
+   "kind": "food",
+   "icon": "lantern_berry",
+   "stack": 64,
+   "food": {
+    "hunger": 3,
+    "heal": 0
+   }
+  },
+  {
+   "name": "lantern_berry_compote",
+   "displayName": "Lantern Berry Compote",
+   "kind": "food",
+   "icon": "lantern_berry_compote",
+   "stack": 64,
+   "food": {
+    "hunger": 6,
+    "heal": 2
+   }
+  },
+  {
+   "name": "reedgrain",
+   "displayName": "Reedgrain",
+   "kind": "food",
+   "icon": "reedgrain",
+   "stack": 64,
+   "food": {
+    "hunger": 2,
+    "heal": 0
+   }
+  },
+  {
+   "name": "reedgrain_flatbread",
+   "displayName": "Reedgrain Flatbread",
+   "kind": "food",
+   "icon": "reedgrain_flatbread",
+   "stack": 64,
+   "food": {
+    "hunger": 6,
+    "heal": 1
+   }
+  },
+  {
+   "name": "moss_snack",
+   "displayName": "Moss Snack",
+   "kind": "food",
+   "icon": "moss_snack",
+   "stack": 64,
+   "food": {
+    "hunger": 2,
+    "heal": 0
+   }
+  },
+  {
+   "name": "mossram_meat",
+   "displayName": "Mossram Meat",
+   "kind": "food",
+   "icon": "mossram_meat",
+   "stack": 64,
+   "food": {
+    "hunger": 3,
+    "heal": 0
+   }
+  },
+  {
+   "name": "cooked_mossram",
+   "displayName": "Cooked Mossram",
+   "kind": "food",
+   "icon": "cooked_mossram",
+   "stack": 64,
+   "food": {
+    "hunger": 8,
+    "heal": 2
+   }
+  },
+  {
+   "name": "starsteel_grain",
+   "displayName": "Starsteel Grain",
+   "kind": "material",
+   "icon": "starsteel_grain_icon",
+   "stack": 64
+  }
+ ]
+}

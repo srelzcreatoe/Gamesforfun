@@ -1,0 +1,16 @@
+{
+  "tiles": [
+    { "name": "spriggle_body", "pattern": "speckle", "base": [110, 170, 90], "accent": [150, 110, 70], "accent2": [86, 140, 70], "seed": 70 },
+    { "name": "spriggle_head", "pattern": "speckle", "base": [130, 186, 104], "accent": [214, 196, 150], "accent2": [96, 150, 78], "seed": 71 },
+    { "name": "mossram_body", "pattern": "noise", "base": [120, 138, 104], "accent": [96, 116, 84], "accent2": [148, 164, 126], "seed": 72 },
+    { "name": "mossram_head", "pattern": "noise", "base": [98, 88, 74], "accent": [80, 70, 58], "accent2": [204, 192, 164], "seed": 73 },
+    { "name": "glowmoth_body", "pattern": "speckle", "base": [218, 228, 226], "accent": [120, 240, 236], "accent2": [188, 204, 206], "seed": 74 },
+    { "name": "glowmoth_head", "pattern": "speckle", "base": [202, 214, 214], "accent": [96, 232, 228], "accent2": [168, 186, 190], "seed": 75 },
+    { "name": "burrowbit_body", "pattern": "noise", "base": [146, 110, 76], "accent": [120, 88, 60], "accent2": [176, 140, 100], "seed": 76 },
+    { "name": "burrowbit_head", "pattern": "noise", "base": [162, 126, 90], "accent": [206, 170, 128], "accent2": [224, 150, 150], "seed": 77 },
+    { "name": "duskling_body", "pattern": "noise", "base": [24, 20, 32], "accent": [98, 52, 148], "accent2": [40, 34, 54], "seed": 78 },
+    { "name": "duskling_head", "pattern": "noise", "base": [20, 16, 28], "accent": [156, 84, 220], "accent2": [52, 40, 72], "seed": 79 },
+    { "name": "shardspine_body", "pattern": "crystal", "base": [108, 102, 118], "accent": [150, 226, 214], "accent2": [72, 66, 84], "seed": 80 },
+    { "name": "shardspine_head", "pattern": "crystal", "base": [92, 86, 102], "accent": [236, 170, 84], "accent2": [60, 56, 72], "seed": 81 }
+  ]
+}

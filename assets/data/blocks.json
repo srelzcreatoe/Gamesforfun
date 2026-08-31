@@ -1,0 +1,1298 @@
+{
+ "blocks": [
+  {
+   "name": "grass_sod",
+   "displayName": "Grass Sod",
+   "shape": "cube",
+   "textures": {
+    "top": "grass_top",
+    "bottom": "soil",
+    "side": "grass_side"
+   },
+   "material": "earth",
+   "hardness": 0.6,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "drops": "soil",
+   "dropCount": 1,
+   "tool": "shovel",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "soil",
+   "displayName": "Soil",
+   "shape": "cube",
+   "textures": {
+    "all": "soil"
+   },
+   "material": "earth",
+   "hardness": 0.5,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "drops": "soil",
+   "dropCount": 1,
+   "tool": "shovel",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "fen_mud",
+   "displayName": "Fen Mud",
+   "shape": "cube",
+   "textures": {
+    "all": "fen_mud"
+   },
+   "material": "earth",
+   "hardness": 0.7,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "shovel",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "shell_sand",
+   "displayName": "Shell Sand",
+   "shape": "cube",
+   "textures": {
+    "all": "shell_sand"
+   },
+   "material": "earth",
+   "hardness": 0.5,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "shovel",
+   "minTier": 0,
+   "gravity": true,
+   "flammable": false
+  },
+  {
+   "name": "ash_gravel",
+   "displayName": "Ash Gravel",
+   "shape": "cube",
+   "textures": {
+    "all": "ash_gravel"
+   },
+   "material": "earth",
+   "hardness": 0.7,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "shovel",
+   "minTier": 0,
+   "gravity": true,
+   "flammable": false
+  },
+  {
+   "name": "graystone",
+   "displayName": "Graystone",
+   "shape": "cube",
+   "textures": {
+    "all": "graystone"
+   },
+   "material": "stone",
+   "hardness": 2.5,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "drops": "cobbled_graystone",
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 1,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "cobbled_graystone",
+   "displayName": "Cobbled Graystone",
+   "shape": "cube",
+   "textures": {
+    "all": "cobbled_graystone"
+   },
+   "material": "stone",
+   "hardness": 2.8,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 1,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "graystone_brick",
+   "displayName": "Graystone Brick",
+   "shape": "cube",
+   "textures": {
+    "all": "graystone_brick"
+   },
+   "material": "stone",
+   "hardness": 2.6,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 1,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "graystone_slab",
+   "displayName": "Graystone Slab",
+   "shape": "slab",
+   "textures": {
+    "all": "graystone"
+   },
+   "material": "stone",
+   "hardness": 2.5,
+   "opaque": false,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 1,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "ruststone",
+   "displayName": "Ruststone",
+   "shape": "cube",
+   "textures": {
+    "all": "ruststone"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "drops": "cobbled_ruststone",
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 1,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "cobbled_ruststone",
+   "displayName": "Cobbled Ruststone",
+   "shape": "cube",
+   "textures": {
+    "all": "cobbled_ruststone"
+   },
+   "material": "stone",
+   "hardness": 3.2,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 1,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "ruststone_brick",
+   "displayName": "Ruststone Brick",
+   "shape": "cube",
+   "textures": {
+    "all": "ruststone_brick"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 1,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "ruststone_slab",
+   "displayName": "Ruststone Slab",
+   "shape": "slab",
+   "textures": {
+    "all": "ruststone"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "opaque": false,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 1,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "deepstone",
+   "displayName": "Deepstone",
+   "shape": "cube",
+   "textures": {
+    "all": "deepstone"
+   },
+   "material": "stone",
+   "hardness": 4.0,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "drops": "cobbled_deepstone",
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 2,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "cobbled_deepstone",
+   "displayName": "Cobbled Deepstone",
+   "shape": "cube",
+   "textures": {
+    "all": "cobbled_deepstone"
+   },
+   "material": "stone",
+   "hardness": 4.2,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 2,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "deepstone_brick",
+   "displayName": "Deepstone Brick",
+   "shape": "cube",
+   "textures": {
+    "all": "deepstone_brick"
+   },
+   "material": "stone",
+   "hardness": 4.0,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 2,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "deepstone_slab",
+   "displayName": "Deepstone Slab",
+   "shape": "slab",
+   "textures": {
+    "all": "deepstone"
+   },
+   "material": "stone",
+   "hardness": 4.0,
+   "opaque": false,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 2,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "frostglass",
+   "displayName": "Frostglass",
+   "shape": "cube",
+   "textures": {
+    "all": "frostglass"
+   },
+   "material": "glass",
+   "hardness": 0.8,
+   "opaque": false,
+   "translucent": true,
+   "solid": true,
+   "lightEmission": 0,
+   "drops": "none",
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "frostglass_brick",
+   "displayName": "Frostglass Brick",
+   "shape": "cube",
+   "textures": {
+    "all": "frostglass_brick"
+   },
+   "material": "glass",
+   "hardness": 1.2,
+   "opaque": false,
+   "translucent": true,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "frostglass_slab",
+   "displayName": "Frostglass Slab",
+   "shape": "slab",
+   "textures": {
+    "all": "frostglass"
+   },
+   "material": "glass",
+   "hardness": 0.8,
+   "opaque": false,
+   "translucent": true,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "flint_nodule",
+   "displayName": "Flint Nodule",
+   "shape": "cube",
+   "textures": {
+    "all": "flint_nodule"
+   },
+   "material": "stone",
+   "hardness": 2.5,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "drops": "flint_shard",
+   "dropCount": 2,
+   "tool": "pick",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "copper_vein",
+   "displayName": "Copper Vein",
+   "shape": "cube",
+   "textures": {
+    "all": "copper_vein"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "drops": "copper_lump",
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 1,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "ironroot_vein",
+   "displayName": "Ironroot Vein",
+   "shape": "cube",
+   "textures": {
+    "all": "ironroot_vein"
+   },
+   "material": "stone",
+   "hardness": 3.5,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "drops": "ironroot_chunk",
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 2,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "emberite_vein",
+   "displayName": "Emberite Vein",
+   "shape": "cube",
+   "textures": {
+    "all": "emberite_vein"
+   },
+   "material": "stone",
+   "hardness": 4.5,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 3,
+   "drops": "emberite_shard",
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 3,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "starsteel_vein",
+   "displayName": "Starsteel Vein",
+   "shape": "cube",
+   "textures": {
+    "all": "starsteel_vein"
+   },
+   "material": "stone",
+   "hardness": 5.5,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 2,
+   "drops": "starsteel_grain",
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 4,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "sunbark_log",
+   "displayName": "Sunbark Log",
+   "shape": "cube",
+   "textures": {
+    "top": "sunbark_log_ring",
+    "bottom": "sunbark_log_ring",
+    "side": "sunbark_log_side"
+   },
+   "material": "wood",
+   "hardness": 1.6,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "hatchet",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "sunbark_planks",
+   "displayName": "Sunbark Planks",
+   "shape": "cube",
+   "textures": {
+    "all": "sunbark_planks"
+   },
+   "material": "wood",
+   "hardness": 1.4,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "hatchet",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "sunbark_leaves",
+   "displayName": "Sunbark Leaves",
+   "shape": "cube",
+   "textures": {
+    "all": "sunbark_leaves"
+   },
+   "material": "plant",
+   "hardness": 0.3,
+   "opaque": false,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "drops": "none",
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "sunbark_sapling",
+   "displayName": "Sunbark Sapling",
+   "shape": "cross",
+   "textures": {
+    "all": "sunbark_sapling"
+   },
+   "material": "plant",
+   "hardness": 0.05,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "sunbark_slab",
+   "displayName": "Sunbark Slab",
+   "shape": "slab",
+   "textures": {
+    "all": "sunbark_planks"
+   },
+   "material": "wood",
+   "hardness": 1.4,
+   "opaque": false,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "hatchet",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "palebark_log",
+   "displayName": "Palebark Log",
+   "shape": "cube",
+   "textures": {
+    "top": "palebark_log_ring",
+    "bottom": "palebark_log_ring",
+    "side": "palebark_log_side"
+   },
+   "material": "wood",
+   "hardness": 1.6,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "hatchet",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "palebark_planks",
+   "displayName": "Palebark Planks",
+   "shape": "cube",
+   "textures": {
+    "all": "palebark_planks"
+   },
+   "material": "wood",
+   "hardness": 1.4,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "hatchet",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "palebark_leaves",
+   "displayName": "Palebark Leaves",
+   "shape": "cube",
+   "textures": {
+    "all": "palebark_leaves"
+   },
+   "material": "plant",
+   "hardness": 0.3,
+   "opaque": false,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "drops": "none",
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "palebark_sapling",
+   "displayName": "Palebark Sapling",
+   "shape": "cross",
+   "textures": {
+    "all": "palebark_sapling"
+   },
+   "material": "plant",
+   "hardness": 0.05,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "mirewood_log",
+   "displayName": "Mirewood Log",
+   "shape": "cube",
+   "textures": {
+    "top": "mirewood_log_ring",
+    "bottom": "mirewood_log_ring",
+    "side": "mirewood_log_side"
+   },
+   "material": "wood",
+   "hardness": 1.8,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "hatchet",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "mirewood_planks",
+   "displayName": "Mirewood Planks",
+   "shape": "cube",
+   "textures": {
+    "all": "mirewood_planks"
+   },
+   "material": "wood",
+   "hardness": 1.5,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "hatchet",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "mirewood_leaves",
+   "displayName": "Mirewood Leaves",
+   "shape": "cube",
+   "textures": {
+    "all": "mirewood_leaves"
+   },
+   "material": "plant",
+   "hardness": 0.3,
+   "opaque": false,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "drops": "none",
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "mirewood_sapling",
+   "displayName": "Mirewood Sapling",
+   "shape": "cross",
+   "textures": {
+    "all": "mirewood_sapling"
+   },
+   "material": "plant",
+   "hardness": 0.05,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "glass",
+   "displayName": "Glass",
+   "shape": "cube",
+   "textures": {
+    "all": "glass"
+   },
+   "material": "glass",
+   "hardness": 0.5,
+   "opaque": false,
+   "translucent": true,
+   "solid": true,
+   "lightEmission": 0,
+   "drops": "none",
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "water",
+   "displayName": "Water",
+   "shape": "liquid",
+   "textures": {
+    "all": "water"
+   },
+   "material": "liquid",
+   "hardness": -1,
+   "opaque": false,
+   "translucent": true,
+   "solid": false,
+   "lightEmission": 0,
+   "drops": "none",
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "glow_sap",
+   "displayName": "Glow Sap",
+   "shape": "liquid",
+   "textures": {
+    "all": "glow_sap"
+   },
+   "material": "liquid",
+   "hardness": -1,
+   "opaque": false,
+   "translucent": true,
+   "solid": false,
+   "lightEmission": 8,
+   "drops": "none",
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "glow_lantern",
+   "displayName": "Glow Lantern",
+   "shape": "cube",
+   "textures": {
+    "all": "glow_lantern"
+   },
+   "material": "glass",
+   "hardness": 0.6,
+   "opaque": false,
+   "translucent": true,
+   "solid": true,
+   "lightEmission": 14,
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "emberite_lamp",
+   "displayName": "Emberite Lamp",
+   "shape": "cube",
+   "textures": {
+    "all": "emberite_lamp"
+   },
+   "material": "metal",
+   "hardness": 2.0,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 13,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "handwork_mat",
+   "displayName": "Handwork Mat",
+   "shape": "slab",
+   "textures": {
+    "all": "handwork_mat_top"
+   },
+   "material": "cloth",
+   "hardness": 0.5,
+   "opaque": false,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "forge_table",
+   "displayName": "Forge Table",
+   "shape": "cube",
+   "textures": {
+    "top": "forge_table_top",
+    "bottom": "forge_table_side",
+    "side": "forge_table_side"
+   },
+   "material": "metal",
+   "hardness": 3.0,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "kiln",
+   "displayName": "Kiln",
+   "shape": "cube",
+   "textures": {
+    "top": "kiln_top",
+    "bottom": "kiln_side",
+    "side": "kiln_side"
+   },
+   "material": "stone",
+   "hardness": 3.5,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "cookpot",
+   "displayName": "Cookpot",
+   "shape": "cube",
+   "textures": {
+    "top": "cookpot_top",
+    "bottom": "cookpot_side",
+    "side": "cookpot_side"
+   },
+   "material": "metal",
+   "hardness": 2.5,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "storage_crate",
+   "displayName": "Storage Crate",
+   "shape": "cube",
+   "textures": {
+    "top": "storage_crate_top",
+    "bottom": "storage_crate_top",
+    "side": "storage_crate_side"
+   },
+   "material": "wood",
+   "hardness": 1.8,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "hatchet",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "waystone_stone",
+   "displayName": "Waystone",
+   "shape": "cube",
+   "textures": {
+    "all": "waystone_stone"
+   },
+   "material": "stone",
+   "hardness": 5.0,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "pick",
+   "minTier": 2,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "waystone_core",
+   "displayName": "Waystone Core",
+   "shape": "cube",
+   "textures": {
+    "all": "waystone_core"
+   },
+   "material": "stone",
+   "hardness": -1,
+   "opaque": false,
+   "translucent": true,
+   "solid": true,
+   "lightEmission": 12,
+   "drops": "none",
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "sunbean_crop",
+   "displayName": "Sunbean Crop",
+   "shape": "cross",
+   "textures": {
+    "all": "crop_sunbean"
+   },
+   "material": "plant",
+   "hardness": 0.05,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 0,
+   "drops": "sunbean_pod",
+   "dropCount": 2,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "bluecap_crop",
+   "displayName": "Bluecap Crop",
+   "shape": "cross",
+   "textures": {
+    "all": "crop_bluecap"
+   },
+   "material": "plant",
+   "hardness": 0.05,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 0,
+   "drops": "bluecap_fungus",
+   "dropCount": 2,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "curlroot_crop",
+   "displayName": "Curlroot Crop",
+   "shape": "cross",
+   "textures": {
+    "all": "crop_curlroot"
+   },
+   "material": "plant",
+   "hardness": 0.05,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 0,
+   "drops": "curlroot",
+   "dropCount": 2,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "lantern_berry_crop",
+   "displayName": "Lantern Berry Crop",
+   "shape": "cross",
+   "textures": {
+    "all": "crop_lantern_berry"
+   },
+   "material": "plant",
+   "hardness": 0.05,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 5,
+   "drops": "lantern_berry",
+   "dropCount": 2,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "reedgrain_crop",
+   "displayName": "Reedgrain Crop",
+   "shape": "cross",
+   "textures": {
+    "all": "crop_reedgrain"
+   },
+   "material": "plant",
+   "hardness": 0.05,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 0,
+   "drops": "reedgrain",
+   "dropCount": 2,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "grass_tuft",
+   "displayName": "Grass Tuft",
+   "shape": "cross",
+   "textures": {
+    "all": "grass_tuft"
+   },
+   "material": "plant",
+   "hardness": 0.05,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 0,
+   "drops": "fiber_wisp",
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "sunpetal",
+   "displayName": "Sunpetal",
+   "shape": "cross",
+   "textures": {
+    "all": "sunpetal"
+   },
+   "material": "plant",
+   "hardness": 0.05,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "frostbell",
+   "displayName": "Frostbell",
+   "shape": "cross",
+   "textures": {
+    "all": "frostbell"
+   },
+   "material": "plant",
+   "hardness": 0.05,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "gloomcap",
+   "displayName": "Gloomcap",
+   "shape": "cross",
+   "textures": {
+    "all": "gloomcap"
+   },
+   "material": "plant",
+   "hardness": 0.05,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 4,
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "cinderpuff",
+   "displayName": "Cinderpuff",
+   "shape": "cross",
+   "textures": {
+    "all": "cinderpuff"
+   },
+   "material": "plant",
+   "hardness": 0.05,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 6,
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "wisp_fern",
+   "displayName": "Wisp Fern",
+   "shape": "cross",
+   "textures": {
+    "all": "wisp_fern"
+   },
+   "material": "plant",
+   "hardness": 0.05,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "fen_reed",
+   "displayName": "Fen Reed",
+   "shape": "cross",
+   "textures": {
+    "all": "fen_reed"
+   },
+   "material": "plant",
+   "hardness": 0.1,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "none",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "snow_slab",
+   "displayName": "Snow Layer",
+   "shape": "slab",
+   "textures": {
+    "all": "snow"
+   },
+   "material": "earth",
+   "hardness": 0.4,
+   "opaque": false,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "shovel",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "rope_ladder",
+   "displayName": "Rope Ladder",
+   "shape": "ladder",
+   "textures": {
+    "all": "rope_ladder"
+   },
+   "material": "wood",
+   "hardness": 0.6,
+   "opaque": false,
+   "translucent": false,
+   "solid": false,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "hatchet",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  },
+  {
+   "name": "moss_clump",
+   "displayName": "Moss Clump",
+   "shape": "cube",
+   "textures": {
+    "all": "moss_clump"
+   },
+   "material": "plant",
+   "hardness": 0.5,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "shovel",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": false
+  },
+  {
+   "name": "reed_thatch",
+   "displayName": "Reed Thatch",
+   "shape": "cube",
+   "textures": {
+    "all": "reed_thatch"
+   },
+   "material": "plant",
+   "hardness": 0.9,
+   "opaque": true,
+   "translucent": false,
+   "solid": true,
+   "lightEmission": 0,
+   "dropCount": 1,
+   "tool": "hatchet",
+   "minTier": 0,
+   "gravity": false,
+   "flammable": true
+  }
+ ]
+}
