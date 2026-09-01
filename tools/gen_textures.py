@@ -259,12 +259,34 @@ def p_glow(d, rng, base, accent, accent2):
             px[x, y] = mix(accent, base, min(1, r + rng.f() * 0.15)) + (alpha,)
 
 
+def p_crack(d, rng, base, accent, accent2):
+    """Break-progress overlay: dark crack lines radiating from the centre.
+    Line count comes from accent2[0] so four stages share one renderer."""
+    px = d.img.load()
+    for y in range(T):
+        for x in range(T):
+            px[x, y] = (0, 0, 0, 0)
+    lines = accent2[0] if accent2 else 6
+    for _ in range(lines):
+        x, y = T // 2 + rng.next() % 5 - 2, T // 2 + rng.next() % 5 - 2
+        dx = 1 if rng.f() > 0.5 else -1
+        dy = 1 if rng.f() > 0.5 else -1
+        steps = 4 + rng.next() % 9
+        for s in range(steps):
+            if 0 <= x < T and 0 <= y < T:
+                px[x, y] = (20, 16, 12, 200)
+            if rng.f() > 0.5:
+                x += dx
+            else:
+                y += dy
+
+
 PATTERNS = {
     "flat": p_flat, "speckle": p_speckle, "noise": p_noise, "grain_v": p_grain_v,
     "grain_h": p_grain_h, "planks": p_planks, "brick": p_brick, "crystal": p_crystal,
     "leaf": p_leaf, "cross_plant": p_cross_plant, "liquid": p_liquid, "ore": p_ore,
     "glass": p_glass, "crop": p_crop, "ring": p_ring, "sand": p_sand,
-    "gravel": p_gravel, "glow": p_glow,
+    "gravel": p_gravel, "glow": p_glow, "crack": p_crack,
 }
 
 
@@ -300,6 +322,10 @@ EXTRA_TILES = [
     {"name": "player_body", "pattern": "speckle", "base": [46, 130, 128], "accent": [66, 160, 152], "seed": 7},
     {"name": "player_head", "pattern": "flat", "base": [214, 172, 138], "accent": [222, 184, 150], "seed": 8},
     {"name": "player_legs", "pattern": "grain_v", "base": [70, 78, 96], "accent": [88, 98, 118], "seed": 9},
+    {"name": "crack_0", "pattern": "crack", "base": [0, 0, 0], "accent2": [4, 0, 0], "seed": 21},
+    {"name": "crack_1", "pattern": "crack", "base": [0, 0, 0], "accent2": [9, 0, 0], "seed": 22},
+    {"name": "crack_2", "pattern": "crack", "base": [0, 0, 0], "accent2": [16, 0, 0], "seed": 23},
+    {"name": "crack_3", "pattern": "crack", "base": [0, 0, 0], "accent2": [26, 0, 0], "seed": 24},
 ]
 
 

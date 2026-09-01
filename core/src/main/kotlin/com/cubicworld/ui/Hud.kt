@@ -63,8 +63,14 @@ class Hud(
     private var lookDownTime = 0L
 
     private val hotbarCells = ArrayList<HotbarCell>()
-    private lateinit var healthBar: Image
-    private lateinit var hungerBar: Image
+    private val heartIcons = ArrayList<Image>()
+    private val foodIcons = ArrayList<Image>()
+    private var heartFull: TextureRegionDrawable? = null
+    private var heartHalf: TextureRegionDrawable? = null
+    private var heartEmpty: TextureRegionDrawable? = null
+    private var foodFull: TextureRegionDrawable? = null
+    private var foodHalf: TextureRegionDrawable? = null
+    private var foodEmpty: TextureRegionDrawable? = null
     private lateinit var airBar: Image
     private lateinit var savingLabel: Label
     private lateinit var fpsLabel: Label
@@ -263,24 +269,75 @@ class Hud(
         bag.setBounds(bar.x + bar.width + 10f * s, 8f * s, slotSize, slotSize)
         stage.addActor(bag)
 
-        // health & hunger bars above the hotbar
-        val barBg1 = Image(UiSkin.solid(1, 1, Color(0f, 0f, 0f, 0.4f)))
-        val barBg2 = Image(UiSkin.solid(1, 1, Color(0f, 0f, 0f, 0.4f)))
-        healthBar = Image(UiSkin.solid(1, 1, Color(0.85f, 0.25f, 0.25f, 0.95f)))
-        hungerBar = Image(UiSkin.solid(1, 1, Color(0.85f, 0.6f, 0.2f, 0.95f)))
+        // hearts (left) and food (right) icon rows above the hotbar
+        heartFull = statusIcon(true, 2)
+        heartHalf = statusIcon(true, 1)
+        heartEmpty = statusIcon(true, 0)
+        foodFull = statusIcon(false, 2)
+        foodHalf = statusIcon(false, 1)
+        foodEmpty = statusIcon(false, 0)
+        heartIcons.clear()
+        foodIcons.clear()
+        val iconSize = 17f * s
+        val byPos = 8f * s + bar.height + 5f * s
+        for (i in 0 until 10) {
+            val heart = Image(heartFull)
+            heart.setBounds(bar.x + 4f * s + i * (iconSize + 1f * s), byPos, iconSize, iconSize)
+            heartIcons.add(heart)
+            stage.addActor(heart)
+            val food = Image(foodFull)
+            // food fills right-to-left so the row visually empties toward the centre
+            food.setBounds(bar.x + bar.width - 4f * s - (i + 1) * (iconSize + 1f * s), byPos, iconSize, iconSize)
+            foodIcons.add(food)
+            stage.addActor(food)
+        }
         airBar = Image(UiSkin.solid(1, 1, Color(0.3f, 0.65f, 0.95f, 0.95f)))
-        val bw = 150f * s
-        val bh = 8f * s
-        val byPos = 8f * s + bar.height + 6f * s
-        barBg1.setBounds(bar.x, byPos, bw, bh)
-        healthBar.setBounds(bar.x, byPos, bw, bh)
-        barBg2.setBounds(bar.x + bar.width - bw, byPos, bw, bh)
-        hungerBar.setBounds(bar.x + bar.width - bw, byPos, bw, bh)
-        airBar.setBounds(bar.x + (bar.width - bw) / 2f, byPos + bh + 3f * s, bw, bh * 0.7f)
+        airBar.setBounds(bar.x + (bar.width - 150f * s) / 2f, byPos + iconSize + 3f * s, 150f * s, 6f * s)
         airBar.isVisible = false
-        stage.addActor(barBg1); stage.addActor(healthBar)
-        stage.addActor(barBg2); stage.addActor(hungerBar)
         stage.addActor(airBar)
+    }
+
+    /**
+     * Original status glyphs drawn in code: a two-lobe heart and a round
+     * sunfruit with a leaf. fill: 2 = full, 1 = left half, 0 = empty outline.
+     */
+    private fun statusIcon(heart: Boolean, fill: Int): TextureRegionDrawable {
+        val n = 14
+        val pm = Pixmap(n, n, Pixmap.Format.RGBA8888)
+        if (heart) {
+            pm.setColor(0.20f, 0.05f, 0.08f, 0.95f)              // dark outline
+            pm.fillCircle(4, 4, 3)
+            pm.fillCircle(9, 4, 3)
+            pm.fillTriangle(0, 5, 13, 5, 6, 13)
+            val c = if (fill > 0) Color(0.86f, 0.22f, 0.28f, 1f) else Color(0.25f, 0.22f, 0.24f, 0.9f)
+            pm.setColor(c)
+            pm.fillCircle(4, 4, 2)
+            pm.fillCircle(9, 4, 2)
+            pm.fillTriangle(2, 5, 11, 5, 6, 11)
+        } else {
+            pm.setColor(0.22f, 0.12f, 0.04f, 0.95f)
+            pm.fillCircle(7, 8, 5)
+            val c = if (fill > 0) Color(0.92f, 0.60f, 0.18f, 1f) else Color(0.26f, 0.23f, 0.20f, 0.9f)
+            pm.setColor(c)
+            pm.fillCircle(7, 8, 4)
+            pm.setColor(0.30f, 0.55f, 0.25f, 1f)
+            pm.fillRectangle(7, 0, 2, 3)                          // leaf stem
+        }
+        if (fill == 1) {
+            // half state: right side reads as empty
+            pm.setColor(0.25f, 0.22f, 0.22f, 0.9f)
+            pm.blending = Pixmap.Blending.None
+            for (x in 7 until n) for (y in 0 until n) {
+                val a = (pm.getPixel(x, y) and 0xFF)
+                if (a > 0) pm.drawPixel(x, y, (0x403A3AE0.toInt()))
+            }
+            pm.blending = Pixmap.Blending.SourceOver
+        }
+        val tex = Texture(pm)
+        tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+        textures.add(tex)
+        pm.dispose()
+        return TextureRegionDrawable(TextureRegion(tex))
     }
 
     /** Poll long-press state; the game calls this every frame. */
@@ -311,8 +368,12 @@ class Hud(
                 cell.count.setText(if (slot.count > 1) slot.count.toString() else "")
             }
         }
-        healthBar.width = 150f * s * (health / 20f)
-        hungerBar.width = 150f * s * (hunger / 20f)
+        for (i in 0 until 10) {
+            val hv = health - i * 2
+            heartIcons[i].drawable = if (hv >= 2) heartFull else if (hv == 1) heartHalf else heartEmpty
+            val fv = hunger - i * 2
+            foodIcons[i].drawable = if (fv >= 2) foodFull else if (fv == 1) foodHalf else foodEmpty
+        }
         airBar.isVisible = air < 10
         airBar.width = 150f * s * (air / 10f)
 

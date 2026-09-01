@@ -273,6 +273,13 @@ class GameScreen(
         val sun = world.sunFactor()
         if (System.getProperty("cubic.no3d") == null) {
             chunkRenderer.render(camera, sun, skyRenderer.fogColor, chunkManager.renderDistance)
+            if (interaction.breakProgress > 0f && interaction.target.hit) {
+                entityRenderer.renderBreakOverlay(
+                    chunkRenderer.shader,
+                    interaction.target.x, interaction.target.y, interaction.target.z,
+                    interaction.breakProgress,
+                )
+            }
             entityRenderer.render(chunkRenderer.shader, camera, entities, sun)
         }
         if (cameraMode != CameraMode.FIRST) {
@@ -309,10 +316,25 @@ class GameScreen(
     // ---- input ------------------------------------------------------------
 
     private var autopilotTime = 0f
+    private var buttonSprint = false
+    private var gestureSprint = false
+    private var prevKnobY = 0f
+    private var lastForwardPush = 0L
 
     private fun updateInput(delta: Float) {
         player.moveX = hud.joystick.knobPercentX
         player.moveZ = hud.joystick.knobPercentY
+
+        // double-push the joystick forward to sprint; released stick ends it
+        val knobY = hud.joystick.knobPercentY
+        if (prevKnobY < 0.45f && knobY > 0.85f) {
+            val now = System.currentTimeMillis()
+            if (now - lastForwardPush < 350L) gestureSprint = true
+            lastForwardPush = now
+        }
+        if (knobY < 0.2f) gestureSprint = false
+        prevKnobY = knobY
+        player.sprinting = buttonSprint || gestureSprint
 
         // dev soak-test autopilot: walk forward, slowly turning, hopping ledges
         if (System.getProperty("cubic.autopilot") != null) {
@@ -717,7 +739,7 @@ class GameScreen(
     }
 
     override fun onSprintToggled(on: Boolean) {
-        player.sprinting = on
+        buttonSprint = on
     }
 
     override fun onCameraToggle() {

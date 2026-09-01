@@ -131,6 +131,10 @@
   "satchel": 125,
   "player_body": 126,
   "player_head": 127,
-  "player_legs": 128
+  "player_legs": 128,
+  "crack_0": 129,
+  "crack_1": 130,
+  "crack_2": 131,
+  "crack_3": 132
  }
 }

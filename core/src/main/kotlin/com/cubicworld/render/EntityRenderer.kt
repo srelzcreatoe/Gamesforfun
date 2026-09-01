@@ -151,6 +151,39 @@ class EntityRenderer(
         shader.setUniformf("u_hurtFlash", 0f)
     }
 
+    // ---- block break-progress crack overlay --------------------------------
+
+    private val crackMeshes = arrayOfNulls<Mesh>(4)
+
+    private fun crackMesh(stage: Int): Mesh? {
+        val idx = stage.coerceIn(0, 3)
+        crackMeshes[idx]?.let { return it }
+        val tileName = "crack_$idx"
+        if (!atlas.hasTile(tileName)) return null
+        val verts = GdxFloatArray(200)
+        val indices = GdxShortArray(40)
+        addBox(verts, indices, 0f, -0.501f, 0f, 1.002f, 1.002f, 1.002f, atlas.tileIndex(tileName), shadeSides = false)
+        val m = buildMesh(verts, indices)
+        crackMeshes[idx] = m
+        return m
+    }
+
+    /** Draw crack stages over the block being mined. Blend must be enabled. */
+    fun renderBreakOverlay(shader: ShaderProgram, x: Int, y: Int, z: Int, progress: Float) {
+        if (progress <= 0f) return
+        val mesh = crackMesh((progress * 4f).toInt()) ?: return
+        shader.setUniformf("u_lightOverride", 1f)
+        shader.setUniformf("u_hurtFlash", 0f)
+        model.setToTranslation(x + 0.5f, y + 0.5f, z + 0.5f)
+        shader.setUniformMatrix("u_model", model)
+        val gl = com.badlogic.gdx.Gdx.gl
+        gl.glEnable(GL20.GL_BLEND)
+        gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+        mesh.render(shader, GL20.GL_TRIANGLES)
+        gl.glDisable(GL20.GL_BLEND)
+        shader.setUniformf("u_lightOverride", -1f)
+    }
+
     // ---- player (visible in third person) ---------------------------------
 
     private var playerMesh: Mesh? = null
@@ -202,5 +235,9 @@ class EntityRenderer(
         dropMeshes.clear()
         playerMesh?.dispose()
         playerMesh = null
+        for (i in crackMeshes.indices) {
+            crackMeshes[i]?.dispose()
+            crackMeshes[i] = null
+        }
     }
 }
