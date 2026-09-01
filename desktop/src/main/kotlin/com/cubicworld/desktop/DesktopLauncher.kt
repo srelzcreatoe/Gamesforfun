@@ -22,17 +22,20 @@ fun main() {
     }
     val game = CubicWorldGame()
     val shotsDir = System.getProperty("cubic.shots")
-    val listener: ApplicationListener = if (shotsDir != null) AutoShotHarness(game, shotsDir) else game
+    val timed = System.getProperty("cubic.duration") != null
+    val listener: ApplicationListener =
+        if (shotsDir != null || timed) AutoShotHarness(game, shotsDir) else game
     Lwjgl3Application(listener, config)
 }
 
 /**
- * Development harness: runs the real game and captures a screenshot every few
- * seconds, exiting after a fixed duration. Used for automated visual checks.
+ * Development harness: runs the real game, optionally captures a screenshot
+ * every few seconds, and exits after a fixed duration. Used for automated
+ * visual checks and timed headless runs.
  */
 private class AutoShotHarness(
     private val game: CubicWorldGame,
-    private val dir: String,
+    private val dir: String?,
 ) : ApplicationListener {
 
     private var time = 0f
@@ -48,7 +51,7 @@ private class AutoShotHarness(
         time += Gdx.graphics.deltaTime
         if (time >= nextShot) {
             nextShot += 4f
-            capture()
+            if (dir != null) capture()
         }
         if (time > maxTime) Gdx.app.exit()
     }
