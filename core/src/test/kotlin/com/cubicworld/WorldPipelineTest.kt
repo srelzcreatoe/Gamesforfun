@@ -135,10 +135,17 @@ class WorldPipelineTest {
         try {
             val (sx, sy, sz) = world.generator.findSpawn()
             pump(world, manager, sx shr 4, sz shr 4)
-            // make sure the local biome actually lists creatures
-            val chunk = world.chunkAt(sx shr 4, sz shr 4)!!
-            val biome = reg.biomes.byId(chunk.biomes[((sz and 15) shl 4) or (sx and 15)].toInt())
-            org.junit.jupiter.api.Assumptions.assumeTrue(biome.creatures.isNotEmpty())
+            // every biome must ship a creature table — a silent skip here once
+            // hid a world with no creatures at all
+            for (b in reg.biomes.biomes) {
+                assertTrue(b.creatures.isNotEmpty(), "biome ${b.name} has no creature table")
+                for (entry in b.creatures) {
+                    assertTrue(
+                        reg.creatures.byName(entry.creatureName) != null,
+                        "biome ${b.name} references unknown creature ${entry.creatureName}",
+                    )
+                }
+            }
 
             val entities = com.cubicworld.entity.EntityManager(world, reg.creatures)
             val playerPos = com.badlogic.gdx.math.Vector3(sx + 0.5f, sy.toFloat(), sz + 0.5f)

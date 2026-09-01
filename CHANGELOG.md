@@ -21,8 +21,11 @@
   (keep-inventory world option)
 
 ### Android
-- Touch controls: joystick, look/tap/hold region, editable-opacity buttons,
-  hotbar, left-handed mode; immersive fullscreen with cutout support
+- Touch controls: joystick (double-push to sprint), look/tap/hold region,
+  editable-opacity buttons, hotbar, left-handed mode; immersive fullscreen
+  with cutout support
+- Classic survival HUD: heart and food icon rows, crack stages on the block
+  being mined plus a mobile progress ring
 - World management: create (name/seed/mode/difficulty/type), rename,
   duplicate, delete with confirmation; automatic world backups
 - Atomic compressed chunk saves, autosave, save-on-pause/quit

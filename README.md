@@ -55,7 +55,7 @@ The desktop launcher accepts JVM properties for automated testing:
 
 ## Controls (touch)
 
-- **Left joystick** — walk; **swipe right side** — look around
+- **Left joystick** — walk (double-push forward to sprint); **swipe right side** — look around
 - **Hold on a block** — mine it (ring shows progress); **tap** — place the
   selected block, open crates/stations, or strike a creature
 - **Hold with food selected** — eat

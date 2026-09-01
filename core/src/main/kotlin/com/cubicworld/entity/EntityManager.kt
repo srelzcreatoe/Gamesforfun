@@ -123,10 +123,12 @@ class EntityManager(
         }
         val def = picked ?: return
 
-        // light/time rules
+        // light/time rules: by day an open-sky column counts as fully lit,
+        // otherwise dawn/dusk sun angles would block all daytime spawning
         val light = world.lightAt(wx, h + 1, wz)
         val sky = (light ushr 4) and 0xF
-        val effLight = maxOf((sky * world.sunFactor()).toInt(), light and 0xF)
+        val skyContribution = if (world.isNight()) (sky * world.sunFactor()).toInt() else sky
+        val effLight = maxOf(skyContribution, light and 0xF)
         if (effLight < def.spawnMinLight || effLight > def.spawnMaxLight) return
         if (def.spawnNight && !world.isNight()) return
         if (def.hostile && difficulty == Difficulty.CALM && MathUtils.random() < 0.7f) return

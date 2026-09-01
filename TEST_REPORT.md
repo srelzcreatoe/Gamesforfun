@@ -13,7 +13,7 @@ verified with `aapt`/`unzip`, but **was not executed on a device** — that is
 the single biggest remaining verification gap, listed under "Remaining
 issues".
 
-## Automated test suite — 30/30 passing
+## Automated test suite — 31/31 passing
 
 `./gradlew :core:test`
 
@@ -23,7 +23,7 @@ issues".
 | WorldGenTest | 6 | identical seed ⇒ bit-identical chunks; different seeds differ; noise deterministic; world floor intact; Flat Builder flat; spawn is dry solid land with headroom across 6 seeds (incl. the all-ocean seed 777) |
 | SaveRoundtripTest | 7 | chunk/player/world-meta roundtrip exactly; corrupt chunk throws (caller regenerates); zero-byte world.json recovers from rotating backup; delete cannot touch another world or escape the worlds dir; rename/duplicate |
 | GameplayLogicTest | 9 | stack limits + overflow refusal; inventory serialization; crafting consumes/produces atomically; discovery gating; mesher: lone cube = 6 faces, shared faces culled, buried cube = shell only; skylight full above/0 below terrain; emissive light falloff -1 per cell |
-| WorldPipelineTest | 3 | real async pipeline (generate→decorate→light→ACTIVE) activates a spawn ring with vegetation; player edits survive chunk unload + reload from disk; placed water spreads via the tick simulation |
+| WorldPipelineTest | 4 | real async pipeline (generate→decorate→light→ACTIVE) activates a spawn ring with vegetation; player edits survive chunk unload + reload from disk; placed water spreads via the tick simulation; creatures actually spawn near the player under daytime rules and respect population caps, with every biome's creature table validated |
 
 ## Functional runs (real game, software GL)
 
@@ -38,8 +38,9 @@ Each run boots the actual game (registries → atlas → audio → menus/world).
 | First person / third-person back / front | camera switch works; player model renders; third-person camera pulls in at walls |
 | Water | oceans/lakes render translucent with lowered surface; placed water spreads (also unit-tested); underwater tint + air bar |
 | Fixed seed determinism | same seed twice ⇒ identical chunks (unit test, bit-exact) |
-| Save → quit → relaunch same world | world folder reopened via `-Dcubic.world`; position/chunks persist (also proven bit-exact by SaveRoundtripTest + WorldPipelineTest) |
-| 10 cold launches | 10/10 reached the main menu with zero exceptions |
+| Save → quit → relaunch same world | two full sessions: session 2 reopened the same world folder (no duplicate created) and continued from the saved position — the player then walked 39 further blocks; block-level persistence proven bit-exact by SaveRoundtripTest + WorldPipelineTest |
+| 10 cold launches | 10/10 reached the main menu with zero exceptions (re-run after every code change) |
+| Waystone ruin structure | generated and screenshot-verified in-world (pillars, glowing core, loot crate) |
 | Approx. performance | 24–33 FPS at 1280×720 on **CPU-only** llvmpipe rendering, render distance 5 — a real phone GPU is dramatically faster than software GL; Low preset (RD 3) exists for weak devices |
 
 ## Bugs found by testing & adversarial review — all fixed
@@ -50,6 +51,12 @@ type; GL cull/depth state leaking into every 2D pass (HUD invisible);
 a cross-thread shared scratch buffer in the mesher corrupting UVs
 (visible as smeared triangles); ocean-seed spawn placing the player under
 water; double dispose on shutdown; HUD button overlap at small resolutions.
+
+The new creature-spawn integration test then caught two shipping-critical
+content/logic bugs: every biome's creature spawn table was empty (a world
+with no creatures at all), and the daytime effective-light formula gated all
+passive spawns below their minimum light except at exact midday. Both are
+fixed and locked in by the test.
 
 A 6-lens adversarial review (Android lifecycle, save integrity, threading,
 voxel correctness, gameplay, performance) then flagged 12 defects, each
@@ -87,8 +94,8 @@ discard a save on rename failure.
 
 ## APK
 
-- `CubicWorld.apk` — debug-signed (installs without a private key), 12.2 MB
-- SHA-256: `531d99ae9bc57ee59278635f05fd4e61d96712b9fe68bda0b07e64b113c8cf80`
+- `CubicWorld.apk` — debug-signed (installs without a private key), 12.3 MB
+- SHA-256: `0604be1e98468afc789c5caf30490927388abef8280fe451ca063316336c61b0`
 - `aapt` verified: package `com.cubicworld.mobile` 0.1.0, minSdk 21,
   targetSdk 34, landscape launchable activity, arm64-v8a + armeabi-v7a +
   x86 + x86_64 native libs, all game assets present
