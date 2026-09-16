@@ -11,6 +11,7 @@ const HEIGHT := WorldConst.HEIGHT
 const PLAYER_SCENE := "res://scenes/player/Player.tscn"
 const SKY_SCRIPT := "res://scripts/world/SkyController.gd"
 const SPAWNER_SCRIPT := "res://scripts/entity/Spawner.gd"
+const BGM_DIRECTOR_SCRIPT := "res://scripts/audio/BgmDirector.gd"
 const WORLDGEN_FACTORY := "res://scripts/worldgen/WorldGenFactory.gd"
 const SPAWN_TIMEOUT := 25.0
 
@@ -43,6 +44,7 @@ var _autoplay := false
 var _force_debug_camera := false
 var _force_flat_gen := false
 var _uniform_time := 0.0
+var day: int = 0
 
 func _ready() -> void:
 	chunks = get_node_or_null("Chunks") as Node3D
@@ -116,6 +118,7 @@ func start(info: Dictionary, profile: Dictionary) -> void:
 	seed = int(info.get("seed", 0))
 	weather = String(info.get("weather", "clear"))
 	time_ticks = float(info.get("time_ticks", 1000.0))
+	day = int(info.get("day", 0))
 	planet_def = Registry.planet(planet_id)
 	if planet_def.is_empty():
 		planet_def = {"id": planet_id, "sea_level": WorldConst.SEA_LEVEL}
@@ -127,8 +130,23 @@ func start(info: Dictionary, profile: Dictionary) -> void:
 	var sy := float(pos_info.get("y", -1.0))
 	spawn_position = Vector3(sx, sy, sz)
 	set_view_center(Vector3(sx, maxf(sy, float(WorldConst.SEA_LEVEL)), sz))
+	_attach_bgm_director()
 	_started = true
 	Log.i("World.start planet=%s seed=%d spawn=(%.1f, %.1f)" % [planet_id, seed, sx, sz])
+
+## The audio engineer's music director runs under the World when its script exists.
+func _attach_bgm_director() -> void:
+	if get_node_or_null("BgmDirector") != null:
+		return
+	if not ResourceLoader.exists(BGM_DIRECTOR_SCRIPT):
+		return
+	var scr: GDScript = load(BGM_DIRECTOR_SCRIPT)
+	if scr == null:
+		return
+	var n: Variant = scr.new()
+	if n is Node:
+		n.name = "BgmDirector"
+		add_child(n)
 
 func _make_generator() -> Object:
 	if ResourceLoader.exists(WORLDGEN_FACTORY) and not _force_flat_gen:
@@ -401,6 +419,14 @@ func ambient_color() -> Color:
 	var d := daylight()
 	return Color(0.05, 0.07, 0.12).lerp(Color(0.45, 0.52, 0.66), d)
 
+## Is the active camera's eye inside a liquid? (the sky/water shaders use it)
+func camera_submerged() -> bool:
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	if cam == null:
+		return false
+	var p := cam.global_position
+	return is_liquid(int(floor(p.x)), int(floor(p.y)), int(floor(p.z)))
+
 # --- entities ---------------------------------------------------------------
 
 func spawn_entity(entity_type: String, pos: Vector3, data := {}) -> Node:
@@ -510,8 +536,17 @@ func _process(delta: float) -> void:
 	if not _started:
 		return
 	if not Game.paused_by_ui:
-		time_ticks = fposmod(time_ticks + delta * (WorldConst.TICKS_PER_DAY / WorldConst.DAY_SECONDS), WorldConst.TICKS_PER_DAY)
+		var advanced := time_ticks + delta * (WorldConst.TICKS_PER_DAY / WorldConst.DAY_SECONDS)
+		if advanced >= WorldConst.TICKS_PER_DAY:
+			# A new day: the moon phase and any "next summon day" logic read this.
+			day = day + 1
+			if not Game.world_info.is_empty():
+				Game.world_info["day"] = day
+			if sky != null and "day_index" in sky:
+				sky.set("day_index", day)
+		time_ticks = fposmod(advanced, WorldConst.TICKS_PER_DAY)
 		_uniform_time += delta
+		Events.time_changed.emit(time_ticks)
 	var focus: Node3D = null
 	if Game.player != null and is_instance_valid(Game.player) and Game.player is Node3D:
 		focus = Game.player
@@ -520,6 +555,8 @@ func _process(delta: float) -> void:
 	if focus != null:
 		set_view_center(focus.global_position)
 	if sky != null and sky.has_method("apply"):
+		if "camera_underwater" in sky:
+			sky.set("camera_underwater", camera_submerged())
 		sky.call("apply", planet_def, time_ticks, weather, delta)
 	elif sun != null:
 		_update_fallback_sun()

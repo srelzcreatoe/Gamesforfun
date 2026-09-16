@@ -59,9 +59,7 @@ func _on_dialog_requested(npc: Node) -> void:
 	var qm := QuestManager.of(world)
 	if qm != null and current_master != "":
 		qm.notify_talk(current_master)
-		var turned := qm.turn_in_all(current_master)
-		if turned > 0 and Audio != null:
-			Audio.play_sfx("quest_complete", -4.0)
+		qm.turn_in_all(current_master)
 		var offers: Array = qm.quests_for_npc(current_master)["gives"]
 		if offers.size() > 0:
 			Events.hint.emit("%s has a request for you." % _master_name(current_master), 4.0)
@@ -265,8 +263,7 @@ func _deny() -> bool:
 	return false
 
 func _learned(text: String) -> void:
-	if Audio != null:
-		Audio.play_sfx("skill_learned", -3.0)
+	# skill_learned / technique sounds come from the BgmDirector via the Events.
 	if Game != null and Game.ui != null:
 		Game.ui.call("toast", "Training", text, null)
 	else:

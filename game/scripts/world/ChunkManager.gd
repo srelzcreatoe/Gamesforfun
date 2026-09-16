@@ -29,6 +29,7 @@ var palette: Dictionary = {}
 var mat_opaque: ShaderMaterial = null
 var mat_cutout: ShaderMaterial = null
 var mat_water: ShaderMaterial = null
+var mat_lava: ShaderMaterial = null
 
 ## Profiling (one line every 5 s when Game.settings.show_fps).
 var stat_gen_ms := 0.0
@@ -77,6 +78,12 @@ func _build_materials() -> void:
 	mat_water = _make_material(WATER_SHADER)
 	if mat_water != null:
 		mat_water.render_priority = 1
+		mat_water.set_shader_parameter("is_lava", 0)
+	# Lava uses the same shader with is_lava = 1 (no waves, no sky reflection, full opacity).
+	mat_lava = _make_material(WATER_SHADER)
+	if mat_lava != null:
+		mat_lava.render_priority = 1
+		mat_lava.set_shader_parameter("is_lava", 1)
 
 func _make_material(path: String) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
@@ -98,7 +105,7 @@ func _make_material(path: String) -> ShaderMaterial:
 
 func materials() -> Array[ShaderMaterial]:
 	var out: Array[ShaderMaterial] = []
-	for m in [mat_opaque, mat_cutout, mat_water]:
+	for m in [mat_opaque, mat_cutout, mat_water, mat_lava]:
 		if m != null:
 			out.append(m)
 	return out
@@ -156,7 +163,24 @@ func wanted_columns() -> Array[Vector2i]:
 	_wanted = list
 	return _wanted
 
+## Progress towards a *playable* world: the 5x5 ring around the view centre (the rest keeps
+## streaming in the background, so the loading screen must not wait for it).
 func load_progress() -> float:
+	var r: int = mini(render_distance, 2)
+	var total := 0
+	var ready := 0
+	for dz in range(-r, r + 1):
+		for dx in range(-r, r + 1):
+			total += 1
+			var col: ChunkColumn = columns.get(Vector2i(center_chunk.x + dx, center_chunk.y + dz), null)
+			if col != null and col.state >= ChunkColumn.MESHED:
+				ready += 1
+	if total == 0:
+		return 1.0
+	return float(ready) / float(total)
+
+## Fraction of the full render distance that is meshed (debug / profiling).
+func stream_progress() -> float:
 	var want := wanted_columns()
 	if want.is_empty():
 		return 1.0
@@ -412,6 +436,9 @@ func _apply_section(col: ChunkColumn, section: int, surfaces: Dictionary) -> voi
 	if surfaces.has("water"):
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surfaces["water"])
 		mats.append(mat_water)
+	if surfaces.has("lava"):
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surfaces["lava"])
+		mats.append(mat_lava)
 	if mi == null or not is_instance_valid(mi):
 		mi = MeshInstance3D.new()
 		mi.name = "s%d" % section

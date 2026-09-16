@@ -92,8 +92,7 @@ static func structures_near(world: Node, pos: Vector3, radius := STRUCTURE_RADIU
 				var tag := mark_tag(m)
 				if tag == "":
 					continue
-				var mp := mark_position(m)
-				if mp != null and (mp as Vector3).distance_to(pos) > radius:
+				if mark_distance(m, pos) > radius:
 					continue
 				if not out.has(tag):
 					out.append(tag)
@@ -127,10 +126,13 @@ static func mark_tag(mark: Variant) -> String:
 			return String(Registry.structures.get(alias, {}).get("quest_tag", sid))
 	return sid
 
+## Marks carry either an `aabb` (Structures.gd) or a single position.
 static func mark_position(mark: Variant) -> Variant:
 	if not (mark is Dictionary):
 		return null
 	var d: Dictionary = mark
+	if d.has("aabb") and d["aabb"] is AABB:
+		return (d["aabb"] as AABB).get_center()
 	for k in ["pos", "position", "origin", "center"]:
 		if not d.has(k):
 			continue
@@ -143,6 +145,19 @@ static func mark_position(mark: Variant) -> Variant:
 			var a: Array = v
 			return Vector3(float(a[0]), float(a[1]), float(a[2]))
 	return null
+
+## Horizontal distance from `pos` to a structure mark (0 inside its box, INF unknown).
+static func mark_distance(mark: Variant, pos: Vector3) -> float:
+	if mark is Dictionary and (mark as Dictionary).get("aabb", null) is AABB:
+		var box: AABB = (mark as Dictionary)["aabb"]
+		var dx: float = maxf(0.0, maxf(box.position.x - pos.x, pos.x - (box.position.x + box.size.x)))
+		var dz: float = maxf(0.0, maxf(box.position.z - pos.z, pos.z - (box.position.z + box.size.z)))
+		return sqrt(dx * dx + dz * dz)
+	var mp := mark_position(mark)
+	if mp is Vector3:
+		var p: Vector3 = mp
+		return Vector2(p.x - pos.x, p.z - pos.z).length()
+	return 0.0
 
 static func item_counts(profile: Dictionary, player: Node = null) -> Dictionary:
 	var out: Dictionary = {}

@@ -14,7 +14,8 @@ class_name ChunkMesher
 ##             y = packed_light / 255 with packed_light = sky * 16 + block
 ##   COLOR     rgb = biome/liquid tint, a = ambient occlusion (0.55 / 0.7 / 0.85 / 1.0)
 ##
-## Three surfaces come out: "opaque", "cutout" (alpha scissor) and "water" (translucent).
+## Four surfaces come out: "opaque", "cutout" (alpha scissor), "water" (translucent) and
+## "lava" (same water shader with is_lava = 1, so it does not get waves or a sky reflection).
 
 const PAD := 18
 const HEIGHT := WorldConst.HEIGHT
@@ -23,7 +24,7 @@ const WATER_COLOR := Color(0.247, 0.463, 0.894)      # #3F76E4
 const GRASS_FALLBACK := Color(0.569, 0.741, 0.349)   # #91BD59
 const FOLIAGE_FALLBACK := Color(0.467, 0.671, 0.184) # #77AB2F
 
-enum { S_OPAQUE, S_CUTOUT, S_WATER }
+enum { S_OPAQUE, S_CUTOUT, S_WATER, S_LAVA }
 
 ## Reused per-block cursor (one instance per mesh job, no allocation per voxel).
 class Ctx:
@@ -167,7 +168,7 @@ static func build_section(pad: Dictionary, section: int, palette: Dictionary) ->
 	var gn := grass_pal.size()
 	var fn := foliage_pal.size()
 	var wn := water_pal.size()
-	var bufs := [Buf.new(), Buf.new(), Buf.new()]
+	var bufs := [Buf.new(), Buf.new(), Buf.new(), Buf.new()]
 	var shape: PackedByteArray = BlockTable.shape
 	var blocks: PackedByteArray = ctx.blocks
 	var y0 := section * 16
@@ -206,6 +207,8 @@ static func build_section(pad: Dictionary, section: int, palette: Dictionary) ->
 		out["cutout"] = bufs[S_CUTOUT].to_arrays()
 	if not bufs[S_WATER].is_empty():
 		out["water"] = bufs[S_WATER].to_arrays()
+	if not bufs[S_LAVA].is_empty():
+		out["lava"] = bufs[S_LAVA].to_arrays()
 	return out
 
 # --- per-block dispatch -----------------------------------------------------
@@ -239,7 +242,7 @@ static func _emit_block(bufs: Array, ctx: Ctx, sh: int) -> void:
 		BlockTable.Shape.CROP:
 			_crop(bufs[S_CUTOUT], ctx, tint)
 		BlockTable.Shape.LIQUID:
-			_liquid(bufs[S_WATER], ctx, tint)
+			_liquid(bufs[S_LAVA if BlockTable.lava[id] == 1 else S_WATER], ctx, tint)
 		BlockTable.Shape.TORCH:
 			_torch(bufs[S_CUTOUT], ctx, tint)
 		BlockTable.Shape.LADDER:

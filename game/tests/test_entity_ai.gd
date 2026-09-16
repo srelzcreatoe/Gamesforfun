@@ -234,3 +234,20 @@ func test_spawner_quest_enemy_and_weights() -> void:
 	assert_eq(sp.try_spawn(), null, "no player/world -> no spawn")
 	assert_eq(sp.spawn_quest_enemy(RADITZ, Vector3(0, 64, 0)), null, "no world -> null")
 	assert_true(sp.find_spawn_position(Vector3(0, 64, 0)).length() > 0.0, "fallback spawn position")
+
+func test_enemy_does_not_drive_the_music() -> void:
+	# BgmDirector owns the context; the enemy only raises the events it reacts to
+	# and exposes the fields its aggro scan reads.
+	var src := FileAccess.get_file_as_string("res://scripts/entity/Enemy.gd")
+	assert_true(not src.contains("play_bgm"), "Enemy.gd must not call Audio.play_bgm")
+	var e := _enemy(2)
+	e.is_boss = true
+	assert_true(e.has_method("ai_state"), "ai_state() for the director's aggro scan")
+	assert_eq(e.ai_state(), "IDLE")
+	var t := _dummy(Vector3(0, 64, -5))
+	e.ai.provoke(t)
+	assert_eq(e.ai_state(), "CHASE", "the director sees CHASE")
+	assert_true(e.ai.aggro, "ai.aggro flag exposed")
+	assert_eq(e.target, t, "target exposed")
+	assert_eq(e.faction, "villain", "faction exposed")
+	assert_eq(e.kind, "enemy", "kind exposed")

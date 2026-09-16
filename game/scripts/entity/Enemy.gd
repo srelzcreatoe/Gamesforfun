@@ -81,15 +81,15 @@ func _dodge(source: Node) -> void:
 	if ai != null:
 		ai.provoke(source)
 
+## The music is NOT driven from here: `scripts/audio/BgmDirector.gd` owns the
+## context (it needs its hysteresis, and "explore" is not a valid context on every
+## planet). It reacts to Events.boss_engaged/boss_defeated plus its own aggro scan,
+## which reads `faction`, `kind`, `is_boss`, `target` and `ai.aggro` / `ai_state()`.
 func on_aggro() -> void:
 	if taunt != "":
 		Events.toast.emit(display_name, taunt, null)
 	if is_boss:
 		Events.boss_engaged.emit(self)
-	if bgm != "" and Audio != null:
-		Audio.play_bgm(bgm)
-	elif faction == "villain" and Audio != null:
-		Audio.play_bgm("battle")
 
 # --- death / phases -----------------------------------------------------------
 
@@ -100,8 +100,6 @@ func die(killer: Node = null) -> void:
 		return
 	if is_boss:
 		Events.boss_defeated.emit(self)
-		if Audio != null:
-			Audio.play_bgm("explore")
 	super.die(killer)
 
 ## Boss phases: spawn the next phase entity in place, heal it and play the
@@ -130,10 +128,8 @@ func _advance_phase() -> bool:
 		e.health = e.max_health
 		if e is Enemy:
 			(e as Enemy).phase_index = phase_index + 1
-	_play_transformation(next, next_id)
+	_play_transformation(next, next_id)     # Events.transformation_started drives the music
 	Events.toast.emit(display_name, "%s transforms!" % display_name, null)
-	if Audio != null:
-		Audio.play_bgm("transformation")
 	dead = true
 	health = 0.0
 	queue_free()

@@ -66,7 +66,11 @@ func _planet_icon(pid: String, def: Dictionary) -> Texture2D:
 			return load(path)
 	return _disc(UiUtil.color_hex(String(def.get("sky", {}).get("day", "#6C7BA8")), Color(0.42, 0.48, 0.66)))
 
-static func _disc(col: Color) -> Texture2D:
+static func _disc(raw: Color) -> Texture2D:
+	# Deep space / hell have almost black sky colours: lift them so the disc stays visible.
+	var col := raw
+	if col.get_luminance() < 0.14:
+		col = col.lerp(Color(0.34, 0.38, 0.52), 0.6)
 	var key := col.to_html()
 	if _disc_cache.has(key):
 		return _disc_cache[key]

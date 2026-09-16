@@ -234,9 +234,8 @@ func start(qid: String, force := false) -> bool:
 	if force and completed().has(id):
 		completed().erase(id)
 	track(id)
+	# The audio agent's BgmDirector plays quest_start/quest_complete from the Events.
 	Events.quest_started.emit(id)
-	if Audio != null:
-		Audio.play_sfx("quest_start", -4.0)
 	_toast("Quest started", String(def.get("title", def.get("name", id))))
 	_sync_objectives(id, true)
 	Log.i("QuestManager: started %s" % id)
@@ -267,8 +266,6 @@ func claim(qid: String, from_npc := "") -> bool:
 	claimed().append(qid)
 	var lines := Rewards.apply_all(def.get("rewards", []), profile(), player())
 	Events.quest_reward_claimed.emit(qid)
-	if Audio != null:
-		Audio.play_sfx("quest_complete", -3.0)
 	_toast(String(def.get("title", qid)), "Rewards: " + ", ".join(lines) if lines.size() > 0 else "Rewards claimed")
 	Events.stats_changed.emit()
 	var saga := SagaManager.of(world)
@@ -358,8 +355,6 @@ func _complete(qid: String) -> void:
 	if not completed().has(qid):
 		completed().append(qid)
 	Events.quest_completed.emit(qid)
-	if Audio != null:
-		Audio.play_sfx("quest_complete", -3.0)
 	var turn_in := String(def.get("turn_in", ""))
 	var tail := "Rewards ready in the quest log."
 	if turn_in != "":

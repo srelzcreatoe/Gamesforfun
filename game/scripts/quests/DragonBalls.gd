@@ -23,6 +23,9 @@ const SUPER_PICK_DIST := 46.0
 const TICK := 0.75
 const ALTAR_BLOCK := "dragon_ball_altar"
 const DEFAULT_RANGES := {"earth": 1100.0, "namek": 820.0, "cereal": 820.0, "super": 5200.0, "fused": 1100.0}
+## The worldgen engineer's deterministic, land-aware placement (preferred when present).
+const PLACEMENT_SCRIPT := "res://scripts/worldgen/DragonBallPlacement.gd"
+const SCATTER_SEED_STEP := 7919
 
 var world: Node = null
 var dragon: Node = null
@@ -48,6 +51,7 @@ func _ready() -> void:
 		world = get_parent()
 	Events.dragon_ball_found.connect(_on_ball_found)
 	Events.item_picked_up.connect(_on_item_picked_up)
+	Events.entity_spawned.connect(_on_entity_spawned)
 
 # --- state -----------------------------------------------------------------
 
@@ -84,7 +88,7 @@ func found_count(set_id: String) -> int:
 	return found(set_id).size()
 
 func has_all(set_id: String) -> bool:
-	return found_count(set_id) >= BALL_COUNT
+	return found_count(set_id) >= total_count(set_id)
 
 func placed(set_id: String) -> Array:
 	return set_state(set_id).get("placed", [])
@@ -150,14 +154,38 @@ func ball_item(set_id: String, star: int) -> String:
 
 # --- deterministic positions ----------------------------------------------
 
-## The 7 ball positions of a set (x/z world coordinates, y = -1 = "resolve on spawn").
+## How many balls a set has (the DMZ+ cereal set only has two).
+func total_count(set_id: String) -> int:
+	var scr := _placement()
+	if scr != null and scr.has_method("count_of"):
+		var n := int(scr.call("count_of", set_id))
+		if n > 0:
+			return n
+	return BALL_COUNT
+
+func _placement() -> Object:
+	if not ResourceLoader.exists(PLACEMENT_SCRIPT):
+		return null
+	return load(PLACEMENT_SCRIPT)
+
+## Ball positions of a set. Uses the worldgen engineer's land-aware placement when it is
+## there (same positions the generator drops the pickups at), else a seeded ring.
+## A scatter shifts the seed so the balls move to new places for the next hunt.
 func positions(set_id: String) -> Array:
 	var out: Array = []
 	var st := set_state(set_id)
+	var scatter := int(st.get("scatter", 0))
+	var scr := _placement()
+	if scr != null and scr.has_method("positions"):
+		var list: Variant = scr.call("positions", set_id, world_seed() + scatter * SCATTER_SEED_STEP)
+		if list is Array and (list as Array).size() > 0:
+			for p in list:
+				out.append(p)
+			return out
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash("%d/%s/%d" % [world_seed(), set_id, int(st.get("scatter", 0))])
+	rng.seed = hash("%d/%s/%d" % [world_seed(), set_id, scatter])
 	var r := range_for_set(set_id)
-	for i in BALL_COUNT:
+	for i in total_count(set_id):
 		var angle := rng.randf() * TAU
 		var dist: float = sqrt(rng.randf()) * r
 		var x: float = roundf(cos(angle) * dist) + 0.5
@@ -175,7 +203,7 @@ func position_of(set_id: String, star: int) -> Vector3:
 ## {ok, dir, distance, star, found, total, text}
 func radar_direction(from: Vector3, set_id := "") -> Dictionary:
 	var sid := set_id if set_id != "" else set_for_planet()
-	var total := BALL_COUNT
+	var total := total_count(sid if sid != "" else "earth")
 	if sid == "":
 		return {"ok": false, "found": 0, "total": total, "text": "No dragon balls on this world."}
 	var st := set_state(sid)
@@ -477,7 +505,8 @@ func altar_interact(player: Node, block_pos: Vector3i) -> bool:
 ## 7 distinct stars of one set within RITUAL_RADIUS summon the dragon.
 func _check_ritual(set_id: String) -> void:
 	var list: Array = placed(set_id)
-	if list.size() < BALL_COUNT:
+	var need := total_count(set_id)
+	if list.size() < need:
 		return
 	for anchor in list:
 		if not (anchor is Dictionary):
@@ -496,7 +525,7 @@ func _check_ritual(set_id: String) -> void:
 				continue
 			stars.append(star)
 			sum += p
-		if stars.size() >= BALL_COUNT:
+		if stars.size() >= need:
 			summon(set_id, sum / float(stars.size()))
 			return
 
@@ -644,8 +673,6 @@ func finish_summon() -> void:
 		scatter(set_id)
 	current_dragon = ""
 	wishes_left = 0
-	if Audio != null:
-		Audio.play_bgm("explore")
 
 ## Clear the set, pick new positions and hide the balls for SCATTER_DAYS in-game days.
 func scatter(set_id: String) -> void:
@@ -708,11 +735,43 @@ func _on_ball_found(set_id: String, star: int) -> void:
 		if list[i] is Dictionary and int((list[i] as Dictionary).get("star", 0)) == star:
 			list.remove_at(i)
 	_spawned.erase("%s:%d" % [set_id, star])
-	if Audio != null:
-		Audio.play_sfx("dball_pickup", -2.0)
-	_toast("Dragon Ball found", "%d★ — %d/%d collected" % [star, have.size(), BALL_COUNT])
-	if have.size() >= BALL_COUNT:
+	var total := total_count(set_id)
+	_toast("Dragon Ball found", "%d★ — %d/%d collected" % [star, have.size(), total])
+	if have.size() >= total:
 		Events.hint.emit("All seven! Place them together (or on an altar) to summon.", 6.0)
+
+## Worldgen drops `dragon_ball` pickups while generating columns, which knows nothing
+## about what the player already collected. Adopt the valid ones, drop the rest:
+##   * already found / scattered   -> free it (no respawn after a reload)
+##   * no `item` in the spawn data -> free it, `_stream_balls` re-spawns it correctly
+func _on_entity_spawned(node: Node) -> void:
+	if node == null or not is_instance_valid(node):
+		return
+	if not ("entity_type" in node) or String(node.get("entity_type")) != "dragon_ball":
+		return
+	var data: Dictionary = {}
+	for key in ["data", "spawn_data"]:
+		if key in node and node.get(key) is Dictionary:
+			for k in (node.get(key) as Dictionary).keys():
+				data[k] = (node.get(key) as Dictionary)[k]
+	var item := String(data.get("item", ""))
+	var set_id := String(data.get("set", ""))
+	var star := int(data.get("star", 0))
+	if item != "" and Registry != null:
+		var db: Dictionary = Registry.item(item).get("dragon_ball", {})
+		set_id = String(db.get("set", set_id))
+		star = int(db.get("star", star))
+	if set_id == "" or star <= 0:
+		return
+	if (found(set_id) as Array).has(star) or is_scattered(set_id) or item == "":
+		node.queue_free()
+		return
+	var key := "%s:%d" % [set_id, star]
+	var known: Object = instance_from_id(int(_spawned.get(key, 0))) if _spawned.has(key) else null
+	if known != null and is_instance_valid(known) and known != node:
+		node.queue_free()
+		return
+	_spawned[key] = int(node.get_instance_id())
 
 func _on_item_picked_up(item_id: String, _count: int) -> void:
 	var def: Dictionary = Registry.item(item_id) if Registry != null else {}

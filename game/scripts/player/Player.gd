@@ -61,12 +61,13 @@ var spawn_planet := "earth"
 var _phys: Dictionary = DEFAULT_PHYSICS.duplicate()
 var _last_jump_time := -10.0
 var _dash_cd := 0.0
-var _step_dist := 0.0
 var _blast_hold := 0.0
 var _blast_active := false
 var _clock := 0.0
 var _position_preset := false
 var _blast_charging := false
+var _stepper: RefCounted = null          # scripts/audio/Footsteps.gd Stepper (audio engineer)
+var _was_in_liquid := false
 
 # --- setup -----------------------------------------------------------------
 
@@ -93,6 +94,8 @@ func _configure() -> void:
 	camera_rig.crouch_eye_height = CROUCH_EYE
 	add_child(camera_rig)
 	camera_rig.set_player(self)
+	if ResourceLoader.exists("res://scripts/audio/Footsteps.gd"):
+		_stepper = Footsteps.Stepper.new()
 	interaction = Interaction.new()
 	interaction.name = "Interaction"
 	add_child(interaction)
@@ -583,6 +586,7 @@ func _integrate(delta: float) -> void:
 
 func _apply_motion(motion: Vector3) -> void:
 	var was_ground := on_ground
+	var vy_before := velocity.y
 	var step := float(_phys["step_height"]) if (on_ground or in_liquid) else 0.0
 	var vp := _voxel()
 	var moved_from := global_position
@@ -612,8 +616,10 @@ func _apply_motion(motion: Vector3) -> void:
 			on_ground = is_flying
 	if is_flying:
 		on_ground = false
-	if on_ground and not was_ground and velocity.y <= 0.0:
+	if on_ground and not was_ground and vy_before <= 0.0:
 		play_anim("base.landing", 0.1, false)
+		if _stepper != null:
+			Footsteps.land(world, global_position, absf(vy_before))
 	var d := global_position - moved_from
 	ground_speed = Vector2(d.x, d.z).length() / maxf(get_process_delta_time(), 0.0001)
 	distance_moved += Vector2(d.x, d.z).length()
@@ -626,26 +632,17 @@ func _survival(delta: float) -> void:
 	if world != null and Registry != null and world.get("planet_id") != null:
 		has_o2 = bool(Registry.planet(String(world.get("planet_id"))).get("oxygen", true))
 	survival.tick(delta, speed_now(), is_sprinting, head_in_liquid(), has_o2)
-	if on_ground and not is_flying:
-		var sp := speed_now()
-		if sp > 0.3:
-			_step_dist += sp * delta
-			if _step_dist >= clampf(2.2 / maxf(0.5, sp), 0.25, 0.6) * maxf(0.5, sp):
-				_step_dist = 0.0
-				_footstep()
-		else:
-			_step_dist = 0.0
-	else:
-		_step_dist = 0.0
+	_footsteps(delta)
 
-func _footstep() -> void:
-	var mat := "stone"
-	if world != null and world.has_method("get_block") and Registry != null:
-		var p := global_position - Vector3(0, 0.2, 0)
-		var id := int(world.call("get_block", int(floor(p.x)), int(floor(p.y)), int(floor(p.z))))
-		if id > 0:
-			mat = String(Registry.block(id).get("material", "stone"))
-	Audio.play_sfx("step_" + mat, linear_to_db(0.35))
+## Footstep / landing / splash audio lives in scripts/audio/Footsteps.gd (audio engineer).
+func _footsteps(delta: float) -> void:
+	if in_liquid and not _was_in_liquid and _stepper != null:
+		Footsteps.splash(global_position, clampf(absf(velocity.y) / 6.0, 0.4, 1.5))
+	_was_in_liquid = in_liquid
+	if _stepper == null:
+		return
+	_stepper.call("advance", delta, speed_now(), on_ground and not is_flying, world, global_position,
+		is_sprinting, is_crouching, is_swimming)
 
 func _animate() -> void:
 	if interaction != null and interaction.mining:

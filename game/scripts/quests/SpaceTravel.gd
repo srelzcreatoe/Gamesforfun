@@ -213,7 +213,6 @@ func _play_launch(pid: String, target: Vector3) -> void:
 		pod = world.call("spawn_entity", "spacepod", (p as Node3D).global_position + Vector3(0, 0.2, 0), {})
 	if Audio != null:
 		Audio.play_sfx("ui_nave_takeoff", 0.0)
-		Audio.play_bgm("space")
 	Events.hint.emit("Leaving for %s" % Requirements.planet_name(pid), 3.0)
 	_fade_to_black(LAUNCH_TIME * 0.9)
 	if pod is Node3D:
@@ -283,8 +282,6 @@ func _refresh_planet() -> void:
 	_compass_t = 0.0
 	_ascent_t = 0.0
 	if deep_space:
-		if Audio != null:
-			Audio.play_bgm("space")
 		Events.hint.emit("Deep space: zero gravity. Watch your oxygen.", 5.0)
 
 # --- deep space ------------------------------------------------------------

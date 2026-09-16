@@ -48,7 +48,6 @@ var _flash_t := -1.0
 var _thunder_t := 0.0
 var _sheets: Array[MeshInstance3D] = []
 var _mats: Array[ShaderMaterial] = []
-var _loop_playing := false
 var _time := 0.0
 
 func _ready() -> void:
@@ -154,7 +153,6 @@ func update(delta: float, camera_pos: Vector3, sky_def: Dictionary, sun_color: C
 	intensity = lerpf(intensity, target_intensity, clampf(delta * 0.8, 0.0, 1.0))
 	_update_thunder(delta)
 	_update_sheets(camera_pos, sun_color, daylight)
-	_update_audio()
 
 func _is_cold(pos: Vector3) -> bool:
 	var w: Node = Game.world if Game != null else null
@@ -241,18 +239,7 @@ func _update_sheets(camera_pos: Vector3, sun_color: Color, daylight: float) -> v
 		mat.set_shader_parameter("tint", lit)
 		mat.set_shader_parameter("quality", int(1 if Game == null else (0 if String(Game.settings.get("quality_preset", "balanced")) == "low" else 2)))
 
-func _update_audio() -> void:
-	if Audio == null:
-		return
-	var want := intensity > 0.2 and _precip != 0
-	if want and not _loop_playing:
-		Audio.play_loop("ambience_rain" if _precip == 1 else "ambience_wind", "weather", -8.0)
-		_loop_playing = true
-	elif not want and _loop_playing:
-		Audio.stop_loop("weather", 1.0)
-		_loop_playing = false
+## Weather ambience now belongs to the audio engineer's Ambience node (BgmDirector child),
+## which plays rain/wind on the Ambience bus. Nothing to do here.
 
-func _exit_tree() -> void:
-	if _loop_playing and Audio != null:
-		Audio.stop_loop("weather", 0.2)
-		_loop_playing = false
+

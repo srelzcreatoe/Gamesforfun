@@ -187,22 +187,16 @@ func _celebrate(saga_id: String) -> void:
 		Game.ui.call("toast", "Saga complete", text, null)
 	else:
 		Events.toast.emit("Saga complete", text, null)
-	if Audio != null:
-		Audio.play_sfx("level_up", -2.0)
 
 # --- boss music ------------------------------------------------------------
 
+## The audio agent's BgmDirector owns the boss/explore BGM switch (it listens to the same
+## Events). We only track the state so the saga logic can ask about it.
 func _on_boss_engaged(_entity: Node) -> void:
-	if Audio == null or _boss_bgm:
-		return
 	_boss_bgm = true
-	Audio.play_bgm("boss")
 
 func _on_boss_defeated(_entity: Node) -> void:
-	if Audio == null:
-		return
 	_boss_bgm = false
-	Audio.play_bgm(explore_context())
 
 ## BGM context for the current planet ("explore" when the planet has no playlist).
 func explore_context() -> String:
