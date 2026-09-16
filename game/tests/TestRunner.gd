@@ -25,12 +25,12 @@ func _run() -> void:
 		if filter != "" and not base.contains(filter):
 			continue
 		var script: GDScript = load(f)
-		if script == null:
-			all_failures.append("cannot load " + f)
+		if script == null or not script.can_instantiate():
+			all_failures.append("cannot load/compile " + f)
 			failed += 1
 			continue
 		var inst: Variant = script.new()
-		if not (inst is TestCase):
+		if inst == null or not (inst is TestCase):
 			all_failures.append(f + " does not extend TestCase")
 			failed += 1
 			continue

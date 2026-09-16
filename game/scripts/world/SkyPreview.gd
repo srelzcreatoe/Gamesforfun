@@ -16,6 +16,7 @@ extends Node3D
 
 const WATER_SHADER := "res://shaders/water.gdshader"
 const CHUNK_SHADER := "res://shaders/chunk_opaque.gdshader"
+const CUTOUT_SHADER := "res://shaders/chunk_cutout.gdshader"
 const SEA_LEVEL := 0.0
 const WATER_EXTENT := Vector2(220.0, 220.0)
 const WATER_STEP := 2.5
@@ -31,6 +32,7 @@ var water_material: ShaderMaterial
 var terrain: MeshInstance3D
 var props: Node3D
 var ground_material: ShaderMaterial
+var cutout_material: ShaderMaterial
 
 var planet_id := "earth"
 var time_ticks := 6000.0
@@ -159,6 +161,56 @@ func _chunk_material() -> ShaderMaterial:
 	if Textures != null and Textures.block_array != null:
 		ground_material.set_shader_parameter("tiles", Textures.block_array)
 	return ground_material
+
+func _cutout_material() -> ShaderMaterial:
+	if cutout_material != null:
+		return cutout_material
+	cutout_material = ShaderMaterial.new()
+	if ResourceLoader.exists(CUTOUT_SHADER):
+		cutout_material.shader = load(CUTOUT_SHADER)
+	if Textures != null and Textures.block_array != null:
+		cutout_material.set_shader_parameter("tiles", Textures.block_array)
+	return cutout_material
+
+## Two crossed quads like ChunkMesher's `cross` shape, with the sway bit set in UV2.x so the
+## plants move in the wind (this is what makes the preview compile chunk_cutout.gdshader too).
+static func cross_plant(layer: int, height := 1.0) -> ArrayMesh:
+	var verts := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var uv2s := PackedVector2Array()
+	var colors := PackedColorArray()
+	var indices := PackedInt32Array()
+	var uv2 := Vector2(float(layer) + (1.0 + 64.0) / 128.0, (15.0 * 16.0) / 255.0)   # frames 1, sway on
+	var h := height
+	var dirs := [Vector3(0.5, 0, 0.5), Vector3(0.5, 0, -0.5)]
+	for d in dirs:
+		var n := Vector3(-d.z, 0.0, d.x).normalized()
+		var base := verts.size()
+		verts.append(Vector3(-d.x, 0.0, -d.z))
+		verts.append(Vector3(d.x, 0.0, d.z))
+		verts.append(Vector3(-d.x, h, -d.z))
+		verts.append(Vector3(d.x, h, d.z))
+		uvs.append(Vector2(0, 1))
+		uvs.append(Vector2(1, 1))
+		uvs.append(Vector2(0, 0))
+		uvs.append(Vector2(1, 0))
+		for i in 4:
+			normals.append(n)
+			uv2s.append(uv2)
+			colors.append(Color(0.75, 0.95, 0.6, 1.0))
+		indices.append_array(PackedInt32Array([base, base + 1, base + 2, base + 1, base + 3, base + 2]))
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_TEX_UV2] = uv2s
+	arrays[Mesh.ARRAY_COLOR] = colors
+	arrays[Mesh.ARRAY_INDEX] = indices
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh
 
 func _build_terrain() -> void:
 	# "checker quad": alternating sand / grass block tiles, one quad per TERRAIN_STEP metres.
@@ -337,6 +389,18 @@ func _build_props() -> void:
 		box.position = Vector3(x, terrain_height(x, z) + sy * 0.5, z)
 		box.material_override = mat
 		props.add_child(box)
+	# wind-swayed plants, drawn with chunk_cutout.gdshader (alpha scissor + sway)
+	var fern := Textures.layer("fern0")
+	var flower := Textures.layer("flower_dandelion0")
+	var cmat := _cutout_material()
+	for i in 40:
+		var plant := MeshInstance3D.new()
+		plant.mesh = cross_plant(fern if i % 3 != 0 else flower, 1.0)
+		var px := rng.randf_range(16.0, 60.0)
+		var pz := rng.randf_range(-40.0, 40.0)
+		plant.position = Vector3(px, terrain_height(px, pz), pz)
+		plant.material_override = cmat
+		props.add_child(plant)
 	# tall pillars standing in deep water (reflection / refraction / foam reference)
 	for i in 4:
 		var pillar := MeshInstance3D.new()
@@ -396,6 +460,8 @@ func _apply(delta: float) -> void:
 	sky.apply(planet_def, time_ticks, weather, delta)
 	if ground_material != null:
 		sky.apply_to_material(ground_material)
+	if cutout_material != null:
+		sky.apply_to_material(cutout_material)
 	if water_material != null:
 		sky.apply_to_material(water_material)
 		water_material.set_shader_parameter("water_color", sky.water_color())
