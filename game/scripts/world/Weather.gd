@@ -147,9 +147,9 @@ func update(delta: float, camera_pos: Vector3, sky_def: Dictionary, sun_color: C
 		_precip = 2
 	var target_intensity := 0.0
 	if _precip == 1:
-		target_intensity = 0.75 if kind != "thunder" else 1.0
+		target_intensity = 0.9 if kind != "thunder" else 1.0
 	elif _precip == 2:
-		target_intensity = 0.6
+		target_intensity = 0.7
 	intensity = lerpf(intensity, target_intensity, clampf(delta * 0.8, 0.0, 1.0))
 	_update_thunder(delta)
 	_update_sheets(camera_pos, sun_color, daylight)

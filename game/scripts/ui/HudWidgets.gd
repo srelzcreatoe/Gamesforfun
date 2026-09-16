@@ -152,7 +152,7 @@ class SpriteBar extends Control:
 		var full := Vector2(fill_region.size.x, fill_region.size.y) * k
 		var w := full.x * v
 		var src := Rect2(fill_region.position * factor, Vector2(fill_region.size.x * v, fill_region.size.y) * factor)
-		draw_texture_rect_region(sheet, Rect2(off, Vector2(w, full.y)), src)
+		draw_texture_rect_region(sheet, Rect2(off, Vector2(w, full.y)), src, tint)
 
 ## The 9 slot hotbar from widgets.png with item icons, counts and the selection frame.
 class Hotbar extends Control:
@@ -184,7 +184,7 @@ class Hotbar extends Control:
 		for i in Inventory.HOTBAR_SIZE:
 			var r := slot_rect(i)
 			draw_rect(r.grow(-2.0 * scale_px), Color(0, 0, 0, 0.35))
-			var st: ItemStack = inventory.get_stack(i) if inventory != null else null
+			var st: ItemStack = inventory.stack_at(i) if inventory != null else null
 			if st != null and not st.is_empty():
 				var icon := UiUtil.item_icon(st.item)
 				if icon != null:

@@ -35,7 +35,7 @@ func _make_world() -> Node:
 	return w
 
 func _level(w: Node, x: int, y: int, z: int) -> int:
-	return w.get_meta(x, y, z) & BlockShapes.META_LEVEL
+	return w.get_block_meta(x, y, z) & BlockShapes.META_LEVEL
 
 func test_water_spreads_to_level_7_and_stops() -> void:
 	var w := _make_world()
@@ -62,7 +62,7 @@ func test_water_falls_and_keeps_spreading_below() -> void:
 	w.fluids.settle()
 	assert_eq(w.get_block(8, 60, 8), water, "water falls into the hole")
 	assert_eq(w.get_block(8, 59, 8), water)
-	assert_true((w.get_meta(8, 60, 8) & BlockShapes.META_FALLING) != 0, "falling flag is set")
+	assert_true((w.get_block_meta(8, 60, 8) & BlockShapes.META_FALLING) != 0, "falling flag is set")
 	assert_eq(w.get_block(7, 59, 8), water, "and spreads along the floor of the hole")
 
 func test_removing_the_source_drains_the_water() -> void:

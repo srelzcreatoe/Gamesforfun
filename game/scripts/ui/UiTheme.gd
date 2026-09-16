@@ -35,6 +35,17 @@ static func _build(sc: float) -> Theme:
 	t.set_color("font_shadow_color", "Button", Color(0, 0, 0, 0.6))
 	t.set_constant("shadow_offset_x", "Button", 2)
 	t.set_constant("shadow_offset_y", "Button", 2)
+	# CheckBox / CheckButton must not inherit the green Button nine-slice.
+	for tp in ["CheckBox", "CheckButton"]:
+		for st in ["normal", "hover", "pressed", "disabled", "focus"]:
+			t.set_stylebox(st, tp, StyleBoxEmpty.new())
+		t.set_color("font_color", tp, Color.WHITE)
+		t.set_color("font_hover_color", tp, Color(1.0, 1.0, 0.63))
+		t.set_color("font_pressed_color", tp, Color(1.0, 1.0, 0.63))
+		t.set_color("font_shadow_color", tp, Color(0, 0, 0, 0.6))
+		t.set_constant("shadow_offset_x", tp, 2)
+		t.set_constant("shadow_offset_y", tp, 2)
+		t.set_constant("h_separation", tp, int(8.0 * sc))
 	# Label
 	t.set_color("font_color", "Label", Color.WHITE)
 	t.set_color("font_shadow_color", "Label", Color(0, 0, 0, 0.6))

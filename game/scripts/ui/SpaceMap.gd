@@ -33,16 +33,16 @@ func _card(pid: String, def: Dictionary, unlocked: bool, index: int) -> Control:
 	p.add_theme_stylebox_override("panel", UiUtil.panel_light())
 	p.custom_minimum_size = Vector2(170.0 * s, 150.0 * s)
 	var v := UiUtil.vbox(4.0 * s)
-	var icon_index := int(def.get("travel", {}).get("icon", index))
-	var sheet := UiUtil.gui_tex(ICON_SHEET)
-	var region := Rect2(float(icon_index % 4) * 32.0, float(icon_index / 4) * 32.0, 32.0, 32.0)
-	var icon := UiUtil.icon_rect(UiUtil.atlas(sheet, region, UiUtil.hd_factor(sheet)), Vector2(64.0 * s, 64.0 * s))
+	var icon := UiUtil.icon_rect(_planet_icon(pid), Vector2(72.0 * s, 72.0 * s))
 	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	if not unlocked:
 		icon.modulate = Color(0.4, 0.4, 0.45)
 	v.add_child(icon)
-	v.add_child(UiUtil.label(String(def.get("name", pid.capitalize())), UiUtil.font_small(s),
-		Color.WHITE if unlocked else UiUtil.DIM_COLOR, HORIZONTAL_ALIGNMENT_CENTER))
+	var nm := UiUtil.label(String(def.get("name", pid.capitalize())), UiUtil.font_small(s),
+		Color.WHITE if unlocked else UiUtil.DIM_COLOR, HORIZONTAL_ALIGNMENT_CENTER)
+	nm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	nm.custom_minimum_size.x = 120.0 * s
+	v.add_child(nm)
 	v.add_child(UiUtil.dim("gravity x%.2f%s" % [float(def.get("gravity", 1.0)),
 		"" if bool(def.get("oxygen", true)) else "  no air"], UiUtil.font_small(s)))
 	var here := Game != null and String(Game.world_info.get("planet", "")) == pid
@@ -54,6 +54,14 @@ func _card(pid: String, def: Dictionary, unlocked: bool, index: int) -> Control:
 		v.add_child(UiUtil.dim("locked", UiUtil.font_small(s)))
 	p.add_child(v)
 	return p
+
+## Planet portraits come from assets/textures/environment/<planet>.png when the pipeline has one.
+func _planet_icon(pid: String) -> Texture2D:
+	for name in [pid, pid + "_planet", pid.replace("planet_", "")]:
+		var path := "res://assets/textures/environment/%s.png" % name
+		if ResourceLoader.exists(path):
+			return load(path)
+	return UiUtil.gui_tex(ICON_SHEET)
 
 func _travel(pid: String) -> void:
 	Events.travel_requested.emit(pid)

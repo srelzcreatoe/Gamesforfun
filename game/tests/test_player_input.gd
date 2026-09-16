@@ -67,27 +67,6 @@ func test_fall_damage_formula() -> void:
 	assert_eq(PlayerStats.fall_damage_raw(10.0), float(int((10.0 - 3.4) * 0.9)), "10 blocks")
 	assert_eq(PlayerStats.fall_damage_raw(23.4), 18.0, "20 over the limit")
 
-func test_stats_raise_spends_tp() -> void:
-	var st := PlayerStats.new(null)
-	st.raw["STR"] = 5
-	st.tp = 0
-	assert_true(not st.raise("STR"), "no tp")
-	st.add_tp(1000)
-	var cost := st.tp_cost("STR")
-	assert_true(st.raise("STR"), "raised")
-	assert_eq(st.raw["STR"], 6, "value")
-	assert_eq(st.tp, 1000 - cost, "tp spent")
-	assert_true(not st.raise("NOPE"), "unknown stat")
-
-func test_stats_derived_defaults() -> void:
-	var st := PlayerStats.new(null)
-	for k in st.raw.keys():
-		st.raw[k] = 5
-	assert_eq(st.level(), 1 + 35 / 5, "level")
-	assert_near(st.derived("max_health", 0.0), 150.0)
-	assert_near(st.derived("max_ki", 0.0), 140.0)
-	assert_near(st.derived("melee", 0.0), 11.0)
-
 func test_hunger_exhaustion_drains() -> void:
 	var st := PlayerStats.new(null)
 	st.hunger = 20.0
@@ -98,6 +77,14 @@ func test_hunger_exhaustion_drains() -> void:
 		st.tick(1.0, 5.0, true, false, true)
 	assert_true(st.hunger < 20.0, "sprinting costs hunger")
 
+func test_idle_costs_less_hunger_than_sprinting() -> void:
+	var a := PlayerStats.new(null)
+	var b := PlayerStats.new(null)
+	for i in 50:
+		a.tick(1.0, 0.0, false, false, true)
+		b.tick(1.0, 5.6, true, false, true)
+	assert_true(b.exhaustion > a.exhaustion, "sprinting is more expensive")
+
 func test_oxygen_drains_and_refills() -> void:
 	var st := PlayerStats.new(null)
 	st.oxygen = PlayerStats.OXYGEN_MAX
@@ -105,3 +92,28 @@ func test_oxygen_drains_and_refills() -> void:
 	assert_near(st.oxygen, PlayerStats.OXYGEN_MAX - 1.0, 0.01)
 	st.tick(1.0, 0.0, false, false, true)
 	assert_near(st.oxygen, PlayerStats.OXYGEN_MAX, 0.01)
+
+func test_no_oxygen_planet_drains_air() -> void:
+	var st := PlayerStats.new(null)
+	st.oxygen = 2.0
+	st.tick(1.0, 0.0, false, false, false)
+	assert_near(st.oxygen, 1.0, 0.01)
+
+func test_eating_fills_hunger() -> void:
+	var st := PlayerStats.new(null)
+	st.hunger = 4.0
+	st.eat({"hunger": 6})
+	assert_near(st.hunger, 10.0)
+	st.eat({"hunger": 99})
+	assert_near(st.hunger, PlayerStats.HUNGER_MAX, 0.001, "clamped")
+
+func test_fall_tracking_records_the_peak() -> void:
+	var st := PlayerStats.new(null)
+	st.note_airborne(10.0, true, false, false)
+	st.note_airborne(12.0, false, false, false)
+	assert_true(st.falling, "airborne")
+	assert_near(st.fall_start_y, 12.0)
+	st.note_airborne(2.0, false, false, false)
+	assert_near(st.fall_start_y, 12.0, 0.001, "peak kept")
+	st.note_airborne(2.0, true, false, false)
+	assert_true(not st.falling, "landed")

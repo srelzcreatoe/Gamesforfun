@@ -25,6 +25,10 @@ var _next_step := 0
 func _ready() -> void:
 	_parse_args()
 	Game.world = self
+	# the fx stage runs inside Main, which also spawns the UiManager (loading screen);
+	# hide it so the preview shot is just the effect
+	if Game.ui != null and Game.ui is CanvasLayer:
+		(Game.ui as CanvasLayer).visible = false
 	ScreenFx.get_instance()
 	_build_stage()
 	_build_dummy()
@@ -53,9 +57,9 @@ func _build_stage() -> void:
 	e.ambient_light_color = Color(0.55, 0.6, 0.72)
 	e.ambient_light_energy = 0.9
 	e.glow_enabled = true
-	e.glow_intensity = 0.9
-	e.glow_bloom = 0.25
-	e.glow_hdr_threshold = 0.85
+	e.glow_intensity = 0.45
+	e.glow_bloom = 0.12
+	e.glow_hdr_threshold = 1.0
 	env.environment = e
 	add_child(env)
 
@@ -76,27 +80,37 @@ func _build_stage() -> void:
 	ground.material_override = gm
 	add_child(ground)
 
-	# a few blocks so scale and the crater/shockwave read against something
-	for i in 7:
+	# a few blocks well outside the fx so scale reads without cluttering the shot
+	for i in 6:
 		var b := MeshInstance3D.new()
 		b.mesh = FxAssets.cube_mesh(1.0)
 		var bm := StandardMaterial3D.new()
-		bm.albedo_color = Color(0.45, 0.42, 0.38).lightened(float(i) * 0.04)
+		bm.albedo_color = Color(0.38, 0.35, 0.31).lightened(float(i) * 0.03)
 		b.material_override = bm
-		var a := float(i) / 7.0 * TAU
-		b.position = Vector3(cos(a) * 7.0, 0.5, sin(a) * 7.0)
+		var a := float(i) / 6.0 * TAU + 0.4
+		b.position = Vector3(cos(a) * 12.0, 0.5, sin(a) * 12.0)
 		add_child(b)
 
 	camera = Camera3D.new()
 	camera.name = "PreviewCamera"
 	camera.fov = 68.0
-	camera.position = Vector3(0.0, 2.3, 6.4)
+	var pos := Vector3(0.0, 2.3, 6.4)
+	var look := Vector3(0.0, 1.25, 0.0)
+	match fx:
+		"explosion":
+			pos = Vector3(0.0, 5.0, 15.0)
+			look = Vector3(0.0, 2.0, 0.0)
+		"kamehameha", "beam", "blast", "barrage", "disc":
+			# the dummy aims along -Z, so watch from the side to see the whole beam
+			pos = Vector3(8.5, 2.6, 3.0)
+			look = Vector3(0.0, 1.4, -7.0)
 	add_child(camera)
-	camera.look_at(Vector3(0, 1.25, 0), Vector3.UP)
+	camera.position = pos
+	camera.look_at(look, Vector3.UP)
 	camera.current = true
 
 	var layer := CanvasLayer.new()
-	layer.layer = 5
+	layer.layer = 95
 	add_child(layer)
 	label = Label.new()
 	label.position = Vector2(14, 10)

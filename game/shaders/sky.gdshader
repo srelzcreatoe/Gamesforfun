@@ -19,6 +19,7 @@ uniform vec3 night_color : source_color = vec3(0.0015, 0.0025, 0.012);
 uniform vec3 sunset_color : source_color = vec3(1.0, 0.26, 0.04);
 uniform float atmosphere = 1.0;          // 0 = airless (deep space)
 uniform float weather_darkness = 0.0;    // 0 clear .. 1 thunderstorm
+uniform float min_daylight = 0.0;        // >0 keeps the sky lit at "night" (Namek, heaven, otherworld)
 uniform int quality = 2;
 uniform float time = 0.0;
 
@@ -54,12 +55,12 @@ uniform vec3 aurora_color_b : source_color = vec3(0.55, 0.12, 1.0);
 // kind: 0 planet (square tile masked to a shaded sphere), 1 star (emissive + corona), 2 galaxy/sprite (additive rgba),
 //       3 moon-like (shaded sphere, grey), 4 flat sprite (alpha blended, no shading)
 uniform int body_count = 0;
-uniform sampler2D body_tex_0 : source_color, filter_nearest;
-uniform sampler2D body_tex_1 : source_color, filter_nearest;
-uniform sampler2D body_tex_2 : source_color, filter_nearest;
-uniform sampler2D body_tex_3 : source_color, filter_nearest;
-uniform sampler2D body_tex_4 : source_color, filter_nearest;
-uniform sampler2D body_tex_5 : source_color, filter_nearest;
+uniform sampler2D body_tex_0 : source_color, filter_linear_mipmap;
+uniform sampler2D body_tex_1 : source_color, filter_linear_mipmap;
+uniform sampler2D body_tex_2 : source_color, filter_linear_mipmap;
+uniform sampler2D body_tex_3 : source_color, filter_linear_mipmap;
+uniform sampler2D body_tex_4 : source_color, filter_linear_mipmap;
+uniform sampler2D body_tex_5 : source_color, filter_linear_mipmap;
 uniform vec3 body_dir_0 = vec3(0.0, 1.0, 0.0);
 uniform vec3 body_dir_1 = vec3(0.0, 1.0, 0.0);
 uniform vec3 body_dir_2 = vec3(0.0, 1.0, 0.0);
@@ -127,9 +128,10 @@ vec3 moon_disc(vec3 dir, vec3 mdir, float phase, float scale, vec3 mcol, float n
 	if (rr < 1.0) {
 		vec3 n = vec3(uv, sqrt(1.0 - rr));
 		float lambert = smoothstep(-0.12, 0.30, dot(n, normalize(light)));
-		float maria = 0.72 + 0.28 * sc_noise(uv * 3.5 + 11.0) * sc_noise(uv * 7.0 - 3.0);
+		// maria: dark patches on the disc so a full moon is not a flat white blob
+		float maria = 0.55 + 0.45 * sc_noise(uv * 3.5 + 11.0) * (0.6 + 0.4 * sc_noise(uv * 7.0 - 3.0));
 		float edge = 1.0 - smoothstep(0.88, 1.0, rr);
-		col = mcol * maria * (lambert * 1.6 + 0.03) * edge;
+		col = mcol * maria * (lambert * 1.05 + 0.03) * edge;
 		cover = edge;
 	}
 	float ang = acos(clamp(cosang, -1.0, 1.0));
@@ -225,9 +227,12 @@ vec3 body(vec3 dir, sampler2D tex, vec3 bdir, float scale, int kind, vec3 light_
 		return col;
 	}
 	if (kind == 1) {
+		// emissive disc plus a tight corona; the corona has to fade out well before the
+		// `cosang < 0.3` early-out above or it leaves a hard edge across the sky
 		float disc = 1.0 - smoothstep(0.85, 1.0, rr);
 		vec3 s = texture(tex, uv * 0.5 + 0.5).rgb;
-		col = s * disc * 5.0 + s * exp(-ang / (scale * 2.5)) * 1.2;
+		float corona = exp(-ang / max(scale * 0.5, 0.01)) * smoothstep(0.30, 0.55, cosang);
+		col = s * disc * 4.0 + s * corona * 0.9;
 		cover = disc;
 		return col;
 	}
@@ -244,7 +249,9 @@ vec3 body(vec3 dir, sampler2D tex, vec3 bdir, float scale, int kind, vec3 light_
 		float rim = pow(rr, 5.0);
 		float edge = 1.0 - smoothstep(0.94, 1.0, rr);
 		vec3 atmo = kind == 0 ? mix(s, vec3(1.0), 0.6) : s;
-		col = (s * (lambert * 1.15 + 0.04) + atmo * rim * lambert * 0.7) * edge;
+		// starlight ambient (0.14) keeps the night side readable instead of a black hole, and the
+		// atmosphere rim glows a little even where the sun does not reach
+		col = (s * (lambert * 0.95 + 0.10) + atmo * rim * (lambert * 0.45 + 0.05)) * edge;
 		cover = edge;
 	}
 	return col;
@@ -252,16 +259,18 @@ vec3 body(vec3 dir, sampler2D tex, vec3 bdir, float scale, int kind, vec3 light_
 
 void sky() {
 	vec3 dir = normalize(EYEDIR);
-	float night = 1.0 - sky_daylight(sun_dir.y);
+	float night = 1.0 - max(sky_daylight(sun_dir.y), min_daylight);
 	float has_air = step(0.5, atmosphere);
 	vec3 col;
 	if (has_air > 0.5) {
-		col = sky_color(dir, sun_dir, day_color, horizon_color, night_color, sunset_color, weather_darkness);
+		col = sky_color_min(dir, sun_dir, day_color, horizon_color, night_color, sunset_color, weather_darkness, min_daylight);
+		// extra suns only add their scattering glow (a second full atmosphere evaluation per sun
+		// would triple the cost of the sky pass on Namek for almost no visual difference)
 		if (suns >= 2) {
-			col += sky_color(dir, sun_dir_b, day_color, horizon_color, night_color, sunset_color, weather_darkness) * 0.35;
+			col += sky_sun_glow(dir, sun_dir_b, sunset_color, weather_darkness, min_daylight) * 1.1;
 		}
 		if (suns >= 3) {
-			col += sky_color(dir, sun_dir_c, day_color, horizon_color, night_color, sunset_color, weather_darkness) * 0.25;
+			col += sky_sun_glow(dir, sun_dir_c, sunset_color, weather_darkness, min_daylight) * 0.85;
 		}
 	} else {
 		col = night_color * 0.6;

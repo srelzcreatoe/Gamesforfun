@@ -40,12 +40,25 @@ func _ready() -> void:
 	add_child(toasts)
 	Events.player_spawned.connect(_on_player_spawned)
 	Events.world_loaded.connect(_on_world_loaded)
+	Events.world_unloading.connect(func(_w: Node) -> void: close_all())
 
 func _on_world_loaded(_w: Node) -> void:
+	close("loading")
 	show_hud(true)
 
 func _on_player_spawned(_p: Node) -> void:
+	close("loading")
 	show_hud(true)
+
+## While a world is streaming its first chunks there is no player yet: show the loading bar.
+func _process(_delta: float) -> void:
+	if Game == null:
+		return
+	var streaming := Game.world != null and (Game.player == null or not is_instance_valid(Game.player))
+	if streaming and not is_open("loading") and not is_modal_open():
+		open("loading")
+	elif not streaming and is_open("loading"):
+		close("loading")
 
 # --- hud -------------------------------------------------------------------
 
@@ -176,7 +189,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		var k: InputEventKey = event
 		if k.keycode == KEY_ESCAPE and not is_modal_open() and Game != null and Game.world != null:
-			accept_event()
+			get_viewport().set_input_as_handled()
 			open("pause")
 
 func _notification(what: int) -> void:

@@ -55,7 +55,7 @@ func test_column_roundtrip() -> void:
 	var col := ChunkColumn.new(2, -3)
 	col.set_cell(3, 70, 9, 17, 5)
 	assert_eq(col.get_block(3, 70, 9), 17)
-	assert_eq(col.get_meta(3, 70, 9), 5)
+	assert_eq(col.get_block_meta(3, 70, 9), 5)
 	assert_eq(col.get_block(3, 71, 9), 0)
 	col.set_sky_light(3, 70, 9, 12)
 	col.set_block_light(3, 70, 9, 7)

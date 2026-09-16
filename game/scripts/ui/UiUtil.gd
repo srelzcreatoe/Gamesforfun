@@ -331,6 +331,45 @@ static func item_name(item_id: String) -> String:
 			return String(d.get("name", item_id))
 	return item_id.capitalize()
 
+## Fill Game.profile / world_info with a playable demo character (screenshot + preview aid).
+static func ensure_demo_profile() -> void:
+	if Game == null:
+		return
+	if Game.world_info.is_empty():
+		Game.world_info = {"name": "Preview", "slug": "__preview", "seed": 12345, "mode": "story",
+			"difficulty": "normal", "planet": "earth", "transient": true, "keep_inventory": true,
+			"version": Game.version, "last_played": int(Time.get_unix_time_from_system())}
+	if not Game.profile.is_empty():
+		return
+	Game.profile = ProfileFactory.new_profile("Kakarot", "saiyan", "male", "warrior")
+	Game.profile["tp"] = 4200
+	Game.profile["tp_total"] = 9000
+	Game.profile["skills"]["fly"] = 3
+	Game.profile["skills"]["ki_control"] = 4
+	Game.profile["techniques"] = ["ki_blast", "kamehameha", "kienzan", "solar_flare"]
+	Game.profile["planets_unlocked"] = ["earth", "namek", "otherworld"]
+	var demo := ["stone", "dirt", "oak_planks", "cobblestone", "oak_log", "sand", "glass", "torch", "crafting_table"]
+	var counts := [1, 12, 64, 7, 32, 5, 18, 3, 1]
+	var slots: Array = Game.profile["inventory"]["slots"]
+	var i := 0
+	for id in demo:
+		if Registry != null and Registry.has_item(id):
+			slots[i] = {"item": id, "count": counts[i % counts.size()]}
+			i += 1
+	for j in range(9, 18):
+		var pool := ["iron_ingot", "coal", "senzu_bean", "oak_sapling", "apple", "bread", "diamond", "stick", "gravel"]
+		var id2: String = pool[(j - 9) % pool.size()]
+		if Registry != null and Registry.has_item(id2):
+			slots[j] = {"item": id2, "count": 3 + j}
+	var quests: Dictionary = Game.profile["quests"]
+	if Registry != null and Registry.quests.has("saga_saiyan:1"):
+		var objs: Array = Registry.quest("saga_saiyan:1").get("objectives", [])
+		var prog: Array = []
+		for _o in objs:
+			prog.append(0)
+		quests["active"] = {"saga_saiyan:1": {"objectives": prog, "spawned": []}}
+		quests["tracked"] = "saga_saiyan:1"
+
 static func color_hex(hex: String, fallback := Color.WHITE) -> Color:
 	return JsonUtil.color_from_hex(hex, fallback)
 
@@ -449,8 +488,7 @@ static func option_row(text: String, options: Array, index: int, on_change: Call
 	var state := {"i": clampi(index, 0, maxi(0, options.size() - 1))}
 	var left := flat_button("<", Callable(), false, 40.0 * sc)
 	var val := label(String(options[state["i"]]) if options.size() > 0 else "", -1, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER)
-	val.custom_minimum_size.x = 140.0 * sc
-	val.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	val.custom_minimum_size.x = 190.0 * sc
 	var right := flat_button(">", Callable(), false, 40.0 * sc)
 	var step := func(d: int) -> void:
 		if options.is_empty():
@@ -463,6 +501,8 @@ static func option_row(text: String, options: Array, index: int, on_change: Call
 	row.add_child(left)
 	row.add_child(val)
 	row.add_child(right)
+	row.add_child(spacer(0.0, 0.0))
+	row.get_child(row.get_child_count() - 1).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return row
 
 static func line_edit(placeholder: String, text := "", max_len := 0) -> LineEdit:

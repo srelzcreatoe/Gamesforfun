@@ -5,12 +5,19 @@ extends SubViewportContainer
 
 const BEDROCK_MODEL := "res://scripts/entity/BedrockModel.gd"
 const RACE_SKIN := "res://scripts/entity/RaceSkin.gd"
+const RACE_MODELS := {
+	"human": "entity/races/human", "saiyan": "entity/races/human",
+	"namekian": "entity/races/namekian", "frostdemon": "entity/races/frostdemon",
+	"majin": "entity/races/majin", "bioandroid": "entity/races/bioandroid",
+}
 
 var viewport: SubViewport
 var pivot: Node3D
+var camera: Camera3D = null
 var model: Node3D = null
 var spin := 0.5
 var character: Dictionary = {}
+var armor: Array = []
 var auto_spin := true
 
 func _init(size_px := Vector2(120, 180)) -> void:
@@ -39,41 +46,72 @@ func _init(size_px := Vector2(120, 180)) -> void:
 	l2.rotation_degrees = Vector3(-20, -140, 0)
 	l2.light_energy = 0.55
 	viewport.add_child(l2)
+	camera = cam
 
-func set_character(ch: Dictionary) -> void:
+func set_character(ch: Dictionary, worn: Array = []) -> void:
 	character = ch.duplicate(true)
+	armor = worn
 	rebuild()
 
 func rebuild() -> void:
 	if model != null and is_instance_valid(model):
+		pivot.remove_child(model)
 		model.queue_free()
 	model = _make_model()
 	pivot.add_child(model)
+	call_deferred("frame_camera")
+
+## Fit the whole figure in view whatever model was built.
+func frame_camera() -> void:
+	if camera == null or model == null or not is_instance_valid(model):
+		return
+	var box := _model_aabb(model)
+	if box.size.y <= 0.01:
+		box = AABB(Vector3(-0.4, 0.0, -0.4), Vector3(0.8, 1.9, 0.8))
+	var center := box.position + box.size * 0.5
+	var height := maxf(box.size.y, box.size.x * 1.4)
+	var vfov := deg_to_rad(camera.fov)
+	var dist := (height * 0.5) / maxf(0.05, tan(vfov * 0.5)) * 1.18
+	camera.position = Vector3(0.0, center.y, dist)
+	camera.look_at_from_position(camera.position, Vector3(0.0, center.y, 0.0), Vector3.UP)
+
+static func _model_aabb(root: Node) -> AABB:
+	var out := AABB()
+	var first := true
+	for c in root.get_children():
+		if c is MeshInstance3D:
+			var mi: MeshInstance3D = c
+			if mi.mesh == null or not mi.visible:
+				continue
+			var b: AABB = mi.get_aabb()
+			b = mi.transform * b
+			out = b if first else out.merge(b)
+			first = false
+		if c is Node3D:
+			var sub := _model_aabb(c)
+			if sub.size.length() > 0.0001:
+				sub = (c as Node3D).transform * sub
+				out = sub if first else out.merge(sub)
+				first = false
+	return out
 
 func _make_model() -> Node3D:
-	if ResourceLoader.exists(BEDROCK_MODEL):
-		var script: GDScript = load(BEDROCK_MODEL)
-		if script != null:
-			var inst: Variant = script.new()
-			if inst is Node3D:
-				var m: Node3D = inst
-				var geo := "entity/races/" + String(character.get("race", "human"))
-				var ok := false
-				for fn in ["build", "load_model", "set_geometry", "load_geometry"]:
-					if m.has_method(fn):
-						m.call(fn, geo)
-						ok = true
-						break
-				if ok:
-					if ResourceLoader.exists(RACE_SKIN):
-						var rs: GDScript = load(RACE_SKIN)
-						if rs != null and rs.has_method("compose") and m.has_method("set_texture"):
-							var img: Variant = rs.call("compose", character)
-							if img is Image:
-								m.call("set_texture", img)
-					return m
-				m.queue_free()
-	return _box_figure()
+	if not ResourceLoader.exists(BEDROCK_MODEL) or not ResourceLoader.exists(RACE_SKIN):
+		return _box_figure()
+	var race := String(character.get("race", "human"))
+	var geo := String(RACE_MODELS.get(race, "entity/races/" + race))
+	var m := BedrockModel.new()
+	if not m.load_geo(geo):
+		m.queue_free()
+		return _box_figure()
+	m.set_model_scale(1.0)
+	var ch := character.duplicate(true)
+	if race == "saiyan":
+		ch["has_tail"] = bool(ch.get("has_tail", false))
+	RaceSkin.apply_to(m, ch, armor)
+	var root := Node3D.new()
+	root.add_child(m)
+	return root
 
 func _box_figure() -> Node3D:
 	var root := Node3D.new()

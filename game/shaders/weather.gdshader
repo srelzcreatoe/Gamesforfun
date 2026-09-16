@@ -48,7 +48,7 @@ void fragment() {
 
 	// gusts: whole patches of the sheet thin out and thicken again
 	float gust = sc_fbm(vec2(cell.x * 0.35, cell.y * 0.12 + t * 0.35), 2);
-	float density = smoothstep(0.62 - 0.55 * intensity, 0.85 - 0.35 * intensity, gust + jitter.x * 0.25);
+	float density = smoothstep(0.42 - 0.35 * intensity, 0.80 - 0.30 * intensity, gust + jitter.x * 0.25);
 
 	float a = s.a * density * intensity;
 	// fade out at the top and bottom of the cylinder so the sheet has no visible seam
@@ -56,10 +56,12 @@ void fragment() {
 	if (a <= 0.004) {
 		discard;
 	}
+	// rain reads as a slightly darker, desaturated streak over bright ground and a bright one
+	// against a dark sky, which is what makes it visible in both cases
 	vec3 col = s.rgb * tint;
 	if (kind == 1) {
-		col = tint * 1.15;
+		col = tint * 1.2;
 	}
 	ALBEDO = col;
-	ALPHA = clamp(a * (kind == 1 ? 0.9 : 0.62), 0.0, 1.0);
+	ALPHA = clamp(a * (kind == 1 ? 0.95 : 0.85), 0.0, 1.0);
 }

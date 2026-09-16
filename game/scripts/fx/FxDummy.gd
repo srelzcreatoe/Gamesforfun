@@ -62,22 +62,23 @@ func _ready() -> void:
 		model = _build_model()
 		add_child(model)
 
-## A DMZ BedrockModel when the entity engineer's script is in the tree, else a capsule.
+## A DMZ BedrockModel when the entity engineer's script is there, else a capsule.
 func _build_model() -> Node3D:
 	const BEDROCK := "res://scripts/entity/BedrockModel.gd"
-	const GEO := "res://assets/models/entity/races/human.geo.json"
-	if ResourceLoader.exists(BEDROCK) and ResourceLoader.exists(GEO):
+	const GEO_REL := "entity/races/human"
+	const TEX_REL := "sagas/saga_goku_early"
+	if ResourceLoader.exists(BEDROCK) and ResourceLoader.exists("res://assets/models/" + GEO_REL + ".geo.json"):
 		var script: Variant = load(BEDROCK)
 		if script is GDScript:
 			var inst: Variant = (script as GDScript).new()
-			if inst is Node3D:
+			if inst is Node3D and (inst as Node).has_method("load_geo"):
 				var n := inst as Node3D
 				n.name = "Model"
-				if n.has_method("load_geometry"):
-					n.call("load_geometry", GEO)
-				elif n.has_method("build"):
-					n.call("build", GEO)
-				return n
+				if bool(n.call("load_geo", GEO_REL)):
+					if n.has_method("set_texture"):
+						n.call("set_texture", Textures.entity_texture(TEX_REL))
+					return n
+				n.free()
 			elif inst is Object:
 				(inst as Object).free()
 	var root := Node3D.new()

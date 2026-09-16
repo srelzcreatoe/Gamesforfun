@@ -195,7 +195,7 @@ static func attach_hair(model: BedrockModel, character: Dictionary) -> Node3D:
 	var keep := PackedStringArray()
 	for n in style:
 		keep.append(String(n))
-	hm.show_only_bones(keep, HAIR_ROOT_BONES)
+	hm.show_only_bones(keep)
 	var col := _color(character.get("hair_color", "#222629"))
 	var tile := Textures.entity_texture("races/hair")
 	for n in keep:
@@ -246,7 +246,7 @@ static func apply_form_visuals(model: BedrockModel, form_def: Dictionary) -> voi
 			var keep := PackedStringArray()
 			for n in _form_hair_bones(hair_type):
 				keep.append(String(n))
-			hm.show_only_bones(keep, HAIR_ROOT_BONES)
+			hm.show_only_bones(keep)
 			hm.scale = Vector3.ONE * _form_hair_scale(hair_type)
 			if hair_color != "":
 				for n in keep:

@@ -65,7 +65,8 @@ func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_refresh_metrics()
 	_build()
-	relayout()
+	resized.connect(_on_resize)
+	call_deferred("_on_resize")
 	get_viewport().size_changed.connect(_on_resize)
 	Events.settings_changed.connect(_on_settings)
 	Events.health_changed.connect(func(c: float, m: float) -> void: _set_hearts(c, m))
@@ -95,6 +96,8 @@ func _refresh_metrics() -> void:
 	insets = UiUtil.safe_insets(get_viewport())
 
 func _on_resize() -> void:
+	if size.x < 16.0 or size.y < 16.0:
+		size = get_viewport_rect().size
 	_refresh_metrics()
 	relayout()
 
@@ -147,6 +150,7 @@ func _build() -> void:
 	var xf := UiUtil.hd_factor(xeno)
 	ki_bar = _sprite_bar(xeno, xf, UiUtil.R_XENO_KI_BG, UiUtil.R_XENO_KI_SEG, Vector2(2.0, 2.0), Color(0.35, 0.8, 1.0))
 	ki_bar.fill_region = Rect2(10, 81, 114, 4)
+	ki_bar.tint = Color(0.45, 0.85, 1.0)
 	stamina_bar = _sprite_bar(xeno, xf, UiUtil.R_XENO_STM_BG, UiUtil.R_XENO_STM_FILL, Vector2(15.0, 2.0), Color(1.0, 0.82, 0.25))
 	oxygen_bar = HudWidgets.SpriteBar.new()
 	oxygen_bar.fallback_color = Color(0.3, 0.65, 0.95, 0.95)
@@ -212,14 +216,15 @@ func _add_button(id: String, kind: String, glyph: String, diameter_units: float,
 	button_order.append(id)
 
 func _make_buttons() -> void:
-	_add_button("jump", "press", "jump", 64.0, "radial/jump")
-	_add_button("sneak", "toggle", "sneak", 54.4, "radial/descend")
-	_add_button("sprint", "toggle", "sprint", 54.4, "radial/sprint")
+	# Vector glyphs where a literal shape reads better than the DMZ sprite.
+	_add_button("jump", "press", "jump", 64.0)
+	_add_button("sneak", "toggle", "sneak", 54.4)
+	_add_button("sprint", "toggle", "sprint", 54.4)
 	_add_button("attack", "press", "attack", 64.0)
-	_add_button("ki_blast", "press", "ki_blast", 56.0, "radial/kiweapon")
+	_add_button("ki_blast", "press", "ki_blast", 56.0)
 	_add_button("ki_charge", "press", "charge", 56.0, "radial/aura")
 	_add_button("fly", "toggle", "fly", 48.0, "radial/fly")
-	_add_button("dash", "press", "dash", 48.0, "radial/movement")
+	_add_button("dash", "press", "dash", 48.0)
 	_add_button("transform", "action", "transform", 48.0, "radial/superforms")
 	_add_button("technique", "action", "technique", 48.0, "radial/ultimate")
 	_add_button("lock_on", "action", "lock_on", 48.0)

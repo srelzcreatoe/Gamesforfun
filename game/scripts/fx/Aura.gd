@@ -24,8 +24,8 @@ const DMZ_AURA_MODEL := "res://assets/models/entity/races/kiaura.geo.json"
 const LOOP_KEY_PREFIX := "aura_loop_"
 
 ## Mesh proportions (entity 1.8 m tall; scaled by `body_scale`).
-const AURA_HEIGHT := 2.9
-const AURA_RADIUS := 0.62
+const AURA_HEIGHT := 2.45
+const AURA_RADIUS := 0.46
 const RINGS := 10
 const SEGMENTS := 16
 
@@ -123,7 +123,7 @@ func _build() -> void:
 	_mat_inner.set_shader_parameter("tip_fade", 0.55)
 	_inner = MeshInstance3D.new()
 	_inner.name = "Inner"
-	_inner.mesh = _build_shell(0.58)
+	_inner.mesh = _build_shell(0.62)
 	_inner.material_override = _mat_inner
 	_inner.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_inner.scale = Vector3.ONE * body_scale
@@ -196,7 +196,7 @@ func _build_ground() -> void:
 	_mat_ground.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_mat_ground.no_depth_test = false
 	_mat_ground.disable_receive_shadows = true
-	_mat_ground.albedo_texture = FxAssets.particle("aaa/essentials/AlphaGradient", "aaa/essentials/Circle")
+	_mat_ground.albedo_texture = FxAssets.soft_dot()
 	_mat_ground.albedo_color = Color(outer_color.r, outer_color.g, outer_color.b, 0.0)
 	_ground = MeshInstance3D.new()
 	_ground.name = "GroundGlow"
@@ -222,17 +222,17 @@ func _build_particles() -> void:
 	_sparks.emitting = false
 	add_child(_sparks)
 
-	_rise = FxAssets.make_particles("Rising", RISE_COUNT, ["aura_0", "aura_2", "ki_trail0"], outer_color)
+	_rise = FxAssets.make_particles("Rising", RISE_COUNT, ["ki_trail0", "aura_2", "ki_spark_1"], outer_color)
 	_rise.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
-	_rise.emission_box_extents = Vector3(0.45, 0.1, 0.45) * body_scale
+	_rise.emission_box_extents = Vector3(0.32, 0.1, 0.32) * body_scale
 	_rise.direction = Vector3.UP
-	_rise.spread = 12.0
-	_rise.initial_velocity_min = 2.2
-	_rise.initial_velocity_max = 5.5
+	_rise.spread = 8.0
+	_rise.initial_velocity_min = 2.0
+	_rise.initial_velocity_max = 4.0
 	_rise.gravity = Vector3.ZERO
-	_rise.scale_amount_min = 0.3
-	_rise.scale_amount_max = 0.75
-	_rise.lifetime = 0.8
+	_rise.scale_amount_min = 0.16
+	_rise.scale_amount_max = 0.42
+	_rise.lifetime = 0.55
 	_rise.position = Vector3(0, 0.1, 0)
 	_rise.emitting = false
 	add_child(_rise)
@@ -347,7 +347,7 @@ func _apply_intensity(v: float) -> void:
 	if _mat_outer != null:
 		_mat_outer.set_shader_parameter("intensity", v)
 	if _mat_inner != null:
-		_mat_inner.set_shader_parameter("intensity", v * 1.25)
+		_mat_inner.set_shader_parameter("intensity", v * 0.85)
 	if _outer != null:
 		_outer.visible = vis
 		_outer.scale = Vector3(1.0 + v * 0.12, 1.0 + v * 0.22, 1.0 + v * 0.12) * body_scale

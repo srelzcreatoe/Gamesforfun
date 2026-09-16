@@ -4,6 +4,7 @@ extends Node3D
 ## can be screenshotted before scenes/world/World.tscn exists.
 ## Run: tools/screenshot.sh out.png --args "--scene=res://scenes/ui/HudPreview.tscn"
 
+const GROUND_Y := Entity.FALLBACK_GROUND_Y
 const DEMO_ITEMS := ["stone", "dirt", "oak_planks", "cobblestone", "oak_log", "sand", "glass", "torch", "crafting_table"]
 
 var player: Node = null
@@ -45,7 +46,7 @@ func _ground() -> void:
 	var pm := PlaneMesh.new()
 	pm.size = Vector2(96, 96)
 	mi.mesh = pm
-	mi.position = Vector3(0, 0, 0)
+	mi.position = Vector3(0, GROUND_Y, 0)
 	var mat := StandardMaterial3D.new()
 	var tex := _block_tex("grass_block_top0")
 	if tex == null:
@@ -76,7 +77,7 @@ func _scenery() -> void:
 		var x := rng.randf_range(-22.0, 22.0)
 		var z := rng.randf_range(-24.0, -4.0)
 		var h := rng.randi_range(1, 4)
-		mi.position = Vector3(floor(x) + 0.5, float(h) - 0.5, floor(z) + 0.5)
+		mi.position = Vector3(floor(x) + 0.5, GROUND_Y + float(h) - 0.5, floor(z) + 0.5)
 		mi.scale = Vector3(1, float(h), 1)
 		var mat := StandardMaterial3D.new()
 		var tex := _block_tex(["stone0", "cobblestone", "oak_log", "sand0"][i % 4])
@@ -92,20 +93,10 @@ func _scenery() -> void:
 func _profile() -> void:
 	if Game == null:
 		return
-	if Game.profile.is_empty():
-		Game.profile = ProfileFactory.new_profile("Kakarot", "saiyan", "male", "warrior")
-	if Game.world_info.is_empty():
-		Game.world_info = {"name": "Preview", "slug": "__preview", "seed": 1, "mode": "creative",
-			"difficulty": "normal", "planet": "earth", "transient": true, "keep_inventory": true}
-	# Give the hotbar something to show even before items.json lands.
-	var slots: Array = Game.profile["inventory"]["slots"]
-	var i := 0
-	for id in DEMO_ITEMS:
-		if Registry != null and Registry.has_item(id):
-			slots[i] = {"item": id, "count": [1, 12, 64, 7, 32, 5, 18, 3, 1][i % 9]}
-			i += 1
+	UiUtil.ensure_demo_profile()
 	Game.profile["health"] = -1
 	Game.profile["hunger"] = 15
+	Game.profile["ki"] = -1
 
 func _spawn_player() -> void:
 	if not ResourceLoader.exists("res://scenes/player/Player.tscn"):
@@ -114,7 +105,7 @@ func _spawn_player() -> void:
 	player = packed.instantiate()
 	add_child(player)
 	if player is Node3D:
-		(player as Node3D).global_position = Vector3(0.5, 0.0, 6.0)
+		(player as Node3D).position = Vector3(0.5, GROUND_Y, 6.0)
 	if player.get("camera_rig") != null:
 		var rig: CameraRig = player.get("camera_rig")
 		rig.yaw_deg = 18.0

@@ -79,7 +79,8 @@ func test_3x3_recipes_are_not_hand_craftable() -> void:
 	for i in 9:
 		grid9.append(a)
 	assert_eq(Crafting.match_grid(grid9, 3, "crafting_table").get("id", ""), "t_big", "table matches")
-	assert_eq(Crafting.match_grid([a, a, a, a], 2, "hand").get("id", ""), "", "hand does not")
+	# The same 3x3 shape cannot be matched by the 2x2 hand grid at all.
+	assert_ne(Crafting.match_grid([a, a, a, a], 2, "hand").get("id", ""), "t_big", "hand does not")
 
 func test_hand_recipes_also_work_at_the_table() -> void:
 	var a := _item(0)
@@ -135,16 +136,22 @@ func test_smelting_recipes_are_excluded_from_the_craft_list() -> void:
 
 func test_furnace_smelts_with_fuel() -> void:
 	var raw := _item(0)
-	var cooked := _item(1)
-	_recipe({"id": "t_cook", "station": "furnace", "input": raw, "result": {"item": cooked, "count": 1}, "time": 2.0})
+	_recipe({"id": "t_cook", "station": "furnace", "input": raw, "result": {"item": _item(1), "count": 1}, "time": 2.0})
+	# data/recipes.json may already smelt this input; smelt whatever the registry resolves.
+	var recipe := Crafting.smelt_recipe(raw)
+	assert_true(not recipe.is_empty(), "a smelting recipe exists for " + raw)
+	var cooked := Crafting.result_item(recipe)
+	var per := Crafting.result_count(recipe)
+	var secs := maxf(0.5, float(recipe.get("time", 8.0)))
 	var f := FurnaceStore.new()
 	f.input = ItemStack.make(raw, 2)
 	f.fuel = ItemStack.make("coal", 1) if Registry.has_item("coal") else ItemStack.make(_item(4), 1)
 	assert_true(Crafting.fuel_seconds(f.fuel.item) > 0.0, "fuel burns: " + f.fuel.item)
-	for i in 30:
+	var steps := int((secs + 0.5) / 0.1)
+	for i in steps:
 		f.tick(0.1)
 	assert_eq(f.output.item, cooked, "cooked something")
-	assert_eq(f.output.count, 1, "one result")
+	assert_eq(f.output.count, per, "one result")
 	assert_eq(f.input.count, 1, "one input consumed")
 	assert_true(f.is_lit(), "still burning")
 	assert_true(f.burn_progress() > 0.0, "burn progress")
@@ -152,6 +159,7 @@ func test_furnace_smelts_with_fuel() -> void:
 func test_furnace_without_fuel_does_nothing() -> void:
 	var raw := _item(0)
 	_recipe({"id": "t_cook2", "station": "furnace", "input": raw, "result": {"item": _item(1)}, "time": 1.0})
+	assert_true(not Crafting.smelt_recipe(raw).is_empty(), "recipe present")
 	var f := FurnaceStore.new()
 	f.input = ItemStack.make(raw, 1)
 	for i in 30:

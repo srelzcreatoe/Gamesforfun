@@ -32,6 +32,10 @@ var _clip := ""
 
 func _ready() -> void:
 	_parse_args()
+	if _args.has("signs"):
+		var parts := String(_args["signs"]).split(",")
+		if parts.size() == 3:
+			BedrockModel.euler_signs = Vector3(float(parts[0]), float(parts[1]), float(parts[2]))
 	_build_environment()
 	var model_path := String(_args.get("model", "entity/races/human"))
 	model = BedrockModel.new()
@@ -50,7 +54,7 @@ func _ready() -> void:
 		txt += "  clip=" + _clip
 		if _pose_t >= 0.0:
 			txt += " t=%.2f" % _pose_t
-	txt += "  bones=%d" % model.bone_count()
+	txt += "  bones=%d  signs=%s" % [model.bone_count(), str(BedrockModel.euler_signs)]
 	_set_label(String(_args.get("label", txt)))
 
 func _parse_args() -> void:

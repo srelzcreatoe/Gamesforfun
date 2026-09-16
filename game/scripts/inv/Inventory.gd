@@ -36,7 +36,9 @@ static func _player_inventory() -> Inventory:
 		return Game.player.inventory
 	return null
 
-func get_stack(i: int) -> ItemStack:
+## Named `stack_at` (not `get_stack`) on purpose: `get_stack()` is a GDScript built-in utility
+## function and shadowing it breaks type resolution when the script is hot-reloaded.
+func stack_at(i: int) -> ItemStack:
 	if i < 0 or i >= size:
 		return ItemStack.new()
 	return slots[i]
@@ -176,8 +178,8 @@ func move(from_index: int, to_inv: Inventory, to_index: int, amount := 0) -> boo
 		return false
 	if to_inv == self and from_index == to_index:
 		return false
-	var src := get_stack(from_index)
-	var dst := to_inv.get_stack(to_index)
+	var src := stack_at(from_index)
+	var dst := to_inv.stack_at(to_index)
 	if src.is_empty():
 		return false
 	if to_inv.has_armor and to_index >= to_inv.size:
@@ -214,7 +216,7 @@ func _after_move(other: Inventory) -> void:
 
 ## Split half of a stack into the first empty slot; returns the destination index or -1.
 func split(index: int) -> int:
-	var src := get_stack(index)
+	var src := stack_at(index)
 	if src.is_empty() or src.count < 2:
 		return -1
 	var dst := first_empty()
@@ -241,7 +243,7 @@ func armor_stack(slot: int) -> ItemStack:
 
 ## Equip the stack at `index` into its armor slot; returns false if it is not armor. Previous armor swaps back.
 func equip_armor(index: int) -> bool:
-	var st := get_stack(index)
+	var st := stack_at(index)
 	if st.is_empty():
 		return false
 	var slot := armor_slot_index(st.item)
@@ -266,7 +268,7 @@ func unequip_armor(slot: int) -> bool:
 
 ## Moves between a normal slot and an armor slot (used by the UI tap-tap flow). `armor_index` 0..3.
 func move_to_armor(from_index: int, armor_index: int) -> bool:
-	var st := get_stack(from_index)
+	var st := stack_at(from_index)
 	if st.is_empty() or not has_armor:
 		return false
 	if armor_slot_index(st.item) != armor_index:
@@ -280,7 +282,7 @@ func move_to_armor(from_index: int, armor_index: int) -> bool:
 func move_from_armor(armor_index: int, to_index: int) -> bool:
 	if not has_armor or armor[armor_index].is_empty():
 		return false
-	var dst := get_stack(to_index)
+	var dst := stack_at(to_index)
 	if not dst.is_empty():
 		if armor_slot_index(dst.item) != armor_index:
 			return false

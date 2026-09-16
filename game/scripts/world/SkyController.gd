@@ -26,19 +26,24 @@ const BODY_KINDS := {
 	"planet": 0, "star": 1, "sun": 1, "galaxy": 2, "moon": 3, "sprite": 4,
 	"marker": 4, "dragon_ball": 4, "beacon": 4,
 }
-## planets.json uses DMZ+ sky sizes (9 = a sun, 40 = a moon-sized world, 140 = a sky filling planet).
-## Values <= 1.5 are taken as a direct tangent-of-angular-radius instead (the built-in skies below).
-const BODY_SIZE_TO_TAN := 0.006
+## planets.json uses DMZ+ sky sizes (9 = a sun disc, 40 = a distant world, 140 = the planet you orbit).
+## They are converted to the tangent of the body's angular radius; 140 -> ~35 degrees across.
+## Values <= 1.5 are taken as a direct tangent instead (that is what the built-in skies below use).
+const BODY_SIZE_TO_TAN := 0.0022
 ## Draw order preference when a planet has more than MAX_BODIES entries (deep space has 23).
 const BODY_PRIORITY := {0: 0, 3: 1, 2: 2, 1: 3, 4: 4}
 
 ## Baseline sky used when a planet has no `sky` block (DATA_SCHEMA planets.json).
-## `min_daylight` is the floor of daylight(): 0.14 keeps a moonlit night readable instead of pitch
-## black (the chunk/water shaders multiply sky light by daylight), Namek/heaven raise it further.
+## Two different floors:
+##   `min_daylight` keeps the SKY DOME lit after sundown ("barely night" planets: Namek 0.55,
+##                  heaven 0.8, the time chamber 1.0). 0 = a real night sky with stars.
+##   `night_light`  is the floor of daylight(), the world lighting multiplier, so a moonlit night
+##                  is dark blue instead of pitch black (the chunk/water shaders multiply sky
+##                  light by daylight()).
 const DEFAULT_SKY := {
 	"type": "atmosphere", "day": "#7DAEFF", "horizon": "#CFE4FF", "night": "#050818", "sunset": "#FF8C3A",
 	"fog": "#BFD6F5", "stars": 1500, "star_brightness": 0.6, "milky_way": 0.3, "clouds": true, "aurora": false,
-	"sun_scale": 1.0, "moon": true, "bodies": [], "suns": 1, "min_daylight": 0.3, "sun_color": "#FFF1D6",
+	"sun_scale": 1.0, "moon": true, "bodies": [], "suns": 1, "min_daylight": 0.0, "night_light": 0.3, "sun_color": "#FFF1D6",
 	"fog_density": 1.0, "cloud_coverage": 0.45, "cloud_tint": "#FFFFFF", "aurora_a": "#20FF70", "aurora_b": "#9030FF",
 	"water": "#3F76E4", "milky_way_tilt": 62.0,
 }
@@ -99,6 +104,10 @@ var time_ticks := 0.0
 var day_index := 0                      ## drives the moon phase (one cycle per 8 days)
 var camera_underwater := false          ## the World/Player sets this when the camera is submerged
 var enable_post_process := true
+## Push daylight/sun/fog/sky uniforms into the World's chunk materials every frame. The World also
+## sets the seven shared uniforms itself; this adds the sky-colour ones the water shader needs for
+## its reflections, so no change is required on the voxel side.
+var auto_push_world_materials := true
 var enable_clouds := true
 var enable_weather := true
 
@@ -262,10 +271,10 @@ static func dusk_for_sun(sun_y: float) -> float:
 	return (1.0 - smoothstep(0.06, 0.42, sun_y)) * smoothstep(-0.22, -0.03, sun_y)
 
 ## GDScript mirror of sky_color() in shaders/lib/sky_common.gdshaderinc (linear colours in, linear out).
-static func eval_sky_color(dir: Vector3, sun_dir: Vector3, day_col: Color, horizon_col: Color, night_col: Color, sunset_col: Color, weather: float) -> Color:
+static func eval_sky_color(dir: Vector3, sun_dir: Vector3, day_col: Color, horizon_col: Color, night_col: Color, sunset_col: Color, weather: float, min_day := 0.0) -> Color:
 	var up := dir.y
 	var upc := clampf(up, 0.0, 1.0)
-	var day := smoothstep(-0.10, 0.20, sun_dir.y)
+	var day := maxf(smoothstep(-0.10, 0.20, sun_dir.y), min_day)
 	var dusk := dusk_for_sun(sun_dir.y)
 	var mu := dir.dot(sun_dir)
 	var mu_pos := maxf(mu, 0.0)
@@ -317,6 +326,25 @@ func apply(planet_def: Dictionary, ticks: float, weather: String, delta := 0.016
 	_update_sky_uniforms()
 	_update_clouds()
 	_update_post_process()
+	if auto_push_world_materials:
+		_push_world_materials()
+
+## Feed every chunk/water material the World exposes (ChunkManager.materials()).
+func _push_world_materials() -> void:
+	var w: Node = Game.world if Game != null else null
+	if w == null or not is_instance_valid(w):
+		return
+	if not ("manager" in w):
+		return
+	var mgr: Variant = w.get("manager")
+	if mgr == null or not (mgr is Object) or not mgr.has_method("materials"):
+		return
+	var mats: Variant = mgr.call("materials")
+	if not (mats is Array):
+		return
+	for m in mats:
+		if m is ShaderMaterial:
+			apply_to_material(m)
 
 func _set_planet(id: String, planet_def: Dictionary) -> void:
 	planet_id = id
@@ -342,7 +370,9 @@ func _set_planet(id: String, planet_def: Dictionary) -> void:
 	_set_param("sun_scale", float(sky_def.get("sun_scale", 1.0)))
 	_set_param("suns", int(sky_def.get("suns", 1)))
 	_set_param("moon_enabled", 1.0 if bool(sky_def.get("moon", true)) else 0.0)
-	_set_param("star_density", clampf(float(sky_def.get("stars", 1500)) / 34000.0 * 1.4, 0.0, 1.0))
+	# `stars` is a star count; the shader wants the probability that one of its ~34000 sky cells
+	# holds a star. x4 over the physical value because a game night sky should read as dense.
+	_set_param("star_density", clampf(float(sky_def.get("stars", 1500)) / 9000.0, 0.0, 0.6))
 	_set_param("star_brightness", float(sky_def.get("star_brightness", 0.6)))
 	_set_param("milky_way_strength", float(sky_def.get("milky_way", 0.3)))
 	_set_param("aurora_strength", 1.0 if bool(sky_def.get("aurora", false)) else 0.0)
@@ -382,6 +412,18 @@ static func select_bodies(bodies: Array) -> Array:
 			return pa < pc
 		return float(a.get("scale", 0.1)) > float(c.get("scale", 0.1)))
 	if picked.size() > MAX_BODIES:
+		# keep one sun/star in the mix (deep space lists a dozen planets before its suns)
+		var has_star := false
+		for i in MAX_BODIES:
+			var k: Variant = picked[i].get("kind", 0)
+			if (int(BODY_KINDS.get(k, 0)) if k is String else int(k)) == 1:
+				has_star = true
+		if not has_star:
+			for b in picked:
+				var k2: Variant = b.get("kind", 0)
+				if (int(BODY_KINDS.get(k2, 0)) if k2 is String else int(k2)) == 1:
+					picked[MAX_BODIES - 1] = b
+					break
 		picked.resize(MAX_BODIES)
 	return picked
 
@@ -441,7 +483,10 @@ func _update_weather(weather: String, delta: float) -> void:
 func _update_sun() -> void:
 	_sun_dir = sun_dir_for_ticks(time_ticks)
 	_moon_dir = -_sun_dir
-	_daylight = daylight_for_sun(_sun_dir.y, float(sky_def.get("min_daylight", 0.0)))
+	_daylight = maxf(daylight_for_sun(_sun_dir.y, float(sky_def.get("min_daylight", 0.0))),
+			float(sky_def.get("night_light", 0.0)))
+	# an overcast sky dims the world itself, not just the sky dome
+	_daylight *= 1.0 - 0.4 * _weather_darkness
 	if String(sky_def.get("type", "atmosphere")) == "space":
 		_daylight = 0.15
 
@@ -459,10 +504,11 @@ func _update_colors() -> void:
 	_sun_color = sun
 	_sun_color.a = 1.0
 	var w := _weather_darkness
-	var zenith := eval_sky_color(Vector3.UP, _sun_dir, _colors["day"], _colors["horizon"], _colors["night"], _colors["sunset"], w)
+	var min_day := float(sky_def.get("min_daylight", 0.0))
+	var zenith := eval_sky_color(Vector3.UP, _sun_dir, _colors["day"], _colors["horizon"], _colors["night"], _colors["sunset"], w, min_day)
 	var horizon := _horizon_avg(w)
 	var fog_tint: Color = _colors["fog"]
-	_fog_color = horizon.lerp(horizon * (fog_tint / maxf(fog_tint.get_luminance(), 0.05)).clamp(Color(0, 0, 0), Color(1.6, 1.6, 1.6)), 0.35)
+	_fog_color = horizon.lerp(horizon * (fog_tint / maxf(fog_tint.get_luminance(), 0.05)).clamp(Color(0, 0, 0), Color(1.6, 1.6, 1.6)), 0.22)
 	_fog_color.a = 1.0
 	var amb := zenith * 0.45 + horizon * 0.55
 	amb = amb * (0.55 + 0.45 * _daylight) + Color(0.012, 0.014, 0.02)
@@ -479,15 +525,16 @@ func _update_colors() -> void:
 		_fog_color.a = 1.0
 
 func _horizon_avg(w: float) -> Color:
+	var min_day := float(sky_def.get("min_daylight", 0.0))
 	var flat := Vector3(_sun_dir.x, 0.0, _sun_dir.z)
 	if flat.length() < 0.001:
 		flat = Vector3.RIGHT
 	flat = flat.normalized()
 	var side := Vector3(-flat.z, 0.0, flat.x)
 	var h := Vector3(0.0, 0.03, 0.0)
-	var a := eval_sky_color((flat + h).normalized(), _sun_dir, _colors["day"], _colors["horizon"], _colors["night"], _colors["sunset"], w)
-	var b := eval_sky_color((-flat + h).normalized(), _sun_dir, _colors["day"], _colors["horizon"], _colors["night"], _colors["sunset"], w)
-	var c := eval_sky_color((side + h).normalized(), _sun_dir, _colors["day"], _colors["horizon"], _colors["night"], _colors["sunset"], w)
+	var a := eval_sky_color((flat + h).normalized(), _sun_dir, _colors["day"], _colors["horizon"], _colors["night"], _colors["sunset"], w, min_day)
+	var b := eval_sky_color((-flat + h).normalized(), _sun_dir, _colors["day"], _colors["horizon"], _colors["night"], _colors["sunset"], w, min_day)
+	var c := eval_sky_color((side + h).normalized(), _sun_dir, _colors["day"], _colors["horizon"], _colors["night"], _colors["sunset"], w, min_day)
 	return a * 0.35 + b * 0.25 + c * 0.4
 
 func _update_environment() -> void:
@@ -539,13 +586,18 @@ func _update_sky_uniforms() -> void:
 	_set_param("moon_dir", _moon_dir)
 	_set_param("sun_color", _colors["sun"])
 	_set_param("weather_darkness", _weather_darkness)
+	_set_param("min_daylight", float(sky_def.get("min_daylight", 0.0)))
 	_set_param("time", _time)
-	_set_param("moon_phase", fmod(float(day_index) / 8.0, 1.0))
+	# the moon cycles over 8 in-game days; the World counts days in Game.world_info
+	var day: int = day_index
+	if Game != null and Game.world_info.has("day"):
+		day = int(Game.world_info["day"])
+	_set_param("moon_phase", fmod(float(day) / 8.0, 1.0))
 	if int(sky_def.get("suns", 1)) >= 2:
-		var yaw_b := Basis(Vector3.UP, deg_to_rad(48.0))
-		var yaw_c := Basis(Vector3.UP, deg_to_rad(-44.0))
-		var b := (yaw_b * _sun_dir + Vector3(0, 0.35, 0)).normalized()
-		var c := (yaw_c * _sun_dir + Vector3(0, 0.18, 0)).normalized()
+		var yaw_b := Basis(Vector3.UP, deg_to_rad(30.0))
+		var yaw_c := Basis(Vector3.UP, deg_to_rad(-27.0))
+		var b := (yaw_b * _sun_dir + Vector3(0, 0.22, 0)).normalized()
+		var c := (yaw_c * _sun_dir + Vector3(0, 0.10, 0)).normalized()
 		_set_param("sun_dir_b", b)
 		_set_param("sun_dir_c", c)
 	var tilt := deg_to_rad(float(sky_def.get("milky_way_tilt", 62.0)))
@@ -651,6 +703,7 @@ func apply_to_material(mat: ShaderMaterial) -> void:
 	mat.set_shader_parameter("sun_dir", _sun_dir)
 	mat.set_shader_parameter("moon_dir", _moon_dir)
 	mat.set_shader_parameter("weather_darkness", _weather_darkness)
+	mat.set_shader_parameter("min_daylight", float(sky_def.get("min_daylight", 0.0)))
 	mat.set_shader_parameter("day_color", _colors.get("day", Color(0.2, 0.4, 1.0)))
 	mat.set_shader_parameter("horizon_color", _colors.get("horizon", Color(0.6, 0.75, 1.0)))
 	mat.set_shader_parameter("night_color", _colors.get("night", Color(0.002, 0.003, 0.012)))
@@ -658,3 +711,6 @@ func apply_to_material(mat: ShaderMaterial) -> void:
 	mat.set_shader_parameter("underwater", 1.0 if camera_underwater else 0.0)
 	mat.set_shader_parameter("quality", _quality)
 	mat.set_shader_parameter("fancy_water", 1 if bool(Game.settings.get("fancy_water", true)) and _quality >= 1 else 0)
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	if cam != null:
+		mat.set_shader_parameter("cam_near", cam.near)

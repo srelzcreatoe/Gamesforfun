@@ -34,7 +34,7 @@ func test_add_merges_into_partial_stacks_first() -> void:
 	assert_eq(inv.first_empty(), 1, "one slot used")
 	inv.add(a, 3)
 	assert_eq(inv.first_empty(), 1, "merged, still one slot")
-	assert_eq(inv.get_stack(0).count, limit, "topped up")
+	assert_eq(inv.stack_at(0).count, limit, "topped up")
 
 func test_add_unknown_item_is_rejected() -> void:
 	assert_eq(inv.add("definitely_not_an_item", 4), 4, "all leftover")
@@ -52,8 +52,8 @@ func test_remove_spans_stacks() -> void:
 func test_move_to_empty_slot() -> void:
 	inv.add(_id(0), 7)
 	assert_true(inv.move(0, inv, 20), "moved")
-	assert_true(inv.get_stack(0).is_empty(), "source empty")
-	assert_eq(inv.get_stack(20).count, 7, "destination")
+	assert_true(inv.stack_at(0).is_empty(), "source empty")
+	assert_eq(inv.stack_at(20).count, 7, "destination")
 
 func test_move_merges_same_item_up_to_the_stack_size() -> void:
 	var a := _id(0)
@@ -61,8 +61,8 @@ func test_move_merges_same_item_up_to_the_stack_size() -> void:
 	inv.set_stack(0, ItemStack.make(a, limit - 2))
 	inv.set_stack(1, ItemStack.make(a, 5))
 	assert_true(inv.move(1, inv, 0), "merged")
-	assert_eq(inv.get_stack(0).count, limit, "filled")
-	assert_eq(inv.get_stack(1).count, 3, "remainder stays")
+	assert_eq(inv.stack_at(0).count, limit, "filled")
+	assert_eq(inv.stack_at(1).count, 3, "remainder stays")
 
 func test_move_swaps_different_items() -> void:
 	var a := _id(0)
@@ -70,22 +70,22 @@ func test_move_swaps_different_items() -> void:
 	inv.set_stack(0, ItemStack.make(a, 4))
 	inv.set_stack(1, ItemStack.make(b, 9))
 	assert_true(inv.move(0, inv, 1), "swap")
-	assert_eq(inv.get_stack(0).item, b, "b moved down")
-	assert_eq(inv.get_stack(0).count, 9, "count kept")
-	assert_eq(inv.get_stack(1).item, a, "a moved up")
+	assert_eq(inv.stack_at(0).item, b, "b moved down")
+	assert_eq(inv.stack_at(0).count, 9, "count kept")
+	assert_eq(inv.stack_at(1).item, a, "a moved up")
 
 func test_move_partial_onto_another_item_is_refused() -> void:
 	inv.set_stack(0, ItemStack.make(_id(0), 4))
 	inv.set_stack(1, ItemStack.make(_id(1), 9))
 	assert_true(not inv.move(0, inv, 1, 2), "no partial swap")
-	assert_eq(inv.get_stack(0).count, 4, "unchanged")
+	assert_eq(inv.stack_at(0).count, 4, "unchanged")
 
 func test_split_half_goes_to_the_first_empty_slot() -> void:
 	inv.set_stack(0, ItemStack.make(_id(0), 7))
 	var dst := inv.split(0)
 	assert_eq(dst, 1, "first empty")
-	assert_eq(inv.get_stack(1).count, 4, "ceil(7/2)")
-	assert_eq(inv.get_stack(0).count, 3, "remainder")
+	assert_eq(inv.stack_at(1).count, 4, "ceil(7/2)")
+	assert_eq(inv.stack_at(0).count, 3, "remainder")
 	assert_eq(inv.split(5), -1, "empty slot cannot split")
 
 func test_split_of_single_item_refused() -> void:
@@ -96,7 +96,7 @@ func test_move_between_two_inventories() -> void:
 	var chest := Inventory.new(27, false)
 	inv.add(_id(0), 12)
 	assert_true(inv.move(0, chest, 3), "moved out")
-	assert_eq(chest.get_stack(3).count, 12, "in chest")
+	assert_eq(chest.stack_at(3).count, 12, "in chest")
 	assert_eq(inv.count(_id(0)), 0, "gone")
 
 func test_hotbar_selection_clamps() -> void:

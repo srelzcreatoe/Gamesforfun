@@ -21,7 +21,7 @@ extends Node3D
 const SPHERE_SHADER := "res://shaders/ki_sphere.gdshader"
 const FLASH_TEX := "ki_flash"
 const SPARKLE_TEX := "aaa/essentials/SPARKLE001"
-const SHINE_TEX := "aaa/essentials/SHINE_001"
+const SHINE_TEX := "ki_flash1"
 
 const HAND_BONES: Array[String] = ["rightArm", "arm_right", "rightarm", "right_arm", "body"]
 
@@ -194,8 +194,8 @@ static func beam_impact(pos: Vector3, c: Color, radius := 1.5, parent: Node = nu
 	var p := parent if parent != null and parent.is_inside_tree() else _parent()
 	if p == null:
 		return
-	FxAssets.burst(p, pos, "BeamHit", 14, ["ki_exp3", "ki_flash1", "spark3"], c, 6.0 * radius, 0.4, 0.5 * radius, -3.0)
-	FxAssets.burst(p, pos, "BeamDust", 8, ["dust_particle_0", "rock_particle_2", "aaa/essentials/SMOKE001"], Color(0.6, 0.57, 0.52), 3.0, 0.8, 0.8 * radius, -4.0)
+	FxAssets.burst(p, pos, "BeamHit", 14, ["aaa/lightning/Particle_Soft", "ki_flash1", "spark1"], c, 6.0 * radius, 0.4, 0.5 * radius, -3.0)
+	FxAssets.burst(p, pos, "BeamDust", 8, ["aaa/lightning/Smoke", "aaa/explosion/smoke_tex", "block_0"], Color(0.85, 0.82, 0.76), 3.0, 0.8, 0.8 * radius, -4.0)
 
 static func disc_sparks(pos: Vector3, c: Color, parent: Node = null) -> void:
 	var p := parent if parent != null and parent.is_inside_tree() else _parent()

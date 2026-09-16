@@ -38,13 +38,16 @@ func build() -> void:
 
 	# left: preview
 	var left := UiUtil.vbox(6.0 * s)
-	var pw := minf(260.0 * s, size.x * 0.28)
-	preview = CharacterPreview.new(Vector2(pw, pw * 1.45))
+	var pw := clampf(size.x * 0.24, 140.0, 280.0)
+	var ph := minf(pw * 1.35, size.y * 0.52)
+	preview = CharacterPreview.new(Vector2(pw, ph))
 	left.add_child(preview)
 	desc_label = UiUtil.dim("", UiUtil.font_small(s))
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_label.custom_minimum_size = Vector2(pw, 120.0 * s)
-	left.add_child(desc_label)
+	desc_label.custom_minimum_size.x = pw
+	var desc_scroll := UiUtil.scroll(desc_label, Vector2(pw, 100.0 * s))
+	desc_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left.add_child(desc_scroll)
 	row.add_child(left)
 
 	# right: options

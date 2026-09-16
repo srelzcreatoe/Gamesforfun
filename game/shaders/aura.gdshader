@@ -13,7 +13,7 @@ uniform float wobble = 0.05;
 uniform float wobble_speed = 7.0;
 uniform float pulse_speed = 5.5;
 uniform float pulse_amount = 0.18;
-uniform float flame_sharpness = 1.9;
+uniform float flame_sharpness = 1.35;
 uniform float rise = 0.55;          // how much the flames stretch upward
 uniform float tip_fade = 0.35;      // fade of the top tips
 uniform float seed = 0.0;
@@ -62,25 +62,30 @@ void vertex() {
 
 void fragment() {
 	vec2 uv = UV;
+	float h = clamp(uv.y, 0.0, 1.0);
+
 	// flames travel up the body: scroll the noise down in UV space
 	vec2 p = vec2(uv.x * noise_scale * 2.0 + seed, uv.y * noise_scale - TIME * scroll_speed);
 	float n = fbm(p);
 	float n2 = fbm(p * 2.1 + vec2(11.3, -TIME * scroll_speed * 1.7));
-	float flame = pow(clamp(n * 0.7 + n2 * 0.5, 0.0, 1.0), flame_sharpness);
+	float flame = clamp(n * 0.65 + n2 * 0.45, 0.0, 1.0);
+	flame = pow(flame, flame_sharpness);
 
-	// vertical shaping: strong at the feet, tapering tongues at the top
-	float grad = clamp(1.0 - uv.y * tip_fade, 0.0, 1.0);
-	float body = smoothstep(0.08, 0.5, flame * (0.6 + grad));
+	// the noise has to clear a rising threshold, so the shell is dense at the feet
+	// and breaks into separate licking tongues towards the top
+	float threshold = mix(0.26, 0.80, pow(h, 0.85)) * (1.0 - 0.25 * (intensity - 1.0));
+	float body = smoothstep(threshold, threshold + 0.20, flame);
+	float core = smoothstep(threshold + 0.16, threshold + 0.44, flame);
 
 	float pulse = 1.0 + sin(TIME * pulse_speed) * pulse_amount;
-	float core = pow(clamp(flame * 1.45, 0.0, 1.0), 4.0);
+	// keep the silhouette hot where the mesh faces the camera edge on
+	float rim = 1.0 - abs(dot(normalize(NORMAL), normalize(-VERTEX)));
 
 	vec3 col = mix(aura_color.rgb, inner_color.rgb, core);
-	float a = body * intensity * pulse * aura_color.a;
-	// keep the silhouette hot where the mesh faces the camera edge-on
-	float rim = 1.0 - abs(dot(normalize(NORMAL), normalize(-VERTEX)));
-	a *= 0.55 + 0.75 * rim;
+	// front-facing parts of the shell stay nearly transparent so the body reads
+	// through it; the grazing silhouette is where the flames are bright
+	float a = body * (0.30 + 0.26 * (1.0 - h)) * (0.10 + 1.25 * rim) * clamp(intensity, 0.0, 2.0) * pulse;
 
-	ALBEDO = col * (0.8 + 1.4 * core);
-	ALPHA = clamp(a, 0.0, 1.0);
+	ALBEDO = col * (0.85 + 0.9 * core);
+	ALPHA = clamp(a, 0.0, 1.0) * aura_color.a;
 }

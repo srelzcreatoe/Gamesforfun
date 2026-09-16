@@ -102,18 +102,18 @@ func _can_replace(id: int) -> bool:
 func _level_of(p: Vector3i, id: int) -> int:
 	if world.get_block(p.x, p.y, p.z) != id:
 		return 0
-	var lvl := world.get_meta(p.x, p.y, p.z) & BlockShapes.META_LEVEL
+	var lvl := world.get_block_meta(p.x, p.y, p.z) & BlockShapes.META_LEVEL
 	return SOURCE if lvl == 0 else lvl
 
 func _update_cell(p: Vector3i) -> void:
 	var id := world.get_block(p.x, p.y, p.z)
 	if id == 0 or BlockTable.liquid[id] == 0:
 		return
-	var meta := world.get_meta(p.x, p.y, p.z)
+	var meta := world.get_block_meta(p.x, p.y, p.z)
 	var level: int = meta & BlockShapes.META_LEVEL
 	if level == 0:
 		level = SOURCE
-		world.set_meta(p.x, p.y, p.z, SOURCE)
+		world.set_block_meta(p.x, p.y, p.z, SOURCE)
 	var spread: int = maxi(1, int(BlockTable.flow_spread[id]))
 	var min_level: int = maxi(1, SOURCE - spread)
 	var lava := BlockTable.lava[id] == 1
@@ -187,7 +187,7 @@ func _react(p: Vector3i, n: Vector3i, id: int, lava: bool) -> bool:
 		return false
 	if lava:
 		# Our lava touches water: become obsidian (source) or cobblestone (flowing).
-		var lvl := world.get_meta(p.x, p.y, p.z) & BlockShapes.META_LEVEL
+		var lvl := world.get_block_meta(p.x, p.y, p.z) & BlockShapes.META_LEVEL
 		var solid_id := BlockTable.id_of("obsidian") if (lvl == 0 or lvl >= SOURCE) else BlockTable.id_of("cobblestone")
 		if solid_id <= 0:
 			solid_id = BlockTable.id_of("stone")
@@ -195,7 +195,7 @@ func _react(p: Vector3i, n: Vector3i, id: int, lava: bool) -> bool:
 		Events.splash.emit(Vector3(p.x + 0.5, p.y + 1.0, p.z + 0.5), 1.0)
 		return true
 	# Our water touches lava: turn the lava into stone.
-	var lvl2 := world.get_meta(n.x, n.y, n.z) & BlockShapes.META_LEVEL
+	var lvl2 := world.get_block_meta(n.x, n.y, n.z) & BlockShapes.META_LEVEL
 	var made := BlockTable.id_of("obsidian") if (lvl2 == 0 or lvl2 >= SOURCE) else BlockTable.id_of("cobblestone")
 	if made <= 0:
 		made = BlockTable.id_of("stone")
@@ -212,7 +212,7 @@ func flow_at(x: int, y: int, z: int) -> Vector3:
 	var id := world.get_block(x, y, z)
 	if id == 0 or BlockTable.liquid[id] == 0:
 		return Vector3.ZERO
-	var meta := world.get_meta(x, y, z)
+	var meta := world.get_block_meta(x, y, z)
 	var level: int = meta & BlockShapes.META_LEVEL
 	if level == 0:
 		level = SOURCE
@@ -220,7 +220,7 @@ func flow_at(x: int, y: int, z: int) -> Vector3:
 	for d in HORIZ:
 		var nid := world.get_block(x + d.x, y, z + d.z)
 		if nid == id:
-			var nl := world.get_meta(x + d.x, y, z + d.z) & BlockShapes.META_LEVEL
+			var nl := world.get_block_meta(x + d.x, y, z + d.z) & BlockShapes.META_LEVEL
 			if nl == 0:
 				nl = SOURCE
 			if nl < level:

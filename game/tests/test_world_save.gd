@@ -56,7 +56,7 @@ func test_save_and_load_roundtrip() -> void:
 	assert_true(sm.load_column(back), "loading must succeed")
 	assert_true(back.from_disk)
 	assert_eq(back.get_block(3, 60, 4), Registry.block_id("water"))
-	assert_eq(back.get_meta(3, 60, 4), Fluids.SOURCE)
+	assert_eq(back.get_block_meta(3, 60, 4), Fluids.SOURCE)
 	assert_eq(back.get_block(3, 61, 4), Registry.block_id("glowstone"))
 	assert_eq(back.get_block(0, 0, 0), Registry.block_id("stone"))
 	assert_eq(back.get_block(0, 100, 0), 0)

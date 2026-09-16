@@ -123,7 +123,7 @@ func _build() -> void:
 	if _muzzle != null:
 		_muzzle.set_progress(1.0)
 
-	_impact_particles = FxAssets.make_particles("Impact", 24, ["ki_exp2", "ki_flash1", "spark3"], color)
+	_impact_particles = FxAssets.make_particles("Impact", 24, ["aaa/lightning/Particle_Soft", "ki_flash1", "spark1"], color)
 	_impact_particles.lifetime = 0.4
 	_impact_particles.spread = 120.0
 	_impact_particles.initial_velocity_min = 3.0

@@ -11,6 +11,23 @@ const PARTICLE_DIR := "res://assets/textures/particles/"
 const MAX_TRANSFORM_PARTICLES := 300
 const MAX_ONESHOT_PARTICLES := 120
 
+## Particle sprites whose RGB is (almost) black: they are alpha masks meant to be
+## colourised by the game, so they are INVISIBLE in an additive material and render
+## as black blobs in a mix material. Never pass these to make_particles/burst; the
+## bright DMZ/AAA equivalents listed next to them read correctly.
+##   dust_particle_0..3, rock_particle_0..11, explode0,
+##   aaa/essentials/SHINE_001, aaa/essentials/SMOKE001/003/004,
+##   aaa/explosion/fire_tex, aaa/explosion_mini/Flash01, hit, Particle1,
+##   ef_common_flashlight01_t, tex_eff_light02, aaa/atmosphere/Full_Black
+## bright smoke: aaa/explosion/smoke_tex, aaa/lightning/Smoke, aaa/missile_boost/Smoke
+## bright debris: block_0..2      bright fire: ki_exp0..6, explode1..5
+const DARK_MASK_TEXTURES: Array[String] = [
+	"dust_particle_0", "dust_particle_1", "dust_particle_2", "dust_particle_3",
+	"explode0", "aaa/essentials/SHINE_001", "aaa/essentials/SMOKE001",
+	"aaa/essentials/SMOKE003", "aaa/essentials/SMOKE004", "aaa/explosion/fire_tex",
+	"aaa/explosion_mini/Flash01", "aaa/explosion_mini/hit",
+]
+
 static var _tex_cache: Dictionary = {}
 static var _mat_cache: Dictionary = {}
 
@@ -72,6 +89,8 @@ static func additive_material(tex: Texture2D, billboard := true) -> StandardMate
 	m.disable_receive_shadows = true
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
 	if billboard:
+		# BILLBOARD_PARTICLES reads INSTANCE_CUSTOM and is only valid on a particle
+		# material; single quads (make_quad) use the plain billboard instead.
 		m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 		m.billboard_keep_scale = true
 	return m
@@ -157,7 +176,10 @@ static func make_quad(node_name: String, tex: Texture2D, size: float, color: Col
 	if face_y:
 		q.orientation = PlaneMesh.FACE_Y
 	mi.mesh = q
-	var m := additive_material(tex, not face_y)
+	var m := additive_material(tex, false)
+	if not face_y:
+		m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+		m.billboard_keep_scale = true
 	m.albedo_color = color
 	mi.material_override = m
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

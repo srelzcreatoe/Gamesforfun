@@ -37,7 +37,8 @@ const DASH_COOLDOWN := 0.9
 const DASH_STAMINA := 10.0
 const CHARGED_BLAST := "charged_ki_blast"
 const BASIC_BLAST := "ki_blast"
-const FALLBACK_GROUND := 0.0
+# Shared with Entity so the player and other entities agree in a world-less preview.
+const FALLBACK_GROUND := Entity.FALLBACK_GROUND_Y
 
 var input: PlayerInput = PlayerInput.new()
 var keyboard: KeyboardInput = null
@@ -99,8 +100,23 @@ func _configure() -> void:
 		Game.player = self
 		if not Game.profile.is_empty():
 			read_profile(Game.profile)
+	apply_appearance()
 	refresh_derived()
 	set_process_unhandled_input(true)
+
+## Compose the race skin + hair + worn armor onto the Bedrock model.
+func apply_appearance() -> void:
+	if model == null or Game == null:
+		return
+	var ch: Dictionary = Game.profile.get("character", {})
+	if ch.is_empty():
+		return
+	var worn: Array = []
+	if inventory != null:
+		for a in inventory.armor:
+			if not a.is_empty():
+				worn.append(a.item)
+	RaceSkin.apply_to(model, ch, worn)
 
 func _exit_tree() -> void:
 	if Game != null and Game.player == self:
@@ -234,7 +250,7 @@ func flight_allowed() -> bool:
 
 func selected_stack() -> ItemStack:
 	inventory.hotbar_index = hotbar_index
-	return inventory.get_stack(hotbar_index)
+	return inventory.stack_at(hotbar_index)
 
 func select_hotbar(i: int) -> void:
 	var n := clampi(i, 0, Inventory.HOTBAR_SIZE - 1)

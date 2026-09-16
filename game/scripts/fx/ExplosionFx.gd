@@ -13,10 +13,10 @@ extends Node3D
 ##   ExplosionFx.play(pos, 4.0, Color(...))     # fx only, no terrain damage
 
 const SHOCKWAVE_SHADER := "res://shaders/shockwave.gdshader"
-const FLASH_TEX := "aaa/explosion_mini/Flash01"
-const FIRE_TEX := "aaa/explosion/fire_tex"
+const FLASH_TEX := "ki_flash"
+const FIRE_TEX := "aaa/lightning/Particle_Soft"
 const SMOKE_TEX := "aaa/explosion/smoke_tex"
-const DEBRIS_TEX := "rock_particle_0"
+const DEBRIS_TEX := "block_0"
 
 const LIFETIME := 1.6
 const FIRE_COUNT := 26
@@ -73,7 +73,7 @@ static func _parent() -> Node:
 
 func _ready() -> void:
 	var scale_f := clampf(radius / 4.0, 0.35, 3.0)
-	_flash = FxAssets.make_quad("Flash", FxAssets.particle(FLASH_TEX, "ki_flash", "ki_exp0"),
+	_flash = FxAssets.make_quad("Flash", FxAssets.particle(FLASH_TEX, "ki_flash1", "ki_exp0"),
 		radius * 2.2, Color(1, 1, 1, 1))
 	add_child(_flash)
 
@@ -92,7 +92,7 @@ func _ready() -> void:
 	_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_ring)
 
-	var fire := FxAssets.make_particles("Fire", int(FIRE_COUNT * scale_f), [FIRE_TEX, "ki_exp2", "explode0"], color)
+	var fire := FxAssets.make_particles("Fire", int(FIRE_COUNT * scale_f), [FIRE_TEX, "ki_flash", "aaa/essentials/Circle"], color)
 	fire.one_shot = true
 	fire.explosiveness = 0.9
 	fire.lifetime = 0.7
@@ -107,7 +107,7 @@ func _ready() -> void:
 	add_child(fire)
 	fire.emitting = true
 
-	var smoke := FxAssets.make_particles("Smoke", int(SMOKE_COUNT * scale_f), [SMOKE_TEX, "aaa/essentials/SMOKE001", "explode4"], Color(0.35, 0.33, 0.3))
+	var smoke := FxAssets.make_particles("Smoke", int(SMOKE_COUNT * scale_f), ["aaa/lightning/Smoke", SMOKE_TEX, "block_0"], Color(0.58, 0.55, 0.52))
 	smoke.one_shot = true
 	smoke.explosiveness = 0.7
 	smoke.lifetime = 1.4
@@ -123,7 +123,7 @@ func _ready() -> void:
 	add_child(smoke)
 	smoke.emitting = true
 
-	var sparks := FxAssets.make_particles("Sparks", int(SPARK_COUNT * scale_f), ["ki_spark_1", "spark2", "ki_line"], color.lightened(0.4))
+	var sparks := FxAssets.make_particles("Sparks", int(SPARK_COUNT * scale_f), ["aaa/missile_boost/Star", "spark1", "ki_spark_0"], color.lightened(0.4))
 	sparks.one_shot = true
 	sparks.explosiveness = 1.0
 	sparks.lifetime = 0.55
@@ -136,7 +136,7 @@ func _ready() -> void:
 	add_child(sparks)
 	sparks.emitting = true
 
-	var debris := FxAssets.make_particles("Debris", int(DEBRIS_COUNT * scale_f), [DEBRIS_TEX, "rock_particle_5", "block_0"], Color(0.7, 0.66, 0.6))
+	var debris := FxAssets.make_particles("Debris", int(DEBRIS_COUNT * scale_f), [DEBRIS_TEX, "block_1", "block_2"], Color(0.7, 0.66, 0.6))
 	debris.one_shot = true
 	debris.explosiveness = 1.0
 	debris.lifetime = 1.5

@@ -10,6 +10,7 @@ const STAT_NAMES := {
 
 var tab := 0
 var page_box: VBoxContainer = null
+var _fallback: Object = null
 
 func _init() -> void:
 	screen_name = "stats"
@@ -59,13 +60,22 @@ func build() -> void:
 		2: _techniques_page()
 		_: _forms_page()
 
-func _stats() -> Variant:
+## The RPG stats object (scripts/combat/Stats.gd) held by the player, or a profile-backed one.
+func _stats() -> Object:
 	if Game != null and Game.player != null:
-		return Game.player.get("stats")
-	return null
+		var st: Variant = Game.player.get("stats")
+		if st is Object and st != null:
+			return st
+	if _fallback == null and ResourceLoader.exists("res://scripts/combat/Stats.gd"):
+		var sc: GDScript = load("res://scripts/combat/Stats.gd")
+		if sc != null:
+			_fallback = sc.new()
+			if _fallback.has_method("from_profile") and Game != null:
+				_fallback.call("from_profile", Game.profile)
+	return _fallback
 
 func _level() -> int:
-	var st: Variant = _stats()
+	var st := _stats()
 	if st != null and st.has_method("level"):
 		return int(st.call("level"))
 	var total := 0
@@ -74,22 +84,27 @@ func _level() -> int:
 	return 1 + total / 5
 
 func _tp() -> int:
-	var st: Variant = _stats()
-	if st != null and st.get("tp") != null:
-		return int(st.get("tp"))
-	return int(Game.profile.get("tp", 0))
+	if Game != null and Game.player != null:
+		return Training.tp(Game.player)
+	return int(Game.profile.get("tp", 0)) if Game != null else 0
 
 func _tp_total() -> int:
-	var st: Variant = _stats()
-	if st != null and st.get("tp_total") != null:
-		return int(st.get("tp_total"))
-	return int(Game.profile.get("tp_total", 0))
+	return int(Game.profile.get("tp_total", 0)) if Game != null else 0
 
 func _stat_value(k: String) -> int:
-	var st: Variant = _stats()
-	if st != null and st.has_method("stat"):
-		return int(st.call("stat", k))
+	var st := _stats()
+	if st != null and st.has_method("raw"):
+		return int(st.call("raw", k))
 	return int(Game.profile.get("stats", {}).get(k, 5))
+
+func _stat_cost(k: String) -> int:
+	var st := _stats()
+	if st != null and st.has_method("next_cost"):
+		var mult := 1.0
+		if st.has_method("tp_cost_mult"):
+			mult = float(st.call("tp_cost_mult"))
+		return int(round(float(st.call("next_cost", k)) * mult))
+	return 10 + _stat_value(k) * 5
 
 func _stats_page() -> void:
 	var sheet := UiUtil.gui_tex("buttons/menubuttons")
@@ -113,31 +128,31 @@ func _stats_page() -> void:
 		bar.add_theme_stylebox_override("background", UiUtil.flat(Color(0, 0, 0, 0.5), Color(0.3, 0.35, 0.45), 2.0, 0.0, 0.0))
 		bar.add_theme_stylebox_override("fill", UiUtil.flat(Color(0.45, 0.72, 0.95), Color(0.6, 0.85, 1.0), 0.0, 0.0, 0.0))
 		row.add_child(bar)
-		var st: Variant = _stats()
-		var cost := 0
-		if st != null and st.has_method("tp_cost"):
-			cost = int(st.call("tp_cost", k))
-		var b := UiUtil.flat_button("+%d TP" % cost if cost > 0 else "+", func() -> void: _raise(k), false, 120.0 * s)
-		b.disabled = st == null or not st.has_method("raise") or _tp() < cost
+		var cost := _stat_cost(k)
+		var b := UiUtil.flat_button("+%d TP" % cost, func() -> void: _raise(k), false, 130.0 * s)
+		b.disabled = _tp() < cost
 		row.add_child(b)
 		page_box.add_child(row)
 	page_box.add_child(UiUtil.spacer(8.0 * s))
-	var st2: Variant = _stats()
-	if st2 != null and st2.has_method("derived"):
-		var lines := [
-			"Max health  %d" % int(st2.call("derived", "max_health", 100.0)),
-			"Max ki      %d" % int(st2.call("derived", "max_ki", 100.0)),
-			"Max stamina %d" % int(st2.call("derived", "max_stamina", 100.0)),
-			"Melee       %.1f" % float(st2.call("derived", "melee", 5.0)),
-			"Ki damage   %.1f" % float(st2.call("derived", "ki_damage", 5.0)),
-			"Defense     %.1f" % float(st2.call("derived", "defense", 0.0)),
-		]
-		for t in lines:
-			page_box.add_child(UiUtil.dim(t, UiUtil.font_small(s)))
+	var st2 := _stats()
+	if st2 != null:
+		for pair in [["Max health", "max_health"], ["Max ki", "max_ki"], ["Max stamina", "max_stamina"],
+				["Melee", "melee"], ["Ki damage", "ki_damage"], ["Defense", "defense"],
+				["Crit chance", "crit_chance"], ["Battle power", "battle_power"]]:
+			if st2.has_method(String(pair[1])):
+				page_box.add_child(UiUtil.dim("%-14s %.1f" % [String(pair[0]), float(st2.call(String(pair[1])))],
+					UiUtil.font_small(s)))
 
 func _raise(k: String) -> void:
-	var st: Variant = _stats()
-	if st != null and st.has_method("raise") and bool(st.call("raise", k)):
+	var p: Node = Game.player if Game != null else null
+	var ok := false
+	if p != null and p.has_method("raise_stat"):
+		ok = bool(p.call("raise_stat", k))
+	elif p != null:
+		ok = Training.raise_stat(p, k, 1)
+	else:
+		ok = _raise_on_profile(k)
+	if ok:
 		Audio.play_sfx("tp_gain", -6.0)
 		rebuild()
 	else:
@@ -175,19 +190,29 @@ func _skills_page() -> void:
 			row.add_child(UiUtil.dim("from a master", UiUtil.font_small(s)))
 		page_box.add_child(row)
 
+## No player node (menu preview / character sheet before spawning): spend straight in the profile.
+func _raise_on_profile(k: String) -> bool:
+	var st := _stats()
+	if st == null or Game == null:
+		return false
+	var cost := _stat_cost(k)
+	if int(Game.profile.get("tp", 0)) < cost:
+		return false
+	Game.profile["tp"] = int(Game.profile.get("tp", 0)) - cost
+	st.call("raise", k, 1)
+	if st.has_method("to_profile"):
+		st.call("to_profile", Game.profile)
+	Events.stats_changed.emit()
+	Events.tp_changed.emit(int(Game.profile.get("tp", 0)), _tp_total())
+	return true
+
 func _learn_skill(id: String, cost: int) -> void:
-	var st: Variant = _stats()
-	if st == null or int(st.get("tp")) < cost:
-		Game.ui.call("show_hint", "Not enough training points.", 2.0)
+	var p: Node = Game.player if Game != null else null
+	if p != null and Training.upgrade_skill(p, id):
+		Audio.play_sfx("tp_gain", -6.0)
+		rebuild()
 		return
-	st.set("tp", int(st.get("tp")) - cost)
-	var skills: Dictionary = Game.profile.get("skills", {})
-	skills[id] = int(skills.get(id, 0)) + 1
-	Game.profile["skills"] = skills
-	Events.skill_changed.emit(id, int(skills[id]))
-	Events.tp_changed.emit(int(st.get("tp")), _tp_total())
-	Audio.play_sfx("tp_gain", -6.0)
-	rebuild()
+	Game.ui.call("show_hint", "Not enough training points.", 2.0)
 
 func _techniques_page() -> void:
 	var known: Array = Game.profile.get("techniques", []) if Game != null else []
@@ -217,6 +242,8 @@ func _forms_page() -> void:
 	var unlocked: Array = forms.get("unlocked", [])
 	var mastery: Dictionary = forms.get("mastery", {})
 	var current := String(forms.get("current", ""))
+	if Game != null and Game.player != null:
+		current = Forms.current(Game.player)
 	var all: Array = Registry.forms.keys() if Registry != null else []
 	var race := String(Game.profile.get("character", {}).get("race", "")) if Game != null else ""
 	var shown := 0
@@ -249,17 +276,18 @@ func _forms_page() -> void:
 		page_box.add_child(UiUtil.dim("No forms for this race yet.", UiUtil.font_small(s)))
 
 func _transform(form_id: String) -> void:
-	var forms_node: Node = null
-	if Game != null and Game.world != null:
-		forms_node = Game.world.get_node_or_null("Forms")
-	if forms_node != null and forms_node.has_method("transform"):
-		forms_node.call("transform", Game.player, form_id)
-		close_self()
+	var p: Node = Game.player if Game != null else null
+	if p == null:
+		Game.ui.call("show_hint", "Not in a world.", 1.5)
 		return
-	var f: Dictionary = Game.profile.get("forms", {})
-	f["current"] = "" if String(f.get("current", "")) == form_id else form_id
-	Game.profile["forms"] = f
-	if Game.player != null:
-		Game.player.set("current_form", String(f["current"]))
-	Events.form_changed.emit(Game.player, String(f["current"]))
-	rebuild()
+	if Forms.current(p) == form_id:
+		Forms.revert(p)
+		rebuild()
+		return
+	var check := Forms.can_transform(p, form_id)
+	if not bool(check.get("ok", false)):
+		var reasons: Array = check.get("reasons", [])
+		Game.ui.call("show_hint", String(reasons[0]) if reasons.size() > 0 else "You cannot transform yet.", 2.5)
+		return
+	Forms.transform(p, form_id)
+	close_self()

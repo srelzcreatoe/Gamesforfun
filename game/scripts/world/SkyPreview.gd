@@ -58,6 +58,15 @@ func _ready() -> void:
 	_build_water()
 	_build_props()
 	_setup_hud()
+	# a space planet has no ground: show the sky alone (unless the water is explicitly wanted)
+	var sky_def: Dictionary = SkyController.sky_for_planet(planet_id, Registry.planets.get(planet_id, {}))
+	if args.has("noclouds") and sky.clouds != null:
+		sky.clouds.visible = false
+		sky.enable_clouds = false
+	if String(sky_def.get("type", "atmosphere")) == "space" and not args.has("water"):
+		terrain.visible = false
+		props.visible = false
+		water_mesh.visible = false
 	if args.has("screenshot"):
 		_shot_path = String(args["screenshot"])
 		_shot_timer = float(args.get("after", 5.0))

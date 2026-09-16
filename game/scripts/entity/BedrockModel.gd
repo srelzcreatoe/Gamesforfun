@@ -42,6 +42,10 @@ const MODELS_DIR := "res://assets/models/"
 const HAIR_BONE_RE := "^(pelo|hair|cabello|cape|capa|cloth|manto|falda|skirt|tela)"
 
 static var prefer_hd := true
+## Sign applied to the three Bedrock euler degrees before composing Rz*Ry*Rx.
+## Kept as a knob so the convention can be re-verified from ModelPreview
+## (--signs=1,-1,-1); the shipped value is the one that renders correctly.
+static var euler_signs := Vector3(1.0, 1.0, 1.0)
 static var _geo_cache: Dictionary = {}          # rel path -> parsed geometry Dictionary
 static var _mesh_cache: Dictionary = {}         # rel path -> {bone: ArrayMesh}
 static var _hair_re: RegEx = null
@@ -235,9 +239,9 @@ static func to_godot(v: Variant) -> Vector3:
 ## Written out by hand (6 trig calls, single-axis fast paths) because this runs
 ## for every animated bone every frame.
 static func bedrock_basis(deg: Vector3) -> Basis:
-	var x := deg.x
-	var y := deg.y
-	var z := deg.z
+	var x := deg.x * euler_signs.x
+	var y := deg.y * euler_signs.y
+	var z := deg.z * euler_signs.z
 	if x == 0.0:
 		if y == 0.0:
 			if z == 0.0:
@@ -411,7 +415,9 @@ static func _add_quad(st: SurfaceTool, p: Array, uvs: Array, n: Vector3) -> bool
 	var cross := (b - a).cross(c - b)
 	if cross.length_squared() < 1e-12:
 		return false
-	var order := [0, 1, 2, 3] if cross.dot(n) > 0.0 else [3, 2, 1, 0]
+	# Godot rasterises CLOCKWISE-from-the-front triangles as front faces, so the
+	# winding is the reverse of the right-hand-rule order around `n`.
+	var order := [3, 2, 1, 0] if cross.dot(n) > 0.0 else [0, 1, 2, 3]
 	for tri in [[0, 1, 2], [0, 2, 3]]:
 		for k in tri:
 			var idx: int = order[k]
@@ -475,11 +481,23 @@ func hide_layer_bones(names_to_hide: Array) -> void:
 		else:
 			set_bone_visible(pat, false)
 
-func show_only_bones(keep: PackedStringArray, root_names := PackedStringArray()) -> void:
+## Toggle only a bone's own mesh, keeping its children visible. Needed for
+## attachment models (hair) whose parent chain carries geometry we do not want.
+func set_bone_mesh_visible(name: String, v: bool) -> void:
+	var mi: MeshInstance3D = meshes.get(name)
+	if mi != null:
+		mi.visible = v
+
+func is_bone_mesh_visible(name: String) -> bool:
+	var mi: MeshInstance3D = meshes.get(name)
+	return mi != null and mi.visible and is_bone_visible(name)
+
+## Show the meshes of `keep` only. Bone NODES stay visible so the transform
+## chain (and therefore the kept bones' children) keeps working.
+func show_only_bones(keep: PackedStringArray, _root_names := PackedStringArray()) -> void:
 	for b in bones.keys():
 		var name := String(b)
-		var vis := keep.has(name) or root_names.has(name)
-		set_bone_visible(name, vis)
+		set_bone_mesh_visible(name, keep.has(name))
 
 ## Per-bone material (armor layers, hair tint, ...). `tex` may be null.
 func set_bone_material(name: String, tex: Texture2D, tint := Color.WHITE, nocull := false) -> void:

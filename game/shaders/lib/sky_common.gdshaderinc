@@ -6,12 +6,15 @@
 //
 // Public functions:
 //   vec3  sky_color(dir, sun_dir, day, horizon, night, sunset, weather)  atmosphere colour for a direction
+//   vec3  sky_color_min(..., weather, min_day)   same with a daylight floor (Namek/heaven "barely night")
+//   vec3  sky_sun_glow(dir, sun_dir, sunset, weather, min_day)  cheap glow for extra suns (Namek)
 //   vec3  sky_horizon_color(sun_dir, day, horizon, night, sunset, weather) average horizon = fog colour
 //   float sky_daylight(sun_y)     0 (deep night) .. 1 (day), same curve as SkyController.daylight()
 //   float sky_dusk(sun_y)         0 .. 1, peaks while the sun sits on the horizon
 //   float sc_hash12 / sc_noise / sc_fbm  cheap value noise helpers (2-D)
 //   vec3  sc_apply_fog(col, fog_col, dist, start, end)   distance fog identical to the chunk shaders
 //   float sc_depth_distance(raw_depth, near, far)        reverse-Z depth buffer -> metres (compat)
+//   float sc_noise_d(p, out grad)  value noise + analytic gradient (cheap bump mapping)
 //   vec2  sc_noise_grad / float sc_luma / vec3 sc_sun_tint
 
 #ifndef SKY_COMMON_INC
@@ -86,11 +89,12 @@ float sky_phase(float mu, float g) {
 
 // Colour of the atmosphere in direction `dir` (no sun disc, no stars; those are sky.gdshader only).
 // weather: 0 clear .. 1 thunderstorm (grey, dark).
-vec3 sky_color(vec3 dir, vec3 sun_dir, vec3 day_col, vec3 horizon_col, vec3 night_col, vec3 sunset_col, float weather) {
+vec3 sky_color_min(vec3 dir, vec3 sun_dir, vec3 day_col, vec3 horizon_col, vec3 night_col, vec3 sunset_col, float weather, float min_day) {
 	float up = dir.y;
 	float upc = clamp(up, 0.0, 1.0);
 	float sun_y = sun_dir.y;
-	float day = sky_daylight(sun_y);
+	// min_day keeps "barely night" planets (Namek, heaven, otherworld) lit after sundown
+	float day = max(sky_daylight(sun_y), min_day);
 	float dusk = sky_dusk(sun_y);
 	float mu = dot(dir, sun_dir);
 	float mu_pos = max(mu, 0.0);
@@ -131,6 +135,23 @@ vec3 sky_color(vec3 dir, vec3 sun_dir, vec3 day_col, vec3 horizon_col, vec3 nigh
 	return col;
 }
 
+// Just the scattering glow around a light source: what a *secondary* sun adds to the sky.
+// Much cheaper than a whole sky_color() evaluation, which is what Namek's three suns would cost.
+vec3 sky_sun_glow(vec3 dir, vec3 sun_dir, vec3 sunset_col, float weather, float min_day) {
+	float day = max(sky_daylight(sun_dir.y), min_day);
+	float dusk = sky_dusk(sun_dir.y);
+	float mu = dot(dir, sun_dir);
+	float lobe = sky_phase(mu, 0.70) * 0.030 + pow(max(mu, 0.0), 40.0) * 0.20;
+	vec3 glow_col = mix(vec3(1.0, 0.93, 0.80), sunset_col * 1.35, dusk);
+	return glow_col * lobe * (0.55 + 0.9 * dusk) * day * (1.0 - 0.7 * weather)
+			* smoothstep(-0.5, -0.1, dir.y);
+}
+
+// Same, with no daylight floor (the common case).
+vec3 sky_color(vec3 dir, vec3 sun_dir, vec3 day_col, vec3 horizon_col, vec3 night_col, vec3 sunset_col, float weather) {
+	return sky_color_min(dir, sun_dir, day_col, horizon_col, night_col, sunset_col, weather, 0.0);
+}
+
 // Fog colour: horizon colour averaged over the compass so the fog does not flip when you turn.
 vec3 sky_horizon_color(vec3 sun_dir, vec3 day_col, vec3 horizon_col, vec3 night_col, vec3 sunset_col, float weather) {
 	vec3 flat_sun = normalize(vec3(sun_dir.x, 0.0, sun_dir.z) + vec3(0.001, 0.0, 0.0));
@@ -148,7 +169,25 @@ float sc_luma(vec3 c) {
 	return dot(c, vec3(0.2126, 0.7152, 0.0722));
 }
 
-// Analytic-ish gradient of sc_noise by central differences (used for water ripple normals).
+// Value noise plus its analytic gradient in one go: four hashes instead of the twelve that
+// central differences would need. Used for the water ripple normals.
+float sc_noise_d(vec2 p, out vec2 grad) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	vec2 u = f * f * (3.0 - 2.0 * f);
+	vec2 du = 6.0 * f * (1.0 - f);
+	float a = sc_hash12(i);
+	float b = sc_hash12(i + vec2(1.0, 0.0));
+	float c = sc_hash12(i + vec2(0.0, 1.0));
+	float d = sc_hash12(i + vec2(1.0, 1.0));
+	float k1 = b - a;
+	float k2 = c - a;
+	float k3 = a - b - c + d;
+	grad = du * vec2(k1 + k3 * u.y, k2 + k3 * u.x);
+	return a + k1 * u.x + k2 * u.y + k3 * u.x * u.y;
+}
+
+// Gradient of sc_noise by central differences (kept for callers that want a specific epsilon).
 vec2 sc_noise_grad(vec2 p, float eps) {
 	float nx = sc_noise(p + vec2(eps, 0.0)) - sc_noise(p - vec2(eps, 0.0));
 	float ny = sc_noise(p + vec2(0.0, eps)) - sc_noise(p - vec2(0.0, eps));

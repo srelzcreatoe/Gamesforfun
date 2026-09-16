@@ -5,6 +5,10 @@ extends RefCounted
 ## Layout: local index = x + 16 * (z + 16 * y) so every 16-high section is a contiguous
 ## 4096-byte range starting at section * 4096.
 ##
+## NOTE: the per-voxel metadata accessors are called `get_block_meta` / `set_block_meta`,
+## not `get_meta` / `set_meta`, because those names belong to Object and GDScript refuses to
+## resolve them with three arguments. Same on World (see docs note in the final report).
+##
 ## blocks : numeric block id per cell
 ## meta   : fluid level/falling, crop stage, rotation (see BlockShapes for the bit layout)
 ## light  : high nibble = sky light, low nibble = block light
@@ -65,12 +69,12 @@ func set_block(lx: int, y: int, lz: int, id: int) -> void:
 		return
 	blocks[lx + 16 * (lz + 16 * y)] = id
 
-func get_meta(lx: int, y: int, lz: int) -> int:
+func get_block_meta(lx: int, y: int, lz: int) -> int:
 	if y < 0 or y >= HEIGHT:
 		return 0
 	return meta[lx + 16 * (lz + 16 * y)]
 
-func set_meta(lx: int, y: int, lz: int, v: int) -> void:
+func set_block_meta(lx: int, y: int, lz: int, v: int) -> void:
 	if y < 0 or y >= HEIGHT:
 		return
 	meta[lx + 16 * (lz + 16 * y)] = v & 255

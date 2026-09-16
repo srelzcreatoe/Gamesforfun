@@ -141,7 +141,7 @@ func _setup_aura() -> void:
 
 func _setup_ground() -> void:
 	# expanding dust ring at the feet
-	_dust = FxAssets.make_particles("GroundDust", 40, ["dust_particle_0", "dust_particle_2", "aaa/essentials/SMOKE001"], Color(0.62, 0.58, 0.52))
+	_dust = FxAssets.make_particles("GroundDust", 40, ["aaa/lightning/Smoke", "aaa/explosion/smoke_tex", "block_0"], Color(0.88, 0.85, 0.79))
 	_dust.material_override.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
 	_dust.lifetime = 1.1
 	_dust.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
@@ -221,9 +221,9 @@ func _setup_rocks() -> void:
 	for i in count:
 		var mi := MeshInstance3D.new()
 		mi.name = "Rock%d" % i
-		var s := _rng.randf_range(0.18, 0.42)
+		var s := _rng.randf_range(0.14, 0.30)
 		mi.mesh = FxAssets.cube_mesh(s)
-		mi.material_override = FxAssets.debris_material(Color(0.42, 0.38, 0.34).lightened(_rng.randf() * 0.25))
+		mi.material_override = FxAssets.debris_material(Color(0.26, 0.23, 0.20).lightened(_rng.randf() * 0.22))
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var a := float(i) / float(count) * TAU + _rng.randf_range(-0.2, 0.2)
 		_rock_angles[i] = a
@@ -234,7 +234,9 @@ func _setup_rocks() -> void:
 		_rocks.append(mi)
 
 func _setup_body_flash() -> void:
-	_body_flash = FxAssets.make_quad("BodyFlash", FxAssets.particle("ki_flash", "aaa/essentials/SHINE_001", "ki_exp0"), 3.2, Color(1, 1, 1, 0.0))
+	# soft radial glow behind the body; the white flash itself is done on the model
+	# (BedrockModel.set_emission) when the entity exposes it
+	_body_flash = FxAssets.make_quad("BodyFlash", FxAssets.soft_dot(), 2.6, Color(1, 1, 1, 0.0))
 	_body_flash.position = Vector3(0, 1.0, 0)
 	add_child(_body_flash)
 
@@ -341,34 +343,47 @@ func _update_rocks(real: float) -> void:
 		mi.rotation += Vector3(real * 1.7, real * 2.3, real * 1.1)
 
 func _flash_body(on: bool) -> void:
-	if _body_flash == null:
-		return
-	var m: StandardMaterial3D = _body_flash.material_override
 	var ramp := clampf((t - 0.3) / (CLIMAX - 0.3), 0.0, 1.0)
-	m.albedo_color = Color(1, 1, 1, (0.55 * ramp) if on else 0.0)
-	_body_flash.scale = Vector3.ONE * (0.7 + 0.5 * ramp)
+	if _body_flash != null:
+		var m: StandardMaterial3D = _body_flash.material_override
+		m.albedo_color = Color(1, 1, 1, (0.30 * ramp) if on else 0.0)
+		_body_flash.scale = Vector3.ONE * (0.7 + 0.5 * ramp)
+	var model := _model()
+	if model != null and model.has_method("set_emission"):
+		model.call("set_emission", Color(1, 1, 1), (0.9 * ramp) if on else 0.0)
 
-## Flicker the model between the base and the form's hair colour every 0.15 s.
+const HAIR_BONES: Array[String] = ["hair", "hair_base", "hairstyle", "hair1", "head_hair"]
+
+func _model() -> Node3D:
+	if entity == null or not is_instance_valid(entity) or not ("model" in entity):
+		return null
+	var m: Variant = entity.get("model")
+	return m if m is Node3D else null
+
+## Flicker between the base look and the form's hair colour every 0.15 s. Prefers the
+## entity's own hook, then the model's hair bones, then a whole-model emission pulse.
 func _flicker_hair(on: bool) -> void:
 	if entity == null or not is_instance_valid(entity):
 		return
 	if entity.has_method("flicker_form_visuals"):
 		entity.call("flicker_form_visuals", form_def if on else {})
 		return
-	var target: Variant = entity.get("model") if "model" in entity else null
-	if not (target is Node3D):
+	var model := _model()
+	if model == null:
 		return
-	var c := Color(1, 1, 1)
-	if on:
-		var hc := String(form_def.get("hairColor", ""))
-		c = Color(hc).lightened(0.2) if hc != "" else _aura_color().lightened(0.3)
-	_tint(target as Node3D, c)
-
-func _tint(node: Node, c: Color) -> void:
-	if node is GeometryInstance3D:
-		(node as GeometryInstance3D).set_instance_shader_parameter("form_tint", c)
-	for ch in node.get_children():
-		_tint(ch, c)
+	var hc := String(form_def.get("hairColor", ""))
+	var c := Color(hc) if hc != "" else _aura_color().lightened(0.3)
+	if model.has_method("has_bone") and model.has_method("set_bone_material") and model.has_method("get_texture"):
+		var tex: Variant = model.call("get_texture")
+		var touched := false
+		for b in HAIR_BONES:
+			if bool(model.call("has_bone", b)):
+				model.call("set_bone_material", b, tex, c if on else Color.WHITE, false)
+				touched = true
+		if touched:
+			return
+	if model.has_method("set_tint"):
+		model.call("set_tint", c.lerp(Color.WHITE, 0.55) if on else Color.WHITE)
 
 func _spawn_ring(size: float, life: float) -> void:
 	var mi := MeshInstance3D.new()
@@ -403,9 +418,9 @@ func _do_climax() -> void:
 	ScreenFx.hit_stop(0.08)
 	_spawn_ring(7.5, 1.1)
 	FxAssets.burst(self, global_position + Vector3.UP * 1.0, "ClimaxBurst", 60,
-		["ki_exp1", "aaa/lightning/Burst_1", "ki_flash1"], _aura_color(), 16.0, 0.7, 1.1, -3.0)
+		["aaa/lightning/Burst_1", "ki_flash1", "aaa/missile_boost/Star"], _aura_color(), 16.0, 0.7, 1.1, -3.0)
 	FxAssets.burst(self, global_position, "ClimaxDust", 30,
-		["dust_particle_1", "rock_particle_3", "aaa/essentials/SMOKE003"], Color(0.6, 0.56, 0.5), 9.0, 1.0, 1.3, -6.0)
+		["aaa/lightning/Smoke", "aaa/explosion/smoke_tex", "block_0"], Color(0.85, 0.82, 0.76), 9.0, 1.0, 1.3, -6.0)
 	Audio.play_sfx_at("power_up_burst", global_position)
 	Audio.play_sfx_at("explosion_big", global_position, -6.0, 0.8)
 	Audio.play_sfx_at("thunder", global_position, -8.0)
@@ -425,7 +440,7 @@ func _shatter_rocks() -> void:
 		if not is_instance_valid(mi):
 			continue
 		var p := mi.global_position
-		FxAssets.burst(self, p, "RockShatter", 5, ["rock_particle_1", "rock_particle_7", "block_1"], Color(0.55, 0.5, 0.45), 7.0, 0.7, 0.28, -18.0)
+		FxAssets.burst(self, p, "RockShatter", 5, ["block_1", "block_2", "block_0"], Color(0.55, 0.5, 0.45), 7.0, 0.7, 0.28, -18.0)
 		mi.queue_free()
 	_rocks.clear()
 
@@ -470,6 +485,12 @@ func _release() -> void:
 		_cam.fov = _cam_fov
 	if _light != null and is_instance_valid(_light):
 		_light.queue_free()
+	var model := _model()
+	if model != null:
+		if model.has_method("set_emission"):
+			model.call("set_emission", Color(1, 1, 1), 0.0)
+		if model.has_method("set_tint"):
+			model.call("set_tint", Color.WHITE)
 	if entity != null and is_instance_valid(entity):
 		_running.erase(entity.get_instance_id())
 

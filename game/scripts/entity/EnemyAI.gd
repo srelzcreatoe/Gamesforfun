@@ -35,6 +35,8 @@ var swing_time := -1.0            # seconds until the current swing lands
 var swing_kind := "melee"
 var windup := 0.0
 var beam_time := -1.0
+var beam_id := ""
+var beam_delegated := false
 var aggro := false
 var home := Vector3.ZERO
 
@@ -271,22 +273,37 @@ func _land_hit() -> void:
 func _start_ranged(dist: float) -> void:
 	blast_cd = randf_range(2.0, 4.0)
 	if e.ai_tier >= 2 and dist > 8.0 and randf() < 0.35:
-		beam_time = BEAM_TELEGRAPH
-		e.play_anim("ki_charge")
-		Events.technique_started.emit(e, "beam")
-		if Audio != null:
-			Audio.play_sfx_at("ki_charge", e.global_position, -3.0)
+		_begin_beam()
 		return
-	if _cast_technique("blast"):
+	var blast_id := _technique_of_kind("blast")
+	if blast_id != "" and _tap_technique(blast_id):
 		return
 	_spawn_placeholder(e.melee_damage * 0.9, 24.0)
 
+func _begin_beam() -> void:
+	beam_time = BEAM_TELEGRAPH
+	beam_delegated = false
+	beam_id = _technique_of_kind("beam")
+	if beam_id != "" and _techniques_api() != null and _techniques_api().has_method("begin"):
+		beam_delegated = bool(_techniques_api().call("begin", e, beam_id))
+	if not beam_delegated:
+		e.play_anim("ki_charge")
+		if Audio != null:
+			Audio.play_sfx_at("ki_charge", e.global_position, -3.0)
+	Events.technique_started.emit(e, beam_id if beam_id != "" else "beam")
+
 func _fire_beam() -> void:
 	if e.target == null:
+		if beam_delegated and _techniques_api() != null and _techniques_api().has_method("cancel"):
+			_techniques_api().call("cancel", e)
+		return
+	e.face(e.target.global_position)
+	if beam_delegated:
+		var api := _techniques_api()
+		if api != null and api.has_method("release"):
+			api.call("release", e)
 		return
 	e.play_anim("idle", 0.1)
-	if _cast_technique("beam"):
-		return
 	_spawn_placeholder(e.melee_damage * 1.6, 34.0, Color(1.0, 0.85, 0.45), 0.55)
 
 func _spawn_placeholder(damage: float, speed: float, color := Color(0.55, 0.85, 1.0), radius := 0.35) -> void:
@@ -307,27 +324,35 @@ func _spawn_placeholder(damage: float, speed: float, color := Color(0.55, 0.85, 
 	if Audio != null:
 		Audio.play_sfx_at("kiblast_shoot", from, -3.0)
 
-## Delegate to the combat engineer's Techniques.gd if it is there.
-func _cast_technique(kind: String) -> bool:
+## Delegation to the combat engineer's `scripts/combat/Techniques.gd`
+## (Techniques.tap / begin / release). Everything falls back to
+## `SimpleProjectile` when that script is not in the project yet.
+static func _techniques_api() -> Object:
 	if not _tech_checked:
 		_tech_checked = true
 		if ResourceLoader.exists("res://scripts/combat/Techniques.gd"):
 			_techniques = load("res://scripts/combat/Techniques.gd")
-	if _techniques == null:
-		return false
+	return _techniques
+
+## First technique of this entity whose data/techniques.json `kind` matches.
+func _technique_of_kind(kind: String) -> String:
 	var ids: Array = e.def.get("techniques", [])
-	var tech_id := ""
 	for id in ids:
 		var d: Dictionary = Registry.technique(String(id))
 		if String(d.get("kind", "blast")) == kind:
-			tech_id = String(id)
-			break
-	if tech_id == "" and kind == "blast":
-		tech_id = "blast" if Registry.techniques.has("blast") else ""
-	if tech_id == "":
+			return String(id)
+	if kind == "blast":
+		for fallback in ["ki_blast", "blast"]:
+			if Registry.techniques.has(fallback):
+				return fallback
+	return ""
+
+func _tap_technique(tech_id: String) -> bool:
+	var api := _techniques_api()
+	if api == null or tech_id == "":
 		return false
-	for m in ["cast_for", "cast", "execute", "fire"]:
-		if _techniques.has_method(m):
-			var r: Variant = _techniques.call(m, e, tech_id, e.target)
+	for m in ["tap", "cast_for", "cast", "execute", "fire"]:
+		if api.has_method(m):
+			var r: Variant = api.call(m, e, tech_id)
 			return r == null or r == true
 	return false

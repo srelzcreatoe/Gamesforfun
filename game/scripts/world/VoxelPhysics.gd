@@ -90,7 +90,7 @@ static func _sweep(world: Node, box: AABB, axis: int, d: float) -> float:
 				var id := world.get_block(x, y, z)
 				if id == 0 or BlockTable.solid[id] == 0:
 					continue
-				var boxes := BlockShapes.collision_boxes(id, world.get_meta(x, y, z))
+				var boxes := BlockShapes.collision_boxes(id, world.get_block_meta(x, y, z))
 				for b in boxes:
 					var wb: AABB = AABB(Vector3(x, y, z) + b.position, b.size)
 					if not _overlaps_other_axes(box, wb, axis):
@@ -128,7 +128,7 @@ static func aabb_intersects_solid(world: Node, box: AABB) -> bool:
 				var id := world.get_block(x, y, z)
 				if id == 0 or BlockTable.solid[id] == 0:
 					continue
-				for b in BlockShapes.collision_boxes(id, world.get_meta(x, y, z)):
+				for b in BlockShapes.collision_boxes(id, world.get_block_meta(x, y, z)):
 					var wb := AABB(Vector3(x, y, z) + b.position, b.size)
 					if _intersects(box, wb):
 						return true
@@ -181,7 +181,7 @@ static func fluid_at(world: Node, box: AABB) -> Dictionary:
 				fid = id
 				if BlockTable.lava[id] == 1:
 					lava = true
-				var lvl := world.get_meta(x, y, z) & BlockShapes.META_LEVEL
+				var lvl := world.get_block_meta(x, y, z) & BlockShapes.META_LEVEL
 				if lvl == 0:
 					lvl = 8
 				var h := 1.0 if (world.get_block(x, y + 1, z) == id) else BlockShapes.liquid_height(lvl)

@@ -51,6 +51,7 @@ uniform vec3 horizon_color : source_color = vec3(0.62, 0.78, 1.0);
 uniform vec3 night_color : source_color = vec3(0.0015, 0.0025, 0.012);
 uniform vec3 sunset_color : source_color = vec3(1.0, 0.26, 0.04);
 uniform float weather_darkness = 0.0;
+uniform float min_daylight = 0.0;
 
 // --- look / quality ----------------------------------------------------------------------------
 uniform vec3 water_color : source_color = vec3(0.09, 0.28, 0.62);   // shallow tint (biome water colour)
@@ -112,12 +113,17 @@ float water_waves(vec2 p, float t, out vec2 slope) {
 }
 
 // Scrolling ripple bump from two (three on high) noise gradients at different scales and speeds.
+// sc_noise_d returns the analytic gradient, so this is four texture-free hashes per octave.
 vec3 ripple_normal(vec2 p, float t, float strength) {
 	vec2 g = vec2(0.0);
-	g += sc_noise_grad(p * 1.7 + vec2(t * 0.09, t * 0.13), 0.08) * 0.55;
-	g += sc_noise_grad(p * 5.3 - vec2(t * 0.21, t * 0.07), 0.05) * 0.22;
+	vec2 d;
+	sc_noise_d(p * 1.7 + vec2(t * 0.09, t * 0.13), d);
+	g += d * 1.7 * 0.55;
+	sc_noise_d(p * 5.3 - vec2(t * 0.21, t * 0.07), d);
+	g += d * 5.3 * 0.09;
 	if (quality >= 2) {
-		g += sc_noise_grad(p * 13.0 + vec2(-t * 0.35, t * 0.28), 0.03) * 0.08;
+		sc_noise_d(p * 13.0 + vec2(-t * 0.35, t * 0.28), d);
+		g += d * 13.0 * 0.012;
 	}
 	return normalize(vec3(-g.x * strength, 1.0, -g.y * strength));
 }
@@ -228,8 +234,8 @@ void fragment() {
 		// --- reflected sky --------------------------------------------------------------------
 		vec3 refl_dir = reflect(view_dir, n);
 		refl_dir.y = from_below ? -abs(refl_dir.y) : abs(refl_dir.y);
-		vec3 sky = sky_color(normalize(refl_dir), sun_dir, day_color, horizon_color, night_color,
-				sunset_color, weather_darkness);
+		vec3 sky = sky_color_min(normalize(refl_dir), sun_dir, day_color, horizon_color, night_color,
+				sunset_color, weather_darkness, min_daylight);
 		if (from_below) {
 			// under the surface almost everything mirrors the dark water; only a bright window overhead
 			float window = smoothstep(0.55, 0.95, -view_dir.y);

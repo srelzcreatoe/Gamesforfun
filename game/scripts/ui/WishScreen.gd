@@ -42,6 +42,8 @@ func _row(w: Dictionary) -> Control:
 	col.add_child(UiUtil.label(String(w.get("name", "Wish")), UiUtil.font_small(s), Color(1.0, 0.92, 0.6)))
 	var d := UiUtil.dim(String(w.get("desc", "")), UiUtil.font_small(s))
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	d.custom_minimum_size.x = 200.0 * s
+	d.size_flags_horizontal = Control.SIZE_FILL
 	col.add_child(d)
 	row.add_child(col)
 	var wid := String(w.get("id", ""))
@@ -66,7 +68,5 @@ func _apply_locally(w: Dictionary) -> void:
 				if Game.player != null and Game.player.has_method("give"):
 					Game.player.call("give", String(it.get("item", "")), int(it.get("count", 1)))
 		"tps":
-			if Game.player != null and Game.player.get("stats") != null:
-				var st: Variant = Game.player.get("stats")
-				if st.has_method("add_tp"):
-					st.call("add_tp", int(w.get("amount", 0)))
+			if Game.player != null:
+				Training.award(Game.player, float(w.get("amount", 0)))

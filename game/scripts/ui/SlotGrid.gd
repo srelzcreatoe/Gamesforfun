@@ -18,6 +18,7 @@ class Slot extends Control:
 	var draw_bg := true
 	var ghost_icon: Texture2D = null      # shown when the slot is empty (armor slot hints)
 	var label_text := ""
+	var border := false                   # draw an outline (crafting grid / output slot)
 
 	func _init(src := "inv", i := 0) -> void:
 		source = src
@@ -39,6 +40,8 @@ class Slot extends Control:
 			draw_rect(r, SlotGrid.BG_COLOR)
 		if selected:
 			draw_rect(r, SlotGrid.SEL_COLOR)
+		if border:
+			draw_rect(r, Color(0.55, 0.78, 0.92, 0.75), false, maxf(1.0, 1.5 * scale_px))
 		if highlight:
 			draw_rect(r, Color(1, 1, 1, 0.12))
 			draw_rect(r, Color(0.8, 0.95, 1.0, 0.8), false, maxf(1.0, 2.0 * scale_px))

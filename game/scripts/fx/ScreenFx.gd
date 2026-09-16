@@ -54,14 +54,19 @@ static func get_instance() -> ScreenFx:
 		return _instance
 	var s := ScreenFx.new()
 	s.name = NODE_NAME
-	tree.root.add_child(s)
+	# deferred: get_instance() is often called from another node's _ready(), and the
+	# scene tree root refuses a direct add_child() while it is setting children up
+	tree.root.add_child.call_deferred(s)
 	_instance = s
 	return s
+
+func _init() -> void:
+	# built in _init so flash()/vignette() work even before the node enters the tree
+	_build()
 
 func _ready() -> void:
 	layer = 90
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_build()
 	if Events != null:
 		Events.health_changed.connect(_on_health_changed)
 		# every explosion in the game (World.explode, ki blasts, Final Explosion) is

@@ -27,6 +27,7 @@ uniform vec3 sun_dir = vec3(0.0, 0.8, 0.6);
 uniform float daylight = 1.0;
 uniform float coverage = 0.45;
 uniform float weather_darkness = 0.0;
+uniform float min_daylight = 0.0;
 uniform float time = 0.0;
 uniform int quality = 2;
 
@@ -88,8 +89,8 @@ void fragment() {
 	col = mix(col, vec3(lum) * vec3(0.86, 0.88, 0.94), weather_darkness * 0.8);
 	col *= 1.0 - 0.55 * weather_darkness;
 	// night clouds keep a hint of the sky behind them
-	col += sky_color(normalize(vec3(flat_off.x, 60.0, flat_off.y)), sun_dir, day_color, horizon_color,
-			night_color, sunset_color, weather_darkness) * 0.12 * (1.0 - daylight);
+	col += sky_color_min(normalize(vec3(flat_off.x, 60.0, flat_off.y)), sun_dir, day_color, horizon_color,
+			night_color, sunset_color, weather_darkness, min_daylight) * 0.12 * (1.0 - daylight);
 
 	// --- alpha: coverage, distance fade, grazing-angle fade ---------------------------------
 	float a = density * layer_opacity;

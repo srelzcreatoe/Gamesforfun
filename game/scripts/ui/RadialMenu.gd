@@ -16,7 +16,8 @@ func _init() -> void:
 	screen_name = "radial"
 
 func build() -> void:
-	UiUtil.dim_background(self, 0.45)
+	var shade := UiUtil.dim_background(self, 0.45)
+	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_collect()
 	radius = minf(size.y * 0.32, 220.0 * s / 1.5)
 	centre = size * 0.5
@@ -41,15 +42,16 @@ func _collect() -> void:
 		var id := String(tid)
 		entries.append({
 			"label": String(def.get("name", id.capitalize())),
-			"icon": UiUtil.gui_tex("radial/kiweapon"),
+			"icon": null,
+			"orb": UiUtil.color_hex(String(def.get("color", "#7FD4FF")), Color(0.5, 0.83, 1.0)),
 			"action": func() -> void: _cast(id),
 		})
-	entries.append({"label": "Charge Ki", "icon": UiUtil.gui_tex("radial/aura"),
+	entries.append({"label": "Charge Ki", "icon": UiUtil.gui_tex("radial/aura"), "orb": null,
 		"action": func() -> void: _hold("ki_charge")})
-	entries.append({"label": "Fly", "icon": UiUtil.gui_tex("radial/fly"),
+	entries.append({"label": "Fly", "icon": UiUtil.gui_tex("radial/fly"), "orb": null,
 		"action": func() -> void: _toggle_fly()})
 	while entries.size() < SLOTS:
-		entries.append({"label": "", "icon": null, "action": Callable()})
+		entries.append({"label": "", "icon": null, "orb": null, "action": Callable()})
 
 func _draw_wheel() -> void:
 	wheel.draw_circle(centre, radius + 42.0 * s / 1.5, Color(0.05, 0.07, 0.12, 0.72))
@@ -68,6 +70,11 @@ func _draw_wheel() -> void:
 		if e["icon"] != null:
 			wheel.draw_texture_rect(e["icon"], Rect2(p - Vector2(r, r) * 0.55, Vector2(r, r) * 1.1), false,
 				Color(1, 1, 1, 1.0 if not empty else 0.3))
+		elif e.get("orb") != null:
+			var oc: Color = e["orb"]
+			wheel.draw_circle(p, r * 0.5, Color(oc.r, oc.g, oc.b, 0.35))
+			wheel.draw_circle(p, r * 0.34, oc)
+			wheel.draw_circle(p, r * 0.16, Color(1, 1, 1, 0.9))
 		if not empty:
 			var w := f.get_string_size(String(e["label"]), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 			wheel.draw_string(f, p + Vector2(-w * 0.5, r + fs), String(e["label"]),
@@ -121,14 +128,12 @@ func _cast(tech_id: String) -> void:
 	var p: Node = Game.player if Game != null else null
 	if p == null:
 		return
-	var techs: Node = null
-	if Game.world != null:
-		techs = Game.world.get_node_or_null("Techniques")
-	if techs != null and techs.has_method("cast"):
-		techs.call("cast", p, tech_id)
-	else:
-		Events.technique_started.emit(p, tech_id)
-		Game.ui.call("show_hint", "Technique: " + tech_id, 1.5)
+	var check := Techniques.can_use(p, tech_id)
+	if not bool(check.get("ok", false)):
+		Game.ui.call("show_hint", String(check.get("reason", "Not ready.")), 2.0)
+		return
+	if not Techniques.tap(p, tech_id):
+		Techniques.begin(p, tech_id)
 
 func _hold(action: String) -> void:
 	var p: Node = Game.player if Game != null else null

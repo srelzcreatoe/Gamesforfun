@@ -31,10 +31,11 @@ func test_player_builds_its_parts() -> void:
 	assert_true(player.input != null, "input")
 	assert_true(player.camera_rig != null, "camera rig")
 	assert_true(player.interaction != null, "interaction")
-	assert_true(player.stats is PlayerStats, "stats is PlayerStats")
+	assert_true(player.stats != null, "combat stats")
+	assert_true(player.survival is PlayerStats, "survival layer")
 	assert_true(player.model != null, "a model exists")
-	assert_eq(player.aabb_size.x, 0.6, "aabb width")
-	assert_eq(player.aabb_size.y, 1.8, "aabb height")
+	assert_near(player.aabb_size.x, 0.6, 0.001, "aabb width")
+	assert_near(player.aabb_size.y, 1.8, 0.001, "aabb height")
 
 func test_profile_roundtrip() -> void:
 	var prof := ProfileFactory.new_profile("Tester", "saiyan", "male", "warrior")
@@ -63,7 +64,7 @@ func test_profile_roundtrip() -> void:
 	assert_near(p2.global_position.x, 12.5, 0.001)
 	assert_eq(p2.hotbar_index, 5, "hotbar restored")
 	assert_eq(p2.inventory.count(_item()), 23, "items restored")
-	assert_eq((p2.stats as PlayerStats).tp, 250, "tp restored")
+	assert_eq(Training.tp(p2), 250, "tp restored")
 	p2.queue_free()
 	player = null
 
@@ -75,6 +76,7 @@ func test_health_and_death_flow() -> void:
 	var dealt := player.take_damage(10.0, null, "test")
 	assert_true(dealt > 0.0, "damage applied")
 	assert_true(player.health < start, "health dropped")
+	player.invuln = 0.0
 	player.take_damage(99999.0, null, "test")
 	assert_true(player.dead, "dead")
 	player.respawn()
@@ -94,6 +96,7 @@ func test_selected_stack_follows_the_hotbar() -> void:
 func test_eye_and_aim() -> void:
 	player = _spawn()
 	player.global_position = Vector3(0, 10, 0)
+	player.is_crouching = false
 	assert_near(player.eye_position().y, 10.0 + 1.62, 0.01)
 	player.is_crouching = true
 	assert_near(player.eye_position().y, 10.0 + 1.35, 0.01)
@@ -117,14 +120,14 @@ func test_flight_needs_the_skill() -> void:
 	Game.profile["skills"]["fly"] = 0
 	Game.creative = false
 	player = _spawn()
-	assert_true(not player.can_fly(), "no skill, no flight")
+	assert_true(not player.flight_allowed(), "no skill, no flight")
 	Game.profile["skills"]["fly"] = 1
-	assert_true(player.can_fly(), "skill 1 flies")
+	assert_true(player.flight_allowed(), "skill 1 flies")
 
 func test_fallback_physics_keeps_the_player_on_the_ground() -> void:
 	player = _spawn()
-	player.global_position = Vector3(0, 6, 0)
-	for i in 120:
-		player._physics_process(1.0 / 60.0)
-	assert_true(player.global_position.y <= 0.001, "fell to the fallback ground: %f" % player.global_position.y)
+	player.global_position = Vector3(0, Player.FALLBACK_GROUND + 6.0, 0)
+	for i in 180:
+		player.tick(1.0 / 60.0)
+	assert_near(player.global_position.y, Player.FALLBACK_GROUND, 0.01, "fell to the fallback ground")
 	assert_true(player.on_ground, "on ground")

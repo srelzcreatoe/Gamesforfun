@@ -12,7 +12,7 @@ extends RefCounted
 const PUNCH_TEX: Array[String] = ["punch_particle_0", "punch_particle_2", "punch_particle_4"]
 const SPARK_TEX: Array[String] = ["spark1", "spark3", "ki_spark_0"]
 const BLOCK_TEX: Array[String] = ["block_0", "block_1", "block_2"]
-const HIT_TEX := "aaa/explosion_mini/hit"
+const HIT_TEX := "ki_exp0"
 
 const PUNCH_SOUNDS: Array[String] = ["golpe1", "golpe2", "golpe3", "golpe4", "golpe5", "golpe6"]
 const CRIT_SOUNDS: Array[String] = ["critico1", "critico2"]

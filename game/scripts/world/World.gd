@@ -2,7 +2,10 @@ class_name World
 extends Node3D
 ## The voxel world root (scenes/world/World.tscn). Owns the chunk streaming, lighting,
 ## fluids, time of day, the sky/sun nodes and the entity container.
-## Public API: docs/ARCHITECTURE.md §4.
+## Public API: docs/ARCHITECTURE.md §4, with one deviation: the voxel metadata accessors are
+## `get_block_meta(x, y, z)` / `set_block_meta(x, y, z, v)`. `get_meta`/`set_meta` from the doc
+## collide with `Object.get_meta`/`Object.set_meta`, which GDScript refuses to resolve with
+## three arguments (and overriding them would break the engine's own metadata API).
 
 const HEIGHT := WorldConst.HEIGHT
 const PLAYER_SCENE := "res://scenes/player/Player.tscn"
@@ -164,7 +167,7 @@ func get_block_raw(x: int, y: int, z: int) -> int:
 func get_block_v(p: Vector3i) -> int:
 	return get_block(p.x, p.y, p.z)
 
-func get_meta(x: int, y: int, z: int) -> int:
+func get_block_meta(x: int, y: int, z: int) -> int:
 	if y < 0 or y >= HEIGHT:
 		return 0
 	var col := _col(x >> 4, z >> 4)
@@ -172,7 +175,7 @@ func get_meta(x: int, y: int, z: int) -> int:
 		return 0
 	return col.meta[(x & 15) + 16 * ((z & 15) + 16 * y)]
 
-func set_meta(x: int, y: int, z: int, v: int) -> void:
+func set_block_meta(x: int, y: int, z: int, v: int) -> void:
 	var col := _col(x >> 4, z >> 4)
 	if col == null:
 		return
@@ -205,21 +208,37 @@ func set_block(x: int, y: int, z: int, id: int, meta := 0, notify := true) -> vo
 func set_block_v(p: Vector3i, id: int, meta := 0, notify := true) -> void:
 	set_block(p.x, p.y, p.z, id, meta, notify)
 
-## Mark the section holding (x, y, z) dirty, plus the touching sections/columns.
+## Mark the section holding (x, y, z) dirty. Sections and columns that merely touch the cell
+## are marked too (their meshes sample this cell for face culling and smooth light), but only
+## when the cell really sits on a border - this runs for every light write.
 func _mark_dirty(x: int, y: int, z: int) -> void:
 	var s := y >> 4
-	for dz in range(-1, 2):
-		for dx in range(-1, 2):
-			var col := _col((x + dx) >> 4, (z + dz) >> 4)
-			if col == null:
-				continue
-			col.mark_dirty(s)
-			if (y & 15) == 0:
-				col.mark_dirty(s - 1)
-			elif (y & 15) == 15:
-				col.mark_dirty(s + 1)
-			if col.state == ChunkColumn.MESHED:
-				col.state = ChunkColumn.LIT
+	var ly := y & 15
+	var lx := x & 15
+	var lz := z & 15
+	_dirty_column(x >> 4, z >> 4, s, ly)
+	if lx == 0:
+		_dirty_column((x >> 4) - 1, z >> 4, s, ly)
+	elif lx == 15:
+		_dirty_column((x >> 4) + 1, z >> 4, s, ly)
+	if lz == 0:
+		_dirty_column(x >> 4, (z >> 4) - 1, s, ly)
+	elif lz == 15:
+		_dirty_column(x >> 4, (z >> 4) + 1, s, ly)
+	if (lx == 0 or lx == 15) and (lz == 0 or lz == 15):
+		_dirty_column((x >> 4) + (-1 if lx == 0 else 1), (z >> 4) + (-1 if lz == 0 else 1), s, ly)
+
+func _dirty_column(cx: int, cz: int, section: int, ly: int) -> void:
+	var col: ChunkColumn = manager.columns.get(Vector2i(cx, cz), null) if manager != null else null
+	if col == null:
+		return
+	col.mark_dirty(section)
+	if ly == 0:
+		col.mark_dirty(section - 1)
+	elif ly == 15:
+		col.mark_dirty(section + 1)
+	if col.state == ChunkColumn.MESHED:
+		col.state = ChunkColumn.LIT
 
 func is_solid(x: int, y: int, z: int) -> bool:
 	var id := get_block(x, y, z)

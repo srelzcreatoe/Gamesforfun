@@ -169,7 +169,12 @@ func _build_preview(parent: Control) -> void:
 	var ch: Dictionary = Game.profile.get("character", {}) if Game != null else {}
 	_preview = CharacterPreview.new(PREVIEW_RECT.size * k)
 	_preview.position = PREVIEW_RECT.position * k
-	_preview.set_character(ch)
+	var worn: Array = []
+	if inv != null:
+		for a in inv.armor:
+			if not a.is_empty():
+				worn.append(a.item)
+	_preview.set_character(ch, worn)
 	parent.add_child(_preview)
 
 func _build_crafting(parent: Control) -> void:
@@ -177,7 +182,7 @@ func _build_crafting(parent: Control) -> void:
 		return
 	if grid_size == 2:
 		for i in 4:
-			_slot(parent, "craft", i, CRAFT2_POS[i])
+			_slot(parent, "craft", i, CRAFT2_POS[i]).border = true
 	else:
 		var cover := ColorRect.new()
 		cover.color = Color(0.02, 0.05, 0.08, 0.88)
@@ -187,9 +192,9 @@ func _build_crafting(parent: Control) -> void:
 		parent.add_child(cover)
 		for r in 3:
 			for c in 3:
-				_slot(parent, "craft", r * 3 + c, Vector2(89 + c * 18, 15 + r * 18))
+				_slot(parent, "craft", r * 3 + c, Vector2(89 + c * 18, 15 + r * 18)).border = true
 	_output_slot = _slot(parent, "output", 0, OUTPUT_POS)
-	_output_slot.highlight = false
+	_output_slot.border = true
 
 func _build_backpack(parent: Control) -> void:
 	for r in 3:
@@ -215,6 +220,7 @@ func _build_container_panel(root: Control, origin: Vector2, panel_px: Vector2) -
 	root.add_child(p)
 	for i in container.size:
 		var sl := SlotGrid.make("container", i, cell, s, _on_slot_tapped)
+		sl.border = true
 		sl.position = Vector2(4.0 * k + float(i % cols) * PITCH * k, 4.0 * k + float(i / cols) * PITCH * k)
 		p.add_child(sl)
 		_slots.append(sl)
@@ -235,6 +241,7 @@ func _build_furnace_panel(root: Control, origin: Vector2, panel_px: Vector2) -> 
 		var sl := SlotGrid.make("furnace", i, cell, s, _on_slot_tapped)
 		sl.position = Vector2(8.0 * k + float(i) * 24.0 * k, 10.0 * k)
 		sl.label_text = names[i]
+		sl.border = true
 		p.add_child(sl)
 		_slots.append(sl)
 	_furnace_bar = ProgressBar.new()
@@ -249,10 +256,10 @@ func _build_furnace_panel(root: Control, origin: Vector2, panel_px: Vector2) -> 
 
 func _stack_of(source: String, index: int) -> ItemStack:
 	match source:
-		"inv": return inv.get_stack(index)
+		"inv": return inv.stack_at(index)
 		"armor": return inv.armor_stack(index)
 		"craft": return craft[index]
-		"container": return container.get_stack(index) if container != null else ItemStack.new()
+		"container": return container.stack_at(index) if container != null else ItemStack.new()
 		"furnace": return furnace.slot(index) if furnace != null else ItemStack.new()
 		"output": return _craft_output()
 	return ItemStack.new()
