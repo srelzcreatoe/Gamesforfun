@@ -176,8 +176,8 @@ func test_light_crosses_chunk_borders() -> void:
 	Lighting.compute_column(b)
 	assert_eq(w.get_sky_light(16, 70, 8), 0, "the neighbour starts dark")
 	Lighting.merge_borders(w, b)
-	var here := w.get_sky_light(15, 70, 8)
-	var there := w.get_sky_light(16, 70, 8)
+	var here: int = w.get_sky_light(15, 70, 8)
+	var there: int = w.get_sky_light(16, 70, 8)
 	assert_true(there == maxi(0, here - 1) and there > 0,
 		"light must flow across the border (%d -> %d)" % [here, there])
 

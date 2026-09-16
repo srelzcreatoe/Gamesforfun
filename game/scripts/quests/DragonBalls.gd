@@ -617,8 +617,6 @@ func finish_summon() -> void:
 func scatter(set_id: String) -> void:
 	var st := set_state(set_id)
 	_clear_spawned(set_id)
-	for e in placed(set_id):
-		pass
 	st["placed"] = []
 	st["found"] = []
 	st["scatter"] = int(st.get("scatter", 0)) + 1

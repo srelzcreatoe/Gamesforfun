@@ -104,7 +104,7 @@ func test_water_turns_lava_into_stone() -> void:
 	w.set_block(8, 61, 8, lava, Fluids.SOURCE)
 	w.set_block(10, 61, 8, water, Fluids.SOURCE)
 	w.fluids.settle()
-	var at_lava := w.get_block(8, 61, 8)
+	var at_lava: int = w.get_block(8, 61, 8)
 	assert_true(at_lava == obsidian or at_lava == cobble or at_lava == Registry.block_id("stone"),
 		"lava meeting water must solidify, got " + BlockTable.name_of(at_lava))
 

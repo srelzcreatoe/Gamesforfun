@@ -149,3 +149,29 @@ func test_build_cost() -> void:
 	m2.get_parent().remove_child(m2)
 	m2.free()
 	assert_true(warm < cold, "mesh cache makes the second instance cheaper")
+
+func test_face_quad_faces_forward_and_is_wound_for_godot() -> void:
+	# The head's -Z quad must carry the skin face panel (u 8..16 of 64) AND be
+	# wound so Godot rasterises it as a front face (Godot = clockwise from front).
+	var m := _load("entity/races/human")
+	var head: MeshInstance3D = m.meshes.get("head")
+	var arrays: Array = head.mesh.surface_get_arrays(0)
+	var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	var uvs: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
+	var idx: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+	var checked := 0
+	for t in range(0, idx.size(), 3):
+		var a := verts[idx[t]]
+		var b := verts[idx[t + 1]]
+		var c := verts[idx[t + 2]]
+		var n := normals[idx[t]]
+		if not n.is_equal_approx(Vector3(0, 0, -1)):
+			continue
+		checked += 1
+		# clockwise as seen from -Z => right-hand normal points along +Z
+		var geo := (b - a).cross(c - b)
+		assert_true(geo.dot(n) < 0.0, "the -Z face is wound clockwise for Godot")
+		for i in [idx[t], idx[t + 1], idx[t + 2]]:
+			assert_true(uvs[i].x >= 0.124 and uvs[i].x <= 0.251, "face panel uv: %s" % uvs[i])
+	assert_true(checked >= 2, "found the two -Z triangles, got %d" % checked)
