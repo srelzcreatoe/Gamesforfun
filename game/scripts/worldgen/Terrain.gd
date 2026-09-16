@@ -25,6 +25,9 @@ const MODE_HELL := "hell"
 const MODE_HEAVEN := "heaven"
 const MODE_FLAT := "flat"
 
+## Centre of the ocean bay the Earth height field always carves out (Kame House lives here).
+const EARTH_BAY := Vector2(-300.0, 260.0)
+
 var seed: int = 0
 var planet_id := "earth"
 var mode := MODE_EARTH

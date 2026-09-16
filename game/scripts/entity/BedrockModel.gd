@@ -9,15 +9,17 @@ extends Node3D
 ##   bone transform, pivot and animation offset below is expressed in MODEL UNITS
 ##   (exactly the numbers in the json), which makes animation data apply verbatim.
 ## * Position mapping: `godot = Vector3(-bedrock.x, bedrock.y, bedrock.z)`.
-##   The X axis is MIRRORED. This is the same reflection Minecraft itself applies
-##   when rendering (`scale(-1,-1,1)` + 180° yaw in LivingEntityRenderer), and it
-##   is what makes the bone named `right_arm` (bedrock x = -5) end up on the
-##   entity's right hand side while the head's `north` (-Z) face - the face - keeps
-##   pointing along Godot forward (-Z). Feet are at y = 0.
-##   Consequence: each individual face is textured mirrored horizontally compared
-##   to a non-mirrored import. Every DMZ skin panel sampled is left/right
-##   symmetric, so this is invisible, and it is the only mapping that satisfies
-##   both "faces -Z" and "right arm on the right".
+##   The X axis is MIRRORED, which is what puts the bone named `right_arm`
+##   (bedrock x = -5) on the entity's right hand side while the head's `north`
+##   (-Z) face - the face panel of the skin - keeps pointing along Godot forward
+##   (-Z). Feet are at y = 0.
+##   The quads are built directly in Godot space (not mirrored after the fact), so
+##   each face still samples its own skin panel in the normal reading direction:
+##   U runs -X on the front, +X on the back, -Z on the entity's right (+X, the
+##   skin's "east"/first panel) and +Z on its left. An asymmetric skin detail -
+##   Vegeta's scouter, a one-sleeve gi - therefore stays on the correct side.
+##   Triangles are wound CLOCKWISE as seen from the front face, which is what
+##   Godot rasterises as front-facing (`_add_quad` enforces it from the normal).
 ## * Rotation mapping: the three json degrees are used AS IS
 ##   (`euler = Vector3(rx, ry, rz)` in degrees) and composed Rz * Ry * Rx
 ##   (`bedrock_basis()`), which reproduces Bedrock/GeckoLib bone order.
@@ -309,15 +311,15 @@ func _add_cube(st: SurfaceTool, cube: Dictionary, bone_pivot: Vector3, tw: float
 	var inflate := float(cube.get("inflate", 0.0))
 	var mirror := bool(cube.get("mirror", false))
 	var uv_raw: Variant = cube.get("uv", [0, 0])
-	# box uv is computed from the un-inflated size
+	# box uv is laid out from the UN-inflated size
 	var w := size.x
 	var h := size.y
 	var d := size.z
 	var o := origin - Vector3(inflate, inflate, inflate)
 	var s := size + Vector3(inflate, inflate, inflate) * 2.0
-	# cube corners in bedrock space
-	var x0 := o.x
-	var x1 := o.x + s.x
+	# cube extents in GODOT space (X mirrored, see the header)
+	var x0 := -(o.x + s.x)
+	var x1 := -o.x
 	var y0 := o.y
 	var y1 := o.y + s.y
 	var z0 := o.z
@@ -355,7 +357,11 @@ func _add_cube(st: SurfaceTool, cube: Dictionary, bone_pivot: Vector3, tw: float
 			rects["east"] = wst
 			rects["west"] = e
 
-	# (corner order, bedrock face normal) per face; corners are (s,t) = 00,10,11,01
+	# Godot-space quads: corners are (s,t) = (0,0), (1,0), (1,1), (0,1) of the UV
+	# rect, so U runs -X on the front/top, +X on the back, -Z on the entity's
+	# right (+X, the skin's "east" panel) and +Z on its left. Building the quads
+	# in Godot space (instead of mirroring Bedrock-space quads) keeps every face
+	# texture un-mirrored while the geometry stays X mirrored.
 	var faces := {
 		"north": [[Vector3(x1, y1, z0), Vector3(x0, y1, z0), Vector3(x0, y0, z0), Vector3(x1, y0, z0)], Vector3(0, 0, -1)],
 		"south": [[Vector3(x0, y1, z1), Vector3(x1, y1, z1), Vector3(x1, y0, z1), Vector3(x0, y0, z1)], Vector3(0, 0, 1)],
@@ -373,13 +379,11 @@ func _add_cube(st: SurfaceTool, cube: Dictionary, bone_pivot: Vector3, tw: float
 		var corners: Array = entry[0]
 		var p: Array = []
 		for i in 4:
-			var bp: Vector3 = corners[i]
-			var gp := Vector3(-bp.x, bp.y, bp.z)
+			var gp: Vector3 = corners[i]
 			if rotated:
 				gp = cube_pivot + basis * (gp - cube_pivot)
 			p.append(gp - bone_pivot)
-		var normal_b: Vector3 = entry[1]
-		var n := Vector3(-normal_b.x, normal_b.y, normal_b.z)
+		var n: Vector3 = entry[1]
 		if rotated:
 			n = (basis * n).normalized()
 		var r: Rect2 = rect
@@ -494,7 +498,7 @@ func is_bone_mesh_visible(name: String) -> bool:
 
 ## Show the meshes of `keep` only. Bone NODES stay visible so the transform
 ## chain (and therefore the kept bones' children) keeps working.
-func show_only_bones(keep: PackedStringArray, _root_names := PackedStringArray()) -> void:
+func show_only_bones(keep: PackedStringArray) -> void:
 	for b in bones.keys():
 		var name := String(b)
 		set_bone_mesh_visible(name, keep.has(name))

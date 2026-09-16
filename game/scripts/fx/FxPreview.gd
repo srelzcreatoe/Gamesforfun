@@ -29,6 +29,7 @@ func _ready() -> void:
 	# hide it so the preview shot is just the effect
 	if Game.ui != null and Game.ui is CanvasLayer:
 		(Game.ui as CanvasLayer).visible = false
+	Game.paused_by_ui = false
 	ScreenFx.get_instance()
 	_build_stage()
 	_build_dummy()
@@ -101,9 +102,10 @@ func _build_stage() -> void:
 			pos = Vector3(0.0, 5.0, 15.0)
 			look = Vector3(0.0, 2.0, 0.0)
 		"kamehameha", "beam", "blast", "barrage", "disc":
-			# the dummy aims along -Z, so watch from the side to see the whole beam
-			pos = Vector3(8.5, 2.6, 3.0)
-			look = Vector3(0.0, 1.4, -7.0)
+			# _build_dummy turns the caster to fire along +X, so stand off on +Z and
+			# watch the whole beam cross the frame
+			pos = Vector3(9.0, 3.6, 17.0)
+			look = Vector3(9.0, 1.6, 0.0)
 	add_child(camera)
 	camera.position = pos
 	camera.look_at(look, Vector3.UP)
@@ -123,6 +125,8 @@ func _build_dummy() -> void:
 	dummy.world = self
 	add_child(dummy)
 	dummy.global_position = Vector3.ZERO
+	if fx in ["kamehameha", "beam", "blast", "barrage", "disc"]:
+		dummy.rotation.y = -PI * 0.5        # aim along +X, across the camera
 	var k := Ki.get_for(dummy)
 	k.set_power_release(1.0)
 
@@ -184,6 +188,8 @@ func _script_fx() -> void:
 			_at(0.2, func() -> void: Aura.get_for(dummy).set_intensity(1.0))
 
 func _process(delta: float) -> void:
+	# the UiManager's loading screen would otherwise keep the simulation paused
+	Game.paused_by_ui = false
 	t += delta / maxf(0.001, Engine.time_scale)
 	while _next_step < _steps.size() and t >= float(_steps[_next_step]["t"]):
 		var fn: Callable = _steps[_next_step]["fn"]

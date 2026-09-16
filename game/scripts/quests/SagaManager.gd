@@ -156,6 +156,10 @@ func auto_track() -> void:
 	q["tracked"] = next
 	Events.quest_tracked.emit(next)
 
+## Called by the QuestManager right after a quest completes or is claimed.
+func on_quest_finished(quest_id: String) -> void:
+	_on_quest_event(quest_id)
+
 func _on_quest_event(quest_id: String) -> void:
 	var sid := saga_of(quest_id)
 	if sid != "" and is_saga_completed(sid):

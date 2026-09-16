@@ -37,6 +37,10 @@ var _spawn_waste := -1
 var _spawn_sunflower := -1
 ## Blocks of the biome defs, indexed like Registry.biome_order.
 var _defs: Array = []
+## Optional circular override (King Kai's planet, asteroid fields, ...).
+var _hot_center := Vector2.ZERO
+var _hot_radius := -1.0
+var _hot_biome := -1
 
 func configure(p_terrain: Terrain, planet_def: Dictionary, p_style: String) -> void:
 	terrain = p_terrain
@@ -77,6 +81,12 @@ func configure(p_terrain: Terrain, planet_def: Dictionary, p_style: String) -> v
 		_pool_humid.append(float(def.get("humidity", 0.5)))
 		_pool_weight.append(maxf(0.5, float(def.get("weight", 6))))
 
+## Circular biome override, e.g. King Kai's planet inside the Other World.
+func set_hotspot(center: Vector2, radius: float, biome_id: String) -> void:
+	_hot_center = center
+	_hot_radius = radius
+	_hot_biome = index_of(biome_id)
+
 ## Registry index of a biome id, or -1.
 func index_of(id: String) -> int:
 	var i := Registry.biome_index(id)
@@ -94,6 +104,11 @@ func id_of(idx: int) -> String:
 
 ## Biome for a column, given the terrain height there.
 func at(wx: int, wz: int, h: int) -> int:
+	if _hot_radius > 0.0 and _hot_biome >= 0:
+		var dx := float(wx) - _hot_center.x
+		var dz := float(wz) - _hot_center.y
+		if dx * dx + dz * dz <= _hot_radius * _hot_radius:
+			return _hot_biome
 	match style:
 		STYLE_EARTH: return _at_earth(wx, wz, h)
 		STYLE_NAMEK: return _at_namek(wx, wz, h)

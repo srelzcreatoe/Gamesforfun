@@ -60,13 +60,13 @@ func _ready() -> void:
 	sm.rings = 8
 	_sphere.mesh = sm
 	_mat = FxAssets.shader_material(SPHERE_SHADER, {
-		"ki_color": color, "core_color": color.lightened(0.75), "intensity": 1.6,
+		"ki_color": color, "core_color": color.lightened(0.7), "intensity": 1.2,
 	})
 	_sphere.material_override = _mat
 	_sphere.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_sphere)
 
-	_glow = FxAssets.make_quad("Glow", FxAssets.particle(SHINE_TEX, FLASH_TEX, "ki_exp0"), 2.0, Color(color.r, color.g, color.b, 0.7))
+	_glow = FxAssets.make_quad("Glow", FxAssets.particle(SHINE_TEX, FLASH_TEX, "ki_exp0"), 2.4, Color(color.r, color.g, color.b, 0.35))
 	add_child(_glow)
 
 	_in_sparks = FxAssets.make_particles("Suck", 14, [SPARKLE_TEX, "ki_spark_0", "spark1"], color.lightened(0.3))
@@ -95,9 +95,9 @@ func set_progress(p: float) -> void:
 	if _glow != null:
 		_glow.scale = Vector3.ONE * s * 1.1
 		var m: StandardMaterial3D = _glow.material_override
-		m.albedo_color = Color(color.r, color.g, color.b, 0.35 + 0.45 * progress)
+		m.albedo_color = Color(color.r, color.g, color.b, 0.18 + 0.28 * progress)
 	if _mat != null:
-		_mat.set_shader_parameter("intensity", 1.2 + progress * 1.4)
+		_mat.set_shader_parameter("intensity", 0.9 + progress * 0.9)
 		_mat.set_shader_parameter("pulse_speed", 6.0 + progress * 10.0)
 	if _in_sparks != null:
 		_in_sparks.emission_sphere_radius = 1.6 * base_size * (1.2 - 0.5 * progress)

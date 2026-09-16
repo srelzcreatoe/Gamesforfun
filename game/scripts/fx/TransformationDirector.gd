@@ -141,9 +141,9 @@ func _setup_aura() -> void:
 
 func _setup_ground() -> void:
 	# expanding dust ring at the feet
-	_dust = FxAssets.make_particles("GroundDust", 40, ["aaa/lightning/Smoke", "aaa/explosion/smoke_tex", "block_0"], Color(0.88, 0.85, 0.79))
+	_dust = FxAssets.make_particles("GroundDust", 24, ["aaa/lightning/Smoke", "aaa/explosion/smoke_tex", "block_0"], Color(0.70, 0.67, 0.62))
 	_dust.material_override.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
-	_dust.lifetime = 1.1
+	_dust.lifetime = 1.4
 	_dust.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
 	_dust.emission_ring_axis = Vector3.UP
 	_dust.emission_ring_radius = 1.4
@@ -154,8 +154,8 @@ func _setup_ground() -> void:
 	_dust.initial_velocity_min = 1.0
 	_dust.initial_velocity_max = 3.0
 	_dust.gravity = Vector3(0, -1.0, 0)
-	_dust.scale_amount_min = 0.5
-	_dust.scale_amount_max = 1.4
+	_dust.scale_amount_min = 1.1
+	_dust.scale_amount_max = 2.6
 	add_child(_dust)
 	_dust.emitting = true
 

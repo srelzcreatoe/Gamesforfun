@@ -263,9 +263,13 @@ static func draw_glyph(ci: CanvasItem, kind: String, c: Vector2, r: float, col: 
 			ci.draw_line(c + Vector2(-r, r * 0.1), c + Vector2(r * 0.9, r * 0.1), col, w)
 			_chevron_h(ci, c + Vector2(r * 0.3, -r * 0.15), r * 0.8, col, w)
 		"attack":
-			ci.draw_rect(Rect2(c - Vector2(r * 0.7, r * 0.45), Vector2(r * 1.4, r * 0.9)), col, false, w)
-			ci.draw_line(c + Vector2(-r * 0.2, -r * 0.45), c + Vector2(-r * 0.2, r * 0.45), col, w * 0.8)
-			ci.draw_line(c + Vector2(r * 0.25, -r * 0.45), c + Vector2(r * 0.25, r * 0.45), col, w * 0.8)
+			# impact burst
+			var star := PackedVector2Array()
+			for i in 8:
+				var a4 := -PI * 0.5 + TAU * float(i) / 8.0
+				var rad2 := r * 1.05 if i % 2 == 0 else r * 0.38
+				star.append(c + Vector2(cos(a4), sin(a4)) * rad2)
+			ci.draw_colored_polygon(star, col)
 		"ki_blast":
 			ci.draw_circle(c, r * 0.45, col)
 			for i in 6:

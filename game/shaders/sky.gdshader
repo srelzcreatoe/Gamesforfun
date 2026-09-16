@@ -192,7 +192,7 @@ vec3 aurora(vec3 dir, float t, float strength) {
 		vec3 c = mix(aurora_color_a, aurora_color_b, fi / float(layers - 1));
 		acc += c * ribbon * rays * fade;
 	}
-	acc /= float(layers) * 0.55;
+	acc /= float(layers) * 0.42;
 	float visible = smoothstep(0.06, 0.28, dir.y) * (1.0 - 0.35 * dir.y);
 	return acc * strength * visible;
 }
@@ -309,7 +309,10 @@ void sky() {
 		}
 
 		if (quality >= 1 && aurora_strength > 0.0 && has_air > 0.5) {
-			detail += aurora(dir, time, aurora_strength) * night * (1.0 - weather_darkness);
+			// aurora follows the real sun height: heaven/sacred kai keep a lit sky (min_daylight)
+			// but their curtains should still come out after sundown
+			float true_night = 1.0 - sky_daylight(sun_dir.y);
+			detail += aurora(dir, time, aurora_strength) * (0.25 + 0.75 * true_night) * (1.0 - weather_darkness);
 		}
 
 		// suns on top

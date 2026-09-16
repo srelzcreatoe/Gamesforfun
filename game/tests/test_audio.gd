@@ -13,6 +13,22 @@ const USED_SFX: Array[String] = [
 	"item_pickup", "dball_pickup", "skill_learned", "land", "splash", "swim",
 ]
 
+var _owned: Array[Node] = []
+
+## Nodes created by a test: freed immediately in teardown (queue_free would never run,
+## the runner quits the tree right after the last test).
+func _own(n: Node) -> Node:
+	_owned.append(n)
+	return n
+
+func teardown() -> void:
+	for n in _owned:
+		if is_instance_valid(n):
+			if n.get_parent() != null:
+				n.get_parent().remove_child(n)
+			n.free()
+	_owned.clear()
+
 func _state(overrides: Dictionary = {}) -> Dictionary:
 	var st := {
 		"in_world": true,
@@ -75,7 +91,7 @@ func test_resolve_context_falls_back_to_a_real_playlist() -> void:
 func test_hysteresis_no_flip_flopping() -> void:
 	var d := BgmDirector.new()
 	d.apply_audio = false
-	add_node(d)
+	_own(add_node(d))
 	var explore := _state()
 	assert_eq(d.update_context(0.016, explore), "explore_earth", "first context immediately")
 	# a fight starts: urgent, takes over at once
@@ -91,15 +107,13 @@ func test_hysteresis_no_flip_flopping() -> void:
 	assert_eq(d.update_context(0.1, _state({"boss": true, "transformation": true})), "transformation")
 	# the cinematic ends -> restore without waiting
 	assert_eq(d.update_context(0.1, _state({"boss": true})), "boss")
-	d.queue_free()
 
 func test_no_world_keeps_the_menu_music() -> void:
 	var d := BgmDirector.new()
 	d.apply_audio = false
-	add_node(d)
+	_own(add_node(d))
 	assert_eq(d.update_context(1.0, {"in_world": false}), "", "director stays idle in menus")
 	assert_eq(d.context(), "")
-	d.queue_free()
 
 # --- ambience layers --------------------------------------------------------
 
@@ -144,6 +158,12 @@ func test_ambience_wind_on_open_ground() -> void:
 	var high := Ambience.compute_weights(_amb({"biome": "mountains", "y": 150.0, "surface_y": 150.0}))
 	assert_true(float(high["wind"]) >= float(w["wind"]), "altitude adds wind")
 
+func test_ambience_unlit_surface_still_has_wind() -> void:
+	# an ungenerated / unlit column reports sky light 0 - on the surface that is still open sky
+	var w := Ambience.compute_weights(_amb({"sky_light": 0, "y": 63.0, "surface_y": 63.0, "biome": ""}))
+	assert_true(float(w["wind"]) > 0.4, "surface with no light data must still be windy: " + str(w))
+	assert_eq(float(w["cave"]), 0.0)
+
 func test_ambience_cave_underground() -> void:
 	var w := Ambience.compute_weights(_amb({"sky_light": 0, "y": 30.0, "surface_y": 70.0}))
 	assert_eq(_dominant(w), "cave", str(w))
@@ -185,7 +205,7 @@ func test_ambience_planet_flavours() -> void:
 
 func test_ambience_node_runs_without_a_world() -> void:
 	var a := Ambience.new()
-	add_node(a)
+	_own(add_node(a))
 	a._process(0.1)
 	a.sample_interval = 1000.0   # stop sampling the (absent) live world
 	assert_eq(a.dominant_layer(), "", "silent without a world")
@@ -193,7 +213,6 @@ func test_ambience_node_runs_without_a_world() -> void:
 	for i in 200:
 		a._process(0.05)
 	assert_eq(a.dominant_layer(), "rain", "weights reach the players: " + str(a.layer_weights()))
-	a.queue_free()
 
 # --- footsteps --------------------------------------------------------------
 
@@ -216,7 +235,7 @@ func test_footstep_pitch_variation() -> void:
 
 func test_footstep_material_from_fake_world() -> void:
 	var w := FakeWorld.new()
-	add_node(w)
+	_own(add_node(w))
 	var stone := Registry.block_id("stone")
 	var snow := Registry.block_id("snow_block")
 	if snow < 0:
@@ -233,7 +252,6 @@ func test_footstep_material_from_fake_world() -> void:
 		played = stepper.advance(0.1, 4.0, true, w, Vector3(0.5, 64.0, 0.5)) or played
 	assert_true(played, "the stepper plays steps while running")
 	assert_eq(stepper.advance(0.1, 4.0, false, w, Vector3(0.5, 64.0, 0.5)), false, "no steps in the air")
-	w.queue_free()
 
 class FakeWorld extends Node3D:
 	var blocks: Dictionary = {}
@@ -286,7 +304,7 @@ func test_every_bgm_context_we_pick_has_tracks() -> void:
 
 func test_director_attaches_and_creates_ambience() -> void:
 	var host := Node.new()
-	add_node(host)
+	_own(add_node(host))
 	var d := BgmDirector.attach(host)
 	assert_ne(d, null)
 	d.set("apply_audio", false)
@@ -294,4 +312,58 @@ func test_director_attaches_and_creates_ambience() -> void:
 	assert_ne(d.get_node_or_null("Ambience"), null, "the director owns the ambience node")
 	d.call("_process", 0.016)
 	assert_eq(d.call("context"), "", "no world -> no context")
-	host.queue_free()
+
+# --- event sounds: signatures + no missing files at runtime ------------------
+
+func test_event_sounds_play_without_missing_audio() -> void:
+	var d := BgmDirector.new()
+	_own(add_node(d))
+	var before: Dictionary = {}
+	for k in Audio._streams:
+		before[k] = true
+	# every feedback hook the brief assigns to the audio director
+	Events.ui_opened.emit("inventory")
+	d._clock += 1.0
+	Events.ui_closed.emit("inventory")
+	d._clock += 1.0
+	Events.quest_started.emit("saga_saiyan:1")
+	d._clock += 1.0
+	Events.quest_completed.emit("saga_saiyan:1")
+	d._clock += 1.0
+	Events.level_up.emit(4)
+	d._clock += 1.0
+	Events.toast.emit("Title", "Text", null)
+	d._clock += 1.0
+	Events.item_picked_up.emit("senzu_bean", 1)
+	d._clock += 1.0
+	Events.item_picked_up.emit("dball1", 1)
+	d._clock += 1.0
+	Events.dragon_ball_found.emit("earth", 4)
+	d._clock += 1.0
+	Events.technique_learned.emit("kamehameha")
+	# a missing file is cached as null by Audio._stream (and logs "Missing audio")
+	for k in Audio._streams:
+		if before.has(k):
+			continue
+		assert_ne(Audio._streams[k], null, "Missing audio file: " + String(k))
+	assert_true(Audio._streams.size() > before.size(), "the director should have played sounds")
+	# ducking follows the dialog events
+	Events.dialog_requested.emit(null)
+	for i in 30:
+		d._process(0.05)
+	assert_true(d.duck_factor() < 0.5, "music ducks during dialogs: %f" % d.duck_factor())
+	Events.dialog_closed.emit(null)
+	for i in 30:
+		d._process(0.05)
+	assert_near(d.duck_factor(), 1.0, 0.02, "ducking is released")
+
+func test_decision_cost_is_negligible() -> void:
+	var st := _state({"battle": true})
+	var amb := _amb({"weather": "rain"})
+	var t0 := Time.get_ticks_usec()
+	for i in 5000:
+		BgmDirector.decide(st)
+		Ambience.compute_weights(amb)
+	var us := float(Time.get_ticks_usec() - t0) / 5000.0
+	print("   decide+compute_weights: %.2f us per call" % us)
+	assert_true(us < 40.0, "audio decisions must stay cheap: %f us" % us)

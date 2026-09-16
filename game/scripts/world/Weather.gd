@@ -12,7 +12,8 @@ const WEATHER_SHADER := "res://shaders/weather.gdshader"
 const WEATHER_TEX := "res://assets/textures/environment/weather.png"
 const KINDS := ["clear", "overcast", "rain", "snow", "thunder"]
 
-## Sprite regions inside weather.png (x, y, w, h in uv).
+## Sprite regions inside weather.png (x, y, w, h in uv). Rain samples the streak rows; the snow
+## rect is kept for reference only - weather.gdshader draws procedural flakes for snow.
 const RAIN_RECT := Vector4(0.0, 0.15625, 1.0, 0.46875)
 const SNOW_RECT := Vector4(0.0, 0.0, 1.0, 0.09375)
 
@@ -222,8 +223,20 @@ func _update_sheets(camera_pos: Vector3, sun_color: Color, daylight: float) -> v
 		var mat: ShaderMaterial = _mats[i]
 		mat.set_shader_parameter("intensity", intensity * (1.0 if i == 0 else 0.7))
 		mat.set_shader_parameter("time", _time)
-		mat.set_shader_parameter("kind", 1 if _precip == 2 else 0)
-		mat.set_shader_parameter("sprite_rect", SNOW_RECT if _precip == 2 else RAIN_RECT)
+		var snowing := _precip == 2
+		var def: Dictionary = LAYERS[i]
+		var tiles: Vector2 = def["tiles"]
+		var radius := float(def["radius"])
+		var height := float(def["height"])
+		if snowing:
+			tiles = Vector2(tiles.x * 1.5, tiles.y * 3.0)
+		mat.set_shader_parameter("tile_count", tiles)
+		# cell height / cell width in metres, so round flakes stay round
+		var cell_w := TAU * radius / maxf(tiles.x, 1.0)
+		var cell_h := height / maxf(tiles.y, 1.0)
+		mat.set_shader_parameter("flake_aspect", cell_h / maxf(cell_w, 0.001))
+		mat.set_shader_parameter("kind", 1 if snowing else 0)
+		mat.set_shader_parameter("sprite_rect", SNOW_RECT if snowing else RAIN_RECT)
 		var lit := Color(0.72, 0.78, 0.92).lerp(sun_color, 0.35) * (0.35 + 0.75 * daylight)
 		mat.set_shader_parameter("tint", lit)
 		mat.set_shader_parameter("quality", int(1 if Game == null else (0 if String(Game.settings.get("quality_preset", "balanced")) == "low" else 2)))

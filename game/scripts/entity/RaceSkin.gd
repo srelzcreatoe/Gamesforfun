@@ -52,7 +52,6 @@ const ALL_ARMOR_BONES := [
 	"armorRightLeg", "armorLeftLeg", "armorRightBoot", "armorLeftBoot",
 ]
 const HAIR_MODEL := "entity/sagas/shadow_dummy"
-static var HAIR_ROOT_BONES := PackedStringArray(["root", "waist", "head"])
 
 ## Hair styles are visibility sets over the 38 `hair*` bones of
 ## `entity/sagas/shadow_dummy.geo.json` (the only DMZ geometry that ships a

@@ -272,7 +272,7 @@ func claim(qid: String, from_npc := "") -> bool:
 	_toast(String(def.get("title", qid)), "Rewards: " + ", ".join(lines) if lines.size() > 0 else "Rewards claimed")
 	Events.stats_changed.emit()
 	var saga := SagaManager.of(world)
-	if saga != null:
+	if saga != null and saga.has_method("on_quest_finished"):
 		saga.on_quest_finished(qid)
 	return true
 
@@ -366,7 +366,7 @@ func _complete(qid: String) -> void:
 		tail = "Report back to %s." % Objectives._npc_name(turn_in)
 	_toast("Quest complete", "%s — %s" % [String(def.get("title", qid)), tail])
 	var saga := SagaManager.of(world)
-	if saga != null:
+	if saga != null and saga.has_method("on_quest_finished"):
 		saga.on_quest_finished(qid)
 
 # --- notifications ---------------------------------------------------------

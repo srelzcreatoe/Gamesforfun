@@ -123,10 +123,9 @@ func _make_player(key: String) -> AudioStreamPlayer:
 	p.volume_db = SILENT_DB
 	p.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(p)
-	# ambience wavs import with loop_mode = forward; restart anyway if a file does not loop
-	p.finished.connect(func() -> void:
-		if is_instance_valid(p) and p.volume_db > SILENT_DB + 1.0:
-			p.play())
+	# The ambience wavs import with loop_mode = forward. A file that does not loop is
+	# restarted from _apply_layer (once per frame) - never from the `finished` signal,
+	# because a very short stream would then re-enter play() forever.
 	_players[key] = p
 	return p
 
@@ -243,7 +242,11 @@ static func compute_weights(state: Dictionary) -> Dictionary:
 		return w
 
 	var underground := sky_light <= 0 and y < surface_y - 1.0
+	# Standing on (or above) the terrain top always counts as open sky: an ungenerated
+	# or not yet lit column reports sky light 0 and would otherwise fall silent.
 	var openness := clampf(float(sky_light) / 15.0, 0.0, 1.0)
+	if y >= surface_y - 1.0:
+		openness = 1.0
 
 	if HELL_PLANETS.has(planet) or biome.contains("hell"):
 		w["hell"] = 1.0

@@ -73,6 +73,8 @@ func test_hud_layout_places_widgets_inside_the_viewport() -> void:
 	ui.show_hud(true)
 	var hud: Hud = ui.hud
 	hud.size = Vector2(1280, 720)
+	hud.insets = Vector4.ZERO
+	hud.s = 1.5
 	hud.relayout()
 	var bar := hud.hotbar_rect()
 	assert_true(bar.position.x >= 0.0 and bar.end.x <= 1280.0, "hotbar inside: %s" % str(bar))
@@ -86,15 +88,28 @@ func test_hud_layout_places_widgets_inside_the_viewport() -> void:
 func test_hud_buttons_do_not_overlap() -> void:
 	ui.show_hud(true)
 	var hud: Hud = ui.hud
-	hud.size = Vector2(1280, 720)
-	hud.relayout()
+	hud.insets = Vector4.ZERO
+	for sz in [Vector2(1280, 720), Vector2(1600, 720), Vector2(1024, 768), Vector2(854, 480)]:
+		hud.size = sz
+		hud.insets = Vector4.ZERO
+		hud.s = clampf(sz.y / 480.0, 0.8, 3.0)
+		hud.relayout()
+		_assert_no_button_overlap(hud, sz)
+
+func _assert_no_button_overlap(hud: Hud, sz: Vector2) -> void:
 	var ids: Array = hud.buttons.keys()
 	for i in ids.size():
 		for j in range(i + 1, ids.size()):
 			var a := hud.button_rect(ids[i])
 			var b := hud.button_rect(ids[j])
 			var overlap := a.grow(-2.0).intersects(b.grow(-2.0))
-			assert_true(not overlap, "%s overlaps %s (%s / %s)" % [ids[i], ids[j], str(a), str(b)])
+			assert_true(not overlap, "%s overlaps %s at %s (%s / %s)" % [ids[i], ids[j], str(sz), str(a), str(b)])
+	var bar := hud.hotbar_rect()
+	for id in ids:
+		var r := hud.button_rect(id)
+		assert_true(r.position.x >= -1.0 and r.end.x <= sz.x + 1.0, "%s inside %s: %s" % [id, str(sz), str(r)])
+		assert_true(r.position.y >= -1.0 and r.end.y <= sz.y + 1.0, "%s inside %s: %s" % [id, str(sz), str(r)])
+		assert_true(not r.grow(-2.0).intersects(bar.grow(-2.0)), "%s overlaps the hotbar at %s" % [id, str(sz)])
 
 func test_hud_cancel_touches_clears_input() -> void:
 	ui.show_hud(true)

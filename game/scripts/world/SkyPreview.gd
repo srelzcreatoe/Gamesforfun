@@ -53,6 +53,10 @@ func _ready() -> void:
 		Registry.load_all()
 	if args.has("quality"):
 		Game.settings["quality_preset"] = String(args["quality"])
+	if args.has("nobloom"):
+		Game.settings["bloom"] = false
+	if args.has("nopost"):
+		Game.settings["bloom"] = false
 	_setup_nodes()
 	_build_terrain()
 	_build_water()
@@ -60,6 +64,9 @@ func _ready() -> void:
 	_setup_hud()
 	# a space planet has no ground: show the sky alone (unless the water is explicitly wanted)
 	var sky_def: Dictionary = SkyController.sky_for_planet(planet_id, Registry.planets.get(planet_id, {}))
+	if args.has("nopost") and sky.post_process != null:
+		sky.post_process.visible = false
+		sky.enable_post_process = false
 	if args.has("noclouds") and sky.clouds != null:
 		sky.clouds.visible = false
 		sky.enable_clouds = false
@@ -360,6 +367,10 @@ func _process(delta: float) -> void:
 			int(Game.settings.get("render_distance", 5)),
 			amb.r, amb.g, amb.b, sky.sun_color().r, sky.sun_color().g, sky.sun_color().b,
 			sky.fog_color().r, sky.fog_color().g, sky.fog_color().b, int(sky.fog_start()), int(sky.fog_end())]
+		if sky.weather_node != null:
+			_hud.text += "\nprecip=%s intensity=%.2f coverage=%.2f darkness=%.2f" % [
+				String(sky.weather_node.call("precip_kind")), float(sky.weather_node.get("intensity")),
+				sky.cloud_coverage(), sky.weather_darkness()]
 	_run_bench(delta)
 	if _shot_timer >= 0.0:
 		_shot_timer -= delta

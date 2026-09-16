@@ -126,7 +126,7 @@ func test_uv2_packs_layer_frames_and_light() -> void:
 	col.set_block_light(8, 71, 8, 9)
 	col.recompute_heightmap()
 	var out := _mesh(col)
-	var uv2: PackedVector2Array = out["opaque"][Mesh.ARRAY_UV2]
+	var uv2: PackedVector2Array = out["opaque"][Mesh.ARRAY_TEX_UV2]
 	var layer := floor(uv2[0].x)
 	assert_true(layer > 0.0, "stone must not use the magenta missing layer")
 	var frac: float = uv2[0].x - layer
@@ -141,7 +141,7 @@ func test_plants_set_the_sway_bit() -> void:
 	col.set_cell(8, 70, 8, Registry.block_id("short_grass"), 0)
 	col.recompute_heightmap()
 	var out := _mesh(col)
-	var uv2: PackedVector2Array = out["cutout"][Mesh.ARRAY_UV2]
+	var uv2: PackedVector2Array = out["cutout"][Mesh.ARRAY_TEX_UV2]
 	var enc: float = round((uv2[0].x - floor(uv2[0].x)) * 128.0)
 	assert_true(enc >= 64.0, "plants must carry the wind sway flag, got %f" % enc)
 
@@ -150,7 +150,7 @@ func test_animated_water_encodes_frames() -> void:
 	col.set_cell(8, 70, 8, Registry.block_id("water"), Fluids.SOURCE)
 	col.recompute_heightmap()
 	var out := _mesh(col)
-	var uv2: PackedVector2Array = out["water"][Mesh.ARRAY_UV2]
+	var uv2: PackedVector2Array = out["water"][Mesh.ARRAY_TEX_UV2]
 	var enc: float = round((uv2[0].x - floor(uv2[0].x)) * 128.0)
 	var frames: float = enc if enc < 64.0 else enc - 64.0
 	assert_true(frames > 1.0, "water_still is a 32 frame strip, got %f" % frames)

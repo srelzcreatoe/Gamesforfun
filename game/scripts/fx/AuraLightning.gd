@@ -86,12 +86,12 @@ func _reroll(i: int) -> void:
 		return
 	var a := _rng.randf() * TAU
 	var r := radius * _rng.randf_range(0.7, 1.35)
-	var y := _rng.randf_range(-0.1, height)
+	var y := _rng.randf_range(0.1, height * 0.95)
 	b.position = Vector3(cos(a) * r, y, sin(a) * r)
-	var s := _rng.randf_range(0.5, 1.5) * body_scale * (0.7 + intensity * 0.6)
-	b.scale = Vector3(s * _rng.randf_range(0.35, 0.8), s * 1.6, s)
+	var s := _rng.randf_range(0.30, 0.75) * body_scale * (0.75 + intensity * 0.45)
+	b.scale = Vector3(s * _rng.randf_range(0.35, 0.8), s * 1.9, s)
 	b.rotation.z = _rng.randf_range(-0.6, 0.6)
 	var m: StandardMaterial3D = b.material_override
 	if m != null:
-		m.albedo_color = Color(color.r, color.g, color.b, clampf(0.55 + intensity * 0.6, 0.0, 1.0))
+		m.albedo_color = Color(color.r, color.g, color.b, clampf(0.35 + intensity * 0.35, 0.0, 0.8))
 	_timers[i] = _rng.randf_range(0.06, 0.16)

@@ -99,7 +99,7 @@ func _ready() -> void:
 
 func _build() -> void:
 	_mat = FxAssets.shader_material(SPHERE_SHADER, {
-		"ki_color": color, "core_color": color.lightened(0.8), "intensity": 1.8,
+		"ki_color": color, "core_color": color.lightened(0.75), "intensity": 1.4,
 	})
 	if mode == "disc":
 		_disc = MeshInstance3D.new()

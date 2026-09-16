@@ -5,11 +5,11 @@ render_mode blend_add, unshaded, cull_disabled, depth_draw_never, shadows_disabl
 
 uniform vec4 beam_color : source_color = vec4(0.31, 0.76, 1.0, 1.0);
 uniform vec4 core_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
-uniform float intensity : hint_range(0.0, 4.0) = 1.4;
+uniform float intensity : hint_range(0.0, 4.0) = 1.0;
 uniform float flow_speed = 6.0;
 uniform float ring_freq = 14.0;
-uniform float ring_strength = 0.35;
-uniform float core_width : hint_range(0.01, 1.0) = 0.42;
+uniform float ring_strength = 0.5;
+uniform float core_width : hint_range(0.01, 1.0) = 0.22;
 uniform float noise_amount = 0.35;
 uniform float tip_glow = 0.6;
 uniform float fade_in : hint_range(0.0, 1.0) = 1.0;  // 0..1 growth of the beam
@@ -45,10 +45,11 @@ void fragment() {
 	float grow = step(along, fade_in) * (1.0 - smoothstep(fade_in - 0.06, fade_in, along));
 	float tip = smoothstep(0.75, 1.0, along) * tip_glow;
 
-	vec3 col = mix(beam_color.rgb, core_color.rgb, clamp(core * 1.25, 0.0, 1.0));
-	float a = (sheath * 0.75 + core * 1.0) * energy * intensity * grow;
-	a += tip * core;
+	// narrow white-hot core, wide coloured sheath: the technique colour has to read
+	vec3 col = mix(beam_color.rgb, core_color.rgb, clamp(pow(core, 1.8), 0.0, 1.0));
+	float a = (sheath * 0.42 + core * 0.75) * energy * intensity * grow;
+	a += tip * core * 0.5;
 
-	ALBEDO = col * (0.9 + 1.6 * core);
+	ALBEDO = col * (0.85 + 0.9 * core);
 	ALPHA = clamp(a, 0.0, 1.0) * beam_color.a;
 }

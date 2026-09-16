@@ -87,10 +87,10 @@ static func _sweep(world: Node, box: AABB, axis: int, d: float) -> float:
 	for y in range(y0, y1 + 1):
 		for z in range(z0, z1 + 1):
 			for x in range(x0, x1 + 1):
-				var id := world.get_block(x, y, z)
+				var id: int = world.get_block(x, y, z)
 				if id == 0 or BlockTable.solid[id] == 0:
 					continue
-				var boxes := BlockShapes.collision_boxes(id, world.get_block_meta(x, y, z))
+				var boxes: Array = BlockShapes.collision_boxes(id, world.get_block_meta(x, y, z))
 				for b in boxes:
 					var wb: AABB = AABB(Vector3(x, y, z) + b.position, b.size)
 					if not _overlaps_other_axes(box, wb, axis):
@@ -125,7 +125,7 @@ static func aabb_intersects_solid(world: Node, box: AABB) -> bool:
 	for y in range(y0, y1 + 1):
 		for z in range(z0, z1 + 1):
 			for x in range(x0, x1 + 1):
-				var id := world.get_block(x, y, z)
+				var id: int = world.get_block(x, y, z)
 				if id == 0 or BlockTable.solid[id] == 0:
 					continue
 				for b in BlockShapes.collision_boxes(id, world.get_block_meta(x, y, z)):
@@ -153,7 +153,7 @@ static func is_on_ladder(world: Node, box: AABB) -> bool:
 	for y in range(y0, y1 + 1):
 		for z in range(z0, z1 + 1):
 			for x in range(x0, x1 + 1):
-				var id := world.get_block(x, y, z)
+				var id: int = world.get_block(x, y, z)
 				if id > 0 and BlockTable.climbable[id] == 1:
 					return true
 	return false
@@ -175,13 +175,13 @@ static func fluid_at(world: Node, box: AABB) -> Dictionary:
 	for y in range(y0, y1 + 1):
 		for z in range(z0, z1 + 1):
 			for x in range(x0, x1 + 1):
-				var id := world.get_block(x, y, z)
+				var id: int = world.get_block(x, y, z)
 				if id == 0 or BlockTable.liquid[id] == 0:
 					continue
 				fid = id
 				if BlockTable.lava[id] == 1:
 					lava = true
-				var lvl := world.get_block_meta(x, y, z) & BlockShapes.META_LEVEL
+				var lvl: int = world.get_block_meta(x, y, z) & BlockShapes.META_LEVEL
 				if lvl == 0:
 					lvl = 8
 				var h := 1.0 if (world.get_block(x, y + 1, z) == id) else BlockShapes.liquid_height(lvl)
@@ -227,8 +227,8 @@ static func raycast(world: Node, origin: Vector3, dir: Vector3, max_dist: float,
 	var t := 0.0
 	var normal := Vector3i.ZERO
 	for _step in 256:
-		var id := world.get_block(x, y, z)
-		var hit := id != 0
+		var id: int = world.get_block(x, y, z)
+		var hit: bool = id != 0
 		if hit and ignore_liquid and BlockTable.liquid[id] == 1:
 			hit = false
 		if hit and BlockTable.shape[id] == BlockTable.Shape.NONE:

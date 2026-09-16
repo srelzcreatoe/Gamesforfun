@@ -111,15 +111,15 @@ func _build() -> void:
 	_mesh.name = "Beam"
 	_mesh.mesh = _cyl
 	_mat = FxAssets.shader_material(BEAM_SHADER, {
-		"beam_color": color, "core_color": color.lightened(0.85), "intensity": 1.5,
-		"fade_in": 0.0, "core_width": 0.45,
+		"beam_color": color, "core_color": color.lightened(0.85), "intensity": 1.0,
+		"fade_in": 0.0, "core_width": 0.22,
 	})
 	_mesh.material_override = _mat
 	_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_mesh)
 
 	# the charging ball that stays in the hands while the beam is sustained
-	_muzzle = KiEffects.charge(self, color, radius * 3.0)
+	_muzzle = KiEffects.charge(self, color, radius * 1.7)
 	if _muzzle != null:
 		_muzzle.set_progress(1.0)
 
@@ -174,7 +174,7 @@ func _update_transform(delta: float) -> void:
 	_cyl.height = length
 	if _mat != null:
 		_mat.set_shader_parameter("fade_in", clampf(length / maxf(1.0, want), 0.0, 1.0))
-		_mat.set_shader_parameter("intensity", 1.2 + 0.5 * sin(age * 18.0))
+		_mat.set_shader_parameter("intensity", 0.95 + 0.2 * sin(age * 18.0))
 	if _muzzle != null and is_instance_valid(_muzzle):
 		_muzzle.global_position = _origin
 	if _impact_particles != null:

@@ -159,9 +159,9 @@ func positions(set_id: String) -> Array:
 	var r := range_for_set(set_id)
 	for i in BALL_COUNT:
 		var angle := rng.randf() * TAU
-		var dist := sqrt(rng.randf()) * r
-		var x := round(cos(angle) * dist) + 0.5
-		var z := round(sin(angle) * dist) + 0.5
+		var dist: float = sqrt(rng.randf()) * r
+		var x: float = roundf(cos(angle) * dist) + 0.5
+		var z: float = roundf(sin(angle) * dist) + 0.5
 		out.append(Vector3(x, -1.0, z))
 	return out
 
@@ -439,6 +439,40 @@ func _spawn_placed(set_id: String, star: int, pos: Vector3) -> Node:
 	if "life" in n:
 		n.set("life", 100000.0)
 	return n
+
+## Interacting with a `dragon_ball_altar`: lay every ball the player carries on it and
+## summon when the set is complete. Returns true when something happened.
+func altar_interact(player: Node, block_pos: Vector3i) -> bool:
+	if player == null or not is_instance_valid(player) or not ("inventory" in player):
+		return false
+	var inv: Variant = player.get("inventory")
+	if inv == null or not is_instance_valid(inv as Object):
+		return false
+	var center := Vector3(float(block_pos.x) + 0.5, float(block_pos.y) + 1.05, float(block_pos.z) + 0.5)
+	var placed_any := false
+	for set_id in ["earth", "namek", "cereal", "super", "fused"]:
+		var st := set_state(set_id)
+		var list: Array = st.get("placed", [])
+		for star in range(1, BALL_COUNT + 1):
+			var item := ball_item(set_id, star)
+			if item == "" or not bool((inv as Object).call("has", item, 1)):
+				continue
+			if _is_placed(set_id, star):
+				continue
+			(inv as Object).call("remove", item, 1)
+			var angle := TAU * float(star - 1) / float(BALL_COUNT)
+			var pos := center + Vector3(cos(angle) * 1.2, 0.0, sin(angle) * 1.2)
+			list.append({"star": star, "x": pos.x, "y": pos.y, "z": pos.z})
+			var node := _spawn_placed(set_id, star, pos)
+			if node != null:
+				_spawned["%s:%d" % [set_id, star]] = int(node.get_instance_id())
+			placed_any = true
+		if placed_any:
+			if Audio != null:
+				Audio.play_sfx_at("dragonballssound", center, -2.0)
+			_check_ritual(set_id)
+			return true
+	return false
 
 ## 7 distinct stars of one set within RITUAL_RADIUS summon the dragon.
 func _check_ritual(set_id: String) -> void:

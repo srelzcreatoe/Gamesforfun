@@ -325,7 +325,13 @@ func relayout() -> void:
 	_layout_buttons()
 	reticle.scale_px = s
 
+## The action columns need ~341 units of height; shrink the button scale on short screens
+## (small phone + a large UI scale setting) so nothing leaves the viewport or hits the hotbar.
+func button_scale() -> float:
+	return minf(s, maxf(0.6, size.y / 420.0))
+
 func _layout_buttons() -> void:
+	var s := button_scale()
 	var col_w := 64.0 * s
 	var bx := size.x - col_w - 24.0 * s - insets.z
 	var dir := -1.0
@@ -335,14 +341,21 @@ func _layout_buttons() -> void:
 	var bx2 := bx + dir * 72.0 * s
 	var bx3 := bx + dir * 134.0 * s
 	var bottom := insets.w
-	_place("jump", bx, 34.0 * s + bottom)
-	_place("sneak", bx + 4.8 * s, 108.0 * s + bottom)
-	_place("sprint", bx + 4.8 * s, 168.8 * s + bottom)
-	_place("attack", bx2, 34.0 * s + bottom)
-	_place("ki_blast", bx2 + 4.0 * s, 108.0 * s + bottom)
-	_place("ki_charge", bx2 + 4.0 * s, 172.0 * s + bottom)
-	_place("fly", bx3 + 8.0 * s, 44.0 * s + bottom)
-	_place("dash", bx3 + 8.0 * s, 104.0 * s + bottom)
+	# On narrow screens the columns would sit on top of the centred hotbar: lift the whole
+	# cluster above it instead of letting the two fight over the same pixels.
+	var bar0 := hotbar_rect()
+	var overlaps_bar := (bx3 < bar0.end.x + 6.0 * s) if not left_handed \
+		else (bx3 + 48.0 * s > bar0.position.x - 6.0 * s)
+	var dy := (bar0.size.y + 14.0 * s - 34.0 * s) if overlaps_bar else 0.0
+	dy = maxf(0.0, dy)
+	_place("jump", bx, 34.0 * s + bottom + dy)
+	_place("sneak", bx + 4.8 * s, 108.0 * s + bottom + dy)
+	_place("sprint", bx + 4.8 * s, 168.8 * s + bottom + dy)
+	_place("attack", bx2, 34.0 * s + bottom + dy)
+	_place("ki_blast", bx2 + 4.0 * s, 108.0 * s + bottom + dy)
+	_place("ki_charge", bx2 + 4.0 * s, 172.0 * s + bottom + dy)
+	_place("fly", bx3 + 8.0 * s, 44.0 * s + bottom + dy)
+	_place("dash", bx3 + 8.0 * s, 104.0 * s + bottom + dy)
 	# left-top cluster (mirrors with the handedness)
 	var lx := 24.0 * s + insets.x
 	if left_handed:
@@ -353,20 +366,19 @@ func _layout_buttons() -> void:
 	var cluster := ["transform", "technique", "lock_on"]
 	for i in cluster.size():
 		_place(cluster[i], lx, ly - float(i) * 58.0 * s)
-	# top-right bar: never mirrored
+	# Top-right bar: never mirrored. Spec §1 puts Bag next to the hotbar, but the Dragon Block
+	# action columns own that corner, so Bag joins this row instead.
 	var ty := size.y - 66.0 * s - insets.y
 	_place("pause", size.x - 66.0 * s - insets.z, ty)
 	_place("camera", size.x - 130.0 * s - insets.z, ty)
 	_place("quests", size.x - 194.0 * s - insets.z, ty)
 	_place("stats", size.x - 258.0 * s - insets.z, ty)
-	# bag: right of the hotbar
-	var bar := hotbar_rect()
-	_place("bag", bar.end.x + 10.0 * s, 8.0 * s + bottom)
+	_place("bag", size.x - 322.0 * s - insets.z, ty)
 
 func _place(id: String, x: float, y_from_bottom: float) -> void:
 	if not buttons.has(id):
 		return
-	var d: float = float(buttons[id]["units"]) * s
+	var d: float = float(buttons[id]["units"]) * button_scale()
 	var b: Control = buttons[id]["node"]
 	var r := _from_bottom(x, y_from_bottom, d, d)
 	b.position = r.position

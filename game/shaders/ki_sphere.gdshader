@@ -35,10 +35,11 @@ void fragment() {
 	n = mix(n, vnoise(p * 2.3 - vec2(TIME * swirl_speed * 1.4, 0.0)), 0.5);
 
 	float pulse = 1.0 + sin(TIME * pulse_speed) * pulse_amount;
-	vec3 col = mix(ki_color.rgb, core_color.rgb, clamp(centre * 1.3 + n * 0.25, 0.0, 1.0));
+	// only the very middle goes white hot, so the technique colour stays readable
+	vec3 col = mix(ki_color.rgb, core_color.rgb, clamp(pow(centre, 2.6) * 1.1 + n * 0.12, 0.0, 1.0));
 	float edge = pow(1.0 - clamp(rim, 0.0, 1.0), 2.0) * corona;
-	float a = (0.45 + 0.85 * centre + 0.35 * n + edge) * intensity * pulse;
+	float a = (0.16 + 0.42 * centre + 0.16 * n + 0.45 * edge) * intensity * pulse;
 
-	ALBEDO = col * (1.0 + 1.5 * centre);
+	ALBEDO = col * (0.9 + 0.8 * centre);
 	ALPHA = clamp(a, 0.0, 1.0) * ki_color.a;
 }

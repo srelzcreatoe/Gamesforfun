@@ -168,10 +168,10 @@ static func relight(world: Node, x: int, y: int, z: int, old_id: int, new_id: in
 	var old_emit: int = BlockTable.light[old_id] if old_id < BlockTable.count else 0
 	var new_emit: int = BlockTable.light[new_id] if new_id < BlockTable.count else 0
 	# --- block light ---
-	var cur := world.get_block_light(x, y, z)
+	var cur: int = world.get_block_light(x, y, z)
 	var add_seeds: Array[Vector3i] = []
 	if cur > new_emit or BlockTable.is_opaque(new_id):
-		var removed := flood_remove(world, [Vector3i(x, y, z)], false)
+		var removed: Array[Vector3i] = flood_remove(world, [Vector3i(x, y, z)], false)
 		add_seeds.append_array(removed)
 	if new_emit > 0:
 		world.set_block_light(x, y, z, new_emit)
@@ -186,7 +186,7 @@ static func relight(world: Node, x: int, y: int, z: int, old_id: int, new_id: in
 	var level := MAX_LIGHT
 	var blocked := false
 	for yy in range(HEIGHT - 1, -1, -1):
-		var id := world.get_block(x, yy, z)
+		var id: int = world.get_block(x, yy, z)
 		var want := 0
 		if blocked or BlockTable.is_opaque(id):
 			blocked = true
@@ -196,7 +196,7 @@ static func relight(world: Node, x: int, y: int, z: int, old_id: int, new_id: in
 			level -= BlockTable.atten[id] if id < BlockTable.count else 0
 			if level < 0:
 				level = 0
-		var have := world.get_sky_light(x, yy, z)
+		var have: int = world.get_sky_light(x, yy, z)
 		if want > have:
 			world.set_sky_light(x, yy, z, want)
 			sky_add.append(Vector3i(x, yy, z))
@@ -270,12 +270,12 @@ static func flood_add(world: Node, seeds: Array, sky: bool) -> void:
 			var n := Vector3i(p.x + d.x, p.y + d.y, p.z + d.z)
 			if n.y < 0 or n.y >= HEIGHT:
 				continue
-			var nid := world.get_block_raw(n.x, n.y, n.z)
+			var nid: int = world.get_block_raw(n.x, n.y, n.z)
 			if nid < 0:
 				continue        # unloaded column
 			if BlockTable.is_opaque(nid):
 				continue
-			var want := level - 1 - BlockTable.atten[nid]
+			var want: int = level - 1 - BlockTable.atten[nid]
 			if want <= 0:
 				continue
 			var cur: int = world.get_sky_light(n.x, n.y, n.z) if sky else world.get_block_light(n.x, n.y, n.z)

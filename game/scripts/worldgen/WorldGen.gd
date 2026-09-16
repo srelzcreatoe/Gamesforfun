@@ -86,6 +86,11 @@ var ore_table: Array = []                 # [{block, min, max, tries, size}]
 var decorate := true
 var stamp_structures := true
 var dragon_ball_set := ""
+## Local pools/lakes on planets without a sea: `pool_name` is the liquid, `pool_depth` the
+## basin depth the height field already subtracted (Terrain.lake_at).
+var pool_name := ""
+var pool_depth := 0.0
+var id_pool := 0
 
 # resolved block ids
 var id_air := 0
@@ -132,20 +137,35 @@ func configure() -> void:
 	id_snow_layer = block_id("snow_layer")
 	id_gravel = block_id("gravel")
 	id_sand = block_id("sand")
+	id_pool = block_id(pool_name) if pool_name != "" else 0
 	_build_biome_tables()
 	_ore_ids = PackedInt32Array()
 	for o in ore_table:
 		_ore_ids.append(block_id(String(o.get("block", "stone"))))
 	decorator.configure(self)
 	structures.configure(self)
+	_post_configure()
 
 ## Subclasses override this to set the tunables above.
 func _configure() -> void:
 	pass
 
+## Runs after terrain / biomes / structures are configured (hotspots, fixed positions, ...).
+func _post_configure() -> void:
+	pass
+
 ## Flat planets (otherworld / time chamber) override this.
 func plane_y() -> int:
 	return 60
+
+## Structure `y_mode: absolute|sky` y values come from DMZ worlds that are 384 blocks tall;
+## planets whose ground sits elsewhere remap them here.
+func remap_structure_y(y: int, _mode: String) -> int:
+	return y
+
+## Extra per-planet features (cloud islands, rock spires, asteroid clumps, Snake Way, ...).
+func _features(_col: ChunkColumn, _ctx: Ctx) -> void:
+	pass
 
 func reseed(p_seed: int) -> void:
 	_mutex.lock()
@@ -185,6 +205,7 @@ func generate_column(col: ChunkColumn, p_seed: int, planet: Dictionary) -> void:
 	ctx.ox = col.cx * CHUNK
 	ctx.oz = col.cz * CHUNK
 	_fill_column(col, ctx)
+	_features(col, ctx)
 	if decorate:
 		decorator.decorate(col, ctx)
 	if stamp_structures:
@@ -253,6 +274,21 @@ func _fill_column(col: ChunkColumn, ctx: Ctx) -> void:
 				ctx.top_any[i2] = sea + 1
 			else:
 				ctx.wet[i2] = 0
+				if id_pool > 0:
+					var lake := terrain.lake_at(wx, wz)
+					if lake > 0.06:
+						var pool_y := h + int(round(lake * pool_depth)) - 4
+						if pool_y >= h:
+							var yp := h
+							while yp <= pool_y and yp < HEIGHT:
+								var ip := i2 + 256 * yp
+								blocks[ip] = id_pool
+								meta[ip] = Fluids.SOURCE
+								yp += 1
+							ctx.wet[i2] = 1
+							ctx.top_any[i2] = pool_y + 1
+							if top_solid >= bedrock_depth:
+								blocks[i2 + 256 * top_solid] = under
 	# ore veins
 	var ores := _ore_list(ctx)
 	var n := ores.size()

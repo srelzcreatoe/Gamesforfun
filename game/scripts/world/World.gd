@@ -42,27 +42,27 @@ var _force_debug_camera := false
 var _uniform_time := 0.0
 
 func _ready() -> void:
-	chunks = get_node_or_null("Chunks")
+	chunks = get_node_or_null("Chunks") as Node3D
 	if chunks == null:
 		chunks = Node3D.new()
 		chunks.name = "Chunks"
 		add_child(chunks)
-	entities_root = get_node_or_null("Entities")
+	entities_root = get_node_or_null("Entities") as Node3D
 	if entities_root == null:
 		entities_root = Node3D.new()
 		entities_root.name = "Entities"
 		add_child(entities_root)
-	sun = get_node_or_null("Sun")
-	world_env = get_node_or_null("WorldEnvironment")
+	sun = get_node_or_null("Sun") as DirectionalLight3D
+	world_env = get_node_or_null("WorldEnvironment") as WorldEnvironment
 	if not BlockTable.built:
 		BlockTable.build()
 	save_manager = SaveManager.new()
-	manager = get_node_or_null("ChunkManager")
+	manager = get_node_or_null("ChunkManager") as ChunkManager
 	if manager == null:
 		manager = ChunkManager.new()
 		manager.name = "ChunkManager"
 		add_child(manager)
-	fluids = get_node_or_null("Fluids")
+	fluids = get_node_or_null("Fluids") as Fluids
 	if fluids == null:
 		fluids = Fluids.new()
 		fluids.name = "Fluids"
