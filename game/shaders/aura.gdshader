@@ -1,0 +1,86 @@
+shader_type spatial;
+render_mode blend_add, unshaded, cull_disabled, depth_draw_never, shadows_disabled, skip_vertex_transform;
+// Procedural ki aura: scrolling flame noise in `aura_color` with a hot inner core,
+// additive, vertex wobble and a pulse. gl_compatibility safe (no screen texture,
+// no derivatives, no depth read). Co-owned with the shaders agent: keep the uniforms.
+
+uniform vec4 aura_color : source_color = vec4(1.0, 0.843, 0.0, 1.0);
+uniform vec4 inner_color : source_color = vec4(1.0, 1.0, 0.86, 1.0);
+uniform float intensity : hint_range(0.0, 4.0) = 1.0;
+uniform float scroll_speed = 2.4;
+uniform float noise_scale = 3.5;
+uniform float wobble = 0.05;
+uniform float wobble_speed = 7.0;
+uniform float pulse_speed = 5.5;
+uniform float pulse_amount = 0.18;
+uniform float flame_sharpness = 1.9;
+uniform float rise = 0.55;          // how much the flames stretch upward
+uniform float tip_fade = 0.35;      // fade of the top tips
+uniform float seed = 0.0;
+
+float hash12(vec2 p) {
+	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+	p3 += dot(p3, p3.yzx + 33.33);
+	return fract((p3.x + p3.y) * p3.z);
+}
+
+float vnoise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	float a = hash12(i);
+	float b = hash12(i + vec2(1.0, 0.0));
+	float c = hash12(i + vec2(0.0, 1.0));
+	float d = hash12(i + vec2(1.0, 1.0));
+	return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+float fbm(vec2 p) {
+	float v = 0.0;
+	float amp = 0.55;
+	for (int i = 0; i < 4; i++) {
+		v += vnoise(p) * amp;
+		p *= 2.03;
+		amp *= 0.5;
+	}
+	return v;
+}
+
+varying float v_height;
+varying vec3 v_local;
+
+void vertex() {
+	v_local = VERTEX;
+	v_height = clamp(VERTEX.y * 0.55 + 0.3, 0.0, 1.5);
+	float w = sin(TIME * wobble_speed + VERTEX.y * 6.0 + seed) * cos(TIME * wobble_speed * 0.7 + VERTEX.x * 5.0);
+	vec3 offs = NORMAL * w * wobble * (0.4 + v_height) * intensity;
+	VERTEX += offs;
+	VERTEX.y += rise * 0.08 * intensity * v_height;
+	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	NORMAL = normalize((MODELVIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
+}
+
+void fragment() {
+	vec2 uv = UV;
+	// flames travel up the body: scroll the noise down in UV space
+	vec2 p = vec2(uv.x * noise_scale * 2.0 + seed, uv.y * noise_scale - TIME * scroll_speed);
+	float n = fbm(p);
+	float n2 = fbm(p * 2.1 + vec2(11.3, -TIME * scroll_speed * 1.7));
+	float flame = pow(clamp(n * 0.7 + n2 * 0.5, 0.0, 1.0), flame_sharpness);
+
+	// vertical shaping: strong at the feet, tapering tongues at the top
+	float grad = clamp(1.0 - uv.y * tip_fade, 0.0, 1.0);
+	float body = smoothstep(0.08, 0.5, flame * (0.6 + grad));
+
+	float pulse = 1.0 + sin(TIME * pulse_speed) * pulse_amount;
+	float core = pow(clamp(flame * 1.45, 0.0, 1.0), 4.0);
+
+	vec3 col = mix(aura_color.rgb, inner_color.rgb, core);
+	float a = body * intensity * pulse * aura_color.a;
+	// keep the silhouette hot where the mesh faces the camera edge-on
+	float rim = 1.0 - abs(dot(normalize(NORMAL), normalize(-VERTEX)));
+	a *= 0.55 + 0.75 * rim;
+
+	ALBEDO = col * (0.8 + 1.4 * core);
+	ALPHA = clamp(a, 0.0, 1.0);
+}

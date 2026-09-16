@@ -44,6 +44,7 @@ static var variant_layers: Array = []         # id -> PackedInt32Array
 static var stage_layers: Array = []           # id -> PackedInt32Array (crop growth stages)
 static var flow_layer := PackedInt32Array()   # liquids: layer of the flowing texture
 static var flow_frames := PackedInt32Array()
+static var sway := PackedByteArray()          # 1 -> the cutout shader lets the wind move it
 static var names := PackedStringArray()
 static var emissive_ids := PackedInt32Array()
 static var water_id := -1
@@ -62,7 +63,7 @@ static func build() -> void:
 	climbable.resize(count); double_plant.resize(count); gravity.resize(count); light.resize(count)
 	atten.resize(count); tint.resize(count); flow_spread.resize(count); flow_tick.resize(count)
 	height.resize(count); hardness.resize(count); fps.resize(count)
-	face_layer.resize(count * 6); face_frames.resize(count * 6)
+	face_layer.resize(count * 6); face_frames.resize(count * 6); sway.resize(count)
 	variant_all.resize(count); flow_layer.resize(count); flow_frames.resize(count)
 	variant_layers.clear(); stage_layers.clear(); names.clear(); emissive_ids.clear()
 	for id in count:
@@ -89,6 +90,10 @@ static func build() -> void:
 		if light[id] > 0:
 			emissive_ids.append(id)
 		atten[id] = clampi(int(b.get("light_attenuation", 0)), 0, 15)
+		if atten[id] == 0 and sh == Shape.CUTOUT_CUBE:
+			atten[id] = 1                 # leaves/glass panes dim the sunlight like in Minecraft
+		var material := String(b.get("material", "stone"))
+		sway[id] = 1 if (sh == Shape.CROSS or sh == Shape.CROP or material == "leaves") else 0
 		tint[id] = TINT_NAMES.get(String(b.get("tint", "none")), Tint.NONE)
 		var h := float(b.get("height", 1.0))
 		if sh == Shape.SLAB_BOTTOM:
@@ -121,6 +126,18 @@ static func build() -> void:
 				layer = tex_layer
 			face_layer[id * 6 + f] = layer
 			face_frames[id * 6 + f] = maxi(1, Textures.frames(k))
+		# Never leave a face on the magenta "missing" layer when another face has a texture
+		# (door/trapdoor style defs only declare top/bottom).
+		var fallback_face := -1
+		for f in 6:
+			if face_layer[id * 6 + f] != 0:
+				fallback_face = f
+				break
+		if fallback_face >= 0:
+			for f in 6:
+				if face_layer[id * 6 + f] == 0:
+					face_layer[id * 6 + f] = face_layer[id * 6 + fallback_face]
+					face_frames[id * 6 + f] = face_frames[id * 6 + fallback_face]
 		var vars := PackedInt32Array()
 		for v in b.get("variants", []):
 			vars.append(Textures.layer(String(v)))

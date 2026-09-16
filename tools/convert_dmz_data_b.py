@@ -1919,3 +1919,465 @@ def convert_nbt_structure(out_name, nbt_path, entity_dirs=()):
     write_structure(out_name, (sx, sy, sz), palette, blocks, entities,
                     (-(sx // 2), 0, -(sz // 2)), clear_box=False)
     return sorted(set(spawn_ids))
+
+
+# --------------------------------------------------------- procedural structures
+class Volume:
+    """Sparse voxel volume builder used by the procedural structures."""
+
+    def __init__(self):
+        self.cells = {}
+
+    def set(self, x, y, z, bid):
+        self.cells[(int(x), int(y), int(z))] = blk(bid)
+
+    def fill(self, x0, y0, z0, x1, y1, z1, bid):
+        for x in range(min(x0, x1), max(x0, x1) + 1):
+            for y in range(min(y0, y1), max(y0, y1) + 1):
+                for z in range(min(z0, z1), max(z0, z1) + 1):
+                    self.set(x, y, z, bid)
+
+    def hollow_box(self, x0, y0, z0, x1, y1, z1, wall, floor=None, roof=None):
+        self.fill(x0, y0, z0, x1, y1, z1, wall)
+        if x1 - x0 >= 2 and y1 - y0 >= 2 and z1 - z0 >= 2:
+            self.fill(x0 + 1, y0 + 1, z0 + 1, x1 - 1, y1 - 1, z1 - 1, "air")
+        if floor:
+            self.fill(x0, y0, z0, x1, y0, z1, floor)
+        if roof:
+            self.fill(x0, y1, z0, x1, y1, z1, roof)
+
+    def sphere(self, cx, cy, cz, r, bid, shell=False, half=False):
+        for x in range(cx - r, cx + r + 1):
+            for y in range(cy - r, cy + r + 1):
+                for z in range(cz - r, cz + r + 1):
+                    if half and y < cy:
+                        continue
+                    d = math.sqrt((x - cx) ** 2 + (y - cy) ** 2 + (z - cz) ** 2)
+                    if d <= r + 0.5 and (not shell or d >= r - 0.6):
+                        self.set(x, y, z, bid)
+
+    def cylinder(self, cx, y0, cz, r, h, bid, shell=False):
+        for y in range(y0, y0 + h):
+            for x in range(cx - r, cx + r + 1):
+                for z in range(cz - r, cz + r + 1):
+                    d = math.sqrt((x - cx) ** 2 + (z - cz) ** 2)
+                    if d <= r + 0.5 and (not shell or d >= r - 0.6):
+                        self.set(x, y, z, bid)
+
+    def emit(self, name, entities=(), clear_box=False, y_anchor=0):
+        if not self.cells:
+            raise SystemExit("empty procedural structure %s" % name)
+        xs = [p[0] for p in self.cells]
+        ys = [p[1] for p in self.cells]
+        zs = [p[2] for p in self.cells]
+        ox, oy, oz = min(xs), min(ys), min(zs)
+        size = (max(xs) - ox + 1, max(ys) - oy + 1, max(zs) - oz + 1)
+        palette = ["air"]
+        pal_index = {"air": 0}
+        blocks = []
+        for p in sorted(self.cells):
+            bid = self.cells[p]
+            if bid not in pal_index:
+                pal_index[bid] = len(palette)
+                palette.append(bid)
+            blocks.append([p[0] - ox, p[1] - oy, p[2] - oz, pal_index[bid]])
+        ents = [{"id": e[0], "pos": [e[1] - ox, e[2] - oy, e[3] - oz]} for e in entities]
+        write_structure(name, size, palette, blocks, ents,
+                        (ox, oy - y_anchor, oz), clear_box=clear_box)
+
+
+def proc_capsule_corp():
+    v = Volume()
+    # 20x12x20 domed Capsule Corp building
+    R = 9
+    v.cylinder(0, 0, 0, R, 1, "white_concrete")
+    v.cylinder(0, 1, 0, R, 6, "capsule_corp_wall", shell=True)
+    for y in range(1, 7):
+        v.cylinder(0, y, 0, R - 1, 1, "air")
+    # windows band
+    for y in (3, 4):
+        for x in range(-R, R + 1):
+            for z in range(-R, R + 1):
+                d = math.sqrt(x * x + z * z)
+                if R - 0.6 <= d <= R + 0.5 and (x + z) % 3 != 0:
+                    v.set(x, y, z, "light_blue_stained_glass")
+    # dome
+    v.sphere(0, 7, 0, R, "capsule_corp_wall", shell=True, half=True)
+    v.sphere(0, 7, 0, R - 1, "air", half=True)
+    v.fill(-R, 7, -R, R, 7, R, "capsule_corp_wall")
+    v.fill(-R + 1, 7, -R + 1, R - 1, 7, R - 1, "air")
+    # logo over the door + entrance
+    v.fill(-1, 1, -R, 1, 3, -R, "air")
+    v.set(0, 4, -R, "capsule_corp_logo")
+    v.set(-1, 4, -R, "capsule_corp_logo")
+    v.set(1, 4, -R, "capsule_corp_logo")
+    # yellow trim + interior floor / lights
+    v.cylinder(0, 6, 0, R, 1, "yellow_concrete")
+    v.cylinder(0, 1, 0, R - 1, 1, "smooth_stone")
+    for (x, z) in ((-4, -4), (4, -4), (-4, 4), (4, 4)):
+        v.set(x, 6, z, "glowstone")
+    v.fill(-2, 1, 3, 2, 1, 5, "lookout_tile")
+    v.set(-3, 2, 4, "gravity_device")
+    v.set(3, 2, 4, "kikono_station")
+    v.set(0, 2, 6, "crafting_table")
+    ents = [("master_vegeta", 3, 2, -3), ("master_trunks", -3, 2, -3),
+            ("saga_bulma", 0, 2, 4), ("master_toribot", -5, 2, 0)]
+    v.emit("capsule_corp", ents, clear_box=True)
+
+
+def proc_korin_tower():
+    v = Volume()
+    H = 90
+    for y in range(0, H):
+        v.set(0, y, 0, "korin_tower_block")
+    # base flare
+    v.cylinder(0, 0, 0, 2, 3, "korin_tower_block")
+    # platform on top
+    v.cylinder(0, H, 0, 6, 1, "korin_tower_block")
+    v.cylinder(0, H + 1, 0, 6, 1, "lookout_tile")
+    # small house
+    v.hollow_box(-3, H + 2, -3, 3, H + 6, 3, "kame_house_wall",
+                 floor="lookout_tile", roof="kame_house_roof")
+    v.fill(-1, H + 2, -3, 1, H + 4, -3, "air")
+    v.set(0, H + 3, 3, "yellow_stained_glass")
+    v.set(-2, H + 3, 0, "chest")
+    v.set(2, H + 3, 0, "training_post")
+    for y in range(3, H):
+        if y % 6 == 0:
+            v.set(1, y, 0, "ladder")
+    v.emit("korin_tower", [("master_karin", 0, H + 3, 0)], clear_box=False)
+
+
+def proc_snake_way():
+    v = Volume()
+    # 64-long S-curve of snake_way with edges
+    length = 64
+    for i in range(length):
+        t = i / float(length - 1)
+        z = i
+        x = int(round(6.0 * math.sin(t * math.pi * 2.0)))
+        y = int(round(2.0 * math.sin(t * math.pi * 4.0)))
+        for dx in (-2, -1, 0, 1, 2):
+            v.set(x + dx, y, z, "snake_way")
+        v.set(x - 3, y, z, "snake_way_edge")
+        v.set(x + 3, y, z, "snake_way_edge")
+        v.set(x - 3, y + 1, z, "snake_way_edge")
+        v.set(x + 3, y + 1, z, "snake_way_edge")
+    v.emit("snake_way", [], clear_box=False)
+
+
+def proc_king_kai_planet():
+    v = Volume()
+    R = 12
+    v.sphere(0, 0, 0, R, "kai_grass_block")
+    v.sphere(0, 0, 0, R - 1, "dirt")
+    v.sphere(0, 0, 0, R - 4, "namek_stone")
+    # road ring
+    for a in range(0, 360, 4):
+        x = int(round((R - 2) * math.cos(math.radians(a))))
+        z = int(round((R - 2) * math.sin(math.radians(a))))
+        y = int(round(math.sqrt(max(0.0, R * R - x * x - z * z))))
+        v.set(x, y, z, "grass_path")
+    # house
+    v.hollow_box(-3, R, -3, 3, R + 4, 3, "king_kai_house_wall",
+                 floor="lookout_tile", roof="kame_house_roof")
+    v.fill(-1, R, -3, 1, R + 2, -3, "air")
+    v.set(0, R + 2, 3, "yellow_stained_glass")
+    v.set(2, R + 1, 0, "chest")
+    # tree + training post
+    v.fill(6, R, 5, 6, R + 4, 5, "oak_log")
+    v.sphere(6, R + 5, 5, 2, "oak_leaves")
+    v.set(-6, R, 4, "training_post")
+    v.set(-6, R, -4, "gravity_device")
+    v.emit("king_kai_planet", [("master_kaiosama", 0, R + 1, 0)], clear_box=False)
+
+
+def proc_check_in_station():
+    v = Volume()
+    # King Yemma's check-in station, 24x12x16
+    v.hollow_box(-12, 0, -8, 11, 11, 7, "check_in_wood", floor="check_in_wood",
+                 roof="check_in_wood")
+    v.fill(-2, 0, -8, 2, 6, -8, "air")          # main gate
+    v.fill(-12, 11, -8, 11, 11, 7, "check_in_wood")
+    for x in range(-11, 11, 4):
+        v.set(x, 8, -8, "halo_light")
+    # Yemma's desk
+    v.fill(-6, 1, 3, 6, 2, 6, "check_in_wood")
+    v.fill(-6, 3, 3, 6, 3, 6, "smooth_stone")
+    v.set(0, 4, 5, "chest")
+    for z in (-6, 0, 6):
+        v.set(-11, 1, z, "lantern")
+        v.set(10, 1, z, "lantern")
+    v.fill(-11, 1, -7, 10, 1, 2, "lookout_tile")
+    v.emit("check_in_station", [("master_enma", 0, 4, 4)], clear_box=True)
+
+
+def proc_hell_gate():
+    v = Volume()
+    v.fill(-6, 0, -1, 6, 1, 1, "hell_rock")
+    for y in range(2, 12):
+        v.fill(-6, y, -1, -4, y, 1, "hell_rock")
+        v.fill(4, y, -1, 6, y, 1, "hell_rock")
+    v.fill(-6, 12, -1, 6, 13, 1, "hell_rock")
+    v.fill(-3, 2, 0, 3, 11, 0, "hell_rock_molten")
+    for x in (-5, 5):
+        v.set(x, 13, 0, "halo_light")
+    v.emit("hell_gate", [], clear_box=True)
+
+
+def proc_heaven_arch():
+    v = Volume()
+    for y in range(0, 10):
+        v.fill(-7, y, -1, -5, y, 1, "heaven_cloud")
+        v.fill(5, y, -1, 7, y, 1, "heaven_cloud")
+    for x in range(-7, 8):
+        h = 10 + int(round(3.0 * math.cos(x / 7.0 * math.pi / 2.0)))
+        v.fill(x, 10, -1, x, h, 1, "heaven_cloud")
+        if abs(x) <= 4:
+            v.set(x, h, 0, "halo_light")
+    v.fill(-4, 0, -2, 4, 0, 2, "heaven_grass_block")
+    v.emit("heaven_arch", [], clear_box=True)
+
+
+def proc_kai_shrine():
+    v = Volume()
+    v.cylinder(0, 0, 0, 7, 1, "sacred_planet_grass_block")
+    v.cylinder(0, 1, 0, 6, 1, "lookout_tile")
+    for a in range(0, 360, 45):
+        x = int(round(5 * math.cos(math.radians(a))))
+        z = int(round(5 * math.sin(math.radians(a))))
+        v.fill(x, 2, z, x, 6, z, "sacred_log")
+        v.set(x, 7, z, "halo_light")
+    v.fill(-6, 7, -6, 6, 7, 6, "sacred_planks")
+    v.fill(-1, 2, -1, 1, 2, 1, "dragon_ball_altar")
+    v.set(0, 3, 0, "ki_barrier")
+    v.emit("kai_shrine", [], clear_box=True)
+
+
+PROCEDURAL = [
+    ("capsule_corp", proc_capsule_corp),
+    ("korin_tower", proc_korin_tower),
+    ("snake_way", proc_snake_way),
+    ("king_kai_planet", proc_king_kai_planet),
+    ("check_in_station", proc_check_in_station),
+    ("hell_gate", proc_hell_gate),
+    ("heaven_arch", proc_heaven_arch),
+    ("kai_shrine", proc_kai_shrine),
+]
+
+# ---- NBT structures: out name -> (nbt relative path, registry entry)
+NBT_STRUCTURES = [
+    ("roshi_house", "roshi_house.nbt", {
+        "planet": "earth", "biomes": ["beach", "ocean"], "rarity": 40,
+        "y_mode": "surface", "unique": True, "clear_above": False,
+        "quest_tag": "dragonminez:roshi_house", "min_distance_from_spawn": 200}),
+    ("goku_house", "goku_house.nbt", {
+        "planet": "earth", "biomes": ["plains", "sunflower_plains", "meadow"],
+        "rarity": 60, "y_mode": "surface", "unique": True, "clear_above": False,
+        "quest_tag": "dragonminez:goku_house", "min_distance_from_spawn": 320}),
+    ("kami_lookout", "kamilookout.nbt", {
+        "planet": "earth", "biomes": [], "rarity": 1, "y_mode": "sky", "y": 220,
+        "unique": True, "clear_above": True, "quest_tag": "dragonminez:kamilookout",
+        "min_distance_from_spawn": 0}),
+    ("cell_arena", "cell_arena.nbt", {
+        "planet": "earth", "biomes": ["plains", "sunflower_plains", "savanna"],
+        "rarity": 90, "y_mode": "surface", "unique": True, "clear_above": True,
+        "quest_tag": "dragonminez:cell_arena", "min_distance_from_spawn": 600}),
+    ("gero_lab", "gero_lab_surface.nbt", {
+        "planet": "earth", "biomes": ["wasteland"], "rarity": 70, "y_mode": "surface",
+        "unique": True, "clear_above": False, "quest_tag": "dragonminez:gero_lab",
+        "min_distance_from_spawn": 400, "group": "gero_lab"}),
+    ("gero_lab_stairs", "gero_lab_stairs.nbt", {
+        "planet": "earth", "biomes": ["wasteland"], "rarity": 0, "y_mode": "absolute",
+        "y": 20, "unique": True, "clear_above": False, "group": "gero_lab",
+        "min_distance_from_spawn": 400}),
+    ("gero_lab_underground", "gero_lab_underground.nbt", {
+        "planet": "earth", "biomes": ["wasteland"], "rarity": 0, "y_mode": "absolute",
+        "y": 6, "unique": True, "clear_above": False, "group": "gero_lab",
+        "min_distance_from_spawn": 400}),
+    ("rr_tower", "rrtower.nbt", {
+        "planet": "earth", "biomes": ["plains", "forest", "birch_forest", "desert",
+                                      "savanna", "taiga", "snowy_plains", "badlands",
+                                      "jungle", "mountains", "meadow", "cherry_grove",
+                                      "swamp", "river", "mushroom_fields", "ice_spikes",
+                                      "snowy_taiga", "dark_forest", "sunflower_plains"],
+        "rarity": 48, "y_mode": "surface", "unique": False, "clear_above": True,
+        "quest_tag": "dragonminez:rrtower", "min_distance_from_spawn": 240}),
+    ("piccolo_house", "piccolo_house.nbt", {
+        "planet": "earth", "biomes": ["wasteland", "mountains", "badlands", "forest",
+                                      "taiga", "desert", "savanna"],
+        "rarity": 80, "y_mode": "surface", "unique": True, "clear_above": False,
+        "quest_tag": "dragonminez:piccolo_house", "min_distance_from_spawn": 300}),
+    ("yamcha_house", "yamcha_house.nbt", {
+        "planet": "earth", "biomes": ["desert", "badlands"], "rarity": 70,
+        "y_mode": "surface", "unique": True, "clear_above": False,
+        "quest_tag": "dragonminez:yamcha_house", "min_distance_from_spawn": 300}),
+    ("vegeta_pod", "vegeta_pod.nbt", {
+        "planet": "earth", "biomes": ["wasteland", "mountains", "badlands"],
+        "rarity": 60, "y_mode": "surface", "unique": True, "clear_above": False,
+        "quest_tag": "dragonminez:vegeta_pod", "min_distance_from_spawn": 260}),
+    ("trunks_ship", "trunks_ship.nbt", {
+        "planet": "earth", "biomes": ["plains", "forest", "wasteland", "taiga",
+                                      "savanna", "mountains"],
+        "rarity": 90, "y_mode": "surface", "unique": True, "clear_above": False,
+        "quest_tag": "dragonminez:trunks_ship", "min_distance_from_spawn": 360}),
+    ("babidi_ship", "babidi_surface.nbt", {
+        "planet": "earth", "biomes": ["mountains", "wasteland", "badlands"],
+        "rarity": 100, "y_mode": "surface", "unique": True, "clear_above": False,
+        "quest_tag": "dragonminez:babidi", "min_distance_from_spawn": 500,
+        "group": "babidi"}),
+    ("babidi_top", "babidi_top.nbt", {
+        "planet": "earth", "biomes": ["mountains", "wasteland", "badlands"],
+        "rarity": 0, "y_mode": "absolute", "y": 90, "unique": True,
+        "clear_above": False, "group": "babidi", "min_distance_from_spawn": 500}),
+    ("babidi_bottom", "babidi_bottom.nbt", {
+        "planet": "earth", "biomes": ["mountains", "wasteland", "badlands"],
+        "rarity": 0, "y_mode": "absolute", "y": 4, "unique": True,
+        "clear_above": False, "group": "babidi", "min_distance_from_spawn": 500}),
+    ("cc_villager", "cc_villager.nbt", {
+        "planet": "earth", "biomes": ["plains", "sunflower_plains", "forest", "meadow",
+                                      "savanna", "taiga"],
+        "rarity": 24, "y_mode": "surface", "unique": False, "clear_above": False,
+        "min_distance_from_spawn": 80}),
+    ("elder_guru", "elder_guru.nbt", {
+        "planet": "namek", "biomes": ["ajissa_plains", "namekian_rivers"], "rarity": 1,
+        "y_mode": "surface", "unique": True, "clear_above": False,
+        "quest_tag": "dragonminez:elder_guru", "min_distance_from_spawn": 400}),
+    ("frieza_ship", "frieza_ship.nbt", {
+        "planet": "namek", "biomes": ["ajissa_plains"], "rarity": 80,
+        "y_mode": "absolute", "y": 60, "unique": True, "clear_above": True,
+        "quest_tag": "dragonminez:frieza_ship", "min_distance_from_spawn": 500}),
+    ("old_kai_pillar", "oldkai_pillar.nbt", {
+        "planet": "sacred_kai_planet", "biomes": ["sacredkai_plains"], "rarity": 1,
+        "y_mode": "surface", "unique": True, "clear_above": True,
+        "quest_tag": "dragonminez:oldkai_pillar", "min_distance_from_spawn": 120}),
+    ("time_chamber", "timechamber.nbt", {
+        "planet": "time_chamber", "biomes": ["hyperbolic_time_chamber"], "rarity": 1,
+        "y_mode": "absolute", "y": 8, "unique": True, "clear_above": False,
+        "quest_tag": "dragonminez:timechamber", "min_distance_from_spawn": 0,
+        "fixed_position": [0, 8, 0]}),
+]
+VILLAGE_PIECES = [
+    ("village_ajissa_center", "village_ajissa/ajissa_center/ajissa_center.nbt", "namek",
+     ["ajissa_plains"], True),
+    ("village_ajissa_house_big", "village_ajissa/houses/residence/ajissa_house_big.nbt",
+     "namek", ["ajissa_plains"], False),
+    ("village_ajissa_house_small",
+     "village_ajissa/houses/residence/ajissa_house_small.nbt", "namek",
+     ["ajissa_plains"], False),
+    ("village_ajissa_cc_house", "village_ajissa/houses/cc_namekian_house.nbt", "namek",
+     ["ajissa_plains"], False),
+    ("village_ajissa_street_straight", "village_ajissa/streets/street_straight.nbt",
+     "namek", ["ajissa_plains"], False),
+    ("village_ajissa_street_curve", "village_ajissa/streets/street_curve.nbt", "namek",
+     ["ajissa_plains"], False),
+    ("village_ajissa_street_t", "village_ajissa/streets/street_t.nbt", "namek",
+     ["ajissa_plains"], False),
+    ("village_ajissa_street_cross", "village_ajissa/streets/street_cross.nbt", "namek",
+     ["ajissa_plains"], False),
+    ("village_sacred_center", "village_sacred/sacred_center/sacred_center.nbt",
+     "sacred_kai_planet", ["sacred_land"], True),
+    ("village_sacred_house_big", "village_sacred/houses/residence/sacred_house_big.nbt",
+     "sacred_kai_planet", ["sacred_land"], False),
+    ("village_sacred_house_small",
+     "village_sacred/houses/residence/sacred_house_small.nbt", "sacred_kai_planet",
+     ["sacred_land"], False),
+    ("village_sacred_street_straight", "village_sacred/streets/street_straight.nbt",
+     "sacred_kai_planet", ["sacred_land"], False),
+    ("village_sacred_street_curve", "village_sacred/streets/street_curve.nbt",
+     "sacred_kai_planet", ["sacred_land"], False),
+    ("village_sacred_street_t", "village_sacred/streets/street_t.nbt",
+     "sacred_kai_planet", ["sacred_land"], False),
+    ("village_sacred_street_cross", "village_sacred/streets/street_cross.nbt",
+     "sacred_kai_planet", ["sacred_land"], False),
+]
+PROC_ENTRIES = {
+    "capsule_corp": {
+        "planet": "earth", "biomes": ["plains", "sunflower_plains", "meadow", "forest"],
+        "rarity": 1, "y_mode": "surface", "unique": True, "clear_above": True,
+        "quest_tag": "dragonminez:capsule_corp", "min_distance_from_spawn": 0},
+    "korin_tower": {
+        "planet": "earth", "biomes": [], "rarity": 1, "y_mode": "surface",
+        "unique": True, "clear_above": True, "quest_tag": "dragonminez:korin_tower",
+        "min_distance_from_spawn": 0},
+    "snake_way": {
+        "planet": "otherworld", "biomes": ["other_world"], "rarity": 1,
+        "y_mode": "absolute", "y": 40, "unique": False, "clear_above": False,
+        "quest_tag": "dragonminez:snake_way", "min_distance_from_spawn": 0},
+    "king_kai_planet": {
+        "planet": "otherworld", "biomes": ["king_kai_planet"], "rarity": 1,
+        "y_mode": "sky", "y": 140, "unique": True, "clear_above": True,
+        "quest_tag": "dragonminez:king_kai_planet", "min_distance_from_spawn": 1000},
+    "check_in_station": {
+        "planet": "otherworld", "biomes": ["other_world"], "rarity": 1,
+        "y_mode": "absolute", "y": 40, "unique": True, "clear_above": True,
+        "quest_tag": "dragonminez:check_in_station", "min_distance_from_spawn": 0},
+    "hell_gate": {
+        "planet": "hell_planet", "biomes": ["hell_planet_wastes"], "rarity": 1,
+        "y_mode": "surface", "unique": True, "clear_above": True,
+        "quest_tag": "dmzplus:hell_gate", "min_distance_from_spawn": 0},
+    "heaven_arch": {
+        "planet": "heaven", "biomes": ["heaven_meadows"], "rarity": 1,
+        "y_mode": "surface", "unique": True, "clear_above": True,
+        "quest_tag": "dmzplus:heaven_arch", "min_distance_from_spawn": 0},
+    "kai_shrine": {
+        "planet": "sacred_kai_planet", "biomes": ["sacredkai_plains", "sacredkai_hills"],
+        "rarity": 30, "y_mode": "surface", "unique": False, "clear_above": True,
+        "quest_tag": "dragonminez:kai_shrine", "min_distance_from_spawn": 150},
+}
+STRUCTURES = OrderedDict()
+
+
+def build_structures():
+    src = os.path.join(DMZ_DATA, "structures")
+    for name, rel, entry in NBT_STRUCTURES:
+        path = os.path.join(src, rel)
+        if not os.path.exists(path):
+            SKIPPED.append("structure %s: %s missing" % (name, rel))
+            continue
+        spawns = convert_nbt_structure(name, path)
+        e = dict(entry)
+        e["file"] = structure_rel(name)
+        e["spawn_entities"] = spawns
+        STRUCTURES[name] = e
+        log("  structure %-26s %s  %d blocks" % (name, STRUCT_SIZES[name][0],
+                                                 STRUCT_SIZES[name][1]))
+    for name, rel, planet, biomes, is_center in VILLAGE_PIECES:
+        path = os.path.join(src, rel)
+        if not os.path.exists(path):
+            SKIPPED.append("structure %s: %s missing" % (name, rel))
+            continue
+        ent_dirs = []
+        if is_center:
+            ent_dirs.append(os.path.join(src, rel.split("/")[0], "entities"))
+        spawns = convert_nbt_structure(name, path, ent_dirs)
+        village = rel.split("/")[0]
+        STRUCTURES[name] = {
+            "file": structure_rel(name), "planet": planet, "biomes": biomes,
+            "rarity": 34 if is_center else 0, "y_mode": "surface",
+            "unique": False, "clear_above": False, "spawn_entities": spawns,
+            "quest_tag": "dragonminez:%s" % village,
+            "min_distance_from_spawn": 64, "group": village,
+            "village_role": "center" if is_center else "piece",
+        }
+        log("  structure %-26s %s  %d blocks" % (name, STRUCT_SIZES[name][0],
+                                                 STRUCT_SIZES[name][1]))
+    for name, fn in PROCEDURAL:
+        fn()
+        e = dict(PROC_ENTRIES[name])
+        e["file"] = structure_rel(name)
+        doc_ents = []
+        e["spawn_entities"] = PROC_SPAWNS.get(name, [])
+        STRUCTURES[name] = e
+        log("  structure %-26s %s  %d blocks (procedural)" % (
+            name, STRUCT_SIZES[name][0], STRUCT_SIZES[name][1]))
+    COUNTS["structures"] = len(STRUCTURES)
+
+
+PROC_SPAWNS = {
+    "capsule_corp": ["master_vegeta", "master_trunks", "saga_bulma", "master_toribot"],
+    "korin_tower": ["master_karin"],
+    "king_kai_planet": ["master_kaiosama"],
+    "check_in_station": ["master_enma"],
+    "snake_way": [], "hell_gate": [], "heaven_arch": [], "kai_shrine": [],
+}

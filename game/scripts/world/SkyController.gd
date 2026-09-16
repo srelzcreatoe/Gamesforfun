@@ -155,9 +155,14 @@ func _ensure_nodes() -> void:
 		environment.fog_sky_affect = 0.0
 		environment.fog_depth_curve = 1.0
 		environment.glow_normalized = false
-		environment.glow_levels[2] = 0.0
-		environment.glow_levels[3] = 1.0
-		environment.glow_levels[5] = 1.0
+		# glow_levels/N are indexed properties (1..7), not an array.
+		environment.set("glow_levels/1", 0.0)
+		environment.set("glow_levels/2", 0.0)
+		environment.set("glow_levels/3", 0.8)
+		environment.set("glow_levels/4", 1.0)
+		environment.set("glow_levels/5", 1.0)
+		environment.set("glow_levels/6", 0.5)
+		environment.set("glow_levels/7", 0.0)
 		environment.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
 		environment.glow_hdr_threshold = 0.92
 		environment.glow_hdr_scale = 1.6
@@ -313,23 +318,23 @@ func _set_planet(id: String, planet_def: Dictionary) -> void:
 		"water": hex(sky_def.get("water"), Color.html("#3F76E4")).srgb_to_linear(),
 	}
 	var space := String(sky_def.get("type", "atmosphere")) == "space"
-	_set("atmosphere", 0.0 if space else 1.0)
-	_set("day_color", _colors["day"])
-	_set("horizon_color", _colors["horizon"])
-	_set("night_color", _colors["night"])
-	_set("sunset_color", _colors["sunset"])
-	_set("sun_scale", float(sky_def.get("sun_scale", 1.0)))
-	_set("suns", int(sky_def.get("suns", 1)))
-	_set("moon_enabled", 1.0 if bool(sky_def.get("moon", true)) else 0.0)
-	_set("star_density", clampf(float(sky_def.get("stars", 1500)) / 34000.0 * 1.4, 0.0, 1.0))
-	_set("star_brightness", float(sky_def.get("star_brightness", 0.6)))
-	_set("milky_way_strength", float(sky_def.get("milky_way", 0.3)))
-	_set("aurora_strength", 1.0 if bool(sky_def.get("aurora", false)) else 0.0)
-	_set("aurora_color_a", _colors["aurora_a"])
-	_set("aurora_color_b", _colors["aurora_b"])
+	_set_param("atmosphere", 0.0 if space else 1.0)
+	_set_param("day_color", _colors["day"])
+	_set_param("horizon_color", _colors["horizon"])
+	_set_param("night_color", _colors["night"])
+	_set_param("sunset_color", _colors["sunset"])
+	_set_param("sun_scale", float(sky_def.get("sun_scale", 1.0)))
+	_set_param("suns", int(sky_def.get("suns", 1)))
+	_set_param("moon_enabled", 1.0 if bool(sky_def.get("moon", true)) else 0.0)
+	_set_param("star_density", clampf(float(sky_def.get("stars", 1500)) / 34000.0 * 1.4, 0.0, 1.0))
+	_set_param("star_brightness", float(sky_def.get("star_brightness", 0.6)))
+	_set_param("milky_way_strength", float(sky_def.get("milky_way", 0.3)))
+	_set_param("aurora_strength", 1.0 if bool(sky_def.get("aurora", false)) else 0.0)
+	_set_param("aurora_color_a", _colors["aurora_a"])
+	_set_param("aurora_color_b", _colors["aurora_b"])
 	var mw := ENV_TEX_DIR + "milky_way.png"
 	if ResourceLoader.exists(mw):
-		_set("milky_way_tex", load(mw))
+		_set_param("milky_way_tex", load(mw))
 	_load_bodies()
 	if clouds != null:
 		clouds.visible = enable_clouds and bool(sky_def.get("clouds", true)) and bool(Game.settings.get("clouds", true))
@@ -340,13 +345,13 @@ func _set_planet(id: String, planet_def: Dictionary) -> void:
 func _load_bodies() -> void:
 	var bodies: Array = sky_def.get("bodies", [])
 	var n := mini(bodies.size(), MAX_BODIES)
-	_set("body_count", n)
+	_set_param("body_count", n)
 	for i in n:
 		var b: Dictionary = bodies[i]
 		var tex_name := String(b.get("texture", "earth")).trim_suffix(".png")
 		var path := ENV_TEX_DIR + tex_name + ".png"
 		if ResourceLoader.exists(path):
-			_set("body_tex_%d" % i, load(path))
+			_set_param("body_tex_%d" % i, load(path))
 		var dir: Vector3
 		if b.has("dir"):
 			var arr: Array = b["dir"]
@@ -355,10 +360,10 @@ func _load_bodies() -> void:
 			var az := deg_to_rad(float(b.get("azimuth", fmod(i * 137.5, 360.0))))
 			var el := deg_to_rad(float(b.get("elevation", 12.0 + 9.0 * i)))
 			dir = Vector3(cos(el) * cos(az), sin(el), cos(el) * sin(az)).normalized()
-		_set("body_dir_%d" % i, dir)
-		_set("body_scale_%d" % i, float(b.get("scale", 0.1)))
+		_set_param("body_dir_%d" % i, dir)
+		_set_param("body_scale_%d" % i, float(b.get("scale", 0.1)))
 		var kind: Variant = b.get("kind", 0)
-		_set("body_kind_%d" % i, int(BODY_KINDS.get(kind, 0)) if kind is String else int(kind))
+		_set_param("body_kind_%d" % i, int(BODY_KINDS.get(kind, 0)) if kind is String else int(kind))
 
 func _update_weather(weather: String, delta: float) -> void:
 	var kind := weather
@@ -476,22 +481,22 @@ func _update_light() -> void:
 	sun_light.light_indirect_energy = 0.0
 
 func _update_sky_uniforms() -> void:
-	_set("sun_dir", _sun_dir)
-	_set("moon_dir", _moon_dir)
-	_set("sun_color", _colors["sun"])
-	_set("weather_darkness", _weather_darkness)
-	_set("time", _time)
-	_set("moon_phase", fmod(float(day_index) / 8.0, 1.0))
+	_set_param("sun_dir", _sun_dir)
+	_set_param("moon_dir", _moon_dir)
+	_set_param("sun_color", _colors["sun"])
+	_set_param("weather_darkness", _weather_darkness)
+	_set_param("time", _time)
+	_set_param("moon_phase", fmod(float(day_index) / 8.0, 1.0))
 	if int(sky_def.get("suns", 1)) >= 2:
 		var yaw_b := Basis(Vector3.UP, deg_to_rad(48.0))
 		var yaw_c := Basis(Vector3.UP, deg_to_rad(-44.0))
 		var b := (yaw_b * _sun_dir + Vector3(0, 0.35, 0)).normalized()
 		var c := (yaw_c * _sun_dir + Vector3(0, 0.18, 0)).normalized()
-		_set("sun_dir_b", b)
-		_set("sun_dir_c", c)
+		_set_param("sun_dir_b", b)
+		_set_param("sun_dir_c", c)
 	var tilt := deg_to_rad(float(sky_def.get("milky_way_tilt", 62.0)))
 	var spin := time_ticks / WorldConst.TICKS_PER_DAY * TAU + 1.3
-	_set("milky_way_basis", Basis(Vector3.RIGHT, tilt) * Basis(Vector3.UP, spin))
+	_set_param("milky_way_basis", Basis(Vector3.RIGHT, tilt) * Basis(Vector3.UP, spin))
 
 func _update_clouds() -> void:
 	if clouds == null or not clouds.visible:
@@ -528,7 +533,7 @@ func _update_post_process() -> void:
 	post_material.set_shader_parameter("god_rays", 0.45 * _daylight * (1.0 - _weather_darkness) if _quality >= 1 else 0.0)
 	post_material.set_shader_parameter("flash", _flash)
 
-func _set(name: String, value: Variant) -> void:
+func _set_param(name: String, value: Variant) -> void:
 	_params[name] = value
 	if sky_material != null:
 		sky_material.set_shader_parameter(name, value)

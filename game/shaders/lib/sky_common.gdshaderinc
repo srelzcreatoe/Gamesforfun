@@ -10,6 +10,9 @@
 //   float sky_daylight(sun_y)     0 (deep night) .. 1 (day), same curve as SkyController.daylight()
 //   float sky_dusk(sun_y)         0 .. 1, peaks while the sun sits on the horizon
 //   float sc_hash12 / sc_noise / sc_fbm  cheap value noise helpers (2-D)
+//   vec3  sc_apply_fog(col, fog_col, dist, start, end)   distance fog identical to the chunk shaders
+//   float sc_depth_distance(raw_depth, near, far)        reverse-Z depth buffer -> metres (compat)
+//   vec2  sc_noise_grad / float sc_luma / vec3 sc_sun_tint
 
 #ifndef SKY_COMMON_INC
 #define SKY_COMMON_INC
@@ -137,6 +140,40 @@ vec3 sky_horizon_color(vec3 sun_dir, vec3 day_col, vec3 horizon_col, vec3 night_
 	vec3 b = sky_color(normalize(-flat_sun + h), sun_dir, day_col, horizon_col, night_col, sunset_col, weather);
 	vec3 c = sky_color(normalize(side + h), sun_dir, day_col, horizon_col, night_col, sunset_col, weather);
 	return a * 0.35 + b * 0.25 + c * 0.4;
+}
+
+// --- helpers shared with water/clouds/weather/post ---------------------------------------------
+
+float sc_luma(vec3 c) {
+	return dot(c, vec3(0.2126, 0.7152, 0.0722));
+}
+
+// Analytic-ish gradient of sc_noise by central differences (used for water ripple normals).
+vec2 sc_noise_grad(vec2 p, float eps) {
+	float nx = sc_noise(p + vec2(eps, 0.0)) - sc_noise(p - vec2(eps, 0.0));
+	float ny = sc_noise(p + vec2(0.0, eps)) - sc_noise(p - vec2(0.0, eps));
+	return vec2(nx, ny) / (2.0 * eps);
+}
+
+// Cheap linear distance fog toward `fog_col` between `start` and `end` (matches the chunk shaders).
+vec3 sc_apply_fog(vec3 col, vec3 fog_col, float dist, float start, float end) {
+	float f = clamp((dist - start) / max(end - start, 0.001), 0.0, 1.0);
+	return mix(col, fog_col, f * f * (3.0 - 2.0 * f));
+}
+
+// Sun/moon tint of direct light for a sun height (mirrors SkyController._update_colors()).
+vec3 sc_sun_tint(vec3 base, float sun_y) {
+	float low = smoothstep(0.35, -0.05, sun_y);
+	return mix(base, vec3(1.0, 0.5, 0.2), low * 0.85);
+}
+
+// Reverse-Z depth buffer (Godot 4.4 gl_compatibility) -> distance along the view ray, in metres.
+// `near` is the camera near plane; a depth of 0 (nothing drawn / sky) returns `far_fallback`.
+float sc_depth_distance(float raw_depth, float near, float far_fallback) {
+	if (raw_depth <= 0.000001) {
+		return far_fallback;
+	}
+	return min(near / raw_depth, far_fallback);
 }
 
 #endif // SKY_COMMON_INC

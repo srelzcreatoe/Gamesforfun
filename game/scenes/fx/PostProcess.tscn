@@ -1,0 +1,35 @@
+[gd_scene load_steps=4 format=3 uid="uid://cdbspost0001"]
+
+[ext_resource type="Shader" path="res://shaders/post_process.gdshader" id="1_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_post"]
+shader = ExtResource("1_shader")
+shader_parameter/exposure = 1.0
+shader_parameter/saturation = 1.08
+shader_parameter/vibrance = 0.18
+shader_parameter/vignette = 0.32
+shader_parameter/aberration = 0.6
+shader_parameter/contrast = 1.02
+shader_parameter/underwater = 0.0
+shader_parameter/underwater_tint = Color(0.06, 0.22, 0.55, 1)
+shader_parameter/time = 0.0
+shader_parameter/flash = 0.0
+shader_parameter/quality = 2
+shader_parameter/gamma_correct = 1
+shader_parameter/sun_screen_pos = Vector2(0.5, 0.5)
+shader_parameter/sun_visible = 0.0
+shader_parameter/sun_color = Color(1, 0.93, 0.82, 1)
+shader_parameter/god_rays = 0.45
+
+[node name="PostProcess" type="CanvasLayer"]
+layer = 3
+
+[node name="Rect" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_post")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 1)
