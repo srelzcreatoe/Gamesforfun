@@ -67,6 +67,7 @@ var meshes: Dictionary = {}                     # name -> MeshInstance3D
 var material: StandardMaterial3D = null         # shared, back-face culled
 var material_nocull: StandardMaterial3D = null  # hair / cloth bones
 var model_scale := 1.0
+var base_scale := 1.0                           # entity base scale; form scaling multiplies it
 
 # --- loading ------------------------------------------------------------------
 
@@ -432,15 +433,29 @@ static func _add_quad(st: SurfaceTool, p: Array, uvs: Array, n: Vector3) -> bool
 
 # --- public API ---------------------------------------------------------------
 
+## Set the entity's BASE scale (data/entities.json `scale`). Form scaling goes
+## through `set_form_scale()` so it can be reverted.
 func set_model_scale(s: float) -> void:
+	base_scale = s
 	model_scale = s
 	scale = Vector3.ONE * (s if nested else s / 16.0)
+
+## Multiply the BASE scale (forms.json `modelScaling`); `1.0` restores it.
+func set_form_scale(mult: float) -> void:
+	if base_scale <= 0.0:
+		base_scale = model_scale
+	model_scale = base_scale * maxf(mult, 0.01)
+	scale = Vector3.ONE * (model_scale if nested else model_scale / 16.0)
+
+## Current form multiplier on top of the base scale.
+func form_scale_mult() -> float:
+	return model_scale / maxf(base_scale, 0.0001)
 
 ## Mark this model as an attachment inside another BedrockModel's bone (hair,
 ## armor overlays): its own 1/16 scale is dropped because the parent already has it.
 func set_nested(v: bool) -> void:
 	nested = v
-	set_model_scale(model_scale)
+	scale = Vector3.ONE * (model_scale if nested else model_scale / 16.0)
 
 func set_texture(tex: Texture2D) -> void:
 	_ensure_materials()

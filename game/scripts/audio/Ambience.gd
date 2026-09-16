@@ -193,7 +193,7 @@ func listener_position(w: Node) -> Vector3:
 func _underwater() -> bool:
 	var p: Node = Game.player if Game != null else null
 	if p != null and is_instance_valid(p) and p.has_method("head_in_liquid"):
-		return bool(p.call("head_in_liquid"))
+		return p.call("head_in_liquid") == true
 	return false
 
 ## Fraction of nearby probe points that are liquid (0..1).
@@ -209,7 +209,7 @@ func _water_near(w: Node, x: int, y: int, z: int) -> float:
 			var px := x + int(round(cos(ang) * float(ring)))
 			var pz := z + int(round(sin(ang) * float(ring)))
 			for dy in [0, -1, -2]:
-				if bool(w.call("is_liquid", px, y + dy, pz)):
+				if w.call("is_liquid", px, y + dy, pz) == true:
 					hits += 1
 					break
 	if points == 0:
@@ -223,7 +223,7 @@ static func compute_weights(state: Dictionary) -> Dictionary:
 	var w: Dictionary = {}
 	for key in LAYERS:
 		w[key] = 0.0
-	if not bool(state.get("in_world", false)):
+	if not state.get("in_world", false) == true:
 		return w
 	var planet := String(state.get("planet", ""))
 	var biome := String(state.get("biome", ""))
@@ -233,7 +233,7 @@ static func compute_weights(state: Dictionary) -> Dictionary:
 	var surface_y := float(state.get("surface_y", y))
 	var weather := String(state.get("weather", "clear"))
 	var water := clampf(float(state.get("water_near", 0.0)), 0.0, 1.0)
-	var underwater := bool(state.get("underwater", false))
+	var underwater: bool = state.get("underwater", false) == true
 
 	# deep space / orbit: only the hum, no wind, no rain
 	if DEEP_SPACE_PLANETS.has(planet) or gravity <= 0.01 or biome.contains("deep_space") \
@@ -273,7 +273,7 @@ static func compute_weights(state: Dictionary) -> Dictionary:
 			w["wind"] = maxf(float(w["wind"]), 0.2 if underground else 0.85)
 		_:
 			w["rain"] = 0.0
-	if bool(state.get("external_rain", false)):
+	if state.get("external_rain", false) == true:
 		w["rain"] = 0.0
 
 	if underwater:

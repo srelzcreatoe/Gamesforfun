@@ -159,3 +159,70 @@ func test_spawn_data_overrides() -> void:
 		# Stats.gd rebuilds health from quantised VIT points, so allow 1 % drift
 		assert_true(absf(e.max_health - 4242.0) < 45.0, "health override, got %f" % e.max_health)
 		assert_eq(e.ai_tier, 3, "ai tier override")
+
+func test_stats_instance_and_derived_refresh() -> void:
+	e = _make()
+	if not ResourceLoader.exists("res://scripts/combat/Stats.gd"):
+		return
+	assert_true(e.stats != null, "Stats instance built from the entity def")
+	assert_true(e.stats.has_method("max_health") and e.stats.has_method("melee"), "it is a Stats")
+	assert_near(e.max_health, float(e.stats.call("max_health")), 0.01, "max_health comes from Stats")
+	# a form multiplier goes through Stats and refresh_derived()
+	if e.stats.has_method("set_form_multipliers"):
+		var before := e.max_health
+		e.stats.call("set_form_multipliers", {"vitMultiplier": 2.0, "strMultiplier": 2.0})
+		e.refresh_derived()
+		assert_true(e.max_health >= before, "refresh_derived picks up the form multipliers (%f -> %f)" % [before, e.max_health])
+		e.stats.call("clear_form_multipliers")
+		e.refresh_derived()
+
+func test_combat_hooks() -> void:
+	e = _make()
+	assert_near(e.base_scale, e.model_scale, 0.001, "base_scale mirrors the spawn model scale")
+	assert_near(e.power_release, 1.0, 0.001, "power_release default")
+	# skills / techniques
+	e.set_skill_level("ki_control", 3)
+	assert_eq(e.skill_level("ki_control"), 3)
+	assert_true(e.knows_technique("blast") or not e.techniques.is_empty(), "knows_technique answers")
+	e.learn_technique("kamehameha")
+	assert_true(e.knows_technique("kamehameha"))
+	# forms
+	assert_true(not e.form_unlocked("ssgrades.supersaiyan") or e.forms_unlocked.is_empty())
+	e.unlock_form("ssgrades.supersaiyan")
+	assert_true(e.form_unlocked("ssgrades.supersaiyan"))
+	e.set_form_mastery("ssgrades.supersaiyan", 42.5)
+	assert_near(e.form_mastery("ssgrades.supersaiyan"), 42.5, 0.01)
+	# aim direction: yaw 0 faces -Z
+	e.yaw = 0.0
+	e.head_pitch_deg = 0.0
+	assert_near(e.aim_direction().z, -1.0, 0.01, "aim follows the facing without a target")
+	var t := Entity.new()
+	add_node(t)
+	t.global_position = e.global_position + Vector3(6, 0, 0)
+	e.set_target(t)
+	assert_true(e.aim_direction().x > 0.8, "aim follows the target")
+	t.get_parent().remove_child(t)
+	t.free()
+	# blind / input lock / model visibility
+	e.set_input_locked(true)
+	assert_true(e.input_locked)
+	e.blind(1.5)
+	assert_true(e.is_blinded() and not e.ai_enabled(), "a blinded entity stops acting")
+	assert_eq(e.target, null, "blinding drops the target")
+	e.set_model_visible(false)
+	assert_true(e.model == null or not e.model.visible)
+	e.set_model_visible(true)
+
+func test_model_override_swaps_geometry() -> void:
+	e = _make()
+	if e.model == null:
+		return
+	var before := e.model.bone_count()
+	var tex := e.model.get_texture()
+	e.set_model_override("entity/races/human")
+	assert_eq(e.model.geo_path, "entity/races/human", "override loaded")
+	assert_eq(e.model.bone_count(), 30, "human bone count after the swap")
+	assert_near(e.model.model_scale, e.base_scale, 0.001, "scale preserved")
+	assert_eq(e.model.get_texture(), tex, "texture preserved")
+	e.set_model_override("")
+	assert_eq(e.model.bone_count(), before, "restored the entity default model")

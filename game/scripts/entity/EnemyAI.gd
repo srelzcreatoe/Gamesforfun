@@ -284,8 +284,12 @@ func _begin_beam() -> void:
 	beam_time = BEAM_TELEGRAPH
 	beam_delegated = false
 	beam_id = _technique_of_kind("beam")
-	if beam_id != "" and _techniques_api() != null and _techniques_api().has_method("begin"):
-		beam_delegated = bool(_techniques_api().call("begin", e, beam_id))
+	var api := _techniques_api()
+	# Charged technique: `Techniques.begin(entity, id)`; auto_release (on for every
+	# non-player) fires it when the charge completes.
+	if beam_id != "" and api != null and api.has_method("begin"):
+		if not e.has_method("knows_technique") or e.knows_technique(beam_id):
+			beam_delegated = bool(api.call("begin", e, beam_id))
 	if not beam_delegated:
 		e.play_anim("ki_charge")
 		if Audio != null:
@@ -293,15 +297,15 @@ func _begin_beam() -> void:
 	Events.technique_started.emit(e, beam_id if beam_id != "" else "beam")
 
 func _fire_beam() -> void:
+	var api := _techniques_api()
 	if e.target == null:
-		if beam_delegated and _techniques_api() != null and _techniques_api().has_method("cancel"):
-			_techniques_api().call("cancel", e)
+		if beam_delegated and api != null and api.has_method("cancel"):
+			api.call("cancel", e)
 		return
 	e.face(e.target.global_position)
 	if beam_delegated:
-		var api := _techniques_api()
-		if api != null and api.has_method("release"):
-			api.call("release", e)
+		# Techniques sets auto_release for every non-player entity, so the charge
+		# fires itself; nothing to do here beyond keeping the aim on the target.
 		return
 	e.play_anim("idle", 0.1)
 	_spawn_placeholder(e.melee_damage * 1.6, 34.0, Color(1.0, 0.85, 0.45), 0.55)
@@ -347,9 +351,12 @@ func _technique_of_kind(kind: String) -> String:
 				return fallback
 	return ""
 
+## Instant technique: `Techniques.tap(entity, id)` (begin + release).
 func _tap_technique(tech_id: String) -> bool:
 	var api := _techniques_api()
 	if api == null or tech_id == "":
+		return false
+	if e.has_method("knows_technique") and not e.knows_technique(tech_id):
 		return false
 	for m in ["tap", "cast_for", "cast", "execute", "fire"]:
 		if api.has_method(m):

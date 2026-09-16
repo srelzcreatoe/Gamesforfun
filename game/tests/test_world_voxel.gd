@@ -174,7 +174,8 @@ func test_physics_non_solid_blocks_are_passable() -> void:
 		w.set_block(10, 61, lz, grass_plant)
 	var box := _player_box(Vector3(9.0, 61.0, 8.5))
 	var r: Dictionary = VoxelPhysics.move_aabb(w, box, Vector3(1.5, 0, 0), 0.51)
-	assert_near((r["aabb"] as AABB).position.x, 10.5, 0.02, "plants must not collide")
+	# The box starts at x = 8.7 (centre 9.0 minus half its width) and moves the full 1.5 m.
+	assert_near((r["aabb"] as AABB).position.x, 10.2, 0.02, "plants must not collide")
 
 func test_fluid_at_reports_submersion() -> void:
 	var w := _make_world()

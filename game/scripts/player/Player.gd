@@ -66,6 +66,7 @@ var _blast_hold := 0.0
 var _blast_active := false
 var _clock := 0.0
 var _position_preset := false
+var _blast_charging := false
 
 # --- setup -----------------------------------------------------------------
 
@@ -236,6 +237,14 @@ func raise_stat(key: String) -> bool:
 		return true
 	return false
 
+## Freeze player control (transformation cinematics). `input_locked` lives on Entity.
+func set_input_locked(on: bool) -> void:
+	super.set_input_locked(on)
+	if on:
+		input.clear_all()
+		velocity.x = 0.0
+		velocity.z = 0.0
+
 func skill_level(id: String) -> int:
 	if Game == null:
 		return 0
@@ -333,13 +342,22 @@ func _read_input(delta: float) -> void:
 		dash()
 	if input.lock_on_pressed:
 		LockOn.toggle(self)
-	# ki blast: tap = blast, hold >= 0.4 s = charged shot
+	# Ki blast: tap = plain blast, hold >= 0.4 s = charged shot (Techniques.begin -> release,
+	# so the combat engineer's charge orb / sound / damage scaling run).
 	if input.ki_blast:
 		_blast_hold += delta
 		_blast_active = true
+		if not _blast_charging and _blast_hold >= 0.4:
+			_blast_charging = Techniques.begin(self, CHARGED_BLAST)
 	elif _blast_active:
 		_blast_active = false
-		fire_ki_blast(_blast_hold >= 0.4 or input.ki_blast_charged)
+		if _blast_charging:
+			Techniques.release(self)
+			_blast_charging = false
+			if camera_rig != null:
+				camera_rig.shake(0.3, 0.2)
+		else:
+			fire_ki_blast(input.ki_blast_charged)
 		_blast_hold = 0.0
 	_set_charging(input.ki_charge)
 
@@ -377,6 +395,10 @@ func dash() -> void:
 		Events.stamina_changed.emit(stamina, max_stamina)
 	Audio.play_sfx("dash", -4.0)
 	play_anim("base.dash_front", 0.08, false)
+	if ResourceLoader.exists("res://scripts/fx/Trails.gd"):
+		var tr := Trails.get_for(self)
+		if tr != null:
+			tr.dash(dir.normalized())
 	if camera_rig != null:
 		camera_rig.shake(0.25, 0.15)
 
@@ -393,7 +415,7 @@ func request_transform() -> void:
 	if Game != null and Game.ui != null:
 		Game.ui.call("open", "stats", {"tab": 3})
 
-func fire_ki_blast(charged: bool) -> void:
+func fire_ki_blast(charged := false) -> void:
 	var tech := CHARGED_BLAST if charged else BASIC_BLAST
 	if Registry != null and Registry.technique(tech).is_empty():
 		tech = BASIC_BLAST
@@ -401,6 +423,10 @@ func fire_ki_blast(charged: bool) -> void:
 		return
 	if camera_rig != null:
 		camera_rig.shake(0.3 if charged else 0.12, 0.2)
+
+## Charge progress of a held ki blast / technique, for the HUD ring (0 when idle).
+func charge_progress() -> float:
+	return Techniques.charge_progress(self)
 
 # --- movement ---------------------------------------------------------------
 
@@ -439,6 +465,13 @@ func tick(delta: float) -> void:
 	if Game != null and Game.paused_by_ui:
 		input.move = Vector2.ZERO
 		input.end_frame()
+		return
+	if input_locked:
+		input.move = Vector2.ZERO
+		input.end_frame()
+		_update_fluid()
+		_apply_motion(Vector3(0.0, velocity.y * delta, 0.0))
+		_animate()
 		return
 	_read_input(delta)
 	_update_fluid()

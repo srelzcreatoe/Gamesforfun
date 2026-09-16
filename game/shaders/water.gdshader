@@ -257,7 +257,7 @@ void fragment() {
 				* 1.6 * (1.0 - daylight);
 
 		// --- caustic sparkle on a shallow bottom ------------------------------------------------
-		if (quality >= 1 && caustic_strength > 0.0) {
+		if (quality >= 1 && caustic_strength > 0.0 && thickness < 10.0) {
 			vec2 cp = v_world.xz * 2.6 + vec2(t * 0.09, -t * 0.07);
 			float c1 = sc_noise(cp);
 			float c2 = sc_noise(cp * 1.7 + vec2(3.1, 7.7) - vec2(t * 0.05));
@@ -268,7 +268,7 @@ void fragment() {
 
 		// --- shore foam -------------------------------------------------------------------------
 		float foam = 0.0;
-		if (!from_below && foam_distance > 0.0 && have_depth > 0.5) {
+		if (!from_below && foam_distance > 0.0 && have_depth > 0.5 && thickness < foam_distance * 2.0) {
 			// the surf line advances and retreats with the wave crests
 			float edge = 1.0 - smoothstep(0.0, foam_distance, thickness + v_wave * 0.22);
 			// two noise fields at different speeds break the band into moving lace

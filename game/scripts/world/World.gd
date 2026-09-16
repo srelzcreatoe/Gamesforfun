@@ -41,6 +41,7 @@ var _cache_key := Vector2i(0x7fffffff, 0x7fffffff)
 var _cache_col: ChunkColumn = null
 var _autoplay := false
 var _force_debug_camera := false
+var _force_flat_gen := false
 var _uniform_time := 0.0
 
 func _ready() -> void:
@@ -76,6 +77,8 @@ func _ready() -> void:
 			_autoplay = true
 		elif a.begins_with("--debugcam"):
 			_force_debug_camera = true
+		elif a.begins_with("--flatgen"):
+			_force_flat_gen = true
 	_setup_sky()
 
 ## The entity engineer's mob spawner lives under the World as "Spawner" (QuestManager looks
@@ -128,7 +131,7 @@ func start(info: Dictionary, profile: Dictionary) -> void:
 	Log.i("World.start planet=%s seed=%d spawn=(%.1f, %.1f)" % [planet_id, seed, sx, sz])
 
 func _make_generator() -> Object:
-	if ResourceLoader.exists(WORLDGEN_FACTORY):
+	if ResourceLoader.exists(WORLDGEN_FACTORY) and not _force_flat_gen:
 		var scr: GDScript = load(WORLDGEN_FACTORY)
 		if scr != null and scr.has_method("create"):
 			var g: Variant = scr.call("create", planet_def, seed)

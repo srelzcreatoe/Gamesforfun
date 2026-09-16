@@ -14,6 +14,8 @@ class CircleButton extends Control:
 	var opacity := 0.65
 	var accent := Color(0.75, 0.85, 1.0, 1.0)
 	var label := ""
+	var progress := 0.0          # 0..1 charge ring
+	var cooldown := 0.0          # 0..1 remaining cooldown shade
 
 	func _init(g := "", t: Texture2D = null) -> void:
 		glyph = g
@@ -37,6 +39,16 @@ class CircleButton extends Control:
 			draw_texture_rect(tex, Rect2(Vector2(pad, pad), size - Vector2(pad, pad) * 2.0), false, gc)
 		elif glyph != "":
 			HudWidgets.draw_glyph(self, glyph, c, r * 0.55, gc)
+		if cooldown > 0.0:
+			draw_circle(c, r * 0.94, Color(0, 0, 0, 0.45 * clampf(cooldown, 0.0, 1.0)))
+		if progress > 0.0:
+			var pts := PackedVector2Array()
+			var steps := maxi(3, int(40.0 * progress))
+			for i in steps + 1:
+				var ang := -PI * 0.5 + TAU * progress * (float(i) / float(steps))
+				pts.append(c + Vector2(cos(ang), sin(ang)) * (r - 1.0))
+			if pts.size() > 1:
+				draw_polyline(pts, Color(1.0, 0.92, 0.45, 0.95), maxf(2.0, r * 0.1))
 		if label != "":
 			var f := UiUtil.font()
 			var fs := int(maxf(8.0, r * 0.42))

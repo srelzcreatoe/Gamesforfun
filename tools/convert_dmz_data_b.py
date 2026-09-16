@@ -2684,7 +2684,8 @@ def build_planets():
                       else (1500 if pid == "earth" else 2000)),
             "star_brightness": float(rend.get("star_brightness",
                                               0.6 if pid == "earth" else 0.8)),
-            "milky_way": float((rend.get("sky_texture") or {}).get("brightness", 0.0)),
+            # planets whose renderer has no painted sky still get a faint milky way at night
+            "milky_way": float((rend.get("sky_texture") or {}).get("brightness", 0.3)),
             "clouds": bool(sky_def["clouds"]),
             "aurora": pid in ("sacred_kai_planet", "heaven"),
             "sun_scale": float(sky_def["sun_scale"]),

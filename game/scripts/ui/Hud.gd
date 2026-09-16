@@ -680,6 +680,30 @@ func _sync_from_player() -> void:
 	water_tint.visible = bool(p.call("head_in_liquid")) if p.has_method("head_in_liquid") else false
 	_update_target_bar(p)
 	_update_labels()
+	_update_button_feedback(p)
+
+## Charge ring on Ki Blast / Technique and a cooldown shade from the combat engineer's API.
+func _update_button_feedback(p: Node) -> void:
+	var charge := Techniques.charge_progress(p)
+	var state := Techniques.state_of(p)
+	for id in ["ki_blast", "technique"]:
+		if not buttons.has(id):
+			continue
+		var b: HudWidgets.CircleButton = buttons[id]["node"]
+		var np := charge if state == 1 else 0.0
+		var nc := 0.0
+		if id == "ki_blast":
+			nc = clampf(Techniques.cooldown_left(p, "ki_blast") / 1.0, 0.0, 1.0)
+		if absf(np - b.progress) > 0.01 or absf(nc - b.cooldown) > 0.01:
+			b.progress = np
+			b.cooldown = nc
+			b.queue_redraw()
+	if buttons.has("fly"):
+		var fb: HudWidgets.CircleButton = buttons["fly"]["node"]
+		var flying := bool(p.get("is_flying"))
+		if fb.latched != flying:
+			fb.latched = flying
+			fb.queue_redraw()
 
 func _set_hearts(current: float, maximum: float) -> void:
 	# 20 half-units on screen regardless of the real max health

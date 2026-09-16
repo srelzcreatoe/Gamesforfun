@@ -61,9 +61,9 @@ func all_state() -> Dictionary:
 	return d
 
 func set_state(set_id: String) -> Dictionary:
+	if Game == null or Game.profile.is_empty():
+		return {"found": [], "placed": [], "scatter": 0, "next_summon_day": 0, "summons": 0}
 	var all := all_state()
-	if all.is_empty():
-		return {}
 	var s: Variant = all.get(set_id, null)
 	if not (s is Dictionary):
 		s = {"found": [], "placed": [], "scatter": 0, "next_summon_day": 0, "summons": 0}

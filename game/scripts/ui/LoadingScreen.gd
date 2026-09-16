@@ -49,6 +49,13 @@ func build() -> void:
 	tip.custom_minimum_size.x = minf(560.0 * s, size.x * 0.8)
 	v.add_child(tip)
 
+func _exit_tree() -> void:
+	# The combat/world simulation freezes while paused_by_ui is true; make sure it is cleared
+	# even when this screen was shown outside UiManager's stack.
+	if Game != null and (Game.ui == null or not Game.ui.has_method("is_modal_open") \
+			or not bool(Game.ui.call("is_modal_open"))):
+		Game.paused_by_ui = false
+
 func _process(delta: float) -> void:
 	_tip_t -= delta
 	if _tip_t <= 0.0:

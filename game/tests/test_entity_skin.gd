@@ -152,3 +152,37 @@ func test_compose_cost() -> void:
 	var us := Time.get_ticks_usec() - t0
 	print("      RaceSkin.compose_image: %.2f ms (64x64, 9 layers)" % (us / 1000.0))
 	assert_true(us < 200000, "composition takes %.1f ms" % (us / 1000.0))
+
+func test_form_visuals_accept_scalar_and_array_scaling() -> void:
+	assert_near(RaceSkin.form_scale({"modelScaling": 1.25}), 1.25, 0.001, "float")
+	assert_near(RaceSkin.form_scale({"modelScaling": [1.1, 1.4, 1.1]}), 1.4, 0.001, "3 element array")
+	assert_near(RaceSkin.form_scale({"modelScaling": [1.2, 1.2]}), 1.2, 0.001, "2 element array")
+	assert_near(RaceSkin.form_scale({}), 1.0, 0.001, "missing")
+	assert_near(RaceSkin.form_scale({"modelScaling": "nope"}), 1.0, 0.001, "invalid")
+	model = BedrockModel.new()
+	add_node(model)
+	model.load_geo("entity/races/human")
+	model.set_model_scale(0.9375)
+	RaceSkin.apply_to(model, _character())
+	RaceSkin.apply_form_visuals(model, {"modelScaling": [1.0, 1.3, 1.0], "hairType": 2})
+	assert_near(model.model_scale, 0.9375 * 1.3, 0.001, "array scaling multiplies the base scale")
+	RaceSkin.apply_form_visuals(model, {"modelScaling": 1.0})
+	assert_near(model.model_scale, 0.9375, 0.001, "reverting restores the base scale")
+
+func test_form_visuals_are_null_safe_without_hair() -> void:
+	# a saga model carries its own hair bones and has no "Hair" attachment
+	model = BedrockModel.new()
+	add_node(model)
+	assert_true(model.load_geo("entity/sagas/saga_vegeta"))
+	model.set_model_scale(1.0)
+	RaceSkin.apply_form_visuals(model, {"modelScaling": [1.2, 1.2, 1.2], "hairType": 3, "hairColor": "#ffe14d", "bodyColor": "#ffeecc"})
+	assert_near(model.model_scale, 1.2, 0.001, "scale still applied")
+	assert_true(model.material.albedo_color != Color.WHITE, "body tint still applied")
+	# and a model with no head bone at all
+	var ball := BedrockModel.new()
+	add_node(ball)
+	ball.load_geo("block/dball")
+	RaceSkin.apply_form_visuals(ball, {"modelScaling": 2.0, "hairType": 1})
+	assert_near(ball.model_scale, 2.0, 0.001, "no head bone is fine")
+	ball.get_parent().remove_child(ball)
+	ball.free()

@@ -234,8 +234,32 @@ func _techniques_page() -> void:
 		var sp := Control.new()
 		sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(sp)
-		row.add_child(UiUtil.dim("known" if have else "locked", UiUtil.font_small(s)))
+		if have:
+			row.add_child(UiUtil.dim("known", UiUtil.font_small(s)))
+		else:
+			var tp_cost := int(def.get("tp_cost", 0))
+			if tp_cost > 0:
+				var tid := String(id)
+				var lb := UiUtil.flat_button("%d TP" % tp_cost, func() -> void: _learn_technique(tid), false, 120.0 * s)
+				lb.disabled = Game.player == null or _tp() < tp_cost
+				row.add_child(lb)
+			else:
+				row.add_child(UiUtil.dim("from a master", UiUtil.font_small(s)))
 		page_box.add_child(row)
+
+func _learn_technique(id: String) -> void:
+	if Game.player != null and Training.learn_technique(Game.player, id):
+		Audio.play_sfx("tp_gain", -6.0)
+		rebuild()
+		return
+	Game.ui.call("show_hint", "Not enough training points.", 2.0)
+
+func _unlock_form(id: String) -> void:
+	if Game.player != null and Training.unlock_form(Game.player, id):
+		Audio.play_sfx("tp_gain", -6.0)
+		rebuild()
+		return
+	Game.ui.call("show_hint", "You cannot unlock that yet.", 2.5)
 
 func _forms_page() -> void:
 	var forms: Dictionary = Game.profile.get("forms", {}) if Game != null else {}
@@ -260,7 +284,10 @@ func _forms_page() -> void:
 			Color(1.0, 0.85, 0.35) if have else UiUtil.DIM_COLOR)
 		l.custom_minimum_size.x = 210.0 * s
 		row.add_child(l)
-		row.add_child(UiUtil.dim("mastery %.0f%%" % float(mastery.get(String(id), 0.0)), UiUtil.font_small(s)))
+		var mf := float(mastery.get(String(id), 0.0))
+		if Game != null and Game.player != null:
+			mf = Forms.mastery_fraction(Game.player, String(id)) * 100.0
+		row.add_child(UiUtil.dim("mastery %.0f%%" % mf, UiUtil.font_small(s)))
 		row.add_child(UiUtil.dim("str x%.1f" % float(def.get("strMultiplier", 1.0)), UiUtil.font_small(s)))
 		var sp := Control.new()
 		sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -270,7 +297,15 @@ func _forms_page() -> void:
 			row.add_child(UiUtil.flat_button("Revert" if current == fid else "Transform",
 				func() -> void: _transform(fid), false, 140.0 * s))
 		else:
-			row.add_child(UiUtil.dim("locked", UiUtil.font_small(s)))
+			var cost := Forms.unlock_cost(String(id))
+			if cost > 0:
+				var fid2 := String(id)
+				var ub := UiUtil.flat_button("%d TP" % cost, func() -> void: _unlock_form(fid2), false, 140.0 * s)
+				ub.disabled = Game.player == null or _tp() < cost \
+					or not bool(Forms.can_unlock(Game.player, fid2).get("ok", false))
+				row.add_child(ub)
+			else:
+				row.add_child(UiUtil.dim("locked", UiUtil.font_small(s)))
 		page_box.add_child(row)
 	if shown == 0:
 		page_box.add_child(UiUtil.dim("No forms for this race yet.", UiUtil.font_small(s)))

@@ -356,6 +356,14 @@ func test_event_sounds_play_without_missing_audio() -> void:
 	for i in 30:
 		d._process(0.05)
 	assert_near(d.duck_factor(), 1.0, 0.02, "ducking is released")
+	# release what this test loaded into the Audio cache/pool so the engine does not
+	# report leaked resources when the test runner quits the tree
+	for k in Audio._streams.keys():
+		if not before.has(k):
+			Audio._streams.erase(k)
+	for sp in Audio._pool:
+		sp.stop()
+		sp.stream = null
 
 func test_decision_cost_is_negligible() -> void:
 	var st := _state({"battle": true})

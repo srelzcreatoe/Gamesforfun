@@ -33,7 +33,9 @@ var _orbit_time := 0.0
 var _orbit_total := 0.0
 var _orbit_center := Vector3.ZERO
 var _orbit_distance := 6.0
-var _orbit_speed := 0.4
+var _orbit_from := 6.0
+var _orbit_to := 3.0
+var _orbit_speed := 0.45
 var _orbit_angle := 0.0
 var _fov_extra := 0.0
 
@@ -105,14 +107,19 @@ func shake(strength: float, duration: float) -> void:
 	_shake_time = maxf(_shake_time, duration)
 	_shake_left = _shake_time
 
-## Fly-by used by the transformation cinematics (fx engineer).
-func cinematic_orbit(center: Vector3, duration: float, distance_m := 6.0, speed := 0.4) -> void:
+## Fly-by used by the transformation cinematics (scripts/fx/TransformationDirector.gd):
+## orbit `center` for `duration` seconds while the distance eases from `dist_from` to `dist_to`.
+func cinematic_orbit(center: Vector3, duration: float, dist_from := 6.0, dist_to := 3.0) -> void:
 	_orbit_center = center
 	_orbit_total = maxf(0.01, duration)
 	_orbit_time = _orbit_total
-	_orbit_distance = distance_m
-	_orbit_speed = speed
+	_orbit_from = dist_from
+	_orbit_to = dist_to
+	_orbit_distance = dist_from
 	_orbit_angle = yaw_deg
+
+func cancel_cinematic() -> void:
+	_orbit_time = 0.0
 
 func is_cinematic() -> bool:
 	return _orbit_time > 0.0
@@ -128,6 +135,8 @@ func _process(delta: float) -> void:
 	camera.fov = lerpf(camera.fov, base_fov + _fov_extra, minf(1.0, delta * 6.0))
 	if _orbit_time > 0.0:
 		_orbit_time = maxf(0.0, _orbit_time - delta)
+		var f := 1.0 - clampf(_orbit_time / _orbit_total, 0.0, 1.0)
+		_orbit_distance = lerpf(_orbit_from, _orbit_to, smoothstep(0.0, 1.0, f))
 		_orbit_angle += _orbit_speed * 360.0 * delta
 		var a := deg_to_rad(_orbit_angle)
 		var pos := _orbit_center + Vector3(sin(a), 0.35, cos(a)) * _orbit_distance

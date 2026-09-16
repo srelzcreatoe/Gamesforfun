@@ -226,34 +226,62 @@ static func apply_armor(model: BedrockModel, armor: Array) -> void:
 			model.set_bone_visible(bone, true)
 			model.set_bone_material(bone, tex, Color.WHITE, false)
 
-## Form visuals: hair/eye colour, body tint, model scale (data/forms.json fields).
-static func apply_form_visuals(model: BedrockModel, form_def: Dictionary) -> void:
+## Form visuals: hair set/colour, body tint and model scale (data/forms.json).
+## `model` is duck-typed (Forms.gd may hand us a stub model) and everything is
+## optional: a model with no hair rig only gets the scale and the tint.
+## `modelScaling` is accepted as a float OR a 3 element array (forms.json stores
+## vectors); the largest horizontal/vertical component wins, matching Forms.gd.
+static func apply_form_visuals(model: Node3D, form_def: Dictionary) -> void:
 	if model == null or form_def.is_empty():
 		return
-	var scaling := float(form_def.get("modelScaling", form_def.get("model_scaling", 1.0)))
-	if scaling > 0.0:
-		model.set_model_scale(model.model_scale if is_equal_approx(scaling, 1.0) else scaling)
+	var bm: BedrockModel = model as BedrockModel
+	var scaling := form_scale(form_def)
+	if bm != null:
+		bm.set_form_scale(scaling)
+	elif model.has_method("set_model_scale"):
+		model.call("set_model_scale", scaling)
+	var body_tint := String(form_def.get("bodyColor", form_def.get("body_color", "")))
+	if body_tint != "" and model.has_method("set_tint"):
+		model.call("set_tint", _color(body_tint))
+	if bm == null:
+		return
 	var hair_type := int(form_def.get("hairType", form_def.get("hair_type", -1)))
 	var hair_color := String(form_def.get("hairColor", form_def.get("hair_color", "")))
-	var eye_color := String(form_def.get("eyeColor", form_def.get("eye_color", "")))
-	var body_tint := String(form_def.get("bodyColor", form_def.get("body_color", "")))
-	var head: Node3D = model.get_bone("head")
-	var hair: Node3D = head.get_node_or_null("Hair") if head != null else null
-	if hair != null and hair is BedrockModel:
-		var hm: BedrockModel = hair
-		if hair_type >= 0:
-			var keep := PackedStringArray()
-			for n in _form_hair_bones(hair_type):
-				keep.append(String(n))
-			hm.show_only_bones(keep)
-			hm.scale = Vector3.ONE * _form_hair_scale(hair_type)
-			if hair_color != "":
-				for n in keep:
-					hm.set_bone_material(n, Textures.entity_texture("races/hair"), _color(hair_color), true)
-	if body_tint != "":
-		model.set_tint(_color(body_tint))
-	if eye_color != "":
-		pass    # eye colour lives in the composed texture; the caller recomposes
+	var head: Node3D = bm.get_bone("head")
+	if head == null:
+		return
+	var hair: Variant = head.get_node_or_null("Hair")
+	var hm: BedrockModel = hair as BedrockModel
+	if hm == null:
+		return                     # plain / saga model: it carries its own hair bones
+	if hair_type >= 0:
+		var keep := PackedStringArray()
+		for n in _form_hair_bones(hair_type):
+			keep.append(String(n))
+		hm.show_only_bones(keep)
+		hm.scale = Vector3.ONE * _form_hair_scale(hair_type)
+		if hair_color != "":
+			for n in keep:
+				hm.set_bone_material(n, Textures.entity_texture("races/hair"), _color(hair_color), true)
+	elif hair_color != "":
+		for n in hm.meshes.keys():
+			var name := String(n)
+			if hm.is_bone_mesh_visible(name):
+				hm.set_bone_material(name, Textures.entity_texture("races/hair"), _color(hair_color), true)
+
+## forms.json `modelScaling`: float, [x, y] or [x, y, z]. Missing / invalid -> 1.0.
+static func form_scale(form_def: Dictionary) -> float:
+	var sc: Variant = form_def.get("modelScaling", form_def.get("model_scaling", 1.0))
+	if sc is Array:
+		var a: Array = sc
+		var m := 0.0
+		for v in a:
+			if v is float or v is int:
+				m = maxf(m, float(v))
+		return m if m > 0.0 else 1.0
+	if sc is float or sc is int:
+		return float(sc) if float(sc) > 0.0 else 1.0
+	return 1.0
 
 ## `hairType` values used by forms.json: 0 base, 1 ssj, 2 ssj2, 3 ssj3, 4 ssj4/other.
 ## DMZ has no dedicated player ssj hair geometry, so the base spiky set is scaled

@@ -302,7 +302,7 @@ func _melee_or_talk() -> bool:
 	var kind := String(e.get("kind")) if e.get("kind") != null else ""
 	if kind == "" and Registry != null:
 		kind = String(Registry.entity(String(e.get("entity_type"))).get("kind", ""))
-	if kind in ["npc", "master", "trader", "vehicle"] and e.has_method("interact"):
+	if kind in ["npc", "master", "trader", "vehicle", "dragon"] and e.has_method("interact"):
 		e.call("interact", player)
 		return true
 	_melee(e)

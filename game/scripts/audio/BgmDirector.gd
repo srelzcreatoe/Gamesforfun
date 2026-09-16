@@ -77,6 +77,13 @@ var _duck_applied := -1.0
 var _recent_sfx: Dictionary = {}
 var _clock := 0.0
 
+## Read a boolean property that may not exist at all (Godot errors on bool(null)).
+static func flag(obj: Object, property: String) -> bool:
+	if obj == null:
+		return false
+	var v: Variant = obj.get(property)
+	return v != null and bool(v)
+
 ## Add (or find) a director under `parent`. Safe to call repeatedly.
 static func attach(parent: Node) -> Node:
 	if parent == null:
@@ -176,7 +183,7 @@ func _is_cinematic_actor(entity: Node) -> bool:
 		return false
 	if Game != null and entity == Game.player:
 		return true
-	return bool(entity.get("is_boss")) if entity.get("is_boss") != null else false
+	return flag(entity, "is_boss")
 
 func _on_transformation_started(entity: Node, _form_id: String) -> void:
 	if _is_cinematic_actor(entity):
@@ -284,7 +291,7 @@ func gather_state() -> Dictionary:
 		return {"in_world": false}
 	var planet := String(world.get("planet_id")) if world.get("planet_id") != null else ""
 	var planet_def: Dictionary = Registry.planet(planet) if Registry != null else {}
-	var boss_alive := _boss != null and is_instance_valid(_boss) and not bool(_boss.get("dead"))
+	var boss_alive := _boss != null and is_instance_valid(_boss) and not flag(_boss, "dead")
 	return {
 		"in_world": true,
 		"planet": planet,
@@ -299,18 +306,18 @@ func gather_state() -> Dictionary:
 ## THE decision function: pure, unit tested with fake states.
 ## Returns "" when there is no world (the main menu owns the music then).
 static func decide(state: Dictionary) -> String:
-	if not bool(state.get("in_world", false)):
+	if not state.get("in_world", false) == true:
 		return ""
 	var override := String(state.get("override", ""))
 	if override != "":
 		return override
-	if bool(state.get("transformation", false)):
+	if state.get("transformation", false) == true:
 		return "transformation"
-	if bool(state.get("boss", false)):
+	if state.get("boss", false) == true:
 		return "boss"
-	if bool(state.get("battle", false)):
+	if state.get("battle", false) == true:
 		return "battle"
-	if bool(state.get("deep_space", false)):
+	if state.get("deep_space", false) == true:
 		return "space"
 	var music := String(state.get("planet_music", ""))
 	if music != "":
@@ -413,7 +420,7 @@ func _scan_hostiles() -> bool:
 		if e == null or not is_instance_valid(e) or not (e is Node3D) or e == player:
 			continue
 		checked += 1
-		if bool(e.get("dead")):
+		if flag(e, "dead"):
 			continue
 		if not _is_hostile(e):
 			continue
@@ -436,15 +443,14 @@ func _is_hostile(e: Node) -> bool:
 	var kind: Variant = e.get("kind")
 	if kind != null and String(kind) == "enemy":
 		return true
-	return e.get("is_boss") != null and bool(e.get("is_boss"))
+	return flag(e, "is_boss")
 
 func _is_aggroed(e: Node, player: Node) -> bool:
 	if e.get("target") == player:
 		return true
 	var ai: Variant = e.get("ai")
-	if ai != null and ai is Object and (ai as Object).get("aggro") != null:
-		if bool((ai as Object).get("aggro")):
-			return true
+	if ai != null and ai is Object and flag(ai as Object, "aggro"):
+		return true
 	if e.has_method("ai_state"):
 		var st := String(e.call("ai_state"))
 		return st == "CHASE" or st == "ATTACK"
