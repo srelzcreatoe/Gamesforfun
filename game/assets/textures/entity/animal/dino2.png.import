@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b5gd2ggpmahbb"
+path="res://.godot/imported/dino2.png-324b18463a1971d1004bbffcd74ed259.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/animal/dino2.png"
+dest_files=["res://.godot/imported/dino2.png-324b18463a1971d1004bbffcd74ed259.ctex"]
 
 [params]
 

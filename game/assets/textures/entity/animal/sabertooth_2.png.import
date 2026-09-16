@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dd4vg0vsl5rbc"
+path="res://.godot/imported/sabertooth_2.png-ef99e887209f3397919165238dca7963.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/animal/sabertooth_2.png"
+dest_files=["res://.godot/imported/sabertooth_2.png-ef99e887209f3397919165238dca7963.ctex"]
 
 [params]
 

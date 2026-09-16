@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://31cygraypf7g"
+path="res://.godot/imported/mycelium_side.png-98cfce1ff678781ed01bddc44445e3ec.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/mycelium_side.png"
+dest_files=["res://.godot/imported/mycelium_side.png-98cfce1ff678781ed01bddc44445e3ec.ctex"]
 
 [params]
 

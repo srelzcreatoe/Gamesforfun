@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c5ewd1x88qvo7"
+path="res://.godot/imported/saga_king_cold.png-a97bf62f41f219b8e4fb9c09653a239f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_king_cold.png"
+dest_files=["res://.godot/imported/saga_king_cold.png-a97bf62f41f219b8e4fb9c09653a239f.ctex"]
 
 [params]
 

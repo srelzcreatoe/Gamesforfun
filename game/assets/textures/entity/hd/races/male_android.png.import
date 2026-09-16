@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://crtc1a7sfmypl"
+path="res://.godot/imported/male_android.png-a32fd1079ca48a1b601dd12888b6eede.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/male_android.png"
+dest_files=["res://.godot/imported/male_android.png-a32fd1079ca48a1b601dd12888b6eede.ctex"]
 
 [params]
 

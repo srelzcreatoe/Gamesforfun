@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cmjbg67ynjxkt"
+path="res://.godot/imported/obsidian.png-d03afe6aa93b1e9c4f4a31ce2babc8fc.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/obsidian.png"
+dest_files=["res://.godot/imported/obsidian.png-d03afe6aa93b1e9c4f4a31ce2babc8fc.ctex"]
 
 [params]
 

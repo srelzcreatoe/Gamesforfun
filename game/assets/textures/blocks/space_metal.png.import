@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ql2w8eemg0cx"
+path="res://.godot/imported/space_metal.png-aa467d803ab952f03e36439ee38945c2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/space_metal.png"
+dest_files=["res://.godot/imported/space_metal.png-aa467d803ab952f03e36439ee38945c2.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ywauhef82a4u"
+path="res://.godot/imported/robotxv.png-b50f9700fe970c024fbc8b5c85680a44.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/enemies/robotxv.png"
+dest_files=["res://.godot/imported/robotxv.png-b50f9700fe970c024fbc8b5c85680a44.ctex"]
 
 [params]
 

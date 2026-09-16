@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cp435psp86k7s"
+path="res://.godot/imported/wool_red.png-2b75f4d0bea730c662f777755678e243.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/wool_red.png"
+dest_files=["res://.godot/imported/wool_red.png-2b75f4d0bea730c662f777755678e243.ctex"]
 
 [params]
 

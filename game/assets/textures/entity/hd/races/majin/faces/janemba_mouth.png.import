@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cjrslk8pt43lg"
+path="res://.godot/imported/janemba_mouth.png-d5a29962e00095805e12a0b65127dfde.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/majin/faces/janemba_mouth.png"
+dest_files=["res://.godot/imported/janemba_mouth.png-d5a29962e00095805e12a0b65127dfde.ctex"]
 
 [params]
 

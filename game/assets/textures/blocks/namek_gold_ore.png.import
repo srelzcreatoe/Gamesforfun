@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cljgov0fy10dq"
+path="res://.godot/imported/namek_gold_ore.png-66e80674f6972f67f4b221faa394a5bd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_gold_ore.png"
+dest_files=["res://.godot/imported/namek_gold_ore.png-66e80674f6972f67f4b221faa394a5bd.ctex"]
 
 [params]
 

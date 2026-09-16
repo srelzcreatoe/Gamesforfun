@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cavqkwgtelokd"
+path="res://.godot/imported/porunga.png-23b116605e32f54c2e57f065cdd0dc1d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/dragon/porunga.png"
+dest_files=["res://.godot/imported/porunga.png-23b116605e32f54c2e57f065cdd0dc1d.ctex"]
 
 [params]
 

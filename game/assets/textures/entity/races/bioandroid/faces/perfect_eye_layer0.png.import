@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cu38w55kxyp6j"
+path="res://.godot/imported/perfect_eye_layer0.png-ffa8df66cbdde8454529138dc4dd3551.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/bioandroid/faces/perfect_eye_layer0.png"
+dest_files=["res://.godot/imported/perfect_eye_layer0.png-ffa8df66cbdde8454529138dc4dd3551.ctex"]
 
 [params]
 

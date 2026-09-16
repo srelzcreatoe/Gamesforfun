@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://8ncb077cauld"
+path="res://.godot/imported/kikono_station_side.png-0b53399c9006078ed3123c5b4136c66a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/kikono_station_side.png"
+dest_files=["res://.godot/imported/kikono_station_side.png-0b53399c9006078ed3123c5b4136c66a.ctex"]
 
 [params]
 

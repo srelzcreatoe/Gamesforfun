@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dw1xtp3m2fl27"
+path="res://.godot/imported/large_fern_top0.png-da936f6ed0d4eb7cbe0a85b319cbe984.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/large_fern_top0.png"
+dest_files=["res://.godot/imported/large_fern_top0.png-da936f6ed0d4eb7cbe0a85b319cbe984.ctex"]
 
 [params]
 

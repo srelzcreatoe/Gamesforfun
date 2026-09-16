@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://beniwggjm3ls4"
+path="res://.godot/imported/namek_trader_3.png-519858f39cf257dab48d7116bc6a17eb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/enemies/namek_trader_3.png"
+dest_files=["res://.godot/imported/namek_trader_3.png-519858f39cf257dab48d7116bc6a17eb.ctex"]
 
 [params]
 

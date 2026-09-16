@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://j8r7gpsc88g3"
+path="res://.godot/imported/mossy_cobblestone.png-eebb6e2255d66e7bde3a773623bc7a54.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/mossy_cobblestone.png"
+dest_files=["res://.godot/imported/mossy_cobblestone.png-eebb6e2255d66e7bde3a773623bc7a54.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bmn3kbngc3amx"
+path="res://.godot/imported/sandstone_top.png-98e389803c5d9b2dda1d319a5a6eaa0a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/sandstone_top.png"
+dest_files=["res://.godot/imported/sandstone_top.png-98e389803c5d9b2dda1d319a5a6eaa0a.ctex"]
 
 [params]
 

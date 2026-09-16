@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://but8y8df1aqmq"
+path="res://.godot/imported/master_uranai.png-c6876d6f9d859b1fc93943a3187ae882.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/master/master_uranai.png"
+dest_files=["res://.godot/imported/master_uranai.png-c6876d6f9d859b1fc93943a3187ae882.ctex"]
 
 [params]
 

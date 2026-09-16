@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ca0yi642ecq75"
+path="res://.godot/imported/oak_sapling.png-0c8273ebe74cb253566793021cfd4715.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/oak_sapling.png"
+dest_files=["res://.godot/imported/oak_sapling.png-0c8273ebe74cb253566793021cfd4715.ctex"]
 
 [params]
 

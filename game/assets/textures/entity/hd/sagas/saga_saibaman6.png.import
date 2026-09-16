@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cjcjyi20pd8ir"
+path="res://.godot/imported/saga_saibaman6.png-a739dd54163d525ec29c208aae530408.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_saibaman6.png"
+dest_files=["res://.godot/imported/saga_saibaman6.png-a739dd54163d525ec29c208aae530408.ctex"]
 
 [params]
 

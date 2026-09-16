@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://qvq5kutvxuno"
+path="res://.godot/imported/kakarot_aura.png-4e4718c26df5389c5399df1c11355e6a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/aura/kakarot_aura.png"
+dest_files=["res://.godot/imported/kakarot_aura.png-4e4718c26df5389c5399df1c11355e6a.ctex"]
 
 [params]
 

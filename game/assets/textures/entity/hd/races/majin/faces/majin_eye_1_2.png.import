@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://brxlys8kb5v4w"
+path="res://.godot/imported/majin_eye_1_2.png-d408d401f93e5eb85b67c616d32e7065.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/majin/faces/majin_eye_1_2.png"
+dest_files=["res://.godot/imported/majin_eye_1_2.png-d408d401f93e5eb85b67c616d32e7065.ctex"]
 
 [params]
 

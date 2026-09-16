@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://xwa3d5kq54ll"
+path="res://.godot/imported/water_flow.png-a7ca9a460460253adb9b545c3a051510.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/water_flow.png"
+dest_files=["res://.godot/imported/water_flow.png-a7ca9a460460253adb9b545c3a051510.ctex"]
 
 [params]
 

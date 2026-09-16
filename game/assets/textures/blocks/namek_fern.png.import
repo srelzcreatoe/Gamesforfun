@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b85frao4sjh3r"
+path="res://.godot/imported/namek_fern.png-7d25647c2c622d9e7f5cc72157a51ddd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_fern.png"
+dest_files=["res://.godot/imported/namek_fern.png-7d25647c2c622d9e7f5cc72157a51ddd.ctex"]
 
 [params]
 

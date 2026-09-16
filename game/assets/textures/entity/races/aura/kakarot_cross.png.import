@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://q8eu6ffvxka0"
+path="res://.godot/imported/kakarot_cross.png-e9904ca3b71c8f27c471e0e2957ddb4e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/aura/kakarot_cross.png"
+dest_files=["res://.godot/imported/kakarot_cross.png-e9904ca3b71c8f27c471e0e2957ddb4e.ctex"]
 
 [params]
 

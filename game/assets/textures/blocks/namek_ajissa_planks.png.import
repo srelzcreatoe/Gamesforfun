@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://butwg0t5b30xn"
+path="res://.godot/imported/namek_ajissa_planks.png-21c2e04ec5045d635104c976130688ed.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_ajissa_planks.png"
+dest_files=["res://.godot/imported/namek_ajissa_planks.png-21c2e04ec5045d635104c976130688ed.ctex"]
 
 [params]
 

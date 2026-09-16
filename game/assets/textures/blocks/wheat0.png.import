@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b5xers3u8cx3g"
+path="res://.godot/imported/wheat0.png-c69d83319aeb28212569f4d58596dd77.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/wheat0.png"
+dest_files=["res://.godot/imported/wheat0.png-c69d83319aeb28212569f4d58596dd77.ctex"]
 
 [params]
 

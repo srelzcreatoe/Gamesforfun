@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c7v4gwewdwuas"
+path="res://.godot/imported/yardrat_stone.png-ad251f8dfda4a3a0b29e073d2a91b2f1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/yardrat_stone.png"
+dest_files=["res://.godot/imported/yardrat_stone.png-ad251f8dfda4a3a0b29e073d2a91b2f1.ctex"]
 
 [params]
 

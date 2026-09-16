@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c0dkj0powcdyj"
+path="res://.godot/imported/base_2_layer4.png-90a00a80240bd11aa74b3e0840418922.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/bioandroid/base_2_layer4.png"
+dest_files=["res://.godot/imported/base_2_layer4.png-90a00a80240bd11aa74b3e0840418922.ctex"]
 
 [params]
 

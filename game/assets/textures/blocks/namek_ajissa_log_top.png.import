@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://2tsf0l3dpbod"
+path="res://.godot/imported/namek_ajissa_log_top.png-bb6358b41d28f060722f2eb606ee12e6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_ajissa_log_top.png"
+dest_files=["res://.godot/imported/namek_ajissa_log_top.png-bb6358b41d28f060722f2eb606ee12e6.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://daheyooixj108"
+path="res://.godot/imported/saga_burter.png-910982ebc4632a2d17e8fdce3fe7bd4d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_burter.png"
+dest_files=["res://.godot/imported/saga_burter.png-910982ebc4632a2d17e8fdce3fe7bd4d.ctex"]
 
 [params]
 

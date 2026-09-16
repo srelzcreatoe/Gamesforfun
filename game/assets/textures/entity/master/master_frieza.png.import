@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cfaafdprvpl0x"
+path="res://.godot/imported/master_frieza.png-98ad3a9f02d588398f3c944316a2713d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/master/master_frieza.png"
+dest_files=["res://.godot/imported/master_frieza.png-98ad3a9f02d588398f3c944316a2713d.ctex"]
 
 [params]
 

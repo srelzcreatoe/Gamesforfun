@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dg2dhup4658f2"
+path="res://.godot/imported/stripped_oak_log_top.png-e89969036d6b0a840252ac8754aef79f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/stripped_oak_log_top.png"
+dest_files=["res://.godot/imported/stripped_oak_log_top.png-e89969036d6b0a840252ac8754aef79f.ctex"]
 
 [params]
 

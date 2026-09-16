@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://332j4mqsdqwe"
+path="res://.godot/imported/kiblast_sparkle2.png-b453f528f180cb25bdaabb20163167fc.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/ki/kiblast_sparkle2.png"
+dest_files=["res://.godot/imported/kiblast_sparkle2.png-b453f528f180cb25bdaabb20163167fc.ctex"]
 
 [params]
 

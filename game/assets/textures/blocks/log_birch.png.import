@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bkgfth4bfor4b"
+path="res://.godot/imported/log_birch.png-89c6e7e26da171f6bfd54ff697fb97f1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/log_birch.png"
+dest_files=["res://.godot/imported/log_birch.png-89c6e7e26da171f6bfd54ff697fb97f1.ctex"]
 
 [params]
 

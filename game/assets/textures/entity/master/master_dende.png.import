@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cdm742rlwdfb6"
+path="res://.godot/imported/master_dende.png-3c30e921273a52e86a4933e824aa9848.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/master/master_dende.png"
+dest_files=["res://.godot/imported/master_dende.png-3c30e921273a52e86a4933e824aa9848.ctex"]
 
 [params]
 

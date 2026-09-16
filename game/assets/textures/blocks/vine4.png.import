@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://0ncvehwnvupc"
+path="res://.godot/imported/vine4.png-db9698c382476863b36a18e6fe0afd3d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/vine4.png"
+dest_files=["res://.godot/imported/vine4.png-db9698c382476863b36a18e6fe0afd3d.ctex"]
 
 [params]
 

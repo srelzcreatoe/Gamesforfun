@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b3hgmrm26mxkj"
+path="res://.godot/imported/mechaform_layer1.png-d21ea82fca9d032b4a3db0aab00063ff.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/frostdemon/mechaform_layer1.png"
+dest_files=["res://.godot/imported/mechaform_layer1.png-d21ea82fca9d032b4a3db0aab00063ff.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dekty23sx430v"
+path="res://.godot/imported/redstone_ore.png-34334ed95c541b865ad3dda5cf44fb1b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/redstone_ore.png"
+dest_files=["res://.godot/imported/redstone_ore.png-34334ed95c541b865ad3dda5cf44fb1b.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cuvakmiefmyky"
+path="res://.godot/imported/lotus_flower2.png-2d643712ef3b6cc676faad84bd3c9221.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/lotus_flower2.png"
+dest_files=["res://.godot/imported/lotus_flower2.png-2d643712ef3b6cc676faad84bd3c9221.ctex"]
 
 [params]
 

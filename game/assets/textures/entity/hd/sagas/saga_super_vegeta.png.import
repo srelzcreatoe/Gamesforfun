@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://busbmyxpqhwgc"
+path="res://.godot/imported/saga_super_vegeta.png-3c44c7f3946f872394e43df44a13a8ce.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_super_vegeta.png"
+dest_files=["res://.godot/imported/saga_super_vegeta.png-3c44c7f3946f872394e43df44a13a8ce.ctex"]
 
 [params]
 

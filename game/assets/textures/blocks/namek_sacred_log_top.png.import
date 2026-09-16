@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://obal1bjilds"
+path="res://.godot/imported/namek_sacred_log_top.png-e22f20552e042a2d5e5667eaa8b3aebd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_sacred_log_top.png"
+dest_files=["res://.godot/imported/namek_sacred_log_top.png-e22f20552e042a2d5e5667eaa8b3aebd.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dylh0iuenh1ry"
+path="res://.godot/imported/kai_grass_top.png-502106baf8beecf379c33b7b281fdfac.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/kai_grass_top.png"
+dest_files=["res://.godot/imported/kai_grass_top.png-502106baf8beecf379c33b7b281fdfac.ctex"]
 
 [params]
 

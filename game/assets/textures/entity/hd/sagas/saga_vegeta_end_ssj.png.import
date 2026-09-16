@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c04h38u832pci"
+path="res://.godot/imported/saga_vegeta_end_ssj.png-55f3e5af80836b5340a03333f982f9e2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_vegeta_end_ssj.png"
+dest_files=["res://.godot/imported/saga_vegeta_end_ssj.png-55f3e5af80836b5340a03333f982f9e2.ctex"]
 
 [params]
 

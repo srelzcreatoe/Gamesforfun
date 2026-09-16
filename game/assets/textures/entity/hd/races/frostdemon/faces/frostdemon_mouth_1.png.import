@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c66c3tkmutr4b"
+path="res://.godot/imported/frostdemon_mouth_1.png-1b1e8c7a6ce130ef4e25582febbe8f5e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/frostdemon/faces/frostdemon_mouth_1.png"
+dest_files=["res://.godot/imported/frostdemon_mouth_1.png-1b1e8c7a6ce130ef4e25582febbe8f5e.ctex"]
 
 [params]
 

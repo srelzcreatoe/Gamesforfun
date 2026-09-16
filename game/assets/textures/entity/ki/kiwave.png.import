@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://nd5avkrvyeey"
+path="res://.godot/imported/kiwave.png-02920750014a001346db78f549d6fc65.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/ki/kiwave.png"
+dest_files=["res://.godot/imported/kiwave.png-02920750014a001346db78f549d6fc65.ctex"]
 
 [params]
 

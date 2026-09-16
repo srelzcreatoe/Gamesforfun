@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bmmkqwwrog2fn"
+path="res://.godot/imported/podzol_top.png-9872c216f90dc0e49033f327c1e6ac7b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/podzol_top.png"
+dest_files=["res://.godot/imported/podzol_top.png-9872c216f90dc0e49033f327c1e6ac7b.ctex"]
 
 [params]
 

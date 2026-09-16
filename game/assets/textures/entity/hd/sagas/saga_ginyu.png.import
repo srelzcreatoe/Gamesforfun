@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b6duqmxqqsxkd"
+path="res://.godot/imported/saga_ginyu.png-70179d48109302bf5fe86c07a14a5fef.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_ginyu.png"
+dest_files=["res://.godot/imported/saga_ginyu.png-70179d48109302bf5fe86c07a14a5fef.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://be0yk638o8kni"
+path="res://.godot/imported/hair.png-92ab4374f429285020f2a9e23962ff83.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/hair.png"
+dest_files=["res://.godot/imported/hair.png-92ab4374f429285020f2a9e23962ff83.ctex"]
 
 [params]
 

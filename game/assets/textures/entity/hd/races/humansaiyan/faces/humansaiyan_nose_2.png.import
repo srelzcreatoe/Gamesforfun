@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cd8mks262teyu"
+path="res://.godot/imported/humansaiyan_nose_2.png-1c1b9f3df3ee2a0d9d318850ab8dd62c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/humansaiyan/faces/humansaiyan_nose_2.png"
+dest_files=["res://.godot/imported/humansaiyan_nose_2.png-1c1b9f3df3ee2a0d9d318850ab8dd62c.ctex"]
 
 [params]
 

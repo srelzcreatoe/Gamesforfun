@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ct60xr4retv03"
+path="res://.godot/imported/base_eye_layer0.png-2a7dd286463534f13f373b0a83036127.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/bioandroid/faces/base_eye_layer0.png"
+dest_files=["res://.godot/imported/base_eye_layer0.png-2a7dd286463534f13f373b0a83036127.ctex"]
 
 [params]
 

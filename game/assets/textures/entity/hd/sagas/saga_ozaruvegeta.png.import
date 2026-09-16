@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://nlagxfi0po1k"
+path="res://.godot/imported/saga_ozaruvegeta.png-3a745c482535374d4bb05fd46e7dbf74.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_ozaruvegeta.png"
+dest_files=["res://.godot/imported/saga_ozaruvegeta.png-3a745c482535374d4bb05fd46e7dbf74.ctex"]
 
 [params]
 

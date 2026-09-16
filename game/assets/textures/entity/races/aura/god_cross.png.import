@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b1ndp0e636db"
+path="res://.godot/imported/god_cross.png-16ac31b9595c524a0b809a52f5461bd7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/aura/god_cross.png"
+dest_files=["res://.godot/imported/god_cross.png-16ac31b9595c524a0b809a52f5461bd7.ctex"]
 
 [params]
 

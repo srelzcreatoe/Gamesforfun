@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://biak0b0rqp7bu"
+path="res://.godot/imported/ki_laser.png-31cc722239358fc6e03eb02bd7d74b6c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/ki/ki_laser.png"
+dest_files=["res://.godot/imported/ki_laser.png-31cc722239358fc6e03eb02bd7d74b6c.ctex"]
 
 [params]
 

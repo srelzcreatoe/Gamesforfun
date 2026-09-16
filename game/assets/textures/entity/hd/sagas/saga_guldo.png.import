@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ct727i7wx3axg"
+path="res://.godot/imported/saga_guldo.png-f847c186cc598588e83894787dddd293.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_guldo.png"
+dest_files=["res://.godot/imported/saga_guldo.png-f847c186cc598588e83894787dddd293.ctex"]
 
 [params]
 

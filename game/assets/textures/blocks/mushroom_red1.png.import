@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dlhitqli4sksm"
+path="res://.godot/imported/mushroom_red1.png-6841a6c2cb57646a9bab679d5b75d015.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/mushroom_red1.png"
+dest_files=["res://.godot/imported/mushroom_red1.png-6841a6c2cb57646a9bab679d5b75d015.ctex"]
 
 [params]
 

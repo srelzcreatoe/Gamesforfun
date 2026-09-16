@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dehec6k42o8q3"
+path="res://.godot/imported/time_chamber_portal.png-bb5743e9f7db7df7a1c2d5c943792df1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/time_chamber_portal.png"
+dest_files=["res://.godot/imported/time_chamber_portal.png-bb5743e9f7db7df7a1c2d5c943792df1.ctex"]
 
 [params]
 

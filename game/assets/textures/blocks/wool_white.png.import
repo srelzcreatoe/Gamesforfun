@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bodknhl2puao4"
+path="res://.godot/imported/wool_white.png-51fc2924fa089a66cb5a0a18640abba0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/wool_white.png"
+dest_files=["res://.godot/imported/wool_white.png-51fc2924fa089a66cb5a0a18640abba0.ctex"]
 
 [params]
 

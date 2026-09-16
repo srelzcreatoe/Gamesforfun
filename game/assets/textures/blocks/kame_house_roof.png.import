@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://blvvemo5tx1ob"
+path="res://.godot/imported/kame_house_roof.png-d5168dc116486592ce7161d4bd25f58c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/kame_house_roof.png"
+dest_files=["res://.godot/imported/kame_house_roof.png-d5168dc116486592ce7161d4bd25f58c.ctex"]
 
 [params]
 

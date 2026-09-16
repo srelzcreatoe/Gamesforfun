@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ddalbmaegiiqc"
+path="res://.godot/imported/robot2.png-bc5654e8a11e8c665082bb07047f031a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/enemies/robot2.png"
+dest_files=["res://.godot/imported/robot2.png-bc5654e8a11e8c665082bb07047f031a.ctex"]
 
 [params]
 

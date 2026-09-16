@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://x6omd41mnbjw"
+path="res://.godot/imported/lilac_bottom0.png-ac76ffcf4df71aad677d62eba74c4f31.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/lilac_bottom0.png"
+dest_files=["res://.godot/imported/lilac_bottom0.png-ac76ffcf4df71aad677d62eba74c4f31.ctex"]
 
 [params]
 

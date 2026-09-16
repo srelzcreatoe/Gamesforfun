@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://1wecsbicexcw"
+path="res://.godot/imported/hell_rock_molten.png-7559950ebb65e2d45896bbac9d7f2b62.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/hell_rock_molten.png"
+dest_files=["res://.godot/imported/hell_rock_molten.png-7559950ebb65e2d45896bbac9d7f2b62.ctex"]
 
 [params]
 

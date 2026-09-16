@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dg63h7t3038vq"
+path="res://.godot/imported/namek_sacred_grass_block_side.png-fd48bcace2794724e40375f68e70d707.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_sacred_grass_block_side.png"
+dest_files=["res://.godot/imported/namek_sacred_grass_block_side.png-fd48bcace2794724e40375f68e70d707.ctex"]
 
 [params]
 

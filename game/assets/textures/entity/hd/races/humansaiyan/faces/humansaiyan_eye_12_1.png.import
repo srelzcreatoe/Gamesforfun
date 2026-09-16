@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c35ihpfo2nwht"
+path="res://.godot/imported/humansaiyan_eye_12_1.png-c3916b37aeb011e9fdbd691736b1d547.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/humansaiyan/faces/humansaiyan_eye_12_1.png"
+dest_files=["res://.godot/imported/humansaiyan_eye_12_1.png-c3916b37aeb011e9fdbd691736b1d547.ctex"]
 
 [params]
 

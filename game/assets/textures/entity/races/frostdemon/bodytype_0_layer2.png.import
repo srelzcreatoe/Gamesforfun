@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://unlg4pc4yb4c"
+path="res://.godot/imported/bodytype_0_layer2.png-58017f19753ee80e5fa1f985ae13be1e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/frostdemon/bodytype_0_layer2.png"
+dest_files=["res://.godot/imported/bodytype_0_layer2.png-58017f19753ee80e5fa1f985ae13be1e.ctex"]
 
 [params]
 

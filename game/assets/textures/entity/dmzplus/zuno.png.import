@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bb5cgxexs60qh"
+path="res://.godot/imported/zuno.png-468c79f4f077157c61ea70acadac4439.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/dmzplus/zuno.png"
+dest_files=["res://.godot/imported/zuno.png-468c79f4f077157c61ea70acadac4439.ctex"]
 
 [params]
 

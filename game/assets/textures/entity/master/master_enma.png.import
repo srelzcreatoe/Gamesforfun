@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b7l7ykbf37doa"
+path="res://.godot/imported/master_enma.png-0afbe835117a7e5dc23c9d4bb5e05a12.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/master/master_enma.png"
+dest_files=["res://.godot/imported/master_enma.png-0afbe835117a7e5dc23c9d4bb5e05a12.ctex"]
 
 [params]
 

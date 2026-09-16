@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cch3pvkijndeb"
+path="res://.godot/imported/namek_sacred_planks.png-07801964018d4680385df0bf2634c9aa.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_sacred_planks.png"
+dest_files=["res://.godot/imported/namek_sacred_planks.png-07801964018d4680385df0bf2634c9aa.ctex"]
 
 [params]
 

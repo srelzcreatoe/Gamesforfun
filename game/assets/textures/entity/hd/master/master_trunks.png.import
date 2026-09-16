@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dl1gkis1hepp0"
+path="res://.godot/imported/master_trunks.png-cdfa0c79fa9a19b0364b1a2afbb5ba87.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/master/master_trunks.png"
+dest_files=["res://.godot/imported/master_trunks.png-cdfa0c79fa9a19b0364b1a2afbb5ba87.ctex"]
 
 [params]
 

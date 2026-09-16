@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://vgb7ylf8wo2y"
+path="res://.godot/imported/rr_metal.png-e54c09befb67c80244fcdd8f4ede2020.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/rr_metal.png"
+dest_files=["res://.godot/imported/rr_metal.png-e54c09befb67c80244fcdd8f4ede2020.ctex"]
 
 [params]
 

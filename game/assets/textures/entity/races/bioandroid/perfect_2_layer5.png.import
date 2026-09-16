@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dsemwsb5my4jn"
+path="res://.godot/imported/perfect_2_layer5.png-c194e376ef1487ee4a26c1e9fe3de335.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/bioandroid/perfect_2_layer5.png"
+dest_files=["res://.godot/imported/perfect_2_layer5.png-c194e376ef1487ee4a26c1e9fe3de335.ctex"]
 
 [params]
 

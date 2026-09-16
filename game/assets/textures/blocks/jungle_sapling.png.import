@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://j8u5kpcx0ce6"
+path="res://.godot/imported/jungle_sapling.png-75c59c896c7a7a6b00ae918b8a113aa3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/jungle_sapling.png"
+dest_files=["res://.godot/imported/jungle_sapling.png-75c59c896c7a7a6b00ae918b8a113aa3.ctex"]
 
 [params]
 

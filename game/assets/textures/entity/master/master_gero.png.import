@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cfobxcbmfh6kp"
+path="res://.godot/imported/master_gero.png-e4ca8d6fb02e097ad43c7d0d8bd4a10b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/master/master_gero.png"
+dest_files=["res://.godot/imported/master_gero.png-e4ca8d6fb02e097ad43c7d0d8bd4a10b.ctex"]
 
 [params]
 

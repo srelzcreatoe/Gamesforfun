@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c8rrkhbjmiqj5"
+path="res://.godot/imported/kidisc.png-c5e04ad0f47b43420c80fee72ef13605.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/ki/kidisc.png"
+dest_files=["res://.godot/imported/kidisc.png-c5e04ad0f47b43420c80fee72ef13605.ctex"]
 
 [params]
 

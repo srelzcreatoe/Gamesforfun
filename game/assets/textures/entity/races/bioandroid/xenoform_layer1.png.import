@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dlv34rebummcy"
+path="res://.godot/imported/xenoform_layer1.png-1d73d5ac908426512f1fce8867a7c931.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/bioandroid/xenoform_layer1.png"
+dest_files=["res://.godot/imported/xenoform_layer1.png-1d73d5ac908426512f1fce8867a7c931.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://0s4gw13m3r34"
+path="res://.godot/imported/smooth_stone.png-a85f80ffb28bce5e2e33eb5df0eabaac.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/smooth_stone.png"
+dest_files=["res://.godot/imported/smooth_stone.png-a85f80ffb28bce5e2e33eb5df0eabaac.ctex"]
 
 [params]
 

@@ -126,7 +126,7 @@ edit/normalize=false
 edit/loop_mode={loop}
 edit/loop_begin=0
 edit/loop_end=-1
-compress/mode=0
+compress/mode=2
 """
 
 def write_imports():

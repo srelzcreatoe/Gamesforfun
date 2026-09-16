@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bq7r8nhcdiovj"
+path="res://.godot/imported/master_popo.png-de2c775d7a8336c1ad1e0a83dfbdd5af.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/master/master_popo.png"
+dest_files=["res://.godot/imported/master_popo.png-de2c775d7a8336c1ad1e0a83dfbdd5af.ctex"]
 
 [params]
 

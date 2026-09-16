@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bhe5xha1xgvs4"
+path="res://.godot/imported/bodytype_female_1.png-c30620d5cd2ff18aecfa26a5c3e1b713.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/humansaiyan/bodytype_female_1.png"
+dest_files=["res://.godot/imported/bodytype_female_1.png-c30620d5cd2ff18aecfa26a5c3e1b713.ctex"]
 
 [params]
 

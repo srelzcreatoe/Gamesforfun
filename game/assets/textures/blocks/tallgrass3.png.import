@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://da1rccj6p2a2i"
+path="res://.godot/imported/tallgrass3.png-0180acc59125c3f9fb2010d48fa5ce7f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/tallgrass3.png"
+dest_files=["res://.godot/imported/tallgrass3.png-0180acc59125c3f9fb2010d48fa5ce7f.ctex"]
 
 [params]
 

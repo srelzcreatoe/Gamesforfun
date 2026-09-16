@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://xe06mbj4qk5s"
+path="res://.godot/imported/master_guru.png-9cb1b599ed01aec025dd248d78fc5c45.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/master/master_guru.png"
+dest_files=["res://.godot/imported/master_guru.png-9cb1b599ed01aec025dd248d78fc5c45.ctex"]
 
 [params]
 

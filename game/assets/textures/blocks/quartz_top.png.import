@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c0uxmho5dg2ji"
+path="res://.godot/imported/quartz_top.png-9b03449bdca6eaa775573497bc573f98.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/quartz_top.png"
+dest_files=["res://.godot/imported/quartz_top.png-9b03449bdca6eaa775573497bc573f98.ctex"]
 
 [params]
 

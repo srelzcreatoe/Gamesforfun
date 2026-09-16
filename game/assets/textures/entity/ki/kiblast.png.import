@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://4vyvifiwhx8x"
+path="res://.godot/imported/kiblast.png-5cacc2249c5ff6bf06a44b6d0d1daa8a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/ki/kiblast.png"
+dest_files=["res://.godot/imported/kiblast.png-5cacc2249c5ff6bf06a44b6d0d1daa8a.ctex"]
 
 [params]
 

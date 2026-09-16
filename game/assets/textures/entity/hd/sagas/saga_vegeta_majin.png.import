@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bn77y431ypfss"
+path="res://.godot/imported/saga_vegeta_majin.png-760a67196c6aa76d36d4811f1be0ec02.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_vegeta_majin.png"
+dest_files=["res://.godot/imported/saga_vegeta_majin.png-760a67196c6aa76d36d4811f1be0ec02.ctex"]
 
 [params]
 

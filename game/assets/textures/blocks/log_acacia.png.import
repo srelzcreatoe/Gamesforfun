@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bb20p14k4xyyp"
+path="res://.godot/imported/log_acacia.png-9c9d60263e8ebabef76f509406712a8a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/log_acacia.png"
+dest_files=["res://.godot/imported/log_acacia.png-9c9d60263e8ebabef76f509406712a8a.ctex"]
 
 [params]
 

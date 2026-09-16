@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c0c5thuwjch25"
+path="res://.godot/imported/saga_zangya.png-a5cd0a13d000b42f3f91a2f4bea3343d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_zangya.png"
+dest_files=["res://.godot/imported/saga_zangya.png-a5cd0a13d000b42f3f91a2f4bea3343d.ctex"]
 
 [params]
 

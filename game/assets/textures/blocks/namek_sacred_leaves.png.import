@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bdfsm71dprvnw"
+path="res://.godot/imported/namek_sacred_leaves.png-5d97ebe59f779c52326c461d02303122.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_sacred_leaves.png"
+dest_files=["res://.godot/imported/namek_sacred_leaves.png-5d97ebe59f779c52326c461d02303122.ctex"]
 
 [params]
 

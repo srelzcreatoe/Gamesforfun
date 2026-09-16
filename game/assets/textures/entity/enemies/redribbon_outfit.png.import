@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://q1x2qmmhgife"
+path="res://.godot/imported/redribbon_outfit.png-c4c8c47ef5c5d4e21550bcc38823ff6c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/enemies/redribbon_outfit.png"
+dest_files=["res://.godot/imported/redribbon_outfit.png-c4c8c47ef5c5d4e21550bcc38823ff6c.ctex"]
 
 [params]
 

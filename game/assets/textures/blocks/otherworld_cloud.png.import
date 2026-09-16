@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bxj0y6bmdx8wn"
+path="res://.godot/imported/otherworld_cloud.png-72cf706232fae80a55229f5ad76b39c7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/otherworld_cloud.png"
+dest_files=["res://.godot/imported/otherworld_cloud.png-72cf706232fae80a55229f5ad76b39c7.ctex"]
 
 [params]
 

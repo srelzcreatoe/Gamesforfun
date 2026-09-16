@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bm32aq1b71qc6"
+path="res://.godot/imported/dinokid.png-649ef6478a90dd09f1a997f5b9688aac.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/animal/dinokid.png"
+dest_files=["res://.godot/imported/dinokid.png-649ef6478a90dd09f1a997f5b9688aac.ctex"]
 
 [params]
 

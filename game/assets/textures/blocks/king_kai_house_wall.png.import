@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bhaenmkkxo4uv"
+path="res://.godot/imported/king_kai_house_wall.png-67620c1b855c95400300db8a47ab821b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/king_kai_house_wall.png"
+dest_files=["res://.godot/imported/king_kai_house_wall.png-67620c1b855c95400300db8a47ab821b.ctex"]
 
 [params]
 

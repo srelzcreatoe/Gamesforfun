@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://da1rkghtx86rl"
+path="res://.godot/imported/master_gohan.png-9a7f1ab20611267cb9ec099dc75c0f2c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/master/master_gohan.png"
+dest_files=["res://.godot/imported/master_gohan.png-9a7f1ab20611267cb9ec099dc75c0f2c.ctex"]
 
 [params]
 

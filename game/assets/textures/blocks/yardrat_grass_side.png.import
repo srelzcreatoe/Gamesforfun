@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dw3a5h1iciv3c"
+path="res://.godot/imported/yardrat_grass_side.png-3adb7e2e20d27c769c2cc068a7ba9859.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/yardrat_grass_side.png"
+dest_files=["res://.godot/imported/yardrat_grass_side.png-3adb7e2e20d27c769c2cc068a7ba9859.ctex"]
 
 [params]
 

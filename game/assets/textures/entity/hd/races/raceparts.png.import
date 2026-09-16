@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://egixxamhd4wr"
+path="res://.godot/imported/raceparts.png-e381e381e65c8131b85350869dd4abf9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/raceparts.png"
+dest_files=["res://.godot/imported/raceparts.png-e381e381e65c8131b85350869dd4abf9.ctex"]
 
 [params]
 

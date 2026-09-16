@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://eutn2ne58k5o"
+path="res://.godot/imported/dmzplus_surge_cross.png-0e1cc1034a5f590f4b575ad889b0fb7e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/aura/dmzplus_surge_cross.png"
+dest_files=["res://.godot/imported/dmzplus_surge_cross.png-0e1cc1034a5f590f4b575ad889b0fb7e.ctex"]
 
 [params]
 

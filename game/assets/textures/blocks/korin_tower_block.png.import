@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cpnx0nvw4nte0"
+path="res://.godot/imported/korin_tower_block.png-3fb71fd01f1472aab65c7cd0e85a6710.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/korin_tower_block.png"
+dest_files=["res://.godot/imported/korin_tower_block.png-3fb71fd01f1472aab65c7cd0e85a6710.ctex"]
 
 [params]
 

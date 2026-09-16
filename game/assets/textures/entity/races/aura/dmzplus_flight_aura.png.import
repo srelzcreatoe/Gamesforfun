@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bi5xelwqjj4nt"
+path="res://.godot/imported/dmzplus_flight_aura.png-f679a5f7c258a2c45eb3b31a725cf6ae.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/aura/dmzplus_flight_aura.png"
+dest_files=["res://.godot/imported/dmzplus_flight_aura.png-f679a5f7c258a2c45eb3b31a725cf6ae.ctex"]
 
 [params]
 

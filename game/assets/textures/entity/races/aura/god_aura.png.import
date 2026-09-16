@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cgvq3td0xr6jl"
+path="res://.godot/imported/god_aura.png-8fcf98cbdaddc9aac25dd8659513d6bb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/aura/god_aura.png"
+dest_files=["res://.godot/imported/god_aura.png-8fcf98cbdaddc9aac25dd8659513d6bb.ctex"]
 
 [params]
 

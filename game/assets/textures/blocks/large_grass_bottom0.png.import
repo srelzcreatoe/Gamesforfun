@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b334vjir4862r"
+path="res://.godot/imported/large_grass_bottom0.png-ddd3320c252328dc3eaf0f785eb5ffa4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/large_grass_bottom0.png"
+dest_files=["res://.godot/imported/large_grass_bottom0.png-ddd3320c252328dc3eaf0f785eb5ffa4.ctex"]
 
 [params]
 

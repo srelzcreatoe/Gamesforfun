@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://7tq2ncrmun7s"
+path="res://.godot/imported/kai_grass_side.png-106fb6187f767c053fd30c2af964a409.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/kai_grass_side.png"
+dest_files=["res://.godot/imported/kai_grass_side.png-106fb6187f767c053fd30c2af964a409.ctex"]
 
 [params]
 

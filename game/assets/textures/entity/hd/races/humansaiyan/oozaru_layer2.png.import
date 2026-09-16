@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cyha6tb5djuak"
+path="res://.godot/imported/oozaru_layer2.png-b9ed2f60d51f6bb9b0e7b15972527b6d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/humansaiyan/oozaru_layer2.png"
+dest_files=["res://.godot/imported/oozaru_layer2.png-b9ed2f60d51f6bb9b0e7b15972527b6d.ctex"]
 
 [params]
 

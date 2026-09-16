@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bn3ess4fkio51"
+path="res://.godot/imported/toronbo.png-3962b71b93dc33dd3b3c597d5289a824.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/dmzplus/dragon/toronbo.png"
+dest_files=["res://.godot/imported/toronbo.png-3962b71b93dc33dd3b3c597d5289a824.ctex"]
 
 [params]
 

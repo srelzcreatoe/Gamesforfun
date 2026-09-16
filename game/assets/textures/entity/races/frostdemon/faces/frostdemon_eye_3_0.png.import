@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cb2bs32jeixht"
+path="res://.godot/imported/frostdemon_eye_3_0.png-1d735dd442dbdadac4c8480d12fc4ec9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/frostdemon/faces/frostdemon_eye_3_0.png"
+dest_files=["res://.godot/imported/frostdemon_eye_3_0.png-1d735dd442dbdadac4c8480d12fc4ec9.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://jon2dcujhsfp"
+path="res://.godot/imported/namek_grass.png-5fe8c219ea9c69de08415f34be25aaed.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_grass.png"
+dest_files=["res://.godot/imported/namek_grass.png-5fe8c219ea9c69de08415f34be25aaed.ctex"]
 
 [params]
 

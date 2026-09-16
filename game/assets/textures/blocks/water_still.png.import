@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d1i1unnjj78k7"
+path="res://.godot/imported/water_still.png-de43ac8bf80dcd2de893433d6cfed02b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/water_still.png"
+dest_files=["res://.godot/imported/water_still.png-de43ac8bf80dcd2de893433d6cfed02b.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cxq7jor8wp446"
+path="res://.godot/imported/spruce_door_lower.png-62108ac7c5244645df659a6de5958cc9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/spruce_door_lower.png"
+dest_files=["res://.godot/imported/spruce_door_lower.png-62108ac7c5244645df659a6de5958cc9.ctex"]
 
 [params]
 

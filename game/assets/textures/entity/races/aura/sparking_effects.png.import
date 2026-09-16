@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://do8d0idvsxm35"
+path="res://.godot/imported/sparking_effects.png-d09d42be5702428aa60e04380343ac21.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/aura/sparking_effects.png"
+dest_files=["res://.godot/imported/sparking_effects.png-d09d42be5702428aa60e04380343ac21.ctex"]
 
 [params]
 

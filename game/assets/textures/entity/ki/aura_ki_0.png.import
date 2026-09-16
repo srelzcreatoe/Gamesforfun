@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bo0takfd1piaf"
+path="res://.godot/imported/aura_ki_0.png-fd71a51a8c49291f23cc8f8165f5add6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/ki/aura_ki_0.png"
+dest_files=["res://.godot/imported/aura_ki_0.png-fd71a51a8c49291f23cc8f8165f5add6.ctex"]
 
 [params]
 

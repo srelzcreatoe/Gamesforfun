@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dl7u8l75jqxtf"
+path="res://.godot/imported/lava_still.png-349d1d68bc20168a5f07ee1b919d3ffd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/lava_still.png"
+dest_files=["res://.godot/imported/lava_still.png-349d1d68bc20168a5f07ee1b919d3ffd.ctex"]
 
 [params]
 

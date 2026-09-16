@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dbpab0n6b32a8"
+path="res://.godot/imported/saga_super_janemba.png-2f73dc22b7b02b1d23e0c31251522c03.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_super_janemba.png"
+dest_files=["res://.godot/imported/saga_super_janemba.png-2f73dc22b7b02b1d23e0c31251522c03.ctex"]
 
 [params]
 

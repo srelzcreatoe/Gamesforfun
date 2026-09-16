@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://beunxq3kv3o7s"
+path="res://.godot/imported/podzol_side.png-b19e9c8a82551cd3d0c35ffbfa108e4c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/podzol_side.png"
+dest_files=["res://.godot/imported/podzol_side.png-b19e9c8a82551cd3d0c35ffbfa108e4c.ctex"]
 
 [params]
 

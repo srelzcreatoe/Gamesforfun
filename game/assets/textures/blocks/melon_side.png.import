@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d2ueyjct2n37y"
+path="res://.godot/imported/melon_side.png-976882099e534a8ba16f3279d5fd4549.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/melon_side.png"
+dest_files=["res://.godot/imported/melon_side.png-976882099e534a8ba16f3279d5fd4549.ctex"]
 
 [params]
 

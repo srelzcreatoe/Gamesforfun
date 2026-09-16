@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://de5cd6mgqu416"
+path="res://.godot/imported/red_ribbon_soldier.png-464cc62d9b66adee0783eb53701500ee.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/enemies/red_ribbon_soldier.png"
+dest_files=["res://.godot/imported/red_ribbon_soldier.png-464cc62d9b66adee0783eb53701500ee.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dtt0pl2127kli"
+path="res://.godot/imported/ice.png-a3ca098da3c0d21c3962df863cd3efa1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/ice.png"
+dest_files=["res://.godot/imported/ice.png-a3ca098da3c0d21c3962df863cd3efa1.ctex"]
 
 [params]
 

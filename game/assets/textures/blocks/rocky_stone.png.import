@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c2ga0aaqqlsxh"
+path="res://.godot/imported/rocky_stone.png-582438781da3c73d77919bfeaf70350a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/rocky_stone.png"
+dest_files=["res://.godot/imported/rocky_stone.png-582438781da3c73d77919bfeaf70350a.ctex"]
 
 [params]
 

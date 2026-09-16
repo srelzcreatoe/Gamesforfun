@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ulgjwy6xwjv7"
+path="res://.godot/imported/shenron.png-ace5861b2436b01c3ca7aa502be4dd1e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/dragon/shenron.png"
+dest_files=["res://.godot/imported/shenron.png-ace5861b2436b01c3ca7aa502be4dd1e.ctex"]
 
 [params]
 

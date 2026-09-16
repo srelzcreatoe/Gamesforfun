@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cw133tsgr3epr"
+path="res://.godot/imported/namek_coal_ore.png-055e44f72f3610c75016e28eeb11a992.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_coal_ore.png"
+dest_files=["res://.godot/imported/namek_coal_ore.png-055e44f72f3610c75016e28eeb11a992.ctex"]
 
 [params]
 

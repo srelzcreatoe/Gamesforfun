@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b17mj2pobwxwv"
+path="res://.godot/imported/training_post.png-280cba91f8806f64faad665218de2ba9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/training_post.png"
+dest_files=["res://.godot/imported/training_post.png-280cba91f8806f64faad665218de2ba9.ctex"]
 
 [params]
 

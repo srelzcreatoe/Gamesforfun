@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bek22c1iw28nb"
+path="res://.godot/imported/namek_ajissa_sapling.png-6236bedbf8a9af21fa89ae4dd8ee6138.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_ajissa_sapling.png"
+dest_files=["res://.godot/imported/namek_ajissa_sapling.png-6236bedbf8a9af21fa89ae4dd8ee6138.ctex"]
 
 [params]
 

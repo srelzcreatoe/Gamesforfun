@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bnnpb8yuxrnsk"
+path="res://.godot/imported/namek_kikono_ore.png-1d702e29a0906a7025ee0f205967a616.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_kikono_ore.png"
+dest_files=["res://.godot/imported/namek_kikono_ore.png-1d702e29a0906a7025ee0f205967a616.ctex"]
 
 [params]
 

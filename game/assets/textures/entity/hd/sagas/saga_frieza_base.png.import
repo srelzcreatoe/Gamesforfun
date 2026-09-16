@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bcmhjm6527gvl"
+path="res://.godot/imported/saga_frieza_base.png-176226ccc42424f567b0ff6e07cf1511.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_frieza_base.png"
+dest_files=["res://.godot/imported/saga_frieza_base.png-176226ccc42424f567b0ff6e07cf1511.ctex"]
 
 [params]
 

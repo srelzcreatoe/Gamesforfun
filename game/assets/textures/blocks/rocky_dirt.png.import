@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bkr52ys5o1yjc"
+path="res://.godot/imported/rocky_dirt.png-5a437e74f6cee814bfb3c48366251d77.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/rocky_dirt.png"
+dest_files=["res://.godot/imported/rocky_dirt.png-5a437e74f6cee814bfb3c48366251d77.ctex"]
 
 [params]
 

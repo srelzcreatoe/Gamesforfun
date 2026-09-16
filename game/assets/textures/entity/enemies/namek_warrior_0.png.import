@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c4m65vd0i3ygb"
+path="res://.godot/imported/namek_warrior_0.png-ca2b3394e5bfbcb85e155248c87e4dfe.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/enemies/namek_warrior_0.png"
+dest_files=["res://.godot/imported/namek_warrior_0.png-ca2b3394e5bfbcb85e155248c87e4dfe.ctex"]
 
 [params]
 

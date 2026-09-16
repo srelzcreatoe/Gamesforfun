@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://caj6hvg8eipw4"
+path="res://.godot/imported/semiperfect_2_layer2.png-b6f1a5c23c685a91b4b115865e4b2505.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/bioandroid/semiperfect_2_layer2.png"
+dest_files=["res://.godot/imported/semiperfect_2_layer2.png-b6f1a5c23c685a91b4b115865e4b2505.ctex"]
 
 [params]
 

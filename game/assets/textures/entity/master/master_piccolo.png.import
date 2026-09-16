@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dud0ldvpfwcgv"
+path="res://.godot/imported/master_piccolo.png-81479c9f547324cf53c6d725822cd210.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/master/master_piccolo.png"
+dest_files=["res://.godot/imported/master_piccolo.png-81479c9f547324cf53c6d725822cd210.ctex"]
 
 [params]
 

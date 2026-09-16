@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bx8dvhi6bj2jy"
+path="res://.godot/imported/melon_top0.png-64d50b6763a9baf09b8ee5d39b6c445a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/melon_top0.png"
+dest_files=["res://.godot/imported/melon_top0.png-64d50b6763a9baf09b8ee5d39b6c445a.ctex"]
 
 [params]
 

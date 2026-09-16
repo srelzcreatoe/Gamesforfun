@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dbt20dc3kl6d3"
+path="res://.godot/imported/namek_sacred_log.png-d233549975c880c39329b8833f6f9c94.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_sacred_log.png"
+dest_files=["res://.godot/imported/namek_sacred_log.png-d233549975c880c39329b8833f6f9c94.ctex"]
 
 [params]
 

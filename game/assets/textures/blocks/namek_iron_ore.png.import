@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dc0r0mmpxbftn"
+path="res://.godot/imported/namek_iron_ore.png-b7b78b7370172e27ab82d549a5161d41.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_iron_ore.png"
+dest_files=["res://.godot/imported/namek_iron_ore.png-b7b78b7370172e27ab82d549a5161d41.ctex"]
 
 [params]
 

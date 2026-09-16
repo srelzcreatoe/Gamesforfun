@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c6lxp15ucdtcf"
+path="res://.godot/imported/namekfrog_1.png-7ff2734001d22e9f9f6e50f56741bfd2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/animal/namekfrog_1.png"
+dest_files=["res://.godot/imported/namekfrog_1.png-7ff2734001d22e9f9f6e50f56741bfd2.ctex"]
 
 [params]
 

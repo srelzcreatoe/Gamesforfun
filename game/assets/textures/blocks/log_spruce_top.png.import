@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bmtn6kfg8i3sh"
+path="res://.godot/imported/log_spruce_top.png-65f3d8384914bdf8b09f6f47f4ad69f5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/log_spruce_top.png"
+dest_files=["res://.godot/imported/log_spruce_top.png-65f3d8384914bdf8b09f6f47f4ad69f5.ctex"]
 
 [params]
 

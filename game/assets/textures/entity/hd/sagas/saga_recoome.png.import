@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://da5xvta2duj8c"
+path="res://.godot/imported/saga_recoome.png-89aa6c245c2d6c2f19c8dde3fdbdb911.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_recoome.png"
+dest_files=["res://.godot/imported/saga_recoome.png-89aa6c245c2d6c2f19c8dde3fdbdb911.ctex"]
 
 [params]
 

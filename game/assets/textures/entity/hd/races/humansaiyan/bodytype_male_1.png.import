@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://chpc3q63o0tc8"
+path="res://.godot/imported/bodytype_male_1.png-cc9983061959dfc816c6fc113d9c430a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/humansaiyan/bodytype_male_1.png"
+dest_files=["res://.godot/imported/bodytype_male_1.png-cc9983061959dfc816c6fc113d9c430a.ctex"]
 
 [params]
 

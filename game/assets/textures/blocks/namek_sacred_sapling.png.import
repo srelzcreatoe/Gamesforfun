@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://k61u00cclxis"
+path="res://.godot/imported/namek_sacred_sapling.png-947d76e0c2150b1c6781794d2f742f5f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/namek_sacred_sapling.png"
+dest_files=["res://.godot/imported/namek_sacred_sapling.png-947d76e0c2150b1c6781794d2f742f5f.ctex"]
 
 [params]
 

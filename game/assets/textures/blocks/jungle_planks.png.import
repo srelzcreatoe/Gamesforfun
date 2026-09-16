@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://swebyonl43j0"
+path="res://.godot/imported/jungle_planks.png-a629573f828998fb819f3f289d8c4fdb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/jungle_planks.png"
+dest_files=["res://.godot/imported/jungle_planks.png-a629573f828998fb819f3f289d8c4fdb.ctex"]
 
 [params]
 

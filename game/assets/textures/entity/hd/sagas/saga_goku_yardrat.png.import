@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d23s6e01a0yfv"
+path="res://.godot/imported/saga_goku_yardrat.png-190a0555e7796bfd7c3b130a84f17e05.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_goku_yardrat.png"
+dest_files=["res://.godot/imported/saga_goku_yardrat.png-190a0555e7796bfd7c3b130a84f17e05.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cxabcsh606uue"
+path="res://.godot/imported/janemba_eye_1.png-723c71e19ccd009c383b90e99fff52d4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/majin/faces/janemba_eye_1.png"
+dest_files=["res://.godot/imported/janemba_eye_1.png-723c71e19ccd009c383b90e99fff52d4.ctex"]
 
 [params]
 

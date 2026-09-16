@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bevo68hcaeovg"
+path="res://.godot/imported/saga_yamcha.png-7d21d689d45e66e6bd06e47df576104c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_yamcha.png"
+dest_files=["res://.godot/imported/saga_yamcha.png-7d21d689d45e66e6bd06e47df576104c.ctex"]
 
 [params]
 

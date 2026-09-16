@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://qh6kwnc8spyq"
+path="res://.godot/imported/bandit.png-35413975ad88520ed27bfae9988e3f0c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/enemies/bandit.png"
+dest_files=["res://.godot/imported/bandit.png-35413975ad88520ed27bfae9988e3f0c.ctex"]
 
 [params]
 

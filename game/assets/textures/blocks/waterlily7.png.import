@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cwqnm76qdi1h2"
+path="res://.godot/imported/waterlily7.png-d1e47ae49a3d8f601f2a7400fc1c3f59.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/waterlily7.png"
+dest_files=["res://.godot/imported/waterlily7.png-d1e47ae49a3d8f601f2a7400fc1c3f59.ctex"]
 
 [params]
 

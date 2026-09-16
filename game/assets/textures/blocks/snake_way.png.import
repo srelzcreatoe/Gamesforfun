@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://byj7ewrkd4m4d"
+path="res://.godot/imported/snake_way.png-51876ab23b94b2770319a4ab2f7e92df.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/snake_way.png"
+dest_files=["res://.godot/imported/snake_way.png-51876ab23b94b2770319a4ab2f7e92df.ctex"]
 
 [params]
 

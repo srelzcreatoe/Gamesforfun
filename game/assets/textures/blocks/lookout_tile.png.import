@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://oiwqwp0req13"
+path="res://.godot/imported/lookout_tile.png-88bac6599bf0f641422f493b347800df.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/lookout_tile.png"
+dest_files=["res://.godot/imported/lookout_tile.png-88bac6599bf0f641422f493b347800df.ctex"]
 
 [params]
 

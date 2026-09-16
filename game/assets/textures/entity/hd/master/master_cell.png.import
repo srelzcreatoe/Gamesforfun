@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bjb0gaw6n0seo"
+path="res://.godot/imported/master_cell.png-c01272dbe1071d1e9955582c05c44191.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/master/master_cell.png"
+dest_files=["res://.godot/imported/master_cell.png-c01272dbe1071d1e9955582c05c44191.ctex"]
 
 [params]
 

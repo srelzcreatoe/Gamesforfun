@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dnxxb3ar78wo5"
+path="res://.godot/imported/metalcore_layer2.png-8b52365ef4aebd82847d4744ff940a59.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/frostdemon/metalcore_layer2.png"
+dest_files=["res://.godot/imported/metalcore_layer2.png-8b52365ef4aebd82847d4744ff940a59.ctex"]
 
 [params]
 

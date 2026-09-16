@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://sunhtm7nst01"
+path="res://.godot/imported/finalform_bodytype_2_layer1.png-69c4cf3de945c6e971d17c6b3155ffc1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/frostdemon/finalform_bodytype_2_layer1.png"
+dest_files=["res://.godot/imported/finalform_bodytype_2_layer1.png-69c4cf3de945c6e971d17c6b3155ffc1.ctex"]
 
 [params]
 
