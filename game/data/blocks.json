@@ -1,0 +1,3962 @@
+{
+ "blocks": [
+  {
+   "id": "air",
+   "name": "Air",
+   "shape": "none"
+  },
+  {
+   "id": "stone",
+   "name": "Stone",
+   "shape": "cube",
+   "textures": {
+    "all": "stone0"
+   },
+   "material": "stone",
+   "hardness": 1.5,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "variants": [
+    "stone0",
+    "stone1",
+    "stone2",
+    "stone3",
+    "stone4"
+   ],
+   "drops": [
+    {
+     "item": "cobblestone",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "cobblestone",
+   "name": "Cobblestone",
+   "shape": "cube",
+   "textures": {
+    "all": "cobblestone0"
+   },
+   "material": "stone",
+   "hardness": 2.0,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "variants": [
+    "cobblestone0",
+    "cobblestone1",
+    "cobblestone2"
+   ]
+  },
+  {
+   "id": "mossy_cobblestone",
+   "name": "Mossy Cobblestone",
+   "shape": "cube",
+   "textures": {
+    "all": "mossy_cobblestone"
+   },
+   "material": "stone",
+   "hardness": 2.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "stone_bricks",
+   "name": "Stone Bricks",
+   "shape": "cube",
+   "textures": {
+    "all": "stone_bricks"
+   },
+   "material": "stone",
+   "hardness": 1.5,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "bricks",
+   "name": "Bricks",
+   "shape": "cube",
+   "textures": {
+    "all": "bricks"
+   },
+   "material": "stone",
+   "hardness": 2.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "dirt",
+   "name": "Dirt",
+   "shape": "cube",
+   "textures": {
+    "all": "dirt0"
+   },
+   "material": "earth",
+   "hardness": 0.5,
+   "tool": "shovel",
+   "min_tier": 0,
+   "variants": [
+    "dirt0",
+    "dirt1",
+    "dirt2",
+    "dirt3",
+    "dirt4",
+    "dirt5",
+    "dirt6"
+   ]
+  },
+  {
+   "id": "coarse_dirt",
+   "name": "Coarse Dirt",
+   "shape": "cube",
+   "textures": {
+    "all": "coarse_dirt"
+   },
+   "material": "earth",
+   "hardness": 0.5,
+   "tool": "shovel",
+   "min_tier": 0
+  },
+  {
+   "id": "grass_block",
+   "name": "Grass Block",
+   "shape": "cube",
+   "textures": {
+    "top": "grass_top0",
+    "side": "grass_side",
+    "bottom": "dirt0"
+   },
+   "material": "earth",
+   "hardness": 0.6,
+   "tool": "shovel",
+   "min_tier": 0,
+   "variants": [
+    "grass_top0",
+    "grass_top1",
+    "grass_top2",
+    "grass_top3",
+    "grass_top4",
+    "grass_top5",
+    "grass_top6",
+    "grass_top7",
+    "grass_top8"
+   ],
+   "tint": "mask",
+   "drops": [
+    {
+     "item": "dirt",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "snowy_grass_block",
+   "name": "Snowy Grass Block",
+   "shape": "cube",
+   "textures": {
+    "top": "snow",
+    "side": "grass_side_snowed",
+    "bottom": "dirt0"
+   },
+   "material": "snow",
+   "hardness": 0.6,
+   "tool": "shovel",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "dirt",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "podzol",
+   "name": "Podzol",
+   "shape": "cube",
+   "textures": {
+    "top": "podzol_top",
+    "side": "podzol_side",
+    "bottom": "dirt0"
+   },
+   "material": "earth",
+   "hardness": 0.5,
+   "tool": "shovel",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "dirt",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "mycelium",
+   "name": "Mycelium",
+   "shape": "cube",
+   "textures": {
+    "top": "mycelium_top",
+    "side": "mycelium_side",
+    "bottom": "dirt0"
+   },
+   "material": "earth",
+   "hardness": 0.6,
+   "tool": "shovel",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "dirt",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "grass_path",
+   "name": "Dirt Path",
+   "shape": "cube",
+   "textures": {
+    "top": "grass_path_top0",
+    "side": "grass_path_side",
+    "bottom": "dirt0"
+   },
+   "material": "earth",
+   "hardness": 0.6,
+   "tool": "shovel",
+   "min_tier": 0,
+   "variants": [
+    "grass_path_top0",
+    "grass_path_top1",
+    "grass_path_top2",
+    "grass_path_top3",
+    "grass_path_top4",
+    "grass_path_top5",
+    "grass_path_top6",
+    "grass_path_top7"
+   ],
+   "drops": [
+    {
+     "item": "dirt",
+     "count": 1
+    }
+   ],
+   "height": 0.9375
+  },
+  {
+   "id": "farmland",
+   "name": "Farmland",
+   "shape": "cube",
+   "textures": {
+    "top": "farmland_dry",
+    "side": "farmland_side_dry",
+    "bottom": "dirt0"
+   },
+   "material": "earth",
+   "hardness": 0.6,
+   "tool": "shovel",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "dirt",
+     "count": 1
+    }
+   ],
+   "height": 0.9375
+  },
+  {
+   "id": "farmland_wet",
+   "name": "Wet Farmland",
+   "shape": "cube",
+   "textures": {
+    "top": "farmland_wet0",
+    "side": "farmland_side_wet",
+    "bottom": "dirt0"
+   },
+   "material": "earth",
+   "hardness": 0.6,
+   "tool": "shovel",
+   "min_tier": 0,
+   "variants": [
+    "farmland_wet0",
+    "farmland_wet1",
+    "farmland_wet2"
+   ],
+   "drops": [
+    {
+     "item": "dirt",
+     "count": 1
+    }
+   ],
+   "height": 0.9375
+  },
+  {
+   "id": "sand",
+   "name": "Sand",
+   "shape": "cube",
+   "textures": {
+    "all": "sand"
+   },
+   "material": "sand",
+   "hardness": 0.5,
+   "tool": "shovel",
+   "min_tier": 0,
+   "gravity": true
+  },
+  {
+   "id": "red_sand",
+   "name": "Red Sand",
+   "shape": "cube",
+   "textures": {
+    "all": "red_sand"
+   },
+   "material": "sand",
+   "hardness": 0.5,
+   "tool": "shovel",
+   "min_tier": 0,
+   "gravity": true
+  },
+  {
+   "id": "gravel",
+   "name": "Gravel",
+   "shape": "cube",
+   "textures": {
+    "all": "gravel"
+   },
+   "material": "sand",
+   "hardness": 0.6,
+   "tool": "shovel",
+   "min_tier": 0,
+   "gravity": true,
+   "drops": [
+    {
+     "item": "gravel",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "clay",
+   "name": "Clay",
+   "shape": "cube",
+   "textures": {
+    "all": "clay"
+   },
+   "material": "earth",
+   "hardness": 0.6,
+   "tool": "shovel",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "clay_ball",
+     "count": 4
+    }
+   ]
+  },
+  {
+   "id": "sandstone",
+   "name": "Sandstone",
+   "shape": "cube",
+   "textures": {
+    "top": "sandstone_top",
+    "side": "sandstone_side",
+    "bottom": "sandstone_bottom"
+   },
+   "material": "stone",
+   "hardness": 0.8,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "bedrock",
+   "name": "Bedrock",
+   "shape": "cube",
+   "textures": {
+    "all": "bedrock"
+   },
+   "material": "stone",
+   "hardness": -1,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "drops": []
+  },
+  {
+   "id": "obsidian",
+   "name": "Obsidian",
+   "shape": "cube",
+   "textures": {
+    "all": "obsidian"
+   },
+   "material": "stone",
+   "hardness": 50.0,
+   "tool": "pickaxe",
+   "min_tier": 4
+  },
+  {
+   "id": "snow_block",
+   "name": "Snow Block",
+   "shape": "cube",
+   "textures": {
+    "all": "snow"
+   },
+   "material": "snow",
+   "hardness": 0.2,
+   "tool": "shovel",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "snowball",
+     "count": 4
+    }
+   ]
+  },
+  {
+   "id": "snow_layer",
+   "name": "Snow",
+   "shape": "snow_layer",
+   "textures": {
+    "all": "snow"
+   },
+   "material": "snow",
+   "hardness": 0.1,
+   "tool": "shovel",
+   "drops": [
+    {
+     "item": "snowball",
+     "count": 1
+    }
+   ],
+   "height": 0.125
+  },
+  {
+   "id": "ice",
+   "name": "Ice",
+   "shape": "cube",
+   "textures": {
+    "all": "ice"
+   },
+   "material": "ice",
+   "hardness": 0.5,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "drops": [],
+   "slippery": true
+  },
+  {
+   "id": "water",
+   "name": "Water",
+   "shape": "liquid",
+   "textures": {
+    "all": "water_still"
+   },
+   "material": "liquid",
+   "hardness": -1,
+   "drops": [],
+   "animated": {
+    "frames": 32,
+    "fps": 10
+   },
+   "flow": {
+    "spread": 7,
+    "tick": 5,
+    "lava": false
+   },
+   "flow_texture": "water_flow",
+   "tint": "water",
+   "light_attenuation": 2
+  },
+  {
+   "id": "lava",
+   "name": "Lava",
+   "shape": "liquid",
+   "textures": {
+    "all": "lava_still"
+   },
+   "material": "liquid",
+   "hardness": -1,
+   "drops": [],
+   "animated": {
+    "frames": 20,
+    "fps": 4
+   },
+   "flow": {
+    "spread": 3,
+    "tick": 30,
+    "lava": true
+   },
+   "flow_texture": "lava_flow",
+   "light": 15,
+   "damage": 4
+  },
+  {
+   "id": "coal_ore",
+   "name": "Coal Ore",
+   "shape": "cube",
+   "textures": {
+    "all": "coal_ore"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 1,
+   "drops": [
+    {
+     "item": "coal",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "iron_ore",
+   "name": "Iron Ore",
+   "shape": "cube",
+   "textures": {
+    "all": "iron_ore"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 2,
+   "drops": [
+    {
+     "item": "raw_iron",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "copper_ore",
+   "name": "Copper Ore",
+   "shape": "cube",
+   "textures": {
+    "all": "copper_ore"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 2,
+   "drops": [
+    {
+     "item": "raw_copper",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "gold_ore",
+   "name": "Gold Ore",
+   "shape": "cube",
+   "textures": {
+    "all": "gold_ore"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 3,
+   "drops": [
+    {
+     "item": "raw_gold",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "redstone_ore",
+   "name": "Redstone Ore",
+   "shape": "cube",
+   "textures": {
+    "all": "redstone_ore"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 3,
+   "drops": [
+    {
+     "item": "redstone",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "lapis_ore",
+   "name": "Lapis Lazuli Ore",
+   "shape": "cube",
+   "textures": {
+    "all": "lapis_ore"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 2,
+   "drops": [
+    {
+     "item": "lapis_lazuli",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "diamond_ore",
+   "name": "Diamond Ore",
+   "shape": "cube",
+   "textures": {
+    "all": "diamond_ore"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 3,
+   "drops": [
+    {
+     "item": "diamond",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "emerald_ore",
+   "name": "Emerald Ore",
+   "shape": "cube",
+   "textures": {
+    "all": "emerald_ore"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 3,
+   "drops": [
+    {
+     "item": "emerald",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "iron_block",
+   "name": "Block of Iron",
+   "shape": "cube",
+   "textures": {
+    "all": "iron_block"
+   },
+   "material": "metal",
+   "hardness": 5.0,
+   "tool": "pickaxe",
+   "min_tier": 2
+  },
+  {
+   "id": "gold_block",
+   "name": "Block of Gold",
+   "shape": "cube",
+   "textures": {
+    "all": "gold_block"
+   },
+   "material": "metal",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 3
+  },
+  {
+   "id": "diamond_block",
+   "name": "Block of Diamond",
+   "shape": "cube",
+   "textures": {
+    "all": "diamond_block"
+   },
+   "material": "metal",
+   "hardness": 5.0,
+   "tool": "pickaxe",
+   "min_tier": 3
+  },
+  {
+   "id": "oak_log",
+   "name": "Oak Log",
+   "shape": "cube",
+   "textures": {
+    "side": "log_oak",
+    "top": "log_oak_top",
+    "bottom": "log_oak_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "stripped_oak_log",
+   "name": "Stripped Oak Log",
+   "shape": "cube",
+   "textures": {
+    "side": "stripped_oak_log",
+    "top": "stripped_oak_log_top",
+    "bottom": "stripped_oak_log_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "oak_planks",
+   "name": "Oak Planks",
+   "shape": "cube",
+   "textures": {
+    "all": "oak_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "oak_leaves",
+   "name": "Oak Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "oak_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "foliage",
+   "drops": [
+    {
+     "item": "oak_sapling",
+     "count": 1,
+     "chance": 0.05
+    }
+   ],
+   "flammable": true
+  },
+  {
+   "id": "oak_sapling",
+   "name": "Oak Sapling",
+   "shape": "cross",
+   "textures": {
+    "all": "oak_sapling"
+   },
+   "sapling": "oak",
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "oak_fence",
+   "name": "Oak Fence",
+   "shape": "fence",
+   "textures": {
+    "all": "oak_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "flammable": true
+  },
+  {
+   "id": "oak_door",
+   "name": "Oak Door",
+   "shape": "door",
+   "textures": {
+    "top": "oak_door_upper",
+    "bottom": "oak_door_lower"
+   },
+   "material": "wood",
+   "hardness": 3.0,
+   "tool": "axe"
+  },
+  {
+   "id": "spruce_log",
+   "name": "Spruce Log",
+   "shape": "cube",
+   "textures": {
+    "side": "log_spruce",
+    "top": "log_spruce_top",
+    "bottom": "log_spruce_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "spruce_planks",
+   "name": "Spruce Planks",
+   "shape": "cube",
+   "textures": {
+    "all": "spruce_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "spruce_leaves",
+   "name": "Spruce Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "spruce_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "foliage",
+   "drops": [
+    {
+     "item": "spruce_sapling",
+     "count": 1,
+     "chance": 0.05
+    }
+   ],
+   "flammable": true
+  },
+  {
+   "id": "spruce_sapling",
+   "name": "Spruce Sapling",
+   "shape": "cross",
+   "textures": {
+    "all": "spruce_sapling"
+   },
+   "sapling": "spruce",
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "spruce_fence",
+   "name": "Spruce Fence",
+   "shape": "fence",
+   "textures": {
+    "all": "spruce_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "flammable": true
+  },
+  {
+   "id": "spruce_door",
+   "name": "Spruce Door",
+   "shape": "door",
+   "textures": {
+    "top": "spruce_door_upper",
+    "bottom": "spruce_door_lower"
+   },
+   "material": "wood",
+   "hardness": 3.0,
+   "tool": "axe"
+  },
+  {
+   "id": "birch_log",
+   "name": "Birch Log",
+   "shape": "cube",
+   "textures": {
+    "side": "log_birch",
+    "top": "log_birch_top",
+    "bottom": "log_birch_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "birch_planks",
+   "name": "Birch Planks",
+   "shape": "cube",
+   "textures": {
+    "all": "birch_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "birch_leaves",
+   "name": "Birch Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "birch_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "foliage",
+   "drops": [
+    {
+     "item": "birch_sapling",
+     "count": 1,
+     "chance": 0.05
+    }
+   ],
+   "flammable": true
+  },
+  {
+   "id": "birch_sapling",
+   "name": "Birch Sapling",
+   "shape": "cross",
+   "textures": {
+    "all": "birch_sapling"
+   },
+   "sapling": "birch",
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "birch_fence",
+   "name": "Birch Fence",
+   "shape": "fence",
+   "textures": {
+    "all": "birch_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "flammable": true
+  },
+  {
+   "id": "birch_door",
+   "name": "Birch Door",
+   "shape": "door",
+   "textures": {
+    "top": "birch_door_upper",
+    "bottom": "birch_door_lower"
+   },
+   "material": "wood",
+   "hardness": 3.0,
+   "tool": "axe"
+  },
+  {
+   "id": "jungle_log",
+   "name": "Jungle Log",
+   "shape": "cube",
+   "textures": {
+    "side": "log_jungle",
+    "top": "log_jungle_top",
+    "bottom": "log_jungle_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "jungle_planks",
+   "name": "Jungle Planks",
+   "shape": "cube",
+   "textures": {
+    "all": "jungle_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "jungle_leaves",
+   "name": "Jungle Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "jungle_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "foliage",
+   "drops": [
+    {
+     "item": "jungle_sapling",
+     "count": 1,
+     "chance": 0.05
+    }
+   ],
+   "flammable": true
+  },
+  {
+   "id": "jungle_sapling",
+   "name": "Jungle Sapling",
+   "shape": "cross",
+   "textures": {
+    "all": "jungle_sapling"
+   },
+   "sapling": "jungle",
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "acacia_log",
+   "name": "Acacia Log",
+   "shape": "cube",
+   "textures": {
+    "side": "log_acacia",
+    "top": "log_acacia_top",
+    "bottom": "log_acacia_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "acacia_planks",
+   "name": "Acacia Planks",
+   "shape": "cube",
+   "textures": {
+    "all": "acacia_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "acacia_leaves",
+   "name": "Acacia Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "acacia_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "foliage",
+   "drops": [
+    {
+     "item": "acacia_sapling",
+     "count": 1,
+     "chance": 0.05
+    }
+   ],
+   "flammable": true
+  },
+  {
+   "id": "acacia_sapling",
+   "name": "Acacia Sapling",
+   "shape": "cross",
+   "textures": {
+    "all": "acacia_sapling"
+   },
+   "sapling": "acacia",
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "dark_oak_log",
+   "name": "Dark Oak Log",
+   "shape": "cube",
+   "textures": {
+    "side": "log_big_oak",
+    "top": "log_big_oak_top",
+    "bottom": "log_big_oak_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "dark_oak_planks",
+   "name": "Dark Oak Planks",
+   "shape": "cube",
+   "textures": {
+    "all": "dark_oak_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "dark_oak_leaves",
+   "name": "Dark Oak Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "dark_oak_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "foliage",
+   "drops": [
+    {
+     "item": "dark_oak_sapling",
+     "count": 1,
+     "chance": 0.05
+    }
+   ],
+   "flammable": true
+  },
+  {
+   "id": "dark_oak_sapling",
+   "name": "Dark Oak Sapling",
+   "shape": "cross",
+   "textures": {
+    "all": "dark_oak_sapling"
+   },
+   "sapling": "dark_oak",
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "dark_oak_fence",
+   "name": "Dark Oak Fence",
+   "shape": "fence",
+   "textures": {
+    "all": "dark_oak_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "flammable": true
+  },
+  {
+   "id": "dark_oak_door",
+   "name": "Dark Oak Door",
+   "shape": "door",
+   "textures": {
+    "top": "dark_oak_door_upper",
+    "bottom": "dark_oak_door_lower"
+   },
+   "material": "wood",
+   "hardness": 3.0,
+   "tool": "axe"
+  },
+  {
+   "id": "cherry_log",
+   "name": "Cherry Log",
+   "shape": "cube",
+   "textures": {
+    "side": "cherry_log_side",
+    "top": "cherry_log_top",
+    "bottom": "cherry_log_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "cherry_planks",
+   "name": "Cherry Planks",
+   "shape": "cube",
+   "textures": {
+    "all": "cherry_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "cherry_leaves",
+   "name": "Cherry Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "cherry_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [
+    {
+     "item": "cherry_sapling",
+     "count": 1,
+     "chance": 0.05
+    }
+   ],
+   "flammable": true
+  },
+  {
+   "id": "cherry_sapling",
+   "name": "Cherry Sapling",
+   "shape": "cross",
+   "textures": {
+    "all": "cherry_sapling"
+   },
+   "sapling": "cherry",
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "oak_trapdoor",
+   "name": "Oak Trapdoor",
+   "shape": "trapdoor",
+   "textures": {
+    "all": "trapdoor"
+   },
+   "material": "wood",
+   "hardness": 3.0,
+   "tool": "axe"
+  },
+  {
+   "id": "bookshelf",
+   "name": "Bookshelf",
+   "shape": "cube",
+   "textures": {
+    "side": "bookshelf0",
+    "top": "oak_planks",
+    "bottom": "oak_planks"
+   },
+   "material": "wood",
+   "hardness": 1.5,
+   "tool": "axe",
+   "min_tier": 0,
+   "variants": [
+    "bookshelf0",
+    "bookshelf1",
+    "bookshelf2",
+    "bookshelf3",
+    "bookshelf4"
+   ],
+   "flammable": true,
+   "drops": [
+    {
+     "item": "book",
+     "count": 3
+    }
+   ]
+  },
+  {
+   "id": "crafting_table",
+   "name": "Crafting Table",
+   "shape": "cube",
+   "textures": {
+    "top": "crafting_table_top",
+    "side": "crafting_table_side",
+    "north": "crafting_table_front",
+    "bottom": "oak_planks"
+   },
+   "material": "wood",
+   "hardness": 2.5,
+   "tool": "axe",
+   "min_tier": 0,
+   "station": "crafting_table",
+   "interactive": true
+  },
+  {
+   "id": "furnace",
+   "name": "Furnace",
+   "shape": "cube",
+   "textures": {
+    "top": "furnace_top",
+    "side": "furnace_side",
+    "north": "furnace_front",
+    "bottom": "furnace_top"
+   },
+   "material": "stone",
+   "hardness": 3.5,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "station": "furnace",
+   "interactive": true,
+   "rotatable": true
+  },
+  {
+   "id": "furnace_lit",
+   "name": "Lit Furnace",
+   "shape": "cube",
+   "textures": {
+    "top": "furnace_top",
+    "side": "furnace_side",
+    "north": "furnace_front_on",
+    "bottom": "furnace_top"
+   },
+   "material": "stone",
+   "hardness": 3.5,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "station": "furnace",
+   "interactive": true,
+   "light": 13,
+   "rotatable": true,
+   "drops": [
+    {
+     "item": "furnace",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "chest",
+   "name": "Chest",
+   "shape": "cube",
+   "textures": {
+    "top": "chest_top",
+    "side": "chest_side",
+    "north": "chest_front",
+    "bottom": "chest_top"
+   },
+   "material": "wood",
+   "hardness": 2.5,
+   "tool": "axe",
+   "min_tier": 0,
+   "container": 27,
+   "interactive": true,
+   "rotatable": true
+  },
+  {
+   "id": "hay_block",
+   "name": "Hay Bale",
+   "shape": "cube",
+   "textures": {
+    "top": "hay_block_top",
+    "side": "hay_block_side",
+    "bottom": "hay_block_top"
+   },
+   "material": "cloth",
+   "hardness": 0.5,
+   "tool": "hoe",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "melon",
+   "name": "Melon",
+   "shape": "cube",
+   "textures": {
+    "top": "melon_top0",
+    "side": "melon_side",
+    "bottom": "melon_top0"
+   },
+   "material": "plant",
+   "hardness": 1.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "melon_slice",
+     "count": 5
+    }
+   ]
+  },
+  {
+   "id": "pumpkin",
+   "name": "Pumpkin",
+   "shape": "cube",
+   "textures": {
+    "top": "pumpkin_top0",
+    "side": "pumpkin_side",
+    "north": "pumpkin_face",
+    "bottom": "pumpkin_top0"
+   },
+   "material": "plant",
+   "hardness": 1.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "rotatable": true
+  },
+  {
+   "id": "cactus",
+   "name": "Cactus",
+   "shape": "cactus",
+   "textures": {
+    "side": "cactus_side",
+    "top": "cactus_top",
+    "bottom": "cactus_top"
+   },
+   "material": "plant",
+   "hardness": 0.4,
+   "tool": "none",
+   "damage": 1,
+   "plant": {
+    "needs": [
+     "sand",
+     "red_sand",
+     "vampa_sand",
+     "cereal_sand"
+    ]
+   }
+  },
+  {
+   "id": "sugar_cane",
+   "name": "Sugar Cane",
+   "shape": "cross",
+   "textures": {
+    "all": "reeds"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "sand",
+     "sugar_cane",
+     "namek_grass_block"
+    ]
+   }
+  },
+  {
+   "id": "glass",
+   "name": "Glass",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "glass"
+   },
+   "material": "glass",
+   "hardness": 0.3,
+   "drops": []
+  },
+  {
+   "id": "white_stained_glass",
+   "name": "White Stained Glass",
+   "shape": "translucent_cube",
+   "textures": {
+    "all": "glass_white"
+   },
+   "material": "glass",
+   "hardness": 0.3,
+   "drops": []
+  },
+  {
+   "id": "blue_stained_glass",
+   "name": "Blue Stained Glass",
+   "shape": "translucent_cube",
+   "textures": {
+    "all": "glass_blue"
+   },
+   "material": "glass",
+   "hardness": 0.3,
+   "drops": []
+  },
+  {
+   "id": "light_blue_stained_glass",
+   "name": "Light Blue Stained Glass",
+   "shape": "translucent_cube",
+   "textures": {
+    "all": "glass_light_blue"
+   },
+   "material": "glass",
+   "hardness": 0.3,
+   "drops": []
+  },
+  {
+   "id": "yellow_stained_glass",
+   "name": "Yellow Stained Glass",
+   "shape": "translucent_cube",
+   "textures": {
+    "all": "glass_yellow"
+   },
+   "material": "glass",
+   "hardness": 0.3,
+   "drops": []
+  },
+  {
+   "id": "red_stained_glass",
+   "name": "Red Stained Glass",
+   "shape": "translucent_cube",
+   "textures": {
+    "all": "glass_red"
+   },
+   "material": "glass",
+   "hardness": 0.3,
+   "drops": []
+  },
+  {
+   "id": "torch",
+   "name": "Torch",
+   "shape": "torch",
+   "textures": {
+    "all": "torch_on"
+   },
+   "material": "wood",
+   "hardness": 0.0,
+   "tool": "none",
+   "light": 14
+  },
+  {
+   "id": "lantern",
+   "name": "Lantern",
+   "shape": "torch",
+   "textures": {
+    "all": "lantern"
+   },
+   "material": "metal",
+   "hardness": 3.5,
+   "light": 15,
+   "animated": {
+    "frames": 3,
+    "fps": 6
+   }
+  },
+  {
+   "id": "ladder",
+   "name": "Ladder",
+   "shape": "ladder",
+   "textures": {
+    "all": "ladder"
+   },
+   "material": "wood",
+   "hardness": 0.4,
+   "tool": "axe"
+  },
+  {
+   "id": "iron_bars",
+   "name": "Iron Bars",
+   "shape": "fence",
+   "textures": {
+    "all": "iron_bars"
+   },
+   "material": "metal",
+   "hardness": 5.0,
+   "min_tier": 2
+  },
+  {
+   "id": "short_grass",
+   "name": "Grass",
+   "shape": "cross",
+   "textures": {
+    "all": "tallgrass0"
+   },
+   "variants": [
+    "tallgrass0",
+    "tallgrass1",
+    "tallgrass2",
+    "tallgrass3",
+    "tallgrass4",
+    "tallgrass5",
+    "tallgrass6"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "tint": "grass",
+   "drops": [
+    {
+     "item": "wheat_seeds",
+     "count": 1,
+     "chance": 0.125
+    }
+   ],
+   "replaceable": true
+  },
+  {
+   "id": "fern",
+   "name": "Fern",
+   "shape": "cross",
+   "textures": {
+    "all": "fern0"
+   },
+   "variants": [
+    "fern0",
+    "fern1",
+    "fern2",
+    "fern3"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "tint": "grass",
+   "replaceable": true
+  },
+  {
+   "id": "dead_bush",
+   "name": "Dead Bush",
+   "shape": "cross",
+   "textures": {
+    "all": "deadbush0"
+   },
+   "variants": [
+    "deadbush0",
+    "deadbush1",
+    "deadbush2",
+    "deadbush3",
+    "deadbush4"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "drops": [
+    {
+     "item": "stick",
+     "count": 1,
+     "chance": 0.5
+    }
+   ],
+   "replaceable": true
+  },
+  {
+   "id": "dandelion",
+   "name": "Dandelion",
+   "shape": "cross",
+   "textures": {
+    "all": "flower_dandelion0"
+   },
+   "variants": [
+    "flower_dandelion0",
+    "flower_dandelion1",
+    "flower_dandelion2",
+    "flower_dandelion3"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "poppy",
+   "name": "Poppy",
+   "shape": "cross",
+   "textures": {
+    "all": "flower_rose0"
+   },
+   "variants": [
+    "flower_rose0",
+    "flower_rose1",
+    "flower_rose2",
+    "flower_rose3"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "blue_orchid",
+   "name": "Blue Orchid",
+   "shape": "cross",
+   "textures": {
+    "all": "flower_blue_orchid0"
+   },
+   "variants": [
+    "flower_blue_orchid0",
+    "flower_blue_orchid1",
+    "flower_blue_orchid2",
+    "flower_blue_orchid3"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "allium",
+   "name": "Allium",
+   "shape": "cross",
+   "textures": {
+    "all": "flower_allium0"
+   },
+   "variants": [
+    "flower_allium0",
+    "flower_allium1",
+    "flower_allium2",
+    "flower_allium3"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "azure_bluet",
+   "name": "Azure Bluet",
+   "shape": "cross",
+   "textures": {
+    "all": "flower_houstonia0"
+   },
+   "variants": [
+    "flower_houstonia0",
+    "flower_houstonia1",
+    "flower_houstonia2",
+    "flower_houstonia3"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "red_tulip",
+   "name": "Red Tulip",
+   "shape": "cross",
+   "textures": {
+    "all": "flower_tulip_red0"
+   },
+   "variants": [
+    "flower_tulip_red0",
+    "flower_tulip_red1",
+    "flower_tulip_red2",
+    "flower_tulip_red3"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "orange_tulip",
+   "name": "Orange Tulip",
+   "shape": "cross",
+   "textures": {
+    "all": "flower_tulip_orange0"
+   },
+   "variants": [
+    "flower_tulip_orange0",
+    "flower_tulip_orange1",
+    "flower_tulip_orange2",
+    "flower_tulip_orange3"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "oxeye_daisy",
+   "name": "Oxeye Daisy",
+   "shape": "cross",
+   "textures": {
+    "all": "flower_oxeye_daisy0"
+   },
+   "variants": [
+    "flower_oxeye_daisy0",
+    "flower_oxeye_daisy1",
+    "flower_oxeye_daisy2",
+    "flower_oxeye_daisy3"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "cornflower",
+   "name": "Cornflower",
+   "shape": "cross",
+   "textures": {
+    "all": "flower_cornflower0"
+   },
+   "variants": [
+    "flower_cornflower0",
+    "flower_cornflower1",
+    "flower_cornflower2",
+    "flower_cornflower3"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "sunflower",
+   "name": "Sunflower",
+   "shape": "cross",
+   "textures": {
+    "all": "sunflower_bottom0",
+    "top": "sunflower_top0"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "tint": "none",
+   "double": true,
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol"
+    ]
+   }
+  },
+  {
+   "id": "lilac",
+   "name": "Lilac",
+   "shape": "cross",
+   "textures": {
+    "all": "lilac_bottom0",
+    "top": "lilac_top0"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "tint": "none",
+   "double": true,
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol"
+    ]
+   }
+  },
+  {
+   "id": "rose_bush",
+   "name": "Rose Bush",
+   "shape": "cross",
+   "textures": {
+    "all": "rose_bottom0",
+    "top": "rose_top0"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "tint": "none",
+   "double": true,
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol"
+    ]
+   }
+  },
+  {
+   "id": "tall_grass",
+   "name": "Tall Grass",
+   "shape": "cross",
+   "textures": {
+    "all": "large_grass_bottom0",
+    "top": "large_grass_top0"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "tint": "grass",
+   "double": true,
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol"
+    ]
+   }
+  },
+  {
+   "id": "large_fern",
+   "name": "Large Fern",
+   "shape": "cross",
+   "textures": {
+    "all": "large_fern_bottom0",
+    "top": "large_fern_top0"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "tint": "grass",
+   "double": true,
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol"
+    ]
+   }
+  },
+  {
+   "id": "brown_mushroom",
+   "name": "Brown Mushroom",
+   "shape": "cross",
+   "textures": {
+    "all": "mushroom_brown0"
+   },
+   "variants": [
+    "mushroom_brown0",
+    "mushroom_brown1",
+    "mushroom_brown2",
+    "mushroom_brown3"
+   ],
+   "light": 1,
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "red_mushroom",
+   "name": "Red Mushroom",
+   "shape": "cross",
+   "textures": {
+    "all": "mushroom_red0"
+   },
+   "variants": [
+    "mushroom_red0",
+    "mushroom_red1",
+    "mushroom_red2",
+    "mushroom_red3"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "wheat",
+   "name": "Wheat",
+   "shape": "crop",
+   "textures": {
+    "all": "wheat0"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "farmland",
+     "farmland_wet"
+    ],
+    "growth_stages": 4,
+    "stage_textures": [
+     "wheat0",
+     "wheat1",
+     "wheat2",
+     "wheat3"
+    ],
+    "seed": "wheat_seeds",
+    "produce": "wheat"
+   },
+   "drops": [
+    {
+     "item": "wheat_seeds",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "carrots",
+   "name": "Carrots",
+   "shape": "crop",
+   "textures": {
+    "all": "carrots0"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "farmland",
+     "farmland_wet"
+    ],
+    "growth_stages": 3,
+    "stage_textures": [
+     "carrots0",
+     "carrots1",
+     "carrots2"
+    ],
+    "seed": "carrot",
+    "produce": "carrot"
+   },
+   "drops": [
+    {
+     "item": "carrot",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "potatoes",
+   "name": "Potatoes",
+   "shape": "crop",
+   "textures": {
+    "all": "potatoes0"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "farmland",
+     "farmland_wet"
+    ],
+    "growth_stages": 3,
+    "stage_textures": [
+     "potatoes0",
+     "potatoes1",
+     "potatoes2"
+    ],
+    "seed": "potato",
+    "produce": "potato"
+   },
+   "drops": [
+    {
+     "item": "potato",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "beetroots",
+   "name": "Beetroots",
+   "shape": "crop",
+   "textures": {
+    "all": "beetroots0"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "farmland",
+     "farmland_wet"
+    ],
+    "growth_stages": 3,
+    "stage_textures": [
+     "beetroots0",
+     "beetroots1",
+     "beetroots2"
+    ],
+    "seed": "beetroot_seeds",
+    "produce": "beetroot"
+   },
+   "drops": [
+    {
+     "item": "beetroot_seeds",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "vine",
+   "name": "Vines",
+   "shape": "ladder",
+   "textures": {
+    "all": "vine0"
+   },
+   "variants": [
+    "vine0",
+    "vine1",
+    "vine2",
+    "vine3",
+    "vine4",
+    "vine5",
+    "vine6"
+   ],
+   "material": "plant",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "foliage",
+   "drops": [],
+   "climbable": true
+  },
+  {
+   "id": "lily_pad",
+   "name": "Lily Pad",
+   "shape": "waterlily",
+   "textures": {
+    "all": "waterlily0"
+   },
+   "variants": [
+    "waterlily0",
+    "waterlily1",
+    "waterlily2",
+    "waterlily3",
+    "waterlily4",
+    "waterlily5",
+    "waterlily6",
+    "waterlily7"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "tint": "foliage",
+   "plant": {
+    "needs": [
+     "water"
+    ]
+   }
+  },
+  {
+   "id": "white_wool",
+   "name": "White Wool",
+   "shape": "cube",
+   "textures": {
+    "all": "wool_white"
+   },
+   "material": "cloth",
+   "hardness": 0.8,
+   "tool": "none",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "red_wool",
+   "name": "Red Wool",
+   "shape": "cube",
+   "textures": {
+    "all": "wool_red"
+   },
+   "material": "cloth",
+   "hardness": 0.8,
+   "tool": "none",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "orange_wool",
+   "name": "Orange Wool",
+   "shape": "cube",
+   "textures": {
+    "all": "wool_orange"
+   },
+   "material": "cloth",
+   "hardness": 0.8,
+   "tool": "none",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "yellow_wool",
+   "name": "Yellow Wool",
+   "shape": "cube",
+   "textures": {
+    "all": "wool_yellow"
+   },
+   "material": "cloth",
+   "hardness": 0.8,
+   "tool": "none",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "blue_wool",
+   "name": "Blue Wool",
+   "shape": "cube",
+   "textures": {
+    "all": "wool_blue"
+   },
+   "material": "cloth",
+   "hardness": 0.8,
+   "tool": "none",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "black_wool",
+   "name": "Black Wool",
+   "shape": "cube",
+   "textures": {
+    "all": "wool_black"
+   },
+   "material": "cloth",
+   "hardness": 0.8,
+   "tool": "none",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "white_concrete",
+   "name": "White Concrete",
+   "shape": "cube",
+   "textures": {
+    "all": "concrete_white"
+   },
+   "material": "stone",
+   "hardness": 1.8,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "yellow_concrete",
+   "name": "Yellow Concrete",
+   "shape": "cube",
+   "textures": {
+    "all": "concrete_yellow"
+   },
+   "material": "stone",
+   "hardness": 1.8,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "light_blue_concrete",
+   "name": "Light Blue Concrete",
+   "shape": "cube",
+   "textures": {
+    "all": "concrete_light_blue"
+   },
+   "material": "stone",
+   "hardness": 1.8,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "orange_concrete",
+   "name": "Orange Concrete",
+   "shape": "cube",
+   "textures": {
+    "all": "concrete_orange"
+   },
+   "material": "stone",
+   "hardness": 1.8,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "red_concrete",
+   "name": "Red Concrete",
+   "shape": "cube",
+   "textures": {
+    "all": "concrete_red"
+   },
+   "material": "stone",
+   "hardness": 1.8,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "black_concrete",
+   "name": "Black Concrete",
+   "shape": "cube",
+   "textures": {
+    "all": "concrete_black"
+   },
+   "material": "stone",
+   "hardness": 1.8,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "orange_terracotta",
+   "name": "Orange Terracotta",
+   "shape": "cube",
+   "textures": {
+    "all": "terracotta_orange"
+   },
+   "material": "stone",
+   "hardness": 1.25,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "brown_terracotta",
+   "name": "Brown Terracotta",
+   "shape": "cube",
+   "textures": {
+    "all": "terracotta_brown"
+   },
+   "material": "stone",
+   "hardness": 1.25,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "white_terracotta",
+   "name": "White Terracotta",
+   "shape": "cube",
+   "textures": {
+    "all": "terracotta_white"
+   },
+   "material": "stone",
+   "hardness": 1.25,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "red_terracotta",
+   "name": "Red Terracotta",
+   "shape": "cube",
+   "textures": {
+    "all": "terracotta_red"
+   },
+   "material": "stone",
+   "hardness": 1.25,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "yellow_terracotta",
+   "name": "Yellow Terracotta",
+   "shape": "cube",
+   "textures": {
+    "all": "terracotta_yellow"
+   },
+   "material": "stone",
+   "hardness": 1.25,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "terracotta",
+   "name": "Terracotta",
+   "shape": "cube",
+   "textures": {
+    "all": "terracotta"
+   },
+   "material": "stone",
+   "hardness": 1.25,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "quartz_block",
+   "name": "Block of Quartz",
+   "shape": "cube",
+   "textures": {
+    "side": "quartz_side",
+    "top": "quartz_top",
+    "bottom": "quartz_top"
+   },
+   "material": "stone",
+   "hardness": 0.8,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "smooth_stone",
+   "name": "Smooth Stone",
+   "shape": "cube",
+   "textures": {
+    "all": "smooth_stone"
+   },
+   "material": "stone",
+   "hardness": 2.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "stone_slab",
+   "name": "Stone Slab",
+   "shape": "slab_bottom",
+   "textures": {
+    "all": "smooth_stone"
+   },
+   "material": "stone",
+   "hardness": 2.0,
+   "tool": "pickaxe"
+  },
+  {
+   "id": "oak_slab",
+   "name": "Oak Slab",
+   "shape": "slab_bottom",
+   "textures": {
+    "all": "oak_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe"
+  },
+  {
+   "id": "bone_block",
+   "name": "Bone Block",
+   "shape": "cube",
+   "textures": {
+    "side": "bone_block_side",
+    "top": "bone_block_top",
+    "bottom": "bone_block_top"
+   },
+   "material": "stone",
+   "hardness": 2.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "glowstone",
+   "name": "Glowstone",
+   "shape": "cube",
+   "textures": {
+    "all": "glowstone"
+   },
+   "material": "glass",
+   "hardness": 0.3,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "light": 15,
+   "drops": [
+    {
+     "item": "glowstone_dust",
+     "count": 3
+    }
+   ]
+  },
+  {
+   "id": "namek_grass_block",
+   "name": "Namek Grass Block",
+   "shape": "cube",
+   "textures": {
+    "top": "namek_grass_block_top",
+    "side": "namek_grass_block_side",
+    "bottom": "namek_grass_block_down"
+   },
+   "material": "earth",
+   "hardness": 0.6,
+   "tool": "shovel",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "namek_dirt",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "namek_dirt",
+   "name": "Namek Dirt",
+   "shape": "cube",
+   "textures": {
+    "all": "namek_dirt"
+   },
+   "material": "earth",
+   "hardness": 0.5,
+   "tool": "shovel",
+   "min_tier": 0
+  },
+  {
+   "id": "namek_stone",
+   "name": "Namek Stone",
+   "shape": "cube",
+   "textures": {
+    "all": "namek_stone"
+   },
+   "material": "stone",
+   "hardness": 1.5,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "namek_cobblestone",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "namek_cobblestone",
+   "name": "Namek Cobblestone",
+   "shape": "cube",
+   "textures": {
+    "all": "namek_cobblestone"
+   },
+   "material": "stone",
+   "hardness": 2.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "namek_deepslate",
+   "name": "Namek Deepslate",
+   "shape": "cube",
+   "textures": {
+    "side": "namek_deepslate",
+    "top": "namek_deepslate_top",
+    "bottom": "namek_deepslate_top"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "namek_block",
+   "name": "Planet Namek Block",
+   "shape": "cube",
+   "textures": {
+    "all": "namek_block"
+   },
+   "material": "stone",
+   "hardness": 2.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "namek_coal_ore",
+   "name": "Namek Coal Ore",
+   "shape": "cube",
+   "textures": {
+    "all": "namek_coal_ore"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 1,
+   "drops": [
+    {
+     "item": "coal",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "namek_iron_ore",
+   "name": "Namek Iron Ore",
+   "shape": "cube",
+   "textures": {
+    "all": "namek_iron_ore"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 2,
+   "drops": [
+    {
+     "item": "raw_iron",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "namek_gold_ore",
+   "name": "Namek Gold Ore",
+   "shape": "cube",
+   "textures": {
+    "all": "namek_gold_ore"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 3,
+   "drops": [
+    {
+     "item": "raw_gold",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "namek_diamond_ore",
+   "name": "Namek Diamond Ore",
+   "shape": "cube",
+   "textures": {
+    "all": "namek_diamond_ore"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 3,
+   "drops": [
+    {
+     "item": "diamond",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "namek_kikono_ore",
+   "name": "Namek Kikono Ore",
+   "shape": "cube",
+   "textures": {
+    "all": "namek_kikono_ore"
+   },
+   "material": "stone",
+   "hardness": 4.0,
+   "tool": "pickaxe",
+   "min_tier": 3,
+   "drops": [
+    {
+     "item": "kikono_shard",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "kikono_block",
+   "name": "Kikono Block",
+   "shape": "cube",
+   "textures": {
+    "all": "kikono_block"
+   },
+   "material": "metal",
+   "hardness": 5.0,
+   "tool": "pickaxe",
+   "min_tier": 3
+  },
+  {
+   "id": "ajissa_log",
+   "name": "Ajissa Log",
+   "shape": "cube",
+   "textures": {
+    "side": "namek_ajissa_log",
+    "top": "namek_ajissa_log_top",
+    "bottom": "namek_ajissa_log_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "ajissa_planks",
+   "name": "Ajissa Planks",
+   "shape": "cube",
+   "textures": {
+    "all": "namek_ajissa_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "ajissa_leaves",
+   "name": "Ajissa Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "namek_ajissa_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [
+    {
+     "item": "ajissa_sapling",
+     "count": 1,
+     "chance": 0.05
+    }
+   ],
+   "flammable": true
+  },
+  {
+   "id": "ajissa_sapling",
+   "name": "Ajissa Sapling",
+   "shape": "cross",
+   "textures": {
+    "all": "namek_ajissa_sapling"
+   },
+   "sapling": "ajissa",
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "ajissa_fence",
+   "name": "Ajissa Fence",
+   "shape": "fence",
+   "textures": {
+    "all": "namek_ajissa_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe"
+  },
+  {
+   "id": "ajissa_door",
+   "name": "Ajissa Door",
+   "shape": "door",
+   "textures": {
+    "top": "namek_ajissa_door_top",
+    "bottom": "namek_ajissa_door_bottom"
+   },
+   "material": "wood",
+   "hardness": 3.0,
+   "tool": "axe"
+  },
+  {
+   "id": "namek_sacred_grass_block",
+   "name": "Namek Sacred Grass Block",
+   "shape": "cube",
+   "textures": {
+    "top": "namek_sacred_grass_block_top",
+    "side": "namek_sacred_grass_block_side",
+    "bottom": "namek_sacred_grass_block_down"
+   },
+   "material": "earth",
+   "hardness": 0.6,
+   "tool": "shovel",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "namek_dirt",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "sacred_log",
+   "name": "Sacred Log",
+   "shape": "cube",
+   "textures": {
+    "side": "namek_sacred_log",
+    "top": "namek_sacred_log_top",
+    "bottom": "namek_sacred_log_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "sacred_planks",
+   "name": "Sacred Planks",
+   "shape": "cube",
+   "textures": {
+    "all": "namek_sacred_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true
+  },
+  {
+   "id": "sacred_leaves",
+   "name": "Sacred Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "namek_sacred_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [
+    {
+     "item": "sacred_sapling",
+     "count": 1,
+     "chance": 0.05
+    }
+   ],
+   "flammable": true
+  },
+  {
+   "id": "sacred_sapling",
+   "name": "Sacred Sapling",
+   "shape": "cross",
+   "textures": {
+    "all": "namek_sacred_sapling"
+   },
+   "sapling": "sacred",
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "sacred_fence",
+   "name": "Sacred Fence",
+   "shape": "fence",
+   "textures": {
+    "all": "namek_sacred_planks"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe"
+  },
+  {
+   "id": "sacred_planet_grass_block",
+   "name": "Sacred Planet Grass Block",
+   "shape": "cube",
+   "textures": {
+    "top": "sacred_planet_grass_block_top",
+    "side": "sacred_planet_grass_block_side",
+    "bottom": "sacred_planet_grass_block_down"
+   },
+   "material": "earth",
+   "hardness": 0.6,
+   "tool": "shovel",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "dirt",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "rocky_stone",
+   "name": "Rocky Stone",
+   "shape": "cube",
+   "textures": {
+    "all": "rocky_stone"
+   },
+   "material": "stone",
+   "hardness": 1.5,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "rocky_cobblestone",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "rocky_cobblestone",
+   "name": "Rocky Cobblestone",
+   "shape": "cube",
+   "textures": {
+    "all": "rocky_cobblestone"
+   },
+   "material": "stone",
+   "hardness": 2.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "rocky_dirt",
+   "name": "Rocky Dirt",
+   "shape": "cube",
+   "textures": {
+    "all": "rocky_dirt"
+   },
+   "material": "earth",
+   "hardness": 0.5,
+   "tool": "shovel",
+   "min_tier": 0
+  },
+  {
+   "id": "namek_grass",
+   "name": "Namek Grass",
+   "shape": "cross",
+   "textures": {
+    "all": "namek_grass"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "replaceable": true
+  },
+  {
+   "id": "namek_fern",
+   "name": "Namek Fern",
+   "shape": "cross",
+   "textures": {
+    "all": "namek_fern"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "replaceable": true
+  },
+  {
+   "id": "namek_sacred_grass",
+   "name": "Namek Sacred Grass",
+   "shape": "cross",
+   "textures": {
+    "all": "namek_sacred_grass"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "replaceable": true
+  },
+  {
+   "id": "sacred_fern",
+   "name": "Sacred Fern",
+   "shape": "cross",
+   "textures": {
+    "all": "sacred_fern"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "replaceable": true
+  },
+  {
+   "id": "chrysanthemum_flower",
+   "name": "Chrysanthemum",
+   "shape": "cross",
+   "textures": {
+    "all": "chrysanthemum_flower"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "sacred_chrysanthemum_flower",
+   "name": "Sacred Chrysanthemum",
+   "shape": "cross",
+   "textures": {
+    "all": "sacred_chrysanthemum_flower"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "amaryllis_flower",
+   "name": "Amaryllis",
+   "shape": "cross",
+   "textures": {
+    "all": "amaryllis_flower"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "marigold_flower",
+   "name": "Marigold",
+   "shape": "cross",
+   "textures": {
+    "all": "marigold_flower"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "catharanthus_roseus_flower",
+   "name": "Catharanthus Roseus",
+   "shape": "cross",
+   "textures": {
+    "all": "catharanthus_roseus_flower"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "trillium_flower",
+   "name": "Trillium",
+   "shape": "cross",
+   "textures": {
+    "all": "trillium_flower"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "sacred_trillium_flower",
+   "name": "Sacred Trillium",
+   "shape": "cross",
+   "textures": {
+    "all": "sacred_trillium_flower"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
+  },
+  {
+   "id": "lotus_flower",
+   "name": "Lotus",
+   "shape": "waterlily",
+   "textures": {
+    "all": "lotus_flower0"
+   },
+   "variants": [
+    "lotus_flower0",
+    "lotus_flower1",
+    "lotus_flower2",
+    "lotus_flower3",
+    "lotus_flower4"
+   ],
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "water"
+    ]
+   }
+  },
+  {
+   "id": "otherworld_cloud",
+   "name": "Otherworld Cloud",
+   "shape": "cube",
+   "textures": {
+    "all": "otherworld_cloud"
+   },
+   "material": "cloud",
+   "hardness": 0.3,
+   "tool": "none",
+   "min_tier": 0
+  },
+  {
+   "id": "time_chamber_block",
+   "name": "Hyperbolic Time Chamber Block",
+   "shape": "cube",
+   "textures": {
+    "all": "time_chamber_block"
+   },
+   "material": "stone",
+   "hardness": -1,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "drops": []
+  },
+  {
+   "id": "time_chamber_portal",
+   "name": "Time Chamber Portal",
+   "shape": "cube",
+   "textures": {
+    "all": "time_chamber_portal"
+   },
+   "material": "special",
+   "hardness": -1,
+   "drops": [],
+   "light": 10,
+   "portal": "time_chamber",
+   "solid": false
+  },
+  {
+   "id": "gete_block",
+   "name": "Gete Block",
+   "shape": "cube",
+   "textures": {
+    "all": "gete_block"
+   },
+   "material": "metal",
+   "hardness": 6.0,
+   "tool": "pickaxe",
+   "min_tier": 3
+  },
+  {
+   "id": "gete_debris_ore",
+   "name": "Gete Debris",
+   "shape": "cube",
+   "textures": {
+    "side": "gete_debris_side",
+    "top": "gete_debris_top",
+    "bottom": "gete_debris_top"
+   },
+   "material": "stone",
+   "hardness": 4.0,
+   "tool": "pickaxe",
+   "min_tier": 3,
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "count": 2
+    }
+   ]
+  },
+  {
+   "id": "snake_way",
+   "name": "Snake Way Stone",
+   "shape": "cube",
+   "textures": {
+    "all": "snake_way"
+   },
+   "material": "stone",
+   "hardness": -1,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "drops": []
+  },
+  {
+   "id": "snake_way_edge",
+   "name": "Snake Way Edge",
+   "shape": "cube",
+   "textures": {
+    "all": "snake_way_edge"
+   },
+   "material": "stone",
+   "hardness": -1,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "drops": []
+  },
+  {
+   "id": "lookout_tile",
+   "name": "Lookout Tile",
+   "shape": "cube",
+   "textures": {
+    "all": "lookout_tile"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "check_in_wood",
+   "name": "Check-In Station Wood",
+   "shape": "cube",
+   "textures": {
+    "all": "check_in_wood"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0
+  },
+  {
+   "id": "vampa_sand",
+   "name": "Vampa Sand",
+   "shape": "cube",
+   "textures": {
+    "all": "vampa_sand"
+   },
+   "material": "sand",
+   "hardness": 0.5,
+   "tool": "shovel",
+   "min_tier": 0,
+   "gravity": true
+  },
+  {
+   "id": "vampa_rock",
+   "name": "Vampa Rock",
+   "shape": "cube",
+   "textures": {
+    "all": "vampa_rock"
+   },
+   "material": "stone",
+   "hardness": 1.5,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "cereal_sand",
+   "name": "Cereal Sand",
+   "shape": "cube",
+   "textures": {
+    "all": "cereal_sand"
+   },
+   "material": "sand",
+   "hardness": 0.5,
+   "tool": "shovel",
+   "min_tier": 0,
+   "gravity": true
+  },
+  {
+   "id": "cereal_rock",
+   "name": "Cereal Rock",
+   "shape": "cube",
+   "textures": {
+    "all": "cereal_rock"
+   },
+   "material": "stone",
+   "hardness": 1.5,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "hell_rock",
+   "name": "Hell Rock",
+   "shape": "cube",
+   "textures": {
+    "all": "hell_rock"
+   },
+   "material": "stone",
+   "hardness": 2.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "hell_rock_molten",
+   "name": "Molten Hell Rock",
+   "shape": "cube",
+   "textures": {
+    "all": "hell_rock_molten"
+   },
+   "material": "stone",
+   "hardness": 2.0,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "light": 8,
+   "damage": 1
+  },
+  {
+   "id": "heaven_grass_block",
+   "name": "Heaven Grass Block",
+   "shape": "cube",
+   "textures": {
+    "top": "heaven_grass_top",
+    "side": "heaven_grass_side",
+    "bottom": "heaven_dirt"
+   },
+   "material": "earth",
+   "hardness": 0.6,
+   "tool": "shovel",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "heaven_dirt",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "heaven_dirt",
+   "name": "Heaven Dirt",
+   "shape": "cube",
+   "textures": {
+    "all": "heaven_dirt"
+   },
+   "material": "earth",
+   "hardness": 0.5,
+   "tool": "shovel",
+   "min_tier": 0
+  },
+  {
+   "id": "heaven_cloud",
+   "name": "Heaven Cloud",
+   "shape": "cube",
+   "textures": {
+    "all": "heaven_cloud"
+   },
+   "material": "cloud",
+   "hardness": 0.3,
+   "tool": "none",
+   "min_tier": 0
+  },
+  {
+   "id": "yardrat_grass_block",
+   "name": "Yardrat Grass Block",
+   "shape": "cube",
+   "textures": {
+    "top": "yardrat_grass_top",
+    "side": "yardrat_grass_side",
+    "bottom": "yardrat_dirt"
+   },
+   "material": "earth",
+   "hardness": 0.6,
+   "tool": "shovel",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "yardrat_dirt",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "yardrat_dirt",
+   "name": "Yardrat Dirt",
+   "shape": "cube",
+   "textures": {
+    "all": "yardrat_dirt"
+   },
+   "material": "earth",
+   "hardness": 0.5,
+   "tool": "shovel",
+   "min_tier": 0
+  },
+  {
+   "id": "yardrat_stone",
+   "name": "Yardrat Stone",
+   "shape": "cube",
+   "textures": {
+    "all": "yardrat_stone"
+   },
+   "material": "stone",
+   "hardness": 1.5,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "yardrat_grass",
+   "name": "Yardrat Grass",
+   "shape": "cross",
+   "textures": {
+    "all": "yardrat_grass"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "replaceable": true
+  },
+  {
+   "id": "vegeta_red_sand",
+   "name": "Vegeta Red Sand",
+   "shape": "cube",
+   "textures": {
+    "all": "vegeta_red_sand"
+   },
+   "material": "sand",
+   "hardness": 0.5,
+   "tool": "shovel",
+   "min_tier": 0,
+   "gravity": true
+  },
+  {
+   "id": "asteroid_rock",
+   "name": "Asteroid Rock",
+   "shape": "cube",
+   "textures": {
+    "all": "asteroid_rock"
+   },
+   "material": "stone",
+   "hardness": 2.5,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "space_metal",
+   "name": "Space Metal Plating",
+   "shape": "cube",
+   "textures": {
+    "all": "space_metal"
+   },
+   "material": "metal",
+   "hardness": 5.0,
+   "tool": "pickaxe",
+   "min_tier": 2
+  },
+  {
+   "id": "kai_grass_block",
+   "name": "Kai Grass Block",
+   "shape": "cube",
+   "textures": {
+    "top": "kai_grass_top",
+    "side": "kai_grass_side",
+    "bottom": "dirt0"
+   },
+   "material": "earth",
+   "hardness": 0.6,
+   "tool": "shovel",
+   "min_tier": 0,
+   "drops": [
+    {
+     "item": "dirt",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "id": "training_post",
+   "name": "Training Post",
+   "shape": "cube",
+   "textures": {
+    "all": "training_post"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "interactive": true,
+   "station": "training"
+  },
+  {
+   "id": "gravity_device",
+   "name": "Gravity Device",
+   "shape": "cube",
+   "textures": {
+    "side": "gravity_device_side",
+    "top": "gravity_device_top",
+    "bottom": "space_metal"
+   },
+   "material": "metal",
+   "hardness": 5.0,
+   "tool": "pickaxe",
+   "min_tier": 2,
+   "interactive": true,
+   "station": "gravity"
+  },
+  {
+   "id": "kikono_station",
+   "name": "Dr. Kikono's Station",
+   "shape": "cube",
+   "textures": {
+    "side": "kikono_station_side",
+    "top": "kikono_station_top",
+    "bottom": "space_metal"
+   },
+   "material": "metal",
+   "hardness": 5.0,
+   "tool": "pickaxe",
+   "min_tier": 2,
+   "interactive": true,
+   "station": "kikono_station"
+  },
+  {
+   "id": "gete_forge",
+   "name": "Gete Forge",
+   "shape": "cube",
+   "textures": {
+    "side": "gete_forge_side",
+    "top": "gete_forge_top",
+    "bottom": "space_metal"
+   },
+   "material": "metal",
+   "hardness": 5.0,
+   "tool": "pickaxe",
+   "min_tier": 3,
+   "interactive": true,
+   "station": "gete_forge",
+   "light": 6
+  },
+  {
+   "id": "capsule_corp_wall",
+   "name": "Capsule Corp Wall",
+   "shape": "cube",
+   "textures": {
+    "all": "capsule_corp_wall"
+   },
+   "material": "stone",
+   "hardness": 2.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "capsule_corp_logo",
+   "name": "Capsule Corp Logo",
+   "shape": "cube",
+   "textures": {
+    "side": "capsule_corp_wall",
+    "north": "capsule_corp_logo",
+    "top": "capsule_corp_wall",
+    "bottom": "capsule_corp_wall"
+   },
+   "material": "stone",
+   "hardness": 2.0,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "rotatable": true
+  },
+  {
+   "id": "kame_house_wall",
+   "name": "Kame House Wall",
+   "shape": "cube",
+   "textures": {
+    "all": "kame_house_wall"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0
+  },
+  {
+   "id": "kame_house_roof",
+   "name": "Kame House Roof",
+   "shape": "cube",
+   "textures": {
+    "all": "kame_house_roof"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0
+  },
+  {
+   "id": "frieza_ship_hull",
+   "name": "Frieza Ship Hull",
+   "shape": "cube",
+   "textures": {
+    "all": "frieza_ship_hull"
+   },
+   "material": "metal",
+   "hardness": 8.0,
+   "tool": "pickaxe",
+   "min_tier": 3
+  },
+  {
+   "id": "frieza_ship_light",
+   "name": "Frieza Ship Light",
+   "shape": "cube",
+   "textures": {
+    "all": "frieza_ship_light"
+   },
+   "material": "metal",
+   "hardness": 8.0,
+   "tool": "pickaxe",
+   "min_tier": 3,
+   "light": 13
+  },
+  {
+   "id": "cell_arena_tile",
+   "name": "Cell Games Tile",
+   "shape": "cube",
+   "textures": {
+    "all": "cell_arena_tile"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "cell_arena_pillar",
+   "name": "Cell Games Pillar",
+   "shape": "cube",
+   "textures": {
+    "all": "cell_arena_pillar"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "korin_tower_block",
+   "name": "Korin Tower Block",
+   "shape": "cube",
+   "textures": {
+    "all": "korin_tower_block"
+   },
+   "material": "stone",
+   "hardness": -1,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "drops": []
+  },
+  {
+   "id": "rr_metal",
+   "name": "Red Ribbon Metal",
+   "shape": "cube",
+   "textures": {
+    "all": "rr_metal"
+   },
+   "material": "metal",
+   "hardness": 5.0,
+   "tool": "pickaxe",
+   "min_tier": 2
+  },
+  {
+   "id": "lab_tile",
+   "name": "Lab Tile",
+   "shape": "cube",
+   "textures": {
+    "all": "lab_tile"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "babidi_stone",
+   "name": "Babidi Ship Stone",
+   "shape": "cube",
+   "textures": {
+    "all": "babidi_stone"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "babidi_stone_glyph",
+   "name": "Babidi Glyph Stone",
+   "shape": "cube",
+   "textures": {
+    "all": "babidi_stone_glyph"
+   },
+   "material": "stone",
+   "hardness": 3.0,
+   "tool": "pickaxe",
+   "min_tier": 0,
+   "light": 4
+  },
+  {
+   "id": "king_kai_house_wall",
+   "name": "King Kai House Wall",
+   "shape": "cube",
+   "textures": {
+    "all": "king_kai_house_wall"
+   },
+   "material": "stone",
+   "hardness": 2.0,
+   "tool": "pickaxe",
+   "min_tier": 0
+  },
+  {
+   "id": "halo_light",
+   "name": "Halo Light",
+   "shape": "cube",
+   "textures": {
+    "all": "halo_light"
+   },
+   "material": "glass",
+   "hardness": 0.5,
+   "tool": "none",
+   "light": 15
+  },
+  {
+   "id": "ki_barrier",
+   "name": "Ki Barrier",
+   "shape": "translucent_cube",
+   "textures": {
+    "all": "ki_barrier"
+   },
+   "material": "special",
+   "hardness": -1,
+   "drops": [],
+   "light": 6
+  },
+  {
+   "id": "dragon_ball_altar",
+   "name": "Dragon Ball Altar",
+   "shape": "cube",
+   "textures": {
+    "side": "dragon_ball_altar_side",
+    "top": "dragon_ball_altar_top",
+    "bottom": "smooth_stone"
+   },
+   "material": "stone",
+   "hardness": 4.0,
+   "tool": "pickaxe",
+   "interactive": true,
+   "station": "altar"
+  }
+ ]
+}
