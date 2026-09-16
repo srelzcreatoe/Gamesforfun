@@ -80,7 +80,7 @@ void fragment() {
 	vec3 lit = sun_color * (1.35 + 1.1 * rim);
 	lit = mix(lit, sunset_color * 2.2 + sun_color * 0.4, dusk * 0.8);
 	vec3 shade = mix(ambient_color * 1.2, horizon_color * 0.55, 0.45);
-	shade = mix(shade, night_color * 3.0 + ambient_color, 1.0 - daylight);
+	shade = mix(shade, night_color * 2.0 + ambient_color * 0.55, 1.0 - daylight);
 	vec3 col = mix(shade, lit, toward_light * (0.25 + 0.75 * daylight));
 	col *= cloud_tint;
 	// storms: grey, dark, flat
@@ -89,7 +89,7 @@ void fragment() {
 	col *= 1.0 - 0.55 * weather_darkness;
 	// night clouds keep a hint of the sky behind them
 	col += sky_color(normalize(vec3(flat_off.x, 60.0, flat_off.y)), sun_dir, day_color, horizon_color,
-			night_color, sunset_color, weather_darkness) * 0.25 * (1.0 - daylight);
+			night_color, sunset_color, weather_darkness) * 0.12 * (1.0 - daylight);
 
 	// --- alpha: coverage, distance fade, grazing-angle fade ---------------------------------
 	float a = density * layer_opacity;

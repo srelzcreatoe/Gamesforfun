@@ -51,6 +51,8 @@ var texture_size := Vector2i(64, 64)
 var bounds_size := Vector2(2.0, 2.0)            # visible_bounds_width/height (metres)
 var bounds_offset := Vector3(0.0, 1.0, 0.0)     # visible_bounds_offset (metres)
 var bones: Dictionary = {}                      # name -> Node3D
+var pivots: Dictionary = {}                     # name -> absolute pivot (godot model units)
+var nested := false                             # true when parented inside another model
 var bone_order: PackedStringArray = PackedStringArray()
 var rest_position: Dictionary = {}              # name -> Vector3 (model units)
 var rest_rotation: Dictionary = {}              # name -> Vector3 (degrees)
@@ -112,7 +114,7 @@ func load_geo(path_rel: String) -> bool:
 	_ensure_materials()
 	var bone_list: Array = geo.get("bones", [])
 	# pivots in godot model space, needed to make child transforms relative
-	var pivots: Dictionary = {}
+	pivots.clear()
 	for b in bone_list:
 		if b is Dictionary:
 			pivots[String(b.get("name", ""))] = to_godot(b.get("pivot", [0, 0, 0]))
@@ -188,6 +190,7 @@ func _clear() -> void:
 	rest_rotation.clear()
 	locators.clear()
 	meshes.clear()
+	pivots.clear()
 
 func _ensure_materials() -> void:
 	if material != null:
@@ -229,13 +232,44 @@ static func to_godot(v: Variant) -> Vector3:
 	return Vector3(-b.x, b.y, b.z)
 
 ## Bedrock euler degrees -> Basis, composed Rz * Ry * Rx like Bedrock/GeckoLib.
+## Written out by hand (6 trig calls, single-axis fast paths) because this runs
+## for every animated bone every frame.
 static func bedrock_basis(deg: Vector3) -> Basis:
-	if deg == Vector3.ZERO:
-		return Basis()
-	var b := Basis(Vector3(0, 0, 1), deg_to_rad(deg.z))
-	b = b * Basis(Vector3(0, 1, 0), deg_to_rad(deg.y))
-	b = b * Basis(Vector3(1, 0, 0), deg_to_rad(deg.x))
-	return b
+	var x := deg.x
+	var y := deg.y
+	var z := deg.z
+	if x == 0.0:
+		if y == 0.0:
+			if z == 0.0:
+				return Basis()
+			var rz := z * 0.017453292519943295
+			var cz := cos(rz)
+			var sz := sin(rz)
+			return Basis(Vector3(cz, sz, 0.0), Vector3(-sz, cz, 0.0), Vector3(0.0, 0.0, 1.0))
+		elif z == 0.0:
+			var ry := y * 0.017453292519943295
+			var cy := cos(ry)
+			var sy := sin(ry)
+			return Basis(Vector3(cy, 0.0, -sy), Vector3(0.0, 1.0, 0.0), Vector3(sy, 0.0, cy))
+	elif y == 0.0 and z == 0.0:
+		var rx := x * 0.017453292519943295
+		var cx := cos(rx)
+		var sx := sin(rx)
+		return Basis(Vector3(1.0, 0.0, 0.0), Vector3(0.0, cx, sx), Vector3(0.0, -sx, cx))
+	var a := x * 0.017453292519943295
+	var b := y * 0.017453292519943295
+	var c := z * 0.017453292519943295
+	var ca := cos(a)
+	var sa := sin(a)
+	var cb := cos(b)
+	var sb := sin(b)
+	var cc := cos(c)
+	var sc := sin(c)
+	# columns of Rz(c) * Ry(b) * Rx(a)
+	return Basis(
+		Vector3(cc * cb, sc * cb, -sb),
+		Vector3(cc * sb * sa - sc * ca, sc * sb * sa + cc * ca, cb * sa),
+		Vector3(cc * sb * ca + sc * sa, sc * sb * ca - cc * sa, cb * ca))
 
 # --- mesh building -------------------------------------------------------------
 
@@ -390,7 +424,13 @@ static func _add_quad(st: SurfaceTool, p: Array, uvs: Array, n: Vector3) -> bool
 
 func set_model_scale(s: float) -> void:
 	model_scale = s
-	scale = Vector3.ONE * (s / 16.0)
+	scale = Vector3.ONE * (s if nested else s / 16.0)
+
+## Mark this model as an attachment inside another BedrockModel's bone (hair,
+## armor overlays): its own 1/16 scale is dropped because the parent already has it.
+func set_nested(v: bool) -> void:
+	nested = v
+	set_model_scale(model_scale)
 
 func set_texture(tex: Texture2D) -> void:
 	_ensure_materials()
@@ -480,15 +520,34 @@ func set_emission(c: Color, energy: float) -> void:
 func bone_count() -> int:
 	return bones.size()
 
-## Total model height in metres (for name tags / health bars), from the meshes.
-func model_height() -> float:
-	var top := 0.0
+## Union of every visible bone mesh in the rest pose, in METRES, relative to the
+## model origin (feet at y = 0). Used for camera framing, name tags and health bars.
+func visual_aabb() -> AABB:
+	var out := AABB()
+	var first := true
 	for name in meshes.keys():
 		var mi: MeshInstance3D = meshes[name]
-		var aabb := mi.get_aabb()
 		var node: Node3D = bones[name]
-		var world_y: float = (node.global_transform * (aabb.position + aabb.size)).y if is_inside_tree() else (aabb.position.y + aabb.size.y)
-		top = maxf(top, world_y)
-	if is_inside_tree():
-		return maxf(0.1, top - global_position.y)
-	return maxf(0.1, top * scale.y)
+		if not node.visible:
+			continue
+		var xf := Transform3D()
+		var walk: Node = node
+		while walk != null and walk != self:
+			if walk is Node3D:
+				xf = (walk as Node3D).transform * xf
+			walk = walk.get_parent()
+		var box: AABB = xf * mi.get_aabb()
+		if first:
+			out = box
+			first = false
+		else:
+			out = out.merge(box)
+	if first:
+		return AABB(Vector3.ZERO, Vector3(bounds_size.x, bounds_size.y, bounds_size.x) * model_scale)
+	var s := scale.y
+	return AABB(out.position * s, out.size * s)
+
+## Model height in metres (for name tags / health bars).
+func model_height() -> float:
+	var box := visual_aabb()
+	return maxf(0.1, box.position.y + box.size.y)

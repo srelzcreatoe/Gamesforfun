@@ -70,7 +70,7 @@ const FALLBACK := {
 }
 
 ## Kaioken-style buffs map onto a form instead of a projectile.
-const BUFF_FORMS := {"kaioken": "kaioken.kaioken", "kaioken_x2": "kaioken.kaiokenx2"}
+const BUFF_FORMS := {"kaioken": "kaioken.x2", "kaioken_attack": "kaioken.x2"}
 
 var entity: Node = null
 var state: int = State.IDLE
@@ -82,9 +82,12 @@ var _beam: KiBeam = null
 var _active_left := 0.0
 var _barrage_accum := 0.0
 var _loop_key := ""
-var _auto_release := false
+## AI entities fire as soon as the charge is full; the player holds the button.
+var auto_release := false
 var _grab_target: Node = null
 var _grab_left := 0.0
+var _grab_damage := 0.0
+var _grab_hits := 0
 
 # --- access ---------------------------------------------------------------
 
@@ -230,7 +233,7 @@ func do_begin(technique_id: String) -> bool:
 	current_id = technique_id
 	charge_time = 0.0
 	state = State.CHARGING
-	_auto_release = not (Game != null and Game.player == entity)
+	auto_release = not (Game != null and Game.player == entity)
 	var cast_anim := String(d.get("cast_anim", ""))
 	if cast_anim != "" and entity != null and entity.has_method("play_anim"):
 		entity.call("play_anim", cast_anim, 0.1, true)
@@ -394,7 +397,7 @@ func _fire_buff(d: Dictionary, technique_id: String) -> void:
 		Forms.transform(entity, String(BUFF_FORMS[technique_id]))
 		return
 	if technique_id.begins_with("kaioken"):
-		Forms.transform(entity, "kaioken.kaioken")
+		Forms.transform(entity, "kaioken.x2")
 		return
 	# solar flare / fake moon: blind everything looking at the flash
 	KiEffects.solar_flare(entity, _pos() + Vector3.UP * 1.2, color_of(d),
@@ -416,9 +419,6 @@ func _start_grab(d: Dictionary, dmg: float) -> void:
 		tr.dash(((t as Node3D).global_position - (entity as Node3D).global_position).normalized())
 	_grab_damage = dmg
 	_grab_hits = 0
-
-var _grab_damage := 0.0
-var _grab_hits := 0
 
 ## Melee specials: close the distance and hit hard once (dragon_fist, meteor,
 ## wolf_fang, deadly_dance all use the same path with their own animation).
@@ -453,7 +453,7 @@ func _process(delta: float) -> void:
 			if _orb != null and is_instance_valid(_orb):
 				_orb.set_progress(progress())
 				_orb.follow(entity)
-			if _auto_release and progress() >= 1.0:
+			if auto_release and progress() >= 1.0:
 				do_release()
 		State.ACTIVE:
 			_active_left -= delta

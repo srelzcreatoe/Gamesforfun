@@ -361,7 +361,6 @@ func _apply_intensity(v: float) -> void:
 		_sparks.emitting = v > 0.45
 	if _rise != null:
 		_rise.emitting = vis
-		_rise.amount_ratio = clampf(v, 0.15, 1.0)
 	if _lightning != null:
 		_lightning.set_active(has_lightning and v > 0.3)
 		_lightning.intensity = v

@@ -64,6 +64,10 @@ func _ready() -> void:
 	_build()
 	if Events != null:
 		Events.health_changed.connect(_on_health_changed)
+		# every explosion in the game (World.explode, ki blasts, Final Explosion) is
+		# announced through Events.explosion; this is where the visuals hang off it
+		if not Events.explosion.is_connected(ExplosionFx.on_event):
+			Events.explosion.connect(ExplosionFx.on_event)
 
 func _exit_tree() -> void:
 	_restore_time_scale()

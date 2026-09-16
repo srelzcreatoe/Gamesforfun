@@ -101,7 +101,7 @@ vec3 sun_disc(vec3 dir, vec3 sdir, float scale, vec3 scol, float weather) {
 	float ext = smoothstep(0.30, -0.06, sdir.y);
 	vec3 tint = mix(vec3(1.0), vec3(1.0, 0.42, 0.12), ext);
 	float energy = mix(1.0, 0.45, ext) * (1.0 - 0.9 * weather);
-	vec3 c = scol * tint * (disc * 6.0 + corona * 1.8 + halo * 0.6);
+	vec3 c = scol * tint * (disc * 4.5 + corona * 1.1 + halo * 0.35);
 	// hidden once it dips below the dome's ground
 	c *= smoothstep(-0.06, 0.0, dir.y + 0.02);
 	return c * energy;
@@ -149,13 +149,13 @@ vec3 star_field(vec3 dir, float density, float brightness, float t) {
 	vec3 rnd = sc_hash33(cell + 7.7);
 	vec3 sp = cell + 0.18 + 0.64 * rnd;
 	float d = length(p - sp);
-	float mag = rnd.x * rnd.x;                          // a few bright stars, many faint
-	float radius = 0.055 + 0.09 * mag;
+	float mag = pow(rnd.x, 1.6);                        // a few bright stars, many faint
+	float radius = 0.07 + 0.11 * mag;
 	float s = smoothstep(radius, 0.0, d);
 	s *= s;
 	float twinkle = 0.75 + 0.25 * sin(t * (2.0 + 4.0 * rnd.y) + rnd.z * 40.0);
 	vec3 tint = mix(vec3(0.75, 0.85, 1.0), vec3(1.0, 0.9, 0.75), rnd.y);
-	return tint * s * (0.25 + 1.6 * mag) * brightness * twinkle * 2.2;
+	return tint * s * (0.4 + 2.2 * mag) * brightness * twinkle * 2.6;
 }
 
 // --- milky way from an equirectangular panorama (ESO, CC BY 4.0) ---
@@ -164,7 +164,7 @@ vec3 milky_way(vec3 dir, float strength) {
 	vec2 uv = vec2(atan(d.z, d.x) / SC_TAU + 0.5, acos(clamp(d.y, -1.0, 1.0)) / SC_PI);
 	float lod = quality >= 2 ? 0.0 : 1.0;   // fixed lod: no seam at the atan discontinuity
 	vec3 mw = textureLod(milky_way_tex, uv, lod).rgb;
-	return mw * strength * 1.6;
+	return mw * strength * 1.15;
 }
 
 // --- aurora: stacked translucent curtains projected onto planes at growing "altitudes" ---

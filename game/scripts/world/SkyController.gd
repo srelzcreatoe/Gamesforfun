@@ -16,13 +16,29 @@ const WEATHER_SCRIPT := "res://scripts/world/Weather.gd"
 const ENV_TEX_DIR := "res://assets/textures/environment/"
 const MAX_BODIES := 6
 const ORBIT_TILT_DEG := 15.0
-const BODY_KINDS := {"planet": 0, "star": 1, "sun": 1, "galaxy": 2, "moon": 3, "sprite": 4}
+## planets.json `bodies[].kind` -> sky.gdshader body kind
+## 0 shaded sphere (planet), 1 emissive disc + corona (sun/star), 2 additive sprite (galaxy),
+## 3 grey shaded sphere (moon), 4 flat alpha sprite (marker, dragon ball)
+## Dim blue ambient that a clear moonlit night never goes below (linear colour).
+const MOON_AMBIENT := Color(0.42, 0.50, 0.85)
+
+const BODY_KINDS := {
+	"planet": 0, "star": 1, "sun": 1, "galaxy": 2, "moon": 3, "sprite": 4,
+	"marker": 4, "dragon_ball": 4, "beacon": 4,
+}
+## planets.json uses DMZ+ sky sizes (9 = a sun, 40 = a moon-sized world, 140 = a sky filling planet).
+## Values <= 1.5 are taken as a direct tangent-of-angular-radius instead (the built-in skies below).
+const BODY_SIZE_TO_TAN := 0.006
+## Draw order preference when a planet has more than MAX_BODIES entries (deep space has 23).
+const BODY_PRIORITY := {0: 0, 3: 1, 2: 2, 1: 3, 4: 4}
 
 ## Baseline sky used when a planet has no `sky` block (DATA_SCHEMA planets.json).
+## `min_daylight` is the floor of daylight(): 0.14 keeps a moonlit night readable instead of pitch
+## black (the chunk/water shaders multiply sky light by daylight), Namek/heaven raise it further.
 const DEFAULT_SKY := {
 	"type": "atmosphere", "day": "#7DAEFF", "horizon": "#CFE4FF", "night": "#050818", "sunset": "#FF8C3A",
 	"fog": "#BFD6F5", "stars": 1500, "star_brightness": 0.6, "milky_way": 0.3, "clouds": true, "aurora": false,
-	"sun_scale": 1.0, "moon": true, "bodies": [], "suns": 1, "min_daylight": 0.0, "sun_color": "#FFF1D6",
+	"sun_scale": 1.0, "moon": true, "bodies": [], "suns": 1, "min_daylight": 0.3, "sun_color": "#FFF1D6",
 	"fog_density": 1.0, "cloud_coverage": 0.45, "cloud_tint": "#FFFFFF", "aurora_a": "#20FF70", "aurora_b": "#9030FF",
 	"water": "#3F76E4", "milky_way_tilt": 62.0,
 }
@@ -164,10 +180,10 @@ func _ensure_nodes() -> void:
 		environment.set("glow_levels/6", 0.5)
 		environment.set("glow_levels/7", 0.0)
 		environment.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
-		environment.glow_hdr_threshold = 0.92
+		environment.glow_hdr_threshold = 0.95
 		environment.glow_hdr_scale = 1.6
 		environment.glow_bloom = 0.04
-		environment.glow_intensity = 0.55
+		environment.glow_intensity = 0.4
 		environment.glow_strength = 1.0
 	_apply_settings()
 
@@ -342,9 +358,40 @@ func _set_planet(id: String, planet_def: Dictionary) -> void:
 	if weather_node != null and weather_node.has_method("set_base_coverage"):
 		weather_node.set_base_coverage(_cloud_coverage)
 
+## Pick at most MAX_BODIES bodies: drop duplicate textures, planets/moons first, then galaxies,
+## suns and flat markers (planets.json lists every world of the universe for deep space).
+static func select_bodies(bodies: Array) -> Array:
+	var seen: Dictionary = {}
+	var picked: Array = []
+	for b in bodies:
+		if not (b is Dictionary):
+			continue
+		var key := String(b.get("texture", ""))
+		if key != "" and seen.has(key):
+			continue
+		seen[key] = true
+		picked.append(b)
+	picked.sort_custom(func(a: Dictionary, c: Dictionary) -> bool:
+		var ka: Variant = a.get("kind", 0)
+		var kc: Variant = c.get("kind", 0)
+		var ia: int = int(BODY_KINDS.get(ka, 0)) if ka is String else int(ka)
+		var ic: int = int(BODY_KINDS.get(kc, 0)) if kc is String else int(kc)
+		var pa: int = int(BODY_PRIORITY.get(ia, 5))
+		var pc: int = int(BODY_PRIORITY.get(ic, 5))
+		if pa != pc:
+			return pa < pc
+		return float(a.get("scale", 0.1)) > float(c.get("scale", 0.1)))
+	if picked.size() > MAX_BODIES:
+		picked.resize(MAX_BODIES)
+	return picked
+
+static func body_tan_scale(v: float) -> float:
+	var tan_r: float = v if v <= 1.5 else v * BODY_SIZE_TO_TAN
+	return clampf(tan_r, 0.008, 1.2)
+
 func _load_bodies() -> void:
-	var bodies: Array = sky_def.get("bodies", [])
-	var n := mini(bodies.size(), MAX_BODIES)
+	var bodies: Array = select_bodies(sky_def.get("bodies", []))
+	var n := bodies.size()
 	_set_param("body_count", n)
 	for i in n:
 		var b: Dictionary = bodies[i]
@@ -361,7 +408,7 @@ func _load_bodies() -> void:
 			var el := deg_to_rad(float(b.get("elevation", 12.0 + 9.0 * i)))
 			dir = Vector3(cos(el) * cos(az), sin(el), cos(el) * sin(az)).normalized()
 		_set_param("body_dir_%d" % i, dir)
-		_set_param("body_scale_%d" % i, float(b.get("scale", 0.1)))
+		_set_param("body_scale_%d" % i, body_tan_scale(float(b.get("scale", 0.1))))
 		var kind: Variant = b.get("kind", 0)
 		_set_param("body_kind_%d" % i, int(BODY_KINDS.get(kind, 0)) if kind is String else int(kind))
 
@@ -419,6 +466,11 @@ func _update_colors() -> void:
 	_fog_color.a = 1.0
 	var amb := zenith * 0.45 + horizon * 0.55
 	amb = amb * (0.55 + 0.45 * _daylight) + Color(0.012, 0.014, 0.02)
+	# Moonlight floor: the chunk/water shaders multiply sky light by daylight() and by the ambient
+	# colour, so without a floor a clear night ends up pure black instead of moonlit blue.
+	var moonlit := MOON_AMBIENT * (1.0 if bool(sky_def.get("moon", true)) else 0.55) * (1.0 - 0.6 * _weather_darkness)
+	var night_amount := 1.0 - smoothstep(-0.02, 0.22, sun_y)
+	amb = Color(maxf(amb.r, moonlit.r * night_amount), maxf(amb.g, moonlit.g * night_amount), maxf(amb.b, moonlit.b * night_amount))
 	_ambient_color = amb
 	_ambient_color.a = 1.0
 	if camera_underwater:
@@ -442,6 +494,8 @@ func _update_environment() -> void:
 	var render_distance := float(Game.settings.get("render_distance", 5))
 	var view := maxf(render_distance * float(WorldConst.CHUNK) - 8.0, 32.0)
 	var density := float(sky_def.get("fog_density", 1.0))
+	if not bool(sky_def.get("has_fog", true)):
+		density = 0.0
 	var weather_mult := 1.0 - 0.45 * _weather_darkness
 	if camera_underwater:
 		_fog_start = 0.0
@@ -464,7 +518,7 @@ func _update_environment() -> void:
 	else:
 		environment.tonemap_exposure = 1.0
 	if environment.glow_enabled:
-		environment.glow_intensity = 0.55 + 0.35 * (1.0 - _daylight) + (0.4 if camera_underwater else 0.0)
+		environment.glow_intensity = 0.4 + 0.35 * (1.0 - _daylight) + (0.4 if camera_underwater else 0.0)
 
 func _update_light() -> void:
 	var sun_y := _sun_dir.y

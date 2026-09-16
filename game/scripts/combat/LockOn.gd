@@ -34,14 +34,14 @@ static func current(entity: Node) -> Node:
 
 static func acquire(entity: Node, range_m := RANGE, cone_deg := CONE_DEGREES) -> Node:
 	var best := nearest(entity, range_m, cone_deg)
-	_set(entity, best)
+	_assign(entity, best)
 	if best != null:
 		Audio.play_sfx("lockon", -4.0)
 	return best
 
 static func clear(entity: Node) -> void:
 	if current(entity) != null:
-		_set(entity, null)
+		_assign(entity, null)
 
 ## Drop the target when it dies, gets too far or leaves the keep cone.
 static func tick(entity: Node) -> void:
@@ -49,22 +49,22 @@ static func tick(entity: Node) -> void:
 	if t == null:
 		return
 	if not is_instance_valid(t) or not (t is Node3D):
-		_set(entity, null)
+		_assign(entity, null)
 		return
 	if "health" in t and float(t.get("health")) <= 0.0:
-		_set(entity, null)
+		_assign(entity, null)
 		return
 	if not (entity is Node3D):
 		return
 	var from := _eye(entity)
 	var to: Vector3 = (t as Node3D).global_position + Vector3.UP * 0.9
 	if from.distance_to(to) > KEEP_RANGE:
-		_set(entity, null)
+		_assign(entity, null)
 		return
 	var fwd := _forward(entity)
 	var ang := rad_to_deg(fwd.angle_to((to - from).normalized()))
 	if ang > KEEP_CONE_DEGREES:
-		_set(entity, null)
+		_assign(entity, null)
 
 ## Best candidate: hostile, alive, inside the cone, line of sight clear; ranked by
 ## angle first (what the player is looking at) and distance second.
@@ -149,7 +149,7 @@ static func has_line_of_sight(world: Node, from: Vector3, to: Vector3) -> bool:
 
 # --- internals ------------------------------------------------------------
 
-static func _set(entity: Node, target: Node) -> void:
+static func _assign(entity: Node, target: Node) -> void:
 	if entity == null:
 		return
 	if entity.has_method("set_target"):

@@ -161,13 +161,16 @@ func _frame_camera() -> void:
 	var cam := Camera3D.new()
 	cam.fov = 45.0
 	add_child(cam)
-	var s := model.model_scale
-	var h: float = maxf(0.6, model.bounds_size.y * s * 0.62)
-	var w: float = maxf(0.6, model.bounds_size.x * s * 0.5)
-	var target := Vector3(0, model.bounds_offset.y * s * 0.85 + h * 0.25, 0)
-	var dist: float = maxf(h, w) * 2.6 + 0.6
+	var box := model.visual_aabb()
+	var h: float = maxf(0.4, box.size.y)
+	var w: float = maxf(0.4, maxf(box.size.x, box.size.z))
+	var target := box.position + box.size * 0.5
+	target.x = 0.0
+	target.z = 0.0
+	# fit the height into the 45 deg vertical fov with a small margin
+	var dist: float = maxf(h, w * 0.7) * 0.5 / tan(deg_to_rad(cam.fov * 0.5)) * 1.25
 	var dir: Vector3 = VIEWS.get(String(_args.get("view", "front")), Vector3(0, 0, -1)).normalized()
-	cam.position = target + dir * dist + Vector3(0, h * 0.18, 0)
+	cam.position = target + dir * dist + Vector3(0, h * 0.10, 0)
 	cam.look_at(target, Vector3.UP)
 	cam.make_current()
 

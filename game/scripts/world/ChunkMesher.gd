@@ -10,8 +10,8 @@ class_name ChunkMesher
 ##   POSITION  column-local metres (x/z 0..16, y absolute)
 ##   NORMAL    face normal (the shader derives the face brightness from it)
 ##   UV        0..1 tile uv
-##   UV2       x = texture array layer + frames/64.0 (animated tiles), y = packed_light/255
-##             with packed_light = sky * 16 + block
+##   UV2       x = texture array layer + (frames + sway * 64) / 128  (see _layer_uv),
+##             y = packed_light / 255 with packed_light = sky * 16 + block
 ##   COLOR     rgb = biome/liquid tint, a = ambient occlusion (0.55 / 0.7 / 0.85 / 1.0)
 ##
 ## Three surfaces come out: "opaque", "cutout" (alpha scissor) and "water" (translucent).

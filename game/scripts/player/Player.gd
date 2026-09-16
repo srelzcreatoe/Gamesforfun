@@ -1,15 +1,14 @@
 class_name Player
-extends PlayerBase
-## The player character: movement (walk / sprint / sneak / swim / ladder / ki flight), survival,
-## inventory, camera rig and block interaction. ARCHITECTURE.md §6 + CUBIC_WORLD_UI_SPEC.md §4.
+extends Entity
+## The player character (docs/ARCHITECTURE.md §6, CUBIC_WORLD_UI_SPEC.md §4):
+## movement (walk / sprint / sneak / swim / ladder / ki flight), survival, inventory,
+## camera rig and block interaction.
 ##
-## Cross-subsystem code is loaded dynamically (VoxelPhysics, BedrockModel, RaceSkin,
-## BedrockAnimation, combat Stats) so the player runs before those land.
-
-const VOXEL_PHYSICS := "res://scripts/world/VoxelPhysics.gd"
-const BEDROCK_MODEL := "res://scripts/entity/BedrockModel.gd"
-const BEDROCK_ANIM := "res://scripts/entity/BedrockAnimation.gd"
-const RACE_SKIN := "res://scripts/entity/RaceSkin.gd"
+## Everything that is not movement/inventory is delegated to the shared systems so there is
+## exactly one implementation: `Stats` (RPG stats), `Ki` (pools + charging), `Techniques`
+## (blasts/beams), `Forms` (transformations), `Skills` (skill effects), `Training` (TP),
+## `LockOn` (targets), `VoxelPhysics` (collision). Each call is guarded so the player still
+## runs if one of those is missing.
 
 const DT_MAX := 0.05
 const DEFAULT_PHYSICS := {
@@ -30,84 +29,89 @@ const LADDER_SPEED := 2.6
 const FLY_VERTICAL := 9.0
 const FLY_VERTICAL_ACCEL := 40.0
 const DOUBLE_TAP_TIME := 0.35
+const CROUCH_EYE := 1.35
 const FLY_FAST_STAMINA := 12.0
+const KI_FLY_DRAIN := 0.6
 const DASH_IMPULSE := 12.0
 const DASH_COOLDOWN := 0.9
-const KI_CHARGE_RATE := 18.0
-const KI_FLY_DRAIN := 0.6
+const DASH_STAMINA := 10.0
+const CHARGED_BLAST := "charged_ki_blast"
+const BASIC_BLAST := "ki_blast"
+const FALLBACK_GROUND := 0.0
 
 var input: PlayerInput = PlayerInput.new()
 var keyboard: KeyboardInput = null
 var camera_rig: CameraRig = null
-var interaction: Node = null
+var interaction: Interaction = null
 var inventory: Inventory = null
+var survival: PlayerStats = null
 
 var is_crouching := false
 var is_sprinting := false
 var is_swimming := false
 var fly_fast := false
 var on_ladder := false
-var submerged := 0.0
 var flow := Vector3.ZERO
 
 var hotbar_index: int = 0
-var spawn_point := Vector3(0.5, 64.0, 0.5)
+var spawn_point := Vector3(0.5, -1.0, 0.5)
 var spawn_planet := "earth"
-var dead := false
 
 var _phys: Dictionary = DEFAULT_PHYSICS.duplicate()
-var _vp: GDScript = null
 var _last_jump_time := -10.0
 var _dash_cd := 0.0
 var _step_dist := 0.0
-var _ki_blast_hold := 0.0
-var _ki_blast_active := false
-var _time := 0.0
-var _profile_pos_applied := false
-var _fallback_ground := 0.0
+var _blast_hold := 0.0
+var _blast_active := false
+var _clock := 0.0
+var _position_preset := false
+
+# --- setup -----------------------------------------------------------------
 
 func _ready() -> void:
 	entity_type = "player"
 	faction = "player"
-	name = "Player"
-	if ResourceLoader.exists(VOXEL_PHYSICS):
-		_vp = load(VOXEL_PHYSICS)
-	var def: Dictionary = Registry.entity("player") if Registry != null else {}
+	kind = "player"
+	team_id = 0
+	_position_preset = position != Vector3.ZERO
+	super._ready()
+
+## Entity.initialize() hook: runs after def / stats / model are ready.
+func _configure() -> void:
 	var p: Dictionary = def.get("physics", {})
 	for k in DEFAULT_PHYSICS.keys():
 		_phys[k] = float(p.get(k, DEFAULT_PHYSICS[k]))
-	var hb: Array = def.get("hitbox", [0.6, 1.8])
-	if hb.size() >= 2:
-		aabb_size = Vector3(float(hb[0]), float(hb[1]), float(hb[0]))
+	can_fly = true
 	inventory = Inventory.new(Inventory.PLAYER_SIZE, true)
-	stats = PlayerStats.new(self)
+	survival = PlayerStats.new(self)
 	keyboard = KeyboardInput.new(input)
 	camera_rig = CameraRig.new()
 	camera_rig.name = "CameraRig"
 	camera_rig.eye_height = float(_phys["eye_height"])
+	camera_rig.crouch_eye_height = CROUCH_EYE
 	add_child(camera_rig)
 	camera_rig.set_player(self)
-	_build_model()
-	interaction = load("res://scripts/player/Interaction.gd").new()
+	interaction = Interaction.new()
 	interaction.name = "Interaction"
 	add_child(interaction)
-	interaction.call("setup", self)
+	interaction.setup(self)
 	if Game != null:
 		Game.player = self
-		world = Game.world
 		if not Game.profile.is_empty():
 			read_profile(Game.profile)
-	Events.player_spawned.emit(self)
+	refresh_derived()
 	set_process_unhandled_input(true)
+
+func _exit_tree() -> void:
+	if Game != null and Game.player == self:
+		Game.player = null
 
 # --- profile ---------------------------------------------------------------
 
 func read_profile(profile: Dictionary) -> void:
-	var st: PlayerStats = stats
-	st.load_profile(profile)
-	max_health = st.derived("max_health", 100.0)
-	max_ki = st.derived("max_ki", 100.0)
-	max_stamina = st.derived("max_stamina", 100.0)
+	if stats != null and stats.has_method("from_profile"):
+		stats.call("from_profile", profile)
+	refresh_derived()
 	health = float(profile.get("health", -1))
 	if health <= 0.0:
 		health = max_health
@@ -118,33 +122,37 @@ func read_profile(profile: Dictionary) -> void:
 	if stamina <= 0.0:
 		stamina = max_stamina
 	health = minf(health, max_health)
+	ki = minf(ki, max_ki)
+	stamina = minf(stamina, max_stamina)
 	current_form = String(profile.get("forms", {}).get("current", ""))
-	var inv: Dictionary = profile.get("inventory", {})
-	if inv is Dictionary and not inv.is_empty():
+	if survival != null:
+		survival.load_profile(profile)
+	var inv: Variant = profile.get("inventory", {})
+	if inv is Dictionary and not (inv as Dictionary).is_empty():
 		inventory.from_dict(inv)
 	hotbar_index = inventory.hotbar_index
 	var pos: Dictionary = profile.get("position", {})
 	var sp: Dictionary = profile.get("spawn", {})
 	spawn_planet = String(sp.get("planet", pos.get("planet", "earth")))
-	spawn_point = Vector3(float(sp.get("x", 0.5)), float(sp.get("y", -1)), float(sp.get("z", 0.5)))
-	var want := Vector3(float(pos.get("x", 0.5)), float(pos.get("y", -1)), float(pos.get("z", 0.5)))
-	if want.y < 0.0:
-		want.y = _surface_y(want.x, want.z)
-		spawn_point.y = want.y
-	global_position = want
+	spawn_point = Vector3(float(sp.get("x", 0.5)), float(sp.get("y", -1.0)), float(sp.get("z", 0.5)))
+	if not _position_preset:
+		var want := Vector3(float(pos.get("x", 0.5)), float(pos.get("y", -1.0)), float(pos.get("z", 0.5)))
+		if want.y < 0.0:
+			want.y = surface_y(want.x, want.z)
+		global_position = want
+	if spawn_point.y < 0.0:
+		spawn_point.y = global_position.y
 	yaw = deg_to_rad(float(pos.get("yaw", 0.0)))
+	rotation.y = yaw
 	if camera_rig != null:
 		camera_rig.yaw_deg = float(pos.get("yaw", 0.0))
-	_profile_pos_applied = true
-	Events.health_changed.emit(health, max_health)
-	Events.ki_changed.emit(ki, max_ki)
-	Events.stamina_changed.emit(stamina, max_stamina)
-	Events.hunger_changed.emit(st.hunger, PlayerStats.HUNGER_MAX)
-	Events.inventory_changed.emit()
+	_emit_all()
 
 func write_profile(profile: Dictionary) -> void:
-	var st: PlayerStats = stats
-	st.write_profile(profile)
+	if stats != null and stats.has_method("to_profile"):
+		stats.call("to_profile", profile)
+	if survival != null:
+		survival.write_profile(profile)
 	profile["health"] = health
 	profile["ki"] = ki
 	profile["stamina"] = stamina
@@ -160,103 +168,67 @@ func write_profile(profile: Dictionary) -> void:
 		"yaw": camera_rig.yaw_deg if camera_rig != null else rad_to_deg(yaw),
 	}
 	profile["spawn"] = {"planet": spawn_planet, "x": spawn_point.x, "y": spawn_point.y, "z": spawn_point.z}
+	var f: Dictionary = profile.get("forms", {})
+	f["current"] = current_form
+	profile["forms"] = f
 
-func _surface_y(x: float, z: float) -> float:
+## Recompute the pools/derived numbers after a stat raise or a transformation.
+func refresh_derived() -> void:
+	if stats != null:
+		max_health = _stat("max_health", max_health)
+		max_ki = _stat("max_ki", max_ki)
+		max_stamina = _stat("max_stamina", max_stamina)
+		melee_damage = _stat("melee", melee_damage)
+		defense = _stat("defense", defense)
+		speed_mult = _stat("speed_mult", 1.0)
+	health = minf(health, max_health)
+	ki = minf(ki, max_ki)
+	stamina = minf(stamina, max_stamina)
+	_emit_all()
+
+func _emit_all() -> void:
+	Events.health_changed.emit(health, max_health)
+	Events.ki_changed.emit(ki, max_ki)
+	Events.stamina_changed.emit(stamina, max_stamina)
+	if survival != null:
+		Events.hunger_changed.emit(survival.hunger, PlayerStats.HUNGER_MAX)
+
+func surface_y(x: float, z: float) -> float:
 	if world != null and world.has_method("get_height"):
 		return float(world.call("get_height", int(floor(x)), int(floor(z)))) + 0.1
-	return 64.0
+	return FALLBACK_GROUND
 
-# --- model -----------------------------------------------------------------
+# --- TP (Training reads these) ---------------------------------------------
 
-func _build_model() -> void:
-	if ResourceLoader.exists(BEDROCK_MODEL):
-		var built := _try_bedrock_model()
-		if built:
-			return
-	model = _box_model()
-	add_child(model)
+func get_tp() -> int:
+	return int(Game.profile.get("tp", 0)) if Game != null else 0
 
-func _try_bedrock_model() -> bool:
-	var script: GDScript = load(BEDROCK_MODEL)
-	if script == null:
-		return false
-	var inst: Variant = script.new()
-	if not (inst is Node3D):
-		return false
-	var m: Node3D = inst
-	var def: Dictionary = Registry.entity("player") if Registry != null else {}
-	var geo := String(def.get("model", "entity/races/human"))
-	var ok := false
-	for fn in ["build", "load_model", "set_geometry", "load_geometry"]:
-		if m.has_method(fn):
-			m.call(fn, geo)
-			ok = true
-			break
-	if not ok:
-		m.queue_free()
-		return false
-	model = m
-	add_child(model)
-	_apply_race_skin()
-	if ResourceLoader.exists(BEDROCK_ANIM):
-		var ascript: GDScript = load(BEDROCK_ANIM)
-		var ai: Variant = ascript.new()
-		if ai is Node:
-			anim = ai
-			add_child(anim)
-			if anim.has_method("setup"):
-				anim.call("setup", model)
-			for a in def.get("animations", []):
-				if anim.has_method("add_clips"):
-					anim.call("add_clips", String(a))
-	return true
+func set_tp(value: int) -> void:
+	if Game != null:
+		Game.profile["tp"] = maxi(0, value)
 
-func _apply_race_skin() -> void:
-	if model == null or not ResourceLoader.exists(RACE_SKIN):
-		return
-	var script: GDScript = load(RACE_SKIN)
-	if script == null or not script.has_method("compose"):
-		return
-	var ch: Dictionary = Game.profile.get("character", {}) if Game != null else {}
-	var img: Variant = script.call("compose", ch)
-	if img is Image and model.has_method("set_texture"):
-		model.call("set_texture", img)
+func tp_total() -> int:
+	return int(Game.profile.get("tp_total", 0)) if Game != null else 0
 
-## Blocky stand-in figure so the player is visible before the Bedrock models land.
-func _box_model() -> Node3D:
-	var root := Node3D.new()
-	root.name = "BoxModel"
-	var ch: Dictionary = Game.profile.get("character", {}) if Game != null else {}
-	var skin := UiUtil.color_hex(String(ch.get("skin_color", "#FFD3C9")), Color(1.0, 0.83, 0.79))
-	var hair := UiUtil.color_hex(String(ch.get("hair_color", "#222629")), Color(0.13, 0.15, 0.16))
-	var gi := Color(0.85, 0.45, 0.1)
-	var parts := [
-		["Head", Vector3(0.5, 0.5, 0.5), Vector3(0, 1.55, 0), skin],
-		["Hair", Vector3(0.54, 0.16, 0.54), Vector3(0, 1.78, 0), hair],
-		["Body", Vector3(0.5, 0.6, 0.28), Vector3(0, 1.0, 0), gi],
-		["ArmL", Vector3(0.18, 0.6, 0.18), Vector3(-0.34, 1.0, 0), skin],
-		["ArmR", Vector3(0.18, 0.6, 0.18), Vector3(0.34, 1.0, 0), skin],
-		["LegL", Vector3(0.2, 0.7, 0.2), Vector3(-0.12, 0.35, 0), Color(0.2, 0.3, 0.6)],
-		["LegR", Vector3(0.2, 0.7, 0.2), Vector3(0.12, 0.35, 0), Color(0.2, 0.3, 0.6)],
-	]
-	for p in parts:
-		var mi := MeshInstance3D.new()
-		mi.name = String(p[0])
-		var bm := BoxMesh.new()
-		bm.size = p[1]
-		mi.mesh = bm
-		mi.position = p[2]
-		var mat := StandardMaterial3D.new()
-		mat.albedo_color = p[3]
-		mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
-		mat.roughness = 1.0
-		mi.material_override = mat
-		root.add_child(mi)
-	return root
+## Spend TP on one attribute. The UI calls this (or `stats.raise` as a fallback).
+func raise_stat(key: String) -> bool:
+	if ResourceLoader.exists("res://scripts/combat/Training.gd"):
+		return Training.raise_stat(self, key, 1)
+	if stats != null and stats.has_method("raise"):
+		stats.call("raise", key, 1)
+		refresh_derived()
+		return true
+	return false
 
-func set_model_visible(v: bool) -> void:
-	if model != null:
-		model.visible = v
+func skill_level(id: String) -> int:
+	if Game == null:
+		return 0
+	return int(Game.profile.get("skills", {}).get(id, 0))
+
+func flight_allowed() -> bool:
+	if Game != null and Game.creative:
+		return true
+	return skill_level("fly") >= 1
 
 # --- accessors used by the UI / other subsystems ---------------------------
 
@@ -272,49 +244,55 @@ func select_hotbar(i: int) -> void:
 	inventory.hotbar_index = n
 	Events.hotbar_changed.emit(n)
 
-func eye_position() -> Vector3:
-	return global_position + Vector3(0.0, crouch_eye() , 0.0)
+func eye_height() -> float:
+	return CROUCH_EYE if is_crouching else float(_phys["eye_height"])
 
-func crouch_eye() -> float:
-	return 1.35 if is_crouching else float(_phys["eye_height"])
+func eye_position() -> Vector3:
+	return global_position + Vector3(0.0, eye_height(), 0.0)
 
 func aim_origin() -> Vector3:
 	return camera_rig.aim_origin() if camera_rig != null else eye_position()
 
 func aim_direction() -> Vector3:
-	return camera_rig.aim_direction() if camera_rig != null else Vector3.FORWARD
-
-func skill_level(id: String) -> int:
-	if Game == null:
-		return 0
-	return int(Game.profile.get("skills", {}).get(id, 0))
-
-func can_fly() -> bool:
-	return skill_level("fly") >= 1 or (Game != null and Game.creative)
+	return camera_rig.aim_direction() if camera_rig != null else facing()
 
 func speed_now() -> float:
 	return Vector2(velocity.x, velocity.z).length()
+
+func head_in_liquid() -> bool:
+	if world == null or not world.has_method("is_liquid"):
+		return false
+	var e := eye_position()
+	return bool(world.call("is_liquid", int(floor(e.x)), int(floor(e.y)), int(floor(e.z))))
+
+func set_model_visible(v: bool) -> void:
+	if model != null:
+		model.visible = v
+
+func give(item_id: String, count := 1) -> int:
+	var left := inventory.add(item_id, count)
+	if left < count:
+		Audio.play_sfx("pop", linear_to_db(0.8))
+		Events.item_picked_up.emit(item_id, count - left)
+	return left
 
 # --- input ------------------------------------------------------------------
 
 func _unhandled_input(event: InputEvent) -> void:
 	if keyboard != null and keyboard.handle_event(event):
 		return
-	if event is InputEventKey and event.pressed and not event.echo:
-		var k: InputEventKey = event
-		if Game != null and Game.ui != null:
-			if InputMap.has_action("inventory") and event.is_action_pressed("inventory"):
-				Game.ui.call("toggle", "inventory")
-			elif InputMap.has_action("quests") and event.is_action_pressed("quests"):
-				Game.ui.call("toggle", "quests")
-			elif InputMap.has_action("stats") and event.is_action_pressed("stats"):
-				Game.ui.call("toggle", "stats")
-			elif InputMap.has_action("ui_pause") and event.is_action_pressed("ui_pause"):
-				Game.ui.call("toggle", "pause")
-		if InputMap.has_action("camera_toggle") and event.is_action_pressed("camera_toggle"):
-			camera_rig.cycle_mode()
+	if not (event is InputEventKey) or not event.is_pressed() or event.is_echo():
+		return
+	if Game == null or Game.ui == null:
+		return
+	for pair in [["inventory", "inventory"], ["quests", "quests"], ["stats", "stats"], ["ui_pause", "pause"]]:
+		if InputMap.has_action(pair[0]) and event.is_action_pressed(pair[0]):
+			Game.ui.call("toggle", pair[1])
+			return
+	if InputMap.has_action("camera_toggle") and event.is_action_pressed("camera_toggle"):
+		camera_rig.cycle_mode()
 
-func _process_input(delta: float) -> void:
+func _read_input(delta: float) -> void:
 	if keyboard != null:
 		keyboard.poll()
 	if input.hotbar_select == -2:
@@ -325,35 +303,39 @@ func _process_input(delta: float) -> void:
 		select_hotbar(input.hotbar_select)
 	if camera_rig != null:
 		camera_rig.apply_look(input.look_delta)
-	# double-tap jump -> fly toggle
 	if input.jump_pressed:
-		if _time - _last_jump_time < DOUBLE_TAP_TIME and can_fly():
-			_toggle_fly()
-		_last_jump_time = _time
+		if _clock - _last_jump_time < DOUBLE_TAP_TIME:
+			toggle_fly()
+		_last_jump_time = _clock
 	if input.toggle_fly or input.fly_pressed:
-		if can_fly():
-			_toggle_fly()
+		toggle_fly()
 	if input.transform_pressed:
-		_request_transform()
+		request_transform()
 	if input.technique_pressed and Game != null and Game.ui != null:
-		Game.ui.call("open", "radial", {})
+		Game.ui.call("open", "radial")
 	if input.dash_pressed and _dash_cd <= 0.0:
-		_dash()
+		dash()
 	if input.lock_on_pressed:
-		_cycle_lock_on()
-	# ki blast: tap = blast, hold >= 0.4 s = charged
+		LockOn.toggle(self)
+	# ki blast: tap = blast, hold >= 0.4 s = charged shot
 	if input.ki_blast:
-		_ki_blast_hold += delta
-		_ki_blast_active = true
-	elif _ki_blast_active:
-		_ki_blast_active = false
-		_fire_ki_blast(_ki_blast_hold >= 0.4 or input.ki_blast_charged)
-		_ki_blast_hold = 0.0
-	if input.ki_charge:
-		_charge_ki(delta)
+		_blast_hold += delta
+		_blast_active = true
+	elif _blast_active:
+		_blast_active = false
+		fire_ki_blast(_blast_hold >= 0.4 or input.ki_blast_charged)
+		_blast_hold = 0.0
+	_set_charging(input.ki_charge)
 
-func _toggle_fly() -> void:
-	if not can_fly():
+func _set_charging(on: bool) -> void:
+	var k := Ki.find_on(self)
+	if on and k == null:
+		k = Ki.get_for(self)
+	if k != null:
+		k.set_charging(on)
+
+func toggle_fly() -> void:
+	if not flight_allowed():
 		if Game != null and Game.ui != null:
 			Game.ui.call("show_hint", "You have not learned to fly yet.", 2.5)
 		return
@@ -363,132 +345,99 @@ func _toggle_fly() -> void:
 		Audio.play_sfx("fly", -6.0)
 	UiUtil.vibrate(12)
 
-func _dash() -> void:
+func dash() -> void:
+	var k := Ki.get_for(self)
+	if k != null and not k.can_spend_stamina(DASH_STAMINA):
+		return
 	_dash_cd = DASH_COOLDOWN
 	var dir := aim_direction()
 	if input.move != Vector2.ZERO:
-		dir = _move_dir()
+		dir = move_direction()
 	velocity += dir.normalized() * DASH_IMPULSE
-	stamina = maxf(0.0, stamina - 10.0)
-	Events.stamina_changed.emit(stamina, max_stamina)
+	if k != null:
+		k.spend_stamina(DASH_STAMINA)
+	else:
+		stamina = maxf(0.0, stamina - DASH_STAMINA)
+		Events.stamina_changed.emit(stamina, max_stamina)
 	Audio.play_sfx("dash", -4.0)
+	play_anim("base.dash_front", 0.08, false)
 	if camera_rig != null:
 		camera_rig.shake(0.25, 0.15)
 
-func _request_transform() -> void:
-	var forms: Node = null
-	if world != null:
-		forms = world.get_node_or_null("Forms")
-	if forms != null and forms.has_method("cycle_transform"):
-		forms.call("cycle_transform", self)
+func request_transform() -> void:
+	var active: Array[String] = Forms.active(self)
+	if not active.is_empty():
+		Forms.revert(self)
 		return
+	var unlocked: Array = Game.profile.get("forms", {}).get("unlocked", []) if Game != null else []
+	for fid in unlocked:
+		if bool(Forms.can_transform(self, String(fid)).get("ok", false)):
+			Forms.transform(self, String(fid))
+			return
 	if Game != null and Game.ui != null:
 		Game.ui.call("open", "stats", {"tab": 3})
 
-func _fire_ki_blast(charged: bool) -> void:
-	var tech := "charged_ki_blast" if charged else "ki_blast"
+func fire_ki_blast(charged: bool) -> void:
+	var tech := CHARGED_BLAST if charged else BASIC_BLAST
 	if Registry != null and Registry.technique(tech).is_empty():
-		tech = "ki_blast"
-	var techs: Node = null
-	if world != null:
-		techs = world.get_node_or_null("Techniques")
-	if techs != null and techs.has_method("cast"):
-		techs.call("cast", self, tech)
-	else:
-		var def: Dictionary = Registry.technique(tech) if Registry != null else {}
-		var cost := float(def.get("ki_cost", 0.05)) * max_ki
-		if ki < cost:
-			return
-		set_ki(ki - cost)
-		Audio.play_sfx(String(def.get("fire_sound", "kiblast_shoot")))
-	Events.technique_fired.emit(self, tech)
-	play_anim("ki.barrage_fire", 0.1, false)
+		tech = BASIC_BLAST
+	if not Techniques.tap(self, tech):
+		return
 	if camera_rig != null:
 		camera_rig.shake(0.3 if charged else 0.12, 0.2)
 
-func _charge_ki(delta: float) -> void:
-	set_ki(minf(max_ki, ki + KI_CHARGE_RATE * delta))
-	if not Audio.is_loop_playing("ki_charge"):
-		Audio.play_loop("ki_charge_loop", "ki_charge", -8.0)
-		Events.ki_charge_changed.emit(self, true)
+# --- movement ---------------------------------------------------------------
 
-func _cycle_lock_on() -> void:
-	if world == null or not world.has_method("get_entities"):
-		return
-	var best: Node = null
-	var best_score := -1.0
-	var dir := aim_direction()
-	for e in world.call("get_entities"):
-		if e == self or not (e is Node3D):
-			continue
-		if String(e.get("faction")) == "player":
-			continue
-		var d: Vector3 = (e as Node3D).global_position - eye_position()
-		var dist := d.length()
-		if dist > 48.0:
-			continue
-		var score := dir.dot(d.normalized()) - dist * 0.01
-		if score > best_score:
-			best_score = score
-			best = e
-	set_target(best if best != target else null)
-
-# --- physics ---------------------------------------------------------------
-
-func _move_dir() -> Vector3:
+func move_direction() -> Vector3:
 	var yaw_r := deg_to_rad(camera_rig.yaw_deg) if camera_rig != null else yaw
 	var fwd := Vector3(-sin(yaw_r), 0.0, -cos(yaw_r))
 	var right := Vector3(cos(yaw_r), 0.0, -sin(yaw_r))
 	var d := fwd * input.move.y + right * input.move.x
 	if is_flying and absf(input.move.y) > 0.01 and camera_rig != null:
-		var look := camera_rig.look_direction()
-		d = look * input.move.y + right * input.move.x
+		d = camera_rig.look_direction() * input.move.y + right * input.move.x
 	return d.normalized() if d.length() > 0.001 else Vector3.ZERO
 
 func target_speed() -> float:
-	var mult := 1.0
-	var st: PlayerStats = stats
-	if st != null:
-		mult = st.derived("speed_mult", 1.0)
+	var mult := maxf(0.2, speed_mult)
 	if is_flying:
-		var fly_speed := float(_phys["fly"]) * (1.0 + 0.15 * float(maxi(0, skill_level("fly") - 1)))
-		if fly_fast:
-			fly_speed *= float(_phys["fly_fast_mult"])
-		return fly_speed * mult
+		return Skills.fly_speed(self, fly_fast) * mult
 	if is_swimming:
 		return float(_phys["swim"]) * mult
 	if is_crouching:
 		return float(_phys["sneak"]) * mult
 	if is_sprinting:
-		return float(_phys["sprint"]) * (1.0 + 0.05 * float(skill_level("sprint"))) * mult
+		return float(_phys["sprint"]) * Skills.sprint_mult(self) * mult
 	return float(_phys["walk"]) * mult
 
-func _physics_process(delta: float) -> void:
-	_time += Time.get_ticks_msec() * 0.0 + delta
+func jump_speed() -> float:
+	return float(_phys["jump"]) * Skills.jump_mult(self)
+
+## Entity.tick: the player drives its own movement instead of Entity.apply_physics.
+func tick(delta: float) -> void:
 	delta = minf(delta, DT_MAX)
+	_clock += delta
 	if _dash_cd > 0.0:
 		_dash_cd = maxf(0.0, _dash_cd - delta)
-	if Game != null and Game.world != null and world == null:
+	if world == null and Game != null:
 		world = Game.world
 	if Game != null and Game.paused_by_ui:
 		input.move = Vector2.ZERO
 		input.end_frame()
 		return
-	if dead:
-		input.end_frame()
-		return
-	_process_input(delta)
-	if not input.ki_charge and Audio.is_loop_playing("ki_charge"):
-		Audio.stop_loop("ki_charge")
-		Events.ki_charge_changed.emit(self, false)
+	_read_input(delta)
 	_update_fluid()
 	_update_modes(delta)
 	_integrate(delta)
 	_survival(delta)
 	_animate()
+	LockOn.tick(self)
+	Skills.tick(self, delta)
 	if camera_rig != null:
 		camera_rig.set_fov_extra(8.0 if (is_flying and fly_fast) else 0.0)
 	input.end_frame()
+
+func _voxel() -> Object:
+	return Entity._voxel_physics()
 
 func _update_fluid() -> void:
 	in_liquid = false
@@ -497,26 +446,15 @@ func _update_fluid() -> void:
 	on_ladder = false
 	if world == null:
 		return
-	if _vp != null and _vp.has_method("fluid_at"):
-		var r: Dictionary = _vp.call("fluid_at", world, aabb())
-		in_liquid = bool(r.get("in_liquid", false))
-		submerged = float(r.get("submerged_fraction", 0.0))
-		flow = r.get("flow", Vector3.ZERO)
-	elif world.has_method("is_liquid"):
-		var p := global_position
-		in_liquid = bool(world.call("is_liquid", int(floor(p.x)), int(floor(p.y)), int(floor(p.z))))
-		submerged = 0.7 if in_liquid else 0.0
-	if world.has_method("get_block") and Registry != null:
-		var p2 := global_position + Vector3(0, 0.9, 0)
-		var id := int(world.call("get_block", int(floor(p2.x)), int(floor(p2.y)), int(floor(p2.z))))
-		if id > 0 and String(Registry.block(id).get("shape", "")) == "ladder":
-			on_ladder = true
-
-func head_in_liquid() -> bool:
-	if world == null or not world.has_method("is_liquid"):
-		return false
-	var e := eye_position()
-	return bool(world.call("is_liquid", int(floor(e.x)), int(floor(e.y)), int(floor(e.z))))
+	var vp := _voxel()
+	if vp != null and vp.has_method("fluid_at"):
+		var r: Variant = vp.call("fluid_at", world, aabb())
+		if r is Dictionary:
+			in_liquid = bool((r as Dictionary).get("in_liquid", false))
+			submerged = float((r as Dictionary).get("submerged_fraction", 0.0))
+			flow = (r as Dictionary).get("flow", Vector3.ZERO)
+	if vp != null and vp.has_method("is_on_ladder"):
+		on_ladder = bool(vp.call("is_on_ladder", world, aabb()))
 
 func _update_modes(delta: float) -> void:
 	is_crouching = input.sneak and not is_flying
@@ -524,27 +462,29 @@ func _update_modes(delta: float) -> void:
 	var moving := input.move.length() > 0.1
 	is_sprinting = input.wants_sprint() and moving and not is_crouching and stamina > 1.0
 	fly_fast = is_flying and input.wants_sprint()
+	var k := Ki.find_on(self)
 	if fly_fast:
-		stamina = maxf(0.0, stamina - FLY_FAST_STAMINA * delta)
+		if k != null:
+			k.drain_stamina(FLY_FAST_STAMINA * delta)
+		else:
+			stamina = maxf(0.0, stamina - FLY_FAST_STAMINA * delta)
+			Events.stamina_changed.emit(stamina, max_stamina)
 		if stamina <= 0.0:
 			fly_fast = false
-		Events.stamina_changed.emit(stamina, max_stamina)
-	elif is_sprinting:
-		stamina = maxf(0.0, stamina - 4.0 * delta)
-		Events.stamina_changed.emit(stamina, max_stamina)
-	elif stamina < max_stamina:
-		stamina = minf(max_stamina, stamina + 8.0 * delta)
-		Events.stamina_changed.emit(stamina, max_stamina)
 	if is_flying:
-		set_ki(maxf(0.0, ki - KI_FLY_DRAIN * delta * (2.0 if fly_fast else 1.0)))
+		var drain := KI_FLY_DRAIN * delta * (2.0 if fly_fast else 1.0)
+		if k != null:
+			k.set_ki(k.ki() - drain)
+		else:
+			ki = maxf(0.0, ki - drain)
+			Events.ki_changed.emit(ki, max_ki)
 		if ki <= 0.0:
 			is_flying = false
 	if is_flying and on_ground and input.sneak:
 		is_flying = false
 
 func _integrate(delta: float) -> void:
-	var dir := _move_dir()
-	var want := dir * target_speed()
+	var want := move_direction() * target_speed()
 	if in_liquid and not is_flying:
 		want *= LIQUID_SPEED_MULT
 	var accel := ACCEL_GROUND
@@ -572,68 +512,80 @@ func _integrate(delta: float) -> void:
 		if input.jump:
 			velocity.y = minf(LIQUID_VY_MAX, velocity.y + SWIM_UP * delta * 6.0)
 		elif submerged > 0.6 and not input.sneak:
-			velocity.y += 2.2 * delta * 4.0    # buoyancy toward the surface
+			velocity.y += 8.8 * delta
 		velocity.y = clampf(velocity.y, LIQUID_VY_MIN, LIQUID_VY_MAX)
 		velocity += flow * 1.5 * delta
 	else:
-		velocity.y = maxf(TERMINAL_VELOCITY, velocity.y - float(_phys["gravity"]) * _gravity_scale() * delta)
+		velocity.y = maxf(TERMINAL_VELOCITY, velocity.y - float(_phys["gravity"]) * planet_gravity() * delta)
 		if input.jump and on_ground:
-			velocity.y = float(_phys["jump"]) * (1.0 + 0.06 * float(skill_level("jump")))
+			velocity.y = jump_speed()
 			on_ground = false
 			play_anim("base.jump", 0.08, false)
-	_apply_motion(velocity * delta, delta)
+	_apply_motion(velocity * delta)
+	# face the camera direction while moving so the model matches the view
+	if camera_rig != null and (input.move.length() > 0.05 or camera_rig.mode != CameraRig.Mode.SHOULDER):
+		yaw = deg_to_rad(camera_rig.yaw_deg)
+		rotation.y = yaw
+	if target != null and is_instance_valid(target):
+		look_at_head((target as Node3D).global_position)
+	else:
+		head_pitch_deg = clampf(camera_rig.pitch_deg if camera_rig != null else 0.0, -50.0, 50.0)
+		head_yaw_deg = 0.0
 
-func _gravity_scale() -> float:
-	if world == null or Registry == null:
-		return 1.0
-	var pid := String(world.get("planet_id")) if world.get("planet_id") != null else "earth"
-	return float(Registry.planet(pid).get("gravity", 1.0))
-
-func _apply_motion(motion: Vector3, delta: float) -> void:
+func _apply_motion(motion: Vector3) -> void:
 	var was_ground := on_ground
 	var step := float(_phys["step_height"]) if (on_ground or in_liquid) else 0.0
-	if _vp != null and world != null and _vp.has_method("move_aabb"):
+	var vp := _voxel()
+	var moved_from := global_position
+	if vp != null and world != null and vp.has_method("move_aabb"):
 		var box := aabb()
-		var r: Dictionary = _vp.call("move_aabb", world, box, motion, step)
-		var nb: AABB = r.get("aabb", box)
-		global_position = nb.position + Vector3(aabb_size.x * 0.5, 0.0, aabb_size.z * 0.5)
-		on_ground = bool(r.get("on_ground", false))
-		if bool(r.get("hit_y", false)):
-			velocity.y = 0.0
-		if bool(r.get("hit_x", false)):
-			velocity.x = 0.0
-		if bool(r.get("hit_z", false)):
-			velocity.z = 0.0
+		var r: Variant = vp.call("move_aabb", world, box, motion, step)
+		if r is Dictionary:
+			var nb: AABB = (r as Dictionary).get("aabb", box)
+			global_position = nb.position + Vector3(aabb_size.x * 0.5, 0.0, aabb_size.z * 0.5)
+			on_ground = bool((r as Dictionary).get("on_ground", false))
+			if bool((r as Dictionary).get("hit_y", false)):
+				velocity.y = 0.0
+			if bool((r as Dictionary).get("hit_x", false)):
+				velocity.x = 0.0
+			if bool((r as Dictionary).get("hit_z", false)):
+				velocity.z = 0.0
+		else:
+			global_position += motion
 	else:
-		# No voxel physics available yet: flat ground plane so the player still works alone.
+		# No world yet: flat ground plane so the player works in the HUD preview and in tests.
 		global_position += motion
-		if global_position.y <= _fallback_ground and not is_flying:
-			global_position.y = _fallback_ground
+		if global_position.y <= FALLBACK_GROUND and not is_flying:
+			global_position.y = FALLBACK_GROUND
 			velocity.y = 0.0
 			on_ground = true
 		else:
 			on_ground = is_flying
+	if is_flying:
+		on_ground = false
 	if on_ground and not was_ground and velocity.y <= 0.0:
 		play_anim("base.landing", 0.1, false)
+	var d := global_position - moved_from
+	ground_speed = Vector2(d.x, d.z).length() / maxf(get_process_delta_time(), 0.0001)
+	distance_moved += Vector2(d.x, d.z).length()
 
 func _survival(delta: float) -> void:
-	var st: PlayerStats = stats
-	if st == null:
+	if survival == null:
 		return
-	st.note_airborne(global_position.y, on_ground or on_ladder, is_flying, in_liquid)
+	survival.note_airborne(global_position.y, on_ground or on_ladder, is_flying, in_liquid)
 	var has_o2 := true
 	if world != null and Registry != null and world.get("planet_id") != null:
 		has_o2 = bool(Registry.planet(String(world.get("planet_id"))).get("oxygen", true))
-	st.tick(delta, speed_now(), is_sprinting, head_in_liquid(), has_o2)
-	# footsteps
+	survival.tick(delta, speed_now(), is_sprinting, head_in_liquid(), has_o2)
 	if on_ground and not is_flying:
 		var sp := speed_now()
 		if sp > 0.3:
 			_step_dist += sp * delta
-			var interval := clampf(2.2 / maxf(0.5, sp), 0.25, 0.6) * maxf(0.5, sp)
-			if _step_dist >= interval:
+			if _step_dist >= clampf(2.2 / maxf(0.5, sp), 0.25, 0.6) * maxf(0.5, sp):
 				_step_dist = 0.0
 				_footstep()
+		else:
+			_step_dist = 0.0
 	else:
 		_step_dist = 0.0
 
@@ -647,6 +599,9 @@ func _footstep() -> void:
 	Audio.play_sfx("step_" + mat, linear_to_db(0.35))
 
 func _animate() -> void:
+	if interaction != null and interaction.mining:
+		play_anim("base.mining1")
+		return
 	if is_flying:
 		if fly_fast:
 			play_anim("base.fly_fast")
@@ -673,82 +628,74 @@ func _animate() -> void:
 
 # --- damage / death --------------------------------------------------------
 
-func set_ki(v: float) -> void:
-	var n := clampf(v, 0.0, max_ki)
-	if absf(n - ki) > 0.001:
-		ki = n
-		Events.ki_changed.emit(ki, max_ki)
-
-func take_damage(amount: float, source: Node = null, kind := "generic", knockback := Vector3.ZERO) -> float:
-	if dead or amount <= 0.0:
+func take_damage(amount: float, source: Node = null, kind_of := "melee", knockback := Vector3.ZERO) -> float:
+	if dead:
 		return 0.0
-	var st: PlayerStats = stats
-	var defense := st.derived("defense", 0.0) if st != null else 0.0
+	var extra := 0.0
 	if inventory != null:
-		defense += inventory.armor_defense()
-	var applied := maxf(1.0, amount - defense * 0.5)
-	health = maxf(0.0, health - applied)
-	if knockback != Vector3.ZERO:
-		velocity += knockback
+		extra = inventory.armor_defense()
+	var before := defense
+	defense += extra
+	var applied := super.take_damage(amount, source, kind_of, knockback)
+	defense = before
+	if applied <= 0.0:
+		return 0.0
 	Events.health_changed.emit(health, max_health)
-	Events.player_damaged.emit(applied, source, kind)
-	Events.entity_damaged.emit(self, applied, source, kind, false)
-	Audio.play_sfx("hurt")
+	Events.player_damaged.emit(applied, source, kind_of)
 	UiUtil.vibrate(40)
 	if camera_rig != null:
 		camera_rig.shake(0.5, 0.25)
-	if health <= 0.0:
-		die(source)
 	return applied
 
-func heal(amount: float) -> void:
-	health = clampf(health + amount, 0.0, max_health)
-	Events.health_changed.emit(health, max_health)
+func heal(amount: float) -> float:
+	var got := super.heal(amount)
+	if got > 0.0:
+		Events.health_changed.emit(health, max_health)
+	return got
 
 func die(killer: Node = null) -> void:
 	if dead:
 		return
 	dead = true
-	alive = false
+	health = 0.0
 	velocity = Vector3.ZERO
 	is_flying = false
 	input.clear_all()
 	Audio.play_sfx("knockback_character")
+	_play_death_animation()
 	Events.player_died.emit(killer)
 	Events.entity_died.emit(self, killer)
+	died.emit(killer)
 	if Game != null and Game.ui != null:
 		Game.ui.call("open", "death", {"killer": killer})
 
 func respawn() -> void:
 	dead = false
-	alive = true
 	health = max_health
 	ki = max_ki
 	stamina = max_stamina
-	var st: PlayerStats = stats
-	if st != null:
-		st.set_hunger(PlayerStats.HUNGER_MAX)
-		st.oxygen = PlayerStats.OXYGEN_MAX
+	if survival != null:
+		survival.set_hunger(PlayerStats.HUNGER_MAX)
+		survival.oxygen = PlayerStats.OXYGEN_MAX
+	Forms.revert_all(self)
 	var p := spawn_point
 	if p.y < 0.0:
-		p.y = _surface_y(p.x, p.z)
+		p.y = surface_y(p.x, p.z)
 	global_position = p
 	velocity = Vector3.ZERO
-	if Game != null and not bool(Game.world_info.get("keep_inventory", true)) and Game.world_info.get("difficulty", "normal") == "hard":
+	if model != null:
+		model.rotation = Vector3.ZERO
+		model.scale = Vector3.ONE * model_scale
+		model.set_tint(Color.WHITE)
+	if Game != null and Game.world_info.get("difficulty", "normal") == "hard" \
+			and not bool(Game.world_info.get("keep_inventory", true)):
 		inventory.clear()
-	Events.health_changed.emit(health, max_health)
-	Events.ki_changed.emit(ki, max_ki)
+	_emit_all()
 	Events.player_respawned.emit()
 
 func set_spawn(pos: Vector3, planet := "") -> void:
 	spawn_point = pos
 	if planet != "":
 		spawn_planet = planet
-
-## Pick an item up (used by drops / rewards). Returns the leftover count.
-func give(item_id: String, count := 1) -> int:
-	var left := inventory.add(item_id, count)
-	if left < count:
-		Audio.play_sfx("pop", linear_to_db(0.8))
-		Events.item_picked_up.emit(item_id, count - left)
-	return left
+	if Game != null:
+		Game.profile["spawn"] = {"planet": spawn_planet, "x": pos.x, "y": pos.y, "z": pos.z}

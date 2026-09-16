@@ -149,9 +149,9 @@ func _update_cell(p: Vector3i) -> void:
 				level = want
 	# 2. Flow down.
 	var below := Vector3i(p.x, p.y - 1, p.z)
-	var bid := world.get_block(below.x, below.y, below.z)
 	if _react(p, below, id, lava):
 		return
+	var bid := world.get_block(below.x, below.y, below.z)
 	if _can_replace(bid):
 		world.set_block(below.x, below.y, below.z, id, (SOURCE - 1) | BlockShapes.META_FALLING)
 		schedule(below)

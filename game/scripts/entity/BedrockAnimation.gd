@@ -52,6 +52,7 @@ var _ctx: Dictionary = {}
 var _touched: Dictionary = {}                     # bone -> true, written last frame
 var _accum := 0.0
 var _life_time := 0.0
+var _resolved: Dictionary = {}                    # Clip -> resolved bone table
 
 # --- parsed data ---------------------------------------------------------------
 
@@ -70,9 +71,9 @@ class Chan extends RefCounted:
 		if n == 0:
 			return default
 		if n == 1 or t <= times[0]:
-			return (keys[0] as Key).eval_pre(ctx)
+			return (keys[0] as KeyFrame).eval_pre(ctx)
 		if t >= times[n - 1]:
-			return (keys[n - 1] as Key).eval_post(ctx)
+			return (keys[n - 1] as KeyFrame).eval_post(ctx)
 		var lo := 0
 		var hi := n - 1
 		while lo + 1 < hi:
@@ -81,15 +82,15 @@ class Chan extends RefCounted:
 				lo = mid
 			else:
 				hi = mid
-		var k0: Key = keys[lo]
-		var k1: Key = keys[lo + 1]
+		var k0: KeyFrame = keys[lo]
+		var k1: KeyFrame = keys[lo + 1]
 		var span := times[lo + 1] - times[lo]
 		var f := 0.0 if span <= 0.0 else (t - times[lo]) / span
 		var a := k0.eval_post(ctx)
 		var b := k1.eval_pre(ctx)
 		if k0.lerp_mode == LERP_CATMULLROM:
-			var pa: Vector3 = (keys[maxi(lo - 1, 0)] as Key).eval_post(ctx)
-			var pb: Vector3 = (keys[mini(lo + 2, n - 1)] as Key).eval_pre(ctx)
+			var pa: Vector3 = (keys[maxi(lo - 1, 0)] as KeyFrame).eval_post(ctx)
+			var pb: Vector3 = (keys[mini(lo + 2, n - 1)] as KeyFrame).eval_pre(ctx)
 			return _catmullrom(pa, a, b, pb, f)
 		return a.lerp(b, BedrockAnimation.ease_value(k0.easing, f))
 
@@ -98,7 +99,7 @@ class Chan extends RefCounted:
 		var t3 := t2 * t
 		return 0.5 * ((2.0 * p1) + (-p0 + p2) * t + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2 + (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3)
 
-class Key extends RefCounted:
+class KeyFrame extends RefCounted:
 	var t := 0.0
 	var pre: Array = []
 	var post: Array = []
@@ -143,6 +144,27 @@ func _init() -> void:
 func setup(m: BedrockModel, owner_entity: Node = null) -> void:
 	model = m
 	entity = owner_entity
+	_resolved.clear()
+	_touched.clear()
+
+## Per-clip cache of [node, position Chan, rotation Chan, scale Chan, rest pos,
+## rest rot, bone name] so the hot path does no Dictionary lookups.
+func _resolve(clip: Clip) -> Array:
+	var cached: Variant = _resolved.get(clip)
+	if cached != null:
+		return cached
+	var out: Array = []
+	for bname in clip.bone_names:
+		var node: Node3D = model.bones.get(bname)
+		if node == null:
+			continue
+		var entry: Dictionary = clip.bones[bname]
+		out.append([
+			node, entry.get("position"), entry.get("rotation"), entry.get("scale"),
+			model.rest_position.get(bname, Vector3.ZERO), model.rest_rotation.get(bname, Vector3.ZERO), bname,
+		])
+	_resolved[clip] = out
+	return out
 
 static func anim_file(path_rel: String) -> String:
 	var p := path_rel.trim_suffix(".animation.json")
@@ -248,7 +270,7 @@ static func _parse_channel(raw: Variant) -> Chan:
 	for pair in stamps:
 		var t: float = pair[0]
 		var kf: Variant = pair[1]
-		var key := Key.new()
+		var key := KeyFrame.new()
 		key.t = t
 		if kf is Dictionary:
 			var kd: Dictionary = kf
@@ -423,6 +445,14 @@ func update(delta: float) -> void:
 		delta = _accum
 		_accum = 0.0
 	_update_context()
+	var l0: LayerState = _layers[LAYER_BASE]
+	var l1: LayerState = _layers[LAYER_UPPER]
+	# Fast path: a single layer with no cross-fade in flight applies straight to
+	# the bones, with no Dictionary/Array allocation per frame.
+	if l0.clip != null and l0.blend_left <= 0.0 and l1.clip == null and l1.blend_left <= 0.0:
+		_advance(l0, delta)
+		_apply_direct(l0)
+		return
 	var pose: Dictionary = {}
 	for i in _layers.size():
 		var st: LayerState = _layers[i]
@@ -462,7 +492,7 @@ func _advance(st: LayerState, delta: float) -> void:
 					clip_finished.emit(st.clip.name)
 
 func _update_context() -> void:
-	_ctx["query.life_time"] = _life_time
+	_ctx[&"query.life_time"] = _life_time
 	var pitch := 0.0
 	var yaw := 0.0
 	var on_ground := 1.0
@@ -484,17 +514,17 @@ func _update_context() -> void:
 		var fl: Variant = entity.get("is_flying")
 		if fl != null:
 			flying = 1.0 if fl else 0.0
-	_ctx["query.head_x_rotation"] = pitch
-	_ctx["query.head_y_rotation"] = yaw
-	_ctx["query.target_x_rotation"] = pitch
-	_ctx["query.target_y_rotation"] = yaw
-	_ctx["query.is_on_ground"] = on_ground
-	_ctx["query.ground_speed"] = speed
-	_ctx["query.modified_distance_moved"] = moved
-	_ctx["query.modified_move_speed"] = speed
-	_ctx["query.is_flying"] = flying
-	_ctx["query.is_in_water"] = 0.0
-	_ctx["this"] = 0.0
+	_ctx[&"query.head_x_rotation"] = pitch
+	_ctx[&"query.head_y_rotation"] = yaw
+	_ctx[&"query.target_x_rotation"] = pitch
+	_ctx[&"query.target_y_rotation"] = yaw
+	_ctx[&"query.is_on_ground"] = on_ground
+	_ctx[&"query.ground_speed"] = speed
+	_ctx[&"query.modified_distance_moved"] = moved
+	_ctx[&"query.modified_move_speed"] = speed
+	_ctx[&"query.is_flying"] = flying
+	_ctx[&"query.is_in_water"] = 0.0
+	_ctx[&"this"] = 0.0
 
 ## bone -> [position offset (model units), rotation offset (degrees), scale]
 func _pose_of(st: LayerState, snapshot: bool) -> Dictionary:
@@ -502,7 +532,7 @@ func _pose_of(st: LayerState, snapshot: bool) -> Dictionary:
 	if st.clip == null:
 		return out
 	var t := st.time
-	_ctx["query.anim_time"] = t
+	_ctx[&"query.anim_time"] = t
 	for bname in st.clip.bone_names:
 		var entry: Dictionary = st.clip.bones[bname]
 		var pos := Vector3.ZERO
@@ -540,6 +570,47 @@ static func _blend_poses(from: Dictionary, to: Dictionary, w: float) -> Dictiona
 				Vector3.ONE.lerp(a2[2], 1.0 - w),
 			]
 	return out
+
+## Allocation-free single-layer application.
+func _apply_direct(st: LayerState) -> void:
+	var t := st.time
+	_ctx[&"query.anim_time"] = t
+	var clip := st.clip
+	var table := _resolve(clip)
+	for row in table:
+		var node: Node3D = row[0]
+		var pos: Vector3 = row[4]
+		var rot: Vector3 = row[5]
+		var chan: Chan = row[1]
+		if chan != null:
+			var v := chan.sample(t, _ctx, Vector3.ZERO)
+			pos += Vector3(-v.x, v.y, v.z)
+		chan = row[2]
+		if chan != null:
+			rot += chan.sample(t, _ctx, Vector3.ZERO)
+		node.transform = Transform3D(BedrockModel.bedrock_basis(rot), pos)
+		chan = row[3]
+		if chan != null:
+			var sc := chan.sample(t, _ctx, Vector3.ONE)
+			if not sc.is_equal_approx(Vector3.ONE):
+				node.scale = sc
+		_touched[row[6]] = true
+	_reset_stale(clip.bones)
+
+func _reset_stale(keep: Dictionary) -> void:
+	if _touched.size() == keep.size():
+		return
+	var bones: Dictionary = model.bones
+	var stale: PackedStringArray = PackedStringArray()
+	for bname in _touched.keys():
+		if not keep.has(bname):
+			stale.append(String(bname))
+	for bname in stale:
+		var node: Node3D = bones.get(bname)
+		if node != null:
+			node.transform = Transform3D(BedrockModel.bedrock_basis(model.rest_rotation.get(bname, Vector3.ZERO)), model.rest_position.get(bname, Vector3.ZERO))
+			node.scale = Vector3.ONE
+		_touched.erase(bname)
 
 func _apply(pose: Dictionary) -> void:
 	var bones: Dictionary = model.bones
@@ -592,5 +663,5 @@ func sample_channel(clip_name: String, bone: String, channel: String, t: float) 
 	if chan == null:
 		return Vector3.ZERO
 	_update_context()
-	_ctx["query.anim_time"] = t
+	_ctx[&"query.anim_time"] = t
 	return chan.sample(t, _ctx, Vector3.ONE if channel == "scale" else Vector3.ZERO)

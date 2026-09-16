@@ -3,33 +3,46 @@ extends RefCounted
 ## Bedrock "Molang" expression compiler/evaluator (docs/ARCHITECTURE.md §7).
 ##
 ## Expressions found in the DMZ `.animation.json` files are compiled ONCE into a
-## flat RPN program (three packed arrays, no per-frame allocations) and then
-## evaluated every frame against a context Dictionary:
+## flat RPN program (packed arrays, no per-frame allocation) and then evaluated
+## every frame against a context Dictionary:
 ##
 ##     var e := Molang.compile("-math.cos(query.anim_time *360) * 32")
 ##     e.evaluate({"query.anim_time": 0.25})
 ##
 ## Supported: numbers, `+ - * /`, unary minus, `!`, parentheses, comparisons
 ## (`< > <= >= == !=`), `&& ||`, the ternary `c ? a : b`, and the functions
-## math.sin/cos/tan/asin/acos/atan/abs/clamp/lerp/lerprotate/mod/sqrt/floor/
-## ceil/round/trunc/pow/min/max/exp/ln/sign/random/die_roll/hermite_blend.
+## math.sin/cos/tan/asin/acos/atan/atan2/abs/clamp/lerp/lerprotate/mod/sqrt/
+## floor/ceil/round/trunc/pow/min/max/exp/ln/sign/random/die_roll/hermite_blend.
 ## Trigonometric functions take/return DEGREES, like Bedrock.
 ##
 ## Variable namespaces are canonicalised so `q.` == `query.`, `v.` == `variable.`,
 ## `t.` == `temp.`, `c.` == `context.`; identifiers are lower-cased (the DMZ files
-## contain both `math.sin` and `Math.sin`). Unknown variables evaluate to 0.
-## `variable.*` / `temp.*` default to 0 as required by the contract.
+## contain both `math.sin` and `Math.sin`). Unknown variables - including every
+## `variable.*` / `temp.*` the game does not set - evaluate to 0.
+##
+## Expressions without variables or randomness are constant-folded at compile
+## time, and the arithmetic/trig operators each get their own opcode so the hot
+## loop is one if/elif chain: a GDScript `match` costs ~0.28 us per hit, far too
+## slow for the ~15 live expressions an animated entity evaluates per frame.
 
 # --- op codes -----------------------------------------------------------------
 const OP_CONST := 0
 const OP_VAR := 1
-const OP_CALL := 2
-const OP_BIN := 3
-const OP_NEG := 4
-const OP_NOT := 5
-const OP_TERNARY := 6
+const OP_MUL := 2
+const OP_ADD := 3
+const OP_SUB := 4
+const OP_COS := 5
+const OP_SIN := 6
+const OP_NEG := 7
+const OP_DIV := 8
+const OP_CALL1 := 9
+const OP_CALL2 := 10
+const OP_CALL3 := 11
+const OP_CMP := 12
+const OP_TERNARY := 13
+const OP_NOT := 14
 
-# --- binary operators ---------------------------------------------------------
+# --- binary / logic operator ids (arg of OP_CMP) ------------------------------
 const B_ADD := 0
 const B_SUB := 1
 const B_MUL := 2
@@ -52,6 +65,7 @@ const BIN_PREC := {
 	B_OR: 2, B_AND: 3, B_EQ: 4, B_NE: 4, B_LT: 5, B_GT: 5, B_LE: 5, B_GE: 5,
 	B_ADD: 6, B_SUB: 6, B_MUL: 7, B_DIV: 7,
 }
+const BIN_OPCODE := {B_ADD: OP_ADD, B_SUB: OP_SUB, B_MUL: OP_MUL, B_DIV: OP_DIV}
 
 # --- functions ----------------------------------------------------------------
 const F_SIN := 0
@@ -98,19 +112,20 @@ const FUNC_ARITY := {
 	F_TRUNC: 1, F_EXP: 1, F_LN: 1, F_SIGN: 1, F_TAN: 1, F_ASIN: 1, F_ACOS: 1,
 	F_ATAN: 1, F_ATAN2: 2, F_DIE_ROLL: 3, F_HERMITE: 1, F_LERPROTATE: 3,
 }
+const DEG2RAD := 0.017453292519943295
 
 # --- compiled program ---------------------------------------------------------
 var code: PackedInt32Array = PackedInt32Array()
 var args: PackedInt32Array = PackedInt32Array()
 var consts: PackedFloat32Array = PackedFloat32Array()
-var names: PackedStringArray = PackedStringArray()
+var names: Array[StringName] = []
 var source := ""
-var is_constant := false          ## true when the expression has no variables/random
+var is_constant := false          ## true when the expression has no variables/randomness
 var constant_value := 0.0
 var error := ""
 
 static var _cache: Dictionary = {}
-static var _stack: PackedFloat32Array = PackedFloat32Array()
+var _st: PackedFloat32Array = PackedFloat32Array()
 
 # --- public API ---------------------------------------------------------------
 
@@ -148,47 +163,55 @@ static func clear_cache() -> void:
 func evaluate(ctx: Dictionary) -> float:
 	if is_constant:
 		return constant_value
-	var n := code.size()
-	if _stack.size() < n + 4:
-		_stack.resize(n + 8)
 	var sp := 0
+	var n := code.size()
 	for i in n:
 		var op := code[i]
-		var a := args[i]
-		match op:
-			OP_CONST:
-				_stack[sp] = consts[a]
-				sp += 1
-			OP_VAR:
-				var v: Variant = ctx.get(names[a])
-				_stack[sp] = float(v) if (v is float or v is int or v is bool) else 0.0
-				sp += 1
-			OP_NEG:
-				_stack[sp - 1] = -_stack[sp - 1]
-			OP_NOT:
-				_stack[sp - 1] = 0.0 if _stack[sp - 1] != 0.0 else 1.0
-			OP_BIN:
-				sp -= 1
-				var r := _stack[sp]
-				var l := _stack[sp - 1]
-				_stack[sp - 1] = _apply_bin(a, l, r)
-			OP_CALL:
-				var arity: int = FUNC_ARITY.get(a, 1)
-				sp -= arity
-				_stack[sp] = _apply_call(a, sp, arity)
-				sp += 1
-			OP_TERNARY:
-				sp -= 2
-				var cond := _stack[sp - 1]
-				_stack[sp - 1] = _stack[sp] if cond != 0.0 else _stack[sp + 1]
-	return _stack[0] if sp > 0 else 0.0
+		if op == OP_CONST:
+			_st[sp] = consts[args[i]]
+			sp += 1
+		elif op == OP_VAR:
+			_st[sp] = float(ctx.get(names[args[i]], 0.0))
+			sp += 1
+		elif op == OP_MUL:
+			sp -= 1
+			_st[sp - 1] = _st[sp - 1] * _st[sp]
+		elif op == OP_ADD:
+			sp -= 1
+			_st[sp - 1] = _st[sp - 1] + _st[sp]
+		elif op == OP_SUB:
+			sp -= 1
+			_st[sp - 1] = _st[sp - 1] - _st[sp]
+		elif op == OP_COS:
+			_st[sp - 1] = cos(_st[sp - 1] * DEG2RAD)
+		elif op == OP_SIN:
+			_st[sp - 1] = sin(_st[sp - 1] * DEG2RAD)
+		elif op == OP_NEG:
+			_st[sp - 1] = -_st[sp - 1]
+		elif op == OP_DIV:
+			sp -= 1
+			var d := _st[sp]
+			_st[sp - 1] = 0.0 if d == 0.0 else _st[sp - 1] / d
+		elif op == OP_CALL1:
+			_st[sp - 1] = _call1(args[i], _st[sp - 1])
+		elif op == OP_CALL2:
+			sp -= 1
+			_st[sp - 1] = _call2(args[i], _st[sp - 1], _st[sp])
+		elif op == OP_CALL3:
+			sp -= 2
+			_st[sp - 1] = _call3(args[i], _st[sp - 1], _st[sp], _st[sp + 1])
+		elif op == OP_TERNARY:
+			sp -= 2
+			_st[sp - 1] = _st[sp] if _st[sp - 1] != 0.0 else _st[sp + 1]
+		elif op == OP_NOT:
+			_st[sp - 1] = 0.0 if _st[sp - 1] != 0.0 else 1.0
+		else:
+			sp -= 1
+			_st[sp - 1] = _compare(args[i], _st[sp - 1], _st[sp])
+	return _st[0] if sp > 0 else 0.0
 
-func _apply_bin(o: int, l: float, r: float) -> float:
+func _compare(o: int, l: float, r: float) -> float:
 	match o:
-		B_ADD: return l + r
-		B_SUB: return l - r
-		B_MUL: return l * r
-		B_DIV: return 0.0 if is_zero_approx(r) else l / r
 		B_LT: return 1.0 if l < r else 0.0
 		B_GT: return 1.0 if l > r else 0.0
 		B_LE: return 1.0 if l <= r else 0.0
@@ -199,43 +222,46 @@ func _apply_bin(o: int, l: float, r: float) -> float:
 		B_OR: return 1.0 if (l != 0.0 or r != 0.0) else 0.0
 	return 0.0
 
-func _apply_call(f: int, base: int, arity: int) -> float:
-	var a := _stack[base] if arity > 0 else 0.0
-	var b := _stack[base + 1] if arity > 1 else 0.0
-	var c := _stack[base + 2] if arity > 2 else 0.0
+func _call1(f: int, a: float) -> float:
 	match f:
-		F_SIN: return sin(deg_to_rad(a))
-		F_COS: return cos(deg_to_rad(a))
-		F_TAN: return tan(deg_to_rad(a))
-		F_ASIN: return rad_to_deg(asin(clampf(a, -1.0, 1.0)))
-		F_ACOS: return rad_to_deg(acos(clampf(a, -1.0, 1.0)))
-		F_ATAN: return rad_to_deg(atan(a))
-		F_ATAN2: return rad_to_deg(atan2(a, b))
 		F_ABS: return absf(a)
-		F_CLAMP: return clampf(a, b, c)
-		F_LERP: return a + (b - a) * clampf(c, 0.0, 1.0)
-		F_LERPROTATE: return a + wrapf(b - a, -180.0, 180.0) * clampf(c, 0.0, 1.0)
-		F_MOD: return 0.0 if is_zero_approx(b) else fposmod(a, b)
 		F_SQRT: return sqrt(maxf(a, 0.0))
 		F_FLOOR: return floorf(a)
 		F_CEIL: return ceilf(a)
 		F_ROUND: return roundf(a)
-		F_TRUNC: return truncf(a)
+		F_TAN: return tan(a * DEG2RAD)
+		F_ASIN: return rad_to_deg(asin(clampf(a, -1.0, 1.0)))
+		F_ACOS: return rad_to_deg(acos(clampf(a, -1.0, 1.0)))
+		F_ATAN: return rad_to_deg(atan(a))
+		F_TRUNC: return float(int(a))
 		F_EXP: return exp(a)
 		F_LN: return log(maxf(a, 1e-6))
 		F_SIGN: return signf(a)
+		F_HERMITE:
+			var t := clampf(a, 0.0, 1.0)
+			return 3.0 * t * t - 2.0 * t * t * t
+	return 0.0
+
+func _call2(f: int, a: float, b: float) -> float:
+	match f:
+		F_MOD: return 0.0 if is_zero_approx(b) else fposmod(a, b)
 		F_POW: return pow(a, b)
 		F_MIN: return minf(a, b)
 		F_MAX: return maxf(a, b)
+		F_ATAN2: return rad_to_deg(atan2(a, b))
 		F_RANDOM: return randf_range(a, b)
+	return 0.0
+
+func _call3(f: int, a: float, b: float, c: float) -> float:
+	match f:
+		F_CLAMP: return clampf(a, b, c)
+		F_LERP: return a + (b - a) * clampf(c, 0.0, 1.0)
+		F_LERPROTATE: return a + wrapf(b - a, -180.0, 180.0) * clampf(c, 0.0, 1.0)
 		F_DIE_ROLL:
 			var total := 0.0
 			for i in int(maxf(a, 0.0)):
 				total += randf_range(b, c)
 			return total
-		F_HERMITE:
-			var t := clampf(a, 0.0, 1.0)
-			return 3.0 * t * t - 2.0 * t * t * t
 	return 0.0
 
 # --- compiler -----------------------------------------------------------------
@@ -243,7 +269,7 @@ func _apply_call(f: int, base: int, arity: int) -> float:
 func _compile(expr: String) -> void:
 	source = expr
 	var body := expr.strip_edges()
-	# Statement lists ("...; return x;") – keep the last non-empty statement.
+	# Statement lists ("...; return x;") - keep the last non-empty statement.
 	if body.contains(";"):
 		var parts := body.split(";", false)
 		for i in range(parts.size() - 1, -1, -1):
@@ -260,13 +286,15 @@ func _compile(expr: String) -> void:
 	if error != "":
 		_fallback()
 		return
+	_st.resize(code.size() + 8)
 	# Constant folding: no variables and no randomness -> evaluate once.
 	var pure := true
 	for i in code.size():
-		if code[i] == OP_VAR:
+		var op := code[i]
+		if op == OP_VAR:
 			pure = false
 			break
-		if code[i] == OP_CALL and (args[i] == F_RANDOM or args[i] == F_DIE_ROLL):
+		if (op == OP_CALL2 and args[i] == F_RANDOM) or (op == OP_CALL3 and args[i] == F_DIE_ROLL):
 			pure = false
 			break
 	if pure:
@@ -276,6 +304,7 @@ func _compile(expr: String) -> void:
 func _fallback() -> void:
 	code = PackedInt32Array()
 	args = PackedInt32Array()
+	_st.resize(8)
 	is_constant = true
 	constant_value = 0.0
 
@@ -336,7 +365,7 @@ func _emit_const(v: float) -> void:
 	_emit(OP_CONST, idx)
 
 func _emit_var(name: String) -> void:
-	var canon := _canon_var(name)
+	var canon := StringName(_canon_var(name))
 	var idx := names.find(canon)
 	if idx < 0:
 		idx = names.size()
@@ -355,10 +384,10 @@ static func _canon_var(name: String) -> String:
 	return name
 
 ## Shunting-yard. Operator stack entries are [kind, value] where kind is
-## "bin" (value = B_*), "un" (OP_NEG/OP_NOT), "fn" (value = F_*), "(" , "?" or ":".
+## "bin" (value = B_*), "un" (OP_NEG/OP_NOT), "fn" (value = F_*), "(", "?" or ":".
 func _shunting_yard(toks: Array) -> void:
 	var ops: Array = []
-	var prev_value := false          # was the previous token a value/close paren?
+	var prev_value := false          # was the previous token a value / closing paren?
 	for t in toks:
 		var kind: String = t[0]
 		var text: String = t[1]
@@ -442,8 +471,21 @@ func _prec(entry: Array) -> int:
 
 func _flush(entry: Array) -> void:
 	match entry[0]:
-		"bin": _emit(OP_BIN, entry[1])
-		"un": _emit(int(entry[1]))
-		"fn": _emit(OP_CALL, entry[1])
-		"?": _emit(OP_TERNARY)
-		":": pass          # values stay on the stack; OP_TERNARY consumes both
+		"bin":
+			var b: int = entry[1]
+			_emit(int(BIN_OPCODE.get(b, OP_CMP)), b)
+		"un":
+			_emit(int(entry[1]))
+		"fn":
+			var fid: int = entry[1]
+			if fid == F_SIN:
+				_emit(OP_SIN)
+			elif fid == F_COS:
+				_emit(OP_COS)
+			else:
+				var arity: int = FUNC_ARITY.get(fid, 1)
+				_emit(OP_CALL1 if arity == 1 else (OP_CALL2 if arity == 2 else OP_CALL3), fid)
+		"?":
+			_emit(OP_TERNARY)
+		":":
+			pass          # both values stay on the stack; OP_TERNARY consumes them

@@ -35,6 +35,7 @@ var _spawn_wait := 0.0
 var _cache_key := Vector2i(0x7fffffff, 0x7fffffff)
 var _cache_col: ChunkColumn = null
 var _autoplay := false
+var _force_debug_camera := false
 var _uniform_time := 0.0
 
 func _ready() -> void:
@@ -67,6 +68,8 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--autoplay"):
 			_autoplay = true
+		elif a.begins_with("--debugcam"):
+			_force_debug_camera = true
 	_setup_sky()
 
 func _setup_sky() -> void:
@@ -135,6 +138,11 @@ func _col(cx: int, cz: int) -> ChunkColumn:
 
 func get_column(cx: int, cz: int) -> ChunkColumn:
 	return _col(cx, cz)
+
+## ChunkManager calls this whenever a column is published or unloaded.
+func invalidate_column_cache() -> void:
+	_cache_key = Vector2i(0x7fffffff, 0x7fffffff)
+	_cache_col = null
 
 func get_block(x: int, y: int, z: int) -> int:
 	if y < 0 or y >= HEIGHT:
@@ -368,8 +376,6 @@ func spawn_entity(entity_type: String, pos: Vector3, data := {}) -> Node:
 	node.name = entity_type if entity_type != "" else "entity"
 	if node is Node3D:
 		(node as Node3D).position = pos
-	for k in ["entity_type", "world"]:
-		pass
 	if "entity_type" in node:
 		node.set("entity_type", entity_type)
 	if "world" in node:
@@ -504,6 +510,11 @@ func _push_uniforms() -> void:
 	if sky != null and sky.has_method("fog_start"):
 		f0 = float(sky.call("fog_start"))
 		f1 = float(sky.call("fog_end"))
+	if sky != null and sky.has_method("apply_to_material"):
+		# The SkyController pushes the shared lighting uniforms (and its own extras) itself.
+		for m in manager.materials():
+			sky.call("apply_to_material", m)
+		return
 	for m in manager.materials():
 		m.set_shader_parameter("daylight", d)
 		m.set_shader_parameter("sun_color", sc)
@@ -525,7 +536,7 @@ func _spawn_actor() -> void:
 		if y < 2.0:
 			y = float(WorldConst.SEA_LEVEL) + 2.0
 	spawn_position = Vector3(x, y, z)
-	if ResourceLoader.exists(PLAYER_SCENE):
+	if ResourceLoader.exists(PLAYER_SCENE) and not _force_debug_camera:
 		var packed: PackedScene = load(PLAYER_SCENE)
 		if packed != null:
 			var p := packed.instantiate()

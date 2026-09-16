@@ -15,9 +15,10 @@ extends Node3D
 ##   --screenshot=<path> --after=<seconds>   save a PNG and quit (used by tools/screenshot.sh)
 
 const WATER_SHADER := "res://shaders/water.gdshader"
+const CHUNK_SHADER := "res://shaders/chunk_opaque.gdshader"
 const SEA_LEVEL := 0.0
-const WATER_EXTENT := Vector2(300.0, 300.0)
-const WATER_STEP := 3.0
+const WATER_EXTENT := Vector2(220.0, 220.0)
+const WATER_STEP := 2.5
 const TERRAIN_EXTENT := Vector2(300.0, 300.0)
 const TERRAIN_STEP := 5.0
 
@@ -29,6 +30,7 @@ var water_mesh: MeshInstance3D
 var water_material: ShaderMaterial
 var terrain: MeshInstance3D
 var props: Node3D
+var ground_material: ShaderMaterial
 
 var planet_id := "earth"
 var time_ticks := 6000.0
@@ -96,12 +98,17 @@ func _setup_nodes() -> void:
 	camera.far = 4000.0
 	# yaw 90 = looking west (-X, toward the sunset), 270 = east (+X, toward the sunrise)
 	var yaw := deg_to_rad(float(args.get("yaw", 90.0)))
-	var height := 4.6
-	var pitch := -0.12
+	var cam_x := float(args.get("cam_x", 22.0))
+	var cam_z := float(args.get("cam_z", 7.0))
+	# stand 1.8 m above the ground (eye height) unless a height is given
+	var height := terrain_height(cam_x, cam_z) + 1.8
+	var pitch := deg_to_rad(float(args.get("pitch", -7.0)))
 	if args.has("underwater"):
 		height = -1.2
-		pitch = 0.08
-	camera.position = Vector3(float(args.get("cam_x", 26.0)), height, float(args.get("cam_z", 0.0)))
+		pitch = deg_to_rad(float(args.get("pitch", 5.0)))
+	if args.has("height"):
+		height = float(args["height"])
+	camera.position = Vector3(cam_x, height, cam_z)
 	camera.rotation = Vector3(pitch, yaw, 0.0)
 	sky = get_node_or_null("SkyController") as SkyController
 	if sky == null:
@@ -122,92 +129,153 @@ static func terrain_height(x: float, z: float) -> float:
 	var r := Vector2(x, z).length()
 	return h - smoothstep(150.0, 285.0, r) * 40.0
 
+## Vertex arrays in the ChunkMesher's format, so the preview ground/props are drawn by the real
+## chunk_opaque.gdshader (this doubles as a visual check of the chunk polish pass).
+static func _uv2_for(layer: int, frames := 1) -> Vector2:
+	return Vector2(float(layer) + float(frames) / 128.0, (15.0 * 16.0) / 255.0)
+
+func _chunk_material() -> ShaderMaterial:
+	if ground_material != null:
+		return ground_material
+	ground_material = ShaderMaterial.new()
+	if ResourceLoader.exists(CHUNK_SHADER):
+		ground_material.shader = load(CHUNK_SHADER)
+	if Textures != null and Textures.block_array != null:
+		ground_material.set_shader_parameter("tiles", Textures.block_array)
+	return ground_material
+
 func _build_terrain() -> void:
-	var verts := PackedVector3Array()
-	var normals := PackedVector3Array()
-	var uvs := PackedVector2Array()
-	var indices := PackedInt32Array()
-	var nx := int(TERRAIN_EXTENT.x * 2.0 / TERRAIN_STEP)
-	var nz := int(TERRAIN_EXTENT.y * 2.0 / TERRAIN_STEP)
-	for iz in nz + 1:
-		for ix in nx + 1:
-			var x := -TERRAIN_EXTENT.x + float(ix) * TERRAIN_STEP
-			var z := -TERRAIN_EXTENT.y + float(iz) * TERRAIN_STEP
-			verts.append(Vector3(x, terrain_height(x, z), z))
-			var e := 1.0
-			var hl := terrain_height(x - e, z)
-			var hr := terrain_height(x + e, z)
-			var hd := terrain_height(x, z - e)
-			var hu := terrain_height(x, z + e)
-			normals.append(Vector3(hl - hr, 2.0 * e, hd - hu).normalized())
-			uvs.append(Vector2(x, z) * 0.25)
-	for iz in nz:
-		for ix in nx:
-			var a := iz * (nx + 1) + ix
-			var b := a + 1
-			var c := a + nx + 1
-			var d := c + 1
-			indices.append_array(PackedInt32Array([a, b, c, b, d, c]))
-	var arrays := []
-	arrays.resize(Mesh.ARRAY_MAX)
-	arrays[Mesh.ARRAY_VERTEX] = verts
-	arrays[Mesh.ARRAY_NORMAL] = normals
-	arrays[Mesh.ARRAY_TEX_UV] = uvs
-	arrays[Mesh.ARRAY_INDEX] = indices
-	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	terrain = MeshInstance3D.new()
-	terrain.name = "Terrain"
-	terrain.mesh = mesh
-	var mat := StandardMaterial3D.new()
-	mat.albedo_texture = _checker_texture()
-	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
-	mat.uv1_scale = Vector3(1, 1, 1)
-	mat.roughness = 1.0
-	mat.metallic = 0.0
-	mat.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	terrain.material_override = mat
-	add_child(terrain)
-
-func _checker_texture() -> ImageTexture:
-	var img := Image.create(32, 32, false, Image.FORMAT_RGBA8)
-	for y in 32:
-		for x in 32:
-			var light := ((x / 8) + (y / 8)) % 2 == 0
-			var c := Color(0.52, 0.56, 0.46) if light else Color(0.38, 0.44, 0.33)
-			c = c.lerp(Color(0.74, 0.68, 0.5), 0.25 * float((x * 7 + y * 13) % 5) / 4.0)
-			img.set_pixel(x, y, c)
-	return ImageTexture.create_from_image(img)
-
-func _build_water() -> void:
+	# "checker quad": alternating sand / grass block tiles, one quad per TERRAIN_STEP metres.
+	var layer_a := Textures.layer("sand")
+	var layer_b := Textures.layer("grass_top0")
+	if layer_b == 0:
+		layer_b = Textures.layer("dirt0")
 	var verts := PackedVector3Array()
 	var normals := PackedVector3Array()
 	var uvs := PackedVector2Array()
 	var uv2s := PackedVector2Array()
 	var colors := PackedColorArray()
 	var indices := PackedInt32Array()
-	var layer := float(Textures.layer("water_still")) if Textures != null else 0.0
-	var packed_light := 15.0 * 16.0 + 0.0           # full sky light, no block light
-	var uv2_y := packed_light / 255.0
-	var nx := int(WATER_EXTENT.x * 2.0 / WATER_STEP)
-	var nz := int(WATER_EXTENT.y * 2.0 / WATER_STEP)
-	for iz in nz + 1:
-		for ix in nx + 1:
-			var x := -WATER_EXTENT.x + float(ix) * WATER_STEP
-			var z := -WATER_EXTENT.y + float(iz) * WATER_STEP
-			verts.append(Vector3(x, SEA_LEVEL, z))
-			normals.append(Vector3.UP)
-			uvs.append(Vector2(x, z))       # one tile per metre, like a voxel water surface
-			uv2s.append(Vector2(layer, uv2_y))
-			colors.append(Color(1, 1, 1, 1))
+	var nx := int(TERRAIN_EXTENT.x * 2.0 / TERRAIN_STEP)
+	var nz := int(TERRAIN_EXTENT.y * 2.0 / TERRAIN_STEP)
 	for iz in nz:
 		for ix in nx:
-			var a := iz * (nx + 1) + ix
-			var b := a + 1
-			var c := a + nx + 1
-			var d := c + 1
-			indices.append_array(PackedInt32Array([a, b, c, b, d, c]))
+			var x0 := -TERRAIN_EXTENT.x + float(ix) * TERRAIN_STEP
+			var z0 := -TERRAIN_EXTENT.y + float(iz) * TERRAIN_STEP
+			var x1 := x0 + TERRAIN_STEP
+			var z1 := z0 + TERRAIN_STEP
+			var uv2 := _uv2_for(layer_a if (ix + iz) % 2 == 0 else layer_b)
+			var base := verts.size()
+			var corners := [Vector2(x0, z0), Vector2(x1, z0), Vector2(x0, z1), Vector2(x1, z1)]
+			var uvc := [Vector2(0, 0), Vector2(1, 0), Vector2(0, 1), Vector2(1, 1)]
+			for i in 4:
+				var c: Vector2 = corners[i]
+				verts.append(Vector3(c.x, terrain_height(c.x, c.y), c.y))
+				var e := 1.0
+				normals.append(Vector3(terrain_height(c.x - e, c.y) - terrain_height(c.x + e, c.y), 2.0 * e,
+						terrain_height(c.x, c.y - e) - terrain_height(c.x, c.y + e)).normalized())
+				uvs.append(uvc[i])
+				uv2s.append(uv2)
+				colors.append(Color(1, 1, 1, 1))
+			indices.append_array(PackedInt32Array([base, base + 1, base + 2, base + 1, base + 3, base + 2]))
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_TEX_UV2] = uv2s
+	arrays[Mesh.ARRAY_COLOR] = colors
+	arrays[Mesh.ARRAY_INDEX] = indices
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	terrain = MeshInstance3D.new()
+	terrain.name = "Terrain"
+	terrain.mesh = mesh
+	terrain.material_override = _chunk_material()
+	add_child(terrain)
+
+## A voxel-style box with the chunk vertex stream (UV 0..1 per face, UV2 layer/light, COLOR tint/ao).
+static func voxel_box(size: Vector3, layer: int, top_layer := -1) -> ArrayMesh:
+	var verts := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var uv2s := PackedVector2Array()
+	var colors := PackedColorArray()
+	var indices := PackedInt32Array()
+	var h := size * 0.5
+	var faces := [
+		{"n": Vector3(1, 0, 0), "v": [Vector3(h.x, -h.y, h.z), Vector3(h.x, -h.y, -h.z), Vector3(h.x, h.y, h.z), Vector3(h.x, h.y, -h.z)]},
+		{"n": Vector3(-1, 0, 0), "v": [Vector3(-h.x, -h.y, -h.z), Vector3(-h.x, -h.y, h.z), Vector3(-h.x, h.y, -h.z), Vector3(-h.x, h.y, h.z)]},
+		{"n": Vector3(0, 1, 0), "v": [Vector3(-h.x, h.y, h.z), Vector3(h.x, h.y, h.z), Vector3(-h.x, h.y, -h.z), Vector3(h.x, h.y, -h.z)]},
+		{"n": Vector3(0, -1, 0), "v": [Vector3(-h.x, -h.y, -h.z), Vector3(h.x, -h.y, -h.z), Vector3(-h.x, -h.y, h.z), Vector3(h.x, -h.y, h.z)]},
+		{"n": Vector3(0, 0, 1), "v": [Vector3(-h.x, -h.y, h.z), Vector3(h.x, -h.y, h.z), Vector3(-h.x, h.y, h.z), Vector3(h.x, h.y, h.z)]},
+		{"n": Vector3(0, 0, -1), "v": [Vector3(h.x, -h.y, -h.z), Vector3(-h.x, -h.y, -h.z), Vector3(h.x, h.y, -h.z), Vector3(-h.x, h.y, -h.z)]},
+	]
+	var uvc := [Vector2(0, 1), Vector2(1, 1), Vector2(0, 0), Vector2(1, 0)]
+	for f in faces:
+		var n: Vector3 = f["n"]
+		var lay := top_layer if (top_layer >= 0 and n.y > 0.5) else layer
+		var uv2 := _uv2_for(lay)
+		var base := verts.size()
+		for i in 4:
+			verts.append(f["v"][i])
+			normals.append(n)
+			uvs.append(uvc[i])
+			uv2s.append(uv2)
+			colors.append(Color(1, 1, 1, 1))
+		indices.append_array(PackedInt32Array([base, base + 1, base + 2, base + 1, base + 3, base + 2]))
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_TEX_UV2] = uv2s
+	arrays[Mesh.ARRAY_COLOR] = colors
+	arrays[Mesh.ARRAY_INDEX] = indices
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh
+
+func _build_water() -> void:
+	# One quad per WATER_STEP metres with UV 0..1 per quad and the ChunkMesher's UV2 packing
+	# (UV2.x = layer + (frames + sway * 64) / 128, UV2.y = packed light / 255), so the preview
+	# feeds the water shader exactly what the real chunk meshes do.
+	var lava := args.has("lava")
+	var key := "lava_still" if lava else "water_still"
+	var layer := float(Textures.layer(key))
+	var frames := float(Textures.frames_of.get(key, 32))
+	var uv2_x := layer + frames / 128.0
+	var uv2_y := (15.0 * 16.0) / 255.0            # full sky light, no block light
+	var verts := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var uv2s := PackedVector2Array()
+	var colors := PackedColorArray()
+	var indices := PackedInt32Array()
+	var tint := Color(1, 1, 1, 1) if lava else Color.html("#3F76E4")
+	tint.a = 1.0
+	var nx := int(WATER_EXTENT.x * 2.0 / WATER_STEP)
+	var nz := int(WATER_EXTENT.y * 2.0 / WATER_STEP)
+	for iz in nz:
+		for ix in nx:
+			var x0 := -WATER_EXTENT.x + float(ix) * WATER_STEP
+			var z0 := -WATER_EXTENT.y + float(iz) * WATER_STEP
+			var x1 := x0 + WATER_STEP
+			var z1 := z0 + WATER_STEP
+			var base := verts.size()
+			verts.append(Vector3(x0, SEA_LEVEL, z0))
+			verts.append(Vector3(x1, SEA_LEVEL, z0))
+			verts.append(Vector3(x0, SEA_LEVEL, z1))
+			verts.append(Vector3(x1, SEA_LEVEL, z1))
+			uvs.append(Vector2(0, 0))
+			uvs.append(Vector2(1, 0))
+			uvs.append(Vector2(0, 1))
+			uvs.append(Vector2(1, 1))
+			for i in 4:
+				normals.append(Vector3.UP)
+				uv2s.append(Vector2(uv2_x, uv2_y))
+				colors.append(tint)
+			indices.append_array(PackedInt32Array([base, base + 1, base + 2, base + 1, base + 3, base + 2]))
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = verts
@@ -226,9 +294,10 @@ func _build_water() -> void:
 		water_material.shader = load(WATER_SHADER)
 	if Textures != null and Textures.block_array != null:
 		water_material.set_shader_parameter("tiles", Textures.block_array)
-	water_material.set_shader_parameter("anim_frames", int(Textures.frames_of.get("water_still", 32)) if Textures != null else 32)
-	water_material.set_shader_parameter("anim_fps", 10.0)
+	water_material.set_shader_parameter("anim_fps", 4.0 if lava else 10.0)
+	water_material.set_shader_parameter("is_lava", 1 if lava else 0)
 	water_material.set_shader_parameter("cam_near", camera.near)
+	water_material.set_shader_parameter("debug_view", int(args.get("water_debug", 0)))
 	water_mesh.material_override = water_material
 	water_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(water_mesh)
@@ -239,31 +308,23 @@ func _build_props() -> void:
 	add_child(props)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 90210
-	var mat := StandardMaterial3D.new()
-	mat.albedo_texture = _checker_texture()
-	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
-	mat.albedo_color = Color(0.85, 0.85, 0.9)
-	mat.roughness = 0.9
-	mat.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+	var stone := Textures.layer("stone0")
+	var planks := Textures.layer("oak_planks")
+	var mat := _chunk_material()
 	for i in 26:
 		var box := MeshInstance3D.new()
-		var bm := BoxMesh.new()
-		var s := rng.randf_range(1.0, 4.0)
-		bm.size = Vector3(s, s * rng.randf_range(0.6, 2.4), s)
-		box.mesh = bm
+		var sx := rng.randf_range(1.0, 4.0)
+		var sy := sx * rng.randf_range(0.6, 2.4)
+		box.mesh = voxel_box(Vector3(sx, sy, sx), stone if i % 2 == 0 else planks)
 		var x := rng.randf_range(-70.0, 40.0)
 		var z := rng.randf_range(-60.0, 60.0)
-		var ground := terrain_height(x, z)
-		box.position = Vector3(x, ground + bm.size.y * 0.5, z)
+		box.position = Vector3(x, terrain_height(x, z) + sy * 0.5, z)
 		box.material_override = mat
-		box.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		props.add_child(box)
-	# a couple of tall pillars poking out of deep water (reflection / refraction reference)
+	# tall pillars standing in deep water (reflection / refraction / foam reference)
 	for i in 4:
 		var pillar := MeshInstance3D.new()
-		var pm := BoxMesh.new()
-		pm.size = Vector3(2.0, 14.0, 2.0)
-		pillar.mesh = pm
+		pillar.mesh = voxel_box(Vector3(2.0, 14.0, 2.0), stone)
 		pillar.position = Vector3(-14.0 - 11.0 * float(i), -2.0 + 2.0 * float(i % 2), -6.0 + 9.0 * float(i))
 		pillar.material_override = mat
 		props.add_child(pillar)
@@ -282,11 +343,14 @@ func _process(delta: float) -> void:
 		time_ticks = fmod(time_ticks + day_speed * delta, WorldConst.TICKS_PER_DAY)
 	_apply(delta)
 	if _hud != null:
-		_hud.text = "%s  t=%d  %s  daylight %.2f  %d fps  post=%s clouds=%s q=%d" % [
+		var amb := sky.ambient_color()
+		_hud.text = "%s t=%d %s daylight %.2f %d fps post=%s clouds=%s rd=%d\namb=(%.2f %.2f %.2f) sun=(%.2f %.2f %.2f) fog=(%.2f %.2f %.2f) fog %d-%d" % [
 			planet_id, int(time_ticks), sky.weather_kind(), sky.daylight(), Engine.get_frames_per_second(),
 			"on" if sky.post_process != null and sky.post_process.visible else "off",
 			"on" if sky.clouds != null and sky.clouds.visible else "off",
-			int(Game.settings.get("render_distance", 5))]
+			int(Game.settings.get("render_distance", 5)),
+			amb.r, amb.g, amb.b, sky.sun_color().r, sky.sun_color().g, sky.sun_color().b,
+			sky.fog_color().r, sky.fog_color().g, sky.fog_color().b, int(sky.fog_start()), int(sky.fog_end())]
 	_run_bench(delta)
 	if _shot_timer >= 0.0:
 		_shot_timer -= delta
@@ -301,8 +365,17 @@ func _apply(delta: float) -> void:
 	else:
 		planet_def = planet_def.duplicate(true)
 		planet_def["id"] = planet_id
+	# command line overrides, so a look can be checked without editing data/planets.json
+	for k in ["stars", "star_brightness", "milky_way", "aurora", "sun_scale", "cloud_coverage"]:
+		if args.has(k):
+			var sky_block: Dictionary = planet_def.get("sky", {})
+			sky_block = sky_block.duplicate(true)
+			sky_block[k] = float(args[k]) if k != "aurora" else bool(float(args[k]) > 0.5)
+			planet_def["sky"] = sky_block
 	sky.camera_underwater = camera.global_position.y < SEA_LEVEL - 0.05
 	sky.apply(planet_def, time_ticks, weather, delta)
+	if ground_material != null:
+		sky.apply_to_material(ground_material)
 	if water_material != null:
 		sky.apply_to_material(water_material)
 		water_material.set_shader_parameter("water_color", sky.water_color())

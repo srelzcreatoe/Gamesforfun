@@ -17,7 +17,8 @@ static var _mat_cache: Dictionary = {}
 ## First existing particle texture among `names` (relative to assets/textures/particles,
 ## no extension), else a generated 8x8 soft dot so nothing renders magenta.
 static func particle(name: String, alt1 := "", alt2 := "") -> Texture2D:
-	for n in [name, alt1, alt2]:
+	var candidates: Array[String] = [name, alt1, alt2]
+	for n in candidates:
 		if n == "":
 			continue
 		if _tex_cache.has(n):
@@ -105,9 +106,7 @@ static func make_particles(node_name: String, amount: int, textures: Array, colo
 	var ramp := Gradient.new()
 	ramp.set_color(0, Color(1, 1, 1, 1))
 	ramp.set_color(1, Color(1, 1, 1, 0))
-	var gt := GradientTexture1D.new()
-	gt.gradient = ramp
-	p.color_ramp = gt
+	p.color_ramp = ramp
 	return p
 
 ## One-shot burst: emits `amount` particles once then frees itself.

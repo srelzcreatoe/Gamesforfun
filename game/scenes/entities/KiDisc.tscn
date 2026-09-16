@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/Projectile.gd" id="1_proj"]
+
+[node name="KiDisc" type="Node3D"]
+script = ExtResource("1_proj")
+mode = "disc"
+size = 0.7
+speed = 28.0
+life = 5.0

@@ -274,6 +274,8 @@ func _publish(col: ChunkColumn) -> void:
 	if not _in_range(k, render_distance + 1):
 		return                                  # walked away while generating
 	columns[k] = col
+	if world.has_method("invalidate_column_cache"):
+		world.invalidate_column_cache()
 	_merge_queue.append(k)
 	for e in col.entities_pending:
 		if world.has_method("spawn_entity") and e is Dictionary:
@@ -447,6 +449,8 @@ func _unload_far() -> void:
 		_nodes.erase(k)
 		col.mesh_nodes.clear()
 		columns.erase(k)
+	if not drop.is_empty() and world.has_method("invalidate_column_cache"):
+		world.invalidate_column_cache()
 
 func save_modified() -> int:
 	if save == null:

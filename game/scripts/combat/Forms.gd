@@ -37,6 +37,78 @@ const DRAIN_MULT := 1.0
 const MASTERY_TICK := 5.0            # passiveMasteryEveryFiveSeconds
 const MIN_KI_TO_TRANSFORM := 0.1     # fraction of max ki
 
+## Built-in definitions so the state machine (and the fx preview) run before the data
+## engineer's data/forms.json exists. Registry data always wins.
+const FALLBACK := {
+	"ssgrades.supersaiyan": {
+		"id": "ssgrades.supersaiyan", "name": "Super Saiyan", "race": "saiyan",
+		"group": "ssgrades", "form_type": "superforms", "skill": "superforms",
+		"unlockOnSkillLevel": 1, "transformationAnimation": "transf.generic",
+		"hairType": "ssj", "hairColor": "#FFEDB3", "bodyColor2": "#FFEDB3",
+		"eye1Color": "#00FFFF", "eye2Color": "#00FFFF",
+		"auraType": "kakarot", "auraColor": "#FFD700", "extraAuraColor": "#FFFFFF",
+		"hasLightnings": false, "lightningColor": "", "modelScaling": [0.9375, 0.9375, 0.9375],
+		"strMultiplier": 1.5, "skpMultiplier": 1.5, "stmMultiplier": 1.0,
+		"defMultiplier": 1.3125, "vitMultiplier": 1.0, "pwrMultiplier": 1.5,
+		"eneMultiplier": 1.0, "speedMultiplier": 1.0, "energyDrain": 0.08,
+		"healthDrain": 0.0, "maxMastery": 100.0, "masteryPerHitDealt": 0.04,
+		"masteryPerHitReceived": 0.04, "passiveMasteryEveryFiveSeconds": 0.006,
+		"maxCostMultiplier": 0.75, "stackOnMastery": 25.0, "instantTransformOnMastery": 40.0,
+		"formStackable": true, "stackDrainMultiplier": 2.0, "incompatibleWith": [""],
+		"shareMasteryWith": [], "formRequisite": "", "unlock_tp_cost": 0, "model_override": "",
+	},
+	"ssgrades.supersaiyan2": {
+		"id": "ssgrades.supersaiyan2", "name": "Super Saiyan 2", "race": "saiyan",
+		"group": "ssgrades", "form_type": "superforms", "skill": "superforms",
+		"unlockOnSkillLevel": 4, "transformationAnimation": "transf.generic",
+		"hairType": "ssj2", "hairColor": "#FFEDB3", "bodyColor2": "#FFEDB3",
+		"eye1Color": "#00FFFF", "auraColor": "#FFD700", "extraAuraColor": "#FFFFFF",
+		"hasLightnings": true, "lightningColor": "#8AD8FF",
+		"modelScaling": [0.9375, 0.9375, 0.9375],
+		"strMultiplier": 2.25, "skpMultiplier": 2.25, "stmMultiplier": 1.0,
+		"defMultiplier": 1.75, "vitMultiplier": 1.0, "pwrMultiplier": 2.25,
+		"eneMultiplier": 1.0, "speedMultiplier": 1.1, "energyDrain": 0.16,
+		"healthDrain": 0.0, "maxMastery": 100.0, "masteryPerHitDealt": 0.04,
+		"masteryPerHitReceived": 0.04, "passiveMasteryEveryFiveSeconds": 0.006,
+		"maxCostMultiplier": 0.75, "stackOnMastery": 25.0, "instantTransformOnMastery": 40.0,
+		"formStackable": true, "stackDrainMultiplier": 2.0,
+		"incompatibleWith": [""], "shareMasteryWith": [],
+		"formRequisite": "ssgrades.supersaiyan", "formRequisiteType": "all",
+		"unlockOnMastery": 25.0, "unlock_tp_cost": 0, "model_override": "",
+	},
+	"kaioken.x2": {
+		"id": "kaioken.x2", "name": "Kaioken x2", "race": "any", "group": "kaioken",
+		"form_type": "kaioken", "skill": "kaioken", "unlockOnSkillLevel": 1,
+		"transformationAnimation": "transf.kaioken", "auraColor": "#FF2222",
+		"extraAuraColor": "#FF8888", "hasLightnings": false, "tintColor": "#FF0000",
+		"tintIntensity": 0.35, "modelScaling": [1.0, 1.0, 1.0],
+		"strMultiplier": 1.3, "skpMultiplier": 1.3, "stmMultiplier": 1.0,
+		"defMultiplier": 1.0, "vitMultiplier": 1.0, "pwrMultiplier": 1.3,
+		"eneMultiplier": 1.0, "speedMultiplier": 1.15, "energyDrain": 0.2,
+		"healthDrain": 0.35, "maxMastery": 100.0, "masteryPerHitDealt": 0.05,
+		"masteryPerHitReceived": 0.05, "passiveMasteryEveryFiveSeconds": 0.004,
+		"maxCostMultiplier": 0.7, "stackOnMastery": 0.0,
+		"instantTransformOnMastery": 20.0, "formStackable": true,
+		"stackDrainMultiplier": 2.0, "incompatibleWith": [""], "shareMasteryWith": [],
+		"formRequisite": "", "unlock_tp_cost": 0, "model_override": "",
+	},
+	"oozaru.oozaru": {
+		"id": "oozaru.oozaru", "name": "Oozaru", "race": "saiyan", "group": "oozaru",
+		"form_type": "oozaru", "skill": "oozaru", "unlockOnSkillLevel": 1,
+		"transformationAnimation": "transf.oozaru", "auraColor": "#B07A3A",
+		"hasLightnings": false, "modelScaling": [3.0, 3.0, 3.0],
+		"strMultiplier": 2.0, "skpMultiplier": 0.8, "stmMultiplier": 1.5,
+		"defMultiplier": 1.6, "vitMultiplier": 2.0, "pwrMultiplier": 1.4,
+		"eneMultiplier": 1.0, "speedMultiplier": 0.85, "energyDrain": 0.1,
+		"healthDrain": 0.0, "maxMastery": 100.0, "masteryPerHitDealt": 0.02,
+		"masteryPerHitReceived": 0.02, "passiveMasteryEveryFiveSeconds": 0.004,
+		"maxCostMultiplier": 0.8, "formStackable": false, "stackDrainMultiplier": 1.0,
+		"incompatibleWith": ["ssgrades.supersaiyan"], "shareMasteryWith": [],
+		"formRequisite": "", "unlock_tp_cost": 0,
+		"model_override": "entity/races/oozaru",
+	},
+}
+
 var entity: Node = null
 ## Active form ids, innermost first (stacking pushes on the end).
 var stack: Array[String] = []
@@ -76,7 +148,10 @@ func _ready() -> void:
 # --- data ----------------------------------------------------------------
 
 static func def(form_id: String) -> Dictionary:
-	return Registry.form(form_id)
+	var d: Dictionary = Registry.form(form_id)
+	if not d.is_empty():
+		return d
+	return FALLBACK.get(form_id, {})
 
 static func mult_of(form_def: Dictionary, key: String) -> float:
 	for field in MULT_FIELDS.keys():
@@ -351,10 +426,12 @@ func _apply_visuals(form_id: String) -> void:
 	var aura := Aura.get_for(entity)
 	if aura != null:
 		aura.set_form(d)
-	_apply_model_scale(d)
-	_apply_model_override(d)
+	# RaceSkin recomposes hair/eyes/body and the model scale itself; only do it by
+	# hand when the entity engineer's skin composer is not available.
 	if not _race_skin_visuals(d):
+		_apply_model_scale(d)
 		_modulate_fallback(d)
+	_apply_model_override(d)
 
 func _apply_model_scale(d: Dictionary) -> void:
 	var target: Variant = entity.get("model") if entity != null and "model" in entity else null
@@ -375,20 +452,40 @@ func _apply_model_override(d: Dictionary) -> void:
 	if entity != null and entity.has_method("set_model_override"):
 		entity.call("set_model_override", mo)
 
-## Ask the entity engineer's RaceSkin to recompose the skin (hair/eyes/body colours).
-## Loaded dynamically so this file compiles before scripts/entity/ exists.
+## Ask the entity engineer's RaceSkin to recompose the skin (hair/eyes/body colours
+## and the model scale): `RaceSkin.apply_form_visuals(model: BedrockModel, form_def)`.
+## Loaded dynamically and duck-typed so this file also works with a stub model
+## (FxDummy in the tests / the fx preview) or before scripts/entity/ exists.
 func _race_skin_visuals(d: Dictionary) -> bool:
 	const PATH := "res://scripts/entity/RaceSkin.gd"
-	if not ResourceLoader.exists(PATH):
+	if d.is_empty() or entity == null or not ResourceLoader.exists(PATH):
+		return false
+	var m: Variant = entity.get("model") if "model" in entity else null
+	if not (m is Node) or not (m as Node).has_method("get_bone") or not (m as Node).has_method("set_model_scale"):
 		return false
 	var script: Variant = load(PATH)
 	if script == null:
 		return false
-	for m in (script as Script).get_script_method_list():
-		if String(m["name"]) == "apply_form_visuals":
-			script.call("apply_form_visuals", entity, d)
-			return true
-	return false
+	var has := false
+	for meth in (script as Script).get_script_method_list():
+		if String(meth["name"]) == "apply_form_visuals":
+			has = true
+			break
+	if not has:
+		return false
+	script.call("apply_form_visuals", m, _race_skin_args(d))
+	return true
+
+## RaceSkin reads `modelScaling` as a single float while forms.json stores a vector;
+## hand it a normalised copy so both sides keep their own schema.
+func _race_skin_args(d: Dictionary) -> Dictionary:
+	var out := d.duplicate()
+	var sc: Variant = d.get("modelScaling", null)
+	if sc is Array and (sc as Array).size() >= 2:
+		out["modelScaling"] = maxf(float(sc[0]), float(sc[1]))
+	elif not (sc is float or sc is int):
+		out["modelScaling"] = 1.0
+	return out
 
 ## No RaceSkin yet: tint the model with the form's hair/body colour so the change reads.
 func _modulate_fallback(d: Dictionary) -> void:

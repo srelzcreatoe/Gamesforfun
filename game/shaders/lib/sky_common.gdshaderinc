@@ -116,9 +116,9 @@ vec3 sky_color(vec3 dir, vec3 sun_dir, vec3 day_col, vec3 horizon_col, vec3 nigh
 	vec3 col = mix(night, sky, day);
 
 	// --- sun glow: wide Mie lobe + tighter halo, warmer and larger when the sun is low ---
-	float lobe = sky_phase(mu, 0.72) * 0.045 + pow(mu_pos, 48.0) * 0.30;
-	vec3 glow_col = mix(vec3(1.0, 0.92, 0.78), sunset_col * 1.6, dusk);
-	col += glow_col * lobe * (0.6 + 1.6 * dusk) * day * smoothstep(-0.55, -0.15, up);
+	float lobe = sky_phase(mu, 0.72) * 0.032 + pow(mu_pos, 48.0) * 0.22;
+	vec3 glow_col = mix(vec3(1.0, 0.92, 0.78), sunset_col * 1.35, dusk);
+	col += glow_col * lobe * (0.55 + 0.95 * dusk) * day * smoothstep(-0.55, -0.15, up);
 
 	// --- below the horizon: the "ground" of the sky dome fades to a muted horizon ---
 	float ground = smoothstep(0.02, -0.25, up);

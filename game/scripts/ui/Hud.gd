@@ -635,10 +635,9 @@ func _sync_from_player() -> void:
 		hotbar.queue_redraw()
 	hotbar.selected = int(p.get("hotbar_index"))
 	_set_hearts(float(p.get("health")), float(p.get("max_health")))
-	var st: Variant = p.get("stats")
-	if st != null and st is PlayerStats:
-		var ps: PlayerStats = st
-		food.value = ps.hunger
+	var sv: Variant = p.get("survival")
+	if sv is PlayerStats:
+		food.value = (sv as PlayerStats).hunger
 		food.maximum = PlayerStats.HUNGER_MAX
 		food.queue_redraw()
 	ki_bar.value = float(p.get("ki")) / maxf(1.0, float(p.get("max_ki")))
@@ -699,11 +698,13 @@ func _update_labels() -> void:
 		return
 	var st: Variant = p.get("stats")
 	var lvl := 1
-	var tp := 0
-	if st is PlayerStats:
-		lvl = (st as PlayerStats).level()
-		tp = (st as PlayerStats).tp
-	level_label.text = "Lv %d    TP %d" % [lvl, tp]
+	if st != null and st.has_method("level"):
+		lvl = int(st.call("level"))
+	var tp := Training.tp(p)
+	var bp := ""
+	if st != null and st.has_method("battle_power"):
+		bp = "    BP %d" % int(st.call("battle_power"))
+	level_label.text = "Lv %d    TP %d%s" % [lvl, tp, bp]
 	var form := String(p.get("current_form"))
 	if form != "" and Registry != null:
 		form = String(Registry.form(form).get("name", form)).capitalize()

@@ -8,6 +8,7 @@ const MIN_BREAK := 0.05
 const TIER_SPEED := [1.0, 2.0, 4.0, 6.0, 8.0, 9.0, 12.0]   # hand, wood, stone, iron, diamond, kikono, gete
 const COMBO_WINDOW := 0.35
 const COMBO_ANIMS := ["combat.one_handed_punch_left", "combat.one_handed_punch_right", "combat.gutkick"]
+const COMBO_MULT := [1.0, 1.05, 1.35]
 const EAT_TIME := 1.2
 
 var player: Player = null
@@ -149,7 +150,7 @@ func _process(delta: float) -> void:
 	_raycast()
 	var inp: PlayerInput = player.input
 	var wants_break: bool = inp.break_held or inp.attack
-	if wants_break and _is_food_selected() and player.stats != null and (player.stats as PlayerStats).hunger < 20.0:
+	if wants_break and _is_food_selected() and player.survival != null and player.survival.hunger < PlayerStats.HUNGER_MAX:
 		_eat(delta)
 		return
 	eat_timer = 0.0
@@ -248,9 +249,12 @@ func _finish_break(id: int, def: Dictionary) -> void:
 		st.damage_tool(1)
 		player.inventory.notify()
 
+const PICKUP_SCENE := "res://scenes/entities/Pickup.tscn"
+
 func _spawn_drop(item: String, n: int, pos: Vector3) -> void:
 	var world: Node = player.world
-	if world != null and world.has_method("spawn_entity") and Registry != null and Registry.entities.has("item_drop"):
+	if world != null and world.has_method("spawn_entity") and ResourceLoader.exists(PICKUP_SCENE) \
+			and Registry != null and Registry.entities.has("item_drop"):
 		world.call("spawn_entity", "item_drop", pos, {"item": item, "count": n})
 		return
 	player.give(item, n)
@@ -295,33 +299,31 @@ func _melee_or_talk() -> bool:
 	var e := _entity_under_aim()
 	if e == null:
 		return false
-	if e.has_method("interact") and String(e.get("entity_type", "")).begins_with("master") == false and e.get("is_npc") != null:
-		e.call("interact", player)
-		return true
-	var kind := ""
-	if Registry != null:
+	var kind := String(e.get("kind")) if e.get("kind") != null else ""
+	if kind == "" and Registry != null:
 		kind = String(Registry.entity(String(e.get("entity_type"))).get("kind", ""))
-	if kind in ["npc", "master", "trader"] and e.has_method("interact"):
+	if kind in ["npc", "master", "trader", "vehicle"] and e.has_method("interact"):
 		e.call("interact", player)
 		return true
 	_melee(e)
 	return true
 
 func _melee(e: Node) -> void:
-	var dmg := 5.0
-	var st: PlayerStats = player.stats
-	if st != null:
-		dmg = st.derived("melee", 5.0)
 	var weapon := _selected()
-	if not weapon.is_empty():
-		dmg += float(weapon.def().get("weapon", {}).get("damage", weapon.def().get("tool", {}).get("damage", 0)))
-	dmg *= [1.0, 1.05, 1.35][combo_index]
+	var bonus := float(weapon.def().get("weapon", {}).get("damage",
+		weapon.def().get("tool", {}).get("damage", 0))) if not weapon.is_empty() else 0.0
+	var mult: float = COMBO_MULT[combo_index]
+	player.face((e as Node3D).global_position if e is Node3D else player.global_position)
 	player.play_anim(COMBO_ANIMS[combo_index], 0.08, false)
-	combo_index = (combo_index + 1) % 3
+	combo_index = (combo_index + 1) % COMBO_ANIMS.size()
 	combo_timer = COMBO_WINDOW
-	var kb := player.aim_direction() * 3.0 + Vector3.UP * 1.5
-	if e.has_method("take_damage"):
-		e.call("take_damage", dmg, player, "melee", kb)
+	var power := player.melee_damage + bonus
+	var dealt := Damage.deal(e, player, mult, Damage.MELEE, power, player.aim_direction())
+	if dealt <= 0.0 and e.has_method("take_damage"):
+		e.call("take_damage", power * mult, player, "melee", player.aim_direction() * 3.0 + Vector3.UP * 1.5)
+	if not weapon.is_empty() and weapon.max_durability() > 0:
+		weapon.damage_tool(1)
+		player.inventory.notify()
 	Audio.play_sfx("punch")
 	UiUtil.vibrate(40)
 	if player.camera_rig != null:
@@ -356,7 +358,7 @@ func _use_item(st: ItemStack) -> bool:
 		"scouter":
 			if Game != null and Game.ui != null:
 				Game.ui.call("show_hint", "Scouter: nearest power level locked.", 2.0)
-			player.call("_cycle_lock_on")
+			LockOn.toggle(player)
 			return true
 	return false
 
@@ -369,9 +371,9 @@ func _eat(delta: float) -> void:
 	if st.is_empty():
 		return
 	var food: Dictionary = st.def().get("food", {})
-	var ps: PlayerStats = player.stats
-	if ps != null:
-		ps.eat(food)
+	if player.survival != null:
+		player.survival.eat(food)
+	player.play_anim("base.eat", 0.1, false)
 	Audio.play_sfx("eat", linear_to_db(0.8))
 	if Game == null or not Game.creative:
 		player.inventory.consume_selected(1)
