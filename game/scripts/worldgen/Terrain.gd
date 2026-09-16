@@ -173,7 +173,7 @@ func _h_earth(fx: float, fz: float) -> float:
 	var hills := 0.5 + 0.5 * _hills.get_noise_2d(fx, fz)
 	var ridge := 1.0 - absf(_peaks.get_noise_2d(fx, fz))
 	var relief := 0.55 * hills + 0.45 * ridge * ridge
-	var h := hc + amp * relief + _detail.get_noise_2d(fx, fz) * 2.1 + _bias_height(fx, fz)
+	var h := hc + amp * relief + _detail.get_noise_2d(fx, fz) * 1.4 + _bias_height(fx, fz)
 	# Rivers: cut a valley to just below sea level, except through high mountains.
 	var rn := _river.get_noise_2d(fx, fz)
 	var river := clampf(1.0 - absf(rn) * 11.0, 0.0, 1.0)

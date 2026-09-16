@@ -91,6 +91,11 @@ var dragon_ball_set := ""
 var pool_name := ""
 var pool_depth := 0.0
 var id_pool := 0
+## Horizontal colour bands in the top `band_depth` blocks (mesa planets); every 3 blocks
+## steps to the next entry of `band_names`.
+var band_names: Array = []
+var band_depth := 0
+var _band_ids := PackedInt32Array()
 
 # resolved block ids
 var id_air := 0
@@ -138,6 +143,11 @@ func configure() -> void:
 	id_gravel = block_id("gravel")
 	id_sand = block_id("sand")
 	id_pool = block_id(pool_name) if pool_name != "" else 0
+	_band_ids = PackedInt32Array()
+	for bn in band_names:
+		var bid := block_id(String(bn))
+		if bid > 0:
+			_band_ids.append(bid)
 	_build_biome_tables()
 	_ore_ids = PackedInt32Array()
 	for o in ore_table:
@@ -242,17 +252,24 @@ func _fill_column(col: ChunkColumn, ctx: Ctx) -> void:
 			var submerged := wet_sea and h <= sea
 			var top_solid: int = maxi(0, h - 1)
 			var body_top: int = maxi(bedrock_depth, top_solid - filler_depth)
+			var band_from := top_solid - band_depth
+			var band_n := _band_ids.size()
 			var y := bedrock_depth
 			while y <= body_top:
 				var id := id_stone
 				if id_deep > 0 and y < deep_y:
 					id = id_deep
+				elif band_n > 0 and y > band_from:
+					id = _band_ids[int(y / 3) % band_n]
 				blocks[i2 + 256 * y] = id
 				y += 1
 			for yb in bedrock_depth:
 				blocks[i2 + 256 * yb] = id_bedrock
 			while y < top_solid:
-				blocks[i2 + 256 * y] = filler
+				var fid := filler
+				if band_n > 0 and y > band_from:
+					fid = _band_ids[int(y / 3) % band_n]
+				blocks[i2 + 256 * y] = fid
 				y += 1
 			if top_solid >= bedrock_depth:
 				var top_id := surface

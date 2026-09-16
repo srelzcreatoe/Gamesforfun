@@ -27,12 +27,12 @@ func _features(col: ChunkColumn, ctx: Ctx) -> void:
 			var rx := ctx.cx + dx
 			var rz := ctx.cz + dz
 			var hh := Terrain.hash_seeded(seed + 977, rx, 66, rz)
-			if hh % 7 != 0:
+			if hh % 19 != 0:
 				continue
 			var ax := rx * 16 + (hh >> 4) % 16
 			var az := rz * 16 + (hh >> 9) % 16
 			var ay := 86 + (hh >> 14) % 24
-			var r := 5 + (hh >> 19) % 8
+			var r := 4 + (hh >> 19) % 6
 			for ddz in range(-r, r + 1):
 				for ddx in range(-r, r + 1):
 					var d2 := ddx * ddx + ddz * ddz
