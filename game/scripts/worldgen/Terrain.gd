@@ -25,6 +25,14 @@ const MODE_HELL := "hell"
 const MODE_HEAVEN := "heaven"
 const MODE_FLAT := "flat"
 
+## planets.json `generator` -> terrain mode.
+const MODES := {
+	"earth": MODE_EARTH, "namek": MODE_NAMEK, "sacred": MODE_SACRED, "vegeta": MODE_VEGETA,
+	"yardrat": MODE_YARDRAT, "vampa": MODE_VAMPA, "cereal": MODE_CEREAL, "hell": MODE_HELL,
+	"heaven": MODE_HEAVEN, "otherworld": MODE_FLAT, "time_chamber": MODE_FLAT,
+	"space": MODE_FLAT, "orbit": MODE_FLAT,
+}
+
 ## Centre of the ocean bay the Earth height field always carves out (Kame House lives here).
 const EARTH_BAY := Vector2(-300.0, 260.0)
 
@@ -51,6 +59,19 @@ var _river := FastNoiseLite.new()     # river spine
 var _zone := FastNoiseLite.new()      # biome patches near spawn / planet zoning
 var _lake := FastNoiseLite.new()      # lake and pool basins
 var _plateau := FastNoiseLite.new()   # mesa / plateau steps
+
+## A Terrain configured like a planet's generator, for height queries without a generator
+## (dragon ball placement, spawn points, tools). Kept here so nothing that only needs heights
+## has to depend on the generator classes.
+static func make(planet_def: Dictionary, p_seed: int) -> Terrain:
+	var t := Terrain.new()
+	var kind := String(planet_def.get("generator", "earth"))
+	t.configure(p_seed, planet_def, String(MODES.get(kind, MODE_EARTH)))
+	if kind == "otherworld" or kind == "time_chamber":
+		t.plane_y = 60
+	elif kind == "space" or kind == "orbit":
+		t.plane_y = 0
+	return t
 
 func configure(p_seed: int, planet_def: Dictionary, p_mode: String) -> void:
 	seed = p_seed

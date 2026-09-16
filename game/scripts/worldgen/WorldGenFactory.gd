@@ -6,23 +6,6 @@ extends RefCounted
 ## result to `World.generator`; anything with `generate_column(col, seed, planet)` works, and
 ## every generator here is a `WorldGen` subclass.
 
-## planets.json `generator` -> Terrain mode (used for stand-alone height queries).
-const TERRAIN_MODES := {
-	"earth": Terrain.MODE_EARTH,
-	"namek": Terrain.MODE_NAMEK,
-	"sacred": Terrain.MODE_SACRED,
-	"vegeta": Terrain.MODE_VEGETA,
-	"yardrat": Terrain.MODE_YARDRAT,
-	"vampa": Terrain.MODE_VAMPA,
-	"cereal": Terrain.MODE_CEREAL,
-	"hell": Terrain.MODE_HELL,
-	"heaven": Terrain.MODE_HEAVEN,
-	"otherworld": Terrain.MODE_FLAT,
-	"time_chamber": Terrain.MODE_FLAT,
-	"space": Terrain.MODE_FLAT,
-	"orbit": Terrain.MODE_FLAT,
-}
-
 static func create(planet_def: Dictionary, seed: int) -> Object:
 	var kind := String(planet_def.get("generator", "earth"))
 	match kind:
@@ -48,14 +31,6 @@ static func create_for_planet(planet_id: String, seed: int) -> Object:
 		def = {"id": planet_id, "generator": "earth", "sea_level": WorldConst.SEA_LEVEL}
 	return create(def, seed)
 
-## A Terrain configured like the planet's generator, for height queries without a generator
-## (dragon ball placement, spawn point search, tools).
+## A Terrain configured like the planet's generator (see Terrain.make).
 static func make_terrain(planet_def: Dictionary, seed: int) -> Terrain:
-	var t := Terrain.new()
-	var kind := String(planet_def.get("generator", "earth"))
-	t.configure(seed, planet_def, String(TERRAIN_MODES.get(kind, Terrain.MODE_EARTH)))
-	if kind == "otherworld" or kind == "time_chamber":
-		t.plane_y = 60
-	elif kind == "space" or kind == "orbit":
-		t.plane_y = 0
-	return t
+	return Terrain.make(planet_def, seed)

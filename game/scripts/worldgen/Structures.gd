@@ -38,7 +38,7 @@ const SPECIAL := {
 static var _templates: Dictionary = {}
 static var _tpl_mutex := Mutex.new()
 
-var gen: WorldGen = null
+var gen: RefCounted = null
 var planet_id := ""
 ## Structures that decide their own position (unique, or rarity > 0).
 var anchors: Array = []
@@ -50,7 +50,7 @@ var village_pieces: Dictionary = {}
 var _unique: Dictionary = {}
 var _mutex := Mutex.new()
 
-func configure(p_gen: WorldGen) -> void:
+func configure(p_gen: RefCounted) -> void:
 	gen = p_gen
 	planet_id = gen.planet_id
 	anchors = []
@@ -98,7 +98,7 @@ func configure(p_gen: WorldGen) -> void:
 
 # --- per column ------------------------------------------------------------
 
-func stamp(col: ChunkColumn, ctx: WorldGen.Ctx) -> void:
+func stamp(col: ChunkColumn, ctx: RefCounted) -> void:
 	for entry in anchors:
 		if bool(entry["unique"]):
 			var pos := unique_position(entry)
@@ -107,7 +107,7 @@ func stamp(col: ChunkColumn, ctx: WorldGen.Ctx) -> void:
 		else:
 			_stamp_repeatable(col, ctx, entry)
 
-func _stamp_repeatable(col: ChunkColumn, ctx: WorldGen.Ctx, entry: Dictionary) -> void:
+func _stamp_repeatable(col: ChunkColumn, ctx: RefCounted, entry: Dictionary) -> void:
 	var rarity: int = maxi(1, int(entry["rarity"]))
 	var sid_hash := absi(int(String(entry["id"]).hash())) & 0xffffff
 	for dz in range(-SCAN_CHUNKS, SCAN_CHUNKS + 1):
@@ -125,7 +125,7 @@ func _stamp_repeatable(col: ChunkColumn, ctx: WorldGen.Ctx, entry: Dictionary) -
 			_place(col, ctx, entry, ax, az, rot)
 
 ## Stamp the anchor plus its group followers / village pieces.
-func _place(col: ChunkColumn, ctx: WorldGen.Ctx, entry: Dictionary, ax: int, az: int, rot: int) -> void:
+func _place(col: ChunkColumn, ctx: RefCounted, entry: Dictionary, ax: int, az: int, rot: int) -> void:
 	_stamp_one(col, ctx, entry, ax, az, rot)
 	var group: String = entry["group"]
 	if group == "":
@@ -137,7 +137,7 @@ func _place(col: ChunkColumn, ctx: WorldGen.Ctx, entry: Dictionary, ax: int, az:
 		_stamp_village(col, ctx, group, ax, az)
 
 ## Deterministic village jigsaw: street arms on the two axes plus houses on a ring.
-func _stamp_village(col: ChunkColumn, ctx: WorldGen.Ctx, group: String, ax: int, az: int) -> void:
+func _stamp_village(col: ChunkColumn, ctx: RefCounted, group: String, ax: int, az: int) -> void:
 	var pieces: Array = village_pieces[group]
 	if pieces.is_empty():
 		return
@@ -175,7 +175,7 @@ func _stamp_village(col: ChunkColumn, ctx: WorldGen.Ctx, group: String, ax: int,
 
 # --- one template ----------------------------------------------------------
 
-func _stamp_one(col: ChunkColumn, ctx: WorldGen.Ctx, entry: Dictionary, ax: int, az: int, rot: int) -> void:
+func _stamp_one(col: ChunkColumn, ctx: RefCounted, entry: Dictionary, ax: int, az: int, rot: int) -> void:
 	var sid: String = entry["id"]
 	var special: Dictionary = SPECIAL.get(sid, {})
 	var tpl := template(String(entry["file"]))
@@ -236,7 +236,7 @@ func _stamp_one(col: ChunkColumn, ctx: WorldGen.Ctx, entry: Dictionary, ax: int,
 	_spawn_entities(col, ctx, entry, tpl, min_x, min_z, base_y, off, size, rot, src_min, src_max)
 
 ## Clear a box (used for `clear_box` templates and `clear_above`).
-func _clear_box(col: ChunkColumn, ctx: WorldGen.Ctx, min_x: int, min_z: int, ext_x: int,
+func _clear_box(col: ChunkColumn, ctx: RefCounted, min_x: int, min_z: int, ext_x: int,
 		ext_z: int, y_from: int, ext_y: int) -> void:
 	var x0: int = maxi(min_x, ctx.ox)
 	var x1: int = mini(min_x + ext_x, ctx.ox + 16)
@@ -250,7 +250,7 @@ func _clear_box(col: ChunkColumn, ctx: WorldGen.Ctx, min_x: int, min_z: int, ext
 				if gen.get_world(col, ctx, wx, wy, wz) != 0:
 					gen.put_world(col, ctx, wx, wy, wz, 0)
 
-func _mark(col: ChunkColumn, ctx: WorldGen.Ctx, entry: Dictionary, min_x: int, min_z: int,
+func _mark(col: ChunkColumn, ctx: RefCounted, entry: Dictionary, min_x: int, min_z: int,
 		ext_x: int, ext_z: int, base_y: int, ext_y: int) -> void:
 	var aabb := AABB(Vector3(float(min_x), float(base_y), float(min_z)),
 		Vector3(float(ext_x), float(ext_y), float(ext_z)))
@@ -265,7 +265,7 @@ func _mark(col: ChunkColumn, ctx: WorldGen.Ctx, entry: Dictionary, min_x: int, m
 		"aabb": aabb,
 	})
 
-func _spawn_entities(col: ChunkColumn, ctx: WorldGen.Ctx, entry: Dictionary, tpl: Dictionary,
+func _spawn_entities(col: ChunkColumn, ctx: RefCounted, entry: Dictionary, tpl: Dictionary,
 		min_x: int, min_z: int, base_y: int, off: Vector3i, size: Vector3i, rot: int,
 		src_min: int, src_max: int) -> void:
 	var ents: Array = tpl.get("ents", [])
@@ -312,7 +312,7 @@ func _spawn_entities(col: ChunkColumn, ctx: WorldGen.Ctx, entry: Dictionary, tpl
 
 ## Korin's tower: a procedural pole with a platform and a small house, built under the
 ## lookout because the original 200-block-tall template does not fit a 128-block world.
-func _korin_tower(col: ChunkColumn, ctx: WorldGen.Ctx, ax: int, az: int, lookout_y: int) -> void:
+func _korin_tower(col: ChunkColumn, ctx: RefCounted, ax: int, az: int, lookout_y: int) -> void:
 	var pole := Registry.block_id("korin_tower_block")
 	if pole <= 0:
 		return
@@ -355,7 +355,7 @@ func _korin_tower(col: ChunkColumn, ctx: WorldGen.Ctx, ax: int, az: int, lookout
 				Vector3(15, float(top + 7 - ground), 15)),
 		})
 
-func _near_column(ctx: WorldGen.Ctx, wx: int, wz: int, r: int) -> bool:
+func _near_column(ctx: RefCounted, wx: int, wz: int, r: int) -> bool:
 	return wx + r >= ctx.ox and wx - r < ctx.ox + 16 and wz + r >= ctx.oz and wz - r < ctx.oz + 16
 
 # --- placement helpers -----------------------------------------------------

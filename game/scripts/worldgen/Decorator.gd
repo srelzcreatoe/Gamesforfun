@@ -10,29 +10,29 @@ extends RefCounted
 ## Mobs are written sparsely into `col.entities_pending` as `{type, pos}`; the Spawner owns
 ## every later spawn.
 
-const MARGIN := WorldGen.MARGIN
+const MARGIN := 5
 ## 1 in TREE_GATE positions is even considered for a tree (keeps the margin scan cheap).
 const TREE_GATE := 8
 
-var gen: WorldGen = null
+var gen: RefCounted = null
 var id_lily := 0
 var id_snow_layer := 0
 var id_water := 0
 
-func configure(p_gen: WorldGen) -> void:
+func configure(p_gen: RefCounted) -> void:
 	gen = p_gen
 	id_lily = Registry.block_id("lily_pad")
 	id_snow_layer = Registry.block_id("snow_layer")
 	id_water = Registry.block_id("water")
 
-func decorate(col: ChunkColumn, ctx: WorldGen.Ctx) -> void:
+func decorate(col: ChunkColumn, ctx: RefCounted) -> void:
 	_trees(col, ctx)
 	_plants(col, ctx)
 	_mobs(col, ctx)
 
 # --- trees -----------------------------------------------------------------
 
-func _trees(col: ChunkColumn, ctx: WorldGen.Ctx) -> void:
+func _trees(col: ChunkColumn, ctx: RefCounted) -> void:
 	var sea := gen.sea_level
 	for gz in range(-MARGIN, 16 + MARGIN):
 		for gx in range(-MARGIN, 16 + MARGIN):
@@ -70,7 +70,7 @@ func _trees(col: ChunkColumn, ctx: WorldGen.Ctx) -> void:
 
 # --- plants ----------------------------------------------------------------
 
-func _plants(col: ChunkColumn, ctx: WorldGen.Ctx) -> void:
+func _plants(col: ChunkColumn, ctx: RefCounted) -> void:
 	var sea := gen.sea_level
 	for lz in 16:
 		for lx in 16:
@@ -95,7 +95,7 @@ func _plants(col: ChunkColumn, ctx: WorldGen.Ctx) -> void:
 				_place_plant(col, ctx, name, wx, wz, top, submerged, sea)
 				break
 
-func _place_plant(col: ChunkColumn, ctx: WorldGen.Ctx, name: String, wx: int, wz: int,
+func _place_plant(col: ChunkColumn, ctx: RefCounted, name: String, wx: int, wz: int,
 		top: int, submerged: bool, sea: int) -> void:
 	if name == "":
 		return
@@ -126,7 +126,7 @@ func _place_plant(col: ChunkColumn, ctx: WorldGen.Ctx, name: String, wx: int, wz
 		return                                   # vines come with jungle trees
 	gen.put_world(col, ctx, wx, top, wz, id, 0, true)
 
-func _near_water(col: ChunkColumn, ctx: WorldGen.Ctx, wx: int, wy: int, wz: int) -> bool:
+func _near_water(col: ChunkColumn, ctx: RefCounted, wx: int, wy: int, wz: int) -> bool:
 	for d in BlockShapes.FACE_DIR:
 		var v: Vector3i = d
 		if v.y != 0:
@@ -138,7 +138,7 @@ func _near_water(col: ChunkColumn, ctx: WorldGen.Ctx, wx: int, wy: int, wz: int)
 
 # --- mobs ------------------------------------------------------------------
 
-func _mobs(col: ChunkColumn, ctx: WorldGen.Ctx) -> void:
+func _mobs(col: ChunkColumn, ctx: RefCounted) -> void:
 	var hh := Terrain.hash_seeded(gen.seed + 7717, ctx.cx, 23, ctx.cz)
 	if (hh % 100) >= 9:
 		return

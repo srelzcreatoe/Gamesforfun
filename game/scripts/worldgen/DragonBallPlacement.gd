@@ -53,7 +53,7 @@ static func _compute(set_id: String, seed: int) -> Array[Vector3]:
 		return out
 	var planet_id := String(def["planet"])
 	var planet_def := Registry.planet(planet_id)
-	var terrain := WorldGenFactory.make_terrain(planet_def, seed)
+	var terrain := Terrain.make(planet_def, seed)
 	var count := int(def["count"])
 	var min_d := float(def["min"])
 	var max_d := float(def["range"])
@@ -79,7 +79,7 @@ static func _compute(set_id: String, seed: int) -> Array[Vector3]:
 	return out
 
 ## Drop the balls of `set_id` that belong to this column into entities_pending.
-static func place_in_column(col: ChunkColumn, ctx: WorldGen.Ctx, set_id: String, gen: WorldGen) -> void:
+static func place_in_column(col: ChunkColumn, ctx: RefCounted, set_id: String, gen: RefCounted) -> void:
 	var list := positions(set_id, gen.seed)
 	for i in list.size():
 		var p: Vector3 = list[i]

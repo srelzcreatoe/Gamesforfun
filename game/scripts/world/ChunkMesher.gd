@@ -1,10 +1,10 @@
 class_name ChunkMesher
 ## Turns voxels into ArrayMesh surface arrays on WorkerThreadPool threads.
 ##
-## Pipeline: the main thread hands over 9 ChunkColumn references (3x3 neighbourhood). Packed
-## arrays are copy-on-write, so the worker sees an immutable snapshot even if the main thread
-## edits a column afterwards. The worker first builds a padded (18 x 18 x HEIGHT+2)
-## block/meta/light/biome snapshot of the centre column and then meshes every dirty section.
+## Pipeline: the main thread calls `snapshot()` on a 3x3 neighbourhood of columns (it copies
+## their packed arrays, so nothing is shared with the live columns), then a worker turns that
+## into a padded (18 x 18 x HEIGHT+2) block/meta/light/biome array with `build_pad()` and meshes
+## every dirty section from it with `build_section()`.
 ##
 ## Vertex layout (docs/ARCHITECTURE.md §4):
 ##   POSITION  column-local metres (x/z 0..16, y absolute)
@@ -95,9 +95,28 @@ class Buf:
 
 # --- snapshot ---------------------------------------------------------------
 
-## cols: 9 ChunkColumn (or null), index = (dz + 1) * 3 + (dx + 1), centre at 4.
-static func build_pad(cols: Array) -> Dictionary:
-	var centre: ChunkColumn = cols[4]
+## Take the immutable snapshot of a 3x3 neighbourhood. MAIN THREAD ONLY: the packed arrays are
+## duplicated here so the worker owns them outright. Sharing them copy-on-write with a live
+## ChunkColumn is not thread safe (the main thread relights columns while a worker meshes).
+## `cols`: 9 ChunkColumn or null, index = (dz + 1) * 3 + (dx + 1), centre at 4.
+static func snapshot(cols: Array) -> Array:
+	var out: Array = []
+	out.resize(9)
+	for i in 9:
+		var col: ChunkColumn = cols[i]
+		if col == null:
+			out[i] = null
+			continue
+		out[i] = {
+			"cx": col.cx, "cz": col.cz,
+			"blocks": col.blocks.duplicate(), "meta": col.meta.duplicate(),
+			"light": col.light.duplicate(), "biomes": col.biomes.duplicate(),
+		}
+	return out
+
+## Flatten a snapshot into padded (18 x 18 x HEIGHT + 2) arrays for the centre column.
+static func build_pad(snaps: Array) -> Dictionary:
+	var centre: Dictionary = snaps[4]
 	var plane := PAD * PAD
 	var blocks := PackedByteArray()
 	var metas := PackedByteArray()
@@ -118,17 +137,18 @@ static func build_pad(cols: Array) -> Dictionary:
 			var z := pz - 1
 			var dx := -1 if x < 0 else (1 if x > 15 else 0)
 			var dz := -1 if z < 0 else (1 if z > 15 else 0)
-			var col: ChunkColumn = cols[(dz + 1) * 3 + (dx + 1)]
+			var snap: Variant = snaps[(dz + 1) * 3 + (dx + 1)]
 			var pi := pz * PAD + px
-			if col == null:
+			if snap == null:
 				continue
-			src_blocks[pi] = col.blocks
-			src_meta[pi] = col.meta
-			src_light[pi] = col.light
+			var d: Dictionary = snap
+			src_blocks[pi] = d["blocks"]
+			src_meta[pi] = d["meta"]
+			src_light[pi] = d["light"]
 			var lx := x & 15
 			var lz := z & 15
 			src_base[pi] = lx + 16 * lz
-			biome[pi] = col.biomes[lx + 16 * lz]
+			biome[pi] = (d["biomes"] as PackedByteArray)[lx + 16 * lz]
 	# y = -1 stays air/dark; y = HEIGHT is open sky.
 	for pi in plane:
 		lights[(HEIGHT + 1) * plane + pi] = 0xF0
@@ -145,7 +165,7 @@ static func build_pad(cols: Array) -> Dictionary:
 			metas[row + pi] = (src_meta[pi] as PackedByteArray)[si]
 			lights[row + pi] = (src_light[pi] as PackedByteArray)[si]
 	return {
-		"cx": centre.cx, "cz": centre.cz,
+		"cx": int(centre["cx"]), "cz": int(centre["cz"]),
 		"blocks": blocks, "meta": metas, "light": lights, "biome": biome,
 	}
 

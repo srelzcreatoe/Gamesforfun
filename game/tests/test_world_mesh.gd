@@ -11,7 +11,7 @@ func _pad_for(col: ChunkColumn) -> Dictionary:
 	for i in 9:
 		cols[i] = null
 	cols[4] = col
-	return ChunkMesher.build_pad(cols)
+	return ChunkMesher.build_pad(ChunkMesher.snapshot(cols))
 
 func _mesh(col: ChunkColumn, section := 4) -> Dictionary:
 	return ChunkMesher.build_section(_pad_for(col), section, ChunkManager.build_palette())

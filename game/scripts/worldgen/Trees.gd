@@ -24,7 +24,7 @@ const WOOD := {
 }
 
 ## Stamp one tree. `base` is the first air y above the ground, `hh` a deterministic hash.
-static func place(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx, kind: String,
+static func place(gen: RefCounted, col: ChunkColumn, ctx: RefCounted, kind: String,
 		wx: int, base: int, wz: int, hh: int) -> void:
 	if base < 2 or base > HEIGHT - 8:
 		return
@@ -70,7 +70,7 @@ static func _ids(kind: String) -> Array:
 	return [Registry.block_id(String(pair[0])), Registry.block_id(String(pair[1]))]
 
 ## Straight trunk with a rounded canopy (oak / birch / cherry / sacred).
-static func _round(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx, kind: String,
+static func _round(gen: RefCounted, col: ChunkColumn, ctx: RefCounted, kind: String,
 		wx: int, base: int, wz: int, hh: int, trunk_min: int, radius: int, ry: int, extra: int) -> void:
 	var ids := _ids(kind)
 	var log_id: int = ids[0]
@@ -83,7 +83,7 @@ static func _round(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx, kind: Str
 	gen.put_world(col, ctx, wx, cy + ry, wz, leaf_id, 0, true)
 
 ## Tall trunk, two stacked canopies, occasional branches.
-static func _big_oak(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
+static func _big_oak(gen: RefCounted, col: ChunkColumn, ctx: RefCounted,
 		wx: int, base: int, wz: int, hh: int) -> void:
 	var ids := _ids("oak")
 	var log_id: int = ids[0]
@@ -106,7 +106,7 @@ static func _big_oak(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
 		_ellipsoid(gen, col, ctx, bx, by + 1, bz, 2, 2, leaf_id, hh + b * 31)
 
 ## Conifer: layered rings shrinking toward the top.
-static func _spruce(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
+static func _spruce(gen: RefCounted, col: ChunkColumn, ctx: RefCounted,
 		wx: int, base: int, wz: int, hh: int) -> void:
 	var ids := _ids("spruce")
 	var log_id: int = ids[0]
@@ -135,7 +135,7 @@ static func _spruce(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
 	gen.put_world(col, ctx, wx, base + trunk, wz, leaf_id, 0, true)
 
 ## Jungle: tall, sometimes 2x2 trunk, wide top canopy plus hanging vines.
-static func _jungle(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
+static func _jungle(gen: RefCounted, col: ChunkColumn, ctx: RefCounted,
 		wx: int, base: int, wz: int, hh: int) -> void:
 	var ids := _ids("jungle")
 	var log_id: int = ids[0]
@@ -166,7 +166,7 @@ static func _jungle(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
 				gen.put_world(col, ctx, vx, cy - 1 - k, vz, vine, (hv >> 3) & 3, true)
 
 ## Dark oak: thick 2x2 trunk, broad flat canopy.
-static func _dark_oak(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
+static func _dark_oak(gen: RefCounted, col: ChunkColumn, ctx: RefCounted,
 		wx: int, base: int, wz: int, hh: int) -> void:
 	var ids := _ids("dark_oak")
 	var log_id: int = ids[0]
@@ -182,7 +182,7 @@ static func _dark_oak(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
 	_ellipsoid(gen, col, ctx, wx + 1, cy - 1, wz + 1, 3, 1, leaf_id, hh + 5)
 
 ## Acacia: leaning trunk with a flat disc canopy.
-static func _acacia(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
+static func _acacia(gen: RefCounted, col: ChunkColumn, ctx: RefCounted,
 		wx: int, base: int, wz: int, hh: int) -> void:
 	var ids := _ids("acacia")
 	var log_id: int = ids[0]
@@ -206,7 +206,7 @@ static func _acacia(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
 	_disc(gen, col, ctx, wx, base + trunk + 1, wz, 2, leaf_id, hh + 3)
 
 ## Namek ajissa: bare trunk with a big bulbous canopy.
-static func _ajissa(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
+static func _ajissa(gen: RefCounted, col: ChunkColumn, ctx: RefCounted,
 		wx: int, base: int, wz: int, hh: int) -> void:
 	var ids := _ids("ajissa")
 	var log_id: int = ids[0]
@@ -222,7 +222,7 @@ static func _ajissa(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
 	gen.put_world(col, ctx, wx, base + trunk, wz, log_id)
 	gen.put_world(col, ctx, wx, base + trunk + 1, wz, log_id)
 
-static func _cactus(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
+static func _cactus(gen: RefCounted, col: ChunkColumn, ctx: RefCounted,
 		wx: int, base: int, wz: int, hh: int) -> void:
 	var cactus := Registry.block_id("cactus")
 	if cactus <= 0:
@@ -232,7 +232,7 @@ static func _cactus(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
 		gen.put_world(col, ctx, wx, base + i, wz, cactus)
 
 ## Leaf ellipsoid with hash-trimmed corners, only into air.
-static func _ellipsoid(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
+static func _ellipsoid(gen: RefCounted, col: ChunkColumn, ctx: RefCounted,
 		cx: int, cy: int, cz: int, r: int, ry: int, leaf_id: int, hh: int) -> void:
 	if leaf_id <= 0:
 		return
@@ -252,7 +252,7 @@ static func _ellipsoid(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
 				gen.put_world(col, ctx, cx + dx, cy + dy, cz + dz, leaf_id, 0, true)
 
 ## Flat leaf disc (acacia).
-static func _disc(gen: WorldGen, col: ChunkColumn, ctx: WorldGen.Ctx,
+static func _disc(gen: RefCounted, col: ChunkColumn, ctx: RefCounted,
 		cx: int, cy: int, cz: int, r: int, leaf_id: int, hh: int) -> void:
 	if leaf_id <= 0:
 		return

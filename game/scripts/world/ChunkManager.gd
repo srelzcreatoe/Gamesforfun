@@ -362,7 +362,10 @@ func _request_meshes() -> void:
 		for s in sections:
 			col.clear_dirty(s)
 			col.meshing_sections |= 1 << s
-		var job := {"key": k, "cols": cols, "sections": sections, "palette": palette}
+		var job := {
+			"key": k, "snap": ChunkMesher.snapshot(cols),
+			"sections": sections, "palette": palette,
+		}
 		var id := WorkerThreadPool.add_task(_mesh_task.bind(job), false, "chunk mesh")
 		_mesh_ids.append(id)
 		if _mesh_ids.size() >= _max_mesh_tasks:
@@ -370,7 +373,7 @@ func _request_meshes() -> void:
 
 func _mesh_task(job: Dictionary) -> void:
 	var t0 := Time.get_ticks_usec()
-	var pad := ChunkMesher.build_pad(job["cols"])
+	var pad := ChunkMesher.build_pad(job["snap"])
 	var out := {}
 	var sections: PackedInt32Array = job["sections"]
 	for s in sections:
