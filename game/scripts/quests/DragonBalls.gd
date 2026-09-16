@@ -22,7 +22,9 @@ const PLACE_PICKUP_DELAY := 6.0
 const SUPER_PICK_DIST := 46.0
 const TICK := 0.75
 const ALTAR_BLOCK := "dragon_ball_altar"
-const DEFAULT_RANGES := {"earth": 1100.0, "namek": 820.0, "cereal": 820.0, "super": 5200.0, "fused": 1100.0}
+## Fallback spawn ranges (metres) when the worldgen placement helper is not available;
+## kept in step with `DragonBallPlacement.SETS`.
+const DEFAULT_RANGES := {"earth": 1500.0, "namek": 1200.0, "cereal": 900.0, "super": 3000.0, "fused": 1500.0}
 ## The worldgen engineer's deterministic, land-aware placement (preferred when present).
 const PLACEMENT_SCRIPT := "res://scripts/worldgen/DragonBallPlacement.gd"
 const SCATTER_SEED_STEP := 7919
@@ -37,6 +39,8 @@ var _tick := 0.0
 var _spawned: Dictionary = {}          ## "<set>:<star>" -> instance id
 var _item_cache: Dictionary = {}
 var _radar: RadarOverlay = null
+var _placement_script: GDScript = null
+var _placement_ok := true
 var _darkened := false
 
 static func of(world_node: Node) -> DragonBalls:
@@ -163,10 +167,21 @@ func total_count(set_id: String) -> int:
 			return n
 	return BALL_COUNT
 
+## The worldgen placement script, loaded once. `_placement_ok` goes false when it is
+## present but not usable (it is written by another agent and may be mid-edit), after
+## which we stay on the built-in seeded ring.
 func _placement() -> Object:
-	if not ResourceLoader.exists(PLACEMENT_SCRIPT):
+	if not _placement_ok:
 		return null
-	return load(PLACEMENT_SCRIPT)
+	if _placement_script == null:
+		if not ResourceLoader.exists(PLACEMENT_SCRIPT):
+			_placement_ok = false
+			return null
+		_placement_script = load(PLACEMENT_SCRIPT)
+		if _placement_script == null or not _placement_script.has_method("positions"):
+			_placement_ok = false
+			return null
+	return _placement_script
 
 ## Ball positions of a set. Uses the worldgen engineer's land-aware placement when it is
 ## there (same positions the generator drops the pickups at), else a seeded ring.
@@ -182,6 +197,8 @@ func positions(set_id: String) -> Array:
 			for p in list:
 				out.append(p)
 			return out
+		_placement_ok = false
+		Log.w("DragonBalls: worldgen placement returned nothing, using the built-in ring")
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash("%d/%s/%d" % [world_seed(), set_id, scatter])
 	var r := range_for_set(set_id)
