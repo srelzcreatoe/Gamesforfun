@@ -10,6 +10,7 @@ extends Node3D
 const HEIGHT := WorldConst.HEIGHT
 const PLAYER_SCENE := "res://scenes/player/Player.tscn"
 const SKY_SCRIPT := "res://scripts/world/SkyController.gd"
+const SPAWNER_SCRIPT := "res://scripts/entity/Spawner.gd"
 const WORLDGEN_FACTORY := "res://scripts/worldgen/WorldGenFactory.gd"
 const SPAWN_TIMEOUT := 25.0
 
@@ -28,6 +29,7 @@ var manager: ChunkManager = null
 var fluids: Fluids = null
 var save_manager: SaveManager = null
 var sky: Node = null
+var spawner: Node = null
 var view_center := Vector3.ZERO
 var spawn_position := Vector3(0.5, 70.0, 0.5)
 var debug_camera: Node3D = null
@@ -68,12 +70,28 @@ func _ready() -> void:
 		fluids.name = "Fluids"
 		add_child(fluids)
 	fluids.setup(self)
+	_setup_spawner()
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--autoplay"):
 			_autoplay = true
 		elif a.begins_with("--debugcam"):
 			_force_debug_camera = true
 	_setup_sky()
+
+## The entity engineer's mob spawner lives under the World as "Spawner" (QuestManager looks
+## it up by that name). It is optional: the world runs fine without it.
+func _setup_spawner() -> void:
+	spawner = get_node_or_null("Spawner")
+	if spawner == null and ResourceLoader.exists(SPAWNER_SCRIPT):
+		var scr: GDScript = load(SPAWNER_SCRIPT)
+		if scr != null:
+			var n: Variant = scr.new()
+			if n is Node:
+				spawner = n
+				spawner.name = "Spawner"
+				add_child(spawner)
+	if spawner != null and "world" in spawner:
+		spawner.set("world", self)
 
 func _setup_sky() -> void:
 	if ResourceLoader.exists(SKY_SCRIPT):

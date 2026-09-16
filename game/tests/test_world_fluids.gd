@@ -55,15 +55,18 @@ func test_water_spreads_to_level_7_and_stops() -> void:
 func test_water_falls_and_keeps_spreading_below() -> void:
 	var w := _make_world()
 	var water := Registry.block_id("water")
-	# Dig a 1x1 shaft two blocks deep and pour water in from above.
+	# Dig a shaft two blocks deep with a wider bottom, then pour water in from above.
 	w.set_block(8, 60, 8, 0)
 	w.set_block(8, 59, 8, 0)
+	w.set_block(7, 59, 8, 0)
+	w.set_block(9, 59, 8, 0)
 	w.set_block(8, 61, 8, water, Fluids.SOURCE)
 	w.fluids.settle()
 	assert_eq(w.get_block(8, 60, 8), water, "water falls into the hole")
 	assert_eq(w.get_block(8, 59, 8), water)
 	assert_true((w.get_block_meta(8, 60, 8) & BlockShapes.META_FALLING) != 0, "falling flag is set")
 	assert_eq(w.get_block(7, 59, 8), water, "and spreads along the floor of the hole")
+	assert_eq(w.get_block(8, 62, 8), 0, "the shaft does not fill above the source")
 
 func test_removing_the_source_drains_the_water() -> void:
 	var w := _make_world()
@@ -101,12 +104,21 @@ func test_water_turns_lava_into_stone() -> void:
 	var lava := Registry.block_id("lava")
 	var obsidian := Registry.block_id("obsidian")
 	var cobble := Registry.block_id("cobblestone")
+	var stone := Registry.block_id("stone")
+	# Water right next to a lava source turns that source into obsidian.
 	w.set_block(8, 61, 8, lava, Fluids.SOURCE)
-	w.set_block(10, 61, 8, water, Fluids.SOURCE)
+	w.set_block(9, 61, 8, water, Fluids.SOURCE)
 	w.fluids.settle()
 	var at_lava: int = w.get_block(8, 61, 8)
-	assert_true(at_lava == obsidian or at_lava == cobble or at_lava == Registry.block_id("stone"),
-		"lava meeting water must solidify, got " + BlockTable.name_of(at_lava))
+	assert_true(at_lava == obsidian or at_lava == cobble or at_lava == stone,
+		"a lava source touching water must solidify, got " + BlockTable.name_of(at_lava))
+	# Two blocks apart, the flowing lava in between solidifies instead (like Minecraft).
+	w.set_block(2, 61, 2, lava, Fluids.SOURCE)
+	w.set_block(4, 61, 2, water, Fluids.SOURCE)
+	w.fluids.settle()
+	var between: int = w.get_block(3, 61, 2)
+	assert_true(between == cobble or between == obsidian or between == stone,
+		"flowing lava meeting water becomes stone, got " + BlockTable.name_of(between))
 
 func test_flow_vector_points_downhill() -> void:
 	var w := _make_world()

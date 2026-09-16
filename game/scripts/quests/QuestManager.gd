@@ -484,20 +484,23 @@ func notify_train(tp_spent: int) -> void:
 			_add_progress(String(qid), i, tp_spent)
 			break
 
+## Re-read the inventory for every open OBTAIN objective (parallel quests have several).
 func _refresh_obtain() -> void:
 	var ctx := context()
 	for qid in active().keys().duplicate():
 		var objs: Array = quest(String(qid)).get("objectives", [])
 		for i in objs.size():
+			if not active().has(qid):
+				break
 			var o: Dictionary = objs[i]
 			if Objectives.kind(o) != Objectives.OBTAIN:
 				continue
 			if not is_objective_open(String(qid), i):
 				continue
 			var have := Objectives.obtain_progress(o, ctx)
-			if have > int(progress(String(qid))[i]):
+			var prog: Array = progress(String(qid))
+			if i < prog.size() and have > int(prog[i]):
 				_set_progress(String(qid), i, have)
-			break
 
 # --- signal handlers -------------------------------------------------------
 
