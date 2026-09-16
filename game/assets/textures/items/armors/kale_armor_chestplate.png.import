@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bmtunhbj6bx5p"
+path="res://.godot/imported/kale_armor_chestplate.png-44b41abcca4f40f597dc8ef6ffa7db47.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/kale_armor_chestplate.png"
+dest_files=["res://.godot/imported/kale_armor_chestplate.png-44b41abcca4f40f597dc8ef6ffa7db47.ctex"]
 
 [params]
 

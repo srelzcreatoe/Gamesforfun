@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://d05mim4mgo30q"
+path="res://.godot/imported/ki_burning_fire.ogg-deba703aaf879f61785e81471ab9b531.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/ki_burning_fire.ogg"
+dest_files=["res://.godot/imported/ki_burning_fire.ogg-deba703aaf879f61785e81471ab9b531.oggvorbisstr"]
 
 [params]
 

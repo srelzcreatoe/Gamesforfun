@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c0mjklcf35ei2"
+path="res://.godot/imported/mystic_layer1.png-a6d2e87987a3b0bbba509f7246747232.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/mystic_layer1.png"
+dest_files=["res://.godot/imported/mystic_layer1.png-a6d2e87987a3b0bbba509f7246747232.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b3gypuffucxt4"
+path="res://.godot/imported/block_cherry_log.png-f9a80d587b5d2b1936d5632c80a3a258.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_cherry_log.png"
+dest_files=["res://.godot/imported/block_cherry_log.png-f9a80d587b5d2b1936d5632c80a3a258.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cx5jul18lhj46"
+path="res://.godot/imported/frog_legs_cooked.png-44bfeb6363a5345d2e92ebefbd80215c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/frog_legs_cooked.png"
+dest_files=["res://.godot/imported/frog_legs_cooked.png-44bfeb6363a5345d2e92ebefbd80215c.ctex"]
 
 [params]
 

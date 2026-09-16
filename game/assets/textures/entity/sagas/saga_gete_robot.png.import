@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cst2clhlu2gpi"
+path="res://.godot/imported/saga_gete_robot.png-fb05254ea9e726f1786da61cfb938fe6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_gete_robot.png"
+dest_files=["res://.godot/imported/saga_gete_robot.png-fb05254ea9e726f1786da61cfb938fe6.ctex"]
 
 [params]
 

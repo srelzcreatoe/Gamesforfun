@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://wvifsnty3iom"
+path="res://.godot/imported/brave_sword_item.png-9f4807a9b068aa5f04e2ee2a18e6ae11.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/brave_sword_item.png"
+dest_files=["res://.godot/imported/brave_sword_item.png-9f4807a9b068aa5f04e2ee2a18e6ae11.ctex"]
 
 [params]
 

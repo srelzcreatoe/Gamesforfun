@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://bem2jnfhl5jfg"
+path="res://.godot/imported/ambience_cave.wav-252a50c9eecbf9b63b8826cf2b9d53e4.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/ambience_cave.wav"
+dest_files=["res://.godot/imported/ambience_cave.wav-252a50c9eecbf9b63b8826cf2b9d53e4.sample"]
 
 [params]
 

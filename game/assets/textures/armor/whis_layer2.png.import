@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bn8hxey8oh1w8"
+path="res://.godot/imported/whis_layer2.png-1f269b6c8e94c86724bd6889a74b005b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/whis_layer2.png"
+dest_files=["res://.godot/imported/whis_layer2.png-1f269b6c8e94c86724bd6889a74b005b.ctex"]
 
 [params]
 

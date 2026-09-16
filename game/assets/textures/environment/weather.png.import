@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cwlemk6t7p6j4"
+path="res://.godot/imported/weather.png-5eef7f7c210978293deb3cba7e013405.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/weather.png"
+dest_files=["res://.godot/imported/weather.png-5eef7f7c210978293deb3cba7e013405.ctex"]
 
 [params]
 

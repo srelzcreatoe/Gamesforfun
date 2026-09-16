@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://hh0jolvxa6ft"
+path="res://.godot/imported/pattern_dragon_clan.png-25edc059e4fa55c9e068cc7d00e8d8a2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_dragon_clan.png"
+dest_files=["res://.godot/imported/pattern_dragon_clan.png-25edc059e4fa55c9e068cc7d00e8d8a2.ctex"]
 
 [params]
 

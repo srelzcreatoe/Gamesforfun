@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://mejg0jbib17e"
+path="res://.godot/imported/orange_high_layer2.png-dd2e3a86785c0f99cd350e3b4fe94750.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/orange_high_layer2.png"
+dest_files=["res://.godot/imported/orange_high_layer2.png-dd2e3a86785c0f99cd350e3b4fe94750.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dlnoenmyhk7t1"
+path="res://.godot/imported/hay_block_top.png-6ddc3ac43ba9be397c037e6ff25ac15e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/hay_block_top.png"
+dest_files=["res://.godot/imported/hay_block_top.png-6ddc3ac43ba9be397c037e6ff25ac15e.ctex"]
 
 [params]
 

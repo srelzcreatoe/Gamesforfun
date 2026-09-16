@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dlkibuwnxli0l"
+path="res://.godot/imported/grass_path_side.png-101d6c7a6d523d3aedd6616ee959e056.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/grass_path_side.png"
+dest_files=["res://.godot/imported/grass_path_side.png-101d6c7a6d523d3aedd6616ee959e056.ctex"]
 
 [params]
 

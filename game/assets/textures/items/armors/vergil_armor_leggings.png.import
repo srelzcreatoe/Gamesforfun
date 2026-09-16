@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c7a53eqje2cvw"
+path="res://.godot/imported/vergil_armor_leggings.png-feaf45e5093f8a33c2bbc458832e342e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/vergil_armor_leggings.png"
+dest_files=["res://.godot/imported/vergil_armor_leggings.png-feaf45e5093f8a33c2bbc458832e342e.ctex"]
 
 [params]
 

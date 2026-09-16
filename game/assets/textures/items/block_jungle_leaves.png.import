@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c7gg3r55k5686"
+path="res://.godot/imported/block_jungle_leaves.png-f3fc0ca9c9b66d0c281ffd4615966560.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_jungle_leaves.png"
+dest_files=["res://.godot/imported/block_jungle_leaves.png-f3fc0ca9c9b66d0c281ffd4615966560.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ci2i3hadyt4it"
+path="res://.godot/imported/roshi_4.png-4c0cdcdf9c7056e01991f60e7e60f848.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/background/roshi_4.png"
+dest_files=["res://.godot/imported/roshi_4.png-4c0cdcdf9c7056e01991f60e7e60f848.ctex"]
 
 [params]
 

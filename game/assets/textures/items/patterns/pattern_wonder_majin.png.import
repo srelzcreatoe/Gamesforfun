@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b3smykjbg6vog"
+path="res://.godot/imported/pattern_wonder_majin.png-76095cd9c45ac6f3b9aa1decec71e43d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_wonder_majin.png"
+dest_files=["res://.godot/imported/pattern_wonder_majin.png-76095cd9c45ac6f3b9aa1decec71e43d.ctex"]
 
 [params]
 

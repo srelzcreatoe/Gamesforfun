@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ce1uq5ayqehvu"
+path="res://.godot/imported/pattern_mighty_majin.png-d8cfc6ff51a0d70599c75f94803e62e2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_mighty_majin.png"
+dest_files=["res://.godot/imported/pattern_mighty_majin.png-d8cfc6ff51a0d70599c75f94803e62e2.ctex"]
 
 [params]
 

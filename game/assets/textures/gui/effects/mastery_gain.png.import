@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://crrtypx4dnxdv"
+path="res://.godot/imported/mastery_gain.png-961476e979bd2da9551fdf4266ca7e71.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/mastery_gain.png"
+dest_files=["res://.godot/imported/mastery_gain.png-961476e979bd2da9551fdf4266ca7e71.ctex"]
 
 [params]
 

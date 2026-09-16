@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b780ki41o56g"
+path="res://.godot/imported/Scan2.png-c9fabd322b392afb2787f83241219122.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/essentials/Scan2.png"
+dest_files=["res://.godot/imported/Scan2.png-c9fabd322b392afb2787f83241219122.ctex"]
 
 [params]
 

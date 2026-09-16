@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bjfq5jd0ntmru"
+path="res://.godot/imported/pattern_kibito.png-ce2c131e8b8426ae8327a99187238652.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_kibito.png"
+dest_files=["res://.godot/imported/pattern_kibito.png-ce2c131e8b8426ae8327a99187238652.ctex"]
 
 [params]
 

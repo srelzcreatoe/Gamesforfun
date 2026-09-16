@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://2a2aah7ot0lv"
+path="res://.godot/imported/pattern_goku_whis.png-02c5a8ef2b8533e36c649cac9b57753a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_goku_whis.png"
+dest_files=["res://.godot/imported/pattern_goku_whis.png-02c5a8ef2b8533e36c649cac9b57753a.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c285xdm1bksh2"
+path="res://.godot/imported/healing_liquid_bucket.png-a8299d484b1f9894028379959a874a75.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/healing_liquid_bucket.png"
+dest_files=["res://.godot/imported/healing_liquid_bucket.png-a8299d484b1f9894028379959a874a75.ctex"]
 
 [params]
 

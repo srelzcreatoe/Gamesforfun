@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dc7dni0qioh7p"
+path="res://.godot/imported/saga_puipui.png-cdc68191f24a09b289d3bea0fcf2a486.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_puipui.png"
+dest_files=["res://.godot/imported/saga_puipui.png-cdc68191f24a09b289d3bea0fcf2a486.ctex"]
 
 [params]
 

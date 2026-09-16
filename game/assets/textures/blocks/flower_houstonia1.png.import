@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dm6atyc76a6pn"
+path="res://.godot/imported/flower_houstonia1.png-eee44f18debd000d54b10d1c71a91bce.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/flower_houstonia1.png"
+dest_files=["res://.godot/imported/flower_houstonia1.png-eee44f18debd000d54b10d1c71a91bce.ctex"]
 
 [params]
 

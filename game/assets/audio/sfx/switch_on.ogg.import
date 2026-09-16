@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://dhchwr0rr5b7d"
+path="res://.godot/imported/switch_on.ogg-070116c344a3b6b9f9926c57ba8652ed.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/switch_on.ogg"
+dest_files=["res://.godot/imported/switch_on.ogg-070116c344a3b6b9f9926c57ba8652ed.oggvorbisstr"]
 
 [params]
 

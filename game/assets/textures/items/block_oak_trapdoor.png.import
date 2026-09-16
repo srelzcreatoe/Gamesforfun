@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dhjfhwioo3hnk"
+path="res://.godot/imported/block_oak_trapdoor.png-3f5af4129399c2a3b1b49ae4ed49092a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_oak_trapdoor.png"
+dest_files=["res://.godot/imported/block_oak_trapdoor.png-3f5af4129399c2a3b1b49ae4ed49092a.ctex"]
 
 [params]
 

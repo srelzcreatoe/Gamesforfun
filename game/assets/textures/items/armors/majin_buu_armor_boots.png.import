@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://567conm1vts6"
+path="res://.godot/imported/majin_buu_armor_boots.png-be5d51d3a628b9de315e4cb3b0538aaa.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/majin_buu_armor_boots.png"
+dest_files=["res://.godot/imported/majin_buu_armor_boots.png-be5d51d3a628b9de315e4cb3b0538aaa.ctex"]
 
 [params]
 

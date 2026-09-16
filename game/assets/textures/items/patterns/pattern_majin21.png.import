@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bqcifn31l8lko"
+path="res://.godot/imported/pattern_majin21.png-252b70c72d4ffdf3290398978dee8d1f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_majin21.png"
+dest_files=["res://.godot/imported/pattern_majin21.png-252b70c72d4ffdf3290398978dee8d1f.ctex"]
 
 [params]
 

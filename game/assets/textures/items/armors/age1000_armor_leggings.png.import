@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bvd7o1jsmw2k3"
+path="res://.godot/imported/age1000_armor_leggings.png-42c202acf51e6a9debae5a0bef78abfd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/age1000_armor_leggings.png"
+dest_files=["res://.godot/imported/age1000_armor_leggings.png-42c202acf51e6a9debae5a0bef78abfd.ctex"]
 
 [params]
 

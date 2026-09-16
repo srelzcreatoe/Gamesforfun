@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cmmtcpyjrcaag"
+path="res://.godot/imported/block_dark_oak_fence.png-3b7a85c3aaeabefed747a952eaa52dde.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_dark_oak_fence.png"
+dest_files=["res://.godot/imported/block_dark_oak_fence.png-3b7a85c3aaeabefed747a952eaa52dde.ctex"]
 
 [params]
 

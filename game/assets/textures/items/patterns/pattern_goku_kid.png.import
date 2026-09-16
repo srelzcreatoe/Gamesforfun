@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cro6ckxlc3qcj"
+path="res://.godot/imported/pattern_goku_kid.png-50fdb3b449d06422fe688162ba9db80f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_goku_kid.png"
+dest_files=["res://.godot/imported/pattern_goku_kid.png-50fdb3b449d06422fe688162ba9db80f.ctex"]
 
 [params]
 

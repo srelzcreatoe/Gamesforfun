@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bqr5810fd583b"
+path="res://.godot/imported/yardrat_armor_boots.png-5b2baf3fde91ecace2f845fd4a4a0c35.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/yardrat_armor_boots.png"
+dest_files=["res://.godot/imported/yardrat_armor_boots.png-5b2baf3fde91ecace2f845fd4a4a0c35.ctex"]
 
 [params]
 

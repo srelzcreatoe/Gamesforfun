@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://dq1nbn0gix5m7"
+path="res://.godot/imported/nube.ogg-f75916641bf302be77198a1d4ecec616.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/nube.ogg"
+dest_files=["res://.godot/imported/nube.ogg-f75916641bf302be77198a1d4ecec616.oggvorbisstr"]
 
 [params]
 

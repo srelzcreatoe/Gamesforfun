@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cw8ng13h3ci80"
+path="res://.godot/imported/vampa.png-6fabf5294c51bdd5f484468f0ee43b2e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/vampa.png"
+dest_files=["res://.godot/imported/vampa.png-6fabf5294c51bdd5f484468f0ee43b2e.ctex"]
 
 [params]
 

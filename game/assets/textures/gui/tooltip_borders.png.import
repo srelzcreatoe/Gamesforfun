@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://djkqkmucgnee1"
+path="res://.godot/imported/tooltip_borders.png-2bcb19b7230d472a1d0ce721e48cb732.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/tooltip_borders.png"
+dest_files=["res://.godot/imported/tooltip_borders.png-2bcb19b7230d472a1d0ce721e48cb732.ctex"]
 
 [params]
 

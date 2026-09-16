@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://e5drneexyavi"
+path="res://.godot/imported/piccolo_armor_helmet.png-fefcadc9b42331556491c0ed759a1a76.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/piccolo_armor_helmet.png"
+dest_files=["res://.godot/imported/piccolo_armor_helmet.png-fefcadc9b42331556491c0ed759a1a76.ctex"]
 
 [params]
 

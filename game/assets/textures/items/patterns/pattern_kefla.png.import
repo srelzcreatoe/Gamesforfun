@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dfcsf1mw0ahlu"
+path="res://.godot/imported/pattern_kefla.png-60dc439b27ff843917d368fcbf1e031c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_kefla.png"
+dest_files=["res://.godot/imported/pattern_kefla.png-60dc439b27ff843917d368fcbf1e031c.ctex"]
 
 [params]
 

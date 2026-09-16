@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://dpurqeny4cw6"
+path="res://.godot/imported/skill_learned.wav-7eb125d3fc630b3f9ac3536addb18e77.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/skill_learned.wav"
+dest_files=["res://.godot/imported/skill_learned.wav-7eb125d3fc630b3f9ac3536addb18e77.sample"]
 
 [params]
 

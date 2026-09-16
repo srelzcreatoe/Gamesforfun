@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://drql7vxq36o0l"
+path="res://.godot/imported/inventory.png-90eff14d9f32ec280c75d5ed70ed012e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/inventory.png"
+dest_files=["res://.godot/imported/inventory.png-90eff14d9f32ec280c75d5ed70ed012e.ctex"]
 
 [params]
 

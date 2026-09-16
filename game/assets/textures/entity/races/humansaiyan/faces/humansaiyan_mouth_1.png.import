@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://knpvura8rl0s"
+path="res://.godot/imported/humansaiyan_mouth_1.png-506bdbd01850d5ed84bc776edc3f31fa.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/humansaiyan/faces/humansaiyan_mouth_1.png"
+dest_files=["res://.godot/imported/humansaiyan_mouth_1.png-506bdbd01850d5ed84bc776edc3f31fa.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bwx32777yr7d4"
+path="res://.godot/imported/capsule_corp_wall.png-2918535b6c923d73b2e7dbf5827ca032.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/capsule_corp_wall.png"
+dest_files=["res://.godot/imported/capsule_corp_wall.png-2918535b6c923d73b2e7dbf5827ca032.ctex"]
 
 [params]
 

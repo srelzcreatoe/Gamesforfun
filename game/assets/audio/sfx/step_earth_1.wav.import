@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://d2ye077dkytav"
+path="res://.godot/imported/step_earth_1.wav-1e0a8fcec728061bb16317b9ddb22a03.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/step_earth_1.wav"
+dest_files=["res://.godot/imported/step_earth_1.wav-1e0a8fcec728061bb16317b9ddb22a03.sample"]
 
 [params]
 

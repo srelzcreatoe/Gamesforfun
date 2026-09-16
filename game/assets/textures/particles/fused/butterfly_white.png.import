@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b42lx4pht0y4b"
+path="res://.godot/imported/butterfly_white.png-928789fa5f3a2dc9a035df3ff35bd087.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/butterfly_white.png"
+dest_files=["res://.godot/imported/butterfly_white.png-928789fa5f3a2dc9a035df3ff35bd087.ctex"]
 
 [params]
 

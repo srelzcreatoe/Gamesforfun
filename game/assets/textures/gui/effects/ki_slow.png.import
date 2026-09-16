@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://js5jnswmw3xa"
+path="res://.godot/imported/ki_slow.png-917864c4f35a2db9043a5f9cdab81fb0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/ki_slow.png"
+dest_files=["res://.godot/imported/ki_slow.png-917864c4f35a2db9043a5f9cdab81fb0.ctex"]
 
 [params]
 

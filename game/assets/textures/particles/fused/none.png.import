@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bfuptybr008e1"
+path="res://.godot/imported/none.png-1b32628f21e32a56b4debb3d03866eed.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/none.png"
+dest_files=["res://.godot/imported/none.png-1b32628f21e32a56b4debb3d03866eed.ctex"]
 
 [params]
 

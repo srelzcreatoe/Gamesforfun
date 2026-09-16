@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c8qbtpxwkgdxc"
+path="res://.godot/imported/Glass.png-f8702af1a0f2020cafcb36da33c33751.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/lightning/Glass.png"
+dest_files=["res://.godot/imported/Glass.png-f8702af1a0f2020cafcb36da33c33751.ctex"]
 
 [params]
 

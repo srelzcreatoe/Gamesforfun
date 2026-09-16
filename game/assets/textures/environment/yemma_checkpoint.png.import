@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ctfi2tudoixta"
+path="res://.godot/imported/yemma_checkpoint.png-1d021e4066bbf41fd6139aa16c782a13.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/yemma_checkpoint.png"
+dest_files=["res://.godot/imported/yemma_checkpoint.png-1d021e4066bbf41fd6139aa16c782a13.ctex"]
 
 [params]
 

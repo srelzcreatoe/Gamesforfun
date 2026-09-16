@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bpyu02t4kqucq"
+path="res://.godot/imported/broly_dbs_layer1.png-2ec0a747b681a3682dc3eea06bfb45e0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/broly_dbs_layer1.png"
+dest_files=["res://.godot/imported/broly_dbs_layer1.png-2ec0a747b681a3682dc3eea06bfb45e0.ctex"]
 
 [params]
 

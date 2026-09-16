@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dn31o0nkfldli"
+path="res://.godot/imported/super_dball_4.png-d04d07c569ac801fa5b6adb1d0c8360a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/super_dball_4.png"
+dest_files=["res://.godot/imported/super_dball_4.png-d04d07c569ac801fa5b6adb1d0c8360a.ctex"]
 
 [params]
 

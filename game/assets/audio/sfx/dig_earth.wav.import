@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://dlydagkucg0u3"
+path="res://.godot/imported/dig_earth.wav-0bfd4ea7ebebaf52ef79d607a2b756bf.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/dig_earth.wav"
+dest_files=["res://.godot/imported/dig_earth.wav-0bfd4ea7ebebaf52ef79d607a2b756bf.sample"]
 
 [params]
 

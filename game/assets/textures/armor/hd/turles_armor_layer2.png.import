@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cwr1sld8y5tu5"
+path="res://.godot/imported/turles_armor_layer2.png-3c9d6613d9d3c1aa9c053b986196b041.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/turles_armor_layer2.png"
+dest_files=["res://.godot/imported/turles_armor_layer2.png-3c9d6613d9d3c1aa9c053b986196b041.ctex"]
 
 [params]
 

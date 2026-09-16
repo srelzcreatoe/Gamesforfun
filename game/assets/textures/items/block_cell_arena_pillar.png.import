@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dy1w7gson42ib"
+path="res://.godot/imported/block_cell_arena_pillar.png-57d0b1a8f15b18baee061744757a4d48.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_cell_arena_pillar.png"
+dest_files=["res://.godot/imported/block_cell_arena_pillar.png-57d0b1a8f15b18baee061744757a4d48.ctex"]
 
 [params]
 

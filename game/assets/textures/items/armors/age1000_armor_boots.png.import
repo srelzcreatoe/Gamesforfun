@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://djyt7inwa5hfx"
+path="res://.godot/imported/age1000_armor_boots.png-e8acbdae316decfc94ec70867ff1d8a7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/age1000_armor_boots.png"
+dest_files=["res://.godot/imported/age1000_armor_boots.png-e8acbdae316decfc94ec70867ff1d8a7.ctex"]
 
 [params]
 

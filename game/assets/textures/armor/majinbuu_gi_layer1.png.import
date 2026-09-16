@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bvpv3vv8t8jf7"
+path="res://.godot/imported/majinbuu_gi_layer1.png-f7120b83477a86d6eeb896785ffbbdb2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/majinbuu_gi_layer1.png"
+dest_files=["res://.godot/imported/majinbuu_gi_layer1.png-f7120b83477a86d6eeb896785ffbbdb2.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cjqijbdsb3bjd"
+path="res://.godot/imported/hit_particle.png-209618c1593d56e0b975c6e7d80787c4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/hd/hit_particle.png"
+dest_files=["res://.godot/imported/hit_particle.png-209618c1593d56e0b975c6e7d80787c4.ctex"]
 
 [params]
 

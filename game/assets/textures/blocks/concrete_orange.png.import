@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bs05w3m5ig4yk"
+path="res://.godot/imported/concrete_orange.png-27cca085ac8f3775d5664af96a38665b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/concrete_orange.png"
+dest_files=["res://.godot/imported/concrete_orange.png-27cca085ac8f3775d5664af96a38665b.ctex"]
 
 [params]
 

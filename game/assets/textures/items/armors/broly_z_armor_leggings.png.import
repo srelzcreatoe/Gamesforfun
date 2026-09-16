@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ceyv5rhvruuto"
+path="res://.godot/imported/broly_z_armor_leggings.png-50bd990b5b9f7d6a1b1f4906f7b4eeea.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/broly_z_armor_leggings.png"
+dest_files=["res://.godot/imported/broly_z_armor_leggings.png-50bd990b5b9f7d6a1b1f4906f7b4eeea.ctex"]
 
 [params]
 

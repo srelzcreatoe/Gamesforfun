@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://4kcrpnrn12nw"
+path="res://.godot/imported/trunks_super_armor_boots.png-ae740ad093a71a8f97286f57a8cda3d6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/trunks_super_armor_boots.png"
+dest_files=["res://.godot/imported/trunks_super_armor_boots.png-ae740ad093a71a8f97286f57a8cda3d6.ctex"]
 
 [params]
 

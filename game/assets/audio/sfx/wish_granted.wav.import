@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://bxuqp5tr8c7q6"
+path="res://.godot/imported/wish_granted.wav-6a1fed5620ebfa74c50c86efea36a01d.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/wish_granted.wav"
+dest_files=["res://.godot/imported/wish_granted.wav-6a1fed5620ebfa74c50c86efea36a01d.sample"]
 
 [params]
 

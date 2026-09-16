@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://u68xvrkik3i7"
+path="res://.godot/imported/Particle_Soft.png-49300888cb7a79f477ab95957b8dd11c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/lightning/Particle_Soft.png"
+dest_files=["res://.godot/imported/Particle_Soft.png-49300888cb7a79f477ab95957b8dd11c.ctex"]
 
 [params]
 

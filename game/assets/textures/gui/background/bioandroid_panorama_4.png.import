@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://djao38d8oryc1"
+path="res://.godot/imported/bioandroid_panorama_4.png-dbefd38f2032753951989de499418c6e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/background/bioandroid_panorama_4.png"
+dest_files=["res://.godot/imported/bioandroid_panorama_4.png-dbefd38f2032753951989de499418c6e.ctex"]
 
 [params]
 

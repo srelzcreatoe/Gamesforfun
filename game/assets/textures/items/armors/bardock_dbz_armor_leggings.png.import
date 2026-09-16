@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dvqwpphq8n2b8"
+path="res://.godot/imported/bardock_dbz_armor_leggings.png-db17e2811ea72ea437c2be7b00641b16.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/bardock_dbz_armor_leggings.png"
+dest_files=["res://.godot/imported/bardock_dbz_armor_leggings.png-db17e2811ea72ea437c2be7b00641b16.ctex"]
 
 [params]
 

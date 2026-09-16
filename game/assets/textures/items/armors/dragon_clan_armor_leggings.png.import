@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cgnxh7o38wjpr"
+path="res://.godot/imported/dragon_clan_armor_leggings.png-2a15d544b2eead99101997ff09612359.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/dragon_clan_armor_leggings.png"
+dest_files=["res://.godot/imported/dragon_clan_armor_leggings.png-2a15d544b2eead99101997ff09612359.ctex"]
 
 [params]
 

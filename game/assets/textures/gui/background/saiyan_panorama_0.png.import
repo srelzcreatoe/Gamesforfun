@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://csbcabrclmns"
+path="res://.godot/imported/saiyan_panorama_0.png-f9382f08a05a92f058f6d0654f22253f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/background/saiyan_panorama_0.png"
+dest_files=["res://.godot/imported/saiyan_panorama_0.png-f9382f08a05a92f058f6d0654f22253f.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cujhhwmtx2b50"
+path="res://.godot/imported/kikono_sword.png-6ccc53cdc25ea035c5ed8f9e48ee1c96.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/kikono_sword.png"
+dest_files=["res://.godot/imported/kikono_sword.png-6ccc53cdc25ea035c5ed8f9e48ee1c96.ctex"]
 
 [params]
 

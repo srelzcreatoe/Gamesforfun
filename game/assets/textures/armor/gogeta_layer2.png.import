@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dmytqhg6c25sj"
+path="res://.godot/imported/gogeta_layer2.png-097d57e8e96e0e18e0e6d2311cd4b662.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/gogeta_layer2.png"
+dest_files=["res://.godot/imported/gogeta_layer2.png-097d57e8e96e0e18e0e6d2311cd4b662.ctex"]
 
 [params]
 

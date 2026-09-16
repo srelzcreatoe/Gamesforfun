@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://tx27kugtevey"
+path="res://.godot/imported/ambience_space.wav-cb2c15063be59fa04986d65eaaa132bc.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/ambience_space.wav"
+dest_files=["res://.godot/imported/ambience_space.wav-cb2c15063be59fa04986d65eaaa132bc.sample"]
 
 [params]
 

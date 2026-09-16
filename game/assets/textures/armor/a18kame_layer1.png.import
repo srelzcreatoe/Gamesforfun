@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cxtt5oqf020ap"
+path="res://.godot/imported/a18kame_layer1.png-b96704a264bddd72e741a069f2955843.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/a18kame_layer1.png"
+dest_files=["res://.godot/imported/a18kame_layer1.png-b96704a264bddd72e741a069f2955843.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c63qpqmaguvwl"
+path="res://.godot/imported/saga_bojack.png-55eddb2902ef8fdb42c8eca505cc2fb6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_bojack.png"
+dest_files=["res://.godot/imported/saga_bojack.png-55eddb2902ef8fdb42c8eca505cc2fb6.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bn0j8vsiws71v"
+path="res://.godot/imported/transformed.png-f6c82dc346ec4a6ffcab5fbb7fb40ffb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/transformed.png"
+dest_files=["res://.godot/imported/transformed.png-f6c82dc346ec4a6ffcab5fbb7fb40ffb.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c5vretxmugske"
+path="res://.godot/imported/gravity_device_side.png-2654e4e73f047511a40c137cbecc0d19.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/gravity_device_side.png"
+dest_files=["res://.godot/imported/gravity_device_side.png-2654e4e73f047511a40c137cbecc0d19.ctex"]
 
 [params]
 

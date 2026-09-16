@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bnhmmm1jtm7f2"
+path="res://.godot/imported/mystic_armor_chestplate.png-d41d13171b35277803051946da57efcb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/mystic_armor_chestplate.png"
+dest_files=["res://.godot/imported/mystic_armor_chestplate.png-d41d13171b35277803051946da57efcb.ctex"]
 
 [params]
 

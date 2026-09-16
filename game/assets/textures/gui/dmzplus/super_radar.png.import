@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dy25y71i302oy"
+path="res://.godot/imported/super_radar.png-8621c799c1f841b47475a354cfae8382.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/dmzplus/super_radar.png"
+dest_files=["res://.godot/imported/super_radar.png-8621c799c1f841b47475a354cfae8382.ctex"]
 
 [params]
 

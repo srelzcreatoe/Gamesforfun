@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://did05et8dwm5k"
+path="res://.godot/imported/ki_flash1.png-7a7f89c0f52da987a97c2a1fe087e77f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/ki_flash1.png"
+dest_files=["res://.godot/imported/ki_flash1.png-7a7f89c0f52da987a97c2a1fe087e77f.ctex"]
 
 [params]
 

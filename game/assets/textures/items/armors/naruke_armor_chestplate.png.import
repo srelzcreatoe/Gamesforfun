@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cm6agtx7fp7la"
+path="res://.godot/imported/naruke_armor_chestplate.png-6f4b6202b5da50a015ca60082b907cc5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/naruke_armor_chestplate.png"
+dest_files=["res://.godot/imported/naruke_armor_chestplate.png-6f4b6202b5da50a015ca60082b907cc5.ctex"]
 
 [params]
 

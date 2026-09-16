@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dp4wurt0ni4at"
+path="res://.godot/imported/wooden_sword.png-acd48206e027f8612af375c047666dcb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/wooden_sword.png"
+dest_files=["res://.godot/imported/wooden_sword.png-acd48206e027f8612af375c047666dcb.ctex"]
 
 [params]
 

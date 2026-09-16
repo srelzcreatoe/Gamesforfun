@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bj4oyd712a4us"
+path="res://.godot/imported/strongest_armor_chestplate.png-cd8fdf452c2644bc579c4d8c6e70544b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/strongest_armor_chestplate.png"
+dest_files=["res://.godot/imported/strongest_armor_chestplate.png-cd8fdf452c2644bc579c4d8c6e70544b.ctex"]
 
 [params]
 

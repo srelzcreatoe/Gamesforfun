@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dbw4gueqbfn5k"
+path="res://.godot/imported/critical_damage.png-06b73edfc3248637c7de36032ecba80a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/attributes/critical_damage.png"
+dest_files=["res://.godot/imported/critical_damage.png-06b73edfc3248637c7de36032ecba80a.ctex"]
 
 [params]
 

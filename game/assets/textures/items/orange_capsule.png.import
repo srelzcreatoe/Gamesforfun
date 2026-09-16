@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b5drfs4vcb8m"
+path="res://.godot/imported/orange_capsule.png-110a3fe3cbb1d5df52a6ee13cc2fa040.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/orange_capsule.png"
+dest_files=["res://.godot/imported/orange_capsule.png-110a3fe3cbb1d5df52a6ee13cc2fa040.ctex"]
 
 [params]
 

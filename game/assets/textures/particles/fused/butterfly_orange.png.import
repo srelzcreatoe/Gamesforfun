@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dm3k84oybsgc4"
+path="res://.godot/imported/butterfly_orange.png-e9fcb56347e3cfa100c6131a2f2c2411.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/butterfly_orange.png"
+dest_files=["res://.godot/imported/butterfly_orange.png-e9fcb56347e3cfa100c6131a2f2c2411.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bpvo8yaof0x0l"
+path="res://.godot/imported/a17_armor_chestplate.png-496a1f61ee6f2f7417b756307608763e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/a17_armor_chestplate.png"
+dest_files=["res://.godot/imported/a17_armor_chestplate.png-496a1f61ee6f2f7417b756307608763e.ctex"]
 
 [params]
 

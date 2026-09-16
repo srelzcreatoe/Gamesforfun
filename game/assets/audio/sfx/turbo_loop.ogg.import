@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://gkdnok354uqr"
+path="res://.godot/imported/turbo_loop.ogg-f13435e390ce5b7fa25a5c57e6654392.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/turbo_loop.ogg"
+dest_files=["res://.godot/imported/turbo_loop.ogg-f13435e390ce5b7fa25a5c57e6654392.oggvorbisstr"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://gu54kjgd1xhn"
+path="res://.godot/imported/videl_armor_leggings.png-cbfa80b9a2bb5483faba6db3eee5ee1a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/videl_armor_leggings.png"
+dest_files=["res://.godot/imported/videl_armor_leggings.png-cbfa80b9a2bb5483faba6db3eee5ee1a.ctex"]
 
 [params]
 

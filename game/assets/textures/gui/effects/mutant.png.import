@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dseq0ywsjkc03"
+path="res://.godot/imported/mutant.png-f223a5caf64a08eb6b844607fe52eecc.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/mutant.png"
+dest_files=["res://.godot/imported/mutant.png-f223a5caf64a08eb6b844607fe52eecc.ctex"]
 
 [params]
 

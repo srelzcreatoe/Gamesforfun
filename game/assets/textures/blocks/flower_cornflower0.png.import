@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://caad1os3xab4q"
+path="res://.godot/imported/flower_cornflower0.png-c17381daa342dd61d547657de0a50a7c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/flower_cornflower0.png"
+dest_files=["res://.godot/imported/flower_cornflower0.png-c17381daa342dd61d547657de0a50a7c.ctex"]
 
 [params]
 

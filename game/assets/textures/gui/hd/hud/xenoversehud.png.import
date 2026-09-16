@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dmf0yfkdndf7v"
+path="res://.godot/imported/xenoversehud.png-9cbae48c8488827019b78231f7d6d74c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/hd/hud/xenoversehud.png"
+dest_files=["res://.godot/imported/xenoversehud.png-9cbae48c8488827019b78231f7d6d74c.ctex"]
 
 [params]
 

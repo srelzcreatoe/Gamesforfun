@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://8bktlao70wbr"
+path="res://.godot/imported/block_lantern.png-ecdfa6c7c149973dea62fef7af27da06.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_lantern.png"
+dest_files=["res://.godot/imported/block_lantern.png-ecdfa6c7c149973dea62fef7af27da06.ctex"]
 
 [params]
 

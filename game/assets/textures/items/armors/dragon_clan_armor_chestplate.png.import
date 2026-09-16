@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://fpgsn5espfoj"
+path="res://.godot/imported/dragon_clan_armor_chestplate.png-e6d1dd36094a1508d2735ae88c9af939.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/dragon_clan_armor_chestplate.png"
+dest_files=["res://.godot/imported/dragon_clan_armor_chestplate.png-e6d1dd36094a1508d2735ae88c9af939.ctex"]
 
 [params]
 

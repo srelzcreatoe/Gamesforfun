@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b8fshvtijiicb"
+path="res://.godot/imported/saga_dabura.png-d888eb7e8e4efea1b8d51d03a04f4a18.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_dabura.png"
+dest_files=["res://.godot/imported/saga_dabura.png-d888eb7e8e4efea1b8d51d03a04f4a18.ctex"]
 
 [params]
 

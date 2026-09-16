@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cdpo8ku5vfgep"
+path="res://.godot/imported/vegeta_buu_armor_boots.png-89a251ff13028e8dedb83d89c6bc98dd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/vegeta_buu_armor_boots.png"
+dest_files=["res://.godot/imported/vegeta_buu_armor_boots.png-89a251ff13028e8dedb83d89c6bc98dd.ctex"]
 
 [params]
 

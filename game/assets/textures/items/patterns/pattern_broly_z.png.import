@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cowwf0ssrgg0o"
+path="res://.godot/imported/pattern_broly_z.png-4faf9ddb3284f68c1a76eff9012ff6df.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_broly_z.png"
+dest_files=["res://.godot/imported/pattern_broly_z.png-4faf9ddb3284f68c1a76eff9012ff6df.ctex"]
 
 [params]
 

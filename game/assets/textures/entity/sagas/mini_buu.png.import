@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c5wjcseq0q1xb"
+path="res://.godot/imported/mini_buu.png-bc4683f1de526ca04fb5efdf794b8460.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/mini_buu.png"
+dest_files=["res://.godot/imported/mini_buu.png-bc4683f1de526ca04fb5efdf794b8460.ctex"]
 
 [params]
 

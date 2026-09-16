@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://ci8xy13jje88"
+path="res://.godot/imported/ui_nave_cooldown.ogg-0e33452f91326b2ba565dd19e3f5fa1f.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/ui_nave_cooldown.ogg"
+dest_files=["res://.godot/imported/ui_nave_cooldown.ogg-0e33452f91326b2ba565dd19e3f5fa1f.oggvorbisstr"]
 
 [params]
 

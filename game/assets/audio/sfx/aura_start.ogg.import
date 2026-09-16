@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://cfst5s7ajr7pf"
+path="res://.godot/imported/aura_start.ogg-5ca9e6fb810129df5e4327d8f6507535.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/aura_start.ogg"
+dest_files=["res://.godot/imported/aura_start.ogg-5ca9e6fb810129df5e4327d8f6507535.oggvorbisstr"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cixukg6fca5ks"
+path="res://.godot/imported/greenpothala.png-9e74baf3bca1b7065b3350cb6ee815c6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/greenpothala.png"
+dest_files=["res://.godot/imported/greenpothala.png-9e74baf3bca1b7065b3350cb6ee815c6.ctex"]
 
 [params]
 

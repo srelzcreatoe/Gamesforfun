@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://eaw585p1sndy"
+path="res://.godot/imported/shin_armor_leggings.png-38ce943038e1652ff594cb60e117d16d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/shin_armor_leggings.png"
+dest_files=["res://.godot/imported/shin_armor_leggings.png-38ce943038e1652ff594cb60e117d16d.ctex"]
 
 [params]
 

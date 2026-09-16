@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d10itgw7fd06s"
+path="res://.godot/imported/majin21_armor_chestplate.png-b88b9b541cdf8700327b0fbde2cc7ac4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/majin21_armor_chestplate.png"
+dest_files=["res://.godot/imported/majin21_armor_chestplate.png-b88b9b541cdf8700327b0fbde2cc7ac4.ctex"]
 
 [params]
 

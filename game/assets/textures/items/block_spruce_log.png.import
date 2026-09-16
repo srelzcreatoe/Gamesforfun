@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cgh4ggehv76ho"
+path="res://.godot/imported/block_spruce_log.png-81eccf13b354121b5ff76df15a3f2429.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_spruce_log.png"
+dest_files=["res://.godot/imported/block_spruce_log.png-81eccf13b354121b5ff76df15a3f2429.ctex"]
 
 [params]
 

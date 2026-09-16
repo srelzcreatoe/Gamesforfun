@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://eano5oq713mb"
+path="res://.godot/imported/Hammer1.png-4b0b68413568fefcfcd6d7a43c526814.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/explosion/Hammer1.png"
+dest_files=["res://.godot/imported/Hammer1.png-4b0b68413568fefcfcd6d7a43c526814.ctex"]
 
 [params]
 

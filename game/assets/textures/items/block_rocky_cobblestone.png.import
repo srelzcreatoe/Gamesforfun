@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://sty2gfx6d2l6"
+path="res://.godot/imported/block_rocky_cobblestone.png-f3626ab032df6a3c57754c2399f7a464.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_rocky_cobblestone.png"
+dest_files=["res://.godot/imported/block_rocky_cobblestone.png-f3626ab032df6a3c57754c2399f7a464.ctex"]
 
 [params]
 

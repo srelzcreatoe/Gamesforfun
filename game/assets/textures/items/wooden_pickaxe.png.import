@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://3k1x0so2ugq"
+path="res://.godot/imported/wooden_pickaxe.png-e01d61dc9fc2c50b7d549e39011de0a4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/wooden_pickaxe.png"
+dest_files=["res://.godot/imported/wooden_pickaxe.png-e01d61dc9fc2c50b7d549e39011de0a4.ctex"]
 
 [params]
 

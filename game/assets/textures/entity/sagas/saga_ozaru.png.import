@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://btwnio8opfbft"
+path="res://.godot/imported/saga_ozaru.png-703cf6a9d680299ea0d2a07a8a16a3eb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_ozaru.png"
+dest_files=["res://.godot/imported/saga_ozaru.png-703cf6a9d680299ea0d2a07a8a16a3eb.ctex"]
 
 [params]
 

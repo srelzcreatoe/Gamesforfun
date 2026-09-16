@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d1iaiuiva7e8l"
+path="res://.godot/imported/gohan_super_armor_chestplate.png-1f668cd4ce7293b74e620b8b450675ff.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/gohan_super_armor_chestplate.png"
+dest_files=["res://.godot/imported/gohan_super_armor_chestplate.png-1f668cd4ce7293b74e620b8b450675ff.ctex"]
 
 [params]
 

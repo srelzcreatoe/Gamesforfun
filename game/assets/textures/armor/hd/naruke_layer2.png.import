@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://deec7qhrrrm7i"
+path="res://.godot/imported/naruke_layer2.png-803779300d7909bb249dc1e191f512cf.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/naruke_layer2.png"
+dest_files=["res://.godot/imported/naruke_layer2.png-803779300d7909bb249dc1e191f512cf.ctex"]
 
 [params]
 

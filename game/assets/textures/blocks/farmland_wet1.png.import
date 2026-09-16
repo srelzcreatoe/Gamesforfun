@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bt2ffvouhirva"
+path="res://.godot/imported/farmland_wet1.png-9cc0cf3c47c9ea2a42f37fcb8415e238.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/farmland_wet1.png"
+dest_files=["res://.godot/imported/farmland_wet1.png-9cc0cf3c47c9ea2a42f37fcb8415e238.ctex"]
 
 [params]
 

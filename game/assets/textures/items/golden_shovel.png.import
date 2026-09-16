@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bjrc51k4e8mw4"
+path="res://.godot/imported/golden_shovel.png-d3260c900f870eef1bca7a57ff0224ae.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/golden_shovel.png"
+dest_files=["res://.godot/imported/golden_shovel.png-d3260c900f870eef1bca7a57ff0224ae.ctex"]
 
 [params]
 

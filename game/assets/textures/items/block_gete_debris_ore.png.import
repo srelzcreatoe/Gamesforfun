@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b3fen5vd3yf4q"
+path="res://.godot/imported/block_gete_debris_ore.png-c4ce6be421f1271ccad5386cd8e9a403.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_gete_debris_ore.png"
+dest_files=["res://.godot/imported/block_gete_debris_ore.png-c4ce6be421f1271ccad5386cd8e9a403.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cufcimjnq5iqr"
+path="res://.godot/imported/kibito_armor_chestplate.png-460489e9d3862ac21d97f6a936885ec1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/kibito_armor_chestplate.png"
+dest_files=["res://.godot/imported/kibito_armor_chestplate.png-460489e9d3862ac21d97f6a936885ec1.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://f6rrgl1qiruw"
+path="res://.godot/imported/glass_yellow.png-cbaa66231d0003bd5170916063dbf0cd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/glass_yellow.png"
+dest_files=["res://.godot/imported/glass_yellow.png-cbaa66231d0003bd5170916063dbf0cd.ctex"]
 
 [params]
 

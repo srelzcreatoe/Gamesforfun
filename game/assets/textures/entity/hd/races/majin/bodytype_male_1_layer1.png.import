@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://r63jurgnt8s7"
+path="res://.godot/imported/bodytype_male_1_layer1.png-9263d294ed63382c1758d0316f706e3f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/majin/bodytype_male_1_layer1.png"
+dest_files=["res://.godot/imported/bodytype_male_1_layer1.png-9263d294ed63382c1758d0316f706e3f.ctex"]
 
 [params]
 

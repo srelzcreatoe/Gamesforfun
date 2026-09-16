@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://c8osnjbfqpdtc"
+path="res://.godot/imported/place_metal.wav-067fda865665f9ae4e3968017f455b6c.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/place_metal.wav"
+dest_files=["res://.godot/imported/place_metal.wav-067fda865665f9ae4e3968017f455b6c.sample"]
 
 [params]
 

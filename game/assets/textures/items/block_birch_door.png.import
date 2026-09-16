@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://djl5m4goca0h4"
+path="res://.godot/imported/block_birch_door.png-346c1335b63f75c460aea28bc7fbc9e9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_birch_door.png"
+dest_files=["res://.godot/imported/block_birch_door.png-346c1335b63f75c460aea28bc7fbc9e9.ctex"]
 
 [params]
 

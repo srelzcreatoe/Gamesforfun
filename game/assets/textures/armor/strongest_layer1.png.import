@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b6hu8cm5lessp"
+path="res://.godot/imported/strongest_layer1.png-da2ab2d2114d9075d2bc7981ea40d41b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/strongest_layer1.png"
+dest_files=["res://.godot/imported/strongest_layer1.png-da2ab2d2114d9075d2bc7981ea40d41b.ctex"]
 
 [params]
 

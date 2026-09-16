@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ccth3tryjy365"
+path="res://.godot/imported/kaioken.png-a52ea3f81c6561eb35d82664559922d7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/icons/kaioken.png"
+dest_files=["res://.godot/imported/kaioken.png-a52ea3f81c6561eb35d82664559922d7.ctex"]
 
 [params]
 

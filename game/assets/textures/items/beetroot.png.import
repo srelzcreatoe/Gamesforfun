@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b5n5rj0bgifpt"
+path="res://.godot/imported/beetroot.png-b9306bb4a69e9fc7e8949b9264672be7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/beetroot.png"
+dest_files=["res://.godot/imported/beetroot.png-b9306bb4a69e9fc7e8949b9264672be7.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c5qkgum0qr7j3"
+path="res://.godot/imported/sacred_marigold_flower.png-8a9fafebd6f27c3cbd2b2e985876bcdd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/sacred_marigold_flower.png"
+dest_files=["res://.godot/imported/sacred_marigold_flower.png-8a9fafebd6f27c3cbd2b2e985876bcdd.ctex"]
 
 [params]
 

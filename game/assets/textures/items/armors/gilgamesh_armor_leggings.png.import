@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bgayfti20ds4j"
+path="res://.godot/imported/gilgamesh_armor_leggings.png-a944c552b6abc7202dcdc617c33061d9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/gilgamesh_armor_leggings.png"
+dest_files=["res://.godot/imported/gilgamesh_armor_leggings.png-a944c552b6abc7202dcdc617c33061d9.ctex"]
 
 [params]
 

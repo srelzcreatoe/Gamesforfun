@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cvwlm6vfjpgtx"
+path="res://.godot/imported/demon_gi_blue_armor_leggings.png-b9505ab56e9467658a17a1f2fed29d29.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/demon_gi_blue_armor_leggings.png"
+dest_files=["res://.godot/imported/demon_gi_blue_armor_leggings.png-b9505ab56e9467658a17a1f2fed29d29.ctex"]
 
 [params]
 

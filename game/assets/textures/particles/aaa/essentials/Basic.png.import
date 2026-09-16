@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dgsrs22k06ev7"
+path="res://.godot/imported/Basic.png-e9e86981903baf54b6b81e6a9a060654.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/essentials/Basic.png"
+dest_files=["res://.godot/imported/Basic.png-e9e86981903baf54b6b81e6a9a060654.ctex"]
 
 [params]
 

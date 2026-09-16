@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cctbyifcvg046"
+path="res://.godot/imported/namek_sacred_door.png-0259c56367845ff98a232888538cf41a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/namek_sacred_door.png"
+dest_files=["res://.godot/imported/namek_sacred_door.png-0259c56367845ff98a232888538cf41a.ctex"]
 
 [params]
 

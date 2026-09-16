@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bnl326ok72fu0"
+path="res://.godot/imported/lapis_lazuli.png-3b5e972448cf9d93144c977bd17dbd02.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/lapis_lazuli.png"
+dest_files=["res://.godot/imported/lapis_lazuli.png-3b5e972448cf9d93144c977bd17dbd02.ctex"]
 
 [params]
 

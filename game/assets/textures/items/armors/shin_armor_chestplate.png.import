@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bu3cmlbit6vhu"
+path="res://.godot/imported/shin_armor_chestplate.png-d01523b6bc4c3bf5a895a8e9c93b4f8a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/shin_armor_chestplate.png"
+dest_files=["res://.godot/imported/shin_armor_chestplate.png-d01523b6bc4c3bf5a895a8e9c93b4f8a.ctex"]
 
 [params]
 

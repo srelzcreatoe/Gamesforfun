@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ccliahexig6hm"
+path="res://.godot/imported/mightfruit.png-fa65571361e8dac87913c7bdb26a7a24.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/mightfruit.png"
+dest_files=["res://.godot/imported/mightfruit.png-fa65571361e8dac87913c7bdb26a7a24.ctex"]
 
 [params]
 

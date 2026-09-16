@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bwdgeffpuvd1"
+path="res://.godot/imported/pattern_mystic.png-80d754d5e9eb12023d8876c56e32d4b0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_mystic.png"
+dest_files=["res://.godot/imported/pattern_mystic.png-80d754d5e9eb12023d8876c56e32d4b0.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c86ar3ckk5a2r"
+path="res://.godot/imported/granola_armor_leggings.png-5d85f89e5837d1fe89653a2510567405.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/granola_armor_leggings.png"
+dest_files=["res://.godot/imported/granola_armor_leggings.png-5d85f89e5837d1fe89653a2510567405.ctex"]
 
 [params]
 

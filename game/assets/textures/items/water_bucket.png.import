@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dnj0j54g83gga"
+path="res://.godot/imported/water_bucket.png-013c4541473c43a70cfdcb107dc2f9b2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/water_bucket.png"
+dest_files=["res://.godot/imported/water_bucket.png-013c4541473c43a70cfdcb107dc2f9b2.ctex"]
 
 [params]
 

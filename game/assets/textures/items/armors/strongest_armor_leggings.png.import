@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b6mcd1larkp1j"
+path="res://.godot/imported/strongest_armor_leggings.png-adde584402e89fd7c5521cad0f550afc.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/strongest_armor_leggings.png"
+dest_files=["res://.godot/imported/strongest_armor_leggings.png-adde584402e89fd7c5521cad0f550afc.ctex"]
 
 [params]
 

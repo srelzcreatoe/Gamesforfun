@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://m22r7dgxgd33"
+path="res://.godot/imported/pattern_raditz.png-6e9180d234ebb9ff7f5c005dd5f3ccd4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_raditz.png"
+dest_files=["res://.godot/imported/pattern_raditz.png-6e9180d234ebb9ff7f5c005dd5f3ccd4.ctex"]
 
 [params]
 

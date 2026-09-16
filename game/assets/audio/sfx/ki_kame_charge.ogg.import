@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://cx073y476nec5"
+path="res://.godot/imported/ki_kame_charge.ogg-9b4055d387c0b7d28c856ecb84111f3e.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/ki_kame_charge.ogg"
+dest_files=["res://.godot/imported/ki_kame_charge.ogg-9b4055d387c0b7d28c856ecb84111f3e.oggvorbisstr"]
 
 [params]
 

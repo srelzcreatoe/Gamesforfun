@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dp1k88idfokoj"
+path="res://.godot/imported/characterbuttons.png-32c9dc699e781d160cdfac471bf9501a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/buttons/characterbuttons.png"
+dest_files=["res://.godot/imported/characterbuttons.png-32c9dc699e781d160cdfac471bf9501a.ctex"]
 
 [params]
 

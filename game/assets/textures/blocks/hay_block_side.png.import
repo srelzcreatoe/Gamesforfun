@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dmj1yi4qnl26o"
+path="res://.godot/imported/hay_block_side.png-b35bb752f4782e84c1b4384fdb7f8664.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/hay_block_side.png"
+dest_files=["res://.godot/imported/hay_block_side.png-b35bb752f4782e84c1b4384fdb7f8664.ctex"]
 
 [params]
 

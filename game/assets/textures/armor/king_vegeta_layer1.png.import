@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cyw2q7xfux0la"
+path="res://.godot/imported/king_vegeta_layer1.png-bafe3b35434379c48edcf2283eb5cc4b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/king_vegeta_layer1.png"
+dest_files=["res://.godot/imported/king_vegeta_layer1.png-bafe3b35434379c48edcf2283eb5cc4b.ctex"]
 
 [params]
 

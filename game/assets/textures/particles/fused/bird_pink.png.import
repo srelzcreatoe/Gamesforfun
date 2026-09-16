@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c4ljeg0e1ekeb"
+path="res://.godot/imported/bird_pink.png-0fd835dd1c73be6eec7979e84eb29f75.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/bird_pink.png"
+dest_files=["res://.godot/imported/bird_pink.png-0fd835dd1c73be6eec7979e84eb29f75.ctex"]
 
 [params]
 

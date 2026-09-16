@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dsea25dtissl8"
+path="res://.godot/imported/pattern_a18_kame.png-3d502d2d96bc6deca44c26405f714157.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_a18_kame.png"
+dest_files=["res://.godot/imported/pattern_a18_kame.png-3d502d2d96bc6deca44c26405f714157.ctex"]
 
 [params]
 

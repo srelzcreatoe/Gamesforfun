@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cdgevjwrucv2u"
+path="res://.godot/imported/diamond.png-50eed3533e36775f50e27da5bf89adcb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/diamond.png"
+dest_files=["res://.godot/imported/diamond.png-50eed3533e36775f50e27da5bf89adcb.ctex"]
 
 [params]
 

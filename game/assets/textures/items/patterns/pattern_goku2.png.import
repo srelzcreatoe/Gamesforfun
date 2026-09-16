@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c4j4p7le6q0sk"
+path="res://.godot/imported/pattern_goku2.png-7e1f42cff57e66af1de16cab81235c38.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_goku2.png"
+dest_files=["res://.godot/imported/pattern_goku2.png-7e1f42cff57e66af1de16cab81235c38.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bxchwkqkwvrwk"
+path="res://.godot/imported/bardockdbs_armor_layer2.png-26031898a22f4b35dde74624f1c2ac76.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/bardockdbs_armor_layer2.png"
+dest_files=["res://.godot/imported/bardockdbs_armor_layer2.png-26031898a22f4b35dde74624f1c2ac76.ctex"]
 
 [params]
 

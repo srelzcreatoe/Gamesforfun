@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://deur8kfl557kv"
+path="res://.godot/imported/blackgoku_layer1.png-e7068a0aba947bbd6aff72d828bf2e09.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/blackgoku_layer1.png"
+dest_files=["res://.godot/imported/blackgoku_layer1.png-e7068a0aba947bbd6aff72d828bf2e09.ctex"]
 
 [params]
 

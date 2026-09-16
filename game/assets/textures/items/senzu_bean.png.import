@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dufs7pn4aehe3"
+path="res://.godot/imported/senzu_bean.png-afb687b71a71cbb4891bfe31538ed519.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/senzu_bean.png"
+dest_files=["res://.godot/imported/senzu_bean.png-afb687b71a71cbb4891bfe31538ed519.ctex"]
 
 [params]
 

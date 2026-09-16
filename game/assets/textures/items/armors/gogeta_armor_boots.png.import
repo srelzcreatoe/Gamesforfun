@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bkbfchbryvlfm"
+path="res://.godot/imported/gogeta_armor_boots.png-5637ac64f01398bb50abd6382b32bf68.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/gogeta_armor_boots.png"
+dest_files=["res://.godot/imported/gogeta_armor_boots.png-5637ac64f01398bb50abd6382b32bf68.ctex"]
 
 [params]
 

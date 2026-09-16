@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cv4vhg5jb10ea"
+path="res://.godot/imported/pattern_goku_super.png-2ae09f8412679c3771273339f05af1b2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_goku_super.png"
+dest_files=["res://.godot/imported/pattern_goku_super.png-2ae09f8412679c3771273339f05af1b2.ctex"]
 
 [params]
 

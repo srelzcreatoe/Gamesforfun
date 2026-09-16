@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ckst3kc1s2i08"
+path="res://.godot/imported/dash_cd.png-70fa9d1920a78d929b312a47f2931ee0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/dash_cd.png"
+dest_files=["res://.godot/imported/dash_cd.png-70fa9d1920a78d929b312a47f2931ee0.ctex"]
 
 [params]
 

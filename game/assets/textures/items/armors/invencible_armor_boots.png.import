@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d1kn3llkrt4qs"
+path="res://.godot/imported/invencible_armor_boots.png-e02a3a729d7453aa3be5176ae0d7c303.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/invencible_armor_boots.png"
+dest_files=["res://.godot/imported/invencible_armor_boots.png-e02a3a729d7453aa3be5176ae0d7c303.ctex"]
 
 [params]
 

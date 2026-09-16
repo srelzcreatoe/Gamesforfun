@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cyfr505isn81c"
+path="res://.godot/imported/saga_vegeta_namek_1.png-440b685e13bb90fcd168c055489fc7ed.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_vegeta_namek_1.png"
+dest_files=["res://.godot/imported/saga_vegeta_namek_1.png-440b685e13bb90fcd168c055489fc7ed.ctex"]
 
 [params]
 

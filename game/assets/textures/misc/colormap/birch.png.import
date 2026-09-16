@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cc37kl61jjkvc"
+path="res://.godot/imported/birch.png-4b8b11fe0763a726b0796f56417f1e21.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/misc/colormap/birch.png"
+dest_files=["res://.godot/imported/birch.png-4b8b11fe0763a726b0796f56417f1e21.ctex"]
 
 [params]
 

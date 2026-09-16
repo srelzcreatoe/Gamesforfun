@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b7fmxivdwqrom"
+path="res://.godot/imported/age1000_armor_chestplate.png-ae29b0fe65cbd2953566a9dc21cc801f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/age1000_armor_chestplate.png"
+dest_files=["res://.godot/imported/age1000_armor_chestplate.png-ae29b0fe65cbd2953566a9dc21cc801f.ctex"]
 
 [params]
 

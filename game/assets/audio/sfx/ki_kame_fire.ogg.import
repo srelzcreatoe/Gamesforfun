@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://dp3ojg5wriwl5"
+path="res://.godot/imported/ki_kame_fire.ogg-6c1d5fdd95b75a704253fcc82b8f80ea.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/ki_kame_fire.ogg"
+dest_files=["res://.godot/imported/ki_kame_fire.ogg-6c1d5fdd95b75a704253fcc82b8f80ea.oggvorbisstr"]
 
 [params]
 

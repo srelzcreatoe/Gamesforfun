@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://hjxqra7obinb"
+path="res://.godot/imported/Star.png-4f3cce85d0166004d64b3bc3a6505212.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/missile_boost/Star.png"
+dest_files=["res://.godot/imported/Star.png-4f3cce85d0166004d64b3bc3a6505212.ctex"]
 
 [params]
 

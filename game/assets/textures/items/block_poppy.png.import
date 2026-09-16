@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d24cnxvxgwp1o"
+path="res://.godot/imported/block_poppy.png-24ebdfc5b3f3cf26d98ac9d2845b2266.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_poppy.png"
+dest_files=["res://.godot/imported/block_poppy.png-24ebdfc5b3f3cf26d98ac9d2845b2266.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://duhhce36k4ptq"
+path="res://.godot/imported/copper_ingot.png-9355aac267f5f5ae0e02f6d81705e4d1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/copper_ingot.png"
+dest_files=["res://.godot/imported/copper_ingot.png-9355aac267f5f5ae0e02f6d81705e4d1.ctex"]
 
 [params]
 

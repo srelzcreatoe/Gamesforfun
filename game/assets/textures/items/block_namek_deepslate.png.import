@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bfjj82470dv2r"
+path="res://.godot/imported/block_namek_deepslate.png-8975471d9d055bc5ba6ecbc539024bfe.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_namek_deepslate.png"
+dest_files=["res://.godot/imported/block_namek_deepslate.png-8975471d9d055bc5ba6ecbc539024bfe.ctex"]
 
 [params]
 

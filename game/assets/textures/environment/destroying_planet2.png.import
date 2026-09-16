@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ddgisep1rpud2"
+path="res://.godot/imported/destroying_planet2.png-2936fb01cbd1fe4e4a2b61c8edcdf515.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/destroying_planet2.png"
+dest_files=["res://.godot/imported/destroying_planet2.png-2936fb01cbd1fe4e4a2b61c8edcdf515.ctex"]
 
 [params]
 

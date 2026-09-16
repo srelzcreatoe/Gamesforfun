@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://2udaupr7axu2"
+path="res://.godot/imported/block_blue_wool.png-c849d0e4709073f6d10cf4ee3ad68cd6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_blue_wool.png"
+dest_files=["res://.godot/imported/block_blue_wool.png-c849d0e4709073f6d10cf4ee3ad68cd6.ctex"]
 
 [params]
 

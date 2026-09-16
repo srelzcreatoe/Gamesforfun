@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d3sbe0kytx2hm"
+path="res://.godot/imported/panorama_1.png-190931826f03311812ca91baeca9d42f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/mc/title/background/panorama_1.png"
+dest_files=["res://.godot/imported/panorama_1.png-190931826f03311812ca91baeca9d42f.ctex"]
 
 [params]
 

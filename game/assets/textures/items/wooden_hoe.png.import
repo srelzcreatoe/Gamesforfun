@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cdt00qj8npr2d"
+path="res://.godot/imported/wooden_hoe.png-b47d8184cf9345e897e5333a595b2349.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/wooden_hoe.png"
+dest_files=["res://.godot/imported/wooden_hoe.png-b47d8184cf9345e897e5333a595b2349.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c6m1c5rtxptkk"
+path="res://.godot/imported/shiyoken_eye0.png-7385b23c5515412b987d9805cc106d23.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/humansaiyan/faces/shiyoken_eye0.png"
+dest_files=["res://.godot/imported/shiyoken_eye0.png-7385b23c5515412b987d9805cc106d23.ctex"]
 
 [params]
 

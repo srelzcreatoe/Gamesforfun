@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dccnmqumeuot6"
+path="res://.godot/imported/exclamation_mark_quest.png-ad6ca3d61d0206e32c9bf67f7fceac59.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/quest/exclamation_mark_quest.png"
+dest_files=["res://.godot/imported/exclamation_mark_quest.png-ad6ca3d61d0206e32c9bf67f7fceac59.ctex"]
 
 [params]
 

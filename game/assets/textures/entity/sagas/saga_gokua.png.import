@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c25gs24sbb1qw"
+path="res://.godot/imported/saga_gokua.png-bad72ca26cd95a0eb2a71d6334c94a55.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_gokua.png"
+dest_files=["res://.godot/imported/saga_gokua.png-bad72ca26cd95a0eb2a71d6334c94a55.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cy7mlrnxpa5xl"
+path="res://.godot/imported/saga_dodoria.png-6c57f2a0af9d633aa2be6a9ddadefdb2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_dodoria.png"
+dest_files=["res://.godot/imported/saga_dodoria.png-6c57f2a0af9d633aa2be6a9ddadefdb2.ctex"]
 
 [params]
 

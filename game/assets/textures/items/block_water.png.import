@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c1pn0mm2nkqdm"
+path="res://.godot/imported/block_water.png-55d7d08594501a81424acddcf9bae07d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_water.png"
+dest_files=["res://.godot/imported/block_water.png-55d7d08594501a81424acddcf9bae07d.ctex"]
 
 [params]
 

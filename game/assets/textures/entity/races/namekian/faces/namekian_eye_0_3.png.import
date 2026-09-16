@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bqwsjkawsbri8"
+path="res://.godot/imported/namekian_eye_0_3.png-ead5ca72aa0203d4f97b3d1e88f40a98.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/namekian/faces/namekian_eye_0_3.png"
+dest_files=["res://.godot/imported/namekian_eye_0_3.png-ead5ca72aa0203d4f97b3d1e88f40a98.ctex"]
 
 [params]
 

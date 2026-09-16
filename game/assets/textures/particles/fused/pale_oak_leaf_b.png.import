@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://5xc6pwe7l50g"
+path="res://.godot/imported/pale_oak_leaf_b.png-fee82a871a7356fce1cea5c31ec02003.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/pale_oak_leaf_b.png"
+dest_files=["res://.godot/imported/pale_oak_leaf_b.png-fee82a871a7356fce1cea5c31ec02003.ctex"]
 
 [params]
 

@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://ceiboaclr68y5"
+path="res://.godot/imported/step_leaves_1.wav-666aa2fa94ecd9d55615542e8c5d9575.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/step_leaves_1.wav"
+dest_files=["res://.godot/imported/step_leaves_1.wav-666aa2fa94ecd9d55615542e8c5d9575.sample"]
 
 [params]
 

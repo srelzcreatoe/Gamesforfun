@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cx0830okcgno2"
+path="res://.godot/imported/gete_shovel.png-d5d1e0ae5d28cf46ef4ac965e49bcc5e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/gete_shovel.png"
+dest_files=["res://.godot/imported/gete_shovel.png-d5d1e0ae5d28cf46ef4ac965e49bcc5e.ctex"]
 
 [params]
 

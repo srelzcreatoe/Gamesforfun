@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c6u5b78kbonsj"
+path="res://.godot/imported/pattern_trunks_super.png-70d0e5f13af90bf45aeab12b5cb283fb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_trunks_super.png"
+dest_files=["res://.godot/imported/pattern_trunks_super.png-70d0e5f13af90bf45aeab12b5cb283fb.ctex"]
 
 [params]
 

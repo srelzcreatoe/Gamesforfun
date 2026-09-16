@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dgu5tia4e3nkc"
+path="res://.godot/imported/block_furnace.png-a49413440e95fea3bfcc6f72fae802bd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_furnace.png"
+dest_files=["res://.godot/imported/block_furnace.png-a49413440e95fea3bfcc6f72fae802bd.ctex"]
 
 [params]
 

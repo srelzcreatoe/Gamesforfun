@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://0e6l4ghcys1w"
+path="res://.godot/imported/saga_superbuu_gotenks.png-16f63276a79a38a90cb09fe3d3cab28a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_superbuu_gotenks.png"
+dest_files=["res://.godot/imported/saga_superbuu_gotenks.png-16f63276a79a38a90cb09fe3d3cab28a.ctex"]
 
 [params]
 

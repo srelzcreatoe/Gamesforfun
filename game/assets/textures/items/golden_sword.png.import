@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bo1ktbrm5l5ds"
+path="res://.godot/imported/golden_sword.png-594e4dc2ecff3176713d6ee2f46b4473.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/golden_sword.png"
+dest_files=["res://.godot/imported/golden_sword.png-594e4dc2ecff3176713d6ee2f46b4473.ctex"]
 
 [params]
 

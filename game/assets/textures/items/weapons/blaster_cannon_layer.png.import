@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dg64kollgtics"
+path="res://.godot/imported/blaster_cannon_layer.png-8da01526b121cc56ae91addac117c41a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/weapons/blaster_cannon_layer.png"
+dest_files=["res://.godot/imported/blaster_cannon_layer.png-8da01526b121cc56ae91addac117c41a.ctex"]
 
 [params]
 

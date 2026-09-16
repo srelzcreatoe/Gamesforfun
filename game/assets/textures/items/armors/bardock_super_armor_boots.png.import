@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bhrx1tsvvnmn0"
+path="res://.godot/imported/bardock_super_armor_boots.png-69f960adccad4deb20e0f250ffda681e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/bardock_super_armor_boots.png"
+dest_files=["res://.godot/imported/bardock_super_armor_boots.png-69f960adccad4deb20e0f250ffda681e.ctex"]
 
 [params]
 

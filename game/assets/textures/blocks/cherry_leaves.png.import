@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bbm04ibm78jhh"
+path="res://.godot/imported/cherry_leaves.png-59743643bc4a7e723cf414716ee5a9dd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/cherry_leaves.png"
+dest_files=["res://.godot/imported/cherry_leaves.png-59743643bc4a7e723cf414716ee5a9dd.ctex"]
 
 [params]
 

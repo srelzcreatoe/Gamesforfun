@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b17p3nbakutyl"
+path="res://.godot/imported/diamond_pickaxe.png-caf4d3980f3472b32b1ded92569af94b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/diamond_pickaxe.png"
+dest_files=["res://.godot/imported/diamond_pickaxe.png-caf4d3980f3472b32b1ded92569af94b.ctex"]
 
 [params]
 

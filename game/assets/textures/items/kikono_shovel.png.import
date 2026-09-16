@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://uno3y1eb5mhp"
+path="res://.godot/imported/kikono_shovel.png-d6e2537967f8f453fc1fb8f69dc3210e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/kikono_shovel.png"
+dest_files=["res://.godot/imported/kikono_shovel.png-d6e2537967f8f453fc1fb8f69dc3210e.ctex"]
 
 [params]
 

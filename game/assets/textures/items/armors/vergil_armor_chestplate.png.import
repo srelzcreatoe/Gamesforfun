@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bre5a5j3r3gbc"
+path="res://.godot/imported/vergil_armor_chestplate.png-e707e755bc85688b8180e7284d3c2a6d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/vergil_armor_chestplate.png"
+dest_files=["res://.godot/imported/vergil_armor_chestplate.png-e707e755bc85688b8180e7284d3c2a6d.ctex"]
 
 [params]
 

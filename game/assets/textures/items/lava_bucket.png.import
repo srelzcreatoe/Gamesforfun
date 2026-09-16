@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://onffywb6da1t"
+path="res://.godot/imported/lava_bucket.png-36323a15d0966ccdb73ee10197149756.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/lava_bucket.png"
+dest_files=["res://.godot/imported/lava_bucket.png-36323a15d0966ccdb73ee10197149756.ctex"]
 
 [params]
 

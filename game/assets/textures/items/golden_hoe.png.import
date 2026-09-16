@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cu36dqjpk4ka3"
+path="res://.godot/imported/golden_hoe.png-4b0183e088f0bfc934567eba2f8deb0a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/golden_hoe.png"
+dest_files=["res://.godot/imported/golden_hoe.png-4b0183e088f0bfc934567eba2f8deb0a.ctex"]
 
 [params]
 

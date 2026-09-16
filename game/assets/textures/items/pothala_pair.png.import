@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bh860aubu8ch1"
+path="res://.godot/imported/pothala_pair.png-3046ee04345e911da552f030be67f006.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/pothala_pair.png"
+dest_files=["res://.godot/imported/pothala_pair.png-3046ee04345e911da552f030be67f006.ctex"]
 
 [params]
 

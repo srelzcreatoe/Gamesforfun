@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://uoc5t86jlr44"
+path="res://.godot/imported/wooden_axe.png-d7082d4a55bd2804a76c02443ab92085.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/wooden_axe.png"
+dest_files=["res://.godot/imported/wooden_axe.png-d7082d4a55bd2804a76c02443ab92085.ctex"]
 
 [params]
 

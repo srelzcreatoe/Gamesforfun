@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://5yrge4g61uis"
+path="res://.godot/imported/whis_armor_chestplate.png-0714b2eb1816ffd7b9022e8f6cb01b1b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/whis_armor_chestplate.png"
+dest_files=["res://.godot/imported/whis_armor_chestplate.png-0714b2eb1816ffd7b9022e8f6cb01b1b.ctex"]
 
 [params]
 

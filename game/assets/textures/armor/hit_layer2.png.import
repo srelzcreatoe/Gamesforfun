@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://5ip3as8iqrc0"
+path="res://.godot/imported/hit_layer2.png-24a02d2744087cac86333a51813af9a8.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hit_layer2.png"
+dest_files=["res://.godot/imported/hit_layer2.png-24a02d2744087cac86333a51813af9a8.ctex"]
 
 [params]
 

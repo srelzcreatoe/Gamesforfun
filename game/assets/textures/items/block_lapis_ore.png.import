@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cy4cob3rb8qot"
+path="res://.godot/imported/block_lapis_ore.png-89653fe1df72e35787252dfde1028111.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_lapis_ore.png"
+dest_files=["res://.godot/imported/block_lapis_ore.png-89653fe1df72e35787252dfde1028111.ctex"]
 
 [params]
 

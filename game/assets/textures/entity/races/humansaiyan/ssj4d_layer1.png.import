@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://33ol7bott34y"
+path="res://.godot/imported/ssj4d_layer1.png-f6c81a969308e3d1fe41fd4a6abd604d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/humansaiyan/ssj4d_layer1.png"
+dest_files=["res://.godot/imported/ssj4d_layer1.png-f6c81a969308e3d1fe41fd4a6abd604d.ctex"]
 
 [params]
 

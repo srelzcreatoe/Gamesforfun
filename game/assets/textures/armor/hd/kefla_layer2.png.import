@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://do18m4ufxtlvl"
+path="res://.godot/imported/kefla_layer2.png-1f4ac68060d88fda8f1c2ca1c3e9410b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/kefla_layer2.png"
+dest_files=["res://.godot/imported/kefla_layer2.png-1f4ac68060d88fda8f1c2ca1c3e9410b.ctex"]
 
 [params]
 

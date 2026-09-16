@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dof8dq3rixakh"
+path="res://.godot/imported/power_pole_item.png-dd01c344a2c45f09b8bf29a278ca12ae.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/power_pole_item.png"
+dest_files=["res://.godot/imported/power_pole_item.png-dd01c344a2c45f09b8bf29a278ca12ae.ctex"]
 
 [params]
 

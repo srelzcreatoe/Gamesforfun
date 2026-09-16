@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://coj6vnyynhske"
+path="res://.godot/imported/step_sand_2.wav-c22921625c972508eb529a61324466ad.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/step_sand_2.wav"
+dest_files=["res://.godot/imported/step_sand_2.wav-c22921625c972508eb529a61324466ad.sample"]
 
 [params]
 

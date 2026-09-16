@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bpgybyt04fwxw"
+path="res://.godot/imported/z_a.png-f2faaf9ae7f8a93d45619ef798cb1444.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/essentials/z_a.png"
+dest_files=["res://.godot/imported/z_a.png-f2faaf9ae7f8a93d45619ef798cb1444.ctex"]
 
 [params]
 

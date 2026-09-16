@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cv7exeftyc630"
+path="res://.godot/imported/mighty_majin_layer2.png-1ed812776dd142460bfe3e7710eeae25.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/mighty_majin_layer2.png"
+dest_files=["res://.godot/imported/mighty_majin_layer2.png-1ed812776dd142460bfe3e7710eeae25.ctex"]
 
 [params]
 

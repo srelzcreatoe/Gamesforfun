@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bwgvl877awlp0"
+path="res://.godot/imported/crafting_table_side.png-391b67ec0b5861d14ca1f46c75ded30e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/crafting_table_side.png"
+dest_files=["res://.godot/imported/crafting_table_side.png-391b67ec0b5861d14ca1f46c75ded30e.ctex"]
 
 [params]
 

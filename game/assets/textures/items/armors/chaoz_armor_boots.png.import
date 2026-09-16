@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://csgr7buqahwos"
+path="res://.godot/imported/chaoz_armor_boots.png-f6ae013eb81164138184b8c99f73971a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/chaoz_armor_boots.png"
+dest_files=["res://.godot/imported/chaoz_armor_boots.png-f6ae013eb81164138184b8c99f73971a.ctex"]
 
 [params]
 

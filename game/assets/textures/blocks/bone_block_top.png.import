@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://clo5oq55gea3"
+path="res://.godot/imported/bone_block_top.png-1eb4f1bd6f476bad5a7abb5c211df7d2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/bone_block_top.png"
+dest_files=["res://.godot/imported/bone_block_top.png-1eb4f1bd6f476bad5a7abb5c211df7d2.ctex"]
 
 [params]
 

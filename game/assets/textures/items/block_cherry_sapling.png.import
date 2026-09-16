@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://6ldgrjodvd37"
+path="res://.godot/imported/block_cherry_sapling.png-015b9c0cca1a075134d0e467a36d8fa3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_cherry_sapling.png"
+dest_files=["res://.godot/imported/block_cherry_sapling.png-015b9c0cca1a075134d0e467a36d8fa3.ctex"]
 
 [params]
 

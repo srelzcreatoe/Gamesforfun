@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c0rtsu74mjyg8"
+path="res://.godot/imported/a16_armor_boots.png-0d7d0459f70499a94ab7693bb3f83b68.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/a16_armor_boots.png"
+dest_files=["res://.godot/imported/a16_armor_boots.png-0d7d0459f70499a94ab7693bb3f83b68.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://s7bu01svujmu"
+path="res://.godot/imported/heart_medicine.png-8d97d2793a8722e6cedb414e64452787.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/heart_medicine.png"
+dest_files=["res://.godot/imported/heart_medicine.png-8d97d2793a8722e6cedb414e64452787.ctex"]
 
 [params]
 

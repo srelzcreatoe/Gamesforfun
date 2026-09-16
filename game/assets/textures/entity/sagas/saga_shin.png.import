@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://6trhlcpn5bms"
+path="res://.godot/imported/saga_shin.png-ff26bc51659e4b89f2026a5cb947ee69.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_shin.png"
+dest_files=["res://.godot/imported/saga_shin.png-ff26bc51659e4b89f2026a5cb947ee69.ctex"]
 
 [params]
 

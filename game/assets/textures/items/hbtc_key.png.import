@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cgj2q7h1ep4aa"
+path="res://.godot/imported/hbtc_key.png-ee88742851c875001bf0379d186c38a5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/hbtc_key.png"
+dest_files=["res://.godot/imported/hbtc_key.png-ee88742851c875001bf0379d186c38a5.ctex"]
 
 [params]
 

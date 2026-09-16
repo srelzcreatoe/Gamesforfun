@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bhml0my363ec"
+path="res://.godot/imported/yardrat.png-3810f9d9b802e81c45c7463151b768c6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/yardrat.png"
+dest_files=["res://.godot/imported/yardrat.png-3810f9d9b802e81c45c7463151b768c6.ctex"]
 
 [params]
 

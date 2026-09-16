@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dpvs0lhb5d0hd"
+path="res://.godot/imported/space_suit_helmet.png-aada0b9a4bd9043744e99fb065bf18e1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/space_suit_helmet.png"
+dest_files=["res://.godot/imported/space_suit_helmet.png-aada0b9a4bd9043744e99fb065bf18e1.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://1ly16cg4a7gs"
+path="res://.godot/imported/block_spruce_sapling.png-ce1b9c769c86346b2b18c8f41c5658a7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_spruce_sapling.png"
+dest_files=["res://.godot/imported/block_spruce_sapling.png-ce1b9c769c86346b2b18c8f41c5658a7.ctex"]
 
 [params]
 

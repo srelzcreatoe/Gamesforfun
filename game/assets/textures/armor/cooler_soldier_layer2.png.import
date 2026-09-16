@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bj7selcrn7obn"
+path="res://.godot/imported/cooler_soldier_layer2.png-5b31df8e941ac51d2a82fee36103d297.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/cooler_soldier_layer2.png"
+dest_files=["res://.godot/imported/cooler_soldier_layer2.png-5b31df8e941ac51d2a82fee36103d297.ctex"]
 
 [params]
 

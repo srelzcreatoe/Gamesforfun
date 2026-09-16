@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cbcnbpitbrq15"
+path="res://.godot/imported/grievous_wounds.png-fb2567067a80e0f0d35dadce860352be.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/grievous_wounds.png"
+dest_files=["res://.godot/imported/grievous_wounds.png-fb2567067a80e0f0d35dadce860352be.ctex"]
 
 [params]
 

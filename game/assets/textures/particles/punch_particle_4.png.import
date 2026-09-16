@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://xtsxhsvl8mr1"
+path="res://.godot/imported/punch_particle_4.png-30cd8dc8357f0edc7eebd75bc541fb7a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/punch_particle_4.png"
+dest_files=["res://.godot/imported/punch_particle_4.png-30cd8dc8357f0edc7eebd75bc541fb7a.ctex"]
 
 [params]
 

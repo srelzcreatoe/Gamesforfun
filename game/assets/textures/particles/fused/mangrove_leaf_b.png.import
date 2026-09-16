@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b80uwihydktsc"
+path="res://.godot/imported/mangrove_leaf_b.png-58608008bc07688feb655867c353f163.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/mangrove_leaf_b.png"
+dest_files=["res://.godot/imported/mangrove_leaf_b.png-58608008bc07688feb655867c353f163.ctex"]
 
 [params]
 

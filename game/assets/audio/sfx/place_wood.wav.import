@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://xfptgijsxs6i"
+path="res://.godot/imported/place_wood.wav-396a5a61baf7d3a93960e8d7e05a2951.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/place_wood.wav"
+dest_files=["res://.godot/imported/place_wood.wav-396a5a61baf7d3a93960e8d7e05a2951.sample"]
 
 [params]
 

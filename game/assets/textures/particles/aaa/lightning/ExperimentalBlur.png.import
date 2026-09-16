@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cov37q4hjx828"
+path="res://.godot/imported/ExperimentalBlur.png-d364bef042b51f7f952330368647d94f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/lightning/ExperimentalBlur.png"
+dest_files=["res://.godot/imported/ExperimentalBlur.png-d364bef042b51f7f952330368647d94f.ctex"]
 
 [params]
 

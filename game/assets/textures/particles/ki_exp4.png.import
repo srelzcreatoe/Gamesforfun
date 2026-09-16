@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b7li4b0i0m67v"
+path="res://.godot/imported/ki_exp4.png-6c29bfee9b6119f6ed2b5a320edb6d6b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/ki_exp4.png"
+dest_files=["res://.godot/imported/ki_exp4.png-6c29bfee9b6119f6ed2b5a320edb6d6b.ctex"]
 
 [params]
 

@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://byw4xn7h0kjr4"
+path="res://.godot/imported/sickle_slash.ogg-659025421753b1ecf703dc6fcc7b9059.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/sickle_slash.ogg"
+dest_files=["res://.godot/imported/sickle_slash.ogg-659025421753b1ecf703dc6fcc7b9059.oggvorbisstr"]
 
 [params]
 

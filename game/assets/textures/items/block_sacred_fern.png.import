@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bj71cukbw48kr"
+path="res://.godot/imported/block_sacred_fern.png-9558552ef780d47e089f9926bc66e4aa.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_sacred_fern.png"
+dest_files=["res://.godot/imported/block_sacred_fern.png-9558552ef780d47e089f9926bc66e4aa.ctex"]
 
 [params]
 

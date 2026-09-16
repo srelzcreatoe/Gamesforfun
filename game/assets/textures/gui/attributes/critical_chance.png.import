@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d18t55tybs5xo"
+path="res://.godot/imported/critical_chance.png-873a15582c5c102ad112871295447b80.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/attributes/critical_chance.png"
+dest_files=["res://.godot/imported/critical_chance.png-873a15582c5c102ad112871295447b80.ctex"]
 
 [params]
 

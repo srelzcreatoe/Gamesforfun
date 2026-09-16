@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dygwlpn1a70a5"
+path="res://.godot/imported/frostdemon_passive.png-bd8d4fd093f537eacb59e612453e7325.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/frostdemon_passive.png"
+dest_files=["res://.godot/imported/frostdemon_passive.png-bd8d4fd093f537eacb59e612453e7325.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ch2a8oe0bka83"
+path="res://.godot/imported/tex_eff_hit_common_02.png-89e356af3621688c5632fd0cb6b97d8d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/explosion_mini/tex_eff_hit_common_02.png"
+dest_files=["res://.godot/imported/tex_eff_hit_common_02.png-89e356af3621688c5632fd0cb6b97d8d.ctex"]
 
 [params]
 

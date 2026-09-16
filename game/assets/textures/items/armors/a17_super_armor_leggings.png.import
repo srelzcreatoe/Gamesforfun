@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dpjtwttdebbuj"
+path="res://.godot/imported/a17_super_armor_leggings.png-dd50da83637a5e616c9e77449352ca49.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/a17_super_armor_leggings.png"
+dest_files=["res://.godot/imported/a17_super_armor_leggings.png-dd50da83637a5e616c9e77449352ca49.ctex"]
 
 [params]
 

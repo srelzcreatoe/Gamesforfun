@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://b6c318ie7hqn0"
+path="res://.godot/imported/break_cloth.wav-9c6cf5a8b96bb4f31ba05aeeb49edf1a.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/break_cloth.wav"
+dest_files=["res://.godot/imported/break_cloth.wav-9c6cf5a8b96bb4f31ba05aeeb49edf1a.sample"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://yiw8lo62xrdv"
+path="res://.godot/imported/block_dead_bush.png-1f67c210349dba9050eac54a40882ed0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_dead_bush.png"
+dest_files=["res://.godot/imported/block_dead_bush.png-1f67c210349dba9050eac54a40882ed0.ctex"]
 
 [params]
 

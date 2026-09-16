@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://df5elyxf3y7wy"
+path="res://.godot/imported/dig_stone.wav-d9c41a8998816a711ff65642b0c72d13.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/dig_stone.wav"
+dest_files=["res://.godot/imported/dig_stone.wav-d9c41a8998816a711ff65642b0c72d13.sample"]
 
 [params]
 

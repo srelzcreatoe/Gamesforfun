@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://bhxvs7o5ekakd"
+path="res://.godot/imported/break_ice.wav-606e6162000bd05e2b41152752ed733f.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/break_ice.wav"
+dest_files=["res://.godot/imported/break_ice.wav-606e6162000bd05e2b41152752ed733f.sample"]
 
 [params]
 

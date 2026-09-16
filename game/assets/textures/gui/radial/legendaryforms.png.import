@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c54ncrmfqdi77"
+path="res://.godot/imported/legendaryforms.png-83d56aef91def02cdceb69545b0c6206.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/radial/legendaryforms.png"
+dest_files=["res://.godot/imported/legendaryforms.png-83d56aef91def02cdceb69545b0c6206.ctex"]
 
 [params]
 

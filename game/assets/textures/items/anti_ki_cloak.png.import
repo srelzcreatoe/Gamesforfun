@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c5hj1xye52s3n"
+path="res://.godot/imported/anti_ki_cloak.png-7e108d2f72161d3fc9505d9e34c3aa6f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/anti_ki_cloak.png"
+dest_files=["res://.godot/imported/anti_ki_cloak.png-7e108d2f72161d3fc9505d9e34c3aa6f.ctex"]
 
 [params]
 

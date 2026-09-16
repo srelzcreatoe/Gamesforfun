@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://dvnv2jiiwbc5a"
+path="res://.godot/imported/thunder.wav-70b37ac63280d185b61ca5ed516154d7.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/thunder.wav"
+dest_files=["res://.godot/imported/thunder.wav-70b37ac63280d185b61ca5ed516154d7.sample"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cww16ycqx3hur"
+path="res://.godot/imported/gete_forge_side.png-25776e78879fa900cd9333a31c55ab72.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/gete_forge_side.png"
+dest_files=["res://.godot/imported/gete_forge_side.png-25776e78879fa900cd9333a31c55ab72.ctex"]
 
 [params]
 

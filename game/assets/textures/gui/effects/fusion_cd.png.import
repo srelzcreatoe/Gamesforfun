@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c1qkti0yjckas"
+path="res://.godot/imported/fusion_cd.png-f10b3b463d2f8fd956c74ba81d83335a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/fusion_cd.png"
+dest_files=["res://.godot/imported/fusion_cd.png-f10b3b463d2f8fd956c74ba81d83335a.ctex"]
 
 [params]
 

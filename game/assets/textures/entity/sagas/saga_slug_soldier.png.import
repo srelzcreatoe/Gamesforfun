@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dw8fqbxw031x5"
+path="res://.godot/imported/saga_slug_soldier.png-4d64ffbee1370f73f779378c7f95ce5d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_slug_soldier.png"
+dest_files=["res://.godot/imported/saga_slug_soldier.png-4d64ffbee1370f73f779378c7f95ce5d.ctex"]
 
 [params]
 

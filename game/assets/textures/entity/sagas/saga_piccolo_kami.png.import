@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cfe7o83ur7jy1"
+path="res://.godot/imported/saga_piccolo_kami.png-a4716497b32bae28b2962a0ab077b280.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_piccolo_kami.png"
+dest_files=["res://.godot/imported/saga_piccolo_kami.png-a4716497b32bae28b2962a0ab077b280.ctex"]
 
 [params]
 

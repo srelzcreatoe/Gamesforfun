@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c1losc43y2468"
+path="res://.godot/imported/kibito_layer1.png-6589484e0f7a56a963486b8ac7107ceb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/kibito_layer1.png"
+dest_files=["res://.godot/imported/kibito_layer1.png-6589484e0f7a56a963486b8ac7107ceb.ctex"]
 
 [params]
 

@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://c2gymreioc2xj"
+path="res://.godot/imported/critico2.ogg-b27ec4bb920cf75fddf5b0de40163dc5.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/critico2.ogg"
+dest_files=["res://.godot/imported/critico2.ogg-b27ec4bb920cf75fddf5b0de40163dc5.oggvorbisstr"]
 
 [params]
 

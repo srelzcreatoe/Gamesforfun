@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://quqnx354k3rc"
+path="res://.godot/imported/place_ice.wav-d5d0431ae106665b02b9723aea27ae35.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/place_ice.wav"
+dest_files=["res://.godot/imported/place_ice.wav-d5d0431ae106665b02b9723aea27ae35.sample"]
 
 [params]
 

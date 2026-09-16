@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d2kbto10dsiap"
+path="res://.godot/imported/block_heaven_dirt.png-1cdaeeb659378ee2e97faac6f978ff46.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_heaven_dirt.png"
+dest_files=["res://.godot/imported/block_heaven_dirt.png-1cdaeeb659378ee2e97faac6f978ff46.ctex"]
 
 [params]
 

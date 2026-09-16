@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dfq3rdx3fo0v8"
+path="res://.godot/imported/stack_transform.png-16d7b87e2ec0c1f5f96c79cba9df7081.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/stack_transform.png"
+dest_files=["res://.godot/imported/stack_transform.png-16d7b87e2ec0c1f5f96c79cba9df7081.ctex"]
 
 [params]
 

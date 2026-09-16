@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cnjitdhrs4be0"
+path="res://.godot/imported/saga_goten_ssj.png-573baeeaa73398019a2c317309610fdc.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_goten_ssj.png"
+dest_files=["res://.godot/imported/saga_goten_ssj.png-573baeeaa73398019a2c317309610fdc.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dqnjy8cns1uqt"
+path="res://.godot/imported/pattern_gas.png-8e1116e7929172547b8a5a887d0fbb81.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_gas.png"
+dest_files=["res://.godot/imported/pattern_gas.png-8e1116e7929172547b8a5a887d0fbb81.ctex"]
 
 [params]
 

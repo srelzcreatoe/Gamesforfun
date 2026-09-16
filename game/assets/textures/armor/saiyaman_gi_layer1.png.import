@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c1gd0qnchmj5x"
+path="res://.godot/imported/saiyaman_gi_layer1.png-8dc06bc12a153ce2628a1045979912a5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/saiyaman_gi_layer1.png"
+dest_files=["res://.godot/imported/saiyaman_gi_layer1.png-8dc06bc12a153ce2628a1045979912a5.ctex"]
 
 [params]
 

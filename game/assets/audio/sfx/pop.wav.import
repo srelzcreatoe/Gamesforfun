@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://d3k0yjmst3a0i"
+path="res://.godot/imported/pop.wav-d3212a7b41aaaf416623705af6edbf25.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/pop.wav"
+dest_files=["res://.godot/imported/pop.wav-d3212a7b41aaaf416623705af6edbf25.sample"]
 
 [params]
 

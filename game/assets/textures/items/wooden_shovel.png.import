@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cyw0ghlwxy0bo"
+path="res://.godot/imported/wooden_shovel.png-f2acd3e5de5f488e5570780346660e36.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/wooden_shovel.png"
+dest_files=["res://.godot/imported/wooden_shovel.png-f2acd3e5de5f488e5570780346660e36.ctex"]
 
 [params]
 

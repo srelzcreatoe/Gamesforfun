@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cng3byyuccx1b"
+path="res://.godot/imported/block_lily_pad.png-c725bd06095ac54b9fc646e1b1304d76.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_lily_pad.png"
+dest_files=["res://.godot/imported/block_lily_pad.png-c725bd06095ac54b9fc646e1b1304d76.ctex"]
 
 [params]
 

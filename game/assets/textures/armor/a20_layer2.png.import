@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ctn5pyqwy3fpx"
+path="res://.godot/imported/a20_layer2.png-de27a7a8d112ec3a773a651317b8ec4e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/a20_layer2.png"
+dest_files=["res://.godot/imported/a20_layer2.png-de27a7a8d112ec3a773a651317b8ec4e.ctex"]
 
 [params]
 

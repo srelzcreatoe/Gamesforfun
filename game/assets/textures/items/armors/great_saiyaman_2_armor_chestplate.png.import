@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://8qtwnjcvd5cp"
+path="res://.godot/imported/great_saiyaman_2_armor_chestplate.png-e6820908ce962e6b2c33841917bd4208.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/great_saiyaman_2_armor_chestplate.png"
+dest_files=["res://.godot/imported/great_saiyaman_2_armor_chestplate.png-e6820908ce962e6b2c33841917bd4208.ctex"]
 
 [params]
 

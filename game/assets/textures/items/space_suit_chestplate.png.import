@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bc0do61353dvk"
+path="res://.godot/imported/space_suit_chestplate.png-66cfbf8eee8c942a32651e02520c83df.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/space_suit_chestplate.png"
+dest_files=["res://.godot/imported/space_suit_chestplate.png-66cfbf8eee8c942a32651e02520c83df.ctex"]
 
 [params]
 

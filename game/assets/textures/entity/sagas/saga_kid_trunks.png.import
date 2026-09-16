@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cyf0lhhxguul6"
+path="res://.godot/imported/saga_kid_trunks.png-ad659aeecaa29f665e767be97613af4b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_kid_trunks.png"
+dest_files=["res://.godot/imported/saga_kid_trunks.png-ad659aeecaa29f665e767be97613af4b.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://og80vdauygjh"
+path="res://.godot/imported/sp_ozarufist.png-0e4e492f2a75493b63321ab692210ceb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/skills/sp_ozarufist.png"
+dest_files=["res://.godot/imported/sp_ozarufist.png-0e4e492f2a75493b63321ab692210ceb.ctex"]
 
 [params]
 

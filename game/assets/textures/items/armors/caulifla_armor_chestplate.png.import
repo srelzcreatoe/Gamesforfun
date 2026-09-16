@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dose5gwld4gfv"
+path="res://.godot/imported/caulifla_armor_chestplate.png-648f94c0bafe255d61831ef235ac1abe.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/caulifla_armor_chestplate.png"
+dest_files=["res://.godot/imported/caulifla_armor_chestplate.png-648f94c0bafe255d61831ef235ac1abe.ctex"]
 
 [params]
 

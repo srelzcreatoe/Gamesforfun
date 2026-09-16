@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://mw324iyvjisy"
+path="res://.godot/imported/vegetagt_layer1.png-969e69e439d48cd5996949bbb32355f6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/vegetagt_layer1.png"
+dest_files=["res://.godot/imported/vegetagt_layer1.png-969e69e439d48cd5996949bbb32355f6.ctex"]
 
 [params]
 

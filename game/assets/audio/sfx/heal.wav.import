@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://bjow0yl60br1o"
+path="res://.godot/imported/heal.wav-3e84ef6755b2f365f04a6d74faf25f77.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/heal.wav"
+dest_files=["res://.godot/imported/heal.wav-3e84ef6755b2f365f04a6d74faf25f77.sample"]
 
 [params]
 

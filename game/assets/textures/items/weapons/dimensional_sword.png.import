@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cykq0gu2ckwbn"
+path="res://.godot/imported/dimensional_sword.png-c4f9793018ea23b34f216019f59fd4b2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/weapons/dimensional_sword.png"
+dest_files=["res://.godot/imported/dimensional_sword.png-c4f9793018ea23b34f216019f59fd4b2.ctex"]
 
 [params]
 

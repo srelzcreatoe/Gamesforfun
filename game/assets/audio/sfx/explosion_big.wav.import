@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://chtwq0fysagsd"
+path="res://.godot/imported/explosion_big.wav-c53463c362006860d3af3fc42f9129c6.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/explosion_big.wav"
+dest_files=["res://.godot/imported/explosion_big.wav-c53463c362006860d3af3fc42f9129c6.sample"]
 
 [params]
 

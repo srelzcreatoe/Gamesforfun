@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dn28o170isej1"
+path="res://.godot/imported/SHINE_001.png-a957366d6532eafe155bea35ffc64fc8.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/essentials/SHINE_001.png"
+dest_files=["res://.godot/imported/SHINE_001.png-a957366d6532eafe155bea35ffc64fc8.ctex"]
 
 [params]
 

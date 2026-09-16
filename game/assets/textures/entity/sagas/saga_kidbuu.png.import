@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://3ihen3vm7xaf"
+path="res://.godot/imported/saga_kidbuu.png-4c577e13bbf7cb557f667ca43df24f5c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_kidbuu.png"
+dest_files=["res://.godot/imported/saga_kidbuu.png-4c577e13bbf7cb557f667ca43df24f5c.ctex"]
 
 [params]
 

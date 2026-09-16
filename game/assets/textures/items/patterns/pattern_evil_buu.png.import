@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://4jvfrn6hoajf"
+path="res://.godot/imported/pattern_evil_buu.png-e529b11dcd3066453b9d694784eb2104.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_evil_buu.png"
+dest_files=["res://.godot/imported/pattern_evil_buu.png-e529b11dcd3066453b9d694784eb2104.ctex"]
 
 [params]
 

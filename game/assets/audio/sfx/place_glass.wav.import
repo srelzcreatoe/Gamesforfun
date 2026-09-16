@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://bfahkyc4m4lmj"
+path="res://.godot/imported/place_glass.wav-5037516c15df3284dc5026d71b7c968e.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/place_glass.wav"
+dest_files=["res://.godot/imported/place_glass.wav-5037516c15df3284dc5026d71b7c968e.sample"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dlgmmahill2j6"
+path="res://.godot/imported/xeno_goku_layer2.png-f54769465fbcb20f2a11122bde708bf1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/xeno_goku_layer2.png"
+dest_files=["res://.godot/imported/xeno_goku_layer2.png-f54769465fbcb20f2a11122bde708bf1.ctex"]
 
 [params]
 

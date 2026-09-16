@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bbjyaamtsxkf4"
+path="res://.godot/imported/kikono_pickaxe.png-9fae9dd787eefce3d5abe95393a53561.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/kikono_pickaxe.png"
+dest_files=["res://.godot/imported/kikono_pickaxe.png-9fae9dd787eefce3d5abe95393a53561.ctex"]
 
 [params]
 

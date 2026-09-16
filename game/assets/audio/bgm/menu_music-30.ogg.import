@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://b54m6fy2mkjuf"
+path="res://.godot/imported/menu_music-30.ogg-d1142250a30dc55ef6808ee89833ad6c.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/bgm/menu_music-30.ogg"
+dest_files=["res://.godot/imported/menu_music-30.ogg-d1142250a30dc55ef6808ee89833ad6c.oggvorbisstr"]
 
 [params]
 

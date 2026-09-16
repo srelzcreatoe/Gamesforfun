@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://do88ngckwa2ms"
+path="res://.godot/imported/gine_armor_boots.png-0f5b0b6707cf9bf22a7564b637d9bc8e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/gine_armor_boots.png"
+dest_files=["res://.godot/imported/gine_armor_boots.png-0f5b0b6707cf9bf22a7564b637d9bc8e.ctex"]
 
 [params]
 

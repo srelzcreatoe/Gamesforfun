@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dmfrffi2p14tx"
+path="res://.godot/imported/cooler_soldier_armor_leggings.png-167725a7f03b6445efecab9257ad7918.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/cooler_soldier_armor_leggings.png"
+dest_files=["res://.godot/imported/cooler_soldier_armor_leggings.png-167725a7f03b6445efecab9257ad7918.ctex"]
 
 [params]
 

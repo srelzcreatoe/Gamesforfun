@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b2iaxceqiv7t1"
+path="res://.godot/imported/block_snowy_grass_block.png-548549d0304b42c3b26aa42d2427c2a5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_snowy_grass_block.png"
+dest_files=["res://.godot/imported/block_snowy_grass_block.png-548549d0304b42c3b26aa42d2427c2a5.ctex"]
 
 [params]
 

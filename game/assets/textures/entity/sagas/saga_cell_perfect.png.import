@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://da4jf7othja0d"
+path="res://.godot/imported/saga_cell_perfect.png-ed5e247f0f7e9b2f3df0d28bfe911dfe.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_cell_perfect.png"
+dest_files=["res://.godot/imported/saga_cell_perfect.png-ed5e247f0f7e9b2f3df0d28bfe911dfe.ctex"]
 
 [params]
 

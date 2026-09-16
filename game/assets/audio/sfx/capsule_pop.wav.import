@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://c5ohwgn0gpsky"
+path="res://.godot/imported/capsule_pop.wav-e32fad4d7ce4c76a1277f74b7f0f55f6.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/capsule_pop.wav"
+dest_files=["res://.godot/imported/capsule_pop.wav-e32fad4d7ce4c76a1277f74b7f0f55f6.sample"]
 
 [params]
 

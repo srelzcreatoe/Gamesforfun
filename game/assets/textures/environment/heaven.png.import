@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cpme5umr4nyf7"
+path="res://.godot/imported/heaven.png-e0374a37f565c06b9878308afdb9d35d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/heaven.png"
+dest_files=["res://.godot/imported/heaven.png-e0374a37f565c06b9878308afdb9d35d.ctex"]
 
 [params]
 

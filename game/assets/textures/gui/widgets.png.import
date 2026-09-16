@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cqwhrql7ln4l7"
+path="res://.godot/imported/widgets.png-960bbab30c18c39900338da37273b9e3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/widgets.png"
+dest_files=["res://.godot/imported/widgets.png-960bbab30c18c39900338da37273b9e3.ctex"]
 
 [params]
 

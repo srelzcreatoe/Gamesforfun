@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dnmnlrbobyxq1"
+path="res://.godot/imported/majinm.png-5e7356228a0951bab7b321daac281879.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/majinm.png"
+dest_files=["res://.godot/imported/majinm.png-5e7356228a0951bab7b321daac281879.ctex"]
 
 [params]
 

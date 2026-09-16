@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://fw5ar0nefeok"
+path="res://.godot/imported/trunks_sword.png-571fff341ebb868bdd8069e28bd64205.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/trunks_sword.png"
+dest_files=["res://.godot/imported/trunks_sword.png-571fff341ebb868bdd8069e28bd64205.ctex"]
 
 [params]
 

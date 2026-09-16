@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bsfkl7ewu7w62"
+path="res://.godot/imported/milky_way.png-9c6958959c10ad05620beca646a9cff6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/milky_way.png"
+dest_files=["res://.godot/imported/milky_way.png-9c6958959c10ad05620beca646a9cff6.ctex"]
 
 [params]
 

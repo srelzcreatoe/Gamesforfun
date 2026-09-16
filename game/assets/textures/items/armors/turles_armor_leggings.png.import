@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://yqm8fxmfmged"
+path="res://.godot/imported/turles_armor_leggings.png-7b309dd67d2f461314f0ef82fcbabebd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/turles_armor_leggings.png"
+dest_files=["res://.godot/imported/turles_armor_leggings.png-7b309dd67d2f461314f0ef82fcbabebd.ctex"]
 
 [params]
 

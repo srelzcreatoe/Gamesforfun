@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://3gf18okma22l"
+path="res://.godot/imported/iron_pickaxe.png-b7a6660f22b9eb994b48be91a8026849.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/iron_pickaxe.png"
+dest_files=["res://.godot/imported/iron_pickaxe.png-b7a6660f22b9eb994b48be91a8026849.ctex"]
 
 [params]
 

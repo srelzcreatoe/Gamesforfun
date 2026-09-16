@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dv3yjportbov8"
+path="res://.godot/imported/sacred_trillium_flower.png-f40b698ca7cce5980206184eb6c6d6ba.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/sacred_trillium_flower.png"
+dest_files=["res://.godot/imported/sacred_trillium_flower.png-f40b698ca7cce5980206184eb6c6d6ba.ctex"]
 
 [params]
 

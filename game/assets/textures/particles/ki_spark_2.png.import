@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cqehx86ctiwi"
+path="res://.godot/imported/ki_spark_2.png-dc65e7d9041654b84a7dfbf32ecd4e94.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/ki_spark_2.png"
+dest_files=["res://.godot/imported/ki_spark_2.png-dc65e7d9041654b84a7dfbf32ecd4e94.ctex"]
 
 [params]
 

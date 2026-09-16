@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bjehar8lhrq3w"
+path="res://.godot/imported/birch_planks.png-aa22105da4a1fa649c57eca4209a2c6d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/birch_planks.png"
+dest_files=["res://.godot/imported/birch_planks.png-aa22105da4a1fa649c57eca4209a2c6d.ctex"]
 
 [params]
 

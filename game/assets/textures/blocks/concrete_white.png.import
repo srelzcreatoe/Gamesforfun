@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://gtvq3gccgqsg"
+path="res://.godot/imported/concrete_white.png-b4d843f4a62e1d9a41e6f6c4e2449e5d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/concrete_white.png"
+dest_files=["res://.godot/imported/concrete_white.png-b4d843f4a62e1d9a41e6f6c4e2449e5d.ctex"]
 
 [params]
 

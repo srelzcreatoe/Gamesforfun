@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://8u2ahxvyjhxt"
+path="res://.godot/imported/ki_regen.png-8807d343268bf49e51ad40e8c5afe6e0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/ki_regen.png"
+dest_files=["res://.godot/imported/ki_regen.png-8807d343268bf49e51ad40e8c5afe6e0.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d3pl7w2t1sxy2"
+path="res://.godot/imported/saga_janemba_fat.png-140a3a23e145d51c9201a74c7c3246d3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_janemba_fat.png"
+dest_files=["res://.godot/imported/saga_janemba_fat.png-140a3a23e145d51c9201a74c7c3246d3.ctex"]
 
 [params]
 

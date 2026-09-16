@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b40tucaoqmvri"
+path="res://.godot/imported/future_gohan_layer1.png-683a1aa36496f0ced723e613b5f93cc0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/future_gohan_layer1.png"
+dest_files=["res://.godot/imported/future_gohan_layer1.png-683a1aa36496f0ced723e613b5f93cc0.ctex"]
 
 [params]
 

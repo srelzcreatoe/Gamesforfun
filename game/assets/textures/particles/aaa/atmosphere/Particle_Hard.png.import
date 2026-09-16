@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ddfus8cjeipju"
+path="res://.godot/imported/Particle_Hard.png-67e1c890a314359e6afccfa367c225a2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/atmosphere/Particle_Hard.png"
+dest_files=["res://.godot/imported/Particle_Hard.png-67e1c890a314359e6afccfa367c225a2.ctex"]
 
 [params]
 

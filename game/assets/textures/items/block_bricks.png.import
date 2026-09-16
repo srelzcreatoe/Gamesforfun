@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://buf5v48supavc"
+path="res://.godot/imported/block_bricks.png-69d37d03c8377dfb6754d82ee52ebdfc.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_bricks.png"
+dest_files=["res://.godot/imported/block_bricks.png-69d37d03c8377dfb6754d82ee52ebdfc.ctex"]
 
 [params]
 

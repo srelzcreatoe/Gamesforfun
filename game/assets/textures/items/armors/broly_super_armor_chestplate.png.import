@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b4bixo1y73385"
+path="res://.godot/imported/broly_super_armor_chestplate.png-c2c191ca678b98b6f56fe53e581e341a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/broly_super_armor_chestplate.png"
+dest_files=["res://.godot/imported/broly_super_armor_chestplate.png-c2c191ca678b98b6f56fe53e581e341a.ctex"]
 
 [params]
 

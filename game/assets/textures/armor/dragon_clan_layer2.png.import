@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b01pu4i5kln4w"
+path="res://.godot/imported/dragon_clan_layer2.png-37213f62c4e16ca46ff163dd839d4e18.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/dragon_clan_layer2.png"
+dest_files=["res://.godot/imported/dragon_clan_layer2.png-37213f62c4e16ca46ff163dd839d4e18.ctex"]
 
 [params]
 

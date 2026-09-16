@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dgfxonbo08bok"
+path="res://.godot/imported/dirt6.png-f6f23b0b8bbab3907d77820776511982.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/dirt6.png"
+dest_files=["res://.godot/imported/dirt6.png-f6f23b0b8bbab3907d77820776511982.ctex"]
 
 [params]
 

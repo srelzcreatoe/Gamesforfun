@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://kp1goeugo40m"
+path="res://.godot/imported/asteroid_rock.png-932d245b7c1188a6b259071f42d58df1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/asteroid_rock.png"
+dest_files=["res://.godot/imported/asteroid_rock.png-932d245b7c1188a6b259071f42d58df1.ctex"]
 
 [params]
 

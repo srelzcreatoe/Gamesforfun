@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://er7anivibsma"
+path="res://.godot/imported/ambience_hell.wav-8803873e0f5b032a49830a596ce94eaf.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/ambience_hell.wav"
+dest_files=["res://.godot/imported/ambience_hell.wav-8803873e0f5b032a49830a596ce94eaf.sample"]
 
 [params]
 

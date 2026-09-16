@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://b2fdqmoycjmc2"
+path="res://.godot/imported/dball_pickup.wav-7f9f2460dc11e8d7aa12f1a399c9b5ce.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/dball_pickup.wav"
+dest_files=["res://.godot/imported/dball_pickup.wav-7f9f2460dc11e8d7aa12f1a399c9b5ce.sample"]
 
 [params]
 

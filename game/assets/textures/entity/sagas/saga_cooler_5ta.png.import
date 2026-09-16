@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cwq6i6yhlra5n"
+path="res://.godot/imported/saga_cooler_5ta.png-82a4e208ef1b017bc538d4d16e9b0139.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_cooler_5ta.png"
+dest_files=["res://.godot/imported/saga_cooler_5ta.png-82a4e208ef1b017bc538d4d16e9b0139.ctex"]
 
 [params]
 

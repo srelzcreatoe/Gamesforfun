@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://lr3plt1jfl2o"
+path="res://.godot/imported/bodytype_2_layer1.png-fc356a12b364c24428717efff7d2845e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/namekian/bodytype_2_layer1.png"
+dest_files=["res://.godot/imported/bodytype_2_layer1.png-fc356a12b364c24428717efff7d2845e.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cvcus85dxkic2"
+path="res://.godot/imported/vegeta_gt_armor_chestplate.png-177e663b16627c8f1ce5116315be55e3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/vegeta_gt_armor_chestplate.png"
+dest_files=["res://.godot/imported/vegeta_gt_armor_chestplate.png-177e663b16627c8f1ce5116315be55e3.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://kn76w86ixl3y"
+path="res://.godot/imported/diamond_hoe.png-c287f29fd9182261555c1ca3805585bf.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/diamond_hoe.png"
+dest_files=["res://.godot/imported/diamond_hoe.png-c287f29fd9182261555c1ca3805585bf.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://1u0g0gn67e71"
+path="res://.godot/imported/block_cherry_planks.png-e3ddd4cab45014e76dfef70460bb5840.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_cherry_planks.png"
+dest_files=["res://.godot/imported/block_cherry_planks.png-e3ddd4cab45014e76dfef70460bb5840.ctex"]
 
 [params]
 

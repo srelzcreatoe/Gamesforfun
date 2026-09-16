@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ddyrpkwusbslw"
+path="res://.godot/imported/Particle_Soft.png-47adb902f5c4055969c47d04d0740adb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/missile_boost/Particle_Soft.png"
+dest_files=["res://.godot/imported/Particle_Soft.png-47adb902f5c4055969c47d04d0740adb.ctex"]
 
 [params]
 

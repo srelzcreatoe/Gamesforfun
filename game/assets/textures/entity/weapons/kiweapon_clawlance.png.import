@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bijol12kt43gw"
+path="res://.godot/imported/kiweapon_clawlance.png-0e11efd7b57f0c67cb1f99e1e03bd844.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/weapons/kiweapon_clawlance.png"
+dest_files=["res://.godot/imported/kiweapon_clawlance.png-0e11efd7b57f0c67cb1f99e1e03bd844.ctex"]
 
 [params]
 

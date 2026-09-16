@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://bje5w0dc0h24r"
+path="res://.godot/imported/aura_loop.wav-2610c2edc206035b4059fc160bc81d22.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/aura_loop.wav"
+dest_files=["res://.godot/imported/aura_loop.wav-2610c2edc206035b4059fc160bc81d22.sample"]
 
 [params]
 

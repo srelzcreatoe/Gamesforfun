@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://3o5wakvm3nui"
+path="res://.godot/imported/landing_ship.ogg-436357a37630a21423ef2098324db887.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/landing_ship.ogg"
+dest_files=["res://.godot/imported/landing_ship.ogg-436357a37630a21423ef2098324db887.oggvorbisstr"]
 
 [params]
 

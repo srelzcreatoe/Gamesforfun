@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dqgpevi5uo5at"
+path="res://.godot/imported/cherry_leaf_b.png-96aa1088761173c84ff735e9665f1a85.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/cherry_leaf_b.png"
+dest_files=["res://.godot/imported/cherry_leaf_b.png-96aa1088761173c84ff735e9665f1a85.ctex"]
 
 [params]
 

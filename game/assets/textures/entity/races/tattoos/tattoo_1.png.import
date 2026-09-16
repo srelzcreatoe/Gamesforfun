@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cy0xtkbewck2g"
+path="res://.godot/imported/tattoo_1.png-c99cb99511be810df17ce574caf9df8e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/tattoos/tattoo_1.png"
+dest_files=["res://.godot/imported/tattoo_1.png-c99cb99511be810df17ce574caf9df8e.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cxndg3657wnuj"
+path="res://.godot/imported/goten_gi_layer1.png-2f0d84d4ef23d033003b04d781b408b6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/goten_gi_layer1.png"
+dest_files=["res://.godot/imported/goten_gi_layer1.png-2f0d84d4ef23d033003b04d781b408b6.ctex"]
 
 [params]
 

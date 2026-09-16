@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://dkhsihyudgfcv"
+path="res://.godot/imported/spear_stab.ogg-cd583df031f3be064239873a4cdb1740.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/spear_stab.ogg"
+dest_files=["res://.godot/imported/spear_stab.ogg-cd583df031f3be064239873a4cdb1740.oggvorbisstr"]
 
 [params]
 

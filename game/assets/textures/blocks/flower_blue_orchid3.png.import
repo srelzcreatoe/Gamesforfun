@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dofn3t5xu7123"
+path="res://.godot/imported/flower_blue_orchid3.png-e95cb7ccb86c2fd32b79b14181e615bf.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/flower_blue_orchid3.png"
+dest_files=["res://.godot/imported/flower_blue_orchid3.png-e95cb7ccb86c2fd32b79b14181e615bf.ctex"]
 
 [params]
 

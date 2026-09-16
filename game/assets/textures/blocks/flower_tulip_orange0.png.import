@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c6gj8gnw8tw83"
+path="res://.godot/imported/flower_tulip_orange0.png-76ba82f3f95114bbdebee08b936442e9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/flower_tulip_orange0.png"
+dest_files=["res://.godot/imported/flower_tulip_orange0.png-76ba82f3f95114bbdebee08b936442e9.ctex"]
 
 [params]
 

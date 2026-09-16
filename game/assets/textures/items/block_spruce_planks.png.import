@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c4mm0pth0pe86"
+path="res://.godot/imported/block_spruce_planks.png-18757e0249a6b192209c25da923e6e31.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_spruce_planks.png"
+dest_files=["res://.godot/imported/block_spruce_planks.png-18757e0249a6b192209c25da923e6e31.ctex"]
 
 [params]
 

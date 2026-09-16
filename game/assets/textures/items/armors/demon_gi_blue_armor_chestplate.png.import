@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://chaddjachcthr"
+path="res://.godot/imported/demon_gi_blue_armor_chestplate.png-b627e9f36ba865d3151d01f16112f652.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/demon_gi_blue_armor_chestplate.png"
+dest_files=["res://.godot/imported/demon_gi_blue_armor_chestplate.png-b627e9f36ba865d3151d01f16112f652.ctex"]
 
 [params]
 

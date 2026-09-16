@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://wpw74yptdaeq"
+path="res://.godot/imported/pattern_whis.png-ef0ce5f20d60788f9de43276708bb715.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_whis.png"
+dest_files=["res://.godot/imported/pattern_whis.png-ef0ce5f20d60788f9de43276708bb715.ctex"]
 
 [params]
 

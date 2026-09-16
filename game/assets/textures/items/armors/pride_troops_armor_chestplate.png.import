@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bd1118hsvmrtv"
+path="res://.godot/imported/pride_troops_armor_chestplate.png-53515d026a1544d1c3fc028ba6070933.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/pride_troops_armor_chestplate.png"
+dest_files=["res://.godot/imported/pride_troops_armor_chestplate.png-53515d026a1544d1c3fc028ba6070933.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://2us5g4its3bh"
+path="res://.godot/imported/cactus_top.png-6cb83c0c486fcf09504187990ce7ea30.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/cactus_top.png"
+dest_files=["res://.godot/imported/cactus_top.png-6cb83c0c486fcf09504187990ce7ea30.ctex"]
 
 [params]
 

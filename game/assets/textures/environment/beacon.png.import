@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bidy1eaqx87of"
+path="res://.godot/imported/beacon.png-ee735bcb733e57207b43e111959802a5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/beacon.png"
+dest_files=["res://.godot/imported/beacon.png-ee735bcb733e57207b43e111959802a5.ctex"]
 
 [params]
 

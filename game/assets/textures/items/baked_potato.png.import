@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cgxe3q4mx4ppj"
+path="res://.godot/imported/baked_potato.png-7bf7e23871c407270d685ce3de933715.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/baked_potato.png"
+dest_files=["res://.godot/imported/baked_potato.png-7bf7e23871c407270d685ce3de933715.ctex"]
 
 [params]
 

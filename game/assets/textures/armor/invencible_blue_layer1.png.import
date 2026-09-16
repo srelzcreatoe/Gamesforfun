@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bpvqni516d4q1"
+path="res://.godot/imported/invencible_blue_layer1.png-18f4e1900e06330411897dfb26509198.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/invencible_blue_layer1.png"
+dest_files=["res://.godot/imported/invencible_blue_layer1.png-18f4e1900e06330411897dfb26509198.ctex"]
 
 [params]
 

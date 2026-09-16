@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dsvsdsppd6ku"
+path="res://.godot/imported/raditz_armor_leggings.png-df387dee521fe675c9fbea7426236c53.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/raditz_armor_leggings.png"
+dest_files=["res://.godot/imported/raditz_armor_leggings.png-df387dee521fe675c9fbea7426236c53.ctex"]
 
 [params]
 

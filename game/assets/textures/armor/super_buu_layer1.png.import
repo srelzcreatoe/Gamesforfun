@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://msbt01c1jxxd"
+path="res://.godot/imported/super_buu_layer1.png-564387dfa8de910295298dd327ee0fe3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/super_buu_layer1.png"
+dest_files=["res://.godot/imported/super_buu_layer1.png-564387dfa8de910295298dd327ee0fe3.ctex"]
 
 [params]
 

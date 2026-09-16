@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://juqei86frfv4"
+path="res://.godot/imported/pattern_a18_cell.png-c1c37929bf6c0d83d872f2efa88056f5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_a18_cell.png"
+dest_files=["res://.godot/imported/pattern_a18_cell.png-c1c37929bf6c0d83d872f2efa88056f5.ctex"]
 
 [params]
 

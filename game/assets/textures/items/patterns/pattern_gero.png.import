@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cewkqq5pqaihf"
+path="res://.godot/imported/pattern_gero.png-a803a6f8ca1139db860fb34e3d3f2e14.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_gero.png"
+dest_files=["res://.godot/imported/pattern_gero.png-a803a6f8ca1139db860fb34e3d3f2e14.ctex"]
 
 [params]
 

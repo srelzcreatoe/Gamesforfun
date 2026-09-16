@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://dkjm2dtmpm6rw"
+path="res://.godot/imported/bgm_otherworld.wav-7e3cfd81c87028b3bfc649231b3ebd28.sample"
 
 [deps]
 
 source_file="res://assets/audio/bgm/bgm_otherworld.wav"
+dest_files=["res://.godot/imported/bgm_otherworld.wav-7e3cfd81c87028b3bfc649231b3ebd28.sample"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://vx0m7iit33hx"
+path="res://.godot/imported/ki_blast_cd.png-e188203049b5472375c50eba33b9226b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/ki_blast_cd.png"
+dest_files=["res://.godot/imported/ki_blast_cd.png-e188203049b5472375c50eba33b9226b.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://mp3gs7u8j2ih"
+path="res://.godot/imported/age1000_layer2.png-d0b88d1e0fff65cc534eafcfc5178a18.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/age1000_layer2.png"
+dest_files=["res://.godot/imported/age1000_layer2.png-d0b88d1e0fff65cc534eafcfc5178a18.ctex"]
 
 [params]
 

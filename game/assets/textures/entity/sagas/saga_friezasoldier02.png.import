@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bqpqwf24u6xnm"
+path="res://.godot/imported/saga_friezasoldier02.png-08756610b3c8de3f5057cab25ade494d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_friezasoldier02.png"
+dest_files=["res://.godot/imported/saga_friezasoldier02.png-08756610b3c8de3f5057cab25ade494d.ctex"]
 
 [params]
 

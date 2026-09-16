@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://gyxtgepv01dx"
+path="res://.godot/imported/block_blue_stained_glass.png-f691bcb3dae7e08ea3aca579e4a32754.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_blue_stained_glass.png"
+dest_files=["res://.godot/imported/block_blue_stained_glass.png-f691bcb3dae7e08ea3aca579e4a32754.ctex"]
 
 [params]
 

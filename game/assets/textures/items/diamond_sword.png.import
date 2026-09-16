@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bka25darb80nn"
+path="res://.godot/imported/diamond_sword.png-9c33302b3d4b8e1c44f3b4bca65e2923.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/diamond_sword.png"
+dest_files=["res://.godot/imported/diamond_sword.png-9c33302b3d4b8e1c44f3b4bca65e2923.ctex"]
 
 [params]
 

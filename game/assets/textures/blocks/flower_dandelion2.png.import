@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b1ctsq1suevgy"
+path="res://.godot/imported/flower_dandelion2.png-6b286f26173f27525fda50b142b16b31.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/flower_dandelion2.png"
+dest_files=["res://.godot/imported/flower_dandelion2.png-6b286f26173f27525fda50b142b16b31.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://x63stpt2eeoh"
+path="res://.godot/imported/whis_armor_leggings.png-cbd2e335dfaf95579cf366d6c5d56b89.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/whis_armor_leggings.png"
+dest_files=["res://.godot/imported/whis_armor_leggings.png-cbd2e335dfaf95579cf366d6c5d56b89.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ceaxnkt71nwwq"
+path="res://.godot/imported/stagger.png-ad514f150cfdcde1c921bc3d05151e30.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/stagger.png"
+dest_files=["res://.godot/imported/stagger.png-ad514f150cfdcde1c921bc3d05151e30.ctex"]
 
 [params]
 

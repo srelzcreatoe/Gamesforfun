@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b8jyii3xonuae"
+path="res://.godot/imported/bwgradation1216.png-023f8df246acb4731584f19dff74a240.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/explosion_mini/bwgradation1216.png"
+dest_files=["res://.godot/imported/bwgradation1216.png-023f8df246acb4731584f19dff74a240.ctex"]
 
 [params]
 

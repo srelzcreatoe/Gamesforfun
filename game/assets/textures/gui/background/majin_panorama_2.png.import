@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cp0ut50clijte"
+path="res://.godot/imported/majin_panorama_2.png-96a2934db3a56fb56536a89d63d818f6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/background/majin_panorama_2.png"
+dest_files=["res://.godot/imported/majin_panorama_2.png-96a2934db3a56fb56536a89d63d818f6.ctex"]
 
 [params]
 

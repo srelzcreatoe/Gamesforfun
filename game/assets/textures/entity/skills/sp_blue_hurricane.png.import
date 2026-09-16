@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b40ysiflk8ojy"
+path="res://.godot/imported/sp_blue_hurricane.png-e5fdded6ec8586028a42c9344bac5d05.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/skills/sp_blue_hurricane.png"
+dest_files=["res://.godot/imported/sp_blue_hurricane.png-e5fdded6ec8586028a42c9344bac5d05.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b214a03ihy2k"
+path="res://.godot/imported/yardrat_armor_chestplate.png-a0eb4b365beed32d71f56eb10ad55269.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/yardrat_armor_chestplate.png"
+dest_files=["res://.godot/imported/yardrat_armor_chestplate.png-a0eb4b365beed32d71f56eb10ad55269.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://trijrxcx23cj"
+path="res://.godot/imported/dino_tail_cooked.png-94d1da3f19f4741632b73335a6daeef0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/dino_tail_cooked.png"
+dest_files=["res://.godot/imported/dino_tail_cooked.png-94d1da3f19f4741632b73335a6daeef0.ctex"]
 
 [params]
 

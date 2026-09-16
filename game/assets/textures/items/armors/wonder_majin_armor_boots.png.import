@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bjilke0fc7ddd"
+path="res://.godot/imported/wonder_majin_armor_boots.png-5169009d22a550f91b6d8f0fa4ad1a33.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/wonder_majin_armor_boots.png"
+dest_files=["res://.godot/imported/wonder_majin_armor_boots.png-5169009d22a550f91b6d8f0fa4ad1a33.ctex"]
 
 [params]
 

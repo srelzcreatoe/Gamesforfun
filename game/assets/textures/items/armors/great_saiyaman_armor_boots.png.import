@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://gkdlcqwnl84u"
+path="res://.godot/imported/great_saiyaman_armor_boots.png-2580cbf9fdbc6ecf0d851b794943c0b9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/great_saiyaman_armor_boots.png"
+dest_files=["res://.godot/imported/great_saiyaman_armor_boots.png-2580cbf9fdbc6ecf0d851b794943c0b9.ctex"]
 
 [params]
 

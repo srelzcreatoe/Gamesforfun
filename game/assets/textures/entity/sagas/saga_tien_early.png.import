@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dedajcpq8h6g8"
+path="res://.godot/imported/saga_tien_early.png-23e7c4c32eddcf5b14860d6ccc9643f6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_tien_early.png"
+dest_files=["res://.godot/imported/saga_tien_early.png-23e7c4c32eddcf5b14860d6ccc9643f6.ctex"]
 
 [params]
 

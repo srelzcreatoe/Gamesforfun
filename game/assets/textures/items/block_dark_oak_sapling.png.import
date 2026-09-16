@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c0v6ndtlusj2h"
+path="res://.godot/imported/block_dark_oak_sapling.png-86d480d73ebfcfe055ba54ded9128b5e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_dark_oak_sapling.png"
+dest_files=["res://.godot/imported/block_dark_oak_sapling.png-86d480d73ebfcfe055ba54ded9128b5e.ctex"]
 
 [params]
 

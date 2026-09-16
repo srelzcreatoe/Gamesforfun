@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cjd8pc8fti2ir"
+path="res://.godot/imported/ripple.png-dd25b2f9c8894994b96ddcafbdbdfa94.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/ripple.png"
+dest_files=["res://.godot/imported/ripple.png-dd25b2f9c8894994b96ddcafbdbdfa94.ctex"]
 
 [params]
 

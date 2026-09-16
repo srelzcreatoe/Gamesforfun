@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cdqrd4jq71v44"
+path="res://.godot/imported/a18_tournament_armor_boots.png-3510132430d9771eed46148732456032.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/a18_tournament_armor_boots.png"
+dest_files=["res://.godot/imported/a18_tournament_armor_boots.png-3510132430d9771eed46148732456032.ctex"]
 
 [params]
 

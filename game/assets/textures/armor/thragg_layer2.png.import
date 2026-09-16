@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cbe40vh5beqgx"
+path="res://.godot/imported/thragg_layer2.png-c0a2b4ee701c31276bfda86663449d51.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/thragg_layer2.png"
+dest_files=["res://.godot/imported/thragg_layer2.png-c0a2b4ee701c31276bfda86663449d51.ctex"]
 
 [params]
 

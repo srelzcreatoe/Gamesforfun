@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://6dvkgff8w5lk"
+path="res://.godot/imported/block_allium.png-704566b45a49867f0a08bdcc488aca23.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_allium.png"
+dest_files=["res://.godot/imported/block_allium.png-704566b45a49867f0a08bdcc488aca23.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b13436p7gnjba"
+path="res://.godot/imported/block_oak_log.png-89babbdb45beb43a87f3df8b64dc7289.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_oak_log.png"
+dest_files=["res://.godot/imported/block_oak_log.png-89babbdb45beb43a87f3df8b64dc7289.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bbtnalodyyert"
+path="res://.godot/imported/caulifla_armor_boots.png-2a503edd83bf536309c3314d83a262e2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/caulifla_armor_boots.png"
+dest_files=["res://.godot/imported/caulifla_armor_boots.png-2a503edd83bf536309c3314d83a262e2.ctex"]
 
 [params]
 

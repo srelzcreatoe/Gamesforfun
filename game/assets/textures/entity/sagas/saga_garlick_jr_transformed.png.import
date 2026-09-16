@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c3nobshq4ysns"
+path="res://.godot/imported/saga_garlick_jr_transformed.png-ecb86b8a0b2865a23d8297bc057206eb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_garlick_jr_transformed.png"
+dest_files=["res://.godot/imported/saga_garlick_jr_transformed.png-ecb86b8a0b2865a23d8297bc057206eb.ctex"]
 
 [params]
 

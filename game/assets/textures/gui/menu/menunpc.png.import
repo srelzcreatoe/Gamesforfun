@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d6kal16fuah7"
+path="res://.godot/imported/menunpc.png-0596425142dfa7971f7e16e54d8ac6e4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/menu/menunpc.png"
+dest_files=["res://.godot/imported/menunpc.png-0596425142dfa7971f7e16e54d8ac6e4.ctex"]
 
 [params]
 

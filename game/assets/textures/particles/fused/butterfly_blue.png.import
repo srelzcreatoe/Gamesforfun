@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://mn3tyjgbse7l"
+path="res://.godot/imported/butterfly_blue.png-1a8e4c179524fad320b7a74e38d1245c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/butterfly_blue.png"
+dest_files=["res://.godot/imported/butterfly_blue.png-1a8e4c179524fad320b7a74e38d1245c.ctex"]
 
 [params]
 

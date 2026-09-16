@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bd1rcbwadp2q"
+path="res://.godot/imported/warrior_clan_armor_chestplate.png-bdf2451e95aabdf888dd5eef85a3d86b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/warrior_clan_armor_chestplate.png"
+dest_files=["res://.godot/imported/warrior_clan_armor_chestplate.png-bdf2451e95aabdf888dd5eef85a3d86b.ctex"]
 
 [params]
 

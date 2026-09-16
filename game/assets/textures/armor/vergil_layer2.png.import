@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cnwx5cntbqdql"
+path="res://.godot/imported/vergil_layer2.png-feba71ef745377c470b0917185d3f037.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/vergil_layer2.png"
+dest_files=["res://.godot/imported/vergil_layer2.png-feba71ef745377c470b0917185d3f037.ctex"]
 
 [params]
 

@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://cyiufnauulsl1"
+path="res://.godot/imported/frieza_s_hurt.ogg-e723f356c99fb3f9087f57b5ec8c6c18.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/frieza_s_hurt.ogg"
+dest_files=["res://.godot/imported/frieza_s_hurt.ogg-e723f356c99fb3f9087f57b5ec8c6c18.oggvorbisstr"]
 
 [params]
 

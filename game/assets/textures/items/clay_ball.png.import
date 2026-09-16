@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://n122mh3ilmcg"
+path="res://.godot/imported/clay_ball.png-7f58db2a7de44fec512c552bf7ab1d9a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/clay_ball.png"
+dest_files=["res://.godot/imported/clay_ball.png-7f58db2a7de44fec512c552bf7ab1d9a.ctex"]
 
 [params]
 

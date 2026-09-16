@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://1bfjjxe51ky4"
+path="res://.godot/imported/bodytype_female_1_layer1.png-704d84531062f8cc2f69f7c58c348afb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/majin/bodytype_female_1_layer1.png"
+dest_files=["res://.godot/imported/bodytype_female_1_layer1.png-704d84531062f8cc2f69f7c58c348afb.ctex"]
 
 [params]
 

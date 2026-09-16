@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ddtsydtetp8ud"
+path="res://.godot/imported/turles_armor_chestplate.png-1a8d919ea3caadb1ec7c1b88e03f5fca.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/turles_armor_chestplate.png"
+dest_files=["res://.godot/imported/turles_armor_chestplate.png-1a8d919ea3caadb1ec7c1b88e03f5fca.ctex"]
 
 [params]
 

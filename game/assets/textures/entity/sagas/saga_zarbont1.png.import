@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bndgyq4rv1s0v"
+path="res://.godot/imported/saga_zarbont1.png-216d8adb04beb2811c39a677e7d2df49.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_zarbont1.png"
+dest_files=["res://.godot/imported/saga_zarbont1.png-216d8adb04beb2811c39a677e7d2df49.ctex"]
 
 [params]
 

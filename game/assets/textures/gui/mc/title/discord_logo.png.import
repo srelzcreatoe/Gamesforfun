@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://egsoeb62li1y"
+path="res://.godot/imported/discord_logo.png-1092a8d1c24fb6f0b00e6a2b1514873d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/mc/title/discord_logo.png"
+dest_files=["res://.godot/imported/discord_logo.png-1092a8d1c24fb6f0b00e6a2b1514873d.ctex"]
 
 [params]
 

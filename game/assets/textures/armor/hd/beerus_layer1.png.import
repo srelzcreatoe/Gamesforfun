@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://nyn1qdyvyxtw"
+path="res://.godot/imported/beerus_layer1.png-a11bb92cd4819f399b2b0f74c5e7e722.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/beerus_layer1.png"
+dest_files=["res://.godot/imported/beerus_layer1.png-a11bb92cd4819f399b2b0f74c5e7e722.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://7exya12f5enh"
+path="res://.godot/imported/questmenu.png-9e0426d6fea9cca5e9e6601cf6bcd0ef.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/menu/questmenu.png"
+dest_files=["res://.godot/imported/questmenu.png-9e0426d6fea9cca5e9e6601cf6bcd0ef.ctex"]
 
 [params]
 

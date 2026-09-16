@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bsryxrcytvbe7"
+path="res://.godot/imported/goten_dbs_layer1.png-4323a02b22108ea3c705f914bf802e7c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/goten_dbs_layer1.png"
+dest_files=["res://.godot/imported/goten_dbs_layer1.png-4323a02b22108ea3c705f914bf802e7c.ctex"]
 
 [params]
 

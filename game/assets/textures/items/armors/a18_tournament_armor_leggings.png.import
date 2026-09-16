@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://doq7jfki70upf"
+path="res://.godot/imported/a18_tournament_armor_leggings.png-e2d3703e7fe1d8ad15bcfa0601327ad1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/a18_tournament_armor_leggings.png"
+dest_files=["res://.godot/imported/a18_tournament_armor_leggings.png-e2d3703e7fe1d8ad15bcfa0601327ad1.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dnomf3dxtdkbd"
+path="res://.godot/imported/frostdemon_panorama_1.png-b5b1314247aac983b6ba0c7e3803d4f4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/background/frostdemon_panorama_1.png"
+dest_files=["res://.godot/imported/frostdemon_panorama_1.png-b5b1314247aac983b6ba0c7e3803d4f4.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bvu6gxul8phkl"
+path="res://.godot/imported/weight_turtle_shell.png-34a380363346f6ace88d62af101a8a6e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/weight_turtle_shell.png"
+dest_files=["res://.godot/imported/weight_turtle_shell.png-34a380363346f6ace88d62af101a8a6e.ctex"]
 
 [params]
 

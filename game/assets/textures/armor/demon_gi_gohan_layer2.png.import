@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b6mr2upn8o6m3"
+path="res://.godot/imported/demon_gi_gohan_layer2.png-73473c672bf24ab06822be94614eaf6b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/demon_gi_gohan_layer2.png"
+dest_files=["res://.godot/imported/demon_gi_gohan_layer2.png-73473c672bf24ab06822be94614eaf6b.ctex"]
 
 [params]
 

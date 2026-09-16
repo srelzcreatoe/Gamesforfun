@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c8jjiwm2yhrrg"
+path="res://.godot/imported/acacia_planks.png-56f85555d5541382a88aa3c4b564a8ee.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/acacia_planks.png"
+dest_files=["res://.godot/imported/acacia_planks.png-56f85555d5541382a88aa3c4b564a8ee.ctex"]
 
 [params]
 

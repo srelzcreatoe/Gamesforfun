@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cccbaheuwut6f"
+path="res://.godot/imported/block_iron_bars.png-962b2847fdf07d77286f8b10376768ee.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_iron_bars.png"
+dest_files=["res://.godot/imported/block_iron_bars.png-962b2847fdf07d77286f8b10376768ee.ctex"]
 
 [params]
 

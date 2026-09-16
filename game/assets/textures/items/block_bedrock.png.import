@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cc1knqqyhndym"
+path="res://.godot/imported/block_bedrock.png-fe4321da1c6a6e7065bf1a400e488021.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_bedrock.png"
+dest_files=["res://.godot/imported/block_bedrock.png-fe4321da1c6a6e7065bf1a400e488021.ctex"]
 
 [params]
 

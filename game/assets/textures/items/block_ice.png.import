@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ctaxbh3jrmqii"
+path="res://.godot/imported/block_ice.png-6525ae12a5708ceeec3587c17be7db16.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_ice.png"
+dest_files=["res://.godot/imported/block_ice.png-6525ae12a5708ceeec3587c17be7db16.ctex"]
 
 [params]
 

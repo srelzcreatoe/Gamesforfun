@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://ylrxkdxdr3hn"
+path="res://.godot/imported/break_snow.wav-db4ad4da6b1a7a2d481814efae059006.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/break_snow.wav"
+dest_files=["res://.godot/imported/break_snow.wav-db4ad4da6b1a7a2d481814efae059006.sample"]
 
 [params]
 

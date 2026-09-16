@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cqtw4xkprsvib"
+path="res://.godot/imported/zamasu_gi_layer1.png-f13f8757f1b1b7d9c7862895eeb8d8b4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/zamasu_gi_layer1.png"
+dest_files=["res://.godot/imported/zamasu_gi_layer1.png-f13f8757f1b1b7d9c7862895eeb8d8b4.ctex"]
 
 [params]
 

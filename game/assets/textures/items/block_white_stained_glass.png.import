@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ducab0aqkowic"
+path="res://.godot/imported/block_white_stained_glass.png-701be64121b48102c0b57178f86888a7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_white_stained_glass.png"
+dest_files=["res://.godot/imported/block_white_stained_glass.png-701be64121b48102c0b57178f86888a7.ctex"]
 
 [params]
 

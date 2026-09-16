@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bonnbhr7cww4m"
+path="res://.godot/imported/pattern_broly_super.png-f0d7bea02e4f3978a1ff3ee3751927fb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_broly_super.png"
+dest_files=["res://.godot/imported/pattern_broly_super.png-f0d7bea02e4f3978a1ff3ee3751927fb.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bhvrncu8i381c"
+path="res://.godot/imported/saga_paikuhan.png-b31b4a6d5725f755733742bc0ed7eefd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_paikuhan.png"
+dest_files=["res://.godot/imported/saga_paikuhan.png-b31b4a6d5725f755733742bc0ed7eefd.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ckbhkykyiblwk"
+path="res://.godot/imported/kibito_armor_leggings.png-c8e68f1f9add8b673868c8b060330737.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/kibito_armor_leggings.png"
+dest_files=["res://.godot/imported/kibito_armor_leggings.png-c8e68f1f9add8b673868c8b060330737.ctex"]
 
 [params]
 

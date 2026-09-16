@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ncecrha1dm8h"
+path="res://.godot/imported/babidi_stone_glyph.png-d92dee425ec7793eded31e6ebd834fd0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/babidi_stone_glyph.png"
+dest_files=["res://.godot/imported/babidi_stone_glyph.png-d92dee425ec7793eded31e6ebd834fd0.ctex"]
 
 [params]
 

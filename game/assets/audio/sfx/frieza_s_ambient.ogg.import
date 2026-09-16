@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://b36nvj0o1bpyu"
+path="res://.godot/imported/frieza_s_ambient.ogg-adc7e843d239b1774e2e08a8f7f13d7d.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/frieza_s_ambient.ogg"
+dest_files=["res://.godot/imported/frieza_s_ambient.ogg-adc7e843d239b1774e2e08a8f7f13d7d.oggvorbisstr"]
 
 [params]
 

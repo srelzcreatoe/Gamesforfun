@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bmbvt68iygc78"
+path="res://.godot/imported/block_namek_dirt.png-c5a6f9268df4287b3a9c1654a87597c7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_namek_dirt.png"
+dest_files=["res://.godot/imported/block_namek_dirt.png-c5a6f9268df4287b3a9c1654a87597c7.ctex"]
 
 [params]
 

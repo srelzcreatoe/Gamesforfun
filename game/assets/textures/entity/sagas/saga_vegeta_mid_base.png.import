@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bm31f3kkldint"
+path="res://.godot/imported/saga_vegeta_mid_base.png-becb10ec0d2f95e44537379a126a51f5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_vegeta_mid_base.png"
+dest_files=["res://.godot/imported/saga_vegeta_mid_base.png-becb10ec0d2f95e44537379a126a51f5.ctex"]
 
 [params]
 

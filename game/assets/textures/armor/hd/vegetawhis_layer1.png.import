@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c1vx5gxiaeohe"
+path="res://.godot/imported/vegetawhis_layer1.png-52342c60819d7a58cfc7cfbd23bbd5a4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/vegetawhis_layer1.png"
+dest_files=["res://.godot/imported/vegetawhis_layer1.png-52342c60819d7a58cfc7cfbd23bbd5a4.ctex"]
 
 [params]
 

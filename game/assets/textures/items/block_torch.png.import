@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c0ym2owdtx1ik"
+path="res://.godot/imported/block_torch.png-5812b538529953e8ab5cf8f28628787a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_torch.png"
+dest_files=["res://.godot/imported/block_torch.png-5812b538529953e8ab5cf8f28628787a.ctex"]
 
 [params]
 

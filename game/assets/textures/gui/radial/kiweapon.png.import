@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bnpxa0eliaynv"
+path="res://.godot/imported/kiweapon.png-2d1fcf6691af6b36570d0b04a7c9c134.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/radial/kiweapon.png"
+dest_files=["res://.godot/imported/kiweapon.png-2d1fcf6691af6b36570d0b04a7c9c134.ctex"]
 
 [params]
 

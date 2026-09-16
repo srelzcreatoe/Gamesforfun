@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://d21d5du2ngggc"
+path="res://.godot/imported/ki_charge_start.wav-f48eab6a58a82fe6c44addbb17fe8c8d.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/ki_charge_start.wav"
+dest_files=["res://.godot/imported/ki_charge_start.wav-f48eab6a58a82fe6c44addbb17fe8c8d.sample"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cpblf3npyd8id"
+path="res://.godot/imported/goku_kid_armor_chestplate.png-7c6f170ad6d0819d8ca5dbb333344759.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/goku_kid_armor_chestplate.png"
+dest_files=["res://.godot/imported/goku_kid_armor_chestplate.png-7c6f170ad6d0819d8ca5dbb333344759.ctex"]
 
 [params]
 

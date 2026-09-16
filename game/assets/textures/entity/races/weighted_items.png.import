@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://maok6hk6tyam"
+path="res://.godot/imported/weighted_items.png-0b11cde126fbcd0c5b88b0fee02523c6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/weighted_items.png"
+dest_files=["res://.godot/imported/weighted_items.png-0b11cde126fbcd0c5b88b0fee02523c6.ctex"]
 
 [params]
 

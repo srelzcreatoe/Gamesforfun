@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dp7e33805r7qy"
+path="res://.godot/imported/block_gold_block.png-96483eabff700f429f69cea60bc9e342.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_gold_block.png"
+dest_files=["res://.godot/imported/block_gold_block.png-96483eabff700f429f69cea60bc9e342.ctex"]
 
 [params]
 

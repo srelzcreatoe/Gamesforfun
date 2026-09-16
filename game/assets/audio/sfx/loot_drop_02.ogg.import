@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://brhn4p6uwp3ne"
+path="res://.godot/imported/loot_drop_02.ogg-770073decab7ef7b5b50c3ee6fb9d296.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/loot_drop_02.ogg"
+dest_files=["res://.godot/imported/loot_drop_02.ogg-770073decab7ef7b5b50c3ee6fb9d296.oggvorbisstr"]
 
 [params]
 

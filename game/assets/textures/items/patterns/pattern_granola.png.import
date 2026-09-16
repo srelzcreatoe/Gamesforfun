@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dgfv8s5klgaue"
+path="res://.godot/imported/pattern_granola.png-9076583d3898e63e473346e5031ad2bb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_granola.png"
+dest_files=["res://.godot/imported/pattern_granola.png-9076583d3898e63e473346e5031ad2bb.ctex"]
 
 [params]
 

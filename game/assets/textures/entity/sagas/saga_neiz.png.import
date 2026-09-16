@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://4mpigsa4q44m"
+path="res://.godot/imported/saga_neiz.png-5bc4b2dab5d12a218e46f07604248d38.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_neiz.png"
+dest_files=["res://.godot/imported/saga_neiz.png-5bc4b2dab5d12a218e46f07604248d38.ctex"]
 
 [params]
 

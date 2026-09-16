@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cri14akers3po"
+path="res://.godot/imported/rock_particle_3.png-51f2c62693501159041768baaa90f068.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/rock_particle_3.png"
+dest_files=["res://.godot/imported/rock_particle_3.png-51f2c62693501159041768baaa90f068.ctex"]
 
 [params]
 

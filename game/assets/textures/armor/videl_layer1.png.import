@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bnxam5fmjxbhl"
+path="res://.godot/imported/videl_layer1.png-afa0c91e54564f03be9065e63b2726f2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/videl_layer1.png"
+dest_files=["res://.godot/imported/videl_layer1.png-afa0c91e54564f03be9065e63b2726f2.ctex"]
 
 [params]
 

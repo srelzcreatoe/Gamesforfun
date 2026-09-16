@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://rttlmi3e43s0"
+path="res://.godot/imported/broly_z_armor_chestplate.png-4db6e1a2ba4b99eb1b2a0c0cca27369b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/broly_z_armor_chestplate.png"
+dest_files=["res://.godot/imported/broly_z_armor_chestplate.png-4db6e1a2ba4b99eb1b2a0c0cca27369b.ctex"]
 
 [params]
 

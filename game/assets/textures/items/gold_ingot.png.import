@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bo31iw2hrkjns"
+path="res://.godot/imported/gold_ingot.png-4540a0edc9e1b9995c2df3a95b747520.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/gold_ingot.png"
+dest_files=["res://.godot/imported/gold_ingot.png-4540a0edc9e1b9995c2df3a95b747520.ctex"]
 
 [params]
 

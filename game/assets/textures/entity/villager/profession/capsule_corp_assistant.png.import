@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bwmrdjik40at6"
+path="res://.godot/imported/capsule_corp_assistant.png-3b2d36ec7820eebc4677d07a154f46e2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/villager/profession/capsule_corp_assistant.png"
+dest_files=["res://.godot/imported/capsule_corp_assistant.png-3b2d36ec7820eebc4677d07a154f46e2.ctex"]
 
 [params]
 

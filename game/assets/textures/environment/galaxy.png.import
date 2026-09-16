@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://df07kcbngmoic"
+path="res://.godot/imported/galaxy.png-4b06f150e1704ecf19dba984a175d71d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/galaxy.png"
+dest_files=["res://.godot/imported/galaxy.png-4b06f150e1704ecf19dba984a175d71d.ctex"]
 
 [params]
 

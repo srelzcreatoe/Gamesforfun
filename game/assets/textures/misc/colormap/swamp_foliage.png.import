@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bw20pv0v664ic"
+path="res://.godot/imported/swamp_foliage.png-fce3543d6ec4a52a57949d838311053c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/misc/colormap/swamp_foliage.png"
+dest_files=["res://.godot/imported/swamp_foliage.png-fce3543d6ec4a52a57949d838311053c.ctex"]
 
 [params]
 

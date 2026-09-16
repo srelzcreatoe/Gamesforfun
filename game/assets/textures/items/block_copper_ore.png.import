@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dod1626c4dmjb"
+path="res://.godot/imported/block_copper_ore.png-7a2c7ffd308586633c5d28a242dc3213.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_copper_ore.png"
+dest_files=["res://.godot/imported/block_copper_ore.png-7a2c7ffd308586633c5d28a242dc3213.ctex"]
 
 [params]
 

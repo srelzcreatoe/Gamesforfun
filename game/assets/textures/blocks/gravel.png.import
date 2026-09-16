@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://deos2ufn88vbk"
+path="res://.godot/imported/gravel.png-b110dfc7b8eae6f7a6593b9bb8a3c7d8.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/gravel.png"
+dest_files=["res://.godot/imported/gravel.png-b110dfc7b8eae6f7a6593b9bb8a3c7d8.ctex"]
 
 [params]
 

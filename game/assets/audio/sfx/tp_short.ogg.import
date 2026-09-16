@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://b7lu4xs21yws1"
+path="res://.godot/imported/tp_short.ogg-988217396287852d4e596912fb6d94d3.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/tp_short.ogg"
+dest_files=["res://.godot/imported/tp_short.ogg-988217396287852d4e596912fb6d94d3.oggvorbisstr"]
 
 [params]
 

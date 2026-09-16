@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bobesji7v3tys"
+path="res://.godot/imported/kale_armor_boots.png-616844c5eac144c8895d32f6a2d637a1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/kale_armor_boots.png"
+dest_files=["res://.godot/imported/kale_armor_boots.png-616844c5eac144c8895d32f6a2d637a1.ctex"]
 
 [params]
 

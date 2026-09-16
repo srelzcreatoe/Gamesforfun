@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://clyfpvq78kiw7"
+path="res://.godot/imported/evasion1.ogg-1f2c521dc30f0997020d26bf681d829d.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/evasion1.ogg"
+dest_files=["res://.godot/imported/evasion1.ogg-1f2c521dc30f0997020d26bf681d829d.oggvorbisstr"]
 
 [params]
 

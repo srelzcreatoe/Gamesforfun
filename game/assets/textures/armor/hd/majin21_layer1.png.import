@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://8wp7ni0lk4g4"
+path="res://.godot/imported/majin21_layer1.png-483949558c188dc54d0682081e283a10.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/majin21_layer1.png"
+dest_files=["res://.godot/imported/majin21_layer1.png-483949558c188dc54d0682081e283a10.ctex"]
 
 [params]
 

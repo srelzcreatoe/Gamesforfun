@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://dho0vcquouchj"
+path="res://.godot/imported/bgm_transformation.wav-ae4cda24313f99fabea4c5319dd18ecf.sample"
 
 [deps]
 
 source_file="res://assets/audio/bgm/bgm_transformation.wav"
+dest_files=["res://.godot/imported/bgm_transformation.wav-ae4cda24313f99fabea4c5319dd18ecf.sample"]
 
 [params]
 

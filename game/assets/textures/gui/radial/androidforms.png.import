@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c425bwvkbkdl1"
+path="res://.godot/imported/androidforms.png-5c2b92783d7f5cca30a07e29909eeb1c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/radial/androidforms.png"
+dest_files=["res://.godot/imported/androidforms.png-5c2b92783d7f5cca30a07e29909eeb1c.ctex"]
 
 [params]
 

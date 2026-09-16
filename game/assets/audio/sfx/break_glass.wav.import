@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://bqukxium53jt6"
+path="res://.godot/imported/break_glass.wav-bf86a6b4486ebabe507ac0afef946eb1.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/break_glass.wav"
+dest_files=["res://.godot/imported/break_glass.wav-bf86a6b4486ebabe507ac0afef946eb1.sample"]
 
 [params]
 

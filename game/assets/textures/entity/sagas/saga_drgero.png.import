@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://6nat22s45wxv"
+path="res://.godot/imported/saga_drgero.png-485cec2ebac2937246050fcff8ac5e96.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_drgero.png"
+dest_files=["res://.godot/imported/saga_drgero.png-485cec2ebac2937246050fcff8ac5e96.ctex"]
 
 [params]
 

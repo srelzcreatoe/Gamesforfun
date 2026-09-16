@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://ca4m1u8pxh23y"
+path="res://.godot/imported/claymore_stab.ogg-223263235651484e610df78b9bbaf74c.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/claymore_stab.ogg"
+dest_files=["res://.godot/imported/claymore_stab.ogg-223263235651484e610df78b9bbaf74c.oggvorbisstr"]
 
 [params]
 

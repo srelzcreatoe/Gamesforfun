@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dxn68d62kb4re"
+path="res://.godot/imported/block_sacred_sapling.png-4077a0be1b7a3f2c252f79aaa6f57451.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_sacred_sapling.png"
+dest_files=["res://.godot/imported/block_sacred_sapling.png-4077a0be1b7a3f2c252f79aaa6f57451.ctex"]
 
 [params]
 

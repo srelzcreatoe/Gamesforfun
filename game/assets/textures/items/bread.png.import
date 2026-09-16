@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://t2ec0hxac4la"
+path="res://.godot/imported/bread.png-919aa44e2b214c59c8813e20b9c78159.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/bread.png"
+dest_files=["res://.godot/imported/bread.png-919aa44e2b214c59c8813e20b9c78159.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://wuicu137pg8f"
+path="res://.godot/imported/block_gravel.png-137a10ca498cf9c5ee1b36cc830f0126.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_gravel.png"
+dest_files=["res://.godot/imported/block_gravel.png-137a10ca498cf9c5ee1b36cc830f0126.ctex"]
 
 [params]
 

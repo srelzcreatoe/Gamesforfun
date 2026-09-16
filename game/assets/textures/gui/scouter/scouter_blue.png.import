@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b6d678f6lqq80"
+path="res://.godot/imported/scouter_blue.png-f35bed7926835db9ec70478bade62e6e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/scouter/scouter_blue.png"
+dest_files=["res://.godot/imported/scouter_blue.png-f35bed7926835db9ec70478bade62e6e.ctex"]
 
 [params]
 

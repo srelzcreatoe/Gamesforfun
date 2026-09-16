@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bp1ox7rimflm4"
+path="res://.godot/imported/SPARKLE001.png-1bc5cbe977c7936d8a3b91df3213e98c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/essentials/SPARKLE001.png"
+dest_files=["res://.godot/imported/SPARKLE001.png-1bc5cbe977c7936d8a3b91df3213e98c.ctex"]
 
 [params]
 

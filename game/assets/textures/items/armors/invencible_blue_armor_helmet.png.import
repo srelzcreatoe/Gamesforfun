@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bsb1pcp8kvvhj"
+path="res://.godot/imported/invencible_blue_armor_helmet.png-5bd70083f83458b2bec29d2a45671380.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/invencible_blue_armor_helmet.png"
+dest_files=["res://.godot/imported/invencible_blue_armor_helmet.png-5bd70083f83458b2bec29d2a45671380.ctex"]
 
 [params]
 

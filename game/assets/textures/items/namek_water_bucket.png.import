@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://da2fpvwp0xrmy"
+path="res://.godot/imported/namek_water_bucket.png-31f155b8d6a6f96065268ee836dd5d44.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/namek_water_bucket.png"
+dest_files=["res://.godot/imported/namek_water_bucket.png-31f155b8d6a6f96065268ee836dd5d44.ctex"]
 
 [params]
 

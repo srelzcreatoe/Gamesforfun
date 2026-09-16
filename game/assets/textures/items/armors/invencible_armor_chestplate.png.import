@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bs78lyjw1dfwi"
+path="res://.godot/imported/invencible_armor_chestplate.png-4811b52125c1fe83cf9a6c5b59e15a41.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/invencible_armor_chestplate.png"
+dest_files=["res://.godot/imported/invencible_armor_chestplate.png-4811b52125c1fe83cf9a6c5b59e15a41.ctex"]
 
 [params]
 

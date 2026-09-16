@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://qhv7oycniy7"
+path="res://.godot/imported/a18_cell_armor_boots.png-e52bda6e0cdebd49b0cef48e594662af.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/a18_cell_armor_boots.png"
+dest_files=["res://.godot/imported/a18_cell_armor_boots.png-e52bda6e0cdebd49b0cef48e594662af.ctex"]
 
 [params]
 

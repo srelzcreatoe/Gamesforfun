@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://tvd54a08r6ci"
+path="res://.godot/imported/block_kame_house_wall.png-2f80bde9370bdfbb4977d3c2b235938e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_kame_house_wall.png"
+dest_files=["res://.godot/imported/block_kame_house_wall.png-2f80bde9370bdfbb4977d3c2b235938e.ctex"]
 
 [params]
 

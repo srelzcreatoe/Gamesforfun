@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://q7glwosju2j3"
+path="res://.godot/imported/warrior_clan_armor_leggings.png-deb1b26faee3d77a963819d74d8a9c59.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/warrior_clan_armor_leggings.png"
+dest_files=["res://.godot/imported/warrior_clan_armor_leggings.png-deb1b26faee3d77a963819d74d8a9c59.ctex"]
 
 [params]
 

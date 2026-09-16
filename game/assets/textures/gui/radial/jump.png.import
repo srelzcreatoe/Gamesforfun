@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://74d1gc6j2038"
+path="res://.godot/imported/jump.png-0bc7d5badd67555f5aef7ac02fbf75b3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/radial/jump.png"
+dest_files=["res://.godot/imported/jump.png-0bc7d5badd67555f5aef7ac02fbf75b3.ctex"]
 
 [params]
 

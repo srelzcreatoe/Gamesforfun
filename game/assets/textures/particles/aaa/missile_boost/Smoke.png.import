@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c61dpootngea0"
+path="res://.godot/imported/Smoke.png-f9c14b1104e59476cfc5dd81f628b430.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/missile_boost/Smoke.png"
+dest_files=["res://.godot/imported/Smoke.png-f9c14b1104e59476cfc5dd81f628b430.ctex"]
 
 [params]
 

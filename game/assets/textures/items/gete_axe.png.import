@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://tblsgknyc0uy"
+path="res://.godot/imported/gete_axe.png-a27266bd4f198c25ddeec64d92fa0acc.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/gete_axe.png"
+dest_files=["res://.godot/imported/gete_axe.png-a27266bd4f198c25ddeec64d92fa0acc.ctex"]
 
 [params]
 

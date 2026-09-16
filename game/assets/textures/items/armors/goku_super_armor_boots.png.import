@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bm70h12hhebg"
+path="res://.godot/imported/goku_super_armor_boots.png-46e23a7d0b3058460897b8c7f4459c41.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/goku_super_armor_boots.png"
+dest_files=["res://.godot/imported/goku_super_armor_boots.png-46e23a7d0b3058460897b8c7f4459c41.ctex"]
 
 [params]
 

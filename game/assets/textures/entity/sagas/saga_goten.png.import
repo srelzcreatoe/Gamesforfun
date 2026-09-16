@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dr3mex30kcwnv"
+path="res://.godot/imported/saga_goten.png-e74b2ecc1cc105c2ed0d093a5df4c0d1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_goten.png"
+dest_files=["res://.godot/imported/saga_goten.png-e74b2ecc1cc105c2ed0d093a5df4c0d1.ctex"]
 
 [params]
 

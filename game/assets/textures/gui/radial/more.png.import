@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://draq5q4ihv47d"
+path="res://.godot/imported/more.png-befcb080d1edfd569d37adf9e6bef3c2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/radial/more.png"
+dest_files=["res://.godot/imported/more.png-befcb080d1edfd569d37adf9e6bef3c2.ctex"]
 
 [params]
 

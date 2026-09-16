@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dc7i1ccnbv17w"
+path="res://.godot/imported/namekdball_radar.png-7557ad25e385161048052a12ad30bc40.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/namekdball_radar.png"
+dest_files=["res://.godot/imported/namekdball_radar.png-7557ad25e385161048052a12ad30bc40.ctex"]
 
 [params]
 

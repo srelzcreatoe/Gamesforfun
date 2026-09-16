@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://cnm6ax1r12evk"
+path="res://.godot/imported/majin_absorb.ogg-3ac994bc7b8924202c3b9b73aca5bdec.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/majin_absorb.ogg"
+dest_files=["res://.godot/imported/majin_absorb.ogg-3ac994bc7b8924202c3b9b73aca5bdec.oggvorbisstr"]
 
 [params]
 

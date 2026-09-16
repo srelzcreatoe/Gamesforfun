@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://7o3klm6hyrv2"
+path="res://.godot/imported/yellow_capsule.png-945ede5bae89da621e9d82a3e4babd69.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/yellow_capsule.png"
+dest_files=["res://.godot/imported/yellow_capsule.png-945ede5bae89da621e9d82a3e4babd69.ctex"]
 
 [params]
 

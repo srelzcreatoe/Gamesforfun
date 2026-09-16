@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c6t4wghx4celp"
+path="res://.godot/imported/piccolo_armor_chestplate.png-f30562dae012ae1646530a7cd86e6757.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/piccolo_armor_chestplate.png"
+dest_files=["res://.godot/imported/piccolo_armor_chestplate.png-f30562dae012ae1646530a7cd86e6757.ctex"]
 
 [params]
 

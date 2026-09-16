@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://q25hmj6cnrl4"
+path="res://.godot/imported/chest_top.png-17091be590658ac38b4a11d9b44e7529.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/chest_top.png"
+dest_files=["res://.godot/imported/chest_top.png-17091be590658ac38b4a11d9b44e7529.ctex"]
 
 [params]
 

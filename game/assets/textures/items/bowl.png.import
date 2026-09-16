@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ceahahflv80np"
+path="res://.godot/imported/bowl.png-1b8f5ba32d802c32464ca827375dce4f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/bowl.png"
+dest_files=["res://.godot/imported/bowl.png-1b8f5ba32d802c32464ca827375dce4f.ctex"]
 
 [params]
 

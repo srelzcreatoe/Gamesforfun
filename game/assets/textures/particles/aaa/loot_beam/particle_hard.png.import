@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c7e4unynie7ts"
+path="res://.godot/imported/particle_hard.png-2415e98e49179dd8e6baf886c89f7445.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/loot_beam/particle_hard.png"
+dest_files=["res://.godot/imported/particle_hard.png-2415e98e49179dd8e6baf886c89f7445.ctex"]
 
 [params]
 

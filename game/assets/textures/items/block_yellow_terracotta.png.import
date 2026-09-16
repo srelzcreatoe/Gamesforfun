@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bnnw0bwtn5nds"
+path="res://.godot/imported/block_yellow_terracotta.png-f22fb0ed12bbdded228954c7c3958be5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_yellow_terracotta.png"
+dest_files=["res://.godot/imported/block_yellow_terracotta.png-f22fb0ed12bbdded228954c7c3958be5.ctex"]
 
 [params]
 

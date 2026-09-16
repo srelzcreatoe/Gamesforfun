@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bg7tjul61eft7"
+path="res://.godot/imported/block_time_chamber_block.png-c7fd3023a1874cd28702faa591d7884b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_time_chamber_block.png"
+dest_files=["res://.godot/imported/block_time_chamber_block.png-c7fd3023a1874cd28702faa591d7884b.ctex"]
 
 [params]
 

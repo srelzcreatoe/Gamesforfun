@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://nvqvvgksjky"
+path="res://.godot/imported/Burst_1.png-b2e8ffaf9adae7fc54a9f7e0ce25551c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/lightning/Burst_1.png"
+dest_files=["res://.godot/imported/Burst_1.png-b2e8ffaf9adae7fc54a9f7e0ce25551c.ctex"]
 
 [params]
 

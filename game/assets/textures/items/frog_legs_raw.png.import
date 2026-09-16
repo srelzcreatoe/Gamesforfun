@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dbaob230fmfn8"
+path="res://.godot/imported/frog_legs_raw.png-4dddd74d3f0db75a19492c3c89e79c5d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/frog_legs_raw.png"
+dest_files=["res://.godot/imported/frog_legs_raw.png-4dddd74d3f0db75a19492c3c89e79c5d.ctex"]
 
 [params]
 

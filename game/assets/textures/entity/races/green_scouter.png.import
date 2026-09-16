@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://jcvhixy7eb0b"
+path="res://.godot/imported/green_scouter.png-393d299204bed8cd861e3f77d029b81b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/green_scouter.png"
+dest_files=["res://.godot/imported/green_scouter.png-393d299204bed8cd861e3f77d029b81b.ctex"]
 
 [params]
 

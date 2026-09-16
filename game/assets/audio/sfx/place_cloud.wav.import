@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://cb0duwosy7txi"
+path="res://.godot/imported/place_cloud.wav-5232629847d272a6495a2d47c8dd55b9.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/place_cloud.wav"
+dest_files=["res://.godot/imported/place_cloud.wav-5232629847d272a6495a2d47c8dd55b9.sample"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bfd3xyy0logix"
+path="res://.godot/imported/majin_passive.png-646388d12da2888e7e29de790da3bddd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/majin_passive.png"
+dest_files=["res://.godot/imported/majin_passive.png-646388d12da2888e7e29de790da3bddd.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://p3obekg6ld2"
+path="res://.godot/imported/zamasu_armor_boots.png-3a975b979c7fd9d19b0cf74ec947d5c0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/zamasu_armor_boots.png"
+dest_files=["res://.godot/imported/zamasu_armor_boots.png-3a975b979c7fd9d19b0cf74ec947d5c0.ctex"]
 
 [params]
 

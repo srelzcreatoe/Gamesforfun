@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c741t2fl7bfce"
+path="res://.godot/imported/saga_jeice.png-d31936d794a4c33b5ca504c1d1cb5106.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_jeice.png"
+dest_files=["res://.godot/imported/saga_jeice.png-d31936d794a4c33b5ca504c1d1cb5106.ctex"]
 
 [params]
 

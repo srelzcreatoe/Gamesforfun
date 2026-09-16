@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b0vk5x6waiqb0"
+path="res://.godot/imported/raditz_layer2.png-3524fbe0645e8849f81c215df6872de0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/raditz_layer2.png"
+dest_files=["res://.godot/imported/raditz_layer2.png-3524fbe0645e8849f81c215df6872de0.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dsnn0gi8m1iuc"
+path="res://.godot/imported/goku_kaito_armor_chestplate.png-c485d9c4271d33c47a69a022f8c4de3d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/goku_kaito_armor_chestplate.png"
+dest_files=["res://.godot/imported/goku_kaito_armor_chestplate.png-c485d9c4271d33c47a69a022f8c4de3d.ctex"]
 
 [params]
 

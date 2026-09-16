@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c6b3icndp0qfr"
+path="res://.godot/imported/block_ajissa_door.png-b3b15844172a9364618929c62f9fe737.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_ajissa_door.png"
+dest_files=["res://.godot/imported/block_ajissa_door.png-b3b15844172a9364618929c62f9fe737.ctex"]
 
 [params]
 

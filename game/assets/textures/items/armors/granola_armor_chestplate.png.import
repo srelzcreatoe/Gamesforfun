@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bldo2p0l07rmf"
+path="res://.godot/imported/granola_armor_chestplate.png-5d5c5a141f2db68c7a5b7abb23124039.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/granola_armor_chestplate.png"
+dest_files=["res://.godot/imported/granola_armor_chestplate.png-5d5c5a141f2db68c7a5b7abb23124039.ctex"]
 
 [params]
 

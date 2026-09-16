@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://1rsyjg2xd1m0"
+path="res://.godot/imported/gete_debris_top.png-19931c027dc96d16c25d8e0996a7ba32.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/gete_debris_top.png"
+dest_files=["res://.godot/imported/gete_debris_top.png-19931c027dc96d16c25d8e0996a7ba32.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dktgmpw180mv0"
+path="res://.godot/imported/gohan_super_armor_leggings.png-2994457221f8b374d30595998927c549.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/gohan_super_armor_leggings.png"
+dest_files=["res://.godot/imported/gohan_super_armor_leggings.png-2994457221f8b374d30595998927c549.ctex"]
 
 [params]
 

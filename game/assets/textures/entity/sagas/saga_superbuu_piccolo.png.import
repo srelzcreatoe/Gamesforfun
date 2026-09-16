@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://jhmhtbjgjpmk"
+path="res://.godot/imported/saga_superbuu_piccolo.png-d9765cda24423d92d297c4fceed31bf6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_superbuu_piccolo.png"
+dest_files=["res://.godot/imported/saga_superbuu_piccolo.png-d9765cda24423d92d297c4fceed31bf6.ctex"]
 
 [params]
 

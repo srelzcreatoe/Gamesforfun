@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://chrp7oejxlkvb"
+path="res://.godot/imported/pattern_bardock1.png-00a69f0a72de346fb8c48e71fd06139e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_bardock1.png"
+dest_files=["res://.godot/imported/pattern_bardock1.png-00a69f0a72de346fb8c48e71fd06139e.ctex"]
 
 [params]
 

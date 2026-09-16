@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dkhf2egeswclk"
+path="res://.godot/imported/dmz_logo.png-4c50fc9ae7eb9f096a099e380bf9d9ad.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/misc/dmz_logo.png"
+dest_files=["res://.godot/imported/dmz_logo.png-4c50fc9ae7eb9f096a099e380bf9d9ad.ctex"]
 
 [params]
 

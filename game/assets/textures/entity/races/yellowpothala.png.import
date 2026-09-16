@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bagpan526ehdd"
+path="res://.godot/imported/yellowpothala.png-971c53c957d76ae20a11731fdb22f67b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/yellowpothala.png"
+dest_files=["res://.godot/imported/yellowpothala.png-971c53c957d76ae20a11731fdb22f67b.ctex"]
 
 [params]
 

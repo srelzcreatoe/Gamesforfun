@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cmqily5v733re"
+path="res://.godot/imported/human_passive.png-883bf1874eee3d1d42736bbfb99d8a84.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/human_passive.png"
+dest_files=["res://.godot/imported/human_passive.png-883bf1874eee3d1d42736bbfb99d8a84.ctex"]
 
 [params]
 

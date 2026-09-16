@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://deb552b2al36x"
+path="res://.godot/imported/Flash01.png-ffdfabda879922cb843090da6ec9bfb0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/explosion_mini/Flash01.png"
+dest_files=["res://.godot/imported/Flash01.png-ffdfabda879922cb843090da6ec9bfb0.ctex"]
 
 [params]
 

@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://omphwt3j63b8"
+path="res://.godot/imported/shockwave.wav-15d69165e4239002fa8daf3286d31f65.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/shockwave.wav"
+dest_files=["res://.godot/imported/shockwave.wav-15d69165e4239002fa8daf3286d31f65.sample"]
 
 [params]
 

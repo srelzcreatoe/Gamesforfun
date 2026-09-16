@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bynyaha6ilfyh"
+path="res://.godot/imported/grass_top7.png-b69a22024233c807bac0591cabd12c55.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/grass_top7.png"
+dest_files=["res://.godot/imported/grass_top7.png-b69a22024233c807bac0591cabd12c55.ctex"]
 
 [params]
 

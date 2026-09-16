@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://cju0n3i8b66mn"
+path="res://.godot/imported/fall_damage.wav-ef0090ee26170e3817d3779d29395852.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/fall_damage.wav"
+dest_files=["res://.godot/imported/fall_damage.wav-ef0090ee26170e3817d3779d29395852.sample"]
 
 [params]
 

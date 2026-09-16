@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cbwb2hc1ykcj2"
+path="res://.godot/imported/pattern_orange_high.png-0096cf957d6c383f23b1e9ed00a575b8.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_orange_high.png"
+dest_files=["res://.godot/imported/pattern_orange_high.png-0096cf957d6c383f23b1e9ed00a575b8.ctex"]
 
 [params]
 

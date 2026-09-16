@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cli56dfrouton"
+path="res://.godot/imported/pattern_goten_super.png-8c98bc1bd9a416be64bfcb8ca497774d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_goten_super.png"
+dest_files=["res://.godot/imported/pattern_goten_super.png-8c98bc1bd9a416be64bfcb8ca497774d.ctex"]
 
 [params]
 

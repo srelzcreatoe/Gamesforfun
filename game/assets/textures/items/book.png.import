@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b20mgcj24myhd"
+path="res://.godot/imported/book.png-b358451ac400908aa486ebb7c2c62c45.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/book.png"
+dest_files=["res://.godot/imported/book.png-b358451ac400908aa486ebb7c2c62c45.ctex"]
 
 [params]
 

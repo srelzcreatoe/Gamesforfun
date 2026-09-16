@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dmely00vcxii8"
+path="res://.godot/imported/golden_axe.png-d6bd1f9bd8fd00dbbe567844d59a0f66.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/golden_axe.png"
+dest_files=["res://.godot/imported/golden_axe.png-d6bd1f9bd8fd00dbbe567844d59a0f66.ctex"]
 
 [params]
 

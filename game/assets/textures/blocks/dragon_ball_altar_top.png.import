@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://6wiqf1iw0asc"
+path="res://.godot/imported/dragon_ball_altar_top.png-ea46f0f0e06b554671f6f4ea766f3a5f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/dragon_ball_altar_top.png"
+dest_files=["res://.godot/imported/dragon_ball_altar_top.png-ea46f0f0e06b554671f6f4ea766f3a5f.ctex"]
 
 [params]
 

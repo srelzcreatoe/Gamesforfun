@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://crc3i2sb0vctm"
+path="res://.godot/imported/saga_dore.png-bbb086328b104a16319614108f97ecd6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_dore.png"
+dest_files=["res://.godot/imported/saga_dore.png-bbb086328b104a16319614108f97ecd6.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cmby1h2y2nqug"
+path="res://.godot/imported/pride_troops_armor_leggings.png-5c5fe93c4d4cc592fde1e79ce5de8295.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/pride_troops_armor_leggings.png"
+dest_files=["res://.godot/imported/pride_troops_armor_leggings.png-5c5fe93c4d4cc592fde1e79ce5de8295.ctex"]
 
 [params]
 

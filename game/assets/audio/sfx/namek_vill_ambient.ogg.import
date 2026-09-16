@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://dh7o7ue5j4l1b"
+path="res://.godot/imported/namek_vill_ambient.ogg-18067ebb489d7654f7a2e022bf7824ac.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/namek_vill_ambient.ogg"
+dest_files=["res://.godot/imported/namek_vill_ambient.ogg-18067ebb489d7654f7a2e022bf7824ac.oggvorbisstr"]
 
 [params]
 

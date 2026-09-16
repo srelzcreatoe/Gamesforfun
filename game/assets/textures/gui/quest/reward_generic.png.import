@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ldrgdpjptghh"
+path="res://.godot/imported/reward_generic.png-b2bf0615ad964739f7485add4c6a88e2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/quest/reward_generic.png"
+dest_files=["res://.godot/imported/reward_generic.png-b2bf0615ad964739f7485add4c6a88e2.ctex"]
 
 [params]
 

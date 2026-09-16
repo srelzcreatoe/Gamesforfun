@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://buq1qi44wc738"
+path="res://.godot/imported/pattern_caulifla.png-95770d90e081e44bca8cfc4a972d9314.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_caulifla.png"
+dest_files=["res://.godot/imported/pattern_caulifla.png-95770d90e081e44bca8cfc4a972d9314.ctex"]
 
 [params]
 

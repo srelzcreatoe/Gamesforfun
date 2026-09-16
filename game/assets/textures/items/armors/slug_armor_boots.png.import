@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cu3oif27iimyw"
+path="res://.godot/imported/slug_armor_boots.png-6f98a27a3f2ca7bfdf2d6480b9fdfdc5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/slug_armor_boots.png"
+dest_files=["res://.godot/imported/slug_armor_boots.png-6f98a27a3f2ca7bfdf2d6480b9fdfdc5.ctex"]
 
 [params]
 

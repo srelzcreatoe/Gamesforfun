@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bxlskrhp26o3h"
+path="res://.godot/imported/majin_revive.png-cde553ee3845b940bc618a252b43aa4f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/majin_revive.png"
+dest_files=["res://.godot/imported/majin_revive.png-cde553ee3845b940bc618a252b43aa4f.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bikrpu70x5dvt"
+path="res://.godot/imported/demon_gi_layer1.png-9b64f2fb91991c077213a9680c9bd663.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/demon_gi_layer1.png"
+dest_files=["res://.godot/imported/demon_gi_layer1.png-9b64f2fb91991c077213a9680c9bd663.ctex"]
 
 [params]
 

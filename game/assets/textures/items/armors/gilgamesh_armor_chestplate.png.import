@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://qarxvfq7o5sb"
+path="res://.godot/imported/gilgamesh_armor_chestplate.png-19be01275b39620a31b79b3d66ed3438.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/gilgamesh_armor_chestplate.png"
+dest_files=["res://.godot/imported/gilgamesh_armor_chestplate.png-19be01275b39620a31b79b3d66ed3438.ctex"]
 
 [params]
 

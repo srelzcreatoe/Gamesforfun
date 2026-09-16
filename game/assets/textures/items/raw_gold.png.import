@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bk5dha1bqr878"
+path="res://.godot/imported/raw_gold.png-5ef574da6090862c52a84ebde88cd880.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/raw_gold.png"
+dest_files=["res://.godot/imported/raw_gold.png-5ef574da6090862c52a84ebde88cd880.ctex"]
 
 [params]
 

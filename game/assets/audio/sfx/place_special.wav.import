@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://dynxjn4uiv8lv"
+path="res://.godot/imported/place_special.wav-082231d8351959e98ce572a7796e3bcb.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/place_special.wav"
+dest_files=["res://.godot/imported/place_special.wav-082231d8351959e98ce572a7796e3bcb.sample"]
 
 [params]
 

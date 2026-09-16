@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c1a7sjpeioke0"
+path="res://.godot/imported/patreon_logo.png-cfa309d1811a9564d06cc6378e394659.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/mc/title/patreon_logo.png"
+dest_files=["res://.godot/imported/patreon_logo.png-cfa309d1811a9564d06cc6378e394659.ctex"]
 
 [params]
 

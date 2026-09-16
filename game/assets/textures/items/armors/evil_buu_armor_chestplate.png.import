@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cbrbuop6bi6iy"
+path="res://.godot/imported/evil_buu_armor_chestplate.png-ff3db0556e27f293a5b911419c291db7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/evil_buu_armor_chestplate.png"
+dest_files=["res://.godot/imported/evil_buu_armor_chestplate.png-ff3db0556e27f293a5b911419c291db7.ctex"]
 
 [params]
 

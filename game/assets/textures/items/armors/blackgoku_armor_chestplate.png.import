@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b7ntvjgj3rbhx"
+path="res://.godot/imported/blackgoku_armor_chestplate.png-3e319cc74b1185aaf1668455cb2ce04a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/blackgoku_armor_chestplate.png"
+dest_files=["res://.godot/imported/blackgoku_armor_chestplate.png-3e319cc74b1185aaf1668455cb2ce04a.ctex"]
 
 [params]
 

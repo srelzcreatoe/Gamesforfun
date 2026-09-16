@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://1sekj3fmewpg"
+path="res://.godot/imported/sp_dragonfist.png-03474abe92ed12b5c6511a40c07b5025.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/skills/sp_dragonfist.png"
+dest_files=["res://.godot/imported/sp_dragonfist.png-03474abe92ed12b5c6511a40c07b5025.ctex"]
 
 [params]
 

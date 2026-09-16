@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ceclaesj1xbih"
+path="res://.godot/imported/Particle02.png-23d5ac3bfc613df6893aed98ad2bab13.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/explosion/01_NextSoft01/Particle02.png"
+dest_files=["res://.godot/imported/Particle02.png-23d5ac3bfc613df6893aed98ad2bab13.ctex"]
 
 [params]
 

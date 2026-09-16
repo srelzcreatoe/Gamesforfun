@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bq6enkaavsmhv"
+path="res://.godot/imported/planet_fireball.png-95a7d9f6d78fc549cc8b66a102c74784.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/planet_fireball.png"
+dest_files=["res://.godot/imported/planet_fireball.png-95a7d9f6d78fc549cc8b66a102c74784.ctex"]
 
 [params]
 

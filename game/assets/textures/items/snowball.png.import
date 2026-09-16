@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cf22kv1jdjfog"
+path="res://.godot/imported/snowball.png-8612aa4dd60b1a0b9a3da4bb902e6534.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/snowball.png"
+dest_files=["res://.godot/imported/snowball.png-8612aa4dd60b1a0b9a3da4bb902e6534.ctex"]
 
 [params]
 

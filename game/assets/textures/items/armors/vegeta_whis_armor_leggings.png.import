@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://5uh74yq72uui"
+path="res://.godot/imported/vegeta_whis_armor_leggings.png-06eddbb0af9d4469871e6853d697ec7c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/vegeta_whis_armor_leggings.png"
+dest_files=["res://.godot/imported/vegeta_whis_armor_leggings.png-06eddbb0af9d4469871e6853d697ec7c.ctex"]
 
 [params]
 

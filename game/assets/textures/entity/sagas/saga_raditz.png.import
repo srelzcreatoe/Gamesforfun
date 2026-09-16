@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dlffkyba6o7cq"
+path="res://.godot/imported/saga_raditz.png-238e49ae2069cd516100f7af37bb22e7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_raditz.png"
+dest_files=["res://.godot/imported/saga_raditz.png-238e49ae2069cd516100f7af37bb22e7.ctex"]
 
 [params]
 

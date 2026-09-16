@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://725qydebilqy"
+path="res://.godot/imported/bioandroid_passive.png-3a1b8b70e6f638292cf35d0466529cbb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/hd/bioandroid_passive.png"
+dest_files=["res://.godot/imported/bioandroid_passive.png-3a1b8b70e6f638292cf35d0466529cbb.ctex"]
 
 [params]
 

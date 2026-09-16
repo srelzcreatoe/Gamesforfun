@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b3o68vorpyh0q"
+path="res://.godot/imported/grass_side_snowed.png-f085b45b86a665b9b2474de4f06d4c14.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/grass_side_snowed.png"
+dest_files=["res://.godot/imported/grass_side_snowed.png-f085b45b86a665b9b2474de4f06d4c14.ctex"]
 
 [params]
 

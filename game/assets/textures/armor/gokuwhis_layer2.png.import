@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c5jgv3q5favpy"
+path="res://.godot/imported/gokuwhis_layer2.png-3216b7d83487d3be43669b91e9cc2cc5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/gokuwhis_layer2.png"
+dest_files=["res://.godot/imported/gokuwhis_layer2.png-3216b7d83487d3be43669b91e9cc2cc5.ctex"]
 
 [params]
 

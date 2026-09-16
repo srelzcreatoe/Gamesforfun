@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://jcpe5fj4qo2m"
+path="res://.godot/imported/kefla_armor_boots.png-5ac821e336b7b0588ddc8ab76face2a2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/kefla_armor_boots.png"
+dest_files=["res://.godot/imported/kefla_armor_boots.png-5ac821e336b7b0588ddc8ab76face2a2.ctex"]
 
 [params]
 

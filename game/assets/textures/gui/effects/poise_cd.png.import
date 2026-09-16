@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cdvpkscuuo8xo"
+path="res://.godot/imported/poise_cd.png-38d08d6f28a1b504969e12a4a30964f1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/poise_cd.png"
+dest_files=["res://.godot/imported/poise_cd.png-38d08d6f28a1b504969e12a4a30964f1.ctex"]
 
 [params]
 

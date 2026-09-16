@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://dukdro3hwi1n7"
+path="res://.godot/imported/step_glass_1.wav-dfc164fa15047a97e27a45f5b45596d7.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/step_glass_1.wav"
+dest_files=["res://.godot/imported/step_glass_1.wav-dfc164fa15047a97e27a45f5b45596d7.sample"]
 
 [params]
 

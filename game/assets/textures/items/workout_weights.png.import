@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ka63g4bj4hod"
+path="res://.godot/imported/workout_weights.png-c703e24abb54a40ccb2d2a05078a2014.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/workout_weights.png"
+dest_files=["res://.godot/imported/workout_weights.png-c703e24abb54a40ccb2d2a05078a2014.ctex"]
 
 [params]
 

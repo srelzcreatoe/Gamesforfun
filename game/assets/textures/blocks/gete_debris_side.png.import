@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bs4g62d8yrnff"
+path="res://.godot/imported/gete_debris_side.png-66e5da040ab60ab093854ebbece83336.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/gete_debris_side.png"
+dest_files=["res://.godot/imported/gete_debris_side.png-66e5da040ab60ab093854ebbece83336.ctex"]
 
 [params]
 

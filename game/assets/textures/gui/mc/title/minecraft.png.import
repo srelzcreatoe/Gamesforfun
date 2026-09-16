@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cyptbbu4qc5oe"
+path="res://.godot/imported/minecraft.png-7475cbe84790315da289eb9a91bb5434.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/mc/title/minecraft.png"
+dest_files=["res://.godot/imported/minecraft.png-7475cbe84790315da289eb9a91bb5434.ctex"]
 
 [params]
 

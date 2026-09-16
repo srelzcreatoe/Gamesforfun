@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ctgyecjfwbplt"
+path="res://.godot/imported/flower_tulip_red3.png-5a6edbf86655fb638d5c5eade699bb72.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/flower_tulip_red3.png"
+dest_files=["res://.godot/imported/flower_tulip_red3.png-5a6edbf86655fb638d5c5eade699bb72.ctex"]
 
 [params]
 

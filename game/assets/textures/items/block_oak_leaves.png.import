@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cyyj0cnpc75br"
+path="res://.godot/imported/block_oak_leaves.png-b3139fb81430622e2545f97c37d44f13.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_oak_leaves.png"
+dest_files=["res://.godot/imported/block_oak_leaves.png-b3139fb81430622e2545f97c37d44f13.ctex"]
 
 [params]
 

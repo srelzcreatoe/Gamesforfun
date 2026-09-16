@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://gvspted8sjk3"
+path="res://.godot/imported/vegeta_saiyan_armor_chestplate.png-5e9a38d4fade6e0726a2853c4f8bb029.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/vegeta_saiyan_armor_chestplate.png"
+dest_files=["res://.godot/imported/vegeta_saiyan_armor_chestplate.png-5e9a38d4fade6e0726a2853c4f8bb029.ctex"]
 
 [params]
 

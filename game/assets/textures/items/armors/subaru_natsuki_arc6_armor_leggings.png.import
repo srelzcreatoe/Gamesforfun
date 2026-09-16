@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c7o4jluv61nyc"
+path="res://.godot/imported/subaru_natsuki_arc6_armor_leggings.png-d73bcabebc15709500d21f61aa22d488.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/subaru_natsuki_arc6_armor_leggings.png"
+dest_files=["res://.godot/imported/subaru_natsuki_arc6_armor_leggings.png-d73bcabebc15709500d21f61aa22d488.ctex"]
 
 [params]
 

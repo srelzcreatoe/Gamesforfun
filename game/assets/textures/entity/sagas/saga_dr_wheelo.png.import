@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d3jp6qoljeiuv"
+path="res://.godot/imported/saga_dr_wheelo.png-0a40988861761201aff0d48d664a7f2a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_dr_wheelo.png"
+dest_files=["res://.godot/imported/saga_dr_wheelo.png-0a40988861761201aff0d48d664a7f2a.ctex"]
 
 [params]
 

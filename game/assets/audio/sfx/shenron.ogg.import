@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://cajae8wjocsc"
+path="res://.godot/imported/shenron.ogg-e21a2ee8d8fb6a5278b172691a0fc2a1.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/shenron.ogg"
+dest_files=["res://.godot/imported/shenron.ogg-e21a2ee8d8fb6a5278b172691a0fc2a1.oggvorbisstr"]
 
 [params]
 

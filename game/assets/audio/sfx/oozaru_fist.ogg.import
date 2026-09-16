@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://dwhqk0ffjdqam"
+path="res://.godot/imported/oozaru_fist.ogg-e34fc71b75f1ebae93381f56381c34d5.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/oozaru_fist.ogg"
+dest_files=["res://.godot/imported/oozaru_fist.ogg-e34fc71b75f1ebae93381f56381c34d5.oggvorbisstr"]
 
 [params]
 

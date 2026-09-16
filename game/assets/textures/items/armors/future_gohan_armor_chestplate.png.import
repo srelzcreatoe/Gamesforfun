@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://brt7peyny6v1w"
+path="res://.godot/imported/future_gohan_armor_chestplate.png-0da51c519a46f9cd03aa6a61d5da504c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/future_gohan_armor_chestplate.png"
+dest_files=["res://.godot/imported/future_gohan_armor_chestplate.png-0da51c519a46f9cd03aa6a61d5da504c.ctex"]
 
 [params]
 

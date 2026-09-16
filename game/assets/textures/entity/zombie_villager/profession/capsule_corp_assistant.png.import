@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c0xi58i0p2w56"
+path="res://.godot/imported/capsule_corp_assistant.png-af7ba299b44e976322687790503ed3f7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/zombie_villager/profession/capsule_corp_assistant.png"
+dest_files=["res://.godot/imported/capsule_corp_assistant.png-af7ba299b44e976322687790503ed3f7.ctex"]
 
 [params]
 

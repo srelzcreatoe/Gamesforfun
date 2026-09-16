@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bprmy5ba3swgw"
+path="res://.godot/imported/space_suit_leggings.png-18e8cc072cb956ff42c37a31488b0c13.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/space_suit_leggings.png"
+dest_files=["res://.godot/imported/space_suit_leggings.png-18e8cc072cb956ff42c37a31488b0c13.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ce1sry57nmupp"
+path="res://.godot/imported/spacepod.png-57eba9e242ec3e73760ab22bbe20fb48.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/spacepod.png"
+dest_files=["res://.godot/imported/spacepod.png-57eba9e242ec3e73760ab22bbe20fb48.ctex"]
 
 [params]
 

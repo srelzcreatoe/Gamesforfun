@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://mmth0jkbpq7e"
+path="res://.godot/imported/stone_pickaxe.png-a757001b3252c70117612b0e5476941d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/stone_pickaxe.png"
+dest_files=["res://.godot/imported/stone_pickaxe.png-a757001b3252c70117612b0e5476941d.ctex"]
 
 [params]
 

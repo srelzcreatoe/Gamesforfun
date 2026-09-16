@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bo2trdw3nx7cx"
+path="res://.godot/imported/pattern_shin.png-c532185bb61d75ce614d71d84f8e125b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_shin.png"
+dest_files=["res://.godot/imported/pattern_shin.png-c532185bb61d75ce614d71d84f8e125b.ctex"]
 
 [params]
 

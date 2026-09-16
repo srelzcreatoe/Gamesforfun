@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://dtvym1qek7wu8"
+path="res://.godot/imported/break_sand.wav-b4ac9488ba19c97bcaa1792660664c77.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/break_sand.wav"
+dest_files=["res://.godot/imported/break_sand.wav-b4ac9488ba19c97bcaa1792660664c77.sample"]
 
 [params]
 

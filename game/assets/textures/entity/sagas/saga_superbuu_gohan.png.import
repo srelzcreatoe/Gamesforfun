@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cjeibxvxwq1s5"
+path="res://.godot/imported/saga_superbuu_gohan.png-c43328e7f2fdab2791170d6e846cb27e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_superbuu_gohan.png"
+dest_files=["res://.godot/imported/saga_superbuu_gohan.png-c43328e7f2fdab2791170d6e846cb27e.ctex"]
 
 [params]
 

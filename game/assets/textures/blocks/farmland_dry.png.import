@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cwuqcgpqncxv2"
+path="res://.godot/imported/farmland_dry.png-666752205c27c8d7584e433515fbf4a2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/farmland_dry.png"
+dest_files=["res://.godot/imported/farmland_dry.png-666752205c27c8d7584e433515fbf4a2.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://12wteh3wkih1"
+path="res://.godot/imported/saga_trunks_ssj.png-61677238bd2b80a0585c8f5157362928.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_trunks_ssj.png"
+dest_files=["res://.godot/imported/saga_trunks_ssj.png-61677238bd2b80a0585c8f5157362928.ctex"]
 
 [params]
 

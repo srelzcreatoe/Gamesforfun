@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bbhp2vv2wu5t1"
+path="res://.godot/imported/great_saiyaman_armor_leggings.png-af14897b09ae8fb2a1481b93f531cb2a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/great_saiyaman_armor_leggings.png"
+dest_files=["res://.godot/imported/great_saiyaman_armor_leggings.png-af14897b09ae8fb2a1481b93f531cb2a.ctex"]
 
 [params]
 

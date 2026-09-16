@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bhrdbdutkkcji"
+path="res://.godot/imported/puddle.png-80496ea0df5ec5918a386e3c9dc9f2ee.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/puddle.png"
+dest_files=["res://.godot/imported/puddle.png-80496ea0df5ec5918a386e3c9dc9f2ee.ctex"]
 
 [params]
 

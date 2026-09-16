@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bugiepo8svdpm"
+path="res://.godot/imported/pattern_king_vegeta.png-60ea193ed56b201d65119f3b92177fc7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_king_vegeta.png"
+dest_files=["res://.godot/imported/pattern_king_vegeta.png-60ea193ed56b201d65119f3b92177fc7.ctex"]
 
 [params]
 

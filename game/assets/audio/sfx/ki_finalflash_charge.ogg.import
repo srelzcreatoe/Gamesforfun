@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://crwpu1wn4c64o"
+path="res://.godot/imported/ki_finalflash_charge.ogg-d993d6ba2d8068f2a8f28341ac1ffb0c.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/ki_finalflash_charge.ogg"
+dest_files=["res://.godot/imported/ki_finalflash_charge.ogg-d993d6ba2d8068f2a8f28341ac1ffb0c.oggvorbisstr"]
 
 [params]
 

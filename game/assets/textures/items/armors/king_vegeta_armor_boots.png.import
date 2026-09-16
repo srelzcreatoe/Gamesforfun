@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://djfym6jhuqxnh"
+path="res://.godot/imported/king_vegeta_armor_boots.png-2e59bbad861bdc9c3613f045e7becb8a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/king_vegeta_armor_boots.png"
+dest_files=["res://.godot/imported/king_vegeta_armor_boots.png-2e59bbad861bdc9c3613f045e7becb8a.ctex"]
 
 [params]
 

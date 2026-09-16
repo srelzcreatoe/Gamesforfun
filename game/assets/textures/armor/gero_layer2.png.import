@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bwvsfihfh8dtn"
+path="res://.godot/imported/gero_layer2.png-a21c095996b047380d690363fc1fa8ae.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/gero_layer2.png"
+dest_files=["res://.godot/imported/gero_layer2.png-a21c095996b047380d690363fc1fa8ae.ctex"]
 
 [params]
 

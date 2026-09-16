@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bh77mehi7wpr3"
+path="res://.godot/imported/ajissa_leaves_0.png-0a4c890e5782089bef9d769a321a9e88.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/ajissa_leaves_0.png"
+dest_files=["res://.godot/imported/ajissa_leaves_0.png-0a4c890e5782089bef9d769a321a9e88.ctex"]
 
 [params]
 

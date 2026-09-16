@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bu20hf3q02wa3"
+path="res://.godot/imported/ki_line.png-af3f10a34690e21eeb6300c1010a1355.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/ki_line.png"
+dest_files=["res://.godot/imported/ki_line.png-af3f10a34690e21eeb6300c1010a1355.ctex"]
 
 [params]
 

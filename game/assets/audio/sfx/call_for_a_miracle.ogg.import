@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://dojcq8vhfrev2"
+path="res://.godot/imported/call_for_a_miracle.ogg-bd425d93c4d4b2849653818099a1d62f.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/call_for_a_miracle.ogg"
+dest_files=["res://.godot/imported/call_for_a_miracle.ogg-bd425d93c4d4b2849653818099a1d62f.oggvorbisstr"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://35fqaovxncoo"
+path="res://.godot/imported/flying_nimbus.png-72dc69e250233bfd6d4d80233e2efe10.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/flying_nimbus.png"
+dest_files=["res://.godot/imported/flying_nimbus.png-72dc69e250233bfd6d4d80233e2efe10.ctex"]
 
 [params]
 

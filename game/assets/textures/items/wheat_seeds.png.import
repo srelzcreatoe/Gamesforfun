@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://fyb8vkwpwfwm"
+path="res://.godot/imported/wheat_seeds.png-2ad52fe800f91929451bba3a75355663.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/wheat_seeds.png"
+dest_files=["res://.godot/imported/wheat_seeds.png-2ad52fe800f91929451bba3a75355663.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bf5y8h8ie4i3p"
+path="res://.godot/imported/lock_on.png-4c1705fe6a85c055d315e0b7bc07b3fd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/lock_on.png"
+dest_files=["res://.godot/imported/lock_on.png-4c1705fe6a85c055d315e0b7bc07b3fd.ctex"]
 
 [params]
 

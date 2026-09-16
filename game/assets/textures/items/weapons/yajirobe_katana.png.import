@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bx4wdy6nea2ah"
+path="res://.godot/imported/yajirobe_katana.png-6f50a33312219bec32d557469c6a8e19.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/weapons/yajirobe_katana.png"
+dest_files=["res://.godot/imported/yajirobe_katana.png-6f50a33312219bec32d557469c6a8e19.ctex"]
 
 [params]
 

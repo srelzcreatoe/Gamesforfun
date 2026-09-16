@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bh77thddd3xdb"
+path="res://.godot/imported/divine_particle_2.png-2fead790321f6a0dda77bc456a2af4e7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/divine_particle_2.png"
+dest_files=["res://.godot/imported/divine_particle_2.png-2fead790321f6a0dda77bc456a2af4e7.ctex"]
 
 [params]
 

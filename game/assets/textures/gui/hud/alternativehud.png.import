@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bd7em45m08t0t"
+path="res://.godot/imported/alternativehud.png-f0af99866e73d22683153a2d814dc175.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/hud/alternativehud.png"
+dest_files=["res://.godot/imported/alternativehud.png-f0af99866e73d22683153a2d814dc175.ctex"]
 
 [params]
 

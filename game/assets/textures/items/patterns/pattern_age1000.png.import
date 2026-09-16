@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://8261h2pm8dw4"
+path="res://.godot/imported/pattern_age1000.png-3756571c70d51187416e24a0de3a78bf.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_age1000.png"
+dest_files=["res://.godot/imported/pattern_age1000.png-3756571c70d51187416e24a0de3a78bf.ctex"]
 
 [params]
 

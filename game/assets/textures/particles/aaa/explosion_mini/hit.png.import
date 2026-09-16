@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://4tg8fud2kcxd"
+path="res://.godot/imported/hit.png-91fdf2568f2c1d99ce243a047e8a0fe4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/explosion_mini/hit.png"
+dest_files=["res://.godot/imported/hit.png-91fdf2568f2c1d99ce243a047e8a0fe4.ctex"]
 
 [params]
 

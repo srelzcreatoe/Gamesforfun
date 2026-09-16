@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bbxhyx50ddivn"
+path="res://.godot/imported/sacred_chrysanthemum_flower.png-21710f4841aecfabdea3c6f1d01ba0c2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/sacred_chrysanthemum_flower.png"
+dest_files=["res://.godot/imported/sacred_chrysanthemum_flower.png-21710f4841aecfabdea3c6f1d01ba0c2.ctex"]
 
 [params]
 

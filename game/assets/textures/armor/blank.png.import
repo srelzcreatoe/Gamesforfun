@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c7307kc1u47p"
+path="res://.godot/imported/blank.png-51c8c22b83b2f13cda8b506ee59282fb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/blank.png"
+dest_files=["res://.godot/imported/blank.png-51c8c22b83b2f13cda8b506ee59282fb.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ccj8pfxxp8cat"
+path="res://.godot/imported/minceraft.png-fe6ed7f8e12aa147e124347a789c5761.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/mc/title/minceraft.png"
+dest_files=["res://.godot/imported/minceraft.png-fe6ed7f8e12aa147e124347a789c5761.ctex"]
 
 [params]
 

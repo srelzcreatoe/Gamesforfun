@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://biigr8qr4ef1b"
+path="res://.godot/imported/teleport_cd.png-73cfd5f8f4a2d5827cdf713b81fe18bb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/teleport_cd.png"
+dest_files=["res://.godot/imported/teleport_cd.png-73cfd5f8f4a2d5827cdf713b81fe18bb.ctex"]
 
 [params]
 

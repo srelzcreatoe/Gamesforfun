@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cqkqkjtvsjvkg"
+path="res://.godot/imported/movement.png-1fc7691c7c750628fc74fab4bab0ea28.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/radial/movement.png"
+dest_files=["res://.godot/imported/movement.png-1fc7691c7c750628fc74fab4bab0ea28.ctex"]
 
 [params]
 

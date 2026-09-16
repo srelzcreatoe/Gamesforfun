@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dosccw4eamlyi"
+path="res://.godot/imported/capsule_corp_layer1.png-7cd91a9be76db1c0df3e118a4244f4ae.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/capsule_corp_layer1.png"
+dest_files=["res://.godot/imported/capsule_corp_layer1.png-7cd91a9be76db1c0df3e118a4244f4ae.ctex"]
 
 [params]
 

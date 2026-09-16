@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://2yo3shv3m0p5"
+path="res://.godot/imported/saiyan_passive.png-8d662cb403ff2c592c4d90d3015fdae7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/saiyan_passive.png"
+dest_files=["res://.godot/imported/saiyan_passive.png-8d662cb403ff2c592c4d90d3015fdae7.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://2pyrr5xdtel3"
+path="res://.godot/imported/kikono_stick.png-974895bac7a34735525896cfdbbb157d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/kikono_stick.png"
+dest_files=["res://.godot/imported/kikono_stick.png-974895bac7a34735525896cfdbbb157d.ctex"]
 
 [params]
 

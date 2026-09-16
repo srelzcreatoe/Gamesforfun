@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c6w4qhp63tror"
+path="res://.godot/imported/dball4_namek.png-61e812cac5b4d96163d5ac9b60ca64fe.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/dball4_namek.png"
+dest_files=["res://.godot/imported/dball4_namek.png-61e812cac5b4d96163d5ac9b60ca64fe.ctex"]
 
 [params]
 

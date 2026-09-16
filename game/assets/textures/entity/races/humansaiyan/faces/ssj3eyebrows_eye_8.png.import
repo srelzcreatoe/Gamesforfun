@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b6r12gxnarmd4"
+path="res://.godot/imported/ssj3eyebrows_eye_8.png-3218627a2bdd5801eda93b6b25f31e3d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/humansaiyan/faces/ssj3eyebrows_eye_8.png"
+dest_files=["res://.godot/imported/ssj3eyebrows_eye_8.png-3218627a2bdd5801eda93b6b25f31e3d.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cc2sta81m1jg6"
+path="res://.godot/imported/piccolo_gi_layer2.png-d6afc2f6cc50aa3e39128919ca18d94a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/piccolo_gi_layer2.png"
+dest_files=["res://.godot/imported/piccolo_gi_layer2.png-d6afc2f6cc50aa3e39128919ca18d94a.ctex"]
 
 [params]
 

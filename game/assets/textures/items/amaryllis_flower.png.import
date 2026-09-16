@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dx5lmtl7hdec4"
+path="res://.godot/imported/amaryllis_flower.png-0c0993c6415166b89d846b9311cf57e2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/amaryllis_flower.png"
+dest_files=["res://.godot/imported/amaryllis_flower.png-0c0993c6415166b89d846b9311cf57e2.ctex"]
 
 [params]
 

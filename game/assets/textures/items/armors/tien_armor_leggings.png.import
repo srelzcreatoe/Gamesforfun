@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c04brs5eu4ffp"
+path="res://.godot/imported/tien_armor_leggings.png-30da944bc9ad6070a8d51bdcedc86810.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/tien_armor_leggings.png"
+dest_files=["res://.godot/imported/tien_armor_leggings.png-30da944bc9ad6070a8d51bdcedc86810.ctex"]
 
 [params]
 

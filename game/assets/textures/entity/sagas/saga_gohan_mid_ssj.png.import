@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cnvfub8xcrdas"
+path="res://.godot/imported/saga_gohan_mid_ssj.png-b453fd5838fd9fb8238b0b27953a684f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_gohan_mid_ssj.png"
+dest_files=["res://.godot/imported/saga_gohan_mid_ssj.png-b453fd5838fd9fb8238b0b27953a684f.ctex"]
 
 [params]
 

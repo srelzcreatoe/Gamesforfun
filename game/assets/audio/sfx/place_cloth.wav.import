@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://7rsw06uu7v23"
+path="res://.godot/imported/place_cloth.wav-8429a3f6334cf784e9e96b54286cfca8.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/place_cloth.wav"
+dest_files=["res://.godot/imported/place_cloth.wav-8429a3f6334cf784e9e96b54286cfca8.sample"]
 
 [params]
 

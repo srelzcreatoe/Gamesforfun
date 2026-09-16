@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dq11p7gu7pfpf"
+path="res://.godot/imported/gero_armor_chestplate.png-5308fd7cfb3e5ec825c640e69cb37dfa.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/gero_armor_chestplate.png"
+dest_files=["res://.godot/imported/gero_armor_chestplate.png-5308fd7cfb3e5ec825c640e69cb37dfa.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d4d1c1hucwe05"
+path="res://.godot/imported/kaioken.png-3992c5c400e4e5ac3d2ac237334732c1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/radial/kaioken.png"
+dest_files=["res://.godot/imported/kaioken.png-3992c5c400e4e5ac3d2ac237334732c1.ctex"]
 
 [params]
 

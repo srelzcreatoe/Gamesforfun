@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bh7g3rmuftk5m"
+path="res://.godot/imported/glass_blue.png-54e079380fae779c1fe91dadca7bd26b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/glass_blue.png"
+dest_files=["res://.godot/imported/glass_blue.png-54e079380fae779c1fe91dadca7bd26b.ctex"]
 
 [params]
 

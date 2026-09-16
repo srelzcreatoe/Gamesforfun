@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bf3cxvlmtrp7e"
+path="res://.godot/imported/gogeta_armor_chestplate.png-33eeca972f0590b5ed983031bfc7608f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/gogeta_armor_chestplate.png"
+dest_files=["res://.godot/imported/gogeta_armor_chestplate.png-33eeca972f0590b5ed983031bfc7608f.ctex"]
 
 [params]
 

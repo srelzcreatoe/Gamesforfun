@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dcv3mnnjoji2p"
+path="res://.godot/imported/dark_oak_planks.png-fd0297e6b7accc993aa2a99540c66637.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/dark_oak_planks.png"
+dest_files=["res://.godot/imported/dark_oak_planks.png-fd0297e6b7accc993aa2a99540c66637.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cqxdvm2juulf"
+path="res://.godot/imported/music_disc_dmz.png-5c1f8d78c88dda4c701f37b7cb8ad195.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/music_disc_dmz.png"
+dest_files=["res://.godot/imported/music_disc_dmz.png-5c1f8d78c88dda4c701f37b7cb8ad195.ctex"]
 
 [params]
 

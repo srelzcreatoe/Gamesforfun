@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cd4jtmdkylkha"
+path="res://.godot/imported/pattern_goten.png-b487aea043728a62fa2f17686d496c09.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_goten.png"
+dest_files=["res://.godot/imported/pattern_goten.png-b487aea043728a62fa2f17686d496c09.ctex"]
 
 [params]
 

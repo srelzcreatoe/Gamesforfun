@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://0s4rndam6se6"
+path="res://.godot/imported/rapier_stab.ogg-94010aa2613e290f7e388622cccb60ae.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/rapier_stab.ogg"
+dest_files=["res://.godot/imported/rapier_stab.ogg-94010aa2613e290f7e388622cccb60ae.oggvorbisstr"]
 
 [params]
 

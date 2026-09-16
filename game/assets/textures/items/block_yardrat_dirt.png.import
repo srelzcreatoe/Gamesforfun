@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cen6hbis4ghg0"
+path="res://.godot/imported/block_yardrat_dirt.png-ca4e2035836b60cc8e9757a8abd6ccdc.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_yardrat_dirt.png"
+dest_files=["res://.godot/imported/block_yardrat_dirt.png-ca4e2035836b60cc8e9757a8abd6ccdc.ctex"]
 
 [params]
 

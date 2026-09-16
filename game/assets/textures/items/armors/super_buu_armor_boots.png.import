@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bur8ctcj8b80p"
+path="res://.godot/imported/super_buu_armor_boots.png-c3dddfb5f93d57e3642e67bd0a1ff1db.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/super_buu_armor_boots.png"
+dest_files=["res://.godot/imported/super_buu_armor_boots.png-c3dddfb5f93d57e3642e67bd0a1ff1db.ctex"]
 
 [params]
 

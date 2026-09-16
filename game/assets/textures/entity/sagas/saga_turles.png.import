@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://btkiddqiycai5"
+path="res://.godot/imported/saga_turles.png-c29d04048c359a51ee6dea21ece55589.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_turles.png"
+dest_files=["res://.godot/imported/saga_turles.png-c29d04048c359a51ee6dea21ece55589.ctex"]
 
 [params]
 

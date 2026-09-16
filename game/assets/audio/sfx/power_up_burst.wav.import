@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://ddsvqlsfgevko"
+path="res://.godot/imported/power_up_burst.wav-2dcbf9af39f796fc14b3ff1cd431fe6f.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/power_up_burst.wav"
+dest_files=["res://.godot/imported/power_up_burst.wav-2dcbf9af39f796fc14b3ff1cd431fe6f.sample"]
 
 [params]
 

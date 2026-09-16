@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://bwwpumdpr3v04"
+path="res://.godot/imported/ambience_wind.wav-430b962103a7049046f6c34feae60ae0.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/ambience_wind.wav"
+dest_files=["res://.godot/imported/ambience_wind.wav-430b962103a7049046f6c34feae60ae0.sample"]
 
 [params]
 

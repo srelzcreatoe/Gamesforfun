@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c57dl38jos83l"
+path="res://.godot/imported/Circle14.png-e8d3df9399e7fa14aec456ed47f2e673.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/essentials/Circle14.png"
+dest_files=["res://.godot/imported/Circle14.png-e8d3df9399e7fa14aec456ed47f2e673.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dkdjbb1xvp0ro"
+path="res://.godot/imported/saga_nappa2.png-4ae850098f5f7682bb184168621de6ad.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_nappa2.png"
+dest_files=["res://.godot/imported/saga_nappa2.png-4ae850098f5f7682bb184168621de6ad.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cqnxhaa5pivcg"
+path="res://.godot/imported/tail1.png-8e7b3d2a78973710f9348557d382daa6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/tail1.png"
+dest_files=["res://.godot/imported/tail1.png-8e7b3d2a78973710f9348557d382daa6.ctex"]
 
 [params]
 

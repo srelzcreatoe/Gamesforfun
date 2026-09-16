@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c8xyk8jevwt62"
+path="res://.godot/imported/menubuttons.png-406870ab40ea496e8b6e5f9e1abca6a3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/buttons/menubuttons.png"
+dest_files=["res://.godot/imported/menubuttons.png-406870ab40ea496e8b6e5f9e1abca6a3.ctex"]
 
 [params]
 

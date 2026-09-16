@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://eamt18c6dwx6"
+path="res://.godot/imported/flower_allium2.png-18904748892e3fc8d2ff18b74ae54cef.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/flower_allium2.png"
+dest_files=["res://.godot/imported/flower_allium2.png-18904748892e3fc8d2ff18b74ae54cef.ctex"]
 
 [params]
 

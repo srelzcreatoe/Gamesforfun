@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dm8hcwucm7j3"
+path="res://.godot/imported/saga_buufat.png-8adeb96597155581caaa99a077663911.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_buufat.png"
+dest_files=["res://.godot/imported/saga_buufat.png-8adeb96597155581caaa99a077663911.ctex"]
 
 [params]
 

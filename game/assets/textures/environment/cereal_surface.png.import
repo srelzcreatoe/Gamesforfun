@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cdvaqfninw25v"
+path="res://.godot/imported/cereal_surface.png-7ee0a8abcc302f422a9c477dbd66758b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/cereal_surface.png"
+dest_files=["res://.godot/imported/cereal_surface.png-7ee0a8abcc302f422a9c477dbd66758b.ctex"]
 
 [params]
 

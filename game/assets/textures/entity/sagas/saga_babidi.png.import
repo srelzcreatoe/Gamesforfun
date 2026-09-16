@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://wqmdj16bjlyl"
+path="res://.godot/imported/saga_babidi.png-fee3b7d539bdd916d0c80602e0c2430c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_babidi.png"
+dest_files=["res://.godot/imported/saga_babidi.png-fee3b7d539bdd916d0c80602e0c2430c.ctex"]
 
 [params]
 

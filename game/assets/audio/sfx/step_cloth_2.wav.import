@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://bh1hben05x6fv"
+path="res://.godot/imported/step_cloth_2.wav-2603c7b485b8f947f05cc85e538089e0.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/step_cloth_2.wav"
+dest_files=["res://.godot/imported/step_cloth_2.wav-2603c7b485b8f947f05cc85e538089e0.sample"]
 
 [params]
 

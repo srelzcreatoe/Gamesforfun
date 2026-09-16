@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cvhjxuljyfj2s"
+path="res://.godot/imported/crack_3.png-c098149b6b87065104c41bb65506e936.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/misc/crack_3.png"
+dest_files=["res://.godot/imported/crack_3.png-c098149b6b87065104c41bb65506e936.ctex"]
 
 [params]
 

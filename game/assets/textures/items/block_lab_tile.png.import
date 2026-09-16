@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b640wg57fqetx"
+path="res://.godot/imported/block_lab_tile.png-c2a0203d09bb751f5308fbfd32d74a5c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_lab_tile.png"
+dest_files=["res://.godot/imported/block_lab_tile.png-c2a0203d09bb751f5308fbfd32d74a5c.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cleet0d7ofc25"
+path="res://.godot/imported/gas_armor_boots.png-4ccc09c3b4b6893ea3e9a975e4e388cf.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/gas_armor_boots.png"
+dest_files=["res://.godot/imported/gas_armor_boots.png-4ccc09c3b4b6893ea3e9a975e4e388cf.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bcq62435t37dy"
+path="res://.godot/imported/saga_piccolo.png-9b9742ae40ca47a9e95de46ba4d30486.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_piccolo.png"
+dest_files=["res://.godot/imported/saga_piccolo.png-9b9742ae40ca47a9e95de46ba4d30486.ctex"]
 
 [params]
 

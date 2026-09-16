@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dotoe52u8rss2"
+path="res://.godot/imported/Fire.png-05843d88c5ca635ba81833531bef8efe.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/lightning/Fire.png"
+dest_files=["res://.godot/imported/Fire.png-05843d88c5ca635ba81833531bef8efe.ctex"]
 
 [params]
 

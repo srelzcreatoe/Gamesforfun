@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dyt4fdpj32dq"
+path="res://.godot/imported/icon_bg_432.png-f05a39d61a9454f5b042131c25a5ff62.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/misc/icon_bg_432.png"
+dest_files=["res://.godot/imported/icon_bg_432.png-f05a39d61a9454f5b042131c25a5ff62.ctex"]
 
 [params]
 

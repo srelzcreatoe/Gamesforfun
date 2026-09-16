@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cwxhh0h1b2vno"
+path="res://.godot/imported/namekian_panorama_3.png-f6af80b4161293a8f114db08770738ae.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/background/namekian_panorama_3.png"
+dest_files=["res://.godot/imported/namekian_panorama_3.png-f6af80b4161293a8f114db08770738ae.ctex"]
 
 [params]
 

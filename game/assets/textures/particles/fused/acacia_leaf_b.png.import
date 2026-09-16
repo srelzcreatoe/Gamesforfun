@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://caio41ml340xu"
+path="res://.godot/imported/acacia_leaf_b.png-b08ac343aa928b321fd847e089e67e32.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/acacia_leaf_b.png"
+dest_files=["res://.godot/imported/acacia_leaf_b.png-b08ac343aa928b321fd847e089e67e32.ctex"]
 
 [params]
 

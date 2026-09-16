@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bdkhc716gsxb8"
+path="res://.godot/imported/pattern_piccolo.png-e948898885780ff989af45c9a26d4bb6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_piccolo.png"
+dest_files=["res://.godot/imported/pattern_piccolo.png-e948898885780ff989af45c9a26d4bb6.ctex"]
 
 [params]
 

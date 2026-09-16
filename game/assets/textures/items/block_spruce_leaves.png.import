@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c0u7xbbimjdum"
+path="res://.godot/imported/block_spruce_leaves.png-78896e0d778910a8c6f7a58056835d5b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_spruce_leaves.png"
+dest_files=["res://.godot/imported/block_spruce_leaves.png-78896e0d778910a8c6f7a58056835d5b.ctex"]
 
 [params]
 

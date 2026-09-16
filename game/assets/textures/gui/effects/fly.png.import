@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bq6g2uswd3ifj"
+path="res://.godot/imported/fly.png-5c187fb388a551427925b09b26ba6988.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/fly.png"
+dest_files=["res://.godot/imported/fly.png-5c187fb388a551427925b09b26ba6988.ctex"]
 
 [params]
 

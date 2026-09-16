@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://rrayu6ehurvi"
+path="res://.godot/imported/king_vegeta_armor_chestplate.png-4161608646222c8ac508303b5d48e4b2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/king_vegeta_armor_chestplate.png"
+dest_files=["res://.godot/imported/king_vegeta_armor_chestplate.png-4161608646222c8ac508303b5d48e4b2.ctex"]
 
 [params]
 

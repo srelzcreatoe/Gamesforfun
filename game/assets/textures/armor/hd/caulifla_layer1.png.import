@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d4au23onoyse8"
+path="res://.godot/imported/caulifla_layer1.png-b5b5f71190962626609e9511b44fd447.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/caulifla_layer1.png"
+dest_files=["res://.godot/imported/caulifla_layer1.png-b5b5f71190962626609e9511b44fd447.ctex"]
 
 [params]
 

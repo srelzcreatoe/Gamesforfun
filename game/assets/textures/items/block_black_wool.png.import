@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cmnwapjwxtgb4"
+path="res://.godot/imported/block_black_wool.png-4e7bd602c2bdb1555ef66640faaa76e8.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_black_wool.png"
+dest_files=["res://.godot/imported/block_black_wool.png-4e7bd602c2bdb1555ef66640faaa76e8.ctex"]
 
 [params]
 

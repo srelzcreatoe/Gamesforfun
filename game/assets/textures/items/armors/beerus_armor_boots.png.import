@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c4e3lrmlny2ja"
+path="res://.godot/imported/beerus_armor_boots.png-2d054c9f0642acbec98ef23b5275e9d0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/beerus_armor_boots.png"
+dest_files=["res://.godot/imported/beerus_armor_boots.png-2d054c9f0642acbec98ef23b5275e9d0.ctex"]
 
 [params]
 

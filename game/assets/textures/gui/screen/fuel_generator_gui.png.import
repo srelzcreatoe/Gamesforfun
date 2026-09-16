@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ca5j34lcl3sjv"
+path="res://.godot/imported/fuel_generator_gui.png-b996efaecfb2ad9cec9a62885c3c4aa1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/screen/fuel_generator_gui.png"
+dest_files=["res://.godot/imported/fuel_generator_gui.png-b996efaecfb2ad9cec9a62885c3c4aa1.ctex"]
 
 [params]
 

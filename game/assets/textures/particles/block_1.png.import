@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cvc75rbg3fdrv"
+path="res://.godot/imported/block_1.png-41dcf4eed08008afabaf3e43720a4905.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/block_1.png"
+dest_files=["res://.godot/imported/block_1.png-41dcf4eed08008afabaf3e43720a4905.ctex"]
 
 [params]
 

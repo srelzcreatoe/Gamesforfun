@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bp8jn0iywfgeo"
+path="res://.godot/imported/azalea_leaf_b.png-a9a0123f81aed7d487eefb6f1cc2f4e2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/azalea_leaf_b.png"
+dest_files=["res://.godot/imported/azalea_leaf_b.png-a9a0123f81aed7d487eefb6f1cc2f4e2.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d0saxg3tu6cxo"
+path="res://.godot/imported/mighty_majin_armor_leggings.png-3e609157bbecff95e3631887a627a60e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/mighty_majin_armor_leggings.png"
+dest_files=["res://.godot/imported/mighty_majin_armor_leggings.png-3e609157bbecff95e3631887a627a60e.ctex"]
 
 [params]
 

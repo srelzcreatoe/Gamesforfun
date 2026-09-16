@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dulnmtyf5w5vc"
+path="res://.godot/imported/shadow_dummy.png-5e44260943cc78e367ab275e6e5a5d21.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/shadow_dummy.png"
+dest_files=["res://.godot/imported/shadow_dummy.png-5e44260943cc78e367ab275e6e5a5d21.ctex"]
 
 [params]
 

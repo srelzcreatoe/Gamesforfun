@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://dfirue1aroo30"
+path="res://.godot/imported/error.wav-f09c0c9f296fd0cebfcecee51866349f.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/error.wav"
+dest_files=["res://.godot/imported/error.wav-f09c0c9f296fd0cebfcecee51866349f.sample"]
 
 [params]
 

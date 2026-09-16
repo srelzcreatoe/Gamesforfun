@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dtf1hemkn505t"
+path="res://.godot/imported/trunks_kid_armor_chestplate.png-53a7e3e06aba111fa3e9f61ed0a32045.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/trunks_kid_armor_chestplate.png"
+dest_files=["res://.godot/imported/trunks_kid_armor_chestplate.png-53a7e3e06aba111fa3e9f61ed0a32045.ctex"]
 
 [params]
 

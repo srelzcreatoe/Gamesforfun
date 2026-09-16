@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b6vq3pd2kjg3g"
+path="res://.godot/imported/block_sacred_log.png-b4a1fa2405d25e0c86334360049b329f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_sacred_log.png"
+dest_files=["res://.godot/imported/block_sacred_log.png-b4a1fa2405d25e0c86334360049b329f.ctex"]
 
 [params]
 

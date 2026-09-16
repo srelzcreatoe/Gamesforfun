@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c8chm51ck2ej0"
+path="res://.godot/imported/block_potatoes.png-da13bcdd98556e7b6b7302ed1bfaf24e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_potatoes.png"
+dest_files=["res://.godot/imported/block_potatoes.png-da13bcdd98556e7b6b7302ed1bfaf24e.ctex"]
 
 [params]
 

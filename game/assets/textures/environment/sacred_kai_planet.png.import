@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://crq6vegjagiol"
+path="res://.godot/imported/sacred_kai_planet.png-33b66c862f9503db377cd143dc9d2792.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/sacred_kai_planet.png"
+dest_files=["res://.godot/imported/sacred_kai_planet.png-33b66c862f9503db377cd143dc9d2792.ctex"]
 
 [params]
 

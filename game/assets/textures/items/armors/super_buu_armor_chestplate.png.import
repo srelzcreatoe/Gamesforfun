@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dv0qx4tcg56dx"
+path="res://.godot/imported/super_buu_armor_chestplate.png-61c8725b2675af95b42c4b0cb8b8c722.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/super_buu_armor_chestplate.png"
+dest_files=["res://.godot/imported/super_buu_armor_chestplate.png-61c8725b2675af95b42c4b0cb8b8c722.ctex"]
 
 [params]
 

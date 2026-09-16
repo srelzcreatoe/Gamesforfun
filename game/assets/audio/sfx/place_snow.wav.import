@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://dp5yw8g7q0cat"
+path="res://.godot/imported/place_snow.wav-92ef65b394a6a29c682eaf3b7b2b879f.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/place_snow.wav"
+dest_files=["res://.godot/imported/place_snow.wav-92ef65b394a6a29c682eaf3b7b2b879f.sample"]
 
 [params]
 

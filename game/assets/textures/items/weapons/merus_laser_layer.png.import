@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://yn3j61awtu3k"
+path="res://.godot/imported/merus_laser_layer.png-09093fb309d1b5762810db75dbfc1363.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/weapons/merus_laser_layer.png"
+dest_files=["res://.godot/imported/merus_laser_layer.png-09093fb309d1b5762810db75dbfc1363.ctex"]
 
 [params]
 

@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://7t8l321tvqm8"
+path="res://.godot/imported/zanzoken.ogg-fe894995f226566940705f06fe1fa365.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/zanzoken.ogg"
+dest_files=["res://.godot/imported/zanzoken.ogg-fe894995f226566940705f06fe1fa365.oggvorbisstr"]
 
 [params]
 

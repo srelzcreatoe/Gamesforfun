@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b7glljk13x625"
+path="res://.godot/imported/spark3.png-58fe112483655cc41188b44f3731d287.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/spark3.png"
+dest_files=["res://.godot/imported/spark3.png-58fe112483655cc41188b44f3731d287.ctex"]
 
 [params]
 

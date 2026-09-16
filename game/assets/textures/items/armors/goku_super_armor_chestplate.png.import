@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dsnrwuqudairu"
+path="res://.godot/imported/goku_super_armor_chestplate.png-84185ce6dc009957873a96eb39a5cfb1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/goku_super_armor_chestplate.png"
+dest_files=["res://.godot/imported/goku_super_armor_chestplate.png-84185ce6dc009957873a96eb39a5cfb1.ctex"]
 
 [params]
 

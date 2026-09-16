@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c3akw2jxbyvxj"
+path="res://.godot/imported/kikono_hoe.png-0ad9ceefe3eb6c8ac593e2fadb5171b7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/kikono_hoe.png"
+dest_files=["res://.godot/imported/kikono_hoe.png-0ad9ceefe3eb6c8ac593e2fadb5171b7.ctex"]
 
 [params]
 

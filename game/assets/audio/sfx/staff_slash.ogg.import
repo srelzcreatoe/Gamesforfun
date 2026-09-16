@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://ceh65bvl2ccf6"
+path="res://.godot/imported/staff_slash.ogg-c880c2c281a38083c9eb9999d806c703.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/staff_slash.ogg"
+dest_files=["res://.godot/imported/staff_slash.ogg-c880c2c281a38083c9eb9999d806c703.oggvorbisstr"]
 
 [params]
 

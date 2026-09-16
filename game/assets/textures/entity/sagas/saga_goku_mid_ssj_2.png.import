@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bbrtwmxgdoehu"
+path="res://.godot/imported/saga_goku_mid_ssj_2.png-112e7a5fa121d531aeb2d402e839155d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_goku_mid_ssj_2.png"
+dest_files=["res://.godot/imported/saga_goku_mid_ssj_2.png-112e7a5fa121d531aeb2d402e839155d.ctex"]
 
 [params]
 

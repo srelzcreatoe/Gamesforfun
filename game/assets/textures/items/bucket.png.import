@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dilgwije25n5"
+path="res://.godot/imported/bucket.png-414438566d723ddad2c56bb8cf958dff.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/bucket.png"
+dest_files=["res://.godot/imported/bucket.png-414438566d723ddad2c56bb8cf958dff.ctex"]
 
 [params]
 

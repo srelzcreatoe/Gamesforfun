@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cc5rrgmis2xsa"
+path="res://.godot/imported/Thunder_Thin.png-681d76f075f24e81f8ba6f6436b46e66.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/lightning/Thunder_Thin.png"
+dest_files=["res://.godot/imported/Thunder_Thin.png-681d76f075f24e81f8ba6f6436b46e66.ctex"]
 
 [params]
 

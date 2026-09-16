@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://1yb3bvelmnty"
+path="res://.godot/imported/dragon_clan_armor_boots.png-ebbe4e75df6956f52dffce2f6f766d34.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/dragon_clan_armor_boots.png"
+dest_files=["res://.godot/imported/dragon_clan_armor_boots.png-ebbe4e75df6956f52dffce2f6f766d34.ctex"]
 
 [params]
 

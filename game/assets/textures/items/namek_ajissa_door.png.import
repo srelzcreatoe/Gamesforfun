@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c4ati2oqv44sd"
+path="res://.godot/imported/namek_ajissa_door.png-550aba58018e37b2babb6ccd960d177b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/namek_ajissa_door.png"
+dest_files=["res://.godot/imported/namek_ajissa_door.png-550aba58018e37b2babb6ccd960d177b.ctex"]
 
 [params]
 

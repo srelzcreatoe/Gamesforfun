@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c1gfx3oj214c4"
+path="res://.godot/imported/pattern_a16.png-48a99d0caf47a006a7fcd9b274ed51b4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_a16.png"
+dest_files=["res://.godot/imported/pattern_a16.png-48a99d0caf47a006a7fcd9b274ed51b4.ctex"]
 
 [params]
 

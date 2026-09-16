@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bx140jb4psdn0"
+path="res://.godot/imported/t1_radar_cpu.png-913621134b74f6b0ab73f28c5f291855.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/t1_radar_cpu.png"
+dest_files=["res://.godot/imported/t1_radar_cpu.png-913621134b74f6b0ab73f28c5f291855.ctex"]
 
 [params]
 

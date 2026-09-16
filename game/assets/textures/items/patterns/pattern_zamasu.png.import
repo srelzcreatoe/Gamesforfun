@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ddh8xla0aymvr"
+path="res://.godot/imported/pattern_zamasu.png-617dc18188e76108a5395d0631ef7188.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_zamasu.png"
+dest_files=["res://.godot/imported/pattern_zamasu.png-617dc18188e76108a5395d0631ef7188.ctex"]
 
 [params]
 

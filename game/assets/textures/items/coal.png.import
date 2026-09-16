@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c2nu4k81bp7pu"
+path="res://.godot/imported/coal.png-3ca102424e44bf31a04e2f764fce6e36.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/coal.png"
+dest_files=["res://.godot/imported/coal.png-3ca102424e44bf31a04e2f764fce6e36.ctex"]
 
 [params]
 

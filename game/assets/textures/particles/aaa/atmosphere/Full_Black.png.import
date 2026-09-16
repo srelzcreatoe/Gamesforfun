@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b4vtpyqvurnn6"
+path="res://.godot/imported/Full_Black.png-fbc00c53ba6d143f14ca856a60d5828b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/atmosphere/Full_Black.png"
+dest_files=["res://.godot/imported/Full_Black.png-fbc00c53ba6d143f14ca856a60d5828b.ctex"]
 
 [params]
 

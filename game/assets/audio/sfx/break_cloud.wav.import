@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://ibv42n8gppfn"
+path="res://.godot/imported/break_cloud.wav-d6f0d40d323c449235ab4b24570c1a94.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/break_cloud.wav"
+dest_files=["res://.godot/imported/break_cloud.wav-d6f0d40d323c449235ab4b24570c1a94.sample"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dnkh8e4baonr1"
+path="res://.godot/imported/SMOKE004.png-8e582a66935cd36578abc50c4b982943.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/essentials/SMOKE004.png"
+dest_files=["res://.godot/imported/SMOKE004.png-8e582a66935cd36578abc50c4b982943.ctex"]
 
 [params]
 

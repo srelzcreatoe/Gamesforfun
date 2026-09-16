@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b0lnj4v2m3lhc"
+path="res://.godot/imported/piccolo_armor_leggings.png-4760865639f43b6c154649a1e958b309.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/piccolo_armor_leggings.png"
+dest_files=["res://.godot/imported/piccolo_armor_leggings.png-4760865639f43b6c154649a1e958b309.ctex"]
 
 [params]
 

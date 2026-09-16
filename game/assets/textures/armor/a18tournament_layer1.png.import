@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c2p5bvqbednlu"
+path="res://.godot/imported/a18tournament_layer1.png-32b6829a29eeaeb0516bfa7a2074baf5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/a18tournament_layer1.png"
+dest_files=["res://.godot/imported/a18tournament_layer1.png-32b6829a29eeaeb0516bfa7a2074baf5.ctex"]
 
 [params]
 

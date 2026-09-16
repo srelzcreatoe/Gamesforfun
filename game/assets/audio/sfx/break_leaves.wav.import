@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://cfhfn1sno02o3"
+path="res://.godot/imported/break_leaves.wav-fb680b4e47fef11ec738620a5faa9852.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/break_leaves.wav"
+dest_files=["res://.godot/imported/break_leaves.wav-fb680b4e47fef11ec738620a5faa9852.sample"]
 
 [params]
 

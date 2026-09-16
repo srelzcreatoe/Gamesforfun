@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://mjdbrpfisqxd"
+path="res://.godot/imported/block_ladder.png-938bc1527d6529c9348e6f9101e4253c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_ladder.png"
+dest_files=["res://.godot/imported/block_ladder.png-938bc1527d6529c9348e6f9101e4253c.ctex"]
 
 [params]
 

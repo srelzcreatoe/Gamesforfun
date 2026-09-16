@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cjibs86kvepia"
+path="res://.godot/imported/block_ajissa_sapling.png-81e1d398ecd723e19258adc2909088ae.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_ajissa_sapling.png"
+dest_files=["res://.godot/imported/block_ajissa_sapling.png-81e1d398ecd723e19258adc2909088ae.ctex"]
 
 [params]
 

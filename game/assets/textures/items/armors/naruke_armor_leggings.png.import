@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://co0r3c0blxaog"
+path="res://.godot/imported/naruke_armor_leggings.png-639e476d43b97ff0c8a0e74f4e0dea48.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/naruke_armor_leggings.png"
+dest_files=["res://.godot/imported/naruke_armor_leggings.png-639e476d43b97ff0c8a0e74f4e0dea48.ctex"]
 
 [params]
 

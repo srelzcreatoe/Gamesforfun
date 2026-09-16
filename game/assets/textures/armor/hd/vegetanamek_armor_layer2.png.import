@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cptc0a2ng2v4w"
+path="res://.godot/imported/vegetanamek_armor_layer2.png-7992e9678ad62be96a9e029984bb7b8a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/vegetanamek_armor_layer2.png"
+dest_files=["res://.godot/imported/vegetanamek_armor_layer2.png-7992e9678ad62be96a9e029984bb7b8a.ctex"]
 
 [params]
 

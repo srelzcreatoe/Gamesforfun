@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://7dgqew4v8wpg"
+path="res://.godot/imported/frogsound1.ogg-66cc224eccdc4052999bcb6ec1243e19.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/frogsound1.ogg"
+dest_files=["res://.godot/imported/frogsound1.ogg-66cc224eccdc4052999bcb6ec1243e19.oggvorbisstr"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ne3xak6bjwwm"
+path="res://.godot/imported/iron_hoe.png-9106dce0801aeba06cde0dc9a9bf86b1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/iron_hoe.png"
+dest_files=["res://.godot/imported/iron_hoe.png-9106dce0801aeba06cde0dc9a9bf86b1.ctex"]
 
 [params]
 

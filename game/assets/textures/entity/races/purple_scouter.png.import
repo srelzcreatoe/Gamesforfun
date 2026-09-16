@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bdx5sa7ifpdsk"
+path="res://.godot/imported/purple_scouter.png-0aa2dc7392733cfbe7d305d1b6b63fbe.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/purple_scouter.png"
+dest_files=["res://.godot/imported/purple_scouter.png-0aa2dc7392733cfbe7d305d1b6b63fbe.ctex"]
 
 [params]
 

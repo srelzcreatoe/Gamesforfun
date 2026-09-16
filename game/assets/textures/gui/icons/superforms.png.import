@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ntkvjp0eydux"
+path="res://.godot/imported/superforms.png-95b5e3496ed7565f814438c283121464.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/icons/superforms.png"
+dest_files=["res://.godot/imported/superforms.png-95b5e3496ed7565f814438c283121464.ctex"]
 
 [params]
 

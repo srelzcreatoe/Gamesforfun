@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cf05eo3vgjj7o"
+path="res://.godot/imported/gravity_device_top.png-dcb61362c4bd1bac4ed9c62beacce88d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/gravity_device_top.png"
+dest_files=["res://.godot/imported/gravity_device_top.png-dcb61362c4bd1bac4ed9c62beacce88d.ctex"]
 
 [params]
 

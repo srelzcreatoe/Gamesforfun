@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://c2eyap2r6l06t"
+path="res://.godot/imported/step_stone_0.wav-002e7ed1964bc3a0e24ab89429d171fd.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/step_stone_0.wav"
+dest_files=["res://.godot/imported/step_stone_0.wav-002e7ed1964bc3a0e24ab89429d171fd.sample"]
 
 [params]
 

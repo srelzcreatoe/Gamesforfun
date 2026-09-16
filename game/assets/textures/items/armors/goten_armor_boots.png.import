@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://j16ftgm8d24q"
+path="res://.godot/imported/goten_armor_boots.png-2d3bf914904950024d0c4f531330bdc6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/goten_armor_boots.png"
+dest_files=["res://.godot/imported/goten_armor_boots.png-2d3bf914904950024d0c4f531330bdc6.ctex"]
 
 [params]
 

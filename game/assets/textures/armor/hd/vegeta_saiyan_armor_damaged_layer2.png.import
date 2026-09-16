@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://qbrtpin4ckcv"
+path="res://.godot/imported/vegeta_saiyan_armor_damaged_layer2.png-93f5f48ba8942b0dd5e0c4d47045c85a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/vegeta_saiyan_armor_damaged_layer2.png"
+dest_files=["res://.godot/imported/vegeta_saiyan_armor_damaged_layer2.png-93f5f48ba8942b0dd5e0c4d47045c85a.ctex"]
 
 [params]
 

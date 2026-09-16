@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bfb0hdhpcup4y"
+path="res://.godot/imported/birch_leaves.png-c98c123151447c30e5951ceed83be691.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/birch_leaves.png"
+dest_files=["res://.godot/imported/birch_leaves.png-c98c123151447c30e5951ceed83be691.ctex"]
 
 [params]
 

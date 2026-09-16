@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dv0w1whppgns1"
+path="res://.godot/imported/kicharge_hud.png-9483509150593a0b47a0d957e8e34bc3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/hud/kicharge_hud.png"
+dest_files=["res://.godot/imported/kicharge_hud.png-9483509150593a0b47a0d957e8e34bc3.ctex"]
 
 [params]
 

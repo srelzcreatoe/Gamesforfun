@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://csqftpg84x0w0"
+path="res://.godot/imported/gine_layer1.png-53f61c09813609911210bc07aac7eed4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/gine_layer1.png"
+dest_files=["res://.godot/imported/gine_layer1.png-53f61c09813609911210bc07aac7eed4.ctex"]
 
 [params]
 

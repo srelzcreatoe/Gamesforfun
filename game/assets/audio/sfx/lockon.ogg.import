@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://ddu4beq2xmmq1"
+path="res://.godot/imported/lockon.ogg-a24e36e32b89c0f7116075530805a570.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/lockon.ogg"
+dest_files=["res://.godot/imported/lockon.ogg-a24e36e32b89c0f7116075530805a570.oggvorbisstr"]
 
 [params]
 

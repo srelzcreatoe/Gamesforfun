@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://io4t7x1favop"
+path="res://.godot/imported/birch_leaf_b.png-7f04caf1b8de5ff8d7ffa216bdd5065e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/birch_leaf_b.png"
+dest_files=["res://.godot/imported/birch_leaf_b.png-7f04caf1b8de5ff8d7ffa216bdd5065e.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bj7dm2ojhkl0i"
+path="res://.godot/imported/block_quartz_block.png-b7e0b5631aaf273f8e6c7bf3cbb69fd2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_quartz_block.png"
+dest_files=["res://.godot/imported/block_quartz_block.png-b7e0b5631aaf273f8e6c7bf3cbb69fd2.ctex"]
 
 [params]
 

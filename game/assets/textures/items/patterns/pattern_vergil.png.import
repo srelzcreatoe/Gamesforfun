@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://qv3tlegvonel"
+path="res://.godot/imported/pattern_vergil.png-8e5ea27c5921f2a182fc31a75ebacad6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_vergil.png"
+dest_files=["res://.godot/imported/pattern_vergil.png-8e5ea27c5921f2a182fc31a75ebacad6.ctex"]
 
 [params]
 

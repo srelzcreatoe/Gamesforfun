@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bi6dt0rx1r7cy"
+path="res://.godot/imported/trillium_flower.png-eb37104100c71a921759d0a9ecc6f7a1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/trillium_flower.png"
+dest_files=["res://.godot/imported/trillium_flower.png-eb37104100c71a921759d0a9ecc6f7a1.ctex"]
 
 [params]
 

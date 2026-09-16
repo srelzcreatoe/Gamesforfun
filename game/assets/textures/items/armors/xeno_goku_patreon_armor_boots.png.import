@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c361uykt8dmlt"
+path="res://.godot/imported/xeno_goku_patreon_armor_boots.png-47994739a7340ce4c765d822137c8e8a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/xeno_goku_patreon_armor_boots.png"
+dest_files=["res://.godot/imported/xeno_goku_patreon_armor_boots.png-47994739a7340ce4c765d822137c8e8a.ctex"]
 
 [params]
 

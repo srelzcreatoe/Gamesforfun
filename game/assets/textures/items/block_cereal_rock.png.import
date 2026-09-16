@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bb88maiv7ecem"
+path="res://.godot/imported/block_cereal_rock.png-e2819fb76c315c2bd40ef303d00bf570.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_cereal_rock.png"
+dest_files=["res://.godot/imported/block_cereal_rock.png-e2819fb76c315c2bd40ef303d00bf570.ctex"]
 
 [params]
 

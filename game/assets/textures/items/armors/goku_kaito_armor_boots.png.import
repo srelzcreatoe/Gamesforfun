@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dxnyngjglpabs"
+path="res://.godot/imported/goku_kaito_armor_boots.png-e68cae41af1263557094d44e4b34cf79.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/goku_kaito_armor_boots.png"
+dest_files=["res://.godot/imported/goku_kaito_armor_boots.png-e68cae41af1263557094d44e4b34cf79.ctex"]
 
 [params]
 

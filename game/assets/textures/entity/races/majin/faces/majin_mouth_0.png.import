@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dcsj4sisuq1wv"
+path="res://.godot/imported/majin_mouth_0.png-ec1da66989bd5846178b32467fbea0cf.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/majin/faces/majin_mouth_0.png"
+dest_files=["res://.godot/imported/majin_mouth_0.png-ec1da66989bd5846178b32467fbea0cf.ctex"]
 
 [params]
 

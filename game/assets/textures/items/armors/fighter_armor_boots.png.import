@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://boniq6esk2jkr"
+path="res://.godot/imported/fighter_armor_boots.png-f1dabab12e7c66964ec7526603c66fe7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/fighter_armor_boots.png"
+dest_files=["res://.godot/imported/fighter_armor_boots.png-f1dabab12e7c66964ec7526603c66fe7.ctex"]
 
 [params]
 

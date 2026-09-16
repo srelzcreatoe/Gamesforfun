@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cuwrg63ltqqwb"
+path="res://.godot/imported/majin21_armor_leggings.png-ccc11df10e83e66441c812ce38bd4ffc.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/majin21_armor_leggings.png"
+dest_files=["res://.godot/imported/majin21_armor_leggings.png-ccc11df10e83e66441c812ce38bd4ffc.ctex"]
 
 [params]
 

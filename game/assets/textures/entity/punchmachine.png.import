@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cf2rghl50ar1n"
+path="res://.godot/imported/punchmachine.png-8ade2ba145207e106bfc9163ecdcb986.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/punchmachine.png"
+dest_files=["res://.godot/imported/punchmachine.png-8ade2ba145207e106bfc9163ecdcb986.ctex"]
 
 [params]
 

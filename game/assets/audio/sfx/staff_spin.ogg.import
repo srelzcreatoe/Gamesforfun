@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://b4oojk7es0swp"
+path="res://.godot/imported/staff_spin.ogg-2c8f1ac262a67277d32cd62df0ab8bac.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/staff_spin.ogg"
+dest_files=["res://.godot/imported/staff_spin.ogg-2c8f1ac262a67277d32cd62df0ab8bac.oggvorbisstr"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cqfvi05sn41u4"
+path="res://.godot/imported/saga_kibito.png-8099387c00c678839d13858d10dfdfac.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_kibito.png"
+dest_files=["res://.godot/imported/saga_kibito.png-8099387c00c678839d13858d10dfdfac.ctex"]
 
 [params]
 

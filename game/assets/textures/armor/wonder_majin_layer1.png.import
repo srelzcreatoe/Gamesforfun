@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ce7ctbcmywk2m"
+path="res://.godot/imported/wonder_majin_layer1.png-130fe6cf02b465c30f79f7ba07261b73.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/wonder_majin_layer1.png"
+dest_files=["res://.godot/imported/wonder_majin_layer1.png-130fe6cf02b465c30f79f7ba07261b73.ctex"]
 
 [params]
 

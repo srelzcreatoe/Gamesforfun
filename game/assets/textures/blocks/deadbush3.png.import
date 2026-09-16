@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c7vcl5x0j1uvy"
+path="res://.godot/imported/deadbush3.png-8bf7d78524368d7f626b3e884cc45c1a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/deadbush3.png"
+dest_files=["res://.godot/imported/deadbush3.png-8bf7d78524368d7f626b3e884cc45c1a.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d4it6isj5jcv8"
+path="res://.godot/imported/armor_crafting_kit.png-c09a173239c748b3c343434cfefab901.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armor_crafting_kit.png"
+dest_files=["res://.godot/imported/armor_crafting_kit.png-c09a173239c748b3c343434cfefab901.ctex"]
 
 [params]
 

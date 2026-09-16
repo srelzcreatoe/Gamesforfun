@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://jc6ellhtxv8b"
+path="res://.godot/imported/sacred_leaves_10.png-0875ae2c4af242c6b6740755934cbcb6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/sacred_leaves_10.png"
+dest_files=["res://.godot/imported/sacred_leaves_10.png-0875ae2c4af242c6b6740755934cbcb6.ctex"]
 
 [params]
 

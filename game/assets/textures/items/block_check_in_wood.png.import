@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cotmfxnxpl7gy"
+path="res://.godot/imported/block_check_in_wood.png-a7d19ce0178a3e0a6be530b0c3d9078d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_check_in_wood.png"
+dest_files=["res://.godot/imported/block_check_in_wood.png-a7d19ce0178a3e0a6be530b0c3d9078d.ctex"]
 
 [params]
 

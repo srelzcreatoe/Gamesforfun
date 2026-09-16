@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://cmlksjyxs6hf6"
+path="res://.godot/imported/namek_vill_death.ogg-dcbee24e127265b6aac8f9060dc08941.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/namek_vill_death.ogg"
+dest_files=["res://.godot/imported/namek_vill_death.ogg-dcbee24e127265b6aac8f9060dc08941.oggvorbisstr"]
 
 [params]
 

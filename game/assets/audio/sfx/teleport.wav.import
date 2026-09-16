@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://cgtbo0ko81dwg"
+path="res://.godot/imported/teleport.wav-1dafcd4ad225e54a79b784d6f167deab.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/teleport.wav"
+dest_files=["res://.godot/imported/teleport.wav-1dafcd4ad225e54a79b784d6f167deab.sample"]
 
 [params]
 

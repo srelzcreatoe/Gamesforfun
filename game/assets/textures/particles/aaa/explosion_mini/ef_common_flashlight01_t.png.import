@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d3moci2adwl2e"
+path="res://.godot/imported/ef_common_flashlight01_t.png-eb1697070e9d8890bd56aaab39619a89.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/explosion_mini/ef_common_flashlight01_t.png"
+dest_files=["res://.godot/imported/ef_common_flashlight01_t.png-eb1697070e9d8890bd56aaab39619a89.ctex"]
 
 [params]
 

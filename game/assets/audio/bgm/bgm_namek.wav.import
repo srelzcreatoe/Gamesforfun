@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://l8f64cn5gr5k"
+path="res://.godot/imported/bgm_namek.wav-da6d559dea3cbe82cb9c40a426e83d5c.sample"
 
 [deps]
 
 source_file="res://assets/audio/bgm/bgm_namek.wav"
+dest_files=["res://.godot/imported/bgm_namek.wav-da6d559dea3cbe82cb9c40a426e83d5c.sample"]
 
 [params]
 

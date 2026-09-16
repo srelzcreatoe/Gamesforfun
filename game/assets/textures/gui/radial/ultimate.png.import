@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bdis5e6kwhuu7"
+path="res://.godot/imported/ultimate.png-d267462d25ddea29d03c65a0985824b2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/radial/ultimate.png"
+dest_files=["res://.godot/imported/ultimate.png-d267462d25ddea29d03c65a0985824b2.ctex"]
 
 [params]
 

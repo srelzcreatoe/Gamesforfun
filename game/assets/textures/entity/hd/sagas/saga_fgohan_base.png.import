@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dj6l5gu7m4i82"
+path="res://.godot/imported/saga_fgohan_base.png-6be0601dbc7601f8a26e5657208b0bcf.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/sagas/saga_fgohan_base.png"
+dest_files=["res://.godot/imported/saga_fgohan_base.png-6be0601dbc7601f8a26e5657208b0bcf.ctex"]
 
 [params]
 

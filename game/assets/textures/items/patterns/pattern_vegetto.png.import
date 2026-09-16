@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bsjw6fs60luby"
+path="res://.godot/imported/pattern_vegetto.png-4ff7201a4e420c9e67fc969a1d6945c3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_vegetto.png"
+dest_files=["res://.godot/imported/pattern_vegetto.png-4ff7201a4e420c9e67fc969a1d6945c3.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bqgvoa7j1mikb"
+path="res://.godot/imported/saga_krillin_2.png-50931dfb0d96dc5e200a8e57a49666de.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_krillin_2.png"
+dest_files=["res://.godot/imported/saga_krillin_2.png-50931dfb0d96dc5e200a8e57a49666de.ctex"]
 
 [params]
 

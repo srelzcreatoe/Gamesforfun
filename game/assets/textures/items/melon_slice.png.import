@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://210hdf01p2uo"
+path="res://.godot/imported/melon_slice.png-8e6005a98aefdb2029da496d65e2716b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/melon_slice.png"
+dest_files=["res://.godot/imported/melon_slice.png-8e6005a98aefdb2029da496d65e2716b.ctex"]
 
 [params]
 

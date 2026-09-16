@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bjr5dlenkbgjr"
+path="res://.godot/imported/pattern_videl.png-ecbc55e6ffd408e4e43a9ea5e14d7b92.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_videl.png"
+dest_files=["res://.godot/imported/pattern_videl.png-ecbc55e6ffd408e4e43a9ea5e14d7b92.ctex"]
 
 [params]
 

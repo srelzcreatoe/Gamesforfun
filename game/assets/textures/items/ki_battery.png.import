@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bkqcgc0kv10w3"
+path="res://.godot/imported/ki_battery.png-d8a730648cf71656780e8f2cea9d6b5f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/ki_battery.png"
+dest_files=["res://.godot/imported/ki_battery.png-d8a730648cf71656780e8f2cea9d6b5f.ctex"]
 
 [params]
 

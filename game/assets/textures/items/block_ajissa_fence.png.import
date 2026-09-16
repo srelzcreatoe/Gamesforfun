@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d3mn0xvqk7pxd"
+path="res://.godot/imported/block_ajissa_fence.png-f1055c4f4ef56b496ce6013d4c0ddeb4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_ajissa_fence.png"
+dest_files=["res://.godot/imported/block_ajissa_fence.png-f1055c4f4ef56b496ce6013d4c0ddeb4.ctex"]
 
 [params]
 

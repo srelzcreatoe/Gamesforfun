@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cu654uv4sy6nw"
+path="res://.godot/imported/shin_armor_boots.png-5268ac1ed9696a13f67e33227841205a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/shin_armor_boots.png"
+dest_files=["res://.godot/imported/shin_armor_boots.png-5268ac1ed9696a13f67e33227841205a.ctex"]
 
 [params]
 

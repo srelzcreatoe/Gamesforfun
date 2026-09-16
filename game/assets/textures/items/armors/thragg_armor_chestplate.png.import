@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cd6n4f0c4m8xs"
+path="res://.godot/imported/thragg_armor_chestplate.png-963191e2b5c6977310ac74ff46ec2747.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/thragg_armor_chestplate.png"
+dest_files=["res://.godot/imported/thragg_armor_chestplate.png-963191e2b5c6977310ac74ff46ec2747.ctex"]
 
 [params]
 

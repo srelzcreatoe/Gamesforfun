@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://buta88adnga5j"
+path="res://.godot/imported/pattern_tien.png-10fa33afb2afa9a6e3fe1c76846372d4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_tien.png"
+dest_files=["res://.godot/imported/pattern_tien.png-10fa33afb2afa9a6e3fe1c76846372d4.ctex"]
 
 [params]
 

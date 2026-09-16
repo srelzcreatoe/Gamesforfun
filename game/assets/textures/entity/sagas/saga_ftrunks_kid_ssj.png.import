@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://videospu3eje"
+path="res://.godot/imported/saga_ftrunks_kid_ssj.png-2907c5e21c2b3a238134c80fcfe1332a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_ftrunks_kid_ssj.png"
+dest_files=["res://.godot/imported/saga_ftrunks_kid_ssj.png-2907c5e21c2b3a238134c80fcfe1332a.ctex"]
 
 [params]
 

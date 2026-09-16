@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cfs4v8x8ject0"
+path="res://.godot/imported/subaru_natsuki_arc6_armor_chestplate.png-5b4ec578a0a4d7b0c8fcb75ad3f4a9d4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/subaru_natsuki_arc6_armor_chestplate.png"
+dest_files=["res://.godot/imported/subaru_natsuki_arc6_armor_chestplate.png-5b4ec578a0a4d7b0c8fcb75ad3f4a9d4.ctex"]
 
 [params]
 

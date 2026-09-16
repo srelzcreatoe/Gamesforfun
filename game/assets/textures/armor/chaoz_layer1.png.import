@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bm5ddo6jpfsfe"
+path="res://.godot/imported/chaoz_layer1.png-c32f4b5e1b2b0d154db51a1421e8c390.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/chaoz_layer1.png"
+dest_files=["res://.godot/imported/chaoz_layer1.png-c32f4b5e1b2b0d154db51a1421e8c390.ctex"]
 
 [params]
 

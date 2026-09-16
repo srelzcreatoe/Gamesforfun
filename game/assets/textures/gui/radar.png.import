@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cjn06c5g4vtb8"
+path="res://.godot/imported/radar.png-fd114393427e6939b5ae4520a05020b1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/radar.png"
+dest_files=["res://.godot/imported/radar.png-fd114393427e6939b5ae4520a05020b1.ctex"]
 
 [params]
 

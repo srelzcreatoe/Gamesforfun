@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://gbncm6aaegqv"
+path="res://.godot/imported/kaioshin_layer1.png-22c4a810eefafffbd89a664bf35089f4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/kaioshin_layer1.png"
+dest_files=["res://.godot/imported/kaioshin_layer1.png-22c4a810eefafffbd89a664bf35089f4.ctex"]
 
 [params]
 

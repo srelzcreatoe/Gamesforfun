@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://clk425cd7x5f6"
+path="res://.godot/imported/vegeta.png-cf3813658e03278569fcbe5ccdf384d6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/vegeta.png"
+dest_files=["res://.godot/imported/vegeta.png-cf3813658e03278569fcbe5ccdf384d6.ctex"]
 
 [params]
 

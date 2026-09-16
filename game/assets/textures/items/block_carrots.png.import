@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bcq6qwmgmdosa"
+path="res://.godot/imported/block_carrots.png-f2928797025f0e3336a2b49af194cdad.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_carrots.png"
+dest_files=["res://.godot/imported/block_carrots.png-f2928797025f0e3336a2b49af194cdad.ctex"]
 
 [params]
 

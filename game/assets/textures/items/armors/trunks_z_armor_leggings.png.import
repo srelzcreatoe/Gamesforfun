@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bry36oyc4el63"
+path="res://.godot/imported/trunks_z_armor_leggings.png-68f82b29312d979ecb50766930515fe9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/trunks_z_armor_leggings.png"
+dest_files=["res://.godot/imported/trunks_z_armor_leggings.png-68f82b29312d979ecb50766930515fe9.ctex"]
 
 [params]
 

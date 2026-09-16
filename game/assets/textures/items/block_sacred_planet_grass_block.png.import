@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dimtt6daa7h5m"
+path="res://.godot/imported/block_sacred_planet_grass_block.png-7182c159670f4aab2b5dba1ebf1712e4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_sacred_planet_grass_block.png"
+dest_files=["res://.godot/imported/block_sacred_planet_grass_block.png-7182c159670f4aab2b5dba1ebf1712e4.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://5khtj5ijpgqc"
+path="res://.godot/imported/vegetto_layer2.png-c1e75afad49ed8aec8d73cf713fab7d3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/vegetto_layer2.png"
+dest_files=["res://.godot/imported/vegetto_layer2.png-c1e75afad49ed8aec8d73cf713fab7d3.ctex"]
 
 [params]
 

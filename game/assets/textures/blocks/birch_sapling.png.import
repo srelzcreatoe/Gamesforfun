@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://br047xnhopwff"
+path="res://.godot/imported/birch_sapling.png-24b4286456d3151e2e35805a965b0dc9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/birch_sapling.png"
+dest_files=["res://.godot/imported/birch_sapling.png-24b4286456d3151e2e35805a965b0dc9.ctex"]
 
 [params]
 

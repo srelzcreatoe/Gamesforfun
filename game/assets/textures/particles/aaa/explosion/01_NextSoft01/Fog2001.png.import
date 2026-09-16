@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bv6b4lskcl68c"
+path="res://.godot/imported/Fog2001.png-f1a96d595ef5591031d968d9d46e1524.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/explosion/01_NextSoft01/Fog2001.png"
+dest_files=["res://.godot/imported/Fog2001.png-f1a96d595ef5591031d968d9d46e1524.ctex"]
 
 [params]
 

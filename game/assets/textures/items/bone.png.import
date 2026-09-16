@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bbblwtaem64mg"
+path="res://.godot/imported/bone.png-981f264094d67e352de46ef17a6b6eb8.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/bone.png"
+dest_files=["res://.godot/imported/bone.png-981f264094d67e352de46ef17a6b6eb8.ctex"]
 
 [params]
 

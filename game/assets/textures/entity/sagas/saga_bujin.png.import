@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bdeptprki7ro6"
+path="res://.godot/imported/saga_bujin.png-a1c10c48fa45887175c9afa1cbda13e8.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_bujin.png"
+dest_files=["res://.godot/imported/saga_bujin.png-a1c10c48fa45887175c9afa1cbda13e8.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bjpe5s3xiorca"
+path="res://.godot/imported/halo_light.png-a38be8e67ac56310c5ca9444fa111be6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/halo_light.png"
+dest_files=["res://.godot/imported/halo_light.png-a38be8e67ac56310c5ca9444fa111be6.ctex"]
 
 [params]
 

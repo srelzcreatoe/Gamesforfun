@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dndjdf7mjfq2h"
+path="res://.godot/imported/blank_pattern_super.png-840acc9dc914ac58117e6700aeff34ca.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/blank_pattern_super.png"
+dest_files=["res://.godot/imported/blank_pattern_super.png-840acc9dc914ac58117e6700aeff34ca.ctex"]
 
 [params]
 

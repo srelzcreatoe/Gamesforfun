@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cjoth5rbjmv4k"
+path="res://.godot/imported/saga_vegetto_ssj.png-ebf01abf13856f3866919620556c41ef.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_vegetto_ssj.png"
+dest_files=["res://.godot/imported/saga_vegetto_ssj.png-ebf01abf13856f3866919620556c41ef.ctex"]
 
 [params]
 

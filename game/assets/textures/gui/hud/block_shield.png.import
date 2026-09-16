@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bw4206cw1t2l4"
+path="res://.godot/imported/block_shield.png-dc6e1fed2e5dd1f651020367d96b1f17.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/hud/block_shield.png"
+dest_files=["res://.godot/imported/block_shield.png-dc6e1fed2e5dd1f651020367d96b1f17.ctex"]
 
 [params]
 

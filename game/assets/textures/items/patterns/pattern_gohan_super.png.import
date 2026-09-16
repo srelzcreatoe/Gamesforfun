@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://in7cri34hipy"
+path="res://.godot/imported/pattern_gohan_super.png-0abd4285c7296eafe45f4fa74015209f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_gohan_super.png"
+dest_files=["res://.godot/imported/pattern_gohan_super.png-0abd4285c7296eafe45f4fa74015209f.ctex"]
 
 [params]
 

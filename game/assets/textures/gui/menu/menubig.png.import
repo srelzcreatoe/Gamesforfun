@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c2k8gydyg87ay"
+path="res://.godot/imported/menubig.png-2d18bf0a898ed74dcd3d84950c4f7499.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/menu/menubig.png"
+dest_files=["res://.godot/imported/menubig.png-2d18bf0a898ed74dcd3d84950c4f7499.ctex"]
 
 [params]
 

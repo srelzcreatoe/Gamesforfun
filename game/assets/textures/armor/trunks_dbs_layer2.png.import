@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d1c0uhxb3tbn7"
+path="res://.godot/imported/trunks_dbs_layer2.png-37b6a9685c4f99c3361545b38ecf8360.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/trunks_dbs_layer2.png"
+dest_files=["res://.godot/imported/trunks_dbs_layer2.png-37b6a9685c4f99c3361545b38ecf8360.ctex"]
 
 [params]
 

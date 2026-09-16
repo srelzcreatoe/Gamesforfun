@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cd87ruc1aoa8e"
+path="res://.godot/imported/raditz_armor_chestplate.png-04feca98556d99ff945b78c60eddbb0a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/raditz_armor_chestplate.png"
+dest_files=["res://.godot/imported/raditz_armor_chestplate.png-04feca98556d99ff945b78c60eddbb0a.ctex"]
 
 [params]
 

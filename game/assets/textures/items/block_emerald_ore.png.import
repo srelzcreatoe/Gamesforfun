@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dig5al6fni4ra"
+path="res://.godot/imported/block_emerald_ore.png-a2bcc1dd39f2ea44d0d754b1855c4f1d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_emerald_ore.png"
+dest_files=["res://.godot/imported/block_emerald_ore.png-a2bcc1dd39f2ea44d0d754b1855c4f1d.ctex"]
 
 [params]
 

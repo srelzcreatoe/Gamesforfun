@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dd6j1m2jnsvsy"
+path="res://.godot/imported/goten_super_armor_chestplate.png-6404bcf81581fadb76170bb3fd0e30df.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/goten_super_armor_chestplate.png"
+dest_files=["res://.godot/imported/goten_super_armor_chestplate.png-6404bcf81581fadb76170bb3fd0e30df.ctex"]
 
 [params]
 

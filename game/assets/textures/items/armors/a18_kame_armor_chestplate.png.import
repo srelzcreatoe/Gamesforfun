@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b1r7176k4u0fv"
+path="res://.godot/imported/a18_kame_armor_chestplate.png-69182e1bb98882e2001de90e06f700a9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/a18_kame_armor_chestplate.png"
+dest_files=["res://.godot/imported/a18_kame_armor_chestplate.png-69182e1bb98882e2001de90e06f700a9.ctex"]
 
 [params]
 

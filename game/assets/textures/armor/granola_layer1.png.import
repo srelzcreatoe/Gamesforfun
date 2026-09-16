@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bg0ask38yl765"
+path="res://.godot/imported/granola_layer1.png-141aeaf4c591be6f81cbea16ec6b48f4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/granola_layer1.png"
+dest_files=["res://.godot/imported/granola_layer1.png-141aeaf4c591be6f81cbea16ec6b48f4.ctex"]
 
 [params]
 

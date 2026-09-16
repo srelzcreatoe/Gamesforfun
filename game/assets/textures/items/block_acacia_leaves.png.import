@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dy2v70dw80m1i"
+path="res://.godot/imported/block_acacia_leaves.png-4801d0136e802a6728388c05f04c2090.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_acacia_leaves.png"
+dest_files=["res://.godot/imported/block_acacia_leaves.png-4801d0136e802a6728388c05f04c2090.ctex"]
 
 [params]
 

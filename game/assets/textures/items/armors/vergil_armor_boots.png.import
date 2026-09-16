@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://jorjgqdbhtos"
+path="res://.godot/imported/vergil_armor_boots.png-505f7e67529b4b6297b32ea9ec851f60.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/vergil_armor_boots.png"
+dest_files=["res://.godot/imported/vergil_armor_boots.png-505f7e67529b4b6297b32ea9ec851f60.ctex"]
 
 [params]
 

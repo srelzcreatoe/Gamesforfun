@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://dfjmwmaye18sb"
+path="res://.godot/imported/axe_slash.ogg-2e98127ae88b3c7a1add9612733d725d.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/axe_slash.ogg"
+dest_files=["res://.godot/imported/axe_slash.ogg-2e98127ae88b3c7a1add9612733d725d.oggvorbisstr"]
 
 [params]
 

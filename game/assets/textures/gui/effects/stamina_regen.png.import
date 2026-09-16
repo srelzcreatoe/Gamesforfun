@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://fmnqp75jdfnd"
+path="res://.godot/imported/stamina_regen.png-f5ee05252643c0e2b295b6d6878c4476.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/stamina_regen.png"
+dest_files=["res://.godot/imported/stamina_regen.png-f5ee05252643c0e2b295b6d6878c4476.ctex"]
 
 [params]
 

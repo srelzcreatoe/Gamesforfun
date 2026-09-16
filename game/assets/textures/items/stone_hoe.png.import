@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c0qnvu8ujkvmx"
+path="res://.godot/imported/stone_hoe.png-fd389854b209127c8e1961bb177bd105.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/stone_hoe.png"
+dest_files=["res://.godot/imported/stone_hoe.png-fd389854b209127c8e1961bb177bd105.ctex"]
 
 [params]
 

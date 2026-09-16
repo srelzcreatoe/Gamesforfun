@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bnpssr8opufpn"
+path="res://.godot/imported/saga_bulma.png-7c2f02d926b6916050785daf105d3557.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_bulma.png"
+dest_files=["res://.godot/imported/saga_bulma.png-7c2f02d926b6916050785daf105d3557.ctex"]
 
 [params]
 

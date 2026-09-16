@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bl4sve7swjdje"
+path="res://.godot/imported/Shockwave.png-003e55e1ddb6b775232bcadbd592e4c2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/lightning/Shockwave.png"
+dest_files=["res://.godot/imported/Shockwave.png-003e55e1ddb6b775232bcadbd592e4c2.ctex"]
 
 [params]
 

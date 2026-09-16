@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://wrw5n6evib6p"
+path="res://.godot/imported/fighter_layer2.png-84f29d5d5551dd05e6897cadb21c6ba8.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/fighter_layer2.png"
+dest_files=["res://.godot/imported/fighter_layer2.png-84f29d5d5551dd05e6897cadb21c6ba8.ctex"]
 
 [params]
 

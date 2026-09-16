@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://banfya4lmgd7k"
+path="res://.godot/imported/fzamasu_gi_layer2.png-3364ab9f9296d76f77beb110e1d083bb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/fzamasu_gi_layer2.png"
+dest_files=["res://.godot/imported/fzamasu_gi_layer2.png-3364ab9f9296d76f77beb110e1d083bb.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b0ixqf87jepca"
+path="res://.godot/imported/doubledash_cd.png-215990121103fbd57a730d98b7b6bb4c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/doubledash_cd.png"
+dest_files=["res://.godot/imported/doubledash_cd.png-215990121103fbd57a730d98b7b6bb4c.ctex"]
 
 [params]
 

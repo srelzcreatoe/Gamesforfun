@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b0nl5f4wd8862"
+path="res://.godot/imported/warrior_clan_armor_boots.png-a5685db659a00460e6b85a9d37f16db2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/warrior_clan_armor_boots.png"
+dest_files=["res://.godot/imported/warrior_clan_armor_boots.png-a5685db659a00460e6b85a9d37f16db2.ctex"]
 
 [params]
 

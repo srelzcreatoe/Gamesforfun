@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ilog0xof4anl"
+path="res://.godot/imported/saga_videl.png-40f0e1b1f27063dec500a46a6004f4e0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_videl.png"
+dest_files=["res://.godot/imported/saga_videl.png-40f0e1b1f27063dec500a46a6004f4e0.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://qmr7iwfmep83"
+path="res://.godot/imported/bookshelf3.png-489cce3de7237049455ee6be502a4899.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/bookshelf3.png"
+dest_files=["res://.godot/imported/bookshelf3.png-489cce3de7237049455ee6be502a4899.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cveeh2o76qifh"
+path="res://.godot/imported/pattern_future_gohan.png-68fb698f839bf9f779f59cb05fb51141.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_future_gohan.png"
+dest_files=["res://.godot/imported/pattern_future_gohan.png-68fb698f839bf9f779f59cb05fb51141.ctex"]
 
 [params]
 

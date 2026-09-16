@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://veis7ppfm5yx"
+path="res://.godot/imported/leaf_ripple.png-39b3005c3d751a32e6e3764e91b00dcc.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/leaf_ripple.png"
+dest_files=["res://.godot/imported/leaf_ripple.png-39b3005c3d751a32e6e3764e91b00dcc.ctex"]
 
 [params]
 

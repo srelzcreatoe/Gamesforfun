@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dbnikyplmissx"
+path="res://.godot/imported/saga_slug_giant.png-9106983e643c59a3aea729818a2335e8.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_slug_giant.png"
+dest_files=["res://.godot/imported/saga_slug_giant.png-9106983e643c59a3aea729818a2335e8.ctex"]
 
 [params]
 

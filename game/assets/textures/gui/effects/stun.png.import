@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bm5yskvyjpfdj"
+path="res://.godot/imported/stun.png-0180bd8cf6111eb9a0523d7e66821776.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/stun.png"
+dest_files=["res://.godot/imported/stun.png-0180bd8cf6111eb9a0523d7e66821776.ctex"]
 
 [params]
 

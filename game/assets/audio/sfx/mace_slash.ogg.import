@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://bu0bv60f7u3nk"
+path="res://.godot/imported/mace_slash.ogg-7fa393d095a9808b7dde1c56ec0d678d.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/mace_slash.ogg"
+dest_files=["res://.godot/imported/mace_slash.ogg-7fa393d095a9808b7dde1c56ec0d678d.oggvorbisstr"]
 
 [params]
 

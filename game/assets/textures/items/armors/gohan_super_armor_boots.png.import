@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://du41ylo6ag1g3"
+path="res://.godot/imported/gohan_super_armor_boots.png-b75586e0a7b47866e6caf4e257d9a088.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/gohan_super_armor_boots.png"
+dest_files=["res://.godot/imported/gohan_super_armor_boots.png-b75586e0a7b47866e6caf4e257d9a088.ctex"]
 
 [params]
 

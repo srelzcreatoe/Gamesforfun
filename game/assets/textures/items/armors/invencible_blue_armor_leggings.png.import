@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dwb1h0l1kbw60"
+path="res://.godot/imported/invencible_blue_armor_leggings.png-b16596c5169dd8bd408d5c2fa6826d98.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/invencible_blue_armor_leggings.png"
+dest_files=["res://.godot/imported/invencible_blue_armor_leggings.png-b16596c5169dd8bd408d5c2fa6826d98.ctex"]
 
 [params]
 

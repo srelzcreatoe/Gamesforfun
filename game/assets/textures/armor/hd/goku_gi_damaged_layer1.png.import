@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dbv8iyjl4rm50"
+path="res://.godot/imported/goku_gi_damaged_layer1.png-c2abfa0fa119495358e0e7257cf043d6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/goku_gi_damaged_layer1.png"
+dest_files=["res://.godot/imported/goku_gi_damaged_layer1.png-c2abfa0fa119495358e0e7257cf043d6.ctex"]
 
 [params]
 

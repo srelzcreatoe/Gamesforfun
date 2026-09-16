@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b4rripeauxp5e"
+path="res://.godot/imported/block_orange_wool.png-980ceabbef67b70eba0de864ccf727e8.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_orange_wool.png"
+dest_files=["res://.godot/imported/block_orange_wool.png-980ceabbef67b70eba0de864ccf727e8.ctex"]
 
 [params]
 

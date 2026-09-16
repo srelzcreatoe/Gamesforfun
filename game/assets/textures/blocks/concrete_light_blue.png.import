@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cya7kskuwtdym"
+path="res://.godot/imported/concrete_light_blue.png-5e5d7959357aa894315cca1aab85e647.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/concrete_light_blue.png"
+dest_files=["res://.godot/imported/concrete_light_blue.png-5e5d7959357aa894315cca1aab85e647.ctex"]
 
 [params]
 

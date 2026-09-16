@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dub4ihdjdofe0"
+path="res://.godot/imported/block_kikono_block.png-4b94eaa41179b6c569a76a8382c2d303.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_kikono_block.png"
+dest_files=["res://.godot/imported/block_kikono_block.png-4b94eaa41179b6c569a76a8382c2d303.ctex"]
 
 [params]
 

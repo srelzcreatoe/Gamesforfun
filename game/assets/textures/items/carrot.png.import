@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c34rcufu7qpwt"
+path="res://.godot/imported/carrot.png-7c02be307f250ec286224c24ec3a8f5c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/carrot.png"
+dest_files=["res://.godot/imported/carrot.png-7c02be307f250ec286224c24ec3a8f5c.ctex"]
 
 [params]
 

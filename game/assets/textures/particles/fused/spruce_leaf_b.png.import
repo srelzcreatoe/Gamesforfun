@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://u1uvbqe4j44a"
+path="res://.godot/imported/spruce_leaf_b.png-eb547ba1cc0be01621595c4dbd612fba.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/spruce_leaf_b.png"
+dest_files=["res://.godot/imported/spruce_leaf_b.png-eb547ba1cc0be01621595c4dbd612fba.ctex"]
 
 [params]
 

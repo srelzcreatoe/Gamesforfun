@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://glv81vv0anm2"
+path="res://.godot/imported/frieza_ship_hull.png-54a9453bd0ff4565df5ed1176afcf354.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/frieza_ship_hull.png"
+dest_files=["res://.godot/imported/frieza_ship_hull.png-54a9453bd0ff4565df5ed1176afcf354.ctex"]
 
 [params]
 

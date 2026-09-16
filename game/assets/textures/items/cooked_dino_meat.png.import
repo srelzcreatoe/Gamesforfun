@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cu84e74t4ao7a"
+path="res://.godot/imported/cooked_dino_meat.png-b0043d584cea710848b62914b0109e94.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/cooked_dino_meat.png"
+dest_files=["res://.godot/imported/cooked_dino_meat.png-b0043d584cea710848b62914b0109e94.ctex"]
 
 [params]
 

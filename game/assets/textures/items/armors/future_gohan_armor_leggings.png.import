@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cj8p3f464hchl"
+path="res://.godot/imported/future_gohan_armor_leggings.png-8c31eb345f39f848fa29ee9f20643b96.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/future_gohan_armor_leggings.png"
+dest_files=["res://.godot/imported/future_gohan_armor_leggings.png-8c31eb345f39f848fa29ee9f20643b96.ctex"]
 
 [params]
 

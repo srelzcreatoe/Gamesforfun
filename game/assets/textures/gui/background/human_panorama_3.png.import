@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cvqudqc2joivl"
+path="res://.godot/imported/human_panorama_3.png-ce64feb157c026b82e5c6395825c73ba.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/background/human_panorama_3.png"
+dest_files=["res://.godot/imported/human_panorama_3.png-ce64feb157c026b82e5c6395825c73ba.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://5dejkda1anxn"
+path="res://.godot/imported/sacred_catharanthus_roseus_flower.png-6457ea186fa560f171bd1764bb7c337f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/sacred_catharanthus_roseus_flower.png"
+dest_files=["res://.godot/imported/sacred_catharanthus_roseus_flower.png-6457ea186fa560f171bd1764bb7c337f.ctex"]
 
 [params]
 

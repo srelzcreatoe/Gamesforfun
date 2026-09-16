@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://veg8nbvbfogv"
+path="res://.godot/imported/vegeta_namek_armor_leggings.png-1f8d82268564fca94ba071afe8d2e544.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/vegeta_namek_armor_leggings.png"
+dest_files=["res://.godot/imported/vegeta_namek_armor_leggings.png-1f8d82268564fca94ba071afe8d2e544.ctex"]
 
 [params]
 

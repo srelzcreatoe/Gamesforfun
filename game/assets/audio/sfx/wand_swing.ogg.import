@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://brfg2jcl785nn"
+path="res://.godot/imported/wand_swing.ogg-4bca5f1a497c017dceedeca2969f2e64.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/wand_swing.ogg"
+dest_files=["res://.godot/imported/wand_swing.ogg-4bca5f1a497c017dceedeca2969f2e64.oggvorbisstr"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cth3kkpjo86v5"
+path="res://.godot/imported/kikono_axe.png-b1e48ecb6d2d3ef48b0305ce74fbe0b0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/kikono_axe.png"
+dest_files=["res://.godot/imported/kikono_axe.png-b1e48ecb6d2d3ef48b0305ce74fbe0b0.ctex"]
 
 [params]
 

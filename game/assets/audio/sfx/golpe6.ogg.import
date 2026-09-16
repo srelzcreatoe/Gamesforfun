@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://6twg8nf4moe4"
+path="res://.godot/imported/golpe6.ogg-4406b0ce1e52157dcef4caaf9e8e533f.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/golpe6.ogg"
+dest_files=["res://.godot/imported/golpe6.ogg-4406b0ce1e52157dcef4caaf9e8e533f.oggvorbisstr"]
 
 [params]
 

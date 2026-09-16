@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cia1l07svoyvm"
+path="res://.godot/imported/block_ajissa_planks.png-f3f9a9e09799adae7b24fcc1e42e931d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_ajissa_planks.png"
+dest_files=["res://.godot/imported/block_ajissa_planks.png-f3f9a9e09799adae7b24fcc1e42e931d.ctex"]
 
 [params]
 

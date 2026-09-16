@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ct4ak6a613yeq"
+path="res://.godot/imported/pattern_trunks_kid.png-87004b2fb10f19f11d59bec63c8ce20d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_trunks_kid.png"
+dest_files=["res://.godot/imported/pattern_trunks_kid.png-87004b2fb10f19f11d59bec63c8ce20d.ctex"]
 
 [params]
 

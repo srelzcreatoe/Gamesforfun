@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cglk8cxp0q457"
+path="res://.godot/imported/edition.png-ef52a1d4e5afe141cce7ccc21112b5d2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/mc/title/edition.png"
+dest_files=["res://.godot/imported/edition.png-ef52a1d4e5afe141cce7ccc21112b5d2.ctex"]
 
 [params]
 

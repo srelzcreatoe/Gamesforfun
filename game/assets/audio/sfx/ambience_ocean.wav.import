@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://b6d3peq0lgwqw"
+path="res://.godot/imported/ambience_ocean.wav-af35be0e698dd6653cca2ae0eefdd01e.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/ambience_ocean.wav"
+dest_files=["res://.godot/imported/ambience_ocean.wav-af35be0e698dd6653cca2ae0eefdd01e.sample"]
 
 [params]
 

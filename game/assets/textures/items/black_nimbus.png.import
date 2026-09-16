@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dpvm628de2rrt"
+path="res://.godot/imported/black_nimbus.png-a3f47c8d6c4d8af3d7b1b255a997c015.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/black_nimbus.png"
+dest_files=["res://.godot/imported/black_nimbus.png-a3f47c8d6c4d8af3d7b1b255a997c015.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bv8lmdsbwj11q"
+path="res://.godot/imported/star.png-c2a3121a6f65683bcb16336beb923314.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/loot_beam/star.png"
+dest_files=["res://.godot/imported/star.png-c2a3121a6f65683bcb16336beb923314.ctex"]
 
 [params]
 

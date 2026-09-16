@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://v63miq8pvyry"
+path="res://.godot/imported/block_dark_oak_door.png-75b01ce948038d5e09def92675b9acc5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_dark_oak_door.png"
+dest_files=["res://.godot/imported/block_dark_oak_door.png-75b01ce948038d5e09def92675b9acc5.ctex"]
 
 [params]
 

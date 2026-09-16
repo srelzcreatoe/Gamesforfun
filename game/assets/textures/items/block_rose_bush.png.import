@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://db8xo1ktiu2bn"
+path="res://.godot/imported/block_rose_bush.png-c1636f378f1dd448f8e8caaf6edf7cca.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_rose_bush.png"
+dest_files=["res://.godot/imported/block_rose_bush.png-c1636f378f1dd448f8e8caaf6edf7cca.ctex"]
 
 [params]
 

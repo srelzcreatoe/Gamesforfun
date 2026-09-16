@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://3wct0gx1dlo2"
+path="res://.godot/imported/block_oxeye_daisy.png-e219ccc4f99d61834208058ad7e41a49.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_oxeye_daisy.png"
+dest_files=["res://.godot/imported/block_oxeye_daisy.png-e219ccc4f99d61834208058ad7e41a49.ctex"]
 
 [params]
 

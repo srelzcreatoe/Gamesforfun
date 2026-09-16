@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bt1pkb5vueidt"
+path="res://.godot/imported/block_azure_bluet.png-37fcede6e04f027aba2a542494daabd1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_azure_bluet.png"
+dest_files=["res://.godot/imported/block_azure_bluet.png-37fcede6e04f027aba2a542494daabd1.ctex"]
 
 [params]
 

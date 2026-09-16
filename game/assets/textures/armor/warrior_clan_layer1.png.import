@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dh4ch7emsasm7"
+path="res://.godot/imported/warrior_clan_layer1.png-f5bb47108e8abc816ae8ed4c8f407508.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/warrior_clan_layer1.png"
+dest_files=["res://.godot/imported/warrior_clan_layer1.png-f5bb47108e8abc816ae8ed4c8f407508.ctex"]
 
 [params]
 

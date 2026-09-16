@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://i3vitvsk24lt"
+path="res://.godot/imported/janembasuper_0_male_layer2.png-5ae795d8b15b45d7fa9028ba750b16d3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/majin/janembasuper_0_male_layer2.png"
+dest_files=["res://.godot/imported/janembasuper_0_male_layer2.png-5ae795d8b15b45d7fa9028ba750b16d3.ctex"]
 
 [params]
 

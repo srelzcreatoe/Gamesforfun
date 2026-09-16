@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ehg3r83rewft"
+path="res://.godot/imported/vegetabuu_layer2.png-fdba53723caf3817f01ecb4ce5aa8762.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/vegetabuu_layer2.png"
+dest_files=["res://.godot/imported/vegetabuu_layer2.png-fdba53723caf3817f01ecb4ce5aa8762.ctex"]
 
 [params]
 

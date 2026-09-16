@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c0ughubfyxjl0"
+path="res://.godot/imported/thragg_armor_leggings.png-a2915c9ec6c3e538a0a74e5354f2190e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/thragg_armor_leggings.png"
+dest_files=["res://.godot/imported/thragg_armor_leggings.png-a2915c9ec6c3e538a0a74e5354f2190e.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bvumpdwl5psd2"
+path="res://.godot/imported/sugar.png-b65a4de15cdfe084e5011c0c226fa8e8.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/sugar.png"
+dest_files=["res://.godot/imported/sugar.png-b65a4de15cdfe084e5011c0c226fa8e8.ctex"]
 
 [params]
 

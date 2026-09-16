@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cr1bvimuwvrqq"
+path="res://.godot/imported/wounds.png-71a58743d063c06d90771c4681d38759.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/wounds.png"
+dest_files=["res://.godot/imported/wounds.png-71a58743d063c06d90771c4681d38759.ctex"]
 
 [params]
 

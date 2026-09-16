@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bx4k2gxqgwfy0"
+path="res://.godot/imported/energy_cable.png-b86bd318d85ba0f9a94b259c23ff8136.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/misc/dball_blocks/energy_cable.png"
+dest_files=["res://.godot/imported/energy_cable.png-b86bd318d85ba0f9a94b259c23ff8136.ctex"]
 
 [params]
 

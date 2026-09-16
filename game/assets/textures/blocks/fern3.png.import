@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cmj3fwe520r3o"
+path="res://.godot/imported/fern3.png-1e284c256413ded559226925b3c6dfdc.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/fern3.png"
+dest_files=["res://.godot/imported/fern3.png-1e284c256413ded559226925b3c6dfdc.ctex"]
 
 [params]
 

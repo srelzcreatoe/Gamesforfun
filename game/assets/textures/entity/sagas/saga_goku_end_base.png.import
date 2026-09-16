@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dlvh8vvgnspvp"
+path="res://.godot/imported/saga_goku_end_base.png-7b9cc199401953da1282177388bb7d1d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_goku_end_base.png"
+dest_files=["res://.godot/imported/saga_goku_end_base.png-7b9cc199401953da1282177388bb7d1d.ctex"]
 
 [params]
 

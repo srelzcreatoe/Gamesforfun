@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cuxi2ho2jpkdg"
+path="res://.godot/imported/block_spruce_fence.png-c09c28dc18a43233870e08cd1d550dba.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_spruce_fence.png"
+dest_files=["res://.godot/imported/block_spruce_fence.png-c09c28dc18a43233870e08cd1d550dba.ctex"]
 
 [params]
 

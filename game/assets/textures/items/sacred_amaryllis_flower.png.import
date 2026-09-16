@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://be3180tdam5hs"
+path="res://.godot/imported/sacred_amaryllis_flower.png-3b4af5eaf987421b7fab25f4d191a091.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/sacred_amaryllis_flower.png"
+dest_files=["res://.godot/imported/sacred_amaryllis_flower.png-3b4af5eaf987421b7fab25f4d191a091.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://df5p55v452d5t"
+path="res://.godot/imported/gamma2_layer2.png-67e1a58014b326ca7f0035602955f37f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/gamma2_layer2.png"
+dest_files=["res://.godot/imported/gamma2_layer2.png-67e1a58014b326ca7f0035602955f37f.ctex"]
 
 [params]
 

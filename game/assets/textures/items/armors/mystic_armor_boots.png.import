@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dv6ly2s6lq5cs"
+path="res://.godot/imported/mystic_armor_boots.png-c2a85ccfb66275f783232a2dcd04a5e9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/mystic_armor_boots.png"
+dest_files=["res://.godot/imported/mystic_armor_boots.png-c2a85ccfb66275f783232a2dcd04a5e9.ctex"]
 
 [params]
 

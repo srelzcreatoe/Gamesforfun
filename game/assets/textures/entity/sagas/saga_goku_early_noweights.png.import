@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://nn831weg1ge1"
+path="res://.godot/imported/saga_goku_early_noweights.png-23c4d4fae49a47a3344d01b058b0bbf6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_goku_early_noweights.png"
+dest_files=["res://.godot/imported/saga_goku_early_noweights.png-23c4d4fae49a47a3344d01b058b0bbf6.ctex"]
 
 [params]
 

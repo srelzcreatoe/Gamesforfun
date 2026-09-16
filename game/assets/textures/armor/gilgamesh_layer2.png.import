@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ccrnnul365vb5"
+path="res://.godot/imported/gilgamesh_layer2.png-e4a724123ae2b18e77f78add0a2206a8.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/gilgamesh_layer2.png"
+dest_files=["res://.godot/imported/gilgamesh_layer2.png-e4a724123ae2b18e77f78add0a2206a8.ctex"]
 
 [params]
 

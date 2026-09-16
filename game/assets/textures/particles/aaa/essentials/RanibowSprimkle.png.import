@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://k76xoqpfe1ix"
+path="res://.godot/imported/RanibowSprimkle.png-07e955b4ff22bf3bfccff92417886cfd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/essentials/RanibowSprimkle.png"
+dest_files=["res://.godot/imported/RanibowSprimkle.png-07e955b4ff22bf3bfccff92417886cfd.ctex"]
 
 [params]
 

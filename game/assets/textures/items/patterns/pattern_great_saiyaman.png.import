@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bmh8fwd8jq48w"
+path="res://.godot/imported/pattern_great_saiyaman.png-6040b760c9f40fd323578394f315bb3e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_great_saiyaman.png"
+dest_files=["res://.godot/imported/pattern_great_saiyaman.png-6040b760c9f40fd323578394f315bb3e.ctex"]
 
 [params]
 

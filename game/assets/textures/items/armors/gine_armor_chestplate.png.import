@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bio78c2a2wf8n"
+path="res://.godot/imported/gine_armor_chestplate.png-1749a1c1e0da6a7c9a2dc5afc47cd7be.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/gine_armor_chestplate.png"
+dest_files=["res://.godot/imported/gine_armor_chestplate.png-1749a1c1e0da6a7c9a2dc5afc47cd7be.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://devgebfko7nwq"
+path="res://.godot/imported/orange_high_armor_boots.png-4e298325a4a32ee1500945aa16639588.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/orange_high_armor_boots.png"
+dest_files=["res://.godot/imported/orange_high_armor_boots.png-4e298325a4a32ee1500945aa16639588.ctex"]
 
 [params]
 

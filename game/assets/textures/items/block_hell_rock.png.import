@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b2m0fqp72gs17"
+path="res://.godot/imported/block_hell_rock.png-c6f43e0fb58d82e50798867a0c8fcd03.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_hell_rock.png"
+dest_files=["res://.godot/imported/block_hell_rock.png-c6f43e0fb58d82e50798867a0c8fcd03.ctex"]
 
 [params]
 

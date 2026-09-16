@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bagvldte03jgh"
+path="res://.godot/imported/diamond_axe.png-41ab308981448d436206bf2182fde2df.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/diamond_axe.png"
+dest_files=["res://.godot/imported/diamond_axe.png-41ab308981448d436206bf2182fde2df.ctex"]
 
 [params]
 

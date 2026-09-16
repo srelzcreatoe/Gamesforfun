@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b4ca3plg7oibb"
+path="res://.godot/imported/dball1.png-7bf192b732da819a754b1899398646f5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/dball1.png"
+dest_files=["res://.godot/imported/dball1.png-7bf192b732da819a754b1899398646f5.ctex"]
 
 [params]
 

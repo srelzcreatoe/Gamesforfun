@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cr4wf2e56wgba"
+path="res://.godot/imported/AlphaGradient.png-df726d3fc352d42e7cc38ac2691f2e48.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/essentials/AlphaGradient.png"
+dest_files=["res://.godot/imported/AlphaGradient.png-df726d3fc352d42e7cc38ac2691f2e48.ctex"]
 
 [params]
 

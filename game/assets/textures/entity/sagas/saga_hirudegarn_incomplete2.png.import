@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ddjesn2cqeato"
+path="res://.godot/imported/saga_hirudegarn_incomplete2.png-173c7adf473acf5f082ff24a6f876ad2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_hirudegarn_incomplete2.png"
+dest_files=["res://.godot/imported/saga_hirudegarn_incomplete2.png-173c7adf473acf5f082ff24a6f876ad2.ctex"]
 
 [params]
 

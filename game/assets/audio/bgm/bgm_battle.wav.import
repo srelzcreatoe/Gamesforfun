@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://b2aemsrundvg"
+path="res://.godot/imported/bgm_battle.wav-111f0b71084fdedf6a26738f8cf7a90f.sample"
 
 [deps]
 
 source_file="res://assets/audio/bgm/bgm_battle.wav"
+dest_files=["res://.godot/imported/bgm_battle.wav-111f0b71084fdedf6a26738f8cf7a90f.sample"]
 
 [params]
 

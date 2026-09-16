@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://nwn5ppfrcbsy"
+path="res://.godot/imported/saga_metalcooler.png-504dd322173f00635f54a56e3fb9e2d4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_metalcooler.png"
+dest_files=["res://.godot/imported/saga_metalcooler.png-504dd322173f00635f54a56e3fb9e2d4.ctex"]
 
 [params]
 

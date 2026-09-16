@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://de7suy0lsq75p"
+path="res://.godot/imported/pattern_beerus.png-076747181d4ea32fc7348123d14bbf24.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_beerus.png"
+dest_files=["res://.godot/imported/pattern_beerus.png-076747181d4ea32fc7348123d14bbf24.ctex"]
 
 [params]
 

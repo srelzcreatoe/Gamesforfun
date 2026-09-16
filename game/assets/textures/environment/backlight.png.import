@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://86pbrjqkklsq"
+path="res://.godot/imported/backlight.png-08b2d3ddaef951669718ec5fd6aeed96.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/backlight.png"
+dest_files=["res://.godot/imported/backlight.png-08b2d3ddaef951669718ec5fd6aeed96.ctex"]
 
 [params]
 

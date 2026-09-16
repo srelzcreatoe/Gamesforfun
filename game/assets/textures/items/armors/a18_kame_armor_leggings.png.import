@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://hwqwjcdlp0bd"
+path="res://.godot/imported/a18_kame_armor_leggings.png-b59766af817e7ce2801f48f190e27cb2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/a18_kame_armor_leggings.png"
+dest_files=["res://.godot/imported/a18_kame_armor_leggings.png-b59766af817e7ce2801f48f190e27cb2.ctex"]
 
 [params]
 

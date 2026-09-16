@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cfnaiccn1nace"
+path="res://.godot/imported/pattern_turles.png-864f8486cc7e4f3fcbcc15db958fb88b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_turles.png"
+dest_files=["res://.godot/imported/pattern_turles.png-864f8486cc7e4f3fcbcc15db958fb88b.ctex"]
 
 [params]
 

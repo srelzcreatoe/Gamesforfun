@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://bnw2okyxlpafr"
+path="res://.godot/imported/step_liquid_1.wav-73a3d00fcd092b4cec2ecb1b183bd71c.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/step_liquid_1.wav"
+dest_files=["res://.godot/imported/step_liquid_1.wav-73a3d00fcd092b4cec2ecb1b183bd71c.sample"]
 
 [params]
 

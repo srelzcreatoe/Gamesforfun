@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cxluaenapxrui"
+path="res://.godot/imported/feather.png-b958018bfb6bcf61275e690e996da59b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/feather.png"
+dest_files=["res://.godot/imported/feather.png-b958018bfb6bcf61275e690e996da59b.ctex"]
 
 [params]
 

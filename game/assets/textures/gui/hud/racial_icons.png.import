@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ijfwrr38msh6"
+path="res://.godot/imported/racial_icons.png-d29399d22ccfb82072f27e4565945bb6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/hud/racial_icons.png"
+dest_files=["res://.godot/imported/racial_icons.png-d29399d22ccfb82072f27e4565945bb6.ctex"]
 
 [params]
 

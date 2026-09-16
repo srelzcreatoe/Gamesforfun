@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c4qsw56krmp4a"
+path="res://.godot/imported/gas_layer2.png-a1bb6aa42cb777898c733e1002af4a8e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/gas_layer2.png"
+dest_files=["res://.godot/imported/gas_layer2.png-a1bb6aa42cb777898c733e1002af4a8e.ctex"]
 
 [params]
 

@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://urkprv7gjcyc"
+path="res://.godot/imported/fly_loop.wav-c4c40546b4c4079b5f3942ffca5dda41.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/fly_loop.wav"
+dest_files=["res://.godot/imported/fly_loop.wav-c4c40546b4c4079b5f3942ffca5dda41.sample"]
 
 [params]
 

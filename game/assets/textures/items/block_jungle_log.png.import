@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ck3p53psw8ri4"
+path="res://.godot/imported/block_jungle_log.png-f14f75f3ba48b52cf37f909bc38a38b7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_jungle_log.png"
+dest_files=["res://.godot/imported/block_jungle_log.png-f14f75f3ba48b52cf37f909bc38a38b7.ctex"]
 
 [params]
 

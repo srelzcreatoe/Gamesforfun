@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://bbpf45uovf8jl"
+path="res://.godot/imported/scouter_beep.wav-fe93c9b25e8bf5a8cf1780763e4f84e1.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/scouter_beep.wav"
+dest_files=["res://.godot/imported/scouter_beep.wav-fe93c9b25e8bf5a8cf1780763e4f84e1.sample"]
 
 [params]
 

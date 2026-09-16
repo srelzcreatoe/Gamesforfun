@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://6d2fj1rvwsn4"
+path="res://.godot/imported/bardock_super_armor_chestplate.png-a6cd99e1eeb38b34fe976a936c607280.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/bardock_super_armor_chestplate.png"
+dest_files=["res://.godot/imported/bardock_super_armor_chestplate.png-a6cd99e1eeb38b34fe976a936c607280.ctex"]
 
 [params]
 

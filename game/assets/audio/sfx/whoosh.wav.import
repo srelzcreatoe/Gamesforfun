@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://cbrpoolvehfhx"
+path="res://.godot/imported/whoosh.wav-c15509047a0e70676ed2ef33e361cdd3.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/whoosh.wav"
+dest_files=["res://.godot/imported/whoosh.wav-c15509047a0e70676ed2ef33e361cdd3.sample"]
 
 [params]
 

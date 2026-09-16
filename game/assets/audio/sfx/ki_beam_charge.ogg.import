@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://d1p1dasftnhxi"
+path="res://.godot/imported/ki_beam_charge.ogg-62a310787c067e265a7f694fe1358cf1.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/ki_beam_charge.ogg"
+dest_files=["res://.godot/imported/ki_beam_charge.ogg-62a310787c067e265a7f694fe1358cf1.oggvorbisstr"]
 
 [params]
 

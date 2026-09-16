@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://crl2arx788iqn"
+path="res://.godot/imported/glowstone.png-7ad0120457c82b31ed014caef997c576.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/glowstone.png"
+dest_files=["res://.godot/imported/glowstone.png-7ad0120457c82b31ed014caef997c576.ctex"]
 
 [params]
 

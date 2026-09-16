@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b7vkr2nmbfd3f"
+path="res://.godot/imported/zamasu_armor_chestplate.png-352bf33d1ae4b579a681bc988e6494a6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/zamasu_armor_chestplate.png"
+dest_files=["res://.godot/imported/zamasu_armor_chestplate.png-352bf33d1ae4b579a681bc988e6494a6.ctex"]
 
 [params]
 

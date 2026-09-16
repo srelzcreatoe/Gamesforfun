@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dnygh3sd5kwpv"
+path="res://.godot/imported/flint.png-e85b6f798d9dbf07d17f858c8a1d3972.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/flint.png"
+dest_files=["res://.godot/imported/flint.png-e85b6f798d9dbf07d17f858c8a1d3972.ctex"]
 
 [params]
 

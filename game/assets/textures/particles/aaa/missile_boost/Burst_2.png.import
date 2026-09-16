@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cb4u3mni5ql2y"
+path="res://.godot/imported/Burst_2.png-4745823e4c409f08e4fe31dd83c66792.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/missile_boost/Burst_2.png"
+dest_files=["res://.godot/imported/Burst_2.png-4745823e4c409f08e4fe31dd83c66792.ctex"]
 
 [params]
 

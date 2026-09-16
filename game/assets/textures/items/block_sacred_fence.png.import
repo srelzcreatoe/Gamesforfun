@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dprqpdfo380ds"
+path="res://.godot/imported/block_sacred_fence.png-9138d4c20415ec5378c7c488c8834ffb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_sacred_fence.png"
+dest_files=["res://.godot/imported/block_sacred_fence.png-9138d4c20415ec5378c7c488c8834ffb.ctex"]
 
 [params]
 

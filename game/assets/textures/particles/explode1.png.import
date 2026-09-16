@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c5mg8eoqix41s"
+path="res://.godot/imported/explode1.png-1ef1ae39693c78df6a09f63a9bba825a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/explode1.png"
+dest_files=["res://.godot/imported/explode1.png-1ef1ae39693c78df6a09f63a9bba825a.ctex"]
 
 [params]
 

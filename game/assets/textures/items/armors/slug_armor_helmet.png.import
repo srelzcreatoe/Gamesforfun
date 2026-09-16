@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c4j3ug8xx0421"
+path="res://.godot/imported/slug_armor_helmet.png-ebdcbe176fe74c0d76685a46cf9013d3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/slug_armor_helmet.png"
+dest_files=["res://.godot/imported/slug_armor_helmet.png-ebdcbe176fe74c0d76685a46cf9013d3.ctex"]
 
 [params]
 

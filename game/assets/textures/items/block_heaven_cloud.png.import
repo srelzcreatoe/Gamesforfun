@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dfhfcwxmfsl3w"
+path="res://.godot/imported/block_heaven_cloud.png-9aba4303f4aa13b6d81d088bff379778.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_heaven_cloud.png"
+dest_files=["res://.godot/imported/block_heaven_cloud.png-9aba4303f4aa13b6d81d088bff379778.ctex"]
 
 [params]
 

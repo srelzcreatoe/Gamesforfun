@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ccqy755xcguce"
+path="res://.godot/imported/z_sword.png-7edc1bce8450ed6a60e8ce4ad92b6ab9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/z_sword.png"
+dest_files=["res://.godot/imported/z_sword.png-7edc1bce8450ed6a60e8ce4ad92b6ab9.ctex"]
 
 [params]
 

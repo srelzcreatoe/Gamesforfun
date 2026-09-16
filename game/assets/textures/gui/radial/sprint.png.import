@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c36k5bemuq7r6"
+path="res://.godot/imported/sprint.png-3eb064428d3ce2ce93b1e445ac005662.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/radial/sprint.png"
+dest_files=["res://.godot/imported/sprint.png-3eb064428d3ce2ce93b1e445ac005662.ctex"]
 
 [params]
 

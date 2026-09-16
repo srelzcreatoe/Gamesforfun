@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://1faukslqlo7g"
+path="res://.godot/imported/smoke_tex.png-0cfa78717d51171573abace3558da430.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/explosion/smoke_tex.png"
+dest_files=["res://.godot/imported/smoke_tex.png-0cfa78717d51171573abace3558da430.ctex"]
 
 [params]
 

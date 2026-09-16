@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://84s1uuxwvhj6"
+path="res://.godot/imported/saga_chaoz.png-e8967ca5c66f026fd4812272968f50ef.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_chaoz.png"
+dest_files=["res://.godot/imported/saga_chaoz.png-e8967ca5c66f026fd4812272968f50ef.ctex"]
 
 [params]
 

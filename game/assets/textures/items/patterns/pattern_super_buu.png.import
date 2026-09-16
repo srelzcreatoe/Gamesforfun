@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b0pl0mkdjibm3"
+path="res://.godot/imported/pattern_super_buu.png-c1f6e544d0524d8b1e44183b966a9d61.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_super_buu.png"
+dest_files=["res://.godot/imported/pattern_super_buu.png-c1f6e544d0524d8b1e44183b966a9d61.ctex"]
 
 [params]
 

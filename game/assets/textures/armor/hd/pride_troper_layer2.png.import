@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d3bdmlqpy5te"
+path="res://.godot/imported/pride_troper_layer2.png-c23000b7ff2d66bd87f4bee129f8afe6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/pride_troper_layer2.png"
+dest_files=["res://.godot/imported/pride_troper_layer2.png-c23000b7ff2d66bd87f4bee129f8afe6.ctex"]
 
 [params]
 

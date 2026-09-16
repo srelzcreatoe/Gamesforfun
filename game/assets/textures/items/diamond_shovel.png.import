@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bae6l7yq5fsr1"
+path="res://.godot/imported/diamond_shovel.png-086aa73472dee3c408467bdf59e419f9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/diamond_shovel.png"
+dest_files=["res://.godot/imported/diamond_shovel.png-086aa73472dee3c408467bdf59e419f9.ctex"]
 
 [params]
 

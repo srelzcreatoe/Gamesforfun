@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dgf7wwe2bhk3c"
+path="res://.godot/imported/super_dball_radar.png-41870db73e9a7da63a8297bce419481c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/super_dball_radar.png"
+dest_files=["res://.godot/imported/super_dball_radar.png-41870db73e9a7da63a8297bce419481c.ctex"]
 
 [params]
 

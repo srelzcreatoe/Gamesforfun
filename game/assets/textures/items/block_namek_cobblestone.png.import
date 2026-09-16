@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cgole3m53dtso"
+path="res://.godot/imported/block_namek_cobblestone.png-bc6a0253caa36ca4248853df339123e0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_namek_cobblestone.png"
+dest_files=["res://.godot/imported/block_namek_cobblestone.png-bc6a0253caa36ca4248853df339123e0.ctex"]
 
 [params]
 

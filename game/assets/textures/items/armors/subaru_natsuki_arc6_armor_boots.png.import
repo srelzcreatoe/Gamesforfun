@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://couflarjwhvxp"
+path="res://.godot/imported/subaru_natsuki_arc6_armor_boots.png-d19c3ffd77361d04f5a05879c68b8bf5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/subaru_natsuki_arc6_armor_boots.png"
+dest_files=["res://.godot/imported/subaru_natsuki_arc6_armor_boots.png-d19c3ffd77361d04f5a05879c68b8bf5.ctex"]
 
 [params]
 

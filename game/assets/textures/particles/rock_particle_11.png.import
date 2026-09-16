@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bud633ynybk8w"
+path="res://.godot/imported/rock_particle_11.png-186e5fd90e5262c9bbf3d25b3a97a85f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/rock_particle_11.png"
+dest_files=["res://.godot/imported/rock_particle_11.png-186e5fd90e5262c9bbf3d25b3a97a85f.ctex"]
 
 [params]
 

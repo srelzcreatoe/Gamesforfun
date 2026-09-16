@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ci4ypmijtunip"
+path="res://.godot/imported/saga_bido.png-9695d4c49de3769cebf87e5105fb5902.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_bido.png"
+dest_files=["res://.godot/imported/saga_bido.png-9695d4c49de3769cebf87e5105fb5902.ctex"]
 
 [params]
 

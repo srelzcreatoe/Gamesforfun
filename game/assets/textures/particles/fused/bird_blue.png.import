@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://3lku527nacbo"
+path="res://.godot/imported/bird_blue.png-013ed42a664a9f51b503b75f82ff63bb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/fused/bird_blue.png"
+dest_files=["res://.godot/imported/bird_blue.png-013ed42a664a9f51b503b75f82ff63bb.ctex"]
 
 [params]
 

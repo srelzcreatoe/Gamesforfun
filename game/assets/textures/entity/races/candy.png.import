@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://0umvuk4d3gfc"
+path="res://.godot/imported/candy.png-27c7c338de215b9bd1c12623329c1352.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/candy.png"
+dest_files=["res://.godot/imported/candy.png-27c7c338de215b9bd1c12623329c1352.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dvi7yj1c2r0eb"
+path="res://.godot/imported/gohan_dbs_layer1.png-3fbcea7426b638ef52d744ca55c6a8c4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/gohan_dbs_layer1.png"
+dest_files=["res://.godot/imported/gohan_dbs_layer1.png-3fbcea7426b638ef52d744ca55c6a8c4.ctex"]
 
 [params]
 

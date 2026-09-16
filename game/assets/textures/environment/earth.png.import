@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dpbt0ytwj5dq3"
+path="res://.godot/imported/earth.png-b53db7627a98387e3cb791f66954a85a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/earth.png"
+dest_files=["res://.godot/imported/earth.png-b53db7627a98387e3cb791f66954a85a.ctex"]
 
 [params]
 

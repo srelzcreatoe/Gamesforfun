@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://saibkabroydi"
+path="res://.godot/imported/acacia_sapling.png-d47972153e38689edba27b47a657d40d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/acacia_sapling.png"
+dest_files=["res://.godot/imported/acacia_sapling.png-d47972153e38689edba27b47a657d40d.ctex"]
 
 [params]
 

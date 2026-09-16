@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://80ukmu25sog8"
+path="res://.godot/imported/pattern_kale.png-151054b34d219bc1c4bf197fff1573e5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_kale.png"
+dest_files=["res://.godot/imported/pattern_kale.png-151054b34d219bc1c4bf197fff1573e5.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dwx5wmpacwdli"
+path="res://.godot/imported/kiweapon_scythe.png-96fd8c9eb24c83cb3159ec961c554117.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/weapons/kiweapon_scythe.png"
+dest_files=["res://.godot/imported/kiweapon_scythe.png-96fd8c9eb24c83cb3159ec961c554117.ctex"]
 
 [params]
 

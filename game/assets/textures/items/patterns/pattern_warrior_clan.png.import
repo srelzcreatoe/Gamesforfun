@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c5do5wi6atmik"
+path="res://.godot/imported/pattern_warrior_clan.png-86522aaf8adf2e1c5760ea5a3c11cb48.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_warrior_clan.png"
+dest_files=["res://.godot/imported/pattern_warrior_clan.png-86522aaf8adf2e1c5760ea5a3c11cb48.ctex"]
 
 [params]
 

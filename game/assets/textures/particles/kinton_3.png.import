@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://2hirtrmu7npm"
+path="res://.godot/imported/kinton_3.png-ce06cd9e47cf510146ff5b5c31ec6a12.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/kinton_3.png"
+dest_files=["res://.godot/imported/kinton_3.png-ce06cd9e47cf510146ff5b5c31ec6a12.ctex"]
 
 [params]
 

@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://ldywus620g05"
+path="res://.godot/imported/pickaxe_swing.ogg-7b904512dcd1057a7e3a2139b612755b.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/pickaxe_swing.ogg"
+dest_files=["res://.godot/imported/pickaxe_swing.ogg-7b904512dcd1057a7e3a2139b612755b.oggvorbisstr"]
 
 [params]
 

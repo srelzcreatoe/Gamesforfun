@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://crrnlwit04rxl"
+path="res://.godot/imported/Chromab.png-a035a43d7e621eeb32357355123fd906.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/essentials/Chromab.png"
+dest_files=["res://.godot/imported/Chromab.png-a035a43d7e621eeb32357355123fd906.ctex"]
 
 [params]
 

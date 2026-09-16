@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c5uqjspto4n4"
+path="res://.godot/imported/vegetaz_armor_layer2.png-2d4ea4a18000e84ed90a58b117504215.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/vegetaz_armor_layer2.png"
+dest_files=["res://.godot/imported/vegetaz_armor_layer2.png-2d4ea4a18000e84ed90a58b117504215.ctex"]
 
 [params]
 

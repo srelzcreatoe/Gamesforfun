@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dupf0ngkal0n7"
+path="res://.godot/imported/heaven_grass_side.png-080e82e2fdf9eeedaaa260fb8501261e.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/heaven_grass_side.png"
+dest_files=["res://.godot/imported/heaven_grass_side.png-080e82e2fdf9eeedaaa260fb8501261e.ctex"]
 
 [params]
 

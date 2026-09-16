@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cc2abw4p6qecc"
+path="res://.godot/imported/gete_hoe.png-607d3d796622afdea3d420ecfa0643c7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/gete_hoe.png"
+dest_files=["res://.godot/imported/gete_hoe.png-607d3d796622afdea3d420ecfa0643c7.ctex"]
 
 [params]
 

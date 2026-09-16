@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cyslt6mmecl70"
+path="res://.godot/imported/whis_armor_boots.png-d7feb41744794bf241efa6d5dfa4e5f5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/whis_armor_boots.png"
+dest_files=["res://.godot/imported/whis_armor_boots.png-d7feb41744794bf241efa6d5dfa4e5f5.ctex"]
 
 [params]
 

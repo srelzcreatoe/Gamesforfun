@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dc58qw58jsimm"
+path="res://.godot/imported/dust_particle_1.png-fb1c29c333a50335f570540b8d2d0fd3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/hd/dust_particle_1.png"
+dest_files=["res://.godot/imported/dust_particle_1.png-fb1c29c333a50335f570540b8d2d0fd3.ctex"]
 
 [params]
 

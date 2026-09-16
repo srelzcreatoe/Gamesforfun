@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ciuvcjx1p1yfo"
+path="res://.godot/imported/godforms.png-95e28aa9a8c67a7a948b31148b648d39.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/icons/godforms.png"
+dest_files=["res://.godot/imported/godforms.png-95e28aa9a8c67a7a948b31148b648d39.ctex"]
 
 [params]
 

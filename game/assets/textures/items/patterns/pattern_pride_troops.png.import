@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://l6gctlh16vxq"
+path="res://.godot/imported/pattern_pride_troops.png-a1bcc8c8ed582f8c751155c8b0d632e2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_pride_troops.png"
+dest_files=["res://.godot/imported/pattern_pride_troops.png-a1bcc8c8ed582f8c751155c8b0d632e2.ctex"]
 
 [params]
 

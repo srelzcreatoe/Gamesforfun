@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dpao71hgyjxap"
+path="res://.godot/imported/hell_planet.png-372959b379d4554b4ec79aa2aa95015b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/hell_planet.png"
+dest_files=["res://.godot/imported/hell_planet.png-372959b379d4554b4ec79aa2aa95015b.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c7q5x68vbw32y"
+path="res://.godot/imported/block_ki_barrier.png-3d12a22b103d7b62ce8215aefe83f6e7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_ki_barrier.png"
+dest_files=["res://.godot/imported/block_ki_barrier.png-3d12a22b103d7b62ce8215aefe83f6e7.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d2xd75k57ki2a"
+path="res://.godot/imported/block_marigold_flower.png-1ae5b5bfa194f5ecb777f87e5620af70.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_marigold_flower.png"
+dest_files=["res://.godot/imported/block_marigold_flower.png-1ae5b5bfa194f5ecb777f87e5620af70.ctex"]
 
 [params]
 

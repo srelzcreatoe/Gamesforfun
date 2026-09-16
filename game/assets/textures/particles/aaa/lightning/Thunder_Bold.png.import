@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://boli24qgho8uv"
+path="res://.godot/imported/Thunder_Bold.png-c9ec94633564ae30097dde6a87424b8b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/lightning/Thunder_Bold.png"
+dest_files=["res://.godot/imported/Thunder_Bold.png-c9ec94633564ae30097dde6a87424b8b.ctex"]
 
 [params]
 

@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://co0hwmp77pos4"
+path="res://.godot/imported/break_liquid.wav-463c2b5b25ce089516640a74823757f6.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/break_liquid.wav"
+dest_files=["res://.godot/imported/break_liquid.wav-463c2b5b25ce089516640a74823757f6.sample"]
 
 [params]
 

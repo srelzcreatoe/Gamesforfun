@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://xmicflkhvuiw"
+path="res://.godot/imported/slug_layer2.png-3def15cf9cd23615f402cf0c00ce255c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/slug_layer2.png"
+dest_files=["res://.godot/imported/slug_layer2.png-3def15cf9cd23615f402cf0c00ce255c.ctex"]
 
 [params]
 

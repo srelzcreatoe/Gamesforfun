@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dpwr3pridl0jh"
+path="res://.godot/imported/block_vampa_rock.png-aa94a2cc918a1ed510c018df46527cbc.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_vampa_rock.png"
+dest_files=["res://.godot/imported/block_vampa_rock.png-aa94a2cc918a1ed510c018df46527cbc.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bbxd5gltgqqml"
+path="res://.godot/imported/pattern_gamma1.png-29d8abcfefcad7ff655b114fe2cb4b6b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_gamma1.png"
+dest_files=["res://.godot/imported/pattern_gamma1.png-29d8abcfefcad7ff655b114fe2cb4b6b.ctex"]
 
 [params]
 

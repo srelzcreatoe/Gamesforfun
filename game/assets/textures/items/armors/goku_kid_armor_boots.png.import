@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dyrusf2276lil"
+path="res://.godot/imported/goku_kid_armor_boots.png-8f481bc9089f02e11af6748261ce0e43.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/goku_kid_armor_boots.png"
+dest_files=["res://.godot/imported/goku_kid_armor_boots.png-8f481bc9089f02e11af6748261ce0e43.ctex"]
 
 [params]
 

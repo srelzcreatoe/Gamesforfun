@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ie4igglvi27t"
+path="res://.godot/imported/demon_gi_blue_armor_boots.png-f61d69205543fcf04bad502b91775d44.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/demon_gi_blue_armor_boots.png"
+dest_files=["res://.godot/imported/demon_gi_blue_armor_boots.png-f61d69205543fcf04bad502b91775d44.ctex"]
 
 [params]
 

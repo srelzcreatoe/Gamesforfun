@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bm17s5vb2nc3y"
+path="res://.godot/imported/space_suit.png-6b957138c28ccadad0a7572b302e6864.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/space_suit.png"
+dest_files=["res://.godot/imported/space_suit.png-6b957138c28ccadad0a7572b302e6864.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bobw5d3swnqio"
+path="res://.godot/imported/block_pumpkin.png-3e552a22c8155af28e4941299e53a30c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_pumpkin.png"
+dest_files=["res://.godot/imported/block_pumpkin.png-3e552a22c8155af28e4941299e53a30c.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://2kaqegvb02bp"
+path="res://.godot/imported/wonder_majin_armor_chestplate.png-5f530625a0e1559a19ac8272c8c5e248.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/wonder_majin_armor_chestplate.png"
+dest_files=["res://.godot/imported/wonder_majin_armor_chestplate.png-5f530625a0e1559a19ac8272c8c5e248.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://4kwmuj7rw3le"
+path="res://.godot/imported/block_red_sand.png-0c86e6242fb7ad361808fb6c3f7fff84.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_red_sand.png"
+dest_files=["res://.godot/imported/block_red_sand.png-0c86e6242fb7ad361808fb6c3f7fff84.ctex"]
 
 [params]
 

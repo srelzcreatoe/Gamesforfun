@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b7fv2l10wbdak"
+path="res://.godot/imported/yardrat_gi_layer1.png-d75f34004ab3ea02494e7814492efd12.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/yardrat_gi_layer1.png"
+dest_files=["res://.godot/imported/yardrat_gi_layer1.png-d75f34004ab3ea02494e7814492efd12.ctex"]
 
 [params]
 

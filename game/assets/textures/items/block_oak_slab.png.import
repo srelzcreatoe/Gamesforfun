@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d1duccvyy4l0a"
+path="res://.godot/imported/block_oak_slab.png-8b2c4041752bcb174c4c37b8ec571d27.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_oak_slab.png"
+dest_files=["res://.godot/imported/block_oak_slab.png-8b2c4041752bcb174c4c37b8ec571d27.ctex"]
 
 [params]
 

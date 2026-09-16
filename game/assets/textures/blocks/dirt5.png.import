@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c1fckvlhhrjvg"
+path="res://.godot/imported/dirt5.png-f255ca47c131f04f8de54d74e60b6abd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/dirt5.png"
+dest_files=["res://.godot/imported/dirt5.png-f255ca47c131f04f8de54d74e60b6abd.ctex"]
 
 [params]
 

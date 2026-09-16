@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b100iid1low44"
+path="res://.godot/imported/block_lotus_flower.png-8c72028a42731cd16edf5e980c13919b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_lotus_flower.png"
+dest_files=["res://.godot/imported/block_lotus_flower.png-8c72028a42731cd16edf5e980c13919b.ctex"]
 
 [params]
 

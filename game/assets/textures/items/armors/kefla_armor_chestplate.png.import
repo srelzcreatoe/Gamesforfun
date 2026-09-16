@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cxd0fkri6s40s"
+path="res://.godot/imported/kefla_armor_chestplate.png-ea8cdd9c1ef24adf5480be4c9ef55f8f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/kefla_armor_chestplate.png"
+dest_files=["res://.godot/imported/kefla_armor_chestplate.png-ea8cdd9c1ef24adf5480be4c9ef55f8f.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://djroywafmsrdn"
+path="res://.godot/imported/block_sugar_cane.png-7067fb3af4326faf6f606849e86ca73f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_sugar_cane.png"
+dest_files=["res://.godot/imported/block_sugar_cane.png-7067fb3af4326faf6f606849e86ca73f.ctex"]
 
 [params]
 

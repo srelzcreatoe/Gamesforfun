@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bruue2du32dlo"
+path="res://.godot/imported/kiweapons.png-1c55c7526dd31961e88912b158dde576.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/races/kiweapons.png"
+dest_files=["res://.godot/imported/kiweapons.png-1c55c7526dd31961e88912b158dde576.ctex"]
 
 [params]
 

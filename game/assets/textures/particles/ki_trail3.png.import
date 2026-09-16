@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://djvacqa5jolwq"
+path="res://.godot/imported/ki_trail3.png-2f6bfcafc8a489232bfd081b514097d2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/ki_trail3.png"
+dest_files=["res://.godot/imported/ki_trail3.png-2f6bfcafc8a489232bfd081b514097d2.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dlun1weepru0u"
+path="res://.godot/imported/leather.png-6764951142872fce8134202b05384775.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/leather.png"
+dest_files=["res://.godot/imported/leather.png-6764951142872fce8134202b05384775.ctex"]
 
 [params]
 

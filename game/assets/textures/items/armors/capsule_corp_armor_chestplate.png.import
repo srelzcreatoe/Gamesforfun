@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://wph0gphogljq"
+path="res://.godot/imported/capsule_corp_armor_chestplate.png-81adcc6fb876be22eb7a5786fb783d12.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/capsule_corp_armor_chestplate.png"
+dest_files=["res://.godot/imported/capsule_corp_armor_chestplate.png-81adcc6fb876be22eb7a5786fb783d12.ctex"]
 
 [params]
 

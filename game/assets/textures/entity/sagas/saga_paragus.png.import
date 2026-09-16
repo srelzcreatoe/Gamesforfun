@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b1gde7vfvhnnh"
+path="res://.godot/imported/saga_paragus.png-dd9de8f207c60baaaba06043f14dc401.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_paragus.png"
+dest_files=["res://.godot/imported/saga_paragus.png-dd9de8f207c60baaaba06043f14dc401.ctex"]
 
 [params]
 

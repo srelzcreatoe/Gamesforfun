@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://deu5l8gg74lky"
+path="res://.godot/imported/xeno_goku_armor_leggings.png-c6057568306090e4f6e6527bc6c6cf24.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/xeno_goku_armor_leggings.png"
+dest_files=["res://.godot/imported/xeno_goku_armor_leggings.png-c6057568306090e4f6e6527bc6c6cf24.ctex"]
 
 [params]
 

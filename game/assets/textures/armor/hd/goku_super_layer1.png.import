@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dpx56xi7tlbt2"
+path="res://.godot/imported/goku_super_layer1.png-4c00a47e2c2848f4bcbab538484a896f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/hd/goku_super_layer1.png"
+dest_files=["res://.godot/imported/goku_super_layer1.png-4c00a47e2c2848f4bcbab538484a896f.ctex"]
 
 [params]
 

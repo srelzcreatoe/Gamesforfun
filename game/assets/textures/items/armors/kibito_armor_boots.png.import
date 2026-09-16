@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dka5umq2xhnp"
+path="res://.godot/imported/kibito_armor_boots.png-a14c3e0daa325fe23a8c812d5c972dc1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/kibito_armor_boots.png"
+dest_files=["res://.godot/imported/kibito_armor_boots.png-a14c3e0daa325fe23a8c812d5c972dc1.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dfcbg8nd1j56l"
+path="res://.godot/imported/tenshinhan_armor_layer2.png-d468225f915105513268db6a9ec10667.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/tenshinhan_armor_layer2.png"
+dest_files=["res://.godot/imported/tenshinhan_armor_layer2.png-d468225f915105513268db6a9ec10667.ctex"]
 
 [params]
 

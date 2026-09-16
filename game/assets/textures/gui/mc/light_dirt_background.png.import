@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b47hcs3gm48dc"
+path="res://.godot/imported/light_dirt_background.png-d3eaba0cb87a4fa90586d11b5ab81082.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/mc/light_dirt_background.png"
+dest_files=["res://.godot/imported/light_dirt_background.png-d3eaba0cb87a4fa90586d11b5ab81082.ctex"]
 
 [params]
 

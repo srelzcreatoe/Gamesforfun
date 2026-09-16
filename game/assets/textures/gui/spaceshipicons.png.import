@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d2vn3tsxptgu8"
+path="res://.godot/imported/spaceshipicons.png-f3b9a239a204804a76ca535528dcf034.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/spaceshipicons.png"
+dest_files=["res://.godot/imported/spaceshipicons.png-f3b9a239a204804a76ca535528dcf034.ctex"]
 
 [params]
 

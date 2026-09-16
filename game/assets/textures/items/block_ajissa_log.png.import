@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dwrp7krw0uudt"
+path="res://.godot/imported/block_ajissa_log.png-5d468453c3b4eaacb12ab4951b00da42.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_ajissa_log.png"
+dest_files=["res://.godot/imported/block_ajissa_log.png-5d468453c3b4eaacb12ab4951b00da42.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cpn4vwcnvkcoj"
+path="res://.godot/imported/weight_piccolo_cape.png-6f06d40dd15634c124a68ee4145e9f4c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/weight_piccolo_cape.png"
+dest_files=["res://.godot/imported/weight_piccolo_cape.png-6f06d40dd15634c124a68ee4145e9f4c.ctex"]
 
 [params]
 

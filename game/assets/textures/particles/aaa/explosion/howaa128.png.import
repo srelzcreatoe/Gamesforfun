@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b86nu1oqltwdd"
+path="res://.godot/imported/howaa128.png-1e7149abb4e76a53faf5c58f61e527e9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/particles/aaa/explosion/howaa128.png"
+dest_files=["res://.godot/imported/howaa128.png-1e7149abb4e76a53faf5c58f61e527e9.ctex"]
 
 [params]
 

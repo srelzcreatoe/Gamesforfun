@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://v5rr6m23g61f"
+path="res://.godot/imported/beerus_armor_chestplate.png-fdef09e1ef312e222c8c0bdf006fb8b9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/beerus_armor_chestplate.png"
+dest_files=["res://.godot/imported/beerus_armor_chestplate.png-fdef09e1ef312e222c8c0bdf006fb8b9.ctex"]
 
 [params]
 

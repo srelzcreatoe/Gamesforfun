@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ts7gudc11ctk"
+path="res://.godot/imported/kale_layer1.png-5a601160f654a0607f22cc69e05a51c3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/kale_layer1.png"
+dest_files=["res://.godot/imported/kale_layer1.png-5a601160f654a0607f22cc69e05a51c3.ctex"]
 
 [params]
 

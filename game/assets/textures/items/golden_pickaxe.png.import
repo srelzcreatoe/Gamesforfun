@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bujd056ox1wpp"
+path="res://.godot/imported/golden_pickaxe.png-d72d83267f8637cad7b05f802421abf2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/golden_pickaxe.png"
+dest_files=["res://.godot/imported/golden_pickaxe.png-d72d83267f8637cad7b05f802421abf2.ctex"]
 
 [params]
 

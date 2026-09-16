@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://l5r4nnv18fu7"
+path="res://.godot/imported/xeno_goku_armor_chestplate.png-3ea067e25d68c6cef0851db8940eca7d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/xeno_goku_armor_chestplate.png"
+dest_files=["res://.godot/imported/xeno_goku_armor_chestplate.png-3ea067e25d68c6cef0851db8940eca7d.ctex"]
 
 [params]
 

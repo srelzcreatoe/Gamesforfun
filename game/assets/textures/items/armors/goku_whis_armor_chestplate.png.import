@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://qtlmwnxcep50"
+path="res://.godot/imported/goku_whis_armor_chestplate.png-0cf3cd7decb2ae8d2c1600c37d748e3b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/goku_whis_armor_chestplate.png"
+dest_files=["res://.godot/imported/goku_whis_armor_chestplate.png-0cf3cd7decb2ae8d2c1600c37d748e3b.ctex"]
 
 [params]
 

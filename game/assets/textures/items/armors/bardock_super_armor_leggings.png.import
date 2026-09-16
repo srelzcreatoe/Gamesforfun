@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ciuq82voif0b5"
+path="res://.godot/imported/bardock_super_armor_leggings.png-894949626f8baee643583126db684baa.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/bardock_super_armor_leggings.png"
+dest_files=["res://.godot/imported/bardock_super_armor_leggings.png-894949626f8baee643583126db684baa.ctex"]
 
 [params]
 

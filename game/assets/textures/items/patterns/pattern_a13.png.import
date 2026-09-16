@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cobjfropt30x5"
+path="res://.godot/imported/pattern_a13.png-8599edf28211af2bc170f2be2330814a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_a13.png"
+dest_files=["res://.godot/imported/pattern_a13.png-8599edf28211af2bc170f2be2330814a.ctex"]
 
 [params]
 

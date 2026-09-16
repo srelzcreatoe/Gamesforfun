@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://bpwn4j4ptx7ff"
+path="res://.godot/imported/insta_form_on.ogg-c2cfc16b06e2dd01dd859493f608370f.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/insta_form_on.ogg"
+dest_files=["res://.godot/imported/insta_form_on.ogg-c2cfc16b06e2dd01dd859493f608370f.oggvorbisstr"]
 
 [params]
 

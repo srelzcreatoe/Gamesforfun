@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ry2bit21xjxm"
+path="res://.godot/imported/fused.png-d545ec66db352fc5b298d32e83d01424.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/effects/fused.png"
+dest_files=["res://.godot/imported/fused.png-d545ec66db352fc5b298d32e83d01424.ctex"]
 
 [params]
 

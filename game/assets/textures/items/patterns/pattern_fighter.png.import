@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://5ml4khr8o8gq"
+path="res://.godot/imported/pattern_fighter.png-aefa7b6aab17ee42e7c43308a921690d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_fighter.png"
+dest_files=["res://.godot/imported/pattern_fighter.png-aefa7b6aab17ee42e7c43308a921690d.ctex"]
 
 [params]
 

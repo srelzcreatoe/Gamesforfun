@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bwr5jy88g0q7h"
+path="res://.godot/imported/kiweapon_blade.png-9980bf29c5c7869a425a8860040be1d7.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/weapons/kiweapon_blade.png"
+dest_files=["res://.godot/imported/kiweapon_blade.png-9980bf29c5c7869a425a8860040be1d7.ctex"]
 
 [params]
 

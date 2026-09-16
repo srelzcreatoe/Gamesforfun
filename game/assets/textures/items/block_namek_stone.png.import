@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://gcs7o78ikpf1"
+path="res://.godot/imported/block_namek_stone.png-372dab5e501f509ba692eec52275055c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_namek_stone.png"
+dest_files=["res://.godot/imported/block_namek_stone.png-372dab5e501f509ba692eec52275055c.ctex"]
 
 [params]
 

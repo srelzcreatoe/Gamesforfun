@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dtl7iydunrwdi"
+path="res://.godot/imported/block_birch_fence.png-c3914314f1918bbaa4551a5279a9097c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_birch_fence.png"
+dest_files=["res://.godot/imported/block_birch_fence.png-c3914314f1918bbaa4551a5279a9097c.ctex"]
 
 [params]
 

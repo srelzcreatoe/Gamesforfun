@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c2n27myw7kjh1"
+path="res://.godot/imported/pattern_chaoz.png-2b8f965cb7487c546aa4d8a7ba585c5f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/patterns/pattern_chaoz.png"
+dest_files=["res://.godot/imported/pattern_chaoz.png-2b8f965cb7487c546aa4d8a7ba585c5f.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dktd4tn5nbjuv"
+path="res://.godot/imported/kikono_dust.png-a5c3d0d96250a90d643b613e6b1570aa.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/kikono_dust.png"
+dest_files=["res://.godot/imported/kikono_dust.png-a5c3d0d96250a90d643b613e6b1570aa.ctex"]
 
 [params]
 

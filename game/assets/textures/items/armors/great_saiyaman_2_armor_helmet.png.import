@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cueln6q3imjbk"
+path="res://.godot/imported/great_saiyaman_2_armor_helmet.png-8073afdbd2f15becd7746065246914a9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/great_saiyaman_2_armor_helmet.png"
+dest_files=["res://.godot/imported/great_saiyaman_2_armor_helmet.png-8073afdbd2f15becd7746065246914a9.ctex"]
 
 [params]
 

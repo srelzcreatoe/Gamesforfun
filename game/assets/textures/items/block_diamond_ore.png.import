@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://qxjupyo3eimb"
+path="res://.godot/imported/block_diamond_ore.png-bec1bf8fd30c75371d62890e6a22a11c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_diamond_ore.png"
+dest_files=["res://.godot/imported/block_diamond_ore.png-bec1bf8fd30c75371d62890e6a22a11c.ctex"]
 
 [params]
 

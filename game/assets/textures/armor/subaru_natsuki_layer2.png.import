@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://x6wannwfed6n"
+path="res://.godot/imported/subaru_natsuki_layer2.png-e18b841f781cc3bde65f2f8b6fa24260.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/subaru_natsuki_layer2.png"
+dest_files=["res://.godot/imported/subaru_natsuki_layer2.png-e18b841f781cc3bde65f2f8b6fa24260.ctex"]
 
 [params]
 

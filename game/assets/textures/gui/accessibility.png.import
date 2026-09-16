@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bh15l50qdtwde"
+path="res://.godot/imported/accessibility.png-da28468988f846e8115821090afe393f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/accessibility.png"
+dest_files=["res://.godot/imported/accessibility.png-da28468988f846e8115821090afe393f.ctex"]
 
 [params]
 

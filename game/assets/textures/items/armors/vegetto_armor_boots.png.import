@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dr4ydpt5og2fd"
+path="res://.godot/imported/vegetto_armor_boots.png-ec615a3e9780a9a0d25c7f5342c19591.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/vegetto_armor_boots.png"
+dest_files=["res://.godot/imported/vegetto_armor_boots.png-ec615a3e9780a9a0d25c7f5342c19591.ctex"]
 
 [params]
 

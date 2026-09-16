@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bs3sgjoivyllp"
+path="res://.godot/imported/evil_buu_layer1.png-c043d3927dc8ccd292f9d813585dd68a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/evil_buu_layer1.png"
+dest_files=["res://.godot/imported/evil_buu_layer1.png-c043d3927dc8ccd292f9d813585dd68a.ctex"]
 
 [params]
 

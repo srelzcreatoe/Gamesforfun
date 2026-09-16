@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cjwwdbriug7j1"
+path="res://.godot/imported/a18_tournament_armor_chestplate.png-feee9fef3175ca0434dbf6fda247c2a9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/a18_tournament_armor_chestplate.png"
+dest_files=["res://.godot/imported/a18_tournament_armor_chestplate.png-feee9fef3175ca0434dbf6fda247c2a9.ctex"]
 
 [params]
 

@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://b84166axaotnv"
+path="res://.godot/imported/kiblast_shoot.ogg-974569d25a0fcaf0599a5acb8598e113.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/kiblast_shoot.ogg"
+dest_files=["res://.godot/imported/kiblast_shoot.ogg-974569d25a0fcaf0599a5acb8598e113.oggvorbisstr"]
 
 [params]
 

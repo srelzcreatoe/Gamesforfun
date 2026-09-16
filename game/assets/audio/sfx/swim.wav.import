@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://bf87d66g8alpw"
+path="res://.godot/imported/swim.wav-f446879eb66f6c987caf049b06c5a3ed.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/swim.wav"
+dest_files=["res://.godot/imported/swim.wav-f446879eb66f6c987caf049b06c5a3ed.sample"]
 
 [params]
 

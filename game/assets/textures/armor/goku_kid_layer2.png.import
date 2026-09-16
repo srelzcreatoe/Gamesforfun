@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cniwbkaqlq1ee"
+path="res://.godot/imported/goku_kid_layer2.png-f424a20dc5e652adc44a342061225c91.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/goku_kid_layer2.png"
+dest_files=["res://.godot/imported/goku_kid_layer2.png-f424a20dc5e652adc44a342061225c91.ctex"]
 
 [params]
 

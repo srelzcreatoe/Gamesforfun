@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d14gargltg1pi"
+path="res://.godot/imported/block_clay.png-916e3cee40012cb5511904c00dfbc042.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_clay.png"
+dest_files=["res://.godot/imported/block_clay.png-916e3cee40012cb5511904c00dfbc042.ctex"]
 
 [params]
 

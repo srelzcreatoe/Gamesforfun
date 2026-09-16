@@ -2,10 +2,13 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
+uid="uid://dg3okfuwvbbpv"
+path="res://.godot/imported/rapier_slash.ogg-e9918ee5d14208b4cc32514224d40dbc.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/sfx/rapier_slash.ogg"
+dest_files=["res://.godot/imported/rapier_slash.ogg-e9918ee5d14208b4cc32514224d40dbc.oggvorbisstr"]
 
 [params]
 

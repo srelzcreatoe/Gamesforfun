@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bbruw2otyrmdd"
+path="res://.godot/imported/seeds.png-00349ef70db7f0f88ddb876f7f07e2c3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/seeds.png"
+dest_files=["res://.godot/imported/seeds.png-00349ef70db7f0f88ddb876f7f07e2c3.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bntaqo70ch7l"
+path="res://.godot/imported/raditz_armor_boots.png-bdbe6a24a019de89f232007d461f66d1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/raditz_armor_boots.png"
+dest_files=["res://.godot/imported/raditz_armor_boots.png-bdbe6a24a019de89f232007d461f66d1.ctex"]
 
 [params]
 

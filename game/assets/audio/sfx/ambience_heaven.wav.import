@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://kb187fejesih"
+path="res://.godot/imported/ambience_heaven.wav-7d9845d6e3ce247d124d51cd22694a4f.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/ambience_heaven.wav"
+dest_files=["res://.godot/imported/ambience_heaven.wav-7d9845d6e3ce247d124d51cd22694a4f.sample"]
 
 [params]
 

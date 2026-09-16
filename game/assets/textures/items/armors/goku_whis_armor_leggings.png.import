@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ddvgd5u5wnp8i"
+path="res://.godot/imported/goku_whis_armor_leggings.png-a62ad11bc16ef623491650ec1df2d361.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/armors/goku_whis_armor_leggings.png"
+dest_files=["res://.godot/imported/goku_whis_armor_leggings.png-a62ad11bc16ef623491650ec1df2d361.ctex"]
 
 [params]
 

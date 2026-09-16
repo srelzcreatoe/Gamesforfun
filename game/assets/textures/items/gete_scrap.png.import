@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c264wd67ck0of"
+path="res://.godot/imported/gete_scrap.png-1c7a2989882e2f91fc46d5b9cd69513f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/gete_scrap.png"
+dest_files=["res://.godot/imported/gete_scrap.png-1c7a2989882e2f91fc46d5b9cd69513f.ctex"]
 
 [params]
 

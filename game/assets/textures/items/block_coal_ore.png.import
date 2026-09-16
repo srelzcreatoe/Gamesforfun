@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dvj74bp7q7q40"
+path="res://.godot/imported/block_coal_ore.png-ecaa228bc300bbceda28628cc6e52bd5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_coal_ore.png"
+dest_files=["res://.godot/imported/block_coal_ore.png-ecaa228bc300bbceda28628cc6e52bd5.ctex"]
 
 [params]
 

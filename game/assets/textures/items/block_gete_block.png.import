@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://e3pmi0ycguvb"
+path="res://.godot/imported/block_gete_block.png-877c527afb179f83327d2226a4d7d21f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_gete_block.png"
+dest_files=["res://.godot/imported/block_gete_block.png-877c527afb179f83327d2226a4d7d21f.ctex"]
 
 [params]
 

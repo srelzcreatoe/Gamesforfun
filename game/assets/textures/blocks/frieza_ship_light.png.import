@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://cpn0bismiwmdl"
+path="res://.godot/imported/frieza_ship_light.png-af65e327e1004eea9424891a30cb4628.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/frieza_ship_light.png"
+dest_files=["res://.godot/imported/frieza_ship_light.png-af65e327e1004eea9424891a30cb4628.ctex"]
 
 [params]
 

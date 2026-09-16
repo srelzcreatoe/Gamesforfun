@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bwrc6eclf085e"
+path="res://.godot/imported/a17super_layer2.png-61ba859a7d2ffff0279cb1ae755cff40.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/armor/a17super_layer2.png"
+dest_files=["res://.godot/imported/a17super_layer2.png-61ba859a7d2ffff0279cb1ae755cff40.ctex"]
 
 [params]
 

@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://cwml5yjjeb1lj"
+path="res://.godot/imported/bubbles.wav-278826ca69e0d13cc466c54ae6355a11.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/bubbles.wav"
+dest_files=["res://.godot/imported/bubbles.wav-278826ca69e0d13cc466c54ae6355a11.sample"]
 
 [params]
 

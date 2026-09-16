@@ -2,10 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
+uid="uid://b3tp8nfp1bvn2"
+path="res://.godot/imported/step_snow_2.wav-681dffe8a227b29fdd4d71c9473b42bf.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/step_snow_2.wav"
+dest_files=["res://.godot/imported/step_snow_2.wav-681dffe8a227b29fdd4d71c9473b42bf.sample"]
 
 [params]
 

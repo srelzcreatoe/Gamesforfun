@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://xypmulin1350"
+path="res://.godot/imported/namekian_nose_2.png-c758f9a285d54668972a7dff0c187859.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/hd/races/namekian/faces/namekian_nose_2.png"
+dest_files=["res://.godot/imported/namekian_nose_2.png-c758f9a285d54668972a7dff0c187859.ctex"]
 
 [params]
 

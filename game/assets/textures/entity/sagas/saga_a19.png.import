@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://0mnxqfx7pb1f"
+path="res://.godot/imported/saga_a19.png-34e9713aafc5f1a9c7de8db7a7ed0970.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_a19.png"
+dest_files=["res://.godot/imported/saga_a19.png-34e9713aafc5f1a9c7de8db7a7ed0970.ctex"]
 
 [params]
 

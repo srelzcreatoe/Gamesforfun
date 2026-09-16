@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://8nnyjlxqcl74"
+path="res://.godot/imported/descend.png-9cef12940ed1634a1cf08aaed71f256d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/radial/descend.png"
+dest_files=["res://.godot/imported/descend.png-9cef12940ed1634a1cf08aaed71f256d.ctex"]
 
 [params]
 

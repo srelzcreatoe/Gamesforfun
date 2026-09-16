@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bfjxw3d0j7cr0"
+path="res://.godot/imported/foliage.png-ab33b5014090f7fdffb65ddeaf88fb62.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/misc/colormap/foliage.png"
+dest_files=["res://.godot/imported/foliage.png-ab33b5014090f7fdffb65ddeaf88fb62.ctex"]
 
 [params]
 

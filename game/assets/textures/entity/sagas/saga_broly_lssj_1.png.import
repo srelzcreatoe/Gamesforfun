@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dgotjm5b1wesl"
+path="res://.godot/imported/saga_broly_lssj_1.png-e53a2a2d9c5951832125cd1d63264555.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/entity/sagas/saga_broly_lssj_1.png"
+dest_files=["res://.godot/imported/saga_broly_lssj_1.png-e53a2a2d9c5951832125cd1d63264555.ctex"]
 
 [params]
 

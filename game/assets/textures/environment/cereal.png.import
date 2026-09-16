@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dwypa8q7mnouj"
+path="res://.godot/imported/cereal.png-17a09671e32c7d87e7a01b0b14923d20.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/environment/cereal.png"
+dest_files=["res://.godot/imported/cereal.png-17a09671e32c7d87e7a01b0b14923d20.ctex"]
 
 [params]
 

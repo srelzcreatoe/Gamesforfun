@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://lemkl831olun"
+path="res://.godot/imported/block_stone_slab.png-feb245ab3765ce7101b11d34766b32d4.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_stone_slab.png"
+dest_files=["res://.godot/imported/block_stone_slab.png-feb245ab3765ce7101b11d34766b32d4.ctex"]
 
 [params]
 
