@@ -145,6 +145,7 @@ func _process(delta: float) -> void:
 		camera.look_at_from_position(pos, _orbit_center, Vector3.UP)
 		return
 	_update_transform(delta)
+	_report_underwater()
 
 func _update_transform(delta: float) -> void:
 	var eye := eye_position()
@@ -178,6 +179,46 @@ func _update_transform(delta: float) -> void:
 	if mode == Mode.SHOULDER:
 		to = eye + look * 4.0
 	camera.look_at_from_position(cam_pos + _shake_offset(delta), to, Vector3.UP)
+
+## The shaders engineer's post-process pass draws the underwater tint from
+## `SkyController.camera_underwater`; feed it the real camera position every frame.
+func _sky_controller() -> Node:
+	var w: Node = null
+	if player != null:
+		w = player.get("world")
+	if w == null and Game != null:
+		w = Game.world
+	if w == null:
+		return null
+	var sk: Variant = w.get("sky")
+	if sk is Node and sk != null and "camera_underwater" in sk:
+		return sk
+	var node := w.get_node_or_null("SkyController")
+	if node != null and "camera_underwater" in node:
+		return node
+	return null
+
+func sky_handles_underwater() -> bool:
+	return _sky_controller() != null
+
+func camera_in_liquid() -> bool:
+	var w: Node = null
+	if player != null:
+		w = player.get("world")
+	if w == null and Game != null:
+		w = Game.world
+	if w == null or camera == null or not w.has_method("is_liquid"):
+		return false
+	var p := camera.global_position
+	return bool(w.call("is_liquid", int(floor(p.x)), int(floor(p.y)), int(floor(p.z))))
+
+func _report_underwater() -> void:
+	var sk := _sky_controller()
+	if sk == null:
+		return
+	var wet := camera_in_liquid()
+	if bool(sk.get("camera_underwater")) != wet:
+		sk.set("camera_underwater", wet)
 
 func _bob(delta: float) -> Vector3:
 	if Game != null and not bool(Game.settings.get("view_bobbing", true)):

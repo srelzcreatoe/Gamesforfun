@@ -20,6 +20,10 @@ var _bgm_fade_len := 1.0
 var _rng := RandomNumberGenerator.new()
 var _playlist_pos: Dictionary = {}
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		_streams.clear()
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	for i in POOL_SIZE:
@@ -110,14 +114,14 @@ func play_sfx_at(name: String, pos: Vector3, volume_db := 0.0, pitch := 1.0) -> 
 	var p0 := _pool3d[0]
 	p0.stream = st; p0.global_position = pos; p0.volume_db = volume_db; p0.pitch_scale = pitch; p0.play()
 
-func play_loop(name: String, key: String, volume_db := 0.0) -> void:
+func play_loop(name: String, key: String, volume_db := 0.0, bus := "Sfx") -> void:
 	if _loops.has(key):
 		return
 	var st := _stream(_resolve(name))
 	if st == null:
 		return
 	var p := AudioStreamPlayer.new()
-	p.bus = "Sfx"
+	p.bus = bus
 	p.stream = st
 	p.volume_db = volume_db
 	add_child(p)

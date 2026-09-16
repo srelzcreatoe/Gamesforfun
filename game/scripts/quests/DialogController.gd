@@ -108,9 +108,8 @@ func master_id_of(npc: Node) -> String:
 		return ""
 	if "master_id" in npc and String(npc.get("master_id")) != "":
 		return String(npc.get("master_id"))
-	if "entity_type" in npc and Registry != null:
-		var def: Dictionary = Registry.entity(String(npc.get("entity_type")))
-		var mid := String(def.get("master", ""))
+	if "entity_type" in npc:
+		var mid := Requirements.master_of_entity(String(npc.get("entity_type")))
 		if mid != "":
 			return mid
 	if "npc_id" in npc:

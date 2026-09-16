@@ -677,7 +677,11 @@ func _sync_from_player() -> void:
 	reticle.queue_redraw()
 	if cam != null and cam.get("mode") != null and p.has_method("set_model_visible"):
 		p.call("set_model_visible", int(cam.get("mode")) != CameraRig.Mode.FIRST)
-	water_tint.visible = bool(p.call("head_in_liquid")) if p.has_method("head_in_liquid") else false
+	# The post-process pass owns the underwater tint when SkyController exposes it.
+	var own_tint := true
+	if cam != null and cam.has_method("sky_handles_underwater"):
+		own_tint = not bool(cam.call("sky_handles_underwater"))
+	water_tint.visible = own_tint and p.has_method("head_in_liquid") and bool(p.call("head_in_liquid"))
 	_update_target_bar(p)
 	_update_labels()
 	_update_button_feedback(p)

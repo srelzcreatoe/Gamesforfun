@@ -280,6 +280,23 @@ static func time_gate(group: Variant) -> float:
 
 # --- pretty names ----------------------------------------------------------
 
+## Master id that owns an entity type. Uses `entities.json.master` and falls back to a
+## reverse lookup through `masters.json.entity` (a few NPCs only have the back link).
+static func master_of_entity(entity_type: String) -> String:
+	if entity_type == "" or Registry == null:
+		return ""
+	var direct := String(Registry.entity(entity_type).get("master", ""))
+	if direct != "":
+		return direct
+	if _master_by_entity.is_empty():
+		for mid in Registry.masters.keys():
+			var ent := String(Registry.masters[mid].get("entity", ""))
+			if ent != "":
+				_master_by_entity[ent] = String(mid)
+	return String(_master_by_entity.get(entity_type, ""))
+
+static var _master_by_entity: Dictionary = {}
+
 static func planet_name(id: String) -> String:
 	if Registry == null:
 		return id

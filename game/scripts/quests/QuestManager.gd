@@ -576,9 +576,8 @@ func _npc_identity(npc: Node) -> String:
 	for key in ["master_id", "npc_id"]:
 		if key in npc and String(npc.get(key)) != "":
 			return String(npc.get(key))
-	if "entity_type" in npc and Registry != null:
-		var def: Dictionary = Registry.entity(String(npc.get("entity_type")))
-		var m := String(def.get("master", ""))
+	if "entity_type" in npc:
+		var m := Requirements.master_of_entity(String(npc.get("entity_type")))
 		if m != "":
 			return m
 	return ""

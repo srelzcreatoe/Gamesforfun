@@ -33,7 +33,7 @@ func _card(pid: String, def: Dictionary, unlocked: bool, index: int) -> Control:
 	p.add_theme_stylebox_override("panel", UiUtil.panel_light())
 	p.custom_minimum_size = Vector2(170.0 * s, 150.0 * s)
 	var v := UiUtil.vbox(4.0 * s)
-	var icon := UiUtil.icon_rect(_planet_icon(pid), Vector2(72.0 * s, 72.0 * s))
+	var icon := UiUtil.icon_rect(_planet_icon(pid, def), Vector2(72.0 * s, 72.0 * s))
 	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	if not unlocked:
 		icon.modulate = Color(0.4, 0.4, 0.45)
@@ -55,13 +55,36 @@ func _card(pid: String, def: Dictionary, unlocked: bool, index: int) -> Control:
 	p.add_child(v)
 	return p
 
-## Planet portraits come from assets/textures/environment/<planet>.png when the pipeline has one.
-func _planet_icon(pid: String) -> Texture2D:
+## Planet portraits come from assets/textures/environment/<planet>.png when the pipeline has one,
+## otherwise a disc tinted with the planet's own sky colour.
+static var _disc_cache: Dictionary = {}
+
+func _planet_icon(pid: String, def: Dictionary) -> Texture2D:
 	for name in [pid, pid + "_planet", pid.replace("planet_", "")]:
 		var path := "res://assets/textures/environment/%s.png" % name
 		if ResourceLoader.exists(path):
 			return load(path)
-	return UiUtil.gui_tex(ICON_SHEET)
+	return _disc(UiUtil.color_hex(String(def.get("sky", {}).get("day", "#6C7BA8")), Color(0.42, 0.48, 0.66)))
+
+static func _disc(col: Color) -> Texture2D:
+	var key := col.to_html()
+	if _disc_cache.has(key):
+		return _disc_cache[key]
+	var n := 32
+	var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+	var c := Vector2(float(n) * 0.5, float(n) * 0.5)
+	for y in n:
+		for x in n:
+			var d := Vector2(float(x) + 0.5, float(y) + 0.5).distance_to(c) / (float(n) * 0.5)
+			if d > 1.0:
+				img.set_pixel(x, y, Color(0, 0, 0, 0))
+				continue
+			var shade := clampf(1.15 - d * 0.75, 0.25, 1.15)
+			var speck := 1.0 + (0.12 if ((x * 7 + y * 13) % 11 == 0) else 0.0)
+			img.set_pixel(x, y, Color(col.r * shade * speck, col.g * shade * speck, col.b * shade * speck, 1.0))
+	var t := ImageTexture.create_from_image(img)
+	_disc_cache[key] = t
+	return t
 
 func _travel(pid: String) -> void:
 	Events.travel_requested.emit(pid)
