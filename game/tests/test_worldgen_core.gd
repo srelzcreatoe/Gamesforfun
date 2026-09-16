@@ -139,13 +139,15 @@ func test_no_caves_on_heaven() -> void:
 # --- budget ----------------------------------------------------------------
 
 func test_column_time_budget() -> void:
-	var g := _gen("earth")
-	# Warm up (first column also resolves the unique structure positions).
-	_col(g, 40, 40)
-	var t0 := Time.get_ticks_usec()
-	var n := 8
-	for i in n:
-		_col(g, 100 + i, 60 + i)
-	var ms := float(Time.get_ticks_usec() - t0) / 1000.0 / float(n)
-	print("      earth column: %.2f ms" % ms)
-	assert_true(ms < 40.0, "column generation too slow: %.2f ms" % ms)
+	for planet in ["earth", "namek", "vegeta", "heaven", "cereal", "hell_planet",
+			"otherworld", "universe_7_deep_space"]:
+		var g := _gen(planet)
+		# Warm up: the first column also resolves the unique structure positions.
+		_col(g, 40, 40)
+		var t0 := Time.get_ticks_usec()
+		var n := 8
+		for i in n:
+			_col(g, 100 + i, 60 + i)
+		var ms := float(Time.get_ticks_usec() - t0) / 1000.0 / float(n)
+		print("      %-22s %.2f ms/column" % [planet, ms])
+		assert_true(ms < 40.0, "%s column generation too slow: %.2f ms" % [planet, ms])

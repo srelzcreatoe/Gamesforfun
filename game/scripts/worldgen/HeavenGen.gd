@@ -6,6 +6,7 @@ extends WorldGen
 func _configure() -> void:
 	terrain_mode = Terrain.MODE_HEAVEN
 	biome_style = BiomeMap.STYLE_SINGLE
+	tree_density_scale = 0.3
 	caves_enabled = false
 	stone_name = "stone"
 	filler_depth = 4

@@ -145,13 +145,23 @@ func lake_at(wx: int, wz: int) -> float:
 func height_at(wx: int, wz: int) -> int:
 	return clampi(int(round(height_f(wx, wz))), min_height, max_height)
 
+## Keeps the area around (0, 0) above water on every planet that has a sea, so the player
+## never spawns swimming (World spawns from the heightmap at the profile position).
+func _spawn_island(fx: float, fz: float, h: float) -> float:
+	if not has_sea:
+		return h
+	var g := _gauss(fx, fz, 0.0, 0.0, 110.0)
+	if g <= 0.01:
+		return h
+	return maxf(h, lerpf(h, float(sea_level) + 3.5, g))
+
 func height_f(wx: int, wz: int) -> float:
 	var fx := float(wx)
 	var fz := float(wz)
 	match mode:
-		MODE_EARTH: return _h_earth(fx, fz)
-		MODE_NAMEK: return _h_namek(fx, fz)
-		MODE_SACRED: return _h_sacred(fx, fz)
+		MODE_EARTH: return _spawn_island(fx, fz, _h_earth(fx, fz))
+		MODE_NAMEK: return _spawn_island(fx, fz, _h_namek(fx, fz))
+		MODE_SACRED: return _spawn_island(fx, fz, _h_sacred(fx, fz))
 		MODE_VEGETA: return _h_vegeta(fx, fz)
 		MODE_YARDRAT: return _h_yardrat(fx, fz)
 		MODE_VAMPA: return _h_vampa(fx, fz)

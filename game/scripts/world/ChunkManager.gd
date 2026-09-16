@@ -13,6 +13,7 @@ const OPAQUE_SHADER := "res://shaders/chunk_opaque.gdshader"
 const CUTOUT_SHADER := "res://shaders/chunk_cutout.gdshader"
 const WATER_SHADER := "res://shaders/water.gdshader"
 const MAX_UPLOADS_PER_FRAME := 2
+const MAX_PUBLISH_PER_FRAME := 2
 const MAX_MERGE_PER_FRAME := 1
 ## Main-thread budget for one frame of world work (ARCHITECTURE.md §2 asks for <= 4 ms,
 ## the voxel brief for <= 6 ms). Light merges and new jobs stop once it is used up.
@@ -55,6 +56,7 @@ var _gen_done: Array = []
 var _mesh_done: Array = []
 var _pending_gen: Dictionary = {}             # Vector2i -> true while a gen task is queued
 var _upload_queue: Array = []
+var _publish_queue: Array = []
 var _merge_queue: Array[Vector2i] = []
 var _nodes: Dictionary = {}                   # Vector2i -> Node3D
 var _wanted: Array[Vector2i] = []
@@ -67,7 +69,9 @@ var _frame_start := 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_max_gen_tasks = clampi(OS.get_processor_count() - 1, 1, 4)
+	# Leave cores for the renderer and the main thread: oversubscribing the CPU makes frames
+	# stutter far more than a slightly slower stream does.
+	_max_gen_tasks = clampi(OS.get_processor_count() / 2, 1, 3)
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--profile"):
 			_force_profile = true
@@ -310,10 +314,13 @@ func _collect_finished() -> void:
 	var meshes: Array = _mesh_done.duplicate()
 	_mesh_done.clear()
 	_mutex.unlock()
-	for c in gen:
-		_publish(c)
+	_publish_queue.append_array(gen)
 	for m in meshes:
 		_upload_queue.append(m)
+	var n := 0
+	while not _publish_queue.is_empty() and n < MAX_PUBLISH_PER_FRAME:
+		_publish(_publish_queue.pop_front())
+		n += 1
 
 func _publish(col: ChunkColumn) -> void:
 	var k := col.key()
@@ -519,3 +526,4 @@ func shutdown() -> void:
 	_gen_ids.clear()
 	_mesh_ids.clear()
 	_upload_queue.clear()
+	_publish_queue.clear()

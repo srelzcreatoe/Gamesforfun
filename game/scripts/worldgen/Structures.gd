@@ -278,11 +278,20 @@ func _mark(col: ChunkColumn, ctx, entry: Dictionary, min_x: int, min_z: int,
 			var other: AABB = m.get("aabb", AABB())
 			if other.position.is_equal_approx(aabb.position):
 				return
-	col.structure_marks.append({
-		"id": entry["id"],
-		"quest_tag": entry["quest_tag"],
-		"aabb": aabb,
+	add_mark(col, String(entry["id"]), String(entry["quest_tag"]), aabb)
+
+## Record a structure anchor for the quest system: live in `structure_marks` and mirrored into
+## the column's JSON `extra` so it survives a save/load (a column restored from disk skips
+## generation, see ChunkManager._gen_task).
+static func add_mark(col: ChunkColumn, id: String, quest_tag: String, aabb: AABB) -> void:
+	col.structure_marks.append({"id": id, "quest_tag": quest_tag, "aabb": aabb})
+	var saved: Array = col.extra.get("structures", [])
+	saved.append({
+		"id": id, "quest_tag": quest_tag,
+		"aabb": [aabb.position.x, aabb.position.y, aabb.position.z,
+			aabb.size.x, aabb.size.y, aabb.size.z],
 	})
+	col.extra["structures"] = saved
 
 func _spawn_entities(col: ChunkColumn, ctx, entry: Dictionary, tpl: Dictionary,
 		min_x: int, min_z: int, base_y: int, off: Vector3i, size: Vector3i, rot: int,
@@ -367,12 +376,9 @@ func _korin_tower(col: ChunkColumn, ctx, ax: int, az: int, lookout_y: int) -> vo
 				"pos": Vector3(float(ax) + 0.5, float(top + 2), float(az) + 0.5),
 				"data": {"structure": "korin_tower"},
 			})
-		col.structure_marks.append({
-			"id": "korin_tower",
-			"quest_tag": "dragonminez:korin_tower",
-			"aabb": AABB(Vector3(ax - 7, float(maxi(0, ground - 2)), az - 7),
-				Vector3(15, float(top + 7 - ground), 15)),
-		})
+		add_mark(col, "korin_tower", "dragonminez:korin_tower",
+			AABB(Vector3(ax - 7, float(maxi(0, ground - 2)), az - 7),
+				Vector3(15, float(top + 7 - ground), 15)))
 
 func _near_column(ctx, wx: int, wz: int, r: int) -> bool:
 	return wx + r >= ctx.ox and wx - r < ctx.ox + 16 and wz + r >= ctx.oz and wz - r < ctx.oz + 16

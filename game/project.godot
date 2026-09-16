@@ -30,6 +30,7 @@ Registry="*res://autoload/Registry.gd"
 Textures="*res://autoload/Textures.gd"
 Audio="*res://autoload/Audio.gd"
 Game="*res://autoload/Game.gd"
+Quests="*res://scripts/quests/QuestBoot.gd"
 
 [debug]
 

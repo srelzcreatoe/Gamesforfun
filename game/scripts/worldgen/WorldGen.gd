@@ -83,6 +83,9 @@ var lava_level := 0                       # carved cave cells at/below this y be
 var snow_y := 9999                        # surface at/above this y gets `snow_name`
 var snow_name := "snow_block"
 var ore_table: Array = []                 # [{block, min, max, tries, size}]
+## Scales the biomes.json tree densities for this planet (the converted DMZ/vanilla numbers
+## are dense enough to close the canopy; meadow-like planets want fewer).
+var tree_density_scale := 1.0
 var decorate := true
 var stamp_structures := true
 var dragon_ball_set := ""

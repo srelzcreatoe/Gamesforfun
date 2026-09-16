@@ -53,10 +53,12 @@ func _trees(col: ChunkColumn, ctx) -> void:
 				total += float(t.get("density", 0.0))
 			if total <= 0.0:
 				continue
+			var scale: float = gen.tree_density_scale
+			var accept := total * float(TREE_GATE) * scale
 			var u := Terrain.hash_unit(gen.seed, wx, 5, wz)
-			if u >= total * float(TREE_GATE):
+			if u >= accept or accept <= 0.0:
 				continue
-			var pick := u / float(TREE_GATE)
+			var pick := (u / accept) * total
 			var kind := ""
 			var acc := 0.0
 			for t in list:

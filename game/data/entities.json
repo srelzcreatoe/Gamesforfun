@@ -1842,7 +1842,8 @@
     "attack": "punch"
    },
    "bgm": "",
-   "taunt": "Oh, hi! Need something from Capsule Corp? I'm a little busy."
+   "taunt": "Oh, hi! Need something from Capsule Corp? I'm a little busy.",
+   "master": "bulma"
   },
   {
    "id": "saga_burter",
@@ -6650,7 +6651,8 @@
     "attack": "punch"
    },
    "bgm": "battle",
-   "taunt": "As the Supreme Kai, I must test your strength. Please, do not hold back."
+   "taunt": "As the Supreme Kai, I must test your strength. Please, do not hold back.",
+   "master": "shin"
   },
   {
    "id": "saga_slug",

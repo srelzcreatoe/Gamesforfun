@@ -6,6 +6,7 @@ extends WorldGen
 func _configure() -> void:
 	terrain_mode = Terrain.MODE_NAMEK
 	biome_style = BiomeMap.STYLE_NAMEK
+	tree_density_scale = 0.5
 	caves_enabled = true
 	stone_name = "namek_stone"
 	deep_name = "namek_deepslate"

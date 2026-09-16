@@ -30,10 +30,12 @@ func _features(col: ChunkColumn, ctx: Ctx) -> void:
 				continue
 			var wx := ctx.ox + lx
 			var wz := ctx.oz + lz
+			# Neighbour heights come from the cached extended grid, not fresh noise.
 			var slope := 0
-			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
-				var n := terrain.height_at(wx + d.x, wz + d.y)
-				slope = maxi(slope, absi(n - top))
+			slope = maxi(slope, absi(ext_height(ctx, lx + 1, lz) - top))
+			slope = maxi(slope, absi(ext_height(ctx, lx - 1, lz) - top))
+			slope = maxi(slope, absi(ext_height(ctx, lx, lz + 1) - top))
+			slope = maxi(slope, absi(ext_height(ctx, lx, lz - 1) - top))
 			if slope >= 3:
 				put_world(col, ctx, wx, top - 1, wz, rock)
 				put_world(col, ctx, wx, top - 2, wz, rock)

@@ -59,17 +59,16 @@ static func _tps(reward: Dictionary, profile: Dictionary, player: Node) -> Strin
 	var amount := int(reward.get("amount", 0))
 	if amount <= 0:
 		return ""
-	var gained := amount
+	# With a live player the TP goes through Training (race/class multiplier, tp_total,
+	# Events.tp_changed) and never touches the profile here as well.
 	if player != null and is_instance_valid(player) and ResourceLoader.exists("res://scripts/combat/Training.gd"):
-		var g: int = Training.award(player, float(amount))
-		if g > 0:
-			gained = g
-			return "+%d TP" % gained
+		var gained := Training.award(player, float(amount))
+		return "+%d TP" % (gained if gained > 0 else amount)
 	profile["tp"] = int(profile.get("tp", 0)) + amount
 	profile["tp_total"] = int(profile.get("tp_total", 0)) + amount
 	if Events != null:
 		Events.tp_changed.emit(int(profile["tp"]), int(profile["tp_total"]))
-	return "+%d TP" % gained
+	return "+%d TP" % amount
 
 static func _item(reward: Dictionary, profile: Dictionary, player: Node) -> String:
 	var id := String(reward.get("item", ""))
