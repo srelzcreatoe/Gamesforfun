@@ -1,0 +1,64 @@
+{
+ "id": "monster_hunter",
+ "dmz_id": "monster_hunter",
+ "quest_id": "sidequest_combat:monster_hunter",
+ "name": "Monster Hunter",
+ "desc": "The world is filled with dangerous creatures. Prove yourself as a monster hunter by eliminating various threats.",
+ "title": "Monster Hunter",
+ "description": "The world is filled with dangerous creatures. Prove yourself as a monster hunter by eliminating various threats.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_combat",
+ "order": 3,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "bandit",
+   "entity_name": "Bandit",
+   "vanilla_mob": "zombie",
+   "count": 20,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "red_ribbon_soldier",
+   "entity_name": "Red Ribbon's Soldier",
+   "vanilla_mob": "skeleton",
+   "count": 20,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "robot1",
+   "entity_name": "Red Ribbon Robot",
+   "vanilla_mob": "creeper",
+   "count": 10,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 1200
+  }
+ ]
+}

@@ -1,0 +1,74 @@
+{
+ "id": "vegeta_pride_training",
+ "dmz_id": "vegeta_pride_training",
+ "quest_id": "sidequest_training:vegeta_pride_training",
+ "name": "Vegeta's Pride Training",
+ "desc": "Vegeta demands you keep up with his training regimen. Enter the Hyperbolic Time Chamber and fight the deadliest enemies to prove you're worthy of a Saiyan's respect.",
+ "title": "Vegeta's Pride Training",
+ "description": "Vegeta demands you keep up with his training regimen. Enter the Hyperbolic Time Chamber and fight the deadliest enemies to prove you're worthy of a Saiyan's respect.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_training",
+ "order": 11,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "vegeta",
+ "turn_in": "vegeta",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "STRUCTURE",
+    "structure": "dragonminez:timechamber"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "12",
+    "quest": "saga_android:12"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "bandit",
+   "entity_name": "Bandit",
+   "vanilla_mob": "wither_skeleton",
+   "count": 10,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "bandit",
+   "entity_name": "Bandit",
+   "vanilla_mob": "blaze",
+   "count": 5,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "vegeta",
+   "npcId": "vegeta"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 60000
+  }
+ ]
+}

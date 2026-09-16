@@ -1,0 +1,57 @@
+{
+ "id": "1",
+ "dmz_id": 1,
+ "quest_id": "saga_future:1",
+ "name": "A Future in Ruins",
+ "desc": "Future Trunks asks you to hear what became of his timeline after the Androids won. Speak with him and prepare to step into that nightmare.",
+ "title": "A Future in Ruins",
+ "description": "Future Trunks asks you to hear what became of his timeline after the Androids won. Speak with him and prepare to step into that nightmare.",
+ "type": "SAGA",
+ "category": "saga_future",
+ "saga": "future_saga",
+ "order": 0,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1380
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "15",
+    "quest": "saga_android:15"
+   }
+  ]
+ },
+ "min_level": 1380,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "trunks",
+   "npcId": "trunks"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 25600
+  }
+ ]
+}

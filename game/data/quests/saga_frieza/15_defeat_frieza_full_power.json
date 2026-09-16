@@ -1,0 +1,68 @@
+{
+ "id": "15",
+ "dmz_id": 15,
+ "quest_id": "saga_frieza:15",
+ "name": "100% Full Power",
+ "desc": "Frieza is done holding back. Face his full power and end the fight before Namek dies with him.",
+ "title": "100% Full Power",
+ "description": "Frieza is done holding back. Face his full power and end the fight before Namek dies with him.",
+ "type": "SAGA",
+ "category": "saga_frieza",
+ "saga": "frieza_saga",
+ "order": 14,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 350
+   },
+   {
+    "type": "PLANET",
+    "planet": "namek"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:ajissa_plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "14",
+    "quest": "saga_frieza:14"
+   }
+  ]
+ },
+ "min_level": 350,
+ "planet": "namek",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_frieza_fp",
+   "entity_name": "Frieza (Full Power)",
+   "count": 1,
+   "health": 37570.0,
+   "meleeDamage": 1768.0,
+   "kiDamage": 1499.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 50400
+  }
+ ]
+}

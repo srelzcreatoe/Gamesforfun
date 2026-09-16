@@ -1,0 +1,64 @@
+{
+ "id": "30",
+ "dmz_id": 30,
+ "quest_id": "saga_buu:30",
+ "name": "Kid Buu",
+ "desc": "Kid Buu is pure destruction with no restraint. Fight him on sacred ground and hold him back.",
+ "title": "Kid Buu",
+ "description": "Kid Buu is pure destruction with no restraint. Fight him on sacred ground and hold him back.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 29,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2240
+   },
+   {
+    "type": "PLANET",
+    "planet": "sacred_kai_planet"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "29",
+    "quest": "saga_buu:29"
+   }
+  ]
+ },
+ "min_level": 2240,
+ "planet": "sacred_kai_planet",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_kidbuu",
+   "entity_name": "Kid Buu",
+   "count": 1,
+   "health": 647500.0,
+   "meleeDamage": 27300.0,
+   "kiDamage": 24650.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 273600
+  }
+ ]
+}

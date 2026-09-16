@@ -1,0 +1,81 @@
+{
+ "id": "15",
+ "dmz_id": 15,
+ "quest_id": "saga_buu:15",
+ "name": "Goku and Vegeta Clash",
+ "desc": "Goku and Majin Vegeta's battle is feeding the disaster. Survive both warriors and force the battle back toward Buu.",
+ "title": "Goku and Vegeta Clash",
+ "description": "Goku and Majin Vegeta's battle is feeding the disaster. Survive both warriors and force the battle back toward Buu.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 14,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1820
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "14",
+    "quest": "saga_buu:14"
+   }
+  ]
+ },
+ "min_level": 1820,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_goku_end_ssj2",
+   "entity_name": "Goku (Super Saiyan 2)",
+   "count": 1,
+   "health": 322000.0,
+   "meleeDamage": 13500.0,
+   "kiDamage": 12240.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_vegeta_majin",
+   "entity_name": "Majin Vegeta",
+   "count": 1,
+   "health": 336000.0,
+   "meleeDamage": 14100.0,
+   "kiDamage": 12750.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 158400
+  }
+ ]
+}

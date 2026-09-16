@@ -1,0 +1,68 @@
+{
+ "id": "1",
+ "dmz_id": 1,
+ "quest_id": "saga_android:1",
+ "name": "Mecha Frieza",
+ "desc": "Frieza has returned to Earth rebuilt as a machine. Stop him before Earth repeats Namek's fate.",
+ "title": "Mecha Frieza",
+ "description": "Frieza has returned to Earth rebuilt as a machine. Stop him before Earth repeats Namek's fate.",
+ "type": "SAGA",
+ "category": "saga_android",
+ "saga": "android_saga",
+ "order": 0,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 440
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "16",
+    "quest": "saga_frieza:16"
+   }
+  ]
+ },
+ "min_level": 440,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_mecha_frieza",
+   "entity_name": "Mecha Frieza",
+   "count": 1,
+   "health": 59500.0,
+   "meleeDamage": 2400.0,
+   "kiDamage": 2210.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 53200
+  }
+ ]
+}

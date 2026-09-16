@@ -1,0 +1,74 @@
+{
+ "id": "12",
+ "dmz_id": 12,
+ "quest_id": "saga_movies:12",
+ "name": "Lord Slug",
+ "desc": "Lord Slug enters the fight himself. Defeat him before he can claim Earth.",
+ "title": "Lord Slug",
+ "description": "Lord Slug enters the fight himself. Defeat him before he can claim Earth.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 11,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 100
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "6",
+    "quest": "saga_saiyan:6"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "11",
+    "quest": "saga_movies:11"
+   }
+  ]
+ },
+ "min_level": 100,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_slug",
+   "entity_name": "Lord Slug",
+   "count": 1,
+   "health": 3120.0,
+   "meleeDamage": 182.0,
+   "kiDamage": 273.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 18800
+  }
+ ]
+}

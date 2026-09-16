@@ -1,0 +1,64 @@
+{
+ "id": "bulma_saiyan_biology_sample",
+ "dmz_id": "bulma_saiyan_biology_sample",
+ "quest_id": "sidequest_errands:bulma_saiyan_biology_sample",
+ "name": "Saiyan Biology",
+ "desc": "Bulma wants combat data on a Saiyan. Defeat one and bring her some diamonds for the lab.",
+ "title": "Saiyan Biology",
+ "description": "Bulma wants combat data on a Saiyan. Defeat one and bring her some diamonds for the lab.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_errands",
+ "order": 16,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "6",
+    "quest": "saga_saiyan:6"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_raditz",
+   "entity_name": "Raditz",
+   "count": 1,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY"
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "diamond",
+   "count": 3
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 7500
+  }
+ ]
+}

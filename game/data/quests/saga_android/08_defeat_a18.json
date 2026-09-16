@@ -1,0 +1,68 @@
+{
+ "id": "8",
+ "dmz_id": 8,
+ "quest_id": "saga_android:8",
+ "name": "Android 18",
+ "desc": "Android 18 fights with cold confidence and overwhelming force. Survive her assault before the pair moves on.",
+ "title": "Android 18",
+ "description": "Android 18 fights with cold confidence and overwhelming force. Survive her assault before the pair moves on.",
+ "type": "SAGA",
+ "category": "saga_android",
+ "saga": "android_saga",
+ "order": 7,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 740
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "#minecraft:is_mountain"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "7",
+    "quest": "saga_android:7"
+   }
+  ]
+ },
+ "min_level": 740,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_a18",
+   "entity_name": "Android 18",
+   "count": 1,
+   "health": 105000.0,
+   "meleeDamage": 4200.0,
+   "kiDamage": 3740.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 66080
+  }
+ ]
+}

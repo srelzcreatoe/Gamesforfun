@@ -1,0 +1,57 @@
+{
+ "id": "7",
+ "dmz_id": 7,
+ "quest_id": "saga_future:7",
+ "name": "Future Restored",
+ "desc": "The future has a chance to heal. Report back to Trunks and close this optional saga.",
+ "title": "Future Restored",
+ "description": "The future has a chance to heal. Report back to Trunks and close this optional saga.",
+ "type": "SAGA",
+ "category": "saga_future",
+ "saga": "future_saga",
+ "order": 6,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1580
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "future_saga",
+    "questId": "6",
+    "quest": "saga_future:6"
+   }
+  ]
+ },
+ "min_level": 1580,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "trunks",
+   "npcId": "trunks"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 57600
+  }
+ ]
+}

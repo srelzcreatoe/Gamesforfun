@@ -1,0 +1,69 @@
+{
+ "id": "krillin_sparring",
+ "dmz_id": "krillin_sparring",
+ "quest_id": "sidequest_training:krillin_sparring",
+ "name": "Krillin's Sparring Match",
+ "desc": "Krillin wants a sparring partner to prepare for the incoming Saiyan threat. Show him you can hold your own against the local monsters.",
+ "title": "Krillin's Sparring Match",
+ "description": "Krillin wants a sparring partner to prepare for the incoming Saiyan threat. Show him you can hold your own against the local monsters.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_training",
+ "order": 5,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "krillin",
+ "turn_in": "krillin",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "1",
+    "quest": "saga_saiyan:1"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "bandit",
+   "entity_name": "Bandit",
+   "vanilla_mob": "zombie",
+   "count": 10,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "red_ribbon_soldier",
+   "entity_name": "Red Ribbon's Soldier",
+   "vanilla_mob": "skeleton",
+   "count": 5,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "krillin",
+   "npcId": "krillin"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 800
+  }
+ ]
+}

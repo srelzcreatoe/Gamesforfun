@@ -1,0 +1,79 @@
+{
+ "id": "25",
+ "dmz_id": 25,
+ "quest_id": "saga_movies:25",
+ "name": "Legendary Broly",
+ "desc": "Broly's legendary Super Saiyan power is unleashed. Survive the storm and defeat him.",
+ "title": "Legendary Broly",
+ "description": "Broly's legendary Super Saiyan power is unleashed. Survive the storm and defeat him.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 24,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1550
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "15",
+    "quest": "saga_android:15"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "24",
+    "quest": "saga_movies:24"
+   }
+  ]
+ },
+ "min_level": 1550,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_broly_lssj",
+   "entity_name": "Broly (Legendary Super Saiyan)",
+   "count": 1,
+   "health": 574000.0,
+   "meleeDamage": 23400.0,
+   "kiDamage": 21080.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 143800
+  },
+  {
+   "type": "SKILL",
+   "skill": "legendaryforms",
+   "level": 1
+  }
+ ]
+}

@@ -1,0 +1,45 @@
+{
+ "id": "sacred_lands",
+ "dmz_id": "sacred_lands",
+ "quest_id": "sidequest_exploration:sacred_lands",
+ "name": "The Sacred Lands",
+ "desc": "The Namekian elders speak of a sacred village hidden on this world. Find it and uncover its secrets.",
+ "title": "The Sacred Lands",
+ "description": "The Namekian elders speak of a sacred village hidden on this world. Find it and uncover its secrets.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_exploration",
+ "order": 5,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "QUEST",
+    "questId": "namek_explorer",
+    "quest": "sidequest_exploration:namek_explorer"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "STRUCTURE",
+   "structure": "dragonminez:village_sacred"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 3600
+  }
+ ]
+}

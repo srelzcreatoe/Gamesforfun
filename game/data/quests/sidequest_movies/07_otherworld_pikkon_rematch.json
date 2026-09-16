@@ -1,0 +1,68 @@
+{
+ "id": "otherworld_pikkon_rematch",
+ "dmz_id": "otherworld_pikkon_rematch",
+ "quest_id": "sidequest_movies:otherworld_pikkon_rematch",
+ "name": "Otherworld Rematch",
+ "desc": "The chaos Janemba unleashed has thrown the Otherworld into disorder. King Kai arranges a rematch with Pikkon to settle the score and restore order beyond the grave — head to the Otherworld and prove yourself.",
+ "title": "Otherworld Rematch",
+ "description": "The chaos Janemba unleashed has thrown the Otherworld into disorder. King Kai arranges a rematch with Pikkon to settle the score and restore order beyond the grave — head to the Otherworld and prove yourself.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_movies",
+ "order": 6,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "king_kai",
+ "turn_in": "king_kai",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "PLANET",
+    "planet": "otherworld"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "37",
+    "quest": "saga_movies:37"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "otherworld",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_paikuhan",
+   "entity_name": "Pikkon",
+   "count": 1,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "king_kai",
+   "npcId": "king_kai"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 360000
+  },
+  {
+   "type": "ITEM",
+   "item": "senzu_bean",
+   "count": 3
+  }
+ ]
+}

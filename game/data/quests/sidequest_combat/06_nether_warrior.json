@@ -1,0 +1,74 @@
+{
+ "id": "nether_warrior",
+ "dmz_id": "nether_warrior",
+ "quest_id": "sidequest_combat:nether_warrior",
+ "name": "Nether Warrior",
+ "desc": "The Nether holds powerful enemies. Only a true warrior can survive its fiery depths.",
+ "title": "Nether Warrior",
+ "description": "The Nether holds powerful enemies. Only a true warrior can survive its fiery depths.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_combat",
+ "order": 5,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "PLANET",
+    "planet": "hell_planet"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "QUEST",
+    "questId": "monster_hunter",
+    "quest": "sidequest_combat:monster_hunter"
+   },
+   {
+    "type": "LEVEL",
+    "minLevel": 5
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "hell_planet",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "bandit",
+   "entity_name": "Bandit",
+   "vanilla_mob": "blaze",
+   "count": 10,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "bandit",
+   "entity_name": "Bandit",
+   "vanilla_mob": "wither_skeleton",
+   "count": 10,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 4500
+  },
+  {
+   "type": "ITEM",
+   "item": "diamond",
+   "count": 3
+  }
+ ]
+}

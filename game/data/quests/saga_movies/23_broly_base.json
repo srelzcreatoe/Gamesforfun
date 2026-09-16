@@ -1,0 +1,74 @@
+{
+ "id": "23",
+ "dmz_id": 23,
+ "quest_id": "saga_movies:23",
+ "name": "Broly Base",
+ "desc": "Broly's restrained power is breaking loose. Fight him before the legend fully awakens.",
+ "title": "Broly Base",
+ "description": "Broly's restrained power is breaking loose. Fight him before the legend fully awakens.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 22,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1460
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "15",
+    "quest": "saga_android:15"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "22",
+    "quest": "saga_movies:22"
+   }
+  ]
+ },
+ "min_level": 1460,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_broly_base",
+   "entity_name": "Broly",
+   "count": 1,
+   "health": 434000.0,
+   "meleeDamage": 17400.0,
+   "kiDamage": 15980.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 132500
+  }
+ ]
+}

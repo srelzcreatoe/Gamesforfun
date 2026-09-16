@@ -1,0 +1,64 @@
+{
+ "id": "31",
+ "dmz_id": 31,
+ "quest_id": "saga_buu:31",
+ "name": "Goku's Final Stand",
+ "desc": "Goku pushes Super Saiyan 3 to its limit. Face him and buy the time needed for one last chance.",
+ "title": "Goku's Final Stand",
+ "description": "Goku pushes Super Saiyan 3 to its limit. Face him and buy the time needed for one last chance.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 30,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2260
+   },
+   {
+    "type": "PLANET",
+    "planet": "sacred_kai_planet"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "30",
+    "quest": "saga_buu:30"
+   }
+  ]
+ },
+ "min_level": 2260,
+ "planet": "sacred_kai_planet",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_goku_end_ssj3",
+   "entity_name": "Goku (Super Saiyan 3)",
+   "count": 1,
+   "health": 542500.0,
+   "meleeDamage": 22800.0,
+   "kiDamage": 20740.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 223200
+  }
+ ]
+}

@@ -1,0 +1,68 @@
+{
+ "id": "6",
+ "dmz_id": 6,
+ "quest_id": "saga_frieza:6",
+ "name": "The Saiyan Prince",
+ "desc": "Vegeta is carving his own path across Namek in search of power. Confront the prince before he gets ahead of everyone else.",
+ "title": "The Saiyan Prince",
+ "description": "Vegeta is carving his own path across Namek in search of power. Confront the prince before he gets ahead of everyone else.",
+ "type": "SAGA",
+ "category": "saga_frieza",
+ "saga": "frieza_saga",
+ "order": 5,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 160
+   },
+   {
+    "type": "PLANET",
+    "planet": "namek"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:ajissa_plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "5",
+    "quest": "saga_frieza:5"
+   }
+  ]
+ },
+ "min_level": 160,
+ "planet": "namek",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_vegeta_namek",
+   "entity_name": "Vegeta (Namek)",
+   "count": 1,
+   "health": 3978.0,
+   "meleeDamage": 221.0,
+   "kiDamage": 274.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 24480
+  }
+ ]
+}

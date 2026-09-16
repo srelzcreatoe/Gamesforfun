@@ -1,0 +1,74 @@
+{
+ "id": "32",
+ "dmz_id": 32,
+ "quest_id": "saga_movies:32",
+ "name": "Legendary Broly Returns",
+ "desc": "Broly's legendary power erupts again. Defeat him in the frozen battlefield.",
+ "title": "Legendary Broly Returns",
+ "description": "Broly's legendary power erupts again. Defeat him in the frozen battlefield.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 31,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2240
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:snowy_plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "30",
+    "quest": "saga_buu:30"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "31",
+    "quest": "saga_movies:31"
+   }
+  ]
+ },
+ "min_level": 2240,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_broly_lssj",
+   "entity_name": "Broly (Legendary Super Saiyan)",
+   "count": 1,
+   "health": 1295000.0,
+   "meleeDamage": 54600.0,
+   "kiDamage": 49300.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 375000
+  }
+ ]
+}

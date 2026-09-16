@@ -1,0 +1,74 @@
+{
+ "id": "17",
+ "dmz_id": 17,
+ "quest_id": "saga_movies:17",
+ "name": "Big Gete Star",
+ "desc": "Gete machines are spreading across Namek. Destroy them before Metal Cooler multiplies further.",
+ "title": "Big Gete Star",
+ "description": "Gete machines are spreading across Namek. Destroy them before Metal Cooler multiplies further.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 16,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 370
+   },
+   {
+    "type": "PLANET",
+    "planet": "namek"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:ajissa_plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "16",
+    "quest": "saga_frieza:16"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "16",
+    "quest": "saga_movies:16"
+   }
+  ]
+ },
+ "min_level": 370,
+ "planet": "namek",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_gete_robot",
+   "entity_name": "Gete Robot",
+   "count": 10,
+   "health": 3094.0,
+   "meleeDamage": 200.0,
+   "kiDamage": 214.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 66900
+  }
+ ]
+}

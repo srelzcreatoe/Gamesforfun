@@ -1,0 +1,56 @@
+{
+ "id": "29",
+ "dmz_id": 29,
+ "quest_id": "saga_buu:29",
+ "name": "Return to the Sacred World",
+ "desc": "The final battle moves to the sacred world. Reach the sacred village before Kid Buu arrives.",
+ "title": "Return to the Sacred World",
+ "description": "The final battle moves to the sacred world. Reach the sacred village before Kid Buu arrives.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 28,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2200
+   },
+   {
+    "type": "PLANET",
+    "planet": "sacred_kai_planet"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "28",
+    "quest": "saga_buu:28"
+   }
+  ]
+ },
+ "min_level": 2200,
+ "planet": "sacred_kai_planet",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "DIMENSION",
+   "planet": "sacred_kai_planet"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 79200
+  }
+ ]
+}

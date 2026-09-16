@@ -1,0 +1,55 @@
+{
+ "id": "earth_landmarks",
+ "dmz_id": "earth_landmarks",
+ "quest_id": "sidequest_exploration:earth_landmarks",
+ "name": "Earth Landmarks",
+ "desc": "Survey Earth's most important martial arts landmarks: Kame House, Goku's House, and Kami's Lookout.",
+ "title": "Earth Landmarks",
+ "description": "Survey Earth's most important martial arts landmarks: Kame House, Goku's House, and Kami's Lookout.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_exploration",
+ "order": 0,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "QUEST",
+    "questId": "world_explorer",
+    "quest": "sidequest_exploration:world_explorer"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "STRUCTURE",
+   "structure": "dragonminez:roshi_house"
+  },
+  {
+   "type": "GO_TO",
+   "dmz_type": "STRUCTURE",
+   "structure": "dragonminez:goku_house"
+  },
+  {
+   "type": "GO_TO",
+   "dmz_type": "STRUCTURE",
+   "structure": "dragonminez:kamilookout"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 1800
+  }
+ ]
+}

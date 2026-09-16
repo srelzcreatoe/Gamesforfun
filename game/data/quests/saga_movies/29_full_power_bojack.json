@@ -1,0 +1,74 @@
+{
+ "id": "29",
+ "dmz_id": 29,
+ "quest_id": "saga_movies:29",
+ "name": "Full Power Bojack",
+ "desc": "Bojack reveals his full strength. Put an end to the Galaxy Soldier's attack.",
+ "title": "Full Power Bojack",
+ "description": "Bojack reveals his full strength. Put an end to the Galaxy Soldier's attack.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 28,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1650
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "15",
+    "quest": "saga_android:15"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "28",
+    "quest": "saga_movies:28"
+   }
+  ]
+ },
+ "min_level": 1650,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_bojack_fp",
+   "entity_name": "Bojack (Full Power)",
+   "count": 1,
+   "health": 574000.0,
+   "meleeDamage": 23400.0,
+   "kiDamage": 21080.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 158800
+  }
+ ]
+}

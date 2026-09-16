@@ -1,0 +1,63 @@
+{
+ "id": "yamcha_desert_bandit",
+ "dmz_id": "yamcha_desert_bandit",
+ "quest_id": "sidequest_combat:yamcha_desert_bandit",
+ "name": "Desert Wolf's Grudge",
+ "desc": "Yamcha's old desert hideout has been overrun by bandits. He asks you to clear them out & for old times' sake.",
+ "title": "Desert Wolf's Grudge",
+ "description": "Yamcha's old desert hideout has been overrun by bandits. He asks you to clear them out & for old times' sake.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_combat",
+ "order": 8,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "yamcha",
+ "turn_in": "yamcha",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "BIOME",
+    "biome": "minecraft:desert"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "2",
+    "quest": "saga_saiyan:2"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "bandit",
+   "entity_name": "Bandit",
+   "count": 10,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "yamcha",
+   "npcId": "yamcha"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 1200
+  }
+ ]
+}

@@ -1,0 +1,68 @@
+{
+ "id": "5",
+ "dmz_id": 5,
+ "quest_id": "saga_android:5",
+ "name": "Android 19",
+ "desc": "The first android drains energy from anyone careless enough to fight head-on. Take 19 down fast.",
+ "title": "Android 19",
+ "description": "The first android drains energy from anyone careless enough to fight head-on. Take 19 down fast.",
+ "type": "SAGA",
+ "category": "saga_android",
+ "saga": "android_saga",
+ "order": 4,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 620
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "4",
+    "quest": "saga_android:4"
+   }
+  ]
+ },
+ "min_level": 620,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_a19",
+   "entity_name": "Android 19",
+   "count": 1,
+   "health": 77000.0,
+   "meleeDamage": 3000.0,
+   "kiDamage": 2720.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 61040
+  }
+ ]
+}

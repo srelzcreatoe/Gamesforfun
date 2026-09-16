@@ -1,0 +1,70 @@
+{
+ "id": "36",
+ "dmz_id": 36,
+ "quest_id": "saga_movies:36",
+ "name": "Janemba",
+ "desc": "Janemba's first form twists Otherworld itself. Defeat him before reality breaks apart.",
+ "title": "Janemba",
+ "description": "Janemba's first form twists Otherworld itself. Defeat him before reality breaks apart.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 35,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2380
+   },
+   {
+    "type": "PLANET",
+    "planet": "otherworld"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "34",
+    "quest": "saga_buu:34"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "35",
+    "quest": "saga_movies:35"
+   }
+  ]
+ },
+ "min_level": 2380,
+ "planet": "otherworld",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_janemba_fat",
+   "entity_name": "Janemba",
+   "count": 1,
+   "health": 1120000.0,
+   "meleeDamage": 46800.0,
+   "kiDamage": 42500.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 425000
+  }
+ ]
+}

@@ -1,0 +1,68 @@
+{
+ "id": "9",
+ "dmz_id": 9,
+ "quest_id": "saga_buu:9",
+ "name": "Tournament: Spopovich",
+ "desc": "Spopovich fights with unnatural strength. Defeat him before his stolen energy serves Babidi's plan.",
+ "title": "Tournament: Spopovich",
+ "description": "Spopovich fights with unnatural strength. Defeat him before his stolen energy serves Babidi's plan.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 8,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1640
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "8",
+    "quest": "saga_buu:8"
+   }
+  ]
+ },
+ "min_level": 1640,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_spopovitch",
+   "entity_name": "Spopovich",
+   "count": 1,
+   "health": 238000.0,
+   "meleeDamage": 9900.0,
+   "kiDamage": 8840.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 108000
+  }
+ ]
+}

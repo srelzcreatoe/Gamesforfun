@@ -1,0 +1,74 @@
+{
+ "id": "22",
+ "dmz_id": 22,
+ "quest_id": "saga_movies:22",
+ "name": "Super Android 13",
+ "desc": "Android 13 has powered up with the fallen androids' components. Destroy his super form.",
+ "title": "Super Android 13",
+ "description": "Android 13 has powered up with the fallen androids' components. Destroy his super form.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 21,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1200
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:snowy_plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "13",
+    "quest": "saga_android:13"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "21",
+    "quest": "saga_movies:21"
+   }
+  ]
+ },
+ "min_level": 1200,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_super_a13",
+   "entity_name": "Super Android 13",
+   "count": 1,
+   "health": 434000.0,
+   "meleeDamage": 17400.0,
+   "kiDamage": 15980.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 131200
+  }
+ ]
+}

@@ -1,0 +1,66 @@
+{
+ "id": "chi_chi_provisions",
+ "dmz_id": "chi_chi_provisions",
+ "quest_id": "sidequest_collection:chi_chi_provisions",
+ "name": "Provisions for Battle",
+ "desc": "Goku is preparing a feast for the warriors before the final battle against the Saiyans. Help gather enough food to feed everyone.",
+ "title": "Provisions for Battle",
+ "description": "Goku is preparing a feast for the warriors before the final battle against the Saiyans. Help gather enough food to feed everyone.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_collection",
+ "order": 4,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "goku",
+ "turn_in": "goku",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "5",
+    "quest": "saga_saiyan:5"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "cooked_beef",
+   "count": 32
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "bread",
+   "count": 32
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "golden_carrot",
+   "count": 8
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 800
+  },
+  {
+   "type": "ITEM",
+   "item": "golden_apple",
+   "count": 5
+  }
+ ]
+}

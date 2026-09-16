@@ -1,0 +1,67 @@
+{
+ "id": "bulma_gravity_chamber_parts",
+ "dmz_id": "bulma_gravity_chamber_parts",
+ "quest_id": "sidequest_errands:bulma_gravity_chamber_parts",
+ "name": "Gravity Components",
+ "desc": "Bulma needs heavy-duty components for a gravity simulator: obsidian, redstone blocks and diamonds.",
+ "title": "Gravity Components",
+ "description": "Bulma needs heavy-duty components for a gravity simulator: obsidian, redstone blocks and diamonds.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_errands",
+ "order": 10,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "6",
+    "quest": "saga_android:6"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "obsidian",
+   "count": 20
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "redstone_block",
+   "count": 4
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "diamond",
+   "count": 6
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 48000
+  }
+ ]
+}

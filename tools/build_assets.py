@@ -824,7 +824,7 @@ def build_audio():
     src = os.path.join(DMZ, "sounds")
     for f in sorted(os.listdir(src)):
         if not f.endswith(".ogg"): continue
-        if f.startswith("menu_music-"):
+        if f.startswith("menu_music-") or f in ("call_for_a_miracle.ogg", "gokus_father-son_victory.ogg", "vegetas_sacrifice.ogg"):
             shutil.copy2(os.path.join(src, f), os.path.join(bgm, f))
         else:
             shutil.copy2(os.path.join(src, f), os.path.join(sfx, f))

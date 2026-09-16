@@ -1,0 +1,81 @@
+{
+ "id": "2",
+ "dmz_id": 2,
+ "quest_id": "saga_future:2",
+ "name": "Resistance Training",
+ "desc": "Train on the plains with Future Trunks and Future Gohan. Their world has no room for hesitation.",
+ "title": "Resistance Training",
+ "description": "Train on the plains with Future Trunks and Future Gohan. Their world has no room for hesitation.",
+ "type": "SAGA",
+ "category": "saga_future",
+ "saga": "future_saga",
+ "order": 1,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1400
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "future_saga",
+    "questId": "1",
+    "quest": "saga_future:1"
+   }
+  ]
+ },
+ "min_level": 1400,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_ftrunks_base",
+   "entity_name": "Future Trunks",
+   "count": 1,
+   "health": 182000.0,
+   "meleeDamage": 7500.0,
+   "kiDamage": 6800.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_fgohan_base",
+   "entity_name": "Future Gohan",
+   "count": 1,
+   "health": 196000.0,
+   "meleeDamage": 8100.0,
+   "kiDamage": 7310.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 70400
+  }
+ ]
+}

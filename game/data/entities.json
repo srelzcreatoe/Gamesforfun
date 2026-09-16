@@ -1,0 +1,9691 @@
+{
+ "entities": [
+  {
+   "id": "player",
+   "name": "Player",
+   "kind": "player",
+   "scene": "res://scenes/player/Player.tscn",
+   "model": "entity/races/human",
+   "texture": "races/base",
+   "hd_texture": false,
+   "animations": [
+    "entity/races/movement",
+    "entity/races/combat",
+    "entity/races/ki",
+    "entity/races/transf",
+    "entity/races/skp"
+   ],
+   "hitbox": [
+    0.6,
+    1.8
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 100,
+    "melee": 11,
+    "ki": 12,
+    "defense": 4,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "player",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [],
+   "sounds": {
+    "hurt": "hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "",
+   "physics": {
+    "gravity": 23.0,
+    "jump": 7.4,
+    "walk": 4.2,
+    "sprint": 5.6,
+    "sneak": 1.6,
+    "swim": 2.4,
+    "fly": 12.0,
+    "fly_fast_mult": 2.2,
+    "step_height": 0.6,
+    "eye_height": 1.62
+   }
+  },
+  {
+   "id": "master_babidi",
+   "name": "Master Babidi",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_babidi",
+   "texture": "master/master_babidi",
+   "hd_texture": false,
+   "animations": [
+    "entity/master/master_babidi"
+   ],
+   "hitbox": [
+    0.7,
+    1.23
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "Paparapapa! Give in to the darkness in your heart and I will make you strong!",
+   "master": "babidi",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_cell",
+   "name": "Master Cell",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_cell",
+   "texture": "master/master_cell",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_cell"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [
+    "solar_flare",
+    "kamehameha"
+   ],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "Welcome to the Cell Games. Try not to die before the fun begins.",
+   "master": "cell",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_dende",
+   "name": "Dende",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_dende",
+   "texture": "master/master_dende",
+   "hd_texture": true,
+   "hd_model": true,
+   "animations": [
+    "entity/master/master_dende"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "As Guardian of Earth I can sense your ki from here. Focus it.",
+   "master": "dende",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_enma",
+   "name": "King Yemma",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_enma",
+   "texture": "master/master_enma",
+   "hd_texture": false,
+   "animations": [
+    "entity/master/master_enma"
+   ],
+   "hitbox": [
+    3.52,
+    8.2
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "NEXT! State your name and how you died. I don't have all eternity.",
+   "master": "yemma",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_frieza",
+   "name": "Master Frieza",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_frieza",
+   "texture": "master/master_frieza",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_frieza"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [
+    "death_beam",
+    "emperor_death_beam",
+    "supernova"
+   ],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "Oh my. Another monkey wants to learn from the emperor of the universe? How quaint.",
+   "master": "frieza",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_gero",
+   "name": "Dr. Gero",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_gero",
+   "texture": "master/master_gero",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_gero"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "Come to be upgraded? Excellent. The procedure is only mildly painful.",
+   "master": "gero",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_gohan",
+   "name": "Master Gohan",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_gohan",
+   "texture": "master/master_gohan",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_gohan"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [
+    "masenko"
+   ],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "I'd rather talk than fight, but I won't go easy on you.",
+   "master": "gohan",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_goku",
+   "name": "Master Goku",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_goku",
+   "texture": "master/master_goku",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_goku"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "dragon_fist",
+    "meteor"
+   ],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "Alright! Let's see what you've got! Come at me with everything!",
+   "master": "goku",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_guru",
+   "name": "Grand Elder Guru",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_guru",
+   "texture": "master/master_guru",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_guru"
+   ],
+   "hitbox": [
+    2.11,
+    2.69
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "Come closer, child. Let me place my hand upon your head.",
+   "master": "guru",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_kaiosama",
+   "name": "Master King Kai",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_kaiosama",
+   "texture": "master/master_kaiosama",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_kaiosama"
+   ],
+   "hitbox": [
+    0.84,
+    1.36
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [
+    "spirit_bomb",
+    "kaioken_attack"
+   ],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "Catch Bubbles first! Ten times the gravity, kid, and no complaining!",
+   "master": "king_kai",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_karin",
+   "name": "Master Korin",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_karin",
+   "texture": "master/master_karin",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_karin"
+   ],
+   "hitbox": [
+    0.56,
+    0.98
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "You climbed all the way up here? Impressive. Now try catching this bottle.",
+   "master": "korin",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_krillin",
+   "name": "Master Krillin",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_krillin",
+   "texture": "master/master_krillin",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_krillin"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [
+    "kienzan",
+    "kienzan_doble",
+    "solar_flare"
+   ],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "Don't let the height fool you. I've fought people who blew up planets.",
+   "master": "krillin",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_oldkai",
+   "name": "Master Old Kai",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_oldkai",
+   "texture": "master/master_oldkai",
+   "hd_texture": false,
+   "animations": [
+    "entity/master/master_oldkai"
+   ],
+   "hitbox": [
+    0.56,
+    1.86
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [
+    "deadly_dance",
+    "deadly_dance_vegetto"
+   ],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "Sit down and don't move. This ritual takes twenty-five hours. Yes, hours.",
+   "master": "old_kai",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_piccolo",
+   "name": "Master Piccolo",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_piccolo",
+   "texture": "master/master_piccolo",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_piccolo"
+   ],
+   "hitbox": [
+    0.56,
+    1.89
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [
+    "special_beam_cannon"
+   ],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "Don't waste my time. Show me you can survive six months in the wilderness.",
+   "master": "piccolo",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_popo",
+   "name": "Mr. Popo",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_popo",
+   "texture": "master/master_popo",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_popo"
+   ],
+   "hitbox": [
+    0.84,
+    1.93
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "You are too slow. Mr. Popo will show you what speed means.",
+   "master": "popo",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_roshi",
+   "name": "Master Roshi",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_roshi",
+   "texture": "master/master_roshi",
+   "hd_texture": true,
+   "hd_model": true,
+   "animations": [
+    "entity/master/master_roshi"
+   ],
+   "hitbox": [
+    0.56,
+    1.64
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [
+    "kamehameha",
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "Hohoho! The Turtle Hermit still has a few tricks, youngster.",
+   "master": "roshi",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_toribot",
+   "name": "Toribot",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_toribot",
+   "texture": "master/master_toribot",
+   "hd_texture": false,
+   "animations": [
+    "entity/master/master_toribot"
+   ],
+   "hitbox": [
+    0.56,
+    1.46
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "Beep. I am Toribot. I draw the world, and sometimes I break it.",
+   "master": "toribot",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_trunks",
+   "name": "Master Trunks",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_trunks",
+   "texture": "master/master_trunks",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_trunks"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [
+    "burning_attack"
+   ],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "I've fought androids that leveled cities. Let's see how you measure up.",
+   "master": "trunks",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_uranai",
+   "name": "Fortuneteller Baba",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_uranai",
+   "texture": "master/master_uranai",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_uranai"
+   ],
+   "hitbox": [
+    0.63,
+    1.52
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "Fortuneteller Baba sees your future. It's expensive.",
+   "master": "baba",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_vegeta",
+   "name": "Master Vegeta",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_vegeta",
+   "texture": "master/master_vegeta",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_vegeta"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [
+    "galick_gun",
+    "big_bang",
+    "final_flash"
+   ],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "You want training from the Prince of all Saiyans? Then don't disappoint me.",
+   "master": "vegeta",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "master_yamcha",
+   "name": "Master Yamcha",
+   "kind": "master",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/master/master_yamcha",
+   "texture": "master/master_yamcha",
+   "hd_texture": true,
+   "animations": [
+    "entity/master/master_yamcha"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5000,
+    "melee": 60,
+    "ki": 60,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [
+    "sokidan",
+    "wolf_fang"
+   ],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "The Wolf Fang Fist is the pride of the desert. Watch closely!",
+   "master": "yamcha",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "mini_buu",
+   "name": "Mini Buu",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_buufat",
+   "texture": "sagas/mini_buu",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.41,
+    0.97
+   ],
+   "scale": 0.5,
+   "stats": {
+    "health": 60,
+    "melee": 8,
+    "ki": 6,
+    "defense": 1,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Mini Buu play!"
+  },
+  {
+   "id": "saga_a13",
+   "name": "Android 13",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_a13",
+   "texture": "sagas/saga_a13",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 294000,
+    "melee": 11400,
+    "ki": 10540,
+    "defense": 2052,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.6
+    },
+    {
+     "item": "ki_battery",
+     "chance": 0.15
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Y'all Z-fighters are gonna pay for what happened to the doctor!",
+   "phases": [
+    "saga_super_a13"
+   ]
+  },
+  {
+   "id": "saga_a14",
+   "name": "Android 14",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_a14",
+   "texture": "sagas/saga_a14",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.63,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 154000,
+    "melee": 6000,
+    "ki": 5440,
+    "defense": 1080,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.6
+    },
+    {
+     "item": "ki_battery",
+     "chance": 0.15
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Target acquired. Terminate."
+  },
+  {
+   "id": "saga_a15",
+   "name": "Android 15",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_a15",
+   "texture": "sagas/saga_a15",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.46,
+    1.58
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 129500,
+    "melee": 5280,
+    "ki": 4760,
+    "defense": 950,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.6
+    },
+    {
+     "item": "ki_battery",
+     "chance": 0.15
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hehehe, little fella, you're about to get scrapped."
+  },
+  {
+   "id": "saga_a16",
+   "name": "Android 16",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_a16",
+   "texture": "sagas/saga_a16",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.7,
+    1.99
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 113750,
+    "melee": 4650,
+    "ki": 4590,
+    "defense": 837,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.6
+    },
+    {
+     "item": "ki_battery",
+     "chance": 0.15
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "I do not wish to fight. But if you threaten this planet, I will stop you."
+  },
+  {
+   "id": "saga_a17",
+   "name": "Android 17",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_a17",
+   "texture": "sagas/saga_a17",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 122500,
+    "melee": 5100,
+    "ki": 5440,
+    "defense": 918,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.6
+    },
+    {
+     "item": "ki_battery",
+     "chance": 0.15
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "You're in my way. I don't like things being in my way."
+  },
+  {
+   "id": "saga_a18",
+   "name": "Android 18",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_a18",
+   "texture": "sagas/saga_a18",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 105000,
+    "melee": 4200,
+    "ki": 3740,
+    "defense": 756,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.6
+    },
+    {
+     "item": "ki_battery",
+     "chance": 0.15
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "You're not even worth the effort, but fine, let's dance."
+  },
+  {
+   "id": "saga_a19",
+   "name": "Android 19",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_a19",
+   "texture": "sagas/saga_a19",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.84,
+    2.04
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 77000,
+    "melee": 3000,
+    "ki": 2720,
+    "defense": 540,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.6
+    },
+    {
+     "item": "ki_battery",
+     "chance": 0.15
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Energy readings acquired. Commencing absorption."
+  },
+  {
+   "id": "saga_babidi",
+   "name": "Babidi",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_babidi",
+   "texture": "sagas/saga_babidi",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.7,
+    1.23
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 245000,
+    "melee": 10200,
+    "ki": 9180,
+    "defense": 1836,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Paparapapa! My magic will bend you to my will!"
+  },
+  {
+   "id": "saga_bido",
+   "name": "Bido",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_bido",
+   "texture": "sagas/saga_bido",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.63,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 210000,
+    "melee": 8400,
+    "ki": 7480,
+    "defense": 1512,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Bojack said to crush you. So that's what I'll do."
+  },
+  {
+   "id": "saga_bio_broly",
+   "name": "Bio-Broly",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_bio_broly",
+   "texture": "sagas/saga_bio_broly",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.74,
+    1.93
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 805000,
+    "melee": 33600,
+    "ki": 30600,
+    "defense": 6048,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "kikono_shard",
+     "chance": 0.6
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.3
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Kakarot... *gurgle* ...KAKAROT!",
+   "phases": [
+    "saga_bio_broly_giant"
+   ]
+  },
+  {
+   "id": "saga_bio_broly_giant",
+   "name": "Bio-Broly (Giant)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_bio_broly",
+   "texture": "sagas/saga_bio_broly_giant",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    1.73,
+    4.54
+   ],
+   "scale": 2.2,
+   "stats": {
+    "health": 1120000,
+    "melee": 46800,
+    "ki": 42500,
+    "defense": 8424,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "kikono_shard",
+     "chance": 0.6
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.3
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "*roaring as the culture fluid grows*",
+   "giant": true
+  },
+  {
+   "id": "saga_bojack",
+   "name": "Bojack",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_bojack",
+   "texture": "sagas/saga_bojack",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.63,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 434000,
+    "melee": 17400,
+    "ki": 15980,
+    "defense": 3132,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "The galaxy will bow to Bojack once more. Starting with you.",
+   "phases": [
+    "saga_bojack_fp"
+   ]
+  },
+  {
+   "id": "saga_bojack_fp",
+   "name": "Bojack (Full Power)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_bojack_fp",
+   "texture": "sagas/saga_bojack_fp",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.74,
+    1.93
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 574000,
+    "melee": 23400,
+    "ki": 21080,
+    "defense": 4212,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "You've made me angry. Now witness my full power!"
+  },
+  {
+   "id": "saga_broly_base",
+   "name": "Broly",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_broly_base",
+   "texture": "sagas/saga_broly_base",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.6,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 434000,
+    "melee": 17400,
+    "ki": 15980,
+    "defense": 3132,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage",
+    "final_explosion"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Kakarot... KAKAROT!",
+   "phases": [
+    "saga_broly_ssj",
+    "saga_broly_lssj"
+   ]
+  },
+  {
+   "id": "saga_broly_lssj",
+   "name": "Broly (Legendary Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_broly_lssj",
+   "texture": "sagas/saga_broly_lssj",
+   "hd_texture": true,
+   "texture_variants": [
+    "sagas/saga_broly_lssj_1"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.74,
+    1.93
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 574000,
+    "melee": 23400,
+    "ki": 21080,
+    "defense": 4212,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage",
+    "final_explosion"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "KAKAROOOT! Everything will burn!"
+  },
+  {
+   "id": "saga_broly_ssj",
+   "name": "Broly (Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_broly_ssj",
+   "texture": "sagas/saga_broly_ssj",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_broly_ssj_1"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.6,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 945000,
+    "melee": 39600,
+    "ki": 35700,
+    "defense": 7128,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage",
+    "final_explosion"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Is that all you've got? I'm just getting warmed up!",
+   "phases": [
+    "saga_broly_lssj"
+   ]
+  },
+  {
+   "id": "saga_broly_ssj_restricted",
+   "name": "Broly (Restricted Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_broly_base",
+   "texture": "sagas/saga_broly_ssj_restricted",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.6,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 189000,
+    "melee": 7800,
+    "ki": 7140,
+    "defense": 1404,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage",
+    "final_explosion"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Is that all you've got? I'm just getting warmed up!"
+  },
+  {
+   "id": "saga_bujin",
+   "name": "Bujin",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_bujin",
+   "texture": "sagas/saga_bujin",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.82
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 129500,
+    "melee": 5280,
+    "ki": 4760,
+    "defense": 950,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "My psychic threads will hold you while the others tear you apart."
+  },
+  {
+   "id": "saga_bulma",
+   "name": "Bulma",
+   "kind": "npc",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/sagas/saga_bulma",
+   "texture": "sagas/saga_bulma",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 450,
+    "melee": 22,
+    "ki": 39,
+    "defense": 4,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "Oh, hi! Need something from Capsule Corp? I'm a little busy."
+  },
+  {
+   "id": "saga_burter",
+   "name": "Burter",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_burter",
+   "texture": "sagas/saga_burter",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.7,
+    1.99
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 4862,
+    "melee": 265,
+    "ki": 238,
+    "defense": 48,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "meteor"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "I'm the fastest in the universe! You can't touch me!"
+  },
+  {
+   "id": "saga_buufat",
+   "name": "Majin Buu",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_buufat",
+   "texture": "sagas/saga_buufat",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.77,
+    1.82
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 343000,
+    "melee": 14400,
+    "ki": 12920,
+    "defense": 2592,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Buu make you candy! Then Buu eat you!",
+   "phases": [
+    "saga_evilbuu",
+    "saga_superbuu",
+    "saga_superbuu_gotenks",
+    "saga_superbuu_gohan",
+    "saga_kidbuu"
+   ]
+  },
+  {
+   "id": "saga_cell_imperfect",
+   "name": "Cell (Imperfect)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_cell_imperfect",
+   "texture": "sagas/saga_cell_imperfect",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 108500,
+    "melee": 4350,
+    "ki": 3910,
+    "defense": 783,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "solar_flare",
+    "special_beam_cannon"
+   ],
+   "drops": [
+    {
+     "item": "kikono_shard",
+     "chance": 0.6
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.3
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Your energy will make a fine addition to my perfection.",
+   "phases": [
+    "saga_cell_semiperfect",
+    "saga_cell_perfect",
+    "saga_cell_superperfect"
+   ]
+  },
+  {
+   "id": "saga_cell_jr",
+   "name": "Cell Jr",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_cell_jr",
+   "texture": "sagas/saga_cell_jr",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.49,
+    1.64
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 150500,
+    "melee": 5940,
+    "ki": 6545,
+    "defense": 1069,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "solar_flare",
+    "special_beam_cannon"
+   ],
+   "drops": [
+    {
+     "item": "kikono_shard",
+     "chance": 0.6
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.3
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hehehe! Papa said we can play as rough as we want!"
+  },
+  {
+   "id": "saga_cell_perfect",
+   "name": "Perfect Cell",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_cell_perfect",
+   "texture": "sagas/saga_cell_perfect",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 217000,
+    "melee": 8700,
+    "ki": 7990,
+    "defense": 1566,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "solar_flare",
+    "special_beam_cannon"
+   ],
+   "drops": [
+    {
+     "item": "kikono_shard",
+     "chance": 0.6
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.3
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Welcome to the Cell Games. Show me what you've got.",
+   "phases": [
+    "saga_cell_superperfect"
+   ]
+  },
+  {
+   "id": "saga_cell_semiperfect",
+   "name": "Cell (Semi-Perfect)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_cell_semiperfect",
+   "texture": "sagas/saga_cell_semiperfect",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.63,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 147000,
+    "melee": 5700,
+    "ki": 5270,
+    "defense": 1026,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "solar_flare",
+    "special_beam_cannon"
+   ],
+   "drops": [
+    {
+     "item": "kikono_shard",
+     "chance": 0.6
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.3
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Just a little more... then I will be perfect!",
+   "phases": [
+    "saga_cell_perfect",
+    "saga_cell_superperfect"
+   ]
+  },
+  {
+   "id": "saga_cell_superperfect",
+   "name": "Super Perfect Cell",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_cell_perfect",
+   "texture": "sagas/saga_cell_superperfect",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 287000,
+    "melee": 11700,
+    "ki": 10540,
+    "defense": 2106,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "solar_flare",
+    "special_beam_cannon"
+   ],
+   "drops": [
+    {
+     "item": "kikono_shard",
+     "chance": 0.6
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.3
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "I have returned stronger than ever. This time nothing will stop me!"
+  },
+  {
+   "id": "saga_chaoz",
+   "name": "Chiaotzu",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_chaoz",
+   "texture": "sagas/saga_chaoz",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.46,
+    1.64
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 715,
+    "melee": 44,
+    "ki": 65,
+    "defense": 8,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I'll do my best! Tien, watch me!"
+  },
+  {
+   "id": "saga_cooler",
+   "name": "Cooler",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_cooler",
+   "texture": "sagas/saga_cooler",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.6,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 61880,
+    "melee": 2873,
+    "ki": 2499,
+    "defense": 517,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "supernova_cooler",
+    "death_beam"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "frieza_s_hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "My brother was careless. I never make his mistakes.",
+   "phases": [
+    "saga_cooler_5ta"
+   ]
+  },
+  {
+   "id": "saga_cooler_5ta",
+   "name": "Cooler (Final Form)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_cooler_5ta",
+   "texture": "sagas/saga_cooler_5ta",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.89,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 75140,
+    "melee": 3536,
+    "ki": 2999,
+    "defense": 636,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "supernova_cooler",
+    "death_beam"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "frieza_s_hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "This form is beyond anything Frieza ever achieved!"
+  },
+  {
+   "id": "saga_cui",
+   "name": "Cui",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_cui",
+   "texture": "sagas/saga_cui",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.89
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 2652,
+    "melee": 155,
+    "ki": 179,
+    "defense": 28,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "broken_scouter",
+     "chance": 0.3
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Frieza sends his regards. This will be over quickly."
+  },
+  {
+   "id": "saga_dabura",
+   "name": "Dabura",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_dabura",
+   "texture": "sagas/saga_dabura",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.77,
+    1.89
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 308000,
+    "melee": 12900,
+    "ki": 11730,
+    "defense": 2322,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "I am the King of the Demon Realm. Kneel, or be turned to stone."
+  },
+  {
+   "id": "saga_dodoria",
+   "name": "Dodoria",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_dodoria",
+   "texture": "sagas/saga_dodoria",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.84,
+    1.99
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 3205,
+    "melee": 189,
+    "ki": 221,
+    "defense": 34,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "broken_scouter",
+     "chance": 0.3
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Lord Frieza will reward me well for squashing you."
+  },
+  {
+   "id": "saga_dore",
+   "name": "Dore",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_dore",
+   "texture": "sagas/saga_dore",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 7514,
+    "melee": 421,
+    "ki": 524,
+    "defense": 76,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Dore will crush you with his bare hands. No tricks needed."
+  },
+  {
+   "id": "saga_dr_wheelo",
+   "name": "Dr. Wheelo",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_dr_wheelo",
+   "texture": "sagas/saga_dr_wheelo",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.97,
+    1.95
+   ],
+   "scale": 0.65,
+   "stats": {
+    "health": 6500,
+    "melee": 364,
+    "ki": 364,
+    "defense": 66,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "My brilliant brain will rule this world in a body of steel!"
+  },
+  {
+   "id": "saga_drgero",
+   "name": "Dr.Gero (Android)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_drgero",
+   "texture": "sagas/saga_drgero",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    2.17
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 64750,
+    "melee": 2640,
+    "ki": 2380,
+    "defense": 475,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.6
+    },
+    {
+     "item": "ki_battery",
+     "chance": 0.15
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "The Red Ribbon Army is not finished! You'll fuel my androids!"
+  },
+  {
+   "id": "saga_evilbuu",
+   "name": "Evil Buu",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_evilbuu",
+   "texture": "sagas/saga_evilbuu",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 402500,
+    "melee": 16800,
+    "ki": 15300,
+    "defense": 3024,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "You... are nothing. Buu will erase you.",
+   "phases": [
+    "saga_superbuu",
+    "saga_superbuu_gotenks",
+    "saga_superbuu_gohan",
+    "saga_kidbuu"
+   ]
+  },
+  {
+   "id": "saga_fgohan_base",
+   "name": "Future Gohan",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_future_gohan",
+   "texture": "sagas/saga_fgohan_base",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 196000,
+    "melee": 8100,
+    "ki": 7310,
+    "defense": 1458,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "masenko",
+    "kamehameha"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I've survived the androids for years. Show me your resolve!"
+  },
+  {
+   "id": "saga_fgohan_ssj",
+   "name": "Future Gohan (Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_future_gohanssj",
+   "texture": "sagas/saga_fgohan_ssj",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 238000,
+    "melee": 9600,
+    "ki": 8840,
+    "defense": 1728,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "masenko",
+    "kamehameha"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I've survived the androids for years. Show me your resolve!"
+  },
+  {
+   "id": "saga_frieza_base",
+   "name": "Frieza (Final Form)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_frieza_base",
+   "texture": "sagas/saga_frieza_base",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 30940,
+    "melee": 1437,
+    "ki": 1250,
+    "defense": 259,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "death_beam",
+    "supernova"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "frieza_s_hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "This is my final form. There is no hope left for you.",
+   "phases": [
+    "saga_frieza_fp"
+   ]
+  },
+  {
+   "id": "saga_frieza_first",
+   "name": "Frieza (1st Form)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_frieza_first",
+   "texture": "sagas/saga_frieza_first",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 9282,
+    "melee": 464,
+    "ki": 428,
+    "defense": 84,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "death_beam",
+    "supernova"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "frieza_s_hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Oh my, another insect to squash. Let's not waste my time.",
+   "phases": [
+    "saga_frieza_second",
+    "saga_frieza_third",
+    "saga_frieza_base",
+    "saga_frieza_fp"
+   ]
+  },
+  {
+   "id": "saga_frieza_fp",
+   "name": "Frieza (Full Power)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_frieza_fp",
+   "texture": "sagas/saga_frieza_fp",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.7,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 37570,
+    "melee": 1768,
+    "ki": 1499,
+    "defense": 318,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "death_beam",
+    "supernova"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "frieza_s_hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "I will destroy this entire planet, and you along with it!"
+  },
+  {
+   "id": "saga_frieza_second",
+   "name": "Frieza (2nd Form)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_frieza_second",
+   "texture": "sagas/saga_frieza_second",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.7,
+    1.99
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 18785,
+    "melee": 928,
+    "ki": 821,
+    "defense": 167,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "death_beam",
+    "supernova"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "frieza_s_hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "My power level is over one million. You never stood a chance.",
+   "phases": [
+    "saga_frieza_third",
+    "saga_frieza_base",
+    "saga_frieza_fp"
+   ]
+  },
+  {
+   "id": "saga_frieza_third",
+   "name": "Frieza (3rd Form)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_frieza_third",
+   "texture": "sagas/saga_frieza_third",
+   "hd_texture": true,
+   "hd_model": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.63,
+    1.93
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 25731,
+    "melee": 1219,
+    "ki": 1066,
+    "defense": 219,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "death_beam",
+    "supernova"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "frieza_s_hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Would you like to see my next transformation? I promise it won't hurt... much.",
+   "phases": [
+    "saga_frieza_base",
+    "saga_frieza_fp"
+   ]
+  },
+  {
+   "id": "saga_friezasoldier01",
+   "name": "Frieza's Soldier",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_friezasoldier01",
+   "texture": "sagas/saga_friezasoldier01",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.61,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "broken_scouter",
+     "chance": 0.3
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "frieza_s_hurt",
+    "death": "frieza_s_death",
+    "attack": "frieza_s_attack",
+    "ambient": "frieza_s_ambient"
+   },
+   "bgm": "battle",
+   "taunt": "For Lord Frieza! Get them!"
+  },
+  {
+   "id": "saga_friezasoldier02",
+   "name": "Frieza's Soldier",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_friezasoldier02",
+   "texture": "sagas/saga_friezasoldier02",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.61,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1879,
+    "melee": 122,
+    "ki": 131,
+    "defense": 22,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "broken_scouter",
+     "chance": 0.3
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "frieza_s_hurt",
+    "death": "frieza_s_death",
+    "attack": "frieza_s_attack",
+    "ambient": "frieza_s_ambient"
+   },
+   "bgm": "battle",
+   "taunt": "For Lord Frieza! Get them!"
+  },
+  {
+   "id": "saga_friezasoldier03",
+   "name": "Frieza's Soldier",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_friezasoldier03",
+   "texture": "sagas/saga_friezasoldier03",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.61,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 2100,
+    "melee": 137,
+    "ki": 143,
+    "defense": 25,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "broken_scouter",
+     "chance": 0.3
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "frieza_s_hurt",
+    "death": "frieza_s_death",
+    "attack": "frieza_s_attack",
+    "ambient": "frieza_s_ambient"
+   },
+   "bgm": "battle",
+   "taunt": "For Lord Frieza! Get them!"
+  },
+  {
+   "id": "saga_ftrunks_base",
+   "name": "Future Trunks",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_trunks",
+   "texture": "sagas/saga_ftrunks_base",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_ftrunks_base_1"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 182000,
+    "melee": 7500,
+    "ki": 6800,
+    "defense": 1350,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "burning_attack",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I came from the future to stop this. I won't hold back!"
+  },
+  {
+   "id": "saga_ftrunks_kid_base",
+   "name": "Future Trunks (Kid)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_trunks",
+   "texture": "sagas/saga_ftrunks_kid_base",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 150500,
+    "melee": 5940,
+    "ki": 6545,
+    "defense": 1069,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "burning_attack",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I came from the future to stop this. I won't hold back!"
+  },
+  {
+   "id": "saga_ftrunks_kid_ssj",
+   "name": "Future Trunks (Kid Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_trunks_ssj",
+   "texture": "sagas/saga_ftrunks_kid_ssj",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 325500,
+    "melee": 13200,
+    "ki": 12070,
+    "defense": 2376,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "burning_attack",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I came from the future to stop this. I won't hold back!"
+  },
+  {
+   "id": "saga_ftrunks_ssg3",
+   "name": "Future Trunks (SS Grade 3)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_trunks_ssg3",
+   "texture": "sagas/saga_ftrunks_ssg3",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.63,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 434000,
+    "melee": 17400,
+    "ki": 15980,
+    "defense": 3132,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "burning_attack",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I came from the future to stop this. I won't hold back!"
+  },
+  {
+   "id": "saga_ftrunks_ssj",
+   "name": "Future Trunks (Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_trunks_ssj",
+   "texture": "sagas/saga_ftrunks_ssj",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_ftrunks_ssj_1"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 7700,
+    "melee": 420,
+    "ki": 391,
+    "defense": 76,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "burning_attack",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I came from the future to stop this. I won't hold back!"
+  },
+  {
+   "id": "saga_future_gohan",
+   "name": "Future Gohan",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_future_gohan",
+   "texture": "sagas/saga_fgohan_base",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "One arm is all I need to take you down. Come on!"
+  },
+  {
+   "id": "saga_future_gohanssj",
+   "name": "Future Gohanssj",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_future_gohanssj",
+   "texture": "sagas/saga_fgohan_ssj",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "One arm is all I need to take you down. Come on!"
+  },
+  {
+   "id": "saga_garlick_jr",
+   "name": "Garlic Jr.",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_garlick_jr",
+   "texture": "sagas/saga_garlick_jr",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.7,
+    1.23
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 3120,
+    "melee": 182,
+    "ki": 273,
+    "defense": 33,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "The Dead Zone awaits you! Your world belongs to Garlic Jr.!",
+   "phases": [
+    "saga_garlick_jr_transformed"
+   ]
+  },
+  {
+   "id": "saga_garlick_jr_transformed",
+   "name": "Garlic Jr. (Transformed)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_garlick_jr_transformed",
+   "texture": "sagas/saga_garlick_jr_transformed",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.77,
+    1.93
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 6500,
+    "melee": 364,
+    "ki": 364,
+    "defense": 66,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Now you'll face my true form! Tremble before me!"
+  },
+  {
+   "id": "saga_gete_robot",
+   "name": "Gete Robot",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_gete_robot",
+   "texture": "sagas/saga_gete_robot",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.9,
+    1.9
+   ],
+   "scale": 0.8,
+   "stats": {
+    "health": 3094,
+    "melee": 200,
+    "ki": 214,
+    "defense": 36,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": false,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.6
+    },
+    {
+     "item": "ki_battery",
+     "chance": 0.15
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "*mechanical whirring*"
+  },
+  {
+   "id": "saga_ginyu",
+   "name": "Ginyu",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_ginyu",
+   "texture": "sagas/saga_ginyu",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 7072,
+    "melee": 376,
+    "ki": 333,
+    "defense": 68,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Behold the elegance of Captain Ginyu! Prepare to be crushed!"
+  },
+  {
+   "id": "saga_ginyu_goku",
+   "name": "Goku (Ginyu)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_ginyu_goku",
+   "texture": "sagas/saga_ginyu_goku",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 3978,
+    "melee": 211,
+    "ki": 185,
+    "defense": 38,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "This body is magnificent! Now let's see what it can really do!"
+  },
+  {
+   "id": "saga_gohan_end",
+   "name": "Gohan End",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_gohan_end",
+   "texture": "sagas/saga_gohan_end_base",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_gohan_end_base_1",
+    "sagas/saga_gohan_end_base_2"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "masenko",
+    "kamehameha"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I don't like fighting, but I'll protect the people I love!"
+  },
+  {
+   "id": "saga_gohan_end_base",
+   "name": "Gohan",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_gohan_end",
+   "texture": "sagas/saga_gohan_end_base",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_gohan_end_base_1",
+    "sagas/saga_gohan_end_base_2"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 217000,
+    "melee": 9000,
+    "ki": 8160,
+    "defense": 1620,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "masenko",
+    "kamehameha"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I don't like fighting, but I'll protect the people I love!"
+  },
+  {
+   "id": "saga_gohan_end_ssj",
+   "name": "Gohan (Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_gohan_end_ssj",
+   "texture": "sagas/saga_gohan_end_ssj",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_gohan_end_ssj_1",
+    "sagas/saga_gohan_end_ssj_2"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 273000,
+    "melee": 11400,
+    "ki": 10370,
+    "defense": 2052,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "masenko",
+    "kamehameha"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I don't like fighting, but I'll protect the people I love!"
+  },
+  {
+   "id": "saga_gohan_end_ssj2",
+   "name": "Gohan (Super Saiyan 2)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_gohan_end_ssj2",
+   "texture": "sagas/saga_gohan_end_ssj2",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_gohan_end_ssj2_1",
+    "sagas/saga_gohan_end_ssj2_2"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 341250,
+    "melee": 14250,
+    "ki": 12920,
+    "defense": 2565,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "masenko",
+    "kamehameha"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I don't like fighting, but I'll protect the people I love!"
+  },
+  {
+   "id": "saga_gohan_end_ultimate",
+   "name": "Ultimate Gohan",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_gohan_end_ssj2",
+   "texture": "sagas/saga_gohan_end_ultimate",
+   "hd_texture": true,
+   "texture_variants": [
+    "sagas/saga_gohan_end_ultimate_1",
+    "sagas/saga_gohan_end_ultimate_2"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 564375,
+    "melee": 23775,
+    "ki": 21590,
+    "defense": 4280,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "masenko",
+    "kamehameha"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I don't like fighting, but I'll protect the people I love!"
+  },
+  {
+   "id": "saga_gohan_mid",
+   "name": "Gohan Mid",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_gohan_mid",
+   "texture": "sagas/saga_gohan_mid_base",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_gohan_mid_base_1",
+    "sagas/saga_gohan_mid_base_2",
+    "sagas/saga_gohan_mid_base_3"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "masenko",
+    "kamehameha"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I don't like fighting, but I'll protect the people I love!"
+  },
+  {
+   "id": "saga_gohan_mid_base",
+   "name": "Teen Gohan",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_gohan_mid",
+   "texture": "sagas/saga_gohan_mid_base",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_gohan_mid_base_1",
+    "sagas/saga_gohan_mid_base_2",
+    "sagas/saga_gohan_mid_base_3"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 114100,
+    "melee": 4650,
+    "ki": 4522,
+    "defense": 837,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "masenko",
+    "kamehameha"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I don't like fighting, but I'll protect the people I love!"
+  },
+  {
+   "id": "saga_gohan_mid_ssj",
+   "name": "Teen Gohan (Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_gohan_mid",
+   "texture": "sagas/saga_gohan_mid_ssj",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_gohan_mid_ssj_1",
+    "sagas/saga_gohan_mid_ssj_2",
+    "sagas/saga_gohan_mid_ssj_3"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 7700,
+    "melee": 420,
+    "ki": 391,
+    "defense": 76,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "masenko",
+    "kamehameha"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I don't like fighting, but I'll protect the people I love!",
+   "phases": [
+    "saga_gohan_mid_ssj2"
+   ]
+  },
+  {
+   "id": "saga_gohan_mid_ssj2",
+   "name": "Teen Gohan (Super Saiyan 2)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_gohan_mid_ssj2",
+   "texture": "sagas/saga_gohan_mid_ssj2",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_gohan_mid_ssj2_1",
+    "sagas/saga_gohan_mid_ssj2_2",
+    "sagas/saga_gohan_mid_ssj2_3"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 235812,
+    "melee": 9540,
+    "ki": 9042,
+    "defense": 1717,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "masenko",
+    "kamehameha"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I don't like fighting, but I'll protect the people I love!"
+  },
+  {
+   "id": "saga_goku",
+   "name": "Goku",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_goku",
+   "texture": "sagas/saga_goku_mid_base",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_goku_mid_base_1",
+    "sagas/saga_goku_mid_base_2"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "kaioken_attack",
+    "spirit_bomb"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hey! Let's have a good fight! Don't hold anything back!"
+  },
+  {
+   "id": "saga_goku_early",
+   "name": "Goku",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_goku",
+   "texture": "sagas/saga_goku_early",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_goku_early_1",
+    "sagas/saga_goku_early_2"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 845,
+    "melee": 52,
+    "ki": 78,
+    "defense": 9,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "kaioken_attack",
+    "spirit_bomb"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hey! Let's have a good fight! Don't hold anything back!"
+  },
+  {
+   "id": "saga_goku_early_noweights",
+   "name": "Goku",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_goku",
+   "texture": "sagas/saga_goku_early_noweights",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_goku_early_noweights_1",
+    "sagas/saga_goku_early_noweights_2"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 975,
+    "melee": 59,
+    "ki": 91,
+    "defense": 11,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "kaioken_attack",
+    "spirit_bomb"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hey! Let's have a good fight! Don't hold anything back!"
+  },
+  {
+   "id": "saga_goku_end_base",
+   "name": "Goku",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_goku",
+   "texture": "sagas/saga_goku_end_base",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 189000,
+    "melee": 7800,
+    "ki": 7140,
+    "defense": 1404,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "kaioken_attack",
+    "spirit_bomb"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hey! Let's have a good fight! Don't hold anything back!"
+  },
+  {
+   "id": "saga_goku_end_ssj",
+   "name": "Goku (Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_goku_ssj",
+   "texture": "sagas/saga_goku_end_ssj",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 273000,
+    "melee": 11400,
+    "ki": 10370,
+    "defense": 2052,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "kaioken_attack",
+    "spirit_bomb"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hey! Let's have a good fight! Don't hold anything back!"
+  },
+  {
+   "id": "saga_goku_end_ssj2",
+   "name": "Goku (Super Saiyan 2)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_goku_ssj2",
+   "texture": "sagas/saga_goku_end_ssj2",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 322000,
+    "melee": 13500,
+    "ki": 12240,
+    "defense": 2430,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "kaioken_attack",
+    "spirit_bomb"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hey! Let's have a good fight! Don't hold anything back!",
+   "phases": [
+    "saga_goku_end_ssj3"
+   ]
+  },
+  {
+   "id": "saga_goku_end_ssj3",
+   "name": "Goku (Super Saiyan 3)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_goku_ssj3",
+   "texture": "sagas/saga_goku_end_ssj3",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 437500,
+    "melee": 18300,
+    "ki": 16660,
+    "defense": 3294,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "kaioken_attack",
+    "spirit_bomb"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hey! Let's have a good fight! Don't hold anything back!"
+  },
+  {
+   "id": "saga_goku_mid_base",
+   "name": "Goku",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_goku",
+   "texture": "sagas/saga_goku_mid_base",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_goku_mid_base_1",
+    "sagas/saga_goku_mid_base_2"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 3120,
+    "melee": 182,
+    "ki": 273,
+    "defense": 33,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "kaioken_attack",
+    "spirit_bomb"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hey! Let's have a good fight! Don't hold anything back!"
+  },
+  {
+   "id": "saga_goku_mid_ssj",
+   "name": "Goku (Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_goku_ssj",
+   "texture": "sagas/saga_goku_mid_ssj",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_goku_mid_ssj_1",
+    "sagas/saga_goku_mid_ssj_2"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 118125,
+    "melee": 4688,
+    "ki": 4250,
+    "defense": 844,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "kaioken_attack",
+    "spirit_bomb"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hey! Let's have a good fight! Don't hold anything back!"
+  },
+  {
+   "id": "saga_goku_ssj",
+   "name": "Goku Ssj",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_goku_ssj",
+   "texture": "sagas/saga_goku_mid_ssj",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_goku_mid_ssj_1",
+    "sagas/saga_goku_mid_ssj_2"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "kaioken_attack",
+    "spirit_bomb"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hey! Let's have a good fight! Don't hold anything back!"
+  },
+  {
+   "id": "saga_goku_ssj2",
+   "name": "Goku Ssj2",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_goku_ssj2",
+   "texture": "sagas/saga_goku_end_ssj2",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "kaioken_attack",
+    "spirit_bomb"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hey! Let's have a good fight! Don't hold anything back!"
+  },
+  {
+   "id": "saga_goku_ssj3",
+   "name": "Goku Ssj3",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_goku_ssj3",
+   "texture": "sagas/saga_goku_end_ssj3",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "kaioken_attack",
+    "spirit_bomb"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hey! Let's have a good fight! Don't hold anything back!"
+  },
+  {
+   "id": "saga_gokua",
+   "name": "Kogu",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_gokua",
+   "texture": "sagas/saga_gokua",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.63,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 217000,
+    "melee": 8700,
+    "ki": 7820,
+    "defense": 1566,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "My blade has never met a foe it couldn't cut. Draw your weapon!"
+  },
+  {
+   "id": "saga_goten",
+   "name": "Goten",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_goten",
+   "texture": "sagas/saga_goten",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.46,
+    1.58
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 175000,
+    "melee": 7200,
+    "ki": 6630,
+    "defense": 1296,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Yay, a fight! I'm gonna go Super Saiyan!"
+  },
+  {
+   "id": "saga_goten_ssj",
+   "name": "Goten (Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_goten_ssj",
+   "texture": "sagas/saga_goten_ssj",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.46,
+    1.58
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 273000,
+    "melee": 11400,
+    "ki": 10370,
+    "defense": 2052,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Yay, a fight! I'm gonna go Super Saiyan!"
+  },
+  {
+   "id": "saga_gotenks",
+   "name": "Gotenks",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_gotenks",
+   "texture": "sagas/saga_gotenks",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 315000,
+    "melee": 13200,
+    "ki": 11900,
+    "defense": 2376,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "ki_barrage",
+    "meteor"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Behold the mighty Gotenks! Ghosts, assemble!",
+   "phases": [
+    "saga_gotenks_ssj",
+    "saga_gotenks_ssj3"
+   ]
+  },
+  {
+   "id": "saga_gotenks_ssj",
+   "name": "Gotenks (Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_gotenks",
+   "texture": "sagas/saga_gotenks_ssj",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 393750,
+    "melee": 16500,
+    "ki": 14875,
+    "defense": 2970,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "ki_barrage",
+    "meteor"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Behold the mighty Gotenks! Ghosts, assemble!",
+   "phases": [
+    "saga_gotenks_ssj3"
+   ]
+  },
+  {
+   "id": "saga_gotenks_ssj3",
+   "name": "Gotenks (Super Saiyan 3)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_gotenks_ssj3",
+   "texture": "sagas/saga_gotenks_ssj3",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 472500,
+    "melee": 19800,
+    "ki": 17850,
+    "defense": 3564,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "ki_barrage",
+    "meteor"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Behold the mighty Gotenks! Ghosts, assemble!"
+  },
+  {
+   "id": "saga_guldo",
+   "name": "Guldo",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_guldo",
+   "texture": "sagas/saga_guldo",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.7,
+    1.58
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1989,
+    "melee": 122,
+    "ki": 119,
+    "defense": 22,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Time freeze! You won't even see what hit you."
+  },
+  {
+   "id": "saga_hirudegarn",
+   "name": "Hirudegarn",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_hirudegarn",
+   "texture": "sagas/saga_hirudegarn",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    3.38,
+    6.56
+   ],
+   "scale": 0.9,
+   "stats": {
+    "health": 1295000,
+    "melee": 54600,
+    "ki": 49300,
+    "defense": 9828,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "final_explosion"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "*a thundering roar echoes across the sky*",
+   "phases": [
+    "saga_super_hirudegarn"
+   ],
+   "giant": true
+  },
+  {
+   "id": "saga_hirudegarn_incomplete1",
+   "name": "Hirudegarn (Incomplete)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_hirudegarn",
+   "texture": "sagas/saga_hirudegarn_incomplete1",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    2.62,
+    5.1
+   ],
+   "scale": 0.7,
+   "stats": {
+    "health": 1225000,
+    "melee": 51600,
+    "ki": 46920,
+    "defense": 9288,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "final_explosion"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "*a thundering roar echoes across the sky*",
+   "phases": [
+    "saga_hirudegarn_incomplete2",
+    "saga_hirudegarn",
+    "saga_super_hirudegarn"
+   ],
+   "giant": true
+  },
+  {
+   "id": "saga_hirudegarn_incomplete2",
+   "name": "Hirudegarn (Upper Half)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_hirudegarn",
+   "texture": "sagas/saga_hirudegarn_incomplete2",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    3.0,
+    5.83
+   ],
+   "scale": 0.8,
+   "stats": {
+    "health": 1225000,
+    "melee": 51600,
+    "ki": 46920,
+    "defense": 9288,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "final_explosion"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "*a thundering roar echoes across the sky*",
+   "phases": [
+    "saga_hirudegarn",
+    "saga_super_hirudegarn"
+   ],
+   "giant": true
+  },
+  {
+   "id": "saga_janemba_fat",
+   "name": "Janemba",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_janemba_fat",
+   "texture": "sagas/saga_janemba_fat",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.88,
+    1.46
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1120000,
+    "melee": 46800,
+    "ki": 42500,
+    "defense": 8424,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Hee hee hee! Janemba play!",
+   "phases": [
+    "saga_super_janemba"
+   ]
+  },
+  {
+   "id": "saga_jeice",
+   "name": "Jeice",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_jeice",
+   "texture": "sagas/saga_jeice",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 4862,
+    "melee": 265,
+    "ki": 238,
+    "defense": 48,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Oi! Nobody messes with the Ginyu Force and walks away!"
+  },
+  {
+   "id": "saga_kibito",
+   "name": "Kibito",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_kibito",
+   "texture": "sagas/saga_kibito",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.7,
+    1.99
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 189000,
+    "melee": 7800,
+    "ki": 7140,
+    "defense": 1404,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "The Supreme Kai has ordered me to test you. Prepare yourself."
+  },
+  {
+   "id": "saga_kid_gohan",
+   "name": "Kid Gohan",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_kid_gohan",
+   "texture": "sagas/saga_kid_gohan",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_kid_gohan_1"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.46,
+    1.58
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 3120,
+    "melee": 182,
+    "ki": 273,
+    "defense": 33,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "masenko"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I... I won't run away anymore! Here I come!"
+  },
+  {
+   "id": "saga_kid_trunks",
+   "name": "Trunks",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_kid_trunks",
+   "texture": "sagas/saga_kid_trunks",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.46,
+    1.58
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 189000,
+    "melee": 7800,
+    "ki": 7140,
+    "defense": 1404,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "You're gonna lose! My dad is the strongest, and so am I!"
+  },
+  {
+   "id": "saga_kid_trunks_ssj",
+   "name": "Trunks (Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_kid_trunks_ssj",
+   "texture": "sagas/saga_kid_trunks_ssj",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.46,
+    1.58
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 273000,
+    "melee": 11400,
+    "ki": 10370,
+    "defense": 2052,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "You're gonna lose! My dad is the strongest, and so am I!"
+  },
+  {
+   "id": "saga_kidbuu",
+   "name": "Kid Buu",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_kidbuu",
+   "texture": "sagas/saga_kidbuu",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 647500,
+    "melee": 27300,
+    "ki": 24650,
+    "defense": 4914,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "ki_barrage",
+    "final_explosion"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Raaaah! Buu destroy! Buu destroy everything!"
+  },
+  {
+   "id": "saga_king_cold",
+   "name": "King Cold",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_king_cold",
+   "texture": "sagas/saga_king_cold",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.7,
+    1.99
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 31500,
+    "melee": 1290,
+    "ki": 1190,
+    "defense": 232,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "death_beam",
+    "big_bang"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "frieza_s_hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Such an unruly little world. Frieza, let me handle this one."
+  },
+  {
+   "id": "saga_krillin",
+   "name": "Krillin",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_vegeta",
+   "texture": "sagas/saga_krillin",
+   "hd_texture": true,
+   "texture_variants": [
+    "sagas/saga_krillin_1",
+    "sagas/saga_krillin_2"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 217000,
+    "melee": 9000,
+    "ki": 8160,
+    "defense": 1620,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kienzan",
+    "kamehameha",
+    "solar_flare"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Alright, Krillin's in! Don't underestimate me just because I'm short!"
+  },
+  {
+   "id": "saga_mecha_frieza",
+   "name": "Mecha Frieza",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_frieza_base",
+   "texture": "sagas/saga_mecha_frieza",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 59500,
+    "melee": 2400,
+    "ki": 2210,
+    "defense": 432,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "death_beam",
+    "supernova"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "frieza_s_hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "I have been rebuilt, and I will have my revenge on this miserable planet!"
+  },
+  {
+   "id": "saga_metal_cooler",
+   "name": "Metal Cooler",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_cooler",
+   "texture": "sagas/saga_metal_cooler",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.6,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 61880,
+    "melee": 2873,
+    "ki": 2499,
+    "defense": 517,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "supernova_cooler",
+    "death_beam",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.6
+    },
+    {
+     "item": "ki_battery",
+     "chance": 0.15
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "The Big Gete Star has made me perfect. Resistance is pointless.",
+   "phases": [
+    "saga_metal_cooler_core"
+   ]
+  },
+  {
+   "id": "saga_metal_cooler_core",
+   "name": "Metal Cooler Core",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_metal_cooler_core",
+   "texture": "sagas/saga_metal_cooler_core",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.62,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 75140,
+    "melee": 3536,
+    "ki": 2999,
+    "defense": 636,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "supernova_cooler",
+    "death_beam",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.6
+    },
+    {
+     "item": "ki_battery",
+     "chance": 0.15
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "I am legion. Destroy one body and a thousand more await."
+  },
+  {
+   "id": "saga_morosoldier",
+   "name": "Moro's Soldier",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_morosoldier",
+   "texture": "sagas/saga_morosoldier",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.61,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 189000,
+    "melee": 7800,
+    "ki": 7140,
+    "defense": 1404,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Moro's army takes what it wants. This planet is next."
+  },
+  {
+   "id": "saga_nail",
+   "name": "Nail",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_piccolo",
+   "texture": "sagas/saga_nail",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.89
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5599,
+    "melee": 302,
+    "ki": 270,
+    "defense": 54,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "masenko",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "namek_vill_hurt",
+    "death": "namek_vill_death",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I am Nail, warrior of Namek. You shall not pass."
+  },
+  {
+   "id": "saga_nappa",
+   "name": "Nappa",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_nappa",
+   "texture": "sagas/saga_nappa",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.81,
+    2.2
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 975,
+    "melee": 59,
+    "ki": 91,
+    "defense": 11,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast",
+    "final_explosion"
+   ],
+   "drops": [
+    {
+     "item": "broken_scouter",
+     "chance": 0.5
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Hahaha! Time to show you what a real Saiyan elite can do!"
+  },
+  {
+   "id": "saga_neiz",
+   "name": "Neiz",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_neiz",
+   "texture": "sagas/saga_neiz",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 5304,
+    "melee": 309,
+    "ki": 357,
+    "defense": 56,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "My skin is armour and my hands are lightning. Care to touch?"
+  },
+  {
+   "id": "saga_ozaru",
+   "name": "Oozaru",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_ozaru",
+   "texture": "sagas/saga_ozaru",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    2.95,
+    6.68
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 6500,
+    "melee": 364,
+    "ki": 364,
+    "defense": 66,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "oozaru_fist",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "vegeta_oozaru_growl",
+    "death": "vegeta_oozaru_death",
+    "attack": "oozaru_fist"
+   },
+   "bgm": "boss",
+   "taunt": "GROOOAAAR!",
+   "giant": true
+  },
+  {
+   "id": "saga_ozaruvegeta",
+   "name": "Vegeta (Oozaru)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_ozaru",
+   "texture": "sagas/saga_ozaruvegeta",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    2.95,
+    6.68
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 3250,
+    "melee": 182,
+    "ki": 182,
+    "defense": 33,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "oozaru_fist",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "vegeta_oozaru_growl",
+    "death": "vegeta_oozaru_death",
+    "attack": "oozaru_fist"
+   },
+   "bgm": "boss",
+   "taunt": "GRAAAH! Now you will see the true power of a Saiyan under the full moon!",
+   "giant": true
+  },
+  {
+   "id": "saga_paikuhan",
+   "name": "Pikkon",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_paikuhan",
+   "texture": "sagas/saga_paikuhan",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    2.23
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 805000,
+    "melee": 33600,
+    "ki": 30600,
+    "defense": 6048,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "meteor"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Pikkon of the West Galaxy. The Otherworld Tournament begins!"
+  },
+  {
+   "id": "saga_paragus",
+   "name": "Paragus",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_paragus",
+   "texture": "sagas/saga_paragus",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.6,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 217000,
+    "melee": 8700,
+    "ki": 7820,
+    "defense": 1566,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "My son will bring this planet to its knees! You cannot stop him!"
+  },
+  {
+   "id": "saga_piccolo",
+   "name": "Piccolo",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_piccolo",
+   "texture": "sagas/saga_piccolo",
+   "hd_texture": true,
+   "texture_variants": [
+    "sagas/saga_piccolo_1"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.89
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 3185,
+    "melee": 182,
+    "ki": 228,
+    "defense": 33,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "special_beam_cannon",
+    "masenko"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "namek_vill_hurt",
+    "death": "namek_vill_death",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hmph. Let's see if you're worth the effort of getting serious."
+  },
+  {
+   "id": "saga_piccolo_kami",
+   "name": "Piccolo (Kami)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_piccolo",
+   "texture": "sagas/saga_piccolo_kami",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.89
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 129500,
+    "melee": 5280,
+    "ki": 4760,
+    "defense": 950,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "special_beam_cannon",
+    "masenko"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "namek_vill_hurt",
+    "death": "namek_vill_death",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hmph. Let's see if you're worth the effort of getting serious."
+  },
+  {
+   "id": "saga_puipui",
+   "name": "Pui Pui",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_puipui",
+   "texture": "sagas/saga_puipui",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 252000,
+    "melee": 10500,
+    "ki": 9520,
+    "defense": 1890,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "This planet's gravity is nothing! You're fighting on my terms!"
+  },
+  {
+   "id": "saga_raditz",
+   "name": "Raditz",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_raditz",
+   "texture": "sagas/saga_raditz",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 450,
+    "melee": 22,
+    "ki": 39,
+    "defense": 4,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "broken_scouter",
+     "chance": 1.0
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.25
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "So you are the one Kakarot has been playing with. Pathetic."
+  },
+  {
+   "id": "saga_recoome",
+   "name": "Recoome",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_recoome",
+   "texture": "sagas/saga_recoome",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.7,
+    2.15
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 4862,
+    "melee": 265,
+    "ki": 238,
+    "defense": 48,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "RECOOME... BOOM! Let's have some fun, little guy!"
+  },
+  {
+   "id": "saga_saibaman",
+   "name": "Saibaman",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_saibaman",
+   "texture": "races/saibaman",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_saibaman"
+   ],
+   "hitbox": [
+    0.56,
+    1.64
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 520,
+    "melee": 33,
+    "ki": 46,
+    "defense": 6,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.05
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Kiiii!"
+  },
+  {
+   "id": "saga_saibaman1",
+   "name": "Saibaman",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_saibaman",
+   "texture": "sagas/saga_saibaman1",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_saibaman"
+   ],
+   "hitbox": [
+    0.56,
+    1.64
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 520,
+    "melee": 33,
+    "ki": 46,
+    "defense": 6,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.05
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Kiiii!"
+  },
+  {
+   "id": "saga_saibaman2",
+   "name": "Saibaman",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_saibaman",
+   "texture": "sagas/saga_saibaman2",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_saibaman"
+   ],
+   "hitbox": [
+    0.56,
+    1.64
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 520,
+    "melee": 33,
+    "ki": 46,
+    "defense": 6,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.05
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Kiiii!"
+  },
+  {
+   "id": "saga_saibaman3",
+   "name": "Saibaman",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_saibaman",
+   "texture": "sagas/saga_saibaman3",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_saibaman"
+   ],
+   "hitbox": [
+    0.56,
+    1.64
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 520,
+    "melee": 33,
+    "ki": 46,
+    "defense": 6,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.05
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Kiiii!"
+  },
+  {
+   "id": "saga_saibaman4",
+   "name": "Saibaman",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_saibaman",
+   "texture": "sagas/saga_saibaman4",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_saibaman"
+   ],
+   "hitbox": [
+    0.56,
+    1.64
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 520,
+    "melee": 33,
+    "ki": 46,
+    "defense": 6,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.05
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Kiiii!"
+  },
+  {
+   "id": "saga_saibaman5",
+   "name": "Saibaman",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_saibaman",
+   "texture": "sagas/saga_saibaman5",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_saibaman"
+   ],
+   "hitbox": [
+    0.56,
+    1.64
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 520,
+    "melee": 33,
+    "ki": 46,
+    "defense": 6,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.05
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Kiiii!"
+  },
+  {
+   "id": "saga_saibaman6",
+   "name": "Saibaman",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_saibaman",
+   "texture": "sagas/saga_saibaman6",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_saibaman"
+   ],
+   "hitbox": [
+    0.56,
+    1.64
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 520,
+    "melee": 33,
+    "ki": 46,
+    "defense": 6,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.05
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Kiiii!"
+  },
+  {
+   "id": "saga_salza",
+   "name": "Salza",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_salza",
+   "texture": "sagas/saga_salza",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 6409,
+    "melee": 377,
+    "ki": 441,
+    "defense": 68,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Salza blade! Lord Cooler's elite doesn't lose to trash like you."
+  },
+  {
+   "id": "saga_shin",
+   "name": "Shin",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_shin",
+   "texture": "sagas/saga_shin",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 231000,
+    "melee": 9600,
+    "ki": 8670,
+    "defense": 1728,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "As the Supreme Kai, I must test your strength. Please, do not hold back."
+  },
+  {
+   "id": "saga_slug",
+   "name": "Lord Slug",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_slug",
+   "texture": "sagas/saga_slug",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.63,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 3120,
+    "melee": 182,
+    "ki": 273,
+    "defense": 33,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "namek_vill_hurt",
+    "death": "namek_vill_death",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "This planet will be my new throne. Kneel before Lord Slug!",
+   "phases": [
+    "saga_slug_giant"
+   ]
+  },
+  {
+   "id": "saga_slug_giant",
+   "name": "Lord Slug (Giant)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_slug",
+   "texture": "sagas/saga_slug_giant",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.63,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 6500,
+    "melee": 364,
+    "ki": 364,
+    "defense": 66,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "namek_vill_hurt",
+    "death": "namek_vill_death",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Puny insects! Feel the wrath of a Super Namekian!",
+   "giant": true
+  },
+  {
+   "id": "saga_slug_soldier",
+   "name": "Slug's Soldier",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_slug_soldier",
+   "texture": "sagas/saga_slug_soldier",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1040,
+    "melee": 66,
+    "ki": 91,
+    "defense": 12,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "namek_vill_hurt",
+    "death": "namek_vill_death",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Lord Slug wants this planet cleared. Nothing personal."
+  },
+  {
+   "id": "saga_spopovitch",
+   "name": "Spopovich",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_spopovitch",
+   "texture": "sagas/saga_spopovitch",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.7,
+    1.99
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 238000,
+    "melee": 9900,
+    "ki": 8840,
+    "defense": 1782,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": false,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hahaha! Babidi's magic makes me unstoppable!"
+  },
+  {
+   "id": "saga_super_a13",
+   "name": "Super Android 13",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_super_a13",
+   "texture": "sagas/saga_super_a13",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.74,
+    1.93
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 434000,
+    "melee": 17400,
+    "ki": 15980,
+    "defense": 3132,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage",
+    "final_explosion"
+   ],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.6
+    },
+    {
+     "item": "ki_battery",
+     "chance": 0.15
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "With the parts of 14 and 15, I'm the ultimate android!"
+  },
+  {
+   "id": "saga_super_hirudegarn",
+   "name": "Hirudegarn (Final Form)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_hirudegarn",
+   "texture": "sagas/saga_super_hirudegarn",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    4.12,
+    8.02
+   ],
+   "scale": 1.1,
+   "stats": {
+    "health": 1540000,
+    "melee": 64800,
+    "ki": 58480,
+    "defense": 11664,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "final_explosion"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "*Hirudegarn's final form rises, blotting out the sun*",
+   "giant": true
+  },
+  {
+   "id": "saga_super_janemba",
+   "name": "Super Janemba",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_super_janemba",
+   "texture": "sagas/saga_super_janemba",
+   "hd_texture": true,
+   "hd_model": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.63,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1225000,
+    "melee": 51600,
+    "ki": 46920,
+    "defense": 9288,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage",
+    "charged_ki_blast",
+    "kienzan"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "*a sword of demonic energy forms* ..."
+  },
+  {
+   "id": "saga_superbuu",
+   "name": "Super Buu",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_superbuu",
+   "texture": "sagas/saga_superbuu",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.6,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 472500,
+    "melee": 19800,
+    "ki": 17850,
+    "defense": 3564,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Play with me. Or die. Buu doesn't care which.",
+   "phases": [
+    "saga_superbuu_gotenks",
+    "saga_superbuu_gohan",
+    "saga_kidbuu"
+   ]
+  },
+  {
+   "id": "saga_superbuu_gohan",
+   "name": "Super Buu (Gohan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_superbuu",
+   "texture": "sagas/saga_superbuu_gohan",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.6,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 612500,
+    "melee": 25800,
+    "ki": 23460,
+    "defense": 4644,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Play with me. Or die. Buu doesn't care which.",
+   "phases": [
+    "saga_kidbuu"
+   ]
+  },
+  {
+   "id": "saga_superbuu_gotenks",
+   "name": "Super Buu (Gotenks)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_superbuu",
+   "texture": "sagas/saga_superbuu_gotenks",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.6,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 560000,
+    "melee": 23400,
+    "ki": 21250,
+    "defense": 4212,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Play with me. Or die. Buu doesn't care which.",
+   "phases": [
+    "saga_superbuu_gohan",
+    "saga_kidbuu"
+   ]
+  },
+  {
+   "id": "saga_superbuu_piccolo",
+   "name": "Super Buu (Piccolo)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_superbuu",
+   "texture": "sagas/saga_superbuu_piccolo",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.6,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 560000,
+    "melee": 23400,
+    "ki": 21250,
+    "defense": 4212,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Play with me. Or die. Buu doesn't care which."
+  },
+  {
+   "id": "saga_tien_early",
+   "name": "Tien Shinhan",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_yamcha",
+   "texture": "sagas/saga_tien_early",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1121,
+    "melee": 67,
+    "ki": 102,
+    "defense": 12,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "solar_flare",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Focus and discipline win battles. Show me yours."
+  },
+  {
+   "id": "saga_trunks",
+   "name": "Trunks",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_trunks",
+   "texture": "sagas/saga_ftrunks_base",
+   "hd_texture": false,
+   "texture_variants": [
+    "sagas/saga_ftrunks_base_1"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "burning_attack",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I came back to change this timeline. Draw your sword."
+  },
+  {
+   "id": "saga_trunks_ssg3",
+   "name": "Trunks Ssg3",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_trunks_ssg3",
+   "texture": "sagas/saga_ftrunks_ssg3",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.63,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "burning_attack",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I came back to change this timeline. Draw your sword."
+  },
+  {
+   "id": "saga_trunks_ssj",
+   "name": "Trunks Ssj",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_trunks_ssj",
+   "texture": "sagas/saga_trunks_ssj",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "burning_attack",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I came back to change this timeline. Draw your sword."
+  },
+  {
+   "id": "saga_turles",
+   "name": "Turles",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_turles",
+   "texture": "sagas/saga_turles",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 6500,
+    "melee": 364,
+    "ki": 364,
+    "defense": 66,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "kamehameha"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Kakarot's blood runs in me, but I never learned mercy."
+  },
+  {
+   "id": "saga_vegeta",
+   "name": "Vegeta",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_vegeta",
+   "texture": "sagas/saga_vegeta",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1560,
+    "melee": 91,
+    "ki": 137,
+    "defense": 16,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "galick_gun",
+    "big_bang",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "broken_scouter",
+     "chance": 0.5
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "You dare stand before the Prince of all Saiyans? I'll crush you!",
+   "phases": [
+    "saga_ozaruvegeta"
+   ]
+  },
+  {
+   "id": "saga_vegeta_end_base",
+   "name": "Vegeta",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_vegeta",
+   "texture": "sagas/saga_vegeta_end_base",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 245000,
+    "melee": 10200,
+    "ki": 9350,
+    "defense": 1836,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "galick_gun",
+    "big_bang",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "You dare stand before the Prince of all Saiyans? I'll crush you!"
+  },
+  {
+   "id": "saga_vegeta_end_ssj",
+   "name": "Vegeta (Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_vegeta",
+   "texture": "sagas/saga_vegeta_end_ssj",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 273000,
+    "melee": 11400,
+    "ki": 10370,
+    "defense": 2052,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "galick_gun",
+    "big_bang",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "You dare stand before the Prince of all Saiyans? I'll crush you!"
+  },
+  {
+   "id": "saga_vegeta_end_ssj2",
+   "name": "Vegeta (Super Saiyan 2)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_vegeta_ssj2",
+   "texture": "sagas/saga_vegeta_end_ssj2",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 420000,
+    "melee": 17700,
+    "ki": 15980,
+    "defense": 3186,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "galick_gun",
+    "big_bang",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "You dare stand before the Prince of all Saiyans? I'll crush you!"
+  },
+  {
+   "id": "saga_vegeta_majin",
+   "name": "Majin Vegeta",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_vegeta_ssg2",
+   "texture": "sagas/saga_vegeta_majin",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 336000,
+    "melee": 14100,
+    "ki": 12750,
+    "defense": 2538,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "galick_gun",
+    "big_bang",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "Majin or not, I am still the Prince of all Saiyans!"
+  },
+  {
+   "id": "saga_vegeta_mid_base",
+   "name": "Vegeta",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_vegeta",
+   "texture": "sagas/saga_vegeta_mid_base",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 121100,
+    "melee": 5025,
+    "ki": 5287,
+    "defense": 904,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "galick_gun",
+    "big_bang",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "You dare stand before the Prince of all Saiyans? I'll crush you!"
+  },
+  {
+   "id": "saga_vegeta_mid_ssg2",
+   "name": "Super Vegeta",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_vegeta_ssg2",
+   "texture": "sagas/saga_vegeta_mid_ssg2",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 138512,
+    "melee": 5595,
+    "ki": 5140,
+    "defense": 1007,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "galick_gun",
+    "big_bang",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "You dare stand before the Prince of all Saiyans? I'll crush you!"
+  },
+  {
+   "id": "saga_vegeta_mid_ssj",
+   "name": "Vegeta (Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_vegeta",
+   "texture": "sagas/saga_vegeta_mid_ssj",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 118125,
+    "melee": 4688,
+    "ki": 4250,
+    "defense": 844,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "galick_gun",
+    "big_bang",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "You dare stand before the Prince of all Saiyans? I'll crush you!"
+  },
+  {
+   "id": "saga_vegeta_namek",
+   "name": "Vegeta (Namek)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_vegeta",
+   "texture": "sagas/saga_vegeta_namek",
+   "hd_texture": true,
+   "texture_variants": [
+    "sagas/saga_vegeta_namek_1"
+   ],
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 3978,
+    "melee": 221,
+    "ki": 274,
+    "defense": 40,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "galick_gun",
+    "big_bang",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "broken_scouter",
+     "chance": 0.5
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "You dare stand before the Prince of all Saiyans? I'll crush you!"
+  },
+  {
+   "id": "saga_vegeta_ssg2",
+   "name": "Vegeta Ssg2",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_vegeta_ssg2",
+   "texture": "sagas/saga_vegeta_mid_ssg2",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "galick_gun",
+    "big_bang",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "You dare stand before the Prince of all Saiyans? I'll crush you!"
+  },
+  {
+   "id": "saga_vegeta_ssj2",
+   "name": "Vegeta Ssj2",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_vegeta_ssj2",
+   "texture": "sagas/saga_vegeta_end_ssj2",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.64,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "galick_gun",
+    "big_bang",
+    "final_flash"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "You dare stand before the Prince of all Saiyans? I'll crush you!"
+  },
+  {
+   "id": "saga_vegetto_base",
+   "name": "Vegetto",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_vegetto_base",
+   "texture": "sagas/saga_vegetto_base",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 495833,
+    "melee": 20900,
+    "ki": 18870,
+    "defense": 3762,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "big_bang",
+    "deadly_dance_vegetto"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "You're fighting Vegito now. It's over, and you know it."
+  },
+  {
+   "id": "saga_vegetto_ssj",
+   "name": "Vegetto (Super Saiyan)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_vegetto_ssj",
+   "texture": "sagas/saga_vegetto_ssj",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1225000,
+    "melee": 51600,
+    "ki": 46920,
+    "defense": 9288,
+    "speed": 1.0
+   },
+   "ai_tier": 3,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "kamehameha",
+    "big_bang",
+    "deadly_dance_vegetto"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "You're fighting Vegito now. It's over, and you know it."
+  },
+  {
+   "id": "saga_videl",
+   "name": "Videl",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_videl",
+   "texture": "sagas/saga_videl",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 25731,
+    "melee": 1219,
+    "ki": 1066,
+    "defense": 219,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "z_fighter",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "I'm the daughter of the champ. You're not getting past me!"
+  },
+  {
+   "id": "saga_yakon",
+   "name": "Yakon",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_yakon",
+   "texture": "sagas/saga_yakon",
+   "hd_texture": false,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    1.33,
+    1.88
+   ],
+   "scale": 0.8,
+   "stats": {
+    "health": 273000,
+    "melee": 11400,
+    "ki": 10370,
+    "defense": 2052,
+    "speed": 1.0
+   },
+   "ai_tier": 2,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Mmm... your ki smells delicious. Let me eat it."
+  },
+  {
+   "id": "saga_yamcha",
+   "name": "Yamcha",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_yamcha",
+   "texture": "sagas/saga_yamcha",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 845,
+    "melee": 52,
+    "ki": 78,
+    "defense": 9,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "z_fighter",
+   "can_fly": true,
+   "techniques": [
+    "sokidan",
+    "wolf_fang"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Wolf Fang Fist! Let's see you handle the desert bandit!"
+  },
+  {
+   "id": "saga_zangya",
+   "name": "Zangya",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_zangya",
+   "texture": "sagas/saga_zangya",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 154000,
+    "melee": 6000,
+    "ki": 5440,
+    "defense": 1080,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Such a pretty little thing. It'd be a shame to break you."
+  },
+  {
+   "id": "saga_zarbon",
+   "name": "Zarbon",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_zarbon",
+   "texture": "sagas/saga_zarbon",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 3757,
+    "melee": 211,
+    "ki": 262,
+    "defense": 38,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "broken_scouter",
+     "chance": 0.3
+    },
+    {
+     "item": "senzu_bean",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "How unsightly. Allow me to end this with some elegance.",
+   "phases": [
+    "saga_zarbont1"
+   ]
+  },
+  {
+   "id": "saga_zarbont1",
+   "name": "Zarbon (Transformed)",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/saga_zarbont1",
+   "texture": "sagas/saga_zarbont1",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.7,
+    1.96
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 1547,
+    "melee": 100,
+    "ki": 107,
+    "defense": 18,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": true,
+   "techniques": [
+    "charged_ki_blast",
+    "ki_barrage"
+   ],
+   "drops": [
+    {
+     "item": "senzu_bean",
+     "chance": 0.35
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "boss",
+   "taunt": "You forced me to show my ugly side. Now suffer for it!"
+  },
+  {
+   "id": "shadow_dummy",
+   "name": "Shadow Dummy",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/sagas/shadow_dummy",
+   "texture": "sagas/shadow_dummy",
+   "hd_texture": true,
+   "animations": [
+    "entity/sagas/shadow_dummy",
+    "entity/sagas/saga_base"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 6300,
+    "melee": 330,
+    "ki": 323,
+    "defense": 59,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "..."
+  },
+  {
+   "id": "dino1",
+   "name": "Dinosaur",
+   "kind": "animal",
+   "scene": "res://scenes/entities/Animal.tscn",
+   "model": "entity/animal/dino1",
+   "texture": "animal/dino1",
+   "hd_texture": false,
+   "animations": [
+    "entity/animal/dino1"
+   ],
+   "hitbox": [
+    1.95,
+    3.81
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 100,
+    "melee": 8,
+    "ki": 0,
+    "defense": 1,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "wild",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [
+    {
+     "item": "raw_dino_meat",
+     "chance": 1.0,
+     "count": [
+      1,
+      3
+     ]
+    }
+   ],
+   "sounds": {
+    "hurt": "hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "",
+   "aggressive": true
+  },
+  {
+   "id": "dino2",
+   "name": "Large Dinosaur",
+   "kind": "animal",
+   "scene": "res://scenes/entities/Animal.tscn",
+   "model": "entity/animal/dino2",
+   "texture": "animal/dino2",
+   "hd_texture": false,
+   "animations": [
+    "entity/animal/dino2"
+   ],
+   "hitbox": [
+    1.95,
+    3.81
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 150,
+    "melee": 12,
+    "ki": 0,
+    "defense": 2,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "wild",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [
+    {
+     "item": "raw_dino_meat",
+     "chance": 1.0,
+     "count": [
+      1,
+      3
+     ]
+    }
+   ],
+   "sounds": {
+    "hurt": "hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "",
+   "aggressive": true
+  },
+  {
+   "id": "dino3",
+   "name": "Flying Dinosaur",
+   "kind": "animal",
+   "scene": "res://scenes/entities/Animal.tscn",
+   "model": "entity/animal/dino3",
+   "texture": "animal/dino3",
+   "hd_texture": false,
+   "animations": [
+    "entity/animal/dino3"
+   ],
+   "hitbox": [
+    1.72,
+    2.38
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 75,
+    "melee": 10,
+    "ki": 0,
+    "defense": 2,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "wild",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [
+    {
+     "item": "raw_dino_meat",
+     "chance": 1.0,
+     "count": [
+      1,
+      3
+     ]
+    }
+   ],
+   "sounds": {
+    "hurt": "hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "",
+   "aggressive": true
+  },
+  {
+   "id": "dinokid",
+   "name": "Baby Dinosaur",
+   "kind": "animal",
+   "scene": "res://scenes/entities/Animal.tscn",
+   "model": "entity/animal/dinokid",
+   "texture": "animal/dinokid",
+   "hd_texture": false,
+   "animations": [
+    "entity/animal/dinokid"
+   ],
+   "hitbox": [
+    1.27,
+    2.16
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 30,
+    "melee": 4,
+    "ki": 0,
+    "defense": 1,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "wild",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [
+    {
+     "item": "raw_baby_dino_meat",
+     "chance": 1.0,
+     "count": [
+      1,
+      3
+     ]
+    }
+   ],
+   "sounds": {
+    "hurt": "hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "",
+   "aggressive": false
+  },
+  {
+   "id": "sabertooth",
+   "name": "Sabertooth Tiger",
+   "kind": "animal",
+   "scene": "res://scenes/entities/Animal.tscn",
+   "model": "entity/animal/sabertooth",
+   "texture": "animal/sabertooth",
+   "hd_texture": false,
+   "texture_variants": [
+    "animal/sabertooth_0",
+    "animal/sabertooth_1",
+    "animal/sabertooth_2"
+   ],
+   "animations": [
+    "entity/animal/sabertooth"
+   ],
+   "hitbox": [
+    1.35,
+    1.5
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 30,
+    "melee": 5,
+    "ki": 0,
+    "defense": 1,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "wild",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [
+    {
+     "item": "raw_meat",
+     "chance": 1.0,
+     "count": [
+      1,
+      2
+     ]
+    }
+   ],
+   "sounds": {
+    "hurt": "hurt",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "",
+   "aggressive": true
+  },
+  {
+   "id": "namek_frog",
+   "name": "Namekian Frog",
+   "kind": "animal",
+   "scene": "res://scenes/entities/Animal.tscn",
+   "model": "entity/animal/namekfrog",
+   "texture": "animal/namekfrog_0",
+   "hd_texture": false,
+   "animations": [
+    "entity/animal/namekfrog"
+   ],
+   "hitbox": [
+    0.4,
+    0.4
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 10,
+    "melee": 1,
+    "ki": 0,
+    "defense": 0,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "wild",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [
+    {
+     "item": "frog_legs_raw",
+     "chance": 0.8
+    }
+   ],
+   "sounds": {
+    "hurt": "frogsound1",
+    "death": "frogsound3",
+    "attack": "frogsound2",
+    "ambient": "froglaugh"
+   },
+   "bgm": "",
+   "taunt": "",
+   "aggressive": false
+  },
+  {
+   "id": "namek_frog_ginyu",
+   "name": "Frog (Ginyu)",
+   "kind": "animal",
+   "scene": "res://scenes/entities/Animal.tscn",
+   "model": "entity/animal/namekfrog",
+   "texture": "animal/namekfrog_0",
+   "hd_texture": false,
+   "animations": [
+    "entity/animal/namekfrog"
+   ],
+   "hitbox": [
+    0.4,
+    0.4
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 10,
+    "melee": 1,
+    "ki": 0,
+    "defense": 0,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "wild",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [
+    {
+     "item": "frog_legs_raw",
+     "chance": 0.8
+    }
+   ],
+   "sounds": {
+    "hurt": "frogsound1",
+    "death": "frogsound3",
+    "attack": "frogsound2",
+    "ambient": "froglaugh"
+   },
+   "bgm": "",
+   "taunt": "",
+   "aggressive": false
+  },
+  {
+   "id": "bandit",
+   "name": "Bandit",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/enemies/bandit",
+   "texture": "enemies/bandit",
+   "hd_texture": false,
+   "animations": [
+    "entity/enemies/bandit"
+   ],
+   "hitbox": [
+    0.83,
+    1.99
+   ],
+   "scale": 0.55,
+   "stats": {
+    "health": 75,
+    "melee": 10,
+    "ki": 0,
+    "defense": 2,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [
+    {
+     "item": "bread",
+     "chance": 0.3
+    },
+    {
+     "item": "iron_ingot",
+     "chance": 0.1
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Hand over your capsules and nobody gets hurt!"
+  },
+  {
+   "id": "red_ribbon_soldier",
+   "name": "Red Ribbon's Soldier",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/enemies/red_ribbon_soldier",
+   "texture": "enemies/red_ribbon_soldier",
+   "hd_texture": false,
+   "animations": [
+    "entity/enemies/red_ribbon_soldier"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 40,
+    "melee": 5,
+    "ki": 0,
+    "defense": 1,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [
+    {
+     "item": "iron_ingot",
+     "chance": 0.25
+    },
+    {
+     "item": "redstone",
+     "chance": 0.2
+    }
+   ],
+   "sounds": {
+    "hurt": "punch",
+    "death": "knockback_character",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Red Ribbon Army! Open fire!",
+   "ranged": true
+  },
+  {
+   "id": "robot1",
+   "name": "Red Ribbon Robot",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/enemies/robot1",
+   "texture": "enemies/robot1",
+   "hd_texture": false,
+   "animations": [
+    "entity/enemies/robot1"
+   ],
+   "hitbox": [
+    1.32,
+    2.08
+   ],
+   "scale": 0.45,
+   "stats": {
+    "health": 120,
+    "melee": 15,
+    "ki": 0,
+    "defense": 3,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.4
+    },
+    {
+     "item": "redstone",
+     "chance": 0.4
+    }
+   ],
+   "sounds": {
+    "hurt": "block1",
+    "death": "ki_explosion_impact",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "*servo whine* TARGET LOCKED."
+  },
+  {
+   "id": "robot2",
+   "name": "Red Ribbon Robot",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/enemies/robot1",
+   "texture": "enemies/robot2",
+   "hd_texture": false,
+   "animations": [
+    "entity/enemies/robot1"
+   ],
+   "hitbox": [
+    1.32,
+    2.08
+   ],
+   "scale": 0.45,
+   "stats": {
+    "health": 120,
+    "melee": 15,
+    "ki": 0,
+    "defense": 3,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.4
+    },
+    {
+     "item": "redstone",
+     "chance": 0.4
+    }
+   ],
+   "sounds": {
+    "hurt": "block1",
+    "death": "ki_explosion_impact",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "*servo whine* TARGET LOCKED."
+  },
+  {
+   "id": "robot3",
+   "name": "Red Ribbon Robot",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/enemies/robot1",
+   "texture": "enemies/robot3",
+   "hd_texture": false,
+   "animations": [
+    "entity/enemies/robot1"
+   ],
+   "hitbox": [
+    1.32,
+    2.08
+   ],
+   "scale": 0.45,
+   "stats": {
+    "health": 120,
+    "melee": 15,
+    "ki": 0,
+    "defense": 3,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.4
+    },
+    {
+     "item": "redstone",
+     "chance": 0.4
+    }
+   ],
+   "sounds": {
+    "hurt": "block1",
+    "death": "ki_explosion_impact",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "*servo whine* TARGET LOCKED."
+  },
+  {
+   "id": "robotxv",
+   "name": "Xenoverse Robot",
+   "kind": "enemy",
+   "scene": "res://scenes/entities/Enemy.tscn",
+   "model": "entity/enemies/robotxv",
+   "texture": "enemies/robotxv",
+   "hd_texture": false,
+   "animations": [
+    "entity/enemies/robotxv"
+   ],
+   "hitbox": [
+    0.83,
+    1.17
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 150,
+    "melee": 18,
+    "ki": 10,
+    "defense": 6,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "villain",
+   "can_fly": false,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [
+    {
+     "item": "gete_scrap",
+     "chance": 0.5
+    }
+   ],
+   "sounds": {
+    "hurt": "block2",
+    "death": "ki_explosion_impact",
+    "attack": "punch"
+   },
+   "bgm": "battle",
+   "taunt": "Combat protocol engaged."
+  },
+  {
+   "id": "namek_warrior",
+   "name": "Namekian Warrior",
+   "kind": "npc",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/enemies/namekian",
+   "texture": "enemies/namek_warrior_0",
+   "hd_texture": false,
+   "animations": [
+    "entity/enemies/namekian"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 400,
+    "melee": 25,
+    "ki": 20,
+    "defense": 5,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [
+    "ki_blast"
+   ],
+   "drops": [],
+   "sounds": {
+    "hurt": "namek_vill_hurt",
+    "death": "namek_vill_death",
+    "attack": "punch",
+    "ambient": "namek_vill_ambient"
+   },
+   "bgm": "",
+   "taunt": "A warrior of Namek guards this village.",
+   "interact": "talk",
+   "defends_village": true
+  },
+  {
+   "id": "namek_trader",
+   "name": "Namekian Trader",
+   "kind": "npc",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/enemies/namekian",
+   "texture": "enemies/namek_trader_0",
+   "hd_texture": false,
+   "animations": [
+    "entity/enemies/namekian"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 200,
+    "melee": 10,
+    "ki": 0,
+    "defense": 2,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "namek_vill_hurt",
+    "death": "namek_vill_death",
+    "attack": "punch",
+    "ambient": "namek_vill_ambient"
+   },
+   "bgm": "",
+   "taunt": "Welcome, traveler. Care to trade?",
+   "interact": "trade"
+  },
+  {
+   "id": "cc_namekian",
+   "name": "Capsule Corp Namekian",
+   "kind": "npc",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/enemies/namekian",
+   "texture": "enemies/cc_namekian",
+   "hd_texture": false,
+   "animations": [
+    "entity/enemies/namekian"
+   ],
+   "hitbox": [
+    0.56,
+    1.88
+   ],
+   "scale": 0.9375,
+   "stats": {
+    "health": 200,
+    "melee": 10,
+    "ki": 0,
+    "defense": 2,
+    "speed": 1.0
+   },
+   "ai_tier": 1,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "namek_vill_hurt",
+    "death": "namek_vill_death",
+    "attack": "punch",
+    "ambient": "namek_vill_ambient"
+   },
+   "bgm": "",
+   "taunt": "Capsule Corp is always hiring, you know.",
+   "interact": "talk"
+  },
+  {
+   "id": "shenron",
+   "name": "Shenron",
+   "kind": "dragon",
+   "scene": "res://scenes/entities/Dragon.tscn",
+   "model": "entity/dragon/shenron",
+   "texture": "dragon/shenron",
+   "hd_texture": false,
+   "animations": [
+    "entity/dragon/shenron"
+   ],
+   "hitbox": [
+    3.0,
+    17.0
+   ],
+   "scale": 1.793,
+   "stats": {
+    "health": 100000,
+    "melee": 0,
+    "ki": 0,
+    "defense": 999,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "shenron",
+    "death": "shenron",
+    "attack": "shenron",
+    "summon": "shenron"
+   },
+   "bgm": "",
+   "taunt": "",
+   "invulnerable": true,
+   "wish_count": 1,
+   "ball_set": "earth",
+   "tint": "#FFFFFF"
+  },
+  {
+   "id": "porunga",
+   "name": "Porunga",
+   "kind": "dragon",
+   "scene": "res://scenes/entities/Dragon.tscn",
+   "model": "entity/dragon/porunga",
+   "texture": "dragon/porunga",
+   "hd_texture": false,
+   "animations": [
+    "entity/dragon/porunga"
+   ],
+   "hitbox": [
+    4.0,
+    20.0
+   ],
+   "scale": 1.572,
+   "stats": {
+    "health": 100000,
+    "melee": 0,
+    "ki": 0,
+    "defense": 999,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "shenron",
+    "death": "shenron",
+    "attack": "shenron",
+    "summon": "shenron"
+   },
+   "bgm": "",
+   "taunt": "",
+   "invulnerable": true,
+   "wish_count": 3,
+   "ball_set": "namek",
+   "tint": "#FFFFFF"
+  },
+  {
+   "id": "super_shenron",
+   "name": "Super Shenron",
+   "kind": "dragon",
+   "scene": "res://scenes/entities/Dragon.tscn",
+   "model": "entity/dragon/shenron",
+   "texture": "dragon/shenron",
+   "hd_texture": false,
+   "animations": [
+    "entity/dragon/shenron"
+   ],
+   "hitbox": [
+    24.0,
+    60.0
+   ],
+   "scale": 6.33,
+   "stats": {
+    "health": 100000,
+    "melee": 0,
+    "ki": 0,
+    "defense": 999,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "shenron",
+    "death": "shenron",
+    "attack": "shenron",
+    "summon": "shenron"
+   },
+   "bgm": "",
+   "taunt": "",
+   "invulnerable": true,
+   "wish_count": 1,
+   "ball_set": "super",
+   "tint": "#FFD24D"
+  },
+  {
+   "id": "toronbo",
+   "name": "Toronbo",
+   "kind": "dragon",
+   "scene": "res://scenes/entities/Dragon.tscn",
+   "model": "dmzplus/entity/dragon/toronbo",
+   "texture": "dmzplus/dragon/toronbo",
+   "hd_texture": false,
+   "animations": [
+    "dmzplus/entity/dragon/toronbo"
+   ],
+   "hitbox": [
+    4.0,
+    20.0
+   ],
+   "scale": 2.923,
+   "stats": {
+    "health": 100000,
+    "melee": 0,
+    "ki": 0,
+    "defense": 999,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "shenron",
+    "death": "shenron",
+    "attack": "shenron",
+    "summon": "shenron"
+   },
+   "bgm": "",
+   "taunt": "",
+   "invulnerable": true,
+   "wish_count": 1,
+   "ball_set": "cereal",
+   "tint": "#FFFFFF"
+  },
+  {
+   "id": "zuno",
+   "name": "King Zuno",
+   "kind": "npc",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "dmzplus/entity/zuno",
+   "texture": "dmzplus/zuno",
+   "hd_texture": false,
+   "animations": [
+    "dmzplus/entity/zuno"
+   ],
+   "hitbox": [
+    0.9,
+    2.44
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 1000,
+    "melee": 0,
+    "ki": 0,
+    "defense": 50,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "namek_vill_hurt",
+    "death": "namek_vill_death",
+    "attack": "punch",
+    "ambient": "namek_vill_ambient"
+   },
+   "bgm": "",
+   "taunt": "Ask me anything. One question per kiss.",
+   "invulnerable": true,
+   "interact": "talk"
+  },
+  {
+   "id": "flying_nimbus",
+   "name": "Flying Nimbus",
+   "kind": "vehicle",
+   "scene": "res://scenes/entities/Vehicle.tscn",
+   "model": "entity/kinton",
+   "texture": "kinton",
+   "hd_texture": false,
+   "animations": [
+    "entity/kinton"
+   ],
+   "hitbox": [
+    1.14,
+    1.27
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 50,
+    "melee": 0,
+    "ki": 0,
+    "defense": 0,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "nube",
+    "death": "nube",
+    "attack": "nube",
+    "mount": "nube"
+   },
+   "bgm": "",
+   "taunt": "",
+   "speed_fly": 14.0,
+   "pure_heart": true
+  },
+  {
+   "id": "black_nimbus",
+   "name": "Black Nimbus",
+   "kind": "vehicle",
+   "scene": "res://scenes/entities/Vehicle.tscn",
+   "model": "entity/kinton",
+   "texture": "black_kinton",
+   "hd_texture": false,
+   "animations": [
+    "entity/kinton"
+   ],
+   "hitbox": [
+    1.14,
+    1.27
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 50,
+    "melee": 0,
+    "ki": 0,
+    "defense": 0,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "nube",
+    "death": "nube",
+    "attack": "nube",
+    "mount": "nube"
+   },
+   "bgm": "",
+   "taunt": "",
+   "speed_fly": 14.0,
+   "pure_heart": false
+  },
+  {
+   "id": "spacepod",
+   "name": "Space Pod",
+   "kind": "vehicle",
+   "scene": "res://scenes/entities/Vehicle.tscn",
+   "model": "entity/spacepod",
+   "texture": "spacepod",
+   "hd_texture": false,
+   "animations": [
+    "entity/spacepod"
+   ],
+   "hitbox": [
+    1.87,
+    2.08
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 200,
+    "melee": 0,
+    "ki": 0,
+    "defense": 20,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "block3",
+    "death": "ki_explosion_impact",
+    "attack": "ship_engine",
+    "open": "ship_open",
+    "land": "landing_ship",
+    "takeoff": "ui_nave_takeoff"
+   },
+   "bgm": "",
+   "taunt": "",
+   "interact": "space_travel"
+  },
+  {
+   "id": "punch_machine",
+   "name": "Punch Machine",
+   "kind": "npc",
+   "scene": "res://scenes/entities/Npc.tscn",
+   "model": "entity/punchstation",
+   "texture": "punchmachine",
+   "hd_texture": false,
+   "animations": [
+    "entity/punchmachine"
+   ],
+   "hitbox": [
+    1.07,
+    1.19
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 1000,
+    "melee": 0,
+    "ki": 0,
+    "defense": 0,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "hurt": "punch",
+    "death": "block1",
+    "attack": "punch"
+   },
+   "bgm": "",
+   "taunt": "",
+   "invulnerable": true,
+   "interact": "train",
+   "static": true
+  },
+  {
+   "id": "ki_blast",
+   "name": "Ki Blast",
+   "kind": "projectile",
+   "scene": "res://scenes/entities/KiBlast.tscn",
+   "model": "",
+   "texture": "ki/kiblast",
+   "hd_texture": false,
+   "animations": [],
+   "hitbox": [
+    0.4,
+    0.4
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 1,
+    "melee": 0,
+    "ki": 0,
+    "defense": 0,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "fire": "kiblast_shoot",
+    "hit": "ki_explosion_impact"
+   },
+   "bgm": "",
+   "taunt": "",
+   "projectile_kind": "blast"
+  },
+  {
+   "id": "ki_beam",
+   "name": "Ki Beam",
+   "kind": "projectile",
+   "scene": "res://scenes/entities/KiBlast.tscn",
+   "model": "",
+   "texture": "ki/kiwave",
+   "hd_texture": false,
+   "animations": [],
+   "hitbox": [
+    0.4,
+    0.4
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 1,
+    "melee": 0,
+    "ki": 0,
+    "defense": 0,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "fire": "kiblast_shoot",
+    "hit": "ki_explosion_impact"
+   },
+   "bgm": "",
+   "taunt": "",
+   "projectile_kind": "beam"
+  },
+  {
+   "id": "ki_disc",
+   "name": "Ki Disc",
+   "kind": "projectile",
+   "scene": "res://scenes/entities/KiBlast.tscn",
+   "model": "",
+   "texture": "ki/kidisc",
+   "hd_texture": false,
+   "animations": [],
+   "hitbox": [
+    0.4,
+    0.4
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 1,
+    "melee": 0,
+    "ki": 0,
+    "defense": 0,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "fire": "kiblast_shoot",
+    "hit": "ki_explosion_impact"
+   },
+   "bgm": "",
+   "taunt": "",
+   "projectile_kind": "disc"
+  },
+  {
+   "id": "sp_blue_hurricane",
+   "name": "Blue Hurricane",
+   "kind": "projectile",
+   "scene": "res://scenes/entities/KiBlast.tscn",
+   "model": "entity/skills/sp_blue_hurricane",
+   "texture": "skills/sp_blue_hurricane",
+   "hd_texture": false,
+   "animations": [
+    "entity/skills/sp_blue_hurricane"
+   ],
+   "hitbox": [
+    11.47,
+    12.75
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 1,
+    "melee": 0,
+    "ki": 0,
+    "defense": 0,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "fire": "kiblast_shoot",
+    "hit": "ki_explosion_impact"
+   },
+   "bgm": "",
+   "taunt": "",
+   "projectile_kind": "special"
+  },
+  {
+   "id": "sp_dragon_fist",
+   "name": "Dragon Fist",
+   "kind": "projectile",
+   "scene": "res://scenes/entities/KiBlast.tscn",
+   "model": "entity/skills/sp_dragonfist",
+   "texture": "skills/sp_dragonfist",
+   "hd_texture": false,
+   "animations": [
+    "entity/skills/sp_dragonfist"
+   ],
+   "hitbox": [
+    1.11,
+    1.23
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 1,
+    "melee": 0,
+    "ki": 0,
+    "defense": 0,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "fire": "kiblast_shoot",
+    "hit": "ki_explosion_impact"
+   },
+   "bgm": "",
+   "taunt": "",
+   "projectile_kind": "special"
+  },
+  {
+   "id": "sp_ozaru_fist",
+   "name": "Oozaru Fist",
+   "kind": "projectile",
+   "scene": "res://scenes/entities/KiBlast.tscn",
+   "model": "entity/skills/sp_ozarufist",
+   "texture": "skills/sp_ozarufist",
+   "hd_texture": false,
+   "animations": [
+    "entity/skills/sp_ozarufist"
+   ],
+   "hitbox": [
+    3.15,
+    7.12
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 1,
+    "melee": 0,
+    "ki": 0,
+    "defense": 0,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "fire": "kiblast_shoot",
+    "hit": "ki_explosion_impact"
+   },
+   "bgm": "",
+   "taunt": "",
+   "projectile_kind": "special"
+  },
+  {
+   "id": "sp_majin_candy",
+   "name": "Majin Candy",
+   "kind": "projectile",
+   "scene": "res://scenes/entities/KiBlast.tscn",
+   "model": "entity/skills/majinskill",
+   "texture": "races/candy",
+   "hd_texture": false,
+   "animations": [
+    "entity/skills/majinskill"
+   ],
+   "hitbox": [
+    0.4,
+    0.4
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 1,
+    "melee": 0,
+    "ki": 0,
+    "defense": 0,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": true,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "fire": "kiblast_shoot",
+    "hit": "ki_explosion_impact"
+   },
+   "bgm": "",
+   "taunt": "",
+   "projectile_kind": "special"
+  },
+  {
+   "id": "dragon_ball",
+   "name": "Dragon Ball",
+   "kind": "pickup",
+   "scene": "res://scenes/entities/Pickup.tscn",
+   "model": "block/dball",
+   "texture": "",
+   "hd_texture": false,
+   "animations": [
+    "block/dball"
+   ],
+   "hitbox": [
+    0.5,
+    0.5
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 1,
+    "melee": 0,
+    "ki": 0,
+    "defense": 0,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "pickup": "dball_pickup",
+    "ambient": "dragonballssound"
+   },
+   "bgm": "",
+   "taunt": "",
+   "glow": true,
+   "icons": {
+    "earth": [
+     "dball1",
+     "dball2",
+     "dball3",
+     "dball4",
+     "dball5",
+     "dball6",
+     "dball7"
+    ],
+    "namek": [
+     "dball1_namek",
+     "dball2_namek",
+     "dball3_namek",
+     "dball4_namek",
+     "dball5_namek",
+     "dball6_namek",
+     "dball7_namek"
+    ]
+   }
+  },
+  {
+   "id": "item_drop",
+   "name": "Dropped Item",
+   "kind": "pickup",
+   "scene": "res://scenes/entities/Pickup.tscn",
+   "model": "",
+   "texture": "",
+   "hd_texture": false,
+   "animations": [],
+   "hitbox": [
+    0.25,
+    0.25
+   ],
+   "scale": 1.0,
+   "stats": {
+    "health": 1,
+    "melee": 0,
+    "ki": 0,
+    "defense": 0,
+    "speed": 1.0
+   },
+   "ai_tier": 0,
+   "faction": "neutral",
+   "can_fly": false,
+   "techniques": [],
+   "drops": [],
+   "sounds": {
+    "pickup": "item_pickup"
+   },
+   "bgm": "",
+   "taunt": ""
+  }
+ ]
+}

@@ -1,0 +1,74 @@
+{
+ "id": "11",
+ "dmz_id": 11,
+ "quest_id": "saga_movies:11",
+ "name": "Slug's Soldiers",
+ "desc": "Lord Slug's soldiers have landed on Earth. Clear them from the plains before their master arrives.",
+ "title": "Slug's Soldiers",
+ "description": "Lord Slug's soldiers have landed on Earth. Clear them from the plains before their master arrives.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 10,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 95
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "6",
+    "quest": "saga_saiyan:6"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "10",
+    "quest": "saga_movies:10"
+   }
+  ]
+ },
+ "min_level": 95,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_slug_soldier",
+   "entity_name": "Slug's Soldier",
+   "count": 8,
+   "health": 1040.0,
+   "meleeDamage": 66.0,
+   "kiDamage": 91.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 18100
+  }
+ ]
+}

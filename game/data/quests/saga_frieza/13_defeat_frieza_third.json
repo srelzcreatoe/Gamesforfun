@@ -1,0 +1,68 @@
+{
+ "id": "13",
+ "dmz_id": 13,
+ "quest_id": "saga_frieza:13",
+ "name": "Frieza's Rising Horror",
+ "desc": "Frieza refuses to stay in one shape. Survive his second and third forms before he reaches his true body.",
+ "title": "Frieza's Rising Horror",
+ "description": "Frieza refuses to stay in one shape. Survive his second and third forms before he reaches his true body.",
+ "type": "SAGA",
+ "category": "saga_frieza",
+ "saga": "frieza_saga",
+ "order": 12,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 280
+   },
+   {
+    "type": "PLANET",
+    "planet": "namek"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:ajissa_plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "12",
+    "quest": "saga_frieza:12"
+   }
+  ]
+ },
+ "min_level": 280,
+ "planet": "namek",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_frieza_second",
+   "entity_name": "Frieza (2nd Form)",
+   "count": 1,
+   "health": 18785.0,
+   "meleeDamage": 928.0,
+   "kiDamage": 821.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 42720
+  }
+ ]
+}

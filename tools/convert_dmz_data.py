@@ -221,7 +221,8 @@ sidequest_cat = {}     # sidequest id -> category
 story_kill_stats = {}  # entity -> {health, melee, ki, ai_tier, level}
 side_kill_stats = {}
 level_anchors = []     # (level, health, melee, ki)
-quest_giver_map = defaultdict(list)   # master id -> [quest ids]
+quest_giver_map = defaultdict(list)   # master id -> [quest ids] (quest_giver)
+quest_turnin_map = defaultdict(list)  # master id -> [quest ids] (turn_in)
 category_files = defaultdict(list)    # category -> [(filename, quest)]
 quest_entities = set()
 
@@ -231,7 +232,7 @@ for _folder in sorted(os.listdir(os.path.join(QUESTS_SRC, "sidequests"))):
         sidequest_cat[jload(_p)["id"]] = "sidequest_" + _folder
 
 
-def conv_condition(c, is_prereq=False):
+def conv_condition(c):
     t = c.get("type")
     out = OrderedDict()
     if t == "DIMENSION":
@@ -249,7 +250,7 @@ def conv_condition(c, is_prereq=False):
     elif t == "SAGA_QUEST":
         out["type"] = "SAGA_QUEST"
         out["sagaId"] = c.get("sagaId", "")
-        out["questId"] = c.get("questId", 0)
+        out["questId"] = str(c.get("questId", 0))
         folder = SAGA_DEFS.get(c.get("sagaId", ""), {}).get("questFolder", "")
         out["quest"] = "%s:%s" % (folder, c.get("questId", 0))
     elif t == "QUEST":
@@ -373,9 +374,12 @@ def conv_reward(r, qid):
 
 def convert_quest(src_path, category, is_story, order):
     q = jload(src_path)
+    # ids are written as strings: Godot's JSON parser turns every number into a float, so a numeric
+    # id would make Registry build "saga_android:1.0" instead of "saga_android:1".
     qid = "%s:%s" % (category, q["id"])
     out = OrderedDict()
-    out["id"] = q["id"]
+    out["id"] = str(q["id"])
+    out["dmz_id"] = q["id"]
     out["quest_id"] = qid
     out["name"] = lang(q.get("title", ""), title_case(str(q["id"])))
     out["desc"] = lang(q.get("description", ""), "")
@@ -396,6 +400,7 @@ def convert_quest(src_path, category, is_story, order):
         quest_giver_map[out["quest_giver"]].append(qid)
     if "turn_in" in q:
         out["turn_in"] = map_npc(q["turn_in"])
+        quest_turnin_map[out["turn_in"]].append(qid)
     out["requirements"] = conv_conditions(q.get("requirements"))
     out["prerequisites"] = conv_conditions(q.get("prerequisites"))
     level = 1
@@ -426,7 +431,7 @@ def convert_quests():
         for i, p in enumerate(files):
             qid, q = convert_quest(p, folder, True, i)
             quest_index[qid] = q
-            fname = "%02d_%s.json" % (q["id"], re.sub(r"^\d+_", "", os.path.basename(p))[:-5])
+            fname = "%02d_%s.json" % (int(q["dmz_id"]), re.sub(r"^\d+_", "", os.path.basename(p))[:-5])
             category_files[folder].append((fname, q))
             saga_quests[folder].append(qid)
             n_story += 1
@@ -461,35 +466,47 @@ def convert_quests():
 
 # ================================================================ ENTITIES
 GEO_CACHE = {}
+# Bedrock geos carry hair / aura / cape / effect cubes that reach far above the character, so the
+# hitbox is measured from the body bones only (the same bones vanilla-style models use).
+BODY_BONE = re.compile(
+    r"^(root|waist|body|torso|chest|hip\d*|neck|head|mouth|jaw|eyes?|nose|"
+    r"(left|right)_(arm|leg|hand|foot)\w*|arm\w*|leg\w*|armor\w*|\w*_layer|\w*_hand_item)$", re.I)
+TORSO_BONE = re.compile(r"^(body|waist|torso|chest|hip\d*)$", re.I)
 
 
 def geo_extent(model_rel):
-    """(width_x, height_y, depth_z) in blocks from the cubes of a Bedrock geo file."""
+    """(torso_width, height, torso_depth) in blocks (geo units / 16, before `scale`)."""
     if model_rel in GEO_CACHE:
         return GEO_CACHE[model_rel]
     path = os.path.join(ASSETS, "models", model_rel + ".geo.json")
     res = None
     try:
-        d = jload(path)
-        geo = d["minecraft:geometry"][0]
-        mn = [1e9, 1e9, 1e9]
-        mx = [-1e9, -1e9, -1e9]
-        found = False
-        for b in geo.get("bones", []):
-            for c in b.get("cubes", []):
-                o = c.get("origin", [0, 0, 0])
-                s = c.get("size", [0, 0, 0])
-                for i in range(3):
-                    mn[i] = min(mn[i], o[i])
-                    mx[i] = max(mx[i], o[i] + s[i])
-                found = True
-        if found:
-            res = tuple((mx[i] - mn[i]) / 16.0 for i in range(3))
-            res = (res[0], mx[1] / 16.0 if mx[1] > 0 else res[1], res[2])
+        geo = jload(path)["minecraft:geometry"][0]
+        bones = geo.get("bones", [])
+
+        def span(pred):
+            xs, ys, zs = [], [], []
+            for b in bones:
+                if not pred(b.get("name", "")):
+                    continue
+                for c in b.get("cubes", []):
+                    o = c.get("origin", [0, 0, 0])
+                    sz = c.get("size", [0, 0, 0])
+                    xs += [o[0], o[0] + sz[0]]
+                    ys += [o[1], o[1] + sz[1]]
+                    zs += [o[2], o[2] + sz[2]]
+            if not xs:
+                return None
+            return (max(xs) - min(xs), max(ys), max(zs) - min(zs))
+
+        body = span(lambda n: bool(BODY_BONE.match(n))) or span(lambda n: True)
+        torso = span(lambda n: bool(TORSO_BONE.match(n))) or body
+        if body:
+            res = (torso[0] / 16.0, body[1] / 16.0, torso[2] / 16.0)
         else:
             desc = geo.get("description", {})
-            res = (desc.get("visible_bounds_width", 1) * 0.5, desc.get("visible_bounds_height", 2) * 0.5,
-                   desc.get("visible_bounds_width", 1) * 0.5)
+            res = (desc.get("visible_bounds_width", 1) * 0.3, desc.get("visible_bounds_height", 2) * 0.5,
+                   desc.get("visible_bounds_width", 1) * 0.3)
     except Exception:
         res = None
     GEO_CACHE[model_rel] = res
@@ -500,16 +517,32 @@ def hitbox_for(model_rel, scale):
     ext = geo_extent(model_rel)
     if ext is None:
         return [0.6, 1.8]
-    h = ext[1] * scale
-    w = max(ext[0], ext[2]) * scale
-    # humanoids: arms/capes inflate the x extent; keep the box slim like a player box
-    w = min(w, max(0.4, h * 0.36))
-    h = max(0.5, min(h, 12.0))
-    w = max(0.4, min(w, 6.0))
+    h = max(0.4, min(ext[1] * scale, 64.0))
+    w = max(ext[0], ext[2]) * 1.2 * scale
+    w = max(0.4, min(w, h * 0.9))
     return [round(w, 2), round(h, 2)]
 
 
 # entities whose model is another entity's geo (from the DMZ entity classes)
+# textures for the shared "stage" geo models that have no texture of their own name
+STAGE_TEXTURE = {
+    "saga_goku": "sagas/saga_goku_mid_base",
+    "saga_goku_ssj": "sagas/saga_goku_mid_ssj",
+    "saga_goku_ssj2": "sagas/saga_goku_end_ssj2",
+    "saga_goku_ssj3": "sagas/saga_goku_end_ssj3",
+    "saga_gohan_mid": "sagas/saga_gohan_mid_base",
+    "saga_gohan_end": "sagas/saga_gohan_end_base",
+    "saga_future_gohan": "sagas/saga_fgohan_base",
+    "saga_future_gohanssj": "sagas/saga_fgohan_ssj",
+    "saga_trunks": "sagas/saga_ftrunks_base",
+    "saga_trunks_ssj": "sagas/saga_trunks_ssj",
+    "saga_trunks_ssg3": "sagas/saga_ftrunks_ssg3",
+    "saga_vegeta_ssj2": "sagas/saga_vegeta_end_ssj2",
+    "saga_vegeta_ssg2": "sagas/saga_vegeta_mid_ssg2",
+    "saga_saibaman": "races/saibaman",
+    "saga_slug_giant": "sagas/saga_slug",
+}
+
 MODEL_ALIAS = {
     "saga_mecha_frieza": "saga_frieza_base",
     "saga_fgohan_base": "saga_future_gohan",
@@ -556,11 +589,12 @@ MODEL_ALIAS = {
     "saga_superbuu_piccolo": "saga_superbuu",
     "saga_cell_superperfect": "saga_cell_perfect",
     "mini_buu": "saga_buufat",
+    "saga_slug_giant": "saga_slug",
 }
 for _i in range(1, 7):
     MODEL_ALIAS["saga_saibaman%d" % _i] = "saga_saibaman"
 
-# DMZ entity registry (from MainEntities) that are saga characters
+# DMZ entity registry (extracted from com/dragonminez/common/init/MainEntities.class)
 SAGA_IDS = """saga_a13 saga_a14 saga_a15 saga_a16 saga_a17 saga_a18 saga_a19 saga_babidi saga_bio_broly
 saga_bio_broly_giant saga_bojack saga_bojack_fp saga_broly_base saga_broly_lssj saga_broly_ssj
 saga_broly_ssj_restricted saga_bujin saga_bulma saga_burter saga_buufat saga_cell_imperfect saga_cell_jr
@@ -582,7 +616,16 @@ saga_spopovitch saga_super_a13 saga_super_hirudegarn saga_super_janemba saga_sup
 saga_superbuu_gotenks saga_superbuu_piccolo saga_tien_early saga_turles saga_vegeta saga_vegeta_end_base
 saga_vegeta_end_ssj saga_vegeta_end_ssj2 saga_vegeta_majin saga_vegeta_mid_base saga_vegeta_mid_ssg2
 saga_vegeta_mid_ssj saga_vegeta_namek saga_vegetto_base saga_vegetto_ssj saga_videl saga_yakon saga_yamcha
-saga_zangya saga_zarbon saga_zarbont1 saga_nail shadow_dummy mini_buu""".split()
+saga_zangya saga_zarbon saga_zarbont1 saga_nail saga_bido saga_dore saga_neiz saga_shin saga_slug
+shadow_dummy mini_buu""".split()
+
+# Every geo model under assets/models/entity/sagas must be represented (brief rule):
+# a handful of geo files are DMZ's shared "stage" models (saga_goku, saga_trunks_ssj, ...) used by the
+# quest-NPC renderer; they become entities in their own right so no model is left unreferenced.
+GEO_ONLY_IDS = sorted(
+    f[:-9] for f in os.listdir(os.path.join(ASSETS, "models", "entity", "sagas"))
+    if f.endswith(".geo.json") and f[:-9] not in SAGA_IDS)
+SAGA_IDS = SAGA_IDS + GEO_ONLY_IDS
 
 MASTER_IDS = """master_babidi master_cell master_dende master_enma master_frieza master_gero master_gohan
 master_goku master_guru master_kaiosama master_karin master_krillin master_oldkai master_piccolo master_popo
@@ -592,6 +635,10 @@ ALLIED_STEMS = ("saga_goku", "saga_gohan", "saga_fgohan", "saga_kid_gohan", "sag
                 "saga_nail", "saga_vegeta_end", "saga_vegeta_mid", "saga_trunks", "saga_ftrunks", "saga_kid_trunks",
                 "saga_goten", "saga_gotenks", "saga_vegetto", "saga_videl", "saga_bulma", "saga_shin", "saga_kibito",
                 "saga_yamcha", "saga_chaoz", "saga_tien", "saga_paikuhan")
+
+# models built at a bigger grid than the 2-block humanoid standard
+SAGA_SCALE = {"saga_gete_robot": 0.8, "saga_yakon": 0.8, "saga_dr_wheelo": 0.65, "saga_hirudegarn": 0.9,
+              "saga_hirudegarn_incomplete1": 0.7, "saga_hirudegarn_incomplete2": 0.8, "saga_super_hirudegarn": 1.1}
 
 GRUNTS = {"saga_friezasoldier01", "saga_friezasoldier02", "saga_friezasoldier03", "saga_saibaman1", "saga_saibaman2",
           "saga_saibaman3", "saga_saibaman4", "saga_saibaman5", "saga_saibaman6", "saga_slug_soldier",
@@ -814,6 +861,12 @@ TAUNTS = {
     "saga_super_hirudegarn": "*Hirudegarn's final form rises, blotting out the sun*",
     "saga_morosoldier": "Moro's army takes what it wants. This planet is next.",
     "saga_videl": "I'm the daughter of the champ. You're not getting past me!",
+    "saga_trunks": "I came back to change this timeline. Draw your sword.",
+    "saga_future_gohan": "One arm is all I need to take you down. Come on!",
+    "saga_salza": "Salza blade! Lord Cooler's elite doesn't lose to trash like you.",
+    "saga_dore": "Dore will crush you with his bare hands. No tricks needed.",
+    "saga_neiz": "My skin is armour and my hands are lightning. Care to touch?",
+    "saga_kibito": "The Supreme Kai has ordered me to test you. Prepare yourself.",
     "saga_bulma": "Oh, hi! Need something from Capsule Corp? I'm a little busy.",
 }
 
@@ -984,6 +1037,10 @@ def convert_entities():
             UNPORTED.append("entity %s (no model)" % eid)
             continue
         tex_cands = ["sagas/" + eid, "sagas/" + os.path.basename(model)]
+        if eid in STAGE_TEXTURE:
+            tex_cands.insert(1, STAGE_TEXTURE[eid])
+        if os.path.basename(model) in STAGE_TEXTURE:
+            tex_cands.append(STAGE_TEXTURE[os.path.basename(model)])
         if eid.startswith("saga_saibaman"):
             tex_cands.append("races/saibaman")
         anims = list(saga_anim)
@@ -1015,7 +1072,7 @@ def convert_entities():
             h, m, k = interp_stats(lvl)
             stats = {"health": h, "melee": m, "ki": k}
             ai_tier = 1 if lvl < 200 else (2 if lvl < 1000 else 3)
-        scale = 0.9375
+        scale = SAGA_SCALE.get(eid, 0.9375)
         if eid == "mini_buu":
             scale = 0.5
         elif eid == "saga_bio_broly_giant":
@@ -1100,7 +1157,7 @@ def convert_entities():
     # ---- enemies
     enemy_sounds = {"hurt": "punch", "death": "knockback_character", "attack": "punch"}
     ents.append(make_entity("bandit", "enemy", "entity/enemies/bandit", ["enemies/bandit"], ["entity/enemies/bandit"],
-                            stats=cfg("bandit", 75, 10, 0), faction="villain", techniques=[],
+                            scale=0.55, stats=cfg("bandit", 75, 10, 0), faction="villain", techniques=[],
                             drops=[{"item": "bread", "chance": 0.3}, {"item": "iron_ingot", "chance": 0.1}],
                             sounds=enemy_sounds, bgm="battle", taunt="Hand over your capsules and nobody gets hurt!"))
     ents.append(make_entity("red_ribbon_soldier", "enemy", "entity/enemies/red_ribbon_soldier",
@@ -1111,7 +1168,7 @@ def convert_entities():
                             extra={"ranged": True}))
     for eid in ("robot1", "robot2", "robot3"):
         ents.append(make_entity(eid, "enemy", "entity/enemies/robot1", ["enemies/" + eid, "enemies/robot1"],
-                                ["entity/enemies/robot1"], stats=cfg(eid, 120, 15, 0), faction="villain",
+                                ["entity/enemies/robot1"], scale=0.45, stats=cfg(eid, 120, 15, 0), faction="villain",
                                 techniques=[], drops=[{"item": "gete_scrap", "chance": 0.4}, {"item": "redstone", "chance": 0.4}],
                                 sounds={"hurt": "block1", "death": "ki_explosion_impact", "attack": "punch"},
                                 bgm="battle", taunt="*servo whine* TARGET LOCKED."))
@@ -1136,20 +1193,27 @@ def convert_entities():
                             faction="neutral", techniques=[], drops=[], sounds=namek_sounds,
                             taunt="Capsule Corp is always hiring, you know.", extra={"interact": "talk"}))
 
-    # ---- dragons
+    # ---- dragons (size straight from the DMZ dragon definitions)
     dragon_sounds = {"hurt": "shenron", "death": "shenron", "attack": "shenron", "summon": "shenron"}
-    for eid, model, tex, anim, scale, wishes in (
-            ("shenron", "entity/dragon/shenron", "dragon/shenron", "entity/dragon/shenron", 1.0, 1),
-            ("porunga", "entity/dragon/porunga", "dragon/porunga", "entity/dragon/porunga", 1.0, 3),
-            ("super_shenron", "entity/dragon/shenron", "dragon/shenron", "entity/dragon/shenron", 3.0, 1),
-            ("toronbo", "dmzplus/entity/dragon/toronbo", "dmzplus/dragon/toronbo", "dmzplus/entity/dragon/toronbo", 1.0, 1)):
+    for eid, model, tex, anim in (
+            ("shenron", "entity/dragon/shenron", "dragon/shenron", "entity/dragon/shenron"),
+            ("porunga", "entity/dragon/porunga", "dragon/porunga", "entity/dragon/porunga"),
+            ("super_shenron", "entity/dragon/shenron", "dragon/shenron", "entity/dragon/shenron"),
+            ("toronbo", "dmzplus/entity/dragon/toronbo", "dmzplus/dragon/toronbo", "dmzplus/entity/dragon/toronbo")):
+        d = DRAGON_DEFS.get(eid, {})
+        height = float(d.get("entity_height", 17.0))
+        width = float(d.get("entity_width", 3.0))
+        ext = geo_extent(model)
+        scale = round(height / ext[1], 3) if ext and ext[1] > 0 else 1.0
         if eid == "super_shenron":
-            subst("entity super_shenron: no DMZ Plus geo/texture -> shenron model x3 (golden tint hint)")
+            subst("entity super_shenron: no DMZ Plus geo/texture -> shenron model scaled to %.0f blocks (golden tint)" % height)
         ents.append(make_entity(eid, "dragon", model, [tex], [anim], scale=scale,
                                 stats={"health": 100000, "melee": 0, "ki": 0, "defense": 999}, ai_tier=0,
                                 faction="neutral", can_fly=True, techniques=[], drops=[], sounds=dragon_sounds,
                                 bgm="", taunt="", name=entity_name(eid) if eid != "super_shenron" else "Super Shenron",
-                                extra={"invulnerable": True, "wish_count": wishes,
+                                extra={"invulnerable": True, "wish_count": int(d.get("wish_count", 1)),
+                                       "ball_set": d.get("ball_set", "earth"),
+                                       "hitbox": [round(min(width, 24.0), 2), round(min(height, 64.0), 2)],
                                        "tint": "#FFD24D" if eid == "super_shenron" else "#FFFFFF"}))
     ents.append(make_entity("zuno", "npc", "dmzplus/entity/zuno", ["dmzplus/zuno"], ["dmzplus/entity/zuno"], scale=1.0,
                             stats={"health": 1000, "melee": 0, "ki": 0, "defense": 50}, ai_tier=0, faction="neutral",
@@ -1192,10 +1256,19 @@ def convert_entities():
                                 stats={"health": 1, "melee": 0, "ki": 0, "defense": 0}, ai_tier=0, faction="neutral",
                                 can_fly=True, techniques=[], drops=[], sounds={"fire": "kiblast_shoot", "hit": "ki_explosion_impact"},
                                 extra={"projectile_kind": "special"}))
+    dball_icons = OrderedDict()
+    for set_name, pattern in (("earth", "dball%d"), ("namek", "dball%d_namek"),
+                              ("super", "super_dball%d"), ("cereal", "cereal_dball%d")):
+        icons = [pattern % i for i in range(1, 8)
+                 if os.path.exists(os.path.join(ASSETS, "textures", "items", (pattern % i) + ".png"))]
+        if icons:
+            dball_icons[set_name] = icons
+    subst("entity dragon_ball: no entity texture for block/dball -> renders the item icons %s"
+          % ", ".join(dball_icons.keys()))
     ents.append(make_entity("dragon_ball", "pickup", "block/dball", [], ["block/dball"], scale=1.0,
                             stats={"health": 1, "melee": 0, "ki": 0, "defense": 0}, ai_tier=0, faction="neutral",
                             techniques=[], drops=[], sounds={"pickup": "dball_pickup", "ambient": "dragonballssound"},
-                            extra={"hitbox": [0.5, 0.5], "glow": True}))
+                            extra={"hitbox": [0.5, 0.5], "glow": True, "icons": dball_icons}))
     ents.append(make_entity("item_drop", "pickup", "", [], [], scale=1.0,
                             stats={"health": 1, "melee": 0, "ki": 0, "defense": 0}, ai_tier=0, faction="neutral",
                             techniques=[], drops=[], sounds={"pickup": "item_pickup"},
@@ -1334,14 +1407,26 @@ FORM_TYPE_TO_SKILL = {"superforms": "superforms", "legendaryforms": "legendaryfo
 
 
 def form_name(race, group, form):
-    for k in ("race.dragonminez.%s.form.%s.%s" % (race, group, form),
-              "race.dragonminez.stack.form.%s.%s" % (group, form)):
+    keys = ["race.dragonminez.%s.form.%s.%s" % (race, group, form),
+            "race.dragonminez.stack.form.%s.%s" % (group, form)]
+    if race == "any":
+        keys += ["race.dragonminez.%s.form.%s.%s" % (r, group, form) for r in RACE_ORDER]
+    for k in keys:
         v = lang(k)
         if v:
             if group == "kaioken":
                 return "Kaioken " + v
             return v
+    subst("form %s.%s (%s): no English name in lang -> title case" % (group, form, race))
     return title_case(form)
+
+
+def group_name(race, group):
+    for k in ("race.dragonminez.%s.group.%s" % (race, group), "race.dragonminez.stack.group.%s" % group):
+        v = lang(k)
+        if v:
+            return v
+    return title_case(group)
 
 
 def convert_forms(races, skill_costs):
@@ -1361,15 +1446,25 @@ def convert_forms(races, skill_costs):
                 subst("form %s.%s collides between races -> key %s" % (group, fname, key))
             key_rename[(race, "%s.%s" % (group, fname))] = key
             f = OrderedDict()
-            f["id"] = key
-            f["name"] = form_name(race, group, fname)
-            f["race"] = race
-            f["group"] = group
-            f["form_type"] = ftype
-            f["skill"] = FORM_TYPE_TO_SKILL.get(ftype, ftype)
-            f["order"] = order
+            # DMZ fields first (they carry a lowercase internal "name" we must not keep as the label)
             for k, v in fm.items():
-                f[k] = v
+                if k == "name":
+                    f["dmz_name"] = v
+                else:
+                    f[k] = v
+            for k in ("id", "name", "race", "group", "group_name", "form_type", "skill", "order"):
+                f.pop(k, None)
+            head = OrderedDict()
+            head["id"] = key
+            head["name"] = form_name(race, group, fname)
+            head["race"] = race
+            head["group"] = group
+            head["group_name"] = group_name(race, group)
+            head["form_type"] = ftype
+            head["skill"] = FORM_TYPE_TO_SKILL.get(ftype, ftype)
+            head["order"] = order
+            head.update(f)
+            f = head
             # unlock cost
             lvl = int(fm.get("unlockOnSkillLevel", 1))
             cost = None
@@ -1422,7 +1517,10 @@ SKILL_EFFECT = {
     "ki_infusion": {"kind": "offense", "melee_bonus_per_level": 0.05},
     "ki_sense": {"kind": "utility", "range_per_level": 16.0},
     "ki_control": {"kind": "core", "enables": ["ki_charge", "ki_blast", "fly", "techniques"]},
-    "ki_manipulation": {"kind": "offense", "melee_from_ki_per_level": 0.1, "weapons": ["blade", "scythe", "clawlance"]},
+    "ki_manipulation": {"kind": "offense", "melee_from_ki_per_level": 0.1, "weapons": ["blade", "scythe", "clawlance"],
+                        "weapon_names": {w: lang("skill.dragonminez.kiweapon." + w, title_case(w))
+                                         for w in ("blade", "scythe", "clawlance")},
+                        "weapon_models": ["weapons/kiweapon_blade", "weapons/kiweapon_scythe", "weapons/kiweapon_clawlance"]},
     "potential_unlock": {"kind": "stats", "release_per_level": 0.03},
     "defense_penetration": {"kind": "offense", "per_level": 0.02},
     "healing_reduction": {"kind": "offense", "per_level": 0.02, "duration": 5.0},
@@ -1465,6 +1563,8 @@ def geometric_costs(n, start=500, ratio=1.5):
 
 
 def convert_skills():
+    subst("skill unlock: DMZ master_whis / master_beerus have no model or texture in assets -> "
+          "ultra_instinct / ultra_ego / godforms are taught by old_kai instead")
     cfg = jload(os.path.join(CONF, "skills.json"))
     costs_cfg = {k: v.get("costs", []) for k, v in cfg.get("skills", {}).items()}
     tech_dmz = set(cfg.get("kiSkills", [])) | set(cfg.get("strikeSkills", [])) | {
@@ -1634,12 +1734,22 @@ def sfx_exists(name):
 
 
 # ================================================================ MASTERS
+# our master id -> the npc key used by dialogue.dragonminez.story.sidequest.<npc>.*
+DIALOG_KEY = {"king_kai": "kingkai", "guru": "namek_elder", "korin": "", "dende": "", "yemma": "",
+              "old_kai": "", "gero": "", "babidi": "", "cell": "", "frieza": "", "baba": "", "toribot": "",
+              "shin": ""}
+
+
 def dlg(npc, *extra):
+    key = DIALOG_KEY.get(npc, npc)
     out = []
-    for k in ("offer", "idle", "in_progress", "complete"):
-        v = lang("dialogue.dragonminez.story.sidequest.%s.%s" % (npc, k))
-        if v:
-            out.append(v)
+    if key:
+        for k in ("offer", "idle", "in_progress", "complete"):
+            v = lang("dialogue.dragonminez.story.sidequest.%s.%s" % (key, k))
+            if v:
+                out.append(v)
+        if not out:
+            subst("master %s: no DMZ dialogue lines (dialogue.*.%s.*) -> hand written only" % (npc, key))
     out.extend(extra)
     return out[:6]
 
@@ -1806,7 +1916,9 @@ def convert_masters(entities, skills, techs):
         out["teaches_skills"] = [t for t in teaches if t in skills]
         out["teaches_techniques"] = [t for t in teaches if t in techs]
         out["trains"] = m["trains"]
-        out["quests"] = sorted(quest_giver_map.get(key, []))
+        out["quests"] = sorted(set(quest_giver_map.get(key, [])) | set(quest_turnin_map.get(key, [])))
+        out["gives_quests"] = sorted(quest_giver_map.get(key, []))
+        out["turn_in_quests"] = sorted(quest_turnin_map.get(key, []))
         out["dialog"] = m["dialog"][:6]
         if m["entity"] not in entities:
             UNPORTED.append("master %s: entity %s missing" % (key, m["entity"]))
@@ -1817,6 +1929,19 @@ def convert_masters(entities, skills, techs):
 
 
 # ================================================================ WISHES
+DRAGON_SOURCES = [
+    ("shenron", os.path.join(DMZ_DATA, "dragonballs", "earth", "definitions")),
+    ("porunga", os.path.join(DMZ_DATA, "dragonballs", "namek", "definitions")),
+    ("super_shenron", os.path.join(DMZP, "dragonballs", "super", "definitions")),
+    ("toronbo", os.path.join(DMZP, "dragonballs", "cereal", "definitions")),
+]
+DRAGON_DEFS = {}
+for _d, _p in DRAGON_SOURCES:
+    try:
+        DRAGON_DEFS[_d] = jload(os.path.join(_p, "dragon.json"))
+    except Exception:
+        DRAGON_DEFS[_d] = {}
+
 WISH_TYPE = {"item": "item", "tps": "tps", "passivereset": "reset", "recustomize": "recustomize",
              "relocatestats": "reset", "item_list_wish": "item", "form": "form", "revive": "revive", "planet": "planet"}
 DRAGON_META = {
@@ -1828,12 +1953,7 @@ DRAGON_META = {
 
 
 def convert_wishes():
-    sources = [
-        ("shenron", os.path.join(DMZ_DATA, "dragonballs", "earth", "definitions")),
-        ("porunga", os.path.join(DMZ_DATA, "dragonballs", "namek", "definitions")),
-        ("super_shenron", os.path.join(DMZP, "dragonballs", "super", "definitions")),
-        ("toronbo", os.path.join(DMZP, "dragonballs", "cereal", "definitions")),
-    ]
+    sources = DRAGON_SOURCES
     wishes = OrderedDict()
     for dragon, d in sources:
         try:
@@ -1969,9 +2089,20 @@ BATTLE_WORDS = ("strongest", "danger", "survivor", "super saiyajin", "new hero",
                 "finish this game", "miracle", "in action", "sacrifice", "dragon ball z ost - dragon ball z")
 
 
+try:
+    DMZ_SOUNDS = jload(os.path.join(DMZ_ASSETS, "sounds.json"))
+except Exception:
+    DMZ_SOUNDS = {}
+
+
 def track_file(n):
-    special = {31: "call_for_a_miracle", 32: "gokus_father-son_victory", 33: "vegetas_sacrifice"}
-    return special.get(n, "menu_music-%d" % n)
+    """The ogg basename DMZ plays for music disc N (sounds.json is authoritative)."""
+    entry = DMZ_SOUNDS.get("menu_music_%d" % n, {})
+    for snd in entry.get("sounds", []):
+        name = snd.get("name", "") if isinstance(snd, dict) else str(snd)
+        if ":" in name:
+            return name.split(":", 1)[1]
+    return "menu_music-%d" % n
 
 
 def convert_audio():

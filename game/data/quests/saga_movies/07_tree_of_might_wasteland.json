@@ -1,0 +1,66 @@
+{
+ "id": "7",
+ "dmz_id": 7,
+ "quest_id": "saga_movies:7",
+ "name": "Tree of Might Wasteland",
+ "desc": "Turles has chosen rocky ground for the Tree of Might. Reach the wasteland and find his trail.",
+ "title": "Tree of Might Wasteland",
+ "description": "Turles has chosen rocky ground for the Tree of Might. Reach the wasteland and find his trail.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 6,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 65
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "6",
+    "quest": "saga_saiyan:6"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "6",
+    "quest": "saga_movies:6"
+   }
+  ]
+ },
+ "min_level": 65,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "BIOME",
+   "biome": "dragonminez:rocky"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 13400
+  }
+ ]
+}

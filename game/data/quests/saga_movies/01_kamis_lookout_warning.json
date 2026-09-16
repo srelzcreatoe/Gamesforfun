@@ -1,0 +1,62 @@
+{
+ "id": "1",
+ "dmz_id": 1,
+ "quest_id": "saga_movies:1",
+ "name": "Kami's Lookout Warning",
+ "desc": "Dende senses Garlic Jr.'s return. Go to Kami's Lookout and speak with him before the threat spreads.",
+ "title": "Kami's Lookout Warning",
+ "description": "Dende senses Garlic Jr.'s return. Go to Kami's Lookout and speak with him before the threat spreads.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 0,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 25
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "1",
+    "quest": "saga_saiyan:1"
+   }
+  ]
+ },
+ "min_level": 25,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "STRUCTURE",
+   "structure": "dragonminez:kamilookout"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "dende",
+   "npcId": "dende"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 500
+  }
+ ]
+}

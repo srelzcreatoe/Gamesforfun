@@ -1,0 +1,63 @@
+{
+ "id": "goku_healing_pod",
+ "dmz_id": "goku_healing_pod",
+ "quest_id": "sidequest_story:goku_healing_pod",
+ "name": "Defending the Healing Pod",
+ "desc": "Goku is recovering in a healing pod after his battle with the Ginyu Force. Frieza's soldiers are closing in & defend the area at all costs!",
+ "title": "Defending the Healing Pod",
+ "description": "Goku is recovering in a healing pod after his battle with the Ginyu Force. Frieza's soldiers are closing in & defend the area at all costs!",
+ "type": "SIDEQUEST",
+ "category": "sidequest_story",
+ "order": 3,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "goku",
+ "turn_in": "goku",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "STRUCTURE",
+    "structure": "dragonminez:elder_guru"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "11",
+    "quest": "saga_frieza:11"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_friezasoldier01",
+   "entity_name": "Frieza's Soldier",
+   "count": 20,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "goku",
+   "npcId": "goku"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 24000
+  }
+ ]
+}

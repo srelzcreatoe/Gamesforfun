@@ -1,0 +1,81 @@
+{
+ "id": "28",
+ "dmz_id": 28,
+ "quest_id": "saga_buu:28",
+ "name": "Face Vegetto",
+ "desc": "Vegetto's combined power is overwhelming. Fight through Goku and Vegeta's fused pressure and prepare for the final rescue.",
+ "title": "Face Vegetto",
+ "description": "Vegetto's combined power is overwhelming. Fight through Goku and Vegeta's fused pressure and prepare for the final rescue.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 27,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2180
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "27",
+    "quest": "saga_buu:27"
+   }
+  ]
+ },
+ "min_level": 2180,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_goku_end_ssj2",
+   "entity_name": "Goku (Super Saiyan 2)",
+   "count": 1,
+   "health": 420000.0,
+   "meleeDamage": 17700.0,
+   "kiDamage": 15980.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_vegeta_end_ssj2",
+   "entity_name": "Vegeta (Super Saiyan 2)",
+   "count": 1,
+   "health": 420000.0,
+   "meleeDamage": 17700.0,
+   "kiDamage": 15980.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 244800
+  }
+ ]
+}
