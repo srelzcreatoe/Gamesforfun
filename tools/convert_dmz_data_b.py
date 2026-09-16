@@ -237,6 +237,11 @@ SCOUTER_COLOR = {"red": "#E0402A", "blue": "#2A8BE0", "green": "#3FD44F", "purpl
 
 CAPSULE_COLORS = ["blue", "green", "orange", "purple", "red", "yellow"]
 
+# DMZ item ids that are emitted under a different id of ours, so the generic
+# "everything else" pass must not emit them a second time.
+RADAR_SOURCE_IDS = {"dball_radar", "namekdball_radar", "fused_dball_radar",
+                    "super_dball_radar", "cereal_dball_radar"}
+
 WEIGHTS = {
     "workout_weights":    {"mult": 1.5},
     "weight_turtle_shell": {"mult": 2.0},
@@ -560,7 +565,7 @@ def build_items():
 
     # ---- remaining DMZ items -> material / misc
     for iid in dmz_ids:
-        if iid in ITEM_IDS:
+        if iid in ITEM_IDS or iid in RADAR_SOURCE_IDS:
             continue
         if re.search(r"_(helmet|chestplate|leggings|boots)$", iid):
             continue
@@ -604,11 +609,54 @@ def build_items():
     # ---- misc extras
     add_item({"id": "senzu_bag", "name": "Senzu Bag", "icon": icon_for("senzu_bag"),
               "stack": 1, "kind": "misc", "rarity": "rare"})
-    for iid, nm in (("punchmachine", "Punch Machine"),):
-        ic = icon_for(iid)
-        if ic:
-            add_item({"id": iid, "name": nm, "icon": ic, "stack": 1, "kind": "misc",
-                      "rarity": "uncommon"})
+    build_extra_items()
+
+
+# Ids referenced by part A (quest objectives/rewards, entity drops) that have no
+# DragonMineZ icon of their own: kept as materials/foods with a fitting icon.
+EXTRA_ITEMS = [
+    ("amethyst_shard", "Amethyst Shard", "material", "lapis_lazuli", 64, "uncommon", {}),
+    ("blaze_rod", "Blaze Rod", "material", "stick", 64, "uncommon", {}),
+    ("broken_scouter", "Broken Scouter", "material", "red_scouter", 64, "uncommon", {}),
+    ("clock", "Clock", "material", "gold_ingot", 64, "common", {}),
+    ("copper_block", "Block of Copper", "material", "copper_ingot", 64, "common", {}),
+    ("lapis_block", "Block of Lapis Lazuli", "material", "lapis_lazuli", 64, "common", {}),
+    ("redstone_block", "Block of Redstone", "material", "redstone", 64, "common", {}),
+    ("ender_chest", "Ender Chest", "material", "block_chest", 64, "rare", {}),
+    ("ender_eye", "Eye of Ender", "material", "emerald", 64, "rare", {}),
+    ("ender_pearl", "Ender Pearl", "material", "emerald", 16, "uncommon", {}),
+    ("energy_cable", "Energy Cable", "material", "iron_ingot", 64, "common", {}),
+    ("fuel_generator", "Fuel Generator", "material", "gete_ingot", 16, "rare", {}),
+    ("heavy_weighted_pressure_plate", "Heavy Weighted Pressure Plate", "material",
+     "iron_ingot", 64, "common", {}),
+    ("netherite_ingot", "Netherite Ingot", "material", "gete_ingot", 64, "epic", {}),
+    ("observer", "Observer", "material", "redstone", 64, "uncommon", {}),
+    ("piston", "Piston", "material", "iron_ingot", 64, "uncommon", {}),
+    ("cooked_beef", "Steak", "food", "cooked_meat", 64, "common",
+     {"food": {"hunger": 8, "heal": 4}}),
+    ("glow_berries", "Glow Berries", "food", "apple", 64, "common",
+     {"food": {"hunger": 2, "heal": 1}}),
+    ("golden_apple", "Golden Apple", "food", "apple", 16, "rare",
+     {"food": {"hunger": 4, "heal": 40, "ki": 40, "stamina": 40, "instant": True}}),
+    ("golden_carrot", "Golden Carrot", "food", "carrot", 64, "uncommon",
+     {"food": {"hunger": 6, "heal": 8}}),
+    ("oxygen_supply_unit", "Oxygen Supply Unit", "material", "ki_battery", 16, "rare",
+     {}),
+    ("thermal_regulator", "Thermal Regulator", "material", "anti_ki_cloak", 16, "rare",
+     {}),
+]
+
+
+def build_extra_items():
+    for iid, nm, kind, icon_base, stack, rarity, extra in EXTRA_ITEMS:
+        ic = icon_for(iid, icon_base)
+        if ic is None:
+            SKIPPED.append("extra item %s: icon %s missing" % (iid, icon_base))
+            continue
+        it = {"id": iid, "name": nm, "icon": ic, "stack": stack, "kind": kind,
+              "rarity": rarity}
+        it.update(extra)
+        add_item(it)
 
 
 def load_weapon_attributes():
@@ -658,7 +706,7 @@ MC_ITEM_MAP = {
     "coal": "coal", "charcoal": "coal", "diamond": "diamond", "emerald": "emerald",
     "redstone": "redstone", "lapis_lazuli": "lapis_lazuli", "quartz": "quartz_block",
     "iron_block": "iron_block", "gold_block": "gold_block", "diamond_block": "diamond_block",
-    "redstone_block": "redstone", "quartz_block": "quartz_block",
+    "redstone_block": "redstone_block", "quartz_block": "quartz_block",
     # basics
     "stick": "stick", "string": "string", "paper": "paper", "book": "book",
     "leather": "leather", "feather": "feather", "bone": "bone", "flint": "flint",
@@ -671,14 +719,36 @@ MC_ITEM_MAP = {
     "wheat_seeds": "wheat_seeds", "beetroot_seeds": "beetroot_seeds",
     "melon_seeds": "melon_seeds", "pumpkin_seeds": "pumpkin_seeds",
     # redstone machinery -> closest available part
-    "observer": "redstone", "comparator": "redstone", "repeater": "redstone",
-    "redstone_torch": "torch", "clock": "gold_ingot", "compass": "iron_ingot",
+    "observer": "observer", "comparator": "redstone", "repeater": "redstone",
+    "redstone_torch": "torch", "clock": "clock", "compass": "iron_ingot",
     "minecart": "iron_ingot", "anvil": "iron_block", "shears": "iron_ingot",
-    "heavy_weighted_pressure_plate": "iron_block", "smithing_table": "crafting_table",
+    "heavy_weighted_pressure_plate": "heavy_weighted_pressure_plate",
+    "smithing_table": "crafting_table", "piston": "piston", "sticky_piston": "piston",
+    "ender_chest": "ender_chest", "ender_pearl": "ender_pearl",
+    "ender_eye": "ender_eye", "amethyst_shard": "amethyst_shard",
+    "blaze_rod": "blaze_rod", "netherite_ingot": "netherite_ingot",
+    "golden_apple": "golden_apple", "golden_carrot": "golden_carrot",
+    "cooked_beef": "cooked_beef", "beef": "raw_meat", "porkchop": "raw_meat",
+    "cooked_porkchop": "cooked_meat", "chicken": "raw_meat",
+    "cooked_chicken": "cooked_meat", "mutton": "raw_meat",
+    "cooked_mutton": "cooked_meat", "glow_berries": "glow_berries",
+    "sweet_berries": "glow_berries", "energy_cable": "energy_cable",
+    "fuel_generator": "fuel_generator", "broken_scouter": "broken_scouter",
+    "copper_block": "copper_block", "lapis_block": "lapis_block",
     "crying_obsidian": "obsidian", "obsidian": "obsidian",
-    # tools
+    # tools / vanilla armour used as crafting ingredients or templates
     "iron_pickaxe": "iron_pickaxe", "iron_axe": "iron_axe", "iron_shovel": "iron_shovel",
     "iron_hoe": "iron_hoe", "iron_sword": "iron_sword",
+    "stone_button": "stone", "stone_pressure_plate": "stone",
+    "iron_helmet": "iron_ingot", "iron_chestplate": "iron_ingot",
+    "iron_leggings": "iron_ingot", "iron_boots": "iron_ingot",
+    "diamond_helmet": "diamond", "diamond_chestplate": "diamond",
+    "diamond_leggings": "diamond", "diamond_boots": "diamond",
+    "golden_helmet": "gold_ingot", "golden_chestplate": "gold_ingot",
+    "golden_leggings": "gold_ingot", "golden_boots": "gold_ingot",
+    "leather_helmet": "leather", "leather_chestplate": "leather",
+    "leather_leggings": "leather", "leather_boots": "leather",
+    "oxygen_supply_unit": "oxygen_supply_unit", "thermal_regulator": "thermal_regulator",
     # dyes -> closest plant / mineral we have
     "white_dye": "bone", "black_dye": "coal", "gray_dye": "flint",
     "light_gray_dye": "bone", "red_dye": "poppy", "orange_dye": "orange_tulip",
@@ -738,6 +808,11 @@ MC_ITEM_MAP = {
     "time_chamber_block": "time_chamber_block", "dragon_ball_altar": "dragon_ball_altar",
     "training_post": "training_post", "punch_machine_item": "punch_machine_item",
     "gete_smithing_template": "gete_smithing_template",
+    # the radars are re-issued under our own ids (see RADAR_SOURCE_IDS)
+    "dball_radar": "dragon_radar", "namekdball_radar": "namek_dragon_radar",
+    "fused_dball_radar": "fused_dragon_radar",
+    "super_dball_radar": "super_dragon_radar",
+    "cereal_dball_radar": "cereal_dragon_radar",
 }
 # item tags -> list of our ids
 TAG_MAP = {
@@ -1573,6 +1648,7 @@ BLOCK_MAP = {
     "minecraft:oxidized_cut_copper": "light_blue_concrete",
     "minecraft:weathered_cut_copper": "light_blue_concrete",
     "minecraft:waxed_weathered_cut_copper": "light_blue_concrete",
+    "minecraft:iron_door": "oak_door", "minecraft:iron_trapdoor": "oak_trapdoor",
     "minecraft:lightning_rod": "iron_bars", "minecraft:chain": "iron_bars",
     "minecraft:iron_bars": "iron_bars", "minecraft:anvil": "iron_block",
     "minecraft:cauldron": "iron_block", "minecraft:hopper": "iron_block",
@@ -1726,6 +1802,17 @@ UNMAPPED_BLOCKS = collections.Counter()
 BLOCK_MAP_USED = {}
 
 
+def _base_block(bare):
+    """The full block a stairs/slab/wall variant is cut from (handles 'brick(s)')."""
+    for cand in (bare, bare + "s", bare + "_block", bare + "_blocks"):
+        for ns in ("minecraft:", "dragonminez:"):
+            if ns + cand in BLOCK_MAP:
+                return blk(BLOCK_MAP[ns + cand])
+        if cand in BLOCK_SET:
+            return cand
+    return map_block("minecraft:" + bare)
+
+
 def map_block(name):
     """Minecraft/DMZ block name -> our block id ('air' for things we drop)."""
     if name in BLOCK_MAP_USED:
@@ -1786,13 +1873,13 @@ def _map_block(name):
     if bare.endswith("_pane"):
         return "glass"
     if bare.endswith("_slab"):
-        base = map_block("minecraft:" + bare[:-len("_slab")])
+        base = _base_block(bare[:-len("_slab")])
         mat = BLOCK_BY_ID.get(base, {}).get("material", "stone")
         return "oak_slab" if mat == "wood" else "stone_slab"
     if bare.endswith("_stairs"):
-        return map_block("minecraft:" + bare[:-len("_stairs")])
+        return _base_block(bare[:-len("_stairs")])
     if bare.endswith("_wall"):
-        return map_block("minecraft:" + bare[:-len("_wall")])
+        return _base_block(bare[:-len("_wall")])
     if bare.endswith("_button") or bare.endswith("_pressure_plate"):
         return "air"
     UNMAPPED_BLOCKS[name] += 1
@@ -1988,38 +2075,36 @@ class Volume:
 
 def proc_capsule_corp():
     v = Volume()
-    # 20x12x20 domed Capsule Corp building
+    # domed white/yellow Capsule Corp building, ~20x17x20
     R = 9
-    v.cylinder(0, 0, 0, R, 1, "white_concrete")
-    v.cylinder(0, 1, 0, R, 6, "capsule_corp_wall", shell=True)
-    for y in range(1, 7):
-        v.cylinder(0, y, 0, R - 1, 1, "air")
-    # windows band
-    for y in (3, 4):
+    v.cylinder(0, 0, 0, R, 1, "white_concrete")                 # foundation
+    v.cylinder(0, 1, 0, R, 6, "capsule_corp_wall", shell=True)  # walls y=1..6
+    for y in (3, 4):                                            # window band
         for x in range(-R, R + 1):
             for z in range(-R, R + 1):
                 d = math.sqrt(x * x + z * z)
                 if R - 0.6 <= d <= R + 0.5 and (x + z) % 3 != 0:
                     v.set(x, y, z, "light_blue_stained_glass")
-    # dome
-    v.sphere(0, 7, 0, R, "capsule_corp_wall", shell=True, half=True)
-    v.sphere(0, 7, 0, R - 1, "air", half=True)
-    v.fill(-R, 7, -R, R, 7, R, "capsule_corp_wall")
-    v.fill(-R + 1, 7, -R + 1, R - 1, 7, R - 1, "air")
-    # logo over the door + entrance
+    v.cylinder(0, 7, 0, R, 1, "yellow_concrete", shell=True)    # trim ring
+    for y in range(8, 8 + R):                                   # dome
+        rr = int(round(math.sqrt(max(0.0, R * R - (y - 7) ** 2))))
+        if rr <= 1:
+            v.cylinder(0, y, 0, max(rr, 0), 1, "capsule_corp_wall")
+            break
+        v.cylinder(0, y, 0, rr, 1, "capsule_corp_wall", shell=True)
+    # entrance + logo
     v.fill(-1, 1, -R, 1, 3, -R, "air")
-    v.set(0, 4, -R, "capsule_corp_logo")
-    v.set(-1, 4, -R, "capsule_corp_logo")
-    v.set(1, 4, -R, "capsule_corp_logo")
-    # yellow trim + interior floor / lights
-    v.cylinder(0, 6, 0, R, 1, "yellow_concrete")
+    for x in (-1, 0, 1):
+        v.set(x, 4, -R, "capsule_corp_logo")
+    # interior: floor, lights and workstations
     v.cylinder(0, 1, 0, R - 1, 1, "smooth_stone")
-    for (x, z) in ((-4, -4), (4, -4), (-4, 4), (4, 4)):
-        v.set(x, 6, z, "glowstone")
     v.fill(-2, 1, 3, 2, 1, 5, "lookout_tile")
+    for (x, z) in ((-4, -4), (4, -4), (-4, 4), (4, 4)):
+        v.set(x, 7, z, "glowstone")
     v.set(-3, 2, 4, "gravity_device")
     v.set(3, 2, 4, "kikono_station")
     v.set(0, 2, 6, "crafting_table")
+    v.set(-6, 2, 0, "chest")
     ents = [("master_vegeta", 3, 2, -3), ("master_trunks", -3, 2, -3),
             ("saga_bulma", 0, 2, 4), ("master_toribot", -5, 2, 0)]
     v.emit("capsule_corp", ents, clear_box=True)
@@ -2042,10 +2127,9 @@ def proc_korin_tower():
     v.set(0, H + 3, 3, "yellow_stained_glass")
     v.set(-2, H + 3, 0, "chest")
     v.set(2, H + 3, 0, "training_post")
-    for y in range(3, H):
-        if y % 6 == 0:
-            v.set(1, y, 0, "ladder")
-    v.emit("korin_tower", [("master_karin", 0, H + 3, 0)], clear_box=False)
+    for y in range(3, H):                            # climbable all the way up
+        v.set(1, y, 0, "ladder")
+    v.emit("korin_tower", [], clear_box=False)
 
 
 def proc_snake_way():
@@ -2119,7 +2203,7 @@ def proc_hell_gate():
         v.fill(-6, y, -1, -4, y, 1, "hell_rock")
         v.fill(4, y, -1, 6, y, 1, "hell_rock")
     v.fill(-6, 12, -1, 6, 13, 1, "hell_rock")
-    v.fill(-3, 2, 0, 3, 11, 0, "hell_rock_molten")
+    v.fill(-3, 9, 0, 3, 11, 0, "hell_rock_molten")   # glowing lintel, gate stays open
     for x in (-5, 5):
         v.set(x, 13, 0, "halo_light")
     v.emit("hell_gate", [], clear_box=True)
@@ -2175,10 +2259,12 @@ NBT_STRUCTURES = [
         "planet": "earth", "biomes": ["plains", "sunflower_plains", "meadow"],
         "rarity": 60, "y_mode": "surface", "unique": True, "clear_above": False,
         "quest_tag": "dragonminez:goku_house", "min_distance_from_spawn": 320}),
+    # the DMZ lookout NBT contains Korin Tower as its lower 100 blocks (Korin
+    # included), so it is anchored on the ground, not in the sky.
     ("kami_lookout", "kamilookout.nbt", {
-        "planet": "earth", "biomes": [], "rarity": 1, "y_mode": "sky", "y": 220,
+        "planet": "earth", "biomes": [], "rarity": 1, "y_mode": "surface",
         "unique": True, "clear_above": True, "quest_tag": "dragonminez:kamilookout",
-        "min_distance_from_spawn": 0}),
+        "min_distance_from_spawn": 0, "fixed_position": [0, 0, 0]}),
     ("cell_arena", "cell_arena.nbt", {
         "planet": "earth", "biomes": ["plains", "sunflower_plains", "savanna"],
         "rarity": 90, "y_mode": "surface", "unique": True, "clear_above": True,
@@ -2296,10 +2382,14 @@ PROC_ENTRIES = {
         "planet": "earth", "biomes": ["plains", "sunflower_plains", "meadow", "forest"],
         "rarity": 1, "y_mode": "surface", "unique": True, "clear_above": True,
         "quest_tag": "dragonminez:capsule_corp", "min_distance_from_spawn": 0},
+    # Korin Tower is part of the kami_lookout NBT; this stand-alone version exists
+    # so masters.json ("korin" -> "korin_tower") resolves and as a fallback piece,
+    # but it is never generated on its own (rarity 0 / alias_of).
     "korin_tower": {
-        "planet": "earth", "biomes": [], "rarity": 1, "y_mode": "surface",
+        "planet": "earth", "biomes": [], "rarity": 0, "y_mode": "surface",
         "unique": True, "clear_above": True, "quest_tag": "dragonminez:korin_tower",
-        "min_distance_from_spawn": 0},
+        "min_distance_from_spawn": 0, "alias_of": "kami_lookout",
+        "generate": False},
     "snake_way": {
         "planet": "otherworld", "biomes": ["other_world"], "rarity": 1,
         "y_mode": "absolute", "y": 40, "unique": False, "clear_above": False,
@@ -2376,8 +2466,401 @@ def build_structures():
 
 PROC_SPAWNS = {
     "capsule_corp": ["master_vegeta", "master_trunks", "saga_bulma", "master_toribot"],
-    "korin_tower": ["master_karin"],
+    "korin_tower": [],
     "king_kai_planet": ["master_kaiosama"],
     "check_in_station": ["master_enma"],
     "snake_way": [], "hell_gate": [], "heaven_arch": [], "kai_shrine": [],
 }
+
+
+# ================================================================ 4. planets.json
+def load_json_dir(path):
+    out = {}
+    for p in sorted(glob.glob(os.path.join(path, "*.json"))):
+        out[os.path.basename(p)[:-5]] = jload(p)
+    return out
+
+
+DMZ_PLANETS = load_json_dir(os.path.join(DMZP_DATA, "dmz_planets"))
+RENDERERS = load_json_dir(os.path.join(DMZP_ASSETS, "dmzplus_planet_renderers"))
+NOISE = {}
+NOISE.update(load_json_dir(os.path.join(DMZ_DATA, "worldgen", "noise_settings")))
+NOISE.update(load_json_dir(os.path.join(DMZP_DATA, "worldgen", "noise_settings")))
+DIMTYPE = {}
+DIMTYPE.update(load_json_dir(os.path.join(DMZ_DATA, "dimension_type")))
+DIMTYPE.update(load_json_dir(os.path.join(DMZP_DATA, "dimension_type")))
+try:
+    SPACEPOD = jload(os.path.join(DMZ_DATA, "spacepod", "destinations.json"))["destinations"]
+except Exception:
+    SPACEPOD = []
+SPACEPOD_BY_DIM = {d.get("dimension"): d for d in SPACEPOD}
+
+# our planet id -> (dmz_planets key, renderer key, noise key, dimension_type key,
+#                   minecraft dimension id, generator, day_length, music, sky defaults)
+PLANET_TABLE = [
+    ("earth", "Earth", "earth", "earth", None, None, "minecraft:overworld", "earth",
+     20, "explore_earth"),
+    ("namek", "Namek", "namek", "namek_orbit", "namek", "namek", "dragonminez:namek",
+     "namek", 0, "namek"),
+    ("otherworld", "Other World", "otherworld", "otherworld_space", "otherworld",
+     "otherworld", "dragonminez:otherworld", "otherworld", 0, "otherworld"),
+    ("sacred_kai_planet", "Sacred World of the Kai", None, None, "sacredkaiplanet",
+     "sacredkaiplanet", "dragonminez:sacredkaiplanet", "sacred", 0, "otherworld"),
+    ("time_chamber", "Hyperbolic Time Chamber", None, None, "time_chamber",
+     "time_chamber", "dragonminez:time_chamber", "time_chamber", 0, "time_chamber"),
+    ("vegeta", "Planet Vegeta", "vegeta", "vegeta", "vegeta", "vegeta", "dmzplus:vegeta",
+     "vegeta", 20, "explore_earth"),
+    ("yardrat", "Planet Yardrat", "yardrat", "yardrat", "yardrat", "yardrat",
+     "dmzplus:yardrat", "yardrat", 20, "explore_earth"),
+    ("vampa", "Planet Vampa", "vampa", "vampa", "vampa", "vampa", "dmzplus:vampa",
+     "vampa", 20, "explore_earth"),
+    ("cereal", "Planet Cereal", "cereal", "cereal", "cereal", "cereal", "dmzplus:cereal",
+     "cereal", 20, "explore_earth"),
+    ("hell_planet", "Hell", "hell_planet", "hell_planet", "hell_planet", "hell_planet",
+     "dmzplus:hell_planet", "hell", 0, "hell"),
+    ("heaven", "Heaven", "heaven", "heaven", "heaven", "heaven", "dmzplus:heaven",
+     "heaven", 0, "heaven"),
+    ("universe_7_deep_space", "Universe 7 Deep Space", "universe_7_deep_space",
+     "universe_7_deep_space", "deep_space", "universe_7_deep_space",
+     "dmzplus:universe_7_deep_space", "space", 0, "space"),
+    ("orbit", "Orbit", None, "earth_orbit", "orbit", "earth_orbit", "dmzplus:orbit",
+     "orbit", 20, "space"),
+]
+PLANET_SKY_DEFAULTS = {
+    "earth": {"day": "#7DAEFF", "horizon": "#CFE4FF", "night": "#050818",
+              "sunset": "#FF8C3A", "fog": "#BFD6F5", "clouds": True, "moon": True,
+              "sun_scale": 1.0},
+    "namek": {"day": "#63A57B", "horizon": "#A8E0BC", "night": "#12301F",
+              "sunset": "#C8F0A0", "fog": "#C0D8FF", "clouds": True, "moon": False,
+              "sun_scale": 1.3},
+    "otherworld": {"day": "#BE55AA", "horizon": "#E0A8D8", "night": "#2A0E28",
+                   "sunset": "#FFB0E0", "fog": "#CE7EBD", "clouds": True,
+                   "moon": False, "sun_scale": 0.8},
+    "sacred_kai_planet": {"day": "#9A6BE3", "horizon": "#D7A9E6", "night": "#1A0E33",
+                          "sunset": "#E0A0FF", "fog": "#D7A9E6", "clouds": True,
+                          "moon": True, "sun_scale": 1.0},
+    "time_chamber": {"day": "#F7FCFF", "horizon": "#F7FCFF", "night": "#F7FCFF",
+                     "sunset": "#F7FCFF", "fog": "#DCF2FF", "clouds": False,
+                     "moon": False, "sun_scale": 0.0},
+    "vegeta": {"day": "#9C3A22", "horizon": "#D06A40", "night": "#180605",
+               "sunset": "#FF6A2A", "fog": "#6E2416", "clouds": False, "moon": True,
+               "sun_scale": 1.1},
+    "yardrat": {"day": "#E8D44A", "horizon": "#F4E890", "night": "#201C05",
+                "sunset": "#FFD060", "fog": "#C9B23A", "clouds": True, "moon": False,
+                "sun_scale": 0.9},
+    "vampa": {"day": "#8C7A1E", "horizon": "#C0B060", "night": "#14120A",
+              "sunset": "#E0C040", "fog": "#6B5C14", "clouds": False, "moon": True,
+              "sun_scale": 0.7},
+    "cereal": {"day": "#A85A1E", "horizon": "#E98A52", "night": "#1A0C05",
+               "sunset": "#FF9040", "fog": "#E98A52", "clouds": False, "moon": True,
+               "sun_scale": 1.0},
+    "hell_planet": {"day": "#6E0D0D", "horizon": "#A82020", "night": "#1A0303",
+                    "sunset": "#FF3010", "fog": "#3F0606", "clouds": False,
+                    "moon": False, "sun_scale": 1.4},
+    "heaven": {"day": "#D9A8E6", "horizon": "#F0D0F8", "night": "#2A1830",
+               "sunset": "#FFC0E8", "fog": "#C9A0D4", "clouds": True, "moon": True,
+               "sun_scale": 1.0},
+    "universe_7_deep_space": {"day": "#000000", "horizon": "#000000",
+                              "night": "#000000", "sunset": "#000000", "fog": "#000000",
+                              "clouds": False, "moon": False, "sun_scale": 1.0},
+    "orbit": {"day": "#000208", "horizon": "#001028", "night": "#000000",
+              "sunset": "#102040", "fog": "#000408", "clouds": False, "moon": False,
+              "sun_scale": 1.0},
+}
+PLANET_SPAWN = {
+    "earth": [0, -1, 0], "namek": [0, -1, 0], "otherworld": [0, 41, 10],
+    "sacred_kai_planet": [0, -1, 0], "time_chamber": [0, 130, 0],
+    "vegeta": [0, -1, 0], "yardrat": [0, -1, 0], "vampa": [0, -1, 0],
+    "cereal": [0, -1, 0], "hell_planet": [0, -1, 0], "heaven": [0, -1, 0],
+    "universe_7_deep_space": [0, 800, 0], "orbit": [0, 800, 0],
+}
+DBALL_SET = {"earth": "earth", "namek": "namek", "cereal": "cereal",
+             "universe_7_deep_space": "super"}
+TRAVEL = {
+    "earth": ("ALWAYS", 0), "namek": ("ALWAYS", 1),
+    "otherworld": ("QUEST:sidequest:bulma_otherworld_drive", 2),
+    "sacred_kai_planet": ("QUEST:saga_buu:23", 3), "cereal": ("NEVER", 4),
+    "time_chamber": ("QUEST:sidequest:bulma_time_chamber_link", 2),
+    "vegeta": ("PLANET:namek", 5), "yardrat": ("PLANET:namek", 6),
+    "vampa": ("PLANET:vegeta", 7), "hell_planet": ("PLANET:otherworld", 8),
+    "heaven": ("PLANET:otherworld", 9),
+    "universe_7_deep_space": ("ITEM:saiyan_ship", 10), "orbit": ("ITEM:saiyan_ship", 10),
+}
+PLANETS = []
+UNMAPPED_SKY = set()
+
+
+def env_texture(mc_path):
+    base = os.path.basename(str(mc_path)).replace(".png", "")
+    if base in ENV_TEXTURES:
+        return base
+    if base == "sun":
+        subst("sky body: sun.png -> sun_surface")
+        return "sun_surface"
+    if base.startswith("moon"):
+        return None
+    UNMAPPED_SKY.add(str(mc_path))
+    return None
+
+
+def sky_bodies(renderer):
+    out = []
+    for r in renderer.get("sky_renderables", []):
+        tex = env_texture(r.get("texture", ""))
+        if tex is None:
+            continue
+        anchor = (r.get("anchor") or {}).get("type", "static")
+        if anchor == "star" or tex in ("sun_surface",):
+            kind = "sun"
+        elif anchor == "super_dball":
+            kind = "dragon_ball"
+        elif anchor in ("planet", "altitude") or r.get("body"):
+            kind = "planet"
+        else:
+            kind = "marker"
+        body = {"texture": tex, "scale": float(r.get("scale", 1.0)), "kind": kind}
+        if r.get("min_scale") is not None:
+            body["min_scale"] = float(r["min_scale"])
+        if r.get("max_visible_range") is not None:
+            body["max_range"] = float(r["max_visible_range"])
+        if r.get("body"):
+            body["target"] = strip_ns(str(r["body"]))
+        elif (r.get("anchor") or {}).get("target"):
+            body["target"] = strip_ns(str(r["anchor"]["target"]))
+        out.append(body)
+    return out
+
+
+def build_planets():
+    biomes_by_planet = collections.OrderedDict()
+    for b in BIOMES:
+        biomes_by_planet.setdefault(b["planet"], []).append(b["id"])
+    # sacred_land is a Namek-flavoured biome; it is generated on both worlds
+    if "namek" in biomes_by_planet and "sacred_land" not in biomes_by_planet["namek"]:
+        biomes_by_planet["namek"].append("sacred_land")
+    structs_by_planet = collections.OrderedDict()
+    for name, e in STRUCTURES.items():
+        structs_by_planet.setdefault(e["planet"], []).append(name)
+
+    for (pid, name, pkey, rkey, nkey, dkey, dim, generator, day_len, music) in PLANET_TABLE:
+        p = DMZ_PLANETS.get(pkey or "", {})
+        rend = RENDERERS.get(rkey or "", {})
+        noise = NOISE.get(nkey or "", {})
+        dimt = DIMTYPE.get(dkey or "", {})
+        sky_def = PLANET_SKY_DEFAULTS[pid]
+        gravity = round(float(p.get("gravity", 9.807)) / 9.807, 3) if p else 1.0
+        oxygen = bool(p.get("oxygen", True)) if p else True
+        temperature = int(p.get("temperature", 15)) if p else 15
+        if pid == "time_chamber":
+            temperature, gravity, oxygen = 45, 10.0, True
+        if pid == "sacred_kai_planet":
+            temperature, gravity, oxygen = 20, 1.0, True
+        if pid == "orbit":
+            temperature, gravity, oxygen = -270, 0.0, False
+        default_block = strip_ns(str(noise.get("default_block", {}).get("Name", "stone")))
+        default_block = map_block(noise.get("default_block", {}).get("Name", "minecraft:stone")) \
+            if noise else "stone"
+        sea_level = int(noise.get("sea_level", 62)) if noise else 62
+        if pid == "earth":
+            sea_level, default_block = 62, "stone"
+        fixed_time = dimt.get("fixed_time")
+        unlock, icon = TRAVEL.get(pid, ("NEVER", 0))
+        sp = SPACEPOD_BY_DIM.get(dim)
+        if sp:
+            icon = int(sp.get("icon_index", icon))
+            rules = sp.get("unlock_rules")
+            if isinstance(rules, str):
+                unlock = rules
+            elif isinstance(rules, dict) and rules.get("quest"):
+                unlock = "QUEST:" + str(rules["quest"])
+        sky = {
+            "type": "space" if pid in ("universe_7_deep_space", "orbit") else "atmosphere",
+            "day": sky_def["day"], "horizon": sky_def["horizon"],
+            "night": sky_def["night"], "sunset": sky_def["sunset"],
+            "fog": sky_def["fog"],
+            # Minecraft draws its own star field when custom_sky is false, so the
+            # source "stars: 0" there is not a real count - fall back to a default.
+            "stars": (int(rend["stars"]) if rend.get("custom_sky") and rend.get("stars")
+                      else (1500 if pid == "earth" else 2000)),
+            "star_brightness": float(rend.get("star_brightness",
+                                              0.6 if pid == "earth" else 0.8)),
+            "milky_way": float((rend.get("sky_texture") or {}).get("brightness", 0.0)),
+            "clouds": bool(sky_def["clouds"]),
+            "aurora": pid in ("sacred_kai_planet", "heaven"),
+            "sun_scale": float(sky_def["sun_scale"]),
+            "moon": bool(sky_def["moon"]),
+            # the orbit renderers have fog off; on a planet surface we always want it
+            "has_fog": pid not in ("universe_7_deep_space", "orbit"),
+            "bodies": sky_bodies(rend),
+        }
+        entry = {
+            "id": pid, "name": name, "gravity": gravity, "oxygen": oxygen,
+            "temperature": temperature,
+            "biomes": biomes_by_planet.get(pid, []),
+            "generator": generator, "sea_level": sea_level,
+            "default_block": default_block,
+            "min_y": int(dimt.get("min_y", 0)) if dimt else 0,
+            "height": int(dimt.get("height", 256)) if dimt else 256,
+            "ambient_light": float(dimt.get("ambient_light", 0.0)) if dimt else 0.0,
+            "day_length": day_len,
+            "spawn": PLANET_SPAWN[pid],
+            "sky": sky,
+            "structures": structs_by_planet.get(pid, []),
+            "music": music,
+            "travel": {"unlock": unlock, "icon": icon},
+            "dimension": dim,
+        }
+        if fixed_time is not None:
+            entry["fixed_time"] = round(float(fixed_time) / 24000.0, 4)
+        if pid == "namek":
+            entry["suns"] = 3
+        if pid == "time_chamber":
+            entry["endless_day"] = True
+        if pid in DBALL_SET:
+            entry["dragon_balls"] = DBALL_SET[pid]
+        tb = p.get("terrain_box") if p else None
+        if tb:
+            entry["terrain_box"] = {"bound_xz": int(tb.get("bound_xz", 6000)),
+                                    "min_y": int(tb.get("min_y", 32)),
+                                    "max_y": int(tb.get("max_y", 224))}
+        asc = p.get("ascent") if p else None
+        if asc:
+            entry["ascent"] = {"deep_space": strip_ns(str(asc.get("deep_space", ""))),
+                               "arrival": [int(v) for v in asc.get("arrival", [0, 800, 0])]}
+        PLANETS.append(entry)
+    COUNTS["planets"] = len(PLANETS)
+
+
+# ================================================================ main
+def main():
+    log("== items")
+    build_items()
+    COUNTS["items"] = len(ITEMS)
+    log("   %d items" % len(ITEMS))
+    log("== recipes")
+    build_recipes()
+    log("   %d recipes (%d ported, %d vanilla)" % (
+        COUNTS["recipes_total"], COUNTS["recipes_ported"],
+        COUNTS["recipes_total"] - COUNTS["recipes_ported"]))
+    log("== biomes")
+    build_biomes()
+    log("   %d biomes" % len(BIOMES))
+    log("== structures")
+    build_structures()
+    log("== planets")
+    build_planets()
+
+    jsave("items.json", {"items": ITEMS})
+    jsave("recipes.json", {"recipes": RECIPES})
+    jsave("biomes.json", {"biomes": BIOMES})
+    jsave("planets.json", {"planets": PLANETS})
+    jsave("structures.json", {"structures": STRUCTURES})
+
+    # ---- validation
+    problems = []
+    item_ids = set(i["id"] for i in ITEMS) | (BLOCK_SET - {"air"})
+    for b in BLOCKS:
+        for d in b.get("drops", []):
+            it = d.get("item", "self")
+            if it != "self" and it not in item_ids:
+                problems.append("block %s drops unknown item %s" % (b["id"], it))
+    for r in RECIPES:
+        if r["result"]["item"] not in item_ids:
+            problems.append("recipe %s -> unknown item %s" % (r["id"], r["result"]["item"]))
+        for k, v in r.get("keys", {}).items():
+            for vv in (v if isinstance(v, list) else [v]):
+                if vv not in item_ids:
+                    problems.append("recipe %s uses unknown item %s" % (r["id"], vv))
+        if "input" in r and r["input"] not in item_ids:
+            problems.append("recipe %s input unknown %s" % (r["id"], r["input"]))
+        if "pattern" in r and r["pattern"] not in item_ids:
+            problems.append("recipe %s pattern unknown %s" % (r["id"], r["pattern"]))
+    biome_ids = set(b["id"] for b in BIOMES)
+    for b in BIOMES:
+        for key in ("surface", "filler", "underwater"):
+            if b[key] not in BLOCK_SET:
+                problems.append("biome %s.%s unknown block %s" % (b["id"], key, b[key]))
+        for pl in b["plants"]:
+            if pl["block"] not in BLOCK_SET:
+                problems.append("biome %s plant unknown %s" % (b["id"], pl["block"]))
+    for p in PLANETS:
+        for bid in p["biomes"]:
+            if bid not in biome_ids:
+                problems.append("planet %s unknown biome %s" % (p["id"], bid))
+        for sn in p["structures"]:
+            if sn not in STRUCTURES:
+                problems.append("planet %s unknown structure %s" % (p["id"], sn))
+    planet_ids = set(p["id"] for p in PLANETS)
+    for name, e in STRUCTURES.items():
+        if e["planet"] not in planet_ids:
+            problems.append("structure %s unknown planet %s" % (name, e["planet"]))
+        for bid in e.get("biomes", []):
+            if bid not in biome_ids:
+                problems.append("structure %s unknown biome %s" % (name, bid))
+        fp = os.path.join(GAME, e["file"])
+        if not os.path.exists(fp):
+            problems.append("structure %s missing file %s" % (name, e["file"]))
+    for it in ITEMS:
+        if it["icon"] not in ICON_PATHS:
+            problems.append("item %s icon %s missing" % (it["id"], it["icon"]))
+        if it["kind"] == "armor" and it["armor"]["layer"] not in ARMOR_LAYER_SET:
+            problems.append("item %s armor layer %s missing" % (it["id"],
+                                                                it["armor"]["layer"]))
+
+    # ---- report
+    print("")
+    print("=== counts")
+    for k, v in COUNTS.items():
+        print("  %-18s %s" % (k, v))
+    kinds = collections.Counter(i["kind"] for i in ITEMS)
+    print("  item kinds       " + ", ".join("%s=%d" % kv for kv in sorted(kinds.items())))
+    stations = collections.Counter(r["station"] for r in RECIPES)
+    print("  recipe stations  " + ", ".join("%s=%d" % kv for kv in sorted(stations.items())))
+    print("")
+    print("=== structure sizes (size, blocks, entities, bytes)")
+    for n in sorted(STRUCT_SIZES):
+        s = STRUCT_SIZES[n]
+        print("  %-30s %-16s %8d %3d %10d" % (n, "x".join(str(v) for v in s[0]),
+                                              s[1], s[2], s[3]))
+    print("  total structure bytes: %d" % sum(v[3] for v in STRUCT_SIZES.values()))
+    print("")
+    print("=== block palette mapping (%d source names)" % len(BLOCK_MAP_USED))
+    for k in sorted(BLOCK_MAP_USED):
+        if strip_ns(k) != BLOCK_MAP_USED[k]:
+            print("  %-52s -> %s" % (k, BLOCK_MAP_USED[k]))
+    if UNMAPPED_BLOCKS:
+        print("  UNMAPPED (fell back to stone):")
+        for k, n in UNMAPPED_BLOCKS.most_common():
+            print("    %s x%d" % (k, n))
+    if UNMAPPED_ITEMS:
+        print("")
+        print("=== unmapped recipe items/tags (%d)" % len(UNMAPPED_ITEMS))
+        for k in sorted(UNMAPPED_ITEMS):
+            print("  " + k)
+    if UNMAPPED_SKY:
+        print("")
+        print("=== sky textures not available")
+        for k in sorted(UNMAPPED_SKY):
+            print("  " + k)
+    if SKIPPED:
+        print("")
+        print("=== not converted (%d)" % len(SKIPPED))
+        for s in SKIPPED:
+            print("  " + s)
+    if SUBST:
+        print("")
+        print("=== substitutions (%d)" % len(SUBST))
+        for s in sorted(set(SUBST)):
+            print("  " + s)
+    print("")
+    if problems:
+        print("=== PROBLEMS (%d)" % len(problems))
+        for p in problems:
+            print("  " + p)
+        return 1
+    print("validation: OK")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

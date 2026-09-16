@@ -138,3 +138,15 @@ Per dragon: list of `{id, name, desc, type: item|tps|form|reset|recustomize|revi
   "health": 100, "ki": 100, "stamina": 100, "hunger": 20, "planets_unlocked": ["earth"], "dragon_balls": { "earth": { "found": [], "next_summon_day": 0 } },
   "play_time": 0 }
 ```
+
+## Additions produced by the converters (read these, they are authoritative)
+* items.json: optional `desc`, `music_disc: {bgm}`, `key: {unlocks}`, `capsule: {type, color}`, `armor.bonus`, `weapon.{two_handed, crit_chance, crit_damage}`, `plant: {crop}` on seeds. `wheat` and other ids that collide with a block are block items.
+* recipes.json: `shapeless: true` (ingredient order irrelevant); `kikono_station` recipes carry `pattern` (required pattern item), `time` (s) and `energy` (ki).
+* biomes.json: `water_fog_color`, `weight`, `planet`, `quest_tag`.
+* planets.json: `default_block`, `min_y`, `height`, `ambient_light`, `dimension`, `fixed_time` (0..1 day fraction; present ⇒ no day cycle, `day_length: 0`), `suns`, `endless_day`, `terrain_box`, `ascent`, `sky.has_fog`, `sky.bodies[] = {texture, scale, kind: sun|planet|dragon_ball|marker, min_scale?, max_range?, target?}`. `gravity` is the literal DMZ Plus multiple (vegeta 10, hell_planet 20): gameplay code must cap the effective multiplier (`clamp(g, 0, 2.5)`, deep space 0) and treat higher values as training gravity (stamina drain, TP bonus).
+* structures.json: `{file, planet, biomes, rarity (1-in-N chunks; 0 = only as part of a group/alias), y_mode (surface|absolute|sky), y?, unique, spawn_entities, clear_above, quest_tag?, min_distance_from_spawn, group?, village_role?, fixed_position?, alias_of?, generate?: false}`. Pieces sharing a `group` are placed at the same x/z (followers use `y_mode: "absolute"`); `village_role: "center"` is the village anchor and the other pieces form its jigsaw pool; `alias_of` points to the structure that actually contains the aliased one (`korin_tower` → `kami_lookout`).
+* Structure files `assets/structures/<name>.json`: `{"size":[x,y,z], "palette":["air", ...], "blocks":[[x,y,z,pal_idx], ...], "entities":[{"id","pos"}], "origin_offset":[x,y,z], "clear_box": bool}`. palette[0] is always `air`; any position not listed is air; `origin_offset` is the offset from the placement anchor to the volume's [0,0,0] (NBT pieces are centred in x/z, ground at y=0).
+* quests: `quest["id"]` is a String (`"1"`), `dmz_id` keeps the number; conditions `SAGA_QUEST`/`QUEST` carry a resolved `quest` registry id; `BIOME` values match `biomes.json.quest_tag`; `PLANET` values are planet ids; objectives keep `dmz_type` next to the normalised `type`.
+* entities: extra fields `hd_texture`, `hd_model`, `texture_variants`, `phases`, `giant`, `invulnerable`, `interact`, `projectile_kind`, `ranged`, `aggressive`; `player.physics` holds the movement constants.
+* masters: `{entity, name, structure, planet, teaches, teaches_skills, teaches_techniques, trains, quests, gives_quests, turn_in_quests, dialog}`.
+* audio.json: `tracks: {file: {title, tags}}` in addition to `sfx` and `bgm`.
