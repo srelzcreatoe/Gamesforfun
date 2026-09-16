@@ -565,7 +565,8 @@ func visual_aabb() -> AABB:
 	for name in meshes.keys():
 		var mi: MeshInstance3D = meshes[name]
 		var node: Node3D = bones[name]
-		if not node.visible:
+		# skip bones hidden either as a whole (armor/tail) or mesh-only (hair styles)
+		if not node.visible or not mi.visible:
 			continue
 		var xf := Transform3D()
 		var walk: Node = node

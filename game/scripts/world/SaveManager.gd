@@ -9,11 +9,13 @@ extends RefCounted
 ##   u32    uncompressed size
 ##   u32    compressed size
 ##   bytes  DEFLATE of blocks (32768) + meta (32768) + biomes (256)
+##   u32    length of the trailing JSON blob (version >= 2; 0 when there is none)
+##   bytes  UTF-8 JSON of ChunkColumn.extra (container contents, sign text, ...)
 ## Light is not stored; it is recomputed on load (cheap and keeps saves small).
 ## Only columns with `modified == true` are written; everything else regenerates from the seed.
 
 const MAGIC := "DBSC"
-const VERSION := 1
+const VERSION := 2
 
 var slug := ""
 var planet := ""
@@ -53,6 +55,12 @@ func save_column(col: ChunkColumn) -> bool:
 	f.store_32(raw.size())
 	f.store_32(comp.size())
 	f.store_buffer(comp)
+	var extra_bytes := PackedByteArray()
+	if not col.extra.is_empty():
+		extra_bytes = JSON.stringify(col.extra).to_utf8_buffer()
+	f.store_32(extra_bytes.size())
+	if extra_bytes.size() > 0:
+		f.store_buffer(extra_bytes)
 	f.close()
 	col.modified = false
 	saved_count += 1
@@ -83,6 +91,12 @@ func load_column(col: ChunkColumn) -> bool:
 				var raw := comp.decompress(raw_size, FileAccess.COMPRESSION_DEFLATE)
 				if raw.size() == raw_size and col.unpack(raw):
 					ok = true
+					if ver >= 2 and f.get_position() + 4 <= f.get_length():
+						var extra_size := f.get_32()
+						if extra_size > 0 and f.get_position() + extra_size <= f.get_length():
+							var parsed: Variant = JSON.parse_string(f.get_buffer(extra_size).get_string_from_utf8())
+							if parsed is Dictionary:
+								col.extra = parsed
 	f.close()
 	if not ok:
 		Log.w("SaveManager: corrupt chunk file, regenerating: " + path)

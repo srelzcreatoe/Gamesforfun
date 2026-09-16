@@ -186,3 +186,58 @@ func test_form_visuals_are_null_safe_without_hair() -> void:
 	assert_near(ball.model_scale, 2.0, 0.001, "no head bone is fine")
 	ball.get_parent().remove_child(ball)
 	ball.free()
+
+func test_race_model_resolves_to_existing_geometry() -> void:
+	# every race the character creation screen offers must map to a real .geo.json
+	for r in ["human", "saiyan", "namekian", "majin", "bioandroid", "frostdemon", "unknown"]:
+		var path := RaceSkin.race_model(r)
+		assert_true(FileAccess.file_exists("res://assets/models/" + path + ".geo.json"),
+				"%s -> %s exists" % [r, path])
+		var m := BedrockModel.new()
+		add_node(m)
+		assert_true(m.load_geo(path), "%s geometry loads" % r)
+		assert_true(m.has_bone("head"), "%s has a head bone" % r)
+		m.get_parent().remove_child(m)
+		m.free()
+	# DMZ has no namekian body: it uses the human rig (like the mod does)
+	assert_eq(RaceSkin.race_model("namekian"), "entity/races/human")
+	assert_eq(RaceSkin.race_model("majin"), "entity/races/majin")
+	assert_eq(RaceSkin.race_model("majin", "female"), "entity/races/majin_slim")
+
+func test_character_fields_tolerate_strings_and_floats() -> void:
+	var loose := {
+		"race": "saiyan", "gender": "male", "body_type": "1", "hair_type": 2.0,
+		"hair_color": "221a14", "eye_color": "#3f6fd8", "skin_color": "#ffd3c9",
+		"eye_type": "0", "nose": 1.0, "mouth": "2", "tattoo": "0",
+	}
+	var img := RaceSkin.compose_image(loose)
+	assert_eq(img.get_width(), 64, "composed from loose types")
+	var opaque := 0
+	for y in 64:
+		for x in 64:
+			if img.get_pixel(x, y).a > 0.5:
+				opaque += 1
+	assert_true(opaque > 800, "body still composed: %d px" % opaque)
+	model = BedrockModel.new()
+	add_node(model)
+	model.load_geo(RaceSkin.race_model("saiyan"))
+	RaceSkin.apply_to(model, loose)
+	var hm: BedrockModel = model.get_bone("head").get_node_or_null("Hair")
+	assert_true(hm != null, "hair attached with a float hair_type")
+	assert_true(hm.is_bone_mesh_visible("hair2"), "hair_type 2.0 resolved to style 2")
+
+func test_normal_hair_hugs_the_skull() -> void:
+	# the head cube ends at y = 32 (2 m model); only the mohawk and the Super
+	# Saiyan form sets may tower above it
+	model = BedrockModel.new()
+	add_node(model)
+	model.load_geo("entity/races/human")
+	for style in [1, 2, 3, 4, 5, 7]:
+		RaceSkin.apply_to(model, _character({"hair_type": style}))
+		var hm: BedrockModel = model.get_bone("head").get_node_or_null("Hair")
+		assert_true(hm != null, "hair for style %d" % style)
+		# the hair is a NESTED model (scale 1), so visual_aabb() is already in model units
+		var box := hm.visual_aabb()
+		var top := box.position.y + box.size.y
+		assert_true(top < 34.0, "style %d tops out at y=%.1f model units (head ends at 32)" % [style, top])
+		assert_true(box.size.x < 16.0, "style %d is %.1f units wide" % [style, box.size.x])

@@ -66,6 +66,21 @@ func test_save_and_load_roundtrip() -> void:
 	Lighting.compute_column(back)
 	assert_eq(back.get_block_light(3, 61, 4), 15, "glowstone lights the reloaded column")
 
+func test_extra_dictionary_survives_a_roundtrip() -> void:
+	var col := _sample_column(7, 1)
+	col.extra = {"containers": {"3,60,4": [{"item": "senzu_bean", "count": 2}]}, "signs": {"1,2,3": "hi"}}
+	col.touch_extra()
+	assert_true(sm.save_column(col))
+	var back := ChunkColumn.new(7, 1)
+	assert_true(sm.load_column(back))
+	assert_true(back.extra.has("containers"), "per-column extra data is stored as JSON")
+	var containers: Dictionary = back.extra["containers"]
+	assert_true(containers.has("3,60,4"))
+	var stack: Array = containers["3,60,4"]
+	assert_eq(String(stack[0]["item"]), "senzu_bean")
+	assert_eq(int(stack[0]["count"]), 2)
+	assert_eq(String(back.extra["signs"]["1,2,3"]), "hi")
+
 func test_unsaved_columns_are_not_on_disk() -> void:
 	assert_true(not sm.has_column(9, 9))
 	var fresh := ChunkColumn.new(9, 9)

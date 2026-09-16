@@ -129,3 +129,27 @@ func test_resolve_id_forms() -> void:
 	assert_eq(qm.resolve_id("saiyan_saga:1"), "saga_saiyan:1", "saga id + number")
 	assert_eq(qm.resolve_id("roshi_basic_training"), "sidequest_training:roshi_basic_training", "bare id")
 	assert_eq(qm.resolve_id("not_a_quest"), "", "unknown")
+
+# --- performance -----------------------------------------------------------
+
+func test_perf_quest_log_state_scan() -> void:
+	var qm := _manager()
+	for cz in range(-3, 4):
+		for cx in range(-3, 4):
+			world.add_structure(cx, cz, "roshi_house", Vector3(cx * 16, 64, cz * 16))
+	var t0 := Time.get_ticks_usec()
+	var ctx := Requirements.build_context(Game.profile, null, world)
+	var t_ctx := float(Time.get_ticks_usec() - t0) / 1000.0
+	t0 = Time.get_ticks_usec()
+	var n := 0
+	for qid in Registry.quests.keys():
+		qm.quest_state(String(qid))
+		n += 1
+	var t_all := float(Time.get_ticks_usec() - t0) / 1000.0
+	t0 = Time.get_ticks_usec()
+	var avail := qm.available_quests()
+	var t_avail := float(Time.get_ticks_usec() - t0) / 1000.0
+	print("    [perf] context build %.2f ms | %d quest states %.2f ms | available_quests %.2f ms (%d available)"
+		% [t_ctx, n, t_all, t_avail, avail.size()])
+	assert_true(t_all < 120.0, "scanning every quest state stays under 120 ms (%.1f)" % t_all)
+	assert_true(t_ctx < 25.0, "one context build stays under 25 ms (%.1f)" % t_ctx)

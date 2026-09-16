@@ -25,7 +25,7 @@ func _fill_column(col: ChunkColumn, ctx: Ctx) -> void:
 	var blocks := col.blocks
 	var bio := col.biomes
 	var floor_id := block_id("time_chamber_block")
-	var bottom: int = maxi(0, PLANE - 5)
+	var bottom: int = maxi(0, PLANE - 7)
 	for lz in 16:
 		for lx in 16:
 			var i2 := lx + 16 * lz

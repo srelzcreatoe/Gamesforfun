@@ -56,22 +56,25 @@ const HAIR_MODEL := "entity/sagas/shadow_dummy"
 ## Hair styles are visibility sets over the 38 `hair*` bones of
 ## `entity/sagas/shadow_dummy.geo.json` (the only DMZ geometry that ships a
 ## generic, non-character hair rig - human.geo.json has no hair bones at all).
-## Grouped by pivot: left cluster 1-7+12, left-back 8-10, back 13-18+33/34/37,
-## right cluster 19-28, right-back 29-32+35/36, crown 11+23/24.
+## The sets were picked from the measured bone extents so that normal hair HUGS
+## the skull (the head cube is x -4..4, y 24..32, z -4..4): every bone in styles
+## 1-5 and 7 stays below y 33, and the tall "flame" spikes (hair7/11/12/22/23/24/
+## 28/34/36/37, up to y 38.6) are reserved for the mohawk and the Super Saiyan
+## form sets, where a hair tower is the point.
 const HAIR_STYLES := {
-	0: [],
-	1: ["Vegetahair", "hair1", "hair2", "hair4", "hair12", "hair19", "hair26", "hair27"],
-	2: ["Vegetahair", "hair1", "hair2", "hair3", "hair4", "hair5", "hair6", "hair7", "hair12",
-		"hair19", "hair20", "hair21", "hair22", "hair25", "hair26", "hair27", "hair28"],
-	3: ["hair11", "hair23", "hair24", "hair33", "hair34", "hair37", "hair13", "hair14"],
-	4: ["hair8", "hair9", "hair10", "hair13", "hair14", "hair15", "hair16", "hair17", "hair18",
-		"hair29", "hair30", "hair31", "hair32", "hair33", "hair34", "hair35", "hair36", "hair37"],
-	5: ["Vegetahair", "hair1", "hair2", "hair3", "hair4", "hair5", "hair6", "hair7", "hair11",
-		"hair12", "hair19", "hair20", "hair21", "hair22", "hair23", "hair24", "hair25", "hair26",
-		"hair27", "hair28"],
-	6: ["hair11", "hair23", "hair24", "hair34", "hair37", "hair7", "hair28"],
-	7: ["Vegetahair", "hair1", "hair19", "hair13", "hair14", "hair33", "hair34", "hair37",
-		"hair8", "hair9", "hair10", "hair29"],
+	0: [],                                                              # bald
+	1: ["Vegetahair", "hair1", "hair2", "hair4", "hair19", "hair20", "hair26"],
+	2: ["Vegetahair", "hair1", "hair2", "hair3", "hair4", "hair5", "hair6",
+		"hair19", "hair20", "hair21", "hair25", "hair26", "hair27"],      # spiky
+	3: ["Vegetahair", "hair3", "hair10", "hair21", "hair29", "hair33", "hair35"], # flat top
+	4: ["hair8", "hair9", "hair13", "hair14", "hair15", "hair16", "hair17", "hair18",
+		"hair30", "hair31", "hair32", "hair33"],                          # long back
+	5: ["Vegetahair", "hair1", "hair2", "hair3", "hair4", "hair5", "hair6", "hair8",
+		"hair9", "hair10", "hair13", "hair14", "hair16", "hair17", "hair19", "hair20",
+		"hair21", "hair25", "hair26", "hair27", "hair29", "hair30", "hair31", "hair32",
+		"hair33", "hair35"],                                              # full head
+	6: ["hair11", "hair23", "hair24", "hair34"],                          # mohawk (tall)
+	7: ["Vegetahair", "hair1", "hair19", "hair14", "hair16", "hair17", "hair32", "hair33"], # ponytail
 }
 const HAIR_STYLE_COUNT := 8
 
@@ -80,6 +83,55 @@ static var _cache: Dictionary = {}          # key -> ImageTexture
 static var _armor_cache: Dictionary = {}    # path -> Texture2D
 
 # --- public API ---------------------------------------------------------------
+
+## Geometry every race's body uses. DMZ has no `entity/races/namekian.geo.json`:
+## namekians (and every race without its own body) use the human rig, which is
+## also what DMZ does - the antennae/ears come from `entity/raceparts.geo.json`.
+## Callers should use this instead of hard-coding a path (a missing geo silently
+## falls back to a stand-in figure).
+const RACE_MODELS := {
+	"human": "entity/races/human", "saiyan": "entity/races/human",
+	"halfsaiyan": "entity/races/human", "half_saiyan": "entity/races/human",
+	"namek": "entity/races/human", "namekian": "entity/races/human",
+	"majin": "entity/races/majin", "buu": "entity/races/majin",
+	"bioandroid": "entity/races/bioandroid", "android": "entity/races/human",
+	"cell": "entity/races/bioandroid",
+	"frostdemon": "entity/races/frostdemon", "coldemon": "entity/races/frostdemon",
+	"arcosian": "entity/races/frostdemon", "frieza": "entity/races/frostdemon",
+	"frieza_race": "entity/races/frostdemon",
+}
+const MODELS_DIR := "res://assets/models/"
+
+## Body geometry for a race (optionally the slim variant for female bodies).
+static func race_model(race_id: String, gender := "male", body_type := 0) -> String:
+	var r := race_id.to_lower()
+	var def: Dictionary = Registry.race(r) if Registry != null else {}
+	var base := String(RACE_MODELS.get(r, "entity/races/human"))
+	var explicit := String(def.get("model", ""))
+	if explicit != "" and _model_exists(explicit):
+		base = explicit
+	if gender.to_lower() == "female" or body_type >= 3:
+		var slim := base + "_slim"
+		if _model_exists(slim):
+			return slim
+	return base if _model_exists(base) else "entity/races/human"
+
+static func _model_exists(rel: String) -> bool:
+	return FileAccess.file_exists(MODELS_DIR + rel + ".geo.json") or FileAccess.file_exists(MODELS_DIR + "hd/" + rel + ".geo.json")
+
+## Character dictionaries come from the UI, a profile or entities.json, so every
+## field is read through `_int()` / `_color()` and tolerates String / float input.
+static func _int(v: Variant, fallback := 0) -> int:
+	if v is int:
+		return v
+	if v is float:
+		return int(v)
+	if v is String:
+		var t := String(v).strip_edges()
+		return int(t) if t.is_valid_int() else (int(float(t)) if t.is_valid_float() else fallback)
+	if v is bool:
+		return 1 if v else 0
+	return fallback
 
 static func race_dir(race_id: String) -> String:
 	var r := race_id.to_lower()
@@ -92,11 +144,11 @@ static func race_dir(race_id: String) -> String:
 static func cache_key(c: Dictionary) -> String:
 	return "%s|%s|%d|%d|%s|%s|%s|%s|%s|%d|%d|%d|%d" % [
 		String(c.get("race", "saiyan")), String(c.get("gender", "male")),
-		int(c.get("body_type", 0)), int(c.get("hair_type", 1)),
+		_int(c.get("body_type"), 0), _int(c.get("hair_type"), 1),
 		String(c.get("hair_color", "#222629")), String(c.get("eye_color", "#222629")),
 		String(c.get("skin_color", "#ffd3c9")), String(c.get("skin_color2", "#572117")),
-		String(c.get("skin_color3", "#ffd3c9")), int(c.get("eye_type", 0)),
-		int(c.get("nose", 0)), int(c.get("mouth", 0)), int(c.get("tattoo", -1)),
+		String(c.get("skin_color3", "#ffd3c9")), _int(c.get("eye_type"), 0),
+		_int(c.get("nose"), 0), _int(c.get("mouth"), 0), _int(c.get("tattoo"), -1),
 	]
 
 ## Compose the character body texture (cached).
@@ -113,7 +165,7 @@ static func compose(character: Dictionary) -> ImageTexture:
 static func compose_image(character: Dictionary) -> Image:
 	var dir := race_dir(String(character.get("race", "saiyan")))
 	var gender := String(character.get("gender", "male")).to_lower()
-	var body := int(character.get("body_type", 0))
+	var body := _int(character.get("body_type"), 0)
 	var skin := _color(character.get("skin_color", "#ffd3c9"))
 	var skin2 := _color(character.get("skin_color2", "#572117"))
 	var skin3 := _color(character.get("skin_color3", "#ffd3c9"))
@@ -137,7 +189,7 @@ static func compose_image(character: Dictionary) -> Image:
 			3: tint = skin3
 		_blend(buf, size, _load_image(String(entry[0])), tint)
 	# face parts
-	var eye := int(character.get("eye_type", 0))
+	var eye := _int(character.get("eye_type"), 0)
 	var face_dir := "races/%s/faces/%s" % [dir, dir]
 	var sclera := _load_image("%s_eye_%d_0" % [face_dir, eye])
 	if sclera == null:
@@ -150,12 +202,12 @@ static func compose_image(character: Dictionary) -> Image:
 		_blend(buf, size, _load_image("%s_eye_%d_1" % [face_dir, eye]), eye_col)
 		_blend(buf, size, _load_image("%s_eye_%d_2" % [face_dir, eye]), eye_col)
 		_blend(buf, size, _load_image("%s_eye_%d_3" % [face_dir, eye]), hair_col)
-	_blend(buf, size, _load_image("%s_nose_%d" % [face_dir, int(character.get("nose", 0))]), skin)
-	_blend(buf, size, _load_image("%s_mouth_%d" % [face_dir, int(character.get("mouth", 0))]), skin)
-	var tattoo := int(character.get("tattoo", -1))
+	_blend(buf, size, _load_image("%s_nose_%d" % [face_dir, _int(character.get("nose"), 0)]), skin)
+	_blend(buf, size, _load_image("%s_mouth_%d" % [face_dir, _int(character.get("mouth"), 0)]), skin)
+	var tattoo := _int(character.get("tattoo"), -1)
 	if tattoo >= 0:
 		_blend(buf, size, _load_image("races/tattoos/tattoo_%d" % tattoo), Color.WHITE)
-	if int(character.get("hair_type", 1)) > 0:
+	if _int(character.get("hair_type"), 1) > 0:
 		_blend(buf, size, _load_image("races/hair_base"), hair_col)
 	return Image.create_from_data(size, size, false, Image.FORMAT_RGBA8, buf)
 
@@ -175,7 +227,7 @@ static func attach_hair(model: BedrockModel, character: Dictionary) -> Node3D:
 	var head: Node3D = model.get_bone("head")
 	if head == null:
 		return null
-	var hair_type := int(character.get("hair_type", 1))
+	var hair_type := _int(character.get("hair_type"), 1)
 	var existing: Node3D = head.get_node_or_null("Hair")
 	var hm: BedrockModel = existing as BedrockModel
 	if hm == null:
@@ -245,7 +297,7 @@ static func apply_form_visuals(model: Node3D, form_def: Dictionary) -> void:
 		model.call("set_tint", _color(body_tint))
 	if bm == null:
 		return
-	var hair_type := int(form_def.get("hairType", form_def.get("hair_type", -1)))
+	var hair_type := _int(form_def.get("hairType", form_def.get("hair_type", -1)), -1)
 	var hair_color := String(form_def.get("hairColor", form_def.get("hair_color", "")))
 	var head: Node3D = bm.get_bone("head")
 	if head == null:
@@ -287,11 +339,14 @@ static func form_scale(form_def: Dictionary) -> float:
 ## DMZ has no dedicated player ssj hair geometry, so the base spiky set is scaled
 ## up (and the long ssj3 set uses every bone) to approximate it.
 static func _form_hair_bones(hair_type: int) -> Array:
+	const FLAME := ["hair7", "hair12", "hair22", "hair28", "hair11", "hair23"]
+	const FLAME_LONG := ["hair24", "hair34", "hair36", "hair37"]
 	match hair_type:
-		0: return HAIR_STYLES[1]
-		1, 2: return HAIR_STYLES[5]
-		3: return HAIR_STYLES[5] + HAIR_STYLES[4]
-	return HAIR_STYLES[5]
+		0: return HAIR_STYLES[2]
+		1: return HAIR_STYLES[5] + FLAME
+		2: return HAIR_STYLES[5] + FLAME + ["hair24", "hair34"]
+		3: return HAIR_STYLES[5] + FLAME + FLAME_LONG + HAIR_STYLES[4]
+	return HAIR_STYLES[5] + FLAME
 
 static func _form_hair_scale(hair_type: int) -> float:
 	match hair_type:
@@ -410,6 +465,8 @@ static func _color(v: Variant) -> Color:
 		return Color.WHITE
 	if s.begins_with("#") or s.is_valid_html_color():
 		return Color.html(s)
+	if s.length() in [6, 8] and ("#" + s).is_valid_html_color():
+		return Color.html("#" + s)
 	if s.is_valid_int():
 		var i := int(s)
 		return Color8((i >> 16) & 255, (i >> 8) & 255, i & 255)

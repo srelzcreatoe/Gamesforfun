@@ -20,6 +20,7 @@ const SPAWN_MAX_DIST := 20.0
 const SPAWN_RETRY := 1.0
 const BIOME_SEARCH_COLUMNS := 5          ## how many chunks out we look for the required biome
 const LOCATION_INTERVAL := 0.5
+const CONTEXT_TTL := 0.2                 ## seconds a requirement context stays valid
 const FAIL_RESTART_DELAY := 2.5
 
 var world: Node = null
@@ -30,6 +31,8 @@ var _tp_prev := -1
 var _pending_spawns: Dictionary = {}     ## "qid#index" -> retry timer
 var _restart: Dictionary = {}            ## qid -> seconds until the failed quest restarts
 var _connected := false
+var _ctx: Dictionary = {}
+var _ctx_time := 0
 
 # --- lifecycle -------------------------------------------------------------
 
@@ -163,10 +166,21 @@ func quest_state(qid: String) -> String:
 		return "complete"
 	if active().has(qid):
 		return "active"
-	return "available" if bool(can_start(qid)["ok"]) else "locked"
+	return "available" if bool(_can_start_with(qid, context(), false)["ok"]) else "locked"
 
+## The requirement context is rebuilt at most every CONTEXT_TTL seconds: the quest log
+## asks for the state of 200+ quests in one frame and the structure scan is not free.
 func context() -> Dictionary:
-	return Requirements.build_context(profile(), player(), world)
+	var now := Time.get_ticks_msec()
+	if not _ctx.is_empty() and float(now - _ctx_time) < CONTEXT_TTL * 1000.0:
+		return _ctx
+	_ctx = Requirements.build_context(profile(), player(), world)
+	_ctx_time = now
+	return _ctx
+
+## Drop the cached context (after a start/claim or an inventory change).
+func invalidate_context() -> void:
+	_ctx = {}
 
 ## Every quest that could be started right now.
 func available_quests() -> Array:
@@ -178,7 +192,7 @@ func available_quests() -> Array:
 		var id := String(qid)
 		if active().has(id) or completed().has(id) or claimed().has(id):
 			continue
-		if bool(_can_start_with(id, ctx)["ok"]):
+		if bool(_can_start_with(id, ctx, false)["ok"]):
 			out.append(id)
 	out.sort()
 	return out
@@ -186,7 +200,7 @@ func available_quests() -> Array:
 func can_start(qid: String) -> Dictionary:
 	return _can_start_with(qid, context())
 
-func _can_start_with(qid: String, ctx: Dictionary) -> Dictionary:
+func _can_start_with(qid: String, ctx: Dictionary, want_reasons := true) -> Dictionary:
 	var def := quest(qid)
 	if def.is_empty():
 		return {"ok": false, "reasons": PackedStringArray(["Unknown quest"])}
@@ -195,13 +209,18 @@ func _can_start_with(qid: String, ctx: Dictionary) -> Dictionary:
 	if completed().has(qid) or claimed().has(qid):
 		return {"ok": false, "reasons": PackedStringArray(["Already finished"])}
 	var reasons := PackedStringArray()
-	var pre := Requirements.evaluate(def.get("prerequisites", {}), ctx)
+	var ok := true
+	var pre := Requirements.evaluate(def.get("prerequisites", {}), ctx, want_reasons)
 	if not bool(pre["ok"]):
+		ok = false
 		reasons.append_array(pre["reasons"])
-	var req := Requirements.evaluate(def.get("requirements", {}), ctx)
+		if not want_reasons:
+			return {"ok": false, "reasons": reasons}
+	var req := Requirements.evaluate(def.get("requirements", {}), ctx, want_reasons)
 	if not bool(req["ok"]):
+		ok = false
 		reasons.append_array(req["reasons"])
-	return {"ok": reasons.is_empty(), "reasons": reasons}
+	return {"ok": ok, "reasons": reasons}
 
 # --- start / abandon / claim ----------------------------------------------
 
@@ -234,6 +253,7 @@ func start(qid: String, force := false) -> bool:
 	if force and completed().has(id):
 		completed().erase(id)
 	track(id)
+	invalidate_context()
 	# The audio agent's BgmDirector plays quest_start/quest_complete from the Events.
 	Events.quest_started.emit(id)
 	_toast("Quest started", String(def.get("title", def.get("name", id))))
@@ -264,6 +284,7 @@ func claim(qid: String, from_npc := "") -> bool:
 	if mode == "NPC" and from_npc != "" and String(def.get("turn_in", "")) != from_npc:
 		return false
 	claimed().append(qid)
+	invalidate_context()
 	var lines := Rewards.apply_all(def.get("rewards", []), profile(), player())
 	Events.quest_reward_claimed.emit(qid)
 	_toast(String(def.get("title", qid)), "Rewards: " + ", ".join(lines) if lines.size() > 0 else "Rewards claimed")
@@ -354,6 +375,7 @@ func _complete(qid: String) -> void:
 	active().erase(qid)
 	if not completed().has(qid):
 		completed().append(qid)
+	invalidate_context()
 	Events.quest_completed.emit(qid)
 	var turn_in := String(def.get("turn_in", ""))
 	var tail := "Rewards ready in the quest log."
@@ -406,7 +428,7 @@ func notify_item(item_id: String, _count := 1) -> void:
 	_refresh_obtain()
 
 func notify_location(pos: Vector3, biome: String, planet: String) -> void:
-	var ctx := context()
+	var ctx := context().duplicate()
 	if biome != "":
 		ctx["biome_id"] = biome
 		ctx["biome"] = Requirements.biome_tag(biome)
@@ -544,9 +566,11 @@ func _fail(qid: String) -> void:
 	_restart[qid] = FAIL_RESTART_DELAY
 
 func _on_item_picked_up(item_id: String, count: int) -> void:
+	invalidate_context()
 	notify_item(item_id, count)
 
 func _on_inventory_changed() -> void:
+	invalidate_context()
 	_refresh_obtain()
 
 func _on_dialog_closed(npc: Node) -> void:
@@ -817,7 +841,7 @@ func quests_for_npc(master_id: String) -> Dictionary:
 			continue
 		if completed().has(qid) and not claimed().has(qid):
 			turn_in.append(qid)
-		elif not active().has(qid) and not claimed().has(qid) and bool(_can_start_with(qid, ctx)["ok"]):
+		elif not active().has(qid) and not claimed().has(qid) and bool(_can_start_with(qid, ctx, false)["ok"]):
 			gives.append(qid)
 	for raw in master.get("turn_in_quests", []):
 		var qid2 := resolve_id(String(raw))

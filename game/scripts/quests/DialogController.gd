@@ -11,6 +11,7 @@ const NODE_NAME := "DialogController"
 const MASTER_SKILL_COST := 900            ## fallback when skills.json has no positive cost
 const MASTER_TECHNIQUE_COST := 1500
 const TRAIN_INTERCEPT_WINDOW := 1.5       ## seconds after a dialog opened that "stats" means "train"
+const DEMO_TP := 6000                     ## TP handed out by the `--train=<master>` debug flag
 
 ## Item barter offers (DMZ has no currency). give -> get.
 const BARTER := [
@@ -26,6 +27,7 @@ var current_master := ""
 
 var _dialog_t := 0.0
 var _menu: TrainMenu = null
+var _demo_master := ""                     ## `--train=<master>`: open the training menu at spawn
 
 static func of(world_node: Node) -> DialogController:
 	if world_node == null or not is_instance_valid(world_node):
@@ -40,6 +42,15 @@ func _ready() -> void:
 	Events.dialog_requested.connect(_on_dialog_requested)
 	Events.dialog_closed.connect(_on_dialog_closed)
 	Events.ui_opened.connect(_on_ui_opened)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--train="):
+			_demo_master = a.substr(8)
+	if _demo_master != "":
+		Events.player_spawned.connect(func(_p: Node) -> void:
+			current_master = _demo_master
+			if int(Game.profile.get("tp", 0)) <= 0:
+				Game.profile["tp"] = DEMO_TP        # so the offers render enabled
+			open_training(_demo_master))
 
 func _process(delta: float) -> void:
 	if _dialog_t > 0.0:

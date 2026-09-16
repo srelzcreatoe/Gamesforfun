@@ -179,7 +179,9 @@ func _h_earth(fx: float, fz: float) -> float:
 	var river := clampf(1.0 - absf(rn) * 11.0, 0.0, 1.0)
 	if river > 0.0 and land > 0.35:
 		var mtn := clampf((h - (sea + 30.0)) / 22.0, 0.0, 1.0)
-		var rs := river * river * (1.0 - mtn) * land
+		# Never carve a river through the spawn area (the saga starts there on foot).
+		var guard := _gauss(fx, fz, 0.0, 0.0, 130.0)
+		var rs := river * river * (1.0 - mtn) * land * clampf(1.0 - guard * 1.6, 0.0, 1.0)
 		h = lerpf(h, minf(h, sea - 2.0), rs)
 	return h
 
@@ -192,7 +194,7 @@ func _bias_cont(fx: float, fz: float) -> float:
 
 func _bias_height(fx: float, fz: float) -> float:
 	var b := 0.0
-	b += 5.0 * _gauss(fx, fz, 0.0, 0.0, 150.0)
+	b += 9.0 * _gauss(fx, fz, 0.0, 0.0, 150.0)
 	b -= 26.0 * _gauss(fx, fz, -300.0, 260.0, 190.0)
 	return b
 
@@ -233,7 +235,7 @@ func _h_sacred(fx: float, fz: float) -> float:
 func _h_vegeta(fx: float, fz: float) -> float:
 	var base := 58.0 + 8.0 * _cont.get_noise_2d(fx, fz)
 	var step := _plateau.get_noise_2d(fx, fz)
-	var tiers := floor((step * 0.5 + 0.5) * 4.0)
+	var tiers := floorf((step * 0.5 + 0.5) * 4.0)
 	var h := base + tiers * 7.0
 	var ridge := 1.0 - absf(_peaks.get_noise_2d(fx, fz))
 	h += ridge * ridge * 9.0 * clampf(step + 0.4, 0.0, 1.0)
@@ -262,7 +264,7 @@ func _h_cereal(fx: float, fz: float) -> float:
 	var h := base
 	if m > 0.0:
 		var t := smoothstep(0.0, 0.16, m)
-		var tiers := floor(m * 5.0)
+		var tiers := floorf(m * 5.0)
 		h += t * (10.0 + tiers * 6.0)
 	h += 1.8 * _detail.get_noise_2d(fx, fz) + 3.0 * _hills.get_noise_2d(fx, fz)
 	return h

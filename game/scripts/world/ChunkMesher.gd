@@ -44,6 +44,11 @@ class Ctx:
 	var grass := GRASS_FALLBACK
 	var foliage := FOLIAGE_FALLBACK
 	var water := WATER_COLOR
+	## Hoisted lookup tables (BlockTable statics + the AO offset table), so the inner loops
+	## never touch a static var or recompute an index.
+	var full := PackedByteArray()
+	var opaque := PackedByteArray()
+	var ao_off := PackedInt32Array()
 
 	func at(dx: int, dy: int, dz: int) -> int:
 		return blocks[i + dx + dz * PAD + dy * plane]
@@ -169,6 +174,40 @@ static func build_pad(snaps: Array) -> Dictionary:
 		"blocks": blocks, "meta": metas, "light": lights, "biome": biome,
 	}
 
+## Precomputed pad-index offsets for per-vertex AO / smooth light:
+## index = ((face * 4 + corner) * 4 + j), j = 0 outward cell, 1 and 2 the two side cells,
+## 3 the diagonal cell. PAD and the plane stride are constants, so these never change.
+static func ao_offsets() -> PackedInt32Array:
+	var plane := PAD * PAD
+	var out := PackedInt32Array()
+	out.resize(6 * 4 * 4)
+	for f in 6:
+		var axis := f >> 1
+		var sgn := 1 if (f & 1) == 0 else -1
+		var corners: Array = BlockShapes.FACE_CORNERS[f]
+		for k in 4:
+			var uc: Vector3 = corners[k]
+			var n := [0, 0, 0]
+			var t1 := [0, 0, 0]
+			var t2 := [0, 0, 0]
+			n[axis] = sgn
+			var d := [1 if uc.x > 0.5 else -1, 1 if uc.y > 0.5 else -1, 1 if uc.z > 0.5 else -1]
+			var first := true
+			for a in 3:
+				if a == axis:
+					continue
+				if first:
+					t1[a] = d[a]
+					first = false
+				else:
+					t2[a] = d[a]
+			var base := (f * 4 + k) * 4
+			out[base + 0] = n[0] + n[2] * PAD + n[1] * plane
+			out[base + 1] = (n[0] + t1[0]) + (n[2] + t1[2]) * PAD + (n[1] + t1[1]) * plane
+			out[base + 2] = (n[0] + t2[0]) + (n[2] + t2[2]) * PAD + (n[1] + t2[1]) * plane
+			out[base + 3] = (n[0] + t1[0] + t2[0]) + (n[2] + t1[2] + t2[2]) * PAD + (n[1] + t1[1] + t2[1]) * plane
+	return out
+
 # --- public entry point -----------------------------------------------------
 
 ## Mesh one section from a pad built by build_pad().
@@ -179,6 +218,9 @@ static func build_section(pad: Dictionary, section: int, palette: Dictionary) ->
 	ctx.meta = pad["meta"]
 	ctx.light = pad["light"]
 	ctx.plane = PAD * PAD
+	ctx.full = BlockTable.full_cube
+	ctx.opaque = BlockTable.opaque
+	ctx.ao_off = ao_offsets()
 	var biome: PackedByteArray = pad["biome"]
 	var cx: int = pad["cx"]
 	var cz: int = pad["cz"]
@@ -299,62 +341,49 @@ static func _layer_uv(id: int, face: int, wx: int, wy: int, wz: int) -> float:
 static func _frac(id: int, frames: int) -> float:
 	return float(clampi(frames, 1, 63) + (64 if BlockTable.sway[id] == 1 else 0)) / 128.0
 
-## Ambient occlusion + smooth light for one vertex. Returns Vector2(ao, packed_light / 255).
-static func _corner(ctx: Ctx, f: int, ucx: float, ucy: float, ucz: float) -> Vector2:
-	var axis := f >> 1
-	var s := 1 if (f & 1) == 0 else -1
-	var nx := 0
-	var ny := 0
-	var nz := 0
-	var t1x := 0
-	var t1y := 0
-	var t1z := 0
-	var t2x := 0
-	var t2y := 0
-	var t2z := 0
-	var dx := 1 if ucx > 0.5 else -1
-	var dy := 1 if ucy > 0.5 else -1
-	var dz := 1 if ucz > 0.5 else -1
-	match axis:
-		0:
-			nx = s; t1y = dy; t2z = dz
-		1:
-			ny = s; t1x = dx; t2z = dz
-		_:
-			nz = s; t1x = dx; t2y = dy
+## Ambient occlusion + smooth light for one vertex of a face, from the precomputed offset
+## table. Returns Vector2(ao, packed_light / 255).
+static func _corner(ctx: Ctx, face: int, k: int) -> Vector2:
 	var blocks := ctx.blocks
 	var lights := ctx.light
-	var plane := ctx.plane
-	var base := ctx.i
-	var i_n := base + nx + nz * PAD + ny * plane
-	var i_1 := base + (nx + t1x) + (nz + t1z) * PAD + (ny + t1y) * plane
-	var i_2 := base + (nx + t2x) + (nz + t2z) * PAD + (ny + t2y) * plane
-	var i_c := base + (nx + t1x + t2x) + (nz + t1z + t2z) * PAD + (ny + t1y + t2y) * plane
+	var base := (face * 4 + k) * 4
+	var off := ctx.ao_off
 	var last := blocks.size() - 1
-	i_n = clampi(i_n, 0, last); i_1 = clampi(i_1, 0, last); i_2 = clampi(i_2, 0, last); i_c = clampi(i_c, 0, last)
-	var full: PackedByteArray = BlockTable.full_cube
-	var opaque: PackedByteArray = BlockTable.opaque
+	var i_n := clampi(ctx.i + off[base], 0, last)
+	var i_1 := clampi(ctx.i + off[base + 1], 0, last)
+	var i_2 := clampi(ctx.i + off[base + 2], 0, last)
+	var i_c := clampi(ctx.i + off[base + 3], 0, last)
+	var full := ctx.full
+	var opaque := ctx.opaque
 	var s1 := full[blocks[i_1]]
 	var s2 := full[blocks[i_2]]
-	var sc := full[blocks[i_c]]
-	var level := 0 if (s1 == 1 and s2 == 1) else 3 - (s1 + s2 + sc)
+	var level := 0 if (s1 == 1 and s2 == 1) else 3 - (s1 + s2 + full[blocks[i_c]])
 	var sky := 0
 	var blk := 0
 	var cnt := 0
+	var p := 0
 	if opaque[blocks[i_n]] == 0:
-		sky += lights[i_n] >> 4; blk += lights[i_n] & 15; cnt += 1
+		p = lights[i_n]
+		sky += p >> 4; blk += p & 15; cnt += 1
 	if opaque[blocks[i_1]] == 0:
-		sky += lights[i_1] >> 4; blk += lights[i_1] & 15; cnt += 1
+		p = lights[i_1]
+		sky += p >> 4; blk += p & 15; cnt += 1
 	if opaque[blocks[i_2]] == 0:
-		sky += lights[i_2] >> 4; blk += lights[i_2] & 15; cnt += 1
+		p = lights[i_2]
+		sky += p >> 4; blk += p & 15; cnt += 1
 	if opaque[blocks[i_c]] == 0:
-		sky += lights[i_c] >> 4; blk += lights[i_c] & 15; cnt += 1
+		p = lights[i_c]
+		sky += p >> 4; blk += p & 15; cnt += 1
 	if cnt == 0:
-		sky = lights[i_n] >> 4
-		blk = lights[i_n] & 15
+		p = lights[i_n]
+		sky = p >> 4
+		blk = p & 15
 		cnt = 1
-	var packed := int(round(float(sky) / float(cnt))) * 16 + int(round(float(blk) / float(cnt)))
-	return Vector2(AO[clampi(level, 0, 3)], float(clampi(packed, 0, 255)) / 255.0)
+	elif cnt > 1:
+		sky = (sky * 2 + cnt) / (cnt * 2)      # rounded integer average
+		blk = (blk * 2 + cnt) / (cnt * 2)
+	var packed := sky * 16 + blk
+	return Vector2(AO[level if level >= 0 else 0], float(packed if packed < 256 else 255) / 255.0)
 
 ## Flat light sample for plants and other non-cube shapes (own cell or the cell above).
 static func _own_light(ctx: Ctx) -> float:
@@ -402,10 +431,10 @@ static func _box(buf: Buf, ctx: Ctx, lo: Vector3, hi: Vector3, tint: Color, cull
 		var q1 := Vector3(lo.x + c1.x * sx, lo.y + c1.y * sy, lo.z + c1.z * sz)
 		var q2 := Vector3(lo.x + c2.x * sx, lo.y + c2.y * sy, lo.z + c2.z * sz)
 		var q3 := Vector3(lo.x + c3.x * sx, lo.y + c3.y * sy, lo.z + c3.z * sz)
-		var a0 := _corner(ctx, f, c0.x, c0.y, c0.z)
-		var a1 := _corner(ctx, f, c1.x, c1.y, c1.z)
-		var a2 := _corner(ctx, f, c2.x, c2.y, c2.z)
-		var a3 := _corner(ctx, f, c3.x, c3.y, c3.z)
+		var a0 := _corner(ctx, f, 0)
+		var a1 := _corner(ctx, f, 1)
+		var a2 := _corner(ctx, f, 2)
+		var a3 := _corner(ctx, f, 3)
 		buf.quad(
 			Vector3(bx + q0.x, by + q0.y, bz + q0.z), Vector3(bx + q1.x, by + q1.y, bz + q1.z),
 			Vector3(bx + q2.x, by + q2.y, bz + q2.z), Vector3(bx + q3.x, by + q3.y, bz + q3.z),

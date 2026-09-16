@@ -13,6 +13,7 @@ extends RefCounted
 ## Everything is static and takes a plain context Dictionary so tests can use fixtures.
 
 const STRUCTURE_RADIUS := 96.0        ## how far a structure mark may be to count as "here"
+const OK_RESULT := {"ok": true, "reason": ""}
 
 ## Build the evaluation context from a profile (+ optional live player/world).
 static func build_context(profile: Dictionary, player: Node = null, world: Node = null) -> Dictionary:
@@ -188,7 +189,9 @@ static func count_item(ctx: Dictionary, item_id: String) -> int:
 # --- evaluation ------------------------------------------------------------
 
 ## Evaluate a `{operator, conditions}` group. Returns `{ok: bool, reasons: PackedStringArray}`.
-static func evaluate(group: Variant, ctx: Dictionary) -> Dictionary:
+## `want_reasons = false` skips building the human-readable strings — the quest log asks for
+## the state of 200+ quests in one frame and only shows reasons for the selected one.
+static func evaluate(group: Variant, ctx: Dictionary, want_reasons := true) -> Dictionary:
 	var conditions: Array = []
 	var op := "AND"
 	if group is Dictionary:
@@ -205,11 +208,13 @@ static func evaluate(group: Variant, ctx: Dictionary) -> Dictionary:
 	var any_ok := false
 	var all_ok := true
 	for c in conditions:
-		var r := evaluate_condition(c, ctx)
+		var r := evaluate_condition(c, ctx, want_reasons)
 		if bool(r["ok"]):
 			any_ok = true
 		else:
 			all_ok = false
+			if not want_reasons and op != "OR":
+				return {"ok": false, "reasons": reasons}
 			var why := String(r.get("reason", ""))
 			if why != "" and not reasons.has(why):
 				reasons.append(why)
@@ -218,65 +223,68 @@ static func evaluate(group: Variant, ctx: Dictionary) -> Dictionary:
 		reasons = PackedStringArray()
 	return {"ok": ok, "reasons": reasons}
 
-static func evaluate_condition(condition: Variant, ctx: Dictionary) -> Dictionary:
+static func evaluate_condition(condition: Variant, ctx: Dictionary, want_reason := true) -> Dictionary:
 	if not (condition is Dictionary):
-		return {"ok": true, "reason": ""}
+		return OK_RESULT
 	var c: Dictionary = condition
 	match String(c.get("type", "")).to_upper():
 		"LEVEL":
 			var need := int(c.get("minLevel", c.get("level", 1)))
 			if int(ctx.get("level", 1)) >= need:
-				return {"ok": true, "reason": ""}
-			return {"ok": false, "reason": "Requires level %d" % need}
+				return OK_RESULT
+			return _fail(want_reason, "Requires level %d" % need)
 		"PLANET":
 			var want := String(c.get("planet", ""))
 			if want == "" or String(ctx.get("planet", "")) == want:
-				return {"ok": true, "reason": ""}
-			return {"ok": false, "reason": "Must be on %s" % planet_name(want)}
+				return OK_RESULT
+			return _fail(want_reason, "Must be on %s" % planet_name(want))
 		"BIOME":
 			var want_b := String(c.get("biome", ""))
 			if want_b == "" or String(ctx.get("biome", "")) == want_b or String(ctx.get("biome_id", "")) == want_b:
-				return {"ok": true, "reason": ""}
-			return {"ok": false, "reason": "Must be in %s" % biome_name(want_b)}
+				return OK_RESULT
+			return _fail(want_reason, "Must be in %s" % biome_name(want_b))
 		"STRUCTURE":
 			var want_s := String(c.get("structure", ""))
 			var near: PackedStringArray = ctx.get("structures", PackedStringArray())
 			if want_s == "" or near.has(want_s):
-				return {"ok": true, "reason": ""}
-			return {"ok": false, "reason": "Must be at %s" % structure_name(want_s)}
+				return OK_RESULT
+			return _fail(want_reason, "Must be at %s" % structure_name(want_s))
 		"SAGA_QUEST", "QUEST":
 			var qid := String(c.get("quest", ""))
 			if qid == "":
 				qid = "%s:%s" % [String(c.get("sagaId", "")), String(c.get("questId", ""))]
 			var completed: Array = ctx.get("completed", [])
 			if qid == "" or completed.has(qid):
-				return {"ok": true, "reason": ""}
-			return {"ok": false, "reason": "Finish \"%s\" first" % quest_title(qid)}
+				return OK_RESULT
+			return _fail(want_reason, "Finish \"%s\" first" % quest_title(qid))
 		"SKILL":
 			var sid := String(c.get("skill", ""))
 			var need_l := int(c.get("minLevel", c.get("level", 1)))
 			var skills: Dictionary = ctx.get("skills", {})
 			if sid == "" or int(skills.get(sid, 0)) >= need_l:
-				return {"ok": true, "reason": ""}
-			return {"ok": false, "reason": "Needs %s level %d" % [skill_name(sid), need_l]}
+				return OK_RESULT
+			return _fail(want_reason, "Needs %s level %d" % [skill_name(sid), need_l])
 		"ITEM":
 			var iid := String(c.get("item", ""))
 			var need_c := maxi(1, int(c.get("count", 1)))
 			if iid == "" or count_item(ctx, iid) >= need_c:
-				return {"ok": true, "reason": ""}
-			return {"ok": false, "reason": "Needs %s x%d" % [item_name(iid), need_c]}
+				return OK_RESULT
+			return _fail(want_reason, "Needs %s x%d" % [item_name(iid), need_c])
 		"ALIGNMENT":
 			var a := int(ctx.get("alignment", 50))
 			var lo := int(c.get("min", c.get("minAlignment", -999)))
 			var hi := int(c.get("max", c.get("maxAlignment", 999)))
 			if a >= lo and a <= hi:
-				return {"ok": true, "reason": ""}
-			return {"ok": false, "reason": "Alignment must be between %d and %d" % [lo, hi]}
+				return OK_RESULT
+			return _fail(want_reason, "Alignment must be between %d and %d" % [lo, hi])
 		"TIME":
 			# A TIME requirement is a duration the quest must run for; `QuestManager`
 			# turns it into a completion gate, it never blocks starting the quest.
-			return {"ok": true, "reason": ""}
-	return {"ok": true, "reason": ""}
+			return OK_RESULT
+	return OK_RESULT
+
+static func _fail(want_reason: bool, reason: String) -> Dictionary:
+	return {"ok": false, "reason": reason if want_reason else ""}
 
 ## Seconds of a TIME condition in a group (0 when there is none).
 static func time_gate(group: Variant) -> float:

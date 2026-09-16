@@ -41,6 +41,7 @@ var _item_cache: Dictionary = {}
 var _radar: RadarOverlay = null
 var _placement_script: GDScript = null
 var _placement_ok := true
+var _demo_radar := ""                  ## `--radar[=set]`: open the radar overlay at spawn
 var _darkened := false
 
 static func of(world_node: Node) -> DragonBalls:
@@ -53,6 +54,11 @@ func _ready() -> void:
 	name = NODE_NAME
 	if world == null:
 		world = get_parent()
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--radar"):
+			_demo_radar = a.substr(8) if a.length() > 8 else "earth"
+	if _demo_radar != "":
+		Events.player_spawned.connect(_on_demo_player_spawned)
 	Events.dragon_ball_found.connect(_on_ball_found)
 	Events.item_picked_up.connect(_on_item_picked_up)
 	Events.entity_spawned.connect(_on_entity_spawned)
@@ -250,6 +256,25 @@ func radar_direction(from: Vector3, set_id := "") -> Dictionary:
 	return {"ok": true, "dir": dir, "distance": best_d, "star": best_star,
 		"found": have.size(), "total": total,
 		"text": "%d★ ball %s at %.0f m — %d/%d found" % [best_star, compass(dir), best_d, have.size(), total]}
+
+## Every ball the radar can still see: [{star, dir, distance}] sorted by distance.
+func radar_blips(from: Vector3, set_id := "") -> Array:
+	var out: Array = []
+	var sid := set_id if set_id != "" else set_for_planet()
+	if sid == "" or is_scattered(sid):
+		return out
+	var have: Array = found(sid)
+	var list := positions(sid)
+	for i in list.size():
+		var star := i + 1
+		if have.has(star):
+			continue
+		var p: Vector3 = list[i]
+		var flat := Vector3(p.x - from.x, 0.0, p.z - from.z)
+		out.append({"star": star, "dir": flat.normalized() if flat.length() > 0.001 else Vector3.FORWARD,
+			"distance": Vector2(flat.x, flat.z).length()})
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a["distance"]) < float(b["distance"]))
+	return out
 
 static func compass(dir: Vector3) -> String:
 	var a := rad_to_deg(atan2(dir.x, -dir.z))
@@ -796,6 +821,14 @@ func _on_item_picked_up(item_id: String, _count: int) -> void:
 		return
 	var ball: Dictionary = def.get("dragon_ball", {})
 	_on_ball_found(String(ball.get("set", "earth")), int(ball.get("star", 1)))
+
+## `--radar[=<set>]` on the command line: find two balls and open the overlay so the
+## radar HUD can be checked with tools/screenshot.sh.
+func _on_demo_player_spawned(_p: Node) -> void:
+	var sid := _demo_radar if _demo_radar != "" else "earth"
+	Events.dragon_ball_found.emit(sid, 2)
+	Events.dragon_ball_found.emit(sid, 5)
+	open_radar(sid)
 
 func _toast(title: String, text: String) -> void:
 	if Game != null and Game.ui != null and Game.ui.has_method("toast"):

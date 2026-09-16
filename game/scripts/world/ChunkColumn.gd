@@ -41,6 +41,10 @@ var from_disk := false
 ## Section index -> MeshInstance3D (owned by ChunkManager).
 var mesh_nodes: Dictionary = {}
 var fluid_ticks: Dictionary = {}
+## Free-form per-column data that travels with the save file as JSON: container contents
+## (`extra["containers"][pos_key]`), sign text, quest anchors... Set `modified = true` after
+## changing it (or call `touch_extra()`).
+var extra: Dictionary = {}
 
 func _init(p_cx := 0, p_cz := 0) -> void:
 	cx = p_cx
@@ -172,6 +176,10 @@ func section_is_empty(section: int) -> bool:
 		if blocks[i] != 0:
 			return false
 	return true
+
+## Mark the column dirty for saving after editing `extra`.
+func touch_extra() -> void:
+	modified = true
 
 # --- serialisation ---------------------------------------------------------
 

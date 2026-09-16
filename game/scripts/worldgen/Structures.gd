@@ -22,6 +22,9 @@ const HEIGHT := WorldConst.HEIGHT
 const SCAN_CHUNKS := 6
 ## Candidates tried when searching a unique structure's position.
 const UNIQUE_SAMPLES := 512
+## Half extent no converted template exceeds (the widest is 142 blocks) - used to reject a
+## structure before its template is parsed.
+const MAX_HALF := 104
 ## Structures this class does not place (the planet generator builds them itself).
 const SKIP := ["snake_way"]
 
@@ -38,7 +41,7 @@ const SPECIAL := {
 static var _templates: Dictionary = {}
 static var _tpl_mutex := Mutex.new()
 
-var gen: RefCounted = null
+var gen: Variant = null
 var planet_id := ""
 ## Structures that decide their own position (unique, or rarity > 0).
 var anchors: Array = []
@@ -50,7 +53,7 @@ var village_pieces: Dictionary = {}
 var _unique: Dictionary = {}
 var _mutex := Mutex.new()
 
-func configure(p_gen: RefCounted) -> void:
+func configure(p_gen) -> void:
 	gen = p_gen
 	planet_id = gen.planet_id
 	anchors = []
@@ -98,7 +101,7 @@ func configure(p_gen: RefCounted) -> void:
 
 # --- per column ------------------------------------------------------------
 
-func stamp(col: ChunkColumn, ctx: RefCounted) -> void:
+func stamp(col: ChunkColumn, ctx) -> void:
 	for entry in anchors:
 		if bool(entry["unique"]):
 			var pos := unique_position(entry)
@@ -107,25 +110,34 @@ func stamp(col: ChunkColumn, ctx: RefCounted) -> void:
 		else:
 			_stamp_repeatable(col, ctx, entry)
 
-func _stamp_repeatable(col: ChunkColumn, ctx: RefCounted, entry: Dictionary) -> void:
-	var rarity: int = maxi(1, int(entry["rarity"]))
+## Repeatable structures use `rarity` as a region size in chunks (Minecraft-style spacing,
+## which is what the DMZ configs mean): every `rarity` x `rarity` chunk region holds one
+## anchor at a seeded chunk/offset inside it, so the density is one per rarity*16 blocks.
+func _stamp_repeatable(col: ChunkColumn, ctx, entry: Dictionary) -> void:
+	var region: int = maxi(2, int(entry["rarity"]))
 	var sid_hash := absi(int(String(entry["id"]).hash())) & 0xffffff
-	for dz in range(-SCAN_CHUNKS, SCAN_CHUNKS + 1):
-		for dx in range(-SCAN_CHUNKS, SCAN_CHUNKS + 1):
-			var ncx := ctx.cx + dx
-			var ncz := ctx.cz + dz
-			var hh := Terrain.hash_seeded(gen.seed + sid_hash, ncx, 91, ncz)
-			if hh % rarity != 0:
-				continue
-			var ax := ncx * 16 + (hh >> 5) % 16
-			var az := ncz * 16 + (hh >> 11) % 16
+	var rad: int = maxi(1, int(ceil((float(MAX_HALF) / 16.0 + 1.0) / float(region))))
+	var rcx := _floor_div(ctx.cx, region)
+	var rcz := _floor_div(ctx.cz, region)
+	for dz in range(-rad, rad + 1):
+		for dx in range(-rad, rad + 1):
+			var rx := rcx + dx
+			var rz := rcz + dz
+			var hh := Terrain.hash_seeded(gen.seed + sid_hash, rx, 91, rz)
+			var ccx := rx * region + (hh % region)
+			var ccz := rz * region + ((hh >> 8) % region)
+			var ax := ccx * 16 + ((hh >> 16) % 16)
+			var az := ccz * 16 + ((hh >> 20) % 16)
 			if not _valid_site(entry, ax, az):
 				continue
-			var rot := ((hh >> 17) % 4) if String(entry["role"]) == "center" else 0
+			var rot := ((hh >> 25) % 4) if String(entry["role"]) == "center" else 0
 			_place(col, ctx, entry, ax, az, rot)
 
+static func _floor_div(a: int, b: int) -> int:
+	return int(floor(float(a) / float(b)))
+
 ## Stamp the anchor plus its group followers / village pieces.
-func _place(col: ChunkColumn, ctx: RefCounted, entry: Dictionary, ax: int, az: int, rot: int) -> void:
+func _place(col: ChunkColumn, ctx, entry: Dictionary, ax: int, az: int, rot: int) -> void:
 	_stamp_one(col, ctx, entry, ax, az, rot)
 	var group: String = entry["group"]
 	if group == "":
@@ -137,7 +149,7 @@ func _place(col: ChunkColumn, ctx: RefCounted, entry: Dictionary, ax: int, az: i
 		_stamp_village(col, ctx, group, ax, az)
 
 ## Deterministic village jigsaw: street arms on the two axes plus houses on a ring.
-func _stamp_village(col: ChunkColumn, ctx: RefCounted, group: String, ax: int, az: int) -> void:
+func _stamp_village(col: ChunkColumn, ctx, group: String, ax: int, az: int) -> void:
 	var pieces: Array = village_pieces[group]
 	if pieces.is_empty():
 		return
@@ -175,10 +187,17 @@ func _stamp_village(col: ChunkColumn, ctx: RefCounted, group: String, ax: int, a
 
 # --- one template ----------------------------------------------------------
 
-func _stamp_one(col: ChunkColumn, ctx: RefCounted, entry: Dictionary, ax: int, az: int, rot: int) -> void:
+func _stamp_one(col: ChunkColumn, ctx, entry: Dictionary, ax: int, az: int, rot: int) -> void:
 	var sid: String = entry["id"]
 	var special: Dictionary = SPECIAL.get(sid, {})
-	var tpl := template(String(entry["file"]))
+	# Conservative reject before the (possibly multi-megabyte) template is parsed: no
+	# converted structure reaches further than MAX_HALF blocks from its anchor.
+	if ax - MAX_HALF >= ctx.ox + 16 or ax + MAX_HALF < ctx.ox:
+		return
+	if az - MAX_HALF >= ctx.oz + 16 or az + MAX_HALF < ctx.oz:
+		return
+	var tpl := template(String(entry["file"]), int(special.get("src_y_min", 0)),
+		int(special.get("src_y_max", 255)))
 	if tpl.is_empty():
 		return
 	var size: Vector3i = tpl["size"]
@@ -207,8 +226,8 @@ func _stamp_one(col: ChunkColumn, ctx: RefCounted, entry: Dictionary, ax: int, a
 	var pal: PackedInt32Array = tpl["pal"]
 	var tiles: Dictionary = tpl["tiles"]
 	# Template-space bounding box of this column, so only overlapping tiles are walked.
-	var rx0 := ctx.ox - min_x
-	var rz0 := ctx.oz - min_z
+	var rx0: int = ctx.ox - min_x
+	var rz0: int = ctx.oz - min_z
 	var bb := _template_bbox(rx0, rz0, size, rot)
 	var tx0: int = maxi(0, int(bb.x)) >> 4
 	var tx1: int = maxi(0, int(bb.y)) >> 4
@@ -236,7 +255,7 @@ func _stamp_one(col: ChunkColumn, ctx: RefCounted, entry: Dictionary, ax: int, a
 	_spawn_entities(col, ctx, entry, tpl, min_x, min_z, base_y, off, size, rot, src_min, src_max)
 
 ## Clear a box (used for `clear_box` templates and `clear_above`).
-func _clear_box(col: ChunkColumn, ctx: RefCounted, min_x: int, min_z: int, ext_x: int,
+func _clear_box(col: ChunkColumn, ctx, min_x: int, min_z: int, ext_x: int,
 		ext_z: int, y_from: int, ext_y: int) -> void:
 	var x0: int = maxi(min_x, ctx.ox)
 	var x1: int = mini(min_x + ext_x, ctx.ox + 16)
@@ -250,7 +269,7 @@ func _clear_box(col: ChunkColumn, ctx: RefCounted, min_x: int, min_z: int, ext_x
 				if gen.get_world(col, ctx, wx, wy, wz) != 0:
 					gen.put_world(col, ctx, wx, wy, wz, 0)
 
-func _mark(col: ChunkColumn, ctx: RefCounted, entry: Dictionary, min_x: int, min_z: int,
+func _mark(col: ChunkColumn, ctx, entry: Dictionary, min_x: int, min_z: int,
 		ext_x: int, ext_z: int, base_y: int, ext_y: int) -> void:
 	var aabb := AABB(Vector3(float(min_x), float(base_y), float(min_z)),
 		Vector3(float(ext_x), float(ext_y), float(ext_z)))
@@ -265,7 +284,7 @@ func _mark(col: ChunkColumn, ctx: RefCounted, entry: Dictionary, min_x: int, min
 		"aabb": aabb,
 	})
 
-func _spawn_entities(col: ChunkColumn, ctx: RefCounted, entry: Dictionary, tpl: Dictionary,
+func _spawn_entities(col: ChunkColumn, ctx, entry: Dictionary, tpl: Dictionary,
 		min_x: int, min_z: int, base_y: int, off: Vector3i, size: Vector3i, rot: int,
 		src_min: int, src_max: int) -> void:
 	var ents: Array = tpl.get("ents", [])
@@ -312,14 +331,14 @@ func _spawn_entities(col: ChunkColumn, ctx: RefCounted, entry: Dictionary, tpl: 
 
 ## Korin's tower: a procedural pole with a platform and a small house, built under the
 ## lookout because the original 200-block-tall template does not fit a 128-block world.
-func _korin_tower(col: ChunkColumn, ctx: RefCounted, ax: int, az: int, lookout_y: int) -> void:
+func _korin_tower(col: ChunkColumn, ctx, ax: int, az: int, lookout_y: int) -> void:
 	var pole := Registry.block_id("korin_tower_block")
 	if pole <= 0:
 		return
 	var tile: int = maxi(pole, Registry.block_id("lookout_tile"))
 	var wall: int = maxi(pole, Registry.block_id("kame_house_wall"))
 	var roof: int = maxi(pole, Registry.block_id("kame_house_roof"))
-	var ground := gen.terrain.height_at(ax, az)
+	var ground: int = gen.terrain.height_at(ax, az)
 	var top: int = clampi(lookout_y - 14, ground + 8, HEIGHT - 10)
 	if not _near_column(ctx, ax, az, 8):
 		return
@@ -355,7 +374,7 @@ func _korin_tower(col: ChunkColumn, ctx: RefCounted, ax: int, az: int, lookout_y
 				Vector3(15, float(top + 7 - ground), 15)),
 		})
 
-func _near_column(ctx: RefCounted, wx: int, wz: int, r: int) -> bool:
+func _near_column(ctx, wx: int, wz: int, r: int) -> bool:
 	return wx + r >= ctx.ox and wx - r < ctx.ox + 16 and wz + r >= ctx.oz and wz - r < ctx.oz + 16
 
 # --- placement helpers -----------------------------------------------------
@@ -365,9 +384,9 @@ func _resolve_y(entry: Dictionary, special: Dictionary, ax: int, az: int, size: 
 		return int(special["dest_y"])
 	var mode: String = entry["y_mode"]
 	if mode == "absolute" or mode == "sky":
-		var y := gen.remap_structure_y(int(entry["y"]), mode)
+		var y: int = gen.remap_structure_y(int(entry["y"]), mode)
 		return clampi(y, 1, maxi(1, HEIGHT - 2))
-	var ground := gen.terrain.height_at(ax, az)
+	var ground: int = gen.terrain.height_at(ax, az)
 	if gen.has_sea:
 		ground = maxi(ground, gen.sea_level + 1)
 	return clampi(ground, 1, maxi(1, HEIGHT - mini(size.y, 20) - 1))
@@ -380,7 +399,7 @@ func _valid_site(entry: Dictionary, ax: int, az: int) -> bool:
 	var list: Array = entry["biomes"]
 	if list.is_empty():
 		return true
-	var bid := gen.biome_map.id_at_world(ax, az)
+	var bid: String = gen.biome_map.id_at_world(ax, az)
 	for b in list:
 		if String(b) == bid:
 			return true
@@ -493,19 +512,20 @@ static func _inverse_rotate(rx: int, rz: int, size: Vector3i, rot: int) -> Vecto
 
 ## Parsed template: {size: Vector3i, off: Vector3i, pal: PackedInt32Array,
 ## tiles: {Vector2i -> PackedInt32Array}, ents: Array, clear: bool}
-static func template(path: String) -> Dictionary:
+static func template(path: String, src_min := 0, src_max := 255) -> Dictionary:
+	var key := path if (src_min == 0 and src_max >= 255) else "%s|%d|%d" % [path, src_min, src_max]
 	_tpl_mutex.lock()
-	var hit: Variant = _templates.get(path, null)
+	var hit: Variant = _templates.get(key, null)
 	_tpl_mutex.unlock()
 	if hit != null:
 		return hit
-	var built := _load_template(path)
+	var built := _load_template(path, src_min, src_max)
 	_tpl_mutex.lock()
-	_templates[path] = built
+	_templates[key] = built
 	_tpl_mutex.unlock()
 	return built
 
-static func _load_template(path: String) -> Dictionary:
+static func _load_template(path: String, src_min := 0, src_max := 255) -> Dictionary:
 	var data: Variant = JsonUtil.load_file(path)
 	if not data is Dictionary:
 		Log.w("Structures: cannot load template " + path)
@@ -525,6 +545,8 @@ static func _load_template(path: String) -> Dictionary:
 		var y := int(b[1])
 		var z := int(b[2])
 		var p := int(b[3])
+		if y < src_min or y > src_max:
+			continue
 		if x < 0 or x > 255 or y < 0 or y > 255 or z < 0 or z > 255 or p < 0 or p >= pal.size():
 			continue
 		if pal[p] == 0:

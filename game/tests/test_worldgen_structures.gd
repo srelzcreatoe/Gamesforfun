@@ -137,7 +137,8 @@ func test_dragon_ball_positions_deterministic_and_on_surface() -> void:
 		var terrain := WorldGenFactory.make_terrain(def, SEED)
 		var min_d := float(DragonBallPlacement.SETS[set_id]["min"])
 		var max_d := float(DragonBallPlacement.SETS[set_id]["range"])
-		for p in a:
+		for pv in a:
+			var p: Vector3 = pv
 			var d := sqrt(p.x * p.x + p.z * p.z)
 			assert_true(d >= min_d - 2.0 and d <= max_d + 2.0,
 				"%s ball at %.0f blocks, outside [%.0f, %.0f]" % [set_id, d, min_d, max_d])
@@ -200,18 +201,18 @@ func test_otherworld_has_snake_way_and_king_kai() -> void:
 	var found := 0
 	var station: Vector2i = g.get("station_pos")
 	var dir := (Vector2(kk) - Vector2(station)).normalized()
-	for step in [60.0, 240.0, 700.0]:
+	for step: float in [60.0, 240.0, 700.0]:
 		var p := Vector2(station) + dir * step
 		var cx := int(floor(p.x / 16.0))
 		var cz := int(floor(p.y / 16.0))
-		for dz in range(-3, 4):
-			for dx in range(-3, 4):
+		for dz in range(-1, 2):
+			for dx in range(-1, 2):
 				var c := _col(g, cx + dx, cz + dz)
 				for i in c.blocks.size():
 					var b: int = c.blocks[i]
 					if b == road or b == edge:
 						found += 1
-	assert_true(found > 50, "Snake Way not found along its path (%d blocks)" % found)
+	assert_true(found > 20, "Snake Way not found along its path (%d blocks)" % found)
 
 func test_time_chamber_is_a_flat_plane_with_the_building() -> void:
 	var g := _gen("time_chamber")

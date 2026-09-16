@@ -13,7 +13,10 @@ const OPAQUE_SHADER := "res://shaders/chunk_opaque.gdshader"
 const CUTOUT_SHADER := "res://shaders/chunk_cutout.gdshader"
 const WATER_SHADER := "res://shaders/water.gdshader"
 const MAX_UPLOADS_PER_FRAME := 2
-const MAX_MERGE_PER_FRAME := 2
+const MAX_MERGE_PER_FRAME := 1
+## Main-thread budget for one frame of world work (ARCHITECTURE.md §2 asks for <= 4 ms,
+## the voxel brief for <= 6 ms). Light merges and new jobs stop once it is used up.
+const FRAME_BUDGET_USEC := 3500
 
 var world: Node = null
 var chunks_root: Node3D = null
@@ -38,6 +41,9 @@ var stat_mesh_ms := 0.0
 var stat_mesh_count := 0
 var stat_upload_ms := 0.0
 var stat_update_ms := 0.0
+var stat_update_max := 0.0
+var stat_update_sum := 0.0
+var stat_frames := 0
 var _stat_timer := 0.0
 
 var _max_gen_tasks := 3
@@ -55,10 +61,16 @@ var _wanted: Array[Vector2i] = []
 var _wanted_center := Vector2i(999999, 999999)
 var _wanted_distance := -1
 var _shutting_down := false
+## `--profile` on the command line prints the world timing line even without show_fps.
+var _force_profile := false
+var _frame_start := 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_max_gen_tasks = clampi(OS.get_processor_count() - 1, 1, 4)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--profile"):
+			_force_profile = true
 	_max_mesh_tasks = _max_gen_tasks
 	_build_materials()
 
@@ -204,35 +216,46 @@ func _process(_delta: float) -> void:
 	if world == null or _shutting_down:
 		return
 	var t0 := Time.get_ticks_usec()
+	_frame_start = t0
 	render_distance = clampi(int(Game.settings.get("render_distance", 5)), 2, 16)
 	_collect_finished()
 	_drain_merge_queue()
 	_request_columns()
 	_request_meshes()
-	stat_update_ms = float(Time.get_ticks_usec() - t0) / 1000.0
 	var t1 := Time.get_ticks_usec()
 	_upload_meshes()
 	stat_upload_ms = float(Time.get_ticks_usec() - t1) / 1000.0
 	_unload_far()
+	stat_update_ms = float(Time.get_ticks_usec() - t0) / 1000.0
+	stat_update_sum += stat_update_ms
+	stat_update_max = maxf(stat_update_max, stat_update_ms)
+	stat_frames += 1
 	_profile(_delta)
+
+func _over_budget() -> bool:
+	return Time.get_ticks_usec() - _frame_start > FRAME_BUDGET_USEC
 
 func _profile(delta: float) -> void:
 	_stat_timer += delta
 	if _stat_timer < 5.0:
 		return
 	_stat_timer = 0.0
-	if not bool(Game.settings.get("show_fps", false)):
+	if not _force_profile and not bool(Game.settings.get("show_fps", false)):
 		return
 	var gen_avg := stat_gen_ms / maxf(1.0, float(stat_gen_count))
 	var mesh_avg := stat_mesh_ms / maxf(1.0, float(stat_mesh_count))
-	Log.i("world: %d cols, gen %.1f ms/col (%d), mesh %.1f ms/sec (%d), update %.2f ms, upload %.2f ms, %d fps" % [
-		columns.size(), gen_avg, stat_gen_count, mesh_avg, stat_mesh_count,
-		stat_update_ms, stat_upload_ms, Engine.get_frames_per_second()])
+	var upd_avg := stat_update_sum / maxf(1.0, float(stat_frames))
+	Log.i("world: %d cols %d%% streamed | worker: gen %.0f ms/col (%d), mesh %.0f ms/section (%d) | main: update %.2f ms avg, %.2f ms max, upload %.2f ms | %d fps" % [
+		columns.size(), int(stream_progress() * 100.0), gen_avg, stat_gen_count, mesh_avg, stat_mesh_count,
+		upd_avg, stat_update_max, stat_upload_ms, Engine.get_frames_per_second()])
+	stat_update_max = 0.0
+	stat_update_sum = 0.0
+	stat_frames = 0
 
 # --- generation -------------------------------------------------------------
 
 func _request_columns() -> void:
-	if _gen_ids.size() >= _max_gen_tasks:
+	if _gen_ids.size() >= _max_gen_tasks or _over_budget():
 		return
 	for k in wanted_columns():
 		if columns.has(k) or _pending_gen.has(k):
@@ -309,7 +332,7 @@ func _publish(col: ChunkColumn) -> void:
 
 func _drain_merge_queue() -> void:
 	var n := 0
-	while not _merge_queue.is_empty() and n < MAX_MERGE_PER_FRAME:
+	while not _merge_queue.is_empty() and n < MAX_MERGE_PER_FRAME and not _over_budget():
 		var k: Vector2i = _merge_queue.pop_front()
 		var col: ChunkColumn = columns.get(k, null)
 		n += 1
@@ -328,7 +351,7 @@ func _neighbourhood(cx: int, cz: int) -> Array:
 	return cols
 
 func _request_meshes() -> void:
-	if _mesh_ids.size() >= _max_mesh_tasks:
+	if _mesh_ids.size() >= _max_mesh_tasks or _over_budget():
 		return
 	for k in wanted_columns():
 		var col: ChunkColumn = columns.get(k, null)
@@ -368,7 +391,7 @@ func _request_meshes() -> void:
 		}
 		var id := WorkerThreadPool.add_task(_mesh_task.bind(job), false, "chunk mesh")
 		_mesh_ids.append(id)
-		if _mesh_ids.size() >= _max_mesh_tasks:
+		if _mesh_ids.size() >= _max_mesh_tasks or _over_budget():
 			return
 
 func _mesh_task(job: Dictionary) -> void:

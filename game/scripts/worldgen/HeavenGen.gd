@@ -22,8 +22,8 @@ func _features(col: ChunkColumn, ctx: Ctx) -> void:
 	var cloud := block_id("heaven_cloud")
 	if cloud <= 0:
 		return
-	for dz in range(-2, 3):
-		for dx in range(-2, 3):
+	for dz in range(-1, 2):
+		for dx in range(-1, 2):
 			var rx := ctx.cx + dx
 			var rz := ctx.cz + dz
 			var hh := Terrain.hash_seeded(seed + 977, rx, 66, rz)

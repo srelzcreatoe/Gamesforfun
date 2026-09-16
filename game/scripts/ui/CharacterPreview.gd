@@ -18,7 +18,7 @@ var model: Node3D = null
 var spin := 0.5
 var character: Dictionary = {}
 var armor: Array = []
-var auto_spin := true
+var auto_spin: bool = _no_screenshot_arg()
 
 func _init(size_px := Vector2(120, 180)) -> void:
 	stretch = true
@@ -34,7 +34,7 @@ func _init(size_px := Vector2(120, 180)) -> void:
 	pivot = Node3D.new()
 	viewport.add_child(pivot)
 	var cam := Camera3D.new()
-	cam.position = Vector3(0, 1.0, 3.1)
+	cam.position = Vector3(0, 1.0, -3.1)  # models face -Z
 	cam.fov = 38.0
 	cam.near = 0.05
 	viewport.add_child(cam)
@@ -72,7 +72,7 @@ func frame_camera() -> void:
 	var height := maxf(box.size.y, box.size.x * 1.4)
 	var vfov := deg_to_rad(camera.fov)
 	var dist := (height * 0.5) / maxf(0.05, tan(vfov * 0.5)) * 1.18
-	camera.position = Vector3(0.0, center.y, dist)
+	camera.position = Vector3(0.0, center.y, -dist)  # models face -Z
 	camera.look_at_from_position(camera.position, Vector3(0.0, center.y, 0.0), Vector3.UP)
 
 static func _model_aabb(root: Node) -> AABB:
@@ -100,6 +100,7 @@ func _make_model() -> Node3D:
 		return _box_figure()
 	var race := String(character.get("race", "human"))
 	var geo := String(RACE_MODELS.get(race, "entity/races/" + race))
+	geo = String(RaceSkin.race_model(race, String(character.get("gender", "male")), int(character.get("body_type", 0))))
 	var m := BedrockModel.new()
 	if not m.load_geo(geo):
 		m.queue_free()
@@ -146,3 +147,10 @@ func _box_figure() -> Node3D:
 func _process(delta: float) -> void:
 	if auto_spin and pivot != null:
 		pivot.rotate_y(delta * spin)
+
+
+static func _no_screenshot_arg() -> bool:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--screenshot"):
+			return false
+	return true

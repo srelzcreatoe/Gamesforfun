@@ -14,37 +14,37 @@ const MARGIN := 5
 ## 1 in TREE_GATE positions is even considered for a tree (keeps the margin scan cheap).
 const TREE_GATE := 8
 
-var gen: RefCounted = null
+var gen: Variant = null
 var id_lily := 0
 var id_snow_layer := 0
 var id_water := 0
 
-func configure(p_gen: RefCounted) -> void:
+func configure(p_gen) -> void:
 	gen = p_gen
 	id_lily = Registry.block_id("lily_pad")
 	id_snow_layer = Registry.block_id("snow_layer")
 	id_water = Registry.block_id("water")
 
-func decorate(col: ChunkColumn, ctx: RefCounted) -> void:
+func decorate(col: ChunkColumn, ctx) -> void:
 	_trees(col, ctx)
 	_plants(col, ctx)
 	_mobs(col, ctx)
 
 # --- trees -----------------------------------------------------------------
 
-func _trees(col: ChunkColumn, ctx: RefCounted) -> void:
-	var sea := gen.sea_level
+func _trees(col: ChunkColumn, ctx) -> void:
+	var sea: int = gen.sea_level
 	for gz in range(-MARGIN, 16 + MARGIN):
 		for gx in range(-MARGIN, 16 + MARGIN):
-			var wx := ctx.ox + gx
-			var wz := ctx.oz + gz
+			var wx: int = ctx.ox + gx
+			var wz: int = ctx.oz + gz
 			var hh := Terrain.hash_seeded(gen.seed, wx, 3, wz)
 			if hh % TREE_GATE != 0:
 				continue
-			var h := gen.ext_height(ctx, gx, gz)
+			var h: int = gen.ext_height(ctx, gx, gz)
 			if gen.has_sea and h <= sea + 1:
 				continue
-			var def := gen.biome_def_at(ctx, gx, gz)
+			var def: Dictionary = gen.biome_def_at(ctx, gx, gz)
 			var list: Array = def.get("trees", [])
 			if list.is_empty():
 				continue
@@ -70,21 +70,21 @@ func _trees(col: ChunkColumn, ctx: RefCounted) -> void:
 
 # --- plants ----------------------------------------------------------------
 
-func _plants(col: ChunkColumn, ctx: RefCounted) -> void:
-	var sea := gen.sea_level
+func _plants(col: ChunkColumn, ctx) -> void:
+	var sea: int = gen.sea_level
 	for lz in 16:
 		for lx in 16:
 			var i2 := lx + 16 * lz
-			var wx := ctx.ox + lx
-			var wz := ctx.oz + lz
-			var top := ctx.tops[i2]
+			var wx: int = ctx.ox + lx
+			var wz: int = ctx.oz + lz
+			var top: int = ctx.tops[i2]
 			if top < 2 or top >= WorldConst.HEIGHT - 2:
 				continue
-			var def := gen.biome_def_at(ctx, lx, lz)
+			var def: Dictionary = gen.biome_def_at(ctx, lx, lz)
 			var list: Array = def.get("plants", [])
 			if list.is_empty():
 				continue
-			var submerged := ctx.wet[i2] == 1
+			var submerged: bool = ctx.wet[i2] == 1
 			var u := Terrain.hash_unit(gen.seed, wx, 11, wz)
 			var acc := 0.0
 			for p in list:
@@ -95,7 +95,7 @@ func _plants(col: ChunkColumn, ctx: RefCounted) -> void:
 				_place_plant(col, ctx, name, wx, wz, top, submerged, sea)
 				break
 
-func _place_plant(col: ChunkColumn, ctx: RefCounted, name: String, wx: int, wz: int,
+func _place_plant(col: ChunkColumn, ctx, name: String, wx: int, wz: int,
 		top: int, submerged: bool, sea: int) -> void:
 	if name == "":
 		return
@@ -108,7 +108,7 @@ func _place_plant(col: ChunkColumn, ctx: RefCounted, name: String, wx: int, wz: 
 		return
 	if submerged:
 		return
-	var ground := gen.get_world(col, ctx, wx, top - 1, wz)
+	var ground: int = gen.get_world(col, ctx, wx, top - 1, wz)
 	if ground <= 0:
 		return
 	if name == "cactus":
@@ -126,19 +126,19 @@ func _place_plant(col: ChunkColumn, ctx: RefCounted, name: String, wx: int, wz: 
 		return                                   # vines come with jungle trees
 	gen.put_world(col, ctx, wx, top, wz, id, 0, true)
 
-func _near_water(col: ChunkColumn, ctx: RefCounted, wx: int, wy: int, wz: int) -> bool:
+func _near_water(col: ChunkColumn, ctx, wx: int, wy: int, wz: int) -> bool:
 	for d in BlockShapes.FACE_DIR:
 		var v: Vector3i = d
 		if v.y != 0:
 			continue
-		var b := gen.get_world(col, ctx, wx + v.x, wy, wz + v.z)
+		var b: int = gen.get_world(col, ctx, wx + v.x, wy, wz + v.z)
 		if b == id_water:
 			return true
 	return false
 
 # --- mobs ------------------------------------------------------------------
 
-func _mobs(col: ChunkColumn, ctx: RefCounted) -> void:
+func _mobs(col: ChunkColumn, ctx) -> void:
 	var hh := Terrain.hash_seeded(gen.seed + 7717, ctx.cx, 23, ctx.cz)
 	if (hh % 100) >= 9:
 		return
@@ -147,7 +147,7 @@ func _mobs(col: ChunkColumn, ctx: RefCounted) -> void:
 	var i2 := lx + 16 * lz
 	if ctx.wet[i2] == 1:
 		return
-	var def := gen.biome_def_at(ctx, lx, lz)
+	var def: Dictionary = gen.biome_def_at(ctx, lx, lz)
 	var mobs: Array = def.get("mobs", [])
 	if mobs.is_empty():
 		return
@@ -179,7 +179,7 @@ func _mobs(col: ChunkColumn, ctx: RefCounted) -> void:
 		var pi := px + 16 * pz
 		if ctx.wet[pi] == 1:
 			continue
-		var y := ctx.top_any[pi]
+		var y: int = ctx.top_any[pi]
 		col.entities_pending.append({
 			"type": entity,
 			"pos": Vector3(float(ctx.ox + px) + 0.5, float(y), float(ctx.oz + pz) + 0.5),

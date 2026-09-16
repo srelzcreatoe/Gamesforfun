@@ -79,7 +79,7 @@ static func _compute(set_id: String, seed: int) -> Array[Vector3]:
 	return out
 
 ## Drop the balls of `set_id` that belong to this column into entities_pending.
-static func place_in_column(col: ChunkColumn, ctx: RefCounted, set_id: String, gen: RefCounted) -> void:
+static func place_in_column(col: ChunkColumn, ctx, set_id: String, gen) -> void:
 	var list := positions(set_id, gen.seed)
 	for i in list.size():
 		var p: Vector3 = list[i]
