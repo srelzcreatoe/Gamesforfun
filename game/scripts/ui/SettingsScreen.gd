@@ -9,7 +9,7 @@ func _init() -> void:
 
 func build() -> void:
 	UiUtil.ensure_ui_settings()
-	var body := page("Settings")
+	var body := dmz_page("Settings", "saiyan_panorama", "big", true, 900.0 * s)
 	var tabs := UiUtil.hbox(6.0 * s)
 	var pages := Control.new()
 	pages.size_flags_vertical = Control.SIZE_EXPAND_FILL

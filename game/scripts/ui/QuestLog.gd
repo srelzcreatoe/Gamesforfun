@@ -25,7 +25,7 @@ func refresh() -> void:
 	rebuild()
 
 func build() -> void:
-	var body := page("Quest Log")
+	var body := dmz_page("Quest Log", "", "quest")
 	var tabs := UiUtil.hbox(6.0 * s)
 	tabs.add_child(UiUtil.flat_button("Sagas", func() -> void: tab = 0; rebuild(), false, 130.0 * s))
 	tabs.add_child(UiUtil.flat_button("Sidequests", func() -> void: tab = 1; rebuild(), false, 150.0 * s))

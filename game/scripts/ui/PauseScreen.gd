@@ -12,12 +12,17 @@ func build() -> void:
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	add_child(v)
 	content = v
-	v.add_child(UiUtil.label("Paused", UiUtil.font_title(s), UiUtil.TITLE_COLOR, HORIZONTAL_ALIGNMENT_CENTER))
-	var bw := minf(340.0 * s, size.x * 0.6)
-	var rows := UiUtil.vbox(8.0 * s)
+	var title := UiUtil.title_glow("PAUSED", UiUtil.NIGHT_NEON_LIGHT, UiUtil.TITLE_COLOR)
+	title.custom_minimum_size.x = size.x
+	v.add_child(title)
+	var bw := minf(320.0 * s, size.x * 0.55)
+	var frame := UiUtil.dmz_panel("big")
+	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var rows := UiUtil.vbox(7.0 * s)
+	frame.add_child(rows)
 	var center := HBoxContainer.new()
 	center.alignment = BoxContainer.ALIGNMENT_CENTER
-	center.add_child(rows)
+	center.add_child(frame)
 	v.add_child(center)
 	rows.add_child(UiUtil.button("Resume", close_self, bw, 46.0 * s))
 	rows.add_child(UiUtil.button("Settings", func() -> void: Game.ui.call("open", "settings"), bw, 46.0 * s))

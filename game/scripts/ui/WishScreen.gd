@@ -15,7 +15,7 @@ func build() -> void:
 	if cb is Callable:
 		callback = cb
 	var def: Dictionary = Registry.wishes.get(dragon, {}) if Registry != null else {}
-	var body := page("%s awaits" % String(def.get("name", dragon.capitalize())))
+	var body := dmz_page("%s awaits" % String(def.get("name", dragon.capitalize())), "", "big")
 	body.add_child(UiUtil.dim("Speak your wish. You may make %d." % int(def.get("wish_count", 1)), UiUtil.font_small(s)))
 	var list := UiUtil.vbox(6.0 * s)
 	var sc := UiUtil.scroll(list)

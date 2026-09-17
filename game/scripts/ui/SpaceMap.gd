@@ -8,7 +8,7 @@ func _init() -> void:
 	screen_name = "space_map"
 
 func build() -> void:
-	var body := page("Navigation")
+	var body := dmz_page("Navigation", "", "big")
 	body.add_child(UiUtil.dim("Choose a destination.", UiUtil.font_small(s)))
 	var grid := GridContainer.new()
 	grid.columns = maxi(2, int(size.x / (190.0 * s)))

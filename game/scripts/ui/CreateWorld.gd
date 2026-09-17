@@ -19,7 +19,7 @@ func build() -> void:
 	slot = int(args.get("slot", SaveSlots.first_empty()))
 	if slot <= 0:
 		slot = 1
-	var body := page("New Game - Slot %d" % slot)
+	var body := dmz_page("New Game - Slot %d" % slot, "saiyan_panorama", "big", true, 820.0 * s)
 	var wrap := VBoxContainer.new()
 	wrap.add_theme_constant_override("separation", int(8.0 * s))
 	wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

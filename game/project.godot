@@ -31,6 +31,7 @@ Textures="*res://autoload/Textures.gd"
 Audio="*res://autoload/Audio.gd"
 Game="*res://autoload/Game.gd"
 Quests="*res://scripts/quests/QuestBoot.gd"
+Ambient="*res://scripts/ambient/AmbientBoot.gd"
 
 [debug]
 

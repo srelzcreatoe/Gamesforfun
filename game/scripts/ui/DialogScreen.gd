@@ -41,7 +41,9 @@ func build() -> void:
 	var col := UiUtil.vbox(6.0 * s)
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(col)
-	col.add_child(UiUtil.label(_npc_name(), UiUtil.font_body(s), Color(1.0, 0.9, 0.5)))
+	var name_bar := UiUtil.dmz_bar(_npc_name(), 220.0 * s)
+	name_bar.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	col.add_child(name_bar)
 	text_label = UiUtil.label("", UiUtil.font_small(s))
 	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text_label.size_flags_vertical = Control.SIZE_EXPAND_FILL

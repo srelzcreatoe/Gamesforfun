@@ -19,7 +19,7 @@ func refresh() -> void:
 	rebuild()
 
 func build() -> void:
-	var body := page("Dev Menu")
+	var body := dmz_page("Dev Menu", "", "big")
 	body.add_child(UiUtil.dim("Cheats are saved with this slot. Turn Dev mode off in Settings to hide them.",
 		UiUtil.font_small(s)))
 	var names := ["Player", "Items", "World", "Progress", "Debug"]

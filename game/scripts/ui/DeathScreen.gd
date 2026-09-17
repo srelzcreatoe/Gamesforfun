@@ -13,7 +13,9 @@ func build() -> void:
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	add_child(v)
 	content = v
-	v.add_child(UiUtil.label("You were defeated...", UiUtil.font_title(s), Color(1.0, 0.85, 0.85), HORIZONTAL_ALIGNMENT_CENTER))
+	var title := UiUtil.title_glow("YOU WERE DEFEATED", Color(1.0, 0.25, 0.3), Color(1.0, 0.85, 0.85))
+	title.custom_minimum_size.x = size.x
+	v.add_child(title)
 	var killer: Variant = args.get("killer", null)
 	var who := ""
 	if killer != null and killer is Node:
@@ -30,13 +32,15 @@ func build() -> void:
 	var bw := minf(320.0 * s, size.x * 0.6)
 	var center := HBoxContainer.new()
 	center.alignment = BoxContainer.ALIGNMENT_CENTER
+	var frame := UiUtil.dmz_panel("big")
 	var rows := UiUtil.vbox(8.0 * s)
+	frame.add_child(rows)
 	rows.add_child(UiUtil.button("Respawn", _respawn, bw, 46.0 * s))
 	rows.add_child(UiUtil.button("Save & Quit", func() -> void:
 		Game.save_all()
 		Game.ui.call("close_all")
 		Game.quit_to_menu(), bw, 46.0 * s))
-	center.add_child(rows)
+	center.add_child(frame)
 	v.add_child(center)
 
 func _respawn() -> void:

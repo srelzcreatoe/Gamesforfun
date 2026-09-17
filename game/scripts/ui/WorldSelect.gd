@@ -12,7 +12,7 @@ func refresh() -> void:
 	rebuild()
 
 func build() -> void:
-	var body := page("Select Save Slot")
+	var body := dmz_page("Select Save Slot", "saiyan_panorama", "big")
 	body.add_child(UiUtil.dim("Each slot keeps its own world, character and settings.", UiUtil.font_small(s)))
 	var wrap := ScrollContainer.new()
 	wrap.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO

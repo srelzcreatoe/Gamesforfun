@@ -20,7 +20,7 @@ func refresh() -> void:
 
 func build() -> void:
 	tab = clampi(int(args.get("tab", tab)), 0, 3)
-	var body := page("Character")
+	var body := dmz_page("Character", "", "big")
 	var head := UiUtil.hbox(8.0 * s)
 	var ch: Dictionary = Game.profile.get("character", {}) if Game != null else {}
 	var preview := CharacterPreview.new(Vector2(110.0 * s, 150.0 * s))
