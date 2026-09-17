@@ -70,6 +70,10 @@ func set_active(n: int) -> void:
 			anchors[i] = Vector3(0, -9999, 0)
 
 ## Park emitter `i` under a canopy and start it shedding.
+##
+## Writing `amount` or `lifetime` on a CPUParticles3D reallocates its particle array and throws
+## every leaf in the air away, so those two are only touched when the emitter is re-anchored (and
+## only when the value really changed). The per-tick wind refresh goes through `set_wind`.
 func park(i: int, pos: Vector3, color: Color, rate: float, wind: Vector2, wind_gust: float) -> void:
 	if i < 0 or i >= emitters.size():
 		return
@@ -77,13 +81,25 @@ func park(i: int, pos: Vector3, color: Color, rate: float, wind: Vector2, wind_g
 	anchors[i] = pos
 	p.global_position = pos
 	p.color = color
-	var per := maxf(rate, 0.05)
-	p.lifetime = clampf(9.0 - wind_gust * 3.0, 4.5, 9.0)
-	p.amount = clampi(int(ceil(per * p.lifetime)), 1, PER_EMITTER)
-	p.gravity = Vector3(wind.x * (0.35 + wind_gust * 1.4), -0.75 - wind_gust * 0.35, wind.y * (0.35 + wind_gust * 1.4))
+	var life := clampf(9.0 - wind_gust * 3.0, 4.5, 9.0)
+	var want := clampi(int(ceil(maxf(rate, 0.05) * life)), 1, PER_EMITTER)
+	if absf(p.lifetime - life) > 0.5:
+		p.lifetime = life
+	if p.amount != want:
+		p.amount = want
+	set_wind(i, wind, wind_gust)
+	p.emitting = true
+
+## Cheap per-tick refresh: drift direction and tumble only, so a gust shows up immediately
+## without restarting the emitter.
+func set_wind(i: int, wind: Vector2, wind_gust: float) -> void:
+	if i < 0 or i >= emitters.size():
+		return
+	var p := emitters[i]
+	var push := 0.35 + wind_gust * 1.4
+	p.gravity = Vector3(wind.x * push, -0.75 - wind_gust * 0.35, wind.y * push)
 	p.angular_velocity_min = -70.0 - wind_gust * 120.0
 	p.angular_velocity_max = 70.0 + wind_gust * 120.0
-	p.emitting = true
 
 func anchor_of(i: int) -> Vector3:
 	return anchors[i] if i >= 0 and i < anchors.size() else Vector3(0, -9999, 0)

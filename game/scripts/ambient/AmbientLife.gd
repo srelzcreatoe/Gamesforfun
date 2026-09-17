@@ -491,8 +491,9 @@ func _update_leaves() -> void:
 	for i in granted:
 		var a := leaves.anchor_of(i)
 		if a.y > -9000.0 and Vector2(a.x - center.x, a.z - center.z).length() <= DESPAWN:
-			# Still in range: refresh the wind so a gust shows up immediately.
-			leaves.park(i, a, _leaf_colors[i], per, wind_dir, wind_gust)
+			# Still in range: refresh the wind only (re-parking would restart the emitter and
+			# delete every leaf already in the air).
+			leaves.set_wind(i, wind_dir, wind_gust)
 			continue
 		var found := _find_canopy()
 		if found.y < -9000.0:

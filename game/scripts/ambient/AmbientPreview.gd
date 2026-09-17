@@ -56,11 +56,17 @@ func _ready() -> void:
 func _aim_flocks() -> void:
 	if life == null:
 		return
-	var at := camera.global_position if camera != null else Vector3.ZERO
+	if camera == null:
+		return
+	var eye := camera.global_position
+	var fwd := -camera.global_transform.basis.z
 	if life.flock_near != null and life.flock_near.active_count() > 0:
-		life.flock_near.aim(at, 17.0, Vector3(1.0, 0.0, 0.35), 0.43, shot_at)
+		# 38 m ahead and 19 m up: about 25 degrees above the horizon, inside the frame.
+		life.flock_near.aim_at(eye + fwd * 38.0 + Vector3(0, 19.0, 0),
+			Vector3(1.0, 0.0, 0.3), 0.46, shot_at)
 	if life.flock_far != null and life.flock_far.active_count() > 0:
-		life.flock_far.aim(at, 52.0, Vector3(-1.0, 0.0, 0.5), 0.46, shot_at)
+		life.flock_far.aim_at(eye + fwd * 120.0 + Vector3(0, 46.0, 0),
+			Vector3(-1.0, 0.0, 0.4), 0.48, shot_at)
 
 func _parse_args() -> void:
 	for a in OS.get_cmdline_user_args():

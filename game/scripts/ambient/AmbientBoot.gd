@@ -16,6 +16,7 @@ extends Node
 ##   --ambient-weather=<kind>  force World.weather ("rain", "thunder", "snow", ...)
 ##   --ambient-demo            fire the reactive effects on a loop (splash / debris / wisp)
 ##   --ambient-cap=<quads>     override the global quad budget
+##   --ambient-nohud           hide the HUD layer so a verification shot is just the world
 
 const LIFE_SCENE := "res://scenes/ambient/AmbientLife.tscn"
 const NODE_NAME := "AmbientLife"
@@ -31,6 +32,7 @@ var forced_time := -1.0
 var forced_weather := ""
 var demo := false
 var quad_cap := -1
+var hide_hud := false
 
 var _demo_timer := 0.0
 var _demo_step := 0
@@ -103,6 +105,8 @@ func _parse_args() -> void:
 				forced_weather = value
 			"ambient-demo":
 				demo = true
+			"ambient-nohud":
+				hide_hud = true
 			"ambient-cap":
 				if value.is_valid_int():
 					quad_cap = value.to_int()
@@ -183,6 +187,8 @@ func _on_time_changed(ticks: float) -> void:
 # --- frame ------------------------------------------------------------------------------------
 
 func _process(delta: float) -> void:
+	if hide_hud and Game != null and Game.ui != null and Game.ui is CanvasLayer:
+		(Game.ui as CanvasLayer).visible = false
 	if not install_enabled:
 		return
 	if not is_installed():

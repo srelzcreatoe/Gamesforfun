@@ -89,12 +89,12 @@ func reseed(center: Vector3, height: float, side_offset: float) -> void:
 		_mat.set_shader_parameter("heading", heading)
 		_mat.set_shader_parameter("phase", _rng.randf())
 
-## Aim the flock on purpose instead of at random: a heading, a height above `center`, and the
-## point of the pass (0..1) the flock should have reached `at_time` seconds from now. Previews
-## and cinematics use this to put the birds exactly where the camera is looking.
-func aim(center: Vector3, height: float, dir: Vector3, u_at: float, at_time: float) -> void:
+## Aim the flock on purpose instead of at random: it flies along `dir` and is exactly at
+## `point` `at_time` seconds from now (`u_at` says how far through the pass that is, 0.5 = the
+## middle of it). Previews and cinematics use this to put the birds where the camera is looking.
+func aim_at(point: Vector3, dir: Vector3, u_at: float, at_time: float) -> void:
 	heading = dir.normalized() if dir.length() > 0.001 else Vector3.RIGHT
-	origin = Vector3(center.x, center.y + height, center.z)
+	origin = point - heading * ((u_at - 0.5) * span)
 	if _mat != null:
 		_mat.set_shader_parameter("origin", origin)
 		_mat.set_shader_parameter("heading", heading)
