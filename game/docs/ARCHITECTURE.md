@@ -205,7 +205,7 @@ var planet_id: String; var seed: int; var time_ticks: float; var weather: String
 func get_block(x: int, y: int, z: int) -> int          # 0 outside loaded/height
 func get_block_v(p: Vector3i) -> int
 func set_block(x: int, y: int, z: int, id: int, meta := 0, notify := true) -> void   # marks dirty sections (and neighbours on borders), relights, emits Events.block_changed
-func get_meta(x, y, z) -> int ; func set_meta(x, y, z, v: int) -> void
+func get_block_meta(x, y, z) -> int ; func set_block_meta(x, y, z, v: int) -> void   # (not get_meta/set_meta: those collide with Object)
 func get_light(x, y, z) -> int    # max(sky*daylight, block) 0..15 used for entity shading
 func get_sky_light(x, y, z) -> int ; func get_block_light(x, y, z) -> int
 func get_height(x: int, z: int) -> int      # first air above ground (spawn height)

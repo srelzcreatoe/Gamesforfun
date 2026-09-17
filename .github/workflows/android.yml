@@ -1,0 +1,124 @@
+# Builds the Android APK with Godot 4.4.1 and uploads it as a workflow
+# artifact (Actions tab -> the run -> "Artifacts"), because the ~140 MB file
+# is too large to hand over in chat.
+#
+# Triggers: manual (Actions tab -> "Android APK" -> Run workflow) or a tag
+# that starts with "preview-" or "v".
+name: Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["preview-*", "v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  GODOT_VERSION: 4.4.1
+  GODOT_RELEASE: stable
+
+jobs:
+  apk:
+    name: Export debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Cache Godot editor + export templates
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-${{ env.GODOT_RELEASE }}-linux-v1
+
+      - name: Download Godot editor + export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          V="${GODOT_VERSION}-${GODOT_RELEASE}"
+          BASE="https://github.com/godotengine/godot/releases/download/${V}"
+          mkdir -p ~/godot && cd ~/godot
+          curl -sSfL -o godot.zip "${BASE}/Godot_v${V}_linux.x86_64.zip"
+          unzip -q godot.zip && rm godot.zip
+          chmod +x "Godot_v${V}_linux.x86_64"
+          T="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_RELEASE}"
+          mkdir -p "$T"
+          curl -sSfL -o /tmp/templates.tpz "${BASE}/Godot_v${V}_export_templates.tpz"
+          unzip -q /tmp/templates.tpz -d /tmp/tpz && rm /tmp/templates.tpz
+          mv /tmp/tpz/templates/* "$T"/
+          ls "$T" | head
+
+      - name: Configure Android SDK path + debug keystore
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "Android SDK: $SDK"; ls "$SDK/build-tools" | tail -3
+          keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android \
+            -keystore "$HOME/debug.keystore" -storepass android \
+            -dname "CN=Android Debug,O=Android,C=US" -validity 9999
+          mkdir -p ~/.config/godot
+          cat > ~/.config/godot/editor_settings-4.4.tres <<EOT
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$SDK"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/debug_keystore = "$HOME/debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOT
+          cat ~/.config/godot/editor_settings-4.4.tres
+
+      - name: Cache imported assets
+        uses: actions/cache@v4
+        with:
+          path: game/.godot
+          key: godot-import-${{ env.GODOT_VERSION }}-${{ hashFiles('game/assets/**', 'game/project.godot') }}
+          restore-keys: |
+            godot-import-${{ env.GODOT_VERSION }}-
+
+      - name: Import project (textures, audio, script class cache)
+        run: |
+          set -euo pipefail
+          G="$HOME/godot/Godot_v${GODOT_VERSION}-${GODOT_RELEASE}_linux.x86_64"
+          "$G" --headless --path game --import 2>&1 | grep -vE "ALSA|libpulse|audio_driver|dummy driver|snd_" | tail -20 || true
+          # A second editor pass refreshes the global script class cache for any new class_name.
+          "$G" --headless --path game --editor --quit 2>&1 | grep -iE "error|script" | head -20 || true
+          test -f game/.godot/global_script_class_cache.cfg
+          grep -c "class=" game/.godot/global_script_class_cache.cfg
+
+      - name: Export debug APK
+        run: |
+          set -euo pipefail
+          G="$HOME/godot/Godot_v${GODOT_VERSION}-${GODOT_RELEASE}_linux.x86_64"
+          SHORT="${GITHUB_SHA::7}"
+          OUT="$PWD/build/DragonBlockSagas-${SHORT}.apk"
+          mkdir -p build
+          "$G" --headless --path game --export-debug Android "$OUT" 2>&1 \
+            | grep -vE "ALSA|libpulse|audio_driver|dummy driver|snd_" | tee /tmp/export.log | tail -40 || true
+          test -s "$OUT" || { echo "::error::APK was not produced"; cat /tmp/export.log; exit 1; }
+          ls -la build
+          echo "SHORT=$SHORT" >> "$GITHUB_ENV"
+
+      - name: Upload APK as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DragonBlockSagas-${{ env.SHORT }}
+          path: build/*.apk
+          retention-days: 90
+          compression-level: 0
