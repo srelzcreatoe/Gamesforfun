@@ -712,9 +712,13 @@ func _flicker_hair(on: bool) -> void:
 				_hair_accent_base = _hair_accent_mat.albedo_color
 			_hair_base_set = true
 		_paint_hair(hair, c, _hair_base, on)
-		# a two tone style (gold accent spikes) flickers with the main hair, a shade lighter
+		# A two tone style's accent spikes flicker with the main hair, derived from the
+		# FORM colour the same way `HairBuilder.accent_color` derives an undeclared
+		# accent (`main.lightened(0.45)`). The authored accent is deliberately not used
+		# here: it is an absolute colour (gotenks' gold), and a form repaints the whole
+		# head, so a blue or red form would keep a clashing gold streak.
 		if _hair_accent_mat != null and is_instance_valid(_hair_accent_mat):
-			_paint_hair(_hair_accent_mat, c.lerp(Color.WHITE, 0.35), _hair_accent_base, on)
+			_paint_hair(_hair_accent_mat, c.lightened(0.45), _hair_accent_base, on)
 		return
 	if model.has_method("has_bone") and model.has_method("set_bone_material") and model.has_method("get_texture"):
 		var tex: Variant = model.call("get_texture")

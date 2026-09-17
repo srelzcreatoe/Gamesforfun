@@ -28,7 +28,9 @@ const SPAWN_MAX := 24.0
 const NEAR_MIN := 2.0
 const NEAR_MAX := 15.0
 const DESPAWN := 40.0
-const MOVES_PER_TICK := 14
+## Re-homing a speck costs a handful of World.get_height/get_block calls, so the number of them
+## per tick is what bounds the worst-case tick (a player who just teleported re-homes everything).
+const MOVES_PER_TICK := 8
 const CANOPY_SAMPLES := 8
 const CANOPY_DEPTH := 5
 const CANOPY_RADIUS := 11.0
