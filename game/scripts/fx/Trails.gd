@@ -98,8 +98,6 @@ func dash(direction := Vector3.ZERO) -> void:
 	if _dash_cooldown > 0.0 or not is_inside_tree():
 		return
 	_dash_cooldown = 0.12
-	var parent := get_parent_node_3d()
-	var host: Node = entity.get_parent() if entity != null and entity.get_parent() != null else self
 	if entity is Node3D:
 		var from: Vector3 = (entity as Node3D).global_position
 		var dir := direction
