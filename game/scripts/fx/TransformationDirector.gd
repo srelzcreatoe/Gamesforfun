@@ -730,6 +730,11 @@ func _flicker_hair(on: bool) -> void:
 func _hair_material(model: Node3D) -> StandardMaterial3D:
 	if _hair_mat != null and is_instance_valid(_hair_mat):
 		return _hair_mat
+	if model is BedrockModel:
+		var hm: StandardMaterial3D = HairBuilder.hair_material(model as BedrockModel)
+		if hm != null:
+			_hair_mat = hm
+			return _hair_mat
 	if not model.has_method("get_bone"):
 		return null
 	var head: Variant = model.call("get_bone", "head")

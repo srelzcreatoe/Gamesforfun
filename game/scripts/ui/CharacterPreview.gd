@@ -82,9 +82,11 @@ func frame_camera() -> void:
 		box = _model_aabb(model)
 	if box.size.y <= 0.01 or not is_finite(box.size.y):
 		box = AABB(Vector3(-0.4, 0.0, -0.4), Vector3(0.8, 1.9, 0.8))
-	# Fit a fixed 3.0 m tall box (feet on the box floor) rather than the exact model height, so
-	# the figure keeps the same size as the player cycles hair (bald .. broly is ~1 block taller).
-	var fit_h := maxf(box.size.y, 3.0)
+	# Fit a fixed 3.1 m tall box (feet on the box floor) rather than the exact model height, so the
+	# figure keeps the same size as the player cycles hair: the base styles run 2.05 m (bald) to
+	# 3.06 m (broly). Transformed hair is taller (flame@ssj2 3.48), so grow past the constant when
+	# the measured box needs it instead of cropping the crown.
+	var fit_h := maxf(3.1, box.size.y * 1.02)
 	box = AABB(Vector3(box.position.x, box.position.y, box.position.z),
 		Vector3(maxf(box.size.x, 0.1), fit_h, maxf(box.size.z, 0.1)))
 	var center := box.position + box.size * 0.5

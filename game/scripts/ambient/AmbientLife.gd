@@ -31,7 +31,7 @@ const DESPAWN := 40.0
 const MOVES_PER_TICK := 14
 const CANOPY_SAMPLES := 8
 const CANOPY_DEPTH := 5
-const CANOPY_RADIUS := 16.0
+const CANOPY_RADIUS := 11.0
 const FOOTSTEP_STRIDE := 1.8
 const PROFILE_PERIOD := 5.0
 
@@ -372,7 +372,7 @@ func _configure_mote_field(field: AmbientMotes, kind: String) -> void:
 	# configure(kind, colour, sprite, size, glow, wander, radius, rise, blink, fade_end)
 	match kind:
 		AmbientRules.MOTE_POLLEN:
-			field.configure(kind, c, dot, 0.11, 1.7, 0.35, 1.5, 0.045, 0.0, 24.0)
+			field.configure(kind, c, dot, 0.14, 2.2, 0.35, 1.5, 0.045, 0.0, 24.0)
 		AmbientRules.MOTE_DUST:
 			field.configure(kind, c, dot, 0.09, 1.2, 0.5, 2.2, 0.03, 0.0, 26.0)
 		AmbientRules.MOTE_SNOW:

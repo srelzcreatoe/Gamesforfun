@@ -178,6 +178,9 @@ static func leaf_color(block_id: int, biome_def: Dictionary) -> Color:
 	if tinted:
 		var f := hex_color(String(biome_def.get("foliage_color", "")), Color(0.47, 0.67, 0.18))
 		base = Color(base.r * f.r * 1.9, base.g * f.g * 1.9, base.b * f.b * 1.9)
+	# A leaf lit from behind is paler than the canopy it fell out of; without this lift a dark
+	# conifer leaf is invisible against the dark conifer it came from.
+	base = base.lerp(Color(1, 1, 1), 0.22)
 	return Color(clampf(base.r, 0.0, 1.0), clampf(base.g, 0.0, 1.0), clampf(base.b, 0.0, 1.0), 1.0)
 
 # --- meshes -----------------------------------------------------------------------------------

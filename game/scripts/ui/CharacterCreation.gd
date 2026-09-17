@@ -23,6 +23,9 @@ var preview: CharacterPreview = null
 var desc_label: Label = null
 var world_info: Dictionary = {}
 var slot := 1
+## Every arrow row's value refresh, replayed by `_update()` so the labels always show the same
+## index the preview model is built from (the race defaults change hair_i after the rows exist).
+var _row_refresh: Array[Callable] = []
 
 func _init() -> void:
 	screen_name = "character_creation"
@@ -40,6 +43,7 @@ func build() -> void:
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.add_child(row)
 
+	_row_refresh.clear()
 	# left: preview
 	var left := UiUtil.vbox(6.0 * s)
 	var pw := clampf(size.x * 0.26, 170.0, 300.0)
@@ -151,9 +155,10 @@ func _arrow_row(text: String, options: Array, get_i: Callable, set_i: Callable,
 	value_box.add_child(value)
 	var refresh := func() -> void:
 		var i: int = int(get_i.call())
-		value.text = String(options[clampi(i, 0, options.size() - 1)]) if options.size() > 0 else ""
+		value.text = String(options[posmod(i, options.size())]) if options.size() > 0 else ""
 		if pic != null:
 			pic.texture = UiUtil.race_icon(String(races[clampi(race_i, 0, races.size() - 1)]))
+	_row_refresh.append(refresh)
 	var step := func(d: int) -> void:
 		if options.is_empty():
 			return
@@ -184,7 +189,7 @@ func _apply_race_defaults() -> void:
 	hair_c = hi if hi >= 0 else 0
 	hair_i = clampi(int(r.get("defaultHairType", r.get("default_hair_type", 1))), 0, _hair_count() - 1)
 
-## Every hair style the entity engineer's HairBuilder exposes (8 today), not a fixed six.
+## Every hair style the entity engineer's HairBuilder exposes (12 today), not a fixed six.
 func _hair_count() -> int:
 	if ResourceLoader.exists(HAIR_BUILDER):
 		var hb: GDScript = load(HAIR_BUILDER)
@@ -218,6 +223,9 @@ func character() -> Dictionary:
 	}
 
 func _update() -> void:
+	for r in _row_refresh:
+		if r.is_valid():
+			r.call()
 	if preview != null:
 		preview.set_character(character())
 		preview.call_deferred("frame_camera")
