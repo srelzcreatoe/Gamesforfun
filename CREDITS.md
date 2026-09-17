@@ -23,6 +23,7 @@ DMZ Plus data and assets it ports).
 | **Nature's Spirit 2.2.5** by Team Hibiscus (user-supplied) | Wood/leaf/plant textures for redwood, maple, wisteria, palm, cypress, aspen, fir, sugi, willow, joshua, lavender; biome designs (names, colours, tree shapes) re-implemented in GDScript | assets: All Rights Reserved (as distributed by its author); code MIT (none used) |
 | **Serious Player Animations 1.2.0** by McVader (user-supplied) | Player animations (Bedrock format) used only for states DragonMineZ does not cover | MIT |
 | **Monocraft** by Idrees Hassan (https://github.com/IdreesInc/Monocraft) | UI font | SIL Open Font License 1.1 |
+| **Night City Inventory GUI** (1.21.3) by Myth6 | inventory screen skin, empty armour-slot icons (`textures/gui/nightcity/`) | user-supplied resource pack, no licence stated: used with the pack owner's permission, not redistributable |
 | **Complementary Reimagined r5.9.2** by EminGT (user-supplied) | Studied as a *reference* for the sky, water, cloud and tonemapping look. No code or textures from the pack are included. | Complementary License 1.7 (redistribution of its code is not permitted) |
 
 The DragonMineZ sound folder contains 39 tracks whose in-mod titles reference the

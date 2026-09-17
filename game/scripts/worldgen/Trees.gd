@@ -38,10 +38,17 @@ const WOOD := {
 	"joshua": ["joshua_log", "joshua_leaves"],
 }
 
+## True when a feature of radius `r` around (wx, wz) can reach the column being generated.
+static func reaches(ctx, wx: int, wz: int, r: int) -> bool:
+	return wx + r >= int(ctx.ox) and wx - r <= int(ctx.ox) + 15 \
+		and wz + r >= int(ctx.oz) and wz - r <= int(ctx.oz) + 15
+
 ## Stamp one tree. `base` is the first air y above the ground, `hh` a deterministic hash.
 static func place(gen, col: ChunkColumn, ctx, kind: String,
 		wx: int, base: int, wz: int, hh: int) -> void:
 	if base < 2 or base > HEIGHT - 8:
+		return
+	if not reaches(ctx, wx, wz, 8):
 		return
 	match kind:
 		"cactus":
@@ -472,16 +479,23 @@ static func _joshua(gen, col: ChunkColumn, ctx, wx: int, base: int, wz: int, hh:
 				gen.put_world(col, ctx, bx + dx2, cy, bz + dz2, leaf_id, 0, true)
 		gen.put_world(col, ctx, bx, cy + 1, bz, leaf_id, 0, true)
 
-## Leaf ellipsoid with hash-trimmed corners, only into air.
+## Leaf ellipsoid with hash-trimmed corners, only into air. The dx/dz ranges are clipped to
+## the column being generated, so a tree rooted in a neighbour costs almost nothing here.
 static func _ellipsoid(gen, col: ChunkColumn, ctx,
 		cx: int, cy: int, cz: int, r: int, ry: int, leaf_id: int, hh: int) -> void:
 	if leaf_id <= 0:
 		return
+	var dx0: int = maxi(-r, int(ctx.ox) - cx)
+	var dx1: int = mini(r, int(ctx.ox) + 15 - cx)
+	var dz0: int = maxi(-r, int(ctx.oz) - cz)
+	var dz1: int = mini(r, int(ctx.oz) + 15 - cz)
+	if dx0 > dx1 or dz0 > dz1:
+		return
 	var rf := float(r) + 0.35
 	var ryf := float(ry) + 0.35
 	for dy in range(-ry, ry + 1):
-		for dz in range(-r, r + 1):
-			for dx in range(-r, r + 1):
+		for dz in range(dz0, dz1 + 1):
+			for dx in range(dx0, dx1 + 1):
 				var fx := float(dx) / rf
 				var fy := float(dy) / ryf
 				var fz := float(dz) / rf

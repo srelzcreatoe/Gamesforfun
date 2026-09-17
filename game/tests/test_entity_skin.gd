@@ -85,46 +85,35 @@ func test_apply_to_hides_armor_and_attaches_hair() -> void:
 		if model.has_bone(bone):
 			assert_true(not model.is_bone_visible(bone), "%s hidden without armor" % bone)
 	assert_true(not model.is_bone_visible("tail1"), "tail hidden for a character without a tail")
-	var hair: Node = model.get_bone("head").get_node_or_null("Hair")
-	assert_true(hair != null, "hair attachment created on the head bone")
-	var hm: BedrockModel = hair as BedrockModel
-	assert_true(hm != null and hm.nested, "the hair model is nested (no extra 1/16 scale)")
-	var visible := 0
-	for n in RaceSkin.HAIR_STYLES[2]:
-		if hm.is_bone_mesh_visible(String(n)):
-			visible += 1
-	assert_eq(visible, RaceSkin.HAIR_STYLES[2].size(), "every bone of hair style 2 is visible")
-	assert_true(not hm.is_bone_mesh_visible("hair30"), "bones outside the style stay hidden")
-	assert_true(not hm.is_bone_mesh_visible("head"), "the hair rig's own head box is not drawn")
-	# the hair sits on the head, not at the feet
-	var box := hm.visual_aabb()
-	assert_true(box.size.y > 0.0, "hair has geometry")
+	var hair: MeshInstance3D = model.get_bone("head").get_node_or_null("Hair")
+	assert_true(hair != null and hair.mesh != null, "voxel hair attached to the head bone")
+	assert_eq(HairBuilder.current_style(model), HairBuilder.style_id(2), "style follows hair_type")
 
 func test_hair_styles_are_distinct() -> void:
 	var seen: Array = []
-	for i in RaceSkin.HAIR_STYLE_COUNT:
-		var bones: Array = RaceSkin.hair_bones_for(i)
-		assert_true(not seen.has(bones), "hair style %d is distinct" % i)
-		seen.append(bones)
-	assert_true(RaceSkin.hair_bones_for(0).is_empty(), "style 0 is bald")
-	assert_true(RaceSkin.hair_bones_for(5).size() > 10, "style 5 is a full spiky head of hair")
+	for i in HairBuilder.style_count():
+		var id := HairBuilder.style_id(i)
+		assert_true(not seen.has(id), "style %d (%s) is distinct" % [i, id])
+		seen.append(id)
+	assert_eq(HairBuilder.style_id(0), "bald", "index 0 is bald")
+	assert_eq(HairBuilder.style_mesh("bald"), null, "bald builds nothing")
+	for id in seen:
+		if id != "bald":
+			assert_true(HairBuilder.style_mesh(String(id)) != null, "%s has geometry" % id)
 
-func test_form_visuals_scale_the_hair() -> void:
+func test_form_visuals_swap_the_hair_style() -> void:
 	model = BedrockModel.new()
 	add_node(model)
 	model.load_geo("entity/races/human")
 	RaceSkin.apply_to(model, _character())
-	var hm: BedrockModel = model.get_bone("head").get_node_or_null("Hair")
-	assert_true(hm != null)
-	var before := hm.scale
+	var before := HairBuilder.current_style(model)
 	RaceSkin.apply_form_visuals(model, {"hairType": 3, "hairColor": "#ffe14d", "modelScaling": 1.0})
-	assert_true(hm.scale.y > before.y, "ssj3 hair is taller: %s -> %s" % [before, hm.scale])
-	var lit := 0
-	for n in RaceSkin.hair_bones_for(5):
-		var mat := hm.bone_material(String(n))
-		if mat != null and mat.albedo_color.r > 0.8 and mat.albedo_color.b < 0.6:
-			lit += 1
-	assert_true(lit > 3, "hair colour applied to the bone materials: %d" % lit)
+	var after := HairBuilder.current_style(model)
+	assert_ne(after, before, "the form swapped the hair style (%s -> %s)" % [before, after])
+	assert_eq(after, HairBuilder.form_style_id(3), "ssj3 hair")
+	assert_true(HairBuilder.style_height(after) > HairBuilder.style_height(before), "ssj3 hair is taller")
+	var mat: StandardMaterial3D = (model.get_bone("head").get_node_or_null("Hair") as MeshInstance3D).material_override
+	assert_true(mat.albedo_color.r > 0.8 and mat.albedo_color.b < 0.6, "gold hair colour")
 
 func test_armor_layers_use_the_armor_bones() -> void:
 	model = BedrockModel.new()
@@ -222,22 +211,46 @@ func test_character_fields_tolerate_strings_and_floats() -> void:
 	add_node(model)
 	model.load_geo(RaceSkin.race_model("saiyan"))
 	RaceSkin.apply_to(model, loose)
-	var hm: BedrockModel = model.get_bone("head").get_node_or_null("Hair")
-	assert_true(hm != null, "hair attached with a float hair_type")
-	assert_true(hm.is_bone_mesh_visible("hair2"), "hair_type 2.0 resolved to style 2")
+	var hm: MeshInstance3D = model.get_bone("head").get_node_or_null("Hair")
+	assert_true(hm != null and hm.mesh != null, "hair attached with a float hair_type")
+	assert_eq(HairBuilder.current_style(model), HairBuilder.style_id(2), "hair_type 2.0 resolved to style 2")
 
-func test_normal_hair_hugs_the_skull() -> void:
-	# the head cube ends at y = 32 (2 m model); only the mohawk and the Super
-	# Saiyan form sets may tower above it
+func test_hair_builder_styles_build_geometry() -> void:
+	assert_true(HairBuilder.style_count() >= 8, "8 selectable styles: %d" % HairBuilder.style_count())
+	for i in HairBuilder.style_count():
+		var id := HairBuilder.style_id(i)
+		assert_ne(id, "", "style %d has an id" % i)
+		var mesh := HairBuilder.style_mesh(id)
+		if id == "bald":
+			assert_eq(mesh, null, "bald has no geometry")
+			continue
+		assert_true(mesh != null, "%s builds a mesh" % id)
+		var aabb := mesh.get_aabb()
+		# head-local model units: the skull is x[-4,4] y[0,8] z[-4,4]
+		assert_true(aabb.position.y + aabb.size.y > 7.0, "%s sits on top of the skull (top %.1f)" % [id, aabb.position.y + aabb.size.y])
+		# long styles fall down the back; anything past the knees is a runaway strand
+		assert_true(aabb.position.y > -30.0, "%s does not run away downwards (bottom %.1f)" % [id, aabb.position.y])
+		assert_true(aabb.size.x < 26.0 and aabb.size.z < 26.0, "%s stays near the head (%s)" % [id, aabb.size])
+	# the SSJ variants are taller than the base spiky style
+	var base_h := HairBuilder.style_height("spiky")
+	for f in [1, 2, 3]:
+		var sid := HairBuilder.form_style_id(f)
+		assert_true(HairBuilder.style_height(sid) > base_h, "%s (form %d) is taller than the base hair" % [sid, f])
+	assert_true(HairBuilder.hides_eyebrows("ssj3"), "ssj3 loses the eyebrows like in DMZ")
+
+func test_hair_attaches_to_the_head_bone() -> void:
 	model = BedrockModel.new()
 	add_node(model)
 	model.load_geo("entity/races/human")
-	for style in [1, 2, 3, 4, 5, 7]:
-		RaceSkin.apply_to(model, _character({"hair_type": style}))
-		var hm: BedrockModel = model.get_bone("head").get_node_or_null("Hair")
-		assert_true(hm != null, "hair for style %d" % style)
-		# the hair is a NESTED model (scale 1), so visual_aabb() is already in model units
-		var box := hm.visual_aabb()
-		var top := box.position.y + box.size.y
-		assert_true(top < 34.0, "style %d tops out at y=%.1f model units (head ends at 32)" % [style, top])
-		assert_true(box.size.x < 16.0, "style %d is %.1f units wide" % [style, box.size.x])
+	RaceSkin.apply_to(model, _character({"hair_type": 2, "hair_color": "#221a14"}))
+	var head: Node3D = model.get_bone("head")
+	var hair: MeshInstance3D = head.get_node_or_null("Hair")
+	assert_true(hair != null and hair.mesh != null, "hair mesh on the head bone")
+	assert_eq(HairBuilder.current_style(model), HairBuilder.style_id(2))
+	var mat: StandardMaterial3D = hair.material_override
+	assert_true(mat != null and mat.albedo_texture != null, "hair tile texture")
+	assert_near(mat.albedo_color.r, Color("#221a14").r, 0.01, "hair colour on the material")
+	# a form swaps the style and the colour without rebuilding the model
+	RaceSkin.apply_form_visuals(model, {"hairType": 1, "hairColor": "#f5d03a", "modelScaling": 1.0})
+	assert_eq(HairBuilder.current_style(model), HairBuilder.form_style_id(1), "ssj hair after transforming")
+	assert_true((hair.material_override as StandardMaterial3D).albedo_color.r > 0.8, "gold hair")

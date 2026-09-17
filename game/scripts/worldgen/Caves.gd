@@ -24,6 +24,8 @@ var cheese_squash := 1.7
 var tunnel_squash := 2.3
 ## Highest y that may be carved is (column top - surface_margin).
 var surface_margin := 4
+## Highest y the carver touches.
+var ceiling := 96
 
 var _cheese := FastNoiseLite.new()
 var _tun_a := FastNoiseLite.new()
@@ -59,7 +61,9 @@ func carve_list(cx: int, cz: int, tops: PackedInt32Array) -> PackedInt32Array:
 	for i in 256:
 		if tops[i] > max_top:
 			max_top = tops[i]
-	var y_top: int = clampi(max_top - surface_margin, 0, HEIGHT - 1)
+	# Nothing above `ceiling` is carved: mountain cores are never seen and the lattice cost
+	# grows with height.
+	var y_top: int = clampi(mini(max_top - surface_margin, ceiling), 0, HEIGHT - 1)
 	if y_top < 4:
 		return out
 	var levels: int = (y_top >> 2) + 1              # sample planes at y = 0, 4, ... levels*4

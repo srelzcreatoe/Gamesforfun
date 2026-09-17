@@ -100,9 +100,29 @@ static func apply_cmdline_flags() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a == "--demo":
 			ensure_demo_profile()
+		elif a == "--slots":
+			_seed_demo_slots()
 		elif a == "--dev":
 			Game.settings["dev_mode"] = true
 			Game.settings["show_coordinates"] = true
+
+## `--slots`: fill two save slots so the slot screen can be screenshotted.
+static func _seed_demo_slots() -> void:
+	if SaveSlots.is_used(1):
+		return
+	SaveSlots.create(1, "Kame House", "42", "story", "normal", true)
+	var a := ProfileFactory.new_profile("Kakarot", "saiyan", "male", "warrior")
+	a["play_time"] = 7830.0
+	a["stats"] = {"STR": 24, "SKP": 18, "STM": 20, "RES": 16, "VIT": 26, "PWR": 22, "ENE": 19}
+	SaveSlots.write_profile(1, a)
+	SaveSlots.create(3, "Namek Run", "7", "creative", "hard", false)
+	var b := ProfileFactory.new_profile("Piccolo", "namekian", "male", "defender")
+	b["play_time"] = 640.0
+	b["position"]["planet"] = "namek"
+	SaveSlots.write_profile(3, b)
+	var info := SaveSlots.world_info(3)
+	info["planet"] = "namek"
+	JsonUtil.save_file(Game.world_dir(SaveSlots.slug(3)).path_join("world.json"), info, true)
 
 static func setting(key: String, fallback: Variant = null) -> Variant:
 	if Game == null:

@@ -99,8 +99,9 @@ func _make_model() -> Node3D:
 	if not ResourceLoader.exists(BEDROCK_MODEL) or not ResourceLoader.exists(RACE_SKIN):
 		return _box_figure()
 	var race := String(character.get("race", "human"))
-	var geo := String(RACE_MODELS.get(race, "entity/races/" + race))
-	geo = String(RaceSkin.race_model(race, String(character.get("gender", "male")), int(character.get("body_type", 0))))
+	# RaceSkin owns the geometry choice (race + gender + body type).
+	var geo := String(RaceSkin.race_model(race, String(character.get("gender", "male")),
+		int(character.get("body_type", 0))))
 	var m := BedrockModel.new()
 	if not m.load_geo(geo):
 		m.queue_free()

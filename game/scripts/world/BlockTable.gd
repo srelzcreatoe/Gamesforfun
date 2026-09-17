@@ -44,7 +44,7 @@ static var variant_layers: Array = []         # id -> PackedInt32Array
 static var stage_layers: Array = []           # id -> PackedInt32Array (crop growth stages)
 static var flow_layer := PackedInt32Array()   # liquids: layer of the flowing texture
 static var flow_frames := PackedInt32Array()
-static var sway := PackedByteArray()          # 1 -> the cutout shader lets the wind move it
+static var sway := PackedByteArray()          # 0 none, 1 plant (bends at the tip), 2 leaves (whole block)
 static var names := PackedStringArray()
 static var emissive_ids := PackedInt32Array()
 static var water_id := -1
@@ -93,7 +93,14 @@ static func build() -> void:
 		if atten[id] == 0 and sh == Shape.CUTOUT_CUBE:
 			atten[id] = 1                 # leaves/glass panes dim the sunlight like in Minecraft
 		var material := String(b.get("material", "stone"))
-		sway[id] = 1 if (sh == Shape.CROSS or sh == Shape.CROP or material == "leaves") else 0
+		# Wind mode for the cutout shader: plants bend from their base, leaf blocks drift as a
+		# whole so neighbouring leaf cubes stay welded together.
+		if material == "leaves":
+			sway[id] = 2
+		elif sh == Shape.CROSS or sh == Shape.CROP:
+			sway[id] = 1
+		else:
+			sway[id] = 0
 		tint[id] = TINT_NAMES.get(String(b.get("tint", "none")), Tint.NONE)
 		var h := float(b.get("height", 1.0))
 		if sh == Shape.SLAB_BOTTOM:

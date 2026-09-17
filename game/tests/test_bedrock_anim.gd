@@ -168,3 +168,38 @@ func test_performance_per_entity() -> void:
 	var us := float(Time.get_ticks_usec() - t0) / float(n)
 	print("      animation update: %.3f ms per animated entity (base.walk, %d bones)" % [us / 1000.0, anim.resolve("base.walk").bones.size()])
 	assert_true(us < 200.0, "%.1f us per entity update is too slow" % us)
+
+func test_spa_pack_loads_with_bone_remap() -> void:
+	var n := anim.load_clips("spa/player", BedrockAnimation.REMAP_SPA)
+	assert_true(anim.has_clip("spa.walking"), "spa.walking loaded (clips now %d)" % n)
+	assert_true(anim.has_clip("spa.crawling") and anim.has_clip("spa.climbing"), "crawl/climb")
+	assert_true(anim.has_clip("spa.idle_sneak") and anim.has_clip("spa.sleeping"), "sneak/sleep")
+	# bones were renamed onto the DMZ rig
+	var clip := anim.resolve("spa.walking")
+	assert_true(clip.bones.has("right_arm") and clip.bones.has("left_leg"), "remapped bones: %s" % str(clip.bone_names))
+	assert_true(not clip.bones.has("rightArm"), "vanilla names are gone")
+	# the 20 fps outlier was rescaled to seconds on import
+	assert_true(clip.length > 0.2 and clip.length < 2.0, "walking length %.2f s" % clip.length)
+	# and it actually animates the arms
+	var a := anim.sample_channel("spa.walking", "right_arm", "rotation", 0.15)
+	var b := anim.sample_channel("spa.walking", "right_arm", "rotation", 0.45)
+	assert_true(a != b, "spa.walking swings the right arm (%s vs %s)" % [a, b])
+
+func test_anim_select_prefers_dmz_and_falls_back_to_spa() -> void:
+	anim.load_clips("entity/races/combat")
+	anim.load_clips("spa/player", BedrockAnimation.REMAP_SPA)
+	# DMZ wins where DMZ has a clip
+	assert_eq(AnimSelect.choose("walk", anim), "base.walk")
+	assert_eq(AnimSelect.choose("idle", anim), "base.idle")
+	assert_eq(AnimSelect.choose("ki_charge", anim), "base.ki_charge")
+	assert_eq(AnimSelect.choose("fly_forward", anim), "base.fly_front")
+	# SPA fills the gaps
+	assert_eq(AnimSelect.choose("crawl_back", anim), "spa.crawling_backwards")
+	assert_eq(AnimSelect.choose("climb_idle", anim), "spa.idle_climbing")
+	assert_eq(AnimSelect.choose("sleep", anim), "spa.sleeping")
+	assert_eq(AnimSelect.choose("turn_left", anim), "spa.turn_left")
+	# forcing the SPA variant
+	assert_eq(AnimSelect.choose("walk", anim, true), "spa.walking")
+	# unknown state -> ""
+	assert_eq(AnimSelect.choose("nonsense_state", anim), "")
+	assert_true(AnimSelect.available(anim).size() > 40, "most states resolve")

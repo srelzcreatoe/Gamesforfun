@@ -584,30 +584,33 @@ func bone_count() -> int:
 ## Union of every visible bone mesh in the rest pose, in METRES, relative to the
 ## model origin (feet at y = 0). Used for camera framing, name tags and health bars.
 func visual_aabb() -> AABB:
-	var out := AABB()
-	var first := true
-	for name in meshes.keys():
-		var mi: MeshInstance3D = meshes[name]
-		var node: Node3D = bones[name]
-		# skip bones hidden either as a whole (armor/tail) or mesh-only (hair styles)
-		if not node.visible or not mi.visible:
-			continue
-		var xf := Transform3D()
-		var walk: Node = node
-		while walk != null and walk != self:
-			if walk is Node3D:
-				xf = (walk as Node3D).transform * xf
-			walk = walk.get_parent()
-		var box: AABB = xf * mi.get_aabb()
-		if first:
-			out = box
-			first = false
-		else:
-			out = out.merge(box)
-	if first:
+	# Walks every visible MeshInstance3D under the model, so attachments that are
+	# not bone meshes (the "Hair" mesh, armour overlays, held items) are framed too.
+	var acc := {"box": AABB(), "first": true}
+	_collect_aabb(self, Transform3D(), acc)
+	if bool(acc["first"]):
 		return AABB(Vector3.ZERO, Vector3(bounds_size.x, bounds_size.y, bounds_size.x) * model_scale)
+	var box: AABB = acc["box"]
 	var s := scale.y
-	return AABB(out.position * s, out.size * s)
+	return AABB(box.position * s, box.size * s)
+
+
+func _collect_aabb(node: Node, xf: Transform3D, acc: Dictionary) -> void:
+	for child in node.get_children():
+		var n3 := child as Node3D
+		if n3 == null or not n3.visible:
+			continue
+		var cx := xf * n3.transform
+		var mi := n3 as MeshInstance3D
+		if mi != null and mi.mesh != null:
+			var box: AABB = cx * mi.get_aabb()
+			if bool(acc["first"]):
+				acc["box"] = box
+				acc["first"] = false
+			else:
+				acc["box"] = (acc["box"] as AABB).merge(box)
+		_collect_aabb(n3, cx, acc)
+
 
 ## Model height in metres (for name tags / health bars).
 func model_height() -> float:

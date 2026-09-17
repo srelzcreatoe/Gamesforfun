@@ -130,20 +130,54 @@ func test_uv2_packs_layer_frames_and_light() -> void:
 	var layer := floor(uv2[0].x)
 	assert_true(layer > 0.0, "stone must not use the magenta missing layer")
 	var frac: float = uv2[0].x - layer
-	var enc: float = round(frac * 128.0)
-	assert_true(enc >= 1.0 and enc < 64.0, "static tile encodes 1 frame and no sway, got %f" % enc)
+	var enc: float = round(frac * 256.0)
+	assert_eq(enc, 1.0, "a static opaque tile encodes 1 frame and sway mode 0")
 	# packed light = sky * 16 + block; full sky light = 15 -> 240/255.
 	var packed: float = round(uv2[0].y * 255.0)
 	assert_true(packed >= 240.0, "top faces of a lit cube see full sky light, got %f" % packed)
 
-func test_plants_set_the_sway_bit() -> void:
+## UV2.x fraction = (frames + 64 * sway_mode) / 256, sway_mode 0 static / 1 plant / 2 leaves.
+func _sway_mode(surface: Array) -> int:
+	var uv2: PackedVector2Array = surface[Mesh.ARRAY_TEX_UV2]
+	var enc: int = int(round((uv2[0].x - floor(uv2[0].x)) * 256.0))
+	return enc / 64
+
+func _frames_of(surface: Array) -> int:
+	var uv2: PackedVector2Array = surface[Mesh.ARRAY_TEX_UV2]
+	var enc: int = int(round((uv2[0].x - floor(uv2[0].x)) * 256.0))
+	return enc % 64
+
+func test_plants_use_sway_mode_1() -> void:
 	var col := _lit_column()
 	col.set_cell(8, 70, 8, Registry.block_id("short_grass"), 0)
 	col.recompute_heightmap()
+	assert_eq(_sway_mode(_mesh(col)["cutout"]), 1, "plants bend at the tip (mode 1)")
+	var col2 := _lit_column()
+	col2.set_cell(8, 70, 8, Registry.block_id("wheat"), 0)
+	col2.recompute_heightmap()
+	assert_eq(_sway_mode(_mesh(col2)["cutout"]), 1, "crops sway like plants")
+
+func test_leaves_use_sway_mode_2() -> void:
+	var col := _lit_column()
+	col.set_cell(8, 70, 8, Registry.block_id("oak_leaves"), 0)
+	col.recompute_heightmap()
+	var out := _mesh(col)
+	assert_eq(_sway_mode(out["cutout"]), 2, "leaf blocks move as a whole (mode 2)")
+	assert_eq(_frames_of(out["cutout"]), 1, "a static leaf tile still encodes 1 frame")
+	# Every vertex of a leaf block must carry the same mode, or the block would tear apart.
+	var uv2: PackedVector2Array = out["cutout"][Mesh.ARRAY_TEX_UV2]
+	for v in uv2:
+		assert_eq(int(round((v.x - floor(v.x)) * 256.0)) / 64, 2, "mixed sway modes inside one block")
+
+func test_glass_and_torches_do_not_sway() -> void:
+	var col := _lit_column()
+	col.set_cell(8, 70, 8, Registry.block_id("glass"), 0)
+	col.set_cell(10, 70, 8, Registry.block_id("torch"), 0)
+	col.recompute_heightmap()
 	var out := _mesh(col)
 	var uv2: PackedVector2Array = out["cutout"][Mesh.ARRAY_TEX_UV2]
-	var enc: float = round((uv2[0].x - floor(uv2[0].x)) * 128.0)
-	assert_true(enc >= 64.0, "plants must carry the wind sway flag, got %f" % enc)
+	for v in uv2:
+		assert_eq(int(round((v.x - floor(v.x)) * 256.0)) / 64, 0, "solid cutout blocks must stay still")
 
 func test_animated_water_encodes_frames() -> void:
 	var col := _lit_column()
@@ -151,9 +185,9 @@ func test_animated_water_encodes_frames() -> void:
 	col.recompute_heightmap()
 	var out := _mesh(col)
 	var uv2: PackedVector2Array = out["water"][Mesh.ARRAY_TEX_UV2]
-	var enc: float = round((uv2[0].x - floor(uv2[0].x)) * 128.0)
-	var frames: float = enc if enc < 64.0 else enc - 64.0
-	assert_true(frames > 1.0, "water_still is a 32 frame strip, got %f" % frames)
+	var enc: int = int(round((uv2[0].x - floor(uv2[0].x)) * 256.0))
+	var frames: int = enc % 64
+	assert_true(frames > 1, "water_still is a 32 frame strip, got %d" % frames)
 
 func test_ambient_occlusion_darkens_inner_corners() -> void:
 	var col := _lit_column()

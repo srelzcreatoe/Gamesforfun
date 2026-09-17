@@ -10,7 +10,7 @@ class_name ChunkMesher
 ##   POSITION  column-local metres (x/z 0..16, y absolute)
 ##   NORMAL    face normal (the shader derives the face brightness from it)
 ##   UV        0..1 tile uv
-##   UV2       x = texture array layer + (frames + sway * 64) / 128  (see _layer_uv),
+##   UV2       x = texture array layer + (frames + 64 * sway_mode) / 256  (see _layer_uv),
 ##             y = packed_light / 255 with packed_light = sky * 16 + block
 ##   COLOR     rgb = biome/liquid tint, a = ambient occlusion (0.55 / 0.7 / 0.85 / 1.0)
 ##
@@ -332,14 +332,14 @@ static func _uv_for(f: int, p: Vector3) -> Vector2:
 	return Vector2(1.0 - p.x, 1.0 - p.y)
 
 ## UV2.x encoding read by the chunk shaders (see the shader headers):
-##   layer + (frames + sway * 64) / 128
-## frames 1..63 = animation strip length, sway = wind flag for plants/leaves.
+##   layer + (frames + 64 * sway_mode) / 256
+## frames 1..63 = animation strip length, sway_mode = 0 static, 1 plant, 2 leaves.
 static func _layer_uv(id: int, face: int, wx: int, wy: int, wz: int) -> float:
 	var layer := BlockTable.layer_at(id, face, wx, wy, wz)
 	return float(layer) + _frac(id, BlockTable.face_frames[id * 6 + face])
 
 static func _frac(id: int, frames: int) -> float:
-	return float(clampi(frames, 1, 63) + (64 if BlockTable.sway[id] == 1 else 0)) / 128.0
+	return float(clampi(frames, 1, 63) + 64 * int(BlockTable.sway[id])) / 256.0
 
 ## Ambient occlusion + smooth light for one vertex of a face, from the precomputed offset
 ## table. Returns Vector2(ao, packed_light / 255).

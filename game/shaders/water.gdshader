@@ -8,7 +8,7 @@
 //
 // Vertex stream (identical to chunk_opaque.gdshader):
 //   UV      0..1 tile uv
-//   UV2.x   texture array layer + (frames + sway * 64) / 128     (frames are consecutive layers)
+//   UV2.x   texture array layer + (frames + 64 * sway_mode) / 256  (frames are consecutive layers)
 //   UV2.y   packed light / 255                                   (packed = sky * 16 + block)
 //   COLOR   rgb = biome water tint, a = ambient occlusion
 //
@@ -131,9 +131,9 @@ vec3 ripple_normal(vec2 p, float t, float strength) {
 void vertex() {
 	// UV2.x packing (voxel agent): integer part = base array layer, fraction * 128 = frames + sway * 64.
 	float layer = floor(UV2.x);
-	float enc = floor(fract(UV2.x) * 128.0 + 0.5);
-	float sway_flag = step(64.0, enc);
-	float frames = enc - sway_flag * 64.0;
+	float enc = floor(fract(UV2.x) * 256.0 + 0.5);
+	float sway_mode = floor(enc / 64.0);        // 0 static, 1 plant, 2 leaves
+	float frames = enc - sway_mode * 64.0;
 	if (frames > 1.5) {
 		layer += floor(mod(time * anim_fps, frames));
 	}

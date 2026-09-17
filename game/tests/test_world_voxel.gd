@@ -191,6 +191,55 @@ func test_fluid_at_reports_submersion() -> void:
 	var dry: Dictionary = VoxelPhysics.fluid_at(w, _player_box(Vector3(2.5, 61.0, 2.5)))
 	assert_true(not dry["in_liquid"])
 
+func test_disturbances_feed_the_foliage_shader() -> void:
+	var w := _make_world()
+	_flat_floor(w, 60)
+	w._update_disturbances(0.0)
+	assert_eq(w._disturb_count, 0, "nothing to push when there is no player and no impact")
+	w.add_disturbance(Vector3(4.0, 61.0, 4.0), 0.8, 0.5)
+	w._update_disturbances(0.0)
+	assert_eq(w._disturb_count, 1)
+	var d: Vector4 = w._disturb_buf[0]
+	assert_near(d.x, 4.0, 0.001)
+	assert_near(d.y, 61.0, 0.001)
+	assert_near(d.w, 0.8, 0.001, "strength starts at full")
+	# It fades out over its duration and then disappears.
+	w._update_disturbances(0.25)
+	w._update_disturbances(0.0)
+	assert_true((w._disturb_buf[0] as Vector4).w < 0.45, "the push must fade")
+	w._update_disturbances(0.4)
+	w._update_disturbances(0.0)
+	assert_eq(w._disturb_count, 0, "expired pushes are dropped")
+	# The shader array is fixed size, so the buffer never grows past the uniform.
+	for i in 12:
+		w.add_disturbance(Vector3(i, 61, 0), 0.5, 1.0)
+	w._update_disturbances(0.0)
+	assert_true(w._disturb_count <= World.MAX_DISTURBANCES)
+	assert_eq(w._disturb_buf.size(), World.MAX_DISTURBANCES)
+
+func test_explosions_shake_the_foliage() -> void:
+	var w := _make_world()
+	_flat_floor(w, 60)
+	w.explode(Vector3(8.5, 61.0, 8.5), 2.0, 6.0, null)
+	w._update_disturbances(0.0)
+	assert_true(w._disturb_count >= 1, "an explosion must register a foliage disturbance")
+	assert_true((w._disturb_buf[0] as Vector4).w > 0.4)
+
+func test_wind_gust_stays_in_range() -> void:
+	var w := _make_world()
+	for i in 40:
+		w._uniform_time = float(i) * 1.7
+		w._update_wind(0.05)
+		assert_true(w.wind_gust >= 0.0 and w.wind_gust <= 1.0, "gust out of range: %f" % w.wind_gust)
+		assert_near(w.wind_dir.length(), 1.0, 0.001, "wind_dir must stay normalised")
+	w.weather = "storm"
+	w._uniform_time = 0.0
+	w._update_wind(0.0)
+	var stormy: float = w.wind_gust
+	w.weather = "clear"
+	w._update_wind(0.0)
+	assert_true(stormy > w.wind_gust, "a storm must blow harder than clear weather")
+
 func test_explode_removes_blocks_but_not_bedrock() -> void:
 	var w := _make_world()
 	_flat_floor(w, 60)

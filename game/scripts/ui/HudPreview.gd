@@ -8,6 +8,9 @@ const GROUND_Y := Entity.FALLBACK_GROUND_Y
 const DEMO_ITEMS := ["stone", "dirt", "oak_planks", "cobblestone", "oak_log", "sand", "glass", "torch", "crafting_table"]
 
 var player: Node = null
+var drive := ""          # --anim=walk|run|punch|fly|sneak|charge : scripted pose for screenshots
+var _t := 0.0
+var _combo := 0
 
 func _ready() -> void:
 	name = "HudPreview"
@@ -99,6 +102,44 @@ func _profile() -> void:
 	Game.profile["hunger"] = 15
 	Game.profile["ki"] = -1
 
+func _parse_flags() -> void:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--anim="):
+			drive = a.substr(7)
+		elif a.begins_with("--camera="):
+			var m := {"first": CameraRig.Mode.FIRST, "front": CameraRig.Mode.FRONT,
+				"shoulder": CameraRig.Mode.SHOULDER}
+			if player != null and player.get("camera_rig") != null:
+				(player.get("camera_rig") as CameraRig).set_mode(int(m.get(a.substr(9), 0)))
+
+## Scripted input so `--anim=walk` / `--anim=punch` screenshots catch the model mid-pose.
+func _process(delta: float) -> void:
+	if player == null or drive == "":
+		return
+	var inp: Variant = player.get("input")
+	if inp == null:
+		return
+	_t += delta
+	match drive:
+		"walk":
+			inp.move = Vector2(0, 1)
+		"run":
+			inp.move = Vector2(0, 1)
+			inp.set_action("sprint", true)
+		"sneak":
+			inp.move = Vector2(0, 1)
+			inp.set_action("sneak", true)
+		"charge":
+			inp.set_action("ki_charge", true)
+		"fly":
+			player.set("is_flying", true)
+			inp.move = Vector2(0, 1)
+		"punch":
+			if _t > 0.22:
+				_t = 0.0
+				PlayerModel.punch(player, _combo)
+				_combo += 1
+
 func _spawn_player() -> void:
 	if not ResourceLoader.exists("res://scenes/player/Player.tscn"):
 		return
@@ -111,3 +152,4 @@ func _spawn_player() -> void:
 		var rig: CameraRig = player.get("camera_rig")
 		rig.yaw_deg = 18.0
 		rig.pitch_deg = -8.0
+	_parse_flags()

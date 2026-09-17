@@ -4,9 +4,10 @@
 //
 // Vertex stream produced by ChunkMesher:
 //   UV      0..1 tile uv
-//   UV2.x   texture array layer + frames/64.0   (the fractional part is the animation frame
-//           count of the tile: 1/64 = static, 32/64 = a 32 frame strip. The frames are
-//           consecutive layers in Textures.block_array, so layer = base + frame.)
+//   UV2.x   texture array layer + (frames + 64 * sway_mode) / 256. The fractional part holds
+//           the tile's animation length (1 = static, 32 = a 32 frame strip; the frames are
+//           consecutive layers in Textures.block_array, so layer = base + frame) and the wind
+//           mode (0 = static, 1 = plant, 2 = leaves) used by chunk_cutout.gdshader.
 //   UV2.y   packed light / 255, packed = sky * 16 + block
 //   COLOR   rgb = biome tint, a = ambient occlusion (0.55 / 0.7 / 0.85 / 1.0)
 //
@@ -66,9 +67,9 @@ float face_factor(vec3 n) {
 
 void vertex() {
 	float layer = floor(UV2.x);
-	float enc = floor(fract(UV2.x) * 128.0 + 0.5);
-	float sway_flag = step(64.0, enc);
-	float frames = enc - sway_flag * 64.0;
+	float enc = floor(fract(UV2.x) * 256.0 + 0.5);
+	float sway_mode = floor(enc / 64.0);        // 0 static, 1 plant, 2 leaves
+	float frames = enc - sway_mode * 64.0;
 	if (frames > 1.5) {
 		layer += floor(mod(time * anim_fps, frames));
 	}

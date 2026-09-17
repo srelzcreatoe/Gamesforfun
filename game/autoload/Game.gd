@@ -10,6 +10,7 @@ const DEFAULT_SETTINGS := {
 	"show_fps": false, "render_distance": 5, "sim_distance": 3, "quality_preset": "balanced",
 	"autosave_minutes": 2, "shadows": false, "bloom": true, "clouds": true, "fancy_water": true,
 	"particles": 1.0, "camera_mode": 0, "invert_y": false, "touch_layout": "default",
+	"show_coordinates": false, "dev_mode": false, "hud_scale": 1.0, "slot": -1,
 }
 
 var settings: Dictionary = {}
@@ -202,6 +203,14 @@ func change_planet(planet_id: String, arrival: Variant = null) -> void:
 	if main != null and main.has_method("enter_world"):
 		main.enter_world(world_info)
 	Events.planet_changed.emit(planet_id)
+
+## Save slots (three of them, each with its own world, profile and settings copy).
+## The slot logic lives in scripts/ui/SaveSlots.gd; these are the canonical entry points.
+func load_slot(index: int) -> void:
+	SaveSlots.load_slot(index)
+
+func save_slot() -> void:
+	SaveSlots.save_slot()
 
 func goto_main_menu() -> void:
 	if main != null and main.has_method("show_main_menu"):

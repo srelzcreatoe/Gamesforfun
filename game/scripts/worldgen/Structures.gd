@@ -97,14 +97,29 @@ func configure(p_gen) -> void:
 				followers[g2] = []
 			followers[g2].append(entry)
 		elif int(entry["rarity"]) > 0 or bool(entry["unique"]):
+			var surfaces := PackedInt32Array()
+			for b3 in entry["biomes"]:
+				var sid2 := Registry.block_id(String(Registry.biome(String(b3)).get("surface", "")))
+				if sid2 > 0 and not surfaces.has(sid2):
+					surfaces.append(sid2)
+			entry["surfaces"] = surfaces
 			anchors.append(entry)
 
 # --- per column ------------------------------------------------------------
 
+## Resolve every unique structure's position once (called from WorldGen.configure on the main
+## thread), so the per-column stamp never takes a lock or runs a search.
+func resolve_uniques() -> void:
+	for entry in anchors:
+		if bool(entry["unique"]):
+			entry["pos"] = unique_position(entry)
+
 func stamp(col: ChunkColumn, ctx) -> void:
 	for entry in anchors:
 		if bool(entry["unique"]):
-			var pos := unique_position(entry)
+			var pos: Vector3i = entry.get("pos", Vector3i(0x7fffffff, 0, 0))
+			if pos.x == 0x7fffffff:
+				pos = unique_position(entry)
 			if pos.x != 0x7fffffff:
 				_place(col, ctx, entry, pos.x, pos.z, 0)
 		else:
@@ -415,13 +430,10 @@ func _valid_site(entry: Dictionary, ax: int, az: int, relax: int = 0) -> bool:
 		return false
 	if relax >= 2:
 		return true
-	var here := String(Registry.biome(bid).get("surface", ""))
-	if here == "":
+	var surfaces: PackedInt32Array = entry.get("surfaces", PackedInt32Array())
+	if surfaces.is_empty():
 		return false
-	for b2 in list:
-		if String(Registry.biome(String(b2)).get("surface", "")) == here:
-			return true
-	return false
+	return surfaces.has(Registry.block_id(String(Registry.biome(bid).get("surface", ""))))
 
 ## One seeded position per unique structure. x == 0x7fffffff means "not on this planet".
 func unique_position(entry: Dictionary) -> Vector3i:

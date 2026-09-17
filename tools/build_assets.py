@@ -33,6 +33,7 @@ DMZP = os.path.join(SRC, "dmzplus", "assets", "dmzplus")
 DMZP_DMZ = os.path.join(SRC, "dmzplus", "assets", "dragonminez")
 HD = os.path.join(SRC, "dmzhd", "assets")
 AAA = os.path.join(SRC, "particles", "assets", "aaa_particles_world")
+NIGHTCITY = os.path.join(SRC, "nightcity", "assets", "minecraft", "textures")   # Night City Inventory GUI (Myth6)
 
 rng = np.random.default_rng(0xDB2)
 stats = {"copied": 0, "generated": 0, "missing": []}
@@ -817,6 +818,15 @@ def build_entities_and_gui():
         p = os.path.join(SRC, "dmz", f)
         if os.path.exists(p): shutil.copy2(p, out(os.path.join(T, "misc", f)))
 
+def build_nightcity():
+    """Night City Inventory GUI (1.21.3 resource pack by Myth6): the inventory container skin
+    and the empty armour-slot icons -> textures/gui/nightcity/."""
+    dst = os.path.join(A, "textures", "gui", "nightcity")
+    n = copy_tree(os.path.join(NIGHTCITY, "gui", "container"), dst)
+    n += copy_tree(os.path.join(NIGHTCITY, "item"), dst,
+                   rename=lambda r: r if r.startswith("empty_armor_slot_") else None)
+    print(f"night city gui: {n}")
+
 def build_models_and_anims():
     n = copy_tree(os.path.join(DMZ, "geo"), os.path.join(A, "models"), exts=(".json",))
     n += copy_tree(os.path.join(DMZP, "geo"), os.path.join(A, "models", "dmzplus"), exts=(".json",))
@@ -853,6 +863,7 @@ def write_credits_data():
         "dmzplus": "DMZ Plus 1.1.6 by Kiziro Akami, GPL-3.0-or-later (planets, sky textures; Milky Way panorama by ESO/S. Brunier CC BY 4.0)",
         "aaa_particles_world": "AAA Particles: World 2.0.0 by ChloePrime, MIT (particle sprites, loot sounds)",
         "monocraft": "Monocraft font by Idrees Hassan, SIL OFL 1.1",
+        "nightcity": "Night City Inventory GUI (1.21.3) by Myth6 (user-supplied resource pack)",
     }
     json.dump(data, open(os.path.join(A, "SOURCES.json"), "w"), indent=1)
 
@@ -864,6 +875,7 @@ if __name__ == "__main__":
     build_blocks()
     build_items()
     build_entities_and_gui()
+    build_nightcity()
     build_models_and_anims()
     build_audio()
     write_credits_data()

@@ -87,24 +87,23 @@ func configure(p_seed: int, planet_def: Dictionary, p_mode: String) -> void:
 	_peaks.fractal_type = FastNoiseLite.FRACTAL_RIDGED
 	_setup(_hills, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0x4444, 0.0062, 3)
 	_setup(_detail, FastNoiseLite.TYPE_SIMPLEX, 0x5555, 0.031, 2)
-	_setup(_temp, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0x6666, 0.00085, 2)
-	_setup(_humid, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0x7777, 0.00105, 2)
-	_setup(_river, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0x8888, 0.0013, 2)
+	_setup(_temp, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0x6666, 0.00085, 1)
+	_setup(_humid, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0x7777, 0.00105, 1)
+	_setup(_river, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0x8888, 0.0013, 1)
 	_setup(_zone, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0x9999, 0.0055, 2)
-	_setup(_lake, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0xAAAA, 0.0042, 2)
+	_setup(_lake, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0xAAAA, 0.0042, 1)
 	_setup(_plateau, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0xBBBB, 0.0038, 2)
-	_setup(_weird, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0xCCCC, 0.0016, 2)
+	_setup(_weird, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0xCCCC, 0.0016, 1)
 	if p_mode == MODE_EARTH:
 		# Terralith-style Earth: wide continents, sharp ridges, gentle erosion field.
 		_cont.frequency = 0.00085
-		_cont.fractal_octaves = 3
+		_cont.fractal_octaves = 2
 		_ero.frequency = 0.0021
 		_ero.fractal_octaves = 2
 		_peaks.frequency = 0.0042
-		_peaks.fractal_octaves = 3
+		_peaks.fractal_octaves = 2
 		_hills.frequency = 0.0055
-		_hills.fractal_octaves = 2
-		_detail.fractal_octaves = 1
+		_hills.fractal_octaves = 3
 		max_height = HEIGHT - 2
 
 func _setup(n: FastNoiseLite, type: int, salt: int, freq: float, octaves: int) -> void:
@@ -154,7 +153,7 @@ func plateau_at(wx: int, wz: int) -> float:
 ## Lake/pool basin strength 0..1 (used by Vampa/Heaven/Hell pools).
 func lake_at(wx: int, wz: int) -> float:
 	var n := _lake.get_noise_2d(float(wx), float(wz))
-	return clampf((n - 0.24) * 4.0, 0.0, 1.0)
+	return clampf((n - 0.24) * 2.4, 0.0, 1.0)
 
 # --- height ----------------------------------------------------------------
 
@@ -165,7 +164,7 @@ func height_at(wx: int, wz: int) -> int:
 ## Keeps the area around (0, 0) above water on every planet that has a sea, so the player
 ## never spawns swimming (World spawns from the heightmap at the profile position).
 func _spawn_island(fx: float, fz: float, h: float) -> float:
-	if not has_sea:
+	if not has_sea or fx * fx + fz * fz > 460.0 * 460.0:
 		return h
 	var g := _gauss(fx, fz, 0.0, 0.0, 110.0)
 	if g <= 0.01:
@@ -197,7 +196,7 @@ func _h_earth(fx: float, fz: float) -> float:
 	var land := smoothstep(-0.12, 0.08, c)
 	var base := sea + _spline_cont(c)
 	if land <= 0.001:
-		return base + _detail.get_noise_2d(fx, fz) * 1.2      # open ocean: cheap path
+		return base                                            # open ocean: cheap path
 	var e := _ero.get_noise_2d(fx, fz)
 	var hills := 0.5 + 0.5 * _hills.get_noise_2d(fx, fz)
 	var rugged := 1.0 - clampf(0.5 + 0.5 * e, 0.0, 1.0)       # 1 = rugged, 0 = worn flat
@@ -205,26 +204,28 @@ func _h_earth(fx: float, fz: float) -> float:
 	var h := base + land * relief * hills
 	# mountain ranges: inland, low erosion, along a ridge
 	var mtn := clampf((c + 0.12) * 1.5, 0.0, 1.0) * smoothstep(0.15, 0.75, rugged)
+	# The first few hundred blocks around the spawn stay rolling: the Saiyan saga starts on
+	# foot there. The big ranges begin further out.
+	var d2 := fx * fx + fz * fz
+	if d2 < 700.0 * 700.0:
+		mtn *= lerpf(0.22, 1.0, smoothstep(180.0, 700.0, sqrt(d2)))
 	if mtn > 0.01:
 		var ridge := 1.0 - absf(_peaks.get_noise_2d(fx, fz))
 		h += land * mtn * (66.0 * ridge * ridge + 8.0 * hills)
-	h += _detail.get_noise_2d(fx, fz) * 1.4 + _bias_height(fx, fz)
+	h += _bias_height(fx, fz)
 	# plateaus: worn inland ground steps into terraces
 	var flat := smoothstep(0.35, 0.8, 1.0 - rugged) * land * smoothstep(0.0, 0.35, c)
 	if flat > 0.02 and h > sea + 2.0:
 		var stepped: float = sea + roundf((h - sea) / 7.0) * 7.0
 		h = lerpf(h, stepped, flat * 0.8)
-	if land > 0.6:
+	if land > 0.6 and rugged < 0.62:
 		# canyons: a narrow weirdness band cut into flat inland ground
 		var canyon := clampf(1.0 - absf(_weird.get_noise_2d(fx, fz) - 0.34) * 9.0, 0.0, 1.0)
 		if canyon > 0.0:
 			var cs := canyon * canyon * smoothstep(0.2, 0.7, 1.0 - rugged)
 			h -= cs * 24.0 * clampf((h - (sea - 2.0)) / 24.0, 0.0, 1.0)
 		# lakes: broad inland basins the generator fills with water
-		if land > 0.75 and h > sea + 4.0:
-			var lake := lake_at(int(fx), int(fz))
-			if lake > 0.0:
-				h -= lake * 11.0 * smoothstep(0.1, 0.6, 1.0 - rugged)
+		h -= _lake_cut(lake_at(int(fx), int(fz)), land, rugged, h, sea)
 	# rivers: carve to just under sea level, never through spawn or the high peaks
 	if land > 0.35:
 		var river := clampf(1.0 - absf(_river.get_noise_2d(fx, fz)) * 11.0, 0.0, 1.0)
@@ -250,17 +251,30 @@ static func _spline_cont(c: float) -> float:
 	return lerpf(17.0, 27.0, (c - 0.6) / 0.4)
 
 ## Continentalness bias: dry land at the origin, an ocean bay for Kame House.
+## The spawn bias only reaches ~700 blocks; skipping the exponentials outside that radius
+## keeps the height field cheap for the rest of the world.
 func _bias_cont(fx: float, fz: float) -> float:
+	if not _near_spawn(fx, fz):
+		return 0.0
 	var b := 0.0
 	b += 0.55 * _gauss(fx, fz, 0.0, 0.0, 170.0)
 	b -= 1.15 * _gauss(fx, fz, -300.0, 260.0, 190.0)
 	return b
 
 func _bias_height(fx: float, fz: float) -> float:
+	if not _near_spawn(fx, fz):
+		return 0.0
 	var b := 0.0
 	b += 9.0 * _gauss(fx, fz, 0.0, 0.0, 150.0)
 	b -= 26.0 * _gauss(fx, fz, -300.0, 260.0, 190.0)
 	return b
+
+static func _near_spawn(fx: float, fz: float) -> bool:
+	if fx * fx + fz * fz < 700.0 * 700.0:
+		return true
+	var dx := fx + 300.0
+	var dz := fz - 260.0
+	return dx * dx + dz * dz < 780.0 * 780.0
 
 static func _gauss(fx: float, fz: float, cx: float, cz: float, r: float) -> float:
 	var dx := fx - cx
@@ -350,8 +364,19 @@ func _h_heaven(fx: float, fz: float) -> float:
 
 # --- deterministic hashing -------------------------------------------------
 
+## How deep the lake basin at this position was cut into the height field. One smooth product
+## (no binary gates), so the shoreline always lands exactly where the cut reaches zero.
+static func _lake_cut(lake: float, land: float, rugged: float, h: float, sea: float) -> float:
+	if lake <= 0.0:
+		return 0.0
+	var f := smoothstep(0.70, 0.90, land) * smoothstep(0.1, 0.6, 1.0 - rugged) \
+		* smoothstep(sea + 2.0, sea + 10.0, h)
+	if f <= 0.0:
+		return 0.0
+	return lake * 11.0 * f
+
 ## Water level of a local lake/pool at this column, or -999 when there is none. Mirrors the
-## depression the height field cut, so the shoreline lands exactly on the basin rim.
+## cut the height field made, so the water always stops at the basin rim.
 func pool_level_at(wx: int, wz: int, h: int, depth: float) -> int:
 	var lake := lake_at(wx, wz)
 	if lake <= 0.06:
@@ -360,11 +385,14 @@ func pool_level_at(wx: int, wz: int, h: int, depth: float) -> int:
 	var fz := float(wz)
 	if mode == MODE_EARTH:
 		var c := clampf(_cont.get_noise_2d(fx, fz) + _bias_cont(fx, fz), -1.0, 1.0)
-		if smoothstep(-0.12, 0.08, c) < 0.75:
+		var land := smoothstep(-0.12, 0.08, c)
+		if land < 0.72:
 			return -999
 		var rugged := 1.0 - clampf(0.5 + 0.5 * _ero.get_noise_2d(fx, fz), 0.0, 1.0)
-		var cut := lake * 11.0 * smoothstep(0.1, 0.6, 1.0 - rugged)
-		if cut < 2.5:
+		# `h` is the cut surface, so the original rim was h + cut (one fixed-point step).
+		var cut := _lake_cut(lake, land, rugged, float(h) + 4.0, float(sea_level))
+		cut = _lake_cut(lake, land, rugged, float(h) + cut, float(sea_level))
+		if cut < 3.0:
 			return -999
 		return h + int(round(cut)) - 3
 	return h + int(round(lake * depth)) - 4

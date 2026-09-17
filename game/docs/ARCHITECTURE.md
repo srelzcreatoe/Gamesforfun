@@ -334,6 +334,36 @@ small Molang evaluator supporting `query.anim_time`, `query.life_time`,
 numbers, `variable.*` (default 0). Expressions are compiled once (tokenised to
 RPN) and evaluated per frame; angle functions take degrees like Bedrock.
 
+### Animation state API (what callers use instead of clip names)
+
+Nothing outside `scripts/entity/` names a clip. Callers name a *state* and
+`AnimSelect.gd` resolves it to the best clip the entity actually has, DMZ first
+(`base.*`, `transf.*`, `skp.*`) and Serious Player Animations (MIT, imported as
+`assets/animations/spa/player.animation.json`, every clip prefixed `spa.`) only
+for the states the DMZ pack has no clip for. SPA clips never replace a DMZ clip.
+
+* `Entity.set_locomotion(state: String, speed := 0.0, blend := 0.18) -> bool` —
+  looping movement state; `speed` (m/s) scales the playback rate so walk / run /
+  sprint read differently. Re-calling with the same state is free.
+* `Entity.play_action(state: String, blend := 0.08) -> bool` — one shot
+  (`attack1..3`, `ki_blast`, `technique`, `transform`, `hurt`, `death`, `mine`,
+  `eat`, ...). States in `AnimSelect.UPPER_BODY` play on the override layer, so
+  the legs keep walking.
+* `Entity.clip_for(state) -> String` / `Entity.has_state(state) -> bool` — what
+  a state resolves to on this entity ("" when neither pack has anything).
+* `PlayerModel.gd` (static helpers): `state_for(snapshot: Dictionary) -> String`
+  turns a physics snapshot (`velocity`, `move`, `on_ground`, `in_water`,
+  `swimming`, `flying`, `fly_fast`, `sneaking`, `sprinting`, `climbing`,
+  `crawling`) into a locomotion state; `drive(entity, snapshot)` picks it and
+  plays it; `action(entity, state)`, `punch(entity, combo_index)`,
+  `report(entity) -> PackedStringArray` (state -> clip, for debug screens).
+  `scripts/player/PlayerAnimator.gd` is the player's thin wrapper over these.
+
+The bone-name remap (`BedrockAnimation.REMAP_SPA`) maps the SPA rig
+(`rightArm`, `leftLeg`, `torso`, `body`, `rightItem`, ...) onto the DMZ rig
+(`right_arm`, `left_leg`, `body`, `root`, `right_hand_item`, ...);
+`BedrockAnimation.load_clips(path, remap := {})` caches per (path, remap).
+
 Entity types are declared in `data/entities.json` (model, texture(s),
 animation sets, stats, AI tier, drops, sounds, scale, hitbox). `Npc.gd`
 (masters, traders, quest NPCs: talk, train, shop) and `Enemy.gd` (AI: idle →

@@ -14,6 +14,8 @@ const SPAWNER_SCRIPT := "res://scripts/entity/Spawner.gd"
 const BGM_DIRECTOR_SCRIPT := "res://scripts/audio/BgmDirector.gd"
 const WORLDGEN_FACTORY := "res://scripts/worldgen/WorldGenFactory.gd"
 const SPAWN_TIMEOUT := 25.0
+## The cutout shader has room for six foliage disturbances; slot 0 is always the player.
+const MAX_DISTURBANCES := 6
 
 var planet_id := "earth"
 var seed: int = 0
@@ -43,8 +45,21 @@ var _cache_col: ChunkColumn = null
 var _autoplay := false
 var _force_debug_camera := false
 var _force_flat_gen := false
+var _static_camera := false
 var _uniform_time := 0.0
 var day: int = 0
+
+## --- wind & foliage disturbances (chunk_cutout.gdshader) -------------------
+## Direction the wind blows towards in world xz, slowly rotating.
+var wind_dir := Vector2(0.8, 0.6).normalized()
+## 0..1 gust strength, driven by a slow wave and by the weather.
+var wind_gust := 0.35
+## Metres a leaf block travels at full gust.
+var wind_strength := 0.06
+var _wind_angle := 0.6435
+var _disturbances: Array[Dictionary] = []
+var _disturb_buf := PackedVector4Array()
+var _disturb_count := 0
 
 func _ready() -> void:
 	chunks = get_node_or_null("Chunks") as Node3D
@@ -74,6 +89,11 @@ func _ready() -> void:
 		add_child(fluids)
 	fluids.setup(self)
 	_setup_spawner()
+	_disturb_buf.resize(MAX_DISTURBANCES)
+	if not Events.explosion.is_connected(_on_explosion):
+		Events.explosion.connect(_on_explosion)
+	if not Events.entity_damaged.is_connected(_on_entity_damaged):
+		Events.entity_damaged.connect(_on_entity_damaged)
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--autoplay"):
 			_autoplay = true
@@ -81,6 +101,9 @@ func _ready() -> void:
 			_force_debug_camera = true
 		elif a.begins_with("--flatgen"):
 			_force_flat_gen = true
+		elif a.begins_with("--staticcam"):
+			_force_debug_camera = true
+			_static_camera = true
 	_setup_sky()
 
 ## The entity engineer's mob spawner lives under the World as "Spawner" (QuestManager looks
@@ -419,6 +442,87 @@ func ambient_color() -> Color:
 	var d := daylight()
 	return Color(0.05, 0.07, 0.12).lerp(Color(0.45, 0.52, 0.66), d)
 
+# --- wind & foliage disturbances --------------------------------------------
+
+## Push the foliage around `pos` for `duration` seconds, fading out. `strength` 0..1 also sets
+## the radius (1.6 + strength * 3.0 metres). Six disturbances are live at a time, the player
+## always holding the first slot. Called by explosions, hits and anything else that should
+## part the grass.
+func add_disturbance(pos: Vector3, strength: float, duration := 0.6) -> void:
+	if strength <= 0.0:
+		return
+	_disturbances.append({
+		"pos": pos, "strength": clampf(strength, 0.0, 1.0),
+		"t": 0.0, "duration": maxf(0.05, duration),
+	})
+	while _disturbances.size() > MAX_DISTURBANCES - 1:
+		_disturbances.pop_front()
+
+func _on_explosion(center: Vector3, radius: float, power: float) -> void:
+	add_disturbance(center, clampf(0.45 + power * 0.06, 0.45, 1.0), 0.9)
+
+func _on_entity_damaged(entity: Node, amount: float, _source: Node, _kind: String, _crit: bool) -> void:
+	if entity is Node3D and is_instance_valid(entity):
+		add_disturbance((entity as Node3D).global_position, clampf(0.35 + amount * 0.01, 0.35, 0.9), 0.5)
+
+func _update_wind(delta: float) -> void:
+	_wind_angle += delta * 0.017
+	wind_dir = Vector2(cos(_wind_angle), sin(_wind_angle))
+	var t := _uniform_time
+	var g := 0.34 + 0.26 * sin(t * 0.13) + 0.18 * sin(t * 0.37 + 1.7) + 0.1 * sin(t * 0.91 + 0.4)
+	var w := 0.0
+	match weather:
+		"rain": w = 0.25
+		"storm", "thunder", "thunderstorm": w = 0.5
+		"snow": w = 0.12
+	if sky != null and "weather_node" in sky:
+		# Scale with how hard it is actually raining, but a declared storm always blows.
+		var wn: Variant = sky.get("weather_node")
+		if wn != null and "intensity" in wn:
+			w *= clampf(float(wn.get("intensity")), 0.35, 1.0)
+	wind_gust = clampf(g + w, 0.0, 1.0)
+
+func _update_disturbances(delta: float) -> void:
+	for i in range(_disturbances.size() - 1, -1, -1):
+		var d: Dictionary = _disturbances[i]
+		d["t"] = float(d["t"]) + delta
+		if float(d["t"]) >= float(d["duration"]):
+			_disturbances.remove_at(i)
+	var n := 0
+	# Slot 0: the player's feet. Flying or sprinting parts the foliage much wider.
+	if Game.player != null and is_instance_valid(Game.player) and Game.player is Node3D:
+		var p := (Game.player as Node3D).global_position
+		var strength := 0.6
+		if ("is_flying" in Game.player and bool(Game.player.get("is_flying"))) 				or ("is_sprinting" in Game.player and bool(Game.player.get("is_sprinting"))):
+			strength = 1.0
+		_disturb_buf[0] = Vector4(p.x, p.y, p.z, strength)
+		n = 1
+	elif debug_camera != null and is_instance_valid(debug_camera):
+		var c := debug_camera.global_position
+		_disturb_buf[0] = Vector4(c.x, c.y, c.z, 0.6)
+		n = 1
+	for d in _disturbances:
+		if n >= MAX_DISTURBANCES:
+			break
+		var pos: Vector3 = d["pos"]
+		var fade: float = 1.0 - float(d["t"]) / float(d["duration"])
+		_disturb_buf[n] = Vector4(pos.x, pos.y, pos.z, float(d["strength"]) * fade)
+		n += 1
+	for i in range(n, MAX_DISTURBANCES):
+		_disturb_buf[i] = Vector4.ZERO
+	_disturb_count = n
+
+## Wind uniforms live on the cutout material only (nothing else moves).
+func _push_wind_uniforms() -> void:
+	if manager == null or manager.mat_cutout == null:
+		return
+	var m := manager.mat_cutout
+	m.set_shader_parameter("wind_dir", wind_dir)
+	m.set_shader_parameter("wind_gust", wind_gust)
+	m.set_shader_parameter("wind_strength", wind_strength)
+	m.set_shader_parameter("disturb", _disturb_buf)
+	m.set_shader_parameter("disturb_count", _disturb_count)
+
 ## Is the active camera's eye inside a liquid? (the sky/water shaders use it)
 func camera_submerged() -> bool:
 	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
@@ -561,6 +665,9 @@ func _process(delta: float) -> void:
 	elif sun != null:
 		_update_fallback_sun()
 	_push_uniforms()
+	_update_wind(delta)
+	_update_disturbances(delta)
+	_push_wind_uniforms()
 	if not _spawned:
 		_spawn_wait += delta
 		if manager.center_ring_ready() or _spawn_wait > SPAWN_TIMEOUT:
@@ -635,6 +742,9 @@ func _spawn_debug_camera() -> void:
 	cam.name = "DebugCamera"
 	cam.world = self
 	cam.autoplay = _autoplay
+	if _static_camera:
+		# --staticcam freezes the orbit so two screenshots can be compared frame to frame.
+		cam.orbit_speed = 0.0
 	add_child(cam)
 	cam.place(spawn_position + Vector3(0, 2.2, 0))
 	debug_camera = cam

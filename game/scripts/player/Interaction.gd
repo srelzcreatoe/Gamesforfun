@@ -216,7 +216,6 @@ func _mine(delta: float) -> void:
 	break_total = total
 	if not mining:
 		mining = true
-		player.play_anim("base.mining1", 0.1, true)
 	break_progress += delta
 	if break_progress >= break_total:
 		_finish_break(id, def)
@@ -314,7 +313,7 @@ func _melee(e: Node) -> void:
 		weapon.def().get("tool", {}).get("damage", 0))) if not weapon.is_empty() else 0.0
 	var mult: float = COMBO_MULT[combo_index]
 	player.face((e as Node3D).global_position if e is Node3D else player.global_position)
-	player.play_action("attack", combo_index)
+	PlayerModel.punch(player, combo_index)
 	combo_index = (combo_index + 1) % COMBO_STEPS
 	combo_timer = COMBO_WINDOW
 	var power := player.melee_damage + bonus
@@ -377,7 +376,7 @@ func _eat(delta: float) -> void:
 	var food: Dictionary = st.def().get("food", {})
 	if player.survival != null:
 		player.survival.eat(food)
-	player.play_action("eat")
+	player.play_state("eat")
 	Audio.play_sfx("eat", linear_to_db(0.8))
 	if Game == null or not Game.creative:
 		player.inventory.consume_selected(1)

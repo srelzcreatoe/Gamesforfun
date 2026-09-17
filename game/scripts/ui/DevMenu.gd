@@ -115,7 +115,10 @@ func _player_tab() -> void:
 	if forms.is_empty():
 		page_box.add_child(UiUtil.dim("No form data.", UiUtil.font_small(s)))
 	else:
-		page_box.add_child(UiUtil.option_row("Form", forms, 0, func(i: int) -> void:
+		var fnames: Array = []
+		for fid in forms:
+			fnames.append(String(Registry.form(String(fid)).get("name", fid)).capitalize())
+		page_box.add_child(UiUtil.option_row("Form", fnames, 0, func(i: int) -> void:
 			_transform(String(forms[i]))))
 		page_box.add_child(_button_row([["Revert", func() -> void:
 			if _need_player():

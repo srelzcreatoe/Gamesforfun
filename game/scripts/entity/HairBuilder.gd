@@ -152,7 +152,7 @@ static func _add_group(st: SurfaceTool, g: Dictionary, defaults: Dictionary) -> 
 			var base := _slot_position(face, row, col)
 			# fan the strands out from the centre line (this is what gives the DMZ
 			# silhouette its spiky spread)
-			var side := COL_OFF[col] / 3.0
+			var side: float = float(COL_OFF[col]) / 3.0
 			var srot := rot
 			if face == "TOP" or face == "FRONT" or face == "BACK":
 				srot += Vector3(0, 0, -spread * side)
@@ -163,9 +163,9 @@ static func _add_group(st: SurfaceTool, g: Dictionary, defaults: Dictionary) -> 
 	return added
 
 static func _slot_position(face: String, row: int, col: int) -> Vector3:
-	var a: float = COL_OFF[col]
-	var b: float = ROW_DROP[row]
-	var ar: float = COL_OFF[row]
+	var a := float(COL_OFF[col])
+	var b := float(ROW_DROP[row])
+	var ar := float(COL_OFF[row])
 	match face:
 		"FRONT": return Vector3(a, 7.25, -4.0)
 		"BACK": return Vector3(a, 7.25 + b, 4.0)
@@ -199,7 +199,7 @@ static func _add_box(st: SurfaceTool, centre: Vector3, basis: Basis, half: Vecto
 		return false
 	# a hair cube samples the flat shading tile; a small UV window per face keeps
 	# nearest filtering happy whatever the tile size is
-	const UVS := [Vector2(0.15, 0.15), Vector2(0.85, 0.15), Vector2(0.85, 0.85), Vector2(0.15, 0.85)]
+	const UVS := [Vector2(0.40, 0.40), Vector2(0.53, 0.40), Vector2(0.53, 0.53), Vector2(0.40, 0.53)]
 	var faces := [
 		[Vector3(1, 0, 0), Vector3(1, 1, 1), Vector3(1, 1, -1), Vector3(1, -1, -1), Vector3(1, -1, 1)],
 		[Vector3(-1, 0, 0), Vector3(-1, 1, -1), Vector3(-1, 1, 1), Vector3(-1, -1, 1), Vector3(-1, -1, -1)],

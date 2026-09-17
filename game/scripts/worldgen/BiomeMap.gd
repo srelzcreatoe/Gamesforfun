@@ -126,6 +126,56 @@ func id_of(idx: int) -> String:
 		return ""
 	return Registry.biome_order[idx]
 
+## Rule-driven biome (ocean / shore / river / spawn zone), or -1 when the climate pick decides.
+## Splitting it this way lets WorldGen cache the expensive climate pick per 4x4 cell the way
+## vanilla does, while shorelines stay crisp per block.
+func rules_at(wx: int, wz: int, h: int) -> int:
+	if _hot_radius > 0.0 and _hot_biome >= 0:
+		var dx := float(wx) - _hot_center.x
+		var dz := float(wz) - _hot_center.y
+		if dx * dx + dz * dz <= _hot_radius * _hot_radius:
+			return _hot_biome
+	if style != STYLE_EARTH:
+		return at(wx, wz, h)
+	var sea := terrain.sea_level
+	var temp := terrain.temperature_at(wx, wz)
+	if h <= sea:
+		if temp < -0.2 and frozen_ocean >= 0:
+			return frozen_ocean
+		if h < sea - 17 and deep_ocean >= 0:
+			return deep_ocean
+		if ocean >= 0:
+			return ocean
+	if h <= sea + 2:
+		if terrain.river_at(wx, wz) > 0.5 and river >= 0:
+			return river
+		if temp > 1.4:
+			var tropical := index_of("tropical_shores")
+			if tropical >= 0:
+				return tropical
+		if beach >= 0:
+			return beach
+	if terrain.river_at(wx, wz) > 0.62 and h <= sea + 4 and river >= 0:
+		return river
+	if wx * wx + wz * wz < 400 * 400 and h < band_high:
+		return _at_earth_spawn(wx, wz, h, temp)
+	return -1
+
+## Band index of a height: 0 low, 1 mid, 2 high, 3 peak.
+func band_index(h: int) -> int:
+	if h >= band_peak:
+		return 3
+	if h >= band_high:
+		return 2
+	return 1 if h >= terrain.sea_level + 7 else 0
+
+const BAND_NAMES := ["low", "mid", "high", "peak"]
+
+## The climate half of the Earth selection, for a band index from `band_index()`.
+func pick_band(wx: int, wz: int, band: int) -> int:
+	return _climate_pick(wx, wz, terrain.temperature_at(wx, wz), terrain.humidity_at(wx, wz),
+		BAND_NAMES[clampi(band, 0, 3)])
+
 ## Biome for a column, given the terrain height there.
 func at(wx: int, wz: int, h: int) -> int:
 	if _hot_radius > 0.0 and _hot_biome >= 0:
@@ -149,6 +199,12 @@ func id_at_world(wx: int, wz: int) -> String:
 # --- Earth -----------------------------------------------------------------
 
 func _at_earth(wx: int, wz: int, h: int) -> int:
+	var ruled := rules_at(wx, wz, h)
+	if ruled >= 0:
+		return ruled
+	return pick_band(wx, wz, band_index(h))
+
+func _at_earth_full(wx: int, wz: int, h: int) -> int:
 	var sea := terrain.sea_level
 	var temp := terrain.temperature_at(wx, wz)
 	if h <= sea:

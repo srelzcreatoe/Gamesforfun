@@ -1,109 +1,133 @@
 extends TestCase
-## PlayerAnimator: every movement state and every button-driven action maps to a real clip.
+## PlayerAnimator: the player's state maps onto the shared animation STATES owned by
+## scripts/entity/PlayerModel.gd + AnimSelect.gd (never onto raw clip names).
 
 func _st(over: Dictionary = {}) -> Dictionary:
 	var base := {
-		"dead": false, "mining": false, "ki_charge": false, "flying": false, "fly_fast": false,
-		"swimming": false, "on_ground": true, "on_ladder": false, "crouching": false,
-		"sprinting": false, "speed": 0.0, "vy": 0.0,
+		"velocity": Vector3.ZERO, "move": Vector2.ZERO, "on_ground": true, "in_water": false,
+		"swimming": false, "flying": false, "fly_fast": false, "sneaking": false,
+		"sprinting": false, "climbing": false, "crawling": false,
+		"dead": false, "mining": false, "ki_charge": false,
 	}
 	for k in over.keys():
 		base[k] = over[k]
 	return base
 
 func test_idle_walk_run() -> void:
-	assert_eq(PlayerAnimator.locomotion_state(_st()), PlayerAnimator.STATE_IDLE, "idle")
-	assert_eq(PlayerAnimator.locomotion_state(_st({"speed": 2.0})), PlayerAnimator.STATE_WALK, "walk")
-	assert_eq(PlayerAnimator.locomotion_state(_st({"speed": 5.6, "sprinting": true})),
-		PlayerAnimator.STATE_RUN, "sprint runs")
-	assert_eq(PlayerAnimator.locomotion_state(_st({"speed": 5.2})), PlayerAnimator.STATE_RUN, "fast = run")
+	assert_eq(PlayerAnimator.locomotion_state(_st()), "idle", "idle")
+	assert_eq(PlayerAnimator.locomotion_state(_st({"velocity": Vector3(2, 0, 0), "move": Vector2(0, 1)})),
+		"walk", "walk")
+	assert_eq(PlayerAnimator.locomotion_state(_st({"velocity": Vector3(5.6, 0, 0), "move": Vector2(0, 1),
+		"sprinting": true})), "run", "sprint runs")
 
 func test_sneak_states() -> void:
-	assert_eq(PlayerAnimator.locomotion_state(_st({"crouching": true})), PlayerAnimator.STATE_SNEAK, "sneak")
-	assert_eq(PlayerAnimator.locomotion_state(_st({"crouching": true, "speed": 1.4})),
-		PlayerAnimator.STATE_SNEAK_WALK, "sneak walk")
+	assert_eq(PlayerAnimator.locomotion_state(_st({"sneaking": true})), "sneak", "sneak")
+	assert_eq(PlayerAnimator.locomotion_state(_st({"sneaking": true, "velocity": Vector3(1.4, 0, 0),
+		"move": Vector2(0, 1)})), "sneak_walk", "sneak walk")
 
 func test_jump_and_fall() -> void:
-	assert_eq(PlayerAnimator.locomotion_state(_st({"on_ground": false, "vy": 5.0})),
-		PlayerAnimator.STATE_JUMP, "rising")
-	assert_eq(PlayerAnimator.locomotion_state(_st({"on_ground": false, "vy": -9.0})),
-		PlayerAnimator.STATE_FALL, "falling")
-	assert_eq(PlayerAnimator.locomotion_state(_st({"on_ground": false, "on_ladder": true})),
-		PlayerAnimator.STATE_IDLE, "ladders are not a fall")
+	assert_eq(PlayerAnimator.locomotion_state(_st({"on_ground": false, "velocity": Vector3(0, 5, 0)})),
+		"jump", "rising")
+	assert_eq(PlayerAnimator.locomotion_state(_st({"on_ground": false, "velocity": Vector3(0, -9, 0)})),
+		"fall", "falling")
 
 func test_flight_states() -> void:
-	assert_eq(PlayerAnimator.locomotion_state(_st({"flying": true})), PlayerAnimator.STATE_FLY_IDLE, "hover")
-	assert_eq(PlayerAnimator.locomotion_state(_st({"flying": true, "speed": 6.0})),
-		PlayerAnimator.STATE_FLY_MOVE, "fly forward")
-	assert_eq(PlayerAnimator.locomotion_state(_st({"flying": true, "speed": 20.0, "fly_fast": true})),
-		PlayerAnimator.STATE_FLY_FAST, "fly fast")
+	assert_eq(PlayerAnimator.locomotion_state(_st({"flying": true})), "fly_idle", "hover")
+	assert_eq(PlayerAnimator.locomotion_state(_st({"flying": true, "velocity": Vector3(6, 0, 0),
+		"move": Vector2(0, 1)})), "fly_forward", "fly forward")
+	assert_eq(PlayerAnimator.locomotion_state(_st({"flying": true, "fly_fast": true,
+		"velocity": Vector3(20, 0, 0), "move": Vector2(0, 1)})), "fly_fast", "fly fast")
 
-func test_swim_mine_charge_and_death_take_priority() -> void:
-	assert_eq(PlayerAnimator.locomotion_state(_st({"swimming": true, "speed": 2.0})),
-		PlayerAnimator.STATE_SWIM, "swim")
-	assert_eq(PlayerAnimator.locomotion_state(_st({"mining": true, "speed": 3.0})),
-		PlayerAnimator.STATE_MINING, "mining beats walking")
-	assert_eq(PlayerAnimator.locomotion_state(_st({"ki_charge": true, "speed": 3.0})),
-		PlayerAnimator.STATE_KI_CHARGE, "charge beats walking")
-	assert_eq(PlayerAnimator.locomotion_state(_st({"dead": true, "flying": true})),
-		PlayerAnimator.STATE_DEAD, "death wins")
+func test_swim_charge_and_death_override() -> void:
+	assert_eq(PlayerAnimator.locomotion_state(_st({"in_water": true, "swimming": true,
+		"velocity": Vector3(2, 0, 0), "move": Vector2(0, 1)})), "swim_forward", "swim")
+	assert_eq(PlayerAnimator.locomotion_state(_st({"ki_charge": true, "velocity": Vector3(3, 0, 0),
+		"move": Vector2(0, 1)})), "ki_charge", "charging beats walking")
+	assert_eq(PlayerAnimator.locomotion_state(_st({"dead": true, "flying": true})), "death", "death wins")
+	assert_ne(PlayerAnimator.locomotion_state(_st({"mining": true, "ki_charge": true})), "ki_charge",
+		"mining is an upper-body action, not a charge")
 
-func test_every_state_has_clip_candidates() -> void:
-	for st in [PlayerAnimator.STATE_IDLE, PlayerAnimator.STATE_WALK, PlayerAnimator.STATE_RUN,
-			PlayerAnimator.STATE_SNEAK, PlayerAnimator.STATE_SNEAK_WALK, PlayerAnimator.STATE_JUMP,
-			PlayerAnimator.STATE_FALL, PlayerAnimator.STATE_SWIM, PlayerAnimator.STATE_FLY_IDLE,
-			PlayerAnimator.STATE_FLY_MOVE, PlayerAnimator.STATE_FLY_FAST, PlayerAnimator.STATE_KI_CHARGE,
-			PlayerAnimator.STATE_MINING, PlayerAnimator.STATE_DEAD]:
-		var clips := PlayerAnimator.clips_for(st)
-		assert_true(clips.size() > 0, st + " has candidates")
-		assert_true(String(clips[0]).contains("."), st + " uses a namespaced clip")
+func test_every_state_the_animator_uses_exists_in_AnimSelect() -> void:
+	var known: Array = AnimSelect.states()
+	for st in ["idle", "walk", "run", "jump", "fall", "land", "sneak", "sneak_walk", "swim_forward",
+			"swim_idle", "fly_idle", "fly_forward", "fly_fast", "ki_charge", "death"]:
+		assert_true(known.has(st), "locomotion state " + st)
+	for key in PlayerAnimator.BUTTON_ACTIONS.keys():
+		for st in PlayerAnimator.BUTTON_ACTIONS[key]:
+			assert_true(known.has(String(st)), "%s action state %s" % [key, st])
+	for st in PlayerAnimator.ACTION_HOLD.keys():
+		assert_true(known.has(String(st)), "hold table state " + String(st))
 
-func test_action_table_covers_the_touch_buttons() -> void:
-	for a in ["attack1", "attack2", "attack3", "ki_blast", "ki_blast_charged", "ki_charge_cast",
-			"technique_cast", "technique_fire", "transform", "hurt", "land", "eat", "dash", "death"]:
-		assert_true(PlayerAnimator.ACTIONS.has(a), "action " + a)
-		assert_true((PlayerAnimator.ACTIONS[a]["clips"] as Array).size() > 0, a + " has clips")
-		assert_true(float(PlayerAnimator.ACTIONS[a]["time"]) > 0.0, a + " has a duration")
+func test_touch_buttons_map_to_actions() -> void:
+	for b in ["attack", "ki_blast", "ki_charge", "fly", "dash", "transform", "technique"]:
+		assert_true(PlayerAnimator.BUTTON_ACTIONS.has(b), "button " + b)
+	assert_eq(PlayerAnimator.BUTTON_ACTIONS["attack"].size(), 3, "three punch steps")
 
-func test_clips_exist_in_the_shipped_animation_files() -> void:
-	# Every first-choice clip must be a real clip name in assets/animations/entity/races/*.
-	var known := {}
-	for f in JsonUtil.list_files("res://assets/animations/entity/races", ".json", false):
-		var d: Variant = JsonUtil.load_file(f)
-		if d is Dictionary and (d as Dictionary).has("animations"):
-			for k in ((d as Dictionary)["animations"] as Dictionary).keys():
-				known[String(k)] = true
-	if known.is_empty():
-		return                                   # animation assets not built in this checkout
-	for st in PlayerAnimator.LOCOMOTION.keys():
-		var first := String(PlayerAnimator.LOCOMOTION[st][0])
-		assert_true(known.has(first), "locomotion clip %s (%s) exists" % [first, st])
-	for a in PlayerAnimator.ACTIONS.keys():
-		var c := String(PlayerAnimator.ACTIONS[a]["clips"][0])
-		assert_true(known.has(c), "action clip %s (%s) exists" % [c, a])
+func test_state_dict_reads_the_player() -> void:
+	Game.profile = ProfileFactory.new_profile("Anim", "saiyan", "male", "warrior")
+	var p := Player.new()
+	add_node(p)
+	p.velocity = Vector3(3.0, 0.0, 0.0)
+	p.on_ground = true
+	p.input.move = Vector2(0, 1)
+	var d := PlayerAnimator.state_dict(p)
+	assert_eq(d["on_ground"], true, "on ground")
+	assert_eq(Vector3(d["velocity"]).x, 3.0, "velocity")
+	assert_eq(PlayerAnimator.locomotion_state(d), "walk", "walking")
+	p.queue_free()
+	Game.profile = {}
+	Game.player = null
 
 func test_animator_drives_a_live_player() -> void:
 	Game.profile = ProfileFactory.new_profile("Anim", "saiyan", "male", "warrior")
 	var p := Player.new()
 	add_node(p)
 	assert_true(p.animator != null, "animator built")
+	p.input.move = Vector2(0, 1)
 	p.velocity = Vector3(3.0, 0.0, 0.0)
 	p.on_ground = true
 	p.animator.update(0.016)
-	assert_eq(p.animator.state, PlayerAnimator.STATE_WALK, "walking state")
+	assert_eq(p.animator.state, "walk", "walking state")
 	p.is_sprinting = true
 	p.velocity = Vector3(5.6, 0.0, 0.0)
 	p.animator.update(0.016)
-	assert_eq(p.animator.state, PlayerAnimator.STATE_RUN, "running state")
+	assert_eq(p.animator.state, "run", "running state")
 	p.is_flying = true
 	p.animator.update(0.016)
-	assert_eq(p.animator.state, PlayerAnimator.STATE_FLY_MOVE, "flying state")
-	p.play_action("attack", 0)
-	assert_eq(p.animator.action, "attack1", "combo step 1")
-	p.play_action("attack", 2)
-	assert_eq(p.animator.action, "attack3", "combo step 3")
-	p.animator.update(1.0)
-	assert_eq(p.animator.action, "", "action expires")
+	assert_eq(p.animator.state, "fly_forward", "flying state")
+	p.is_flying = false
+	p.dead = true
+	p.animator.update(0.016)
+	assert_eq(p.animator.state, "death", "death state")
 	p.queue_free()
 	Game.profile = {}
 	Game.player = null
+
+func test_live_player_actually_plays_the_action_clips() -> void:
+	Game.profile = ProfileFactory.new_profile("Anim", "saiyan", "male", "warrior")
+	var p := Player.new()
+	add_node(p)
+	if p.anim == null:
+		p.queue_free()
+		return                                   # no animation assets in this checkout
+	for st in ["idle", "walk", "run", "jump", "attack1", "attack2", "attack3", "ki_blast",
+			"ki_charge", "mine", "eat", "transform", "death"]:
+		assert_true(p.has_state(st), "model knows state " + st)
+		assert_true(String(p.clip_for(st)) != "", "state %s resolves to a clip" % st)
+	assert_true(PlayerModel.punch(p, 0), "punch 1 plays")
+	assert_true(PlayerModel.punch(p, 1), "punch 2 plays")
+	assert_true(PlayerModel.punch(p, 2), "punch 3 plays")
+	assert_true(p.play_action("ki_blast"), "ki blast plays")
+	assert_true(p.set_locomotion("run", 5.6), "locomotion plays")
+	p.queue_free()
+	Game.profile = {}
+	Game.player = null
+
+func test_combo_cycles_three_punches() -> void:
+	var seen := PackedStringArray()
+	for i in 4:
+		seen.append(String(PlayerAnimator.BUTTON_ACTIONS["attack"][posmod(i, 3)]))
+	assert_eq(seen[0], "attack1", "first")
+	assert_eq(seen[1], "attack2", "second")
+	assert_eq(seen[2], "attack3", "third")
+	assert_eq(seen[3], "attack1", "wraps")

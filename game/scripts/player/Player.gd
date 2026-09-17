@@ -30,6 +30,9 @@ const FLY_VERTICAL := 9.0
 const FLY_VERTICAL_ACCEL := 40.0
 const DOUBLE_TAP_TIME := 0.35
 const CROUCH_EYE := 1.35
+## data/planets.json has 10x (Vegeta) and 20x (Hell); clamp so the planet is still playable.
+const GRAVITY_MIN := 0.5
+const GRAVITY_MAX := 2.5
 const FLY_FAST_STAMINA := 12.0
 const KI_FLY_DRAIN := 0.6
 const DASH_IMPULSE := 12.0
@@ -370,12 +373,12 @@ func _read_input(delta: float) -> void:
 		if not _blast_charging and _blast_hold >= 0.4:
 			_blast_charging = Techniques.begin(self, CHARGED_BLAST)
 			if _blast_charging:
-				play_action("ki_charge_cast")
+				play_state("ki_cast")
 	elif _blast_active:
 		_blast_active = false
 		if _blast_charging:
 			Techniques.release(self)
-			play_action("ki_blast_charged")
+			play_state("ki_blast")
 			_blast_charging = false
 			if camera_rig != null:
 				camera_rig.shake(0.3, 0.2)
@@ -400,7 +403,7 @@ func toggle_fly() -> void:
 	if is_flying:
 		on_ground = false
 		Audio.play_sfx("fly", -6.0)
-		play_action("ki_charge_cast")
+		play_state("powerup")
 	UiUtil.vibrate(12)
 
 func dash() -> void:
@@ -418,7 +421,7 @@ func dash() -> void:
 		stamina = maxf(0.0, stamina - DASH_STAMINA)
 		Events.stamina_changed.emit(stamina, max_stamina)
 	Audio.play_sfx("dash", -4.0)
-	play_action("dash")
+	play_state("dash")
 	if ResourceLoader.exists("res://scripts/fx/Trails.gd"):
 		var tr := Trails.get_for(self)
 		if tr != null:
@@ -431,7 +434,7 @@ func request_transform() -> void:
 	if not active.is_empty():
 		Forms.revert(self)
 		return
-	play_action("transform")
+	play_state("transform")
 	var unlocked: Array = Game.profile.get("forms", {}).get("unlocked", []) if Game != null else []
 	for fid in unlocked:
 		if bool(Forms.can_transform(self, String(fid)).get("ok", false)):
@@ -446,7 +449,7 @@ func fire_ki_blast(charged := false) -> void:
 		tech = BASIC_BLAST
 	if not Techniques.tap(self, tech):
 		return
-	play_action("ki_blast_charged" if charged else "ki_blast")
+	play_state("ki_blast")
 	if camera_rig != null:
 		camera_rig.shake(0.3 if charged else 0.12, 0.2)
 
@@ -478,7 +481,16 @@ func target_speed() -> float:
 	return float(_phys["walk"]) * mult
 
 func jump_speed() -> float:
-	return float(_phys["jump"]) * Skills.jump_mult(self)
+	# Heavier gravity means a shorter jump; 1/sqrt(g) keeps the jump *height* proportional.
+	return float(_phys["jump"]) * Skills.jump_mult(self) / sqrt(maxf(0.1, gravity_scale()))
+
+## Planet gravity (clamped) times the training gravity device, if one is running.
+func gravity_scale() -> float:
+	var g := clampf(planet_gravity(), GRAVITY_MIN, GRAVITY_MAX)
+	var tr := Training.find_on(self)
+	if tr != null and tr.get("gravity_mult") != null:
+		g *= clampf(float(tr.get("gravity_mult")), 1.0, GRAVITY_MAX)
+	return clampf(g, GRAVITY_MIN, GRAVITY_MAX * 2.0)
 
 ## Entity.tick: the player drives its own movement instead of Entity.apply_physics.
 func tick(delta: float) -> void:
@@ -595,7 +607,7 @@ func _integrate(delta: float) -> void:
 		velocity.y = clampf(velocity.y, LIQUID_VY_MIN, LIQUID_VY_MAX)
 		velocity += flow * 1.5 * delta
 	else:
-		velocity.y = maxf(TERMINAL_VELOCITY, velocity.y - float(_phys["gravity"]) * planet_gravity() * delta)
+		velocity.y = maxf(TERMINAL_VELOCITY, velocity.y - float(_phys["gravity"]) * gravity_scale() * delta)
 		if input.jump and on_ground:
 			velocity.y = jump_speed()
 			on_ground = false
@@ -651,7 +663,7 @@ func _apply_motion(motion: Vector3) -> void:
 		on_ground = false
 	if on_ground and not was_ground and vy_before <= 0.0:
 		if vy_before < -6.0:
-			play_action("land")
+			play_state("land")
 		if _stepper != null:
 			Footsteps.land(world, global_position, absf(vy_before))
 	var d := global_position - moved_from
@@ -683,9 +695,15 @@ func _animate() -> void:
 	if animator != null:
 		animator.update(get_process_delta_time())
 
-## Trigger a one-shot animation ("attack" with an index, "ki_blast", "transform", ...).
-func play_action(name: String, index := -1) -> String:
-	return animator.play_action(name, index) if animator != null else ""
+## Trigger a one-shot animation state through the animator ("attack" picks the combo step).
+## `play_action(state)` itself comes from Entity - this is the indexed variant.
+func play_combo(index: int) -> void:
+	if animator != null:
+		animator.play_action("attack", index)
+
+func play_state(action_state: String) -> void:
+	if animator != null:
+		animator.play_action(action_state)
 
 # --- damage / death --------------------------------------------------------
 
@@ -702,7 +720,7 @@ func take_damage(amount: float, source: Node = null, kind_of := "melee", knockba
 	if applied <= 0.0:
 		return 0.0
 	if knockback.length() > 2.0:
-		play_action("hurt")
+		play_state("hurt")
 	Events.health_changed.emit(health, max_health)
 	Events.player_damaged.emit(applied, source, kind_of)
 	UiUtil.vibrate(40)

@@ -331,10 +331,10 @@ func relayout() -> void:
 	tracker.position = Vector2(14.0 * s + insets.x, 14.0 * s + insets.y)
 	tracker.size = Vector2(280.0 * s, 160.0 * s)
 	coords_label.add_theme_font_size_override("font_size", UiUtil.font_small(s))
-	coords_label.position = Vector2(14.0 * s + insets.x, tracker.position.y + tracker.size.y + 4.0 * s)
 	coords_label.size = Vector2(320.0 * s, 96.0 * s)
+	_position_coords()
 	dev_tag.add_theme_font_size_override("font_size", UiUtil.font_small(s))
-	dev_tag.position = Vector2(size.x - 386.0 * s - insets.z, 14.0 * s + insets.y + 56.0 * s)
+	dev_tag.position = Vector2(size.x - 380.0 * s - insets.z, 14.0 * s + insets.y + 54.0 * s)
 
 	hint_label.add_theme_font_size_override("font_size", UiUtil.font_body(s))
 	hint_label.size = Vector2(minf(560.0 * s, size.x - 40.0 * s), 60.0 * s)
@@ -379,7 +379,7 @@ func _layout_buttons() -> void:
 	var lx := 24.0 * s + insets.x
 	if left_handed:
 		lx = size.x - 24.0 * s - 48.0 * s - insets.z
-	var ly := size.y * 0.62
+	var ly := size.y * 0.74
 	for i in ["transform", "technique", "lock_on"].size():
 		pass
 	var cluster := ["transform", "technique", "lock_on"]
@@ -902,6 +902,14 @@ static func _compass(yaw_deg: float) -> String:
 	var names := ["N", "NW", "W", "SW", "S", "SE", "E", "NE"]
 	return names[int(round(y / 45.0)) % 8]
 
+## The readout hangs under whatever the quest tracker actually occupies, so it never collides
+## with the left button cluster when there is no quest.
+func _position_coords() -> void:
+	if coords_label == null or tracker == null:
+		return
+	var h := tracker.get_combined_minimum_size().y
+	coords_label.position = Vector2(14.0 * s + insets.x, tracker.position.y + h + 6.0 * s)
+
 func _refresh_tracker() -> void:
 	for c in tracker.get_children():
 		c.queue_free()
@@ -929,6 +937,7 @@ func _refresh_tracker() -> void:
 		var done := have >= need
 		tracker.add_child(UiUtil.label(("[x] " if done else "[ ] ") + text, UiUtil.font_small(s),
 			Color(0.6, 0.9, 0.6) if done else UiUtil.DIM_COLOR))
+	call_deferred("_position_coords")
 
 func _objective_text(o: Dictionary) -> String:
 	match String(o.get("type", "")):

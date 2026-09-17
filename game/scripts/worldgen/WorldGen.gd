@@ -46,6 +46,9 @@ class Ctx extends RefCounted:
 	var wet := PackedByteArray()
 	## Per (lx + 16*lz): highest block placed by any pass + 1 (used for the heightmap).
 	var top_any := PackedInt32Array()
+	## Climate biome picks cached per 4x4 cell and height band (vanilla samples biomes on a
+	## 4-block grid too); -1 = not computed yet.
+	var pick_cache := PackedInt32Array()
 
 	func _init() -> void:
 		ext_h.resize(E * E)
@@ -53,6 +56,9 @@ class Ctx extends RefCounted:
 		tops.resize(256)
 		wet.resize(256)
 		top_any.resize(256)
+		pick_cache.resize(8 * 8 * 4)
+		for i in pick_cache.size():
+			pick_cache[i] = -1
 		for i in E * E:
 			ext_h[i] = NONE
 			ext_b[i] = -1
@@ -164,6 +170,8 @@ func configure() -> void:
 	decorator.configure(self)
 	structures.configure(self)
 	_post_configure()
+	if stamp_structures:
+		structures.resolve_uniques()
 
 ## Subclasses override this to set the tunables above.
 func _configure() -> void:
@@ -442,7 +450,23 @@ func ext_biome(ctx: Ctx, gx: int, gz: int) -> int:
 	var v := ctx.ext_b[i]
 	if v >= 0:
 		return v
-	v = biome_map.at(ctx.ox + gx, ctx.oz + gz, ext_height(ctx, gx, gz))
+	var wx := ctx.ox + gx
+	var wz := ctx.oz + gz
+	var h := ext_height(ctx, gx, gz)
+	v = biome_map.rules_at(wx, wz, h)
+	if v < 0:
+		# Climate pick: one sample per 4x4 cell and height band, cached for this column.
+		# The 4x4 cells are anchored to world coordinates (column origins are multiples of
+		# 16), so neighbouring columns agree on every cell and features never seam.
+		var band := biome_map.band_index(h)
+		var key := (((gx >> 2) + 2) + 8 * ((gz >> 2) + 2)) * 4 + band
+		if key >= 0 and key < ctx.pick_cache.size():
+			v = ctx.pick_cache[key]
+			if v < 0:
+				v = biome_map.pick_band(wx - (gx & 3), wz - (gz & 3), band)
+				ctx.pick_cache[key] = v
+		else:
+			v = biome_map.pick_band(wx - (gx & 3), wz - (gz & 3), band)
 	ctx.ext_b[i] = v
 	return v
 
