@@ -28,4 +28,11 @@ tools/screenshot.sh out.png --args "--autoplay=1"   # render a frame under Xvfb
 tools/export_android.sh         # -> game/build/DragonBlockSagas.apk (debug-signed)
 ```
 
+### Getting the APK without building
+
+`.github/workflows/android.yml` exports the debug APK on GitHub Actions. It runs on a manual
+dispatch, on a `preview-*`/`v*` tag, or on any push whose commit message contains `[apk]`.
+Open the run in the **Actions** tab and download the `DragonBlockSagas-<commit>` artifact (a zip
+containing the `.apk`); on the phone, allow "install unknown apps" for your browser and open it.
+
 The rest of this file is completed together with the first release (see CHANGELOG.md).
