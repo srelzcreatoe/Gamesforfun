@@ -296,7 +296,7 @@ func _setup_motes() -> void:
 	_motes.emitting = true
 
 func _setup_rocks() -> void:
-	var count := [6, 10, 14][profile.tier]
+	var count: int = [6, 10, 14][profile.tier]
 	_rock_angles.resize(count)
 	for i in count:
 		var mi := MeshInstance3D.new()

@@ -118,9 +118,10 @@ func refresh_derived() -> void:
 
 # --- Entity contract ------------------------------------------------------
 
-func play_anim(name: String, blend := 0.15, loop := true) -> void:
+func play_anim(name: String, blend := 0.15, loop: Variant = true, speed := 1.0) -> bool:
 	last_anim = name
 	anim_history.append(name)
+	return true
 
 func take_damage(amount: float, source: Node = null, kind := "melee", knockback := Vector3.ZERO) -> float:
 	damage_taken += amount
