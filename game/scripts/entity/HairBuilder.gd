@@ -41,6 +41,10 @@ extends RefCounted
 const DATA_PATH := "res://data/hair_styles.json"
 const HAIR_TILE := "races/hair"
 const MAX_LEN := 20
+## How much lighter an undeclared accent colour is than the main hair. Shared with
+## the transformation flicker in scripts/fx/TransformationDirector.gd, which anchors
+## the accent to the FORM colour using the same constant.
+const ACCENT_LIGHTEN := 0.45
 
 ## forms.json `hairType` -> how the character's own style is stretched. `upright`
 ## is how far every strand is rotated towards straight up (0 = unchanged, 1 = vertical).
@@ -176,10 +180,14 @@ static func style_color(id: String, fallback: Color) -> Color:
 	var c := String(resolve_style(id).get("color", ""))
 	return RaceSkin._color(c) if c != "" else fallback
 
-## Second (accent) colour of a two tone style; falls back to a lighter main.
+## Second (accent) colour of a two tone style. This is the CHARACTER's accent: an
+## authored `accent_color` wins outright and ignores `main`, so do NOT use it to
+## repaint a transformed character (a blue god form would keep gotenks' gold
+## streak) - derive from the form colour with `main.lightened(ACCENT_LIGHTEN)`
+## instead, which is what this returns for a style that declares none.
 static func accent_color(id: String, main: Color) -> Color:
 	var c := String(resolve_style(id).get("accent_color", ""))
-	return RaceSkin._color(c) if c != "" else main.lightened(0.45)
+	return RaceSkin._color(c) if c != "" else main.lightened(ACCENT_LIGHTEN)
 
 static func hides_eyebrows(id: String) -> bool:
 	return bool(resolve_style(id).get("no_eyebrows", false))
