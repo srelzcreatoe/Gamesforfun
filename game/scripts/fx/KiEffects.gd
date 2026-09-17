@@ -231,7 +231,8 @@ static func muzzle_flash(pos: Vector3, c: Color, parent: Node = null) -> void:
 	tw.tween_property(q, "scale", Vector3.ONE * 2.2, 0.18)
 	tw.tween_property(q.material_override, "albedo_color:a", 0.0, 0.18)
 	tw.chain().tween_callback(q.queue_free)
-	FxAssets.burst(p, pos, "MuzzleSparks", 8, ["ki_spark_1", "spark2", "ki_line"], c.lightened(0.3), 8.0, 0.25, 0.3, -2.0)
+	flash_pop(p, pos, Color(1, 1, 1), 1.3, 0.12)
+	FxAssets.burst(p, pos, "MuzzleSparks", 10, ["ki_spark_1", "spark2", "ki_line"], c.lightened(0.3), 8.0, 0.25, 0.3, -2.0)
 
 static func beam_impact(pos: Vector3, c: Color, radius := 1.5, parent: Node = null) -> void:
 	var p := parent if parent != null and parent.is_inside_tree() else _parent()

@@ -203,3 +203,47 @@ func test_anim_select_prefers_dmz_and_falls_back_to_spa() -> void:
 	# unknown state -> ""
 	assert_eq(AnimSelect.choose("nonsense_state", anim), "")
 	assert_true(AnimSelect.available(anim).size() > 40, "most states resolve")
+
+func test_one_shot_upper_layer_releases_itself() -> void:
+	anim.play("base.walk", 0.0)
+	# base.jab_right is a one-shot: force the loop mode so the test does not depend
+	# on the clip's own header.
+	assert_true(anim.play_upper("base.jab_right", 0.0, false), "upper punch started")
+	assert_eq(anim.current_clip(BedrockAnimation.LAYER_UPPER), "base.jab_right")
+	var length := anim.resolve("base.jab_right").length
+	var t := 0.0
+	while t < length + 0.1:
+		anim.update(0.033)
+		t += 0.033
+	assert_eq(anim.current_clip(BedrockAnimation.LAYER_UPPER), "", "the upper layer handed the arms back")
+	assert_eq(anim.current_clip(), "base.walk", "the legs kept walking")
+	# a looping upper clip is left alone
+	anim.play_upper("base.ki_charge", 0.0, true)
+	for i in 40:
+		anim.update(0.033)
+	assert_eq(anim.current_clip(BedrockAnimation.LAYER_UPPER), "base.ki_charge", "looping holds")
+
+func test_state_api_drives_clips_and_crawl_pose() -> void:
+	anim.load_clips("spa/player", BedrockAnimation.REMAP_SPA)
+	var e := _entity_with_model()
+	assert_true(e != null, "player-ish entity built")
+	assert_true(e.set_locomotion("walk", 4.2), "walk")
+	assert_eq(e.current_anim(), "base.walk")
+	assert_true(e.set_locomotion("run", 6.0), "run")
+	assert_eq(e.current_anim(), "base.run")
+	assert_true(e.play_action("attack1"), "punch plays on the upper layer")
+	assert_eq(e.current_anim(), "base.run", "the legs keep running while punching")
+	# SPA fills the states DMZ lacks, and a crawl tips the model over
+	assert_true(e.set_locomotion("crawl_back", 1.0), "crawl_back")
+	assert_eq(e.current_anim(), "spa.crawling_backwards")
+	assert_true(absf(e.model.rotation.x + PI * 0.5) < 0.01, "the model lies down to crawl (%.2f)" % e.model.rotation.x)
+	assert_true(e.set_locomotion("idle"), "idle")
+	assert_true(absf(e.model.rotation.x) < 0.01, "and stands back up")
+	e.free()
+
+func _entity_with_model() -> Node:
+	var scr: GDScript = load("res://scripts/entity/Entity.gd")
+	var e: Node = scr.new()
+	e.set("entity_type", "player")
+	add_node(e)
+	return e if e.get("model") != null and e.get("anim") != null else null

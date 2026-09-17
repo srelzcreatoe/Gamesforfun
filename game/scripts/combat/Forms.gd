@@ -381,7 +381,8 @@ func pop_form() -> void:
 	if stack.is_empty():
 		return
 	var gone: String = stack.pop_back()
-	Audio.play_sfx_at("transform_off", _pos())
+	# fx hook: the power-down flare (plays the transform_off sound itself)
+	TransformationDirector.revert_flash(entity, gone)
 	_apply_multipliers()
 	_apply_visuals(stack[-1] if not stack.is_empty() else "")
 	if entity != null and "current_form" in entity:
@@ -391,9 +392,10 @@ func pop_form() -> void:
 func clear_forms(sound := true) -> void:
 	if stack.is_empty():
 		return
+	var last: String = stack[-1]
 	stack.clear()
 	if sound:
-		Audio.play_sfx_at("transform_off", _pos())
+		TransformationDirector.revert_flash(entity, last)
 	_apply_multipliers()
 	_apply_visuals("")
 	if entity != null and "current_form" in entity:

@@ -1,17 +1,23 @@
 extends Node3D
 ## Standalone fx stage used for visual verification (`scenes/fx/FxPreview.tscn`).
 ##
-##   tools/screenshot.sh out.png --sandbox fx --seconds 2.4 \
-##     --args "--scene=res://scenes/fx/FxPreview.tscn --fx=transform --form=ssgrades.supersaiyan"
+##   tools/screenshot.sh out.png --sandbox vfx --seconds 8 \
+##     --args "--scene=res://scenes/fx/FxPreview.tscn --form=supersaiyan.supersaiyan2 --at=2.6,3.5"
 ##
 ## `--fx=` one of: transform, kamehameha, beam, blast, barrage, disc, explosion, aura,
-##                 lightning, hit, dash, all
+##                 lightning, hit, dash, all   (defaults to "transform" when --form is given)
 ## `--form=` form id for the transformation (default ssgrades.supersaiyan)
 ## `--technique=` technique id for the beam/blast modes
+## `--at=` one or more seconds (comma separated). The stage grabs the viewport at exactly
+##         those times and then quits, so a cinematic can be frozen at its climax:
+##         a single value writes `--screenshot=<path>`, several write
+##         `<path-without-ext>_t<seconds>.png` next to it.
+## `--nohud` hide the debug label (clean shots)
 
-const GROUND_SIZE := 90.0
+const GROUND_SIZE := 120.0
+const ROCKS := 150
 
-var fx := "aura"
+var fx := ""
 var form_id := "ssgrades.supersaiyan"
 var technique_id := ""
 var dummy: FxDummy
@@ -19,8 +25,14 @@ var camera: Camera3D
 var label: Label
 var t := 0.0
 
+var at_times: Array[float] = []
+var shot_path := ""
+var show_hud := true
+
 var _steps: Array[Dictionary] = []
 var _next_step := 0
+var _shots_done := 0
+var _capturing := false
 
 func _ready() -> void:
 	_parse_args()
@@ -36,6 +48,7 @@ func _ready() -> void:
 	_script_fx()
 
 func _parse_args() -> void:
+	var had_form := false
 	for a in OS.get_cmdline_user_args():
 		if not a.begins_with("--"):
 			continue
@@ -44,8 +57,20 @@ func _parse_args() -> void:
 		var val := kv[1] if kv.size() > 1 else ""
 		match key:
 			"fx": fx = val
-			"form": form_id = val
+			"form":
+				form_id = val
+				had_form = true
 			"technique": technique_id = val
+			"screenshot": shot_path = val
+			"nohud": show_hud = false
+			"at":
+				for piece in val.split(",", false):
+					var s := piece.strip_edges()
+					if s.is_valid_float():
+						at_times.append(float(s))
+	at_times.sort()
+	if fx == "":
+		fx = "transform" if had_form else "aura"
 
 # --- stage ----------------------------------------------------------------
 
@@ -53,20 +78,26 @@ func _build_stage() -> void:
 	var env := WorldEnvironment.new()
 	var e := Environment.new()
 	e.background_mode = Environment.BG_COLOR
-	e.background_color = Color(0.09, 0.12, 0.2)
+	e.background_color = Color(0.055, 0.075, 0.13)
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	e.ambient_light_color = Color(0.55, 0.6, 0.72)
-	e.ambient_light_energy = 0.9
+	e.ambient_light_color = Color(0.42, 0.48, 0.62)
+	e.ambient_light_energy = 0.75
+	e.fog_enabled = true
+	e.fog_light_color = Color(0.13, 0.16, 0.25)
+	e.fog_density = 0.012
 	e.glow_enabled = true
-	e.glow_intensity = 0.45
-	e.glow_bloom = 0.12
-	e.glow_hdr_threshold = 1.0
+	e.glow_intensity = 0.7
+	e.glow_strength = 1.1
+	e.glow_bloom = 0.22
+	e.glow_hdr_threshold = 0.85
+	e.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
 	env.environment = e
 	add_child(env)
 
 	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-52, 38, 0)
-	sun.light_energy = 1.1
+	sun.rotation_degrees = Vector3(-38, 128, 0)
+	sun.light_color = Color(1.0, 0.86, 0.72)
+	sun.light_energy = 1.05
 	sun.shadow_enabled = false
 	add_child(sun)
 
@@ -76,21 +107,12 @@ func _build_stage() -> void:
 	pm.size = Vector2(GROUND_SIZE, GROUND_SIZE)
 	ground.mesh = pm
 	var gm := StandardMaterial3D.new()
-	gm.albedo_color = Color(0.33, 0.40, 0.25)
+	gm.albedo_color = Color(0.24, 0.22, 0.18)
 	gm.roughness = 1.0
 	ground.material_override = gm
 	add_child(ground)
 
-	# a few blocks well outside the fx so scale reads without cluttering the shot
-	for i in 6:
-		var b := MeshInstance3D.new()
-		b.mesh = FxAssets.cube_mesh(1.0)
-		var bm := StandardMaterial3D.new()
-		bm.albedo_color = Color(0.38, 0.35, 0.31).lightened(float(i) * 0.03)
-		b.material_override = bm
-		var a := float(i) / 6.0 * TAU + 0.4
-		b.position = Vector3(cos(a) * 12.0, 0.5, sin(a) * 12.0)
-		add_child(b)
+	_build_rocks()
 
 	camera = Camera3D.new()
 	camera.name = "PreviewCamera"
@@ -116,8 +138,39 @@ func _build_stage() -> void:
 	add_child(layer)
 	label = Label.new()
 	label.position = Vector2(14, 10)
-	label.modulate = Color(1, 1, 1, 0.85)
+	label.modulate = Color(1, 1, 1, 0.75)
+	label.visible = show_hud
 	layer.add_child(label)
+
+## A voxel-ish rocky arena in one MultiMesh: gives the fx something to light and a
+## sense of scale without adding draw calls.
+func _build_rocks() -> void:
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	mm.mesh = FxAssets.cube_mesh(1.0)
+	mm.instance_count = ROCKS
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7731
+	for i in ROCKS:
+		var a := rng.randf() * TAU
+		var r: float = lerpf(7.0, 46.0, sqrt(rng.randf()))
+		var s := rng.randf_range(0.8, 3.4) * (1.0 + r * 0.03)
+		var h := s * rng.randf_range(0.5, 1.6)
+		var xf := Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, h, s)),
+			Vector3(cos(a) * r, h * 0.35, sin(a) * r))
+		mm.set_instance_transform(i, xf)
+		var tone := rng.randf_range(0.18, 0.34)
+		mm.set_instance_color(i, Color(tone * 1.1, tone, tone * 0.88))
+	var mmi := MultiMeshInstance3D.new()
+	mmi.name = "Rocks"
+	mmi.multimesh = mm
+	var m := StandardMaterial3D.new()
+	m.vertex_color_use_as_albedo = true
+	m.roughness = 1.0
+	mmi.material_override = m
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mmi)
 
 func _build_dummy() -> void:
 	dummy = FxDummy.create("saiyan", "warrior")
@@ -139,6 +192,9 @@ func _script_fx() -> void:
 	match fx:
 		"transform":
 			_at(0.35, func() -> void: Forms.transform(dummy, form_id))
+		"transform_revert":
+			_at(0.35, func() -> void: Forms.transform(dummy, form_id))
+			_at(0.4 + FormVfx.for_id(form_id).duration, func() -> void: Forms.revert(dummy))
 		"aura":
 			_at(0.2, func() -> void:
 				Ki.get_for(dummy).set_charging(true)
@@ -146,9 +202,9 @@ func _script_fx() -> void:
 		"lightning":
 			_at(0.2, func() -> void:
 				var a := Aura.get_for(dummy)
-				a.set_form(Forms.def("ssgrades.supersaiyan2"))
+				a.set_form(Forms.def(form_id))
 				a.set_intensity(1.3)
-				a.set_lightning(true, Color("#8AD8FF")))
+				a.set_lightning(true, FormVfx.for_id(form_id).lightning_color))
 		"kamehameha", "beam":
 			var tid := technique_id if technique_id != "" else "kamehameha"
 			_at(0.25, func() -> void: Techniques.begin(dummy, tid))
@@ -196,8 +252,44 @@ func _process(delta: float) -> void:
 		_next_step += 1
 		if fn.is_valid():
 			fn.call()
-	if label != null:
+	if label != null and label.visible:
 		var a := Aura.find_on(dummy)
-		label.text = "fx=%s  t=%.2f s  form=%s  aura=%.2f  ki=%.0f/%.0f" % [
-			fx, t, Forms.current(dummy), a.intensity() if a != null else 0.0,
-			dummy.ki if dummy != null else 0.0, dummy.max_ki if dummy != null else 0.0]
+		var d := TransformationDirector.running_for(dummy)
+		label.text = "fx=%s  t=%.2f s  form=%s  phase=%s  aura=%.2f" % [
+			fx, t, Forms.current(dummy) if Forms.current(dummy) != "" else form_id,
+			d.phase_name() if d != null else "-",
+			a.intensity() if a != null else 0.0]
+	_maybe_capture()
+
+# --- frozen captures ------------------------------------------------------
+
+## Grab the viewport at each `--at` second and quit. The director runs on real time, so
+## this is the only reliable way to land a screenshot exactly on the climax frame -
+## Main's own `--after` timer is scaled by the cinematic's slow motion.
+func _maybe_capture() -> void:
+	if _capturing or shot_path == "" or _shots_done >= at_times.size():
+		return
+	if t < at_times[_shots_done]:
+		return
+	_capturing = true
+	_capture(at_times[_shots_done])
+
+func _capture(at: float) -> void:
+	await RenderingServer.frame_post_draw
+	var vp := get_viewport()
+	if vp == null:
+		_capturing = false
+		return
+	var img := vp.get_texture().get_image()
+	var path := shot_path
+	if at_times.size() > 1:
+		path = "%s/%s_t%.2f.%s" % [shot_path.get_base_dir(), shot_path.get_basename().get_file(),
+			at, shot_path.get_extension()]
+	var err := img.save_png(path)
+	print("SCREENSHOT %s -> %s (t=%.2f, phase=%s)" % [
+		path, "ok" if err == OK else str(err), t,
+		TransformationDirector.running_for(dummy).phase_name() if TransformationDirector.running_for(dummy) != null else "-"])
+	_shots_done += 1
+	_capturing = false
+	if _shots_done >= at_times.size():
+		get_tree().quit()

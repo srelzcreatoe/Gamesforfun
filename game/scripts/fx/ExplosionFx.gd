@@ -18,11 +18,13 @@ const FIRE_TEX := "aaa/lightning/Particle_Soft"
 const SMOKE_TEX := "aaa/explosion/smoke_tex"
 const DEBRIS_TEX := "block_0"
 
-const LIFETIME := 1.6
+const LIFETIME := 2.6
 const FIRE_COUNT := 26
 const SMOKE_COUNT := 16
 const SPARK_COUNT := 20
 const DEBRIS_COUNT := 10
+const EMBER_COUNT := 14
+const EMBER_LIFE := 2.4
 
 static var _hint_color := Color(1.0, 0.75, 0.35)
 static var _hint_until := 0
@@ -34,6 +36,7 @@ var age := 0.0
 var _ring: MeshInstance3D
 var _ring_mat: ShaderMaterial
 var _flash: MeshInstance3D
+var _glow: MeshInstance3D
 var _light: OmniLight3D
 
 ## Tint the next Events.explosion (ki attacks pass their technique colour).
@@ -154,6 +157,36 @@ func _ready() -> void:
 	add_child(debris)
 	debris.emitting = true
 
+	# embers: the part that lingers after the bang, drifting up and dying out slowly
+	var embers := FxAssets.make_particles("Embers", int(EMBER_COUNT * scale_f),
+		["ki_spark_0", "spark2", "aaa/missile_boost/Star"], color.lerp(Color(1, 0.55, 0.2), 0.35))
+	embers.one_shot = true
+	embers.explosiveness = 0.6
+	embers.lifetime = EMBER_LIFE
+	embers.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	embers.emission_sphere_radius = radius * 0.6
+	embers.spread = 180.0
+	embers.initial_velocity_min = radius * 0.3
+	embers.initial_velocity_max = radius * 1.1
+	embers.gravity = Vector3(0, 0.8, 0)
+	embers.damping_min = 0.8
+	embers.damping_max = 1.6
+	embers.scale_amount_min = 0.1
+	embers.scale_amount_max = 0.26
+	var eramp := Gradient.new()
+	eramp.set_color(0, Color(1, 1, 1, 1))
+	eramp.add_point(0.55, Color(1, 0.75, 0.4, 0.75))
+	eramp.set_color(1, Color(1, 0.35, 0.1, 0.0))
+	embers.color_ramp = eramp
+	add_child(embers)
+	embers.emitting = true
+
+	# lingering glow + scorch mark so the ground remembers the hit
+	_glow = FxAssets.make_quad("Afterglow", FxAssets.particle("ki_flash1", "ki_flash", "aaa/essentials/Circle"),
+		radius * 3.0, Color(color.r, color.g, color.b, 0.7))
+	add_child(_glow)
+	KiEffects.scorch(self, global_position, radius * 0.85, 3.0)
+
 	# a single light is allowed on mobile (limits/opengl/max_renderable_lights = 8)
 	_light = OmniLight3D.new()
 	_light.light_color = color
@@ -178,6 +211,12 @@ func _process(delta: float) -> void:
 		m.albedo_color = Color(1, 1, 1, f)
 		_flash.scale = Vector3.ONE * (0.4 + t * 1.6)
 		_flash.visible = f > 0.01
+	if _glow != null:
+		var g := clampf(1.0 - age / 1.5, 0.0, 1.0)
+		var gm: StandardMaterial3D = _glow.material_override
+		gm.albedo_color = Color(color.r, color.g, color.b, g * g * 0.6)
+		_glow.scale = Vector3.ONE * (0.6 + (1.0 - g) * 0.7)
+		_glow.visible = g > 0.01
 	if _light != null:
 		_light.light_energy = maxf(0.0, 6.0 * (1.0 - age / 0.4))
 		if _light.light_energy <= 0.01:

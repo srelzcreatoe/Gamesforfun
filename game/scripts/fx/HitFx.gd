@@ -8,6 +8,8 @@ extends RefCounted
 ##   HitFx.punch(pos, dir, damage, crit)                     # swing that connected
 ##   HitFx.block(pos, dir)  HitFx.parry(pos, dir)  HitFx.evade(pos)
 ##   HitFx.miss(pos)                                         # whoosh only
+##   HitFx.speed_lines(parent, pos, color, strength)         # radiating impact streaks
+##   HitFx.dust_puff(parent, pos, strength)
 
 const PUNCH_TEX: Array[String] = ["punch_particle_0", "punch_particle_2", "punch_particle_4"]
 const SPARK_TEX: Array[String] = ["spark1", "spark3", "ki_spark_0"]
@@ -41,6 +43,15 @@ static func on_hit(target: Node, pos: Vector3, amount: float, crit := false,
 		parent.add_child(flash)
 		flash.global_position = pos
 		_pop(flash, 0.16, 1.7)
+		# the punch reads as force: white speed lines shooting out of the contact point
+		# plus a low dust puff. Both scale with the damage so a jab is not a Dragon Fist.
+		var power := clampf(amount / 70.0, 0.25, 1.4)
+		speed_lines(parent, pos, color.lerp(Color(1, 1, 1), 0.55), power * (1.5 if crit else 1.0))
+		if kind == Damage.MELEE or kind == Damage.EXPLOSION:
+			dust_puff(parent, pos, power)
+		if crit:
+			KiEffects.flash_pop(parent, pos, Color(1, 0.95, 0.8), 2.2 * power, 0.2)
+			KiEffects.shock_ring(parent, pos, Color(1, 0.88, 0.6), 1.6 * power, 0.35, false)
 	_sounds(pos, amount, crit, kind)
 	if kind == Damage.MELEE or kind == Damage.EXPLOSION:
 		ScreenFx.hit_stop(CRIT_HIT_STOP if crit else HIT_STOP)
@@ -56,6 +67,7 @@ static func punch(pos: Vector3, dir: Vector3, damage: float, crit := false, pare
 	var p := parent if parent != null else _tree_parent()
 	if p != null:
 		FxAssets.burst(p, pos, "Punch", 6, PUNCH_TEX, Color(1, 0.95, 0.85), 4.0, 0.3, 0.4, -1.0)
+		speed_lines(p, pos, Color(1, 0.97, 0.9), clampf(damage / 70.0, 0.3, 1.2) * (1.4 if crit else 1.0))
 	Audio.play_sfx_at(_pick(CRIT_SOUNDS if crit else PUNCH_SOUNDS), pos)
 
 static func miss(pos: Vector3) -> void:
@@ -72,6 +84,8 @@ static func parry(pos: Vector3, dir := Vector3.ZERO, parent: Node = null) -> voi
 	var p := parent if parent != null else _tree_parent()
 	if p != null:
 		FxAssets.burst(p, pos, "Parry", 14, SPARK_TEX, Color(1, 1, 0.8), 7.0, 0.35, 0.4, -2.0)
+		speed_lines(p, pos, Color(1, 1, 0.85), 1.1)
+		KiEffects.flash_pop(p, pos, Color(1, 1, 0.9), 1.6, 0.16)
 	Audio.play_sfx_at("parry", pos)
 	ScreenFx.flash(Color(1, 1, 0.9), 0.1, 0.35)
 	ScreenFx.hit_stop(0.07)
@@ -82,6 +96,58 @@ static func evade(pos: Vector3) -> void:
 static func knockdown(pos: Vector3) -> void:
 	Audio.play_sfx_at("knockback_character", pos)
 	ScreenFx.shake(0.5, 0.25)
+
+## Velocity-aligned streaks radiating from an impact. `strength` 0.25 - 1.5 scales the
+## count, reach and length; one CPUParticles3D, freed automatically.
+static func speed_lines(parent: Node, pos: Vector3, c: Color, strength := 1.0) -> void:
+	if parent == null or not parent.is_inside_tree():
+		return
+	var s := clampf(strength, 0.2, 1.5)
+	var p := FxAssets.make_particles("SpeedLines", int(round(8.0 * s)) + 4,
+		["ki_line", "ki_trail4", "spark3"], c)
+	p.one_shot = true
+	p.explosiveness = 1.0
+	p.lifetime = 0.22
+	p.particle_flag_align_y = true
+	(p.mesh as QuadMesh).size = Vector2(0.09, 1.5 * s)
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	p.emission_sphere_radius = 0.12
+	p.spread = 180.0
+	p.direction = Vector3.UP
+	p.initial_velocity_min = 9.0 * s
+	p.initial_velocity_max = 17.0 * s
+	p.gravity = Vector3.ZERO
+	p.scale_amount_min = 0.6
+	p.scale_amount_max = 1.2
+	parent.add_child(p)
+	p.global_position = pos
+	p.emitting = true
+	FxAssets.free_after(p, 0.6)
+
+## Low grey dust kicked up by a melee impact (mix blended, not additive).
+static func dust_puff(parent: Node, pos: Vector3, strength := 1.0) -> void:
+	if parent == null or not parent.is_inside_tree():
+		return
+	var s := clampf(strength, 0.2, 1.5)
+	var p := FxAssets.make_particles("HitDust", int(round(7.0 * s)) + 3,
+		["aaa/lightning/Smoke", "aaa/explosion/smoke_tex", "block_0"], Color(0.72, 0.69, 0.64))
+	p.material_override.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
+	p.one_shot = true
+	p.explosiveness = 0.85
+	p.lifetime = 0.55
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	p.emission_sphere_radius = 0.25
+	p.spread = 110.0
+	p.direction = Vector3.UP
+	p.initial_velocity_min = 1.2 * s
+	p.initial_velocity_max = 3.2 * s
+	p.gravity = Vector3(0, -2.5, 0)
+	p.scale_amount_min = 0.35 * s
+	p.scale_amount_max = 0.9 * s
+	parent.add_child(p)
+	p.global_position = pos
+	p.emitting = true
+	FxAssets.free_after(p, 1.0)
 
 # --- internals ------------------------------------------------------------
 

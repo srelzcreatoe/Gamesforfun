@@ -56,6 +56,9 @@ var model: BedrockModel = null
 var entity: Node = null                          # owner, queried for head/motion state
 var clips: Dictionary = {}                       # name -> Clip
 var update_interval := 0.0                       # >0 throttles updates (distance LOD)
+## A finished one-shot on the upper-body layer hands the bones back by itself.
+var auto_release_upper := true
+var upper_release_blend := 0.12
 var paused := false
 
 var _layers: Array[LayerState] = []
@@ -474,6 +477,11 @@ func update(delta: float) -> void:
 		_advance(l0, delta)
 		_apply_direct(l0)
 		return
+	# A one-shot upper-body action (a punch, a ki blast) releases itself when it
+	# reaches its last frame, otherwise the arms would stay frozen in the last
+	# pose and every later locomotion clip would look broken from the waist up.
+	if l1.clip != null and l1.finished and not l1.fading_out and auto_release_upper:
+		stop_upper(upper_release_blend)
 	var pose: Dictionary = {}
 	for i in _layers.size():
 		var st: LayerState = _layers[i]
