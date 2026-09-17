@@ -21,6 +21,8 @@ const AI_CULL_DIST := 64.0
 const ANIM_SLOW_DIST := 24.0
 const ANIM_SLOW_INTERVAL := 0.05          # 20 Hz
 const DEATH_FREE_TIME := 1.5
+## Model pitch while crawling (the head ends up pointing forward, at -Z).
+const CRAWL_PITCH := -PI * 0.5
 const SPA_CLIPS := "spa/player"
 const SPA_CLIPS_FILE := "res://assets/animations/spa/player.animation.json"
 
@@ -417,7 +419,21 @@ func set_locomotion(state: String, speed := 0.0, blend := 0.18) -> bool:
 	locomotion = state
 	anim_speed = rate
 	_anim_name = clip
+	# Minecraft tips the whole player model when crawling and the SPA crawl clips
+	# animate the limbs only, so the tip has to come from here. The DMZ crawl clips
+	# rotate the root bone themselves, so they are left alone.
+	_set_crawl_pose(state.begins_with("crawl") and clip.begins_with("spa."))
 	return anim.play(clip, blend, null, rate)
+
+## Lay the model down (crawling) or stand it back up.
+func _set_crawl_pose(on: bool) -> void:
+	if model == null:
+		return
+	var pitch := CRAWL_PITCH if on else 0.0
+	if is_equal_approx(model.rotation.x, pitch):
+		return
+	model.rotation.x = pitch
+	model.position.y = model.model_height() * 0.28 if on else 0.0
 
 ## One-shot action (punch, ki blast, transform, hurt, eat, mine, ...). Upper-body
 ## actions play on the override layer so the legs keep their locomotion clip.

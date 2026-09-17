@@ -18,6 +18,7 @@ uniform vec3 origin = vec3(0.0, 80.0, 0.0);
 uniform vec3 heading = vec3(1.0, 0.0, 0.0);
 uniform float span = 260.0;
 uniform float period = 52.0;
+uniform float phase : hint_range(0.0, 1.0) = 0.0;
 uniform float size = 0.9;
 uniform float flap_speed : hint_range(0.5, 20.0) = 4.5;
 uniform vec4 tint : source_color = vec4(1.0, 1.0, 1.0, 1.0);
@@ -31,7 +32,7 @@ void vertex() {
 	float seed = INSTANCE_CUSTOM.x;
 	vec3 slot = MODEL_MATRIX[3].xyz;
 
-	float u = fract(TIME / max(period, 1.0));
+	float u = fract(TIME / max(period, 1.0) + phase);
 	vec3 dir = normalize(heading);
 	vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), dir) + vec3(0.0, 0.0, 0.0001));
 	float bob = sin(TIME * 1.3 + seed * 6.2831853) * 0.45;

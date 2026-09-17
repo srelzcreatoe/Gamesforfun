@@ -108,18 +108,26 @@ func dash(direction := Vector3.ZERO) -> void:
 		dir = dir.normalized()
 		for i in AFTERIMAGES:
 			var f := float(i + 1) / float(AFTERIMAGES + 1)
-			_spawn_afterimage(host, from - dir * (0.9 * float(i + 1)), f)
+			spawn_ghost(entity, from - dir * (0.9 * float(i + 1)), color, AFTERIMAGE_LIFE * (1.0 - f * 0.4))
 		Audio.play_sfx_at("zanzoken", from, -3.0)
 		Audio.play_sfx_at("dash", from, -6.0)
 
-func _spawn_afterimage(host: Node, pos: Vector3, fade: float) -> void:
+## One fading additive copy of an entity's model at `pos`. Used by the dash afterimages
+## and by the transformation cinematic's strain phase. Falls back to a capsule when the
+## entity has no model yet, and does nothing when it is not in the tree.
+static func spawn_ghost(entity_node: Node, pos: Vector3, c: Color, life := AFTERIMAGE_LIFE) -> Node3D:
+	if entity_node == null or not is_instance_valid(entity_node) or not entity_node.is_inside_tree():
+		return null
+	var host: Node = entity_node.get_parent()
+	if host == null or not host.is_inside_tree():
+		return null
 	var ghost: Node3D = null
-	var model: Variant = entity.get("model") if entity != null and "model" in entity else null
+	var model: Variant = entity_node.get("model") if "model" in entity_node else null
 	if model is Node3D and (model as Node3D).is_inside_tree():
 		var dup: Node = (model as Node3D).duplicate(DUPLICATE_USE_INSTANTIATION)
 		if dup is Node3D:
 			ghost = dup as Node3D
-			_tint_recursive(ghost, color)
+			_tint_recursive(ghost, c)
 	if ghost == null:
 		var mi := MeshInstance3D.new()
 		var cap := CapsuleMesh.new()
@@ -127,7 +135,7 @@ func _spawn_afterimage(host: Node, pos: Vector3, fade: float) -> void:
 		cap.height = 1.8
 		mi.mesh = cap
 		var m := FxAssets.additive_material(null, false)
-		m.albedo_color = Color(color.r, color.g, color.b, 0.55)
+		m.albedo_color = Color(c.r, c.g, c.b, 0.55)
 		mi.material_override = m
 		mi.position = Vector3(0, 0.9, 0)
 		ghost = Node3D.new()
@@ -135,17 +143,16 @@ func _spawn_afterimage(host: Node, pos: Vector3, fade: float) -> void:
 	ghost.name = "Afterimage"
 	host.add_child(ghost)
 	ghost.global_position = pos
-	if entity is Node3D:
-		ghost.global_rotation = (entity as Node3D).global_rotation
-		ghost.scale = (entity as Node3D).scale
-	var life := AFTERIMAGE_LIFE * (1.0 - fade * 0.4)
+	if entity_node is Node3D:
+		ghost.global_rotation = (entity_node as Node3D).global_rotation
+		ghost.scale = (entity_node as Node3D).scale
 	var tw := ghost.create_tween()
 	tw.tween_property(ghost, "scale", ghost.scale * 0.85, life)
-	tw.parallel().tween_callback(func() -> void: pass)
-	tw.chain().tween_callback(ghost.queue_free)
+	tw.tween_callback(ghost.queue_free)
 	_fade_recursive(ghost, life)
+	return ghost
 
-func _tint_recursive(node: Node, c: Color) -> void:
+static func _tint_recursive(node: Node, c: Color) -> void:
 	if node is MeshInstance3D:
 		var mi := node as MeshInstance3D
 		var m := FxAssets.additive_material(null, false)
@@ -155,7 +162,7 @@ func _tint_recursive(node: Node, c: Color) -> void:
 	for ch in node.get_children():
 		_tint_recursive(ch, c)
 
-func _fade_recursive(node: Node, seconds: float) -> void:
+static func _fade_recursive(node: Node, seconds: float) -> void:
 	if node is MeshInstance3D:
 		var mi := node as MeshInstance3D
 		var m: Variant = mi.material_override

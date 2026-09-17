@@ -83,7 +83,7 @@
     "mohawk": {
       "name": "Mohawk",
       "groups": [
-        { "face": "TOP", "cols": [1, 2], "rows": [0, 1, 2, 3], "len": 3, "rot": [0, 0, 0], "spread": 3, "curve": [2, 0, 0], "taper": 0.92, "scale": [1.2, 0.85, 1.0] },
+        { "face": "TOP", "cols": [1, 2], "rows": [0, 1, 2, 3], "len": 4, "rot": [0, 0, 0], "spread": 4, "curve": [2, 0, 0], "taper": 0.93, "scale": [0.7, 0.9, 1.0] },
         { "face": "LEFT", "cols": [0, 1, 2, 3], "rows": [0], "len": 1, "rot": [0, 0, 10], "scale": [1.0, 0.35, 1.0], "taper": 1.0 },
         { "face": "RIGHT", "cols": [0, 1, 2, 3], "rows": [0], "len": 1, "rot": [0, 0, -10], "scale": [1.0, 0.35, 1.0], "taper": 1.0 },
         { "face": "BACK", "cols": [1, 2], "rows": [0], "len": 1, "rot": [20, 0, 0], "scale": [0.9, 0.6, 0.8], "taper": 1.0 }
