@@ -2,14 +2,15 @@
 # artifact (Actions tab -> the run -> "Artifacts"), because the ~140 MB file
 # is too large to hand over in chat.
 #
-# Triggers: manual (Actions tab -> "Android APK" -> Run workflow) or a tag
-# that starts with "preview-" or "v".
+# Triggers: manual (Actions tab -> "Android APK" -> Run workflow), a tag that
+# starts with "preview-" or "v", or a push whose commit message contains "[apk]".
 name: Android APK
 
 on:
   workflow_dispatch:
   push:
     tags: ["preview-*", "v*"]
+    branches: ["main", "master", "claude/**"]
 
 permissions:
   contents: read
@@ -27,6 +28,8 @@ jobs:
     name: Export debug APK
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    # Branch pushes only build when the commit message opts in with "[apk]".
+    if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/') || contains(github.event.head_commit.message, '[apk]')
     steps:
       - name: Check out
         uses: actions/checkout@v4
