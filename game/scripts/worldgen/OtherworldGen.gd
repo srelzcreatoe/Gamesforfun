@@ -18,6 +18,8 @@ func _configure() -> void:
 	biome_style = BiomeMap.STYLE_SINGLE
 	caves_enabled = false
 	decorate = false
+	# the Check-In Station contains the spawn, so it may cover the clearing (the arrival point still gets head room).
+	structures_avoid_spawn = false
 	stone_name = "otherworld_cloud"
 	bedrock_depth = 0
 	dragon_ball_set = ""

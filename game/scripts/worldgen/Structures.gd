@@ -231,6 +231,8 @@ func _stamp_one(col: ChunkColumn, ctx, entry: Dictionary, ax: int, az: int, rot:
 	var base_y := _resolve_y(entry, special, ax, az, size)
 	if base_y < 0:
 		return
+	if gen.structures_avoid_spawn and _covers_spawn(min_x, min_z, ext_x, ext_z):
+		return
 	var ext_y := src_max - src_min + 1
 	if bool(tpl.get("clear", false)):
 		_clear_box(col, ctx, min_x, min_z, ext_x, ext_z, base_y + off.y, ext_y)
@@ -394,6 +396,13 @@ func _korin_tower(col: ChunkColumn, ctx, ax: int, az: int, lookout_y: int) -> vo
 		add_mark(col, "korin_tower", "dragonminez:korin_tower",
 			AABB(Vector3(ax - 7, float(maxi(0, ground - 2)), az - 7),
 				Vector3(15, float(top + 7 - ground), 15)))
+
+## Does this footprint reach into the protected spawn clearing?
+func _covers_spawn(min_x: int, min_z: int, ext_x: int, ext_z: int) -> bool:
+	var sp: Vector2i = gen.spawn_xz
+	var r: int = int(gen.spawn_clear_radius) + 1
+	return min_x - r < sp.x and sp.x < min_x + ext_x + r \
+		and min_z - r < sp.y and sp.y < min_z + ext_z + r
 
 func _near_column(ctx, wx: int, wz: int, r: int) -> bool:
 	return wx + r >= ctx.ox and wx - r < ctx.ox + 16 and wz + r >= ctx.oz and wz - r < ctx.oz + 16

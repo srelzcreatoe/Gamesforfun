@@ -710,16 +710,36 @@ func _push_uniforms() -> void:
 
 # --- spawning the player / debug camera -------------------------------------
 
+## Resolve a spawn point that a 0.6 x 1.8 x 0.6 entity actually fits in: a stored position can
+## land inside a tree trunk, a canopy or a structure that was generated after the profile was
+## saved. Below the world or inside a liquid column, start from the surface instead, then climb
+## to the first gap that is tall enough. The column must be loaded (call it after streaming).
+func find_safe_spawn(x: float, y: float, z: float) -> Vector3:
+	var bx := int(floor(x))
+	var bz := int(floor(z))
+	var start := y
+	if start < 0.0 or is_liquid(bx, int(floor(start)), bz):
+		start = float(get_height(bx, bz))
+	start = maxf(start, 1.0)
+	var size := Vector3(0.6, 1.8, 0.6)
+	var offset := Vector3(x - 0.3, 0.0, z - 0.3)
+	if not VoxelPhysics.aabb_intersects_solid(self, AABB(offset + Vector3(0, start, 0), size)):
+		return Vector3(x, start, z)
+	for yy in range(int(floor(start)), HEIGHT - 2):
+		if not VoxelPhysics.aabb_intersects_solid(self, AABB(offset + Vector3(0, float(yy), 0), size)):
+			return Vector3(x, float(yy), z)
+	return Vector3(x, float(get_height(bx, bz)) + 1.0, z)
+
 func _spawn_actor() -> void:
 	_spawned = true
 	var x := spawn_position.x
 	var z := spawn_position.z
 	var y := spawn_position.y
 	if y < 0.0:
-		y = float(get_height(int(floor(x)), int(floor(z)))) + 0.1
+		y = float(get_height(int(floor(x)), int(floor(z))))
 		if y < 2.0:
 			y = float(WorldConst.SEA_LEVEL) + 2.0
-	spawn_position = Vector3(x, y, z)
+	spawn_position = find_safe_spawn(x, y, z)
 	if ResourceLoader.exists(PLAYER_SCENE) and not _force_debug_camera:
 		var packed: PackedScene = load(PLAYER_SCENE)
 		if packed != null:

@@ -15,7 +15,7 @@ const NIGHT_DIR := "res://assets/textures/gui/nightcity/"
 const ARMOR_GHOSTS := ["empty_armor_slot_helmet", "empty_armor_slot_chestplate",
 	"empty_armor_slot_leggings", "empty_armor_slot_boots"]
 const OFFHAND_POS := Vector2(77, 62)
-const GRID_REGION := Rect2(7, 83, 162, 54)      # the 9x3 slot block, reused for containers
+const GRID_ORIGIN := Vector2(8, 84)             # the 9x3 slot block, reused for containers
 const PANEL := Rect2(0, 0, 176, 166)
 const ARMOR_POS := [Vector2(8, 8), Vector2(8, 26), Vector2(8, 44), Vector2(8, 62)]
 const CRAFT2_POS := [Vector2(98, 18), Vector2(116, 18), Vector2(98, 36), Vector2(116, 36)]
@@ -38,6 +38,7 @@ var inv: Inventory = null
 var craft: Array[ItemStack] = []
 
 var k := 3.0                       # integer pixel scale of the inventory.png panel
+var side_by_side := false          # container next to the pack instead of above it
 var _slots: Array = []             # all Slot widgets
 var _sel: Variant = null           # {source, index}
 var _recipe_list: VBoxContainer = null
@@ -59,16 +60,37 @@ func build() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 	content = root
-	k = maxf(2.0, floorf(minf(size.y * 0.80, 560.0) / PANEL.size.y))
+	var rows_c := 0
+	if container != null:
+		rows_c = int(ceil(float(container.size) / 9.0))
+	# The container panel sits above the inventory; pick the biggest integer pixel scale that
+	# still fits both, and fall back to a side-by-side layout when the screen is too short.
+	var stack_units := PANEL.size.y + (float(rows_c) * PITCH + 8.0 if rows_c > 0 else 0.0)
+	var avail_y := size.y - 52.0 * s - insets.y - insets.w
+	k = clampf(floorf(avail_y / maxf(1.0, stack_units)), 1.0, 6.0)
+	side_by_side = rows_c > 0 and k < 2.0
+	if side_by_side:
+		k = clampf(floorf((size.y - 40.0 * s) / PANEL.size.y), 2.0, 6.0)
+	k = maxf(k, 1.0)
 	var panel_px := PANEL.size * k
-	var right_w := minf(300.0 * s, maxf(180.0, size.x - panel_px.x - 80.0 * s))
-	var total_w := panel_px.x + right_w + 16.0 * s
-	var origin := Vector2((size.x - total_w) * 0.5, (size.y - panel_px.y) * 0.5)
-	origin.y = clampf(origin.y, 8.0 * s + insets.y, size.y - panel_px.y - 8.0 * s)
+	var side_w := (float(9) * PITCH * k + 8.0 * k + 14.0 * s) if side_by_side else 0.0
+	var right_w := 0.0
+	if not side_by_side:
+		right_w = minf(300.0 * s, maxf(180.0, size.x - panel_px.x - 80.0 * s))
+	var total_w := panel_px.x + right_w + side_w + (16.0 * s if right_w > 0.0 else 0.0)
+	var container_h := 0.0
+	if container != null and not side_by_side:
+		container_h = float(rows_c) * PITCH * k + 8.0 * k + 12.0 * s
+	var origin := Vector2((size.x - total_w) * 0.5 + side_w, (size.y - panel_px.y + container_h) * 0.5)
+	origin.y = clampf(origin.y, 8.0 * s + insets.y + container_h + UiUtil.font_body(s) * 1.6,
+		maxf(8.0 * s, size.y - panel_px.y - 8.0 * s))
 
-	# --- title
+	# --- title, above whatever panel is topmost
 	var title := UiUtil.label(_title_text(), UiUtil.font_body(s), UiUtil.TITLE_COLOR)
-	title.position = origin - Vector2(0.0, UiUtil.font_body(s) * 1.5)
+	var title_x := origin.x
+	if side_by_side:
+		title_x = origin.x - side_w
+	title.position = Vector2(title_x, origin.y - container_h - UiUtil.font_body(s) * 1.5)
 	root.add_child(title)
 
 	# --- left: the inventory.png panel
@@ -98,7 +120,16 @@ func build() -> void:
 	if furnace != null:
 		_build_furnace_panel(root, origin, panel_px)
 
-	# --- right: recipe list + buttons
+	# --- right: recipe list + buttons (dropped when a container takes the width)
+	if right_w <= 0.0:
+		var close_only := UiUtil.hbox(6.0 * s)
+		close_only.position = Vector2(origin.x + panel_px.x - 230.0 * s, origin.y + panel_px.y + 6.0 * s)
+		close_only.add_child(UiUtil.flat_button("Discard", _discard_selected, true, 110.0 * s))
+		close_only.add_child(UiUtil.flat_button("Close", close_self, false, 100.0 * s))
+		root.add_child(close_only)
+		_sync_slots()
+		Audio.play_sfx("click", linear_to_db(0.4))
+		return
 	var right := VBoxContainer.new()
 	right.position = origin + Vector2(panel_px.x + 16.0 * s, 0.0)
 	right.size = Vector2(right_w, panel_px.y)
@@ -191,7 +222,8 @@ func _title_text() -> String:
 func _slot(parent: Control, source: String, index: int, pos: Vector2, cell := SLOT) -> SlotGrid.Slot:
 	var sl := SlotGrid.make(source, index, cell * k, s, _on_slot_tapped)
 	sl.position = pos * k
-	sl.draw_bg = source != "inv" or true
+	# With the Night City pack the sheet paints its own cells; only scrim the item icons.
+	sl.draw_bg = not has_night_pack()
 	parent.add_child(sl)
 	_slots.append(sl)
 	return sl
@@ -260,10 +292,13 @@ func _build_container_panel(root: Control, origin: Vector2, panel_px: Vector2) -
 	var cell := SLOT * k
 	var cols := 9
 	var rows := int(ceil(float(container.size) / float(cols)))
-	var w := float(cols) * PITCH * k + 6.0 * k
-	var h := float(rows) * PITCH * k + 6.0 * k
+	var w := float(cols) * PITCH * k + 8.0 * k
+	var h := float(rows) * PITCH * k + 8.0 * k
 	var p := Control.new()
-	p.position = Vector2(origin.x, maxf(4.0 * s + insets.y, origin.y - h - 10.0 * s))
+	if side_by_side:
+		p.position = Vector2(origin.x - w - 14.0 * s, origin.y)
+	else:
+		p.position = Vector2(origin.x, maxf(4.0 * s + insets.y, origin.y - h - 12.0 * s))
 	p.size = Vector2(w, h)
 	var frame := Panel.new()
 	frame.add_theme_stylebox_override("panel", UiUtil.flat(UiUtil.PANEL_FILL, UiUtil.PANEL_BORDER, 3.0 * s, 4.0 * s, 0.0))
@@ -272,11 +307,13 @@ func _build_container_panel(root: Control, origin: Vector2, panel_px: Vector2) -
 	p.add_child(frame)
 	# Reuse the pack's own 9x3 slot block as the container's slot art.
 	if has_night_pack():
+		# 1:1 with the slots below: both start at 4k and step by PITCH * k.
 		var art := TextureRect.new()
-		art.texture = UiUtil.atlas(panel_sheet(), Rect2(GRID_REGION.position,
-			Vector2(GRID_REGION.size.x, 18.0 * float(rows) + 0.0)), UiUtil.hd_factor(panel_sheet()))
-		art.position = Vector2(3.0 * k, 3.0 * k)
-		art.size = Vector2(GRID_REGION.size.x * k, 18.0 * float(rows) * k)
+		art.texture = UiUtil.atlas(panel_sheet(),
+			Rect2(GRID_ORIGIN, Vector2(PITCH * float(cols), PITCH * float(rows))),
+			UiUtil.hd_factor(panel_sheet()))
+		art.position = Vector2(4.0 * k, 4.0 * k)
+		art.size = Vector2(PITCH * float(cols) * k, PITCH * float(rows) * k)
 		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		art.stretch_mode = TextureRect.STRETCH_SCALE
 		art.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST

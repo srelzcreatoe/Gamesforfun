@@ -10,6 +10,8 @@ func _configure() -> void:
 	biome_style = BiomeMap.STYLE_SINGLE
 	caves_enabled = false
 	decorate = false
+	# the chamber building contains the spawn, so it may cover the clearing (the arrival point still gets head room).
+	structures_avoid_spawn = false
 	stone_name = "time_chamber_block"
 	bedrock_depth = 0
 	ore_table = []

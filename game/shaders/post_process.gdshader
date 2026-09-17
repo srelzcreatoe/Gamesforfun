@@ -36,6 +36,16 @@ uniform float sun_visible = 0.0;
 uniform vec3 sun_color : source_color = vec3(1.0, 0.93, 0.82);
 uniform float god_rays : hint_range(0.0, 1.5) = 0.45;
 
+// --- fx pulses, pushed by scripts/fx/ScreenFx.gd -------------------------------------------
+// All default to 0 and every block below is skipped at 0, so the sky controller's frame is
+// bit-identical unless an effect is actually running. Doing it here instead of in a second
+// full-screen ColorRect keeps the phone at ONE post pass during a transformation climax.
+uniform float fx_blur : hint_range(0.0, 0.25) = 0.0;         // radial / zoom blur
+uniform float fx_aberration : hint_range(0.0, 0.05) = 0.0;   // extra r/b split
+uniform float fx_darken : hint_range(0.0, 1.0) = 0.0;        // scene + sky dim
+uniform float fx_glow : hint_range(0.0, 2.0) = 0.0;          // emissive bloom boost
+uniform vec2 fx_focus = vec2(0.5, 0.5);
+
 // Filmic curve in the ACES spirit (Narkowicz-style rational fit, tuned a little brighter in the
 // mid-tones so voxel colours stay readable on a phone in daylight).
 vec3 tonemap(vec3 x) {
@@ -74,6 +84,58 @@ void fragment() {
 	}
 	if (gamma_correct == 1) {
 		col = pow(max(col, vec3(0.0)), vec3(2.2));       // framebuffer -> linear
+	}
+
+	// --- fx pulses (transformation climax, impacts) ------------------------------------------
+	if (fx_blur > 0.0005 || fx_aberration > 0.0001) {
+		vec2 fdir = uv - fx_focus;
+		float fw = clamp(length(fdir) * 1.6, 0.0, 1.0);
+		fw *= fw;                                         // keep the middle readable
+		if (fx_blur > 0.0005) {
+			float sl = fx_blur * fw / 6.0;
+			vec3 acc = vec3(0.0);
+			float tot = 0.0;
+			for (int i = 0; i < 6; i++) {
+				float k = float(i);
+				vec3 s = texture(screen_tex, clamp(uv - fdir * (sl * k), vec2(0.0), vec2(1.0))).rgb;
+				if (gamma_correct == 1) {
+					s = pow(max(s, vec3(0.0)), vec3(2.2));
+				}
+				float w = 1.0 - k / 6.0 * 0.55;
+				acc += s * w;
+				tot += w;
+			}
+			col = acc / max(tot, 0.0001);
+		}
+		if (fx_aberration > 0.0001) {
+			float am = fx_aberration * fw;
+			vec3 sr = texture(screen_tex, clamp(uv + fdir * am, vec2(0.0), vec2(1.0))).rgb;
+			vec3 sb = texture(screen_tex, clamp(uv - fdir * am, vec2(0.0), vec2(1.0))).rgb;
+			if (gamma_correct == 1) {
+				sr = pow(max(sr, vec3(0.0)), vec3(2.2));
+				sb = pow(max(sb, vec3(0.0)), vec3(2.2));
+			}
+			col = vec3(sr.r, col.g, sb.b);
+		}
+	}
+	if (fx_glow > 0.0001) {
+		// 4 diagonal taps of the bright parts: a halo around auras, ki spheres and beams
+		vec2 go = vec2(0.0035) * (1.0 + fx_glow);
+		vec3 gacc = texture(screen_tex, clamp(uv + vec2(go.x, go.y), vec2(0.0), vec2(1.0))).rgb;
+		gacc += texture(screen_tex, clamp(uv + vec2(-go.x, go.y), vec2(0.0), vec2(1.0))).rgb;
+		gacc += texture(screen_tex, clamp(uv + vec2(go.x, -go.y), vec2(0.0), vec2(1.0))).rgb;
+		gacc += texture(screen_tex, clamp(uv + vec2(-go.x, -go.y), vec2(0.0), vec2(1.0))).rgb;
+		gacc *= 0.25;
+		if (gamma_correct == 1) {
+			gacc = pow(max(gacc, vec3(0.0)), vec3(2.2));
+		}
+		float gbright = max(luma(gacc) - 0.5, 0.0) * 2.0;
+		col += gacc * gbright * fx_glow;
+	}
+	if (fx_darken > 0.0001) {
+		float dl = luma(col);
+		vec3 dimmed = mix(col, vec3(0.03, 0.04, 0.09) * (0.35 + 1.2 * dl), fx_darken);
+		col = mix(dimmed, col, clamp((dl - 0.7) * 3.0, 0.0, 1.0));   // hot fx burn through
 	}
 
 	// --- god rays: march toward the sun and collect the bright pixels ------------------------

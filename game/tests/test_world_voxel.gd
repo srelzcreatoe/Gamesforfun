@@ -191,6 +191,30 @@ func test_fluid_at_reports_submersion() -> void:
 	var dry: Dictionary = VoxelPhysics.fluid_at(w, _player_box(Vector3(2.5, 61.0, 2.5)))
 	assert_true(not dry["in_liquid"])
 
+func test_spawn_climbs_out_of_solid_blocks() -> void:
+	var w := _make_world()
+	_flat_floor(w, 60)
+	var box := func(p: Vector3) -> AABB:
+		return AABB(p - Vector3(0.3, 0.0, 0.3), Vector3(0.6, 1.8, 0.6))
+	# An open column keeps the position it was given.
+	var clear_spot: Vector3 = w.find_safe_spawn(2.5, 61.0, 2.5)
+	assert_near(clear_spot.y, 61.0, 0.001)
+	# A tree grown over the spawn point pushes the player above it.
+	var log_id := Registry.block_id("oak_log")
+	for y in range(61, 67):
+		w.set_block(8, y, 8, log_id)
+	var safe: Vector3 = w.find_safe_spawn(8.5, 61.0, 8.5)
+	assert_true(safe.y >= 67.0, "spawn must clear the trunk, got y=%f" % safe.y)
+	assert_true(not VoxelPhysics.aabb_intersects_solid(w, box.call(safe)), "the spawn box must be free")
+	# A stored y below the world falls back to the surface.
+	var under: Vector3 = w.find_safe_spawn(2.5, -1.0, 2.5)
+	assert_near(under.y, 61.0, 0.001)
+	# Spawning in water starts from the surface above it.
+	var water := Registry.block_id("water")
+	w.set_block(4, 61, 4, water, Fluids.SOURCE)
+	var wet: Vector3 = w.find_safe_spawn(4.5, 61.0, 4.5)
+	assert_true(wet.y >= 62.0, "spawn must be above the water, got y=%f" % wet.y)
+
 func test_disturbances_feed_the_foliage_shader() -> void:
 	var w := _make_world()
 	_flat_floor(w, 60)

@@ -44,6 +44,8 @@ func _trees(col: ChunkColumn, ctx) -> void:
 			var h: int = gen.ext_height(ctx, gx, gz)
 			if gen.has_sea and h <= sea + 1:
 				continue
+			if gen.in_spawn_clearing(wx, wz, 2):
+				continue
 			var def: Dictionary = gen.biome_def_at(ctx, gx, gz)
 			var list: Array = def.get("trees", [])
 			if list.is_empty():
@@ -112,6 +114,8 @@ func _place_plant(col: ChunkColumn, ctx, name: String, wx: int, wz: int,
 		return
 	var ground: int = gen.get_world(col, ctx, wx, top - 1, wz)
 	if ground <= 0:
+		return
+	if gen.in_spawn_clearing(wx, wz) and (name == "cactus" or name == "sugar_cane"):
 		return
 	if name == "cactus":
 		Trees.place(gen, col, ctx, "cactus", wx, top, wz, Terrain.hash_seeded(gen.seed, wx, 13, wz))

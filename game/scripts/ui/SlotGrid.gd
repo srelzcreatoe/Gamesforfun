@@ -6,6 +6,7 @@ class_name SlotGrid
 const SEL_COLOR := Color(0.85, 0.35, 0.72, 0.45)
 const BG_COLOR := Color(0.04, 0.04, 0.08, 0.35)
 const EDGE_COLOR := Color(0.518, 0.608, 0.894, 0.75)
+const SCRIM_COLOR := Color(0.04, 0.04, 0.08, 0.30)
 const HILITE_COLOR := Color(1.0, 0.56, 0.816, 0.9)
 
 ## One tappable slot. `source` is "inv" | "armor" | "craft" | "output" | "container" | "furnace".
@@ -41,6 +42,10 @@ class Slot extends Control:
 		var r := Rect2(Vector2.ZERO, size)
 		if draw_bg:
 			draw_rect(r, SlotGrid.BG_COLOR)
+		elif stack != null and not stack.is_empty():
+			# The Night City art is busy behind the top row: a light scrim keeps icons readable
+			# without hiding the pack's own slot painting.
+			draw_rect(r, SlotGrid.SCRIM_COLOR)
 		if selected:
 			draw_rect(r, SlotGrid.SEL_COLOR)
 		if border:

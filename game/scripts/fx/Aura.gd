@@ -48,15 +48,21 @@ var aura_enabled := true
 var _outer: MeshInstance3D
 var _inner: MeshInstance3D
 var _ground: MeshInstance3D
+var _flare: MeshInstance3D
 var _sparks: CPUParticles3D
 var _rise: CPUParticles3D
 var _lightning: AuraLightning
 var _mat_outer: ShaderMaterial
 var _mat_inner: ShaderMaterial
 var _mat_ground: StandardMaterial3D
+var _mat_flare: StandardMaterial3D
 var _intensity := 0.0
 var _target := 0.0
 var _loop_key := ""
+var _idle_t := 0.0
+## Transformation flicker: >0 while the aura is snapping in and out (phase B).
+var _flicker := 0.0
+var _flicker_white := 0.0
 
 # --- access ---------------------------------------------------------------
 
@@ -130,6 +136,7 @@ func _build() -> void:
 	add_child(_inner)
 
 	_build_ground()
+	_build_flare()
 	_build_particles()
 
 	_lightning = AuraLightning.new()
@@ -206,6 +213,15 @@ func _build_ground() -> void:
 	_ground.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_ground)
 
+## Soft glow sheet behind the body: one billboard that gives the aura its halo and makes
+## the silhouette read against a bright sky (the flame shells alone are thin).
+func _build_flare() -> void:
+	_flare = FxAssets.make_quad("Flare", FxAssets.particle("ki_flash1", "ki_flash", "aaa/essentials/Circle"),
+		3.0, Color(outer_color.r, outer_color.g, outer_color.b, 0.0))
+	_flare.position = Vector3(0, 1.0 * body_scale, 0)
+	_mat_flare = _flare.material_override
+	add_child(_flare)
+
 func _build_particles() -> void:
 	_sparks = FxAssets.make_particles("Sparks", SPARK_COUNT, ["ki_spark_0", "ki_spark_1", "spark1"], outer_color)
 	_sparks.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
@@ -256,8 +272,12 @@ func set_color(outer: Color, inner := Color(0, 0, 0, 0)) -> void:
 		_rise.color = outer_color
 	if _mat_ground != null:
 		_mat_ground.albedo_color = Color(outer_color.r, outer_color.g, outer_color.b, _mat_ground.albedo_color.a)
+	if _mat_flare != null:
+		_mat_flare.albedo_color = Color(outer_color.r, outer_color.g, outer_color.b, _mat_flare.albedo_color.a)
 
-## Colour / lightning / base intensity straight out of a forms.json entry.
+## Colour / lightning / base intensity straight out of a forms.json entry. The colours
+## are resolved by `FormVfx`, which walks every colour field of the form (and the race
+## defaults) so no form ever ends up with a generic white aura.
 func set_form(form_def: Dictionary) -> void:
 	if form_def.is_empty():
 		form_intensity = 0.0
@@ -268,20 +288,15 @@ func set_form(form_def: Dictionary) -> void:
 		set_color(outer_color)
 		refresh()
 		return
-	var ac := String(form_def.get("auraColor", ""))
-	if ac != "":
-		set_color(Color(ac))
-	var extra := String(form_def.get("extraAuraColor", ""))
-	if extra != "":
-		inner_color = Color(extra)
-		if _mat_inner != null:
-			_mat_inner.set_shader_parameter("aura_color", inner_color)
-	has_lightning = bool(form_def.get("hasLightnings", false))
-	var lc := String(form_def.get("lightningColor", ""))
-	lightning_color = Color(lc) if lc != "" else outer_color.lightened(0.4)
+	var p := FormVfx.of(form_def)
+	set_color(p.aura, p.inner)
+	has_lightning = p.lightning
+	lightning_color = p.lightning_color
 	if _lightning != null:
 		_lightning.configure(lightning_color, body_scale)
 		_lightning.set_active(has_lightning)
+	if _sparks != null:
+		_sparks.color = p.spark
 	form_intensity = 0.7
 	refresh()
 

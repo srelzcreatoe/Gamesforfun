@@ -89,6 +89,13 @@ var lava_level := 0                       # carved cave cells at/below this y be
 var snow_y := 9999                        # surface at/above this y gets `snow_name`
 var snow_name := "snow_block"
 var ore_table: Array = []                 # [{block, min, max, tries, size}]
+## Where the player arrives (SpawnPoint) and how much room around it stays free of trees,
+## mushrooms and two-block plants so nobody spawns inside a redwood.
+var spawn_xz := Vector2i(0, 0)
+var spawn_clear_radius := 6
+## Structures skip a placement whose footprint would cover that clearing (the Time Chamber and
+## the Check-In Station are meant to contain the spawn, so they switch this off).
+var structures_avoid_spawn := true
 ## Scales the biomes.json tree densities for this planet (the converted DMZ/vanilla numbers
 ## are dense enough to close the canopy; meadow-like planets want fewer).
 var tree_density_scale := 1.0
@@ -129,6 +136,8 @@ var _biome_underwater := PackedInt32Array()
 var _biome_cliff := PackedInt32Array()
 var _biome_band := PackedInt32Array()
 var _ore_ids := PackedInt32Array()
+## 1 for blocks the spawn clearing removes (logs, leaves, mushrooms, two-block plants, cacti).
+var _clearable := PackedByteArray()
 var _mutex := Mutex.new()
 
 func _init(p_planet_def: Dictionary = {}, p_seed: int = 0) -> void:
@@ -167,11 +176,79 @@ func configure() -> void:
 	_ore_ids = PackedInt32Array()
 	for o in ore_table:
 		_ore_ids.append(block_id(String(o.get("block", "stone"))))
+	_build_clearable()
+	var sp := SpawnPoint.find_with(terrain, planet_def)
+	spawn_xz = Vector2i(int(floor(sp.x)), int(floor(sp.z)))
 	decorator.configure(self)
 	structures.configure(self)
 	_post_configure()
 	if stamp_structures:
 		structures.resolve_uniques()
+
+func _build_clearable() -> void:
+	var n := Registry.blocks.size()
+	_clearable = PackedByteArray()
+	_clearable.resize(n)
+	for i in n:
+		var b: Dictionary = Registry.blocks[i]
+		var id := String(b.get("id", ""))
+		var shape := String(b.get("shape", "cube"))
+		var clear := id.ends_with("_log") or id.ends_with("_leaves") or id.ends_with("_mushroom") \
+			or id == "cactus" or id == "sugar_cane" or id == "bamboo" or id == "vine" \
+			or bool(b.get("double", false))
+		_clearable[i] = 1 if clear else 0
+
+## Is (wx, wz) inside the protected spawn clearing?
+func in_spawn_clearing(wx: int, wz: int, extra: int = 0) -> bool:
+	if spawn_clear_radius <= 0:
+		return false
+	var dx := wx - spawn_xz.x
+	var dz := wz - spawn_xz.y
+	var r := spawn_clear_radius + extra
+	return dx * dx + dz * dz <= r * r
+
+## Take trees, mushrooms and tall plants back out of the clearing (a tree rooted outside it can
+## still hang leaves over it) and make sure the spawn itself has head room.
+func _clear_spawn(col: ChunkColumn, ctx: Ctx) -> void:
+	if spawn_clear_radius <= 0:
+		return
+	var r := spawn_clear_radius
+	if spawn_xz.x + r < ctx.ox or spawn_xz.x - r >= ctx.ox + 16:
+		return
+	if spawn_xz.y + r < ctx.oz or spawn_xz.y - r >= ctx.oz + 16:
+		return
+	for lz in 16:
+		for lx in 16:
+			var wx := ctx.ox + lx
+			var wz := ctx.oz + lz
+			if not in_spawn_clearing(wx, wz):
+				continue
+			var i2 := lx + 16 * lz
+			# Everything above the ground, all the way up: a 50-block redwood rooted outside
+			# the clearing can still hang its canopy over it.
+			var ground: int = clampi(ctx.tops[i2], 1, HEIGHT - 1)
+			var y := ground
+			while y < HEIGHT:
+				var i := i2 + 256 * y
+				var id: int = col.blocks[i]
+				if id != 0 and id < _clearable.size() and _clearable[id] == 1:
+					col.blocks[i] = 0
+					col.meta[i] = 0
+				y += 1
+			# Head room at the arrival point itself, whatever is standing there.
+			if wx == spawn_xz.x and wz == spawn_xz.y:
+				for dy in 2:
+					var iy := i2 + 256 * mini(HEIGHT - 1, ground + dy)
+					col.blocks[iy] = 0
+					col.meta[iy] = 0
+			ctx.top_any[i2] = mini(ctx.top_any[i2], _column_top(col, lx, lz))
+
+func _column_top(col: ChunkColumn, lx: int, lz: int) -> int:
+	var i2 := lx + 16 * lz
+	for y in range(HEIGHT - 1, -1, -1):
+		if col.blocks[i2 + 256 * y] != 0:
+			return y + 1
+	return 0
 
 ## Subclasses override this to set the tunables above.
 func _configure() -> void:
@@ -245,6 +322,7 @@ func generate_column(col: ChunkColumn, p_seed: int, planet: Dictionary) -> void:
 		structures.stamp(col, ctx)
 	if dragon_ball_set != "":
 		DragonBallPlacement.place_in_column(col, ctx, dragon_ball_set, self)
+	_clear_spawn(col, ctx)
 	_write_heightmap(col, ctx)
 
 func _write_heightmap(col: ChunkColumn, ctx: Ctx) -> void:

@@ -16,7 +16,15 @@ static func find(planet_def: Dictionary, seed: int) -> Vector3:
 	var kind := String(planet_def.get("generator", "earth"))
 	if kind == "space" or kind == "orbit":
 		return Vector3(0.5, 72.0, 0.5)
-	var terrain := WorldGenFactory.make_terrain(planet_def, seed)
+	return find_with(Terrain.make(planet_def, seed), planet_def)
+
+## Same search against an already configured Terrain (the generators call this so they know
+## where the player will arrive and can keep that spot clear).
+static func find_with(terrain: Terrain, planet_def: Dictionary) -> Vector3:
+	var kind := String(planet_def.get("generator", "earth"))
+	if kind == "space" or kind == "orbit":
+		return Vector3(0.5, 72.0, 0.5)
+	var seed := terrain.seed
 	if kind == "otherworld" or kind == "time_chamber":
 		return Vector3(0.5, float(terrain.plane_y + 1), 8.5)
 	var sea := terrain.sea_level

@@ -179,6 +179,58 @@ func test_ns_trees_appear_in_the_world() -> void:
 	assert_ne(found, "", "no Nature's Spirit forest produced trees near spawn")
 	print("      NS forest sampled: %s" % found)
 
+# --- spawn clearing --------------------------------------------------------
+
+## Nobody may arrive inside a redwood: the generator keeps a clearing around the spawn point.
+func test_spawn_clearing_is_free_of_trees() -> void:
+	for planet in ["earth", "namek", "sacred_kai_planet", "heaven"]:
+		for s in [4242, 99, 7]:
+			var def := Registry.planet(planet)
+			var gen: Object = WorldGenFactory.create(def, s)
+			var sp := WorldGenFactory.spawn_point(def, s)
+			assert_eq(Vector2i(int(floor(sp.x)), int(floor(sp.z))), gen.get("spawn_xz"),
+				"%s/%d: generator and SpawnPoint disagree" % [planet, s])
+			var r: int = int(gen.get("spawn_clear_radius"))
+			var sx := int(floor(sp.x))
+			var sz := int(floor(sp.z))
+			var cols := {}
+			var ccx := sx >> 4
+			var ccz := sz >> 4
+			for dz in range(-1, 2):
+				for dx in range(-1, 2):
+					var c := ChunkColumn.new(ccx + dx, ccz + dz)
+					gen.call("generate_column", c, s, def)
+					cols[Vector2i(ccx + dx, ccz + dz)] = c
+			# nothing woody standing in the clearing
+			for dz2 in range(-r, r + 1):
+				for dx2 in range(-r, r + 1):
+					if dx2 * dx2 + dz2 * dz2 > r * r:
+						continue
+					var wx := sx + dx2
+					var wz := sz + dz2
+					var col: ChunkColumn = cols[Vector2i(wx >> 4, wz >> 4)]
+					var lx := wx & 15
+					var lz := wz & 15
+					var ground: int = col.heightmap[lx + 16 * lz]
+					for y in range(maxi(1, ground - 1), mini(WorldConst.HEIGHT, ground + 16)):
+						var id: int = col.blocks[lx + 16 * (lz + 16 * y)]
+						if id == 0:
+							continue
+						var bid := String(Registry.block(id).get("id", ""))
+						assert_true(not (bid.ends_with("_log") or bid.ends_with("_leaves")
+							or bid.ends_with("_mushroom") or bid == "cactus"),
+							"%s/%d: %s at (%d, %d, %d) inside the spawn clearing"
+								% [planet, s, bid, wx, y, wz])
+			# head room at the arrival point itself
+			var home: ChunkColumn = cols[Vector2i(sx >> 4, sz >> 4)]
+			var hl := sx & 15
+			var hz := sz & 15
+			var top: int = home.heightmap[hl + 16 * hz]
+			for dy in 2:
+				var y2: int = mini(WorldConst.HEIGHT - 1, top + dy)
+				assert_eq(home.blocks[hl + 16 * (hz + 16 * y2)], 0,
+					"%s/%d: the spawn point is blocked at y %d" % [planet, s, y2])
+
 # --- arrival point ---------------------------------------------------------
 
 func test_spawn_point_entry_point() -> void:
