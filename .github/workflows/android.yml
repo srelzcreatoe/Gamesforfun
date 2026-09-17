@@ -103,7 +103,7 @@ jobs:
           # A second editor pass refreshes the global script class cache for any new class_name.
           "$G" --headless --path game --editor --quit 2>&1 | grep -iE "error|script" | head -20 || true
           test -f game/.godot/global_script_class_cache.cfg
-          grep -c "class=" game/.godot/global_script_class_cache.cfg
+          echo "script classes: $(grep -o '"class"' game/.godot/global_script_class_cache.cfg | wc -l)"
 
       - name: Export debug APK
         run: |
