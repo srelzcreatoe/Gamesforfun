@@ -1,5 +1,15 @@
 # Changelog
 
+## Preview 2 (2026-09-17)
+
+- Fixed world loading (a parse error in the transformation cinematic took the player scripts down with it).
+- Nature's Spirit biomes and Terralith-style Earth terrain; tree-free spawn clearing and safe spawn.
+- Three save slots with per-slot settings, coordinates toggle, dev mode cheat menu.
+- Player animations from DragonMineZ + Serious Player Animations, planet gravity, controls polish.
+- Night City Inventory GUI skin and palette across the menus.
+- Wind field with gusts, whole-canopy leaf sway, foliage pushed away by the player, explosions and hits.
+
+
 ## 0.1.0 — first playable build (in progress)
 
 ### Engine
