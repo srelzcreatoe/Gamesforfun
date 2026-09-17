@@ -376,20 +376,23 @@ func _int_of(v: Variant) -> int:
 
 func test_hair_is_exactly_one_node_named_hair() -> void:
 	# CONTRACT with Forms.gd: `_modulate_recursive()` skips the hair by NAME, so the
-	# rig must stay exactly one node called "Hair" under the `head` bone. If that
-	# ever changes, the FX side has to widen its guard - this test is the reminder.
+	# rig must stay exactly one node called "Hair" under the `head` bone (the bone's
+	# own geometry is a sibling called "mesh"). If the rig ever gains a second node,
+	# the FX side has to widen its guard - this test is the reminder.
 	model = BedrockModel.new()
 	add_node(model)
 	model.load_geo("entity/races/human")
 	var head: Node3D = model.get_bone("head")
 	for style in ["spiky", "gotenks", "long", "bald", "spiky@ssj2"]:
 		HairBuilder.attach(model, style, Color("#221a14"))
-		var found := 0
+		var hair_nodes := 0
 		for c in head.get_children():
 			if c is MeshInstance3D:
-				assert_eq(c.name, StringName("Hair"), "%s: the only mesh under head is the hair" % style)
-				found += 1
-		assert_eq(found, 1, "%s: exactly one hair node (restyling reuses it)" % style)
+				assert_true(c.name == StringName("Hair") or c.name == StringName("mesh"),
+					"%s: unexpected mesh %s under the head bone" % [style, c.name])
+				if c.name == StringName("Hair"):
+					hair_nodes += 1
+		assert_eq(hair_nodes, 1, "%s: exactly one hair node (restyling reuses it)" % style)
 	# the accent colour of a style is absolute, so it is not what a form flicker wants
 	assert_eq(HairBuilder.accent_color("gotenks", Color.RED), Color("#F5D03A"), "authored accent wins")
 	assert_eq(HairBuilder.accent_color("spiky", Color.RED), Color.RED.lightened(HairBuilder.ACCENT_LIGHTEN),

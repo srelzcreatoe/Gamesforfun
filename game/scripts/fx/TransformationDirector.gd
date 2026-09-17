@@ -713,12 +713,13 @@ func _flicker_hair(on: bool) -> void:
 			_hair_base_set = true
 		_paint_hair(hair, c, _hair_base, on)
 		# A two tone style's accent spikes flicker with the main hair, derived from the
-		# FORM colour the same way `HairBuilder.accent_color` derives an undeclared
-		# accent (`main.lightened(0.45)`). The authored accent is deliberately not used
-		# here: it is an absolute colour (gotenks' gold), and a form repaints the whole
-		# head, so a blue or red form would keep a clashing gold streak.
+		# FORM colour with the lighten factor `HairBuilder` uses for an undeclared accent
+		# (shared constant, so tuning it moves both). `HairBuilder.accent_color()` itself
+		# is deliberately NOT used here: an authored accent is an absolute colour
+		# (gotenks' gold) and a form repaints the whole head, so a blue or red form would
+		# keep a clashing gold streak.
 		if _hair_accent_mat != null and is_instance_valid(_hair_accent_mat):
-			_paint_hair(_hair_accent_mat, c.lightened(0.45), _hair_accent_base, on)
+			_paint_hair(_hair_accent_mat, c.lightened(HairBuilder.ACCENT_LIGHTEN), _hair_accent_base, on)
 		return
 	if model.has_method("has_bone") and model.has_method("set_bone_material") and model.has_method("get_texture"):
 		var tex: Variant = model.call("get_texture")
