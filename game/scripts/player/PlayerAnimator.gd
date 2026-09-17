@@ -23,6 +23,7 @@ const BUTTON_ACTIONS := {
 	"fly": ["powerup"],
 	"dash": ["dash"],
 	"transform": ["transform"],
+	"form": ["transform"],
 	"technique": ["technique_charge", "technique"],
 }
 
@@ -60,7 +61,10 @@ static func locomotion_state(s: Dictionary) -> String:
 	if bool(s.get("dead", false)):
 		return "death"
 	if bool(s.get("ki_charge", false)) and not bool(s.get("mining", false)):
-		return "ki_charge"
+		# `ki_charge_air` resolves to the same clip today and upgrades by itself if a pack
+		# ever ships a hover-charge animation (entity engineer, AnimSelect).
+		var airborne := bool(s.get("flying", false)) or not bool(s.get("on_ground", true))
+		return "ki_charge_air" if (airborne and AnimSelect.states().has("ki_charge_air")) else "ki_charge"
 	return PlayerModel.state_for(s)
 
 func current_state_dict() -> Dictionary:
@@ -88,6 +92,17 @@ func play_action(action_state: String, index := -1) -> String:
 	action = st
 	action_left = float(ACTION_HOLD.get(st, 0.4))
 	return st
+
+## Form-specific transformation clip (`transform_ssj`, ...), falling back to `transform`.
+func play_transform(form_id := "") -> String:
+	if form_id != "":
+		var short := form_id.get_slice(".", form_id.get_slice_count(".") - 1)
+		for candidate in ["transform_" + short, "transform_" + form_id.replace(".", "_")]:
+			if AnimSelect.states().has(candidate):
+				var played := play_action(candidate)
+				if played != "":
+					return played
+	return play_action("transform")
 
 func clear_action() -> void:
 	action = ""

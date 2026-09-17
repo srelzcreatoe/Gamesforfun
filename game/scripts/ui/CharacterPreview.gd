@@ -65,7 +65,12 @@ func rebuild() -> void:
 func frame_camera() -> void:
 	if camera == null or model == null or not is_instance_valid(model):
 		return
-	var box := _model_aabb(model)
+	var box := AABB()
+	var inner: Node = model.get_child(0) if model.get_child_count() > 0 else null
+	if inner != null and inner.has_method("visual_aabb"):
+		box = inner.call("visual_aabb")
+	if box.size.y <= 0.01:
+		box = _model_aabb(model)
 	if box.size.y <= 0.01:
 		box = AABB(Vector3(-0.4, 0.0, -0.4), Vector3(0.8, 1.9, 0.8))
 	var center := box.position + box.size * 0.5

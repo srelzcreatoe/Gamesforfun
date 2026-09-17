@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://l4al4mdt2kys"
+path="res://.godot/imported/empty_armor_slot_boots.png-b0d02c7799ef7271a6daf50c38e331ad.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/nightcity/empty_armor_slot_boots.png"
+dest_files=["res://.godot/imported/empty_armor_slot_boots.png-b0d02c7799ef7271a6daf50c38e331ad.ctex"]
 
 [params]
 

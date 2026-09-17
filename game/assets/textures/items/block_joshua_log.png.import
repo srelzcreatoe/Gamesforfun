@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bsks0gw5ovp3h"
+path="res://.godot/imported/block_joshua_log.png-282b4c387b8300aea65f1ac5527713ef.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_joshua_log.png"
+dest_files=["res://.godot/imported/block_joshua_log.png-282b4c387b8300aea65f1ac5527713ef.ctex"]
 
 [params]
 

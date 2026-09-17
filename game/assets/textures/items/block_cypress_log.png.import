@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d307ny1jk3alh"
+path="res://.godot/imported/block_cypress_log.png-1926e979c756541ebde176ad3d72e183.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_cypress_log.png"
+dest_files=["res://.godot/imported/block_cypress_log.png-1926e979c756541ebde176ad3d72e183.ctex"]
 
 [params]
 

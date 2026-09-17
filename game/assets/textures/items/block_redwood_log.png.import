@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://2xsn3ln5l2hr"
+path="res://.godot/imported/block_redwood_log.png-da44110ed0189d0773a9d86df1aec085.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_redwood_log.png"
+dest_files=["res://.godot/imported/block_redwood_log.png-da44110ed0189d0773a9d86df1aec085.ctex"]
 
 [params]
 

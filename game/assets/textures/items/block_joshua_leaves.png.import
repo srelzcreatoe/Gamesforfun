@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c543gclkgjur7"
+path="res://.godot/imported/block_joshua_leaves.png-c48b15f00b6be54ae14aa6d8b657ccbf.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_joshua_leaves.png"
+dest_files=["res://.godot/imported/block_joshua_leaves.png-c48b15f00b6be54ae14aa6d8b657ccbf.ctex"]
 
 [params]
 

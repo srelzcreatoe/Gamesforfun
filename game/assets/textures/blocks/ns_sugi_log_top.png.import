@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c1v64qxtq34sh"
+path="res://.godot/imported/ns_sugi_log_top.png-31e7b435975ca073822ffe6c324ff634.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/ns_sugi_log_top.png"
+dest_files=["res://.godot/imported/ns_sugi_log_top.png-31e7b435975ca073822ffe6c324ff634.ctex"]
 
 [params]
 

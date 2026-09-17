@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d30uwgww6q5ai"
+path="res://.godot/imported/ns_pink_wisteria_leaves.png-68f4116e097a673af9fcb5a85463776d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/ns_pink_wisteria_leaves.png"
+dest_files=["res://.godot/imported/ns_pink_wisteria_leaves.png-68f4116e097a673af9fcb5a85463776d.ctex"]
 
 [params]
 

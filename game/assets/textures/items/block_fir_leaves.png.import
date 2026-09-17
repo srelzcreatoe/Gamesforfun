@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://duentkpoo2p2o"
+path="res://.godot/imported/block_fir_leaves.png-f4e025e2e0f33e489206e42140726e4b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_fir_leaves.png"
+dest_files=["res://.godot/imported/block_fir_leaves.png-f4e025e2e0f33e489206e42140726e4b.ctex"]
 
 [params]
 

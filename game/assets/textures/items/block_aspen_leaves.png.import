@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bhdudshow64c6"
+path="res://.godot/imported/block_aspen_leaves.png-93ec8255f8c6e775eadde6bf06ace542.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_aspen_leaves.png"
+dest_files=["res://.godot/imported/block_aspen_leaves.png-93ec8255f8c6e775eadde6bf06ace542.ctex"]
 
 [params]
 

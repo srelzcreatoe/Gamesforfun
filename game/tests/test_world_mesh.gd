@@ -213,24 +213,15 @@ func test_ambient_occlusion_darkens_inner_corners() -> void:
 				ok = true
 		assert_true(ok, "ao must be one of the 4 levels, got %f" % c.a)
 
-func test_no_partially_magenta_blocks() -> void:
-	# Layer 0 is the magenta "missing texture" tile. A block that resolved at least one face
-	# must have every face resolved (BlockTable fills the gaps), so nothing renders magenta
-	# next to a real texture. Blocks with no texture at all are an asset-pipeline problem and
-	# are only reported.
+func test_no_block_renders_magenta() -> void:
+	# Layer 0 is the magenta "missing texture" tile. BlockTable fills missing faces from a
+	# sibling face, and blocks the asset pipeline has not produced at all borrow a relative's
+	# tile, so nothing in the world may end up on layer 0.
 	var bad: PackedStringArray = PackedStringArray()
-	var no_texture: PackedStringArray = PackedStringArray()
 	for id in range(1, BlockTable.count):
 		if BlockTable.shape[id] == BlockTable.Shape.NONE:
 			continue
-		var zero := 0
 		for f in 6:
 			if BlockTable.face_layer[id * 6 + f] == 0:
-				zero += 1
-		if zero == 6:
-			no_texture.append(BlockTable.name_of(id))
-		elif zero > 0:
-			bad.append(BlockTable.name_of(id))
-	if not no_texture.is_empty():
-		print("      note: blocks without any tile: " + ", ".join(no_texture))
-	assert_true(bad.is_empty(), "blocks with some magenta faces: " + ", ".join(bad))
+				bad.append("%s face %d" % [BlockTable.name_of(id), f])
+	assert_true(bad.is_empty(), "blocks on the missing-texture layer: " + ", ".join(bad))

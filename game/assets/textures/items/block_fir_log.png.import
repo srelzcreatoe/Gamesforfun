@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d0f7i3capklu0"
+path="res://.godot/imported/block_fir_log.png-4d7d330902caa13a2eb832190e50d3a2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_fir_log.png"
+dest_files=["res://.godot/imported/block_fir_log.png-4d7d330902caa13a2eb832190e50d3a2.ctex"]
 
 [params]
 

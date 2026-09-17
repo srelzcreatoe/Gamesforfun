@@ -434,7 +434,8 @@ func request_transform() -> void:
 	if not active.is_empty():
 		Forms.revert(self)
 		return
-	play_state("transform")
+	if animator != null:
+		animator.play_transform(_next_form_id())
 	var unlocked: Array = Game.profile.get("forms", {}).get("unlocked", []) if Game != null else []
 	for fid in unlocked:
 		if bool(Forms.can_transform(self, String(fid)).get("ok", false)):
@@ -442,6 +443,14 @@ func request_transform() -> void:
 			return
 	if Game != null and Game.ui != null:
 		Game.ui.call("open", "stats", {"tab": 3})
+
+## The form `request_transform()` is about to use, for the form-specific transform clip.
+func _next_form_id() -> String:
+	var unlocked: Array = Game.profile.get("forms", {}).get("unlocked", []) if Game != null else []
+	for fid in unlocked:
+		if bool(Forms.can_transform(self, String(fid)).get("ok", false)):
+			return String(fid)
+	return ""
 
 func fire_ki_blast(charged := false) -> void:
 	var tech := CHARGED_BLAST if charged else BASIC_BLAST

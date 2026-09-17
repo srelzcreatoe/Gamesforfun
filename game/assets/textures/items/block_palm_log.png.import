@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://d5wwha5oxcv2"
+path="res://.godot/imported/block_palm_log.png-5cd411fcc2dc4e279ac13821fceacb08.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_palm_log.png"
+dest_files=["res://.godot/imported/block_palm_log.png-5cd411fcc2dc4e279ac13821fceacb08.ctex"]
 
 [params]
 

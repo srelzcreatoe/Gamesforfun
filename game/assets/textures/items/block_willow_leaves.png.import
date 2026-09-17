@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://itkqn3bcmbk7"
+path="res://.godot/imported/block_willow_leaves.png-21ff3ffab212bc73528e44a9fa565103.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_willow_leaves.png"
+dest_files=["res://.godot/imported/block_willow_leaves.png-21ff3ffab212bc73528e44a9fa565103.ctex"]
 
 [params]
 

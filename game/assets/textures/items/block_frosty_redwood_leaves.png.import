@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bjitwu0pmrqal"
+path="res://.godot/imported/block_frosty_redwood_leaves.png-aa48fd3ad7464bd41aadae14f9a91a55.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_frosty_redwood_leaves.png"
+dest_files=["res://.godot/imported/block_frosty_redwood_leaves.png-aa48fd3ad7464bd41aadae14f9a91a55.ctex"]
 
 [params]
 

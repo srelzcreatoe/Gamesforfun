@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://g6add8ed1wg3"
+path="res://.godot/imported/block_maple_leaves.png-f2cac0cac48d5bb5f1b7ceca9de43b9f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_maple_leaves.png"
+dest_files=["res://.godot/imported/block_maple_leaves.png-f2cac0cac48d5bb5f1b7ceca9de43b9f.ctex"]
 
 [params]
 

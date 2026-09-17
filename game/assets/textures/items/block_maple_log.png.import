@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://vh70v8xhpypl"
+path="res://.godot/imported/block_maple_log.png-ce7c6e40cc9f1f50e209414aae078ea9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_maple_log.png"
+dest_files=["res://.godot/imported/block_maple_log.png-ce7c6e40cc9f1f50e209414aae078ea9.ctex"]
 
 [params]
 

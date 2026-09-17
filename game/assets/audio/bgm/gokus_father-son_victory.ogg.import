@@ -3,12 +3,12 @@
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
 uid="uid://ckcen2f186d5q"
-path="res://.godot/imported/menu_music-1.ogg-8c5637c363543133576744a47942744c.oggvorbisstr"
+path="res://.godot/imported/gokus_father-son_victory.ogg-f1d598a9dc6f27a9382d71fdf2bd5e7a.oggvorbisstr"
 
 [deps]
 
 source_file="res://assets/audio/bgm/gokus_father-son_victory.ogg"
-dest_files=["res://.godot/imported/menu_music-1.ogg-8c5637c363543133576744a47942744c.oggvorbisstr"]
+dest_files=["res://.godot/imported/gokus_father-son_victory.ogg-f1d598a9dc6f27a9382d71fdf2bd5e7a.oggvorbisstr"]
 
 [params]
 

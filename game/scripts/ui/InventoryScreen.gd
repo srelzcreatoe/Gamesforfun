@@ -8,6 +8,14 @@ extends ScreenBase
 ##   open("inventory", {chest: Vector3i})    -> 27 slot storage crate
 ##   open("inventory", {furnace: Vector3i})  -> smelting
 
+## Night City Inventory GUI (Myth6) when the pack is installed, else the DMZ-HD sheet.
+## Both use the vanilla container/inventory.png layout, so the slot coordinates below are shared.
+const NIGHT_SHEET := "nightcity/inventory"
+const NIGHT_DIR := "res://assets/textures/gui/nightcity/"
+const ARMOR_GHOSTS := ["empty_armor_slot_helmet", "empty_armor_slot_chestplate",
+	"empty_armor_slot_leggings", "empty_armor_slot_boots"]
+const OFFHAND_POS := Vector2(77, 62)
+const GRID_REGION := Rect2(7, 83, 162, 54)      # the 9x3 slot block, reused for containers
 const PANEL := Rect2(0, 0, 176, 166)
 const ARMOR_POS := [Vector2(8, 8), Vector2(8, 26), Vector2(8, 44), Vector2(8, 62)]
 const CRAFT2_POS := [Vector2(98, 18), Vector2(116, 18), Vector2(98, 36), Vector2(116, 36)]
@@ -70,7 +78,8 @@ func build() -> void:
 	left.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(left)
 	var bg := TextureRect.new()
-	bg.texture = UiUtil.atlas(UiUtil.gui_tex("inventory"), PANEL, UiUtil.hd_factor(UiUtil.gui_tex("inventory")))
+	var sheet := panel_sheet()
+	bg.texture = UiUtil.atlas(sheet, PANEL, UiUtil.hd_factor(sheet))
 	bg.size = panel_px
 	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	bg.stretch_mode = TextureRect.STRETCH_SCALE
@@ -108,10 +117,37 @@ func build() -> void:
 	_sync_slots()
 	Audio.play_sfx("click", linear_to_db(0.4))
 
+## The inventory sheet in use (the pack's, when it is installed).
+## Accepts a Vector3i or an "x,y,z" string (the latter comes from --ui_chest=0,64,0).
+static func _as_cell(v: Variant) -> Variant:
+	if v == null:
+		return null
+	if v is Vector3i:
+		return v
+	if v is String:
+		var parts := String(v).split(",")
+		if parts.size() == 3:
+			return Vector3i(int(parts[0]), int(parts[1]), int(parts[2]))
+	return null
+
+static func panel_sheet() -> Texture2D:
+	if ResourceLoader.exists(NIGHT_DIR + "inventory.png"):
+		return UiUtil.gui_tex(NIGHT_SHEET)
+	return UiUtil.gui_tex("inventory")
+
+static func has_night_pack() -> bool:
+	return ResourceLoader.exists(NIGHT_DIR + "inventory.png")
+
+static func ghost_icon(name: String) -> Texture2D:
+	var path := NIGHT_DIR + name + ".png"
+	if ResourceLoader.exists(path):
+		return load(path)
+	return null
+
 func _read_args() -> void:
 	station = String(args.get("station", "hand"))
-	chest_pos = args.get("chest", null)
-	furnace_pos = args.get("furnace", null)
+	chest_pos = _as_cell(args.get("chest", null))
+	furnace_pos = _as_cell(args.get("furnace", null))
 	grid_size = 3 if station != "hand" else 2
 	craft.clear()
 	craft.resize(9)
@@ -163,7 +199,24 @@ func _slot(parent: Control, source: String, index: int, pos: Vector2, cell := SL
 func _build_armor(parent: Control) -> void:
 	for i in 4:
 		var sl := _slot(parent, "armor", i, ARMOR_POS[i])
-		sl.label_text = ["H", "C", "L", "F"][i]
+		var ghost := ghost_icon(ARMOR_GHOSTS[i])
+		if ghost != null:
+			sl.ghost_icon = ghost
+		else:
+			sl.label_text = ["H", "C", "L", "F"][i]
+		sl.draw_bg = not has_night_pack()
+	# The pack paints an offhand slot; show its shield hint so the panel reads right.
+	var shield := ghost_icon("empty_armor_slot_shield")
+	if shield != null:
+		var oh := SlotGrid.Slot.new("offhand", 0)
+		oh.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		oh.custom_minimum_size = Vector2(SLOT * k, SLOT * k)
+		oh.size = Vector2(SLOT * k, SLOT * k)
+		oh.scale_px = s
+		oh.draw_bg = false
+		oh.ghost_icon = shield
+		oh.position = OFFHAND_POS * k
+		parent.add_child(oh)
 
 func _build_preview(parent: Control) -> void:
 	var ch: Dictionary = Game.profile.get("character", {}) if Game != null else {}
@@ -185,7 +238,7 @@ func _build_crafting(parent: Control) -> void:
 			_slot(parent, "craft", i, CRAFT2_POS[i]).border = true
 	else:
 		var cover := ColorRect.new()
-		cover.color = Color(0.02, 0.05, 0.08, 0.88)
+		cover.color = Color(UiUtil.NIGHT_PANEL.r, UiUtil.NIGHT_PANEL.g, UiUtil.NIGHT_PANEL.b, 0.92)
 		cover.position = Vector2(86, 12) * k
 		cover.size = Vector2(84, 58) * k
 		cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -207,21 +260,34 @@ func _build_container_panel(root: Control, origin: Vector2, panel_px: Vector2) -
 	var cell := SLOT * k
 	var cols := 9
 	var rows := int(ceil(float(container.size) / float(cols)))
-	var w := float(cols) * PITCH * k + 8.0 * k
-	var h := float(rows) * PITCH * k + 8.0 * k
+	var w := float(cols) * PITCH * k + 6.0 * k
+	var h := float(rows) * PITCH * k + 6.0 * k
 	var p := Control.new()
 	p.position = Vector2(origin.x, maxf(4.0 * s + insets.y, origin.y - h - 10.0 * s))
 	p.size = Vector2(w, h)
 	var frame := Panel.new()
-	frame.add_theme_stylebox_override("panel", UiUtil.flat(UiUtil.PANEL_FILL, UiUtil.PANEL_BORDER, 2.0 * s, 0.0, 0.0))
+	frame.add_theme_stylebox_override("panel", UiUtil.flat(UiUtil.PANEL_FILL, UiUtil.PANEL_BORDER, 3.0 * s, 4.0 * s, 0.0))
 	frame.size = p.size
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	p.add_child(frame)
+	# Reuse the pack's own 9x3 slot block as the container's slot art.
+	if has_night_pack():
+		var art := TextureRect.new()
+		art.texture = UiUtil.atlas(panel_sheet(), Rect2(GRID_REGION.position,
+			Vector2(GRID_REGION.size.x, 18.0 * float(rows) + 0.0)), UiUtil.hd_factor(panel_sheet()))
+		art.position = Vector2(3.0 * k, 3.0 * k)
+		art.size = Vector2(GRID_REGION.size.x * k, 18.0 * float(rows) * k)
+		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art.stretch_mode = TextureRect.STRETCH_SCALE
+		art.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		frame.add_child(art)
 	root.add_child(p)
 	for i in container.size:
 		var sl := SlotGrid.make("container", i, cell, s, _on_slot_tapped)
 		sl.border = true
 		sl.position = Vector2(4.0 * k + float(i % cols) * PITCH * k, 4.0 * k + float(i / cols) * PITCH * k)
+		sl.draw_bg = not has_night_pack()
 		p.add_child(sl)
 		_slots.append(sl)
 
@@ -231,7 +297,8 @@ func _build_furnace_panel(root: Control, origin: Vector2, panel_px: Vector2) -> 
 	p.position = Vector2(origin.x + 88.0 * k, origin.y + 12.0 * k)
 	p.size = Vector2(80.0 * k, 58.0 * k)
 	var frame := Panel.new()
-	frame.add_theme_stylebox_override("panel", UiUtil.flat(Color(0.05, 0.06, 0.1, 0.9), UiUtil.PANEL_BORDER, 2.0 * s, 0.0, 0.0))
+	frame.add_theme_stylebox_override("panel", UiUtil.flat(Color(0.055, 0.051, 0.094, 0.94),
+		UiUtil.PANEL_BORDER, 2.0 * s, 4.0 * s, 0.0))
 	frame.size = p.size
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	p.add_child(frame)

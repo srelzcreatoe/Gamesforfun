@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ki0y0fjnn24h"
+path="res://.godot/imported/block_wisteria_leaves.png-c51577affbe24cc572f32a72001417e5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_wisteria_leaves.png"
+dest_files=["res://.godot/imported/block_wisteria_leaves.png-c51577affbe24cc572f32a72001417e5.ctex"]
 
 [params]
 

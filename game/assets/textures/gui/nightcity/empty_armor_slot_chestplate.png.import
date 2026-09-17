@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c28tljgnuomdp"
+path="res://.godot/imported/empty_armor_slot_chestplate.png-ed02fada6481f81aca0e4572268e9d2a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/nightcity/empty_armor_slot_chestplate.png"
+dest_files=["res://.godot/imported/empty_armor_slot_chestplate.png-ed02fada6481f81aca0e4572268e9d2a.ctex"]
 
 [params]
 

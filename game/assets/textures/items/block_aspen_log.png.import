@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dvm4ic1dei688"
+path="res://.godot/imported/block_aspen_log.png-f3d5ca2070a2d4ec0ba36d782f7d4ac5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_aspen_log.png"
+dest_files=["res://.godot/imported/block_aspen_log.png-f3d5ca2070a2d4ec0ba36d782f7d4ac5.ctex"]
 
 [params]
 

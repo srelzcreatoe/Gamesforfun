@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://4mowddhtmea7"
+path="res://.godot/imported/inventory.png-ca0553c290ccdd9d962308943ce8131a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/nightcity/inventory.png"
+dest_files=["res://.godot/imported/inventory.png-ca0553c290ccdd9d962308943ce8131a.ctex"]
 
 [params]
 

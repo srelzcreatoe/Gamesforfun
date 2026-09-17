@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://5svj5bv1j6us"
+path="res://.godot/imported/block_sugi_leaves.png-c3ae157e1d1e58a59c799c16e6a24b23.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_sugi_leaves.png"
+dest_files=["res://.godot/imported/block_sugi_leaves.png-c3ae157e1d1e58a59c799c16e6a24b23.ctex"]
 
 [params]
 

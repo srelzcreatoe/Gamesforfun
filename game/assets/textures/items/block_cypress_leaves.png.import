@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dx83o0b7wmq3u"
+path="res://.godot/imported/block_cypress_leaves.png-e7bf4156f11d0766bc8a4b065158675d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_cypress_leaves.png"
+dest_files=["res://.godot/imported/block_cypress_leaves.png-e7bf4156f11d0766bc8a4b065158675d.ctex"]
 
 [params]
 

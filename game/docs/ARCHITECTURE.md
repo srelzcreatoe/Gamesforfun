@@ -220,6 +220,8 @@ func spawn_entity(entity_type: String, pos: Vector3, data := {}) -> Node   # ins
 func get_entities() -> Array[Node]           # all Entity nodes
 func entities_in_aabb(aabb: AABB) -> Array[Node]
 func day_fraction() -> float ; func sun_direction() -> Vector3 ; func daylight() -> float # 0..1
+func add_disturbance(pos: Vector3, strength: float, duration := 0.6) -> void  # parts grass/leaves
+func load_progress() -> float ; func save_modified_chunks() -> void ; func flow_at(x, y, z) -> Vector3
 func explode(center: Vector3, radius: float, power: float, source: Node) -> void  # destroys blocks (respecting hardness/unbreakable), damages entities, spawns fx via Events.explosion
 ```
 `VoxelPhysics` (static helpers): `move_aabb(world, aabb: AABB, motion: Vector3, step_height: float) -> Dictionary {aabb, motion_done, on_ground, hit_x, hit_y, hit_z}` per-axis sweeps (Y, X, Z), `aabb_intersects_solid(world, aabb) -> bool`, `fluid_at(world, aabb) -> Dictionary {in_liquid, submerged_fraction, flow: Vector3}`.
@@ -241,6 +243,21 @@ with `ao ∈ {0.55, 0.7, 0.85, 1.0}`. Materials are the shared ShaderMaterials i
 `vec3 fog_color`, `float fog_start`, `float fog_end`, `float time`, plus the
 water ones). Face shading factor by normal (top 1.0, north/south 0.8,
 east/west 0.6, bottom 0.5) is applied in the shader, not baked.
+
+Wind & foliage (vertex shader only, free on mobile): the mesher tags every vertex with a
+**sway mode** inside `UV2.x` (`layer + (frames + 64 * sway_mode) / 256`, `sway_mode` = 0 static,
+1 plant, 2 leaves). `shaders/chunk_cutout.gdshader` moves them: plants bend at the tip
+(anchored at the base), leaf blocks drift as a whole so a canopy never cracks open — the wave's
+phase comes only from the vertex's world position, so vertices shared by neighbouring blocks
+move identically. Uniforms (pushed by `World` on the **cutout material only**):
+`vec2 wind_dir` (world xz direction, slowly rotating), `float wind_strength` (metres at full
+gust, 0.06), `float wind_speed`, `float wind_gust` (0..1, slow wave + weather),
+`vec4 disturb[6]` (xyz = world position, w = strength 0..1) and `int disturb_count`.
+Slot 0 of `disturb` is the player's feet (0.6, or 1.0 while flying/sprinting); the rest are
+recent impacts. Anything can part the foliage with
+`World.add_disturbance(pos: Vector3, strength: float, duration := 0.6)`; `World` also registers
+one for every `Events.explosion` and `Events.entity_damaged`. Radius is
+`1.6 + strength * 3.0` m, and the push fades over `duration`.
 
 Lighting: sky light flood-fill from the heightmap (15 at open sky, −1 per
 block sideways/down through transparent blocks, blocked by opaque), block

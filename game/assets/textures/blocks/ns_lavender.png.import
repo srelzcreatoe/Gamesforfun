@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://c0q6s3ofwpovi"
+path="res://.godot/imported/ns_lavender.png-2b9041b353715217b63473336d9b8efe.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/blocks/ns_lavender.png"
+dest_files=["res://.godot/imported/ns_lavender.png-2b9041b353715217b63473336d9b8efe.ctex"]
 
 [params]
 

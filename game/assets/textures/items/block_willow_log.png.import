@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://bt1njshm2ob2v"
+path="res://.godot/imported/block_willow_log.png-97a9bf38665fd8e7909e94eb008aa617.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_willow_log.png"
+dest_files=["res://.godot/imported/block_willow_log.png-97a9bf38665fd8e7909e94eb008aa617.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://5jevy7ovo7si"
+path="res://.godot/imported/empty_armor_slot_helmet.png-ca93572fc9b355dc482e2ed568f1534a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/nightcity/empty_armor_slot_helmet.png"
+dest_files=["res://.godot/imported/empty_armor_slot_helmet.png-ca93572fc9b355dc482e2ed568f1534a.ctex"]
 
 [params]
 

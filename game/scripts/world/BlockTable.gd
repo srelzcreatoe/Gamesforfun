@@ -157,9 +157,61 @@ static func build() -> void:
 		var fk: String = b.get("flow_texture", "")
 		flow_layer[id] = Textures.layer(fk) if fk != "" else face_layer[id * 6]
 		flow_frames[id] = maxi(1, Textures.frames(fk)) if fk != "" else face_frames[id * 6]
+	_borrow_missing_tiles()
 	water_id = Registry.block_id("water")
 	lava_id = Registry.block_id("lava")
 	built = true
+
+## Blocks whose tile the asset pipeline has not produced yet would render as the magenta
+## "missing texture" layer. Borrow a tile from the closest relative instead (same name suffix,
+## e.g. redwood_log -> oak_log, else the first block with the same shape) and warn once, so a
+## data gap looks slightly wrong instead of screaming pink.
+static func _borrow_missing_tiles() -> void:
+	var missing := PackedInt32Array()
+	for id in range(1, count):
+		if shape[id] == Shape.NONE:
+			continue
+		var any := false
+		for f in 6:
+			if face_layer[id * 6 + f] != 0:
+				any = true
+				break
+		if not any:
+			missing.append(id)
+	if missing.is_empty():
+		return
+	var borrowed := PackedStringArray()
+	for id in missing:
+		var nm := names[id]
+		var parts := nm.split("_", false)
+		var suffix: String = parts[parts.size() - 1] if parts.size() > 1 else nm
+		var donor := -1
+		var preferred := Registry.block_id("oak_" + suffix)
+		if preferred > 0 and face_layer[preferred * 6] != 0:
+			donor = preferred
+		if donor < 0:
+			for j in range(1, count):
+				if j == id or face_layer[j * 6] == 0:
+					continue
+				if names[j].ends_with("_" + suffix):
+					donor = j
+					break
+		if donor < 0:
+			for j in range(1, count):
+				if j != id and shape[j] == shape[id] and face_layer[j * 6] != 0:
+					donor = j
+					break
+		if donor < 0:
+			continue
+		for f in 6:
+			face_layer[id * 6 + f] = face_layer[donor * 6 + f]
+			face_frames[id * 6 + f] = face_frames[donor * 6 + f]
+		variant_layers[id] = variant_layers[donor]
+		variant_all[id] = variant_all[donor]
+		borrowed.append("%s<-%s" % [nm, names[donor]])
+	if borrowed.size() > 0:
+		Log.w("BlockTable: %d blocks have no tile in assets/textures/blocks, borrowed: %s" % [
+			borrowed.size(), ", ".join(borrowed)])
 
 ## Same position hash as Textures.block_face_layer so meshes and item icons agree.
 static func layer_at(id: int, face: int, x: int, y: int, z: int) -> int:

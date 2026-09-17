@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b5tdbbeao67wm"
+path="res://.godot/imported/block_palm_leaves.png-a7d9d996971ff4c3c05e83156fa9105d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_palm_leaves.png"
+dest_files=["res://.godot/imported/block_palm_leaves.png-a7d9d996971ff4c3c05e83156fa9105d.ctex"]
 
 [params]
 

@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://dxxdgjvoanpw4"
+path="res://.godot/imported/empty_armor_slot_leggings.png-89c6d8437bf64a20a080168048c28e28.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/gui/nightcity/empty_armor_slot_leggings.png"
+dest_files=["res://.godot/imported/empty_armor_slot_leggings.png-89c6d8437bf64a20a080168048c28e28.ctex"]
 
 [params]
 

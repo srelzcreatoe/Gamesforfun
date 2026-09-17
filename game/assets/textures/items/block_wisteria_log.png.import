@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://chi263v223a75"
+path="res://.godot/imported/block_wisteria_log.png-95fe62878810e61ce27e0eaa6bbcadf3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/textures/items/block_wisteria_log.png"
+dest_files=["res://.godot/imported/block_wisteria_log.png-95fe62878810e61ce27e0eaa6bbcadf3.ctex"]
 
 [params]
 
