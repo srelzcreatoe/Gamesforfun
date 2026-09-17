@@ -24,8 +24,8 @@ const DMZ_AURA_MODEL := "res://assets/models/entity/races/kiaura.geo.json"
 const LOOP_KEY_PREFIX := "aura_loop_"
 
 ## Mesh proportions (entity 1.8 m tall; scaled by `body_scale`).
-const AURA_HEIGHT := 2.45
-const AURA_RADIUS := 0.46
+const AURA_HEIGHT := 2.80
+const AURA_RADIUS := 0.54
 const RINGS := 10
 const SEGMENTS := 16
 
@@ -299,6 +299,23 @@ func set_form(form_def: Dictionary) -> void:
 		_sparks.color = p.spark
 	form_intensity = 0.7
 	refresh()
+
+## Grow the whole aura with the body (giant forms such as Oozaru). Cheap: the shells are
+## re-scaled, never rebuilt.
+func set_body_scale(s: float) -> void:
+	body_scale = maxf(0.1, s)
+	if _lightning != null:
+		_lightning.configure(lightning_color, body_scale)
+	if _flare != null:
+		_flare.position = Vector3(0, 1.0 * body_scale, 0)
+	if _sparks != null:
+		_sparks.emission_sphere_radius = 0.55 * body_scale
+		_sparks.position = Vector3(0, 0.9 * body_scale, 0)
+	if _rise != null:
+		_rise.emission_box_extents = Vector3(0.32, 0.1, 0.32) * body_scale
+	if _ground != null:
+		_ground.scale = Vector3.ONE * body_scale
+	_apply_intensity(_intensity)
 
 func set_lightning(on: bool, color := Color(0, 0, 0, 0)) -> void:
 	has_lightning = on

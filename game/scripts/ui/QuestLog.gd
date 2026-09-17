@@ -48,6 +48,7 @@ func build() -> void:
 
 	var frame := Panel.new()
 	frame.add_theme_stylebox_override("panel", UiUtil.dmz_panel_style("quest"))
+	UiUtil.dmz_scrim(frame, 12.0)
 	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	detail = UiUtil.vbox(6.0 * s)
@@ -209,7 +210,7 @@ func _fill_detail() -> void:
 	detail.add_child(UiUtil.dim("%s · %s" % [String(def.get("type", "QUEST")), st.capitalize()], UiUtil.font_small(s)))
 	var d := UiUtil.label(String(def.get("description", def.get("desc", ""))), UiUtil.font_small(s))
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	d.custom_minimum_size.x = 120.0 * s
+	d.custom_minimum_size.x = 100.0 * s
 	d.size_flags_horizontal = Control.SIZE_FILL
 	detail.add_child(d)
 	var lvl := int(def.get("min_level", 0))
@@ -232,14 +233,18 @@ func _fill_detail() -> void:
 	for r in rw:
 		detail.add_child(UiUtil.dim("  " + _reward_text(r), UiUtil.font_small(s)))
 	detail.add_child(UiUtil.spacer(6.0 * s))
-	var actions := UiUtil.hbox(6.0 * s)
-	var start := UiUtil.flat_button("Start", _start, false, 110.0 * s)
+	# A flow container so the three buttons wrap instead of forcing the detail pane wider than
+	# the DMZ panel (which used to push the text past the painted border).
+	var actions := HFlowContainer.new()
+	actions.add_theme_constant_override("h_separation", int(6.0 * s))
+	actions.add_theme_constant_override("v_separation", int(6.0 * s))
+	var start := UiUtil.flat_button("Start", _start, false, 92.0 * s)
 	start.disabled = st != "available"
 	actions.add_child(start)
-	var track := UiUtil.flat_button("Track", _track, false, 110.0 * s)
+	var track := UiUtil.flat_button("Track", _track, false, 92.0 * s)
 	track.disabled = st != "active"
 	actions.add_child(track)
-	var claim := UiUtil.flat_button("Claim", _claim, false, 110.0 * s)
+	var claim := UiUtil.flat_button("Claim", _claim, false, 92.0 * s)
 	claim.disabled = st != "complete"
 	actions.add_child(claim)
 	detail.add_child(actions)

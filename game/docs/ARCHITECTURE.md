@@ -353,25 +353,43 @@ RPN) and evaluated per frame; angle functions take degrees like Bedrock.
 
 ### Hair (`HairBuilder.gd` + `data/hair_styles.json`)
 
-DMZ builds hair out of voxel *strands*, not a bone rig, and so do we. A style is
-a list of strand groups over DMZ's own 68 slots (FRONT 1x4, BACK/LEFT/RIGHT/TOP
-4x4 on the head cube), each group expanded into strands of stacked cubes with
-`len` / `rot` / `curve` / `taper` / `spread`; `scripts/entity/HairBuilder.gd`
-bakes one cached `ArrayMesh` per style, so hair costs one extra draw call and no
-per-frame work. `data/hair_styles.json` holds the 8 selectable styles
-(bald, short, spiky, flame, bowl, long, ponytail, mohawk) plus `ssj` / `ssj2` /
-`ssj3` and the `form_hair` map used by `RaceSkin.apply_form_visuals()`.
+DMZ builds hair out of voxel *strands*, not a bone rig, and so do we, scaled up
+to read as Dragon Ball silhouettes. `scripts/entity/HairBuilder.gd` bakes one
+cached `ArrayMesh` per style, so hair costs one extra draw call and no per-frame
+work. A style in `data/hair_styles.json` has:
+
+* `groups` — DMZ's own 68 slots (FRONT 1x4, BACK/LEFT/RIGHT/TOP 4x4 on the head
+  cube), used for caps, fringes and manes.
+* `strands` — hand placed spikes (`at` position, `rot` euler, `len`, `cube`,
+  `mirror` to emit the X mirrored twin), used for the big iconic silhouettes: a
+  handful of large spikes reads far better than 68 small ones.
+* `point` narrows a strand along its length, so a spike ends in a point instead
+  of a flat cube; `accent: true` puts a strand on a second surface with its own
+  colour (two tone hair, e.g. Gotenks).
+
+Twelve selectable styles (`order`, indexed by the profile's `hair_type`, which
+wraps): bald, short, spiky (Goku, 0.70 block above the skull), flame (Vegeta,
+0.89), bowl, long (mane past mid back), ponytail, mohawk, bardock, broly (1.06),
+trunks, gotenks.
+
+Transformation hair is DERIVED, not hand authored: `HairBuilder.form_style_id(base, hairType)`
+turns forms.json's `hairType` ("base" keeps the haircut, "ssj", "ssj2", "ssj3",
+"empty") into an id like `spiky@ssj`, and `resolve_style()` rebuilds that style
+longer, more upright and gold through `HairBuilder.FORM_DERIVE`, so every haircut
+keeps its identity when it powers up (ssj3 swaps in the long mane).
+`RaceSkin.set_form_hair(entity_or_model, form_def)` applies it (geometry *and*
+colour) and `RaceSkin.clear_form_hair(target)` puts the character's own hair back;
+`apply_form_visuals()` calls the former. Both accept an entity or the model.
 
 * `RaceSkin.apply_to(model, character, armor)` attaches the style for
-  `character.hair_type` (it wraps, and index 0 is bald) as a `MeshInstance3D`
-  named `Hair` on the `head` bone, tinted with `hair_color`.
+  `character.hair_type` as a `MeshInstance3D` named `Hair` on the `head` bone,
+  tinted with `hair_color`, and remembers the character on the model.
 * Facet shading is baked into the mesh's vertex colours and the material uses
   `vertex_color_use_as_albedo`, and a near black hair colour is lifted to
   v >= 0.30 (`HairBuilder.hair_albedo()`): without both, black hair renders as
   one flat block ("a black cube on the head") from behind.
 * `BedrockModel.visual_aabb()` includes attachments (hair, armour overlays, held
-  items), so a camera framed from it never crops tall hair; all eleven styles
-  frame within +-9% of each other.
+  items), so a camera framed from it never crops tall hair.
 
 ### Animation state API (what callers use instead of clip names)
 

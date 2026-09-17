@@ -240,6 +240,10 @@ func _impact(pos: Vector3, direct_victim: Node = null) -> void:
 		return
 	_dead = true
 	ExplosionFx.hint_color(color)
+	# the ki-specific part of the impact (white flash, coloured sparks, ring, scorch);
+	# the explosion itself still comes from Events.explosion -> ExplosionFx
+	if mode != "disc":
+		KiEffects.blast_impact(pos, color, maxf(0.8, blast_radius * 0.8), get_parent())
 	var terrain := destroy_terrain and damage >= TERRAIN_DAMAGE_MIN
 	if direct_victim != null:
 		_hit_entities[direct_victim.get_instance_id()] = true

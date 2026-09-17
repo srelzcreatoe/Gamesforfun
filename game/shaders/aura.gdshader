@@ -73,7 +73,7 @@ void fragment() {
 
 	// the noise has to clear a rising threshold, so the shell is dense at the feet
 	// and breaks into separate licking tongues towards the top
-	float threshold = mix(0.26, 0.80, pow(h, 0.85)) * (1.0 - 0.25 * (intensity - 1.0));
+	float threshold = mix(0.20, 0.62, pow(h, 0.85)) * (1.0 - 0.25 * (intensity - 1.0));
 	float body = smoothstep(threshold, threshold + 0.20, flame);
 	float core = smoothstep(threshold + 0.16, threshold + 0.44, flame);
 
@@ -84,7 +84,10 @@ void fragment() {
 	vec3 col = mix(aura_color.rgb, inner_color.rgb, core);
 	// front-facing parts of the shell stay nearly transparent so the body reads
 	// through it; the grazing silhouette is where the flames are bright
-	float a = body * (0.30 + 0.26 * (1.0 - h)) * (0.10 + 1.25 * rim) * clamp(intensity, 0.0, 2.0) * pulse;
+	// the shell is thin around the feet (so the legs read), fattest around the torso and
+	// breaks into tongues towards the top
+	float band = smoothstep(0.0, 0.30, h) * (1.0 - 0.45 * smoothstep(0.55, 1.0, h));
+	float a = body * (0.16 + 0.34 * band) * (0.08 + 1.55 * rim) * clamp(intensity, 0.0, 2.0) * pulse;
 
 	ALBEDO = col * (0.85 + 0.9 * core);
 	ALPHA = clamp(a, 0.0, 1.0) * aura_color.a;

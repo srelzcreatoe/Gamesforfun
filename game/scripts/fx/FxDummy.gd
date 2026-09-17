@@ -127,15 +127,22 @@ func _build_model() -> Node3D:
 	root.add_child(head)
 	return root
 
-## Compose the race skin + voxel hair through the entity engineer's RaceSkin.
+## Compose the race skin + voxel hair through the entity engineer's RaceSkin, using the
+## race defaults from data/races.json (so a namekian previews green and a majin pink).
 func _apply_race_skin(m: Node3D) -> bool:
 	var bm: BedrockModel = m as BedrockModel
 	if bm == null:
 		return false
+	var r: Dictionary = Registry.race(race) if Registry != null else {}
+	var hairy := race == "human" or race == "saiyan" or race == "halfsaiyan"
 	RaceSkin.apply_to(bm, {
-		"race": race, "gender": "male", "body_type": 0, "hair_type": 2,
-		"hair_color": "#222629", "eye_color": "#3B2A1E",
-		"skin_color": "#FFD3C9", "skin_color2": "#572117", "skin_color3": "#FFD3C9",
+		"race": race, "gender": "male", "body_type": 0,
+		"hair_type": 2 if hairy else 0,
+		"hair_color": String(r.get("defaultHairColor", "#222629")),
+		"eye_color": String(r.get("defaultEye1Color", "#3B2A1E")),
+		"skin_color": String(r.get("defaultBodyColor", "#FFD3C9")),
+		"skin_color2": String(r.get("defaultBodyColor2", "#572117")),
+		"skin_color3": String(r.get("defaultBodyColor3", "#FFD3C9")),
 		"has_tail": race == "saiyan",
 	}, [])
 	return true

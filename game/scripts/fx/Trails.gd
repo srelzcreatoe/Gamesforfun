@@ -120,11 +120,17 @@ static func spawn_ghost(entity_node: Node, pos: Vector3, c: Color, life := AFTER
 	if host == null or not host.is_inside_tree():
 		return null
 	var ghost: Node3D = null
+	var from_model := false
+	var model_scale := Vector3.ONE
 	var model: Variant = entity_node.get("model") if "model" in entity_node else null
 	if model is Node3D and (model as Node3D).is_inside_tree():
 		var dup: Node = (model as Node3D).duplicate(DUPLICATE_USE_INSTANTIATION)
 		if dup is Node3D:
 			ghost = dup as Node3D
+			from_model = true
+			# a BedrockModel carries its own (1/16 model unit) scale: overwriting it with
+			# the entity scale below would blow the silhouette up 16x
+			model_scale = (model as Node3D).scale
 			_tint_recursive(ghost, c)
 	if ghost == null:
 		var mi := MeshInstance3D.new()
@@ -143,18 +149,27 @@ static func spawn_ghost(entity_node: Node, pos: Vector3, c: Color, life := AFTER
 	ghost.global_position = pos
 	if entity_node is Node3D:
 		ghost.global_rotation = (entity_node as Node3D).global_rotation
-		ghost.scale = (entity_node as Node3D).scale
+		ghost.scale = model_scale * (entity_node as Node3D).scale if from_model \
+			else (entity_node as Node3D).scale
 	var tw := ghost.create_tween()
 	tw.tween_property(ghost, "scale", ghost.scale * 0.85, life)
 	tw.tween_callback(ghost.queue_free)
 	_fade_recursive(ghost, life)
 	return ghost
 
+## Turn a duplicated model into an additive silhouette in `c`. The original texture is
+## kept when there is one, so an afterimage reads as a glowing copy of the character
+## instead of a solid coloured box.
 static func _tint_recursive(node: Node, c: Color) -> void:
 	if node is MeshInstance3D:
 		var mi := node as MeshInstance3D
-		var m := FxAssets.additive_material(null, false)
-		m.albedo_color = Color(c.r, c.g, c.b, 0.5)
+		var tex: Texture2D = null
+		var old: Variant = mi.material_override
+		if old is BaseMaterial3D:
+			tex = (old as BaseMaterial3D).albedo_texture
+		var m := FxAssets.additive_material(tex, false)
+		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		m.albedo_color = Color(c.r, c.g, c.b, 0.38)
 		mi.material_override = m
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	for ch in node.get_children():

@@ -89,6 +89,17 @@ func reseed(center: Vector3, height: float, side_offset: float) -> void:
 		_mat.set_shader_parameter("heading", heading)
 		_mat.set_shader_parameter("phase", _rng.randf())
 
+## Aim the flock on purpose instead of at random: a heading, a height above `center`, and the
+## point of the pass (0..1) the flock should have reached `at_time` seconds from now. Previews
+## and cinematics use this to put the birds exactly where the camera is looking.
+func aim(center: Vector3, height: float, dir: Vector3, u_at: float, at_time: float) -> void:
+	heading = dir.normalized() if dir.length() > 0.001 else Vector3.RIGHT
+	origin = Vector3(center.x, center.y + height, center.z)
+	if _mat != null:
+		_mat.set_shader_parameter("origin", origin)
+		_mat.set_shader_parameter("heading", heading)
+		_mat.set_shader_parameter("phase", fposmod(u_at - at_time / maxf(period, 1.0), 1.0))
+
 ## How far the flock's path is from `pos` horizontally (used to decide when to re-seed).
 func distance_to(pos: Vector3) -> float:
 	return Vector2(origin.x - pos.x, origin.z - pos.z).length()

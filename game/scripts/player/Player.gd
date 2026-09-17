@@ -206,6 +206,10 @@ func write_profile(profile: Dictionary) -> void:
 		"yaw": camera_rig.yaw_deg if camera_rig != null else rad_to_deg(yaw),
 	}
 	profile["spawn"] = {"planet": spawn_planet, "x": spawn_point.x, "y": spawn_point.y, "z": spawn_point.z}
+	# TP lives on the profile and Stats.to_profile does not write it, so persist it here: a slot
+	# save hands us a fresh dictionary and would otherwise lose the player's training points.
+	profile["tp"] = get_tp()
+	profile["tp_total"] = maxi(tp_total(), get_tp())
 	var f: Dictionary = profile.get("forms", {})
 	f["current"] = current_form
 	profile["forms"] = f

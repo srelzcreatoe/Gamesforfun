@@ -20,7 +20,7 @@
     0.9375
    ],
    "defaultBodyType": 0,
-   "defaultHairType": 1,
+   "defaultHairType": 2,
    "defaultEyesType": 0,
    "defaultNoseType": 0,
    "defaultMouthType": 0,
@@ -505,7 +505,7 @@
     0.9375
    ],
    "defaultBodyType": 0,
-   "defaultHairType": 1,
+   "defaultHairType": 2,
    "defaultEyesType": 0,
    "defaultNoseType": 0,
    "defaultMouthType": 0,

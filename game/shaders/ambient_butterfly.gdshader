@@ -25,6 +25,9 @@ uniform vec3 light_tint : source_color = vec3(1.0, 1.0, 1.0);
 uniform float fade_start = 16.0;
 uniform float fade_end = 26.0;
 uniform float master_alpha : hint_range(0.0, 1.0) = 1.0;
+// The Fused sprites have a heavy black outline that turns a 20 px butterfly into a dark blob:
+// lift the darkest pixels a little so the wings read as wings.
+uniform float lift : hint_range(0.0, 0.3) = 0.09;
 
 varying float vfade;
 
@@ -66,6 +69,6 @@ void fragment() {
 	if (t.a < 0.4 || vfade < 0.02) {
 		discard;
 	}
-	ALBEDO = t.rgb * light_tint;
+	ALBEDO = (t.rgb + vec3(lift)) * light_tint;
 	ALPHA = t.a * vfade;
 }

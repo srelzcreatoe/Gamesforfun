@@ -47,11 +47,12 @@ void vertex() {
 	float life = smoothstep(0.0, 0.14, cy) * (1.0 - smoothstep(0.82, 1.0, cy));
 	life = mix(1.0, life, loop_on);
 
-	// Fireflies: long dark gaps, short bright flashes (sin cubed, clipped to the positive half).
+	// Fireflies: a slow pulse with dark gaps, but never fully out - a swarm where only one in
+	// ten is lit at any instant reads as an empty night, not as fireflies.
 	float pulse = 1.0;
 	if (blink > 0.0) {
 		float s = max(0.0, sin(TIME * blink + seed * 6.2831853));
-		pulse = 0.06 + 0.94 * s * s * s;
+		pulse = 0.16 + 0.84 * s * s;
 	}
 
 	vec3 wpos = home + off;

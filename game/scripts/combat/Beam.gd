@@ -15,6 +15,7 @@ extends Node3D
 
 const BEAM_SHADER := "res://shaders/ki_beam.gdshader"
 const GROW_SPEED := 90.0          # m/s the beam front travels
+const IMPACT_PULSE := 0.3
 const TICK_INTERVAL := 0.2        # damage tick
 const PUSH_PER_TICK := 3.5
 const DEFAULT_MAX_LENGTH := 64.0
@@ -41,6 +42,9 @@ var _mat: ShaderMaterial
 var _cyl: CylinderMesh
 var _muzzle: KiEffects
 var _impact_particles: CPUParticles3D
+## fx hook: pulse rings while the beam is pressed into a surface (scripts/fx/KiEffects)
+var _blocked := false
+var _impact_pulse_t := 0.0
 var _tick := 0.0
 var _origin := Vector3.ZERO
 var _dir := Vector3.FORWARD
@@ -147,6 +151,7 @@ func _process(delta: float) -> void:
 		_finish()
 		return
 	_update_transform(delta)
+	_impact_pulses(delta)
 	_tick += delta
 	if _tick >= TICK_INTERVAL:
 		_tick -= TICK_INTERVAL
@@ -177,9 +182,25 @@ func _update_transform(delta: float) -> void:
 		_mat.set_shader_parameter("intensity", 0.95 + 0.2 * sin(age * 18.0))
 	if _muzzle != null and is_instance_valid(_muzzle):
 		_muzzle.global_position = _origin
+	_blocked = length >= want - 0.6
 	if _impact_particles != null:
 		_impact_particles.global_position = _end
-		_impact_particles.emitting = length >= want - 0.6
+		_impact_particles.emitting = _blocked
+
+## While the beam is pressed into terrain, keep throwing a flash + ring off the surface
+## (scripts/fx/KiEffects); free again as soon as nothing is being hit.
+func _impact_pulses(delta: float) -> void:
+	if not _blocked:
+		return
+	_impact_pulse_t -= delta
+	if _impact_pulse_t > 0.0:
+		return
+	_impact_pulse_t = IMPACT_PULSE
+	var host := get_parent()
+	if host == null:
+		return
+	KiEffects.flash_pop(host, _end, color.lerp(Color(1, 1, 1), 0.45), radius * 3.4, 0.24)
+	KiEffects.shock_ring(host, _end, color, radius * 2.2, 0.34, false)
 
 ## Damage everything inside the beam capsule and push it along the beam.
 func _damage_tick() -> void:

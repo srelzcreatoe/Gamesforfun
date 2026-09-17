@@ -53,7 +53,8 @@ static func soft_dot() -> Texture2D:
 		for x in 16:
 			var d := Vector2(float(x) - 7.5, float(y) - 7.5).length() / 7.5
 			var a := clampf(1.0 - d, 0.0, 1.0)
-			img.set_pixel(x, y, Color(1, 1, 1, a * a * a))
+			# Squared (not cubed) falloff: a firefly needs a visible halo, not a single pixel.
+			img.set_pixel(x, y, Color(1, 1, 1, a * a))
 	_dot = ImageTexture.create_from_image(img)
 	return _dot
 

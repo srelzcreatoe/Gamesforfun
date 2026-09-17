@@ -196,6 +196,8 @@ static func apply_to(model: BedrockModel, character: Dictionary, armor: Array = 
 	if model == null:
 		return
 	model.set_texture(compose(character))
+	model.set_meta("character", character.duplicate(true))
+	model.set_meta("base_hair_style", HairBuilder.style_id(_int(character.get("hair_type"), 1)))
 	model.hide_layer_bones(ALL_ARMOR_BONES)
 	if not bool(character.get("has_tail", false)):
 		model.hide_layer_bones(["tail1", "tail2", "tail3", "tail4", "tail5", "tailenrolled"])
@@ -260,22 +262,70 @@ static func apply_form_visuals(model: Node3D, form_def: Dictionary) -> void:
 		model.call("set_tint", _color(body_tint))
 	if bm == null:
 		return
-	var hair_type := _int(form_def.get("hairType", form_def.get("hair_type", -1)), -1)
+	set_form_hair(bm, form_def)
+
+## Transformation hair: swap the GEOMETRY as well as the colour.
+##
+## `form_def` is a forms.json entry; its `hairType` is a string ("base", "ssj",
+## "ssj2", "ssj3", "empty"; legacy integers still work) and `hairColor` is
+## optional. "base" keeps the character's own haircut, "ssj"/"ssj2" derive a
+## taller, more upright, gold version OF THAT haircut (so every style keeps its
+## identity when it transforms) and "ssj3" swaps in the long mane.
+##
+## `target` may be the BedrockModel, or an entity that owns one (`model`), which
+## is what `TransformationDirector` has at hand. Returns the hair node, or null
+## when there is nothing to restyle (saga models with their own hair bones).
+static func set_form_hair(target: Object, form_def: Dictionary) -> Node3D:
+	var bm := _model_of(target)
+	if bm == null or form_def.is_empty():
+		return null
+	if bm.has_bone("pelo1") or bm.has_bone("hair1") or bm.get_bone("head") == null:
+		return null                 # saga / master models ship their own hair
+	var hair_type: Variant = form_def.get("hairType", form_def.get("hair_type", ""))
 	var hair_color := String(form_def.get("hairColor", form_def.get("hair_color", "")))
-	if hair_type < 0 and hair_color == "":
-		return
-	var head: Node3D = bm.get_bone("head")
-	if head == null or bm.has_bone("pelo1") or bm.has_bone("hair1"):
-		return                      # nothing to restyle on a saga model
-	var style := HairBuilder.current_style(bm)
-	if hair_type >= 0:
-		style = HairBuilder.form_style_id(hair_type)
-	if style == "":
-		style = HairBuilder.style_id(1)
-	var col := HairBuilder.style_color(style, _color(hair_color) if hair_color != "" else Color(0.13, 0.15, 0.16))
+	var base := String(bm.get_meta("base_hair_style", HairBuilder.current_style(bm)))
+	if base == "" or base.contains("@"):
+		base = HairBuilder.style_id(_int(_character_of(bm).get("hair_type"), 1))
+	bm.set_meta("base_hair_style", base)
+	var style := HairBuilder.form_style_id(base, hair_type)
+	var col := HairBuilder.style_color(style, _color(hair_color) if hair_color != "" else _base_hair_color(bm))
 	if hair_color != "":
 		col = _color(hair_color)
-	HairBuilder.attach(bm, style, col)
+	bm.set_meta("form_hair_color", col.to_html(false))
+	return HairBuilder.attach(bm, style, col)
+
+## Put the character's own haircut and colour back (form dropped).
+static func clear_form_hair(target: Object, character: Dictionary = {}) -> Node3D:
+	var bm := _model_of(target)
+	if bm == null:
+		return null
+	var ch := character if not character.is_empty() else _character_of(bm)
+	var base := String(bm.get_meta("base_hair_style", ""))
+	if base == "":
+		base = HairBuilder.style_id(_int(ch.get("hair_type"), 1))
+	if bm.has_meta("form_hair_color"):
+		bm.remove_meta("form_hair_color")
+	return HairBuilder.attach(bm, base, _color(ch.get("hair_color", "#222629")))
+
+static func _model_of(target: Object) -> BedrockModel:
+	if target == null:
+		return null
+	var bm := target as BedrockModel
+	if bm != null:
+		return bm
+	var inner: Variant = target.get("model")
+	return inner as BedrockModel if inner != null else null
+
+## The character dictionary the model was skinned with, when we stored one.
+static func _character_of(bm: BedrockModel) -> Dictionary:
+	var c: Variant = bm.get_meta("character", {}) if bm.has_meta("character") else {}
+	return c if c is Dictionary else {}
+
+static func _base_hair_color(bm: BedrockModel) -> Color:
+	var ch := _character_of(bm)
+	if ch.has("hair_color"):
+		return _color(ch.get("hair_color"))
+	return Color(0.13, 0.15, 0.16)
 
 ## forms.json `modelScaling`: float, [x, y] or [x, y, z]. Missing / invalid -> 1.0.
 static func form_scale(form_def: Dictionary) -> float:

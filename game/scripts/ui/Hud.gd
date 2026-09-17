@@ -364,8 +364,10 @@ func relayout() -> void:
 	stamina_bar.size = sr.size
 	level_label.add_theme_font_size_override("font_size", UiUtil.font_small(s))
 	form_label.add_theme_font_size_override("font_size", UiUtil.font_small(s))
-	stat_plate.position = _from_bottom(bars_x, 158.0 * s + insets.w, 0.0, 0.0).position
+	# reset_size() first: the plate is measured by its content, and its *bottom* has to land on
+	# 158 units so it never sits on top of the armor row (134..151).
 	stat_plate.reset_size()
+	stat_plate.position = Vector2(bars_x, size.y - (158.0 * s + insets.w) - stat_plate.size.y)
 	form_label.position = _from_bottom(bars_x, 192.0 * s + insets.w, 300.0 * s, 16.0 * s).position
 	saving_label.add_theme_font_size_override("font_size", UiUtil.font_small(s))
 	saving_label.position = _from_bottom(14.0 * s + insets.x, 200.0 * s + insets.w, 200.0 * s, 16.0 * s).position
@@ -844,7 +846,10 @@ func _update_labels() -> void:
 		bp = "    BP %d" % int(st.call("battle_power"))
 	level_label.text = "Lv %d   TP %d%s" % [lvl, tp, bp]
 	if stat_plate != null:
+		# The text width changes with TP/BP, so re-anchor the plate's bottom edge after resizing.
+		var plate_y := stat_plate.position.y + stat_plate.size.y
 		stat_plate.reset_size()
+		stat_plate.position.y = plate_y - stat_plate.size.y
 	var form := String(p.get("current_form"))
 	if form != "" and Registry != null:
 		form = String(Registry.form(form).get("name", form)).capitalize()

@@ -299,9 +299,10 @@ static func blast_impact(pos: Vector3, c: Color, radius := 2.0, parent: Node = n
 		return
 	flash_pop(p, pos, Color(1, 1, 1), radius * 2.4, 0.18)
 	flash_pop(p, pos, c, radius * 3.4, 0.28)
-	shock_ring(p, pos, c, radius * 1.8, 0.45)
-	FxAssets.burst(p, pos, "BlastSparks", 18, ["ki_spark_1", "spark1", "ki_line"],
-		c.lerp(Color(1, 1, 1), 0.35), 9.0 * clampf(radius / 2.0, 0.6, 2.0), 0.38, 0.3, -8.0)
+	# a camera facing ring, so the pulse reads whether the blast hit the ground or a wall
+	shock_ring(p, pos, c, radius * 1.8, 0.45, false)
+	FxAssets.burst(p, pos, "BlastSparks", 22, ["ki_spark_1", "spark1", "ki_line"],
+		c.lerp(Color(1, 1, 1), 0.35), 11.0 * clampf(radius / 2.0, 0.6, 2.0), 0.42, 0.42, -8.0)
 	FxAssets.burst(p, pos, "BlastFire", 12, ["ki_exp1", "explode2", "aaa/lightning/Fire"],
 		c, 5.0, 0.4, radius * 0.5, -2.0)
 	scorch(p, pos, radius * 0.9)
@@ -328,10 +329,10 @@ static func decorate_projectile(node: Node3D, c: Color, size: float) -> void:
 	var glow := FxAssets.make_quad("KiGlow", FxAssets.particle(SHINE_TEX, FLASH_TEX, "ki_exp0"),
 		size * 6.0, Color(c.r, c.g, c.b, 0.55))
 	node.add_child(glow)
-	var streak := FxAssets.make_particles("KiStreak", 16, ["ki_trail1", "ki_trail4", "aura_1"], c)
-	streak.lifetime = 0.28
+	var streak := FxAssets.make_particles("KiStreak", 24, ["ki_trail1", "ki_trail4", "aura_1"], c)
+	streak.lifetime = 0.16
 	streak.particle_flag_align_y = true
-	(streak.mesh as QuadMesh).size = Vector2(size * 1.1, size * 4.5)
+	(streak.mesh as QuadMesh).size = Vector2(size * 0.9, size * 3.2)
 	streak.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
 	streak.emission_sphere_radius = size * 0.25
 	streak.direction = Vector3.ZERO

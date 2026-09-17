@@ -23,6 +23,10 @@ extends Node3D
 const TICK := 0.25
 const SPAWN_MIN := 5.0
 const SPAWN_MAX := 24.0
+## Fireflies, butterflies and snow sparkle are only readable within a few metres, so they get a
+## tighter ring than the pollen/dust haze that fills the middle distance.
+const NEAR_MIN := 2.0
+const NEAR_MAX := 15.0
 const DESPAWN := 40.0
 const MOVES_PER_TICK := 14
 const CANOPY_SAMPLES := 8
@@ -346,7 +350,7 @@ func _update_motes() -> void:
 		var c := AmbientRules.firefly_color(planet_id)
 		# size, glow, wander, radius, rise, blink, fade_end
 		motes.configure(AmbientRules.MOTE_FIREFLY, c, AmbientAssets.soft_dot(),
-			0.17, 2.6, 0.35, 1.6, 0.0, 2.2, 30.0)
+			0.24, 2.8, 0.35, 1.6, 0.0, 2.2, 30.0)
 		motes.invalidate()
 	if b > 0 and motes_b.kind != kind_b:
 		_configure_mote_field(motes_b, kind_b)
@@ -357,9 +361,10 @@ func _update_motes() -> void:
 	motes.set_master_alpha(clampf(AmbientRules.night_amount(day_fraction) * 1.4, 0.0, 1.0))
 	motes_b.set_master_alpha(1.0)
 	var moves := MOVES_PER_TICK
-	moves -= _rehome(motes, a, moves, _mote_height_range(AmbientRules.MOTE_FIREFLY))
+	moves -= _rehome(motes, a, moves, _mote_height_range(AmbientRules.MOTE_FIREFLY),
+		_mote_ring(AmbientRules.MOTE_FIREFLY))
 	if moves > 0 and b > 0:
-		_rehome(motes_b, b, moves, _mote_height_range(kind_b))
+		_rehome(motes_b, b, moves, _mote_height_range(kind_b), _mote_ring(kind_b))
 
 func _configure_mote_field(field: AmbientMotes, kind: String) -> void:
 	var c := AmbientRules.mote_color(kind)
@@ -367,7 +372,7 @@ func _configure_mote_field(field: AmbientMotes, kind: String) -> void:
 	# configure(kind, colour, sprite, size, glow, wander, radius, rise, blink, fade_end)
 	match kind:
 		AmbientRules.MOTE_POLLEN:
-			field.configure(kind, c, dot, 0.075, 1.5, 0.35, 1.5, 0.045, 0.0, 24.0)
+			field.configure(kind, c, dot, 0.11, 1.7, 0.35, 1.5, 0.045, 0.0, 24.0)
 		AmbientRules.MOTE_DUST:
 			field.configure(kind, c, dot, 0.09, 1.2, 0.5, 2.2, 0.03, 0.0, 26.0)
 		AmbientRules.MOTE_SNOW:
@@ -380,6 +385,13 @@ func _configure_mote_field(field: AmbientMotes, kind: String) -> void:
 		_:
 			field.configure(kind, c, dot, 0.08, 1.5, 0.35, 1.5, 0.04, 0.0, 24.0)
 
+## Horizontal spawn ring (min, max) for a kind of speck.
+func _mote_ring(kind: String) -> Vector2:
+	match kind:
+		AmbientRules.MOTE_FIREFLY, AmbientRules.MOTE_SNOW: return Vector2(NEAR_MIN, NEAR_MAX)
+		AmbientRules.MOTE_SPIRIT: return Vector2(NEAR_MIN, SPAWN_MAX * 0.8)
+		_: return Vector2(SPAWN_MIN, SPAWN_MAX)
+
 func _mote_height_range(kind: String) -> Vector2:
 	match kind:
 		AmbientRules.MOTE_FIREFLY: return Vector2(0.35, 2.6)
@@ -390,7 +402,7 @@ func _mote_height_range(kind: String) -> Vector2:
 		_: return Vector2(0.7, 4.0)
 
 ## Re-home every speck that is out of range, up to `budget_moves` of them. Returns moves used.
-func _rehome(field: AmbientMotes, count: int, budget_moves: int, height: Vector2) -> int:
+func _rehome(field: AmbientMotes, count: int, budget_moves: int, height: Vector2, ring: Vector2) -> int:
 	var used := 0
 	for i in count:
 		if used >= budget_moves:
@@ -398,7 +410,7 @@ func _rehome(field: AmbientMotes, count: int, budget_moves: int, height: Vector2
 		var h := field.home_of(i)
 		if h.y > -9000.0 and Vector2(h.x - center.x, h.z - center.z).length() <= DESPAWN:
 			continue
-		var spot := _ground_spot(SPAWN_MIN, SPAWN_MAX, height.x, height.y, false)
+		var spot := _ground_spot(ring.x, ring.y, height.x, height.y, false)
 		if spot.y < -9000.0:
 			break
 		field.place(i, spot)
@@ -425,7 +437,7 @@ func _update_butterflies() -> void:
 		var h := flyers.home_of(i)
 		if h.y > -9000.0 and Vector2(h.x - center.x, h.z - center.z).length() <= DESPAWN:
 			continue
-		var spot := _ground_spot(SPAWN_MIN, SPAWN_MAX * 0.75, 0.7, 1.9, true)
+		var spot := _ground_spot(NEAR_MIN + 0.5, NEAR_MAX, 0.7, 1.9, true)
 		if spot.y < -9000.0:
 			break
 		flyers.place(i, spot, _rng.randf_range(0.9, 2.2))
@@ -611,7 +623,7 @@ func _ground_spot(min_r: float, max_r: float, y_min: float, y_max: float, dry: b
 		return Vector3(0, -9999, 0)
 	for _s in 4:
 		var a := _rng.randf() * TAU
-		var r := sqrt(_rng.randf()) * (max_r - min_r) + min_r
+		var r := _rng.randf() * (max_r - min_r) + min_r
 		var wx := center.x + cos(a) * r
 		var wz := center.z + sin(a) * r
 		var bx := int(floor(wx))

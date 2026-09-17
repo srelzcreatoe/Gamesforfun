@@ -10,21 +10,26 @@ extends Node3D
 ## autoload understands works here too, plus `--ambient-biome=<id>` and `--ambient-planet=<id>`.
 
 const GROUND_Y := 64
-const TREES: Array[Vector2] = [Vector2(-5.5, -3.0), Vector2(4.5, -6.0), Vector2(8.0, 2.0)]
+const TREES: Array[Vector2] = [Vector2(-7.0, 2.0), Vector2(4.0, -3.0), Vector2(11.0, 6.0)]
 
 var stub: AmbientStubWorld = null
 var life: AmbientLife = null
 var camera: Camera3D = null
 var sun: DirectionalLight3D = null
+var env_res: Environment = null
 
 var biome_id := "forest"
 var planet_id := "earth"
 var phase := "day"
 var weather := "clear"
 var demo := false
+var shot_path := ""
+var shot_at := 6.0
 
 var _t := 0.0
 var _demo_t := 0.0
+var _capturing := false
+var _shot_done := false
 
 func _ready() -> void:
 	_parse_args()
@@ -43,7 +48,19 @@ func _ready() -> void:
 	# Fill the fields straight away instead of waiting a second of ticks for a screenshot.
 	for _i in 12:
 		life.tick()
+	_aim_flocks()
 	_apply_light()
+
+## A bird flock crosses at a random time on a random heading, which is right for the game and
+## useless for a screenshot: aim it so it is in shot when the capture happens.
+func _aim_flocks() -> void:
+	if life == null:
+		return
+	var at := camera.global_position if camera != null else Vector3.ZERO
+	if life.flock_near != null and life.flock_near.active_count() > 0:
+		life.flock_near.aim(at, 17.0, Vector3(1.0, 0.0, 0.35), 0.43, shot_at)
+	if life.flock_far != null and life.flock_far.active_count() > 0:
+		life.flock_far.aim(at, 52.0, Vector3(-1.0, 0.0, 0.5), 0.46, shot_at)
 
 func _parse_args() -> void:
 	for a in OS.get_cmdline_user_args():
@@ -60,15 +77,20 @@ func _parse_args() -> void:
 			"ambient-night": phase = "night"
 			"ambient-day": phase = "day"
 			"ambient-dusk": phase = "dusk"
+			"screenshot": shot_path = value
+			"after":
+				if value.is_valid_float():
+					shot_at = value.to_float()
 
 # --- stage ------------------------------------------------------------------------------------
 
 func _build_stage() -> void:
 	var env := WorldEnvironment.new()
-	var e := Environment.new()
-	e.background_mode = Environment.BG_COLOR
-	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.environment = e
+	env.name = "Env"
+	env_res = Environment.new()
+	env_res.background_mode = Environment.BG_COLOR
+	env_res.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.environment = env_res
 	add_child(env)
 
 	var ground := MeshInstance3D.new()
@@ -98,10 +120,12 @@ func _build_stage() -> void:
 
 	camera = Camera3D.new()
 	camera.fov = 72.0
-	camera.position = Vector3(0.6, float(GROUND_Y) + 2.4, 13.0)
-	camera.look_at(Vector3(0, float(GROUND_Y) + 3.2, -2.0), Vector3.UP)
 	camera.current = true
 	add_child(camera)
+	# Standing back and tilted up a little: the lawn keeps the lower half (butterflies, leaves,
+	# fireflies), the canopies and the flock get the upper half.
+	camera.look_at_from_position(Vector3(0.6, float(GROUND_Y) + 3.6, 17.0),
+		Vector3(0.0, float(GROUND_Y) + 8.0, -6.0), Vector3.UP)
 
 	sun = DirectionalLight3D.new()
 	sun.shadow_enabled = false
@@ -118,18 +142,18 @@ func _lit_material(c: Color) -> StandardMaterial3D:
 ## actually dark and the additive fireflies read against it.
 func _apply_light() -> void:
 	var night := AmbientRules.night_amount(stub.day_fraction())
-	var env := get_node_or_null("WorldEnvironment") as WorldEnvironment
 	var day_sky := Color(0.42, 0.62, 0.92)
 	var dusk_sky := Color(0.5, 0.3, 0.22)
 	var night_sky := Color(0.02, 0.03, 0.08)
 	var twi := AmbientRules.twilight_amount(stub.day_fraction())
 	var sky_col := day_sky.lerp(night_sky, night).lerp(dusk_sky, twi * 0.8)
-	if env != null and env.environment != null:
-		env.environment.background_color = sky_col
-		env.environment.ambient_light_color = Color(0.6, 0.7, 0.9)
-		env.environment.ambient_light_energy = lerpf(0.55, 0.06, night)
+	if env_res != null:
+		env_res.background_color = sky_col
+		env_res.ambient_light_color = Color(0.55, 0.68, 0.95)
+		# A moonlit night, the way the SkyController lights the real world: dark, but not blind.
+		env_res.ambient_light_energy = lerpf(0.55, 0.22, night)
 	if sun != null:
-		sun.light_energy = lerpf(1.0, 0.04, night)
+		sun.light_energy = lerpf(1.0, 0.18, night)
 		sun.light_color = Color(1.0, 0.92, 0.78).lerp(Color(0.45, 0.6, 1.0), night)
 		var elev := lerpf(0.9, 0.25, twi)
 		sun.look_at_from_position(Vector3(6, float(GROUND_Y) + 30.0 * elev, 10),
@@ -138,6 +162,7 @@ func _apply_light() -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
+	_maybe_capture()
 	if not demo or life == null or life.reactive == null:
 		return
 	_demo_t += delta
@@ -150,3 +175,27 @@ func _process(delta: float) -> void:
 	stub.water = false
 	life.reactive.debris(Vector3(-3.0, float(GROUND_Y) + 0.9, 4.0), Color(0.45, 0.62, 0.28), 1.4)
 	life.reactive.wisp(Vector3(6.0, float(GROUND_Y) + 1.2, 3.0), Color(0.75, 0.35, 1.0))
+
+# --- screenshot -------------------------------------------------------------------------------
+
+## tools/screenshot.sh --scene runs this scene as the main scene, so Main.gd's `--screenshot`
+## handling is not in the picture: the preview grabs its own frame and quits.
+func _maybe_capture() -> void:
+	if _capturing or _shot_done or shot_path == "" or _t < shot_at:
+		return
+	_capturing = true
+	_capture()
+
+func _capture() -> void:
+	await RenderingServer.frame_post_draw
+	var vp := get_viewport()
+	if vp == null:
+		_capturing = false
+		return
+	var img := vp.get_texture().get_image()
+	var err := img.save_png(shot_path)
+	var s: Dictionary = life.stats() if life != null else {}
+	print("SCREENSHOT %s -> %s (t=%.2f, %s)" % [shot_path, "ok" if err == OK else str(err), _t, str(s)])
+	_shot_done = true
+	_capturing = false
+	get_tree().quit()

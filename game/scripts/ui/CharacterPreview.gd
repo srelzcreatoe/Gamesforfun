@@ -5,12 +5,6 @@ extends SubViewportContainer
 
 const BEDROCK_MODEL := "res://scripts/entity/BedrockModel.gd"
 const RACE_SKIN := "res://scripts/entity/RaceSkin.gd"
-const RACE_MODELS := {
-	"human": "entity/races/human", "saiyan": "entity/races/human",
-	"namekian": "entity/races/namekian", "frostdemon": "entity/races/frostdemon",
-	"majin": "entity/races/majin", "bioandroid": "entity/races/bioandroid",
-}
-
 var viewport: SubViewport
 var pivot: Node3D
 var camera: Camera3D = null
@@ -26,7 +20,6 @@ func _init(size_px := Vector2(120, 180)) -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	viewport = SubViewport.new()
 	viewport.transparent_bg = true
-	viewport.size = Vector2i(maxi(16, int(size_px.x)), maxi(16, int(size_px.y)))
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	viewport.own_world_3d = true
 	viewport.world_3d = World3D.new()
@@ -62,8 +55,7 @@ func _ready() -> void:
 	call_deferred("frame_camera")
 
 func _on_resized() -> void:
-	if viewport != null and size.x > 8.0:
-		viewport.size = Vector2i(maxi(16, int(size.x)), maxi(16, int(size.y)))
+	# `stretch` makes the container own viewport.size; writing it here only logs a warning.
 	frame_camera()
 
 func rebuild() -> void:
@@ -71,6 +63,8 @@ func rebuild() -> void:
 		pivot.remove_child(model)
 		model.queue_free()
 	model = _make_model()
+	if model == null:
+		model = _box_figure()
 	pivot.add_child(model)
 	call_deferred("frame_camera")
 
@@ -80,8 +74,6 @@ func rebuild() -> void:
 func frame_camera() -> void:
 	if camera == null or model == null or not is_instance_valid(model):
 		return
-	if size.x > 8.0 and viewport != null:
-		viewport.size = Vector2i(maxi(16, int(size.x)), maxi(16, int(size.y)))
 	var box := AABB()
 	var inner: Node = model.get_child(0) if model.get_child_count() > 0 else null
 	if inner != null and inner.has_method("visual_aabb"):
@@ -90,10 +82,15 @@ func frame_camera() -> void:
 		box = _model_aabb(model)
 	if box.size.y <= 0.01 or not is_finite(box.size.y):
 		box = AABB(Vector3(-0.4, 0.0, -0.4), Vector3(0.8, 1.9, 0.8))
+	# Fit a fixed 3.2 m tall box (feet on the box floor) rather than the exact model height, so
+	# the figure keeps the same size as the player cycles hair (bald .. broly is ~1 block taller).
+	var fit_h := maxf(box.size.y, 3.2)
+	box = AABB(Vector3(box.position.x, box.position.y, box.position.z),
+		Vector3(maxf(box.size.x, 0.1), fit_h, maxf(box.size.z, 0.1)))
 	var center := box.position + box.size * 0.5
 	var t := maxf(0.05, tan(deg_to_rad(camera.fov) * 0.5))
-	var dist := clampf((box.size.y * 0.5) / t * 1.25, 0.6, 24.0)
-	var vp_h := float(maxi(16, viewport.size.y))
+	var dist := clampf((fit_h * 0.5) / t * 1.25, 0.6, 24.0)
+	var vp_h := size.y if size.y > 8.0 else float(maxi(16, viewport.size.y))
 	var want := vp_h * 0.86
 	for i in 6:
 		_place_camera(center, dist)
@@ -143,18 +140,30 @@ func _make_model() -> Node3D:
 	if not ResourceLoader.exists(BEDROCK_MODEL) or not ResourceLoader.exists(RACE_SKIN):
 		return _box_figure()
 	var race := String(character.get("race", "human"))
-	# RaceSkin owns the geometry choice (race + gender + body type).
-	var geo := String(RaceSkin.race_model(race, String(character.get("gender", "male")),
+	# RaceSkin owns the geometry choice (race + gender + body type). It lives in another
+	# engineer's folder, so every call is guarded: while that script is mid-edit (or fails to
+	# compile) the preview falls back to the blocky stand-in instead of an empty box.
+	var skin_script: GDScript = load(RACE_SKIN)
+	if skin_script == null or not skin_script.has_method("race_model") \
+			or not skin_script.has_method("apply_to"):
+		return _box_figure()
+	var geo := String(skin_script.call("race_model", race, String(character.get("gender", "male")),
 		int(character.get("body_type", 0))))
-	var m := BedrockModel.new()
-	if not m.load_geo(geo):
+	var model_script: GDScript = load(BEDROCK_MODEL)
+	if model_script == null:
+		return _box_figure()
+	var m: Node3D = model_script.new()
+	if m == null:
+		return _box_figure()
+	if not m.has_method("load_geo") or not bool(m.call("load_geo", geo)):
 		m.queue_free()
 		return _box_figure()
-	m.set_model_scale(1.0)
+	if m.has_method("set_model_scale"):
+		m.call("set_model_scale", 1.0)
 	var ch := character.duplicate(true)
 	if race == "saiyan":
 		ch["has_tail"] = bool(ch.get("has_tail", false))
-	RaceSkin.apply_to(m, ch, armor)
+	skin_script.call("apply_to", m, ch, armor)
 	var root := Node3D.new()
 	root.add_child(m)
 	return root

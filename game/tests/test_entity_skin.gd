@@ -107,12 +107,15 @@ func test_form_visuals_swap_the_hair_style() -> void:
 	model.load_geo("entity/races/human")
 	RaceSkin.apply_to(model, _character())
 	var before := HairBuilder.current_style(model)
-	RaceSkin.apply_form_visuals(model, {"hairType": 3, "hairColor": "#ffe14d", "modelScaling": 1.0})
+	RaceSkin.apply_form_visuals(model, {"hairType": "ssj3", "hairColor": "#ffe14d", "modelScaling": 1.0})
 	var after := HairBuilder.current_style(model)
 	assert_ne(after, before, "the form swapped the hair style (%s -> %s)" % [before, after])
-	assert_eq(after, HairBuilder.form_style_id(3), "ssj3 hair")
-	assert_true(HairBuilder.style_height(after) > HairBuilder.style_height(before), "ssj3 hair is taller")
-	var mat: StandardMaterial3D = (model.get_bone("head").get_node_or_null("Hair") as MeshInstance3D).material_override
+	assert_eq(after, HairBuilder.form_style_id(before, "ssj3"), "ssj3 hair")
+	# ssj3 is the long mane: much more hair overall, even though the crown is not
+	# the tallest of the styles
+	assert_true(HairBuilder.style_extent(after).y > HairBuilder.style_extent(before).y * 1.6,
+		"ssj3 hair is much bigger (%.1f vs %.1f)" % [HairBuilder.style_extent(after).y, HairBuilder.style_extent(before).y])
+	var mat: StandardMaterial3D = HairBuilder.hair_material(model)
 	assert_true(mat.albedo_color.r > 0.8 and mat.albedo_color.b < 0.6, "gold hair colour")
 
 func test_armor_layers_use_the_armor_bones() -> void:
@@ -231,11 +234,22 @@ func test_hair_builder_styles_build_geometry() -> void:
 		# long styles fall down the back; anything past the knees is a runaway strand
 		assert_true(aabb.position.y > -30.0, "%s does not run away downwards (bottom %.1f)" % [id, aabb.position.y])
 		assert_true(aabb.size.x < 26.0 and aabb.size.z < 26.0, "%s stays near the head (%s)" % [id, aabb.size])
-	# the SSJ variants are taller than the base spiky style
-	var base_h := HairBuilder.style_height("spiky")
-	for f in [1, 2, 3]:
-		var sid := HairBuilder.form_style_id(f)
-		assert_true(HairBuilder.style_height(sid) > base_h, "%s (form %d) is taller than the base hair" % [sid, f])
+	# transformation hair is DERIVED from the character's own style: taller and
+	# more upright, so every haircut keeps its identity when it goes Super Saiyan
+	for base in ["spiky", "flame", "short", "bardock"]:
+		var base_h := HairBuilder.style_height(base)
+		for form in ["ssj", "ssj2"]:
+			var sid := HairBuilder.form_style_id(base, form)
+			assert_eq(sid, "%s@%s" % [base, form], "derived id")
+			assert_true(HairBuilder.style_height(sid) > base_h * 1.15,
+				"%s is clearly taller than %s (%.1f vs %.1f)" % [sid, base, HairBuilder.style_height(sid), base_h])
+			assert_true(HairBuilder.style_color(sid, Color.BLACK).r > 0.8, "%s is gold" % sid)
+	# "base" keeps the haircut, ssj3 swaps in the long mane, "empty" goes bald
+	assert_eq(HairBuilder.form_style_id("flame", "base"), "flame")
+	assert_eq(HairBuilder.form_style_id("flame", ""), "flame")
+	assert_eq(HairBuilder.form_style_id("flame", "ssj3"), "long@ssj3")
+	assert_eq(HairBuilder.form_style_id("flame", "empty"), "bald")
+	assert_eq(HairBuilder.form_style_id("flame", 1), "flame@ssj", "legacy numeric hairType")
 	assert_true(HairBuilder.hides_eyebrows("ssj3"), "ssj3 loses the eyebrows like in DMZ")
 
 func test_hair_attaches_to_the_head_bone() -> void:
@@ -247,17 +261,31 @@ func test_hair_attaches_to_the_head_bone() -> void:
 	var hair: MeshInstance3D = head.get_node_or_null("Hair")
 	assert_true(hair != null and hair.mesh != null, "hair mesh on the head bone")
 	assert_eq(HairBuilder.current_style(model), HairBuilder.style_id(2))
-	var mat: StandardMaterial3D = hair.material_override
+	var mat := HairBuilder.hair_material(model)
 	assert_true(mat != null and mat.albedo_texture != null, "hair tile texture")
+	# single surface styles keep using material_override, which is where
+	# TransformationDirector's hair flicker looks for the colour
+	assert_eq(mat, hair.material_override, "the flicker hook still finds the material")
 	# near black hair is lifted so the baked facet shading stays visible in world
 	var want := HairBuilder.hair_albedo(Color("#221a14"))
 	assert_near(mat.albedo_color.r, want.r, 0.01, "hair colour on the material")
 	assert_near(mat.albedo_color.h, Color("#221a14").h, 0.02, "hue is kept")
 	assert_true(mat.vertex_color_use_as_albedo, "facet shading is used")
-	# a form swaps the style and the colour without rebuilding the model
-	RaceSkin.apply_form_visuals(model, {"hairType": 1, "hairColor": "#f5d03a", "modelScaling": 1.0})
-	assert_eq(HairBuilder.current_style(model), HairBuilder.form_style_id(1), "ssj hair after transforming")
-	assert_true((hair.material_override as StandardMaterial3D).albedo_color.r > 0.8, "gold hair")
+	# a form swaps the GEOMETRY and the colour without rebuilding the model
+	var base_top := HairBuilder.style_height(HairBuilder.style_id(2))
+	RaceSkin.apply_form_visuals(model, {"hairType": "ssj", "modelScaling": 1.0})
+	assert_eq(HairBuilder.current_style(model), "spiky@ssj", "ssj hair after transforming")
+	assert_true(HairBuilder.style_height("spiky@ssj") > base_top * 1.15, "and it is taller")
+	var gold := HairBuilder.hair_material(model)
+	assert_true(gold.albedo_color.r > 0.8 and gold.albedo_color.b < 0.5, "gold hair")
+	# an explicit hairColor still wins, and dropping the form restores the haircut
+	RaceSkin.set_form_hair(model, {"hairType": "ssj2", "hairColor": "#9EFE53"})
+	assert_eq(HairBuilder.current_style(model), "spiky@ssj2")
+	assert_true(HairBuilder.hair_material(model).albedo_color.g > 0.8, "form hair colour wins")
+	RaceSkin.clear_form_hair(model)
+	assert_eq(HairBuilder.current_style(model), "spiky", "base haircut restored")
+	# entities are accepted too (TransformationDirector only has the entity)
+	assert_true(RaceSkin.set_form_hair(null, {"hairType": "ssj"}) == null, "null safe")
 
 func test_hair_mesh_is_shaded_and_framed() -> void:
 	# every style bakes facet shading into vertex colours, so a near black hair
@@ -293,3 +321,32 @@ func test_visual_aabb_includes_the_hair() -> void:
 	assert_true(spiky.size.y > bald.size.y + 0.1,
 		"spiky hair grows the framed box (%.2f -> %.2f)" % [bald.size.y, spiky.size.y])
 	assert_true(spiky.size.y < 4.0, "and stays sane (%.2f)" % spiky.size.y)
+
+func test_two_tone_hair_uses_two_surfaces() -> void:
+	model = BedrockModel.new()
+	add_node(model)
+	model.load_geo("entity/races/human")
+	var gotenks := HairBuilder.style_order().find("gotenks")
+	assert_true(gotenks >= 0, "the two tone style is selectable")
+	RaceSkin.apply_to(model, _character({"hair_type": gotenks, "hair_color": "#221a14"}))
+	var hair: MeshInstance3D = model.get_bone("head").get_node_or_null("Hair")
+	assert_true(hair != null and hair.mesh.get_surface_count() == 2, "hair + accent surfaces")
+	var main := hair.get_surface_override_material(0) as StandardMaterial3D
+	var accent := hair.get_surface_override_material(1) as StandardMaterial3D
+	assert_true(main != null and accent != null, "a material per surface")
+	assert_ne(main.albedo_color, accent.albedo_color, "the accent is a different colour")
+	assert_true(accent.albedo_color.r > 0.8 and accent.albedo_color.b < 0.5, "gold accent")
+	# and the single surface styles are untouched
+	RaceSkin.apply_to(model, _character({"hair_type": 2, "hair_color": "#221a14"}))
+	assert_eq(hair.mesh.get_surface_count(), 1, "back to one surface")
+	assert_true(hair.material_override != null, "override restored for the flicker hook")
+
+func test_scalp_shell_covers_the_skull() -> void:
+	# the big spike styles wrap the top of the skull, so the hair is not a hat
+	# floating above a bare head
+	for id in ["spiky", "flame", "bardock", "broly", "gotenks"]:
+		var mesh := HairBuilder.style_mesh(id)
+		assert_true(mesh != null, "%s builds" % id)
+		var box := mesh.get_aabb()
+		assert_true(box.position.y < 7.0, "%s reaches down onto the skull (%.1f)" % [id, box.position.y])
+		assert_true(box.size.x >= 8.0, "%s covers the width of the head (%.1f)" % [id, box.size.x])

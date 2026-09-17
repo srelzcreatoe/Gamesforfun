@@ -15,11 +15,13 @@ extends Node3D
 ##                           angle camera push-in, slight slow motion, BGM stinger +
 ##                           the DMZ charge sound, the form's transformation animation
 ##   B STRAIN  26 % - 74 %   the aura snaps in and out with the hair/eye colour flicker,
-##                           lightning ribbons (lightning-tier forms), debris levitates,
-##                           the ground cracks GROW, grass is pushed away through
-##                           World.add_disturbance, the camera orbits with a handheld
-##                           micro-shake, the vignette closes in and the sky dims,
-##                           afterimage silhouettes, two shockwave rings
+##                           lightning ribbons (lightning-tier forms) that reach further
+##                           out as the strain builds, debris levitates, the ground cracks
+##                           GROW, grass is pushed away through World.add_disturbance, the
+##                           camera orbits with a handheld micro-shake, the vignette closes
+##                           in and the sky dims, afterimage silhouettes, two shockwave
+##                           rings - and ONE OmniLight3D at the body, so the character is
+##                           lit by his own aura instead of going black inside it
 ##   C BURST      74 %       white flash, hit-stop, big shockwave ring + vertical energy
 ##                           pillar + radial dust + rock shatter, FOV kick, radial blur
 ##                           and chromatic aberration for ~0.3 s, one bright OmniLight3D,
@@ -29,8 +31,10 @@ extends Node3D
 ##                           glow), the screen effects release, BGM returns
 ##
 ## MOBILE BUDGET: <= 700 CPU particles alive at the climax (`particle_budget()` reports
-## the real number), exactly one OmniLight3D and no GPUParticles3D. Everything it adds is
-## freed with the director, so an idle game pays nothing.
+## the real number), at most two OmniLight3D (the strain light is released when the climax
+## light is created) and no GPUParticles3D. Everything it adds is freed with the director,
+## so an idle game pays nothing. Giant forms (Oozaru) scale the aura, the ground decal,
+## the debris ring and the shockwaves by `FormVfx.scale`.
 
 const SHOCKWAVE_SHADER := "res://shaders/shockwave.gdshader"
 const BEAM_SHADER := "res://shaders/ki_beam.gdshader"
@@ -85,10 +89,13 @@ var _rise: CPUParticles3D
 var _decal: MeshInstance3D
 var _crack_glow: MeshInstance3D
 var _light: OmniLight3D
+var _aura_light: OmniLight3D
 var _body_flash: MeshInstance3D
 var _pillar: MeshInstance3D
 var _pillar_mat: ShaderMaterial
 var _pillar_age := -1.0
+## Ground/debris/ring scale: a giant form tears up a much bigger patch of ground.
+var _gs := 1.0
 var _rng := RandomNumberGenerator.new()
 var _loop_key := ""
 var _hair_mat: StandardMaterial3D = null
@@ -190,6 +197,7 @@ func _ready() -> void:
 	_loop_key = "transform_" + str(get_instance_id())
 	if entity is Node3D:
 		global_position = (entity as Node3D).global_position
+	_gs = clampf(profile.scale, 1.0, 3.8)
 	_t_strain = duration * F_STRAIN
 	_t_climax = duration * F_CLIMAX
 	_t_settle = duration * F_SETTLE
@@ -231,22 +239,22 @@ func _setup_aura() -> void:
 
 func _setup_ground() -> void:
 	# expanding dust ring at the feet
-	_dust = FxAssets.make_particles("GroundDust", 26, FxAssets.smoke(), Color(0.70, 0.67, 0.62))
+	_dust = FxAssets.make_particles("GroundDust", 20, FxAssets.smoke(), Color(0.70, 0.67, 0.62))
 	_dust.material_override.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
-	_dust.lifetime = 1.4
+	_dust.lifetime = 1.1
 	_dust.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
 	_dust.emission_ring_axis = Vector3.UP
-	_dust.emission_ring_radius = 1.4
-	_dust.emission_ring_inner_radius = 0.9
+	_dust.emission_ring_radius = 2.7 * _gs
+	_dust.emission_ring_inner_radius = 2.1 * _gs
 	_dust.emission_ring_height = 0.1
-	_dust.position = Vector3(0, 0.3, 0)      # keeps the puff quads off the ground plane
+	_dust.position = Vector3(0, 0.18, 0)     # keeps the puff quads off the ground plane
 	_dust.direction = Vector3(0, 0.4, 0)
 	_dust.spread = 60.0
-	_dust.initial_velocity_min = 1.0
-	_dust.initial_velocity_max = 3.0
+	_dust.initial_velocity_min = 1.4
+	_dust.initial_velocity_max = 3.6
 	_dust.gravity = Vector3(0, -1.0, 0)
-	_dust.scale_amount_min = 1.1
-	_dust.scale_amount_max = 2.6
+	_dust.scale_amount_min = 0.45 * _gs
+	_dust.scale_amount_max = 1.05 * _gs
 	add_child(_dust)
 	_dust.emitting = true
 
@@ -264,7 +272,7 @@ func _setup_ground() -> void:
 	add_child(_rise)
 	_rise.emitting = true
 
-	_decal = FxAssets.make_quad("CrackedGround", _crack_texture(), 5.2, Color(0.15, 0.12, 0.1, 0.0), true)
+	_decal = FxAssets.make_quad("CrackedGround", _crack_texture(), 5.2 * _gs, Color(0.15, 0.12, 0.1, 0.0), true)
 	var m: StandardMaterial3D = _decal.material_override
 	m.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
 	m.albedo_color = Color(1, 1, 1, 0.0)
@@ -272,7 +280,7 @@ func _setup_ground() -> void:
 	add_child(_decal)
 
 	# the cracks glow in the form colour as they open up
-	_crack_glow = FxAssets.make_quad("CrackGlow", _crack_texture(), 5.2,
+	_crack_glow = FxAssets.make_quad("CrackGlow", _crack_texture(), 5.2 * _gs,
 		Color(profile.aura.r, profile.aura.g, profile.aura.b, 0.0), true)
 	_crack_glow.position = Vector3(0, 0.06, 0)
 	add_child(_crack_glow)
@@ -311,7 +319,7 @@ func _setup_rocks() -> void:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var a := float(i) / float(count) * TAU + _rng.randf_range(-0.2, 0.2)
 		_rock_angles[i] = a
-		var r := ROCK_RADIUS * _rng.randf_range(0.7, 1.25)
+		var r := ROCK_RADIUS * _gs * _rng.randf_range(0.7, 1.25)
 		mi.position = Vector3(cos(a) * r, -0.3, sin(a) * r)
 		mi.rotation = Vector3(_rng.randf() * TAU, _rng.randf() * TAU, _rng.randf() * TAU)
 		add_child(mi)
@@ -445,10 +453,20 @@ func _enter_strain() -> void:
 		_motes.emitting = false
 	Audio.play_sfx_at("transform_on", global_position, -1.0)
 	ScreenFx.vignette_hold(Color(0.02, 0.02, 0.05), 0.62, _t_climax - _t_strain, 0.45)
-	ScreenFx.dim(0.5, _t_climax - _t_strain, 0.45)
+	ScreenFx.dim(0.38, _t_climax - _t_strain, 0.45)
 	ScreenFx.glow(0.45, _t_climax - _t_strain + 0.6, 0.5)
 	if _aura != null and profile.lightning:
 		_aura.set_lightning(true, profile.lightning_color)
+	# ONE light: the body is lit by its own aura, which is what makes the strain read
+	# as cinematic instead of a dark silhouette. Released again at the climax.
+	_aura_light = OmniLight3D.new()
+	_aura_light.name = "AuraLight"
+	_aura_light.light_color = profile.glow
+	_aura_light.light_energy = 0.0
+	_aura_light.omni_range = 7.0 * _gs
+	_aura_light.shadow_enabled = false
+	_aura_light.position = Vector3(0, 1.1 * profile.scale, 0)
+	add_child(_aura_light)
 
 func _update_aura() -> void:
 	if _aura == null:
@@ -480,8 +498,12 @@ func _update_ground(real: float) -> void:
 		gm.albedo_color = Color(profile.glow.r, profile.glow.g, profile.glow.b,
 			grow * grow * 0.75 * (pulse if phase == Phase.STRAIN else 1.0))
 		_crack_glow.scale = Vector3.ONE * (0.45 + grow * 0.85)
+	if _aura_light != null and is_instance_valid(_aura_light):
+		var lp := _strain_progress()
+		_aura_light.light_energy = 1.1 + 2.3 * lp + 0.25 * sin(t * 13.0)
 	if _dust != null and phase == Phase.STRAIN:
-		_dust.emission_ring_radius = 1.4 + grow * 1.1
+		_dust.emission_ring_radius = (2.7 + grow * 1.3) * _gs
+		_dust.emission_ring_inner_radius = (2.1 + grow * 1.3) * _gs
 
 func _update_rocks(real: float) -> void:
 	if _rocks.is_empty():
@@ -492,8 +514,8 @@ func _update_rocks(real: float) -> void:
 		if not is_instance_valid(mi):
 			continue
 		_rock_angles[i] += real * (0.9 + 0.25 * float(i % 3)) * (1.0 + lift)
-		var r := ROCK_RADIUS * (1.0 - 0.3 * lift) * (0.7 + 0.5 * float((i * 7) % 5) / 5.0)
-		var y: float = lerpf(-0.3, 1.4 + 0.7 * float(i % 4) / 4.0, lift)
+		var r := ROCK_RADIUS * _gs * (1.0 - 0.3 * lift) * (0.7 + 0.5 * float((i * 7) % 5) / 5.0)
+		var y: float = lerpf(-0.3, (1.4 + 0.7 * float(i % 4) / 4.0) * _gs, lift)
 		y += sin(t * 6.0 + float(i)) * 0.06 * lift
 		mi.position = Vector3(cos(_rock_angles[i]) * r, y, sin(_rock_angles[i]) * r)
 		mi.rotation += Vector3(real * 1.7, real * 2.3, real * 1.1)
@@ -515,10 +537,12 @@ func _update_scale() -> void:
 		return
 	var g: float = lerpf(1.0, profile.scale, clampf((t - _t_strain * 0.5) / maxf(0.2, _t_climax - _t_strain * 0.5), 0.0, 1.0))
 	_scaled_node.scale = _base_scale * g
+	if _aura != null and is_instance_valid(_aura):
+		_aura.set_body_scale(g)
 
 func _update_rings() -> void:
 	while _rings_done < _ring_times.size() and t >= _ring_times[_rings_done]:
-		_spawn_ring(2.4 + float(_rings_done) * 1.8, 0.75)
+		_spawn_ring((2.4 + float(_rings_done) * 1.8) * _gs, 0.75)
 		_rings_done += 1
 
 func _update_pillar(real: float) -> void:
@@ -528,7 +552,7 @@ func _update_pillar(real: float) -> void:
 	var p := clampf(_pillar_age / 0.7, 0.0, 1.0)
 	_pillar.scale = Vector3(1.0 + p * 1.1, 1.0, 1.0 + p * 1.1)
 	if _pillar_mat != null:
-		_pillar_mat.set_shader_parameter("intensity", (1.0 - p) * 1.7)
+		_pillar_mat.set_shader_parameter("intensity", (1.0 - p) * 1.35)
 	if p >= 1.0:
 		_pillar.queue_free()
 		_pillar = null
@@ -552,12 +576,12 @@ func _do_climax() -> void:
 	ScreenFx.dim(0.0, 0.0, 0.25)
 	ScreenFx.glow(0.75, 0.8, 0.7)
 	_fov_kick = 16.0
-	_spawn_ring(7.8, 1.1)
+	_spawn_ring(7.8 * _gs, 0.85)
 	_spawn_pillar()
 	FxAssets.burst(self, global_position + Vector3.UP * 1.0, "ClimaxBurst", 62,
-		["aaa/lightning/Burst_1", "ki_flash1", "aaa/missile_boost/Star"], c, 16.0, 0.7, 1.1, -3.0)
+		["aaa/missile_boost/Star", "ki_flash1", "aaa/lightning/Burst_1"], c, 21.0, 0.65, 0.55, -3.0)
 	FxAssets.burst(self, global_position, "ClimaxDust", 32,
-		FxAssets.smoke(), Color(0.85, 0.82, 0.76), 9.0, 1.0, 1.3, -6.0)
+		FxAssets.smoke(), Color(0.85, 0.82, 0.76), 9.0, 1.0, 0.9, -6.0)
 	FxAssets.burst(self, global_position + Vector3.UP * 0.2, "ClimaxSparks", 26,
 		["ki_spark_2", "spark1", "ki_line"], profile.spark, 13.0, 0.5, 0.35, -9.0)
 	Audio.play_sfx_at("power_up_burst", global_position)
@@ -568,10 +592,14 @@ func _do_climax() -> void:
 	Audio.stop_loop(_loop_key, 0.15)
 	_shatter_rocks()
 	_disturb(1.0)
+	if _aura_light != null and is_instance_valid(_aura_light):
+		_aura_light.queue_free()          # the climax light replaces it
+		_aura_light = null
 	_light = OmniLight3D.new()
+	_light.name = "ClimaxLight"
 	_light.light_color = profile.glow
 	_light.light_energy = 9.0
-	_light.omni_range = 18.0
+	_light.omni_range = 18.0 * _gs
 	_light.shadow_enabled = false
 	_light.position = Vector3(0, 1.2, 0)
 	add_child(_light)
@@ -587,18 +615,19 @@ func _spawn_pillar() -> void:
 	mi.name = "Pillar"
 	var cyl := CylinderMesh.new()
 	cyl.top_radius = 0.42
-	cyl.bottom_radius = 0.66
-	cyl.height = 22.0
+	cyl.bottom_radius = 0.60
+	cyl.height = 20.0
 	cyl.radial_segments = 14
 	cyl.rings = 1
 	mi.mesh = cyl
 	_pillar_mat = FxAssets.shader_material(BEAM_SHADER, {
-		"beam_color": profile.aura, "core_color": profile.inner, "intensity": 1.7,
+		"beam_color": profile.aura, "core_color": profile.inner, "intensity": 1.35,
 		"fade_in": 1.0, "core_width": 0.30, "ring_freq": 7.0, "flow_speed": 10.0,
 	})
 	mi.material_override = _pillar_mat
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	mi.position = Vector3(0, 10.0, 0)
+	# starts just above the head so the transformed character stays readable under it
+	mi.position = Vector3(0, 12.0 * profile.scale, 0)
 	add_child(mi)
 	_pillar = mi
 	_pillar_age = 0.0
@@ -624,6 +653,7 @@ func _enter_reveal() -> void:
 		_rise.emitting = false
 	if _aura != null:
 		_aura.set_flicker(0.0, 0.0)
+		_aura.set_lightning_reach(0.12)  # the arcs hug the body again
 		_aura.set_intensity(-1.0)       # back to the automatic idle aura
 	_flash_body(false)                   # drop any emission the last flicker left on
 	_flicker_hair(true)                  # settle on the form colour
@@ -643,7 +673,9 @@ func _flash_body(on: bool) -> void:
 		_body_flash.scale = Vector3.ONE * (0.7 + 0.5 * ramp)
 	var model := _model()
 	if model != null and model.has_method("set_emission"):
-		model.call("set_emission", profile.inner, (0.7 * ramp) if on else 0.0)
+		# a floor under the flicker: the body has to stay readable inside its own aura
+		var base: float = 0.38 * ramp if phase == Phase.STRAIN else 0.0
+		model.call("set_emission", profile.inner, (0.7 * ramp) if on else base)
 
 const HAIR_BONES: Array[String] = [
 	"hair", "hair_base", "hairstyle", "hair1", "hair2", "head_hair",
@@ -778,8 +810,8 @@ func _update_camera(real: float) -> void:
 	else:
 		var r := clampf((t - _t_climax) / maxf(0.01, duration - _t_climax), 0.0, 1.0)
 		ang = 1.45 + r * 0.35
-		dist = lerpf(4.0, 6.6, ease(r, 0.35))
-		height = lerpf(2.0, 2.1, r)
+		dist = lerpf(4.0, 5.2, ease(r, 0.35))
+		height = lerpf(2.0, 1.9, r)
 		shake = 0.05 * (1.0 - r)
 	var scale_out: float = maxf(1.0, profile.scale * 0.75)
 	var pos := centre + Vector3(sin(ang) * dist, height, cos(ang) * dist) * scale_out
@@ -802,9 +834,12 @@ func _release() -> void:
 	if _cam_owned and _cam != null and is_instance_valid(_cam):
 		_cam.global_transform = _cam_xform
 		_cam.fov = _cam_fov
-	if _light != null and is_instance_valid(_light):
-		_light.queue_free()
-		_light = null
+	for l: OmniLight3D in [_light, _aura_light]:
+		if l != null and is_instance_valid(l):
+			l.visible = false             # stops lighting this frame, not next frame
+			l.queue_free()
+	_light = null
+	_aura_light = null
 	if _hair_mat != null and is_instance_valid(_hair_mat) and _hair_base_set:
 		_hair_mat.albedo_color = _hair_base
 		_hair_mat.emission_enabled = false

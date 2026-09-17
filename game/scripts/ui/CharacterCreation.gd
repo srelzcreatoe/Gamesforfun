@@ -3,6 +3,7 @@ extends ScreenBase
 ## Race / gender / class / body / hair / colours / name with a live 3D preview.
 ## Builds the profile through ProfileFactory and hands it to Game.start_world.
 
+const HAIR_BUILDER := "res://scripts/entity/HairBuilder.gd"
 const CLASSES := ["Warrior", "Martial Artist", "Ki Specialist", "Defender"]
 const CLASS_IDS := ["warrior", "martial_artist", "ki_specialist", "defender"]
 const GENDERS := ["Male", "Female"]
@@ -41,8 +42,8 @@ func build() -> void:
 
 	# left: preview
 	var left := UiUtil.vbox(6.0 * s)
-	var pw := clampf(size.x * 0.30, 190.0, 340.0)
-	var ph := minf(pw * 1.40, size.y * 0.50)
+	var pw := clampf(size.x * 0.26, 170.0, 300.0)
+	var ph := minf(pw * 1.40, size.y * 0.44)
 	var box := Control.new()
 	box.custom_minimum_size = Vector2(pw, ph)
 	preview = CharacterPreview.new(Vector2(pw, ph))
@@ -55,7 +56,7 @@ func build() -> void:
 	desc_label = UiUtil.dim("", UiUtil.font_small(s))
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_label.custom_minimum_size.x = pw
-	var desc_scroll := UiUtil.scroll(desc_label, Vector2(pw, 64.0 * s))
+	var desc_scroll := UiUtil.scroll(desc_label, Vector2(pw, 92.0 * s))
 	desc_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	left.add_child(UiUtil.dmz_frame(desc_scroll, "small", 6.0))
 	row.add_child(left)
@@ -80,7 +81,7 @@ func build() -> void:
 		func(i: int) -> void: class_i = i))
 	opts.add_child(_arrow_row("Body type", ["A", "B", "C"], func() -> int: return body_i,
 		func(i: int) -> void: body_i = i))
-	opts.add_child(_arrow_row("Hair", ["1", "2", "3", "4", "5", "6"], func() -> int: return hair_i,
+	opts.add_child(_arrow_row("Hair", _hair_labels(), func() -> int: return hair_i,
 		func(i: int) -> void: hair_i = i))
 	opts.add_child(_swatch_row("Skin", COLOR_CHOICES, func(i: int) -> void: skin_c = i; _update()))
 	opts.add_child(_swatch_row("Hair colour", HAIR_CHOICES, func(i: int) -> void: hair_c = i; _update()))
@@ -102,11 +103,18 @@ func _panorama_for(race_id: String) -> String:
 func _swatch_row(text: String, colors: Array, on_pick: Callable) -> HBoxContainer:
 	var row := UiUtil.hbox(6.0 * s)
 	var l := UiUtil.label(text, UiUtil.font_small(s))
-	l.custom_minimum_size.x = 150.0 * s
+	l.custom_minimum_size.x = 110.0 * s
+	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(l)
+	# A flow container so eight swatches wrap on a narrow canvas instead of running off the page.
+	var wrap := HFlowContainer.new()
+	wrap.add_theme_constant_override("h_separation", int(4.0 * s))
+	wrap.add_theme_constant_override("v_separation", int(4.0 * s))
+	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(wrap)
 	for i in colors.size():
 		var b := Button.new()
-		b.custom_minimum_size = Vector2(30.0 * s, 30.0 * s)
+		b.custom_minimum_size = Vector2(26.0 * s, 26.0 * s)
 		b.focus_mode = Control.FOCUS_NONE
 		var c := UiUtil.color_hex(String(colors[i]))
 		b.add_theme_stylebox_override("normal", UiUtil.flat(c, Color(0, 0, 0, 0.6), 2.0, 0.0, 0.0))
@@ -116,7 +124,7 @@ func _swatch_row(text: String, colors: Array, on_pick: Callable) -> HBoxContaine
 		b.pressed.connect(func() -> void:
 			UiUtil.click()
 			on_pick.call(idx))
-		row.add_child(b)
+		wrap.add_child(b)
 	return row
 
 ## "Label  < value >" with the DMZ character-sheet arrows.
@@ -124,15 +132,23 @@ func _arrow_row(text: String, options: Array, get_i: Callable, set_i: Callable,
 		icon: Texture2D = null) -> HBoxContainer:
 	var row := UiUtil.hbox(6.0 * s)
 	var l := UiUtil.label(text, UiUtil.font_small(s))
-	l.custom_minimum_size.x = 130.0 * s
+	l.custom_minimum_size.x = 110.0 * s
 	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(l)
 	var value := UiUtil.label("", UiUtil.font_body(s), Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER)
-	value.custom_minimum_size.x = 210.0 * s
+	value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	value.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	# The icon rides *inside* the value cell, so the arrows line up in the same two columns on
+	# every row (the race row used to push its right arrow out by the icon's width).
+	var value_box := UiUtil.hbox(6.0 * s)
+	value_box.custom_minimum_size.x = 150.0 * s
+	value_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var pic: TextureRect = null
 	if icon != null:
-		pic = UiUtil.icon_rect(icon, Vector2(34.0 * s, 34.0 * s))
+		pic = UiUtil.icon_rect(icon, Vector2(26.0 * s, 26.0 * s))
+		pic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		value_box.add_child(pic)
+	value_box.add_child(value)
 	var refresh := func() -> void:
 		var i: int = int(get_i.call())
 		value.text = String(options[clampi(i, 0, options.size() - 1)]) if options.size() > 0 else ""
@@ -145,13 +161,8 @@ func _arrow_row(text: String, options: Array, get_i: Callable, set_i: Callable,
 		refresh.call()
 		_update()
 	row.add_child(UiUtil.arrow_button(-1, func() -> void: step.call(-1)))
-	if pic != null:
-		row.add_child(pic)
-	row.add_child(value)
+	row.add_child(value_box)
 	row.add_child(UiUtil.arrow_button(1, func() -> void: step.call(1)))
-	var sp := Control.new()
-	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(sp)
 	refresh.call()
 	return row
 
@@ -171,7 +182,26 @@ func _apply_race_defaults() -> void:
 	var hi := HAIR_CHOICES.find(hair)
 	skin_c = si if si >= 0 else 0
 	hair_c = hi if hi >= 0 else 0
-	hair_i = clampi(int(r.get("defaultHairType", r.get("default_hair_type", 1))), 0, 5)
+	hair_i = clampi(int(r.get("defaultHairType", r.get("default_hair_type", 1))), 0, _hair_count() - 1)
+
+## Every hair style the entity engineer's HairBuilder exposes (8 today), not a fixed six.
+func _hair_count() -> int:
+	if ResourceLoader.exists(HAIR_BUILDER):
+		var hb: GDScript = load(HAIR_BUILDER)
+		if hb != null and hb.has_method("style_count"):
+			return clampi(int(hb.call("style_count")), 1, 24)
+	return 6
+
+func _hair_labels() -> Array:
+	var out: Array = []
+	var hb: GDScript = load(HAIR_BUILDER) if ResourceLoader.exists(HAIR_BUILDER) else null
+	var named: bool = hb != null and hb.has_method("style_name") and hb.has_method("style_id")
+	for i in _hair_count():
+		var name := ""
+		if named:
+			name = String(hb.call("style_name", String(hb.call("style_id", i))))
+		out.append(name if name != "" else str(i + 1))
+	return out
 
 func character() -> Dictionary:
 	var rid := String(races[race_i])

@@ -26,6 +26,7 @@ func build() -> void:
 	p.position = Vector2(20.0 * s + insets.x, size.y - panel_h - 16.0 * s - insets.w)
 	p.size = Vector2(size.x - 40.0 * s - insets.x - insets.z, panel_h)
 	add_child(p)
+	UiUtil.dmz_scrim(p, 7.0)
 	content = p
 	var row := UiUtil.hbox(12.0 * s)
 	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

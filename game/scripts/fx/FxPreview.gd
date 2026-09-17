@@ -16,9 +16,14 @@ extends Node3D
 ## `--cam=x,y,z --look=x,y,z` fixed camera; implies `--staticcam`
 ## `--staticcam` keep the preview camera where it is (a stub camera rig absorbs the
 ##         cinematic camera work), so a frame can be compared across runs
+## `--hide=A,B` hide every node whose name starts with one of these (layer isolation
+##         when hunting down which quad washed the frame out, e.g. --hide=Ring,CrackGlow)
 
 const GROUND_SIZE := 120.0
 const ROCKS := 150
+## Rock wall the beams and blasts slam into (x >= WALL_X), so an impact can be verified.
+const WALL_X := 16.0
+const WALL_ID := 1
 
 var fx := ""
 var form_id := "ssgrades.supersaiyan"
@@ -29,6 +34,7 @@ var label: Label
 var t := 0.0
 
 var static_cam := false
+var hide_names: PackedStringArray = PackedStringArray()
 var cam_pos := Vector3.INF
 var cam_look := Vector3(0.0, 1.25, 0.0)
 var at_times: Array[float] = []
@@ -70,6 +76,9 @@ func _parse_args() -> void:
 			"screenshot": shot_path = val
 			"nohud": show_hud = false
 			"staticcam": static_cam = true
+			"hide":
+				for h in val.split(",", false):
+					hide_names.append(h.strip_edges())
 			"cam":
 				cam_pos = _vec(val, cam_pos)
 				static_cam = true
@@ -82,14 +91,15 @@ func _parse_args() -> void:
 					if s.is_valid_float():
 						at_times.append(float(s))
 	at_times.sort()
+	if fx == "":
+		fx = "transform" if had_form else "aura"
 
+## "x,y,z" -> Vector3 (`--cam` / `--look`).
 static func _vec(text: String, fallback: Vector3) -> Vector3:
 	var parts := text.split(",", false)
 	if parts.size() < 3:
 		return fallback
 	return Vector3(float(parts[0]), float(parts[1]), float(parts[2]))
-	if fx == "":
-		fx = "transform" if had_form else "aura"
 
 # --- stage ----------------------------------------------------------------
 
@@ -134,6 +144,7 @@ func _build_stage() -> void:
 	add_child(ground)
 
 	_build_rocks()
+	_build_wall()
 
 	camera = Camera3D.new()
 	camera.name = "PreviewCamera"
@@ -146,9 +157,9 @@ func _build_stage() -> void:
 			look = Vector3(0.0, 2.0, 0.0)
 		"kamehameha", "beam", "blast", "barrage", "disc":
 			# _build_dummy turns the caster to fire along +X, so stand off on +Z and
-			# watch the whole beam cross the frame
-			pos = Vector3(9.0, 3.6, 17.0)
-			look = Vector3(9.0, 1.6, 0.0)
+			# watch the whole beam cross the frame from the caster to the cliff
+			pos = Vector3(7.0, 4.2, 14.0)
+			look = Vector3(7.0, 1.5, 0.0)
 	if static_cam and cam_pos != Vector3.INF:
 		pos = cam_pos
 		look = cam_look
@@ -176,13 +187,18 @@ func _build_rocks() -> void:
 	mm.instance_count = ROCKS
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7731
+	# the ki modes fire along +X at the cliff: keep that corridor (and the camera line)
+	# free of boulders, or the whole effect happens behind a rock
+	var corridor := fx in ["kamehameha", "beam", "blast", "barrage", "disc"]
 	for i in ROCKS:
 		var a := rng.randf() * TAU
 		var r: float = lerpf(7.0, 46.0, sqrt(rng.randf()))
 		var s := rng.randf_range(0.8, 3.4) * (1.0 + r * 0.03)
 		var h := s * rng.randf_range(0.5, 1.6)
-		var xf := Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, h, s)),
-			Vector3(cos(a) * r, h * 0.35, sin(a) * r))
+		var p := Vector3(cos(a) * r, h * 0.35, sin(a) * r)
+		if corridor and p.x > -12.0 and p.x < 28.0 and absf(p.z) < 15.0:
+			p.y -= 40.0                      # sunk out of sight, keeps the instance count
+		var xf := Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, h, s)), p)
 		mm.set_instance_transform(i, xf)
 		var tone := rng.randf_range(0.18, 0.34)
 		mm.set_instance_color(i, Color(tone * 1.1, tone, tone * 0.88))
@@ -203,6 +219,87 @@ func _race_for_form() -> String:
 	var d := Forms.def(form_id)
 	var r := String(d.get("race", "saiyan"))
 	return r if r != "" else "saiyan"
+
+## A cliff face at +X: `raycast()` reports it as terrain, so ki blasts and beams
+## detonate against something instead of flying into the void.
+func _build_wall() -> void:
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	mm.mesh = FxAssets.cube_mesh(1.0)
+	var cols := 9
+	var rows := 7
+	mm.instance_count = cols * rows
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4242
+	var i := 0
+	for r in rows:
+		for c in cols:
+			var s := rng.randf_range(1.6, 2.4)
+			# the face of the wall must stay BEHIND WALL_X, or the impact fx spawn
+			# inside the boulders and are occluded
+			var pos := Vector3(WALL_X + 2.0 + rng.randf_range(-0.1, 0.3),
+				float(r) * 1.8 + 0.6, (float(c) - float(cols) * 0.5) * 1.9)
+			var xf := Transform3D(Basis(Vector3.UP, rng.randf() * 0.4).scaled(Vector3(s * 1.2, s, s * 1.4)), pos)
+			mm.set_instance_transform(i, xf)
+			var tone := rng.randf_range(0.20, 0.36)
+			mm.set_instance_color(i, Color(tone * 1.05, tone, tone * 0.9))
+			i += 1
+	var mmi := MultiMeshInstance3D.new()
+	mmi.name = "Wall"
+	mmi.multimesh = mm
+	var m := StandardMaterial3D.new()
+	m.vertex_color_use_as_albedo = true
+	m.roughness = 1.0
+	mmi.material_override = m
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mmi)
+
+# --- minimal World stand-in (only what the ki fx duck-type) ---------------
+
+## Solid below the stage plane and inside the cliff face; air everywhere else.
+func get_block(x: int, y: int, z: int) -> int:
+	if y < 0:
+		return WALL_ID
+	return WALL_ID if float(x) >= WALL_X else 0
+
+## Analytic raycast against the stage plane and the cliff face (same dictionary shape
+## as `World.raycast`, which is what `Projectile`/`Beam` read).
+func raycast(origin: Vector3, dir: Vector3, max_dist: float, _ignore_liquid := true) -> Dictionary:
+	var miss := {"hit": false, "block": Vector3i.ZERO, "normal": Vector3i.ZERO,
+		"point": origin, "dist": 0.0, "id": 0}
+	if dir.length_squared() < 0.000001:
+		return miss
+	var d := dir.normalized()
+	var best := INF
+	var point := origin
+	var normal := Vector3i.ZERO
+	if d.y < -0.0001 and origin.y > 0.0:
+		var t := origin.y / -d.y
+		if t <= max_dist and t < best:
+			best = t
+			point = origin + d * t
+			normal = Vector3i(0, 1, 0)
+	if d.x > 0.0001 and origin.x < WALL_X:
+		var t2 := (WALL_X - origin.x) / d.x
+		if t2 <= max_dist and t2 < best:
+			best = t2
+			point = origin + d * t2
+			normal = Vector3i(-1, 0, 0)
+	if best == INF:
+		return miss
+	return {"hit": true, "block": Vector3i(point.round()), "normal": normal,
+		"point": point, "dist": best, "id": WALL_ID}
+
+## The fx explosion path (`World.explode` normally also destroys blocks).
+func explode(center: Vector3, radius: float, damage := 0.0, _source: Node = null) -> void:
+	Events.explosion.emit(center, radius, damage)
+
+func get_entities() -> Array:
+	return [dummy] if dummy != null and is_instance_valid(dummy) else []
+
+func entities_in_aabb(_box: AABB) -> Array:
+	return []
 
 func _build_dummy() -> void:
 	dummy = FxDummy.create(_race_for_form(), "warrior", true)
@@ -293,6 +390,8 @@ func _process(delta: float) -> void:
 		_next_step += 1
 		if fn.is_valid():
 			fn.call()
+	if not hide_names.is_empty():
+		_hide_matching(self)
 	if label != null and label.visible:
 		var a := Aura.find_on(dummy)
 		var d := TransformationDirector.running_for(dummy)
@@ -301,6 +400,21 @@ func _process(delta: float) -> void:
 			d.phase_name() if d != null else "-",
 			a.intensity() if a != null else 0.0]
 	_maybe_capture()
+
+## Layer isolation for the diagnostics: hide anything whose name starts with one of
+## `--hide=`. Walks the stage every frame, which is fine for a verification tool.
+func _hide_matching(n: Node) -> void:
+	for c in n.get_children():
+		if c is CanvasItem or c is Node3D:
+			for h in hide_names:
+				if h != "" and String(c.name).begins_with(h):
+					# stop its _process too: Aura re-shows its own shells every frame
+					c.set_process(false)
+					if c is Node3D:
+						(c as Node3D).visible = false
+					else:
+						(c as CanvasItem).visible = false
+		_hide_matching(c)
 
 # --- frozen captures ------------------------------------------------------
 

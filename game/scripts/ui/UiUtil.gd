@@ -86,8 +86,11 @@ const R_RACE_ICON := Rect2(0, 0, 17, 17)
 const RACE_ICON_PITCH := 17.0
 const RACE_ICON_ORDER := ["human", "saiyan", "namekian", "frostdemon", "majin", "bioandroid"]
 # buttons/characterbuttons.png: up / down arrows, pressed row at y + 20
-const R_CHAR_ARROW_UP := Rect2(168, 0, 20, 20)
-const R_CHAR_ARROW_DOWN := Rect2(188, 0, 20, 20)
+# Measured on characterbuttons.png: the two arrow plates are 20x20 at x=162 and x=182 (the
+# glyphs centre on 171.5 / 191.5); the pressed variants sit 21px lower.
+const R_CHAR_ARROW_UP := Rect2(162, 0, 20, 20)
+const R_CHAR_ARROW_DOWN := Rect2(182, 0, 20, 20)
+const CHAR_ARROW_PRESSED_DY := 21.0
 
 static var _font: FontFile = null
 static var _tex_cache: Dictionary = {}
@@ -455,6 +458,21 @@ static func dmz_bar(text: String, min_w := 0.0, icon_index := -1) -> Control:
 
 ## Wrap a block in a DMZ nine-slice frame at a sane pixel scale (used for the preview box,
 ## the options column and other sub-panels - never stretched across a whole screen).
+## The DMZ panels are bright green pixel art; a navy scrim inside the painted border keeps text
+## readable and matches the night-city palette. Call this right after adding the panel.
+static func dmz_scrim(panel: Control, inset := 6.0, alpha := 0.86) -> ColorRect:
+	var sc := s()
+	var scrim := ColorRect.new()
+	scrim.color = Color(NIGHT_PANEL.r, NIGHT_PANEL.g, NIGHT_PANEL.b, alpha)
+	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scrim.offset_left = inset * sc
+	scrim.offset_top = inset * sc
+	scrim.offset_right = -inset * sc
+	scrim.offset_bottom = -inset * sc
+	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(scrim)
+	return scrim
+
 static func dmz_frame(child: Control, kind := "small", pad := 6.0) -> PanelContainer:
 	var sc := s()
 	var p := dmz_panel(kind)
@@ -489,7 +507,7 @@ static func panorama_backdrop(parent: Control, prefix: String, shade := 0.45) ->
 static func arrow_button(direction: int, on_pressed: Callable) -> Button:
 	var sc := s()
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(40.0 * sc, 40.0 * sc)
+	b.custom_minimum_size = Vector2(34.0 * sc, 34.0 * sc)   # >= 48 px on a 720p phone
 	b.focus_mode = Control.FOCUS_NONE
 	b.flat = true
 	for st in ["normal", "hover", "pressed", "disabled", "focus"]:
@@ -502,7 +520,7 @@ static func arrow_button(direction: int, on_pressed: Callable) -> Button:
 	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tr.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	tr.pivot_offset = Vector2(20.0 * sc, 20.0 * sc)
+	tr.pivot_offset = Vector2(17.0 * sc, 17.0 * sc)
 	tr.rotation_degrees = -90.0 if direction < 0 else 90.0
 	b.add_child(tr)
 	if on_pressed.is_valid():

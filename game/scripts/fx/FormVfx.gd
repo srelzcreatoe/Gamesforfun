@@ -50,6 +50,12 @@ const GROUP_PALETTE := {
 	"ultimate": "#FFFFFF",
 }
 
+## Groups that are grab bags rather than one visual family: DMZ puts the Namekian
+## giant, the Janemba forms, the Arcosian metal forms and the "super" power-ups in the
+## same group, so a colourless form there takes its RACE colour (namekian green, majin
+## pink, arcosian violet) instead of the group signature.
+const RACE_FIRST_GROUPS: Array[String] = ["legendaryforms", "superforms"]
+
 ## Colour ramps: a family name per hue so the climax light, the sparks and the inner
 ## core sheet of every race read differently (god/blue/UI/golden/majin/namek/arcosian).
 const FAMILY_INNER := {
@@ -85,6 +91,13 @@ const COLOR_FIELDS: Array[String] = [
 	"auraColor", "extraAuraColor", "lightningColor", "hairColor",
 	"bodyColor1", "bodyColor2", "bodyColor3", "eye1Color", "eye2Color", "extraFormColor",
 ]
+
+## Fields that really describe an aura colour: they are taken as authored even when they
+## are grey/white. Any OTHER field (hair, body, eyes) only counts as an aura colour when
+## it is saturated enough to read as energy - DMZ stores brown-grey skin tones in
+## bodyColor*/hairColor and a brown aura is not a transformation.
+const AURA_FIELDS: Array[String] = ["auraColor", "extraAuraColor", "lightningColor"]
+const MIN_AURA_SATURATION := 0.18
 
 const DEFAULT_AURA := Color(0.55, 0.92, 1.0)
 
@@ -167,17 +180,17 @@ func _resolve(d: Dictionary) -> void:
 	var found := _first_color(d, COLOR_FIELDS)
 	if found.is_empty():
 		var gp := String(GROUP_PALETTE.get(group, ""))
-		if gp != "":
+		var rc := _race_color()
+		var race_first := RACE_FIRST_GROUPS.has(group)
+		if rc != "" and (race_first or gp == ""):
+			aura = Color(rc)
+			aura_source = "race"
+		elif gp != "":
 			aura = Color(gp)
 			aura_source = "group"
 		else:
-			var rc := _race_color()
-			if rc != "":
-				aura = Color(rc)
-				aura_source = "race"
-			else:
-				aura = DEFAULT_AURA
-				aura_source = "fallback"
+			aura = DEFAULT_AURA
+			aura_source = "fallback"
 	else:
 		aura = Color(String(found["color"]))
 		aura_source = String(found["field"])
@@ -236,21 +249,27 @@ func _race_color() -> String:
 static func _first_color(d: Dictionary, fields: Array[String]) -> Dictionary:
 	for f in fields:
 		var raw := _clean(String(d.get(f, "")))
-		if raw == "":
+		if not _usable_aura_field(f, raw):
 			continue
-		if f == "extraAuraColor" and raw == "#FFFFFF":
-			continue        # DMZ default, not an authored colour
 		return {"field": f, "color": raw}
 	return {}
+
+## Is `raw` (already cleaned) a colour this field may hand to the aura?
+static func _usable_aura_field(field: String, raw: String) -> bool:
+	if raw == "":
+		return false
+	if field == "extraAuraColor" and raw == "#FFFFFF":
+		return false            # DMZ default, not an authored colour
+	if AURA_FIELDS.has(field):
+		return true
+	return Color(raw).s >= MIN_AURA_SATURATION
 
 ## Colour fields of a form that actually carry authored data (used by the tests).
 static func authored_fields(d: Dictionary) -> PackedStringArray:
 	var out := PackedStringArray()
 	for f in COLOR_FIELDS:
-		var raw := _clean(String(d.get(f, "")))
-		if raw == "" or (f == "extraAuraColor" and raw == "#FFFFFF"):
-			continue
-		out.append(f)
+		if _usable_aura_field(f, _clean(String(d.get(f, "")))):
+			out.append(f)
 	return out
 
 static func _clean(s: String) -> String:
