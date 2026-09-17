@@ -53,6 +53,28 @@ func interact(player: Node = null) -> void:
 		_greet_cd = 1.0
 		Audio.play_sfx_at("click", global_position, -6.0)
 
+## Open the master's training screen (quest engineer's DialogController). Called
+## by the dialog UI's "Train" option; falls back to a plain dialog request.
+func train(player: Node = null) -> void:
+	if player is Node3D:
+		face((player as Node3D).global_position)
+	if master_id != "":
+		var dc: Node = null
+		if Game.world != null:
+			dc = Game.world.get_node_or_null("DialogController")
+		if dc == null and Game.ui != null:
+			dc = Game.ui.get_node_or_null("DialogController")
+		if dc != null and dc.has_method("open_training"):
+			dc.call("open_training", master_id)
+			return
+	Events.dialog_requested.emit(self)
+
+## True when this NPC can train the player (data/masters.json `trains`).
+func can_train() -> bool:
+	if master_id == "":
+		return false
+	return bool(Registry.masters.get(master_id, {}).get("trains", false))
+
 func dialog_lines() -> Array:
 	if master_id != "" and Registry.masters.has(master_id):
 		var m: Dictionary = Registry.masters[master_id]

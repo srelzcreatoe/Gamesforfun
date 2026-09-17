@@ -14,6 +14,8 @@ var item_count := 1
 var data: Dictionary = {}
 var world: Node = null
 var pickup_delay := 0.45
+var ball_set := ""
+var ball_star := 0
 var life := 300.0
 var magnet := true
 
@@ -28,11 +30,36 @@ func _ready() -> void:
 	if not _initialized:
 		initialize()
 
+## Accepts either the plain item form `{item, count}` or a dragon ball spawn
+## `{set, star}` (worldgen `entities_pending` / DragonBalls.gd), deriving the item
+## id from the set: earth -> "dball<star>", namek -> "dball<star>_namek",
+## super/cereal -> "<set>_dball<star>" when that item exists, else the ball stays
+## a marker with no item (it still emits Events.dragon_ball_found when collected).
 func apply_spawn_data(d: Dictionary) -> void:
 	for k in d.keys():
 		data[k] = d[k]
 	item_id = String(d.get("item", d.get("item_id", item_id)))
 	item_count = int(d.get("count", d.get("item_count", item_count)))
+	if d.has("set") or d.has("star"):
+		ball_set = String(d.get("set", ball_set))
+		ball_star = clampi(int(d.get("star", ball_star)), 1, 7)
+		if item_id == "":
+			item_id = ball_item_id(ball_set, ball_star)
+
+## Item id for a dragon ball of `set`/`star` ("" when the set has no item yet).
+static func ball_item_id(set_id: String, star: int) -> String:
+	var candidates: Array[String] = []
+	match set_id:
+		"earth", "":
+			candidates = ["dball%d" % star]
+		"namek":
+			candidates = ["dball%d_namek" % star, "dballnamek%d" % star]
+		_:
+			candidates = ["%s_dball%d" % [set_id, star], "dball%d_%s" % [star, set_id], "dball%d" % star]
+	for c in candidates:
+		if Registry != null and Registry.has_item(c):
+			return c
+	return ""
 
 func initialize() -> void:
 	_initialized = true
@@ -44,10 +71,10 @@ func initialize() -> void:
 func _build_visual() -> void:
 	var def := Registry.item(item_id)
 	var kind := String(def.get("kind", "misc"))
-	if kind == "dragon_ball":
+	if kind == "dragon_ball" or ball_star > 0:
 		var ball: Dictionary = def.get("dragon_ball", {})
-		var star := int(ball.get("star", 1))
-		var namek := String(ball.get("set", "earth")) == "namek"
+		var star := int(ball.get("star", ball_star if ball_star > 0 else 1))
+		var namek := String(ball.get("set", ball_set)) == "namek"
 		var m := BedrockModel.new()
 		m.name = "Ball"
 		add_child(m)
@@ -113,7 +140,7 @@ func _process(delta: float) -> void:
 func _collect(player: Node) -> void:
 	var taken := item_count
 	var inv: Variant = player.get("inventory")
-	if inv != null and inv.has_method("add"):
+	if item_id != "" and inv != null and inv.has_method("add"):
 		var left: int = int(inv.call("add", item_id, item_count, data.get("item_data", {})))
 		taken = item_count - left
 		if taken <= 0:
@@ -123,9 +150,10 @@ func _collect(player: Node) -> void:
 	if Audio != null:
 		Audio.play_sfx_at("pickup", global_position, -4.0)
 	var def := Registry.item(item_id)
-	if String(def.get("kind", "")) == "dragon_ball":
+	if String(def.get("kind", "")) == "dragon_ball" or ball_star > 0:
 		var ball: Dictionary = def.get("dragon_ball", {})
-		Events.dragon_ball_found.emit(String(ball.get("set", "earth")), int(ball.get("star", 1)))
+		Events.dragon_ball_found.emit(String(ball.get("set", ball_set if ball_set != "" else "earth")),
+				int(ball.get("star", ball_star if ball_star > 0 else 1)))
 	if item_count <= 0:
 		queue_free()
 
