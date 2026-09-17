@@ -186,7 +186,9 @@ static func _add_strand(st: SurfaceTool, base: Vector3, rot_deg: Vector3, length
 		# cube centred on the strand axis, growing along +Y of the current basis
 		var half := size * 0.5
 		var centre := origin + basis * Vector3(0, half.y, 0)
-		if _add_box(st, centre, basis, half):
+		# tips read slightly lighter than the roots, like DMZ's shaded strands
+		var tip := 0.88 + 0.12 * (float(i) / maxf(1.0, float(length - 1)))
+		if _add_box(st, centre, basis, half, tip):
 			added = true
 		origin = origin + basis * Vector3(0, size.y + gap, 0)
 		size = Vector3(size.x * taper, size.y * taper, size.z * taper)
@@ -194,7 +196,7 @@ static func _add_strand(st: SurfaceTool, base: Vector3, rot_deg: Vector3, length
 			basis = basis * BedrockModel.bedrock_basis(curve)
 	return added
 
-static func _add_box(st: SurfaceTool, centre: Vector3, basis: Basis, half: Vector3) -> bool:
+static func _add_box(st: SurfaceTool, centre: Vector3, basis: Basis, half: Vector3, tip := 1.0) -> bool:
 	if half.x <= 0.01 or half.y <= 0.01 or half.z <= 0.01:
 		return false
 	# a hair cube samples the flat shading tile; a small UV window per face keeps
@@ -213,6 +215,11 @@ static func _add_box(st: SurfaceTool, centre: Vector3, basis: Basis, half: Vecto
 		var p: Array = []
 		for i in range(1, 5):
 			p.append(centre + basis * ((f[i] as Vector3) * half))
+		# Bake the facet shading into vertex colours: a near black hair colour under
+		# a lit material otherwise reads as one flat silhouette (the "black cube on
+		# the head" look), because every strand face gets the same albedo.
+		var b := (0.55 + 0.45 * (0.5 + 0.5 * n.y) - 0.07 * n.z) * tip
+		st.set_color(Color(b, b, b, 1.0))
 		BedrockModel._add_quad(st, p, UVS, n)
 	return true
 
@@ -250,10 +257,20 @@ static func attach(model: BedrockModel, style: String, color: Color) -> Node3D:
 	if mat == null:
 		mat = BedrockModel._make_material(BaseMaterial3D.CULL_BACK)
 		mat.albedo_texture = Textures.entity_texture(HAIR_TILE)
+		mat.vertex_color_use_as_albedo = true
 		node.material_override = mat
-	mat.albedo_color = color
+	mat.albedo_color = hair_albedo(color)
 	node.set_meta("hair_style", style)
 	return node
+
+## Albedo actually used for a hair colour. Very dark hair (DMZ's default is
+## #222629) is lifted until the baked facet shading is visible, so the head does
+## not render as one black block from behind.
+static func hair_albedo(c: Color) -> Color:
+	if c.v >= 0.30:
+		return c
+	return Color.from_hsv(c.h, c.s, 0.30, c.a)
+
 
 static func current_style(model: BedrockModel) -> String:
 	if model == null:

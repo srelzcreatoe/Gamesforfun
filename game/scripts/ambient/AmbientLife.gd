@@ -27,6 +27,7 @@ const DESPAWN := 40.0
 const MOVES_PER_TICK := 14
 const CANOPY_SAMPLES := 8
 const CANOPY_DEPTH := 5
+const CANOPY_RADIUS := 16.0
 const FOOTSTEP_STRIDE := 1.8
 const PROFILE_PERIOD := 5.0
 
@@ -280,8 +281,9 @@ func _update_motes() -> void:
 
 	if a > 0 and motes.kind != AmbientRules.MOTE_FIREFLY:
 		var c := AmbientRules.firefly_color(planet_id)
+		# size, glow, wander, radius, rise, blink, fade_end
 		motes.configure(AmbientRules.MOTE_FIREFLY, c, AmbientAssets.soft_dot(),
-			0.17, 2.6, 0.35, 1.6, 0.0, 30.0)
+			0.17, 2.6, 0.35, 1.6, 0.0, 2.2, 30.0)
 		motes.invalidate()
 	if b > 0 and motes_b.kind != kind_b:
 		_configure_mote_field(motes_b, kind_b)
@@ -298,20 +300,22 @@ func _update_motes() -> void:
 
 func _configure_mote_field(field: AmbientMotes, kind: String) -> void:
 	var c := AmbientRules.mote_color(kind)
+	var dot := AmbientAssets.soft_dot()
+	# configure(kind, colour, sprite, size, glow, wander, radius, rise, blink, fade_end)
 	match kind:
 		AmbientRules.MOTE_POLLEN:
-			field.configure(kind, c, AmbientAssets.soft_dot(), 0.075, 1.5, 0.35, 1.5, 0.045, 24.0)
+			field.configure(kind, c, dot, 0.075, 1.5, 0.35, 1.5, 0.045, 0.0, 24.0)
 		AmbientRules.MOTE_DUST:
-			field.configure(kind, c, AmbientAssets.soft_dot(), 0.09, 1.2, 0.5, 2.2, 0.03, 26.0)
+			field.configure(kind, c, dot, 0.09, 1.2, 0.5, 2.2, 0.03, 0.0, 26.0)
 		AmbientRules.MOTE_SNOW:
-			field.configure(kind, c, AmbientAssets.soft_dot(), 0.055, 3.0, 0.25, 0.5, 0.0, 18.0)
-			field.configure(kind, c, AmbientAssets.soft_dot(), 0.055, 3.0, 0.25, 0.5, 9.0, 18.0)
+			# Snow does not drift, it twinkles: no rise, a fast sparkle blink.
+			field.configure(kind, c, dot, 0.055, 3.0, 0.25, 0.5, 0.0, 9.0, 18.0)
 		AmbientRules.MOTE_EMBER:
-			field.configure(kind, c, AmbientAssets.soft_dot(), 0.11, 2.4, 0.45, 2.4, 0.07, 28.0)
+			field.configure(kind, c, dot, 0.11, 2.4, 0.45, 2.4, 0.07, 0.9, 28.0)
 		AmbientRules.MOTE_SPIRIT:
-			field.configure(kind, c, AmbientAssets.soft_dot(), 0.12, 1.8, 0.3, 2.0, 0.035, 30.0)
+			field.configure(kind, c, dot, 0.12, 1.8, 0.3, 2.0, 0.035, 1.1, 30.0)
 		_:
-			field.configure(kind, c, AmbientAssets.soft_dot(), 0.08, 1.5, 0.35, 1.5, 0.04, 24.0)
+			field.configure(kind, c, dot, 0.08, 1.5, 0.35, 1.5, 0.04, 0.0, 24.0)
 
 func _mote_height_range(kind: String) -> Vector2:
 	match kind:
@@ -428,7 +432,9 @@ func _find_canopy() -> Vector4:
 		return Vector4(0, -9999, 0, 0)
 	for _s in CANOPY_SAMPLES:
 		var a := _rng.randf() * TAU
-		var r := _rng.randf_range(SPAWN_MIN, SPAWN_MAX)
+		# Canopies close to the player read best (a leaf 24 m away is one pixel), so the
+		# search starts right overhead instead of at the mote spawn ring.
+		var r := _rng.randf_range(1.5, CANOPY_RADIUS)
 		var bx := int(floor(center.x + cos(a) * r))
 		var bz := int(floor(center.z + sin(a) * r))
 		var top := int(world.call("get_height", bx, bz))
@@ -555,6 +561,13 @@ func _ground_spot(min_r: float, max_r: float, y_min: float, y_max: float, dry: b
 		return Vector3(wx, float(top) + _rng.randf_range(y_min, y_max), wz)
 	return Vector3(0, -9999, 0)
 
+## The block the focus point is standing on (0 when nothing is loaded there). Used for the
+## footstep tint and by the debug demo.
+func surface_block_under() -> int:
+	if world == null or not is_instance_valid(world) or not world.has_method("get_block"):
+		return 0
+	return int(world.call("get_block", int(floor(center.x)), int(floor(center.y - 0.2)), int(floor(center.z))))
+
 # --- event handlers (must never assume a world) -----------------------------------------------
 
 func _on_splash(pos: Vector3, strength: float) -> void:
@@ -633,7 +646,10 @@ func stats() -> Dictionary:
 
 ## Printed 5 s after the ChunkManager world line so the two can be read together.
 func _print_profile() -> void:
-	if not force_profile and not bool(Game.settings.get("show_fps", false)) if Game != null else not force_profile:
+	var show := force_profile
+	if not show and Game != null:
+		show = bool(Game.settings.get("show_fps", false))
+	if not show:
 		return
 	var s := stats()
 	# Cost per frame: the tick only runs 4x a second, so amortise it over the frames it covers.

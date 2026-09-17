@@ -34,7 +34,11 @@ func _init(size_px := Vector2(120, 180)) -> void:
 	pivot = Node3D.new()
 	viewport.add_child(pivot)
 	var cam := Camera3D.new()
-	cam.position = Vector3(0, 1.0, -3.1)  # models face -Z
+	# BedrockModel faces -Z, so the camera sits on -Z and is turned around to look at it.
+	# The rotation is set here (not only in frame_camera) so the model is visible even if the
+	# framing pass has not run yet - that is what made the preview look empty.
+	cam.position = Vector3(0, 1.0, -3.4)
+	cam.rotation_degrees = Vector3(0, 180, 0)
 	cam.fov = 38.0
 	cam.near = 0.05
 	viewport.add_child(cam)
@@ -52,6 +56,15 @@ func set_character(ch: Dictionary, worn: Array = []) -> void:
 	character = ch.duplicate(true)
 	armor = worn
 	rebuild()
+
+func _ready() -> void:
+	resized.connect(_on_resized)
+	call_deferred("frame_camera")
+
+func _on_resized() -> void:
+	if viewport != null and size.x > 8.0:
+		viewport.size = Vector2i(maxi(16, int(size.x)), maxi(16, int(size.y)))
+	frame_camera()
 
 func rebuild() -> void:
 	if model != null and is_instance_valid(model):
@@ -71,6 +84,8 @@ func frame_camera() -> void:
 		box = inner.call("visual_aabb")
 	if box.size.y <= 0.01:
 		box = _model_aabb(model)
+	if box.size.y <= 0.01 or not is_finite(box.size.y):
+		box = AABB(Vector3(-0.4, 0.0, -0.4), Vector3(0.8, 1.9, 0.8))
 	if box.size.y <= 0.01:
 		box = AABB(Vector3(-0.4, 0.0, -0.4), Vector3(0.8, 1.9, 0.8))
 	var center := box.position + box.size * 0.5

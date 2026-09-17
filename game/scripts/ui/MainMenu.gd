@@ -31,29 +31,43 @@ func build() -> void:
 	add_child(col)
 	content = col
 
-	var t := UiUtil.label("DRAGON BLOCK SAGAS", UiUtil.font_title(s), Color(1.0, 0.86, 0.35), HORIZONTAL_ALIGNMENT_CENTER)
+	var t := UiUtil.title_glow("DRAGON BLOCK SAGAS", UiUtil.NIGHT_NEON_LIGHT,
+		Color(1.0, 0.86, 0.35), UiUtil.font_title(s))
+	t.custom_minimum_size.x = size.x
 	col.add_child(t)
 	col.add_child(UiUtil.label("A voxel Dragon Ball action RPG", UiUtil.font_small(s), UiUtil.DIM_COLOR, HORIZONTAL_ALIGNMENT_CENTER))
-	col.add_child(UiUtil.spacer(16.0 * s))
+	col.add_child(UiUtil.spacer(14.0 * s))
 
-	var bw := minf(360.0 * s, size.x * 0.6)
-	var rows := UiUtil.vbox(8.0 * s)
-	rows.alignment = BoxContainer.ALIGNMENT_CENTER
+	# Buttons on the DMZ menu panel, with its icon sheet as the row glyphs.
+	var bw := minf(330.0 * s, size.x * 0.55)
+	var frame := UiUtil.dmz_panel("big")
+	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var rows := UiUtil.vbox(7.0 * s)
+	frame.add_child(rows)
 	var center := HBoxContainer.new()
 	center.alignment = BoxContainer.ALIGNMENT_CENTER
-	center.add_child(rows)
+	center.add_child(frame)
 	col.add_child(center)
-	rows.add_child(UiUtil.button("Play", _on_play, bw, 46.0 * s))
-	rows.add_child(UiUtil.button("Settings", func() -> void: Game.ui.call("open", "settings"), bw, 46.0 * s))
-	rows.add_child(UiUtil.button("How to Play", _on_help, bw, 46.0 * s))
-	rows.add_child(UiUtil.button("Credits", _on_credits, bw, 46.0 * s))
+	var entries := [["Play", _on_play, 0], ["Settings", func() -> void: Game.ui.call("open", "settings"), 5],
+		["How to Play", _on_help, 3], ["Credits", _on_credits, 6]]
 	if not Game.is_mobile():
-		rows.add_child(UiUtil.button("Quit", func() -> void: get_tree().quit(), bw, 46.0 * s))
+		entries.append(["Quit", func() -> void: get_tree().quit(), 7])
+	for e in entries:
+		rows.add_child(_menu_row(String(e[0]), e[1], int(e[2]), bw))
 
 	var ver := UiUtil.label("v%s" % Game.version, UiUtil.font_small(s), UiUtil.DIM_COLOR)
 	ver.position = Vector2(12.0 * s + insets.x, size.y - 26.0 * s - insets.w)
 	add_child(ver)
 	Audio.play_bgm("menu")
+
+## One menu row: the DMZ icon on the left, the label on the night-city button.
+func _menu_row(text: String, on_pressed: Callable, icon_index: int, bw: float) -> Control:
+	var row := UiUtil.hbox(8.0 * s)
+	row.add_child(UiUtil.icon_rect(UiUtil.menu_icon(icon_index), Vector2(34.0 * s, 34.0 * s)))
+	var b := UiUtil.button(text, on_pressed, bw, 46.0 * s)
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(b)
+	return row
 
 func _on_play() -> void:
 	SaveSlots.clear_active()

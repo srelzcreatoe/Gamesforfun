@@ -33,17 +33,29 @@ func build() -> void:
 	if races.is_empty():
 		races = PackedStringArray(["saiyan"])
 	race_i = clampi(races.find("saiyan"), 0, races.size() - 1)
-	var body := page("Create Character")
+	var body := dmz_page("Create Character", _panorama_for(races[race_i]), "big")
 	var row := UiUtil.hbox(14.0 * s)
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body.add_child(row)
 
 	# left: preview
 	var left := UiUtil.vbox(6.0 * s)
-	var pw := clampf(size.x * 0.24, 140.0, 280.0)
-	var ph := minf(pw * 1.35, size.y * 0.52)
+	var pw := clampf(size.x * 0.30, 190.0, 340.0)
+	var ph := minf(pw * 1.45, size.y * 0.66)
+	var frame := UiUtil.dmz_panel("small")
+	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var box := Control.new()
+	box.custom_minimum_size = Vector2(pw, ph)
+	var backdrop := ColorRect.new()
+	backdrop.color = Color(UiUtil.NIGHT_DEEP.r, UiUtil.NIGHT_DEEP.g, UiUtil.NIGHT_DEEP.b, 0.55)
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(backdrop)
 	preview = CharacterPreview.new(Vector2(pw, ph))
-	left.add_child(preview)
+	preview.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	box.add_child(preview)
+	frame.add_child(box)
+	left.add_child(frame)
 	desc_label = UiUtil.dim("", UiUtil.font_small(s))
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_label.custom_minimum_size.x = pw
@@ -62,17 +74,15 @@ func build() -> void:
 	opts.add_child(UiUtil.label("Name", UiUtil.font_small(s), UiUtil.DIM_COLOR))
 	name_edit = UiUtil.line_edit("Name", "Kakarot", 20)
 	opts.add_child(name_edit)
-	var race_names: Array = []
-	for r in races:
-		race_names.append(String(Registry.race(r).get("name", String(r).capitalize())))
-	opts.add_child(UiUtil.option_row("Race", race_names, race_i, func(i: int) -> void:
-		race_i = i
-		_apply_race_defaults()
-		_update()))
-	opts.add_child(UiUtil.option_row("Gender", GENDERS, gender_i, func(i: int) -> void: gender_i = i; _update()))
-	opts.add_child(UiUtil.option_row("Class", CLASSES, class_i, func(i: int) -> void: class_i = i; _update()))
-	opts.add_child(UiUtil.option_row("Body type", ["A", "B", "C"], body_i, func(i: int) -> void: body_i = i; _update()))
-	opts.add_child(UiUtil.option_row("Hair", ["1", "2", "3", "4", "5", "6"], hair_i, func(i: int) -> void: hair_i = i; _update()))
+	opts.add_child(_race_row())
+	opts.add_child(_arrow_row("Gender", GENDERS, func() -> int: return gender_i,
+		func(i: int) -> void: gender_i = i))
+	opts.add_child(_arrow_row("Class", CLASSES, func() -> int: return class_i,
+		func(i: int) -> void: class_i = i))
+	opts.add_child(_arrow_row("Body type", ["A", "B", "C"], func() -> int: return body_i,
+		func(i: int) -> void: body_i = i))
+	opts.add_child(_arrow_row("Hair", ["1", "2", "3", "4", "5", "6"], func() -> int: return hair_i,
+		func(i: int) -> void: hair_i = i))
 	opts.add_child(_swatch_row("Skin", COLOR_CHOICES, func(i: int) -> void: skin_c = i; _update()))
 	opts.add_child(_swatch_row("Hair colour", HAIR_CHOICES, func(i: int) -> void: hair_c = i; _update()))
 	opts.add_child(UiUtil.spacer(10.0 * s))
@@ -82,6 +92,13 @@ func build() -> void:
 	opts.add_child(h)
 	_apply_race_defaults()
 	_update()
+
+## The race's own DMZ panorama as the backdrop (falls back to the saiyan one).
+func _panorama_for(race_id: String) -> String:
+	for name in [race_id + "_panorama", "saiyan_panorama"]:
+		if ResourceLoader.exists("res://assets/textures/gui/background/%s_0.png" % name):
+			return name
+	return ""
 
 func _swatch_row(text: String, colors: Array, on_pick: Callable) -> HBoxContainer:
 	var row := UiUtil.hbox(6.0 * s)
@@ -102,6 +119,50 @@ func _swatch_row(text: String, colors: Array, on_pick: Callable) -> HBoxContaine
 			on_pick.call(idx))
 		row.add_child(b)
 	return row
+
+## "Label  < value >" with the DMZ character-sheet arrows.
+func _arrow_row(text: String, options: Array, get_i: Callable, set_i: Callable,
+		icon: Texture2D = null) -> HBoxContainer:
+	var row := UiUtil.hbox(6.0 * s)
+	var l := UiUtil.label(text, UiUtil.font_small(s))
+	l.custom_minimum_size.x = 130.0 * s
+	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(l)
+	var value := UiUtil.label("", UiUtil.font_body(s), Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER)
+	value.custom_minimum_size.x = 210.0 * s
+	value.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var pic: TextureRect = null
+	if icon != null:
+		pic = UiUtil.icon_rect(icon, Vector2(34.0 * s, 34.0 * s))
+	var refresh := func() -> void:
+		var i: int = int(get_i.call())
+		value.text = String(options[clampi(i, 0, options.size() - 1)]) if options.size() > 0 else ""
+		if pic != null:
+			pic.texture = UiUtil.race_icon(String(races[clampi(race_i, 0, races.size() - 1)]))
+	var step := func(d: int) -> void:
+		if options.is_empty():
+			return
+		set_i.call(posmod(int(get_i.call()) + d, options.size()))
+		refresh.call()
+		_update()
+	row.add_child(UiUtil.arrow_button(-1, func() -> void: step.call(-1)))
+	if pic != null:
+		row.add_child(pic)
+	row.add_child(value)
+	row.add_child(UiUtil.arrow_button(1, func() -> void: step.call(1)))
+	var sp := Control.new()
+	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(sp)
+	refresh.call()
+	return row
+
+func _race_row() -> HBoxContainer:
+	var names: Array = []
+	for r in races:
+		names.append(String(Registry.race(r).get("name", String(r).capitalize())))
+	return _arrow_row("Race", names, func() -> int: return race_i, func(i: int) -> void:
+		race_i = i
+		_apply_race_defaults(), UiUtil.race_icon(String(races[race_i])))
 
 func _apply_race_defaults() -> void:
 	var r: Dictionary = Registry.race(races[race_i]) if Registry != null else {}
@@ -130,9 +191,19 @@ func character() -> Dictionary:
 func _update() -> void:
 	if preview != null:
 		preview.set_character(character())
+		preview.call_deferred("frame_camera")
+	_sync_panorama()
 	if desc_label != null and Registry != null:
 		var r: Dictionary = Registry.race(races[race_i])
 		desc_label.text = String(r.get("desc", ""))
+
+## Swap the backdrop panorama when the player flips to another race.
+func _sync_panorama() -> void:
+	var want := _panorama_for(String(races[clampi(race_i, 0, races.size() - 1)]))
+	for c in get_children():
+		if c is PanoramaCube and want != "":
+			(c as PanoramaCube).set_prefix(want)
+			return
 
 func _start() -> void:
 	var ch := character()

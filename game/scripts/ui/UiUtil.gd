@@ -81,6 +81,13 @@ const R_MENUNPC_LEFT := Rect2(2, 95, 169, 178)
 const R_MENUNPC_RIGHT := Rect2(174, 95, 169, 178)
 const R_MENUBUTTON_ICON := Rect2(0, 0, 20, 20)     # 8 icons, pitch 20; pressed row at y=20
 const R_STATROW := Rect2(0, 50, 105, 20)          # 6 rows, pitch 21
+# hd/hud/racial_icons.png (and the 256 version): 7 head icons, pitch 17; row 1 = highlighted
+const R_RACE_ICON := Rect2(0, 0, 17, 17)
+const RACE_ICON_PITCH := 17.0
+const RACE_ICON_ORDER := ["human", "saiyan", "namekian", "frostdemon", "majin", "bioandroid"]
+# buttons/characterbuttons.png: up / down arrows, pressed row at y + 20
+const R_CHAR_ARROW_UP := Rect2(168, 0, 20, 20)
+const R_CHAR_ARROW_DOWN := Rect2(188, 0, 20, 20)
 
 static var _font: FontFile = null
 static var _tex_cache: Dictionary = {}
@@ -353,6 +360,106 @@ static func dmz_panel_style(kind := "big") -> StyleBoxTexture:
 		"npc_side":
 			return nine(gui_tex("menu/menunpc"), R_MENUNPC_LEFT, 10, 1.0, sc)
 	return nine(gui_tex("menu/menubig"), R_MENUBIG_PANEL, 8, 1.0, sc)
+
+## DMZ race head icon (gui/hd/hud/racial_icons.png), highlighted row by default.
+static func race_icon(race_id: String, selected := true) -> Texture2D:
+	var sheet := hud_sheet("racial_icons")
+	var f := hd_factor(sheet)
+	var i := RACE_ICON_ORDER.find(race_id)
+	if i < 0:
+		i = 0
+	return atlas(sheet, Rect2(float(i) * RACE_ICON_PITCH, RACE_ICON_PITCH if selected else 0.0,
+		R_RACE_ICON.size.x, R_RACE_ICON.size.y), f)
+
+## One of the 8 DMZ menu icons (gui/buttons/menubuttons.png).
+static func menu_icon(index: int, pressed := false) -> Texture2D:
+	var sheet := gui_tex("buttons/menubuttons")
+	return atlas(sheet, Rect2(float(index % 8) * 20.0, 20.0 if pressed else 0.0, 20.0, 20.0),
+		hd_factor(sheet))
+
+## Big glowing title: offset copies of the text in the accent colour behind a crisp copy.
+static func title_glow(text: String, glow := ACCENT, face := Color(1.0, 0.86, 0.35),
+		font_size := -1) -> Control:
+	var sc := s()
+	var fs := font_size if font_size > 0 else font_title(sc)
+	var root := Control.new()
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.custom_minimum_size.y = float(fs) * 1.5
+	var spread := maxf(2.0, float(fs) * 0.07)
+	for o in [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1),
+			Vector2(-1, -1), Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1)]:
+		var halo := label(text, fs, Color(glow.r, glow.g, glow.b, 0.22), HORIZONTAL_ALIGNMENT_CENTER)
+		halo.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		halo.position = o * spread
+		halo.add_theme_constant_override("shadow_offset_x", 0)
+		halo.add_theme_constant_override("shadow_offset_y", 0)
+		root.add_child(halo)
+	var main := label(text, fs, face, HORIZONTAL_ALIGNMENT_CENTER)
+	main.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	main.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.75))
+	main.add_theme_constant_override("shadow_offset_x", int(maxf(2.0, sc)))
+	main.add_theme_constant_override("shadow_offset_y", int(maxf(2.0, sc)))
+	root.add_child(main)
+	return root
+
+## A DMZ nine-slice panel (menu/menubig.png and friends) as a container.
+static func dmz_panel(kind := "big") -> PanelContainer:
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", dmz_panel_style(kind))
+	return p
+
+## The DMZ title bar sprite with a label on it (menu/menubig.png long bar).
+static func dmz_bar(text: String, min_w := 0.0) -> Control:
+	var sc := s()
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", dmz_panel_style("bar"))
+	p.custom_minimum_size = Vector2(min_w, 34.0 * sc)
+	var l := label(text, font_body(sc), TITLE_COLOR, HORIZONTAL_ALIGNMENT_CENTER)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	p.add_child(l)
+	return p
+
+## Rotating race panorama behind a screen (assets/textures/gui/background/<prefix>_0..5.png).
+static func panorama_backdrop(parent: Control, prefix: String, shade := 0.45) -> Control:
+	var px := parent.size if parent.size.x > 64.0 else Vector2(1280, 720)
+	var cube := PanoramaCube.new(px, prefix)
+	cube.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	parent.add_child(cube)
+	var shadeing := ColorRect.new()
+	shadeing.color = Color(NIGHT_PANEL.r * 0.5, NIGHT_PANEL.g * 0.5, NIGHT_PANEL.b * 0.6, shade)
+	shadeing.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shadeing.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(shadeing)
+	return cube
+
+## Prev / next arrow from the DMZ character button sheet (rotated for left/right).
+static func arrow_button(direction: int, on_pressed: Callable) -> Button:
+	var sc := s()
+	var b := Button.new()
+	b.custom_minimum_size = Vector2(46.0 * sc, 46.0 * sc)
+	b.focus_mode = Control.FOCUS_NONE
+	b.flat = true
+	b.add_theme_stylebox_override("normal", flat(Color(NIGHT_DEEP.r, NIGHT_DEEP.g, NIGHT_DEEP.b, 0.75),
+		NIGHT_BORDER, 2.0 * sc, 5.0 * sc, 0.0))
+	b.add_theme_stylebox_override("hover", flat(NIGHT_NEON, NIGHT_NEON_LIGHT, 2.0 * sc, 5.0 * sc, 0.0))
+	b.add_theme_stylebox_override("pressed", flat(NIGHT_NEON, NIGHT_NEON_LIGHT, 2.0 * sc, 5.0 * sc, 0.0))
+	var sheet := gui_tex("buttons/characterbuttons")
+	var tr := TextureRect.new()
+	tr.texture = atlas(sheet, R_CHAR_ARROW_UP, hd_factor(sheet))
+	tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tr.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	tr.pivot_offset = Vector2(23.0 * sc, 23.0 * sc)
+	tr.rotation_degrees = -90.0 if direction < 0 else 90.0
+	b.add_child(tr)
+	if on_pressed.is_valid():
+		b.pressed.connect(func() -> void:
+			click()
+			on_pressed.call())
+	return b
 
 static func icon_rect(tex: Texture2D, size: Vector2) -> TextureRect:
 	var tr := TextureRect.new()

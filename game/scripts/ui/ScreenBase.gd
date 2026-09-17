@@ -109,6 +109,46 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST and modal and is_visible_in_tree():
 		close_self()
 
+## DMZ-framed page: a rotating race panorama (or the tiled background), the DMZ menu panel
+## nine-slice and the DMZ title bar. `panel_kind` is one of UiUtil.dmz_panel_style's kinds.
+func dmz_page(title_text: String, panorama := "", panel_kind := "big", with_close := true,
+		max_w := 0.0) -> VBoxContainer:
+	if panorama != "" and ResourceLoader.exists("res://assets/textures/gui/background/%s_0.png" % panorama):
+		UiUtil.panorama_backdrop(self, panorama, 0.55)
+	else:
+		UiUtil.dirt_background(self, 0.28)
+	var frame := UiUtil.dmz_panel(panel_kind)
+	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var side := 14.0 * s
+	frame.offset_left = insets.x + side
+	frame.offset_top = insets.y + 8.0 * s
+	frame.offset_right = -(insets.z + side)
+	frame.offset_bottom = -(insets.w + 8.0 * s)
+	if max_w > 0.0 and size.x > max_w + 2.0 * side:
+		var pad := (size.x - max_w) * 0.5
+		frame.offset_left = pad
+		frame.offset_right = -pad
+	add_child(frame)
+	var root := VBoxContainer.new()
+	root.add_theme_constant_override("separation", int(8.0 * s))
+	frame.add_child(root)
+	content = root
+	var head := UiUtil.hbox(10.0 * s)
+	var bar := UiUtil.dmz_bar(title_text, 260.0 * s)
+	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(bar)
+	if with_close:
+		var cb := UiUtil.flat_button("Close", close_self, false, 120.0 * s)
+		cb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		head.add_child(cb)
+	root.add_child(head)
+	var body := VBoxContainer.new()
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_theme_constant_override("separation", int(6.0 * s))
+	root.add_child(body)
+	return body
+
 ## Standard framed page: tiled background + title row (with Close) + an expanding body.
 ## Everything is anchored so it survives any viewport shape.
 func page(title_text: String, with_close := true) -> VBoxContainer:
