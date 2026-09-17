@@ -20,8 +20,8 @@ extends Node
 
 const LIFE_SCENE := "res://scenes/ambient/AmbientLife.tscn"
 const NODE_NAME := "AmbientLife"
-const DEMO_PERIOD := 1.6
-const DEMO_WATER_SEARCH := 14
+const DEMO_PERIOD := 1.0
+const DEMO_WATER_SEARCH := 22
 
 var life: AmbientLife = null
 var world: Node = null
@@ -36,6 +36,9 @@ var hide_hud := false
 
 var _demo_timer := 0.0
 var _demo_step := 0
+var _elapsed := 0.0
+var _demo_shot_at := -1.0
+var _demo_shot_fired := false
 var _rng := RandomNumberGenerator.new()
 
 ## signal name -> handler, so the wiring can be connected, disconnected and inspected as a set.
@@ -110,6 +113,11 @@ func _parse_args() -> void:
 			"ambient-cap":
 				if value.is_valid_int():
 					quad_cap = value.to_int()
+			"after":
+				# Main's screenshot delay: with --ambient-demo, one burst is fired just before
+				# the shutter so a verification shot always catches the reactive layer.
+				if value.is_valid_float():
+					_demo_shot_at = value.to_float()
 
 # --- install / teardown -----------------------------------------------------------------------
 
@@ -200,6 +208,12 @@ func _process(delta: float) -> void:
 	if forced_time >= 0.0 or forced_weather != "":
 		_apply_overrides()
 	if demo:
+		_elapsed += delta
+		if not _demo_shot_fired and _demo_shot_at > 0.5 and _elapsed >= _demo_shot_at - 0.45:
+			_demo_shot_fired = true
+			_demo_timer = 0.0
+			_fire_demo()
+			return
 		_demo_timer += delta
 		if _demo_timer >= DEMO_PERIOD:
 			_demo_timer = 0.0
@@ -222,19 +236,41 @@ func _apply_overrides() -> void:
 func _fire_demo() -> void:
 	if not is_installed() or life.reactive == null:
 		return
-	var at := life.center
 	_demo_step += 1
-	match _demo_step % 3:
-		0:
-			life.reactive.debris(at + _offset(2.0) + Vector3(0, 0.8, 0),
-				AmbientAssets.block_color(life.surface_block_under()), 1.4)
-		1:
-			var spot := find_water(at)
-			if spot.y < -9000.0:
-				spot = at + _offset(1.6) + Vector3(0, 0.1, 0)
-			Events.splash.emit(spot, 2.0)
-		_:
-			life.reactive.wisp(at + _offset(2.5) + Vector3(0, 1.0, 0), Color(0.75, 0.35, 1.0))
+	var fwd := _ahead()
+	var side := fwd.cross(Vector3.UP)
+	var block := life.surface_block_under()
+	var col := AmbientAssets.tinted_block_color(block, life.biome_def)
+	# Off to the sides, not straight ahead: a third-person camera sits behind the player, so
+	# "in front of the player" is exactly the one place the player's own body hides.
+	life.reactive.debris(_demo_spot(side * 3.2 + fwd * 1.2, 0.6), col, 1.3)
+	life.reactive.wisp(_demo_spot(side * -2.8 + fwd * 0.6, 0.9), Color(0.75, 0.35, 1.0))
+	var spot := find_water(life.center)
+	var on_water := spot.y > -9000.0
+	if not on_water:
+		spot = _demo_spot(side * 1.9 + fwd * 0.4, 0.08)
+	Events.splash.emit(spot, 2.0)
+	Log.i("ambient demo #%d: splash at %s (%s), debris %s" % [
+		_demo_step, str(spot), "water" if on_water else "dry ground", str(life.center)])
+
+## A point `offset` from the player, lifted to sit `up` above whatever surface is in that column
+## (the demo must not fire into a hillside or into thin air).
+func _demo_spot(offset: Vector3, up: float) -> Vector3:
+	var p := life.center + offset
+	if world != null and is_instance_valid(world) and world.has_method("get_height"):
+		var top := int(world.call("get_height", int(floor(p.x)), int(floor(p.z))))
+		if top > 1 and absf(float(top) - life.center.y) <= 6.0:
+			p.y = float(top)
+	return p + Vector3(0, up, 0)
+
+## Horizontal forward of the active camera, so a demo effect lands in frame and not behind it.
+func _ahead() -> Vector3:
+	var cam: Camera3D = get_viewport().get_camera_3d() if is_inside_tree() else null
+	if cam == null:
+		return Vector3.FORWARD
+	var f := -cam.global_transform.basis.z
+	f.y = 0.0
+	return f.normalized() if f.length() > 0.01 else Vector3.FORWARD
 
 func _offset(r: float) -> Vector3:
 	var a := _rng.randf() * TAU

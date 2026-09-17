@@ -196,6 +196,9 @@ static func apply_to(model: BedrockModel, character: Dictionary, armor: Array = 
 	if model == null:
 		return
 	model.set_texture(compose(character))
+	# CONTRACT: the composed character and its haircut stay on the model. Forms.gd
+	# and TransformationDirector restore hair through `clear_form_hair(target)` for
+	# entities they have no character dictionary for, and that reads these back.
 	model.set_meta("character", character.duplicate(true))
 	model.set_meta("base_hair_style", HairBuilder.style_id(_int(character.get("hair_type"), 1)))
 	model.hide_layer_bones(ALL_ARMOR_BONES)

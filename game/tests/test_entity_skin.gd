@@ -350,3 +350,26 @@ func test_scalp_shell_covers_the_skull() -> void:
 		var box := mesh.get_aabb()
 		assert_true(box.position.y < 7.0, "%s reaches down onto the skull (%.1f)" % [id, box.position.y])
 		assert_true(box.size.x >= 8.0, "%s covers the width of the head (%.1f)" % [id, box.size.x])
+
+func test_apply_to_records_the_character_for_form_reverts() -> void:
+	# CONTRACT with Forms.gd / TransformationDirector: they revert hair with
+	# clear_form_hair(target) and no character dictionary (enemies are skinned
+	# through paths that have none), so apply_to has to leave it on the model.
+	model = BedrockModel.new()
+	add_node(model)
+	model.load_geo("entity/races/human")
+	RaceSkin.apply_to(model, _character({"hair_type": 3, "hair_color": "#4a2c17"}))
+	assert_true(model.has_meta("character"), "the composed character is recorded")
+	var rec: Dictionary = model.get_meta("character")
+	assert_eq(_int_of(rec.get("hair_type")), 3, "hair_type kept")
+	assert_eq(String(model.get_meta("base_hair_style")), HairBuilder.style_id(3), "base style kept")
+	# transform, then revert with no character at all: the haircut and colour come back
+	RaceSkin.set_form_hair(model, {"hairType": "ssj3", "hairColor": "#ffe89e"})
+	assert_eq(HairBuilder.current_style(model), "long@ssj3")
+	RaceSkin.clear_form_hair(model)
+	assert_eq(HairBuilder.current_style(model), HairBuilder.style_id(3), "own haircut restored from the meta")
+	var mat := HairBuilder.hair_material(model)
+	assert_near(mat.albedo_color.h, Color("#4a2c17").h, 0.03, "own hair colour restored")
+
+func _int_of(v: Variant) -> int:
+	return int(v) if (v is int or v is float or (v is String and String(v).is_valid_int())) else -1

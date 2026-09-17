@@ -32,6 +32,8 @@ const MOVES_PER_TICK := 14
 const CANOPY_SAMPLES := 8
 const CANOPY_DEPTH := 5
 const CANOPY_RADIUS := 11.0
+## How far above or below the focus point a spawn column's surface may be (rejects treetops).
+const MAX_SURFACE_DY := 4.5
 const FOOTSTEP_STRIDE := 1.8
 const PROFILE_PERIOD := 5.0
 
@@ -64,6 +66,9 @@ var daylight := 1.0
 var wind_dir := Vector2(0.8, 0.6)
 var wind_gust := 0.35
 var center := Vector3.ZERO
+## Surface height in the focus point's own column: the reference every spawn column is compared
+## against, so "the ground the player is on" is what gets dressed, not the treetops above them.
+var ground_y := 0.0
 
 var enabled := true
 var force_profile := false
@@ -313,6 +318,11 @@ func _refresh_context() -> void:
 		day_fraction = float(world.call("day_fraction"))
 	if world.has_method("daylight"):
 		daylight = float(world.call("daylight"))
+	ground_y = center.y
+	if world.has_method("get_height"):
+		var top := int(world.call("get_height", int(floor(center.x)), int(floor(center.z))))
+		if top > 1:
+			ground_y = float(top)
 	var new_biome := biome_id
 	if world.has_method("get_biome"):
 		new_biome = String(world.call("get_biome", int(floor(center.x)), int(floor(center.z))))
@@ -379,7 +389,7 @@ func _configure_mote_field(field: AmbientMotes, kind: String) -> void:
 			# Snow does not drift, it twinkles: no rise, a fast sparkle blink.
 			field.configure(kind, c, dot, 0.055, 3.0, 0.25, 0.5, 0.0, 9.0, 18.0)
 		AmbientRules.MOTE_EMBER:
-			field.configure(kind, c, dot, 0.11, 2.4, 0.45, 2.4, 0.07, 0.9, 28.0)
+			field.configure(kind, c, dot, 0.16, 2.6, 0.45, 2.4, 0.07, 0.9, 28.0)
 		AmbientRules.MOTE_SPIRIT:
 			field.configure(kind, c, dot, 0.12, 1.8, 0.3, 2.0, 0.035, 1.1, 30.0)
 		_:
@@ -598,7 +608,7 @@ func _update_footsteps() -> void:
 	var id := int(world.call("get_block", bx, by, bz))
 	if id <= 0:
 		return
-	reactive.footstep(pos + Vector3(0, 0.06, 0), AmbientAssets.block_color(id))
+	reactive.footstep(pos + Vector3(0, 0.06, 0), AmbientAssets.tinted_block_color(id, biome_def))
 
 # --- heat shimmer -----------------------------------------------------------------------------
 
@@ -619,10 +629,16 @@ func _update_shimmer() -> void:
 
 ## A point on the ground in the spawn ring around the player, `y_min..y_max` above the surface.
 ## Returns y < -9000 when no loaded, sensible spot was found. `dry` rejects water surfaces.
-func _ground_spot(min_r: float, max_r: float, y_min: float, y_max: float, dry: bool) -> Vector3:
+##
+## `max_dy` is what keeps butterflies out of the treetops: `World.get_height` is the top of
+## whatever stands in that column, so a sample that lands on a tree comes back 10-20 m above
+## `ground_y` (the surface under the player). Those columns are rejected, and the swarm stays on
+## the ground the player is walking on.
+func _ground_spot(min_r: float, max_r: float, y_min: float, y_max: float, dry: bool,
+		max_dy := MAX_SURFACE_DY) -> Vector3:
 	if world == null or not is_instance_valid(world) or not world.has_method("get_height"):
 		return Vector3(0, -9999, 0)
-	for _s in 4:
+	for _s in 5:
 		var a := _rng.randf() * TAU
 		var r := _rng.randf() * (max_r - min_r) + min_r
 		var wx := center.x + cos(a) * r
@@ -631,6 +647,8 @@ func _ground_spot(min_r: float, max_r: float, y_min: float, y_max: float, dry: b
 		var bz := int(floor(wz))
 		var top := int(world.call("get_height", bx, bz))
 		if top <= 1:
+			continue
+		if absf(float(top) - ground_y) > max_dy:
 			continue
 		if dry and world.has_method("is_liquid") and bool(world.call("is_liquid", bx, top - 1, bz)):
 			continue
@@ -663,7 +681,7 @@ func _on_block_changed(pos: Vector3i, old_id: int, new_id: int) -> void:
 	if BlockTable.built and old_id < BlockTable.liquid.size() and BlockTable.liquid[old_id] == 1:
 		return
 	_block_events += 1
-	reactive.debris(p, AmbientAssets.block_color(old_id), 1.0)
+	reactive.debris(p, AmbientAssets.tinted_block_color(old_id, biome_def), 1.0)
 
 func _on_explosion(center_pos: Vector3, radius: float, _power: float) -> void:
 	if reactive == null or not _in_range(center_pos, 64.0):

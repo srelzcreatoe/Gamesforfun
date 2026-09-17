@@ -130,8 +130,8 @@ func _build_stage() -> void:
 	add_child(camera)
 	# Standing back and tilted up a little: the lawn keeps the lower half (butterflies, leaves,
 	# fireflies), the canopies and the flock get the upper half.
-	camera.look_at_from_position(Vector3(0.6, float(GROUND_Y) + 3.6, 17.0),
-		Vector3(0.0, float(GROUND_Y) + 8.0, -6.0), Vector3.UP)
+	camera.look_at_from_position(Vector3(0.6, float(GROUND_Y) + 2.0, 17.0),
+		Vector3(0.0, float(GROUND_Y) + 7.5, -6.0), Vector3.UP)
 
 	sun = DirectionalLight3D.new()
 	sun.shadow_enabled = false

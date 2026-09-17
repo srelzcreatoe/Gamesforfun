@@ -45,12 +45,16 @@ func _ready() -> void:
 	_build()
 	set_active(_active)
 
-func configure(c: Color, scale_body := 1.0) -> void:
+## `visual_height` is how far up the arcs may spawn, in metres: pass the model's real
+## visual height (`BedrockModel.visual_aabb()`), because a transformed character is much
+## taller than its hitbox — SSJ3 hair alone adds most of a metre, and arcs that stop at
+## the hitbox top leave the hair outside the storm. 0 keeps the hitbox default.
+func configure(c: Color, scale_body := 1.0, visual_height := 0.0) -> void:
 	color = c
 	core_color = c.lerp(Color(1, 1, 1), 0.65)
 	body_scale = maxf(0.2, scale_body)
 	radius = 0.75 * body_scale
-	height = 2.0 * body_scale
+	height = visual_height if visual_height > 0.1 else 2.0 * body_scale
 	for i in _bolts.size():
 		var m: StandardMaterial3D = _bolts[i].material_override
 		if m != null:

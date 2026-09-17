@@ -294,3 +294,44 @@ func test_real_data_forms_are_readable() -> void:
 	assert_near(Forms.mult_of(ssj, "STR"), 1.5, 0.001)
 	assert_true(float(ssj.get("energyDrain", 0.0)) > 0.0)
 	assert_eq(String(ssj.get("skill", "")), "superforms")
+
+# --- form hair (geometry, not just colour) --------------------------------
+
+## A form changes the hair GEOMETRY through `RaceSkin`, so dropping the form has to swap
+## the character's own haircut back in - a colour reset alone would leave an SSJ3 mane on
+## a base-form character.
+func test_transform_swaps_the_hair_and_reverting_puts_it_back() -> void:
+	var bm := BedrockModel.new()
+	bm.name = "Model"
+	if not bm.load_geo("entity/races/human"):
+		bm.free()
+		return
+	if dummy.model != null and is_instance_valid(dummy.model):
+		dummy.model.free()
+	dummy.model = bm
+	dummy.add_child(bm)
+	RaceSkin.apply_to(bm, {
+		"race": "saiyan", "gender": "male", "body_type": 0, "hair_type": 2,
+		"hair_color": "#221a14", "eye_color": "#3f6fd8", "skin_color": "#ffd3c9",
+		"skin_color2": "#572117", "skin_color3": "#ffd3c9",
+	})
+	var base_style := HairBuilder.current_style(bm)
+	assert_true(base_style != "", "the character has a haircut to begin with")
+
+	var d := _fixture_a()
+	d["hairType"] = "ssj3"
+	d["hairColor"] = "#FFE14D"
+	Registry.forms[A] = d
+	Forms.set_mastery(dummy, A, 100.0)         # instant: no cinematic in the way
+	assert_true(Forms.transform(dummy, A))
+	var form_style := HairBuilder.current_style(bm)
+	assert_ne(form_style, base_style, "the form swapped the hair (%s -> %s)" % [base_style, form_style])
+	var mat := HairBuilder.hair_material(bm)
+	assert_true(mat != null and mat.albedo_color.r > 0.8 and mat.albedo_color.b < 0.6,
+		"and coloured it gold")
+
+	Forms.revert_all(dummy)
+	assert_eq(HairBuilder.current_style(bm), base_style, "the revert restored the haircut")
+	var back := HairBuilder.hair_material(bm)
+	assert_true(back != null and back.albedo_color.r < 0.45,
+		"and the character's own dark hair colour (%s)" % str(back.albedo_color))

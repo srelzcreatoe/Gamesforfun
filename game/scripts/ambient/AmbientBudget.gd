@@ -52,12 +52,9 @@ func available(category: String) -> int:
 
 ## Grant at most `want` quads to `category`, replacing whatever it held before. Returns the grant.
 func claim(category: String, want: int) -> int:
-	var before := int(used.get(category, 0))
 	used[category] = 0
 	var granted := clampi(want, 0, available(category))
 	used[category] = granted
-	if granted < 0:
-		used[category] = before
 	return granted
 
 ## Add `n` quads to a category without releasing what it holds (one-shot effects).

@@ -99,7 +99,9 @@ var _gs := 1.0
 var _rng := RandomNumberGenerator.new()
 var _loop_key := ""
 var _hair_mat: StandardMaterial3D = null
+var _hair_accent_mat: StandardMaterial3D = null
 var _hair_base := Color.WHITE
+var _hair_accent_base := Color.WHITE
 var _hair_base_set := false
 
 # camera state we borrow and must give back
@@ -656,7 +658,7 @@ func _enter_reveal() -> void:
 		_aura.set_lightning_reach(0.12)  # the arcs hug the body again
 		_aura.set_intensity(-1.0)       # back to the automatic idle aura
 	_flash_body(false)                   # drop any emission the last flicker left on
-	_flicker_hair(true)                  # settle on the form colour
+	_settle_hair()                       # settle on the form colour, stop the pulse
 	ScreenFx.clear_sustained(0.4)
 	if _prev_bgm != "" and _prev_bgm != "transformation":
 		Audio.play_bgm(_prev_bgm, 1.5)
@@ -706,13 +708,13 @@ func _flicker_hair(on: bool) -> void:
 	if hair != null:
 		if not _hair_base_set:
 			_hair_base = hair.albedo_color
+			if _hair_accent_mat != null:
+				_hair_accent_base = _hair_accent_mat.albedo_color
 			_hair_base_set = true
-		hair.albedo_color = c if on else _hair_base
-		# the gold/blue hair of a form is emissive while the aura burns
-		hair.emission_enabled = on
-		if on:
-			hair.emission = c
-			hair.emission_energy_multiplier = 0.85
+		_paint_hair(hair, c, _hair_base, on)
+		# a two tone style (gold accent spikes) flickers with the main hair, a shade lighter
+		if _hair_accent_mat != null and is_instance_valid(_hair_accent_mat):
+			_paint_hair(_hair_accent_mat, c.lerp(Color.WHITE, 0.35), _hair_accent_base, on)
 		return
 	if model.has_method("has_bone") and model.has_method("set_bone_material") and model.has_method("get_texture"):
 		var tex: Variant = model.call("get_texture")
@@ -726,14 +728,47 @@ func _flicker_hair(on: bool) -> void:
 	if model.has_method("set_tint"):
 		model.call("set_tint", c.lerp(Color.WHITE, 0.5) if on else Color.WHITE)
 
+## End of the cinematic: leave the form's colour on the hair but stop the emissive
+## pulse (at idle the aura does the glowing), and hand the hair over to the form.
+## `Forms` applied the real `RaceSkin` visuals at the climax and `RaceSkin.clear_form_hair`
+## puts the character's own haircut back on a revert, so `_release` must not paint the
+## pre-transformation colour over it. An interrupt BEFORE the settle still restores,
+## which is what an aborted cast wants.
+func _settle_hair() -> void:
+	_flicker_hair(true)
+	for mat: StandardMaterial3D in [_hair_mat, _hair_accent_mat]:
+		if mat != null and is_instance_valid(mat):
+			mat.emission_enabled = false
+	_hair_base_set = false
+
+## Paint one hair material for the flicker: the form colour (emissive while the aura
+## burns) when `on`, the colour it had before the cinematic when off.
+func _paint_hair(mat: StandardMaterial3D, c: Color, base: Color, on: bool) -> void:
+	mat.albedo_color = c if on else base
+	mat.emission_enabled = on
+	if on:
+		mat.emission = c
+		mat.emission_energy_multiplier = 0.85
+
 ## Material of the voxel hair mesh (`head` bone -> "Hair"), or null.
+##
+## `HairBuilder.hair_material` finds the main hair whichever slot it sits in:
+## `material_override` for the single surface styles, surface 0 for a two tone style
+## (e.g. "gotenks"), whose surface 1 is the gold accent spikes — those go into
+## `_hair_accent_mat` so both layers flicker together. The duck-typed walk below is
+## the fallback for a stub model (FxDummy) that is not a BedrockModel.
 func _hair_material(model: Node3D) -> StandardMaterial3D:
 	if _hair_mat != null and is_instance_valid(_hair_mat):
 		return _hair_mat
 	if model is BedrockModel:
-		var hm: StandardMaterial3D = HairBuilder.hair_material(model as BedrockModel)
+		var bm := model as BedrockModel
+		var hm: StandardMaterial3D = HairBuilder.hair_material(bm)
 		if hm != null:
 			_hair_mat = hm
+			var head3: Node3D = bm.get_bone("head")
+			var hair3 := head3.get_node_or_null("Hair") as MeshInstance3D if head3 != null else null
+			if hair3 != null and hair3.mesh != null and hair3.mesh.get_surface_count() > 1:
+				_hair_accent_mat = hair3.get_surface_override_material(1) as StandardMaterial3D
 			return _hair_mat
 	if not model.has_method("get_bone"):
 		return null
@@ -845,9 +880,13 @@ func _release() -> void:
 			l.queue_free()
 	_light = null
 	_aura_light = null
-	if _hair_mat != null and is_instance_valid(_hair_mat) and _hair_base_set:
-		_hair_mat.albedo_color = _hair_base
-		_hair_mat.emission_enabled = false
+	if _hair_base_set:
+		if _hair_mat != null and is_instance_valid(_hair_mat):
+			_hair_mat.albedo_color = _hair_base
+			_hair_mat.emission_enabled = false
+		if _hair_accent_mat != null and is_instance_valid(_hair_accent_mat):
+			_hair_accent_mat.albedo_color = _hair_accent_base
+			_hair_accent_mat.emission_enabled = false
 	var model := _model()
 	if model != null:
 		if model.has_method("set_emission"):

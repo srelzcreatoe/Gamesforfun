@@ -33,7 +33,7 @@ func setup(max_instances: int, seed_value: int = 0) -> void:
 		homes[i] = Vector3(0, -9999, 0)
 	_mat = AmbientAssets.butterfly_material()
 	_mat.set_shader_parameter("sprite", AmbientAssets.tex(AmbientAssets.BUTTERFLY_TEXTURES[0]))
-	_mat.set_shader_parameter("size", 0.34)
+	_mat.set_shader_parameter("size", 0.24)
 	_mat.set_shader_parameter("fade_start", 15.0)
 	_mat.set_shader_parameter("fade_end", 26.0)
 	material_override = _mat

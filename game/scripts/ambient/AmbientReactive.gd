@@ -239,7 +239,7 @@ func _make(kind: String) -> Node:
 		DEBRIS:
 			var p := _base("Debris", 10, 1.0, false, AmbientAssets.soft_dot())
 			var box := BoxMesh.new()
-			box.size = Vector3(0.12, 0.12, 0.12)
+			box.size = Vector3(0.085, 0.085, 0.085)
 			p.mesh = box
 			var m := StandardMaterial3D.new()
 			m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -256,8 +256,8 @@ func _make(kind: String) -> Node:
 			p.gravity = Vector3(0, -16.0, 0)
 			p.angular_velocity_min = -280.0
 			p.angular_velocity_max = 280.0
-			p.scale_amount_min = 0.7
-			p.scale_amount_max = 1.5
+			p.scale_amount_min = 0.55
+			p.scale_amount_max = 1.2
 			p.color_ramp = _ramp(PackedFloat32Array([0.0, 0.75, 1.0]),
 				PackedColorArray([Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0)]))
 			return p

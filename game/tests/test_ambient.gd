@@ -277,6 +277,47 @@ func test_life_sheds_leaves_under_a_canopy() -> void:
 	assert_true(anchor.y > float(w.canopy_y) - 1.0 and anchor.y < float(w.canopy_y) + 2.0,
 		"the emitter sits in the canopy, got y=%f for canopy %d" % [anchor.y, w.canopy_y])
 
+func test_life_keeps_its_swarms_off_the_treetops() -> void:
+	# World.get_height returns the top of whatever stands in a column, so a naive spawn puts
+	# butterflies on top of the canopy. One canopy inside the spawn ring, and nothing may sit
+	# on it: every swarm belongs on the ground the player is standing on.
+	var w := _stub("forest")
+	w.canopy_centers = PackedVector2Array([Vector2(8.0, 8.0)])
+	w.set_phase("day")
+	var l := _life(w)
+	for _i in 12:
+		l.tick()
+	assert_near(l.ground_y, float(w.ground_y), 0.01, "the reference height is the focus column")
+	var checked := 0
+	for i in l.flyers.active_count():
+		var h := l.flyers.home_of(i)
+		if h.y < -9000.0:
+			continue
+		checked += 1
+		assert_true(h.y <= float(w.ground_y) + 2.5,
+			"butterfly %d sits at y=%f, up the canopy at %d" % [i, h.y, w.canopy_y])
+	assert_true(checked > 0, "at least one butterfly was placed")
+
+func test_leaf_emitters_are_not_restarted_every_tick() -> void:
+	# Writing `amount` or `lifetime` on a CPUParticles3D throws away every live particle, so a
+	# per-tick wind refresh must not touch them or no leaf ever finishes falling.
+	var w := _stub("forest")
+	w.set_phase("day")
+	var l := _life(w)
+	for _i in 6:
+		l.tick()
+	assert_true(l.leaves.active > 0 and l.leaves.emitters.size() > 0, "an emitter is running")
+	var e: CPUParticles3D = l.leaves.emitters[0]
+	var amount := e.amount
+	var life_seconds := e.lifetime
+	l.leaves.set_wind(0, Vector2(1, 0), 1.0)
+	assert_eq(e.amount, amount, "a wind refresh must not reallocate the particle array")
+	assert_eq(e.lifetime, life_seconds, "nor change the lifetime")
+	for _i in 4:
+		l.tick()
+	assert_eq(e.amount, amount, "and neither may the following ticks")
+	assert_true(e.emitting, "the emitter keeps shedding")
+
 func test_life_is_dead_in_deep_space() -> void:
 	var w := _stub("deep_space", "universe_7_deep_space", false)
 	w.set_phase("night")

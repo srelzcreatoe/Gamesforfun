@@ -433,6 +433,11 @@ func _apply_visuals(form_id: String) -> void:
 	if not _race_skin_visuals(d):
 		_apply_model_scale(d)
 		_modulate_fallback(d)
+	if d.is_empty():
+		# Back to base, last: a form changed the hair GEOMETRY, so the character's own
+		# haircut has to be swapped back in (after the fallbacks, which would otherwise
+		# repaint it white).
+		_race_skin_clear_hair()
 	_apply_model_override(d)
 
 func _apply_model_scale(d: Dictionary) -> void:
@@ -454,29 +459,56 @@ func _apply_model_override(d: Dictionary) -> void:
 	if entity != null and entity.has_method("set_model_override"):
 		entity.call("set_model_override", mo)
 
-## Ask the entity engineer's RaceSkin to recompose the skin (hair/eyes/body colours
-## and the model scale): `RaceSkin.apply_form_visuals(model: BedrockModel, form_def)`.
-## Loaded dynamically and duck-typed so this file also works with a stub model
-## (FxDummy in the tests / the fx preview) or before scripts/entity/ exists.
+## Ask the entity engineer's RaceSkin to recompose the skin (hair set/colour, eyes,
+## body colours and the model scale): `RaceSkin.apply_form_visuals(model, form_def)`.
 func _race_skin_visuals(d: Dictionary) -> bool:
-	const PATH := "res://scripts/entity/RaceSkin.gd"
-	if d.is_empty() or entity == null or not ResourceLoader.exists(PATH):
+	if d.is_empty():
 		return false
-	var m: Variant = entity.get("model") if "model" in entity else null
-	if not (m is Node) or not (m as Node).has_method("get_bone") or not (m as Node).has_method("set_model_scale"):
-		return false
-	var script: Variant = load(PATH)
+	var script := _race_skin("apply_form_visuals")
 	if script == null:
 		return false
-	var has := false
-	for meth in (script as Script).get_script_method_list():
-		if String(meth["name"]) == "apply_form_visuals":
-			has = true
-			break
-	if not has:
-		return false
-	script.call("apply_form_visuals", m, _race_skin_args(d))
+	script.call("apply_form_visuals", entity.get("model"), _race_skin_args(d))
 	return true
+
+## Revert: `RaceSkin.clear_form_hair` puts the character's own haircut and colour back.
+## A form changes the hair GEOMETRY, not only its colour, so dropping the form has to
+## undo the swap or a base-form character keeps the mane it transformed into.
+func _race_skin_clear_hair() -> void:
+	var script := _race_skin("clear_form_hair")
+	if script != null:
+		script.call("clear_form_hair", entity.get("model"), _character())
+
+## The entity engineer's RaceSkin script, when it exists and exposes `method`, and this
+## entity has a model it can work on. Loaded dynamically and duck-typed so this file also
+## works with a stub model (FxDummy in the tests / the fx preview) or before
+## scripts/entity/ exists.
+func _race_skin(method: String) -> Script:
+	const PATH := "res://scripts/entity/RaceSkin.gd"
+	if entity == null or not ResourceLoader.exists(PATH):
+		return null
+	var m: Variant = entity.get("model") if "model" in entity else null
+	if not (m is Node) or not (m as Node).has_method("get_bone") or not (m as Node).has_method("set_model_scale"):
+		return null
+	var script: Variant = load(PATH)
+	if not (script is Script):
+		return null
+	for meth in (script as Script).get_script_method_list():
+		if String(meth["name"]) == method:
+			return script as Script
+	return null
+
+## The character dictionary this entity was skinned with (for the haircut to go back to).
+## Empty is fine: RaceSkin then reads the one the model was composed with.
+func _character() -> Dictionary:
+	if entity != null and Game != null and Game.player == entity:
+		var c: Variant = Game.profile.get("character", {})
+		if c is Dictionary:
+			return c
+	if entity != null and "character" in entity:
+		var c2: Variant = entity.get("character")
+		if c2 is Dictionary:
+			return c2
+	return {}
 
 ## RaceSkin reads `modelScaling` as a single float while forms.json stores a vector;
 ## hand it a normalised copy so both sides keep their own schema.
@@ -505,6 +537,11 @@ func _modulate_fallback(d: Dictionary) -> void:
 	_modulate_recursive(node, c)
 
 func _modulate_recursive(node: Node, c: Color) -> void:
+	# The voxel hair is owned by RaceSkin/HairBuilder (a form swaps its geometry AND its
+	# colour, a two tone style keeps a material per surface): replacing its
+	# `material_override` here would both repaint it and cut it off from that rig.
+	if node.name == "Hair":
+		return
 	if node is GeometryInstance3D:
 		(node as GeometryInstance3D).set_instance_shader_parameter("form_tint", c)
 		if node is MeshInstance3D:

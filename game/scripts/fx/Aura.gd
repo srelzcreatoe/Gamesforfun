@@ -60,6 +60,8 @@ var _intensity := 0.0
 var _target := 0.0
 var _loop_key := ""
 var _idle_t := 0.0
+## Countdown to the next re-read of the model's visual height (see `visual_height`).
+var _height_t := 0.0
 ## Transformation flicker: >0 while the aura is snapping in and out (phase B).
 var _flicker := 0.0
 var _flicker_white := 0.0
@@ -142,7 +144,7 @@ func _build() -> void:
 	_lightning = AuraLightning.new()
 	_lightning.name = "Lightning"
 	add_child(_lightning)
-	_lightning.configure(lightning_color, body_scale)
+	_lightning.configure(lightning_color, body_scale, visual_height())
 	_lightning.set_active(false)
 
 func _make_material(c: Color, inner: Color, noise: float, scroll: float) -> ShaderMaterial:
@@ -293,7 +295,7 @@ func set_form(form_def: Dictionary) -> void:
 	has_lightning = p.lightning
 	lightning_color = p.lightning_color
 	if _lightning != null:
-		_lightning.configure(lightning_color, body_scale)
+		_lightning.configure(lightning_color, body_scale, visual_height())
 		_lightning.set_active(has_lightning)
 	if _sparks != null:
 		_sparks.color = p.spark
@@ -305,7 +307,7 @@ func set_form(form_def: Dictionary) -> void:
 func set_body_scale(s: float) -> void:
 	body_scale = maxf(0.1, s)
 	if _lightning != null:
-		_lightning.configure(lightning_color, body_scale)
+		_lightning.configure(lightning_color, body_scale, visual_height())
 	if _flare != null:
 		_flare.position = Vector3(0, 1.0 * body_scale, 0)
 	if _sparks != null:
@@ -322,8 +324,27 @@ func set_lightning(on: bool, color := Color(0, 0, 0, 0)) -> void:
 	if color.a > 0.0:
 		lightning_color = color
 	if _lightning != null:
-		_lightning.configure(lightning_color, body_scale)
+		_lightning.configure(lightning_color, body_scale, visual_height())
 		_lightning.set_active(on)
+
+## How tall the aura effects may reach, in metres. The hitbox is only 1.8 m, but a
+## transformed model is much taller than that (a form swaps in taller hair: SSJ3's mane
+## alone adds most of a metre), so the entity's model is asked for its real visual
+## height when it can report one. Guarded and duck-typed: a stub model or a plain
+## capsule just gets the hitbox-derived default.
+func visual_height() -> float:
+	var fallback := 2.0 * body_scale
+	if entity == null or not is_instance_valid(entity) or not ("model" in entity):
+		return fallback
+	var m: Variant = entity.get("model")
+	if not (m is Node) or not (m as Node).has_method("model_height"):
+		return fallback
+	var h := float((m as Node).call("model_height"))
+	if h <= 0.5:
+		return fallback
+	# a little headroom above the hair, and a ceiling so a giant form cannot make the
+	# arcs spawn hundreds of metres up if a model reports nonsense
+	return clampf(h * 1.06, fallback, 12.0 * body_scale)
 
 ## How far the lightning arcs reach out of the body (0 hugs the aura, 1 is the wild
 ## strain-phase crackle). Cheap: it only changes where the next bolt re-rolls.
@@ -385,6 +406,16 @@ func _process(delta: float) -> void:
 	_idle_t += delta
 	var speed := 8.0 if _target > _intensity else 3.5
 	_apply_intensity(lerpf(_intensity, _target, clampf(delta * speed, 0.0, 1.0)))
+	# The model grows during a transformation (giant forms, and the taller hair a form
+	# swaps in lands after `set_form`), so re-read how high the arcs may go twice a
+	# second instead of trusting the height we had when the form was applied.
+	if has_lightning and _lightning != null:
+		_height_t -= delta
+		if _height_t <= 0.0:
+			_height_t = 0.5
+			var h := visual_height()
+			if absf(h - _lightning.height) > 0.08:
+				_lightning.configure(lightning_color, body_scale, h)
 
 func _apply_intensity(v: float) -> void:
 	_intensity = v

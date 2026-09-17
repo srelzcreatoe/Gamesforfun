@@ -158,6 +158,26 @@ static func block_color(block_id: int) -> Color:
 	_block_color[block_id] = c
 	return c
 
+## Same, but with the biome tint applied for blocks whose tile is a greyscale mask (grass tops,
+## foliage): without this a grass debris puff comes out cement grey instead of green.
+static func tinted_block_color(block_id: int, biome_def: Dictionary) -> Color:
+	var c := block_color(block_id)
+	if not BlockTable.built or block_id <= 0 or block_id >= BlockTable.tint.size():
+		return c
+	var t := BlockTable.tint[block_id]
+	var key := ""
+	if t == BlockTable.Tint.GRASS:
+		key = "grass_color"
+	elif t == BlockTable.Tint.FOLIAGE:
+		key = "foliage_color"
+	elif t == BlockTable.Tint.WATER:
+		key = "water_color"
+	if key == "":
+		return c
+	var f := hex_color(String(biome_def.get(key, "")), Color(0.57, 0.74, 0.35))
+	return Color(clampf(c.r * f.r * 1.9, 0.0, 1.0), clampf(c.g * f.g * 1.9, 0.0, 1.0),
+		clampf(c.b * f.b * 1.9, 0.0, 1.0), 1.0)
+
 ## Parse "#RRGGBB" from data/biomes.json; white when the field is missing or malformed.
 static func hex_color(s: String, fallback := Color(1, 1, 1)) -> Color:
 	if s.length() < 6:

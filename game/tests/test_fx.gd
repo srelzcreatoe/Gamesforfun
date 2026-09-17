@@ -497,3 +497,106 @@ func test_revert_flash_plays_and_clears() -> void:
 	for i in 30:
 		fx._process(0.05)
 	assert_true(ScreenFx.is_idle(), "and releases the screen again")
+
+# --- F. hair ownership during the cinematic -------------------------------
+
+## A character model with the voxel hair of `style` attached, hosted on the dummy.
+func _haired_dummy(style: String, color := Color(0.13, 0.15, 0.16)) -> BedrockModel:
+	var bm := BedrockModel.new()
+	bm.name = "Model"
+	if not bm.load_geo("entity/races/human"):
+		bm.free()
+		return null
+	if dummy.model != null and is_instance_valid(dummy.model):
+		dummy.model.free()
+	dummy.model = bm
+	dummy.add_child(bm)
+	bm.set_meta("character", {"race": "saiyan", "hair_type": 1, "hair_color": "#221a14"})
+	HairBuilder.attach(bm, style, color)
+	return bm
+
+## The two tone style ("gotenks": main hair + gold accent spikes) keeps its materials
+## per surface with no `material_override`, so a flicker that only looks at the override
+## used to miss it and tint the whole body instead.
+func test_hair_flicker_finds_a_two_tone_style() -> void:
+	var bm := _haired_dummy("gotenks")
+	assert_true(bm != null, "model built")
+	if bm == null:
+		return
+	var hair := bm.get_bone("head").get_node_or_null("Hair") as MeshInstance3D
+	assert_true(hair != null and hair.mesh.get_surface_count() > 1, "two tone hair has 2 surfaces")
+	assert_true(hair.material_override == null, "a two tone style keeps no material_override")
+	var main: StandardMaterial3D = hair.get_surface_override_material(0)
+	var accent: StandardMaterial3D = hair.get_surface_override_material(1)
+	var before_main := main.albedo_color
+	var before_accent := accent.albedo_color
+	var d := _director(EPIC_FORM)
+	if d == null:
+		return
+	_step(d, d.duration * 0.45)          # inside the strain phase: the hair flickers
+	assert_ne(main.albedo_color, before_main, "the form colour reached the main hair")
+	assert_ne(accent.albedo_color, before_accent, "and the accent spikes")
+	var gold: Color = main.albedo_color
+	assert_true(gold.r > gold.b, "the flicker is the form's gold, not the base black")
+	# the body is NOT tinted: the model tint fallback must not kick in for this style
+	var body := bm.get_bone("body") as MeshInstance3D
+	if body != null and body.material_override is StandardMaterial3D:
+		var bm2: StandardMaterial3D = body.material_override
+		assert_true(bm2.albedo_color.is_equal_approx(Color.WHITE),
+			"the body stays untinted (%s)" % str(bm2.albedo_color))
+
+## An aborted cast puts the character's own hair colour back; a cinematic that reaches
+## the reveal leaves the form's hair alone (Forms/RaceSkin own it from the climax on)
+## and drops the emissive pulse, so nothing keeps glowing after a revert.
+func test_hair_is_restored_on_an_interrupt_but_handed_over_on_a_settle() -> void:
+	var bm := _haired_dummy("spiky")
+	if bm == null:
+		return
+	var mat := HairBuilder.hair_material(bm)
+	assert_true(mat != null, "single surface styles keep the material_override")
+	var base := mat.albedo_color
+	var d := _director(EPIC_FORM)
+	if d == null:
+		return
+	_step(d, d.duration * 0.45)
+	assert_ne(mat.albedo_color, base, "the hair flickers during the strain")
+	d.free()                              # interrupted: _release must undo the flicker
+	assert_eq(mat.albedo_color, base, "an aborted transformation puts the hair back")
+	assert_true(not mat.emission_enabled, "and stops the glow")
+
+	var d2 := _director(EPIC_FORM)
+	if d2 == null:
+		return
+	_step(d2, d2.duration + 0.2)          # all the way through the reveal
+	assert_ne(mat.albedo_color, base, "the settled form keeps its own hair colour")
+	assert_true(not mat.emission_enabled, "the hair stops pulsing once the aura settles")
+
+## Lightning arcs are placed up to the model's real visual height, which includes the
+## hair a form swaps in - the hitbox alone is a metre short of an SSJ3 mane.
+func test_lightning_height_follows_the_model_not_the_hitbox() -> void:
+	var bm := _haired_dummy("short")
+	if bm == null:
+		return
+	var aura := Aura.get_for(dummy)
+	assert_true(aura != null, "aura created")
+	if aura == null:
+		return
+	var short_h := aura.visual_height()
+	assert_true(short_h > 1.0, "a real model reports a real height (%.2f m)" % short_h)
+	HairBuilder.attach(bm, "ssj3", Color(1, 0.88, 0.3))
+	var mane_h := aura.visual_height()
+	assert_true(mane_h > short_h, "the SSJ3 mane raises the arcs (%.2f -> %.2f m)" % [short_h, mane_h])
+	aura.set_lightning(true, Color(0.6, 0.85, 1.0))
+	assert_near(aura._lightning.height, mane_h, 0.01, "the arcs use the visual height")
+	# a stub model that cannot report a height falls back to the hitbox default
+	var plain := FxDummy.create("saiyan", "warrior")
+	add_node(plain)
+	if plain.model != null and is_instance_valid(plain.model):
+		plain.model.free()
+	var stub := Node3D.new()
+	stub.name = "Model"
+	plain.model = stub
+	plain.add_child(stub)
+	var pa := Aura.get_for(plain)
+	assert_near(pa.visual_height(), 2.0 * pa.body_scale, 0.01, "fallback without model_height()")
+	plain.free()
