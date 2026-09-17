@@ -97,11 +97,14 @@ func configure(p_seed: int, planet_def: Dictionary, p_mode: String) -> void:
 	if p_mode == MODE_EARTH:
 		# Terralith-style Earth: wide continents, sharp ridges, gentle erosion field.
 		_cont.frequency = 0.00085
-		_cont.fractal_octaves = 4
+		_cont.fractal_octaves = 3
 		_ero.frequency = 0.0021
+		_ero.fractal_octaves = 2
 		_peaks.frequency = 0.0042
-		_peaks.fractal_octaves = 4
+		_peaks.fractal_octaves = 3
 		_hills.frequency = 0.0055
+		_hills.fractal_octaves = 2
+		_detail.fractal_octaves = 1
 		max_height = HEIGHT - 2
 
 func _setup(n: FastNoiseLite, type: int, salt: int, freq: float, octaves: int) -> void:
@@ -191,41 +194,45 @@ func height_f(wx: int, wz: int) -> float:
 func _h_earth(fx: float, fz: float) -> float:
 	var sea := float(sea_level)
 	var c := clampf(_cont.get_noise_2d(fx, fz) + _bias_cont(fx, fz), -1.0, 1.0)
-	var e := _ero.get_noise_2d(fx, fz)
-	var w := _weird.get_noise_2d(fx, fz)
-	var hills := 0.5 + 0.5 * _hills.get_noise_2d(fx, fz)
-	var ridge := 1.0 - absf(_peaks.get_noise_2d(fx, fz))
-	ridge = ridge * ridge
 	var land := smoothstep(-0.12, 0.08, c)
 	var base := sea + _spline_cont(c)
-	# erosion: 1 = rugged, 0 = worn flat
-	var rugged := 1.0 - clampf(0.5 + 0.5 * e, 0.0, 1.0)
+	if land <= 0.001:
+		return base + _detail.get_noise_2d(fx, fz) * 1.2      # open ocean: cheap path
+	var e := _ero.get_noise_2d(fx, fz)
+	var hills := 0.5 + 0.5 * _hills.get_noise_2d(fx, fz)
+	var rugged := 1.0 - clampf(0.5 + 0.5 * e, 0.0, 1.0)       # 1 = rugged, 0 = worn flat
 	var relief := lerpf(4.0, 26.0, rugged)
-	# mountain ranges: inland, low erosion, on a ridge
+	var h := base + land * relief * hills
+	# mountain ranges: inland, low erosion, along a ridge
 	var mtn := clampf((c + 0.12) * 1.5, 0.0, 1.0) * smoothstep(0.15, 0.75, rugged)
-	var h := base + land * (relief * hills + mtn * (66.0 * ridge + 8.0 * hills))
+	if mtn > 0.01:
+		var ridge := 1.0 - absf(_peaks.get_noise_2d(fx, fz))
+		h += land * mtn * (66.0 * ridge * ridge + 8.0 * hills)
 	h += _detail.get_noise_2d(fx, fz) * 1.4 + _bias_height(fx, fz)
-	# plateaus: worn, inland ground steps into terraces
+	# plateaus: worn inland ground steps into terraces
 	var flat := smoothstep(0.35, 0.8, 1.0 - rugged) * land * smoothstep(0.0, 0.35, c)
 	if flat > 0.02 and h > sea + 2.0:
 		var stepped: float = sea + roundf((h - sea) / 7.0) * 7.0
 		h = lerpf(h, stepped, flat * 0.8)
-	# canyons: a narrow weirdness band cut into flat inland ground
-	var canyon := clampf(1.0 - absf(w - 0.34) * 9.0, 0.0, 1.0)
-	if canyon > 0.0 and land > 0.6:
-		var cs := canyon * canyon * smoothstep(0.2, 0.7, 1.0 - rugged)
-		h -= cs * 24.0 * clampf((h - (sea - 2.0)) / 24.0, 0.0, 1.0)
-	# lakes: broad inland basins that the generator fills with water
-	var lake := lake_at(int(fx), int(fz))
-	if lake > 0.0 and land > 0.75 and h > sea + 4.0:
-		h -= lake * 11.0 * smoothstep(0.1, 0.6, 1.0 - rugged)
-	# rivers: carve to just under sea level, never through the spawn area or high peaks
-	var river := clampf(1.0 - absf(_river.get_noise_2d(fx, fz)) * 11.0, 0.0, 1.0)
-	if river > 0.0 and land > 0.35:
-		var high := clampf((h - (sea + 46.0)) / 26.0, 0.0, 1.0)
-		var guard := _gauss(fx, fz, 0.0, 0.0, 130.0)
-		var rs := river * river * (1.0 - high) * land * clampf(1.0 - guard * 1.6, 0.0, 1.0)
-		h = lerpf(h, minf(h, sea - 2.0), rs)
+	if land > 0.6:
+		# canyons: a narrow weirdness band cut into flat inland ground
+		var canyon := clampf(1.0 - absf(_weird.get_noise_2d(fx, fz) - 0.34) * 9.0, 0.0, 1.0)
+		if canyon > 0.0:
+			var cs := canyon * canyon * smoothstep(0.2, 0.7, 1.0 - rugged)
+			h -= cs * 24.0 * clampf((h - (sea - 2.0)) / 24.0, 0.0, 1.0)
+		# lakes: broad inland basins the generator fills with water
+		if land > 0.75 and h > sea + 4.0:
+			var lake := lake_at(int(fx), int(fz))
+			if lake > 0.0:
+				h -= lake * 11.0 * smoothstep(0.1, 0.6, 1.0 - rugged)
+	# rivers: carve to just under sea level, never through spawn or the high peaks
+	if land > 0.35:
+		var river := clampf(1.0 - absf(_river.get_noise_2d(fx, fz)) * 11.0, 0.0, 1.0)
+		if river > 0.0:
+			var high := clampf((h - (sea + 46.0)) / 26.0, 0.0, 1.0)
+			var guard := _gauss(fx, fz, 0.0, 0.0, 130.0)
+			var rs := river * river * (1.0 - high) * land * clampf(1.0 - guard * 1.6, 0.0, 1.0)
+			h = lerpf(h, minf(h, sea - 2.0), rs)
 	return h
 
 ## Continentalness -> height offset from sea level (the 1.18-style continental spline).

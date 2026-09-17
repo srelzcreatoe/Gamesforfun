@@ -7,8 +7,8 @@ const REACH := 4.6
 const MIN_BREAK := 0.05
 const TIER_SPEED := [1.0, 2.0, 4.0, 6.0, 8.0, 9.0, 12.0]   # hand, wood, stone, iron, diamond, kikono, gete
 const COMBO_WINDOW := 0.35
-const COMBO_ANIMS := ["combat.one_handed_punch_left", "combat.one_handed_punch_right", "combat.gutkick"]
 const COMBO_MULT := [1.0, 1.05, 1.35]
+const COMBO_STEPS := 3
 const EAT_TIME := 1.2
 
 var player: Player = null
@@ -314,8 +314,8 @@ func _melee(e: Node) -> void:
 		weapon.def().get("tool", {}).get("damage", 0))) if not weapon.is_empty() else 0.0
 	var mult: float = COMBO_MULT[combo_index]
 	player.face((e as Node3D).global_position if e is Node3D else player.global_position)
-	player.play_anim(COMBO_ANIMS[combo_index], 0.08, false)
-	combo_index = (combo_index + 1) % COMBO_ANIMS.size()
+	player.play_action("attack", combo_index)
+	combo_index = (combo_index + 1) % COMBO_STEPS
 	combo_timer = COMBO_WINDOW
 	var power := player.melee_damage + bonus
 	var dealt := Damage.deal(e, player, mult, Damage.MELEE, power, player.aim_direction())
@@ -377,7 +377,7 @@ func _eat(delta: float) -> void:
 	var food: Dictionary = st.def().get("food", {})
 	if player.survival != null:
 		player.survival.eat(food)
-	player.play_anim("base.eat", 0.1, false)
+	player.play_action("eat")
 	Audio.play_sfx("eat", linear_to_db(0.8))
 	if Game == null or not Game.creative:
 		player.inventory.consume_selected(1)

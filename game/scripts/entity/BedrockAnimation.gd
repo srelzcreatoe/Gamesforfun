@@ -39,7 +39,18 @@ const UPPER_BONES := [
 ]
 
 static var prefer_hd := true
-static var _file_cache: Dictionary = {}          # file path -> {clip name: Clip}
+static var _file_cache: Dictionary = {}          # (file path + remap) -> {clip name: Clip}
+
+## Bone-name remaps for imported animation packs. `load_clips(path, remap)` renames
+## the clip's bones on parse, so a pack authored for another rig drives the DMZ one.
+## SPA (Serious Player Animations, MIT) uses the vanilla player names; `torso` is
+## the chest and `body` is the whole-figure offset, which is `root` here.
+const REMAP_SPA := {
+	"head": "head", "torso": "body", "body": "root",
+	"rightArm": "right_arm", "leftArm": "left_arm",
+	"rightLeg": "right_leg", "leftLeg": "left_leg",
+	"rightItem": "right_hand_item", "leftItem": "left_hand_item",
+}
 
 var model: BedrockModel = null
 var entity: Node = null                          # owner, queried for head/motion state
@@ -176,12 +187,15 @@ static func anim_file(path_rel: String) -> String:
 
 ## Load and merge a clip file (relative to assets/animations, no extension).
 ## Returns the number of clips now known.
-func load_clips(path_rel: String) -> int:
+## Load and merge a clip file. `remap` renames bones as the file is parsed (see
+## REMAP_SPA); the cache key includes it so the same file can be loaded both ways.
+func load_clips(path_rel: String, remap: Dictionary = {}) -> int:
 	var file := anim_file(path_rel)
-	var parsed: Dictionary = _file_cache.get(file, {})
+	var key := file if remap.is_empty() else file + "#" + str(remap.hash())
+	var parsed: Dictionary = _file_cache.get(key, {})
 	if parsed.is_empty():
-		parsed = _parse_file(file)
-		_file_cache[file] = parsed
+		parsed = _parse_file(file, remap)
+		_file_cache[key] = parsed
 	for k in parsed.keys():
 		clips[k] = parsed[k]
 	return clips.size()
@@ -191,7 +205,7 @@ func load_clip_sets(paths: Array) -> int:
 		load_clips(String(p))
 	return clips.size()
 
-static func _parse_file(file: String) -> Dictionary:
+static func _parse_file(file: String, remap: Dictionary = {}) -> Dictionary:
 	var out: Dictionary = {}
 	if not FileAccess.file_exists(file):
 		Log.w("BedrockAnimation: missing " + file)
@@ -211,10 +225,10 @@ static func _parse_file(file: String) -> Dictionary:
 	for name in anims.keys():
 		var raw: Variant = anims[name]
 		if raw is Dictionary:
-			out[String(name)] = _parse_clip(String(name), raw)
+			out[String(name)] = _parse_clip(String(name), raw, remap)
 	return out
 
-static func _parse_clip(name: String, raw: Dictionary) -> Clip:
+static func _parse_clip(name: String, raw: Dictionary, remap: Dictionary = {}) -> Clip:
 	var clip := Clip.new()
 	clip.name = name
 	var loop_raw: Variant = raw.get("loop", false)
@@ -240,8 +254,15 @@ static func _parse_clip(name: String, raw: Dictionary) -> Clip:
 				if chan.has_keys and chan.times.size() > 0:
 					max_t = maxf(max_t, chan.times[chan.times.size() - 1])
 			if not entry.is_empty():
-				clip.bones[String(bname)] = entry
-				clip.bone_names.append(String(bname))
+				var mapped := String(remap.get(bname, bname)) if not remap.is_empty() else String(bname)
+				if mapped == "":
+					continue
+				if clip.bones.has(mapped):
+					for k in entry.keys():        # two source bones onto one target
+						clip.bones[mapped][k] = entry[k]
+				else:
+					clip.bones[mapped] = entry
+					clip.bone_names.append(mapped)
 	var len_raw: Variant = raw.get("animation_length")
 	clip.length = float(len_raw) if (len_raw is float or len_raw is int) else max_t
 	return clip

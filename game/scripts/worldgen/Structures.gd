@@ -128,7 +128,7 @@ func _stamp_repeatable(col: ChunkColumn, ctx, entry: Dictionary) -> void:
 			var ccz := rz * region + ((hh >> 8) % region)
 			var ax := ccx * 16 + ((hh >> 16) % 16)
 			var az := ccz * 16 + ((hh >> 20) % 16)
-			if not _valid_site(entry, ax, az):
+			if not _valid_site(entry, ax, az, 1):
 				continue
 			var rot := ((hh >> 25) % 4) if String(entry["role"]) == "center" else 0
 			_place(col, ctx, entry, ax, az, rot)
@@ -181,7 +181,7 @@ func _stamp_village(col: ChunkColumn, ctx, group: String, ax: int, az: int) -> v
 		var px := ax + int(round(cos(ang) * dist))
 		var pz := az + int(round(sin(ang) * dist))
 		var piece: Dictionary = houses[(h2 >> 7) % houses.size()]
-		if not _valid_site(piece, px, pz):
+		if not _valid_site(piece, px, pz, 1):
 			continue
 		_stamp_one(col, ctx, piece, px, pz, (h2 >> 21) % 4)
 
@@ -397,8 +397,10 @@ func _resolve_y(entry: Dictionary, special: Dictionary, ax: int, az: int, size: 
 		ground = maxi(ground, gen.sea_level + 1)
 	return clampi(ground, 1, maxi(1, HEIGHT - mini(size.y, 20) - 1))
 
-## Is this anchor allowed here (biome list + distance from spawn)?
-func _valid_site(entry: Dictionary, ax: int, az: int) -> bool:
+## Is this anchor allowed here? `relax` 0 = the structure's own biome list, 1 = any biome whose
+## surface block matches one of them (Earth carries 70 biomes since the Nature's Spirit set was
+## added, so a story structure's two or three listed biomes can be rare), 2 = any dry land.
+func _valid_site(entry: Dictionary, ax: int, az: int, relax: int = 0) -> bool:
 	var min_d: int = int(entry["min_dist"])
 	if min_d > 0 and (ax * ax + az * az) < min_d * min_d:
 		return false
@@ -408,6 +410,16 @@ func _valid_site(entry: Dictionary, ax: int, az: int) -> bool:
 	var bid: String = gen.biome_map.id_at_world(ax, az)
 	for b in list:
 		if String(b) == bid:
+			return true
+	if relax <= 0:
+		return false
+	if relax >= 2:
+		return true
+	var here := String(Registry.biome(bid).get("surface", ""))
+	if here == "":
+		return false
+	for b2 in list:
+		if String(Registry.biome(String(b2)).get("surface", "")) == here:
 			return true
 	return false
 
@@ -455,24 +467,24 @@ func _search_unique(entry: Dictionary) -> Vector3i:
 				center = Terrain.EARTH_BAY
 				break
 	var rot_seed := Terrain.hash_unit(gen.seed, absi(int(sid.hash())) & 0xffff, 5, 7) * TAU
-	for k in UNIQUE_SAMPLES:
-		var t := (float(k) + 0.5) / float(UNIQUE_SAMPLES)
-		var r := float(max_d) * sqrt(t)
-		var ang := rot_seed + float(k) * 2.39996323
-		var x := int(round(center.x + cos(ang) * r))
-		var z := int(round(center.y + sin(ang) * r))
-		var d2 := x * x + z * z
-		if d2 < min_d * min_d or d2 > max_d * max_d:
-			continue
-		if not _valid_site(entry, x, z):
-			continue
-		if String(entry["y_mode"]) == "surface" and gen.has_sea:
-			if gen.terrain.height_at(x, z) <= gen.sea_level + 1:
+	for relax in 3:
+		for k in UNIQUE_SAMPLES:
+			var t := (float(k) + 0.5) / float(UNIQUE_SAMPLES)
+			var r := float(max_d) * sqrt(t)
+			var ang := rot_seed + float(k) * 2.39996323
+			var x := int(round(center.x + cos(ang) * r))
+			var z := int(round(center.y + sin(ang) * r))
+			var d2 := x * x + z * z
+			if d2 < min_d * min_d or d2 > max_d * max_d:
 				continue
-		return Vector3i(x, 0, z)
-	if biomes.is_empty():
-		return Vector3i(min_d + 40, 0, min_d + 40)
-	return Vector3i(0x7fffffff, 0, 0)
+			if not _valid_site(entry, x, z, relax):
+				continue
+			if String(entry["y_mode"]) == "surface" and gen.has_sea:
+				var gh: int = gen.terrain.height_at(x, z)
+				if gh <= gen.sea_level + 1 or gh >= 100:
+					continue                      # not in the water, not on a snow peak
+			return Vector3i(x, 0, z)
+	return Vector3i(min_d + 40, 0, min_d + 40)
 
 # --- rotation helpers ------------------------------------------------------
 

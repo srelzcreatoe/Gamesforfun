@@ -137,6 +137,9 @@ func _apply_texture() -> void:
 			"tattoo": int(_args.get("tattoo", -1)),
 		}
 		RaceSkin.apply_to(model, character)
+		if _args.has("hair_style"):
+			HairBuilder.attach(model, String(_args["hair_style"]),
+					RaceSkin._color(_args.get("hair_color", "#2b2b2b")))
 		return
 	var tex_path := String(_args.get("texture", ""))
 	if tex_path == "":
@@ -150,7 +153,11 @@ func _apply_animation() -> void:
 	anim.setup(model, self)
 	var list := String(_args.get("anim", "")).split(",", false)
 	for p in list:
-		anim.load_clips(p.strip_edges())
+		var a := p.strip_edges()
+		if a.begins_with("spa"):
+			anim.load_clips(a, BedrockAnimation.REMAP_SPA)
+		else:
+			anim.load_clips(a)
 	_clip = String(_args.get("clip", ""))
 	if _clip == "" or anim.clips.is_empty():
 		return

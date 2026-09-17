@@ -21,6 +21,8 @@ const AI_CULL_DIST := 64.0
 const ANIM_SLOW_DIST := 24.0
 const ANIM_SLOW_INTERVAL := 0.05          # 20 Hz
 const DEATH_FREE_TIME := 1.5
+const SPA_CLIPS := "spa/player"
+const SPA_CLIPS_FILE := "res://assets/animations/spa/player.animation.json"
 
 # --- identity / data ----------------------------------------------------------
 var entity_type := ""
@@ -47,6 +49,8 @@ var distance_moved := 0.0                 # query.modified_distance_moved
 var is_flying := false
 var can_fly := false
 var model_scale := 1.0
+var use_spa_clips := true                 # load the Serious Player Animations pack
+var locomotion := "idle"                  # current movement state (see AnimSelect)
 
 # --- stats --------------------------------------------------------------------
 var stats: Object = null                  # scripts/combat/Stats.gd when present
@@ -84,6 +88,7 @@ var _flash := 0.0
 var _blind := 0.0
 var _last_pos := Vector3.ZERO
 var _anim_name := ""
+var anim_speed := 1.0
 var _dist_to_player := 0.0
 var _dist_timer := 0.0
 
@@ -224,6 +229,10 @@ func _build_model() -> void:
 		sets = ["entity/races/movement"] if model_path.begins_with("entity/races") else []
 	for a in sets:
 		anim.load_clips(String(a))
+	# Serious Player Animations (MIT) fills the movement states DMZ has no clip
+	# for; they are registered under "spa." and never replace a DMZ clip.
+	if use_spa_clips and model.has_bone("right_arm") and FileAccess.file_exists(SPA_CLIPS_FILE):
+		anim.load_clips(SPA_CLIPS, BedrockAnimation.REMAP_SPA)
 	if anim.has_clip("idle"):
 		play_anim("idle")
 
@@ -380,6 +389,56 @@ func play_upper_anim(name: String, blend := 0.1) -> bool:
 
 func current_anim() -> String:
 	return anim.current_clip() if anim != null else ""
+
+## STATE-DRIVEN API (what Player.gd / AI should call).
+##
+## `set_locomotion("run", speed)` picks the best clip for the state through
+## `AnimSelect` (DMZ first, Serious Player Animations as the fallback), blends into
+## it and scales its playback with `speed` (m/s) so walking and sprinting read
+## differently. Calling it again with the same state is free.
+func set_locomotion(state: String, speed := 0.0, blend := 0.18) -> bool:
+	if anim == null or dead:
+		return false
+	var clip := AnimSelect.choose(state, anim)
+	if clip == "":
+		return false
+	var rate := 1.0
+	match state:
+		"walk", "walk_back", "sneak_walk", "sneak_walk_back", "crawl_move", "crawl_back":
+			rate = clampf(speed / 4.2, 0.6, 1.8)
+		"run", "sprint":
+			rate = clampf(speed / 5.6, 0.7, 1.9)
+		"swim", "swim_forward", "swim_back", "swim_up":
+			rate = clampf(speed / 2.4, 0.6, 1.6)
+		"fly_forward", "fly_fast", "fly_back", "fly_left", "fly_right":
+			rate = clampf(speed / 12.0, 0.7, 1.7)
+	if locomotion == state and anim.current_clip() == clip and is_equal_approx(anim_speed, rate):
+		return true
+	locomotion = state
+	anim_speed = rate
+	_anim_name = clip
+	return anim.play(clip, blend, null, rate)
+
+## One-shot action (punch, ki blast, transform, hurt, eat, mine, ...). Upper-body
+## actions play on the override layer so the legs keep their locomotion clip.
+func play_action(state: String, blend := 0.08) -> bool:
+	if anim == null or dead:
+		return false
+	var clip := AnimSelect.choose(state, anim)
+	if clip == "":
+		return false
+	if AnimSelect.is_upper_body(state):
+		return anim.play_upper(clip, blend)
+	var loop: Variant = false if AnimSelect.is_one_shot(state) else null
+	_anim_name = clip
+	return anim.play(clip, blend, loop, 1.0)
+
+## Clip actually chosen for a state ("" when neither pack has one).
+func clip_for(state: String) -> String:
+	return AnimSelect.choose(state, anim)
+
+func has_state(state: String) -> bool:
+	return clip_for(state) != ""
 
 func eye_position() -> Vector3:
 	return global_position + Vector3(0, aabb_size.y * 0.9, 0)

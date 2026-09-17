@@ -44,6 +44,7 @@ var input: PlayerInput = PlayerInput.new()
 var keyboard: KeyboardInput = null
 var camera_rig: CameraRig = null
 var interaction: Interaction = null
+var animator: PlayerAnimator = null
 var inventory: Inventory = null
 var survival: PlayerStats = null
 
@@ -95,6 +96,7 @@ func _configure() -> void:
 	can_fly = true
 	inventory = Inventory.new(Inventory.PLAYER_SIZE, true)
 	survival = PlayerStats.new(self)
+	animator = PlayerAnimator.new(self)
 	keyboard = KeyboardInput.new(input)
 	camera_rig = CameraRig.new()
 	camera_rig.name = "CameraRig"
@@ -367,10 +369,13 @@ func _read_input(delta: float) -> void:
 		_blast_active = true
 		if not _blast_charging and _blast_hold >= 0.4:
 			_blast_charging = Techniques.begin(self, CHARGED_BLAST)
+			if _blast_charging:
+				play_action("ki_charge_cast")
 	elif _blast_active:
 		_blast_active = false
 		if _blast_charging:
 			Techniques.release(self)
+			play_action("ki_blast_charged")
 			_blast_charging = false
 			if camera_rig != null:
 				camera_rig.shake(0.3, 0.2)
@@ -395,6 +400,7 @@ func toggle_fly() -> void:
 	if is_flying:
 		on_ground = false
 		Audio.play_sfx("fly", -6.0)
+		play_action("ki_charge_cast")
 	UiUtil.vibrate(12)
 
 func dash() -> void:
@@ -412,7 +418,7 @@ func dash() -> void:
 		stamina = maxf(0.0, stamina - DASH_STAMINA)
 		Events.stamina_changed.emit(stamina, max_stamina)
 	Audio.play_sfx("dash", -4.0)
-	play_anim("base.dash_front", 0.08, false)
+	play_action("dash")
 	if ResourceLoader.exists("res://scripts/fx/Trails.gd"):
 		var tr := Trails.get_for(self)
 		if tr != null:
@@ -425,6 +431,7 @@ func request_transform() -> void:
 	if not active.is_empty():
 		Forms.revert(self)
 		return
+	play_action("transform")
 	var unlocked: Array = Game.profile.get("forms", {}).get("unlocked", []) if Game != null else []
 	for fid in unlocked:
 		if bool(Forms.can_transform(self, String(fid)).get("ok", false)):
@@ -439,6 +446,7 @@ func fire_ki_blast(charged := false) -> void:
 		tech = BASIC_BLAST
 	if not Techniques.tap(self, tech):
 		return
+	play_action("ki_blast_charged" if charged else "ki_blast")
 	if camera_rig != null:
 		camera_rig.shake(0.3 if charged else 0.12, 0.2)
 
@@ -591,7 +599,7 @@ func _integrate(delta: float) -> void:
 		if input.jump and on_ground:
 			velocity.y = jump_speed()
 			on_ground = false
-			play_anim("base.jump", 0.08, false)
+			Audio.play_sfx("jump", -12.0)
 	_apply_motion(velocity * delta)
 	# face the camera direction while moving so the model matches the view
 	if camera_rig != null and (input.move.length() > 0.05 or camera_rig.mode != CameraRig.Mode.SHOULDER):
@@ -642,7 +650,8 @@ func _apply_motion(motion: Vector3) -> void:
 	if is_flying:
 		on_ground = false
 	if on_ground and not was_ground and vy_before <= 0.0:
-		play_anim("base.landing", 0.1, false)
+		if vy_before < -6.0:
+			play_action("land")
 		if _stepper != null:
 			Footsteps.land(world, global_position, absf(vy_before))
 	var d := global_position - moved_from
@@ -669,33 +678,14 @@ func _footsteps(delta: float) -> void:
 	_stepper.call("advance", delta, speed_now(), on_ground and not is_flying, world, global_position,
 		is_sprinting, is_crouching, is_swimming)
 
+## Locomotion + one-shot actions live in PlayerAnimator (see its LOCOMOTION / ACTIONS tables).
 func _animate() -> void:
-	if interaction != null and interaction.mining:
-		play_anim("base.mining1")
-		return
-	if is_flying:
-		if fly_fast:
-			play_anim("base.fly_fast")
-		elif input.move.length() > 0.1:
-			play_anim("base.fly_front")
-		else:
-			play_anim("base.fly_idle")
-		return
-	if is_swimming:
-		play_anim("base.swimming")
-		return
-	if input.ki_charge:
-		play_anim("base.ki_charge")
-		return
-	var sp := speed_now()
-	if is_crouching:
-		play_anim("base.crouching_walk" if sp > 0.2 else "base.crouching")
-	elif sp > 4.6:
-		play_anim("base.run")
-	elif sp > 0.2:
-		play_anim("base.walk")
-	else:
-		play_anim("base.idle")
+	if animator != null:
+		animator.update(get_process_delta_time())
+
+## Trigger a one-shot animation ("attack" with an index, "ki_blast", "transform", ...).
+func play_action(name: String, index := -1) -> String:
+	return animator.play_action(name, index) if animator != null else ""
 
 # --- damage / death --------------------------------------------------------
 
@@ -711,6 +701,8 @@ func take_damage(amount: float, source: Node = null, kind_of := "melee", knockba
 	defense = before
 	if applied <= 0.0:
 		return 0.0
+	if knockback.length() > 2.0:
+		play_action("hurt")
 	Events.health_changed.emit(health, max_health)
 	Events.player_damaged.emit(applied, source, kind_of)
 	UiUtil.vibrate(40)
@@ -749,6 +741,8 @@ func respawn() -> void:
 		survival.set_hunger(PlayerStats.HUNGER_MAX)
 		survival.oxygen = PlayerStats.OXYGEN_MAX
 	Forms.revert_all(self)
+	if animator != null:
+		animator.clear_action()
 	var p := spawn_point
 	if p.y < 0.0:
 		p.y = surface_y(p.x, p.z)
