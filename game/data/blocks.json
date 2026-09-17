@@ -3957,6 +3957,373 @@
    "tool": "pickaxe",
    "interactive": true,
    "station": "altar"
+  },
+  {
+   "id": "redwood_log",
+   "name": "Redwood Log",
+   "shape": "cube",
+   "textures": {
+    "side": "ns_redwood_log",
+    "top": "ns_redwood_log_top",
+    "bottom": "ns_redwood_log_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "redwood_leaves",
+   "name": "Redwood Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "ns_redwood_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [],
+   "flammable": true
+  },
+  {
+   "id": "maple_log",
+   "name": "Maple Log",
+   "shape": "cube",
+   "textures": {
+    "side": "ns_maple_log",
+    "top": "ns_maple_log_top",
+    "bottom": "ns_maple_log_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "maple_leaves",
+   "name": "Maple Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "ns_red_maple_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [],
+   "flammable": true
+  },
+  {
+   "id": "wisteria_log",
+   "name": "Wisteria Log",
+   "shape": "cube",
+   "textures": {
+    "side": "ns_wisteria_log",
+    "top": "ns_wisteria_log_top",
+    "bottom": "ns_wisteria_log_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "wisteria_leaves",
+   "name": "Wisteria Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "ns_purple_wisteria_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [],
+   "flammable": true
+  },
+  {
+   "id": "palm_log",
+   "name": "Palm Log",
+   "shape": "cube",
+   "textures": {
+    "side": "ns_coconut_log",
+    "top": "ns_coconut_log_top",
+    "bottom": "ns_coconut_log_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "palm_leaves",
+   "name": "Palm Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "ns_coconut_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [],
+   "flammable": true
+  },
+  {
+   "id": "cypress_log",
+   "name": "Cypress Log",
+   "shape": "cube",
+   "textures": {
+    "side": "ns_cypress_log",
+    "top": "ns_cypress_log_top",
+    "bottom": "ns_cypress_log_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "cypress_leaves",
+   "name": "Cypress Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "ns_cypress_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [],
+   "flammable": true
+  },
+  {
+   "id": "aspen_log",
+   "name": "Aspen Log",
+   "shape": "cube",
+   "textures": {
+    "side": "ns_aspen_log",
+    "top": "ns_aspen_log_top",
+    "bottom": "ns_aspen_log_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "aspen_leaves",
+   "name": "Aspen Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "ns_yellow_aspen_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [],
+   "flammable": true
+  },
+  {
+   "id": "fir_log",
+   "name": "Fir Log",
+   "shape": "cube",
+   "textures": {
+    "side": "ns_fir_log",
+    "top": "ns_fir_log_top",
+    "bottom": "ns_fir_log_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "fir_leaves",
+   "name": "Fir Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "ns_fir_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [],
+   "flammable": true
+  },
+  {
+   "id": "sugi_log",
+   "name": "Sugi Log",
+   "shape": "cube",
+   "textures": {
+    "side": "ns_sugi_log",
+    "top": "ns_sugi_log_top",
+    "bottom": "ns_sugi_log_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "sugi_leaves",
+   "name": "Sugi Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "ns_sugi_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "foliage",
+   "drops": [],
+   "flammable": true
+  },
+  {
+   "id": "willow_log",
+   "name": "Willow Log",
+   "shape": "cube",
+   "textures": {
+    "side": "ns_willow_log",
+    "top": "ns_willow_log_top",
+    "bottom": "ns_willow_log_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "willow_leaves",
+   "name": "Willow Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "ns_willow_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [],
+   "flammable": true
+  },
+  {
+   "id": "joshua_log",
+   "name": "Joshua Log",
+   "shape": "cube",
+   "textures": {
+    "side": "ns_joshua_log",
+    "top": "ns_joshua_log_top",
+    "bottom": "ns_joshua_log_top"
+   },
+   "material": "wood",
+   "hardness": 2.0,
+   "tool": "axe",
+   "min_tier": 0,
+   "flammable": true,
+   "rotatable": true
+  },
+  {
+   "id": "joshua_leaves",
+   "name": "Joshua Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "ns_joshua_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [],
+   "flammable": true
+  },
+  {
+   "id": "orange_maple_leaves",
+   "name": "Orange Maple Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "ns_orange_maple_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [],
+   "flammable": true
+  },
+  {
+   "id": "pink_wisteria_leaves",
+   "name": "Pink Wisteria Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "ns_pink_wisteria_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [],
+   "flammable": true
+  },
+  {
+   "id": "frosty_redwood_leaves",
+   "name": "Frosty Redwood Leaves",
+   "shape": "cutout_cube",
+   "textures": {
+    "all": "ns_frosty_redwood_leaves"
+   },
+   "material": "leaves",
+   "hardness": 0.2,
+   "tool": "none",
+   "tint": "none",
+   "drops": [],
+   "flammable": true
+  },
+  {
+   "id": "lavender",
+   "name": "Lavender",
+   "shape": "cross",
+   "textures": {
+    "all": "ns_lavender"
+   },
+   "material": "plant",
+   "hardness": 0.0,
+   "tool": "none",
+   "plant": {
+    "needs": [
+     "grass_block",
+     "dirt",
+     "podzol",
+     "coarse_dirt",
+     "namek_grass_block",
+     "namek_sacred_grass_block",
+     "sacred_planet_grass_block",
+     "heaven_grass_block",
+     "yardrat_grass_block",
+     "farmland"
+    ]
+   }
   }
  ]
 }

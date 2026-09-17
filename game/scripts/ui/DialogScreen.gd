@@ -117,13 +117,24 @@ func _next_line() -> void:
 		_set_line(0)
 
 func _train() -> void:
+	var mid := String(master.get("id", ""))
+	var dc := _world_node("DialogController")
+	if dc != null and dc.has_method("open_training"):
+		dc.call("open_training", mid)
+		close_self()
+		return
 	if npc != null and npc.has_method("train"):
 		npc.call("train", Game.player)
 		return
 	var qm := _quest_manager()
 	if qm != null and qm.has_method("notify_talk"):
-		qm.call("notify_talk", String(master.get("id", "")))
+		qm.call("notify_talk", mid)
 	Game.ui.call("open", "stats", {"tab": 1})
+
+func _world_node(name: String) -> Node:
+	if Game != null and Game.world != null:
+		return Game.world.get_node_or_null(name)
+	return null
 
 func _quest_ids() -> Array:
 	var ids: Variant = master.get("gives_quests", master.get("quests", []))
@@ -133,9 +144,7 @@ func _quests() -> void:
 	Game.ui.call("open", "quests", {"npc": String(master.get("id", "")), "quests": _quest_ids()})
 
 func _quest_manager() -> Node:
-	if Game != null and Game.world != null:
-		return Game.world.get_node_or_null("QuestManager")
-	return null
+	return _world_node("QuestManager")
 
 func _leave() -> void:
 	close_self()

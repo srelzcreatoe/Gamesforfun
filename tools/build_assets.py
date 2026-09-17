@@ -399,6 +399,15 @@ for c in ["carrots", "potatoes", "beetroots"]:
     for i in range(3): m(f"{c}{i}", FT(f"crops/{c}{i}.png"))
 for i in range(7): m(f"vine{i}", FT(f"vines/vine{i}.png"))
 for i in range(8): m(f"waterlily{i}", FT(f"waterlily/waterlily_{i}.png"))
+
+# Nature's Spirit (user-supplied) wood/leaf/plant textures, prefixed ns_
+NS_B = lambda p: os.path.join(SRC, "ns", "assets", "natures_spirit", "textures", "block", p)
+for k in ["redwood_log", "redwood_log_top", "redwood_leaves", "frosty_redwood_leaves", "maple_log", "maple_log_top", "red_maple_leaves", "orange_maple_leaves",
+          "wisteria_log", "wisteria_log_top", "purple_wisteria_leaves", "pink_wisteria_leaves", "coconut_log", "coconut_log_top", "coconut_leaves",
+          "cypress_log", "cypress_log_top", "cypress_leaves", "aspen_log", "aspen_log_top", "yellow_aspen_leaves", "fir_log", "fir_log_top", "fir_leaves",
+          "sugi_log", "sugi_log_top", "sugi_leaves", "willow_log", "willow_log_top", "willow_leaves", "joshua_log", "joshua_log_top", "joshua_leaves", "lavender"]:
+    m("ns_" + k, NS_B(k + ".png"))
+
 # DragonMineZ blocks (same key names)
 DMZ_BLOCKS = ["namek_grass_block_top", "namek_grass_block_side", "namek_grass_block_down", "namek_dirt", "namek_stone", "namek_cobblestone", "namek_deepslate", "namek_deepslate_top", "namek_block",
               "namek_coal_ore", "namek_iron_ore", "namek_gold_ore", "namek_diamond_ore", "namek_kikono_ore", "kikono_block", "namek_ajissa_log", "namek_ajissa_log_top", "namek_ajissa_planks",

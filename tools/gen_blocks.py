@@ -231,6 +231,25 @@ B("halo_light", "Halo Light", "cube", "halo_light", material="glass", hardness=0
 B("ki_barrier", "Ki Barrier", "translucent_cube", "ki_barrier", material="special", hardness=-1, drops=[], light=6)
 B("dragon_ball_altar", "Dragon Ball Altar", "cube", {"side": "dragon_ball_altar_side", "top": "dragon_ball_altar_top", "bottom": "smooth_stone"}, material="stone", hardness=4.0, tool="pickaxe", interactive=True, station="altar")
 
+# ---------------------------------------------------------------- Nature's Spirit (user-supplied biome mod) — appended, ids 232+
+NS_WOODS = [("redwood", "Redwood", "ns_redwood_log", "ns_redwood_log_top", "ns_redwood_leaves", "none"),
+            ("maple", "Maple", "ns_maple_log", "ns_maple_log_top", "ns_red_maple_leaves", "none"),
+            ("wisteria", "Wisteria", "ns_wisteria_log", "ns_wisteria_log_top", "ns_purple_wisteria_leaves", "none"),
+            ("palm", "Palm", "ns_coconut_log", "ns_coconut_log_top", "ns_coconut_leaves", "none"),
+            ("cypress", "Cypress", "ns_cypress_log", "ns_cypress_log_top", "ns_cypress_leaves", "none"),
+            ("aspen", "Aspen", "ns_aspen_log", "ns_aspen_log_top", "ns_yellow_aspen_leaves", "none"),
+            ("fir", "Fir", "ns_fir_log", "ns_fir_log_top", "ns_fir_leaves", "none"),
+            ("sugi", "Sugi", "ns_sugi_log", "ns_sugi_log_top", "ns_sugi_leaves", "foliage"),
+            ("willow", "Willow", "ns_willow_log", "ns_willow_log_top", "ns_willow_leaves", "none"),
+            ("joshua", "Joshua", "ns_joshua_log", "ns_joshua_log_top", "ns_joshua_leaves", "none")]
+for wid, wname, side, top, leaf, tint in NS_WOODS:
+    log(f"{wid}_log", f"{wname} Log", side, top, "oak_planks")
+    leaves(f"{wid}_leaves", f"{wname} Leaves", leaf, tint=tint, sapling=None)
+leaves("orange_maple_leaves", "Orange Maple Leaves", "ns_orange_maple_leaves", tint="none")
+leaves("pink_wisteria_leaves", "Pink Wisteria Leaves", "ns_pink_wisteria_leaves", tint="none")
+leaves("frosty_redwood_leaves", "Frosty Redwood Leaves", "ns_frosty_redwood_leaves", tint="none")
+plant("lavender", "Lavender", "ns_lavender")
+
 n = len(blocks)
 assert blocks[0]["id"] == "air"
 ids = [b["id"] for b in blocks]

@@ -20,6 +20,8 @@ DMZ Plus data and assets it ports).
 | **DMZ HD Texturepack 2.1** by ZoneMC (user-supplied) | HD entity, armor, particle and GUI textures (`assets/textures/**/hd/`, `inventory.png`, `widgets.png`, `icons.png`) | as distributed by its author |
 | **Fused Vanilla Texture Pack / Models Pack 1.0–1.1** by Fused Bolt (user-supplied Bedrock packs) | Block, plant, crop, flower, leaf and item textures, colormaps, leaf particles | as distributed by its author |
 | **AAA Particles: World 2.0.0** by ChloePrime | Lightning, explosion, smoke, sparkle and shockwave particle sprites; loot sounds | MIT |
+| **Nature's Spirit 2.2.5** by Team Hibiscus (user-supplied) | Wood/leaf/plant textures for redwood, maple, wisteria, palm, cypress, aspen, fir, sugi, willow, joshua, lavender; biome designs (names, colours, tree shapes) re-implemented in GDScript | assets: All Rights Reserved (as distributed by its author); code MIT (none used) |
+| **Serious Player Animations 1.2.0** by McVader (user-supplied) | Player animations (Bedrock format) used only for states DragonMineZ does not cover | MIT |
 | **Monocraft** by Idrees Hassan (https://github.com/IdreesInc/Monocraft) | UI font | SIL Open Font License 1.1 |
 | **Complementary Reimagined r5.9.2** by EminGT (user-supplied) | Studied as a *reference* for the sky, water, cloud and tonemapping look. No code or textures from the pack are included. | Complementary License 1.7 (redistribution of its code is not permitted) |
 

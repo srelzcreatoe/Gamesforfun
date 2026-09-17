@@ -352,6 +352,10 @@ func _use_item(st: ItemStack) -> bool:
 		"dragon_ball":
 			return _place_dragon_ball(st)
 		"vehicle":
+			# SpaceTravel decides: the nimbus mounts, the pod/ship opens the planet map.
+			var travel := _quest_node("SpaceTravel")
+			if travel != null and travel.has_method("use_vehicle"):
+				return bool(travel.call("use_vehicle", st.item))
 			if Game != null and Game.ui != null:
 				Game.ui.call("open", "space_map", {"vehicle": st.item})
 			return true
@@ -378,22 +382,26 @@ func _eat(delta: float) -> void:
 	if Game == null or not Game.creative:
 		player.inventory.consume_selected(1)
 
+func _quest_node(name: String) -> Node:
+	if player != null and player.world != null:
+		return player.world.get_node_or_null(name)
+	return null
+
 func _open_radar(def: Dictionary) -> void:
-	var balls: Node = null
-	if player.world != null:
-		balls = player.world.get_node_or_null("DragonBalls")
+	var set_id := String(def.get("radar", {}).get("set", ""))
+	var balls := _quest_node("DragonBalls")
+	if balls != null and balls.has_method("open_radar"):
+		balls.call("open_radar", set_id)
+		return
 	if balls != null and balls.has_method("radar_readout"):
-		var txt: String = String(balls.call("radar_readout", player.global_position, String(def.get("radar", {}).get("set", "earth"))))
 		if Game != null and Game.ui != null:
-			Game.ui.call("show_hint", txt, 4.0)
+			Game.ui.call("show_hint", String(balls.call("radar_readout", player.global_position, set_id)), 4.0)
 		return
 	if Game != null and Game.ui != null:
 		Game.ui.call("show_hint", "Radar: no dragon ball signal here.", 2.5)
 
 func _place_dragon_ball(st: ItemStack) -> bool:
-	var balls: Node = null
-	if player.world != null:
-		balls = player.world.get_node_or_null("DragonBalls")
+	var balls := _quest_node("DragonBalls")
 	if balls != null and balls.has_method("place_ball"):
 		balls.call("place_ball", player, st)
 		return true
@@ -452,9 +460,11 @@ func _place_block() -> bool:
 	if world == null or st.is_empty() or not has_target:
 		return false
 	var def := st.def()
+	# Minecraft rule: a station/container wins over placing unless the player is sneaking.
+	if not player.input.sneak and _open_station():
+		return true
 	if String(def.get("kind", "")) != "block":
-		# opening a station/container is the other tap action
-		return _open_station()
+		return false
 	var block_name := String(def.get("block", st.item))
 	var id := Registry.block_id(block_name)
 	if id <= 0:
@@ -506,4 +516,12 @@ func _open_station() -> bool:
 		"gete_forge":
 			Game.ui.call("open", "inventory", {"station": "gete_forge"})
 			return true
+		"dragon_ball_altar":
+			var balls := _quest_node("DragonBalls")
+			if balls != null and balls.has_method("altar_interact"):
+				return bool(balls.call("altar_interact", player, target_block))
+	# Anything else is still an INTERACT objective for the quest engine.
+	var qm := _quest_node("QuestManager")
+	if qm != null and qm.has_method("notify_interact"):
+		qm.call("notify_interact", bid)
 	return false

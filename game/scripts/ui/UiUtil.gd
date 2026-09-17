@@ -73,10 +73,45 @@ static var _font: FontFile = null
 static var _tex_cache: Dictionary = {}
 static var _white: Texture2D = null
 
+## Settings this subsystem adds. Game.load_settings() only restores keys that exist in
+## Game.DEFAULT_SETTINGS, so they are re-read from the settings file here on every boot.
+const EXTRA_SETTINGS := {
+	"show_coordinates": false,
+	"dev_mode": false,
+	"hud_scale": 1.0,
+	"slot": 0,
+}
+
+static func ensure_ui_settings() -> void:
+	if Game == null:
+		return
+	var raw: Variant = JsonUtil.load_file("user://settings.json")
+	for k in EXTRA_SETTINGS.keys():
+		if Game.settings.has(k):
+			continue
+		if raw is Dictionary and (raw as Dictionary).has(k):
+			Game.settings[k] = (raw as Dictionary)[k]
+		else:
+			Game.settings[k] = EXTRA_SETTINGS[k]
+
+static func setting(key: String, fallback: Variant = null) -> Variant:
+	if Game == null:
+		return fallback
+	if not Game.settings.has(key):
+		return EXTRA_SETTINGS.get(key, fallback)
+	return Game.settings[key]
+
 static func s() -> float:
 	if Game != null:
 		return Game.ui_scale()
 	return 1.5
+
+## HUD-only scale: the user can shrink or grow the touch controls without resizing menus.
+static func hud_s() -> float:
+	return s() * clampf(float(setting("hud_scale", 1.0)), 0.8, 1.4)
+
+static func dev_mode() -> bool:
+	return bool(setting("dev_mode", false))
 
 ## Body font size: multiples of 8 so Monocraft renders pixel-exact (2x at 720p, 3x at 1080p).
 static func font_body(scale := -1.0) -> int:
