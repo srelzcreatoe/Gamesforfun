@@ -9,21 +9,32 @@ extends Node3D
 ##   orb.set_progress(0.0 .. 1.0)
 ##   orb.release()      # flash + free
 ##
+## The orb carries a white-hot core (`shaders/ki_sphere.gdshader`), a corona billboard,
+## inward-sucking sparkles and six motes orbiting it on tilted rings.
+##
 ## Statics:
 ##   KiEffects.hand_position(entity)      -> Vector3 (bone "rightArm"/"arm_right" if the
 ##                                           entity has a BedrockModel, else eye+forward)
 ##   KiEffects.muzzle_flash(pos, color, parent)
+##   KiEffects.blast_impact(pos, color, radius, parent)   # flash + sparks + ring + scorch
 ##   KiEffects.beam_impact(pos, color, radius, parent)
+##   KiEffects.decorate_projectile(node, color, size)     # glow shell + aligned streak
+##   KiEffects.flash_pop(parent, pos, color, size, secs)
+##   KiEffects.shock_ring(parent, pos, color, size, secs)
+##   KiEffects.scorch(parent, pos, size)
 ##   KiEffects.teleport_flash(entity, pos)
 ##   KiEffects.solar_flare(entity, pos, color, seconds)
 ##   KiEffects.aura_pulse(entity, strength)
 
 const SPHERE_SHADER := "res://shaders/ki_sphere.gdshader"
+const RING_SHADER := "res://shaders/shockwave.gdshader"
 const FLASH_TEX := "ki_flash"
 const SPARKLE_TEX := "aaa/essentials/SPARKLE001"
 const SHINE_TEX := "ki_flash1"
 
 const HAND_BONES: Array[String] = ["rightArm", "arm_right", "rightarm", "right_arm", "body"]
+
+const MOTES := 6
 
 var color := Color(0.5, 0.83, 1.0)
 var base_size := 1.0
@@ -33,6 +44,10 @@ var _sphere: MeshInstance3D
 var _mat: ShaderMaterial
 var _in_sparks: CPUParticles3D
 var _glow: MeshInstance3D
+var _motes: Array[MeshInstance3D] = []
+var _mote_phase: PackedFloat32Array = PackedFloat32Array()
+var _mote_tilt: PackedFloat32Array = PackedFloat32Array()
+var _age := 0.0
 
 # --- charge orb -----------------------------------------------------------
 
@@ -84,7 +99,35 @@ func _ready() -> void:
 	_in_sparks.local_coords = true
 	add_child(_in_sparks)
 	_in_sparks.emitting = true
+	_build_motes()
 	set_progress(0.0)
+
+## Bright motes orbiting the charge sphere on tilted rings (the "gathering energy" read
+## of a Kamehameha charge). Six billboards, no particle system.
+func _build_motes() -> void:
+	var tex := FxAssets.particle("aaa/missile_boost/Star", "ki_spark_1", "spark1")
+	for i in MOTES:
+		var q := FxAssets.make_quad("Mote%d" % i, tex, 0.34, Color(color.r, color.g, color.b, 0.95))
+		add_child(q)
+		_motes.append(q)
+		_mote_phase.append(float(i) / float(MOTES) * TAU)
+		_mote_tilt.append(float(i % 3) * 0.6 - 0.6)
+
+func _process(delta: float) -> void:
+	_age += delta
+	if _motes.is_empty():
+		return
+	var r := base_size * (0.55 + 0.75 * progress)
+	var speed := 2.4 + progress * 4.5
+	for i in _motes.size():
+		var a := _mote_phase[i] + _age * speed
+		var tilt := _mote_tilt[i]
+		var p := Vector3(cos(a) * r, sin(a) * r * sin(tilt), sin(a) * r * cos(tilt))
+		_motes[i].position = p
+		var s := base_size * (0.18 + 0.22 * progress) * (0.8 + 0.2 * sin(_age * 9.0 + float(i)))
+		_motes[i].scale = Vector3.ONE * s
+		var m: StandardMaterial3D = _motes[i].material_override
+		m.albedo_color = Color(color.r, color.g, color.b, 0.5 + 0.45 * progress)
 
 ## 0 = just started, 1 = fully charged.
 func set_progress(p: float) -> void:
@@ -194,8 +237,102 @@ static func beam_impact(pos: Vector3, c: Color, radius := 1.5, parent: Node = nu
 	var p := parent if parent != null and parent.is_inside_tree() else _parent()
 	if p == null:
 		return
-	FxAssets.burst(p, pos, "BeamHit", 14, ["aaa/lightning/Particle_Soft", "ki_flash1", "spark1"], c, 6.0 * radius, 0.4, 0.5 * radius, -3.0)
-	FxAssets.burst(p, pos, "BeamDust", 8, ["aaa/lightning/Smoke", "aaa/explosion/smoke_tex", "block_0"], Color(0.85, 0.82, 0.76), 3.0, 0.8, 0.8 * radius, -4.0)
+	FxAssets.burst(p, pos, "BeamHit", 16, ["aaa/lightning/Particle_Soft", "ki_flash1", "spark1"], c, 6.0 * radius, 0.4, 0.5 * radius, -3.0)
+	FxAssets.burst(p, pos, "BeamDust", 10, ["aaa/lightning/Smoke", "aaa/explosion/smoke_tex", "block_0"], Color(0.85, 0.82, 0.76), 3.0, 0.8, 0.8 * radius, -4.0)
+	flash_pop(p, pos, c.lerp(Color(1, 1, 1), 0.5), radius * 2.6, 0.22)
+	shock_ring(p, pos, c, radius * 2.2, 0.5)
+
+## Bright additive flash that pops and fades (impacts, muzzles, climaxes).
+static func flash_pop(parent: Node, pos: Vector3, c: Color, size: float, seconds := 0.2) -> void:
+	if parent == null or not parent.is_inside_tree():
+		return
+	var q := FxAssets.make_quad("Flash", FxAssets.particle(FLASH_TEX, SHINE_TEX, "ki_exp0"), size, Color(c.r, c.g, c.b, 1.0))
+	parent.add_child(q)
+	q.global_position = pos
+	q.scale = Vector3.ONE * 0.4
+	var tw := q.create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(q, "scale", Vector3.ONE * 1.3, seconds)
+	tw.tween_property(q.material_override, "albedo_color:a", 0.0, seconds)
+	tw.chain().tween_callback(q.queue_free)
+
+## Flat expanding ring on the ground/impact plane (`shaders/shockwave.gdshader`).
+static func shock_ring(parent: Node, pos: Vector3, c: Color, size: float, seconds := 0.5,
+		face_y := true) -> void:
+	if parent == null or not parent.is_inside_tree():
+		return
+	var mi := MeshInstance3D.new()
+	mi.name = "ImpactRing"
+	var q := QuadMesh.new()
+	q.size = Vector2(size * 2.0, size * 2.0)
+	if face_y:
+		q.orientation = PlaneMesh.FACE_Y
+	mi.mesh = q
+	var mat := FxAssets.shader_material(RING_SHADER, {
+		"ring_color": Color(c.r, c.g, c.b, 0.9), "progress": 0.0,
+		"thickness": 0.10, "intensity": 1.5,
+	})
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mi)
+	mi.global_position = pos + Vector3.UP * 0.08
+	var tw := mi.create_tween()
+	tw.tween_method(func(v: float) -> void:
+		if is_instance_valid(mat):
+			mat.set_shader_parameter("progress", v), 0.0, 1.0, seconds)
+	tw.tween_callback(mi.queue_free)
+
+## Ki blast impact: white flash, coloured sparks, a ring and a scorch mark that lingers.
+static func blast_impact(pos: Vector3, c: Color, radius := 2.0, parent: Node = null) -> void:
+	var p := parent if parent != null and parent.is_inside_tree() else _parent()
+	if p == null:
+		return
+	flash_pop(p, pos, Color(1, 1, 1), radius * 2.4, 0.18)
+	flash_pop(p, pos, c, radius * 3.4, 0.28)
+	shock_ring(p, pos, c, radius * 1.8, 0.45)
+	FxAssets.burst(p, pos, "BlastSparks", 18, ["ki_spark_1", "spark1", "ki_line"],
+		c.lerp(Color(1, 1, 1), 0.35), 9.0 * clampf(radius / 2.0, 0.6, 2.0), 0.38, 0.3, -8.0)
+	FxAssets.burst(p, pos, "BlastFire", 12, ["ki_exp1", "explode2", "aaa/lightning/Fire"],
+		c, 5.0, 0.4, radius * 0.5, -2.0)
+	scorch(p, pos, radius * 0.9)
+
+## Dark scorch decal that fades out over a couple of seconds.
+static func scorch(parent: Node, pos: Vector3, size: float, seconds := 2.2) -> void:
+	if parent == null or not parent.is_inside_tree():
+		return
+	var q := FxAssets.make_quad("Scorch", FxAssets.soft_dot(), size * 2.0, Color(1, 1, 1, 1), true)
+	var m: StandardMaterial3D = q.material_override
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
+	m.albedo_color = Color(0.06, 0.05, 0.05, 0.75)
+	parent.add_child(q)
+	q.global_position = pos + Vector3.UP * 0.03
+	var tw := q.create_tween()
+	tw.tween_property(m, "albedo_color:a", 0.0, seconds)
+	tw.tween_callback(q.queue_free)
+
+## Glow shell + velocity-aligned streak trail bolted onto a flying ki blast. Called by
+## `scripts/combat/Projectile.gd`; safe to call twice (it names its children).
+static func decorate_projectile(node: Node3D, c: Color, size: float) -> void:
+	if node == null or node.get_node_or_null("KiGlow") != null:
+		return
+	var glow := FxAssets.make_quad("KiGlow", FxAssets.particle(SHINE_TEX, FLASH_TEX, "ki_exp0"),
+		size * 6.0, Color(c.r, c.g, c.b, 0.55))
+	node.add_child(glow)
+	var streak := FxAssets.make_particles("KiStreak", 16, ["ki_trail1", "ki_trail4", "aura_1"], c)
+	streak.lifetime = 0.28
+	streak.particle_flag_align_y = true
+	(streak.mesh as QuadMesh).size = Vector2(size * 1.1, size * 4.5)
+	streak.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	streak.emission_sphere_radius = size * 0.25
+	streak.direction = Vector3.ZERO
+	streak.spread = 12.0
+	streak.initial_velocity_min = 0.1
+	streak.initial_velocity_max = 0.6
+	streak.gravity = Vector3.ZERO
+	streak.scale_amount_min = 0.7
+	streak.scale_amount_max = 1.3
+	node.add_child(streak)
+	streak.emitting = true
 
 static func disc_sparks(pos: Vector3, c: Color, parent: Node = null) -> void:
 	var p := parent if parent != null and parent.is_inside_tree() else _parent()
