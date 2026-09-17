@@ -2,8 +2,11 @@ class_name SlotGrid
 ## Inventory slot widgets shared by the bag, chest, furnace and crafting screens.
 ## Spec §3: 4-layer stack (bg black @0.35, selection (0.6,0.9,1.0 @0.35), icon, count 0.75).
 
-const SEL_COLOR := Color(0.6, 0.9, 1.0, 0.35)
-const BG_COLOR := Color(0, 0, 0, 0.35)
+## Night City accents: neon magenta selection, lavender slot edge.
+const SEL_COLOR := Color(0.85, 0.35, 0.72, 0.45)
+const BG_COLOR := Color(0.04, 0.04, 0.08, 0.35)
+const EDGE_COLOR := Color(0.518, 0.608, 0.894, 0.75)
+const HILITE_COLOR := Color(1.0, 0.56, 0.816, 0.9)
 
 ## One tappable slot. `source` is "inv" | "armor" | "craft" | "output" | "container" | "furnace".
 class Slot extends Control:
@@ -41,10 +44,10 @@ class Slot extends Control:
 		if selected:
 			draw_rect(r, SlotGrid.SEL_COLOR)
 		if border:
-			draw_rect(r, Color(0.55, 0.78, 0.92, 0.75), false, maxf(1.0, 1.5 * scale_px))
+			draw_rect(r, SlotGrid.EDGE_COLOR, false, maxf(1.0, 1.5 * scale_px))
 		if highlight:
 			draw_rect(r, Color(1, 1, 1, 0.12))
-			draw_rect(r, Color(0.8, 0.95, 1.0, 0.8), false, maxf(1.0, 2.0 * scale_px))
+			draw_rect(r, SlotGrid.HILITE_COLOR, false, maxf(1.0, 2.0 * scale_px))
 		if stack != null and not stack.is_empty():
 			var icon := UiUtil.item_icon(stack.item)
 			if icon != null:

@@ -188,8 +188,20 @@ func start_world(info: Dictionary, new_profile: Dictionary) -> void:
 	world_info = info
 	profile = new_profile
 	creative = info.get("mode", "story") == "creative"
+	_resolve_spawn()
 	if main != null and main.has_method("enter_world"):
 		main.enter_world(info)
+
+## A fresh profile carries the y = -1 placeholder from ProfileFactory; replace it with a real
+## surface spawn (and remember it as the respawn point) before the world is entered.
+func _resolve_spawn() -> void:
+	var pos: Dictionary = profile.get("position", {})
+	if float(pos.get("y", -1.0)) >= 0.0:
+		return
+	var planet_id: String = str(pos.get("planet", world_info.get("planet", "earth")))
+	var p: Vector3 = spawn_point_for(planet_id, int(world_info.get("seed", 0)))
+	profile["position"] = {"planet": planet_id, "x": p.x, "y": p.y, "z": p.z, "yaw": 0.0}
+	profile["spawn"] = {"planet": planet_id, "x": p.x, "y": p.y, "z": p.z}
 
 func change_planet(planet_id: String, arrival: Variant = null) -> void:
 	if world_info.is_empty():
@@ -199,7 +211,8 @@ func change_planet(planet_id: String, arrival: Variant = null) -> void:
 	if arrival != null:
 		profile["position"] = {"planet": planet_id, "x": arrival.x, "y": arrival.y, "z": arrival.z, "yaw": 0.0}
 	else:
-		profile["position"] = {"planet": planet_id, "x": 0.5, "y": -1, "z": 0.5, "yaw": 0.0}
+		var p: Vector3 = spawn_point_for(planet_id, int(world_info.get("seed", 0)))
+		profile["position"] = {"planet": planet_id, "x": p.x, "y": p.y, "z": p.z, "yaw": 0.0}
 	if main != null and main.has_method("enter_world"):
 		main.enter_world(world_info)
 	Events.planet_changed.emit(planet_id)
@@ -211,6 +224,13 @@ func load_slot(index: int) -> void:
 
 func save_slot() -> void:
 	SaveSlots.save_slot()
+
+## Surface spawn for a planet: never in water, as close to (0,0) as the terrain allows.
+func spawn_point_for(planet_id: String, seed_val: int) -> Vector3:
+	var def: Dictionary = Registry.planet(planet_id)
+	if def.is_empty():
+		return Vector3(0.5, 72.0, 0.5)
+	return WorldGenFactory.spawn_point(def, seed_val)
 
 func goto_main_menu() -> void:
 	if main != null and main.has_method("show_main_menu"):

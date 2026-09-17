@@ -5,21 +5,34 @@ class_name UiUtil
 const GUI := "res://assets/textures/gui/"
 const FONT_PATH := "res://assets/fonts/Monocraft.ttf"
 
-# --- palette (spec §0) ---------------------------------------------------------
-const PANEL_FILL := Color(0.09, 0.11, 0.16, 0.92)
-const PANEL_BORDER := Color(0.30, 0.38, 0.52, 1.0)
-const PANEL_LIGHT_FILL := Color(0.16, 0.20, 0.28, 0.95)
-const PANEL_LIGHT_BORDER := Color(0.38, 0.48, 0.64, 1.0)
-const BUTTON_UP := Color(0.20, 0.30, 0.44, 0.95)
-const BUTTON_UP_BORDER := Color(0.45, 0.62, 0.85, 1.0)
-const BUTTON_DOWN := Color(0.32, 0.48, 0.66, 1.0)
-const BUTTON_DOWN_BORDER := Color(0.60, 0.80, 1.0, 1.0)
-const DANGER := Color(0.45, 0.16, 0.14, 0.95)
-const DANGER_BORDER := Color(0.85, 0.40, 0.36, 1.0)
-const TITLE_COLOR := Color(0.85, 0.95, 1.0, 1.0)
-const DIM_COLOR := Color(0.70, 0.75, 0.82, 1.0)
-const HUD_BUTTON_FILL := Color(0.10, 0.12, 0.18, 0.85)
-const HUD_GLYPH := Color(0.75, 0.85, 1.0, 1.0)
+# --- palette -------------------------------------------------------------------
+## Night City Inventory GUI (Myth6): dark navy panels, lavender borders, neon magenta
+## highlights. These are the colours sampled from assets/textures/gui/nightcity/inventory.png,
+## so the procedural widgets sit in the same set as the pack's inventory art.
+const NIGHT_PANEL := Color(0.133, 0.125, 0.204)        # #222034
+const NIGHT_DEEP := Color(0.102, 0.173, 0.322)         # #1A2C52
+const NIGHT_BORDER := Color(0.518, 0.608, 0.894)       # #849BE4
+const NIGHT_BLUE := Color(0.243, 0.357, 0.580)         # #3E5B94
+const NIGHT_PURPLE := Color(0.478, 0.286, 0.447)       # #7A4972
+const NIGHT_NEON := Color(0.737, 0.290, 0.608)         # #BC4A9B
+const NIGHT_NEON_LIGHT := Color(1.0, 0.560, 0.816)     # neon highlight
+const NIGHT_TEXT := Color(0.890, 0.902, 1.0)           # #E3E6FF
+
+const PANEL_FILL := Color(NIGHT_PANEL.r, NIGHT_PANEL.g, NIGHT_PANEL.b, 0.94)
+const PANEL_BORDER := NIGHT_BORDER
+const PANEL_LIGHT_FILL := Color(0.165, 0.169, 0.271, 0.95)
+const PANEL_LIGHT_BORDER := Color(0.384, 0.443, 0.639, 1.0)
+const BUTTON_UP := Color(NIGHT_BLUE.r, NIGHT_BLUE.g, NIGHT_BLUE.b, 0.95)
+const BUTTON_UP_BORDER := NIGHT_BORDER
+const BUTTON_DOWN := NIGHT_NEON
+const BUTTON_DOWN_BORDER := NIGHT_NEON_LIGHT
+const DANGER := Color(0.451, 0.145, 0.290, 0.95)
+const DANGER_BORDER := Color(0.890, 0.400, 0.659, 1.0)
+const TITLE_COLOR := NIGHT_TEXT
+const DIM_COLOR := Color(0.663, 0.706, 0.847, 1.0)
+const ACCENT := NIGHT_NEON_LIGHT
+const HUD_BUTTON_FILL := Color(0.098, 0.106, 0.180, 0.85)
+const HUD_GLYPH := Color(0.788, 0.824, 1.0, 1.0)
 
 # --- sheet regions (1x coordinates; multiply by the sheet's HD factor) --------
 const R_HOTBAR := Rect2(0, 0, 182, 22)
@@ -223,6 +236,15 @@ static func nine(tex: Texture2D, region: Rect2, margin: float, factor := 1.0, sc
 	sb.modulate_color = Color.WHITE
 	return sb
 
+## The primary menu button: deep navy with a lavender edge, neon magenta when pressed.
+static func big_button_style(active: bool) -> StyleBoxFlat:
+	var sc := s()
+	var sb := flat(NIGHT_NEON if active else Color(NIGHT_DEEP.r, NIGHT_DEEP.g, NIGHT_DEEP.b, 0.96),
+		NIGHT_NEON_LIGHT if active else NIGHT_BORDER, 3.0 * sc, 6.0 * sc, 6.0 * sc)
+	sb.shadow_color = Color(NIGHT_NEON.r, NIGHT_NEON.g, NIGHT_NEON.b, 0.35 if active else 0.0)
+	sb.shadow_size = int(4.0 * sc) if active else 0
+	return sb
+
 static func flat(fill: Color, border: Color, border_w := 2.0, radius := 0.0, pad := 8.0) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = fill
@@ -258,18 +280,17 @@ static func button(text: String, on_pressed: Callable = Callable(), min_w := 0.0
 	var b := Button.new()
 	b.text = text
 	var sc := s()
-	var w := gui_tex("widgets")
-	var f := hd_factor(w)
-	b.add_theme_stylebox_override("normal", nine(w, R_BUTTON, 3, f, sc))
-	b.add_theme_stylebox_override("hover", nine(w, R_BUTTON_HOVER, 3, f, sc))
-	b.add_theme_stylebox_override("pressed", nine(w, R_BUTTON_HOVER, 3, f, sc))
+	b.add_theme_stylebox_override("normal", big_button_style(false))
+	b.add_theme_stylebox_override("hover", big_button_style(true))
+	b.add_theme_stylebox_override("pressed", big_button_style(true))
 	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	b.add_theme_stylebox_override("disabled", nine(w, R_BUTTON_DISABLED, 3, f, sc))
+	b.add_theme_stylebox_override("disabled", flat(Color(0.12, 0.13, 0.19, 0.8),
+		Color(0.32, 0.35, 0.45, 0.8), 2.0 * sc, 6.0 * sc, 6.0 * sc))
 	b.add_theme_font_override("font", font())
 	b.add_theme_font_size_override("font_size", font_body())
 	b.add_theme_color_override("font_color", Color.WHITE)
-	b.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 0.63))
-	b.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 0.63))
+	b.add_theme_color_override("font_hover_color", NIGHT_NEON_LIGHT)
+	b.add_theme_color_override("font_pressed_color", Color.WHITE)
 	b.add_theme_color_override("font_disabled_color", Color(0.63, 0.63, 0.63))
 	b.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
 	b.add_theme_constant_override("shadow_offset_x", 2)
