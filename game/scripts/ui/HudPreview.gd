@@ -93,6 +93,7 @@ func _scenery() -> void:
 func _profile() -> void:
 	if Game == null:
 		return
+	UiUtil.apply_cmdline_flags()
 	UiUtil.ensure_demo_profile()
 	Game.profile["health"] = -1
 	Game.profile["hunger"] = 15

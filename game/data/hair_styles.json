@@ -1,0 +1,125 @@
+{
+  "_comment": "DragonMineZ voxel hair, recovered from com.dragonminez.common.hair (CustomHair/HairStrand/HairFace) with javap. A style is a list of strand GROUPS; scripts/entity/HairBuilder.gd expands each group into strands and each strand into a chain of cubes. Coordinates are head-local model units: the head cube is x[-4,4] y[0,8] z[-4,4] (y=0 at the head pivot). Base slots per face: FRONT 1 row x 4 cols, BACK/LEFT/RIGHT/TOP 4 rows x 4 cols; col offsets [-3,-1,1,3], row drop [0,-1.5,-3,-4.5]. Base rotations: FRONT -90x, BACK +90x, LEFT +90z, RIGHT -90z, TOP none.",
+  "defaults": {
+    "cube": [2.0, 2.0, 2.0],
+    "len": 3,
+    "taper": 0.86,
+    "scale": [1.0, 1.0, 1.0],
+    "rot": [0.0, 0.0, 0.0],
+    "curve": [0.0, 0.0, 0.0],
+    "spread": 0.0,
+    "gap": 0.0
+  },
+  "styles": {
+    "bald": { "name": "Bald", "groups": [] },
+
+    "short": {
+      "name": "Short",
+      "groups": [
+        { "face": "TOP", "cols": [0, 1, 2, 3], "rows": [0, 1, 2, 3], "len": 1, "rot": [-8, 0, 0], "spread": 6, "scale": [1.0, 0.8, 1.0], "taper": 0.9 },
+        { "face": "FRONT", "cols": [0, 1, 2, 3], "len": 1, "rot": [-18, 0, 0], "spread": 8, "scale": [1.0, 0.7, 0.9] },
+        { "face": "BACK", "cols": [0, 1, 2, 3], "rows": [0], "len": 1, "rot": [10, 0, 0], "scale": [1.0, 0.8, 0.9] }
+      ]
+    },
+
+    "spiky": {
+      "name": "Wild Spikes",
+      "groups": [
+        { "face": "TOP", "cols": [0, 1, 2, 3], "rows": [0, 1, 2, 3], "len": 4, "rot": [-12, 0, 0], "spread": 20, "curve": [-5, 0, 0], "taper": 0.82 },
+        { "face": "FRONT", "cols": [0, 1, 2, 3], "len": 3, "rot": [-32, 0, 0], "spread": 14, "curve": [-7, 0, 0], "taper": 0.82 },
+        { "face": "BACK", "cols": [0, 1, 2, 3], "rows": [0, 1], "len": 3, "rot": [24, 0, 0], "spread": 12, "curve": [6, 0, 0], "taper": 0.84 },
+        { "face": "LEFT", "cols": [1, 2], "rows": [0, 1], "len": 2, "rot": [0, 0, -18], "taper": 0.85 },
+        { "face": "RIGHT", "cols": [1, 2], "rows": [0, 1], "len": 2, "rot": [0, 0, 18], "taper": 0.85 }
+      ]
+    },
+
+    "flame": {
+      "name": "Widow's Peak",
+      "groups": [
+        { "face": "TOP", "cols": [0, 1, 2, 3], "rows": [0, 1, 2, 3], "len": 5, "rot": [14, 0, 0], "spread": 12, "curve": [3, 0, 0], "taper": 0.84, "scale": [0.95, 1.0, 0.95] },
+        { "face": "FRONT", "cols": [1, 2], "len": 2, "rot": [-58, 0, 0], "curve": [-10, 0, 0], "scale": [0.8, 0.8, 0.8], "taper": 0.8 },
+        { "face": "BACK", "cols": [0, 1, 2, 3], "rows": [0], "len": 3, "rot": [30, 0, 0], "spread": 10, "curve": [4, 0, 0], "taper": 0.85 },
+        { "face": "LEFT", "cols": [0, 1], "rows": [0], "len": 2, "rot": [0, 0, -30], "taper": 0.85 },
+        { "face": "RIGHT", "cols": [0, 1], "rows": [0], "len": 2, "rot": [0, 0, 30], "taper": 0.85 }
+      ]
+    },
+
+    "bowl": {
+      "name": "Bowl Cut",
+      "groups": [
+        { "face": "TOP", "cols": [0, 1, 2, 3], "rows": [0, 1, 2, 3], "len": 1, "rot": [0, 0, 0], "scale": [1.05, 0.7, 1.05], "taper": 1.0 },
+        { "face": "FRONT", "cols": [0, 1, 2, 3], "len": 2, "rot": [-88, 0, 0], "scale": [1.0, 0.7, 0.8], "taper": 1.0 },
+        { "face": "LEFT", "cols": [0, 1, 2], "rows": [0], "len": 2, "rot": [0, 0, 6], "scale": [0.8, 0.9, 1.0], "taper": 1.0 },
+        { "face": "RIGHT", "cols": [0, 1, 2], "rows": [0], "len": 2, "rot": [0, 0, -6], "scale": [0.8, 0.9, 1.0], "taper": 1.0 },
+        { "face": "BACK", "cols": [0, 1, 2, 3], "rows": [0], "len": 2, "rot": [4, 0, 0], "scale": [1.0, 0.9, 0.8], "taper": 1.0 }
+      ]
+    },
+
+    "long": {
+      "name": "Long Mane",
+      "groups": [
+        { "face": "TOP", "cols": [0, 1, 2, 3], "rows": [0, 1, 2, 3], "len": 2, "rot": [16, 0, 0], "spread": 10, "curve": [8, 0, 0], "taper": 0.9 },
+        { "face": "BACK", "cols": [0, 1, 2, 3], "rows": [0, 1, 2, 3], "len": 7, "rot": [62, 0, 0], "spread": 8, "curve": [5, 0, 0], "taper": 0.95, "scale": [1.05, 1.0, 0.9] },
+        { "face": "LEFT", "cols": [0, 1], "rows": [0, 1], "len": 4, "rot": [0, 0, 12], "curve": [0, 0, 6], "taper": 0.9 },
+        { "face": "RIGHT", "cols": [0, 1], "rows": [0, 1], "len": 4, "rot": [0, 0, -12], "curve": [0, 0, -6], "taper": 0.9 },
+        { "face": "FRONT", "cols": [0, 3], "len": 2, "rot": [-40, 0, 0], "curve": [-8, 0, 0], "taper": 0.85 }
+      ]
+    },
+
+    "ponytail": {
+      "name": "Ponytail",
+      "groups": [
+        { "face": "TOP", "cols": [0, 1, 2, 3], "rows": [0, 1, 2, 3], "len": 1, "rot": [10, 0, 0], "spread": 6, "scale": [1.0, 0.8, 1.0], "taper": 0.9 },
+        { "face": "FRONT", "cols": [0, 3], "len": 1, "rot": [-24, 0, 0], "spread": 10, "scale": [0.9, 0.7, 0.9] },
+        { "face": "BACK", "cols": [1, 2], "rows": [1], "len": 6, "rot": [54, 0, 0], "curve": [7, 0, 0], "taper": 0.92, "scale": [0.9, 1.0, 0.9] }
+      ]
+    },
+
+    "mohawk": {
+      "name": "Mohawk",
+      "groups": [
+        { "face": "TOP", "cols": [1, 2], "rows": [0, 1, 2, 3], "len": 4, "rot": [0, 0, 0], "spread": 4, "curve": [2, 0, 0], "taper": 0.85, "scale": [0.8, 1.1, 1.0] }
+      ]
+    },
+
+    "ssj": {
+      "name": "Super Saiyan",
+      "color": "#F5D03A",
+      "groups": [
+        { "face": "TOP", "cols": [0, 1, 2, 3], "rows": [0, 1, 2, 3], "len": 6, "rot": [22, 0, 0], "spread": 16, "curve": [5, 0, 0], "taper": 0.86 },
+        { "face": "FRONT", "cols": [0, 1, 2, 3], "len": 5, "rot": [-14, 0, 0], "spread": 12, "curve": [12, 0, 0], "taper": 0.84 },
+        { "face": "BACK", "cols": [0, 1, 2, 3], "rows": [0, 1], "len": 5, "rot": [26, 0, 0], "spread": 10, "curve": [6, 0, 0], "taper": 0.86 },
+        { "face": "LEFT", "cols": [0, 1, 2], "rows": [0], "len": 3, "rot": [0, 0, -34], "curve": [0, 0, -8], "taper": 0.85 },
+        { "face": "RIGHT", "cols": [0, 1, 2], "rows": [0], "len": 3, "rot": [0, 0, 34], "curve": [0, 0, 8], "taper": 0.85 }
+      ]
+    },
+
+    "ssj2": {
+      "name": "Super Saiyan 2",
+      "color": "#F7DC4B",
+      "groups": [
+        { "face": "TOP", "cols": [0, 1, 2, 3], "rows": [0, 1, 2, 3], "len": 8, "rot": [26, 0, 0], "spread": 14, "curve": [4, 0, 0], "taper": 0.88, "scale": [0.9, 1.0, 0.9] },
+        { "face": "FRONT", "cols": [0, 2, 3], "len": 6, "rot": [-8, 0, 0], "spread": 10, "curve": [14, 0, 0], "taper": 0.86 },
+        { "face": "FRONT", "cols": [1], "len": 3, "rot": [-72, 0, 0], "curve": [-6, 0, 0], "scale": [0.7, 0.9, 0.7], "taper": 0.9 },
+        { "face": "BACK", "cols": [0, 1, 2, 3], "rows": [0, 1], "len": 6, "rot": [28, 0, 0], "spread": 10, "curve": [5, 0, 0], "taper": 0.88 },
+        { "face": "LEFT", "cols": [0, 1, 2], "rows": [0], "len": 4, "rot": [0, 0, -40], "curve": [0, 0, -6], "taper": 0.86 },
+        { "face": "RIGHT", "cols": [0, 1, 2], "rows": [0], "len": 4, "rot": [0, 0, 40], "curve": [0, 0, 6], "taper": 0.86 }
+      ]
+    },
+
+    "ssj3": {
+      "name": "Super Saiyan 3",
+      "color": "#F8E066",
+      "no_eyebrows": true,
+      "groups": [
+        { "face": "TOP", "cols": [0, 1, 2, 3], "rows": [0, 1, 2, 3], "len": 6, "rot": [34, 0, 0], "spread": 10, "curve": [6, 0, 0], "taper": 0.92, "scale": [0.9, 1.0, 0.9] },
+        { "face": "BACK", "cols": [0, 1, 2, 3], "rows": [0, 1, 2, 3], "len": 14, "rot": [66, 0, 0], "spread": 6, "curve": [3, 0, 0], "taper": 0.97, "scale": [1.05, 1.0, 0.95] },
+        { "face": "FRONT", "cols": [0, 1, 2, 3], "len": 5, "rot": [-10, 0, 0], "spread": 10, "curve": [16, 0, 0], "taper": 0.86 },
+        { "face": "LEFT", "cols": [0, 1, 2, 3], "rows": [0, 1], "len": 7, "rot": [0, 0, -14], "curve": [0, 0, -4], "taper": 0.93 },
+        { "face": "RIGHT", "cols": [0, 1, 2, 3], "rows": [0, 1], "len": 7, "rot": [0, 0, 14], "curve": [0, 0, 4], "taper": 0.93 }
+      ]
+    }
+  },
+  "order": ["bald", "short", "spiky", "flame", "bowl", "long", "ponytail", "mohawk"],
+  "form_hair": { "0": "spiky", "1": "ssj", "2": "ssj2", "3": "ssj3", "4": "ssj3" }
+}

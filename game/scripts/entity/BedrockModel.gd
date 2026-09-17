@@ -51,6 +51,7 @@ static var euler_signs := Vector3(1.0, 1.0, 1.0)
 static var _geo_cache: Dictionary = {}          # rel path -> parsed geometry Dictionary
 static var _mesh_cache: Dictionary = {}         # rel path -> {bone: ArrayMesh}
 static var _hair_re: RegEx = null
+static var _tex_cache: Dictionary = {}          # base (non-hd) entity texture cache
 
 var geo_path := ""
 var texture_size := Vector2i(64, 64)
@@ -217,6 +218,29 @@ static func _make_material(cull: int) -> StandardMaterial3D:
 	m.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
 	m.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 	return m
+
+## Entity texture resolution that honours data/entities.json `hd_texture`.
+## `Textures.entity_texture()` ALWAYS prefers assets/textures/entity/hd/<rel>.png
+## when that file exists; a few DMZ-HD paths hold a different character's art (the
+## pack is a repaint with its own naming), so an entity that opts out with
+## `"hd_texture": false` must get the 64x64 original instead. Returns the shared
+## missing-texture when neither file loads, never null.
+static func entity_texture(rel: String, allow_hd := true) -> Texture2D:
+	if rel == "":
+		return null
+	if allow_hd:
+		return Textures.entity_texture(rel)
+	var base := "res://assets/textures/entity/" + rel + ".png"
+	if _tex_cache.has(base):
+		return _tex_cache[base]
+	var tex: Texture2D = null
+	if ResourceLoader.exists(base):
+		tex = load(base)
+	if tex == null:
+		Log.w("BedrockModel: entity texture missing " + base)
+		tex = Textures.missing_texture()
+	_tex_cache[base] = tex
+	return tex
 
 static func is_soft_bone(name: String) -> bool:
 	if _hair_re == null:

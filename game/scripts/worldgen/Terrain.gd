@@ -59,6 +59,7 @@ var _river := FastNoiseLite.new()     # river spine
 var _zone := FastNoiseLite.new()      # biome patches near spawn / planet zoning
 var _lake := FastNoiseLite.new()      # lake and pool basins
 var _plateau := FastNoiseLite.new()   # mesa / plateau steps
+var _weird := FastNoiseLite.new()     # weirdness: canyons, biome variation
 
 ## A Terrain configured like a planet's generator, for height queries without a generator
 ## (dragon ball placement, spawn points, tools). Kept here so nothing that only needs heights
@@ -92,6 +93,16 @@ func configure(p_seed: int, planet_def: Dictionary, p_mode: String) -> void:
 	_setup(_zone, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0x9999, 0.0055, 2)
 	_setup(_lake, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0xAAAA, 0.0042, 2)
 	_setup(_plateau, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0xBBBB, 0.0038, 2)
+	_setup(_weird, FastNoiseLite.TYPE_SIMPLEX_SMOOTH, 0xCCCC, 0.0016, 2)
+	if p_mode == MODE_EARTH:
+		# Terralith-style Earth: wide continents, sharp ridges, gentle erosion field.
+		_cont.frequency = 0.00085
+		_cont.fractal_octaves = 4
+		_ero.frequency = 0.0021
+		_peaks.frequency = 0.0042
+		_peaks.fractal_octaves = 4
+		_hills.frequency = 0.0055
+		max_height = HEIGHT - 2
 
 func _setup(n: FastNoiseLite, type: int, salt: int, freq: float, octaves: int) -> void:
 	n.noise_type = type
@@ -130,6 +141,9 @@ func zone_at(wx: int, wz: int) -> float:
 
 func erosion_at(wx: int, wz: int) -> float:
 	return _ero.get_noise_2d(float(wx), float(wz))
+
+func weirdness_at(wx: int, wz: int) -> float:
+	return _weird.get_noise_2d(float(wx), float(wz))
 
 func plateau_at(wx: int, wz: int) -> float:
 	return _plateau.get_noise_2d(float(wx), float(wz))
@@ -170,30 +184,63 @@ func height_f(wx: int, wz: int) -> float:
 		MODE_HEAVEN: return _h_heaven(fx, fz)
 		_: return float(plane_y)
 
-# Earth: continentalness -> oceans, erosion -> relief amplitude, ridged peaks -> mountains,
-# river spines carved to just under sea level, plus the spawn-area bias.
+# Earth (Terralith / Tectonic feel): a continentalness spline sets the base height, erosion
+# sets how much relief survives, ridged peaks-and-valleys noise builds mountain ranges that
+# reach the build limit, weirdness cuts canyons, very eroded inland areas terrace into
+# plateaus, and the river band carves valleys down to just under sea level.
 func _h_earth(fx: float, fz: float) -> float:
 	var sea := float(sea_level)
 	var c := clampf(_cont.get_noise_2d(fx, fz) + _bias_cont(fx, fz), -1.0, 1.0)
-	var land := smoothstep(-0.17, 0.07, c)
-	var hc := lerpf(sea - 27.0, sea + 7.0, land)
-	var ero := _ero.get_noise_2d(fx, fz)
-	var flat := clampf(0.5 + 0.5 * ero, 0.0, 1.0)
-	var amp := land * lerpf(36.0, 5.0, flat)
+	var e := _ero.get_noise_2d(fx, fz)
+	var w := _weird.get_noise_2d(fx, fz)
 	var hills := 0.5 + 0.5 * _hills.get_noise_2d(fx, fz)
 	var ridge := 1.0 - absf(_peaks.get_noise_2d(fx, fz))
-	var relief := 0.55 * hills + 0.45 * ridge * ridge
-	var h := hc + amp * relief + _detail.get_noise_2d(fx, fz) * 1.4 + _bias_height(fx, fz)
-	# Rivers: cut a valley to just below sea level, except through high mountains.
-	var rn := _river.get_noise_2d(fx, fz)
-	var river := clampf(1.0 - absf(rn) * 11.0, 0.0, 1.0)
+	ridge = ridge * ridge
+	var land := smoothstep(-0.12, 0.08, c)
+	var base := sea + _spline_cont(c)
+	# erosion: 1 = rugged, 0 = worn flat
+	var rugged := 1.0 - clampf(0.5 + 0.5 * e, 0.0, 1.0)
+	var relief := lerpf(4.0, 26.0, rugged)
+	# mountain ranges: inland, low erosion, on a ridge
+	var mtn := clampf((c + 0.12) * 1.5, 0.0, 1.0) * smoothstep(0.15, 0.75, rugged)
+	var h := base + land * (relief * hills + mtn * (66.0 * ridge + 8.0 * hills))
+	h += _detail.get_noise_2d(fx, fz) * 1.4 + _bias_height(fx, fz)
+	# plateaus: worn, inland ground steps into terraces
+	var flat := smoothstep(0.35, 0.8, 1.0 - rugged) * land * smoothstep(0.0, 0.35, c)
+	if flat > 0.02 and h > sea + 2.0:
+		var stepped: float = sea + roundf((h - sea) / 7.0) * 7.0
+		h = lerpf(h, stepped, flat * 0.8)
+	# canyons: a narrow weirdness band cut into flat inland ground
+	var canyon := clampf(1.0 - absf(w - 0.34) * 9.0, 0.0, 1.0)
+	if canyon > 0.0 and land > 0.6:
+		var cs := canyon * canyon * smoothstep(0.2, 0.7, 1.0 - rugged)
+		h -= cs * 24.0 * clampf((h - (sea - 2.0)) / 24.0, 0.0, 1.0)
+	# lakes: broad inland basins that the generator fills with water
+	var lake := lake_at(int(fx), int(fz))
+	if lake > 0.0 and land > 0.75 and h > sea + 4.0:
+		h -= lake * 11.0 * smoothstep(0.1, 0.6, 1.0 - rugged)
+	# rivers: carve to just under sea level, never through the spawn area or high peaks
+	var river := clampf(1.0 - absf(_river.get_noise_2d(fx, fz)) * 11.0, 0.0, 1.0)
 	if river > 0.0 and land > 0.35:
-		var mtn := clampf((h - (sea + 30.0)) / 22.0, 0.0, 1.0)
-		# Never carve a river through the spawn area (the saga starts there on foot).
+		var high := clampf((h - (sea + 46.0)) / 26.0, 0.0, 1.0)
 		var guard := _gauss(fx, fz, 0.0, 0.0, 130.0)
-		var rs := river * river * (1.0 - mtn) * land * clampf(1.0 - guard * 1.6, 0.0, 1.0)
+		var rs := river * river * (1.0 - high) * land * clampf(1.0 - guard * 1.6, 0.0, 1.0)
 		h = lerpf(h, minf(h, sea - 2.0), rs)
 	return h
+
+## Continentalness -> height offset from sea level (the 1.18-style continental spline).
+static func _spline_cont(c: float) -> float:
+	if c < -0.35:
+		return lerpf(-30.0, -22.0, (c + 1.0) / 0.65)
+	if c < -0.12:
+		return lerpf(-22.0, -5.0, (c + 0.35) / 0.23)
+	if c < 0.0:
+		return lerpf(-5.0, 2.0, (c + 0.12) / 0.12)
+	if c < 0.3:
+		return lerpf(2.0, 9.0, c / 0.3)
+	if c < 0.6:
+		return lerpf(9.0, 17.0, (c - 0.3) / 0.3)
+	return lerpf(17.0, 27.0, (c - 0.6) / 0.4)
 
 ## Continentalness bias: dry land at the origin, an ocean bay for Kame House.
 func _bias_cont(fx: float, fz: float) -> float:
@@ -295,6 +342,25 @@ func _h_heaven(fx: float, fz: float) -> float:
 	return h
 
 # --- deterministic hashing -------------------------------------------------
+
+## Water level of a local lake/pool at this column, or -999 when there is none. Mirrors the
+## depression the height field cut, so the shoreline lands exactly on the basin rim.
+func pool_level_at(wx: int, wz: int, h: int, depth: float) -> int:
+	var lake := lake_at(wx, wz)
+	if lake <= 0.06:
+		return -999
+	var fx := float(wx)
+	var fz := float(wz)
+	if mode == MODE_EARTH:
+		var c := clampf(_cont.get_noise_2d(fx, fz) + _bias_cont(fx, fz), -1.0, 1.0)
+		if smoothstep(-0.12, 0.08, c) < 0.75:
+			return -999
+		var rugged := 1.0 - clampf(0.5 + 0.5 * _ero.get_noise_2d(fx, fz), 0.0, 1.0)
+		var cut := lake * 11.0 * smoothstep(0.1, 0.6, 1.0 - rugged)
+		if cut < 2.5:
+			return -999
+		return h + int(round(cut)) - 3
+	return h + int(round(lake * depth)) - 4
 
 ## Stable 31-bit hash of an integer triple plus this terrain's seed.
 func hash3(x: int, y: int, z: int) -> int:

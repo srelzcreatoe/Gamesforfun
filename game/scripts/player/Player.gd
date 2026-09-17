@@ -68,6 +68,14 @@ var _position_preset := false
 var _blast_charging := false
 var _stepper: RefCounted = null          # scripts/audio/Footsteps.gd Stepper (audio engineer)
 var _was_in_liquid := false
+var _play_time := 0.0          # seconds played in this session
+var _play_time_total := 0.0    # seconds carried in from the profile
+
+# --- cheats (Dev mode, scenes/ui/DevMenu.tscn) ------------------------------
+var god_mode := false
+var infinite_ki := false
+var creative_flight := false
+var noclip := false
 
 # --- setup -----------------------------------------------------------------
 
@@ -145,6 +153,8 @@ func read_profile(profile: Dictionary) -> void:
 	ki = minf(ki, max_ki)
 	stamina = minf(stamina, max_stamina)
 	current_form = String(profile.get("forms", {}).get("current", ""))
+	_play_time_total = float(profile.get("play_time", 0.0))
+	_play_time = 0.0
 	if survival != null:
 		survival.load_profile(profile)
 	var inv: Variant = profile.get("inventory", {})
@@ -176,6 +186,9 @@ func write_profile(profile: Dictionary) -> void:
 	profile["health"] = health
 	profile["ki"] = ki
 	profile["stamina"] = stamina
+	_play_time_total += _play_time
+	_play_time = 0.0
+	profile["play_time"] = _play_time_total
 	inventory.hotbar_index = hotbar_index
 	profile["inventory"] = inventory.to_dict()
 	var planet := "earth"
@@ -254,6 +267,8 @@ func skill_level(id: String) -> int:
 	return int(Game.profile.get("skills", {}).get(id, 0))
 
 func flight_allowed() -> bool:
+	if creative_flight or noclip:
+		return true
 	if Game != null and Game.creative:
 		return true
 	return skill_level("fly") >= 1
@@ -476,6 +491,10 @@ func tick(delta: float) -> void:
 		_apply_motion(Vector3(0.0, velocity.y * delta, 0.0))
 		_animate()
 		return
+	_play_time += delta
+	if infinite_ki:
+		ki = max_ki
+		stamina = max_stamina
 	_read_input(delta)
 	_update_fluid()
 	_update_modes(delta)
@@ -523,7 +542,7 @@ func _update_modes(delta: float) -> void:
 			Events.stamina_changed.emit(stamina, max_stamina)
 		if stamina <= 0.0:
 			fly_fast = false
-	if is_flying:
+	if is_flying and not (infinite_ki or creative_flight or noclip):
 		var drain := KI_FLY_DRAIN * delta * (2.0 if fly_fast else 1.0)
 		if k != null:
 			k.set_ki(k.ki() - drain)
@@ -548,7 +567,7 @@ func _integrate(delta: float) -> void:
 		accel = ACCEL_AIR
 	velocity.x = move_toward(velocity.x, want.x, accel * delta)
 	velocity.z = move_toward(velocity.z, want.z, accel * delta)
-	if is_flying:
+	if is_flying or noclip:
 		var vy := 0.0
 		if input.jump:
 			vy = FLY_VERTICAL
@@ -590,6 +609,12 @@ func _apply_motion(motion: Vector3) -> void:
 	var step := float(_phys["step_height"]) if (on_ground or in_liquid) else 0.0
 	var vp := _voxel()
 	var moved_from := global_position
+	if noclip:
+		global_position += motion
+		on_ground = false
+		var dn := global_position - moved_from
+		ground_speed = Vector2(dn.x, dn.z).length() / maxf(get_process_delta_time(), 0.0001)
+		return
 	if vp != null and world != null and vp.has_method("move_aabb"):
 		var box := aabb()
 		var r: Variant = vp.call("move_aabb", world, box, motion, step)
@@ -675,7 +700,7 @@ func _animate() -> void:
 # --- damage / death --------------------------------------------------------
 
 func take_damage(amount: float, source: Node = null, kind_of := "melee", knockback := Vector3.ZERO) -> float:
-	if dead:
+	if dead or god_mode:
 		return 0.0
 	var extra := 0.0
 	if inventory != null:
@@ -738,6 +763,37 @@ func respawn() -> void:
 		inventory.clear()
 	_emit_all()
 	Events.player_respawned.emit()
+
+## Dev mode helpers used by scenes/ui/DevMenu.tscn.
+func set_cheat(name: String, on: bool) -> void:
+	match name:
+		"god_mode": god_mode = on
+		"infinite_ki": infinite_ki = on
+		"creative_flight":
+			creative_flight = on
+			if not on and not flight_allowed():
+				is_flying = false
+		"noclip":
+			noclip = on
+			if on:
+				is_flying = true
+			else:
+				is_flying = flight_allowed() and is_flying
+	if on and name == "god_mode":
+		health = max_health
+		Events.health_changed.emit(health, max_health)
+
+func cheat(name: String) -> bool:
+	match name:
+		"god_mode": return god_mode
+		"infinite_ki": return infinite_ki
+		"creative_flight": return creative_flight
+		"noclip": return noclip
+	return false
+
+func teleport(pos: Vector3) -> void:
+	global_position = pos
+	velocity = Vector3.ZERO
 
 func set_spawn(pos: Vector3, planet := "") -> void:
 	spawn_point = pos

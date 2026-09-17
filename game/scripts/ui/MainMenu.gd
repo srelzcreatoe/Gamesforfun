@@ -56,10 +56,8 @@ func build() -> void:
 	Audio.play_bgm("menu")
 
 func _on_play() -> void:
-	if Game.list_worlds().is_empty():
-		Game.ui.call("open", "create_world")
-	else:
-		Game.ui.call("open", "world_select")
+	SaveSlots.clear_active()
+	Game.ui.call("open", "world_select")
 
 func _on_help() -> void:
 	var txt := "Move with the left stick. Drag the right side to look.\n" \

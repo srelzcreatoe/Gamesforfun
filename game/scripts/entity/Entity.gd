@@ -213,7 +213,8 @@ func _build_model() -> void:
 	if def.has("character") or spawn_data.has("character"):
 		RaceSkin.apply_to(model, spawn_data.get("character", def.get("character", {})), spawn_data.get("armor", []))
 	elif tex != "":
-		model.set_texture(Textures.entity_texture(tex))
+		# entities.json `hd_texture: false` opts out of the DMZ-HD variant
+		model.set_texture(BedrockModel.entity_texture(tex, bool(def.get("hd_texture", true))))
 	anim = BedrockAnimation.new()
 	anim.name = "Anim"
 	add_child(anim)

@@ -22,6 +22,7 @@ const SCREENS := {
 	"world_select": "res://scenes/ui/WorldSelect.tscn",
 	"create_world": "res://scenes/ui/CreateWorld.tscn",
 	"loading": "res://scenes/ui/Loading.tscn",
+	"dev": "res://scenes/ui/DevMenu.tscn",
 }
 const NON_MODAL := ["hud"]
 
@@ -36,6 +37,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	if Game != null:
 		Game.ui = self
+	UiUtil.ensure_ui_settings()
 	toasts = load("res://scripts/ui/ToastLayer.gd").new()
 	add_child(toasts)
 	Events.player_spawned.connect(_on_player_spawned)

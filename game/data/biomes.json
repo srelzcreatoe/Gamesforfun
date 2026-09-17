@@ -1942,6 +1942,2538 @@
    "mobs": [],
    "quest_tag": "dmzplus:orbit",
    "weight": 10
+  },
+  {
+   "id": "alpine_clearings",
+   "name": "Alpine Clearings",
+   "planet": "earth",
+   "temperature": 0.7,
+   "humidity": 0.5,
+   "grass_color": "#A8CF72",
+   "foliage_color": "#9EAD52",
+   "water_color": "#3F76E4",
+   "sky_tint": "#78A7FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "gravel",
+   "trees": [
+    {
+     "type": "fir",
+     "density": 0.004
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.2
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.05
+    },
+    {
+     "block": "oxeye_daisy",
+     "density": 0.012
+    },
+    {
+     "block": "cornflower",
+     "density": 0.01
+    },
+    {
+     "block": "allium",
+     "density": 0.01
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "dino1",
+     "weight": 22,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dino2",
+     "weight": 18,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dinokid",
+     "weight": 10,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:alpine_clearings",
+   "weight": 6,
+   "elevation": "high",
+   "cliff": "stone"
+  },
+  {
+   "id": "alpine_highlands",
+   "name": "Alpine Highlands",
+   "planet": "earth",
+   "temperature": 0.7,
+   "humidity": 0.5,
+   "grass_color": "#A8CF72",
+   "foliage_color": "#9EAD52",
+   "water_color": "#3F76E4",
+   "sky_tint": "#78A7FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "stone",
+   "underwater": "gravel",
+   "trees": [
+    {
+     "type": "fir",
+     "density": 0.012
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.16
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.03
+    },
+    {
+     "block": "azure_bluet",
+     "density": 0.01
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "dino1",
+     "weight": 22,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dino2",
+     "weight": 18,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dinokid",
+     "weight": 10,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:alpine_highlands",
+   "weight": 7,
+   "elevation": "high",
+   "cliff": "stone"
+  },
+  {
+   "id": "sleeted_slopes",
+   "name": "Sleeted Slopes",
+   "planet": "earth",
+   "temperature": 0.0,
+   "humidity": 1.0,
+   "grass_color": "#E3DB87",
+   "foliage_color": "#9EAD52",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "snow_block",
+   "filler": "stone",
+   "underwater": "gravel",
+   "trees": [],
+   "plants": [
+    {
+     "block": "snow_layer",
+     "density": 0.5
+    }
+   ],
+   "mobs": [],
+   "quest_tag": "natures_spirit:sleeted_slopes",
+   "weight": 5,
+   "elevation": "peak",
+   "cliff": "stone"
+  },
+  {
+   "id": "snowcapped_red_peaks",
+   "name": "Snowcapped Red Peaks",
+   "planet": "earth",
+   "temperature": 0.0,
+   "humidity": 1.0,
+   "grass_color": "#E3DB87",
+   "foliage_color": "#9EAD52",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "snow_block",
+   "filler": "red_terracotta",
+   "underwater": "gravel",
+   "trees": [],
+   "plants": [
+    {
+     "block": "snow_layer",
+     "density": 0.45
+    }
+   ],
+   "mobs": [],
+   "quest_tag": "natures_spirit:snowcapped_red_peaks",
+   "weight": 5,
+   "elevation": "peak",
+   "cliff": "red_terracotta",
+   "band_depth": 20
+  },
+  {
+   "id": "red_peaks",
+   "name": "Red Peaks",
+   "planet": "earth",
+   "temperature": 1.4,
+   "humidity": 0.0,
+   "grass_color": "#E3DB87",
+   "foliage_color": "#9EAD52",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "red_sand",
+   "filler": "red_terracotta",
+   "underwater": "red_sand",
+   "trees": [],
+   "plants": [
+    {
+     "block": "dead_bush",
+     "density": 0.02
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:red_peaks",
+   "weight": 6,
+   "elevation": "high",
+   "cliff": "red_terracotta",
+   "band_depth": 20
+  },
+  {
+   "id": "white_cliffs",
+   "name": "White Cliffs",
+   "planet": "earth",
+   "temperature": 0.95,
+   "humidity": 0.6,
+   "grass_color": "#A4C954",
+   "foliage_color": "#82BA4A",
+   "water_color": "#3F76E4",
+   "sky_tint": "#77A8FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "white_terracotta",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "cypress",
+     "density": 0.01
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.16
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.03
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:white_cliffs",
+   "weight": 5,
+   "elevation": "high",
+   "cliff": "quartz_block"
+  },
+  {
+   "id": "tundra",
+   "name": "Tundra",
+   "planet": "earth",
+   "temperature": 0.15,
+   "humidity": 0.3,
+   "grass_color": "#E3DB87",
+   "foliage_color": "#9EAD52",
+   "water_color": "#5A7BDD",
+   "sky_tint": "#95C1E9",
+   "fog_color": "#D4DFF7",
+   "water_fog_color": "#050533",
+   "surface": "snowy_grass_block",
+   "filler": "dirt",
+   "underwater": "gravel",
+   "trees": [
+    {
+     "type": "fir",
+     "density": 0.006
+    }
+   ],
+   "plants": [
+    {
+     "block": "snow_layer",
+     "density": 0.4
+    },
+    {
+     "block": "short_grass",
+     "density": 0.02
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "dino1",
+     "weight": 22,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dino2",
+     "weight": 18,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dinokid",
+     "weight": 10,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:tundra",
+   "weight": 6,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "boreal_taiga",
+   "name": "Boreal Taiga",
+   "planet": "earth",
+   "temperature": 0.15,
+   "humidity": 0.3,
+   "grass_color": "#ACC181",
+   "foliage_color": "#AEAF6A",
+   "water_color": "#5A7BDD",
+   "sky_tint": "#95C1E9",
+   "fog_color": "#D4DFF7",
+   "water_fog_color": "#050533",
+   "surface": "snowy_grass_block",
+   "filler": "dirt",
+   "underwater": "gravel",
+   "trees": [
+    {
+     "type": "fir",
+     "density": 0.05
+    }
+   ],
+   "plants": [
+    {
+     "block": "snow_layer",
+     "density": 0.4
+    },
+    {
+     "block": "short_grass",
+     "density": 0.02
+    },
+    {
+     "block": "fern",
+     "density": 0.04
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "dino1",
+     "weight": 22,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dino2",
+     "weight": 18,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dinokid",
+     "weight": 10,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:boreal_taiga",
+   "weight": 7,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "snowy_fir_forest",
+   "name": "Snowy Fir Forest",
+   "planet": "earth",
+   "temperature": 0.0,
+   "humidity": 0.6,
+   "grass_color": "#B6C288",
+   "foliage_color": "#78BE4D",
+   "water_color": "#3F76E4",
+   "sky_tint": "#7BA4FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "snowy_grass_block",
+   "filler": "dirt",
+   "underwater": "gravel",
+   "trees": [
+    {
+     "type": "snowy_fir",
+     "density": 0.07
+    }
+   ],
+   "plants": [
+    {
+     "block": "snow_layer",
+     "density": 0.4
+    },
+    {
+     "block": "fern",
+     "density": 0.03
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "dino1",
+     "weight": 22,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dino2",
+     "weight": 18,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dinokid",
+     "weight": 10,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:snowy_fir_forest",
+   "weight": 7,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "snowy_redwood_forest",
+   "name": "Snowy Redwood Forest",
+   "planet": "earth",
+   "temperature": 0.0,
+   "humidity": 0.6,
+   "grass_color": "#AEBD6D",
+   "foliage_color": "#78BE4D",
+   "water_color": "#3F76E4",
+   "sky_tint": "#7CA4FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "snowy_grass_block",
+   "filler": "podzol",
+   "underwater": "gravel",
+   "trees": [
+    {
+     "type": "frosty_redwood",
+     "density": 0.02
+    }
+   ],
+   "plants": [
+    {
+     "block": "snow_layer",
+     "density": 0.35
+    },
+    {
+     "block": "fern",
+     "density": 0.05
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "dino1",
+     "weight": 22,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dino2",
+     "weight": 18,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dinokid",
+     "weight": 10,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:snowy_redwood_forest",
+   "weight": 6,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "fir_forest",
+   "name": "Fir Forest",
+   "planet": "earth",
+   "temperature": 0.2,
+   "humidity": 0.3,
+   "grass_color": "#B6C288",
+   "foliage_color": "#96B547",
+   "water_color": "#3F76E4",
+   "sky_tint": "#7BA4FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "gravel",
+   "trees": [
+    {
+     "type": "fir",
+     "density": 0.08
+    }
+   ],
+   "plants": [
+    {
+     "block": "fern",
+     "density": 0.08
+    },
+    {
+     "block": "short_grass",
+     "density": 0.12
+    },
+    {
+     "block": "large_fern",
+     "density": 0.02
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "dino1",
+     "weight": 22,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dino2",
+     "weight": 18,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dinokid",
+     "weight": 10,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:fir_forest",
+   "weight": 8,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "coniferous_covert",
+   "name": "Coniferous Covert",
+   "planet": "earth",
+   "temperature": 0.7,
+   "humidity": 0.5,
+   "grass_color": "#A8CF72",
+   "foliage_color": "#9EAD52",
+   "water_color": "#3F76E4",
+   "sky_tint": "#78A7FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "gravel",
+   "trees": [
+    {
+     "type": "fir",
+     "density": 0.05
+    },
+    {
+     "type": "cypress",
+     "density": 0.01
+    }
+   ],
+   "plants": [
+    {
+     "block": "fern",
+     "density": 0.08
+    },
+    {
+     "block": "short_grass",
+     "density": 0.12
+    },
+    {
+     "block": "large_fern",
+     "density": 0.02
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "dino1",
+     "weight": 22,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dino2",
+     "weight": 18,
+     "min": 1,
+     "max": 2
+    },
+    {
+     "entity": "dinokid",
+     "weight": 10,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:coniferous_covert",
+   "weight": 6,
+   "elevation": "high",
+   "cliff": "stone"
+  },
+  {
+   "id": "prairie",
+   "name": "Prairie",
+   "planet": "earth",
+   "temperature": 0.45,
+   "humidity": 0.3,
+   "grass_color": "#E3DB87",
+   "foliage_color": "#9EAD52",
+   "water_color": "#5A7BDD",
+   "sky_tint": "#95C1E9",
+   "fog_color": "#D4DFF7",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "fir",
+     "density": 0.002
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.2
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.05
+    },
+    {
+     "block": "oxeye_daisy",
+     "density": 0.012
+    },
+    {
+     "block": "cornflower",
+     "density": 0.01
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:prairie",
+   "weight": 8,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "redwood_forest",
+   "name": "Redwood Forest",
+   "planet": "earth",
+   "temperature": 0.4,
+   "humidity": 0.6,
+   "grass_color": "#AEBD6D",
+   "foliage_color": "#7EBD4A",
+   "water_color": "#3F76E4",
+   "sky_tint": "#7CA4FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "podzol",
+   "underwater": "gravel",
+   "trees": [
+    {
+     "type": "redwood",
+     "density": 0.025
+    },
+    {
+     "type": "fir",
+     "density": 0.01
+    }
+   ],
+   "plants": [
+    {
+     "block": "fern",
+     "density": 0.08
+    },
+    {
+     "block": "short_grass",
+     "density": 0.12
+    },
+    {
+     "block": "large_fern",
+     "density": 0.02
+    },
+    {
+     "block": "brown_mushroom",
+     "density": 0.004
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:redwood_forest",
+   "weight": 8,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "maple_woodlands",
+   "name": "Maple Woodlands",
+   "planet": "earth",
+   "temperature": 0.45,
+   "humidity": 0.3,
+   "grass_color": "#E8D578",
+   "foliage_color": "#9EAD52",
+   "water_color": "#5A7BDD",
+   "sky_tint": "#95C1E9",
+   "fog_color": "#D4DFF7",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "maple",
+     "density": 0.05
+    },
+    {
+     "type": "orange_maple",
+     "density": 0.03
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.2
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.05
+    },
+    {
+     "block": "oxeye_daisy",
+     "density": 0.012
+    },
+    {
+     "block": "cornflower",
+     "density": 0.01
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:maple_woodlands",
+   "weight": 8,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "marigold_meadows",
+   "name": "Marigold Meadows",
+   "planet": "earth",
+   "temperature": 0.45,
+   "humidity": 0.3,
+   "grass_color": "#E8D578",
+   "foliage_color": "#9EAD52",
+   "water_color": "#5A7BDD",
+   "sky_tint": "#95C1E9",
+   "fog_color": "#D4DFF7",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "maple",
+     "density": 0.012
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.2
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.05
+    },
+    {
+     "block": "oxeye_daisy",
+     "density": 0.012
+    },
+    {
+     "block": "cornflower",
+     "density": 0.01
+    },
+    {
+     "block": "dandelion",
+     "density": 0.05
+    },
+    {
+     "block": "orange_tulip",
+     "density": 0.02
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:marigold_meadows",
+   "weight": 6,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "golden_wilds",
+   "name": "Golden Wilds",
+   "planet": "earth",
+   "temperature": 0.45,
+   "humidity": 0.3,
+   "grass_color": "#E8D578",
+   "foliage_color": "#9EAD52",
+   "water_color": "#5A7BDD",
+   "sky_tint": "#95C1E9",
+   "fog_color": "#D4DFF7",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "aspen",
+     "density": 0.03
+    },
+    {
+     "type": "orange_maple",
+     "density": 0.01
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.2
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.05
+    },
+    {
+     "block": "oxeye_daisy",
+     "density": 0.012
+    },
+    {
+     "block": "cornflower",
+     "density": 0.01
+    },
+    {
+     "block": "dandelion",
+     "density": 0.03
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:golden_wilds",
+   "weight": 6,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "aspen_forest",
+   "name": "Aspen Forest",
+   "planet": "earth",
+   "temperature": 0.45,
+   "humidity": 0.3,
+   "grass_color": "#DBD369",
+   "foliage_color": "#9EAD52",
+   "water_color": "#5A7BDD",
+   "sky_tint": "#95C1E9",
+   "fog_color": "#D4DFF7",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "aspen",
+     "density": 0.08
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.2
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.05
+    },
+    {
+     "block": "oxeye_daisy",
+     "density": 0.012
+    },
+    {
+     "block": "cornflower",
+     "density": 0.01
+    },
+    {
+     "block": "fern",
+     "density": 0.04
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:aspen_forest",
+   "weight": 8,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "wisteria_forest",
+   "name": "Wisteria Forest",
+   "planet": "earth",
+   "temperature": 0.85,
+   "humidity": 0.65,
+   "grass_color": "#8AC659",
+   "foliage_color": "#7EBC47",
+   "water_color": "#3FA5E4",
+   "sky_tint": "#7CA4FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "wisteria",
+     "density": 0.05
+    },
+    {
+     "type": "pink_wisteria",
+     "density": 0.03
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.2
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.05
+    },
+    {
+     "block": "oxeye_daisy",
+     "density": 0.012
+    },
+    {
+     "block": "cornflower",
+     "density": 0.01
+    },
+    {
+     "block": "allium",
+     "density": 0.02
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:wisteria_forest",
+   "weight": 7,
+   "elevation": "mid",
+   "cliff": "white_terracotta"
+  },
+  {
+   "id": "floral_ridges",
+   "name": "Floral Ridges",
+   "planet": "earth",
+   "temperature": 0.85,
+   "humidity": 0.65,
+   "grass_color": "#8AC659",
+   "foliage_color": "#7EBC47",
+   "water_color": "#3FA5E4",
+   "sky_tint": "#7CA4FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "wisteria",
+     "density": 0.015
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.2
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.05
+    },
+    {
+     "block": "oxeye_daisy",
+     "density": 0.012
+    },
+    {
+     "block": "cornflower",
+     "density": 0.01
+    },
+    {
+     "block": "rose_bush",
+     "density": 0.02
+    },
+    {
+     "block": "lilac",
+     "density": 0.02
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:floral_ridges",
+   "weight": 5,
+   "elevation": "high",
+   "cliff": "white_terracotta"
+  },
+  {
+   "id": "sugi_forest",
+   "name": "Sugi Forest",
+   "planet": "earth",
+   "temperature": 0.95,
+   "humidity": 0.6,
+   "grass_color": "#A4C954",
+   "foliage_color": "#82BA4A",
+   "water_color": "#3F76E4",
+   "sky_tint": "#77A8FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "sugi",
+     "density": 0.06
+    }
+   ],
+   "plants": [
+    {
+     "block": "fern",
+     "density": 0.08
+    },
+    {
+     "block": "short_grass",
+     "density": 0.12
+    },
+    {
+     "block": "large_fern",
+     "density": 0.02
+    },
+    {
+     "block": "red_tulip",
+     "density": 0.01
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:sugi_forest",
+   "weight": 7,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "windswept_sugi_forest",
+   "name": "Windswept Sugi Forest",
+   "planet": "earth",
+   "temperature": 0.95,
+   "humidity": 0.6,
+   "grass_color": "#A4C954",
+   "foliage_color": "#82BA4A",
+   "water_color": "#3F76E4",
+   "sky_tint": "#77A8FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "stone",
+   "underwater": "gravel",
+   "trees": [
+    {
+     "type": "sugi",
+     "density": 0.025
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.16
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.03
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:windswept_sugi_forest",
+   "weight": 5,
+   "elevation": "high",
+   "cliff": "stone"
+  },
+  {
+   "id": "cypress_fields",
+   "name": "Cypress Fields",
+   "planet": "earth",
+   "temperature": 0.94,
+   "humidity": 0.21,
+   "grass_color": "#B8B84F",
+   "foliage_color": "#A9AE3F",
+   "water_color": "#46AFD2",
+   "sky_tint": "#6FB6EC",
+   "fog_color": "#C2E4FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "cypress",
+     "density": 0.03
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.2
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.05
+    },
+    {
+     "block": "oxeye_daisy",
+     "density": 0.012
+    },
+    {
+     "block": "cornflower",
+     "density": 0.01
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:cypress_fields",
+   "weight": 6,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "lavender_fields",
+   "name": "Lavender Fields",
+   "planet": "earth",
+   "temperature": 0.94,
+   "humidity": 0.28,
+   "grass_color": "#B1BA51",
+   "foliage_color": "#A2B040",
+   "water_color": "#46AFD2",
+   "sky_tint": "#6FB6EC",
+   "fog_color": "#C2E4FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "cypress",
+     "density": 0.006
+    }
+   ],
+   "plants": [
+    {
+     "block": "lavender",
+     "density": 0.3
+    },
+    {
+     "block": "short_grass",
+     "density": 0.1
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:lavender_fields",
+   "weight": 6,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "carnation_fields",
+   "name": "Carnation Fields",
+   "planet": "earth",
+   "temperature": 0.94,
+   "humidity": 0.21,
+   "grass_color": "#B8B84F",
+   "foliage_color": "#A9AE3F",
+   "water_color": "#46AFD2",
+   "sky_tint": "#6FB6EC",
+   "fog_color": "#C2E4FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "cypress",
+     "density": 0.006
+    }
+   ],
+   "plants": [
+    {
+     "block": "poppy",
+     "density": 0.12
+    },
+    {
+     "block": "red_tulip",
+     "density": 0.06
+    },
+    {
+     "block": "short_grass",
+     "density": 0.12
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:carnation_fields",
+   "weight": 5,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "heather_fields",
+   "name": "Heather Fields",
+   "planet": "earth",
+   "temperature": 0.7,
+   "humidity": 0.5,
+   "grass_color": "#A8CF72",
+   "foliage_color": "#9EAD52",
+   "water_color": "#5A7BDD",
+   "sky_tint": "#95C1E9",
+   "fog_color": "#D4DFF7",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "gravel",
+   "trees": [
+    {
+     "type": "fir",
+     "density": 0.004
+    }
+   ],
+   "plants": [
+    {
+     "block": "allium",
+     "density": 0.1
+    },
+    {
+     "block": "short_grass",
+     "density": 0.14
+    },
+    {
+     "block": "azure_bluet",
+     "density": 0.03
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:heather_fields",
+   "weight": 6,
+   "elevation": "high",
+   "cliff": "stone"
+  },
+  {
+   "id": "cedar_thicket",
+   "name": "Cedar Thicket",
+   "planet": "earth",
+   "temperature": 1.2,
+   "humidity": 0.26,
+   "grass_color": "#D6D85F",
+   "foliage_color": "#A8AE3E",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "coarse_dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "cypress",
+     "density": 0.05
+    },
+    {
+     "type": "fir",
+     "density": 0.02
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.16
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.03
+    },
+    {
+     "block": "dead_bush",
+     "density": 0.01
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:cedar_thicket",
+   "weight": 5,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "woody_highlands",
+   "name": "Woody Highlands",
+   "planet": "earth",
+   "temperature": 2.0,
+   "humidity": 0.0,
+   "grass_color": "#BFD468",
+   "foliage_color": "#94B44B",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "coarse_dirt",
+   "underwater": "gravel",
+   "trees": [
+    {
+     "type": "aspen",
+     "density": 0.02
+    },
+    {
+     "type": "cypress",
+     "density": 0.01
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.16
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.03
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:woody_highlands",
+   "weight": 5,
+   "elevation": "high",
+   "cliff": "stone"
+  },
+  {
+   "id": "marsh",
+   "name": "Marsh",
+   "planet": "earth",
+   "temperature": 0.8,
+   "humidity": 0.9,
+   "grass_color": "#77982F",
+   "foliage_color": "#6D9622",
+   "water_color": "#617B64",
+   "sky_tint": "#78A7FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "clay",
+   "underwater": "clay",
+   "trees": [
+    {
+     "type": "willow",
+     "density": 0.03
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.16
+    },
+    {
+     "block": "lily_pad",
+     "density": 0.06
+    },
+    {
+     "block": "sugar_cane",
+     "density": 0.03
+    },
+    {
+     "block": "blue_orchid",
+     "density": 0.01
+    },
+    {
+     "block": "brown_mushroom",
+     "density": 0.008
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:marsh",
+   "weight": 6,
+   "elevation": "low",
+   "cliff": "stone"
+  },
+  {
+   "id": "bamboo_wetlands",
+   "name": "Bamboo Wetlands",
+   "planet": "earth",
+   "temperature": 0.8,
+   "humidity": 0.9,
+   "grass_color": "#5BB431",
+   "foliage_color": "#4B931A",
+   "water_color": "#6CAC7F",
+   "sky_tint": "#7AE4FF",
+   "fog_color": "#B1ECD5",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "clay",
+   "trees": [
+    {
+     "type": "sugi",
+     "density": 0.01
+    }
+   ],
+   "plants": [
+    {
+     "block": "sugar_cane",
+     "density": 0.1
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.1
+    },
+    {
+     "block": "short_grass",
+     "density": 0.14
+    },
+    {
+     "block": "lily_pad",
+     "density": 0.04
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "sabertooth",
+     "weight": 18,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "bandit",
+     "weight": 12,
+     "min": 1,
+     "max": 3
+    }
+   ],
+   "quest_tag": "natures_spirit:bamboo_wetlands",
+   "weight": 5,
+   "elevation": "low",
+   "cliff": "terracotta"
+  },
+  {
+   "id": "tropical_basin",
+   "name": "Tropical Basin",
+   "planet": "earth",
+   "temperature": 1.95,
+   "humidity": 0.8,
+   "grass_color": "#8CC551",
+   "foliage_color": "#80BB40",
+   "water_color": "#32CDAE",
+   "sky_tint": "#77A8FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "clay",
+   "trees": [
+    {
+     "type": "palm",
+     "density": 0.02
+    },
+    {
+     "type": "jungle",
+     "density": 0.03
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.22
+    },
+    {
+     "block": "fern",
+     "density": 0.08
+    },
+    {
+     "block": "lily_pad",
+     "density": 0.04
+    },
+    {
+     "block": "melon",
+     "density": 0.004
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:tropical_basin",
+   "weight": 5,
+   "elevation": "low",
+   "cliff": "stone"
+  },
+  {
+   "id": "tropical_woods",
+   "name": "Tropical Woods",
+   "planet": "earth",
+   "temperature": 1.95,
+   "humidity": 0.8,
+   "grass_color": "#8CC551",
+   "foliage_color": "#80BB40",
+   "water_color": "#43D5EE",
+   "sky_tint": "#77A8FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "jungle",
+     "density": 0.06
+    },
+    {
+     "type": "palm",
+     "density": 0.02
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.22
+    },
+    {
+     "block": "fern",
+     "density": 0.1
+    },
+    {
+     "block": "large_fern",
+     "density": 0.03
+    },
+    {
+     "block": "vine",
+     "density": 0.05
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:tropical_woods",
+   "weight": 6,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "sparse_tropical_woods",
+   "name": "Sparse Tropical Woods",
+   "planet": "earth",
+   "temperature": 1.8,
+   "humidity": 0.5,
+   "grass_color": "#A8BD4D",
+   "foliage_color": "#9AB33D",
+   "water_color": "#43D5EE",
+   "sky_tint": "#77A8FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "palm",
+     "density": 0.012
+    },
+    {
+     "type": "acacia",
+     "density": 0.01
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.2
+    },
+    {
+     "block": "fern",
+     "density": 0.06
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:sparse_tropical_woods",
+   "weight": 5,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "tropical_shores",
+   "name": "Tropical Shores",
+   "planet": "earth",
+   "temperature": 0.8,
+   "humidity": 0.4,
+   "grass_color": "#A3BF55",
+   "foliage_color": "#95B544",
+   "water_color": "#45ADF2",
+   "sky_tint": "#7BA4FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "sand",
+   "filler": "sand",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "palm",
+     "density": 0.03
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.04
+    },
+    {
+     "block": "dead_bush",
+     "density": 0.004
+    }
+   ],
+   "mobs": [],
+   "quest_tag": "natures_spirit:tropical_shores",
+   "weight": 6,
+   "elevation": "low",
+   "cliff": "sandstone"
+  },
+  {
+   "id": "oak_savanna",
+   "name": "Oak Savanna",
+   "planet": "earth",
+   "temperature": 2.0,
+   "humidity": 0.1,
+   "grass_color": "#E5EA85",
+   "foliage_color": "#97AE3D",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "acacia",
+     "density": 0.015
+    },
+    {
+     "type": "oak",
+     "density": 0.008
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.22
+    },
+    {
+     "block": "tall_grass",
+     "density": 0.05
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:oak_savanna",
+   "weight": 7,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "arid_savanna",
+   "name": "Arid Savanna",
+   "planet": "earth",
+   "temperature": 2.0,
+   "humidity": 0.1,
+   "grass_color": "#E8D578",
+   "foliage_color": "#A6AE3D",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "coarse_dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "acacia",
+     "density": 0.012
+    },
+    {
+     "type": "joshua",
+     "density": 0.004
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.16
+    },
+    {
+     "block": "dead_bush",
+     "density": 0.02
+    },
+    {
+     "block": "cactus",
+     "density": 0.004
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:arid_savanna",
+   "weight": 6,
+   "elevation": "mid",
+   "cliff": "sandstone"
+  },
+  {
+   "id": "chaparral",
+   "name": "Chaparral",
+   "planet": "earth",
+   "temperature": 2.0,
+   "humidity": 0.1,
+   "grass_color": "#B2C167",
+   "foliage_color": "#97AE3D",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "coarse_dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "oak",
+     "density": 0.01
+    },
+    {
+     "type": "fir",
+     "density": 0.004
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.14
+    },
+    {
+     "block": "dead_bush",
+     "density": 0.02
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:chaparral",
+   "weight": 6,
+   "elevation": "mid",
+   "cliff": "stone"
+  },
+  {
+   "id": "shrubland",
+   "name": "Shrubland",
+   "planet": "earth",
+   "temperature": 1.6,
+   "humidity": 0.3,
+   "grass_color": "#B9B84B",
+   "foliage_color": "#AAAE3C",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "grass_block",
+   "filler": "coarse_dirt",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "acacia",
+     "density": 0.008
+    }
+   ],
+   "plants": [
+    {
+     "block": "short_grass",
+     "density": 0.16
+    },
+    {
+     "block": "dead_bush",
+     "density": 0.015
+    },
+    {
+     "block": "orange_tulip",
+     "density": 0.01
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:shrubland",
+   "weight": 6,
+   "elevation": "mid",
+   "cliff": "white_terracotta"
+  },
+  {
+   "id": "xeric_plains",
+   "name": "Xeric Plains",
+   "planet": "earth",
+   "temperature": 1.2,
+   "humidity": 0.16,
+   "grass_color": "#E2CC60",
+   "foliage_color": "#B1AB3C",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "coarse_dirt",
+   "filler": "sandstone",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "cypress",
+     "density": 0.008
+    },
+    {
+     "type": "joshua",
+     "density": 0.004
+    }
+   ],
+   "plants": [
+    {
+     "block": "dead_bush",
+     "density": 0.03
+    },
+    {
+     "block": "short_grass",
+     "density": 0.06
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:xeric_plains",
+   "weight": 5,
+   "elevation": "mid",
+   "cliff": "white_terracotta"
+  },
+  {
+   "id": "drylands",
+   "name": "Drylands",
+   "planet": "earth",
+   "temperature": 2.0,
+   "humidity": 0.0,
+   "grass_color": "#DDAD41",
+   "foliage_color": "#CBA434",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "sand",
+   "filler": "sandstone",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "joshua",
+     "density": 0.004
+    }
+   ],
+   "plants": [
+    {
+     "block": "dead_bush",
+     "density": 0.035
+    },
+    {
+     "block": "cactus",
+     "density": 0.01
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:drylands",
+   "weight": 7,
+   "elevation": "mid",
+   "cliff": "sandstone"
+  },
+  {
+   "id": "wooded_drylands",
+   "name": "Wooded Drylands",
+   "planet": "earth",
+   "temperature": 1.94,
+   "humidity": 0.17,
+   "grass_color": "#CBB245",
+   "foliage_color": "#BAA937",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "sand",
+   "filler": "sandstone",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "joshua",
+     "density": 0.012
+    },
+    {
+     "type": "acacia",
+     "density": 0.006
+    }
+   ],
+   "plants": [
+    {
+     "block": "dead_bush",
+     "density": 0.03
+    },
+    {
+     "block": "short_grass",
+     "density": 0.05
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:wooded_drylands",
+   "weight": 6,
+   "elevation": "mid",
+   "cliff": "sandstone"
+  },
+  {
+   "id": "lively_dunes",
+   "name": "Lively Dunes",
+   "planet": "earth",
+   "temperature": 2.0,
+   "humidity": 0.0,
+   "grass_color": "#DDAD41",
+   "foliage_color": "#CBA434",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "sand",
+   "filler": "sandstone",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "joshua",
+     "density": 0.02
+    }
+   ],
+   "plants": [
+    {
+     "block": "dead_bush",
+     "density": 0.035
+    },
+    {
+     "block": "cactus",
+     "density": 0.01
+    },
+    {
+     "block": "short_grass",
+     "density": 0.03
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:lively_dunes",
+   "weight": 6,
+   "elevation": "mid",
+   "cliff": "sandstone"
+  },
+  {
+   "id": "blooming_dunes",
+   "name": "Blooming Dunes",
+   "planet": "earth",
+   "temperature": 2.0,
+   "humidity": 0.0,
+   "grass_color": "#DDAD41",
+   "foliage_color": "#CBA434",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "sand",
+   "filler": "sandstone",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "joshua",
+     "density": 0.014
+    }
+   ],
+   "plants": [
+    {
+     "block": "dead_bush",
+     "density": 0.02
+    },
+    {
+     "block": "orange_tulip",
+     "density": 0.02
+    },
+    {
+     "block": "cactus",
+     "density": 0.008
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:blooming_dunes",
+   "weight": 5,
+   "elevation": "mid",
+   "cliff": "sandstone"
+  },
+  {
+   "id": "scorched_dunes",
+   "name": "Scorched Dunes",
+   "planet": "earth",
+   "temperature": 2.0,
+   "humidity": 0.1,
+   "grass_color": "#E8D578",
+   "foliage_color": "#A6AE3D",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "red_sand",
+   "filler": "red_terracotta",
+   "underwater": "red_sand",
+   "trees": [],
+   "plants": [
+    {
+     "block": "dead_bush",
+     "density": 0.04
+    },
+    {
+     "block": "cactus",
+     "density": 0.006
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:scorched_dunes",
+   "weight": 6,
+   "elevation": "mid",
+   "cliff": "red_terracotta"
+  },
+  {
+   "id": "stratified_desert",
+   "name": "Stratified Desert",
+   "planet": "earth",
+   "temperature": 2.0,
+   "humidity": 0.0,
+   "grass_color": "#DDAD41",
+   "foliage_color": "#CBA434",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "sand",
+   "filler": "orange_terracotta",
+   "underwater": "sand",
+   "trees": [
+    {
+     "type": "joshua",
+     "density": 0.006
+    }
+   ],
+   "plants": [
+    {
+     "block": "dead_bush",
+     "density": 0.025
+    },
+    {
+     "block": "cactus",
+     "density": 0.008
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:stratified_desert",
+   "weight": 7,
+   "elevation": "mid",
+   "cliff": "terracotta",
+   "band_depth": 22
+  },
+  {
+   "id": "dusty_slopes",
+   "name": "Dusty Slopes",
+   "planet": "earth",
+   "temperature": 1.5,
+   "humidity": 0.0,
+   "grass_color": "#E3DB87",
+   "foliage_color": "#9EAD52",
+   "water_color": "#3F76E4",
+   "sky_tint": "#6EB1FF",
+   "fog_color": "#C0D8FF",
+   "water_fog_color": "#050533",
+   "surface": "coarse_dirt",
+   "filler": "yellow_terracotta",
+   "underwater": "sand",
+   "trees": [],
+   "plants": [
+    {
+     "block": "dead_bush",
+     "density": 0.02
+    }
+   ],
+   "mobs": [
+    {
+     "entity": "bandit",
+     "weight": 14,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "entity": "dino3",
+     "weight": 14,
+     "min": 1,
+     "max": 2
+    }
+   ],
+   "quest_tag": "natures_spirit:dusty_slopes",
+   "weight": 5,
+   "elevation": "high",
+   "cliff": "yellow_terracotta",
+   "band_depth": 18
   }
  ]
 }

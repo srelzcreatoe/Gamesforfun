@@ -33,10 +33,9 @@ func _ready() -> void:
 ## entry in `args`, so `--args "--scene=res://scenes/ui/Dialog.tscn --demo --ui_master=roshi"`
 ## renders a populated screen without a world.
 func _read_cmdline_args() -> void:
+	UiUtil.apply_cmdline_flags()
 	for a in OS.get_cmdline_user_args():
-		if a == "--demo":
-			UiUtil.ensure_demo_profile()
-		elif a.begins_with("--ui_"):
+		if a.begins_with("--ui_"):
 			var kv := a.substr(5).split("=", true, 1)
 			if kv.size() == 2 and not args.has(kv[0]):
 				args[kv[0]] = kv[1]

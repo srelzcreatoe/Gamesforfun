@@ -8,6 +8,7 @@ func _init() -> void:
 	screen_name = "settings"
 
 func build() -> void:
+	UiUtil.ensure_ui_settings()
 	var body := page("Settings")
 	var tabs := UiUtil.hbox(6.0 * s)
 	var pages := Control.new()
@@ -30,7 +31,7 @@ func build() -> void:
 	var foot := UiUtil.hbox(8.0 * s)
 	foot.alignment = BoxContainer.ALIGNMENT_CENTER
 	foot.add_child(UiUtil.button("Save", func() -> void:
-		Game.save_settings()
+		SaveSlots.save_slot()
 		Game.ui.call("toast", "Settings saved", "", null)
 		close_self(), 220.0 * s, 44.0 * s))
 	body.add_child(foot)
@@ -92,6 +93,8 @@ func _display_page() -> Control:
 		func(x: float) -> void: _put("sim_distance", int(x)), "%.0f"))
 	v.add_child(UiUtil.slider_row("UI scale", float(Game.settings.get("ui_scale", 1.0)), 0.7, 1.5, 0.05,
 		func(x: float) -> void: _put("ui_scale", x)))
+	v.add_child(UiUtil.slider_row("HUD size", float(UiUtil.setting("hud_scale", 1.0)), 0.8, 1.4, 0.05,
+		func(x: float) -> void: _put("hud_scale", x)))
 	v.add_child(UiUtil.slider_row("Button opacity", float(Game.settings.get("button_opacity", 0.65)), 0.2, 1.0, 0.05,
 		func(x: float) -> void: _put("button_opacity", x)))
 	v.add_child(UiUtil.slider_row("Particles", float(Game.settings.get("particles", 1.0)), 0.0, 1.0, 0.1,
@@ -108,4 +111,9 @@ func _display_page() -> Control:
 		func(b: bool) -> void: _put("high_contrast_outline", b)))
 	v.add_child(UiUtil.check_row("Show FPS", bool(Game.settings.get("show_fps", false)),
 		func(b: bool) -> void: _put("show_fps", b)))
+	v.add_child(UiUtil.check_row("Show coordinates", bool(UiUtil.setting("show_coordinates", false)),
+		func(b: bool) -> void: _put("show_coordinates", b)))
+	v.add_child(UiUtil.check_row("Dev mode (cheats)", bool(UiUtil.setting("dev_mode", false)),
+		func(b: bool) -> void: _put("dev_mode", b)))
+	v.add_child(UiUtil.dim("Dev mode adds a wrench button to the HUD.", UiUtil.font_small(s)))
 	return _wrap(v)

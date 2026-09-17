@@ -203,13 +203,8 @@ class Hotbar extends Control:
 					var pad := r.size.x * 0.14
 					draw_texture_rect(icon, Rect2(r.position + Vector2(pad, pad), r.size - Vector2(pad, pad) * 2.0), false)
 				if st.count > 1:
-					var fnt := UiUtil.font()
-					var fs := int(maxf(8.0, cell * 0.30))
-					var txt := str(st.count)
-					var tw := fnt.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-					var p := r.end - Vector2(tw + 3.0 * scale_px, 3.0 * scale_px)
-					draw_string(fnt, p + Vector2(2, 2), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0, 0, 0, 0.7))
-					draw_string(fnt, p, txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color.WHITE)
+					HudWidgets.draw_count(self, str(st.count), r.end - Vector2(3.0 * scale_px, 3.0 * scale_px),
+						int(maxf(8.0, cell * 0.34)))
 		if w != null:
 			var sr := slot_rect(clampi(selected, 0, 8)).grow(3.0 * scale_px)
 			draw_texture_rect_region(w, sr, Rect2(UiUtil.R_HOTBAR_SEL.position * f, UiUtil.R_HOTBAR_SEL.size * f))
@@ -255,6 +250,16 @@ class TargetBar extends Control:
 			var f := UiUtil.font()
 			var fs := int(maxf(8.0, size.y * 0.8))
 			draw_string(f, Vector2(4.0 * scale_px, size.y - size.y * 0.22), title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1, 1, 1, 0.95))
+
+## Stack count with a 1 px dark outline so it stays readable over any item icon.
+static func draw_count(ci: CanvasItem, text: String, bottom_right: Vector2, font_size: int) -> void:
+	var f := UiUtil.font()
+	var w := f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	var p := bottom_right - Vector2(w, 0.0)
+	var shadow := Color(0, 0, 0, 0.85)
+	for o in [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1), Vector2(1, 1)]:
+		ci.draw_string(f, p + o * maxf(1.0, font_size * 0.09), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, shadow)
+	ci.draw_string(f, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color.WHITE)
 
 # --- vector glyphs ---------------------------------------------------------
 
@@ -330,6 +335,11 @@ static func draw_glyph(ci: CanvasItem, kind: String, c: Vector2, r: float, col: 
 			for i in 3:
 				var h := r * (0.5 + 0.35 * float(i))
 				ci.draw_rect(Rect2(Vector2(c.x - r * 0.75 + float(i) * r * 0.55, c.y + r * 0.8 - h), Vector2(r * 0.35, h)), col)
+		"dev":
+			# wrench
+			ci.draw_line(c + Vector2(-r * 0.55, r * 0.55), c + Vector2(r * 0.35, -r * 0.35), col, w * 1.3)
+			ci.draw_arc(c + Vector2(r * 0.5, -r * 0.5), r * 0.38, deg_to_rad(-40.0), deg_to_rad(230.0), 18, col, w)
+			ci.draw_circle(c + Vector2(-r * 0.62, r * 0.62), r * 0.16, col)
 		"bag":
 			ci.draw_rect(Rect2(c - Vector2(r * 0.8, r * 0.5), Vector2(r * 1.6, r * 1.2)), col, false, w * 0.8)
 			ci.draw_arc(c + Vector2(0, -r * 0.5), r * 0.45, PI, TAU, 16, col, w * 0.8, false)

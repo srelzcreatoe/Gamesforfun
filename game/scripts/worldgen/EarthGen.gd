@@ -15,8 +15,19 @@ func _configure() -> void:
 	filler_depth = 4
 	bedrock_depth = 1
 	lava_level = 7
-	snow_y = sea_level + 38
+	# Terralith-style altitude rules: bare rock above the tree line, snow on the peaks.
+	stone_y = 90
+	snow_y = 100
 	snow_name = "snow_block"
+	cliff_slope = 4
+	# Inland basins fill with water (the height field cuts them, Terrain.pool_level_at
+	# decides the shoreline).
+	pool_name = "water"
+	pool_depth = 11.0
+	# Terracotta banding for the Nature's Spirit mesa biomes (per-biome `band_depth`).
+	band_names = ["orange_terracotta", "terracotta", "yellow_terracotta", "white_terracotta",
+		"red_terracotta", "brown_terracotta"]
+	band_depth = 0
 	dragon_ball_set = String(planet_def.get("dragon_balls", "earth"))
 	ore_table = [
 		{"block": "coal_ore", "min": 6, "max": 112, "tries": 9, "size": 14},

@@ -42,6 +42,8 @@ var form_label: Label = null
 var hint_label: Label = null
 var saving_label: Label = null
 var tracker: VBoxContainer = null
+var coords_label: Label = null
+var dev_tag: Label = null
 var damage_layer: Control = null
 var water_tint: ColorRect = null
 var button_layer: Control = null
@@ -49,6 +51,7 @@ var button_layer: Control = null
 var _pointers: Dictionary = {}
 var _look_owner := -1
 var _joy_owner := -1
+var _joy_home := Vector2.ZERO
 var _hint_time := 0.0
 var _tutorial_t := 3.0
 var _tutorial_i := 0
@@ -91,7 +94,8 @@ func _ready() -> void:
 	_sync_from_player()
 
 func _refresh_metrics() -> void:
-	s = UiUtil.s()
+	UiUtil.ensure_ui_settings()
+	s = UiUtil.hud_s()
 	left_handed = bool(Game.settings.get("left_handed", false)) if Game != null else false
 	insets = UiUtil.safe_insets(get_viewport())
 
@@ -173,6 +177,13 @@ func _build() -> void:
 	tracker.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(tracker)
 
+	coords_label = UiUtil.label("", UiUtil.font_small(s), Color(0.85, 0.92, 1.0, 0.92))
+	coords_label.visible = false
+	add_child(coords_label)
+	dev_tag = UiUtil.label("DEV", UiUtil.font_small(s), Color(1.0, 0.55, 0.35))
+	dev_tag.visible = false
+	add_child(dev_tag)
+
 	hint_label = UiUtil.label("", UiUtil.font_body(s), Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER)
 	hint_label.visible = false
 	hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -233,6 +244,7 @@ func _make_buttons() -> void:
 	_add_button("quests", "action", "quests", 52.0)
 	_add_button("stats", "action", "stats", 52.0)
 	_add_button("bag", "action", "bag", 52.0)
+	_add_button("dev", "action", "dev", 52.0)
 
 func _apply_opacity() -> void:
 	var op := float(Game.settings.get("button_opacity", 0.65)) if Game != null else 0.65
@@ -264,6 +276,7 @@ func relayout() -> void:
 	if left_handed:
 		jx = size.x - 30.0 * s - js - insets.z
 	var jr := _from_bottom(jx, 26.0 * s + insets.w, js, js)
+	_joy_home = jr.position
 	joystick.position = jr.position
 	joystick.size = jr.size
 
@@ -317,6 +330,11 @@ func relayout() -> void:
 
 	tracker.position = Vector2(14.0 * s + insets.x, 14.0 * s + insets.y)
 	tracker.size = Vector2(280.0 * s, 160.0 * s)
+	coords_label.add_theme_font_size_override("font_size", UiUtil.font_small(s))
+	coords_label.position = Vector2(14.0 * s + insets.x, tracker.position.y + tracker.size.y + 4.0 * s)
+	coords_label.size = Vector2(320.0 * s, 96.0 * s)
+	dev_tag.add_theme_font_size_override("font_size", UiUtil.font_small(s))
+	dev_tag.position = Vector2(size.x - 386.0 * s - insets.z, 14.0 * s + insets.y + 56.0 * s)
 
 	hint_label.add_theme_font_size_override("font_size", UiUtil.font_body(s))
 	hint_label.size = Vector2(minf(560.0 * s, size.x - 40.0 * s), 60.0 * s)
@@ -328,7 +346,8 @@ func relayout() -> void:
 ## The action columns need ~341 units of height; shrink the button scale on short screens
 ## (small phone + a large UI scale setting) so nothing leaves the viewport or hits the hotbar.
 func button_scale() -> float:
-	return minf(s, maxf(0.6, size.y / 420.0))
+	# Floor at 1.0 so the smallest (48 unit) button is never under the 48 px touch target.
+	return clampf(minf(s, size.y / 420.0), 1.0, 3.0)
 
 func _layout_buttons() -> void:
 	var s := button_scale()
@@ -374,6 +393,10 @@ func _layout_buttons() -> void:
 	_place("quests", size.x - 194.0 * s - insets.z, ty)
 	_place("stats", size.x - 258.0 * s - insets.z, ty)
 	_place("bag", size.x - 322.0 * s - insets.z, ty)
+	_place("dev", size.x - 386.0 * s - insets.z, ty)
+	if buttons.has("dev"):
+		var dev_on := UiUtil.dev_mode()
+		(buttons["dev"]["node"] as Control).visible = dev_on
 
 func _place(id: String, x: float, y_from_bottom: float) -> void:
 	if not buttons.has(id):
@@ -453,6 +476,7 @@ func _touch_down(index: int, pos: Vector2) -> void:
 		_joy_owner = index
 		_pointers[index] = {"kind": "joy", "t": 0.0}
 		joystick.active = true
+		_recentre_joystick(pos)
 		_joy_drag(pos)
 		return
 	# 4. look region
@@ -490,6 +514,7 @@ func _touch_up(index: int, pos: Vector2) -> void:
 			_release_button(String(pt["id"]), float(pt["t"]))
 		"joy":
 			joystick.release()
+			joystick.position = _joy_home
 			_joy_owner = -1
 			var p0 := player()
 			if p0 != null:
@@ -508,6 +533,17 @@ func _touch_up(index: int, pos: Vector2) -> void:
 					UiUtil.vibrate(12)
 				inp.break_held = false
 	_pointers.erase(index)
+
+## Put the stick under the thumb (clamped on-screen) so the first pixel of drag already moves.
+func _recentre_joystick(pos: Vector2) -> void:
+	var half := joystick.size * 0.5
+	var want := pos - half
+	var min_x := insets.x + 6.0 * s
+	var max_x := size.x - insets.z - joystick.size.x - 6.0 * s
+	var min_y := size.y * 0.32
+	var max_y := size.y - insets.w - joystick.size.y - 6.0 * s
+	joystick.position = Vector2(clampf(want.x, min_x, maxf(min_x, max_x)),
+		clampf(want.y, min_y, maxf(min_y, max_y)))
 
 func _joy_drag(pos: Vector2) -> void:
 	var knob := joystick.drag_to(pos - joystick.position)
@@ -620,6 +656,9 @@ func _do_action(id: String) -> void:
 		"bag":
 			if Game != null and Game.ui != null:
 				Game.ui.call("open", "inventory")
+		"dev":
+			if Game != null and Game.ui != null:
+				Game.ui.call("open", "dev")
 
 # --- per frame --------------------------------------------------------------
 
@@ -636,6 +675,7 @@ func _process(delta: float) -> void:
 	_sync_from_player()
 	_update_hint(delta)
 	_update_damage_numbers(delta)
+	_update_coords(delta)
 	if _saving_t > 0.0:
 		_saving_t = maxf(0.0, _saving_t - delta)
 	saving_label.visible = _saving_t > 0.0
@@ -810,6 +850,57 @@ func _update_damage_numbers(delta: float) -> void:
 	_damage_numbers = keep
 
 # --- quest tracker ----------------------------------------------------------
+
+## F3-lite readout under the quest tracker (Settings > Display > Show coordinates).
+var _coords_t := 0.0
+
+func _update_coords(delta: float) -> void:
+	var want := bool(UiUtil.setting("show_coordinates", false))
+	var dev := UiUtil.dev_mode()
+	if dev_tag.visible != dev:
+		dev_tag.visible = dev
+	if buttons.has("dev"):
+		var b: Control = buttons["dev"]["node"]
+		if b.visible != dev:
+			b.visible = dev
+	if coords_label.visible != want:
+		coords_label.visible = want
+	if not want:
+		return
+	_coords_t -= delta
+	if _coords_t > 0.0:
+		return
+	_coords_t = 0.2
+	var p := player()
+	if p == null or not (p is Node3D):
+		coords_label.text = ""
+		return
+	var pos: Vector3 = (p as Node3D).global_position
+	var rig: Variant = p.get("camera_rig")
+	var yaw := float(rig.get("yaw_deg")) if rig != null else rad_to_deg(float(p.get("yaw")))
+	var lines := PackedStringArray()
+	lines.append("XYZ %.1f / %.1f / %.1f" % [pos.x, pos.y, pos.z])
+	lines.append("Facing %s (%.0f)  Chunk %d, %d" % [_compass(yaw), wrapf(yaw, -180.0, 180.0),
+		int(floor(pos.x / 16.0)), int(floor(pos.z / 16.0))])
+	var w: Node = p.get("world")
+	if w != null:
+		var biome := "-"
+		if w.has_method("get_biome"):
+			biome = String(w.call("get_biome", int(floor(pos.x)), int(floor(pos.z))))
+			if Registry != null:
+				biome = String(Registry.biome(biome).get("name", biome))
+		var planet := String(w.get("planet_id")) if w.get("planet_id") != null else "-"
+		if Registry != null:
+			planet = String(Registry.planet(planet).get("name", planet))
+		lines.append("Planet %s   Biome %s" % [planet, biome])
+		if w.get("time_ticks") != null:
+			lines.append("Time %04d   %d fps" % [int(w.get("time_ticks")), Engine.get_frames_per_second()])
+	coords_label.text = "\n".join(lines)
+
+static func _compass(yaw_deg: float) -> String:
+	var y := wrapf(yaw_deg, 0.0, 360.0)
+	var names := ["N", "NW", "W", "SW", "S", "SE", "E", "NE"]
+	return names[int(round(y / 45.0)) % 8]
 
 func _refresh_tracker() -> void:
 	for c in tracker.get_children():

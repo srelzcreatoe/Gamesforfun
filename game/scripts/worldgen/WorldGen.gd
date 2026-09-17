@@ -99,6 +99,10 @@ var id_pool := 0
 var band_names: Array = []
 var band_depth := 0
 var _band_ids := PackedInt32Array()
+## Exposed rock: a surface steeper than this many blocks uses the biome's `cliff` block.
+var cliff_slope := 0
+## Surfaces at/above this y turn to bare stone (mountain rock above the tree line).
+var stone_y := 9999
 
 # resolved block ids
 var id_air := 0
@@ -116,6 +120,8 @@ var id_sand := 0
 var _biome_surface := PackedInt32Array()
 var _biome_filler := PackedInt32Array()
 var _biome_underwater := PackedInt32Array()
+var _biome_cliff := PackedInt32Array()
+var _biome_band := PackedInt32Array()
 var _ore_ids := PackedInt32Array()
 var _mutex := Mutex.new()
 
@@ -198,14 +204,20 @@ func _build_biome_tables() -> void:
 	_biome_surface = PackedInt32Array()
 	_biome_filler = PackedInt32Array()
 	_biome_underwater = PackedInt32Array()
+	_biome_cliff = PackedInt32Array()
+	_biome_band = PackedInt32Array()
 	_biome_surface.resize(n)
 	_biome_filler.resize(n)
 	_biome_underwater.resize(n)
+	_biome_cliff.resize(n)
+	_biome_band.resize(n)
 	for i in n:
 		var b := Registry.biome_by_index(i)
 		_biome_surface[i] = block_id(String(b.get("surface", "grass_block")))
 		_biome_filler[i] = block_id(String(b.get("filler", "dirt")))
 		_biome_underwater[i] = block_id(String(b.get("underwater", "sand")))
+		_biome_cliff[i] = block_id(String(b.get("cliff", "stone")))
+		_biome_band[i] = int(b.get("band_depth", 0))
 
 # --- public generator entry point ------------------------------------------
 
@@ -254,9 +266,24 @@ func _fill_column(col: ChunkColumn, ctx: Ctx) -> void:
 			var under := _biome_underwater[b] if b < _biome_underwater.size() else id_gravel
 			var submerged := wet_sea and h <= sea
 			var top_solid: int = maxi(0, h - 1)
+			# Steep ground shows bare rock (coastal cliffs, mountain walls, canyon sides).
+			var steep := false
+			if cliff_slope > 0 and not submerged:
+				var slope: int = absi(ext_height(ctx, lx + 1, lz) - h)
+				slope = maxi(slope, absi(ext_height(ctx, lx - 1, lz) - h))
+				slope = maxi(slope, absi(ext_height(ctx, lx, lz + 1) - h))
+				slope = maxi(slope, absi(ext_height(ctx, lx, lz - 1) - h))
+				steep = slope >= cliff_slope
+				if steep:
+					var cliff_id := _biome_cliff[b] if b < _biome_cliff.size() else id_stone
+					surface = cliff_id
+					filler = cliff_id
 			var body_top: int = maxi(bedrock_depth, top_solid - filler_depth)
-			var band_from := top_solid - band_depth
-			var band_n := _band_ids.size()
+			var bdepth := band_depth
+			if b < _biome_band.size() and _biome_band[b] > 0:
+				bdepth = _biome_band[b]
+			var band_from := top_solid - bdepth
+			var band_n := _band_ids.size() if bdepth > 0 else 0
 			var y := bedrock_depth
 			while y <= body_top:
 				var id := id_stone
@@ -280,6 +307,8 @@ func _fill_column(col: ChunkColumn, ctx: Ctx) -> void:
 					top_id = under
 				elif top_solid >= _snow_line(wx, wz):
 					top_id = id_snow
+				elif top_solid >= stone_y and not steep:
+					top_id = id_stone
 				blocks[i2 + 256 * top_solid] = top_id
 			ctx.tops[i2] = h
 			ctx.top_any[i2] = h
@@ -295,9 +324,8 @@ func _fill_column(col: ChunkColumn, ctx: Ctx) -> void:
 			else:
 				ctx.wet[i2] = 0
 				if id_pool > 0:
-					var lake := terrain.lake_at(wx, wz)
-					if lake > 0.06:
-						var pool_y := h + int(round(lake * pool_depth)) - 4
+					var pool_y := terrain.pool_level_at(wx, wz, h, pool_depth)
+					if pool_y > -900:
 						if pool_y >= h:
 							var yp := h
 							while yp <= pool_y and yp < HEIGHT:

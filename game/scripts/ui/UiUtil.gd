@@ -94,6 +94,16 @@ static func ensure_ui_settings() -> void:
 		else:
 			Game.settings[k] = EXTRA_SETTINGS[k]
 
+## Verification flags: `--demo` (throw-away profile), `--dev` (dev mode + coordinates on).
+static func apply_cmdline_flags() -> void:
+	ensure_ui_settings()
+	for a in OS.get_cmdline_user_args():
+		if a == "--demo":
+			ensure_demo_profile()
+		elif a == "--dev":
+			Game.settings["dev_mode"] = true
+			Game.settings["show_coordinates"] = true
+
 static func setting(key: String, fallback: Variant = null) -> Variant:
 	if Game == null:
 		return fallback

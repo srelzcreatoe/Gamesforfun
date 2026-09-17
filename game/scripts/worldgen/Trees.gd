@@ -21,6 +21,21 @@ const WOOD := {
 	"cherry": ["cherry_log", "cherry_leaves"],
 	"ajissa": ["ajissa_log", "ajissa_leaves"],
 	"sacred": ["sacred_log", "sacred_leaves"],
+	# Nature's Spirit species (blocks.json 232-255)
+	"redwood": ["redwood_log", "redwood_leaves"],
+	"frosty_redwood": ["redwood_log", "frosty_redwood_leaves"],
+	"maple": ["maple_log", "maple_leaves"],
+	"orange_maple": ["maple_log", "orange_maple_leaves"],
+	"wisteria": ["wisteria_log", "wisteria_leaves"],
+	"pink_wisteria": ["wisteria_log", "pink_wisteria_leaves"],
+	"palm": ["palm_log", "palm_leaves"],
+	"cypress": ["cypress_log", "cypress_leaves"],
+	"aspen": ["aspen_log", "aspen_leaves"],
+	"fir": ["fir_log", "fir_leaves"],
+	"snowy_fir": ["fir_log", "fir_leaves"],
+	"sugi": ["sugi_log", "sugi_leaves"],
+	"willow": ["willow_log", "willow_leaves"],
+	"joshua": ["joshua_log", "joshua_leaves"],
 }
 
 ## Stamp one tree. `base` is the first air y above the ground, `hh` a deterministic hash.
@@ -55,6 +70,39 @@ static func place(gen, col: ChunkColumn, ctx, kind: String,
 			return
 		"birch":
 			_round(gen, col, ctx, "birch", wx, base, wz, hh, 6, 2, 2, 3)
+			return
+		"redwood", "frosty_redwood":
+			_redwood(gen, col, ctx, kind, wx, base, wz, hh)
+			return
+		"maple", "orange_maple":
+			_round(gen, col, ctx, kind, wx, base, wz, hh, 5, 3, 3, 3)
+			return
+		"wisteria", "pink_wisteria":
+			_wisteria(gen, col, ctx, kind, wx, base, wz, hh)
+			return
+		"palm":
+			_palm(gen, col, ctx, wx, base, wz, hh)
+			return
+		"cypress":
+			_cone(gen, col, ctx, "cypress", wx, base, wz, hh, 9, 5, 2, false)
+			return
+		"aspen":
+			_aspen(gen, col, ctx, wx, base, wz, hh)
+			return
+		"fir":
+			_cone(gen, col, ctx, "fir", wx, base, wz, hh, 8, 5, 3, false)
+			return
+		"snowy_fir":
+			_cone(gen, col, ctx, "snowy_fir", wx, base, wz, hh, 8, 5, 3, true)
+			return
+		"sugi":
+			_sugi(gen, col, ctx, wx, base, wz, hh)
+			return
+		"willow":
+			_willow(gen, col, ctx, wx, base, wz, hh)
+			return
+		"joshua":
+			_joshua(gen, col, ctx, wx, base, wz, hh)
 			return
 		"big_oak":
 			_big_oak(gen, col, ctx, wx, base, wz, hh)
@@ -230,6 +278,199 @@ static func _cactus(gen, col: ChunkColumn, ctx,
 	var n := 2 + (hh >> 3) % 3
 	for i in n:
 		gen.put_world(col, ctx, wx, base + i, wz, cactus)
+
+## Giant redwood: 2x2 trunk, bare for most of its height, tall conical canopy on top.
+static func _redwood(gen, col: ChunkColumn, ctx, kind: String,
+		wx: int, base: int, wz: int, hh: int) -> void:
+	var ids := _ids(kind)
+	var log_id: int = ids[0]
+	var leaf_id: int = ids[1]
+	var trunk: int = 30 + (hh >> 3) % 21
+	if base + trunk + 6 >= HEIGHT:
+		trunk = maxi(12, HEIGHT - base - 7)
+	for i in trunk:
+		gen.put_world(col, ctx, wx, base + i, wz, log_id)
+		gen.put_world(col, ctx, wx + 1, base + i, wz, log_id)
+		gen.put_world(col, ctx, wx, base + i, wz + 1, log_id)
+		gen.put_world(col, ctx, wx + 1, base + i, wz + 1, log_id)
+	# conical canopy over the top third
+	var canopy: int = maxi(6, trunk / 3)
+	var top := base + trunk
+	for i in canopy + 3:
+		var y := top + 2 - i
+		var t := float(i) / float(canopy + 3)
+		var r: int = int(round(lerpf(1.0, 5.0, t)))
+		for dz in range(-r, r + 2):
+			for dx in range(-r, r + 2):
+				var cx := float(dx) - 0.5
+				var cz := float(dz) - 0.5
+				if cx * cx + cz * cz > float(r * r) + 1.2:
+					continue
+				if absi(dx) == r and absi(dz) == r:
+					continue
+				gen.put_world(col, ctx, wx + dx, y, wz + dz, leaf_id, 0, true)
+
+## Wisteria: round canopy with strands of leaves drooping from its edge.
+static func _wisteria(gen, col: ChunkColumn, ctx, kind: String,
+		wx: int, base: int, wz: int, hh: int) -> void:
+	var ids := _ids(kind)
+	var log_id: int = ids[0]
+	var leaf_id: int = ids[1]
+	var trunk: int = 6 + (hh >> 3) % 4
+	for i in trunk:
+		gen.put_world(col, ctx, wx, base + i, wz, log_id)
+	var cy := base + trunk
+	_ellipsoid(gen, col, ctx, wx, cy, wz, 4, 2, leaf_id, hh)
+	# drooping strands
+	for k in 10:
+		var kh := Terrain.hash_seeded(hh + 17, wx + k, base, wz - k)
+		var ang := float(kh % 360) * 0.0174533
+		var rad := 2.0 + float((kh >> 9) % 3)
+		var sx := wx + int(round(cos(ang) * rad))
+		var sz := wz + int(round(sin(ang) * rad))
+		var len_s := 2 + (kh >> 12) % 3
+		for i in len_s:
+			gen.put_world(col, ctx, sx, cy - 1 - i, sz, leaf_id, 0, true)
+
+## Palm: curved bare trunk with a fan of leaves and a couple of drooping tips.
+static func _palm(gen, col: ChunkColumn, ctx, wx: int, base: int, wz: int, hh: int) -> void:
+	var ids := _ids("palm")
+	var log_id: int = ids[0]
+	var leaf_id: int = ids[1]
+	var trunk: int = 6 + (hh >> 3) % 5
+	var dir := (hh >> 9) % 4
+	var dx: int = [1, -1, 0, 0][dir]
+	var dz: int = [0, 0, 1, -1][dir]
+	var tx := wx
+	var tz := wz
+	for i in trunk:
+		if i > trunk / 2 and (i % 2) == 0:
+			tx += dx
+			tz += dz
+		gen.put_world(col, ctx, tx, base + i, tz, log_id)
+	var ty := base + trunk
+	gen.put_world(col, ctx, tx, ty, tz, leaf_id, 0, true)
+	for d in 4:
+		var ax: int = [1, -1, 0, 0][d]
+		var az: int = [0, 0, 1, -1][d]
+		for i in range(1, 4):
+			gen.put_world(col, ctx, tx + ax * i, ty - (1 if i == 3 else 0), tz + az * i, leaf_id, 0, true)
+			if i == 2:
+				gen.put_world(col, ctx, tx + ax * i + az, ty, tz + az * i + ax, leaf_id, 0, true)
+
+## Tall thin cone (cypress / fir), optionally snow-capped.
+static func _cone(gen, col: ChunkColumn, ctx, kind: String, wx: int, base: int, wz: int,
+		hh: int, trunk_min: int, extra: int, radius: int, snowy: bool) -> void:
+	var ids := _ids(kind)
+	var log_id: int = ids[0]
+	var leaf_id: int = ids[1]
+	var snow := Registry.block_id("snow_layer")
+	var trunk: int = trunk_min + (hh >> 3) % maxi(1, extra)
+	if base + trunk + 3 >= HEIGHT:
+		trunk = maxi(5, HEIGHT - base - 4)
+	for i in trunk:
+		gen.put_world(col, ctx, wx, base + i, wz, log_id)
+	var from := base + 2
+	var span: int = maxi(2, trunk - 1)
+	for i in span:
+		var y := from + i
+		var t := float(i) / float(span)
+		var r: int = int(round(lerpf(float(radius), 0.0, t)))
+		for dz in range(-r, r + 1):
+			for dx in range(-r, r + 1):
+				if dx * dx + dz * dz > r * r + 1:
+					continue
+				if dx == 0 and dz == 0 and y < base + trunk:
+					continue
+				gen.put_world(col, ctx, wx + dx, y, wz + dz, leaf_id, 0, true)
+				if snowy and snow > 0 and (Terrain.hash_seeded(hh, wx + dx, y, wz + dz) % 3) == 0:
+					gen.put_world(col, ctx, wx + dx, y + 1, wz + dz, snow, 0, true)
+	gen.put_world(col, ctx, wx, base + trunk, wz, leaf_id, 0, true)
+	gen.put_world(col, ctx, wx, base + trunk + 1, wz, leaf_id, 0, true)
+
+## Aspen: tall, very thin trunk with a small round crown.
+static func _aspen(gen, col: ChunkColumn, ctx, wx: int, base: int, wz: int, hh: int) -> void:
+	var ids := _ids("aspen")
+	var log_id: int = ids[0]
+	var leaf_id: int = ids[1]
+	var trunk: int = 9 + (hh >> 3) % 7
+	if base + trunk + 4 >= HEIGHT:
+		trunk = maxi(6, HEIGHT - base - 5)
+	for i in trunk:
+		gen.put_world(col, ctx, wx, base + i, wz, log_id)
+	_ellipsoid(gen, col, ctx, wx, base + trunk, wz, 2, 3, leaf_id, hh)
+
+## Sugi: tall trunk with layered canopy rings.
+static func _sugi(gen, col: ChunkColumn, ctx, wx: int, base: int, wz: int, hh: int) -> void:
+	var ids := _ids("sugi")
+	var log_id: int = ids[0]
+	var leaf_id: int = ids[1]
+	var trunk: int = 12 + (hh >> 3) % 8
+	if base + trunk + 4 >= HEIGHT:
+		trunk = maxi(7, HEIGHT - base - 5)
+	for i in trunk:
+		gen.put_world(col, ctx, wx, base + i, wz, log_id)
+	var layers: int = 3 + (hh >> 11) % 2
+	for l in layers:
+		var y := base + trunk - 1 - l * 3
+		var r := 3 - l % 2
+		for dz in range(-r, r + 1):
+			for dx in range(-r, r + 1):
+				if dx * dx + dz * dz > r * r + 1:
+					continue
+				gen.put_world(col, ctx, wx + dx, y, wz + dz, leaf_id, 0, true)
+	_ellipsoid(gen, col, ctx, wx, base + trunk + 1, wz, 2, 1, leaf_id, hh)
+
+## Willow: short wide trunk, broad canopy, long hanging leaf strands.
+static func _willow(gen, col: ChunkColumn, ctx, wx: int, base: int, wz: int, hh: int) -> void:
+	var ids := _ids("willow")
+	var log_id: int = ids[0]
+	var leaf_id: int = ids[1]
+	var trunk: int = 5 + (hh >> 3) % 3
+	for i in trunk:
+		gen.put_world(col, ctx, wx, base + i, wz, log_id)
+		if i < 2:
+			gen.put_world(col, ctx, wx + 1, base + i, wz, log_id)
+			gen.put_world(col, ctx, wx, base + i, wz + 1, log_id)
+	var cy := base + trunk
+	_ellipsoid(gen, col, ctx, wx, cy, wz, 5, 2, leaf_id, hh)
+	for k in 14:
+		var kh := Terrain.hash_seeded(hh + 5, wx + k, base + 1, wz + k)
+		var ang := float(kh % 360) * 0.0174533
+		var rad := 3.0 + float((kh >> 9) % 3)
+		var sx := wx + int(round(cos(ang) * rad))
+		var sz := wz + int(round(sin(ang) * rad))
+		for i in 2 + (kh >> 13) % 4:
+			gen.put_world(col, ctx, sx, cy - 1 - i, sz, leaf_id, 0, true)
+
+## Joshua tree: stubby branching trunk with spiky crowns.
+static func _joshua(gen, col: ChunkColumn, ctx, wx: int, base: int, wz: int, hh: int) -> void:
+	var ids := _ids("joshua")
+	var log_id: int = ids[0]
+	var leaf_id: int = ids[1]
+	var trunk: int = 3 + (hh >> 3) % 3
+	for i in trunk:
+		gen.put_world(col, ctx, wx, base + i, wz, log_id)
+	var top := base + trunk
+	gen.put_world(col, ctx, wx, top, wz, leaf_id, 0, true)
+	var arms: int = 2 + (hh >> 9) % 3
+	for a in arms:
+		var ah := Terrain.hash_seeded(hh + a * 31, wx, base, wz)
+		var dir := ah % 4
+		var dx: int = [1, -1, 0, 0][dir]
+		var dz: int = [0, 0, 1, -1][dir]
+		var bx := wx + dx
+		var bz := wz + dz
+		var by := top - 1 + (a % 2)
+		gen.put_world(col, ctx, bx, by, bz, log_id)
+		var up := 2 + (ah >> 7) % 3
+		for i in up:
+			gen.put_world(col, ctx, bx, by + 1 + i, bz, log_id)
+		var cy := by + up + 1
+		for dz2 in range(-1, 2):
+			for dx2 in range(-1, 2):
+				gen.put_world(col, ctx, bx + dx2, cy, bz + dz2, leaf_id, 0, true)
+		gen.put_world(col, ctx, bx, cy + 1, bz, leaf_id, 0, true)
 
 ## Leaf ellipsoid with hash-trimmed corners, only into air.
 static func _ellipsoid(gen, col: ChunkColumn, ctx,

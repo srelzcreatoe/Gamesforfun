@@ -123,17 +123,20 @@ static func save_slot() -> void:
 	if i > 0:
 		DirAccess.make_dir_recursive_absolute(slot_dir(i))
 		JsonUtil.save_file(settings_path(i), Game.settings, true)
+	# The global defaults file must never remember which slot was open.
+	Game.settings["slot"] = 0
 	Game.save_settings()
+	Game.settings["slot"] = i
 
 ## Drop back to the global defaults (leaving a world / returning to the title).
 static func clear_active() -> void:
 	if Game == null:
 		return
-	Game.settings["slot"] = 0
 	var raw: Variant = JsonUtil.load_file("user://settings.json")
 	if raw is Dictionary:
 		for k in (raw as Dictionary).keys():
 			Game.settings[k] = (raw as Dictionary)[k]
+	Game.settings["slot"] = 0
 	Events.settings_changed.emit()
 
 # --- lifecycle --------------------------------------------------------------

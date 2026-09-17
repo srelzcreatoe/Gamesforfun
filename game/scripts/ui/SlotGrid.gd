@@ -51,13 +51,8 @@ class Slot extends Control:
 				var pad := size.x * 0.12
 				draw_texture_rect(icon, Rect2(Vector2(pad, pad), size - Vector2(pad, pad) * 2.0), false)
 			if stack.count > 1:
-				var f := UiUtil.font()
-				var fs := int(maxf(8.0, size.y * 0.32))
-				var txt := str(stack.count)
-				var w := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-				var p := size - Vector2(w + 2.0 * scale_px, 2.0 * scale_px)
-				draw_string(f, p + Vector2(2, 2), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0, 0, 0, 0.75))
-				draw_string(f, p, txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color.WHITE)
+				HudWidgets.draw_count(self, str(stack.count),
+					size - Vector2(2.0 * scale_px, 2.0 * scale_px), int(maxf(8.0, size.y * 0.34)))
 			if stack.max_durability() > 0 and stack.durability < stack.max_durability():
 				var frac := float(stack.durability) / float(stack.max_durability())
 				var bh := maxf(2.0, 3.0 * scale_px)

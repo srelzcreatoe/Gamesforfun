@@ -30,6 +30,11 @@ var _pool_index := PackedInt32Array()
 var _pool_temp := PackedFloat32Array()
 var _pool_humid := PackedFloat32Array()
 var _pool_weight := PackedFloat32Array()
+## Elevation band -> indices into the pool arrays (Terralith-style band placement).
+var _bands: Dictionary = {}
+## y thresholds for the bands.
+var band_peak := 104
+var band_high := 88
 ## Earth spawn-zone biomes (kept generous so the Saiyan saga quests always find their biome).
 var _spawn_plains := -1
 var _spawn_forest := -1
@@ -68,6 +73,7 @@ func configure(p_terrain: Terrain, planet_def: Dictionary, p_style: String) -> v
 	_pool_temp = PackedFloat32Array()
 	_pool_humid = PackedFloat32Array()
 	_pool_weight = PackedFloat32Array()
+	var elevations := PackedStringArray()
 	for raw in ids:
 		var bid := String(raw)
 		if bid in rule_driven:
@@ -80,6 +86,24 @@ func configure(p_terrain: Terrain, planet_def: Dictionary, p_style: String) -> v
 		_pool_temp.append(float(def.get("temperature", 0.8)))
 		_pool_humid.append(float(def.get("humidity", 0.5)))
 		_pool_weight.append(maxf(0.5, float(def.get("weight", 6))))
+		var el := String(def.get("elevation", "mountains" if bid == "mountains" else "mid"))
+		if el == "mountains":
+			el = "high"
+		elevations.append(el)
+	# Which biomes may appear in which height band (each band also takes its neighbour band,
+	# so forests climb into the hills and alpine biomes reach down the slopes).
+	_bands = {}
+	for band in ["low", "mid", "high", "peak"]:
+		var allow: Array = {"low": ["low", "mid"], "mid": ["mid", "low"],
+			"high": ["high", "mid"], "peak": ["peak", "high"]}[band]
+		var list := PackedInt32Array()
+		for i in elevations.size():
+			if elevations[i] in allow or elevations[i] == "any":
+				list.append(i)
+		if list.is_empty():
+			for i in elevations.size():
+				list.append(i)
+		_bands[band] = list
 
 ## Circular biome override, e.g. King Kai's planet inside the Other World.
 func set_hotspot(center: Vector2, radius: float, biome_id: String) -> void:
@@ -135,9 +159,13 @@ func _at_earth(wx: int, wz: int, h: int) -> int:
 		if ocean >= 0:
 			return ocean
 	if h <= sea + 2:
-		# Shore: river mouths stay river, everything else is beach.
+		# Shore: river mouths stay river, hot coasts get palm shores, the rest is beach.
 		if terrain.river_at(wx, wz) > 0.5 and river >= 0:
 			return river
+		if temp > 1.4:
+			var tropical := index_of("tropical_shores")
+			if tropical >= 0:
+				return tropical
 		if beach >= 0:
 			return beach
 	if terrain.river_at(wx, wz) > 0.62 and h <= sea + 4 and river >= 0:
@@ -145,17 +173,24 @@ func _at_earth(wx: int, wz: int, h: int) -> int:
 	var dist_sq := wx * wx + wz * wz
 	if dist_sq < 400 * 400:
 		return _at_earth_spawn(wx, wz, h, temp)
-	if h > sea + 36 and mountains >= 0:
-		return mountains
-	return _climate_pick(wx, wz, temp, terrain.humidity_at(wx, wz))
+	return _climate_pick(wx, wz, temp, terrain.humidity_at(wx, wz), _band_of(h, sea))
 
 ## Around the origin the saga quests need plains + wasteland + forest (plus the bay that the
 ## height field already carves out for Kame House), so the climate map is replaced by a
 ## deterministic patchwork of those four.
-func _at_earth_spawn(wx: int, wz: int, h: int, _temp: float) -> int:
+func _band_of(h: int, sea: int) -> String:
+	if h >= band_peak:
+		return "peak"
+	if h >= band_high:
+		return "high"
+	if h >= sea + 7:
+		return "mid"
+	return "low"
+
+func _at_earth_spawn(wx: int, wz: int, h: int, temp: float) -> int:
 	var sea := terrain.sea_level
-	if h > sea + 40 and mountains >= 0:
-		return mountains
+	if h >= band_high:
+		return _climate_pick(wx, wz, temp, terrain.humidity_at(wx, wz), _band_of(h, sea))
 	var z := terrain.zone_at(wx, wz)
 	# A second, offset sample keeps the patches from being one big blob.
 	var z2 := terrain.zone_at(wx + 5000, wz - 5000)
@@ -205,34 +240,44 @@ func _at_sacred(wx: int, wz: int, h: int) -> int:
 
 ## Closest biome by (temperature, humidity); ties inside a band are broken by `weight` and a
 ## medium-scale zone noise so neighbouring patches differ.
-func _climate_pick(wx: int, wz: int, temp: float, humid: float) -> int:
-	var n := _pool_index.size()
+func _climate_pick(wx: int, wz: int, temp: float, humid: float, band := "") -> int:
+	var pool: PackedInt32Array = _bands.get(band, PackedInt32Array()) if band != "" else PackedInt32Array()
+	if pool.is_empty():
+		pool = PackedInt32Array()
+		for i in _pool_index.size():
+			pool.append(i)
+	var n := pool.size()
 	if n == 0:
 		return default_index
 	var best := 1e20
-	for i in n:
+	for k in n:
+		var i := pool[k]
 		var dt := (temp - _pool_temp[i]) * 0.72
 		var dh := humid - _pool_humid[i]
 		var d := dt * dt + dh * dh
 		if d < best:
 			best = d
-	var band := best + 0.30
+	var window := best + 0.22
 	var total := 0.0
-	for i in n:
-		var dt2 := (temp - _pool_temp[i]) * 0.72
-		var dh2 := humid - _pool_humid[i]
-		if dt2 * dt2 + dh2 * dh2 <= band:
-			total += _pool_weight[i]
+	for k in n:
+		var i2 := pool[k]
+		var dt2 := (temp - _pool_temp[i2]) * 0.72
+		var dh2 := humid - _pool_humid[i2]
+		if dt2 * dt2 + dh2 * dh2 <= window:
+			total += _pool_weight[i2]
 	if total <= 0.0:
 		return default_index
-	var u := clampf(0.5 + 0.5 * terrain.zone_at(wx, wz), 0.0, 0.9999) * total
+	# two offset zone samples so neighbouring patches of the same climate differ
+	var u := clampf(0.5 + 0.35 * terrain.zone_at(wx, wz)
+		+ 0.15 * terrain.zone_at(wx + 3300, wz - 2100), 0.0, 0.9999) * total
 	var acc := 0.0
-	for i in n:
-		var dt3 := (temp - _pool_temp[i]) * 0.72
-		var dh3 := humid - _pool_humid[i]
-		if dt3 * dt3 + dh3 * dh3 > band:
+	for k in n:
+		var i3 := pool[k]
+		var dt3 := (temp - _pool_temp[i3]) * 0.72
+		var dh3 := humid - _pool_humid[i3]
+		if dt3 * dt3 + dh3 * dh3 > window:
 			continue
-		acc += _pool_weight[i]
+		acc += _pool_weight[i3]
 		if u < acc:
-			return _pool_index[i]
+			return _pool_index[i3]
 	return default_index

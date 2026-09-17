@@ -34,3 +34,13 @@ static func create_for_planet(planet_id: String, seed: int) -> Object:
 ## A Terrain configured like the planet's generator (see Terrain.make).
 static func make_terrain(planet_def: Dictionary, seed: int) -> Terrain:
 	return Terrain.make(planet_def, seed)
+
+## Where a player should arrive on this planet: on the surface, out of the water, as close to
+## (0, 0) as the terrain allows. Call it from Game.create_world() / Game.change_planet() and
+## write the result into `profile.position` (x, y, z) instead of the y = -1 "use the
+## heightmap" placeholder:
+##     var p: Vector3 = WorldGenFactory.spawn_point(Registry.planet(planet_id), seed)
+## It only samples the height field (no column generation), so it is cheap and safe to call
+## on the main thread.
+static func spawn_point(planet_def: Dictionary, seed: int) -> Vector3:
+	return SpawnPoint.find(planet_def, seed)

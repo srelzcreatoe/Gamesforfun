@@ -51,32 +51,9 @@ const ALL_ARMOR_BONES := [
 	"armorHead", "armorBody", "armorLeggingsBody", "armorRightArm", "armorLeftArm",
 	"armorRightLeg", "armorLeftLeg", "armorRightBoot", "armorLeftBoot",
 ]
-const HAIR_MODEL := "entity/sagas/shadow_dummy"
-
-## Hair styles are visibility sets over the 38 `hair*` bones of
-## `entity/sagas/shadow_dummy.geo.json` (the only DMZ geometry that ships a
-## generic, non-character hair rig - human.geo.json has no hair bones at all).
-## The sets were picked from the measured bone extents so that normal hair HUGS
-## the skull (the head cube is x -4..4, y 24..32, z -4..4): every bone in styles
-## 1-5 and 7 stays below y 33, and the tall "flame" spikes (hair7/11/12/22/23/24/
-## 28/34/36/37, up to y 38.6) are reserved for the mohawk and the Super Saiyan
-## form sets, where a hair tower is the point.
-const HAIR_STYLES := {
-	0: [],                                                              # bald
-	1: ["Vegetahair", "hair1", "hair2", "hair4", "hair19", "hair20", "hair26"],
-	2: ["Vegetahair", "hair1", "hair2", "hair3", "hair4", "hair5", "hair6",
-		"hair19", "hair20", "hair21", "hair25", "hair26", "hair27"],      # spiky
-	3: ["Vegetahair", "hair3", "hair10", "hair21", "hair29", "hair33", "hair35"], # flat top
-	4: ["hair8", "hair9", "hair13", "hair14", "hair15", "hair16", "hair17", "hair18",
-		"hair30", "hair31", "hair32", "hair33"],                          # long back
-	5: ["Vegetahair", "hair1", "hair2", "hair3", "hair4", "hair5", "hair6", "hair8",
-		"hair9", "hair10", "hair13", "hair14", "hair16", "hair17", "hair19", "hair20",
-		"hair21", "hair25", "hair26", "hair27", "hair29", "hair30", "hair31", "hair32",
-		"hair33", "hair35"],                                              # full head
-	6: ["hair11", "hair23", "hair24", "hair34"],                          # mohawk (tall)
-	7: ["Vegetahair", "hair1", "hair19", "hair14", "hair16", "hair17", "hair32", "hair33"], # ponytail
-}
-const HAIR_STYLE_COUNT := 8
+## Hair is DMZ voxel strands built by HairBuilder from data/hair_styles.json
+## (the shadow_dummy bone rig this used to borrow is gone: it was a single
+## character's Vegeta hair, not a style set).
 
 static var hd := false
 static var _cache: Dictionary = {}          # key -> ImageTexture
@@ -222,40 +199,23 @@ static func apply_to(model: BedrockModel, character: Dictionary, armor: Array = 
 	attach_hair(model, character)
 	apply_armor(model, armor)
 
-## Build (or update) the 3D hair attachment on the model's head bone.
+## Build (or refresh) the voxel hair on the model's head bone.
 static func attach_hair(model: BedrockModel, character: Dictionary) -> Node3D:
-	var head: Node3D = model.get_bone("head")
-	if head == null:
+	if model == null:
 		return null
+	if model.has_bone("pelo1") or model.has_bone("hair1"):
+		return null                 # saga/master models ship their own hair bones
 	var hair_type := _int(character.get("hair_type"), 1)
-	var existing: Node3D = head.get_node_or_null("Hair")
-	var hm: BedrockModel = existing as BedrockModel
-	if hm == null:
-		if model.has_bone("pelo1") or model.has_bone("hair1"):
-			# The model ships its own hair bones (saga/master characters).
-			return null
-		hm = BedrockModel.new()
-		hm.name = "Hair"
-		hm.set_nested(true)
-		if not hm.load_geo(HAIR_MODEL):
-			hm.queue_free()
-			return null
-		head.add_child(hm)
-		hm.position = -model.pivots.get("head", Vector3(0, 24, 0))
-	var style: Array = HAIR_STYLES.get(hair_type % HAIR_STYLE_COUNT, HAIR_STYLES[1])
-	var keep := PackedStringArray()
-	for n in style:
-		keep.append(String(n))
-	hm.show_only_bones(keep)
+	var style := HairBuilder.style_id(hair_type)
 	var col := _color(character.get("hair_color", "#222629"))
-	var tile := Textures.entity_texture("races/hair")
-	for n in keep:
-		hm.set_bone_material(n, tile, col, true)
-	hm.visible = hair_type > 0
-	return hm
+	return HairBuilder.attach(model, style, col)
 
-static func hair_bones_for(hair_type: int) -> Array:
-	return HAIR_STYLES.get(hair_type % HAIR_STYLE_COUNT, [])
+## Style id for a profile `hair_type` index (wraps like the character creation UI).
+static func hair_style_id(hair_type: int) -> String:
+	return HairBuilder.style_id(hair_type)
+
+static func hair_style_count() -> int:
+	return HairBuilder.style_count()
 
 ## `armor` is an array of item ids or item definition dictionaries.
 static func apply_armor(model: BedrockModel, armor: Array) -> void:
@@ -299,27 +259,20 @@ static func apply_form_visuals(model: Node3D, form_def: Dictionary) -> void:
 		return
 	var hair_type := _int(form_def.get("hairType", form_def.get("hair_type", -1)), -1)
 	var hair_color := String(form_def.get("hairColor", form_def.get("hair_color", "")))
-	var head: Node3D = bm.get_bone("head")
-	if head == null:
+	if hair_type < 0 and hair_color == "":
 		return
-	var hair: Variant = head.get_node_or_null("Hair")
-	var hm: BedrockModel = hair as BedrockModel
-	if hm == null:
-		return                     # plain / saga model: it carries its own hair bones
+	var head: Node3D = bm.get_bone("head")
+	if head == null or bm.has_bone("pelo1") or bm.has_bone("hair1"):
+		return                      # nothing to restyle on a saga model
+	var style := HairBuilder.current_style(bm)
 	if hair_type >= 0:
-		var keep := PackedStringArray()
-		for n in _form_hair_bones(hair_type):
-			keep.append(String(n))
-		hm.show_only_bones(keep)
-		hm.scale = Vector3.ONE * _form_hair_scale(hair_type)
-		if hair_color != "":
-			for n in keep:
-				hm.set_bone_material(n, Textures.entity_texture("races/hair"), _color(hair_color), true)
-	elif hair_color != "":
-		for n in hm.meshes.keys():
-			var name := String(n)
-			if hm.is_bone_mesh_visible(name):
-				hm.set_bone_material(name, Textures.entity_texture("races/hair"), _color(hair_color), true)
+		style = HairBuilder.form_style_id(hair_type)
+	if style == "":
+		style = HairBuilder.style_id(1)
+	var col := HairBuilder.style_color(style, _color(hair_color) if hair_color != "" else Color(0.13, 0.15, 0.16))
+	if hair_color != "":
+		col = _color(hair_color)
+	HairBuilder.attach(bm, style, col)
 
 ## forms.json `modelScaling`: float, [x, y] or [x, y, z]. Missing / invalid -> 1.0.
 static func form_scale(form_def: Dictionary) -> float:
@@ -333,26 +286,6 @@ static func form_scale(form_def: Dictionary) -> float:
 		return m if m > 0.0 else 1.0
 	if sc is float or sc is int:
 		return float(sc) if float(sc) > 0.0 else 1.0
-	return 1.0
-
-## `hairType` values used by forms.json: 0 base, 1 ssj, 2 ssj2, 3 ssj3, 4 ssj4/other.
-## DMZ has no dedicated player ssj hair geometry, so the base spiky set is scaled
-## up (and the long ssj3 set uses every bone) to approximate it.
-static func _form_hair_bones(hair_type: int) -> Array:
-	const FLAME := ["hair7", "hair12", "hair22", "hair28", "hair11", "hair23"]
-	const FLAME_LONG := ["hair24", "hair34", "hair36", "hair37"]
-	match hair_type:
-		0: return HAIR_STYLES[2]
-		1: return HAIR_STYLES[5] + FLAME
-		2: return HAIR_STYLES[5] + FLAME + ["hair24", "hair34"]
-		3: return HAIR_STYLES[5] + FLAME + FLAME_LONG + HAIR_STYLES[4]
-	return HAIR_STYLES[5] + FLAME
-
-static func _form_hair_scale(hair_type: int) -> float:
-	match hair_type:
-		1: return 1.12
-		2: return 1.25
-		3: return 1.55
 	return 1.0
 
 static func clear_cache() -> void:

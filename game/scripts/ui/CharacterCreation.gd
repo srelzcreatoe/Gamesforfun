@@ -21,12 +21,14 @@ var name_edit: LineEdit = null
 var preview: CharacterPreview = null
 var desc_label: Label = null
 var world_info: Dictionary = {}
+var slot := 1
 
 func _init() -> void:
 	screen_name = "character_creation"
 
 func build() -> void:
 	world_info = args.get("world", {})
+	slot = clampi(int(args.get("slot", int(world_info.get("slot", 1)))), 1, SaveSlots.COUNT)
 	races = PackedStringArray(Registry.races.keys()) if Registry != null else PackedStringArray(["saiyan"])
 	if races.is_empty():
 		races = PackedStringArray(["saiyan"])
@@ -139,10 +141,12 @@ func _start() -> void:
 		prof["character"][key] = ch[key]
 	var info: Dictionary = world_info
 	if info.is_empty():
-		info = Game.create_world("New World", "", "story", "normal")
+		info = SaveSlots.create(slot, "New World", "", "story", "normal", true)
 	prof["position"]["planet"] = String(info.get("planet", "earth"))
 	prof["spawn"]["planet"] = String(info.get("planet", "earth"))
-	JsonUtil.save_file(Game.world_dir(String(info["slug"])).path_join("profile.json"), prof, false)
+	SaveSlots.write_profile(slot, prof)
+	SaveSlots.load_slot(slot)
 	Game.ui.call("close", "character_creation")
 	Game.ui.call("close", "world_select")
+	info["slot"] = slot
 	Game.start_world(info, prof)

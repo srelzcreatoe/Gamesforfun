@@ -7,6 +7,7 @@ var seed_edit: LineEdit = null
 var mode_i := 0
 var diff_i := 1
 var keep_inv := true
+var slot := 1
 
 const MODES := ["Story", "Creative"]
 const DIFFS := ["Easy", "Normal", "Hard"]
@@ -15,7 +16,10 @@ func _init() -> void:
 	screen_name = "create_world"
 
 func build() -> void:
-	var body := page("Create World")
+	slot = int(args.get("slot", SaveSlots.first_empty()))
+	if slot <= 0:
+		slot = 1
+	var body := page("New Game - Slot %d" % slot)
 	var wrap := VBoxContainer.new()
 	wrap.add_theme_constant_override("separation", int(8.0 * s))
 	wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -38,8 +42,7 @@ func build() -> void:
 	wrap.add_child(h)
 
 func _create() -> void:
-	var info := Game.create_world(name_edit.text, seed_edit.text, MODES[mode_i].to_lower(), DIFFS[diff_i].to_lower())
-	info["keep_inventory"] = keep_inv
-	JsonUtil.save_file(Game.world_dir(String(info["slug"])).path_join("world.json"), info, true)
+	var info := SaveSlots.create(slot, name_edit.text, seed_edit.text,
+		MODES[mode_i].to_lower(), DIFFS[diff_i].to_lower(), keep_inv)
 	Game.ui.call("close", "create_world")
-	Game.ui.call("open", "character_creation", {"world": info})
+	Game.ui.call("open", "character_creation", {"world": info, "slot": slot})

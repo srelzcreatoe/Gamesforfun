@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Data conversion, part B: world content (items, recipes, biomes, planets, structures).
 
+Pipeline order: convert_dmz_data.py -> convert_dmz_data_b.py -> convert_naturespirit.py
+(the Nature's Spirit converter appends its biomes to data/biomes.json and to Earth's
+biome list afterwards, so it must run last).
+
 Reads the extracted DragonMineZ 2.1.3 mod (GPL-3.0), DMZ Plus 1.1.6 and the Fused
 resource packs and writes these registries into game/data/ (schema:
 game/docs/DATA_SCHEMA.md):

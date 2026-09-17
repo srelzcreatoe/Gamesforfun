@@ -124,6 +124,50 @@ func test_flight_needs_the_skill() -> void:
 	Game.profile["skills"]["fly"] = 1
 	assert_true(player.flight_allowed(), "skill 1 flies")
 
+func test_dev_cheats_toggle_and_take_effect() -> void:
+	Game.profile = ProfileFactory.new_profile("Tester", "human", "male", "warrior")
+	player = _spawn()
+	assert_true(not player.cheat("god_mode"), "off by default")
+	player.set_cheat("god_mode", true)
+	assert_true(player.cheat("god_mode"), "on")
+	var hp := player.health
+	player.invuln = 0.0
+	assert_eq(player.take_damage(50.0, null, "test"), 0.0, "god mode blocks damage")
+	assert_near(player.health, hp, 0.001, "health untouched")
+	player.set_cheat("god_mode", false)
+	player.invuln = 0.0
+	assert_true(player.take_damage(10.0, null, "test") > 0.0, "damage again")
+	Game.creative = false
+	Game.profile["skills"]["fly"] = 0
+	assert_true(not player.flight_allowed(), "no fly skill")
+	player.set_cheat("creative_flight", true)
+	assert_true(player.flight_allowed(), "creative flight overrides the skill")
+	player.set_cheat("creative_flight", false)
+	player.set_cheat("noclip", true)
+	assert_true(player.noclip and player.is_flying, "noclip flies")
+	player.set_cheat("noclip", false)
+
+func test_noclip_passes_through_the_fallback_ground() -> void:
+	player = _spawn()
+	player.set_cheat("noclip", true)
+	player.global_position = Vector3(0, Player.FALLBACK_GROUND, 0)
+	player.velocity = Vector3(0, -6, 0)
+	for i in 10:
+		player._apply_motion(Vector3(0, -0.1, 0))
+	assert_true(player.global_position.y < Player.FALLBACK_GROUND, "went through the floor")
+	player.set_cheat("noclip", false)
+
+func test_play_time_accumulates_into_the_profile() -> void:
+	Game.profile = ProfileFactory.new_profile("Tester", "human", "male", "warrior")
+	Game.profile["play_time"] = 100.0
+	player = _spawn()
+	for i in 60:
+		player.tick(1.0 / 60.0)
+	var out: Dictionary = {}
+	player.write_profile(out)
+	assert_true(float(out["play_time"]) > 100.0, "time added: %f" % float(out["play_time"]))
+	assert_true(float(out["play_time"]) < 103.0, "roughly one second")
+
 func test_fallback_physics_keeps_the_player_on_the_ground() -> void:
 	player = _spawn()
 	player.global_position = Vector3(0, Player.FALLBACK_GROUND + 6.0, 0)
