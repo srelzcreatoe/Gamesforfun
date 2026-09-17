@@ -1,13 +1,25 @@
 extends TestCase
 ## Three save slots: listing, creation, copy, delete and per-slot settings isolation.
 
+var _ui_backup: Node = null
+
 func setup() -> void:
+	# Screens opened by other test files are only queue_free()d, so they are still connected to
+	# Events.settings_changed while this file runs. Detach the UI manager so their rebuilds
+	# cannot touch Game.settings mid-test.
+	if Game != null:
+		_ui_backup = Game.ui
+		if _ui_backup != null and _ui_backup.has_method("close_all"):
+			_ui_backup.call("close_all")
+		Game.ui = null
 	UiUtil.ensure_ui_settings()
 	_wipe()
 
 func teardown() -> void:
 	_wipe()
 	SaveSlots.clear_active()
+	if Game != null and _ui_backup != null and is_instance_valid(_ui_backup):
+		Game.ui = _ui_backup
 
 func _wipe() -> void:
 	for i in range(1, SaveSlots.COUNT + 1):
@@ -62,6 +74,11 @@ func test_settings_are_per_slot() -> void:
 	Game.settings["fov"] = 97.0
 	Game.settings["hud_scale"] = 0.9
 	SaveSlots.save_slot()
+	# The files are the contract; the in-memory dict follows from them.
+	assert_near(float(JsonUtil.load_file(SaveSlots.settings_path(1)).get("fov", 0.0)), 61.0, 0.01,
+		"slot 1 file fov")
+	assert_near(float(JsonUtil.load_file(SaveSlots.settings_path(3)).get("fov", 0.0)), 97.0, 0.01,
+		"slot 3 file fov")
 	SaveSlots.load_slot(1)
 	assert_near(float(Game.settings["fov"]), 61.0, 0.01, "slot 1 fov")
 	assert_near(float(Game.settings["hud_scale"]), 1.3, 0.01, "slot 1 hud scale")

@@ -52,15 +52,15 @@ const MOTE_SNOW := "snow"
 const MOTE_EMBER := "ember"
 const MOTE_SPIRIT := "spirit"
 
-const FLOWER_BLOCKS: PackedStringArray = PackedStringArray([
+const FLOWER_BLOCKS: Array[String] = [
 	"dandelion", "poppy", "blue_orchid", "allium", "azure_bluet", "red_tulip", "orange_tulip",
 	"oxeye_daisy", "cornflower", "sunflower", "lilac", "rose_bush", "lavender",
 	"chrysanthemum_flower", "amaryllis_flower", "marigold_flower", "catharanthus_roseus_flower",
 	"trillium_flower", "lotus_flower", "sacred_chrysanthemum_flower", "sacred_trillium_flower",
-])
+]
 
 ## Entity kinds that leave a soul wisp when they die (humanoids, not frogs and dinosaurs).
-const SOUL_KINDS: PackedStringArray = PackedStringArray(["enemy", "master", "npc", "player"])
+const SOUL_KINDS: Array[String] = ["enemy", "master", "npc", "player"]
 
 # --- time of day ------------------------------------------------------------------------------
 # World.day_fraction(): 0.0 = 06:00 sunrise, 0.25 = noon, 0.5 = 18:00 sunset, 0.75 = midnight.
@@ -81,11 +81,14 @@ static func day_amount(day_fraction: float) -> float:
 	var elev := cos((f - 0.25) * TAU)
 	return clampf(smoothstep(-0.02, 0.28, elev), 0.0, 1.0)
 
+## How far above/below the horizon the sun still counts as "twilight" (sun elevation proxy).
+const TWILIGHT_BAND := 0.3
+
 ## Peaks at sunrise and sunset, 0 otherwise (distant flock silhouettes, horizon flashes).
 static func twilight_amount(day_fraction: float) -> float:
 	var f := fposmod(day_fraction, 1.0)
 	var elev := cos((f - 0.25) * TAU)
-	return clampf(1.0 - absf(elev) / 0.22, 0.0, 1.0)
+	return clampf(1.0 - absf(elev) / TWILIGHT_BAND, 0.0, 1.0)
 
 # --- weather ----------------------------------------------------------------------------------
 
@@ -125,16 +128,20 @@ static func classify(biome_id: String, def: Dictionary) -> int:
 	if id.contains("swamp") or id.contains("marsh") or id.contains("wetland") or id.contains("mushroom_fields") \
 			or (humid >= 0.85 and temp < 1.5 and id.contains("basin")):
 		return Cls.SWAMP
+	# A grass/moss surface is never a desert, however the planet's temperature is written down
+	# (every Namek and Vampa biome claims temperature 2.0 and humidity 0.0).
+	var grassy := surface.contains("grass") or surface.contains("moss") or surface.contains("podzol") \
+			or surface.contains("mycelium") or surface.contains("cloud")
 	if surface.contains("sand") or surface == "coarse_dirt" or id.contains("desert") or id.contains("dune") \
 			or id.contains("badlands") or id.contains("dryland") or id.contains("xeric") \
-			or id.contains("beach") or (temp >= 1.5 and humid <= 0.2):
+			or id.contains("beach") or (temp >= 1.5 and humid <= 0.2 and not grassy):
 		return Cls.DESERT
 	if id.contains("wasteland") or id.contains("barren") or id.contains("peaks") or id.contains("cliffs") \
 			or id.contains("slopes") or id.contains("mesa") or id.contains("rocky") \
 			or id.contains("time_chamber") or id.contains("hyperbolic"):
 		return Cls.BARREN
 	var planet := String(def.get("planet", "earth"))
-	var alien := planet != "earth" and planet != "" and PLANET_MOOD.get(planet, MOOD_NORMAL) != MOOD_NORMAL
+	var alien: bool = planet != "earth" and planet != "" and String(PLANET_MOOD.get(planet, MOOD_NORMAL)) != MOOD_NORMAL
 	var trees: Array = def.get("trees", [])
 	if trees.size() >= 1 and _woody(id, trees):
 		return Cls.ALIEN if alien else Cls.FOREST
@@ -142,10 +149,14 @@ static func classify(biome_id: String, def: Dictionary) -> int:
 		return Cls.ALIEN
 	return Cls.PLAINS
 
+const WOODY_WORDS: Array[String] = [
+	"forest", "jungle", "taiga", "woods", "woodland", "grove", "thicket", "covert",
+	"wilds", "highlands", "bamboo", "cedar", "redwood", "aspen", "maple", "fir", "sugi",
+	"wisteria", "cypress", "tropical", "savanna", "chaparral",
+]
+
 static func _woody(id: String, trees: Array) -> bool:
-	for k in ["forest", "jungle", "taiga", "woods", "woodland", "grove", "thicket", "covert",
-			"wilds", "highlands", "bamboo", "cedar", "redwood", "aspen", "maple", "fir", "sugi",
-			"wisteria", "cypress", "tropical", "savanna", "chaparral"]:
+	for k in WOODY_WORDS:
 		if id.contains(k):
 			return true
 	# Not named like a wood, but dense enough to have a canopy overhead.

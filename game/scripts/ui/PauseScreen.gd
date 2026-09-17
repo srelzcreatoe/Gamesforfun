@@ -16,10 +16,9 @@ func build() -> void:
 	title.custom_minimum_size.x = size.x
 	v.add_child(title)
 	var bw := minf(320.0 * s, size.x * 0.55)
-	var frame := UiUtil.dmz_panel("big")
-	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var rows := UiUtil.vbox(7.0 * s)
-	frame.add_child(rows)
+	var frame := UiUtil.dmz_frame(rows, "big", 8.0)
+	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var center := HBoxContainer.new()
 	center.alignment = BoxContainer.ALIGNMENT_CENTER
 	center.add_child(frame)

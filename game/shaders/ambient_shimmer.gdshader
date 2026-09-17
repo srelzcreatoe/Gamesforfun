@@ -23,11 +23,10 @@ void fragment() {
 	vec2 uv = SCREEN_UV;
 	// Heat rises off the ground: nothing above the horizon, strongest in the lower third.
 	float band = smoothstep(0.0, 0.3, uv.y - ground) * (1.0 - smoothstep(0.93, 1.0, uv.y));
+	// `strength` is 0 on every planet that does not shimmer, and the CanvasLayer is hidden as
+	// well, so this pass is never even rendered there. (No early `return`: a shader's fragment
+	// processor may not return.)
 	band *= strength;
-	if (band <= 0.001) {
-		COLOR = texture(screen_tex, uv);
-		return;
-	}
 	float t = TIME * speed;
 	float w = sin(uv.y * 78.0 + t * 3.1) * 0.6 + sin(uv.y * 41.0 + uv.x * 13.0 - t * 2.3) * 0.4;
 	float h = sin(uv.x * 57.0 + t * 2.6) * 0.5 + sin(uv.y * 23.0 - t * 1.7) * 0.5;

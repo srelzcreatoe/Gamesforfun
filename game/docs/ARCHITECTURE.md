@@ -351,6 +351,28 @@ small Molang evaluator supporting `query.anim_time`, `query.life_time`,
 numbers, `variable.*` (default 0). Expressions are compiled once (tokenised to
 RPN) and evaluated per frame; angle functions take degrees like Bedrock.
 
+### Hair (`HairBuilder.gd` + `data/hair_styles.json`)
+
+DMZ builds hair out of voxel *strands*, not a bone rig, and so do we. A style is
+a list of strand groups over DMZ's own 68 slots (FRONT 1x4, BACK/LEFT/RIGHT/TOP
+4x4 on the head cube), each group expanded into strands of stacked cubes with
+`len` / `rot` / `curve` / `taper` / `spread`; `scripts/entity/HairBuilder.gd`
+bakes one cached `ArrayMesh` per style, so hair costs one extra draw call and no
+per-frame work. `data/hair_styles.json` holds the 8 selectable styles
+(bald, short, spiky, flame, bowl, long, ponytail, mohawk) plus `ssj` / `ssj2` /
+`ssj3` and the `form_hair` map used by `RaceSkin.apply_form_visuals()`.
+
+* `RaceSkin.apply_to(model, character, armor)` attaches the style for
+  `character.hair_type` (it wraps, and index 0 is bald) as a `MeshInstance3D`
+  named `Hair` on the `head` bone, tinted with `hair_color`.
+* Facet shading is baked into the mesh's vertex colours and the material uses
+  `vertex_color_use_as_albedo`, and a near black hair colour is lifted to
+  v >= 0.30 (`HairBuilder.hair_albedo()`): without both, black hair renders as
+  one flat block ("a black cube on the head") from behind.
+* `BedrockModel.visual_aabb()` includes attachments (hair, armour overlays, held
+  items), so a camera framed from it never crops tall hair; all eleven styles
+  frame within +-9% of each other.
+
 ### Animation state API (what callers use instead of clip names)
 
 Nothing outside `scripts/entity/` names a clip. Callers name a *state* and

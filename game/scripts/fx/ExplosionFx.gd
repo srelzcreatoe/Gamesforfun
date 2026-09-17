@@ -110,7 +110,7 @@ func _ready() -> void:
 	add_child(fire)
 	fire.emitting = true
 
-	var smoke := FxAssets.make_particles("Smoke", int(SMOKE_COUNT * scale_f), ["aaa/lightning/Smoke", SMOKE_TEX, "block_0"], Color(0.58, 0.55, 0.52))
+	var smoke := FxAssets.make_particles("Smoke", int(SMOKE_COUNT * scale_f), FxAssets.smoke(), Color(0.58, 0.55, 0.52))
 	smoke.one_shot = true
 	smoke.explosiveness = 0.7
 	smoke.lifetime = 1.4

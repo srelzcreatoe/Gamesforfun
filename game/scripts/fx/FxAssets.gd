@@ -28,6 +28,20 @@ const DARK_MASK_TEXTURES: Array[String] = [
 	"aaa/explosion_mini/Flash01", "aaa/explosion_mini/hit",
 ]
 
+## Textures whose TRANSPARENT pixels are black (measured: `aaa/lightning/Smoke` and
+## `aaa/lightning/Fire` are 60-68 % alpha-0 with RGB ~5). Godot generates mipmaps on
+## straight (non premultiplied) alpha, so the black bleeds in and a MIX-blended puff
+## renders as a BLACK blob as soon as it is minified. They are fine in an additive
+## material (black adds nothing) but must never be the first choice for smoke/dust.
+## `smoke()` returns the safe list instead.
+const BLACK_FRINGE_TEXTURES: Array[String] = [
+	"aaa/lightning/Smoke", "aaa/lightning/Fire", "aaa/missile_boost/Smoke",
+]
+
+## Texture name list for MIX-blended smoke / dust puffs, safest first.
+static func smoke() -> Array[String]:
+	return ["aaa/explosion/smoke_tex", "aaa/lightning/Smoke", "block_0"] as Array[String]
+
 static var _tex_cache: Dictionary = {}
 static var _mat_cache: Dictionary = {}
 

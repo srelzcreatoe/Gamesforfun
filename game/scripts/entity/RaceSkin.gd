@@ -185,7 +185,10 @@ static func compose_image(character: Dictionary) -> Image:
 	if tattoo >= 0:
 		_blend(buf, size, _load_image("races/tattoos/tattoo_%d" % tattoo), Color.WHITE)
 	if _int(character.get("hair_type"), 1) > 0:
-		_blend(buf, size, _load_image("races/hair_base"), hair_col)
+		# DMZ paints a hair cap straight onto the head cube's skin. Keep it a shade
+		# darker than the voxel strands that sit on top of it, otherwise the head
+		# reads as one flat block of colour from behind.
+		_blend(buf, size, _load_image("races/hair_base"), hair_col.darkened(0.3))
 	return Image.create_from_data(size, size, false, Image.FORMAT_RGBA8, buf)
 
 ## Compose + apply to a model: body texture, hair attachment, tail/armor bones.

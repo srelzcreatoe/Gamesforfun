@@ -40,10 +40,9 @@ func build() -> void:
 
 	# Buttons on the DMZ menu panel, with its icon sheet as the row glyphs.
 	var bw := minf(330.0 * s, size.x * 0.55)
-	var frame := UiUtil.dmz_panel("big")
-	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var rows := UiUtil.vbox(7.0 * s)
-	frame.add_child(rows)
+	var frame := UiUtil.dmz_frame(rows, "big", 8.0)
+	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var center := HBoxContainer.new()
 	center.alignment = BoxContainer.ALIGNMENT_CENTER
 	center.add_child(frame)

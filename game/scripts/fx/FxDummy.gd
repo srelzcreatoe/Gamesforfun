@@ -37,6 +37,10 @@ var forms_unlocked: Array[String] = []
 var forms_mastery: Dictionary = {}
 var model_override := ""
 
+## A stub camera rig (`cinematic_orbit` / `shake`) can be injected here so the
+## transformation director hands the camera work to it and leaves the preview camera
+## where the verification shot needs it.
+var camera_rig: Node = null
 var animated := false
 var race := "saiyan"
 var anim: Node = null
@@ -77,16 +81,18 @@ func _ready() -> void:
 ## A DMZ BedrockModel when the entity engineer's script is there, else a capsule.
 func _build_model() -> Node3D:
 	const BEDROCK := "res://scripts/entity/BedrockModel.gd"
-	const GEO_REL := "entity/races/human"
 	const TEX_REL := "sagas/saga_goku_early"
-	if ResourceLoader.exists(BEDROCK) and ResourceLoader.exists("res://assets/models/" + GEO_REL + ".geo.json"):
+	var geo_rel := "entity/races/human"
+	if animated:
+		geo_rel = RaceSkin.race_model(race)
+	if ResourceLoader.exists(BEDROCK) and ResourceLoader.exists("res://assets/models/" + geo_rel + ".geo.json"):
 		var script: Variant = load(BEDROCK)
 		if script is GDScript:
 			var inst: Variant = (script as GDScript).new()
 			if inst is Node3D and (inst as Node).has_method("load_geo"):
 				var n := inst as Node3D
 				n.name = "Model"
-				if bool(n.call("load_geo", GEO_REL)):
+				if bool(n.call("load_geo", geo_rel)):
 					if animated and not _apply_race_skin(n):
 						if n.has_method("set_texture"):
 							n.call("set_texture", Textures.entity_texture(TEX_REL))
@@ -121,16 +127,12 @@ func _build_model() -> Node3D:
 	root.add_child(head)
 	return root
 
-## Compose the race skin + voxel hair through the entity engineer's RaceSkin (duck
-## typed: the preview still works if that script is not there yet).
+## Compose the race skin + voxel hair through the entity engineer's RaceSkin.
 func _apply_race_skin(m: Node3D) -> bool:
-	const RACE_SKIN := "res://scripts/entity/RaceSkin.gd"
-	if not ResourceLoader.exists(RACE_SKIN):
+	var bm: BedrockModel = m as BedrockModel
+	if bm == null:
 		return false
-	var script: Variant = load(RACE_SKIN)
-	if not (script is GDScript) or not (script as GDScript).has_method("apply_to"):
-		return false
-	(script as GDScript).call("apply_to", m, {
+	RaceSkin.apply_to(bm, {
 		"race": race, "gender": "male", "body_type": 0, "hair_type": 2,
 		"hair_color": "#222629", "eye_color": "#3B2A1E",
 		"skin_color": "#FFD3C9", "skin_color2": "#572117", "skin_color3": "#FFD3C9",
@@ -141,26 +143,17 @@ func _apply_race_skin(m: Node3D) -> bool:
 ## DMZ movement + transformation clips on the model, so `play_anim("transf.ssj3")`
 ## actually poses the dummy in the preview stage.
 func _build_anim() -> void:
-	const ANIM := "res://scripts/entity/BedrockAnimation.gd"
-	if not ResourceLoader.exists(ANIM) or model == null:
+	var bm: BedrockModel = model as BedrockModel
+	if bm == null:
 		return
-	var script: Variant = load(ANIM)
-	if not (script is GDScript):
-		return
-	var inst: Variant = (script as GDScript).new()
-	if not (inst is Node) or not (inst as Node).has_method("setup"):
-		if inst is Object:
-			(inst as Object).free()
-		return
-	var a := inst as Node
+	var a := BedrockAnimation.new()
 	a.name = "Anim"
 	add_child(a)
-	a.call("setup", model, self)
+	a.setup(bm, self)
 	for pack in ["entity/races/movement", "entity/races/transf"]:
-		a.call("load_clips", pack)
+		a.load_clips(pack)
 	anim = a
-	if a.has_method("play"):
-		a.call("play", "idle", 0.0, true, 1.0)
+	a.play("idle", 0.0, true, 1.0)
 
 func refresh_derived() -> void:
 	if stats == null:

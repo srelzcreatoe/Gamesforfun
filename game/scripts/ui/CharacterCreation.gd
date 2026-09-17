@@ -36,32 +36,28 @@ func build() -> void:
 	var body := dmz_page("Create Character", _panorama_for(races[race_i]), "big")
 	var row := UiUtil.hbox(14.0 * s)
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.add_child(row)
 
 	# left: preview
 	var left := UiUtil.vbox(6.0 * s)
 	var pw := clampf(size.x * 0.30, 190.0, 340.0)
-	var ph := minf(pw * 1.45, size.y * 0.66)
-	var frame := UiUtil.dmz_panel("small")
-	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var ph := minf(pw * 1.40, size.y * 0.50)
 	var box := Control.new()
 	box.custom_minimum_size = Vector2(pw, ph)
-	var backdrop := ColorRect.new()
-	backdrop.color = Color(UiUtil.NIGHT_DEEP.r, UiUtil.NIGHT_DEEP.g, UiUtil.NIGHT_DEEP.b, 0.55)
-	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(backdrop)
 	preview = CharacterPreview.new(Vector2(pw, ph))
 	preview.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	box.add_child(preview)
-	frame.add_child(box)
+	var frame := UiUtil.dmz_frame(box, "small", 5.0)
+	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	left.add_child(frame)
 	desc_label = UiUtil.dim("", UiUtil.font_small(s))
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_label.custom_minimum_size.x = pw
-	var desc_scroll := UiUtil.scroll(desc_label, Vector2(pw, 100.0 * s))
+	var desc_scroll := UiUtil.scroll(desc_label, Vector2(pw, 64.0 * s))
 	desc_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left.add_child(desc_scroll)
+	left.add_child(UiUtil.dmz_frame(desc_scroll, "small", 6.0))
 	row.add_child(left)
 
 	# right: options
@@ -69,7 +65,10 @@ func build() -> void:
 	opts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var scroll := UiUtil.scroll(opts)
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(scroll)
+	var opt_frame := UiUtil.dmz_frame(scroll, "big", 8.0)
+	opt_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	opt_frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	row.add_child(opt_frame)
 
 	opts.add_child(UiUtil.label("Name", UiUtil.font_small(s), UiUtil.DIM_COLOR))
 	name_edit = UiUtil.line_edit("Name", "Kakarot", 20)
@@ -85,11 +84,11 @@ func build() -> void:
 		func(i: int) -> void: hair_i = i))
 	opts.add_child(_swatch_row("Skin", COLOR_CHOICES, func(i: int) -> void: skin_c = i; _update()))
 	opts.add_child(_swatch_row("Hair colour", HAIR_CHOICES, func(i: int) -> void: hair_c = i; _update()))
-	opts.add_child(UiUtil.spacer(10.0 * s))
-	var h := UiUtil.hbox(10.0 * s)
-	h.alignment = BoxContainer.ALIGNMENT_CENTER
-	h.add_child(UiUtil.button("Play", _start, 240.0 * s, 46.0 * s))
-	opts.add_child(h)
+	var footer := UiUtil.hbox(10.0 * s)
+	footer.alignment = BoxContainer.ALIGNMENT_CENTER
+	footer.add_child(UiUtil.button("Play", _start, 260.0 * s, 44.0 * s))
+	footer.size_flags_vertical = Control.SIZE_SHRINK_END
+	body.add_child(footer)
 	_apply_race_defaults()
 	_update()
 

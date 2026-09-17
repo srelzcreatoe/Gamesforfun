@@ -10,15 +10,15 @@ const BUTTERFLY_SHADER := "res://shaders/ambient_butterfly.gdshader"
 const BIRDS_SHADER := "res://shaders/ambient_birds.gdshader"
 
 ## Sprite sheets from the Fused pack: 4 frames of 16x16 laid out horizontally.
-const BUTTERFLY_TEXTURES: PackedStringArray = PackedStringArray([
+const BUTTERFLY_TEXTURES: Array[String] = [
 	"fused/butterfly_blue", "fused/butterfly_orange", "fused/butterfly_white", "fused/butterfly_yellow",
-])
-const BIRD_TEXTURES: PackedStringArray = PackedStringArray([
+]
+const BIRD_TEXTURES: Array[String] = [
 	"fused/bird_black", "fused/bird_grey", "fused/bird_blue", "fused/bird_pink",
-])
-const LEAF_SPRITES: PackedStringArray = PackedStringArray([
+]
+const LEAF_SPRITES: Array[String] = [
 	"fused/oak_leaf_a", "fused/oak_leaf_b", "fused/birch_leaf_a", "fused/jungle_leaf_b",
-])
+]
 
 static var _tex: Dictionary = {}
 static var _mesh: Dictionary = {}

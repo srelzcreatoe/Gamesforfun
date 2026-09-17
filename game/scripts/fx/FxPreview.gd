@@ -13,6 +13,9 @@ extends Node3D
 ##         a single value writes `--screenshot=<path>`, several write
 ##         `<path-without-ext>_t<seconds>.png` next to it.
 ## `--nohud` hide the debug label (clean shots)
+## `--cam=x,y,z --look=x,y,z` fixed camera; implies `--staticcam`
+## `--staticcam` keep the preview camera where it is (a stub camera rig absorbs the
+##         cinematic camera work), so a frame can be compared across runs
 
 const GROUND_SIZE := 120.0
 const ROCKS := 150
@@ -25,6 +28,9 @@ var camera: Camera3D
 var label: Label
 var t := 0.0
 
+var static_cam := false
+var cam_pos := Vector3.INF
+var cam_look := Vector3(0.0, 1.25, 0.0)
 var at_times: Array[float] = []
 var shot_path := ""
 var show_hud := true
@@ -63,12 +69,25 @@ func _parse_args() -> void:
 			"technique": technique_id = val
 			"screenshot": shot_path = val
 			"nohud": show_hud = false
+			"staticcam": static_cam = true
+			"cam":
+				cam_pos = _vec(val, cam_pos)
+				static_cam = true
+			"look":
+				cam_look = _vec(val, cam_look)
+				static_cam = true
 			"at":
 				for piece in val.split(",", false):
 					var s := piece.strip_edges()
 					if s.is_valid_float():
 						at_times.append(float(s))
 	at_times.sort()
+
+static func _vec(text: String, fallback: Vector3) -> Vector3:
+	var parts := text.split(",", false)
+	if parts.size() < 3:
+		return fallback
+	return Vector3(float(parts[0]), float(parts[1]), float(parts[2]))
 	if fx == "":
 		fx = "transform" if had_form else "aura"
 
@@ -80,17 +99,19 @@ func _build_stage() -> void:
 	e.background_mode = Environment.BG_COLOR
 	e.background_color = Color(0.055, 0.075, 0.13)
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	e.ambient_light_color = Color(0.42, 0.48, 0.62)
-	e.ambient_light_energy = 0.75
+	e.ambient_light_color = Color(0.50, 0.55, 0.68)
+	e.ambient_light_energy = 1.0
 	e.fog_enabled = true
 	e.fog_light_color = Color(0.13, 0.16, 0.25)
 	e.fog_density = 0.012
+	# the fx are additive and already very bright: a soft, high-threshold glow keeps the
+	# character readable instead of washing the whole frame out
 	e.glow_enabled = true
-	e.glow_intensity = 0.7
-	e.glow_strength = 1.1
-	e.glow_bloom = 0.22
-	e.glow_hdr_threshold = 0.85
-	e.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
+	e.glow_intensity = 0.45
+	e.glow_strength = 0.95
+	e.glow_bloom = 0.03
+	e.glow_hdr_threshold = 1.05
+	e.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
 	env.environment = e
 	add_child(env)
 
@@ -128,6 +149,9 @@ func _build_stage() -> void:
 			# watch the whole beam cross the frame
 			pos = Vector3(9.0, 3.6, 17.0)
 			look = Vector3(9.0, 1.6, 0.0)
+	if static_cam and cam_pos != Vector3.INF:
+		pos = cam_pos
+		look = cam_look
 	add_child(camera)
 	camera.position = pos
 	camera.look_at(look, Vector3.UP)
@@ -172,8 +196,16 @@ func _build_rocks() -> void:
 	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mmi)
 
+## Race of the previewed form, so a Namekian form previews on a Namekian body.
+func _race_for_form() -> String:
+	if fx != "transform" and fx != "transform_revert" and fx != "all":
+		return "saiyan"
+	var d := Forms.def(form_id)
+	var r := String(d.get("race", "saiyan"))
+	return r if r != "" else "saiyan"
+
 func _build_dummy() -> void:
-	dummy = FxDummy.create("saiyan", "warrior")
+	dummy = FxDummy.create(_race_for_form(), "warrior", true)
 	dummy.name = "Dummy"
 	dummy.world = self
 	add_child(dummy)
@@ -182,6 +214,15 @@ func _build_dummy() -> void:
 		dummy.rotation.y = -PI * 0.5        # aim along +X, across the camera
 	var k := Ki.get_for(dummy)
 	k.set_power_release(1.0)
+	if static_cam:
+		# the director prefers a camera rig over the viewport camera: give it a stub
+		# that swallows the orbit so the verification framing never moves
+		var rig := Node3D.new()
+		rig.name = "StubCameraRig"
+		rig.set_script(preload("res://scripts/fx/FxStubRig.gd"))
+		dummy.add_child(rig)
+		dummy.camera_rig = rig
+		Game.player = dummy
 
 # --- fx scripts -----------------------------------------------------------
 

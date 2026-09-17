@@ -117,24 +117,29 @@ func dmz_page(title_text: String, panorama := "", panel_kind := "big", with_clos
 		UiUtil.panorama_backdrop(self, panorama, 0.55)
 	else:
 		UiUtil.dirt_background(self, 0.28)
-	var frame := UiUtil.dmz_panel(panel_kind)
+	# A night-city page frame: the DMZ sheets are pixel art and smear when stretched over a
+	# whole screen, so they are only used as small nine-sliced frames inside a page.
+	var frame := PanelContainer.new()
+	frame.add_theme_stylebox_override("panel", UiUtil.flat(
+		Color(UiUtil.NIGHT_PANEL.r, UiUtil.NIGHT_PANEL.g, UiUtil.NIGHT_PANEL.b, 0.88),
+		UiUtil.NIGHT_BORDER, 3.0 * s, 8.0 * s, 10.0 * s))
 	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var side := 14.0 * s
 	frame.offset_left = insets.x + side
 	frame.offset_top = insets.y + 8.0 * s
 	frame.offset_right = -(insets.z + side)
-	frame.offset_bottom = -(insets.w + 8.0 * s)
+	frame.offset_bottom = -(insets.w + 10.0 * s)
 	if max_w > 0.0 and size.x > max_w + 2.0 * side:
 		var pad := (size.x - max_w) * 0.5
 		frame.offset_left = pad
 		frame.offset_right = -pad
 	add_child(frame)
 	var root := VBoxContainer.new()
-	root.add_theme_constant_override("separation", int(8.0 * s))
+	root.add_theme_constant_override("separation", int(6.0 * s))
 	frame.add_child(root)
 	content = root
 	var head := UiUtil.hbox(10.0 * s)
-	var bar := UiUtil.dmz_bar(title_text, 260.0 * s)
+	var bar := UiUtil.dmz_bar(title_text, 260.0 * s, _title_icon(panel_kind))
 	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(bar)
 	if with_close:
@@ -148,6 +153,13 @@ func dmz_page(title_text: String, panorama := "", panel_kind := "big", with_clos
 	body.add_theme_constant_override("separation", int(6.0 * s))
 	root.add_child(body)
 	return body
+
+## A DMZ menu icon that suits the page (menubuttons.png order).
+func _title_icon(panel_kind: String) -> int:
+	match panel_kind:
+		"quest": return 3
+		"npc_top", "npc_side": return 6
+	return 0
 
 ## Standard framed page: tiled background + title row (with Close) + an expanding body.
 ## Everything is anchored so it survives any viewport shape.

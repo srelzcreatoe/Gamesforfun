@@ -52,10 +52,11 @@ func build() -> void:
 	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	detail = UiUtil.vbox(6.0 * s)
 	detail.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	detail.offset_left = 16.0 * s
-	detail.offset_top = 14.0 * s
-	detail.offset_right = -16.0 * s
-	detail.offset_bottom = -14.0 * s
+	# The DMZ quest panel has a thick painted border; keep the text well inside it.
+	detail.offset_left = 28.0 * s
+	detail.offset_top = 24.0 * s
+	detail.offset_right = -28.0 * s
+	detail.offset_bottom = -24.0 * s
 	frame.add_child(detail)
 	row.add_child(frame)
 
@@ -208,6 +209,8 @@ func _fill_detail() -> void:
 	detail.add_child(UiUtil.dim("%s · %s" % [String(def.get("type", "QUEST")), st.capitalize()], UiUtil.font_small(s)))
 	var d := UiUtil.label(String(def.get("description", def.get("desc", ""))), UiUtil.font_small(s))
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	d.custom_minimum_size.x = 120.0 * s
+	d.size_flags_horizontal = Control.SIZE_FILL
 	detail.add_child(d)
 	var lvl := int(def.get("min_level", 0))
 	if lvl > 0:

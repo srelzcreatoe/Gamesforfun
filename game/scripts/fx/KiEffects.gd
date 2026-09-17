@@ -32,7 +32,9 @@ const FLASH_TEX := "ki_flash"
 const SPARKLE_TEX := "aaa/essentials/SPARKLE001"
 const SHINE_TEX := "ki_flash1"
 
-const HAND_BONES: Array[String] = ["rightArm", "arm_right", "rightarm", "right_arm", "body"]
+const HAND_BONES: Array[String] = [
+	"right_hand_item", "rightArm", "arm_right", "rightarm", "right_arm", "body",
+]
 
 const MOTES := 6
 
@@ -185,11 +187,18 @@ static func hand_position(entity: Node) -> Vector3:
 		return Vector3.ZERO
 	var n := entity as Node3D
 	var model: Variant = entity.get("model") if "model" in entity else null
-	if model is Node3D and (model as Node).has_method("bone"):
-		for b in HAND_BONES:
-			var bone: Variant = (model as Node).call("bone", b)
-			if bone is Node3D:
-				return (bone as Node3D).global_position
+	if model is Node3D:
+		# BedrockModel exposes get_bone(); older stubs used bone()
+		var getter := ""
+		if (model as Node).has_method("get_bone"):
+			getter = "get_bone"
+		elif (model as Node).has_method("bone"):
+			getter = "bone"
+		if getter != "":
+			for b in HAND_BONES:
+				var bone: Variant = (model as Node).call(getter, b)
+				if bone is Node3D:
+					return (bone as Node3D).global_position + Vector3.UP * 0.05
 	var fwd := -n.global_transform.basis.z
 	var height := 1.25
 	if "aabb_size" in entity:
@@ -239,7 +248,7 @@ static func beam_impact(pos: Vector3, c: Color, radius := 1.5, parent: Node = nu
 	if p == null:
 		return
 	FxAssets.burst(p, pos, "BeamHit", 16, ["aaa/lightning/Particle_Soft", "ki_flash1", "spark1"], c, 6.0 * radius, 0.4, 0.5 * radius, -3.0)
-	FxAssets.burst(p, pos, "BeamDust", 10, ["aaa/lightning/Smoke", "aaa/explosion/smoke_tex", "block_0"], Color(0.85, 0.82, 0.76), 3.0, 0.8, 0.8 * radius, -4.0)
+	FxAssets.burst(p, pos, "BeamDust", 10, FxAssets.smoke(), Color(0.85, 0.82, 0.76), 3.0, 0.8, 0.8 * radius, -4.0)
 	flash_pop(p, pos, c.lerp(Color(1, 1, 1), 0.5), radius * 2.6, 0.22)
 	shock_ring(p, pos, c, radius * 2.2, 0.5)
 

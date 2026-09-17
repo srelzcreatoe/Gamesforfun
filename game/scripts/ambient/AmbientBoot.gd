@@ -36,19 +36,47 @@ var _demo_timer := 0.0
 var _demo_step := 0
 var _rng := RandomNumberGenerator.new()
 
+## signal name -> handler, so the wiring can be connected, disconnected and inspected as a set.
+func _handlers() -> Dictionary:
+	return {
+		"world_loaded": _on_world_loaded,
+		"world_unloading": _on_world_unloading,
+		"player_spawned": _on_player_spawned,
+		"planet_changed": _on_planet_changed,
+		"weather_changed": _on_weather_changed,
+		"time_changed": _on_time_changed,
+	}
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_rng.randomize()
 	_parse_args()
-	Events.world_loaded.connect(_on_world_loaded)
-	Events.world_unloading.connect(_on_world_unloading)
-	Events.player_spawned.connect(_on_player_spawned)
-	Events.planet_changed.connect(_on_planet_changed)
-	Events.weather_changed.connect(_on_weather_changed)
-	Events.time_changed.connect(_on_time_changed)
 	# A world that was already running when this autoload came up (scene reload, tests).
 	if Game != null and Game.world != null:
 		install(Game.world)
+
+func _enter_tree() -> void:
+	if Events == null:
+		return
+	var h := _handlers()
+	for key in h.keys():
+		var name := String(key)
+		var cb: Callable = h[key]
+		if not Events.is_connected(name, cb):
+			Events.connect(name, cb)
+
+## An autoload never leaves the tree; a throwaway instance (tests) must stop hearing the bus the
+## moment it is detached, or it would keep installing ambient layers into other people's worlds.
+func _exit_tree() -> void:
+	if Events == null:
+		return
+	var h := _handlers()
+	for key in h.keys():
+		var name := String(key)
+		var cb: Callable = h[key]
+		if Events.is_connected(name, cb):
+			Events.disconnect(name, cb)
+	uninstall()
 
 func _parse_args() -> void:
 	for a in OS.get_cmdline_user_args():

@@ -11,9 +11,7 @@ extends RefCounted
 const DEFAULT_CAP := 350
 
 ## Served first (highest priority last in this list is NOT how it works: index 0 = served first).
-const PRIORITY: PackedStringArray = PackedStringArray([
-	"reactive", "leaves", "motes", "butterflies", "birds", "sky",
-])
+const PRIORITY: Array[String] = ["reactive", "leaves", "motes", "butterflies", "birds", "sky"]
 
 var cap: int = DEFAULT_CAP
 var used: Dictionary = {}          ## category -> quads currently alive

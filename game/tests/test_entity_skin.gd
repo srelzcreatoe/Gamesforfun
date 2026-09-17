@@ -249,8 +249,47 @@ func test_hair_attaches_to_the_head_bone() -> void:
 	assert_eq(HairBuilder.current_style(model), HairBuilder.style_id(2))
 	var mat: StandardMaterial3D = hair.material_override
 	assert_true(mat != null and mat.albedo_texture != null, "hair tile texture")
-	assert_near(mat.albedo_color.r, Color("#221a14").r, 0.01, "hair colour on the material")
+	# near black hair is lifted so the baked facet shading stays visible in world
+	var want := HairBuilder.hair_albedo(Color("#221a14"))
+	assert_near(mat.albedo_color.r, want.r, 0.01, "hair colour on the material")
+	assert_near(mat.albedo_color.h, Color("#221a14").h, 0.02, "hue is kept")
+	assert_true(mat.vertex_color_use_as_albedo, "facet shading is used")
 	# a form swaps the style and the colour without rebuilding the model
 	RaceSkin.apply_form_visuals(model, {"hairType": 1, "hairColor": "#f5d03a", "modelScaling": 1.0})
 	assert_eq(HairBuilder.current_style(model), HairBuilder.form_style_id(1), "ssj hair after transforming")
 	assert_true((hair.material_override as StandardMaterial3D).albedo_color.r > 0.8, "gold hair")
+
+func test_hair_mesh_is_shaded_and_framed() -> void:
+	# every style bakes facet shading into vertex colours, so a near black hair
+	# colour still reads as strands (and not as one flat block) under any light
+	for id in HairBuilder.style_order():
+		var mesh := HairBuilder.style_mesh(String(id))
+		if mesh == null:
+			continue                                  # bald
+		var arrays: Array = mesh.surface_get_arrays(0)
+		var cols: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+		assert_true(cols.size() > 0, "%s has vertex colours" % id)
+		var lo := 2.0
+		var hi := 0.0
+		for c in cols:
+			lo = minf(lo, c.r)
+			hi = maxf(hi, c.r)
+		assert_true(hi - lo > 0.2, "%s shading spans %.2f..%.2f" % [id, lo, hi])
+	# near black hair is lifted just enough for that shading to be visible
+	var lifted := HairBuilder.hair_albedo(Color("#222629"))
+	assert_true(lifted.v >= 0.29 and lifted.v < 0.45, "dark hair lifted to v=%.2f" % lifted.v)
+	assert_eq(HairBuilder.hair_albedo(Color("#F5D03A")), Color("#F5D03A"), "bright hair is untouched")
+
+func test_visual_aabb_includes_the_hair() -> void:
+	model = BedrockModel.new()
+	add_node(model)
+	assert_true(model.load_geo("entity/races/human"))
+	model.set_model_scale(1.0)
+	RaceSkin.apply_to(model, {"race": "saiyan", "hair_type": 0, "hair_color": "#221a14"}, [])
+	var bald := model.visual_aabb()
+	RaceSkin.apply_to(model, {"race": "saiyan", "hair_type": 2, "hair_color": "#221a14"}, [])
+	var spiky := model.visual_aabb()
+	# the character preview frames the camera from this box, so the hair has to be in it
+	assert_true(spiky.size.y > bald.size.y + 0.1,
+		"spiky hair grows the framed box (%.2f -> %.2f)" % [bald.size.y, spiky.size.y])
+	assert_true(spiky.size.y < 4.0, "and stays sane (%.2f)" % spiky.size.y)

@@ -218,7 +218,7 @@ static func _add_box(st: SurfaceTool, centre: Vector3, basis: Basis, half: Vecto
 		# Bake the facet shading into vertex colours: a near black hair colour under
 		# a lit material otherwise reads as one flat silhouette (the "black cube on
 		# the head" look), because every strand face gets the same albedo.
-		var b := (0.55 + 0.45 * (0.5 + 0.5 * n.y) - 0.07 * n.z) * tip
+		var b := (0.42 + 0.58 * (0.5 + 0.5 * n.y) - 0.09 * n.z) * tip
 		st.set_color(Color(b, b, b, 1.0))
 		BedrockModel._add_quad(st, p, UVS, n)
 	return true

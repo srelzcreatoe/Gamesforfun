@@ -33,6 +33,8 @@ var reticle: HudWidgets.Reticle = null
 var hearts: HudWidgets.IconRow = null
 var food: HudWidgets.IconRow = null
 var armor: HudWidgets.IconRow = null
+var health_bar: HudWidgets.SpriteBar = null
+var stat_plate: PanelContainer = null
 var ki_bar: HudWidgets.SpriteBar = null
 var stamina_bar: HudWidgets.SpriteBar = null
 var oxygen_bar: HudWidgets.SpriteBar = null
@@ -93,6 +95,9 @@ func _ready() -> void:
 	_refresh_tracker()
 	_sync_from_player()
 
+func _race_id() -> String:
+	return String(Game.profile.get("character", {}).get("race", "saiyan")) if Game != null else "saiyan"
+
 func _refresh_metrics() -> void:
 	UiUtil.ensure_ui_settings()
 	s = UiUtil.hud_s()
@@ -146,12 +151,17 @@ func _build() -> void:
 	var icons := UiUtil.gui_tex("icons")
 	var icf := UiUtil.hd_factor(icons)
 	hearts = _icon_row(icons, icf, UiUtil.R_HEART_BG, UiUtil.R_HEART_FULL, UiUtil.R_HEART_HALF, false)
+	hearts.visible = false      # health is the DMZ HD bar below; hearts stay for the fallback
 	food = _icon_row(icons, icf, UiUtil.R_FOOD_BG, UiUtil.R_FOOD_FULL, UiUtil.R_FOOD_HALF, true)
 	armor = _icon_row(icons, icf, UiUtil.R_ARMOR_EMPTY, UiUtil.R_ARMOR_FULL, UiUtil.R_ARMOR_HALF, false)
 	armor.show_bg = false
 
 	var xeno := UiUtil.hud_sheet("xenoversehud")
 	var xf := UiUtil.hd_factor(xeno)
+	health_bar = _sprite_bar(xeno, xf, UiUtil.R_XENO_BAR_FRAME, UiUtil.R_XENO_FILL_GREEN,
+		Vector2(3.0, 3.0), Color(0.35, 0.9, 0.45))
+	health_bar.tint = Color(1, 1, 1)
+
 	ki_bar = _sprite_bar(xeno, xf, UiUtil.R_XENO_KI_BG, UiUtil.R_XENO_KI_SEG, Vector2(2.0, 2.0), Color(0.35, 0.8, 1.0))
 	ki_bar.fill_region = Rect2(10, 81, 114, 4)
 	ki_bar.tint = Color(0.45, 0.85, 1.0)
@@ -165,8 +175,23 @@ func _build() -> void:
 	target_bar.visible = false
 	add_child(target_bar)
 
+	# Level / TP / BP on a night-city plate so it reads over any terrain.
+	stat_plate = PanelContainer.new()
+	var plate := UiUtil.flat(Color(UiUtil.NIGHT_DEEP.r, UiUtil.NIGHT_DEEP.g, UiUtil.NIGHT_DEEP.b, 0.72),
+		UiUtil.NIGHT_NEON, 2.0 * s, 4.0 * s, 5.0 * s)
+	plate.border_width_top = 0
+	plate.border_width_right = 0
+	plate.border_width_bottom = 0
+	plate.border_width_left = int(3.0 * s)
+	stat_plate.add_theme_stylebox_override("panel", plate)
+	stat_plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(stat_plate)
+	var plate_row := UiUtil.hbox(6.0 * s)
+	plate_row.add_child(UiUtil.icon_rect(UiUtil.race_icon(_race_id()), Vector2(22.0 * s, 22.0 * s)))
 	level_label = UiUtil.label("", UiUtil.font_small(s), Color(0.9, 0.95, 1.0))
-	add_child(level_label)
+	level_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	plate_row.add_child(level_label)
+	stat_plate.add_child(plate_row)
 	form_label = UiUtil.label("", UiUtil.font_small(s), Color(1.0, 0.85, 0.35))
 	add_child(form_label)
 	saving_label = UiUtil.label("Saving...", UiUtil.font_small(s), Color(1, 1, 1, 0.8))
@@ -236,7 +261,7 @@ func _make_buttons() -> void:
 	_add_button("ki_charge", "press", "charge", 56.0, "radial/aura")
 	_add_button("fly", "toggle", "fly", 48.0, "radial/fly")
 	_add_button("dash", "press", "dash", 48.0)
-	_add_button("transform", "action", "transform", 48.0, "radial/superforms")
+	_add_button("transform", "action", "transform", 48.0, _form_icon_name())
 	_add_button("technique", "action", "technique", 48.0, "radial/ultimate")
 	_add_button("lock_on", "action", "lock_on", 48.0)
 	_add_button("pause", "action", "pause", 52.0)
@@ -245,6 +270,21 @@ func _make_buttons() -> void:
 	_add_button("stats", "action", "stats", 52.0)
 	_add_button("bag", "action", "bag", 52.0)
 	_add_button("dev", "action", "dev", 52.0)
+
+## DMZ form icon for the transform button (gui/icons/<group>.png) from the active form group.
+func _form_icon_name() -> String:
+	var group := "superforms"
+	if Game != null:
+		var cur := String(Game.profile.get("forms", {}).get("current", ""))
+		if cur.contains("."):
+			group = cur.get_slice(".", 0)
+		else:
+			match String(Game.profile.get("character", {}).get("race", "")):
+				"bioandroid": group = "androidforms"
+				"majin": group = "legendaryforms"
+	if not ResourceLoader.exists("res://assets/textures/gui/icons/%s.png" % group):
+		group = "superforms"
+	return "icons/" + group
 
 func _apply_opacity() -> void:
 	var op := float(Game.settings.get("button_opacity", 0.65)) if Game != null else 0.65
@@ -299,27 +339,34 @@ func relayout() -> void:
 	var hr := _from_bottom(bar.position.x + 4.0 * s, 77.0 * s + insets.w, row_w, icon)
 	hearts.position = hr.position
 	hearts.size = hr.size
+	# DMZ HD stack from the bottom: health 77 / ki 96 / stamina 115 / armor 134 / plate 158.
+	var bars_x := bar.position.x + 4.0 * s
+	var hb := _from_bottom(bars_x, 77.0 * s + insets.w, 236.0 * s, 16.0 * s)   # 77..93
+	health_bar.position = hb.position
+	health_bar.size = hb.size
+
 	var fr := _from_bottom(bar.end.x - 4.0 * s - row_w, 77.0 * s + insets.w, row_w, icon)
 	food.position = fr.position
 	food.size = fr.size
-	var ar := _from_bottom(bar.position.x + 4.0 * s, 95.0 * s + insets.w, row_w, icon)
+	var ar := _from_bottom(bar.position.x + 4.0 * s, 134.0 * s + insets.w, row_w, icon)  # 134..151
 	armor.position = ar.position
 	armor.size = ar.size
 	# oxygen bar (spec: 150*s x 6*s centred) lifted above the armor row so they never overlap
-	var ox := _from_bottom((size.x - 150.0 * s) * 0.5, 115.0 * s + insets.w, 150.0 * s, 6.0 * s)
+	var ox := _from_bottom((size.x - 150.0 * s) * 0.5, 156.0 * s + insets.w, 150.0 * s, 6.0 * s)
 	oxygen_bar.position = ox.position
 	oxygen_bar.size = ox.size
 	# ki / stamina (xenoversehud) above the hearts
-	var kr := _from_bottom(bar.position.x + 4.0 * s, 118.0 * s + insets.w, 236.0 * s, 16.0 * s)
+	var kr := _from_bottom(bars_x, 96.0 * s + insets.w, 236.0 * s, 16.0 * s)   # 96..112
 	ki_bar.position = kr.position
 	ki_bar.size = kr.size
-	var sr := _from_bottom(bar.position.x + 4.0 * s, 137.0 * s + insets.w, 200.0 * s, 14.0 * s)
+	var sr := _from_bottom(bars_x, 115.0 * s + insets.w, 214.0 * s, 15.0 * s)  # 115..130
 	stamina_bar.position = sr.position
 	stamina_bar.size = sr.size
 	level_label.add_theme_font_size_override("font_size", UiUtil.font_small(s))
 	form_label.add_theme_font_size_override("font_size", UiUtil.font_small(s))
-	level_label.position = _from_bottom(bar.position.x + 4.0 * s, 156.0 * s + insets.w, 300.0 * s, 16.0 * s).position
-	form_label.position = _from_bottom(bar.position.x + 4.0 * s, 176.0 * s + insets.w, 300.0 * s, 16.0 * s).position
+	stat_plate.position = _from_bottom(bars_x, 158.0 * s + insets.w, 0.0, 0.0).position
+	stat_plate.reset_size()
+	form_label.position = _from_bottom(bars_x, 192.0 * s + insets.w, 300.0 * s, 16.0 * s).position
 	saving_label.add_theme_font_size_override("font_size", UiUtil.font_small(s))
 	saving_label.position = _from_bottom(14.0 * s + insets.x, 200.0 * s + insets.w, 200.0 * s, 16.0 * s).position
 
@@ -692,6 +739,12 @@ func _sync_from_player() -> void:
 		hotbar.queue_redraw()
 	hotbar.selected = int(p.get("hotbar_index"))
 	_set_hearts(float(p.get("health")), float(p.get("max_health")))
+	if health_bar != null:
+		var frac := float(p.get("health")) / maxf(1.0, float(p.get("max_health")))
+		health_bar.value = frac
+		health_bar.fill_region = UiUtil.R_XENO_FILL_GREEN if frac > 0.5 \
+			else (UiUtil.R_XENO_FILL_ORANGE if frac > 0.25 else UiUtil.R_XENO_FILL_RED)
+		health_bar.queue_redraw()
 	var sv: Variant = p.get("survival")
 	if sv is PlayerStats:
 		food.value = (sv as PlayerStats).hunger
@@ -789,7 +842,9 @@ func _update_labels() -> void:
 	var bp := ""
 	if st != null and st.has_method("battle_power"):
 		bp = "    BP %d" % int(st.call("battle_power"))
-	level_label.text = "Lv %d    TP %d%s" % [lvl, tp, bp]
+	level_label.text = "Lv %d   TP %d%s" % [lvl, tp, bp]
+	if stat_plate != null:
+		stat_plate.reset_size()
 	var form := String(p.get("current_form"))
 	if form != "" and Registry != null:
 		form = String(Registry.form(form).get("name", form)).capitalize()

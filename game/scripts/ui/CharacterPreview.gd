@@ -74,10 +74,14 @@ func rebuild() -> void:
 	pivot.add_child(model)
 	call_deferred("frame_camera")
 
-## Fit the whole figure in view whatever model was built.
+## Fit the whole figure in view whatever model was built. The distance is found by projecting
+## the model's bounding box through the camera and correcting, so it does not depend on which
+## axis Godot applies `fov` to for a given viewport aspect.
 func frame_camera() -> void:
 	if camera == null or model == null or not is_instance_valid(model):
 		return
+	if size.x > 8.0 and viewport != null:
+		viewport.size = Vector2i(maxi(16, int(size.x)), maxi(16, int(size.y)))
 	var box := AABB()
 	var inner: Node = model.get_child(0) if model.get_child_count() > 0 else null
 	if inner != null and inner.has_method("visual_aabb"):
@@ -86,14 +90,34 @@ func frame_camera() -> void:
 		box = _model_aabb(model)
 	if box.size.y <= 0.01 or not is_finite(box.size.y):
 		box = AABB(Vector3(-0.4, 0.0, -0.4), Vector3(0.8, 1.9, 0.8))
-	if box.size.y <= 0.01:
-		box = AABB(Vector3(-0.4, 0.0, -0.4), Vector3(0.8, 1.9, 0.8))
 	var center := box.position + box.size * 0.5
-	var height := maxf(box.size.y, box.size.x * 1.4)
-	var vfov := deg_to_rad(camera.fov)
-	var dist := (height * 0.5) / maxf(0.05, tan(vfov * 0.5)) * 1.18
-	camera.position = Vector3(0.0, center.y, -dist)  # models face -Z
+	var t := maxf(0.05, tan(deg_to_rad(camera.fov) * 0.5))
+	var dist := clampf((box.size.y * 0.5) / t * 1.25, 0.6, 24.0)
+	var vp_h := float(maxi(16, viewport.size.y))
+	var want := vp_h * 0.86
+	for i in 6:
+		_place_camera(center, dist)
+		var got := _projected_height(box)
+		if got <= 1.0:
+			break
+		if got > want * 1.02 or got < want * 0.72:
+			dist = clampf(dist * (got / want), 0.6, 40.0)
+		else:
+			break
+	_place_camera(center, dist)
+
+func _place_camera(center: Vector3, dist: float) -> void:
+	camera.position = Vector3(0.0, center.y, -dist)
 	camera.look_at_from_position(camera.position, Vector3(0.0, center.y, 0.0), Vector3.UP)
+	camera.force_update_transform()
+
+## Screen height of the model's bounding box through the current camera, in viewport pixels.
+func _projected_height(box: AABB) -> float:
+	var top := Vector3(0.0, box.position.y + box.size.y, 0.0)
+	var bottom := Vector3(0.0, box.position.y, 0.0)
+	if camera.is_position_behind(top) or camera.is_position_behind(bottom):
+		return 0.0
+	return absf(camera.unproject_position(top).y - camera.unproject_position(bottom).y)
 
 static func _model_aabb(root: Node) -> AABB:
 	var out := AABB()

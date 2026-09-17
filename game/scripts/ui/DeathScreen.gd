@@ -32,9 +32,8 @@ func build() -> void:
 	var bw := minf(320.0 * s, size.x * 0.6)
 	var center := HBoxContainer.new()
 	center.alignment = BoxContainer.ALIGNMENT_CENTER
-	var frame := UiUtil.dmz_panel("big")
 	var rows := UiUtil.vbox(8.0 * s)
-	frame.add_child(rows)
+	var frame := UiUtil.dmz_frame(rows, "big", 8.0)
 	rows.add_child(UiUtil.button("Respawn", _respawn, bw, 46.0 * s))
 	rows.add_child(UiUtil.button("Save & Quit", func() -> void:
 		Game.save_all()

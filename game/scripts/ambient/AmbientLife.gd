@@ -79,15 +79,30 @@ var _foot_valid := false
 var _block_events := 0
 var _leaf_colors: Array[Color] = []
 var _bound := false
+var _seeded := false
 
 # --- lifecycle --------------------------------------------------------------------------------
 
 func _ready() -> void:
-	name = "AmbientLife"
 	process_mode = Node.PROCESS_MODE_PAUSABLE
-	_rng.randomize()
+	_ensure_built()
+
+## Build the emitters and hook up the Events bus. Idempotent, and safe to run before the node
+## enters the tree (AmbientBoot binds a world the moment it hears about it, tests do it by hand).
+func _ensure_built() -> void:
+	if motes != null:
+		return
+	if name == "":
+		name = "AmbientLife"
+	if not _seeded:
+		_seeded = true
+		_rng.randomize()
 	if budget == null:
 		budget = AmbientBudget.new(_cap_from_settings())
+	# Leaf detection and the debris/footstep colours read the flat block tables. World builds
+	# them too; the call is idempotent and only pays once per run.
+	if not BlockTable.built:
+		BlockTable.build()
 	_build()
 	_connect_events()
 
@@ -138,8 +153,30 @@ func _connect_events() -> void:
 	if not Events.entity_died.is_connected(_on_entity_died):
 		Events.entity_died.connect(_on_entity_died)
 
+func _disconnect_events() -> void:
+	if Events == null:
+		return
+	if Events.splash.is_connected(_on_splash):
+		Events.splash.disconnect(_on_splash)
+	if Events.block_changed.is_connected(_on_block_changed):
+		Events.block_changed.disconnect(_on_block_changed)
+	if Events.explosion.is_connected(_on_explosion):
+		Events.explosion.disconnect(_on_explosion)
+	if Events.entity_died.is_connected(_on_entity_died):
+		Events.entity_died.disconnect(_on_entity_died)
+
+func _enter_tree() -> void:
+	_connect_events()
+
+## Detached from the world (world unload, planet change): stop listening immediately instead of
+## waiting for the deferred free, so a dying ambient layer never answers a live event.
+func _exit_tree() -> void:
+	_disconnect_events()
+	_bound = false
+
 ## Attach to a World. Safe to call with null (the node then simply idles).
 func bind(w: Node) -> void:
+	_ensure_built()
 	world = w
 	_bound = w != null
 	if w != null:
@@ -212,18 +249,44 @@ func tick() -> void:
 	_refresh_context()
 	if reactive != null:
 		reactive.expire()
-	_update_motes()
-	_update_butterflies()
-	_update_flocks()
-	_update_leaves()
-	_update_sky_events()
-	_update_footsteps()
-	_update_shimmer()
+	if world == null or not is_instance_valid(world) or not is_inside_tree():
+		# No world, or not in the scene yet (menu, loading, teardown): nothing is alive, nothing
+		# is charged for, and nothing touches a node whose global transform does not exist.
+		_sleep()
+	else:
+		_update_motes()
+		_update_butterflies()
+		_update_flocks()
+		_update_leaves()
+		_update_sky_events()
+		_update_footsteps()
+		_update_shimmer()
 	_block_events = 0
 	var dt := Time.get_ticks_usec() - t0
 	_tick_usec_sum += dt
 	_tick_usec_max = maxi(_tick_usec_max, dt)
 	_ticks += 1
+
+## Put every steady field to sleep and hand its budget back (the reactive one-shots keep theirs
+## until they expire on their own).
+func _sleep() -> void:
+	if motes != null:
+		motes.set_active_count(0)
+	if motes_b != null:
+		motes_b.set_active_count(0)
+	if flyers != null:
+		flyers.set_active_count(0)
+	if flock_near != null:
+		flock_near.set_active_count(0)
+	if flock_far != null:
+		flock_far.set_active_count(0)
+	if leaves != null:
+		leaves.set_active(0)
+	if shimmer != null:
+		shimmer.set_strength(0.0)
+	if budget != null:
+		for c in ["motes", "butterflies", "birds", "leaves", "sky"]:
+			budget.claim(String(c), 0)
 
 func _refresh_context() -> void:
 	center = _focus()

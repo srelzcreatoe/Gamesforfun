@@ -91,6 +91,9 @@ var _pillar_mat: ShaderMaterial
 var _pillar_age := -1.0
 var _rng := RandomNumberGenerator.new()
 var _loop_key := ""
+var _hair_mat: StandardMaterial3D = null
+var _hair_base := Color.WHITE
+var _hair_base_set := false
 
 # camera state we borrow and must give back
 var _cam: Camera3D
@@ -215,7 +218,7 @@ func _enter_gather() -> void:
 	_setup_scale()
 	_play_form_animation()
 	ScreenFx.slow_mo(0.82, _t_strain)
-	ScreenFx.glow(0.55, duration * 0.9, 0.5)
+	ScreenFx.glow(0.30, duration * 0.9, 0.5)
 	_disturb(0.45)
 
 func _setup_aura() -> void:
@@ -228,7 +231,7 @@ func _setup_aura() -> void:
 
 func _setup_ground() -> void:
 	# expanding dust ring at the feet
-	_dust = FxAssets.make_particles("GroundDust", 26, ["aaa/lightning/Smoke", "aaa/explosion/smoke_tex", "block_0"], Color(0.70, 0.67, 0.62))
+	_dust = FxAssets.make_particles("GroundDust", 26, FxAssets.smoke(), Color(0.70, 0.67, 0.62))
 	_dust.material_override.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
 	_dust.lifetime = 1.4
 	_dust.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
@@ -236,6 +239,7 @@ func _setup_ground() -> void:
 	_dust.emission_ring_radius = 1.4
 	_dust.emission_ring_inner_radius = 0.9
 	_dust.emission_ring_height = 0.1
+	_dust.position = Vector3(0, 0.3, 0)      # keeps the puff quads off the ground plane
 	_dust.direction = Vector3(0, 0.4, 0)
 	_dust.spread = 60.0
 	_dust.initial_velocity_min = 1.0
@@ -442,7 +446,7 @@ func _enter_strain() -> void:
 	Audio.play_sfx_at("transform_on", global_position, -1.0)
 	ScreenFx.vignette_hold(Color(0.02, 0.02, 0.05), 0.62, _t_climax - _t_strain, 0.45)
 	ScreenFx.dim(0.5, _t_climax - _t_strain, 0.45)
-	ScreenFx.glow(0.85, _t_climax - _t_strain + 0.6, 0.5)
+	ScreenFx.glow(0.45, _t_climax - _t_strain + 0.6, 0.5)
 	if _aura != null and profile.lightning:
 		_aura.set_lightning(true, profile.lightning_color)
 
@@ -455,10 +459,11 @@ func _update_aura() -> void:
 		Phase.STRAIN:
 			var p := _strain_progress()
 			_aura.set_intensity(0.45 + p * 0.85)
+			_aura.set_lightning_reach(p * 0.55)
 			# the flicker gets faster and shallower as the form stabilises
 			_aura.set_flicker((1.0 - p) * 0.55, p * 0.6)
 		Phase.BURST:
-			_aura.set_intensity(1.55)
+			_aura.set_intensity(1.2)
 			_aura.set_flicker(0.0, 0.0)
 		_:
 			pass
@@ -520,10 +525,10 @@ func _update_pillar(real: float) -> void:
 	if _pillar == null or _pillar_age < 0.0:
 		return
 	_pillar_age += real
-	var p := clampf(_pillar_age / 0.85, 0.0, 1.0)
-	_pillar.scale = Vector3(1.0 + p * 1.6, 1.0, 1.0 + p * 1.6)
+	var p := clampf(_pillar_age / 0.7, 0.0, 1.0)
+	_pillar.scale = Vector3(1.0 + p * 1.1, 1.0, 1.0 + p * 1.1)
 	if _pillar_mat != null:
-		_pillar_mat.set_shader_parameter("intensity", (1.0 - p) * 2.4)
+		_pillar_mat.set_shader_parameter("intensity", (1.0 - p) * 1.7)
 	if p >= 1.0:
 		_pillar.queue_free()
 		_pillar = null
@@ -545,14 +550,14 @@ func _do_climax() -> void:
 	ScreenFx.radial_blur(0.085, 0.32)
 	ScreenFx.chromatic(0.009, 0.32)
 	ScreenFx.dim(0.0, 0.0, 0.25)
-	ScreenFx.glow(1.15, 0.8, 0.7)
+	ScreenFx.glow(0.75, 0.8, 0.7)
 	_fov_kick = 16.0
 	_spawn_ring(7.8, 1.1)
 	_spawn_pillar()
 	FxAssets.burst(self, global_position + Vector3.UP * 1.0, "ClimaxBurst", 62,
 		["aaa/lightning/Burst_1", "ki_flash1", "aaa/missile_boost/Star"], c, 16.0, 0.7, 1.1, -3.0)
 	FxAssets.burst(self, global_position, "ClimaxDust", 32,
-		["aaa/lightning/Smoke", "aaa/explosion/smoke_tex", "block_0"], Color(0.85, 0.82, 0.76), 9.0, 1.0, 1.3, -6.0)
+		FxAssets.smoke(), Color(0.85, 0.82, 0.76), 9.0, 1.0, 1.3, -6.0)
 	FxAssets.burst(self, global_position + Vector3.UP * 0.2, "ClimaxSparks", 26,
 		["ki_spark_2", "spark1", "ki_line"], profile.spark, 13.0, 0.5, 0.35, -9.0)
 	Audio.play_sfx_at("power_up_burst", global_position)
@@ -581,19 +586,19 @@ func _spawn_pillar() -> void:
 	var mi := MeshInstance3D.new()
 	mi.name = "Pillar"
 	var cyl := CylinderMesh.new()
-	cyl.top_radius = 0.75
-	cyl.bottom_radius = 1.05
-	cyl.height = 26.0
+	cyl.top_radius = 0.42
+	cyl.bottom_radius = 0.66
+	cyl.height = 22.0
 	cyl.radial_segments = 14
 	cyl.rings = 1
 	mi.mesh = cyl
 	_pillar_mat = FxAssets.shader_material(BEAM_SHADER, {
-		"beam_color": profile.aura, "core_color": profile.inner, "intensity": 2.4,
-		"fade_in": 1.0, "core_width": 0.42, "ring_freq": 7.0, "flow_speed": 10.0,
+		"beam_color": profile.aura, "core_color": profile.inner, "intensity": 1.7,
+		"fade_in": 1.0, "core_width": 0.30, "ring_freq": 7.0, "flow_speed": 10.0,
 	})
 	mi.material_override = _pillar_mat
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	mi.position = Vector3(0, 12.0, 0)
+	mi.position = Vector3(0, 10.0, 0)
 	add_child(mi)
 	_pillar = mi
 	_pillar_age = 0.0
@@ -620,9 +625,7 @@ func _enter_reveal() -> void:
 	if _aura != null:
 		_aura.set_flicker(0.0, 0.0)
 		_aura.set_intensity(-1.0)       # back to the automatic idle aura
-	if _body_flash != null:
-		var m: StandardMaterial3D = _body_flash.material_override
-		m.albedo_color = Color(1, 1, 1, 0.0)
+	_flash_body(false)                   # drop any emission the last flicker left on
 	_flicker_hair(true)                  # settle on the form colour
 	ScreenFx.clear_sustained(0.4)
 	if _prev_bgm != "" and _prev_bgm != "transformation":
@@ -636,13 +639,16 @@ func _flash_body(on: bool) -> void:
 	var ramp := _strain_progress()
 	if _body_flash != null:
 		var m: StandardMaterial3D = _body_flash.material_override
-		m.albedo_color = Color(1, 1, 1, (0.34 * ramp) if on else 0.0)
+		m.albedo_color = Color(1, 1, 1, (0.20 * ramp) if on else 0.0)
 		_body_flash.scale = Vector3.ONE * (0.7 + 0.5 * ramp)
 	var model := _model()
 	if model != null and model.has_method("set_emission"):
-		model.call("set_emission", profile.inner, (0.95 * ramp) if on else 0.0)
+		model.call("set_emission", profile.inner, (0.7 * ramp) if on else 0.0)
 
-const HAIR_BONES: Array[String] = ["hair", "hair_base", "hairstyle", "hair1", "head_hair"]
+const HAIR_BONES: Array[String] = [
+	"hair", "hair_base", "hairstyle", "hair1", "hair2", "head_hair",
+	"pelo1", "pelo2", "pelo3", "pelo4", "cabello",
+]
 
 func _model() -> Node3D:
 	if entity == null or not is_instance_valid(entity) or not ("model" in entity):
@@ -651,7 +657,9 @@ func _model() -> Node3D:
 	return m if m is Node3D else null
 
 ## Flicker between the base look and the form's hair colour. Prefers the entity's own
-## hook, then the model's hair bones, then a whole-model tint.
+## hook, then the DMZ voxel hair mesh that `HairBuilder` parents under the head bone,
+## then the model's named hair bones, then a whole-model tint. The base colour is
+## remembered on the first call so `off` really puts the character back.
 func _flicker_hair(on: bool) -> void:
 	if entity == null or not is_instance_valid(entity):
 		return
@@ -662,6 +670,18 @@ func _flicker_hair(on: bool) -> void:
 	if model == null:
 		return
 	var c := profile.hair
+	var hair := _hair_material(model)
+	if hair != null:
+		if not _hair_base_set:
+			_hair_base = hair.albedo_color
+			_hair_base_set = true
+		hair.albedo_color = c if on else _hair_base
+		# the gold/blue hair of a form is emissive while the aura burns
+		hair.emission_enabled = on
+		if on:
+			hair.emission = c
+			hair.emission_energy_multiplier = 0.85
+		return
 	if model.has_method("has_bone") and model.has_method("set_bone_material") and model.has_method("get_texture"):
 		var tex: Variant = model.call("get_texture")
 		var touched := false
@@ -673,6 +693,21 @@ func _flicker_hair(on: bool) -> void:
 			return
 	if model.has_method("set_tint"):
 		model.call("set_tint", c.lerp(Color.WHITE, 0.5) if on else Color.WHITE)
+
+## Material of the voxel hair mesh (`head` bone -> "Hair"), or null.
+func _hair_material(model: Node3D) -> StandardMaterial3D:
+	if _hair_mat != null and is_instance_valid(_hair_mat):
+		return _hair_mat
+	if not model.has_method("get_bone"):
+		return null
+	var head: Variant = model.call("get_bone", "head")
+	if not (head is Node3D):
+		return null
+	var n: Node = (head as Node3D).get_node_or_null("Hair")
+	if n is MeshInstance3D and (n as MeshInstance3D).material_override is StandardMaterial3D:
+		_hair_mat = (n as MeshInstance3D).material_override
+		return _hair_mat
+	return null
 
 ## One fading silhouette of the body, offset sideways (the "vibrating" look).
 func _afterimage() -> void:
@@ -732,19 +767,19 @@ func _update_camera(real: float) -> void:
 		# low angle push-in
 		var g := clampf(t / maxf(0.01, _t_strain), 0.0, 1.0)
 		ang = -1.0 + g * 0.35
-		dist = lerpf(6.4, 4.4, ease(g, 0.4))
-		height = lerpf(0.45, 1.15, g)
+		dist = lerpf(7.0, 5.2, ease(g, 0.4))
+		height = lerpf(0.5, 1.3, g)
 	elif phase == Phase.STRAIN:
 		var s := _strain_progress()
 		ang = -0.65 + s * 2.1
-		dist = lerpf(4.4, 2.9, ease(s, 0.6))
-		height = lerpf(1.15, 1.75, s)
+		dist = lerpf(5.2, 4.0, ease(s, 0.6))
+		height = lerpf(1.3, 2.0, s)
 		shake = 0.035 + 0.05 * s          # handheld micro-shake
 	else:
 		var r := clampf((t - _t_climax) / maxf(0.01, duration - _t_climax), 0.0, 1.0)
 		ang = 1.45 + r * 0.35
-		dist = lerpf(2.9, 5.6, ease(r, 0.35))
-		height = lerpf(1.75, 1.85, r)
+		dist = lerpf(4.0, 6.6, ease(r, 0.35))
+		height = lerpf(2.0, 2.1, r)
 		shake = 0.05 * (1.0 - r)
 	var scale_out: float = maxf(1.0, profile.scale * 0.75)
 	var pos := centre + Vector3(sin(ang) * dist, height, cos(ang) * dist) * scale_out
@@ -770,6 +805,9 @@ func _release() -> void:
 	if _light != null and is_instance_valid(_light):
 		_light.queue_free()
 		_light = null
+	if _hair_mat != null and is_instance_valid(_hair_mat) and _hair_base_set:
+		_hair_mat.albedo_color = _hair_base
+		_hair_mat.emission_enabled = false
 	var model := _model()
 	if model != null:
 		if model.has_method("set_emission"):

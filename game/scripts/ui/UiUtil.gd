@@ -377,30 +377,55 @@ static func menu_icon(index: int, pressed := false) -> Texture2D:
 	return atlas(sheet, Rect2(float(index % 8) * 20.0, 20.0 if pressed else 0.0, 20.0, 20.0),
 		hd_factor(sheet))
 
-## Big glowing title: offset copies of the text in the accent colour behind a crisp copy.
+## Logo-style title: dark outline, gold face with a lighter top highlight and a soft neon
+## halo that pulses. Drawn in one Control so the glow always sits exactly behind the text.
 static func title_glow(text: String, glow := ACCENT, face := Color(1.0, 0.86, 0.35),
 		font_size := -1) -> Control:
-	var sc := s()
-	var fs := font_size if font_size > 0 else font_title(sc)
-	var root := Control.new()
-	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.custom_minimum_size.y = float(fs) * 1.5
-	var spread := maxf(2.0, float(fs) * 0.07)
-	for o in [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1),
-			Vector2(-1, -1), Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1)]:
-		var halo := label(text, fs, Color(glow.r, glow.g, glow.b, 0.22), HORIZONTAL_ALIGNMENT_CENTER)
-		halo.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		halo.position = o * spread
-		halo.add_theme_constant_override("shadow_offset_x", 0)
-		halo.add_theme_constant_override("shadow_offset_y", 0)
-		root.add_child(halo)
-	var main := label(text, fs, face, HORIZONTAL_ALIGNMENT_CENTER)
-	main.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	main.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.75))
-	main.add_theme_constant_override("shadow_offset_x", int(maxf(2.0, sc)))
-	main.add_theme_constant_override("shadow_offset_y", int(maxf(2.0, sc)))
-	root.add_child(main)
-	return root
+	var t := TitleLabel.new()
+	t.text = text
+	t.glow = glow
+	t.face = face
+	t.font_size = font_size if font_size > 0 else font_title(s())
+	t.custom_minimum_size.y = float(t.font_size) * 1.6
+	return t
+
+class TitleLabel extends Control:
+	var text := ""
+	var glow := Color(1.0, 0.56, 0.82)
+	var face := Color(1.0, 0.86, 0.35)
+	var font_size := 32
+	var pulse := 0.0
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _process(delta: float) -> void:
+		pulse = fmod(pulse + delta, TAU)
+		queue_redraw()
+
+	func _draw() -> void:
+		if text == "":
+			return
+		var f := UiUtil.font()
+		var w := f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+		var base := Vector2((size.x - w) * 0.5, size.y * 0.5 + float(font_size) * 0.36)
+		var spread := maxf(2.0, float(font_size) * 0.10)
+		# neon halo, pulsing
+		var a := 0.20 + 0.10 * (0.5 + 0.5 * sin(pulse * 1.6))
+		for i in 8:
+			var ang := TAU * float(i) / 8.0
+			draw_string(f, base + Vector2(cos(ang), sin(ang)) * spread, text,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color(glow.r, glow.g, glow.b, a))
+		# hard dark outline
+		var o := maxf(1.0, float(font_size) * 0.045)
+		for i in 8:
+			var ang2 := TAU * float(i) / 8.0
+			draw_string(f, base + Vector2(cos(ang2), sin(ang2)) * o, text,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color(0.05, 0.03, 0.10, 0.95))
+		# gold face + lighter top highlight
+		draw_string(f, base, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, face)
+		draw_string(f, base - Vector2(0.0, o * 0.9), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size,
+			Color(minf(1.0, face.r + 0.15), minf(1.0, face.g + 0.20), minf(1.0, face.b + 0.35), 0.55))
 
 ## A DMZ nine-slice panel (menu/menubig.png and friends) as a container.
 static func dmz_panel(kind := "big") -> PanelContainer:
@@ -409,15 +434,42 @@ static func dmz_panel(kind := "big") -> PanelContainer:
 	return p
 
 ## The DMZ title bar sprite with a label on it (menu/menubig.png long bar).
-static func dmz_bar(text: String, min_w := 0.0) -> Control:
+static func dmz_bar(text: String, min_w := 0.0, icon_index := -1) -> Control:
 	var sc := s()
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", dmz_panel_style("bar"))
-	p.custom_minimum_size = Vector2(min_w, 34.0 * sc)
-	var l := label(text, font_body(sc), TITLE_COLOR, HORIZONTAL_ALIGNMENT_CENTER)
+	var sb := flat(Color(NIGHT_DEEP.r, NIGHT_DEEP.g, NIGHT_DEEP.b, 0.92), NIGHT_NEON, 2.0 * sc,
+		5.0 * sc, 7.0 * sc)
+	sb.border_width_top = 0
+	sb.border_width_left = int(3.0 * sc)
+	p.add_theme_stylebox_override("panel", sb)
+	p.custom_minimum_size = Vector2(min_w, 36.0 * sc)
+	var row := hbox(8.0 * sc)
+	if icon_index >= 0:
+		row.add_child(icon_rect(menu_icon(icon_index), Vector2(24.0 * sc, 24.0 * sc)))
+	var l := label(text, font_body(sc), TITLE_COLOR)
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	p.add_child(l)
+	row.add_child(l)
+	p.add_child(row)
+	return p
+
+## Wrap a block in a DMZ nine-slice frame at a sane pixel scale (used for the preview box,
+## the options column and other sub-panels - never stretched across a whole screen).
+static func dmz_frame(child: Control, kind := "small", pad := 6.0) -> PanelContainer:
+	var sc := s()
+	var p := dmz_panel(kind)
+	var inner := MarginContainer.new()
+	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+		inner.add_theme_constant_override(side, int(pad * sc))
+	var scrim := ColorRect.new()
+	scrim.color = Color(NIGHT_PANEL.r, NIGHT_PANEL.g, NIGHT_PANEL.b, 0.86)
+	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(scrim)
+	child.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	child.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	inner.add_child(child)
+	p.add_child(inner)
 	return p
 
 ## Rotating race panorama behind a screen (assets/textures/gui/background/<prefix>_0..5.png).
@@ -437,13 +489,11 @@ static func panorama_backdrop(parent: Control, prefix: String, shade := 0.45) ->
 static func arrow_button(direction: int, on_pressed: Callable) -> Button:
 	var sc := s()
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(46.0 * sc, 46.0 * sc)
+	b.custom_minimum_size = Vector2(40.0 * sc, 40.0 * sc)
 	b.focus_mode = Control.FOCUS_NONE
 	b.flat = true
-	b.add_theme_stylebox_override("normal", flat(Color(NIGHT_DEEP.r, NIGHT_DEEP.g, NIGHT_DEEP.b, 0.75),
-		NIGHT_BORDER, 2.0 * sc, 5.0 * sc, 0.0))
-	b.add_theme_stylebox_override("hover", flat(NIGHT_NEON, NIGHT_NEON_LIGHT, 2.0 * sc, 5.0 * sc, 0.0))
-	b.add_theme_stylebox_override("pressed", flat(NIGHT_NEON, NIGHT_NEON_LIGHT, 2.0 * sc, 5.0 * sc, 0.0))
+	for st in ["normal", "hover", "pressed", "disabled", "focus"]:
+		b.add_theme_stylebox_override(st, StyleBoxEmpty.new())
 	var sheet := gui_tex("buttons/characterbuttons")
 	var tr := TextureRect.new()
 	tr.texture = atlas(sheet, R_CHAR_ARROW_UP, hd_factor(sheet))
@@ -452,7 +502,7 @@ static func arrow_button(direction: int, on_pressed: Callable) -> Button:
 	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tr.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	tr.pivot_offset = Vector2(23.0 * sc, 23.0 * sc)
+	tr.pivot_offset = Vector2(20.0 * sc, 20.0 * sc)
 	tr.rotation_degrees = -90.0 if direction < 0 else 90.0
 	b.add_child(tr)
 	if on_pressed.is_valid():

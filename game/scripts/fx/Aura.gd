@@ -308,6 +308,12 @@ func set_lightning(on: bool, color := Color(0, 0, 0, 0)) -> void:
 		_lightning.configure(lightning_color, body_scale)
 		_lightning.set_active(on)
 
+## How far the lightning arcs reach out of the body (0 hugs the aura, 1 is the wild
+## strain-phase crackle). Cheap: it only changes where the next bolt re-rolls.
+func set_lightning_reach(amount: float) -> void:
+	if _lightning != null:
+		_lightning.reach = clampf(amount, 0.0, 1.5)
+
 func set_charging(on: bool) -> void:
 	charging = on
 	if not on:
@@ -391,7 +397,7 @@ func _apply_intensity(v: float) -> void:
 	if _flare != null:
 		_flare.visible = vis
 		_mat_flare.albedo_color = Color(outer_color.r, outer_color.g, outer_color.b,
-			clampf(shown * 0.22, 0.0, 0.45))
+			clampf(shown * 0.15, 0.0, 0.30))
 		_flare.scale = Vector3.ONE * body_scale * (0.9 + v * 0.55) * breath
 	if _sparks != null:
 		_sparks.emitting = v > 0.45
