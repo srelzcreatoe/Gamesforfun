@@ -397,7 +397,10 @@ func _script_fx() -> void:
 			_at(4.2, func() -> void: Techniques.begin(dummy, "kamehameha"))
 			_at(6.3, func() -> void: Techniques.release(dummy))
 		"dustdiag":
-			_at(0.1, _build_dust_diag)
+			# the cinematic runs too: the artefact needs a busy frame with the director
+			# churning its own children, which is where it was bisected
+			_at(0.35, func() -> void: Forms.transform(dummy, form_id))
+			_at(0.40, _build_dust_diag)
 		_:
 			_at(0.2, func() -> void: Aura.get_for(dummy).set_intensity(1.0))
 
