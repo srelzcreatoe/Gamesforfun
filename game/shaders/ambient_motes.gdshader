@@ -22,7 +22,8 @@ uniform vec3 tint : source_color = vec3(1.0, 1.0, 1.0);
 uniform float size = 0.10;
 uniform float glow : hint_range(0.0, 4.0) = 1.0;
 uniform float wander : hint_range(0.0, 4.0) = 0.6;
-uniform float fade_near = 0.8;
+// A speck that spawns almost in the lens should dim instead of covering the screen.
+uniform float fade_near = 1.6;
 uniform float fade_start = 20.0;
 uniform float fade_end = 34.0;
 uniform float master_alpha : hint_range(0.0, 1.0) = 1.0;
