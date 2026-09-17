@@ -42,13 +42,25 @@ func _director(form_id: String) -> TransformationDirector:
 	d.set_process(false)             # we call _process ourselves
 	return d
 
-## Advance a hand-driven director by `seconds` in `dt` slices.
+## Advance a hand-driven director by `seconds` in `dt` slices. The entity's `Aura` is
+## stepped with it: in a real frame both are in the tree, and the aura only applies the
+## intensity the director asks for (emitters on/off, shell scale) from its own _process.
 func _step(d: TransformationDirector, seconds: float, dt := 1.0 / 60.0) -> void:
 	var left := seconds
 	while left > 0.0 and is_instance_valid(d) and d.phase != TransformationDirector.Phase.DONE:
 		var s: float = minf(dt, left)
 		d._process(s * Engine.time_scale)
+		_step_aura(d.entity, s)
 		left -= s
+
+## One frame of the entity's aura (it is the director's own `_aura`, parented to the
+## entity, so a hand-driven test has to tick it by hand as well).
+func _step_aura(entity: Node, dt: float) -> void:
+	if entity == null or not is_instance_valid(entity):
+		return
+	var a := Aura.find_on(entity)
+	if a != null and is_instance_valid(a):
+		a._process(dt)
 
 # --- A. timeline ----------------------------------------------------------
 
@@ -286,15 +298,17 @@ func test_slow_motion_is_always_restored() -> void:
 	assert_true(Engine.time_scale < before, "slow motion engaged")
 	var fx := ScreenFx.get_instance()
 	assert_true(fx != null)
-	fx._process(0.25 * Engine.time_scale)
-	fx._process(0.05 * Engine.time_scale)
+	# FxAssets.real_delta clamps a frame to MAX_REAL_DELTA, so the 0.2 s of slow motion
+	# takes a few frames to burn off - exactly as it does at 60 fps in the game
+	for i in 10:
+		fx._process(1.0 / 30.0 * Engine.time_scale)
 	assert_near(Engine.time_scale, before, 0.001, "time scale restored")
 
 func test_hit_stop_is_restored_too() -> void:
 	ScreenFx.hit_stop(0.05)
 	var fx := ScreenFx.get_instance()
-	fx._process(0.06 * Engine.time_scale)
-	fx._process(0.01 * Engine.time_scale)
+	for i in 6:
+		fx._process(1.0 / 30.0 * Engine.time_scale)
 	assert_near(Engine.time_scale, 1.0, 0.001)
 
 func test_director_leaves_no_nodes_behind() -> void:
@@ -338,7 +352,8 @@ func test_screen_fx_costs_nothing_while_idle() -> void:
 	if fx == null:
 		return
 	fx.low_health_enabled = false
-	fx._process(0.5)
+	for i in 12:
+		fx._process(FxAssets.MAX_REAL_DELTA)
 	assert_true(ScreenFx.is_idle(), "idle after settling")
 	assert_true(not fx.overlay_visible(), "the additive overlay is hidden")
 	assert_true(not fx.screen_pass_active(), "the screen pass is off")
@@ -449,15 +464,27 @@ func _particles(n: Node) -> Array[CPUParticles3D]:
 		out.append_array(_particles(c))
 	return out
 
-## Regression: `aaa/lightning/Smoke` is 60 % alpha-0 pixels with BLACK rgb, so Godot's
-## mipmaps bleed black into it and a MIX blended puff renders as a black blob. Smoke and
-## dust must therefore start from a texture whose transparent region is bright.
+## Regression: `aaa/lightning/Smoke`, `aaa/missile_boost/Smoke` and `block_0..2` are
+## 41-72 % alpha-0 pixels with BLACK rgb, which bleeds into the soft edge of a MIX
+## blended puff. EVERY entry of the MIX smoke list has to be clean, not just the first:
+## `FxAssets.particle()` falls through to the later names whenever an earlier one is
+## missing, so a bad fallback is a bug waiting for an asset to be renamed.
 func test_smoke_textures_are_not_black_fringed() -> void:
 	var list := FxAssets.smoke()
-	assert_true(list.size() >= 1)
-	assert_true(not FxAssets.BLACK_FRINGE_TEXTURES.has(list[0]),
-		"the first smoke texture (%s) must not be black fringed" % list[0])
+	assert_true(list.size() >= 1, "there is a MIX smoke list")
+	for name in list:
+		assert_true(not FxAssets.BLACK_FRINGE_TEXTURES.has(name),
+			"smoke fallback %s is black fringed" % name)
+		assert_true(not FxAssets.DARK_MASK_TEXTURES.has(name),
+			"smoke fallback %s is a dark alpha mask" % name)
+		assert_true(ResourceLoader.exists(FxAssets.PARTICLE_DIR + name + ".png"),
+			"smoke fallback %s exists (an absent one silently falls through)" % name)
 	assert_eq(list[0], "aaa/explosion/smoke_tex")
+	# and the very last resort, the procedural dot, is white
+	var img := FxAssets.soft_dot().get_image()
+	var mid := img.get_pixel(img.get_width() / 2, img.get_height() / 2)
+	assert_true(mid.r > 0.9 and mid.g > 0.9 and mid.b > 0.9,
+		"soft_dot is white, so it is safe in a MIX material too (%s)" % str(mid))
 
 ## Regression: a BedrockModel carries its own 1/16 model-unit scale, so copying the
 ## entity scale onto the duplicate blew the afterimage up 16x (it filled the screen).
@@ -501,10 +528,32 @@ func test_revert_flash_plays_and_clears() -> void:
 # --- F. hair ownership during the cinematic -------------------------------
 
 ## A character model with the voxel hair of `style` attached, hosted on the dummy.
-func _haired_dummy(style: String, color := Color(0.13, 0.15, 0.16)) -> BedrockModel:
-	var bm := BedrockModel.new()
+##
+## The entity subsystem owns `BedrockModel` and `HairBuilder` and is edited
+## concurrently, so they are loaded BY PATH and called duck-typed here exactly as the
+## director does it: a rename over there must skip these three tests, not take the whole
+## fx test file down with a parse error.
+const BEDROCK_PATH := "res://scripts/entity/BedrockModel.gd"
+const HAIR_PATH := "res://scripts/entity/HairBuilder.gd"
+
+static func _entity_script(path: String) -> GDScript:
+	if not ResourceLoader.exists(path):
+		return null
+	var src: Variant = load(path)
+	return src as GDScript
+
+func _haired_dummy(style: String, color := Color(0.13, 0.15, 0.16)) -> Node3D:
+	var src := _entity_script(BEDROCK_PATH)
+	if src == null:
+		return null
+	var inst: Variant = src.new()
+	if not (inst is Node3D) or not (inst as Node).has_method("load_geo"):
+		if inst is Object:
+			(inst as Object).free()
+		return null
+	var bm := inst as Node3D
 	bm.name = "Model"
-	if not bm.load_geo("entity/races/human"):
+	if not bool(bm.call("load_geo", "entity/races/human")):
 		bm.free()
 		return null
 	if dummy.model != null and is_instance_valid(dummy.model):
@@ -512,8 +561,31 @@ func _haired_dummy(style: String, color := Color(0.13, 0.15, 0.16)) -> BedrockMo
 	dummy.model = bm
 	dummy.add_child(bm)
 	bm.set_meta("character", {"race": "saiyan", "hair_type": 1, "hair_color": "#221a14"})
-	HairBuilder.attach(bm, style, color)
+	if not _hair_attach(bm, style, color):
+		return null
 	return bm
+
+## `HairBuilder.attach`, duck-typed. False when the entity side cannot supply it.
+func _hair_attach(model: Node3D, style: String, color: Color) -> bool:
+	var hb := _entity_script(HAIR_PATH)
+	if hb == null or model == null:
+		return false
+	hb.call("attach", model, style, color)
+	return true
+
+## The hair material, found the same way the director finds it (material_override for a
+## single surface style, surface 0 for a two tone one).
+func _hair_mat_of(model: Node3D) -> StandardMaterial3D:
+	if model == null or not model.has_method("get_bone"):
+		return null
+	var head: Variant = model.call("get_bone", "head")
+	if not (head is Node3D):
+		return null
+	var hair := (head as Node3D).get_node_or_null("Hair") as MeshInstance3D
+	if hair == null:
+		return null
+	var mat := hair.material_override as StandardMaterial3D
+	return mat if mat != null else hair.get_surface_override_material(0) as StandardMaterial3D
 
 ## The two tone style ("gotenks": main hair + gold accent spikes) keeps its materials
 ## per surface with no `material_override`, so a flicker that only looks at the override
@@ -523,7 +595,8 @@ func test_hair_flicker_finds_a_two_tone_style() -> void:
 	assert_true(bm != null, "model built")
 	if bm == null:
 		return
-	var hair := bm.get_bone("head").get_node_or_null("Hair") as MeshInstance3D
+	var head: Node3D = bm.call("get_bone", "head")
+	var hair := head.get_node_or_null("Hair") as MeshInstance3D if head != null else null
 	assert_true(hair != null and hair.mesh.get_surface_count() > 1, "two tone hair has 2 surfaces")
 	assert_true(hair.material_override == null, "a two tone style keeps no material_override")
 	var main: StandardMaterial3D = hair.get_surface_override_material(0)
@@ -539,7 +612,7 @@ func test_hair_flicker_finds_a_two_tone_style() -> void:
 	var gold: Color = main.albedo_color
 	assert_true(gold.r > gold.b, "the flicker is the form's gold, not the base black")
 	# the body is NOT tinted: the model tint fallback must not kick in for this style
-	var body := bm.get_bone("body") as MeshInstance3D
+	var body: MeshInstance3D = bm.call("get_bone", "body") as MeshInstance3D
 	if body != null and body.material_override is StandardMaterial3D:
 		var bm2: StandardMaterial3D = body.material_override
 		assert_true(bm2.albedo_color.is_equal_approx(Color.WHITE),
@@ -552,7 +625,7 @@ func test_hair_is_restored_on_an_interrupt_but_handed_over_on_a_settle() -> void
 	var bm := _haired_dummy("spiky")
 	if bm == null:
 		return
-	var mat := HairBuilder.hair_material(bm)
+	var mat := _hair_mat_of(bm)
 	assert_true(mat != null, "single surface styles keep the material_override")
 	var base := mat.albedo_color
 	var d := _director(EPIC_FORM)
@@ -583,7 +656,7 @@ func test_lightning_height_follows_the_model_not_the_hitbox() -> void:
 		return
 	var short_h := aura.visual_height()
 	assert_true(short_h > 1.0, "a real model reports a real height (%.2f m)" % short_h)
-	HairBuilder.attach(bm, "ssj3", Color(1, 0.88, 0.3))
+	_hair_attach(bm, "ssj3", Color(1, 0.88, 0.3))
 	var mane_h := aura.visual_height()
 	assert_true(mane_h > short_h, "the SSJ3 mane raises the arcs (%.2f -> %.2f m)" % [short_h, mane_h])
 	aura.set_lightning(true, Color(0.6, 0.85, 1.0))
@@ -600,3 +673,242 @@ func test_lightning_height_follows_the_model_not_the_hitbox() -> void:
 	var pa := Aura.get_for(plain)
 	assert_near(pa.visual_height(), 2.0 * pa.body_scale, 0.01, "fallback without model_height()")
 	plain.free()
+
+# --- G. giant forms: every layer has to grow, not just the model ----------
+
+## Snapshot of the sizes a giant form is supposed to scale. Taken mid-strain (the rings,
+## the debris and the strain light are all up then), plus the body scale the aura ends on.
+## It builds its OWN entity so the two forms can be compared inside one test.
+func _giant_snapshot(form_id: String) -> Dictionary:
+	var host := Node3D.new()
+	add_node(host)
+	var e := FxDummy.create("saiyan", "warrior")
+	host.add_child(e)
+	var d := TransformationDirector.play_for(e, form_id)
+	if d == null:
+		host.free()
+		return {}
+	d.set_process(false)
+	_step(d, d.duration * 0.60)
+	var out: Dictionary = {"gs": d._gs, "scale": d.profile.scale}
+	var aura := Aura.find_on(e)
+	if aura != null:
+		out["aura_outer"] = aura._outer.scale.x if aura._outer != null else 0.0
+		out["aura_ground"] = aura._ground.scale.x if aura._ground != null else 0.0
+	if d._decal != null and d._decal.mesh is QuadMesh:
+		out["decal"] = (d._decal.mesh as QuadMesh).size.x
+	if not d._rocks.is_empty() and d._rocks[0].mesh is BoxMesh:
+		out["rock"] = (d._rocks[0].mesh as BoxMesh).size.x
+	if d._aura_light != null:
+		out["light_range"] = d._aura_light.omni_range
+	for c in d.get_children():
+		if String(c.name).begins_with("Ring") and c is MeshInstance3D \
+				and (c as MeshInstance3D).mesh is QuadMesh:
+			out["ring"] = maxf(float(out.get("ring", 0.0)),
+				((c as MeshInstance3D).mesh as QuadMesh).size.x)
+	# run on to the settle: the body is still growing at 60 %, so the final scale is
+	# the one that has to match the form's own
+	_step(d, maxf(0.0, d.duration * TransformationDirector.F_SETTLE - d.t))
+	if aura != null and is_instance_valid(aura):
+		out["final_body_scale"] = aura.body_scale
+	if is_instance_valid(d):
+		d.free()
+	host.free()
+	return out
+
+## The reviewer's finding: only the model used to grow. The aura shells, the aura's
+## GROUND GLOW (which `_apply_intensity` overwrote every frame with an unscaled value),
+## the cracked-ground decal, the levitating debris CUBES (only their ring radius scaled),
+## the shockwave rings and the light range all have to grow with the body as well.
+func test_giant_forms_scale_every_layer_not_just_the_model() -> void:
+	var human := _giant_snapshot(EPIC_FORM)
+	if human.is_empty():
+		return
+	var giant := _giant_snapshot(GIANT_FORM)
+	if giant.is_empty():
+		return
+	var k: float = float(giant["scale"])
+	assert_near(k, 3.8, 0.01, "oozaru is a 3.8x body")
+	assert_near(float(giant["gs"]), 3.8, 0.01, "and the fx scale follows it")
+	for key in ["aura_outer", "aura_ground", "decal", "rock", "light_range", "ring"]:
+		assert_true(human.has(key) and giant.has(key), "%s sampled for both" % key)
+		if not (human.has(key) and giant.has(key)):
+			continue
+		var h: float = float(human[key])
+		var g: float = float(giant[key])
+		assert_true(g > h * 2.0,
+			"%s grows with a giant body: %.3f -> %.3f (x%.2f, expected ~x%.1f)" % [key, h, g, g / maxf(h, 0.001), k])
+	assert_near(float(giant["final_body_scale"]), k, 0.05,
+		"the aura ends on the form's own body scale")
+	assert_near(float(human["final_body_scale"]), 1.0, 0.05, "and a human stays human sized")
+
+## The climax pillar used to keep a fixed 20 m height while its centre was pushed to
+## 12 * scale, so an Oozaru's burst was a thin bar floating ~29 m above its head. The
+## base has to sit just above the body whatever the form's size is.
+func test_climax_pillar_stands_on_the_body_for_every_size() -> void:
+	for form_id in [EPIC_FORM, GIANT_FORM]:
+		var host := Node3D.new()
+		add_node(host)
+		var e := FxDummy.create("saiyan", "warrior")
+		host.add_child(e)
+		var d := TransformationDirector.play_for(e, form_id)
+		if d == null:
+			host.free()
+			continue
+		d.set_process(false)
+		_step(d, d.duration * TransformationDirector.F_CLIMAX + 0.02)
+		assert_eq(d.phase_name(), "burst", "%s reached the climax" % form_id)
+		assert_true(d._pillar != null, "%s spawned a pillar" % form_id)
+		if d._pillar != null:
+			var cyl: CylinderMesh = d._pillar.mesh
+			var height: float = cyl.height
+			var base: float = d._pillar.position.y - height * 0.5
+			var body: float = d._body_height()
+			assert_true(body > 0.5, "%s reports a body height (%.2f m)" % [form_id, body])
+			assert_true(base <= body * 1.6,
+				"%s: the pillar base %.2f m must stay on the body (%.2f m tall)" % [form_id, base, body])
+			assert_true(base >= body * 0.5,
+				"%s: the pillar base %.2f m must clear the body (%.2f m)" % [form_id, base, body])
+			assert_true(height > 8.0 * d._gs * 0.9,
+				"%s: the pillar is as long as the body is big (%.1f m)" % [form_id, height])
+		d.free()
+		host.free()
+
+# --- H. the black-quad regression ----------------------------------------
+
+## THE bug: a MIX-blended CPUParticles3D with `local_coords = false` parented under a
+## node whose global transform is re-assigned every frame submits zeroed instance slots,
+## and because the material is BILLBOARD_PARTICLES those slots still cover pixels - with
+## colour (0,0,0). Two independent guards, both asserted here: the emitter keeps its
+## particles in its own space, and the director does not dirty its transform at all
+## while the entity stands still. See FxAssets.mix_dust / FxPreview `--fx=dustdiag`.
+func test_mix_blended_dust_never_uses_world_coords() -> void:
+	var d := _director(EPIC_FORM)
+	if d == null:
+		return
+	_step(d, 0.4)
+	var checked := 0
+	for n in _all_particles(d):
+		var m := n.material_override as StandardMaterial3D
+		if m == null or m.blend_mode != BaseMaterial3D.BLEND_MODE_MIX:
+			continue
+		checked += 1
+		assert_true(n.local_coords,
+			"%s is MIX blended, so it must own its particles (local_coords)" % n.name)
+	assert_true(checked >= 1, "the cinematic has at least one MIX blended emitter")
+	assert_true(d._dust != null and d._dust.local_coords, "the ground dust specifically")
+
+func test_director_does_not_rewrite_its_transform_while_the_entity_stands_still() -> void:
+	var d := _director(EPIC_FORM)
+	if d == null:
+		return
+	_step(d, 0.4)
+	var before := d.global_transform
+	_step(d, 0.4)
+	assert_true(d.global_transform.is_equal_approx(before),
+		"the transform was never re-written while the entity stood still")
+	# it DOES follow an entity that actually moves (a boss transforming mid-air)
+	dummy.global_position = Vector3(4.0, 2.0, -1.0)
+	_step(d, 1.0 / 60.0)
+	assert_true(d.global_position.is_equal_approx(dummy.global_position),
+		"but it still follows a moving entity (%s)" % str(d.global_position))
+
+func _all_particles(n: Node) -> Array[CPUParticles3D]:
+	var out: Array[CPUParticles3D] = []
+	if n is CPUParticles3D:
+		out.append(n as CPUParticles3D)
+	for c in n.get_children():
+		out.append_array(_all_particles(c))
+	return out
+
+## Every emitter the fx code hands out must be safe in a MIX material: `mix_dust` is the
+## only documented way to switch one over, and it has to set both things.
+func test_mix_dust_helper_sets_blend_and_ownership() -> void:
+	var p := FxAssets.make_particles("T", 8, FxAssets.smoke(), Color(0.7, 0.7, 0.7))
+	assert_eq((p.material_override as StandardMaterial3D).blend_mode, BaseMaterial3D.BLEND_MODE_ADD)
+	assert_true(not p.local_coords, "make_particles defaults to world space")
+	FxAssets.mix_dust(p)
+	assert_eq((p.material_override as StandardMaterial3D).blend_mode, BaseMaterial3D.BLEND_MODE_MIX)
+	assert_true(p.local_coords, "mix_dust also takes ownership of the particles")
+	p.free()
+
+# --- I. the budget has to be the ON SCREEN number ------------------------
+
+## `particle_budget()` used to walk only the director's own children, so the persistent
+## aura's emitters and the afterimage ghosts - both on screen during the cinematic, both
+## parented elsewhere - were invisible to the budget test. It now counts the frame.
+func test_particle_budget_counts_the_aura_and_the_ghosts_too() -> void:
+	var host := Node3D.new()
+	add_node(host)
+	dummy.get_parent().remove_child(dummy)
+	host.add_child(dummy)
+	var d := _director(EPIC_FORM)
+	if d == null:
+		return
+	_step(d, d.duration * 0.45)              # strain: aura up, ghosts spawning
+	var aura := Aura.find_on(dummy)
+	assert_true(aura != null, "the aura exists")
+	var own := 0
+	for n in _all_particles(d):
+		if n.emitting:
+			own += n.amount
+	var aura_particles := 0
+	if aura != null:
+		for n in _all_particles(aura):
+			if n.emitting:
+				aura_particles += n.amount
+	assert_true(aura_particles > 0, "the aura is emitting (%d)" % aura_particles)
+	assert_eq(d.particle_budget(), own + aura_particles + _ghost_particles(host),
+		"the budget is the director + the aura + the ghosts")
+	assert_true(d.particle_budget() > own, "it is strictly more than the director alone")
+	assert_true(d.particle_budget() <= TransformationDirector.MAX_PARTICLES,
+		"and still inside the mobile cap")
+	d.free()
+
+func _ghost_particles(host: Node) -> int:
+	var total := 0
+	for c in host.get_children():
+		if String(c.name).begins_with("Afterimage"):
+			for n in _all_particles(c):
+				if n.emitting:
+					total += n.amount
+	return total
+
+# --- J. the fx clock cannot be jumped ------------------------------------
+
+## Every fx clock runs in real time by dividing by `Engine.time_scale`. The climax sets
+## a hit-stop of 0.001, so a single frame rendered while the scale is changing used to
+## integrate delta/0.001 - the preview stage's `--at` clock landed 70 s past the second
+## it was asked for, and the cinematic itself could skip a whole phase on a hitch.
+func test_real_delta_is_clamped_so_a_hit_stop_cannot_jump_the_timeline() -> void:
+	assert_near(FxAssets.real_delta(1.0 / 60.0), 1.0 / 60.0, 0.0001, "a normal frame is untouched")
+	Engine.time_scale = 0.001
+	assert_true(FxAssets.real_delta(1.0 / 60.0) <= FxAssets.MAX_REAL_DELTA,
+		"a frame whose delta was scaled by the OLD time scale is clamped")
+	Engine.time_scale = 1.0
+	assert_true(FxAssets.real_delta(4.0) <= FxAssets.MAX_REAL_DELTA, "so is a streaming hitch")
+
+	var d := _director(EPIC_FORM)
+	if d == null:
+		return
+	d._process(1.0 / 60.0)
+	Engine.time_scale = 0.001                 # what ScreenFx.hit_stop does at the climax
+	var before := d.t
+	d._process(1.0 / 60.0)                    # delta still scaled by the old 1.0
+	Engine.time_scale = 1.0
+	assert_true(d.t - before <= FxAssets.MAX_REAL_DELTA + 0.001,
+		"the cinematic clock advanced %.3f s, not a jump" % (d.t - before))
+	assert_eq(d.phase_name(), "gather", "and it is still in the phase it was in")
+	d.free()
+
+## The strain dim is drawn by the world's post pass in game and by ScreenFx's own pass in
+## the preview. They have to gate the "hot fx burn through" identically, or the dim reads
+## in the preview and does nothing in the real world - which is exactly what happened
+## while the gate opened at 0.7 luma, below sunlit voxel terrain.
+func test_the_two_dim_passes_share_one_burn_through_gate() -> void:
+	var gate := "clamp((dl - 0.88) * 6.0, 0.0, 1.0) * 0.85"
+	var world := FileAccess.get_file_as_string("res://shaders/post_process.gdshader")
+	var own := FileAccess.get_file_as_string("res://shaders/fx_screen.gdshader")
+	assert_true(world.find(gate) >= 0, "the world post pass gates the dim at 0.88 luma")
+	assert_true(own.find(gate.replace("dl", "l")) >= 0, "and so does the fx screen pass")
+	assert_true(world.find("(dl - 0.7)") < 0, "the old daylight-transparent gate is gone")

@@ -43,6 +43,11 @@ func _ready() -> void:
 	add_child(stub)
 	life = AmbientLife.new()
 	life.force_profile = true
+	# The stage is the subject, not the tripod: dress the lawn the camera is pointed at instead
+	# of the camera's own feet (otherwise half the layer lives behind the lens and the three
+	# canopies are outside the leaf-fall search radius).
+	life.focus_forced = true
+	life.focus_point = Vector3(0.0, float(GROUND_Y), 0.0)
 	add_child(life)
 	life.bind(stub)
 	# Fill the fields straight away instead of waiting a second of ticks for a screenshot.

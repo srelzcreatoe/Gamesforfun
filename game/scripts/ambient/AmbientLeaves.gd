@@ -13,7 +13,9 @@ const BOX_EXTENTS := Vector3(3.0, 0.6, 3.0)
 
 var emitters: Array[CPUParticles3D] = []
 var anchors: PackedVector3Array = PackedVector3Array()
-var active := 0
+## How many emitters the budget lets us run. An emitter only costs quads once it is actually
+## parked under a canopy, so `permitted` is a ceiling, never what is charged (see parked_count).
+var permitted := 0
 
 func setup(count: int = MAX_EMITTERS) -> void:
 	name = "AmbientLeaves"
@@ -44,8 +46,8 @@ func setup(count: int = MAX_EMITTERS) -> void:
 		p.angular_velocity_max = 70.0
 		p.tangential_accel_min = -0.25
 		p.tangential_accel_max = 0.25
-		p.scale_amount_min = 0.24
-		p.scale_amount_max = 0.42
+		p.scale_amount_min = 0.30
+		p.scale_amount_max = 0.52
 		p.material_override = AmbientAssets.particle_material(AmbientAssets.leaf_mask(), false)
 		var ramp := Gradient.new()
 		ramp.offsets = PackedFloat32Array([0.0, 0.12, 0.8, 1.0])
@@ -58,16 +60,33 @@ func setup(count: int = MAX_EMITTERS) -> void:
 	for i in anchors.size():
 		anchors[i] = Vector3(0, -9999, 0)
 
+## What this field really costs: only emitters that found a canopy hold quads.
 func quad_cost() -> int:
-	return active * PER_EMITTER
+	return parked_count() * PER_EMITTER
 
-## Number of emitters allowed to run at once (budget driven).
-func set_active(n: int) -> void:
-	active = clampi(n, 0, emitters.size())
+## Emitters currently hanging under a canopy (the honest number for the budget and the profile).
+func parked_count() -> int:
+	var n := 0
+	for i in anchors.size():
+		if anchors[i].y > -9000.0:
+			n += 1
+	return n
+
+## Emitters actually shedding leaves right now.
+func emitting_count() -> int:
+	var n := 0
+	for p in emitters:
+		if p.emitting:
+			n += 1
+	return n
+
+## Number of emitters allowed to run at once (budget driven). Emitters past the ceiling are
+## unparked, so they stop emitting and stop being charged for.
+func set_permitted(n: int) -> void:
+	permitted = clampi(n, 0, emitters.size())
 	for i in emitters.size():
-		if i >= active and emitters[i].emitting:
-			emitters[i].emitting = false
-			anchors[i] = Vector3(0, -9999, 0)
+		if i >= permitted:
+			unpark(i)
 
 ## Park emitter `i` under a canopy and start it shedding.
 ##
@@ -107,8 +126,15 @@ func anchor_of(i: int) -> Vector3:
 func is_parked(i: int) -> bool:
 	return i >= 0 and i < anchors.size() and anchors[i].y > -9000.0
 
+## Stop emitter `i` and forget its anchor (no canopy in reach, or the budget shrank).
+func unpark(i: int) -> void:
+	if i < 0 or i >= emitters.size():
+		return
+	if emitters[i].emitting:
+		emitters[i].emitting = false
+	anchors[i] = Vector3(0, -9999, 0)
+
 func stop_all() -> void:
 	for i in emitters.size():
-		emitters[i].emitting = false
-		anchors[i] = Vector3(0, -9999, 0)
-	active = 0
+		unpark(i)
+	permitted = 0

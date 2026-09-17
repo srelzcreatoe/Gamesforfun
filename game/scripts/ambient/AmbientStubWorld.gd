@@ -16,6 +16,8 @@ var wind_gust := 0.35
 var biome_id := "plains"
 var ground_y := 64
 var canopy_y := -1
+## How many blocks thick the leaf shell is, counting up from `canopy_y` (a spruce is ~16).
+var canopy_thickness := 2
 var canopy_radius := 3.5
 ## Where the canopies stand (world xz). Empty + canopy_y > 0 means "leaves everywhere overhead".
 var canopy_centers: PackedVector2Array = PackedVector2Array()
@@ -37,14 +39,14 @@ func setup(biome: String, planet := "earth", with_canopy := false) -> void:
 
 func get_height(x: int, z: int) -> int:
 	if canopy_y > 0 and _under_canopy(x, z):
-		return canopy_y + 2
+		return canopy_y + maxi(canopy_thickness, 1)
 	return ground_y
 
 func get_biome(_x: int, _z: int) -> String:
 	return biome_id
 
 func get_block(x: int, y: int, z: int) -> int:
-	if canopy_y > 0 and y >= canopy_y and y <= canopy_y + 1 and _under_canopy(x, z):
+	if canopy_y > 0 and y >= canopy_y and y < canopy_y + maxi(canopy_thickness, 1) and _under_canopy(x, z):
 		return leaf_block
 	if y < ground_y:
 		return surface_block

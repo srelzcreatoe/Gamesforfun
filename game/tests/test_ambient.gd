@@ -271,11 +271,17 @@ func test_life_sheds_leaves_under_a_canopy() -> void:
 	var l := _life(w)
 	for _i in 6:
 		l.tick()
-	assert_true(l.leaves.active > 0, "a leaf emitter is running")
+	assert_true(l.leaves.permitted > 0, "a leaf emitter is permitted")
+	assert_true(l.leaves.parked_count() > 0, "and one is parked")
+	assert_true(l.leaves.emitting_count() > 0, "and shedding")
 	assert_true(l.leaves.is_parked(0), "and it parked under the canopy")
 	var anchor := l.leaves.anchor_of(0)
-	assert_true(anchor.y > float(w.canopy_y) - 1.0 and anchor.y < float(w.canopy_y) + 2.0,
-		"the emitter sits in the canopy, got y=%f for canopy %d" % [anchor.y, w.canopy_y])
+	# The canopy slab of the stub is canopy_y..canopy_y+1; the emitter belongs under its
+	# *underside* so the leaves fall through the air the player can see, not off the treetop.
+	assert_true(anchor.y > float(w.canopy_y) - 1.0 and anchor.y < float(w.canopy_y) + 0.5,
+		"the emitter sits under the canopy, got y=%f for canopy %d" % [anchor.y, w.canopy_y])
+	assert_true(anchor.y - float(w.ground_y) < 8.0,
+		"and within sight of the ground, got %f above it" % [anchor.y - float(w.ground_y)])
 
 func test_life_keeps_its_swarms_off_the_treetops() -> void:
 	# World.get_height returns the top of whatever stands in a column, so a naive spawn puts
@@ -298,6 +304,71 @@ func test_life_keeps_its_swarms_off_the_treetops() -> void:
 			"butterfly %d sits at y=%f, up the canopy at %d" % [i, h.y, w.canopy_y])
 	assert_true(checked > 0, "at least one butterfly was placed")
 
+func test_leaf_emitter_hangs_under_the_canopy_not_on_the_treetop() -> void:
+	# World.get_height is the top of the column, so scanning down from it lands on the treetop.
+	# A spruce is 16 blocks of leaves: an emitter parked up there drops its leaves out of frame
+	# and they never reach the ground inside their lifetime. Anchor under the leaf shell instead.
+	var w := _stub("forest")
+	w.canopy_y = w.ground_y + 4
+	w.canopy_thickness = 12                      # leaves from ground+4 to ground+15
+	w.set_phase("day")
+	var l := _life(w)
+	for _i in 6:
+		l.tick()
+	assert_true(l.leaves.parked_count() > 0, "an emitter found the canopy")
+	var anchor := l.leaves.anchor_of(0)
+	assert_true(anchor.y < float(w.canopy_y) + 1.0,
+		"parked at y=%f: that is up in the shell, not under it (bottom %d, top %d)" % [
+			anchor.y, w.canopy_y, w.canopy_y + w.canopy_thickness])
+	assert_true(anchor.y > float(w.canopy_y) - 1.5, "but still inside the leaves, got y=%f" % anchor.y)
+
+func test_leaf_budget_is_only_charged_for_parked_emitters() -> void:
+	# Treeless plains: the rules still want leaf fall (wind), but there is no canopy to park
+	# under, so not one quad may be reserved -- "leaves" outranks motes/butterflies/birds in the
+	# budget, and a permanent phantom reservation would starve them.
+	var w := _stub("plains", "earth", false)
+	w.set_phase("day")
+	var l := _life(w)
+	for _i in 6:
+		l.tick()
+	assert_true(AmbientRules.leaf_rate(l.biome_class, l.weather, l.wind_gust) > 0.0,
+		"the rules do ask for leaf fall here")
+	assert_eq(l.leaves.parked_count(), 0, "nothing to park under")
+	assert_eq(l.leaves.emitting_count(), 0, "so nothing sheds")
+	assert_eq(int(l.budget.used.get("leaves", 0)), 0, "and nothing is charged for it")
+	assert_eq(l.leaves.quad_cost(), 0, "the field reports its real cost")
+	assert_eq(l.stats()["leaf_parked"], 0, "and the profile line says so")
+
+func test_leaf_quads_go_back_when_the_trees_are_left_behind() -> void:
+	var w := _stub("forest")
+	w.canopy_centers = PackedVector2Array([Vector2(4.0, 4.0)])
+	w.set_phase("day")
+	var l := _life(w)
+	l.focus_forced = true
+	l.focus_point = Vector3(2.0, float(w.ground_y), 2.0)
+	for _i in 6:
+		l.tick()
+	var charged := int(l.budget.used.get("leaves", 0))
+	assert_true(charged > 0, "parked under the one tree and paid for it")
+	assert_eq(charged, l.leaves.parked_count() * AmbientLeaves.PER_EMITTER, "exactly, not more")
+	# Walk 400 m away: the tree is out of reach, the reservation must evaporate.
+	l.focus_point = Vector3(400.0, float(w.ground_y), 400.0)
+	for _i in 6:
+		l.tick()
+	assert_eq(l.leaves.parked_count(), 0, "no canopy within reach any more")
+	assert_eq(int(l.budget.used.get("leaves", 0)), 0, "and the quads went back")
+
+func test_a_canopy_far_above_the_player_is_skipped() -> void:
+	var w := _stub("forest")
+	w.canopy_centers = PackedVector2Array([Vector2(6.0, 6.0)])   # open sky over the player
+	w.canopy_y = w.ground_y + 30                                 # a floating island's underside
+	w.set_phase("day")
+	var l := _life(w)
+	for _i in 6:
+		l.tick()
+	assert_eq(l.leaves.parked_count(), 0, "leaves that high would never be in frame")
+	assert_eq(int(l.budget.used.get("leaves", 0)), 0, "and are not charged for")
+
 func test_leaf_emitters_are_not_restarted_every_tick() -> void:
 	# Writing `amount` or `lifetime` on a CPUParticles3D throws away every live particle, so a
 	# per-tick wind refresh must not touch them or no leaf ever finishes falling.
@@ -306,7 +377,7 @@ func test_leaf_emitters_are_not_restarted_every_tick() -> void:
 	var l := _life(w)
 	for _i in 6:
 		l.tick()
-	assert_true(l.leaves.active > 0 and l.leaves.emitters.size() > 0, "an emitter is running")
+	assert_true(l.leaves.parked_count() > 0 and l.leaves.emitters.size() > 0, "an emitter is running")
 	var e: CPUParticles3D = l.leaves.emitters[0]
 	var amount := e.amount
 	var life_seconds := e.lifetime
@@ -329,7 +400,7 @@ func test_life_is_dead_in_deep_space() -> void:
 	assert_eq(l.motes_b.active_count(), 0, "no motes")
 	assert_eq(l.flyers.active_count(), 0, "no butterflies")
 	assert_eq(l.flock_near.active_count(), 0, "no birds")
-	assert_eq(l.leaves.active, 0, "no leaves")
+	assert_eq(l.leaves.permitted, 0, "no leaves")
 	assert_true(not l.shimmer.is_running(), "and no heat haze")
 
 func test_life_shimmers_on_vampa_only() -> void:
@@ -465,6 +536,10 @@ func test_boot_installs_one_ambient_layer_under_a_world() -> void:
 	var b := AmbientBoot.new()
 	add_node(b)
 	_made.append(b)
+	# _ready() (which add_node just ran) parses OS.get_cmdline_user_args(), so a host process
+	# started with --ambient-off would otherwise switch this test off. Say what the test means,
+	# after the flags have been read.
+	b.install_enabled = true
 	var w := _stub("forest")
 	add_node(w)
 	var life := b.install(w)

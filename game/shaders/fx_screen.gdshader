@@ -75,8 +75,10 @@ void fragment() {
 	if (darken > 0.0001) {
 		float l = luma(col);
 		vec3 dimmed = mix(col, darken_color.rgb * (0.35 + 1.2 * l), darken);
-		// keep the hot fx pixels burning through the dim
-		col = mix(dimmed, col, clamp((l - 0.7) * 3.0, 0.0, 1.0));
+		// Only genuinely blown-out fx pixels burn through the dim, and only partly: the
+		// gate has to sit above daylight terrain luma or the dim does nothing at noon.
+		// Kept identical to shaders/post_process.gdshader, which runs the same pass in world.
+		col = mix(dimmed, col, clamp((l - 0.88) * 6.0, 0.0, 1.0) * 0.85);
 	}
 
 	COLOR = vec4(clamp(col, vec3(0.0), vec3(1.0)), 1.0);

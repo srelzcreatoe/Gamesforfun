@@ -131,7 +131,7 @@ static func dust_puff(parent: Node, pos: Vector3, strength := 1.0) -> void:
 	var s := clampf(strength, 0.2, 1.5)
 	var p := FxAssets.make_particles("HitDust", int(round(7.0 * s)) + 3,
 		FxAssets.smoke(), Color(0.72, 0.69, 0.64))
-	p.material_override.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
+	FxAssets.mix_dust(p)
 	p.one_shot = true
 	p.explosiveness = 0.85
 	p.lifetime = 0.55

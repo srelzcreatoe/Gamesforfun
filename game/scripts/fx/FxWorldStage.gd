@@ -82,7 +82,10 @@ func _process(delta: float) -> void:
 		if _boot_t >= wait_time and Game.player != null and is_instance_valid(Game.player):
 			_start_transform()
 		return
-	_t += delta / maxf(0.001, Engine.time_scale)
+	# the same clamped real-time clock the director uses, so `--at` cannot overshoot:
+	# the frame on which the climax hit-stop drops Engine.time_scale to 0.001 used to
+	# integrate delta/0.001 and jump the clock tens of seconds past the requested time
+	_t += FxAssets.real_delta(delta)
 	_maybe_capture()
 
 func _start_transform() -> void:

@@ -32,10 +32,21 @@ const DESPAWN := 40.0
 ## per tick is what bounds the worst-case tick (a player who just teleported re-homes everything).
 const MOVES_PER_TICK := 8
 const CANOPY_SAMPLES := 8
-const CANOPY_DEPTH := 5
-const CANOPY_RADIUS := 11.0
+## How far down a column we follow a leaf shell looking for its underside, and how many
+## non-leaf blocks below the last leaf end the search.
+const CANOPY_DEPTH := 22
+const CANOPY_GAP := 3
+const CANOPY_NEAR := 6.0
+const CANOPY_RADIUS := 14.0
+## A canopy whose underside is higher than this above the ground the player stands on is skipped:
+## its leaves would spend their whole life out of frame.
+const CANOPY_MAX_UP := 20.0
 ## How far above or below the focus point a spawn column's surface may be (rejects treetops).
 const MAX_SURFACE_DY := 4.5
+## Nothing is placed inside this radius of the camera: a 0.24 m butterfly one metre from the
+## lens fills a quarter of the frame, and the third-person camera sits behind the player, so a
+## spot that is a polite 2 m from the player can still be in the viewer's face.
+const EYE_CLEAR := 3.0
 const FOOTSTEP_STRIDE := 1.8
 const PROFILE_PERIOD := 5.0
 
@@ -74,6 +85,10 @@ var ground_y := 0.0
 
 var enabled := true
 var force_profile := false
+## Previews, cinematics and tests can pin the point the layer dresses around instead of letting
+## it follow the player/camera (AmbientPreview uses it so the stage, not the tripod, is the focus).
+var focus_point := Vector3.ZERO
+var focus_forced := false
 
 var _rng := RandomNumberGenerator.new()
 var _accum := 0.0
@@ -89,6 +104,8 @@ var _last_foot_pos := Vector3.ZERO
 var _foot_valid := false
 var _block_events := 0
 var _leaf_colors: Array[Color] = []
+var _eye := Vector3.ZERO
+var _eye_valid := false
 var _bound := false
 var _seeded := false
 
@@ -249,6 +266,10 @@ func _process(delta: float) -> void:
 		_accum = 0.0
 		if enabled and not (Game != null and Game.paused_by_ui):
 			tick()
+		elif reactive != null:
+			# Paused or disabled: no decisions, but bursts that have burnt out still give their
+			# quads back (a long menu visit must not leave the budget full of dead effects).
+			reactive.expire()
 	_profile_timer += delta
 	if _profile_timer >= PROFILE_PERIOD:
 		_profile_timer = 0.0
@@ -265,10 +286,12 @@ func tick() -> void:
 		# is charged for, and nothing touches a node whose global transform does not exist.
 		_sleep()
 	else:
+		# Leaves first: they outrank the other fields in the budget and only pay for the
+		# emitters that really found a tree, so everyone else sees the truth this tick.
+		_update_leaves()
 		_update_motes()
 		_update_butterflies()
 		_update_flocks()
-		_update_leaves()
 		_update_sky_events()
 		_update_footsteps()
 		_update_shimmer()
@@ -292,7 +315,7 @@ func _sleep() -> void:
 	if flock_far != null:
 		flock_far.set_active_count(0)
 	if leaves != null:
-		leaves.set_active(0)
+		leaves.set_permitted(0)
 	if shimmer != null:
 		shimmer.set_strength(0.0)
 	if budget != null:
@@ -301,6 +324,13 @@ func _sleep() -> void:
 
 func _refresh_context() -> void:
 	center = _focus()
+	# One camera lookup per tick, used to keep sprites out of the lens (see EYE_CLEAR).
+	_eye_valid = false
+	if is_inside_tree():
+		var cam := get_viewport().get_camera_3d()
+		if cam != null:
+			_eye = cam.global_position
+			_eye_valid = true
 	if world == null or not is_instance_valid(world):
 		biome_id = ""
 		biome_def = {}
@@ -334,6 +364,8 @@ func _refresh_context() -> void:
 		biome_class = AmbientRules.classify(biome_id, biome_def)
 
 func _focus() -> Vector3:
+	if focus_forced:
+		return focus_point
 	if Game != null and Game.player != null and is_instance_valid(Game.player) and Game.player is Node3D:
 		return (Game.player as Node3D).global_position
 	if is_inside_tree():
@@ -495,12 +527,13 @@ func _update_leaves() -> void:
 	var want := 0
 	if rate > 0.0:
 		want = clampi(int(ceil(rate / 1.2)), 1, AmbientLeaves.MAX_EMITTERS)
-	var granted := budget.claim("leaves", want * AmbientLeaves.PER_EMITTER) / AmbientLeaves.PER_EMITTER
-	leaves.set_active(granted)
-	if granted <= 0:
-		return
-	var per := rate / float(granted)
-	for i in granted:
+	# Provisional ceiling: how many emitters we could afford if every one of them found a tree.
+	# Nothing is really charged until the park loop below has run, because a treeless plain (or a
+	# forest the player has just flown out of) must not hold quads hostage from the other fields.
+	var permitted := budget.claim("leaves", want * AmbientLeaves.PER_EMITTER) / AmbientLeaves.PER_EMITTER
+	leaves.set_permitted(permitted)
+	var per := rate / float(maxi(permitted, 1))
+	for i in permitted:
 		var a := leaves.anchor_of(i)
 		if a.y > -9000.0 and Vector2(a.x - center.x, a.z - center.z).length() <= DESPAWN:
 			# Still in range: refresh the wind only (re-parking would restart the emitter and
@@ -509,32 +542,65 @@ func _update_leaves() -> void:
 			continue
 		var found := _find_canopy()
 		if found.y < -9000.0:
+			# No canopy in reach: this emitter and every one after it stays dark and unpaid for.
+			for j in range(i, permitted):
+				leaves.unpark(j)
 			break
 		var lid := int(found.w)
 		_leaf_colors[i] = AmbientAssets.leaf_color(lid, biome_def)
 		leaves.park(i, Vector3(found.x, found.y, found.z), _leaf_colors[i], per, wind_dir, wind_gust)
+	# Charge for the emitters that actually hang under a canopy, and give the rest back. This runs
+	# before the other fields claim (see tick()), so the quads are theirs in the same tick.
+	budget.claim("leaves", leaves.quad_cost())
 
-## Look for a leaf block overhead near the player. Returns (x, y, z, block_id), y < -9000 = none.
+## Look for a leaf block overhead near the player, and anchor under the *underside* of its canopy.
+##
+## `World.get_height` is the top of the column, so scanning down from it finds the treetop first;
+## leaves released 15 m above the player's head are never in frame (and never reach the ground
+## inside their lifetime). We keep descending through the leaf shell until it ends, so the emitter
+## sits at the lowest leaf block of the canopy: leaves then drift the last few metres into view.
+## Returns (x, y, z, block_id), y < -9000 = none.
 func _find_canopy() -> Vector4:
 	if world == null or not is_instance_valid(world) or not world.has_method("get_height"):
 		return Vector4(0, -9999, 0, 0)
-	for _s in CANOPY_SAMPLES:
+	for s in CANOPY_SAMPLES:
 		var a := _rng.randf() * TAU
-		# Canopies close to the player read best (a leaf 24 m away is one pixel), so the
-		# search starts right overhead instead of at the mote spawn ring.
-		var r := _rng.randf_range(1.5, CANOPY_RADIUS)
+		# Canopies close to the player read best (a leaf 24 m away is one pixel), so the search
+		# widens sample by sample and the first (nearest) hit wins.
+		var reach := lerpf(CANOPY_NEAR, CANOPY_RADIUS, float(s) / float(maxi(CANOPY_SAMPLES - 1, 1)))
+		var r := _rng.randf_range(1.5, reach)
 		var bx := int(floor(center.x + cos(a) * r))
 		var bz := int(floor(center.z + sin(a) * r))
 		var top := int(world.call("get_height", bx, bz))
 		if top <= 1:
 			continue
+		var low := -1
+		var low_id := 0
+		var gap := 0
 		for d in CANOPY_DEPTH:
 			var by := top - 1 - d
 			if by < 1:
 				break
 			var id := int(world.call("get_block", bx, by, bz))
 			if _is_leaf(id):
-				return Vector4(float(bx) + 0.5, float(by) - 0.4, float(bz) + 0.5, float(id))
+				low = by
+				low_id = id
+				gap = 0
+			elif low >= 0:
+				gap += 1
+				if gap >= CANOPY_GAP:
+					break        # out of the bottom of the canopy
+		if low < 0:
+			continue
+		# `ground_y` is get_height at the focus column, which is the treetop when the player is
+		# standing under a tree, so the player's own feet are the better floor when we have them
+		# (center.y is 0 in a headless test with no player and no camera).
+		var base := ground_y
+		if center.y > 1.0:
+			base = minf(base, center.y)
+		if float(low) - base > CANOPY_MAX_UP:
+			continue             # a canopy that high would drop its leaves off-screen
+		return Vector4(float(bx) + 0.5, float(low) - 0.4, float(bz) + 0.5, float(low_id))
 	return Vector4(0, -9999, 0, 0)
 
 static func _is_leaf(id: int) -> bool:
@@ -654,7 +720,10 @@ func _ground_spot(min_r: float, max_r: float, y_min: float, y_max: float, dry: b
 			continue
 		if dry and world.has_method("is_liquid") and bool(world.call("is_liquid", bx, top - 1, bz)):
 			continue
-		return Vector3(wx, float(top) + _rng.randf_range(y_min, y_max), wz)
+		var spot := Vector3(wx, float(top) + _rng.randf_range(y_min, y_max), wz)
+		if _eye_valid and spot.distance_squared_to(_eye) < EYE_CLEAR * EYE_CLEAR:
+			continue
+		return spot
 	return Vector3(0, -9999, 0)
 
 ## The block the focus point is standing on (0 when nothing is loaded there). Used for the
@@ -729,7 +798,10 @@ func stats() -> Dictionary:
 		"motes_b": motes_b.active_count() if motes_b != null else 0,
 		"butterflies": flyers.active_count() if flyers != null else 0,
 		"birds": (flock_near.active_count() if flock_near != null else 0) + (flock_far.active_count() if flock_far != null else 0),
-		"leaf_emitters": leaves.active if leaves != null else 0,
+		"leaf_permitted": leaves.permitted if leaves != null else 0,
+		"leaf_parked": leaves.parked_count() if leaves != null else 0,
+		"leaf_emitting": leaves.emitting_count() if leaves != null else 0,
+		"leaf_anchors": _leaf_anchors(),
 		"bursts": reactive.live_count() if reactive != null else 0,
 		"biome": biome_id,
 		"class": biome_class,
@@ -739,6 +811,17 @@ func stats() -> Dictionary:
 		"ticks": _ticks,
 		"frames": _frames,
 	}
+
+## Where the leaf emitters hang right now (debug/profiling aid: this is the one thing about the
+## layer that is easy to get wrong and hard to see, so the profile line says it out loud).
+func _leaf_anchors() -> PackedVector3Array:
+	var out := PackedVector3Array()
+	if leaves == null:
+		return out
+	for i in leaves.emitters.size():
+		if leaves.is_parked(i):
+			out.append(leaves.anchor_of(i))
+	return out
 
 ## Printed 5 s after the ChunkManager world line so the two can be read together.
 func _print_profile() -> void:
@@ -750,9 +833,14 @@ func _print_profile() -> void:
 	var s := stats()
 	# Cost per frame: the tick only runs 4x a second, so amortise it over the frames it covers.
 	var per_frame := float(s["tick_ms_avg"]) * float(s["ticks"]) / maxf(1.0, float(s["frames"]))
-	Log.i("ambient: %s | %d motes %d dust %d butterflies %d birds %d leaf-emitters %d bursts | tick %.3f ms avg, %.3f ms max -> %.3f ms/frame | %s/%s" % [
+	var anchors := s["leaf_anchors"] as PackedVector3Array
+	var leaf_where := ""
+	if not anchors.is_empty():
+		leaf_where = " at %s (eye %s)" % [str(anchors), str(_eye.round())]
+	Log.i("ambient: %s | %d motes %d dust %d butterflies %d birds %d/%d leaf-emitters (parked/emitting)%s %d bursts | tick %.3f ms avg, %.3f ms max -> %.3f ms/frame | %s/%s" % [
 		budget.describe() if budget != null else "-",
-		s["motes"], s["motes_b"], s["butterflies"], s["birds"], s["leaf_emitters"], s["bursts"],
+		s["motes"], s["motes_b"], s["butterflies"], s["birds"],
+		s["leaf_parked"], s["leaf_emitting"], leaf_where, s["bursts"],
 		s["tick_ms_avg"], s["tick_ms_max"], per_frame, s["planet"], s["biome"]])
 	_tick_usec_sum = 0
 	_tick_usec_max = 0

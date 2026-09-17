@@ -122,7 +122,7 @@ func _ready() -> void:
 	smoke.gravity = Vector3(0, 1.0, 0)
 	smoke.scale_amount_min = radius * 0.5
 	smoke.scale_amount_max = radius * 1.3
-	smoke.material_override.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
+	FxAssets.mix_dust(smoke)
 	add_child(smoke)
 	smoke.emitting = true
 

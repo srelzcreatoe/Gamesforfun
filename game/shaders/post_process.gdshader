@@ -135,7 +135,11 @@ void fragment() {
 	if (fx_darken > 0.0001) {
 		float dl = luma(col);
 		vec3 dimmed = mix(col, vec3(0.03, 0.04, 0.09) * (0.35 + 1.2 * dl), fx_darken);
-		col = mix(dimmed, col, clamp((dl - 0.7) * 3.0, 0.0, 1.0));   // hot fx burn through
+		// Only genuinely blown-out fx pixels (aura core, flash, beam) burn through the dim,
+		// and only partly. The gate used to open at 0.7 luma, which in a sunlit voxel world
+		// is sky, sand and most grass - so the strain dim read at night and did nothing at
+		// noon. 0.88 with a steeper ramp keeps the aura hot and still dims the daylight.
+		col = mix(dimmed, col, clamp((dl - 0.88) * 6.0, 0.0, 1.0) * 0.85);
 	}
 
 	// --- god rays: march toward the sun and collect the bright pixels ------------------------

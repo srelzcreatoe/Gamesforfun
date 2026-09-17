@@ -1,8 +1,13 @@
 class_name AmbientAssets
 extends RefCounted
-## Textures, materials and meshes shared by every ambient emitter. Everything is built once and
-## cached in static vars: the ambient layer never creates a Material, a Mesh or an Image while
-## the game is running.
+## Textures, meshes and colours shared by every ambient emitter. Those are built once and cached
+## in static vars, so the ambient layer never creates an Image, a Mesh or a Texture while the game
+## is running.
+##
+## The `*_material` factories below are the exception and deliberately NOT cached: every emitter
+## owns its material because it writes its own uniforms/albedo into it (the two mote fields, for
+## instance, run the same shader with different colours and sizes). They are setup-time only —
+## call them from `setup()`/`configure()`, never from a tick or a `_process`.
 
 const PARTICLE_DIR := "res://assets/textures/particles/"
 const MOTES_SHADER := "res://shaders/ambient_motes.gdshader"
@@ -266,6 +271,7 @@ static func butterfly_mesh() -> Mesh:
 # --- materials --------------------------------------------------------------------------------
 
 ## Additive, unshaded billboard material for CPUParticles3D bursts.
+## Setup-time only: returns a fresh material the caller owns (see the note at the top of the file).
 static func particle_material(texture: Texture2D, additive := true) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -281,6 +287,7 @@ static func particle_material(texture: Texture2D, additive := true) -> StandardM
 	return m
 
 ## Same, but world-aligned (no billboard) for flat decals lying on the ground or water.
+## Setup-time only: returns a fresh material the caller owns.
 static func decal_material(texture: Texture2D, additive := false) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -294,6 +301,9 @@ static func decal_material(texture: Texture2D, additive := false) -> StandardMat
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
 	return m
 
+## A fresh ShaderMaterial for one emitter. The Shader resource itself is cached by the engine's
+## resource loader, so only the (tiny) material wrapper is new; each caller needs its own because
+## it sets its own uniforms.
 static func shader_material(path: String) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	if ResourceLoader.exists(path):

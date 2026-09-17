@@ -18,6 +18,13 @@ extends Node3D
 ##         cinematic camera work), so a frame can be compared across runs
 ## `--hide=A,B` hide every node whose name starts with one of these (layer isolation
 ##         when hunting down which quad washed the frame out, e.g. --hide=Ring,CrackGlow)
+## `--dumpfx` print every visible emitter / quad with the material state that decides its
+##         colour, at each capture (which node drew that black pixel?)
+## `--profile` print frame-time ms and the on-screen particle / light peak per cinematic
+##         phase when the run ends (this is how the cinematic's cost is measured)
+## `--noglow --nofog` drop those environment features, to tell a post effect apart from
+##         a material problem
+## `--fx=dustdiag` the regression stage for the black-quad bug (see `_build_dust_diag`)
 
 const GROUND_SIZE := 120.0
 const ROCKS := 150
@@ -40,6 +47,10 @@ var cam_look := Vector3(0.0, 1.25, 0.0)
 var at_times: Array[float] = []
 var shot_path := ""
 var show_hud := true
+var dump_fx := false
+var do_profile := false
+var no_glow := false
+var no_fog := false
 
 var _steps: Array[Dictionary] = []
 var _next_step := 0
@@ -75,6 +86,10 @@ func _parse_args() -> void:
 			"technique": technique_id = val
 			"screenshot": shot_path = val
 			"nohud": show_hud = false
+			"dumpfx": dump_fx = true
+			"profile": do_profile = true
+			"noglow": no_glow = true
+			"nofog": no_fog = true
 			"staticcam": static_cam = true
 			"hide":
 				for h in val.split(",", false):
@@ -111,12 +126,12 @@ func _build_stage() -> void:
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	e.ambient_light_color = Color(0.50, 0.55, 0.68)
 	e.ambient_light_energy = 1.0
-	e.fog_enabled = true
+	e.fog_enabled = not no_fog
 	e.fog_light_color = Color(0.13, 0.16, 0.25)
 	e.fog_density = 0.012
 	# the fx are additive and already very bright: a soft, high-threshold glow keeps the
 	# character readable instead of washing the whole frame out
-	e.glow_enabled = true
+	e.glow_enabled = not no_glow
 	e.glow_intensity = 0.45
 	e.glow_strength = 0.95
 	e.glow_bloom = 0.03
@@ -160,6 +175,9 @@ func _build_stage() -> void:
 			# watch the whole beam cross the frame from the caster to the cliff
 			pos = Vector3(7.0, 4.2, 14.0)
 			look = Vector3(7.0, 1.5, 0.0)
+		"dustdiag":
+			pos = Vector3(0.0, 0.9, 19.0)
+			look = Vector3(0.0, 1.0, 0.0)
 	if static_cam and cam_pos != Vector3.INF:
 		pos = cam_pos
 		look = cam_look
@@ -189,7 +207,7 @@ func _build_rocks() -> void:
 	rng.seed = 7731
 	# the ki modes fire along +X at the cliff: keep that corridor (and the camera line)
 	# free of boulders, or the whole effect happens behind a rock
-	var corridor := fx in ["kamehameha", "beam", "blast", "barrage", "disc"]
+	var corridor := fx in ["kamehameha", "beam", "blast", "barrage", "disc", "dustdiag"]
 	for i in ROCKS:
 		var a := rng.randf() * TAU
 		var r: float = lerpf(7.0, 46.0, sqrt(rng.randf()))
@@ -378,13 +396,66 @@ func _script_fx() -> void:
 			_at(0.3, func() -> void: Forms.transform(dummy, form_id))
 			_at(4.2, func() -> void: Techniques.begin(dummy, "kamehameha"))
 			_at(6.3, func() -> void: Techniques.release(dummy))
+		"dustdiag":
+			_at(0.1, _build_dust_diag)
 		_:
 			_at(0.2, func() -> void: Aura.get_for(dummy).set_intensity(1.0))
+
+## `--fx=dustdiag`: the regression stage for the BLACK QUAD bug.
+##
+## A MIX-blended CPUParticles3D with `local_coords = false` keeps its particles in world
+## space by re-deriving its emission transform from its own global transform every frame.
+## Parent it under a node whose global transform is RE-ASSIGNED every frame - which is
+## what the transformation cinematic did, `global_position = entity.global_position` on a
+## `top_level` director - and some instance slots reach the renderer zeroed. The material
+## is `BILLBOARD_PARTICLES`, so the vertex stage throws the instance basis away and
+## rebuilds it from the view matrix: a zeroed slot still covers pixels, with instance
+## colour (0,0,0). A pure black quad. Additive emitters hide it (black adds nothing),
+## which is why only the dust showed it.
+##
+## The three columns are left to right: the bug, `FxAssets.mix_dust` (the fix), and a
+## control on a still parent. Only column 0 may contain pure black pixels.
+##
+##   tools/screenshot.sh out.png --sandbox vfx --seconds 8 \
+##     --args "--scene=res://scenes/fx/FxPreview.tscn --fx=dustdiag --at=1.0 --nohud"
+var _diag_rig: Node3D = null
+
+func _build_dust_diag() -> void:
+	print("DUSTDIAG columns left->right: 0 BUG moving-parent+world-coords / 1 FIXED mix_dust / 2 control still-parent")
+	_diag_rig = Node3D.new()
+	_diag_rig.name = "DiagRig"
+	_diag_rig.top_level = true
+	dummy.add_child(_diag_rig)
+	for i in 3:
+		var p := FxAssets.make_particles("Diag%d" % i, 20, FxAssets.smoke(), Color(0.70, 0.67, 0.62))
+		p.lifetime = 1.1
+		p.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
+		p.emission_ring_axis = Vector3.UP
+		p.emission_ring_radius = 2.7
+		p.emission_ring_inner_radius = 2.1
+		p.emission_ring_height = 0.1
+		p.direction = Vector3(0, 0.4, 0)
+		p.spread = 60.0
+		p.initial_velocity_min = 1.4
+		p.initial_velocity_max = 3.6
+		p.gravity = Vector3(0, -1.0, 0)
+		p.scale_amount_min = 0.45
+		p.scale_amount_max = 1.05
+		if i == 1:
+			FxAssets.mix_dust(p)
+		else:
+			(p.material_override as StandardMaterial3D).blend_mode = BaseMaterial3D.BLEND_MODE_MIX
+		var host: Node = _diag_rig if i < 2 else self
+		host.add_child(p)
+		p.position = Vector3(-8.0 + float(i) * 8.0, 0.18, 0.0)
+		p.emitting = true
 
 func _process(delta: float) -> void:
 	# the UiManager's loading screen would otherwise keep the simulation paused
 	Game.paused_by_ui = false
-	t += delta / maxf(0.001, Engine.time_scale)
+	if _diag_rig != null and is_instance_valid(_diag_rig):
+		_diag_rig.global_position = dummy.global_position       # see _build_dust_diag
+	t += FxAssets.real_delta(delta)
 	while _next_step < _steps.size() and t >= float(_steps[_next_step]["t"]):
 		var fn: Callable = _steps[_next_step]["fn"]
 		_next_step += 1
@@ -392,6 +463,8 @@ func _process(delta: float) -> void:
 			fn.call()
 	if not hide_names.is_empty():
 		_hide_matching(self)
+	if do_profile:
+		_sample_profile(delta)
 	if label != null and label.visible:
 		var a := Aura.find_on(dummy)
 		var d := TransformationDirector.running_for(dummy)
@@ -400,6 +473,83 @@ func _process(delta: float) -> void:
 			d.phase_name() if d != null else "-",
 			a.intensity() if a != null else 0.0]
 	_maybe_capture()
+
+## `--dumpfx`: print every visible particle emitter / quad with the material state that
+## decides its colour, so a black frame can be traced to the node that drew it.
+func _dump_fx(n: Node, path: String) -> void:
+	var here := path + "/" + String(n.name)
+	if n is CPUParticles3D:
+		var p := n as CPUParticles3D
+		var desc := "PARTICLES %s vis=%s emit=%s amount=%d color=%s" % [
+			here, str(p.is_visible_in_tree()), str(p.emitting), p.amount, str(p.color)]
+		if p.color_ramp != null:
+			var ramp := ""
+			for i in p.color_ramp.get_point_count():
+				ramp += "%.2f:%s " % [p.color_ramp.get_offset(i), str(p.color_ramp.get_color(i))]
+			desc += " ramp=[" + ramp + "]"
+		else:
+			desc += " ramp=null"
+		if p.color_initial_ramp != null:
+			var r2 := ""
+			for i in p.color_initial_ramp.get_point_count():
+				r2 += "%.2f:%s " % [p.color_initial_ramp.get_offset(i), str(p.color_initial_ramp.get_color(i))]
+			desc += " initial_ramp=[" + r2 + "]"
+		desc += " aabb=%s" % str(p.get_aabb())
+		desc += _mat_desc(p.material_override)
+		print(desc)
+	elif n is MeshInstance3D:
+		var mi := n as MeshInstance3D
+		if mi.is_visible_in_tree():
+			print("MESH %s pos=%s scale=%s%s" % [here, str(mi.global_position.snapped(Vector3.ONE * 0.01)),
+				str(mi.scale.snapped(Vector3.ONE * 0.01)), _mat_desc(mi.material_override)])
+	for c in n.get_children():
+		_dump_fx(c, here)
+
+static func _mat_desc(m: Material) -> String:
+	if m is StandardMaterial3D:
+		var sm := m as StandardMaterial3D
+		var tex := sm.albedo_texture.resource_path if sm.albedo_texture != null else "<none>"
+		return " | STD blend=%d shading=%d albedo=%s vcol=%s tex=%s filter=%d" % [
+			sm.blend_mode, sm.shading_mode, str(sm.albedo_color),
+			str(sm.vertex_color_use_as_albedo), tex, sm.texture_filter]
+	if m is ShaderMaterial:
+		var shm := m as ShaderMaterial
+		return " | SHADER %s" % (shm.shader.resource_path if shm.shader != null else "<none>")
+	return " | mat=<none>"
+
+# --- profiling -------------------------------------------------------------
+## `--profile`: frame cost and the on-screen budget of the cinematic, per phase. The
+## brief's mobile budget is about what is alive in the frame, so the particle and light
+## numbers come from `TransformationDirector.particle_budget()/light_count()`, which
+## count the director, the persistent aura and the afterimage ghosts together.
+var _prof: Dictionary = {}
+
+func _sample_profile(delta: float) -> void:
+	var d := TransformationDirector.running_for(dummy)
+	var key := d.phase_name() if d != null else ("idle" if _next_step >= _steps.size() else "pre")
+	var row: Dictionary = _prof.get(key, {"frames": 0, "sum": 0.0, "max": 0.0, "particles": 0, "lights": 0})
+	var ms := delta / maxf(0.001, Engine.time_scale) * 1000.0
+	row["frames"] = int(row["frames"]) + 1
+	row["sum"] = float(row["sum"]) + ms
+	row["max"] = maxf(float(row["max"]), ms)
+	if d != null:
+		row["particles"] = maxi(int(row["particles"]), d.particle_budget())
+		row["lights"] = maxi(int(row["lights"]), d.light_count())
+	_prof[key] = row
+
+func _print_profile() -> void:
+	if not do_profile:
+		return
+	for key in ["pre", "gather", "strain", "burst", "reveal", "done", "idle"]:
+		if not _prof.has(key):
+			continue
+		var row: Dictionary = _prof[key]
+		var n: int = maxi(1, int(row["frames"]))
+		print("VFX PROFILE phase=%-7s frames=%3d avg=%6.2fms max=%6.2fms particles=%3d lights=%d" % [
+			key, n, float(row["sum"]) / float(n), float(row["max"]),
+			int(row["particles"]), int(row["lights"])])
+	print("VFX PROFILE budget particles<=%d lights<=%d" % [
+		TransformationDirector.MAX_PARTICLES, TransformationDirector.MAX_LIGHTS])
 
 ## Layer isolation for the diagnostics: hide anything whose name starts with one of
 ## `--hide=`. Walks the stage every frame, which is fine for a verification tool.
@@ -440,6 +590,8 @@ func _capture(at: float) -> void:
 	if at_times.size() > 1:
 		path = "%s/%s_t%.2f.%s" % [shot_path.get_base_dir(), shot_path.get_basename().get_file(),
 			at, shot_path.get_extension()]
+	if dump_fx:
+		_dump_fx(self, "")
 	var err := img.save_png(path)
 	print("SCREENSHOT %s -> %s (t=%.2f, phase=%s)" % [
 		path, "ok" if err == OK else str(err), t,
@@ -447,4 +599,5 @@ func _capture(at: float) -> void:
 	_shots_done += 1
 	_capturing = false
 	if _shots_done >= at_times.size():
+		_print_profile()
 		get_tree().quit()

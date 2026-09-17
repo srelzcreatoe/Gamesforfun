@@ -315,9 +315,7 @@ func set_body_scale(s: float) -> void:
 		_sparks.position = Vector3(0, 0.9 * body_scale, 0)
 	if _rise != null:
 		_rise.emission_box_extents = Vector3(0.32, 0.1, 0.32) * body_scale
-	if _ground != null:
-		_ground.scale = Vector3.ONE * body_scale
-	_apply_intensity(_intensity)
+	_apply_intensity(_intensity)     # re-scales _ground/_outer/_inner/_flare for the new body
 
 func set_lightning(on: bool, color := Color(0, 0, 0, 0)) -> void:
 	has_lightning = on
@@ -441,7 +439,8 @@ func _apply_intensity(v: float) -> void:
 	if _ground != null:
 		_ground.visible = vis
 		_mat_ground.albedo_color = Color(outer_color.r, outer_color.g, outer_color.b, clampf(v * 0.35, 0.0, 0.5))
-		_ground.scale = Vector3.ONE * (0.8 + v * 0.5) * (1.0 + 0.04 * sin(_idle_t * 3.1))
+		# body_scale like every other member: an Oozaru lights up a 3.8x patch of ground
+		_ground.scale = Vector3.ONE * body_scale * (0.8 + v * 0.5) * (1.0 + 0.04 * sin(_idle_t * 3.1))
 	if _flare != null:
 		_flare.visible = vis
 		_mat_flare.albedo_color = Color(outer_color.r, outer_color.g, outer_color.b,

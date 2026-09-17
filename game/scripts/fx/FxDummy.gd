@@ -78,13 +78,30 @@ func _ready() -> void:
 		if animated:
 			_build_anim()
 
+## The entity subsystem's classes are loaded BY PATH and called duck-typed, never named
+## as types: they are owned and edited by another engineer, and a parse-time reference
+## would turn any rename over there into a compile error that takes the fx preview and
+## the fx tests down with it. Without them the dummy is a capsule and still works.
+const BEDROCK := "res://scripts/entity/BedrockModel.gd"
+const RACE_SKIN := "res://scripts/entity/RaceSkin.gd"
+const BEDROCK_ANIM := "res://scripts/entity/BedrockAnimation.gd"
+
+static func _entity_script(path: String) -> GDScript:
+	if not ResourceLoader.exists(path):
+		return null
+	var src: Variant = load(path)
+	return src as GDScript
+
 ## A DMZ BedrockModel when the entity engineer's script is there, else a capsule.
 func _build_model() -> Node3D:
-	const BEDROCK := "res://scripts/entity/BedrockModel.gd"
 	const TEX_REL := "sagas/saga_goku_early"
 	var geo_rel := "entity/races/human"
 	if animated:
-		geo_rel = RaceSkin.race_model(race)
+		var rs := _entity_script(RACE_SKIN)
+		if rs != null:
+			var picked: Variant = rs.call("race_model", race)
+			if picked is String and String(picked) != "":
+				geo_rel = String(picked)
 	if ResourceLoader.exists(BEDROCK) and ResourceLoader.exists("res://assets/models/" + geo_rel + ".geo.json"):
 		var script: Variant = load(BEDROCK)
 		if script is GDScript:
@@ -130,12 +147,12 @@ func _build_model() -> Node3D:
 ## Compose the race skin + voxel hair through the entity engineer's RaceSkin, using the
 ## race defaults from data/races.json (so a namekian previews green and a majin pink).
 func _apply_race_skin(m: Node3D) -> bool:
-	var bm: BedrockModel = m as BedrockModel
-	if bm == null:
+	var rs := _entity_script(RACE_SKIN)
+	if m == null or rs == null:
 		return false
 	var r: Dictionary = Registry.race(race) if Registry != null else {}
 	var hairy := race == "human" or race == "saiyan" or race == "halfsaiyan"
-	RaceSkin.apply_to(bm, {
+	rs.call("apply_to", m, {
 		"race": race, "gender": "male", "body_type": 0,
 		"hair_type": 2 if hairy else 0,
 		"hair_color": String(r.get("defaultHairColor", "#222629")),
@@ -150,17 +167,24 @@ func _apply_race_skin(m: Node3D) -> bool:
 ## DMZ movement + transformation clips on the model, so `play_anim("transf.ssj3")`
 ## actually poses the dummy in the preview stage.
 func _build_anim() -> void:
-	var bm: BedrockModel = model as BedrockModel
-	if bm == null:
+	var src := _entity_script(BEDROCK_ANIM)
+	if model == null or src == null or not model.has_method("get_bone"):
 		return
-	var a := BedrockAnimation.new()
+	var inst: Variant = src.new()
+	if not (inst is Node) or not (inst as Node).has_method("setup"):
+		if inst is Object:
+			(inst as Object).free()
+		return
+	var a := inst as Node
 	a.name = "Anim"
 	add_child(a)
-	a.setup(bm, self)
+	a.call("setup", model, self)
 	for pack in ["entity/races/movement", "entity/races/transf"]:
-		a.load_clips(pack)
+		if a.has_method("load_clips"):
+			a.call("load_clips", pack)
 	anim = a
-	a.play("idle", 0.0, true, 1.0)
+	if a.has_method("play"):
+		a.call("play", "idle", 0.0, true, 1.0)
 
 func refresh_derived() -> void:
 	if stats == null:

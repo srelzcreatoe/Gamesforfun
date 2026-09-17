@@ -242,7 +242,10 @@ func _setup_aura() -> void:
 func _setup_ground() -> void:
 	# expanding dust ring at the feet
 	_dust = FxAssets.make_particles("GroundDust", 20, FxAssets.smoke(), Color(0.70, 0.67, 0.62))
-	_dust.material_override.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
+	# MIX + local_coords: see FxAssets.mix_dust - this emitter hangs off a node whose
+	# global transform is re-assigned every frame, and world-space particles under such
+	# a parent reach the renderer as black quads.
+	FxAssets.mix_dust(_dust)
 	_dust.lifetime = 1.1
 	_dust.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
 	_dust.emission_ring_axis = Vector3.UP
@@ -315,7 +318,8 @@ func _setup_rocks() -> void:
 	for i in count:
 		var mi := MeshInstance3D.new()
 		mi.name = "Rock%d" % i
-		var s := _rng.randf_range(0.14, 0.32)
+		# a 3.8x Oozaru tears up 3.8x boulders, not the same pebbles a human lifts
+		var s := _rng.randf_range(0.14, 0.32) * _gs
 		mi.mesh = FxAssets.cube_mesh(s)
 		mi.material_override = FxAssets.debris_material(Color(0.26, 0.23, 0.20).lightened(_rng.randf() * 0.22))
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -406,11 +410,17 @@ static func _crack_texture() -> Texture2D:
 # --- timeline -------------------------------------------------------------
 
 func _process(delta: float) -> void:
-	# immune to our own slow motion / hit stop
-	var real := delta / maxf(0.001, Engine.time_scale)
+	# immune to our own slow motion / hit stop, and to a frame rendered while
+	# Engine.time_scale is changing (a hit-stop would otherwise integrate a 70 s jump)
+	var real := FxAssets.real_delta(delta)
 	t += real
 	if entity != null and is_instance_valid(entity) and entity is Node3D:
-		global_position = (entity as Node3D).global_position
+		# only WRITE when the entity actually moved: re-assigning the transform of a
+		# top_level node every frame corrupts world-space particles parented under it
+		# (FxAssets.mix_dust), and a standing transformation never moves at all
+		var here: Vector3 = (entity as Node3D).global_position
+		if here.distance_squared_to(global_position) > 0.000001:
+			global_position = here
 
 	if phase == Phase.GATHER and t >= _t_strain:
 		_enter_strain()
@@ -611,14 +621,16 @@ func _do_climax() -> void:
 		if l is AuraLightning:
 			(l as AuraLightning).strike(Vector3(0, 0.1, 0))
 
-## Vertical energy pillar shooting out of the body at the climax.
+## Vertical energy pillar shooting out of the body at the climax. Its length, girth and
+## the height it starts at all scale with the form, so an Oozaru gets a pillar standing
+## on ITS head instead of a human-sized bar floating 29 m above it.
 func _spawn_pillar() -> void:
 	var mi := MeshInstance3D.new()
 	mi.name = "Pillar"
 	var cyl := CylinderMesh.new()
-	cyl.top_radius = 0.42
-	cyl.bottom_radius = 0.60
-	cyl.height = 20.0
+	cyl.top_radius = 0.42 * _gs
+	cyl.bottom_radius = 0.60 * _gs
+	cyl.height = 20.0 * _gs
 	cyl.radial_segments = 14
 	cyl.rings = 1
 	mi.mesh = cyl
@@ -628,8 +640,9 @@ func _spawn_pillar() -> void:
 	})
 	mi.material_override = _pillar_mat
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	# starts just above the head so the transformed character stays readable under it
-	mi.position = Vector3(0, 12.0 * profile.scale, 0)
+	# the base sits just above the head (the aura reports the model's real visual height,
+	# which a form's taller hair changes), the rest of the cylinder goes up from there
+	mi.position = Vector3(0, _body_height() * 1.1 + cyl.height * 0.5, 0)
 	add_child(mi)
 	_pillar = mi
 	_pillar_age = 0.0
@@ -684,6 +697,14 @@ const HAIR_BONES: Array[String] = [
 	"pelo1", "pelo2", "pelo3", "pelo4", "cabello",
 ]
 
+## How tall the transforming body actually is, in metres. The aura already asks the
+## model for its real visual height (a form swaps in taller hair) and falls back to the
+## hitbox; `profile.scale` covers the giant forms when there is no aura at all.
+func _body_height() -> float:
+	if _aura != null and is_instance_valid(_aura) and _aura.has_method("visual_height"):
+		return maxf(0.5, _aura.visual_height())
+	return 2.0 * profile.scale
+
 func _model() -> Node3D:
 	if entity == null or not is_instance_valid(entity) or not ("model" in entity):
 		return null
@@ -691,7 +712,7 @@ func _model() -> Node3D:
 	return m if m is Node3D else null
 
 ## Flicker between the base look and the form's hair colour. Prefers the entity's own
-## hook, then the DMZ voxel hair mesh that `HairBuilder` parents under the head bone,
+## hook, then the DMZ voxel hair mesh the entity side parents under the head bone,
 ## then the model's named hair bones, then a whole-model tint. The base colour is
 ## remembered on the first call so `off` really puts the character back.
 func _flicker_hair(on: bool) -> void:
@@ -713,13 +734,13 @@ func _flicker_hair(on: bool) -> void:
 			_hair_base_set = true
 		_paint_hair(hair, c, _hair_base, on)
 		# A two tone style's accent spikes flicker with the main hair, derived from the
-		# FORM colour with the lighten factor `HairBuilder` uses for an undeclared accent
-		# (shared constant, so tuning it moves both). `HairBuilder.accent_color()` itself
-		# is deliberately NOT used here: an authored accent is an absolute colour
+		# FORM colour with the lighten factor the entity side uses for an undeclared
+		# accent (read from its script at runtime, so tuning it moves both). Its own
+		# accent_color() is deliberately NOT used: an authored accent is an absolute colour
 		# (gotenks' gold) and a form repaints the whole head, so a blue or red form would
 		# keep a clashing gold streak.
 		if _hair_accent_mat != null and is_instance_valid(_hair_accent_mat):
-			_paint_hair(_hair_accent_mat, c.lightened(HairBuilder.ACCENT_LIGHTEN), _hair_accent_base, on)
+			_paint_hair(_hair_accent_mat, c.lightened(accent_lighten_amount()), _hair_accent_base, on)
 		return
 	if model.has_method("has_bone") and model.has_method("set_bone_material") and model.has_method("get_texture"):
 		var tex: Variant = model.call("get_texture")
@@ -757,34 +778,58 @@ func _paint_hair(mat: StandardMaterial3D, c: Color, base: Color, on: bool) -> vo
 
 ## Material of the voxel hair mesh (`head` bone -> "Hair"), or null.
 ##
-## `HairBuilder.hair_material` finds the main hair whichever slot it sits in:
-## `material_override` for the single surface styles, surface 0 for a two tone style
-## (e.g. "gotenks"), whose surface 1 is the gold accent spikes — those go into
-## `_hair_accent_mat` so both layers flicker together. The duck-typed walk below is
-## the fallback for a stub model (FxDummy) that is not a BedrockModel.
+## FULLY DUCK-TYPED ON PURPOSE. The entity subsystem owns `BedrockModel` and
+## `HairBuilder` and is edited concurrently; naming either of them here would resolve at
+## PARSE time, so a rename or a half-saved file over there takes the whole fx stack down
+## with a compile error instead of degrading to "no hair flicker". The walk below is
+## exactly what the entity side's `hair_material()` does - the main hair sits in
+## `material_override` for a single surface style and in surface 0 for a two tone style
+## (e.g. "gotenks"), whose surface 1 is the accent spikes - and it also works on the stub
+## model the preview builds when the entity scripts are not there at all.
 func _hair_material(model: Node3D) -> StandardMaterial3D:
 	if _hair_mat != null and is_instance_valid(_hair_mat):
 		return _hair_mat
-	if model is BedrockModel:
-		var bm := model as BedrockModel
-		var hm: StandardMaterial3D = HairBuilder.hair_material(bm)
-		if hm != null:
-			_hair_mat = hm
-			var head3: Node3D = bm.get_bone("head")
-			var hair3 := head3.get_node_or_null("Hair") as MeshInstance3D if head3 != null else null
-			if hair3 != null and hair3.mesh != null and hair3.mesh.get_surface_count() > 1:
-				_hair_accent_mat = hair3.get_surface_override_material(1) as StandardMaterial3D
-			return _hair_mat
-	if not model.has_method("get_bone"):
+	var hair := _hair_mesh(model)
+	if hair == null:
+		return null
+	var mat := hair.material_override as StandardMaterial3D
+	if mat == null:
+		mat = hair.get_surface_override_material(0) as StandardMaterial3D
+	if mat == null:
+		return null
+	_hair_mat = mat
+	if hair.mesh != null and hair.mesh.get_surface_count() > 1:
+		_hair_accent_mat = hair.get_surface_override_material(1) as StandardMaterial3D
+	return _hair_mat
+
+## The "Hair" MeshInstance3D under the model's head bone, duck-typed.
+static func _hair_mesh(model: Node3D) -> MeshInstance3D:
+	if model == null or not model.has_method("get_bone"):
 		return null
 	var head: Variant = model.call("get_bone", "head")
 	if not (head is Node3D):
 		return null
-	var n: Node = (head as Node3D).get_node_or_null("Hair")
-	if n is MeshInstance3D and (n as MeshInstance3D).material_override is StandardMaterial3D:
-		_hair_mat = (n as MeshInstance3D).material_override
-		return _hair_mat
-	return null
+	return (head as Node3D).get_node_or_null("Hair") as MeshInstance3D
+
+## How much lighter an undeclared accent strand is than the main hair. The entity side's
+## hair builder owns the number (`ACCENT_LIGHTEN`); it is read out of that script at
+## RUNTIME so the two cannot drift, with a local fallback when it is not there.
+const HAIR_BUILDER_PATH := "res://scripts/entity/HairBuilder.gd"
+const ACCENT_LIGHTEN_FALLBACK := 0.45
+static var _accent_lighten := -1.0
+
+static func accent_lighten_amount() -> float:
+	if _accent_lighten >= 0.0:
+		return _accent_lighten
+	_accent_lighten = ACCENT_LIGHTEN_FALLBACK
+	if ResourceLoader.exists(HAIR_BUILDER_PATH):
+		var src: Variant = load(HAIR_BUILDER_PATH)
+		if src is GDScript:
+			var consts: Dictionary = (src as GDScript).get_script_constant_map()
+			var v: Variant = consts.get("ACCENT_LIGHTEN", null)
+			if v is float or v is int:
+				_accent_lighten = float(v)
+	return _accent_lighten
 
 ## One fading silhouette of the body, offset sideways (the "vibrating" look).
 func _afterimage() -> void:
@@ -920,13 +965,39 @@ func _lock_input(on: bool) -> void:
 func phase_name() -> String:
 	return PHASE_NAMES[clampi(phase, 0, PHASE_NAMES.size() - 1)]
 
-## Total CPU particles this director can have alive right now (its own emitters plus the
-## one-shot bursts it parented under itself). Never allowed past MAX_PARTICLES.
+## Total CPU particles the CINEMATIC can have alive right now, wherever they hang:
+## the director's own emitters and one-shot bursts, the entity's persistent `Aura`
+## (its own sparks + rising motes are on screen throughout) and the afterimage ghosts,
+## which `Trails.spawn_ghost` parents to the entity's parent, not to us. Counting only
+## our own subtree under-reports the frame, which is the number the mobile budget is
+## about. Never allowed past MAX_PARTICLES.
 func particle_budget() -> int:
-	return _count_particles(self)
+	var total := 0
+	for n in _cinematic_roots():
+		total += _count_particles(n)
+	return total
 
+## Light3D nodes the cinematic has on screen, counted over the same roots.
 func light_count() -> int:
-	return _count_lights(self)
+	var total := 0
+	for n in _cinematic_roots():
+		total += _count_lights(n)
+	return total
+
+## Every node that holds something this cinematic drew, with no double counting (the
+## aura and the ghosts are siblings of the director, never its descendants).
+func _cinematic_roots() -> Array[Node]:
+	var roots: Array[Node] = [self]
+	if entity != null and is_instance_valid(entity):
+		var a := Aura.find_on(entity)
+		if a != null and is_instance_valid(a) and not is_ancestor_of(a):
+			roots.append(a)
+		var host: Node = (entity as Node).get_parent()
+		if host != null and is_instance_valid(host):
+			for c in host.get_children():
+				if String(c.name).begins_with("Afterimage"):
+					roots.append(c)
+	return roots
 
 static func _count_particles(n: Node) -> int:
 	var total := 0

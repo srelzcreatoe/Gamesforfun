@@ -301,8 +301,9 @@ func _on_health_changed(current: float, maximum: float) -> void:
 # --- per frame ------------------------------------------------------------
 
 func _process(delta: float) -> void:
-	# real time regardless of Engine.time_scale
-	var real := delta / maxf(0.001, Engine.time_scale)
+	# real time regardless of our own slow motion, clamped so the frame on which
+	# Engine.time_scale changes cannot integrate a huge jump (FxAssets.real_delta)
+	var real := FxAssets.real_delta(delta)
 	if _slow_left > 0.0:
 		_slow_left -= real
 		if _slow_left <= 0.0:
