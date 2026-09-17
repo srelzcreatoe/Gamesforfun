@@ -349,29 +349,50 @@ func refresh() -> void:
 
 # --- per frame ------------------------------------------------------------
 
+## Flicker the aura in and out (transformation "strain" phase). `white` blows the whole
+## shell out to a white-hot sheet for a frame or two.
+func set_flicker(amount: float, white := 0.0) -> void:
+	_flicker = clampf(amount, 0.0, 1.0)
+	_flicker_white = clampf(white, 0.0, 1.0)
+
 func _process(delta: float) -> void:
 	if entity == null or not is_instance_valid(entity):
 		queue_free()
 		return
+	_idle_t += delta
 	var speed := 8.0 if _target > _intensity else 3.5
 	_apply_intensity(lerpf(_intensity, _target, clampf(delta * speed, 0.0, 1.0)))
 
 func _apply_intensity(v: float) -> void:
 	_intensity = v
 	var vis := v > 0.02
+	# idle motion: the shell breathes and the inner core counter-rotates, so a standing
+	# aura is never a frozen mesh even when the intensity does not change
+	var breath := 1.0 + sin(_idle_t * 2.3) * 0.05 + sin(_idle_t * 5.7) * 0.02
+	var shown := v * (1.0 - _flicker * (0.5 + 0.5 * sin(_idle_t * 34.0)))
 	if _mat_outer != null:
-		_mat_outer.set_shader_parameter("intensity", v)
+		_mat_outer.set_shader_parameter("intensity", shown)
+		if _flicker_white > 0.0:
+			_mat_outer.set_shader_parameter("inner_color", inner_color.lerp(Color(1, 1, 1), _flicker_white))
 	if _mat_inner != null:
-		_mat_inner.set_shader_parameter("intensity", v * 0.85)
+		_mat_inner.set_shader_parameter("intensity", shown * 0.85)
 	if _outer != null:
 		_outer.visible = vis
-		_outer.scale = Vector3(1.0 + v * 0.12, 1.0 + v * 0.22, 1.0 + v * 0.12) * body_scale
+		_outer.scale = Vector3(1.0 + v * 0.12, (1.0 + v * 0.22) * breath, 1.0 + v * 0.12) * body_scale
+		_outer.rotation.y = _idle_t * 0.35
 	if _inner != null:
 		_inner.visible = vis
+		_inner.rotation.y = -_idle_t * 0.6
+		_inner.scale = Vector3.ONE * body_scale * (1.0 + v * 0.05)
 	if _ground != null:
 		_ground.visible = vis
 		_mat_ground.albedo_color = Color(outer_color.r, outer_color.g, outer_color.b, clampf(v * 0.35, 0.0, 0.5))
-		_ground.scale = Vector3.ONE * (0.8 + v * 0.5)
+		_ground.scale = Vector3.ONE * (0.8 + v * 0.5) * (1.0 + 0.04 * sin(_idle_t * 3.1))
+	if _flare != null:
+		_flare.visible = vis
+		_mat_flare.albedo_color = Color(outer_color.r, outer_color.g, outer_color.b,
+			clampf(shown * 0.22, 0.0, 0.45))
+		_flare.scale = Vector3.ONE * body_scale * (0.9 + v * 0.55) * breath
 	if _sparks != null:
 		_sparks.emitting = v > 0.45
 	if _rise != null:
