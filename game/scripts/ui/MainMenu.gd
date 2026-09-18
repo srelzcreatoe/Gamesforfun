@@ -49,6 +49,7 @@ func build() -> void:
 	col.add_child(center)
 	var entries := [["Play", _on_play, 0], ["Settings", func() -> void: Game.ui.call("open", "settings"), 5],
 		["How to Play", _on_help, 3], ["Credits", _on_credits, 6]]
+	entries.append(["Crash log", func() -> void: Game.ui.call("open", "crash_log"), 4])
 	if not Game.is_mobile():
 		entries.append(["Quit", func() -> void: get_tree().quit(), 7])
 	for e in entries:

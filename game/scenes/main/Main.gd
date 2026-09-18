@@ -106,6 +106,19 @@ var _last_run_label: Label = null
 const CRASH_FILE := "user://crashes.json"
 const WORLD_STAGES := ["enter world", "into world load", "first chunk", "player spawned", "world loaded", "after entering", "planet "]
 
+## Keep the crashed run's breadcrumbs: boot.log is overwritten by this launch, so copy it
+## to boot_prev.log first. The Crash log screen reads the copy.
+func _rotate_boot_log() -> void:
+	if not FileAccess.file_exists(BOOT_LOG):
+		return
+	var txt := FileAccess.get_file_as_string(BOOT_LOG)
+	if txt.strip_edges().is_empty():
+		return
+	var f := FileAccess.open(CrashReport.BOOT_PREV, FileAccess.WRITE)
+	if f != null:
+		f.store_string(txt)
+		f.close()
+
 func _show_last_run() -> void:
 	if not FileAccess.file_exists(BOOT_LOG):
 		return
@@ -172,6 +185,7 @@ func _clear_crash_counter() -> void:
 	_breadcrumb("60s survived, crash counter cleared")
 
 func _connect_breadcrumbs() -> void:
+	_rotate_boot_log()
 	_show_last_run()
 	_breadcrumb("boot")
 	Events.world_loaded.connect(func(_w: Node) -> void: _breadcrumb("world loaded"))

@@ -35,6 +35,8 @@ Ambient="*res://scripts/ambient/AmbientBoot.gd"
 
 [debug]
 
+file_logging/enable_file_logging=true
+file_logging/max_log_files=4
 gdscript/warnings/untyped_declaration=0
 gdscript/warnings/inference_on_variant=1
 gdscript/warnings/unsafe_property_access=0

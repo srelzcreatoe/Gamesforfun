@@ -23,6 +23,7 @@ const SCREENS := {
 	"create_world": "res://scenes/ui/CreateWorld.tscn",
 	"loading": "res://scenes/ui/Loading.tscn",
 	"dev": "res://scenes/ui/DevMenu.tscn",
+	"crash_log": "res://scenes/ui/CrashLog.tscn",
 }
 const NON_MODAL := ["hud"]
 
