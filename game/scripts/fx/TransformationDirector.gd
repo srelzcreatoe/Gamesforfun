@@ -109,6 +109,7 @@ var _burst_main: CPUParticles3D
 var _burst_dust: CPUParticles3D
 var _burst_sparks: CPUParticles3D
 var _burst_rock: CPUParticles3D
+var _climax_ring: MeshInstance3D
 ## Ground/debris/ring scale: a giant form tears up a much bigger patch of ground.
 var _gs := 1.0
 var _rng := RandomNumberGenerator.new()
@@ -234,9 +235,9 @@ func _ready() -> void:
 func _enter_gather() -> void:
 	phase = Phase.GATHER
 	_prev_bgm = Audio.bgm_context()
-	Audio.play_bgm("transformation", 0.35)
-	Audio.play_sfx_at("aura_start", global_position, -2.0)
-	Audio.play_sfx_at("ki_charge_start", global_position, -4.0)
+	_bgm("transformation", 0.35)
+	_sfx("aura_start", -2.0)
+	_sfx("ki_charge_start", -4.0)
 	Audio.play_loop("ki_charge_loop", _loop_key, -7.0)
 	_setup_aura()
 	_setup_ground()
@@ -271,6 +272,11 @@ func _prewarm_climax() -> void:
 	_burst_rock = FxAssets.prep_burst(self, "RockShatter", 26,
 		["ki_spark_2", "spark1", "aaa/missile_boost/Star"], Color(0.72, 0.66, 0.58),
 		7.0, 0.7, 0.28, -18.0, ROCK_RADIUS * _gs)
+	# the big climax ring: its mesh + shockwave material were 1.5 ms of the burst frame
+	_climax_ring = _ring_mesh(profile.aura, 7.8 * _gs)
+	_climax_ring.position = Vector3(0, 0.12, 0)
+	_climax_ring.visible = false
+	add_child(_climax_ring)
 	_prep_pillar()
 
 func _setup_aura() -> void:
@@ -506,11 +512,26 @@ func _process(delta: float) -> void:
 		_spark_t -= real
 		if _spark_t <= 0.0:
 			_spark_t = _rng.randf_range(0.45, 0.9)
-			Audio.play_sfx_at("ki_sparks", global_position, -10.0, _rng.randf_range(0.9, 1.25))
+			_sfx("ki_sparks", -10.0, _rng.randf_range(0.9, 1.25))
 
 	FxAssets.cpu_add(Time.get_ticks_usec() - _cpu0)
 	if t >= duration:
 		_finish()
+
+## Audio and the gameplay callback go through the EXTERN counter: they are other
+## subsystems' work happening inside the cinematic's frame (Audio._stream() load()s a
+## ~1 MB BGM wav synchronously; Forms' on_climax swaps the model and recomputes stats),
+## and attributing them is what turned "the burst costs 9.8 ms of fx" into "1.6 ms of fx
+## plus a 6.5 ms form application plus 0.8 ms of audio loads". See FxAssets.cpu_extern_usec.
+func _sfx(sound: String, db := 0.0, pitch := 1.0) -> void:
+	var e0 := Time.get_ticks_usec()
+	Audio.play_sfx_at(sound, global_position, db, pitch)
+	FxAssets.cpu_add_extern(Time.get_ticks_usec() - e0)
+
+func _bgm(context: String, fade: float) -> void:
+	var e0 := Time.get_ticks_usec()
+	Audio.play_bgm(context, fade)
+	FxAssets.cpu_add_extern(Time.get_ticks_usec() - e0)
 
 func _strain_progress() -> float:
 	return clampf((t - _t_strain) / maxf(0.01, _t_climax - _t_strain), 0.0, 1.0)
@@ -520,7 +541,7 @@ func _enter_strain() -> void:
 	phase = Phase.STRAIN
 	if _motes != null:
 		_motes.emitting = false
-	Audio.play_sfx_at("transform_on", global_position, -1.0)
+	_sfx("transform_on", -1.0)
 	# ONE dim for the strain: the pass darkens the edges much harder than the middle
 	# (shaders/post_process.gdshader), so this is the vignette as well. Asking the
 	# additive overlay for a black vignette on top of it did nothing at all in game.
@@ -644,9 +665,12 @@ func _update_pillar(real: float) -> void:
 func _do_climax() -> void:
 	_climax_done = true
 	phase = Phase.BURST
-	# the form takes effect now
+	# the form takes effect now. This is Forms' work, not the cinematic's - it measured
+	# 6.5 ms of the burst frame's 9.8 ms, which is why it is attributed (FxAssets.cpu_extern_usec)
 	if on_climax.is_valid():
+		var e0 := Time.get_ticks_usec()
 		on_climax.call()
+		FxAssets.cpu_add_extern(Time.get_ticks_usec() - e0)
 	ScreenFx.flash(Color(1, 1, 1), 0.5, 1.0)
 	Events.screen_flash.emit(Color(1, 1, 1), 0.5)
 	Events.screen_shake.emit(1.0, 0.55)
@@ -657,16 +681,17 @@ func _do_climax() -> void:
 	ScreenFx.dim(0.0, 0.0, 0.25)
 	ScreenFx.glow(0.75, 0.8, 0.7)
 	_fov_kick = 16.0
-	_spawn_ring(7.8 * _gs, 0.85)
+	_fire_ring(_climax_ring, 0.85)
+	_climax_ring = null
 	_fire_pillar()
 	FxAssets.fire_burst(_burst_main, global_position + Vector3.UP * 1.0)
 	FxAssets.fire_burst(_burst_dust, global_position)
 	FxAssets.fire_burst(_burst_sparks, global_position + Vector3.UP * 0.2)
-	Audio.play_sfx_at("power_up_burst", global_position)
-	Audio.play_sfx_at("explosion_big", global_position, -6.0, 0.8)
-	Audio.play_sfx_at("shockwave", global_position, -4.0)
+	_sfx("power_up_burst")
+	_sfx("explosion_big", -6.0, 0.8)
+	_sfx("shockwave", -4.0)
 	if profile.lightning:
-		Audio.play_sfx_at("thunder", global_position, -7.0)
+		_sfx("thunder", -7.0)
 	Audio.stop_loop(_loop_key, 0.15)
 	_shatter_rocks()
 	_disturb(1.0)
@@ -762,9 +787,9 @@ func _enter_reveal() -> void:
 	_settle_hair()                       # settle on the form colour, stop the pulse
 	ScreenFx.clear_sustained(0.4)
 	if _prev_bgm != "" and _prev_bgm != "transformation":
-		Audio.play_bgm(_prev_bgm, 1.5)
+		_bgm(_prev_bgm, 1.5)
 	else:
-		Audio.play_bgm("battle", 1.5)
+		_bgm("battle", 1.5)
 
 # --- helpers --------------------------------------------------------------
 
@@ -957,13 +982,21 @@ func _spawn_ring(size: float, life: float) -> void:
 	var mi := _ring_mesh(profile.aura, size)
 	mi.position = Vector3(0, 0.12, 0)
 	add_child(mi)
+	_fire_ring(mi, life)
+
+## Expand a ring that already exists. The climax ring is built during the gather phase
+## (_prewarm_climax) and only started here.
+func _fire_ring(mi: MeshInstance3D, life: float) -> void:
+	if mi == null or not is_instance_valid(mi):
+		return
+	mi.visible = true
 	var mat: ShaderMaterial = mi.material_override
 	var tw := mi.create_tween()
 	tw.tween_method(func(v: float) -> void:
 		if is_instance_valid(mat):
 			mat.set_shader_parameter("progress", v), 0.0, 1.0, life)
 	tw.tween_callback(mi.queue_free)
-	Audio.play_sfx_at("shockwave", global_position, -8.0)
+	_sfx("shockwave", -8.0)
 
 func _update_camera(real: float) -> void:
 	if _fov_kick > 0.0:

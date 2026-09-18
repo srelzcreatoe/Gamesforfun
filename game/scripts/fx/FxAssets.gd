@@ -106,6 +106,21 @@ static func cpu_add(usec: int) -> void:
 static func cpu_add_ghost(usec: int) -> void:
 	cpu_ghost_usec += usec
 
+## Work by OTHER subsystems that the cinematic triggers inside its own frame, so the fx
+## numbers cannot be blamed for it and it can be pointed at its owner. Two things land
+## here today, both measured: `Forms`' on_climax callback (the model swap and the stat
+## recompute, ~6.5 ms in the burst frame) and `Audio` (its `_stream()` load()s a ~1 MB
+## BGM wav synchronously, ~4 ms at the reveal).
+static var cpu_extern_usec := 0
+
+static func cpu_add_extern(usec: int) -> void:
+	cpu_extern_usec += usec
+
+static func cpu_extern_take() -> int:
+	var v := cpu_extern_usec
+	cpu_extern_usec = 0
+	return v
+
 static func cpu_ghost_take() -> int:
 	var v := cpu_ghost_usec
 	cpu_ghost_usec = 0
