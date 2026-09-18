@@ -103,6 +103,9 @@ func _breadcrumb(stage: String) -> void:
 ## without digging for the log file.
 var _last_run_label: Label = null
 
+const CRASH_FILE := "user://crashes.json"
+const WORLD_STAGES := ["enter world", "into world load", "first chunk", "player spawned", "world loaded", "after entering", "planet "]
+
 func _show_last_run() -> void:
 	if not FileAccess.file_exists(BOOT_LOG):
 		return
@@ -113,16 +116,60 @@ func _show_last_run() -> void:
 	var last := lines[lines.size() - 1].strip_edges()
 	if last.begins_with("Dragon Block Sagas"):
 		return
+	# A run whose last breadcrumb is a world stage, with no clean pause/quit after it, died
+	# in the world. After one such run the next launch starts in safe mode.
+	var died_in_world := false
+	for k in WORLD_STAGES:
+		if last.find(k) >= 0:
+			died_in_world = true
+	if last.find("paused") >= 0 or last.find("quit") >= 0 or last.find("safe:") >= 0:
+		died_in_world = false
+	var crashes: Dictionary = {}
+	var cf: Variant = JsonUtil.load_file(CRASH_FILE)
+	if cf is Dictionary:
+		crashes = cf
+	var count := int(crashes.get("count", 0))
+	if died_in_world:
+		count += 1
+		crashes["count"] = count
+		crashes["last"] = last
+		JsonUtil.save_file(CRASH_FILE, crashes, false)
+	var text := "Last run ended at: " + last
+	if count >= 1:
+		_enter_safe_mode()
+		text = "SAFE MODE (previous run crashed at: %s)" % String(crashes.get("last", last))
 	_last_run_label = Label.new()
-	_last_run_label.text = "Last run ended at: " + last
+	_last_run_label.text = text
 	_last_run_label.add_theme_font_size_override("font_size", 12)
-	_last_run_label.modulate = Color(1, 0.85, 0.5, 0.9)
+	_last_run_label.modulate = Color(1, 0.85, 0.5, 0.9) if count == 0 else Color(1, 0.45, 0.35, 1.0)
 	_last_run_label.position = Vector2(8, 8)
 	_last_run_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay.add_child(_last_run_label)
 	Events.world_loaded.connect(func(_w: Node) -> void:
 		if _last_run_label != null:
 			_last_run_label.visible = false)
+
+## Safe mode: everything optional off, small world, low-res skins. Not saved to settings;
+## it lasts for this launch. A run that survives 60 s in the world clears the counter.
+func _enter_safe_mode() -> void:
+	Game.settings["safe_mode"] = true
+	Game.settings["render_distance"] = 3
+	Game.settings["sim_distance"] = 2
+	Game.settings["bloom"] = false
+	Game.settings["clouds"] = false
+	Game.settings["fancy_water"] = false
+	Game.settings["particles"] = 0.25
+	Game.settings["ambient_life"] = false
+	Game.settings["shadows"] = false
+	if ClassDB.class_exists("RaceSkin") or ResourceLoader.exists("res://scripts/entity/RaceSkin.gd"):
+		var rs: GDScript = load("res://scripts/entity/RaceSkin.gd")
+		if rs != null:
+			rs.set("hd", false)
+	_breadcrumb("safe: mode on")
+
+func _clear_crash_counter() -> void:
+	JsonUtil.save_file(CRASH_FILE, {"count": 0}, false)
+	_breadcrumb("60s survived, crash counter cleared")
 
 func _connect_breadcrumbs() -> void:
 	_show_last_run()
@@ -188,6 +235,7 @@ func enter_world(info: Dictionary) -> void:
 	get_tree().create_timer(6.0).timeout.connect(func() -> void: _breadcrumb("6s into world load"))
 	get_tree().create_timer(15.0).timeout.connect(func() -> void: _breadcrumb("15s after entering"))
 	get_tree().create_timer(40.0).timeout.connect(func() -> void: _breadcrumb("40s after entering"))
+	get_tree().create_timer(60.0).timeout.connect(func() -> void: _clear_crash_counter())
 	_clear_screen()
 	if not ResourceLoader.exists(WORLD_SCENE):
 		Log.e("World scene missing: " + WORLD_SCENE)
@@ -213,8 +261,12 @@ func _autoplay() -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		_breadcrumb("paused")
 		if not Game.world_info.is_empty():
 			Game.save_all()
+	if what == NOTIFICATION_APPLICATION_RESUMED:
+		_breadcrumb("resumed")
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_breadcrumb("quit")
 		if not Game.world_info.is_empty() and not Game.world_info.get("transient", false):
 			Game.save_all()

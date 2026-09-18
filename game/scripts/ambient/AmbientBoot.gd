@@ -177,6 +177,8 @@ func is_installed() -> bool:
 # --- Events -----------------------------------------------------------------------------------
 
 func _on_world_loaded(w: Node) -> void:
+	if not bool(Game.settings.get("ambient_life", true)):
+		return
 	install(w)
 
 func _on_world_unloading(w: Node) -> void:
