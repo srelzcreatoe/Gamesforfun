@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS := {
 	"autosave_minutes": 2, "shadows": false, "bloom": true, "clouds": true, "fancy_water": true,
 	"particles": 1.0, "camera_mode": 0, "invert_y": false, "touch_layout": "default",
 	"show_coordinates": false, "dev_mode": false, "hud_scale": 1.0, "slot": -1,
+	"ambient_life": true, "safe_mode": false,
 }
 
 var settings: Dictionary = {}
@@ -41,12 +42,19 @@ func load_settings() -> void:
 			if settings.has(k):
 				settings[k] = d[k]
 	if is_mobile():
-		# Phones: a small first-run world radius keeps memory well under Android's
-		# low-memory killer; the player can raise it in Settings.
+		# Phones start minimal: a small world, no screen-space effects and no ambient
+		# life. Mobile GL drivers vary wildly and a heavy first frame is what takes
+		# them down, so quality is opt-in from Settings rather than opt-out.
 		if not (d is Dictionary):
 			settings["render_distance"] = 4
 			settings["sim_distance"] = 2
-			settings["quality_preset"] = "balanced"
+			settings["quality_preset"] = "low"
+			settings["bloom"] = false
+			settings["clouds"] = false
+			settings["fancy_water"] = false
+			settings["shadows"] = false
+			settings["particles"] = 0.5
+			settings["ambient_life"] = false
 	else:
 		if not (d is Dictionary):
 			settings["render_distance"] = 8
@@ -64,7 +72,7 @@ func apply_quality_preset(name: String) -> void:
 	settings["quality_preset"] = name
 	match name:
 		"low":
-			settings["render_distance"] = 3; settings["sim_distance"] = 2; settings["shadows"] = false; settings["bloom"] = false; settings["clouds"] = false; settings["fancy_water"] = false; settings["particles"] = 0.5
+			settings["render_distance"] = 3; settings["sim_distance"] = 2; settings["shadows"] = false; settings["bloom"] = false; settings["clouds"] = false; settings["fancy_water"] = false; settings["particles"] = 0.5; settings["ambient_life"] = false
 		"balanced":
 			settings["render_distance"] = 5; settings["sim_distance"] = 3; settings["shadows"] = false; settings["bloom"] = true; settings["clouds"] = true; settings["fancy_water"] = true; settings["particles"] = 1.0
 		"high":
