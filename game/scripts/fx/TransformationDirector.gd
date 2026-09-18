@@ -18,8 +18,9 @@ extends Node3D
 ##                           lightning ribbons (lightning-tier forms) that reach further
 ##                           out as the strain builds, debris levitates, the ground cracks
 ##                           GROW, grass is pushed away through World.add_disturbance, the
-##                           camera orbits with a handheld micro-shake, the vignette closes
-##                           in and the sky dims, afterimage silhouettes, two shockwave
+##                           camera orbits with a handheld micro-shake, the scene dims from
+##                           the edges in (one vignette-shaped post pass - an ADDITIVE
+##                           overlay cannot darken a frame), afterimage silhouettes, two shockwave
 ##                           rings - and ONE OmniLight3D at the body, so the character is
 ##                           lit by his own aura instead of going black inside it
 ##   C BURST      74 %       white flash, hit-stop, big shockwave ring + vertical energy
