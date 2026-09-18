@@ -87,6 +87,24 @@ static func mix_dust(p: CPUParticles3D) -> void:
 static func real_delta(delta: float) -> float:
 	return minf(delta / maxf(0.001, Engine.time_scale), MAX_REAL_DELTA)
 
+## --- fx CPU accounting ----------------------------------------------------
+## Microseconds the fx scripts spent in their own `_process` since the last read. The
+## transformation director and the aura add to it; `FxPreview --profile` divides it by
+## the frames in each phase and prints it. Two `Time.get_ticks_usec()` calls per frame
+## per emitter-owner, and only while a cinematic or an aura is actually running - the
+## engine's `Performance.TIME_PROCESS` monitor reads 0 headless and is not comparable
+## between a screenshot run and a phone, so the cinematic's own cost is measured here.
+static var cpu_usec := 0
+
+static func cpu_add(usec: int) -> void:
+	cpu_usec += usec
+
+## Read the counter and zero it (one frame's worth when called every frame).
+static func cpu_take() -> int:
+	var v := cpu_usec
+	cpu_usec = 0
+	return v
+
 static var _tex_cache: Dictionary = {}
 static var _mat_cache: Dictionary = {}
 

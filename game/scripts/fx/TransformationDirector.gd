@@ -427,6 +427,7 @@ static func _crack_texture() -> Texture2D:
 # --- timeline -------------------------------------------------------------
 
 func _process(delta: float) -> void:
+	var _cpu0 := Time.get_ticks_usec()          # fx CPU accounting (FxAssets.cpu_usec)
 	# immune to our own slow motion / hit stop, and to a frame rendered while
 	# Engine.time_scale is changing (a hit-stop would otherwise integrate a 70 s jump)
 	var real := FxAssets.real_delta(delta)
