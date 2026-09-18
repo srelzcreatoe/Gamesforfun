@@ -643,8 +643,12 @@ static func blocks_of(path: String, src_min := 0, src_max := 255) -> Dictionary:
 	var hit: Variant = _blocks.get(key, null)
 	if hit != null:
 		_touch(key)
+		# Hand out a shell copy, never the cached container itself: the packed arrays
+		# inside are copy-on-write so this is cheap, but the caller must not be holding
+		# a reference into a Dictionary that another generator thread can evict.
+		var copy: Dictionary = (hit as Dictionary).duplicate(false)
 		_tpl_mutex.unlock()
-		return hit
+		return copy
 	_tpl_mutex.unlock()
 	var built := _parse_blocks(path, src_min, src_max)
 	_tpl_mutex.lock()
@@ -654,10 +658,11 @@ static func blocks_of(path: String, src_min := 0, src_max := 255) -> Dictionary:
 		_blocks_bytes += int(built.get("bytes", 0))
 		_evict()
 	else:
-		built = _blocks[key]
+		built = (_blocks[key] as Dictionary).duplicate(false)
 		_touch(key)
+	var out: Dictionary = built.duplicate(false)
 	_tpl_mutex.unlock()
-	return built
+	return out
 
 ## Both halves together (used by the tests and by anything that wants one dictionary).
 static func template(path: String, src_min := 0, src_max := 255) -> Dictionary:

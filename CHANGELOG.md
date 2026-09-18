@@ -1,5 +1,10 @@
 # Changelog
 
+## Preview 10 (2026-09-19)
+
+- Fixed the Android crash the phone's own log finally pinned down: `Array::_ref` failing means a container was freed while another thread used it. The structure-template cache handed the cached container out from under its mutex, so a second generator thread could evict it mid-read. It now hands out copies, and phones run a single generator thread until the full thread-safety audit lands.
+- Crash log collapses repeated engine-log lines so the useful lines before an error flood survive.
+
 ## Preview 9 (2026-09-18)
 
 - Fixed the black blocks and the most likely cause of the Android crash: block tiles were a 470-layer texture array, but mobile GL only guarantees 256 layers, so the array never built on the phone. They are now one 512x240 atlas.

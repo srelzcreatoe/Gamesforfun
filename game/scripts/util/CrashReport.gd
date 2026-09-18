@@ -86,10 +86,25 @@ static func _engine_log() -> String:
 	files.sort()
 	var pick: String = files[files.size() - 2] if files.size() >= 2 else files[0]
 	var txt := FileAccess.get_file_as_string(LOG_DIR.path_join(pick))
+	# Collapse runs of identical lines first: a crashing run floods the log with the same
+	# error thousands of times, and the lines BEFORE the flood are the useful ones.
 	var lines := txt.split("\n")
-	var start: int = maxi(0, lines.size() - ENGINE_LOG_LINES)
+	var packed := PackedStringArray()
+	var counts := PackedInt32Array()
+	for raw in lines:
+		var line := String(raw)
+		if packed.size() > 0 and packed[packed.size() - 1] == line:
+			counts[counts.size() - 1] += 1
+		else:
+			packed.append(line)
+			counts.append(1)
+	var start: int = maxi(0, packed.size() - ENGINE_LOG_LINES)
 	var tail := PackedStringArray()
-	tail.append("(%s, last %d of %d lines)" % [pick, mini(ENGINE_LOG_LINES, lines.size()), lines.size()])
-	for i in range(start, lines.size()):
-		tail.append(lines[i])
+	tail.append("(%s, %d lines -> %d after collapsing repeats, showing the last %d)" % [
+		pick, lines.size(), packed.size(), mini(ENGINE_LOG_LINES, packed.size())])
+	for i in range(start, packed.size()):
+		if counts[i] > 1:
+			tail.append("%s   [x%d]" % [packed[i], counts[i]])
+		else:
+			tail.append(packed[i])
 	return "\n".join(tail)

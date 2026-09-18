@@ -81,7 +81,11 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	# Leave cores for the renderer and the main thread: oversubscribing the CPU makes frames
 	# stutter far more than a slightly slower stream does.
-	_max_gen_tasks = clampi(OS.get_processor_count() / 2, 1, 3)
+	# One generator thread on phones. The Android crash log showed
+	# `Array::_ref` failing (a freed container) once three generator threads ran
+	# against the shared worldgen caches; a single worker removes worker-to-worker
+	# sharing entirely, and the main-thread handoff is mutex'd.
+	_max_gen_tasks = 1 if Game.is_mobile() else clampi(OS.get_processor_count() / 2, 1, 3)
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--profile"):
 			_force_profile = true
