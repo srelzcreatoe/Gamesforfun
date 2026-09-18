@@ -1,5 +1,9 @@
 # Changelog
 
+## Preview 5 (2026-09-18)
+
+- Full DragonMineZ character creator: body type, eyes, nose, mouth, tattoo, three skin layers, hair, hair colour, eye colour 1 and 2, per race; touch-verified arrows; fits 20:9 phones without scrolling.
+
 ## Preview 4 (2026-09-18)
 
 - Fixed the player skin being invisible in exported builds (skin layers are now resolved through the resource loader).
