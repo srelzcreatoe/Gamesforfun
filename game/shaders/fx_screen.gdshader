@@ -72,24 +72,27 @@ void fragment() {
 		col += acc * glow_tint.rgb * bright * glow_amount;
 	}
 
+	// FXDIM-BEGIN  (kept byte-identical in shaders/post_process.gdshader; the test
+	// tests/test_fx.gd normalises the uniform prefix and compares the two blocks)
 	if (darken > 0.0001) {
-		float l = luma(col);
+		float dl = luma(col);
 		// Vignette weighted and PROPORTIONAL. Mixing the frame toward an absolute
 		// near-black (what this used to do) reads as almost nothing in noon daylight and
-		// crushes already-dark pixels - 12.8 % of the in-world strain frame came out pure
-		// black - so the frame is SCALED down instead: hard at the edges, gently in the
-		// middle where the character is, with a cool tint added back so nothing clips to
-		// zero. That is also where the strain "vignette" comes from now; an additive
-		// overlay cannot darken anything.
-		vec2 centred = uv - vec2(0.5);
-		float edge = 0.40 + 0.95 * smoothstep(0.05, 0.95, length(centred) * 1.30);
+		// crushes already-dark pixels, so the frame is SCALED down instead: hard at the
+		// edges, gently in the middle where the character is, with a cool tint added back
+		// so nothing clips to zero. That is also where the strain "vignette" comes from
+		// now; an additive overlay cannot darken anything.
+		float edge = 0.40 + 0.95 * smoothstep(0.05, 0.95, length(uv - vec2(0.5)) * 1.30);
 		float amt = clamp(darken * edge, 0.0, 1.0);
-		vec3 dimmed = col * mix(1.0, 0.10, amt) + darken_color.rgb * amt * (0.22 + 0.45 * l) * 1.6;
-		// Only genuinely blown-out fx pixels burn through the dim, and only partly: the
-		// gate has to sit above daylight terrain luma or the dim does nothing at noon.
-		// Kept identical to shaders/post_process.gdshader, which runs the same pass in world.
-		col = mix(dimmed, col, clamp((l - 0.88) * 6.0, 0.0, 1.0) * 0.85);
+		vec3 dimmed = col * mix(1.0, 0.10, amt) + darken_color.rgb * amt * (0.22 + 0.45 * dl) * 1.6;
+		// Only genuinely blown-out fx pixels (aura core, flash, beam) burn through the
+		// dim, and only partly. The gate has to sit above daylight terrain luma - at 0.7
+		// it opened for sky, sand and most grass, so the dim read at night and did
+		// nothing at noon. Both passes run this on the FRAMEBUFFER-ENCODED colour, as the
+		// last thing before output, so `dl` means the same number in both.
+		col = clamp(mix(dimmed, col, clamp((dl - 0.88) * 6.0, 0.0, 1.0) * 0.85), vec3(0.0), vec3(1.0));
 	}
+	// FXDIM-END
 
 	COLOR = vec4(clamp(col, vec3(0.0), vec3(1.0)), 1.0);
 }

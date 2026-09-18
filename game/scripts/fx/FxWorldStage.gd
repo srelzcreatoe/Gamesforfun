@@ -9,7 +9,9 @@ extends Node
 ##             --at=3.4,4.9 --seed=777"
 ##
 ## `--at=` seconds are measured from the moment the transformation starts (not from boot),
-## so the phase is deterministic however long the world takes to generate.
+## so the phase is deterministic however long the world takes to generate. Each shot lands
+## on the last frame AT OR BEFORE its target (FxPreview._due), never past it, and the
+## SCREENSHOT line prints the frame's real t next to the target it was asked for.
 ## `--wait=` seconds to let the world settle before transforming (default 6).
 ## `--nohud` hides the UiManager for a clean shot.
 
@@ -28,6 +30,8 @@ var _t := 0.0
 var _boot_t := 0.0
 var _shots_done := 0
 var _capturing := false
+## see FxPreview._due: `--at` lands on the last frame AT OR BEFORE the target
+var _last_real := 0.0
 
 func _ready() -> void:
 	_parse_args()
@@ -85,8 +89,10 @@ func _process(delta: float) -> void:
 	# the same clamped real-time clock the director uses, so `--at` cannot overshoot:
 	# the frame on which the climax hit-stop drops Engine.time_scale to 0.001 used to
 	# integrate delta/0.001 and jump the clock tens of seconds past the requested time
-	_t += FxAssets.real_delta(delta)
+	var real := FxAssets.real_delta(delta)
+	_t += real
 	_maybe_capture()
+	_last_real = real
 
 func _start_transform() -> void:
 	_started = true
@@ -100,7 +106,7 @@ func _start_transform() -> void:
 func _maybe_capture() -> void:
 	if _capturing or shot_path == "" or _shots_done >= at_times.size():
 		return
-	if _t < at_times[_shots_done]:
+	if not FxPreview._due(_t, _last_real, at_times[_shots_done]):
 		return
 	_capturing = true
 	_capture(at_times[_shots_done])
@@ -118,7 +124,8 @@ func _capture(at: float) -> void:
 			at, shot_path.get_extension()]
 	var err := img.save_png(path)
 	var d := TransformationDirector.running_for(Game.player)
-	print("SCREENSHOT %s -> %s (t=%.2f, phase=%s)" % [path, "ok" if err == OK else str(err), _t,
+	print("SCREENSHOT %s -> %s (t=%.2f, target=%.2f, phase=%s)" % [
+		path, "ok" if err == OK else str(err), _t, at,
 		d.phase_name() if d != null else "-"])
 	_print_screen_fx()
 	_shots_done += 1

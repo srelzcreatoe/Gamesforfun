@@ -1,3 +1,4 @@
+class_name FxPreview
 extends Node3D
 ## Standalone fx stage used for visual verification (`scenes/fx/FxPreview.tscn`).
 ##
@@ -8,9 +9,11 @@ extends Node3D
 ##                 lightning, hit, dash, all   (defaults to "transform" when --form is given)
 ## `--form=` form id for the transformation (default ssgrades.supersaiyan)
 ## `--technique=` technique id for the beam/blast modes
-## `--at=` one or more seconds (comma separated). The stage grabs the viewport at exactly
-##         those times and then quits, so a cinematic can be frozen at its climax:
-##         a single value writes `--screenshot=<path>`, several write
+## `--at=` one or more seconds (comma separated). The stage grabs the viewport on the LAST
+##         FRAME AT OR BEFORE each of those times and then quits, so a cinematic can be
+##         frozen at its climax without ever overshooting into the next phase (`_due`);
+##         the SCREENSHOT line prints the frame's real t next to the target.
+##         A single value writes `--screenshot=<path>`, several write
 ##         `<path-without-ext>_t<seconds>.png` next to it.
 ## `--nohud` hide the debug label (clean shots)
 ## `--cam=x,y,z --look=x,y,z` fixed camera; implies `--staticcam`
@@ -43,6 +46,10 @@ var dummy: FxDummy
 var camera: Camera3D
 var label: Label
 var t := 0.0
+## Last frame's real-time step. `--at` lands on the last frame AT OR BEFORE the requested
+## time: capturing on the first frame past it overshot by a whole frame, and at 66 ms a
+## frame that is enough to miss the burst window entirely and label a reveal shot "t=4.95".
+var _last_real := 0.0
 
 var static_cam := false
 var hide_names: PackedStringArray = PackedStringArray()
@@ -462,7 +469,8 @@ func _process(delta: float) -> void:
 	Game.paused_by_ui = false
 	if _diag_rig != null and is_instance_valid(_diag_rig):
 		_diag_rig.global_position = dummy.global_position       # see _build_dust_diag
-	t += FxAssets.real_delta(delta)
+	var real := FxAssets.real_delta(delta)
+	t += real
 	while _next_step < _steps.size() and t >= float(_steps[_next_step]["t"]):
 		var fn: Callable = _steps[_next_step]["fn"]
 		_next_step += 1
@@ -480,6 +488,7 @@ func _process(delta: float) -> void:
 			d.phase_name() if d != null else "-",
 			a.intensity() if a != null else 0.0]
 	_maybe_capture()
+	_last_real = real
 
 ## `--dumpfx`: print every visible particle emitter / quad with the material state that
 ## decides its colour, so a black frame can be traced to the node that drew it.
@@ -601,10 +610,16 @@ func _hide_matching(n: Node) -> void:
 func _maybe_capture() -> void:
 	if _capturing or shot_path == "" or _shots_done >= at_times.size():
 		return
-	if t < at_times[_shots_done]:
+	if not _due(t, _last_real, at_times[_shots_done]):
 		return
 	_capturing = true
 	_capture(at_times[_shots_done])
+
+## True on the last frame at or before `target`: either we are already there, or the
+## next frame (same length as the last one) would step past it. Never overshoots, so a
+## shot named t=4.95 is never a frame of the phase AFTER the one at 4.95.
+static func _due(now: float, last_step: float, target: float) -> bool:
+	return now >= target or (last_step > 0.0 and now + last_step > target)
 
 func _capture(at: float) -> void:
 	await RenderingServer.frame_post_draw
@@ -620,8 +635,8 @@ func _capture(at: float) -> void:
 	if dump_fx:
 		_dump_fx(self, "")
 	var err := img.save_png(path)
-	print("SCREENSHOT %s -> %s (t=%.2f, phase=%s)" % [
-		path, "ok" if err == OK else str(err), t,
+	print("SCREENSHOT %s -> %s (t=%.2f, target=%.2f, phase=%s)" % [
+		path, "ok" if err == OK else str(err), t, at,
 		TransformationDirector.running_for(dummy).phase_name() if TransformationDirector.running_for(dummy) != null else "-"])
 	_shots_done += 1
 	_capturing = false

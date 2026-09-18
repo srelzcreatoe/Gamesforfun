@@ -85,6 +85,7 @@ func configure(p_gen) -> void:
 			"min_dist": int(def.get("min_distance_from_spawn", 0)),
 			"biomes": def.get("biomes", []),
 		}
+		entry["hdr"] = header(String(entry["file"]))
 		if String(entry["role"]) == "piece":
 			var g: String = entry["group"]
 			if not village_pieces.has(g):
@@ -210,9 +211,12 @@ func _stamp_one(col: ChunkColumn, ctx, entry: Dictionary, ax: int, az: int, rot:
 		return
 	if az - MAX_HALF >= ctx.oz + 16 or az + MAX_HALF < ctx.oz:
 		return
-	# Header only (a few hundred bytes): enough to decide whether this column is touched.
+	# Header only (a few hundred bytes, read once at configure time): enough to decide whether
+	# this column is touched at all, without parsing any block data.
 	var file := String(entry["file"])
-	var tpl := header(file)
+	var tpl: Dictionary = entry.get("hdr", {})
+	if tpl.is_empty():
+		tpl = header(file)
 	if tpl.is_empty():
 		return
 	var size: Vector3i = tpl["size"]

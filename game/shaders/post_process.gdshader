@@ -43,6 +43,8 @@ uniform float god_rays : hint_range(0.0, 1.5) = 0.45;
 uniform float fx_blur : hint_range(0.0, 0.25) = 0.0;         // radial / zoom blur
 uniform float fx_aberration : hint_range(0.0, 0.05) = 0.0;   // extra r/b split
 uniform float fx_darken : hint_range(0.0, 1.0) = 0.0;        // scene + sky dim
+// must match `darken_color` in shaders/fx_screen.gdshader: the two dim passes are one effect
+uniform vec4 fx_darken_color : source_color = vec4(0.03, 0.04, 0.09, 1.0);
 uniform float fx_glow : hint_range(0.0, 2.0) = 0.0;          // emissive bloom boost
 uniform vec2 fx_focus = vec2(0.5, 0.5);
 
@@ -132,25 +134,6 @@ void fragment() {
 		float gbright = max(luma(gacc) - 0.5, 0.0) * 2.0;
 		col += gacc * gbright * fx_glow;
 	}
-	if (fx_darken > 0.0001) {
-		float dl = luma(col);
-		// Vignette weighted and PROPORTIONAL. Mixing the frame toward an absolute
-		// near-black (what this used to do) reads as almost nothing in noon daylight and
-		// crushes already-dark pixels - 12.8 % of the in-world strain frame came out pure
-		// black - so the frame is SCALED down instead: hard at the edges, gently in the
-		// middle where the character is, with a cool tint added back so nothing clips to
-		// zero. That is also where the strain "vignette" comes from now; an additive
-		// overlay cannot darken anything.
-		float edge = 0.40 + 0.95 * smoothstep(0.05, 0.95, length(centred) * 1.30);
-		float amt = clamp(fx_darken * edge, 0.0, 1.0);
-		vec3 dimmed = col * mix(1.0, 0.10, amt) + vec3(0.05, 0.07, 0.14) * amt * (0.22 + 0.45 * dl);
-		// Only genuinely blown-out fx pixels (aura core, flash, beam) burn through the dim,
-		// and only partly. The gate used to open at 0.7 luma, which in a sunlit voxel world
-		// is sky, sand and most grass - so the strain dim read at night and did nothing at
-		// noon. 0.88 with a steeper ramp keeps the aura hot and still dims the daylight.
-		col = mix(dimmed, col, clamp((dl - 0.88) * 6.0, 0.0, 1.0) * 0.85);
-	}
-
 	// --- god rays: march toward the sun and collect the bright pixels ------------------------
 	if (god_rays > 0.001 && sun_visible > 0.001 && quality >= 1) {
 		int steps = quality >= 2 ? 12 : 7;
@@ -202,5 +185,32 @@ void fragment() {
 	if (gamma_correct == 1) {
 		col = pow(col, vec3(1.0 / 2.2));                 // back to the framebuffer encoding
 	}
+
+	// --- fx screen dim (scripts/fx/ScreenFx.gd) ----------------------------------------------
+	// LAST, after tonemap/grade/gamma, because shaders/fx_screen.gdshader - the same effect for
+	// scenes with no post pass of their own - reads an already-graded framebuffer. Applying it
+	// before `tonemap()` (where it used to sit) let the filmic curve's mid-tone lift undo part
+	// of the multiply, which is why the in-world dim was weaker than the preview's.
+	// FXDIM-BEGIN  (kept byte-identical in shaders/post_process.gdshader; the test
+	// tests/test_fx.gd normalises the uniform prefix and compares the two blocks)
+	if (fx_darken > 0.0001) {
+		float dl = luma(col);
+		// Vignette weighted and PROPORTIONAL. Mixing the frame toward an absolute
+		// near-black (what this used to do) reads as almost nothing in noon daylight and
+		// crushes already-dark pixels, so the frame is SCALED down instead: hard at the
+		// edges, gently in the middle where the character is, with a cool tint added back
+		// so nothing clips to zero. That is also where the strain "vignette" comes from
+		// now; an additive overlay cannot darken anything.
+		float edge = 0.40 + 0.95 * smoothstep(0.05, 0.95, length(uv - vec2(0.5)) * 1.30);
+		float amt = clamp(fx_darken * edge, 0.0, 1.0);
+		vec3 dimmed = col * mix(1.0, 0.10, amt) + fx_darken_color.rgb * amt * (0.22 + 0.45 * dl) * 1.6;
+		// Only genuinely blown-out fx pixels (aura core, flash, beam) burn through the
+		// dim, and only partly. The gate has to sit above daylight terrain luma - at 0.7
+		// it opened for sky, sand and most grass, so the dim read at night and did
+		// nothing at noon. Both passes run this on the FRAMEBUFFER-ENCODED colour, as the
+		// last thing before output, so `dl` means the same number in both.
+		col = clamp(mix(dimmed, col, clamp((dl - 0.88) * 6.0, 0.0, 1.0) * 0.85), vec3(0.0), vec3(1.0));
+	}
+	// FXDIM-END
 	COLOR = vec4(col, 1.0);
 }

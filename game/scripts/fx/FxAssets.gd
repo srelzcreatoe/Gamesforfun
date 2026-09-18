@@ -231,6 +231,18 @@ static func make_particles(node_name: String, amount: int, textures: Array, colo
 ## One-shot burst: emits `amount` particles once then frees itself.
 static func burst(parent: Node, pos: Vector3, node_name: String, amount: int, textures: Array,
 		color: Color, speed := 6.0, life := 0.7, size := 0.5, gravity := -6.0) -> CPUParticles3D:
+	var p := prep_burst(parent, node_name, amount, textures, color, speed, life, size, gravity)
+	fire_burst(p, pos)
+	return p
+
+## Build a one-shot burst emitter but do NOT start it. The climax of a transformation used
+## to construct four of these plus a pillar plus a light in a single frame, which was the
+## one real CPU spike in the cinematic; building them during the (cheap) gather phase and
+## firing them with `fire_burst` turns the climax frame into a few boolean writes.
+## `ring_radius` > 0 emits from a ring on the ground instead of a sphere at the origin.
+static func prep_burst(parent: Node, node_name: String, amount: int, textures: Array,
+		color: Color, speed := 6.0, life := 0.7, size := 0.5, gravity := -6.0,
+		ring_radius := 0.0) -> CPUParticles3D:
 	if parent == null or not parent.is_inside_tree():
 		return null
 	var p := make_particles(node_name, amount, textures, color)
@@ -246,12 +258,24 @@ static func burst(parent: Node, pos: Vector3, node_name: String, amount: int, te
 	p.gravity = Vector3(0, gravity, 0)
 	p.scale_amount_min = size * 0.5
 	p.scale_amount_max = size
+	if ring_radius > 0.0:
+		p.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
+		p.emission_ring_axis = Vector3.UP
+		p.emission_ring_radius = ring_radius
+		p.emission_ring_inner_radius = ring_radius * 0.75
+		p.emission_ring_height = ring_radius * 0.5
+	p.emitting = false
 	parent.add_child(p)
-	if p is Node3D:
-		p.global_position = pos
-	p.emitting = true
-	free_after(p, life + 0.4)
 	return p
+
+## Start an emitter built by `prep_burst` at `pos` and free it when it has burnt out.
+static func fire_burst(p: CPUParticles3D, pos: Vector3) -> void:
+	if p == null or not is_instance_valid(p) or not p.is_inside_tree():
+		return
+	p.global_position = pos
+	p.restart()
+	p.emitting = true
+	free_after(p, p.lifetime + 0.4)
 
 ## Free a node after `seconds` (works for every Node, no tween needed).
 static func free_after(node: Node, seconds: float) -> void:

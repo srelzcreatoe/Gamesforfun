@@ -100,6 +100,15 @@ var _body_flash: MeshInstance3D
 var _pillar: MeshInstance3D
 var _pillar_mat: ShaderMaterial
 var _pillar_age := -1.0
+## The climax used to CONSTRUCT four particle emitters, the pillar mesh + its shader and
+## a light in the single frame the burst lands on, which measured 2.4 ms average and
+## 15.9 ms peak of script time - one dropped frame on a phone, exactly at the peak. They
+## are all built during the (0.1 ms/frame) gather phase now and the climax only fires
+## them: see _prewarm_climax / FxAssets.prep_burst.
+var _burst_main: CPUParticles3D
+var _burst_dust: CPUParticles3D
+var _burst_sparks: CPUParticles3D
+var _burst_rock: CPUParticles3D
 ## Ground/debris/ring scale: a giant form tears up a much bigger patch of ground.
 var _gs := 1.0
 var _rng := RandomNumberGenerator.new()
@@ -236,10 +245,33 @@ func _enter_gather() -> void:
 	_setup_body_flash()
 	_setup_camera()
 	_setup_scale()
+	_prewarm_climax()
 	_play_form_animation()
 	ScreenFx.slow_mo(0.82, _t_strain)
 	ScreenFx.glow(0.30, duration * 0.9, 0.5)
 	_disturb(0.45)
+
+## Build everything the burst frame needs while the cinematic is still cheap: the three
+## climax emitters, the rock-shatter ring and the pillar (visible at intensity 0, which
+## an additive shader draws as nothing, so the ki_beam program is compiled and its mesh
+## uploaded before the frame that has to show it).
+func _prewarm_climax() -> void:
+	var c := profile.aura
+	_burst_main = FxAssets.prep_burst(self, "ClimaxBurst", 62,
+		["aaa/missile_boost/Star", "ki_flash1", "aaa/lightning/Burst_1"], c, 21.0, 0.65, 0.55, -3.0)
+	_burst_dust = FxAssets.prep_burst(self, "ClimaxDust", 32,
+		FxAssets.smoke(), Color(0.85, 0.82, 0.76), 9.0, 1.0, 0.9, -6.0)
+	if _burst_dust != null:
+		FxAssets.mix_dust(_burst_dust)
+	_burst_sparks = FxAssets.prep_burst(self, "ClimaxSparks", 26,
+		["ki_spark_2", "spark1", "ki_line"], profile.spark, 13.0, 0.5, 0.35, -9.0)
+	# ONE ring emitter for the debris instead of one burst per rock: eight emitters
+	# constructed in the burst frame was most of its cost, and a ring at the debris
+	# radius reads the same
+	_burst_rock = FxAssets.prep_burst(self, "RockShatter", 26,
+		["ki_spark_2", "spark1", "aaa/missile_boost/Star"], Color(0.72, 0.66, 0.58),
+		7.0, 0.7, 0.28, -18.0, ROCK_RADIUS * _gs)
+	_prep_pillar()
 
 func _setup_aura() -> void:
 	_aura = Aura.get_for(entity)
@@ -508,10 +540,15 @@ func _enter_strain() -> void:
 	add_child(_aura_light)
 	# build the afterimage silhouette ONCE (duplicating the character model is the one
 	# part of this cinematic that can spike a frame), then re-flash it every 0.3 s
+	# duplicating the character model is the expensive part, so it is inside the ghost
+	# counter as well as the director's own: --profile's ghost_max used to report only
+	# the 0.1 ms re-flash and left this one-off spike anonymous inside fx_cpu_max
+	var _g0 := Time.get_ticks_usec()
 	_ghost = Trails.make_ghost(entity, profile.aura)
 	if _ghost != null:
 		_ghost.top_level = true
 		add_child(_ghost)
+	FxAssets.cpu_add_ghost(Time.get_ticks_usec() - _g0)
 
 func _update_aura() -> void:
 	if _aura == null:
@@ -610,7 +647,6 @@ func _do_climax() -> void:
 	# the form takes effect now
 	if on_climax.is_valid():
 		on_climax.call()
-	var c := profile.aura
 	ScreenFx.flash(Color(1, 1, 1), 0.5, 1.0)
 	Events.screen_flash.emit(Color(1, 1, 1), 0.5)
 	Events.screen_shake.emit(1.0, 0.55)
@@ -622,13 +658,10 @@ func _do_climax() -> void:
 	ScreenFx.glow(0.75, 0.8, 0.7)
 	_fov_kick = 16.0
 	_spawn_ring(7.8 * _gs, 0.85)
-	_spawn_pillar()
-	FxAssets.burst(self, global_position + Vector3.UP * 1.0, "ClimaxBurst", 62,
-		["aaa/missile_boost/Star", "ki_flash1", "aaa/lightning/Burst_1"], c, 21.0, 0.65, 0.55, -3.0)
-	FxAssets.burst(self, global_position, "ClimaxDust", 32,
-		FxAssets.smoke(), Color(0.85, 0.82, 0.76), 9.0, 1.0, 0.9, -6.0)
-	FxAssets.burst(self, global_position + Vector3.UP * 0.2, "ClimaxSparks", 26,
-		["ki_spark_2", "spark1", "ki_line"], profile.spark, 13.0, 0.5, 0.35, -9.0)
+	_fire_pillar()
+	FxAssets.fire_burst(_burst_main, global_position + Vector3.UP * 1.0)
+	FxAssets.fire_burst(_burst_dust, global_position)
+	FxAssets.fire_burst(_burst_sparks, global_position + Vector3.UP * 0.2)
 	Audio.play_sfx_at("power_up_burst", global_position)
 	Audio.play_sfx_at("explosion_big", global_position, -6.0, 0.8)
 	Audio.play_sfx_at("shockwave", global_position, -4.0)
@@ -657,7 +690,7 @@ func _do_climax() -> void:
 ## Vertical energy pillar shooting out of the body at the climax. Its length, girth and
 ## the height it starts at all scale with the form, so an Oozaru gets a pillar standing
 ## on ITS head instead of a human-sized bar floating 29 m above it.
-func _spawn_pillar() -> void:
+func _prep_pillar() -> void:
 	var mi := MeshInstance3D.new()
 	mi.name = "Pillar"
 	var cyl := CylinderMesh.new()
@@ -671,26 +704,45 @@ func _spawn_pillar() -> void:
 	cyl.cap_bottom = false
 	mi.mesh = cyl
 	_pillar_mat = FxAssets.shader_material(BEAM_SHADER, {
-		"beam_color": profile.aura, "core_color": profile.inner, "intensity": 1.35,
+		"beam_color": profile.aura, "core_color": profile.inner, "intensity": 0.0,
 		"fade_in": 1.0, "core_width": 0.30, "ring_freq": 7.0, "flow_speed": 10.0,
 	})
 	mi.material_override = _pillar_mat
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	# the base sits just above the head (the aura reports the model's real visual height,
-	# which a form's taller hair changes), the rest of the cylinder goes up from there
 	mi.position = Vector3(0, _body_height() * 1.1 + cyl.height * 0.5, 0)
 	add_child(mi)
 	_pillar = mi
+	_pillar_age = -1.0                        # idle until the climax fires it
+
+## Start the pillar. Only cheap property writes: the mesh and the shader are already
+## live (_prep_pillar). The base sits just above the head - the aura reports the model's
+## real visual height, which the form's taller hair and a giant form's scale change
+## between the gather and the burst, so it is re-read here.
+func _fire_pillar() -> void:
+	if _pillar == null or not is_instance_valid(_pillar):
+		return
+	var cyl: CylinderMesh = _pillar.mesh as CylinderMesh
+	if cyl != null:
+		_pillar.position = Vector3(0, _body_height() * 1.1 + cyl.height * 0.5, 0)
+	if _pillar_mat != null:
+		_pillar_mat.set_shader_parameter("intensity", 1.35)
 	_pillar_age = 0.0
 
+## The levitating debris explodes. One pre-built ring emitter at the debris radius,
+## fired at the height the rocks reached, instead of constructing one emitter per rock
+## inside the burst frame. `block_0..2` are gone with it: they are in
+## FxAssets.BLACK_FRINGE_TEXTURES and were being handed to a MIX-safe list.
 func _shatter_rocks() -> void:
+	var y := 0.0
+	var n := 0
 	for mi in _rocks:
 		if not is_instance_valid(mi):
 			continue
-		var p := mi.global_position
-		FxAssets.burst(self, p, "RockShatter", 4, ["block_1", "block_2", "block_0"],
-			Color(0.55, 0.5, 0.45), 7.0, 0.7, 0.28, -18.0)
+		y += mi.global_position.y
+		n += 1
 		mi.queue_free()
+	if n > 0:
+		FxAssets.fire_burst(_burst_rock, Vector3(global_position.x, y / float(n), global_position.z))
 	_rocks.clear()
 
 # --- phase D --------------------------------------------------------------

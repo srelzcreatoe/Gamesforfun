@@ -63,6 +63,7 @@ var _darken_rate := 2.0
 var _glow := 0.0
 var _glow_target := 0.0
 var _glow_hold := 0.0
+var _glow_rate := 2.0
 var _focus := Vector2(0.5, 0.5)
 var _slow_left := 0.0
 var _health_frac := 1.0
@@ -153,11 +154,13 @@ static func vignette_pulse(color := Color(0.55, 0, 0), strength := 0.6, duration
 		s.do_vignette(color, strength, duration)
 
 ## Vignette that stays up for `hold` seconds before it fades (transformation strain).
+## `hold` is honoured on BOTH paths: a dark colour is served by the screen dim (see
+## do_vignette) and used to write `_vignette_hold`, which only drives the additive
+## overlay - so the caller's hold time was silently dropped.
 static func vignette_hold(color: Color, strength: float, hold: float, fade := 0.6) -> void:
 	var s := get_instance()
 	if s != null:
-		s.do_vignette(color, strength, fade)
-		s._vignette_hold = maxf(s._vignette_hold, hold)
+		s.do_vignette(color, strength, fade, hold)
 
 static func chromatic(amount := 0.006, duration := 0.35) -> void:
 	var s := get_instance()
@@ -254,15 +257,20 @@ func do_flash(color: Color, duration: float, strength := 1.0) -> void:
 ## to the additive overlay.
 const VIGNETTE_DARK_LUMA := 0.12
 
-func do_vignette(color: Color, strength: float, duration: float) -> void:
+## `hold` < 0 means "the pulse default", 35 % of the fade time.
+func do_vignette(color: Color, strength: float, duration: float, hold := -1.0) -> void:
+	var keep := duration * 0.35 if hold < 0.0 else maxf(0.0, hold)
 	if color.get_luminance() < VIGNETTE_DARK_LUMA:
-		do_dim(maxf(_darken_target, clampf(strength, 0.0, 1.0) * 0.8), duration * 0.35, duration)
+		# the dim's own hold is what keeps a dark vignette on screen; never shorten a
+		# longer one that is already running
+		do_dim(maxf(_darken_target, clampf(strength, 0.0, 1.0) * 0.8),
+			maxf(_darken_hold, keep), duration)
 		return
 	if _mat == null:
 		return
 	_mat.set_shader_parameter("vignette_color", color)
 	_vignette = maxf(_vignette, clampf(strength, 0.0, 1.0))
-	_vignette_hold = duration * 0.35
+	_vignette_hold = maxf(_vignette_hold, keep)
 	_vignette_decay = 1.0 / maxf(0.05, duration)
 	_rect.visible = true
 
@@ -282,10 +290,13 @@ func do_dim(strength: float, hold: float, fade: float) -> void:
 	_darken_rate = 1.0 / maxf(0.05, fade)
 	_sync_screen()
 
+## The glow keeps its OWN fade rate: it used to write `_darken_rate`, so any glow()
+## call could cut an in-flight dim's fade short (and a glow's own `fade` was only
+## honoured when it happened to be the fastest rate in play).
 func do_glow(amount: float, hold: float, fade: float) -> void:
 	_glow_target = clampf(amount, 0.0, 2.0)
 	_glow_hold = maxf(0.0, hold)
-	_darken_rate = maxf(_darken_rate, 1.0 / maxf(0.05, fade))
+	_glow_rate = 1.0 / maxf(0.05, fade)
 	_sync_screen()
 
 ## Screen-space centre of the blur/aberration (defaults to the middle of the frame).
@@ -350,7 +361,7 @@ func _process_screen(real: float) -> void:
 		_glow_hold -= real
 	elif _glow_target > 0.0:
 		_glow_target = 0.0
-	_glow = move_toward(_glow, _glow_target, _darken_rate * real * 2.0)
+	_glow = move_toward(_glow, _glow_target, _glow_rate * real * 2.0)
 	if _darken_hold > 0.0:
 		_darken_hold -= real
 	elif _darken_target > 0.0:

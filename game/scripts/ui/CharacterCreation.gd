@@ -45,7 +45,7 @@ var hair_i := 1
 var eyes_i := 0
 var nose_i := 0
 var mouth_i := 0
-var tattoo_i := -1
+var tattoo_i := 0
 var skin_hex := "#FFD3C9"
 var skin2_hex := "#572117"
 var skin3_hex := "#FFD3C9"
@@ -120,6 +120,58 @@ func build() -> void:
 	footer.size_flags_vertical = Control.SIZE_SHRINK_END
 	body.add_child(footer)
 	_update()
+	if args.has("tap"):
+		call_deferred("_tap_for_verification")
+
+## Verification aid: `--ui_tap=<option key>` (with `--ui_taps=N`) sends real
+## InputEventScreenTouch events at that row's right arrow, so a screenshot proves the whole touch
+## path works - not just that the `pressed` signal is wired.
+func _tap_for_verification() -> void:
+	var row := find_option_row(String(args.get("tap", "")))
+	if row == null:
+		return
+	var arrows: Array[Button] = []
+	for c in row.get_children():
+		if c is Button:
+			arrows.append(c)
+	if arrows.size() < 2:
+		return
+	# An injected event carries *window* coordinates, so the button's canvas-space centre has to
+	# go back through the canvas and stretch transforms (a 20:9 phone renders 1280x720 units on a
+	# 2000x900 window, so the two differ by 1.5625x here).
+	var btn := arrows[1]
+	var local := btn.size * 0.5
+	var at: Vector2 = get_viewport().get_screen_transform() \
+		* (btn.get_global_transform_with_canvas() * local)
+	var key := String(args.get("tap", ""))
+	print("TAPTEST %s at %s (canvas %s) before=%s" % [key, str(at),
+		str(btn.get_global_rect().get_center()), str(character().get(key))])
+	for i in maxi(1, int(args.get("taps", 1))):
+		var down := InputEventScreenTouch.new()
+		down.index = 0
+		down.position = at
+		down.pressed = true
+		Input.parse_input_event(down)
+		await get_tree().process_frame
+		var up := InputEventScreenTouch.new()
+		up.index = 0
+		up.position = at
+		up.pressed = false
+		Input.parse_input_event(up)
+		await get_tree().process_frame
+	print("TAPTEST %s after=%s" % [key, str(character().get(key))])
+
+## The option row driving `key` ("hair_type", "skin_color", ...), for tests and the tap aid.
+func find_option_row(key: String, from: Node = null) -> Control:
+	var root: Node = from if from != null else self
+	if root is Control and (root as Control).has_meta("option_key") \
+			and String((root as Control).get_meta("option_key")) == key:
+		return root
+	for c in root.get_children():
+		var hit := find_option_row(key, c)
+		if hit != null:
+			return hit
+	return null
 
 ## Every row the current race offers, in DMZ's own order.
 func _option_rows() -> Array[Control]:
@@ -157,12 +209,13 @@ func _option_rows() -> Array[Control]:
 		out.append(_arrow_row("Mouth", "mouth", _numbered("Mouth", mouths),
 			func() -> int: return mouth_i, func(i: int) -> void: mouth_i = i))
 	var tattoos := DmzOptions.tattoos()
-	if tattoos > 0:
+	if tattoos > 1:
+		# DMZ ships tattoo_0 fully transparent, so index 0 *is* "no tattoo".
 		var tlabels: Array = ["None"]
-		tlabels.append_array(_numbered("Tattoo", tattoos))
-		# `tattoo` is -1 for none, so the row index is one ahead of the character value.
-		out.append(_arrow_row("Tattoo", "tattoo", tlabels, func() -> int: return tattoo_i + 1,
-			func(i: int) -> void: tattoo_i = i - 1))
+		for i in range(1, tattoos):
+			tlabels.append("Tattoo %d" % i)
+		out.append(_arrow_row("Tattoo", "tattoo", tlabels, func() -> int: return tattoo_i,
+			func(i: int) -> void: tattoo_i = i))
 	var layers := DmzOptions.body_color_layers(rid, gid)
 	out.append(_color_row("Skin" if layers < 2 else "Skin 1", "skin_color", SKIN_CHOICES,
 		func() -> String: return skin_hex, func(hex: String) -> void: skin_hex = hex))
@@ -349,7 +402,7 @@ func _apply_race_defaults() -> void:
 	eyes_i = clampi(_def(r, "defaultEyesType", 0), 0, DmzOptions.eye_types(rid) - 1)
 	nose_i = clampi(_def(r, "defaultNoseType", 0), 0, maxi(1, DmzOptions.noses(rid)) - 1)
 	mouth_i = clampi(_def(r, "defaultMouthType", 0), 0, maxi(1, DmzOptions.mouths(rid)) - 1)
-	tattoo_i = clampi(_def(r, "defaultTattooType", -1), -1, DmzOptions.tattoos() - 1)
+	tattoo_i = clampi(_def(r, "defaultTattooType", 0), 0, maxi(1, DmzOptions.tattoos()) - 1)
 	skin_hex = String(r.get("defaultBodyColor", r.get("default_body_color", "#FFD3C9")))
 	skin2_hex = String(r.get("defaultBodyColor2", skin_hex))
 	skin3_hex = String(r.get("defaultBodyColor3", skin_hex))
@@ -377,7 +430,13 @@ func _hair_labels() -> Array:
 	var out: Array = []
 	var hb: GDScript = load(HAIR_BUILDER) if ResourceLoader.exists(HAIR_BUILDER) else null
 	var named: bool = hb != null and hb.has_method("style_name") and hb.has_method("style_id")
+	var empty := -1
+	if hb != null and hb.has_method("empty_style_index"):
+		empty = int(hb.call("empty_style_index"))
 	for i in _hair_count():
+		if i == empty:
+			out.append("None")      # the mod's bald preset
+			continue
 		var name := ""
 		if named:
 			name = String(hb.call("style_name", String(hb.call("style_id", i))))
