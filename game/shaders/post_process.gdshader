@@ -5,8 +5,9 @@
 // Environment.glow does it (compat supports glow) - this pass does tonemapping, grade, vignette,
 // chromatic aberration, the underwater look, the screen flash and cheap radial god rays.
 //
-// Uniforms SkyController pushes every frame: exposure, sun_screen_pos, sun_visible, sun_color,
-// god_rays, underwater, underwater_tint, time, flash, quality.
+// Uniforms SkyController pushes every frame: post_params, sun_params, sun_screen_params and
+// underwater_params (the packed form of exposure, time, flash, quality, sun colour/position/
+// visibility, god_rays, underwater and its tint - see the block below).
 //
 // Original work; the god-ray idea (march toward the sun in screen space, keep the bright parts) and
 // the "grade after tonemap" ordering are the classic ones also used by Complementary Reimagined's
@@ -17,24 +18,29 @@ render_mode unshaded;
 
 uniform sampler2D screen_tex : hint_screen_texture, repeat_disable, filter_linear;
 
-uniform float exposure : hint_range(0.2, 3.0) = 1.0;
-uniform float saturation : hint_range(0.0, 2.0) = 1.08;
-uniform float vibrance : hint_range(0.0, 1.0) = 0.18;
-uniform float vignette : hint_range(0.0, 1.0) = 0.32;
-uniform float aberration : hint_range(0.0, 4.0) = 0.6;
-uniform float contrast : hint_range(0.5, 1.5) = 1.02;
+// --- packed uniforms (SkyController._update_post_process pushes these every frame) -------------
+// This pass used to declare 23 uniforms. A canvas shader shares the fragment uniform budget with
+// everything else the frame binds, GLES3 only guarantees 224 vectors, and a program that fails to
+// link leaves Godot drawing with an unbound shader - a native crash on real phone drivers. The
+// scalars and colours therefore travel in four vec4s, and every knob no script has ever written
+// (saturation, vibrance, vignette, aberration, contrast, gamma_correct) is a const below.
+//   post_params        x exposure, y time (seconds), z screen flash, w quality (0/1/2)
+//   sun_params         xyz sun colour, w god_rays strength
+//   sun_screen_params  xy sun position in screen uv, z sun visibility 0..1 (w reserved)
+//   underwater_params  xyz underwater tint, w 1 while the camera is submerged
+uniform vec4 post_params = vec4(1.0, 0.0, 0.0, 2.0);
+uniform vec4 sun_params = vec4(1.0, 0.93, 0.82, 0.45);
+uniform vec4 sun_screen_params = vec4(0.5, 0.5, 0.0, 0.0);
+uniform vec4 underwater_params = vec4(0.06, 0.22, 0.55, 0.0);
 
-uniform float underwater = 0.0;
-uniform vec3 underwater_tint : source_color = vec3(0.06, 0.22, 0.55);
-uniform float time = 0.0;
-uniform float flash = 0.0;
-uniform int quality : hint_range(0, 2) = 2;
-uniform int gamma_correct : hint_range(0, 1) = 1;
-
-uniform vec2 sun_screen_pos = vec2(0.5, 0.5);
-uniform float sun_visible = 0.0;
-uniform vec3 sun_color : source_color = vec3(1.0, 0.93, 0.82);
-uniform float god_rays : hint_range(0.0, 1.5) = 0.45;
+// Grade constants: the film curve's companions. They were uniforms that nothing ever wrote, and
+// every one of them cost a fragment uniform vector.
+const float saturation = 1.08;
+const float vibrance = 0.18;
+const float vignette = 0.32;
+const float aberration = 0.6;
+const float contrast = 1.02;
+const int gamma_correct = 1;
 
 // --- fx pulses, pushed by scripts/fx/ScreenFx.gd -------------------------------------------
 // All default to 0 and every block below is skipped at 0, so the sky controller's frame is
@@ -62,6 +68,18 @@ float luma(vec3 c) {
 }
 
 void fragment() {
+	// --- unpack (the names below are the ones the rest of this pass has always used) ----------
+	float exposure = post_params.x;
+	float time = post_params.y;
+	float flash = post_params.z;
+	int quality = int(post_params.w);
+	vec3 sun_color = sun_params.rgb;
+	float god_rays = sun_params.w;
+	vec2 sun_screen_pos = sun_screen_params.xy;
+	float sun_visible = sun_screen_params.z;
+	vec3 underwater_tint = underwater_params.rgb;
+	float underwater = underwater_params.w;
+
 	vec2 uv = SCREEN_UV;
 	vec2 centred = uv - vec2(0.5);
 

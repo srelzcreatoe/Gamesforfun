@@ -1,10 +1,10 @@
 // water.gdshader - voxel liquids (water and lava) for Dragon Block Sagas.
 //
-// FINAL version by the shaders agent, built on the voxel agent's functional first pass:
-// the uniform names, the UV2 packing and the Minecraft-style face/light model are unchanged, so
-// ChunkMesher and World keep working as before. What is new: sky reflection through a Fresnel
-// term, screen-space refraction, depth-based water colour, shore foam, caustic sparkle, sun/moon
-// glint, an underwater look and the `is_lava` variant.
+// FINAL version by the shaders agent, built on the voxel agent's functional first pass: the UV2
+// packing and the Minecraft-style face/light model are unchanged, so ChunkMesher and World keep
+// working as before. The look: sky reflection through a Fresnel term, screen-space refraction,
+// depth-based water colour, shore foam, caustic sparkle, sun/moon glint, an underwater look and
+// the lava variant.
 //
 // Vertex stream (identical to chunk_opaque.gdshader):
 //   UV      0..1 tile uv
@@ -12,11 +12,12 @@
 //   UV2.y   packed light / 255                                   (packed = sky * 16 + block)
 //   COLOR   rgb = biome water tint, a = ambient occlusion
 //
-// Uniforms the World pushes every frame (see SkyController.apply_to_material): tiles, daylight,
-// sun_color, fog_color, ambient_color, fog_start, fog_end, time - plus, for the reflection,
-// sun_dir, moon_dir, day_color, horizon_color, night_color, sunset_color, weather_darkness,
-// quality, fancy_water and underwater. All of them have usable defaults, so the shader still
-// renders correctly if only the seven original uniforms are set.
+// UNIFORM PACKING PASS (shaders agent): this file used to declare 36 uniforms. On GLES3 a phone is
+// only guaranteed 224 fragment uniform vectors (many chips report 256); when the link fails Godot
+// keeps drawing with an unbound shader, which is a native crash on a real driver. Everything is now
+// packed into 12 declarations: 3 samplers, the 8 shared sky/light vec4s that every world shader
+// declares (see chunk_opaque.gdshader), and one water-only vec4. Every tunable that no script ever
+// wrote is a const. mobile/water_mobile.gdshader is the 6-uniform, no-screen-texture variant.
 //
 // Original work. Ideas studied in Complementary Reimagined (reference only, no code reused):
 // summing several normal maps at different scales and speeds, water opacity/colour from the depth
@@ -28,45 +29,42 @@ render_mode blend_mix, cull_disabled, depth_draw_always, unshaded, shadows_disab
 
 #include "res://shaders/lib/sky_common.gdshaderinc"
 
-// --- the voxel agent's contract (do not rename) -------------------------------------------------
-uniform sampler2DArray tiles : source_color, filter_nearest_mipmap, repeat_disable;
-uniform float daylight = 1.0;
-uniform vec3 sun_color : source_color = vec3(1.0, 0.96, 0.9);
-uniform vec3 fog_color : source_color = vec3(0.75, 0.84, 0.96);
-uniform vec3 ambient_color : source_color = vec3(0.45, 0.52, 0.66);
-uniform float fog_start = 48.0;
-uniform float fog_end = 96.0;
-uniform float time = 0.0;
-uniform float anim_fps = 10.0;
-uniform float wave_height = 0.055;        // total wave amplitude in metres (<= 0.06)
-uniform float wave_speed = 1.5;
-uniform float water_alpha = 0.78;         // base opacity when screen refraction is off
-uniform float fresnel_strength = 0.35;    // extra weight on the sky reflection
+// --- packed shared lighting / sky contract (identical in every world shader) ---------------------
+//   sun_params          xyz sun colour      w daylight
+//   fog_params          xyz fog colour      w fog_start
+//   ambient_params      xyz ambient colour  w fog_end
+//   sun_dir_params      xyz direction TO the sun (the moon is the opposite direction)  w time
+//   sky_horizon_params  xyz horizon colour  w weather_darkness
+//   sky_night_params    xyz night colour    w min_daylight
+//   sky_sunset_params   xyz sunset colour   w view_flags = quality + 4*fancy_water + 8*underwater
+//   sky_day_params      xyz day colour      w camera near plane (reverse-Z depth decoding)
+uniform sampler2DArray tiles : source_color, filter_nearest, repeat_disable;
+uniform vec4 sun_params = vec4(1.0, 0.96, 0.9, 1.0);
+uniform vec4 fog_params = vec4(0.75, 0.84, 0.96, 48.0);
+uniform vec4 ambient_params = vec4(0.45, 0.52, 0.66, 96.0);
+uniform vec4 sun_dir_params = vec4(0.0, 0.8, 0.6, 0.0);
+uniform vec4 sky_horizon_params = vec4(0.62, 0.78, 1.0, 0.0);
+uniform vec4 sky_night_params = vec4(0.0015, 0.0025, 0.012, 0.0);
+uniform vec4 sky_sunset_params = vec4(1.0, 0.26, 0.04, 6.0);
+uniform vec4 sky_day_params = vec4(0.21, 0.42, 1.0, 0.05);
 
-// --- sky (reflection colour, shared with sky.gdshader through sky_common) -----------------------
-uniform vec3 sun_dir = vec3(0.0, 0.8, 0.6);
-uniform vec3 moon_dir = vec3(0.0, -0.8, -0.6);
-uniform vec3 day_color : source_color = vec3(0.21, 0.42, 1.0);
-uniform vec3 horizon_color : source_color = vec3(0.62, 0.78, 1.0);
-uniform vec3 night_color : source_color = vec3(0.0015, 0.0025, 0.012);
-uniform vec3 sunset_color : source_color = vec3(1.0, 0.26, 0.04);
-uniform float weather_darkness = 0.0;
-uniform float min_daylight = 0.0;
+// --- the one water-only slot (ChunkManager / SkyPreview own it) ----------------------------------
+//   xyz shallow water tint (the biome tint from COLOR multiplies on top)
+//   w   mode = is_lava (0/1) + 2 * debug_view (0 off, 1 thickness, 2 normal, 3 foam mask)
+uniform vec4 water_params = vec4(0.09, 0.28, 0.62, 0.0);
 
-// --- look / quality ----------------------------------------------------------------------------
-uniform vec3 water_color : source_color = vec3(0.09, 0.28, 0.62);   // shallow tint (biome water colour)
-uniform vec3 deep_color : source_color = vec3(0.012, 0.075, 0.22);  // deep tint
-uniform vec3 foam_color : source_color = vec3(0.92, 0.97, 1.0);
-uniform int quality : hint_range(0, 2) = 2;      // 0 phone/low, 1 balanced, 2 high
-uniform int fancy_water : hint_range(0, 1) = 1;  // 0 = no screen refraction, classic alpha blend
-uniform int is_lava : hint_range(0, 1) = 0;
-uniform float underwater = 0.0;                  // 1 while the camera is submerged
-uniform float ripple_strength : hint_range(0.0, 2.0) = 1.0;
-uniform float refraction_strength : hint_range(0.0, 0.1) = 0.022;
-uniform float foam_distance : hint_range(0.0, 4.0) = 0.45;
-uniform float caustic_strength : hint_range(0.0, 2.0) = 0.8;
-uniform float cam_near = 0.05;                   // camera near plane (reverse-Z depth decoding)
-uniform int debug_view : hint_range(0, 3) = 0;   // 1 = thickness, 2 = normal, 3 = foam mask
+// Tunables no script has ever written: consts, not uniforms.
+const float ANIM_FPS = 10.0;
+const float WAVE_HEIGHT = 0.055;          // total wave amplitude in metres (<= 0.06)
+const float WAVE_SPEED = 1.5;
+const float WATER_ALPHA = 0.78;           // base opacity when screen refraction is off
+const float FRESNEL_STRENGTH = 0.35;      // extra weight on the sky reflection
+const float RIPPLE_STRENGTH = 1.0;
+const float REFRACTION_STRENGTH = 0.022;
+const float FOAM_DISTANCE = 0.45;
+const float CAUSTIC_STRENGTH = 0.8;
+const vec3 DEEP_COLOR = vec3(0.012, 0.075, 0.22);
+const vec3 FOAM_COLOR = vec3(0.92, 0.97, 1.0);
 
 uniform sampler2D screen_tex : hint_screen_texture, repeat_disable, filter_linear;
 uniform sampler2D depth_tex : hint_depth_texture, repeat_disable, filter_nearest;
@@ -114,7 +112,7 @@ float water_waves(vec2 p, float t, out vec2 slope) {
 
 // Scrolling ripple bump from two (three on high) noise gradients at different scales and speeds.
 // sc_noise_d returns the analytic gradient, so this is four texture-free hashes per octave.
-vec3 ripple_normal(vec2 p, float t, float strength) {
+vec3 ripple_normal(vec2 p, float t, float strength, int quality) {
 	vec2 g = vec2(0.0);
 	vec2 d;
 	sc_noise_d(p * 1.7 + vec2(t * 0.09, t * 0.13), d);
@@ -129,13 +127,15 @@ vec3 ripple_normal(vec2 p, float t, float strength) {
 }
 
 void vertex() {
+	float time = sun_dir_params.w;
+	int is_lava = int(mod(water_params.w, 2.0));
 	// UV2.x packing (voxel agent): integer part = base array layer, fraction * 128 = frames + sway * 64.
 	float layer = floor(UV2.x);
 	float enc = floor(fract(UV2.x) * 256.0 + 0.5);
 	float sway_mode = floor(enc / 64.0);        // 0 static, 1 plant, 2 leaves
 	float frames = enc - sway_mode * 64.0;
 	if (frames > 1.5) {
-		layer += floor(mod(time * anim_fps, frames));
+		layer += floor(mod(time * ANIM_FPS, frames));
 	}
 	v_uv_layer = vec3(UV, layer);
 	v_normal = NORMAL;
@@ -145,22 +145,46 @@ void vertex() {
 	vec3 world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	if (v_top > 0.5 && is_lava == 0) {
 		vec2 slope;
-		float h = water_waves(world.xz, time * wave_speed, slope);
+		float h = water_waves(world.xz, time * WAVE_SPEED, slope);
 		// A liquid's top face already sits 1/8 block below the block top, so a <= 0.06 m crest
 		// never pokes through the block above. Chunk meshes are unrotated, so local Y == world Y.
-		VERTEX.y += h * wave_height;
-		world.y += h * wave_height;
+		VERTEX.y += h * WAVE_HEIGHT;
+		world.y += h * WAVE_HEIGHT;
 		v_wave = h;
-		v_normal = normalize(vec3(-slope.x * wave_height * 6.0, 1.0, -slope.y * wave_height * 6.0));
+		v_normal = normalize(vec3(-slope.x * WAVE_HEIGHT * 6.0, 1.0, -slope.y * WAVE_HEIGHT * 6.0));
 	}
 	v_world = world;
 }
 
 void fragment() {
+	// --- unpack ------------------------------------------------------------------------------
+	float daylight = sun_params.w;
+	vec3 sun_color = sun_params.rgb;
+	vec3 fog_color = fog_params.rgb;
+	float fog_start = fog_params.w;
+	vec3 ambient_color = ambient_params.rgb;
+	float fog_end = ambient_params.w;
+	vec3 sun_dir = sun_dir_params.xyz;
+	vec3 moon_dir = -sun_dir;                        // SkyController's moon is always the anti-sun
+	float time = sun_dir_params.w;
+	float weather_darkness = sky_horizon_params.w;
+	float min_daylight = sky_night_params.w;
+	float cam_near = sky_day_params.w;
+	// view_flags = quality (0..2) + 4 * fancy_water + 8 * underwater
+	float flags = sky_sunset_params.w;
+	float underwater = floor(flags / 8.0);
+	float rest = flags - underwater * 8.0;
+	float fancy = floor(rest / 4.0);
+	int quality = int(rest - fancy * 4.0);
+	int fancy_water = int(fancy);
+	vec3 water_color = water_params.rgb;
+	int is_lava = int(mod(water_params.w, 2.0));
+	int debug_view = int(floor(water_params.w * 0.5));
+
 	vec3 cam = INV_VIEW_MATRIX[3].xyz;
 	vec3 view_dir = normalize(v_world - cam);          // eye -> surface
 	float view_dist = length(v_world - cam);
-	float t = time * wave_speed;
+	float t = time * WAVE_SPEED;
 
 	vec4 tex = texture(tiles, v_uv_layer);
 	vec3 tint = COLOR.rgb;
@@ -193,7 +217,7 @@ void fragment() {
 		// --- surface normal ------------------------------------------------------------------
 		vec3 n = normalize(v_normal);
 		if (v_top > 0.5 && quality >= 1) {
-			vec3 rn = ripple_normal(v_world.xz, t, ripple_strength * 0.35);
+			vec3 rn = ripple_normal(v_world.xz, t, RIPPLE_STRENGTH * 0.35, quality);
 			n = normalize(vec3(n.x + rn.x, 1.0, n.z + rn.z));
 		}
 		float facing = dot(n, -view_dir);
@@ -214,7 +238,7 @@ void fragment() {
 		thickness = mix(24.0, thickness, have_depth);
 
 		// --- refracted scene behind the surface ----------------------------------------------
-		vec2 refr_uv = SCREEN_UV + n.xz * refraction_strength
+		vec2 refr_uv = SCREEN_UV + n.xz * REFRACTION_STRENGTH
 				* clamp(3.0 / max(view_dist, 1.0), 0.15, 1.0) * (1.0 - facing * 0.5);
 		vec3 behind = texture(screen_tex, clamp(refr_uv, vec2(0.002), vec2(0.998))).rgb;
 
@@ -222,7 +246,7 @@ void fragment() {
 		// thin water over sand reads much lighter than the open sea
 		vec3 shallow = water_color * tint * (tex.rgb * 0.5 + 0.6);
 		vec3 very_shallow = shallow * 1.7 + vec3(0.02, 0.07, 0.06);
-		vec3 deep = deep_color * mix(vec3(1.0), tint, 0.5);
+		vec3 deep = DEEP_COLOR * mix(vec3(1.0), tint, 0.5);
 		float shore_mix = exp(-thickness * 1.1);
 		shallow = mix(shallow, very_shallow, shore_mix);
 		float depth_mix = 1.0 - exp(-thickness * 0.24);
@@ -234,8 +258,9 @@ void fragment() {
 		// --- reflected sky --------------------------------------------------------------------
 		vec3 refl_dir = reflect(view_dir, n);
 		refl_dir.y = from_below ? -abs(refl_dir.y) : abs(refl_dir.y);
-		vec3 sky = sky_color_min(normalize(refl_dir), sun_dir, day_color, horizon_color, night_color,
-				sunset_color, weather_darkness, min_daylight);
+		vec3 sky = sky_color_min(normalize(refl_dir), sun_dir, sky_day_params.rgb,
+				sky_horizon_params.rgb, sky_night_params.rgb, sky_sunset_params.rgb,
+				weather_darkness, min_daylight);
 		if (from_below) {
 			// under the surface almost everything mirrors the dark water; only a bright window overhead
 			float window = smoothstep(0.55, 0.95, -view_dir.y);
@@ -245,7 +270,7 @@ void fragment() {
 		// --- Fresnel (Schlick) -----------------------------------------------------------------
 		float f0 = 0.02;
 		float fresnel = f0 + (1.0 - f0) * pow(1.0 - clamp(facing, 0.0, 1.0), 5.0);
-		fresnel = clamp(fresnel * (1.0 + fresnel_strength) * (from_below ? 0.5 : 1.0), 0.0, 1.0);
+		fresnel = clamp(fresnel * (1.0 + FRESNEL_STRENGTH) * (from_below ? 0.5 : 1.0), 0.0, 1.0);
 		vec3 col = mix(under, sky, fresnel);
 
 		// --- sun and moon glint ----------------------------------------------------------------
@@ -257,30 +282,30 @@ void fragment() {
 				* 1.6 * (1.0 - daylight);
 
 		// --- caustic sparkle on a shallow bottom ------------------------------------------------
-		if (quality >= 1 && caustic_strength > 0.0 && thickness < 10.0) {
+		if (quality >= 1 && thickness < 10.0) {
 			vec2 cp = v_world.xz * 2.6 + vec2(t * 0.09, -t * 0.07);
 			float c1 = sc_noise(cp);
 			float c2 = sc_noise(cp * 1.7 + vec2(3.1, 7.7) - vec2(t * 0.05));
 			float caustic = pow(max(1.0 - abs(c1 - c2) * 3.4, 0.0), 4.0);
-			col += sun_color * caustic * caustic_strength * exp(-thickness * 0.5)
+			col += sun_color * caustic * CAUSTIC_STRENGTH * exp(-thickness * 0.5)
 					* (1.0 - fresnel) * daylight * 0.9;
 		}
 
 		// --- shore foam -------------------------------------------------------------------------
 		float foam = 0.0;
-		if (!from_below && foam_distance > 0.0 && have_depth > 0.5 && thickness < foam_distance * 2.0) {
+		if (!from_below && have_depth > 0.5 && thickness < FOAM_DISTANCE * 2.0) {
 			// the surf line advances and retreats with the wave crests
-			float edge = 1.0 - smoothstep(0.0, foam_distance, thickness + v_wave * 0.22);
+			float edge = 1.0 - smoothstep(0.0, FOAM_DISTANCE, thickness + v_wave * 0.22);
 			// two noise fields at different speeds break the band into moving lace
 			float fn = sc_fbm(v_world.xz * 3.1 + vec2(t * 0.16, -t * 0.12), quality >= 1 ? 3 : 2);
 			float fn2 = sc_noise(v_world.xz * 7.0 - vec2(t * 0.3, t * 0.22));
 			foam = clamp(smoothstep(0.52, 0.95, edge * 0.75 + fn * 0.5 + fn2 * 0.2) * edge, 0.0, 1.0);
-			col = mix(col, foam_color * (0.1 + 0.95 * max(sky_l * daylight, blk)), foam * 0.72);
+			col = mix(col, FOAM_COLOR * (0.1 + 0.95 * max(sky_l * daylight, blk)), foam * 0.72);
 		}
 
 		float alpha = 1.0;
 		if (fancy_water == 0) {
-			alpha = clamp(mix(water_alpha * 0.8, 0.95, depth_mix) + fresnel * 0.3 + foam * 0.5, 0.0, 1.0);
+			alpha = clamp(mix(WATER_ALPHA * 0.8, 0.95, depth_mix) + fresnel * 0.3 + foam * 0.5, 0.0, 1.0);
 		}
 		if (underwater > 0.5) {
 			alpha = min(alpha, 0.85);

@@ -517,11 +517,12 @@ func _push_wind_uniforms() -> void:
 	if manager == null or manager.mat_cutout == null:
 		return
 	var m := manager.mat_cutout
-	m.set_shader_parameter("wind_dir", wind_dir)
-	m.set_shader_parameter("wind_gust", wind_gust)
-	m.set_shader_parameter("wind_strength", wind_strength)
+	# Packed: wind_params xy = direction, z = travel in metres at full gust, w = gust 0..1;
+	# disturb_params.x = how many disturb[] slots are live (shaders/chunk_cutout.gdshader).
+	# The mobile cutout variant declares wind_params only, so the disturb writes fall through.
+	m.set_shader_parameter("wind_params", Vector4(wind_dir.x, wind_dir.y, wind_strength, wind_gust))
 	m.set_shader_parameter("disturb", _disturb_buf)
-	m.set_shader_parameter("disturb_count", _disturb_count)
+	m.set_shader_parameter("disturb_params", Vector4(float(_disturb_count), 0.0, 0.0, 0.0))
 
 ## Is the active camera's eye inside a liquid? (the sky/water shaders use it)
 func camera_submerged() -> bool:
@@ -699,14 +700,19 @@ func _push_uniforms() -> void:
 		for m in manager.materials():
 			sky.call("apply_to_material", m)
 		return
+	# Packed lighting contract, shared by every world shader (shaders/chunk_opaque.gdshader):
+	#   sun_params xyz sun colour, w daylight          fog_params xyz fog colour, w fog_start
+	#   ambient_params xyz ambient, w fog_end          sun_dir_params xyz sun direction, w time
+	var sun_p := Vector4(sc.r, sc.g, sc.b, d)
+	var fog_p := Vector4(fc.r, fc.g, fc.b, f0)
+	var amb_p := Vector4(ac.r, ac.g, ac.b, f1)
+	var dir := sun_direction()
+	var dir_p := Vector4(dir.x, dir.y, dir.z, _uniform_time)
 	for m in manager.materials():
-		m.set_shader_parameter("daylight", d)
-		m.set_shader_parameter("sun_color", sc)
-		m.set_shader_parameter("fog_color", fc)
-		m.set_shader_parameter("ambient_color", ac)
-		m.set_shader_parameter("fog_start", f0)
-		m.set_shader_parameter("fog_end", f1)
-		m.set_shader_parameter("time", _uniform_time)
+		m.set_shader_parameter("sun_params", sun_p)
+		m.set_shader_parameter("fog_params", fog_p)
+		m.set_shader_parameter("ambient_params", amb_p)
+		m.set_shader_parameter("sun_dir_params", dir_p)
 
 # --- spawning the player / debug camera -------------------------------------
 

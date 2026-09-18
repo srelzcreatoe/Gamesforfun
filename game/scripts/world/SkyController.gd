@@ -628,16 +628,17 @@ func _update_post_process() -> void:
 			var inside := sun_screen.x > -margin and sun_screen.x < 1.0 + margin and sun_screen.y > -margin and sun_screen.y < 1.0 + margin
 			visible = smoothstep(0.05, 0.25, facing) if inside else 0.0
 	var sun_vis := visible * smoothstep(-0.05, 0.05, _sun_dir.y) * (1.0 - _weather_darkness)
-	post_material.set_shader_parameter("sun_screen_pos", sun_screen)
-	post_material.set_shader_parameter("sun_visible", sun_vis)
-	post_material.set_shader_parameter("sun_color", _sun_color)
-	post_material.set_shader_parameter("exposure", (0.95 + 0.3 * (1.0 - _daylight)) * (0.85 if camera_underwater else 1.0))
-	post_material.set_shader_parameter("underwater", 1.0 if camera_underwater else 0.0)
-	post_material.set_shader_parameter("underwater_tint", _colors["water"])
-	post_material.set_shader_parameter("time", _time)
-	post_material.set_shader_parameter("quality", _quality)
-	post_material.set_shader_parameter("god_rays", 0.45 * _daylight * (1.0 - _weather_darkness) if _quality >= 1 else 0.0)
-	post_material.set_shader_parameter("flash", _flash)
+	# Packed (shaders/post_process.gdshader): post_params x exposure, y time, z flash, w quality;
+	# sun_params xyz sun colour, w god_rays; sun_screen_params xy screen uv, z visibility;
+	# underwater_params xyz tint, w submerged.
+	var exposure := (0.95 + 0.3 * (1.0 - _daylight)) * (0.85 if camera_underwater else 1.0)
+	var rays := 0.45 * _daylight * (1.0 - _weather_darkness) if _quality >= 1 else 0.0
+	var wtint: Color = _colors["water"]
+	post_material.set_shader_parameter("post_params", Vector4(exposure, _time, _flash, float(_quality)))
+	post_material.set_shader_parameter("sun_params", Vector4(_sun_color.r, _sun_color.g, _sun_color.b, rays))
+	post_material.set_shader_parameter("sun_screen_params", Vector4(sun_screen.x, sun_screen.y, sun_vis, 0.0))
+	post_material.set_shader_parameter("underwater_params",
+		Vector4(wtint.r, wtint.g, wtint.b, 1.0 if camera_underwater else 0.0))
 
 func _set_param(name: String, value: Variant) -> void:
 	_params[name] = value
@@ -690,27 +691,32 @@ func sky_param(name: String) -> Variant:
 	return _params.get(name)
 
 ## Push the shared lighting uniforms into any chunk / water / cloud ShaderMaterial.
+##
+## They travel PACKED: eight vec4s that every world shader declares with the same payload (see the
+## contract at the top of shaders/chunk_opaque.gdshader / water.gdshader). A shader that does not
+## need a slot - the chunk shaders take only the first four, the mobile variants fewer still -
+## simply does not declare it, and the write is ignored. Unpacked, this was 19 uniforms per
+## material, and a phone only guarantees 224 fragment uniform vectors for the whole program.
 func apply_to_material(mat: ShaderMaterial) -> void:
 	if mat == null:
 		return
-	mat.set_shader_parameter("daylight", _daylight)
-	mat.set_shader_parameter("sun_color", _sun_color)
-	mat.set_shader_parameter("fog_color", _fog_color)
-	mat.set_shader_parameter("fog_start", _fog_start)
-	mat.set_shader_parameter("fog_end", _fog_end)
-	mat.set_shader_parameter("time", _time)
-	mat.set_shader_parameter("ambient_color", _ambient_color)
-	mat.set_shader_parameter("sun_dir", _sun_dir)
-	mat.set_shader_parameter("moon_dir", _moon_dir)
-	mat.set_shader_parameter("weather_darkness", _weather_darkness)
-	mat.set_shader_parameter("min_daylight", float(sky_def.get("min_daylight", 0.0)))
-	mat.set_shader_parameter("day_color", _colors.get("day", Color(0.2, 0.4, 1.0)))
-	mat.set_shader_parameter("horizon_color", _colors.get("horizon", Color(0.6, 0.75, 1.0)))
-	mat.set_shader_parameter("night_color", _colors.get("night", Color(0.002, 0.003, 0.012)))
-	mat.set_shader_parameter("sunset_color", _colors.get("sunset", Color(1.0, 0.26, 0.04)))
-	mat.set_shader_parameter("underwater", 1.0 if camera_underwater else 0.0)
-	mat.set_shader_parameter("quality", _quality)
-	mat.set_shader_parameter("fancy_water", 1 if bool(Game.settings.get("fancy_water", true)) and _quality >= 1 else 0)
 	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
-	if cam != null:
-		mat.set_shader_parameter("cam_near", cam.near)
+	var near := cam.near if cam != null else 0.05
+	var fancy := 1.0 if bool(Game.settings.get("fancy_water", true)) and _quality >= 1 else 0.0
+	# quality 0..2, then the two flags above it, so one float carries all three (water reads it).
+	var flags := float(_quality) + 4.0 * fancy + (8.0 if camera_underwater else 0.0)
+	var day: Color = _colors.get("day", Color(0.2, 0.4, 1.0))
+	var horizon: Color = _colors.get("horizon", Color(0.6, 0.75, 1.0))
+	var night: Color = _colors.get("night", Color(0.002, 0.003, 0.012))
+	var sunset: Color = _colors.get("sunset", Color(1.0, 0.26, 0.04))
+	mat.set_shader_parameter("sun_params", Vector4(_sun_color.r, _sun_color.g, _sun_color.b, _daylight))
+	mat.set_shader_parameter("fog_params", Vector4(_fog_color.r, _fog_color.g, _fog_color.b, _fog_start))
+	mat.set_shader_parameter("ambient_params",
+		Vector4(_ambient_color.r, _ambient_color.g, _ambient_color.b, _fog_end))
+	mat.set_shader_parameter("sun_dir_params", Vector4(_sun_dir.x, _sun_dir.y, _sun_dir.z, _time))
+	mat.set_shader_parameter("sky_horizon_params",
+		Vector4(horizon.r, horizon.g, horizon.b, _weather_darkness))
+	mat.set_shader_parameter("sky_night_params",
+		Vector4(night.r, night.g, night.b, float(sky_def.get("min_daylight", 0.0))))
+	mat.set_shader_parameter("sky_sunset_params", Vector4(sunset.r, sunset.g, sunset.b, flags))
+	mat.set_shader_parameter("sky_day_params", Vector4(day.r, day.g, day.b, near))

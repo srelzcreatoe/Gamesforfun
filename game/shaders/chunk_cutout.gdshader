@@ -1,6 +1,6 @@
 // chunk_cutout.gdshader - alpha-scissor voxel geometry: leaves, plants, glass, torches, doors.
 //
-// Written by the voxel agent, polished later by the shaders agent: KEEP THE UNIFORM NAMES.
+// Written by the voxel agent, polished later by the shaders agent.
 // Same vertex stream as chunk_opaque.gdshader (see its header for UV2/COLOR packing), except:
 //   * the biome tint is applied to the whole texel (plants are fully tinted, not masked),
 //   * ALPHA_SCISSOR_THRESHOLD 0.5 punches out the transparent texels,
@@ -11,42 +11,46 @@
 //       The travelling wave's phase depends only on the vertex's world position, so vertices
 //         shared by neighbouring blocks move identically and no cracks open in a canopy; a
 //         per-block hash only nudges the phase (amplitude ~0.01 m).
-//       `disturb[0..disturb_count-1]` are world-space pushes (xyz = position, w = strength):
+//       `disturb[0..disturb_params.x-1]` are world-space pushes (xyz = position, w = strength):
 //         the player's feet and recent impacts, so grass and leaves part around whatever moves
 //         through them. World.gd fills them (see World.add_disturbance).
 //
 // UV2.x = layer + (frames + 64 * sway_mode) / 256   (sway_mode: 0 static, 1 plant, 2 leaves)
-
 //
-// POLISH PASS (shaders agent): the uniform names, the vertex stream and the Minecraft-style
-// face/light model are untouched. What changed: the distance fog uses a smoothstep curve with a
-// dither instead of a hard linear ramp (no banding in gradients), sky light picks up a small
-// directional term from `sun_dir` so slopes facing the sun read slightly warmer, and block light
-// flickers very slightly (`light_flicker`, set it to 0 to switch that off).
+// UNIFORM PACKING PASS (shaders agent): the maths, the vertex stream and the look are unchanged;
+// the scalars/vec3s now travel in shared vec4s so the fragment shader fits in a phone's
+// GL_MAX_FRAGMENT_UNIFORM_VECTORS (224 guaranteed, 256 on many chips). See chunk_opaque.gdshader
+// for the shared contract.
 
 shader_type spatial;
 render_mode unshaded, cull_disabled, depth_draw_opaque;
 
-uniform sampler2DArray tiles : source_color, filter_nearest_mipmap, repeat_disable;
-uniform float daylight = 1.0;
-uniform vec3 sun_color : source_color = vec3(1.0, 0.96, 0.9);
-uniform vec3 fog_color : source_color = vec3(0.75, 0.84, 0.96);
-uniform vec3 ambient_color : source_color = vec3(0.45, 0.52, 0.66);
-uniform float fog_start = 48.0;
-uniform float fog_end = 96.0;
-uniform float time = 0.0;
-uniform float anim_fps = 8.0;
-uniform float wind_strength = 0.06;          // metres of travel at full gust
-uniform float wind_speed = 1.6;
-uniform vec2 wind_dir = vec2(0.8, 0.6);      // world xz direction the wind blows towards
-uniform float wind_gust : hint_range(0.0, 1.0) = 0.35;
-// Physics-like disturbances: xyz = world position, w = strength 0..1. Slot 0 is the player.
+// --- packed shared lighting contract (identical in every world shader) --------------------------
+//   sun_params      xyz sun colour      w daylight
+//   fog_params      xyz fog colour      w fog_start
+//   ambient_params  xyz ambient colour  w fog_end
+//   sun_dir_params  xyz direction TO the sun/moon   w time (seconds)
+uniform sampler2DArray tiles : source_color, filter_nearest, repeat_disable;
+uniform vec4 sun_params = vec4(1.0, 0.96, 0.9, 1.0);
+uniform vec4 fog_params = vec4(0.75, 0.84, 0.96, 48.0);
+uniform vec4 ambient_params = vec4(0.45, 0.52, 0.66, 96.0);
+uniform vec4 sun_dir_params = vec4(0.0, 1.0, 0.0, 0.0);
+
+// --- wind + disturbances (World.gd) -------------------------------------------------------------
+//   wind_params     xy world xz direction the wind blows towards, z metres of travel at full
+//                   gust, w gust 0..1
+//   disturb_params  x how many disturb[] slots are live (y..w reserved)
+//   disturb[i]      xyz world position, w strength 0..1. Slot 0 is the player.
+uniform vec4 wind_params = vec4(0.8, 0.6, 0.06, 0.35);
+uniform vec4 disturb_params = vec4(0.0);
 uniform vec4 disturb[6];
-uniform int disturb_count = 0;
-uniform float block_light_warmth = 1.0;
-uniform vec3 sun_dir = vec3(0.0, 1.0, 0.0);      // direction TO the sun/moon (SkyController)
-uniform float sun_wrap : hint_range(0.0, 0.5) = 0.13;   // strength of the soft directional term
-uniform float light_flicker : hint_range(0.0, 1.0) = 0.25;
+
+// Tunables no script has ever written: consts, not uniforms.
+const float ANIM_FPS = 8.0;
+const float BLOCK_LIGHT_WARMTH = 1.0;
+const float SUN_WRAP = 0.13;
+const float LIGHT_FLICKER = 0.25;
+const float WIND_SPEED = 1.6;
 
 varying vec3 v_uv_layer;
 varying vec3 v_normal;
@@ -75,11 +79,15 @@ float block_hash(vec3 b) {
 //   mode   1 = plant (bends at the tip), 2 = leaves (whole block moves)
 //   weight 0..1 vertical weight of this vertex (1 at the tip of a plant, 1 everywhere on leaves)
 vec3 wind_offset(vec3 world, float mode, float weight) {
-	vec2 wd = normalize(wind_dir + vec2(0.0001, 0.0));
+	float time = sun_dir_params.w;
+	vec2 wd = normalize(wind_params.xy + vec2(0.0001, 0.0));
+	float wind_strength = wind_params.z;
+	float wind_gust = wind_params.w;
+	int disturb_count = int(disturb_params.x);
 	vec3 block = floor(world);
 	float jitter = block_hash(block);
 	// One low-frequency wave travelling along the wind, identical for shared vertices.
-	float phase = dot(world.xz, wd) * 0.35 - time * wind_speed + jitter * 0.9;
+	float phase = dot(world.xz, wd) * 0.35 - time * WIND_SPEED + jitter * 0.9;
 	float gust = 0.6 + wind_gust;
 	float amp = wind_strength * gust * weight;
 	vec2 side = vec2(-wd.y, wd.x);
@@ -123,12 +131,13 @@ float face_factor(vec3 n) {
 }
 
 void vertex() {
+	float time = sun_dir_params.w;
 	float layer = floor(UV2.x);
 	float enc = floor(fract(UV2.x) * 256.0 + 0.5);
 	float sway_mode = floor(enc / 64.0);        // 0 static, 1 plant, 2 leaves
 	float frames = enc - sway_mode * 64.0;
 	if (frames > 1.5) {
-		layer += floor(mod(time * anim_fps, frames));
+		layer += floor(mod(time * ANIM_FPS, frames));
 	}
 	v_uv_layer = vec3(UV, layer);
 	v_normal = NORMAL;
@@ -143,10 +152,19 @@ void vertex() {
 		}
 	}
 	vec3 view = (MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	float fog_start = fog_params.w;
+	float fog_end = ambient_params.w;
 	v_fog = clamp((length(view) - fog_start) / max(fog_end - fog_start, 0.001), 0.0, 1.0);
 }
 
 void fragment() {
+	float daylight = sun_params.w;
+	vec3 sun_color = sun_params.rgb;
+	vec3 fog_color = fog_params.rgb;
+	vec3 ambient_color = ambient_params.rgb;
+	vec3 sun_dir = sun_dir_params.xyz;
+	float time = sun_dir_params.w;
+
 	vec4 tex = texture(tiles, v_uv_layer);
 	float packed = floor(v_light * 255.0 + 0.5);
 	float sky_raw = floor(packed * 0.0625);
@@ -156,9 +174,9 @@ void fragment() {
 	float face = face_factor(nn);
 	vec3 sky_part = sky * daylight * mix(ambient_color, sun_color, clamp(daylight, 0.0, 1.0));
 	// soft directional term: slopes that face the sun read a little warmer than the flat face factor
-	sky_part *= mix(1.0, chunk_sun_wrap(nn, normalize(sun_dir)), sun_wrap * clamp(daylight, 0.0, 1.0));
-	float flicker = 1.0 - light_flicker * 0.12 * (0.5 + 0.5 * sin(time * 7.3 + v_world_phase));
-	vec3 blk_part = blk * BLOCK_LIGHT_COLOR * block_light_warmth * flicker;
+	sky_part *= mix(1.0, chunk_sun_wrap(nn, normalize(sun_dir)), SUN_WRAP * clamp(daylight, 0.0, 1.0));
+	float flicker = 1.0 - LIGHT_FLICKER * 0.12 * (0.5 + 0.5 * sin(time * 7.3 + v_world_phase));
+	vec3 blk_part = blk * BLOCK_LIGHT_COLOR * BLOCK_LIGHT_WARMTH * flicker;
 	vec3 light = max(sky_part, blk_part) + ambient_color * 0.12;
 	vec3 albedo = tex.rgb * COLOR.rgb * light * face * COLOR.a;
 	float fog = v_fog * v_fog * (3.0 - 2.0 * v_fog);

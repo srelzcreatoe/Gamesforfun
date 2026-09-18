@@ -12,6 +12,16 @@ extends Node
 const OPAQUE_SHADER := "res://shaders/chunk_opaque.gdshader"
 const CUTOUT_SHADER := "res://shaders/chunk_cutout.gdshader"
 const WATER_SHADER := "res://shaders/water.gdshader"
+## Phone variants: <= 6 uniforms each, no screen texture, no depth texture (shaders/mobile/).
+## GLES3 only guarantees 224 fragment uniform vectors and several mobile GPUs report 256; a
+## program that fails to link leaves Godot drawing with an unbound shader, which is the native
+## crash we see on real phones. The mobile uniform names are a subset of the desktop ones with
+## the same payload, so the push code below and SkyController.apply_to_material feed both.
+const OPAQUE_SHADER_MOBILE := "res://shaders/mobile/chunk_opaque_mobile.gdshader"
+const CUTOUT_SHADER_MOBILE := "res://shaders/mobile/chunk_cutout_mobile.gdshader"
+const WATER_SHADER_MOBILE := "res://shaders/mobile/water_mobile.gdshader"
+## Default shallow water tint; mirrors water_params.rgb in shaders/water.gdshader.
+const WATER_TINT := Vector3(0.09, 0.28, 0.62)
 const MAX_UPLOADS_PER_FRAME := 2
 const MAX_PUBLISH_PER_FRAME := 2
 const MAX_MERGE_PER_FRAME := 1
@@ -88,18 +98,37 @@ func setup(w: Node, root: Node3D, sm: SaveManager, gen: Object) -> void:
 
 # --- materials --------------------------------------------------------------
 
+## True when the chunk materials should use the stripped shaders/mobile/ variants: on a phone,
+## or with `--force-mobile-shaders` on the command line (which is how the desktop build proves
+## the mobile path still compiles).
+static func use_mobile_shaders() -> bool:
+	for a in OS.get_cmdline_user_args():
+		if a == "--force-mobile-shaders":
+			return true
+	for a in OS.get_cmdline_args():
+		if a == "--force-mobile-shaders":
+			return true
+	return Game != null and Game.is_mobile()
+
+## Desktop path, or its mobile/ variant when this device wants one (and the file is there).
+static func shader_for(desktop: String, mobile: String) -> String:
+	if use_mobile_shaders() and ResourceLoader.exists(mobile):
+		return mobile
+	return desktop
+
 func _build_materials() -> void:
-	mat_opaque = _make_material(OPAQUE_SHADER)
-	mat_cutout = _make_material(CUTOUT_SHADER)
-	mat_water = _make_material(WATER_SHADER)
+	mat_opaque = _make_material(shader_for(OPAQUE_SHADER, OPAQUE_SHADER_MOBILE))
+	mat_cutout = _make_material(shader_for(CUTOUT_SHADER, CUTOUT_SHADER_MOBILE))
+	var water_path := shader_for(WATER_SHADER, WATER_SHADER_MOBILE)
+	mat_water = _make_material(water_path)
 	if mat_water != null:
 		mat_water.render_priority = 1
-		mat_water.set_shader_parameter("is_lava", 0)
-	# Lava uses the same shader with is_lava = 1 (no waves, no sky reflection, full opacity).
-	mat_lava = _make_material(WATER_SHADER)
+		mat_water.set_shader_parameter("water_params", Vector4(WATER_TINT.x, WATER_TINT.y, WATER_TINT.z, 0.0))
+	# Lava uses the same shader with water_params.w = 1 (no waves, no sky reflection, full opacity).
+	mat_lava = _make_material(water_path)
 	if mat_lava != null:
 		mat_lava.render_priority = 1
-		mat_lava.set_shader_parameter("is_lava", 1)
+		mat_lava.set_shader_parameter("water_params", Vector4(WATER_TINT.x, WATER_TINT.y, WATER_TINT.z, 1.0))
 
 func _make_material(path: String) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
@@ -110,13 +139,13 @@ func _make_material(path: String) -> ShaderMaterial:
 		return m
 	if Textures.block_array != null:
 		m.set_shader_parameter("tiles", Textures.block_array)
-	m.set_shader_parameter("daylight", 1.0)
-	m.set_shader_parameter("sun_color", Color(1, 0.96, 0.9))
-	m.set_shader_parameter("fog_color", Color(0.75, 0.84, 0.96))
-	m.set_shader_parameter("ambient_color", Color(0.45, 0.52, 0.66))
-	m.set_shader_parameter("fog_start", float(render_distance) * 16.0 * 0.55)
-	m.set_shader_parameter("fog_end", float(render_distance) * 16.0 * 1.05)
-	m.set_shader_parameter("time", 0.0)
+	# Packed lighting contract, shared by every world shader (see shaders/chunk_opaque.gdshader):
+	#   sun_params xyz sun colour, w daylight          fog_params xyz fog colour, w fog_start
+	#   ambient_params xyz ambient, w fog_end          sun_dir_params xyz sun direction, w time
+	m.set_shader_parameter("sun_params", Vector4(1.0, 0.96, 0.9, 1.0))
+	m.set_shader_parameter("fog_params", Vector4(0.75, 0.84, 0.96, float(render_distance) * 16.0 * 0.55))
+	m.set_shader_parameter("ambient_params", Vector4(0.45, 0.52, 0.66, float(render_distance) * 16.0 * 1.05))
+	m.set_shader_parameter("sun_dir_params", Vector4(0.0, 1.0, 0.0, 0.0))
 	return m
 
 func materials() -> Array[ShaderMaterial]:
