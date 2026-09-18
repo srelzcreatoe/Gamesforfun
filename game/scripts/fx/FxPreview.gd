@@ -23,12 +23,15 @@ extends Node3D
 ##         when hunting down which quad washed the frame out, e.g. --hide=Ring,CrackGlow)
 ## `--dumpfx` print every visible emitter / quad with the material state that decides its
 ##         colour, at each capture (which node drew that black pixel?)
-## `--profile` print, per cinematic phase, the frame time, the fx scripts' OWN cpu time
-##         (FxAssets.cpu_usec - the engine's Performance.TIME_PROCESS monitor reads 0
-##         headless), how much of that was the afterimage silhouette, the draw calls and
-##         the on-screen particle / light peak. This is how the cinematic's cost is
-##         measured; under llvmpipe the frame time is software rasterisation, so the
-##         fx_cpu column is the number that transfers to a phone.
+## `--profile` print, per cinematic phase, the frame time, the fx scripts' cpu time
+##         (FxAssets.cpu_usec; `own_*` takes the OTHER subsystems work the cinematic
+##         triggers back out again - the form application at the climax and Audio s
+##         synchronous stream loads, `extern_max` - so the fx are not blamed for it;
+##         the engine's Performance.TIME_PROCESS monitor reads 0 headless), how much of
+##         that was the afterimage silhouette, the draw calls and the on-screen particle
+##         / light peak. This is how the cinematic's cost is measured; under llvmpipe the
+##         frame time is software rasterisation, so the own_/fx_cpu columns are the
+##         numbers that transfer to a phone.
 ## `--noglow --nofog` drop those environment features, to tell a post effect apart from
 ##         a material problem
 ## `--fx=dustdiag` the regression stage for the black-quad bug (see `_build_dust_diag`)
@@ -545,7 +548,8 @@ func _sample_profile(delta: float) -> void:
 	var key := d.phase_name() if d != null else ("idle" if _next_step >= _steps.size() else "pre")
 	var row: Dictionary = _prof.get(key, {
 		"frames": 0, "sum": 0.0, "max": 0.0, "cpu": 0.0, "cpu_max": 0.0,
-		"particles": 0, "lights": 0, "draws": 0, "objects": 0})
+		"particles": 0, "lights": 0, "draws": 0, "objects": 0,
+		"ghost": 0.0, "extern": 0.0, "extern_sum": 0.0})
 	var ms := delta / maxf(0.001, Engine.time_scale) * 1000.0
 	# TIME_PROCESS is the main thread's _process cost (our scripts). Under llvmpipe the
 	# whole frame is dominated by software rasterisation, which a phone's GPU does not
@@ -555,6 +559,9 @@ func _sample_profile(delta: float) -> void:
 	# cinematic and the aura spent in their own _process since the last frame.
 	var cpu := float(FxAssets.cpu_take()) / 1000.0
 	var ghost := float(FxAssets.cpu_ghost_take()) / 1000.0
+	# of the fx total: work by OTHER subsystems inside the cinematic's frame (the form
+	# application at the climax, Audio's synchronous stream loads). See FxAssets.cpu_extern_usec.
+	var extern := float(FxAssets.cpu_extern_take()) / 1000.0
 	row["frames"] = int(row["frames"]) + 1
 	row["sum"] = float(row["sum"]) + ms
 	row["max"] = maxf(float(row["max"]), ms)
@@ -563,6 +570,8 @@ func _sample_profile(delta: float) -> void:
 	row["draws"] = maxi(int(row["draws"]),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)))
 	row["ghost"] = maxf(float(row.get("ghost", 0.0)), ghost)
+	row["extern"] = maxf(float(row.get("extern", 0.0)), extern)
+	row["extern_sum"] = float(row.get("extern_sum", 0.0)) + extern
 	row["objects"] = maxi(int(row["objects"]),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)))
 	if d != null:
@@ -578,11 +587,15 @@ func _print_profile() -> void:
 			continue
 		var row: Dictionary = _prof[key]
 		var n: int = maxi(1, int(row["frames"]))
+		# own_* is fx_cpu with the other subsystems' work taken back out of it
+		var cpu_sum: float = float(row["cpu"])
+		var ext_sum: float = float(row.get("extern_sum", 0.0))
 		print(("VFX PROFILE phase=%-7s frames=%3d frame_avg=%6.2fms frame_max=%6.2fms "
-			+ "fx_cpu_avg=%5.3fms fx_cpu_max=%5.3fms ghost_max=%5.3fms draws=%4d objects=%4d "
-			+ "particles=%3d lights=%d") % [
+			+ "fx_cpu_avg=%5.3fms fx_cpu_max=%5.3fms own_avg=%5.3fms ghost_max=%5.3fms "
+			+ "extern_max=%5.3fms draws=%4d objects=%4d particles=%3d lights=%d") % [
 			key, n, float(row["sum"]) / float(n), float(row["max"]),
-			float(row["cpu"]) / float(n), float(row["cpu_max"]), float(row.get("ghost", 0.0)),
+			cpu_sum / float(n), float(row["cpu_max"]), maxf(0.0, cpu_sum - ext_sum) / float(n),
+			float(row.get("ghost", 0.0)), float(row.get("extern", 0.0)),
 			int(row["draws"]), int(row["objects"]), int(row["particles"]), int(row["lights"])])
 	print("VFX PROFILE budget particles<=%d lights<=%d" % [
 		TransformationDirector.MAX_PARTICLES, TransformationDirector.MAX_LIGHTS])
