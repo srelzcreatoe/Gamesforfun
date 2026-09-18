@@ -134,7 +134,16 @@ void fragment() {
 	}
 	if (fx_darken > 0.0001) {
 		float dl = luma(col);
-		vec3 dimmed = mix(col, vec3(0.03, 0.04, 0.09) * (0.35 + 1.2 * dl), fx_darken);
+		// Vignette weighted and PROPORTIONAL. Mixing the frame toward an absolute
+		// near-black (what this used to do) reads as almost nothing in noon daylight and
+		// crushes already-dark pixels - 12.8 % of the in-world strain frame came out pure
+		// black - so the frame is SCALED down instead: hard at the edges, gently in the
+		// middle where the character is, with a cool tint added back so nothing clips to
+		// zero. That is also where the strain "vignette" comes from now; an additive
+		// overlay cannot darken anything.
+		float edge = 0.40 + 0.95 * smoothstep(0.05, 0.95, length(centred) * 1.30);
+		float amt = clamp(fx_darken * edge, 0.0, 1.0);
+		vec3 dimmed = col * mix(1.0, 0.10, amt) + vec3(0.05, 0.07, 0.14) * amt * (0.10 + 0.45 * dl);
 		// Only genuinely blown-out fx pixels (aura core, flash, beam) burn through the dim,
 		// and only partly. The gate used to open at 0.7 luma, which in a sunlit voxel world
 		// is sky, sand and most grass - so the strain dim read at night and did nothing at

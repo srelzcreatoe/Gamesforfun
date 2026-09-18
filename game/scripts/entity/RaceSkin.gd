@@ -184,7 +184,7 @@ static func compose_image(character: Dictionary) -> Image:
 	var tattoo := _int(character.get("tattoo"), -1)
 	if tattoo >= 0:
 		_blend(buf, size, _load_image("races/tattoos/tattoo_%d" % tattoo), Color.WHITE)
-	if _int(character.get("hair_type"), 1) > 0:
+	if can_use_hair(character) and HairBuilder.has_hair(HairBuilder.style_id(_int(character.get("hair_type"), 1))):
 		# DMZ paints a hair cap straight onto the head cube's skin. Keep it a shade
 		# darker than the voxel strands that sit on top of it, otherwise the head
 		# reads as one flat block of colour from behind.
@@ -213,10 +213,20 @@ static func attach_hair(model: BedrockModel, character: Dictionary) -> Node3D:
 		return null
 	if model.has_bone("pelo1") or model.has_bone("hair1"):
 		return null                 # saga/master models ship their own hair bones
+	if not can_use_hair(character):
+		return HairBuilder.attach(model, "", Color.WHITE)     # hides any old hair
 	var hair_type := _int(character.get("hair_type"), 1)
 	var style := HairBuilder.style_id(hair_type)
 	var col := _color(character.get("hair_color", "#222629"))
 	return HairBuilder.attach(model, style, col)
+
+## HairManager.canUseHair: strand hair is for humans and saiyans (and female
+## majins); the other races are bald or wear their own head geometry.
+static func can_use_hair(character: Dictionary) -> bool:
+	var race := String(character.get("race", "human")).to_lower()
+	if HairBuilder.HAIR_RACES.has(race):
+		return true
+	return race == "majin" and String(character.get("gender", "male")).to_lower() == "female"
 
 ## Style id for a profile `hair_type` index (wraps like the character creation UI).
 static func hair_style_id(hair_type: int) -> String:

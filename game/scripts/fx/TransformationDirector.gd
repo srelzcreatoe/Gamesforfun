@@ -294,10 +294,15 @@ func _setup_ground() -> void:
 	_decal.position = Vector3(0, 0.04, 0)
 	add_child(_decal)
 
-	# the cracks glow in the form colour as they open up
-	_crack_glow = FxAssets.make_quad("CrackGlow", _crack_texture(), 5.2 * _gs,
+	# The cracks glow in the form colour as they open up. It uses the same crack texture
+	# a little WIDER and is drawn UNDER the dark decal (render_priority), so the glow
+	# halos around the crack instead of the dark quad simply cancelling it out.
+	_crack_glow = FxAssets.make_quad("CrackGlow", _crack_texture(), 5.9 * _gs,
 		Color(profile.aura.r, profile.aura.g, profile.aura.b, 0.0), true)
-	_crack_glow.position = Vector3(0, 0.06, 0)
+	_crack_glow.position = Vector3(0, 0.05, 0)
+	var gmat: StandardMaterial3D = _crack_glow.material_override
+	gmat.render_priority = 1
+	m.render_priority = 2
 	add_child(_crack_glow)
 
 ## Energy motes streaming IN from a few metres out: the "gathering" of phase A. The
@@ -475,8 +480,10 @@ func _enter_strain() -> void:
 	if _motes != null:
 		_motes.emitting = false
 	Audio.play_sfx_at("transform_on", global_position, -1.0)
-	ScreenFx.vignette_hold(Color(0.02, 0.02, 0.05), 0.62, _t_climax - _t_strain, 0.45)
-	ScreenFx.dim(0.38, _t_climax - _t_strain, 0.45)
+	# ONE dim for the strain: the pass darkens the edges much harder than the middle
+	# (shaders/post_process.gdshader), so this is the vignette as well. Asking the
+	# additive overlay for a black vignette on top of it did nothing at all in game.
+	ScreenFx.dim(0.52, _t_climax - _t_strain, 0.45)
 	ScreenFx.glow(0.45, _t_climax - _t_strain + 0.6, 0.5)
 	if _aura != null and profile.lightning:
 		_aura.set_lightning(true, profile.lightning_color)

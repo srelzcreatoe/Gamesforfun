@@ -550,6 +550,13 @@ static func _entity_script(path: String) -> GDScript:
 	var src: Variant = load(path)
 	return src as GDScript
 
+## A DMZ hair preset id by index, or a plain number when HairBuilder is missing.
+func _preset_style(index: int) -> String:
+	var hb := _entity_script(HAIR_PATH)
+	if hb != null and hb.has_method("style_id"):
+		return String(hb.call("style_id", index))
+	return str(index + 1)
+
 func _haired_dummy(style: String, color := Color(0.13, 0.15, 0.16)) -> Node3D:
 	var src := _entity_script(BEDROCK_PATH)
 	if src == null:
@@ -709,7 +716,9 @@ func test_hair_is_restored_on_an_interrupt_but_handed_over_on_a_settle() -> void
 ## Lightning arcs are placed up to the model's real visual height, which includes the
 ## hair a form swaps in - the hitbox alone is a metre short of an SSJ3 mane.
 func test_lightning_height_follows_the_model_not_the_hitbox() -> void:
-	var bm := _haired_dummy("short")
+	# hair styles are DMZ preset ids now ("1".."27"), and "<id>@ssj3" is that
+	# preset's own SSJ3 mane (entity engineer's rename, same contract)
+	var bm := _haired_dummy(_preset_style(0))
 	if bm == null:
 		return
 	var aura := Aura.get_for(dummy)
@@ -718,7 +727,7 @@ func test_lightning_height_follows_the_model_not_the_hitbox() -> void:
 		return
 	var short_h := aura.visual_height()
 	assert_true(short_h > 1.0, "a real model reports a real height (%.2f m)" % short_h)
-	_hair_attach(bm, "ssj3", Color(1, 0.88, 0.3))
+	_hair_attach(bm, _preset_style(7) + "@ssj3", Color(1, 0.88, 0.3))
 	var mane_h := aura.visual_height()
 	assert_true(mane_h > short_h, "the SSJ3 mane raises the arcs (%.2f -> %.2f m)" % [short_h, mane_h])
 	aura.set_lightning(true, Color(0.6, 0.85, 1.0))

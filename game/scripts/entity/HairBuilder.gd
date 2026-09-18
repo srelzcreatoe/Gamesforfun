@@ -48,6 +48,10 @@ const FACE_COLS := {"FRONT": 4, "BACK": 4, "LEFT": 4, "RIGHT": 4, "TOP": 4}
 ## How much lighter an accent strand is than the main hair. Shared with the
 ## transformation flicker in scripts/fx/TransformationDirector.gd.
 const ACCENT_LIGHTEN := 0.45
+## HairManager.DEFAULT_HAIR_RACES: the races that get strand hair at all. DMZ's
+## canUseHair() also allows female majins, and any race whose config lists a
+## "hair" head bone.
+const HAIR_RACES := ["human", "saiyan"]
 ## forms.json `hairType` -> the variant of the character's preset to use.
 const FORM_VARIANTS := {"ssj": "ssj", "ssj2": "ssj2", "ssj3": "ssj3", "1": "ssj", "2": "ssj2", "3": "ssj3"}
 
@@ -83,6 +87,17 @@ static func style_id(hair_type: int) -> String:
 	if order.is_empty():
 		return ""
 	return String(order[posmod(hair_type, order.size())])
+
+## Does a style have any strands at all? (DMZ preset 5 is the empty one.)
+static func has_hair(id: String) -> bool:
+	return not resolve_style(id).get("strands", {}).is_empty()
+
+## Index of the mod's empty preset, for a "no hair" choice in the UI.
+static func empty_style_index() -> int:
+	for i in style_count():
+		if not has_hair(style_id(i)):
+			return i
+	return 0
 
 ## Index of a style id in the selectable order (-1 when it is not one).
 static func style_index(id: String) -> int:

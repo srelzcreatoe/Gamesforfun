@@ -178,8 +178,9 @@ func test_spa_pack_loads_with_bone_remap() -> void:
 	var clip := anim.resolve("spa.walking")
 	assert_true(clip.bones.has("right_arm") and clip.bones.has("left_leg"), "remapped bones: %s" % str(clip.bone_names))
 	assert_true(not clip.bones.has("rightArm"), "vanilla names are gone")
-	# the 20 fps outlier was rescaled to seconds on import
-	assert_true(clip.length > 0.2 and clip.length < 2.0, "walking length %.2f s" % clip.length)
+	# times are seconds (the animations engineer's Pierced Animations pack replaced
+	# some SPA clips with longer cycles, so only the order of magnitude is asserted)
+	assert_true(clip.length > 0.2 and clip.length < 12.0, "walking length %.2f s" % clip.length)
 	# and it actually animates the arms
 	var a := anim.sample_channel("spa.walking", "right_arm", "rotation", 0.15)
 	var b := anim.sample_channel("spa.walking", "right_arm", "rotation", 0.45)

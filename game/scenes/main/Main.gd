@@ -26,6 +26,7 @@ var _mem_timer := 0.0
 var _fps_label: Label
 
 func _ready() -> void:
+	_connect_breadcrumbs()
 	Game.main = self
 	_parse_args()
 	_setup_window()
@@ -78,6 +79,33 @@ func _setup_fps_label() -> void:
 	overlay.add_child(_fps_label)
 	Events.settings_changed.connect(func() -> void: _fps_label.visible = bool(Game.settings.get("show_fps", false)))
 
+## Boot breadcrumbs: user://boot.log records how far a session got, so a crash on a phone
+## (no console) can be located. Rewritten on every launch.
+const BOOT_LOG := "user://boot.log"
+var _boot_log: FileAccess = null
+
+func _breadcrumb(stage: String) -> void:
+	if _boot_log == null:
+		_boot_log = FileAccess.open(BOOT_LOG, FileAccess.WRITE)
+		if _boot_log == null:
+			return
+		_boot_log.store_line("Dragon Block Sagas %s | %s | %s | %s" % [Game.version, OS.get_name(),
+			OS.get_model_name(), RenderingServer.get_video_adapter_name()])
+	_boot_log.store_line("%8.2fs  %s  (static %.0f MB, textures %.0f MB)" % [
+		Time.get_ticks_msec() / 1000.0, stage,
+		Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
+		Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0])
+	_boot_log.flush()
+
+func _connect_breadcrumbs() -> void:
+	_breadcrumb("boot")
+	Events.world_loaded.connect(func(_w: Node) -> void: _breadcrumb("world loaded"))
+	Events.player_spawned.connect(func(_p: Node) -> void: _breadcrumb("player spawned"))
+	Events.ui_opened.connect(func(screen: String) -> void: _breadcrumb("ui " + screen))
+	Events.planet_changed.connect(func(pid: String) -> void: _breadcrumb("planet " + pid))
+	var first_chunk := func(_cx: int, _cz: int) -> void: _breadcrumb("first chunk ready")
+	Events.chunk_ready.connect(first_chunk, CONNECT_ONE_SHOT)
+
 func _process(delta: float) -> void:
 	if _fps_label.visible:
 		_fps_label.text = "%d fps" % Engine.get_frames_per_second()
@@ -127,6 +155,7 @@ func show_main_menu() -> void:
 	Audio.play_bgm("menu")
 
 func enter_world(info: Dictionary) -> void:
+	_breadcrumb("enter world %s seed %s" % [str(info.get("planet", "?")), str(info.get("seed", "?"))])
 	_clear_screen()
 	if not ResourceLoader.exists(WORLD_SCENE):
 		Log.e("World scene missing: " + WORLD_SCENE)

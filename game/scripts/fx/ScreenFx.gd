@@ -247,7 +247,17 @@ func do_flash(color: Color, duration: float, strength := 1.0) -> void:
 	_flash_decay = 1.0 / maxf(0.03, duration)
 	_rect.visible = true
 
+## The overlay is an ADDITIVE pass (shaders/flash.gdshader), so it can only ever put
+## light on the frame: a near-black vignette colour adds nothing and was silently
+## invisible in game. A dark request is therefore served by the screen dim, whose own
+## falloff is vignette shaped, and only a coloured vignette (the red damage pulse) goes
+## to the additive overlay.
+const VIGNETTE_DARK_LUMA := 0.12
+
 func do_vignette(color: Color, strength: float, duration: float) -> void:
+	if color.get_luminance() < VIGNETTE_DARK_LUMA:
+		do_dim(maxf(_darken_target, clampf(strength, 0.0, 1.0) * 0.8), duration * 0.35, duration)
+		return
 	if _mat == null:
 		return
 	_mat.set_shader_parameter("vignette_color", color)

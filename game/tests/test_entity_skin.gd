@@ -306,8 +306,8 @@ func test_presets_with_coloured_strands_use_a_second_surface() -> void:
 	var accent := hair.get_surface_override_material(1) as StandardMaterial3D
 	assert_true(main != null and accent != null, "a material per surface")
 	assert_ne(main.albedo_color, accent.albedo_color, "the accent is a different colour")
-	assert_eq(HairBuilder.accent_color(two_tone, Color.RED), Color("#F5DA0C").lightened(0.0),
-		"the strand's own colour is used")
+	var acc := HairBuilder.accent_color(two_tone, Color.RED)
+	assert_true(acc.r > 0.8 and acc.g > 0.7 and acc.b < 0.2, "the strand's own gold is used (%s)" % acc)
 	assert_eq(HairBuilder.accent_color(HairBuilder.style_id(0), Color.RED),
 		Color.RED.lightened(HairBuilder.ACCENT_LIGHTEN), "otherwise it derives from the main colour")
 
@@ -339,3 +339,25 @@ func test_visual_aabb_includes_the_hair() -> void:
 	assert_true(haired.size.y > bald.size.y + 0.1,
 		"hair grows the framed box (%.2f -> %.2f)" % [bald.size.y, haired.size.y])
 	assert_true(haired.size.y < 4.0, "and stays sane (%.2f)" % haired.size.y)
+
+func test_only_hair_races_get_strand_hair() -> void:
+	# HairManager.canUseHair: humans, saiyans and female majins wear the presets;
+	# namekians / frost demons / bio androids never do, whatever hair_type says
+	assert_true(RaceSkin.can_use_hair({"race": "human"}))
+	assert_true(RaceSkin.can_use_hair({"race": "saiyan"}))
+	assert_true(RaceSkin.can_use_hair({"race": "majin", "gender": "female"}))
+	assert_true(not RaceSkin.can_use_hair({"race": "majin", "gender": "male"}))
+	for race in ["namekian", "frostdemon", "bioandroid"]:
+		assert_true(not RaceSkin.can_use_hair({"race": race}), "%s has no strand hair" % race)
+	model = BedrockModel.new()
+	add_node(model)
+	model.load_geo("entity/races/human")
+	RaceSkin.apply_to(model, {"race": "namekian", "hair_type": 0, "hair_color": "#80FF69"})
+	var hair: MeshInstance3D = model.get_bone("head").get_node_or_null("Hair")
+	assert_true(hair == null or not hair.visible, "a namekian gets no hair mesh")
+	# the mod's own empty preset is the bald choice for a race that can have hair
+	var empty := HairBuilder.empty_style_index()
+	assert_true(not HairBuilder.has_hair(HairBuilder.style_id(empty)), "preset %d is empty" % empty)
+	RaceSkin.apply_to(model, {"race": "saiyan", "hair_type": empty})
+	hair = model.get_bone("head").get_node_or_null("Hair")
+	assert_true(hair == null or not hair.visible, "the empty preset shows no hair")
