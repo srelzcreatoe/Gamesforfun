@@ -125,3 +125,107 @@ func test_toast_and_hint_do_not_throw() -> void:
 	ui.toast("Title", "Body", null)
 	ui.show_hint("Hello", 1.0)
 	assert_true(ui.toasts != null, "toast layer present")
+
+# --- character creation: every DMZ option is offered, and every arrow is tappable ----------
+
+func _creation() -> CharacterCreation:
+	var cc: CharacterCreation = ui.open("character_creation")
+	cc.size = Vector2(1280, 720)
+	cc.insets = Vector4.ZERO
+	cc.rebuild()
+	return cc
+
+## Walks the option rows and returns {option_key: [left arrow, right arrow]}.
+func _arrow_rows(root: Node, out := {}) -> Dictionary:
+	if root is Control and (root as Control).has_meta("option_key"):
+		var arrows: Array[Button] = []
+		for c in root.get_children():
+			if c is Button:
+				arrows.append(c)
+		out[String((root as Control).get_meta("option_key"))] = arrows
+	for c in root.get_children():
+		_arrow_rows(c, out)
+	return out
+
+func test_character_creation_offers_every_dmz_option() -> void:
+	var cc := _creation()
+	var rows := _arrow_rows(cc)
+	for key in ["race", "gender", "class", "body_type", "hair_type", "eye_type", "nose", "mouth",
+			"tattoo", "skin_color", "hair_color", "eye_color", "eye_color2"]:
+		assert_true(rows.has(key), "saiyan creation has a %s row" % key)
+	var ch := cc.character()
+	for key in ["race", "gender", "class", "body_type", "hair_type", "eye_type", "nose", "mouth",
+			"tattoo", "skin_color", "skin_color2", "skin_color3", "hair_color", "eye_color",
+			"eye_color2"]:
+		assert_true(ch.has(key), "character dict carries " + key)
+	ui.close("character_creation")
+
+func test_creation_arrows_are_touch_sized_and_change_the_value() -> void:
+	var cc := _creation()
+	var rows := _arrow_rows(cc)
+	for key in rows.keys():
+		if key == "race":
+			continue        # the race arrow rebuilds the screen; covered separately below
+		var arrows: Array = rows[key]
+		assert_eq(arrows.size(), 2, "%s row has two arrows" % key)
+		for b in arrows:
+			var btn := b as Button
+			assert_true(btn.size.x >= 48.0 and btn.size.y >= 48.0,
+				"%s arrow is touch sized: %s" % [key, str(btn.size)])
+			assert_true(btn.mouse_filter == Control.MOUSE_FILTER_STOP, "%s arrow takes input" % key)
+			assert_true(btn.action_mode == BaseButton.ACTION_MODE_BUTTON_PRESS,
+				"%s arrow fires on press" % key)
+			assert_true(not btn.disabled, "%s arrow enabled" % key)
+		var before: Variant = cc.character().get(key)
+		arrows[1].emit_signal("pressed")
+		assert_true(cc.character().get(key) != before,
+			"%s changed on the right arrow (was %s)" % [key, str(before)])
+		arrows[0].emit_signal("pressed")
+		assert_eq(str(cc.character().get(key)), str(before), "%s came back on the left arrow" % key)
+	ui.close("character_creation")
+
+func test_creation_race_arrow_switches_race_and_rebuilds() -> void:
+	var cc := _creation()
+	var rows := _arrow_rows(cc)
+	var first := String(cc.character()["race"])
+	(rows["race"][1] as Button).emit_signal("pressed")
+	assert_true(String(cc.character()["race"]) != first, "race changed")
+	cc.rebuild()
+	var again := _arrow_rows(cc)
+	assert_true(again.has("body_type"), "rows rebuilt for the new race")
+	# Namekian and frost demon ship extra body colour layers; a race that has them must offer them.
+	while String(cc.character()["race"]) != "namekian":
+		(again["race"][1] as Button).emit_signal("pressed")
+		cc.rebuild()
+		again = _arrow_rows(cc)
+	assert_true(again.has("skin_color2"), "namekian offers its second body colour")
+	assert_true(again.has("skin_color3"), "namekian offers its third body colour")
+	ui.close("character_creation")
+
+func test_creation_option_counts_match_the_dmz_textures() -> void:
+	# Indices the arrows can reach must all resolve to a texture RaceSkin can compose.
+	for race in ["saiyan", "namekian", "frostdemon", "majin", "bioandroid"]:
+		assert_true(DmzOptions.body_types(race, "male") >= 1, race + " has a body type")
+		assert_true(DmzOptions.eye_types(race) >= 1, race + " has an eye type")
+		var layers := DmzOptions.body_color_layers(race, "male")
+		assert_true(layers >= 1 and layers <= 3, "%s colour layers: %d" % [race, layers])
+	assert_true(DmzOptions.eye_types("saiyan") > 1, "saiyan has several eye variants")
+	assert_true(DmzOptions.noses("saiyan") > 1, "saiyan has several noses")
+	assert_true(DmzOptions.mouths("saiyan") > 1, "saiyan has several mouths")
+	assert_true(DmzOptions.body_color_layers("namekian", "male") == 3, "namekian tints 3 layers")
+	assert_true(DmzOptions.tattoos() > 0, "tattoos exist")
+
+func test_creation_fits_a_20_by_9_phone() -> void:
+	var cc: CharacterCreation = ui.open("character_creation")
+	for px in [Vector2(1280, 720), Vector2(1600, 720), Vector2(1024, 768)]:
+		cc.size = px
+		cc.insets = Vector4.ZERO
+		cc.rebuild()
+		var rows := _arrow_rows(cc)
+		assert_true(rows.size() >= 12, "all rows built at %s" % str(px))
+		for key in rows.keys():
+			for b in rows[key]:
+				var r := (b as Button).get_global_rect()
+				assert_true(r.position.x >= -1.0 and r.end.x <= px.x + 1.0,
+					"%s arrow inside %s: %s" % [key, str(px), str(r)])
+	ui.close("character_creation")

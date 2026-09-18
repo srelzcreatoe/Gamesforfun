@@ -507,7 +507,11 @@ static func panorama_backdrop(parent: Control, prefix: String, shade := 0.45) ->
 static func arrow_button(direction: int, on_pressed: Callable) -> Button:
 	var sc := s()
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(34.0 * sc, 34.0 * sc)   # >= 48 px on a 720p phone
+	# 40 units square: >= 48 physical px on any phone-sized viewport, and a stepper wants to
+	# fire on press (a touch that drifts a pixel must not be swallowed as a drag).
+	b.custom_minimum_size = Vector2(40.0 * sc, 40.0 * sc)
+	b.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
+	b.mouse_filter = Control.MOUSE_FILTER_STOP
 	b.focus_mode = Control.FOCUS_NONE
 	b.flat = true
 	for st in ["normal", "hover", "pressed", "disabled", "focus"]:
@@ -520,7 +524,7 @@ static func arrow_button(direction: int, on_pressed: Callable) -> Button:
 	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tr.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	tr.pivot_offset = Vector2(17.0 * sc, 17.0 * sc)
+	tr.pivot_offset = Vector2(20.0 * sc, 20.0 * sc)
 	tr.rotation_degrees = -90.0 if direction < 0 else 90.0
 	b.add_child(tr)
 	if on_pressed.is_valid():
@@ -639,6 +643,9 @@ static func scroll(child: Control, min_size := Vector2.ZERO) -> ScrollContainer:
 	var sc := ScrollContainer.new()
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	# Without a deadzone a touch that moves a couple of pixels becomes a scroll drag and the
+	# button under the finger never fires - which is how the phone build lost its arrow taps.
+	sc.scroll_deadzone = int(maxf(12.0, 10.0 * s()))
 	sc.custom_minimum_size = min_size
 	sc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
