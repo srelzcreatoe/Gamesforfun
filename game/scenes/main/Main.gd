@@ -22,6 +22,7 @@ const UI_MANAGER_SCENE := "res://scenes/ui/UiManager.tscn"
 var args: Dictionary = {}
 var _shot_timer := -1.0
 var _quit_timer := -1.0
+var _mem_timer := 0.0
 var _fps_label: Label
 
 func _ready() -> void:
@@ -89,6 +90,17 @@ func _process(delta: float) -> void:
 		_quit_timer -= delta
 		if _quit_timer < 0.0:
 			get_tree().quit()
+	if args.has("profile"):
+		_mem_timer -= delta
+		if _mem_timer <= 0.0:
+			_mem_timer = 5.0
+			print("MEM static %.0f MB | textures %.0f MB | buffers %.0f MB | objects %d nodes %d orphans %d" % [
+				Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
+				Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0,
+				Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED) / 1048576.0,
+				int(Performance.get_monitor(Performance.OBJECT_COUNT)),
+				int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)),
+				int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))])
 
 func _take_screenshot(path: String) -> void:
 	var img := get_viewport().get_texture().get_image()

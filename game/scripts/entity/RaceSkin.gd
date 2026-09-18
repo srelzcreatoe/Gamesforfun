@@ -51,9 +51,9 @@ const ALL_ARMOR_BONES := [
 	"armorHead", "armorBody", "armorLeggingsBody", "armorRightArm", "armorLeftArm",
 	"armorRightLeg", "armorLeftLeg", "armorRightBoot", "armorLeftBoot",
 ]
-## Hair is DMZ voxel strands built by HairBuilder from data/hair_styles.json
-## (the shadow_dummy bone rig this used to borrow is gone: it was a single
-## character's Vegeta hair, not a style set).
+## Hair is DragonMineZ's own strand hair: `HairBuilder` renders the mod's 27 hair
+## presets (decoded from its hair codes into data/dmz_hair_presets.json), so a
+## character's `hair_type` is a DMZ preset index, not one of our own styles.
 
 static var hd := false
 static var _cache: Dictionary = {}          # key -> ImageTexture
@@ -286,11 +286,17 @@ static func set_form_hair(target: Object, form_def: Dictionary) -> Node3D:
 		return null                 # saga / master models ship their own hair
 	var hair_type: Variant = form_def.get("hairType", form_def.get("hair_type", ""))
 	var hair_color := String(form_def.get("hairColor", form_def.get("hair_color", "")))
+	if String(form_def.get("forcedHairCode", "")) == "" and str(hair_type).strip_edges() == "" 			and hair_color == "":
+		return null                     # this form does not touch the hair
 	var base := String(bm.get_meta("base_hair_style", HairBuilder.current_style(bm)))
-	if base == "" or base.contains("@"):
+	if base == "" or base.contains("@") or base.begins_with("forced:"):
 		base = HairBuilder.style_id(_int(_character_of(bm).get("hair_type"), 1))
 	bm.set_meta("base_hair_style", base)
-	var style := HairBuilder.form_style_id(base, hair_type)
+	# a form can force one specific DMZ hair (SSJ4 does); otherwise the preset's
+	# own SSJ / SSJ2 / SSJ3 variant is used
+	var style := HairBuilder.forced_style_id(String(form_def.get("forcedHairCode", "")))
+	if style == "":
+		style = HairBuilder.form_style_id(base, hair_type)
 	var col := HairBuilder.style_color(style, _color(hair_color) if hair_color != "" else _base_hair_color(bm))
 	if hair_color != "":
 		col = _color(hair_color)

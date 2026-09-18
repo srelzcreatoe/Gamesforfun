@@ -533,6 +533,14 @@ func test_revert_flash_plays_and_clears() -> void:
 ## concurrently, so they are loaded BY PATH and called duck-typed here exactly as the
 ## director does it: a rename over there must skip these three tests, not take the whole
 ## fx test file down with a parse error.
+##
+## And when `HairBuilder` is there but cannot currently build hair (it was red for a
+## while mid-review, with its own tests failing), these tests must still verify OUR
+## code: `_hair_attach` then falls back to `_synthetic_hair`, a "Hair" MeshInstance3D
+## under the head bone built to the same contract the director walks (main hair in
+## `material_override`, or surfaces 0/1 for a two tone style). A neighbouring
+## subsystem's half-saved file can no longer redden the fx suite, and it cannot hide a
+## broken flicker either.
 const BEDROCK_PATH := "res://scripts/entity/BedrockModel.gd"
 const HAIR_PATH := "res://scripts/entity/HairBuilder.gd"
 
@@ -565,13 +573,67 @@ func _haired_dummy(style: String, color := Color(0.13, 0.15, 0.16)) -> Node3D:
 		return null
 	return bm
 
-## `HairBuilder.attach`, duck-typed. False when the entity side cannot supply it.
+## `HairBuilder.attach`, duck-typed, with our own stand-in when the entity side does
+## not (currently) produce a "Hair" node. False only when there is no model at all.
 func _hair_attach(model: Node3D, style: String, color: Color) -> bool:
-	var hb := _entity_script(HAIR_PATH)
-	if hb == null or model == null:
+	if model == null:
 		return false
-	hb.call("attach", model, style, color)
+	var hb := _entity_script(HAIR_PATH)
+	if hb != null and hb.has_method("attach"):
+		hb.call("attach", model, style, color)
+	if TransformationDirector._hair_mesh(model) != null:
+		return true
+	return _synthetic_hair(model, style, color)
+
+## Minimal "Hair" mesh built to the contract `TransformationDirector._hair_mesh` walks,
+## used when the entity subsystem cannot supply one. Two surfaces (main + lighter
+## accent, no `material_override`) for a two tone style, one `material_override`
+## otherwise - the two shapes the director has to handle.
+func _synthetic_hair(model: Node3D, style: String, color: Color) -> bool:
+	if not model.has_method("get_bone"):
+		return false
+	var head: Variant = model.call("get_bone", "head")
+	if not (head is Node3D):
+		return false
+	var host := head as Node3D
+	var old: Node = host.get_node_or_null("Hair")
+	if old != null:
+		old.free()
+	var mi := MeshInstance3D.new()
+	mi.name = "Hair"
+	var two_tone := style in ["gotenks", "goten", "trunks"]
+	if two_tone:
+		var am := ArrayMesh.new()
+		for i in 2:
+			var box := BoxMesh.new()
+			box.size = Vector3(0.5, 0.35 + 0.1 * float(i), 0.5)
+			var arrays := box.get_mesh_arrays()
+			am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+		mi.mesh = am
+		var main := StandardMaterial3D.new()
+		main.albedo_color = color
+		var accent := StandardMaterial3D.new()
+		accent.albedo_color = color.lightened(TransformationDirector.accent_lighten_amount())
+		mi.set_surface_override_material(0, main)
+		mi.set_surface_override_material(1, accent)
+	else:
+		var box := BoxMesh.new()
+		# the SSJ3 mane is what makes `visual_height()` grow past a short cut
+		box.size = Vector3(0.6, 1.4 if style == "ssj3" else 0.4, 0.6)
+		mi.mesh = box
+		var m := StandardMaterial3D.new()
+		m.albedo_color = color
+		mi.material_override = m
+	mi.position = Vector3(0, box_top(mi), 0)
+	host.add_child(mi)
 	return true
+
+## Half the hair mesh's own height, so a synthetic mane sticks UP out of the head bone
+## (the aura reads the model aabb to place the lightning arcs).
+func box_top(mi: MeshInstance3D) -> float:
+	if mi.mesh == null:
+		return 0.0
+	return mi.mesh.get_aabb().size.y * 0.5
 
 ## The hair material, found the same way the director finds it (material_override for a
 ## single surface style, surface 0 for a two tone one).
