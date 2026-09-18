@@ -54,6 +54,11 @@ const FLICKER_PERIOD := 0.13
 const AFTERIMAGE_PERIOD := 0.3
 const DISTURB_PERIOD := 0.35
 const ROCK_RADIUS := 2.2
+## Torn-earth colour of the crack decal. It is MIX blended, so the colour is what you
+## see: white cracks (what the update used to push) are invisible on sunlit grass and
+## sand, which is why the cracks read in the preview's dark studio and vanished in the
+## real world.
+const CRACK_COLOR := Color(0.10, 0.08, 0.07)
 
 static var _running: Dictionary = {}          # entity id -> director
 
@@ -253,13 +258,18 @@ func _setup_ground() -> void:
 	_dust.emission_ring_inner_radius = 2.1 * _gs
 	_dust.emission_ring_height = 0.1
 	_dust.position = Vector3(0, 0.18, 0)     # keeps the puff quads off the ground plane
-	_dust.direction = Vector3(0, 0.4, 0)
-	_dust.spread = 60.0
-	_dust.initial_velocity_min = 1.4
-	_dust.initial_velocity_max = 3.6
-	_dust.gravity = Vector3(0, -1.0, 0)
-	_dust.scale_amount_min = 0.45 * _gs
-	_dust.scale_amount_max = 1.05 * _gs
+	# a low skirt that rolls OUTWARD along the ground, not a column of cotton balls at
+	# chest height: mostly horizontal, short lived and pulled back down hard. The
+	# in-world shot showed the old settings as big soft blobs floating past the body.
+	_dust.direction = Vector3(0, 0.12, 0)
+	_dust.spread = 82.0
+	_dust.initial_velocity_min = 1.0
+	_dust.initial_velocity_max = 2.4
+	_dust.gravity = Vector3(0, -2.6, 0)
+	_dust.damping_min = 1.2
+	_dust.damping_max = 2.4
+	_dust.scale_amount_min = 0.30 * _gs
+	_dust.scale_amount_max = 0.70 * _gs
 	add_child(_dust)
 	_dust.emitting = true
 
@@ -277,10 +287,10 @@ func _setup_ground() -> void:
 	add_child(_rise)
 	_rise.emitting = true
 
-	_decal = FxAssets.make_quad("CrackedGround", _crack_texture(), 5.2 * _gs, Color(0.15, 0.12, 0.1, 0.0), true)
+	_decal = FxAssets.make_quad("CrackedGround", _crack_texture(), 5.2 * _gs, CRACK_COLOR, true)
 	var m: StandardMaterial3D = _decal.material_override
 	m.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
-	m.albedo_color = Color(1, 1, 1, 0.0)
+	m.albedo_color = Color(CRACK_COLOR.r, CRACK_COLOR.g, CRACK_COLOR.b, 0.0)
 	_decal.position = Vector3(0, 0.04, 0)
 	add_child(_decal)
 
@@ -321,7 +331,8 @@ func _setup_rocks() -> void:
 		# a 3.8x Oozaru tears up 3.8x boulders, not the same pebbles a human lifts
 		var s := _rng.randf_range(0.14, 0.32) * _gs
 		mi.mesh = FxAssets.cube_mesh(s)
-		mi.material_override = FxAssets.debris_material(Color(0.26, 0.23, 0.20).lightened(_rng.randf() * 0.22))
+		# lit rock, not a silhouette: bright enough that the sun reads on the faces
+		mi.material_override = FxAssets.debris_material(Color(0.42, 0.37, 0.32).lightened(_rng.randf() * 0.25))
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var a := float(i) / float(count) * TAU + _rng.randf_range(-0.2, 0.2)
 		_rock_angles[i] = a
@@ -502,7 +513,7 @@ func _update_ground(real: float) -> void:
 	var grow := clampf((t - 0.2) / maxf(0.2, _t_climax - 0.2), 0.0, 1.0)
 	if _decal != null:
 		var m: StandardMaterial3D = _decal.material_override
-		m.albedo_color = Color(1, 1, 1, grow * 0.85)
+		m.albedo_color = Color(CRACK_COLOR.r, CRACK_COLOR.g, CRACK_COLOR.b, grow * 0.9)
 		_decal.scale = Vector3.ONE * (0.45 + grow * 0.85)
 	if _crack_glow != null:
 		var gm: StandardMaterial3D = _crack_glow.material_override

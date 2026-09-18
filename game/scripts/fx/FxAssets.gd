@@ -157,9 +157,20 @@ static func additive_material(tex: Texture2D, billboard := true) -> StandardMate
 ## Opaque-ish lit material for debris cubes (nearest filtered like the voxel world).
 static func debris_material(color: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	# SHADED, unlike every other fx material here. Debris is solid geometry, not light:
+	# an unshaded dark rock is a flat black slab in a sunlit voxel world (that is exactly
+	# how the levitating rocks read in the in-world transformation shot), while a lit one
+	# picks up the sun and the aura light and reads as torn-up ground. No texture and no
+	# specular, so it is still one cheap opaque draw per chunk of debris.
 	m.albedo_color = color
+	m.roughness = 1.0
+	m.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	# a floor for scenes with no light at all (the fx preview studio), so debris never
+	# goes fully black there either
+	m.emission_enabled = true
+	m.emission = color
+	m.emission_energy_multiplier = 0.25
 	return m
 
 ## A CPUParticles3D with sane mobile defaults and an additive billboard material.

@@ -120,7 +120,28 @@ func _capture(at: float) -> void:
 	var d := TransformationDirector.running_for(Game.player)
 	print("SCREENSHOT %s -> %s (t=%.2f, phase=%s)" % [path, "ok" if err == OK else str(err), _t,
 		d.phase_name() if d != null else "-"])
+	_print_screen_fx()
 	_shots_done += 1
 	_capturing = false
 	if _shots_done >= at_times.size():
 		get_tree().quit()
+
+## What the full-screen effects are actually doing at capture time. The strain dim and
+## vignette read in FxPreview but were missing from the in-world shot, and a picture
+## cannot tell "the uniform is 0" from "the uniform is set and the pass is not drawn".
+func _print_screen_fx() -> void:
+	var fx := ScreenFx.get_instance()
+	if fx == null:
+		print("FXSTAGE screenfx: no instance")
+		return
+	var post: ShaderMaterial = fx._post_material()
+	var overlay: ColorRect = fx._rect
+	var post_where := "none (fallback rect)"
+	if post != null:
+		post_where = "world post darken=%.3f blur=%.3f glow=%.3f" % [
+			float(post.get_shader_parameter("fx_darken")),
+			float(post.get_shader_parameter("fx_blur")),
+			float(post.get_shader_parameter("fx_glow"))]
+	print("FXSTAGE screenfx: in_tree=%s layer=%d darken=%.3f vignette=%.3f glow=%.3f overlay_vis=%s | %s" % [
+		str(fx.is_inside_tree()), fx.layer, fx._darken, fx._vignette, fx._glow,
+		str(overlay != null and overlay.visible), post_where])
