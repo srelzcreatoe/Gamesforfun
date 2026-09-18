@@ -312,7 +312,7 @@ def main():
         ok, why = round_trip(code)
         print("forcedHairCode %-28s round trip: %s" % (form_id, why))
         try:
-            forced[form_id] = {"code_prefix": code.split(":")[0] + ":",
+            forced[form_id] = {"code": code, "code_prefix": code.split(":")[0] + ":",
                                "variants": hairs_from_code(code)}
         except Exception as exc:                # noqa: BLE001
             print("  decode failed: %s" % exc, file=sys.stderr)
