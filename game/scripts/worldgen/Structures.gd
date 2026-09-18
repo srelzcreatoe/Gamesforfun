@@ -13,9 +13,9 @@ extends RefCounted
 ## Each column stamps only the part of the template that falls inside it, which is what makes
 ## structures cross chunk borders correctly.
 ##
-## Templates (assets/structures/*.json) are parsed once per process into a static,
-## mutex-protected cache: one int per block (x | y<<8 | z<<16 | palette<<24) bucketed into
-## 16x16 tiles, so stamping a column only walks the few tiles it overlaps.
+## Templates (assets/structures/*.json) are never all held in memory: only their tiny headers
+## are, and a template body is parsed - into packed arrays, in small chunks - when a column
+## it actually covers is generated, then cached LRU (see "template loading" below).
 
 const HEIGHT := WorldConst.HEIGHT
 ## Chunk radius scanned for repeatable anchors (covers templates up to ~190 blocks wide).
@@ -38,7 +38,6 @@ const SPECIAL := {
 	},
 }
 
-static var _templates: Dictionary = {}
 static var _tpl_mutex := Mutex.new()
 
 var gen: Variant = null
@@ -737,7 +736,7 @@ static func _parse_blocks(path: String, src_min: int, src_max: int) -> Dictionar
 	counts.resize(256)
 	var json := JSON.new()
 	var s := open_at + 1
-	var last := _last_entry_end(bytes, s, total)
+	var last := _blocks_end(bytes, total, s)
 	while last > 0 and s <= last:
 		var chunk_end := last + 1
 		if s + PARSE_CHUNK_BYTES < last:
@@ -783,15 +782,35 @@ static func _parse_blocks(path: String, src_min: int, src_max: int) -> Dictionar
 		"bytes": data.size() * 4 + 2048 + pal.size(),
 	}
 
-## Index of the ']' that closes the last `[x,y,z,p]` entry, or -1 for an empty array.
-static func _last_entry_end(bytes: PackedByteArray, from: int, total: int) -> int:
-	for i in range(total - 1, from - 1, -1):
-		if bytes[i] == 0x5D:                      # ']'
-			# skip the outer ']' and find the entry's own one
-			for j in range(i - 1, from - 1, -1):
-				if bytes[j] == 0x5D:
-					return j
-			return -1
+## Index of the ']' that closes the LAST `[x,y,z,p]` entry of the blocks array, or -1 when the
+## array is empty. The keys after `blocks` ("entities", "origin_offset") mark where it ends, so
+## this never has to walk the whole file.
+static func _blocks_end(bytes: PackedByteArray, total: int, from: int) -> int:
+	if from < total and bytes[from] == 0x5D:       # "blocks":[]
+		return -1
+	var tail_len: int = mini(FOOTER_BYTES, total)
+	var tail := bytes.slice(total - tail_len, total).get_string_from_utf8()
+	var cut := total
+	var marker := tail.find("\"entities\"")
+	if marker < 0:
+		marker = tail.find("\"origin_offset\"")
+	if marker >= 0:
+		cut = total - tail_len + marker
+	# the ']' that closes the blocks array, then the one that closes its last entry
+	var outer := -1
+	var i := cut - 1
+	while i > from:
+		if bytes[i] == 0x5D:
+			outer = i
+			break
+		i -= 1
+	if outer < 0:
+		return -1
+	i = outer - 1
+	while i > from:
+		if bytes[i] == 0x5D:
+			return i
+		i -= 1
 	return -1
 
 ## First "],[" boundary at or after `from`; returns the index of its ']'.

@@ -38,6 +38,8 @@ var races: PackedStringArray = PackedStringArray()
 var race_i := 0
 var gender_i := 0
 var class_i := 0
+## Position in `DmzOptions.body_type_values()` - not the character's body_type, which RaceSkin
+## de-duplicates (saiyan's two bodies are indices 1 and 2, not 0 and 1).
 var body_i := 0
 var hair_i := 1
 var eyes_i := 0
@@ -139,14 +141,15 @@ func _option_rows() -> Array[Control]:
 			func(i: int) -> void: gender_i = i))
 	out.append(_arrow_row("Class", "class", CLASSES, func() -> int: return class_i,
 		func(i: int) -> void: class_i = i))
-	out.append(_arrow_row("Body type", "body_type", _numbered("Type", DmzOptions.body_types(rid, gid)),
+	out.append(_arrow_row("Body type", "body_type",
+		_numbered("Type", DmzOptions.body_type_values(rid, gid).size()),
 		func() -> int: return body_i, func(i: int) -> void: body_i = i))
 	out.append(_arrow_row("Hair", "hair_type", _hair_labels(), func() -> int: return hair_i,
 		func(i: int) -> void: hair_i = i))
 	out.append(_arrow_row("Eyes", "eye_type", _numbered("Eyes", DmzOptions.eye_types(rid)),
 		func() -> int: return eyes_i, func(i: int) -> void: eyes_i = i))
 	var noses := DmzOptions.noses(rid)
-	if noses > 1:
+	if noses > 1:        # 0 for bioandroid, which has no nose art at all
 		out.append(_arrow_row("Nose", "nose", _numbered("Nose", noses),
 			func() -> int: return nose_i, func(i: int) -> void: nose_i = i))
 	var mouths := DmzOptions.mouths(rid)
@@ -340,7 +343,8 @@ func _apply_race_defaults() -> void:
 	if not _race_has_gender(rid):
 		gender_i = 0
 	var gid := _gender_id()
-	body_i = clampi(_def(r, "defaultBodyType", 0), 0, DmzOptions.body_types(rid, gid) - 1)
+	var bodies := DmzOptions.body_type_values(rid, gid)
+	body_i = maxi(0, bodies.find(_def(r, "defaultBodyType", 0)))
 	hair_i = clampi(_def(r, "defaultHairType", 1), 0, _hair_count() - 1)
 	eyes_i = clampi(_def(r, "defaultEyesType", 0), 0, DmzOptions.eye_types(rid) - 1)
 	nose_i = clampi(_def(r, "defaultNoseType", 0), 0, maxi(1, DmzOptions.noses(rid)) - 1)
@@ -386,13 +390,19 @@ func character() -> Dictionary:
 	return {
 		"name": name_edit.text.strip_edges() if name_edit != null else "Kakarot",
 		"race": rid, "gender": _gender_id(), "class": CLASS_IDS[class_i],
-		"body_type": body_i, "hair_type": hair_i,
+		"body_type": _body_type_value(), "hair_type": hair_i,
 		"hair_color": hair_hex, "skin_color": skin_hex,
 		"skin_color2": skin2_hex, "skin_color3": skin3_hex,
 		"eye_type": eyes_i, "eye_color": eye1_hex, "eye_color2": eye2_hex,
 		"nose": nose_i, "mouth": mouth_i, "tattoo": tattoo_i,
 		"aura_color": String(r.get("defaultAuraColor", "#7FFFFF")),
 	}
+
+## The body_type RaceSkin should compose for the current row position.
+func _body_type_value() -> int:
+	var bodies := DmzOptions.body_type_values(String(races[clampi(race_i, 0, races.size() - 1)]),
+		_gender_id())
+	return int(bodies[clampi(body_i, 0, bodies.size() - 1)])
 
 func _update() -> void:
 	for r in _row_refresh:

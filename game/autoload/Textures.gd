@@ -62,6 +62,11 @@ func build_block_array() -> void:
 			var frame := Image.create(TILE, TILE, false, Image.FORMAT_RGBA8)
 			frame.blit_rect(img, Rect2i(0, f * TILE, TILE, TILE), Vector2i.ZERO)
 			images.append(frame)
+	# Mipmaps for every layer: the chunk shaders sample with a mipmap filter, and a layered
+	# texture without a mip chain is handled inconsistently by mobile GPUs (distant blocks
+	# go black on some drivers). Every layer is 16x16, so the chains match.
+	for im in images:
+		(im as Image).generate_mipmaps()
 	block_array = Texture2DArray.new()
 	var err := block_array.create_from_images(images)
 	if err != OK:

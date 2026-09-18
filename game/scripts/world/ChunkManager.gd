@@ -182,7 +182,9 @@ func wanted_columns() -> Array[Vector2i]:
 ## Progress towards a *playable* world: the 5x5 ring around the view centre (the rest keeps
 ## streaming in the background, so the loading screen must not wait for it).
 func load_progress() -> float:
-	var r: int = mini(render_distance, 2)
+	# Phones spawn as soon as the 3x3 ring is meshed (the rest streams in behind the
+	# player); desktop waits for the 5x5 ring.
+	var r: int = mini(render_distance, 1 if Game.is_mobile() else 2)
 	var total := 0
 	var ready := 0
 	for dz in range(-r, r + 1):

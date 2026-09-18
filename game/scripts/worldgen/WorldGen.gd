@@ -130,12 +130,13 @@ var id_gravel := 0
 var id_sand := 0
 
 ## Registry-biome-index -> block id tables (so the fill loop never touches a Dictionary).
-var _biome_surface := PackedInt32Array()
-var _biome_filler := PackedInt32Array()
-var _biome_underwater := PackedInt32Array()
-var _biome_cliff := PackedInt32Array()
-var _biome_band := PackedInt32Array()
-var _ore_ids := PackedInt32Array()
+## Block ids and band depths both fit in a byte, so these stay PackedByteArrays.
+var _biome_surface := PackedByteArray()
+var _biome_filler := PackedByteArray()
+var _biome_underwater := PackedByteArray()
+var _biome_cliff := PackedByteArray()
+var _biome_band := PackedByteArray()
+var _ore_ids := PackedByteArray()
 ## 1 for blocks the spawn clearing removes (logs, leaves, mushrooms, two-block plants, cacti).
 var _clearable := PackedByteArray()
 var _mutex := Mutex.new()
@@ -173,9 +174,9 @@ func configure() -> void:
 		if bid > 0:
 			_band_ids.append(bid)
 	_build_biome_tables()
-	_ore_ids = PackedInt32Array()
+	_ore_ids = PackedByteArray()
 	for o in ore_table:
-		_ore_ids.append(block_id(String(o.get("block", "stone"))))
+		_ore_ids.append(block_id(String(o.get("block", "stone"))) & 255)
 	_build_clearable()
 	var sp := SpawnPoint.find_with(terrain, planet_def)
 	spawn_xz = Vector2i(int(floor(sp.x)), int(floor(sp.z)))
@@ -286,11 +287,11 @@ func block_id(name: String) -> int:
 
 func _build_biome_tables() -> void:
 	var n := Registry.biome_order.size()
-	_biome_surface = PackedInt32Array()
-	_biome_filler = PackedInt32Array()
-	_biome_underwater = PackedInt32Array()
-	_biome_cliff = PackedInt32Array()
-	_biome_band = PackedInt32Array()
+	_biome_surface = PackedByteArray()
+	_biome_filler = PackedByteArray()
+	_biome_underwater = PackedByteArray()
+	_biome_cliff = PackedByteArray()
+	_biome_band = PackedByteArray()
 	_biome_surface.resize(n)
 	_biome_filler.resize(n)
 	_biome_underwater.resize(n)
@@ -298,11 +299,11 @@ func _build_biome_tables() -> void:
 	_biome_band.resize(n)
 	for i in n:
 		var b := Registry.biome_by_index(i)
-		_biome_surface[i] = block_id(String(b.get("surface", "grass_block")))
-		_biome_filler[i] = block_id(String(b.get("filler", "dirt")))
-		_biome_underwater[i] = block_id(String(b.get("underwater", "sand")))
-		_biome_cliff[i] = block_id(String(b.get("cliff", "stone")))
-		_biome_band[i] = int(b.get("band_depth", 0))
+		_biome_surface[i] = block_id(String(b.get("surface", "grass_block"))) & 255
+		_biome_filler[i] = block_id(String(b.get("filler", "dirt"))) & 255
+		_biome_underwater[i] = block_id(String(b.get("underwater", "sand"))) & 255
+		_biome_cliff[i] = block_id(String(b.get("cliff", "stone"))) & 255
+		_biome_band[i] = clampi(int(b.get("band_depth", 0)), 0, 255)
 
 # --- public generator entry point ------------------------------------------
 

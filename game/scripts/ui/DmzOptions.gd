@@ -1,20 +1,22 @@
 class_name DmzOptions
 extends RefCounted
-## How many variants of each DragonMineZ customization option a race has.
+## How many variants of each DragonMineZ customization option a race has, for the creation
+## screen's arrow rows.
 ##
-## RaceSkin.compose() picks the body/face layer files by index, so the creation screen has to
-## know how far each arrow row may count. When RaceSkin exposes the counts itself (see the note
-## in `_from_race_skin`) those win; otherwise the texture set is probed here, mirroring
-## RaceSkin._body_layers()'s candidate order so an index we offer always resolves to a file.
+## RaceSkin owns the index -> texture mapping and exposes the counts and index lists
+## (`body_type_count`, `body_types`, `eye_type_count`, `nose_count`, `mouth_count`,
+## `tattoo_count`, `body_color_layers`), so this file is only an adapter: it calls those through
+## `has_method()` and falls back to probing the texture set when the script is missing, so the
+## screen still builds (with one option per row) in a stripped build.
 ##
-## Everything is cached: a probe is a handful of ResourceLoader.exists() calls, but the arrow
-## rows ask on every rebuild and every race change.
+## Body type indices are NOT contiguous: RaceSkin de-duplicates indices that resolve to the same
+## art, so a row must offer `body_type_values()[i]` rather than `i`.
 
 const RACE_SKIN := "res://scripts/entity/RaceSkin.gd"
 const TEX_DIR := "res://assets/textures/entity/"
 const MAX_PROBE := 32
 
-## race id -> texture directory, same table as RaceSkin.RACE_DIRS.
+## race id -> texture directory, only used by the fallback probe.
 const RACE_DIRS := {
 	"human": "humansaiyan", "saiyan": "humansaiyan", "humansaiyan": "humansaiyan",
 	"halfsaiyan": "humansaiyan", "half_saiyan": "humansaiyan",
@@ -33,44 +35,43 @@ static func race_dir(race_id: String) -> String:
 		return String(rs.call("race_dir", race_id))
 	return String(RACE_DIRS.get(race_id, "humansaiyan"))
 
-## Number of selectable body types. Indices are what RaceSkin takes as `body_type`, so an index
-## whose layers resolve to the same files as the previous one is not offered twice.
+## The body_type values this race actually has, in order (see the note above).
+static func body_type_values(race_id: String, gender := "male") -> Array[int]:
+	var out: Array[int] = []
+	var rs := _race_skin()
+	if rs != null and rs.has_method("body_types"):
+		for v in rs.call("body_types", race_id, gender):
+			out.append(int(v))
+	if out.is_empty():
+		for i in _probe_body_types(race_id, gender):
+			out.append(i)
+	if out.is_empty():
+		out.append(0)
+	return out
+
 static func body_types(race_id: String, gender := "male") -> int:
-	var n := _from_race_skin("body_type_count", [race_id, gender])
-	if n > 0:
-		return n
-	return _cached("body:%s:%s" % [race_id, gender], func() -> int:
-		var dir := race_dir(race_id)
-		var seen := PackedStringArray()
-		for i in MAX_PROBE:
-			var base := _body_base(dir, gender, i)
-			if base == "" or seen.has(base):
-				break
-			seen.append(base)
-		return maxi(1, seen.size()))
+	var n := _count("body_type_count", [race_id, gender])
+	return n if n > 0 else body_type_values(race_id, gender).size()
 
-## Number of eye variants (`faces/<dir>_eye_<n>_0`). Races that ship a single unnumbered eye
-## set (bioandroid's `base_eye_layer0`) report 1.
+## Eye variants. A race with no numbered eye set (bioandroid) still composes one, so this is
+## never 0.
 static func eye_types(race_id: String) -> int:
-	var n := _from_race_skin("eye_type_count", [race_id])
+	var n := _count("eye_type_count", [race_id])
 	if n > 0:
 		return n
-	return _cached("eye:%s" % race_id, func() -> int:
-		var dir := race_dir(race_id)
-		var count := _count_face(dir, "eye", "_0")
-		if count > 0:
-			return count
-		return 1)
+	return maxi(1, _cached("eye:%s" % race_id, func() -> int:
+		return _count_face(race_dir(race_id), "eye", "_0")))
 
+## Noses and mouths can be 0 (bioandroid has neither) - the row is then hidden.
 static func noses(race_id: String) -> int:
-	var n := _from_race_skin("nose_count", [race_id])
+	var n := _count("nose_count", [race_id])
 	if n > 0:
 		return n
 	return _cached("nose:%s" % race_id, func() -> int:
 		return _count_face(race_dir(race_id), "nose", ""))
 
 static func mouths(race_id: String) -> int:
-	var n := _from_race_skin("mouth_count", [race_id])
+	var n := _count("mouth_count", [race_id])
 	if n > 0:
 		return n
 	return _cached("mouth:%s" % race_id, func() -> int:
@@ -78,7 +79,7 @@ static func mouths(race_id: String) -> int:
 
 ## Tattoo overlays in races/tattoos (the character keeps -1 for "none").
 static func tattoos() -> int:
-	var n := _from_race_skin("tattoo_count", [])
+	var n := _count("tattoo_count", [])
 	if n > 0:
 		return n
 	return _cached("tattoo", func() -> int:
@@ -87,12 +88,11 @@ static func tattoos() -> int:
 			i += 1
 		return i)
 
-## How many of skin_color / skin_color2 / skin_color3 actually tint something: RaceSkin tints
-## `<body>_layerN` with colour N, so a race whose body is one layer only uses the first.
+## How many of body_color1..3 actually tint something for this race (1..3).
 static func body_color_layers(race_id: String, gender := "male") -> int:
-	var n := _from_race_skin("body_color_layers", [race_id, gender])
+	var n := _count("body_color_layers", [race_id, gender])
 	if n > 0:
-		return n
+		return clampi(n, 1, 3)
 	return _cached("layers:%s:%s" % [race_id, gender], func() -> int:
 		var base := _body_base(race_dir(race_id), gender, 0)
 		if base == "" or _exists(base):
@@ -105,9 +105,7 @@ static func body_color_layers(race_id: String, gender := "male") -> int:
 
 # --- internals -------------------------------------------------------------
 
-## RaceSkin owns the index -> file mapping; prefer its own count when it has one so this file
-## cannot drift away from the composer.
-static func _from_race_skin(method: String, args: Array) -> int:
+static func _count(method: String, args: Array) -> int:
 	var rs := _race_skin()
 	if rs != null and rs.has_method(method):
 		return maxi(0, int(rs.callv(method, args)))
@@ -118,11 +116,28 @@ static func _race_skin() -> GDScript:
 		return null
 	return load(RACE_SKIN)
 
-## The base path RaceSkin._body_layers() resolves for this index, or "" when nothing matches.
+static func _probe_body_types(race_id: String, gender: String) -> Array[int]:
+	var key := "body:%s:%s" % [race_id, gender]
+	if _cache.has(key):
+		return _cache[key]
+	var dir := race_dir(race_id)
+	var seen := PackedStringArray()
+	var out: Array[int] = []
+	for i in MAX_PROBE:
+		var base := _body_base(dir, gender, i)
+		if base == "":
+			break
+		if not seen.has(base):
+			seen.append(base)
+			out.append(i)
+	_cache[key] = out
+	return out
+
+## The base path a body type index resolves to, or "" when nothing matches.
 static func _body_base(dir: String, gender: String, body: int) -> String:
 	for base in [
-		"races/%s/bodytype_%s_%d" % [dir, gender, body + 1],
 		"races/%s/bodytype_%s_%d" % [dir, gender, body],
+		"races/%s/bodytype_%s_%d" % [dir, gender, body + 1],
 		"races/%s/bodytype_%d" % [dir, body],
 		"races/%s/base_%d" % [dir, body],
 	]:

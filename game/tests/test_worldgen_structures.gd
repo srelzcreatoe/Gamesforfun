@@ -21,7 +21,14 @@ func test_templates_load() -> void:
 		assert_true(not tpl.is_empty(), "template not loaded for " + sid)
 		var size: Vector3i = tpl["size"]
 		assert_true(size.x > 0 and size.y > 0 and size.z > 0, "bad size for " + sid)
-		assert_true((tpl["tiles"] as Dictionary).size() > 0, "no blocks for " + sid)
+		var data: PackedInt32Array = tpl["data"]
+		assert_true(data.size() > 0, "no blocks for " + sid)
+		var counts: PackedInt32Array = tpl["counts"]
+		var total := 0
+		for c in counts:
+			total += c
+		assert_eq(total, data.size(), "%s: tile offset table does not cover the block data" % sid)
+		assert_true((tpl["pal"] as PackedByteArray).size() > 0, "no palette for " + sid)
 
 # --- placement -------------------------------------------------------------
 
