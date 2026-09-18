@@ -109,6 +109,14 @@ func park(i: int, pos: Vector3, color: Color, rate: float, wind: Vector2, wind_g
 	set_wind(i, wind, wind_gust)
 	p.emitting = true
 
+## Recolour a parked emitter without restarting it: the real colour of a leaf species can arrive
+## a tick after the emitter was parked (see AmbientLife._hot_leaf_color). Writing `color` does not
+## touch the particle array, so nothing already in the air is lost.
+func set_color(i: int, color: Color) -> void:
+	if i < 0 or i >= emitters.size():
+		return
+	emitters[i].color = color
+
 ## Cheap per-tick refresh: drift direction and tumble only, so a gust shows up immediately
 ## without restarting the emitter.
 func set_wind(i: int, wind: Vector2, wind_gust: float) -> void:

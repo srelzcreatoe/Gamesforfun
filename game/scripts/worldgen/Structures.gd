@@ -211,8 +211,9 @@ func _stamp_one(col: ChunkColumn, ctx, entry: Dictionary, ax: int, az: int, rot:
 		return
 	if az - MAX_HALF >= ctx.oz + 16 or az + MAX_HALF < ctx.oz:
 		return
-	var tpl := template(String(entry["file"]), int(special.get("src_y_min", 0)),
-		int(special.get("src_y_max", 255)))
+	# Header only (a few hundred bytes): enough to decide whether this column is touched.
+	var file := String(entry["file"])
+	var tpl := header(file)
 	if tpl.is_empty():
 		return
 	var size: Vector3i = tpl["size"]
@@ -240,8 +241,12 @@ func _stamp_one(col: ChunkColumn, ctx, entry: Dictionary, ax: int, az: int, rot:
 		_clear_box(col, ctx, min_x, min_z, ext_x, ext_z, base_y + off.y + ext_y, 8)
 	if bool(special.get("korin_tower", false)):
 		_korin_tower(col, ctx, ax, az, base_y)
-	var pal: PackedInt32Array = tpl["pal"]
-	var tiles: Dictionary = tpl["tiles"]
+	# Only now, for a column the structure really covers, is the block data parsed.
+	var blk := blocks_of(file, src_min, src_max)
+	var pal: PackedByteArray = blk["pal"]
+	var data: PackedInt32Array = blk["data"]
+	var starts: PackedInt32Array = blk["starts"]
+	var counts: PackedInt32Array = blk["counts"]
 	# Template-space bounding box of this column, so only overlapping tiles are walked.
 	var rx0: int = ctx.ox - min_x
 	var rz0: int = ctx.oz - min_z
@@ -251,11 +256,16 @@ func _stamp_one(col: ChunkColumn, ctx, entry: Dictionary, ax: int, az: int, rot:
 	var tz0: int = maxi(0, int(bb.z)) >> 4
 	var tz1: int = maxi(0, int(bb.w)) >> 4
 	for tz in range(tz0, tz1 + 1):
+		if tz < 0 or tz > 15:
+			continue
 		for tx in range(tx0, tx1 + 1):
-			var list: PackedInt32Array = tiles.get(Vector2i(tx, tz), PackedInt32Array())
-			var n := list.size()
-			for i in n:
-				var v := list[i]
+			if tx < 0 or tx > 15:
+				continue
+			var ti := tx + 16 * tz
+			var from := starts[ti]
+			var to := from + counts[ti]
+			for i in range(from, to):
+				var v := data[i]
 				var sy := (v >> 8) & 255
 				if sy < src_min or sy > src_max:
 					continue
@@ -548,57 +558,279 @@ static func _inverse_rotate(rx: int, rz: int, size: Vector3i, rot: int) -> Vecto
 		_: return Vector2i(rx, rz)
 
 # --- template loading ------------------------------------------------------
+#
+# Memory matters here: the 43 converted templates are 12.6 MB of JSON, and parsing them all
+# into Dictionaries/Arrays costs ~230 MB of static memory - enough for Android's low-memory
+# killer to take the game down on the loading screen. So:
+#
+#   * headers (size / origin_offset / clear_box / entity list) are read from the first and
+#     last few kilobytes of the file and kept forever: a few hundred bytes each. A column can
+#     therefore decide whether a structure reaches it without touching the block data at all.
+#   * block data is parsed only for a column the structure really overlaps, in ~32 KB chunks
+#     (so the temporary Variant tree stays tiny), straight into ONE PackedInt32Array of
+#     `x | y<<8 | z<<16 | palette<<24` - 4 bytes per placed block - bucketed into 16x16 tiles
+#     through a 256-entry offset table. The palette is a PackedByteArray of block ids.
+#   * at most MAX_CACHED_BLOCKS templates (and MAX_CACHE_BYTES) stay cached, least recently
+#     used first out. Callers hold a reference while they stamp, so eviction is always safe.
 
-## Parsed template: {size: Vector3i, off: Vector3i, pal: PackedInt32Array,
-## tiles: {Vector2i -> PackedInt32Array}, ents: Array, clear: bool}
-static func template(path: String, src_min := 0, src_max := 255) -> Dictionary:
-	var key := path if (src_min == 0 and src_max >= 255) else "%s|%d|%d" % [path, src_min, src_max]
-	_tpl_mutex.lock()
-	var hit: Variant = _templates.get(key, null)
-	_tpl_mutex.unlock()
+## Bytes of JSON handed to one JSON.parse call while scanning the blocks array.
+const PARSE_CHUNK_BYTES := 32768
+## Window read from the start / end of the file for the header fields.
+const HEADER_BYTES := 32768
+const FOOTER_BYTES := 16384
+## Block data cache limits.
+const MAX_CACHED_BLOCKS := 4
+const MAX_CACHE_BYTES := 4 << 20
+
+## path -> {size: Vector3i, off: Vector3i, clear: bool, ents: Array}  (tiny, kept for good)
+static var _headers: Dictionary = {}
+static var _hdr_mutex := Mutex.new()
+## cache key -> {data: PackedInt32Array, starts: PackedInt32Array, counts: PackedInt32Array,
+##               pal: PackedByteArray, bytes: int}
+static var _blocks: Dictionary = {}
+static var _blocks_lru: PackedStringArray = PackedStringArray()
+static var _blocks_bytes := 0
+
+## Header fields only - never touches the block data.
+static func header(path: String) -> Dictionary:
+	_hdr_mutex.lock()
+	var hit: Variant = _headers.get(path, null)
+	_hdr_mutex.unlock()
 	if hit != null:
 		return hit
-	var built := _load_template(path, src_min, src_max)
+	var built := _read_header(path)
+	_hdr_mutex.lock()
+	_headers[path] = built
+	_hdr_mutex.unlock()
+	return built
+
+static func _read_header(path: String) -> Dictionary:
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		Log.w("Structures: cannot open template " + path)
+		return {}
+	var len_total := int(f.get_length())
+	var head := f.get_buffer(mini(HEADER_BYTES, len_total)).get_string_from_utf8()
+	var tail := head
+	if len_total > HEADER_BYTES:
+		f.seek(maxi(0, len_total - FOOTER_BYTES))
+		tail = f.get_buffer(mini(FOOTER_BYTES, len_total)).get_string_from_utf8()
+	f.close()
+	var size := _int_triple(head, "\"size\"", Vector3i(1, 1, 1))
+	var off := _int_triple(tail, "\"origin_offset\"", Vector3i.ZERO)
+	var ents: Array = []
+	var e_at := tail.find("\"entities\"")
+	if e_at >= 0:
+		var span := _span(tail, e_at, "[", "]")
+		if span.x >= 0:
+			var json := JSON.new()
+			if json.parse(tail.substr(span.x, span.y - span.x + 1)) == OK and json.data is Array:
+				ents = json.data
+	return {
+		"size": size,
+		"off": off,
+		"clear": tail.find("\"clear_box\":true") >= 0,
+		"ents": ents,
+	}
+
+## Compact block data for a template (optionally cropped to a source y range).
+static func blocks_of(path: String, src_min := 0, src_max := 255) -> Dictionary:
+	var key := path if (src_min == 0 and src_max >= 255) else "%s|%d|%d" % [path, src_min, src_max]
 	_tpl_mutex.lock()
-	_templates[key] = built
+	var hit: Variant = _blocks.get(key, null)
+	if hit != null:
+		_touch(key)
+		_tpl_mutex.unlock()
+		return hit
+	_tpl_mutex.unlock()
+	var built := _parse_blocks(path, src_min, src_max)
+	_tpl_mutex.lock()
+	if not _blocks.has(key):
+		_blocks[key] = built
+		_blocks_lru.append(key)
+		_blocks_bytes += int(built.get("bytes", 0))
+		_evict()
+	else:
+		built = _blocks[key]
+		_touch(key)
 	_tpl_mutex.unlock()
 	return built
 
-static func _load_template(path: String, src_min := 0, src_max := 255) -> Dictionary:
-	var data: Variant = JsonUtil.load_file(path)
-	if not data is Dictionary:
-		Log.w("Structures: cannot load template " + path)
+## Both halves together (used by the tests and by anything that wants one dictionary).
+static func template(path: String, src_min := 0, src_max := 255) -> Dictionary:
+	var hdr := header(path)
+	if hdr.is_empty():
 		return {}
-	var d: Dictionary = data
-	var size_a: Array = d.get("size", [1, 1, 1])
-	var off_a: Array = d.get("origin_offset", [0, 0, 0])
-	var pal := PackedInt32Array()
-	for name in d.get("palette", ["air"]):
-		var bid := Registry.block_id(String(name))
-		pal.append(bid if bid > 0 else 0)
-	var tiles: Dictionary = {}
-	for b in d.get("blocks", []):
-		if not b is Array or b.size() < 4:
-			continue
-		var x := int(b[0])
-		var y := int(b[1])
-		var z := int(b[2])
-		var p := int(b[3])
-		if y < src_min or y > src_max:
-			continue
-		if x < 0 or x > 255 or y < 0 or y > 255 or z < 0 or z > 255 or p < 0 or p >= pal.size():
-			continue
-		if pal[p] == 0:
-			continue
-		var key := Vector2i(x >> 4, z >> 4)
-		var arr: PackedInt32Array = tiles.get(key, PackedInt32Array())
-		arr.append(x | (y << 8) | (z << 16) | (p << 24))
-		tiles[key] = arr
-	return {
-		"size": Vector3i(int(size_a[0]), int(size_a[1]), int(size_a[2])),
-		"off": Vector3i(int(off_a[0]), int(off_a[1]), int(off_a[2])),
-		"pal": pal,
-		"tiles": tiles,
-		"ents": d.get("entities", []),
-		"clear": bool(d.get("clear_box", false)),
+	var blk := blocks_of(path, src_min, src_max)
+	var out := hdr.duplicate()
+	for k in blk.keys():
+		out[k] = blk[k]
+	return out
+
+## Drop every cached template body (the headers are tiny and stay).
+static func release_cache() -> void:
+	_tpl_mutex.lock()
+	_blocks.clear()
+	_blocks_lru = PackedStringArray()
+	_blocks_bytes = 0
+	_tpl_mutex.unlock()
+
+static func cache_stats() -> Dictionary:
+	_tpl_mutex.lock()
+	var out := {"templates": _blocks.size(), "bytes": _blocks_bytes, "headers": _headers.size()}
+	_tpl_mutex.unlock()
+	return out
+
+## _tpl_mutex must be held.
+static func _touch(key: String) -> void:
+	var i := _blocks_lru.find(key)
+	if i >= 0:
+		_blocks_lru.remove_at(i)
+	_blocks_lru.append(key)
+
+## _tpl_mutex must be held.
+static func _evict() -> void:
+	while _blocks_lru.size() > MAX_CACHED_BLOCKS or (_blocks_bytes > MAX_CACHE_BYTES and _blocks_lru.size() > 1):
+		var oldest: String = _blocks_lru[0]
+		_blocks_lru.remove_at(0)
+		var gone: Dictionary = _blocks.get(oldest, {})
+		_blocks_bytes -= int(gone.get("bytes", 0))
+		_blocks.erase(oldest)
+
+## Chunked scan of the `blocks` array into packed arrays. Peak memory is the raw file bytes
+## plus one 32 KB chunk, instead of a multi-hundred-megabyte Variant tree.
+static func _parse_blocks(path: String, src_min: int, src_max: int) -> Dictionary:
+	var empty := {
+		"data": PackedInt32Array(), "starts": PackedInt32Array(), "counts": PackedInt32Array(),
+		"pal": PackedByteArray(), "bytes": 0,
 	}
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		Log.w("Structures: cannot open template " + path)
+		return empty
+	var total := int(f.get_length())
+	var bytes := f.get_buffer(total)
+	f.close()
+	# palette + the byte offset of the blocks array, from the head of the file
+	var head := bytes.slice(0, mini(HEADER_BYTES, total)).get_string_from_utf8()
+	var pal := PackedByteArray()
+	var p_at := head.find("\"palette\"")
+	if p_at >= 0:
+		var p_span := _span(head, p_at, "[", "]")
+		if p_span.x >= 0:
+			var json_pal := JSON.new()
+			if json_pal.parse(head.substr(p_span.x, p_span.y - p_span.x + 1)) == OK and json_pal.data is Array:
+				for name in json_pal.data:
+					var bid := Registry.block_id(String(name))
+					pal.append(bid if bid > 0 and bid < 256 else 0)
+	if pal.is_empty():
+		pal.append(0)
+	var b_at := head.find("\"blocks\"")
+	if b_at < 0:
+		return empty
+	var open_at := head.find("[", b_at)
+	if open_at < 0:
+		return empty
+	# One pass: parse chunk by chunk, collect the encoded cells and count them per tile.
+	var all := PackedInt32Array()
+	var counts := PackedInt32Array()
+	counts.resize(256)
+	var json := JSON.new()
+	var s := open_at + 1
+	var last := _last_entry_end(bytes, s, total)
+	while last > 0 and s <= last:
+		var chunk_end := last + 1
+		if s + PARSE_CHUNK_BYTES < last:
+			var b := _find_entry_break(bytes, s + PARSE_CHUNK_BYTES, last)
+			if b > 0:
+				chunk_end = b + 1
+		var chunk := "[" + bytes.slice(s, chunk_end).get_string_from_utf8() + "]"
+		if json.parse(chunk) == OK and json.data is Array:
+			for e in json.data:
+				if not e is Array or e.size() < 4:
+					continue
+				var x := int(e[0])
+				var y := int(e[1])
+				var z := int(e[2])
+				var pi := int(e[3])
+				if y < src_min or y > src_max:
+					continue
+				if x < 0 or x > 255 or y < 0 or y > 255 or z < 0 or z > 255:
+					continue
+				if pi < 0 or pi >= pal.size() or pal[pi] == 0:
+					continue
+				all.append(x | (y << 8) | (z << 16) | (pi << 24))
+				var ti := (x >> 4) + 16 * (z >> 4)
+				counts[ti] = counts[ti] + 1
+		s = chunk_end + 1
+	# Counting sort into one array with a 256-entry offset table (no per-tile arrays).
+	var starts := PackedInt32Array()
+	starts.resize(256)
+	var acc := 0
+	for i in 256:
+		starts[i] = acc
+		acc += counts[i]
+	var cursors := starts.duplicate()
+	var data := PackedInt32Array()
+	data.resize(all.size())
+	for i in all.size():
+		var v := all[i]
+		var ti2 := ((v & 255) >> 4) + 16 * (((v >> 16) & 255) >> 4)
+		data[cursors[ti2]] = v
+		cursors[ti2] = cursors[ti2] + 1
+	return {
+		"data": data, "starts": starts, "counts": counts, "pal": pal,
+		"bytes": data.size() * 4 + 2048 + pal.size(),
+	}
+
+## Index of the ']' that closes the last `[x,y,z,p]` entry, or -1 for an empty array.
+static func _last_entry_end(bytes: PackedByteArray, from: int, total: int) -> int:
+	for i in range(total - 1, from - 1, -1):
+		if bytes[i] == 0x5D:                      # ']'
+			# skip the outer ']' and find the entry's own one
+			for j in range(i - 1, from - 1, -1):
+				if bytes[j] == 0x5D:
+					return j
+			return -1
+	return -1
+
+## First "],[" boundary at or after `from`; returns the index of its ']'.
+static func _find_entry_break(bytes: PackedByteArray, from: int, last: int) -> int:
+	var i := from
+	while i < last - 1:
+		if bytes[i] == 0x5D and bytes[i + 1] == 0x2C and bytes[i + 2] == 0x5B:
+			return i
+		i += 1
+	return -1
+
+## "key":[a,b,c] -> Vector3i
+static func _int_triple(text: String, key: String, fallback: Vector3i) -> Vector3i:
+	var at := text.find(key)
+	if at < 0:
+		return fallback
+	var span := _span(text, at, "[", "]")
+	if span.x < 0:
+		return fallback
+	var parts := text.substr(span.x + 1, span.y - span.x - 1).split(",")
+	if parts.size() < 3:
+		return fallback
+	return Vector3i(int(parts[0]), int(parts[1]), int(parts[2]))
+
+## Balanced span of `open`/`close` starting at or after `from`; x = open index, y = close index.
+static func _span(text: String, from: int, open_ch: String, close_ch: String) -> Vector2i:
+	var start := text.find(open_ch, from)
+	if start < 0:
+		return Vector2i(-1, -1)
+	var depth := 0
+	var i := start
+	var n := text.length()
+	while i < n:
+		var c := text[i]
+		if c == open_ch:
+			depth += 1
+		elif c == close_ch:
+			depth -= 1
+			if depth == 0:
+				return Vector2i(start, i)
+		i += 1
+	return Vector2i(-1, -1)

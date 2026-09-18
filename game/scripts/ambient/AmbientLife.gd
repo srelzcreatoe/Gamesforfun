@@ -62,6 +62,10 @@ const WARM_PROBES: Array[Vector3i] = [
 	Vector3i(4, -1, 3), Vector3i(-4, -1, -3), Vector3i(-3, -1, 4), Vector3i(3, -1, -4),
 ]
 const WARM_PER_TICK := 1
+## Canopy searches per tick. One search is up to 8 columns x 22 block reads, and World.get_height
+## on a column it has not cached yet is not free, so a fresh bind fills its four leaf emitters
+## over two ticks instead of stalling one.
+const CANOPY_SEARCHES_PER_TICK := 2
 ## Tint used for one puff when the block's real colour is not cached yet (see _hot_block_color).
 const UNKNOWN_BLOCK_COLOR := Color(0.62, 0.6, 0.58)
 
@@ -119,6 +123,9 @@ var _last_foot_pos := Vector3.ZERO
 var _foot_valid := false
 var _block_events := 0
 var _leaf_colors: Array[Color] = []
+## Leaf block id per emitter, and 1 while its colour is still the biome-tint guess.
+var _leaf_ids: PackedInt32Array = PackedInt32Array()
+var _leaf_provisional: PackedInt32Array = PackedInt32Array()
 var _eye := Vector3.ZERO
 var _eye_valid := false
 var _bound := false
@@ -179,8 +186,12 @@ func _build() -> void:
 	leaves.setup()
 	add_child(leaves)
 	_leaf_colors.resize(AmbientLeaves.MAX_EMITTERS)
+	_leaf_ids.resize(AmbientLeaves.MAX_EMITTERS)
+	_leaf_provisional.resize(AmbientLeaves.MAX_EMITTERS)
 	for i in _leaf_colors.size():
 		_leaf_colors[i] = Color(0.35, 0.55, 0.2)
+		_leaf_ids[i] = 0
+		_leaf_provisional[i] = 0
 	reactive = AmbientReactive.new()
 	reactive.setup(budget, _rng.randi())
 	add_child(reactive)
@@ -557,13 +568,23 @@ func _update_leaves() -> void:
 	var permitted := budget.claim("leaves", want * AmbientLeaves.PER_EMITTER) / AmbientLeaves.PER_EMITTER
 	leaves.set_permitted(permitted)
 	var per := rate / float(maxi(permitted, 1))
+	var searches := 0
 	for i in permitted:
 		var a := leaves.anchor_of(i)
 		if a.y > -9000.0 and Vector2(a.x - center.x, a.z - center.z).length() <= DESPAWN:
 			# Still in range: refresh the wind only (re-parking would restart the emitter and
 			# delete every leaf already in the air).
 			leaves.set_wind(i, wind_dir, wind_gust)
+			# A colour that had to be guessed is corrected as soon as the warm pass has the real
+			# tile, without restarting the emitter.
+			if _leaf_provisional[i] == 1 and AmbientAssets.has_block_color(_leaf_ids[i]):
+				_leaf_colors[i] = AmbientAssets.leaf_color(_leaf_ids[i], biome_def)
+				_leaf_provisional[i] = 0
+				leaves.set_color(i, _leaf_colors[i])
 			continue
+		if searches >= CANOPY_SEARCHES_PER_TICK:
+			break             # the rest of the emitters find their tree on the next tick
+		searches += 1
 		var found := _find_canopy()
 		if found.y < -9000.0:
 			# No canopy in reach: this emitter and every one after it stays dark and unpaid for.
@@ -571,7 +592,8 @@ func _update_leaves() -> void:
 				leaves.unpark(j)
 			break
 		var lid := int(found.w)
-		_leaf_colors[i] = AmbientAssets.leaf_color(lid, biome_def)
+		_leaf_ids[i] = lid
+		_leaf_colors[i] = _hot_leaf_color(i, lid)
 		leaves.park(i, Vector3(found.x, found.y, found.z), _leaf_colors[i], per, wind_dir, wind_gust)
 	# Charge for the emitters that actually hang under a canopy, and give the rest back. This runs
 	# before the other fields claim (see tick()), so the quads are theirs in the same tick.
@@ -744,9 +766,24 @@ func _warm_block_colors() -> void:
 func _hot_block_color(id: int) -> Color:
 	if AmbientAssets.has_block_color(id):
 		return AmbientAssets.tinted_block_color(id, biome_def)
-	if _warm_pending.size() < 8 and _warm_pending.find(id) < 0:
-		_warm_pending.append(id)
+	_queue_warm(id)
 	return UNKNOWN_BLOCK_COLOR
+
+## Same rule for a leaf species (emitter `i`, leaf block `id`): while its tile is not cached, the
+## falling leaves take the biome's own foliage colour (a good guess, and green in the right way),
+## and `_leaf_provisional[i]` makes _update_leaves correct them in place a tick later.
+func _hot_leaf_color(i: int, id: int) -> Color:
+	if AmbientAssets.has_block_color(id):
+		_leaf_provisional[i] = 0
+		return AmbientAssets.leaf_color(id, biome_def)
+	_queue_warm(id)
+	_leaf_provisional[i] = 1
+	var f := AmbientAssets.hex_color(String(biome_def.get("foliage_color", "")), Color(0.47, 0.67, 0.18))
+	return f.lerp(Color(1, 1, 1), 0.22)
+
+func _queue_warm(id: int) -> void:
+	if id > 0 and _warm_pending.size() < 8 and _warm_pending.find(id) < 0:
+		_warm_pending.append(id)
 
 # --- heat shimmer -----------------------------------------------------------------------------
 
