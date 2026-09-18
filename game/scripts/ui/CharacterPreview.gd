@@ -72,7 +72,7 @@ func rebuild() -> void:
 ## the model's bounding box through the camera and correcting, so it does not depend on which
 ## axis Godot applies `fov` to for a given viewport aspect.
 func frame_camera() -> void:
-	if camera == null or model == null or not is_instance_valid(model):
+	if camera == null or model == null or not is_instance_valid(model) or not is_inside_tree():
 		return
 	var box := AABB()
 	var inner: Node = model.get_child(0) if model.get_child_count() > 0 else null
@@ -108,7 +108,8 @@ func frame_camera() -> void:
 func _place_camera(center: Vector3, dist: float) -> void:
 	camera.position = Vector3(0.0, center.y, -dist)
 	camera.look_at_from_position(camera.position, Vector3(0.0, center.y, 0.0), Vector3.UP)
-	camera.force_update_transform()
+	if camera.is_inside_tree():
+		camera.force_update_transform()
 
 ## Screen height of the model's bounding box through the current camera, in viewport pixels.
 func _projected_height(box: AABB) -> float:
