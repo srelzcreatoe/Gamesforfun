@@ -318,7 +318,10 @@ static func compose_image(character: Dictionary) -> Image:
 		_blend(buf, size, _load_image("%s_eye_%d_3" % [face_dir, eye]), hair_col)
 	_blend(buf, size, _load_image("%s_nose_%d" % [face_dir, _int_any(character, ["nose"], 0)]), skin)
 	_blend(buf, size, _load_image("%s_mouth_%d" % [face_dir, _int_any(character, ["mouth"], 0)]), skin)
-	var tattoo := _int_any(character, ["tattoo"], -1)
+	# races.json ships `defaultTattooType: 0` for every race and DMZ's own
+	# `tattoo_0.png` is fully transparent, so index 0 IS "none"; a negative index
+	# skips the blend entirely. Both conventions therefore compose the same face.
+	var tattoo := _int_any(character, ["tattoo", "tattoo_type", "tattooType"], 0)
 	if tattoo >= 0:
 		_blend(buf, size, _load_image("races/tattoos/tattoo_%d" % tattoo), Color.WHITE)
 	if can_use_hair(character) and HairBuilder.has_hair(HairBuilder.style_id(_int_any(character, ["hair_type", "hairType"], 1))):

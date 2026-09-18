@@ -440,3 +440,21 @@ func test_every_skin_read_survives_an_exported_build() -> void:
 				if img.get_pixel(x, y).a > 0.5:
 					opaque += 1
 		assert_true(opaque > 40, "%s composes a visible body (%d opaque samples)" % [race, opaque])
+
+func test_tattoo_zero_is_the_mods_own_none() -> void:
+	# races.json defaults every race to `defaultTattooType: 0` and DMZ's
+	# tattoo_0.png is fully transparent, so the creator can store 0 for "none";
+	# a negative index (our older convention) skips the blend and must look the same
+	var base := {"race": "saiyan", "gender": "male", "body_type": 0, "hair_color": "#221a14"}
+	var none_neg := base.duplicate()
+	none_neg["tattoo"] = -1
+	var none_zero := base.duplicate()
+	none_zero["tattoo"] = 0
+	assert_eq(RaceSkin.compose_image(none_zero).get_data(), RaceSkin.compose_image(none_neg).get_data(),
+		"tattoo 0 and tattoo -1 compose the same face")
+	# and a real tattoo does change the texture
+	var inked := base.duplicate()
+	inked["tattoo"] = RaceSkin.tattoo_types()[RaceSkin.tattoo_count() - 1]
+	assert_ne(RaceSkin.compose_image(inked).get_data(), RaceSkin.compose_image(none_zero).get_data(),
+		"a real tattoo blends in")
+	assert_ne(RaceSkin.cache_key(inked), RaceSkin.cache_key(none_zero), "and it is in the cache key")
