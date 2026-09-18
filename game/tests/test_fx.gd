@@ -1244,3 +1244,106 @@ func test_the_strain_reuses_one_afterimage_silhouette() -> void:
 	assert_eq(ghosts, 1, "exactly one silhouette exists, however many times it flashed")
 	assert_true(d.is_ancestor_of(d._ghost), "it hangs off the director, so it is freed with it")
 	host.free()
+
+# --- J. the burst frame, and the tools that measure it -------------------
+
+## The climax used to CONSTRUCT three particle emitters, a 20 m cylinder with a fresh
+## ki_beam material, one emitter per levitating rock and a light, all in the single frame
+## the burst lands on: 2.4 ms average and 15.9 ms peak of script time in
+## `FxPreview --profile`, i.e. one dropped frame on a phone exactly at the peak. They are
+## built during the gather phase (0.1 ms/frame) now and the climax only fires them.
+func test_the_climax_only_fires_what_the_gather_already_built() -> void:
+	var d := _director(EPIC_FORM)
+	assert_true(d != null, "director created")
+	if d == null:
+		return
+	_step(d, 0.3)                                   # still in the gather
+	assert_eq(d.phase_name(), "gather", "still gathering")
+	var prepped: Array[CPUParticles3D] = [d._burst_main, d._burst_dust, d._burst_sparks, d._burst_rock]
+	for p in prepped:
+		assert_true(p != null and is_instance_valid(p), "the burst emitter exists before the climax")
+		if p != null:
+			assert_true(not (p.emitting), "%s is built but idle (it must not show during the gather)" % p.name)
+	assert_true(d._pillar != null, "the pillar mesh and its shader are live before the climax")
+	assert_true(d._pillar_age < 0.0, "but the pillar is not animating yet")
+	if d._pillar_mat != null:
+		assert_near(float(d._pillar_mat.get_shader_parameter("intensity")), 0.0, 0.001,
+			"an additive beam at intensity 0 draws nothing, which is how the shader is pre-warmed")
+	# ... and the climax adds NO new emitter: the same instances start emitting
+	var before := _emitter_ids(d)
+	_step(d, d.duration * TransformationDirector.F_CLIMAX + 0.05 - 0.3)
+	assert_eq(d.phase_name(), "burst", "reached the climax")
+	assert_true(d._pillar_age >= 0.0, "the pillar is firing")
+	for p in prepped:
+		if p != null and is_instance_valid(p):
+			assert_true(p.emitting, "%s fires at the climax" % p.name)
+	var after := _emitter_ids(d)
+	for id in after:
+		assert_true(before.has(id), "the burst frame constructed no new emitter")
+	d.free()
+
+func _emitter_ids(n: Node) -> Array[int]:
+	var out: Array[int] = []
+	for p in _all_particles(n):
+		out.append(p.get_instance_id())
+	return out
+
+## The debris explosion is ONE ring emitter at the debris radius, not one emitter per
+## rock, and it is fired at the height the rocks actually reached. It also dropped
+## `block_0..2`, which are in FxAssets.BLACK_FRINGE_TEXTURES.
+func test_the_rock_shatter_is_one_ring_emitter_at_the_debris_radius() -> void:
+	var d := _director(EPIC_FORM)
+	if d == null:
+		return
+	assert_true(d._burst_rock != null, "the shatter emitter exists")
+	if d._burst_rock == null:
+		return
+	assert_eq(d._burst_rock.emission_shape, CPUParticles3D.EMISSION_SHAPE_RING,
+		"it covers the whole debris ring in one emitter")
+	assert_near(d._burst_rock.emission_ring_radius, TransformationDirector.ROCK_RADIUS * d._gs, 0.01,
+		"at the radius the rocks orbit on")
+	_step(d, d.duration * TransformationDirector.F_CLIMAX + 0.05)
+	assert_true(d._burst_rock.emitting, "and it fires when the rocks shatter")
+	assert_true(d._rocks.is_empty(), "the rocks are gone")
+	assert_true(d._burst_rock.global_position.y > 0.2,
+		"fired at the height the debris reached (%.2f m)" % d._burst_rock.global_position.y)
+	d.free()
+
+## `ScreenFx.glow()` used to write `_darken_rate`, the DIM's fade rate, so a glow could
+## speed an in-flight dim's fade up (and a glow's own `fade` was only honoured when it
+## happened to be the fastest rate in play).
+func test_a_glow_cannot_change_the_dims_fade_rate() -> void:
+	var fx := ScreenFx.get_instance()
+	assert_true(fx != null, "screen fx available")
+	if fx == null:
+		return
+	ScreenFx.clear_sustained(0.0)
+	ScreenFx.dim(0.5, 1.0, 2.0)                     # a slow 2 s fade
+	var dim_rate := fx._darken_rate
+	assert_near(dim_rate, 0.5, 0.001, "the dim's rate is 1 / fade")
+	ScreenFx.glow(0.8, 0.5, 0.1)                    # a fast glow on top of it
+	assert_near(fx._darken_rate, dim_rate, 0.001, "the dim keeps its own fade rate")
+	assert_near(fx._glow_rate, 10.0, 0.001, "and the glow honours the fade it asked for")
+	ScreenFx.clear_sustained(0.0)
+
+## `--at=<seconds>` must be the last frame AT OR BEFORE the target, never the first one
+## past it: at 66 ms/frame one frame of overshoot is enough to file a reveal frame under
+## the name of the climax.
+func test_the_at_capture_never_overshoots_its_target() -> void:
+	assert_true(not (FxPreview._due(4.80, 0.066, 4.95)), "not due two frames out")
+	assert_true(FxPreview._due(4.90, 0.066, 4.95), "due on the last frame before the target")
+	assert_true(FxPreview._due(4.96, 0.066, 4.95), "and due if a frame did land past it")
+	assert_true(not (FxPreview._due(0.0, 0.0, 1.0)), "the very first frame has no step to predict with")
+	# walk a whole clock and check where it fires
+	for step: float in [0.016, 0.066, 0.1]:
+		var now := 0.0
+		var fired := -1.0
+		while now < 6.0:
+			now += step
+			if FxPreview._due(now, step, 4.95):
+				fired = now
+				break
+		assert_true(fired > 0.0, "it fires at %.3f s steps" % step)
+		assert_true(fired <= 4.95 + 0.0001,
+			"and never past the target (%.3f <= 4.95 at a %.3f s step)" % [fired, step])
+		assert_true(fired > 4.95 - step - 0.0001, "within one frame of it (%.3f)" % fired)
