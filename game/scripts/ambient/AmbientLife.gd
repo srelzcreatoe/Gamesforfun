@@ -43,12 +43,25 @@ const CANOPY_RADIUS := 14.0
 const CANOPY_MAX_UP := 20.0
 ## How far above or below the focus point a spawn column's surface may be (rejects treetops).
 const MAX_SURFACE_DY := 4.5
-## Nothing is placed inside this radius of the camera: a 0.24 m butterfly one metre from the
+## Nothing is placed inside this radius of the camera: a butterfly one metre from the
 ## lens fills a quarter of the frame, and the third-person camera sits behind the player, so a
 ## spot that is a polite 2 m from the player can still be in the viewer's face.
 const EYE_CLEAR := 3.0
 const FOOTSTEP_STRIDE := 1.8
 const PROFILE_PERIOD := 5.0
+
+## Every category the steady fields hold budget in (the reactive one-shots keep theirs until they
+## burn out). Hoisted so `_sleep()`, which runs 4x/s while no world is bound, allocates nothing.
+const SLEEP_CATEGORIES: Array[String] = ["motes", "butterflies", "birds", "leaves", "sky"]
+
+## Averaging a block tile is an image read, so the first debris puff of a block type the player
+## has never broken before would pay for it inside a gameplay frame. The tick warms these offsets
+## around the player's feet instead, at most WARM_PER_TICK new ones per tick.
+const WARM_PROBES: Array[Vector3i] = [
+	Vector3i(0, -1, 0), Vector3i(0, 0, 0), Vector3i(0, -2, 0),
+	Vector3i(4, -1, 3), Vector3i(-4, -1, -3), Vector3i(-3, -1, 4), Vector3i(3, -1, -4),
+]
+const WARM_PER_TICK := 1
 
 const MAX_MOTES := 90
 const MAX_MOTES_SECONDARY := 40
@@ -108,6 +121,8 @@ var _eye := Vector3.ZERO
 var _eye_valid := false
 var _bound := false
 var _seeded := false
+## Rotating start index into WARM_PROBES (see _warm_block_colors).
+var _warm_at := 0
 
 # --- lifecycle --------------------------------------------------------------------------------
 
@@ -295,6 +310,7 @@ func tick() -> void:
 		_update_sky_events()
 		_update_footsteps()
 		_update_shimmer()
+		_warm_block_colors()
 	_block_events = 0
 	var dt := Time.get_ticks_usec() - t0
 	_tick_usec_sum += dt
@@ -319,8 +335,8 @@ func _sleep() -> void:
 	if shimmer != null:
 		shimmer.set_strength(0.0)
 	if budget != null:
-		for c in ["motes", "butterflies", "birds", "leaves", "sky"]:
-			budget.claim(String(c), 0)
+		for c in SLEEP_CATEGORIES:
+			budget.claim(c, 0)
 
 func _refresh_context() -> void:
 	center = _focus()
@@ -388,7 +404,7 @@ func _update_motes() -> void:
 	var want_b := AmbientRules.mote_count(kind_b, day_fraction, weather, motes_b.capacity)
 	var granted := budget.claim("motes", firefly_want + want_b)
 	var a := mini(firefly_want, granted)
-	var b := mini(want_b, granted - a)
+	var b := mini(want_b, maxi(0, granted - a))
 
 	if a > 0 and motes.kind != AmbientRules.MOTE_FIREFLY:
 		var c := AmbientRules.firefly_color(planet_id)
@@ -416,9 +432,9 @@ func _configure_mote_field(field: AmbientMotes, kind: String) -> void:
 	# configure(kind, colour, sprite, size, glow, wander, radius, rise, blink, fade_end)
 	match kind:
 		AmbientRules.MOTE_POLLEN:
-			field.configure(kind, c, dot, 0.14, 2.2, 0.35, 1.5, 0.045, 0.0, 24.0)
+			field.configure(kind, c, dot, 0.2, 3.2, 0.35, 1.5, 0.045, 0.0, 24.0)
 		AmbientRules.MOTE_DUST:
-			field.configure(kind, c, dot, 0.09, 1.2, 0.5, 2.2, 0.03, 0.0, 26.0)
+			field.configure(kind, c, dot, 0.14, 2.0, 0.5, 2.2, 0.03, 0.0, 26.0)
 		AmbientRules.MOTE_SNOW:
 			# Snow does not drift, it twinkles: no rise, a fast sparkle blink.
 			field.configure(kind, c, dot, 0.055, 3.0, 0.25, 0.5, 0.0, 9.0, 18.0)
@@ -434,6 +450,10 @@ func _mote_ring(kind: String) -> Vector2:
 	match kind:
 		AmbientRules.MOTE_FIREFLY, AmbientRules.MOTE_SNOW: return Vector2(NEAR_MIN, NEAR_MAX)
 		AmbientRules.MOTE_SPIRIT: return Vector2(NEAR_MIN, SPAWN_MAX * 0.8)
+		# Pollen and dust hang in the air the player is walking through: spread over the full
+		# 5-24 m ring, forty specks are a few unreadable dots on the horizon.
+		AmbientRules.MOTE_POLLEN: return Vector2(NEAR_MIN + 1.0, 14.0)
+		AmbientRules.MOTE_DUST: return Vector2(NEAR_MIN + 1.0, 18.0)
 		_: return Vector2(SPAWN_MIN, SPAWN_MAX)
 
 func _mote_height_range(kind: String) -> Vector2:
@@ -499,7 +519,7 @@ func _update_flocks() -> void:
 		far_want = mini(4, flock_far.capacity)
 	var granted := budget.claim("birds", near_want + far_want)
 	var n := mini(near_want, granted)
-	var f := mini(far_want, granted - n)
+	var f := mini(far_want, maxi(0, granted - n))
 	if n > 0 and flock_near.active_count() == 0:
 		flock_near.configure(AmbientAssets.tex(AmbientAssets.BIRD_TEXTURES[0]),
 			Color(1, 1, 1, 0.95), 1.0, 4.5, 260.0, 54.0)
@@ -681,6 +701,30 @@ func _update_footsteps() -> void:
 	if id <= 0:
 		return
 	reactive.footstep(pos + Vector3(0, 0.06, 0), AmbientAssets.tinted_block_color(id, biome_def))
+
+# --- block-colour warm-up ---------------------------------------------------------------------
+
+## Cache at most WARM_PER_TICK new block-tile colours per tick, probing the ground the player is
+## standing on and a few columns around them. Averaging a tile means pulling one texture-array
+## layer back to the CPU, which is far too slow to do inside the frame that breaks a block or
+## plants a footstep, so by the time either happens the colour is already in the cache.
+func _warm_block_colors() -> void:
+	if world == null or not is_instance_valid(world) or not world.has_method("get_block"):
+		return
+	var bx := int(floor(center.x))
+	var by := int(floor(center.y - 0.2))
+	var bz := int(floor(center.z))
+	var done := 0
+	for i in WARM_PROBES.size():
+		var o := WARM_PROBES[(_warm_at + i) % WARM_PROBES.size()]
+		var id := int(world.call("get_block", bx + o.x, by + o.y, bz + o.z))
+		if id <= 0 or AmbientAssets.has_block_color(id):
+			continue
+		AmbientAssets.block_color(id)
+		done += 1
+		if done >= WARM_PER_TICK:
+			break
+	_warm_at = (_warm_at + 1) % WARM_PROBES.size()
 
 # --- heat shimmer -----------------------------------------------------------------------------
 

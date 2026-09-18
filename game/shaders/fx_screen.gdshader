@@ -84,7 +84,7 @@ void fragment() {
 		vec2 centred = uv - vec2(0.5);
 		float edge = 0.40 + 0.95 * smoothstep(0.05, 0.95, length(centred) * 1.30);
 		float amt = clamp(darken * edge, 0.0, 1.0);
-		vec3 dimmed = col * mix(1.0, 0.10, amt) + darken_color.rgb * amt * (0.10 + 0.45 * l) * 1.6;
+		vec3 dimmed = col * mix(1.0, 0.10, amt) + darken_color.rgb * amt * (0.22 + 0.45 * l) * 1.6;
 		// Only genuinely blown-out fx pixels burn through the dim, and only partly: the
 		// gate has to sit above daylight terrain luma or the dim does nothing at noon.
 		// Kept identical to shaders/post_process.gdshader, which runs the same pass in world.

@@ -1103,3 +1103,50 @@ func test_levitating_debris_is_lit_geometry_not_a_black_slab() -> void:
 	assert_true(mat.emission_enabled and mat.emission_energy_multiplier < 0.5,
 			"with a small floor for unlit studios, not a glowing cube")
 	d.free()
+
+## The cinematic measures its OWN cost (FxAssets.cpu_usec), because the engine's
+## Performance.TIME_PROCESS monitor reads 0 in a headless run and mixes in every other
+## script in the scene. `FxPreview --profile` divides this by the frames per phase.
+func test_the_cinematic_accounts_for_its_own_cpu_time() -> void:
+	FxAssets.cpu_take()                                # start from zero
+	assert_eq(FxAssets.cpu_take(), 0, "reading the counter clears it")
+	var d := _director(EPIC_FORM)
+	assert_true(d != null, "director created")
+	if d == null:
+		return
+	_step(d, 0.5)
+	var spent := FxAssets.cpu_take()
+	assert_true(spent > 0, "the stepped cinematic recorded its own microseconds")
+	assert_true(spent < 500000, "and it is a per-frame cost, not half a second (%d us)" % spent)
+	assert_eq(FxAssets.cpu_take(), 0, "and the counter is cleared again")
+	d.free()
+
+## An afterimage shares ONE additive material per texture instead of building one per
+## surface: the strain phase throws a ghost every 0.3 s and a DMZ character is ~20
+## surfaces over 2 textures, which showed up as a per-frame spike in --profile.
+func test_afterimage_shares_one_material_per_texture() -> void:
+	var host := Node3D.new()
+	add_node(host)
+	var e := FxDummy.create("saiyan", "warrior", true)
+	host.add_child(e)
+	var ghost := Trails.spawn_ghost(e, Vector3.ZERO, Color(1, 0.9, 0.3), 0.3)
+	assert_true(ghost != null, "ghost spawned")
+	if ghost == null:
+		return
+	var mats: Array = []
+	var meshes := _collect_meshes(ghost, mats)
+	assert_true(meshes >= 2, "the ghost copied a multi-surface model (%d meshes)" % meshes)
+	assert_true(mats.size() <= 3,
+		"%d meshes share %d materials (one per texture)" % [meshes, mats.size()])
+	host.free()
+
+func _collect_meshes(n: Node, mats: Array) -> int:
+	var total := 0
+	if n is MeshInstance3D:
+		total += 1
+		var m: Variant = (n as MeshInstance3D).material_override
+		if m != null and not mats.has(m):
+			mats.append(m)
+	for c in n.get_children():
+		total += _collect_meshes(c, mats)
+	return total

@@ -344,11 +344,22 @@ static func horizon_flash_interval(planet_id: String, day_fraction: float, weath
 		return 40.0
 	return 0.0
 
-## Heat shimmer strength 0..1 (Vampa and Hell breathe, nowhere else does).
+## Planets whose air visibly bakes, and how hard. Deliberately a per-planet table and NOT
+## `mood == MOOD_INFERNAL`: Hell and Vampa are furnaces, but Planet Vegeta is a habitable (if
+## harsh, red-sunned) world that shares the infernal *palette* — ember motes, orange haze —
+## without shimmering like a lava field.
+const SHIMMER_BY_PLANET := {
+	"hell_planet": 1.0,
+	"vampa": 1.0,
+	"vegeta": 0.5,
+}
+
+## Heat shimmer strength 0..1: Hell and Vampa full strength, Vegeta half, any desert biome
+## anywhere a mild ripple, everything else exactly 0 (and then the canvas pass stays hidden).
 static func heat_shimmer(planet_id: String, cls: int) -> float:
-	match mood(planet_id):
-		MOOD_INFERNAL: return 1.0
-		_: return 0.45 if cls == Cls.DESERT else 0.0
+	if SHIMMER_BY_PLANET.has(planet_id):
+		return float(SHIMMER_BY_PLANET[planet_id])
+	return 0.45 if cls == Cls.DESERT else 0.0
 
 static func is_soul_kind(kind: String, height: float) -> bool:
 	return SOUL_KINDS.has(kind) and height >= 1.2

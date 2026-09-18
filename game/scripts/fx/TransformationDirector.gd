@@ -252,7 +252,7 @@ func _setup_ground() -> void:
 	# global transform is re-assigned every frame, and world-space particles under such
 	# a parent reach the renderer as black quads.
 	FxAssets.mix_dust(_dust)
-	_dust.lifetime = 1.1
+	_dust.lifetime = 0.85
 	_dust.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
 	_dust.emission_ring_axis = Vector3.UP
 	_dust.emission_ring_radius = 2.7 * _gs
@@ -264,13 +264,13 @@ func _setup_ground() -> void:
 	# in-world shot showed the old settings as big soft blobs floating past the body.
 	_dust.direction = Vector3(0, 0.12, 0)
 	_dust.spread = 82.0
-	_dust.initial_velocity_min = 1.0
-	_dust.initial_velocity_max = 2.4
+	_dust.initial_velocity_min = 0.8
+	_dust.initial_velocity_max = 1.9
 	_dust.gravity = Vector3(0, -2.6, 0)
 	_dust.damping_min = 1.2
 	_dust.damping_max = 2.4
-	_dust.scale_amount_min = 0.30 * _gs
-	_dust.scale_amount_max = 0.70 * _gs
+	_dust.scale_amount_min = 0.22 * _gs
+	_dust.scale_amount_max = 0.52 * _gs
 	add_child(_dust)
 	_dust.emitting = true
 

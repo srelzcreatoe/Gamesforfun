@@ -119,6 +119,7 @@ static func spawn_ghost(entity_node: Node, pos: Vector3, c: Color, life := AFTER
 	var host: Node = entity_node.get_parent()
 	if host == null or not host.is_inside_tree():
 		return null
+	_ghost_mats = [] as Array[StandardMaterial3D]    # consumed by _fade below
 	var ghost: Node3D = null
 	var from_model := false
 	var model_scale := Vector3.ONE
@@ -131,7 +132,7 @@ static func spawn_ghost(entity_node: Node, pos: Vector3, c: Color, life := AFTER
 			# a BedrockModel carries its own (1/16 model unit) scale: overwriting it with
 			# the entity scale below would blow the silhouette up 16x
 			model_scale = (model as Node3D).scale
-			_tint_recursive(ghost, c)
+			_ghost_mats = _tint_recursive(ghost, c)
 	if ghost == null:
 		var mi := MeshInstance3D.new()
 		var cap := CapsuleMesh.new()
@@ -154,26 +155,53 @@ static func spawn_ghost(entity_node: Node, pos: Vector3, c: Color, life := AFTER
 	var tw := ghost.create_tween()
 	tw.tween_property(ghost, "scale", ghost.scale * 0.85, life)
 	tw.tween_callback(ghost.queue_free)
-	_fade_recursive(ghost, life)
+	_fade(ghost, life)
 	return ghost
 
 ## Turn a duplicated model into an additive silhouette in `c`. The original texture is
 ## kept when there is one, so an afterimage reads as a glowing copy of the character
 ## instead of a solid coloured box.
-static func _tint_recursive(node: Node, c: Color) -> void:
+##
+## ONE MATERIAL PER TEXTURE, SHARED between the surfaces that use it (a DMZ character is
+## ~20 MeshInstance3D over 2 textures: body + hair). The cinematic throws an afterimage
+## every 0.3 s during the strain, and building a material and a tween per surface put a
+## measurable spike in the frame (`FxPreview --profile` showed the strain max at ~9 ms of
+## fx script time); 2 materials and 2 tweens instead of ~20 of each removes most of it
+## and looks identical. Returns the materials so the fade can drive them directly.
+static func _tint_recursive(node: Node, c: Color, out: Array[StandardMaterial3D] = [],
+		by_tex: Dictionary = {}) -> Array[StandardMaterial3D]:
 	if node is MeshInstance3D:
 		var mi := node as MeshInstance3D
 		var tex: Texture2D = null
 		var old: Variant = mi.material_override
 		if old is BaseMaterial3D:
 			tex = (old as BaseMaterial3D).albedo_texture
-		var m := FxAssets.additive_material(tex, false)
-		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-		m.albedo_color = Color(c.r, c.g, c.b, 0.38)
+		var key: String = tex.resource_path if tex != null else "<none>"
+		var m: StandardMaterial3D = by_tex.get(key, null)
+		if m == null:
+			m = FxAssets.additive_material(tex, false)
+			m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+			m.albedo_color = Color(c.r, c.g, c.b, 0.38)
+			by_tex[key] = m
+			out.append(m)
 		mi.material_override = m
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	for ch in node.get_children():
-		_tint_recursive(ch, c)
+		_tint_recursive(ch, c, out, by_tex)
+	return out
+
+## Fade the silhouette out: one tween per shared material (see `_tint_recursive`), or a
+## walk when the ghost is the capsule fallback.
+static func _fade(ghost: Node3D, seconds: float) -> void:
+	if not _ghost_mats.is_empty():
+		for m in _ghost_mats:
+			var tw := ghost.create_tween()
+			tw.tween_property(m, "albedo_color:a", 0.0, seconds)
+		_ghost_mats = [] as Array[StandardMaterial3D]
+		return
+	_fade_recursive(ghost, seconds)
+
+static var _ghost_mats: Array[StandardMaterial3D] = []
 
 static func _fade_recursive(node: Node, seconds: float) -> void:
 	if node is MeshInstance3D:

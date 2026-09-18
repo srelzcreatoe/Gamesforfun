@@ -143,7 +143,7 @@ void fragment() {
 		// overlay cannot darken anything.
 		float edge = 0.40 + 0.95 * smoothstep(0.05, 0.95, length(centred) * 1.30);
 		float amt = clamp(fx_darken * edge, 0.0, 1.0);
-		vec3 dimmed = col * mix(1.0, 0.10, amt) + vec3(0.05, 0.07, 0.14) * amt * (0.10 + 0.45 * dl);
+		vec3 dimmed = col * mix(1.0, 0.10, amt) + vec3(0.05, 0.07, 0.14) * amt * (0.22 + 0.45 * dl);
 		// Only genuinely blown-out fx pixels (aura core, flash, beam) burn through the dim,
 		// and only partly. The gate used to open at 0.7 luma, which in a sunlit voxel world
 		// is sky, sand and most grass - so the strain dim read at night and did nothing at

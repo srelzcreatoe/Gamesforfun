@@ -25,7 +25,13 @@ const LEAF_SPRITES: Array[String] = [
 	"fused/oak_leaf_a", "fused/oak_leaf_b", "fused/birch_leaf_a", "fused/jungle_leaf_b",
 ]
 
+## At most this many samples per axis when averaging a tile. A texture pack can ship 64x64 or
+## 128x128 tiles, and a full per-pixel scan of one of those is milliseconds, not microseconds;
+## 16x16 samples give the same average colour for free.
+const COLOR_SAMPLES := 16
+
 static var _tex: Dictionary = {}
+static var _sprite_tint: Dictionary = {}
 static var _mesh: Dictionary = {}
 static var _block_color: Dictionary = {}
 static var _leaf_mask: Texture2D = null
@@ -149,8 +155,12 @@ static func block_color(block_id: int) -> Color:
 			var g := 0.0
 			var b := 0.0
 			var n := 0
-			for y in img.get_height():
-				for x in img.get_width():
+			var h := img.get_height()
+			var w := img.get_width()
+			var sy := maxi(1, h / COLOR_SAMPLES)
+			var sx := maxi(1, w / COLOR_SAMPLES)
+			for y in range(0, h, sy):
+				for x in range(0, w, sx):
 					var p := img.get_pixel(x, y)
 					if p.a < 0.5:
 						continue
@@ -161,6 +171,54 @@ static func block_color(block_id: int) -> Color:
 			if n > 0:
 				c = Color(r / float(n), g / float(n), b / float(n))
 	_block_color[block_id] = c
+	return c
+
+## True when `block_id`'s colour is already cached, so a caller in a hot path can decide to warm
+## it later instead of paying for the texture read now (see AmbientLife._warm_block_colors).
+static func has_block_color(block_id: int) -> bool:
+	return _block_color.has(block_id)
+
+## The colour of a sprite's lit pixels: the average of everything opaque that is not part of the
+## outline. The Fused sprites are drawn with a near-black outline that is over half of a 16 px
+## butterfly, so the butterfly shader needs to know what colour the *wings* are to keep the
+## sprite from reading as a dark blob at 15 m. Cached per sprite name, and setup-time only
+## (it reads the image back from the texture).
+static func sprite_tint(name: String, fallback := Color(0.8, 0.86, 1.0)) -> Color:
+	if _sprite_tint.has(name):
+		return _sprite_tint[name]
+	var c := fallback
+	var path := PARTICLE_DIR + name + ".png"
+	if not ResourceLoader.exists(path):
+		# tex() would hand back the white soft dot here, which is not this sprite's colour.
+		_sprite_tint[name] = c
+		return c
+	var t := tex(name)
+	var img: Image = t.get_image() if t != null else null
+	if img != null and img.is_compressed():
+		img = img.duplicate()
+		if img.decompress() != OK:
+			img = null
+	if img != null and img.get_width() > 0:
+		var r := 0.0
+		var g := 0.0
+		var b := 0.0
+		var n := 0
+		var w := img.get_width()
+		var h := img.get_height()
+		var sx := maxi(1, w / (COLOR_SAMPLES * 4))
+		var sy := maxi(1, h / COLOR_SAMPLES)
+		for y in range(0, h, sy):
+			for x in range(0, w, sx):
+				var p := img.get_pixel(x, y)
+				if p.a < 0.5 or maxf(maxf(p.r, p.g), p.b) < 0.25:
+					continue
+				r += p.r
+				g += p.g
+				b += p.b
+				n += 1
+		if n > 0:
+			c = Color(r / float(n), g / float(n), b / float(n))
+	_sprite_tint[name] = c
 	return c
 
 ## Same, but with the biome tint applied for blocks whose tile is a greyscale mask (grass tops,

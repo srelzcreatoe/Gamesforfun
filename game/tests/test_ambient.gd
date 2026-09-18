@@ -177,10 +177,17 @@ func test_night_sky_events() -> void:
 	assert_eq(AmbientRules.horizon_flash_interval("earth", NOON, "clear"), 0.0, "a clear noon is quiet")
 	assert_eq(AmbientRules.horizon_flash_interval("orbit", MIDNIGHT, "clear"), 0.0, "nothing in orbit")
 
-func test_heat_shimmer_is_infernal_only() -> void:
+func test_heat_shimmer_is_a_per_planet_table() -> void:
 	assert_eq(AmbientRules.heat_shimmer("vampa", AmbientRules.Cls.BARREN), 1.0, "Vampa breathes")
 	assert_eq(AmbientRules.heat_shimmer("hell_planet", AmbientRules.Cls.BARREN), 1.0, "so does Hell")
+	# Vegeta shares the infernal palette (ember motes, orange haze) but is a habitable world, so
+	# it shimmers, and it shimmers less than a lava field. This is the one planet where "infernal
+	# mood" and "the air bakes" deliberately disagree.
+	var vegeta := AmbientRules.heat_shimmer("vegeta", AmbientRules.Cls.BARREN)
+	assert_eq(AmbientRules.mood("vegeta"), AmbientRules.MOOD_INFERNAL, "Vegeta's mood is infernal")
+	assert_true(vegeta > 0.0 and vegeta < 1.0, "but it shimmers at %f, not full strength" % vegeta)
 	assert_eq(AmbientRules.heat_shimmer("earth", AmbientRules.Cls.FOREST), 0.0, "a forest does not")
+	assert_eq(AmbientRules.heat_shimmer("namek", AmbientRules.Cls.PLAINS), 0.0, "nor does Namek")
 	assert_true(AmbientRules.heat_shimmer("earth", AmbientRules.Cls.DESERT) > 0.0, "a desert wobbles a little")
 
 func test_souls_only_leave_humanoids() -> void:
@@ -216,6 +223,38 @@ func test_budget_claim_replaces_and_reset_clears() -> void:
 	assert_eq(b.total(), 0)
 	assert_eq(b.free_quads(), 64)
 	assert_eq(b.take("reactive", 0), 0, "asking for nothing takes nothing")
+
+func test_budget_hands_partial_grants_back() -> void:
+	# take() charges whatever it could spare BEFORE returning it, so a caller that treats a
+	# short grant as a refusal has to give the short grant back.
+	var b := AmbientBudget.new(100)
+	b.claim("motes", 95)
+	var got := b.take("reactive", 12)
+	assert_eq(got, 5, "only five quads were free")
+	assert_eq(int(b.used["reactive"]), 5, "and they are charged to reactive")
+	b.give_back("reactive", got)
+	assert_eq(int(b.used["reactive"]), 0, "handing the grant back clears the charge")
+	assert_eq(b.total(), 95)
+
+func test_a_refused_burst_does_not_leak_quads() -> void:
+	var host := AmbientReactive.new()
+	add_node(host)
+	_made.append(host)
+	var b := AmbientBudget.new(100)
+	host.setup(b, 99)
+	b.claim("motes", 95)                       # 5 quads free, a splash costs 12
+	assert_true(not host.fire(AmbientReactive.SPLASH, Vector3(0, 64, 0)), "the splash is refused")
+	assert_eq(int(b.used["reactive"]), 0, "a refused effect holds no quads")
+	assert_eq(b.total(), 95, "and the budget is exactly what the fields hold")
+	host.expire()
+	assert_eq(int(b.used["reactive"]), 0, "still nothing after expire()")
+	# The refusal must not have shrunk the layer's effective cap: with the field gone, the same
+	# splash fits.
+	b.claim("motes", 0)
+	assert_true(host.fire(AmbientReactive.SPLASH, Vector3(0, 64, 0)), "and now it fits")
+	assert_eq(b.total(), 12, "charged exactly its cost")
+	host.stop_all()
+	assert_eq(b.total(), 0, "stop_all returns everything")
 
 # --- pooling -----------------------------------------------------------------------------------
 
@@ -551,6 +590,31 @@ func test_boot_installs_one_ambient_layer_under_a_world() -> void:
 	b.uninstall()
 	assert_true(not b.is_installed(), "uninstall detaches it")
 
+func test_boot_unloading_a_world_really_stops_the_layer() -> void:
+	var b := AmbientBoot.new()
+	add_node(b)
+	_made.append(b)
+	b.install_enabled = true
+	var w := _stub("forest")
+	add_node(w)
+	var life := b.install(w)
+	assert_true(life != null, "installed")
+	# The handlers are called directly: that they are connected to the bus is asserted by
+	# test_boot_autoload_is_wired_to_the_event_bus, and emitting world_loaded/world_unloading
+	# globally would drag every other subsystem's listener into this test.
+	var prev: Node = Game.world
+	Game.world = w
+	b._on_world_unloading(w)
+	assert_true(not b.is_installed(), "world_unloading stops the layer")
+	assert_eq(w.get_node_or_null("AmbientLife"), null, "and the node is out of the world")
+	b._process(0.016)
+	b._process(0.016)
+	assert_true(not b.is_installed(), "and _process does not adopt the retired world again")
+	b._on_world_loaded(w)
+	assert_true(b.is_installed(), "a fresh world_loaded starts it again")
+	Game.world = prev
+	b.uninstall()
+
 func test_boot_detaching_stops_it_listening() -> void:
 	var b := AmbientBoot.new()
 	add_node(b)
@@ -589,6 +653,35 @@ func test_block_colours_are_cached_and_sane() -> void:
 	assert_eq(c, c2, "the colour is cached")
 	assert_true(c.g >= c.b, "grass is not blue")
 	assert_true(c.a == 1.0)
+
+func test_sprite_tint_reads_the_wings_not_the_outline() -> void:
+	# The Fused butterflies are drawn with a near-black outline over half their opaque pixels;
+	# the butterfly shader needs the colour of the lit pixels, not the average of the sprite.
+	var c := AmbientAssets.sprite_tint(AmbientAssets.BUTTERFLY_TEXTURES[0])
+	assert_eq(c, AmbientAssets.sprite_tint(AmbientAssets.BUTTERFLY_TEXTURES[0]), "cached")
+	assert_true(maxf(maxf(c.r, c.g), c.b) > 0.25, "the tint is a lit colour (%s)" % str(c))
+	var missing := AmbientAssets.sprite_tint("fused/not_a_sprite", Color(1, 0, 1))
+	assert_eq(missing, Color(1, 0, 1), "a sprite that does not exist falls back")
+
+func test_the_tick_prewarms_block_colours() -> void:
+	# Averaging a block tile is a texture read, far too slow for the frame that breaks a block,
+	# so the tick warms the ground around the player instead.
+	var w := _stub("forest")
+	w.set_phase("day")
+	# A block whose colour nothing has needed yet: one that an earlier test already cached would
+	# prove nothing about the tick.
+	var fresh := -1
+	for id in range(1, 96):
+		if not AmbientAssets.has_block_color(id):
+			fresh = id
+			break
+	assert_true(fresh > 0, "found an uncached block id to warm")
+	w.surface_block = fresh
+	var l := _life(w)
+	for _i in 8:
+		l.tick()
+	assert_true(AmbientAssets.has_block_color(fresh),
+		"the block under the player was cached by the tick, not by the first debris puff")
 
 func test_leaf_colour_follows_the_biome_foliage_tint() -> void:
 	var leaves := Registry.block_id("oak_leaves")

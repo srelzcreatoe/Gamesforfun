@@ -25,9 +25,14 @@ uniform vec3 light_tint : source_color = vec3(1.0, 1.0, 1.0);
 uniform float fade_start = 16.0;
 uniform float fade_end = 26.0;
 uniform float master_alpha : hint_range(0.0, 1.0) = 1.0;
-// The Fused sprites have a heavy black outline that turns a 20 px butterfly into a dark blob:
-// lift the darkest pixels a little so the wings read as wings.
-uniform float lift : hint_range(0.0, 0.3) = 0.09;
+// More than half of the opaque pixels in a Fused butterfly are its near-black outline and body,
+// so a plain brightness lift still reads as a dark speck at 15 m. Instead, the dark pixels are
+// pulled toward the sprite's own wing colour (AmbientAssets.sprite_tint writes it into
+// `wing_color`) at `outline_mix` strength, which keeps the silhouette but makes it a *blue*
+// butterfly rather than a black one. `lit_floor` then guarantees a minimum brightness.
+uniform vec3 wing_color : source_color = vec3(0.35, 0.62, 1.0);
+uniform float outline_mix : hint_range(0.0, 1.0) = 0.8;
+uniform float lit_floor : hint_range(0.0, 1.0) = 0.42;
 
 varying float vfade;
 
@@ -69,6 +74,12 @@ void fragment() {
 	if (t.a < 0.4 || vfade < 0.02) {
 		discard;
 	}
-	ALBEDO = (t.rgb + vec3(lift)) * light_tint;
+	// 0 on the outline/body pixels, 1 on the wing pixels.
+	float lit = smoothstep(0.04, 0.3, max(max(t.r, t.g), t.b));
+	vec3 rgb = mix(wing_color * outline_mix, t.rgb, lit);
+	// Keep a floor on brightness without washing the hue out: scale, do not add.
+	float l = max(max(rgb.r, rgb.g), rgb.b);
+	rgb *= max(1.0, lit_floor / max(l, 0.001));
+	ALBEDO = rgb * light_tint;
 	ALPHA = t.a * vfade;
 }

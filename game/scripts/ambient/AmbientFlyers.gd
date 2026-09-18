@@ -32,16 +32,23 @@ func setup(max_instances: int, seed_value: int = 0) -> void:
 	for i in capacity:
 		homes[i] = Vector3(0, -9999, 0)
 	_mat = AmbientAssets.butterfly_material()
-	_mat.set_shader_parameter("sprite", AmbientAssets.tex(AmbientAssets.BUTTERFLY_TEXTURES[0]))
-	_mat.set_shader_parameter("size", 0.24)
-	_mat.set_shader_parameter("fade_start", 15.0)
-	_mat.set_shader_parameter("fade_end", 26.0)
+	# 0.38 m of quad is a ~0.28 m wingspan (the sprite leaves a margin): larger than life, but a
+	# life-sized butterfly is two pixels at 15 m on a phone screen and reads as dirt.
+	_mat.set_shader_parameter("size", 0.38)
+	_mat.set_shader_parameter("fade_start", 17.0)
+	_mat.set_shader_parameter("fade_end", 28.0)
+	set_sprite(AmbientAssets.BUTTERFLY_TEXTURES[0])
 	material_override = _mat
 	visible = false
 
-func set_sprite(tex: Texture2D) -> void:
-	if _mat != null:
-		_mat.set_shader_parameter("sprite", tex)
+## Swap the species sprite. `wing_color` is the sprite's own lit colour, which the shader uses
+## to keep the heavy Fused outline from turning the butterfly into a dark speck at distance.
+func set_sprite(sprite_name: String) -> void:
+	if _mat == null:
+		return
+	_mat.set_shader_parameter("sprite", AmbientAssets.tex(sprite_name))
+	var c := AmbientAssets.sprite_tint(sprite_name)
+	_mat.set_shader_parameter("wing_color", Vector3(c.r, c.g, c.b))
 
 ## Daylight tint so butterflies darken with the evening instead of glowing flat white.
 func set_light(color: Color) -> void:
