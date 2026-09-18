@@ -24,6 +24,7 @@ DMZ Plus data and assets it ports).
 | **Serious Player Animations 1.2.0** by McVader (user-supplied) | Player animations (Bedrock format) used only for states DragonMineZ does not cover | MIT |
 | **Monocraft** by Idrees Hassan (https://github.com/IdreesInc/Monocraft) | UI font | SIL Open Font License 1.1 |
 | **Night City Inventory GUI** (1.21.3) by Myth6 | inventory screen skin, empty armour-slot icons (`textures/gui/nightcity/`) | user-supplied resource pack, no licence stated: used with the pack owner's permission, not redistributable |
+| **Pierced Animations - Serious Player Animations** (1.20.x resource pack, user-supplied) | replaces the same-named Serious Player Animations movement clips (`animations/spa/`, `spa.walking`, `spa.running`, `spa.idle_*`, `spa.shield*`, `spa.walking_sneak`) | CC BY-NC-ND 4.0, © 2025 PierceTH (user-supplied; non-commercial, credit required, not redistributable as part of a commercial build) |
 | **Complementary Reimagined r5.9.2** by EminGT (user-supplied) | Studied as a *reference* for the sky, water, cloud and tonemapping look. No code or textures from the pack are included. | Complementary License 1.7 (redistribution of its code is not permitted) |
 
 The DragonMineZ sound folder contains 39 tracks whose in-mod titles reference the

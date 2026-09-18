@@ -590,6 +590,10 @@ func _find_canopy() -> Vector4:
 				gap += 1
 				if gap >= CANOPY_GAP:
 					break        # out of the bottom of the canopy
+			elif d >= CANOPY_GAP:
+				# Leaves are the top of a tree column, so if the first few blocks under the
+				# heightmap are not leaves this column has no canopy: stop reading blocks.
+				break
 		if low < 0:
 			continue
 		# `ground_y` is get_height at the focus column, which is the treetop when the player is

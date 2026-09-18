@@ -633,6 +633,9 @@ func _spawn_pillar() -> void:
 	cyl.height = 20.0 * _gs
 	cyl.radial_segments = 14
 	cyl.rings = 1
+	# open tube: a capped cylinder shows a hard flat disc at the base of the beam
+	cyl.cap_top = false
+	cyl.cap_bottom = false
 	mi.mesh = cyl
 	_pillar_mat = FxAssets.shader_material(BEAM_SHADER, {
 		"beam_color": profile.aura, "core_color": profile.inner, "intensity": 1.35,
