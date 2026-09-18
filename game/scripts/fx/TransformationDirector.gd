@@ -470,6 +470,7 @@ func _process(delta: float) -> void:
 			_spark_t = _rng.randf_range(0.45, 0.9)
 			Audio.play_sfx_at("ki_sparks", global_position, -10.0, _rng.randf_range(0.9, 1.25))
 
+	FxAssets.cpu_add(Time.get_ticks_usec() - _cpu0)
 	if t >= duration:
 		_finish()
 

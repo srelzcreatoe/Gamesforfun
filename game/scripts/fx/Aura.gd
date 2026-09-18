@@ -401,6 +401,7 @@ func _process(delta: float) -> void:
 	if entity == null or not is_instance_valid(entity):
 		queue_free()
 		return
+	var _cpu0 := Time.get_ticks_usec()          # fx CPU accounting (FxAssets.cpu_usec)
 	_idle_t += delta
 	var speed := 8.0 if _target > _intensity else 3.5
 	_apply_intensity(lerpf(_intensity, _target, clampf(delta * speed, 0.0, 1.0)))
@@ -414,6 +415,7 @@ func _process(delta: float) -> void:
 			var h := visual_height()
 			if absf(h - _lightning.height) > 0.08:
 				_lightning.configure(lightning_color, body_scale, h)
+	FxAssets.cpu_add(Time.get_ticks_usec() - _cpu0)
 
 func _apply_intensity(v: float) -> void:
 	_intensity = v

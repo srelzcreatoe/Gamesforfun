@@ -49,7 +49,12 @@ func fire(kind: String, pos: Vector3, color: Color = Color(1, 1, 1),
 	if pool == null or budget == null:
 		return false
 	var cost := _cost(kind)
-	if budget.take("reactive", cost) < cost:
+	# `take()` charges a partial grant before it returns it, so a refusal has to hand back
+	# whatever it did get: the burst is never appended to `live`, so `expire()` can never
+	# recover those quads and the layer's effective cap would shrink for the whole session.
+	var got := budget.take("reactive", cost)
+	if got < cost:
+		budget.give_back("reactive", got)
 		return false
 	var node: Node = pool.acquire()
 	if node == null:

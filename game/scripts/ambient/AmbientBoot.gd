@@ -39,6 +39,9 @@ var _demo_step := 0
 var _elapsed := 0.0
 var _demo_shot_at := -1.0
 var _demo_shot_fired := false
+## A world we were told is unloading. `_process` will not adopt it again, so world_unloading
+## really does stop the layer instead of being undone on the next frame.
+var _retired_world: Node = null
 var _rng := RandomNumberGenerator.new()
 
 ## signal name -> handler, so the wiring can be connected, disconnected and inspected as a set.
@@ -125,6 +128,9 @@ func _parse_args() -> void:
 func install(w: Node) -> AmbientLife:
 	if not install_enabled or w == null or not is_instance_valid(w):
 		return null
+	# An explicit install (world_loaded, planet change, a test) un-retires the world.
+	if _retired_world == w:
+		_retired_world = null
 	world = w
 	var existing: Node = w.get_node_or_null(NODE_NAME)
 	if existing is AmbientLife:
@@ -153,9 +159,15 @@ func _make_life() -> AmbientLife:
 				inst.queue_free()
 	return AmbientLife.new()
 
+## Stop and destroy the ambient layer. The node itself is freed: leaving it parked under a
+## world that is being torn down would keep its emitters (and its Events connections) alive.
 func uninstall() -> void:
 	if life != null and is_instance_valid(life):
 		life.unbind()
+		var parent := life.get_parent()
+		if parent != null:
+			parent.remove_child(life)
+		life.queue_free()
 	life = null
 	world = null
 
@@ -167,7 +179,8 @@ func is_installed() -> bool:
 func _on_world_loaded(w: Node) -> void:
 	install(w)
 
-func _on_world_unloading(_w: Node) -> void:
+func _on_world_unloading(w: Node) -> void:
+	_retired_world = w if w != null else world
 	uninstall()
 
 func _on_player_spawned(_p: Node) -> void:
@@ -202,7 +215,8 @@ func _process(delta: float) -> void:
 	if not is_installed():
 		# The world can exist before `world_loaded` fires (it waits for the spawn ring), and the
 		# ambient layer is happy to start early: it simply finds nothing to spawn on yet.
-		if Game != null and Game.world != null and is_instance_valid(Game.world):
+		if Game != null and Game.world != null and is_instance_valid(Game.world) \
+				and Game.world != _retired_world:
 			install(Game.world)
 		return
 	if forced_time >= 0.0 or forced_weather != "":
@@ -271,10 +285,6 @@ func _ahead() -> Vector3:
 	var f := -cam.global_transform.basis.z
 	f.y = 0.0
 	return f.normalized() if f.length() > 0.01 else Vector3.FORWARD
-
-func _offset(r: float) -> Vector3:
-	var a := _rng.randf() * TAU
-	return Vector3(cos(a) * r, 0.0, sin(a) * r)
 
 ## Nearest water surface within DEMO_WATER_SEARCH blocks of `from`; y < -9000 when there is none.
 func find_water(from: Vector3) -> Vector3:

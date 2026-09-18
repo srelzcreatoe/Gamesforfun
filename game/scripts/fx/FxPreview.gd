@@ -532,12 +532,15 @@ func _sample_profile(delta: float) -> void:
 	var key := d.phase_name() if d != null else ("idle" if _next_step >= _steps.size() else "pre")
 	var row: Dictionary = _prof.get(key, {
 		"frames": 0, "sum": 0.0, "max": 0.0, "cpu": 0.0, "cpu_max": 0.0,
-		"particles": 0, "lights": 0, "draws": 0})
+		"particles": 0, "lights": 0, "draws": 0, "objects": 0})
 	var ms := delta / maxf(0.001, Engine.time_scale) * 1000.0
 	# TIME_PROCESS is the main thread's _process cost (our scripts). Under llvmpipe the
 	# whole frame is dominated by software rasterisation, which a phone's GPU does not
 	# pay, so this is the number that actually transfers off this box.
-	var cpu := float(Performance.get_monitor(Performance.TIME_PROCESS)) * 1000.0
+	# Our own accounting, not Performance.TIME_PROCESS: that monitor reads 0 headless and
+	# mixes every script in the scene. FxAssets.cpu_take() is the microseconds the
+	# cinematic and the aura spent in their own _process since the last frame.
+	var cpu := float(FxAssets.cpu_take()) / 1000.0
 	row["frames"] = int(row["frames"]) + 1
 	row["sum"] = float(row["sum"]) + ms
 	row["max"] = maxf(float(row["max"]), ms)
@@ -545,6 +548,8 @@ func _sample_profile(delta: float) -> void:
 	row["cpu_max"] = maxf(float(row["cpu_max"]), cpu)
 	row["draws"] = maxi(int(row["draws"]),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)))
+	row["objects"] = maxi(int(row["objects"]),
+		int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)))
 	if d != null:
 		row["particles"] = maxi(int(row["particles"]), d.particle_budget())
 		row["lights"] = maxi(int(row["lights"]), d.light_count())
@@ -559,10 +564,10 @@ func _print_profile() -> void:
 		var row: Dictionary = _prof[key]
 		var n: int = maxi(1, int(row["frames"]))
 		print(("VFX PROFILE phase=%-7s frames=%3d frame_avg=%6.2fms frame_max=%6.2fms "
-			+ "cpu_avg=%5.2fms cpu_max=%5.2fms draws=%4d particles=%3d lights=%d") % [
+			+ "fx_cpu_avg=%5.3fms fx_cpu_max=%5.3fms draws=%4d objects=%4d particles=%3d lights=%d") % [
 			key, n, float(row["sum"]) / float(n), float(row["max"]),
 			float(row["cpu"]) / float(n), float(row["cpu_max"]), int(row["draws"]),
-			int(row["particles"]), int(row["lights"])])
+			int(row["objects"]), int(row["particles"]), int(row["lights"])])
 	print("VFX PROFILE budget particles<=%d lights<=%d" % [
 		TransformationDirector.MAX_PARTICLES, TransformationDirector.MAX_LIGHTS])
 
