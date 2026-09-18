@@ -699,9 +699,14 @@ static func _evict() -> void:
 ## Chunked scan of the `blocks` array into packed arrays. Peak memory is the raw file bytes
 ## plus one 32 KB chunk, instead of a multi-hundred-megabyte Variant tree.
 static func _parse_blocks(path: String, src_min: int, src_max: int) -> Dictionary:
+	# Empty result still carries a full offset table, so the stamping loop can index it blindly.
+	var zero_starts := PackedInt32Array()
+	zero_starts.resize(256)
+	var zero_counts := PackedInt32Array()
+	zero_counts.resize(256)
 	var empty := {
-		"data": PackedInt32Array(), "starts": PackedInt32Array(), "counts": PackedInt32Array(),
-		"pal": PackedByteArray(), "bytes": 0,
+		"data": PackedInt32Array(), "starts": zero_starts, "counts": zero_counts,
+		"pal": PackedByteArray(), "bytes": 2048,
 	}
 	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
