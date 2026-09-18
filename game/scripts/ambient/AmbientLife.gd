@@ -62,6 +62,8 @@ const WARM_PROBES: Array[Vector3i] = [
 	Vector3i(4, -1, 3), Vector3i(-4, -1, -3), Vector3i(-3, -1, 4), Vector3i(3, -1, -4),
 ]
 const WARM_PER_TICK := 1
+## Tint used for one puff when the block's real colour is not cached yet (see _hot_block_color).
+const UNKNOWN_BLOCK_COLOR := Color(0.62, 0.6, 0.58)
 
 const MAX_MOTES := 90
 const MAX_MOTES_SECONDARY := 40
@@ -123,6 +125,8 @@ var _bound := false
 var _seeded := false
 ## Rotating start index into WARM_PROBES (see _warm_block_colors).
 var _warm_at := 0
+## Block ids an event handler wanted a colour for before it was cached; warmed on the next tick.
+var _warm_pending: PackedInt32Array = PackedInt32Array()
 
 # --- lifecycle --------------------------------------------------------------------------------
 
@@ -700,7 +704,7 @@ func _update_footsteps() -> void:
 	var id := int(world.call("get_block", bx, by, bz))
 	if id <= 0:
 		return
-	reactive.footstep(pos + Vector3(0, 0.06, 0), AmbientAssets.tinted_block_color(id, biome_def))
+	reactive.footstep(pos + Vector3(0, 0.06, 0), _hot_block_color(id))
 
 # --- block-colour warm-up ---------------------------------------------------------------------
 
@@ -709,6 +713,13 @@ func _update_footsteps() -> void:
 ## layer back to the CPU, which is far too slow to do inside the frame that breaks a block or
 ## plants a footstep, so by the time either happens the colour is already in the cache.
 func _warm_block_colors() -> void:
+	# Ids an event handler already asked for come first: something is breaking them right now.
+	while not _warm_pending.is_empty():
+		var id := _warm_pending[_warm_pending.size() - 1]
+		_warm_pending.remove_at(_warm_pending.size() - 1)
+		if not AmbientAssets.has_block_color(id):
+			AmbientAssets.block_color(id)
+			return
 	if world == null or not is_instance_valid(world) or not world.has_method("get_block"):
 		return
 	var bx := int(floor(center.x))
@@ -725,6 +736,17 @@ func _warm_block_colors() -> void:
 		if done >= WARM_PER_TICK:
 			break
 	_warm_at = (_warm_at + 1) % WARM_PROBES.size()
+
+## The tint for a block, for callers that run inside a gameplay frame (the event handlers). An
+## uncached block is NOT averaged here: that means a texture-array layer read, which is a visible
+## hitch on a phone. The id is queued for the next tick's warm pass and this one puff comes out
+## neutral instead.
+func _hot_block_color(id: int) -> Color:
+	if AmbientAssets.has_block_color(id):
+		return AmbientAssets.tinted_block_color(id, biome_def)
+	if _warm_pending.size() < 8 and _warm_pending.find(id) < 0:
+		_warm_pending.append(id)
+	return UNKNOWN_BLOCK_COLOR
 
 # --- heat shimmer -----------------------------------------------------------------------------
 
@@ -800,7 +822,7 @@ func _on_block_changed(pos: Vector3i, old_id: int, new_id: int) -> void:
 	if BlockTable.built and old_id < BlockTable.liquid.size() and BlockTable.liquid[old_id] == 1:
 		return
 	_block_events += 1
-	reactive.debris(p, AmbientAssets.tinted_block_color(old_id, biome_def), 1.0)
+	reactive.debris(p, _hot_block_color(old_id), 1.0)
 
 func _on_explosion(center_pos: Vector3, radius: float, _power: float) -> void:
 	if reactive == null or not _in_range(center_pos, 64.0):

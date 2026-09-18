@@ -272,6 +272,10 @@ static func leaf_rate(cls: int, weather: String, wind_gust: float) -> float:
 		Cls.FOREST: base = 3.0
 		Cls.ALIEN: base = 2.0
 		Cls.SWAMP: base = 1.4
+		# A snowy taiga is still a wood: its firs shed, and without this a snow forest at night
+		# (no fireflies, no sparkle until the sun is up) has nothing moving in it at all. The
+		# leaf layer only ever parks under real leaf blocks, so this costs nothing on open snow.
+		Cls.SNOW: base = 1.0
 		Cls.PLAINS: base = 0.8
 		_: base = 0.0
 	if base <= 0.0:

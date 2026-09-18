@@ -104,6 +104,10 @@ var _pillar_age := -1.0
 var _gs := 1.0
 var _rng := RandomNumberGenerator.new()
 var _loop_key := ""
+## One reusable afterimage silhouette, built at the start of the strain and re-flashed
+## every AFTERIMAGE_PERIOD (only one is ever alive). Parented to the director, so it is
+## freed with it. See Trails.make_ghost / flash_ghost.
+var _ghost: Node3D = null
 var _hair_mat: StandardMaterial3D = null
 var _hair_accent_mat: StandardMaterial3D = null
 var _hair_base := Color.WHITE
@@ -464,7 +468,9 @@ func _process(delta: float) -> void:
 		_ghost_t -= real
 		if _ghost_t <= 0.0:
 			_ghost_t = AFTERIMAGE_PERIOD
+			var g0 := Time.get_ticks_usec()
 			_afterimage()
+			FxAssets.cpu_add_ghost(Time.get_ticks_usec() - g0)
 		_spark_t -= real
 		if _spark_t <= 0.0:
 			_spark_t = _rng.randf_range(0.45, 0.9)
@@ -500,6 +506,12 @@ func _enter_strain() -> void:
 	_aura_light.shadow_enabled = false
 	_aura_light.position = Vector3(0, 1.1 * profile.scale, 0)
 	add_child(_aura_light)
+	# build the afterimage silhouette ONCE (duplicating the character model is the one
+	# part of this cinematic that can spike a frame), then re-flash it every 0.3 s
+	_ghost = Trails.make_ghost(entity, profile.aura)
+	if _ghost != null:
+		_ghost.top_level = true
+		add_child(_ghost)
 
 func _update_aura() -> void:
 	if _aura == null:
@@ -862,6 +874,11 @@ func _afterimage() -> void:
 		return
 	var a := _rng.randf() * TAU
 	var off := Vector3(cos(a), 0.0, sin(a)) * _rng.randf_range(0.25, 0.6)
+	if _ghost != null and is_instance_valid(_ghost):
+		var rot := (entity as Node3D).global_rotation if entity is Node3D else Vector3.ZERO
+		var sc := (entity as Node3D).scale if entity is Node3D else Vector3.ONE
+		Trails.flash_ghost(_ghost, global_position + off, rot, sc, 0.22)
+		return
 	Trails.spawn_ghost(entity, global_position + off, profile.aura, 0.22)
 
 ## Push grass, leaves and loose blocks away from the transformation (voxel agent's API).

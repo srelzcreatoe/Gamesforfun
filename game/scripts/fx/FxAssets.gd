@@ -95,9 +95,21 @@ static func real_delta(delta: float) -> float:
 ## engine's `Performance.TIME_PROCESS` monitor reads 0 headless and is not comparable
 ## between a screenshot run and a phone, so the cinematic's own cost is measured here.
 static var cpu_usec := 0
+## Of which: the afterimage silhouettes (they duplicate the character model, so they are
+## the one part of the cinematic that can spike a frame) - counted separately so
+## --profile can say where the cinematic's milliseconds actually go.
+static var cpu_ghost_usec := 0
 
 static func cpu_add(usec: int) -> void:
 	cpu_usec += usec
+
+static func cpu_add_ghost(usec: int) -> void:
+	cpu_ghost_usec += usec
+
+static func cpu_ghost_take() -> int:
+	var v := cpu_ghost_usec
+	cpu_ghost_usec = 0
+	return v
 
 ## Read the counter and zero it (one frame's worth when called every frame).
 static func cpu_take() -> int:

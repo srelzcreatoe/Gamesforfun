@@ -80,6 +80,11 @@ const RACE_MODELS := {
 const MODELS_DIR := "res://assets/models/"
 
 ## Body geometry for a race (optionally the slim variant for female bodies).
+## Exported builds only carry imported textures (.ctex), so a PNG path must be checked
+## through ResourceLoader; FileAccess.file_exists only sees raw files in the editor.
+static func _res_exists(path: String) -> bool:
+	return ResourceLoader.exists(path) or FileAccess.file_exists(path)
+
 static func race_model(race_id: String, gender := "male", body_type := 0) -> String:
 	var r := race_id.to_lower()
 	var def: Dictionary = Registry.race(r) if Registry != null else {}
@@ -389,15 +394,15 @@ static func _body_layers(dir: String, gender: String, body: int) -> Array:
 	return out
 
 static func _exists(rel: String) -> bool:
-	if hd and FileAccess.file_exists(TEX_DIR + "hd/" + rel + ".png"):
+	if hd and _res_exists(TEX_DIR + "hd/" + rel + ".png"):
 		return true
-	return FileAccess.file_exists(TEX_DIR + rel + ".png")
+	return _res_exists(TEX_DIR + rel + ".png")
 
 static func _load_image(rel: String) -> Image:
 	if not _exists(rel):
 		return null
 	var path := TEX_DIR + rel + ".png"
-	if hd and FileAccess.file_exists(TEX_DIR + "hd/" + rel + ".png"):
+	if hd and _res_exists(TEX_DIR + "hd/" + rel + ".png"):
 		path = TEX_DIR + "hd/" + rel + ".png"
 	var img: Image = null
 	if ResourceLoader.exists(path):

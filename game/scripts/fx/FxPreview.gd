@@ -20,8 +20,12 @@ extends Node3D
 ##         when hunting down which quad washed the frame out, e.g. --hide=Ring,CrackGlow)
 ## `--dumpfx` print every visible emitter / quad with the material state that decides its
 ##         colour, at each capture (which node drew that black pixel?)
-## `--profile` print frame-time ms and the on-screen particle / light peak per cinematic
-##         phase when the run ends (this is how the cinematic's cost is measured)
+## `--profile` print, per cinematic phase, the frame time, the fx scripts' OWN cpu time
+##         (FxAssets.cpu_usec - the engine's Performance.TIME_PROCESS monitor reads 0
+##         headless), how much of that was the afterimage silhouette, the draw calls and
+##         the on-screen particle / light peak. This is how the cinematic's cost is
+##         measured; under llvmpipe the frame time is software rasterisation, so the
+##         fx_cpu column is the number that transfers to a phone.
 ## `--noglow --nofog` drop those environment features, to tell a post effect apart from
 ##         a material problem
 ## `--fx=dustdiag` the regression stage for the black-quad bug (see `_build_dust_diag`)
@@ -541,6 +545,7 @@ func _sample_profile(delta: float) -> void:
 	# mixes every script in the scene. FxAssets.cpu_take() is the microseconds the
 	# cinematic and the aura spent in their own _process since the last frame.
 	var cpu := float(FxAssets.cpu_take()) / 1000.0
+	var ghost := float(FxAssets.cpu_ghost_take()) / 1000.0
 	row["frames"] = int(row["frames"]) + 1
 	row["sum"] = float(row["sum"]) + ms
 	row["max"] = maxf(float(row["max"]), ms)
@@ -548,6 +553,7 @@ func _sample_profile(delta: float) -> void:
 	row["cpu_max"] = maxf(float(row["cpu_max"]), cpu)
 	row["draws"] = maxi(int(row["draws"]),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)))
+	row["ghost"] = maxf(float(row.get("ghost", 0.0)), ghost)
 	row["objects"] = maxi(int(row["objects"]),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)))
 	if d != null:
@@ -564,10 +570,11 @@ func _print_profile() -> void:
 		var row: Dictionary = _prof[key]
 		var n: int = maxi(1, int(row["frames"]))
 		print(("VFX PROFILE phase=%-7s frames=%3d frame_avg=%6.2fms frame_max=%6.2fms "
-			+ "fx_cpu_avg=%5.3fms fx_cpu_max=%5.3fms draws=%4d objects=%4d particles=%3d lights=%d") % [
+			+ "fx_cpu_avg=%5.3fms fx_cpu_max=%5.3fms ghost_max=%5.3fms draws=%4d objects=%4d "
+			+ "particles=%3d lights=%d") % [
 			key, n, float(row["sum"]) / float(n), float(row["max"]),
-			float(row["cpu"]) / float(n), float(row["cpu_max"]), int(row["draws"]),
-			int(row["objects"]), int(row["particles"]), int(row["lights"])])
+			float(row["cpu"]) / float(n), float(row["cpu_max"]), float(row.get("ghost", 0.0)),
+			int(row["draws"]), int(row["objects"]), int(row["particles"]), int(row["lights"])])
 	print("VFX PROFILE budget particles<=%d lights<=%d" % [
 		TransformationDirector.MAX_PARTICLES, TransformationDirector.MAX_LIGHTS])
 

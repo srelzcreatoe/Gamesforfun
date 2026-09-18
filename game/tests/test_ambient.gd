@@ -143,6 +143,20 @@ func test_leaves_fall_harder_in_the_wind() -> void:
 	assert_eq(AmbientRules.leaf_rate(AmbientRules.Cls.DESERT, "clear", 1.0), 0.0, "no leaves in the desert")
 	assert_eq(AmbientRules.leaf_rate(AmbientRules.Cls.VOID, "clear", 1.0), 0.0, "no leaves in space")
 
+func test_snowy_woods_still_shed_but_never_glow() -> void:
+	# A snow biome gets no fireflies and no sparkle before sunrise, so its canopy is the only
+	# thing that can be alive at night. It must not be dead silent.
+	assert_eq(AmbientRules.firefly_count("earth", AmbientRules.Cls.SNOW, MIDNIGHT, "clear", 90), 0,
+		"no fireflies in the snow")
+	assert_eq(AmbientRules.mote_kind("earth", AmbientRules.Cls.SNOW, MIDNIGHT, "clear"),
+		AmbientRules.MOTE_NONE, "and snow only sparkles in the sun")
+	assert_true(AmbientRules.leaf_rate(AmbientRules.Cls.SNOW, "clear", 0.3) > 0.0,
+		"but a snowy wood still sheds")
+	assert_true(AmbientRules.leaf_rate(AmbientRules.Cls.SNOW, "clear", 0.3)
+		< AmbientRules.leaf_rate(AmbientRules.Cls.FOREST, "clear", 0.3), "less than a warm forest")
+	assert_eq(AmbientRules.leaf_rate(AmbientRules.Cls.DESERT, "clear", 0.3), 0.0,
+		"and a desert sheds nothing at all")
+
 func test_butterflies_are_a_fair_weather_daytime_thing() -> void:
 	var p := AmbientRules.Cls.PLAINS
 	assert_true(AmbientRules.butterfly_count("earth", p, NOON, "clear", true, 12) > 0, "noon meadow")

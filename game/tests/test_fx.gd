@@ -807,8 +807,17 @@ func _giant_snapshot(form_id: String) -> Dictionary:
 		out["aura_ground"] = aura._ground.scale.x if aura._ground != null else 0.0
 	if d._decal != null and d._decal.mesh is QuadMesh:
 		out["decal"] = (d._decal.mesh as QuadMesh).size.x
-	if not d._rocks.is_empty() and d._rocks[0].mesh is BoxMesh:
-		out["rock"] = (d._rocks[0].mesh as BoxMesh).size.x
+	# MEAN cube size over all the debris, not rock 0: the sizes are randomised per rock
+	# (0.14-0.32 m * the form scale), so a single sample can make a human's biggest
+	# pebble look like a giant's smallest boulder and the comparison below flap
+	var rock_sum := 0.0
+	var rock_n := 0
+	for mi in d._rocks:
+		if is_instance_valid(mi) and mi.mesh is BoxMesh:
+			rock_sum += (mi.mesh as BoxMesh).size.x
+			rock_n += 1
+	if rock_n > 0:
+		out["rock"] = rock_sum / float(rock_n)
 	if d._aura_light != null:
 		out["light_range"] = d._aura_light.omni_range
 	for c in d.get_children():
@@ -1150,3 +1159,32 @@ func _collect_meshes(n: Node, mats: Array) -> int:
 	for c in n.get_children():
 		total += _collect_meshes(c, mats)
 	return total
+
+## The strain phase re-flashes ONE silhouette instead of duplicating the character model
+## every 0.3 s. Duplicating it measured 13.0 ms of the worst 13.2 ms fx frame in
+## `FxPreview --profile`, which is a visible hitch on a phone; re-showing it is free.
+func test_the_strain_reuses_one_afterimage_silhouette() -> void:
+	var host := Node3D.new()
+	add_node(host)
+	var e := FxDummy.create("saiyan", "warrior", true)
+	host.add_child(e)
+	var d := TransformationDirector.play_for(e, EPIC_FORM)
+	assert_true(d != null, "director created")
+	if d == null:
+		host.free()
+		return
+	d.set_process(false)
+	_step(d, d.duration * 0.60)                    # several afterimage periods
+	assert_true(d._ghost != null and is_instance_valid(d._ghost),
+		"the silhouette is built once, at the start of the strain")
+	assert_true(d._ghost.visible, "and it is on screen during the strain")
+	var ghosts := 0
+	for c in d.get_children():
+		if String(c.name).begins_with("Afterimage"):
+			ghosts += 1
+	for c in host.get_children():
+		if String(c.name).begins_with("Afterimage"):
+			ghosts += 1
+	assert_eq(ghosts, 1, "exactly one silhouette exists, however many times it flashed")
+	assert_true(d.is_ancestor_of(d._ghost), "it hangs off the director, so it is freed with it")
+	host.free()

@@ -110,6 +110,63 @@ func dash(direction := Vector3.ZERO) -> void:
 		Audio.play_sfx_at("zanzoken", from, -3.0)
 		Audio.play_sfx_at("dash", from, -6.0)
 
+## A REUSABLE afterimage: the silhouette is built once (the expensive part - duplicating
+## a DMZ character model measured 13 ms of the 13.2 ms worst fx frame in
+## `FxPreview --profile`) and then re-shown with `flash_ghost` as often as the caller
+## likes. The transformation cinematic throws one every 0.3 s for seconds on end and only
+## ever has one alive, so it builds one of these at the start of the strain and re-flashes
+## it instead of duplicating the model a dozen times.
+##
+## The node is returned UNPARENTED and hidden; the caller owns it (the cinematic parents
+## it to itself, so it is freed with the director and nothing is left in the world).
+static func make_ghost(entity_node: Node, c: Color) -> Node3D:
+	if entity_node == null or not is_instance_valid(entity_node):
+		return null
+	var model: Variant = entity_node.get("model") if "model" in entity_node else null
+	if not (model is Node3D) or not (model as Node3D).is_inside_tree():
+		return null
+	var dup: Node = (model as Node3D).duplicate(DUPLICATE_USE_INSTANTIATION)
+	if not (dup is Node3D):
+		if dup != null:
+			dup.free()
+		return null
+	var ghost := dup as Node3D
+	ghost.name = "Afterimage"
+	var mats := _tint_recursive(ghost, c)
+	ghost.set_meta("fx_ghost_mats", mats)
+	ghost.set_meta("fx_ghost_model_scale", (model as Node3D).scale)
+	ghost.visible = false
+	return ghost
+
+## Show a `make_ghost` silhouette at `pos` and fade it out over `life` seconds. Restarts
+## cleanly when it is still fading from the previous flash.
+static func flash_ghost(ghost: Node3D, pos: Vector3, rot: Vector3, entity_scale: Vector3,
+		life := AFTERIMAGE_LIFE) -> void:
+	if ghost == null or not is_instance_valid(ghost) or not ghost.is_inside_tree():
+		return
+	if ghost.has_meta("fx_ghost_tween"):
+		var old: Variant = ghost.get_meta("fx_ghost_tween")
+		if old is Tween and (old as Tween).is_valid():
+			(old as Tween).kill()
+	var model_scale := Vector3.ONE
+	if ghost.has_meta("fx_ghost_model_scale"):
+		model_scale = ghost.get_meta("fx_ghost_model_scale")
+	ghost.visible = true
+	ghost.global_position = pos
+	ghost.global_rotation = rot
+	ghost.scale = model_scale * entity_scale
+	var mats: Array = ghost.get_meta("fx_ghost_mats") if ghost.has_meta("fx_ghost_mats") else []
+	var tw := ghost.create_tween().set_parallel(true)
+	for m in mats:
+		if m is StandardMaterial3D:
+			(m as StandardMaterial3D).albedo_color.a = 0.38
+			tw.tween_property(m, "albedo_color:a", 0.0, life)
+	tw.tween_property(ghost, "scale", ghost.scale * 0.85, life)
+	tw.chain().tween_callback(func() -> void:
+		if is_instance_valid(ghost):
+			ghost.visible = false)
+	ghost.set_meta("fx_ghost_tween", tw)
+
 ## One fading additive copy of an entity's model at `pos`. Used by the dash afterimages
 ## and by the transformation cinematic's strain phase. Falls back to a capsule when the
 ## entity has no model yet, and does nothing when it is not in the tree.
