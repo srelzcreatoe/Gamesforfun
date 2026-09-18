@@ -41,8 +41,12 @@ func load_settings() -> void:
 			if settings.has(k):
 				settings[k] = d[k]
 	if is_mobile():
-		# Phones default to the balanced preset.
-		pass
+		# Phones: a small first-run world radius keeps memory well under Android's
+		# low-memory killer; the player can raise it in Settings.
+		if not (d is Dictionary):
+			settings["render_distance"] = 4
+			settings["sim_distance"] = 2
+			settings["quality_preset"] = "balanced"
 	else:
 		if not (d is Dictionary):
 			settings["render_distance"] = 8

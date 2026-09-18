@@ -115,6 +115,131 @@ static func _int(v: Variant, fallback := 0) -> int:
 		return 1 if v else 0
 	return fallback
 
+## First present key of `keys`, read loosely (DMZ's creator keys and ours).
+static func _int_any(c: Dictionary, keys: Array, fallback := 0) -> int:
+	for k in keys:
+		if c.has(k):
+			return _int(c[k], fallback)
+	return fallback
+
+static func _color_any(c: Dictionary, keys: Array, fallback: String) -> Color:
+	for k in keys:
+		if c.has(k) and String(c[k]) != "":
+			return _color(c[k])
+	return _color(fallback)
+
+## --- creator options (what the character screen offers) ----------------------
+##
+## DMZ's RaceCharacterConfig drives the creator from the texture set on disk, so
+## these helpers enumerate the same files:
+##
+##   body types   races/<dir>/bodytype_<gender>_<n>[_layerN] | bodytype_<n>_layerN
+##                | base_<n>_layerN   (humans/saiyans also have the plain
+##                `races/base` as body type 0)
+##   eyes         races/<dir>/faces/<dir>_eye_<n>_<0..3> - FOUR files per eye:
+##                _0 sclera (untinted), _1 iris (eye colour 1), _2 iris detail
+##                (eye colour 2), _3 lashes/brow (hair colour). Bio androids use
+##                faces/base_eye_layer0/1 instead.
+##   noses/mouths races/<dir>/faces/<dir>_nose_<n> / _mouth_<n> (tinted skin)
+##   colours      how many of the body layers are tintable: layer 1 -> body
+##                colour 1, layer 2 -> 2, layer 3 -> 3, layers 4/5 are detail.
+const EYE_LAYERS := [
+	{"suffix": 0, "tint": "none", "role": "sclera"},
+	{"suffix": 1, "tint": "eye1_color", "role": "iris"},
+	{"suffix": 2, "tint": "eye2_color", "role": "iris_detail"},
+	{"suffix": 3, "tint": "hair_color", "role": "lashes"},
+]
+
+## Body type indices this race/gender has art for (always at least [0]).
+static func body_types(race: String, gender := "male") -> PackedInt32Array:
+	var out := PackedInt32Array()
+	var dir := race_dir(race)
+	var g := gender.to_lower()
+	var seen := {}
+	for i in 8:
+		var layers := _body_layers(dir, g, i)
+		if layers.is_empty():
+			continue
+		# two indices can resolve to the same art (humans/saiyans have no _0), and
+		# the creator should not offer the same body twice
+		var sig := str(layers)
+		if seen.has(sig):
+			continue
+		seen[sig] = true
+		out.append(i)
+	if out.is_empty():
+		out.append(0)
+	return out
+
+## Eye type indices this race has art for ([0] when it only has the base pair).
+static func eye_types(race: String) -> PackedInt32Array:
+	var out := PackedInt32Array()
+	var dir := race_dir(race)
+	for i in 24:
+		if _exists("races/%s/faces/%s_eye_%d_0" % [dir, dir, i]):
+			out.append(i)
+	if out.is_empty() and _exists("races/%s/faces/base_eye_layer0" % dir):
+		out.append(0)
+	return out
+
+## The four files that make up one eye type, and what tints each of them.
+static func eye_layers() -> Array:
+	return EYE_LAYERS.duplicate(true)
+
+static func nose_types(race: String) -> PackedInt32Array:
+	return _face_part_types(race, "nose")
+
+static func mouth_types(race: String) -> PackedInt32Array:
+	return _face_part_types(race, "mouth")
+
+static func _face_part_types(race: String, part: String) -> PackedInt32Array:
+	var out := PackedInt32Array()
+	var dir := race_dir(race)
+	for i in 16:
+		if _exists("races/%s/faces/%s_%s_%d" % [dir, dir, part, i]):
+			out.append(i)
+	if out.is_empty() and _exists("races/%s/faces/%s_%s" % [dir, dir, part]):
+		out.append(0)
+	return out
+
+## How many body colours this race/body type actually uses (1..3).
+static func body_color_count(race: String, gender := "male", body_type := 0) -> int:
+	var n := 1
+	for entry in _body_layers(race_dir(race), gender.to_lower(), body_type):
+		n = maxi(n, mini(3, int(entry[1])))
+	return n
+
+## --- counts (scripts/ui: build the arrow rows from these) -------------------
+static func body_type_count(race: String, gender := "male") -> int:
+	return body_types(race, gender).size()
+
+static func eye_type_count(race: String) -> int:
+	return eye_types(race).size()
+
+static func nose_count(race: String) -> int:
+	return nose_types(race).size()
+
+static func mouth_count(race: String) -> int:
+	return mouth_types(race).size()
+
+static func tattoo_count() -> int:
+	return tattoo_types().size()
+
+## How many of body_color1..3 actually tint something for this race/gender.
+static func body_color_layers(race: String, gender := "male") -> int:
+	var n := 1
+	for b in body_types(race, gender):
+		n = maxi(n, body_color_count(race, gender, b))
+	return n
+
+## Tattoo indices available to every race.
+static func tattoo_types() -> PackedInt32Array:
+	var out := PackedInt32Array()
+	for i in 24:
+		if _exists("races/tattoos/tattoo_%d" % i):
+			out.append(i)
+	return out
+
 static func race_dir(race_id: String) -> String:
 	var r := race_id.to_lower()
 	var def: Dictionary = Registry.race(r) if Registry != null else {}
@@ -124,13 +249,17 @@ static func race_dir(race_id: String) -> String:
 	return String(RACE_DIRS.get(r, "humansaiyan"))
 
 static func cache_key(c: Dictionary) -> String:
-	return "%s|%s|%d|%d|%s|%s|%s|%s|%s|%d|%d|%d|%d" % [
+	return "%s|%s|%d|%d|%s|%s|%s|%s|%s|%s|%d|%d|%d|%d" % [
 		String(c.get("race", "saiyan")), String(c.get("gender", "male")),
-		_int(c.get("body_type"), 0), _int(c.get("hair_type"), 1),
-		String(c.get("hair_color", "#222629")), String(c.get("eye_color", "#222629")),
-		String(c.get("skin_color", "#ffd3c9")), String(c.get("skin_color2", "#572117")),
-		String(c.get("skin_color3", "#ffd3c9")), _int(c.get("eye_type"), 0),
-		_int(c.get("nose"), 0), _int(c.get("mouth"), 0), _int(c.get("tattoo"), -1),
+		_int_any(c, ["body_type", "bodyType"], 0), _int_any(c, ["hair_type", "hairType"], 1),
+		_color_any(c, ["hair_color"], "#222629").to_html(false),
+		_color_any(c, ["eye1_color", "eye_color"], "#222629").to_html(false),
+		_color_any(c, ["eye_color2", "eye2_color", "eye1_color", "eye_color"], "#222629").to_html(false),
+		_color_any(c, ["body_color1", "skin_color"], "#ffd3c9").to_html(false),
+		_color_any(c, ["body_color2", "skin_color2"], "#572117").to_html(false),
+		_color_any(c, ["body_color3", "skin_color3"], "#ffd3c9").to_html(false),
+		_int_any(c, ["eyes", "eye_type"], 0), _int_any(c, ["nose"], 0),
+		_int_any(c, ["mouth"], 0), _int_any(c, ["tattoo"], -1),
 	]
 
 ## Compose the character body texture (cached).
@@ -147,12 +276,15 @@ static func compose(character: Dictionary) -> ImageTexture:
 static func compose_image(character: Dictionary) -> Image:
 	var dir := race_dir(String(character.get("race", "saiyan")))
 	var gender := String(character.get("gender", "male")).to_lower()
-	var body := _int(character.get("body_type"), 0)
-	var skin := _color(character.get("skin_color", "#ffd3c9"))
-	var skin2 := _color(character.get("skin_color2", "#572117"))
-	var skin3 := _color(character.get("skin_color3", "#ffd3c9"))
-	var hair_col := _color(character.get("hair_color", "#222629"))
-	var eye_col := _color(character.get("eye_color", "#222629"))
+	var body := _int_any(character, ["body_type", "bodyType"], 0)
+	# DMZ's creator keys (body_color1..3, eyes, eye1_color, eye2_color) and ours
+	# (skin_color..3, eye_type, eye_color) are both accepted.
+	var skin := _color_any(character, ["body_color1", "skin_color"], "#ffd3c9")
+	var skin2 := _color_any(character, ["body_color2", "skin_color2"], "#572117")
+	var skin3 := _color_any(character, ["body_color3", "skin_color3"], "#ffd3c9")
+	var hair_col := _color_any(character, ["hair_color"], "#222629")
+	var eye_col := _color_any(character, ["eye1_color", "eye_color"], "#222629")
+	var eye_col2 := _color_any(character, ["eye_color2", "eye2_color", "eye1_color", "eye_color"], "#222629")
 	var size := 64
 	var layers := _body_layers(dir, gender, body)
 	if layers.is_empty():
@@ -171,7 +303,7 @@ static func compose_image(character: Dictionary) -> Image:
 			3: tint = skin3
 		_blend(buf, size, _load_image(String(entry[0])), tint)
 	# face parts
-	var eye := _int(character.get("eye_type"), 0)
+	var eye := _int_any(character, ["eyes", "eye_type"], 0)
 	var face_dir := "races/%s/faces/%s" % [dir, dir]
 	var sclera := _load_image("%s_eye_%d_0" % [face_dir, eye])
 	if sclera == null:
@@ -182,14 +314,14 @@ static func compose_image(character: Dictionary) -> Image:
 	else:
 		_blend(buf, size, sclera, Color.WHITE)
 		_blend(buf, size, _load_image("%s_eye_%d_1" % [face_dir, eye]), eye_col)
-		_blend(buf, size, _load_image("%s_eye_%d_2" % [face_dir, eye]), eye_col)
+		_blend(buf, size, _load_image("%s_eye_%d_2" % [face_dir, eye]), eye_col2)
 		_blend(buf, size, _load_image("%s_eye_%d_3" % [face_dir, eye]), hair_col)
-	_blend(buf, size, _load_image("%s_nose_%d" % [face_dir, _int(character.get("nose"), 0)]), skin)
-	_blend(buf, size, _load_image("%s_mouth_%d" % [face_dir, _int(character.get("mouth"), 0)]), skin)
-	var tattoo := _int(character.get("tattoo"), -1)
+	_blend(buf, size, _load_image("%s_nose_%d" % [face_dir, _int_any(character, ["nose"], 0)]), skin)
+	_blend(buf, size, _load_image("%s_mouth_%d" % [face_dir, _int_any(character, ["mouth"], 0)]), skin)
+	var tattoo := _int_any(character, ["tattoo"], -1)
 	if tattoo >= 0:
 		_blend(buf, size, _load_image("races/tattoos/tattoo_%d" % tattoo), Color.WHITE)
-	if can_use_hair(character) and HairBuilder.has_hair(HairBuilder.style_id(_int(character.get("hair_type"), 1))):
+	if can_use_hair(character) and HairBuilder.has_hair(HairBuilder.style_id(_int_any(character, ["hair_type", "hairType"], 1))):
 		# DMZ paints a hair cap straight onto the head cube's skin. Keep it a shade
 		# darker than the voxel strands that sit on top of it, otherwise the head
 		# reads as one flat block of colour from behind.
@@ -205,7 +337,7 @@ static func apply_to(model: BedrockModel, character: Dictionary, armor: Array = 
 	# and TransformationDirector restore hair through `clear_form_hair(target)` for
 	# entities they have no character dictionary for, and that reads these back.
 	model.set_meta("character", character.duplicate(true))
-	model.set_meta("base_hair_style", HairBuilder.style_id(_int(character.get("hair_type"), 1)))
+	model.set_meta("base_hair_style", HairBuilder.style_id(_int_any(character, ["hair_type", "hairType"], 1)))
 	model.hide_layer_bones(ALL_ARMOR_BONES)
 	if not bool(character.get("has_tail", false)):
 		model.hide_layer_bones(["tail1", "tail2", "tail3", "tail4", "tail5", "tailenrolled"])
@@ -220,7 +352,7 @@ static func attach_hair(model: BedrockModel, character: Dictionary) -> Node3D:
 		return null                 # saga/master models ship their own hair bones
 	if not can_use_hair(character):
 		return HairBuilder.attach(model, "", Color.WHITE)     # hides any old hair
-	var hair_type := _int(character.get("hair_type"), 1)
+	var hair_type := _int_any(character, ["hair_type", "hairType"], 1)
 	var style := HairBuilder.style_id(hair_type)
 	var col := _color(character.get("hair_color", "#222629"))
 	return HairBuilder.attach(model, style, col)
@@ -373,9 +505,11 @@ static func clear_cache() -> void:
 static func _body_layers(dir: String, gender: String, body: int) -> Array:
 	# Returns [[texture path (relative to entity/), layer index], ...]
 	var out: Array = []
+	# the exact index wins; `bodytype_<gender>_<body+1>` is the legacy fallback for
+	# humans/saiyans, whose art starts at _1 (so index 0 still resolves there)
 	var candidates := [
-		"races/%s/bodytype_%s_%d" % [dir, gender, body + 1],
 		"races/%s/bodytype_%s_%d" % [dir, gender, body],
+		"races/%s/bodytype_%s_%d" % [dir, gender, body + 1],
 		"races/%s/bodytype_%d" % [dir, body],
 		"races/%s/base_%d" % [dir, body],
 	]

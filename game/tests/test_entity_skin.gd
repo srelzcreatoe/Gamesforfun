@@ -361,3 +361,82 @@ func test_only_hair_races_get_strand_hair() -> void:
 	RaceSkin.apply_to(model, {"race": "saiyan", "hair_type": empty})
 	hair = model.get_bone("head").get_node_or_null("Hair")
 	assert_true(hair == null or not hair.visible, "the empty preset shows no hair")
+
+func test_creator_options_come_from_the_texture_set() -> void:
+	# the character creator builds its rows from these, mirroring DMZ's
+	# RaceCharacterConfig (which also enumerates the files on disk)
+	for race in ["human", "saiyan", "namekian", "majin", "frostdemon", "bioandroid"]:
+		assert_true(RaceSkin.body_type_count(race, "male") >= 1, "%s has a body type" % race)
+		assert_eq(RaceSkin.body_type_count(race, "male"), RaceSkin.body_types(race, "male").size())
+		var layers := RaceSkin.body_color_layers(race, "male")
+		assert_true(layers >= 1 and layers <= 3, "%s tints %d body colours" % [race, layers])
+	assert_true(RaceSkin.eye_type_count("saiyan") >= 10, "saiyans have the full eye set (%d)" % RaceSkin.eye_type_count("saiyan"))
+	assert_true(RaceSkin.eye_type_count("namekian") >= 3, "namekians have eyes too")
+	assert_true(RaceSkin.nose_count("saiyan") >= 5 and RaceSkin.mouth_count("saiyan") >= 8,
+		"noses %d mouths %d" % [RaceSkin.nose_count("saiyan"), RaceSkin.mouth_count("saiyan")])
+	assert_true(RaceSkin.tattoo_count() >= 1, "tattoos exist")
+	# the four files of an eye type and what tints each
+	var el := RaceSkin.eye_layers()
+	assert_eq(el.size(), 4, "four files per eye type")
+	assert_eq(String(el[1]["tint"]), "eye1_color")
+	assert_eq(String(el[2]["tint"]), "eye2_color")
+	# body types never offer the same art twice (humans/saiyans have no _0 file)
+	var bt := RaceSkin.body_types("saiyan", "male")
+	var seen := {}
+	for b in bt:
+		var sig := str(RaceSkin._body_layers(RaceSkin.race_dir("saiyan"), "male", b))
+		assert_true(not seen.has(sig), "body type %d is distinct" % b)
+		seen[sig] = true
+
+func test_compose_honours_both_creator_key_spellings() -> void:
+	# DMZ's keys (body_color1..3 / eyes / eye_color2) and ours (skin_color..3 /
+	# eye_type / eye2_color) must compose the same texture
+	var dmz := {"race": "saiyan", "gender": "male", "body_type": 0, "eyes": 3,
+		"body_color1": "#ffd3c9", "body_color2": "#572117", "body_color3": "#ffd3c9",
+		"eye_color": "#2a63c8", "eye_color2": "#66ff00", "hair_color": "#221a14"}
+	var ours := {"race": "saiyan", "gender": "male", "body_type": 0, "eye_type": 3,
+		"skin_color": "#ffd3c9", "skin_color2": "#572117", "skin_color3": "#ffd3c9",
+		"eye1_color": "#2a63c8", "eye2_color": "#66ff00", "hair_color": "#221a14"}
+	assert_eq(RaceSkin.cache_key(dmz), RaceSkin.cache_key(ours), "same cache key")
+	var a := RaceSkin.compose_image(dmz)
+	var b := RaceSkin.compose_image(ours)
+	assert_eq(a.get_data(), b.get_data(), "same pixels")
+	# the second eye colour really is a second colour: changing it changes both
+	# the cache key and the pixels
+	var other := dmz.duplicate()
+	other["eye_color2"] = "#ff0000"
+	assert_ne(RaceSkin.cache_key(other), RaceSkin.cache_key(dmz), "eye_color2 is in the cache key")
+	assert_ne(RaceSkin.compose_image(other).get_data(), a.get_data(), "eye_color2 tints a layer")
+
+func test_every_skin_read_survives_an_exported_build() -> void:
+	# In an exported build only the imported .ctex exists: FileAccess/
+	# Image.load_from_file on a res:// PNG returns null there. Every texture read
+	# in this subsystem has to go through ResourceLoader/load() first.
+	var dirs := ["res://scripts/entity/RaceSkin.gd", "res://scripts/entity/HairBuilder.gd",
+		"res://scripts/entity/BedrockModel.gd", "res://scripts/entity/BedrockAnimation.gd"]
+	for path in dirs:
+		var f := FileAccess.open(path, FileAccess.READ)
+		assert_true(f != null, "read %s" % path)
+		if f == null:
+			continue
+		var src := f.get_as_text()
+		f.close()
+		for line in src.split("\n"):
+			var t := String(line).strip_edges()
+			if t.begins_with("#") or t.begins_with("##"):
+				continue
+			if t.contains(".png") and t.contains("FileAccess.file_exists") and not t.contains("_res_exists"):
+				assert_true(false, "%s reads a PNG with FileAccess: %s" % [path, t])
+			if t.contains("Image.load_from_file") and not t.contains("editor"):
+				# allowed only as the fallback after a ResourceLoader attempt
+				assert_true(src.contains("ResourceLoader.exists"), "%s: load_from_file without a ResourceLoader path" % path)
+	# and the composed texture is not empty for every race (the phone bug showed
+	# as an invisible body)
+	for race in ["human", "saiyan", "namekian", "majin", "frostdemon", "bioandroid"]:
+		var img := RaceSkin.compose_image({"race": race, "gender": "male", "body_type": 0})
+		var opaque := 0
+		for y in range(0, img.get_height(), 2):
+			for x in range(0, img.get_width(), 2):
+				if img.get_pixel(x, y).a > 0.5:
+					opaque += 1
+		assert_true(opaque > 40, "%s composes a visible body (%d opaque samples)" % [race, opaque])
