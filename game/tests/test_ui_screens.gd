@@ -229,3 +229,92 @@ func test_creation_fits_a_20_by_9_phone() -> void:
 				assert_true(r.position.x >= -1.0 and r.end.x <= px.x + 1.0,
 					"%s arrow inside %s: %s" % [key, str(px), str(r)])
 	ui.close("character_creation")
+
+# --- the preview turns with a finger instead of spinning by itself ------------------------
+
+func _preview_widget() -> CharacterPreview:
+	var pv := CharacterPreview.new(Vector2(200, 260))
+	pv.size = Vector2(200, 260)
+	add_node(pv)
+	pv.set_character({"race": "saiyan", "gender": "male", "hair_type": 2})
+	return pv
+
+func _drag_event(relative: Vector2, at := Vector2(100, 130)) -> InputEventScreenDrag:
+	var d := InputEventScreenDrag.new()
+	d.index = 0
+	d.position = at
+	d.relative = relative
+	return d
+
+func _touch_event(pressed: bool, at := Vector2(100, 130)) -> InputEventScreenTouch:
+	var t := InputEventScreenTouch.new()
+	t.index = 0
+	t.position = at
+	t.pressed = pressed
+	return t
+
+func test_preview_does_not_spin_by_itself() -> void:
+	var pv := _preview_widget()
+	assert_true(not pv.auto_spin, "auto spin is off unless --ui_spin is passed")
+	var before := pv.yaw_deg
+	for i in 10:
+		pv._process(0.1)
+	assert_eq(pv.yaw_deg, before, "idle for a second without a finger on it")
+
+func test_preview_yaw_follows_a_horizontal_drag() -> void:
+	var pv := _preview_widget()
+	pv.turn_by(Vector2(100, 0))
+	assert_near(pv.yaw_deg, 90.0, 0.01, "0.9 degrees per pixel")
+	pv.turn_by(Vector2(-50, 0))
+	assert_near(pv.yaw_deg, 45.0, 0.01, "dragging back turns back")
+	assert_near(pv.pitch_deg, 0.0, 0.01, "a horizontal drag does not tilt")
+
+func test_preview_pitch_is_limited() -> void:
+	var pv := _preview_widget()
+	pv.turn_by(Vector2(0, -20))
+	assert_near(pv.pitch_deg, 18.0, 0.01, "vertical drag tilts at the same rate")
+	pv.turn_by(Vector2(0, -400))
+	assert_near(pv.pitch_deg, CharacterPreview.PITCH_LIMIT, 0.01, "clamped up")
+	pv.turn_by(Vector2(0, 4000))
+	assert_near(pv.pitch_deg, -CharacterPreview.PITCH_LIMIT, 0.01, "clamped down")
+
+func test_preview_tap_does_nothing_and_a_drag_is_consumed() -> void:
+	var pv := _preview_widget()
+	pv._gui_input(_touch_event(true))
+	pv._gui_input(_touch_event(false))
+	assert_eq(pv.yaw_deg, 0.0, "a tap leaves the figure alone")
+	assert_eq(pv.pitch_deg, 0.0, "a tap does not tilt it")
+	pv._gui_input(_touch_event(true))
+	pv._gui_input(_drag_event(Vector2(40, 0)))
+	assert_near(pv.yaw_deg, 36.0, 0.01, "the drag turned it")
+	pv._gui_input(_touch_event(false))
+	assert_true(pv.mouse_filter == Control.MOUSE_FILTER_STOP,
+		"the preview takes the events so the panel behind cannot scroll")
+
+func test_preview_throw_decays_to_a_stop() -> void:
+	var pv := _preview_widget()
+	pv._gui_input(_touch_event(true))
+	pv._gui_input(_drag_event(Vector2(30, 0)))
+	pv._gui_input(_touch_event(false))
+	var after_release := pv.yaw_deg
+	pv._process(0.05)
+	assert_true(pv.yaw_deg != after_release, "inertia keeps it turning for a moment")
+	for i in 60:
+		pv._process(0.05)
+	var settled := pv.yaw_deg
+	for i in 20:
+		pv._process(0.05)
+	assert_eq(pv.yaw_deg, settled, "and then it stops instead of creeping")
+
+func test_preview_drag_while_touching_is_not_applied_twice() -> void:
+	# The project emulates mouse from touch and touch from mouse, so one gesture arrives twice.
+	var pv := _preview_widget()
+	pv._gui_input(_touch_event(true))
+	pv._gui_input(_drag_event(Vector2(50, 0)))
+	var mm := InputEventMouseMotion.new()
+	mm.position = Vector2(150, 130)
+	mm.relative = Vector2(50, 0)
+	mm.button_mask = MOUSE_BUTTON_MASK_LEFT
+	pv._gui_input(mm)            # the emulated duplicate of the same drag
+	assert_near(pv.yaw_deg, 45.0, 0.01, "the emulated mouse copy is swallowed, not applied")
+	pv._gui_input(_touch_event(false))

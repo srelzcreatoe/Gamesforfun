@@ -125,11 +125,12 @@ func test_compose_cost() -> void:
 	print("      RaceSkin.compose_image: %.1f ms (%dpx, HD first)" % [us / 1000.0, img.get_width()])
 	assert_true(us < 2500000, "one HD composite takes %.1f ms" % (us / 1000.0))
 	# the same character comes straight out of the cache afterwards
+	RaceSkin.compose(_character())                      # warm
 	t0 = Time.get_ticks_usec()
-	RaceSkin.compose(_character())
-	RaceSkin.compose(_character())
+	for i in 4:
+		RaceSkin.compose(_character())
 	var cached_us := Time.get_ticks_usec() - t0
-	assert_true(cached_us < us, "cached: %.2f ms" % (cached_us / 1000.0))
+	assert_true(cached_us < us / 4, "four cached composes: %.2f ms" % (cached_us / 1000.0))
 	# and the 64x64 set stays cheap for anything that opts out
 	RaceSkin.hd = false
 	RaceSkin.clear_cache()
@@ -485,3 +486,59 @@ func test_tattoo_zero_is_the_mods_own_none() -> void:
 	assert_ne(RaceSkin.compose_image(inked).get_data(), RaceSkin.compose_image(none_zero).get_data(),
 		"a real tattoo blends in")
 	assert_ne(RaceSkin.cache_key(inked), RaceSkin.cache_key(none_zero), "and it is in the cache key")
+
+func test_composition_is_hd_first() -> void:
+	# the user's request: the DMZ-HD pack replaces the 64x64 set everywhere it exists
+	assert_true(RaceSkin.hd, "HD composition is the default")
+	for race in ["human", "saiyan"]:
+		var img := RaceSkin.compose_image({"race": race, "gender": "male", "body_type": 0,
+			"eye_type": 0, "hair_type": 0, "skin_color": "#ffd3c9", "hair_color": "#221a14"})
+		assert_true(img.get_width() >= 512, "%s composes at HD (%d px)" % [race, img.get_width()])
+		assert_eq(img.get_width(), mini(1024, RaceSkin.canvas_cap()), "canvas = the HD layer size, capped")
+	# the HD layer really is the one being read
+	var hd_layer := RaceSkin._load_image("races/humansaiyan/bodytype_male_1")
+	assert_true(hd_layer != null and hd_layer.get_width() >= 512,
+		"the body layer comes from entity/hd (%d px)" % (hd_layer.get_width() if hd_layer else 0))
+	# a layer that only exists in low res is scaled up onto the HD canvas, so a
+	# mixed set still composes (nothing is skipped and nothing shrinks the sheet)
+	var mixed := RaceSkin.compose_image({"race": "bioandroid", "gender": "male", "body_type": 0})
+	assert_true(mixed.get_width() >= 512, "bioandroid (partial HD set) still composes HD (%d)" % mixed.get_width())
+	var opaque := 0
+	var step := maxi(2, mixed.get_width() / 32)
+	for y in range(0, mixed.get_height(), step):
+		for x in range(0, mixed.get_width(), step):
+			if mixed.get_pixel(x, y).a > 0.5:
+				opaque += 1
+	assert_true(opaque > 40, "and it has a visible body (%d samples)" % opaque)
+	# opting out still works (tests and low-end devices)
+	RaceSkin.hd = false
+	RaceSkin.clear_cache()
+	assert_eq(RaceSkin.compose_image({"race": "saiyan", "gender": "male"}).get_width(), 64)
+	RaceSkin.hd = true
+	RaceSkin.clear_cache()
+
+func test_fixed_character_textures_resolve_to_the_hd_pack() -> void:
+	# sagas / masters keep their own sheets, and those come from entity/hd/** when
+	# the pack has them (BedrockModel.entity_texture -> Textures.entity_texture)
+	var checked := 0
+	for rel in ["sagas/saga_a16", "sagas/saga_a17", "master/master_dende", "master/master_cell"]:
+		if not ResourceLoader.exists("res://assets/textures/entity/hd/%s.png" % rel):
+			continue
+		checked += 1
+		var tex := BedrockModel.entity_texture(rel)
+		assert_true(tex != null, "%s resolves" % rel)
+		assert_true(tex.get_width() >= 512, "%s is the HD sheet (%d px)" % [rel, tex.get_width()])
+		# an entity that opts out of the HD variant still gets the 64x64 original
+		var plain := BedrockModel.entity_texture(rel, false)
+		assert_true(plain != null and plain.get_width() <= 256, "%s opt-out is the DMZ sheet (%d px)" % [rel, plain.get_width()])
+	assert_true(checked >= 2, "checked %d HD character sheets" % checked)
+	# armour overlays prefer armor/hd/** too
+	var hd_armor := 0
+	for layer in ["a16", "saiyan_armor", "gi_goku"]:
+		for i in range(1, 4):
+			if ResourceLoader.exists("res://assets/textures/armor/hd/%s_layer%d.png" % [layer, i]):
+				var t := RaceSkin._armor_texture(layer, i)
+				assert_true(t != null and t.get_width() >= 512,
+					"armour %s_layer%d is HD (%d px)" % [layer, i, t.get_width() if t else 0])
+				hd_armor += 1
+	print("      HD armour layers checked: %d" % hd_armor)
