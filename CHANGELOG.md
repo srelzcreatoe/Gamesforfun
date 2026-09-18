@@ -1,5 +1,12 @@
 # Changelog
 
+## Preview 4 (2026-09-18)
+
+- Fixed the player skin being invisible in exported builds (skin layers are now resolved through the resource loader).
+- Fixed the Android low-memory kill on "Loading world": structure templates are parsed lazily into packed arrays (world start adds 0.1 MB instead of up to 231 MB); phones use a smaller first-run radius and spawn once the 3x3 ring is meshed.
+- Block texture array has mipmaps (distant blocks no longer go black on phone GPUs); boot log at user://boot.log.
+- Character creator data for body type, eye type, nose, mouth, tattoo and two eye colours (rows follow in the next build).
+
 ## Preview 3 (2026-09-18)
 
 - Hair is DragonMineZ's own: all 27 mod hair presets decoded from the jar, rendered with the mod's strand geometry and hair texture; Super Saiyan variants per preset.

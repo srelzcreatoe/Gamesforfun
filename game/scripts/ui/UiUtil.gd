@@ -764,6 +764,12 @@ static func option_row(text: String, options: Array, index: int, on_change: Call
 		state["i"] = posmod(state["i"] + d, options.size())
 		val.text = String(options[state["i"]])
 		on_change.call(state["i"])
+	# Steppers inside a scrolling settings page: fire on press so a touch that drifts a pixel
+	# is not swallowed by the scroll gesture.
+	for b in [left, right]:
+		b.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
+		b.mouse_filter = Control.MOUSE_FILTER_STOP
+		b.custom_minimum_size.y = maxf(b.custom_minimum_size.y, 40.0 * sc)
 	left.pressed.connect(func() -> void: step.call(-1))
 	right.pressed.connect(func() -> void: step.call(1))
 	row.add_child(left)
