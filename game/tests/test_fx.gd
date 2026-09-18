@@ -1029,12 +1029,18 @@ func test_the_two_dim_passes_share_one_burn_through_gate() -> void:
 	var world := FileAccess.get_file_as_string("res://shaders/post_process.gdshader")
 	var own := FileAccess.get_file_as_string("res://shaders/fx_screen.gdshader")
 	assert_true(world.find(gate) >= 0, "the world post pass gates the dim at 0.88 luma")
-	assert_true(own.find(gate.replace("dl", "l")) >= 0, "and so does the fx screen pass")
+	assert_true(own.find(gate) >= 0, "and so does the fx screen pass")
 	assert_true(world.find("(dl - 0.7)") < 0, "the old daylight-transparent gate is gone")
 
 ## Both dim passes have to SCALE the frame down (vignette weighted), not mix it toward a
 ## fixed near-black. The absolute version was invisible in noon daylight - the whole
 ## point of the strain dim - and it crushed shadowed leaves to pure black.
+##
+## And they have to be THE SAME PASS. A substring check per file let the two drift: the
+## tint term picked up a `* 1.6` and a uniform in one file and stayed a hardcoded
+## constant in the other, so they only agreed while that uniform sat at its default.
+## Both blocks are therefore fenced with FXDIM-BEGIN/END and compared token for token
+## after normalising the `fx_` uniform prefix.
 func test_the_dim_is_a_proportional_vignette_in_both_passes() -> void:
 	var world := FileAccess.get_file_as_string("res://shaders/post_process.gdshader")
 	var own := FileAccess.get_file_as_string("res://shaders/fx_screen.gdshader")
@@ -1048,6 +1054,51 @@ func test_the_dim_is_a_proportional_vignette_in_both_passes() -> void:
 			"%s weights the dim by the distance from the centre" % who)
 		assert_true(code.find("mix(col, vec3(0.03, 0.04, 0.09)") < 0,
 			"%s no longer mixes toward an absolute near-black" % who)
+	var a := _dim_block(world)
+	var b := _dim_block(own)
+	assert_true(a != "", "post_process fences its dim with FXDIM-BEGIN/END")
+	assert_true(b != "", "fx_screen fences its dim with FXDIM-BEGIN/END")
+	assert_eq(a, b, "the two dim passes are the same code:\n  post_process: %s\n  fx_screen  : %s" % [a, b])
+	# ... and the tint they add back is the same colour, or "identical code" is a lie
+	assert_true(world.find("uniform vec4 fx_darken_color : source_color = vec4(0.03, 0.04, 0.09, 1.0);") >= 0,
+		"post_process takes the dim tint from a uniform with the shared default")
+	assert_true(own.find("uniform vec4 darken_color : source_color = vec4(0.03, 0.04, 0.09, 1.0);") >= 0,
+		"fx_screen's tint uniform has the same default")
+
+## The world pass has to run the dim on the SAME colour fx_screen sees: the already
+## graded, gamma-encoded framebuffer. It used to sit in linear space before
+## `tonemap()`, whose mid-tone lift partly undoes a multiply - a mechanical reason the
+## in-world dim came out weaker than the preview's.
+func test_the_world_pass_dims_after_the_grade_not_before_the_tonemap() -> void:
+	var world := FileAccess.get_file_as_string("res://shaders/post_process.gdshader")
+	var dim: int = world.find("FXDIM-BEGIN")
+	var tone: int = world.find("col = tonemap(col * exposure);")
+	var encode: int = world.find("col = pow(col, vec3(1.0 / 2.2));")
+	var out: int = world.find("COLOR = vec4(col, 1.0);")
+	assert_true(dim > 0 and tone > 0 and encode > 0 and out > 0, "all four landmarks found")
+	assert_true(dim > tone, "the dim runs after the tonemap")
+	assert_true(dim > encode, "and after the gamma encode, like fx_screen's")
+	assert_true(dim < out, "and before the frame is written out")
+
+## The `if (...darken...)` block between the FXDIM fences, with comments, whitespace and
+## the `fx_` uniform prefix normalised away.
+static func _dim_block(code: String) -> String:
+	var a: int = code.find("FXDIM-BEGIN")
+	var b: int = code.find("FXDIM-END")
+	if a < 0 or b <= a:
+		return ""
+	var body := code.substr(a, b - a)
+	var out := ""
+	for raw in body.split("\n", false):
+		var line := raw.strip_edges()
+		if line == "" or line.begins_with("//"):
+			continue
+		out += line + " "
+	# longest first: fx_darken_color contains fx_darken
+	out = out.replace("fx_darken_color", "darken_color").replace("fx_darken", "darken")
+	while out.find("  ") >= 0:
+		out = out.replace("  ", " ")
+	return out.strip_edges()
 
 ## A near-black vignette is meaningless on an additive overlay (shaders/flash.gdshader is
 ## `blend_add`), which is why the strain "vignette" was missing in game while the uniform
@@ -1065,6 +1116,11 @@ func test_a_dark_vignette_is_served_by_the_dim_not_by_an_additive_overlay() -> v
 	ScreenFx.vignette_hold(Color(0.02, 0.02, 0.05), 0.6, 1.0, 0.4)
 	assert_eq(fx._vignette, 0.0, "nothing is pushed into the additive overlay")
 	assert_true(fx._darken_target > 0.3, "the dim carries it instead (%.2f)" % fx._darken_target)
+	# THE HOLD HAS TO REACH THE DIM. `_vignette_hold` only drives the additive overlay,
+	# which is at 0 on this path, so writing the caller's hold there silently threw it
+	# away: a 1.0 s dark vignette held 0.14 s (fade * 0.35) and then faded.
+	assert_true(fx._darken_hold >= 1.0,
+		"the dim holds for the hold time the caller asked for (%.2f s of 1.0)" % fx._darken_hold)
 	ScreenFx.clear_sustained(0.0)
 	fx._vignette = 0.0
 	ScreenFx.vignette_pulse(Color(0.6, 0.04, 0.04), 0.5, 0.4)
