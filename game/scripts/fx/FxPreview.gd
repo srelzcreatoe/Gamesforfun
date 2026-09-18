@@ -24,9 +24,9 @@ extends Node3D
 ## `--dumpfx` print every visible emitter / quad with the material state that decides its
 ##         colour, at each capture (which node drew that black pixel?)
 ## `--profile` print, per cinematic phase, the frame time, the fx scripts' cpu time
-##         (FxAssets.cpu_usec; `own_*` takes the OTHER subsystems work the cinematic
-##         triggers back out again - the form application at the climax and Audio s
-##         synchronous stream loads, `extern_max` - so the fx are not blamed for it;
+##         (FxAssets.cpu_usec, which EXCLUDES the OTHER subsystems work the cinematic
+##         triggers in the same frame - the form application at the climax and Audio s
+##         synchronous stream loads; those are the `extern_*` columns, so the two add up;
 ##         the engine's Performance.TIME_PROCESS monitor reads 0 headless), how much of
 ##         that was the afterimage silhouette, the draw calls and the on-screen particle
 ##         / light peak. This is how the cinematic's cost is measured; under llvmpipe the
@@ -587,15 +587,15 @@ func _print_profile() -> void:
 			continue
 		var row: Dictionary = _prof[key]
 		var n: int = maxi(1, int(row["frames"]))
-		# own_* is fx_cpu with the other subsystems' work taken back out of it
-		var cpu_sum: float = float(row["cpu"])
-		var ext_sum: float = float(row.get("extern_sum", 0.0))
+		# fx_cpu is the cinematic's OWN cost (the director already subtracts extern from
+		# it), extern_* is the other subsystems' work it triggers in the same frame
 		print(("VFX PROFILE phase=%-7s frames=%3d frame_avg=%6.2fms frame_max=%6.2fms "
-			+ "fx_cpu_avg=%5.3fms fx_cpu_max=%5.3fms own_avg=%5.3fms ghost_max=%5.3fms "
-			+ "extern_max=%5.3fms draws=%4d objects=%4d particles=%3d lights=%d") % [
+			+ "fx_cpu_avg=%5.3fms fx_cpu_max=%5.3fms ghost_max=%5.3fms "
+			+ "extern_avg=%5.3fms extern_max=%5.3fms draws=%4d objects=%4d particles=%3d lights=%d") % [
 			key, n, float(row["sum"]) / float(n), float(row["max"]),
-			cpu_sum / float(n), float(row["cpu_max"]), maxf(0.0, cpu_sum - ext_sum) / float(n),
-			float(row.get("ghost", 0.0)), float(row.get("extern", 0.0)),
+			float(row["cpu"]) / float(n), float(row["cpu_max"]),
+			float(row.get("ghost", 0.0)),
+			float(row.get("extern_sum", 0.0)) / float(n), float(row.get("extern", 0.0)),
 			int(row["draws"]), int(row["objects"]), int(row["particles"]), int(row["lights"])])
 	print("VFX PROFILE budget particles<=%d lights<=%d" % [
 		TransformationDirector.MAX_PARTICLES, TransformationDirector.MAX_LIGHTS])

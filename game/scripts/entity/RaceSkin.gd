@@ -23,11 +23,18 @@ extends RefCounted
 ##   * `races/hair.png` (16x16 gray) is the flat shading tile used for the 3D hair
 ##     bones, tinted with hair_color through the bone material.
 ##
-## Composition happens on the 64x64 DMZ layers (not the 1024x1024 DMZ-HD ones):
-## a GDScript per-pixel composite of eight 1024x1024 layers takes seconds, while
-## the 64x64 one takes ~1 ms and is cached. Fixed character textures (sagas,
-## masters) are unaffected and still load their HD variant through
-## `Textures.entity_texture`. Set `RaceSkin.hd = true` to opt into HD composition.
+## Composition is HD FIRST: every layer is taken from the DMZ-HD pack
+## (`assets/textures/entity/hd/**`) when that file exists and from the 64x64 DMZ
+## set otherwise, and a low-res-only layer is scaled up (nearest, so it stays
+## pixel art) onto the HD canvas. The canvas is the largest layer in the
+## composition, capped at `max_canvas` - 1024 on desktop, 512 on mobile, where
+## the difference is invisible on a phone screen but the composite is 4x cheaper.
+## Set `RaceSkin.hd = false` to force the 64x64 set (tests do this to stay fast).
+##
+## Cost: the composite is a GDScript per-pixel blend, so it is cached per
+## character (`cache_key`) and the tint multiply runs off a per-channel lookup
+## table. Fixed character textures (sagas, masters, enemies) never come through
+## here: they load their HD variant through `Textures.entity_texture`.
 
 const TEX_DIR := "res://assets/textures/entity/"
 const ARMOR_DIR := "res://assets/textures/armor/"
@@ -55,7 +62,11 @@ const ALL_ARMOR_BONES := [
 ## presets (decoded from its hair codes into data/dmz_hair_presets.json), so a
 ## character's `hair_type` is a DMZ preset index, not one of our own styles.
 
-static var hd := false
+## Compose from the DMZ-HD pack (`entity/hd/**`) whenever a layer exists there.
+static var hd := true
+## Largest composite canvas. Mobile stays at 512: a 1024 skin on a 16 px UV is
+## invisible on a phone and costs 4x the blend time.
+static var max_canvas := 0
 static var _cache: Dictionary = {}          # key -> ImageTexture
 static var _armor_cache: Dictionary = {}    # path -> Texture2D
 
@@ -248,9 +259,19 @@ static func race_dir(race_id: String) -> String:
 		return explicit
 	return String(RACE_DIRS.get(r, "humansaiyan"))
 
+## Canvas cap, resolved once (512 on mobile, 1024 elsewhere).
+static func canvas_cap() -> int:
+	if max_canvas <= 0:
+		max_canvas = 1024
+		if Engine.has_singleton("Game") or Game != null:
+			if Game.has_method("is_mobile") and bool(Game.is_mobile()):
+				max_canvas = 512
+	return max_canvas
+
 static func cache_key(c: Dictionary) -> String:
-	return "%s|%s|%d|%d|%s|%s|%s|%s|%s|%s|%d|%d|%d|%d" % [
+	return "%s|%s|%d|%d|%d|%s|%s|%s|%s|%s|%s|%d|%d|%d|%d" % [
 		String(c.get("race", "saiyan")), String(c.get("gender", "male")),
+		(canvas_cap() if hd else 0),
 		_int_any(c, ["body_type", "bodyType"], 0), _int_any(c, ["hair_type", "hairType"], 1),
 		_color_any(c, ["hair_color"], "#222629").to_html(false),
 		_color_any(c, ["eye1_color", "eye_color"], "#222629").to_html(false),
@@ -285,50 +306,56 @@ static func compose_image(character: Dictionary) -> Image:
 	var hair_col := _color_any(character, ["hair_color"], "#222629")
 	var eye_col := _color_any(character, ["eye1_color", "eye_color"], "#222629")
 	var eye_col2 := _color_any(character, ["eye_color2", "eye2_color", "eye1_color", "eye_color"], "#222629")
-	var size := 64
+	# --- the layer list, in paint order: [relative path, tint] -----------------
+	var plan: Array = []                      # [[rel, Color], ...]
 	var layers := _body_layers(dir, gender, body)
 	if layers.is_empty():
 		layers = [["races/base", 1]]
-	var first: Image = _load_image(String(layers[0][0]))
-	if first != null:
-		size = maxi(16, first.get_width())
-	var buf := PackedByteArray()
-	buf.resize(size * size * 4)
-	buf.fill(0)
 	for entry in layers:
 		var tint := Color.WHITE
 		match int(entry[1]):
 			1: tint = skin
 			2: tint = skin2
 			3: tint = skin3
-		_blend(buf, size, _load_image(String(entry[0])), tint)
-	# face parts
+		plan.append([String(entry[0]), tint])
 	var eye := _int_any(character, ["eyes", "eye_type"], 0)
 	var face_dir := "races/%s/faces/%s" % [dir, dir]
-	var sclera := _load_image("%s_eye_%d_0" % [face_dir, eye])
-	if sclera == null:
-		# bioandroid / some races use a different naming (base_eye_layer0)
-		sclera = _load_image("races/%s/faces/base_eye_layer0" % dir)
-		_blend(buf, size, sclera, Color.WHITE)
-		_blend(buf, size, _load_image("races/%s/faces/base_eye_layer1" % dir), eye_col)
+	if _exists("%s_eye_%d_0" % [face_dir, eye]):
+		plan.append(["%s_eye_%d_0" % [face_dir, eye], Color.WHITE])
+		plan.append(["%s_eye_%d_1" % [face_dir, eye], eye_col])
+		plan.append(["%s_eye_%d_2" % [face_dir, eye], eye_col2])
+		plan.append(["%s_eye_%d_3" % [face_dir, eye], hair_col])
 	else:
-		_blend(buf, size, sclera, Color.WHITE)
-		_blend(buf, size, _load_image("%s_eye_%d_1" % [face_dir, eye]), eye_col)
-		_blend(buf, size, _load_image("%s_eye_%d_2" % [face_dir, eye]), eye_col2)
-		_blend(buf, size, _load_image("%s_eye_%d_3" % [face_dir, eye]), hair_col)
-	_blend(buf, size, _load_image("%s_nose_%d" % [face_dir, _int_any(character, ["nose"], 0)]), skin)
-	_blend(buf, size, _load_image("%s_mouth_%d" % [face_dir, _int_any(character, ["mouth"], 0)]), skin)
+		# bioandroid / some races use a different naming (base_eye_layer0)
+		plan.append(["races/%s/faces/base_eye_layer0" % dir, Color.WHITE])
+		plan.append(["races/%s/faces/base_eye_layer1" % dir, eye_col])
+	plan.append(["%s_nose_%d" % [face_dir, _int_any(character, ["nose"], 0)], skin])
+	plan.append(["%s_mouth_%d" % [face_dir, _int_any(character, ["mouth"], 0)], skin])
 	# races.json ships `defaultTattooType: 0` for every race and DMZ's own
 	# `tattoo_0.png` is fully transparent, so index 0 IS "none"; a negative index
 	# skips the blend entirely. Both conventions therefore compose the same face.
 	var tattoo := _int_any(character, ["tattoo", "tattoo_type", "tattooType"], 0)
 	if tattoo >= 0:
-		_blend(buf, size, _load_image("races/tattoos/tattoo_%d" % tattoo), Color.WHITE)
+		plan.append(["races/tattoos/tattoo_%d" % tattoo, Color.WHITE])
 	if can_use_hair(character) and HairBuilder.has_hair(HairBuilder.style_id(_int_any(character, ["hair_type", "hairType"], 1))):
 		# DMZ paints a hair cap straight onto the head cube's skin. Keep it a shade
 		# darker than the voxel strands that sit on top of it, otherwise the head
 		# reads as one flat block of colour from behind.
-		_blend(buf, size, _load_image("races/hair_base"), hair_col.darkened(0.3))
+		plan.append(["races/hair_base", hair_col.darkened(0.3)])
+	# --- load once, canvas = the largest layer (HD wins), then blend -----------
+	var images: Array = []
+	var size := 16
+	for entry in plan:
+		var img: Image = _load_image(String(entry[0]))
+		images.append(img)
+		if img != null:
+			size = maxi(size, img.get_width())
+	size = mini(size, canvas_cap() if hd else 64)
+	var buf := PackedByteArray()
+	buf.resize(size * size * 4)
+	buf.fill(0)
+	for i in plan.size():
+		_blend(buf, size, images[i], plan[i][1])
 	return Image.create_from_data(size, size, false, Image.FORMAT_RGBA8, buf)
 
 ## Compose + apply to a model: body texture, hair attachment, tail/armor bones.
@@ -557,41 +584,58 @@ static func _load_image(rel: String) -> Image:
 	return img
 
 ## Multiply `src` by `tint` and alpha-blend it into the RGBA8 byte buffer.
+## The tint runs off three 256 entry lookup tables: at HD sizes this loop walks
+## 4 M pixels per layer, and a table lookup beats a float multiply per channel.
 static func _blend(buf: PackedByteArray, size: int, src: Image, tint: Color) -> void:
 	if src == null:
 		return
 	var img := src
 	if img.get_width() != size or img.get_height() != size:
 		img = src.duplicate()
+		# nearest keeps the pixel art crisp whichever way we scale
 		img.resize(size, size, Image.INTERPOLATE_NEAREST)
 	var sd := img.get_data()
 	var n := mini(sd.size(), buf.size())
-	var tr := tint.r
-	var tg := tint.g
-	var tb := tint.b
+	var lut_r := _tint_lut(tint.r)
+	var lut_g := _tint_lut(tint.g)
+	var lut_b := _tint_lut(tint.b)
 	var i := 0
 	while i < n:
-		var sa := sd[i + 3]
-		if sa != 0:
-			var r := int(sd[i] * tr)
-			var g := int(sd[i + 1] * tg)
-			var b := int(sd[i + 2] * tb)
-			if sa == 255:
-				buf[i] = r
-				buf[i + 1] = g
-				buf[i + 2] = b
-				buf[i + 3] = 255
-			else:
-				var a := float(sa) / 255.0
-				var ia := 1.0 - a
-				buf[i] = int(r * a + buf[i] * ia)
-				buf[i + 1] = int(g * a + buf[i + 1] * ia)
-				buf[i + 2] = int(b * a + buf[i + 2] * ia)
-				buf[i + 3] = maxi(int(sa), buf[i + 3])
+		var sa: int = sd[i + 3]
+		if sa == 255:
+			buf[i] = lut_r[sd[i]]
+			buf[i + 1] = lut_g[sd[i + 1]]
+			buf[i + 2] = lut_b[sd[i + 2]]
+			buf[i + 3] = 255
+		elif sa != 0:
+			var ia: int = 255 - sa
+			buf[i] = (lut_r[sd[i]] * sa + buf[i] * ia) / 255
+			buf[i + 1] = (lut_g[sd[i + 1]] * sa + buf[i + 1] * ia) / 255
+			buf[i + 2] = (lut_b[sd[i + 2]] * sa + buf[i + 2] * ia) / 255
+			if sa > buf[i + 3]:
+				buf[i + 3] = sa
 		i += 4
 
+static var _luts: Dictionary = {}
+
+static func _tint_lut(f: float) -> PackedByteArray:
+	var key := int(clampf(f, 0.0, 1.0) * 255.0)
+	var cached: Variant = _luts.get(key)
+	if cached != null:
+		return cached
+	var lut := PackedByteArray()
+	lut.resize(256)
+	for v in 256:
+		lut[v] = mini(255, (v * key) / 255)
+	_luts[key] = lut
+	return lut
+
 static func _armor_texture(layer: String, index: int) -> Texture2D:
-	var path := ARMOR_DIR + "%s_layer%d.png" % [layer, index]
+	var rel := "%s_layer%d.png" % [layer, index]
+	# armour overlays come from armor/hd/** when the HD pack has them
+	var path := ARMOR_DIR + rel
+	if hd and _res_exists(ARMOR_DIR + "hd/" + rel):
+		path = ARMOR_DIR + "hd/" + rel
 	if _armor_cache.has(path):
 		return _armor_cache[path]
 	var tex: Texture2D = null

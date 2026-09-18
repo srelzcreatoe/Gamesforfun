@@ -1,7 +1,14 @@
 class_name CharacterPreview
 extends SubViewportContainer
-## Rotating 3D character preview used by the inventory and the character creation screen.
+## 3D character preview used by the inventory, stats and character creation screens.
 ## Uses BedrockModel + RaceSkin when the entity engineer's scripts exist, else a blocky stand-in.
+##
+## The figure does not spin by itself: the player turns it with a finger (or the mouse). A
+## horizontal drag yaws it at DEG_PER_PX degrees per pixel and keeps a little inertia that decays
+## after the finger lifts, a vertical drag tilts it within PITCH_LIMIT degrees about the body
+## centre, and a tap does nothing. Every drag event is consumed, so dragging over the preview
+## never scrolls the options panel behind it. `--ui_spin` turns the old idle spin back on for
+## verification renders.
 
 const BEDROCK_MODEL := "res://scripts/entity/BedrockModel.gd"
 const RACE_SKIN := "res://scripts/entity/RaceSkin.gd"
@@ -9,23 +16,46 @@ var viewport: SubViewport
 var pivot: Node3D
 var camera: Camera3D = null
 var model: Node3D = null
-var spin := 0.5
+## Degrees of rotation per pixel dragged, and how far the tilt may go.
+const DEG_PER_PX := 0.9
+const PITCH_LIMIT := 25.0
+## Inertia: the throw speed is the last drag scaled by this, and it decays by DECAY per second
+## (plus a floor so it stops instead of creeping).
+const THROW := 14.0
+const DECAY := 4.0
+const MIN_SPIN := 2.0
+## `_drag_index` value standing for "this gesture came in as a mouse drag".
+const MOUSE_DRAG := -2
+
+var spin := 0.5                     # idle spin speed, only used when `auto_spin` is on
 var character: Dictionary = {}
 var armor: Array = []
-var auto_spin: bool = _no_screenshot_arg()
+## Off by default (the user asked for drag control); `--ui_spin` re-enables it for renders.
+var auto_spin: bool = _has_spin_arg()
+var yaw_deg := 0.0
+var pitch_deg := 0.0
+## Node the yaw pivot hangs under, so the tilt turns about the body centre and not the feet.
+var tilt: Node3D = null
+var _drag_index := -1
+var _dragging := false
+var _spin_vel := 0.0
 
 func _init(size_px := Vector2(120, 180)) -> void:
 	stretch = true
 	custom_minimum_size = size_px
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# STOP, not IGNORE: the preview has to receive the drag itself and swallow it so the panel
+	# underneath does not scroll at the same time.
+	mouse_filter = Control.MOUSE_FILTER_STOP
 	viewport = SubViewport.new()
 	viewport.transparent_bg = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	viewport.own_world_3d = true
 	viewport.world_3d = World3D.new()
 	add_child(viewport)
+	tilt = Node3D.new()
+	viewport.add_child(tilt)
 	pivot = Node3D.new()
-	viewport.add_child(pivot)
+	tilt.add_child(pivot)
 	var cam := Camera3D.new()
 	# BedrockModel faces -Z, so the camera sits on -Z and is turned around to look at it.
 	# The rotation is set here (not only in frame_camera) so the model is visible even if the
@@ -90,6 +120,11 @@ func frame_camera() -> void:
 	box = AABB(Vector3(box.position.x, box.position.y, box.position.z),
 		Vector3(maxf(box.size.x, 0.1), fit_h, maxf(box.size.z, 0.1)))
 	var center := box.position + box.size * 0.5
+	# The tilt has to happen about the middle of the body, not about the feet, so the pivot is
+	# offset down by as much as its parent is raised.
+	if tilt != null:
+		tilt.position.y = center.y
+		pivot.position.y = -center.y
 	var t := maxf(0.05, tan(deg_to_rad(camera.fov) * 0.5))
 	var dist := clampf((fit_h * 0.5) / t * 1.25, 0.6, 24.0)
 	var vp_h := size.y if size.y > 8.0 else float(maxi(16, viewport.size.y))
@@ -202,12 +237,80 @@ func _box_figure() -> Node3D:
 	return root
 
 func _process(delta: float) -> void:
-	if auto_spin and pivot != null:
-		pivot.rotate_y(delta * spin)
+	if pivot == null:
+		return
+	if auto_spin and not _dragging:
+		yaw_deg = fposmod(yaw_deg + rad_to_deg(delta * spin), 360.0)
+	elif not _dragging and absf(_spin_vel) > MIN_SPIN:
+		# inertia after a throw: exponential decay, and it stops rather than creeping
+		yaw_deg = fposmod(yaw_deg + _spin_vel * delta, 360.0)
+		_spin_vel *= exp(-DECAY * delta)
+		if absf(_spin_vel) <= MIN_SPIN:
+			_spin_vel = 0.0
+	_apply_rotation()
 
+## Drag to turn the figure. Every touch/mouse event over the box is consumed so the drag cannot
+## scroll the options panel or press anything underneath; a tap (no motion) changes nothing.
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch:
+		var t := event as InputEventScreenTouch
+		if t.pressed:
+			_begin_drag(t.index)
+		elif t.index == _drag_index:
+			_end_drag()
+		accept_event()
+	elif event is InputEventScreenDrag:
+		var d := event as InputEventScreenDrag
+		if _dragging and d.index == _drag_index:
+			_turn(d.relative)
+		accept_event()
+	elif event is InputEventMouseButton:
+		# The project emulates mouse from touch *and* touch from mouse, so a single gesture
+		# arrives twice. MOUSE_DRAG marks the mouse path; a real touch always takes precedence
+		# and the mouse branch then only consumes its duplicate.
+		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_LEFT:
+			if mb.pressed and _drag_index < 0:
+				_begin_drag(MOUSE_DRAG)
+			elif not mb.pressed and _drag_index == MOUSE_DRAG:
+				_end_drag()
+			accept_event()
+	elif event is InputEventMouseMotion:
+		var mm := event as InputEventMouseMotion
+		if (mm.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
+			if _dragging and _drag_index == MOUSE_DRAG:
+				_turn(mm.relative)
+			accept_event()
 
-static func _no_screenshot_arg() -> bool:
+func _begin_drag(index: int) -> void:
+	_drag_index = index
+	_dragging = true
+	_spin_vel = 0.0
+
+func _end_drag() -> void:
+	_dragging = false
+	_drag_index = -1
+
+## One drag step: horizontal turns, vertical tilts (clamped), and the horizontal speed is kept
+## as the throw for the inertia in _process.
+func _turn(relative: Vector2) -> void:
+	yaw_deg = fposmod(yaw_deg + relative.x * DEG_PER_PX, 360.0)
+	pitch_deg = clampf(pitch_deg - relative.y * DEG_PER_PX, -PITCH_LIMIT, PITCH_LIMIT)
+	_spin_vel = relative.x * DEG_PER_PX * THROW
+	_apply_rotation()
+
+func _apply_rotation() -> void:
+	if pivot != null:
+		pivot.rotation_degrees = Vector3(0.0, yaw_deg, 0.0)
+	if tilt != null:
+		tilt.rotation_degrees = Vector3(pitch_deg, 0.0, 0.0)
+
+## Turn the figure from code (tests, the verification aid, a screen that wants a start angle).
+func turn_by(relative: Vector2) -> void:
+	_turn(relative)
+
+static func _has_spin_arg() -> bool:
 	for a in OS.get_cmdline_user_args():
-		if a.begins_with("--screenshot"):
-			return false
-	return true
+		if a == "--ui_spin" or a == "--spin":
+			return true
+	return false

@@ -1,5 +1,10 @@
 # Changelog
 
+## Preview 6 (2026-09-18)
+
+- Crash diagnosis: the main menu shows "Last run ended at: <stage>" from the previous session's boot log; timed breadcrumbs during world load.
+- Block texture mipmaps stay off on phones until the on-device crash is pinned down.
+
 ## Preview 5 (2026-09-18)
 
 - Full DragonMineZ character creator: body type, eyes, nose, mouth, tattoo, three skin layers, hair, hair colour, eye colour 1 and 2, per race; touch-verified arrows; fits 20:9 phones without scrolling.

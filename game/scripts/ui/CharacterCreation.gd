@@ -64,6 +64,8 @@ var _row_refresh: Array[Callable] = []
 ## False until the first build has applied the starting race's defaults; a rebuild (resize,
 ## race change) must not reset the player's choices.
 var _seeded := false
+## The options ScrollContainer, kept so the drag verification aid can prove it did not scroll.
+var _opt_scroll: ScrollContainer = null
 
 func _init() -> void:
 	screen_name = "character_creation"
@@ -122,6 +124,8 @@ func build() -> void:
 	_update()
 	if args.has("tap"):
 		call_deferred("_tap_for_verification")
+	if args.has("drag"):
+		call_deferred("_drag_for_verification")
 
 ## Verification aid: `--ui_tap=<option key>` (with `--ui_taps=N`) sends real
 ## InputEventScreenTouch events at that row's right arrow, so a screenshot proves the whole touch
@@ -141,8 +145,7 @@ func _tap_for_verification() -> void:
 	# 2000x900 window, so the two differ by 1.5625x here).
 	var btn := arrows[1]
 	var local := btn.size * 0.5
-	var at: Vector2 = get_viewport().get_screen_transform() \
-		* (btn.get_global_transform_with_canvas() * local)
+	var at := _window_point(btn, local)
 	var key := String(args.get("tap", ""))
 	print("TAPTEST %s at %s (canvas %s) before=%s" % [key, str(at),
 		str(btn.get_global_rect().get_center()), str(character().get(key))])
@@ -160,6 +163,51 @@ func _tap_for_verification() -> void:
 		Input.parse_input_event(up)
 		await get_tree().process_frame
 	print("TAPTEST %s after=%s" % [key, str(character().get(key))])
+
+## Verification aid: `--ui_drag=<pixels>` drags a finger across the preview box in
+## `--ui_drag_steps=N` steps (vertical component from `--ui_drag_y=<pixels>`), printing the
+## model's yaw/pitch and the options panel's scroll offset before and after - so a render proves
+## the drag turned the figure and did not scroll the panel. The pixels are *window* pixels, the
+## same units a real finger produces, which is what the degrees-per-pixel rate is defined in.
+func _drag_for_verification() -> void:
+	if preview == null or not is_instance_valid(preview):
+		return
+	var steps := maxi(1, int(args.get("drag_steps", 10)))
+	var total_x := float(args.get("drag", 180.0))
+	var total_y := float(args.get("drag_y", 0.0))
+	var step := Vector2(total_x / float(steps), total_y / float(steps))
+	var scroll_before := _opt_scroll.scroll_vertical if _opt_scroll != null else 0
+	print("DRAGTEST before yaw=%.1f pitch=%.1f scroll=%d auto_spin=%s"
+		% [preview.yaw_deg, preview.pitch_deg, scroll_before, str(preview.auto_spin)])
+	var at := _window_point(preview, preview.size * 0.5)
+	var down := InputEventScreenTouch.new()
+	down.index = 0
+	down.position = at
+	down.pressed = true
+	Input.parse_input_event(down)
+	await get_tree().process_frame
+	for i in steps:
+		at += step
+		var drag := InputEventScreenDrag.new()
+		drag.index = 0
+		drag.position = at
+		drag.relative = step
+		Input.parse_input_event(drag)
+		await get_tree().process_frame
+	var up := InputEventScreenTouch.new()
+	up.index = 0
+	up.position = at
+	up.pressed = false
+	Input.parse_input_event(up)
+	await get_tree().process_frame
+	var scroll_after := _opt_scroll.scroll_vertical if _opt_scroll != null else 0
+	print("DRAGTEST after  yaw=%.1f pitch=%.1f scroll=%d (scrolled=%s)"
+		% [preview.yaw_deg, preview.pitch_deg, scroll_after, str(scroll_after != scroll_before)])
+
+## Canvas-space point on a control -> window coordinates (an injected event carries window px).
+func _window_point(c: Control, local: Vector2) -> Vector2:
+	return get_viewport().get_screen_transform() * (c.get_global_transform_with_canvas() * local)
+
 
 ## The option row driving `key` ("hair_type", "skin_color", ...), for tests and the tap aid.
 func find_option_row(key: String, from: Node = null) -> Control:
@@ -257,6 +305,7 @@ func _option_area(avail_w: float, rows: Array[Control]) -> Control:
 	holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var scroll := UiUtil.scroll(holder)
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_opt_scroll = scroll
 	return scroll
 
 ## The race's own DMZ panorama as the backdrop (falls back to the saiyan one).

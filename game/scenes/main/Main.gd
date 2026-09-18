@@ -91,13 +91,41 @@ func _breadcrumb(stage: String) -> void:
 			return
 		_boot_log.store_line("Dragon Block Sagas %s | %s | %s | %s" % [Game.version, OS.get_name(),
 			OS.get_model_name(), RenderingServer.get_video_adapter_name()])
-	_boot_log.store_line("%8.2fs  %s  (static %.0f MB, textures %.0f MB)" % [
+	var line := "%8.2fs  %s  (static %.0f MB, textures %.0f MB)" % [
 		Time.get_ticks_msec() / 1000.0, stage,
 		Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
-		Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0])
+		Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0]
+	_boot_log.store_line(line)
 	_boot_log.flush()
+	print("BREADCRUMB ", line)
+
+## The previous run's last breadcrumb, shown on the menu so a phone crash can be reported
+## without digging for the log file.
+var _last_run_label: Label = null
+
+func _show_last_run() -> void:
+	if not FileAccess.file_exists(BOOT_LOG):
+		return
+	var prev := FileAccess.get_file_as_string(BOOT_LOG).strip_edges()
+	if prev.is_empty():
+		return
+	var lines := prev.split("\n")
+	var last := lines[lines.size() - 1].strip_edges()
+	if last.begins_with("Dragon Block Sagas"):
+		return
+	_last_run_label = Label.new()
+	_last_run_label.text = "Last run ended at: " + last
+	_last_run_label.add_theme_font_size_override("font_size", 12)
+	_last_run_label.modulate = Color(1, 0.85, 0.5, 0.9)
+	_last_run_label.position = Vector2(8, 8)
+	_last_run_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(_last_run_label)
+	Events.world_loaded.connect(func(_w: Node) -> void:
+		if _last_run_label != null:
+			_last_run_label.visible = false)
 
 func _connect_breadcrumbs() -> void:
+	_show_last_run()
 	_breadcrumb("boot")
 	Events.world_loaded.connect(func(_w: Node) -> void: _breadcrumb("world loaded"))
 	Events.player_spawned.connect(func(_p: Node) -> void: _breadcrumb("player spawned"))
@@ -156,6 +184,10 @@ func show_main_menu() -> void:
 
 func enter_world(info: Dictionary) -> void:
 	_breadcrumb("enter world %s seed %s" % [str(info.get("planet", "?")), str(info.get("seed", "?"))])
+	get_tree().create_timer(2.0).timeout.connect(func() -> void: _breadcrumb("2s into world load"))
+	get_tree().create_timer(6.0).timeout.connect(func() -> void: _breadcrumb("6s into world load"))
+	get_tree().create_timer(15.0).timeout.connect(func() -> void: _breadcrumb("15s after entering"))
+	get_tree().create_timer(40.0).timeout.connect(func() -> void: _breadcrumb("40s after entering"))
 	_clear_screen()
 	if not ResourceLoader.exists(WORLD_SCENE):
 		Log.e("World scene missing: " + WORLD_SCENE)

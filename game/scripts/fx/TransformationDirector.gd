@@ -470,6 +470,7 @@ static func _crack_texture() -> Texture2D:
 
 func _process(delta: float) -> void:
 	var _cpu0 := Time.get_ticks_usec()          # fx CPU accounting (FxAssets.cpu_usec)
+	var _ext0 := FxAssets.cpu_extern_usec       # ... minus other subsystems' work in it
 	# immune to our own slow motion / hit stop, and to a frame rendered while
 	# Engine.time_scale is changing (a hit-stop would otherwise integrate a 70 s jump)
 	var real := FxAssets.real_delta(delta)
@@ -514,7 +515,10 @@ func _process(delta: float) -> void:
 			_spark_t = _rng.randf_range(0.45, 0.9)
 			_sfx("ki_sparks", -10.0, _rng.randf_range(0.9, 1.25))
 
-	FxAssets.cpu_add(Time.get_ticks_usec() - _cpu0)
+	# the cinematic's OWN microseconds: the audio loads and the form application it
+	# triggers are counted by FxAssets.cpu_extern_usec and taken back out here, so the
+	# two columns --profile prints add up instead of overlapping
+	FxAssets.cpu_add(Time.get_ticks_usec() - _cpu0 - (FxAssets.cpu_extern_usec - _ext0))
 	if t >= duration:
 		_finish()
 

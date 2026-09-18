@@ -65,8 +65,12 @@ func build_block_array() -> void:
 	# Mipmaps for every layer: the chunk shaders sample with a mipmap filter, and a layered
 	# texture without a mip chain is handled inconsistently by mobile GPUs (distant blocks
 	# go black on some drivers). Every layer is 16x16, so the chains match.
-	for im in images:
-		(im as Image).generate_mipmaps()
+	# Mipmaps only off phones: a mipmapped Texture2DArray is the one boot-time GPU upload
+	# that differs between the desktop and the phone builds, so it stays off on Android
+	# until the on-device crash is pinned down.
+	if not Game.is_mobile():
+		for im in images:
+			(im as Image).generate_mipmaps()
 	block_array = Texture2DArray.new()
 	var err := block_array.create_from_images(images)
 	if err != OK:

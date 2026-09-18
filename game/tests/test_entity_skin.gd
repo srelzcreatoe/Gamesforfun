@@ -34,23 +34,28 @@ func test_race_directory_mapping() -> void:
 	assert_eq(RaceSkin.race_dir("unknown_race"), "humansaiyan", "falls back to human/saiyan")
 
 func test_compose_produces_a_tinted_texture() -> void:
+	# composition is HD first, so the canvas is the largest layer (capped by
+	# RaceSkin.canvas_cap()); everything below samples in 64ths of the sheet
 	var img := RaceSkin.compose_image(_character())
-	assert_eq(img.get_width(), 64, "64x64 DMZ layer composition")
-	assert_eq(img.get_height(), 64)
+	assert_true(img.get_width() >= 64 and img.get_width() % 64 == 0,
+		"the canvas is a whole multiple of the 64x64 layout (%d)" % img.get_width())
+	assert_eq(img.get_width(), img.get_height())
 	assert_eq(img.get_format(), Image.FORMAT_RGBA8)
+	var u := img.get_width() / 64                      # pixels per DMZ texel
 	var opaque := 0
 	for y in 64:
 		for x in 64:
-			if img.get_pixel(x, y).a > 0.5:
+			if img.get_pixel(x * u, y * u).a > 0.5:
 				opaque += 1
 	assert_true(opaque > 800, "the body layer covers a good part of the sheet: %d px" % opaque)
 	# skin_color multiplies the base layer: a red skin must produce red-dominant pixels
 	var red := RaceSkin.compose_image(_character({"skin_color": "#ff0000"}))
+	var ur := red.get_width() / 64
 	var sum := Vector3.ZERO
 	var n := 0
 	for y in 64:
 		for x in 64:
-			var c := red.get_pixel(x, y)
+			var c := red.get_pixel(x * ur, y * ur)
 			if c.a > 0.5 and (c.r + c.g + c.b) > 0.15:
 				sum += Vector3(c.r, c.g, c.b)
 				n += 1
@@ -62,9 +67,11 @@ func test_eye_and_hair_colours_land_on_the_face() -> void:
 	var blue := RaceSkin.compose_image(_character({"eye_color": "#0000ff", "hair_color": "#000000"}))
 	var green := RaceSkin.compose_image(_character({"eye_color": "#00ff00", "hair_color": "#000000"}))
 	var differing := 0
-	# the eye pixels sit in the head "front" panel: x 8..16, y 8..16
-	for y in range(8, 16):
-		for x in range(8, 16):
+	# the eye pixels sit in the head "front" panel: x 8..16, y 8..16 of the 64x64
+	# layout, scaled to whatever canvas the HD layers produced
+	var u := blue.get_width() / 64
+	for y in range(8 * u, 16 * u):
+		for x in range(8 * u, 16 * u):
 			if blue.get_pixel(x, y) != green.get_pixel(x, y):
 				differing += 1
 	assert_true(differing >= 2, "eye_color changes the iris pixels: %d differ" % differing)
@@ -109,12 +116,30 @@ func test_armor_layers_use_the_armor_bones() -> void:
 	assert_true(not model.is_bone_visible("armorHead"), "the helmet bone stays hidden")
 
 func test_compose_cost() -> void:
+	# HD composition walks up to 1024x1024 x ~10 layers in GDScript, so it is
+	# cached per character; the budget here is one composite, not a frame.
 	RaceSkin.clear_cache()
 	var t0 := Time.get_ticks_usec()
-	RaceSkin.compose_image(_character())
+	var img := RaceSkin.compose_image(_character())
 	var us := Time.get_ticks_usec() - t0
-	print("      RaceSkin.compose_image: %.2f ms (64x64, 9 layers)" % (us / 1000.0))
-	assert_true(us < 200000, "composition takes %.1f ms" % (us / 1000.0))
+	print("      RaceSkin.compose_image: %.1f ms (%dpx, HD first)" % [us / 1000.0, img.get_width()])
+	assert_true(us < 2500000, "one HD composite takes %.1f ms" % (us / 1000.0))
+	# the same character comes straight out of the cache afterwards
+	t0 = Time.get_ticks_usec()
+	RaceSkin.compose(_character())
+	RaceSkin.compose(_character())
+	var cached_us := Time.get_ticks_usec() - t0
+	assert_true(cached_us < us, "cached: %.2f ms" % (cached_us / 1000.0))
+	# and the 64x64 set stays cheap for anything that opts out
+	RaceSkin.hd = false
+	RaceSkin.clear_cache()
+	t0 = Time.get_ticks_usec()
+	var low := RaceSkin.compose_image(_character())
+	var low_us := Time.get_ticks_usec() - t0
+	RaceSkin.hd = true
+	RaceSkin.clear_cache()
+	assert_eq(low.get_width(), 64, "the low-res path composes at 64px")
+	assert_true(low_us < 200000, "the 64x64 composite takes %.1f ms" % (low_us / 1000.0))
 
 func test_form_visuals_accept_scalar_and_array_scaling() -> void:
 	assert_near(RaceSkin.form_scale({"modelScaling": 1.25}), 1.25, 0.001, "float")
@@ -174,11 +199,12 @@ func test_character_fields_tolerate_strings_and_floats() -> void:
 		"eye_type": "0", "nose": 1.0, "mouth": "2", "tattoo": "0",
 	}
 	var img := RaceSkin.compose_image(loose)
-	assert_eq(img.get_width(), 64, "composed from loose types")
+	assert_true(img.get_width() >= 64, "composed from loose types (%d px)" % img.get_width())
 	var opaque := 0
+	var u := img.get_width() / 64
 	for y in 64:
 		for x in 64:
-			if img.get_pixel(x, y).a > 0.5:
+			if img.get_pixel(x * u, y * u).a > 0.5:
 				opaque += 1
 	assert_true(opaque > 800, "body still composed: %d px" % opaque)
 	model = BedrockModel.new()
@@ -435,8 +461,9 @@ func test_every_skin_read_survives_an_exported_build() -> void:
 	for race in ["human", "saiyan", "namekian", "majin", "frostdemon", "bioandroid"]:
 		var img := RaceSkin.compose_image({"race": race, "gender": "male", "body_type": 0})
 		var opaque := 0
-		for y in range(0, img.get_height(), 2):
-			for x in range(0, img.get_width(), 2):
+		var step := maxi(2, img.get_width() / 32)
+		for y in range(0, img.get_height(), step):
+			for x in range(0, img.get_width(), step):
 				if img.get_pixel(x, y).a > 0.5:
 					opaque += 1
 		assert_true(opaque > 40, "%s composes a visible body (%d opaque samples)" % [race, opaque])
