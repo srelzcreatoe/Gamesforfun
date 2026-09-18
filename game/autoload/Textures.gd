@@ -1,5 +1,14 @@
 extends Node
-## Builds the block texture array and caches item/entity/gui textures.
+## Builds the block texture ATLAS and caches item/entity/gui textures.
+##
+## The block tiles used to be a Texture2DArray with one layer per tile (~470 of them). GLES3 only
+## guarantees GL_MAX_ARRAY_TEXTURE_LAYERS = 256 and plenty of Android GPUs report exactly that, so
+## on a phone the array failed to be created, every chunk then sampled an incomplete texture (all
+## the blocks turn black) and the driver was left drawing from a failed object - a very plausible
+## native crash. The tiles now live in ONE 2D atlas of TILE x TILE cells, `atlas_cols` per row,
+## and the tile INDEX numbering is unchanged, so ChunkMesher's UV2 packing and every layer index
+## in this file mean exactly what they meant before. The chunk shaders turn index + uv into an
+## atlas lookup (see `tile_texel` in shaders/chunk_opaque.gdshader).
 
 const BLOCK_TEX_DIR := "res://assets/textures/blocks/"
 const ITEM_TEX_DIR := "res://assets/textures/items/"
@@ -7,8 +16,15 @@ const ENTITY_TEX_DIR := "res://assets/textures/entity/"
 const GUI_TEX_DIR := "res://assets/textures/gui/"
 const PARTICLE_TEX_DIR := "res://assets/textures/particles/"
 const TILE := 16
+## Cells per atlas row. 32 * 32 = 1024 cells is far more than we need, and 32 * TILE = 512 px is
+## well inside the 2048 px that GLES3 guarantees for GL_MAX_TEXTURE_SIZE.
+const ATLAS_COLS := 32
 
-var block_array: Texture2DArray
+var block_atlas: ImageTexture               # the whole tile sheet, ATLAS_COLS cells per row
+var atlas_cols := ATLAS_COLS
+var atlas_rows := 0
+var tile_count := 0                         # how many tile indices are in use
+var _atlas_image: Image = null
 var layer_of: Dictionary = {}          # texture key -> first layer index
 var frames_of: Dictionary = {}         # texture key -> frame count (animated strips)
 var block_faces: Array = []            # numeric block id -> PackedInt32Array(6) of base layers (or -1 -> use variants)
@@ -62,19 +78,20 @@ func build_block_array() -> void:
 			var frame := Image.create(TILE, TILE, false, Image.FORMAT_RGBA8)
 			frame.blit_rect(img, Rect2i(0, f * TILE, TILE, TILE), Vector2i.ZERO)
 			images.append(frame)
-	# Mipmaps for every layer: the chunk shaders sample with a mipmap filter, and a layered
-	# texture without a mip chain is handled inconsistently by mobile GPUs (distant blocks
-	# go black on some drivers). Every layer is 16x16, so the chains match.
-	# Mipmaps only off phones: a mipmapped Texture2DArray is the one boot-time GPU upload
-	# that differs between the desktop and the phone builds, so it stays off on Android
-	# until the on-device crash is pinned down.
-	if not Game.is_mobile():
-		for im in images:
-			(im as Image).generate_mipmaps()
-	block_array = Texture2DArray.new()
-	var err := block_array.create_from_images(images)
-	if err != OK:
-		Log.e("Texture2DArray creation failed: %d" % err)
+	# One atlas, NO mipmaps: the chunk shaders sample it with filter_nearest. Mips would bleed
+	# neighbouring cells into each other at distance, and a texture whose mip chain the driver
+	# considers incomplete samples black on GLES3 - which is what phones were seeing.
+	tile_count = images.size()
+	atlas_cols = ATLAS_COLS
+	atlas_rows = int(ceil(float(tile_count) / float(atlas_cols)))
+	var atlas := Image.create(atlas_cols * TILE, max(atlas_rows, 1) * TILE, false, Image.FORMAT_RGBA8)
+	atlas.fill(Color(0, 0, 0, 0))
+	for i in tile_count:
+		var cx: int = (i % atlas_cols) * TILE
+		var cy: int = (i / atlas_cols) * TILE
+		atlas.blit_rect(images[i], Rect2i(0, 0, TILE, TILE), Vector2i(cx, cy))
+	_atlas_image = atlas
+	block_atlas = ImageTexture.create_from_image(atlas)
 	# Precompute per-face layers.
 	block_faces.clear()
 	block_variants.clear()
@@ -99,7 +116,9 @@ func build_block_array() -> void:
 			vars.append(layer_of.get(v, 0))
 		block_variants.append(vars)
 	built = true
-	Log.i("Block texture array: %d layers" % images.size())
+	Log.i("Block texture array: %d layers" % tile_count)
+	Log.i("Block atlas: %dx%d px, %d cols x %d rows (no mipmaps)" % [
+		atlas.get_width(), atlas.get_height(), atlas_cols, atlas_rows])
 
 func _load_tile(key: String) -> Image:
 	var path := BLOCK_TEX_DIR + key + ".png"
@@ -120,6 +139,16 @@ func _load_tile(key: String) -> Image:
 	if img.get_height() % TILE != 0:
 		img.resize(TILE, TILE, Image.INTERPOLATE_NEAREST)
 	return img
+
+## One tile out of the atlas, by the same index `layer()` returns (AmbientAssets uses it to tint
+## falling leaves). Returns null for an index that was never filled.
+func tile_image(index: int) -> Image:
+	if _atlas_image == null or index < 0 or index >= tile_count:
+		return null
+	var src := Rect2i((index % atlas_cols) * TILE, (index / atlas_cols) * TILE, TILE, TILE)
+	var out := Image.create(TILE, TILE, false, Image.FORMAT_RGBA8)
+	out.blit_rect(_atlas_image, src, Vector2i.ZERO)
+	return out
 
 func layer(tex_key: String) -> int:
 	return layer_of.get(tex_key, 0)

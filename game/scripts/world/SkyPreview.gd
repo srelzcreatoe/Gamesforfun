@@ -33,6 +33,9 @@ var terrain: MeshInstance3D
 var props: Node3D
 var ground_material: ShaderMaterial
 var cutout_material: ShaderMaterial
+## water_params.w = is_lava + 2 * debug_view (see shaders/water.gdshader); kept here because the
+## per-frame push below rewrites the whole vec4 with the planet's water colour.
+var _water_mode := 0.0
 
 var planet_id := "earth"
 var time_ticks := 6000.0
@@ -156,20 +159,24 @@ func _chunk_material() -> ShaderMaterial:
 	if ground_material != null:
 		return ground_material
 	ground_material = ShaderMaterial.new()
-	if ResourceLoader.exists(CHUNK_SHADER):
-		ground_material.shader = load(CHUNK_SHADER)
-	if Textures != null and Textures.block_array != null:
-		ground_material.set_shader_parameter("tiles", Textures.block_array)
+	# `--force-mobile-shaders` swaps in the stripped shaders/mobile/ variants here too, which is
+	# how the desktop build proves the phone path still compiles and still looks right.
+	var chunk_path := ChunkManager.shader_for(CHUNK_SHADER, ChunkManager.OPAQUE_SHADER_MOBILE)
+	if ResourceLoader.exists(chunk_path):
+		ground_material.shader = load(chunk_path)
+	if Textures != null and Textures.block_atlas != null:
+		ground_material.set_shader_parameter("tiles", Textures.block_atlas)
 	return ground_material
 
 func _cutout_material() -> ShaderMaterial:
 	if cutout_material != null:
 		return cutout_material
 	cutout_material = ShaderMaterial.new()
-	if ResourceLoader.exists(CUTOUT_SHADER):
-		cutout_material.shader = load(CUTOUT_SHADER)
-	if Textures != null and Textures.block_array != null:
-		cutout_material.set_shader_parameter("tiles", Textures.block_array)
+	var cutout_path := ChunkManager.shader_for(CUTOUT_SHADER, ChunkManager.CUTOUT_SHADER_MOBILE)
+	if ResourceLoader.exists(cutout_path):
+		cutout_material.shader = load(cutout_path)
+	if Textures != null and Textures.block_atlas != null:
+		cutout_material.set_shader_parameter("tiles", Textures.block_atlas)
 	return cutout_material
 
 ## Two crossed quads like ChunkMesher's `cross` shape, with the sway bit set in UV2.x so the
@@ -358,14 +365,16 @@ func _build_water() -> void:
 	water_mesh.name = "Water"
 	water_mesh.mesh = mesh
 	water_material = ShaderMaterial.new()
-	if ResourceLoader.exists(WATER_SHADER):
-		water_material.shader = load(WATER_SHADER)
-	if Textures != null and Textures.block_array != null:
-		water_material.set_shader_parameter("tiles", Textures.block_array)
-	water_material.set_shader_parameter("anim_fps", 4.0 if lava else 10.0)
-	water_material.set_shader_parameter("is_lava", 1 if lava else 0)
-	water_material.set_shader_parameter("cam_near", camera.near)
-	water_material.set_shader_parameter("debug_view", int(args.get("water_debug", 0)))
+	var water_path := ChunkManager.shader_for(WATER_SHADER, ChunkManager.WATER_SHADER_MOBILE)
+	if ResourceLoader.exists(water_path):
+		water_material.shader = load(water_path)
+	if Textures != null and Textures.block_atlas != null:
+		water_material.set_shader_parameter("tiles", Textures.block_atlas)
+	# Packed (shaders/water.gdshader): water_params xyz = shallow tint, w = is_lava + 2*debug_view.
+	# `anim_fps` and `cam_near` are no longer uniforms: liquids animate at the in-game 10 fps and
+	# the camera near plane travels in sky_day_params.w (SkyController.apply_to_material).
+	_water_mode = (1.0 if lava else 0.0) + 2.0 * float(int(args.get("water_debug", 0)))
+	water_material.set_shader_parameter("water_params", Vector4(0.09, 0.28, 0.62, _water_mode))
 	water_mesh.material_override = water_material
 	water_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(water_mesh)
@@ -464,8 +473,8 @@ func _apply(delta: float) -> void:
 		sky.apply_to_material(cutout_material)
 	if water_material != null:
 		sky.apply_to_material(water_material)
-		water_material.set_shader_parameter("water_color", sky.water_color())
-		water_material.set_shader_parameter("cam_near", camera.near)
+		var wc := sky.water_color()
+		water_material.set_shader_parameter("water_params", Vector4(wc.r, wc.g, wc.b, _water_mode))
 
 func _run_bench(delta: float) -> void:
 	if not _bench:

@@ -140,7 +140,7 @@ static func block_color(block_id: int) -> Color:
 	if _block_color.has(block_id):
 		return _block_color[block_id]
 	var c := Color(0.62, 0.6, 0.58)
-	if block_id > 0 and Textures != null and Textures.block_array != null:
+	if block_id > 0 and Textures != null and Textures.block_atlas != null:
 		var face := 2                                    # top face reads best for ground blocks
 		var layer := 0
 		if BlockTable.built and block_id * 6 + face < BlockTable.face_layer.size():
@@ -148,8 +148,10 @@ static func block_color(block_id: int) -> Color:
 		else:
 			layer = Textures.block_face_layer(block_id, face)
 		var img: Image = null
-		if layer > 0 and layer < Textures.block_array.get_layers():
-			img = Textures.block_array.get_layer_data(layer)
+		if layer > 0:
+			# The block tiles are one 2D atlas now (Textures.build_block_array); this pulls the
+			# same 16x16 tile the old Texture2DArray layer used to hand back.
+			img = Textures.tile_image(layer)
 		if img != null:
 			var r := 0.0
 			var g := 0.0

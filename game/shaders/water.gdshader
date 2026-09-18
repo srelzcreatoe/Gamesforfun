@@ -38,7 +38,7 @@ render_mode blend_mix, cull_disabled, depth_draw_always, unshaded, shadows_disab
 //   sky_night_params    xyz night colour    w min_daylight
 //   sky_sunset_params   xyz sunset colour   w view_flags = quality + 4*fancy_water + 8*underwater
 //   sky_day_params      xyz day colour      w camera near plane (reverse-Z depth decoding)
-uniform sampler2DArray tiles : source_color, filter_nearest, repeat_disable;
+uniform sampler2D tiles : source_color, filter_nearest, repeat_disable;
 uniform vec4 sun_params = vec4(1.0, 0.96, 0.9, 1.0);
 uniform vec4 fog_params = vec4(0.75, 0.84, 0.96, 48.0);
 uniform vec4 ambient_params = vec4(0.45, 0.52, 0.66, 96.0);
@@ -68,6 +68,24 @@ const vec3 FOAM_COLOR = vec3(0.92, 0.97, 1.0);
 
 uniform sampler2D screen_tex : hint_screen_texture, repeat_disable, filter_linear;
 uniform sampler2D depth_tex : hint_depth_texture, repeat_disable, filter_nearest;
+
+// --- the block atlas ----------------------------------------------------------------------------
+// The tiles used to be a Texture2DArray, one layer per tile. GLES3 only guarantees
+// GL_MAX_ARRAY_TEXTURE_LAYERS = 256 and we ship ~470, so on a phone the array was never created,
+// every block sampled an incomplete texture (all black) and the driver kept drawing from it. They
+// now live in ONE 2D atlas of TILE_PX cells (Textures.build_block_array); the `layer` index in
+// UV2.x is unchanged, and the cell grid is read from the texture itself, so this costs no uniform.
+const float TILE_PX = 16.0;
+
+vec4 tile_texel(vec3 uv_layer) {
+	vec2 grid = vec2(textureSize(tiles, 0)) / TILE_PX;     // cells across, cells down
+	vec2 cell = vec2(mod(uv_layer.z, grid.x), floor(uv_layer.z / grid.x));
+	// Half a texel in from the cell edge: with filter_nearest a uv of exactly 1.0 would otherwise
+	// land on the first texel of the NEXT cell. The chunk meshes never tile a face, so clamping
+	// (rather than fract) is the right edge rule here.
+	vec2 uv = clamp(uv_layer.xy, vec2(0.5 / TILE_PX), vec2(1.0 - 0.5 / TILE_PX));
+	return texture(tiles, (cell + uv) / grid);
+}
 
 varying vec3 v_uv_layer;
 varying vec3 v_normal;
@@ -186,7 +204,7 @@ void fragment() {
 	float view_dist = length(v_world - cam);
 	float t = time * WAVE_SPEED;
 
-	vec4 tex = texture(tiles, v_uv_layer);
+	vec4 tex = tile_texel(v_uv_layer);
 	vec3 tint = COLOR.rgb;
 
 	// --- voxel light, exactly like the chunk shaders ----------------------------------------

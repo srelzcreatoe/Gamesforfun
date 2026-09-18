@@ -41,13 +41,14 @@ func _build() -> void:
 		mi.sorting_offset = -200.0 - float(i)          # always behind other transparent surfaces
 		var mat := ShaderMaterial.new()
 		mat.shader = shader
-		mat.set_shader_parameter("layer_scale", float(def["scale"]))
-		mat.set_shader_parameter("layer_parallax", float(def["parallax"]))
-		mat.set_shader_parameter("layer_opacity", float(def["opacity"]))
-		mat.set_shader_parameter("wind", def["wind"])
-		mat.set_shader_parameter("softness", float(def["softness"]))
-		mat.set_shader_parameter("fade_start", 260.0 + 140.0 * float(i))
-		mat.set_shader_parameter("fade_end", 1500.0)
+		# Packed (shaders/clouds.gdshader): cloud_layer_params x = scale * parallax (the shader
+		# only ever used the product), y = opacity, z = softness, w = fade_start;
+		# cloud_wind_params xy = wind, z = coverage, w = fade_end.
+		var wind: Vector2 = def["wind"]
+		mat.set_shader_parameter("cloud_layer_params", Vector4(
+			float(def["scale"]) * float(def["parallax"]), float(def["opacity"]),
+			float(def["softness"]), 260.0 + 140.0 * float(i)))
+		mat.set_shader_parameter("cloud_wind_params", Vector4(wind.x, wind.y, 0.45, 1500.0))
 		mi.material_override = mat
 		add_child(mi)
 		planes.append(mi)
@@ -70,12 +71,17 @@ func update_clouds(camera: Camera3D, sky: Node, coverage: float, tint: Color) ->
 		var mat: ShaderMaterial = materials[i]
 		if sky != null and sky.has_method("apply_to_material"):
 			sky.call("apply_to_material", mat)
-		mat.set_shader_parameter("coverage", clampf(coverage, 0.0, 1.0) * (1.0 if i == 0 else 0.82))
-		mat.set_shader_parameter("cloud_tint", tint)
+		var wind: Vector2 = def["wind"]
+		mat.set_shader_parameter("cloud_wind_params", Vector4(wind.x, wind.y,
+			clampf(coverage, 0.0, 1.0) * (1.0 if i == 0 else 0.82), 1500.0))
+		mat.set_shader_parameter("cloud_tint_params", Vector4(tint.r, tint.g, tint.b, 0.0))
 		# Layers above the camera are seen from below; when the camera climbs above a layer we see
 		# its top, so flip the plane's shading by pushing it further and softening it.
 		var above := cam_pos.y > float(def["height"])
-		mat.set_shader_parameter("layer_opacity", float(def["opacity"]) * (0.65 if above else 1.0))
+		mat.set_shader_parameter("cloud_layer_params", Vector4(
+			float(def["scale"]) * float(def["parallax"]),
+			float(def["opacity"]) * (0.65 if above else 1.0),
+			float(def["softness"]), 260.0 + 140.0 * float(i)))
 		mi.visible = absf(cam_pos.y - float(def["height"])) > 1.5
 
 ## Height of the lowest cloud layer (the World uses it to know when the player is inside the clouds).

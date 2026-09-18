@@ -28,7 +28,16 @@ func setup() -> void:
 	visible = false
 
 ## 0 disables the pass entirely (the CanvasLayer is hidden, so no screen copy is taken).
+##
+## Phones never run it at all: the pass needs a screen texture, i.e. a full back-buffer copy plus a
+## second full-screen fragment program, and the whole point of the mobile shader pass is to keep the
+## phone's fragment budget (GLES3 guarantees only 224 uniform vectors) and its bandwidth for the
+## world itself. The world's post pass is the ONE screen-reading pass left on mobile.
 func set_strength(s: float) -> void:
+	if Game != null and Game.is_mobile():
+		strength = 0.0
+		visible = false
+		return
 	strength = clampf(s, 0.0, 1.0)
 	visible = strength > 0.01 and _mat != null and _mat.shader != null
 	if _mat != null:

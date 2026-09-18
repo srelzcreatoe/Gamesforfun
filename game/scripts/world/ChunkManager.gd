@@ -137,8 +137,8 @@ func _make_material(path: String) -> ShaderMaterial:
 	else:
 		Log.e("ChunkManager: missing shader " + path)
 		return m
-	if Textures.block_array != null:
-		m.set_shader_parameter("tiles", Textures.block_array)
+	if Textures.block_atlas != null:
+		m.set_shader_parameter("tiles", Textures.block_atlas)
 	# Packed lighting contract, shared by every world shader (see shaders/chunk_opaque.gdshader):
 	#   sun_params xyz sun colour, w daylight          fog_params xyz fog colour, w fog_start
 	#   ambient_params xyz ambient, w fog_end          sun_dir_params xyz sun direction, w time

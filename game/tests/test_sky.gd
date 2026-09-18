@@ -155,9 +155,22 @@ func test_apply_to_material_fills_the_chunk_contract() -> void:
 	if ResourceLoader.exists("res://shaders/water.gdshader"):
 		mat.shader = load("res://shaders/water.gdshader")
 	sky.apply_to_material(mat)
-	for name in ["daylight", "sun_color", "fog_color", "fog_start", "fog_end", "time", "ambient_color",
-			"sun_dir", "day_color", "horizon_color", "night_color", "sunset_color", "weather_darkness"]:
+	# The chunk/water contract travels PACKED now: eight vec4s instead of nineteen scalars and
+	# vec3s, because a phone only guarantees 224 fragment uniform vectors (see the contract at the
+	# top of shaders/chunk_opaque.gdshader). Same thing checked: every slot the water shader reads
+	# is filled, and the values inside them are the sky's.
+	for name in ["sun_params", "fog_params", "ambient_params", "sun_dir_params",
+			"sky_horizon_params", "sky_night_params", "sky_sunset_params", "sky_day_params"]:
 		assert_true(mat.get_shader_parameter(name) != null, "material uniform " + name + " must be set")
+	var sun_p: Vector4 = mat.get_shader_parameter("sun_params")
+	assert_near(sun_p.w, sky.daylight(), 0.001, "sun_params.w carries daylight")
+	assert_near(sun_p.x, sky.sun_color().r, 0.001, "sun_params.xyz carries the sun colour")
+	var fog_p: Vector4 = mat.get_shader_parameter("fog_params")
+	assert_near(fog_p.w, sky.fog_start(), 0.001, "fog_params.w carries fog_start")
+	assert_near(mat.get_shader_parameter("ambient_params").w, sky.fog_end(), 0.001,
+		"ambient_params.w carries fog_end")
+	assert_near(mat.get_shader_parameter("sun_dir_params").y, sky.sun_direction().y, 0.001,
+		"sun_dir_params.xyz carries the sun direction")
 
 func test_underwater_fog_turns_to_water_colour() -> void:
 	var sky := _make()

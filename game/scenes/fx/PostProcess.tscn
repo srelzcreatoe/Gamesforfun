@@ -4,22 +4,10 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_post"]
 shader = ExtResource("1_shader")
-shader_parameter/exposure = 1.0
-shader_parameter/saturation = 1.08
-shader_parameter/vibrance = 0.18
-shader_parameter/vignette = 0.32
-shader_parameter/aberration = 0.6
-shader_parameter/contrast = 1.02
-shader_parameter/underwater = 0.0
-shader_parameter/underwater_tint = Color(0.06, 0.22, 0.55, 1)
-shader_parameter/time = 0.0
-shader_parameter/flash = 0.0
-shader_parameter/quality = 2
-shader_parameter/gamma_correct = 1
-shader_parameter/sun_screen_pos = Vector2(0.5, 0.5)
-shader_parameter/sun_visible = 0.0
-shader_parameter/sun_color = Color(1, 0.93, 0.82, 1)
-shader_parameter/god_rays = 0.45
+shader_parameter/post_params = Vector4(1, 0, 0, 2)
+shader_parameter/sun_params = Vector4(1, 0.93, 0.82, 0.45)
+shader_parameter/sun_screen_params = Vector4(0.5, 0.5, 0, 0)
+shader_parameter/underwater_params = Vector4(0.06, 0.22, 0.55, 0)
 
 [node name="PostProcess" type="CanvasLayer"]
 layer = 3
