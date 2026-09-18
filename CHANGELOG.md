@@ -1,5 +1,13 @@
 # Changelog
 
+## Preview 3 (2026-09-18)
+
+- Hair is DragonMineZ's own: all 27 mod hair presets decoded from the jar, rendered with the mod's strand geometry and hair texture; Super Saiyan variants per preset.
+- Pierced Animations pack replaces the same-named Serious Player Animations clips; DMZ clips untouched.
+- Character screen and menus restyled with DMZ panoramas, panels, buttons and HUD art; 3D preview always visible.
+- Cinematic four-phase transformations, ki/beam/hit/explosion VFX pass; ambient life (leaves, fireflies, butterflies, birds, splashes).
+- Android build is 64-bit only; boot breadcrumb log at user://boot.log for crash reports.
+
 ## Preview 2 (2026-09-17)
 
 - Fixed world loading (a parse error in the transformation cinematic took the player scripts down with it).
