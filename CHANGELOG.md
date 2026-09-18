@@ -1,5 +1,12 @@
 # Changelog
 
+## Preview 9 (2026-09-18)
+
+- Fixed the black blocks and the most likely cause of the Android crash: block tiles were a 470-layer texture array, but mobile GL only guarantees 256 layers, so the array never built on the phone. They are now one 512x240 atlas.
+- World shaders packed into shared vec4 uniforms (water 36 to 12, clouds 22 to 10, cutout 19 to 8, opaque 13 to 5, post 23 to 11) with stripped mobile variants; no back-buffer copies on phones except the post pass.
+- Crash log screen on the main menu with one-tap copy, plus engine file logging.
+- Phones start on the minimal preset; mobile renderer light limits reduced.
+
 ## Preview 6 (2026-09-18)
 
 - Crash diagnosis: the main menu shows "Last run ended at: <stage>" from the previous session's boot log; timed breadcrumbs during world load.
