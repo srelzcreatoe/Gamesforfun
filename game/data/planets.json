@@ -1,0 +1,1128 @@
+{
+ "planets": [
+  {
+   "id": "earth",
+   "name": "Earth",
+   "gravity": 1.0,
+   "oxygen": true,
+   "temperature": 15,
+   "biomes": [
+    "plains",
+    "sunflower_plains",
+    "forest",
+    "birch_forest",
+    "dark_forest",
+    "jungle",
+    "taiga",
+    "snowy_taiga",
+    "snowy_plains",
+    "ice_spikes",
+    "desert",
+    "badlands",
+    "savanna",
+    "swamp",
+    "mountains",
+    "meadow",
+    "cherry_grove",
+    "beach",
+    "ocean",
+    "deep_ocean",
+    "frozen_ocean",
+    "river",
+    "mushroom_fields",
+    "wasteland",
+    "alpine_clearings",
+    "alpine_highlands",
+    "sleeted_slopes",
+    "snowcapped_red_peaks",
+    "red_peaks",
+    "white_cliffs",
+    "tundra",
+    "boreal_taiga",
+    "snowy_fir_forest",
+    "snowy_redwood_forest",
+    "fir_forest",
+    "coniferous_covert",
+    "prairie",
+    "redwood_forest",
+    "maple_woodlands",
+    "marigold_meadows",
+    "golden_wilds",
+    "aspen_forest",
+    "wisteria_forest",
+    "floral_ridges",
+    "sugi_forest",
+    "windswept_sugi_forest",
+    "cypress_fields",
+    "lavender_fields",
+    "carnation_fields",
+    "heather_fields",
+    "cedar_thicket",
+    "woody_highlands",
+    "marsh",
+    "bamboo_wetlands",
+    "tropical_basin",
+    "tropical_woods",
+    "sparse_tropical_woods",
+    "tropical_shores",
+    "oak_savanna",
+    "arid_savanna",
+    "chaparral",
+    "shrubland",
+    "xeric_plains",
+    "drylands",
+    "wooded_drylands",
+    "lively_dunes",
+    "blooming_dunes",
+    "scorched_dunes",
+    "stratified_desert",
+    "dusty_slopes"
+   ],
+   "generator": "earth",
+   "sea_level": 62,
+   "default_block": "stone",
+   "min_y": 0,
+   "height": 256,
+   "ambient_light": 0.0,
+   "day_length": 20,
+   "spawn": [
+    0,
+    -1,
+    0
+   ],
+   "sky": {
+    "type": "atmosphere",
+    "day": "#7DAEFF",
+    "horizon": "#CFE4FF",
+    "night": "#050818",
+    "sunset": "#FF8C3A",
+    "fog": "#BFD6F5",
+    "stars": 1500,
+    "star_brightness": 0.6,
+    "milky_way": 0.3,
+    "clouds": true,
+    "aurora": false,
+    "sun_scale": 1.0,
+    "moon": true,
+    "has_fog": true,
+    "bodies": []
+   },
+   "structures": [
+    "roshi_house",
+    "goku_house",
+    "kami_lookout",
+    "cell_arena",
+    "gero_lab",
+    "gero_lab_stairs",
+    "gero_lab_underground",
+    "rr_tower",
+    "piccolo_house",
+    "yamcha_house",
+    "vegeta_pod",
+    "trunks_ship",
+    "babidi_ship",
+    "babidi_top",
+    "babidi_bottom",
+    "cc_villager",
+    "capsule_corp",
+    "korin_tower"
+   ],
+   "music": "explore_earth",
+   "travel": {
+    "unlock": "ALWAYS",
+    "icon": 0
+   },
+   "dimension": "minecraft:overworld",
+   "dragon_balls": "earth",
+   "ascent": {
+    "deep_space": "universe_7_deep_space",
+    "arrival": [
+     0,
+     800,
+     0
+    ]
+   }
+  },
+  {
+   "id": "namek",
+   "name": "Namek",
+   "gravity": 1.0,
+   "oxygen": true,
+   "temperature": 28,
+   "biomes": [
+    "ajissa_plains",
+    "namekian_rivers",
+    "namek_rocky",
+    "sacred_land"
+   ],
+   "generator": "namek",
+   "sea_level": 64,
+   "default_block": "namek_stone",
+   "min_y": -64,
+   "height": 384,
+   "ambient_light": 0.0,
+   "day_length": 0,
+   "spawn": [
+    0,
+    -1,
+    0
+   ],
+   "sky": {
+    "type": "atmosphere",
+    "day": "#63A57B",
+    "horizon": "#A8E0BC",
+    "night": "#12301F",
+    "sunset": "#C8F0A0",
+    "fog": "#C0D8FF",
+    "stars": 2200,
+    "star_brightness": 0.65,
+    "milky_way": 0.85,
+    "clouds": true,
+    "aurora": false,
+    "sun_scale": 1.3,
+    "moon": false,
+    "has_fog": true,
+    "bodies": [
+     {
+      "texture": "sun_surface",
+      "scale": 11.0,
+      "kind": "sun"
+     },
+     {
+      "texture": "namek",
+      "scale": 140.0,
+      "kind": "planet",
+      "min_scale": 45.0,
+      "max_range": 1200.0
+     }
+    ]
+   },
+   "structures": [
+    "elder_guru",
+    "frieza_ship",
+    "village_ajissa_center",
+    "village_ajissa_house_big",
+    "village_ajissa_house_small",
+    "village_ajissa_cc_house",
+    "village_ajissa_street_straight",
+    "village_ajissa_street_curve",
+    "village_ajissa_street_t",
+    "village_ajissa_street_cross"
+   ],
+   "music": "namek",
+   "travel": {
+    "unlock": "ALWAYS",
+    "icon": 1
+   },
+   "dimension": "dragonminez:namek",
+   "fixed_time": 0.3125,
+   "suns": 3,
+   "dragon_balls": "namek",
+   "ascent": {
+    "deep_space": "universe_7_deep_space",
+    "arrival": [
+     0,
+     800,
+     0
+    ]
+   }
+  },
+  {
+   "id": "otherworld",
+   "name": "Other World",
+   "gravity": 1.0,
+   "oxygen": true,
+   "temperature": 15,
+   "biomes": [
+    "other_world",
+    "king_kai_planet"
+   ],
+   "generator": "otherworld",
+   "sea_level": 0,
+   "default_block": "otherworld_cloud",
+   "min_y": 0,
+   "height": 320,
+   "ambient_light": 0.0,
+   "day_length": 0,
+   "spawn": [
+    0,
+    41,
+    10
+   ],
+   "sky": {
+    "type": "atmosphere",
+    "day": "#BE55AA",
+    "horizon": "#E0A8D8",
+    "night": "#2A0E28",
+    "sunset": "#FFB0E0",
+    "fog": "#CE7EBD",
+    "stars": 2000,
+    "star_brightness": 0.6,
+    "milky_way": 0.3,
+    "clouds": true,
+    "aurora": false,
+    "sun_scale": 0.8,
+    "moon": false,
+    "has_fog": true,
+    "bodies": [
+     {
+      "texture": "yemma_checkpoint",
+      "scale": 40.0,
+      "kind": "planet",
+      "min_scale": 0.4,
+      "max_range": 2500.0,
+      "target": "otherworld"
+     },
+     {
+      "texture": "heaven",
+      "scale": 40.0,
+      "kind": "planet",
+      "min_scale": 0.4,
+      "max_range": 2500.0,
+      "target": "heaven"
+     }
+    ]
+   },
+   "structures": [
+    "snake_way",
+    "king_kai_planet",
+    "check_in_station"
+   ],
+   "music": "otherworld",
+   "travel": {
+    "unlock": "QUEST:sidequest:bulma_otherworld_drive",
+    "icon": 2
+   },
+   "dimension": "dragonminez:otherworld",
+   "fixed_time": 0.25,
+   "ascent": {
+    "deep_space": "otherworld_space",
+    "arrival": [
+     0,
+     41,
+     10
+    ]
+   }
+  },
+  {
+   "id": "sacred_kai_planet",
+   "name": "Sacred World of the Kai",
+   "gravity": 1.0,
+   "oxygen": true,
+   "temperature": 20,
+   "biomes": [
+    "sacredkai_plains",
+    "sacredkai_hills",
+    "sacredkai_rivers",
+    "sacred_land"
+   ],
+   "generator": "sacred",
+   "sea_level": 64,
+   "default_block": "rocky_stone",
+   "min_y": -64,
+   "height": 384,
+   "ambient_light": 0.0,
+   "day_length": 0,
+   "spawn": [
+    0,
+    -1,
+    0
+   ],
+   "sky": {
+    "type": "atmosphere",
+    "day": "#9A6BE3",
+    "horizon": "#D7A9E6",
+    "night": "#1A0E33",
+    "sunset": "#E0A0FF",
+    "fog": "#D7A9E6",
+    "stars": 2000,
+    "star_brightness": 0.8,
+    "milky_way": 0.3,
+    "clouds": true,
+    "aurora": true,
+    "sun_scale": 1.0,
+    "moon": true,
+    "has_fog": true,
+    "bodies": []
+   },
+   "structures": [
+    "old_kai_pillar",
+    "village_sacred_center",
+    "village_sacred_house_big",
+    "village_sacred_house_small",
+    "village_sacred_street_straight",
+    "village_sacred_street_curve",
+    "village_sacred_street_t",
+    "village_sacred_street_cross",
+    "kai_shrine"
+   ],
+   "music": "otherworld",
+   "travel": {
+    "unlock": "QUEST:buu_saga:23",
+    "icon": 3
+   },
+   "dimension": "dragonminez:sacredkaiplanet",
+   "fixed_time": 0.25
+  },
+  {
+   "id": "time_chamber",
+   "name": "Hyperbolic Time Chamber",
+   "gravity": 10.0,
+   "oxygen": true,
+   "temperature": 45,
+   "biomes": [
+    "hyperbolic_time_chamber"
+   ],
+   "generator": "time_chamber",
+   "sea_level": 0,
+   "default_block": "time_chamber_block",
+   "min_y": -16,
+   "height": 96,
+   "ambient_light": 0.0,
+   "day_length": 0,
+   "spawn": [
+    0,
+    130,
+    0
+   ],
+   "sky": {
+    "type": "atmosphere",
+    "day": "#F7FCFF",
+    "horizon": "#F7FCFF",
+    "night": "#F7FCFF",
+    "sunset": "#F7FCFF",
+    "fog": "#DCF2FF",
+    "stars": 2000,
+    "star_brightness": 0.8,
+    "milky_way": 0.3,
+    "clouds": false,
+    "aurora": false,
+    "sun_scale": 0.0,
+    "moon": false,
+    "has_fog": true,
+    "bodies": []
+   },
+   "structures": [
+    "time_chamber"
+   ],
+   "music": "time_chamber",
+   "travel": {
+    "unlock": "QUEST:bulma_time_chamber_link",
+    "icon": 2
+   },
+   "dimension": "dragonminez:time_chamber",
+   "fixed_time": 0.3125,
+   "endless_day": true
+  },
+  {
+   "id": "vegeta",
+   "name": "Planet Vegeta",
+   "gravity": 10.0,
+   "oxygen": true,
+   "temperature": 40,
+   "biomes": [
+    "vegeta_wasteland"
+   ],
+   "generator": "vegeta",
+   "sea_level": -64,
+   "default_block": "rocky_stone",
+   "min_y": -64,
+   "height": 384,
+   "ambient_light": 0.1,
+   "day_length": 20,
+   "spawn": [
+    0,
+    -1,
+    0
+   ],
+   "sky": {
+    "type": "atmosphere",
+    "day": "#9C3A22",
+    "horizon": "#D06A40",
+    "night": "#180605",
+    "sunset": "#FF6A2A",
+    "fog": "#6E2416",
+    "stars": 2500,
+    "star_brightness": 0.25,
+    "milky_way": 0.85,
+    "clouds": false,
+    "aurora": false,
+    "sun_scale": 1.1,
+    "moon": true,
+    "has_fog": true,
+    "bodies": [
+     {
+      "texture": "sun_surface",
+      "scale": 9.0,
+      "kind": "sun"
+     },
+     {
+      "texture": "vegeta",
+      "scale": 140.0,
+      "kind": "planet",
+      "min_scale": 45.0,
+      "max_range": 1200.0,
+      "target": "vegeta"
+     }
+    ]
+   },
+   "structures": [],
+   "music": "explore_earth",
+   "travel": {
+    "unlock": "PLANET:namek",
+    "icon": 5
+   },
+   "dimension": "dmzplus:vegeta",
+   "terrain_box": {
+    "bound_xz": 6000,
+    "min_y": 32,
+    "max_y": 224
+   },
+   "ascent": {
+    "deep_space": "universe_7_deep_space",
+    "arrival": [
+     0,
+     800,
+     0
+    ]
+   }
+  },
+  {
+   "id": "yardrat",
+   "name": "Planet Yardrat",
+   "gravity": 1.0,
+   "oxygen": true,
+   "temperature": 18,
+   "biomes": [
+    "yardrat_hills"
+   ],
+   "generator": "yardrat",
+   "sea_level": -64,
+   "default_block": "stone",
+   "min_y": -64,
+   "height": 384,
+   "ambient_light": 0.1,
+   "day_length": 20,
+   "spawn": [
+    0,
+    -1,
+    0
+   ],
+   "sky": {
+    "type": "atmosphere",
+    "day": "#E8D44A",
+    "horizon": "#F4E890",
+    "night": "#201C05",
+    "sunset": "#FFD060",
+    "fog": "#C9B23A",
+    "stars": 900,
+    "star_brightness": 0.12,
+    "milky_way": 0.85,
+    "clouds": true,
+    "aurora": false,
+    "sun_scale": 0.9,
+    "moon": false,
+    "has_fog": true,
+    "bodies": [
+     {
+      "texture": "sun_surface",
+      "scale": 9.0,
+      "kind": "sun"
+     },
+     {
+      "texture": "yardrat",
+      "scale": 140.0,
+      "kind": "planet",
+      "min_scale": 45.0,
+      "max_range": 1200.0,
+      "target": "yardrat"
+     }
+    ]
+   },
+   "structures": [],
+   "music": "explore_earth",
+   "travel": {
+    "unlock": "PLANET:namek",
+    "icon": 6
+   },
+   "dimension": "dmzplus:yardrat",
+   "terrain_box": {
+    "bound_xz": 6000,
+    "min_y": 32,
+    "max_y": 224
+   },
+   "ascent": {
+    "deep_space": "universe_7_deep_space",
+    "arrival": [
+     0,
+     800,
+     0
+    ]
+   }
+  },
+  {
+   "id": "vampa",
+   "name": "Planet Vampa",
+   "gravity": 1.0,
+   "oxygen": true,
+   "temperature": 45,
+   "biomes": [
+    "vampa_barrens"
+   ],
+   "generator": "vampa",
+   "sea_level": -64,
+   "default_block": "sandstone",
+   "min_y": -64,
+   "height": 384,
+   "ambient_light": 0.1,
+   "day_length": 20,
+   "spawn": [
+    0,
+    -1,
+    0
+   ],
+   "sky": {
+    "type": "atmosphere",
+    "day": "#8C7A1E",
+    "horizon": "#C0B060",
+    "night": "#14120A",
+    "sunset": "#E0C040",
+    "fog": "#6B5C14",
+    "stars": 1400,
+    "star_brightness": 0.16,
+    "milky_way": 0.85,
+    "clouds": false,
+    "aurora": false,
+    "sun_scale": 0.7,
+    "moon": true,
+    "has_fog": true,
+    "bodies": [
+     {
+      "texture": "sun_surface",
+      "scale": 9.0,
+      "kind": "sun"
+     },
+     {
+      "texture": "vampa",
+      "scale": 140.0,
+      "kind": "planet",
+      "min_scale": 45.0,
+      "max_range": 1200.0,
+      "target": "vampa"
+     }
+    ]
+   },
+   "structures": [],
+   "music": "explore_earth",
+   "travel": {
+    "unlock": "PLANET:vegeta",
+    "icon": 7
+   },
+   "dimension": "dmzplus:vampa",
+   "terrain_box": {
+    "bound_xz": 6000,
+    "min_y": 32,
+    "max_y": 224
+   },
+   "ascent": {
+    "deep_space": "universe_7_deep_space",
+    "arrival": [
+     0,
+     800,
+     0
+    ]
+   }
+  },
+  {
+   "id": "cereal",
+   "name": "Planet Cereal",
+   "gravity": 1.0,
+   "oxygen": true,
+   "temperature": 35,
+   "biomes": [
+    "cereal_mesa"
+   ],
+   "generator": "cereal",
+   "sea_level": -64,
+   "default_block": "terracotta",
+   "min_y": -64,
+   "height": 384,
+   "ambient_light": 0.1,
+   "day_length": 20,
+   "spawn": [
+    0,
+    -1,
+    0
+   ],
+   "sky": {
+    "type": "atmosphere",
+    "day": "#A85A1E",
+    "horizon": "#E98A52",
+    "night": "#1A0C05",
+    "sunset": "#FF9040",
+    "fog": "#E98A52",
+    "stars": 2000,
+    "star_brightness": 0.22,
+    "milky_way": 0.85,
+    "clouds": false,
+    "aurora": false,
+    "sun_scale": 1.0,
+    "moon": true,
+    "has_fog": true,
+    "bodies": [
+     {
+      "texture": "sun_surface",
+      "scale": 9.0,
+      "kind": "sun"
+     },
+     {
+      "texture": "cereal",
+      "scale": 140.0,
+      "kind": "planet",
+      "min_scale": 45.0,
+      "max_range": 1200.0,
+      "target": "cereal"
+     }
+    ]
+   },
+   "structures": [],
+   "music": "explore_earth",
+   "travel": {
+    "unlock": "NEVER",
+    "icon": 4
+   },
+   "dimension": "dmzplus:cereal",
+   "dragon_balls": "cereal",
+   "terrain_box": {
+    "bound_xz": 6000,
+    "min_y": 32,
+    "max_y": 224
+   },
+   "ascent": {
+    "deep_space": "universe_7_deep_space",
+    "arrival": [
+     0,
+     800,
+     0
+    ]
+   }
+  },
+  {
+   "id": "hell_planet",
+   "name": "Hell",
+   "gravity": 20.0,
+   "oxygen": true,
+   "temperature": 70,
+   "biomes": [
+    "hell_planet_wastes"
+   ],
+   "generator": "hell",
+   "sea_level": -64,
+   "default_block": "babidi_stone",
+   "min_y": -64,
+   "height": 384,
+   "ambient_light": 0.15,
+   "day_length": 0,
+   "spawn": [
+    0,
+    -1,
+    0
+   ],
+   "sky": {
+    "type": "atmosphere",
+    "day": "#6E0D0D",
+    "horizon": "#A82020",
+    "night": "#1A0303",
+    "sunset": "#FF3010",
+    "fog": "#3F0606",
+    "stars": 1200,
+    "star_brightness": 0.18,
+    "milky_way": 0.85,
+    "clouds": false,
+    "aurora": false,
+    "sun_scale": 1.4,
+    "moon": false,
+    "has_fog": true,
+    "bodies": [
+     {
+      "texture": "sun_surface",
+      "scale": 9.0,
+      "kind": "sun"
+     },
+     {
+      "texture": "hell_planet",
+      "scale": 140.0,
+      "kind": "planet",
+      "min_scale": 45.0,
+      "max_range": 1200.0,
+      "target": "hell_planet"
+     }
+    ]
+   },
+   "structures": [
+    "hell_gate"
+   ],
+   "music": "hell",
+   "travel": {
+    "unlock": "PLANET:otherworld",
+    "icon": 8
+   },
+   "dimension": "dmzplus:hell_planet",
+   "terrain_box": {
+    "bound_xz": 6000,
+    "min_y": 32,
+    "max_y": 224
+   },
+   "ascent": {
+    "deep_space": "universe_7_deep_space",
+    "arrival": [
+     0,
+     800,
+     0
+    ]
+   }
+  },
+  {
+   "id": "heaven",
+   "name": "Heaven",
+   "gravity": 1.0,
+   "oxygen": true,
+   "temperature": 20,
+   "biomes": [
+    "heaven_meadows"
+   ],
+   "generator": "heaven",
+   "sea_level": -64,
+   "default_block": "stone",
+   "min_y": -64,
+   "height": 384,
+   "ambient_light": 0.4,
+   "day_length": 0,
+   "spawn": [
+    0,
+    -1,
+    0
+   ],
+   "sky": {
+    "type": "atmosphere",
+    "day": "#D9A8E6",
+    "horizon": "#F0D0F8",
+    "night": "#2A1830",
+    "sunset": "#FFC0E8",
+    "fog": "#C9A0D4",
+    "stars": 600,
+    "star_brightness": 0.1,
+    "milky_way": 0.3,
+    "clouds": true,
+    "aurora": true,
+    "sun_scale": 1.0,
+    "moon": true,
+    "has_fog": true,
+    "bodies": [
+     {
+      "texture": "sun_surface",
+      "scale": 11.0,
+      "kind": "sun"
+     }
+    ]
+   },
+   "structures": [
+    "heaven_arch"
+   ],
+   "music": "heaven",
+   "travel": {
+    "unlock": "PLANET:otherworld",
+    "icon": 9
+   },
+   "dimension": "dmzplus:heaven",
+   "fixed_time": 0.25,
+   "terrain_box": {
+    "bound_xz": 6000,
+    "min_y": 32,
+    "max_y": 224
+   },
+   "ascent": {
+    "deep_space": "otherworld_space",
+    "arrival": [
+     0,
+     800,
+     0
+    ]
+   }
+  },
+  {
+   "id": "universe_7_deep_space",
+   "name": "Universe 7 Deep Space",
+   "gravity": 0.0,
+   "oxygen": false,
+   "temperature": -270,
+   "biomes": [
+    "deep_space",
+    "asteroid_field"
+   ],
+   "generator": "space",
+   "sea_level": 0,
+   "default_block": "air",
+   "min_y": 0,
+   "height": 256,
+   "ambient_light": 0.0,
+   "day_length": 0,
+   "spawn": [
+    0,
+    800,
+    0
+   ],
+   "sky": {
+    "type": "space",
+    "day": "#000000",
+    "horizon": "#000000",
+    "night": "#000000",
+    "sunset": "#000000",
+    "fog": "#000000",
+    "stars": 3000,
+    "star_brightness": 0.9,
+    "milky_way": 0.85,
+    "clouds": false,
+    "aurora": false,
+    "sun_scale": 1.0,
+    "moon": false,
+    "has_fog": false,
+    "bodies": [
+     {
+      "texture": "beacon",
+      "scale": 6.0,
+      "kind": "marker"
+     },
+     {
+      "texture": "sun_surface",
+      "scale": 100.0,
+      "kind": "sun",
+      "min_scale": 2.0,
+      "max_range": 7500.0,
+      "target": "sol"
+     },
+     {
+      "texture": "earth",
+      "scale": 40.0,
+      "kind": "planet",
+      "min_scale": 0.4,
+      "max_range": 2500.0,
+      "target": "overworld"
+     },
+     {
+      "texture": "sun_surface",
+      "scale": 100.0,
+      "kind": "sun",
+      "min_scale": 2.0,
+      "max_range": 7500.0,
+      "target": "namek_system"
+     },
+     {
+      "texture": "namek",
+      "scale": 40.0,
+      "kind": "planet",
+      "min_scale": 0.4,
+      "max_range": 2500.0,
+      "target": "namek"
+     },
+     {
+      "texture": "sun_surface",
+      "scale": 100.0,
+      "kind": "sun",
+      "min_scale": 2.0,
+      "max_range": 7500.0,
+      "target": "vegeta_system"
+     },
+     {
+      "texture": "vegeta",
+      "scale": 40.0,
+      "kind": "planet",
+      "min_scale": 0.4,
+      "max_range": 2500.0,
+      "target": "vegeta"
+     },
+     {
+      "texture": "sun_surface",
+      "scale": 100.0,
+      "kind": "sun",
+      "min_scale": 2.0,
+      "max_range": 7500.0,
+      "target": "hell_planet_system"
+     },
+     {
+      "texture": "hell_planet",
+      "scale": 40.0,
+      "kind": "planet",
+      "min_scale": 0.4,
+      "max_range": 2500.0,
+      "target": "hell_planet"
+     },
+     {
+      "texture": "sun_surface",
+      "scale": 100.0,
+      "kind": "sun",
+      "min_scale": 2.0,
+      "max_range": 7500.0,
+      "target": "yardrat_system"
+     },
+     {
+      "texture": "yardrat",
+      "scale": 40.0,
+      "kind": "planet",
+      "min_scale": 0.4,
+      "max_range": 2500.0,
+      "target": "yardrat"
+     },
+     {
+      "texture": "sun_surface",
+      "scale": 100.0,
+      "kind": "sun",
+      "min_scale": 2.0,
+      "max_range": 7500.0,
+      "target": "cereal_system"
+     },
+     {
+      "texture": "cereal",
+      "scale": 40.0,
+      "kind": "planet",
+      "min_scale": 0.4,
+      "max_range": 2500.0,
+      "target": "cereal"
+     },
+     {
+      "texture": "sun_surface",
+      "scale": 100.0,
+      "kind": "sun",
+      "min_scale": 2.0,
+      "max_range": 7500.0,
+      "target": "vampa_system"
+     },
+     {
+      "texture": "vampa",
+      "scale": 40.0,
+      "kind": "planet",
+      "min_scale": 0.4,
+      "max_range": 2500.0,
+      "target": "vampa"
+     },
+     {
+      "texture": "super_dball_1",
+      "scale": 40.0,
+      "kind": "dragon_ball",
+      "min_scale": 0.4,
+      "target": "super_dball_1"
+     },
+     {
+      "texture": "super_dball_2",
+      "scale": 40.0,
+      "kind": "dragon_ball",
+      "min_scale": 0.4,
+      "target": "super_dball_2"
+     },
+     {
+      "texture": "super_dball_3",
+      "scale": 40.0,
+      "kind": "dragon_ball",
+      "min_scale": 0.4,
+      "target": "super_dball_3"
+     },
+     {
+      "texture": "super_dball_4",
+      "scale": 40.0,
+      "kind": "dragon_ball",
+      "min_scale": 0.4,
+      "target": "super_dball_4"
+     },
+     {
+      "texture": "super_dball_5",
+      "scale": 40.0,
+      "kind": "dragon_ball",
+      "min_scale": 0.4,
+      "target": "super_dball_5"
+     },
+     {
+      "texture": "super_dball_6",
+      "scale": 40.0,
+      "kind": "dragon_ball",
+      "min_scale": 0.4,
+      "target": "super_dball_6"
+     },
+     {
+      "texture": "super_dball_7",
+      "scale": 40.0,
+      "kind": "dragon_ball",
+      "min_scale": 0.4,
+      "target": "super_dball_7"
+     }
+    ]
+   },
+   "structures": [],
+   "music": "space",
+   "travel": {
+    "unlock": "ITEM:saiyan_ship",
+    "icon": 10
+   },
+   "dimension": "dmzplus:universe_7_deep_space",
+   "dragon_balls": "super"
+  },
+  {
+   "id": "orbit",
+   "name": "Orbit",
+   "gravity": 0.0,
+   "oxygen": false,
+   "temperature": -270,
+   "biomes": [
+    "orbit"
+   ],
+   "generator": "orbit",
+   "sea_level": 0,
+   "default_block": "air",
+   "min_y": -64,
+   "height": 384,
+   "ambient_light": 0.0,
+   "day_length": 20,
+   "spawn": [
+    0,
+    800,
+    0
+   ],
+   "sky": {
+    "type": "space",
+    "day": "#000208",
+    "horizon": "#001028",
+    "night": "#000000",
+    "sunset": "#102040",
+    "fog": "#000408",
+    "stars": 2000,
+    "star_brightness": 0.55,
+    "milky_way": 0.85,
+    "clouds": false,
+    "aurora": false,
+    "sun_scale": 1.0,
+    "moon": false,
+    "has_fog": false,
+    "bodies": [
+     {
+      "texture": "sun_surface",
+      "scale": 9.0,
+      "kind": "sun"
+     },
+     {
+      "texture": "earth",
+      "scale": 140.0,
+      "kind": "planet",
+      "min_scale": 45.0,
+      "max_range": 1200.0
+     }
+    ]
+   },
+   "structures": [],
+   "music": "space",
+   "travel": {
+    "unlock": "ITEM:saiyan_ship",
+    "icon": 10
+   },
+   "dimension": "dmzplus:orbit"
+  }
+ ]
+}

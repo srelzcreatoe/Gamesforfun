@@ -1,0 +1,68 @@
+{
+ "id": "2",
+ "dmz_id": 2,
+ "quest_id": "saga_frieza:2",
+ "name": "Cui's Pursuit",
+ "desc": "Cui has tracked the resistance to Namek. Drop him before he can report back to Frieza.",
+ "title": "Cui's Pursuit",
+ "description": "Cui has tracked the resistance to Namek. Drop him before he can report back to Frieza.",
+ "type": "SAGA",
+ "category": "saga_frieza",
+ "saga": "frieza_saga",
+ "order": 1,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 112
+   },
+   {
+    "type": "PLANET",
+    "planet": "namek"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:ajissa_plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "1",
+    "quest": "saga_frieza:1"
+   }
+  ]
+ },
+ "min_level": 112,
+ "planet": "namek",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_cui",
+   "entity_name": "Cui",
+   "count": 1,
+   "health": 2652.0,
+   "meleeDamage": 155.0,
+   "kiDamage": 179.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 16320
+  }
+ ]
+}

@@ -1,0 +1,78 @@
+{
+ "id": "piccolo_wilderness_survival",
+ "dmz_id": "piccolo_wilderness_survival",
+ "quest_id": "sidequest_training:piccolo_wilderness_survival",
+ "name": "Wilderness Survival",
+ "desc": "Piccolo believes in training through pure survival. Venture into the forest and prove your combat skills against waves of hostile creatures.",
+ "title": "Wilderness Survival",
+ "description": "Piccolo believes in training through pure survival. Venture into the forest and prove your combat skills against waves of hostile creatures.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_training",
+ "order": 7,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "piccolo",
+ "turn_in": "piccolo",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "BIOME",
+    "biome": "minecraft:forest"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "4",
+    "quest": "saga_saiyan:4"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "bandit",
+   "entity_name": "Bandit",
+   "vanilla_mob": "zombie",
+   "count": 20,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "red_ribbon_soldier",
+   "entity_name": "Red Ribbon's Soldier",
+   "vanilla_mob": "skeleton",
+   "count": 10,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "robot1",
+   "entity_name": "Red Ribbon Robot",
+   "vanilla_mob": "creeper",
+   "count": 5,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 3300
+  }
+ ]
+}

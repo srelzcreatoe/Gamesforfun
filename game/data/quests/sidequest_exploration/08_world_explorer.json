@@ -1,0 +1,49 @@
+{
+ "id": "world_explorer",
+ "dmz_id": "world_explorer",
+ "quest_id": "sidequest_exploration:world_explorer",
+ "name": "World Explorer",
+ "desc": "A warrior must know the land they protect. Explore the different biomes of the world.",
+ "title": "World Explorer",
+ "description": "A warrior must know the land they protect. Explore the different biomes of the world.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_exploration",
+ "order": 7,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "BIOME",
+   "biome": "minecraft:plains"
+  },
+  {
+   "type": "GO_TO",
+   "dmz_type": "BIOME",
+   "biome": "minecraft:desert"
+  },
+  {
+   "type": "GO_TO",
+   "dmz_type": "BIOME",
+   "biome": "minecraft:forest"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 800
+  }
+ ]
+}

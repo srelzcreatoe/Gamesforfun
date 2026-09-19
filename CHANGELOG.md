@@ -1,40 +1,71 @@
 # Changelog
 
-## 0.1.0 — first playable release (2026-08-31)
+## Preview 10 (2026-09-19)
 
-### World
-- Deterministic seeded generation: 8 original biomes, caves, 5 ore types,
-  3 tree families, rivers/oceans, gravity blocks, Waystone ruin structures
-- 4 world types: Standard, Wide Islands, Mountain Realm, Flat Builder
-- Day/night cycle (16 min), weather (clear/rain/fog/snow/storm), BFS voxel
-  lighting with emissive blocks, water + Glow Sap fluids
+- Fixed the Android crash the phone's own log finally pinned down: `Array::_ref` failing means a container was freed while another thread used it. The structure-template cache handed the cached container out from under its mutex, so a second generator thread could evict it mid-read. It now hands out copies, and phones run a single generator thread until the full thread-safety audit lands.
+- Crash log collapses repeated engine-log lines so the useful lines before an error flood survive.
 
-### Gameplay
-- Survival / Creative / Explorer modes; Calm / Adventurous / Fierce difficulties
-- Mining with tool tiers & hold-to-break, placement with body protection,
-  66 blocks, 103 items, 54 discovery-gated recipes, 4 crafting stations
-- Health, hunger, oxygen, fall damage, eating & cooking, crop farming with
-  tilled soil and growth stages
-- 6 creatures with state-machine AI (wander/flee/warn/chase/attack), spawn
-  rules by biome/light/time, drops, melee combat with knockback
-- Storage crates with persistent inventories; death satchel drops
-  (keep-inventory world option)
+## Preview 9 (2026-09-18)
 
-### Android
-- Touch controls: joystick (double-push to sprint), look/tap/hold region,
-  editable-opacity buttons, hotbar, left-handed mode; immersive fullscreen
-  with cutout support
-- Classic survival HUD: heart and food icon rows, crack stages on the block
-  being mined plus a mobile progress ring
-- World management: create (name/seed/mode/difficulty/type), rename,
-  duplicate, delete with confirmation; automatic world backups
-- Atomic compressed chunk saves, autosave, save-on-pause/quit
-- Settings: audio sliders, per-camera sensitivity, FOV, render/simulation
-  distance, performance presets, UI scale, accessibility toggles
-- Original synthesized soundtrack, ambience and material-aware effects
+- Fixed the black blocks and the most likely cause of the Android crash: block tiles were a 470-layer texture array, but mobile GL only guarantees 256 layers, so the array never built on the phone. They are now one 512x240 atlas.
+- World shaders packed into shared vec4 uniforms (water 36 to 12, clouds 22 to 10, cutout 19 to 8, opaque 13 to 5, post 23 to 11) with stripped mobile variants; no back-buffer copies on phones except the post pass.
+- Crash log screen on the main menu with one-tap copy, plus engine file logging.
+- Phones start on the minimal preset; mobile renderer light limits reduced.
 
-### Tooling
-- Procedural texture/icon/audio generators (`tools/`)
-- 31-test unit/integration suite (determinism, save roundtrip, lighting,
-  meshing, crafting, full chunk pipeline)
-- Desktop AutoShot harness for automated visual testing
+## Preview 6 (2026-09-18)
+
+- Crash diagnosis: the main menu shows "Last run ended at: <stage>" from the previous session's boot log; timed breadcrumbs during world load.
+- Block texture mipmaps stay off on phones until the on-device crash is pinned down.
+
+## Preview 5 (2026-09-18)
+
+- Full DragonMineZ character creator: body type, eyes, nose, mouth, tattoo, three skin layers, hair, hair colour, eye colour 1 and 2, per race; touch-verified arrows; fits 20:9 phones without scrolling.
+
+## Preview 4 (2026-09-18)
+
+- Fixed the player skin being invisible in exported builds (skin layers are now resolved through the resource loader).
+- Fixed the Android low-memory kill on "Loading world": structure templates are parsed lazily into packed arrays (world start adds 0.1 MB instead of up to 231 MB); phones use a smaller first-run radius and spawn once the 3x3 ring is meshed.
+- Block texture array has mipmaps (distant blocks no longer go black on phone GPUs); boot log at user://boot.log.
+- Character creator data for body type, eye type, nose, mouth, tattoo and two eye colours (rows follow in the next build).
+
+## Preview 3 (2026-09-18)
+
+- Hair is DragonMineZ's own: all 27 mod hair presets decoded from the jar, rendered with the mod's strand geometry and hair texture; Super Saiyan variants per preset.
+- Pierced Animations pack replaces the same-named Serious Player Animations clips; DMZ clips untouched.
+- Character screen and menus restyled with DMZ panoramas, panels, buttons and HUD art; 3D preview always visible.
+- Cinematic four-phase transformations, ki/beam/hit/explosion VFX pass; ambient life (leaves, fireflies, butterflies, birds, splashes).
+- Android build is 64-bit only; boot breadcrumb log at user://boot.log for crash reports.
+
+## Preview 2 (2026-09-17)
+
+- Fixed world loading (a parse error in the transformation cinematic took the player scripts down with it).
+- Nature's Spirit biomes and Terralith-style Earth terrain; tree-free spawn clearing and safe spawn.
+- Three save slots with per-slot settings, coordinates toggle, dev mode cheat menu.
+- Player animations from DragonMineZ + Serious Player Animations, planet gravity, controls polish.
+- Night City Inventory GUI skin and palette across the menus.
+- Wind field with gusts, whole-canopy leaf sway, foliage pushed away by the player, explosions and hits.
+
+
+## 0.1.0 — first playable build (in progress)
+
+### Engine
+- Godot 4.4 project targeting Android (GL Compatibility renderer, immersive landscape, 60 fps budget)
+- Voxel world: 16×128×16 columns, threaded generation/meshing, per-vertex AO, sky/block light flood
+  fill, Minecraft-style water and lava flow with currents and buoyancy, per-column DEFLATE saves
+- Bedrock model (`.geo.json`) and animation (`.animation.json`, Molang subset) runtime importer for
+  every DragonMineZ character, master, enemy and dragon; DMZ HD textures used when present
+
+### Content
+- 232 blocks (Fused Vanilla textures + DragonMineZ/DMZ Plus blocks + generated planet blocks),
+  DragonMineZ items, recipes, races, forms, skills, techniques, masters and wishes
+- Planets: Earth, Namek, Otherworld, Sacred World of the Kai, Hyperbolic Time Chamber, Planet Vegeta,
+  Yardrat, Vampa, Cereal, Hell Planet, Heaven, deep space
+- 121 story quests across six sagas and 90 sidequests ported from DragonMineZ, quest enemy spawning,
+  dragon balls, dragon summoning and wishes, space travel between planets
+
+### Presentation
+- Over-the-shoulder third-person camera, Cubic World touch HUD, Minecraft-style inventory/crafting,
+  Monocraft font
+- Ki charge, blasts, beams, discs, transformations with cinematic aura/lightning/shockwave sequences
+- Sky, clouds, water, fog and post-processing inspired by Complementary Reimagined; per-planet skies
+- DragonMineZ sound effects and music plus synthesized effects, ambience and battle loops

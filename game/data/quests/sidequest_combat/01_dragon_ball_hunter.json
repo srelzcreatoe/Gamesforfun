@@ -1,0 +1,56 @@
+{
+ "id": "dragon_ball_hunter",
+ "dmz_id": "dragon_ball_hunter",
+ "quest_id": "sidequest_combat:dragon_ball_hunter",
+ "name": "Dragon Ball Hunter",
+ "desc": "",
+ "title": "Dragon Ball Hunter",
+ "description": "",
+ "type": "SIDEQUEST",
+ "category": "sidequest_combat",
+ "order": 0,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "4",
+    "quest": "saga_saiyan:4"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "STRUCTURE",
+   "structure": "minecraft:pillager_outpost"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "bandit",
+   "entity_name": "Bandit",
+   "vanilla_mob": "pillager",
+   "count": 15,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 2000
+  }
+ ]
+}

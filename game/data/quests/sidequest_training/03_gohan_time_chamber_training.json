@@ -1,0 +1,70 @@
+{
+ "id": "gohan_time_chamber_training",
+ "dmz_id": "gohan_time_chamber_training",
+ "quest_id": "sidequest_training:gohan_time_chamber_training",
+ "name": "Gohan's Time Chamber Training",
+ "desc": "Gohan is training inside the Hyperbolic Time Chamber to unlock his hidden potential. Help him prepare by gathering supplies and clearing out phantom threats.",
+ "title": "Gohan's Time Chamber Training",
+ "description": "Gohan is training inside the Hyperbolic Time Chamber to unlock his hidden potential. Help him prepare by gathering supplies and clearing out phantom threats.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_training",
+ "order": 2,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "gohan",
+ "turn_in": "gohan",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "STRUCTURE",
+    "structure": "dragonminez:timechamber"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "11",
+    "quest": "saga_android:11"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "bandit",
+   "entity_name": "Bandit",
+   "vanilla_mob": "phantom",
+   "count": 20,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "golden_apple",
+   "count": 8
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "gohan",
+   "npcId": "gohan"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 72000
+  }
+ ]
+}

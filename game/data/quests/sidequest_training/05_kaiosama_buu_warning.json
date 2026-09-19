@@ -1,0 +1,49 @@
+{
+ "id": "kaiosama_buu_warning",
+ "dmz_id": "kaiosama_buu_warning",
+ "quest_id": "sidequest_training:kaiosama_buu_warning",
+ "name": "Kaiosama's Warning",
+ "desc": "King Kai senses a sleeping evil behind the tournament. Speak with him before Babidi's plan reaches Earth.",
+ "title": "Kaiosama's Warning",
+ "description": "King Kai senses a sleeping evil behind the tournament. Speak with him before Babidi's plan reaches Earth.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_training",
+ "order": 4,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "king_kai",
+ "turn_in": "king_kai",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "1",
+    "quest": "saga_buu:1"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "king_kai",
+   "npcId": "king_kai"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 72000
+  }
+ ]
+}

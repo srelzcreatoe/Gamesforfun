@@ -1,0 +1,68 @@
+{
+ "id": "2",
+ "dmz_id": 2,
+ "quest_id": "saga_android:2",
+ "name": "King Cold",
+ "desc": "King Cold has stepped onto the battlefield himself. Bring down the emperor before his rule reaches Earth.",
+ "title": "King Cold",
+ "description": "King Cold has stepped onto the battlefield himself. Bring down the emperor before his rule reaches Earth.",
+ "type": "SAGA",
+ "category": "saga_android",
+ "saga": "android_saga",
+ "order": 1,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 470
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "1",
+    "quest": "saga_android:1"
+   }
+  ]
+ },
+ "min_level": 470,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_king_cold",
+   "entity_name": "King Cold",
+   "count": 1,
+   "health": 31500.0,
+   "meleeDamage": 1290.0,
+   "kiDamage": 1190.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 55440
+  }
+ ]
+}

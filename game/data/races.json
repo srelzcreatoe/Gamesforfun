@@ -1,0 +1,2673 @@
+{
+ "races": {
+  "human": {
+   "id": "human",
+   "name": "Human",
+   "desc": "They are a terrestrial race with highly versatile combat skills. While they lack the innate power of other races, they are incredibly resourceful and tenacious. They stand out for their perseverance and courage, able to overcome their limitations through training and discipline.",
+   "hasGender": true,
+   "useVanillaSkin": true,
+   "customModel": "",
+   "isLayered": true,
+   "headBones": [
+    "hair"
+   ],
+   "racialSkill": "human",
+   "hasSaiyanTail": false,
+   "auraType": "kakarot",
+   "defaultModelScaling": [
+    0.9375,
+    0.9375,
+    0.9375
+   ],
+   "defaultBodyType": 0,
+   "defaultHairType": 2,
+   "defaultEyesType": 0,
+   "defaultNoseType": 0,
+   "defaultMouthType": 0,
+   "defaultTattooType": 0,
+   "defaultBodyColor": "#FFD3C9",
+   "defaultBodyColor2": "#FFD3C9",
+   "defaultBodyColor3": "#FFD3C9",
+   "defaultHairColor": "#222629",
+   "defaultEye1Color": "#222629",
+   "defaultEye2Color": "#222629",
+   "defaultAuraColor": "#7FFFFF",
+   "formSkillsCosts": {
+    "legendaryforms": [
+     -1,
+     -1,
+     -1
+    ],
+    "godforms": [],
+    "superforms": [
+     21000,
+     42000,
+     65000,
+     104000
+    ],
+    "androidforms": [
+     42000,
+     104000
+    ]
+   },
+   "model": "entity/races/human",
+   "model_slim": "entity/races/human_slim",
+   "animations": [
+    "entity/races/movement",
+    "entity/races/combat",
+    "entity/races/ki",
+    "entity/races/transf",
+    "entity/races/skp"
+   ],
+   "racial_skill_id": "racial_human",
+   "racial_skill_name": "Blood-Fueled Ki",
+   "classes": {
+    "berserker": {
+     "name": "Berserker",
+     "passive_desc": "Below 66% HP you gain 25% HP regen and 10% crit chance. Below 33% HP this rises to 75% HP regen and 25% crit chance.",
+     "baseStats": {
+      "STR": 10,
+      "SKP": 0,
+      "RES": 0,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 1.7,
+      "SKP_scaling": 0.8,
+      "STM_scaling": 1.1,
+      "DEF_scaling": 0.18,
+      "VIT_scaling": 3.0,
+      "PWR_scaling": 0.4,
+      "ENE_scaling": 1.3
+     },
+     "baseHp5": 1.0,
+     "hp5VitScaling": 0.0375,
+     "baseEp5": 2.0,
+     "ep5EneScaling": 0.04,
+     "baseSp5": 14.0,
+     "sp5StmScaling": 0.13,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "critHigh": 0.1,
+       "hpThreshHigh": 0.66,
+       "critLow": 0.25,
+       "hpThreshLow": 0.33,
+       "hpRegenLow": 0.75,
+       "hpRegenHigh": 0.25
+      }
+     }
+    },
+    "cleric": {
+     "name": "Cleric",
+     "passive_desc": "Healing Ki attacks have 20% reduced cooldown. Those that also grant an ally buff get 15% reduced cooldown instead, but the buff lasts 25% longer.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 5,
+      "VIT": 0,
+      "PWR": 0,
+      "ENE": 15
+     },
+     "statScaling": {
+      "STR_scaling": 0.5,
+      "SKP_scaling": 0.5,
+      "STM_scaling": 2.6,
+      "DEF_scaling": 0.168,
+      "VIT_scaling": 1.2,
+      "PWR_scaling": 0.8,
+      "ENE_scaling": 3.0
+     },
+     "baseHp5": 0.5,
+     "hp5VitScaling": 0.015,
+     "baseEp5": 12.0,
+     "ep5EneScaling": 0.24,
+     "baseSp5": 16.0,
+     "sp5StmScaling": 0.12,
+     "tpCostMultiplier": 0.9,
+     "tpGainMultiplier": 1.25,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "cdPrimary": 0.2,
+       "cdSecondary": 0.15,
+       "durationBonus": 0.25
+      }
+     }
+    },
+    "martialartist": {
+     "name": "Martial Artist",
+     "passive_desc": "Strike attacks deal up to 25% more damage based on the target's missing health (no bonus above 75% HP, full bonus at or below 25% HP).",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 10,
+      "RES": 0,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.8,
+      "SKP_scaling": 1.8,
+      "STM_scaling": 1.3,
+      "DEF_scaling": 0.18,
+      "VIT_scaling": 2.2,
+      "PWR_scaling": 0.6,
+      "ENE_scaling": 1.6
+     },
+     "baseHp5": 1.5,
+     "hp5VitScaling": 0.0525,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 9.0,
+     "sp5StmScaling": 0.09,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "hpLow": 0.25,
+       "maxBonus": 0.25,
+       "hpHigh": 0.75
+      }
+     }
+    },
+    "paladin": {
+     "name": "Paladin",
+     "passive_desc": "15% of the damage your party members take is redirected to you. You heal for 15% of the damage your party members deal.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 5,
+      "RES": 10,
+      "VIT": 5,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.8,
+      "SKP_scaling": 1.2,
+      "STM_scaling": 1.2,
+      "DEF_scaling": 0.336,
+      "VIT_scaling": 2.0,
+      "PWR_scaling": 0.6,
+      "ENE_scaling": 1.2
+     },
+     "baseHp5": 2.0,
+     "hp5VitScaling": 0.0675,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 8.0,
+     "sp5StmScaling": 0.08,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "lifestealPct": 0.15,
+       "redirectPct": 0.15
+      }
+     }
+    },
+    "spiritualist": {
+     "name": "Spiritualist",
+     "passive_desc": "Damaging Ki attacks have 20% reduced cooldown. Those that also apply a debuff get 15% reduced cooldown instead, but the debuff lasts 25% longer.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 0,
+      "VIT": 0,
+      "PWR": 10,
+      "ENE": 10
+     },
+     "statScaling": {
+      "STR_scaling": 0.3,
+      "SKP_scaling": 0.5,
+      "STM_scaling": 0.7,
+      "DEF_scaling": 0.156,
+      "VIT_scaling": 1.4,
+      "PWR_scaling": 1.9,
+      "ENE_scaling": 3.7
+     },
+     "baseHp5": 0.5,
+     "hp5VitScaling": 0.015,
+     "baseEp5": 8.0,
+     "ep5EneScaling": 0.2,
+     "baseSp5": 5.0,
+     "sp5StmScaling": 0.05,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "cdPrimary": 0.2,
+       "cdSecondary": 0.15,
+       "durationBonus": 0.25
+      }
+     }
+    },
+    "tank": {
+     "name": "Tank",
+     "passive_desc": "50% of your stamina regen is granted as bonus HP regen (not a conversion). Healing you receive (passive or ally skills, not from eating) is 25% more effective. Below 30% HP both bonuses are doubled.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 10,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.6,
+      "SKP_scaling": 0.7,
+      "STM_scaling": 1.5,
+      "DEF_scaling": 0.384,
+      "VIT_scaling": 2.5,
+      "PWR_scaling": 0.5,
+      "ENE_scaling": 0.8
+     },
+     "baseHp5": 2.25,
+     "hp5VitScaling": 0.075,
+     "baseEp5": 5.0,
+     "ep5EneScaling": 0.1,
+     "baseSp5": 9.0,
+     "sp5StmScaling": 0.09,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.25,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "lowHpThreshold": 0.3,
+       "stmToHpRegenRatio": 0.5,
+       "lowHpMultiplier": 2.0,
+       "healingBonus": 0.25
+      }
+     }
+    },
+    "warrior": {
+     "name": "Warrior",
+     "passive_desc": "Landing 3 melee hits in a row (each connecting, none blocked) grants a Fury stack, up to 5. Each stack increases STM regen by 10%; at 5 stacks you also gain 10% defense penetration. Stacks refresh when you deal damage and fade if you stop.",
+     "baseStats": {
+      "STR": 10,
+      "SKP": 0,
+      "RES": 5,
+      "VIT": 5,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 1.4,
+      "SKP_scaling": 1.0,
+      "STM_scaling": 1.6,
+      "DEF_scaling": 0.24,
+      "VIT_scaling": 1.8,
+      "PWR_scaling": 0.5,
+      "ENE_scaling": 1.5
+     },
+     "baseHp5": 1.75,
+     "hp5VitScaling": 0.06,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 12.0,
+     "sp5StmScaling": 0.12,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "armorPenAtMax": 0.1,
+       "comboHits": 3.0,
+       "stmRegenPerStack": 0.1,
+       "comboResetTicks": 60.0,
+       "maxStacks": 5.0,
+       "stackDurationTicks": 100.0
+      }
+     }
+    }
+   },
+   "base_stats": {
+    "STR": 5,
+    "SKP": 5,
+    "STM": 5,
+    "RES": 5,
+    "VIT": 5,
+    "PWR": 5,
+    "ENE": 5
+   },
+   "stat_multipliers": {
+    "STR": 1.0,
+    "SKP": 1.0,
+    "STM": 1.0,
+    "RES": 1.0,
+    "VIT": 1.0,
+    "PWR": 1.0,
+    "ENE": 1.1,
+    "health_regen": 1.0,
+    "ki_regen": 1.15,
+    "tp_gain": 1.0
+   },
+   "form_groups": [
+    "androidforms",
+    "legendaryforms",
+    "superforms",
+    "kaioken",
+    "ultimate"
+   ],
+   "textures": {
+    "dir": "races/humansaiyan",
+    "body": [
+     "bodytype_female_1",
+     "bodytype_female_2",
+     "bodytype_male_1",
+     "bodytype_male_2"
+    ],
+    "form_layers": [
+     "oozaru_layer1",
+     "oozaru_layer2",
+     "oozaru_layer3",
+     "ssj4d_layer1",
+     "ssj4gt_layer1"
+    ],
+    "eyes": [
+     "humansaiyan_eye_0_0",
+     "humansaiyan_eye_0_1",
+     "humansaiyan_eye_0_2",
+     "humansaiyan_eye_0_3",
+     "humansaiyan_eye_10_0",
+     "humansaiyan_eye_10_1",
+     "humansaiyan_eye_10_2",
+     "humansaiyan_eye_10_3",
+     "humansaiyan_eye_11_0",
+     "humansaiyan_eye_11_1",
+     "humansaiyan_eye_11_2",
+     "humansaiyan_eye_11_3",
+     "humansaiyan_eye_12_0",
+     "humansaiyan_eye_12_1",
+     "humansaiyan_eye_12_2",
+     "humansaiyan_eye_12_3",
+     "humansaiyan_eye_1_0",
+     "humansaiyan_eye_1_1",
+     "humansaiyan_eye_1_2",
+     "humansaiyan_eye_1_3",
+     "humansaiyan_eye_2_0",
+     "humansaiyan_eye_2_1",
+     "humansaiyan_eye_2_2",
+     "humansaiyan_eye_2_3",
+     "humansaiyan_eye_3_0",
+     "humansaiyan_eye_3_1",
+     "humansaiyan_eye_3_2",
+     "humansaiyan_eye_3_3",
+     "humansaiyan_eye_4_0",
+     "humansaiyan_eye_4_1",
+     "humansaiyan_eye_4_2",
+     "humansaiyan_eye_4_3",
+     "humansaiyan_eye_5_0",
+     "humansaiyan_eye_5_1",
+     "humansaiyan_eye_5_2",
+     "humansaiyan_eye_5_3",
+     "humansaiyan_eye_6_0",
+     "humansaiyan_eye_6_1",
+     "humansaiyan_eye_6_2",
+     "humansaiyan_eye_6_3",
+     "humansaiyan_eye_7_0",
+     "humansaiyan_eye_7_1",
+     "humansaiyan_eye_7_2",
+     "humansaiyan_eye_7_3",
+     "humansaiyan_eye_8_0",
+     "humansaiyan_eye_8_1",
+     "humansaiyan_eye_8_2",
+     "humansaiyan_eye_8_3",
+     "humansaiyan_eye_9_0",
+     "humansaiyan_eye_9_1",
+     "humansaiyan_eye_9_2",
+     "humansaiyan_eye_9_3",
+     "shiyoken_eye0",
+     "shiyoken_eye1",
+     "ssj3eyebrows_eye_0",
+     "ssj3eyebrows_eye_1",
+     "ssj3eyebrows_eye_10",
+     "ssj3eyebrows_eye_11",
+     "ssj3eyebrows_eye_12",
+     "ssj3eyebrows_eye_2",
+     "ssj3eyebrows_eye_3",
+     "ssj3eyebrows_eye_4",
+     "ssj3eyebrows_eye_5",
+     "ssj3eyebrows_eye_6",
+     "ssj3eyebrows_eye_7",
+     "ssj3eyebrows_eye_8",
+     "ssj3eyebrows_eye_9",
+     "ssj4_eyes_0",
+     "ssj4_eyes_1",
+     "ssj4_eyes_10",
+     "ssj4_eyes_11",
+     "ssj4_eyes_12",
+     "ssj4_eyes_2",
+     "ssj4_eyes_3",
+     "ssj4_eyes_4",
+     "ssj4_eyes_6",
+     "ssj4_eyes_7",
+     "ssj4_eyes_8",
+     "ssj4_eyes_9"
+    ],
+    "nose": [
+     "humansaiyan_nose_0",
+     "humansaiyan_nose_1",
+     "humansaiyan_nose_2",
+     "humansaiyan_nose_3",
+     "humansaiyan_nose_4",
+     "humansaiyan_nose_5"
+    ],
+    "mouth": [
+     "humansaiyan_mouth_0",
+     "humansaiyan_mouth_1",
+     "humansaiyan_mouth_2",
+     "humansaiyan_mouth_3",
+     "humansaiyan_mouth_4",
+     "humansaiyan_mouth_5",
+     "humansaiyan_mouth_6",
+     "humansaiyan_mouth_7",
+     "humansaiyan_mouth_8"
+    ],
+    "hair": "races/hair",
+    "hair_base": "races/hair_base",
+    "tattoos": [
+     "races/tattoos/tattoo_0",
+     "races/tattoos/tattoo_1",
+     "races/tattoos/tattoo_2",
+     "races/tattoos/tattoo_3",
+     "races/tattoos/tattoo_4",
+     "races/tattoos/tattoo_5"
+    ],
+    "base": "races/base",
+    "hd": true
+   }
+  },
+  "saiyan": {
+   "id": "saiyan",
+   "name": "Saiyan",
+   "desc": "They are a warrior race born for combat. Their innate ability to grow stronger after each battle makes them formidable opponents. They can even transform into powerful Super Saiyans and take their abilities to unimaginable levels.",
+   "hasGender": true,
+   "useVanillaSkin": true,
+   "customModel": "",
+   "isLayered": true,
+   "headBones": [
+    "hair"
+   ],
+   "racialSkill": "saiyan",
+   "hasSaiyanTail": true,
+   "auraType": "kakarot",
+   "defaultModelScaling": [
+    0.9375,
+    0.9375,
+    0.9375
+   ],
+   "defaultBodyType": 0,
+   "defaultHairType": 2,
+   "defaultEyesType": 0,
+   "defaultNoseType": 0,
+   "defaultMouthType": 0,
+   "defaultTattooType": 0,
+   "defaultBodyColor": "#FFD3C9",
+   "defaultBodyColor2": "#572117",
+   "defaultBodyColor3": "#FFD3C9",
+   "defaultHairColor": "#222629",
+   "defaultEye1Color": "#222629",
+   "defaultEye2Color": "#222629",
+   "defaultAuraColor": "#7FFFFF",
+   "formSkillsCosts": {
+    "legendaryforms": [
+     -1,
+     -1,
+     -1
+    ],
+    "godforms": [],
+    "superforms": [
+     13000,
+     21000,
+     31000,
+     42000,
+     52000,
+     65000,
+     78000,
+     104000
+    ]
+   },
+   "model": "entity/races/human",
+   "model_slim": "entity/races/human_slim",
+   "animations": [
+    "entity/races/movement",
+    "entity/races/combat",
+    "entity/races/ki",
+    "entity/races/transf",
+    "entity/races/skp"
+   ],
+   "racial_skill_id": "racial_saiyan",
+   "racial_skill_name": "Zenkai",
+   "classes": {
+    "berserker": {
+     "name": "Berserker",
+     "passive_desc": "Below 66% HP you gain 25% HP regen and 10% crit chance. Below 33% HP this rises to 75% HP regen and 25% crit chance.",
+     "baseStats": {
+      "STR": 10,
+      "SKP": 0,
+      "RES": 0,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 1.7,
+      "SKP_scaling": 0.8,
+      "STM_scaling": 1.1,
+      "DEF_scaling": 0.18,
+      "VIT_scaling": 3.0,
+      "PWR_scaling": 0.4,
+      "ENE_scaling": 1.3
+     },
+     "baseHp5": 1.0,
+     "hp5VitScaling": 0.0375,
+     "baseEp5": 2.0,
+     "ep5EneScaling": 0.04,
+     "baseSp5": 14.0,
+     "sp5StmScaling": 0.13,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "critHigh": 0.1,
+       "hpThreshHigh": 0.66,
+       "critLow": 0.25,
+       "hpThreshLow": 0.33,
+       "hpRegenLow": 0.75,
+       "hpRegenHigh": 0.25
+      }
+     }
+    },
+    "cleric": {
+     "name": "Cleric",
+     "passive_desc": "Healing Ki attacks have 20% reduced cooldown. Those that also grant an ally buff get 15% reduced cooldown instead, but the buff lasts 25% longer.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 5,
+      "VIT": 0,
+      "PWR": 0,
+      "ENE": 15
+     },
+     "statScaling": {
+      "STR_scaling": 0.5,
+      "SKP_scaling": 0.5,
+      "STM_scaling": 2.6,
+      "DEF_scaling": 0.168,
+      "VIT_scaling": 1.2,
+      "PWR_scaling": 0.8,
+      "ENE_scaling": 3.0
+     },
+     "baseHp5": 0.5,
+     "hp5VitScaling": 0.015,
+     "baseEp5": 12.0,
+     "ep5EneScaling": 0.24,
+     "baseSp5": 16.0,
+     "sp5StmScaling": 0.12,
+     "tpCostMultiplier": 0.9,
+     "tpGainMultiplier": 1.25,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "cdPrimary": 0.2,
+       "cdSecondary": 0.15,
+       "durationBonus": 0.25
+      }
+     }
+    },
+    "martialartist": {
+     "name": "Martial Artist",
+     "passive_desc": "Strike attacks deal up to 25% more damage based on the target's missing health (no bonus above 75% HP, full bonus at or below 25% HP).",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 10,
+      "RES": 0,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.8,
+      "SKP_scaling": 1.8,
+      "STM_scaling": 1.3,
+      "DEF_scaling": 0.18,
+      "VIT_scaling": 2.2,
+      "PWR_scaling": 0.6,
+      "ENE_scaling": 1.6
+     },
+     "baseHp5": 1.5,
+     "hp5VitScaling": 0.0525,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 9.0,
+     "sp5StmScaling": 0.09,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "hpLow": 0.25,
+       "maxBonus": 0.25,
+       "hpHigh": 0.75
+      }
+     }
+    },
+    "paladin": {
+     "name": "Paladin",
+     "passive_desc": "15% of the damage your party members take is redirected to you. You heal for 15% of the damage your party members deal.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 5,
+      "RES": 10,
+      "VIT": 5,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.8,
+      "SKP_scaling": 1.2,
+      "STM_scaling": 1.2,
+      "DEF_scaling": 0.336,
+      "VIT_scaling": 2.0,
+      "PWR_scaling": 0.6,
+      "ENE_scaling": 1.2
+     },
+     "baseHp5": 2.0,
+     "hp5VitScaling": 0.0675,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 8.0,
+     "sp5StmScaling": 0.08,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "lifestealPct": 0.15,
+       "redirectPct": 0.15
+      }
+     }
+    },
+    "spiritualist": {
+     "name": "Spiritualist",
+     "passive_desc": "Damaging Ki attacks have 20% reduced cooldown. Those that also apply a debuff get 15% reduced cooldown instead, but the debuff lasts 25% longer.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 0,
+      "VIT": 0,
+      "PWR": 10,
+      "ENE": 10
+     },
+     "statScaling": {
+      "STR_scaling": 0.3,
+      "SKP_scaling": 0.5,
+      "STM_scaling": 0.7,
+      "DEF_scaling": 0.156,
+      "VIT_scaling": 1.4,
+      "PWR_scaling": 1.9,
+      "ENE_scaling": 3.7
+     },
+     "baseHp5": 0.5,
+     "hp5VitScaling": 0.015,
+     "baseEp5": 8.0,
+     "ep5EneScaling": 0.2,
+     "baseSp5": 5.0,
+     "sp5StmScaling": 0.05,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "cdPrimary": 0.2,
+       "cdSecondary": 0.15,
+       "durationBonus": 0.25
+      }
+     }
+    },
+    "tank": {
+     "name": "Tank",
+     "passive_desc": "50% of your stamina regen is granted as bonus HP regen (not a conversion). Healing you receive (passive or ally skills, not from eating) is 25% more effective. Below 30% HP both bonuses are doubled.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 10,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.6,
+      "SKP_scaling": 0.7,
+      "STM_scaling": 1.5,
+      "DEF_scaling": 0.384,
+      "VIT_scaling": 2.5,
+      "PWR_scaling": 0.5,
+      "ENE_scaling": 0.8
+     },
+     "baseHp5": 2.25,
+     "hp5VitScaling": 0.075,
+     "baseEp5": 5.0,
+     "ep5EneScaling": 0.1,
+     "baseSp5": 9.0,
+     "sp5StmScaling": 0.09,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.25,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "lowHpThreshold": 0.3,
+       "stmToHpRegenRatio": 0.5,
+       "lowHpMultiplier": 2.0,
+       "healingBonus": 0.25
+      }
+     }
+    },
+    "warrior": {
+     "name": "Warrior",
+     "passive_desc": "Landing 3 melee hits in a row (each connecting, none blocked) grants a Fury stack, up to 5. Each stack increases STM regen by 10%; at 5 stacks you also gain 10% defense penetration. Stacks refresh when you deal damage and fade if you stop.",
+     "baseStats": {
+      "STR": 10,
+      "SKP": 0,
+      "RES": 5,
+      "VIT": 5,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 1.4,
+      "SKP_scaling": 1.0,
+      "STM_scaling": 1.6,
+      "DEF_scaling": 0.24,
+      "VIT_scaling": 1.8,
+      "PWR_scaling": 0.5,
+      "ENE_scaling": 1.5
+     },
+     "baseHp5": 1.75,
+     "hp5VitScaling": 0.06,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 12.0,
+     "sp5StmScaling": 0.12,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "armorPenAtMax": 0.1,
+       "comboHits": 3.0,
+       "stmRegenPerStack": 0.1,
+       "comboResetTicks": 60.0,
+       "maxStacks": 5.0,
+       "stackDurationTicks": 100.0
+      }
+     }
+    }
+   },
+   "base_stats": {
+    "STR": 5,
+    "SKP": 5,
+    "STM": 5,
+    "RES": 5,
+    "VIT": 5,
+    "PWR": 5,
+    "ENE": 5
+   },
+   "stat_multipliers": {
+    "STR": 1.1,
+    "SKP": 1.0,
+    "STM": 1.0,
+    "RES": 1.0,
+    "VIT": 1.0,
+    "PWR": 1.1,
+    "ENE": 1.0,
+    "health_regen": 1.0,
+    "ki_regen": 1.0,
+    "tp_gain": 1.0
+   },
+   "form_groups": [
+    "legendaryforms",
+    "oozaru",
+    "ssgrades",
+    "supersaiyan",
+    "kaioken",
+    "ultimate"
+   ],
+   "textures": {
+    "dir": "races/humansaiyan",
+    "body": [
+     "bodytype_female_1",
+     "bodytype_female_2",
+     "bodytype_male_1",
+     "bodytype_male_2"
+    ],
+    "form_layers": [
+     "oozaru_layer1",
+     "oozaru_layer2",
+     "oozaru_layer3",
+     "ssj4d_layer1",
+     "ssj4gt_layer1"
+    ],
+    "eyes": [
+     "humansaiyan_eye_0_0",
+     "humansaiyan_eye_0_1",
+     "humansaiyan_eye_0_2",
+     "humansaiyan_eye_0_3",
+     "humansaiyan_eye_10_0",
+     "humansaiyan_eye_10_1",
+     "humansaiyan_eye_10_2",
+     "humansaiyan_eye_10_3",
+     "humansaiyan_eye_11_0",
+     "humansaiyan_eye_11_1",
+     "humansaiyan_eye_11_2",
+     "humansaiyan_eye_11_3",
+     "humansaiyan_eye_12_0",
+     "humansaiyan_eye_12_1",
+     "humansaiyan_eye_12_2",
+     "humansaiyan_eye_12_3",
+     "humansaiyan_eye_1_0",
+     "humansaiyan_eye_1_1",
+     "humansaiyan_eye_1_2",
+     "humansaiyan_eye_1_3",
+     "humansaiyan_eye_2_0",
+     "humansaiyan_eye_2_1",
+     "humansaiyan_eye_2_2",
+     "humansaiyan_eye_2_3",
+     "humansaiyan_eye_3_0",
+     "humansaiyan_eye_3_1",
+     "humansaiyan_eye_3_2",
+     "humansaiyan_eye_3_3",
+     "humansaiyan_eye_4_0",
+     "humansaiyan_eye_4_1",
+     "humansaiyan_eye_4_2",
+     "humansaiyan_eye_4_3",
+     "humansaiyan_eye_5_0",
+     "humansaiyan_eye_5_1",
+     "humansaiyan_eye_5_2",
+     "humansaiyan_eye_5_3",
+     "humansaiyan_eye_6_0",
+     "humansaiyan_eye_6_1",
+     "humansaiyan_eye_6_2",
+     "humansaiyan_eye_6_3",
+     "humansaiyan_eye_7_0",
+     "humansaiyan_eye_7_1",
+     "humansaiyan_eye_7_2",
+     "humansaiyan_eye_7_3",
+     "humansaiyan_eye_8_0",
+     "humansaiyan_eye_8_1",
+     "humansaiyan_eye_8_2",
+     "humansaiyan_eye_8_3",
+     "humansaiyan_eye_9_0",
+     "humansaiyan_eye_9_1",
+     "humansaiyan_eye_9_2",
+     "humansaiyan_eye_9_3",
+     "shiyoken_eye0",
+     "shiyoken_eye1",
+     "ssj3eyebrows_eye_0",
+     "ssj3eyebrows_eye_1",
+     "ssj3eyebrows_eye_10",
+     "ssj3eyebrows_eye_11",
+     "ssj3eyebrows_eye_12",
+     "ssj3eyebrows_eye_2",
+     "ssj3eyebrows_eye_3",
+     "ssj3eyebrows_eye_4",
+     "ssj3eyebrows_eye_5",
+     "ssj3eyebrows_eye_6",
+     "ssj3eyebrows_eye_7",
+     "ssj3eyebrows_eye_8",
+     "ssj3eyebrows_eye_9",
+     "ssj4_eyes_0",
+     "ssj4_eyes_1",
+     "ssj4_eyes_10",
+     "ssj4_eyes_11",
+     "ssj4_eyes_12",
+     "ssj4_eyes_2",
+     "ssj4_eyes_3",
+     "ssj4_eyes_4",
+     "ssj4_eyes_6",
+     "ssj4_eyes_7",
+     "ssj4_eyes_8",
+     "ssj4_eyes_9"
+    ],
+    "nose": [
+     "humansaiyan_nose_0",
+     "humansaiyan_nose_1",
+     "humansaiyan_nose_2",
+     "humansaiyan_nose_3",
+     "humansaiyan_nose_4",
+     "humansaiyan_nose_5"
+    ],
+    "mouth": [
+     "humansaiyan_mouth_0",
+     "humansaiyan_mouth_1",
+     "humansaiyan_mouth_2",
+     "humansaiyan_mouth_3",
+     "humansaiyan_mouth_4",
+     "humansaiyan_mouth_5",
+     "humansaiyan_mouth_6",
+     "humansaiyan_mouth_7",
+     "humansaiyan_mouth_8"
+    ],
+    "hair": "races/hair",
+    "hair_base": "races/hair_base",
+    "tattoos": [
+     "races/tattoos/tattoo_0",
+     "races/tattoos/tattoo_1",
+     "races/tattoos/tattoo_2",
+     "races/tattoos/tattoo_3",
+     "races/tattoos/tattoo_4",
+     "races/tattoos/tattoo_5"
+    ],
+    "base": "races/base",
+    "hd": true
+   }
+  },
+  "namekian": {
+   "id": "namekian",
+   "name": "Namekian",
+   "desc": "They are a peaceful yet powerful race, with great regenerative abilities and a natural connection to magic and nature. They are known for their wisdom, energy control, and their ability to fuse with others of their kind, increasing their power.",
+   "hasGender": false,
+   "useVanillaSkin": false,
+   "customModel": "",
+   "isLayered": true,
+   "headBones": [
+    "ears1",
+    "ears2",
+    "ears3"
+   ],
+   "racialSkill": "namekian",
+   "hasSaiyanTail": false,
+   "auraType": "kakarot",
+   "defaultModelScaling": [
+    0.9375,
+    0.9375,
+    0.9375
+   ],
+   "defaultBodyType": 0,
+   "defaultHairType": 0,
+   "defaultEyesType": 0,
+   "defaultNoseType": 0,
+   "defaultMouthType": 0,
+   "defaultTattooType": 0,
+   "defaultBodyColor": "#1FAA24",
+   "defaultBodyColor2": "#BB2024",
+   "defaultBodyColor3": "#FF86A6",
+   "defaultHairColor": "#80FF69",
+   "defaultEye1Color": "#222629",
+   "defaultEye2Color": "#222629",
+   "defaultAuraColor": "#7FFF00",
+   "formSkillsCosts": {
+    "legendaryforms": [
+     -1,
+     -1,
+     -1
+    ],
+    "godforms": [],
+    "superforms": [
+     23000,
+     47000,
+     78000,
+     117000
+    ]
+   },
+   "model": "entity/races/human",
+   "model_slim": "entity/races/human_slim",
+   "animations": [
+    "entity/races/movement",
+    "entity/races/combat",
+    "entity/races/ki",
+    "entity/races/transf",
+    "entity/races/skp"
+   ],
+   "racial_skill_id": "racial_namekian",
+   "racial_skill_name": "Assimilation",
+   "classes": {
+    "berserker": {
+     "name": "Berserker",
+     "passive_desc": "Below 66% HP you gain 25% HP regen and 10% crit chance. Below 33% HP this rises to 75% HP regen and 25% crit chance.",
+     "baseStats": {
+      "STR": 10,
+      "SKP": 0,
+      "RES": 0,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 1.7,
+      "SKP_scaling": 0.8,
+      "STM_scaling": 1.1,
+      "DEF_scaling": 0.18,
+      "VIT_scaling": 3.0,
+      "PWR_scaling": 0.4,
+      "ENE_scaling": 1.3
+     },
+     "baseHp5": 1.0,
+     "hp5VitScaling": 0.0375,
+     "baseEp5": 2.0,
+     "ep5EneScaling": 0.04,
+     "baseSp5": 14.0,
+     "sp5StmScaling": 0.13,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "critHigh": 0.1,
+       "hpThreshHigh": 0.66,
+       "critLow": 0.25,
+       "hpThreshLow": 0.33,
+       "hpRegenLow": 0.75,
+       "hpRegenHigh": 0.25
+      }
+     }
+    },
+    "cleric": {
+     "name": "Cleric",
+     "passive_desc": "Healing Ki attacks have 20% reduced cooldown. Those that also grant an ally buff get 15% reduced cooldown instead, but the buff lasts 25% longer.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 5,
+      "VIT": 0,
+      "PWR": 0,
+      "ENE": 15
+     },
+     "statScaling": {
+      "STR_scaling": 0.5,
+      "SKP_scaling": 0.5,
+      "STM_scaling": 2.6,
+      "DEF_scaling": 0.168,
+      "VIT_scaling": 1.2,
+      "PWR_scaling": 0.8,
+      "ENE_scaling": 3.0
+     },
+     "baseHp5": 0.5,
+     "hp5VitScaling": 0.015,
+     "baseEp5": 12.0,
+     "ep5EneScaling": 0.24,
+     "baseSp5": 16.0,
+     "sp5StmScaling": 0.12,
+     "tpCostMultiplier": 0.9,
+     "tpGainMultiplier": 1.25,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "cdPrimary": 0.2,
+       "cdSecondary": 0.15,
+       "durationBonus": 0.25
+      }
+     }
+    },
+    "martialartist": {
+     "name": "Martial Artist",
+     "passive_desc": "Strike attacks deal up to 25% more damage based on the target's missing health (no bonus above 75% HP, full bonus at or below 25% HP).",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 10,
+      "RES": 0,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.8,
+      "SKP_scaling": 1.8,
+      "STM_scaling": 1.3,
+      "DEF_scaling": 0.18,
+      "VIT_scaling": 2.2,
+      "PWR_scaling": 0.6,
+      "ENE_scaling": 1.6
+     },
+     "baseHp5": 1.5,
+     "hp5VitScaling": 0.0525,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 9.0,
+     "sp5StmScaling": 0.09,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "hpLow": 0.25,
+       "maxBonus": 0.25,
+       "hpHigh": 0.75
+      }
+     }
+    },
+    "paladin": {
+     "name": "Paladin",
+     "passive_desc": "15% of the damage your party members take is redirected to you. You heal for 15% of the damage your party members deal.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 5,
+      "RES": 10,
+      "VIT": 5,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.8,
+      "SKP_scaling": 1.2,
+      "STM_scaling": 1.2,
+      "DEF_scaling": 0.336,
+      "VIT_scaling": 2.0,
+      "PWR_scaling": 0.6,
+      "ENE_scaling": 1.2
+     },
+     "baseHp5": 2.0,
+     "hp5VitScaling": 0.0675,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 8.0,
+     "sp5StmScaling": 0.08,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "lifestealPct": 0.15,
+       "redirectPct": 0.15
+      }
+     }
+    },
+    "spiritualist": {
+     "name": "Spiritualist",
+     "passive_desc": "Damaging Ki attacks have 20% reduced cooldown. Those that also apply a debuff get 15% reduced cooldown instead, but the debuff lasts 25% longer.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 0,
+      "VIT": 0,
+      "PWR": 10,
+      "ENE": 10
+     },
+     "statScaling": {
+      "STR_scaling": 0.3,
+      "SKP_scaling": 0.5,
+      "STM_scaling": 0.7,
+      "DEF_scaling": 0.156,
+      "VIT_scaling": 1.4,
+      "PWR_scaling": 1.9,
+      "ENE_scaling": 3.7
+     },
+     "baseHp5": 0.5,
+     "hp5VitScaling": 0.015,
+     "baseEp5": 8.0,
+     "ep5EneScaling": 0.2,
+     "baseSp5": 5.0,
+     "sp5StmScaling": 0.05,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "cdPrimary": 0.2,
+       "cdSecondary": 0.15,
+       "durationBonus": 0.25
+      }
+     }
+    },
+    "tank": {
+     "name": "Tank",
+     "passive_desc": "50% of your stamina regen is granted as bonus HP regen (not a conversion). Healing you receive (passive or ally skills, not from eating) is 25% more effective. Below 30% HP both bonuses are doubled.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 10,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.6,
+      "SKP_scaling": 0.7,
+      "STM_scaling": 1.5,
+      "DEF_scaling": 0.384,
+      "VIT_scaling": 2.5,
+      "PWR_scaling": 0.5,
+      "ENE_scaling": 0.8
+     },
+     "baseHp5": 2.25,
+     "hp5VitScaling": 0.075,
+     "baseEp5": 5.0,
+     "ep5EneScaling": 0.1,
+     "baseSp5": 9.0,
+     "sp5StmScaling": 0.09,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.25,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "lowHpThreshold": 0.3,
+       "stmToHpRegenRatio": 0.5,
+       "lowHpMultiplier": 2.0,
+       "healingBonus": 0.25
+      }
+     }
+    },
+    "warrior": {
+     "name": "Warrior",
+     "passive_desc": "Landing 3 melee hits in a row (each connecting, none blocked) grants a Fury stack, up to 5. Each stack increases STM regen by 10%; at 5 stacks you also gain 10% defense penetration. Stacks refresh when you deal damage and fade if you stop.",
+     "baseStats": {
+      "STR": 10,
+      "SKP": 0,
+      "RES": 5,
+      "VIT": 5,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 1.4,
+      "SKP_scaling": 1.0,
+      "STM_scaling": 1.6,
+      "DEF_scaling": 0.24,
+      "VIT_scaling": 1.8,
+      "PWR_scaling": 0.5,
+      "ENE_scaling": 1.5
+     },
+     "baseHp5": 1.75,
+     "hp5VitScaling": 0.06,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 12.0,
+     "sp5StmScaling": 0.12,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "armorPenAtMax": 0.1,
+       "comboHits": 3.0,
+       "stmRegenPerStack": 0.1,
+       "comboResetTicks": 60.0,
+       "maxStacks": 5.0,
+       "stackDurationTicks": 100.0
+      }
+     }
+    }
+   },
+   "base_stats": {
+    "STR": 5,
+    "SKP": 5,
+    "STM": 5,
+    "RES": 5,
+    "VIT": 5,
+    "PWR": 5,
+    "ENE": 5
+   },
+   "stat_multipliers": {
+    "STR": 1.0,
+    "SKP": 1.0,
+    "STM": 1.0,
+    "RES": 1.05,
+    "VIT": 1.0,
+    "PWR": 1.0,
+    "ENE": 1.0,
+    "health_regen": 1.6,
+    "ki_regen": 1.1,
+    "tp_gain": 1.0
+   },
+   "form_groups": [
+    "legendaryforms",
+    "superforms",
+    "kaioken",
+    "ultimate"
+   ],
+   "textures": {
+    "dir": "races/namekian",
+    "body": [
+     "bodytype_0_layer1",
+     "bodytype_0_layer2",
+     "bodytype_0_layer3",
+     "bodytype_1_layer1",
+     "bodytype_1_layer2",
+     "bodytype_1_layer3",
+     "bodytype_1_layer4",
+     "bodytype_2_layer1",
+     "bodytype_2_layer2",
+     "bodytype_2_layer3",
+     "bodytype_2_layer4"
+    ],
+    "form_layers": [],
+    "eyes": [
+     "namekian_eye_0_0",
+     "namekian_eye_0_1",
+     "namekian_eye_0_2",
+     "namekian_eye_0_3",
+     "namekian_eye_1_0",
+     "namekian_eye_1_1",
+     "namekian_eye_1_2",
+     "namekian_eye_1_3",
+     "namekian_eye_2_0",
+     "namekian_eye_2_1",
+     "namekian_eye_2_2",
+     "namekian_eye_2_3",
+     "namekian_eye_3_0",
+     "namekian_eye_3_1",
+     "namekian_eye_3_2",
+     "namekian_eye_3_3",
+     "namekian_eye_4_0",
+     "namekian_eye_4_1",
+     "namekian_eye_4_2",
+     "namekian_eye_4_3"
+    ],
+    "nose": [
+     "namekian_nose_0",
+     "namekian_nose_1"
+    ],
+    "mouth": [
+     "namekian_mouth_0",
+     "namekian_mouth_1"
+    ],
+    "hair": "races/hair",
+    "hair_base": "races/hair_base",
+    "tattoos": [
+     "races/tattoos/tattoo_0",
+     "races/tattoos/tattoo_1",
+     "races/tattoos/tattoo_2",
+     "races/tattoos/tattoo_3",
+     "races/tattoos/tattoo_4",
+     "races/tattoos/tattoo_5"
+    ],
+    "base": "races/base",
+    "hd": true
+   }
+  },
+  "frostdemon": {
+   "id": "frostdemon",
+   "name": "Frost Demon",
+   "desc": "They are a race of intergalactic conquerors with immense power and boundless cruelty. Their ability to transform and increase their power makes them formidable enemies. Despite their fragile appearance, they are some of the deadliest creatures in the universe.",
+   "hasGender": false,
+   "useVanillaSkin": false,
+   "customModel": "",
+   "isLayered": true,
+   "headBones": [
+    "horns1",
+    "horns2",
+    "horns3",
+    "horns4",
+    "horns5"
+   ],
+   "racialSkill": "frostdemon",
+   "hasSaiyanTail": false,
+   "auraType": "kakarot",
+   "defaultModelScaling": [
+    0.7375,
+    0.7375,
+    0.7375
+   ],
+   "defaultBodyType": 0,
+   "defaultHairType": 0,
+   "defaultEyesType": 0,
+   "defaultNoseType": 0,
+   "defaultMouthType": 0,
+   "defaultTattooType": 0,
+   "defaultBodyColor": "#FFFFFF",
+   "defaultBodyColor2": "#E8A2FF",
+   "defaultBodyColor3": "#FF39A9",
+   "defaultHairColor": "#8B1BCC",
+   "defaultEye1Color": "#FF001D",
+   "defaultEye2Color": "#FF001D",
+   "defaultAuraColor": "#5F00FF",
+   "formSkillsCosts": {
+    "legendaryforms": [
+     -1,
+     -1,
+     -1
+    ],
+    "godforms": [],
+    "superforms": [
+     18000,
+     31000,
+     52000,
+     83000,
+     117000
+    ]
+   },
+   "model": "entity/races/frostdemon",
+   "model_slim": "entity/races/frostdemon",
+   "animations": [
+    "entity/races/movement",
+    "entity/races/combat",
+    "entity/races/ki",
+    "entity/races/transf",
+    "entity/races/skp"
+   ],
+   "racial_skill_id": "racial_frostdemon",
+   "racial_skill_name": "Prodigious Strength",
+   "classes": {
+    "berserker": {
+     "name": "Berserker",
+     "passive_desc": "Below 66% HP you gain 25% HP regen and 10% crit chance. Below 33% HP this rises to 75% HP regen and 25% crit chance.",
+     "baseStats": {
+      "STR": 10,
+      "SKP": 0,
+      "RES": 0,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 1.7,
+      "SKP_scaling": 0.8,
+      "STM_scaling": 1.1,
+      "DEF_scaling": 0.18,
+      "VIT_scaling": 3.0,
+      "PWR_scaling": 0.4,
+      "ENE_scaling": 1.3
+     },
+     "baseHp5": 1.0,
+     "hp5VitScaling": 0.0375,
+     "baseEp5": 2.0,
+     "ep5EneScaling": 0.04,
+     "baseSp5": 14.0,
+     "sp5StmScaling": 0.13,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "critHigh": 0.1,
+       "hpThreshHigh": 0.66,
+       "critLow": 0.25,
+       "hpThreshLow": 0.33,
+       "hpRegenLow": 0.75,
+       "hpRegenHigh": 0.25
+      }
+     }
+    },
+    "cleric": {
+     "name": "Cleric",
+     "passive_desc": "Healing Ki attacks have 20% reduced cooldown. Those that also grant an ally buff get 15% reduced cooldown instead, but the buff lasts 25% longer.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 5,
+      "VIT": 0,
+      "PWR": 0,
+      "ENE": 15
+     },
+     "statScaling": {
+      "STR_scaling": 0.5,
+      "SKP_scaling": 0.5,
+      "STM_scaling": 2.6,
+      "DEF_scaling": 0.168,
+      "VIT_scaling": 1.2,
+      "PWR_scaling": 0.8,
+      "ENE_scaling": 3.0
+     },
+     "baseHp5": 0.5,
+     "hp5VitScaling": 0.015,
+     "baseEp5": 12.0,
+     "ep5EneScaling": 0.24,
+     "baseSp5": 16.0,
+     "sp5StmScaling": 0.12,
+     "tpCostMultiplier": 0.9,
+     "tpGainMultiplier": 1.25,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "cdPrimary": 0.2,
+       "cdSecondary": 0.15,
+       "durationBonus": 0.25
+      }
+     }
+    },
+    "martialartist": {
+     "name": "Martial Artist",
+     "passive_desc": "Strike attacks deal up to 25% more damage based on the target's missing health (no bonus above 75% HP, full bonus at or below 25% HP).",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 10,
+      "RES": 0,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.8,
+      "SKP_scaling": 1.8,
+      "STM_scaling": 1.3,
+      "DEF_scaling": 0.18,
+      "VIT_scaling": 2.2,
+      "PWR_scaling": 0.6,
+      "ENE_scaling": 1.6
+     },
+     "baseHp5": 1.5,
+     "hp5VitScaling": 0.0525,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 9.0,
+     "sp5StmScaling": 0.09,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "hpLow": 0.25,
+       "maxBonus": 0.25,
+       "hpHigh": 0.75
+      }
+     }
+    },
+    "paladin": {
+     "name": "Paladin",
+     "passive_desc": "15% of the damage your party members take is redirected to you. You heal for 15% of the damage your party members deal.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 5,
+      "RES": 10,
+      "VIT": 5,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.8,
+      "SKP_scaling": 1.2,
+      "STM_scaling": 1.2,
+      "DEF_scaling": 0.336,
+      "VIT_scaling": 2.0,
+      "PWR_scaling": 0.6,
+      "ENE_scaling": 1.2
+     },
+     "baseHp5": 2.0,
+     "hp5VitScaling": 0.0675,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 8.0,
+     "sp5StmScaling": 0.08,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "lifestealPct": 0.15,
+       "redirectPct": 0.15
+      }
+     }
+    },
+    "spiritualist": {
+     "name": "Spiritualist",
+     "passive_desc": "Damaging Ki attacks have 20% reduced cooldown. Those that also apply a debuff get 15% reduced cooldown instead, but the debuff lasts 25% longer.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 0,
+      "VIT": 0,
+      "PWR": 10,
+      "ENE": 10
+     },
+     "statScaling": {
+      "STR_scaling": 0.3,
+      "SKP_scaling": 0.5,
+      "STM_scaling": 0.7,
+      "DEF_scaling": 0.156,
+      "VIT_scaling": 1.4,
+      "PWR_scaling": 1.9,
+      "ENE_scaling": 3.7
+     },
+     "baseHp5": 0.5,
+     "hp5VitScaling": 0.015,
+     "baseEp5": 8.0,
+     "ep5EneScaling": 0.2,
+     "baseSp5": 5.0,
+     "sp5StmScaling": 0.05,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "cdPrimary": 0.2,
+       "cdSecondary": 0.15,
+       "durationBonus": 0.25
+      }
+     }
+    },
+    "tank": {
+     "name": "Tank",
+     "passive_desc": "50% of your stamina regen is granted as bonus HP regen (not a conversion). Healing you receive (passive or ally skills, not from eating) is 25% more effective. Below 30% HP both bonuses are doubled.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 10,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.6,
+      "SKP_scaling": 0.7,
+      "STM_scaling": 1.5,
+      "DEF_scaling": 0.384,
+      "VIT_scaling": 2.5,
+      "PWR_scaling": 0.5,
+      "ENE_scaling": 0.8
+     },
+     "baseHp5": 2.25,
+     "hp5VitScaling": 0.075,
+     "baseEp5": 5.0,
+     "ep5EneScaling": 0.1,
+     "baseSp5": 9.0,
+     "sp5StmScaling": 0.09,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.25,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "lowHpThreshold": 0.3,
+       "stmToHpRegenRatio": 0.5,
+       "lowHpMultiplier": 2.0,
+       "healingBonus": 0.25
+      }
+     }
+    },
+    "warrior": {
+     "name": "Warrior",
+     "passive_desc": "Landing 3 melee hits in a row (each connecting, none blocked) grants a Fury stack, up to 5. Each stack increases STM regen by 10%; at 5 stacks you also gain 10% defense penetration. Stacks refresh when you deal damage and fade if you stop.",
+     "baseStats": {
+      "STR": 10,
+      "SKP": 0,
+      "RES": 5,
+      "VIT": 5,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 1.4,
+      "SKP_scaling": 1.0,
+      "STM_scaling": 1.6,
+      "DEF_scaling": 0.24,
+      "VIT_scaling": 1.8,
+      "PWR_scaling": 0.5,
+      "ENE_scaling": 1.5
+     },
+     "baseHp5": 1.75,
+     "hp5VitScaling": 0.06,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 12.0,
+     "sp5StmScaling": 0.12,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "armorPenAtMax": 0.1,
+       "comboHits": 3.0,
+       "stmRegenPerStack": 0.1,
+       "comboResetTicks": 60.0,
+       "maxStacks": 5.0,
+       "stackDurationTicks": 100.0
+      }
+     }
+    }
+   },
+   "base_stats": {
+    "STR": 5,
+    "SKP": 5,
+    "STM": 5,
+    "RES": 5,
+    "VIT": 5,
+    "PWR": 5,
+    "ENE": 5
+   },
+   "stat_multipliers": {
+    "STR": 1.0,
+    "SKP": 1.0,
+    "STM": 1.0,
+    "RES": 1.0,
+    "VIT": 1.0,
+    "PWR": 1.1,
+    "ENE": 1.1,
+    "health_regen": 1.0,
+    "ki_regen": 1.2,
+    "tp_gain": 1.1
+   },
+   "form_groups": [
+    "evolutionforms",
+    "legendaryforms",
+    "kaioken",
+    "ultimate"
+   ],
+   "textures": {
+    "dir": "races/frostdemon",
+    "body": [
+     "bodytype_0_layer1",
+     "bodytype_0_layer2",
+     "bodytype_0_layer3",
+     "bodytype_0_layer4",
+     "bodytype_0_layer5",
+     "bodytype_1_layer1",
+     "bodytype_1_layer2",
+     "bodytype_1_layer3",
+     "bodytype_1_layer4",
+     "bodytype_2_layer1",
+     "bodytype_2_layer2",
+     "bodytype_2_layer3",
+     "bodytype_2_layer4",
+     "fifth_bodytype_0_layer1",
+     "fifth_bodytype_0_layer2",
+     "fifth_bodytype_1_layer1",
+     "fifth_bodytype_1_layer2",
+     "fifth_bodytype_1_layer3",
+     "fifth_bodytype_1_layer4",
+     "fifth_bodytype_2_layer1",
+     "fifth_bodytype_2_layer2",
+     "fifth_bodytype_2_layer3",
+     "finalform_bodytype_0_layer1",
+     "finalform_bodytype_0_layer2",
+     "finalform_bodytype_1_layer1",
+     "finalform_bodytype_1_layer2",
+     "finalform_bodytype_1_layer3",
+     "finalform_bodytype_1_layer4",
+     "finalform_bodytype_2_layer1",
+     "finalform_bodytype_2_layer2",
+     "finalform_bodytype_2_layer3",
+     "thirdform_bodytype_0_layer1",
+     "thirdform_bodytype_0_layer2",
+     "thirdform_bodytype_0_layer3",
+     "thirdform_bodytype_0_layer4",
+     "thirdform_bodytype_0_layer5",
+     "thirdform_bodytype_1_layer1",
+     "thirdform_bodytype_1_layer2",
+     "thirdform_bodytype_1_layer3",
+     "thirdform_bodytype_1_layer4",
+     "thirdform_bodytype_2_layer1",
+     "thirdform_bodytype_2_layer2",
+     "thirdform_bodytype_2_layer3",
+     "thirdform_bodytype_2_layer4"
+    ],
+    "form_layers": [
+     "mechaform_layer1",
+     "metalcore_layer1",
+     "metalcore_layer2"
+    ],
+    "eyes": [
+     "frostdemon_eye_0_0",
+     "frostdemon_eye_0_1",
+     "frostdemon_eye_0_2",
+     "frostdemon_eye_1_0",
+     "frostdemon_eye_1_1",
+     "frostdemon_eye_1_2",
+     "frostdemon_eye_2_0",
+     "frostdemon_eye_2_1",
+     "frostdemon_eye_2_2",
+     "frostdemon_eye_3_0",
+     "frostdemon_eye_3_1",
+     "frostdemon_eye_3_2",
+     "frostdemon_eye_4_0",
+     "frostdemon_eye_4_1",
+     "frostdemon_eye_4_2",
+     "frostdemon_eye_5_0",
+     "frostdemon_eye_5_1",
+     "frostdemon_eye_5_2",
+     "frostdemon_eye_6_0"
+    ],
+    "nose": [
+     "frostdemon_nose_0",
+     "frostdemon_nose_1"
+    ],
+    "mouth": [
+     "frostdemon_fifth_mouth",
+     "frostdemon_mouth_0",
+     "frostdemon_mouth_1"
+    ],
+    "hair": "races/hair",
+    "hair_base": "races/hair_base",
+    "tattoos": [
+     "races/tattoos/tattoo_0",
+     "races/tattoos/tattoo_1",
+     "races/tattoos/tattoo_2",
+     "races/tattoos/tattoo_3",
+     "races/tattoos/tattoo_4",
+     "races/tattoos/tattoo_5"
+    ],
+    "base": "races/base",
+    "hd": true
+   }
+  },
+  "majin": {
+   "id": "majin",
+   "name": "Majin",
+   "desc": "They are a magical and unpredictable race with enormous destructive potential, with a unique ability to regenerate and change form. Though they may seem playful or childish, they are extremely dangerous when they unleash their true power.",
+   "hasGender": true,
+   "useVanillaSkin": false,
+   "customModel": "",
+   "isLayered": true,
+   "headBones": [
+    "majin1",
+    "majin2",
+    "majin3"
+   ],
+   "racialSkill": "majin",
+   "hasSaiyanTail": false,
+   "auraType": "kakarot",
+   "defaultModelScaling": [
+    0.9375,
+    0.9375,
+    0.9375
+   ],
+   "defaultBodyType": 0,
+   "defaultHairType": 0,
+   "defaultEyesType": 0,
+   "defaultNoseType": 0,
+   "defaultMouthType": 0,
+   "defaultTattooType": 0,
+   "defaultBodyColor": "#FFA4FF",
+   "defaultBodyColor2": "#FFA4FF",
+   "defaultBodyColor3": "#FFA4FF",
+   "defaultHairColor": "#FFA4FF",
+   "defaultEye1Color": "#B40000",
+   "defaultEye2Color": "#B40000",
+   "defaultAuraColor": "#FF6DFF",
+   "formSkillsCosts": {
+    "legendaryforms": [
+     -1,
+     -1,
+     -1
+    ],
+    "godforms": [],
+    "superforms": [
+     23000,
+     47000,
+     78000,
+     114000
+    ]
+   },
+   "model": "entity/races/majin",
+   "model_slim": "entity/races/majin_slim",
+   "animations": [
+    "entity/races/movement",
+    "entity/races/combat",
+    "entity/races/ki",
+    "entity/races/transf",
+    "entity/races/skp"
+   ],
+   "racial_skill_id": "racial_majin",
+   "racial_skill_name": "Absorption",
+   "classes": {
+    "berserker": {
+     "name": "Berserker",
+     "passive_desc": "Below 66% HP you gain 25% HP regen and 10% crit chance. Below 33% HP this rises to 75% HP regen and 25% crit chance.",
+     "baseStats": {
+      "STR": 10,
+      "SKP": 0,
+      "RES": 0,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 1.7,
+      "SKP_scaling": 0.8,
+      "STM_scaling": 1.1,
+      "DEF_scaling": 0.18,
+      "VIT_scaling": 3.0,
+      "PWR_scaling": 0.4,
+      "ENE_scaling": 1.3
+     },
+     "baseHp5": 1.0,
+     "hp5VitScaling": 0.0375,
+     "baseEp5": 2.0,
+     "ep5EneScaling": 0.04,
+     "baseSp5": 14.0,
+     "sp5StmScaling": 0.13,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "critHigh": 0.1,
+       "hpThreshHigh": 0.66,
+       "critLow": 0.25,
+       "hpThreshLow": 0.33,
+       "hpRegenLow": 0.75,
+       "hpRegenHigh": 0.25
+      }
+     }
+    },
+    "cleric": {
+     "name": "Cleric",
+     "passive_desc": "Healing Ki attacks have 20% reduced cooldown. Those that also grant an ally buff get 15% reduced cooldown instead, but the buff lasts 25% longer.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 5,
+      "VIT": 0,
+      "PWR": 0,
+      "ENE": 15
+     },
+     "statScaling": {
+      "STR_scaling": 0.5,
+      "SKP_scaling": 0.5,
+      "STM_scaling": 2.6,
+      "DEF_scaling": 0.168,
+      "VIT_scaling": 1.2,
+      "PWR_scaling": 0.8,
+      "ENE_scaling": 3.0
+     },
+     "baseHp5": 0.5,
+     "hp5VitScaling": 0.015,
+     "baseEp5": 12.0,
+     "ep5EneScaling": 0.24,
+     "baseSp5": 16.0,
+     "sp5StmScaling": 0.12,
+     "tpCostMultiplier": 0.9,
+     "tpGainMultiplier": 1.25,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "cdPrimary": 0.2,
+       "cdSecondary": 0.15,
+       "durationBonus": 0.25
+      }
+     }
+    },
+    "martialartist": {
+     "name": "Martial Artist",
+     "passive_desc": "Strike attacks deal up to 25% more damage based on the target's missing health (no bonus above 75% HP, full bonus at or below 25% HP).",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 10,
+      "RES": 0,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.8,
+      "SKP_scaling": 1.8,
+      "STM_scaling": 1.3,
+      "DEF_scaling": 0.18,
+      "VIT_scaling": 2.2,
+      "PWR_scaling": 0.6,
+      "ENE_scaling": 1.6
+     },
+     "baseHp5": 1.5,
+     "hp5VitScaling": 0.0525,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 9.0,
+     "sp5StmScaling": 0.09,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "hpLow": 0.25,
+       "maxBonus": 0.25,
+       "hpHigh": 0.75
+      }
+     }
+    },
+    "paladin": {
+     "name": "Paladin",
+     "passive_desc": "15% of the damage your party members take is redirected to you. You heal for 15% of the damage your party members deal.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 5,
+      "RES": 10,
+      "VIT": 5,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.8,
+      "SKP_scaling": 1.2,
+      "STM_scaling": 1.2,
+      "DEF_scaling": 0.336,
+      "VIT_scaling": 2.0,
+      "PWR_scaling": 0.6,
+      "ENE_scaling": 1.2
+     },
+     "baseHp5": 2.0,
+     "hp5VitScaling": 0.0675,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 8.0,
+     "sp5StmScaling": 0.08,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "lifestealPct": 0.15,
+       "redirectPct": 0.15
+      }
+     }
+    },
+    "spiritualist": {
+     "name": "Spiritualist",
+     "passive_desc": "Damaging Ki attacks have 20% reduced cooldown. Those that also apply a debuff get 15% reduced cooldown instead, but the debuff lasts 25% longer.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 0,
+      "VIT": 0,
+      "PWR": 10,
+      "ENE": 10
+     },
+     "statScaling": {
+      "STR_scaling": 0.3,
+      "SKP_scaling": 0.5,
+      "STM_scaling": 0.7,
+      "DEF_scaling": 0.156,
+      "VIT_scaling": 1.4,
+      "PWR_scaling": 1.9,
+      "ENE_scaling": 3.7
+     },
+     "baseHp5": 0.5,
+     "hp5VitScaling": 0.015,
+     "baseEp5": 8.0,
+     "ep5EneScaling": 0.2,
+     "baseSp5": 5.0,
+     "sp5StmScaling": 0.05,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "cdPrimary": 0.2,
+       "cdSecondary": 0.15,
+       "durationBonus": 0.25
+      }
+     }
+    },
+    "tank": {
+     "name": "Tank",
+     "passive_desc": "50% of your stamina regen is granted as bonus HP regen (not a conversion). Healing you receive (passive or ally skills, not from eating) is 25% more effective. Below 30% HP both bonuses are doubled.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 10,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.6,
+      "SKP_scaling": 0.7,
+      "STM_scaling": 1.5,
+      "DEF_scaling": 0.384,
+      "VIT_scaling": 2.5,
+      "PWR_scaling": 0.5,
+      "ENE_scaling": 0.8
+     },
+     "baseHp5": 2.25,
+     "hp5VitScaling": 0.075,
+     "baseEp5": 5.0,
+     "ep5EneScaling": 0.1,
+     "baseSp5": 9.0,
+     "sp5StmScaling": 0.09,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.25,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "lowHpThreshold": 0.3,
+       "stmToHpRegenRatio": 0.5,
+       "lowHpMultiplier": 2.0,
+       "healingBonus": 0.25
+      }
+     }
+    },
+    "warrior": {
+     "name": "Warrior",
+     "passive_desc": "Landing 3 melee hits in a row (each connecting, none blocked) grants a Fury stack, up to 5. Each stack increases STM regen by 10%; at 5 stacks you also gain 10% defense penetration. Stacks refresh when you deal damage and fade if you stop.",
+     "baseStats": {
+      "STR": 10,
+      "SKP": 0,
+      "RES": 5,
+      "VIT": 5,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 1.4,
+      "SKP_scaling": 1.0,
+      "STM_scaling": 1.6,
+      "DEF_scaling": 0.24,
+      "VIT_scaling": 1.8,
+      "PWR_scaling": 0.5,
+      "ENE_scaling": 1.5
+     },
+     "baseHp5": 1.75,
+     "hp5VitScaling": 0.06,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 12.0,
+     "sp5StmScaling": 0.12,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "armorPenAtMax": 0.1,
+       "comboHits": 3.0,
+       "stmRegenPerStack": 0.1,
+       "comboResetTicks": 60.0,
+       "maxStacks": 5.0,
+       "stackDurationTicks": 100.0
+      }
+     }
+    }
+   },
+   "base_stats": {
+    "STR": 5,
+    "SKP": 5,
+    "STM": 5,
+    "RES": 5,
+    "VIT": 5,
+    "PWR": 5,
+    "ENE": 5
+   },
+   "stat_multipliers": {
+    "STR": 1.0,
+    "SKP": 1.0,
+    "STM": 1.0,
+    "RES": 1.0,
+    "VIT": 1.15,
+    "PWR": 1.0,
+    "ENE": 1.0,
+    "health_regen": 1.3,
+    "ki_regen": 1.0,
+    "tp_gain": 1.0
+   },
+   "form_groups": [
+    "legendaryforms",
+    "pureforms",
+    "kaioken",
+    "ultimate"
+   ],
+   "textures": {
+    "dir": "races/majin",
+    "body": [
+     "bodytype_female_0_layer1",
+     "bodytype_female_1_layer1",
+     "bodytype_female_1_layer2",
+     "bodytype_female_2_layer1",
+     "bodytype_male_0_layer1",
+     "bodytype_male_1_layer1",
+     "bodytype_male_1_layer2",
+     "bodytype_male_2_layer1"
+    ],
+    "form_layers": [
+     "janemba_0_male_layer1",
+     "janembasuper_0_male_layer1",
+     "janembasuper_0_male_layer2",
+     "janembasuper_0_male_layer3"
+    ],
+    "eyes": [
+     "janemba_eye_0",
+     "janemba_eye_1",
+     "majin_eye_0_0",
+     "majin_eye_0_1",
+     "majin_eye_0_2",
+     "majin_eye_1_0",
+     "majin_eye_1_1",
+     "majin_eye_1_2",
+     "majin_eye_2_0",
+     "majin_eye_2_1"
+    ],
+    "nose": [
+     "majin_nose_0",
+     "majin_nose_1"
+    ],
+    "mouth": [
+     "janemba_mouth",
+     "majin_mouth_0",
+     "majin_mouth_1"
+    ],
+    "hair": "races/hair",
+    "hair_base": "races/hair_base",
+    "tattoos": [
+     "races/tattoos/tattoo_0",
+     "races/tattoos/tattoo_1",
+     "races/tattoos/tattoo_2",
+     "races/tattoos/tattoo_3",
+     "races/tattoos/tattoo_4",
+     "races/tattoos/tattoo_5"
+    ],
+    "base": "races/base",
+    "hd": true
+   }
+  },
+  "bioandroid": {
+   "id": "bioandroid",
+   "name": "Bio-Android",
+   "desc": "They are artificially created beings, combining the DNA of the most powerful races. With the ability to absorb other beings and increase their power to unimaginable levels, these creatures are adaptable and dangerous, designed to be invincible.",
+   "hasGender": false,
+   "useVanillaSkin": false,
+   "customModel": "",
+   "isLayered": true,
+   "headBones": [],
+   "racialSkill": "bioandroid",
+   "hasSaiyanTail": false,
+   "auraType": "kakarot",
+   "defaultModelScaling": [
+    0.9375,
+    0.9375,
+    0.9375
+   ],
+   "defaultBodyType": 0,
+   "defaultHairType": 0,
+   "defaultEyesType": 0,
+   "defaultNoseType": 0,
+   "defaultMouthType": 0,
+   "defaultTattooType": 0,
+   "defaultBodyColor": "#187600",
+   "defaultBodyColor2": "#9FE321",
+   "defaultBodyColor3": "#FF7600",
+   "defaultHairColor": "#187600",
+   "defaultEye1Color": "#2E2424",
+   "defaultEye2Color": "#F06F6E",
+   "defaultAuraColor": "#1AA700",
+   "formSkillsCosts": {
+    "legendaryforms": [
+     -1,
+     -1,
+     -1
+    ],
+    "godforms": [],
+    "superforms": [
+     26000,
+     57000,
+     88000,
+     125000
+    ]
+   },
+   "model": "entity/races/bioandroid",
+   "model_slim": "entity/races/bioandroid",
+   "animations": [
+    "entity/races/movement",
+    "entity/races/combat",
+    "entity/races/ki",
+    "entity/races/transf",
+    "entity/races/skp"
+   ],
+   "racial_skill_id": "racial_bioandroid",
+   "racial_skill_name": "Life Drain",
+   "classes": {
+    "berserker": {
+     "name": "Berserker",
+     "passive_desc": "Below 66% HP you gain 25% HP regen and 10% crit chance. Below 33% HP this rises to 75% HP regen and 25% crit chance.",
+     "baseStats": {
+      "STR": 10,
+      "SKP": 0,
+      "RES": 0,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 1.7,
+      "SKP_scaling": 0.8,
+      "STM_scaling": 1.1,
+      "DEF_scaling": 0.18,
+      "VIT_scaling": 3.0,
+      "PWR_scaling": 0.4,
+      "ENE_scaling": 1.3
+     },
+     "baseHp5": 1.0,
+     "hp5VitScaling": 0.0375,
+     "baseEp5": 2.0,
+     "ep5EneScaling": 0.04,
+     "baseSp5": 14.0,
+     "sp5StmScaling": 0.13,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "critHigh": 0.1,
+       "hpThreshHigh": 0.66,
+       "critLow": 0.25,
+       "hpThreshLow": 0.33,
+       "hpRegenLow": 0.75,
+       "hpRegenHigh": 0.25
+      }
+     }
+    },
+    "cleric": {
+     "name": "Cleric",
+     "passive_desc": "Healing Ki attacks have 20% reduced cooldown. Those that also grant an ally buff get 15% reduced cooldown instead, but the buff lasts 25% longer.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 5,
+      "VIT": 0,
+      "PWR": 0,
+      "ENE": 15
+     },
+     "statScaling": {
+      "STR_scaling": 0.5,
+      "SKP_scaling": 0.5,
+      "STM_scaling": 2.6,
+      "DEF_scaling": 0.168,
+      "VIT_scaling": 1.2,
+      "PWR_scaling": 0.8,
+      "ENE_scaling": 3.0
+     },
+     "baseHp5": 0.5,
+     "hp5VitScaling": 0.015,
+     "baseEp5": 12.0,
+     "ep5EneScaling": 0.24,
+     "baseSp5": 16.0,
+     "sp5StmScaling": 0.12,
+     "tpCostMultiplier": 0.9,
+     "tpGainMultiplier": 1.25,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "cdPrimary": 0.2,
+       "cdSecondary": 0.15,
+       "durationBonus": 0.25
+      }
+     }
+    },
+    "martialartist": {
+     "name": "Martial Artist",
+     "passive_desc": "Strike attacks deal up to 25% more damage based on the target's missing health (no bonus above 75% HP, full bonus at or below 25% HP).",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 10,
+      "RES": 0,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.8,
+      "SKP_scaling": 1.8,
+      "STM_scaling": 1.3,
+      "DEF_scaling": 0.18,
+      "VIT_scaling": 2.2,
+      "PWR_scaling": 0.6,
+      "ENE_scaling": 1.6
+     },
+     "baseHp5": 1.5,
+     "hp5VitScaling": 0.0525,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 9.0,
+     "sp5StmScaling": 0.09,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "hpLow": 0.25,
+       "maxBonus": 0.25,
+       "hpHigh": 0.75
+      }
+     }
+    },
+    "paladin": {
+     "name": "Paladin",
+     "passive_desc": "15% of the damage your party members take is redirected to you. You heal for 15% of the damage your party members deal.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 5,
+      "RES": 10,
+      "VIT": 5,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.8,
+      "SKP_scaling": 1.2,
+      "STM_scaling": 1.2,
+      "DEF_scaling": 0.336,
+      "VIT_scaling": 2.0,
+      "PWR_scaling": 0.6,
+      "ENE_scaling": 1.2
+     },
+     "baseHp5": 2.0,
+     "hp5VitScaling": 0.0675,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 8.0,
+     "sp5StmScaling": 0.08,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "lifestealPct": 0.15,
+       "redirectPct": 0.15
+      }
+     }
+    },
+    "spiritualist": {
+     "name": "Spiritualist",
+     "passive_desc": "Damaging Ki attacks have 20% reduced cooldown. Those that also apply a debuff get 15% reduced cooldown instead, but the debuff lasts 25% longer.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 0,
+      "VIT": 0,
+      "PWR": 10,
+      "ENE": 10
+     },
+     "statScaling": {
+      "STR_scaling": 0.3,
+      "SKP_scaling": 0.5,
+      "STM_scaling": 0.7,
+      "DEF_scaling": 0.156,
+      "VIT_scaling": 1.4,
+      "PWR_scaling": 1.9,
+      "ENE_scaling": 3.7
+     },
+     "baseHp5": 0.5,
+     "hp5VitScaling": 0.015,
+     "baseEp5": 8.0,
+     "ep5EneScaling": 0.2,
+     "baseSp5": 5.0,
+     "sp5StmScaling": 0.05,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "cdPrimary": 0.2,
+       "cdSecondary": 0.15,
+       "durationBonus": 0.25
+      }
+     }
+    },
+    "tank": {
+     "name": "Tank",
+     "passive_desc": "50% of your stamina regen is granted as bonus HP regen (not a conversion). Healing you receive (passive or ally skills, not from eating) is 25% more effective. Below 30% HP both bonuses are doubled.",
+     "baseStats": {
+      "STR": 0,
+      "SKP": 0,
+      "RES": 10,
+      "VIT": 10,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 0.6,
+      "SKP_scaling": 0.7,
+      "STM_scaling": 1.5,
+      "DEF_scaling": 0.384,
+      "VIT_scaling": 2.5,
+      "PWR_scaling": 0.5,
+      "ENE_scaling": 0.8
+     },
+     "baseHp5": 2.25,
+     "hp5VitScaling": 0.075,
+     "baseEp5": 5.0,
+     "ep5EneScaling": 0.1,
+     "baseSp5": 9.0,
+     "sp5StmScaling": 0.09,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.25,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "lowHpThreshold": 0.3,
+       "stmToHpRegenRatio": 0.5,
+       "lowHpMultiplier": 2.0,
+       "healingBonus": 0.25
+      }
+     }
+    },
+    "warrior": {
+     "name": "Warrior",
+     "passive_desc": "Landing 3 melee hits in a row (each connecting, none blocked) grants a Fury stack, up to 5. Each stack increases STM regen by 10%; at 5 stacks you also gain 10% defense penetration. Stacks refresh when you deal damage and fade if you stop.",
+     "baseStats": {
+      "STR": 10,
+      "SKP": 0,
+      "RES": 5,
+      "VIT": 5,
+      "PWR": 0,
+      "ENE": 0
+     },
+     "statScaling": {
+      "STR_scaling": 1.4,
+      "SKP_scaling": 1.0,
+      "STM_scaling": 1.6,
+      "DEF_scaling": 0.24,
+      "VIT_scaling": 1.8,
+      "PWR_scaling": 0.5,
+      "ENE_scaling": 1.5
+     },
+     "baseHp5": 1.75,
+     "hp5VitScaling": 0.06,
+     "baseEp5": 4.0,
+     "ep5EneScaling": 0.08,
+     "baseSp5": 12.0,
+     "sp5StmScaling": 0.12,
+     "tpCostMultiplier": 1.0,
+     "tpGainMultiplier": 1.0,
+     "passive": {
+      "enabled": true,
+      "values": {
+       "armorPenAtMax": 0.1,
+       "comboHits": 3.0,
+       "stmRegenPerStack": 0.1,
+       "comboResetTicks": 60.0,
+       "maxStacks": 5.0,
+       "stackDurationTicks": 100.0
+      }
+     }
+    }
+   },
+   "base_stats": {
+    "STR": 5,
+    "SKP": 5,
+    "STM": 5,
+    "RES": 5,
+    "VIT": 5,
+    "PWR": 5,
+    "ENE": 5
+   },
+   "stat_multipliers": {
+    "STR": 1.05,
+    "SKP": 1.05,
+    "STM": 1.05,
+    "RES": 1.05,
+    "VIT": 1.05,
+    "PWR": 1.05,
+    "ENE": 1.05,
+    "health_regen": 1.2,
+    "ki_regen": 1.0,
+    "tp_gain": 1.0
+   },
+   "form_groups": [
+    "bioevolution",
+    "legendaryforms",
+    "kaioken",
+    "ultimate"
+   ],
+   "textures": {
+    "dir": "races/bioandroid",
+    "body": [
+     "base_0_layer1",
+     "base_0_layer2",
+     "base_0_layer3",
+     "base_0_layer4",
+     "base_0_layer5",
+     "base_1_layer1",
+     "base_1_layer2",
+     "base_1_layer3",
+     "base_1_layer4",
+     "base_1_layer5",
+     "base_2_layer1",
+     "base_2_layer2",
+     "base_2_layer3",
+     "base_2_layer4",
+     "base_2_layer5",
+     "perfect_0_layer1",
+     "perfect_0_layer2",
+     "perfect_0_layer3",
+     "perfect_0_layer4",
+     "perfect_0_layer5",
+     "perfect_1_layer1",
+     "perfect_1_layer2",
+     "perfect_1_layer3",
+     "perfect_1_layer4",
+     "perfect_1_layer5",
+     "perfect_2_layer1",
+     "perfect_2_layer2",
+     "perfect_2_layer3",
+     "perfect_2_layer4",
+     "perfect_2_layer5",
+     "semiperfect_0_layer1",
+     "semiperfect_0_layer2",
+     "semiperfect_0_layer3",
+     "semiperfect_0_layer4",
+     "semiperfect_0_layer5",
+     "semiperfect_1_layer1",
+     "semiperfect_1_layer2",
+     "semiperfect_1_layer3",
+     "semiperfect_1_layer4",
+     "semiperfect_1_layer5",
+     "semiperfect_2_layer1",
+     "semiperfect_2_layer2",
+     "semiperfect_2_layer3",
+     "semiperfect_2_layer4",
+     "semiperfect_2_layer5"
+    ],
+    "form_layers": [
+     "xenoform_layer1",
+     "xenoform_layer2"
+    ],
+    "eyes": [
+     "base_eye_layer0",
+     "base_eye_layer1",
+     "perfect_eye_layer0",
+     "perfect_eye_layer1",
+     "semiperfect_eye_layer0",
+     "semiperfect_eye_layer1"
+    ],
+    "nose": [],
+    "mouth": [],
+    "hair": "races/hair",
+    "hair_base": "races/hair_base",
+    "tattoos": [
+     "races/tattoos/tattoo_0",
+     "races/tattoos/tattoo_1",
+     "races/tattoos/tattoo_2",
+     "races/tattoos/tattoo_3",
+     "races/tattoos/tattoo_4",
+     "races/tattoos/tattoo_5"
+    ],
+    "base": "races/base",
+    "hd": true
+   }
+  }
+ }
+}

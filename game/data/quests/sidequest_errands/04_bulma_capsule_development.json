@@ -1,0 +1,61 @@
+{
+ "id": "bulma_capsule_development",
+ "dmz_id": "bulma_capsule_development",
+ "quest_id": "sidequest_errands:bulma_capsule_development",
+ "name": "Capsule Corp R&D",
+ "desc": "Help Bulma prototype a new capsule line — bring her diamonds and redstone.",
+ "title": "Capsule Corp R&D",
+ "description": "Help Bulma prototype a new capsule line — bring her diamonds and redstone.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_errands",
+ "order": 3,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "1",
+    "quest": "saga_saiyan:1"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "diamond",
+   "count": 4
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "redstone",
+   "count": 8
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 1200
+  }
+ ]
+}

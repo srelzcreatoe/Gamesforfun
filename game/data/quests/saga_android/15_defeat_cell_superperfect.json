@@ -1,0 +1,68 @@
+{
+ "id": "15",
+ "dmz_id": 15,
+ "quest_id": "saga_android:15",
+ "name": "Super Perfect Cell",
+ "desc": "Cell has returned stronger after Goku's sacrifice. End the fight for good before he destroys everything left standing.",
+ "title": "Super Perfect Cell",
+ "description": "Cell has returned stronger after Goku's sacrifice. End the fight for good before he destroys everything left standing.",
+ "type": "SAGA",
+ "category": "saga_android",
+ "saga": "android_saga",
+ "order": 14,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1380
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "14",
+    "quest": "saga_android:14"
+   }
+  ]
+ },
+ "min_level": 1380,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_cell_superperfect",
+   "entity_name": "Super Perfect Cell",
+   "count": 1,
+   "health": 287000.0,
+   "meleeDamage": 11700.0,
+   "kiDamage": 10540.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 98560
+  }
+ ]
+}

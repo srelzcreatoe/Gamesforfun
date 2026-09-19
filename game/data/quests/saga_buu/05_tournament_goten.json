@@ -1,0 +1,68 @@
+{
+ "id": "5",
+ "dmz_id": 5,
+ "quest_id": "saga_buu:5",
+ "name": "Tournament: Goten",
+ "desc": "Your first tournament bout is against Goten. Do not underestimate him because of his size.",
+ "title": "Tournament: Goten",
+ "description": "Your first tournament bout is against Goten. Do not underestimate him because of his size.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 4,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1560
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "4",
+    "quest": "saga_buu:4"
+   }
+  ]
+ },
+ "min_level": 1560,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_goten",
+   "entity_name": "Goten",
+   "count": 1,
+   "health": 196000.0,
+   "meleeDamage": 8100.0,
+   "kiDamage": 7310.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 86400
+  }
+ ]
+}

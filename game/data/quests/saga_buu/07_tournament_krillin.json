@@ -1,0 +1,68 @@
+{
+ "id": "7",
+ "dmz_id": 7,
+ "quest_id": "saga_buu:7",
+ "name": "Tournament: Krillin",
+ "desc": "Krillin brings years of experience into the tournament. Break through his technique and keep advancing.",
+ "title": "Tournament: Krillin",
+ "description": "Krillin brings years of experience into the tournament. Break through his technique and keep advancing.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 6,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1600
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "6",
+    "quest": "saga_buu:6"
+   }
+  ]
+ },
+ "min_level": 1600,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_krillin",
+   "entity_name": "Krillin",
+   "count": 1,
+   "health": 217000.0,
+   "meleeDamage": 9000.0,
+   "kiDamage": 8160.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 93600
+  }
+ ]
+}

@@ -1,0 +1,70 @@
+{
+ "id": "cooler_squadron_mopup",
+ "dmz_id": "cooler_squadron_mopup",
+ "quest_id": "sidequest_movies:cooler_squadron_mopup",
+ "name": "Armored Squadron Mop-Up",
+ "desc": "Cooler's Armored Squadron — Salza, Dore and Neiz — won't stop until the planet is theirs. Krillin asks you to hunt down the elite trio's stragglers wherever they're hiding.",
+ "title": "Armored Squadron Mop-Up",
+ "description": "Cooler's Armored Squadron — Salza, Dore and Neiz — won't stop until the planet is theirs. Krillin asks you to hunt down the elite trio's stragglers wherever they're hiding.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_movies",
+ "order": 3,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "krillin",
+ "turn_in": "krillin",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "16",
+    "quest": "saga_movies:16"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_salza",
+   "entity_name": "Salza",
+   "count": 4,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_dore",
+   "entity_name": "Dore",
+   "count": 4,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_neiz",
+   "entity_name": "Neiz",
+   "count": 4,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 152000
+  }
+ ]
+}

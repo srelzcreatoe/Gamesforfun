@@ -1,0 +1,66 @@
+{
+ "id": "bulma_energy_storage_battery",
+ "dmz_id": "bulma_energy_storage_battery",
+ "quest_id": "sidequest_errands:bulma_energy_storage_battery",
+ "name": "Power Cell Development",
+ "desc": "A high-capacity power cell needs lapis, redstone blocks and diamonds.",
+ "title": "Power Cell Development",
+ "description": "A high-capacity power cell needs lapis, redstone blocks and diamonds.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_errands",
+ "order": 6,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "QUEST",
+    "questId": "bulma_capsule_development",
+    "quest": "sidequest_errands:bulma_capsule_development"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "lapis_lazuli",
+   "count": 32
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "redstone_block",
+   "count": 3
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "diamond",
+   "count": 4
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 21000
+  }
+ ]
+}

@@ -1,0 +1,67 @@
+{
+ "id": "bulma_power_suppression_unit",
+ "dmz_id": "bulma_power_suppression_unit",
+ "quest_id": "sidequest_errands:bulma_power_suppression_unit",
+ "name": "Power Limiter",
+ "desc": "Bulma is prototyping a power limiter. Gather redstone, glass and diamonds.",
+ "title": "Power Limiter",
+ "description": "Bulma is prototyping a power limiter. Gather redstone, glass and diamonds.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_errands",
+ "order": 14,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "4",
+    "quest": "saga_android:4"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "redstone",
+   "count": 24
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "glass",
+   "count": 12
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "diamond",
+   "count": 4
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 24000
+  }
+ ]
+}

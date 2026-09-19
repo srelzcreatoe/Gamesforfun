@@ -1,0 +1,74 @@
+{
+ "id": "2",
+ "dmz_id": 2,
+ "quest_id": "saga_movies:2",
+ "name": "Garlic Jr. in the Wasteland",
+ "desc": "Garlic Jr. has moved into the rocky wastes. Face him before he can open a path to the Dead Zone.",
+ "title": "Garlic Jr. in the Wasteland",
+ "description": "Garlic Jr. has moved into the rocky wastes. Face him before he can open a path to the Dead Zone.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 1,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 30
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "5",
+    "quest": "saga_saiyan:5"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "1",
+    "quest": "saga_movies:1"
+   }
+  ]
+ },
+ "min_level": 30,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_garlick_jr",
+   "entity_name": "Garlic Jr.",
+   "count": 1,
+   "health": 3120.0,
+   "meleeDamage": 182.0,
+   "kiDamage": 273.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 7500
+  }
+ ]
+}

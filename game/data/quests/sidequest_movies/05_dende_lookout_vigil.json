@@ -1,0 +1,59 @@
+{
+ "id": "dende_lookout_vigil",
+ "dmz_id": "dende_lookout_vigil",
+ "quest_id": "sidequest_movies:dende_lookout_vigil",
+ "name": "Vigil at the Lookout",
+ "desc": "Garlic Jr. has slipped free of the Dead Zone once more. Dende asks you to keep watch over Kami's Lookout and report anything strange before the Spice Boys strike again.",
+ "title": "Vigil at the Lookout",
+ "description": "Garlic Jr. has slipped free of the Dead Zone once more. Dende asks you to keep watch over Kami's Lookout and report anything strange before the Spice Boys strike again.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_movies",
+ "order": 4,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "dende",
+ "turn_in": "dende",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "STRUCTURE",
+    "structure": "dragonminez:kamilookout"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "1",
+    "quest": "saga_movies:1"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "STRUCTURE",
+   "structure": "dragonminez:kamilookout"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "dende",
+   "npcId": "dende"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 60000
+  }
+ ]
+}

@@ -1,0 +1,82 @@
+{
+ "id": "bulma_radar_fusion",
+ "dmz_id": "bulma_radar_fusion",
+ "quest_id": "sidequest_tech:bulma_radar_fusion",
+ "name": "Bi-Dimensional Radar",
+ "desc": "Hand Bulma an Earth radar and a Namek radar together and she'll fuse them into a single radar that tracks the Dragon Balls of both worlds.",
+ "title": "Bi-Dimensional Radar",
+ "description": "Hand Bulma an Earth radar and a Namek radar together and she'll fuse them into a single radar that tracks the Dragon Balls of both worlds.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_tech",
+ "order": 12,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "QUEST",
+    "questId": "bulma_radar_amplifier",
+    "quest": "sidequest_tech:bulma_radar_amplifier"
+   },
+   {
+    "type": "QUEST",
+    "questId": "bulma_namek_research",
+    "quest": "sidequest_collection:bulma_namek_research"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "dragon_radar",
+   "count": 1
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "namek_dragon_radar",
+   "count": 1
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "diamond",
+   "count": 8
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "redstone_block",
+   "count": 3
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 18000
+  },
+  {
+   "type": "ITEM",
+   "item": "fused_dragon_radar",
+   "count": 1
+  }
+ ]
+}

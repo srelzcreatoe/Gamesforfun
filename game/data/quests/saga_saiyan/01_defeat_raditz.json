@@ -1,0 +1,82 @@
+{
+ "id": "1",
+ "dmz_id": 1,
+ "quest_id": "saga_saiyan:1",
+ "name": "Defeat Raditz",
+ "desc": "Raditz has come for Gohan in the plains. Defeat the invader and survive the opening strike of the Saiyan threat.",
+ "title": "Defeat Raditz",
+ "description": "Raditz has come for Gohan in the plains. Defeat the invader and survive the opening strike of the Saiyan threat.",
+ "type": "SAGA",
+ "category": "saga_saiyan",
+ "saga": "saiyan_saga",
+ "order": 0,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "min_level": 1,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_raditz",
+   "entity_name": "Raditz",
+   "count": 1,
+   "health": 450.0,
+   "meleeDamage": 22.0,
+   "kiDamage": 39.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 2400
+  },
+  {
+   "type": "ITEM",
+   "item": "broken_scouter",
+   "count": 1
+  },
+  {
+   "type": "ITEM",
+   "item": "cooked_dino_meat",
+   "count": 4,
+   "difficulty": [
+    "NORMAL",
+    "HARD"
+   ]
+  },
+  {
+   "type": "TPS",
+   "amount": 1000,
+   "difficulty": [
+    "HARD"
+   ]
+  }
+ ]
+}

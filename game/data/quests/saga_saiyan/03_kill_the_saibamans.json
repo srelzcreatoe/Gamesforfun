@@ -1,0 +1,68 @@
+{
+ "id": "3",
+ "dmz_id": 3,
+ "quest_id": "saga_saiyan:3",
+ "name": "Kill the Saibamen",
+ "desc": "The Saiyan invasion begins with planted monsters. Wipe out the Saibamen before the real warriors take the field.",
+ "title": "Kill the Saibamen",
+ "description": "The Saiyan invasion begins with planted monsters. Wipe out the Saibamen before the real warriors take the field.",
+ "type": "SAGA",
+ "category": "saga_saiyan",
+ "saga": "saiyan_saga",
+ "order": 2,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 15
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "2",
+    "quest": "saga_saiyan:2"
+   }
+  ]
+ },
+ "min_level": 15,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_saibaman1",
+   "entity_name": "Saibaman",
+   "count": 6,
+   "health": 520.0,
+   "meleeDamage": 33.0,
+   "kiDamage": 46.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 5000
+  }
+ ]
+}

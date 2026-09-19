@@ -1,0 +1,56 @@
+{
+ "id": "8",
+ "dmz_id": 8,
+ "quest_id": "saga_saiyan:8",
+ "name": "Head to Namek",
+ "desc": "Leave Earth behind and travel to Namek before Frieza's forces claim the Dragon Balls.",
+ "title": "Head to Namek",
+ "description": "Leave Earth behind and travel to Namek before Frieza's forces claim the Dragon Balls.",
+ "type": "SAGA",
+ "category": "saga_saiyan",
+ "saga": "saiyan_saga",
+ "order": 7,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 100
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "7",
+    "quest": "saga_saiyan:7"
+   }
+  ]
+ },
+ "min_level": 100,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "DIMENSION",
+   "planet": "namek"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 2000
+  }
+ ]
+}

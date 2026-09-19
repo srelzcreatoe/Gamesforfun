@@ -1,0 +1,74 @@
+{
+ "id": "18",
+ "dmz_id": 18,
+ "quest_id": "saga_movies:18",
+ "name": "Metal Cooler",
+ "desc": "Metal Cooler attacks on Namek with a machine body. Defeat the copy before the swarm grows.",
+ "title": "Metal Cooler",
+ "description": "Metal Cooler attacks on Namek with a machine body. Defeat the copy before the swarm grows.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 17,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 380
+   },
+   {
+    "type": "PLANET",
+    "planet": "namek"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:ajissa_plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "16",
+    "quest": "saga_frieza:16"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "17",
+    "quest": "saga_movies:17"
+   }
+  ]
+ },
+ "min_level": 380,
+ "planet": "namek",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_metal_cooler",
+   "entity_name": "Metal Cooler",
+   "count": 1,
+   "health": 61880.0,
+   "meleeDamage": 2873.0,
+   "kiDamage": 2499.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 68800
+  }
+ ]
+}

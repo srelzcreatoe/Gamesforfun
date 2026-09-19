@@ -1,0 +1,68 @@
+{
+ "id": "7",
+ "dmz_id": 7,
+ "quest_id": "saga_frieza:7",
+ "name": "Ginyu Force: Guldo",
+ "desc": "The Ginyu Force has landed. Start by crushing Guldo before the squad overwhelms the battlefield.",
+ "title": "Ginyu Force: Guldo",
+ "description": "The Ginyu Force has landed. Start by crushing Guldo before the squad overwhelms the battlefield.",
+ "type": "SAGA",
+ "category": "saga_frieza",
+ "saga": "frieza_saga",
+ "order": 6,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 172
+   },
+   {
+    "type": "PLANET",
+    "planet": "namek"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:ajissa_plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "6",
+    "quest": "saga_frieza:6"
+   }
+  ]
+ },
+ "min_level": 172,
+ "planet": "namek",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_guldo",
+   "entity_name": "Guldo",
+   "count": 1,
+   "health": 1989.0,
+   "meleeDamage": 122.0,
+   "kiDamage": 119.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 25920
+  }
+ ]
+}

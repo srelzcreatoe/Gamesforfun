@@ -1,0 +1,68 @@
+{
+ "id": "17",
+ "dmz_id": 17,
+ "quest_id": "saga_buu:17",
+ "name": "Stop Babidi",
+ "desc": "Babidi thinks he can control the monster he released. End the wizard's influence before he steers Buu toward more destruction.",
+ "title": "Stop Babidi",
+ "description": "Babidi thinks he can control the monster he released. End the wizard's influence before he steers Buu toward more destruction.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 16,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1880
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "16",
+    "quest": "saga_buu:16"
+   }
+  ]
+ },
+ "min_level": 1880,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_babidi",
+   "entity_name": "Babidi",
+   "count": 1,
+   "health": 245000.0,
+   "meleeDamage": 10200.0,
+   "kiDamage": 9180.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 108000
+  }
+ ]
+}

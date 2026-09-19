@@ -1,0 +1,77 @@
+{
+ "id": "bulma_time_chamber_link",
+ "dmz_id": "bulma_time_chamber_link",
+ "quest_id": "sidequest_tech:bulma_time_chamber_link",
+ "name": "Temporal Comm-Link",
+ "desc": "Bulma rigs a dimensional anchor so your space pod can travel straight to the Hyperbolic Time Chamber.",
+ "title": "Temporal Comm-Link",
+ "description": "Bulma rigs a dimensional anchor so your space pod can travel straight to the Hyperbolic Time Chamber.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_tech",
+ "order": 16,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "QUEST",
+    "questId": "bulma_otherworld_drive",
+    "quest": "sidequest_tech:bulma_otherworld_drive"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "11",
+    "quest": "saga_android:11"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "STRUCTURE",
+   "structure": "dragonminez:timechamber"
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "gete_ingot",
+   "count": 3
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "clock",
+   "count": 4
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "ender_chest",
+   "count": 1
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 48000
+  }
+ ]
+}

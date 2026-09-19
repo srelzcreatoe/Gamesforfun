@@ -1,0 +1,68 @@
+{
+ "id": "11",
+ "dmz_id": 11,
+ "quest_id": "saga_android:11",
+ "name": "Semi-Perfect Cell",
+ "desc": "Cell has absorbed 17 and evolved into a stronger form. Stand against Semi-Perfect Cell before he reaches 18.",
+ "title": "Semi-Perfect Cell",
+ "description": "Cell has absorbed 17 and evolved into a stronger form. Stand against Semi-Perfect Cell before he reaches 18.",
+ "type": "SAGA",
+ "category": "saga_android",
+ "saga": "android_saga",
+ "order": 10,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1060
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "10",
+    "quest": "saga_android:10"
+   }
+  ]
+ },
+ "min_level": 1060,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_cell_semiperfect",
+   "entity_name": "Cell (Semi-Perfect)",
+   "count": 1,
+   "health": 147000.0,
+   "meleeDamage": 5700.0,
+   "kiDamage": 5270.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 81760
+  }
+ ]
+}

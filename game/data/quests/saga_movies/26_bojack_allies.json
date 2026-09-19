@@ -1,0 +1,100 @@
+{
+ "id": "26",
+ "dmz_id": 26,
+ "quest_id": "saga_movies:26",
+ "name": "Bojack's Allies",
+ "desc": "Bojack's crew has entered the tournament grounds. Defeat his allies before challenging their leader.",
+ "title": "Bojack's Allies",
+ "description": "Bojack's crew has entered the tournament grounds. Defeat his allies before challenging their leader.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 25,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1560
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "15",
+    "quest": "saga_android:15"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "25",
+    "quest": "saga_movies:25"
+   }
+  ]
+ },
+ "min_level": 1560,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_bujin",
+   "entity_name": "Bujin",
+   "count": 1,
+   "health": 129500.0,
+   "meleeDamage": 5280.0,
+   "kiDamage": 4760.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_bido",
+   "entity_name": "Bido",
+   "count": 1,
+   "health": 210000.0,
+   "meleeDamage": 8400.0,
+   "kiDamage": 7480.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_zangya",
+   "entity_name": "Zangya",
+   "count": 1,
+   "health": 154000.0,
+   "meleeDamage": 6000.0,
+   "kiDamage": 5440.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 145000
+  }
+ ]
+}
