@@ -14,6 +14,8 @@ static func new_profile(name: String, race_id: String, gender: String, class_id:
 	slots[0] = {"item": "senzu_bean", "count": 2}
 	slots[1] = {"item": "dragon_radar", "count": 1}
 	slots[2] = {"item": "capsule_house", "count": 1} if Registry.has_item("capsule_house") else null
+	# No starter gi: DragonMineZ starts you in the body you built in the creator, and the
+	# clothes are something you craft or are given. Armour slots start empty.
 	return {
 		"character": {
 			"name": name, "race": race_id, "gender": gender, "class": class_id,
@@ -32,7 +34,7 @@ static func new_profile(name: String, race_id: String, gender: String, class_id:
 		"skills": {"ki_control": 1, "fly": 0, "jump": 0, "sprint": 0, "ki_sense": 0, "potential_unlock": 0},
 		"techniques": ["ki_blast"], "forms": {"unlocked": [], "mastery": {}, "current": ""},
 		"quests": {"active": {}, "completed": [], "claimed": [], "tracked": ""},
-		"inventory": {"slots": slots, "armor": [null, {"item": "goku_armor_chestplate", "count": 1} if Registry.has_item("goku_armor_chestplate") else null, {"item": "goku_armor_leggings", "count": 1} if Registry.has_item("goku_armor_leggings") else null, {"item": "goku_armor_boots", "count": 1} if Registry.has_item("goku_armor_boots") else null], "hotbar": 0},
+		"inventory": {"slots": slots, "armor": [null, null, null, null], "hotbar": 0},
 		"position": {"planet": "earth", "x": 0.5, "y": -1, "z": 0.5, "yaw": 0.0},
 		"spawn": {"planet": "earth", "x": 0.5, "y": -1, "z": 0.5},
 		"health": -1, "ki": -1, "stamina": -1, "hunger": 20, "oxygen": 10,
