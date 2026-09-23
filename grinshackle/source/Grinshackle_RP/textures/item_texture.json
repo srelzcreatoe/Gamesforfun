@@ -1,0 +1,21 @@
+{
+  "resource_pack_name": "grinshackle",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "gs_chainbound_dial": {
+      "textures": "textures/items/gs_chainbound_dial"
+    },
+    "gs_rattle_lure": {
+      "textures": "textures/items/gs_rattle_lure"
+    },
+    "gs_broken_chain": {
+      "textures": "textures/items/gs_broken_chain"
+    },
+    "gs_ink_scrap": {
+      "textures": "textures/items/gs_ink_scrap"
+    },
+    "gs_grinshackle_fang": {
+      "textures": "textures/items/gs_grinshackle_fang"
+    }
+  }
+}

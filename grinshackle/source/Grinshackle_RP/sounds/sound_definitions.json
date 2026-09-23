@@ -1,0 +1,280 @@
+{
+  "format_version": "1.14.0",
+  "sound_definitions": {
+    "gs.chain_drag": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/chain_drag",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.wrist_click": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/wrist_click",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.breath": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/breath",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.alert": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/alert",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.answer_tap": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/answer_tap",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.warning": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/warning",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.windup": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/windup",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.strike": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/strike",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.impact": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/impact",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.ink": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/ink",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.defeat": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/defeat",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.chain_snap": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/chain_snap",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.roar": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/roar",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.rattle": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/rattle",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.lure": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/lure",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.click_release": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/click_release",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.hurt": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/hurt",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.collapse_chains": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/collapse_chains",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.step.stone": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/step_stone",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.step.deepslate": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/step_deepslate",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.step.gravel": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/step_gravel",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.step.wood": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/step_wood",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.step.dirt": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/step_dirt",
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.music.stalk": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/music_stalk",
+          "stream": true,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "gs.music.hunt": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/grinshackle/music_hunt",
+          "stream": true,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    }
+  }
+}

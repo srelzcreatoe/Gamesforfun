@@ -1,0 +1,601 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "gs:grinshackle",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "is_experimental": false,
+      "properties": {
+        "gs:pose": {
+          "type": "enum",
+          "values": [
+            "hidden",
+            "emerge",
+            "idle",
+            "stalk",
+            "walk",
+            "run",
+            "crouch",
+            "crawl",
+            "stare",
+            "battle_idle",
+            "vanish",
+            "collapse"
+          ],
+          "default": "emerge",
+          "client_sync": true
+        },
+        "gs:action": {
+          "type": "int",
+          "range": [
+            0,
+            10
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "gs:overlay": {
+          "type": "int",
+          "range": [
+            0,
+            2
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "gs:track": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "gs:motion_still": {
+        "minecraft:movement": {
+          "value": 0
+        }
+      },
+      "gs:motion_creep": {
+        "minecraft:movement": {
+          "value": 0.07
+        },
+        "minecraft:behavior.move_towards_target": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "within_radius": 6.0
+        }
+      },
+      "gs:motion_stalk": {
+        "minecraft:movement": {
+          "value": 0.1
+        },
+        "minecraft:behavior.move_towards_target": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "within_radius": 6.0
+        }
+      },
+      "gs:motion_walk": {
+        "minecraft:movement": {
+          "value": 0.15
+        },
+        "minecraft:behavior.move_towards_target": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "within_radius": 0.8
+        }
+      },
+      "gs:motion_hunt": {
+        "minecraft:movement": {
+          "value": 0.32
+        },
+        "minecraft:behavior.move_towards_target": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "within_radius": 1.25
+        }
+      },
+      "gs:motion_hunt_fast": {
+        "minecraft:movement": {
+          "value": 0.38
+        },
+        "minecraft:behavior.move_towards_target": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "within_radius": 1.25
+        }
+      },
+      "gs:motion_crawl": {
+        "minecraft:movement": {
+          "value": 0.16
+        },
+        "minecraft:behavior.move_towards_target": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "within_radius": 1.25
+        }
+      },
+      "gs:motion_crawl_fast": {
+        "minecraft:movement": {
+          "value": 0.2
+        },
+        "minecraft:behavior.move_towards_target": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "within_radius": 1.25
+        }
+      },
+      "gs:motion_retreat": {
+        "minecraft:movement": {
+          "value": 0.25
+        },
+        "minecraft:behavior.avoid_mob_type": {
+          "priority": 2,
+          "max_dist": 24,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "player"
+              },
+              "max_dist": 24,
+              "walk_speed_multiplier": 1.0,
+              "sprint_speed_multiplier": 1.15
+            }
+          ]
+        }
+      },
+      "gs:target_player": {
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 48,
+          "entity_types": [
+            {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "player"
+                  },
+                  {
+                    "test": "has_tag",
+                    "subject": "other",
+                    "value": "gs_target"
+                  }
+                ]
+              },
+              "max_dist": 48
+            }
+          ]
+        }
+      },
+      "gs:target_waypoint": {
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 64,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "gs_waypoint"
+              },
+              "max_dist": 64
+            }
+          ]
+        }
+      },
+      "gs:tall": {
+        "minecraft:collision_box": {
+          "width": 0.8,
+          "height": 2.68
+        }
+      },
+      "gs:low": {
+        "minecraft:collision_box": {
+          "width": 0.8,
+          "height": 1.95
+        }
+      },
+      "gs:motion_hunt_slow": {
+        "minecraft:movement": {
+          "value": 0.26
+        },
+        "minecraft:behavior.move_towards_target": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "within_radius": 1.25
+        }
+      },
+      "gs:motion_crawl_slow": {
+        "minecraft:movement": {
+          "value": 0.13
+        },
+        "minecraft:behavior.move_towards_target": {
+          "priority": 3,
+          "speed_multiplier": 1.0,
+          "within_radius": 1.25
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "gs_grinshackle",
+          "monster",
+          "mob"
+        ]
+      },
+      "minecraft:health": {
+        "value": 1000,
+        "max": 1000
+      },
+      "minecraft:collision_box": {
+        "width": 0.8,
+        "height": 2.68
+      },
+      "minecraft:physics": {},
+      "minecraft:pushable": {
+        "is_pushable": true,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:movement": {
+        "value": 0
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:navigation.walk": {
+        "can_path_over_water": false,
+        "avoid_water": true,
+        "can_open_doors": false,
+        "can_pass_doors": true,
+        "can_break_doors": false,
+        "can_jump": true,
+        "avoid_damage_blocks": true,
+        "avoid_portals": true
+      },
+      "minecraft:jump.static": {},
+      "minecraft:follow_range": {
+        "value": 48,
+        "max": 48
+      },
+      "minecraft:knockback_resistance": {
+        "value": 0.65
+      },
+      "minecraft:persistent": {},
+      "minecraft:experience_reward": {
+        "on_death": "8"
+      },
+      "minecraft:loot": {
+        "table": "loot_tables/entities/grinshackle.json"
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:fire_immune": {},
+      "minecraft:conditional_bandwidth_optimization": {}
+    },
+    "events": {
+      "gs:move_still": {
+        "remove": {
+          "component_groups": [
+            "gs:motion_still",
+            "gs:motion_creep",
+            "gs:motion_stalk",
+            "gs:motion_walk",
+            "gs:motion_hunt",
+            "gs:motion_hunt_fast",
+            "gs:motion_crawl",
+            "gs:motion_crawl_fast",
+            "gs:motion_retreat",
+            "gs:motion_hunt_slow",
+            "gs:motion_crawl_slow"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:motion_still"
+          ]
+        }
+      },
+      "gs:move_creep": {
+        "remove": {
+          "component_groups": [
+            "gs:motion_still",
+            "gs:motion_creep",
+            "gs:motion_stalk",
+            "gs:motion_walk",
+            "gs:motion_hunt",
+            "gs:motion_hunt_fast",
+            "gs:motion_crawl",
+            "gs:motion_crawl_fast",
+            "gs:motion_retreat",
+            "gs:motion_hunt_slow",
+            "gs:motion_crawl_slow"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:motion_creep"
+          ]
+        }
+      },
+      "gs:move_stalk": {
+        "remove": {
+          "component_groups": [
+            "gs:motion_still",
+            "gs:motion_creep",
+            "gs:motion_stalk",
+            "gs:motion_walk",
+            "gs:motion_hunt",
+            "gs:motion_hunt_fast",
+            "gs:motion_crawl",
+            "gs:motion_crawl_fast",
+            "gs:motion_retreat",
+            "gs:motion_hunt_slow",
+            "gs:motion_crawl_slow"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:motion_stalk"
+          ]
+        }
+      },
+      "gs:move_walk": {
+        "remove": {
+          "component_groups": [
+            "gs:motion_still",
+            "gs:motion_creep",
+            "gs:motion_stalk",
+            "gs:motion_walk",
+            "gs:motion_hunt",
+            "gs:motion_hunt_fast",
+            "gs:motion_crawl",
+            "gs:motion_crawl_fast",
+            "gs:motion_retreat",
+            "gs:motion_hunt_slow",
+            "gs:motion_crawl_slow"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:motion_walk"
+          ]
+        }
+      },
+      "gs:move_hunt": {
+        "remove": {
+          "component_groups": [
+            "gs:motion_still",
+            "gs:motion_creep",
+            "gs:motion_stalk",
+            "gs:motion_walk",
+            "gs:motion_hunt",
+            "gs:motion_hunt_fast",
+            "gs:motion_crawl",
+            "gs:motion_crawl_fast",
+            "gs:motion_retreat",
+            "gs:motion_hunt_slow",
+            "gs:motion_crawl_slow"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:motion_hunt"
+          ]
+        }
+      },
+      "gs:move_hunt_fast": {
+        "remove": {
+          "component_groups": [
+            "gs:motion_still",
+            "gs:motion_creep",
+            "gs:motion_stalk",
+            "gs:motion_walk",
+            "gs:motion_hunt",
+            "gs:motion_hunt_fast",
+            "gs:motion_crawl",
+            "gs:motion_crawl_fast",
+            "gs:motion_retreat",
+            "gs:motion_hunt_slow",
+            "gs:motion_crawl_slow"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:motion_hunt_fast"
+          ]
+        }
+      },
+      "gs:move_crawl": {
+        "remove": {
+          "component_groups": [
+            "gs:motion_still",
+            "gs:motion_creep",
+            "gs:motion_stalk",
+            "gs:motion_walk",
+            "gs:motion_hunt",
+            "gs:motion_hunt_fast",
+            "gs:motion_crawl",
+            "gs:motion_crawl_fast",
+            "gs:motion_retreat",
+            "gs:motion_hunt_slow",
+            "gs:motion_crawl_slow"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:motion_crawl"
+          ]
+        }
+      },
+      "gs:move_crawl_fast": {
+        "remove": {
+          "component_groups": [
+            "gs:motion_still",
+            "gs:motion_creep",
+            "gs:motion_stalk",
+            "gs:motion_walk",
+            "gs:motion_hunt",
+            "gs:motion_hunt_fast",
+            "gs:motion_crawl",
+            "gs:motion_crawl_fast",
+            "gs:motion_retreat",
+            "gs:motion_hunt_slow",
+            "gs:motion_crawl_slow"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:motion_crawl_fast"
+          ]
+        }
+      },
+      "gs:move_retreat": {
+        "remove": {
+          "component_groups": [
+            "gs:motion_still",
+            "gs:motion_creep",
+            "gs:motion_stalk",
+            "gs:motion_walk",
+            "gs:motion_hunt",
+            "gs:motion_hunt_fast",
+            "gs:motion_crawl",
+            "gs:motion_crawl_fast",
+            "gs:motion_retreat",
+            "gs:motion_hunt_slow",
+            "gs:motion_crawl_slow"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:motion_retreat"
+          ]
+        }
+      },
+      "gs:target_player": {
+        "remove": {
+          "component_groups": [
+            "gs:target_player",
+            "gs:target_waypoint"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:target_player"
+          ]
+        }
+      },
+      "gs:target_waypoint": {
+        "remove": {
+          "component_groups": [
+            "gs:target_player",
+            "gs:target_waypoint"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:target_waypoint"
+          ]
+        }
+      },
+      "gs:target_none": {
+        "remove": {
+          "component_groups": [
+            "gs:target_player",
+            "gs:target_waypoint"
+          ]
+        }
+      },
+      "gs:crouch": {
+        "remove": {
+          "component_groups": [
+            "gs:tall"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:low"
+          ]
+        }
+      },
+      "gs:stand": {
+        "remove": {
+          "component_groups": [
+            "gs:low"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:tall"
+          ]
+        }
+      },
+      "minecraft:entity_spawned": {
+        "add": {
+          "component_groups": [
+            "gs:motion_still",
+            "gs:tall"
+          ]
+        }
+      },
+      "gs:move_hunt_slow": {
+        "remove": {
+          "component_groups": [
+            "gs:motion_still",
+            "gs:motion_creep",
+            "gs:motion_stalk",
+            "gs:motion_walk",
+            "gs:motion_hunt",
+            "gs:motion_hunt_fast",
+            "gs:motion_crawl",
+            "gs:motion_crawl_fast",
+            "gs:motion_retreat",
+            "gs:motion_hunt_slow",
+            "gs:motion_crawl_slow"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:motion_hunt_slow"
+          ]
+        }
+      },
+      "gs:move_crawl_slow": {
+        "remove": {
+          "component_groups": [
+            "gs:motion_still",
+            "gs:motion_creep",
+            "gs:motion_stalk",
+            "gs:motion_walk",
+            "gs:motion_hunt",
+            "gs:motion_hunt_fast",
+            "gs:motion_crawl",
+            "gs:motion_crawl_fast",
+            "gs:motion_retreat",
+            "gs:motion_hunt_slow",
+            "gs:motion_crawl_slow"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "gs:motion_crawl_slow"
+          ]
+        }
+      }
+    }
+  }
+}

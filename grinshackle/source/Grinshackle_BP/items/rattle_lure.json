@@ -1,0 +1,27 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "gs:rattle_lure",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "textures": {
+          "default": "gs_rattle_lure"
+        }
+      },
+      "minecraft:display_name": {
+        "value": "item.gs:rattle_lure.name"
+      },
+      "minecraft:max_stack_size": 16,
+      "minecraft:cooldown": {
+        "category": "gs_lure",
+        "duration": 3.0
+      },
+      "minecraft:rarity": "uncommon"
+    }
+  }
+}

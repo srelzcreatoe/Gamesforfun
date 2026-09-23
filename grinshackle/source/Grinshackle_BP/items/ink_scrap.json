@@ -1,0 +1,22 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "gs:ink_scrap",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "textures": {
+          "default": "gs_ink_scrap"
+        }
+      },
+      "minecraft:display_name": {
+        "value": "item.gs:ink_scrap.name"
+      },
+      "minecraft:max_stack_size": 64
+    }
+  }
+}

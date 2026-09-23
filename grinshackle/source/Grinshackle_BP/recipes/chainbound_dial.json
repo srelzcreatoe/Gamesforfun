@@ -1,0 +1,33 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "gs:chainbound_dial"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      " G ",
+      "GCG",
+      " G "
+    ],
+    "key": {
+      "G": {
+        "item": "minecraft:gold_ingot"
+      },
+      "C": {
+        "item": "minecraft:chain"
+      }
+    },
+    "unlock": [
+      {
+        "item": "minecraft:chain"
+      }
+    ],
+    "result": {
+      "item": "gs:chainbound_dial",
+      "count": 1
+    }
+  }
+}

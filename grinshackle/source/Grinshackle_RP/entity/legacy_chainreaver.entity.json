@@ -1,0 +1,20 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "cr:chainreaver",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/gs_blank"
+      },
+      "geometry": {
+        "default": "geometry.gs_blank"
+      },
+      "render_controllers": [
+        "controller.render.gs.blank"
+      ]
+    }
+  }
+}

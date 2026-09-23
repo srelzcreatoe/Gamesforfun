@@ -1,0 +1,26 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "gs:broken_chain_from_chain"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "ingredients": [
+      {
+        "item": "minecraft:chain",
+        "count": 1
+      }
+    ],
+    "unlock": [
+      {
+        "item": "minecraft:chain"
+      }
+    ],
+    "result": {
+      "item": "gs:broken_chain",
+      "count": 2
+    }
+  }
+}

@@ -1,0 +1,146 @@
+[
+ [
+  "alert",
+  "loop -> hold_on_last_frame (one-shot no longer snaps to the bind pose when it ends; the controller blends out on the property change)"
+ ],
+ [
+  "twitch",
+  "loop -> hold_on_last_frame (one-shot no longer snaps to the bind pose when it ends; the controller blends out on the property change)"
+ ],
+ [
+  "lunge",
+  "loop -> hold_on_last_frame (one-shot no longer snaps to the bind pose when it ends; the controller blends out on the property change)"
+ ],
+ [
+  "chain_whip",
+  "loop -> hold_on_last_frame (one-shot no longer snaps to the bind pose when it ends; the controller blends out on the property change)"
+ ],
+ [
+  "roar",
+  "loop -> hold_on_last_frame (one-shot no longer snaps to the bind pose when it ends; the controller blends out on the property change)"
+ ],
+ [
+  "emerge",
+  "loop -> hold_on_last_frame (one-shot no longer snaps to the bind pose when it ends; the controller blends out on the property change)"
+ ],
+ [
+  "hurt",
+  "loop -> hold_on_last_frame (one-shot no longer snaps to the bind pose when it ends; the controller blends out on the property change)"
+ ],
+ [
+  "chain_snap",
+  "loop -> hold_on_last_frame (one-shot no longer snaps to the bind pose when it ends; the controller blends out on the property change)"
+ ],
+ [
+  "attack",
+  "loop -> hold_on_last_frame (one-shot no longer snaps to the bind pose when it ends; the controller blends out on the property change)"
+ ],
+ [
+  "slam",
+  "loop -> hold_on_last_frame (one-shot no longer snaps to the bind pose when it ends; the controller blends out on the property change)"
+ ],
+ [
+  "attack_crawl",
+  "loop -> hold_on_last_frame (one-shot no longer snaps to the bind pose when it ends; the controller blends out on the property change)"
+ ],
+ [
+  "run",
+  "hand_r static rotation [232.2, -29.7, 206.2] -> blend-safe small-angle triple [52.25, 34.71, 26.25] (the blocky hand is near-symmetric; prevents a 232-degree Euler spin during controller blends)"
+ ],
+ [
+  "run",
+  "animation_length 0.582 -> 0.6 (18 keys on a 1/30 s grid; removes the 0.015 s held frame at the seam)"
+ ],
+ [
+  "run",
+  "added key 0.6 = key 0.0 on every keyed channel (seamless wrap)"
+ ],
+ [
+  "run",
+  "thigh_r/shin_r/foot_r resampled from the left leg shifted by exactly 0.3 s (fixes the 24.7-degree landing pop caused by a 9-frame bake offset)"
+ ],
+ [
+  "run",
+  "anim_time_update scales playback with query.ground_speed (native stride 1.8 blocks/s) so planted feet stop skating"
+ ],
+ [
+  "walk",
+  "thigh_l/shin_l/foot_l resampled from the right leg shifted by exactly L/2 = 0.546 s (fixes the 16.7-degree landing pop from a 0.533 s bake offset)"
+ ],
+ [
+  "walk",
+  "anim_time_update scales playback with ground speed (native stride 0.45 blocks/s)"
+ ],
+ [
+  "stalk",
+  "anim_time_update scales playback with ground speed (native stride 0.18 blocks/s)"
+ ],
+ [
+  "crawl",
+  "root.position.y -0.4976 on every key (1.7576 -> 1.26: hands/feet no longer hover 0.11 block above the floor; knees stay above -0.5 u)"
+ ],
+ [
+  "crawl",
+  "arm_r/arm_l rotation.x +4.5 deg on every key so the fingertips reach the floor at the bottom of each pump"
+ ],
+ [
+  "crawl",
+  "chain bones cross-faded to their first key over 0.9..1.1 s (256 keys; loop seam 4.2 -> 0 deg)"
+ ],
+ [
+  "crawl",
+  "anim_time_update scales playback with ground speed (native 0.41 blocks/s)"
+ ],
+ [
+  "alert",
+  "head roll (z) x0.6 between 0.3 and 1.4 s (jaw no longer sinks 2.5 u into the collar/shoulder during the stare hold)"
+ ],
+ [
+  "twitch",
+  "head spike x0.7 at 0.2-0.267 s (reduces jaw burial in the collar; the jerk stays visible)"
+ ],
+ [
+  "attack",
+  "rest-pose ramp: first/last 0.35-0.45 s eased onto the battle_idle stance (legs, hips, arms, wrists, spine) so the 0.59-block fingertip pop at both blends disappears; the wind-up (0.42 s) and strike (0.60 s) are untouched"
+ ],
+ [
+  "attack",
+  "neck.position.y +1.0 and jaw x -8 over 0.4-1.2 s (the open jaw no longer sinks into the chest during the 36-degree lean)"
+ ],
+ [
+  "attack",
+  "root.position.z -> 0 on every key (removes the 1.17 u planted-foot skate during the strike; the torso lean carries the lunge)"
+ ],
+ [
+  "slam",
+  "rest-pose ramp: first 0.40 s / last 0.45 s eased onto the battle_idle stance (removes the 0.59-block blend pop at both ends)"
+ ],
+ [
+  "slam",
+  "arm_r z +16 / arm_l z -16 over 0.30-0.85 s (the raised hands pass outside the skull and horns instead of through them)"
+ ],
+ [
+  "slam",
+  "neck.position.y +1.0 and jaw x -8 over 0.7-1.5 s (jaw stays out of the chest during the lean)"
+ ],
+ [
+  "slam",
+  "root.position.z -> 0 on every key (removes the 1.17 u planted-foot skate during the strike; the torso lean carries the lunge)"
+ ],
+ [
+  "crawl",
+  "neck.position.y +2.5 (constant): head and jaw lifted out of the pitched chest in the crawl posture (applied identically to crawl and attack_crawl so their shared rest pose still matches)"
+ ],
+ [
+  "attack_crawl",
+  "neck.position.y +2.5 (constant): head and jaw lifted out of the pitched chest in the crawl posture (applied identically to crawl and attack_crawl so their shared rest pose still matches)"
+ ],
+ [
+  "attack_crawl",
+  "root.position.y -0.4976 (matches the crawl fix so the crawl<->attack_crawl blend stays seamless) and root.position.z -> 0 (no shin skate)"
+ ],
+ [
+  "attack_crawl",
+  "arm_r/arm_l rotation.x +4.5 (matches the crawl fix)"
+ ]
+]

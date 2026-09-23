@@ -1,0 +1,24 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "cr:chainreaver",
+      "is_spawnable": false,
+      "is_summonable": false,
+      "is_experimental": false
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "gs_legacy"
+        ]
+      },
+      "minecraft:instant_despawn": {},
+      "minecraft:physics": {},
+      "minecraft:collision_box": {
+        "width": 0.1,
+        "height": 0.1
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "gs:grinshackle_fang",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "textures": {
+          "default": "gs_grinshackle_fang"
+        }
+      },
+      "minecraft:display_name": {
+        "value": "item.gs:grinshackle_fang.name"
+      },
+      "minecraft:max_stack_size": 16,
+      "minecraft:rarity": "rare",
+      "minecraft:glint": true
+    }
+  }
+}

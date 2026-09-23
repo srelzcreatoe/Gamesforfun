@@ -1,0 +1,731 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.gs.pose": {
+      "initial_state": "emerge",
+      "states": {
+        "hidden": {
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "emerge": "query.property('gs:pose') == 'emerge'"
+            },
+            {
+              "idle": "query.property('gs:pose') == 'idle'"
+            },
+            {
+              "stalk": "query.property('gs:pose') == 'stalk'"
+            },
+            {
+              "walk": "query.property('gs:pose') == 'walk'"
+            },
+            {
+              "run": "query.property('gs:pose') == 'run'"
+            },
+            {
+              "crouch": "query.property('gs:pose') == 'crouch'"
+            },
+            {
+              "crawl": "query.property('gs:pose') == 'crawl'"
+            },
+            {
+              "stare": "query.property('gs:pose') == 'stare'"
+            },
+            {
+              "battle_idle": "query.property('gs:pose') == 'battle_idle'"
+            },
+            {
+              "vanish": "query.property('gs:pose') == 'vanish'"
+            },
+            {
+              "collapse": "query.property('gs:pose') == 'collapse'"
+            }
+          ]
+        },
+        "emerge": {
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "hidden": "query.property('gs:pose') == 'hidden'"
+            },
+            {
+              "idle": "query.property('gs:pose') == 'idle'"
+            },
+            {
+              "stalk": "query.property('gs:pose') == 'stalk'"
+            },
+            {
+              "walk": "query.property('gs:pose') == 'walk'"
+            },
+            {
+              "run": "query.property('gs:pose') == 'run'"
+            },
+            {
+              "crouch": "query.property('gs:pose') == 'crouch'"
+            },
+            {
+              "crawl": "query.property('gs:pose') == 'crawl'"
+            },
+            {
+              "stare": "query.property('gs:pose') == 'stare'"
+            },
+            {
+              "battle_idle": "query.property('gs:pose') == 'battle_idle'"
+            },
+            {
+              "vanish": "query.property('gs:pose') == 'vanish'"
+            },
+            {
+              "collapse": "query.property('gs:pose') == 'collapse'"
+            }
+          ],
+          "animations": [
+            "emerge"
+          ]
+        },
+        "idle": {
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "hidden": "query.property('gs:pose') == 'hidden'"
+            },
+            {
+              "emerge": "query.property('gs:pose') == 'emerge'"
+            },
+            {
+              "stalk": "query.property('gs:pose') == 'stalk'"
+            },
+            {
+              "walk": "query.property('gs:pose') == 'walk'"
+            },
+            {
+              "run": "query.property('gs:pose') == 'run'"
+            },
+            {
+              "crouch": "query.property('gs:pose') == 'crouch'"
+            },
+            {
+              "crawl": "query.property('gs:pose') == 'crawl'"
+            },
+            {
+              "stare": "query.property('gs:pose') == 'stare'"
+            },
+            {
+              "battle_idle": "query.property('gs:pose') == 'battle_idle'"
+            },
+            {
+              "vanish": "query.property('gs:pose') == 'vanish'"
+            },
+            {
+              "collapse": "query.property('gs:pose') == 'collapse'"
+            }
+          ],
+          "animations": [
+            "idle"
+          ]
+        },
+        "stalk": {
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "hidden": "query.property('gs:pose') == 'hidden'"
+            },
+            {
+              "emerge": "query.property('gs:pose') == 'emerge'"
+            },
+            {
+              "idle": "query.property('gs:pose') == 'idle'"
+            },
+            {
+              "walk": "query.property('gs:pose') == 'walk'"
+            },
+            {
+              "run": "query.property('gs:pose') == 'run'"
+            },
+            {
+              "crouch": "query.property('gs:pose') == 'crouch'"
+            },
+            {
+              "crawl": "query.property('gs:pose') == 'crawl'"
+            },
+            {
+              "stare": "query.property('gs:pose') == 'stare'"
+            },
+            {
+              "battle_idle": "query.property('gs:pose') == 'battle_idle'"
+            },
+            {
+              "vanish": "query.property('gs:pose') == 'vanish'"
+            },
+            {
+              "collapse": "query.property('gs:pose') == 'collapse'"
+            }
+          ],
+          "animations": [
+            {
+              "stalk": "query.modified_move_speed > 0.02"
+            },
+            {
+              "idle": "query.modified_move_speed <= 0.02"
+            }
+          ]
+        },
+        "walk": {
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "hidden": "query.property('gs:pose') == 'hidden'"
+            },
+            {
+              "emerge": "query.property('gs:pose') == 'emerge'"
+            },
+            {
+              "idle": "query.property('gs:pose') == 'idle'"
+            },
+            {
+              "stalk": "query.property('gs:pose') == 'stalk'"
+            },
+            {
+              "run": "query.property('gs:pose') == 'run'"
+            },
+            {
+              "crouch": "query.property('gs:pose') == 'crouch'"
+            },
+            {
+              "crawl": "query.property('gs:pose') == 'crawl'"
+            },
+            {
+              "stare": "query.property('gs:pose') == 'stare'"
+            },
+            {
+              "battle_idle": "query.property('gs:pose') == 'battle_idle'"
+            },
+            {
+              "vanish": "query.property('gs:pose') == 'vanish'"
+            },
+            {
+              "collapse": "query.property('gs:pose') == 'collapse'"
+            }
+          ],
+          "animations": [
+            {
+              "walk": "query.modified_move_speed > 0.02"
+            },
+            {
+              "idle": "query.modified_move_speed <= 0.02"
+            }
+          ]
+        },
+        "run": {
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "hidden": "query.property('gs:pose') == 'hidden'"
+            },
+            {
+              "emerge": "query.property('gs:pose') == 'emerge'"
+            },
+            {
+              "idle": "query.property('gs:pose') == 'idle'"
+            },
+            {
+              "stalk": "query.property('gs:pose') == 'stalk'"
+            },
+            {
+              "walk": "query.property('gs:pose') == 'walk'"
+            },
+            {
+              "crouch": "query.property('gs:pose') == 'crouch'"
+            },
+            {
+              "crawl": "query.property('gs:pose') == 'crawl'"
+            },
+            {
+              "stare": "query.property('gs:pose') == 'stare'"
+            },
+            {
+              "battle_idle": "query.property('gs:pose') == 'battle_idle'"
+            },
+            {
+              "vanish": "query.property('gs:pose') == 'vanish'"
+            },
+            {
+              "collapse": "query.property('gs:pose') == 'collapse'"
+            }
+          ],
+          "animations": [
+            {
+              "run": "query.modified_move_speed > 0.02"
+            },
+            {
+              "battle_idle": "query.modified_move_speed <= 0.02"
+            }
+          ]
+        },
+        "crouch": {
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "hidden": "query.property('gs:pose') == 'hidden'"
+            },
+            {
+              "emerge": "query.property('gs:pose') == 'emerge'"
+            },
+            {
+              "idle": "query.property('gs:pose') == 'idle'"
+            },
+            {
+              "stalk": "query.property('gs:pose') == 'stalk'"
+            },
+            {
+              "walk": "query.property('gs:pose') == 'walk'"
+            },
+            {
+              "run": "query.property('gs:pose') == 'run'"
+            },
+            {
+              "crawl": "query.property('gs:pose') == 'crawl'"
+            },
+            {
+              "stare": "query.property('gs:pose') == 'stare'"
+            },
+            {
+              "battle_idle": "query.property('gs:pose') == 'battle_idle'"
+            },
+            {
+              "vanish": "query.property('gs:pose') == 'vanish'"
+            },
+            {
+              "collapse": "query.property('gs:pose') == 'collapse'"
+            }
+          ],
+          "animations": [
+            "crouch"
+          ]
+        },
+        "crawl": {
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "hidden": "query.property('gs:pose') == 'hidden'"
+            },
+            {
+              "emerge": "query.property('gs:pose') == 'emerge'"
+            },
+            {
+              "idle": "query.property('gs:pose') == 'idle'"
+            },
+            {
+              "stalk": "query.property('gs:pose') == 'stalk'"
+            },
+            {
+              "walk": "query.property('gs:pose') == 'walk'"
+            },
+            {
+              "run": "query.property('gs:pose') == 'run'"
+            },
+            {
+              "crouch": "query.property('gs:pose') == 'crouch'"
+            },
+            {
+              "stare": "query.property('gs:pose') == 'stare'"
+            },
+            {
+              "battle_idle": "query.property('gs:pose') == 'battle_idle'"
+            },
+            {
+              "vanish": "query.property('gs:pose') == 'vanish'"
+            },
+            {
+              "collapse": "query.property('gs:pose') == 'collapse'"
+            }
+          ],
+          "animations": [
+            {
+              "crawl": "query.modified_move_speed > 0.02"
+            },
+            {
+              "crouch": "query.modified_move_speed <= 0.02"
+            }
+          ]
+        },
+        "stare": {
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "hidden": "query.property('gs:pose') == 'hidden'"
+            },
+            {
+              "emerge": "query.property('gs:pose') == 'emerge'"
+            },
+            {
+              "idle": "query.property('gs:pose') == 'idle'"
+            },
+            {
+              "stalk": "query.property('gs:pose') == 'stalk'"
+            },
+            {
+              "walk": "query.property('gs:pose') == 'walk'"
+            },
+            {
+              "run": "query.property('gs:pose') == 'run'"
+            },
+            {
+              "crouch": "query.property('gs:pose') == 'crouch'"
+            },
+            {
+              "crawl": "query.property('gs:pose') == 'crawl'"
+            },
+            {
+              "battle_idle": "query.property('gs:pose') == 'battle_idle'"
+            },
+            {
+              "vanish": "query.property('gs:pose') == 'vanish'"
+            },
+            {
+              "collapse": "query.property('gs:pose') == 'collapse'"
+            }
+          ],
+          "animations": [
+            "stare"
+          ]
+        },
+        "battle_idle": {
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "hidden": "query.property('gs:pose') == 'hidden'"
+            },
+            {
+              "emerge": "query.property('gs:pose') == 'emerge'"
+            },
+            {
+              "idle": "query.property('gs:pose') == 'idle'"
+            },
+            {
+              "stalk": "query.property('gs:pose') == 'stalk'"
+            },
+            {
+              "walk": "query.property('gs:pose') == 'walk'"
+            },
+            {
+              "run": "query.property('gs:pose') == 'run'"
+            },
+            {
+              "crouch": "query.property('gs:pose') == 'crouch'"
+            },
+            {
+              "crawl": "query.property('gs:pose') == 'crawl'"
+            },
+            {
+              "stare": "query.property('gs:pose') == 'stare'"
+            },
+            {
+              "vanish": "query.property('gs:pose') == 'vanish'"
+            },
+            {
+              "collapse": "query.property('gs:pose') == 'collapse'"
+            }
+          ],
+          "animations": [
+            "battle_idle"
+          ]
+        },
+        "vanish": {
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "hidden": "query.property('gs:pose') == 'hidden'"
+            },
+            {
+              "emerge": "query.property('gs:pose') == 'emerge'"
+            },
+            {
+              "idle": "query.property('gs:pose') == 'idle'"
+            },
+            {
+              "stalk": "query.property('gs:pose') == 'stalk'"
+            },
+            {
+              "walk": "query.property('gs:pose') == 'walk'"
+            },
+            {
+              "run": "query.property('gs:pose') == 'run'"
+            },
+            {
+              "crouch": "query.property('gs:pose') == 'crouch'"
+            },
+            {
+              "crawl": "query.property('gs:pose') == 'crawl'"
+            },
+            {
+              "stare": "query.property('gs:pose') == 'stare'"
+            },
+            {
+              "battle_idle": "query.property('gs:pose') == 'battle_idle'"
+            },
+            {
+              "collapse": "query.property('gs:pose') == 'collapse'"
+            }
+          ],
+          "animations": [
+            "vanish"
+          ]
+        },
+        "collapse": {
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "hidden": "query.property('gs:pose') == 'hidden'"
+            },
+            {
+              "emerge": "query.property('gs:pose') == 'emerge'"
+            },
+            {
+              "idle": "query.property('gs:pose') == 'idle'"
+            },
+            {
+              "stalk": "query.property('gs:pose') == 'stalk'"
+            },
+            {
+              "walk": "query.property('gs:pose') == 'walk'"
+            },
+            {
+              "run": "query.property('gs:pose') == 'run'"
+            },
+            {
+              "crouch": "query.property('gs:pose') == 'crouch'"
+            },
+            {
+              "crawl": "query.property('gs:pose') == 'crawl'"
+            },
+            {
+              "stare": "query.property('gs:pose') == 'stare'"
+            },
+            {
+              "battle_idle": "query.property('gs:pose') == 'battle_idle'"
+            },
+            {
+              "vanish": "query.property('gs:pose') == 'vanish'"
+            }
+          ],
+          "animations": [
+            "collapse"
+          ]
+        }
+      }
+    },
+    "controller.animation.gs.action": {
+      "initial_state": "none",
+      "states": {
+        "none": {
+          "blend_transition": 0.1,
+          "transitions": [
+            {
+              "alert": "query.property('gs:action') == 1"
+            },
+            {
+              "twitch": "query.property('gs:action') == 2"
+            },
+            {
+              "lunge": "query.property('gs:action') == 3"
+            },
+            {
+              "chain_whip": "query.property('gs:action') == 4"
+            },
+            {
+              "roar": "query.property('gs:action') == 5"
+            },
+            {
+              "hurt": "query.property('gs:action') == 6"
+            },
+            {
+              "chain_snap": "query.property('gs:action') == 7"
+            },
+            {
+              "attack": "query.property('gs:action') == 8"
+            },
+            {
+              "slam": "query.property('gs:action') == 9"
+            },
+            {
+              "attack_crawl": "query.property('gs:action') == 10"
+            }
+          ]
+        },
+        "alert": {
+          "animations": [
+            "alert"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "none": "query.property('gs:action') != 1"
+            }
+          ]
+        },
+        "twitch": {
+          "animations": [
+            "twitch"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "none": "query.property('gs:action') != 2"
+            }
+          ]
+        },
+        "lunge": {
+          "animations": [
+            "lunge"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "none": "query.property('gs:action') != 3"
+            }
+          ]
+        },
+        "chain_whip": {
+          "animations": [
+            "chain_whip"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "none": "query.property('gs:action') != 4"
+            }
+          ]
+        },
+        "roar": {
+          "animations": [
+            "roar"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "none": "query.property('gs:action') != 5"
+            }
+          ]
+        },
+        "hurt": {
+          "animations": [
+            "hurt"
+          ],
+          "blend_transition": 0.08,
+          "transitions": [
+            {
+              "none": "query.property('gs:action') != 6"
+            }
+          ]
+        },
+        "chain_snap": {
+          "animations": [
+            "chain_snap"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "none": "query.property('gs:action') != 7"
+            }
+          ]
+        },
+        "attack": {
+          "animations": [
+            "attack"
+          ],
+          "blend_transition": 0.08,
+          "transitions": [
+            {
+              "none": "query.property('gs:action') != 8"
+            }
+          ]
+        },
+        "slam": {
+          "animations": [
+            "slam"
+          ],
+          "blend_transition": 0.08,
+          "transitions": [
+            {
+              "none": "query.property('gs:action') != 9"
+            }
+          ]
+        },
+        "attack_crawl": {
+          "animations": [
+            "attack_crawl"
+          ],
+          "blend_transition": 0.08,
+          "transitions": [
+            {
+              "none": "query.property('gs:action') != 10"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.gs.overlay": {
+      "initial_state": "none",
+      "states": {
+        "none": {
+          "blend_transition": 0.35,
+          "transitions": [
+            {
+              "gather_chains": "query.property('gs:overlay') == 1"
+            },
+            {
+              "tighten": "query.property('gs:overlay') == 2"
+            }
+          ]
+        },
+        "gather_chains": {
+          "animations": [
+            "overlay_gather_chains"
+          ],
+          "blend_transition": 0.6,
+          "transitions": [
+            {
+              "none": "query.property('gs:overlay') != 1"
+            }
+          ]
+        },
+        "tighten": {
+          "animations": [
+            "overlay_tighten"
+          ],
+          "blend_transition": 0.5,
+          "transitions": [
+            {
+              "none": "query.property('gs:overlay') != 2"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.gs.track": {
+      "initial_state": "off",
+      "states": {
+        "off": {
+          "blend_transition": 0.3,
+          "transitions": [
+            {
+              "on": "query.property('gs:track')"
+            }
+          ]
+        },
+        "on": {
+          "animations": [
+            "overlay_head_track"
+          ],
+          "blend_transition": 0.3,
+          "transitions": [
+            {
+              "off": "!query.property('gs:track')"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

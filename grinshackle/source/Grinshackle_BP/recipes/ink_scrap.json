@@ -1,0 +1,30 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "gs:ink_scrap_from_paper"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "ingredients": [
+      {
+        "item": "minecraft:paper",
+        "count": 1
+      },
+      {
+        "item": "minecraft:ink_sac",
+        "count": 1
+      }
+    ],
+    "unlock": [
+      {
+        "item": "minecraft:ink_sac"
+      }
+    ],
+    "result": {
+      "item": "gs:ink_scrap",
+      "count": 2
+    }
+  }
+}

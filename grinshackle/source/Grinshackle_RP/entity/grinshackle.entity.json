@@ -1,0 +1,62 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "gs:grinshackle",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/grinshackle_chainreaver"
+      },
+      "geometry": {
+        "default": "geometry.grinshackle_chainreaver"
+      },
+      "animations": {
+        "idle": "animation.grinshackle_chainreaver.idle",
+        "battle_idle": "animation.grinshackle_chainreaver.battle_idle",
+        "stalk": "animation.grinshackle_chainreaver.stalk",
+        "walk": "animation.grinshackle_chainreaver.walk",
+        "run": "animation.grinshackle_chainreaver.run",
+        "alert": "animation.grinshackle_chainreaver.alert",
+        "stare": "animation.grinshackle_chainreaver.stare",
+        "twitch": "animation.grinshackle_chainreaver.twitch",
+        "lunge": "animation.grinshackle_chainreaver.lunge",
+        "chain_whip": "animation.grinshackle_chainreaver.chain_whip",
+        "roar": "animation.grinshackle_chainreaver.roar",
+        "emerge": "animation.grinshackle_chainreaver.emerge",
+        "vanish": "animation.grinshackle_chainreaver.vanish",
+        "hurt": "animation.grinshackle_chainreaver.hurt",
+        "collapse": "animation.grinshackle_chainreaver.collapse",
+        "crouch": "animation.grinshackle_chainreaver.crouch",
+        "chain_snap": "animation.grinshackle_chainreaver.chain_snap",
+        "attack": "animation.grinshackle_chainreaver.attack",
+        "slam": "animation.grinshackle_chainreaver.slam",
+        "crawl": "animation.grinshackle_chainreaver.crawl",
+        "attack_crawl": "animation.grinshackle_chainreaver.attack_crawl",
+        "overlay_head_track": "animation.grinshackle_chainreaver.overlay_head_track",
+        "overlay_gather_chains": "animation.grinshackle_chainreaver.overlay_gather_chains",
+        "overlay_tighten": "animation.grinshackle_chainreaver.overlay_tighten",
+        "pose_controller": "controller.animation.gs.pose",
+        "action_controller": "controller.animation.gs.action",
+        "overlay_controller": "controller.animation.gs.overlay",
+        "track_controller": "controller.animation.gs.track"
+      },
+      "scripts": {
+        "animate": [
+          "pose_controller",
+          "action_controller",
+          "overlay_controller",
+          "track_controller"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.gs.grinshackle"
+      ],
+      "spawn_egg": {
+        "base_color": "#111513",
+        "overlay_color": "#be9b58"
+      }
+    }
+  }
+}

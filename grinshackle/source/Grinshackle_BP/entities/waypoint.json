@@ -1,0 +1,67 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "gs:waypoint",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "is_experimental": false
+    },
+    "component_groups": {
+      "gs:expired": {
+        "minecraft:instant_despawn": {}
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "gs_waypoint",
+          "inanimate"
+        ]
+      },
+      "minecraft:health": {
+        "value": 10,
+        "max": 10
+      },
+      "minecraft:collision_box": {
+        "width": 0.1,
+        "height": 0.1
+      },
+      "minecraft:physics": {
+        "has_gravity": false,
+        "has_collision": false
+      },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": false
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:knockback_resistance": {
+        "value": 1.0
+      },
+      "minecraft:timer": {
+        "time": 45,
+        "looping": false,
+        "time_down_event": {
+          "event": "gs:expire"
+        }
+      },
+      "minecraft:conditional_bandwidth_optimization": {}
+    },
+    "events": {
+      "gs:expire": {
+        "add": {
+          "component_groups": [
+            "gs:expired"
+          ]
+        }
+      }
+    }
+  }
+}

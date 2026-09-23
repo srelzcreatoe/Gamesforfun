@@ -1,0 +1,317 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.grinshackle_chainreaver.overlay_head_track": {
+      "loop": true,
+      "blend_weight": 1.0,
+      "bones": {
+        "neck": {
+          "rotation": [
+            "query.target_x_rotation * 0.35",
+            "query.target_y_rotation * 0.45",
+            0
+          ]
+        },
+        "head": {
+          "rotation": [
+            "query.target_x_rotation * 0.45",
+            "query.target_y_rotation * 0.45",
+            0
+          ]
+        }
+      }
+    },
+    "animation.grinshackle_chainreaver.overlay_gather_chains": {
+      "loop": true,
+      "blend_weight": 1.0,
+      "bones": {
+        "arm_r": {
+          "rotation": [
+            -18,
+            0,
+            -6
+          ]
+        },
+        "arm_l": {
+          "rotation": [
+            -18,
+            0,
+            6
+          ]
+        },
+        "forearm_r": {
+          "rotation": [
+            -78,
+            -10,
+            0
+          ]
+        },
+        "forearm_l": {
+          "rotation": [
+            -78,
+            10,
+            0
+          ]
+        },
+        "hand_r": {
+          "rotation": [
+            -12,
+            0,
+            0
+          ]
+        },
+        "hand_l": {
+          "rotation": [
+            -12,
+            0,
+            0
+          ]
+        },
+        "finger_r_0": {
+          "rotation": [
+            22,
+            0,
+            0
+          ]
+        },
+        "finger_r_1": {
+          "rotation": [
+            22,
+            0,
+            0
+          ]
+        },
+        "finger_r_2": {
+          "rotation": [
+            22,
+            0,
+            0
+          ]
+        },
+        "finger_r_3": {
+          "rotation": [
+            22,
+            0,
+            0
+          ]
+        },
+        "finger_l_0": {
+          "rotation": [
+            22,
+            0,
+            0
+          ]
+        },
+        "finger_l_1": {
+          "rotation": [
+            22,
+            0,
+            0
+          ]
+        },
+        "finger_l_2": {
+          "rotation": [
+            22,
+            0,
+            0
+          ]
+        },
+        "finger_l_3": {
+          "rotation": [
+            22,
+            0,
+            0
+          ]
+        },
+        "hanging_chain_r_0": {
+          "scale": [
+            1,
+            0.35,
+            1
+          ]
+        },
+        "hanging_chain_l_0": {
+          "scale": [
+            1,
+            0.35,
+            1
+          ]
+        },
+        "hip_chain_0": {
+          "scale": [
+            1,
+            0.5,
+            1
+          ]
+        },
+        "shoulder_chain_r_0": {
+          "scale": [
+            1,
+            0.6,
+            1
+          ]
+        },
+        "shoulder_chain_l_0": {
+          "scale": [
+            1,
+            0.6,
+            1
+          ]
+        },
+        "chest": {
+          "rotation": [
+            6,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "animation.grinshackle_chainreaver.overlay_tighten": {
+      "loop": true,
+      "blend_weight": 1.0,
+      "bones": {
+        "chest": {
+          "rotation": [
+            9,
+            0,
+            0
+          ]
+        },
+        "neck": {
+          "rotation": [
+            -7,
+            0,
+            0
+          ]
+        },
+        "arm_r": {
+          "rotation": [
+            4,
+            0,
+            -11
+          ]
+        },
+        "arm_l": {
+          "rotation": [
+            4,
+            0,
+            11
+          ]
+        },
+        "forearm_r": {
+          "rotation": [
+            -16,
+            0,
+            0
+          ]
+        },
+        "forearm_l": {
+          "rotation": [
+            -16,
+            0,
+            0
+          ]
+        },
+        "finger_r_0": {
+          "rotation": [
+            26,
+            0,
+            0
+          ]
+        },
+        "finger_r_1": {
+          "rotation": [
+            26,
+            0,
+            0
+          ]
+        },
+        "finger_r_2": {
+          "rotation": [
+            26,
+            0,
+            0
+          ]
+        },
+        "finger_r_3": {
+          "rotation": [
+            26,
+            0,
+            0
+          ]
+        },
+        "thumb_r": {
+          "rotation": [
+            14,
+            0,
+            0
+          ]
+        },
+        "finger_l_0": {
+          "rotation": [
+            26,
+            0,
+            0
+          ]
+        },
+        "finger_l_1": {
+          "rotation": [
+            26,
+            0,
+            0
+          ]
+        },
+        "finger_l_2": {
+          "rotation": [
+            26,
+            0,
+            0
+          ]
+        },
+        "finger_l_3": {
+          "rotation": [
+            26,
+            0,
+            0
+          ]
+        },
+        "thumb_l": {
+          "rotation": [
+            14,
+            0,
+            0
+          ]
+        },
+        "thigh_r": {
+          "rotation": [
+            6,
+            0,
+            0
+          ]
+        },
+        "thigh_l": {
+          "rotation": [
+            6,
+            0,
+            0
+          ]
+        },
+        "shin_r": {
+          "rotation": [
+            -6,
+            0,
+            0
+          ]
+        },
+        "shin_l": {
+          "rotation": [
+            -6,
+            0,
+            0
+          ]
+        }
+      }
+    }
+  }
+}

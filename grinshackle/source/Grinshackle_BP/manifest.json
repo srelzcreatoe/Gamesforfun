@@ -1,0 +1,58 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Grinshackle \u2014 The Chainbound Dweller [BP]",
+    "description": "Patient chainbound cave dweller: listens, remembers, lets you notice it. v2.0.0 \u2014 no experiments.",
+    "uuid": "57fc6711-4eae-5b3c-80d4-974f1eab6f5b",
+    "version": [
+      2,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      90
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "1b8c15cd-48ea-5d89-92ff-7011479c2880",
+      "version": [
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "entry": "scripts/main.js",
+      "uuid": "3d95fbce-2ad4-5129-9b0d-f77967b3a1bf",
+      "version": [
+        2,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "b38b5319-54bc-5df9-92c5-df66cdde87cb",
+      "version": [
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.0.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "2.0.0"
+    }
+  ]
+}

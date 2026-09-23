@@ -1,0 +1,9 @@
+entity.gs:grinshackle.name=Grinshackle
+item.spawn_egg.entity.gs:grinshackle.name=Grinshackle Spawn Egg
+entity.gs:waypoint.name=Grinshackle Waypoint
+entity.cr:chainreaver.name=Retired Chainreaver
+item.gs:chainbound_dial.name=Chainbound Dial
+item.gs:rattle_lure.name=Rattle Lure
+item.gs:broken_chain.name=Broken Chain
+item.gs:ink_scrap.name=Ink-soaked Scrap
+item.gs:grinshackle_fang.name=Grinshackle Fang
