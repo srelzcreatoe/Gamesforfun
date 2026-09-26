@@ -1,0 +1,54 @@
+{
+  "name": "StealABrainrot",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace",
+      "Baseplate": {
+        "$className": "Part",
+        "$properties": {
+          "Anchored": true,
+          "Locked": true,
+          "Size": [512, 20, 512],
+          "CFrame": {
+            "CFrame": {
+              "position": [0, -10, 0],
+              "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+            }
+          },
+          "Color": [0.388, 0.373, 0.384],
+          "Material": "Plastic",
+          "TopSurface": "Smooth",
+          "BottomSurface": "Smooth"
+        }
+      },
+      "SpawnLocation": {
+        "$className": "SpawnLocation",
+        "$properties": {
+          "Anchored": true,
+          "Size": [12, 1, 12],
+          "CFrame": {
+            "CFrame": {
+              "position": [0, 0.5, 0],
+              "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+            }
+          },
+          "TopSurface": "Smooth",
+          "BottomSurface": "Smooth"
+        }
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "DataAndMonetizationManager": {
+        "$path": "ServerScriptService/DataAndMonetizationManager.server.luau"
+      }
+    },
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage"
+    },
+    "ServerStorage": {
+      "$className": "ServerStorage"
+    }
+  }
+}
