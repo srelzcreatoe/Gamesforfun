@@ -790,6 +790,28 @@ end
 
 local indexModelsLoaded = false
 
+-- A still copy of a brainrot for the Index, `height` studs tall and centred
+-- on the origin: its imported model if there is one, else the blocky model.
+local function previewModel(brainrotId: string, height: number): Model?
+	local templates = ReplicatedStorage:FindFirstChild("BrainrotModels")
+	local template = if templates then templates:FindFirstChild(brainrotId) else nil
+	if template and template:IsA("Model") and #template:GetChildren() > 0 then
+		local clone = template:Clone()
+		local scale = height / math.max(tonumber(template:GetAttribute("Height")) or 1, 0.01)
+		for _, part in clone:GetDescendants() do
+			if part:IsA("BasePart") then
+				local rest = part.CFrame
+				part.Size *= scale
+				part.CFrame = CFrame.new(rest.Position * scale - Vector3.new(0, height / 2, 0)) * rest.Rotation
+				part.Anchored = true
+			end
+		end
+		clone.WorldPivot = CFrame.identity
+		return clone
+	end
+	return AssetLoader.createBrainrotModel(brainrotId, nil, height)
+end
+
 local function loadIndexModels()
 	if indexModelsLoaded then
 		return
@@ -797,7 +819,7 @@ local function loadIndexModels()
 	indexModelsLoaded = true
 	for brainrotId, card in indexCards do
 		task.spawn(function()
-			local model = AssetLoader.createBrainrotModel(brainrotId, nil, 4)
+			local model = previewModel(brainrotId, 4)
 			if model == nil then
 				return
 			end

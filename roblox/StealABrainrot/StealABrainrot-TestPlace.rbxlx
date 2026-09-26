@@ -238,35 +238,36 @@ return {
 return {
 	Format = 3,
 	-- Voxel grid size in blocks (x, y, z); the model is scaled so y is 1 stud.
-	Dims = { 23, 41, 9 },
-	Palette = { 0x78bb06, 0x799906, 0x429400, 0x378600, 0x7e7304, 0x2f7800, 0x267500, 0x226a00, 0xb55a01, 0xa64c00, 0x8e3e00, 0x415000, 0x1c6000, 0x185500, 0x134b00, 0x103f00, 0x833400, 0x782f00, 0x6e2c00, 0x642c00, 0x6a2600, 0x652500, 0x5e2400, 0x5a1f00, 0x4c1f00, 0x2b2500, 0x0a2f00, 0x062000, 0x3d1400, 0x310f00, 0x151100, 0x1c0900 },
+	Dims = { 23, 41, 23 },
+	Palette = { 0x92e805, 0x81e400, 0x6ddf00, 0x64cc00, 0xfb963c, 0xbf9a24, 0x5fbc00, 0x5f9f01, 0x3ebc00, 0x34ad00, 0x38a100, 0x21a100, 0x3a9300, 0x2a9200, 0x239200, 0x1b9200, 0xe48132, 0xc66827, 0x6f7b06, 0x7c640b, 0x2e8400, 0x1c8300, 0x357100, 0x1c7400, 0xa9551c, 0x965117, 0x954a15, 0x8f4211, 0x80470d, 0x484d02, 0x7e390b, 0x513003 },
 	-- The body, then each leg. Legs swing about their hip Pivot (block units);
 	-- legs with different Phase step in turn. Quads are Zstd + Base64, 7 bytes
 	-- each: axis * 2 + positive, slice, u, v, uSize, vSize, colour.
 	Parts = {
 		{
 			Kind = "Body",
-			QuadCount = 918,
+			QuadCount = 2398,
 			Quads = table.concat({
-		"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",
+		"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",
 	}),
 		},
 		{
 			Kind = "Leg",
-			Pivot = { 5.91, 16.00, 5.76 },
+			Pivot = { 7.57, 9.00, 16.97 },
 			Phase = 1,
-			QuadCount = 309,
+			QuadCount = 241,
 			Quads = table.concat({
-		"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",
+		"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",
 	}),
 		},
 		{
 			Kind = "Leg",
-			Pivot = { 17.10, 16.00, 5.57 },
+			Pivot = { 15.42, 9.00, 16.88 },
 			Phase = 0,
-			QuadCount = 334,
+			QuadCount = 242,
 			Quads = table.concat({
-		"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",
+		"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",
 	}),
 		},
 	},
@@ -5197,32 +5198,186 @@ local function buildFigure(model: Model, root: BasePart, definition: Definition,
 	return FIGURE_HEIGHT * s
 end
 
--- Scales a model imported into ReplicatedStorage.BrainrotModels to the
--- brainrot's height and stands it on the root (the brainrot's feet).
+-- World-space box around some parts.
+local function partsBounds(parts: { BasePart }): (Vector3, Vector3)
+	local low = Vector3.new(math.huge, math.huge, math.huge)
+	local high = -low
+	for _, part in parts do
+		local half = part.Size / 2
+		for _, corner in
+			{
+				Vector3.new(-1, -1, -1),
+				Vector3.new(-1, -1, 1),
+				Vector3.new(-1, 1, -1),
+				Vector3.new(-1, 1, 1),
+				Vector3.new(1, -1, -1),
+				Vector3.new(1, -1, 1),
+				Vector3.new(1, 1, -1),
+				Vector3.new(1, 1, 1),
+			}
+		do
+			local point = part.CFrame:PointToWorldSpace(half * corner)
+			low = low:Min(point)
+			high = high:Max(point)
+		end
+	end
+	return low, high
+end
+
+-- Copies a brainrot's template (see prepareImportedModels) at the brainrot's
+-- height onto the root (its feet). Every part is held by a Weld whose C0 the
+-- client animates: legs (named Leg1/Leg2) swing about their Hip.
 local function buildCustomModel(model: Model, root: BasePart, template: Model, targetHeight: number): number
 	local clone = template:Clone()
-	local _, originalSize = clone:GetBoundingBox()
-	if originalSize.Y > 0 then
-		clone:ScaleTo(clone:GetScale() * targetHeight / originalSize.Y)
-	end
-	local boxCFrame, boxSize = clone:GetBoundingBox()
-	local feet = boxCFrame.Position - Vector3.new(0, boxSize.Y / 2, 0)
-	clone:PivotTo(clone:GetPivot() + (root.Position - feet))
-	for _, descendant in clone:GetDescendants() do
-		if descendant:IsA("BasePart") then
-			descendant.Anchored = false
-			descendant.CanCollide = false
-			descendant.CanQuery = false
-			descendant.CanTouch = false
-			descendant.Massless = true
-			local weld = Instance.new("WeldConstraint")
+	local height = tonumber(template:GetAttribute("Height")) or 1
+	local scale = targetHeight / math.max(height, 0.01)
+	for _, part in clone:GetDescendants() do
+		if part:IsA("BasePart") then
+			local rest = part.CFrame
+			local offset = CFrame.new(rest.Position * scale) * rest.Rotation
+			part.Size *= scale
+			part.Anchored = false
+			part.CanCollide = false
+			part.CanQuery = false
+			part.CanTouch = false
+			part.Massless = true
+			part.CFrame = root.CFrame * offset
+			local weld = Instance.new("Weld")
+			weld.Name = "Pose"
 			weld.Part0 = root
-			weld.Part1 = descendant
-			weld.Parent = descendant
+			weld.Part1 = part
+			weld.C0 = offset
+			weld.Parent = part
+			if string.sub(part.Name, 1, 3) == "Leg" then
+				-- The hip: the top middle of the leg, in the root's space.
+				local _, top = partsBounds({ part })
+				part:SetAttribute("Hip", Vector3.new(offset.X, top.Y - root.Position.Y, offset.Z))
+				part:SetAttribute("LegPhase", if part.Name == "Leg2" then 1 else 0)
+			end
 		end
 	end
 	clone.Parent = model
-	return boxSize.Y
+	return targetHeight
+end
+
+-- Brainrot models imported in Studio (File > Import 3D of
+-- BrainrotModels/Import/BrainrotModels.glb) arrive as a "BrainrotModels"
+-- model in Workspace with parts named "<Id>_Body", "<Id>_Leg1", "<Id>_Front"
+-- and so on. This turns them into one template per brainrot in
+-- ReplicatedStorage.BrainrotModels: standing on the origin, facing -Z (from
+-- the Front and Top markers, whatever axes the importer used), with the
+-- parts named Body/Leg1/Leg2 and a Height attribute. A Model named after a
+-- brainrot's Id (made or imported by hand) works too.
+local IMPORTED_PIECES: { [string]: boolean } = { Body = true, Leg1 = true, Leg2 = true, Front = true, Top = true }
+
+local function prepareImportedModels(): number
+	local containers: { Instance } = {}
+	local function consider(container: Instance?)
+		if container and container ~= map and not container:IsDescendantOf(map) and table.find(containers, container) == nil then
+			table.insert(containers, container)
+		end
+	end
+	consider(ReplicatedStorage:FindFirstChild("BrainrotModels"))
+	consider(Workspace:FindFirstChild("BrainrotModels", true))
+	-- Whatever the importer named it: any model in Workspace holding a part
+	-- called "<Id>_Body".
+	for _, child in Workspace:GetChildren() do
+		if child ~= map and child:IsA("Model") then
+			for _, descendant in child:GetDescendants() do
+				local brainrotId = string.match(descendant.Name, "^(%w+)_Body")
+				if brainrotId and BrainrotConfig.ById[brainrotId] and descendant:IsA("BasePart") then
+					consider(child)
+					break
+				end
+			end
+		end
+	end
+	if #containers == 0 then
+		return 0
+	end
+
+	local groups: { [string]: { [string]: BasePart } } = {}
+	for _, container in containers do
+		for _, descendant in container:GetDescendants() do
+			if not descendant:IsA("BasePart") then
+				continue
+			end
+			local brainrotId, piece = string.match(descendant.Name, "^(%w+)_(%a+%d*)")
+			if brainrotId and piece and BrainrotConfig.ById[brainrotId] and IMPORTED_PIECES[piece] then
+				groups[brainrotId] = groups[brainrotId] or {}
+				groups[brainrotId][piece] = descendant
+			else
+				-- A hand-made model: a Model named after the brainrot.
+				local ancestor = descendant:FindFirstAncestorWhichIsA("Model")
+				while ancestor and ancestor ~= container and BrainrotConfig.ById[ancestor.Name] == nil do
+					ancestor = ancestor.Parent and ancestor.Parent:FindFirstAncestorWhichIsA("Model")
+				end
+				if ancestor and ancestor ~= container then
+					groups[ancestor.Name] = groups[ancestor.Name] or {}
+					local key = descendant.Name
+					while groups[ancestor.Name][key] do
+						key ..= "_"
+					end
+					groups[ancestor.Name][key] = descendant
+				end
+			end
+		end
+	end
+
+	local folder = Instance.new("Folder")
+	folder.Name = "BrainrotModels"
+	local count = 0
+	for brainrotId, pieces in groups do
+		local front, top = pieces.Front, pieces.Top
+		local parts: { BasePart } = {}
+		for piece, part in pieces do
+			if piece ~= "Front" and piece ~= "Top" then
+				table.insert(parts, part)
+			end
+		end
+		if #parts == 0 then
+			continue
+		end
+		local low, high = partsBounds(parts)
+		local centre = (low + high) / 2
+		local frame = CFrame.new(centre)
+		if front and top then
+			local up = (top.Position - centre).Unit
+			local ahead = front.Position - centre
+			ahead = (ahead - up * ahead:Dot(up)).Unit
+			frame = CFrame.lookAt(centre, centre + ahead, up)
+		end
+		local template = Instance.new("Model")
+		template.Name = brainrotId
+		for _, part in parts do
+			part.CFrame = frame:ToObjectSpace(part.CFrame)
+		end
+		low, high = partsBounds(parts)
+		local feet = Vector3.new((low.X + high.X) / 2, low.Y, (low.Z + high.Z) / 2)
+		for piece, part in pieces do
+			if piece == "Front" or piece == "Top" then
+				continue
+			end
+			part.CFrame -= feet
+			part.Anchored = true
+			part.CanCollide = false
+			part.CanQuery = false
+			part.CanTouch = false
+			if IMPORTED_PIECES[piece] then
+				part.Name = piece
+			end
+			part.Parent = template
+		end
+		template:SetAttribute("Height", high.Y - low.Y)
+		template.WorldPivot = CFrame.identity
+		template.Parent = folder
+		count += 1
+	end
+	for _, container in containers do
+		container:Destroy()
+	end
+	folder.Parent = ReplicatedStorage
+	return count
 end
 
 local RAINBOW = ColorSequence.new({
@@ -5283,6 +5438,9 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, price:
 
 	local customModels = ReplicatedStorage:FindFirstChild("BrainrotModels")
 	local template = if customModels then customModels:FindFirstChild(definition.Id) else nil
+	if template and #template:GetChildren() == 0 then
+		template = nil
+	end
 	local hasCustomModel = template ~= nil and template:IsA("Model")
 	local height = if template and template:IsA("Model")
 		then buildCustomModel(model, root, template, FIGURE_HEIGHT * definition.Scale)
@@ -7122,6 +7280,22 @@ end
 --------------------------------------------------------------------------------
 
 do
+	local ok, result = pcall(prepareImportedModels)
+	if not ok then
+		warn(string.format("%s Couldn't set up the imported brainrot models: %s", LOG_PREFIX, tostring(result)))
+	elseif result > 0 then
+		print(string.format("%s Using %d imported brainrot models.", LOG_PREFIX, result))
+	else
+		print(
+			string.format(
+				"%s No imported brainrot models yet, so each player's game builds blocky ones. For the real models, import BrainrotModels/Import/BrainrotModels.glb (File > Import 3D).",
+				LOG_PREFIX
+			)
+		)
+	end
+end
+
+do
 	local plotModels = plotsFolder:GetChildren()
 	table.sort(plotModels, function(a, b)
 		local aNumber = tonumber(string.match(a.Name, "%d+")) or math.huge
@@ -8718,8 +8892,11 @@ end)
 	BrainrotVisuals
 	Location: StarterPlayer.StarterPlayerScripts (LocalScript)
 
-	On this client, swaps each brainrot's simple server-side block figure for its
-	blocky Higgsfield model (rebuilt by AssetLoader as a body plus legs), then:
+	Brainrots with an imported model (see GameplayManager's
+	prepareImportedModels) arrive with their real meshes, jointed by Welds;
+	this script animates them. For the others it swaps the server's simple
+	block figure for the blocky model rebuilt by AssetLoader (a body plus legs).
+	Then for both:
 	  * adds rarity effects: glow light, sparkles and a rising aura for the
 	    rarest, a pulsing light for Mythic, a rainbow glow for Brainrot Gods and
 	    a dark aura with white sparks for Secrets, and extra shine
@@ -8770,11 +8947,13 @@ type RarityEffect = {
 }
 
 type PieceVisual = {
-	Part: MeshPart,
+	Part: BasePart,
 	Weld: Weld,
 	IsLeg: boolean,
-	Offset: Vector3,
-	Pivot: Vector3,
+	-- Rest pose relative to the Root (the brainrot's feet).
+	Base: CFrame,
+	-- Where a leg joins the body, relative to the Root.
+	Hip: Vector3,
 	-- +1 or -1: which way this leg swings on the first step.
 	Direction: number,
 }
@@ -8782,7 +8961,11 @@ type PieceVisual = {
 type Visual = {
 	Model: Model,
 	Root: BasePart,
-	Body: MeshPart,
+	Body: BasePart,
+	-- Imported models belong to the server; blocky ones were made here.
+	Imported: boolean,
+	-- Tints an imported model in its mutation's colour.
+	Highlight: Highlight?,
 	Pieces: { PieceVisual },
 	HasLegs: boolean,
 	Height: number,
@@ -8989,7 +9172,7 @@ end
 
 -- Hides a part of the server's block figure on this client only.
 local function hideFallback(visual: Visual, instance: Instance)
-	if instance:IsA("BasePart") and instance ~= visual.Root and not isOwnPiece(instance) then
+	if not visual.Imported and instance:IsA("BasePart") and instance ~= visual.Root and not isOwnPiece(instance) then
 		instance.LocalTransparencyModifier = 1
 	end
 end
@@ -9000,13 +9183,111 @@ local function detach(instance: Model)
 		return
 	end
 	visuals[instance] = nil
+	if visual.Imported then
+		local highlight = visual.Highlight
+		if highlight then
+			highlight:Destroy()
+		end
+		return
+	end
 	for _, piece in visual.Pieces do
 		piece.Part:Destroy()
 	end
 end
 
+-- An imported model: animate the Welds the server made.
+local function attachImported(instance: Model)
+	local root = instance:FindFirstChild("Root")
+	local height = instance:GetAttribute("FigureHeight")
+	if root == nil or not root:IsA("BasePart") or typeof(height) ~= "number" then
+		return
+	end
+	local existing = visuals[instance]
+	if existing and existing.Root == root then
+		return
+	end
+	detach(instance)
+
+	local pieces: { PieceVisual } = {}
+	local body: BasePart? = nil
+	local legs = 0
+	for _, descendant in instance:GetDescendants() do
+		if descendant:IsA("Weld") and descendant.Name == "Pose" and descendant.Part0 == root then
+			local part = descendant.Part1
+			if part == nil then
+				continue
+			end
+			local hip = part:GetAttribute("Hip")
+			local phase = part:GetAttribute("LegPhase")
+			local isLeg = typeof(hip) == "Vector3" and typeof(phase) == "number"
+			if isLeg then
+				legs += 1
+			end
+			table.insert(pieces, {
+				Part = part,
+				Weld = descendant,
+				IsLeg = isLeg,
+				Base = descendant.C0,
+				Hip = if typeof(hip) == "Vector3" then hip else Vector3.zero,
+				Direction = if phase == 1 then -1 else 1,
+			})
+			if part.Name == "Body" or (body == nil and not isLeg) then
+				body = part
+			end
+		end
+	end
+	if body == nil or #pieces == 0 then
+		return
+	end
+
+	local mutationAttribute = instance:GetAttribute("Mutation")
+	local rarityAttribute = instance:GetAttribute("Rarity")
+	local motionAttribute = instance:GetAttribute("Motion")
+	local mutation = if typeof(mutationAttribute) == "string" then mutationAttribute else nil
+	local visual: Visual = {
+		Model = instance,
+		Root = root,
+		Body = body :: BasePart,
+		Imported = true,
+		Highlight = nil,
+		Pieces = pieces,
+		HasLegs = legs >= 2,
+		Height = height,
+		Phase = math.random() * math.pi * 2,
+		Light = nil,
+		BaseBrightness = 0,
+		Pulse = false,
+		Rainbow = mutation == "Rainbow",
+		RainbowLight = false,
+		Motion = if typeof(motionAttribute) == "string" and MOTIONS[motionAttribute] then motionAttribute else "Walk",
+		LastPosition = root.Position,
+		Speed = 0,
+		Stride = math.random() * math.pi * 2,
+	}
+	addEffects(visual, if typeof(rarityAttribute) == "string" then rarityAttribute else nil, mutation)
+	local mutationInfo = if mutation then BrainrotConfig.MutationByName[mutation] else nil
+	if mutationInfo then
+		-- Textured meshes can't be recoloured, so the mutation glows over them.
+		local highlight = Instance.new("Highlight")
+		highlight.Name = "MutationGlow"
+		highlight.FillColor = mutationInfo.Color
+		highlight.FillTransparency = 0.6
+		highlight.OutlineColor = mutationInfo.Color
+		highlight.OutlineTransparency = 0.15
+		highlight.DepthMode = Enum.HighlightDepthMode.Occluded
+		highlight.Adornee = instance
+		highlight.Parent = instance
+		visual.Highlight = highlight
+	end
+	visuals[instance] = visual
+end
+
 local function attachModel(instance: Instance)
-	if not instance:IsA("Model") or instance:GetAttribute("CustomModel") == true or attaching[instance] then
+	if not instance:IsA("Model") or attaching[instance] then
+		return
+	end
+	if instance:GetAttribute("CustomModel") == true then
+		attachImported(instance)
 		return
 	end
 	local brainrotId = instance:GetAttribute("BrainrotId")
@@ -9065,11 +9346,11 @@ local function attachModel(instance: Instance)
 
 			local isLeg = entry.Piece.Kind == "Leg"
 			table.insert(pieces, {
-				Part = part,
+				Part = part :: BasePart,
 				Weld = weld,
 				IsLeg = isLeg,
-				Offset = entry.Offset,
-				Pivot = entry.Pivot,
+				Base = centre * CFrame.new(entry.Offset),
+				Hip = centre.Position + entry.Pivot,
 				Direction = if entry.Piece.Phase == 1 then -1 else 1,
 			})
 			if not isLeg then
@@ -9087,6 +9368,8 @@ local function attachModel(instance: Instance)
 			Model = instance,
 			Root = rootInstance,
 			Body = body,
+			Imported = false,
+			Highlight = nil,
 			Pieces = pieces,
 			HasLegs = asset.HasLegs,
 			Height = height,
@@ -9168,28 +9451,6 @@ task.spawn(function()
 	end
 end)
 
--- Build every brainrot's model in the background (the ones already in the
--- world first), so new brainrots show their model the moment they appear.
-task.spawn(function()
-	local order: { string } = {}
-	local queued: { [string]: boolean } = {}
-	local function queue(brainrotId: any)
-		if typeof(brainrotId) == "string" and not queued[brainrotId] and BrainrotConfig.ById[brainrotId] then
-			queued[brainrotId] = true
-			table.insert(order, brainrotId)
-		end
-	end
-	for _, child in brainrotsFolder:GetChildren() do
-		queue(child:GetAttribute("BrainrotId"))
-	end
-	for _, definition in BrainrotConfig.Brainrots do
-		queue(definition.Id)
-	end
-	for _, brainrotId in order do
-		AssetLoader.preloadBrainrot(brainrotId)
-		task.wait()
-	end
-end)
 
 --------------------------------------------------------------------------------
 -- Animation
@@ -9272,14 +9533,18 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 		modelOffset = CFrame.new(0, bob + hop, 0) * centre * CFrame.Angles(0, sway, math.sin(phase * 2) * math.rad(2))
 	end
 
+	-- modelOffset moves the model about its centre; the pieces' rest poses
+	-- are relative to the feet.
+	local frame = modelOffset * centre:Inverse()
 	for _, piece in visual.Pieces do
 		if piece.IsLeg then
-			piece.Weld.C0 = modelOffset
-				* CFrame.new(piece.Pivot)
+			piece.Weld.C0 = frame
+				* CFrame.new(piece.Hip)
 				* CFrame.Angles(swing * piece.Direction, 0, 0)
-				* CFrame.new(piece.Offset - piece.Pivot)
+				* CFrame.new(-piece.Hip)
+				* piece.Base
 		else
-			piece.Weld.C0 = modelOffset * CFrame.new(piece.Offset)
+			piece.Weld.C0 = frame * piece.Base
 		end
 	end
 end
@@ -9313,6 +9578,12 @@ RunService.RenderStepped:Connect(function()
 			if visual.Rainbow or visual.RainbowLight then
 				light.Color = Color3.fromHSV((t * 0.25) % 1, 0.8, 1)
 			end
+		end
+		local highlight = visual.Highlight
+		if highlight and visual.Rainbow then
+			local colour = Color3.fromHSV((t * 0.25) % 1, 0.8, 1)
+			highlight.FillColor = colour
+			highlight.OutlineColor = colour
 		end
 	end
 
@@ -10121,6 +10392,28 @@ end
 
 local indexModelsLoaded = false
 
+-- A still copy of a brainrot for the Index, `height` studs tall and centred
+-- on the origin: its imported model if there is one, else the blocky model.
+local function previewModel(brainrotId: string, height: number): Model?
+	local templates = ReplicatedStorage:FindFirstChild("BrainrotModels")
+	local template = if templates then templates:FindFirstChild(brainrotId) else nil
+	if template and template:IsA("Model") and #template:GetChildren() > 0 then
+		local clone = template:Clone()
+		local scale = height / math.max(tonumber(template:GetAttribute("Height")) or 1, 0.01)
+		for _, part in clone:GetDescendants() do
+			if part:IsA("BasePart") then
+				local rest = part.CFrame
+				part.Size *= scale
+				part.CFrame = CFrame.new(rest.Position * scale - Vector3.new(0, height / 2, 0)) * rest.Rotation
+				part.Anchored = true
+			end
+		end
+		clone.WorldPivot = CFrame.identity
+		return clone
+	end
+	return AssetLoader.createBrainrotModel(brainrotId, nil, height)
+end
+
 local function loadIndexModels()
 	if indexModelsLoaded then
 		return
@@ -10128,7 +10421,7 @@ local function loadIndexModels()
 	indexModelsLoaded = true
 	for brainrotId, card in indexCards do
 		task.spawn(function()
-			local model = AssetLoader.createBrainrotModel(brainrotId, nil, 4)
+			local model = previewModel(brainrotId, 4)
 			if model == nil then
 				return
 			end

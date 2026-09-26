@@ -494,32 +494,186 @@ local function buildFigure(model: Model, root: BasePart, definition: Definition,
 	return FIGURE_HEIGHT * s
 end
 
--- Scales a model imported into ReplicatedStorage.BrainrotModels to the
--- brainrot's height and stands it on the root (the brainrot's feet).
+-- World-space box around some parts.
+local function partsBounds(parts: { BasePart }): (Vector3, Vector3)
+	local low = Vector3.new(math.huge, math.huge, math.huge)
+	local high = -low
+	for _, part in parts do
+		local half = part.Size / 2
+		for _, corner in
+			{
+				Vector3.new(-1, -1, -1),
+				Vector3.new(-1, -1, 1),
+				Vector3.new(-1, 1, -1),
+				Vector3.new(-1, 1, 1),
+				Vector3.new(1, -1, -1),
+				Vector3.new(1, -1, 1),
+				Vector3.new(1, 1, -1),
+				Vector3.new(1, 1, 1),
+			}
+		do
+			local point = part.CFrame:PointToWorldSpace(half * corner)
+			low = low:Min(point)
+			high = high:Max(point)
+		end
+	end
+	return low, high
+end
+
+-- Copies a brainrot's template (see prepareImportedModels) at the brainrot's
+-- height onto the root (its feet). Every part is held by a Weld whose C0 the
+-- client animates: legs (named Leg1/Leg2) swing about their Hip.
 local function buildCustomModel(model: Model, root: BasePart, template: Model, targetHeight: number): number
 	local clone = template:Clone()
-	local _, originalSize = clone:GetBoundingBox()
-	if originalSize.Y > 0 then
-		clone:ScaleTo(clone:GetScale() * targetHeight / originalSize.Y)
-	end
-	local boxCFrame, boxSize = clone:GetBoundingBox()
-	local feet = boxCFrame.Position - Vector3.new(0, boxSize.Y / 2, 0)
-	clone:PivotTo(clone:GetPivot() + (root.Position - feet))
-	for _, descendant in clone:GetDescendants() do
-		if descendant:IsA("BasePart") then
-			descendant.Anchored = false
-			descendant.CanCollide = false
-			descendant.CanQuery = false
-			descendant.CanTouch = false
-			descendant.Massless = true
-			local weld = Instance.new("WeldConstraint")
+	local height = tonumber(template:GetAttribute("Height")) or 1
+	local scale = targetHeight / math.max(height, 0.01)
+	for _, part in clone:GetDescendants() do
+		if part:IsA("BasePart") then
+			local rest = part.CFrame
+			local offset = CFrame.new(rest.Position * scale) * rest.Rotation
+			part.Size *= scale
+			part.Anchored = false
+			part.CanCollide = false
+			part.CanQuery = false
+			part.CanTouch = false
+			part.Massless = true
+			part.CFrame = root.CFrame * offset
+			local weld = Instance.new("Weld")
+			weld.Name = "Pose"
 			weld.Part0 = root
-			weld.Part1 = descendant
-			weld.Parent = descendant
+			weld.Part1 = part
+			weld.C0 = offset
+			weld.Parent = part
+			if string.sub(part.Name, 1, 3) == "Leg" then
+				-- The hip: the top middle of the leg, in the root's space.
+				local _, top = partsBounds({ part })
+				part:SetAttribute("Hip", Vector3.new(offset.X, top.Y - root.Position.Y, offset.Z))
+				part:SetAttribute("LegPhase", if part.Name == "Leg2" then 1 else 0)
+			end
 		end
 	end
 	clone.Parent = model
-	return boxSize.Y
+	return targetHeight
+end
+
+-- Brainrot models imported in Studio (File > Import 3D of
+-- BrainrotModels/Import/BrainrotModels.glb) arrive as a "BrainrotModels"
+-- model in Workspace with parts named "<Id>_Body", "<Id>_Leg1", "<Id>_Front"
+-- and so on. This turns them into one template per brainrot in
+-- ReplicatedStorage.BrainrotModels: standing on the origin, facing -Z (from
+-- the Front and Top markers, whatever axes the importer used), with the
+-- parts named Body/Leg1/Leg2 and a Height attribute. A Model named after a
+-- brainrot's Id (made or imported by hand) works too.
+local IMPORTED_PIECES: { [string]: boolean } = { Body = true, Leg1 = true, Leg2 = true, Front = true, Top = true }
+
+local function prepareImportedModels(): number
+	local containers: { Instance } = {}
+	local function consider(container: Instance?)
+		if container and container ~= map and not container:IsDescendantOf(map) and table.find(containers, container) == nil then
+			table.insert(containers, container)
+		end
+	end
+	consider(ReplicatedStorage:FindFirstChild("BrainrotModels"))
+	consider(Workspace:FindFirstChild("BrainrotModels", true))
+	-- Whatever the importer named it: any model in Workspace holding a part
+	-- called "<Id>_Body".
+	for _, child in Workspace:GetChildren() do
+		if child ~= map and child:IsA("Model") then
+			for _, descendant in child:GetDescendants() do
+				local brainrotId = string.match(descendant.Name, "^(%w+)_Body")
+				if brainrotId and BrainrotConfig.ById[brainrotId] and descendant:IsA("BasePart") then
+					consider(child)
+					break
+				end
+			end
+		end
+	end
+	if #containers == 0 then
+		return 0
+	end
+
+	local groups: { [string]: { [string]: BasePart } } = {}
+	for _, container in containers do
+		for _, descendant in container:GetDescendants() do
+			if not descendant:IsA("BasePart") then
+				continue
+			end
+			local brainrotId, piece = string.match(descendant.Name, "^(%w+)_(%a+%d*)")
+			if brainrotId and piece and BrainrotConfig.ById[brainrotId] and IMPORTED_PIECES[piece] then
+				groups[brainrotId] = groups[brainrotId] or {}
+				groups[brainrotId][piece] = descendant
+			else
+				-- A hand-made model: a Model named after the brainrot.
+				local ancestor = descendant:FindFirstAncestorWhichIsA("Model")
+				while ancestor and ancestor ~= container and BrainrotConfig.ById[ancestor.Name] == nil do
+					ancestor = ancestor.Parent and ancestor.Parent:FindFirstAncestorWhichIsA("Model")
+				end
+				if ancestor and ancestor ~= container then
+					groups[ancestor.Name] = groups[ancestor.Name] or {}
+					local key = descendant.Name
+					while groups[ancestor.Name][key] do
+						key ..= "_"
+					end
+					groups[ancestor.Name][key] = descendant
+				end
+			end
+		end
+	end
+
+	local folder = Instance.new("Folder")
+	folder.Name = "BrainrotModels"
+	local count = 0
+	for brainrotId, pieces in groups do
+		local front, top = pieces.Front, pieces.Top
+		local parts: { BasePart } = {}
+		for piece, part in pieces do
+			if piece ~= "Front" and piece ~= "Top" then
+				table.insert(parts, part)
+			end
+		end
+		if #parts == 0 then
+			continue
+		end
+		local low, high = partsBounds(parts)
+		local centre = (low + high) / 2
+		local frame = CFrame.new(centre)
+		if front and top then
+			local up = (top.Position - centre).Unit
+			local ahead = front.Position - centre
+			ahead = (ahead - up * ahead:Dot(up)).Unit
+			frame = CFrame.lookAt(centre, centre + ahead, up)
+		end
+		local template = Instance.new("Model")
+		template.Name = brainrotId
+		for _, part in parts do
+			part.CFrame = frame:ToObjectSpace(part.CFrame)
+		end
+		low, high = partsBounds(parts)
+		local feet = Vector3.new((low.X + high.X) / 2, low.Y, (low.Z + high.Z) / 2)
+		for piece, part in pieces do
+			if piece == "Front" or piece == "Top" then
+				continue
+			end
+			part.CFrame -= feet
+			part.Anchored = true
+			part.CanCollide = false
+			part.CanQuery = false
+			part.CanTouch = false
+			if IMPORTED_PIECES[piece] then
+				part.Name = piece
+			end
+			part.Parent = template
+		end
+		template:SetAttribute("Height", high.Y - low.Y)
+		template.WorldPivot = CFrame.identity
+		template.Parent = folder
+		count += 1
+	end
+	for _, container in containers do
+		container:Destroy()
+	end
+	folder.Parent = ReplicatedStorage
+	return count
 end
 
 local RAINBOW = ColorSequence.new({
@@ -580,6 +734,9 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, price:
 
 	local customModels = ReplicatedStorage:FindFirstChild("BrainrotModels")
 	local template = if customModels then customModels:FindFirstChild(definition.Id) else nil
+	if template and #template:GetChildren() == 0 then
+		template = nil
+	end
 	local hasCustomModel = template ~= nil and template:IsA("Model")
 	local height = if template and template:IsA("Model")
 		then buildCustomModel(model, root, template, FIGURE_HEIGHT * definition.Scale)
@@ -2417,6 +2574,22 @@ end
 --------------------------------------------------------------------------------
 -- Startup
 --------------------------------------------------------------------------------
+
+do
+	local ok, result = pcall(prepareImportedModels)
+	if not ok then
+		warn(string.format("%s Couldn't set up the imported brainrot models: %s", LOG_PREFIX, tostring(result)))
+	elseif result > 0 then
+		print(string.format("%s Using %d imported brainrot models.", LOG_PREFIX, result))
+	else
+		print(
+			string.format(
+				"%s No imported brainrot models yet, so each player's game builds blocky ones. For the real models, import BrainrotModels/Import/BrainrotModels.glb (File > Import 3D).",
+				LOG_PREFIX
+			)
+		)
+	end
+end
 
 do
 	local plotModels = plotsFolder:GetChildren()

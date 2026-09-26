@@ -3,8 +3,11 @@
 	BrainrotVisuals
 	Location: StarterPlayer.StarterPlayerScripts (LocalScript)
 
-	On this client, swaps each brainrot's simple server-side block figure for its
-	blocky Higgsfield model (rebuilt by AssetLoader as a body plus legs), then:
+	Brainrots with an imported model (see GameplayManager's
+	prepareImportedModels) arrive with their real meshes, jointed by Welds;
+	this script animates them. For the others it swaps the server's simple
+	block figure for the blocky model rebuilt by AssetLoader (a body plus legs).
+	Then for both:
 	  * adds rarity effects: glow light, sparkles and a rising aura for the
 	    rarest, a pulsing light for Mythic, a rainbow glow for Brainrot Gods and
 	    a dark aura with white sparks for Secrets, and extra shine
@@ -55,11 +58,13 @@ type RarityEffect = {
 }
 
 type PieceVisual = {
-	Part: MeshPart,
+	Part: BasePart,
 	Weld: Weld,
 	IsLeg: boolean,
-	Offset: Vector3,
-	Pivot: Vector3,
+	-- Rest pose relative to the Root (the brainrot's feet).
+	Base: CFrame,
+	-- Where a leg joins the body, relative to the Root.
+	Hip: Vector3,
 	-- +1 or -1: which way this leg swings on the first step.
 	Direction: number,
 }
@@ -67,7 +72,11 @@ type PieceVisual = {
 type Visual = {
 	Model: Model,
 	Root: BasePart,
-	Body: MeshPart,
+	Body: BasePart,
+	-- Imported models belong to the server; blocky ones were made here.
+	Imported: boolean,
+	-- Tints an imported model in its mutation's colour.
+	Highlight: Highlight?,
 	Pieces: { PieceVisual },
 	HasLegs: boolean,
 	Height: number,
@@ -274,7 +283,7 @@ end
 
 -- Hides a part of the server's block figure on this client only.
 local function hideFallback(visual: Visual, instance: Instance)
-	if instance:IsA("BasePart") and instance ~= visual.Root and not isOwnPiece(instance) then
+	if not visual.Imported and instance:IsA("BasePart") and instance ~= visual.Root and not isOwnPiece(instance) then
 		instance.LocalTransparencyModifier = 1
 	end
 end
@@ -285,13 +294,111 @@ local function detach(instance: Model)
 		return
 	end
 	visuals[instance] = nil
+	if visual.Imported then
+		local highlight = visual.Highlight
+		if highlight then
+			highlight:Destroy()
+		end
+		return
+	end
 	for _, piece in visual.Pieces do
 		piece.Part:Destroy()
 	end
 end
 
+-- An imported model: animate the Welds the server made.
+local function attachImported(instance: Model)
+	local root = instance:FindFirstChild("Root")
+	local height = instance:GetAttribute("FigureHeight")
+	if root == nil or not root:IsA("BasePart") or typeof(height) ~= "number" then
+		return
+	end
+	local existing = visuals[instance]
+	if existing and existing.Root == root then
+		return
+	end
+	detach(instance)
+
+	local pieces: { PieceVisual } = {}
+	local body: BasePart? = nil
+	local legs = 0
+	for _, descendant in instance:GetDescendants() do
+		if descendant:IsA("Weld") and descendant.Name == "Pose" and descendant.Part0 == root then
+			local part = descendant.Part1
+			if part == nil then
+				continue
+			end
+			local hip = part:GetAttribute("Hip")
+			local phase = part:GetAttribute("LegPhase")
+			local isLeg = typeof(hip) == "Vector3" and typeof(phase) == "number"
+			if isLeg then
+				legs += 1
+			end
+			table.insert(pieces, {
+				Part = part,
+				Weld = descendant,
+				IsLeg = isLeg,
+				Base = descendant.C0,
+				Hip = if typeof(hip) == "Vector3" then hip else Vector3.zero,
+				Direction = if phase == 1 then -1 else 1,
+			})
+			if part.Name == "Body" or (body == nil and not isLeg) then
+				body = part
+			end
+		end
+	end
+	if body == nil or #pieces == 0 then
+		return
+	end
+
+	local mutationAttribute = instance:GetAttribute("Mutation")
+	local rarityAttribute = instance:GetAttribute("Rarity")
+	local motionAttribute = instance:GetAttribute("Motion")
+	local mutation = if typeof(mutationAttribute) == "string" then mutationAttribute else nil
+	local visual: Visual = {
+		Model = instance,
+		Root = root,
+		Body = body :: BasePart,
+		Imported = true,
+		Highlight = nil,
+		Pieces = pieces,
+		HasLegs = legs >= 2,
+		Height = height,
+		Phase = math.random() * math.pi * 2,
+		Light = nil,
+		BaseBrightness = 0,
+		Pulse = false,
+		Rainbow = mutation == "Rainbow",
+		RainbowLight = false,
+		Motion = if typeof(motionAttribute) == "string" and MOTIONS[motionAttribute] then motionAttribute else "Walk",
+		LastPosition = root.Position,
+		Speed = 0,
+		Stride = math.random() * math.pi * 2,
+	}
+	addEffects(visual, if typeof(rarityAttribute) == "string" then rarityAttribute else nil, mutation)
+	local mutationInfo = if mutation then BrainrotConfig.MutationByName[mutation] else nil
+	if mutationInfo then
+		-- Textured meshes can't be recoloured, so the mutation glows over them.
+		local highlight = Instance.new("Highlight")
+		highlight.Name = "MutationGlow"
+		highlight.FillColor = mutationInfo.Color
+		highlight.FillTransparency = 0.6
+		highlight.OutlineColor = mutationInfo.Color
+		highlight.OutlineTransparency = 0.15
+		highlight.DepthMode = Enum.HighlightDepthMode.Occluded
+		highlight.Adornee = instance
+		highlight.Parent = instance
+		visual.Highlight = highlight
+	end
+	visuals[instance] = visual
+end
+
 local function attachModel(instance: Instance)
-	if not instance:IsA("Model") or instance:GetAttribute("CustomModel") == true or attaching[instance] then
+	if not instance:IsA("Model") or attaching[instance] then
+		return
+	end
+	if instance:GetAttribute("CustomModel") == true then
+		attachImported(instance)
 		return
 	end
 	local brainrotId = instance:GetAttribute("BrainrotId")
@@ -350,11 +457,11 @@ local function attachModel(instance: Instance)
 
 			local isLeg = entry.Piece.Kind == "Leg"
 			table.insert(pieces, {
-				Part = part,
+				Part = part :: BasePart,
 				Weld = weld,
 				IsLeg = isLeg,
-				Offset = entry.Offset,
-				Pivot = entry.Pivot,
+				Base = centre * CFrame.new(entry.Offset),
+				Hip = centre.Position + entry.Pivot,
 				Direction = if entry.Piece.Phase == 1 then -1 else 1,
 			})
 			if not isLeg then
@@ -372,6 +479,8 @@ local function attachModel(instance: Instance)
 			Model = instance,
 			Root = rootInstance,
 			Body = body,
+			Imported = false,
+			Highlight = nil,
 			Pieces = pieces,
 			HasLegs = asset.HasLegs,
 			Height = height,
@@ -453,28 +562,6 @@ task.spawn(function()
 	end
 end)
 
--- Build every brainrot's model in the background (the ones already in the
--- world first), so new brainrots show their model the moment they appear.
-task.spawn(function()
-	local order: { string } = {}
-	local queued: { [string]: boolean } = {}
-	local function queue(brainrotId: any)
-		if typeof(brainrotId) == "string" and not queued[brainrotId] and BrainrotConfig.ById[brainrotId] then
-			queued[brainrotId] = true
-			table.insert(order, brainrotId)
-		end
-	end
-	for _, child in brainrotsFolder:GetChildren() do
-		queue(child:GetAttribute("BrainrotId"))
-	end
-	for _, definition in BrainrotConfig.Brainrots do
-		queue(definition.Id)
-	end
-	for _, brainrotId in order do
-		AssetLoader.preloadBrainrot(brainrotId)
-		task.wait()
-	end
-end)
 
 --------------------------------------------------------------------------------
 -- Animation
@@ -557,14 +644,18 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 		modelOffset = CFrame.new(0, bob + hop, 0) * centre * CFrame.Angles(0, sway, math.sin(phase * 2) * math.rad(2))
 	end
 
+	-- modelOffset moves the model about its centre; the pieces' rest poses
+	-- are relative to the feet.
+	local frame = modelOffset * centre:Inverse()
 	for _, piece in visual.Pieces do
 		if piece.IsLeg then
-			piece.Weld.C0 = modelOffset
-				* CFrame.new(piece.Pivot)
+			piece.Weld.C0 = frame
+				* CFrame.new(piece.Hip)
 				* CFrame.Angles(swing * piece.Direction, 0, 0)
-				* CFrame.new(piece.Offset - piece.Pivot)
+				* CFrame.new(-piece.Hip)
+				* piece.Base
 		else
-			piece.Weld.C0 = modelOffset * CFrame.new(piece.Offset)
+			piece.Weld.C0 = frame * piece.Base
 		end
 	end
 end
@@ -598,6 +689,12 @@ RunService.RenderStepped:Connect(function()
 			if visual.Rainbow or visual.RainbowLight then
 				light.Color = Color3.fromHSV((t * 0.25) % 1, 0.8, 1)
 			end
+		end
+		local highlight = visual.Highlight
+		if highlight and visual.Rainbow then
+			local colour = Color3.fromHSV((t * 0.25) % 1, 0.8, 1)
+			highlight.FillColor = colour
+			highlight.OutlineColor = colour
 		end
 	end
 

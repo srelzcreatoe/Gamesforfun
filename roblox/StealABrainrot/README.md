@@ -2,13 +2,25 @@
 
 A playable Roblox game: buy brainrots from the conveyor, watch them walk home (other players can buy them off you on the way), collect the Cash they earn from the pads in your base (even while you're offline), steal other players' brainrots, lock your base with a laser door, and troll thieves with freeze rays, spike traps, land mines and Boogie Bombs.
 
-![All 34 blocky brainrot models](BrainrotModels/preview.png)
+![All 34 brainrot models](BrainrotModels/Import/preview.png)
 
 ## Open it in Studio
 
 Double-click `StealABrainrot-TestPlace.rbxlx`, or open Roblox Studio and use File → Open from File. The map is visible straight away: a studded red-carpet conveyor between two tunnels, 8 well-spaced 4-storey bases (neon trim, real see-through glass windows on every floor, a flag on the roof, stairs up to every floor and green collect pads), long carpets from the conveyor to each base, the Robux Shop (run by a rat in a suit with a galaxy slap glove) and Gear Shop stalls, the global leaderboards, trees, bushes, rocks and street lamps, and a dirt-and-grass border.
 
 Press **Play** (or **Test → Start** with 2 players to try stealing).
+
+## Import the brainrot models (once, about a minute)
+
+The real 3D models (made with Higgsfield and Customuse) are in one file, `BrainrotModels/Import/BrainrotModels.glb`. Roblox only shows real meshes after they're uploaded to your account, and Studio does that for you when you import:
+
+1. In Studio: **File → Import 3D** (or the Avatar tab → Import 3D) and pick `BrainrotModels.glb`.
+2. Press **Import**. A model with all 34 brainrots appears in the Workspace (you can move it into ReplicatedStorage, but you don't have to).
+3. **File → Save** so the place keeps it.
+
+That's it: the game finds the models by their part names (`TimCheese_Body`, `TimCheese_Leg1`, ...), stands each one up facing the right way, and uses them for every brainrot, with its own animation: legs that walk, flying, driving, spinning and hopping, bobbing when idle and wriggling when carried. They load like any Roblox mesh. Tip: right-click the imported model → **Save to File** to keep a `.rbxm` you can drop into any newer version of the place instead of importing again.
+
+Until you import them, each player's game builds blocky versions of the models itself (slower, and it needs Game Settings → Security → **Allow Mesh / Image APIs** once published). The Output says which one the game is using.
 
 ## How to play
 
@@ -96,10 +108,10 @@ The game plays a looping playlist of licensed production music (APM) and sound e
 
 ## 3D models and icons
 
-All 34 brainrots were made from blocky concept art (GPT Image 2.5 on Higgsfield, using the Roblox-style reference line-up) turned into 3D, then into blocky models like the original game: each model is cut into blocks 40 tall, every block takes the colour most of the model's texture under it has (so eyes, ties and glasses stay crisp), stray speckles are cleaned up, and same-coloured faces are merged.
+The imported models are the originals, simplified to fit a Roblox MeshPart (9,000 triangles and a 1024×1024 texture each) and cut at the hip so the legs can swing (`tools/build_import.py` builds the file). The blocky fallback models were made from them too: all 34 brainrots were made from blocky concept art (GPT Image 2.5 on Higgsfield, using the Roblox-style reference line-up) turned into 3D, then into blocky models like the original game: each model is cut into blocks 40 tall, every block takes the colour most of the model's texture under it has (so eyes, ties and glasses stay crisp), stray speckles are cleaned up, and same-coloured faces are merged.
 
-- **Customuse** (CR1 3D + Meshy texture from the same concept art) made the models whose details got lost the first time: Ratto Schiaffone (with his purple galaxy slap glove), Tung Tung Tung Sahur (with his bat), Tim Cheese, Lirili Larila, Bombardiro Crocodilo, Trippi Troppi and Tralalero Tralala. The workflow is at https://customuse.com/workflow/02c37c8d-d0cb-430c-a948-816aad2d7f7c.
-- **Higgsfield** (SAM 3 3D) made the other 27.
+- **Customuse** (CR1 3D + Meshy texture from the same concept art) made the models whose details got lost the first time: Ratto Schiaffone (with his purple galaxy slap glove), Tung Tung Tung Sahur (with his bat), Tim Cheese, Lirili Larila, Bombardiro Crocodilo, Trippi Troppi, Tralalero Tralala and Brr Brr Patapim. The workflow is at https://customuse.com/workflow/02c37c8d-d0cb-430c-a948-816aad2d7f7c.
+- **Higgsfield** (SAM 3 3D) made the other 26.
 
 The Index, Rebirth and Shop buttons, the shop cards (including the four troll items) and the boost timers use icons made with Higgsfield too.
 
@@ -159,6 +171,12 @@ After changing a model or icon, repack the assets first (needs `pip install nump
 ```sh
 python3 tools/build_assets.py              # every model and icon
 python3 tools/build_assets.py TimCheese    # just these models
+```
+
+Then rebuild the file to import (after changing any model):
+
+```sh
+python3 tools/build_import.py
 ```
 
 The script also finds each model's legs (the separate block groups that stand on the ground, up to where they join the body) so the game can swing them.
