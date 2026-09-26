@@ -10,6 +10,12 @@
 	Editable meshes and images only exist on the machine that creates them, so
 	each client builds its own copy. Every function returns nil when the data or
 	the Editable APIs aren't available, and callers keep their simple fallback.
+
+	Speed: each brainrot's meshes are built once, a few milliseconds per frame
+	so the game never freezes, and turned into template MeshParts. Every
+	brainrot after that is a clone of the templates, which is instant.
+	preloadBrainrot builds models in the background before they are needed;
+	models someone is waiting for go first.
 ]]
 
 local AssetService = game:GetService("AssetService")
@@ -22,6 +28,10 @@ local QUAD_BYTES = 7
 -- CreateMeshPartAsync calls running at once, and tries per mesh part.
 local MAX_CONCURRENT_PARTS = 4
 local PART_ATTEMPTS = 4
+-- Building meshes stops for the next frame after this long.
+local BUILD_SLICE_SECONDS = 0.004
+-- A model that failed to build is tried again after this long.
+local RETRY_SECONDS = 20
 
 -- One mesh of a brainrot: its body or one leg. Sizes and positions are for a
 -- model 1 stud tall, relative to the model's centre.
@@ -38,6 +48,8 @@ export type Piece = {
 
 export type BrainrotAsset = {
 	Pieces: { Piece },
+	-- One MeshPart per piece; brainrots are clones of these.
+	Templates: { MeshPart },
 	-- Bounding box of the whole model when it is 1 stud tall.
 	Size: Vector3,
 	HasLegs: boolean,
@@ -58,8 +70,17 @@ local AssetLoader = {}
 
 local brainrotCache: { [string]: BrainrotAsset } = {}
 local iconCache: { [string]: EditableImage } = {}
--- Names that were already tried and failed, so they aren't rebuilt every time.
+-- Names that were already tried and failed, so they aren't rebuilt every
+-- time: brainrots until a retry time, icons for good.
 local failed: { [string]: boolean } = {}
+local brainrotRetryAt: { [string]: number } = {}
+-- Brainrot models being built right now.
+local building: { [string]: boolean } = {}
+-- Only one model is built at a time; requests someone is waiting for go
+-- before background preloading.
+local buildBusy = false
+local urgentWaiting = 0
+local sliceStart = os.clock()
 local warnings = 0
 local partsInFlight = 0
 
@@ -220,7 +241,11 @@ local function buildMesh(quads: { Quad }, centre: Vector3, scale: number, colour
 		return id
 	end
 
-	for _, quad in quads do
+	for index, quad in quads do
+		if index % 64 == 0 and os.clock() - sliceStart > BUILD_SLICE_SECONDS then
+			task.wait()
+			sliceStart = os.clock()
+		end
 		local axis, plane = quad.Axis, quad.Plane
 		-- Counter-clockwise seen from outside the block.
 		local a = vertex(cornerOf(axis, plane, quad.U0, quad.V0))
@@ -302,39 +327,11 @@ local function createBlockyAsset(data: { [string]: any }, mutation: string?): Br
 	end
 	return {
 		Pieces = pieces,
+		Templates = {},
 		Size = modelSize * scale,
 		HasLegs = hasLegs,
 		BaseColors = baseColors,
 	}
-end
-
--- Returns the shared meshes for a brainrot and mutation, building them on first use.
-function AssetLoader.getBrainrot(brainrotId: string, mutation: string?): BrainrotAsset?
-	local key = brainrotId .. "|" .. (mutation or "")
-	local cached = brainrotCache[key]
-	if cached or failed["Brainrot:" .. key] then
-		return cached
-	end
-	failed["Brainrot:" .. key] = true
-
-	local module = getModule("Brainrots", brainrotId)
-	if module == nil then
-		return nil
-	end
-	local ok, result = pcall(function(): BrainrotAsset
-		local data = require(module) :: any
-		if data.Format ~= MESH_FORMAT then
-			error("unsupported data format " .. tostring(data.Format))
-		end
-		return createBlockyAsset(data, mutation)
-	end)
-	if not ok then
-		warnLimited(string.format("Could not build the %s model (%s).", brainrotId, tostring(result)))
-		return nil
-	end
-	failed["Brainrot:" .. key] = nil
-	brainrotCache[key] = result
-	return result
 end
 
 -- CreateMeshPartAsync can fail when many parts are made at once (for example
@@ -364,22 +361,132 @@ local function createMeshPart(mesh: EditableMesh): MeshPart
 	error(lastError, 0)
 end
 
+local function acquireBuild(urgent: boolean)
+	if urgent then
+		urgentWaiting += 1
+	end
+	while buildBusy or (not urgent and urgentWaiting > 0) do
+		task.wait()
+	end
+	if urgent then
+		urgentWaiting -= 1
+	end
+	buildBusy = true
+	sliceStart = os.clock()
+end
+
+local function releaseBuild()
+	buildBusy = false
+end
+
+local function buildAsset(brainrotId: string, mutation: string?): BrainrotAsset
+	local module = getModule("Brainrots", brainrotId)
+	if module == nil then
+		error("no model data")
+	end
+	local data = require(module) :: any
+	if data.Format ~= MESH_FORMAT then
+		error("unsupported data format " .. tostring(data.Format))
+	end
+	local asset = createBlockyAsset(data, mutation)
+	local ok, err = pcall(function()
+		for _, piece in asset.Pieces do
+			local template = createMeshPart(piece.Mesh)
+			-- White so the vertex colours show unchanged.
+			template.Color = Color3.new(1, 1, 1)
+			template.Material = Enum.Material.SmoothPlastic
+			template.Name = if piece.Kind == "Leg" then "Leg" else "Body"
+			table.insert(asset.Templates, template)
+		end
+	end)
+	if not ok then
+		for _, template in asset.Templates do
+			template:Destroy()
+		end
+		for _, piece in asset.Pieces do
+			piece.Mesh:Destroy()
+		end
+		error(err, 0)
+	end
+	return asset
+end
+
+-- Returns a brainrot's shared meshes and template parts for a mutation,
+-- building them on first use. Yields while building. `urgent` is for a model
+-- someone is waiting to see; background preloading passes false.
+function AssetLoader.getBrainrot(brainrotId: string, mutation: string?, urgent: boolean?): BrainrotAsset?
+	local key = brainrotId .. "|" .. (mutation or "")
+	while building[key] do
+		task.wait()
+	end
+	local cached = brainrotCache[key]
+	if cached then
+		return cached
+	end
+	if os.clock() < (brainrotRetryAt[key] or 0) then
+		return nil
+	end
+
+	building[key] = true
+	acquireBuild(urgent ~= false)
+	local ok, result = pcall(buildAsset, brainrotId, mutation)
+	releaseBuild()
+	building[key] = nil
+	if not ok then
+		brainrotRetryAt[key] = os.clock() + RETRY_SECONDS
+		warnLimited(string.format("Could not build the %s model (%s).", brainrotId, tostring(result)))
+		return nil
+	end
+	brainrotRetryAt[key] = nil
+	brainrotCache[key] = result
+	return result
+end
+
+-- Builds a brainrot's plain model in the background, so it shows instantly
+-- when it's needed. Yields.
+function AssetLoader.preloadBrainrot(brainrotId: string)
+	AssetLoader.getBrainrot(brainrotId, nil, false)
+end
+
+function AssetLoader.isLoaded(brainrotId: string, mutation: string?): boolean
+	return brainrotCache[brainrotId .. "|" .. (mutation or "")] ~= nil
+end
+
+-- A copy of a template part. Clones share the template's EditableMesh; if
+-- this device doesn't carry the mesh over, a new part is made from it.
+local function copyTemplate(template: MeshPart, mesh: EditableMesh): MeshPart
+	local ok, clone = pcall(function(): MeshPart?
+		local copy = template:Clone()
+		local content = (copy :: any).MeshContent
+		if content == nil or content.Object == nil then
+			copy:Destroy()
+			return nil
+		end
+		return copy
+	end)
+	if ok and clone then
+		return clone
+	end
+	local part = createMeshPart(mesh)
+	part.Color = template.Color
+	part.Material = template.Material
+	part.Name = template.Name
+	return part
+end
+
 -- Creates the brainrot's MeshParts (body and legs), `height` studs tall,
--- unparented and unpositioned. Yields. Returns nil if any piece fails.
+-- unparented and unpositioned. Yields until the model is built (instant once
+-- it is). Returns nil if it can't be built.
 function AssetLoader.createBrainrotParts(brainrotId: string, mutation: string?, height: number): ({ BuiltPiece }?, BrainrotAsset?)
-	local asset = AssetLoader.getBrainrot(brainrotId, mutation)
+	local asset = AssetLoader.getBrainrot(brainrotId, mutation, true)
 	if asset == nil then
 		return nil, nil
 	end
 	local built: { BuiltPiece } = {}
 	local ok, err = pcall(function()
-		for _, piece in asset.Pieces do
-			local part = createMeshPart(piece.Mesh)
-			-- White so the vertex colours show unchanged.
-			part.Color = Color3.new(1, 1, 1)
-			part.Material = Enum.Material.SmoothPlastic
+		for index, piece in asset.Pieces do
+			local part = copyTemplate(asset.Templates[index], piece.Mesh)
 			part.Size = piece.Size * height
-			part.Name = if piece.Kind == "Leg" then "Leg" else "Body"
 			table.insert(built, {
 				Part = part,
 				Piece = piece,

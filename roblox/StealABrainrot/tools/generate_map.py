@@ -214,6 +214,48 @@ def build_slab(f, r, floor):
     return parts
 
 
+WINDOW_BOTTOM = 3.5  # above each floor
+WINDOW_TOP = 10.5
+GLASS = (0.72, 0.88, 1.0)
+
+
+def build_wall(f, r, name, along, fixed, lo, hi, windows, floors, outward):
+    """A wall with real see-through windows: solid bands between the window
+    rows, pillars between the windows and a glass pane with a sill in each.
+    `along` is "x" (front and back walls, at z = fixed) or "z" (side walls,
+    at x = fixed); `windows` are (centre, width) along the wall, on each of
+    `floors`; `outward` (+1/-1) is the outside direction."""
+    base, top = 1, 1 + WALL_HEIGHT
+
+    def box(part_name, a0, a1, y0, y1, colour=WALL, material="SmoothPlastic", thickness=2, offset=0, **extra):
+        length, height, middle, y = a1 - a0, y1 - y0, (a0 + a1) / 2, (y0 + y1) / 2
+        across = fixed + offset * outward
+        if along == "x":
+            return part(part_name, (length, height, thickness), f.at([middle, y, across]), r, colour, material, **extra)
+        return part(part_name, (thickness, height, length), f.at([across, y, middle]), r, colour, material, **extra)
+
+    rows = [(floor_top(k) + WINDOW_BOTTOM, floor_top(k) + WINDOW_TOP) for k in floors]
+    pieces = []
+    y = base
+    for number, (row_bottom, row_top) in enumerate(rows, start=1):
+        pieces.append(box(f"{name}Band{number}", lo, hi, y, row_bottom, surfaces=ALL_STUDS))
+        edge = lo
+        for window, (centre, width) in enumerate(windows, start=1):
+            left, right = centre - width / 2, centre + width / 2
+            if left > edge:
+                pieces.append(box(f"{name}Pillar{number}_{window}", edge, left, row_bottom, row_top, surfaces=ALL_STUDS))
+            pieces.append(
+                box(f"{name}Glass{number}_{window}", left, right, row_bottom, row_top, GLASS, "Glass", thickness=0.4, Transparency=0.55, Reflectance=0.25)
+            )
+            pieces.append(box(f"{name}Sill{number}_{window}", left - 0.5, right + 0.5, row_bottom - 0.4, row_bottom, WHITE, thickness=0.8, offset=1.3))
+            edge = right
+        if hi > edge:
+            pieces.append(box(f"{name}Pillar{number}_end", edge, hi, row_bottom, row_top, surfaces=ALL_STUDS))
+        y = row_top
+    pieces.append(box(f"{name}Top", lo, hi, y, top, surfaces=ALL_STUDS))
+    return pieces
+
+
 def build_plot(index, origin, rotation):
     f = Frame(origin, rotation)
     r = rotation
@@ -228,11 +270,6 @@ def build_plot(index, origin, rotation):
 
     children = [
         part("Floor", (PLOT_WIDTH, 1, PLOT_DEPTH), f.at([0, 0.5, 0]), r, FLOOR, surfaces=STUDS),
-        part("WallBack", (PLOT_WIDTH, WALL_HEIGHT, 2), f.at([0, wall_y, half_depth - 1]), r, WALL, surfaces=ALL_STUDS),
-        part("WallLeft", (2, WALL_HEIGHT, PLOT_DEPTH), f.at([-half_width + 1, wall_y, 0]), r, WALL, surfaces=ALL_STUDS),
-        part("WallRight", (2, WALL_HEIGHT, PLOT_DEPTH), f.at([half_width - 1, wall_y, 0]), r, WALL, surfaces=ALL_STUDS),
-        part("WallFrontLeft", (front_piece, WALL_HEIGHT, 2), f.at([-front_x, wall_y, -half_depth + 1]), r, WALL, surfaces=ALL_STUDS),
-        part("WallFrontRight", (front_piece, WALL_HEIGHT, 2), f.at([front_x, wall_y, -half_depth + 1]), r, WALL, surfaces=ALL_STUDS),
         part(
             "WallAboveDoor",
             (DOOR_WIDTH + 2, lintel_height, 2),
@@ -276,6 +313,17 @@ def build_plot(index, origin, rotation):
         hidden("LaserZone", (DOOR_WIDTH, DOOR_HEIGHT, 6), f.at([0, 1 + DOOR_HEIGHT / 2, -half_depth + 1]), r),
     ]
 
+    # Walls with glass windows on every floor (the front only above the door).
+    all_floors = list(range(1, FLOORS + 1))
+    walls = []
+    walls += build_wall(f, r, "WallBack", "x", half_depth - 1, -half_width, half_width, [(-18, 8), (-6, 8), (6, 8), (18, 8)], all_floors, 1)
+    for side, name in ((-1, "WallLeft"), (1, "WallRight")):
+        walls += build_wall(f, r, name, "z", side * (half_width - 1), -half_depth, half_depth, [(-14, 8), (-2, 8), (10, 8), (22, 8)], all_floors, side)
+    upper = all_floors[1:]
+    walls += build_wall(f, r, "WallFrontLeft", "x", -half_depth + 1, -front_x - front_piece / 2, -front_x + front_piece / 2, [(-21, 6)], upper, -1)
+    walls += build_wall(f, r, "WallFrontRight", "x", -half_depth + 1, front_x - front_piece / 2, front_x + front_piece / 2, [(21, 6)], upper, -1)
+    children.append(folder("Walls", walls))
+
     # Floors 2 and up, the stairs between them, and a sign on each upper floor
     # that says how to unlock it.
     floors = []
@@ -287,16 +335,10 @@ def build_plot(index, origin, rotation):
             floors.extend(build_stairs(f, r, floor, accent))
     children.append(folder("Floors", floors))
 
-    # Outside: windows on every floor, a glowing band where each floor
-    # starts, neon trim around the roof and a flag on top.
+    # Outside: a glowing band where each floor starts, neon trim around the
+    # roof and a flag on top.
     outside = []
     for floor in range(1, FLOORS + 1):
-        y = floor_top(floor) + 6.5
-        outside.append(part(f"WindowBack{floor}", (38, 6, 0.4), f.at([0, y, half_depth + 0.2]), r, DARK, "Glass", Reflectance=0.35))
-        for side, name in ((-1, "Left"), (1, "Right")):
-            outside.append(
-                part(f"Window{name}{floor}", (0.4, 6, 40), f.at([side * (half_width + 0.2), y, 2]), r, DARK, "Glass", Reflectance=0.35)
-            )
         if floor > 1:
             band_y = floor_top(floor) - 0.5
             outside.append(part(f"BandFront{floor}", (PLOT_WIDTH + 0.6, 0.6, 0.6), f.at([0, band_y, -half_depth - 0.3]), r, accent, "Neon", CanCollide=False))

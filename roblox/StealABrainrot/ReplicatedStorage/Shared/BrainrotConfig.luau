@@ -119,7 +119,7 @@ local Brainrots: { Brainrot } = {
 	brainrot("Cioccolatone", "Cioccolatone", "Legendary", 100000, 550, rgb(110, 60, 30), rgb(255, 150, 190), 1.3),
 	brainrot("PeperoncinoFigo", "Peperoncino Figo", "Legendary", 130000, 700, rgb(220, 30, 30), rgb(80, 200, 60), 1.3, "Walk", TACO),
 	-- Mythic
-	brainrot("BombardiroCrocodilo", "Bombardiro Crocodilo", "Mythic", 250000, 1200, rgb(80, 150, 60), rgb(150, 150, 160), 0.85, "Fly"),
+	brainrot("BombardiroCrocodilo", "Bombardiro Crocodilo", "Mythic", 250000, 1200, rgb(80, 150, 60), rgb(150, 150, 160), 0.8, "Fly"),
 	brainrot("TralaleroTralala", "Tralalero Tralala", "Mythic", 400000, 1800, rgb(40, 130, 230), rgb(250, 250, 250), 1.3),
 	brainrot("CoccodrilloTacorito", "Coccodrillo Tacorito", "Mythic", 600000, 2600, rgb(230, 200, 140), rgb(60, 170, 60), 1.4, "Walk", TACO),
 	brainrot("RattoSchiaffone", "Ratto Schiaffone", "Mythic", 850000, 3500, rgb(30, 30, 35), rgb(170, 60, 230), 1.4),

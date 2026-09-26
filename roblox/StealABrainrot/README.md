@@ -6,7 +6,7 @@ A playable Roblox game: buy brainrots from the conveyor, watch them walk home (o
 
 ## Open it in Studio
 
-Double-click `StealABrainrot-TestPlace.rbxlx`, or open Roblox Studio and use File → Open from File. The map is visible straight away: a studded red-carpet conveyor between two tunnels, 8 well-spaced 4-storey bases (neon trim, windows, a flag on the roof, stairs up to every floor and green collect pads), long carpets from the conveyor to each base, the Robux Shop (run by a rat in a suit with a galaxy slap glove) and Gear Shop stalls, the global leaderboards, trees, bushes, rocks and street lamps, and a dirt-and-grass border.
+Double-click `StealABrainrot-TestPlace.rbxlx`, or open Roblox Studio and use File → Open from File. The map is visible straight away: a studded red-carpet conveyor between two tunnels, 8 well-spaced 4-storey bases (neon trim, real see-through glass windows on every floor, a flag on the roof, stairs up to every floor and green collect pads), long carpets from the conveyor to each base, the Robux Shop (run by a rat in a suit with a galaxy slap glove) and Gear Shop stalls, the global leaderboards, trees, bushes, rocks and street lamps, and a dirt-and-grass border.
 
 Press **Play** (or **Test → Start** with 2 players to try stealing).
 
@@ -28,6 +28,8 @@ Press **Play** (or **Test → Start** with 2 players to try stealing).
 | Gear Shop | The Gear Shop stall: gear bought with Cash and kept forever (see below) |
 | Leaderboards | Top Cash, Top Steals and Top Rebirths across all servers on the boards between the bases; Cash, Steals and Rebirths in the player list |
 | Music | The **MUSIC** button (bottom right) turns the music on and off |
+
+The HUD buttons are chunky and bright like the original's (a glossy colour block with a thick black outline, a 3D shadow and the icon popping out of the top); they bounce when you hover them, squish when you click, and their icons wiggle. The Shop button has a pulsing NEW! badge.
 
 New players get a free Noobini Pizzanini so income starts right away.
 
@@ -80,6 +82,8 @@ A full day passes every 10 minutes (the night is shorter), and the street lamps 
 - **Mutations**, rolled when a brainrot spawns: **Gold** (6%, x1.5 income and price), **Diamond** (2.5%, x2) and **Rainbow** (0.6%, x5), plus the event-only **Bloodrot** (x3), **Galaxy** (x4), **Lava** (x3.5, on fire) and **Frozen** (x2.5). Mutated brainrots are recoloured, shine and sparkle in their colour; Rainbow cycles through every colour. Mutations are saved with the brainrot.
 - **Guaranteed spawns**: the sign over the spawn tunnel counts down to a guaranteed Legendary (every 4 minutes), Mythic (10 minutes), Brainrot God (20 minutes) and Secret (45 minutes).
 
+Walking brainrots know the height of every point on their way (the ground, each flight of stairs, each floor and the pedestal), so even a laggy moment can't knock one off the stairs or send it the wrong way.
+
 Brainrots really move: each blocky model is split into a body and its legs, and walkers swing their legs in turn (with the body bobbing and leaning) at a pace that matches how fast they move, on the conveyor, on the way home and up the stairs. Planes and flying brainrots (Bombardiro Crocodilo, Gatto Pizzanave, Tacoplano Bombardino) hover and bank, vehicles (Piccione Macchina, Tacorita Bicicleta) roll along with little bumps, the Ballerina pirouettes, and Toro Palloncino and Spaghetti Tualetti hop. They bob and sway while idle and wriggle while being carried.
 
 The two shopkeepers are animated: the Robux rat winds up and slaps with its galaxy glove, the Gear Shop noob waves, both look around and talk in speech bubbles.
@@ -92,11 +96,14 @@ The game plays a looping playlist of licensed production music (APM) and sound e
 
 ## 3D models and icons
 
-All 34 brainrots were made with Higgsfield (blocky concept art with GPT Image 2.5, using the Roblox-style reference line-up, then SAM 3 3D) and turned into blocky models like the original game: each model is cut into blocks 48 tall, every block takes the colour of the model under it, stray speckles are cleaned up, and same-coloured faces are merged. The Index, Rebirth and Shop buttons, the shop cards (including the four troll items) and the boost timers use icons made with Higgsfield too.
+All 34 brainrots were made from blocky concept art (GPT Image 2.5 on Higgsfield, using the Roblox-style reference line-up) turned into 3D, then into blocky models like the original game: each model is cut into blocks 40 tall, every block takes the colour most of the model's texture under it has (so eyes, ties and glasses stay crisp), stray speckles are cleaned up, and same-coloured faces are merged.
 
-**Customuse:** the Customuse account connected here has 0 credits, so no models could be generated there. To use Customuse models, top up at customuse.com, generate or pick a model, import it in Studio (File → Import 3D) and put it in `ReplicatedStorage.BrainrotModels` named after the brainrot's Id (see below) — it replaces the built-in model automatically.
+- **Customuse** (CR1 3D + Meshy texture from the same concept art) made the models whose details got lost the first time: Ratto Schiaffone (with his purple galaxy slap glove), Tung Tung Tung Sahur (with his bat), Tim Cheese, Lirili Larila, Bombardiro Crocodilo, Trippi Troppi and Tralalero Tralala. The workflow is at https://customuse.com/workflow/02c37c8d-d0cb-430c-a948-816aad2d7f7c.
+- **Higgsfield** (SAM 3 3D) made the other 27.
 
-Nothing has to be uploaded to Roblox first: the models and icons are stored as compressed data in `ReplicatedStorage.Assets`, and each player's game rebuilds them with Roblox's EditableMesh and EditableImage. Mesh parts are made a few at a time and retried if Roblox refuses one (for example when a player joins a busy server), and a brainrot that streams out and back in gets its model rebuilt, so conveyor brainrots don't end up as plain block figures. If a player's game still can't build a model (for example, the device is out of memory), that player sees the simple block figure instead, and everything else works the same. The Output window then shows an `[AssetLoader]` warning with the reason.
+The Index, Rebirth and Shop buttons, the shop cards (including the four troll items) and the boost timers use icons made with Higgsfield too.
+
+Nothing has to be uploaded to Roblox first: the models and icons are stored as compressed data in `ReplicatedStorage.Assets`, and each player's game rebuilds them with Roblox's EditableMesh and EditableImage. Every model is built **once**, in the background a few milliseconds per frame (so the game never stutters), starting with the brainrots already in the world; every brainrot after that is an instant copy. A model someone is waiting to see jumps the queue. If a model can't be built (for example, the device is out of memory), that brainrot shows a simple block figure and the game tries again a few seconds later; the Output window shows an `[AssetLoader]` warning with the reason. **When you publish**, turn on Game Settings → Security → **Allow Mesh / Image APIs** so players' games are allowed to build the models.
 
 To use normal uploaded meshes instead, import the models from `BrainrotModels/Blocky/` (blocky, vertex colours) or `BrainrotModels/` (smooth, textured) with File → Import 3D, and put each Model in a `ReplicatedStorage.BrainrotModels` folder named after its Id (for example `TralaleroTralala`). The game scales it to the right size.
 

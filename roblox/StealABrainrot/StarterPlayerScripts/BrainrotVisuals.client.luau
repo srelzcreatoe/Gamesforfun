@@ -17,8 +17,10 @@
 	    bounces. Idle brainrots bob and sway, and carried ones wriggle. Walkers
 	    without two legs pirouette.
 
-	If a model can't be built, the block figure simply stays visible. When a
-	brainrot streams out and back in, its model is rebuilt. Nothing here affects
+	Every model is built once in the background (a few milliseconds a frame)
+	and each brainrot gets a copy, so they appear straight away. If a model
+	can't be built, the block figure simply stays visible. When a brainrot
+	streams out and back in, its model is attached again. Nothing here affects
 	gameplay; it is all local to this client.
 ]]
 
@@ -437,6 +439,42 @@ end)
 for _, child in brainrotsFolder:GetChildren() do
 	track(child)
 end
+
+-- A brainrot still showing its block figure (its model couldn't be built,
+-- say the device was busy) gets another try every few seconds.
+task.spawn(function()
+	while true do
+		task.wait(5)
+		for _, child in brainrotsFolder:GetChildren() do
+			if child:IsA("Model") and visuals[child] == nil and not attaching[child] then
+				task.spawn(attachModel, child)
+			end
+		end
+	end
+end)
+
+-- Build every brainrot's model in the background (the ones already in the
+-- world first), so new brainrots show their model the moment they appear.
+task.spawn(function()
+	local order: { string } = {}
+	local queued: { [string]: boolean } = {}
+	local function queue(brainrotId: any)
+		if typeof(brainrotId) == "string" and not queued[brainrotId] and BrainrotConfig.ById[brainrotId] then
+			queued[brainrotId] = true
+			table.insert(order, brainrotId)
+		end
+	end
+	for _, child in brainrotsFolder:GetChildren() do
+		queue(child:GetAttribute("BrainrotId"))
+	end
+	for _, definition in BrainrotConfig.Brainrots do
+		queue(definition.Id)
+	end
+	for _, brainrotId in order do
+		AssetLoader.preloadBrainrot(brainrotId)
+		task.wait()
+	end
+end)
 
 --------------------------------------------------------------------------------
 -- Animation

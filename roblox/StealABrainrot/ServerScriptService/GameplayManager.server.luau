@@ -126,8 +126,13 @@ type Plot = {
 }
 
 type Walk = {
-	-- Where to walk; heights come from the ground under the brainrot.
+	-- Where to walk, with the height of the floor at each point. Between two
+	-- points the height follows a straight line (up the stairs too), and a
+	-- short ray only fine-tunes it onto each step, so a lag spike can never
+	-- drop a brainrot onto the wrong floor.
 	Points: { Vector3 },
+	-- Start of the stretch it's walking now.
+	Last: Vector3,
 	Index: number,
 	-- Reaching this point means it walked through its owner's door.
 	DoorIndex: number,
@@ -739,54 +744,78 @@ local function finishWalk(occupant: Occupant)
 	occupant.OwnerLabel = nil
 end
 
+-- Height of the walkable surface at (x, z), looking down from `above`.
+local function surfaceAt(x: number, z: number, above: number, depth: number): number?
+	local result = Workspace:Raycast(Vector3.new(x, above, z), Vector3.new(0, -depth, 0), groundParams)
+	return if result then result.Position.Y else nil
+end
+
 -- The path from `from` to a pedestal: onto the walkway beside the conveyor,
--- along it to the base's carpet, up the carpet, through the door and past the
--- pads to the pedestal. Returns the points and the index of the door.
+-- along it to the base's carpet, up the carpet, through the door, up the
+-- stairs to the pedestal's floor and past the pads to the pedestal. Every
+-- point carries the floor height there. Returns the points and the index of
+-- the door.
 local function buildPath(plot: Plot, slotIndex: number, from: Vector3): ({ Vector3 }, number)
 	local floorFrame = plot.Floor.CFrame
 	local halfDepth = plot.Floor.Size.Z / 2
+	local groundTop = plot.Floor.Position.Y + plot.Floor.Size.Y / 2
 	local carpet = plot.Carpet
 	local carpetLength = if carpet then carpet.Size.Z else 0
 	local laneZ = -halfDepth - carpetLength + LANE_INSET
-	local slotLocal = floorFrame:PointToObjectSpace(plot.Slots[slotIndex].Position)
+	local slot = plot.Slots[slotIndex]
+	local slotLocal = floorFrame:PointToObjectSpace(slot.Position)
+	local slotTop = slot.Position.Y + slot.Size.Y / 2
 	local fromLocal = floorFrame:PointToObjectSpace(from)
 	local padZ = slotLocal.Z - PAD_OFFSET
 
 	local points: { Vector3 } = {}
-	local function add(x: number, z: number)
-		table.insert(points, floorFrame:PointToWorldSpace(Vector3.new(x, 0, z)))
+	local function add(x: number, z: number, y: number)
+		local world = floorFrame:PointToWorldSpace(Vector3.new(x, 0, z))
+		table.insert(points, Vector3.new(world.X, y, world.Z))
+	end
+	-- Outside the base the ground is looked up (carpet, walkway, grass).
+	local function addOutside(x: number, z: number)
+		local world = floorFrame:PointToWorldSpace(Vector3.new(x, 0, z))
+		local y = surfaceAt(world.X, world.Z, groundTop + 5, 12) or groundTop
+		table.insert(points, Vector3.new(world.X, y, world.Z))
 	end
 
 	if fromLocal.Z < -halfDepth and math.abs(fromLocal.X) > 2 then
 		-- Not on this base's carpet yet: walk beside the conveyor first.
-		add(fromLocal.X, laneZ)
-		add(0, laneZ)
+		addOutside(fromLocal.X, laneZ)
+		addOutside(0, laneZ)
 	end
-	add(0, -halfDepth - 1)
+	addOutside(0, -halfDepth - 1)
 	local doorIndex = #points
-	add(0, -halfDepth + 2)
+	add(0, -halfDepth + 2, groundTop)
+
 	-- Upper floors: up each flight of stairs along the front wall, stepping
 	-- off onto the floor above at the top.
-	local aisleX = 0
+	local floorTop = groundTop
+	local climbed = false
 	for floor = 1, floorOf(slotIndex) - 1 do
 		local stair = plot.Stairs[floor]
 		if stair then
 			local bottom = floorFrame:PointToObjectSpace(stair.Bottom)
 			local top = floorFrame:PointToObjectSpace(stair.Top)
 			local exitZ = bottom.Z + STAIR_EXIT_OFFSET
-			add(bottom.X, exitZ)
-			add(bottom.X, bottom.Z)
-			add(top.X, top.Z)
-			add(top.X, exitZ)
-			aisleX = top.X
+			local firstStep = surfaceAt(stair.Bottom.X, stair.Bottom.Z, stair.Bottom.Y + 1, 3) or floorTop + 1
+			local nextFloor = surfaceAt(stair.Top.X, stair.Top.Z, stair.Top.Y + 1, 3) or stair.Top.Y - 0.5
+			add(bottom.X, exitZ, floorTop)
+			add(bottom.X, bottom.Z, firstStep)
+			add(top.X, top.Z, nextFloor)
+			add(top.X, exitZ, nextFloor)
+			floorTop = nextFloor
+			climbed = true
 		end
 	end
-	if aisleX ~= 0 then
-		add(0, floorFrame:PointToObjectSpace(points[#points]).Z)
+	if climbed then
+		add(0, floorFrame:PointToObjectSpace(points[#points]).Z, floorTop)
 	end
-	add(0, padZ)
-	add(slotLocal.X, padZ)
-	add(slotLocal.X, slotLocal.Z)
+	floorTop = slotTop - slot.Size.Y
+	add(0, padZ, floorTop)
+	add(slotLocal.X, padZ, floorTop)
+	add(slotLocal.X, slotLocal.Z, slotTop)
 	return points, doorIndex
 end
 
@@ -811,6 +840,7 @@ local function startWalk(occupant: Occupant, from: Vector3)
 		Entered = false,
 		Speed = math.max(GameConfig.BrainrotWalkSpeed, length / GameConfig.MaxWalkSeconds),
 		Height = from.Y,
+		Last = from,
 	}
 	walkers[occupant] = true
 	occupant.Model:SetAttribute("State", "Walking")
@@ -822,9 +852,14 @@ local function startWalk(occupant: Occupant, from: Vector3)
 	end
 end
 
-local function groundHeightAt(position: Vector3, height: number): number?
-	local result = Workspace:Raycast(Vector3.new(position.X, height + 4, position.Z), Vector3.new(0, -14, 0), groundParams)
-	return if result then result.Position.Y else nil
+-- The step or floor right under a walker whose path is at `pathHeight`. The
+-- ray starts just above the path, so it can't start inside a step.
+local function groundHeightAt(position: Vector3, pathHeight: number): number?
+	local ground = surfaceAt(position.X, position.Z, pathHeight + 2.5, 5)
+	if ground and ground >= pathHeight - 1.5 then
+		return ground
+	end
+	return nil
 end
 
 -- Moves every walking brainrot a frame further along its path.
@@ -848,6 +883,7 @@ local function stepWalkers(dt: number)
 			if distance <= remaining then
 				position = Vector3.new(target.X, position.Y, target.Z)
 				remaining -= distance
+				walk.Last = target
 				if walk.Index == walk.DoorIndex and not walk.Entered then
 					-- Through the door: it's safe in its owner's base now.
 					walk.Entered = true
@@ -868,12 +904,18 @@ local function stepWalkers(dt: number)
 			continue
 		end
 
-		local ground = groundHeightAt(position, walk.Height)
-		if ground then
-			walk.Height += (ground - walk.Height) * math.min(1, dt * 12)
-		end
-		local standing = Vector3.new(position.X, walk.Height, position.Z)
+		-- Height along the current stretch, then onto the step under it.
 		local target = walk.Points[walk.Index]
+		local last = walk.Last
+		local stretch = Vector3.new(target.X - last.X, 0, target.Z - last.Z).Magnitude
+		local left = Vector3.new(target.X - position.X, 0, target.Z - position.Z).Magnitude
+		local progress = if stretch > 0.01 then math.clamp(1 - left / stretch, 0, 1) else 1
+		local pathHeight = last.Y + (target.Y - last.Y) * progress
+		local ground = groundHeightAt(position, pathHeight) or pathHeight
+		walk.Height += (ground - walk.Height) * math.min(1, dt * 15)
+		walk.Height = math.clamp(walk.Height, pathHeight - 1.5, pathHeight + 1.5)
+
+		local standing = Vector3.new(position.X, walk.Height, position.Z)
 		local facing = Vector3.new(target.X - standing.X, 0, target.Z - standing.Z)
 		local rotation = root.CFrame.Rotation
 		if facing.Magnitude > 0.05 then

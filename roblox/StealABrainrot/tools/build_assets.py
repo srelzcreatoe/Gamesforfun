@@ -57,8 +57,8 @@ ICON_FOLDERS = {"ProductIcons": ROOT / "ProductIcons", "UIIcons": ROOT / "UIIcon
 
 TARGET_TRIANGLES = 6000
 GLB_TEXTURE_SIZE = 512
-VOXELS_TALL = 48
-PALETTE_SIZE = 40
+VOXELS_TALL = 40
+PALETTE_SIZE = 32
 COLOUR_SAMPLES = 400000
 ICON_SIZE = 128
 CHUNK = 8000  # characters per string literal
@@ -182,44 +182,48 @@ def voxelise(mesh, texture):
             inside &= np.roll(padded, shift, axis=axis)[1:-1, 1:-1, 1:-1]
     surface_index = np.argwhere(solid & ~inside)
 
-    # Average the texture colour of dense surface samples inside each block.
+    # Dense surface samples with their texture colour.
     points, face_index = trimesh.sample.sample_surface(mesh, COLOUR_SAMPLES, seed=7)
     bary = trimesh.triangles.points_to_barycentric(mesh.triangles[face_index], points)
     uv = (mesh.visual.uv[mesh.faces[face_index]] * bary[..., None]).sum(axis=1)
     width, height = texture.size
     px = np.clip((uv[:, 0] % 1.0) * (width - 1), 0, width - 1).astype(int)
     py = np.clip((1 - uv[:, 1] % 1.0) * (height - 1), 0, height - 1).astype(int)
-    sample_rgb = np.asarray(texture)[py, px].astype(np.float64) / 255
-
-    sample_index = np.asarray(voxels.points_to_indices(points))
-    in_grid = np.all((sample_index >= 0) & (sample_index < np.array(solid.shape)), axis=1)
-    sums = np.zeros(solid.shape + (3,))
-    counts = np.zeros(solid.shape)
-    np.add.at(sums, tuple(sample_index[in_grid].T), sample_rgb[in_grid])
-    np.add.at(counts, tuple(sample_index[in_grid].T), 1)
-
-    rgb = np.zeros((len(surface_index), 3))
-    sampled = counts[tuple(surface_index.T)] > 0
-    rgb[sampled] = sums[tuple(surface_index[sampled].T)] / counts[tuple(surface_index[sampled].T)][:, None]
-    if (~sampled).any():
-        _, nearest = cKDTree(points).query(voxels.indices_to_points(surface_index[~sampled]))
-        rgb[~sampled] = sample_rgb[nearest]
+    sample_rgb = np.asarray(texture.convert("RGB"))[py, px].astype(np.float64) / 255
 
     # A little extra saturation and brightness for the vibrant look.
-    hsv = np.array([colorsys.rgb_to_hsv(*colour) for colour in rgb])
+    hsv = np.array([colorsys.rgb_to_hsv(*colour) for colour in sample_rgb])
     hsv[:, 1] = np.clip(hsv[:, 1] * 1.15, 0, 1)
     hsv[:, 2] = np.clip(hsv[:, 2] * 1.06, 0, 1)
-    rgb = np.array([colorsys.hsv_to_rgb(*colour) for colour in hsv])
+    sample_rgb = np.array([colorsys.hsv_to_rgb(*colour) for colour in hsv])
 
-    strip = Image.fromarray((rgb[None] * 255).round().astype(np.uint8), "RGB")
+    # The palette comes from the samples, then every block takes the palette
+    # colour most of its samples have. Voting (rather than averaging) keeps
+    # small details crisp: white eyes with black pupils stay white and black
+    # instead of turning into a grey-brown blur.
+    strip = Image.fromarray((sample_rgb[None] * 255).round().astype(np.uint8), "RGB")
     quantised = strip.quantize(colors=PALETTE_SIZE, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
     palette = np.array(quantised.getpalette()[: PALETTE_SIZE * 3]).reshape(-1, 3)
-    labels = np.asarray(quantised)[0]
+    sample_labels = np.asarray(quantised)[0].astype(np.int64)
+
+    row_of = np.full(solid.shape, -1, dtype=np.int64)
+    row_of[tuple(surface_index.T)] = np.arange(len(surface_index))
+    sample_index = np.asarray(voxels.points_to_indices(points))
+    in_grid = np.all((sample_index >= 0) & (sample_index < np.array(solid.shape)), axis=1)
+    rows = row_of[tuple(sample_index[in_grid].T)]
+    keep = rows >= 0
+    votes = np.zeros((len(surface_index), PALETTE_SIZE), dtype=np.int32)
+    np.add.at(votes, (rows[keep], sample_labels[in_grid][keep]), 1)
+    labels = votes.argmax(axis=1)
+    unsampled = votes.sum(axis=1) == 0
+    if unsampled.any():
+        _, nearest = cKDTree(points).query(voxels.indices_to_points(surface_index[unsampled]))
+        labels[unsampled] = sample_labels[nearest]
 
     grid = np.zeros(solid.shape, dtype=np.int16)
     grid[solid] = -1
     grid[tuple(surface_index.T)] = labels + 1
-    return clean_colours(grid), palette
+    return clean_colours(grid, passes=2), palette
 
 
 def clean_colours(grid, passes=2):

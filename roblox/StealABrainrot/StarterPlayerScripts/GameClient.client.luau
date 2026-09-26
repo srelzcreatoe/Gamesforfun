@@ -55,6 +55,10 @@ local COLORS = {
 	Rebirth = Color3.fromRGB(40, 175, 230),
 	Index = Color3.fromRGB(245, 170, 40),
 	SideButton = Color3.fromRGB(58, 64, 82),
+	-- Side buttons, bright like the original's
+	IndexButton = Color3.fromRGB(70, 205, 90),
+	RebirthButton = Color3.fromRGB(125, 90, 255),
+	ShopButton = Color3.fromRGB(255, 185, 35),
 	Close = Color3.fromRGB(235, 70, 70),
 	Disabled = Color3.fromRGB(95, 98, 118),
 	Boost = Color3.fromRGB(205, 60, 205),
@@ -144,6 +148,35 @@ local function label(properties: { [string]: any }): TextLabel
 	return textLabel
 end
 
+-- Makes a button bounce: bigger on hover, squished while pressed, and a
+-- springy pop back when released.
+local function addBounce(target: GuiButton, hoverScale: number)
+	local scale = Instance.new("UIScale")
+	scale.Parent = target
+	local function tweenTo(value: number, seconds: number, style: Enum.EasingStyle)
+		TweenService:Create(scale, TweenInfo.new(seconds, style, Enum.EasingDirection.Out), { Scale = value }):Play()
+	end
+	local hovering = false
+	target.MouseEnter:Connect(function()
+		hovering = true
+		tweenTo(hoverScale, 0.15, Enum.EasingStyle.Back)
+	end)
+	target.MouseLeave:Connect(function()
+		hovering = false
+		tweenTo(1, 0.15, Enum.EasingStyle.Quad)
+	end)
+	target.MouseButton1Down:Connect(function()
+		tweenTo(0.88, 0.08, Enum.EasingStyle.Quad)
+	end)
+	target.MouseButton1Up:Connect(function()
+		tweenTo(if hovering then hoverScale else 1, 0.35, Enum.EasingStyle.Elastic)
+	end)
+	target.Activated:Connect(function()
+		scale.Scale = 0.9
+		tweenTo(if hovering then hoverScale else 1, 0.4, Enum.EasingStyle.Elastic)
+	end)
+end
+
 local function button(text: string, color: Color3, properties: { [string]: any }): TextButton
 	local defaults: { [string]: any } = {
 		BackgroundColor3 = color,
@@ -171,6 +204,7 @@ local function button(text: string, color: Color3, properties: { [string]: any }
 	textButton.Activated:Connect(function()
 		Sounds.play("Click")
 	end)
+	addBounce(textButton, 1.05)
 	return textButton
 end
 
@@ -268,62 +302,142 @@ local boostChip = chip(COLORS.Boost, "ServerRarityBoost")
 local empChip = chip(COLORS.Emp, "EMPLaserOverrider")
 local eventChip = chip(EVENT_COLORS.Gold, "ServerRarityBoost")
 
--- Square icon buttons (left middle): Index, Rebirth, Shop
+-- Big square buttons (left middle): Index, Rebirth, Shop. Chunky and bright
+-- like the original: a glossy colour block with a thick black outline and a
+-- shadow under it, the icon popping out of the top and a bold label. They
+-- bounce when hovered, squish when pressed and their icons bob about.
+local SIDE_SIZE = 96
 local sideButtons = create("Frame", {
 	Name = "SideButtons",
 	AnchorPoint = Vector2.new(0, 0.5),
-	Position = UDim2.new(0, 14, 0.5, 0),
-	Size = UDim2.fromOffset(92, 3 * 92 + 2 * 10),
+	Position = UDim2.new(0, 16, 0.5, 10),
+	Size = UDim2.fromOffset(SIDE_SIZE, 3 * SIDE_SIZE + 2 * 22),
 	BackgroundTransparency = 1,
 }, {
-	create("UIListLayout", { Padding = UDim.new(0, 10), SortOrder = Enum.SortOrder.LayoutOrder }),
+	create("UIListLayout", { Padding = UDim.new(0, 22), SortOrder = Enum.SortOrder.LayoutOrder }),
 }) :: Frame
 sideButtons.Parent = screenGui
 
+local sideIcons: { ImageLabel } = {}
+
 local function sideButton(name: string, text: string, color: Color3, iconName: string, order: number): TextButton
+	-- A holder so the shadow and the icon can stick out of the button.
+	local holder = create("Frame", {
+		Name = name .. "Holder",
+		Size = UDim2.fromOffset(SIDE_SIZE, SIDE_SIZE),
+		BackgroundTransparency = 1,
+		LayoutOrder = order,
+	}) :: Frame
+
+	create("Frame", {
+		Name = "Shadow",
+		Position = UDim2.fromOffset(0, 6),
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = Color3.new(0, 0, 0),
+		BackgroundTransparency = 0.45,
+		ZIndex = 1,
+	}, { corner(18) }).Parent = holder
+
+	local dark = color:Lerp(Color3.new(0, 0, 0), 0.35)
 	local square = create("TextButton", {
 		Name = name,
-		Size = UDim2.fromOffset(92, 92),
-		BackgroundColor3 = color,
-		AutoButtonColor = true,
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = Color3.new(1, 1, 1),
+		AutoButtonColor = false,
 		Text = "",
-		LayoutOrder = order,
+		ZIndex = 2,
 	}, {
-		corner(12),
-		stroke(Color3.new(0, 0, 0), 3),
-		gloss(),
+		corner(18),
+		create("UIStroke", { Color = Color3.fromRGB(20, 20, 30), Thickness = 4, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }),
+		create("UIGradient", {
+			Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, color:Lerp(Color3.new(1, 1, 1), 0.25)),
+				ColorSequenceKeypoint.new(0.55, color),
+				ColorSequenceKeypoint.new(1, dark),
+			}),
+			Rotation = 90,
+		}),
 	}) :: TextButton
+
+	-- Glossy shine across the top.
+	create("Frame", {
+		Name = "Shine",
+		Position = UDim2.new(0, 7, 0, 6),
+		Size = UDim2.new(1, -14, 0.36, 0),
+		BackgroundColor3 = Color3.new(1, 1, 1),
+		BackgroundTransparency = 0.72,
+		ZIndex = 3,
+	}, { corner(12) }).Parent = square
 
 	local icon = create("ImageLabel", {
 		Name = "Icon",
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 4),
-		Size = UDim2.fromOffset(64, 64),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, 0, 0.38, 0),
+		Size = UDim2.fromOffset(82, 82),
 		BackgroundTransparency = 1,
+		Rotation = -8,
+		ZIndex = 4,
 		Visible = false,
 	}) :: ImageLabel
 	icon.Parent = square
 	local hasIcon = setImage(icon, AssetLoader.getUIIcon(iconName))
+	if hasIcon then
+		table.insert(sideIcons, icon)
+	end
 
-	label({
+	local textLabel = label({
 		Name = "Label",
 		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -2),
-		Size = if hasIcon then UDim2.new(1, -6, 0, 24) else UDim2.new(1, -6, 1, -8),
+		Position = UDim2.new(0.5, 0, 1, 6),
+		Size = if hasIcon then UDim2.new(1, 8, 0, 30) else UDim2.new(1, -6, 1, -8),
 		Text = text,
-		TextSize = if hasIcon then 22 else 26,
-	}).Parent = square
+		TextSize = if hasIcon then 28 else 30,
+		OutlineThickness = 3,
+		ZIndex = 5,
+	})
+	textLabel.Parent = square
 
 	square.Activated:Connect(function()
 		Sounds.play("Click")
 	end)
-	square.Parent = sideButtons
+	addBounce(square, 1.1)
+	square.Parent = holder
+	holder.Parent = sideButtons
 	return square
 end
 
-local indexButton = sideButton("IndexButton", "Index", COLORS.SideButton, "Index", 1)
-local rebirthButton = sideButton("RebirthButton", "Rebirth", COLORS.SideButton, "Rebirth", 2)
-local shopButton = sideButton("ShopButton", "Shop", COLORS.Shop, "Shop", 3)
+local indexButton = sideButton("IndexButton", "Index", COLORS.IndexButton, "Index", 1)
+local rebirthButton = sideButton("RebirthButton", "Rebirth", COLORS.RebirthButton, "Rebirth", 2)
+local shopButton = sideButton("ShopButton", "Shop", COLORS.ShopButton, "Shop", 3)
+
+-- A pulsing "NEW!" badge on the Shop button.
+local shopBadge = label({
+	Name = "Badge",
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.new(1, -4, 0, 4),
+	Size = UDim2.fromOffset(54, 26),
+	BackgroundTransparency = 0,
+	BackgroundColor3 = Color3.fromRGB(235, 40, 60),
+	Text = "NEW!",
+	TextSize = 20,
+	Rotation = 12,
+	ZIndex = 6,
+})
+corner(13).Parent = shopBadge
+create("UIStroke", { Color = Color3.new(1, 1, 1), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }).Parent = shopBadge
+shopBadge.Parent = shopButton
+
+-- Icons bob and wiggle, each a little out of step; the badge pulses.
+RunService.RenderStepped:Connect(function()
+	local t = os.clock()
+	for index, icon in sideIcons do
+		local phase = t * 2.2 + index * 1.3
+		icon.Rotation = -8 + math.sin(phase) * 6
+		icon.Position = UDim2.new(0.5, 0, 0.38, -3 + math.sin(phase * 1.3) * 3)
+	end
+	local pulse = 1 + math.max(0, math.sin(t * 4)) * 0.12
+	shopBadge.Size = UDim2.fromOffset(54 * pulse, 26 * pulse)
+end)
 
 local modals: { Frame } = {}
 
