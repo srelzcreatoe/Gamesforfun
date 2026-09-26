@@ -20,7 +20,17 @@
 	  * rebirths reset Cash (and the pads) for a permanent income bonus and open
 	    the next floor of the base (4 floors of 8 pedestals)
 	  * events every few minutes: mutation events (Gold Rush, Blood Moon, ...),
-	    Taco Tuesday, Lucky Hour and Cash Rain (coins to collect)
+	    Taco Tuesday, Lucky Hour and Cash Rain (coins to collect), and now and
+	    then ADMIN ABUSE (everything at once; admins can start it with /abuse)
+	  * lucky blocks turn up on the conveyor (or are bought with Robux); their
+	    owner opens them in their base for a random brainrot
+	  * traits (Fire, Tiny, Giant, Glitched, Nyan) roll like mutations and
+	    stack with them
+	  * the Index: finding every brainrot of a rarity (or every Gold, Diamond
+	    or Rainbow one) pays out and adds a permanent income bonus
+	  * pedestal upgrades, base skins, income boosts (Cash Boost, friends,
+	    Premium, group, Index), the base alarm, the Long Lock pass, and
+	    brainrots each rebirth needs
 
 	Every decision is made here. Clients only press ProximityPrompts and call the
 	RequestRebirth remote, and each request is re-checked on the server
@@ -41,8 +51,23 @@
 	    OwnerUserId, Carried, Walking, Snipeable (used by the client to hide
 	    prompts that do not apply)
 
+	  ReplicatedStorage.Remotes.LuckyReveal (server -> all clients:
+	    ownerUserId, blockId, resultEntry, position)
+	  ReplicatedStorage.Remotes.BaseAlarm (server -> victim: thief or nil, name)
+	  Player attributes IncomeMultiplier, BoostInfo, Discovered ("," list)
+	  Plot model attributes Alarm, Skin, SkinEffect; slot attribute Level
+	  Brainrot model attributes Trait, Slot, LuckyBlock
+
 	Server API for other scripts (ServerStorage.Gameplay):
-	  BindableEvent ForceDrop(player, message?)  makes a thief drop their brainrot
+	  BindableEvent    ForceDrop(player, message?, catcher?)  a thief drops their brainrot
+	  BindableEvent    Activity(player, kind, amount)  for quests, badges and the
+	    tutorial: Buy, BuyEpic, Steal, Collect, OpenBlock, Lock, Upgrade,
+	    Catch, Fuse, Trade, Rebirth, Slap, Spin, Secret
+	  BindableFunction GiveBrainrot(player, entry) -> "Placed" | "Pending" | nil
+	  BindableFunction TakeBrainrots(player, slots) -> { entry }?  (for fusing)
+	  BindableFunction TradeBrainrots(playerA, slotsA, playerB, slotsB) -> boolean
+	  BindableFunction DescribeSlots(player, slots) -> { entry }?  (what's there)
+	  BindableFunction GetIncome(player) -> number
 ]]
 
 local Players = game:GetService("Players")
@@ -54,6 +79,7 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local BrainrotConfig = require(Shared:WaitForChild("BrainrotConfig"))
+local FeatureConfig = require(Shared:WaitForChild("FeatureConfig"))
 local GameConfig = require(Shared:WaitForChild("GameConfig"))
 local MonetizationConfig = require(Shared:WaitForChild("MonetizationConfig"))
 local NumberFormat = require(Shared:WaitForChild("NumberFormat"))
@@ -81,6 +107,7 @@ local STAIR_EXIT_OFFSET = 4.75
 
 type Definition = BrainrotConfig.Brainrot
 type Mutation = BrainrotConfig.Mutation
+type Trait = BrainrotConfig.Trait
 type NotifyKind = "Info" | "Success" | "Warning" | "Error"
 
 type Visual = {
@@ -118,6 +145,11 @@ type Plot = {
 	Stairs: { [number]: Stair },
 	FloorSigns: { [number]: TextLabel },
 	UnlockedFloors: number,
+	-- Pedestal upgrade level of each slot (1 = not upgraded) and its glow ring.
+	Levels: { number },
+	LevelRings: { [number]: BasePart },
+	-- Parts a base skin recolours, with their original look.
+	SkinParts: { SkinPart },
 	Owner: Player?,
 	LockEndsAt: number,
 	SignTitle: TextLabel,
@@ -141,9 +173,12 @@ type Walk = {
 	Height: number,
 }
 
+type SkinPart = { Part: BasePart, Kind: string, Color: Color3, Material: Enum.Material }
+
 type Occupant = {
 	Definition: Definition,
 	Mutation: Mutation?,
+	Trait: Trait?,
 	Plot: Plot,
 	SlotIndex: number,
 	Model: Model,
@@ -152,6 +187,9 @@ type Occupant = {
 	StealPrompt: ProximityPrompt,
 	SellPrompt: ProximityPrompt,
 	SnipePrompt: ProximityPrompt?,
+	UpgradePrompt: ProximityPrompt?,
+	-- A lucky block being opened saves as what it will become.
+	OpeningResult: string?,
 	-- What its owner paid; the price for anyone buying it off them.
 	Price: number,
 	Walk: Walk?,
@@ -176,6 +214,7 @@ type Carry = {
 type ConveyorItem = {
 	Definition: Definition,
 	Mutation: Mutation?,
+	Trait: Trait?,
 	Price: number,
 	Model: Model,
 	Root: BasePart,
@@ -192,43 +231,58 @@ type Stair = { Bottom: Vector3, Top: Vector3 }
 -- Data API (ServerStorage.DataAndMonetization)
 --------------------------------------------------------------------------------
 
-local dataApi = ServerStorage:WaitForChild("DataAndMonetization")
-
-local function getBindableFunction(name: string): BindableFunction
-	return dataApi:WaitForChild(name) :: BindableFunction
+-- Handles to the DataAndMonetization API, in one table to keep the number of
+-- locals in this script down (Luau allows 200).
+local DataApi: { [string]: any } = {}
+do
+	local folder = ServerStorage:WaitForChild("DataAndMonetization")
+	for _, name in
+		{
+			"AddCash",
+			"SpendCash",
+			"AddRebirths",
+			"AddSteals",
+			"GetPlayerData",
+			"GetBrainrots",
+			"SetBrainrots",
+			"GetPadCash",
+			"SetPadCash",
+			"CollectPadCash",
+			"TakeOfflineSeconds",
+			"IsLaserBypassActive",
+			"GetServerRarityMultiplier",
+			"GetProgress",
+			"SetProgress",
+			"OwnsGamePass",
+			"SaveNow",
+			"ProgressChanged",
+			"EMPLaserOverriderPurchased",
+			"ServerRarityBoostChanged",
+		}
+	do
+		DataApi[name] = folder:WaitForChild(name)
+	end
 end
-
-local function getBindableEvent(name: string): BindableEvent
-	return dataApi:WaitForChild(name) :: BindableEvent
-end
-
-local addCashFunction = getBindableFunction("AddCash")
-local spendCashFunction = getBindableFunction("SpendCash")
-local addRebirthsFunction = getBindableFunction("AddRebirths")
-local addStealsFunction = getBindableFunction("AddSteals")
-local getPlayerDataFunction = getBindableFunction("GetPlayerData")
-local getBrainrotsFunction = getBindableFunction("GetBrainrots")
-local setBrainrotsFunction = getBindableFunction("SetBrainrots")
-local getPadCashFunction = getBindableFunction("GetPadCash")
-local setPadCashFunction = getBindableFunction("SetPadCash")
-local collectPadCashFunction = getBindableFunction("CollectPadCash")
-local takeOfflineSecondsFunction = getBindableFunction("TakeOfflineSeconds")
-local isLaserBypassActiveFunction = getBindableFunction("IsLaserBypassActive")
-local getServerRarityMultiplierFunction = getBindableFunction("GetServerRarityMultiplier")
-local empLaserPurchasedEvent = getBindableEvent("EMPLaserOverriderPurchased")
-local serverRarityBoostChangedEvent = getBindableEvent("ServerRarityBoostChanged")
 
 local function addCash(player: Player, amount: number): boolean
-	return addCashFunction:Invoke(player, amount) == true
+	return DataApi.AddCash:Invoke(player, amount) == true
 end
 
 local function spendCash(player: Player, amount: number): boolean
-	return spendCashFunction:Invoke(player, amount) == true
+	return DataApi.SpendCash:Invoke(player, amount) == true
 end
 
 local function getPlayerData(player: Player): { [string]: any }?
-	local data = getPlayerDataFunction:Invoke(player)
+	local data = DataApi.GetPlayerData:Invoke(player)
 	return if typeof(data) == "table" then data else nil
+end
+
+local function getProgress(player: Player, key: string): any
+	return DataApi.GetProgress:Invoke(player, key)
+end
+
+local function setProgress(player: Player, key: string, value: any): boolean
+	return DataApi.SetProgress:Invoke(player, key, value) == true
 end
 
 --------------------------------------------------------------------------------
@@ -250,14 +304,29 @@ local requestRebirthFunction = Instance.new("RemoteFunction")
 requestRebirthFunction.Name = "RequestRebirth"
 requestRebirthFunction.Parent = remotesFolder
 
+local luckyRevealEvent = Instance.new("RemoteEvent")
+luckyRevealEvent.Name = "LuckyReveal"
+luckyRevealEvent.Parent = remotesFolder
+
+local baseAlarmEvent = Instance.new("RemoteEvent")
+baseAlarmEvent.Name = "BaseAlarm"
+baseAlarmEvent.Parent = remotesFolder
+
 remotesFolder.Parent = ReplicatedStorage
 
+-- Parented to ServerStorage once every function is set (see the end).
 local gameplayApi = Instance.new("Folder")
 gameplayApi.Name = "Gameplay"
 local forceDropEvent = Instance.new("BindableEvent")
 forceDropEvent.Name = "ForceDrop"
 forceDropEvent.Parent = gameplayApi
-gameplayApi.Parent = ServerStorage
+local activityEvent = Instance.new("BindableEvent")
+activityEvent.Name = "Activity"
+activityEvent.Parent = gameplayApi
+
+local function reportActivity(player: Player, kind: string, amount: number?)
+	activityEvent:Fire(player, kind, amount or 1)
+end
 
 -- `sound` names an entry in AudioConfig.Sounds for the client to play.
 local function notify(player: Player, message: string, kind: NotifyKind, sound: string?)
@@ -371,20 +440,24 @@ local function getSlotCFrame(plot: Plot, slotIndex: number): CFrame
 	return CFrame.new(top) * plot.Floor.CFrame.Rotation
 end
 
-local function mutationMultiplier(mutation: Mutation?): number
-	return if mutation then mutation.Multiplier else 1
+local function priceOf(definition: Definition, mutation: Mutation?, trait: Trait?): number
+	return math.floor(definition.Price * BrainrotConfig.multiplier(mutation, trait))
 end
 
-local function priceOf(definition: Definition, mutation: Mutation?): number
-	return math.floor(definition.Price * mutationMultiplier(mutation))
+local function incomeOf(definition: Definition, mutation: Mutation?, trait: Trait?): number
+	return definition.IncomePerSecond * BrainrotConfig.multiplier(mutation, trait)
 end
 
-local function incomeOf(definition: Definition, mutation: Mutation?): number
-	return definition.IncomePerSecond * mutationMultiplier(mutation)
+local function fullName(definition: Definition, mutation: Mutation?, trait: Trait?): string
+	return BrainrotConfig.fullName(definition, mutation, trait)
 end
 
-local function fullName(definition: Definition, mutation: Mutation?): string
-	return if mutation then mutation.Name .. " " .. definition.DisplayName else definition.DisplayName
+local function entryOf(definition: Definition, mutation: Mutation?, trait: Trait?): string
+	return BrainrotConfig.encode(definition.Id, if mutation then mutation.Name else nil, if trait then trait.Name else nil)
+end
+
+local function occupantEntry(occupant: Occupant): string
+	return occupant.OpeningResult or entryOf(occupant.Definition, occupant.Mutation, occupant.Trait)
 end
 
 local function getBrainrotIds(plot: Plot): { string }
@@ -392,11 +465,15 @@ local function getBrainrotIds(plot: Plot): { string }
 	for index = 1, #plot.Slots do
 		local occupant = plot.Occupants[index]
 		if occupant then
-			local mutation = occupant.Mutation
-			table.insert(brainrotIds, BrainrotConfig.encode(occupant.Definition.Id, if mutation then mutation.Name else nil))
+			table.insert(brainrotIds, occupantEntry(occupant))
 		end
 	end
 	return brainrotIds
+end
+
+-- What the pedestal under a slot adds to its brainrot's income.
+local function pedestalMultiplier(plot: Plot, slotIndex: number): number
+	return 1 + FeatureConfig.PedestalBonus * ((plot.Levels[slotIndex] or 1) - 1)
 end
 
 local function saveBrainrots(plot: Plot): boolean
@@ -404,29 +481,227 @@ local function saveBrainrots(plot: Plot): boolean
 	if owner == nil then
 		return false
 	end
-	return setBrainrotsFunction:Invoke(owner, getBrainrotIds(plot)) == true
+	return DataApi.SetBrainrots:Invoke(owner, getBrainrotIds(plot)) == true
 end
 
-local function getIncomeMultiplier(player: Player): number
-	local data = getPlayerData(player)
-	if data == nil then
-		return 1
+-- Income boosts that add up: friends in the server, Premium, the group and
+-- the Index. Filled in as players join and find brainrots.
+local friendsOf: { [Player]: { [number]: boolean } } = {}
+local inGroup: { [Player]: boolean } = {}
+local indexBonus: { [Player]: number } = {}
+
+local function percent(value: number): string
+	return string.format("+%d%%", math.floor(value * 100 + 0.5))
+end
+
+local getIncomeMultiplier: (player: Player) -> (number, { string })
+do
+	local function friendBoost(player: Player): number
+		local count = 0
+		local friends = friendsOf[player]
+		if friends then
+			for _, other in Players:GetPlayers() do
+				if other ~= player and friends[other.UserId] then
+					count += 1
+				end
+			end
+		end
+		return math.min(count * FeatureConfig.FriendBoost, FeatureConfig.MaxFriendBoost)
 	end
-	local rebirths = tonumber(data.Rebirths) or 0
-	local passes = data.OwnedGamePasses
-	local doubleCashId = MonetizationConfig.GamePasses.DoubleCash
-	local hasDoubleCash = doubleCashId ~= nil and typeof(passes) == "table" and passes[tostring(doubleCashId)] == true
-	return GameConfig.getRebirthIncomeMultiplier(rebirths)
-		* (if hasDoubleCash then MonetizationConfig.DoubleCashIncomeMultiplier else 1)
+
+	local function isPremium(player: Player): boolean
+		return player.MembershipType == Enum.MembershipType.Premium
+	end
+
+	-- Everything that multiplies a player's income, and a line per boost for
+	-- the HUD.
+	getIncomeMultiplier = function(player: Player): (number, { string })
+		local info: { string } = {}
+		local data = getPlayerData(player)
+		if data == nil then
+			return 1, info
+		end
+		local rebirths = tonumber(data.Rebirths) or 0
+		local passes = data.OwnedGamePasses
+		local doubleCashId = MonetizationConfig.GamePasses.DoubleCash
+		local hasDoubleCash = doubleCashId ~= nil and typeof(passes) == "table" and passes[tostring(doubleCashId)] == true
+		local rebirthMultiplier = GameConfig.getRebirthIncomeMultiplier(rebirths)
+		local multiplier = rebirthMultiplier
+		if rebirths > 0 then
+			table.insert(info, string.format("Rebirth %d: x%s", rebirths, tostring(rebirthMultiplier)))
+		end
+		if hasDoubleCash then
+			multiplier *= MonetizationConfig.DoubleCashIncomeMultiplier
+			table.insert(info, "2x Cash pass: x2")
+		end
+		local vipId = MonetizationConfig.GamePasses.VIP
+		local isVip = vipId ~= nil and typeof(passes) == "table" and passes[tostring(vipId)] == true
+		local boostEndsAt = tonumber(player:GetAttribute("CashBoostEndsAt")) or 0
+		if boostEndsAt > Workspace:GetServerTimeNow() then
+			multiplier *= MonetizationConfig.CashBoostMultiplier
+			table.insert(info, "Cash Boost: x" .. tostring(MonetizationConfig.CashBoostMultiplier))
+		end
+		local bonus = 0
+		local friends = friendBoost(player)
+		if friends > 0 then
+			bonus += friends
+			table.insert(info, "Friends: " .. percent(friends))
+		end
+		if isPremium(player) then
+			bonus += FeatureConfig.PremiumBoost
+			table.insert(info, "Premium: " .. percent(FeatureConfig.PremiumBoost))
+		end
+		if isVip then
+			bonus += FeatureConfig.VipBoost
+			table.insert(info, "VIP: " .. percent(FeatureConfig.VipBoost))
+		end
+		if inGroup[player] then
+			bonus += FeatureConfig.GroupBoost
+			table.insert(info, "Group: " .. percent(FeatureConfig.GroupBoost))
+		end
+		local index = indexBonus[player] or 0
+		if index > 0 then
+			bonus += index
+			table.insert(info, "Index: " .. percent(index))
+		end
+		return multiplier * (1 + bonus), info
+	end
 end
 
 local function setCarrying(player: Player, carrying: boolean)
 	local _, humanoid = getLiveCharacter(player)
 	if humanoid then
-		humanoid.WalkSpeed = if carrying then GameConfig.CarryWalkSpeed else GameConfig.DefaultWalkSpeed
+		local level = math.clamp(tonumber(player:GetAttribute("SpeedLevel")) or 0, 0, #FeatureConfig.SpeedCosts)
+		humanoid.WalkSpeed = if carrying
+			then GameConfig.CarryWalkSpeed + level * FeatureConfig.CarrySpeedPerLevel
+			else GameConfig.DefaultWalkSpeed + level * FeatureConfig.SpeedPerLevel
 	end
 	-- GearManager listens to this to re-apply coils once the carry ends.
 	player:SetAttribute("Carrying", carrying)
+end
+
+--------------------------------------------------------------------------------
+-- Index: the brainrots (and mutated ones) each player has ever had
+--------------------------------------------------------------------------------
+
+local discovered: { [Player]: { [string]: boolean } } = {}
+
+local refreshIndex: (player: Player) -> ()
+local discover: (player: Player, definition: Definition, mutation: Mutation?) -> ()
+-- Keys of a set, sorted (saved lists stay in a stable order).
+local sortedKeys: (set: { [string]: boolean }) -> { string }
+do
+	sortedKeys = function(set: { [string]: boolean }): { string }
+		local list: { string } = {}
+		for key in set do
+			table.insert(list, key)
+		end
+		table.sort(list)
+		return list
+	end
+
+	local function rarityComplete(found: { [string]: boolean }, rarityName: string): boolean
+		local choices = BrainrotConfig.ByRarity[rarityName]
+		if choices == nil or #choices == 0 then
+			return false
+		end
+		for _, definition in choices do
+			if not found[definition.Id] then
+				return false
+			end
+		end
+		return true
+	end
+
+	local function mutationComplete(found: { [string]: boolean }, mutationName: string): boolean
+		for _, definition in BrainrotConfig.Brainrots do
+			if not found[definition.Id .. ":" .. mutationName] then
+				return false
+			end
+		end
+		return #BrainrotConfig.Brainrots > 0
+	end
+
+	-- Works out the Index income bonus and pays out pages finished for the first time.
+	refreshIndex = function(player: Player)
+		local found = discovered[player]
+		if found == nil then
+			return
+		end
+		local savedClaims = getProgress(player, "IndexClaimed")
+		local claimed: { [string]: boolean } = {}
+		if typeof(savedClaims) == "table" then
+			for _, key in savedClaims do
+				if typeof(key) == "string" then
+					claimed[key] = true
+				end
+			end
+		end
+		local bonus = 0
+		local newlyClaimed = false
+		local function check(key: string, complete: boolean, reward: { Bonus: number, Cash: number }, label: string)
+			if not complete then
+				return
+			end
+			bonus += reward.Bonus
+			if not claimed[key] then
+				claimed[key] = true
+				newlyClaimed = true
+				addCash(player, reward.Cash)
+				notify(
+					player,
+					string.format("INDEX COMPLETE: %s! %s income forever and %s!", label, percent(reward.Bonus), NumberFormat.cash(reward.Cash)),
+					"Success",
+					"Rebirth"
+				)
+				reportActivity(player, "IndexComplete")
+			end
+		end
+		for _, rarity in BrainrotConfig.Rarities do
+			local reward = FeatureConfig.IndexRewards[rarity.Name]
+			if reward then
+				check(rarity.Name, rarityComplete(found, rarity.Name), reward, "every " .. rarity.Name)
+			end
+		end
+		for _, mutationName in FeatureConfig.MutationIndex do
+			local reward = FeatureConfig.MutationIndexRewards[mutationName]
+			if reward then
+				check("Mutation:" .. mutationName, mutationComplete(found, mutationName), reward, "every " .. mutationName .. " brainrot")
+			end
+		end
+		if newlyClaimed then
+			setProgress(player, "IndexClaimed", sortedKeys(claimed))
+		end
+		indexBonus[player] = bonus
+		player:SetAttribute("Discovered", table.concat(sortedKeys(found), ","))
+	end
+
+	-- Adds a brainrot (and its mutated version) to the player's Index.
+	discover = function(player: Player, definition: Definition, mutation: Mutation?)
+		local found = discovered[player]
+		if found == nil or BrainrotConfig.isLuckyBlock(definition) then
+			return
+		end
+		local changed = false
+		if not found[definition.Id] then
+			found[definition.Id] = true
+			changed = true
+		end
+		if mutation then
+			local key = definition.Id .. ":" .. mutation.Name
+			if not found[key] then
+				found[key] = true
+				changed = true
+			end
+		end
+		if changed then
+			setProgress(player, "Discovered", sortedKeys(found))
+			refreshIndex(player)
+		end
+		if definition.Rarity == "Secret" then
+			reportActivity(player, "Secret")
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -709,10 +984,124 @@ local function addInfoLabel(parent: Instance, text: string, color: Color3, textS
 	return label
 end
 
+local buildLuckyBlock: (model: Model, root: BasePart, definition: Definition) -> number
+do
+	-- A lucky block: a glossy cube with a "?" on every side and glowing edges,
+	-- held by a Pose weld so BrainrotVisuals can make it hop and float.
+	local LUCKY_BLOCK_SIZE = 3.4
+	local LUCKY_EDGES: { { Vector3 } } = {
+		-- Size and offset (in block sizes) of each of the 12 edges.
+		{ Vector3.new(1, 0.08, 0.08), Vector3.new(0, 0.5, 0.5) },
+		{ Vector3.new(1, 0.08, 0.08), Vector3.new(0, 0.5, -0.5) },
+		{ Vector3.new(1, 0.08, 0.08), Vector3.new(0, -0.5, 0.5) },
+		{ Vector3.new(1, 0.08, 0.08), Vector3.new(0, -0.5, -0.5) },
+		{ Vector3.new(0.08, 1, 0.08), Vector3.new(0.5, 0, 0.5) },
+		{ Vector3.new(0.08, 1, 0.08), Vector3.new(0.5, 0, -0.5) },
+		{ Vector3.new(0.08, 1, 0.08), Vector3.new(-0.5, 0, 0.5) },
+		{ Vector3.new(0.08, 1, 0.08), Vector3.new(-0.5, 0, -0.5) },
+		{ Vector3.new(0.08, 0.08, 1), Vector3.new(0.5, 0.5, 0) },
+		{ Vector3.new(0.08, 0.08, 1), Vector3.new(-0.5, 0.5, 0) },
+		{ Vector3.new(0.08, 0.08, 1), Vector3.new(0.5, -0.5, 0) },
+		{ Vector3.new(0.08, 0.08, 1), Vector3.new(-0.5, -0.5, 0) },
+	}
+
+	buildLuckyBlock = function(model: Model, root: BasePart, definition: Definition): number
+		local size = LUCKY_BLOCK_SIZE
+		local offset = CFrame.new(0, size / 2 + 0.2, 0)
+		local body = Instance.new("Part")
+		body.Name = "Body"
+		body.Size = Vector3.one * size
+		body.Color = definition.BodyColor
+		body.Material = Enum.Material.SmoothPlastic
+		body.Reflectance = 0.15
+		body.TopSurface = Enum.SurfaceType.Smooth
+		body.BottomSurface = Enum.SurfaceType.Smooth
+		body.Anchored = false
+		body.CanCollide = false
+		body.CanQuery = false
+		body.CanTouch = false
+		body.Massless = true
+		body.CFrame = root.CFrame * offset
+		local weld = Instance.new("Weld")
+		weld.Name = "Pose"
+		weld.Part0 = root
+		weld.Part1 = body
+		weld.C0 = offset
+		weld.Parent = body
+
+		for _, face in Enum.NormalId:GetEnumItems() do
+			local surface = Instance.new("SurfaceGui")
+			surface.Name = "Mark"
+			surface.Face = face
+			surface.LightInfluence = 0
+			surface.CanvasSize = Vector2.new(100, 100)
+			local mark = Instance.new("TextLabel")
+			mark.BackgroundTransparency = 1
+			mark.Size = UDim2.fromScale(1, 1)
+			mark.Font = Enum.Font.FredokaOne
+			mark.Text = "?"
+			mark.TextScaled = true
+			mark.TextColor3 = definition.AccentColor
+			local outline = Instance.new("UIStroke")
+			outline.Thickness = 4
+			outline.Color = definition.BodyColor:Lerp(Color3.new(0, 0, 0), 0.6)
+			outline.Parent = mark
+			mark.Parent = surface
+			surface.Parent = body
+		end
+
+		for number, edge in LUCKY_EDGES do
+			local trim = Instance.new("Part")
+			trim.Name = "Edge" .. number
+			trim.Size = edge[1] * size + Vector3.one * 0.02
+			trim.Color = definition.AccentColor
+			trim.Material = Enum.Material.Neon
+			trim.Anchored = false
+			trim.CanCollide = false
+			trim.CanQuery = false
+			trim.CanTouch = false
+			trim.Massless = true
+			trim.CFrame = body.CFrame * CFrame.new(edge[2] * size)
+			local hold = Instance.new("WeldConstraint")
+			hold.Part0 = body
+			hold.Part1 = trim
+			hold.Parent = trim
+			trim.Parent = model
+		end
+
+		local light = Instance.new("PointLight")
+		light.Color = definition.BodyColor
+		light.Brightness = 2
+		light.Range = 12
+		light.Parent = body
+		body.Parent = model
+		model:SetAttribute("LuckyBlock", true)
+		return size + 0.2
+	end
+end
+
+-- The rarities a lucky block can open into, for its label: "Rare - Mythic".
+local function luckyRange(definition: Definition): string
+	local lowest, highest = math.huge, -math.huge
+	for index, rarity in BrainrotConfig.Rarities do
+		local odds = definition.Odds
+		if odds and (odds[rarity.Name] or 0) > 0 then
+			lowest = math.min(lowest, index)
+			highest = math.max(highest, index)
+		end
+	end
+	local low, high = BrainrotConfig.Rarities[lowest], BrainrotConfig.Rarities[highest]
+	if low == nil or high == nil then
+		return "???"
+	end
+	return if low == high then low.Name else low.Name .. " - " .. high.Name
+end
+
 -- `price` adds a price line (conveyor and walking brainrots); `ownerText` adds
 -- a line saying whose base a walking brainrot is heading to.
-local function buildBrainrot(definition: Definition, mutation: Mutation?, price: number?, ownerText: string?): Visual
+local function buildBrainrot(definition: Definition, mutation: Mutation?, trait: Trait?, price: number?, ownerText: string?): Visual
 	local rarity = BrainrotConfig.RarityByName[definition.Rarity]
+	local isBlock = BrainrotConfig.isLuckyBlock(definition)
 
 	local model = Instance.new("Model")
 	model.Name = definition.Id
@@ -733,14 +1122,19 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, price:
 	model.PrimaryPart = root
 
 	local customModels = ReplicatedStorage:FindFirstChild("BrainrotModels")
-	local template = if customModels then customModels:FindFirstChild(definition.Id) else nil
+	local template = if customModels and not isBlock then customModels:FindFirstChild(definition.Id) else nil
 	if template and #template:GetChildren() == 0 then
 		template = nil
 	end
-	local hasCustomModel = template ~= nil and template:IsA("Model")
-	local height = if template and template:IsA("Model")
-		then buildCustomModel(model, root, template, FIGURE_HEIGHT * definition.Scale)
+	local hasCustomModel = isBlock or (template ~= nil and template:IsA("Model"))
+	local traitScale = if trait then trait.Scale else 1
+	local height = if isBlock
+		then buildLuckyBlock(model, root, definition)
+		elseif template and template:IsA("Model") then buildCustomModel(model, root, template, FIGURE_HEIGHT * definition.Scale * traitScale)
 		else buildFigure(model, root, definition, if rarity and rarity.Glow then rarity.Color else nil)
+	if not hasCustomModel and traitScale ~= 1 then
+		height *= traitScale
+	end
 
 	-- Tells BrainrotVisuals on each client which 3D model to show, how tall,
 	-- which effects to add and how to animate it (State).
@@ -749,6 +1143,7 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, price:
 	model:SetAttribute("CustomModel", hasCustomModel)
 	model:SetAttribute("Rarity", definition.Rarity)
 	model:SetAttribute("Mutation", if mutation then mutation.Name else nil)
+	model:SetAttribute("Trait", if trait then trait.Name else nil)
 	model:SetAttribute("Price", price)
 	model:SetAttribute("Motion", definition.Motion)
 	model:SetAttribute("State", "Idle")
@@ -763,7 +1158,7 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, price:
 	billboard.Adornee = root
 	billboard.Size = UDim2.fromOffset(
 		260,
-		84 + (if price then 26 else 0) + (if mutation then 24 else 0) + (if ownerText then 22 else 0)
+		84 + (if price then 26 else 0) + (if mutation then 24 else 0) + (if trait then 24 else 0) + (if ownerText then 22 else 0)
 	)
 	billboard.StudsOffsetWorldSpace = Vector3.new(0, height + 2.4, 0)
 	billboard.MaxDistance = 90
@@ -777,7 +1172,10 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, price:
 
 	local ownerLabel: TextLabel? = nil
 	if ownerText then
-		ownerLabel = addInfoLabel(billboard, ownerText, Color3.fromRGB(200, 230, 255), 16, -1)
+		ownerLabel = addInfoLabel(billboard, ownerText, Color3.fromRGB(200, 230, 255), 16, -2)
+	end
+	if trait then
+		addInfoLabel(billboard, trait.Icon .. " " .. trait.Name .. " x" .. tostring(trait.Multiplier), trait.Color, 20, -1, trait.Name == "Nyan")
 	end
 	if mutation then
 		addInfoLabel(billboard, mutation.Name, mutation.Color, 20, 0, mutation.Name == "Rainbow")
@@ -798,7 +1196,11 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, price:
 			outline.Color = Color3.new(1, 1, 1)
 		end
 	end
-	addInfoLabel(billboard, NumberFormat.cash(incomeOf(definition, mutation)) .. "/s", Color3.fromRGB(255, 230, 70), 20, 3)
+	if isBlock then
+		addInfoLabel(billboard, "Opens into " .. luckyRange(definition), Color3.fromRGB(255, 230, 70), 18, 3)
+	else
+		addInfoLabel(billboard, NumberFormat.cash(incomeOf(definition, mutation, trait)) .. "/s", Color3.fromRGB(255, 230, 70), 20, 3)
+	end
 	local priceLabel: TextLabel? = nil
 	if price then
 		priceLabel = addInfoLabel(billboard, NumberFormat.cash(price), Color3.fromRGB(90, 255, 120), 22, 4)
@@ -847,23 +1249,36 @@ end
 local onStealTriggered: (occupant: Occupant, thief: Player) -> ()
 local onSellTriggered: (occupant: Occupant, player: Player) -> ()
 local onSnipeTriggered: (occupant: Occupant, player: Player) -> ()
+local onUpgradeTriggered: (occupant: Occupant, player: Player) -> ()
+local onOpenTriggered: (occupant: Occupant, player: Player) -> ()
+-- Puts lucky blocks and gifts waiting for room onto free pedestals.
+local placePending: (player: Player) -> ()
 
 local function ownerText(player: Player): string
 	return "Walking to " .. player.DisplayName .. "'s base"
 end
 
+-- Sets a flag the client uses to hide prompts (Walking, Carried) on every
+-- prompt of a brainrot but the Snipe one.
+local function setPromptFlag(occupant: Occupant, attribute: string, value: boolean)
+	for _, child in occupant.PromptAttachment:GetChildren() do
+		if child:IsA("ProximityPrompt") and child:GetAttribute("PromptKind") ~= "Snipe" then
+			child:SetAttribute(attribute, value)
+		end
+	end
+end
+
 local function setOccupantCarried(occupant: Occupant, carried: boolean)
-	occupant.StealPrompt:SetAttribute("Carried", carried)
-	occupant.SellPrompt:SetAttribute("Carried", carried)
+	setPromptFlag(occupant, "Carried", carried)
 end
 
 local function setOccupantOwner(occupant: Occupant, owner: Player)
 	occupant.Model:SetAttribute("OwnerUserId", owner.UserId)
-	occupant.StealPrompt:SetAttribute("OwnerUserId", owner.UserId)
-	occupant.SellPrompt:SetAttribute("OwnerUserId", owner.UserId)
-	local snipePrompt = occupant.SnipePrompt
-	if snipePrompt then
-		snipePrompt:SetAttribute("OwnerUserId", owner.UserId)
+	occupant.Model:SetAttribute("Slot", occupant.SlotIndex)
+	for _, child in occupant.PromptAttachment:GetChildren() do
+		if child:IsA("ProximityPrompt") then
+			child:SetAttribute("OwnerUserId", owner.UserId)
+		end
 	end
 	local ownerLabel = occupant.OwnerLabel
 	if ownerLabel then
@@ -882,8 +1297,7 @@ local function finishWalk(occupant: Occupant)
 	stopWalking(occupant)
 	occupant.Root.CFrame = getSlotCFrame(occupant.Plot, occupant.SlotIndex)
 	occupant.Model:SetAttribute("State", "Idle")
-	occupant.StealPrompt:SetAttribute("Walking", false)
-	occupant.SellPrompt:SetAttribute("Walking", false)
+	setPromptFlag(occupant, "Walking", false)
 	local snipePrompt = occupant.SnipePrompt
 	if snipePrompt then
 		snipePrompt:Destroy()
@@ -1001,8 +1415,7 @@ local function startWalk(occupant: Occupant, from: Vector3)
 	}
 	walkers[occupant] = true
 	occupant.Model:SetAttribute("State", "Walking")
-	occupant.StealPrompt:SetAttribute("Walking", true)
-	occupant.SellPrompt:SetAttribute("Walking", true)
+	setPromptFlag(occupant, "Walking", true)
 	local snipePrompt = occupant.SnipePrompt
 	if snipePrompt then
 		snipePrompt:SetAttribute("Snipeable", true)
@@ -1082,6 +1495,69 @@ local function stepWalkers(dt: number)
 	end
 end
 
+-- A pedestal's upgrade level shows as a glowing band around its foot.
+local function updatePedestalLook(plot: Plot, slotIndex: number)
+	local slot: BasePart? = plot.Slots[slotIndex]
+	if slot == nil then
+		return
+	end
+	local level = plot.Levels[slotIndex] or 1
+	slot:SetAttribute("Level", level)
+	local ring: BasePart? = plot.LevelRings[slotIndex]
+	if level <= 1 then
+		if ring then
+			ring:Destroy()
+			plot.LevelRings[slotIndex] = nil
+		end
+		return
+	end
+	if ring == nil then
+		local newRing = Instance.new("Part")
+		newRing.Name = "LevelRing"
+		newRing.Anchored = true
+		newRing.CanCollide = false
+		newRing.CanQuery = false
+		newRing.CanTouch = false
+		newRing.CastShadow = false
+		newRing.Material = Enum.Material.Neon
+		newRing.Size = Vector3.new(slot.Size.X + 0.6, 0.4, slot.Size.Z + 0.6)
+		newRing.CFrame = slot.CFrame * CFrame.new(0, -slot.Size.Y / 2 + 0.2, 0)
+		local glow = Instance.new("PointLight")
+		glow.Brightness = 1.2
+		glow.Range = 7
+		glow.Shadows = false
+		glow.Parent = newRing
+		newRing.Parent = slot
+		plot.LevelRings[slotIndex] = newRing
+		ring = newRing
+	end
+	local colour = FeatureConfig.PedestalColors[level - 1] or Color3.new(1, 1, 1)
+	local liveRing = ring :: BasePart
+	liveRing.Color = colour
+	local glow = liveRing:FindFirstChildOfClass("PointLight")
+	if glow then
+		glow.Color = colour
+	end
+end
+
+local function refreshUpgradePrompt(occupant: Occupant)
+	local prompt = occupant.UpgradePrompt
+	if prompt == nil then
+		return
+	end
+	local level = occupant.Plot.Levels[occupant.SlotIndex] or 1
+	local cost = FeatureConfig.PedestalCosts[level]
+	local bonus = math.floor(FeatureConfig.PedestalBonus * 100 + 0.5)
+	if cost == nil then
+		prompt.ActionText = "Max Level"
+		prompt.ObjectText = string.format("Pedestal Lv %d (+%d%% income)", level, bonus * (level - 1))
+	else
+		prompt.ActionText = "Upgrade " .. NumberFormat.cash(cost)
+		prompt.ObjectText = string.format("Pedestal Lv %d → %d (+%d%% income)", level, level + 1, bonus * level)
+	end
+	prompt:SetAttribute("MaxLevel", cost == nil)
+end
+
 -- Puts a brainrot in a base. With `walkFrom` it walks there from that
 -- position (and can be bought off its owner until it reaches the door).
 local function placeOccupant(
@@ -1089,6 +1565,7 @@ local function placeOccupant(
 	slotIndex: number,
 	definition: Definition,
 	mutation: Mutation?,
+	trait: Trait?,
 	walkFrom: CFrame?,
 	price: number?
 ): Occupant?
@@ -1097,20 +1574,23 @@ local function placeOccupant(
 		return nil
 	end
 
-	local paid = price or priceOf(definition, mutation)
+	local paid = price or priceOf(definition, mutation, trait)
 	local visual = buildBrainrot(
 		definition,
 		mutation,
+		trait,
 		if walkFrom then paid else nil,
 		if walkFrom then ownerText(owner) else nil
 	)
 	visual.Model:SetAttribute("OwnerUserId", owner.UserId)
-	local refund = math.floor(priceOf(definition, mutation) * GameConfig.SellRefundFraction)
-	local name = fullName(definition, mutation)
+	visual.Model:SetAttribute("Slot", slotIndex)
+	local refund = math.floor(priceOf(definition, mutation, trait) * GameConfig.SellRefundFraction)
+	local name = fullName(definition, mutation, trait)
 
 	local occupant: Occupant = {
 		Definition = definition,
 		Mutation = mutation,
+		Trait = trait,
 		Plot = plot,
 		SlotIndex = slotIndex,
 		Model = visual.Model,
@@ -1119,6 +1599,8 @@ local function placeOccupant(
 		StealPrompt = createPrompt(visual.PromptAttachment, "Steal", "Steal", name, GameConfig.StealHoldSeconds, Enum.KeyCode.E, owner.UserId),
 		SellPrompt = createPrompt(visual.PromptAttachment, "Sell", "Sell for " .. NumberFormat.cash(refund), name, 0.5, Enum.KeyCode.F, owner.UserId),
 		SnipePrompt = nil,
+		UpgradePrompt = createPrompt(visual.PromptAttachment, "Upgrade", "Upgrade", "Pedestal", 0.3, Enum.KeyCode.R, owner.UserId),
+		OpeningResult = nil,
 		Price = paid,
 		Walk = nil,
 		Sniping = false,
@@ -1133,6 +1615,17 @@ local function placeOccupant(
 	occupant.SellPrompt.Triggered:Connect(function(player: Player)
 		onSellTriggered(occupant, player)
 	end)
+	local upgradePrompt = occupant.UpgradePrompt :: ProximityPrompt
+	upgradePrompt.Triggered:Connect(function(player: Player)
+		onUpgradeTriggered(occupant, player)
+	end)
+	refreshUpgradePrompt(occupant)
+	if BrainrotConfig.isLuckyBlock(definition) then
+		local openPrompt = createPrompt(visual.PromptAttachment, "Open", "Open!", name, 0.6, Enum.KeyCode.E, owner.UserId)
+		openPrompt.Triggered:Connect(function(player: Player)
+			onOpenTriggered(occupant, player)
+		end)
+	end
 
 	if walkFrom then
 		local snipePrompt = createPrompt(visual.PromptAttachment, "Snipe", "Buy " .. NumberFormat.cash(paid), name, 0, Enum.KeyCode.E, owner.UserId)
@@ -1186,7 +1679,7 @@ onSnipeTriggered = function(occupant: Occupant, sniper: Player)
 	end
 
 	local price = occupant.Price
-	local name = fullName(occupant.Definition, occupant.Mutation)
+	local name = fullName(occupant.Definition, occupant.Mutation, occupant.Trait)
 	occupant.Sniping = true
 	sniperPlot.Reserved[slotIndex] = true
 	local paid = spendCash(sniper, price)
@@ -1225,7 +1718,10 @@ onSnipeTriggered = function(occupant: Occupant, sniper: Player)
 	sniperPlot.Occupants[slotIndex] = occupant
 	saveBrainrots(sniperPlot)
 	setOccupantOwner(occupant, sniper)
+	refreshUpgradePrompt(occupant)
 	startWalk(occupant, occupant.Root.Position)
+	discover(sniper, occupant.Definition, occupant.Mutation)
+	placePending(owner)
 
 	notify(sniper, string.format("You bought %s off %s!", name, owner.DisplayName), "Success", "Purchase")
 	notify(
@@ -1239,6 +1735,24 @@ end
 --------------------------------------------------------------------------------
 -- Stealing
 --------------------------------------------------------------------------------
+
+-- The base alarm rings while anyone carries a brainrot out of the base.
+local function updateAlarm(plot: Plot)
+	local active = false
+	for _, carry in carries do
+		if carry.VictimPlot == plot then
+			active = true
+			break
+		end
+	end
+	if (plot.Model:GetAttribute("Alarm") == true) ~= active then
+		plot.Model:SetAttribute("Alarm", active)
+		local owner = plot.Owner
+		if not active and owner then
+			baseAlarmEvent:FireClient(owner, nil, nil)
+		end
+	end
+end
 
 local function endCarry(carry: Carry, message: string?)
 	local thief = carry.Thief
@@ -1266,9 +1780,10 @@ local function endCarry(carry: Carry, message: string?)
 		notify(thief, message, "Warning")
 		local victim = victimPlot.Owner
 		if victim then
-			notify(victim, string.format("Your %s is back home.", fullName(occupant.Definition, occupant.Mutation)), "Success", "Returned")
+			notify(victim, string.format("Your %s is back home.", fullName(occupant.Definition, occupant.Mutation, occupant.Trait)), "Success", "Returned")
 		end
 	end
+	updateAlarm(victimPlot)
 end
 
 local function completeSteal(carry: Carry)
@@ -1286,6 +1801,7 @@ local function completeSteal(carry: Carry)
 	carries[thief] = nil
 	targetPlot.Reserved[carry.TargetSlot] = nil
 	setCarrying(thief, false)
+	updateAlarm(victimPlot)
 
 	-- Remove from the victim first: if the victim's data can no longer be
 	-- written, the thief gets nothing rather than a duplicate.
@@ -1296,19 +1812,22 @@ local function completeSteal(carry: Carry)
 		return
 	end
 
-	placeOccupant(targetPlot, carry.TargetSlot, occupant.Definition, occupant.Mutation, nil, occupant.Price)
+	placeOccupant(targetPlot, carry.TargetSlot, occupant.Definition, occupant.Mutation, occupant.Trait, nil, occupant.Price)
 	saveBrainrots(targetPlot)
-	addStealsFunction:Invoke(thief, 1)
+	DataApi.AddSteals:Invoke(thief, 1)
+	discover(thief, occupant.Definition, occupant.Mutation)
+	reportActivity(thief, "Steal")
 
-	local name = fullName(occupant.Definition, occupant.Mutation)
+	local name = fullName(occupant.Definition, occupant.Mutation, occupant.Trait)
 	notify(thief, string.format("You stole %s!", name), "Success", "StealSuccess")
 	notify(victim, string.format("%s stole your %s!", thief.DisplayName, name), "Error", "Stolen")
+	placePending(victim)
 end
 
 onStealTriggered = function(occupant: Occupant, thief: Player)
 	local victimPlot = occupant.Plot
 	local victim = victimPlot.Owner
-	if victim == nil or victim == thief or occupant.Carrier ~= nil or occupant.Walk ~= nil then
+	if victim == nil or victim == thief or occupant.Carrier ~= nil or occupant.Walk ~= nil or occupant.OpeningResult ~= nil then
 		return
 	end
 	if victimPlot.Occupants[occupant.SlotIndex] ~= occupant then
@@ -1359,13 +1878,22 @@ onStealTriggered = function(occupant: Occupant, thief: Player)
 	}
 	setCarrying(thief, true)
 
+	local name = fullName(occupant.Definition, occupant.Mutation, occupant.Trait)
 	notify(thief, "Run it back to your base!", "Info", "Grab")
-	notify(victim, string.format("%s is stealing your %s! Catch them!", thief.DisplayName, fullName(occupant.Definition, occupant.Mutation)), "Warning", "Alarm")
+	notify(victim, string.format("%s is stealing your %s! Catch them!", thief.DisplayName, name), "Warning", "Alarm")
+	victimPlot.Model:SetAttribute("Alarm", true)
+	baseAlarmEvent:FireClient(victim, thief, name)
 end
 
 onSellTriggered = function(occupant: Occupant, player: Player)
 	local plot = occupant.Plot
-	if plot.Owner ~= player or occupant.Carrier ~= nil or occupant.Walk ~= nil or plot.Occupants[occupant.SlotIndex] ~= occupant then
+	if
+		plot.Owner ~= player
+		or occupant.Carrier ~= nil
+		or occupant.Walk ~= nil
+		or occupant.OpeningResult ~= nil
+		or plot.Occupants[occupant.SlotIndex] ~= occupant
+	then
 		return
 	end
 	if not isPlayerNear(player, occupant.PromptAttachment.WorldPosition) then
@@ -1379,20 +1907,30 @@ onSellTriggered = function(occupant: Occupant, player: Player)
 	end
 	destroyOccupant(occupant)
 
-	local refund = math.floor(priceOf(occupant.Definition, occupant.Mutation) * GameConfig.SellRefundFraction)
+	local refund = math.floor(priceOf(occupant.Definition, occupant.Mutation, occupant.Trait) * GameConfig.SellRefundFraction)
 	if refund > 0 then
 		addCash(player, refund)
 	end
-	notify(player, string.format("Sold %s for %s", fullName(occupant.Definition, occupant.Mutation), NumberFormat.cash(refund)), "Success", "Sell")
+	notify(
+		player,
+		string.format("Sold %s for %s", fullName(occupant.Definition, occupant.Mutation, occupant.Trait), NumberFormat.cash(refund)),
+		"Success",
+		"Sell"
+	)
+	placePending(player)
 end
 
-forceDropEvent.Event:Connect(function(playerArg: any, message: any)
+-- `catcher` is whoever made them drop it (a slap), for quests.
+forceDropEvent.Event:Connect(function(playerArg: any, message: any, catcher: any)
 	if typeof(playerArg) ~= "Instance" or not playerArg:IsA("Player") then
 		return
 	end
 	local carry = carries[playerArg]
 	if carry then
 		endCarry(carry, if typeof(message) == "string" then message else "You dropped the brainrot!")
+		if typeof(catcher) == "Instance" and catcher:IsA("Player") and catcher ~= playerArg then
+			reportActivity(catcher, "Catch")
+		end
 	end
 end)
 
@@ -1447,7 +1985,7 @@ local function rollDefinition(): Definition?
 	end
 
 	local event = activeEvent
-	local multiplier = (tonumber(getServerRarityMultiplierFunction:Invoke()) or 1) * (if event and event.Luck then event.Luck else 1)
+	local multiplier = (tonumber(DataApi.GetServerRarityMultiplier:Invoke()) or 1) * (if event and event.Luck then event.Luck else 1)
 	local commonRarity = BrainrotConfig.Rarities[1]
 
 	local totalWeight = 0
@@ -1496,6 +2034,70 @@ local function rollMutation(): Mutation?
 		end
 		roll -= chance
 	end
+	-- Admin Abuse: everything gets a mutation.
+	local event = activeEvent
+	if event and event.AllMutated then
+		local choices: { Mutation } = {}
+		for _, mutation in BrainrotConfig.Mutations do
+			if mutation.Chance > 0 or mutation.Name == event.Mutation then
+				table.insert(choices, mutation)
+			end
+		end
+		if #choices > 0 then
+			return choices[rng:NextInteger(1, #choices)]
+		end
+	end
+	return nil
+end
+
+local function rollTrait(): Trait?
+	local event = activeEvent
+	local luck = if event and event.TraitLuck then event.TraitLuck else 1
+	local roll = rng:NextNumber()
+	for _, trait in BrainrotConfig.Traits do
+		local chance = trait.Chance * luck
+		if roll < chance then
+			return trait
+		end
+		roll -= chance
+	end
+	return nil
+end
+
+local function rollLuckyBlock(): Definition?
+	local total = 0
+	for _, weight in BrainrotConfig.LuckyBlockWeights do
+		total += weight
+	end
+	local roll = rng:NextNumber(0, total)
+	for _, definition in BrainrotConfig.LuckyBlocks do
+		roll -= BrainrotConfig.LuckyBlockWeights[definition.Id] or 0
+		if roll <= 0 and (BrainrotConfig.LuckyBlockWeights[definition.Id] or 0) > 0 then
+			return definition
+		end
+	end
+	return BrainrotConfig.ById.LuckyBlock
+end
+
+-- What a lucky block opens into: a rarity from its odds, then a brainrot of it.
+local function rollFromOdds(odds: { [string]: number }): Definition?
+	local total = 0
+	for _, rarity in BrainrotConfig.Rarities do
+		if #BrainrotConfig.ByRarity[rarity.Name] > 0 then
+			total += odds[rarity.Name] or 0
+		end
+	end
+	if total <= 0 then
+		return nil
+	end
+	local roll = rng:NextNumber(0, total)
+	for _, rarity in BrainrotConfig.Rarities do
+		local weight = if #BrainrotConfig.ByRarity[rarity.Name] > 0 then odds[rarity.Name] or 0 else 0
+		roll -= weight
+		if roll <= 0 and weight > 0 then
+			return pickFromRarity(rarity.Name)
+		end
+	end
 	return nil
 end
 
@@ -1527,7 +2129,7 @@ local function onBuyTriggered(item: ConveyorItem, player: Player)
 	end
 
 	local definition = item.Definition
-	local name = fullName(definition, item.Mutation)
+	local name = fullName(definition, item.Mutation, item.Trait)
 	item.Sold = true
 	plot.Reserved[slotIndex] = true
 	local paid = spendCash(player, item.Price)
@@ -1546,18 +2148,39 @@ local function onBuyTriggered(item: ConveyorItem, player: Player)
 
 	local fromCFrame = item.Root.CFrame
 	removeConveyorItem(item)
-	placeOccupant(plot, slotIndex, definition, item.Mutation, fromCFrame, item.Price)
+	placeOccupant(plot, slotIndex, definition, item.Mutation, item.Trait, fromCFrame, item.Price)
 	saveBrainrots(plot)
 	notify(player, string.format("You bought %s! It's walking to your base.", name), "Success", "Purchase")
+	discover(player, definition, item.Mutation)
+	reportActivity(player, "Buy")
+	local rarityIndex = 0
+	for index, rarity in BrainrotConfig.Rarities do
+		if rarity.Name == definition.Rarity then
+			rarityIndex = index
+		end
+	end
+	if rarityIndex >= 3 and not BrainrotConfig.isLuckyBlock(definition) then
+		reportActivity(player, "BuyEpic")
+	end
 end
 
 local function spawnConveyorBrainrot()
-	local definition = rollDefinition()
+	local definition: Definition? = nil
+	if rng:NextNumber() < BrainrotConfig.LuckyBlockChance then
+		definition = rollLuckyBlock()
+	end
+	if definition == nil then
+		definition = rollDefinition()
+	end
 	if definition == nil then
 		return
 	end
-	local mutation = rollMutation()
-	local price = priceOf(definition, mutation)
+	local isBlock = BrainrotConfig.isLuckyBlock(definition)
+	local mutation = if isBlock then nil else rollMutation()
+	local trait = if isBlock then nil else rollTrait()
+	local event = activeEvent
+	local priceMultiplier = if event and event.PriceMultiplier then event.PriceMultiplier else 1
+	local price = math.max(1, math.floor(priceOf(definition, mutation, trait) * priceMultiplier))
 
 	local startPosition = conveyorStart.Position
 	local endPosition = Vector3.new(conveyorEnd.Position.X, startPosition.Y, conveyorEnd.Position.Z)
@@ -1568,7 +2191,7 @@ local function spawnConveyorBrainrot()
 	local startCFrame = CFrame.lookAt(startPosition, endPosition)
 	local endCFrame = startCFrame + direction
 
-	local visual = buildBrainrot(definition, mutation, price, nil)
+	local visual = buildBrainrot(definition, mutation, trait, price, nil)
 	visual.Model:SetAttribute("State", "Conveyor")
 	visual.Root.CFrame = startCFrame
 	visual.Model.Parent = brainrotsFolder
@@ -1582,6 +2205,7 @@ local function spawnConveyorBrainrot()
 	local item: ConveyorItem = {
 		Definition = definition,
 		Mutation = mutation,
+		Trait = trait,
 		Price = price,
 		Model = visual.Model,
 		Root = visual.Root,
@@ -1596,7 +2220,7 @@ local function spawnConveyorBrainrot()
 		visual.PromptAttachment,
 		"Buy",
 		"Buy " .. NumberFormat.cash(price),
-		fullName(definition, mutation),
+		fullName(definition, mutation, trait),
 		0,
 		Enum.KeyCode.E,
 		nil
@@ -1671,8 +2295,9 @@ local function collectPads(plot: Plot)
 			local wasOffline = plot.OfflinePads[index]
 			plot.PadCash[index] = amount - whole
 			plot.OfflinePads[index] = nil
-			if collectPadCashFunction:Invoke(owner, whole, padCashList(plot)) == true then
+			if DataApi.CollectPadCash:Invoke(owner, whole, padCashList(plot)) == true then
 				playSound(owner, "Collect")
+				reportActivity(owner, "Collect")
 			else
 				plot.PadCash[index] = amount
 				plot.OfflinePads[index] = wasOffline
@@ -1771,11 +2396,17 @@ local function onLockButtonTouched(plot: Plot, hit: BasePart)
 	if owner == nil or character == nil or not hit:IsDescendantOf(character) or isLocked(plot) then
 		return
 	end
-	plot.LockEndsAt = Workspace:GetServerTimeNow() + GameConfig.LockDurationSeconds
+	-- The Long Lock pass makes it last longer.
+	local seconds = GameConfig.LockDurationSeconds
+	if DataApi.OwnsGamePass:Invoke(owner, "LongLock") == true then
+		seconds *= FeatureConfig.LongLockMultiplier
+	end
+	plot.LockEndsAt = Workspace:GetServerTimeNow() + seconds
 	plot.Model:SetAttribute("LockEndsAt", plot.LockEndsAt)
 	setLasersActive(plot, true)
 	updatePlotLabels(plot)
-	notify(owner, string.format("Base locked for %d seconds!", GameConfig.LockDurationSeconds), "Success", "Lock")
+	notify(owner, string.format("Base locked for %d seconds!", seconds), "Success", "Lock")
+	reportActivity(owner, "Lock")
 end
 
 local function createSign(sign: BasePart): (TextLabel, TextLabel)
@@ -1920,6 +2551,87 @@ local function refreshUnlockedFloors(plot: Plot)
 	updateFloorSigns(plot)
 end
 
+-- The walls, floors and neon trim a base skin recolours, with how they look
+-- now so the Classic skin can put them back.
+local function collectSkinParts(model: Instance): { SkinPart }
+	local list: { SkinPart } = {}
+	local function add(instance: Instance?, kind: string)
+		if instance and instance:IsA("BasePart") and instance.Transparency < 0.5 then
+			table.insert(list, { Part = instance, Kind = kind, Color = instance.Color, Material = instance.Material })
+			if kind == "Trim" then
+				instance:SetAttribute("SkinTrim", true)
+			end
+		end
+	end
+	add(model:FindFirstChild("Floor"), "Floor")
+	add(model:FindFirstChild("Roof"), "Wall")
+	add(model:FindFirstChild("WallAboveDoor"), "Wall")
+	local walls = model:FindFirstChild("Walls")
+	if walls then
+		for _, child in walls:GetChildren() do
+			if not string.find(child.Name, "Glass") and not string.find(child.Name, "Sill") then
+				add(child, "Wall")
+			end
+		end
+	end
+	local floors = model:FindFirstChild("Floors")
+	if floors then
+		for _, child in floors:GetChildren() do
+			if string.match(child.Name, "^Slab") or string.match(child.Name, "^Step") then
+				add(child, "Floor")
+			end
+		end
+	end
+	local trim = model:FindFirstChild("Trim")
+	if trim then
+		for _, child in trim:GetChildren() do
+			if child:IsA("BasePart") and (child.Material == Enum.Material.Neon or child.Name == "Pillar" or child.Name == "Flag") then
+				add(child, "Trim")
+			elseif child.Name == "RoofBlock" then
+				add(child, "Wall")
+			end
+		end
+	end
+	return list
+end
+
+local function applySkin(plot: Plot, skinName: string?)
+	local skin = if skinName then FeatureConfig.SkinByName[skinName] else nil
+	local classic = skin == nil or skin.Effect == "Classic"
+	for _, entry in plot.SkinParts do
+		local part = entry.Part
+		if skin == nil or classic then
+			part.Color = entry.Color
+			part.Material = entry.Material
+		elseif entry.Kind == "Wall" then
+			part.Color = skin.Wall
+			part.Material = skin.WallMaterial
+		elseif entry.Kind == "Floor" then
+			part.Color = skin.Floor
+			part.Material = skin.FloorMaterial
+		else
+			part.Color = skin.Trim
+		end
+	end
+	plot.Model:SetAttribute("Skin", if skin and not classic then skin.Name else nil)
+	plot.Model:SetAttribute("SkinEffect", if skin and not classic then skin.Effect else nil)
+end
+
+-- The skin a player has on, if they own it.
+local function equippedSkin(player: Player): string?
+	local skins = getProgress(player, "Skins")
+	if typeof(skins) ~= "table" then
+		return nil
+	end
+	local name = skins.Equipped
+	local skin = if typeof(name) == "string" then FeatureConfig.SkinByName[name] else nil
+	if skin == nil then
+		return nil
+	end
+	local owned = typeof(skins.Owned) == "table" and table.find(skins.Owned, name) ~= nil
+	return if owned or skin.Price == 0 then name else nil
+end
+
 local function loadPlot(model: Instance, index: number): Plot?
 	if not model:IsA("Model") then
 		return nil
@@ -1994,6 +2706,9 @@ local function loadPlot(model: Instance, index: number): Plot?
 		Stairs = stairs,
 		FloorSigns = floorSigns,
 		UnlockedFloors = 1,
+		Levels = table.create(#slots, 1),
+		LevelRings = {},
+		SkinParts = collectSkinParts(model),
 	}
 
 	model:SetAttribute("OwnerUserId", 0)
@@ -2020,7 +2735,7 @@ end
 -- Uncollected Cash from last time goes back on the pads, and brainrots earn
 -- offline cash for the time the player was away.
 local function restorePads(player: Player, plot: Plot)
-	local saved = getPadCashFunction:Invoke(player)
+	local saved = DataApi.GetPadCash:Invoke(player)
 	if typeof(saved) == "table" then
 		for index, amount in saved do
 			if typeof(index) == "number" and typeof(amount) == "number" and amount > 0 then
@@ -2031,13 +2746,15 @@ local function restorePads(player: Player, plot: Plot)
 		end
 	end
 
-	local seconds = tonumber(takeOfflineSecondsFunction:Invoke(player)) or 0
+	local seconds = tonumber(DataApi.TakeOfflineSeconds:Invoke(player)) or 0
 	local total = 0
 	if seconds >= GameConfig.OfflineMinSeconds then
 		local earningSeconds = math.min(seconds, GameConfig.OfflineMaxHours * 3600)
-		local multiplier = getIncomeMultiplier(player) * GameConfig.OfflineIncomeFraction
+		local incomeMultiplier = getIncomeMultiplier(player)
+		local multiplier = incomeMultiplier * GameConfig.OfflineIncomeFraction
 		for index, occupant in plot.Occupants do
-			local earned = math.floor(incomeOf(occupant.Definition, occupant.Mutation) * multiplier * earningSeconds)
+			local income = incomeOf(occupant.Definition, occupant.Mutation, occupant.Trait) * pedestalMultiplier(plot, index)
+			local earned = math.floor(income * multiplier * earningSeconds)
 			if earned > 0 then
 				plot.PadCash[index] = (plot.PadCash[index] or 0) + earned
 				plot.OfflinePads[index] = true
@@ -2045,7 +2762,7 @@ local function restorePads(player: Player, plot: Plot)
 			end
 		end
 	end
-	setPadCashFunction:Invoke(player, padCashList(plot))
+	DataApi.SetPadCash:Invoke(player, padCashList(plot))
 	updatePadLabels(plot)
 
 	if total > 0 then
@@ -2084,17 +2801,37 @@ local function assignPlot(player: Player)
 	plot.UnlockedFloors = 0
 	refreshUnlockedFloors(plot)
 
-	local savedIds = getBrainrotsFunction:Invoke(player)
+	-- Pedestal upgrades, the Index and the base skin.
+	local savedLevels = getProgress(player, "Pedestals")
+	for index = 1, #plot.Slots do
+		local level = if typeof(savedLevels) == "table" then tonumber(savedLevels[index]) else nil
+		plot.Levels[index] = math.clamp(math.floor(level or 1), 1, FeatureConfig.maxPedestalLevel())
+		updatePedestalLook(plot, index)
+	end
+	local found: { [string]: boolean } = {}
+	local savedFound = getProgress(player, "Discovered")
+	if typeof(savedFound) == "table" then
+		for _, key in savedFound do
+			if typeof(key) == "string" then
+				found[key] = true
+			end
+		end
+	end
+	discovered[player] = found
+	applySkin(plot, equippedSkin(player))
+
+	local savedIds = DataApi.GetBrainrots:Invoke(player)
 	local changed = false
 	local nextSlot = 1
 	if typeof(savedIds) == "table" then
 		for _, entry in savedIds do
-			local definition, mutation = nil, nil
+			local definition, mutation, trait = nil, nil, nil
 			if typeof(entry) == "string" then
-				definition, mutation = BrainrotConfig.decode(entry)
+				definition, mutation, trait = BrainrotConfig.decode(entry)
 			end
 			if definition and nextSlot <= #plot.Slots then
-				placeOccupant(plot, nextSlot, definition, mutation, nil, nil)
+				placeOccupant(plot, nextSlot, definition, mutation, trait, nil, nil)
+				discover(player, definition, mutation)
 				nextSlot += 1
 			else
 				changed = true
@@ -2107,7 +2844,8 @@ local function assignPlot(player: Player)
 		local data = getPlayerData(player)
 		local starter = BrainrotConfig.ById[GameConfig.StarterBrainrotId]
 		if data and data.Cash == 0 and data.Rebirths == 0 and starter then
-			placeOccupant(plot, 1, starter, nil, nil, nil)
+			placeOccupant(plot, 1, starter, nil, nil, nil, nil)
+			discover(player, starter, nil)
 			changed = true
 			notify(player, string.format("Welcome! Here's a free %s to get you started.", starter.DisplayName), "Success")
 		end
@@ -2117,6 +2855,8 @@ local function assignPlot(player: Player)
 	end
 
 	restorePads(player, plot)
+	refreshIndex(player)
+	placePending(player)
 	updatePlotLabels(plot)
 	teleportToPlot(player)
 end
@@ -2149,6 +2889,14 @@ local function releasePlot(player: Player)
 	plot.Model:SetAttribute("LockEndsAt", 0)
 	plot.UnlockedFloors = 1
 	plot.Model:SetAttribute("UnlockedFloors", 1)
+	plot.Model:SetAttribute("Alarm", false)
+	for index = 1, #plot.Slots do
+		plot.Levels[index] = 1
+		updatePedestalLook(plot, index)
+	end
+	applySkin(plot, nil)
+	discovered[player] = nil
+	indexBonus[player] = nil
 	updateFloorSigns(plot)
 	setLasersActive(plot, false)
 	clearPads(plot)
@@ -2167,7 +2915,9 @@ local function movedTooFast(carry: Carry, position: Vector3, clock: number): boo
 	local horizontalDistance = Vector3.new(offset.X, 0, offset.Z).Magnitude
 	carry.LastPosition = position
 	carry.LastCheckedAt = clock
-	return horizontalDistance > GameConfig.CarryWalkSpeed * elapsed * 2 + GameConfig.CarrySpeedToleranceStuds
+	local level = math.clamp(tonumber(carry.Thief:GetAttribute("SpeedLevel")) or 0, 0, #FeatureConfig.SpeedCosts)
+	local speed = GameConfig.CarryWalkSpeed + level * FeatureConfig.CarrySpeedPerLevel
+	return horizontalDistance > speed * elapsed * 2 + GameConfig.CarrySpeedToleranceStuds
 end
 
 -- Runs every FAST_TICK_SECONDS: laser doors, collect pads and brainrots being carried.
@@ -2182,7 +2932,7 @@ local function fastTick()
 						rootPart
 						and humanoid
 						and isInsidePart(plot.LaserZone, rootPart.Position)
-						and isLaserBypassActiveFunction:Invoke(player) ~= true
+						and DataApi.IsLaserBypassActive:Invoke(player) ~= true
 					then
 						humanoid.Health = 0
 						notify(player, "Zapped by the laser door!", "Error", "Zap")
@@ -2209,8 +2959,9 @@ local function fastTick()
 		else
 			local victim = carry.VictimPlot.Owner
 			local victimRoot = if victim then getLiveCharacter(victim) else nil
-			if victimRoot and (victimRoot.Position - rootPart.Position).Magnitude <= GameConfig.CatchDistance then
+			if victim and victimRoot and (victimRoot.Position - rootPart.Position).Magnitude <= GameConfig.CatchDistance then
 				endCarry(carry, "You got caught! The brainrot went back.")
+				reportActivity(victim, "Catch")
 			end
 		end
 	end
@@ -2277,17 +3028,19 @@ local function slowTick()
 		local owner = plot.Owner
 		if owner then
 			refreshUnlockedFloors(plot)
-			local multiplier = getIncomeMultiplier(owner)
+			local multiplier, boostInfo = getIncomeMultiplier(owner)
 			local incomePerSecond = 0
 			for index, occupant in plot.Occupants do
 				if occupant.Carrier == nil and occupant.Walk == nil then
-					local income = incomeOf(occupant.Definition, occupant.Mutation) * multiplier
+					local income = incomeOf(occupant.Definition, occupant.Mutation, occupant.Trait) * multiplier * pedestalMultiplier(plot, index)
 					incomePerSecond += income
 					plot.PadCash[index] = (plot.PadCash[index] or 0) + income * SLOW_TICK_SECONDS
 				end
 			end
 			owner:SetAttribute("IncomePerSecond", incomePerSecond)
-			setPadCashFunction:Invoke(owner, padCashList(plot))
+			owner:SetAttribute("IncomeMultiplier", multiplier)
+			owner:SetAttribute("BoostInfo", table.concat(boostInfo, "\n"))
+			DataApi.SetPadCash:Invoke(owner, padCashList(plot))
 			updatePadLabels(plot)
 		end
 		updatePlotLabels(plot)
@@ -2319,7 +3072,13 @@ end
 local function eventMessage(event: GameEvent): string
 	local duration = NumberFormat.duration(GameConfig.EventDurationSeconds)
 	local boost = event.TagBoost
-	if boost then
+	if event.AdminAbuse then
+		return string.format(
+			"ADMIN ABUSE!!! For %s: every brainrot is mutated, prices are cut, %sx luck, traits everywhere and Cash is raining!",
+			duration,
+			tostring(event.Luck or 1)
+		)
+	elseif boost then
 		return string.format("%s! %s brainrots are %sx more common for %s!", event.Name, boost.Tag, tostring(boost.Multiplier), duration)
 	elseif event.CashRain then
 		return string.format("%s! Grab the Cash falling from the sky for %s!", event.Name, duration)
@@ -2444,6 +3203,7 @@ local function runEvent(event: GameEvent)
 	ReplicatedStorage:SetAttribute("EventMutation", event.Mutation)
 	ReplicatedStorage:SetAttribute("EventSky", event.Sky)
 	ReplicatedStorage:SetAttribute("EventParticles", event.Particles)
+	ReplicatedStorage:SetAttribute("EventAdmin", event.AdminAbuse == true)
 	ReplicatedStorage:SetAttribute("EventEndsAt", endsAt)
 	notifyAll(eventMessage(event), "Info", "Event")
 	if event.CashRain then
@@ -2460,6 +3220,7 @@ local function runEvent(event: GameEvent)
 	ReplicatedStorage:SetAttribute("EventMutation", nil)
 	ReplicatedStorage:SetAttribute("EventSky", nil)
 	ReplicatedStorage:SetAttribute("EventParticles", nil)
+	ReplicatedStorage:SetAttribute("EventAdmin", false)
 	ReplicatedStorage:SetAttribute("EventEndsAt", 0)
 	notifyAll(event.Name .. " is over.", "Info")
 end
@@ -2486,18 +3247,39 @@ requestRebirthFunction.OnServerInvoke = function(player: Player): (boolean, stri
 	if cash < cost then
 		return false, string.format("You need %s to rebirth.", NumberFormat.cash(cost))
 	end
+	-- Each rebirth also needs certain brainrots at home in your base.
+	local plot = plotByPlayer[player]
+	local missing: { string } = {}
+	for _, brainrotId in FeatureConfig.getRebirthRequirement(rebirths) do
+		local found = false
+		if plot then
+			for _, occupant in plot.Occupants do
+				if occupant.Definition.Id == brainrotId and occupant.Walk == nil and occupant.Carrier == nil then
+					found = true
+					break
+				end
+			end
+		end
+		if not found then
+			local definition = BrainrotConfig.ById[brainrotId]
+			table.insert(missing, if definition then definition.DisplayName else brainrotId)
+		end
+	end
+	if #missing > 0 then
+		return false, "You also need " .. table.concat(missing, " and ") .. " in your base to rebirth."
+	end
 
 	-- Rebirthing resets Cash and the pads to 0 and keeps your brainrots.
 	if not spendCash(player, cash) then
 		return false, "Rebirth failed, try again."
 	end
-	addRebirthsFunction:Invoke(player, 1)
-	local plot = plotByPlayer[player]
+	DataApi.AddRebirths:Invoke(player, 1)
+	reportActivity(player, "Rebirth")
 	if plot then
 		clearPads(plot)
 		refreshUnlockedFloors(plot)
 	end
-	setPadCashFunction:Invoke(player, if plot then padCashList(plot) else {})
+	DataApi.SetPadCash:Invoke(player, if plot then padCashList(plot) else {})
 
 	local message = string.format(
 		"Rebirth %d! Your income is now x%s.",
@@ -2513,16 +3295,439 @@ requestRebirthFunction.OnServerInvoke = function(player: Player): (boolean, stri
 end
 
 --------------------------------------------------------------------------------
+-- Pedestal upgrades
+--------------------------------------------------------------------------------
+
+onUpgradeTriggered = function(occupant: Occupant, player: Player)
+	local plot = occupant.Plot
+	local slotIndex = occupant.SlotIndex
+	if plot.Owner ~= player or occupant.Walk ~= nil or occupant.Carrier ~= nil or plot.Occupants[slotIndex] ~= occupant then
+		return
+	end
+	if not isPlayerNear(player, occupant.PromptAttachment.WorldPosition) then
+		return
+	end
+	local level = plot.Levels[slotIndex] or 1
+	local cost = FeatureConfig.PedestalCosts[level]
+	if cost == nil then
+		notify(player, "This pedestal is already max level!", "Info")
+		return
+	end
+	if not spendCash(player, cost) then
+		notify(player, string.format("You need %s to upgrade this pedestal.", NumberFormat.cash(cost)), "Error")
+		return
+	end
+	if plot.Owner ~= player then
+		addCash(player, cost)
+		return
+	end
+	plot.Levels[slotIndex] = level + 1
+	setProgress(player, "Pedestals", plot.Levels)
+	updatePedestalLook(plot, slotIndex)
+	refreshUpgradePrompt(occupant)
+	notify(
+		player,
+		string.format("Pedestal upgraded to Lv %d! Brainrots here earn %s.", level + 1, percent(FeatureConfig.PedestalBonus * level)),
+		"Success",
+		"Purchase"
+	)
+	reportActivity(player, "Upgrade")
+end
+
+--------------------------------------------------------------------------------
+-- Lucky blocks
+--------------------------------------------------------------------------------
+
+onOpenTriggered = function(occupant: Occupant, player: Player)
+	local plot = occupant.Plot
+	local slotIndex = occupant.SlotIndex
+	local odds = occupant.Definition.Odds
+	if
+		odds == nil
+		or plot.Owner ~= player
+		or occupant.Walk ~= nil
+		or occupant.Carrier ~= nil
+		or occupant.OpeningResult ~= nil
+		or plot.Occupants[slotIndex] ~= occupant
+	then
+		return
+	end
+	if not isPlayerNear(player, occupant.PromptAttachment.WorldPosition) then
+		return
+	end
+	local definition = rollFromOdds(odds)
+	if definition == nil then
+		return
+	end
+	local mutation = rollMutation()
+	local trait = rollTrait()
+	local entry = entryOf(definition, mutation, trait)
+
+	-- Saved as the result straight away, so leaving mid-reveal loses nothing.
+	occupant.OpeningResult = entry
+	if not saveBrainrots(plot) then
+		occupant.OpeningResult = nil
+		return
+	end
+	occupant.Model:SetAttribute("State", "Opening")
+	setPromptFlag(occupant, "Carried", true)
+	luckyRevealEvent:FireAllClients(player.UserId, occupant.Definition.Id, entry, occupant.Root.Position)
+	reportActivity(player, "OpenBlock")
+
+	-- The block shakes while the client shows a roulette, then pops.
+	task.delay(2.8, function()
+		if plot.Owner ~= player or plot.Occupants[slotIndex] ~= occupant then
+			return
+		end
+		plot.Occupants[slotIndex] = nil
+		destroyOccupant(occupant)
+		local placed = placeOccupant(plot, slotIndex, definition, mutation, trait, nil, nil)
+		if placed then
+			placed.Model:SetAttribute("Arrived", Workspace:GetServerTimeNow())
+		end
+		saveBrainrots(plot)
+		discover(player, definition, mutation)
+		local name = fullName(definition, mutation, trait)
+		notify(player, string.format("Your %s opened into %s!", occupant.Definition.DisplayName, name), "Success", "StealSuccess")
+		if definition.Rarity == "Secret" or definition.Rarity == "Brainrot God" then
+			for _, other in Players:GetPlayers() do
+				if other ~= player then
+					notify(other, string.format("%s unboxed %s (%s)!", player.DisplayName, name, definition.Rarity), "Info", "Event")
+				end
+			end
+		end
+	end)
+end
+
+--------------------------------------------------------------------------------
+-- Gifts, fusing and trading (for RewardsManager, FuseManager, TradeManager)
+--------------------------------------------------------------------------------
+
+do
+	local MAX_PENDING = 50
+
+	local function freeSlotCount(plot: Plot): number
+		local limit = math.min(#plot.Slots, plot.UnlockedFloors * GameConfig.SlotsPerFloor)
+		local count = 0
+		for index = 1, limit do
+			if plot.Occupants[index] == nil and not plot.Reserved[index] then
+				count += 1
+			end
+		end
+		return count
+	end
+
+	placePending = function(player: Player)
+		local plot = plotByPlayer[player]
+		if plot == nil or plot.Owner ~= player then
+			return
+		end
+		local pending = getProgress(player, "Pending")
+		if typeof(pending) ~= "table" or #pending == 0 or findFreeSlot(plot) == nil then
+			return
+		end
+		local remaining: { string } = {}
+		local placed = 0
+		for _, entry in pending do
+			if typeof(entry) ~= "string" then
+				continue
+			end
+			local definition, mutation, trait = BrainrotConfig.decode(entry)
+			if definition == nil then
+				continue
+			end
+			local slotIndex = findFreeSlot(plot)
+			local occupant = if slotIndex then placeOccupant(plot, slotIndex, definition, mutation, trait, nil, nil) else nil
+			if occupant then
+				placed += 1
+				occupant.Model:SetAttribute("Arrived", Workspace:GetServerTimeNow())
+				discover(player, definition, mutation)
+				notify(player, string.format("%s arrived in your base!", fullName(definition, mutation, trait)), "Success", "Purchase")
+			else
+				table.insert(remaining, entry)
+			end
+		end
+		if placed > 0 then
+			saveBrainrots(plot)
+			setProgress(player, "Pending", remaining)
+		end
+	end
+
+	-- Puts a brainrot (or lucky block) in the player's base, or queues it until
+	-- a pedestal is free.
+	local function giveBrainrot(player: Player, entry: string): string?
+		local definition, mutation, trait = BrainrotConfig.decode(entry)
+		if definition == nil or player.Parent ~= Players then
+			return nil
+		end
+		local plot = plotByPlayer[player]
+		local slotIndex = if plot then findFreeSlot(plot) else nil
+		if plot and slotIndex then
+			local occupant = placeOccupant(plot, slotIndex, definition, mutation, trait, nil, nil)
+			if occupant then
+				occupant.Model:SetAttribute("Arrived", Workspace:GetServerTimeNow())
+				saveBrainrots(plot)
+				discover(player, definition, mutation)
+				return "Placed"
+			end
+		end
+		local pending = getProgress(player, "Pending")
+		local list = if typeof(pending) == "table" then pending else {}
+		if #list >= MAX_PENDING then
+			return nil
+		end
+		table.insert(list, entry)
+		if not setProgress(player, "Pending", list) then
+			return nil
+		end
+		notify(
+			player,
+			string.format("No room for %s yet! It'll show up when a pedestal is free.", fullName(definition, mutation, trait)),
+			"Warning"
+		)
+		return "Pending"
+	end
+
+	-- The player's brainrots on these pedestals, if every one is at home and
+	-- free to hand over (not walking, carried or being opened).
+	local function idleOccupants(player: Player, slots: any): { Occupant }?
+		local plot = plotByPlayer[player]
+		if plot == nil or typeof(slots) ~= "table" or #slots > 16 then
+			return nil
+		end
+		local list: { Occupant } = {}
+		local seen: { [number]: boolean } = {}
+		for _, slotIndex in slots do
+			if typeof(slotIndex) ~= "number" or seen[slotIndex] then
+				return nil
+			end
+			seen[slotIndex] = true
+			local occupant = plot.Occupants[slotIndex]
+			if occupant == nil or occupant.Walk ~= nil or occupant.Carrier ~= nil or occupant.OpeningResult ~= nil or occupant.Sniping then
+				return nil
+			end
+			table.insert(list, occupant)
+		end
+		return list
+	end
+
+	local function takeBrainrots(player: Player, slots: any): { string }?
+		local occupants = idleOccupants(player, slots)
+		local plot = plotByPlayer[player]
+		if occupants == nil or plot == nil or #occupants == 0 then
+			return nil
+		end
+		local entries: { string } = {}
+		for _, occupant in occupants do
+			plot.Occupants[occupant.SlotIndex] = nil
+			table.insert(entries, occupantEntry(occupant))
+		end
+		if not saveBrainrots(plot) then
+			for _, occupant in occupants do
+				plot.Occupants[occupant.SlotIndex] = occupant
+			end
+			return nil
+		end
+		for _, occupant in occupants do
+			destroyOccupant(occupant)
+		end
+		return entries
+	end
+
+	-- Swaps brainrots between two bases in one step: all of it happens or none.
+	local function tradeBrainrots(first: Player, firstSlots: any, second: Player, secondSlots: any): boolean
+		if first == second or getPlayerData(first) == nil or getPlayerData(second) == nil then
+			return false
+		end
+		local firstPlot, secondPlot = plotByPlayer[first], plotByPlayer[second]
+		local fromFirst, fromSecond = idleOccupants(first, firstSlots), idleOccupants(second, secondSlots)
+		if firstPlot == nil or secondPlot == nil or fromFirst == nil or fromSecond == nil then
+			return false
+		end
+		if #fromFirst + #fromSecond == 0 or #fromFirst > FeatureConfig.MaxTradeItems or #fromSecond > FeatureConfig.MaxTradeItems then
+			return false
+		end
+		if freeSlotCount(firstPlot) + #fromFirst < #fromSecond or freeSlotCount(secondPlot) + #fromSecond < #fromFirst then
+			return false
+		end
+		for _, occupant in fromFirst do
+			firstPlot.Occupants[occupant.SlotIndex] = nil
+		end
+		for _, occupant in fromSecond do
+			secondPlot.Occupants[occupant.SlotIndex] = nil
+		end
+		local function move(occupants: { Occupant }, plot: Plot, receiver: Player)
+			for _, occupant in occupants do
+				local slotIndex = findFreeSlot(plot)
+				if slotIndex then
+					local placed = placeOccupant(plot, slotIndex, occupant.Definition, occupant.Mutation, occupant.Trait, nil, occupant.Price)
+					if placed then
+						placed.Model:SetAttribute("Arrived", Workspace:GetServerTimeNow())
+					end
+					discover(receiver, occupant.Definition, occupant.Mutation)
+				end
+				destroyOccupant(occupant)
+			end
+		end
+		move(fromFirst, secondPlot, second)
+		move(fromSecond, firstPlot, first)
+		saveBrainrots(firstPlot)
+		saveBrainrots(secondPlot)
+		DataApi.SaveNow:Invoke(first)
+		DataApi.SaveNow:Invoke(second)
+		placePending(first)
+		placePending(second)
+		return true
+	end
+
+	local function createApiFunction(name: string, callback: (...any) -> ...any)
+		local bindable = Instance.new("BindableFunction")
+		bindable.Name = name
+		bindable.OnInvoke = callback
+		bindable.Parent = gameplayApi
+	end
+
+	local function asPlayer(value: any): Player?
+		if typeof(value) == "Instance" and value:IsA("Player") then
+			return value
+		end
+		return nil
+	end
+
+	createApiFunction("GiveBrainrot", function(playerArg: any, entry: any): string?
+		local player = asPlayer(playerArg)
+		if player == nil or typeof(entry) ~= "string" then
+			return nil
+		end
+		local result = giveBrainrot(player, entry)
+		placePending(player)
+		return result
+	end)
+
+	createApiFunction("TakeBrainrots", function(playerArg: any, slots: any): { string }?
+		local player = asPlayer(playerArg)
+		return if player then takeBrainrots(player, slots) else nil
+	end)
+
+	createApiFunction("TradeBrainrots", function(firstArg: any, firstSlots: any, secondArg: any, secondSlots: any): boolean
+		local first, second = asPlayer(firstArg), asPlayer(secondArg)
+		return first ~= nil and second ~= nil and tradeBrainrots(first, firstSlots, second, secondSlots)
+	end)
+
+	createApiFunction("DescribeSlots", function(playerArg: any, slots: any): { string }?
+		local player = asPlayer(playerArg)
+		local occupants = if player then idleOccupants(player, slots) else nil
+		if occupants == nil then
+			return nil
+		end
+		local entries: { string } = {}
+		for _, occupant in occupants do
+			table.insert(entries, occupantEntry(occupant))
+		end
+		return entries
+	end)
+
+	createApiFunction("GetIncome", function(playerArg: any): number
+		local player = asPlayer(playerArg)
+		return if player then tonumber(player:GetAttribute("IncomePerSecond")) or 0 else 0
+	end)
+
+	DataApi.ProgressChanged.Event:Connect(function(playerArg: any, key: any)
+		local player = asPlayer(playerArg)
+		if player == nil then
+			return
+		end
+		if key == "Pending" then
+			placePending(player)
+		elseif key == "Skins" then
+			local plot = plotByPlayer[player]
+			if plot then
+				applySkin(plot, equippedSkin(player))
+			end
+		end
+	end)
+end
+
+--------------------------------------------------------------------------------
+-- Friends, Premium and the group (income boosts)
+--------------------------------------------------------------------------------
+
+local updateSocial: (player: Player) -> ()
+local onChatted: (player: Player, message: string) -> ()
+local startEvent: (event: GameEvent) -> ()
+
+updateSocial = function(player: Player)
+	local friends = friendsOf[player] or {}
+	friendsOf[player] = friends
+	for _, other in Players:GetPlayers() do
+		if other ~= player and friends[other.UserId] == nil then
+			local ok, isFriend = pcall(function(): boolean
+				return player:IsFriendsWithAsync(other.UserId)
+			end)
+			if ok then
+				friends[other.UserId] = isFriend == true
+				local theirs = friendsOf[other]
+				if theirs then
+					theirs[player.UserId] = isFriend == true
+				end
+				if isFriend == true and player.Parent == Players then
+					notify(player, string.format("%s is your friend: +%d%% income for you both!", other.DisplayName, math.floor(FeatureConfig.FriendBoost * 100)), "Success")
+					notify(other, string.format("%s is your friend: +%d%% income for you both!", player.DisplayName, math.floor(FeatureConfig.FriendBoost * 100)), "Success")
+				end
+			end
+		end
+	end
+	if FeatureConfig.GroupId ~= 0 and inGroup[player] == nil then
+		local ok, member = pcall(function(): boolean
+			return player:IsInGroupAsync(FeatureConfig.GroupId)
+		end)
+		inGroup[player] = ok and member == true
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Admin Abuse on demand
+--------------------------------------------------------------------------------
+
+do
+	local function isAdmin(player: Player): boolean
+		if RunService:IsStudio() or table.find(FeatureConfig.AdminUserIds, player.UserId) ~= nil then
+			return true
+		end
+		return game.CreatorType == Enum.CreatorType.User and game.CreatorId == player.UserId
+	end
+
+	startEvent = function(event: GameEvent)
+		xpcall(runEvent, function(err: any)
+			activeEvent = nil
+			clearCoins()
+			warn(string.format("%s Event failed: %s", LOG_PREFIX, tostring(err)))
+		end, event)
+	end
+
+	onChatted = function(player: Player, message: string)
+		if string.lower(message) ~= "/abuse" or not isAdmin(player) then
+			return
+		end
+		if activeEvent then
+			notify(player, "Wait for the current event to end first.", "Warning")
+			return
+		end
+		task.spawn(startEvent, GameConfig.AdminAbuseEvent)
+	end
+end
+
+--------------------------------------------------------------------------------
 -- Purchase announcements
 --------------------------------------------------------------------------------
 
-empLaserPurchasedEvent.Event:Connect(function(player: any, durationSeconds: any)
+DataApi.EMPLaserOverriderPurchased.Event:Connect(function(player: any, durationSeconds: any)
 	if typeof(player) == "Instance" and player:IsA("Player") then
 		notify(player, string.format("EMP active! Walk through laser doors for %d seconds.", tonumber(durationSeconds) or 0), "Success", "Purchase")
 	end
 end)
 
-serverRarityBoostChangedEvent.Event:Connect(function(multiplier: any, _endsAt: any, purchaser: any)
+DataApi.ServerRarityBoostChanged.Event:Connect(function(multiplier: any, _endsAt: any, purchaser: any)
 	local boost = tonumber(multiplier) or 1
 	if boost <= 1 or typeof(purchaser) ~= "Instance" or not purchaser:IsA("Player") then
 		return
@@ -2550,6 +3755,10 @@ local function onPlayerAdded(player: Player)
 	player.CharacterAdded:Connect(function(character: Model)
 		onCharacterAdded(player, character)
 	end)
+	player.Chatted:Connect(function(message: string)
+		onChatted(player, message)
+	end)
+	task.spawn(updateSocial, player)
 
 	if player:GetAttribute("DataLoaded") == true then
 		assignPlot(player)
@@ -2569,6 +3778,8 @@ end
 local function onPlayerRemoving(player: Player)
 	releasePlot(player)
 	lastRebirthRequest[player] = nil
+	friendsOf[player] = nil
+	inGroup[player] = nil
 end
 
 --------------------------------------------------------------------------------
@@ -2610,6 +3821,9 @@ do
 end
 
 ReplicatedStorage:SetAttribute("EventEndsAt", 0)
+ReplicatedStorage:SetAttribute("EventAdmin", false)
+-- Every API function exists by now.
+gameplayApi.Parent = ServerStorage
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(onPlayerRemoving)
@@ -2642,12 +3856,12 @@ task.spawn(function()
 	while true do
 		task.wait(rng:NextNumber(GameConfig.EventMinGapSeconds, GameConfig.EventMaxGapSeconds))
 		local events = GameConfig.Events
-		if #events > 0 then
-			xpcall(runEvent, function(err: any)
-				activeEvent = nil
-				clearCoins()
-				warn(string.format("%s Event failed: %s", LOG_PREFIX, tostring(err)))
-			end, events[rng:NextInteger(1, #events)])
+		if #events > 0 and activeEvent == nil then
+			local event = events[rng:NextInteger(1, #events)]
+			if rng:NextNumber() < FeatureConfig.AdminAbuseChance then
+				event = GameConfig.AdminAbuseEvent
+			end
+			startEvent(event)
 		end
 	end
 end)

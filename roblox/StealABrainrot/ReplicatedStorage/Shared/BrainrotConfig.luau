@@ -1,6 +1,6 @@
 --!strict
--- Every brainrot that can appear on the conveyor, the rarity tiers and the
--- mutations.
+-- Every brainrot that can appear on the conveyor, the rarity tiers, the
+-- mutations and traits, and the lucky blocks.
 -- Each brainrot's blocky 3D model (made with Higgsfield) is packed in
 -- ReplicatedStorage.Assets.Brainrots and shown by the BrainrotVisuals client
 -- script; the server's simple block figure is the fallback. To use a model you
@@ -34,8 +34,24 @@ export type Mutation = {
 	Color: Color3,
 }
 
+-- Rolled at spawn like a mutation, and stacks with it: Fire burns, Tiny and
+-- Giant change the size, Glitched flickers and Nyan leaves a rainbow trail.
+export type Trait = {
+	Name: string,
+	Chance: number,
+	-- Multiplies both income and price.
+	Multiplier: number,
+	-- Size change (1 = normal).
+	Scale: number,
+	Color: Color3,
+	Icon: string,
+}
+
+export type Kind = "Brainrot" | "LuckyBlock"
+
 export type Brainrot = {
 	Id: string,
+	Kind: Kind,
 	DisplayName: string,
 	Rarity: string,
 	Price: number,
@@ -46,6 +62,8 @@ export type Brainrot = {
 	Scale: number,
 	Motion: Motion,
 	Tags: { string },
+	-- Lucky blocks: the chance of each rarity when opened.
+	Odds: { [string]: number }?,
 }
 
 local rgb = Color3.fromRGB
@@ -74,6 +92,7 @@ local function brainrot(
 ): Brainrot
 	return table.freeze({
 		Id = id,
+		Kind = "Brainrot" :: Kind,
 		DisplayName = displayName,
 		Rarity = rarity,
 		Price = price,
@@ -133,6 +152,67 @@ local Brainrots: { Brainrot } = {
 	brainrot("SessantaSette", "67", "Secret", 67000000, 167000, rgb(40, 140, 240), rgb(250, 250, 250), 1.8),
 }
 
+-- Lucky blocks walk home like brainrots (hopping) and earn nothing; their
+-- owner opens them in their base for a random brainrot. The first three can
+-- turn up on the conveyor (ConveyorWeight); the Secret one is Robux only.
+local function luckyBlock(
+	id: string,
+	displayName: string,
+	rarity: string,
+	price: number,
+	color: Color3,
+	accent: Color3,
+	odds: { [string]: number }
+): Brainrot
+	return table.freeze({
+		Id = id,
+		Kind = "LuckyBlock" :: Kind,
+		DisplayName = displayName,
+		Rarity = rarity,
+		Price = price,
+		IncomePerSecond = 0,
+		BodyShape = "Block" :: BodyShape,
+		BodyColor = color,
+		AccentColor = accent,
+		Scale = 1,
+		Motion = "Hop" :: Motion,
+		Tags = table.freeze({}),
+		Odds = table.freeze(odds),
+	})
+end
+
+local LuckyBlocks: { Brainrot } = {
+	luckyBlock("LuckyBlock", "Lucky Block", "Epic", 25000, rgb(255, 200, 40), rgb(255, 255, 255), {
+		Rare = 40,
+		Epic = 35,
+		Legendary = 20,
+		Mythic = 5,
+	}),
+	luckyBlock("MythicLuckyBlock", "Mythic Lucky Block", "Mythic", 400000, rgb(255, 60, 90), rgb(255, 220, 230), {
+		Legendary = 50,
+		Mythic = 40,
+		["Brainrot God"] = 9,
+		Secret = 1,
+	}),
+	luckyBlock("GodLuckyBlock", "Brainrot God Lucky Block", "Brainrot God", 5000000, rgb(255, 120, 255), rgb(120, 240, 255), {
+		Mythic = 55,
+		["Brainrot God"] = 40,
+		Secret = 5,
+	}),
+	luckyBlock("SecretLuckyBlock", "Secret Lucky Block", "Secret", 50000000, rgb(25, 25, 30), rgb(255, 255, 255), {
+		["Brainrot God"] = 70,
+		Secret = 30,
+	}),
+}
+-- How often each lucky block turns up on the conveyor (relative), and the
+-- chance for any conveyor spawn to be a lucky block.
+local LuckyBlockWeights: { [string]: number } = table.freeze({
+	LuckyBlock = 80,
+	MythicLuckyBlock = 17,
+	GodLuckyBlock = 3,
+})
+local LUCKY_BLOCK_CHANCE = 0.05
+
 local ById: { [string]: Brainrot } = {}
 local ByRarity: { [string]: { Brainrot } } = {}
 local RarityByName: { [string]: Rarity } = {}
@@ -144,6 +224,11 @@ end
 for _, definition in Brainrots do
 	ById[definition.Id] = definition
 	table.insert(ByRarity[definition.Rarity], definition)
+end
+-- Lucky blocks can be saved, bought and stolen like brainrots, but aren't in
+-- Brainrots, ByRarity or the Index.
+for _, definition in LuckyBlocks do
+	ById[definition.Id] = definition
 end
 
 local Mutations: { Mutation } = {
@@ -162,18 +247,56 @@ for _, mutation in Mutations do
 	MutationByName[mutation.Name] = mutation
 end
 
--- Saved brainrots are "Id" or "Id:Mutation".
-local function encode(brainrotId: string, mutationName: string?): string
+local Traits: { Trait } = {
+	{ Name = "Fire", Chance = 0.03, Multiplier = 2, Scale = 1, Color = rgb(255, 120, 30), Icon = "🔥" },
+	{ Name = "Tiny", Chance = 0.03, Multiplier = 1.5, Scale = 0.6, Color = rgb(140, 255, 200), Icon = "🐜" },
+	{ Name = "Giant", Chance = 0.02, Multiplier = 3, Scale = 1.6, Color = rgb(255, 210, 80), Icon = "🗿" },
+	{ Name = "Glitched", Chance = 0.006, Multiplier = 6, Scale = 1, Color = rgb(60, 255, 240), Icon = "👾" },
+	{ Name = "Nyan", Chance = 0.003, Multiplier = 8, Scale = 1, Color = rgb(255, 120, 220), Icon = "🌈" },
+}
+
+local TraitByName: { [string]: Trait } = {}
+for _, trait in Traits do
+	TraitByName[trait.Name] = trait
+end
+
+-- Saved brainrots are "Id", "Id:Mutation", "Id::Trait" or "Id:Mutation:Trait".
+local function encode(brainrotId: string, mutationName: string?, traitName: string?): string
+	if traitName then
+		return brainrotId .. ":" .. (mutationName or "") .. ":" .. traitName
+	end
 	return if mutationName then brainrotId .. ":" .. mutationName else brainrotId
 end
 
-local function decode(entry: string): (Brainrot?, Mutation?)
-	local brainrotId, mutationName = string.match(entry, "^(%w+):?(%w*)$")
+local function decode(entry: string): (Brainrot?, Mutation?, Trait?)
+	local brainrotId, mutationName, traitName = string.match(entry, "^(%w+):?(%w*):?(%w*)$")
 	if brainrotId == nil then
-		return nil, nil
+		return nil, nil, nil
 	end
 	local mutation = if mutationName and mutationName ~= "" then MutationByName[mutationName] else nil
-	return ById[brainrotId], mutation
+	local trait = if traitName and traitName ~= "" then TraitByName[traitName] else nil
+	return ById[brainrotId], mutation, trait
+end
+
+-- Income and price multiplier from a mutation and a trait together.
+local function multiplier(mutation: Mutation?, trait: Trait?): number
+	return (if mutation then mutation.Multiplier else 1) * (if trait then trait.Multiplier else 1)
+end
+
+local function isLuckyBlock(definition: Brainrot): boolean
+	return definition.Kind == "LuckyBlock"
+end
+
+-- "Fire Gold Tim Cheese"
+local function fullName(definition: Brainrot, mutation: Mutation?, trait: Trait?): string
+	local name = definition.DisplayName
+	if mutation then
+		name = mutation.Name .. " " .. name
+	end
+	if trait then
+		name = trait.Name .. " " .. name
+	end
+	return name
 end
 
 local function hasTag(definition: Brainrot, tag: string): boolean
@@ -183,8 +306,16 @@ end
 return table.freeze({
 	Mutations = table.freeze(Mutations),
 	MutationByName = table.freeze(MutationByName),
+	Traits = table.freeze(Traits),
+	TraitByName = table.freeze(TraitByName),
+	LuckyBlocks = table.freeze(LuckyBlocks),
+	LuckyBlockWeights = LuckyBlockWeights,
+	LuckyBlockChance = LUCKY_BLOCK_CHANCE,
 	encode = encode,
 	decode = decode,
+	multiplier = multiplier,
+	isLuckyBlock = isLuckyBlock,
+	fullName = fullName,
 	hasTag = hasTag,
 	Rarities = table.freeze(Rarities),
 	Brainrots = table.freeze(Brainrots),

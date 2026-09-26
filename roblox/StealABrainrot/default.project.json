@@ -114,6 +114,15 @@
       },
       "WorldManager": {
         "$path": "ServerScriptService/WorldManager.server.luau"
+      },
+      "RewardsManager": {
+        "$path": "ServerScriptService/RewardsManager.server.luau"
+      },
+      "TradeManager": {
+        "$path": "ServerScriptService/TradeManager.server.luau"
+      },
+      "FuseManager": {
+        "$path": "ServerScriptService/FuseManager.server.luau"
       }
     },
     "ReplicatedStorage": {
@@ -140,6 +149,9 @@
         },
         "WorldEffects": {
           "$path": "StarterPlayerScripts/WorldEffects.client.luau"
+        },
+        "FeaturesClient": {
+          "$path": "StarterPlayerScripts/FeaturesClient.client.luau"
         }
       }
     },

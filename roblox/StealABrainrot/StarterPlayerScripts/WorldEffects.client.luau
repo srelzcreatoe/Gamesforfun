@@ -443,7 +443,13 @@ local SKY_LOOKS: { [string]: SkyLook } = {
 	Taco = { Tint = Color3.fromRGB(255, 240, 205), Saturation = 0.15, Atmosphere = Color3.fromRGB(255, 220, 140), Decay = Color3.fromRGB(255, 160, 60) },
 	Lucky = { Tint = Color3.fromRGB(215, 255, 215), Saturation = 0.15, Atmosphere = Color3.fromRGB(170, 255, 170), Decay = Color3.fromRGB(80, 200, 90) },
 	Cash = { Tint = Color3.fromRGB(225, 255, 215), Saturation = 0.15, Atmosphere = Color3.fromRGB(190, 255, 170), Decay = Color3.fromRGB(90, 200, 80) },
+	Admin = { Tint = Color3.new(1, 1, 1), Saturation = 0.45, Atmosphere = Color3.fromRGB(255, 190, 250), Decay = Color3.fromRGB(150, 120, 255) },
 }
+
+-- Settings > Low graphics: no falling weather or event particles.
+local function lowGraphics(): boolean
+	return player:GetAttribute("LowGraphics") == true
+end
 
 local TWEEN = TweenInfo.new(3, Enum.EasingStyle.Sine)
 local rainbowSky = false
@@ -451,7 +457,7 @@ local rainbowSky = false
 local function applyEventSky()
 	local sky = ReplicatedStorage:GetAttribute("EventSky")
 	local look = if typeof(sky) == "string" then SKY_LOOKS[sky] else nil
-	rainbowSky = sky == "Rainbow"
+	rainbowSky = sky == "Rainbow" or sky == "Admin"
 	TweenService:Create(eventTint, TWEEN, {
 		TintColor = if look then look.Tint else Color3.new(1, 1, 1),
 		Saturation = if look then look.Saturation else 0,
@@ -467,7 +473,7 @@ local function applyEventSky()
 	eventLayer = nil
 	local particles = ReplicatedStorage:GetAttribute("EventParticles")
 	local style = if typeof(particles) == "string" then EVENT_STYLES[particles] else nil
-	if style then
+	if style and not lowGraphics() then
 		eventLayer = createLayer("Event" .. tostring(particles), style)
 	end
 end
@@ -509,7 +515,7 @@ local function applyWeather()
 	TweenService:Create(weatherTint, TWEEN, { Brightness = brightness, Saturation = saturation }):Play()
 
 	removeLayer(weatherLayer)
-	weatherLayer = if style then createLayer("Weather" .. currentWeather, style) else nil
+	weatherLayer = if style and not lowGraphics() then createLayer("Weather" .. currentWeather, style) else nil
 
 	if rainVolume > 0 and not rainSound.IsPlaying then
 		rainSound:Play()
@@ -566,6 +572,10 @@ end
 ReplicatedStorage:GetAttributeChangedSignal("Weather"):Connect(applyWeather)
 ReplicatedStorage:GetAttributeChangedSignal("EventSky"):Connect(applyEventSky)
 ReplicatedStorage:GetAttributeChangedSignal("EventParticles"):Connect(applyEventSky)
+player:GetAttributeChangedSignal("LowGraphics"):Connect(function()
+	applyWeather()
+	applyEventSky()
+end)
 applyWeather()
 applyEventSky()
 
@@ -893,6 +903,110 @@ updateStun()
 -- Every frame
 --------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------
+-- Bases: animated skins (Rainbow trim cycles colours, Galaxy trim pulses and
+-- stars drift up inside) and the alarm (a robbed base's lights flash red).
+--------------------------------------------------------------------------------
+
+type PlotLook = {
+	Trim: { BasePart },
+	Lights: { PointLight },
+	LightColours: { Color3 },
+	Panels: { BasePart },
+	PanelColours: { Color3 },
+	AlarmOn: boolean,
+	Stars: ParticleEmitter?,
+}
+
+local plotLooks: { [Instance]: PlotLook } = {}
+for _, plot in plotsFolder:GetChildren() do
+	local look: PlotLook = { Trim = {}, Lights = {}, LightColours = {}, Panels = {}, PanelColours = {}, AlarmOn = false, Stars = nil }
+	for _, descendant in plot:GetDescendants() do
+		if descendant:IsA("BasePart") and descendant:GetAttribute("SkinTrim") == true then
+			table.insert(look.Trim, descendant)
+		end
+	end
+	local lamps = plot:FindFirstChild("Lamps")
+	if lamps then
+		for _, descendant in lamps:GetDescendants() do
+			if descendant:IsA("PointLight") then
+				table.insert(look.Lights, descendant)
+				table.insert(look.LightColours, descendant.Color)
+			elseif descendant:IsA("BasePart") and string.match(descendant.Name, "^Lamp") then
+				table.insert(look.Panels, descendant)
+				table.insert(look.PanelColours, descendant.Color)
+			end
+		end
+	end
+	plotLooks[plot] = look
+end
+
+local GALAXY_A = Color3.fromRGB(190, 110, 255)
+local GALAXY_B = Color3.fromRGB(90, 220, 255)
+local ALARM_RED = Color3.fromRGB(255, 30, 30)
+
+local function animatePlots(t: number)
+	for plot, look in plotLooks do
+		local effect = plot:GetAttribute("SkinEffect")
+		if effect == "Rainbow" then
+			for index, part in look.Trim do
+				part.Color = Color3.fromHSV((t * 0.2 + index * 0.035) % 1, 0.85, 1)
+			end
+		elseif effect == "Galaxy" then
+			for index, part in look.Trim do
+				part.Color = GALAXY_A:Lerp(GALAXY_B, 0.5 + 0.5 * math.sin(t * 1.5 + index * 0.4))
+			end
+		end
+		-- Stars drifting up inside a Galaxy base.
+		local wantStars = effect == "Galaxy" and not lowGraphics()
+		if wantStars and look.Stars == nil then
+			local floor = plot:FindFirstChild("Floor")
+			if floor and floor:IsA("BasePart") then
+				local stars = Instance.new("ParticleEmitter")
+				stars.Name = "GalaxyStars"
+				stars.Rate = 8
+				stars.Lifetime = NumberRange.new(3, 5)
+				stars.Speed = NumberRange.new(1, 3)
+				stars.EmissionDirection = Enum.NormalId.Top
+				stars.LightEmission = 1
+				stars.Size = NumberSequence.new({
+					NumberSequenceKeypoint.new(0, 0),
+					NumberSequenceKeypoint.new(0.3, 0.35),
+					NumberSequenceKeypoint.new(1, 0),
+				})
+				stars.Color = ColorSequence.new(GALAXY_A, Color3.new(1, 1, 1))
+				stars.Parent = floor
+				look.Stars = stars
+			end
+		elseif not wantStars and look.Stars then
+			(look.Stars :: ParticleEmitter):Destroy()
+			look.Stars = nil
+		end
+
+		local alarm = plot:GetAttribute("Alarm") == true
+		if alarm then
+			local on = math.sin(t * 12) > 0
+			for _, light in look.Lights do
+				light.Color = ALARM_RED
+				light.Brightness = if on then 3 else 0.6
+			end
+			for _, panel in look.Panels do
+				panel.Color = if on then ALARM_RED else Color3.fromRGB(90, 10, 10)
+			end
+			look.AlarmOn = true
+		elseif look.AlarmOn then
+			look.AlarmOn = false
+			for index, light in look.Lights do
+				light.Color = look.LightColours[index]
+				light.Brightness = 1.4
+			end
+			for index, panel in look.Panels do
+				panel.Color = look.PanelColours[index]
+			end
+		end
+	end
+end
+
 local lastFrame = os.clock()
 RunService.RenderStepped:Connect(function()
 	local t = os.clock()
@@ -916,4 +1030,5 @@ RunService.RenderStepped:Connect(function()
 		animateSeller(seller, t)
 	end
 	animateCoins(t)
+	animatePlots(t)
 end)

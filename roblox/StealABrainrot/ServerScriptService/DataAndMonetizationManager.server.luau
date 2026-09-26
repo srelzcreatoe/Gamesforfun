@@ -43,16 +43,26 @@
 	  BindableFunction OwnsGamePass(player, gamePassIdOrName) -> boolean
 	  BindableFunction IsLaserBypassActive(player) -> boolean
 	  BindableFunction GetServerRarityMultiplier() -> number
+	  BindableFunction GetProgress(player, key) -> value?   (a copy)
+	  BindableFunction SetProgress(player, key, value) -> boolean
+	  BindableFunction SaveNow(player)   (saves soon, e.g. after a trade)
 	  BindableEvent    EMPLaserOverriderPurchased(player, durationSeconds, endsAtServerTime)
 	  BindableEvent    EMPLaserOverriderExpired(player)
 	  BindableEvent    ServerRarityBoostChanged(multiplier, endsAtServerTime, purchaser?)
 	  BindableEvent    GamePassOwnershipChanged(player, gamePassName, isOwned)
 	  BindableEvent    ItemsChanged(player)
+	  BindableEvent    ProgressChanged(player, key)
+
+	Progress is a saved table for everything else (index, rewards, quests,
+	upgrades, skins, settings...). Only server scripts write it and each key
+	belongs to one script. Values may only hold strings, numbers, booleans and
+	tables of those (arrays or string-keyed); see sanitizeProgressValue.
 
 	Replicated state (read-only for clients, handy for UI):
 	  Player attribute        DataLoaded (boolean)
 	  Player attribute        LaserBypassEndsAt (Workspace:GetServerTimeNow() time)
 	  Player attribute        OwnsGamePass_<Name> (boolean)
+	  Player attribute        CashBoostEndsAt (Workspace:GetServerTimeNow() time)
 	  ReplicatedStorage attr  ServerRarityMultiplier (number)
 	  ReplicatedStorage attr  ServerRarityBoostEndsAt (Workspace:GetServerTimeNow() time, 0 = inactive)
 
@@ -128,6 +138,13 @@ local MAX_GEAR_ID_LENGTH = 32
 -- Uses left of each Robux troll item.
 local MAX_ITEM_CHARGES = 10000
 local ITEM_CHARGES: { [string]: number } = MonetizationConfig.ItemCharges
+-- Progress limits: top-level keys, nesting, entries per table, text length.
+local MAX_PROGRESS_KEYS = 48
+local MAX_PROGRESS_DEPTH = 4
+local MAX_PROGRESS_ENTRIES = 512
+local MAX_PROGRESS_STRING = 64
+-- Robux lucky blocks and gifts waiting for a free pedestal.
+local MAX_PENDING = 50
 
 -- Delays before each ownership check after a game pass purchase prompt closes.
 local GAME_PASS_VERIFY_DELAYS: { number } = { 0, 2, 5, 10 }
@@ -145,6 +162,7 @@ type PlayerData = {
 	PadCash: { number },
 	Gear: { string },
 	Items: { [string]: number },
+	Progress: { [string]: any },
 	PurchaseHistory: { string },
 }
 
@@ -235,6 +253,7 @@ local empLaserExpiredEvent = createBindableEvent("EMPLaserOverriderExpired")
 local serverRarityBoostChangedEvent = createBindableEvent("ServerRarityBoostChanged")
 local gamePassOwnershipChangedEvent = createBindableEvent("GamePassOwnershipChanged")
 local itemsChangedEvent = createBindableEvent("ItemsChanged")
+local progressChangedEvent = createBindableEvent("ProgressChanged")
 
 ReplicatedStorage:SetAttribute("ServerRarityMultiplier", 1)
 ReplicatedStorage:SetAttribute("ServerRarityBoostEndsAt", 0)
@@ -271,8 +290,71 @@ local function createDefaultData(): PlayerData
 		PadCash = {},
 		Gear = {},
 		Items = {},
+		Progress = {},
 		PurchaseHistory = {},
 	}
+end
+
+-- Copies a Progress value keeping only what a DataStore can hold: finite
+-- numbers, short strings, booleans, and tables that are either arrays or
+-- string-keyed, not too deep or too big. Anything else is dropped.
+local function sanitizeProgressValue(value: any, depth: number): any
+	local kind = typeof(value)
+	if kind == "boolean" then
+		return value
+	elseif kind == "number" then
+		return if isFiniteNumber(value) then math.clamp(value, -MAX_CASH, MAX_CASH) else nil
+	elseif kind == "string" then
+		return if #value <= MAX_PROGRESS_STRING then value else nil
+	elseif kind ~= "table" or depth > MAX_PROGRESS_DEPTH then
+		return nil
+	end
+	local copy: { [any]: any } = {}
+	if value[1] ~= nil then
+		for _, item in ipairs(value) do
+			if #copy >= MAX_PROGRESS_ENTRIES then
+				break
+			end
+			local clean = sanitizeProgressValue(item, depth + 1)
+			if clean ~= nil then
+				table.insert(copy, clean)
+			end
+		end
+	else
+		local count = 0
+		for key, item in value do
+			if typeof(key) == "string" and #key <= MAX_PROGRESS_STRING and count < MAX_PROGRESS_ENTRIES then
+				local clean = sanitizeProgressValue(item, depth + 1)
+				if clean ~= nil then
+					copy[key] = clean
+					count += 1
+				end
+			end
+		end
+	end
+	return copy
+end
+
+local function isValidProgressKey(key: any): boolean
+	return typeof(key) == "string" and #key > 0 and #key <= 32
+end
+
+local function sanitizeProgress(raw: any): { [string]: any }
+	local progress: { [string]: any } = {}
+	if typeof(raw) ~= "table" then
+		return progress
+	end
+	local count = 0
+	for key, value in raw do
+		if isValidProgressKey(key) and count < MAX_PROGRESS_KEYS then
+			local clean = sanitizeProgressValue(value, 1)
+			if clean ~= nil then
+				progress[key] = clean
+				count += 1
+			end
+		end
+	end
+	return progress
 end
 
 local function isValidBrainrotId(value: any): boolean
@@ -404,6 +486,7 @@ local function sanitizeData(raw: any): PlayerData
 		PadCash = sanitizePadCash(raw.PadCash),
 		Gear = sanitizeGear(raw.Gear),
 		Items = sanitizeItems(raw.Items),
+		Progress = sanitizeProgress(raw.Progress),
 		PurchaseHistory = purchaseHistory,
 	}
 end
@@ -449,6 +532,8 @@ local function copyDataForSave(data: PlayerData): PlayerData
 		PadCash = table.clone(data.PadCash),
 		Gear = table.clone(data.Gear),
 		Items = table.clone(data.Items),
+		-- Already clean; this deep-copies it.
+		Progress = sanitizeProgress(data.Progress),
 		PurchaseHistory = table.clone(data.PurchaseHistory),
 	}
 end
@@ -925,6 +1010,65 @@ local function addItemCharges(profile: Profile, itemId: string): boolean
 	return true
 end
 
+local function progressChanged(profile: Profile, key: string)
+	task.defer(function()
+		progressChangedEvent:Fire(profile.Player, key)
+	end)
+end
+
+-- Cash Boost ends at an os.time(); clients get it in server time.
+local function refreshCashBoostAttribute(profile: Profile)
+	local endsAt = tonumber(profile.Data.Progress.CashBoostEndsAt) or 0
+	local left = endsAt - os.time()
+	profile.Player:SetAttribute("CashBoostEndsAt", if left > 0 then Workspace:GetServerTimeNow() + left else 0)
+end
+
+local function addCashBoost(profile: Profile, seconds: number): boolean
+	local progress = profile.Data.Progress
+	local endsAt = math.max(tonumber(progress.CashBoostEndsAt) or 0, os.time())
+	progress.CashBoostEndsAt = endsAt + seconds
+	refreshCashBoostAttribute(profile)
+	progressChanged(profile, "CashBoostEndsAt")
+	return true
+end
+
+-- A lucky block (or any brainrot entry) waiting for a free pedestal;
+-- GameplayManager places it.
+local function addPending(profile: Profile, entry: string): boolean
+	local progress = profile.Data.Progress
+	local pending = if typeof(progress.Pending) == "table" then progress.Pending else {}
+	if #pending >= MAX_PENDING then
+		return false
+	end
+	table.insert(pending, entry)
+	progress.Pending = pending
+	progressChanged(profile, "Pending")
+	return true
+end
+
+local function addExtraSpins(profile: Profile, count: number): boolean
+	local progress = profile.Data.Progress
+	local spins = if typeof(progress.Spins) == "table" then progress.Spins else {}
+	spins.Extra = math.clamp((tonumber(spins.Extra) or 0) + count, 0, 10000)
+	progress.Spins = spins
+	progressChanged(profile, "Spins")
+	return true
+end
+
+local function grantSkin(profile: Profile, skin: string): boolean
+	local progress = profile.Data.Progress
+	local skins = if typeof(progress.Skins) == "table" then progress.Skins else {}
+	local owned = if typeof(skins.Owned) == "table" then skins.Owned else {}
+	if table.find(owned, skin) == nil then
+		table.insert(owned, skin)
+	end
+	skins.Owned = owned
+	skins.Equipped = skin
+	progress.Skins = skins
+	progressChanged(profile, "Skins")
+	return true
+end
+
 local PRODUCT_HANDLERS: { [number]: ProductHandler } = {
 	[PRODUCT_IDS.SmallCashBundle] = function(profile: Profile): boolean
 		return addCash(profile, SMALL_CASH_BUNDLE_AMOUNT)
@@ -938,7 +1082,29 @@ local PRODUCT_HANDLERS: { [number]: ProductHandler } = {
 	[PRODUCT_IDS.ServerRarityBoost] = function(profile: Profile): boolean
 		return activateServerRarityBoost(profile.Player)
 	end,
+	[PRODUCT_IDS.SpinPack] = function(profile: Profile): boolean
+		return addExtraSpins(profile, MonetizationConfig.SpinPackSpins)
+	end,
+	[PRODUCT_IDS.CashBoost] = function(profile: Profile): boolean
+		return addCashBoost(profile, MonetizationConfig.CashBoostSeconds)
+	end,
 }
+for productKey, blockId in MonetizationConfig.LuckyBlockProducts do
+	local productId = PRODUCT_IDS[productKey]
+	if productId then
+		PRODUCT_HANDLERS[productId] = function(profile: Profile): boolean
+			return addPending(profile, blockId)
+		end
+	end
+end
+for productKey, skin in MonetizationConfig.SkinProducts do
+	local productId = PRODUCT_IDS[productKey]
+	if productId then
+		PRODUCT_HANDLERS[productId] = function(profile: Profile): boolean
+			return grantSkin(profile, skin)
+		end
+	end
+end
 for itemId in ITEM_CHARGES do
 	local productId = PRODUCT_IDS[itemId]
 	if productId then
@@ -1148,6 +1314,7 @@ local function onPlayerAdded(player: Player)
 	end
 
 	createLeaderstats(profile)
+	refreshCashBoostAttribute(profile)
 	player:SetAttribute("DataLoaded", true)
 	task.spawn(syncGamePassesAsync, profile)
 end
@@ -1374,6 +1541,48 @@ end)
 
 createBindableFunction("GetServerRarityMultiplier", function(): number
 	return getServerRarityMultiplier()
+end)
+
+createBindableFunction("GetProgress", function(playerArg: any, key: any): any
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil or not isValidProgressKey(key) then
+		return nil
+	end
+	-- A copy, so callers can't change saved data by accident.
+	return sanitizeProgressValue(profile.Data.Progress[key], 1)
+end)
+
+createBindableFunction("SetProgress", function(playerArg: any, key: any, value: any): boolean
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil or not isValidProgressKey(key) then
+		return false
+	end
+	local progress = profile.Data.Progress
+	if progress[key] == nil and value ~= nil then
+		local count = 0
+		for _ in progress do
+			count += 1
+		end
+		if count >= MAX_PROGRESS_KEYS then
+			return false
+		end
+	end
+	progress[key] = if value == nil then nil else sanitizeProgressValue(value, 1)
+	if key == "CashBoostEndsAt" then
+		refreshCashBoostAttribute(profile)
+	end
+	progressChanged(profile, key)
+	return true
+end)
+
+createBindableFunction("SaveNow", function(playerArg: any)
+	local player = asPlayer(playerArg)
+	local profile = if player then profiles[player] else nil
+	if profile and profile.State == "Active" then
+		task.spawn(autosaveProfileAsync, profile)
+	end
 end)
 
 -- Parent last so WaitForChild("DataAndMonetization") implies every child exists.

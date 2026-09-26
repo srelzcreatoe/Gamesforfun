@@ -88,6 +88,11 @@ music.SoundGroup = musicGroup
 music.Parent = folder
 
 local musicEnabled = true
+-- The Settings slider's music volume (set further down).
+local savedMusicVolume = 1
+local function musicVolumeOr1(): number
+	return if savedMusicVolume > 0 then savedMusicVolume else 1
+end
 local musicStarted = false
 local trackIndex = 0
 local trackToken = 0
@@ -132,7 +137,7 @@ end
 
 function Sounds.setMusicEnabled(enabled: boolean)
 	musicEnabled = enabled
-	musicGroup.Volume = if enabled then 1 else 0
+	musicGroup.Volume = if enabled then musicVolumeOr1() else 0
 	if enabled and musicStarted and not music.IsPlaying then
 		if music.SoundId == "" then
 			playNextTrack(0)
@@ -141,6 +146,30 @@ function Sounds.setMusicEnabled(enabled: boolean)
 		end
 	elseif not enabled then
 		music:Pause()
+	end
+end
+
+-- Volume sliders (Settings), 0..1. Music at 0 pauses the track.
+function Sounds.setMusicVolume(volume: number)
+	savedMusicVolume = math.clamp(volume, 0, 1)
+	Sounds.setMusicEnabled(savedMusicVolume > 0)
+end
+
+function Sounds.setEffectsVolume(volume: number)
+	effectsGroup.Volume = math.clamp(volume, 0, 1)
+end
+
+-- A sound effect that repeats until the returned function is called.
+function Sounds.loop(name: string, intervalSeconds: number): () -> ()
+	local running = true
+	task.spawn(function()
+		while running do
+			Sounds.play(name)
+			task.wait(intervalSeconds)
+		end
+	end)
+	return function()
+		running = false
 	end
 end
 

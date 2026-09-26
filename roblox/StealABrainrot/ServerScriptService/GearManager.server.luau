@@ -40,6 +40,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local FeatureConfig = require(Shared:WaitForChild("FeatureConfig"))
 local GameConfig = require(Shared:WaitForChild("GameConfig"))
 local GearConfig = require(Shared:WaitForChild("GearConfig"))
 local NumberFormat = require(Shared:WaitForChild("NumberFormat"))
@@ -71,7 +72,9 @@ local addCashFunction = dataApi:WaitForChild("AddCash") :: BindableFunction
 local getItemsFunction = dataApi:WaitForChild("GetItems") :: BindableFunction
 local useItemChargeFunction = dataApi:WaitForChild("UseItemCharge") :: BindableFunction
 local itemsChangedEvent = dataApi:WaitForChild("ItemsChanged") :: BindableEvent
-local forceDropEvent = ServerStorage:WaitForChild("Gameplay"):WaitForChild("ForceDrop") :: BindableEvent
+local gameplayApi = ServerStorage:WaitForChild("Gameplay")
+local forceDropEvent = gameplayApi:WaitForChild("ForceDrop") :: BindableEvent
+local activityEvent = gameplayApi:WaitForChild("Activity") :: BindableEvent
 
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local notifyEvent = remotes:WaitForChild("Notify") :: RemoteEvent
@@ -141,7 +144,8 @@ local function equippedGearId(player: Player): string?
 	return if typeof(gearId) == "string" then gearId else nil
 end
 
--- Walk speed and jump height from the held gear. GameplayManager sets
+-- Walk speed and jump height from the held gear and the Speed upgrade
+-- (the SpeedLevel attribute, set by RewardsManager). GameplayManager sets
 -- Carrying while a stolen brainrot is carried; coils don't work then.
 local function applyMovement(player: Player)
 	local _, humanoid = getLiveCharacter(player)
@@ -157,10 +161,11 @@ local function applyMovement(player: Player)
 		humanoid.JumpHeight = 0
 		return
 	end
+	local level = math.clamp(tonumber(player:GetAttribute("SpeedLevel")) or 0, 0, #FeatureConfig.SpeedCosts)
 	humanoid.WalkSpeed = if carrying
-		then GameConfig.CarryWalkSpeed
-		elseif gearId == "SpeedCoil" then GameConfig.DefaultWalkSpeed + GearConfig.SpeedCoilBonus
-		else GameConfig.DefaultWalkSpeed
+		then GameConfig.CarryWalkSpeed + level * FeatureConfig.CarrySpeedPerLevel
+		elseif gearId == "SpeedCoil" then GameConfig.DefaultWalkSpeed + level * FeatureConfig.SpeedPerLevel + GearConfig.SpeedCoilBonus
+		else GameConfig.DefaultWalkSpeed + level * FeatureConfig.SpeedPerLevel
 	humanoid.UseJumpPower = false
 	humanoid.JumpHeight = if gearId == "GravityCoil" then GearConfig.GravityCoilJumpHeight else GearConfig.DefaultJumpHeight
 end
@@ -299,8 +304,9 @@ local function slap(player: Player, tool: Tool)
 	knockback(targetRoot, Vector3.new(offset.X, 0, offset.Z).Unit)
 	playSoundEvent:FireClient(player, "Slap")
 	playSoundEvent:FireClient(target, "Slap")
+	activityEvent:Fire(player, "Slap", 1)
 	if target:GetAttribute("Carrying") == true then
-		forceDropEvent:Fire(target, string.format("%s slapped you and you dropped the brainrot!", player.DisplayName))
+		forceDropEvent:Fire(target, string.format("%s slapped you and you dropped the brainrot!", player.DisplayName), player)
 		notify(player, string.format("You slapped %s and they dropped the brainrot!", target.DisplayName), "Success")
 	end
 end
@@ -341,7 +347,7 @@ end
 
 local function dropBrainrot(target: Player, attacker: Player, message: string)
 	if target:GetAttribute("Carrying") == true then
-		forceDropEvent:Fire(target, message)
+		forceDropEvent:Fire(target, message, attacker)
 		notify(attacker, string.format("%s dropped the brainrot they were stealing!", target.DisplayName), "Success")
 	end
 end
@@ -700,34 +706,35 @@ local function attach(handle: BasePart, part: BasePart, offset: CFrame)
 	part.Parent = handle
 end
 
--- A big slap glove on a wooden stick. The stick runs along the handle's Z
--- axis and the tool grip holds its bottom end, so the glove sticks up.
+-- A big cartoon slap glove worn on the hand: the hand holds the cuff, the
+-- fingers point up past the fist (the arm is raised while holding a tool)
+-- and the palm faces sideways, ready to slap. The Grip is set as one CFrame
+-- (setting GripForward/GripUp/GripRight one by one lets Roblox re-orthogonalise
+-- them into a different pose).
 local function buildSlapGlove(tool: Tool, color: Color3): Part
-	local stick = toolPart("Handle", Vector3.new(0.35, 0.35, 3), Color3.fromRGB(120, 80, 45), Enum.Material.Wood)
-	stick.Parent = tool
-	tool.GripPos = Vector3.new(0, 0, -1.1)
-	tool.GripForward = Vector3.new(-1, 0, 0)
-	tool.GripUp = Vector3.new(0, 0, 1)
-	tool.GripRight = Vector3.new(0, 1, 0)
+	local cuff = toolPart("Handle", Vector3.new(1.15, 1.1, 1.15), Color3.new(1, 1, 1), Enum.Material.SmoothPlastic)
+	cuff.Parent = tool
+	-- The fist sits in the lower half of the cuff.
+	tool.Grip = CFrame.new(0, -0.25, 0)
 
 	local dark = color:Lerp(Color3.new(0, 0, 0), 0.35)
-	attach(stick, toolPart("Cuff", Vector3.new(0.9, 2.2, 0.6), Color3.new(1, 1, 1), Enum.Material.SmoothPlastic), CFrame.new(0, 0, 1.7))
-	attach(stick, toolPart("CuffStripe", Vector3.new(0.95, 2.25, 0.2), color, Enum.Material.Neon), CFrame.new(0, 0, 1.7))
-	attach(stick, toolPart("Palm", Vector3.new(0.7, 2, 2), color, Enum.Material.SmoothPlastic), CFrame.new(0, 0, 3))
-	for index, y in { -0.72, -0.24, 0.24, 0.72 } do
+	attach(cuff, toolPart("CuffStripe", Vector3.new(1.2, 0.3, 1.2), color, Enum.Material.Neon), CFrame.new(0, 0.3, 0))
+	attach(cuff, toolPart("Palm", Vector3.new(0.6, 1.9, 1.7), color, Enum.Material.SmoothPlastic), CFrame.new(0, 1.45, 0))
+	attach(cuff, toolPart("PalmPad", Vector3.new(0.1, 1.3, 1.2), color:Lerp(Color3.new(1, 1, 1), 0.35), Enum.Material.SmoothPlastic), CFrame.new(-0.33, 1.4, 0))
+	for index, z in { 0.63, 0.21, -0.21, -0.63 } do
 		local length = if index == 1 or index == 4 then 1 else 1.3
-		attach(stick, toolPart("Finger" .. index, Vector3.new(0.55, 0.42, length), color, Enum.Material.SmoothPlastic), CFrame.new(0, y, 4 + length / 2 - 0.05))
-		attach(stick, toolPart("Knuckle" .. index, Vector3.new(0.6, 0.44, 0.15), dark, Enum.Material.SmoothPlastic), CFrame.new(0, y, 4.05))
+		attach(cuff, toolPart("Finger" .. index, Vector3.new(0.55, length, 0.4), color, Enum.Material.SmoothPlastic), CFrame.new(0, 2.4 + length / 2 - 0.05, z))
+		attach(cuff, toolPart("Knuckle" .. index, Vector3.new(0.6, 0.15, 0.42), dark, Enum.Material.SmoothPlastic), CFrame.new(0, 2.42, z))
 	end
 	attach(
-		stick,
-		toolPart("Thumb", Vector3.new(0.55, 0.45, 1.1), color, Enum.Material.SmoothPlastic),
-		CFrame.new(0, 1.2, 3.1) * CFrame.Angles(math.rad(-40), 0, 0)
+		cuff,
+		toolPart("Thumb", Vector3.new(0.55, 1.1, 0.45), color, Enum.Material.SmoothPlastic),
+		CFrame.new(0, 1.5, -1.05) * CFrame.Angles(math.rad(-35), 0, 0)
 	)
 	local sparkles = Instance.new("Sparkles")
 	sparkles.SparkleColor = color:Lerp(Color3.new(1, 1, 1), 0.4)
-	sparkles.Parent = stick:FindFirstChild("Palm")
-	return stick
+	sparkles.Parent = cuff:FindFirstChild("Palm")
+	return cuff
 end
 
 local function createHandle(gear: Gear): Part
@@ -967,6 +974,9 @@ local function onPlayerAdded(player: Player)
 		if player:GetAttribute("Carrying") == true then
 			uncloak(player, "Grabbing a brainrot made you visible!")
 		end
+		applyMovement(player)
+	end)
+	player:GetAttributeChangedSignal("SpeedLevel"):Connect(function()
 		applyMovement(player)
 	end)
 	if player.Character then

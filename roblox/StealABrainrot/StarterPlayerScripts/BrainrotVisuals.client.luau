@@ -14,11 +14,16 @@
 	  * adds mutation effects: each mutation recolours the model and sparkles
 	    in its colour (Rainbow cycles through every colour, Lava smokes and
 	    throws embers, Bloodrot drips, Frozen and Galaxy shimmer)
-	  * animates it by its Motion: Walk is a real walk (legs stepping in turn,
-	    body bobbing and leaning) matched to how fast it moves; Fly hovers and
-	    banks, Drive rolls along with little bumps, Spin pirouettes and Hop
-	    bounces. Idle brainrots bob and sway, and carried ones wriggle. Walkers
-	    without two legs pirouette.
+	  * adds trait effects: Fire burns, Glitched flickers and jumps about,
+	    Nyan leaves a rainbow trail (Tiny and Giant are just their size)
+	  * animates it: anything with two legs really walks (legs stepping in
+	    turn, a small bob and lean) matched to how fast it moves; brainrots
+	    without legs waddle side to side with each step; Fly hovers and banks
+	    and Drive rolls along with little bumps. Idle brainrots bob and sway
+	    (Spin ones twirl, Hop ones bounce a little), and carried ones wriggle.
+	    Lucky blocks float and turn, hop home, and shake before they pop.
+	  * a sparkle burst when a brainrot arrives out of nowhere (a gift, a
+	    trade, a fuse or an opened lucky block)
 
 	Every model is built once in the background (a few milliseconds a frame)
 	and each brainrot gets a copy, so they appear straight away. If a model
@@ -27,6 +32,7 @@
 	gameplay; it is all local to this client.
 ]]
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
@@ -39,9 +45,15 @@ local PIECE_ATTRIBUTE = "HiggsfieldPiece"
 local ANIMATION_DISTANCE = 220
 local RAINBOW_INTERVAL = 1 / 15
 -- Walk cycle
-local LEG_SWING = math.rad(32)
-local WALK_LEAN = math.rad(5)
-local WALK_ROLL = math.rad(5)
+local LEG_SWING = math.rad(30)
+local WALK_LEAN = math.rad(4)
+local WALK_ROLL = math.rad(3)
+-- Up-and-down per step, as a fraction of the brainrot's height (kept small
+-- so they don't bounce like balls).
+local WALK_BOB = 0.022
+-- Brainrots without legs waddle: a side-to-side rock with each step.
+local WADDLE_ROLL = math.rad(9)
+local WADDLE_TURN = math.rad(6)
 local MIN_WALK_SPEED = 0.4
 
 type RarityEffect = {
@@ -90,6 +102,10 @@ type Visual = {
 	LastPosition: Vector3,
 	Speed: number,
 	Stride: number,
+	-- A lucky block (floats and turns, shakes while opening).
+	Block: boolean,
+	-- The Glitched trait: flickers and jumps about.
+	Glitch: boolean,
 }
 
 local RARITY_EFFECTS: { [string]: RarityEffect } = {
@@ -151,7 +167,17 @@ local rainbowAssets: { [AssetLoader.BrainrotAsset]: boolean } = {}
 -- Effects
 --------------------------------------------------------------------------------
 
+local localPlayer = Players.LocalPlayer
+
+-- Settings > Low graphics: no sparkles or auras.
+local function lowGraphics(): boolean
+	return localPlayer ~= nil and localPlayer:GetAttribute("LowGraphics") == true
+end
+
 local function sparkles(part: BasePart, name: string, rate: number, colour: ColorSequence, size: number, rising: boolean)
+	if lowGraphics() then
+		return
+	end
 	local emitter = Instance.new("ParticleEmitter")
 	emitter.Name = name
 	-- Default texture: Roblox's built-in sparkle, no upload needed.
@@ -175,6 +201,81 @@ local function sparkles(part: BasePart, name: string, rate: number, colour: Colo
 		NumberSequenceKeypoint.new(1, 0.8),
 	})
 	emitter.Parent = part
+end
+
+local TRAIL_RAINBOW = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 60, 60)),
+	ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 160, 40)),
+	ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 240, 60)),
+	ColorSequenceKeypoint.new(0.6, Color3.fromRGB(70, 230, 90)),
+	ColorSequenceKeypoint.new(0.8, Color3.fromRGB(60, 150, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(170, 80, 255)),
+})
+
+local function addTraitEffects(visual: Visual, traitName: string?)
+	local part = visual.Body
+	local scale = visual.Height / 5
+	if traitName == "Fire" then
+		local fire = Instance.new("Fire")
+		fire.Name = "TraitFire"
+		fire.Color = Color3.fromRGB(255, 110, 20)
+		fire.SecondaryColor = Color3.fromRGB(255, 230, 80)
+		fire.Heat = 7
+		fire.Size = 3 * scale
+		fire.Parent = part
+		local glow = Instance.new("PointLight")
+		glow.Name = "FireGlow"
+		glow.Color = Color3.fromRGB(255, 140, 40)
+		glow.Brightness = 2
+		glow.Range = 10 * math.max(scale, 1)
+		glow.Parent = part
+	elseif traitName == "Glitched" then
+		visual.Glitch = true
+		sparkles(part, "GlitchBits", 8, ColorSequence.new(Color3.fromRGB(60, 255, 240), Color3.fromRGB(255, 60, 220)), 0.35 * scale, false)
+	elseif traitName == "Nyan" then
+		local top = Instance.new("Attachment")
+		top.Name = "TrailTop"
+		top.Position = Vector3.new(0, 0.35 * visual.Height, 0)
+		top.Parent = part
+		local bottom = Instance.new("Attachment")
+		bottom.Name = "TrailBottom"
+		bottom.Position = Vector3.new(0, -0.1 * visual.Height, 0)
+		bottom.Parent = part
+		local trail = Instance.new("Trail")
+		trail.Name = "NyanTrail"
+		trail.Attachment0 = top
+		trail.Attachment1 = bottom
+		trail.Color = TRAIL_RAINBOW
+		trail.LightEmission = 0.8
+		trail.Lifetime = 0.7
+		trail.MinLength = 0.05
+		trail.FaceCamera = true
+		trail.Transparency = NumberSequence.new(0.1, 1)
+		trail.Parent = part
+		sparkles(part, "NyanStars", 6, ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(255, 240, 120)), 0.4 * scale, false)
+	end
+end
+
+-- A burst of sparkles when a brainrot pops into a base.
+local function arrivalBurst(visual: Visual)
+	local arrived = visual.Model:GetAttribute("Arrived")
+	if typeof(arrived) ~= "number" or Workspace:GetServerTimeNow() - arrived > 4 then
+		return
+	end
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Name = "Arrival"
+	emitter.Rate = 0
+	emitter.Speed = NumberRange.new(6, 14)
+	emitter.SpreadAngle = Vector2.new(180, 180)
+	emitter.Lifetime = NumberRange.new(0.6, 1.2)
+	emitter.LightEmission = 1
+	emitter.Size = NumberSequence.new(0.5, 0)
+	emitter.Color = RAINBOW_SEQUENCE
+	emitter.Parent = visual.Body
+	emitter:Emit(50)
+	task.delay(2, function()
+		emitter:Destroy()
+	end)
 end
 
 local function addEffects(visual: Visual, rarityName: string?, mutationName: string?)
@@ -374,8 +475,13 @@ local function attachImported(instance: Model)
 		LastPosition = root.Position,
 		Speed = 0,
 		Stride = math.random() * math.pi * 2,
+		Block = instance:GetAttribute("LuckyBlock") == true,
+		Glitch = false,
 	}
 	addEffects(visual, if typeof(rarityAttribute) == "string" then rarityAttribute else nil, mutation)
+	local traitAttribute = instance:GetAttribute("Trait")
+	addTraitEffects(visual, if typeof(traitAttribute) == "string" then traitAttribute else nil)
+	pcall(arrivalBurst, visual)
 	local mutationInfo = if mutation then BrainrotConfig.MutationByName[mutation] else nil
 	if mutationInfo then
 		-- Textured meshes can't be recoloured, so the mutation glows over them.
@@ -494,8 +600,13 @@ local function attachModel(instance: Instance)
 			LastPosition = rootInstance.Position,
 			Speed = 0,
 			Stride = math.random() * math.pi * 2,
+			Block = false,
+			Glitch = false,
 		}
 		addEffects(visual, rarity, mutation)
+		local traitAttribute = instance:GetAttribute("Trait")
+		addTraitEffects(visual, if typeof(traitAttribute) == "string" then traitAttribute else nil)
+		pcall(arrivalBurst, visual)
 		-- Parented under the Root, so they leave with it if it streams out.
 		for _, piece in pieces do
 			piece.Part.Parent = rootInstance
@@ -600,48 +711,75 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 		local wiggle = phase * 12
 		swing = math.sin(phase * 16) * math.rad(35)
 		modelOffset = centre * CFrame.Angles(math.sin(wiggle) * math.rad(10), 0, math.cos(wiggle * 0.7) * math.rad(14))
+	elseif state == "Opening" then
+		-- A lucky block about to pop: shakes harder and harder.
+		local shake = math.rad(6 + 10 * math.abs(math.sin(t * 3)))
+		modelOffset = CFrame.new(0, 0.3 * height, 0)
+			* centre
+			* CFrame.Angles(math.sin(t * 47) * shake, t * 6, math.cos(t * 53) * shake)
+	elseif visual.Block then
+		if moving then
+			-- Little hops all the way home.
+			local air = math.abs(math.sin(stride * 0.6))
+			modelOffset = CFrame.new(0, air * 0.18 * height, 0) * centre * CFrame.Angles(-math.rad(6) * air, 0, 0)
+		else
+			-- Floats and slowly turns on its pedestal.
+			local float = (0.18 + 0.06 * math.sin(phase * 2)) * height
+			modelOffset = CFrame.new(0, float, 0) * centre * CFrame.Angles(0, phase * 0.9, math.sin(phase * 1.3) * math.rad(4))
+		end
 	elseif motion == "Fly" then
 		-- Hovers above the ground, banking and dipping as it flies.
-		local lift = (0.35 + 0.06 * math.sin(phase * 2.2)) * height
-		local bank = math.sin(phase * 0.9) * math.rad(if moving then 14 else 6)
+		local lift = (0.35 + 0.05 * math.sin(phase * 2.2)) * height
+		local bank = math.sin(phase * 0.9) * math.rad(if moving then 12 else 6)
 		local pitch = if moving then -math.rad(10) * blend else math.sin(phase * 1.3) * math.rad(4)
 		modelOffset = CFrame.new(0, lift, 0) * centre * CFrame.Angles(pitch, 0, bank)
 	elseif motion == "Drive" then
 		-- Rolls along with little bumps; rumbles in place when parked.
-		local bump = if moving then math.abs(math.sin(stride * 2)) * 0.03 * height else math.abs(math.sin(phase * 14)) * 0.006 * height
-		local rock = if moving then math.sin(stride * 2) * math.rad(3) else 0
+		local bump = if moving then math.abs(math.sin(stride * 2)) * 0.02 * height else math.abs(math.sin(phase * 14)) * 0.005 * height
+		local rock = if moving then math.sin(stride * 2) * math.rad(2) else 0
 		modelOffset = CFrame.new(0, bump, 0) * centre * CFrame.Angles(rock - math.rad(3) * blend, 0, 0)
-	elseif motion == "Spin" then
-		-- Pirouettes: fast while travelling, a slow twirl while idle.
-		local turn = if moving then stride * 0.8 else phase * 0.8
-		local rise = math.abs(math.sin(if moving then stride else phase * 1.5)) * 0.06 * height
-		modelOffset = CFrame.new(0, rise, 0) * centre * CFrame.Angles(0, turn, 0)
-	elseif motion == "Hop" then
-		-- Bounces along in big hops, squashing a little on landing.
-		local cycle = if moving then stride * 0.5 else phase * 1.2
-		local air = math.abs(math.sin(cycle))
-		local hop = air * (if moving then 0.3 else 0.08) * height
-		swing = if moving then -math.rad(20) * air else 0
-		modelOffset = CFrame.new(0, hop, 0) * centre * CFrame.Angles(-math.rad(8) * air * blend, 0, 0)
 	elseif moving then
 		if visual.HasLegs then
-			-- Highest as the legs pass each other, leaning into the walk.
+			-- A real walk: legs step in turn, a small bob as they pass each
+			-- other, leaning into the walk.
 			swing = math.sin(stride) * LEG_SWING * blend
-			local bob = (0.5 + 0.5 * math.cos(stride * 2)) * 0.05 * height * blend
+			local bob = (0.5 + 0.5 * math.cos(stride * 2)) * WALK_BOB * height * blend
 			local roll = math.sin(stride) * WALK_ROLL * blend
 			modelOffset = CFrame.new(0, bob, 0) * centre * CFrame.Angles(-WALK_LEAN * blend, 0, roll)
+		elseif motion == "Hop" then
+			-- Small hops, rocking a little from side to side.
+			local air = math.abs(math.sin(stride * 0.8))
+			local rock = math.sin(stride * 0.8) * math.rad(6) * blend
+			modelOffset = CFrame.new(0, air * 0.1 * height * blend, 0) * centre * CFrame.Angles(-math.rad(6) * air * blend, 0, rock)
 		else
-			-- No legs to walk on: pirouette along with little hops.
-			local hop = math.abs(math.sin(stride)) * 0.08 * height * blend
-			modelOffset = CFrame.new(0, hop, 0) * centre * CFrame.Angles(0, stride * 0.5, 0)
+			-- No legs to walk on: waddle, rocking onto each side with every
+			-- step and turning a little with it.
+			local rock = math.sin(stride) * WADDLE_ROLL * blend
+			local turn = math.sin(stride) * WADDLE_TURN * blend
+			local bob = math.abs(math.sin(stride)) * WALK_BOB * height * blend
+			modelOffset = CFrame.new(0, bob, 0) * centre * CFrame.Angles(-WALK_LEAN * blend, turn, rock)
 		end
+	elseif motion == "Spin" then
+		-- A slow twirl on the spot.
+		local rise = math.abs(math.sin(phase * 1.5)) * 0.02 * height
+		modelOffset = CFrame.new(0, rise, 0) * centre * CFrame.Angles(0, phase * 0.8, 0)
+	elseif motion == "Hop" then
+		-- A small bounce every so often, squashing a little on landing.
+		local air = math.abs(math.sin(phase * 1.2))
+		modelOffset = CFrame.new(0, air * 0.05 * height, 0) * centre * CFrame.Angles(-math.rad(4) * air, 0, 0)
 	else
 		-- Idle: gentle bob and sway, with a small hop every few seconds.
-		local bob = (math.sin(phase * 2) * 0.5 + 0.5) * 0.04 * height
+		local bob = (math.sin(phase * 2) * 0.5 + 0.5) * 0.025 * height
 		local cycle = (phase * 0.5) % (math.pi * 2)
-		local hop = if cycle < 0.5 then math.sin(cycle / 0.5 * math.pi) * 0.06 * height else 0
-		local sway = math.sin(phase * 1.1) * math.rad(8)
+		local hop = if cycle < 0.5 then math.sin(cycle / 0.5 * math.pi) * 0.03 * height else 0
+		local sway = math.sin(phase * 1.1) * math.rad(7)
 		modelOffset = CFrame.new(0, bob + hop, 0) * centre * CFrame.Angles(0, sway, math.sin(phase * 2) * math.rad(2))
+	end
+
+	-- Glitched: every so often it jumps to a wrong spot for a frame.
+	if visual.Glitch and math.random() < 0.06 then
+		local jolt = Vector3.new(math.random() - 0.5, math.random() * 0.3, math.random() - 0.5) * 0.3 * height
+		modelOffset = CFrame.new(jolt) * modelOffset * CFrame.Angles(0, (math.random() - 0.5) * 0.8, 0)
 	end
 
 	-- modelOffset moves the model about its centre; the pieces' rest poses
@@ -680,6 +818,12 @@ RunService.RenderStepped:Connect(function()
 			continue
 		end
 		animate(visual, model:GetAttribute("State"), t, dt)
+		if visual.Glitch then
+			local flicker = if math.random() < 0.08 then 0.6 else 0
+			for _, piece in visual.Pieces do
+				piece.Part.LocalTransparencyModifier = flicker
+			end
+		end
 
 		local light = visual.Light
 		if light then

@@ -6,7 +6,7 @@
 	Day, night and weather, the same for everyone on the server:
 	  * Lighting.ClockTime runs through a whole day every
 	    GameConfig.DayLengthSeconds (the day part is longer than the night);
-	    the street lamps and base lamps light up at night
+	    the street lamps light up at night (lights inside the bases are always on)
 	  * Blood Moon and Galaxy Night turn it to midnight while they run
 	  * every few minutes the weather changes (Clear, Rain, Snow, Thunderstorm
 	    or Fog, weighted by GameConfig.Weather)
@@ -48,12 +48,13 @@ local function isNight(clock: number): boolean
 	return clock < 6.3 or clock > 17.7
 end
 
--- Map lights that only shine at night.
+-- Map lights that only shine at night. Lights marked AlwaysOn (inside the
+-- bases, the Fuse Machine) stay on.
 local lamps: { Light } = {}
 do
 	local map = Workspace:WaitForChild("Map")
 	for _, descendant in map:GetDescendants() do
-		if descendant:IsA("Light") then
+		if descendant:IsA("Light") and descendant:GetAttribute("AlwaysOn") ~= true then
 			table.insert(lamps, descendant)
 		end
 	end

@@ -5,13 +5,16 @@
 
 	Builds the HUD in the style of the original game: square Index / Rebirth /
 	Shop buttons with Higgsfield icons on the left, big green Cash at the bottom
-	left with "+$" pop-ups, boost and event timers at the top, the Robux shop,
-	the Gear Shop, the rebirth screen, the brainrot Index and pop-up messages.
-	It also plays the music and sound effects (with a music on/off button),
-	points out your base, opens the shops from their stalls, tints the sky
-	during mutation events, adds clouds, and hides ProximityPrompts that don't
-	apply to this player (Steal on your own brainrots, Sell on someone else's,
-	Buy on your own brainrot while it walks home).
+	left with "+$" pop-ups and your income multiplier, boost, Cash Boost and
+	event timers at the top, the Robux shop, the Gear Shop, the rebirth screen
+	(with the brainrots each rebirth needs), the brainrot Index (pages for
+	every brainrot and for Gold, Diamond and Rainbow ones, with the rewards for
+	finishing each) and pop-up messages. It also plays the music and sound
+	effects (volume is in Settings, see FeaturesClient), points out your base,
+	opens the shops from their stalls, adds clouds, and hides ProximityPrompts
+	that don't apply to this player (Steal on your own brainrots; Sell,
+	Upgrade and Open on someone else's; Buy on your own brainrot while it
+	walks home).
 
 	Nothing here can change game state. Purchases go through Roblox's purchase
 	prompt and ProcessReceipt on the server, and the server re-checks every
@@ -28,11 +31,13 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local AssetLoader = require(Shared:WaitForChild("AssetLoader"))
 local BrainrotConfig = require(Shared:WaitForChild("BrainrotConfig"))
+local FeatureConfig = require(Shared:WaitForChild("FeatureConfig"))
 local GameConfig = require(Shared:WaitForChild("GameConfig"))
 local GearConfig = require(Shared:WaitForChild("GearConfig"))
 local MonetizationConfig = require(Shared:WaitForChild("MonetizationConfig"))
 local NumberFormat = require(Shared:WaitForChild("NumberFormat"))
 local Sounds = require(Shared:WaitForChild("Sounds"))
+local UIKit = require(Shared:WaitForChild("UIKit"))
 
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local notifyEvent = remotes:WaitForChild("Notify") :: RemoteEvent
@@ -42,7 +47,6 @@ local requestRebirthFunction = remotes:WaitForChild("RequestRebirth") :: RemoteF
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
 
-local FONT = Enum.Font.FredokaOne
 local COLORS = {
 	Panel = Color3.fromRGB(30, 32, 52),
 	PanelLight = Color3.fromRGB(48, 52, 82),
@@ -80,6 +84,7 @@ local EVENT_COLORS: { [string]: Color3 } = {
 	Taco = Color3.fromRGB(240, 170, 40),
 	Lucky = Color3.fromRGB(60, 190, 80),
 	Cash = Color3.fromRGB(46, 180, 100),
+	Admin = Color3.fromRGB(255, 70, 200),
 }
 -- Sounds for pop-up messages that don't name their own.
 local TOAST_SOUNDS: { [string]: string } = {
@@ -97,125 +102,16 @@ local TOAST_SECONDS = 4
 local MAX_CASH_POPUPS = 3
 
 --------------------------------------------------------------------------------
--- UI helpers
+-- UI helpers (shared with the other menus, see UIKit)
 --------------------------------------------------------------------------------
 
-local function create(className: string, properties: { [string]: any }, children: { Instance }?): Instance
-	local instance = Instance.new(className)
-	for key, value in properties do
-		(instance :: any)[key] = value
-	end
-	if children then
-		for _, child in children do
-			child.Parent = instance
-		end
-	end
-	return instance
-end
-
-local function corner(radius: number): Instance
-	return create("UICorner", { CornerRadius = UDim.new(0, radius) })
-end
-
-local function stroke(color: Color3, thickness: number): Instance
-	return create("UIStroke", { Color = color, Thickness = thickness, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
-end
-
--- Lighter at the top, like the original's glossy buttons.
-local function gloss(): Instance
-	return create("UIGradient", {
-		Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(190, 190, 190)),
-		Rotation = 90,
-	})
-end
-
-local function label(properties: { [string]: any }): TextLabel
-	local defaults: { [string]: any } = {
-		BackgroundTransparency = 1,
-		Font = FONT,
-		TextColor3 = COLORS.Text,
-		TextScaled = true,
-	}
-	for key, value in properties do
-		defaults[key] = value
-	end
-	-- Not a TextLabel property: the thickness of the black outline.
-	local outlineThickness = properties.OutlineThickness or 2
-	defaults.OutlineThickness = nil
-	local textLabel = create("TextLabel", defaults) :: TextLabel
-	create("UITextSizeConstraint", { MaxTextSize = properties.TextSize or 32 }).Parent = textLabel
-	create("UIStroke", { Color = Color3.new(0, 0, 0), Thickness = outlineThickness }).Parent = textLabel
-	return textLabel
-end
-
--- Makes a button bounce: bigger on hover, squished while pressed, and a
--- springy pop back when released.
-local function addBounce(target: GuiButton, hoverScale: number)
-	local scale = Instance.new("UIScale")
-	scale.Parent = target
-	local function tweenTo(value: number, seconds: number, style: Enum.EasingStyle)
-		TweenService:Create(scale, TweenInfo.new(seconds, style, Enum.EasingDirection.Out), { Scale = value }):Play()
-	end
-	local hovering = false
-	target.MouseEnter:Connect(function()
-		hovering = true
-		tweenTo(hoverScale, 0.15, Enum.EasingStyle.Back)
-	end)
-	target.MouseLeave:Connect(function()
-		hovering = false
-		tweenTo(1, 0.15, Enum.EasingStyle.Quad)
-	end)
-	target.MouseButton1Down:Connect(function()
-		tweenTo(0.88, 0.08, Enum.EasingStyle.Quad)
-	end)
-	target.MouseButton1Up:Connect(function()
-		tweenTo(if hovering then hoverScale else 1, 0.35, Enum.EasingStyle.Elastic)
-	end)
-	target.Activated:Connect(function()
-		scale.Scale = 0.9
-		tweenTo(if hovering then hoverScale else 1, 0.4, Enum.EasingStyle.Elastic)
-	end)
-end
-
-local function button(text: string, color: Color3, properties: { [string]: any }): TextButton
-	local defaults: { [string]: any } = {
-		BackgroundColor3 = color,
-		AutoButtonColor = true,
-		Font = FONT,
-		Text = text,
-		TextColor3 = COLORS.Text,
-		TextScaled = true,
-	}
-	for key, value in properties do
-		defaults[key] = value
-	end
-	local textButton = create("TextButton", defaults, {
-		corner(10),
-		stroke(Color3.new(0, 0, 0), 2),
-		gloss(),
-		create("UIPadding", {
-			PaddingLeft = UDim.new(0, 8),
-			PaddingRight = UDim.new(0, 8),
-			PaddingTop = UDim.new(0, 4),
-			PaddingBottom = UDim.new(0, 4),
-		}),
-		create("UITextSizeConstraint", { MaxTextSize = 28 }),
-	}) :: TextButton
-	textButton.Activated:Connect(function()
-		Sounds.play("Click")
-	end)
-	addBounce(textButton, 1.05)
-	return textButton
-end
-
-local function setImage(imageLabel: ImageLabel, image: EditableImage?): boolean
-	if image == nil then
-		return false
-	end
-	imageLabel.ImageContent = Content.fromObject(image)
-	imageLabel.Visible = true
-	return true
-end
+local create = UIKit.create
+local corner = UIKit.corner
+local stroke = UIKit.stroke
+local gloss = UIKit.gloss
+local label = UIKit.label
+local button = UIKit.button
+local setImage = UIKit.setImage
 
 --------------------------------------------------------------------------------
 -- Layout
@@ -301,109 +197,58 @@ end
 local boostChip = chip(COLORS.Boost, "ServerRarityBoost")
 local empChip = chip(COLORS.Emp, "EMPLaserOverrider")
 local eventChip = chip(EVENT_COLORS.Gold, "ServerRarityBoost")
+local cashBoostChip = chip(Color3.fromRGB(40, 190, 90), "CashBoost")
+UIKit.autoScale(chipRow)
+
+-- Your income multiplier (bottom left, by the income); tap it for the list of
+-- boosts (rebirths, passes, friends, Premium, Index...).
+local boostPill = button("x1", Color3.fromRGB(255, 170, 40), {
+	Name = "BoostPill",
+	AnchorPoint = Vector2.new(0, 1),
+	Position = UDim2.new(0, 20, 1, -112),
+	Size = UDim2.fromOffset(96, 30),
+	Visible = false,
+})
+boostPill.Parent = screenGui
+local boostTip = label({
+	Name = "BoostInfo",
+	AnchorPoint = Vector2.new(0, 1),
+	Position = UDim2.new(0, 124, 1, -112),
+	Size = UDim2.fromOffset(260, 120),
+	BackgroundTransparency = 0.1,
+	BackgroundColor3 = COLORS.Panel,
+	Text = "",
+	TextSize = 20,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	TextYAlignment = Enum.TextYAlignment.Bottom,
+	Visible = false,
+})
+corner(10).Parent = boostTip
+create("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingBottom = UDim.new(0, 8), PaddingTop = UDim.new(0, 8) }).Parent = boostTip
+boostTip.Parent = screenGui
+boostPill.Activated:Connect(function()
+	boostTip.Visible = not boostTip.Visible
+end)
+boostPill.MouseEnter:Connect(function()
+	boostTip.Visible = true
+end)
+boostPill.MouseLeave:Connect(function()
+	boostTip.Visible = false
+end)
 
 -- Big square buttons (left middle): Index, Rebirth, Shop. Chunky and bright
 -- like the original: a glossy colour block with a thick black outline and a
 -- shadow under it, the icon popping out of the top and a bold label. They
 -- bounce when hovered, squish when pressed and their icons bob about.
-local SIDE_SIZE = 96
-local sideButtons = create("Frame", {
-	Name = "SideButtons",
+local sideButtons = UIKit.sideColumn(screenGui, "SideButtons", 3, {
 	AnchorPoint = Vector2.new(0, 0.5),
 	Position = UDim2.new(0, 16, 0.5, 10),
-	Size = UDim2.fromOffset(SIDE_SIZE, 3 * SIDE_SIZE + 2 * 22),
-	BackgroundTransparency = 1,
-}, {
-	create("UIListLayout", { Padding = UDim.new(0, 22), SortOrder = Enum.SortOrder.LayoutOrder }),
-}) :: Frame
-sideButtons.Parent = screenGui
+})
 
-local sideIcons: { ImageLabel } = {}
+UIKit.autoScale(sideButtons)
 
 local function sideButton(name: string, text: string, color: Color3, iconName: string, order: number): TextButton
-	-- A holder so the shadow and the icon can stick out of the button.
-	local holder = create("Frame", {
-		Name = name .. "Holder",
-		Size = UDim2.fromOffset(SIDE_SIZE, SIDE_SIZE),
-		BackgroundTransparency = 1,
-		LayoutOrder = order,
-	}) :: Frame
-
-	create("Frame", {
-		Name = "Shadow",
-		Position = UDim2.fromOffset(0, 6),
-		Size = UDim2.fromScale(1, 1),
-		BackgroundColor3 = Color3.new(0, 0, 0),
-		BackgroundTransparency = 0.45,
-		ZIndex = 1,
-	}, { corner(18) }).Parent = holder
-
-	local dark = color:Lerp(Color3.new(0, 0, 0), 0.35)
-	local square = create("TextButton", {
-		Name = name,
-		Size = UDim2.fromScale(1, 1),
-		BackgroundColor3 = Color3.new(1, 1, 1),
-		AutoButtonColor = false,
-		Text = "",
-		ZIndex = 2,
-	}, {
-		corner(18),
-		create("UIStroke", { Color = Color3.fromRGB(20, 20, 30), Thickness = 4, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }),
-		create("UIGradient", {
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, color:Lerp(Color3.new(1, 1, 1), 0.25)),
-				ColorSequenceKeypoint.new(0.55, color),
-				ColorSequenceKeypoint.new(1, dark),
-			}),
-			Rotation = 90,
-		}),
-	}) :: TextButton
-
-	-- Glossy shine across the top.
-	create("Frame", {
-		Name = "Shine",
-		Position = UDim2.new(0, 7, 0, 6),
-		Size = UDim2.new(1, -14, 0.36, 0),
-		BackgroundColor3 = Color3.new(1, 1, 1),
-		BackgroundTransparency = 0.72,
-		ZIndex = 3,
-	}, { corner(12) }).Parent = square
-
-	local icon = create("ImageLabel", {
-		Name = "Icon",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.new(0.5, 0, 0.38, 0),
-		Size = UDim2.fromOffset(82, 82),
-		BackgroundTransparency = 1,
-		Rotation = -8,
-		ZIndex = 4,
-		Visible = false,
-	}) :: ImageLabel
-	icon.Parent = square
-	local hasIcon = setImage(icon, AssetLoader.getUIIcon(iconName))
-	if hasIcon then
-		table.insert(sideIcons, icon)
-	end
-
-	local textLabel = label({
-		Name = "Label",
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, 6),
-		Size = if hasIcon then UDim2.new(1, 8, 0, 30) else UDim2.new(1, -6, 1, -8),
-		Text = text,
-		TextSize = if hasIcon then 28 else 30,
-		OutlineThickness = 3,
-		ZIndex = 5,
-	})
-	textLabel.Parent = square
-
-	square.Activated:Connect(function()
-		Sounds.play("Click")
-	end)
-	addBounce(square, 1.1)
-	square.Parent = holder
-	holder.Parent = sideButtons
-	return square
+	return UIKit.sideButton(sideButtons, name, text, color, iconName, order)
 end
 
 local indexButton = sideButton("IndexButton", "Index", COLORS.IndexButton, "Index", 1)
@@ -427,87 +272,17 @@ corner(13).Parent = shopBadge
 create("UIStroke", { Color = Color3.new(1, 1, 1), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }).Parent = shopBadge
 shopBadge.Parent = shopButton
 
--- Icons bob and wiggle, each a little out of step; the badge pulses.
+-- The badge pulses.
 RunService.RenderStepped:Connect(function()
-	local t = os.clock()
-	for index, icon in sideIcons do
-		local phase = t * 2.2 + index * 1.3
-		icon.Rotation = -8 + math.sin(phase) * 6
-		icon.Position = UDim2.new(0.5, 0, 0.38, -3 + math.sin(phase * 1.3) * 3)
-	end
-	local pulse = 1 + math.max(0, math.sin(t * 4)) * 0.12
+	local pulse = 1 + math.max(0, math.sin(os.clock() * 4)) * 0.12
 	shopBadge.Size = UDim2.fromOffset(54 * pulse, 26 * pulse)
 end)
 
-local modals: { Frame } = {}
-
 local function modal(name: string, title: string, accent: Color3, size: Vector2): (Frame, Frame)
-	local frame = create("Frame", {
-		Name = name,
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		-- Fills most of a small screen, capped at the design size on large ones.
-		Size = UDim2.fromScale(0.92, 0.8),
-		BackgroundColor3 = COLORS.Panel,
-		Visible = false,
-	}, {
-		corner(18),
-		stroke(Color3.new(0, 0, 0), 4),
-		create("UISizeConstraint", { MaxSize = size }),
-		create("UIAspectRatioConstraint", { AspectRatio = size.X / size.Y }),
-	}) :: Frame
-
-	local header = create("Frame", {
-		Name = "Header",
-		Size = UDim2.new(1, 0, 0, 62),
-		BackgroundColor3 = accent,
-	}, { corner(18), gloss() }) :: Frame
-	header.Parent = frame
-
-	label({
-		Name = "Title",
-		Position = UDim2.fromOffset(20, 8),
-		Size = UDim2.new(1, -90, 0, 46),
-		Text = title,
-		TextSize = 40,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		OutlineThickness = 3,
-	}).Parent = frame
-
-	local closeButton = button("X", COLORS.Close, {
-		Name = "CloseButton",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -10, 0, 9),
-		Size = UDim2.fromOffset(44, 44),
-	})
-	closeButton.Parent = frame
-	closeButton.Activated:Connect(function()
-		frame.Visible = false
-	end)
-
-	local body = create("Frame", {
-		Name = "Body",
-		Position = UDim2.fromOffset(16, 74),
-		Size = UDim2.new(1, -32, 1, -90),
-		BackgroundTransparency = 1,
-	}) :: Frame
-	body.Parent = frame
-	frame.Parent = screenGui
-	table.insert(modals, frame)
-	return frame, body
+	return UIKit.modal(screenGui, name, title, accent, size)
 end
 
-local function toggleModal(frame: Frame): boolean
-	local open = not frame.Visible
-	for _, other in modals do
-		other.Visible = false
-	end
-	frame.Visible = open
-	if open then
-		Sounds.play("Open")
-	end
-	return open
-end
+local toggleModal = UIKit.toggleModal
 
 --------------------------------------------------------------------------------
 -- Shop
@@ -659,21 +434,35 @@ end
 -- Rebirth
 --------------------------------------------------------------------------------
 
-local rebirthFrame, rebirthBody = modal("Rebirth", "REBIRTH", COLORS.Rebirth, Vector2.new(480, 380))
+local rebirthFrame, rebirthBody = modal("Rebirth", "REBIRTH", COLORS.Rebirth, Vector2.new(520, 460))
 
 local rebirthInfo = label({
 	Name = "Info",
-	Size = UDim2.new(1, 0, 0.42, 0),
+	Size = UDim2.new(1, 0, 0.34, 0),
 	Text = "",
 	TextSize = 26,
 	TextWrapped = true,
 })
 rebirthInfo.Parent = rebirthBody
 
+-- The brainrots this rebirth needs in your base (you keep them).
+local rebirthNeeds = label({
+	Name = "Needs",
+	Position = UDim2.fromScale(0, 0.36),
+	Size = UDim2.new(1, 0, 0.18, 0),
+	BackgroundTransparency = 0.2,
+	BackgroundColor3 = COLORS.PanelLight,
+	Text = "",
+	TextSize = 22,
+	TextWrapped = true,
+})
+corner(12).Parent = rebirthNeeds
+rebirthNeeds.Parent = rebirthBody
+
 local progressBack = create("Frame", {
 	Name = "Progress",
-	Position = UDim2.fromScale(0, 0.48),
-	Size = UDim2.new(1, 0, 0.13, 0),
+	Position = UDim2.fromScale(0, 0.58),
+	Size = UDim2.new(1, 0, 0.12, 0),
 	BackgroundColor3 = COLORS.PanelLight,
 }, { corner(12), stroke(Color3.new(0, 0, 0), 2) }) :: Frame
 progressBack.Parent = rebirthBody
@@ -696,7 +485,7 @@ local confirmRebirthButton = button("REBIRTH", COLORS.Rebirth, {
 	Name = "ConfirmButton",
 	AnchorPoint = Vector2.new(0.5, 1),
 	Position = UDim2.fromScale(0.5, 1),
-	Size = UDim2.new(0.7, 0, 0.24, 0),
+	Size = UDim2.new(0.7, 0, 0.2, 0),
 })
 confirmRebirthButton.Parent = rebirthBody
 
@@ -704,11 +493,42 @@ confirmRebirthButton.Parent = rebirthBody
 -- Index: every brainrot, with a spinning 3D preview
 --------------------------------------------------------------------------------
 
-local indexFrame, indexBody = modal("Index", "INDEX", COLORS.Index, Vector2.new(720, 520))
+local indexFrame, indexBody = modal("Index", "INDEX", COLORS.Index, Vector2.new(760, 580))
+
+-- Pages: every brainrot, then every Gold, Diamond and Rainbow one.
+local INDEX_PAGES = { "Normal" }
+for _, mutationName in FeatureConfig.MutationIndex do
+	table.insert(INDEX_PAGES, mutationName)
+end
+local indexPage = "Normal"
+local indexTabs = create("Frame", {
+	Name = "Tabs",
+	Size = UDim2.new(1, 0, 0, 38),
+	BackgroundTransparency = 1,
+}, {
+	create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }),
+}) :: Frame
+indexTabs.Parent = indexBody
+local indexTabButtons: { [string]: TextButton } = {}
+-- Per page: how many you've found and what finishing it gives.
+local indexRewards = label({
+	Name = "Rewards",
+	Position = UDim2.fromOffset(0, 44),
+	Size = UDim2.new(1, 0, 0, 46),
+	BackgroundTransparency = 0.2,
+	BackgroundColor3 = COLORS.PanelLight,
+	RichText = true,
+	Text = "",
+	TextSize = 18,
+	TextWrapped = true,
+})
+corner(10).Parent = indexRewards
+indexRewards.Parent = indexBody
 
 local indexList = create("ScrollingFrame", {
 	Name = "List",
-	Size = UDim2.fromScale(1, 1),
+	Position = UDim2.fromOffset(0, 98),
+	Size = UDim2.new(1, 0, 1, -98),
 	BackgroundTransparency = 1,
 	BorderSizePixel = 0,
 	ScrollBarThickness = 8,
@@ -723,7 +543,15 @@ local indexList = create("ScrollingFrame", {
 }) :: ScrollingFrame
 indexList.Parent = indexBody
 
-type IndexCard = { Frame: Frame, Viewport: ViewportFrame, Owned: TextLabel, Model: Model? }
+type IndexCard = {
+	Frame: Frame,
+	Viewport: ViewportFrame,
+	Owned: TextLabel,
+	Name: TextLabel,
+	Stroke: UIStroke,
+	Definition: BrainrotConfig.Brainrot,
+	Model: Model?,
+}
 
 local indexCards: { [string]: IndexCard } = {}
 local rarityOrder: { [string]: number } = {}
@@ -739,6 +567,7 @@ for _, definition in BrainrotConfig.Brainrots do
 		BackgroundColor3 = COLORS.PanelLight,
 		LayoutOrder = (rarityOrder[definition.Rarity] or 0) * 1000000000 + definition.Price,
 	}, { corner(12), stroke(rarityColour, 3) }) :: Frame
+	local cardStroke = card:FindFirstChildOfClass("UIStroke") :: UIStroke
 
 	local viewport = create("ViewportFrame", {
 		Name = "Preview",
@@ -751,13 +580,14 @@ for _, definition in BrainrotConfig.Brainrots do
 	}, { corner(10) }) :: ViewportFrame
 	viewport.Parent = card
 
-	label({
+	local nameLabel = label({
 		Name = "BrainrotName",
 		Position = UDim2.fromOffset(6, 120),
 		Size = UDim2.new(1, -12, 0, 22),
 		Text = definition.DisplayName,
 		TextSize = 20,
-	}).Parent = card
+	})
+	nameLabel.Parent = card
 	label({
 		Name = "Rarity",
 		Position = UDim2.fromOffset(6, 142),
@@ -785,32 +615,20 @@ for _, definition in BrainrotConfig.Brainrots do
 	owned.Parent = card
 
 	card.Parent = indexList
-	indexCards[definition.Id] = { Frame = card, Viewport = viewport, Owned = owned, Model = nil }
+	indexCards[definition.Id] = {
+		Frame = card,
+		Viewport = viewport,
+		Owned = owned,
+		Name = nameLabel,
+		Stroke = cardStroke,
+		Definition = definition,
+		Model = nil,
+	}
 end
 
 local indexModelsLoaded = false
 
--- A still copy of a brainrot for the Index, `height` studs tall and centred
--- on the origin: its imported model if there is one, else the blocky model.
-local function previewModel(brainrotId: string, height: number): Model?
-	local templates = ReplicatedStorage:FindFirstChild("BrainrotModels")
-	local template = if templates then templates:FindFirstChild(brainrotId) else nil
-	if template and template:IsA("Model") and #template:GetChildren() > 0 then
-		local clone = template:Clone()
-		local scale = height / math.max(tonumber(template:GetAttribute("Height")) or 1, 0.01)
-		for _, part in clone:GetDescendants() do
-			if part:IsA("BasePart") then
-				local rest = part.CFrame
-				part.Size *= scale
-				part.CFrame = CFrame.new(rest.Position * scale - Vector3.new(0, height / 2, 0)) * rest.Rotation
-				part.Anchored = true
-			end
-		end
-		clone.WorldPivot = CFrame.identity
-		return clone
-	end
-	return AssetLoader.createBrainrotModel(brainrotId, nil, height)
-end
+local previewModel = UIKit.previewModel
 
 local function loadIndexModels()
 	if indexModelsLoaded then
@@ -851,13 +669,105 @@ local function ownBrainrotCounts(): { [string]: number }
 	return counts
 end
 
+local function discoveredSet(): { [string]: boolean }
+	local found: { [string]: boolean } = {}
+	local list = player:GetAttribute("Discovered")
+	if typeof(list) == "string" then
+		for _, key in string.split(list, ",") do
+			found[key] = true
+		end
+	end
+	return found
+end
+
+-- Brainrots you've never had show as black silhouettes named "???".
 local function refreshIndex()
 	local counts = ownBrainrotCounts()
+	local found = discoveredSet()
+	local mutation = if indexPage ~= "Normal" then BrainrotConfig.MutationByName[indexPage] else nil
 	for brainrotId, card in indexCards do
 		local count = counts[brainrotId] or 0
 		card.Owned.Text = if count > 0 then string.format("OWNED x%d", count) else ""
+		local key = if mutation then brainrotId .. ":" .. mutation.Name else brainrotId
+		local seen = found[key] == true
+		local definition = card.Definition
+		card.Viewport.ImageColor3 = if not seen then Color3.new(0, 0, 0) elseif mutation then mutation.Color:Lerp(Color3.new(1, 1, 1), 0.35) else Color3.new(1, 1, 1)
+		card.Name.Text = if not seen then "???" elseif mutation then mutation.Name .. " " .. definition.DisplayName else definition.DisplayName
+		local rarity = BrainrotConfig.RarityByName[definition.Rarity]
+		card.Stroke.Color = if mutation then mutation.Color elseif rarity then rarity.Color else Color3.new(1, 1, 1)
+	end
+
+	-- What each page is worth.
+	local parts: { string } = {}
+	if mutation then
+		local total, have = 0, 0
+		for _, definition in BrainrotConfig.Brainrots do
+			total += 1
+			if found[definition.Id .. ":" .. mutation.Name] then
+				have += 1
+			end
+		end
+		local reward = FeatureConfig.MutationIndexRewards[mutation.Name]
+		table.insert(parts, string.format("%s %d/%d", mutation.Name, have, total))
+		if reward then
+			table.insert(
+				parts,
+				string.format(
+					'%s <font color="#50ff78">+%d%% income forever and %s</font>',
+					if have >= total then "✅ Done:" else "Find them all:",
+					math.floor(reward.Bonus * 100 + 0.5),
+					NumberFormat.cash(reward.Cash)
+				)
+			)
+		end
+	else
+		for _, rarity in BrainrotConfig.Rarities do
+			local choices = BrainrotConfig.ByRarity[rarity.Name]
+			local have = 0
+			for _, definition in choices do
+				if found[definition.Id] then
+					have += 1
+				end
+			end
+			local reward = FeatureConfig.IndexRewards[rarity.Name]
+			local done = have >= #choices and #choices > 0
+			table.insert(
+				parts,
+				string.format(
+					'<font color="#%s">%s</font> %d/%d%s',
+					rarity.Color:ToHex(),
+					rarity.Name,
+					have,
+					#choices,
+					if done then " ✅" elseif reward then string.format(" (+%d%%)", math.floor(reward.Bonus * 100 + 0.5)) else ""
+				)
+			)
+		end
+	end
+	indexRewards.Text = table.concat(parts, "   ")
+	for name, tab in indexTabButtons do
+		tab.BackgroundColor3 = if name == indexPage then COLORS.Index else COLORS.PanelLight
 	end
 end
+
+for order, pageName in INDEX_PAGES do
+	local tab = button(pageName, COLORS.PanelLight, {
+		Name = pageName .. "Tab",
+		Size = UDim2.new(1 / #INDEX_PAGES, -8, 1, 0),
+		LayoutOrder = order,
+	})
+	tab.Parent = indexTabs
+	indexTabButtons[pageName] = tab
+	tab.Activated:Connect(function()
+		indexPage = pageName
+		refreshIndex()
+	end)
+end
+player:GetAttributeChangedSignal("Discovered"):Connect(function()
+	if indexFrame.Visible then
+		refreshIndex()
+	end
+end)
 
 RunService.RenderStepped:Connect(function()
 	if not indexFrame.Visible then
@@ -891,6 +801,7 @@ local toastContainer = create("Frame", {
 	}),
 }) :: Frame
 toastContainer.Parent = screenGui
+UIKit.autoScale(toastContainer)
 
 local toastCount = 0
 
@@ -934,6 +845,8 @@ local function showToast(message: string, kind: string)
 		fade:Play()
 	end)
 end
+
+UIKit.setToastHandler(showToast)
 
 notifyEvent.OnClientEvent:Connect(function(message: any, kind: any, sound: any)
 	if typeof(message) ~= "string" then
@@ -1124,7 +1037,19 @@ local function refreshRebirthScreen()
 	local progress = math.clamp(cash / cost, 0, 1)
 	progressFill.Size = UDim2.fromScale(progress, 1)
 	progressText.Text = string.format("%s / %s", NumberFormat.cash(cash), NumberFormat.cash(cost))
-	confirmRebirthButton.BackgroundColor3 = if cash >= cost then COLORS.Rebirth else COLORS.Disabled
+	-- Which of the brainrots this rebirth needs are in your base.
+	local counts = ownBrainrotCounts()
+	local needs: { string } = {}
+	local haveAll = true
+	for _, brainrotId in FeatureConfig.getRebirthRequirement(rebirths) do
+		local definition = BrainrotConfig.ById[brainrotId]
+		local has = (counts[brainrotId] or 0) > 0
+		haveAll = haveAll and has
+		table.insert(needs, (if has then "✅ " else "❌ ") .. (if definition then definition.DisplayName else brainrotId))
+	end
+	rebirthNeeds.Text = "Needs in your base: " .. table.concat(needs, "   ")
+	rebirthNeeds.TextColor3 = if haveAll then COLORS.Owned else Color3.new(1, 1, 1)
+	confirmRebirthButton.BackgroundColor3 = if cash >= cost and haveAll then COLORS.Rebirth else COLORS.Disabled
 end
 
 local function refreshCash()
@@ -1221,20 +1146,7 @@ connectStall("GearShop", "GearPrompt", function()
 	end
 end)
 
--- Music on/off (bottom right).
-local musicButton = button("MUSIC: ON", COLORS.Music, {
-	Name = "MusicButton",
-	AnchorPoint = Vector2.new(1, 1),
-	Position = UDim2.new(1, -14, 1, -14),
-	Size = UDim2.fromOffset(150, 40),
-})
-musicButton.Parent = screenGui
-musicButton.Activated:Connect(function()
-	local enabled = not Sounds.isMusicEnabled()
-	Sounds.setMusicEnabled(enabled)
-	musicButton.Text = if enabled then "MUSIC: ON" else "MUSIC: OFF"
-	musicButton.BackgroundColor3 = if enabled then COLORS.Music else COLORS.Disabled
-end)
+-- Music volume lives in Settings (FeaturesClient).
 Sounds.startMusic()
 
 --------------------------------------------------------------------------------
@@ -1317,8 +1229,19 @@ task.spawn(function()
 			eventChip.BackgroundColor3 = if typeof(sky) == "string" then EVENT_COLORS[sky] or COLORS.Boost else COLORS.Boost
 		end
 
+		local cashBoostEndsAt = tonumber(player:GetAttribute("CashBoostEndsAt")) or 0
+		cashBoostChip.Visible = cashBoostEndsAt > now
+		if cashBoostChip.Visible then
+			cashBoostChip.Text = "2X CASH  " .. NumberFormat.duration(cashBoostEndsAt - now)
+		end
+
 		local income = tonumber(player:GetAttribute("IncomePerSecond")) or 0
 		incomeLabel.Text = "+" .. NumberFormat.cash(income) .. "/s"
+		local multiplier = tonumber(player:GetAttribute("IncomeMultiplier")) or 1
+		boostPill.Visible = multiplier > 1.001
+		boostPill.Text = string.format("x%.2f", multiplier):gsub("%.?0+$", "")
+		local info = player:GetAttribute("BoostInfo")
+		boostTip.Text = if typeof(info) == "string" and info ~= "" then info else "No boosts yet"
 
 		local sign = findOwnSign()
 		if sign then
@@ -1342,11 +1265,16 @@ local function refreshPrompt(prompt: ProximityPrompt)
 		prompt.Enabled = prompt:GetAttribute("Snipeable") == true and not ownedByMe
 		return
 	end
-	if kind ~= "Steal" and kind ~= "Sell" then
+	if kind ~= "Steal" and kind ~= "Sell" and kind ~= "Upgrade" and kind ~= "Open" then
 		return
 	end
 	local busy = prompt:GetAttribute("Carried") == true or prompt:GetAttribute("Walking") == true
-	prompt.Enabled = not busy and (if kind == "Steal" then not ownedByMe else ownedByMe)
+	-- Only the owner sells, upgrades pedestals and opens lucky blocks.
+	local forMe = if kind == "Steal" then not ownedByMe else ownedByMe
+	if kind == "Upgrade" and prompt:GetAttribute("MaxLevel") == true then
+		forMe = false
+	end
+	prompt.Enabled = not busy and forMe
 end
 
 local function trackPrompt(instance: Instance)
@@ -1354,7 +1282,7 @@ local function trackPrompt(instance: Instance)
 		return
 	end
 	refreshPrompt(instance)
-	for _, attribute in { "Carried", "Walking", "Snipeable", "OwnerUserId" } do
+	for _, attribute in { "Carried", "Walking", "Snipeable", "OwnerUserId", "MaxLevel" } do
 		instance:GetAttributeChangedSignal(attribute):Connect(function()
 			refreshPrompt(instance)
 		end)

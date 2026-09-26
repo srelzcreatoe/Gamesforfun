@@ -119,12 +119,17 @@ def model(name, children):
     return {"Name": name, "ClassName": "Model", "Children": children}
 
 
-def point_light(brightness, range_, color=(1, 1, 1)):
-    return {
+def point_light(brightness, range_, color=(1, 1, 1), always_on=False):
+    """A light; street lamps only shine at night, `always_on` ones (inside the
+    bases and on the Fuse Machine) always do (see WorldManager)."""
+    node = {
         "Name": "Light",
         "ClassName": "PointLight",
         "Properties": {"Brightness": brightness, "Range": range_, "Color": list(color), "Shadows": False},
     }
+    if always_on:
+        node["attributes"] = {"AlwaysOn": True}
+    return node
 
 
 class Frame:
@@ -380,24 +385,41 @@ def build_plot(index, origin, rotation):
     outside.append(part("RoofVent", (4, 1, 4), f.at([14, roof_y + 4, 18]), r, DARK, "Metal"))
     children.append(folder("Trim", outside))
 
+    # Lights inside, always on: three ceiling panels over the pedestals on
+    # every floor, and glowing strips in the base's colour along the walls.
     lamps = []
     number = 1
     for floor in range(1, FLOORS + 1):
-        ceiling = floor_top(floor) + FLOOR_HEIGHT - 1.7
-        for x in (-12, 12):
+        ceiling = floor_top(floor) + FLOOR_HEIGHT - 1.2
+        for x in (-12, 0, 12):
             lamps.append(
                 part(
                     f"Lamp{number}",
-                    (4, 0.4, 2),
-                    f.at([x, ceiling, 8]),
+                    (5, 0.4, 3),
+                    f.at([x, ceiling, 12]),
                     r,
                     WHITE,
                     "Neon",
                     CanCollide=False,
-                    children=[point_light(1.1, 24, (1, 0.97, 0.9))],
+                    CanQuery=False,
+                    children=[point_light(1.4, 22, (1, 0.96, 0.88), always_on=True)],
                 )
             )
             number += 1
+        for side, name in ((-1, "Left"), (1, "Right")):
+            lamps.append(
+                part(
+                    f"Strip{name}{floor}",
+                    (0.3, 0.3, PLOT_DEPTH - 8),
+                    f.at([side * (half_width - 2.2), ceiling - 0.2, 2]),
+                    r,
+                    accent,
+                    "Neon",
+                    CanCollide=False,
+                    CanQuery=False,
+                )
+            )
+        lamps.append(part(f"StripBack{floor}", (PLOT_WIDTH - 5, 0.3, 0.3), f.at([0, ceiling - 0.2, half_depth - 2.2]), r, accent, "Neon", CanCollide=False, CanQuery=False))
     children.append(folder("Lamps", lamps))
 
     lasers = []
@@ -647,6 +669,99 @@ def build_shop_stalls():
     ]
 
 
+def build_fuse_machine(origin, facing):
+    """A glowing glass capsule on a metal base: bring three brainrots of one
+    rarity and it fuses them into a rarer one. The counter opens its menu."""
+    f = Frame(origin, yaw(facing))
+    r = f.rotation
+    purple = (0.62, 0.25, 1.0)
+    glass = (0.78, 0.6, 1.0)
+    upright = multiply(r, [[0, -1, 0], [1, 0, 0], [0, 0, 1]])  # a cylinder's axis pointing up
+    prompt = {
+        "Name": "FusePrompt",
+        "ClassName": "ProximityPrompt",
+        "Properties": {
+            "ActionText": "Fuse",
+            "ObjectText": "Fuse Machine",
+            "HoldDuration": 0,
+            "MaxActivationDistance": 12,
+            "RequiresLineOfSight": False,
+        },
+    }
+    title = {
+        "Name": "Title",
+        "ClassName": "BillboardGui",
+        "Properties": {
+            "Size": {"UDim2": [[0, 340], [0, 110]]},
+            "StudsOffset": [0, 3, 0],
+            "LightInfluence": 0,
+            "MaxDistance": 180,
+        },
+        "Children": [
+            {
+                "Name": "Text",
+                "ClassName": "TextLabel",
+                "Properties": {
+                    "Size": {"UDim2": [[1, 0], [0.65, 0]]},
+                    "BackgroundTransparency": 1,
+                    "Font": "FredokaOne",
+                    "Text": "Fuse Machine",
+                    "TextColor3": [0.85, 0.6, 1],
+                    "TextScaled": True,
+                },
+                "Children": [{"Name": "Outline", "ClassName": "UIStroke", "Properties": {"Thickness": 3, "Color": [0.2, 0.02, 0.35]}}],
+            },
+            {
+                "Name": "Hint",
+                "ClassName": "TextLabel",
+                "Properties": {
+                    "Position": {"UDim2": [[0, 0], [0.65, 0]]},
+                    "Size": {"UDim2": [[1, 0], [0.35, 0]]},
+                    "BackgroundTransparency": 1,
+                    "Font": "FredokaOne",
+                    "Text": "3 brainrots = 1 rarer one!",
+                    "TextColor3": [1, 1, 1],
+                    "TextScaled": True,
+                },
+                "Children": [{"Name": "Outline", "ClassName": "UIStroke", "Properties": {"Thickness": 2, "Color": [0.2, 0.02, 0.35]}}],
+            },
+        ],
+    }
+    children = [
+        part("Platform", (16, 0.6, 14), f.at([0, 0.3, 0]), r, FLOOR, surfaces=STUDS),
+        part("Base", (9, 2, 9), f.at([0, 1.6, 1]), r, DARK, "DiamondPlate"),
+        part("BaseTrim", (9.4, 0.4, 9.4), f.at([0, 2.7, 1]), r, purple, "Neon", CanCollide=False),
+        part("Capsule", (7, 6.6, 6.6), f.at([0, 6.4, 1]), upright, glass, "Glass", Transparency=0.45, Reflectance=0.2, Shape="Cylinder"),
+        part(
+            "Core",
+            (2.6, 2.6, 2.6),
+            f.at([0, 6.4, 1]),
+            r,
+            purple,
+            "Neon",
+            CanCollide=False,
+            Shape="Ball",
+            children=[point_light(3, 22, (0.75, 0.45, 1), always_on=True)],
+        ),
+        part("RingLow", (0.5, 7.4, 7.4), f.at([0, 4.2, 1]), upright, purple, "Neon", CanCollide=False, Shape="Cylinder"),
+        part("RingHigh", (0.5, 7.4, 7.4), f.at([0, 8.6, 1]), upright, purple, "Neon", CanCollide=False, Shape="Cylinder"),
+        part("Cap", (7.6, 1.2, 7.6), f.at([0, 10.3, 1]), r, DARK, "Metal"),
+        part("CapLight", (2, 0.8, 2), f.at([0, 11.3, 1]), r, (1, 0.85, 0.2), "Neon", CanCollide=False),
+        part("Counter", (9, 3, 1.6), f.at([0, 2.1, -5.4]), r, WHITE, surfaces=ALL_STUDS, children=[prompt]),
+        part("CounterTop", (9.6, 0.4, 2.2), f.at([0, 3.8, -5.4]), r, purple, "Neon", CanCollide=False),
+    ]
+    # Pipes up the sides and a lightning bolt on the front of the cap.
+    for side in (-1, 1):
+        children.append(part("Pipe", (1, 8.6, 1), f.at([side * 4.6, 5.6, 1]), r, (0.55, 0.57, 0.62), "Metal"))
+        children.append(part("PipeGlow", (1.1, 0.5, 1.1), f.at([side * 4.6, 7, 1]), r, purple, "Neon", CanCollide=False))
+    children.append(part("Bolt1", (0.5, 2, 0.3), f.at([0.35, 11.6, -2.9]), multiply(r, yaw(0)), (1, 0.85, 0.2), "Neon", CanCollide=False))
+    children.append(part("Bolt2", (1.4, 0.4, 0.3), f.at([0, 10.6, -2.9]), r, (1, 0.85, 0.2), "Neon", CanCollide=False))
+    children.append(part("Bolt3", (0.5, 2, 0.3), f.at([-0.35, 9.6, -2.9]), r, (1, 0.85, 0.2), "Neon", CanCollide=False))
+    children.append(hidden("TitleAnchor", (1, 1, 1), f.at([0, 13, 1]), r))
+    children[-1]["Children"] = [title]
+    return model("FuseMachine", children)
+
+
 def build_board(name, origin, facing, accent):
     """A big board on two posts; scripts draw on the Screen's front face."""
     f = Frame(origin, yaw(facing))
@@ -810,6 +925,7 @@ def build_map():
             build_conveyor(),
             folder("Plots", plots),
             *build_shop_stalls(),
+            build_fuse_machine([0, 0, 80], 0),
             build_leaderboards(),
             build_scenery(),
             build_border(),

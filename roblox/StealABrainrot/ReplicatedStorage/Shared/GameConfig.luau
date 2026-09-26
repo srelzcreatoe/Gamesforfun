@@ -13,6 +13,12 @@ export type GameEvent = {
 	CashRain: boolean?,
 	Sky: string?,
 	Particles: string?,
+	-- Admin Abuse: every conveyor brainrot gets a mutation, prices are
+	-- multiplied by PriceMultiplier, and traits are TraitLuck times likelier.
+	AllMutated: boolean?,
+	PriceMultiplier: number?,
+	TraitLuck: number?,
+	AdminAbuse: boolean?,
 }
 
 local EVENTS: { GameEvent } = {
@@ -27,6 +33,20 @@ local EVENTS: { GameEvent } = {
 	table.freeze({ Name = "Lucky Hour", Luck = 3, Sky = "Lucky", Particles = "Clovers" }),
 	table.freeze({ Name = "Cash Rain", CashRain = true, Sky = "Cash", Particles = "Cash" }),
 }
+
+-- Replaces a normal event now and then (FeatureConfig.AdminAbuseChance), or
+-- starts when an admin chats "/abuse".
+local ADMIN_ABUSE: GameEvent = table.freeze({
+	Name = "ADMIN ABUSE",
+	Luck = 10,
+	CashRain = true,
+	AllMutated = true,
+	PriceMultiplier = 0.5,
+	TraitLuck = 5,
+	AdminAbuse = true,
+	Sky = "Admin",
+	Particles = "Confetti",
+})
 
 local GameConfig = {
 	-- Conveyor
@@ -85,6 +105,7 @@ local GameConfig = {
 	EventMaxGapSeconds = 8 * 60,
 	EventDurationSeconds = 3 * 60,
 	Events = table.freeze(EVENTS),
+	AdminAbuseEvent = ADMIN_ABUSE,
 	-- Cash Rain: coins land around the map; each is worth this many seconds of
 	-- the collector's income (at least CashRainMinCoin).
 	CashRainCoinsPerWave = 12,

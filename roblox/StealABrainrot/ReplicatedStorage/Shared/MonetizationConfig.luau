@@ -27,6 +27,24 @@ local ProductIds = table.freeze({
 	SpikeTrap = 100006,
 	LandMine = 100007,
 	BoogieBomb = 100008,
+	GodLuckyBlock = 100009,
+	SecretLuckyBlock = 100010,
+	SpinPack = 100011,
+	CashBoost = 100012,
+	GalaxySkin = 100013,
+	RainbowSkin = 100014,
+})
+
+-- Lucky blocks bought with Robux land in your base (or wait until there's room).
+local LuckyBlockProducts: { [string]: string } = table.freeze({
+	GodLuckyBlock = "GodLuckyBlock",
+	SecretLuckyBlock = "SecretLuckyBlock",
+})
+
+-- Base skins bought with Robux (see GameConfig.BaseSkins).
+local SkinProducts: { [string]: string } = table.freeze({
+	GalaxySkin = "Galaxy",
+	RainbowSkin = "Rainbow",
 })
 
 -- Troll items: each purchase adds this many uses of the tool (saved).
@@ -38,8 +56,11 @@ local ItemCharges: { [string]: number } = table.freeze({
 })
 
 local GamePasses: { [string]: number } = table.freeze({
+	-- +15% income and an extra free spin every day (FeatureConfig).
 	VIP = 200001,
 	DoubleCash = 200002,
+	-- Your base lock lasts twice as long.
+	LongLock = 200003,
 })
 
 local SMALL_CASH_BUNDLE_AMOUNT = 5000
@@ -47,6 +68,9 @@ local MEDIUM_CASH_BUNDLE_AMOUNT = 25000
 local LASER_BYPASS_DURATION_SECONDS = 30
 local SERVER_RARITY_BOOST_DURATION_SECONDS = 15 * 60
 local SERVER_RARITY_BOOST_MULTIPLIER = 2
+local SPIN_PACK_SPINS = 3
+local CASH_BOOST_SECONDS = 30 * 60
+local CASH_BOOST_MULTIPLIER = 2
 
 local ShopProducts: { ShopProduct } = {
 	{
@@ -125,6 +149,60 @@ local ShopProducts: { ShopProduct } = {
 		IconText = "♪",
 		IconColor = Color3.fromRGB(230, 70, 200),
 	},
+	{
+		Key = "GodLuckyBlock",
+		ProductId = ProductIds.GodLuckyBlock,
+		DisplayName = "Brainrot God Lucky Block",
+		Description = "Opens into a Mythic, a Brainrot God or even a Secret!",
+		IconAssetId = 0,
+		IconText = "?",
+		IconColor = Color3.fromRGB(255, 120, 255),
+	},
+	{
+		Key = "SecretLuckyBlock",
+		ProductId = ProductIds.SecretLuckyBlock,
+		DisplayName = "Secret Lucky Block",
+		Description = "Opens into a Brainrot God or a Secret. 30% Secret!",
+		IconAssetId = 0,
+		IconText = "?",
+		IconColor = Color3.fromRGB(30, 30, 30),
+	},
+	{
+		Key = "SpinPack",
+		ProductId = ProductIds.SpinPack,
+		DisplayName = string.format("%d Wheel Spins", SPIN_PACK_SPINS),
+		Description = "Spin the prize wheel for cash, lucky blocks and boosts.",
+		IconAssetId = 0,
+		IconText = "SPIN",
+		IconColor = Color3.fromRGB(255, 170, 40),
+	},
+	{
+		Key = "CashBoost",
+		ProductId = ProductIds.CashBoost,
+		DisplayName = "2x Cash (30 min)",
+		Description = "Every brainrot earns double for 30 minutes. Stacks up!",
+		IconAssetId = 0,
+		IconText = "2x",
+		IconColor = Color3.fromRGB(40, 190, 90),
+	},
+	{
+		Key = "GalaxySkin",
+		ProductId = ProductIds.GalaxySkin,
+		DisplayName = "Galaxy Base Skin",
+		Description = "Purple space neon for your whole base. Yours forever.",
+		IconAssetId = 0,
+		IconText = "*",
+		IconColor = Color3.fromRGB(120, 60, 230),
+	},
+	{
+		Key = "RainbowSkin",
+		ProductId = ProductIds.RainbowSkin,
+		DisplayName = "Rainbow Base Skin",
+		Description = "Your base glows through every colour. Yours forever.",
+		IconAssetId = 0,
+		IconText = "~",
+		IconColor = Color3.fromRGB(255, 90, 160),
+	},
 }
 
 return table.freeze({
@@ -137,5 +215,10 @@ return table.freeze({
 	ServerRarityBoostMultiplier = SERVER_RARITY_BOOST_MULTIPLIER,
 	DoubleCashIncomeMultiplier = 2,
 	ItemCharges = ItemCharges,
+	LuckyBlockProducts = LuckyBlockProducts,
+	SkinProducts = SkinProducts,
+	SpinPackSpins = SPIN_PACK_SPINS,
+	CashBoostSeconds = CASH_BOOST_SECONDS,
+	CashBoostMultiplier = CASH_BOOST_MULTIPLIER,
 	ShopProducts = table.freeze(ShopProducts),
 })
