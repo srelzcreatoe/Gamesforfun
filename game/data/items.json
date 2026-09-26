@@ -1,0 +1,7450 @@
+{
+ "items": [
+  {
+   "id": "a13_armor_boots",
+   "name": "Red Ribbon Army Boots (Android 13)",
+   "icon": "armors/a13_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "a13",
+    "set": "a13_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a13_armor_chestplate",
+   "name": "Red Ribbon Army Chestplate (Android 13)",
+   "icon": "armors/a13_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "a13",
+    "set": "a13_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a13_armor_leggings",
+   "name": "Red Ribbon Army Leggings (Android 13)",
+   "icon": "armors/a13_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "a13",
+    "set": "a13_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a14_armor_boots",
+   "name": "Red Ribbon Army Boots (Android 14)",
+   "icon": "armors/a14_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "a14",
+    "set": "a14_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a14_armor_chestplate",
+   "name": "Red Ribbon Army Chestplate (Android 14)",
+   "icon": "armors/a14_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "a14",
+    "set": "a14_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a14_armor_leggings",
+   "name": "Red Ribbon Army Leggings (Android 14)",
+   "icon": "armors/a14_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "a14",
+    "set": "a14_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a16_armor_boots",
+   "name": "Red Ribbon Army Boots (Android 16)",
+   "icon": "armors/a16_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "a16",
+    "set": "a16_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a16_armor_chestplate",
+   "name": "Red Ribbon Army Chestplate (Android 16)",
+   "icon": "armors/a16_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "a16",
+    "set": "a16_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a16_armor_leggings",
+   "name": "Red Ribbon Army Leggings (Android 16)",
+   "icon": "armors/a16_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "a16",
+    "set": "a16_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a17_armor_boots",
+   "name": "Red Ribbon Army Boots (Android 17)",
+   "icon": "armors/a17_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "a17",
+    "set": "a17_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a17_armor_chestplate",
+   "name": "Red Ribbon Army Chestplate (Android 17)",
+   "icon": "armors/a17_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "a17",
+    "set": "a17_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a17_armor_leggings",
+   "name": "Red Ribbon Army Leggings (Android 17)",
+   "icon": "armors/a17_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "a17",
+    "set": "a17_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a17_super_armor_boots",
+   "name": "Android 17 Boots (Super)",
+   "icon": "armors/a17_super_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "a17super",
+    "set": "a17_super_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a17_super_armor_chestplate",
+   "name": "Android 17 Chestplate (Super)",
+   "icon": "armors/a17_super_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "a17super",
+    "set": "a17_super_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a17_super_armor_leggings",
+   "name": "Android 17 Leggings (Super)",
+   "icon": "armors/a17_super_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "a17super",
+    "set": "a17_super_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a18_armor_boots",
+   "name": "Red Ribbon Army Boots (Android 18)",
+   "icon": "armors/a18_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "a18",
+    "set": "a18_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a18_armor_chestplate",
+   "name": "Red Ribbon Army Chestplate (Android 18)",
+   "icon": "armors/a18_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "a18",
+    "set": "a18_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a18_armor_leggings",
+   "name": "Red Ribbon Army Leggings (Android 18)",
+   "icon": "armors/a18_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "a18",
+    "set": "a18_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a18_cell_armor_boots",
+   "name": "Android 18 Boots (Cell Saga)",
+   "icon": "armors/a18_cell_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "a18cell",
+    "set": "a18_cell_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a18_cell_armor_chestplate",
+   "name": "Android 18 Chestplate (Cell Saga)",
+   "icon": "armors/a18_cell_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "a18cell",
+    "set": "a18_cell_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a18_cell_armor_leggings",
+   "name": "Android 18 Leggings (Cell Saga)",
+   "icon": "armors/a18_cell_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "a18cell",
+    "set": "a18_cell_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a18_kame_armor_boots",
+   "name": "Android 18 Boots (Kame House)",
+   "icon": "armors/a18_kame_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "a18kame",
+    "set": "a18_kame_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a18_kame_armor_chestplate",
+   "name": "Android 18 Chestplate (Kame House)",
+   "icon": "armors/a18_kame_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "a18kame",
+    "set": "a18_kame_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a18_kame_armor_leggings",
+   "name": "Android 18 Leggings (Kame House)",
+   "icon": "armors/a18_kame_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "a18kame",
+    "set": "a18_kame_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a18_tournament_armor_boots",
+   "name": "Android 18 Boots (Tournament)",
+   "icon": "armors/a18_tournament_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "a18tournament",
+    "set": "a18_tournament_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a18_tournament_armor_chestplate",
+   "name": "Android 18 Chestplate (Tournament)",
+   "icon": "armors/a18_tournament_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "a18tournament",
+    "set": "a18_tournament_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a18_tournament_armor_leggings",
+   "name": "Android 18 Leggings (Tournament)",
+   "icon": "armors/a18_tournament_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "a18tournament",
+    "set": "a18_tournament_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a20_armor_boots",
+   "name": "Red Ribbon Army Boots (Android 20)",
+   "icon": "armors/a20_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "a20",
+    "set": "a20_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a20_armor_chestplate",
+   "name": "Red Ribbon Army Chestplate (Android 20)",
+   "icon": "armors/a20_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "a20",
+    "set": "a20_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a20_armor_helmet",
+   "name": "Red Ribbon Army Helmet (Android 20)",
+   "icon": "armors/a20_armor_helmet",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "head",
+    "defense": 5,
+    "layer": "a20",
+    "set": "a20_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "a20_armor_leggings",
+   "name": "Red Ribbon Army Leggings (Android 20)",
+   "icon": "armors/a20_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "a20",
+    "set": "a20_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "age1000_armor_boots",
+   "name": "Capsule Corp Boots (Age 1000)",
+   "icon": "armors/age1000_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 4,
+    "layer": "age1000",
+    "set": "age1000_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "age1000_armor_chestplate",
+   "name": "Capsule Corp Chestplate (Age 1000)",
+   "icon": "armors/age1000_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 8,
+    "layer": "age1000",
+    "set": "age1000_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "age1000_armor_leggings",
+   "name": "Capsule Corp Leggings (Age 1000)",
+   "icon": "armors/age1000_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 6,
+    "layer": "age1000",
+    "set": "age1000_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "bardock_dbz_armor_boots",
+   "name": "Saiyan Armor Boots (Bardock - DBZ)",
+   "icon": "armors/bardock_dbz_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "bardock_armor",
+    "set": "bardock_dbz_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "bardock_dbz_armor_chestplate",
+   "name": "Saiyan Armor Chestplate (Bardock - DBZ)",
+   "icon": "armors/bardock_dbz_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "bardock_armor",
+    "set": "bardock_dbz_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "bardock_dbz_armor_leggings",
+   "name": "Saiyan Armor Leggings (Bardock - DBZ)",
+   "icon": "armors/bardock_dbz_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "bardock_armor",
+    "set": "bardock_dbz_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "bardock_super_armor_boots",
+   "name": "Saiyan Armor Boots (Bardock - DBSuper)",
+   "icon": "armors/bardock_super_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "bardockdbs_armor",
+    "set": "bardock_super_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "bardock_super_armor_chestplate",
+   "name": "Saiyan Armor Chestplate (Bardock - DBSuper)",
+   "icon": "armors/bardock_super_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "bardockdbs_armor",
+    "set": "bardock_super_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "bardock_super_armor_leggings",
+   "name": "Saiyan Armor Leggings (Bardock - DBSuper)",
+   "icon": "armors/bardock_super_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "bardockdbs_armor",
+    "set": "bardock_super_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "beerus_armor_boots",
+   "name": "God of Destruction Boots (Beerus)",
+   "icon": "armors/beerus_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 4,
+    "layer": "beerus",
+    "set": "beerus_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "beerus_armor_chestplate",
+   "name": "God of Destruction Chestplate (Beerus)",
+   "icon": "armors/beerus_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 8,
+    "layer": "beerus",
+    "set": "beerus_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "beerus_armor_leggings",
+   "name": "God of Destruction Leggings (Beerus)",
+   "icon": "armors/beerus_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 6,
+    "layer": "beerus",
+    "set": "beerus_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "blackgoku_armor_boots",
+   "name": "Black Turtle Hermit School GI Boots (Black Goku)",
+   "icon": "armors/blackgoku_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "blackgoku",
+    "set": "blackgoku_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "blackgoku_armor_chestplate",
+   "name": "Black Turtle Hermit School GI Chestplate (Black Goku)",
+   "icon": "armors/blackgoku_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "blackgoku",
+    "set": "blackgoku_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "blackgoku_armor_leggings",
+   "name": "Black Turtle Hermit School GI Leggings (Black Goku)",
+   "icon": "armors/blackgoku_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "blackgoku",
+    "set": "blackgoku_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "broly_super_armor_boots",
+   "name": "Saiyan Armor Boots (Broly)",
+   "icon": "armors/broly_super_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "broly_dbs",
+    "set": "broly_super_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "broly_super_armor_chestplate",
+   "name": "Saiyan Armor Chestplate (Broly)",
+   "icon": "armors/broly_super_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "broly_dbs",
+    "set": "broly_super_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "broly_super_armor_leggings",
+   "name": "Saiyan Armor Leggings (Broly)",
+   "icon": "armors/broly_super_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "broly_dbs",
+    "set": "broly_super_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "broly_z_armor_boots",
+   "name": "Control Jewelry Set Boots (Broly)",
+   "icon": "armors/broly_z_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "broly_dbz",
+    "set": "broly_z_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "broly_z_armor_chestplate",
+   "name": "Control Jewelry Set Chestplate (Broly)",
+   "icon": "armors/broly_z_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "broly_dbz",
+    "set": "broly_z_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "broly_z_armor_leggings",
+   "name": "Control Jewelry Set Leggings (Broly)",
+   "icon": "armors/broly_z_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "broly_dbz",
+    "set": "broly_z_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "capsule_corp_armor_boots",
+   "name": "Capsule Corp Boots",
+   "icon": "armors/capsule_corp_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "capsule_corp",
+    "set": "capsule_corp_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "capsule_corp_armor_chestplate",
+   "name": "Capsule Corp Chestplate",
+   "icon": "armors/capsule_corp_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "capsule_corp",
+    "set": "capsule_corp_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "capsule_corp_armor_leggings",
+   "name": "Capsule Corp Leggings",
+   "icon": "armors/capsule_corp_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "capsule_corp",
+    "set": "capsule_corp_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "caulifla_armor_boots",
+   "name": "Saiyan Armor Boots (Caulifla)",
+   "icon": "armors/caulifla_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "caulifla",
+    "set": "caulifla_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "caulifla_armor_chestplate",
+   "name": "Saiyan Armor Chestplate (Caulifla)",
+   "icon": "armors/caulifla_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "caulifla",
+    "set": "caulifla_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "caulifla_armor_leggings",
+   "name": "Saiyan Armor Leggings (Caulifla)",
+   "icon": "armors/caulifla_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "caulifla",
+    "set": "caulifla_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "chaoz_armor_boots",
+   "name": "Crane School GI Boots (Chaotzu)",
+   "icon": "armors/chaoz_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "chaoz",
+    "set": "chaoz_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "chaoz_armor_chestplate",
+   "name": "Crane School GI Chesptlate (Chaotzu)",
+   "icon": "armors/chaoz_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "chaoz",
+    "set": "chaoz_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "chaoz_armor_helmet",
+   "name": "Crane School GI Helmet (Chaotzu)",
+   "icon": "armors/chaoz_armor_helmet",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "head",
+    "defense": 2,
+    "layer": "chaoz",
+    "set": "chaoz_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "chaoz_armor_leggings",
+   "name": "Crane School GI Leggings (Chaotzu)",
+   "icon": "armors/chaoz_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "chaoz",
+    "set": "chaoz_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "cooler_soldier_armor_boots",
+   "name": "Cooler's Soldier Boots",
+   "icon": "armors/cooler_soldier_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "cooler_soldier",
+    "set": "cooler_soldier_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "cooler_soldier_armor_chestplate",
+   "name": "Cooler's Soldier Chestplate",
+   "icon": "armors/cooler_soldier_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "cooler_soldier",
+    "set": "cooler_soldier_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "cooler_soldier_armor_leggings",
+   "name": "Cooler's Soldier Leggings",
+   "icon": "armors/cooler_soldier_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "cooler_soldier",
+    "set": "cooler_soldier_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "demon_gi_blue_armor_boots",
+   "name": "Demon GI Boots (Gohan)",
+   "icon": "armors/demon_gi_blue_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "demon_gi_gohan",
+    "set": "demon_gi_blue_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "demon_gi_blue_armor_chestplate",
+   "name": "Demon GI Chestplate (Gohan)",
+   "icon": "armors/demon_gi_blue_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "demon_gi_gohan",
+    "set": "demon_gi_blue_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "demon_gi_blue_armor_leggings",
+   "name": "Demon GI Leggings (Gohan)",
+   "icon": "armors/demon_gi_blue_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "demon_gi_gohan",
+    "set": "demon_gi_blue_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "dragon_clan_armor_boots",
+   "name": "DBOnline Boots (Dragon)",
+   "icon": "armors/dragon_clan_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 4,
+    "layer": "dragon_clan",
+    "set": "dragon_clan_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "dragon_clan_armor_chestplate",
+   "name": "DBOnline Chestplate (Dragon)",
+   "icon": "armors/dragon_clan_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 8,
+    "layer": "dragon_clan",
+    "set": "dragon_clan_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "dragon_clan_armor_leggings",
+   "name": "DBOnline Leggings (Dragon)",
+   "icon": "armors/dragon_clan_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 6,
+    "layer": "dragon_clan",
+    "set": "dragon_clan_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "evil_buu_armor_boots",
+   "name": "Majin Boots (Evil Buu)",
+   "icon": "armors/evil_buu_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "evil_buu",
+    "set": "evil_buu_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "evil_buu_armor_chestplate",
+   "name": "Majin Chestplate (Evil Buu)",
+   "icon": "armors/evil_buu_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "evil_buu",
+    "set": "evil_buu_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "evil_buu_armor_leggings",
+   "name": "Majin Leggings (Evil Buu)",
+   "icon": "armors/evil_buu_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "evil_buu",
+    "set": "evil_buu_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "fighter_armor_boots",
+   "name": "DBOnline Boots (Fighter)",
+   "icon": "armors/fighter_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "fighter",
+    "set": "fighter_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "fighter_armor_chestplate",
+   "name": "DBOnline Chestplate (Fighter)",
+   "icon": "armors/fighter_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "fighter",
+    "set": "fighter_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "fighter_armor_leggings",
+   "name": "DBOnline Leggings (Fighter)",
+   "icon": "armors/fighter_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "fighter",
+    "set": "fighter_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "fusion_zamasu_armor_boots",
+   "name": "Kaioshin Boots (Fused Zamasu)",
+   "icon": "armors/fusion_zamasu_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 4,
+    "layer": "fzamasu_gi",
+    "set": "fusion_zamasu_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "fusion_zamasu_armor_chestplate",
+   "name": "Kaioshin Chestplate (Fused Zamasu)",
+   "icon": "armors/fusion_zamasu_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 8,
+    "layer": "fzamasu_gi",
+    "set": "fusion_zamasu_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "fusion_zamasu_armor_leggings",
+   "name": "Kaioshin Leggings (Fused Zamasu)",
+   "icon": "armors/fusion_zamasu_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 6,
+    "layer": "fzamasu_gi",
+    "set": "fusion_zamasu_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "future_gohan_armor_boots",
+   "name": "Turtle Hermit School GI Boots (Future Gohan)",
+   "icon": "armors/future_gohan_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "future_gohan",
+    "set": "future_gohan_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "future_gohan_armor_chestplate",
+   "name": "Turtle Hermit School GI Chestplate (Future Gohan)",
+   "icon": "armors/future_gohan_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "future_gohan",
+    "set": "future_gohan_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "future_gohan_armor_leggings",
+   "name": "Turtle Hermit School GI Leggings (Future Gohan)",
+   "icon": "armors/future_gohan_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "future_gohan",
+    "set": "future_gohan_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "gamma1_armor_boots",
+   "name": "Red Ribbon Army Boots (Gamma 1)",
+   "icon": "armors/gamma1_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "gamma1",
+    "set": "gamma1_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gamma1_armor_chestplate",
+   "name": "Red Ribbon Army Chestplate (Gamma 1)",
+   "icon": "armors/gamma1_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "gamma1",
+    "set": "gamma1_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gamma1_armor_leggings",
+   "name": "Red Ribbon Army Leggings (Gamma 1)",
+   "icon": "armors/gamma1_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "gamma1",
+    "set": "gamma1_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gamma2_armor_boots",
+   "name": "Red Ribbon Army Boots (Gamma 2)",
+   "icon": "armors/gamma2_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "gamma2",
+    "set": "gamma2_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gamma2_armor_chestplate",
+   "name": "Red Ribbon Army Chestplate (Gamma 2)",
+   "icon": "armors/gamma2_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "gamma2",
+    "set": "gamma2_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gamma2_armor_leggings",
+   "name": "Red Ribbon Army Leggings (Gamma 2)",
+   "icon": "armors/gamma2_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "gamma2",
+    "set": "gamma2_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gas_armor_boots",
+   "name": "Heata Family Boots (Gas)",
+   "icon": "armors/gas_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "gas",
+    "set": "gas_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gas_armor_chestplate",
+   "name": "Heata Family Chestplate (Gas)",
+   "icon": "armors/gas_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "gas",
+    "set": "gas_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gas_armor_leggings",
+   "name": "Heata Family Leggings (Gas)",
+   "icon": "armors/gas_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "gas",
+    "set": "gas_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gero_armor_boots",
+   "name": "Red Ribbon Army Boots (Dr. Gero)",
+   "icon": "armors/gero_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "gero",
+    "set": "gero_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gero_armor_chestplate",
+   "name": "Red Ribbon Army Chestplate (Dr. Gero)",
+   "icon": "armors/gero_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "gero",
+    "set": "gero_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gero_armor_leggings",
+   "name": "Red Ribbon Army Leggings (Dr. Gero)",
+   "icon": "armors/gero_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "gero",
+    "set": "gero_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gine_armor_boots",
+   "name": "Saiyan Armor Boots (Gine)",
+   "icon": "armors/gine_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "gine",
+    "set": "gine_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "gine_armor_chestplate",
+   "name": "Saiyan Armor Chestplate (Gine)",
+   "icon": "armors/gine_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "gine",
+    "set": "gine_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "gine_armor_leggings",
+   "name": "Saiyan Armor Leggings (Gine)",
+   "icon": "armors/gine_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "gine",
+    "set": "gine_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "gogeta_armor_boots",
+   "name": "Metamoran Suit Boots (Gogeta)",
+   "icon": "armors/gogeta_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "gogeta",
+    "set": "gogeta_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "gogeta_armor_chestplate",
+   "name": "Metamoran Suit Chestplate (Gogeta)",
+   "icon": "armors/gogeta_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "gogeta",
+    "set": "gogeta_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "gogeta_armor_leggings",
+   "name": "Metamoran Suit Leggings (Gogeta)",
+   "icon": "armors/gogeta_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "gogeta",
+    "set": "gogeta_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "gohan_super_armor_boots",
+   "name": "Demon GI Boots (Gohan - Super)",
+   "icon": "armors/gohan_super_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "gohan_dbs",
+    "set": "gohan_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "gohan_super_armor_chestplate",
+   "name": "Demon GI Chestplate (Gohan - Super)",
+   "icon": "armors/gohan_super_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "gohan_dbs",
+    "set": "gohan_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "gohan_super_armor_leggings",
+   "name": "Demon GI Leggings (Gohan - Super)",
+   "icon": "armors/gohan_super_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "gohan_dbs",
+    "set": "gohan_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_armor_boots",
+   "name": "Turtle Hermit School GI Boots (Goku)",
+   "icon": "armors/goku_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "goku_gi",
+    "set": "goku_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_armor_chestplate",
+   "name": "Turtle Hermit School GI Chestplate (Goku)",
+   "icon": "armors/goku_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "goku_gi",
+    "set": "goku_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_armor_leggings",
+   "name": "Turtle Hermit School GI Leggings (Goku)",
+   "icon": "armors/goku_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "goku_gi",
+    "set": "goku_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_gt_armor_boots",
+   "name": "Blue Master GI Boots (Goku - GT)",
+   "icon": "armors/goku_gt_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "goku_gt",
+    "set": "goku_gt_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_gt_armor_chestplate",
+   "name": "Blue Master GI Chestplate (Goku - GT)",
+   "icon": "armors/goku_gt_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "goku_gt",
+    "set": "goku_gt_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_gt_armor_leggings",
+   "name": "Blue Master GI Leggings (Goku - GT)",
+   "icon": "armors/goku_gt_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "goku_gt",
+    "set": "goku_gt_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_kaito_armor_boots",
+   "name": "Turtle Hermit School GI Boots (King Kai)",
+   "icon": "armors/goku_kaito_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "goku_gi",
+    "set": "goku_kaito_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_kaito_armor_chestplate",
+   "name": "Turtle Hermit School GI Chestplate (King Kai)",
+   "icon": "armors/goku_kaito_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "goku_gi",
+    "set": "goku_kaito_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_kaito_armor_leggings",
+   "name": "Turtle Hermit School GI Leggings (King Kai)",
+   "icon": "armors/goku_kaito_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "goku_gi",
+    "set": "goku_kaito_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_kid_armor_boots",
+   "name": "Red Turtle Hermit School GI Boots (Goku - Kid)",
+   "icon": "armors/goku_kid_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "goku_kid",
+    "set": "goku_kid_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_kid_armor_chestplate",
+   "name": "Red Turtle Hermit School GI Chestplate (Goku - Kid)",
+   "icon": "armors/goku_kid_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "goku_kid",
+    "set": "goku_kid_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_kid_armor_leggings",
+   "name": "Red Turtle Hermit School GI Leggings (Goku - Kid)",
+   "icon": "armors/goku_kid_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "goku_kid",
+    "set": "goku_kid_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_super_armor_boots",
+   "name": "Turtle Hermit School GI Boots (Goku - Super)",
+   "icon": "armors/goku_super_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "goku_super",
+    "set": "goku_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_super_armor_chestplate",
+   "name": "Turtle Hermit School GI Chestplate (Goku - Super)",
+   "icon": "armors/goku_super_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "goku_super",
+    "set": "goku_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_super_armor_leggings",
+   "name": "Turtle Hermit School GI Leggings (Goku - Super)",
+   "icon": "armors/goku_super_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "goku_super",
+    "set": "goku_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goku_whis_armor_boots",
+   "name": "Whis Symbol GI Boots (Goku)",
+   "icon": "armors/goku_whis_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 4,
+    "layer": "gokuwhis",
+    "set": "goku_whis_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "goku_whis_armor_chestplate",
+   "name": "Whis Symbol GI Chestplate (Goku)",
+   "icon": "armors/goku_whis_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 8,
+    "layer": "gokuwhis",
+    "set": "goku_whis_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "goku_whis_armor_leggings",
+   "name": "Whis Symbol GI Leggings (Goku)",
+   "icon": "armors/goku_whis_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 6,
+    "layer": "gokuwhis",
+    "set": "goku_whis_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "goten_armor_boots",
+   "name": "Turtle Hermit School GI Boots (Goten)",
+   "icon": "armors/goten_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "goten_gi",
+    "set": "goten_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goten_armor_chestplate",
+   "name": "Turtle Hermit School GI Chesplate (Goten)",
+   "icon": "armors/goten_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "goten_gi",
+    "set": "goten_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goten_armor_leggings",
+   "name": "Turtle Hermit School GI Leggings (Goten)",
+   "icon": "armors/goten_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "goten_gi",
+    "set": "goten_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goten_super_armor_boots",
+   "name": "Green Jacket Outfit Boots (Goten - Super)",
+   "icon": "armors/goten_super_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "goten_dbs",
+    "set": "goten_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goten_super_armor_chestplate",
+   "name": "Green Jacket Outfit (Goten - Super)",
+   "icon": "armors/goten_super_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "goten_dbs",
+    "set": "goten_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "goten_super_armor_leggings",
+   "name": "Green Jacket Outfit Leggings (Goten - Super)",
+   "icon": "armors/goten_super_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "goten_dbs",
+    "set": "goten_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "granola_armor_boots",
+   "name": "Cereal Armor Boots (Granolah)",
+   "icon": "armors/granola_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "granola",
+    "set": "granola_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "granola_armor_chestplate",
+   "name": "Cereal Armor Chestplate (Granolah)",
+   "icon": "armors/granola_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "granola",
+    "set": "granola_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "granola_armor_leggings",
+   "name": "Cereal Armor Leggings (Granolah)",
+   "icon": "armors/granola_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "granola",
+    "set": "granola_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "great_saiyaman_2_armor_boots",
+   "name": "Hero of Justice 2 Boots (Great Saiyaman 2)",
+   "icon": "armors/great_saiyaman_2_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "great_saiyaman_2",
+    "set": "great_saiyaman_2_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "great_saiyaman_2_armor_chestplate",
+   "name": "Hero of Justice 2 Chestplate (Great Saiyaman 2)",
+   "icon": "armors/great_saiyaman_2_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "great_saiyaman_2",
+    "set": "great_saiyaman_2_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "great_saiyaman_2_armor_helmet",
+   "name": "Hero of Justice 2 Helmet (Great Saiyaman 2)",
+   "icon": "armors/great_saiyaman_2_armor_helmet",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "head",
+    "defense": 2,
+    "layer": "great_saiyaman_2",
+    "set": "great_saiyaman_2_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "great_saiyaman_2_armor_leggings",
+   "name": "Hero of Justice 2 Leggings (Great Saiyaman 2)",
+   "icon": "armors/great_saiyaman_2_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "great_saiyaman_2",
+    "set": "great_saiyaman_2_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "great_saiyaman_armor_boots",
+   "name": "Hero of Justice Boots (Great Saiyaman)",
+   "icon": "armors/great_saiyaman_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "saiyaman_gi",
+    "set": "great_saiyaman_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "great_saiyaman_armor_chestplate",
+   "name": "Hero of Justice Chestplate (Great Saiyaman)",
+   "icon": "armors/great_saiyaman_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "saiyaman_gi",
+    "set": "great_saiyaman_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "great_saiyaman_armor_helmet",
+   "name": "Hero of Justice Helmet (Great Saiyaman)",
+   "icon": "armors/great_saiyaman_armor_helmet",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "head",
+    "defense": 2,
+    "layer": "saiyaman_gi",
+    "set": "great_saiyaman_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "great_saiyaman_armor_leggings",
+   "name": "Hero of Justice Leggings (Great Saiyaman)",
+   "icon": "armors/great_saiyaman_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "saiyaman_gi",
+    "set": "great_saiyaman_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "hit_armor_boots",
+   "name": "Assassin Boots (Hit)",
+   "icon": "armors/hit_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "hit",
+    "set": "hit_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "hit_armor_chestplate",
+   "name": "Assassin Chestplate (Hit)",
+   "icon": "armors/hit_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "hit",
+    "set": "hit_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "hit_armor_leggings",
+   "name": "Assassin Leggings (Hit)",
+   "icon": "armors/hit_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "hit",
+    "set": "hit_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "invencible_armor_boots",
+   "name": "Super Hero Armor Boots (Invincible)",
+   "icon": "armors/invencible_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 6,
+    "layer": "invencible",
+    "set": "invencible_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "invencible_armor_chestplate",
+   "name": "Super Hero Armor Chestplate (Invincible)",
+   "icon": "armors/invencible_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 10,
+    "layer": "invencible",
+    "set": "invencible_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "invencible_armor_helmet",
+   "name": "Super Hero Armor Helmet (Invincible)",
+   "icon": "armors/invencible_armor_helmet",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "head",
+    "defense": 6,
+    "layer": "invencible",
+    "set": "invencible_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "invencible_armor_leggings",
+   "name": "Super Hero Armor Leggings (Invincible)",
+   "icon": "armors/invencible_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 8,
+    "layer": "invencible",
+    "set": "invencible_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "invencible_blue_armor_boots",
+   "name": "Super Hero Armor Boots (Invincible)",
+   "icon": "armors/invencible_blue_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 6,
+    "layer": "invencible_blue",
+    "set": "invencible_blue_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "invencible_blue_armor_chestplate",
+   "name": "Super Hero Armor Chestplate (Invincible)",
+   "icon": "armors/invencible_blue_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 10,
+    "layer": "invencible_blue",
+    "set": "invencible_blue_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "invencible_blue_armor_helmet",
+   "name": "Super Hero Armor Helmet (Invincible)",
+   "icon": "armors/invencible_blue_armor_helmet",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "head",
+    "defense": 6,
+    "layer": "invencible_blue",
+    "set": "invencible_blue_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "invencible_blue_armor_leggings",
+   "name": "Super Hero Armor Leggings (Invincible)",
+   "icon": "armors/invencible_blue_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 8,
+    "layer": "invencible_blue",
+    "set": "invencible_blue_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "kale_armor_boots",
+   "name": "Saiyan Armor Boots (Kale)",
+   "icon": "armors/kale_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "kale",
+    "set": "kale_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "kale_armor_chestplate",
+   "name": "Saiyan Armor Chestplate (Kale)",
+   "icon": "armors/kale_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "kale",
+    "set": "kale_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "kale_armor_leggings",
+   "name": "Saiyan Armor Leggings (Kale)",
+   "icon": "armors/kale_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "kale",
+    "set": "kale_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "kefla_armor_boots",
+   "name": "Saiyan Armor Boots (Kefla)",
+   "icon": "armors/kefla_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "kefla",
+    "set": "kefla_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "kefla_armor_chestplate",
+   "name": "Saiyan Armor Chestplate (Kefla)",
+   "icon": "armors/kefla_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "kefla",
+    "set": "kefla_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "kefla_armor_leggings",
+   "name": "Saiyan Armor Leggings (Kefla)",
+   "icon": "armors/kefla_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "kefla",
+    "set": "kefla_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "kibito_armor_boots",
+   "name": "Kaioshin Boots (Kibito)",
+   "icon": "armors/kibito_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 4,
+    "layer": "kibito",
+    "set": "kibito_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "kibito_armor_chestplate",
+   "name": "Kaioshin Chestplate (Kibito)",
+   "icon": "armors/kibito_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 8,
+    "layer": "kibito",
+    "set": "kibito_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "kibito_armor_leggings",
+   "name": "Kaioshin Leggings (Kibito)",
+   "icon": "armors/kibito_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 6,
+    "layer": "kibito",
+    "set": "kibito_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "king_vegeta_armor_boots",
+   "name": "Royal Armor Boots (King Vegeta)",
+   "icon": "armors/king_vegeta_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "king_vegeta",
+    "set": "king_vegeta_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "king_vegeta_armor_chestplate",
+   "name": "Royal Armor Chestplate (King Vegeta)",
+   "icon": "armors/king_vegeta_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "king_vegeta",
+    "set": "king_vegeta_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "king_vegeta_armor_leggings",
+   "name": "Royal Armor Leggings (King Vegeta)",
+   "icon": "armors/king_vegeta_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "king_vegeta",
+    "set": "king_vegeta_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "majin21_armor_boots",
+   "name": "Android 21 Boots (Majin)",
+   "icon": "armors/majin21_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 5,
+    "layer": "majin21",
+    "set": "majin21_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "majin21_armor_chestplate",
+   "name": "Android 21 Chestplate (Majin)",
+   "icon": "armors/majin21_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 9,
+    "layer": "majin21",
+    "set": "majin21_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "majin21_armor_leggings",
+   "name": "Android 21 Leggings (Majin)",
+   "icon": "armors/majin21_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 7,
+    "layer": "majin21",
+    "set": "majin21_armor"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "majin_buu_armor_boots",
+   "name": "Majin Boots (Buu)",
+   "icon": "armors/majin_buu_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "majinbuu_gi",
+    "set": "majin_buu_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "majin_buu_armor_chestplate",
+   "name": "Majin Chestplate (Buu)",
+   "icon": "armors/majin_buu_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "majinbuu_gi",
+    "set": "majin_buu_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "majin_buu_armor_leggings",
+   "name": "Majin Leggings (Buu)",
+   "icon": "armors/majin_buu_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "majinbuu_gi",
+    "set": "majin_buu_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "mighty_majin_armor_boots",
+   "name": "DBOnline Boots (Mighty)",
+   "icon": "armors/mighty_majin_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 6,
+    "layer": "mighty_majin",
+    "set": "mighty_majin_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "mighty_majin_armor_chestplate",
+   "name": "DBOnline Chestplate (Mighty)",
+   "icon": "armors/mighty_majin_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 10,
+    "layer": "mighty_majin",
+    "set": "mighty_majin_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "mighty_majin_armor_leggings",
+   "name": "DBOnline Leggings (Mighty)",
+   "icon": "armors/mighty_majin_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 8,
+    "layer": "mighty_majin",
+    "set": "mighty_majin_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "mystic_armor_boots",
+   "name": "DBOnline Boots (Mystic)",
+   "icon": "armors/mystic_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "mystic",
+    "set": "mystic_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "mystic_armor_chestplate",
+   "name": "DBOnline Chestplate (Mystic)",
+   "icon": "armors/mystic_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "mystic",
+    "set": "mystic_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "mystic_armor_leggings",
+   "name": "DBOnline Leggings (Mystic)",
+   "icon": "armors/mystic_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "mystic",
+    "set": "mystic_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "naruke_armor_boots",
+   "name": "Saiyan Armor Boots (narukebaransu)",
+   "icon": "armors/naruke_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 6,
+    "layer": "naruke",
+    "set": "naruke_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "naruke_armor_chestplate",
+   "name": "Saiyan Armor Chestplate (narukebaransu)",
+   "icon": "armors/naruke_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 10,
+    "layer": "naruke",
+    "set": "naruke_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "naruke_armor_leggings",
+   "name": "Saiyan Armor Leggings (narukebaransu)",
+   "icon": "armors/naruke_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 8,
+    "layer": "naruke",
+    "set": "naruke_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "orange_high_armor_boots",
+   "name": "Orange Star High School Boots",
+   "icon": "armors/orange_high_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "orange_high",
+    "set": "orange_high_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "orange_high_armor_chestplate",
+   "name": "Orange Star High School Chestplate",
+   "icon": "armors/orange_high_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "orange_high",
+    "set": "orange_high_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "orange_high_armor_leggings",
+   "name": "Orange Star High School Leggings",
+   "icon": "armors/orange_high_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "orange_high",
+    "set": "orange_high_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "piccolo_armor_boots",
+   "name": "Demon GI Boots (Piccolo)",
+   "icon": "armors/piccolo_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "piccolo_gi",
+    "set": "piccolo_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "piccolo_armor_chestplate",
+   "name": "Demon GI Chestplate (Piccolo)",
+   "icon": "armors/piccolo_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "piccolo_gi",
+    "set": "piccolo_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "piccolo_armor_helmet",
+   "name": "Demon GI Turban (Piccolo)",
+   "icon": "armors/piccolo_armor_helmet",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "head",
+    "defense": 2,
+    "layer": "piccolo_gi",
+    "set": "piccolo_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "piccolo_armor_leggings",
+   "name": "Demon GI Leggings (Piccolo)",
+   "icon": "armors/piccolo_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "piccolo_gi",
+    "set": "piccolo_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pride_troops_armor_boots",
+   "name": "Pride Trooper Boots (U11)",
+   "icon": "armors/pride_troops_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "pride_troper",
+    "set": "pride_troops_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "pride_troops_armor_chestplate",
+   "name": "Pride Trooper Chestplate (U11)",
+   "icon": "armors/pride_troops_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "pride_troper",
+    "set": "pride_troops_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "pride_troops_armor_leggings",
+   "name": "Pride Trooper Leggings (U11)",
+   "icon": "armors/pride_troops_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "pride_troper",
+    "set": "pride_troops_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "raditz_armor_boots",
+   "name": "Saiyan Armor Boots (Raditz)",
+   "icon": "armors/raditz_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "raditz",
+    "set": "raditz_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "raditz_armor_chestplate",
+   "name": "Saiyan Armor Chestplate (Raditz)",
+   "icon": "armors/raditz_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "raditz",
+    "set": "raditz_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "raditz_armor_leggings",
+   "name": "Saiyan Armor Leggings (Raditz)",
+   "icon": "armors/raditz_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "raditz",
+    "set": "raditz_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "shin_armor_boots",
+   "name": "Kaioshin Boots (Shin)",
+   "icon": "armors/shin_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 4,
+    "layer": "kaioshin",
+    "set": "shin_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "shin_armor_chestplate",
+   "name": "Kaioshin Chestplate (Shin)",
+   "icon": "armors/shin_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 8,
+    "layer": "kaioshin",
+    "set": "shin_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "shin_armor_leggings",
+   "name": "Kaioshin Leggings (Shin)",
+   "icon": "armors/shin_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 6,
+    "layer": "kaioshin",
+    "set": "shin_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "slug_armor_boots",
+   "name": "Evil Namekian Boots (Slug)",
+   "icon": "armors/slug_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "slug",
+    "set": "slug_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "slug_armor_chestplate",
+   "name": "Evil Namekian Chestplate (Slug)",
+   "icon": "armors/slug_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "slug",
+    "set": "slug_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "slug_armor_helmet",
+   "name": "Evil Namekian Helmet (Slug)",
+   "icon": "armors/slug_armor_helmet",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "head",
+    "defense": 2,
+    "layer": "slug",
+    "set": "slug_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "slug_armor_leggings",
+   "name": "Evil Namekian Leggings (Slug)",
+   "icon": "armors/slug_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "slug",
+    "set": "slug_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "space_suit_boots",
+   "name": "Space Suit Boots",
+   "icon": "space_suit_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 1,
+    "layer": "space_suit",
+    "set": "space_suit",
+    "bonus": {
+     "oxygen": true
+    }
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "space_suit_chestplate",
+   "name": "Space Suit Chestplate",
+   "icon": "space_suit_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 3,
+    "layer": "space_suit",
+    "set": "space_suit",
+    "bonus": {
+     "oxygen": true
+    }
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "space_suit_helmet",
+   "name": "Space Suit Helmet",
+   "icon": "space_suit_helmet",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "head",
+    "defense": 1,
+    "layer": "space_suit",
+    "set": "space_suit",
+    "bonus": {
+     "oxygen": true
+    }
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "space_suit_leggings",
+   "name": "Space Suit Leggings",
+   "icon": "space_suit_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 2,
+    "layer": "space_suit",
+    "set": "space_suit",
+    "bonus": {
+     "oxygen": true
+    }
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "strongest_armor_boots",
+   "name": "The Strongest Boots (Gojo)",
+   "icon": "armors/strongest_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 6,
+    "layer": "strongest",
+    "set": "strongest_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "strongest_armor_chestplate",
+   "name": "The Strongest Chestplate (Gojo)",
+   "icon": "armors/strongest_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 10,
+    "layer": "strongest",
+    "set": "strongest_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "strongest_armor_leggings",
+   "name": "The Strongest Leggings (Gojo)",
+   "icon": "armors/strongest_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 8,
+    "layer": "strongest",
+    "set": "strongest_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "subaru_natsuki_arc6_armor_boots",
+   "name": "Subaru Natsuki Boots (Arc 6)",
+   "icon": "armors/subaru_natsuki_arc6_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 6,
+    "layer": "subaru_natsuki_arc6",
+    "set": "subaru_natsuki_arc6_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "subaru_natsuki_arc6_armor_chestplate",
+   "name": "Subaru Natsuki Chestplate (Arc 6)",
+   "icon": "armors/subaru_natsuki_arc6_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 10,
+    "layer": "subaru_natsuki_arc6",
+    "set": "subaru_natsuki_arc6_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "subaru_natsuki_arc6_armor_leggings",
+   "name": "Subaru Natsuki Leggings (Arc 6)",
+   "icon": "armors/subaru_natsuki_arc6_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 8,
+    "layer": "subaru_natsuki_arc6",
+    "set": "subaru_natsuki_arc6_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "subaru_natsuki_armor_boots",
+   "name": "Subaru Natsuki Boots (Casual)",
+   "icon": "armors/subaru_natsuki_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 6,
+    "layer": "subaru_natsuki",
+    "set": "subaru_natsuki_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "subaru_natsuki_armor_chestplate",
+   "name": "Subaru Natsuki Chestplate (Casual)",
+   "icon": "armors/subaru_natsuki_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 10,
+    "layer": "subaru_natsuki",
+    "set": "subaru_natsuki_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "subaru_natsuki_armor_leggings",
+   "name": "Subaru Natsuki Leggings (Casual)",
+   "icon": "armors/subaru_natsuki_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 8,
+    "layer": "subaru_natsuki",
+    "set": "subaru_natsuki_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "super_buu_armor_boots",
+   "name": "Majin Boots (Super Buu)",
+   "icon": "armors/super_buu_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "super_buu",
+    "set": "super_buu_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "super_buu_armor_chestplate",
+   "name": "Majin Chestplate (Super Buu)",
+   "icon": "armors/super_buu_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "super_buu",
+    "set": "super_buu_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "super_buu_armor_leggings",
+   "name": "Majin Leggings (Super Buu)",
+   "icon": "armors/super_buu_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "super_buu",
+    "set": "super_buu_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "thragg_armor_boots",
+   "name": "Viltrumite Boots (Thragg)",
+   "icon": "armors/thragg_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 6,
+    "layer": "thragg",
+    "set": "thragg_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "thragg_armor_chestplate",
+   "name": "Viltrumite Chestplate (Thragg)",
+   "icon": "armors/thragg_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 10,
+    "layer": "thragg",
+    "set": "thragg_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "thragg_armor_leggings",
+   "name": "Viltrumite Leggings (Thragg)",
+   "icon": "armors/thragg_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 8,
+    "layer": "thragg",
+    "set": "thragg_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "tien_armor_boots",
+   "name": "Crane School GI Boots (Tien)",
+   "icon": "armors/tien_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "tenshinhan_armor",
+    "set": "tien_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "tien_armor_chestplate",
+   "name": "Crane School GI Chestplate (Tien)",
+   "icon": "armors/tien_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "tenshinhan_armor",
+    "set": "tien_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "tien_armor_leggings",
+   "name": "Crane School GI Leggings (Tien)",
+   "icon": "armors/tien_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "tenshinhan_armor",
+    "set": "tien_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "trunks_kid_armor_boots",
+   "name": "Green GI Boots (Trunks - Kid)",
+   "icon": "armors/trunks_kid_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "trunks_gi",
+    "set": "trunks_kid_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "trunks_kid_armor_chestplate",
+   "name": "Green GI Chestplate (Trunks - Kid)",
+   "icon": "armors/trunks_kid_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "trunks_gi",
+    "set": "trunks_kid_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "trunks_kid_armor_leggings",
+   "name": "Green GI Leggings (Trunks - Kid)",
+   "icon": "armors/trunks_kid_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "trunks_gi",
+    "set": "trunks_kid_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "trunks_super_armor_boots",
+   "name": "Capsule Corp Jacket Boots (Trunks - Super)",
+   "icon": "armors/trunks_super_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "trunks_dbs",
+    "set": "trunks_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "trunks_super_armor_chestplate",
+   "name": "Capsule Corp Jacket Chestplate (Trunks - Super)",
+   "icon": "armors/trunks_super_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "trunks_dbs",
+    "set": "trunks_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "trunks_super_armor_leggings",
+   "name": "Capsule Corp Jacket Leggings (Trunks - Super)",
+   "icon": "armors/trunks_super_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "trunks_dbs",
+    "set": "trunks_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "trunks_z_armor_boots",
+   "name": "Capsule Corp Jacket Boots (Trunks - DBZ)",
+   "icon": "armors/trunks_z_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "trunks_armor",
+    "set": "trunks_z_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "trunks_z_armor_chestplate",
+   "name": "Capsule Corp Jacket Chestplate (Trunks - DBZ)",
+   "icon": "armors/trunks_z_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "trunks_armor",
+    "set": "trunks_z_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "trunks_z_armor_leggings",
+   "name": "Capsule Corp Jacket Leggings (Trunks- DBZ)",
+   "icon": "armors/trunks_z_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "trunks_armor",
+    "set": "trunks_z_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "turles_armor_boots",
+   "name": "Saiyan Armor Boots (Turles)",
+   "icon": "armors/turles_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "turles_armor",
+    "set": "turles_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "turles_armor_chestplate",
+   "name": "Saiyan Armor Chestplate (Turles)",
+   "icon": "armors/turles_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "turles_armor",
+    "set": "turles_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "turles_armor_leggings",
+   "name": "Saiyan Armor Leggings (Turles)",
+   "icon": "armors/turles_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "turles_armor",
+    "set": "turles_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_buu_armor_boots",
+   "name": "Blue Training Outfit Boots (Vegeta - Buu)",
+   "icon": "armors/vegeta_buu_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "vegetabuu",
+    "set": "vegeta_buu_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_buu_armor_chestplate",
+   "name": "Blue Training Outfit (Vegeta - Buu)",
+   "icon": "armors/vegeta_buu_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "vegetabuu",
+    "set": "vegeta_buu_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_buu_armor_leggings",
+   "name": "Blue Training Outfit Leggings (Vegeta - Buu)",
+   "icon": "armors/vegeta_buu_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "vegetabuu",
+    "set": "vegeta_buu_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_gt_armor_boots",
+   "name": "Vegeta Boots (GT)",
+   "icon": "armors/vegeta_gt_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "vegetagt",
+    "set": "vegeta_gt_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_gt_armor_chestplate",
+   "name": "Vegeta Chestplate (GT)",
+   "icon": "armors/vegeta_gt_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "vegetagt",
+    "set": "vegeta_gt_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_gt_armor_leggings",
+   "name": "Vegeta Leggings (GT)",
+   "icon": "armors/vegeta_gt_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "vegetagt",
+    "set": "vegeta_gt_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_namek_armor_boots",
+   "name": "Saiyan Armor Boots (Vegeta - Namek)",
+   "icon": "armors/vegeta_namek_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "vegetanamek_armor",
+    "set": "vegeta_namek_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_namek_armor_chestplate",
+   "name": "Saiyan Armor Chestplate (Vegeta - Namek)",
+   "icon": "armors/vegeta_namek_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "vegetanamek_armor",
+    "set": "vegeta_namek_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_namek_armor_leggings",
+   "name": "Saiyan Armor Leggings (Vegeta - Namek)",
+   "icon": "armors/vegeta_namek_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "vegetanamek_armor",
+    "set": "vegeta_namek_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_saiyan_armor_boots",
+   "name": "Saiyan Armor Boots (Vegeta - Saiyan)",
+   "icon": "armors/vegeta_saiyan_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "vegeta_saiyan_armor",
+    "set": "vegeta_saiyan_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_saiyan_armor_chestplate",
+   "name": "Saiyan Armor Chestplate (Vegeta - Saiyan)",
+   "icon": "armors/vegeta_saiyan_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "vegeta_saiyan_armor",
+    "set": "vegeta_saiyan_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_saiyan_armor_leggings",
+   "name": "Saiyan Armor Leggings (Vegeta - Saiyan)",
+   "icon": "armors/vegeta_saiyan_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "vegeta_saiyan_armor",
+    "set": "vegeta_saiyan_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_super_armor_boots",
+   "name": "Saiyan Armor Boots (Vegeta - Super)",
+   "icon": "armors/vegeta_super_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "vegetasuper",
+    "set": "vegeta_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "vegeta_super_armor_chestplate",
+   "name": "Saiyan Armor Chestplate (Vegeta - Super)",
+   "icon": "armors/vegeta_super_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "vegetasuper",
+    "set": "vegeta_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "vegeta_super_armor_leggings",
+   "name": "Saiyan Armor Leggings (Vegeta - Super)",
+   "icon": "armors/vegeta_super_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "vegetasuper",
+    "set": "vegeta_super_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "vegeta_whis_armor_boots",
+   "name": "Whis Symbol GI Boots (Vegeta)",
+   "icon": "armors/vegeta_whis_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 4,
+    "layer": "vegetawhis",
+    "set": "vegeta_whis_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_whis_armor_chestplate",
+   "name": "Whis Symbol GI Chestplate (Vegeta)",
+   "icon": "armors/vegeta_whis_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 8,
+    "layer": "vegetawhis",
+    "set": "vegeta_whis_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_whis_armor_leggings",
+   "name": "Whis Symbol GI Leggings (Vegeta)",
+   "icon": "armors/vegeta_whis_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 6,
+    "layer": "vegetawhis",
+    "set": "vegeta_whis_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_z_armor_boots",
+   "name": "Saiyan Armor Boots (Vegeta - Cell)",
+   "icon": "armors/vegeta_z_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 3,
+    "layer": "vegetaz_armor",
+    "set": "vegeta_z_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_z_armor_chestplate",
+   "name": "Saiyan Armor Chestplate (Vegeta - Cell)",
+   "icon": "armors/vegeta_z_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 7,
+    "layer": "vegetaz_armor",
+    "set": "vegeta_z_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegeta_z_armor_leggings",
+   "name": "Saiyan Armor Leggings (Vegeta - Cell)",
+   "icon": "armors/vegeta_z_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 5,
+    "layer": "vegetaz_armor",
+    "set": "vegeta_z_armor"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "vegetto_armor_boots",
+   "name": "Inverted Turtle Hermit School GI Boots (Vegito)",
+   "icon": "armors/vegetto_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "vegetto",
+    "set": "vegetto_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "vegetto_armor_chestplate",
+   "name": "Inverted Turtle Hermit School GI Chestplate (Vegito)",
+   "icon": "armors/vegetto_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "vegetto",
+    "set": "vegetto_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "vegetto_armor_leggings",
+   "name": "Inverted Turtle Hermit School GI Leggings (Vegito)",
+   "icon": "armors/vegetto_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "vegetto",
+    "set": "vegetto_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "vergil_armor_boots",
+   "name": "The Alpha and the Omega Boots (Vergil)",
+   "icon": "armors/vergil_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 6,
+    "layer": "vergil",
+    "set": "vergil_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "vergil_armor_chestplate",
+   "name": "The Alpha and the Omega Chestplate (Vergil)",
+   "icon": "armors/vergil_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 10,
+    "layer": "vergil",
+    "set": "vergil_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "vergil_armor_leggings",
+   "name": "The Alpha and the Omega Leggings (Vergil)",
+   "icon": "armors/vergil_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 8,
+    "layer": "vergil",
+    "set": "vergil_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "videl_armor_boots",
+   "name": "Videl Boots",
+   "icon": "armors/videl_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 2,
+    "layer": "videl",
+    "set": "videl_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "videl_armor_chestplate",
+   "name": "Videl Chestplate",
+   "icon": "armors/videl_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 5,
+    "layer": "videl",
+    "set": "videl_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "videl_armor_leggings",
+   "name": "Videl Leggings",
+   "icon": "armors/videl_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 4,
+    "layer": "videl",
+    "set": "videl_armor"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "warrior_clan_armor_boots",
+   "name": "DBOnline Boots (Warrior)",
+   "icon": "armors/warrior_clan_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 4,
+    "layer": "warrior_clan",
+    "set": "warrior_clan_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "warrior_clan_armor_chestplate",
+   "name": "DBOnline Chestplate (Warrior)",
+   "icon": "armors/warrior_clan_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 8,
+    "layer": "warrior_clan",
+    "set": "warrior_clan_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "warrior_clan_armor_leggings",
+   "name": "DBOnline Leggings (Warrior)",
+   "icon": "armors/warrior_clan_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 6,
+    "layer": "warrior_clan",
+    "set": "warrior_clan_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "whis_armor_boots",
+   "name": "Angel Boots (Whis)",
+   "icon": "armors/whis_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 4,
+    "layer": "whis",
+    "set": "whis_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "whis_armor_chestplate",
+   "name": "Angel Chestplate (Whis)",
+   "icon": "armors/whis_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 8,
+    "layer": "whis",
+    "set": "whis_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "whis_armor_leggings",
+   "name": "Angel Leggings (Whis)",
+   "icon": "armors/whis_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 6,
+    "layer": "whis",
+    "set": "whis_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "wonder_majin_armor_boots",
+   "name": "DBOnline Boots (Wonder)",
+   "icon": "armors/wonder_majin_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 6,
+    "layer": "wonder_majin",
+    "set": "wonder_majin_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "wonder_majin_armor_chestplate",
+   "name": "DBOnline Chestplate (Wonder)",
+   "icon": "armors/wonder_majin_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 10,
+    "layer": "wonder_majin",
+    "set": "wonder_majin_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "wonder_majin_armor_leggings",
+   "name": "DBOnline Leggings (Wonder)",
+   "icon": "armors/wonder_majin_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 8,
+    "layer": "wonder_majin",
+    "set": "wonder_majin_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "xeno_goku_armor_boots",
+   "name": "Time Patrol Boots (Goku Xeno)",
+   "icon": "armors/xeno_goku_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 6,
+    "layer": "xeno_goku",
+    "set": "xeno_goku_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "xeno_goku_armor_chestplate",
+   "name": "Time Patrol Chestplate (Goku Xeno)",
+   "icon": "armors/xeno_goku_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 10,
+    "layer": "xeno_goku",
+    "set": "xeno_goku_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "xeno_goku_armor_leggings",
+   "name": "Time Patrol Leggings (Goku Xeno)",
+   "icon": "armors/xeno_goku_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 8,
+    "layer": "xeno_goku",
+    "set": "xeno_goku_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "xeno_goku_patreon_armor_boots",
+   "name": "Time Patrol Boots (Goku Xeno Alternative)",
+   "icon": "armors/xeno_goku_patreon_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 6,
+    "layer": "xeno_goku_patreon",
+    "set": "xeno_goku_patreon_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "xeno_goku_patreon_armor_chestplate",
+   "name": "Time Patrol Chestplate (Goku Xeno Alternative)",
+   "icon": "armors/xeno_goku_patreon_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 10,
+    "layer": "xeno_goku_patreon",
+    "set": "xeno_goku_patreon_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "xeno_goku_patreon_armor_leggings",
+   "name": "Time Patrol Leggings (Goku Xeno Alternative)",
+   "icon": "armors/xeno_goku_patreon_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 8,
+    "layer": "xeno_goku_patreon",
+    "set": "xeno_goku_patreon_armor",
+    "bonus": {
+     "ki_regen": 0.15,
+     "defense_mult": 1.1
+    }
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "yardrat_armor_boots",
+   "name": "Yardrat Outfit Boots (Goku)",
+   "icon": "armors/yardrat_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 4,
+    "layer": "yardrat_gi",
+    "set": "yardrat_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "yardrat_armor_chestplate",
+   "name": "Yardrat Outfit Chestplate (Goku)",
+   "icon": "armors/yardrat_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 8,
+    "layer": "yardrat_gi",
+    "set": "yardrat_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "yardrat_armor_leggings",
+   "name": "Yardrat Outfit Leggings (Goku)",
+   "icon": "armors/yardrat_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 6,
+    "layer": "yardrat_gi",
+    "set": "yardrat_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "zamasu_armor_boots",
+   "name": "Kaioshin Boots (Zamasu)",
+   "icon": "armors/zamasu_armor_boots",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "feet",
+    "defense": 4,
+    "layer": "zamasu_gi",
+    "set": "zamasu_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "zamasu_armor_chestplate",
+   "name": "Kaioshin Chestplate (Zamasu)",
+   "icon": "armors/zamasu_armor_chestplate",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "chest",
+    "defense": 8,
+    "layer": "zamasu_gi",
+    "set": "zamasu_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "zamasu_armor_leggings",
+   "name": "Kaioshin Leggings (Zamasu)",
+   "icon": "armors/zamasu_armor_leggings",
+   "stack": 1,
+   "kind": "armor",
+   "armor": {
+    "slot": "legs",
+    "defense": 6,
+    "layer": "zamasu_gi",
+    "set": "zamasu_armor",
+    "bonus": {
+     "ki_regen": 0.1
+    }
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "blaster_cannon",
+   "name": "Blaster Cannon",
+   "icon": "blaster_cannon",
+   "stack": 1,
+   "kind": "weapon",
+   "weapon": {
+    "damage": 6.6,
+    "speed": 1.05,
+    "anim_set": "blaster",
+    "two_handed": true,
+    "crit_chance": 0.05,
+    "crit_damage": 0.1
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "brave_sword",
+   "name": "Brave Sword",
+   "icon": "weapons/brave_sword",
+   "stack": 1,
+   "kind": "weapon",
+   "weapon": {
+    "damage": 4.6,
+    "speed": 1.76,
+    "anim_set": "sword",
+    "two_handed": false,
+    "crit_chance": 0.1,
+    "crit_damage": 0.15
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "dimensional_sword",
+   "name": "Dimension Sword",
+   "icon": "weapons/dimensional_sword",
+   "stack": 1,
+   "kind": "weapon",
+   "weapon": {
+    "damage": 7.8,
+    "speed": 1.2,
+    "anim_set": "claymore",
+    "two_handed": true,
+    "crit_chance": 0.2,
+    "crit_damage": 0.3
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "laser_merus",
+   "name": "Merus' Laser",
+   "icon": "laser_merus",
+   "stack": 1,
+   "kind": "weapon",
+   "weapon": {
+    "damage": 4.8,
+    "speed": 1.76,
+    "anim_set": "laser",
+    "two_handed": false,
+    "crit_chance": 0.1,
+    "crit_damage": 0.2
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "power_pole",
+   "name": "Power Pole",
+   "icon": "weapons/power_pole",
+   "stack": 1,
+   "kind": "weapon",
+   "weapon": {
+    "damage": 6.6,
+    "speed": 1.15,
+    "anim_set": "staff",
+    "two_handed": true,
+    "crit_chance": 0.15,
+    "crit_damage": 0.1
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "trunks_sword",
+   "name": "Trunks Sword",
+   "icon": "trunks_sword",
+   "stack": 1,
+   "kind": "weapon",
+   "weapon": {
+    "damage": 6.9,
+    "speed": 1.1,
+    "anim_set": "claymore",
+    "two_handed": true,
+    "crit_chance": 0.1,
+    "crit_damage": 0.15
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "yajirobe_katana",
+   "name": "Yajirobe's Katana",
+   "icon": "weapons/yajirobe_katana",
+   "stack": 1,
+   "kind": "weapon",
+   "weapon": {
+    "damage": 6.6,
+    "speed": 1.25,
+    "anim_set": "katana",
+    "two_handed": true,
+    "crit_chance": 0.25,
+    "crit_damage": 0.1
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "z_sword",
+   "name": "Z-Sword",
+   "icon": "z_sword",
+   "stack": 1,
+   "kind": "weapon",
+   "weapon": {
+    "damage": 8.1,
+    "speed": 1.15,
+    "anim_set": "claymore",
+    "two_handed": true,
+    "crit_chance": 0.15,
+    "crit_damage": 0.25
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "wooden_pickaxe",
+   "name": "Wooden Pickaxe",
+   "icon": "wooden_pickaxe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "pickaxe",
+    "tier": 1,
+    "speed": 2.0,
+    "durability": 60,
+    "damage": 2
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "wooden_axe",
+   "name": "Wooden Axe",
+   "icon": "wooden_axe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "axe",
+    "tier": 1,
+    "speed": 2.0,
+    "durability": 60,
+    "damage": 5
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "wooden_shovel",
+   "name": "Wooden Shovel",
+   "icon": "wooden_shovel",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "shovel",
+    "tier": 1,
+    "speed": 2.0,
+    "durability": 60,
+    "damage": 1
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "wooden_hoe",
+   "name": "Wooden Hoe",
+   "icon": "wooden_hoe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "hoe",
+    "tier": 1,
+    "speed": 2.0,
+    "durability": 60,
+    "damage": 1
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "wooden_sword",
+   "name": "Wooden Sword",
+   "icon": "wooden_sword",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "sword",
+    "tier": 1,
+    "speed": 2.0,
+    "durability": 60,
+    "damage": 4
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "stone_pickaxe",
+   "name": "Stone Pickaxe",
+   "icon": "stone_pickaxe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "pickaxe",
+    "tier": 2,
+    "speed": 4.0,
+    "durability": 130,
+    "damage": 3
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "stone_axe",
+   "name": "Stone Axe",
+   "icon": "stone_axe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "axe",
+    "tier": 2,
+    "speed": 4.0,
+    "durability": 130,
+    "damage": 6
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "stone_shovel",
+   "name": "Stone Shovel",
+   "icon": "stone_shovel",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "shovel",
+    "tier": 2,
+    "speed": 4.0,
+    "durability": 130,
+    "damage": 2
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "stone_hoe",
+   "name": "Stone Hoe",
+   "icon": "stone_hoe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "hoe",
+    "tier": 2,
+    "speed": 4.0,
+    "durability": 130,
+    "damage": 2
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "stone_sword",
+   "name": "Stone Sword",
+   "icon": "stone_sword",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "sword",
+    "tier": 2,
+    "speed": 4.0,
+    "durability": 130,
+    "damage": 5
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "iron_pickaxe",
+   "name": "Iron Pickaxe",
+   "icon": "iron_pickaxe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "pickaxe",
+    "tier": 3,
+    "speed": 6.0,
+    "durability": 250,
+    "damage": 4
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "iron_axe",
+   "name": "Iron Axe",
+   "icon": "iron_axe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "axe",
+    "tier": 3,
+    "speed": 6.0,
+    "durability": 250,
+    "damage": 7
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "iron_shovel",
+   "name": "Iron Shovel",
+   "icon": "iron_shovel",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "shovel",
+    "tier": 3,
+    "speed": 6.0,
+    "durability": 250,
+    "damage": 3
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "iron_hoe",
+   "name": "Iron Hoe",
+   "icon": "iron_hoe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "hoe",
+    "tier": 3,
+    "speed": 6.0,
+    "durability": 250,
+    "damage": 3
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "iron_sword",
+   "name": "Iron Sword",
+   "icon": "iron_sword",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "sword",
+    "tier": 3,
+    "speed": 6.0,
+    "durability": 250,
+    "damage": 6
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "golden_pickaxe",
+   "name": "Golden Pickaxe",
+   "icon": "golden_pickaxe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "pickaxe",
+    "tier": 1,
+    "speed": 12.0,
+    "durability": 32,
+    "damage": 2
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "golden_axe",
+   "name": "Golden Axe",
+   "icon": "golden_axe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "axe",
+    "tier": 1,
+    "speed": 12.0,
+    "durability": 32,
+    "damage": 5
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "golden_shovel",
+   "name": "Golden Shovel",
+   "icon": "golden_shovel",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "shovel",
+    "tier": 1,
+    "speed": 12.0,
+    "durability": 32,
+    "damage": 1
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "golden_hoe",
+   "name": "Golden Hoe",
+   "icon": "golden_hoe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "hoe",
+    "tier": 1,
+    "speed": 12.0,
+    "durability": 32,
+    "damage": 1
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "golden_sword",
+   "name": "Golden Sword",
+   "icon": "golden_sword",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "sword",
+    "tier": 1,
+    "speed": 12.0,
+    "durability": 32,
+    "damage": 4
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "diamond_pickaxe",
+   "name": "Diamond Pickaxe",
+   "icon": "diamond_pickaxe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "pickaxe",
+    "tier": 4,
+    "speed": 8.0,
+    "durability": 1560,
+    "damage": 5
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "diamond_axe",
+   "name": "Diamond Axe",
+   "icon": "diamond_axe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "axe",
+    "tier": 4,
+    "speed": 8.0,
+    "durability": 1560,
+    "damage": 8
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "diamond_shovel",
+   "name": "Diamond Shovel",
+   "icon": "diamond_shovel",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "shovel",
+    "tier": 4,
+    "speed": 8.0,
+    "durability": 1560,
+    "damage": 4
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "diamond_hoe",
+   "name": "Diamond Hoe",
+   "icon": "diamond_hoe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "hoe",
+    "tier": 4,
+    "speed": 8.0,
+    "durability": 1560,
+    "damage": 4
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "diamond_sword",
+   "name": "Diamond Sword",
+   "icon": "diamond_sword",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "sword",
+    "tier": 4,
+    "speed": 8.0,
+    "durability": 1560,
+    "damage": 7
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "kikono_pickaxe",
+   "name": "Kikono Pickaxe",
+   "icon": "kikono_pickaxe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "pickaxe",
+    "tier": 5,
+    "speed": 9.0,
+    "durability": 2000,
+    "damage": 6
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "kikono_axe",
+   "name": "Kikono Axe",
+   "icon": "kikono_axe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "axe",
+    "tier": 5,
+    "speed": 9.0,
+    "durability": 2000,
+    "damage": 9
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "kikono_shovel",
+   "name": "Kikono Shovel",
+   "icon": "kikono_shovel",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "shovel",
+    "tier": 5,
+    "speed": 9.0,
+    "durability": 2000,
+    "damage": 5
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "kikono_hoe",
+   "name": "Kikono Hoe",
+   "icon": "kikono_hoe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "hoe",
+    "tier": 5,
+    "speed": 9.0,
+    "durability": 2000,
+    "damage": 5
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "kikono_sword",
+   "name": "Kikono Sword",
+   "icon": "kikono_sword",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "sword",
+    "tier": 5,
+    "speed": 9.0,
+    "durability": 2000,
+    "damage": 8
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gete_pickaxe",
+   "name": "Gete Pickaxe",
+   "icon": "gete_pickaxe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "pickaxe",
+    "tier": 5,
+    "speed": 12.0,
+    "durability": 3000,
+    "damage": 7
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gete_axe",
+   "name": "Gete Axe",
+   "icon": "gete_axe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "axe",
+    "tier": 5,
+    "speed": 12.0,
+    "durability": 3000,
+    "damage": 10
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gete_shovel",
+   "name": "Gete Shovel",
+   "icon": "gete_shovel",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "shovel",
+    "tier": 5,
+    "speed": 12.0,
+    "durability": 3000,
+    "damage": 6
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gete_hoe",
+   "name": "Gete Hoe",
+   "icon": "gete_hoe",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "hoe",
+    "tier": 5,
+    "speed": 12.0,
+    "durability": 3000,
+    "damage": 6
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "gete_sword",
+   "name": "Gete Sword",
+   "icon": "gete_sword",
+   "stack": 1,
+   "kind": "tool",
+   "tool": {
+    "type": "sword",
+    "tier": 5,
+    "speed": 12.0,
+    "durability": 3000,
+    "damage": 9
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "blue_scouter",
+   "name": "Scouter (Blue)",
+   "icon": "blue_scouter",
+   "stack": 1,
+   "kind": "scouter",
+   "scouter": {
+    "color": "#2A8BE0"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "green_scouter",
+   "name": "Scouter (Green)",
+   "icon": "green_scouter",
+   "stack": 1,
+   "kind": "scouter",
+   "scouter": {
+    "color": "#3FD44F"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "purple_scouter",
+   "name": "Scouter (Purple)",
+   "icon": "purple_scouter",
+   "stack": 1,
+   "kind": "scouter",
+   "scouter": {
+    "color": "#A055D8"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "red_scouter",
+   "name": "Scouter (Red)",
+   "icon": "red_scouter",
+   "stack": 1,
+   "kind": "scouter",
+   "scouter": {
+    "color": "#E0402A"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "dragon_radar",
+   "name": "Dragon Radar (Earth)",
+   "icon": "dball_radar",
+   "stack": 1,
+   "kind": "radar",
+   "radar": {
+    "set": "earth"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "namek_dragon_radar",
+   "name": "Dragon Radar (Namek)",
+   "icon": "namekdball_radar",
+   "stack": 1,
+   "kind": "radar",
+   "radar": {
+    "set": "namek"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "fused_dragon_radar",
+   "name": "Bi-Dimensional Radar",
+   "icon": "dball_radar",
+   "stack": 1,
+   "kind": "radar",
+   "radar": {
+    "set": "fused"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "super_dragon_radar",
+   "name": "Super Dragon Radar",
+   "icon": "super_dball_radar",
+   "stack": 1,
+   "kind": "radar",
+   "radar": {
+    "set": "super"
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "cereal_dragon_radar",
+   "name": "Cerealian Dragon Radar",
+   "icon": "dball_radar",
+   "stack": 1,
+   "kind": "radar",
+   "radar": {
+    "set": "cereal"
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "dball1",
+   "name": "Dragon Ball (1 Star)",
+   "icon": "dball1",
+   "stack": 1,
+   "kind": "dragon_ball",
+   "dragon_ball": {
+    "set": "earth",
+    "star": 1
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "dball1_namek",
+   "name": "Namekian Dragon Ball (1 Star)",
+   "icon": "dball1_namek",
+   "stack": 1,
+   "kind": "dragon_ball",
+   "dragon_ball": {
+    "set": "namek",
+    "star": 1
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "dball2",
+   "name": "Dragon Ball (2 Star)",
+   "icon": "dball2",
+   "stack": 1,
+   "kind": "dragon_ball",
+   "dragon_ball": {
+    "set": "earth",
+    "star": 2
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "dball2_namek",
+   "name": "Namekian Dragon Ball (2 Star)",
+   "icon": "dball2_namek",
+   "stack": 1,
+   "kind": "dragon_ball",
+   "dragon_ball": {
+    "set": "namek",
+    "star": 2
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "dball3",
+   "name": "Dragon Ball (3 Star)",
+   "icon": "dball3",
+   "stack": 1,
+   "kind": "dragon_ball",
+   "dragon_ball": {
+    "set": "earth",
+    "star": 3
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "dball3_namek",
+   "name": "Namekian Dragon Ball (3 Star)",
+   "icon": "dball3_namek",
+   "stack": 1,
+   "kind": "dragon_ball",
+   "dragon_ball": {
+    "set": "namek",
+    "star": 3
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "dball4",
+   "name": "Dragon Ball (4 Star)",
+   "icon": "dball4",
+   "stack": 1,
+   "kind": "dragon_ball",
+   "dragon_ball": {
+    "set": "earth",
+    "star": 4
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "dball4_namek",
+   "name": "Namekian Dragon Ball (4 Star)",
+   "icon": "dball4_namek",
+   "stack": 1,
+   "kind": "dragon_ball",
+   "dragon_ball": {
+    "set": "namek",
+    "star": 4
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "dball5",
+   "name": "Dragon Ball (5 Star)",
+   "icon": "dball5",
+   "stack": 1,
+   "kind": "dragon_ball",
+   "dragon_ball": {
+    "set": "earth",
+    "star": 5
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "dball5_namek",
+   "name": "Namekian Dragon Ball (5 Star)",
+   "icon": "dball5_namek",
+   "stack": 1,
+   "kind": "dragon_ball",
+   "dragon_ball": {
+    "set": "namek",
+    "star": 5
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "dball6",
+   "name": "Dragon Ball (6 Star)",
+   "icon": "dball6",
+   "stack": 1,
+   "kind": "dragon_ball",
+   "dragon_ball": {
+    "set": "earth",
+    "star": 6
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "dball6_namek",
+   "name": "Namekian Dragon Ball (6 Star)",
+   "icon": "dball6_namek",
+   "stack": 1,
+   "kind": "dragon_ball",
+   "dragon_ball": {
+    "set": "namek",
+    "star": 6
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "dball7",
+   "name": "Dragon Ball (7 Star)",
+   "icon": "dball7",
+   "stack": 1,
+   "kind": "dragon_ball",
+   "dragon_ball": {
+    "set": "earth",
+    "star": 7
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "dball7_namek",
+   "name": "Namekian Dragon Ball (7 Star)",
+   "icon": "dball7_namek",
+   "stack": 1,
+   "kind": "dragon_ball",
+   "dragon_ball": {
+    "set": "namek",
+    "star": 7
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "capsule",
+   "name": "Capsule",
+   "icon": "capsule",
+   "stack": 16,
+   "kind": "capsule",
+   "capsule": {
+    "type": "empty"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "blue_capsule",
+   "name": "Blue Capsule",
+   "icon": "blue_capsule",
+   "stack": 16,
+   "kind": "capsule",
+   "capsule": {
+    "type": "capsule",
+    "color": "blue"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "gete_blue_capsule",
+   "name": "Gete Blue Capsule",
+   "icon": "gete_blue_capsule",
+   "stack": 16,
+   "kind": "capsule",
+   "capsule": {
+    "type": "gete_capsule",
+    "color": "blue"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "green_capsule",
+   "name": "Green Capsule",
+   "icon": "green_capsule",
+   "stack": 16,
+   "kind": "capsule",
+   "capsule": {
+    "type": "capsule",
+    "color": "green"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "gete_green_capsule",
+   "name": "Gete Green Capsule",
+   "icon": "gete_green_capsule",
+   "stack": 16,
+   "kind": "capsule",
+   "capsule": {
+    "type": "gete_capsule",
+    "color": "green"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "orange_capsule",
+   "name": "Orange Capsule",
+   "icon": "orange_capsule",
+   "stack": 16,
+   "kind": "capsule",
+   "capsule": {
+    "type": "capsule",
+    "color": "orange"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "gete_orange_capsule",
+   "name": "Gete Orange Capsule",
+   "icon": "gete_orange_capsule",
+   "stack": 16,
+   "kind": "capsule",
+   "capsule": {
+    "type": "gete_capsule",
+    "color": "orange"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "purple_capsule",
+   "name": "Purple Capsule",
+   "icon": "purple_capsule",
+   "stack": 16,
+   "kind": "capsule",
+   "capsule": {
+    "type": "capsule",
+    "color": "purple"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "gete_purple_capsule",
+   "name": "Gete Purple Capsule",
+   "icon": "gete_purple_capsule",
+   "stack": 16,
+   "kind": "capsule",
+   "capsule": {
+    "type": "gete_capsule",
+    "color": "purple"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "red_capsule",
+   "name": "Red Capsule",
+   "icon": "red_capsule",
+   "stack": 16,
+   "kind": "capsule",
+   "capsule": {
+    "type": "capsule",
+    "color": "red"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "gete_red_capsule",
+   "name": "Gete Red Capsule",
+   "icon": "gete_red_capsule",
+   "stack": 16,
+   "kind": "capsule",
+   "capsule": {
+    "type": "gete_capsule",
+    "color": "red"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "yellow_capsule",
+   "name": "Yellow Capsule",
+   "icon": "yellow_capsule",
+   "stack": 16,
+   "kind": "capsule",
+   "capsule": {
+    "type": "capsule",
+    "color": "yellow"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "gete_yellow_capsule",
+   "name": "Gete Yellow Capsule",
+   "icon": "gete_yellow_capsule",
+   "stack": 16,
+   "kind": "capsule",
+   "capsule": {
+    "type": "gete_capsule",
+    "color": "yellow"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "capsule_house",
+   "name": "Capsule House",
+   "icon": "capsule",
+   "stack": 1,
+   "kind": "capsule",
+   "capsule": {
+    "type": "house"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "saiyan_ship",
+   "name": "Saiyan Space Pod",
+   "icon": "saiyan_ship",
+   "stack": 1,
+   "kind": "vehicle",
+   "vehicle": "space_pod",
+   "rarity": "legendary"
+  },
+  {
+   "id": "flying_nimbus",
+   "name": "Flying Nimbus",
+   "icon": "flying_nimbus",
+   "stack": 1,
+   "kind": "vehicle",
+   "vehicle": "nimbus",
+   "rarity": "epic"
+  },
+  {
+   "id": "black_nimbus",
+   "name": "Black Nimbus",
+   "icon": "black_nimbus",
+   "stack": 1,
+   "kind": "vehicle",
+   "vehicle": "nimbus",
+   "rarity": "epic"
+  },
+  {
+   "id": "weight_piccolo_cape",
+   "name": "Weighted Cape",
+   "icon": "weight_piccolo_cape",
+   "stack": 1,
+   "kind": "weights",
+   "weights": {
+    "mult": 2.5
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "weight_turtle_shell",
+   "name": "Turtle Shell",
+   "icon": "weight_turtle_shell",
+   "stack": 1,
+   "kind": "weights",
+   "weights": {
+    "mult": 2.0
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "workout_weights",
+   "name": "Workout Weights",
+   "icon": "workout_weights",
+   "stack": 1,
+   "kind": "weights",
+   "weights": {
+    "mult": 1.5
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "hbtc_key",
+   "name": "HBTC Key",
+   "icon": "hbtc_key",
+   "stack": 1,
+   "kind": "key",
+   "key": {
+    "unlocks": "time_chamber"
+   },
+   "rarity": "legendary"
+  },
+  {
+   "id": "key",
+   "name": "Key",
+   "icon": "key",
+   "stack": 1,
+   "kind": "key",
+   "key": {
+    "unlocks": "door"
+   },
+   "rarity": "uncommon"
+  },
+  {
+   "id": "music_disc_1",
+   "name": "Music Disc - Dragon Ball OST - Bulma is Happy",
+   "desc": "Dragon Ball OST - Bulma is Happy",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-1"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_2",
+   "name": "Music Disc - Dragon Ball OST - Away on the Bike!",
+   "desc": "Dragon Ball OST - Away on the Bike!",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-2"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_3",
+   "name": "Music Disc - Dragon Ball OST - Goku's Dinner Bird",
+   "desc": "Dragon Ball OST - Goku's Dinner Bird",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-3"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_4",
+   "name": "Music Disc - Dragon Ball OST - Goku Leaves With Umigame",
+   "desc": "Dragon Ball OST - Goku Leaves With Umigame",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-4"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_5",
+   "name": "Music Disc - Dragon Ball OST - The Joys Of Travel",
+   "desc": "Dragon Ball OST - The Joys Of Travel",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-5"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_6",
+   "name": "Music Disc - Dragon Ball OST - Kame Sennin Prepares The Kamehameha",
+   "desc": "Dragon Ball OST - Kame Sennin Prepares The Kamehameha",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-6"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_7",
+   "name": "Music Disc - Dragon Ball OST - Kuririn Arrives by Boat",
+   "desc": "Dragon Ball OST - Kuririn Arrives by Boat",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-7"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_8",
+   "name": "Music Disc - Dragon Ball OST - Milk Delivery",
+   "desc": "Dragon Ball OST - Milk Delivery",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-8"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_9",
+   "name": "Music Disc - Dragon Ball OST - Climbing The Tower",
+   "desc": "Dragon Ball OST - Climbing The Tower",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-9"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_10",
+   "name": "Music Disc - Dragon Ball OST - Yajirobe in Action",
+   "desc": "Dragon Ball OST - Yajirobe in Action",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-10"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_11",
+   "name": "Music Disc - Dragon Ball Z OST - Prologue & Subtitle I",
+   "desc": "Dragon Ball Z OST - Prologue & Subtitle I",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-11"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_12",
+   "name": "Music Disc - Dragon Ball Z OST - Cha-La Head Cha-La (Variations)",
+   "desc": "Dragon Ball Z OST - Cha-La Head Cha-La (Variations)",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-12"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_13",
+   "name": "Music Disc - Dragon Ball Z OST - Bridge Collection",
+   "desc": "Dragon Ball Z OST - Bridge Collection",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-13"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_14",
+   "name": "Music Disc - Dragon Ball Z OST - Gohan's Theme",
+   "desc": "Dragon Ball Z OST - Gohan's Theme",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-14"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_15",
+   "name": "Music Disc - Dragon Ball Z OST - Alas, the Days of Training",
+   "desc": "Dragon Ball Z OST - Alas, the Days of Training",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-15"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_16",
+   "name": "Music Disc - Dragon Ball Z OST - Planet Namek and Hope Vanish",
+   "desc": "Dragon Ball Z OST - Planet Namek and Hope Vanish",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-16"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_17",
+   "name": "Music Disc - Dragon Ball Z OST - Dragon Ball Z",
+   "desc": "Dragon Ball Z OST - Dragon Ball Z",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-17"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_18",
+   "name": "Music Disc - Dragon Ball Z OST - The Strongest In This World",
+   "desc": "Dragon Ball Z OST - The Strongest In This World",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-18"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_19",
+   "name": "Music Disc - Dragon Ball Z OST - All's Well That Ends Well: One More Conclusion",
+   "desc": "Dragon Ball Z OST - All's Well That Ends Well: One More Conclusion",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-19"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_20",
+   "name": "Music Disc - Dragon Ball Z OST - Son Goku the Super Saiyajin",
+   "desc": "Dragon Ball Z OST - Son Goku the Super Saiyajin",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-20"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_21",
+   "name": "Music Disc - Dragon Ball Z OST - Goodbye Warriors",
+   "desc": "Dragon Ball Z OST - Goodbye Warriors",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-21"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_22",
+   "name": "Music Disc - Dragon Ball Z OST - Angel",
+   "desc": "Dragon Ball Z OST - Angel",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-22"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_23",
+   "name": "Music Disc - Dragon Ball Z OST - Enter A New Hero",
+   "desc": "Dragon Ball Z OST - Enter A New Hero",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-23"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_24",
+   "name": "Music Disc - Dragon Ball Z OST - Son Goku is the Strongest After All",
+   "desc": "Dragon Ball Z OST - Son Goku is the Strongest After All",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-24"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_25",
+   "name": "Music Disc - Dragon Ball Z OST - Danger!! The Super Warrior Can't Rest",
+   "desc": "Dragon Ball Z OST - Danger!! The Super Warrior Can't Rest",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-25"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_26",
+   "name": "Music Disc - Dragon Ball Super OST 12 Beerus' Tea Time",
+   "desc": "Dragon Ball Super OST 12 Beerus' Tea Time",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-26"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_27",
+   "name": "Music Disc - Dragon Ball Super OST 17 Under the Blue Sky",
+   "desc": "Dragon Ball Super OST 17 Under the Blue Sky",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-27"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_28",
+   "name": "Music Disc - Dragon Ball Super OST 40 Pleasant Days",
+   "desc": "Dragon Ball Super OST 40 Pleasant Days",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-28"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_29",
+   "name": "Music Disc - Dragon Ball Super OST 108 Limit-Break x Survivor",
+   "desc": "Dragon Ball Super OST 108 Limit-Break x Survivor",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-29"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_30",
+   "name": "Music Disc - Dragon Ball Super OST 21 Like That Cloud",
+   "desc": "Dragon Ball Super OST 21 Like That Cloud",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-30"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_34",
+   "name": "Music Disc - Kingdom Hearts II - Dearly Beloved",
+   "desc": "Kingdom Hearts II - Dearly Beloved by Yoko Shimomura",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-34"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_35",
+   "name": "Music Disc - Chainsaw Man: Reze Arc - in the pool",
+   "desc": "Chainsaw Man: Reze Arc - in the pool by Kensuke Ushio",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-35"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_36",
+   "name": "Music Disc - Saint Seiya - Sad Brothers",
+   "desc": "Saint Seiya - Sad Brothers by Seiji Yokoyama",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-36"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_37",
+   "name": "Music Disc - SAO: Aria of a Starless Night - we will finish this game",
+   "desc": "SAO: Aria of a Starless Night - we will finish this game by Yuki Kajiura",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-37"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_38",
+   "name": "Music Disc - Re: Zero - Styx Helix",
+   "desc": "Re: Zero - Styx Helix by MYTH & ROID",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-38"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "music_disc_39",
+   "name": "Music Disc - Re: Zero - Stay Alive ~Regain~",
+   "desc": "Re: Zero - Stay Alive ~Regain~ by Rie Takahashi",
+   "icon": "music_disc_dmz",
+   "stack": 1,
+   "kind": "music_disc",
+   "music_disc": {
+    "bgm": "menu_music-39"
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "cooked_baby_dino_meat",
+   "name": "Cooked Baby Dino Meat",
+   "icon": "cooked_baby_dino_meat",
+   "stack": 16,
+   "kind": "food",
+   "food": {
+    "hunger": 5,
+    "heal": 2
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "cooked_dino_meat",
+   "name": "Cooked Dino Meat",
+   "icon": "cooked_dino_meat",
+   "stack": 16,
+   "kind": "food",
+   "food": {
+    "hunger": 8,
+    "heal": 4
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "dino_tail_cooked",
+   "name": "Cooked Dino Tail",
+   "icon": "dino_tail_cooked",
+   "stack": 16,
+   "kind": "food",
+   "food": {
+    "hunger": 8,
+    "heal": 4
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "dino_tail_raw",
+   "name": "Raw Dino Tail",
+   "icon": "dino_tail_raw",
+   "stack": 16,
+   "kind": "food",
+   "food": {
+    "hunger": 3,
+    "heal": 0
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "frog_legs_cooked",
+   "name": "Cooked Frog Legs",
+   "icon": "frog_legs_cooked",
+   "stack": 16,
+   "kind": "food",
+   "food": {
+    "hunger": 5,
+    "heal": 2
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "frog_legs_raw",
+   "name": "Raw Frog Legs",
+   "icon": "frog_legs_raw",
+   "stack": 16,
+   "kind": "food",
+   "food": {
+    "hunger": 2,
+    "heal": 0
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "healing_liquid_bucket",
+   "name": "Healing Liquid Bucket",
+   "icon": "healing_liquid_bucket",
+   "stack": 1,
+   "kind": "food",
+   "food": {
+    "hunger": 0,
+    "heal": 100,
+    "ki": 50,
+    "stamina": 50,
+    "instant": true
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "heart_medicine",
+   "name": "Heart Medicine",
+   "icon": "heart_medicine",
+   "stack": 16,
+   "kind": "food",
+   "food": {
+    "hunger": 2,
+    "heal": 60,
+    "ki": 0,
+    "stamina": 0,
+    "instant": true,
+    "cures": true
+   },
+   "rarity": "rare"
+  },
+  {
+   "id": "might_tree_fruit",
+   "name": "Fruit of the Tree of Might",
+   "icon": "might_tree_fruit",
+   "stack": 16,
+   "kind": "food",
+   "food": {
+    "hunger": 10,
+    "heal": 40,
+    "ki": 250,
+    "stamina": 250,
+    "instant": true
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "namek_water_bucket",
+   "name": "Namek Water Bucket",
+   "icon": "namek_water_bucket",
+   "stack": 1,
+   "kind": "food",
+   "food": {
+    "hunger": 4,
+    "heal": 10,
+    "stamina": 40,
+    "instant": true
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "raw_baby_dino_meat",
+   "name": "Raw Baby Dino Meat",
+   "icon": "raw_baby_dino_meat",
+   "stack": 16,
+   "kind": "food",
+   "food": {
+    "hunger": 2,
+    "heal": 0
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "raw_dino_meat",
+   "name": "Raw Dino Meat",
+   "icon": "raw_dino_meat",
+   "stack": 16,
+   "kind": "food",
+   "food": {
+    "hunger": 3,
+    "heal": 0
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "senzu_bean",
+   "name": "Senzu Bean",
+   "icon": "senzu_bean",
+   "stack": 16,
+   "kind": "food",
+   "food": {
+    "hunger": 20,
+    "heal": 999,
+    "ki": 999,
+    "stamina": 999,
+    "instant": true
+   },
+   "rarity": "epic"
+  },
+  {
+   "id": "pattern_a13",
+   "name": "Red Ribbon Army Pattern (Android 13)",
+   "icon": "patterns/pattern_a13",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_a14",
+   "name": "Red Ribbon Army Pattern (Android 14)",
+   "icon": "patterns/pattern_a14",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_a16",
+   "name": "Red Ribbon Army Pattern (Android 16)",
+   "icon": "patterns/pattern_a16",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_a17",
+   "name": "Red Ribbon Army Pattern (Android 17)",
+   "icon": "patterns/pattern_a17",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_a17_super",
+   "name": "Android 17 Pattern (Super)",
+   "icon": "patterns/pattern_a17_super",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_a18",
+   "name": "Red Ribbon Army Pattern (Android 18)",
+   "icon": "patterns/pattern_a18",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_a18_cell",
+   "name": "Android 18 Pattern (Cell Saga)",
+   "icon": "patterns/pattern_a18_cell",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_a18_kame",
+   "name": "Android 18 Pattern (Kame House)",
+   "icon": "patterns/pattern_a18_kame",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_a18_tournament",
+   "name": "Android 18 Pattern (Tournament)",
+   "icon": "patterns/pattern_a18_tournament",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_a20",
+   "name": "Red Ribbon Army Pattern (Android 20)",
+   "icon": "patterns/pattern_a20",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_age1000",
+   "name": "Capsule Corp Pattern (Age 1000)",
+   "icon": "patterns/pattern_age1000",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_bardock1",
+   "name": "Saiyan Armor Pattern (Bardock) (DBZ)",
+   "icon": "patterns/pattern_bardock1",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_bardock2",
+   "name": "Saiyan Armor Pattern (Bardock) (DBSuper)",
+   "icon": "patterns/pattern_bardock2",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_beerus",
+   "name": "God of Destruction Pattern (Beerus)",
+   "icon": "patterns/pattern_beerus",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_black",
+   "name": "Black Turtle Hermit School GI Pattern (Black)",
+   "icon": "patterns/pattern_black",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_broly_super",
+   "name": "Saiyan Armor Pattern (Broly) (Super)",
+   "icon": "patterns/pattern_broly_super",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_broly_z",
+   "name": "Control Jewelry Set Pattern (Broly)",
+   "icon": "patterns/pattern_broly_z",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_capsule_corp",
+   "name": "Capsule Corp Pattern (Age 1000)",
+   "icon": "patterns/pattern_capsule_corp",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_caulifla",
+   "name": "Saiyan Pattern (Caulifla)",
+   "icon": "patterns/pattern_caulifla",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_chaoz",
+   "name": "Crane School Pattern (Chaoz)",
+   "icon": "patterns/pattern_chaoz",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_cooler_soldier",
+   "name": "Cooler's Soldier Pattern",
+   "icon": "patterns/pattern_cooler_soldier",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_dragon_clan",
+   "name": "DBOnline Armor Pattern (Dragon)",
+   "icon": "patterns/pattern_dragon_clan",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_evil_buu",
+   "name": "Majin Pattern (Evil Buu)",
+   "icon": "patterns/pattern_evil_buu",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_fighter",
+   "name": "DBOnline Armor Pattern (Fighter)",
+   "icon": "patterns/pattern_fighter",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_fusionzamasu",
+   "name": "Kaioshin Pattern (Fused Zamasu)",
+   "icon": "patterns/pattern_fusionzamasu",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_future_gohan",
+   "name": "Turtle Hermit School GI Pattern (Future Gohan)",
+   "icon": "patterns/pattern_future_gohan",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_gamma1",
+   "name": "Red Ribbon Army Pattern (Gamma 1)",
+   "icon": "patterns/pattern_gamma1",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_gamma2",
+   "name": "Red Ribbon Army Pattern (Gamma 2)",
+   "icon": "patterns/pattern_gamma2",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_gas",
+   "name": "Heata Family Pattern (Gas)",
+   "icon": "patterns/pattern_gas",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_gero",
+   "name": "Red Ribbon Army Pattern (Dr. Gero)",
+   "icon": "patterns/pattern_gero",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_gete",
+   "name": "Gete Pattern",
+   "icon": "patterns/pattern_gete",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_gine",
+   "name": "Saiyan Armor Pattern (Gine)",
+   "icon": "patterns/pattern_gine",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_gogeta",
+   "name": "Metamoran Suit Pattern (Gogeta)",
+   "icon": "patterns/pattern_gogeta",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_gohan1",
+   "name": "Demon GI Pattern (Gohan)",
+   "icon": "patterns/pattern_gohan1",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_gohan_super",
+   "name": "Demon GI Pattern (Gohan) (Super)",
+   "icon": "patterns/pattern_gohan_super",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_goku1",
+   "name": "Turtle Hermit School GI Pattern (Goku)",
+   "icon": "patterns/pattern_goku1",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_goku2",
+   "name": "Turtle Hermit School GI Pattern (Goku) (King Kai)",
+   "icon": "patterns/pattern_goku2",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_goku_gt",
+   "name": "Blue Master GI Pattern (Goku) (GT)",
+   "icon": "patterns/pattern_goku_gt",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_goku_kid",
+   "name": "Red Turtle Hermit School GI Pattern (Goku) (Kid)",
+   "icon": "patterns/pattern_goku_kid",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_goku_super",
+   "name": "Turtle Hermit School GI Pattern (Goku) (Super)",
+   "icon": "patterns/pattern_goku_super",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_goku_whis",
+   "name": "Whis Symbol GI Pattern (Goku)",
+   "icon": "patterns/pattern_goku_whis",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_goten",
+   "name": "Turtle Hermit School GI Pattern (Goten)",
+   "icon": "patterns/pattern_goten",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_goten_super",
+   "name": "Green Jacket Outfit Pattern (Goten) (Super)",
+   "icon": "patterns/pattern_goten_super",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_granola",
+   "name": "Cerealian Pattern (Granola)",
+   "icon": "patterns/pattern_granola",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_great_saiyaman",
+   "name": "Hero of Justice Pattern (Great Saiyaman)",
+   "icon": "patterns/pattern_great_saiyaman",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_great_saiyaman_2",
+   "name": "Hero of Justice 2 Pattern (Great Saiyaman 2)",
+   "icon": "patterns/pattern_great_saiyaman_2",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_hit",
+   "name": "Assassin Pattern (Hit)",
+   "icon": "patterns/pattern_hit",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_kale",
+   "name": "Saiyan Pattern (Kale)",
+   "icon": "patterns/pattern_kale",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_kefla",
+   "name": "Saiyan Pattern (Kefla)",
+   "icon": "patterns/pattern_kefla",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_kibito",
+   "name": "Kaioshin Pattern (Kibito)",
+   "icon": "patterns/pattern_kibito",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_king_vegeta",
+   "name": "Royal Armor Pattern (King Vegeta)",
+   "icon": "patterns/pattern_king_vegeta",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_majin21",
+   "name": "Majin Pattern (Android 21)",
+   "icon": "patterns/pattern_majin21",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_majin_buu",
+   "name": "Majin Pattern (Buu)",
+   "icon": "patterns/pattern_majin_buu",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_mighty_majin",
+   "name": "DBOnline Armor Pattern (Mighty)",
+   "icon": "patterns/pattern_mighty_majin",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_mystic",
+   "name": "DBOnline Armor Pattern (Mystic)",
+   "icon": "patterns/pattern_mystic",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_orange_high",
+   "name": "Orange Star High School Pattern",
+   "icon": "patterns/pattern_orange_high",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_piccolo",
+   "name": "Demon GI Pattern (Piccolo)",
+   "icon": "patterns/pattern_piccolo",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_pride_troops",
+   "name": "Pride Troops Pattern (U11)",
+   "icon": "patterns/pattern_pride_troops",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_raditz",
+   "name": "Saiyan Armor Pattern (Raditz)",
+   "icon": "patterns/pattern_raditz",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_shin",
+   "name": "Kaioshin Pattern (Shin)",
+   "icon": "patterns/pattern_shin",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_slug",
+   "name": "Evil Namekian Pattern (Slug)",
+   "icon": "patterns/pattern_slug",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_super_buu",
+   "name": "Majin Pattern (Super Buu)",
+   "icon": "patterns/pattern_super_buu",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_tien",
+   "name": "Crane School GI Pattern (Tien)",
+   "icon": "patterns/pattern_tien",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_trunks_kid",
+   "name": "Green GI Pattern (Trunks) (Kid)",
+   "icon": "patterns/pattern_trunks_kid",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_trunks_super",
+   "name": "Capsule Corp Jacket Pattern (Trunks) (Super)",
+   "icon": "patterns/pattern_trunks_super",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_trunks_z",
+   "name": "Capsule Corp Jacket Pattern (Trunks)",
+   "icon": "patterns/pattern_trunks_z",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_turles",
+   "name": "Saiyan Armor Pattern (Turles)",
+   "icon": "patterns/pattern_turles",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_vegeta1",
+   "name": "Saiyan Armor Pattern (Vegeta) (Saiyan)",
+   "icon": "patterns/pattern_vegeta1",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_vegeta2",
+   "name": "Saiyan Armor Pattern (Vegeta) (Namek)",
+   "icon": "patterns/pattern_vegeta2",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_vegeta_buu",
+   "name": "Blue Training Outfit Pattern (Vegeta) (Buu)",
+   "icon": "patterns/pattern_vegeta_buu",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_vegeta_gt",
+   "name": "Vegeta Pattern (GT)",
+   "icon": "patterns/pattern_vegeta_gt",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_vegeta_super",
+   "name": "Saiyan Armor Pattern (Vegeta) (Super)",
+   "icon": "patterns/pattern_vegeta_super",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_vegeta_whis",
+   "name": "Whis Symbol GI Pattern (Vegeta)",
+   "icon": "patterns/pattern_vegeta_whis",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_vegeta_z",
+   "name": "Saiyan Armor Pattern (Vegeta) (Cell)",
+   "icon": "patterns/pattern_vegeta_z",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_vegetto",
+   "name": "Inverted Turtle Hermit School GI Pattern (Vegito)",
+   "icon": "patterns/pattern_vegetto",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_vergil",
+   "name": "The Alpha and the Omega Pattern (Vergil)",
+   "icon": "patterns/pattern_vergil",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_videl",
+   "name": "Orange Star High School Pattern (Videl)",
+   "icon": "patterns/pattern_videl",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_warrior_clan",
+   "name": "DBOnline Armor Pattern (Warrior)",
+   "icon": "patterns/pattern_warrior_clan",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_whis",
+   "name": "Angel Pattern (Whis)",
+   "icon": "patterns/pattern_whis",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_wonder_majin",
+   "name": "DBOnline Armor Pattern (Wonder)",
+   "icon": "patterns/pattern_wonder_majin",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_xeno_goku",
+   "name": "Time Patrol Pattern (Goku Xeno)",
+   "icon": "patterns/pattern_xeno_goku",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_xeno_goku_patreon",
+   "name": "Time Patrol Pattern (Goku Xeno Alternative)",
+   "icon": "patterns/pattern_xeno_goku_patreon",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_yardrat",
+   "name": "Yardrat Outfit Pattern (Goku)",
+   "icon": "patterns/pattern_yardrat",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "pattern_zamasu",
+   "name": "Kaioshin Pattern (Zamasu)",
+   "icon": "patterns/pattern_zamasu",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "anti_ki_cloak",
+   "name": "Anti-Ki Cloaking Device",
+   "icon": "anti_ki_cloak",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "armor_crafting_kit",
+   "name": "Armor Crafting Kit",
+   "icon": "armor_crafting_kit",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "blank_pattern_super",
+   "name": "Blank Pattern (Super)",
+   "icon": "blank_pattern_super",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "blank_pattern_z",
+   "name": "Blank Pattern (Z)",
+   "icon": "blank_pattern_z",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "gete_ingot",
+   "name": "Gete Ingot",
+   "icon": "gete_ingot",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "rare"
+  },
+  {
+   "id": "gete_scrap",
+   "name": "Gete Scrap",
+   "icon": "gete_scrap",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "gete_smithing_template",
+   "name": "Gete Pattern",
+   "icon": "patterns/pattern_gete",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "green_pothala_left",
+   "name": "Green Pothala (Left)",
+   "icon": "green_pothala_left",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "green_pothala_pair",
+   "name": "Pair of Green Pothalas",
+   "icon": "green_pothala_pair",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "green_pothala_right",
+   "name": "Green Pothala (Right)",
+   "icon": "green_pothala_right",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "ki_battery",
+   "name": "Ki Battery",
+   "icon": "ki_battery",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "kikono_cloth",
+   "name": "Kikono Cloth",
+   "icon": "kikono_cloth",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "kikono_shard",
+   "name": "Kikono Shard",
+   "icon": "kikono_shard",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "kikono_stick",
+   "name": "Kikono Stick",
+   "icon": "kikono_stick",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "kikono_string",
+   "name": "Kikono String",
+   "icon": "kikono_string",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "pothala_left",
+   "name": "Pothala (Left)",
+   "icon": "pothala_left",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "pothala_pair",
+   "name": "Pair of Pothalas",
+   "icon": "pothala_pair",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "pothala_right",
+   "name": "Pothala (Right)",
+   "icon": "pothala_right",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "punch_machine_item",
+   "name": "Punch Machine",
+   "icon": "punch_machine_item",
+   "stack": 1,
+   "kind": "misc",
+   "rarity": "common"
+  },
+  {
+   "id": "radar_piece",
+   "name": "Radar's Piece",
+   "icon": "radar_piece",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "t1_radar_chip",
+   "name": "Radar's Chip (Earth)",
+   "icon": "t1_radar_chip",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "t1_radar_cpu",
+   "name": "Radar's CPU (Earth)",
+   "icon": "t1_radar_cpu",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "t2_radar_chip",
+   "name": "Radar's Chip (Namek)",
+   "icon": "t2_radar_chip",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "t2_radar_cpu",
+   "name": "Radar's CPU (Namek)",
+   "icon": "t2_radar_cpu",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "iron_ingot",
+   "name": "Iron Ingot",
+   "icon": "iron_ingot",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "gold_ingot",
+   "name": "Gold Ingot",
+   "icon": "gold_ingot",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "copper_ingot",
+   "name": "Copper Ingot",
+   "icon": "copper_ingot",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "raw_iron",
+   "name": "Raw Iron",
+   "icon": "raw_iron",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "raw_copper",
+   "name": "Raw Copper",
+   "icon": "raw_copper",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "raw_gold",
+   "name": "Raw Gold",
+   "icon": "raw_gold",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "coal",
+   "name": "Coal",
+   "icon": "coal",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "diamond",
+   "name": "Diamond",
+   "icon": "diamond",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "rare"
+  },
+  {
+   "id": "emerald",
+   "name": "Emerald",
+   "icon": "emerald",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "rare"
+  },
+  {
+   "id": "redstone",
+   "name": "Redstone",
+   "icon": "redstone",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "lapis_lazuli",
+   "name": "Lapis Lazuli",
+   "icon": "lapis_lazuli",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "glowstone_dust",
+   "name": "Glowstone Dust",
+   "icon": "glowstone_dust",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "kikono_dust",
+   "name": "Kikono Dust",
+   "icon": "kikono_dust",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "stick",
+   "name": "Stick",
+   "icon": "stick",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "bone",
+   "name": "Bone",
+   "icon": "bone",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "string",
+   "name": "String",
+   "icon": "string",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "leather",
+   "name": "Leather",
+   "icon": "leather",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "feather",
+   "name": "Feather",
+   "icon": "feather",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "book",
+   "name": "Book",
+   "icon": "book",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "paper",
+   "name": "Paper",
+   "icon": "paper",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "bowl",
+   "name": "Bowl",
+   "icon": "bowl",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "sugar",
+   "name": "Sugar",
+   "icon": "sugar",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "flint",
+   "name": "Flint",
+   "icon": "flint",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "bucket",
+   "name": "Bucket",
+   "icon": "bucket",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "water_bucket",
+   "name": "Water Bucket",
+   "icon": "water_bucket",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "lava_bucket",
+   "name": "Lava Bucket",
+   "icon": "lava_bucket",
+   "stack": 1,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "snowball",
+   "name": "Snowball",
+   "icon": "snowball",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "clay_ball",
+   "name": "Clay Ball",
+   "icon": "clay_ball",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "wheat_seeds",
+   "name": "Wheat Seeds",
+   "icon": "wheat_seeds",
+   "stack": 64,
+   "kind": "material",
+   "plant": {
+    "crop": "wheat"
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "beetroot_seeds",
+   "name": "Beetroot Seeds",
+   "icon": "beetroot_seeds",
+   "stack": 64,
+   "kind": "material",
+   "plant": {
+    "crop": "beetroot"
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "melon_seeds",
+   "name": "Melon Seeds",
+   "icon": "melon_seeds",
+   "stack": 64,
+   "kind": "material",
+   "plant": {
+    "crop": "melon"
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "pumpkin_seeds",
+   "name": "Pumpkin Seeds",
+   "icon": "pumpkin_seeds",
+   "stack": 64,
+   "kind": "material",
+   "plant": {
+    "crop": "pumpkin"
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "bread",
+   "name": "Bread",
+   "icon": "bread",
+   "stack": 64,
+   "kind": "food",
+   "food": {
+    "hunger": 5,
+    "heal": 1
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "carrot",
+   "name": "Carrot",
+   "icon": "carrot",
+   "stack": 64,
+   "kind": "food",
+   "food": {
+    "hunger": 3,
+    "heal": 1
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "potato",
+   "name": "Potato",
+   "icon": "potato",
+   "stack": 64,
+   "kind": "food",
+   "food": {
+    "hunger": 1,
+    "heal": 0
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "baked_potato",
+   "name": "Baked Potato",
+   "icon": "baked_potato",
+   "stack": 64,
+   "kind": "food",
+   "food": {
+    "hunger": 5,
+    "heal": 1
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "melon_slice",
+   "name": "Melon Slice",
+   "icon": "melon_slice",
+   "stack": 64,
+   "kind": "food",
+   "food": {
+    "hunger": 2,
+    "heal": 1
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "egg",
+   "name": "Egg",
+   "icon": "egg",
+   "stack": 64,
+   "kind": "food",
+   "food": {
+    "hunger": 1,
+    "heal": 0
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "cooked_meat",
+   "name": "Cooked Meat",
+   "icon": "cooked_meat",
+   "stack": 64,
+   "kind": "food",
+   "food": {
+    "hunger": 8,
+    "heal": 4
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "raw_meat",
+   "name": "Raw Meat",
+   "icon": "raw_meat",
+   "stack": 64,
+   "kind": "food",
+   "food": {
+    "hunger": 3,
+    "heal": 0
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "apple",
+   "name": "Apple",
+   "icon": "apple",
+   "stack": 64,
+   "kind": "food",
+   "food": {
+    "hunger": 4,
+    "heal": 1
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "beetroot",
+   "name": "Beetroot",
+   "icon": "beetroot",
+   "stack": 64,
+   "kind": "food",
+   "food": {
+    "hunger": 1,
+    "heal": 1
+   },
+   "rarity": "common"
+  },
+  {
+   "id": "senzu_bag",
+   "name": "Senzu Bag",
+   "icon": "senzu_bag",
+   "stack": 1,
+   "kind": "misc",
+   "rarity": "rare"
+  },
+  {
+   "id": "amethyst_shard",
+   "name": "Amethyst Shard",
+   "icon": "lapis_lazuli",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "blaze_rod",
+   "name": "Blaze Rod",
+   "icon": "stick",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "broken_scouter",
+   "name": "Broken Scouter",
+   "icon": "red_scouter",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "clock",
+   "name": "Clock",
+   "icon": "gold_ingot",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "copper_block",
+   "name": "Block of Copper",
+   "icon": "copper_ingot",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "lapis_block",
+   "name": "Block of Lapis Lazuli",
+   "icon": "lapis_lazuli",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "redstone_block",
+   "name": "Block of Redstone",
+   "icon": "redstone",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "ender_chest",
+   "name": "Ender Chest",
+   "icon": "block_chest",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "rare"
+  },
+  {
+   "id": "ender_eye",
+   "name": "Eye of Ender",
+   "icon": "emerald",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "rare"
+  },
+  {
+   "id": "ender_pearl",
+   "name": "Ender Pearl",
+   "icon": "emerald",
+   "stack": 16,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "energy_cable",
+   "name": "Energy Cable",
+   "icon": "iron_ingot",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "fuel_generator",
+   "name": "Fuel Generator",
+   "icon": "gete_ingot",
+   "stack": 16,
+   "kind": "material",
+   "rarity": "rare"
+  },
+  {
+   "id": "heavy_weighted_pressure_plate",
+   "name": "Heavy Weighted Pressure Plate",
+   "icon": "iron_ingot",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "common"
+  },
+  {
+   "id": "netherite_ingot",
+   "name": "Netherite Ingot",
+   "icon": "gete_ingot",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "epic"
+  },
+  {
+   "id": "observer",
+   "name": "Observer",
+   "icon": "redstone",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "piston",
+   "name": "Piston",
+   "icon": "iron_ingot",
+   "stack": 64,
+   "kind": "material",
+   "rarity": "uncommon"
+  },
+  {
+   "id": "cooked_beef",
+   "name": "Steak",
+   "icon": "cooked_meat",
+   "stack": 64,
+   "kind": "food",
+   "rarity": "common",
+   "food": {
+    "hunger": 8,
+    "heal": 4
+   }
+  },
+  {
+   "id": "glow_berries",
+   "name": "Glow Berries",
+   "icon": "apple",
+   "stack": 64,
+   "kind": "food",
+   "rarity": "common",
+   "food": {
+    "hunger": 2,
+    "heal": 1
+   }
+  },
+  {
+   "id": "golden_apple",
+   "name": "Golden Apple",
+   "icon": "apple",
+   "stack": 16,
+   "kind": "food",
+   "rarity": "rare",
+   "food": {
+    "hunger": 4,
+    "heal": 40,
+    "ki": 40,
+    "stamina": 40,
+    "instant": true
+   }
+  },
+  {
+   "id": "golden_carrot",
+   "name": "Golden Carrot",
+   "icon": "carrot",
+   "stack": 64,
+   "kind": "food",
+   "rarity": "uncommon",
+   "food": {
+    "hunger": 6,
+    "heal": 8
+   }
+  },
+  {
+   "id": "oxygen_supply_unit",
+   "name": "Oxygen Supply Unit",
+   "icon": "ki_battery",
+   "stack": 16,
+   "kind": "material",
+   "rarity": "rare"
+  },
+  {
+   "id": "thermal_regulator",
+   "name": "Thermal Regulator",
+   "icon": "anti_ki_cloak",
+   "stack": 16,
+   "kind": "material",
+   "rarity": "rare"
+  }
+ ]
+}

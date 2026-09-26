@@ -1,0 +1,74 @@
+{
+ "id": "30",
+ "dmz_id": 30,
+ "quest_id": "saga_movies:30",
+ "name": "Broly's Second Coming",
+ "desc": "Broly has returned in the frozen lands. Fight the Super Saiyan before his fury spreads.",
+ "title": "Broly's Second Coming",
+ "description": "Broly has returned in the frozen lands. Fight the Super Saiyan before his fury spreads.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 29,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2020
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:snowy_plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "22",
+    "quest": "saga_buu:22"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "29",
+    "quest": "saga_movies:29"
+   }
+  ]
+ },
+ "min_level": 2020,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_broly_ssj",
+   "entity_name": "Broly (Super Saiyan)",
+   "count": 1,
+   "health": 945000.0,
+   "meleeDamage": 39600.0,
+   "kiDamage": 35700.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 306200
+  }
+ ]
+}

@@ -1,0 +1,66 @@
+{
+ "id": "4",
+ "dmz_id": 4,
+ "quest_id": "saga_movies:4",
+ "name": "Frozen Biome Signal",
+ "desc": "A strange signal leads into a frozen biome. Investigate the ice before Dr. Wheelo's plan advances.",
+ "title": "Frozen Biome Signal",
+ "description": "A strange signal leads into a frozen biome. Investigate the ice before Dr. Wheelo's plan advances.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 3,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 48
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:snowy_plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "6",
+    "quest": "saga_saiyan:6"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "3",
+    "quest": "saga_movies:3"
+   }
+  ]
+ },
+ "min_level": 48,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "BIOME",
+   "biome": "minecraft:snowy_plains"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 10600
+  }
+ ]
+}

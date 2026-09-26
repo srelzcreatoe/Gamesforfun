@@ -1,0 +1,11 @@
+# Shared environment for the Godot/Android toolchain in this build environment.
+export SCRATCH="/tmp/claude-0/-home-user-Gamesforfun/a637a6ef-7708-59b3-aeb2-5b4698448421/scratchpad"
+export GODOT="$SCRATCH/godot/Godot_v4.4.1-stable_linux.x86_64"
+export ANDROID_HOME="$SCRATCH/android-sdk"
+export ANDROID_SDK_ROOT="$ANDROID_HOME"
+export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"
+export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH"
+export SANDBOX="$SCRATCH/sandbox"
+export REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export GAME="$REPO/game"
+export XVFB="xvfb-run -a -s '-screen 0 1280x720x24'"

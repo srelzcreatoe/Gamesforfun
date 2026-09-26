@@ -1,0 +1,68 @@
+{
+ "id": "6",
+ "dmz_id": 6,
+ "quest_id": "saga_future:6",
+ "name": "Imperfect Cell of the Future",
+ "desc": "A younger Imperfect Cell is stalking the plains, feeding on what remains of the future. Destroy him before he escapes into another timeline.",
+ "title": "Imperfect Cell of the Future",
+ "description": "A younger Imperfect Cell is stalking the plains, feeding on what remains of the future. Destroy him before he escapes into another timeline.",
+ "type": "SAGA",
+ "category": "saga_future",
+ "saga": "future_saga",
+ "order": 5,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1560
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "future_saga",
+    "questId": "5",
+    "quest": "saga_future:5"
+   }
+  ]
+ },
+ "min_level": 1560,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_cell_imperfect",
+   "entity_name": "Cell (Imperfect)",
+   "count": 1,
+   "health": 266000.0,
+   "meleeDamage": 11100.0,
+   "kiDamage": 10030.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 115200
+  }
+ ]
+}

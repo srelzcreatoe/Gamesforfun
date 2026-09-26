@@ -1,0 +1,69 @@
+{
+ "id": "2",
+ "dmz_id": 2,
+ "quest_id": "saga_buu:2",
+ "name": "Gravity Device Components",
+ "desc": "A full gravity device will need serious machinery. Gather Kikono station parts, a fuel generator, and enough cabling to support the training load.",
+ "title": "Gravity Device Components",
+ "description": "A full gravity device will need serious machinery. Gather Kikono station parts, a fuel generator, and enough cabling to support the training load.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 1,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1460
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "1",
+    "quest": "saga_buu:1"
+   }
+  ]
+ },
+ "min_level": 1460,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "kikono_station",
+   "count": 1
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "fuel_generator",
+   "count": 1
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "energy_cable",
+   "count": 8
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 79200
+  }
+ ]
+}

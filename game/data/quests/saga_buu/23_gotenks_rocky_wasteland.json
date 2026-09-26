@@ -1,0 +1,68 @@
+{
+ "id": "23",
+ "dmz_id": 23,
+ "quest_id": "saga_buu:23",
+ "name": "Gotenks at Full Power",
+ "desc": "Gotenks brings Super Saiyan 3 power to the rocky wasteland. Prove you can survive that pressure before facing Buu again.",
+ "title": "Gotenks at Full Power",
+ "description": "Gotenks brings Super Saiyan 3 power to the rocky wasteland. Prove you can survive that pressure before facing Buu again.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 22,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2040
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "22",
+    "quest": "saga_buu:22"
+   }
+  ]
+ },
+ "min_level": 2040,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_gotenks_ssj3",
+   "entity_name": "Gotenks (Super Saiyan 3)",
+   "count": 1,
+   "health": 472500.0,
+   "meleeDamage": 19800.0,
+   "kiDamage": 17850.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 201600
+  }
+ ]
+}

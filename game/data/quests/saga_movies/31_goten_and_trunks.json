@@ -1,0 +1,87 @@
+{
+ "id": "31",
+ "dmz_id": 31,
+ "quest_id": "saga_movies:31",
+ "name": "Goten and Trunks",
+ "desc": "Goten and Trunks rush into the battle. Defeat them in sparring combat before Broly returns.",
+ "title": "Goten and Trunks",
+ "description": "Goten and Trunks rush into the battle. Defeat them in sparring combat before Broly returns.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 30,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2030
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:snowy_plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "22",
+    "quest": "saga_buu:22"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "30",
+    "quest": "saga_movies:30"
+   }
+  ]
+ },
+ "min_level": 2030,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_goten",
+   "entity_name": "Goten",
+   "count": 1,
+   "health": 350000.0,
+   "meleeDamage": 14400.0,
+   "kiDamage": 13260.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_kid_trunks",
+   "entity_name": "Trunks",
+   "count": 1,
+   "health": 378000.0,
+   "meleeDamage": 15600.0,
+   "kiDamage": 14280.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 312500
+  }
+ ]
+}

@@ -1,0 +1,66 @@
+{
+ "id": "bulma_power_level_detector",
+ "dmz_id": "bulma_power_level_detector",
+ "quest_id": "sidequest_errands:bulma_power_level_detector",
+ "name": "Detector Upgrade",
+ "desc": "Upgrade Bulma's power-level detector with redstone, glass and amethyst.",
+ "title": "Detector Upgrade",
+ "description": "Upgrade Bulma's power-level detector with redstone, glass and amethyst.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_errands",
+ "order": 13,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "QUEST",
+    "questId": "bulma_scouter_bioscan",
+    "quest": "sidequest_tech:bulma_scouter_bioscan"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "redstone",
+   "count": 20
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "glass",
+   "count": 16
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "amethyst_shard",
+   "count": 8
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 36000
+  }
+ ]
+}

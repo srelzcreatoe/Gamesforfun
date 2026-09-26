@@ -1,0 +1,68 @@
+{
+ "id": "4",
+ "dmz_id": 4,
+ "quest_id": "saga_future:4",
+ "name": "Future Gohan's Last Stand",
+ "desc": "Future Gohan pushes himself into Super Saiyan for one final battle. Face him and carry his resolve forward.",
+ "title": "Future Gohan's Last Stand",
+ "description": "Future Gohan pushes himself into Super Saiyan for one final battle. Face him and carry his resolve forward.",
+ "type": "SAGA",
+ "category": "saga_future",
+ "saga": "future_saga",
+ "order": 3,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1480
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "future_saga",
+    "questId": "3",
+    "quest": "saga_future:3"
+   }
+  ]
+ },
+ "min_level": 1480,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_fgohan_ssj",
+   "entity_name": "Future Gohan (Super Saiyan)",
+   "count": 1,
+   "health": 238000.0,
+   "meleeDamage": 9600.0,
+   "kiDamage": 8840.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 89600
+  }
+ ]
+}

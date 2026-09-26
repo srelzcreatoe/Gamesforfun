@@ -1,0 +1,60 @@
+{
+ "id": "gohan_dragon_balls_namek",
+ "dmz_id": "gohan_dragon_balls_namek",
+ "quest_id": "sidequest_collection:gohan_dragon_balls_namek",
+ "name": "Summon Porunga",
+ "desc": "Guru entrusts you with the village's greatest hope. Find the seven Namekian Dragon Balls, summon Porunga, and return safely.",
+ "title": "Summon Porunga",
+ "description": "Guru entrusts you with the village's greatest hope. Find the seven Namekian Dragon Balls, summon Porunga, and return safely.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_collection",
+ "order": 6,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "guru",
+ "turn_in": "guru",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "3",
+    "quest": "saga_frieza:3"
+   },
+   {
+    "type": "QUEST",
+    "questId": "bulma_namek_research",
+    "quest": "sidequest_collection:bulma_namek_research"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "SUMMON",
+   "dmz_type": "DRAGON_SUMMON",
+   "dragon": "porunga",
+   "ball_set": "namek"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "guru",
+   "npcId": "guru"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 36000
+  }
+ ]
+}

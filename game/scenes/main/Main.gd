@@ -1,0 +1,286 @@
+extends Node
+## Root scene: boot, screen switching (menu / world) and the automated test harness.
+##
+## Command line user args (after "--"):
+##   --screenshot=<abs path>   save a PNG of the viewport after --after seconds and quit
+##   --after=<seconds>         default 6
+##   --autoplay[=<seed>]       skip menus, create a temporary world and spawn the player
+##   --planet=<id>             planet for autoplay (default earth)
+##   --race=<id>               race for autoplay (default saiyan)
+##   --creative                autoplay in creative mode
+##   --scene=<res path>        instantiate this scene under Screen instead of the menu (for UI checks)
+##   --quit-after=<seconds>    quit without screenshot
+
+const MAIN_MENU_SCENE := "res://scenes/ui/MainMenu.tscn"
+const WORLD_SCENE := "res://scenes/world/World.tscn"
+const UI_MANAGER_SCENE := "res://scenes/ui/UiManager.tscn"
+
+@onready var screen_root: Node = $Screen
+@onready var ui_layer: CanvasLayer = $UiLayer
+@onready var overlay: CanvasLayer = $Overlay
+
+var args: Dictionary = {}
+var _shot_timer := -1.0
+var _quit_timer := -1.0
+var _mem_timer := 0.0
+var _fps_label: Label
+
+func _ready() -> void:
+	_connect_breadcrumbs()
+	Game.main = self
+	_parse_args()
+	_setup_window()
+	if not Registry.loaded:
+		Registry.load_all()
+	if not Textures.built:
+		Textures.build_block_array()
+	_setup_ui_manager()
+	_setup_fps_label()
+	if args.has("scene"):
+		var packed: PackedScene = load(String(args["scene"]))
+		if packed != null:
+			var inst := packed.instantiate()
+			screen_root.add_child(inst)
+		else:
+			Log.e("Cannot load scene " + String(args["scene"]))
+	elif args.has("autoplay"):
+		_autoplay()
+	else:
+		show_main_menu()
+	if args.has("screenshot"):
+		_shot_timer = float(args.get("after", 6.0))
+	if args.has("quit-after"):
+		_quit_timer = float(args["quit-after"])
+
+func _parse_args() -> void:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--"):
+			var kv := a.substr(2).split("=", true, 1)
+			args[kv[0]] = kv[1] if kv.size() > 1 else true
+
+func _setup_window() -> void:
+	if Game.is_mobile():
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		DisplayServer.screen_set_keep_on(true)
+	get_tree().auto_accept_quit = true
+
+func _setup_ui_manager() -> void:
+	if ResourceLoader.exists(UI_MANAGER_SCENE):
+		var packed: PackedScene = load(UI_MANAGER_SCENE)
+		var inst := packed.instantiate()
+		ui_layer.add_child(inst)
+		Game.ui = inst
+
+func _setup_fps_label() -> void:
+	_fps_label = Label.new()
+	_fps_label.position = Vector2(12, 40)
+	_fps_label.modulate = Color(0.8, 0.9, 1.0, 0.9)
+	_fps_label.visible = bool(Game.settings.get("show_fps", false))
+	overlay.add_child(_fps_label)
+	Events.settings_changed.connect(func() -> void: _fps_label.visible = bool(Game.settings.get("show_fps", false)))
+
+## Boot breadcrumbs: user://boot.log records how far a session got, so a crash on a phone
+## (no console) can be located. Rewritten on every launch.
+const BOOT_LOG := "user://boot.log"
+var _boot_log: FileAccess = null
+
+func _breadcrumb(stage: String) -> void:
+	if _boot_log == null:
+		_boot_log = FileAccess.open(BOOT_LOG, FileAccess.WRITE)
+		if _boot_log == null:
+			return
+		_boot_log.store_line("Dragon Block Sagas %s | %s | %s | %s" % [Game.version, OS.get_name(),
+			OS.get_model_name(), RenderingServer.get_video_adapter_name()])
+	var line := "%8.2fs  %s  (static %.0f MB, textures %.0f MB)" % [
+		Time.get_ticks_msec() / 1000.0, stage,
+		Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
+		Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0]
+	_boot_log.store_line(line)
+	_boot_log.flush()
+	print("BREADCRUMB ", line)
+
+## The previous run's last breadcrumb, shown on the menu so a phone crash can be reported
+## without digging for the log file.
+var _last_run_label: Label = null
+
+const CRASH_FILE := "user://crashes.json"
+const WORLD_STAGES := ["enter world", "into world load", "first chunk", "player spawned", "world loaded", "after entering", "planet "]
+
+## Keep the crashed run's breadcrumbs: boot.log is overwritten by this launch, so copy it
+## to boot_prev.log first. The Crash log screen reads the copy.
+func _rotate_boot_log() -> void:
+	if not FileAccess.file_exists(BOOT_LOG):
+		return
+	var txt := FileAccess.get_file_as_string(BOOT_LOG)
+	if txt.strip_edges().is_empty():
+		return
+	var f := FileAccess.open(CrashReport.BOOT_PREV, FileAccess.WRITE)
+	if f != null:
+		f.store_string(txt)
+		f.close()
+
+func _show_last_run() -> void:
+	if not FileAccess.file_exists(BOOT_LOG):
+		return
+	var prev := FileAccess.get_file_as_string(BOOT_LOG).strip_edges()
+	if prev.is_empty():
+		return
+	var lines := prev.split("\n")
+	var last := lines[lines.size() - 1].strip_edges()
+	if last.begins_with("Dragon Block Sagas"):
+		return
+	# A run whose last breadcrumb is a world stage, with no clean pause/quit after it, died
+	# in the world. After one such run the next launch starts in safe mode.
+	var died_in_world := false
+	for k in WORLD_STAGES:
+		if last.find(k) >= 0:
+			died_in_world = true
+	if last.find("paused") >= 0 or last.find("quit") >= 0 or last.find("safe:") >= 0:
+		died_in_world = false
+	var crashes: Dictionary = {}
+	var cf: Variant = JsonUtil.load_file(CRASH_FILE)
+	if cf is Dictionary:
+		crashes = cf
+	var count := int(crashes.get("count", 0))
+	if died_in_world:
+		count += 1
+		crashes["count"] = count
+		crashes["last"] = last
+		JsonUtil.save_file(CRASH_FILE, crashes, false)
+	var text := "Last run ended at: " + last
+	if count >= 1:
+		_enter_safe_mode()
+		text = "SAFE MODE (previous run crashed at: %s)" % String(crashes.get("last", last))
+	_last_run_label = Label.new()
+	_last_run_label.text = text
+	_last_run_label.add_theme_font_size_override("font_size", 12)
+	_last_run_label.modulate = Color(1, 0.85, 0.5, 0.9) if count == 0 else Color(1, 0.45, 0.35, 1.0)
+	_last_run_label.position = Vector2(8, 8)
+	_last_run_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(_last_run_label)
+	Events.world_loaded.connect(func(_w: Node) -> void:
+		if _last_run_label != null:
+			_last_run_label.visible = false)
+
+## Safe mode: everything optional off, small world, low-res skins. Not saved to settings;
+## it lasts for this launch. A run that survives 60 s in the world clears the counter.
+func _enter_safe_mode() -> void:
+	Game.settings["safe_mode"] = true
+	Game.settings["render_distance"] = 3
+	Game.settings["sim_distance"] = 2
+	Game.settings["bloom"] = false
+	Game.settings["clouds"] = false
+	Game.settings["fancy_water"] = false
+	Game.settings["particles"] = 0.25
+	Game.settings["ambient_life"] = false
+	Game.settings["shadows"] = false
+	if ClassDB.class_exists("RaceSkin") or ResourceLoader.exists("res://scripts/entity/RaceSkin.gd"):
+		var rs: GDScript = load("res://scripts/entity/RaceSkin.gd")
+		if rs != null:
+			rs.set("hd", false)
+	_breadcrumb("safe: mode on")
+
+func _clear_crash_counter() -> void:
+	JsonUtil.save_file(CRASH_FILE, {"count": 0}, false)
+	_breadcrumb("60s survived, crash counter cleared")
+
+func _connect_breadcrumbs() -> void:
+	_rotate_boot_log()
+	_show_last_run()
+	_breadcrumb("boot")
+	Events.world_loaded.connect(func(_w: Node) -> void: _breadcrumb("world loaded"))
+	Events.player_spawned.connect(func(_p: Node) -> void: _breadcrumb("player spawned"))
+	Events.ui_opened.connect(func(screen: String) -> void: _breadcrumb("ui " + screen))
+	Events.planet_changed.connect(func(pid: String) -> void: _breadcrumb("planet " + pid))
+	var first_chunk := func(_cx: int, _cz: int) -> void: _breadcrumb("first chunk ready")
+	Events.chunk_ready.connect(first_chunk, CONNECT_ONE_SHOT)
+
+func _process(delta: float) -> void:
+	if _fps_label.visible:
+		_fps_label.text = "%d fps" % Engine.get_frames_per_second()
+	if _shot_timer >= 0.0:
+		_shot_timer -= delta
+		if _shot_timer < 0.0:
+			_take_screenshot(String(args["screenshot"]))
+			get_tree().quit()
+	if _quit_timer >= 0.0:
+		_quit_timer -= delta
+		if _quit_timer < 0.0:
+			get_tree().quit()
+	if args.has("profile"):
+		_mem_timer -= delta
+		if _mem_timer <= 0.0:
+			_mem_timer = 5.0
+			print("MEM static %.0f MB | textures %.0f MB | buffers %.0f MB | objects %d nodes %d orphans %d" % [
+				Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
+				Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0,
+				Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED) / 1048576.0,
+				int(Performance.get_monitor(Performance.OBJECT_COUNT)),
+				int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)),
+				int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))])
+
+func _take_screenshot(path: String) -> void:
+	var img := get_viewport().get_texture().get_image()
+	var err := img.save_png(path)
+	print("SCREENSHOT %s -> %s (%s)" % [path, "ok" if err == OK else str(err), RenderingServer.get_video_adapter_name()])
+
+func _clear_screen() -> void:
+	for c in screen_root.get_children():
+		screen_root.remove_child(c)
+		c.queue_free()
+	Game.world = null
+	Game.player = null
+
+func show_main_menu() -> void:
+	_clear_screen()
+	if ResourceLoader.exists(MAIN_MENU_SCENE):
+		var packed: PackedScene = load(MAIN_MENU_SCENE)
+		screen_root.add_child(packed.instantiate())
+	else:
+		var l := Label.new()
+		l.text = "Dragon Block Sagas\n(main menu scene missing)"
+		l.set_anchors_preset(Control.PRESET_CENTER)
+		screen_root.add_child(l)
+	Audio.play_bgm("menu")
+
+func enter_world(info: Dictionary) -> void:
+	_breadcrumb("enter world %s seed %s" % [str(info.get("planet", "?")), str(info.get("seed", "?"))])
+	get_tree().create_timer(2.0).timeout.connect(func() -> void: _breadcrumb("2s into world load"))
+	get_tree().create_timer(6.0).timeout.connect(func() -> void: _breadcrumb("6s into world load"))
+	get_tree().create_timer(15.0).timeout.connect(func() -> void: _breadcrumb("15s after entering"))
+	get_tree().create_timer(40.0).timeout.connect(func() -> void: _breadcrumb("40s after entering"))
+	get_tree().create_timer(60.0).timeout.connect(func() -> void: _clear_crash_counter())
+	_clear_screen()
+	if not ResourceLoader.exists(WORLD_SCENE):
+		Log.e("World scene missing: " + WORLD_SCENE)
+		return
+	var packed: PackedScene = load(WORLD_SCENE)
+	var w := packed.instantiate()
+	screen_root.add_child(w)
+	Game.world = w
+	if w.has_method("start"):
+		w.start(info, Game.profile)
+
+func _autoplay() -> void:
+	var seed_text := ""
+	if args["autoplay"] is String:
+		seed_text = String(args["autoplay"])
+	var mode := "creative" if args.has("creative") else "story"
+	var info := Game.create_world("Autoplay", seed_text if seed_text != "" else "12345", mode, "normal")
+	info["planet"] = String(args.get("planet", "earth"))
+	info["transient"] = true
+	var prof := ProfileFactory.new_profile("Tester", String(args.get("race", "saiyan")), "male", "warrior")
+	prof["position"]["planet"] = info["planet"]
+	Game.start_world(info, prof)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		_breadcrumb("paused")
+		if not Game.world_info.is_empty():
+			Game.save_all()
+	if what == NOTIFICATION_APPLICATION_RESUMED:
+		_breadcrumb("resumed")
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_breadcrumb("quit")
+		if not Game.world_info.is_empty() and not Game.world_info.get("transient", false):
+			Game.save_all()

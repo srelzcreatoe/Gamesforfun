@@ -1,0 +1,54 @@
+{
+ "id": "piccolo_kami_fusion",
+ "dmz_id": "piccolo_kami_fusion",
+ "quest_id": "sidequest_exploration:piccolo_kami_fusion",
+ "name": "Piccolo's Resolve",
+ "desc": "Piccolo contemplates fusing with Kami to gain the power needed to fight the Androids. Visit Kami's Lookout and help him find the clarity he needs.",
+ "title": "Piccolo's Resolve",
+ "description": "Piccolo contemplates fusing with Kami to gain the power needed to fight the Androids. Visit Kami's Lookout and help him find the clarity he needs.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_exploration",
+ "order": 4,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "piccolo",
+ "turn_in": "piccolo",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "10",
+    "quest": "saga_android:10"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "STRUCTURE",
+   "structure": "dragonminez:kamilookout"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "piccolo",
+   "npcId": "piccolo"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 52000
+  }
+ ]
+}

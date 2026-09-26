@@ -1,0 +1,81 @@
+{
+ "id": "3",
+ "dmz_id": 3,
+ "quest_id": "saga_frieza:3",
+ "name": "Defend the Namekians",
+ "desc": "Frieza's army is raiding Namekian settlements across the Ajissa Plains. Hold the line and protect the survivors.",
+ "title": "Defend the Namekians",
+ "description": "Frieza's army is raiding Namekian settlements across the Ajissa Plains. Hold the line and protect the survivors.",
+ "type": "SAGA",
+ "category": "saga_frieza",
+ "saga": "frieza_saga",
+ "order": 2,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 124
+   },
+   {
+    "type": "PLANET",
+    "planet": "namek"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:ajissa_plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "2",
+    "quest": "saga_frieza:2"
+   }
+  ]
+ },
+ "min_level": 124,
+ "planet": "namek",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_friezasoldier02",
+   "entity_name": "Frieza's Soldier",
+   "count": 10,
+   "health": 1879.0,
+   "meleeDamage": 122.0,
+   "kiDamage": 131.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_friezasoldier03",
+   "entity_name": "Frieza's Soldier",
+   "count": 6,
+   "health": 2100.0,
+   "meleeDamage": 137.0,
+   "kiDamage": 143.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 18720
+  }
+ ]
+}

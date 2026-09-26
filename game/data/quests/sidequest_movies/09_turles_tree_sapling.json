@@ -1,0 +1,70 @@
+{
+ "id": "turles_tree_sapling",
+ "dmz_id": "turles_tree_sapling",
+ "quest_id": "sidequest_movies:turles_tree_sapling",
+ "name": "Roots of Might",
+ "desc": "Turles planted the Tree of Might to drain the planet dry. Cut down the rogue Saiyan and gather the saplings and fruit it left behind so Piccolo can study how to stop it spreading.",
+ "title": "Roots of Might",
+ "description": "Turles planted the Tree of Might to drain the planet dry. Cut down the rogue Saiyan and gather the saplings and fruit it left behind so Piccolo can study how to stop it spreading.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_movies",
+ "order": 8,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "piccolo",
+ "turn_in": "piccolo",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "10",
+    "quest": "saga_movies:10"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_turles",
+   "entity_name": "Turles",
+   "count": 1,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY"
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "oak_sapling",
+   "count": 12
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "apple",
+   "count": 16
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "piccolo",
+   "npcId": "piccolo"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 112000
+  }
+ ]
+}

@@ -1,0 +1,1102 @@
+{
+ "sfx": {
+  "punch": [
+   "golpe1",
+   "golpe2",
+   "golpe3",
+   "golpe4",
+   "golpe5",
+   "golpe6"
+  ],
+  "punch_crit": [
+   "critico1",
+   "critico2"
+  ],
+  "block": [
+   "block1",
+   "block2",
+   "block3"
+  ],
+  "unblock": [
+   "unblock"
+  ],
+  "parry": [
+   "parry"
+  ],
+  "evasion": [
+   "evasion1",
+   "evasion2"
+  ],
+  "ki_blast": [
+   "kiblast_shoot"
+  ],
+  "ki_charge_loop": [
+   "ki_charge_loop"
+  ],
+  "ki_charge_start": [
+   "ki_charge_start"
+  ],
+  "turbo_loop": [
+   "turbo_loop"
+  ],
+  "ki_sparks": [
+   "ki_sparks"
+  ],
+  "laserbeam": [
+   "laserbeam"
+  ],
+  "transform_on": [
+   "transform_on"
+  ],
+  "transform_off": [
+   "transform_off"
+  ],
+  "aura_start": [
+   "aura_start"
+  ],
+  "aura_loop": [
+   "aura_loop"
+  ],
+  "insta_form_on": [
+   "insta_form_on"
+  ],
+  "insta_form_off": [
+   "insta_form_off"
+  ],
+  "stack_form": [
+   "stack_form"
+  ],
+  "no_ki_form": [
+   "no_ki_form"
+  ],
+  "senzu": [
+   "senzu"
+  ],
+  "shenron": [
+   "shenron"
+  ],
+  "dragonballssound": [
+   "dragonballssound"
+  ],
+  "dragonradar": [
+   "dragonradar"
+  ],
+  "tp": [
+   "tp"
+  ],
+  "tp_short": [
+   "tp_short"
+  ],
+  "zanzoken": [
+   "zanzoken"
+  ],
+  "fusion": [
+   "fusion"
+  ],
+  "absorb": [
+   "absorb1",
+   "absorb2"
+  ],
+  "majin_absorb": [
+   "majin_absorb"
+  ],
+  "ship_open": [
+   "ship_open"
+  ],
+  "ship_landing_open": [
+   "ship_landing_open"
+  ],
+  "landing_ship": [
+   "landing_ship"
+  ],
+  "ship_takeoff": [
+   "ui_nave_takeoff"
+  ],
+  "ship_cooldown": [
+   "ui_nave_cooldown"
+  ],
+  "nube": [
+   "nube"
+  ],
+  "lockon": [
+   "lockon"
+  ],
+  "knockback_character": [
+   "knockback_character"
+  ],
+  "ui_menu_switch": [
+   "ui_menu_switch"
+  ],
+  "confirm_menu": [
+   "confirm_menu"
+  ],
+  "pip_menu": [
+   "pip_menu"
+  ],
+  "toast_tutorial": [
+   "toast_tutorial"
+  ],
+  "switch_on": [
+   "switch_on"
+  ],
+  "switch_off": [
+   "switch_off"
+  ],
+  "sword_in": [
+   "sword_in"
+  ],
+  "sword_out": [
+   "sword_out"
+  ],
+  "sword_slash": [
+   "sword_slash",
+   "katana_slash"
+  ],
+  "oozaru_heartbeat": [
+   "oozaru_heartbeat"
+  ],
+  "oozaru_growl": [
+   "oozaru_growl_player",
+   "vegeta_oozaru_growl"
+  ],
+  "frog": [
+   "frogsound1",
+   "frogsound2",
+   "frogsound3"
+  ],
+  "froglaugh": [
+   "froglaugh"
+  ],
+  "loot_drop": [
+   "loot_drop_01",
+   "loot_drop_02",
+   "loot_drop_03"
+  ],
+  "click": [
+   "click"
+  ],
+  "pop": [
+   "pop"
+  ],
+  "eat": [
+   "eat"
+  ],
+  "hurt": [
+   "hurt"
+  ],
+  "fall_damage": [
+   "fall_damage"
+  ],
+  "splash": [
+   "splash"
+  ],
+  "swim": [
+   "swim"
+  ],
+  "bubbles": [
+   "bubbles"
+  ],
+  "level_up": [
+   "level_up"
+  ],
+  "quest_start": [
+   "quest_start"
+  ],
+  "quest_complete": [
+   "quest_complete"
+  ],
+  "skill_learned": [
+   "skill_learned"
+  ],
+  "dball_pickup": [
+   "dball_pickup"
+  ],
+  "item_pickup": [
+   "item_pickup"
+  ],
+  "wish_granted": [
+   "wish_granted"
+  ],
+  "toast": [
+   "toast"
+  ],
+  "error": [
+   "error"
+  ],
+  "thunder": [
+   "thunder"
+  ],
+  "explosion_big": [
+   "explosion_big"
+  ],
+  "shockwave": [
+   "shockwave"
+  ],
+  "whoosh": [
+   "whoosh"
+  ],
+  "dash": [
+   "dash"
+  ],
+  "land": [
+   "land"
+  ],
+  "lightning_crack": [
+   "lightning_crack"
+  ],
+  "power_up_burst": [
+   "power_up_burst"
+  ],
+  "block_guard": [
+   "block_guard"
+  ],
+  "heal": [
+   "heal"
+  ],
+  "teleport": [
+   "teleport"
+  ],
+  "scouter_beep": [
+   "scouter_beep"
+  ],
+  "capsule_pop": [
+   "capsule_pop"
+  ],
+  "ship_engine": [
+   "ship_engine"
+  ],
+  "fly_loop": [
+   "fly_loop"
+  ],
+  "ki_beam_charge": [
+   "ki_beam_charge"
+  ],
+  "ki_beam_fire": [
+   "ki_beam_fire"
+  ],
+  "ki_burning_charge": [
+   "ki_burning_charge"
+  ],
+  "ki_burning_fire": [
+   "ki_burning_fire"
+  ],
+  "ki_disk_charge": [
+   "ki_disk_charge"
+  ],
+  "ki_disk_fire": [
+   "ki_disk_fire"
+  ],
+  "ki_explosion_charge": [
+   "ki_explosion_charge"
+  ],
+  "ki_explosion_impact": [
+   "ki_explosion_impact"
+  ],
+  "ki_finalflash_charge": [
+   "ki_finalflash_charge"
+  ],
+  "ki_finalflash_fire": [
+   "ki_finalflash_fire"
+  ],
+  "ki_kame_charge": [
+   "ki_kame_charge"
+  ],
+  "ki_kame_fire": [
+   "ki_kame_fire"
+  ],
+  "ki_spiritbomb_charge": [
+   "ki_spiritbomb_charge"
+  ],
+  "ki_spiritbomb_fire": [
+   "ki_spiritbomb_fire"
+  ],
+  "ki_supernova_charge": [
+   "ki_supernova_charge"
+  ],
+  "ki_supernova_fire": [
+   "ki_supernova_fire"
+  ],
+  "anchor_slam": [
+   "anchor_slam"
+  ],
+  "axe_slash": [
+   "axe_slash"
+  ],
+  "claymore_slam": [
+   "claymore_slam"
+  ],
+  "claymore_stab": [
+   "claymore_stab"
+  ],
+  "claymore_swing": [
+   "claymore_swing"
+  ],
+  "dagger_slash": [
+   "dagger_slash"
+  ],
+  "double_axe_swing": [
+   "double_axe_swing"
+  ],
+  "fist_punch": [
+   "fist_punch"
+  ],
+  "glaive_slash_quick": [
+   "glaive_slash_quick"
+  ],
+  "glaive_slash_slow": [
+   "glaive_slash_slow"
+  ],
+  "hammer_slam": [
+   "hammer_slam"
+  ],
+  "katana_slash": [
+   "katana_slash"
+  ],
+  "mace_slam": [
+   "mace_slam"
+  ],
+  "mace_slash": [
+   "mace_slash"
+  ],
+  "pickaxe_swing": [
+   "pickaxe_swing"
+  ],
+  "rapier_slash": [
+   "rapier_slash"
+  ],
+  "rapier_stab": [
+   "rapier_stab"
+  ],
+  "scythe_slash": [
+   "scythe_slash"
+  ],
+  "sickle_slash": [
+   "sickle_slash"
+  ],
+  "spear_stab": [
+   "spear_stab"
+  ],
+  "staff_slam": [
+   "staff_slam"
+  ],
+  "staff_slash": [
+   "staff_slash"
+  ],
+  "staff_spin": [
+   "staff_spin"
+  ],
+  "staff_stab": [
+   "staff_stab"
+  ],
+  "wand_swing": [
+   "wand_swing"
+  ],
+  "frieza_s_hurt": [
+   "frieza_s_hurt"
+  ],
+  "frieza_s_death": [
+   "frieza_s_death"
+  ],
+  "frieza_s_attack": [
+   "frieza_s_attack"
+  ],
+  "frieza_s_ambient": [
+   "frieza_s_ambient"
+  ],
+  "namek_vill_hurt": [
+   "namek_vill_hurt"
+  ],
+  "namek_vill_death": [
+   "namek_vill_death"
+  ],
+  "namek_vill_ambient": [
+   "namek_vill_ambient"
+  ],
+  "vegeta_oozaru_growl": [
+   "vegeta_oozaru_growl"
+  ],
+  "vegeta_oozaru_death": [
+   "vegeta_oozaru_death"
+  ],
+  "oozaru_growl_player": [
+   "oozaru_growl_player"
+  ],
+  "dragon_fist": [
+   "dragon_fist"
+  ],
+  "oozaru_fist": [
+   "oozaru_fist"
+  ],
+  "frogsound1": [
+   "frogsound1"
+  ],
+  "frogsound2": [
+   "frogsound2"
+  ],
+  "frogsound3": [
+   "frogsound3"
+  ],
+  "golpe1": [
+   "golpe1"
+  ],
+  "golpe2": [
+   "golpe2"
+  ],
+  "golpe3": [
+   "golpe3"
+  ],
+  "golpe4": [
+   "golpe4"
+  ],
+  "golpe5": [
+   "golpe5"
+  ],
+  "golpe6": [
+   "golpe6"
+  ],
+  "critico1": [
+   "critico1"
+  ],
+  "critico2": [
+   "critico2"
+  ],
+  "block1": [
+   "block1"
+  ],
+  "block2": [
+   "block2"
+  ],
+  "block3": [
+   "block3"
+  ],
+  "kiblast_shoot": [
+   "kiblast_shoot"
+  ],
+  "ui_nave_takeoff": [
+   "ui_nave_takeoff"
+  ],
+  "ui_nave_cooldown": [
+   "ui_nave_cooldown"
+  ],
+  "break_stone": [
+   "break_stone"
+  ],
+  "place_stone": [
+   "place_stone"
+  ],
+  "dig_stone": [
+   "dig_stone"
+  ],
+  "step_stone": [
+   "step_stone_0",
+   "step_stone_1",
+   "step_stone_2"
+  ],
+  "break_earth": [
+   "break_earth"
+  ],
+  "place_earth": [
+   "place_earth"
+  ],
+  "dig_earth": [
+   "dig_earth"
+  ],
+  "step_earth": [
+   "step_earth_0",
+   "step_earth_1",
+   "step_earth_2"
+  ],
+  "break_sand": [
+   "break_sand"
+  ],
+  "place_sand": [
+   "place_sand"
+  ],
+  "dig_sand": [
+   "dig_sand"
+  ],
+  "step_sand": [
+   "step_sand_0",
+   "step_sand_1",
+   "step_sand_2"
+  ],
+  "break_wood": [
+   "break_wood"
+  ],
+  "place_wood": [
+   "place_wood"
+  ],
+  "dig_wood": [
+   "dig_wood"
+  ],
+  "step_wood": [
+   "step_wood_0",
+   "step_wood_1",
+   "step_wood_2"
+  ],
+  "break_plant": [
+   "break_plant"
+  ],
+  "place_plant": [
+   "place_plant"
+  ],
+  "dig_plant": [
+   "dig_stone"
+  ],
+  "step_plant": [
+   "step_plant_0",
+   "step_plant_1",
+   "step_plant_2"
+  ],
+  "break_leaves": [
+   "break_leaves"
+  ],
+  "place_leaves": [
+   "place_leaves"
+  ],
+  "dig_leaves": [
+   "dig_stone"
+  ],
+  "step_leaves": [
+   "step_leaves_0",
+   "step_leaves_1",
+   "step_leaves_2"
+  ],
+  "break_glass": [
+   "break_glass"
+  ],
+  "place_glass": [
+   "place_glass"
+  ],
+  "dig_glass": [
+   "dig_stone"
+  ],
+  "step_glass": [
+   "step_glass_0",
+   "step_glass_1",
+   "step_glass_2"
+  ],
+  "break_metal": [
+   "break_metal"
+  ],
+  "place_metal": [
+   "place_metal"
+  ],
+  "dig_metal": [
+   "dig_stone"
+  ],
+  "step_metal": [
+   "step_metal_0",
+   "step_metal_1",
+   "step_metal_2"
+  ],
+  "break_cloth": [
+   "break_cloth"
+  ],
+  "place_cloth": [
+   "place_cloth"
+  ],
+  "dig_cloth": [
+   "dig_stone"
+  ],
+  "step_cloth": [
+   "step_cloth_0",
+   "step_cloth_1",
+   "step_cloth_2"
+  ],
+  "break_liquid": [
+   "break_liquid"
+  ],
+  "place_liquid": [
+   "place_liquid"
+  ],
+  "dig_liquid": [
+   "dig_stone"
+  ],
+  "step_liquid": [
+   "step_liquid_0",
+   "step_liquid_1",
+   "step_liquid_2"
+  ],
+  "break_snow": [
+   "break_snow"
+  ],
+  "place_snow": [
+   "place_snow"
+  ],
+  "dig_snow": [
+   "dig_stone"
+  ],
+  "step_snow": [
+   "step_snow_0",
+   "step_snow_1",
+   "step_snow_2"
+  ],
+  "break_ice": [
+   "break_ice"
+  ],
+  "place_ice": [
+   "place_ice"
+  ],
+  "dig_ice": [
+   "dig_stone"
+  ],
+  "step_ice": [
+   "step_ice_0",
+   "step_ice_1",
+   "step_ice_2"
+  ],
+  "break_cloud": [
+   "break_cloud"
+  ],
+  "place_cloud": [
+   "place_cloud"
+  ],
+  "dig_cloud": [
+   "dig_stone"
+  ],
+  "step_cloud": [
+   "step_cloud_0",
+   "step_cloud_1",
+   "step_cloud_2"
+  ],
+  "break_special": [
+   "break_special"
+  ],
+  "place_special": [
+   "place_special"
+  ],
+  "dig_special": [
+   "dig_stone"
+  ],
+  "step_special": [
+   "step_special_0",
+   "step_special_1",
+   "step_special_2"
+  ],
+  "ambience_cave": [
+   "ambience_cave"
+  ],
+  "ambience_heaven": [
+   "ambience_heaven"
+  ],
+  "ambience_hell": [
+   "ambience_hell"
+  ],
+  "ambience_ocean": [
+   "ambience_ocean"
+  ],
+  "ambience_rain": [
+   "ambience_rain"
+  ],
+  "ambience_space": [
+   "ambience_space"
+  ],
+  "ambience_wind": [
+   "ambience_wind"
+  ]
+ },
+ "bgm": {
+  "menu": [
+   "menu_music-12",
+   "menu_music-14",
+   "menu_music-17",
+   "menu_music-26",
+   "menu_music-34",
+   "menu_music-39"
+  ],
+  "explore_earth": [
+   "menu_music-1",
+   "menu_music-2",
+   "menu_music-3",
+   "menu_music-4",
+   "menu_music-5",
+   "menu_music-6",
+   "menu_music-7",
+   "menu_music-8",
+   "menu_music-9",
+   "menu_music-13",
+   "menu_music-14",
+   "menu_music-19",
+   "menu_music-26",
+   "menu_music-27",
+   "menu_music-30"
+  ],
+  "explore": [
+   "menu_music-1",
+   "menu_music-2",
+   "menu_music-3",
+   "menu_music-4",
+   "menu_music-5",
+   "menu_music-6",
+   "menu_music-7",
+   "menu_music-8",
+   "menu_music-9",
+   "menu_music-13",
+   "menu_music-14",
+   "menu_music-19",
+   "menu_music-26",
+   "menu_music-27",
+   "menu_music-30"
+  ],
+  "explore_namek": [
+   "bgm_namek",
+   "menu_music-16",
+   "menu_music-21",
+   "menu_music-36"
+  ],
+  "namek": [
+   "bgm_namek",
+   "menu_music-16",
+   "menu_music-21",
+   "menu_music-36"
+  ],
+  "battle": [
+   "bgm_battle",
+   "menu_music-10",
+   "menu_music-11",
+   "menu_music-12",
+   "menu_music-17",
+   "menu_music-23",
+   "menu_music-25",
+   "menu_music-29",
+   "menu_music-37"
+  ],
+  "boss": [
+   "bgm_boss",
+   "menu_music-18",
+   "menu_music-20",
+   "menu_music-24",
+   "menu_music-29",
+   "call_for_a_miracle",
+   "gokus_father-son_victory"
+  ],
+  "transformation": [
+   "bgm_transformation",
+   "menu_music-20",
+   "call_for_a_miracle",
+   "vegetas_sacrifice"
+  ],
+  "space": [
+   "bgm_space",
+   "menu_music-5",
+   "menu_music-22",
+   "menu_music-30",
+   "menu_music-34"
+  ],
+  "otherworld": [
+   "bgm_otherworld",
+   "menu_music-22",
+   "menu_music-38"
+  ],
+  "heaven": [
+   "menu_music-22",
+   "menu_music-28",
+   "menu_music-39"
+  ],
+  "hell": [
+   "bgm_otherworld",
+   "menu_music-16",
+   "menu_music-36"
+  ],
+  "time_chamber": [
+   "menu_music-6",
+   "menu_music-8",
+   "menu_music-9",
+   "menu_music-15",
+   "menu_music-35",
+   "menu_music-38"
+  ],
+  "training": [
+   "menu_music-6",
+   "menu_music-8",
+   "menu_music-9",
+   "menu_music-15"
+  ],
+  "sad": [
+   "menu_music-21",
+   "vegetas_sacrifice",
+   "menu_music-36"
+  ]
+ },
+ "tracks": {
+  "menu_music-1": {
+   "title": "Dragon Ball OST - Bulma is Happy",
+   "tags": [
+    "calm",
+    "earth"
+   ]
+  },
+  "menu_music-2": {
+   "title": "Dragon Ball OST - Away on the Bike!",
+   "tags": [
+    "calm",
+    "earth"
+   ]
+  },
+  "menu_music-3": {
+   "title": "Dragon Ball OST - Goku's Dinner Bird",
+   "tags": [
+    "calm",
+    "earth"
+   ]
+  },
+  "menu_music-4": {
+   "title": "Dragon Ball OST - Goku Leaves With Umigame",
+   "tags": [
+    "calm",
+    "earth"
+   ]
+  },
+  "menu_music-5": {
+   "title": "Dragon Ball OST - The Joys Of Travel",
+   "tags": [
+    "calm",
+    "earth",
+    "space"
+   ]
+  },
+  "menu_music-6": {
+   "title": "Dragon Ball OST - Kame Sennin Prepares The Kamehameha",
+   "tags": [
+    "calm",
+    "earth",
+    "training"
+   ]
+  },
+  "menu_music-7": {
+   "title": "Dragon Ball OST - Kuririn Arrives by Boat",
+   "tags": [
+    "calm",
+    "earth"
+   ]
+  },
+  "menu_music-8": {
+   "title": "Dragon Ball OST - Milk Delivery",
+   "tags": [
+    "calm",
+    "earth",
+    "training"
+   ]
+  },
+  "menu_music-9": {
+   "title": "Dragon Ball OST - Climbing The Tower",
+   "tags": [
+    "calm",
+    "earth",
+    "training"
+   ]
+  },
+  "menu_music-10": {
+   "title": "Dragon Ball OST - Yajirobe in Action",
+   "tags": [
+    "battle"
+   ]
+  },
+  "menu_music-11": {
+   "title": "Dragon Ball Z OST - Prologue & Subtitle I",
+   "tags": [
+    "battle"
+   ]
+  },
+  "menu_music-12": {
+   "title": "Dragon Ball Z OST - Cha-La Head Cha-La (Variations)",
+   "tags": [
+    "battle",
+    "menu"
+   ]
+  },
+  "menu_music-13": {
+   "title": "Dragon Ball Z OST - Bridge Collection",
+   "tags": [
+    "calm",
+    "earth"
+   ]
+  },
+  "menu_music-14": {
+   "title": "Dragon Ball Z OST - Gohan's Theme",
+   "tags": [
+    "calm",
+    "earth",
+    "menu"
+   ]
+  },
+  "menu_music-15": {
+   "title": "Dragon Ball Z OST - Alas, the Days of Training",
+   "tags": [
+    "calm",
+    "training",
+    "time_chamber"
+   ]
+  },
+  "menu_music-16": {
+   "title": "Dragon Ball Z OST - Planet Namek and Hope Vanish",
+   "tags": [
+    "namek",
+    "tense"
+   ]
+  },
+  "menu_music-17": {
+   "title": "Dragon Ball Z OST - Dragon Ball Z",
+   "tags": [
+    "battle",
+    "menu"
+   ]
+  },
+  "menu_music-18": {
+   "title": "Dragon Ball Z OST - The Strongest In This World",
+   "tags": [
+    "boss"
+   ]
+  },
+  "menu_music-19": {
+   "title": "Dragon Ball Z OST - All's Well That Ends Well: One More Conclusion",
+   "tags": [
+    "calm",
+    "earth"
+   ]
+  },
+  "menu_music-20": {
+   "title": "Dragon Ball Z OST - Son Goku the Super Saiyajin",
+   "tags": [
+    "transformation",
+    "boss"
+   ]
+  },
+  "menu_music-21": {
+   "title": "Dragon Ball Z OST - Goodbye Warriors",
+   "tags": [
+    "calm",
+    "sad",
+    "namek"
+   ]
+  },
+  "menu_music-22": {
+   "title": "Dragon Ball Z OST - Angel",
+   "tags": [
+    "otherworld",
+    "heaven",
+    "space"
+   ]
+  },
+  "menu_music-23": {
+   "title": "Dragon Ball Z OST - Enter A New Hero",
+   "tags": [
+    "battle"
+   ]
+  },
+  "menu_music-24": {
+   "title": "Dragon Ball Z OST - Son Goku is the Strongest After All",
+   "tags": [
+    "boss"
+   ]
+  },
+  "menu_music-25": {
+   "title": "Dragon Ball Z OST - Danger!! The Super Warrior Can't Rest",
+   "tags": [
+    "battle"
+   ]
+  },
+  "menu_music-26": {
+   "title": "Dragon Ball Super OST 12 Beerus' Tea Time",
+   "tags": [
+    "calm",
+    "earth",
+    "menu"
+   ]
+  },
+  "menu_music-27": {
+   "title": "Dragon Ball Super OST 17 Under the Blue Sky",
+   "tags": [
+    "calm",
+    "earth"
+   ]
+  },
+  "menu_music-28": {
+   "title": "Dragon Ball Super OST 40 Pleasant Days",
+   "tags": [
+    "calm",
+    "heaven"
+   ]
+  },
+  "menu_music-29": {
+   "title": "Dragon Ball Super OST 108 Limit-Break x Survivor",
+   "tags": [
+    "boss",
+    "battle"
+   ]
+  },
+  "menu_music-30": {
+   "title": "Dragon Ball Super OST 21 Like That Cloud",
+   "tags": [
+    "calm",
+    "earth",
+    "space"
+   ]
+  },
+  "call_for_a_miracle": {
+   "title": "Dragon Ball Call for a Miracle",
+   "tags": [
+    "transformation",
+    "boss"
+   ]
+  },
+  "gokus_father-son_victory": {
+   "title": "Dragon Ball Goku's Father-Son Victory",
+   "tags": [
+    "boss"
+   ]
+  },
+  "vegetas_sacrifice": {
+   "title": "Dragon Ball Vegeta's Sacrifice",
+   "tags": [
+    "transformation",
+    "sad"
+   ]
+  },
+  "menu_music-34": {
+   "title": "Kingdom Hearts II - Dearly Beloved by Yoko Shimomura",
+   "tags": [
+    "menu",
+    "space"
+   ]
+  },
+  "menu_music-35": {
+   "title": "Chainsaw Man: Reze Arc - in the pool by Kensuke Ushio",
+   "tags": [
+    "calm",
+    "time_chamber"
+   ]
+  },
+  "menu_music-36": {
+   "title": "Saint Seiya - Sad Brothers by Seiji Yokoyama",
+   "tags": [
+    "sad",
+    "hell",
+    "namek"
+   ]
+  },
+  "menu_music-37": {
+   "title": "SAO: Aria of a Starless Night - we will finish this game by Yuki Kajiura",
+   "tags": [
+    "battle"
+   ]
+  },
+  "menu_music-38": {
+   "title": "Re: Zero - Styx Helix by MYTH & ROID",
+   "tags": [
+    "calm",
+    "otherworld",
+    "time_chamber"
+   ]
+  },
+  "menu_music-39": {
+   "title": "Re: Zero - Stay Alive ~Regain~ by Rie Takahashi",
+   "tags": [
+    "calm",
+    "heaven",
+    "menu"
+   ]
+  }
+ }
+}

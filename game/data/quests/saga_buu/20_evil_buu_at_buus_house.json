@@ -1,0 +1,68 @@
+{
+ "id": "20",
+ "dmz_id": 20,
+ "quest_id": "saga_buu:20",
+ "name": "Evil Buu",
+ "desc": "Buu's evil has split into its own body. Face Evil Buu before the innocent side is consumed.",
+ "title": "Evil Buu",
+ "description": "Buu's evil has split into its own body. Face Evil Buu before the innocent side is consumed.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 19,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1960
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "19",
+    "quest": "saga_buu:19"
+   }
+  ]
+ },
+ "min_level": 1960,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_evilbuu",
+   "entity_name": "Evil Buu",
+   "count": 1,
+   "health": 402500.0,
+   "meleeDamage": 16800.0,
+   "kiDamage": 15300.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 187200
+  }
+ ]
+}

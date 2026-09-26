@@ -1,0 +1,74 @@
+{
+ "id": "15",
+ "dmz_id": 15,
+ "quest_id": "saga_movies:15",
+ "name": "Cooler",
+ "desc": "Cooler has come to avenge Frieza. Face him in the rocky terrain.",
+ "title": "Cooler",
+ "description": "Cooler has come to avenge Frieza. Face him in the rocky terrain.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 14,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 320
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "14",
+    "quest": "saga_frieza:14"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "14",
+    "quest": "saga_movies:14"
+   }
+  ]
+ },
+ "min_level": 320,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_cooler",
+   "entity_name": "Cooler",
+   "count": 1,
+   "health": 61880.0,
+   "meleeDamage": 2873.0,
+   "kiDamage": 2499.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 58800
+  }
+ ]
+}

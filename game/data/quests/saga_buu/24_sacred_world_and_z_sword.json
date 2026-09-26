@@ -1,0 +1,68 @@
+{
+ "id": "24",
+ "dmz_id": 24,
+ "quest_id": "saga_buu:24",
+ "name": "The Z Sword and Ultimate Power",
+ "desc": "Travel to the sacred lands, carry the Z Sword, and reach the Potential Unlock level needed to awaken ultimate power.",
+ "title": "The Z Sword and Ultimate Power",
+ "description": "Travel to the sacred lands, carry the Z Sword, and reach the Potential Unlock level needed to awaken ultimate power.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 23,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2060
+   },
+   {
+    "type": "PLANET",
+    "planet": "sacred_kai_planet"
+   },
+   {
+    "type": "SKILL",
+    "skill": "potential_unlock",
+    "minLevel": 10
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "23",
+    "quest": "saga_buu:23"
+   }
+  ]
+ },
+ "min_level": 2060,
+ "planet": "sacred_kai_planet",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "z_sword",
+   "count": 1
+  },
+  {
+   "type": "SKILL",
+   "dmz_type": "SKILL",
+   "skill": "ultimate",
+   "level": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 187200
+  }
+ ]
+}

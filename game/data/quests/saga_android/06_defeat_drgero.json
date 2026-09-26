@@ -1,0 +1,68 @@
+{
+ "id": "6",
+ "dmz_id": 6,
+ "quest_id": "saga_android:6",
+ "name": "Dr. Gero",
+ "desc": "The creator of the Androids is on the move. Stop Dr. Gero before he can unleash something worse.",
+ "title": "Dr. Gero",
+ "description": "The creator of the Androids is on the move. Stop Dr. Gero before he can unleash something worse.",
+ "type": "SAGA",
+ "category": "saga_android",
+ "saga": "android_saga",
+ "order": 5,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 660
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "5",
+    "quest": "saga_android:5"
+   }
+  ]
+ },
+ "min_level": 660,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_drgero",
+   "entity_name": "Dr.Gero (Android)",
+   "count": 1,
+   "health": 64750.0,
+   "meleeDamage": 2640.0,
+   "kiDamage": 2380.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 63280
+  }
+ ]
+}

@@ -1,0 +1,58 @@
+{
+ "id": "videl_city_defense",
+ "dmz_id": "videl_city_defense",
+ "quest_id": "sidequest_combat:videl_city_defense",
+ "name": "City Defense",
+ "desc": "Cell Juniors are wreaking havoc everywhere! Gohan asks for your help defending the innocent from these miniature terrors.",
+ "title": "City Defense",
+ "description": "Cell Juniors are wreaking havoc everywhere! Gohan asks for your help defending the innocent from these miniature terrors.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_combat",
+ "order": 7,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "gohan",
+ "turn_in": "gohan",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "14",
+    "quest": "saga_android:14"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_cell_jr",
+   "entity_name": "Cell Jr",
+   "count": 10,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "gohan",
+   "npcId": "gohan"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 80000
+  }
+ ]
+}

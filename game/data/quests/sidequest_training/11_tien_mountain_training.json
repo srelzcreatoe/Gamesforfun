@@ -1,0 +1,64 @@
+{
+ "id": "tien_mountain_training",
+ "dmz_id": "tien_mountain_training",
+ "quest_id": "sidequest_training:tien_mountain_training",
+ "name": "Mountain Training",
+ "desc": "Krillin invites you to train in the harsh mountains. Only by facing powerful foes in extreme terrain can you prepare for the Saiyans.",
+ "title": "Mountain Training",
+ "description": "Krillin invites you to train in the harsh mountains. Only by facing powerful foes in extreme terrain can you prepare for the Saiyans.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_training",
+ "order": 10,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "krillin",
+ "turn_in": "krillin",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "BIOME",
+    "biome": "#minecraft:is_mountain"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "4",
+    "quest": "saga_saiyan:4"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "robotxv",
+   "entity_name": "Xenoverse Robot",
+   "vanilla_mob": "iron_golem",
+   "count": 5,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "krillin",
+   "npcId": "krillin"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 1400
+  }
+ ]
+}

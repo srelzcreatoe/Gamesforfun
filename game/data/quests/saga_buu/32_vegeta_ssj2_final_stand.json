@@ -1,0 +1,64 @@
+{
+ "id": "32",
+ "dmz_id": 32,
+ "quest_id": "saga_buu:32",
+ "name": "Vegeta's Final Stand",
+ "desc": "Vegeta steps in with Super Saiyan 2 resolve. Stand beside his defiance and test yourself against it.",
+ "title": "Vegeta's Final Stand",
+ "description": "Vegeta steps in with Super Saiyan 2 resolve. Stand beside his defiance and test yourself against it.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 31,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2280
+   },
+   {
+    "type": "PLANET",
+    "planet": "sacred_kai_planet"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "31",
+    "quest": "saga_buu:31"
+   }
+  ]
+ },
+ "min_level": 2280,
+ "planet": "sacred_kai_planet",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_vegeta_end_ssj2",
+   "entity_name": "Vegeta (Super Saiyan 2)",
+   "count": 1,
+   "health": 507500.0,
+   "meleeDamage": 21300.0,
+   "kiDamage": 19380.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 216000
+  }
+ ]
+}

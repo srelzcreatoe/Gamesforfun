@@ -1,0 +1,60 @@
+{
+ "id": "collect_dragon_balls",
+ "dmz_id": "collect_dragon_balls",
+ "quest_id": "sidequest_collection:collect_dragon_balls",
+ "name": "Summon Shenron",
+ "desc": "Bulma's radar is ready. Find the seven Earth Dragon Balls, bring them together, summon Shenron, and report back.",
+ "title": "Summon Shenron",
+ "description": "Bulma's radar is ready. Find the seven Earth Dragon Balls, bring them together, summon Shenron, and report back.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_collection",
+ "order": 5,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "5",
+    "quest": "saga_saiyan:5"
+   },
+   {
+    "type": "QUEST",
+    "questId": "bulma_radar_parts",
+    "quest": "sidequest_collection:bulma_radar_parts"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "SUMMON",
+   "dmz_type": "DRAGON_SUMMON",
+   "dragon": "shenron",
+   "ball_set": "earth"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 6600
+  }
+ ]
+}

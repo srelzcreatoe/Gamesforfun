@@ -1,0 +1,74 @@
+{
+ "id": "19",
+ "dmz_id": 19,
+ "quest_id": "saga_movies:19",
+ "name": "Metal Cooler Core",
+ "desc": "The core of the Big Gete Star is exposed. Destroy Metal Cooler's source.",
+ "title": "Metal Cooler Core",
+ "description": "The core of the Big Gete Star is exposed. Destroy Metal Cooler's source.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 18,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 400
+   },
+   {
+    "type": "PLANET",
+    "planet": "namek"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:ajissa_plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "16",
+    "quest": "saga_frieza:16"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "18",
+    "quest": "saga_movies:18"
+   }
+  ]
+ },
+ "min_level": 400,
+ "planet": "namek",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_metal_cooler_core",
+   "entity_name": "Metal Cooler Core",
+   "count": 1,
+   "health": 75140.0,
+   "meleeDamage": 3536.0,
+   "kiDamage": 2999.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 72500
+  }
+ ]
+}

@@ -1,0 +1,74 @@
+{
+ "id": "33",
+ "dmz_id": 33,
+ "quest_id": "saga_movies:33",
+ "name": "Bio-Broly",
+ "desc": "Bio-Broly emerges from the swamp. Stop the unstable clone before it mutates further.",
+ "title": "Bio-Broly",
+ "description": "Bio-Broly emerges from the swamp. Stop the unstable clone before it mutates further.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 32,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2250
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:swamp"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "30",
+    "quest": "saga_buu:30"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "32",
+    "quest": "saga_movies:32"
+   }
+  ]
+ },
+ "min_level": 2250,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_bio_broly",
+   "entity_name": "Bio-Broly",
+   "count": 1,
+   "health": 805000.0,
+   "meleeDamage": 33600.0,
+   "kiDamage": 30600.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 381200
+  }
+ ]
+}

@@ -1,0 +1,675 @@
+{
+ "skills": {
+  "fly": {
+   "id": "fly",
+   "dmz_id": "fly",
+   "name": "Fly",
+   "desc": "Control your Ki to Fly! Jump and press the Fly Key mid-air to Fly, level up the skill to increase your speed.",
+   "max_level": 10,
+   "tp_costs": [
+    1500,
+    600,
+    900,
+    1200,
+    1500,
+    1800,
+    2100,
+    2400,
+    2700,
+    3000
+   ],
+   "effect": {
+    "kind": "movement",
+    "speed_per_level": 0.15,
+    "base_speed": 12.0
+   },
+   "unlock": "korin"
+  },
+  "jump": {
+   "id": "jump",
+   "dmz_id": "jump",
+   "name": "Jump",
+   "desc": "Let's you Jump higher. The more you level up, the higher you can jump.",
+   "max_level": 10,
+   "tp_costs": [
+    300,
+    600,
+    900,
+    1200,
+    1500,
+    1800,
+    2100,
+    2400,
+    2700,
+    3000
+   ],
+   "effect": {
+    "kind": "movement",
+    "jump_mult_per_level": 0.1
+   },
+   "unlock": "korin"
+  },
+  "sprint": {
+   "id": "sprint",
+   "dmz_id": "sprint",
+   "name": "Sprint",
+   "desc": "Sprints you faster. The more you level up, the faster you can sprint.",
+   "max_level": 10,
+   "tp_costs": [
+    300,
+    600,
+    900,
+    1200,
+    1500,
+    1800,
+    2100,
+    2400,
+    2700,
+    3000
+   ],
+   "effect": {
+    "kind": "movement",
+    "speed_per_level": 0.1
+   },
+   "unlock": "korin"
+  },
+  "ki_protection": {
+   "id": "ki_protection",
+   "dmz_id": "kiprotection",
+   "name": "Ki Protection",
+   "desc": "Blocks the incoming damage at the cost of your Ki. Level up the skill to increase the damage you'll protect.",
+   "max_level": 10,
+   "tp_costs": [
+    600,
+    1200,
+    1800,
+    2200,
+    2600,
+    2800,
+    3000,
+    3200,
+    3600,
+    4000
+   ],
+   "effect": {
+    "kind": "defense",
+    "absorb_per_level": 0.05,
+    "ki_per_damage": 1.0
+   },
+   "unlock": "popo"
+  },
+  "ki_infusion": {
+   "id": "ki_infusion",
+   "dmz_id": "ki_infusion",
+   "name": "Ki Infusion",
+   "desc": "Infuses your Fists and Weapons with Ki. Level up the skill to increase the damage you'll infuse.",
+   "max_level": 10,
+   "tp_costs": [
+    600,
+    1200,
+    1800,
+    2200,
+    2600,
+    2800,
+    3000,
+    3200,
+    3600,
+    4000
+   ],
+   "effect": {
+    "kind": "offense",
+    "melee_bonus_per_level": 0.05
+   },
+   "unlock": "piccolo"
+  },
+  "ki_sense": {
+   "id": "ki_sense",
+   "dmz_id": "kisense",
+   "name": "Ki Sense",
+   "desc": "Allows you to sense the ki of nearby entities, making it easier to locate them.",
+   "max_level": 10,
+   "tp_costs": [
+    300,
+    600,
+    900,
+    1200,
+    1500,
+    1800,
+    2100,
+    2400,
+    2700,
+    3000
+   ],
+   "effect": {
+    "kind": "utility",
+    "range_per_level": 16.0
+   },
+   "unlock": "dende"
+  },
+  "ki_control": {
+   "id": "ki_control",
+   "dmz_id": "kicontrol",
+   "name": "Ki Control",
+   "desc": "Learn to Control your Ki. It's a basic skill to use Ki Attacks, Fly or other Ki-based actions.",
+   "max_level": 1,
+   "tp_costs": [
+    3000
+   ],
+   "effect": {
+    "kind": "core",
+    "enables": [
+     "ki_charge",
+     "ki_blast",
+     "fly",
+     "techniques"
+    ]
+   },
+   "unlock": "roshi"
+  },
+  "ki_manipulation": {
+   "id": "ki_manipulation",
+   "dmz_id": "kimanipulation",
+   "name": "Ki Manipulation",
+   "desc": "Master the Ki Manipulation to be able to create Ki Weapons, increasing your Melee Damage based on your Ki Damage!",
+   "max_level": 10,
+   "tp_costs": [
+    600,
+    1200,
+    1800,
+    2200,
+    2600,
+    2800,
+    3000,
+    3200,
+    3600,
+    4000
+   ],
+   "effect": {
+    "kind": "offense",
+    "melee_from_ki_per_level": 0.1,
+    "weapons": [
+     "blade",
+     "scythe",
+     "clawlance"
+    ],
+    "weapon_names": {
+     "blade": "Ki Blade",
+     "scythe": "Ki Scythe",
+     "clawlance": "Ki Claw Lance"
+    },
+    "weapon_models": [
+     "weapons/kiweapon_blade",
+     "weapons/kiweapon_scythe",
+     "weapons/kiweapon_clawlance"
+    ]
+   },
+   "unlock": "trunks"
+  },
+  "potential_unlock": {
+   "id": "potential_unlock",
+   "dmz_id": "potentialunlock",
+   "name": "Potential Unlock",
+   "desc": "Let's you Unlock your real Potential to increase your power release to the limit!",
+   "max_level": 13,
+   "tp_costs": [
+    600,
+    1600,
+    2400,
+    3200,
+    4000,
+    4800,
+    5600,
+    6400,
+    7200,
+    8000,
+    -1,
+    8800,
+    9600
+   ],
+   "effect": {
+    "kind": "stats",
+    "release_per_level": 0.03
+   },
+   "unlock": "guru"
+  },
+  "defense_penetration": {
+   "id": "defense_penetration",
+   "dmz_id": "defense_penetration",
+   "name": "Defense Penetration",
+   "desc": "Increases your Defense Penetration, allowing you to ignore a percentage of your enemy's defense when attacking.",
+   "max_level": 10,
+   "tp_costs": [
+    600,
+    1200,
+    1800,
+    2200,
+    2600,
+    2800,
+    3000,
+    3200,
+    3600,
+    4000
+   ],
+   "effect": {
+    "kind": "offense",
+    "per_level": 0.02
+   },
+   "unlock": "vegeta"
+  },
+  "healing_reduction": {
+   "id": "healing_reduction",
+   "dmz_id": "healing_reduction",
+   "name": "Healing Reduction",
+   "desc": "Your attacks reduce the target's healing (health regeneration and food healing) by 2% per level for a short time.",
+   "max_level": 10,
+   "tp_costs": [
+    600,
+    1200,
+    1800,
+    2200,
+    2600,
+    2800,
+    3000,
+    3200,
+    3600,
+    4000
+   ],
+   "effect": {
+    "kind": "offense",
+    "per_level": 0.02,
+    "duration": 5.0
+   },
+   "unlock": "cell"
+  },
+  "instant_transmission": {
+   "id": "instant_transmission",
+   "dmz_id": "instant_transmission",
+   "name": "Instant Transmission",
+   "desc": "Instantly teleport to a location within your line of sight by controlling your Ki. Leveling up this skill increases the maximum teleportation distance. (Lv 5+) Hold the Key to open an interface to teleport to Masters.",
+   "max_level": 10,
+   "tp_costs": [
+    600,
+    1200,
+    1800,
+    2200,
+    2600,
+    2800,
+    3000,
+    3200,
+    3600,
+    4000
+   ],
+   "effect": {
+    "kind": "movement",
+    "range_per_level": 32.0,
+    "ui_at_level": 5
+   },
+   "unlock": "king_kai"
+  },
+  "ki_boost": {
+   "id": "ki_boost",
+   "dmz_id": "kiboost",
+   "name": "Ki Boost",
+   "desc": "Increases your Active Ki regeneration rate by 25% per level. Does not affect your passive Ki regeneration rate.",
+   "max_level": 4,
+   "tp_costs": [
+    2000,
+    4000,
+    6000,
+    8000
+   ],
+   "effect": {
+    "kind": "ki",
+    "active_regen_per_level": 0.25
+   },
+   "unlock": "goku"
+  },
+  "kaioken": {
+   "id": "kaioken",
+   "dmz_id": "kaioken",
+   "name": "Kaioken",
+   "desc": "A powerful technique that multiplies your stats but strains your body.",
+   "max_level": 5,
+   "tp_costs": [
+    1000,
+    1500,
+    2500,
+    4000,
+    7500
+   ],
+   "effect": {
+    "kind": "form_group",
+    "group": "kaioken"
+   },
+   "unlock": "king_kai"
+  },
+  "ultimate": {
+   "id": "ultimate",
+   "dmz_id": "ultimate",
+   "name": "Ultimate",
+   "desc": "Unlease your power to the limit! Ultimate Forms takes the multiplier of your strongest-compatible form and applies it to your stats with a bonus!",
+   "max_level": 1,
+   "tp_costs": [
+    -1
+   ],
+   "effect": {
+    "kind": "form_group",
+    "group": "ultimate"
+   },
+   "unlock": "old_kai"
+  },
+  "ultra_instinct": {
+   "id": "ultra_instinct",
+   "dmz_id": "ultrainstinct",
+   "name": "Ultra Instinct",
+   "desc": "An ultimate, divine technique that severs the connection between the mind and body, allowing the user to react, dodge, and attack automatically without conscious thought.",
+   "max_level": 3,
+   "tp_costs": [
+    -1,
+    -1,
+    -1
+   ],
+   "effect": {
+    "kind": "buff",
+    "auto_dodge_per_level": 0.1,
+    "aura": "#C0D8FF"
+   },
+   "unlock": "old_kai"
+  },
+  "ultra_ego": {
+   "id": "ultra_ego",
+   "dmz_id": "ultraego",
+   "name": "Ultra Ego",
+   "desc": "It is a state of mind focused on selfishness, allowing the user to unleash limitless power the more they revel in destruction.",
+   "max_level": 3,
+   "tp_costs": [
+    -1,
+    -1,
+    -1
+   ],
+   "effect": {
+    "kind": "buff",
+    "damage_taken_to_power": 0.1,
+    "aura": "#6A2BD9"
+   },
+   "unlock": "old_kai"
+  },
+  "meditation": {
+   "id": "meditation",
+   "dmz_id": "meditation",
+   "name": "Meditation",
+   "desc": "Boosts your Passive Ki Regeneration and Stamina Recovery.",
+   "max_level": 10,
+   "tp_costs": [
+    300,
+    600,
+    900,
+    1200,
+    1500,
+    1800,
+    2100,
+    2400,
+    2700,
+    3000
+   ],
+   "effect": {
+    "kind": "ki",
+    "passive_ki_regen_per_level": 0.1,
+    "stamina_regen_per_level": 0.05
+   },
+   "unlock": "dende"
+  },
+  "superforms": {
+   "id": "superforms",
+   "dmz_id": "superforms",
+   "name": "Super Forms",
+   "desc": "Access to powerful transformations unique to your race.",
+   "max_level": 8,
+   "tp_costs": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   "effect": {
+    "kind": "form_group",
+    "form_type": "superforms"
+   },
+   "unlock": "goku",
+   "unlock_by_race": {
+    "saiyan": "goku",
+    "human": "krillin",
+    "namekian": "piccolo",
+    "frostdemon": "frieza",
+    "majin": "babidi",
+    "bioandroid": "cell"
+   },
+   "cost_from_race": true
+  },
+  "godforms": {
+   "id": "godforms",
+   "dmz_id": "godforms",
+   "name": "God Forms",
+   "desc": "Access to divine transformations with godly ki.",
+   "max_level": 3,
+   "tp_costs": [
+    -1,
+    -1,
+    -1
+   ],
+   "effect": {
+    "kind": "form_group",
+    "form_type": "godforms"
+   },
+   "unlock": "old_kai",
+   "cost_from_race": true
+  },
+  "legendaryforms": {
+   "id": "legendaryforms",
+   "dmz_id": "legendaryforms",
+   "name": "Legendary Forms",
+   "desc": "Access to rare and legendary transformations.",
+   "max_level": 8,
+   "tp_costs": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   "effect": {
+    "kind": "form_group",
+    "form_type": "legendaryforms"
+   },
+   "unlock": "old_kai",
+   "cost_from_race": true
+  },
+  "fusion": {
+   "id": "fusion",
+   "dmz_id": "fusion",
+   "name": "Fusion",
+   "desc": "Learn the Fusion technique to combine powers with another warrior.",
+   "max_level": 5,
+   "tp_costs": [
+    25000,
+    5000,
+    10000,
+    15000,
+    20000
+   ],
+   "effect": {
+    "kind": "fusion",
+    "levels": [
+     "dance",
+     "potara",
+     "ex",
+     "namek",
+     "majin"
+    ]
+   },
+   "unlock": "goku"
+  },
+  "androidforms": {
+   "id": "androidforms",
+   "dmz_id": "androidforms",
+   "name": "Android Forms",
+   "desc": "Access to powerful android transformations (exclusive for upgraded humans).",
+   "max_level": 8,
+   "tp_costs": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   "effect": {
+    "kind": "form_group",
+    "form_type": "androidforms"
+   },
+   "unlock": "gero",
+   "cost_from_race": true
+  },
+  "racial_human": {
+   "id": "racial_human",
+   "dmz_id": "racial_human",
+   "name": "Blood-Fueled Ki",
+   "desc": "Ki attacks cost 25% less Ki — the saved amount is drawn from your health instead (12.5% of the original cost as HP). That HP drain is then added as flat bonus damage on the attack's first hit. Android Upgraded: The discount rises to 50%, all Ki regen is doubled, but Ki attacks deal 15% less damage.",
+   "race": "human",
+   "passive": true,
+   "max_level": 1,
+   "tp_costs": [
+    0
+   ],
+   "effect": {
+    "kind": "racial_passive",
+    "race": "human"
+   },
+   "unlock": ""
+  },
+  "racial_saiyan": {
+   "id": "racial_saiyan",
+   "dmz_id": "racial_saiyan",
+   "name": "Zenkai",
+   "desc": "Upon staying 8 seconds below 15%% health, Saiyans will receive a Zenkai boost, which heals them by %d%% of their max health and increases their stats by a %d%%. This has a %d seconds cooldown. A Saiyan can receive a maximum of %d Zenkai boosts. Only works from level %d onwards.",
+   "race": "saiyan",
+   "passive": true,
+   "max_level": 1,
+   "tp_costs": [
+    0
+   ],
+   "effect": {
+    "kind": "racial_passive",
+    "race": "saiyan"
+   },
+   "unlock": ""
+  },
+  "racial_namekian": {
+   "id": "racial_namekian",
+   "dmz_id": "racial_namekian",
+   "name": "Assimilation",
+   "desc": "Namekians can assimilate with other Namekians by selecting the Skill on the X menu, then holding G next to a Namekian. When assimilating, you will regen %d%% of your max health, and will also gain a permanent %d%% (of your stats) boost to your stats. You can assimilate a maximum of %d times.",
+   "race": "namekian",
+   "passive": true,
+   "max_level": 1,
+   "tp_costs": [
+    0
+   ],
+   "effect": {
+    "kind": "racial_passive",
+    "race": "namekian"
+   },
+   "unlock": ""
+  },
+  "racial_frostdemon": {
+   "id": "racial_frostdemon",
+   "dmz_id": "racial_frostdemon",
+   "name": "Prodigious Strength",
+   "desc": "Frost Demons have prodigius strength, increasing their TP Gain ratio by %d%%. Stacking with other boosts like HTC.",
+   "race": "frostdemon",
+   "passive": true,
+   "max_level": 1,
+   "tp_costs": [
+    0
+   ],
+   "effect": {
+    "kind": "racial_passive",
+    "race": "frostdemon"
+   },
+   "unlock": ""
+  },
+  "racial_bioandroid": {
+   "id": "racial_bioandroid",
+   "dmz_id": "racial_bioandroid",
+   "name": "Life Drain",
+   "desc": "Bio-Androids can drain the life force of their enemies by selecting the skill on the X menu and pressing G, dealing %d%% of their max health as damage and healing themselves for the same amount. This has a %d seconds cooldown.",
+   "race": "bioandroid",
+   "passive": true,
+   "max_level": 1,
+   "tp_costs": [
+    0
+   ],
+   "effect": {
+    "kind": "racial_passive",
+    "race": "bioandroid"
+   },
+   "unlock": ""
+  },
+  "racial_majin": {
+   "id": "racial_majin",
+   "dmz_id": "racial_majin",
+   "name": "Absorption",
+   "desc": "Majins can absorb other entities by selecting the skill on the X menu and pressing G. When absorbing, you will regen %d%% of your max health, and will also gain a permanent %d%% (of the target stats) boost to your stats. You can absorb a maximum of %d times.",
+   "race": "majin",
+   "passive": true,
+   "max_level": 1,
+   "tp_costs": [
+    0
+   ],
+   "effect": {
+    "kind": "racial_passive",
+    "race": "majin"
+   },
+   "unlock": ""
+  },
+  "aura_status": {
+   "id": "aura_status",
+   "dmz_id": "aurastatus",
+   "name": "Aura Status",
+   "desc": "",
+   "max_level": 1,
+   "tp_costs": [
+    0
+   ],
+   "effect": {
+    "kind": "toggle",
+    "aura": true
+   },
+   "unlock": ""
+  },
+  "friendly_fist": {
+   "id": "friendly_fist",
+   "dmz_id": "friendlyfist",
+   "name": "Friendly Fist",
+   "desc": "",
+   "max_level": 1,
+   "tp_costs": [
+    0
+   ],
+   "effect": {
+    "kind": "toggle",
+    "no_ally_damage": true
+   },
+   "unlock": ""
+  }
+ }
+}

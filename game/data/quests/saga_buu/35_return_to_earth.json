@@ -1,0 +1,56 @@
+{
+ "id": "35",
+ "dmz_id": 35,
+ "quest_id": "saga_buu:35",
+ "name": "Return to Earth",
+ "desc": "The battle is over. Return to Earth and close the Buu Saga.",
+ "title": "Return to Earth",
+ "description": "The battle is over. Return to Earth and close the Buu Saga.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 34,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2320
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "34",
+    "quest": "saga_buu:34"
+   }
+  ]
+ },
+ "min_level": 2320,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "DIMENSION",
+   "planet": "earth"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 108000
+  }
+ ]
+}

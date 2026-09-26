@@ -1,0 +1,66 @@
+{
+ "id": "bulma_gero_blueprints",
+ "dmz_id": "bulma_gero_blueprints",
+ "quest_id": "sidequest_collection:bulma_gero_blueprints",
+ "name": "Gero's Blueprints",
+ "desc": "Bulma needs data from Dr. Gero's laboratory to understand the Androids' weaknesses. Search the lab and bring back redstone circuits and Kikono components.",
+ "title": "Gero's Blueprints",
+ "description": "Bulma needs data from Dr. Gero's laboratory to understand the Androids' weaknesses. Search the lab and bring back redstone circuits and Kikono components.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_collection",
+ "order": 0,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "6",
+    "quest": "saga_android:6"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "STRUCTURE",
+   "structure": "dragonminez:gero_lab"
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "redstone",
+   "count": 32
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "kikono_shard",
+   "count": 8
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 56000
+  }
+ ]
+}

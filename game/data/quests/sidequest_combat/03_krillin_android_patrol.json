@@ -1,0 +1,72 @@
+{
+ "id": "krillin_android_patrol",
+ "dmz_id": "krillin_android_patrol",
+ "quest_id": "sidequest_combat:krillin_android_patrol",
+ "name": "Android Patrol",
+ "desc": "Krillin asks you to patrol the rocky wastelands for Android sightings. Clear out any Red Ribbon remnants you find along the way.",
+ "title": "Android Patrol",
+ "description": "Krillin asks you to patrol the rocky wastelands for Android sightings. Clear out any Red Ribbon remnants you find along the way.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_combat",
+ "order": 2,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "krillin",
+ "turn_in": "krillin",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "5",
+    "quest": "saga_android:5"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "red_ribbon_soldier",
+   "entity_name": "Red Ribbon's Soldier",
+   "count": 15,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "robot1",
+   "entity_name": "Red Ribbon Robot",
+   "count": 3,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "krillin",
+   "npcId": "krillin"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 48000
+  }
+ ]
+}

@@ -1,0 +1,87 @@
+{
+ "id": "20",
+ "dmz_id": 20,
+ "quest_id": "saga_movies:20",
+ "name": "Androids in the Ice",
+ "desc": "Android 14 and Android 15 are waiting in the frozen biome. Defeat them before Android 13 absorbs their parts.",
+ "title": "Androids in the Ice",
+ "description": "Android 14 and Android 15 are waiting in the frozen biome. Defeat them before Android 13 absorbs their parts.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 19,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 700
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:snowy_plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "6",
+    "quest": "saga_android:6"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "19",
+    "quest": "saga_movies:19"
+   }
+  ]
+ },
+ "min_level": 700,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_a14",
+   "entity_name": "Android 14",
+   "count": 1,
+   "health": 154000.0,
+   "meleeDamage": 6000.0,
+   "kiDamage": 5440.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_a15",
+   "entity_name": "Android 15",
+   "count": 1,
+   "health": 129500.0,
+   "meleeDamage": 5280.0,
+   "kiDamage": 4760.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 81200
+  }
+ ]
+}

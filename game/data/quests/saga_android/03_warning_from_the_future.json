@@ -1,0 +1,57 @@
+{
+ "id": "3",
+ "dmz_id": 3,
+ "quest_id": "saga_android:3",
+ "name": "Warning from the Future",
+ "desc": "A mysterious warrior has changed the invasion's outcome. Speak with Trunks and learn what is coming.",
+ "title": "Warning from the Future",
+ "description": "A mysterious warrior has changed the invasion's outcome. Speak with Trunks and learn what is coming.",
+ "type": "SAGA",
+ "category": "saga_android",
+ "saga": "android_saga",
+ "order": 2,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 500
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "2",
+    "quest": "saga_android:2"
+   }
+  ]
+ },
+ "min_level": 500,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "trunks",
+   "npcId": "trunks"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 16800
+  }
+ ]
+}

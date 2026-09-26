@@ -1,0 +1,67 @@
+{
+ "id": "piccolo_arrival",
+ "dmz_id": "piccolo_arrival",
+ "quest_id": "sidequest_story:piccolo_arrival",
+ "name": "Piccolo's Arrival",
+ "desc": "Piccolo has finally arrived on Planet Namek. He needs you to create a distraction by drawing out Frieza's soldiers while he powers up.",
+ "title": "Piccolo's Arrival",
+ "description": "Piccolo has finally arrived on Planet Namek. He needs you to create a distraction by drawing out Frieza's soldiers while he powers up.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_story",
+ "order": 4,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "piccolo",
+ "turn_in": "piccolo",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "8",
+    "quest": "saga_frieza:8"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_friezasoldier01",
+   "entity_name": "Frieza's Soldier",
+   "count": 5,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_friezasoldier02",
+   "entity_name": "Frieza's Soldier",
+   "count": 5,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "piccolo",
+   "npcId": "piccolo"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 15000
+  }
+ ]
+}

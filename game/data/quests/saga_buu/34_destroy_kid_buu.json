@@ -1,0 +1,64 @@
+{
+ "id": "34",
+ "dmz_id": 34,
+ "quest_id": "saga_buu:34",
+ "name": "Destroy Kid Buu",
+ "desc": "This is the final clash. Destroy Kid Buu before his chaos reaches Earth again.",
+ "title": "Destroy Kid Buu",
+ "description": "This is the final clash. Destroy Kid Buu before his chaos reaches Earth again.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 33,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2320
+   },
+   {
+    "type": "PLANET",
+    "planet": "sacred_kai_planet"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "33",
+    "quest": "saga_buu:33"
+   }
+  ]
+ },
+ "min_level": 2320,
+ "planet": "sacred_kai_planet",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_kidbuu",
+   "entity_name": "Kid Buu",
+   "count": 1,
+   "health": 770000.0,
+   "meleeDamage": 32400.0,
+   "kiDamage": 29240.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 324000
+  }
+ ]
+}

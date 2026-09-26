@@ -1,0 +1,74 @@
+{
+ "id": "28",
+ "dmz_id": 28,
+ "quest_id": "saga_movies:28",
+ "name": "Bojack",
+ "desc": "Bojack is free and hunting for conquest. Defeat him before he reaches full power.",
+ "title": "Bojack",
+ "description": "Bojack is free and hunting for conquest. Defeat him before he reaches full power.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 27,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1600
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "15",
+    "quest": "saga_android:15"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "27",
+    "quest": "saga_movies:27"
+   }
+  ]
+ },
+ "min_level": 1600,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_bojack",
+   "entity_name": "Bojack",
+   "count": 1,
+   "health": 434000.0,
+   "meleeDamage": 17400.0,
+   "kiDamage": 15980.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 151200
+  }
+ ]
+}

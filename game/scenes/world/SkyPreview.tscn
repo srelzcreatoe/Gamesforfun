@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://bskypreview001"]
+
+[ext_resource type="Script" path="res://scripts/world/SkyPreview.gd" id="1_preview"]
+[ext_resource type="Script" path="res://scripts/world/SkyController.gd" id="2_skyctl"]
+
+[node name="SkyPreview" type="Node3D"]
+script = ExtResource("1_preview")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+shadow_enabled = false
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 26, 4.6, 0)
+fov = 75.0
+
+[node name="SkyController" type="Node" parent="."]
+script = ExtResource("2_skyctl")

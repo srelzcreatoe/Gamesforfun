@@ -1,0 +1,87 @@
+{
+ "id": "5",
+ "dmz_id": 5,
+ "quest_id": "saga_movies:5",
+ "name": "Controlled Allies",
+ "desc": "Gohan and Krillin are being forced into battle. Break Dr. Wheelo's hold without letting them stop you.",
+ "title": "Controlled Allies",
+ "description": "Gohan and Krillin are being forced into battle. Break Dr. Wheelo's hold without letting them stop you.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 4,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 50
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:snowy_plains"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "6",
+    "quest": "saga_saiyan:6"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "4",
+    "quest": "saga_movies:4"
+   }
+  ]
+ },
+ "min_level": 50,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_kid_gohan",
+   "entity_name": "Kid Gohan",
+   "count": 1,
+   "health": 3120.0,
+   "meleeDamage": 182.0,
+   "kiDamage": 273.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_krillin",
+   "entity_name": "Krillin",
+   "count": 1,
+   "health": 1950.0,
+   "meleeDamage": 118.0,
+   "kiDamage": 182.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 10900
+  }
+ ]
+}

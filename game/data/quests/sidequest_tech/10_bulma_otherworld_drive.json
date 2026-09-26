@@ -1,0 +1,72 @@
+{
+ "id": "bulma_otherworld_drive",
+ "dmz_id": "bulma_otherworld_drive",
+ "quest_id": "sidequest_tech:bulma_otherworld_drive",
+ "name": "Otherworld Drive",
+ "desc": "Bulma is certain she can retune a space pod's warp coils to punch a hole straight into the Otherworld. Bring her ender pearls, obsidian and redstone blocks and she'll upgrade your pod to make the trip.",
+ "title": "Otherworld Drive",
+ "description": "Bulma is certain she can retune a space pod's warp coils to punch a hole straight into the Otherworld. Bring her ender pearls, obsidian and redstone blocks and she'll upgrade your pod to make the trip.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_tech",
+ "order": 9,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "5",
+    "quest": "saga_saiyan:5"
+   },
+   {
+    "type": "QUEST",
+    "questId": "bulma_radar_parts",
+    "quest": "sidequest_collection:bulma_radar_parts"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "ender_pearl",
+   "count": 8
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "obsidian",
+   "count": 12
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "redstone_block",
+   "count": 4
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 7500
+  }
+ ]
+}

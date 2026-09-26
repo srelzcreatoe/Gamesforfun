@@ -1,0 +1,68 @@
+{
+ "id": "9",
+ "dmz_id": 9,
+ "quest_id": "saga_android:9",
+ "name": "Android 17",
+ "desc": "Android 17 is reckless, cruel, and stronger than expected. Bring him down before he tears through the world.",
+ "title": "Android 17",
+ "description": "Android 17 is reckless, cruel, and stronger than expected. Bring him down before he tears through the world.",
+ "type": "SAGA",
+ "category": "saga_android",
+ "saga": "android_saga",
+ "order": 8,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 780
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "#minecraft:is_mountain"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "8",
+    "quest": "saga_android:8"
+   }
+  ]
+ },
+ "min_level": 780,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_a17",
+   "entity_name": "Android 17",
+   "count": 1,
+   "health": 122500.0,
+   "meleeDamage": 5100.0,
+   "kiDamage": 5440.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 68320
+  }
+ ]
+}

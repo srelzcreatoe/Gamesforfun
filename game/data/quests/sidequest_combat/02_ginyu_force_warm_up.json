@@ -1,0 +1,62 @@
+{
+ "id": "ginyu_force_warm_up",
+ "dmz_id": "ginyu_force_warm_up",
+ "quest_id": "sidequest_combat:ginyu_force_warm_up",
+ "name": "Ginyu Force Warm-Up",
+ "desc": "The Ginyu Force is coming. Goku asks you to train by clearing out Frieza's remaining soldiers on the Ajissa Plains & you'll need every ounce of strength.",
+ "title": "Ginyu Force Warm-Up",
+ "description": "The Ginyu Force is coming. Goku asks you to train by clearing out Frieza's remaining soldiers on the Ajissa Plains & you'll need every ounce of strength.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_combat",
+ "order": 1,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "goku",
+ "turn_in": "goku",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:ajissa_plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "6",
+    "quest": "saga_frieza:6"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_friezasoldier01",
+   "entity_name": "Frieza Soldiers",
+   "entity_any": [
+    "saga_friezasoldier01",
+    "saga_friezasoldier02",
+    "saga_friezasoldier03"
+   ],
+   "count": 16,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 21000
+  }
+ ]
+}

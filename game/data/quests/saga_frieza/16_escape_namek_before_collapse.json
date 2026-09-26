@@ -1,0 +1,56 @@
+{
+ "id": "16",
+ "dmz_id": 16,
+ "quest_id": "saga_frieza:16",
+ "name": "Escape the Collapsing World",
+ "desc": "Namek is collapsing around you. Get out before the planet takes everyone down with it.",
+ "title": "Escape the Collapsing World",
+ "description": "Namek is collapsing around you. Get out before the planet takes everyone down with it.",
+ "type": "SAGA",
+ "category": "saga_frieza",
+ "saga": "frieza_saga",
+ "order": 15,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 360
+   },
+   {
+    "type": "PLANET",
+    "planet": "namek"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "15",
+    "quest": "saga_frieza:15"
+   }
+  ]
+ },
+ "min_level": 360,
+ "planet": "namek",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "DIMENSION",
+   "planet": "earth"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 28800
+  }
+ ]
+}

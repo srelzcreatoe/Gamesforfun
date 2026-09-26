@@ -1,0 +1,68 @@
+{
+ "id": "18",
+ "dmz_id": 18,
+ "quest_id": "saga_buu:18",
+ "name": "Super Saiyan 3",
+ "desc": "Goku reveals a power beyond Super Saiyan 2 on the plains. Stand against Super Saiyan 3 and learn what the next battles demand.",
+ "title": "Super Saiyan 3",
+ "description": "Goku reveals a power beyond Super Saiyan 2 on the plains. Stand against Super Saiyan 3 and learn what the next battles demand.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 17,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1920
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "17",
+    "quest": "saga_buu:17"
+   }
+  ]
+ },
+ "min_level": 1920,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_goku_end_ssj3",
+   "entity_name": "Goku (Super Saiyan 3)",
+   "count": 1,
+   "health": 437500.0,
+   "meleeDamage": 18300.0,
+   "kiDamage": 16660.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 187200
+  }
+ ]
+}

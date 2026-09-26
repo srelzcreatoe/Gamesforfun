@@ -1,0 +1,74 @@
+{
+ "id": "24",
+ "dmz_id": 24,
+ "quest_id": "saga_movies:24",
+ "name": "Paragus",
+ "desc": "Paragus is the hand behind Broly's control. Defeat him and end his scheme.",
+ "title": "Paragus",
+ "description": "Paragus is the hand behind Broly's control. Defeat him and end his scheme.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 23,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1465
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "15",
+    "quest": "saga_android:15"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "23",
+    "quest": "saga_movies:23"
+   }
+  ]
+ },
+ "min_level": 1465,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_paragus",
+   "entity_name": "Paragus",
+   "count": 1,
+   "health": 217000.0,
+   "meleeDamage": 8700.0,
+   "kiDamage": 7820.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 133800
+  }
+ ]
+}

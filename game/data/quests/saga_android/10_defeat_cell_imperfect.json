@@ -1,0 +1,68 @@
+{
+ "id": "10",
+ "dmz_id": 10,
+ "quest_id": "saga_android:10",
+ "name": "Cell Emerges",
+ "desc": "A bio-android from another timeline is feeding on the living. Hunt Imperfect Cell before he reaches the Androids.",
+ "title": "Cell Emerges",
+ "description": "A bio-android from another timeline is feeding on the living. Hunt Imperfect Cell before he reaches the Androids.",
+ "type": "SAGA",
+ "category": "saga_android",
+ "saga": "android_saga",
+ "order": 9,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 980
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "9",
+    "quest": "saga_android:9"
+   }
+  ]
+ },
+ "min_level": 980,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_cell_imperfect",
+   "entity_name": "Cell (Imperfect)",
+   "count": 1,
+   "health": 108500.0,
+   "meleeDamage": 4350.0,
+   "kiDamage": 3910.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 77280
+  }
+ ]
+}

@@ -1,0 +1,68 @@
+{
+ "id": "tien_cell_search",
+ "dmz_id": "tien_cell_search",
+ "quest_id": "sidequest_combat:tien_cell_search",
+ "name": "Hunting Cell",
+ "desc": "Krillin senses a dark energy spreading across the plains. Help him investigate by eliminating the creatures Cell has been absorbing from.",
+ "title": "Hunting Cell",
+ "description": "Krillin senses a dark energy spreading across the plains. Help him investigate by eliminating the creatures Cell has been absorbing from.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_combat",
+ "order": 6,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "krillin",
+ "turn_in": "krillin",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "10",
+    "quest": "saga_android:10"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "bandit",
+   "entity_name": "Bandit",
+   "vanilla_mob": "zombie",
+   "count": 30,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "sabertooth",
+   "entity_name": "Sabertooth Tiger",
+   "vanilla_mob": "spider",
+   "count": 15,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 64000
+  }
+ ]
+}

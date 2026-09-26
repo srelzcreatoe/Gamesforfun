@@ -1,0 +1,54 @@
+{
+ "id": "namek_farewell",
+ "dmz_id": "namek_farewell",
+ "quest_id": "sidequest_exploration:namek_farewell",
+ "name": "Namek's Farewell",
+ "desc": "Before Namek's fate is sealed, Guru asks you to visit the Sacred Lands one last time and pay your respects to this dying world.",
+ "title": "Namek's Farewell",
+ "description": "Before Namek's fate is sealed, Guru asks you to visit the Sacred Lands one last time and pay your respects to this dying world.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_exploration",
+ "order": 3,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "guru",
+ "turn_in": "guru",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "15",
+    "quest": "saga_frieza:15"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "STRUCTURE",
+   "structure": "dragonminez:village_sacred"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "guru",
+   "npcId": "guru"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 18000
+  }
+ ]
+}

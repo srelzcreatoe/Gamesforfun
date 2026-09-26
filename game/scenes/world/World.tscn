@@ -1,0 +1,48 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/World.gd" id="1_world"]
+[ext_resource type="Script" path="res://scripts/world/ChunkManager.gd" id="2_chunkmanager"]
+[ext_resource type="Script" path="res://scripts/world/Fluids.gd" id="3_fluids"]
+
+[sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_placeholder"]
+sky_top_color = Color(0.33, 0.53, 0.92, 1)
+sky_horizon_color = Color(0.78, 0.87, 0.99, 1)
+sky_curve = 0.15
+ground_bottom_color = Color(0.22, 0.25, 0.3, 1)
+ground_horizon_color = Color(0.62, 0.67, 0.73, 1)
+sun_angle_max = 18.0
+sun_curve = 0.1
+
+[sub_resource type="Sky" id="Sky_placeholder"]
+sky_material = SubResource("SkyMaterial_placeholder")
+
+[sub_resource type="Environment" id="Environment_world"]
+background_mode = 2
+sky = SubResource("Sky_placeholder")
+ambient_light_source = 3
+ambient_light_sky_contribution = 1.0
+reflected_light_source = 0
+tonemap_mode = 2
+fog_enabled = false
+
+[node name="World" type="Node3D"]
+script = ExtResource("1_world")
+
+[node name="Chunks" type="Node3D" parent="."]
+
+[node name="Entities" type="Node3D" parent="."]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_world")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 80, 0)
+light_energy = 1.0
+shadow_enabled = false
+directional_shadow_max_distance = 60.0
+
+[node name="ChunkManager" type="Node" parent="."]
+script = ExtResource("2_chunkmanager")
+
+[node name="Fluids" type="Node" parent="."]
+script = ExtResource("3_fluids")

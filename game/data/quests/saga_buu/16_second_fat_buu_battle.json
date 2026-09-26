@@ -1,0 +1,68 @@
+{
+ "id": "16",
+ "dmz_id": 16,
+ "quest_id": "saga_buu:16",
+ "name": "Buu's Second Rampage",
+ "desc": "Fat Buu is still loose and growing harder to contain. Fight him again before the damage becomes permanent.",
+ "title": "Buu's Second Rampage",
+ "description": "Fat Buu is still loose and growing harder to contain. Fight him again before the damage becomes permanent.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 15,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1860
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "15",
+    "quest": "saga_buu:15"
+   }
+  ]
+ },
+ "min_level": 1860,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_buufat",
+   "entity_name": "Majin Buu",
+   "count": 1,
+   "health": 385000.0,
+   "meleeDamage": 16200.0,
+   "kiDamage": 14620.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 165600
+  }
+ ]
+}

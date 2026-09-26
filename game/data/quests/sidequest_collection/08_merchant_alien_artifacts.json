@@ -1,0 +1,66 @@
+{
+ "id": "merchant_alien_artifacts",
+ "dmz_id": "merchant_alien_artifacts",
+ "quest_id": "sidequest_collection:merchant_alien_artifacts",
+ "name": "Alien Artifacts",
+ "desc": "Bulma discovered rare alien materials on Namek. Retrieve Kikono shards and diamonds for her & she promises a legendary weapon in return.",
+ "title": "Alien Artifacts",
+ "description": "Bulma discovered rare alien materials on Namek. Retrieve Kikono shards and diamonds for her & she promises a legendary weapon in return.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_collection",
+ "order": 7,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "4",
+    "quest": "saga_frieza:4"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "kikono_shard",
+   "count": 16
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "diamond",
+   "count": 8
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 13500
+  },
+  {
+   "type": "ITEM",
+   "item": "diamond_sword",
+   "count": 1
+  }
+ ]
+}

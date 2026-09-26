@@ -1,0 +1,63 @@
+{
+ "id": "garlic_jr_spice_boys",
+ "dmz_id": "garlic_jr_spice_boys",
+ "quest_id": "sidequest_movies:garlic_jr_spice_boys",
+ "name": "The Spice Boys",
+ "desc": "Garlic Jr.'s henchmen are scattered across the wastelands, poisoning everything they touch. Mr. Popo asks you to hunt down what remains of the immortal demon's followers.",
+ "title": "The Spice Boys",
+ "description": "Garlic Jr.'s henchmen are scattered across the wastelands, poisoning everything they touch. Mr. Popo asks you to hunt down what remains of the immortal demon's followers.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_movies",
+ "order": 5,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "popo",
+ "turn_in": "popo",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "3",
+    "quest": "saga_movies:3"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_garlick_jr",
+   "entity_name": "Garlic Jr.",
+   "count": 3,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "popo",
+   "npcId": "popo"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 72000
+  }
+ ]
+}

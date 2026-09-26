@@ -1,0 +1,61 @@
+{
+ "id": "4",
+ "dmz_id": 4,
+ "quest_id": "saga_buu:4",
+ "name": "Enter the World Tournament",
+ "desc": "The World Martial Arts Tournament is underway. Speak with Piccolo and step into the tournament path.",
+ "title": "Enter the World Tournament",
+ "description": "The World Martial Arts Tournament is underway. Speak with Piccolo and step into the tournament path.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 3,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1540
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "3",
+    "quest": "saga_buu:3"
+   }
+  ]
+ },
+ "min_level": 1540,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "piccolo",
+   "npcId": "piccolo"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 43200
+  }
+ ]
+}

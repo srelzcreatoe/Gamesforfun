@@ -1,0 +1,765 @@
+{
+ "structures": {
+  "roshi_house": {
+   "planet": "earth",
+   "biomes": [
+    "beach",
+    "ocean"
+   ],
+   "rarity": 40,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": false,
+   "quest_tag": "dragonminez:roshi_house",
+   "min_distance_from_spawn": 200,
+   "file": "assets/structures/roshi_house.json",
+   "spawn_entities": [
+    "master_krillin",
+    "master_roshi"
+   ]
+  },
+  "goku_house": {
+   "planet": "earth",
+   "biomes": [
+    "plains",
+    "sunflower_plains",
+    "meadow"
+   ],
+   "rarity": 60,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": false,
+   "quest_tag": "dragonminez:goku_house",
+   "min_distance_from_spawn": 320,
+   "file": "assets/structures/goku_house.json",
+   "spawn_entities": [
+    "master_gohan",
+    "master_goku"
+   ]
+  },
+  "kami_lookout": {
+   "planet": "earth",
+   "biomes": [],
+   "rarity": 1,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": true,
+   "quest_tag": "dragonminez:kamilookout",
+   "min_distance_from_spawn": 0,
+   "fixed_position": [
+    0,
+    0,
+    0
+   ],
+   "file": "assets/structures/kami_lookout.json",
+   "spawn_entities": [
+    "master_dende",
+    "master_karin",
+    "master_popo"
+   ]
+  },
+  "cell_arena": {
+   "planet": "earth",
+   "biomes": [
+    "plains",
+    "sunflower_plains",
+    "savanna"
+   ],
+   "rarity": 90,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": true,
+   "quest_tag": "dragonminez:cell_arena",
+   "min_distance_from_spawn": 600,
+   "file": "assets/structures/cell_arena.json",
+   "spawn_entities": [
+    "master_cell"
+   ]
+  },
+  "gero_lab": {
+   "planet": "earth",
+   "biomes": [
+    "wasteland"
+   ],
+   "rarity": 70,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": false,
+   "quest_tag": "dragonminez:gero_lab",
+   "min_distance_from_spawn": 400,
+   "group": "gero_lab",
+   "file": "assets/structures/gero_lab.json",
+   "spawn_entities": []
+  },
+  "gero_lab_stairs": {
+   "planet": "earth",
+   "biomes": [
+    "wasteland"
+   ],
+   "rarity": 0,
+   "y_mode": "absolute",
+   "y": 20,
+   "unique": true,
+   "clear_above": false,
+   "group": "gero_lab",
+   "min_distance_from_spawn": 400,
+   "file": "assets/structures/gero_lab_stairs.json",
+   "spawn_entities": []
+  },
+  "gero_lab_underground": {
+   "planet": "earth",
+   "biomes": [
+    "wasteland"
+   ],
+   "rarity": 0,
+   "y_mode": "absolute",
+   "y": 6,
+   "unique": true,
+   "clear_above": false,
+   "group": "gero_lab",
+   "min_distance_from_spawn": 400,
+   "file": "assets/structures/gero_lab_underground.json",
+   "spawn_entities": [
+    "master_gero"
+   ]
+  },
+  "rr_tower": {
+   "planet": "earth",
+   "biomes": [
+    "plains",
+    "forest",
+    "birch_forest",
+    "desert",
+    "savanna",
+    "taiga",
+    "snowy_plains",
+    "badlands",
+    "jungle",
+    "mountains",
+    "meadow",
+    "cherry_grove",
+    "swamp",
+    "river",
+    "mushroom_fields",
+    "ice_spikes",
+    "snowy_taiga",
+    "dark_forest",
+    "sunflower_plains"
+   ],
+   "rarity": 48,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": true,
+   "quest_tag": "dragonminez:rrtower",
+   "min_distance_from_spawn": 240,
+   "file": "assets/structures/rr_tower.json",
+   "spawn_entities": [
+    "red_ribbon_soldier"
+   ]
+  },
+  "piccolo_house": {
+   "planet": "earth",
+   "biomes": [
+    "wasteland",
+    "mountains",
+    "badlands",
+    "forest",
+    "taiga",
+    "desert",
+    "savanna"
+   ],
+   "rarity": 80,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": false,
+   "quest_tag": "dragonminez:piccolo_house",
+   "min_distance_from_spawn": 300,
+   "file": "assets/structures/piccolo_house.json",
+   "spawn_entities": [
+    "master_piccolo"
+   ]
+  },
+  "yamcha_house": {
+   "planet": "earth",
+   "biomes": [
+    "desert",
+    "badlands"
+   ],
+   "rarity": 70,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": false,
+   "quest_tag": "dragonminez:yamcha_house",
+   "min_distance_from_spawn": 300,
+   "file": "assets/structures/yamcha_house.json",
+   "spawn_entities": [
+    "master_yamcha"
+   ]
+  },
+  "vegeta_pod": {
+   "planet": "earth",
+   "biomes": [
+    "wasteland",
+    "mountains",
+    "badlands"
+   ],
+   "rarity": 60,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": false,
+   "quest_tag": "dragonminez:vegeta_pod",
+   "min_distance_from_spawn": 260,
+   "file": "assets/structures/vegeta_pod.json",
+   "spawn_entities": [
+    "master_vegeta"
+   ]
+  },
+  "trunks_ship": {
+   "planet": "earth",
+   "biomes": [
+    "plains",
+    "forest",
+    "wasteland",
+    "taiga",
+    "savanna",
+    "mountains"
+   ],
+   "rarity": 90,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": false,
+   "quest_tag": "dragonminez:trunks_ship",
+   "min_distance_from_spawn": 360,
+   "file": "assets/structures/trunks_ship.json",
+   "spawn_entities": [
+    "master_trunks"
+   ]
+  },
+  "babidi_ship": {
+   "planet": "earth",
+   "biomes": [
+    "mountains",
+    "wasteland",
+    "badlands"
+   ],
+   "rarity": 100,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": false,
+   "quest_tag": "dragonminez:babidi",
+   "min_distance_from_spawn": 500,
+   "group": "babidi",
+   "file": "assets/structures/babidi_ship.json",
+   "spawn_entities": []
+  },
+  "babidi_top": {
+   "planet": "earth",
+   "biomes": [
+    "mountains",
+    "wasteland",
+    "badlands"
+   ],
+   "rarity": 0,
+   "y_mode": "absolute",
+   "y": 90,
+   "unique": true,
+   "clear_above": false,
+   "group": "babidi",
+   "min_distance_from_spawn": 500,
+   "file": "assets/structures/babidi_top.json",
+   "spawn_entities": [
+    "saga_puipui"
+   ]
+  },
+  "babidi_bottom": {
+   "planet": "earth",
+   "biomes": [
+    "mountains",
+    "wasteland",
+    "badlands"
+   ],
+   "rarity": 0,
+   "y_mode": "absolute",
+   "y": 4,
+   "unique": true,
+   "clear_above": false,
+   "group": "babidi",
+   "min_distance_from_spawn": 500,
+   "file": "assets/structures/babidi_bottom.json",
+   "spawn_entities": [
+    "master_babidi",
+    "saga_dabura",
+    "saga_yakon"
+   ]
+  },
+  "cc_villager": {
+   "planet": "earth",
+   "biomes": [
+    "plains",
+    "sunflower_plains",
+    "forest",
+    "meadow",
+    "savanna",
+    "taiga"
+   ],
+   "rarity": 24,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "min_distance_from_spawn": 80,
+   "file": "assets/structures/cc_villager.json",
+   "spawn_entities": [
+    "cc_namekian"
+   ]
+  },
+  "elder_guru": {
+   "planet": "namek",
+   "biomes": [
+    "ajissa_plains",
+    "namekian_rivers"
+   ],
+   "rarity": 1,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": false,
+   "quest_tag": "dragonminez:elder_guru",
+   "min_distance_from_spawn": 400,
+   "file": "assets/structures/elder_guru.json",
+   "spawn_entities": [
+    "master_guru"
+   ]
+  },
+  "frieza_ship": {
+   "planet": "namek",
+   "biomes": [
+    "ajissa_plains"
+   ],
+   "rarity": 80,
+   "y_mode": "absolute",
+   "y": 60,
+   "unique": true,
+   "clear_above": true,
+   "quest_tag": "dragonminez:frieza_ship",
+   "min_distance_from_spawn": 500,
+   "file": "assets/structures/frieza_ship.json",
+   "spawn_entities": [
+    "master_frieza"
+   ]
+  },
+  "old_kai_pillar": {
+   "planet": "sacred_kai_planet",
+   "biomes": [
+    "sacredkai_plains"
+   ],
+   "rarity": 1,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": true,
+   "quest_tag": "dragonminez:oldkai_pillar",
+   "min_distance_from_spawn": 120,
+   "file": "assets/structures/old_kai_pillar.json",
+   "spawn_entities": [
+    "master_oldkai"
+   ]
+  },
+  "time_chamber": {
+   "planet": "time_chamber",
+   "biomes": [
+    "hyperbolic_time_chamber"
+   ],
+   "rarity": 1,
+   "y_mode": "absolute",
+   "y": 8,
+   "unique": true,
+   "clear_above": false,
+   "quest_tag": "dragonminez:timechamber",
+   "min_distance_from_spawn": 0,
+   "fixed_position": [
+    0,
+    8,
+    0
+   ],
+   "file": "assets/structures/time_chamber.json",
+   "spawn_entities": [
+    "master_popo",
+    "punch_machine"
+   ]
+  },
+  "village_ajissa_center": {
+   "file": "assets/structures/village_ajissa_center.json",
+   "planet": "namek",
+   "biomes": [
+    "ajissa_plains"
+   ],
+   "rarity": 34,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [
+    "namek_trader",
+    "namek_warrior"
+   ],
+   "quest_tag": "dragonminez:village_ajissa",
+   "min_distance_from_spawn": 64,
+   "group": "village_ajissa",
+   "village_role": "center"
+  },
+  "village_ajissa_house_big": {
+   "file": "assets/structures/village_ajissa_house_big.json",
+   "planet": "namek",
+   "biomes": [
+    "ajissa_plains"
+   ],
+   "rarity": 0,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [],
+   "quest_tag": "dragonminez:village_ajissa",
+   "min_distance_from_spawn": 64,
+   "group": "village_ajissa",
+   "village_role": "piece"
+  },
+  "village_ajissa_house_small": {
+   "file": "assets/structures/village_ajissa_house_small.json",
+   "planet": "namek",
+   "biomes": [
+    "ajissa_plains"
+   ],
+   "rarity": 0,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [],
+   "quest_tag": "dragonminez:village_ajissa",
+   "min_distance_from_spawn": 64,
+   "group": "village_ajissa",
+   "village_role": "piece"
+  },
+  "village_ajissa_cc_house": {
+   "file": "assets/structures/village_ajissa_cc_house.json",
+   "planet": "namek",
+   "biomes": [
+    "ajissa_plains"
+   ],
+   "rarity": 0,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [
+    "cc_namekian"
+   ],
+   "quest_tag": "dragonminez:village_ajissa",
+   "min_distance_from_spawn": 64,
+   "group": "village_ajissa",
+   "village_role": "piece"
+  },
+  "village_ajissa_street_straight": {
+   "file": "assets/structures/village_ajissa_street_straight.json",
+   "planet": "namek",
+   "biomes": [
+    "ajissa_plains"
+   ],
+   "rarity": 0,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [],
+   "quest_tag": "dragonminez:village_ajissa",
+   "min_distance_from_spawn": 64,
+   "group": "village_ajissa",
+   "village_role": "piece"
+  },
+  "village_ajissa_street_curve": {
+   "file": "assets/structures/village_ajissa_street_curve.json",
+   "planet": "namek",
+   "biomes": [
+    "ajissa_plains"
+   ],
+   "rarity": 0,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [],
+   "quest_tag": "dragonminez:village_ajissa",
+   "min_distance_from_spawn": 64,
+   "group": "village_ajissa",
+   "village_role": "piece"
+  },
+  "village_ajissa_street_t": {
+   "file": "assets/structures/village_ajissa_street_t.json",
+   "planet": "namek",
+   "biomes": [
+    "ajissa_plains"
+   ],
+   "rarity": 0,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [],
+   "quest_tag": "dragonminez:village_ajissa",
+   "min_distance_from_spawn": 64,
+   "group": "village_ajissa",
+   "village_role": "piece"
+  },
+  "village_ajissa_street_cross": {
+   "file": "assets/structures/village_ajissa_street_cross.json",
+   "planet": "namek",
+   "biomes": [
+    "ajissa_plains"
+   ],
+   "rarity": 0,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [],
+   "quest_tag": "dragonminez:village_ajissa",
+   "min_distance_from_spawn": 64,
+   "group": "village_ajissa",
+   "village_role": "piece"
+  },
+  "village_sacred_center": {
+   "file": "assets/structures/village_sacred_center.json",
+   "planet": "sacred_kai_planet",
+   "biomes": [
+    "sacred_land"
+   ],
+   "rarity": 34,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [
+    "namek_trader",
+    "namek_warrior"
+   ],
+   "quest_tag": "dragonminez:village_sacred",
+   "min_distance_from_spawn": 64,
+   "group": "village_sacred",
+   "village_role": "center"
+  },
+  "village_sacred_house_big": {
+   "file": "assets/structures/village_sacred_house_big.json",
+   "planet": "sacred_kai_planet",
+   "biomes": [
+    "sacred_land"
+   ],
+   "rarity": 0,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [],
+   "quest_tag": "dragonminez:village_sacred",
+   "min_distance_from_spawn": 64,
+   "group": "village_sacred",
+   "village_role": "piece"
+  },
+  "village_sacred_house_small": {
+   "file": "assets/structures/village_sacred_house_small.json",
+   "planet": "sacred_kai_planet",
+   "biomes": [
+    "sacred_land"
+   ],
+   "rarity": 0,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [],
+   "quest_tag": "dragonminez:village_sacred",
+   "min_distance_from_spawn": 64,
+   "group": "village_sacred",
+   "village_role": "piece"
+  },
+  "village_sacred_street_straight": {
+   "file": "assets/structures/village_sacred_street_straight.json",
+   "planet": "sacred_kai_planet",
+   "biomes": [
+    "sacred_land"
+   ],
+   "rarity": 0,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [],
+   "quest_tag": "dragonminez:village_sacred",
+   "min_distance_from_spawn": 64,
+   "group": "village_sacred",
+   "village_role": "piece"
+  },
+  "village_sacred_street_curve": {
+   "file": "assets/structures/village_sacred_street_curve.json",
+   "planet": "sacred_kai_planet",
+   "biomes": [
+    "sacred_land"
+   ],
+   "rarity": 0,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [],
+   "quest_tag": "dragonminez:village_sacred",
+   "min_distance_from_spawn": 64,
+   "group": "village_sacred",
+   "village_role": "piece"
+  },
+  "village_sacred_street_t": {
+   "file": "assets/structures/village_sacred_street_t.json",
+   "planet": "sacred_kai_planet",
+   "biomes": [
+    "sacred_land"
+   ],
+   "rarity": 0,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [],
+   "quest_tag": "dragonminez:village_sacred",
+   "min_distance_from_spawn": 64,
+   "group": "village_sacred",
+   "village_role": "piece"
+  },
+  "village_sacred_street_cross": {
+   "file": "assets/structures/village_sacred_street_cross.json",
+   "planet": "sacred_kai_planet",
+   "biomes": [
+    "sacred_land"
+   ],
+   "rarity": 0,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": false,
+   "spawn_entities": [],
+   "quest_tag": "dragonminez:village_sacred",
+   "min_distance_from_spawn": 64,
+   "group": "village_sacred",
+   "village_role": "piece"
+  },
+  "capsule_corp": {
+   "planet": "earth",
+   "biomes": [
+    "plains",
+    "sunflower_plains",
+    "meadow",
+    "forest"
+   ],
+   "rarity": 1,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": true,
+   "quest_tag": "dragonminez:capsule_corp",
+   "min_distance_from_spawn": 0,
+   "file": "assets/structures/capsule_corp.json",
+   "spawn_entities": [
+    "master_vegeta",
+    "master_trunks",
+    "saga_bulma",
+    "master_toribot"
+   ]
+  },
+  "korin_tower": {
+   "planet": "earth",
+   "biomes": [],
+   "rarity": 0,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": true,
+   "quest_tag": "dragonminez:korin_tower",
+   "min_distance_from_spawn": 0,
+   "alias_of": "kami_lookout",
+   "generate": false,
+   "file": "assets/structures/korin_tower.json",
+   "spawn_entities": []
+  },
+  "snake_way": {
+   "planet": "otherworld",
+   "biomes": [
+    "other_world"
+   ],
+   "rarity": 1,
+   "y_mode": "absolute",
+   "y": 40,
+   "unique": false,
+   "clear_above": false,
+   "quest_tag": "dragonminez:snake_way",
+   "min_distance_from_spawn": 0,
+   "file": "assets/structures/snake_way.json",
+   "spawn_entities": []
+  },
+  "king_kai_planet": {
+   "planet": "otherworld",
+   "biomes": [
+    "king_kai_planet"
+   ],
+   "rarity": 1,
+   "y_mode": "sky",
+   "y": 140,
+   "unique": true,
+   "clear_above": true,
+   "quest_tag": "dragonminez:king_kai_planet",
+   "min_distance_from_spawn": 1000,
+   "file": "assets/structures/king_kai_planet.json",
+   "spawn_entities": [
+    "master_kaiosama"
+   ]
+  },
+  "check_in_station": {
+   "planet": "otherworld",
+   "biomes": [
+    "other_world"
+   ],
+   "rarity": 1,
+   "y_mode": "absolute",
+   "y": 40,
+   "unique": true,
+   "clear_above": true,
+   "quest_tag": "dragonminez:check_in_station",
+   "min_distance_from_spawn": 0,
+   "file": "assets/structures/check_in_station.json",
+   "spawn_entities": [
+    "master_enma"
+   ]
+  },
+  "hell_gate": {
+   "planet": "hell_planet",
+   "biomes": [
+    "hell_planet_wastes"
+   ],
+   "rarity": 1,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": true,
+   "quest_tag": "dmzplus:hell_gate",
+   "min_distance_from_spawn": 0,
+   "file": "assets/structures/hell_gate.json",
+   "spawn_entities": []
+  },
+  "heaven_arch": {
+   "planet": "heaven",
+   "biomes": [
+    "heaven_meadows"
+   ],
+   "rarity": 1,
+   "y_mode": "surface",
+   "unique": true,
+   "clear_above": true,
+   "quest_tag": "dmzplus:heaven_arch",
+   "min_distance_from_spawn": 0,
+   "file": "assets/structures/heaven_arch.json",
+   "spawn_entities": []
+  },
+  "kai_shrine": {
+   "planet": "sacred_kai_planet",
+   "biomes": [
+    "sacredkai_plains",
+    "sacredkai_hills"
+   ],
+   "rarity": 30,
+   "y_mode": "surface",
+   "unique": false,
+   "clear_above": true,
+   "quest_tag": "dragonminez:kai_shrine",
+   "min_distance_from_spawn": 150,
+   "file": "assets/structures/kai_shrine.json",
+   "spawn_entities": []
+  }
+ }
+}

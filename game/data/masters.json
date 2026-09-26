@@ -1,0 +1,960 @@
+{
+ "masters": {
+  "roshi": {
+   "id": "roshi",
+   "entity": "master_roshi",
+   "name": "Master Roshi",
+   "structure": "roshi_house",
+   "planet": "earth",
+   "teaches": [
+    "ki_control",
+    "kamehameha",
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "teaches_skills": [
+    "ki_control"
+   ],
+   "teaches_techniques": [
+    "kamehameha",
+    "ki_barrage",
+    "charged_ki_blast"
+   ],
+   "trains": true,
+   "quests": [
+    "sidequest_training:endurance_training",
+    "sidequest_training:roshi_basic_training",
+    "sidequest_training:weighted_training"
+   ],
+   "gives_quests": [
+    "sidequest_training:endurance_training",
+    "sidequest_training:roshi_basic_training",
+    "sidequest_training:weighted_training"
+   ],
+   "turn_in_quests": [
+    "sidequest_training:endurance_training",
+    "sidequest_training:roshi_basic_training",
+    "sidequest_training:weighted_training"
+   ],
+   "dialog": [
+    "Listen carefully — I founded the Turtle School for a reason. Before Goku could fly, he was delivering milk at full sprint with a boulder on his back. My training has forged the greatest warriors this world has ever seen. Think you're ready to begin?",
+    "Even an old master never truly stops learning. I may look like I'm just sitting here, but every movement around me is a lesson. The Turtle School survives because wisdom outlasts raw power every single time.",
+    "The Kamehameha took me fifty years to perfect. Your impatience is already showing. Slow down, breathe, and feel every movement. Real strength comes from knowing your limits — and then shattering them completely.",
+    "Ha! You remind me of Goku when he was young — sharp instincts, stubborn spirit. I've trained warriors who went on to save this entire planet. You might just be walking down that same road, kid.",
+    "Now where did I put that magazine... never mind, let's train!"
+   ]
+  },
+  "korin": {
+   "id": "korin",
+   "entity": "master_karin",
+   "name": "Master Korin",
+   "structure": "korin_tower",
+   "planet": "earth",
+   "teaches": [
+    "jump",
+    "sprint",
+    "fly"
+   ],
+   "teaches_skills": [
+    "jump",
+    "sprint",
+    "fly"
+   ],
+   "teaches_techniques": [],
+   "trains": true,
+   "quests": [],
+   "gives_quests": [],
+   "turn_in_quests": [],
+   "dialog": [
+    "So you made it to the top of my tower. Most give up halfway.",
+    "The sacred water is just ordinary water. The climb is what made you stronger.",
+    "Try to take this bottle from me. Go on, I'll wait.",
+    "Senzu beans take time to grow. Don't eat them like candy.",
+    "Yajirobe ate the last of the stew again. Some things never change."
+   ]
+  },
+  "dende": {
+   "id": "dende",
+   "entity": "master_dende",
+   "name": "Dende",
+   "structure": "kami_lookout",
+   "planet": "earth",
+   "teaches": [
+    "ki_sense",
+    "meditation"
+   ],
+   "teaches_skills": [
+    "ki_sense",
+    "meditation"
+   ],
+   "teaches_techniques": [],
+   "trains": true,
+   "quests": [
+    "sidequest_movies:dende_lookout_vigil"
+   ],
+   "gives_quests": [
+    "sidequest_movies:dende_lookout_vigil"
+   ],
+   "turn_in_quests": [
+    "sidequest_movies:dende_lookout_vigil"
+   ],
+   "dialog": [
+    "Welcome to the Lookout. I am Dende, Guardian of Earth.",
+    "Close your eyes. Feel the ki of every living thing on this planet.",
+    "Mr. Popo keeps the Lookout spotless. Please don't track in mud.",
+    "If you are wounded, come to me. Healing is what I do best.",
+    "The Dragon Balls answer to a pure heart. Use them wisely."
+   ]
+  },
+  "popo": {
+   "id": "popo",
+   "entity": "master_popo",
+   "name": "Mr. Popo",
+   "structure": "kami_lookout",
+   "planet": "earth",
+   "teaches": [
+    "meditation",
+    "ki_protection"
+   ],
+   "teaches_skills": [
+    "meditation",
+    "ki_protection"
+   ],
+   "teaches_techniques": [],
+   "trains": true,
+   "quests": [
+    "sidequest_movies:garlic_jr_spice_boys"
+   ],
+   "gives_quests": [
+    "sidequest_movies:garlic_jr_spice_boys"
+   ],
+   "turn_in_quests": [
+    "sidequest_movies:garlic_jr_spice_boys"
+   ],
+   "dialog": [
+    "Welcome to Kami's Lookout. You sense potential in yourself. Good. Prove it. I have a task that requires far more than just raw strength alone.",
+    "I am always here. Waiting. Watching. I was here before Kami arrived. I was here before the last Guardian. I will be here long after you are gone.",
+    "Your progress is... noted. The Lookout has watched warriors far greater than you struggle with far less. Do not slow down. Not even for a moment.",
+    "Impressive. You have earned the respect of those who watch over this world from above. Return when you wish to grow stronger still. I will be here.",
+    "The Hyperbolic Time Chamber is behind that door. One year inside is one day outside."
+   ]
+  },
+  "goku": {
+   "id": "goku",
+   "entity": "master_goku",
+   "name": "Master Goku",
+   "structure": "goku_house",
+   "planet": "earth",
+   "teaches": [
+    "ki_boost",
+    "kamehameha",
+    "dragon_fist",
+    "meteor",
+    "super_god_fist",
+    "fusion",
+    "superforms",
+    "soul_punisher"
+   ],
+   "teaches_skills": [
+    "ki_boost",
+    "fusion",
+    "superforms"
+   ],
+   "teaches_techniques": [
+    "kamehameha",
+    "dragon_fist",
+    "meteor",
+    "super_god_fist",
+    "soul_punisher"
+   ],
+   "trains": true,
+   "quests": [
+    "sidequest_collection:chi_chi_provisions",
+    "sidequest_combat:ginyu_force_warm_up",
+    "sidequest_story:chi_chi_gohan_worry",
+    "sidequest_story:goku_final_farewell",
+    "sidequest_story:goku_healing_pod",
+    "sidequest_training:gravity_chamber"
+   ],
+   "gives_quests": [
+    "sidequest_collection:chi_chi_provisions",
+    "sidequest_combat:ginyu_force_warm_up",
+    "sidequest_story:chi_chi_gohan_worry",
+    "sidequest_story:goku_final_farewell",
+    "sidequest_story:goku_healing_pod",
+    "sidequest_training:gravity_chamber"
+   ],
+   "turn_in_quests": [
+    "sidequest_collection:chi_chi_provisions",
+    "sidequest_combat:ginyu_force_warm_up",
+    "sidequest_story:chi_chi_gohan_worry",
+    "sidequest_story:goku_final_farewell",
+    "sidequest_story:goku_healing_pod",
+    "sidequest_training:gravity_chamber"
+   ],
+   "dialog": [
+    "Hey, I've been thinking — training alone only gets you so far. Piccolo, Vegeta, Hit... every great fight I've had taught me something new. How about it? Let's push each other past our limits!",
+    "Man, I'm starving... Hey, if you're ever up for a spar later just say the word! Chi-Chi says I train too much, but honestly I don't think there's really such a thing as too much training.",
+    "That's it, don't hold back! When I fought Frieza on Namek I didn't have time to second-guess myself. Push through the pain — that's where real growth actually starts, I promise you that!",
+    "Yeah! That's what I'm talking about! You've got real fighting spirit. You know, Whis says the key to Ultra Instinct is letting the body move without the mind interfering. Honestly, you're already starting to get there!",
+    "Chi-Chi says I have to study, but I'd rather spar. Don't tell her I said that."
+   ]
+  },
+  "gohan": {
+   "id": "gohan",
+   "entity": "master_gohan",
+   "name": "Master Gohan",
+   "structure": "goku_house",
+   "planet": "earth",
+   "teaches": [
+    "masenko",
+    "ki_protection"
+   ],
+   "teaches_skills": [
+    "ki_protection"
+   ],
+   "teaches_techniques": [
+    "masenko"
+   ],
+   "trains": true,
+   "quests": [
+    "sidequest_combat:videl_city_defense",
+    "sidequest_movies:bojack_tournament_cleanup",
+    "sidequest_training:gohan_survival",
+    "sidequest_training:gohan_time_chamber_training"
+   ],
+   "gives_quests": [
+    "sidequest_combat:videl_city_defense",
+    "sidequest_movies:bojack_tournament_cleanup",
+    "sidequest_training:gohan_time_chamber_training"
+   ],
+   "turn_in_quests": [
+    "sidequest_combat:videl_city_defense",
+    "sidequest_movies:bojack_tournament_cleanup",
+    "sidequest_training:gohan_survival",
+    "sidequest_training:gohan_time_chamber_training"
+   ],
+   "dialog": [
+    "I sense great potential in you — but potential means nothing without purpose. Will you help me? I know from experience exactly what is at stake for this world.",
+    "It's peaceful today. I hope it stays that way. If you ever need anything, just ask — I'm always here for those willing to stand up for this world.",
+    "I believe in you. Even I had to learn that hiding our power doesn't make us weak — it's how we choose to use it that truly defines us as warriors.",
+    "You've grown stronger. More importantly, you've learned to balance power with wisdom. Elder Kai would say your hidden power is finally beginning to awaken.",
+    "Piccolo taught me that pain is just a lesson you haven't learned yet."
+   ]
+  },
+  "krillin": {
+   "id": "krillin",
+   "entity": "master_krillin",
+   "name": "Master Krillin",
+   "structure": "roshi_house",
+   "planet": "earth",
+   "teaches": [
+    "kienzan",
+    "kienzan_doble",
+    "solar_flare",
+    "superforms"
+   ],
+   "teaches_skills": [
+    "superforms"
+   ],
+   "teaches_techniques": [
+    "kienzan",
+    "kienzan_doble",
+    "solar_flare"
+   ],
+   "trains": true,
+   "quests": [
+    "sidequest_combat:krillin_android_patrol",
+    "sidequest_combat:tien_cell_search",
+    "sidequest_exploration:krillin_namek_scout",
+    "sidequest_movies:cooler_squadron_mopup",
+    "sidequest_training:krillin_sparring",
+    "sidequest_training:tien_mountain_training"
+   ],
+   "gives_quests": [
+    "sidequest_combat:krillin_android_patrol",
+    "sidequest_combat:tien_cell_search",
+    "sidequest_exploration:krillin_namek_scout",
+    "sidequest_movies:cooler_squadron_mopup",
+    "sidequest_training:krillin_sparring",
+    "sidequest_training:tien_mountain_training"
+   ],
+   "turn_in_quests": [
+    "sidequest_combat:krillin_android_patrol",
+    "sidequest_combat:tien_cell_search",
+    "sidequest_exploration:krillin_namek_scout",
+    "sidequest_movies:cooler_squadron_mopup",
+    "sidequest_training:krillin_sparring",
+    "sidequest_training:tien_mountain_training"
+   ],
+   "dialog": [
+    "Hey there! You look pretty strong. How'd you like to help me train? Master Roshi always said the best way to get stronger is to push yourself with worthy opponents!",
+    "Man, it's peaceful when there's no world-ending threat around. Though I guess that's when the real training happens, right? Gotta stay sharp!",
+    "Not bad! I can already tell you're getting better. Just remember — size doesn't matter if you've got heart and determination. I learned that the hard way!",
+    "Wow, you really came through! You've got the same fighting spirit as Goku. Android 18 would be impressed... actually, don't tell her I said that.",
+    "Destructo Disc is not a toy. Seriously, watch where you throw it."
+   ]
+  },
+  "yamcha": {
+   "id": "yamcha",
+   "entity": "master_yamcha",
+   "name": "Master Yamcha",
+   "structure": "yamcha_house",
+   "planet": "earth",
+   "teaches": [
+    "sokidan",
+    "wolf_fang"
+   ],
+   "teaches_skills": [],
+   "teaches_techniques": [
+    "sokidan",
+    "wolf_fang"
+   ],
+   "trains": true,
+   "quests": [
+    "sidequest_combat:yamcha_desert_bandit"
+   ],
+   "gives_quests": [
+    "sidequest_combat:yamcha_desert_bandit"
+   ],
+   "turn_in_quests": [
+    "sidequest_combat:yamcha_desert_bandit"
+   ],
+   "dialog": [
+    "I've been thinking... you look like you could handle a real challenge. Help me prove I'm still a capable fighter? The Wolf Fang Fist isn't just some old trick!",
+    "Just hanging here, thinking about my next move. The desert taught me patience, and the Z-Fighters taught me never to give up. I'm still standing!",
+    "Y-You're taking this seriously? That's actually pretty awesome of you. Keep it up and maybe people will finally stop underestimating us both!",
+    "Ha! I knew it! You came through perfectly! Finally, someone who believes in me! Maybe the tide is turning for ol' Yamcha after all. Don't count me out!",
+    "Puar, get the first aid kit. Just in case. For them, not me."
+   ]
+  },
+  "piccolo": {
+   "id": "piccolo",
+   "entity": "master_piccolo",
+   "name": "Master Piccolo",
+   "structure": "piccolo_house",
+   "planet": "earth",
+   "teaches": [
+    "special_beam_cannon",
+    "fly",
+    "ki_infusion",
+    "superforms"
+   ],
+   "teaches_skills": [
+    "fly",
+    "ki_infusion",
+    "superforms"
+   ],
+   "teaches_techniques": [
+    "special_beam_cannon"
+   ],
+   "trains": true,
+   "quests": [
+    "sidequest_exploration:piccolo_kami_fusion",
+    "sidequest_movies:turles_tree_sapling",
+    "sidequest_story:piccolo_arrival",
+    "sidequest_training:gohan_survival",
+    "sidequest_training:piccolo_wilderness_survival"
+   ],
+   "gives_quests": [
+    "sidequest_exploration:piccolo_kami_fusion",
+    "sidequest_movies:turles_tree_sapling",
+    "sidequest_story:piccolo_arrival",
+    "sidequest_training:gohan_survival",
+    "sidequest_training:piccolo_wilderness_survival"
+   ],
+   "turn_in_quests": [
+    "sidequest_exploration:piccolo_kami_fusion",
+    "sidequest_movies:turles_tree_sapling",
+    "sidequest_story:piccolo_arrival",
+    "sidequest_training:piccolo_wilderness_survival"
+   ],
+   "dialog": [
+    "Your power remains undisciplined. Train with me and you may survive what is coming. Refuse, and you will be no use to anyone when it truly matters.",
+    "I have no time for idle conversation. Unless you wish to train, come back when you have something useful to say or a reason worth my attention.",
+    "Push harder. Pain is weakness leaving the body. Nail and Kami pushed through far worse before we became who we are now. You can handle this.",
+    "Hmph. Adequate. Your growth is... acceptable. You may yet be worthy of standing alongside the guardians of this world. Do not let that go to your head.",
+    "Meditation under the waterfall. Every morning. No excuses."
+   ]
+  },
+  "vegeta": {
+   "id": "vegeta",
+   "entity": "master_vegeta",
+   "name": "Master Vegeta",
+   "structure": "capsule_corp",
+   "planet": "earth",
+   "teaches": [
+    "galick_gun",
+    "big_bang",
+    "final_flash",
+    "final_explosion",
+    "defense_penetration",
+    "oozaru_fist",
+    "fake_moon"
+   ],
+   "teaches_skills": [
+    "defense_penetration"
+   ],
+   "teaches_techniques": [
+    "galick_gun",
+    "big_bang",
+    "final_flash",
+    "final_explosion",
+    "oozaru_fist",
+    "fake_moon"
+   ],
+   "trains": true,
+   "quests": [
+    "sidequest_training:vegeta_pride_training"
+   ],
+   "gives_quests": [
+    "sidequest_training:vegeta_pride_training"
+   ],
+   "turn_in_quests": [
+    "sidequest_training:vegeta_pride_training"
+   ],
+   "dialog": [
+    "Listen up! I have a task that demands true Saiyan strength. Prove to me you are not worthless, and perhaps I will acknowledge your existence, warrior.",
+    "I'm training. Every second I stand idle, Kakarot pulls further ahead. If you have nothing useful to say, walk away and don't interrupt my focus.",
+    "Hmph. Not bad for a weakling. You're finally showing some spine. Don't disappoint me now — I will not tolerate mediocrity from someone I'm actually watching.",
+    "Impressive. You've shown real backbone. Perhaps you'll amount to something after all. You have earned the acknowledgment of the Prince of all Saiyans.",
+    "The gravity chamber is set to 300 G. If you survive, we talk."
+   ]
+  },
+  "trunks": {
+   "id": "trunks",
+   "entity": "master_trunks",
+   "name": "Master Trunks",
+   "structure": "capsule_corp",
+   "planet": "earth",
+   "teaches": [
+    "burning_attack",
+    "ki_manipulation"
+   ],
+   "teaches_skills": [
+    "ki_manipulation"
+   ],
+   "teaches_techniques": [
+    "burning_attack"
+   ],
+   "trains": true,
+   "quests": [
+    "sidequest_exploration:trunks_warning",
+    "sidequest_story:future_gohan_cure"
+   ],
+   "gives_quests": [
+    "sidequest_exploration:trunks_warning",
+    "sidequest_story:future_gohan_cure"
+   ],
+   "turn_in_quests": [
+    "sidequest_exploration:trunks_warning",
+    "sidequest_story:future_gohan_cure"
+   ],
+   "dialog": [
+    "I've fought through a timeline ravaged by Androids and Goku Black to protect the future. Help me with this — I need someone I can truly trust right now.",
+    "Everything feels so peaceful here... so different from the future I came from. It's surreal to just exist without constant danger pressing down on you.",
+    "You're doing great! I've faced far worse in the future I came from, so I know you can push through this. What happens here matters more than you know.",
+    "Outstanding! You've got the warrior's spirit. In my darkest timeline, people like you were all that kept hope alive. Thank you — more than you realize.",
+    "This sword has cut through more than steel. Learn to respect a blade."
+   ]
+  },
+  "bulma": {
+   "id": "bulma",
+   "entity": "saga_bulma",
+   "name": "Bulma",
+   "structure": "capsule_corp",
+   "planet": "earth",
+   "teaches": [],
+   "teaches_skills": [],
+   "teaches_techniques": [],
+   "trains": false,
+   "quests": [
+    "sidequest_collection:bulma_gero_blueprints",
+    "sidequest_collection:bulma_namek_research",
+    "sidequest_collection:bulma_radar_parts",
+    "sidequest_collection:buu_saga_dragon_balls",
+    "sidequest_collection:collect_dragon_balls",
+    "sidequest_collection:merchant_alien_artifacts",
+    "sidequest_errands:bulma_android_parts_delivery",
+    "sidequest_errands:bulma_android_tech_reverse_engineer",
+    "sidequest_errands:bulma_buu_energy_analysis",
+    "sidequest_errands:bulma_capsule_development",
+    "sidequest_errands:bulma_communication_relay",
+    "sidequest_errands:bulma_emergency_teleport_device",
+    "sidequest_errands:bulma_energy_storage_battery",
+    "sidequest_errands:bulma_flight_stabilizer",
+    "sidequest_errands:bulma_frieza_armor_study",
+    "sidequest_errands:bulma_frieza_force_intelligence",
+    "sidequest_errands:bulma_gravity_chamber_parts",
+    "sidequest_errands:bulma_ki_energy_collector",
+    "sidequest_errands:bulma_namekian_tech_integration",
+    "sidequest_errands:bulma_power_level_detector",
+    "sidequest_errands:bulma_power_suppression_unit",
+    "sidequest_errands:bulma_rare_mineral_survey",
+    "sidequest_errands:bulma_saiyan_biology_sample",
+    "sidequest_errands:bulma_senzu_bean_substitute",
+    "sidequest_errands:bulma_time_chamber_diagnostics",
+    "sidequest_errands:bulma_weapon_analysis",
+    "sidequest_movies:android_cold_parts",
+    "sidequest_movies:big_gete_salvage",
+    "sidequest_movies:wheelo_frozen_rescue",
+    "sidequest_tech:bulma_anti_ki_cloak",
+    "sidequest_tech:bulma_capsule_tech",
+    "sidequest_tech:bulma_gete_armor",
+    "sidequest_tech:bulma_gete_discovery",
+    "sidequest_tech:bulma_gete_enhancements",
+    "sidequest_tech:bulma_gete_retrofit",
+    "sidequest_tech:bulma_gravity_mk2",
+    "sidequest_tech:bulma_gravity_mk3",
+    "sidequest_tech:bulma_ki_battery",
+    "sidequest_tech:bulma_otherworld_drive",
+    "sidequest_tech:bulma_proximity_hud",
+    "sidequest_tech:bulma_radar_amplifier",
+    "sidequest_tech:bulma_radar_fusion",
+    "sidequest_tech:bulma_scouter_bioscan",
+    "sidequest_tech:bulma_scouter_calibration",
+    "sidequest_tech:bulma_scouter_threat_db",
+    "sidequest_tech:bulma_time_chamber_link",
+    "sidequest_training:specialized_training"
+   ],
+   "gives_quests": [
+    "sidequest_collection:bulma_gero_blueprints",
+    "sidequest_collection:bulma_namek_research",
+    "sidequest_collection:bulma_radar_parts",
+    "sidequest_collection:buu_saga_dragon_balls",
+    "sidequest_collection:collect_dragon_balls",
+    "sidequest_collection:merchant_alien_artifacts",
+    "sidequest_errands:bulma_android_parts_delivery",
+    "sidequest_errands:bulma_android_tech_reverse_engineer",
+    "sidequest_errands:bulma_buu_energy_analysis",
+    "sidequest_errands:bulma_capsule_development",
+    "sidequest_errands:bulma_communication_relay",
+    "sidequest_errands:bulma_emergency_teleport_device",
+    "sidequest_errands:bulma_energy_storage_battery",
+    "sidequest_errands:bulma_flight_stabilizer",
+    "sidequest_errands:bulma_frieza_armor_study",
+    "sidequest_errands:bulma_frieza_force_intelligence",
+    "sidequest_errands:bulma_gravity_chamber_parts",
+    "sidequest_errands:bulma_ki_energy_collector",
+    "sidequest_errands:bulma_namekian_tech_integration",
+    "sidequest_errands:bulma_power_level_detector",
+    "sidequest_errands:bulma_power_suppression_unit",
+    "sidequest_errands:bulma_rare_mineral_survey",
+    "sidequest_errands:bulma_saiyan_biology_sample",
+    "sidequest_errands:bulma_senzu_bean_substitute",
+    "sidequest_errands:bulma_time_chamber_diagnostics",
+    "sidequest_errands:bulma_weapon_analysis",
+    "sidequest_movies:android_cold_parts",
+    "sidequest_movies:big_gete_salvage",
+    "sidequest_movies:wheelo_frozen_rescue",
+    "sidequest_tech:bulma_anti_ki_cloak",
+    "sidequest_tech:bulma_capsule_tech",
+    "sidequest_tech:bulma_gete_armor",
+    "sidequest_tech:bulma_gete_discovery",
+    "sidequest_tech:bulma_gete_enhancements",
+    "sidequest_tech:bulma_gete_retrofit",
+    "sidequest_tech:bulma_gravity_mk2",
+    "sidequest_tech:bulma_gravity_mk3",
+    "sidequest_tech:bulma_ki_battery",
+    "sidequest_tech:bulma_otherworld_drive",
+    "sidequest_tech:bulma_proximity_hud",
+    "sidequest_tech:bulma_radar_amplifier",
+    "sidequest_tech:bulma_radar_fusion",
+    "sidequest_tech:bulma_scouter_bioscan",
+    "sidequest_tech:bulma_scouter_calibration",
+    "sidequest_tech:bulma_scouter_threat_db",
+    "sidequest_tech:bulma_time_chamber_link",
+    "sidequest_training:specialized_training"
+   ],
+   "turn_in_quests": [
+    "sidequest_collection:bulma_gero_blueprints",
+    "sidequest_collection:bulma_namek_research",
+    "sidequest_collection:bulma_radar_parts",
+    "sidequest_collection:buu_saga_dragon_balls",
+    "sidequest_collection:collect_dragon_balls",
+    "sidequest_collection:merchant_alien_artifacts",
+    "sidequest_errands:bulma_android_parts_delivery",
+    "sidequest_errands:bulma_android_tech_reverse_engineer",
+    "sidequest_errands:bulma_buu_energy_analysis",
+    "sidequest_errands:bulma_capsule_development",
+    "sidequest_errands:bulma_communication_relay",
+    "sidequest_errands:bulma_emergency_teleport_device",
+    "sidequest_errands:bulma_energy_storage_battery",
+    "sidequest_errands:bulma_flight_stabilizer",
+    "sidequest_errands:bulma_frieza_armor_study",
+    "sidequest_errands:bulma_frieza_force_intelligence",
+    "sidequest_errands:bulma_gravity_chamber_parts",
+    "sidequest_errands:bulma_ki_energy_collector",
+    "sidequest_errands:bulma_namekian_tech_integration",
+    "sidequest_errands:bulma_power_level_detector",
+    "sidequest_errands:bulma_power_suppression_unit",
+    "sidequest_errands:bulma_rare_mineral_survey",
+    "sidequest_errands:bulma_saiyan_biology_sample",
+    "sidequest_errands:bulma_senzu_bean_substitute",
+    "sidequest_errands:bulma_time_chamber_diagnostics",
+    "sidequest_errands:bulma_weapon_analysis",
+    "sidequest_movies:android_cold_parts",
+    "sidequest_movies:big_gete_salvage",
+    "sidequest_movies:wheelo_frozen_rescue",
+    "sidequest_tech:bulma_anti_ki_cloak",
+    "sidequest_tech:bulma_capsule_tech",
+    "sidequest_tech:bulma_gete_armor",
+    "sidequest_tech:bulma_gete_discovery",
+    "sidequest_tech:bulma_gete_enhancements",
+    "sidequest_tech:bulma_gete_retrofit",
+    "sidequest_tech:bulma_gravity_mk2",
+    "sidequest_tech:bulma_gravity_mk3",
+    "sidequest_tech:bulma_ki_battery",
+    "sidequest_tech:bulma_otherworld_drive",
+    "sidequest_tech:bulma_proximity_hud",
+    "sidequest_tech:bulma_radar_amplifier",
+    "sidequest_tech:bulma_radar_fusion",
+    "sidequest_tech:bulma_scouter_bioscan",
+    "sidequest_tech:bulma_scouter_calibration",
+    "sidequest_tech:bulma_scouter_threat_db",
+    "sidequest_tech:bulma_time_chamber_link",
+    "sidequest_training:specialized_training"
+   ],
+   "dialog": [
+    "Okay, look — I'm in the middle of something critical and I need specific materials I can't exactly just grab myself. I built the Dragon Radar AND a time machine, so trust me, I know exactly what I'm doing. I just need the parts.",
+    "Vegeta's training again, the boys are off somewhere as usual, and here I am making scientific breakthroughs that nobody appreciates. The Capsule Corporation didn't build itself, you know.",
+    "You're not back yet? I'm trying to cross-reference Frieza's scouter readings with the energy signatures I recorded on Namek. This research could change everything — but only if you bring me what I asked for!",
+    "Finally! These are perfect. I knew I could count on you. Once I finish this prototype it'll make the Dragon Radar look like a children's toy. Don't worry, I'll credit you in the footnotes... probably.",
+    "Bring me the parts and I'll build you something amazing. Probably."
+   ]
+  },
+  "king_kai": {
+   "id": "king_kai",
+   "entity": "master_kaiosama",
+   "name": "Master King Kai",
+   "structure": "king_kai_planet",
+   "planet": "otherworld",
+   "teaches": [
+    "kaioken",
+    "instant_transmission",
+    "spirit_bomb",
+    "kaioken_attack"
+   ],
+   "teaches_skills": [
+    "kaioken",
+    "instant_transmission"
+   ],
+   "teaches_techniques": [
+    "spirit_bomb",
+    "kaioken_attack"
+   ],
+   "trains": true,
+   "quests": [
+    "sidequest_movies:otherworld_pikkon_rematch",
+    "sidequest_training:kaiosama_buu_warning",
+    "sidequest_training:old_kai_ritual"
+   ],
+   "gives_quests": [
+    "sidequest_movies:otherworld_pikkon_rematch",
+    "sidequest_training:kaiosama_buu_warning",
+    "sidequest_training:old_kai_ritual"
+   ],
+   "turn_in_quests": [
+    "sidequest_movies:otherworld_pikkon_rematch",
+    "sidequest_training:kaiosama_buu_warning",
+    "sidequest_training:old_kai_ritual"
+   ],
+   "dialog": [
+    "Hiya! Made it across Snake Way — no small feat! I have a task for you, ha ha! And yes, you'll have to listen to at least one of my jokes as payment!",
+    "Bubbles! Gregory! Where'd my guests go? ...Oh well. Say, wanna hear a joke? A Saiyan walked all the way down Snake Way and said, 'Wow, that was long!'",
+    "Keep pushing! The Kaioken doesn't come easy either, you know! Goku nearly passed out from it the first time. You're doing better already, ha ha!",
+    "You did it! You're ready to face the galaxy! ...Get it? Galaxy? Ha ha ha! Seriously though — Goku would be genuinely proud of your effort today!",
+    "Why did the Saiyan cross Snake Way? To get to the OTHER world! Ha ha ha!"
+   ]
+  },
+  "yemma": {
+   "id": "yemma",
+   "entity": "master_enma",
+   "name": "King Yemma",
+   "structure": "check_in_station",
+   "planet": "otherworld",
+   "teaches": [],
+   "teaches_skills": [],
+   "teaches_techniques": [],
+   "trains": false,
+   "quests": [],
+   "gives_quests": [],
+   "turn_in_quests": [],
+   "dialog": [
+    "Welcome to the Check-In Station. I am King Yemma. Do not touch the desk.",
+    "Your record says you have caused a great deal of property damage.",
+    "Snake Way is that direction. It is very long. Don't fall off.",
+    "If you want to see King Kai, you'll have to run. All 625 miles of it.",
+    "Hell is downstairs. Heaven is upstairs. Choose your behavior accordingly."
+   ]
+  },
+  "guru": {
+   "id": "guru",
+   "entity": "master_guru",
+   "name": "Grand Elder Guru",
+   "structure": "elder_guru",
+   "planet": "namek",
+   "teaches": [
+    "potential_unlock"
+   ],
+   "teaches_skills": [
+    "potential_unlock"
+   ],
+   "teaches_techniques": [],
+   "trains": false,
+   "quests": [
+    "sidequest_collection:gohan_dragon_balls_namek",
+    "sidequest_combat:namek_elder_blessing",
+    "sidequest_exploration:namek_farewell",
+    "sidequest_movies:slug_aftermath"
+   ],
+   "gives_quests": [
+    "sidequest_collection:gohan_dragon_balls_namek",
+    "sidequest_combat:namek_elder_blessing",
+    "sidequest_exploration:namek_farewell",
+    "sidequest_movies:slug_aftermath"
+   ],
+   "turn_in_quests": [
+    "sidequest_collection:gohan_dragon_balls_namek",
+    "sidequest_combat:namek_elder_blessing",
+    "sidequest_exploration:namek_farewell",
+    "sidequest_movies:slug_aftermath"
+   ],
+   "dialog": [
+    "I am the Grand Elder of Namek. The Dragon Balls came from me.",
+    "Your heart is pure. Let me draw out the power that sleeps within you.",
+    "Nail guards this house. He is the strongest warrior our world has raised.",
+    "Frieza's soldiers hunt my children. Protect them, and Namek will remember you.",
+    "I am very old, and very tired. Do not waste what I give you."
+   ]
+  },
+  "old_kai": {
+   "id": "old_kai",
+   "entity": "master_oldkai",
+   "name": "Master Old Kai",
+   "structure": "old_kai_pillar",
+   "planet": "sacred_kai_planet",
+   "teaches": [
+    "ultimate",
+    "ultra_instinct",
+    "ultra_ego",
+    "godforms",
+    "legendaryforms",
+    "deadly_dance",
+    "deadly_dance_vegetto"
+   ],
+   "teaches_skills": [
+    "ultimate",
+    "ultra_instinct",
+    "ultra_ego",
+    "godforms",
+    "legendaryforms"
+   ],
+   "teaches_techniques": [
+    "deadly_dance",
+    "deadly_dance_vegetto"
+   ],
+   "trains": false,
+   "quests": [],
+   "gives_quests": [],
+   "turn_in_quests": [],
+   "dialog": [
+    "I was sealed in the Z Sword for a very long time. I am owed some respect.",
+    "The ritual will unleash your hidden power. Sit still and stop asking if it's done.",
+    "Bring me pictures of a pretty girl and we will discuss your potential.",
+    "Fifteen generations before Shin. Fifteen! And he never listens.",
+    "The Potara earrings are not toys. Put one on each ear and the fusion is permanent."
+   ]
+  },
+  "gero": {
+   "id": "gero",
+   "entity": "master_gero",
+   "name": "Dr. Gero",
+   "structure": "gero_lab",
+   "planet": "earth",
+   "teaches": [
+    "androidforms",
+    "healing_reduction"
+   ],
+   "teaches_skills": [
+    "androidforms",
+    "healing_reduction"
+   ],
+   "teaches_techniques": [],
+   "trains": false,
+   "quests": [],
+   "gives_quests": [],
+   "turn_in_quests": [],
+   "dialog": [
+    "The Red Ribbon Army lives on in my research. Goku will pay for what he did.",
+    "My androids are perfect. Well, 16 is a little sentimental. A flaw I will correct.",
+    "Your body is a poor design. Let me replace the weakest parts.",
+    "The energy absorption model is quite elegant. Would you like a demonstration?",
+    "Cell is my masterpiece. Do not go into the basement."
+   ]
+  },
+  "babidi": {
+   "id": "babidi",
+   "entity": "master_babidi",
+   "name": "Master Babidi",
+   "structure": "babidi_ship",
+   "planet": "earth",
+   "teaches": [
+    "superforms"
+   ],
+   "teaches_skills": [
+    "superforms"
+   ],
+   "teaches_techniques": [],
+   "trains": false,
+   "quests": [],
+   "gives_quests": [],
+   "turn_in_quests": [],
+   "dialog": [
+    "My father Bibidi created Majin Buu. I intend to finish what he started.",
+    "Your heart holds a sliver of evil. That is all my magic needs.",
+    "Dabura, get the door. We have a guest. A weak, pathetic guest.",
+    "Each floor of my ship is guarded. Beat them and I may reward you.",
+    "The seal on Buu weakens with every fight. Keep fighting, little pawn."
+   ]
+  },
+  "cell": {
+   "id": "cell",
+   "entity": "master_cell",
+   "name": "Master Cell",
+   "structure": "cell_arena",
+   "planet": "earth",
+   "teaches": [
+    "solar_flare",
+    "kamehameha",
+    "superforms",
+    "healing_reduction"
+   ],
+   "teaches_skills": [
+    "superforms",
+    "healing_reduction"
+   ],
+   "teaches_techniques": [
+    "solar_flare",
+    "kamehameha"
+   ],
+   "trains": true,
+   "quests": [],
+   "gives_quests": [],
+   "turn_in_quests": [],
+   "dialog": [
+    "I contain the cells of the greatest warriors alive. I can teach any of their techniques.",
+    "The ring is exactly as I designed it. Step out and you lose.",
+    "Perfection cannot be rushed. But it can be trained.",
+    "The Kamehameha, the Special Beam Cannon, the Solar Flare... I know them all.",
+    "Do try to entertain me. The last challenger was dreadfully boring."
+   ]
+  },
+  "frieza": {
+   "id": "frieza",
+   "entity": "master_frieza",
+   "name": "Master Frieza",
+   "structure": "frieza_ship",
+   "planet": "namek",
+   "teaches": [
+    "death_beam",
+    "emperor_death_beam",
+    "supernova",
+    "supernova_cooler",
+    "superforms"
+   ],
+   "teaches_skills": [
+    "superforms"
+   ],
+   "teaches_techniques": [
+    "death_beam",
+    "emperor_death_beam",
+    "supernova",
+    "supernova_cooler"
+   ],
+   "trains": true,
+   "quests": [],
+   "gives_quests": [],
+   "turn_in_quests": [],
+   "dialog": [
+    "I am Lord Frieza, emperor of Universe 7. Kneel, and you may learn something.",
+    "The Death Beam requires precision. Aim for the heart. It's the quickest way.",
+    "My family has ruled the galaxy for generations. Discipline is everything.",
+    "Zarbon, Dodoria, be dears and fetch our guest a scouter.",
+    "Every transformation hides another. Never show your final form first."
+   ]
+  },
+  "baba": {
+   "id": "baba",
+   "entity": "master_uranai",
+   "name": "Fortuneteller Baba",
+   "structure": "roshi_house",
+   "planet": "earth",
+   "teaches": [
+    "ki_sense"
+   ],
+   "teaches_skills": [
+    "ki_sense"
+   ],
+   "teaches_techniques": [],
+   "trains": false,
+   "quests": [],
+   "gives_quests": [],
+   "turn_in_quests": [],
+   "dialog": [
+    "I am Fortuneteller Baba, Roshi's sister. I can see anything for the right price.",
+    "Beat my five fighters and I'll tell you where your Dragon Ball is.",
+    "The dead can visit for one day. I have connections in the Otherworld.",
+    "My crystal ball shows a great battle in your future. It usually does.",
+    "Don't touch the ball. Everyone touches the ball."
+   ]
+  },
+  "toribot": {
+   "id": "toribot",
+   "entity": "master_toribot",
+   "name": "Toribot",
+   "structure": "capsule_corp",
+   "planet": "earth",
+   "teaches": [
+    "aura_status",
+    "friendly_fist"
+   ],
+   "teaches_skills": [
+    "aura_status",
+    "friendly_fist"
+   ],
+   "teaches_techniques": [],
+   "trains": false,
+   "quests": [],
+   "gives_quests": [],
+   "turn_in_quests": [],
+   "dialog": [
+    "Beep boop. I am the author's robot. Please do not look behind the curtain.",
+    "Did you know Goku's original name was going to be different? Beep.",
+    "I can toggle your aura display. Very useful for screenshots.",
+    "Friendly Fist lets you spar with allies without hurting them. Beep."
+   ]
+  },
+  "shin": {
+   "id": "shin",
+   "entity": "saga_shin",
+   "name": "Shin",
+   "structure": "old_kai_pillar",
+   "planet": "sacred_kai_planet",
+   "teaches": [],
+   "teaches_skills": [],
+   "teaches_techniques": [],
+   "trains": false,
+   "quests": [],
+   "gives_quests": [],
+   "turn_in_quests": [],
+   "dialog": [
+    "I am Shin, the Supreme Kai. Babidi must be stopped before he revives Majin Buu.",
+    "The Z Sword rests on this world. Only the worthy can pull it free.",
+    "Kibito will heal you. Please try not to need it too often.",
+    "The Elder Kai is... eccentric. But his ritual works. Usually.",
+    "Use the Sacred World for training. Time here is precious."
+   ]
+  }
+ }
+}

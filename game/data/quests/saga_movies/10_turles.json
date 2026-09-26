@@ -1,0 +1,74 @@
+{
+ "id": "10",
+ "dmz_id": 10,
+ "quest_id": "saga_movies:10",
+ "name": "Turles",
+ "desc": "Turles has taken the fruit of the Tree of Might. Defeat the pirate Saiyan in the rocky wastes.",
+ "title": "Turles",
+ "description": "Turles has taken the fruit of the Tree of Might. Defeat the pirate Saiyan in the rocky wastes.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 9,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 90
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "6",
+    "quest": "saga_saiyan:6"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "9",
+    "quest": "saga_movies:9"
+   }
+  ]
+ },
+ "min_level": 90,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_turles",
+   "entity_name": "Turles",
+   "count": 1,
+   "health": 6500.0,
+   "meleeDamage": 364.0,
+   "kiDamage": 364.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 16900
+  }
+ ]
+}

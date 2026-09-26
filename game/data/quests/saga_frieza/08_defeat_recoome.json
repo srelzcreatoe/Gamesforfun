@@ -1,0 +1,68 @@
+{
+ "id": "8",
+ "dmz_id": 8,
+ "quest_id": "saga_frieza:8",
+ "name": "Recoome's Rampage",
+ "desc": "Recoome is all power and no restraint. Stop him before the entire front collapses.",
+ "title": "Recoome's Rampage",
+ "description": "Recoome is all power and no restraint. Stop him before the entire front collapses.",
+ "type": "SAGA",
+ "category": "saga_frieza",
+ "saga": "frieza_saga",
+ "order": 7,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 184
+   },
+   {
+    "type": "PLANET",
+    "planet": "namek"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:ajissa_plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "7",
+    "quest": "saga_frieza:7"
+   }
+  ]
+ },
+ "min_level": 184,
+ "planet": "namek",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_recoome",
+   "entity_name": "Recoome",
+   "count": 1,
+   "health": 4862.0,
+   "meleeDamage": 265.0,
+   "kiDamage": 238.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 27840
+  }
+ ]
+}

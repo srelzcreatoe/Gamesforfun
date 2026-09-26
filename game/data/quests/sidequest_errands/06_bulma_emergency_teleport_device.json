@@ -1,0 +1,67 @@
+{
+ "id": "bulma_emergency_teleport_device",
+ "dmz_id": "bulma_emergency_teleport_device",
+ "quest_id": "sidequest_errands:bulma_emergency_teleport_device",
+ "name": "Emergency Recall",
+ "desc": "Bulma builds an emergency recall system. Gather ender pearls, obsidian and redstone blocks.",
+ "title": "Emergency Recall",
+ "description": "Bulma builds an emergency recall system. Gather ender pearls, obsidian and redstone blocks.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_errands",
+ "order": 5,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "8",
+    "quest": "saga_buu:8"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "ender_pearl",
+   "count": 12
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "obsidian",
+   "count": 8
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "redstone_block",
+   "count": 3
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 140000
+  }
+ ]
+}

@@ -1,0 +1,386 @@
+{
+ "wishes": {
+  "shenron": {
+   "id": "shenron",
+   "name": "Shenron",
+   "entity": "shenron",
+   "ball_set": "earth",
+   "wish_count": 1,
+   "summon_planets": [
+    "earth"
+   ],
+   "entity_height": 17.0,
+   "entity_width": 3.0,
+   "wishes": [
+    {
+     "id": "senzu",
+     "name": "Senzu Beans",
+     "desc": "Receive some Senzu Beans.",
+     "type": "item",
+     "dmz_type": "item",
+     "items": [
+      {
+       "item": "senzu_bean",
+       "count": 16
+      }
+     ]
+    },
+    {
+     "id": "tps",
+     "name": "Training Points",
+     "desc": "Receive 5000 Training Points.",
+     "type": "tps",
+     "dmz_type": "tps",
+     "amount": 5000
+    },
+    {
+     "id": "powerpole",
+     "name": "Power Pole",
+     "desc": "Receive the Power Pole weapon.",
+     "type": "item",
+     "dmz_type": "item",
+     "items": [
+      {
+       "item": "power_pole",
+       "count": 1
+      }
+     ]
+    },
+    {
+     "id": "mightfruit",
+     "name": "Might Tree Fruit",
+     "desc": "Receive some Might Tree Fruits.",
+     "type": "item",
+     "dmz_type": "item",
+     "items": [
+      {
+       "item": "might_tree_fruit",
+       "count": 16
+      }
+     ]
+    },
+    {
+     "id": "namekcpu",
+     "name": "Namekian Radar CPU",
+     "desc": "Receive a Namekian Radar CPU.",
+     "type": "item",
+     "dmz_type": "item",
+     "items": [
+      {
+       "item": "t2_radar_cpu",
+       "count": 4
+      }
+     ]
+    },
+    {
+     "id": "saiyanship",
+     "name": "Saiyan Spaceship",
+     "desc": "Receive a Saiyan Spaceship.",
+     "type": "item",
+     "dmz_type": "item",
+     "items": [
+      {
+       "item": "saiyan_ship",
+       "count": 1
+      }
+     ]
+    },
+    {
+     "id": "racialskillreset",
+     "name": "Reset Passive",
+     "desc": "Resets the player's Racial Passive Skill. This only applies to Saiyans, Namekians and Majin",
+     "type": "reset",
+     "dmz_type": "passivereset",
+     "reset": "racial_passive"
+    },
+    {
+     "id": "customization",
+     "name": "Re-Customize Character",
+     "desc": "Allows you to change your character's appearance and class but not Race. This will not reset your stats or skills.",
+     "type": "recustomize",
+     "dmz_type": "recustomize"
+    },
+    {
+     "id": "materials",
+     "name": "Armor Materials",
+     "desc": "Receive 32 Kikono Shards and 64 Iron Ingots.",
+     "type": "item",
+     "dmz_type": "item_list_wish",
+     "items": [
+      {
+       "item": "kikono_shard",
+       "count": 32
+      },
+      {
+       "item": "iron_ingot",
+       "count": 64
+      }
+     ]
+    },
+    {
+     "id": "strongest",
+     "name": "The Strongest Armor",
+     "desc": "Receive 'The Strongest' armor set.",
+     "type": "item",
+     "dmz_type": "item_list_wish",
+     "items": [
+      {
+       "item": "strongest_armor_chestplate",
+       "count": 1
+      },
+      {
+       "item": "strongest_armor_leggings",
+       "count": 1
+      },
+      {
+       "item": "strongest_armor_boots",
+       "count": 1
+      }
+     ]
+    }
+   ]
+  },
+  "porunga": {
+   "id": "porunga",
+   "name": "Porunga",
+   "entity": "porunga",
+   "ball_set": "namek",
+   "wish_count": 3,
+   "summon_planets": [
+    "namek"
+   ],
+   "entity_height": 20.0,
+   "entity_width": 4.0,
+   "wishes": [
+    {
+     "id": "senzu",
+     "name": "Senzu Beans",
+     "desc": "Receive some Senzu Beans.",
+     "type": "item",
+     "dmz_type": "item",
+     "items": [
+      {
+       "item": "senzu_bean",
+       "count": 32
+      }
+     ]
+    },
+    {
+     "id": "tps",
+     "name": "Training Points",
+     "desc": "Receive 15000 Training Points.",
+     "type": "tps",
+     "dmz_type": "tps",
+     "amount": 15000
+    },
+    {
+     "id": "bravesword",
+     "name": "Brave Sword",
+     "desc": "Receive the legendary Brave Sword.",
+     "type": "item",
+     "dmz_type": "item",
+     "items": [
+      {
+       "item": "brave_sword",
+       "count": 1
+      }
+     ]
+    },
+    {
+     "id": "racialskillreset",
+     "name": "Reset Passive",
+     "desc": "Resets the player's Racial Passive Skill. This only applies to Saiyans, Namekians and Majin",
+     "type": "reset",
+     "dmz_type": "passivereset",
+     "reset": "racial_passive"
+    },
+    {
+     "id": "customization",
+     "name": "Re-Customize Character",
+     "desc": "Allows you to change your character's appearance and class but not Race. This will not reset your stats or skills.",
+     "type": "recustomize",
+     "dmz_type": "recustomize"
+    },
+    {
+     "id": "relocatestats",
+     "name": "Reallocate Stats",
+     "desc": "Resets your attributes to their class base and gives you Attribute Points (AP) equal to every stat point you had spent, so you can redistribute them freely in the stats menu. Does not refund TPs.",
+     "type": "reset",
+     "dmz_type": "relocatestats",
+     "reset": "stats"
+    },
+    {
+     "id": "materials",
+     "name": "Armor Materials",
+     "desc": "Receive 64 Kikono Shards and 128 Iron Ingots.",
+     "type": "item",
+     "dmz_type": "item_list_wish",
+     "items": [
+      {
+       "item": "kikono_shard",
+       "count": 64
+      },
+      {
+       "item": "iron_ingot",
+       "count": 128
+      }
+     ]
+    },
+    {
+     "id": "invincible",
+     "name": "Invincible Armor",
+     "desc": "Receive the Invincible armor set (Classic).",
+     "type": "item",
+     "dmz_type": "item_list_wish",
+     "items": [
+      {
+       "item": "invencible_armor_helmet",
+       "count": 1
+      },
+      {
+       "item": "invencible_armor_chestplate",
+       "count": 1
+      },
+      {
+       "item": "invencible_armor_leggings",
+       "count": 1
+      },
+      {
+       "item": "invencible_armor_boots",
+       "count": 1
+      }
+     ]
+    },
+    {
+     "id": "invincible_blue",
+     "name": "Invincible Armor (Blue)",
+     "desc": "Receive the Invincible armor set (Blue).",
+     "type": "item",
+     "dmz_type": "item_list_wish",
+     "items": [
+      {
+       "item": "invencible_blue_armor_helmet",
+       "count": 1
+      },
+      {
+       "item": "invencible_blue_armor_chestplate",
+       "count": 1
+      },
+      {
+       "item": "invencible_blue_armor_leggings",
+       "count": 1
+      },
+      {
+       "item": "invencible_blue_armor_boots",
+       "count": 1
+      }
+     ]
+    },
+    {
+     "id": "pothala_yellow",
+     "name": "Potara Earrings (Yellow)",
+     "desc": "Receive a pair of Yellow Potara Earrings.",
+     "type": "item",
+     "dmz_type": "item_list_wish",
+     "items": [
+      {
+       "item": "pothala_left",
+       "count": 1
+      },
+      {
+       "item": "pothala_right",
+       "count": 1
+      }
+     ]
+    },
+    {
+     "id": "pothala_green",
+     "name": "Potara Earrings (Green)",
+     "desc": "Receive a pair of Green Potara Earrings.",
+     "type": "item",
+     "dmz_type": "item_list_wish",
+     "items": [
+      {
+       "item": "green_pothala_left",
+       "count": 1
+      },
+      {
+       "item": "green_pothala_right",
+       "count": 1
+      }
+     ]
+    }
+   ]
+  },
+  "super_shenron": {
+   "id": "super_shenron",
+   "name": "Super Shenron",
+   "entity": "super_shenron",
+   "ball_set": "super",
+   "wish_count": 1,
+   "summon_planets": [
+    "universe_7_deep_space"
+   ],
+   "entity_height": 60.0,
+   "entity_width": 80.0,
+   "wishes": [
+    {
+     "id": "power",
+     "name": "Overwhelming Power",
+     "desc": "The Super Dragon Balls grant strength beyond any mortal training.",
+     "type": "tps",
+     "dmz_type": "tps",
+     "amount": 100000
+    },
+    {
+     "id": "senzu",
+     "name": "A Harvest of Senzu",
+     "desc": "Thirty-two senzu beans, enough to outlast any war.",
+     "type": "item",
+     "dmz_type": "item",
+     "items": [
+      {
+       "item": "senzu_bean",
+       "count": 32
+      }
+     ]
+    }
+   ]
+  },
+  "toronbo": {
+   "id": "toronbo",
+   "name": "Toronbo",
+   "entity": "toronbo",
+   "ball_set": "cereal",
+   "wish_count": 1,
+   "summon_planets": [
+    "cereal"
+   ],
+   "entity_height": 20.0,
+   "entity_width": 4.0,
+   "wishes": [
+    {
+     "id": "strength",
+     "name": "Make me the strongest warrior in the universe",
+     "desc": "Toronbo grants raw power. Granolah asked for this, and paid for it.",
+     "type": "tps",
+     "dmz_type": "tps",
+     "amount": 10000
+    },
+    {
+     "id": "senzu",
+     "name": "A supply of senzu beans",
+     "desc": "Eight senzu beans, delivered where you stand.",
+     "type": "item",
+     "dmz_type": "item",
+     "items": [
+      {
+       "item": "senzu_bean",
+       "count": 8
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

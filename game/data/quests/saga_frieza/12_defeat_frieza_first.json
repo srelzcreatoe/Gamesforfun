@@ -1,0 +1,68 @@
+{
+ "id": "12",
+ "dmz_id": 12,
+ "quest_id": "saga_frieza:12",
+ "name": "Frieza, First Form",
+ "desc": "The tyrant himself has finally entered the battle. Stand against Frieza's first form and survive the opening clash.",
+ "title": "Frieza, First Form",
+ "description": "The tyrant himself has finally entered the battle. Stand against Frieza's first form and survive the opening clash.",
+ "type": "SAGA",
+ "category": "saga_frieza",
+ "saga": "frieza_saga",
+ "order": 11,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 255
+   },
+   {
+    "type": "PLANET",
+    "planet": "namek"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:ajissa_plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "11",
+    "quest": "saga_frieza:11"
+   }
+  ]
+ },
+ "min_level": 255,
+ "planet": "namek",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_frieza_first",
+   "entity_name": "Frieza (1st Form)",
+   "count": 1,
+   "health": 9282.0,
+   "meleeDamage": 464.0,
+   "kiDamage": 428.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 39840
+  }
+ ]
+}

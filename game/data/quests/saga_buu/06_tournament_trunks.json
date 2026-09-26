@@ -1,0 +1,68 @@
+{
+ "id": "6",
+ "dmz_id": 6,
+ "quest_id": "saga_buu:6",
+ "name": "Tournament: Trunks",
+ "desc": "Kid Trunks enters with a Saiyan's pride and a champion's confidence. Defeat him in the tournament ring.",
+ "title": "Tournament: Trunks",
+ "description": "Kid Trunks enters with a Saiyan's pride and a champion's confidence. Defeat him in the tournament ring.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 5,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1580
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "5",
+    "quest": "saga_buu:5"
+   }
+  ]
+ },
+ "min_level": 1580,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_kid_trunks",
+   "entity_name": "Trunks",
+   "count": 1,
+   "health": 210000.0,
+   "meleeDamage": 8700.0,
+   "kiDamage": 7820.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 93600
+  }
+ ]
+}

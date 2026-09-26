@@ -1,0 +1,78 @@
+{
+ "id": "gravity_chamber",
+ "dmz_id": "gravity_chamber",
+ "quest_id": "sidequest_training:gravity_chamber",
+ "name": "Gravity Chamber",
+ "desc": "You've earned access to intense gravity training. Venture into dangerous territory and prove you can handle extreme conditions.",
+ "title": "Gravity Chamber",
+ "description": "You've earned access to intense gravity training. Venture into dangerous territory and prove you can handle extreme conditions.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_training",
+ "order": 3,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "goku",
+ "turn_in": "goku",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "QUEST",
+    "questId": "weighted_training",
+    "quest": "sidequest_training:weighted_training"
+   },
+   {
+    "type": "LEVEL",
+    "minLevel": 10
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "bandit",
+   "entity_name": "Bandit",
+   "vanilla_mob": "wither_skeleton",
+   "count": 5,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "bandit",
+   "entity_name": "Bandit",
+   "vanilla_mob": "blaze",
+   "count": 10,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY"
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "blaze_rod",
+   "count": 10
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "goku",
+   "npcId": "goku"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 6000
+  }
+ ]
+}

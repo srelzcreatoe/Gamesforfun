@@ -1,0 +1,61 @@
+{
+ "id": "10",
+ "dmz_id": 10,
+ "quest_id": "saga_buu:10",
+ "name": "Find Babidi's Ship",
+ "desc": "Shin tracks Babidi's energy to a rocky wasteland. Follow the signal and find the entrance to the wizard's lair.",
+ "title": "Find Babidi's Ship",
+ "description": "Shin tracks Babidi's energy to a rocky wasteland. Follow the signal and find the entrance to the wizard's lair.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 9,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1660
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "STRUCTURE",
+    "structure": "dragonminez:babidi"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "9",
+    "quest": "saga_buu:9"
+   }
+  ]
+ },
+ "min_level": 1660,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "shin",
+   "npcId": "shin"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 50400
+  }
+ ]
+}

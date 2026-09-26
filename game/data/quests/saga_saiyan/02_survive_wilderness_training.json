@@ -1,0 +1,72 @@
+{
+ "id": "2",
+ "dmz_id": 2,
+ "quest_id": "saga_saiyan:2",
+ "name": "Wilderness Training",
+ "desc": "Gohan's survival training begins in the wild. Hunt a dinosaur and prove you can endure the months before the Saiyans arrive.",
+ "title": "Wilderness Training",
+ "description": "Gohan's survival training begins in the wild. Hunt a dinosaur and prove you can endure the months before the Saiyans arrive.",
+ "type": "SAGA",
+ "category": "saga_saiyan",
+ "saga": "saiyan_saga",
+ "order": 1,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 8
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "minecraft:plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "1",
+    "quest": "saga_saiyan:1"
+   }
+  ]
+ },
+ "min_level": 8,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "dino1",
+   "entity_name": "Dinosaur",
+   "count": 1,
+   "health": 900.0,
+   "meleeDamage": 12.0,
+   "kiDamage": 0.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 3600
+  },
+  {
+   "type": "ITEM",
+   "item": "cooked_dino_meat",
+   "count": 8
+  }
+ ]
+}

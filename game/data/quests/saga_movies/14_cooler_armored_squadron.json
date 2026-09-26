@@ -1,0 +1,100 @@
+{
+ "id": "14",
+ "dmz_id": 14,
+ "quest_id": "saga_movies:14",
+ "name": "Cooler's Armored Squadron",
+ "desc": "Neiz, Salza, and Dore have arrived ahead of Cooler. Defeat the squadron and force Cooler into the fight.",
+ "title": "Cooler's Armored Squadron",
+ "description": "Neiz, Salza, and Dore have arrived ahead of Cooler. Defeat the squadron and force Cooler into the fight.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 13,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 150
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "5",
+    "quest": "saga_frieza:5"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "13",
+    "quest": "saga_movies:13"
+   }
+  ]
+ },
+ "min_level": 150,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_neiz",
+   "entity_name": "Neiz",
+   "count": 1,
+   "health": 5304.0,
+   "meleeDamage": 309.0,
+   "kiDamage": 357.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_salza",
+   "entity_name": "Salza",
+   "count": 1,
+   "health": 6409.0,
+   "meleeDamage": 377.0,
+   "kiDamage": 441.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_dore",
+   "entity_name": "Dore",
+   "count": 1,
+   "health": 7514.0,
+   "meleeDamage": 421.0,
+   "kiDamage": 524.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 1
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 24400
+  }
+ ]
+}

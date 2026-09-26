@@ -1,0 +1,64 @@
+{
+ "id": "33",
+ "dmz_id": 33,
+ "quest_id": "saga_buu:33",
+ "name": "Satan and Majin Buu",
+ "desc": "Majin Buu's friendship with Mr. Satan becomes the world's unlikely hope. Hold the line with Buu while that hope takes shape.",
+ "title": "Satan and Majin Buu",
+ "description": "Majin Buu's friendship with Mr. Satan becomes the world's unlikely hope. Hold the line with Buu while that hope takes shape.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 32,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2300
+   },
+   {
+    "type": "PLANET",
+    "planet": "sacred_kai_planet"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "32",
+    "quest": "saga_buu:32"
+   }
+  ]
+ },
+ "min_level": 2300,
+ "planet": "sacred_kai_planet",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_buufat",
+   "entity_name": "Majin Buu",
+   "count": 1,
+   "health": 437500.0,
+   "meleeDamage": 18300.0,
+   "kiDamage": 16660.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 187200
+  }
+ ]
+}

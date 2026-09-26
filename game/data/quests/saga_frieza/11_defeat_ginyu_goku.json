@@ -1,0 +1,68 @@
+{
+ "id": "11",
+ "dmz_id": 11,
+ "quest_id": "saga_frieza:11",
+ "name": "Body Change Chaos",
+ "desc": "Ginyu has stolen Goku's body and turned the battlefield into chaos. End the confusion before Frieza arrives.",
+ "title": "Body Change Chaos",
+ "description": "Ginyu has stolen Goku's body and turned the battlefield into chaos. End the confusion before Frieza arrives.",
+ "type": "SAGA",
+ "category": "saga_frieza",
+ "saga": "frieza_saga",
+ "order": 10,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 220
+   },
+   {
+    "type": "PLANET",
+    "planet": "namek"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:ajissa_plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "10",
+    "quest": "saga_frieza:10"
+   }
+  ]
+ },
+ "min_level": 220,
+ "planet": "namek",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_ginyu_goku",
+   "entity_name": "Goku (Ginyu)",
+   "count": 1,
+   "health": 3978.0,
+   "meleeDamage": 211.0,
+   "kiDamage": 185.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 34560
+  }
+ ]
+}

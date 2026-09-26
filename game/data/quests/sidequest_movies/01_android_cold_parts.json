@@ -1,0 +1,83 @@
+{
+ "id": "android_cold_parts",
+ "dmz_id": "android_cold_parts",
+ "quest_id": "sidequest_movies:android_cold_parts",
+ "name": "Cold Steel",
+ "desc": "Dr. Gero's cold-weather androids lie dormant in the ice. Bulma needs the cores of Androids 14 and 15 — venture into the frozen tundra, take them apart, and bring back the components.",
+ "title": "Cold Steel",
+ "description": "Dr. Gero's cold-weather androids lie dormant in the ice. Bulma needs the cores of Androids 14 and 15 — venture into the frozen tundra, take them apart, and bring back the components.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_movies",
+ "order": 0,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "BIOME",
+    "biome": "minecraft:snowy_plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "22",
+    "quest": "saga_movies:22"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_a14",
+   "entity_name": "Android 14",
+   "count": 1,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_a15",
+   "entity_name": "Android 15",
+   "count": 1,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY"
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "gete_scrap",
+   "count": 6
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 208000
+  },
+  {
+   "type": "ITEM",
+   "item": "gete_ingot",
+   "count": 3
+  }
+ ]
+}

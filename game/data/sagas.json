@@ -1,0 +1,185 @@
+{
+ "sagas": [
+  {
+   "id": "saiyan_saga",
+   "name": "Saiyan Saga",
+   "requirements": {
+    "previousSaga": ""
+   },
+   "questFolder": "saga_saiyan",
+   "quests": [
+    "saga_saiyan:1",
+    "saga_saiyan:2",
+    "saga_saiyan:3",
+    "saga_saiyan:4",
+    "saga_saiyan:5",
+    "saga_saiyan:6",
+    "saga_saiyan:7",
+    "saga_saiyan:8"
+   ]
+  },
+  {
+   "id": "frieza_saga",
+   "name": "Frieza Saga",
+   "requirements": {
+    "previousSaga": "saiyan_saga"
+   },
+   "questFolder": "saga_frieza",
+   "quests": [
+    "saga_frieza:1",
+    "saga_frieza:2",
+    "saga_frieza:3",
+    "saga_frieza:4",
+    "saga_frieza:5",
+    "saga_frieza:6",
+    "saga_frieza:7",
+    "saga_frieza:8",
+    "saga_frieza:9",
+    "saga_frieza:10",
+    "saga_frieza:11",
+    "saga_frieza:12",
+    "saga_frieza:13",
+    "saga_frieza:14",
+    "saga_frieza:15",
+    "saga_frieza:16"
+   ]
+  },
+  {
+   "id": "android_saga",
+   "name": "Android Saga",
+   "requirements": {
+    "previousSaga": "frieza_saga"
+   },
+   "questFolder": "saga_android",
+   "quests": [
+    "saga_android:1",
+    "saga_android:2",
+    "saga_android:3",
+    "saga_android:4",
+    "saga_android:5",
+    "saga_android:6",
+    "saga_android:7",
+    "saga_android:8",
+    "saga_android:9",
+    "saga_android:10",
+    "saga_android:11",
+    "saga_android:12",
+    "saga_android:13",
+    "saga_android:14",
+    "saga_android:15"
+   ]
+  },
+  {
+   "id": "future_saga",
+   "name": "Future Saga",
+   "requirements": {
+    "previousSaga": "android_saga"
+   },
+   "questFolder": "saga_future",
+   "quests": [
+    "saga_future:1",
+    "saga_future:2",
+    "saga_future:3",
+    "saga_future:4",
+    "saga_future:5",
+    "saga_future:6",
+    "saga_future:7"
+   ]
+  },
+  {
+   "id": "buu_saga",
+   "name": "Buu Saga",
+   "requirements": {
+    "previousSaga": "android_saga"
+   },
+   "questFolder": "saga_buu",
+   "quests": [
+    "saga_buu:1",
+    "saga_buu:2",
+    "saga_buu:3",
+    "saga_buu:4",
+    "saga_buu:5",
+    "saga_buu:6",
+    "saga_buu:7",
+    "saga_buu:8",
+    "saga_buu:9",
+    "saga_buu:10",
+    "saga_buu:11",
+    "saga_buu:12",
+    "saga_buu:13",
+    "saga_buu:14",
+    "saga_buu:15",
+    "saga_buu:16",
+    "saga_buu:17",
+    "saga_buu:18",
+    "saga_buu:19",
+    "saga_buu:20",
+    "saga_buu:21",
+    "saga_buu:22",
+    "saga_buu:23",
+    "saga_buu:24",
+    "saga_buu:25",
+    "saga_buu:26",
+    "saga_buu:27",
+    "saga_buu:28",
+    "saga_buu:29",
+    "saga_buu:30",
+    "saga_buu:31",
+    "saga_buu:32",
+    "saga_buu:33",
+    "saga_buu:34",
+    "saga_buu:35"
+   ]
+  },
+  {
+   "id": "movies_saga",
+   "name": "Movies Saga",
+   "requirements": {
+    "previousSaga": "buu_saga"
+   },
+   "questFolder": "saga_movies",
+   "quests": [
+    "saga_movies:1",
+    "saga_movies:2",
+    "saga_movies:3",
+    "saga_movies:4",
+    "saga_movies:5",
+    "saga_movies:6",
+    "saga_movies:7",
+    "saga_movies:8",
+    "saga_movies:9",
+    "saga_movies:10",
+    "saga_movies:11",
+    "saga_movies:12",
+    "saga_movies:13",
+    "saga_movies:14",
+    "saga_movies:15",
+    "saga_movies:16",
+    "saga_movies:17",
+    "saga_movies:18",
+    "saga_movies:19",
+    "saga_movies:20",
+    "saga_movies:21",
+    "saga_movies:22",
+    "saga_movies:23",
+    "saga_movies:24",
+    "saga_movies:25",
+    "saga_movies:26",
+    "saga_movies:27",
+    "saga_movies:28",
+    "saga_movies:29",
+    "saga_movies:30",
+    "saga_movies:31",
+    "saga_movies:32",
+    "saga_movies:33",
+    "saga_movies:34",
+    "saga_movies:35",
+    "saga_movies:36",
+    "saga_movies:37",
+    "saga_movies:38",
+    "saga_movies:39",
+    "saga_movies:40"
+   ]
+  }
+ ]
+}

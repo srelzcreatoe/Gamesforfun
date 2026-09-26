@@ -1,0 +1,61 @@
+{
+ "id": "bulma_android_tech_reverse_engineer",
+ "dmz_id": "bulma_android_tech_reverse_engineer",
+ "quest_id": "sidequest_errands:bulma_android_tech_reverse_engineer",
+ "name": "Android Analysis",
+ "desc": "Bulma reverse-engineers android technology. Bring redstone and Kikono shards.",
+ "title": "Android Analysis",
+ "description": "Bulma reverse-engineers android technology. Bring redstone and Kikono shards.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_errands",
+ "order": 1,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "5",
+    "quest": "saga_android:5"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "redstone",
+   "count": 16
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "kikono_shard",
+   "count": 6
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 40000
+  }
+ ]
+}

@@ -1,0 +1,60 @@
+{
+ "id": "buu_saga_dragon_balls",
+ "dmz_id": "buu_saga_dragon_balls",
+ "quest_id": "sidequest_collection:buu_saga_dragon_balls",
+ "name": "Dragon Balls for the Final Battle",
+ "desc": "Bulma wants the Earth Dragon Balls ready before Buu's threat gets worse. Summon Shenron and return to her with the result.",
+ "title": "Dragon Balls for the Final Battle",
+ "description": "Bulma wants the Earth Dragon Balls ready before Buu's threat gets worse. Summon Shenron and return to her with the result.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_collection",
+ "order": 3,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "18",
+    "quest": "saga_buu:18"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "SUMMON",
+   "dmz_type": "DRAGON_SUMMON",
+   "dragon": "shenron",
+   "ball_set": "earth"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 200000
+  },
+  {
+   "type": "ITEM",
+   "item": "senzu_bean",
+   "count": 3
+  }
+ ]
+}

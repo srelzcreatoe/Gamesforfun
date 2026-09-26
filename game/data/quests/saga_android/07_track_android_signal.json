@@ -1,0 +1,56 @@
+{
+ "id": "7",
+ "dmz_id": 7,
+ "quest_id": "saga_android:7",
+ "name": "Track the Androids",
+ "desc": "The real Androids vanished into the mountains after Gero's defeat. Search the range and pick up their trail.",
+ "title": "Track the Androids",
+ "description": "The real Androids vanished into the mountains after Gero's defeat. Search the range and pick up their trail.",
+ "type": "SAGA",
+ "category": "saga_android",
+ "saga": "android_saga",
+ "order": 6,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 700
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "6",
+    "quest": "saga_android:6"
+   }
+  ]
+ },
+ "min_level": 700,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "GO_TO",
+   "dmz_type": "BIOME",
+   "biome": "#minecraft:is_mountain"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 9800
+  }
+ ]
+}

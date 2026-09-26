@@ -1,0 +1,66 @@
+{
+ "id": "bulma_namek_research",
+ "dmz_id": "bulma_namek_research",
+ "quest_id": "sidequest_collection:bulma_namek_research",
+ "name": "Namekian Research",
+ "desc": "Bulma needs Namekian materials to tune a radar for this alien world. Collect Kikono shards and cloth so the search can begin.",
+ "title": "Namekian Research",
+ "description": "Bulma needs Namekian materials to tune a radar for this alien world. Collect Kikono shards and cloth so the search can begin.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_collection",
+ "order": 1,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "2",
+    "quest": "saga_frieza:2"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "kikono_shard",
+   "count": 16
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "kikono_cloth",
+   "count": 8
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 10500
+  },
+  {
+   "type": "ITEM",
+   "item": "namek_dragon_radar",
+   "count": 1
+  }
+ ]
+}

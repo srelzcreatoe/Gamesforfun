@@ -1,0 +1,75 @@
+{
+ "id": "37",
+ "dmz_id": 37,
+ "quest_id": "saga_movies:37",
+ "name": "Super Janemba",
+ "desc": "Janemba condenses into a faster, deadlier form. Destroy Super Janemba in Otherworld.",
+ "title": "Super Janemba",
+ "description": "Janemba condenses into a faster, deadlier form. Destroy Super Janemba in Otherworld.",
+ "type": "SAGA",
+ "category": "saga_movies",
+ "saga": "movies_saga",
+ "order": 36,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2400
+   },
+   {
+    "type": "PLANET",
+    "planet": "otherworld"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "34",
+    "quest": "saga_buu:34"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "36",
+    "quest": "saga_movies:36"
+   }
+  ]
+ },
+ "min_level": 2400,
+ "planet": "otherworld",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_super_janemba",
+   "entity_name": "Super Janemba",
+   "count": 1,
+   "health": 1225000.0,
+   "meleeDamage": 51600.0,
+   "kiDamage": 46920.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 437500
+  },
+  {
+   "type": "ITEM",
+   "item": "dimensional_sword",
+   "count": 1
+  }
+ ]
+}

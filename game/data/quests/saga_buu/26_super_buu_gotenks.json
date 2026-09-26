@@ -1,0 +1,68 @@
+{
+ "id": "26",
+ "dmz_id": 26,
+ "quest_id": "saga_buu:26",
+ "name": "Super Buu Gotenks",
+ "desc": "Buu has absorbed Gotenks and stolen his explosive power. Bring down the fused monster before the timer runs out.",
+ "title": "Super Buu Gotenks",
+ "description": "Buu has absorbed Gotenks and stolen his explosive power. Bring down the fused monster before the timer runs out.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 25,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 2100
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:rocky"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "25",
+    "quest": "saga_buu:25"
+   }
+  ]
+ },
+ "min_level": 2100,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_superbuu_gotenks",
+   "entity_name": "Super Buu (Gotenks)",
+   "count": 1,
+   "health": 560000.0,
+   "meleeDamage": 23400.0,
+   "kiDamage": 21250.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 237600
+  }
+ ]
+}

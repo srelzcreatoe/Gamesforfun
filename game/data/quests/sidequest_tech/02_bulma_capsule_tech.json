@@ -1,0 +1,70 @@
+{
+ "id": "bulma_capsule_tech",
+ "dmz_id": "bulma_capsule_tech",
+ "quest_id": "sidequest_tech:bulma_capsule_tech",
+ "name": "Capsule Tech",
+ "desc": "Bulma refines the Capsule Corp formula with Gete cores. Bring her ingots and diamonds and she'll teach you to craft premium Gete capsules that grant triple the stat points.",
+ "title": "Capsule Tech",
+ "description": "Bulma refines the Capsule Corp formula with Gete cores. Bring her ingots and diamonds and she'll teach you to craft premium Gete capsules that grant triple the stat points.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_tech",
+ "order": 1,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "QUEST",
+    "questId": "bulma_gete_discovery",
+    "quest": "sidequest_tech:bulma_gete_discovery"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "gete_ingot",
+   "count": 4
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "diamond",
+   "count": 4
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 40000
+  },
+  {
+   "type": "ITEM",
+   "item": "gete_red_capsule",
+   "count": 1
+  },
+  {
+   "type": "ITEM",
+   "item": "gete_orange_capsule",
+   "count": 1
+  }
+ ]
+}

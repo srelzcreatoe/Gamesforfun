@@ -1,0 +1,82 @@
+{
+ "id": "3",
+ "dmz_id": 3,
+ "quest_id": "saga_buu:3",
+ "name": "Trunks and Vegeta Training",
+ "desc": "Train with Trunks and Vegeta under harsher conditions. Vegeta will not accept weak preparation.",
+ "title": "Trunks and Vegeta Training",
+ "description": "Train with Trunks and Vegeta under harsher conditions. Vegeta will not accept weak preparation.",
+ "type": "SAGA",
+ "category": "saga_buu",
+ "saga": "buu_saga",
+ "order": 2,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 1500
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "TIME",
+    "mode": "REAL_TIME",
+    "seconds": 600
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "buu_saga",
+    "questId": "2",
+    "quest": "saga_buu:2"
+   }
+  ]
+ },
+ "min_level": 1500,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_kid_trunks",
+   "entity_name": "Trunks",
+   "count": 1,
+   "health": 189000.0,
+   "meleeDamage": 7800.0,
+   "kiDamage": 7140.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_vegeta_end_base",
+   "entity_name": "Vegeta",
+   "count": 1,
+   "health": 245000.0,
+   "meleeDamage": 10200.0,
+   "kiDamage": 9350.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 2
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 151200
+  }
+ ]
+}

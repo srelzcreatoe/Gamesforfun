@@ -1,0 +1,80 @@
+{
+ "id": "bulma_anti_ki_cloak",
+ "dmz_id": "bulma_anti_ki_cloak",
+ "quest_id": "sidequest_tech:bulma_anti_ki_cloak",
+ "name": "Cloaking Device",
+ "desc": "Bulma reverse-engineers Android suppressor tech into a wearable cloak that hides your Battle Power from enemy scouters.",
+ "title": "Cloaking Device",
+ "description": "Bulma reverse-engineers Android suppressor tech into a wearable cloak that hides your Battle Power from enemy scouters.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_tech",
+ "order": 0,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "QUEST",
+    "questId": "bulma_scouter_threat_db",
+    "quest": "sidequest_tech:bulma_scouter_threat_db"
+   },
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "14",
+    "quest": "saga_android:14"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_cell_jr",
+   "entity_name": "Cell Jr",
+   "count": 5,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "gete_ingot",
+   "count": 3
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "observer",
+   "count": 4
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 44000
+  },
+  {
+   "type": "ITEM",
+   "item": "anti_ki_cloak",
+   "count": 1
+  }
+ ]
+}

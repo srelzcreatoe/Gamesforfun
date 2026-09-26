@@ -1,0 +1,68 @@
+{
+ "id": "endurance_training",
+ "dmz_id": "endurance_training",
+ "quest_id": "sidequest_training:endurance_training",
+ "name": "Endurance Training",
+ "desc": "Roshi says true warriors must fight all kinds of enemies. Prove your endurance against tougher foes.",
+ "title": "Endurance Training",
+ "description": "Roshi says true warriors must fight all kinds of enemies. Prove your endurance against tougher foes.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_training",
+ "order": 0,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "roshi",
+ "turn_in": "roshi",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "QUEST",
+    "questId": "roshi_basic_training",
+    "quest": "sidequest_training:roshi_basic_training"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "red_ribbon_soldier",
+   "entity_name": "Red Ribbon's Soldier",
+   "vanilla_mob": "skeleton",
+   "count": 15,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "sabertooth",
+   "entity_name": "Sabertooth Tiger",
+   "vanilla_mob": "spider",
+   "count": 10,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "roshi",
+   "npcId": "roshi"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 1000
+  }
+ ]
+}

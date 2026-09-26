@@ -1,0 +1,68 @@
+{
+ "id": "14",
+ "dmz_id": 14,
+ "quest_id": "saga_frieza:14",
+ "name": "Final Form Frieza",
+ "desc": "Frieza's final form is deceptively calm and infinitely more dangerous. Fight through the terror and force him back.",
+ "title": "Final Form Frieza",
+ "description": "Frieza's final form is deceptively calm and infinitely more dangerous. Fight through the terror and force him back.",
+ "type": "SAGA",
+ "category": "saga_frieza",
+ "saga": "frieza_saga",
+ "order": 13,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 315
+   },
+   {
+    "type": "PLANET",
+    "planet": "namek"
+   },
+   {
+    "type": "BIOME",
+    "biome": "dragonminez:ajissa_plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "frieza_saga",
+    "questId": "13",
+    "quest": "saga_frieza:13"
+   }
+  ]
+ },
+ "min_level": 315,
+ "planet": "namek",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_frieza_base",
+   "entity_name": "Frieza (Final Form)",
+   "count": 1,
+   "health": 30940.0,
+   "meleeDamage": 1437.0,
+   "kiDamage": 1250.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY",
+   "AITier": 3
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 46560
+  }
+ ]
+}

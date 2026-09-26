@@ -1,0 +1,67 @@
+{
+ "id": "bulma_flight_stabilizer",
+ "dmz_id": "bulma_flight_stabilizer",
+ "quest_id": "sidequest_errands:bulma_flight_stabilizer",
+ "name": "Flight Stabilizer",
+ "desc": "Bulma is building a flight-enhancement module. She needs feathers, redstone and gold.",
+ "title": "Flight Stabilizer",
+ "description": "Bulma is building a flight-enhancement module. She needs feathers, redstone and gold.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_errands",
+ "order": 7,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "saiyan_saga",
+    "questId": "4",
+    "quest": "saga_saiyan:4"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "feather",
+   "count": 16
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "redstone",
+   "count": 12
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "gold_ingot",
+   "count": 4
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 3600
+  }
+ ]
+}

@@ -1,0 +1,7811 @@
+{
+ "recipes": [
+  {
+   "id": "a16_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a16_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a16"
+  },
+  {
+   "id": "a16_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a16_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a16"
+  },
+  {
+   "id": "a16_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a16_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a16"
+  },
+  {
+   "id": "a17_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a17_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a17"
+  },
+  {
+   "id": "a17_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a17_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a17"
+  },
+  {
+   "id": "a17_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a17_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a17"
+  },
+  {
+   "id": "a17_super_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a17_super_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a17_super"
+  },
+  {
+   "id": "a17_super_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a17_super_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a17_super"
+  },
+  {
+   "id": "a17_super_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a17_super_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a17_super"
+  },
+  {
+   "id": "a18_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a18_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a18"
+  },
+  {
+   "id": "a18_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a18_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a18"
+  },
+  {
+   "id": "a18_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a18_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a18"
+  },
+  {
+   "id": "a18_cell_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a18_cell_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a18_cell"
+  },
+  {
+   "id": "a18_cell_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a18_cell_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a18_cell"
+  },
+  {
+   "id": "a18_cell_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a18_cell_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a18_cell"
+  },
+  {
+   "id": "a18_kame_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a18_kame_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a18_kame"
+  },
+  {
+   "id": "a18_kame_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a18_kame_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a18_kame"
+  },
+  {
+   "id": "a18_kame_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a18_kame_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a18_kame"
+  },
+  {
+   "id": "a18_tournament_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a18_tournament_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a18_tournament"
+  },
+  {
+   "id": "a18_tournament_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a18_tournament_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a18_tournament"
+  },
+  {
+   "id": "a18_tournament_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "a18_tournament_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_a18_tournament"
+  },
+  {
+   "id": "age1000_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "age1000_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_age1000"
+  },
+  {
+   "id": "age1000_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "age1000_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_age1000"
+  },
+  {
+   "id": "age1000_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "age1000_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_age1000"
+  },
+  {
+   "id": "ajissa_door",
+   "station": "crafting_table",
+   "shape": [
+    "##",
+    "##",
+    "##"
+   ],
+   "keys": {
+    "#": "ajissa_planks"
+   },
+   "result": {
+    "item": "ajissa_door",
+    "count": 3
+   }
+  },
+  {
+   "id": "ajissa_fence",
+   "station": "crafting_table",
+   "shape": [
+    "W#W",
+    "W#W"
+   ],
+   "keys": {
+    "#": "stick",
+    "W": "ajissa_planks"
+   },
+   "result": {
+    "item": "ajissa_fence",
+    "count": 3
+   }
+  },
+  {
+   "id": "ajissa_planks",
+   "station": "hand",
+   "shapeless": true,
+   "shape": [
+    "A"
+   ],
+   "keys": {
+    "A": [
+     "ajissa_log"
+    ]
+   },
+   "result": {
+    "item": "ajissa_planks",
+    "count": 4
+   }
+  },
+  {
+   "id": "ajissa_wood",
+   "station": "hand",
+   "shape": [
+    "##",
+    "##"
+   ],
+   "keys": {
+    "#": "ajissa_log"
+   },
+   "result": {
+    "item": "ajissa_log",
+    "count": 3
+   }
+  },
+  {
+   "id": "armor_crafting_kit",
+   "station": "hand",
+   "shapeless": true,
+   "shape": [
+    "AB"
+   ],
+   "keys": {
+    "A": "red_wool",
+    "B": "iron_ingot"
+   },
+   "result": {
+    "item": "armor_crafting_kit",
+    "count": 1
+   }
+  },
+  {
+   "id": "bardock_dbz_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "bardock_dbz_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_bardock1"
+  },
+  {
+   "id": "bardock_dbz_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "bardock_dbz_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_bardock1"
+  },
+  {
+   "id": "bardock_dbz_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "bardock_dbz_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_bardock1"
+  },
+  {
+   "id": "bardock_super_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "bardock_super_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_bardock2"
+  },
+  {
+   "id": "bardock_super_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "bardock_super_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_bardock2"
+  },
+  {
+   "id": "bardock_super_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "bardock_super_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_bardock2"
+  },
+  {
+   "id": "beerus_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "beerus_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_beerus"
+  },
+  {
+   "id": "beerus_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "beerus_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_beerus"
+  },
+  {
+   "id": "beerus_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "beerus_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_beerus"
+  },
+  {
+   "id": "blackgoku_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "blackgoku_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_black"
+  },
+  {
+   "id": "blackgoku_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "blackgoku_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_black"
+  },
+  {
+   "id": "blackgoku_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "blackgoku_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_black"
+  },
+  {
+   "id": "blank_pattern_super",
+   "station": "crafting_table",
+   "shape": [
+    "CPC",
+    "#W#",
+    "CPC"
+   ],
+   "keys": {
+    "#": "paper",
+    "C": "blue_wool",
+    "P": "blank_pattern_z",
+    "W": "white_wool"
+   },
+   "result": {
+    "item": "blank_pattern_super",
+    "count": 1
+   }
+  },
+  {
+   "id": "blank_pattern_z",
+   "station": "crafting_table",
+   "shape": [
+    "RRR",
+    "#W#",
+    "RRR"
+   ],
+   "keys": {
+    "#": "paper",
+    "R": "red_wool",
+    "W": "white_wool"
+   },
+   "result": {
+    "item": "blank_pattern_z",
+    "count": 1
+   }
+  },
+  {
+   "id": "blue_scouter",
+   "station": "crafting_table",
+   "shape": [
+    "  R",
+    "PPT",
+    " B "
+   ],
+   "keys": {
+    "B": "stone",
+    "P": "blue_stained_glass",
+    "R": "radar_piece",
+    "T": "t1_radar_cpu"
+   },
+   "result": {
+    "item": "blue_scouter",
+    "count": 1
+   }
+  },
+  {
+   "id": "broly_super_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "broly_super_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_broly_super"
+  },
+  {
+   "id": "broly_super_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "broly_super_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_broly_super"
+  },
+  {
+   "id": "broly_super_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "broly_super_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_broly_super"
+  },
+  {
+   "id": "broly_z_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "broly_z_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_broly_z"
+  },
+  {
+   "id": "broly_z_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "broly_z_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_broly_z"
+  },
+  {
+   "id": "broly_z_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "broly_z_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_broly_z"
+  },
+  {
+   "id": "caulifla_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "caulifla_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_caulifla"
+  },
+  {
+   "id": "caulifla_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "caulifla_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_caulifla"
+  },
+  {
+   "id": "caulifla_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "caulifla_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_caulifla"
+  },
+  {
+   "id": "coal_from_smelting_namek_coal_ore",
+   "station": "furnace",
+   "input": "namek_coal_ore",
+   "result": {
+    "item": "coal",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "coal_from_smelting_namek_deepslate_coal_ore",
+   "station": "furnace",
+   "input": "namek_coal_ore",
+   "result": {
+    "item": "coal",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "cooked_baby_dino",
+   "station": "furnace",
+   "input": "raw_baby_dino_meat",
+   "result": {
+    "item": "cooked_baby_dino_meat",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "cooked_dino",
+   "station": "furnace",
+   "input": "raw_dino_meat",
+   "result": {
+    "item": "cooked_dino_meat",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "cooked_dino_tail",
+   "station": "furnace",
+   "input": "dino_tail_raw",
+   "result": {
+    "item": "dino_tail_cooked",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "copper_ingot_from_smelting_namek_copper_ore",
+   "station": "furnace",
+   "input": "copper_ore",
+   "result": {
+    "item": "copper_ingot",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "copper_ingot_from_smelting_namek_deepslate_copper_ore",
+   "station": "furnace",
+   "input": "copper_ore",
+   "result": {
+    "item": "copper_ingot",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "dball_radar",
+   "station": "crafting_table",
+   "shape": [
+    "OCO",
+    "PGP",
+    "CPC"
+   ],
+   "keys": {
+    "C": "t1_radar_chip",
+    "G": "t1_radar_cpu",
+    "O": "observer",
+    "P": "radar_piece"
+   },
+   "result": {
+    "item": "dragon_radar",
+    "count": 1
+   }
+  },
+  {
+   "id": "demon_gi_blue_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "demon_gi_blue_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gohan1"
+  },
+  {
+   "id": "demon_gi_blue_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "demon_gi_blue_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gohan1"
+  },
+  {
+   "id": "demon_gi_blue_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "demon_gi_blue_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gohan1"
+  },
+  {
+   "id": "diamond_from_smelting_namek_deepslate_diamond_ore",
+   "station": "furnace",
+   "input": "namek_diamond_ore",
+   "result": {
+    "item": "diamond",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "diamond_from_smelting_namek_diamond_ore",
+   "station": "furnace",
+   "input": "namek_diamond_ore",
+   "result": {
+    "item": "diamond",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "emerald_from_smelting_namek_deepslate_emerald_ore",
+   "station": "furnace",
+   "input": "emerald_ore",
+   "result": {
+    "item": "emerald",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "emerald_from_smelting_namek_emerald_ore",
+   "station": "furnace",
+   "input": "emerald_ore",
+   "result": {
+    "item": "emerald",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "energy_cable",
+   "station": "crafting_table",
+   "shape": [
+    " W ",
+    "WCW",
+    " W "
+   ],
+   "keys": {
+    "C": "t1_radar_chip",
+    "W": "black_wool"
+   },
+   "result": {
+    "item": "energy_cable",
+    "count": 4
+   }
+  },
+  {
+   "id": "frog_legs_cooked",
+   "station": "furnace",
+   "input": "frog_legs_raw",
+   "result": {
+    "item": "frog_legs_cooked",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "fuel_generator",
+   "station": "crafting_table",
+   "shape": [
+    "OOO",
+    "OTO",
+    "OOO"
+   ],
+   "keys": {
+    "O": "obsidian",
+    "T": "t1_radar_chip"
+   },
+   "result": {
+    "item": "fuel_generator",
+    "count": 1
+   }
+  },
+  {
+   "id": "fusion_zamasu_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "fusion_zamasu_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_fusionzamasu"
+  },
+  {
+   "id": "fusion_zamasu_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "fusion_zamasu_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_fusionzamasu"
+  },
+  {
+   "id": "fusion_zamasu_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "fusion_zamasu_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_fusionzamasu"
+  },
+  {
+   "id": "future_gohan_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "future_gohan_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_future_gohan"
+  },
+  {
+   "id": "future_gohan_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "future_gohan_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_future_gohan"
+  },
+  {
+   "id": "future_gohan_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "future_gohan_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_future_gohan"
+  },
+  {
+   "id": "gamma1_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gamma1_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gamma1"
+  },
+  {
+   "id": "gamma1_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gamma1_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gamma1"
+  },
+  {
+   "id": "gamma1_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gamma1_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gamma1"
+  },
+  {
+   "id": "gamma2_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gamma2_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gamma2"
+  },
+  {
+   "id": "gamma2_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gamma2_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gamma2"
+  },
+  {
+   "id": "gamma2_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gamma2_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gamma2"
+  },
+  {
+   "id": "gas_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gas_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gas"
+  },
+  {
+   "id": "gas_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gas_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gas"
+  },
+  {
+   "id": "gas_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gas_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gas"
+  },
+  {
+   "id": "gete_axe",
+   "station": "kikono_station",
+   "shape": [
+    "AA",
+    "AB",
+    " B"
+   ],
+   "keys": {
+    "A": "gete_ingot",
+    "B": "kikono_stick"
+   },
+   "result": {
+    "item": "gete_axe",
+    "count": 1
+   },
+   "time": 5,
+   "energy": 1000,
+   "pattern": "pattern_gete"
+  },
+  {
+   "id": "gete_block",
+   "station": "crafting_table",
+   "shape": [
+    "###",
+    "###",
+    "###"
+   ],
+   "keys": {
+    "#": "gete_ingot"
+   },
+   "result": {
+    "item": "gete_block",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_blue_capsule",
+   "station": "hand",
+   "shapeless": true,
+   "shape": [
+    "AB"
+   ],
+   "keys": {
+    "A": "blue_capsule",
+    "B": "gete_ingot"
+   },
+   "result": {
+    "item": "gete_blue_capsule",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_green_capsule",
+   "station": "hand",
+   "shapeless": true,
+   "shape": [
+    "AB"
+   ],
+   "keys": {
+    "A": "green_capsule",
+    "B": "gete_ingot"
+   },
+   "result": {
+    "item": "gete_green_capsule",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_hoe",
+   "station": "kikono_station",
+   "shape": [
+    "AA",
+    " B",
+    " B"
+   ],
+   "keys": {
+    "A": "gete_ingot",
+    "B": "kikono_stick"
+   },
+   "result": {
+    "item": "gete_hoe",
+    "count": 1
+   },
+   "time": 5,
+   "energy": 1000,
+   "pattern": "pattern_gete"
+  },
+  {
+   "id": "gete_ingot",
+   "station": "crafting_table",
+   "shapeless": true,
+   "shape": [
+    "ABC",
+    "DEF",
+    "GH "
+   ],
+   "keys": {
+    "A": "gete_scrap",
+    "B": "gete_scrap",
+    "C": "gete_scrap",
+    "D": "gete_scrap",
+    "E": "gete_scrap",
+    "F": "gete_scrap",
+    "G": "gete_scrap",
+    "H": "gete_scrap"
+   },
+   "result": {
+    "item": "gete_ingot",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_orange_capsule",
+   "station": "hand",
+   "shapeless": true,
+   "shape": [
+    "AB"
+   ],
+   "keys": {
+    "A": "orange_capsule",
+    "B": "gete_ingot"
+   },
+   "result": {
+    "item": "gete_orange_capsule",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_pickaxe",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    " B ",
+    " B "
+   ],
+   "keys": {
+    "A": "gete_ingot",
+    "B": "kikono_stick"
+   },
+   "result": {
+    "item": "gete_pickaxe",
+    "count": 1
+   },
+   "time": 5,
+   "energy": 1000,
+   "pattern": "pattern_gete"
+  },
+  {
+   "id": "gete_purple_capsule",
+   "station": "hand",
+   "shapeless": true,
+   "shape": [
+    "AB"
+   ],
+   "keys": {
+    "A": "purple_capsule",
+    "B": "gete_ingot"
+   },
+   "result": {
+    "item": "gete_purple_capsule",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_red_capsule",
+   "station": "hand",
+   "shapeless": true,
+   "shape": [
+    "AB"
+   ],
+   "keys": {
+    "A": "red_capsule",
+    "B": "gete_ingot"
+   },
+   "result": {
+    "item": "gete_red_capsule",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_scrap_from_smelting_gete_debris_ore",
+   "station": "furnace",
+   "input": "gete_debris_ore",
+   "result": {
+    "item": "gete_scrap",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "gete_shovel",
+   "station": "kikono_station",
+   "shape": [
+    "A",
+    "B",
+    "B"
+   ],
+   "keys": {
+    "A": "gete_ingot",
+    "B": "kikono_stick"
+   },
+   "result": {
+    "item": "gete_shovel",
+    "count": 1
+   },
+   "time": 5,
+   "energy": 1000,
+   "pattern": "pattern_gete"
+  },
+  {
+   "id": "gete_smithing_template",
+   "station": "crafting_table",
+   "shape": [
+    "IGI",
+    "GTG",
+    "IGI"
+   ],
+   "keys": {
+    "G": "gete_scrap",
+    "I": "iron_ingot",
+    "T": "gete_scrap"
+   },
+   "result": {
+    "item": "gete_smithing_template",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_yellow_capsule",
+   "station": "hand",
+   "shapeless": true,
+   "shape": [
+    "AB"
+   ],
+   "keys": {
+    "A": "yellow_capsule",
+    "B": "gete_ingot"
+   },
+   "result": {
+    "item": "gete_yellow_capsule",
+    "count": 1
+   }
+  },
+  {
+   "id": "gine_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gine_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gine"
+  },
+  {
+   "id": "gine_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gine_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gine"
+  },
+  {
+   "id": "gine_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gine_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gine"
+  },
+  {
+   "id": "gogeta_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gogeta_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gogeta"
+  },
+  {
+   "id": "gogeta_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gogeta_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gogeta"
+  },
+  {
+   "id": "gogeta_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gogeta_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gogeta"
+  },
+  {
+   "id": "gohan_super_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gohan_super_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gohan_super"
+  },
+  {
+   "id": "gohan_super_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gohan_super_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gohan_super"
+  },
+  {
+   "id": "gohan_super_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "gohan_super_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_gohan_super"
+  },
+  {
+   "id": "goku_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku1"
+  },
+  {
+   "id": "goku_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku1"
+  },
+  {
+   "id": "goku_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku1"
+  },
+  {
+   "id": "goku_gt_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_gt_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku_gt"
+  },
+  {
+   "id": "goku_gt_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_gt_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku_gt"
+  },
+  {
+   "id": "goku_gt_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_gt_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku_gt"
+  },
+  {
+   "id": "goku_kid_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_kid_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku_kid"
+  },
+  {
+   "id": "goku_kid_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_kid_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku_kid"
+  },
+  {
+   "id": "goku_kid_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_kid_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku_kid"
+  },
+  {
+   "id": "goku_super_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_super_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku_super"
+  },
+  {
+   "id": "goku_super_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_super_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku_super"
+  },
+  {
+   "id": "goku_super_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_super_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku_super"
+  },
+  {
+   "id": "goku_whis_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_whis_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku_whis"
+  },
+  {
+   "id": "goku_whis_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_whis_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku_whis"
+  },
+  {
+   "id": "goku_whis_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goku_whis_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goku_whis"
+  },
+  {
+   "id": "gold_ingot_from_smelting_namek_deepslate_gold_ore",
+   "station": "furnace",
+   "input": "namek_gold_ore",
+   "result": {
+    "item": "gold_ingot",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "gold_ingot_from_smelting_namek_gold_ore",
+   "station": "furnace",
+   "input": "namek_gold_ore",
+   "result": {
+    "item": "gold_ingot",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "goten_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goten_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goten"
+  },
+  {
+   "id": "goten_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goten_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goten"
+  },
+  {
+   "id": "goten_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goten_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goten"
+  },
+  {
+   "id": "goten_super_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goten_super_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goten_super"
+  },
+  {
+   "id": "goten_super_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goten_super_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goten_super"
+  },
+  {
+   "id": "goten_super_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "goten_super_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_goten_super"
+  },
+  {
+   "id": "granola_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "granola_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_granola"
+  },
+  {
+   "id": "granola_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "granola_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_granola"
+  },
+  {
+   "id": "granola_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "granola_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_granola"
+  },
+  {
+   "id": "gravity_device",
+   "station": "crafting_table",
+   "shape": [
+    "RWR",
+    "ICI",
+    "RAR"
+   ],
+   "keys": {
+    "A": "iron_block",
+    "C": "t1_radar_cpu",
+    "I": "iron_block",
+    "R": "redstone",
+    "W": [
+     "weight_piccolo_cape",
+     "weight_turtle_shell",
+     "workout_weights"
+    ]
+   },
+   "result": {
+    "item": "gravity_device",
+    "count": 1
+   }
+  },
+  {
+   "id": "great_saiyaman_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "great_saiyaman_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_great_saiyaman"
+  },
+  {
+   "id": "great_saiyaman_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "great_saiyaman_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_great_saiyaman"
+  },
+  {
+   "id": "great_saiyaman_armor_helmet",
+   "station": "kikono_station",
+   "shape": [
+    "ABA",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "great_saiyaman_armor_helmet",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_great_saiyaman"
+  },
+  {
+   "id": "great_saiyaman_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "great_saiyaman_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_great_saiyaman"
+  },
+  {
+   "id": "green_scouter",
+   "station": "crafting_table",
+   "shape": [
+    "  R",
+    "PPT",
+    " B "
+   ],
+   "keys": {
+    "B": "stone",
+    "P": "glass",
+    "R": "radar_piece",
+    "T": "t1_radar_cpu"
+   },
+   "result": {
+    "item": "green_scouter",
+    "count": 1
+   }
+  },
+  {
+   "id": "hit_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "hit_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_hit"
+  },
+  {
+   "id": "hit_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "hit_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_hit"
+  },
+  {
+   "id": "hit_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "hit_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_hit"
+  },
+  {
+   "id": "iron_ingot_from_smelting_namek_deepslate_iron_ore",
+   "station": "furnace",
+   "input": "namek_iron_ore",
+   "result": {
+    "item": "iron_ingot",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "iron_ingot_from_smelting_namek_iron_ore",
+   "station": "furnace",
+   "input": "namek_iron_ore",
+   "result": {
+    "item": "iron_ingot",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "kale_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "kale_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_kale"
+  },
+  {
+   "id": "kale_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "kale_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_kale"
+  },
+  {
+   "id": "kale_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "kale_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_kale"
+  },
+  {
+   "id": "kefla_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "kefla_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_kefla"
+  },
+  {
+   "id": "kefla_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "kefla_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_kefla"
+  },
+  {
+   "id": "kefla_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "kefla_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_kefla"
+  },
+  {
+   "id": "ki_battery",
+   "station": "crafting_table",
+   "shape": [
+    "RLR",
+    "LGL",
+    "RLR"
+   ],
+   "keys": {
+    "G": "gete_ingot",
+    "L": "lapis_lazuli",
+    "R": "redstone"
+   },
+   "result": {
+    "item": "ki_battery",
+    "count": 1
+   }
+  },
+  {
+   "id": "kikono_block",
+   "station": "crafting_table",
+   "shape": [
+    "KKK",
+    "KKK",
+    "KKK"
+   ],
+   "keys": {
+    "K": "kikono_shard"
+   },
+   "result": {
+    "item": "kikono_block",
+    "count": 1
+   }
+  },
+  {
+   "id": "kikono_cloth",
+   "station": "crafting_table",
+   "shapeless": true,
+   "shape": [
+    "ABC",
+    "DE "
+   ],
+   "keys": {
+    "A": "kikono_string",
+    "B": "kikono_string",
+    "C": "kikono_string",
+    "D": "kikono_string",
+    "E": "armor_crafting_kit"
+   },
+   "result": {
+    "item": "kikono_cloth",
+    "count": 1
+   }
+  },
+  {
+   "id": "kikono_shard",
+   "station": "hand",
+   "shapeless": true,
+   "shape": [
+    "A"
+   ],
+   "keys": {
+    "A": "kikono_block"
+   },
+   "result": {
+    "item": "kikono_shard",
+    "count": 9
+   }
+  },
+  {
+   "id": "kikono_shard_from_smelting_namek_kikono_ore",
+   "station": "furnace",
+   "input": "namek_kikono_ore",
+   "result": {
+    "item": "kikono_shard",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "kikono_station",
+   "station": "crafting_table",
+   "shape": [
+    "ACA",
+    "KTK",
+    "PSP"
+   ],
+   "keys": {
+    "A": "iron_block",
+    "C": "diamond",
+    "K": "kikono_block",
+    "P": "heavy_weighted_pressure_plate",
+    "S": "crafting_table",
+    "T": "t2_radar_cpu"
+   },
+   "result": {
+    "item": "kikono_station",
+    "count": 1
+   }
+  },
+  {
+   "id": "kikono_stick",
+   "station": "hand",
+   "shape": [
+    "K",
+    "K"
+   ],
+   "keys": {
+    "K": "kikono_shard"
+   },
+   "result": {
+    "item": "kikono_stick",
+    "count": 2
+   }
+  },
+  {
+   "id": "kikono_string",
+   "station": "hand",
+   "shapeless": true,
+   "shape": [
+    "AB"
+   ],
+   "keys": {
+    "A": "kikono_shard",
+    "B": "armor_crafting_kit"
+   },
+   "result": {
+    "item": "kikono_string",
+    "count": 2
+   }
+  },
+  {
+   "id": "lapis_lazuli_from_smelting_namek_deepslate_lapis_ore",
+   "station": "furnace",
+   "input": "lapis_ore",
+   "result": {
+    "item": "lapis_lazuli",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "lapis_lazuli_from_smelting_namek_lapis_ore",
+   "station": "furnace",
+   "input": "lapis_ore",
+   "result": {
+    "item": "lapis_lazuli",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "majin21_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "majin21_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_majin21"
+  },
+  {
+   "id": "majin21_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "majin21_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_majin21"
+  },
+  {
+   "id": "majin21_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "majin21_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_majin21"
+  },
+  {
+   "id": "majin_buu_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "majin_buu_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_majin_buu"
+  },
+  {
+   "id": "majin_buu_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "majin_buu_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_majin_buu"
+  },
+  {
+   "id": "majin_buu_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "majin_buu_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_majin_buu"
+  },
+  {
+   "id": "namekdball_radar",
+   "station": "crafting_table",
+   "shape": [
+    "OCO",
+    "PGP",
+    "CPC"
+   ],
+   "keys": {
+    "C": "t2_radar_chip",
+    "G": "t2_radar_cpu",
+    "O": "observer",
+    "P": "radar_piece"
+   },
+   "result": {
+    "item": "namek_dragon_radar",
+    "count": 1
+   }
+  },
+  {
+   "id": "orange_high_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "orange_high_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_orange_high"
+  },
+  {
+   "id": "orange_high_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "orange_high_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_orange_high"
+  },
+  {
+   "id": "orange_high_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "orange_high_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_orange_high"
+  },
+  {
+   "id": "pattern_a16",
+   "station": "crafting_table",
+   "shape": [
+    "O#O",
+    "GBG",
+    "GGG"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "coal",
+    "G": "cactus",
+    "O": "orange_tulip"
+   },
+   "result": {
+    "item": "pattern_a16",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_a17",
+   "station": "crafting_table",
+   "shape": [
+    "B#B",
+    "GGG",
+    "OBO"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "coal",
+    "G": "cactus",
+    "O": "orange_tulip"
+   },
+   "result": {
+    "item": "pattern_a17",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_a17_super",
+   "station": "crafting_table",
+   "shape": [
+    "G#G",
+    "BWB",
+    "GBG"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "G": "cactus",
+    "W": "bone"
+   },
+   "result": {
+    "item": "pattern_a17_super",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_a18",
+   "station": "crafting_table",
+   "shape": [
+    "Y#Y",
+    "LBL",
+    "BWB"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "coal",
+    "L": "blue_orchid",
+    "W": "bone",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_a18",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_a18_cell",
+   "station": "crafting_table",
+   "shape": [
+    "Y#Y",
+    "LWL",
+    "BBB"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "coal",
+    "L": "blue_orchid",
+    "W": "bone",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_a18_cell",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_a18_kame",
+   "station": "crafting_table",
+   "shape": [
+    "Y#Y",
+    "WBW",
+    "LLL"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "coal",
+    "L": "blue_orchid",
+    "W": "bone",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_a18_kame",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_a18_tournament",
+   "station": "crafting_table",
+   "shape": [
+    "Y#Y",
+    "BWB",
+    "OLO"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "coal",
+    "L": "blue_orchid",
+    "O": "orange_tulip",
+    "W": "bone",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_a18_tournament",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_age1000",
+   "station": "crafting_table",
+   "shape": [
+    "L#L",
+    "BWB",
+    "GGG"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "coal",
+    "G": "flint",
+    "L": "blue_orchid",
+    "W": "bone"
+   },
+   "result": {
+    "item": "pattern_age1000",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_bardock1",
+   "station": "crafting_table",
+   "shape": [
+    "G#G",
+    "BBB",
+    "RGR"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "coal",
+    "G": "cactus",
+    "R": "poppy"
+   },
+   "result": {
+    "item": "pattern_bardock1",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_bardock2",
+   "station": "crafting_table",
+   "shape": [
+    "Y#Y",
+    "BBB",
+    "CYC"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "C": "lapis_lazuli",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_bardock2",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_beerus",
+   "station": "crafting_table",
+   "shape": [
+    "P#P",
+    "BPB",
+    "LWL"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "lapis_lazuli",
+    "L": "blue_orchid",
+    "P": "allium",
+    "W": "bone"
+   },
+   "result": {
+    "item": "pattern_beerus",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_black",
+   "station": "crafting_table",
+   "shape": [
+    "B#B",
+    "GBG",
+    "RGR"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "G": "flint",
+    "R": "poppy"
+   },
+   "result": {
+    "item": "pattern_black",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_broly_super",
+   "station": "crafting_table",
+   "shape": [
+    "G#G",
+    "BBB",
+    "LPL"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "G": "cactus",
+    "L": "cactus",
+    "P": "allium"
+   },
+   "result": {
+    "item": "pattern_broly_super",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_broly_z",
+   "station": "crafting_table",
+   "shape": [
+    "Y#Y",
+    " I ",
+    "RIR"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "I": "gold_ingot",
+    "R": "poppy",
+    "Y": "gold_ingot"
+   },
+   "result": {
+    "item": "pattern_broly_z",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_caulifla",
+   "station": "crafting_table",
+   "shape": [
+    "B#B",
+    "GMG",
+    "RRR"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "G": "cactus",
+    "M": "allium",
+    "R": "poppy"
+   },
+   "result": {
+    "item": "pattern_caulifla",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_fusionzamasu",
+   "station": "crafting_table",
+   "shape": [
+    "G#G",
+    "BGB",
+    "RRR"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "G": "flint",
+    "R": "poppy"
+   },
+   "result": {
+    "item": "pattern_fusionzamasu",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_future_gohan",
+   "station": "crafting_table",
+   "shape": [
+    "B#B",
+    "OBO",
+    "ORO"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "lapis_lazuli",
+    "O": "orange_tulip",
+    "R": "clock"
+   },
+   "result": {
+    "item": "pattern_future_gohan",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_gamma1",
+   "station": "crafting_table",
+   "shape": [
+    "R#R",
+    "YYY",
+    "BGB"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "G": "flint",
+    "R": "poppy",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_gamma1",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_gamma2",
+   "station": "crafting_table",
+   "shape": [
+    "C#C",
+    "YYY",
+    "BGB"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "C": "lapis_lazuli",
+    "G": "flint",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_gamma2",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_gas",
+   "station": "crafting_table",
+   "shape": [
+    "Y#Y",
+    "RYR",
+    "RWR"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "R": "poppy",
+    "W": "bone",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_gas",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_gine",
+   "station": "crafting_table",
+   "shape": [
+    "R#R",
+    "WBW",
+    "BBB"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "coal",
+    "R": "poppy",
+    "W": "bone"
+   },
+   "result": {
+    "item": "pattern_gine",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_gogeta",
+   "station": "crafting_table",
+   "shape": [
+    "Y#Y",
+    "B B",
+    "CCC"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "C": "lapis_lazuli",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_gogeta",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_gohan1",
+   "station": "crafting_table",
+   "shape": [
+    "P#P",
+    "PPP",
+    "BBB"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "lapis_lazuli",
+    "P": "allium"
+   },
+   "result": {
+    "item": "pattern_gohan1",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_gohan_super",
+   "station": "crafting_table",
+   "shape": [
+    "P#P",
+    "PPP",
+    "RRR"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "P": "allium",
+    "R": "poppy"
+   },
+   "result": {
+    "item": "pattern_gohan_super",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_goku1",
+   "station": "crafting_table",
+   "shape": [
+    "B#B",
+    "OBO",
+    "OOO"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "lapis_lazuli",
+    "O": "orange_tulip"
+   },
+   "result": {
+    "item": "pattern_goku1",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_goku_gt",
+   "station": "crafting_table",
+   "shape": [
+    "L#L",
+    "LLL",
+    "YWY"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "L": "blue_orchid",
+    "W": "bone",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_goku_gt",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_goku_kid",
+   "station": "crafting_table",
+   "shape": [
+    "R#R",
+    "R R",
+    "RRR"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "R": "poppy"
+   },
+   "result": {
+    "item": "pattern_goku_kid",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_goku_super",
+   "station": "crafting_table",
+   "shape": [
+    "C#C",
+    "OCO",
+    "OWO"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "C": "lapis_lazuli",
+    "O": "orange_tulip",
+    "W": "bone"
+   },
+   "result": {
+    "item": "pattern_goku_super",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_goku_whis",
+   "station": "crafting_table",
+   "shape": [
+    "O#O",
+    "OWO",
+    "BBB"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "lapis_lazuli",
+    "O": "orange_tulip",
+    "W": "bone"
+   },
+   "result": {
+    "item": "pattern_goku_whis",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_goten",
+   "station": "crafting_table",
+   "shape": [
+    "B#B",
+    "OBO",
+    "ONO"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "lapis_lazuli",
+    "N": "coal",
+    "O": "orange_tulip"
+   },
+   "result": {
+    "item": "pattern_goten",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_goten_super",
+   "station": "crafting_table",
+   "shape": [
+    "G#G",
+    "GGG",
+    "BBB"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "lapis_lazuli",
+    "G": "cactus"
+   },
+   "result": {
+    "item": "pattern_goten_super",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_granola",
+   "station": "crafting_table",
+   "shape": [
+    "O#O",
+    "RBR",
+    "WWW"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "O": "orange_tulip",
+    "R": "poppy",
+    "W": "bone"
+   },
+   "result": {
+    "item": "pattern_granola",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_great_saiyaman",
+   "station": "crafting_table",
+   "shape": [
+    "R#R",
+    "GGG",
+    "BYB"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "coal",
+    "G": "cactus",
+    "R": "poppy",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_great_saiyaman",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_hit",
+   "station": "crafting_table",
+   "shape": [
+    "P#P",
+    "CPC",
+    "CYC"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "C": "lapis_lazuli",
+    "P": "allium",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_hit",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_kale",
+   "station": "crafting_table",
+   "shape": [
+    "G#G",
+    "BGB",
+    "RRR"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "G": "cactus",
+    "R": "poppy"
+   },
+   "result": {
+    "item": "pattern_kale",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_kefla",
+   "station": "crafting_table",
+   "shape": [
+    "G#G",
+    "GYG",
+    "BBB"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "G": "cactus",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_kefla",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_majin21",
+   "station": "crafting_table",
+   "shape": [
+    "P#P",
+    "RWR",
+    "BPB"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "P": "rose_bush",
+    "R": "poppy",
+    "W": "bone"
+   },
+   "result": {
+    "item": "pattern_majin21",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_majin_buu",
+   "station": "crafting_table",
+   "shape": [
+    "B#B",
+    "MMM",
+    "BYB"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "coal",
+    "M": "allium",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_majin_buu",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_orange_high",
+   "station": "crafting_table",
+   "shape": [
+    "O#O",
+    "WWW",
+    "BBB"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "coal",
+    "O": "orange_tulip",
+    "W": "bone"
+   },
+   "result": {
+    "item": "pattern_orange_high",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_piccolo",
+   "station": "crafting_table",
+   "shape": [
+    "P#P",
+    "PPP",
+    "RRR"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "P": "allium",
+    "R": "poppy"
+   },
+   "result": {
+    "item": "pattern_piccolo",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_pride_troops",
+   "station": "crafting_table",
+   "shape": [
+    "B#B",
+    "RBR",
+    "RBR"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "R": "poppy"
+   },
+   "result": {
+    "item": "pattern_pride_troops",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_shin",
+   "station": "crafting_table",
+   "shape": [
+    "C#C",
+    "LRL",
+    "OCO"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "C": "lapis_lazuli",
+    "L": "blue_orchid",
+    "O": "orange_tulip",
+    "R": "poppy"
+   },
+   "result": {
+    "item": "pattern_shin",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_tien",
+   "station": "crafting_table",
+   "shape": [
+    " #G",
+    "GGG",
+    "RRR"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "G": "cactus",
+    "R": "poppy"
+   },
+   "result": {
+    "item": "pattern_tien",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_trunks_kid",
+   "station": "crafting_table",
+   "shape": [
+    "G#G",
+    "GGG",
+    "OOO"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "G": "cactus",
+    "O": "orange_tulip"
+   },
+   "result": {
+    "item": "pattern_trunks_kid",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_trunks_super",
+   "station": "crafting_table",
+   "shape": [
+    "S#C",
+    "CRC",
+    "BBB"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "C": "lapis_lazuli",
+    "R": "poppy",
+    "S": "iron_sword"
+   },
+   "result": {
+    "item": "pattern_trunks_super",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_trunks_z",
+   "station": "crafting_table",
+   "shape": [
+    "B#B",
+    "NSN",
+    "NYN"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "lapis_lazuli",
+    "N": "coal",
+    "S": "iron_sword",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_trunks_z",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_turles",
+   "station": "crafting_table",
+   "shape": [
+    "B#B",
+    "NNN",
+    "BBB"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "lapis_lazuli",
+    "N": "coal"
+   },
+   "result": {
+    "item": "pattern_turles",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_vegeta1",
+   "station": "crafting_table",
+   "shape": [
+    "Y#Y",
+    "BWB",
+    "BYB"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "lapis_lazuli",
+    "W": "bone",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_vegeta1",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_vegeta2",
+   "station": "crafting_table",
+   "shape": [
+    "B#B",
+    "BWB",
+    "BYB"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "lapis_lazuli",
+    "W": "bone",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_vegeta2",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_vegeta_buu",
+   "station": "crafting_table",
+   "shape": [
+    "C#C",
+    "BCB",
+    "BBB"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "lapis_lazuli",
+    "C": "lapis_lazuli"
+   },
+   "result": {
+    "item": "pattern_vegeta_buu",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_vegeta_gt",
+   "station": "crafting_table",
+   "shape": [
+    "B#B",
+    "YWY",
+    "BLB"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "coal",
+    "L": "blue_orchid",
+    "W": "bone",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_vegeta_gt",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_vegeta_super",
+   "station": "crafting_table",
+   "shape": [
+    "Y#Y",
+    "CWC",
+    "CYC"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "C": "lapis_lazuli",
+    "W": "bone",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_vegeta_super",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_vegeta_whis",
+   "station": "crafting_table",
+   "shape": [
+    "A#A",
+    "AWA",
+    "YYY"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "A": "flint",
+    "W": "bone",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_vegeta_whis",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_vegeta_z",
+   "station": "crafting_table",
+   "shape": [
+    "Y#Y",
+    "BWB",
+    "YBY"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "lapis_lazuli",
+    "W": "bone",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_vegeta_z",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_vegetto",
+   "station": "crafting_table",
+   "shape": [
+    "B#B",
+    "BOB",
+    "WCW"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "lapis_lazuli",
+    "C": "lapis_lazuli",
+    "O": "orange_tulip",
+    "W": "bone"
+   },
+   "result": {
+    "item": "pattern_vegetto",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_videl",
+   "station": "crafting_table",
+   "shape": [
+    "W#W",
+    "BPB",
+    "LLL"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "coal",
+    "L": "blue_orchid",
+    "P": "rose_bush",
+    "W": "bone"
+   },
+   "result": {
+    "item": "pattern_videl",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_whis",
+   "station": "crafting_table",
+   "shape": [
+    "L#L",
+    "WUW",
+    "AAA"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "A": "flint",
+    "L": "blue_orchid",
+    "U": "lapis_lazuli",
+    "W": "bone"
+   },
+   "result": {
+    "item": "pattern_whis",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_yardrat",
+   "station": "crafting_table",
+   "shape": [
+    "W#P",
+    "WBW",
+    "BYB"
+   ],
+   "keys": {
+    "#": "blank_pattern_z",
+    "B": "lapis_lazuli",
+    "P": "rose_bush",
+    "W": "bone",
+    "Y": "dandelion"
+   },
+   "result": {
+    "item": "pattern_yardrat",
+    "count": 1
+   }
+  },
+  {
+   "id": "pattern_zamasu",
+   "station": "crafting_table",
+   "shape": [
+    "B#B",
+    "PBP",
+    "LLL"
+   ],
+   "keys": {
+    "#": "blank_pattern_super",
+    "B": "coal",
+    "L": "blue_orchid",
+    "P": "allium"
+   },
+   "result": {
+    "item": "pattern_zamasu",
+    "count": 1
+   }
+  },
+  {
+   "id": "piccolo_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "piccolo_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_piccolo"
+  },
+  {
+   "id": "piccolo_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "piccolo_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_piccolo"
+  },
+  {
+   "id": "piccolo_armor_helmet",
+   "station": "kikono_station",
+   "shape": [
+    "ABA",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "piccolo_armor_helmet",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_piccolo"
+  },
+  {
+   "id": "piccolo_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "piccolo_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_piccolo"
+  },
+  {
+   "id": "pride_troops_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "pride_troops_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_pride_troops"
+  },
+  {
+   "id": "pride_troops_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "pride_troops_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_pride_troops"
+  },
+  {
+   "id": "pride_troops_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "pride_troops_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_pride_troops"
+  },
+  {
+   "id": "purple_scouter",
+   "station": "crafting_table",
+   "shape": [
+    "  R",
+    "PPT",
+    " B "
+   ],
+   "keys": {
+    "B": "stone",
+    "P": "blue_stained_glass",
+    "R": "radar_piece",
+    "T": "t1_radar_cpu"
+   },
+   "result": {
+    "item": "purple_scouter",
+    "count": 1
+   }
+  },
+  {
+   "id": "radar_piece",
+   "station": "crafting_table",
+   "shape": [
+    "SIS",
+    "IRI",
+    "SIS"
+   ],
+   "keys": {
+    "I": "iron_ingot",
+    "R": "redstone",
+    "S": "string"
+   },
+   "result": {
+    "item": "radar_piece",
+    "count": 1
+   }
+  },
+  {
+   "id": "red_scouter",
+   "station": "crafting_table",
+   "shape": [
+    "  R",
+    "PPT",
+    " B "
+   ],
+   "keys": {
+    "B": "stone",
+    "P": "red_stained_glass",
+    "R": "radar_piece",
+    "T": "t1_radar_cpu"
+   },
+   "result": {
+    "item": "red_scouter",
+    "count": 1
+   }
+  },
+  {
+   "id": "redstone_from_smelting_namek_deepslate_redstone_ore",
+   "station": "furnace",
+   "input": "redstone_ore",
+   "result": {
+    "item": "redstone",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "redstone_from_smelting_namek_redstone_ore",
+   "station": "furnace",
+   "input": "redstone_ore",
+   "result": {
+    "item": "redstone",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "sacred_fence",
+   "station": "crafting_table",
+   "shape": [
+    "W#W",
+    "W#W"
+   ],
+   "keys": {
+    "#": "stick",
+    "W": "sacred_planks"
+   },
+   "result": {
+    "item": "sacred_fence",
+    "count": 3
+   }
+  },
+  {
+   "id": "sacred_planks",
+   "station": "hand",
+   "shapeless": true,
+   "shape": [
+    "A"
+   ],
+   "keys": {
+    "A": [
+     "sacred_log"
+    ]
+   },
+   "result": {
+    "item": "sacred_planks",
+    "count": 4
+   }
+  },
+  {
+   "id": "sacred_wood",
+   "station": "hand",
+   "shape": [
+    "##",
+    "##"
+   ],
+   "keys": {
+    "#": "sacred_log"
+   },
+   "result": {
+    "item": "sacred_log",
+    "count": 3
+   }
+  },
+  {
+   "id": "saiyan_ship",
+   "station": "crafting_table",
+   "shape": [
+    "QCQ",
+    "CTC",
+    "RML"
+   ],
+   "keys": {
+    "C": "t2_radar_chip",
+    "L": "red_wool",
+    "M": "iron_ingot",
+    "Q": "quartz_block",
+    "R": "redstone",
+    "T": "t2_radar_cpu"
+   },
+   "result": {
+    "item": "saiyan_ship",
+    "count": 1
+   }
+  },
+  {
+   "id": "shin_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "shin_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_shin"
+  },
+  {
+   "id": "shin_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "shin_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_shin"
+  },
+  {
+   "id": "shin_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "shin_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_shin"
+  },
+  {
+   "id": "t1_radar_chip",
+   "station": "crafting_table",
+   "shape": [
+    "RBR",
+    "GPG",
+    "RBR"
+   ],
+   "keys": {
+    "B": "redstone",
+    "G": "black_concrete",
+    "P": "radar_piece",
+    "R": "redstone"
+   },
+   "result": {
+    "item": "t1_radar_chip",
+    "count": 1
+   }
+  },
+  {
+   "id": "t1_radar_cpu",
+   "station": "crafting_table",
+   "shape": [
+    "RBR",
+    "CPC",
+    "ROR"
+   ],
+   "keys": {
+    "B": "redstone",
+    "C": "t1_radar_chip",
+    "O": "observer",
+    "P": "radar_piece",
+    "R": "redstone"
+   },
+   "result": {
+    "item": "t1_radar_cpu",
+    "count": 1
+   }
+  },
+  {
+   "id": "t2_radar_chip",
+   "station": "crafting_table",
+   "shape": [
+    "ROR",
+    "BPB",
+    "TTT"
+   ],
+   "keys": {
+    "B": "light_blue_concrete",
+    "O": "observer",
+    "P": "radar_piece",
+    "R": "torch",
+    "T": "t1_radar_cpu"
+   },
+   "result": {
+    "item": "t2_radar_chip",
+    "count": 1
+   }
+  },
+  {
+   "id": "t2_radar_cpu",
+   "station": "crafting_table",
+   "shape": [
+    "RCR",
+    "TTT",
+    "OCO"
+   ],
+   "keys": {
+    "C": "t2_radar_chip",
+    "O": "observer",
+    "R": "redstone",
+    "T": "t1_radar_cpu"
+   },
+   "result": {
+    "item": "t2_radar_cpu",
+    "count": 1
+   }
+  },
+  {
+   "id": "tien_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "tien_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_tien"
+  },
+  {
+   "id": "tien_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "tien_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_tien"
+  },
+  {
+   "id": "tien_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "tien_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_tien"
+  },
+  {
+   "id": "trunks_kid_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "trunks_kid_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_trunks_kid"
+  },
+  {
+   "id": "trunks_kid_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "trunks_kid_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_trunks_kid"
+  },
+  {
+   "id": "trunks_kid_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "trunks_kid_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_trunks_kid"
+  },
+  {
+   "id": "trunks_super_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "trunks_super_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_trunks_super"
+  },
+  {
+   "id": "trunks_super_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "trunks_super_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_trunks_super"
+  },
+  {
+   "id": "trunks_super_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "trunks_super_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_trunks_super"
+  },
+  {
+   "id": "trunks_z_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "trunks_z_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_trunks_z"
+  },
+  {
+   "id": "trunks_z_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "trunks_z_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_trunks_z"
+  },
+  {
+   "id": "trunks_z_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "trunks_z_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_trunks_z"
+  },
+  {
+   "id": "turles_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "turles_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_turles"
+  },
+  {
+   "id": "turles_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "turles_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_turles"
+  },
+  {
+   "id": "turles_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "turles_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_turles"
+  },
+  {
+   "id": "vegeta_buu_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_buu_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_buu"
+  },
+  {
+   "id": "vegeta_buu_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_buu_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_buu"
+  },
+  {
+   "id": "vegeta_buu_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_buu_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_buu"
+  },
+  {
+   "id": "vegeta_gt_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_gt_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_gt"
+  },
+  {
+   "id": "vegeta_gt_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_gt_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_gt"
+  },
+  {
+   "id": "vegeta_gt_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_gt_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_gt"
+  },
+  {
+   "id": "vegeta_namek_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_namek_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta2"
+  },
+  {
+   "id": "vegeta_namek_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_namek_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta2"
+  },
+  {
+   "id": "vegeta_namek_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_namek_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta2"
+  },
+  {
+   "id": "vegeta_saiyan_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_saiyan_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta1"
+  },
+  {
+   "id": "vegeta_saiyan_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_saiyan_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta1"
+  },
+  {
+   "id": "vegeta_saiyan_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_saiyan_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta1"
+  },
+  {
+   "id": "vegeta_super_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_super_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_super"
+  },
+  {
+   "id": "vegeta_super_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_super_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_super"
+  },
+  {
+   "id": "vegeta_super_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_super_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_super"
+  },
+  {
+   "id": "vegeta_whis_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_whis_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_whis"
+  },
+  {
+   "id": "vegeta_whis_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_whis_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_whis"
+  },
+  {
+   "id": "vegeta_whis_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_whis_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_whis"
+  },
+  {
+   "id": "vegeta_z_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_z_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_z"
+  },
+  {
+   "id": "vegeta_z_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_z_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_z"
+  },
+  {
+   "id": "vegeta_z_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegeta_z_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegeta_z"
+  },
+  {
+   "id": "vegetto_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegetto_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegetto"
+  },
+  {
+   "id": "vegetto_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegetto_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegetto"
+  },
+  {
+   "id": "vegetto_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "vegetto_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_vegetto"
+  },
+  {
+   "id": "videl_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "videl_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_videl"
+  },
+  {
+   "id": "videl_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "videl_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_videl"
+  },
+  {
+   "id": "videl_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "videl_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_videl"
+  },
+  {
+   "id": "whis_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "whis_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_whis"
+  },
+  {
+   "id": "whis_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "whis_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_whis"
+  },
+  {
+   "id": "whis_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "whis_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_whis"
+  },
+  {
+   "id": "yajirobe_katana",
+   "station": "crafting_table",
+   "shape": [
+    "  I",
+    "GI ",
+    "SG "
+   ],
+   "keys": {
+    "G": "gold_ingot",
+    "I": "iron_ingot",
+    "S": "stick"
+   },
+   "result": {
+    "item": "yajirobe_katana",
+    "count": 1
+   }
+  },
+  {
+   "id": "yardrat_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "yardrat_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_yardrat"
+  },
+  {
+   "id": "yardrat_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "yardrat_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_yardrat"
+  },
+  {
+   "id": "yardrat_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "yardrat_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_yardrat"
+  },
+  {
+   "id": "zamasu_armor_boots",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "zamasu_armor_boots",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_zamasu"
+  },
+  {
+   "id": "zamasu_armor_chestplate",
+   "station": "kikono_station",
+   "shape": [
+    "A A",
+    "BBB",
+    "AAA"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "zamasu_armor_chestplate",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_zamasu"
+  },
+  {
+   "id": "zamasu_armor_leggings",
+   "station": "kikono_station",
+   "shape": [
+    "AAA",
+    "A A",
+    "B B"
+   ],
+   "keys": {
+    "A": "kikono_cloth",
+    "B": "kikono_string"
+   },
+   "result": {
+    "item": "zamasu_armor_leggings",
+    "count": 1
+   },
+   "time": 10,
+   "energy": 1000,
+   "pattern": "pattern_zamasu"
+  },
+  {
+   "id": "oxygen_supply_unit",
+   "station": "crafting_table",
+   "shape": [
+    "IGI",
+    "GRG",
+    "IGI"
+   ],
+   "keys": {
+    "G": "gete_ingot",
+    "I": "iron_ingot",
+    "R": "redstone_block"
+   },
+   "result": {
+    "item": "oxygen_supply_unit",
+    "count": 1
+   }
+  },
+  {
+   "id": "space_suit_boots",
+   "station": "crafting_table",
+   "shape": [
+    "W W",
+    "W W"
+   ],
+   "keys": {
+    "W": [
+     "white_wool",
+     "red_wool",
+     "orange_wool",
+     "yellow_wool",
+     "blue_wool",
+     "black_wool"
+    ]
+   },
+   "result": {
+    "item": "space_suit_boots",
+    "count": 1
+   }
+  },
+  {
+   "id": "space_suit_chestplate",
+   "station": "crafting_table",
+   "shape": [
+    "W W",
+    "WWW",
+    "WWW"
+   ],
+   "keys": {
+    "W": [
+     "white_wool",
+     "red_wool",
+     "orange_wool",
+     "yellow_wool",
+     "blue_wool",
+     "black_wool"
+    ]
+   },
+   "result": {
+    "item": "space_suit_chestplate",
+    "count": 1
+   }
+  },
+  {
+   "id": "space_suit_helmet",
+   "station": "crafting_table",
+   "shape": [
+    "WWW",
+    "W W"
+   ],
+   "keys": {
+    "W": [
+     "white_wool",
+     "red_wool",
+     "orange_wool",
+     "yellow_wool",
+     "blue_wool",
+     "black_wool"
+    ]
+   },
+   "result": {
+    "item": "space_suit_helmet",
+    "count": 1
+   }
+  },
+  {
+   "id": "space_suit_leggings",
+   "station": "crafting_table",
+   "shape": [
+    "WWW",
+    "W W",
+    "W W"
+   ],
+   "keys": {
+    "W": [
+     "white_wool",
+     "red_wool",
+     "orange_wool",
+     "yellow_wool",
+     "blue_wool",
+     "black_wool"
+    ]
+   },
+   "result": {
+    "item": "space_suit_leggings",
+    "count": 1
+   }
+  },
+  {
+   "id": "thermal_regulator",
+   "station": "crafting_table",
+   "shape": [
+    "IGI",
+    "GRG",
+    "IGI"
+   ],
+   "keys": {
+    "G": "gete_ingot",
+    "I": "iron_ingot",
+    "R": "glowstone_dust"
+   },
+   "result": {
+    "item": "thermal_regulator",
+    "count": 1
+   }
+  },
+  {
+   "id": "planks_oak",
+   "station": "hand",
+   "shape": [
+    "L"
+   ],
+   "keys": {
+    "L": "oak_log"
+   },
+   "result": {
+    "item": "oak_planks",
+    "count": 4
+   }
+  },
+  {
+   "id": "planks_oak_stripped",
+   "station": "hand",
+   "shape": [
+    "L"
+   ],
+   "keys": {
+    "L": "stripped_oak_log"
+   },
+   "result": {
+    "item": "oak_planks",
+    "count": 4
+   }
+  },
+  {
+   "id": "planks_spruce",
+   "station": "hand",
+   "shape": [
+    "L"
+   ],
+   "keys": {
+    "L": "spruce_log"
+   },
+   "result": {
+    "item": "spruce_planks",
+    "count": 4
+   }
+  },
+  {
+   "id": "planks_birch",
+   "station": "hand",
+   "shape": [
+    "L"
+   ],
+   "keys": {
+    "L": "birch_log"
+   },
+   "result": {
+    "item": "birch_planks",
+    "count": 4
+   }
+  },
+  {
+   "id": "planks_jungle",
+   "station": "hand",
+   "shape": [
+    "L"
+   ],
+   "keys": {
+    "L": "jungle_log"
+   },
+   "result": {
+    "item": "jungle_planks",
+    "count": 4
+   }
+  },
+  {
+   "id": "planks_acacia",
+   "station": "hand",
+   "shape": [
+    "L"
+   ],
+   "keys": {
+    "L": "acacia_log"
+   },
+   "result": {
+    "item": "acacia_planks",
+    "count": 4
+   }
+  },
+  {
+   "id": "planks_dark_oak",
+   "station": "hand",
+   "shape": [
+    "L"
+   ],
+   "keys": {
+    "L": "dark_oak_log"
+   },
+   "result": {
+    "item": "dark_oak_planks",
+    "count": 4
+   }
+  },
+  {
+   "id": "planks_cherry",
+   "station": "hand",
+   "shape": [
+    "L"
+   ],
+   "keys": {
+    "L": "cherry_log"
+   },
+   "result": {
+    "item": "cherry_planks",
+    "count": 4
+   }
+  },
+  {
+   "id": "planks_ajissa",
+   "station": "hand",
+   "shape": [
+    "L"
+   ],
+   "keys": {
+    "L": "ajissa_log"
+   },
+   "result": {
+    "item": "ajissa_planks",
+    "count": 4
+   }
+  },
+  {
+   "id": "planks_sacred",
+   "station": "hand",
+   "shape": [
+    "L"
+   ],
+   "keys": {
+    "L": "sacred_log"
+   },
+   "result": {
+    "item": "sacred_planks",
+    "count": 4
+   }
+  },
+  {
+   "id": "sticks",
+   "station": "hand",
+   "shape": [
+    "P",
+    "P"
+   ],
+   "keys": {
+    "P": [
+     "oak_planks",
+     "spruce_planks",
+     "birch_planks",
+     "jungle_planks",
+     "acacia_planks",
+     "dark_oak_planks",
+     "cherry_planks",
+     "ajissa_planks",
+     "sacred_planks"
+    ]
+   },
+   "result": {
+    "item": "stick",
+    "count": 4
+   }
+  },
+  {
+   "id": "crafting_table",
+   "station": "hand",
+   "shape": [
+    "PP",
+    "PP"
+   ],
+   "keys": {
+    "P": [
+     "oak_planks",
+     "spruce_planks",
+     "birch_planks",
+     "jungle_planks",
+     "acacia_planks",
+     "dark_oak_planks",
+     "cherry_planks",
+     "ajissa_planks",
+     "sacred_planks"
+    ]
+   },
+   "result": {
+    "item": "crafting_table",
+    "count": 1
+   }
+  },
+  {
+   "id": "furnace",
+   "station": "crafting_table",
+   "shape": [
+    "CCC",
+    "C C",
+    "CCC"
+   ],
+   "keys": {
+    "C": [
+     "cobblestone",
+     "namek_cobblestone",
+     "rocky_cobblestone"
+    ]
+   },
+   "result": {
+    "item": "furnace",
+    "count": 1
+   }
+  },
+  {
+   "id": "chest",
+   "station": "crafting_table",
+   "shape": [
+    "PPP",
+    "P P",
+    "PPP"
+   ],
+   "keys": {
+    "P": [
+     "oak_planks",
+     "spruce_planks",
+     "birch_planks",
+     "jungle_planks",
+     "acacia_planks",
+     "dark_oak_planks",
+     "cherry_planks",
+     "ajissa_planks",
+     "sacred_planks"
+    ]
+   },
+   "result": {
+    "item": "chest",
+    "count": 1
+   }
+  },
+  {
+   "id": "torch",
+   "station": "hand",
+   "shape": [
+    "C",
+    "S"
+   ],
+   "keys": {
+    "C": [
+     "coal"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "torch",
+    "count": 4
+   }
+  },
+  {
+   "id": "lantern",
+   "station": "crafting_table",
+   "shape": [
+    "III",
+    "ITI",
+    "III"
+   ],
+   "keys": {
+    "I": "iron_ingot",
+    "T": "torch"
+   },
+   "result": {
+    "item": "lantern",
+    "count": 1
+   }
+  },
+  {
+   "id": "ladder",
+   "station": "crafting_table",
+   "shape": [
+    "S S",
+    "SSS",
+    "S S"
+   ],
+   "keys": {
+    "S": "stick"
+   },
+   "result": {
+    "item": "ladder",
+    "count": 3
+   }
+  },
+  {
+   "id": "bookshelf",
+   "station": "crafting_table",
+   "shape": [
+    "PPP",
+    "BBB",
+    "PPP"
+   ],
+   "keys": {
+    "P": [
+     "oak_planks",
+     "spruce_planks",
+     "birch_planks",
+     "jungle_planks",
+     "acacia_planks",
+     "dark_oak_planks",
+     "cherry_planks",
+     "ajissa_planks",
+     "sacred_planks"
+    ],
+    "B": "book"
+   },
+   "result": {
+    "item": "bookshelf",
+    "count": 1
+   }
+  },
+  {
+   "id": "book",
+   "station": "hand",
+   "shape": [
+    "PP",
+    "L "
+   ],
+   "keys": {
+    "P": "paper",
+    "L": "leather"
+   },
+   "result": {
+    "item": "book",
+    "count": 1
+   }
+  },
+  {
+   "id": "paper",
+   "station": "hand",
+   "shape": [
+    "SS"
+   ],
+   "keys": {
+    "S": "sugar_cane"
+   },
+   "result": {
+    "item": "paper",
+    "count": 3
+   }
+  },
+  {
+   "id": "bowl",
+   "station": "crafting_table",
+   "shape": [
+    "P P",
+    " P "
+   ],
+   "keys": {
+    "P": [
+     "oak_planks",
+     "spruce_planks",
+     "birch_planks",
+     "jungle_planks",
+     "acacia_planks",
+     "dark_oak_planks",
+     "cherry_planks",
+     "ajissa_planks",
+     "sacred_planks"
+    ]
+   },
+   "result": {
+    "item": "bowl",
+    "count": 1
+   }
+  },
+  {
+   "id": "bucket",
+   "station": "crafting_table",
+   "shape": [
+    "I I",
+    " I "
+   ],
+   "keys": {
+    "I": "iron_ingot"
+   },
+   "result": {
+    "item": "bucket",
+    "count": 1
+   }
+  },
+  {
+   "id": "wooden_pickaxe",
+   "station": "crafting_table",
+   "shape": [
+    "MMM",
+    " S ",
+    " S "
+   ],
+   "keys": {
+    "M": [
+     "oak_planks",
+     "spruce_planks",
+     "birch_planks",
+     "jungle_planks",
+     "acacia_planks",
+     "dark_oak_planks",
+     "cherry_planks",
+     "ajissa_planks",
+     "sacred_planks"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "wooden_pickaxe",
+    "count": 1
+   }
+  },
+  {
+   "id": "wooden_axe",
+   "station": "crafting_table",
+   "shape": [
+    "MM",
+    "MS",
+    " S"
+   ],
+   "keys": {
+    "M": [
+     "oak_planks",
+     "spruce_planks",
+     "birch_planks",
+     "jungle_planks",
+     "acacia_planks",
+     "dark_oak_planks",
+     "cherry_planks",
+     "ajissa_planks",
+     "sacred_planks"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "wooden_axe",
+    "count": 1
+   }
+  },
+  {
+   "id": "wooden_shovel",
+   "station": "crafting_table",
+   "shape": [
+    "M",
+    "S",
+    "S"
+   ],
+   "keys": {
+    "M": [
+     "oak_planks",
+     "spruce_planks",
+     "birch_planks",
+     "jungle_planks",
+     "acacia_planks",
+     "dark_oak_planks",
+     "cherry_planks",
+     "ajissa_planks",
+     "sacred_planks"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "wooden_shovel",
+    "count": 1
+   }
+  },
+  {
+   "id": "wooden_hoe",
+   "station": "crafting_table",
+   "shape": [
+    "MM",
+    " S",
+    " S"
+   ],
+   "keys": {
+    "M": [
+     "oak_planks",
+     "spruce_planks",
+     "birch_planks",
+     "jungle_planks",
+     "acacia_planks",
+     "dark_oak_planks",
+     "cherry_planks",
+     "ajissa_planks",
+     "sacred_planks"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "wooden_hoe",
+    "count": 1
+   }
+  },
+  {
+   "id": "wooden_sword",
+   "station": "crafting_table",
+   "shape": [
+    "M",
+    "M",
+    "S"
+   ],
+   "keys": {
+    "M": [
+     "oak_planks",
+     "spruce_planks",
+     "birch_planks",
+     "jungle_planks",
+     "acacia_planks",
+     "dark_oak_planks",
+     "cherry_planks",
+     "ajissa_planks",
+     "sacred_planks"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "wooden_sword",
+    "count": 1
+   }
+  },
+  {
+   "id": "stone_pickaxe",
+   "station": "crafting_table",
+   "shape": [
+    "MMM",
+    " S ",
+    " S "
+   ],
+   "keys": {
+    "M": [
+     "cobblestone",
+     "namek_cobblestone",
+     "rocky_cobblestone"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "stone_pickaxe",
+    "count": 1
+   }
+  },
+  {
+   "id": "stone_axe",
+   "station": "crafting_table",
+   "shape": [
+    "MM",
+    "MS",
+    " S"
+   ],
+   "keys": {
+    "M": [
+     "cobblestone",
+     "namek_cobblestone",
+     "rocky_cobblestone"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "stone_axe",
+    "count": 1
+   }
+  },
+  {
+   "id": "stone_shovel",
+   "station": "crafting_table",
+   "shape": [
+    "M",
+    "S",
+    "S"
+   ],
+   "keys": {
+    "M": [
+     "cobblestone",
+     "namek_cobblestone",
+     "rocky_cobblestone"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "stone_shovel",
+    "count": 1
+   }
+  },
+  {
+   "id": "stone_hoe",
+   "station": "crafting_table",
+   "shape": [
+    "MM",
+    " S",
+    " S"
+   ],
+   "keys": {
+    "M": [
+     "cobblestone",
+     "namek_cobblestone",
+     "rocky_cobblestone"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "stone_hoe",
+    "count": 1
+   }
+  },
+  {
+   "id": "stone_sword",
+   "station": "crafting_table",
+   "shape": [
+    "M",
+    "M",
+    "S"
+   ],
+   "keys": {
+    "M": [
+     "cobblestone",
+     "namek_cobblestone",
+     "rocky_cobblestone"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "stone_sword",
+    "count": 1
+   }
+  },
+  {
+   "id": "iron_pickaxe",
+   "station": "crafting_table",
+   "shape": [
+    "MMM",
+    " S ",
+    " S "
+   ],
+   "keys": {
+    "M": [
+     "iron_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "iron_pickaxe",
+    "count": 1
+   }
+  },
+  {
+   "id": "iron_axe",
+   "station": "crafting_table",
+   "shape": [
+    "MM",
+    "MS",
+    " S"
+   ],
+   "keys": {
+    "M": [
+     "iron_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "iron_axe",
+    "count": 1
+   }
+  },
+  {
+   "id": "iron_shovel",
+   "station": "crafting_table",
+   "shape": [
+    "M",
+    "S",
+    "S"
+   ],
+   "keys": {
+    "M": [
+     "iron_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "iron_shovel",
+    "count": 1
+   }
+  },
+  {
+   "id": "iron_hoe",
+   "station": "crafting_table",
+   "shape": [
+    "MM",
+    " S",
+    " S"
+   ],
+   "keys": {
+    "M": [
+     "iron_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "iron_hoe",
+    "count": 1
+   }
+  },
+  {
+   "id": "iron_sword",
+   "station": "crafting_table",
+   "shape": [
+    "M",
+    "M",
+    "S"
+   ],
+   "keys": {
+    "M": [
+     "iron_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "iron_sword",
+    "count": 1
+   }
+  },
+  {
+   "id": "golden_pickaxe",
+   "station": "crafting_table",
+   "shape": [
+    "MMM",
+    " S ",
+    " S "
+   ],
+   "keys": {
+    "M": [
+     "gold_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "golden_pickaxe",
+    "count": 1
+   }
+  },
+  {
+   "id": "golden_axe",
+   "station": "crafting_table",
+   "shape": [
+    "MM",
+    "MS",
+    " S"
+   ],
+   "keys": {
+    "M": [
+     "gold_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "golden_axe",
+    "count": 1
+   }
+  },
+  {
+   "id": "golden_shovel",
+   "station": "crafting_table",
+   "shape": [
+    "M",
+    "S",
+    "S"
+   ],
+   "keys": {
+    "M": [
+     "gold_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "golden_shovel",
+    "count": 1
+   }
+  },
+  {
+   "id": "golden_hoe",
+   "station": "crafting_table",
+   "shape": [
+    "MM",
+    " S",
+    " S"
+   ],
+   "keys": {
+    "M": [
+     "gold_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "golden_hoe",
+    "count": 1
+   }
+  },
+  {
+   "id": "golden_sword",
+   "station": "crafting_table",
+   "shape": [
+    "M",
+    "M",
+    "S"
+   ],
+   "keys": {
+    "M": [
+     "gold_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "golden_sword",
+    "count": 1
+   }
+  },
+  {
+   "id": "diamond_pickaxe",
+   "station": "crafting_table",
+   "shape": [
+    "MMM",
+    " S ",
+    " S "
+   ],
+   "keys": {
+    "M": [
+     "diamond"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "diamond_pickaxe",
+    "count": 1
+   }
+  },
+  {
+   "id": "diamond_axe",
+   "station": "crafting_table",
+   "shape": [
+    "MM",
+    "MS",
+    " S"
+   ],
+   "keys": {
+    "M": [
+     "diamond"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "diamond_axe",
+    "count": 1
+   }
+  },
+  {
+   "id": "diamond_shovel",
+   "station": "crafting_table",
+   "shape": [
+    "M",
+    "S",
+    "S"
+   ],
+   "keys": {
+    "M": [
+     "diamond"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "diamond_shovel",
+    "count": 1
+   }
+  },
+  {
+   "id": "diamond_hoe",
+   "station": "crafting_table",
+   "shape": [
+    "MM",
+    " S",
+    " S"
+   ],
+   "keys": {
+    "M": [
+     "diamond"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "diamond_hoe",
+    "count": 1
+   }
+  },
+  {
+   "id": "diamond_sword",
+   "station": "crafting_table",
+   "shape": [
+    "M",
+    "M",
+    "S"
+   ],
+   "keys": {
+    "M": [
+     "diamond"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "diamond_sword",
+    "count": 1
+   }
+  },
+  {
+   "id": "kikono_pickaxe",
+   "station": "crafting_table",
+   "shape": [
+    "MMM",
+    " S ",
+    " S "
+   ],
+   "keys": {
+    "M": [
+     "kikono_shard"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "kikono_pickaxe",
+    "count": 1
+   }
+  },
+  {
+   "id": "kikono_axe",
+   "station": "crafting_table",
+   "shape": [
+    "MM",
+    "MS",
+    " S"
+   ],
+   "keys": {
+    "M": [
+     "kikono_shard"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "kikono_axe",
+    "count": 1
+   }
+  },
+  {
+   "id": "kikono_shovel",
+   "station": "crafting_table",
+   "shape": [
+    "M",
+    "S",
+    "S"
+   ],
+   "keys": {
+    "M": [
+     "kikono_shard"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "kikono_shovel",
+    "count": 1
+   }
+  },
+  {
+   "id": "kikono_hoe",
+   "station": "crafting_table",
+   "shape": [
+    "MM",
+    " S",
+    " S"
+   ],
+   "keys": {
+    "M": [
+     "kikono_shard"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "kikono_hoe",
+    "count": 1
+   }
+  },
+  {
+   "id": "kikono_sword",
+   "station": "crafting_table",
+   "shape": [
+    "M",
+    "M",
+    "S"
+   ],
+   "keys": {
+    "M": [
+     "kikono_shard"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "kikono_sword",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_pickaxe_2",
+   "station": "crafting_table",
+   "shape": [
+    "MMM",
+    " S ",
+    " S "
+   ],
+   "keys": {
+    "M": [
+     "gete_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "gete_pickaxe",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_axe_2",
+   "station": "crafting_table",
+   "shape": [
+    "MM",
+    "MS",
+    " S"
+   ],
+   "keys": {
+    "M": [
+     "gete_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "gete_axe",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_shovel_2",
+   "station": "crafting_table",
+   "shape": [
+    "M",
+    "S",
+    "S"
+   ],
+   "keys": {
+    "M": [
+     "gete_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "gete_shovel",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_hoe_2",
+   "station": "crafting_table",
+   "shape": [
+    "MM",
+    " S",
+    " S"
+   ],
+   "keys": {
+    "M": [
+     "gete_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "gete_hoe",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_sword",
+   "station": "crafting_table",
+   "shape": [
+    "M",
+    "M",
+    "S"
+   ],
+   "keys": {
+    "M": [
+     "gete_ingot"
+    ],
+    "S": "stick"
+   },
+   "result": {
+    "item": "gete_sword",
+    "count": 1
+   }
+  },
+  {
+   "id": "iron_block",
+   "station": "crafting_table",
+   "shape": [
+    "III",
+    "III",
+    "III"
+   ],
+   "keys": {
+    "I": "iron_ingot"
+   },
+   "result": {
+    "item": "iron_block",
+    "count": 1
+   }
+  },
+  {
+   "id": "iron_ingot_from_block",
+   "station": "hand",
+   "shape": [
+    "B"
+   ],
+   "keys": {
+    "B": "iron_block"
+   },
+   "result": {
+    "item": "iron_ingot",
+    "count": 9
+   }
+  },
+  {
+   "id": "gold_block",
+   "station": "crafting_table",
+   "shape": [
+    "III",
+    "III",
+    "III"
+   ],
+   "keys": {
+    "I": "gold_ingot"
+   },
+   "result": {
+    "item": "gold_block",
+    "count": 1
+   }
+  },
+  {
+   "id": "gold_ingot_from_block",
+   "station": "hand",
+   "shape": [
+    "B"
+   ],
+   "keys": {
+    "B": "gold_block"
+   },
+   "result": {
+    "item": "gold_ingot",
+    "count": 9
+   }
+  },
+  {
+   "id": "diamond_block",
+   "station": "crafting_table",
+   "shape": [
+    "III",
+    "III",
+    "III"
+   ],
+   "keys": {
+    "I": "diamond"
+   },
+   "result": {
+    "item": "diamond_block",
+    "count": 1
+   }
+  },
+  {
+   "id": "diamond_from_block",
+   "station": "hand",
+   "shape": [
+    "B"
+   ],
+   "keys": {
+    "B": "diamond_block"
+   },
+   "result": {
+    "item": "diamond",
+    "count": 9
+   }
+  },
+  {
+   "id": "kikono_block_2",
+   "station": "crafting_table",
+   "shape": [
+    "III",
+    "III",
+    "III"
+   ],
+   "keys": {
+    "I": "kikono_shard"
+   },
+   "result": {
+    "item": "kikono_block",
+    "count": 1
+   }
+  },
+  {
+   "id": "kikono_shard_from_block",
+   "station": "hand",
+   "shape": [
+    "B"
+   ],
+   "keys": {
+    "B": "kikono_block"
+   },
+   "result": {
+    "item": "kikono_shard",
+    "count": 9
+   }
+  },
+  {
+   "id": "gete_block_2",
+   "station": "crafting_table",
+   "shape": [
+    "III",
+    "III",
+    "III"
+   ],
+   "keys": {
+    "I": "gete_ingot"
+   },
+   "result": {
+    "item": "gete_block",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_ingot_from_block",
+   "station": "hand",
+   "shape": [
+    "B"
+   ],
+   "keys": {
+    "B": "gete_block"
+   },
+   "result": {
+    "item": "gete_ingot",
+    "count": 9
+   }
+  },
+  {
+   "id": "iron_ingot_from_raw",
+   "station": "furnace",
+   "input": "raw_iron",
+   "result": {
+    "item": "iron_ingot",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "gold_ingot_from_raw",
+   "station": "furnace",
+   "input": "raw_gold",
+   "result": {
+    "item": "gold_ingot",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "copper_ingot_from_raw",
+   "station": "furnace",
+   "input": "raw_copper",
+   "result": {
+    "item": "copper_ingot",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "iron_ingot_from_ore",
+   "station": "furnace",
+   "input": "iron_ore",
+   "result": {
+    "item": "iron_ingot",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "gold_ingot_from_ore",
+   "station": "furnace",
+   "input": "gold_ore",
+   "result": {
+    "item": "gold_ingot",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "copper_ingot_from_ore",
+   "station": "furnace",
+   "input": "copper_ore",
+   "result": {
+    "item": "copper_ingot",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "diamond_from_ore",
+   "station": "furnace",
+   "input": "diamond_ore",
+   "result": {
+    "item": "diamond",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "emerald_from_ore",
+   "station": "furnace",
+   "input": "emerald_ore",
+   "result": {
+    "item": "emerald",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "coal_from_ore",
+   "station": "furnace",
+   "input": "coal_ore",
+   "result": {
+    "item": "coal",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "redstone_from_ore",
+   "station": "furnace",
+   "input": "redstone_ore",
+   "result": {
+    "item": "redstone",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "lapis_from_ore",
+   "station": "furnace",
+   "input": "lapis_ore",
+   "result": {
+    "item": "lapis_lazuli",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "kikono_shard_from_ore",
+   "station": "furnace",
+   "input": "namek_kikono_ore",
+   "result": {
+    "item": "kikono_shard",
+    "count": 1
+   },
+   "time": 12
+  },
+  {
+   "id": "gete_ingot_from_debris",
+   "station": "furnace",
+   "input": "gete_debris_ore",
+   "result": {
+    "item": "gete_ingot",
+    "count": 1
+   },
+   "time": 15
+  },
+  {
+   "id": "stone_from_cobblestone",
+   "station": "furnace",
+   "input": "cobblestone",
+   "result": {
+    "item": "stone",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "namek_stone_from_cobblestone",
+   "station": "furnace",
+   "input": "namek_cobblestone",
+   "result": {
+    "item": "namek_stone",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "rocky_stone_from_cobblestone",
+   "station": "furnace",
+   "input": "rocky_cobblestone",
+   "result": {
+    "item": "rocky_stone",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "glass_from_sand",
+   "station": "furnace",
+   "input": "sand",
+   "result": {
+    "item": "glass",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "glass_from_red_sand",
+   "station": "furnace",
+   "input": "red_sand",
+   "result": {
+    "item": "glass",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "baked_potato",
+   "station": "furnace",
+   "input": "potato",
+   "result": {
+    "item": "baked_potato",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "cooked_meat",
+   "station": "furnace",
+   "input": "raw_meat",
+   "result": {
+    "item": "cooked_meat",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "bricks_from_clay",
+   "station": "furnace",
+   "input": "clay_ball",
+   "result": {
+    "item": "bricks",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "charcoal_from_log",
+   "station": "furnace",
+   "input": "oak_log",
+   "result": {
+    "item": "coal",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "smooth_stone",
+   "station": "furnace",
+   "input": "stone",
+   "result": {
+    "item": "smooth_stone",
+    "count": 1
+   },
+   "time": 10
+  },
+  {
+   "id": "kikono_dust",
+   "station": "furnace",
+   "input": "kikono_shard",
+   "result": {
+    "item": "kikono_dust",
+    "count": 2
+   },
+   "time": 8
+  },
+  {
+   "id": "bread",
+   "station": "crafting_table",
+   "shape": [
+    "WWW"
+   ],
+   "keys": {
+    "W": "wheat"
+   },
+   "result": {
+    "item": "bread",
+    "count": 1
+   }
+  },
+  {
+   "id": "stone_bricks",
+   "station": "hand",
+   "shape": [
+    "SS",
+    "SS"
+   ],
+   "keys": {
+    "S": "stone"
+   },
+   "result": {
+    "item": "stone_bricks",
+    "count": 4
+   }
+  },
+  {
+   "id": "bricks_block",
+   "station": "hand",
+   "shape": [
+    "BB",
+    "BB"
+   ],
+   "keys": {
+    "B": "bricks"
+   },
+   "result": {
+    "item": "bricks",
+    "count": 4
+   }
+  },
+  {
+   "id": "snow_block",
+   "station": "hand",
+   "shape": [
+    "SS",
+    "SS"
+   ],
+   "keys": {
+    "S": "snowball"
+   },
+   "result": {
+    "item": "snow_block",
+    "count": 1
+   }
+  },
+  {
+   "id": "clay_block",
+   "station": "hand",
+   "shape": [
+    "CC",
+    "CC"
+   ],
+   "keys": {
+    "C": "clay_ball"
+   },
+   "result": {
+    "item": "clay",
+    "count": 1
+   }
+  },
+  {
+   "id": "hay_block",
+   "station": "hand",
+   "shape": [
+    "WW",
+    "WW"
+   ],
+   "keys": {
+    "W": "wheat"
+   },
+   "result": {
+    "item": "hay_block",
+    "count": 1
+   }
+  },
+  {
+   "id": "stone_slab",
+   "station": "crafting_table",
+   "shape": [
+    "SSS"
+   ],
+   "keys": {
+    "S": "stone"
+   },
+   "result": {
+    "item": "stone_slab",
+    "count": 6
+   }
+  },
+  {
+   "id": "oak_slab",
+   "station": "crafting_table",
+   "shape": [
+    "PPP"
+   ],
+   "keys": {
+    "P": [
+     "oak_planks",
+     "spruce_planks",
+     "birch_planks",
+     "jungle_planks",
+     "acacia_planks",
+     "dark_oak_planks",
+     "cherry_planks",
+     "ajissa_planks",
+     "sacred_planks"
+    ]
+   },
+   "result": {
+    "item": "oak_slab",
+    "count": 6
+   }
+  },
+  {
+   "id": "glass_pane_like",
+   "station": "crafting_table",
+   "shape": [
+    "GGG",
+    "GGG"
+   ],
+   "keys": {
+    "G": "glass"
+   },
+   "result": {
+    "item": "iron_bars",
+    "count": 16
+   }
+  },
+  {
+   "id": "iron_bars",
+   "station": "crafting_table",
+   "shape": [
+    "III",
+    "III"
+   ],
+   "keys": {
+    "I": "iron_ingot"
+   },
+   "result": {
+    "item": "iron_bars",
+    "count": 16
+   }
+  },
+  {
+   "id": "oak_fence",
+   "station": "crafting_table",
+   "shape": [
+    "PSP",
+    "PSP"
+   ],
+   "keys": {
+    "P": "oak_planks",
+    "S": "stick"
+   },
+   "result": {
+    "item": "oak_fence",
+    "count": 3
+   }
+  },
+  {
+   "id": "oak_door",
+   "station": "crafting_table",
+   "shape": [
+    "PP",
+    "PP",
+    "PP"
+   ],
+   "keys": {
+    "P": "oak_planks"
+   },
+   "result": {
+    "item": "oak_door",
+    "count": 3
+   }
+  },
+  {
+   "id": "spruce_fence",
+   "station": "crafting_table",
+   "shape": [
+    "PSP",
+    "PSP"
+   ],
+   "keys": {
+    "P": "spruce_planks",
+    "S": "stick"
+   },
+   "result": {
+    "item": "spruce_fence",
+    "count": 3
+   }
+  },
+  {
+   "id": "spruce_door",
+   "station": "crafting_table",
+   "shape": [
+    "PP",
+    "PP",
+    "PP"
+   ],
+   "keys": {
+    "P": "spruce_planks"
+   },
+   "result": {
+    "item": "spruce_door",
+    "count": 3
+   }
+  },
+  {
+   "id": "birch_fence",
+   "station": "crafting_table",
+   "shape": [
+    "PSP",
+    "PSP"
+   ],
+   "keys": {
+    "P": "birch_planks",
+    "S": "stick"
+   },
+   "result": {
+    "item": "birch_fence",
+    "count": 3
+   }
+  },
+  {
+   "id": "birch_door",
+   "station": "crafting_table",
+   "shape": [
+    "PP",
+    "PP",
+    "PP"
+   ],
+   "keys": {
+    "P": "birch_planks"
+   },
+   "result": {
+    "item": "birch_door",
+    "count": 3
+   }
+  },
+  {
+   "id": "dark_oak_fence",
+   "station": "crafting_table",
+   "shape": [
+    "PSP",
+    "PSP"
+   ],
+   "keys": {
+    "P": "dark_oak_planks",
+    "S": "stick"
+   },
+   "result": {
+    "item": "dark_oak_fence",
+    "count": 3
+   }
+  },
+  {
+   "id": "dark_oak_door",
+   "station": "crafting_table",
+   "shape": [
+    "PP",
+    "PP",
+    "PP"
+   ],
+   "keys": {
+    "P": "dark_oak_planks"
+   },
+   "result": {
+    "item": "dark_oak_door",
+    "count": 3
+   }
+  },
+  {
+   "id": "ajissa_fence_2",
+   "station": "crafting_table",
+   "shape": [
+    "PSP",
+    "PSP"
+   ],
+   "keys": {
+    "P": "ajissa_planks",
+    "S": "stick"
+   },
+   "result": {
+    "item": "ajissa_fence",
+    "count": 3
+   }
+  },
+  {
+   "id": "ajissa_door_2",
+   "station": "crafting_table",
+   "shape": [
+    "PP",
+    "PP",
+    "PP"
+   ],
+   "keys": {
+    "P": "ajissa_planks"
+   },
+   "result": {
+    "item": "ajissa_door",
+    "count": 3
+   }
+  },
+  {
+   "id": "sacred_fence_2",
+   "station": "crafting_table",
+   "shape": [
+    "PSP",
+    "PSP"
+   ],
+   "keys": {
+    "P": "sacred_planks",
+    "S": "stick"
+   },
+   "result": {
+    "item": "sacred_fence",
+    "count": 3
+   }
+  },
+  {
+   "id": "oak_trapdoor",
+   "station": "crafting_table",
+   "shape": [
+    "PPP",
+    "PPP"
+   ],
+   "keys": {
+    "P": [
+     "oak_planks",
+     "spruce_planks",
+     "birch_planks",
+     "jungle_planks",
+     "acacia_planks",
+     "dark_oak_planks",
+     "cherry_planks",
+     "ajissa_planks",
+     "sacred_planks"
+    ]
+   },
+   "result": {
+    "item": "oak_trapdoor",
+    "count": 2
+   }
+  },
+  {
+   "id": "dragon_ball_altar",
+   "station": "crafting_table",
+   "shape": [
+    "SSS",
+    "SGS",
+    "SSS"
+   ],
+   "keys": {
+    "S": "stone",
+    "G": "gold_ingot"
+   },
+   "result": {
+    "item": "dragon_ball_altar",
+    "count": 1
+   }
+  },
+  {
+   "id": "training_post",
+   "station": "crafting_table",
+   "shape": [
+    "L",
+    "L",
+    "L"
+   ],
+   "keys": {
+    "L": [
+     "oak_log",
+     "spruce_log",
+     "birch_log",
+     "jungle_log",
+     "acacia_log",
+     "dark_oak_log",
+     "cherry_log",
+     "ajissa_log",
+     "sacred_log"
+    ]
+   },
+   "result": {
+    "item": "training_post",
+    "count": 1
+   }
+  },
+  {
+   "id": "capsule_house_craft",
+   "station": "crafting_table",
+   "shape": [
+    "PPP",
+    "PCP",
+    "PPP"
+   ],
+   "keys": {
+    "P": [
+     "oak_planks",
+     "spruce_planks",
+     "birch_planks",
+     "jungle_planks",
+     "acacia_planks",
+     "dark_oak_planks",
+     "cherry_planks",
+     "ajissa_planks",
+     "sacred_planks"
+    ],
+    "C": "capsule"
+   },
+   "result": {
+    "item": "capsule_house",
+    "count": 1
+   }
+  },
+  {
+   "id": "gravity_device_2",
+   "station": "crafting_table",
+   "shape": [
+    "GGG",
+    "GRG",
+    "III"
+   ],
+   "keys": {
+    "G": "gete_ingot",
+    "R": "redstone",
+    "I": "iron_block"
+   },
+   "result": {
+    "item": "gravity_device",
+    "count": 1
+   }
+  },
+  {
+   "id": "gete_forge",
+   "station": "crafting_table",
+   "shape": [
+    "GGG",
+    "G G",
+    "GGG"
+   ],
+   "keys": {
+    "G": "gete_ingot"
+   },
+   "result": {
+    "item": "gete_forge",
+    "count": 1
+   }
+  },
+  {
+   "id": "kikono_station_craft",
+   "station": "crafting_table",
+   "shape": [
+    "KKK",
+    "K K",
+    "KKK"
+   ],
+   "keys": {
+    "K": "kikono_shard"
+   },
+   "result": {
+    "item": "kikono_station",
+    "count": 1
+   }
+  },
+  {
+   "id": "senzu_bag",
+   "station": "crafting_table",
+   "shape": [
+    "LLL",
+    "LSL",
+    "LLL"
+   ],
+   "keys": {
+    "L": "leather",
+    "S": "senzu_bean"
+   },
+   "result": {
+    "item": "senzu_bag",
+    "count": 1
+   }
+  }
+ ]
+}

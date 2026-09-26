@@ -1,0 +1,66 @@
+{
+ "id": "wheelo_frozen_rescue",
+ "dmz_id": "wheelo_frozen_rescue",
+ "quest_id": "sidequest_movies:wheelo_frozen_rescue",
+ "name": "The Frozen Lab",
+ "desc": "Dr. Wheelo's bio-mech lab lies buried beneath the snow. Bulma wants you to brave the frozen wastes and recover the salvageable tech and circuitry before it's lost for good.",
+ "title": "The Frozen Lab",
+ "description": "Dr. Wheelo's bio-mech lab lies buried beneath the snow. Bulma wants you to brave the frozen wastes and recover the salvageable tech and circuitry before it's lost for good.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_movies",
+ "order": 9,
+ "parallel_objectives": true,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "BIOME",
+    "biome": "minecraft:snowy_plains"
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "movies_saga",
+    "questId": "6",
+    "quest": "saga_movies:6"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "gete_scrap",
+   "count": 4
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "redstone",
+   "count": 24
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 88000
+  }
+ ]
+}

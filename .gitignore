@@ -1,11 +1,18 @@
-.gradle/
-build/
+# Godot
+game/.godot/
+game/build/
+game/*.apk
+game/*.apk.idsig
+game/android/build/
+# Legacy Kotlin project
+legacy/cubicworld/.gradle/
+legacy/cubicworld/build/
+legacy/cubicworld/**/build/
 local.properties
-android/libs/
 .idea/
 *.iml
 .DS_Store
-captures/
-out/
-assets/worlds/
-CubicWorld_Source.zip
+# scratch
+/build/
+/dist/
+*.tmp

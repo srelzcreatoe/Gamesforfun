@@ -1,0 +1,68 @@
+{
+ "id": "4",
+ "dmz_id": 4,
+ "quest_id": "saga_android:4",
+ "name": "Three Years of Preparation",
+ "desc": "The Androids are still coming. Spend the waiting period training until your body is ready for what Trunks warned about.",
+ "title": "Three Years of Preparation",
+ "description": "The Androids are still coming. Spend the waiting period training until your body is ready for what Trunks warned about.",
+ "type": "SAGA",
+ "category": "saga_android",
+ "saga": "android_saga",
+ "order": 3,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "requirements": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "LEVEL",
+    "minLevel": 560
+   },
+   {
+    "type": "PLANET",
+    "planet": "earth"
+   },
+   {
+    "type": "TIME",
+    "mode": "REAL_TIME",
+    "seconds": 1800
+   }
+  ]
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "SAGA_QUEST",
+    "sagaId": "android_saga",
+    "questId": "3",
+    "quest": "saga_android:3"
+   }
+  ]
+ },
+ "min_level": 560,
+ "planet": "earth",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "shadow_dummy",
+   "entity_name": "Shadow Dummy",
+   "count": 16,
+   "health": 6300.0,
+   "meleeDamage": 330.0,
+   "kiDamage": 323.0,
+   "spawn": "QUEST",
+   "count_mode": "QUEST_SPAWNED_ONLY"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 58800
+  }
+ ]
+}

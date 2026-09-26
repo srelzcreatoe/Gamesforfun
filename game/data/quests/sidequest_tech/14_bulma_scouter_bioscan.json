@@ -1,0 +1,63 @@
+{
+ "id": "bulma_scouter_bioscan",
+ "dmz_id": "bulma_scouter_bioscan",
+ "quest_id": "sidequest_tech:bulma_scouter_bioscan",
+ "name": "Bio-Scan Module",
+ "desc": "Bulma needs field scans to build a bio-signature database. Defeat Frieza's soldiers, gather the components, and your scouter will start tagging whether a target is a fighter or a hostile.",
+ "title": "Bio-Scan Module",
+ "description": "Bulma needs field scans to build a bio-signature database. Defeat Frieza's soldiers, gather the components, and your scouter will start tagging whether a target is a fighter or a hostile.",
+ "type": "SIDEQUEST",
+ "category": "sidequest_tech",
+ "order": 13,
+ "parallel_objectives": false,
+ "party_scaling": true,
+ "secret": false,
+ "claim_mode": "TREE_OR_NPC",
+ "quest_giver": "bulma",
+ "turn_in": "bulma",
+ "requirements": {
+  "operator": "AND",
+  "conditions": []
+ },
+ "prerequisites": {
+  "operator": "AND",
+  "conditions": [
+   {
+    "type": "QUEST",
+    "questId": "bulma_scouter_calibration",
+    "quest": "sidequest_tech:bulma_scouter_calibration"
+   }
+  ]
+ },
+ "min_level": 1,
+ "planet": "",
+ "objectives": [
+  {
+   "type": "KILL",
+   "dmz_type": "KILL",
+   "entity": "saga_friezasoldier01",
+   "entity_name": "Frieza's Soldier",
+   "count": 12,
+   "spawn": "NATURAL",
+   "count_mode": "ANY_MATCHING"
+  },
+  {
+   "type": "OBTAIN",
+   "dmz_type": "ITEM",
+   "item": "amethyst_shard",
+   "count": 8
+  },
+  {
+   "type": "TALK",
+   "dmz_type": "TALK_TO",
+   "npc": "bulma",
+   "npcId": "bulma"
+  }
+ ],
+ "rewards": [
+  {
+   "type": "TPS",
+   "amount": 15000
+  }
+ ]
+}
