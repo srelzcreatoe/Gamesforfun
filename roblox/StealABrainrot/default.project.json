@@ -16,8 +16,8 @@
               "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
             }
           },
-          "Color": [0.388, 0.373, 0.384],
-          "Material": "Plastic",
+          "Color": [0.36, 0.62, 0.3],
+          "Material": "Grass",
           "TopSurface": "Smooth",
           "BottomSurface": "Smooth"
         }
@@ -29,26 +29,44 @@
           "Size": [12, 1, 12],
           "CFrame": {
             "CFrame": {
-              "position": [0, 0.5, 0],
+              "position": [-170, 0.5, 0],
               "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
             }
           },
           "TopSurface": "Smooth",
           "BottomSurface": "Smooth"
         }
+      },
+      "Map": {
+        "$path": "Workspace/Map.model.json"
       }
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
       "DataAndMonetizationManager": {
         "$path": "ServerScriptService/DataAndMonetizationManager.server.luau"
+      },
+      "GameplayManager": {
+        "$path": "ServerScriptService/GameplayManager.server.luau"
       }
     },
     "ReplicatedStorage": {
-      "$className": "ReplicatedStorage"
+      "$className": "ReplicatedStorage",
+      "Shared": {
+        "$path": "ReplicatedStorage/Shared"
+      }
     },
     "ServerStorage": {
       "$className": "ServerStorage"
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "GameClient": {
+          "$path": "StarterPlayerScripts/GameClient.client.luau"
+        }
+      }
     }
   }
 }

@@ -27,6 +27,8 @@
 	  BindableFunction SpendCash(player, amount) -> boolean
 	  BindableFunction AddRebirths(player, amount) -> boolean
 	  BindableFunction GetPlayerData(player) -> { Cash, Rebirths, OwnedGamePasses }?
+	  BindableFunction GetBrainrots(player) -> { string }?
+	  BindableFunction SetBrainrots(player, brainrotIds) -> boolean
 	  BindableFunction OwnsGamePass(player, gamePassIdOrName) -> boolean
 	  BindableFunction IsLaserBypassActive(player) -> boolean
 	  BindableFunction GetServerRarityMultiplier() -> number
@@ -70,6 +72,8 @@ local SESSION_LOCK_STALE_SECONDS = 600
 local SESSION_LOCK_RETRY_SECONDS = 5
 local SESSION_LOCK_MAX_RETRIES = 4
 local LOAD_MAX_ATTEMPTS = 5
+-- Studio fails fast so testing without API access doesn't stall on retries.
+local STUDIO_LOAD_MAX_ATTEMPTS = 2
 local AUTOSAVE_MAX_ATTEMPTS = 3
 local RECEIPT_SAVE_MAX_ATTEMPTS = 3
 local RELEASE_SAVE_MAX_ATTEMPTS = 3
@@ -87,26 +91,24 @@ local MAX_PURCHASE_ID_LENGTH = 128
 -- being kicked. Live servers always kick when data cannot be loaded.
 local ALLOW_UNSAVED_STUDIO_SESSIONS = true
 
--- Developer products (replace with your real product IDs).
-local PRODUCT_IDS = table.freeze({
-	SmallCashBundle = 100001,
-	MediumCashBundle = 100002,
-	EMPLaserOverrider = 100003,
-	ServerRarityBoost = 100004,
-})
+-- Product IDs, game pass IDs and reward amounts live in the shared config so
+-- the client shop uses the same values. Clients cannot change the server's copy.
+local MonetizationConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("MonetizationConfig"))
 
-local SMALL_CASH_BUNDLE_AMOUNT = 5000
-local MEDIUM_CASH_BUNDLE_AMOUNT = 25000
-local LASER_BYPASS_DURATION_SECONDS = 30
-local SERVER_RARITY_BOOST_DURATION_SECONDS = 15 * 60
-local SERVER_RARITY_BOOST_MULTIPLIER = 2
+local PRODUCT_IDS = MonetizationConfig.ProductIds
+local SMALL_CASH_BUNDLE_AMOUNT = MonetizationConfig.SmallCashBundleAmount
+local MEDIUM_CASH_BUNDLE_AMOUNT = MonetizationConfig.MediumCashBundleAmount
+local LASER_BYPASS_DURATION_SECONDS = MonetizationConfig.LaserBypassDurationSeconds
+local SERVER_RARITY_BOOST_DURATION_SECONDS = MonetizationConfig.ServerRarityBoostDurationSeconds
+local SERVER_RARITY_BOOST_MULTIPLIER = MonetizationConfig.ServerRarityBoostMultiplier
 
--- Game passes whose ownership is tracked in OwnedGamePasses (replace with your
--- real game pass IDs; names are used for attributes and the server API).
-local GAME_PASSES: { [string]: number } = table.freeze({
-	VIP = 200001,
-	DoubleCash = 200002,
-})
+-- Game passes whose ownership is tracked in OwnedGamePasses; names are used for
+-- attributes and the server API.
+local GAME_PASSES: { [string]: number } = MonetizationConfig.GamePasses
+
+-- Brainrots a player owns, saved as a list of brainrot IDs.
+local MAX_BRAINROTS = 64
+local MAX_BRAINROT_ID_LENGTH = 64
 
 -- Delays before each ownership check after a game pass purchase prompt closes.
 local GAME_PASS_VERIFY_DELAYS: { number } = { 0, 2, 5, 10 }
@@ -119,6 +121,7 @@ type PlayerData = {
 	Cash: number,
 	Rebirths: number,
 	OwnedGamePasses: { [string]: boolean },
+	Brainrots: { string },
 	PurchaseHistory: { string },
 }
 
@@ -236,8 +239,28 @@ local function createDefaultData(): PlayerData
 		Cash = 0,
 		Rebirths = 0,
 		OwnedGamePasses = {},
+		Brainrots = {},
 		PurchaseHistory = {},
 	}
+end
+
+local function isValidBrainrotId(value: any): boolean
+	return typeof(value) == "string" and #value > 0 and #value <= MAX_BRAINROT_ID_LENGTH
+end
+
+local function sanitizeBrainrotIds(raw: any): { string }
+	local brainrotIds: { string } = {}
+	if typeof(raw) == "table" then
+		for _, brainrotId in ipairs(raw) do
+			if #brainrotIds >= MAX_BRAINROTS then
+				break
+			end
+			if isValidBrainrotId(brainrotId) then
+				table.insert(brainrotIds, brainrotId)
+			end
+		end
+	end
+	return brainrotIds
 end
 
 local function sanitizeData(raw: any): PlayerData
@@ -272,6 +295,7 @@ local function sanitizeData(raw: any): PlayerData
 		Cash = toWholeNumber(raw.Cash, MAX_CASH),
 		Rebirths = toWholeNumber(raw.Rebirths, MAX_REBIRTHS),
 		OwnedGamePasses = ownedGamePasses,
+		Brainrots = sanitizeBrainrotIds(raw.Brainrots),
 		PurchaseHistory = purchaseHistory,
 	}
 end
@@ -312,6 +336,7 @@ local function copyDataForSave(data: PlayerData): PlayerData
 		Cash = data.Cash,
 		Rebirths = data.Rebirths,
 		OwnedGamePasses = table.clone(data.OwnedGamePasses),
+		Brainrots = table.clone(data.Brainrots),
 		PurchaseHistory = table.clone(data.PurchaseHistory),
 	}
 end
@@ -588,8 +613,9 @@ local function loadProfileAsync(profile: Profile): LoadResult
 			task.wait(SESSION_LOCK_RETRY_SECONDS)
 		else
 			failedAttempts += 1
-			warn(string.format("%s Load for %d failed (attempt %d/%d): %s", LOG_PREFIX, profile.UserId, failedAttempts, LOAD_MAX_ATTEMPTS, tostring(err)))
-			if failedAttempts >= LOAD_MAX_ATTEMPTS then
+			local maxAttempts = if RunService:IsStudio() then STUDIO_LOAD_MAX_ATTEMPTS else LOAD_MAX_ATTEMPTS
+			warn(string.format("%s Load for %d failed (attempt %d/%d): %s", LOG_PREFIX, profile.UserId, failedAttempts, maxAttempts, tostring(err)))
+			if failedAttempts >= maxAttempts then
 				return "Failed"
 			end
 			task.wait(2 ^ (failedAttempts - 1))
@@ -1010,6 +1036,44 @@ createBindableFunction("GetPlayerData", function(playerArg: any): { [string]: an
 		Rebirths = profile.Data.Rebirths,
 		OwnedGamePasses = table.clone(profile.Data.OwnedGamePasses),
 	}
+end)
+
+createBindableFunction("GetBrainrots", function(playerArg: any): { string }?
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil then
+		return nil
+	end
+	return table.clone(profile.Data.Brainrots)
+end)
+
+createBindableFunction("SetBrainrots", function(playerArg: any, brainrotIds: any): boolean
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil or typeof(brainrotIds) ~= "table" then
+		return false
+	end
+	-- Accept only a contiguous array of valid IDs.
+	local count = 0
+	for index, brainrotId in brainrotIds do
+		count += 1
+		if typeof(index) ~= "number" or not isValidBrainrotId(brainrotId) then
+			return false
+		end
+	end
+	if count > MAX_BRAINROTS then
+		return false
+	end
+	local validated: { string } = table.create(count)
+	for index = 1, count do
+		local brainrotId = brainrotIds[index]
+		if brainrotId == nil then
+			return false
+		end
+		validated[index] = brainrotId
+	end
+	profile.Data.Brainrots = validated
+	return true
 end)
 
 createBindableFunction("OwnsGamePass", function(playerArg: any, gamePass: any): boolean
