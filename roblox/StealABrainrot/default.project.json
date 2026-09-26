@@ -54,6 +54,9 @@
       "$className": "ReplicatedStorage",
       "Shared": {
         "$path": "ReplicatedStorage/Shared"
+      },
+      "Assets": {
+        "$path": "ReplicatedStorage/Assets"
       }
     },
     "ServerStorage": {
@@ -65,6 +68,9 @@
         "$className": "StarterPlayerScripts",
         "GameClient": {
           "$path": "StarterPlayerScripts/GameClient.client.luau"
+        },
+        "BrainrotVisuals": {
+          "$path": "StarterPlayerScripts/BrainrotVisuals.client.luau"
         }
       }
     }

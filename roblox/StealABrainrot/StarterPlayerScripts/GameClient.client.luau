@@ -22,6 +22,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared:WaitForChild("GameConfig"))
 local MonetizationConfig = require(Shared:WaitForChild("MonetizationConfig"))
 local NumberFormat = require(Shared:WaitForChild("NumberFormat"))
+local AssetLoader = require(Shared:WaitForChild("AssetLoader"))
 
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local notifyEvent = remotes:WaitForChild("Notify") :: RemoteEvent
@@ -170,7 +171,7 @@ local chipRow = create("Frame", {
 }) :: Frame
 chipRow.Parent = screenGui
 
-local function chip(color: Color3): TextLabel
+local function chip(color: Color3, iconKey: string): TextLabel
 	local chipLabel = label({
 		Size = UDim2.fromOffset(250, 30),
 		BackgroundTransparency = 0,
@@ -179,12 +180,27 @@ local function chip(color: Color3): TextLabel
 		Visible = false,
 	})
 	corner(15).Parent = chipLabel
+
+	local iconImage = AssetLoader.getProductIcon(iconKey)
+	if iconImage then
+		create("UIPadding", { PaddingLeft = UDim.new(0, 32) }).Parent = chipLabel
+		local icon = create("ImageLabel", {
+			Name = "Icon",
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.new(0, -30, 0.5, 0),
+			Size = UDim2.fromOffset(26, 26),
+			BackgroundTransparency = 1,
+		}, { corner(13) }) :: ImageLabel
+		icon.ImageContent = Content.fromObject(iconImage)
+		icon.Parent = chipLabel
+	end
+
 	chipLabel.Parent = chipRow
 	return chipLabel
 end
 
-local boostChip = chip(COLORS.Boost)
-local empChip = chip(COLORS.Emp)
+local boostChip = chip(COLORS.Boost, "ServerRarityBoost")
+local empChip = chip(COLORS.Emp, "EMPLaserOverrider")
 
 -- Side buttons (left middle)
 local sideButtons = create("Frame", {
@@ -315,8 +331,21 @@ for index, product in MonetizationConfig.ShopProducts do
 		iconImage.Visible = true
 		iconText.Visible = false
 	end
+
+	-- Icon priority: an uploaded image ID from MonetizationConfig, then the
+	-- icon packed into ReplicatedStorage.Assets, then the product's own icon.
+	local hasIcon = false
 	if product.IconAssetId > 0 then
 		showIcon(product.IconAssetId)
+		hasIcon = true
+	else
+		local embeddedIcon = AssetLoader.getProductIcon(product.Key)
+		if embeddedIcon then
+			iconImage.ImageContent = Content.fromObject(embeddedIcon)
+			iconImage.Visible = true
+			iconText.Visible = false
+			hasIcon = true
+		end
 	end
 
 	label({
@@ -366,7 +395,7 @@ for index, product in MonetizationConfig.ShopProducts do
 			buyButton.Text = "R$ " .. NumberFormat.commas(price)
 		end
 		local iconId = tonumber(info.IconImageAssetId)
-		if product.IconAssetId == 0 and iconId and iconId > 0 then
+		if not hasIcon and iconId and iconId > 0 then
 			showIcon(iconId)
 		end
 	end)

@@ -1,8 +1,10 @@
 --!strict
 -- Every brainrot that can appear on the conveyor, and the rarity tiers.
--- Brainrots are built from parts. To use a custom model instead, put a Model
--- named after the brainrot's Id in ReplicatedStorage.BrainrotModels; it is
--- cloned and placed with its pivot at the brainrot's feet.
+-- Each brainrot's 3D model (made with Higgsfield) is packed in
+-- ReplicatedStorage.Assets.Brainrots and shown by the BrainrotVisuals client
+-- script; the server's simple block figure is the fallback. To use a model you
+-- imported in Studio instead, put a Model named after the brainrot's Id in
+-- ReplicatedStorage.BrainrotModels; it is scaled to the brainrot's height.
 
 export type BodyShape = "Ball" | "Block"
 

@@ -42,6 +42,8 @@ local LOG_PREFIX = "[GameplayManager]"
 
 -- Height of a carried brainrot's feet above the thief's HumanoidRootPart.
 local CARRY_HEIGHT = 3.2
+-- Height in studs of a brainrot with Scale 1.
+local FIGURE_HEIGHT = 5.2
 local FAST_TICK_SECONDS = 0.1
 local SLOW_TICK_SECONDS = 1
 local REBIRTH_REQUEST_COOLDOWN_SECONDS = 1
@@ -331,12 +333,20 @@ local function buildFigure(model: Model, root: BasePart, definition: Definition,
 		light.Parent = body
 	end
 
-	return 5.2 * s
+	return FIGURE_HEIGHT * s
 end
 
-local function buildCustomModel(model: Model, root: BasePart, template: Model): number
+-- Scales a model imported into ReplicatedStorage.BrainrotModels to the
+-- brainrot's height and stands it on the root (the brainrot's feet).
+local function buildCustomModel(model: Model, root: BasePart, template: Model, targetHeight: number): number
 	local clone = template:Clone()
-	clone:PivotTo(root.CFrame)
+	local _, originalSize = clone:GetBoundingBox()
+	if originalSize.Y > 0 then
+		clone:ScaleTo(clone:GetScale() * targetHeight / originalSize.Y)
+	end
+	local boxCFrame, boxSize = clone:GetBoundingBox()
+	local feet = boxCFrame.Position - Vector3.new(0, boxSize.Y / 2, 0)
+	clone:PivotTo(clone:GetPivot() + (root.Position - feet))
 	for _, descendant in clone:GetDescendants() do
 		if descendant:IsA("BasePart") then
 			descendant.Anchored = false
@@ -350,9 +360,8 @@ local function buildCustomModel(model: Model, root: BasePart, template: Model): 
 			weld.Parent = descendant
 		end
 	end
-	local _, size = clone:GetBoundingBox()
 	clone.Parent = model
-	return size.Y
+	return boxSize.Y
 end
 
 local function addInfoLabel(parent: Instance, text: string, color: Color3, textSize: number, order: number)
@@ -389,9 +398,15 @@ local function buildBrainrot(definition: Definition, price: number?): Visual
 
 	local customModels = ReplicatedStorage:FindFirstChild("BrainrotModels")
 	local template = if customModels then customModels:FindFirstChild(definition.Id) else nil
+	local hasCustomModel = template ~= nil and template:IsA("Model")
 	local height = if template and template:IsA("Model")
-		then buildCustomModel(model, root, template)
+		then buildCustomModel(model, root, template, FIGURE_HEIGHT * definition.Scale)
 		else buildFigure(model, root, definition, if rarity and rarity.Glow then rarity.Color else nil)
+
+	-- Tells BrainrotVisuals on each client which 3D model to show, and how tall.
+	model:SetAttribute("BrainrotId", definition.Id)
+	model:SetAttribute("FigureHeight", height)
+	model:SetAttribute("CustomModel", hasCustomModel)
 
 	local promptAttachment = Instance.new("Attachment")
 	promptAttachment.Name = "PromptAttachment"
