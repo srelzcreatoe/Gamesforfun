@@ -6,28 +6,43 @@
 	Runs the Steal a Brainrot loop on the server:
 	  * gives each player one of the bases in Workspace.Map.Plots
 	  * spawns brainrots on the conveyor (rarer ones more often during a Server
-	    Rarity Boost) that players buy with Cash
-	  * owned brainrots earn Cash every second and can be sold or stolen
+	    Rarity Boost, one mutation far more often during a mutation event) that
+	    players buy with Cash
+	  * a bought brainrot walks from the conveyor to its buyer's base; until it
+	    reaches the door, anyone else can buy it off them (the first buyer gets
+	    their Cash back) and it turns around to walk to the new owner's base
+	  * brainrots on their pedestals fill the collect pad in front of them with
+	    Cash; the owner steps on the pad to collect it. Uncollected Cash is saved,
+	    and brainrots keep earning while their owner is offline
+	  * brainrots can be sold or stolen; a slapped thief drops what they carry
 	  * each base has a laser door its owner can lock; the EMP Laser Overrider
 	    lets its buyer walk through any locked door
-	  * rebirths reset Cash for a permanent income bonus
+	  * rebirths reset Cash (and the pads) for a permanent income bonus
 
 	Every decision is made here. Clients only press ProximityPrompts and call the
 	RequestRebirth remote, and each request is re-checked on the server
-	(ownership, distance, Cash, free slots). Cash and saved brainrots go through
-	the DataAndMonetizationManager API in ServerStorage.
+	(ownership, distance, Cash, free slots). Cash and saved data go through the
+	DataAndMonetizationManager API in ServerStorage.
 
 	Client-facing state:
-	  ReplicatedStorage.Remotes.Notify (RemoteEvent, server -> client)
+	  ReplicatedStorage.Remotes.Notify (RemoteEvent, server -> client: message, kind, sound?)
+	  ReplicatedStorage.Remotes.PlaySound (RemoteEvent, server -> client: sound)
 	  ReplicatedStorage.Remotes.RequestRebirth (RemoteFunction)
-	  Player attribute IncomePerSecond (number)
+	  Player attributes IncomePerSecond (number), Carrying (boolean)
 	  Plot model attributes OwnerUserId (number, 0 = empty), LockEndsAt (server time)
-	  ProximityPrompt attributes PromptKind ("Buy" | "Steal" | "Sell"),
-	    OwnerUserId, Carried (used by the client to hide prompts that do not apply)
+	  ReplicatedStorage attributes EventName, EventMutation, EventEndsAt (mutation event)
+	  Brainrot model attributes BrainrotId, State, OwnerUserId, ...
+	  ProximityPrompt attributes PromptKind ("Buy" | "Steal" | "Sell" | "Snipe"),
+	    OwnerUserId, Carried, Walking, Snipeable (used by the client to hide
+	    prompts that do not apply)
+
+	Server API for other scripts (ServerStorage.Gameplay):
+	  BindableEvent ForceDrop(player, message?)  makes a thief drop their brainrot
 ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
@@ -47,6 +62,11 @@ local FIGURE_HEIGHT = 5.2
 local FAST_TICK_SECONDS = 0.1
 local SLOW_TICK_SECONDS = 1
 local REBIRTH_REQUEST_COOLDOWN_SECONDS = 1
+-- Walking brainrots walk beside the conveyor this far from the carpet's end.
+local LANE_INSET = 3
+-- The pad in front of a pedestal, and the walkway between pads and door.
+local PAD_OFFSET = 5.5
+local PAD_REACH = 1
 
 --------------------------------------------------------------------------------
 -- Types
@@ -60,6 +80,15 @@ type Visual = {
 	Model: Model,
 	Root: BasePart,
 	PromptAttachment: Attachment,
+	PriceLabel: TextLabel?,
+	OwnerLabel: TextLabel?,
+}
+
+type Pad = {
+	Part: BasePart,
+	Billboard: BillboardGui,
+	Amount: TextLabel,
+	Tag: TextLabel,
 }
 
 type Plot = {
@@ -68,17 +97,32 @@ type Plot = {
 	Floor: BasePart,
 	Interior: BasePart,
 	LaserZone: BasePart,
+	Carpet: BasePart?,
 	Lasers: { BasePart },
 	SpawnPoint: BasePart,
 	Slots: { BasePart },
+	Pads: { [number]: Pad },
+	-- Uncollected Cash on each slot's pad (fractions carry over).
+	PadCash: { number },
+	OfflinePads: { [number]: boolean },
 	Occupants: { [number]: Occupant },
 	Reserved: { [number]: boolean },
 	Owner: Player?,
 	LockEndsAt: number,
-	IncomeRemainder: number,
 	SignTitle: TextLabel,
 	SignSubtitle: TextLabel,
 	LockLabel: TextLabel,
+}
+
+type Walk = {
+	-- Where to walk; heights come from the ground under the brainrot.
+	Points: { Vector3 },
+	Index: number,
+	-- Reaching this point means it walked through its owner's door.
+	DoorIndex: number,
+	Entered: boolean,
+	Speed: number,
+	Height: number,
 }
 
 type Occupant = {
@@ -91,8 +135,14 @@ type Occupant = {
 	PromptAttachment: Attachment,
 	StealPrompt: ProximityPrompt,
 	SellPrompt: ProximityPrompt,
-	WalkTween: Tween?,
+	SnipePrompt: ProximityPrompt?,
+	-- What its owner paid; the price for anyone buying it off them.
+	Price: number,
+	Walk: Walk?,
+	Sniping: boolean,
 	Carrier: Player?,
+	PriceLabel: TextLabel?,
+	OwnerLabel: TextLabel?,
 }
 
 type Carry = {
@@ -118,6 +168,12 @@ type ConveyorItem = {
 	Sold: boolean,
 }
 
+type MutationEvent = {
+	Name: string,
+	Mutation: string,
+	ChanceMultiplier: number,
+}
+
 --------------------------------------------------------------------------------
 -- Data API (ServerStorage.DataAndMonetization)
 --------------------------------------------------------------------------------
@@ -135,9 +191,14 @@ end
 local addCashFunction = getBindableFunction("AddCash")
 local spendCashFunction = getBindableFunction("SpendCash")
 local addRebirthsFunction = getBindableFunction("AddRebirths")
+local addStealsFunction = getBindableFunction("AddSteals")
 local getPlayerDataFunction = getBindableFunction("GetPlayerData")
 local getBrainrotsFunction = getBindableFunction("GetBrainrots")
 local setBrainrotsFunction = getBindableFunction("SetBrainrots")
+local getPadCashFunction = getBindableFunction("GetPadCash")
+local setPadCashFunction = getBindableFunction("SetPadCash")
+local collectPadCashFunction = getBindableFunction("CollectPadCash")
+local takeOfflineSecondsFunction = getBindableFunction("TakeOfflineSeconds")
 local isLaserBypassActiveFunction = getBindableFunction("IsLaserBypassActive")
 local getServerRarityMultiplierFunction = getBindableFunction("GetServerRarityMultiplier")
 local empLaserPurchasedEvent = getBindableEvent("EMPLaserOverriderPurchased")
@@ -157,7 +218,7 @@ local function getPlayerData(player: Player): { [string]: any }?
 end
 
 --------------------------------------------------------------------------------
--- Remotes
+-- Remotes and server API
 --------------------------------------------------------------------------------
 
 local remotesFolder = Instance.new("Folder")
@@ -167,14 +228,30 @@ local notifyEvent = Instance.new("RemoteEvent")
 notifyEvent.Name = "Notify"
 notifyEvent.Parent = remotesFolder
 
+local playSoundEvent = Instance.new("RemoteEvent")
+playSoundEvent.Name = "PlaySound"
+playSoundEvent.Parent = remotesFolder
+
 local requestRebirthFunction = Instance.new("RemoteFunction")
 requestRebirthFunction.Name = "RequestRebirth"
 requestRebirthFunction.Parent = remotesFolder
 
 remotesFolder.Parent = ReplicatedStorage
 
-local function notify(player: Player, message: string, kind: NotifyKind)
-	notifyEvent:FireClient(player, message, kind)
+local gameplayApi = Instance.new("Folder")
+gameplayApi.Name = "Gameplay"
+local forceDropEvent = Instance.new("BindableEvent")
+forceDropEvent.Name = "ForceDrop"
+forceDropEvent.Parent = gameplayApi
+gameplayApi.Parent = ServerStorage
+
+-- `sound` names an entry in AudioConfig.Sounds for the client to play.
+local function notify(player: Player, message: string, kind: NotifyKind, sound: string?)
+	notifyEvent:FireClient(player, message, kind, sound)
+end
+
+local function playSound(player: Player, sound: string)
+	playSoundEvent:FireClient(player, sound)
 end
 
 --------------------------------------------------------------------------------
@@ -196,11 +273,29 @@ local plotByPlayer: { [Player]: Plot } = {}
 local carries: { [Player]: Carry } = {}
 local conveyorItems: { [ConveyorItem]: boolean } = {}
 local conveyorItemCount = 0
+local walkers: { [Occupant]: boolean } = {}
 local lastRebirthRequest: { [Player]: number } = {}
 local rng = Random.new()
 local nextGuaranteedAt: { [string]: number } = {}
 for _, rule in GameConfig.GuaranteedRarities do
 	nextGuaranteedAt[rule.Rarity] = Workspace:GetServerTimeNow() + rule.IntervalSeconds
+end
+local activeEvent: MutationEvent? = nil
+
+-- Walking brainrots follow the ground: the baseplate, the conveyor and the bases.
+local groundParams = RaycastParams.new()
+groundParams.FilterType = Enum.RaycastFilterType.Include
+do
+	local ground: { Instance } = { plotsFolder }
+	local belt = conveyorFolder:FindFirstChild("Belt")
+	if belt then
+		table.insert(ground, belt)
+	end
+	local baseplate = Workspace:FindFirstChild("Baseplate")
+	if baseplate then
+		table.insert(ground, baseplate)
+	end
+	groundParams.FilterDescendantsInstances = ground
 end
 
 --------------------------------------------------------------------------------
@@ -289,11 +384,26 @@ local function saveBrainrots(plot: Plot): boolean
 	return setBrainrotsFunction:Invoke(owner, getBrainrotIds(plot)) == true
 end
 
-local function restoreWalkSpeed(player: Player)
+local function getIncomeMultiplier(player: Player): number
+	local data = getPlayerData(player)
+	if data == nil then
+		return 1
+	end
+	local rebirths = tonumber(data.Rebirths) or 0
+	local passes = data.OwnedGamePasses
+	local doubleCashId = MonetizationConfig.GamePasses.DoubleCash
+	local hasDoubleCash = doubleCashId ~= nil and typeof(passes) == "table" and passes[tostring(doubleCashId)] == true
+	return GameConfig.getRebirthIncomeMultiplier(rebirths)
+		* (if hasDoubleCash then MonetizationConfig.DoubleCashIncomeMultiplier else 1)
+end
+
+local function setCarrying(player: Player, carrying: boolean)
 	local _, humanoid = getLiveCharacter(player)
 	if humanoid then
-		humanoid.WalkSpeed = GameConfig.DefaultWalkSpeed
+		humanoid.WalkSpeed = if carrying then GameConfig.CarryWalkSpeed else GameConfig.DefaultWalkSpeed
 	end
+	-- GearManager listens to this to re-apply coils once the carry ends.
+	player:SetAttribute("Carrying", carrying)
 end
 
 --------------------------------------------------------------------------------
@@ -398,7 +508,7 @@ local RAINBOW = ColorSequence.new({
 	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 80, 200)),
 })
 
-local function addInfoLabel(parent: Instance, text: string, color: Color3, textSize: number, order: number, rainbow: boolean?)
+local function addInfoLabel(parent: Instance, text: string, color: Color3, textSize: number, order: number, rainbow: boolean?): TextLabel
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
 	label.Size = UDim2.new(1, 0, 0, textSize + 6)
@@ -419,13 +529,18 @@ local function addInfoLabel(parent: Instance, text: string, color: Color3, textS
 		gradient.Parent = label
 	end
 	label.Parent = parent
+	return label
 end
 
-local function buildBrainrot(definition: Definition, mutation: Mutation?, price: number?): Visual
+-- `price` adds a price line (conveyor and walking brainrots); `ownerText` adds
+-- a line saying whose base a walking brainrot is heading to.
+local function buildBrainrot(definition: Definition, mutation: Mutation?, price: number?, ownerText: string?): Visual
 	local rarity = BrainrotConfig.RarityByName[definition.Rarity]
 
 	local model = Instance.new("Model")
 	model.Name = definition.Id
+	-- Streams in and out as a whole, so clients never see half a brainrot.
+	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
 
 	local root = Instance.new("Part")
 	root.Name = "Root"
@@ -465,7 +580,10 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, price:
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "Info"
 	billboard.Adornee = root
-	billboard.Size = UDim2.fromOffset(260, 84 + (if price then 26 else 0) + (if mutation then 24 else 0))
+	billboard.Size = UDim2.fromOffset(
+		260,
+		84 + (if price then 26 else 0) + (if mutation then 24 else 0) + (if ownerText then 22 else 0)
+	)
 	billboard.StudsOffsetWorldSpace = Vector3.new(0, height + 2.4, 0)
 	billboard.MaxDistance = 90
 	billboard.LightInfluence = 0
@@ -476,18 +594,29 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, price:
 	layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
 	layout.Parent = billboard
 
+	local ownerLabel: TextLabel? = nil
+	if ownerText then
+		ownerLabel = addInfoLabel(billboard, ownerText, Color3.fromRGB(200, 230, 255), 16, -1)
+	end
 	if mutation then
 		addInfoLabel(billboard, mutation.Name, mutation.Color, 20, 0, mutation.Name == "Rainbow")
 	end
 	addInfoLabel(billboard, definition.DisplayName, Color3.new(1, 1, 1), 22, 1)
 	addInfoLabel(billboard, definition.Rarity, if rarity then rarity.Color else Color3.new(1, 1, 1), 20, 2, definition.Rarity == "Mythic")
 	addInfoLabel(billboard, NumberFormat.cash(incomeOf(definition, mutation)) .. "/s", Color3.fromRGB(255, 230, 70), 20, 3)
+	local priceLabel: TextLabel? = nil
 	if price then
-		addInfoLabel(billboard, NumberFormat.cash(price), Color3.fromRGB(90, 255, 120), 22, 4)
+		priceLabel = addInfoLabel(billboard, NumberFormat.cash(price), Color3.fromRGB(90, 255, 120), 22, 4)
 	end
 	billboard.Parent = root
 
-	return { Model = model, Root = root, PromptAttachment = promptAttachment }
+	return {
+		Model = model,
+		Root = root,
+		PromptAttachment = promptAttachment,
+		PriceLabel = priceLabel,
+		OwnerLabel = ownerLabel,
+	}
 end
 
 local function createPrompt(
@@ -508,6 +637,7 @@ local function createPrompt(
 	prompt.RequiresLineOfSight = false
 	prompt:SetAttribute("PromptKind", kind)
 	prompt:SetAttribute("Carried", false)
+	prompt:SetAttribute("Walking", false)
 	if ownerUserId then
 		prompt:SetAttribute("OwnerUserId", ownerUserId)
 	end
@@ -516,40 +646,214 @@ local function createPrompt(
 end
 
 --------------------------------------------------------------------------------
--- Occupants (brainrots standing in a base)
+-- Occupants (brainrots that belong to a base)
 --------------------------------------------------------------------------------
 
 local onStealTriggered: (occupant: Occupant, thief: Player) -> ()
 local onSellTriggered: (occupant: Occupant, player: Player) -> ()
+local onSnipeTriggered: (occupant: Occupant, player: Player) -> ()
+
+local function ownerText(player: Player): string
+	return "Walking to " .. player.DisplayName .. "'s base"
+end
 
 local function setOccupantCarried(occupant: Occupant, carried: boolean)
 	occupant.StealPrompt:SetAttribute("Carried", carried)
 	occupant.SellPrompt:SetAttribute("Carried", carried)
 end
 
-local function stopWalking(occupant: Occupant)
-	local walkTween = occupant.WalkTween
-	if walkTween then
-		walkTween:Cancel()
-		occupant.WalkTween = nil
+local function setOccupantOwner(occupant: Occupant, owner: Player)
+	occupant.Model:SetAttribute("OwnerUserId", owner.UserId)
+	occupant.StealPrompt:SetAttribute("OwnerUserId", owner.UserId)
+	occupant.SellPrompt:SetAttribute("OwnerUserId", owner.UserId)
+	local snipePrompt = occupant.SnipePrompt
+	if snipePrompt then
+		snipePrompt:SetAttribute("OwnerUserId", owner.UserId)
+	end
+	local ownerLabel = occupant.OwnerLabel
+	if ownerLabel then
+		ownerLabel.Text = ownerText(owner)
 	end
 end
 
+-- Ends a walk right where the brainrot is (it stays in its base's list).
+local function stopWalking(occupant: Occupant)
+	occupant.Walk = nil
+	walkers[occupant] = nil
+end
+
+-- Called when a walking brainrot reaches its pedestal.
+local function finishWalk(occupant: Occupant)
+	stopWalking(occupant)
+	occupant.Root.CFrame = getSlotCFrame(occupant.Plot, occupant.SlotIndex)
+	occupant.Model:SetAttribute("State", "Idle")
+	occupant.StealPrompt:SetAttribute("Walking", false)
+	occupant.SellPrompt:SetAttribute("Walking", false)
+	local snipePrompt = occupant.SnipePrompt
+	if snipePrompt then
+		snipePrompt:Destroy()
+		occupant.SnipePrompt = nil
+	end
+	local priceLabel = occupant.PriceLabel
+	if priceLabel then
+		priceLabel:Destroy()
+	end
+	local ownerLabel = occupant.OwnerLabel
+	if ownerLabel then
+		ownerLabel:Destroy()
+	end
+	occupant.PriceLabel = nil
+	occupant.OwnerLabel = nil
+end
+
+-- The path from `from` to a pedestal: onto the walkway beside the conveyor,
+-- along it to the base's carpet, up the carpet, through the door and past the
+-- pads to the pedestal. Returns the points and the index of the door.
+local function buildPath(plot: Plot, slotIndex: number, from: Vector3): ({ Vector3 }, number)
+	local floorFrame = plot.Floor.CFrame
+	local halfDepth = plot.Floor.Size.Z / 2
+	local carpet = plot.Carpet
+	local carpetLength = if carpet then carpet.Size.Z else 0
+	local laneZ = -halfDepth - carpetLength + LANE_INSET
+	local slotLocal = floorFrame:PointToObjectSpace(plot.Slots[slotIndex].Position)
+	local fromLocal = floorFrame:PointToObjectSpace(from)
+	local padZ = slotLocal.Z - PAD_OFFSET
+
+	local points: { Vector3 } = {}
+	local function add(x: number, z: number)
+		table.insert(points, floorFrame:PointToWorldSpace(Vector3.new(x, 0, z)))
+	end
+
+	if fromLocal.Z < -halfDepth and math.abs(fromLocal.X) > 2 then
+		-- Not on this base's carpet yet: walk beside the conveyor first.
+		add(fromLocal.X, laneZ)
+		add(0, laneZ)
+	end
+	add(0, -halfDepth - 1)
+	local doorIndex = #points
+	add(0, -halfDepth + 2)
+	add(0, padZ)
+	add(slotLocal.X, padZ)
+	add(slotLocal.X, slotLocal.Z)
+	return points, doorIndex
+end
+
+local function pathLength(from: Vector3, points: { Vector3 }): number
+	local length = 0
+	local last = from
+	for _, point in points do
+		local offset = point - last
+		length += Vector3.new(offset.X, 0, offset.Z).Magnitude
+		last = point
+	end
+	return length
+end
+
+local function startWalk(occupant: Occupant, from: Vector3)
+	local points, doorIndex = buildPath(occupant.Plot, occupant.SlotIndex, from)
+	local length = pathLength(from, points)
+	occupant.Walk = {
+		Points = points,
+		Index = 1,
+		DoorIndex = doorIndex,
+		Entered = false,
+		Speed = math.max(GameConfig.BrainrotWalkSpeed, length / GameConfig.MaxWalkSeconds),
+		Height = from.Y,
+	}
+	walkers[occupant] = true
+	occupant.Model:SetAttribute("State", "Walking")
+	occupant.StealPrompt:SetAttribute("Walking", true)
+	occupant.SellPrompt:SetAttribute("Walking", true)
+	local snipePrompt = occupant.SnipePrompt
+	if snipePrompt then
+		snipePrompt:SetAttribute("Snipeable", true)
+	end
+end
+
+local function groundHeightAt(position: Vector3, height: number): number?
+	local result = Workspace:Raycast(Vector3.new(position.X, height + 4, position.Z), Vector3.new(0, -14, 0), groundParams)
+	return if result then result.Position.Y else nil
+end
+
+-- Moves every walking brainrot a frame further along its path.
+local function stepWalkers(dt: number)
+	for occupant in walkers do
+		local walk = occupant.Walk
+		if walk == nil or occupant.Model.Parent == nil then
+			walkers[occupant] = nil
+			continue
+		end
+		local root = occupant.Root
+		local position = root.Position
+		local remaining = walk.Speed * dt
+		while remaining > 0 do
+			local target: Vector3? = walk.Points[walk.Index]
+			if not target then
+				break
+			end
+			local flat = Vector3.new(target.X - position.X, 0, target.Z - position.Z)
+			local distance = flat.Magnitude
+			if distance <= remaining then
+				position = Vector3.new(target.X, position.Y, target.Z)
+				remaining -= distance
+				if walk.Index == walk.DoorIndex and not walk.Entered then
+					-- Through the door: it's safe in its owner's base now.
+					walk.Entered = true
+					local snipePrompt = occupant.SnipePrompt
+					if snipePrompt then
+						snipePrompt:SetAttribute("Snipeable", false)
+					end
+				end
+				walk.Index += 1
+			else
+				position += flat.Unit * remaining
+				remaining = 0
+			end
+		end
+
+		if walk.Index > #walk.Points then
+			finishWalk(occupant)
+			continue
+		end
+
+		local ground = groundHeightAt(position, walk.Height)
+		if ground then
+			walk.Height += (ground - walk.Height) * math.min(1, dt * 12)
+		end
+		local standing = Vector3.new(position.X, walk.Height, position.Z)
+		local target = walk.Points[walk.Index]
+		local facing = Vector3.new(target.X - standing.X, 0, target.Z - standing.Z)
+		local rotation = root.CFrame.Rotation
+		if facing.Magnitude > 0.05 then
+			rotation = rotation:Lerp(CFrame.lookAt(Vector3.zero, facing), math.min(1, dt * 10))
+		end
+		root.CFrame = CFrame.new(standing) * rotation
+	end
+end
+
+-- Puts a brainrot in a base. With `walkFrom` it walks there from that
+-- position (and can be bought off its owner until it reaches the door).
 local function placeOccupant(
 	plot: Plot,
 	slotIndex: number,
 	definition: Definition,
 	mutation: Mutation?,
-	fromCFrame: CFrame?
+	walkFrom: CFrame?,
+	price: number?
 ): Occupant?
 	local owner = plot.Owner
 	if owner == nil or plot.Occupants[slotIndex] ~= nil then
 		return nil
 	end
 
-	local visual = buildBrainrot(definition, mutation, nil)
-	visual.Model.Parent = brainrotsFolder
-	local targetCFrame = getSlotCFrame(plot, slotIndex)
+	local paid = price or priceOf(definition, mutation)
+	local visual = buildBrainrot(
+		definition,
+		mutation,
+		if walkFrom then paid else nil,
+		if walkFrom then ownerText(owner) else nil
+	)
+	visual.Model:SetAttribute("OwnerUserId", owner.UserId)
 	local refund = math.floor(priceOf(definition, mutation) * GameConfig.SellRefundFraction)
 	local name = fullName(definition, mutation)
 
@@ -563,31 +867,14 @@ local function placeOccupant(
 		PromptAttachment = visual.PromptAttachment,
 		StealPrompt = createPrompt(visual.PromptAttachment, "Steal", "Steal", name, GameConfig.StealHoldSeconds, Enum.KeyCode.E, owner.UserId),
 		SellPrompt = createPrompt(visual.PromptAttachment, "Sell", "Sell for " .. NumberFormat.cash(refund), name, 0.5, Enum.KeyCode.F, owner.UserId),
-		WalkTween = nil,
+		SnipePrompt = nil,
+		Price = paid,
+		Walk = nil,
+		Sniping = false,
 		Carrier = nil,
+		PriceLabel = visual.PriceLabel,
+		OwnerLabel = visual.OwnerLabel,
 	}
-
-	if fromCFrame then
-		visual.Root.CFrame = fromCFrame
-		local walkTween = TweenService:Create(
-			visual.Root,
-			TweenInfo.new(GameConfig.WalkToBaseSeconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-			{ CFrame = targetCFrame }
-		)
-		occupant.WalkTween = walkTween
-		visual.Model:SetAttribute("State", "Walking")
-		walkTween.Completed:Connect(function()
-			if occupant.WalkTween == walkTween then
-				occupant.WalkTween = nil
-				if occupant.Carrier == nil then
-					visual.Model:SetAttribute("State", "Idle")
-				end
-			end
-		end)
-		walkTween:Play()
-	else
-		visual.Root.CFrame = targetCFrame
-	end
 
 	occupant.StealPrompt.Triggered:Connect(function(player: Player)
 		onStealTriggered(occupant, player)
@@ -596,13 +883,106 @@ local function placeOccupant(
 		onSellTriggered(occupant, player)
 	end)
 
+	if walkFrom then
+		local snipePrompt = createPrompt(visual.PromptAttachment, "Snipe", "Buy " .. NumberFormat.cash(paid), name, 0, Enum.KeyCode.E, owner.UserId)
+		snipePrompt:SetAttribute("Snipeable", false)
+		snipePrompt.Triggered:Connect(function(player: Player)
+			onSnipeTriggered(occupant, player)
+		end)
+		occupant.SnipePrompt = snipePrompt
+		visual.Root.CFrame = walkFrom
+		startWalk(occupant, walkFrom.Position)
+	else
+		visual.Root.CFrame = getSlotCFrame(plot, slotIndex)
+	end
+
 	plot.Occupants[slotIndex] = occupant
+	visual.Model.Parent = brainrotsFolder
 	return occupant
 end
 
 local function destroyOccupant(occupant: Occupant)
 	stopWalking(occupant)
 	occupant.Model:Destroy()
+end
+
+--------------------------------------------------------------------------------
+-- Buying a walking brainrot off its buyer
+--------------------------------------------------------------------------------
+
+onSnipeTriggered = function(occupant: Occupant, sniper: Player)
+	local walk = occupant.Walk
+	local ownerPlot = occupant.Plot
+	local owner = ownerPlot.Owner
+	if walk == nil or walk.Entered or occupant.Sniping or owner == nil or owner == sniper then
+		return
+	end
+	if ownerPlot.Occupants[occupant.SlotIndex] ~= occupant then
+		return
+	end
+	local sniperPlot = plotByPlayer[sniper]
+	if sniperPlot == nil then
+		notify(sniper, "You don't have a base yet.", "Error")
+		return
+	end
+	if not isPlayerNear(sniper, occupant.PromptAttachment.WorldPosition) then
+		return
+	end
+	local slotIndex = findFreeSlot(sniperPlot)
+	if slotIndex == nil then
+		notify(sniper, "Your base is full! Sell a brainrot first.", "Error")
+		return
+	end
+
+	local price = occupant.Price
+	local name = fullName(occupant.Definition, occupant.Mutation)
+	occupant.Sniping = true
+	sniperPlot.Reserved[slotIndex] = true
+	local paid = spendCash(sniper, price)
+	sniperPlot.Reserved[slotIndex] = nil
+	occupant.Sniping = false
+	if not paid then
+		notify(sniper, string.format("You need %s to buy %s.", NumberFormat.cash(price), name), "Error")
+		return
+	end
+
+	-- Anything could have changed while paying: if so, give the Cash back.
+	local currentWalk = occupant.Walk
+	if
+		currentWalk == nil
+		or currentWalk.Entered
+		or occupant.Plot ~= ownerPlot
+		or ownerPlot.Owner ~= owner
+		or ownerPlot.Occupants[occupant.SlotIndex] ~= occupant
+		or sniperPlot.Owner ~= sniper
+		or sniperPlot.Occupants[slotIndex] ~= nil
+	then
+		addCash(sniper, price)
+		return
+	end
+
+	ownerPlot.Occupants[occupant.SlotIndex] = nil
+	if not saveBrainrots(ownerPlot) then
+		ownerPlot.Occupants[occupant.SlotIndex] = occupant
+		addCash(sniper, price)
+		return
+	end
+	addCash(owner, price)
+
+	occupant.Plot = sniperPlot
+	occupant.SlotIndex = slotIndex
+	sniperPlot.Occupants[slotIndex] = occupant
+	saveBrainrots(sniperPlot)
+	setOccupantOwner(occupant, sniper)
+	startWalk(occupant, occupant.Root.Position)
+
+	notify(sniper, string.format("You bought %s off %s!", name, owner.DisplayName), "Success", "Purchase")
+	notify(
+		owner,
+		string.format("%s bought your %s before it got home! You got %s back.", sniper.DisplayName, name, NumberFormat.cash(price)),
+		"Error",
+		"Sniped"
+	)
 end
 
 --------------------------------------------------------------------------------
@@ -615,7 +995,7 @@ local function endCarry(carry: Carry, message: string?)
 		carries[thief] = nil
 	end
 	carry.TargetPlot.Reserved[carry.TargetSlot] = nil
-	restoreWalkSpeed(thief)
+	setCarrying(thief, false)
 
 	local occupant = carry.Occupant
 	occupant.Carrier = nil
@@ -635,7 +1015,7 @@ local function endCarry(carry: Carry, message: string?)
 		notify(thief, message, "Warning")
 		local victim = victimPlot.Owner
 		if victim then
-			notify(victim, string.format("Your %s is back home.", fullName(occupant.Definition, occupant.Mutation)), "Success")
+			notify(victim, string.format("Your %s is back home.", fullName(occupant.Definition, occupant.Mutation)), "Success", "Returned")
 		end
 	end
 end
@@ -654,7 +1034,7 @@ local function completeSteal(carry: Carry)
 
 	carries[thief] = nil
 	targetPlot.Reserved[carry.TargetSlot] = nil
-	restoreWalkSpeed(thief)
+	setCarrying(thief, false)
 
 	-- Remove from the victim first: if the victim's data can no longer be
 	-- written, the thief gets nothing rather than a duplicate.
@@ -665,18 +1045,22 @@ local function completeSteal(carry: Carry)
 		return
 	end
 
-	placeOccupant(targetPlot, carry.TargetSlot, occupant.Definition, occupant.Mutation, nil)
+	placeOccupant(targetPlot, carry.TargetSlot, occupant.Definition, occupant.Mutation, nil, occupant.Price)
 	saveBrainrots(targetPlot)
+	addStealsFunction:Invoke(thief, 1)
 
 	local name = fullName(occupant.Definition, occupant.Mutation)
-	notify(thief, string.format("You stole %s!", name), "Success")
-	notify(victim, string.format("%s stole your %s!", thief.DisplayName, name), "Error")
+	notify(thief, string.format("You stole %s!", name), "Success", "StealSuccess")
+	notify(victim, string.format("%s stole your %s!", thief.DisplayName, name), "Error", "Stolen")
 end
 
 onStealTriggered = function(occupant: Occupant, thief: Player)
 	local victimPlot = occupant.Plot
 	local victim = victimPlot.Owner
-	if victim == nil or victim == thief or occupant.Carrier ~= nil or victimPlot.Occupants[occupant.SlotIndex] ~= occupant then
+	if victim == nil or victim == thief or occupant.Carrier ~= nil or occupant.Walk ~= nil then
+		return
+	end
+	if victimPlot.Occupants[occupant.SlotIndex] ~= occupant then
 		return
 	end
 	if carries[thief] then
@@ -699,7 +1083,6 @@ onStealTriggered = function(occupant: Occupant, thief: Player)
 	end
 
 	thiefPlot.Reserved[targetSlot] = true
-	stopWalking(occupant)
 	occupant.Carrier = thief
 	occupant.Model:SetAttribute("State", "Carried")
 	setOccupantCarried(occupant, true)
@@ -712,7 +1095,6 @@ onStealTriggered = function(occupant: Occupant, thief: Player)
 	weld.Part1 = root
 	weld.Parent = root
 
-	humanoid.WalkSpeed = GameConfig.CarryWalkSpeed
 	carries[thief] = {
 		Thief = thief,
 		Occupant = occupant,
@@ -724,14 +1106,15 @@ onStealTriggered = function(occupant: Occupant, thief: Player)
 		LastCheckedAt = os.clock(),
 		Weld = weld,
 	}
+	setCarrying(thief, true)
 
-	notify(thief, "Run it back to your base!", "Info")
-	notify(victim, string.format("%s is stealing your %s! Catch them!", thief.DisplayName, fullName(occupant.Definition, occupant.Mutation)), "Warning")
+	notify(thief, "Run it back to your base!", "Info", "Grab")
+	notify(victim, string.format("%s is stealing your %s! Catch them!", thief.DisplayName, fullName(occupant.Definition, occupant.Mutation)), "Warning", "Alarm")
 end
 
 onSellTriggered = function(occupant: Occupant, player: Player)
 	local plot = occupant.Plot
-	if plot.Owner ~= player or occupant.Carrier ~= nil or plot.Occupants[occupant.SlotIndex] ~= occupant then
+	if plot.Owner ~= player or occupant.Carrier ~= nil or occupant.Walk ~= nil or plot.Occupants[occupant.SlotIndex] ~= occupant then
 		return
 	end
 	if not isPlayerNear(player, occupant.PromptAttachment.WorldPosition) then
@@ -749,8 +1132,18 @@ onSellTriggered = function(occupant: Occupant, player: Player)
 	if refund > 0 then
 		addCash(player, refund)
 	end
-	notify(player, string.format("Sold %s for %s", fullName(occupant.Definition, occupant.Mutation), NumberFormat.cash(refund)), "Success")
+	notify(player, string.format("Sold %s for %s", fullName(occupant.Definition, occupant.Mutation), NumberFormat.cash(refund)), "Success", "Sell")
 end
+
+forceDropEvent.Event:Connect(function(playerArg: any, message: any)
+	if typeof(playerArg) ~= "Instance" or not playerArg:IsA("Player") then
+		return
+	end
+	local carry = carries[playerArg]
+	if carry then
+		endCarry(carry, if typeof(message) == "string" then message else "You dropped the brainrot!")
+	end
+end)
 
 --------------------------------------------------------------------------------
 -- Conveyor
@@ -813,13 +1206,22 @@ local function rollDefinition(): Definition?
 	return pickFromRarity(commonRarity.Name)
 end
 
+local function mutationChance(mutation: Mutation): number
+	local event = activeEvent
+	if event and event.Mutation == mutation.Name then
+		return mutation.Chance * event.ChanceMultiplier
+	end
+	return mutation.Chance
+end
+
 local function rollMutation(): Mutation?
 	local roll = rng:NextNumber()
 	for _, mutation in BrainrotConfig.Mutations do
-		if roll < mutation.Chance then
+		local chance = mutationChance(mutation)
+		if roll < chance then
 			return mutation
 		end
-		roll -= mutation.Chance
+		roll -= chance
 	end
 	return nil
 end
@@ -871,9 +1273,9 @@ local function onBuyTriggered(item: ConveyorItem, player: Player)
 
 	local fromCFrame = item.Root.CFrame
 	removeConveyorItem(item)
-	placeOccupant(plot, slotIndex, definition, item.Mutation, fromCFrame)
+	placeOccupant(plot, slotIndex, definition, item.Mutation, fromCFrame, item.Price)
 	saveBrainrots(plot)
-	notify(player, string.format("You bought %s!", name), "Success")
+	notify(player, string.format("You bought %s! It's walking to your base.", name), "Success", "Purchase")
 end
 
 local function spawnConveyorBrainrot()
@@ -893,7 +1295,7 @@ local function spawnConveyorBrainrot()
 	local startCFrame = CFrame.lookAt(startPosition, endPosition)
 	local endCFrame = startCFrame + direction
 
-	local visual = buildBrainrot(definition, mutation, price)
+	local visual = buildBrainrot(definition, mutation, price, nil)
 	visual.Model:SetAttribute("State", "Conveyor")
 	visual.Root.CFrame = startCFrame
 	visual.Model.Parent = brainrotsFolder
@@ -938,6 +1340,132 @@ local function spawnConveyorBrainrot()
 end
 
 --------------------------------------------------------------------------------
+-- Collect pads
+--------------------------------------------------------------------------------
+
+local function padCashList(plot: Plot): { number }
+	local list: { number } = table.create(#plot.Slots)
+	for index = 1, #plot.Slots do
+		list[index] = math.floor(plot.PadCash[index] or 0)
+	end
+	return list
+end
+
+local function updatePadLabel(plot: Plot, index: number)
+	local pad = plot.Pads[index]
+	if pad == nil then
+		return
+	end
+	local amount = math.floor(plot.PadCash[index] or 0)
+	pad.Billboard.Enabled = plot.Owner ~= nil and (amount > 0 or plot.Occupants[index] ~= nil)
+	pad.Amount.Text = NumberFormat.cash(amount)
+	pad.Tag.Visible = plot.OfflinePads[index] == true and amount > 0
+end
+
+local function updatePadLabels(plot: Plot)
+	for index in plot.Pads do
+		updatePadLabel(plot, index)
+	end
+end
+
+local function clearPads(plot: Plot)
+	for index = 1, #plot.Slots do
+		plot.PadCash[index] = 0
+	end
+	table.clear(plot.OfflinePads)
+	updatePadLabels(plot)
+end
+
+local function isOnPad(pad: BasePart, position: Vector3): boolean
+	local offset = pad.CFrame:PointToObjectSpace(position)
+	return math.abs(offset.X) <= pad.Size.X / 2 + PAD_REACH
+		and math.abs(offset.Z) <= pad.Size.Z / 2 + PAD_REACH
+		and offset.Y >= -1
+		and offset.Y <= 6
+end
+
+-- The owner standing on a pad collects its Cash.
+local function collectPads(plot: Plot)
+	local owner = plot.Owner
+	local rootPart = if owner then getLiveCharacter(owner) else nil
+	if owner == nil or rootPart == nil or not isInsidePart(plot.Interior, rootPart.Position) then
+		return
+	end
+	for index, pad in plot.Pads do
+		local amount = plot.PadCash[index] or 0
+		local whole = math.floor(amount)
+		if whole >= 1 and isOnPad(pad.Part, rootPart.Position) then
+			local wasOffline = plot.OfflinePads[index]
+			plot.PadCash[index] = amount - whole
+			plot.OfflinePads[index] = nil
+			if collectPadCashFunction:Invoke(owner, whole, padCashList(plot)) == true then
+				playSound(owner, "Collect")
+			else
+				plot.PadCash[index] = amount
+				plot.OfflinePads[index] = wasOffline
+			end
+			updatePadLabel(plot, index)
+		end
+	end
+end
+
+local function createPadGui(part: BasePart): Pad
+	local surface = Instance.new("SurfaceGui")
+	surface.Name = "CollectGui"
+	surface.Face = Enum.NormalId.Top
+	surface.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	surface.PixelsPerStud = 40
+	surface.LightInfluence = 0
+
+	local collectText = Instance.new("TextLabel")
+	collectText.BackgroundTransparency = 1
+	collectText.Size = UDim2.fromScale(1, 1)
+	collectText.Font = Enum.Font.FredokaOne
+	collectText.Text = "COLLECT"
+	collectText.TextScaled = true
+	collectText.TextColor3 = Color3.fromRGB(235, 255, 235)
+	collectText.TextStrokeTransparency = 0.4
+	collectText.Parent = surface
+	surface.Parent = part
+
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "PadGui"
+	billboard.Adornee = part
+	billboard.Size = UDim2.fromOffset(160, 56)
+	billboard.StudsOffsetWorldSpace = Vector3.new(0, 2.2, 0)
+	billboard.MaxDistance = 50
+	billboard.LightInfluence = 0
+	billboard.Enabled = false
+
+	local tag = Instance.new("TextLabel")
+	tag.Name = "Tag"
+	tag.BackgroundTransparency = 1
+	tag.Size = UDim2.fromScale(1, 0.4)
+	tag.Font = Enum.Font.FredokaOne
+	tag.Text = "OFFLINE CASH"
+	tag.TextScaled = true
+	tag.TextColor3 = Color3.fromRGB(255, 225, 70)
+	tag.TextStrokeTransparency = 0.2
+	tag.Visible = false
+	tag.Parent = billboard
+
+	local amount = Instance.new("TextLabel")
+	amount.Name = "Amount"
+	amount.BackgroundTransparency = 1
+	amount.Position = UDim2.fromScale(0, 0.38)
+	amount.Size = UDim2.fromScale(1, 0.62)
+	amount.Font = Enum.Font.FredokaOne
+	amount.Text = "$0"
+	amount.TextScaled = true
+	amount.TextColor3 = Color3.fromRGB(90, 255, 110)
+	amount.TextStrokeTransparency = 0.1
+	amount.Parent = billboard
+
+	billboard.Parent = part
+	return { Part = part, Billboard = billboard, Amount = amount, Tag = tag }
+end
+
+--------------------------------------------------------------------------------
 -- Plots
 --------------------------------------------------------------------------------
 
@@ -974,10 +1502,10 @@ local function onLockButtonTouched(plot: Plot, hit: BasePart)
 	plot.Model:SetAttribute("LockEndsAt", plot.LockEndsAt)
 	setLasersActive(plot, true)
 	updatePlotLabels(plot)
-	notify(owner, string.format("Base locked for %d seconds!", GameConfig.LockDurationSeconds), "Success")
+	notify(owner, string.format("Base locked for %d seconds!", GameConfig.LockDurationSeconds), "Success", "Lock")
 end
 
-local function createSign(plot: Plot, sign: BasePart): (TextLabel, TextLabel)
+local function createSign(sign: BasePart): (TextLabel, TextLabel)
 	local surfaceGui = Instance.new("SurfaceGui")
 	surfaceGui.Name = "SignGui"
 	surfaceGui.Face = Enum.NormalId.Front
@@ -1040,25 +1568,32 @@ local function findPart(parent: Instance, name: string): BasePart?
 	return nil
 end
 
-local function collectNumberedParts(folder: Instance?, prefix: string): { BasePart }
-	local parts: { BasePart } = {}
+local function collectNumberedParts(folder: Instance?, prefix: string): { [number]: BasePart }
+	local parts: { [number]: BasePart } = {}
 	if folder == nil then
 		return parts
 	end
-	local numbered: { { number: number, part: BasePart } } = {}
 	for _, child in folder:GetChildren() do
 		local suffix = string.match(child.Name, "^" .. prefix .. "(%d+)$")
 		if suffix and child:IsA("BasePart") then
-			table.insert(numbered, { number = tonumber(suffix) :: number, part = child })
+			parts[tonumber(suffix) :: number] = child
 		end
 	end
-	table.sort(numbered, function(a, b)
-		return a.number < b.number
-	end)
-	for _, entry in numbered do
-		table.insert(parts, entry.part)
-	end
 	return parts
+end
+
+-- Numbered parts in order, skipping gaps.
+local function sortedParts(parts: { [number]: BasePart }): { BasePart }
+	local numbers: { number } = {}
+	for number in parts do
+		table.insert(numbers, number)
+	end
+	table.sort(numbers)
+	local list: { BasePart } = {}
+	for _, number in numbers do
+		table.insert(list, parts[number])
+	end
+	return list
 end
 
 local function loadPlot(model: Instance, index: number): Plot?
@@ -1071,32 +1606,50 @@ local function loadPlot(model: Instance, index: number): Plot?
 	local lockButton = findPart(model, "LockButton")
 	local spawnPoint = findPart(model, "SpawnPoint")
 	local sign = findPart(model, "Sign")
-	local slots = collectNumberedParts(model:FindFirstChild("Slots"), "Slot")
-	local lasers = collectNumberedParts(model:FindFirstChild("Lasers"), "Laser")
+	local slotParts = collectNumberedParts(model:FindFirstChild("Slots"), "Slot")
+	local slots = sortedParts(slotParts)
+	local lasers = sortedParts(collectNumberedParts(model:FindFirstChild("Lasers"), "Laser"))
 	if floor == nil or interior == nil or laserZone == nil or lockButton == nil or spawnPoint == nil or sign == nil or #slots == 0 then
 		warn(string.format("%s %s is missing parts and was skipped.", LOG_PREFIX, model:GetFullName()))
 		return nil
 	end
 
+	-- Pad N belongs to Slot N.
+	local pads: { [number]: Pad } = {}
+	local padParts = collectNumberedParts(model:FindFirstChild("Pads"), "Pad")
+	local padCash: { number } = {}
+	for slotIndex, slot in slots do
+		padCash[slotIndex] = 0
+		for number, slotPart in slotParts do
+			local padPart = padParts[number]
+			if slotPart == slot and padPart then
+				pads[slotIndex] = createPadGui(padPart)
+			end
+		end
+	end
+
+	local title, subtitle = createSign(sign)
 	local plot: Plot = {
 		Index = index,
 		Model = model,
 		Floor = floor,
 		Interior = interior,
 		LaserZone = laserZone,
+		Carpet = findPart(model, "Carpet"),
 		Lasers = lasers,
 		SpawnPoint = spawnPoint,
 		Slots = slots,
+		Pads = pads,
+		PadCash = padCash,
+		OfflinePads = {},
 		Occupants = {},
 		Reserved = {},
 		Owner = nil,
 		LockEndsAt = 0,
-		IncomeRemainder = 0,
-		SignTitle = nil :: any,
-		SignSubtitle = nil :: any,
+		SignTitle = title,
+		SignSubtitle = subtitle,
 		LockLabel = createLockLabel(lockButton),
 	}
-	plot.SignTitle, plot.SignSubtitle = createSign(plot, sign)
 
 	model:SetAttribute("OwnerUserId", 0)
 	model:SetAttribute("LockEndsAt", 0)
@@ -1114,6 +1667,51 @@ local function teleportToPlot(player: Player)
 	local character = player.Character
 	if plot and character then
 		character:PivotTo(plot.SpawnPoint.CFrame * CFrame.new(0, 4, 0))
+	end
+end
+
+-- Uncollected Cash from last time goes back on the pads, and brainrots earn
+-- offline cash for the time the player was away.
+local function restorePads(player: Player, plot: Plot)
+	local saved = getPadCashFunction:Invoke(player)
+	if typeof(saved) == "table" then
+		for index, amount in saved do
+			if typeof(index) == "number" and typeof(amount) == "number" and amount > 0 then
+				-- A pad that no longer exists hands its Cash to the first one.
+				local target = if index <= #plot.Slots then index else 1
+				plot.PadCash[target] = (plot.PadCash[target] or 0) + amount
+			end
+		end
+	end
+
+	local seconds = tonumber(takeOfflineSecondsFunction:Invoke(player)) or 0
+	local total = 0
+	if seconds >= GameConfig.OfflineMinSeconds then
+		local earningSeconds = math.min(seconds, GameConfig.OfflineMaxHours * 3600)
+		local multiplier = getIncomeMultiplier(player) * GameConfig.OfflineIncomeFraction
+		for index, occupant in plot.Occupants do
+			local earned = math.floor(incomeOf(occupant.Definition, occupant.Mutation) * multiplier * earningSeconds)
+			if earned > 0 then
+				plot.PadCash[index] = (plot.PadCash[index] or 0) + earned
+				plot.OfflinePads[index] = true
+				total += earned
+			end
+		end
+	end
+	setPadCashFunction:Invoke(player, padCashList(plot))
+	updatePadLabels(plot)
+
+	if total > 0 then
+		notify(
+			player,
+			string.format(
+				"Welcome back! Your brainrots made %s while you were away (%s). Step on the green pads to collect it!",
+				NumberFormat.cash(total),
+				NumberFormat.duration(math.min(seconds, GameConfig.OfflineMaxHours * 3600))
+			),
+			"Success",
+			"OfflineCash"
+		)
 	end
 end
 
@@ -1135,7 +1733,6 @@ local function assignPlot(player: Player)
 
 	plot.Owner = player
 	plotByPlayer[player] = plot
-	plot.IncomeRemainder = 0
 	plot.Model:SetAttribute("OwnerUserId", player.UserId)
 
 	local savedIds = getBrainrotsFunction:Invoke(player)
@@ -1148,7 +1745,7 @@ local function assignPlot(player: Player)
 				definition, mutation = BrainrotConfig.decode(entry)
 			end
 			if definition and nextSlot <= #plot.Slots then
-				placeOccupant(plot, nextSlot, definition, mutation, nil)
+				placeOccupant(plot, nextSlot, definition, mutation, nil, nil)
 				nextSlot += 1
 			else
 				changed = true
@@ -1161,7 +1758,7 @@ local function assignPlot(player: Player)
 		local data = getPlayerData(player)
 		local starter = BrainrotConfig.ById[GameConfig.StarterBrainrotId]
 		if data and data.Cash == 0 and data.Rebirths == 0 and starter then
-			placeOccupant(plot, 1, starter, nil, nil)
+			placeOccupant(plot, 1, starter, nil, nil, nil)
 			changed = true
 			notify(player, string.format("Welcome! Here's a free %s to get you started.", starter.DisplayName), "Success")
 		end
@@ -1170,6 +1767,7 @@ local function assignPlot(player: Player)
 		saveBrainrots(plot)
 	end
 
+	restorePads(player, plot)
 	updatePlotLabels(plot)
 	teleportToPlot(player)
 end
@@ -1198,29 +1796,16 @@ local function releasePlot(player: Player)
 	plotByPlayer[player] = nil
 	plot.Owner = nil
 	plot.LockEndsAt = 0
-	plot.IncomeRemainder = 0
 	plot.Model:SetAttribute("OwnerUserId", 0)
 	plot.Model:SetAttribute("LockEndsAt", 0)
 	setLasersActive(plot, false)
+	clearPads(plot)
 	updatePlotLabels(plot)
 end
 
 --------------------------------------------------------------------------------
 -- Ticks
 --------------------------------------------------------------------------------
-
-local function getIncomeMultiplier(player: Player): number
-	local data = getPlayerData(player)
-	if data == nil then
-		return 1
-	end
-	local rebirths = tonumber(data.Rebirths) or 0
-	local passes = data.OwnedGamePasses
-	local doubleCashId = MonetizationConfig.GamePasses.DoubleCash
-	local hasDoubleCash = doubleCashId ~= nil and typeof(passes) == "table" and passes[tostring(doubleCashId)] == true
-	return GameConfig.getRebirthIncomeMultiplier(rebirths)
-		* (if hasDoubleCash then MonetizationConfig.DoubleCashIncomeMultiplier else 1)
-end
 
 -- Horizontal speed check for thieves, so a teleport can't carry a stolen
 -- brainrot home. Vertical movement (jumps, falls) is ignored.
@@ -1233,7 +1818,7 @@ local function movedTooFast(carry: Carry, position: Vector3, clock: number): boo
 	return horizontalDistance > GameConfig.CarryWalkSpeed * elapsed * 2 + GameConfig.CarrySpeedToleranceStuds
 end
 
--- Runs every FAST_TICK_SECONDS: laser doors and brainrots being carried.
+-- Runs every FAST_TICK_SECONDS: laser doors, collect pads and brainrots being carried.
 local function fastTick()
 	for _, plot in plots do
 		local owner = plot.Owner
@@ -1248,10 +1833,13 @@ local function fastTick()
 						and isLaserBypassActiveFunction:Invoke(player) ~= true
 					then
 						humanoid.Health = 0
-						notify(player, "Zapped by the laser door!", "Error")
+						notify(player, "Zapped by the laser door!", "Error", "Zap")
 					end
 				end
 			end
+		end
+		if owner then
+			collectPads(plot)
 		end
 	end
 
@@ -1276,7 +1864,6 @@ local function fastTick()
 	end
 end
 
--- Runs every SLOW_TICK_SECONDS: income, lock timers and signs.
 local spawnSignLabel: TextLabel? = nil
 do
 	local spawnSign = conveyorFolder:FindFirstChild("SpawnSign", true)
@@ -1325,6 +1912,7 @@ local function updateSpawnSign()
 	label.Text = table.concat(lines, "\n")
 end
 
+-- Runs every SLOW_TICK_SECONDS: income onto the pads, lock timers and signs.
 local function slowTick()
 	local now = Workspace:GetServerTimeNow()
 	for _, plot in plots do
@@ -1336,21 +1924,18 @@ local function slowTick()
 
 		local owner = plot.Owner
 		if owner then
-			local baseIncome = 0
-			for _, occupant in plot.Occupants do
-				if occupant.Carrier == nil then
-					baseIncome += incomeOf(occupant.Definition, occupant.Mutation)
+			local multiplier = getIncomeMultiplier(owner)
+			local incomePerSecond = 0
+			for index, occupant in plot.Occupants do
+				if occupant.Carrier == nil and occupant.Walk == nil then
+					local income = incomeOf(occupant.Definition, occupant.Mutation) * multiplier
+					incomePerSecond += income
+					plot.PadCash[index] = (plot.PadCash[index] or 0) + income * SLOW_TICK_SECONDS
 				end
 			end
-			local incomePerSecond = baseIncome * getIncomeMultiplier(owner)
 			owner:SetAttribute("IncomePerSecond", incomePerSecond)
-
-			local amount = incomePerSecond * SLOW_TICK_SECONDS + plot.IncomeRemainder
-			local whole = math.floor(amount)
-			plot.IncomeRemainder = amount - whole
-			if whole > 0 then
-				addCash(owner, whole)
-			end
+			setPadCashFunction:Invoke(owner, padCashList(plot))
+			updatePadLabels(plot)
 		end
 		updatePlotLabels(plot)
 	end
@@ -1366,6 +1951,35 @@ local function runLoop(intervalSeconds: number, name: string, callback: () -> ()
 			end)
 		end
 	end)
+end
+
+--------------------------------------------------------------------------------
+-- Mutation events
+--------------------------------------------------------------------------------
+
+local function notifyAll(message: string, kind: NotifyKind, sound: string?)
+	for _, player in Players:GetPlayers() do
+		notify(player, message, kind, sound)
+	end
+end
+
+local function runEvent(event: MutationEvent)
+	local endsAt = Workspace:GetServerTimeNow() + GameConfig.EventDurationSeconds
+	activeEvent = event
+	ReplicatedStorage:SetAttribute("EventName", event.Name)
+	ReplicatedStorage:SetAttribute("EventMutation", event.Mutation)
+	ReplicatedStorage:SetAttribute("EventEndsAt", endsAt)
+	notifyAll(
+		string.format("%s! %s brainrots are %dx more common for %s!", event.Name, event.Mutation, event.ChanceMultiplier, NumberFormat.duration(GameConfig.EventDurationSeconds)),
+		"Info",
+		"Event"
+	)
+	task.wait(GameConfig.EventDurationSeconds)
+	activeEvent = nil
+	ReplicatedStorage:SetAttribute("EventName", nil)
+	ReplicatedStorage:SetAttribute("EventMutation", nil)
+	ReplicatedStorage:SetAttribute("EventEndsAt", 0)
+	notifyAll(event.Name .. " is over.", "Info")
 end
 
 --------------------------------------------------------------------------------
@@ -1391,11 +2005,16 @@ requestRebirthFunction.OnServerInvoke = function(player: Player): (boolean, stri
 		return false, string.format("You need %s to rebirth.", NumberFormat.cash(cost))
 	end
 
-	-- Rebirthing resets Cash to 0 and keeps your brainrots.
+	-- Rebirthing resets Cash and the pads to 0 and keeps your brainrots.
 	if not spendCash(player, cash) then
 		return false, "Rebirth failed, try again."
 	end
 	addRebirthsFunction:Invoke(player, 1)
+	local plot = plotByPlayer[player]
+	if plot then
+		clearPads(plot)
+	end
+	setPadCashFunction:Invoke(player, if plot then padCashList(plot) else {})
 
 	local message = string.format(
 		"Rebirth %d! Your income is now x%s.",
@@ -1416,7 +2035,7 @@ end
 
 empLaserPurchasedEvent.Event:Connect(function(player: any, durationSeconds: any)
 	if typeof(player) == "Instance" and player:IsA("Player") then
-		notify(player, string.format("EMP active! Walk through laser doors for %d seconds.", tonumber(durationSeconds) or 0), "Success")
+		notify(player, string.format("EMP active! Walk through laser doors for %d seconds.", tonumber(durationSeconds) or 0), "Success", "Purchase")
 	end
 end)
 
@@ -1425,14 +2044,11 @@ serverRarityBoostChangedEvent.Event:Connect(function(multiplier: any, _endsAt: a
 	if boost <= 1 or typeof(purchaser) ~= "Instance" or not purchaser:IsA("Player") then
 		return
 	end
-	local message = string.format(
-		"%s activated a x%s Rarity Boost for the whole server!",
-		purchaser.DisplayName,
-		tostring(boost)
+	notifyAll(
+		string.format("%s activated a x%s Rarity Boost for the whole server!", purchaser.DisplayName, tostring(boost)),
+		"Success",
+		"Event"
 	)
-	for _, player in Players:GetPlayers() do
-		notify(player, message, "Success")
-	end
 end)
 
 --------------------------------------------------------------------------------
@@ -1447,6 +2063,7 @@ local function onCharacterAdded(player: Player, character: Model)
 end
 
 local function onPlayerAdded(player: Player)
+	player:SetAttribute("Carrying", false)
 	player.CharacterAdded:Connect(function(character: Model)
 		onCharacterAdded(player, character)
 	end)
@@ -1493,6 +2110,8 @@ do
 	end
 end
 
+ReplicatedStorage:SetAttribute("EventEndsAt", 0)
+
 Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(onPlayerRemoving)
 for _, player in Players:GetPlayers() do
@@ -1502,6 +2121,12 @@ end
 runLoop(FAST_TICK_SECONDS, "Fast tick", fastTick)
 runLoop(SLOW_TICK_SECONDS, "Slow tick", slowTick)
 
+RunService.Heartbeat:Connect(function(dt: number)
+	xpcall(stepWalkers, function(err: any)
+		warn(string.format("%s Walking failed: %s", LOG_PREFIX, tostring(err)))
+	end, dt)
+end)
+
 task.spawn(function()
 	while true do
 		task.wait(GameConfig.ConveyorSpawnIntervalSeconds)
@@ -1509,6 +2134,19 @@ task.spawn(function()
 			xpcall(spawnConveyorBrainrot, function(err: any)
 				warn(string.format("%s Conveyor spawn failed: %s", LOG_PREFIX, tostring(err)))
 			end)
+		end
+	end
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(rng:NextNumber(GameConfig.EventMinGapSeconds, GameConfig.EventMaxGapSeconds))
+		local events = GameConfig.Events
+		if #events > 0 then
+			xpcall(runEvent, function(err: any)
+				activeEvent = nil
+				warn(string.format("%s Event failed: %s", LOG_PREFIX, tostring(err)))
+			end, events[rng:NextInteger(1, #events)])
 		end
 	end
 end)

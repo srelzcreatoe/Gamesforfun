@@ -10,9 +10,9 @@
           "Anchored": true,
           "Locked": true,
           "Size": [
-            512,
+            640,
             20,
-            512
+            400
           ],
           "CFrame": {
             "CFrame": {
@@ -64,7 +64,7 @@
               "position": [
                 0,
                 0.5,
-                -30
+                -22
               ],
               "orientation": [
                 [
@@ -105,6 +105,12 @@
       },
       "GameplayManager": {
         "$path": "ServerScriptService/GameplayManager.server.luau"
+      },
+      "GearManager": {
+        "$path": "ServerScriptService/GearManager.server.luau"
+      },
+      "LeaderboardManager": {
+        "$path": "ServerScriptService/LeaderboardManager.server.luau"
       }
     },
     "ReplicatedStorage": {

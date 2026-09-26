@@ -11,6 +11,11 @@ smooth model is voxelised (48 blocks tall), every block takes the average
 texture colour under it, the colours are reduced to a 40-colour palette, and
 touching faces of the same colour are merged into larger quads.
 
+So the brainrots can really walk, each model is split into a body and its
+legs: the separate blocks touching the ground, up to the height where they
+join the body. Every leg becomes its own mesh with a hip pivot and a step
+phase, and the client swings them while the brainrot walks.
+
 Inputs (paths relative to the StealABrainrot folder):
   BrainrotModels/source/<Id>.glb  raw Higgsfield models (optional, not committed)
   BrainrotModels/<Id>.glb         smooth models, used when there is no raw one
@@ -57,7 +62,10 @@ PALETTE_SIZE = 40
 COLOUR_SAMPLES = 400000
 ICON_SIZE = 128
 CHUNK = 8000  # characters per string literal
-MESH_FORMAT = 2
+MESH_FORMAT = 3
+# Legs: separate block groups touching the ground, at most this far up the model.
+MAX_HIP_FRACTION = 0.42
+MIN_LEG_BLOCKS = 6
 ICON_FORMAT = 1
 
 
@@ -294,6 +302,102 @@ def write_blocky_glb(path: Path, quads, palette, dims):
     path.write_bytes(trimesh.Scene(mesh).export(file_type="glb"))
 
 
+def fill_hidden_colours(grid):
+    """Gives hidden inside blocks the colour of the nearest visible block.
+
+    Cutting off a leg exposes blocks that were inside the model.
+    """
+    hidden = grid < 0
+    if not hidden.any():
+        return grid
+    _, nearest = ndimage.distance_transform_edt(grid <= 0, return_indices=True)
+    filled = grid.copy()
+    filled[hidden] = grid[tuple(index[hidden] for index in nearest)]
+    return filled
+
+
+def track_leg_runs(solid, max_hip):
+    """Finds runs of layers where two big block groups stay apart (the legs).
+
+    Yields (start, hip, left, right) for each run: the first layer, the layer
+    where the two groups join, and each group's 2D mask on the last layer.
+    """
+    tracked = None
+    start = 0
+    for y in range(max_hip + 1):
+        labels, count = ndimage.label(solid[:, y, :]) if y < max_hip else (None, 0)
+        if tracked is not None:
+            joined = labels is None
+            groups = []
+            if not joined:
+                for mask in tracked:
+                    ids = set(np.unique(labels[mask])) - {0}
+                    groups.append(ids)
+                joined = not groups[0] or not groups[1] or bool(groups[0] & groups[1])
+            if joined:
+                yield start, y, tracked[0], tracked[1]
+                tracked = None
+            else:
+                tracked = [np.isin(labels, list(ids)) for ids in groups]
+                continue
+        if labels is None or count < 2:
+            continue
+        sizes = ndimage.sum(np.ones_like(labels), labels, range(1, count + 1))
+        order = np.argsort(sizes)[::-1]
+        if sizes[order[1]] >= max(3, 0.2 * sizes[order[0]]):
+            tracked = [labels == order[0] + 1, labels == order[1] + 1]
+            start = y
+
+
+def find_legs(grid):
+    """Finds the legs: the two block groups that stand apart above the ground.
+
+    Feet may touch each other, so the longest run of layers where two groups
+    stay apart decides the hip; everything below the hip that is connected to
+    the ground is split between the legs at the gap. Returns (mask, pivot,
+    phase) for each leg, with the hip pivot in block units.
+    """
+    solid = grid != 0
+    height = solid.shape[1]
+    max_hip = int(height * MAX_HIP_FRACTION)
+    runs = [run for run in track_leg_runs(solid, max_hip) if run[0] <= height * 0.25]
+    if not runs:
+        return []
+    start, hip, left_2d, right_2d = max(runs, key=lambda run: run[1] - run[0])
+    if hip - start < 2:
+        return []
+
+    labels, _ = ndimage.label(solid[:, :hip, :])
+    grounded = set(np.unique(labels[:, :2, :])) - {0}
+    top_ids = set(np.unique(labels[:, hip - 1, :][left_2d | right_2d])) - {0}
+    leg_ids = [label for label in grounded if label in top_ids]
+    if not leg_ids:
+        return []
+    below = np.zeros(solid.shape, dtype=bool)
+    below[:, :hip, :] = np.isin(labels, leg_ids)
+
+    # Split at the gap between the two groups on the last layer before the hip.
+    left_x = np.argwhere(left_2d)[:, 0].mean()
+    right_x = np.argwhere(right_2d)[:, 0].mean()
+    split_x = (left_x + right_x) / 2
+    xs = np.arange(solid.shape[0])[:, None, None]
+    legs = []
+    for side in (xs < split_x, xs >= split_x):
+        mask = below & side
+        if mask.sum() < MIN_LEG_BLOCKS:
+            return []
+        centre = np.argwhere(mask).mean(axis=0) + 0.5
+        legs.append((mask, (float(centre[0]), float(hip), float(centre[2])), int(centre[0] < split_x)))
+    return legs
+
+
+def pack_quads(quads):
+    packed = bytearray()
+    for axis, positive, k, i, j, u_size, v_size, colour in quads:
+        packed += bytes((axis * 2 + positive, k, i, j, u_size, v_size, colour))
+    return luau_string(compress(bytes(packed)))
+
+
 def build_brainrot(brainrot_id: str):
     source = SOURCE_DIR / f"{brainrot_id}.glb"
     smooth = MODELS_DIR / f"{brainrot_id}.glb"
@@ -303,17 +407,31 @@ def build_brainrot(brainrot_id: str):
     mesh, texture = load_glb(smooth)
 
     grid, palette = voxelise(mesh, texture)
-    quads = greedy_quads(grid)
     dims = grid.shape
     if max(dims) > 255:
         raise ValueError(f"{brainrot_id}: voxel grid too large")
 
     BLOCKY_DIR.mkdir(parents=True, exist_ok=True)
-    write_blocky_glb(BLOCKY_DIR / f"{brainrot_id}.glb", quads, palette, dims)
+    write_blocky_glb(BLOCKY_DIR / f"{brainrot_id}.glb", greedy_quads(grid), palette, dims)
 
-    packed = bytearray()
-    for axis, positive, k, i, j, u_size, v_size, colour in quads:
-        packed += bytes((axis * 2 + positive, k, i, j, u_size, v_size, colour))
+    coloured = fill_hidden_colours(grid)
+    legs = find_legs(coloured)
+    body = coloured.copy()
+    for mask, _, _ in legs:
+        body[mask] = 0
+    parts = [("Body", greedy_quads(body), None, 0)]
+    for mask, pivot, phase in legs:
+        parts.append(("Leg", greedy_quads(np.where(mask, coloured, 0)), pivot, phase))
+
+    part_lines = []
+    for kind, quads, pivot, phase in parts:
+        fields = [f'Kind = "{kind}"']
+        if pivot is not None:
+            fields.append("Pivot = { %s }" % ", ".join(f"{value:.2f}" for value in pivot))
+            fields.append(f"Phase = {phase}")
+        fields.append(f"QuadCount = {len(quads)}")
+        fields.append(f"Quads = {pack_quads(quads)}")
+        part_lines.append("\t\t{\n" + "".join(f"\t\t\t{field},\n" for field in fields) + "\t\t},\n")
     palette_text = ", ".join(f"0x{r:02x}{g:02x}{b:02x}" for r, g, b in palette)
 
     module_dir = ASSETS_DIR / "Brainrots"
@@ -326,12 +444,14 @@ def build_brainrot(brainrot_id: str):
         f"\t-- Voxel grid size in blocks (x, y, z); the model is scaled so y is 1 stud.\n"
         f"\tDims = {{ {dims[0]}, {dims[1]}, {dims[2]} }},\n"
         f"\tPalette = {{ {palette_text} }},\n"
-        f"\tQuadCount = {len(quads)},\n"
-        "\t-- Zstd + Base64, 7 bytes per quad: axis * 2 + positive, slice, u, v, uSize, vSize, colour.\n"
-        f"\tQuads = {luau_string(compress(bytes(packed)))},\n"
+        "\t-- The body, then each leg. Legs swing about their hip Pivot (block units);\n"
+        "\t-- legs with different Phase step in turn. Quads are Zstd + Base64, 7 bytes\n"
+        "\t-- each: axis * 2 + positive, slice, u, v, uSize, vSize, colour.\n"
+        "\tParts = {\n" + "".join(part_lines) + "\t},\n"
         "}\n"
     )
-    return brainrot_id, dims, len(quads), module.stat().st_size
+    quad_count = sum(len(quads) for _, quads, _, _ in parts)
+    return brainrot_id, dims, quad_count, len(legs), module.stat().st_size
 
 
 def build_icon(folder_name: str, png: Path):
@@ -354,10 +474,15 @@ def build_icon(folder_name: str, png: Path):
 def main():
     total = 0
     brainrot_ids = sorted({path.stem for path in [*MODELS_DIR.glob("*.glb"), *SOURCE_DIR.glob("*.glb")]})
+    if len(sys.argv) > 1:
+        brainrot_ids = [brainrot_id for brainrot_id in brainrot_ids if brainrot_id in sys.argv[1:]]
     for brainrot_id in brainrot_ids:
-        brainrot_id, dims, quad_count, size = build_brainrot(brainrot_id)
+        brainrot_id, dims, quad_count, leg_count, size = build_brainrot(brainrot_id)
         total += size
-        print(f"{brainrot_id:24s} {dims[0]:3d}x{dims[1]:3d}x{dims[2]:3d} blocks {quad_count:6d} quads {size / 1024:7.1f} KB")
+        print(
+            f"{brainrot_id:24s} {dims[0]:3d}x{dims[1]:3d}x{dims[2]:3d} blocks {quad_count:6d} quads "
+            f"{leg_count} legs {size / 1024:7.1f} KB"
+        )
     for folder_name, folder in ICON_FOLDERS.items():
         for png in sorted(folder.glob("*.png")):
             size = build_icon(folder_name, png)

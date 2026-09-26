@@ -6,7 +6,11 @@ local GameConfig = {
 	ConveyorSpawnIntervalSeconds = 2.5,
 	ConveyorSpeedStudsPerSecond = 10,
 	MaxConveyorBrainrots = 24,
-	WalkToBaseSeconds = 1.5,
+	-- A bought brainrot walks to its buyer's base this fast (studs per second).
+	-- Until it walks through the door, other players can buy it off its buyer.
+	BrainrotWalkSpeed = 8,
+	-- Long walks speed up so none takes longer than this.
+	MaxWalkSeconds = 25,
 
 	-- Interaction
 	PromptDistance = 10,
@@ -31,6 +35,23 @@ local GameConfig = {
 
 	-- Base lock
 	LockDurationSeconds = 60,
+
+	-- Collect pads and offline cash: brainrots fill the pad in front of them
+	-- with Cash; stepping on the pad collects it. While you're away they keep
+	-- earning this fraction of their income, for up to OfflineMaxHours.
+	OfflineIncomeFraction = 1,
+	OfflineMaxHours = 8,
+	OfflineMinSeconds = 60,
+
+	-- Mutation events: every few minutes one mutation becomes far more common.
+	EventMinGapSeconds = 7 * 60,
+	EventMaxGapSeconds = 11 * 60,
+	EventDurationSeconds = 3 * 60,
+	Events = table.freeze({
+		table.freeze({ Name = "Gold Rush", Mutation = "Gold", ChanceMultiplier = 5 }),
+		table.freeze({ Name = "Diamond Storm", Mutation = "Diamond", ChanceMultiplier = 6 }),
+		table.freeze({ Name = "Rainbow Party", Mutation = "Rainbow", ChanceMultiplier = 10 }),
+	}),
 
 	-- Economy
 	SellRefundFraction = 0.5,

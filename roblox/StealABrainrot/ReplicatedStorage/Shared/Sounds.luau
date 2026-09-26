@@ -1,0 +1,147 @@
+--!strict
+--[[
+	Sounds (client only)
+
+	Plays the background music playlist and the sound effects listed in
+	AudioConfig. Sound effects that fail to load on this device fall back to a
+	built-in Roblox sound; a music track that doesn't load is skipped.
+]]
+
+local ContentProvider = game:GetService("ContentProvider")
+local Debris = game:GetService("Debris")
+local SoundService = game:GetService("SoundService")
+
+local AudioConfig = require(script.Parent:WaitForChild("AudioConfig"))
+
+-- A track that hasn't loaded after this long is skipped.
+local TRACK_LOAD_TIMEOUT_SECONDS = 12
+
+local Sounds = {}
+
+local folder = Instance.new("Folder")
+folder.Name = "GameSounds"
+folder.Parent = SoundService
+
+local effectsGroup = Instance.new("SoundGroup")
+effectsGroup.Name = "Effects"
+effectsGroup.Volume = 1
+effectsGroup.Parent = folder
+
+local musicGroup = Instance.new("SoundGroup")
+musicGroup.Name = "Music"
+musicGroup.Volume = 1
+musicGroup.Parent = folder
+
+local templates: { [string]: Sound } = {}
+for name, info in AudioConfig.Sounds do
+	local sound = Instance.new("Sound")
+	sound.Name = name
+	sound.SoundId = "rbxassetid://" .. tostring(info.Id)
+	sound.Volume = info.Volume
+	sound.SoundGroup = effectsGroup
+	sound.Parent = folder
+	templates[name] = sound
+end
+
+-- Swap sounds that can't be downloaded for the built-in fallback.
+task.spawn(function()
+	local list: { Instance } = {}
+	for _, sound in templates do
+		table.insert(list, sound)
+	end
+	pcall(function()
+		ContentProvider:PreloadAsync(list, function(contentId: string, status: Enum.AssetFetchStatus)
+			if status == Enum.AssetFetchStatus.Failure then
+				for _, sound in templates do
+					if sound.SoundId == contentId then
+						sound.SoundId = AudioConfig.FallbackSound
+					end
+				end
+			end
+		end)
+	end)
+end)
+
+-- Plays a sound effect from AudioConfig.Sounds by name.
+function Sounds.play(name: string)
+	local template: Sound? = templates[name]
+	if template == nil then
+		return
+	end
+	local sound = template:Clone()
+	sound.Parent = folder
+	sound.Ended:Once(function()
+		sound:Destroy()
+	end)
+	Debris:AddItem(sound, 10)
+	sound:Play()
+end
+
+--------------------------------------------------------------------------------
+-- Music
+--------------------------------------------------------------------------------
+
+local music = Instance.new("Sound")
+music.Name = "BackgroundMusic"
+music.Volume = AudioConfig.MusicVolume
+music.SoundGroup = musicGroup
+music.Parent = folder
+
+local musicEnabled = true
+local musicStarted = false
+local trackIndex = 0
+local trackToken = 0
+
+local function playNextTrack(failures: number)
+	local tracks = AudioConfig.Music
+	if #tracks == 0 or failures >= #tracks then
+		return
+	end
+	trackIndex = trackIndex % #tracks + 1
+	trackToken += 1
+	local token = trackToken
+	music.SoundId = "rbxassetid://" .. tostring(tracks[trackIndex])
+	music.TimePosition = 0
+	music:Play()
+	task.delay(TRACK_LOAD_TIMEOUT_SECONDS, function()
+		if trackToken == token and not music.IsLoaded then
+			playNextTrack(failures + 1)
+		end
+	end)
+end
+
+music.Ended:Connect(function()
+	if musicEnabled then
+		playNextTrack(0)
+	end
+end)
+
+function Sounds.startMusic()
+	if musicStarted then
+		return
+	end
+	musicStarted = true
+	if musicEnabled then
+		playNextTrack(0)
+	end
+end
+
+function Sounds.isMusicEnabled(): boolean
+	return musicEnabled
+end
+
+function Sounds.setMusicEnabled(enabled: boolean)
+	musicEnabled = enabled
+	musicGroup.Volume = if enabled then 1 else 0
+	if enabled and musicStarted and not music.IsPlaying then
+		if music.SoundId == "" then
+			playNextTrack(0)
+		else
+			music:Resume()
+		end
+	elseif not enabled then
+		music:Pause()
+	end
+end
+
+return table.freeze(Sounds)

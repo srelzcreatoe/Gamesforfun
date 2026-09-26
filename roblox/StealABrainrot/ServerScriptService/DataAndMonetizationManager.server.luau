@@ -3,8 +3,10 @@
 	DataAndMonetizationManager
 	Location: ServerScriptService (Script)
 
-	Owns every player's persistent data (Cash, Rebirths, OwnedGamePasses), the
-	leaderstats folder, and all Robux purchases for Steal a Brainrot.
+	Owns every player's persistent data (Cash, Steals, Rebirths, game passes,
+	brainrots, gear, uncollected pad Cash), the leaderstats folder, and all Robux
+	purchases for Steal a Brainrot. It also measures how long a player was
+	offline, for offline cash.
 
 	Security model
 	  * The in-memory profile on the server is the only source of truth. Clients
@@ -26,9 +28,16 @@
 	  BindableFunction AddCash(player, amount) -> boolean
 	  BindableFunction SpendCash(player, amount) -> boolean
 	  BindableFunction AddRebirths(player, amount) -> boolean
-	  BindableFunction GetPlayerData(player) -> { Cash, Rebirths, OwnedGamePasses }?
+	  BindableFunction AddSteals(player, amount) -> boolean
+	  BindableFunction GetPlayerData(player) -> { Cash, Steals, Rebirths, OwnedGamePasses }?
 	  BindableFunction GetBrainrots(player) -> { string }?
 	  BindableFunction SetBrainrots(player, brainrotIds) -> boolean
+	  BindableFunction GetPadCash(player) -> { number }?
+	  BindableFunction SetPadCash(player, padCash) -> boolean
+	  BindableFunction CollectPadCash(player, amount, padCashLeft) -> boolean
+	  BindableFunction TakeOfflineSeconds(player) -> number
+	  BindableFunction GetGear(player) -> { string }?
+	  BindableFunction AddGear(player, gearId) -> boolean
 	  BindableFunction OwnsGamePass(player, gamePassIdOrName) -> boolean
 	  BindableFunction IsLaserBypassActive(player) -> boolean
 	  BindableFunction GetServerRarityMultiplier() -> number
@@ -109,6 +118,10 @@ local GAME_PASSES: { [string]: number } = MonetizationConfig.GamePasses
 -- Brainrots a player owns, saved as a list of brainrot IDs.
 local MAX_BRAINROTS = 64
 local MAX_BRAINROT_ID_LENGTH = 64
+-- Uncollected Cash on each collect pad, and owned gear IDs.
+local MAX_PADS = 64
+local MAX_GEAR = 32
+local MAX_GEAR_ID_LENGTH = 32
 
 -- Delays before each ownership check after a game pass purchase prompt closes.
 local GAME_PASS_VERIFY_DELAYS: { number } = { 0, 2, 5, 10 }
@@ -120,8 +133,11 @@ local GAME_PASS_VERIFY_DELAYS: { number } = { 0, 2, 5, 10 }
 type PlayerData = {
 	Cash: number,
 	Rebirths: number,
+	Steals: number,
 	OwnedGamePasses: { [string]: boolean },
 	Brainrots: { string },
+	PadCash: { number },
+	Gear: { string },
 	PurchaseHistory: { string },
 }
 
@@ -156,8 +172,11 @@ type Profile = {
 	LockLost: boolean,
 	MutexLocked: boolean,
 	UnsavedPurchaseIds: { [string]: boolean },
+	-- Seconds between the previous session's last save and this load.
+	OfflineSeconds: number,
 	CashValue: IntValue?,
 	RebirthsValue: IntValue?,
+	StealsValue: IntValue?,
 }
 
 type LoadResult = "Loaded" | "Failed" | "Aborted"
@@ -238,8 +257,11 @@ local function createDefaultData(): PlayerData
 	return {
 		Cash = 0,
 		Rebirths = 0,
+		Steals = 0,
 		OwnedGamePasses = {},
 		Brainrots = {},
+		PadCash = {},
+		Gear = {},
 		PurchaseHistory = {},
 	}
 end
@@ -261,6 +283,64 @@ local function sanitizeBrainrotIds(raw: any): { string }
 		end
 	end
 	return brainrotIds
+end
+
+local function isValidGearId(value: any): boolean
+	return typeof(value) == "string" and #value > 0 and #value <= MAX_GEAR_ID_LENGTH
+end
+
+local function sanitizeGear(raw: any): { string }
+	local gear: { string } = {}
+	if typeof(raw) == "table" then
+		for _, gearId in ipairs(raw) do
+			if #gear >= MAX_GEAR then
+				break
+			end
+			if isValidGearId(gearId) and table.find(gear, gearId) == nil then
+				table.insert(gear, gearId)
+			end
+		end
+	end
+	return gear
+end
+
+local function sanitizePadCash(raw: any): { number }
+	local padCash: { number } = {}
+	if typeof(raw) == "table" then
+		for _, amount in ipairs(raw) do
+			if #padCash >= MAX_PADS then
+				break
+			end
+			table.insert(padCash, toWholeNumber(amount, MAX_CASH))
+		end
+	end
+	return padCash
+end
+
+-- Accepts only a contiguous array of at most MAX_PADS finite, non-negative numbers.
+local function validatePadCash(raw: any): { number }?
+	if typeof(raw) ~= "table" then
+		return nil
+	end
+	local count = 0
+	for index, amount in raw do
+		count += 1
+		if typeof(index) ~= "number" or not isFiniteNumber(amount) or amount < 0 then
+			return nil
+		end
+	end
+	if count > MAX_PADS then
+		return nil
+	end
+	local padCash: { number } = table.create(count)
+	for index = 1, count do
+		local amount = raw[index]
+		if amount == nil then
+			return nil
+		end
+		padCash[index] = toWholeNumber(amount, MAX_CASH)
+	end
+	return padCash
 end
 
 local function sanitizeData(raw: any): PlayerData
@@ -294,8 +374,11 @@ local function sanitizeData(raw: any): PlayerData
 	return {
 		Cash = toWholeNumber(raw.Cash, MAX_CASH),
 		Rebirths = toWholeNumber(raw.Rebirths, MAX_REBIRTHS),
+		Steals = toWholeNumber(raw.Steals, MAX_REBIRTHS),
 		OwnedGamePasses = ownedGamePasses,
 		Brainrots = sanitizeBrainrotIds(raw.Brainrots),
+		PadCash = sanitizePadCash(raw.PadCash),
+		Gear = sanitizeGear(raw.Gear),
 		PurchaseHistory = purchaseHistory,
 	}
 end
@@ -335,8 +418,11 @@ local function copyDataForSave(data: PlayerData): PlayerData
 	return {
 		Cash = data.Cash,
 		Rebirths = data.Rebirths,
+		Steals = data.Steals,
 		OwnedGamePasses = table.clone(data.OwnedGamePasses),
 		Brainrots = table.clone(data.Brainrots),
+		PadCash = table.clone(data.PadCash),
+		Gear = table.clone(data.Gear),
 		PurchaseHistory = table.clone(data.PurchaseHistory),
 	}
 end
@@ -384,6 +470,15 @@ local function setRebirths(profile: Profile, amount: number)
 	local rebirthsValue = profile.RebirthsValue
 	if rebirthsValue and rebirthsValue.Value ~= sanitized then
 		rebirthsValue.Value = sanitized
+	end
+end
+
+local function setSteals(profile: Profile, amount: number)
+	local sanitized = toWholeNumber(amount, MAX_REBIRTHS)
+	profile.Data.Steals = sanitized
+	local stealsValue = profile.StealsValue
+	if stealsValue and stealsValue.Value ~= sanitized then
+		stealsValue.Value = sanitized
 	end
 end
 
@@ -573,6 +668,7 @@ local function loadProfileAsync(profile: Profile): LoadResult
 		local forceSteal = lockRetries >= SESSION_LOCK_MAX_RETRIES
 		local blockedByLock = false
 		local loadedRecord: SaveRecord? = nil
+		local offlineSeconds = 0
 
 		waitForRequestBudget(Enum.DataStoreRequestType.UpdateAsync)
 
@@ -580,6 +676,7 @@ local function loadProfileAsync(profile: Profile): LoadResult
 			store:UpdateAsync(profile.Key, function(oldValue: any): (any, { number }?)
 				blockedByLock = false
 				loadedRecord = nil
+				offlineSeconds = 0
 
 				local record = sanitizeRecord(oldValue)
 				local now = os.time()
@@ -594,6 +691,10 @@ local function loadProfileAsync(profile: Profile): LoadResult
 					return nil, nil
 				end
 
+				-- Offline time runs from the previous session's last save.
+				if record.LastSavedAt > 0 then
+					offlineSeconds = math.max(0, now - record.LastSavedAt)
+				end
 				record.SessionLock = { JobId = game.JobId, SessionId = profile.SessionId, LockedAt = now }
 				record.LastSavedAt = now
 				loadedRecord = record
@@ -607,6 +708,7 @@ local function loadProfileAsync(profile: Profile): LoadResult
 				warn(string.format("%s Took over a session lock for %d that was not released in time.", LOG_PREFIX, profile.UserId))
 			end
 			profile.Data = record.Data
+			profile.OfflineSeconds = offlineSeconds
 			return "Loaded"
 		elseif ok and blockedByLock then
 			lockRetries += 1
@@ -906,6 +1008,11 @@ local function createLeaderstats(profile: Profile)
 	cashValue.Value = profile.Data.Cash
 	cashValue.Parent = leaderstats
 
+	local stealsValue = Instance.new("IntValue")
+	stealsValue.Name = "Steals"
+	stealsValue.Value = profile.Data.Steals
+	stealsValue.Parent = leaderstats
+
 	local rebirthsValue = Instance.new("IntValue")
 	rebirthsValue.Name = "Rebirths"
 	rebirthsValue.Value = profile.Data.Rebirths
@@ -913,6 +1020,7 @@ local function createLeaderstats(profile: Profile)
 
 	profile.CashValue = cashValue
 	profile.RebirthsValue = rebirthsValue
+	profile.StealsValue = stealsValue
 
 	-- Server scripts may also write these values directly; client-side edits
 	-- never replicate, so only trusted server changes reach these handlers.
@@ -924,6 +1032,11 @@ local function createLeaderstats(profile: Profile)
 	rebirthsValue.Changed:Connect(function(newValue: number)
 		if isUsable(profile) and newValue ~= profile.Data.Rebirths then
 			setRebirths(profile, newValue)
+		end
+	end)
+	stealsValue.Changed:Connect(function(newValue: number)
+		if isUsable(profile) and newValue ~= profile.Data.Steals then
+			setSteals(profile, newValue)
 		end
 	end)
 
@@ -950,8 +1063,10 @@ local function onPlayerAdded(player: Player)
 		LockLost = false,
 		MutexLocked = false,
 		UnsavedPurchaseIds = {},
+		OfflineSeconds = 0,
 		CashValue = nil,
 		RebirthsValue = nil,
+		StealsValue = nil,
 	}
 	profiles[player] = profile
 
@@ -971,6 +1086,7 @@ local function onPlayerAdded(player: Player)
 		warn(string.format("%s Studio: using unsaved default data for %s. Enable Studio API access to test saving and purchases.", LOG_PREFIX, player.Name))
 		profile.State = "Unsaved"
 		profile.Data = createDefaultData()
+		profile.OfflineSeconds = 0
 		if profile.PlayerLeft then
 			profile.State = "Released"
 			profiles[player] = nil
@@ -1025,6 +1141,16 @@ createBindableFunction("AddRebirths", function(playerArg: any, amount: any): boo
 	return profile ~= nil and addRebirths(profile, amount)
 end)
 
+createBindableFunction("AddSteals", function(playerArg: any, amount: any): boolean
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil or not isFiniteNumber(amount) or amount <= 0 then
+		return false
+	end
+	setSteals(profile, profile.Data.Steals + math.floor(amount))
+	return true
+end)
+
 createBindableFunction("GetPlayerData", function(playerArg: any): { [string]: any }?
 	local player = asPlayer(playerArg)
 	local profile = if player then getUsableProfile(player) else nil
@@ -1034,6 +1160,7 @@ createBindableFunction("GetPlayerData", function(playerArg: any): { [string]: an
 	return {
 		Cash = profile.Data.Cash,
 		Rebirths = profile.Data.Rebirths,
+		Steals = profile.Data.Steals,
 		OwnedGamePasses = table.clone(profile.Data.OwnedGamePasses),
 	}
 end)
@@ -1073,6 +1200,80 @@ createBindableFunction("SetBrainrots", function(playerArg: any, brainrotIds: any
 		validated[index] = brainrotId
 	end
 	profile.Data.Brainrots = validated
+	return true
+end)
+
+createBindableFunction("GetPadCash", function(playerArg: any): { number }?
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil then
+		return nil
+	end
+	return table.clone(profile.Data.PadCash)
+end)
+
+createBindableFunction("SetPadCash", function(playerArg: any, padCash: any): boolean
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	local validated = validatePadCash(padCash)
+	if profile == nil or validated == nil then
+		return false
+	end
+	profile.Data.PadCash = validated
+	return true
+end)
+
+-- Moves Cash from the pads to the player in one step, so a save can never
+-- contain both the collected Cash and the pad it came from.
+createBindableFunction("CollectPadCash", function(playerArg: any, amount: any, padCashLeft: any): boolean
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	local validated = validatePadCash(padCashLeft)
+	if profile == nil or validated == nil or not isFiniteNumber(amount) or amount <= 0 then
+		return false
+	end
+	if not addCash(profile, amount) then
+		return false
+	end
+	profile.Data.PadCash = validated
+	return true
+end)
+
+-- Returns how long the player was offline before this session, once.
+createBindableFunction("TakeOfflineSeconds", function(playerArg: any): number
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil then
+		return 0
+	end
+	local seconds = profile.OfflineSeconds
+	profile.OfflineSeconds = 0
+	return seconds
+end)
+
+createBindableFunction("GetGear", function(playerArg: any): { string }?
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil then
+		return nil
+	end
+	return table.clone(profile.Data.Gear)
+end)
+
+createBindableFunction("AddGear", function(playerArg: any, gearId: any): boolean
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil or not isValidGearId(gearId) then
+		return false
+	end
+	local gear = profile.Data.Gear
+	if table.find(gear, gearId) then
+		return true
+	end
+	if #gear >= MAX_GEAR then
+		return false
+	end
+	table.insert(gear, gearId)
 	return true
 end)
 

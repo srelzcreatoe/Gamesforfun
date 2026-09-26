@@ -2,9 +2,10 @@
 --[[
 	AssetLoader (client)
 
-	Rebuilds the blocky brainrot models and the icons that tools/build_assets.py
-	packed into ReplicatedStorage.Assets, using EditableMesh and EditableImage.
-	This avoids uploading any assets to a Roblox account first.
+	Rebuilds the blocky brainrot models (a body and its legs, so they can walk)
+	and the icons that tools/build_assets.py packed into ReplicatedStorage.Assets,
+	using EditableMesh and EditableImage. This avoids uploading any assets to a
+	Roblox account first.
 
 	Editable meshes and images only exist on the machine that creates them, so
 	each client builds its own copy. Every function returns nil when the data or
@@ -15,17 +16,42 @@ local AssetService = game:GetService("AssetService")
 local EncodingService = game:GetService("EncodingService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local MESH_FORMAT = 2
+local MESH_FORMAT = 3
 local ICON_FORMAT = 1
 local QUAD_BYTES = 7
+-- CreateMeshPartAsync calls running at once, and tries per mesh part.
+local MAX_CONCURRENT_PARTS = 4
+local PART_ATTEMPTS = 4
+
+-- One mesh of a brainrot: its body or one leg. Sizes and positions are for a
+-- model 1 stud tall, relative to the model's centre.
+export type Piece = {
+	Kind: string,
+	Mesh: EditableMesh,
+	ColorIds: { number },
+	Size: Vector3,
+	Offset: Vector3,
+	-- Legs swing about their hip; legs with different phases step in turn.
+	Pivot: Vector3,
+	Phase: number,
+}
 
 export type BrainrotAsset = {
-	Mesh: EditableMesh,
-	-- Bounding box of the model when it is 1 stud tall.
+	Pieces: { Piece },
+	-- Bounding box of the whole model when it is 1 stud tall.
 	Size: Vector3,
-	-- Palette colour IDs in the mesh and their untinted colours (for Rainbow).
-	ColorIds: { number },
+	HasLegs: boolean,
+	-- Untinted palette colours (for Rainbow).
 	BaseColors: { Color3 },
+}
+
+-- A MeshPart built for one piece, `height` studs tall overall.
+export type BuiltPiece = {
+	Part: MeshPart,
+	Piece: Piece,
+	-- Rest position relative to the model's centre, in studs.
+	Offset: Vector3,
+	Pivot: Vector3,
 }
 
 local AssetLoader = {}
@@ -34,12 +60,14 @@ local brainrotCache: { [string]: BrainrotAsset } = {}
 local iconCache: { [string]: EditableImage } = {}
 -- Names that were already tried and failed, so they aren't rebuilt every time.
 local failed: { [string]: boolean } = {}
-local warned = false
+local warnings = 0
+local partsInFlight = 0
 
-local function warnOnce(message: string)
-	if not warned then
-		warned = true
-		warn("[AssetLoader] " .. message .. " Falling back to simple figures and icons.")
+local function warnLimited(message: string)
+	-- A few warnings help find the cause; after that they'd only spam Output.
+	if warnings < 5 then
+		warnings += 1
+		warn("[AssetLoader] " .. message .. " Falling back to simple figures and icons where needed.")
 	end
 end
 
@@ -92,26 +120,75 @@ end
 -- Blocky meshes
 --------------------------------------------------------------------------------
 
-local function createBlockyMesh(data: { [string]: any }, mutation: string?): BrainrotAsset
-	local dims = data.Dims
-	local gridX: number, gridY: number, gridZ: number = dims[1], dims[2], dims[3]
-	local quadCount: number = data.QuadCount
-	local quads = decode(data.Quads)
-	if buffer.len(quads) ~= quadCount * QUAD_BYTES then
+type Quad = {
+	Axis: number,
+	Positive: number,
+	Plane: number,
+	U0: number,
+	V0: number,
+	U1: number,
+	V1: number,
+	Colour: number,
+}
+
+local function readQuads(encoded: string, quadCount: number): { Quad }
+	local data = decode(encoded)
+	if buffer.len(data) ~= quadCount * QUAD_BYTES then
 		error("quad data does not match its header")
 	end
+	local quads: { Quad } = table.create(quadCount)
+	for quad = 0, quadCount - 1 do
+		local offset = quad * QUAD_BYTES
+		local axisDirection = buffer.readu8(data, offset)
+		local positive = axisDirection % 2
+		local u0 = buffer.readu8(data, offset + 2)
+		local v0 = buffer.readu8(data, offset + 3)
+		quads[quad + 1] = {
+			Axis = axisDirection // 2,
+			Positive = positive,
+			Plane = buffer.readu8(data, offset + 1) + positive,
+			U0 = u0,
+			V0 = v0,
+			U1 = u0 + buffer.readu8(data, offset + 4),
+			V1 = v0 + buffer.readu8(data, offset + 5),
+			Colour = buffer.readu8(data, offset + 6),
+		}
+	end
+	return quads
+end
 
+-- Corner of a quad in block units.
+local function cornerOf(axis: number, plane: number, u: number, v: number): Vector3
+	local corner = { 0, 0, 0 }
+	corner[axis + 1] = plane
+	corner[(axis + 1) % 3 + 1] = u
+	corner[(axis + 2) % 3 + 1] = v
+	return Vector3.new(corner[1], corner[2], corner[3])
+end
+
+local function quadBounds(quads: { Quad }): (Vector3, Vector3)
+	local low = Vector3.new(math.huge, math.huge, math.huge)
+	local high = -low
+	for _, quad in quads do
+		local a = cornerOf(quad.Axis, quad.Plane, quad.U0, quad.V0)
+		local b = cornerOf(quad.Axis, quad.Plane, quad.U1, quad.V1)
+		low = low:Min(a):Min(b)
+		high = high:Max(a):Max(b)
+	end
+	return low, high
+end
+
+-- Builds one piece's mesh with its vertices centred on the piece, so the
+-- MeshPart's origin is the middle of the piece.
+local function buildMesh(quads: { Quad }, centre: Vector3, scale: number, colours: { Color3 }): (EditableMesh, { number })
 	local mesh = AssetService:CreateEditableMesh()
 	if mesh == nil then
 		error("the editable memory budget is exhausted")
 	end
 
 	local colorIds: { number } = {}
-	local baseColors: { Color3 } = {}
-	for index, hex in data.Palette do
-		local base = Color3.fromRGB(bit32.rshift(hex, 16), bit32.band(bit32.rshift(hex, 8), 255), bit32.band(hex, 255))
-		baseColors[index] = base
-		colorIds[index] = mesh:AddColor(tint(base, mutation), 1)
+	for index, colour in colours do
+		colorIds[index] = mesh:AddColor(colour, 1)
 	end
 
 	-- One flat normal per face direction: axis * 2 + positive.
@@ -129,66 +206,105 @@ local function createBlockyMesh(data: { [string]: any }, mutation: string?): Bra
 
 	-- Corners are shared between quads; normals and colours are per face.
 	local vertexIds: { [number]: number } = {}
-	local low = Vector3.new(math.huge, math.huge, math.huge)
-	local high = -low
-	local function vertex(x: number, y: number, z: number): number
-		local key = (x * 256 + y) * 256 + z
+	local function vertex(corner: Vector3): number
+		local key = (corner.X * 256 + corner.Y) * 256 + corner.Z
 		local id = vertexIds[key]
 		if id == nil then
-			local position = Vector3.new((x - gridX / 2) / gridY, (y - gridY / 2) / gridY, (z - gridZ / 2) / gridY)
-			low = low:Min(position)
-			high = high:Max(position)
-			id = mesh:AddVertex(position)
+			id = mesh:AddVertex((corner - centre) * scale)
 			vertexIds[key] = id
 		end
 		return id
 	end
 
-	local corner = { 0, 0, 0 }
-	local function cornerVertex(axis: number, plane: number, u: number, v: number): number
-		corner[axis + 1] = plane
-		corner[(axis + 1) % 3 + 1] = u
-		corner[(axis + 2) % 3 + 1] = v
-		return vertex(corner[1], corner[2], corner[3])
-	end
-
-	for quad = 0, quadCount - 1 do
-		local offset = quad * QUAD_BYTES
-		local axisDirection = buffer.readu8(quads, offset)
-		local axis = axisDirection // 2
-		local positive = axisDirection % 2
-		local plane = buffer.readu8(quads, offset + 1) + positive
-		local u0 = buffer.readu8(quads, offset + 2)
-		local v0 = buffer.readu8(quads, offset + 3)
-		local u1 = u0 + buffer.readu8(quads, offset + 4)
-		local v1 = v0 + buffer.readu8(quads, offset + 5)
-		local colorId = colorIds[buffer.readu8(quads, offset + 6) + 1]
-		local normalId = normalIds[axisDirection + 1]
-
+	for _, quad in quads do
+		local axis, plane = quad.Axis, quad.Plane
 		-- Counter-clockwise seen from outside the block.
-		local a = cornerVertex(axis, plane, u0, v0)
-		local b = cornerVertex(axis, plane, u1, v0)
-		local c = cornerVertex(axis, plane, u1, v1)
-		local d = cornerVertex(axis, plane, u0, v1)
-		if positive == 0 then
+		local a = vertex(cornerOf(axis, plane, quad.U0, quad.V0))
+		local b = vertex(cornerOf(axis, plane, quad.U1, quad.V0))
+		local c = vertex(cornerOf(axis, plane, quad.U1, quad.V1))
+		local d = vertex(cornerOf(axis, plane, quad.U0, quad.V1))
+		if quad.Positive == 0 then
 			a, b, c, d = d, c, b, a
 		end
+		local normalId = normalIds[axis * 2 + quad.Positive + 1]
+		local colorId = colorIds[quad.Colour + 1]
 		for _, face in { mesh:AddTriangle(a, b, c), mesh:AddTriangle(a, c, d) } do
 			mesh:SetFaceNormals(face, { normalId, normalId, normalId })
 			mesh:SetFaceColors(face, { colorId, colorId, colorId })
 		end
 	end
+	return mesh, colorIds
+end
 
-	local size = high - low
+local function createBlockyAsset(data: { [string]: any }, mutation: string?): BrainrotAsset
+	local baseColors: { Color3 } = {}
+	local tinted: { Color3 } = {}
+	for index, hex in data.Palette do
+		local base = Color3.fromRGB(bit32.rshift(hex, 16), bit32.band(bit32.rshift(hex, 8), 255), bit32.band(hex, 255))
+		baseColors[index] = base
+		tinted[index] = tint(base, mutation)
+	end
+
+	local partData: { { [string]: any } } = data.Parts
+	local partQuads: { { Quad } } = {}
+	local low = Vector3.new(math.huge, math.huge, math.huge)
+	local high = -low
+	for index, part in partData do
+		local quads = readQuads(part.Quads, part.QuadCount)
+		partQuads[index] = quads
+		local partLow, partHigh = quadBounds(quads)
+		low = low:Min(partLow)
+		high = high:Max(partHigh)
+	end
+	local modelSize = high - low
+	if modelSize.Y <= 0 then
+		error("the model is empty")
+	end
+	local modelCentre = (low + high) / 2
+	local scale = 1 / modelSize.Y
+
+	local pieces: { Piece } = {}
+	local created: { EditableMesh } = {}
+	local ok, err = pcall(function()
+		for index, part in partData do
+			local partLow, partHigh = quadBounds(partQuads[index])
+			local centre = (partLow + partHigh) / 2
+			local mesh, colorIds = buildMesh(partQuads[index], centre, scale, tinted)
+			table.insert(created, mesh)
+			local pivot = part.Pivot
+			table.insert(pieces, {
+				Kind = if part.Kind == "Leg" then "Leg" else "Body",
+				Mesh = mesh,
+				ColorIds = colorIds,
+				Size = (partHigh - partLow) * scale,
+				Offset = (centre - modelCentre) * scale,
+				Pivot = if typeof(pivot) == "table"
+					then (Vector3.new(pivot[1], pivot[2], pivot[3]) - modelCentre) * scale
+					else Vector3.zero,
+				Phase = if part.Phase == 1 then 1 else 0,
+			})
+		end
+	end)
+	if not ok then
+		for _, mesh in created do
+			mesh:Destroy()
+		end
+		error(err, 0)
+	end
+
+	local hasLegs = false
+	for _, piece in pieces do
+		hasLegs = hasLegs or piece.Kind == "Leg"
+	end
 	return {
-		Mesh = mesh,
-		Size = size / size.Y,
-		ColorIds = colorIds,
+		Pieces = pieces,
+		Size = modelSize * scale,
+		HasLegs = hasLegs,
 		BaseColors = baseColors,
 	}
 end
 
--- Returns the shared mesh for a brainrot and mutation, building it on first use.
+-- Returns the shared meshes for a brainrot and mutation, building them on first use.
 function AssetLoader.getBrainrot(brainrotId: string, mutation: string?): BrainrotAsset?
 	local key = brainrotId .. "|" .. (mutation or "")
 	local cached = brainrotCache[key]
@@ -206,10 +322,10 @@ function AssetLoader.getBrainrot(brainrotId: string, mutation: string?): Brainro
 		if data.Format ~= MESH_FORMAT then
 			error("unsupported data format " .. tostring(data.Format))
 		end
-		return createBlockyMesh(data, mutation)
+		return createBlockyAsset(data, mutation)
 	end)
 	if not ok then
-		warnOnce(string.format("Could not build the %s model (%s).", brainrotId, tostring(result)))
+		warnLimited(string.format("Could not build the %s model (%s).", brainrotId, tostring(result)))
 		return nil
 	end
 	failed["Brainrot:" .. key] = nil
@@ -217,34 +333,94 @@ function AssetLoader.getBrainrot(brainrotId: string, mutation: string?): Brainro
 	return result
 end
 
--- Creates a MeshPart of the brainrot, `height` studs tall, centred on its
--- origin. Yields. The caller positions and parents it.
-function AssetLoader.createBrainrotPart(brainrotId: string, mutation: string?, height: number): (MeshPart?, BrainrotAsset?)
+-- CreateMeshPartAsync can fail when many parts are made at once (for example
+-- when a player joins a full server), so only a few run at a time and each is
+-- retried with a growing delay.
+local function createMeshPart(mesh: EditableMesh): MeshPart
+	local lastError: any = nil
+	for attempt = 1, PART_ATTEMPTS do
+		while partsInFlight >= MAX_CONCURRENT_PARTS do
+			task.wait()
+		end
+		partsInFlight += 1
+		local ok, result = pcall(function(): MeshPart
+			return AssetService:CreateMeshPartAsync(Content.fromObject(mesh), {
+				CollisionFidelity = Enum.CollisionFidelity.Box,
+			})
+		end)
+		partsInFlight -= 1
+		if ok then
+			return result
+		end
+		lastError = result
+		if attempt < PART_ATTEMPTS then
+			task.wait(0.5 * 2 ^ (attempt - 1))
+		end
+	end
+	error(lastError, 0)
+end
+
+-- Creates the brainrot's MeshParts (body and legs), `height` studs tall,
+-- unparented and unpositioned. Yields. Returns nil if any piece fails.
+function AssetLoader.createBrainrotParts(brainrotId: string, mutation: string?, height: number): ({ BuiltPiece }?, BrainrotAsset?)
 	local asset = AssetLoader.getBrainrot(brainrotId, mutation)
 	if asset == nil then
 		return nil, nil
 	end
-	local ok, result = pcall(function(): MeshPart
-		local part = AssetService:CreateMeshPartAsync(Content.fromObject(asset.Mesh), {
-			CollisionFidelity = Enum.CollisionFidelity.Box,
-		})
-		-- White so the vertex colours show unchanged.
-		part.Color = Color3.new(1, 1, 1)
-		part.Material = Enum.Material.SmoothPlastic
-		part.Size = asset.Size * height
-		return part
+	local built: { BuiltPiece } = {}
+	local ok, err = pcall(function()
+		for _, piece in asset.Pieces do
+			local part = createMeshPart(piece.Mesh)
+			-- White so the vertex colours show unchanged.
+			part.Color = Color3.new(1, 1, 1)
+			part.Material = Enum.Material.SmoothPlastic
+			part.Size = piece.Size * height
+			part.Name = if piece.Kind == "Leg" then "Leg" else "Body"
+			table.insert(built, {
+				Part = part,
+				Piece = piece,
+				Offset = piece.Offset * height,
+				Pivot = piece.Pivot * height,
+			})
+		end
 	end)
 	if not ok then
-		warnOnce(string.format("Could not create the %s mesh part (%s).", brainrotId, tostring(result)))
+		for _, entry in built do
+			entry.Part:Destroy()
+		end
+		warnLimited(string.format("Could not create the %s mesh parts (%s).", brainrotId, tostring(err)))
 		return nil, nil
 	end
-	return result, asset
+	return built, asset
 end
 
--- Recolours a Rainbow mesh; every MeshPart that shares it updates at once.
+-- An anchored Model of the brainrot standing still, centred on its pivot, for
+-- previews. Yields.
+function AssetLoader.createBrainrotModel(brainrotId: string, mutation: string?, height: number): Model?
+	local built = AssetLoader.createBrainrotParts(brainrotId, mutation, height)
+	if built == nil then
+		return nil
+	end
+	local model = Instance.new("Model")
+	model.Name = brainrotId
+	for _, entry in built do
+		entry.Part.Anchored = true
+		entry.Part.CFrame = CFrame.new(entry.Offset)
+		entry.Part.Parent = model
+		if entry.Piece.Kind == "Body" then
+			model.PrimaryPart = entry.Part
+		end
+	end
+	model.WorldPivot = CFrame.identity
+	return model
+end
+
+-- Recolours a Rainbow brainrot; every MeshPart that shares it updates at once.
 function AssetLoader.animateRainbow(asset: BrainrotAsset, t: number)
-	for index, colorId in asset.ColorIds do
-		asset.Mesh:SetColor(colorId, AssetLoader.rainbowColor(asset.BaseColors[index], index, t))
+	for _, piece in asset.Pieces do
+		for index, colorId in piece.ColorIds do
+			piece.Mesh:SetColor(colorId, AssetLoader.rainbowColor(asset.BaseColors[index], index, t))
+		end
 	end
 end
 
@@ -282,7 +458,7 @@ local function getIcon(folderName: string, name: string): EditableImage?
 		return image
 	end)
 	if not ok then
-		warnOnce(string.format("Could not build the %s icon (%s).", key, tostring(result)))
+		warnLimited(string.format("Could not build the %s icon (%s).", key, tostring(result)))
 		return nil
 	end
 	failed["Icon:" .. key] = nil

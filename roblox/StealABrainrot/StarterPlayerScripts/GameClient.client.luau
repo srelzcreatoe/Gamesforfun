@@ -5,17 +5,20 @@
 
 	Builds the HUD in the style of the original game: square Index / Rebirth /
 	Shop buttons with Higgsfield icons on the left, big green Cash at the bottom
-	left with "+$" pop-ups, boost timers at the top, the Robux shop, the rebirth
-	screen, the brainrot Index and pop-up messages. It also points out your base,
-	opens the shop from the Robux Shop stall, adds clouds, and hides
-	ProximityPrompts that don't apply to this player (Steal on your own
-	brainrots, Sell on someone else's).
+	left with "+$" pop-ups, boost and event timers at the top, the Robux shop,
+	the Gear Shop, the rebirth screen, the brainrot Index and pop-up messages.
+	It also plays the music and sound effects (with a music on/off button),
+	points out your base, opens the shops from their stalls, tints the sky
+	during mutation events, adds clouds, and hides ProximityPrompts that don't
+	apply to this player (Steal on your own brainrots, Sell on someone else's,
+	Buy on your own brainrot while it walks home).
 
 	Nothing here can change game state. Purchases go through Roblox's purchase
 	prompt and ProcessReceipt on the server, and the server re-checks every
-	prompt and rebirth request.
+	prompt, rebirth and gear request.
 ]]
 
+local Lighting = game:GetService("Lighting")
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -27,11 +30,14 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local AssetLoader = require(Shared:WaitForChild("AssetLoader"))
 local BrainrotConfig = require(Shared:WaitForChild("BrainrotConfig"))
 local GameConfig = require(Shared:WaitForChild("GameConfig"))
+local GearConfig = require(Shared:WaitForChild("GearConfig"))
 local MonetizationConfig = require(Shared:WaitForChild("MonetizationConfig"))
 local NumberFormat = require(Shared:WaitForChild("NumberFormat"))
+local Sounds = require(Shared:WaitForChild("Sounds"))
 
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local notifyEvent = remotes:WaitForChild("Notify") :: RemoteEvent
+local playSoundEvent = remotes:WaitForChild("PlaySound") :: RemoteEvent
 local requestRebirthFunction = remotes:WaitForChild("RequestRebirth") :: RemoteFunction
 
 local player = Players.LocalPlayer
@@ -55,6 +61,19 @@ local COLORS = {
 	Boost = Color3.fromRGB(205, 60, 205),
 	Emp = Color3.fromRGB(60, 120, 255),
 	Owned = Color3.fromRGB(46, 204, 113),
+	Gear = Color3.fromRGB(40, 140, 255),
+	Music = Color3.fromRGB(255, 120, 190),
+}
+-- Mutation events: chip colour and the sky tint.
+local EVENT_COLORS: { [string]: Color3 } = {
+	Gold = Color3.fromRGB(255, 200, 40),
+	Diamond = Color3.fromRGB(90, 210, 255),
+	Rainbow = Color3.fromRGB(255, 90, 200),
+}
+-- Sounds for pop-up messages that don't name their own.
+local TOAST_SOUNDS: { [string]: string } = {
+	Error = "Error",
+	Warning = "Notify",
 }
 local TOAST_COLORS: { [string]: Color3 } = {
 	Info = Color3.fromRGB(70, 130, 255),
@@ -142,6 +161,9 @@ local function button(text: string, color: Color3, properties: { [string]: any }
 		}),
 		create("UITextSizeConstraint", { MaxTextSize = 28 }),
 	}) :: TextButton
+	textButton.Activated:Connect(function()
+		Sounds.play("Click")
+	end)
 	return textButton
 end
 
@@ -195,7 +217,7 @@ local chipRow = create("Frame", {
 	Name = "Boosts",
 	AnchorPoint = Vector2.new(0.5, 0),
 	Position = UDim2.new(0.5, 0, 0, 8),
-	Size = UDim2.fromOffset(540, 34),
+	Size = UDim2.fromOffset(820, 34),
 	BackgroundTransparency = 1,
 }, {
 	create("UIListLayout", {
@@ -237,6 +259,7 @@ end
 
 local boostChip = chip(COLORS.Boost, "ServerRarityBoost")
 local empChip = chip(COLORS.Emp, "EMPLaserOverrider")
+local eventChip = chip(EVENT_COLORS.Gold, "ServerRarityBoost")
 
 -- Square icon buttons (left middle): Index, Rebirth, Shop
 local sideButtons = create("Frame", {
@@ -284,6 +307,9 @@ local function sideButton(name: string, text: string, color: Color3, iconName: s
 		TextSize = if hasIcon then 22 else 26,
 	}).Parent = square
 
+	square.Activated:Connect(function()
+		Sounds.play("Click")
+	end)
 	square.Parent = sideButtons
 	return square
 end
@@ -356,6 +382,9 @@ local function toggleModal(frame: Frame): boolean
 		other.Visible = false
 	end
 	frame.Visible = open
+	if open then
+		Sounds.play("Open")
+	end
 	return open
 end
 
@@ -559,7 +588,7 @@ local indexList = create("ScrollingFrame", {
 }) :: ScrollingFrame
 indexList.Parent = indexBody
 
-type IndexCard = { Frame: Frame, Viewport: ViewportFrame, Owned: TextLabel, Model: BasePart? }
+type IndexCard = { Frame: Frame, Viewport: ViewportFrame, Owned: TextLabel, Model: Model? }
 
 local indexCards: { [string]: IndexCard } = {}
 local rarityOrder: { [string]: number } = {}
@@ -633,20 +662,18 @@ local function loadIndexModels()
 	indexModelsLoaded = true
 	for brainrotId, card in indexCards do
 		task.spawn(function()
-			local part = AssetLoader.createBrainrotPart(brainrotId, nil, 4)
-			if part == nil then
+			local model = AssetLoader.createBrainrotModel(brainrotId, nil, 4)
+			if model == nil then
 				return
 			end
-			part.Anchored = true
-			part.CFrame = CFrame.new()
-			part.Parent = card.Viewport
+			model.Parent = card.Viewport
 			local camera = Instance.new("Camera")
 			camera.FieldOfView = 40
 			-- Models face -Z, so look at them from the front.
 			camera.CFrame = CFrame.lookAt(Vector3.new(0, 0.6, -8.5), Vector3.zero)
 			camera.Parent = card.Viewport
 			card.Viewport.CurrentCamera = camera
-			card.Model = part
+			card.Model = model
 		end)
 	end
 end
@@ -660,8 +687,7 @@ local function ownBrainrotCounts(): { [string]: number }
 	end
 	for _, model in folder:GetChildren() do
 		local brainrotId = model:GetAttribute("BrainrotId")
-		local prompt = model:FindFirstChildWhichIsA("ProximityPrompt", true)
-		if typeof(brainrotId) == "string" and prompt and prompt:GetAttribute("OwnerUserId") == player.UserId then
+		if typeof(brainrotId) == "string" and model:GetAttribute("OwnerUserId") == player.UserId then
 			counts[brainrotId] = (counts[brainrotId] or 0) + 1
 		end
 	end
@@ -682,9 +708,9 @@ RunService.RenderStepped:Connect(function()
 	end
 	local spin = CFrame.Angles(0, os.clock() * 0.8, 0)
 	for _, card in indexCards do
-		local part = card.Model
-		if part then
-			part.CFrame = spin
+		local model = card.Model
+		if model then
+			model:PivotTo(spin)
 		end
 	end
 end)
@@ -752,11 +778,135 @@ local function showToast(message: string, kind: string)
 	end)
 end
 
-notifyEvent.OnClientEvent:Connect(function(message: any, kind: any)
-	if typeof(message) == "string" then
-		showToast(message, if typeof(kind) == "string" then kind else "Info")
+notifyEvent.OnClientEvent:Connect(function(message: any, kind: any, sound: any)
+	if typeof(message) ~= "string" then
+		return
+	end
+	local toastKind = if typeof(kind) == "string" then kind else "Info"
+	showToast(message, toastKind)
+	local soundName = if typeof(sound) == "string" then sound else TOAST_SOUNDS[toastKind]
+	if soundName then
+		Sounds.play(soundName)
 	end
 end)
+
+playSoundEvent.OnClientEvent:Connect(function(sound: any)
+	if typeof(sound) == "string" then
+		Sounds.play(sound)
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- Gear Shop (opened from the Gear Shop stall)
+--------------------------------------------------------------------------------
+
+local gearFrame, gearBody = modal("GearShop", "GEAR SHOP", COLORS.Gear, Vector2.new(660, 500))
+create("UIListLayout", {
+	Padding = UDim.new(0, 10),
+	SortOrder = Enum.SortOrder.LayoutOrder,
+}).Parent = gearBody
+
+type GearCard = { Button: TextButton, Gear: GearConfig.Gear }
+local gearCards: { GearCard } = {}
+local gearPending = false
+
+local function ownsGear(gearId: string): boolean
+	local owned = player:GetAttribute("OwnedGear")
+	if typeof(owned) ~= "string" then
+		return false
+	end
+	return table.find(string.split(owned, ","), gearId) ~= nil
+end
+
+local function refreshGearShop()
+	for _, card in gearCards do
+		local owned = ownsGear(card.Gear.Id)
+		card.Button.Text = if owned
+			then "OWNED"
+			elseif card.Gear.Price <= 0 then "FREE"
+			else NumberFormat.cash(card.Gear.Price)
+		card.Button.BackgroundColor3 = if owned then COLORS.Disabled else COLORS.Buy
+	end
+end
+
+for _, gear in GearConfig.Gear do
+	local card = create("Frame", {
+		Name = gear.Id,
+		Size = UDim2.new(1, 0, 0.25, -8),
+		BackgroundColor3 = COLORS.PanelLight,
+		LayoutOrder = gear.Order,
+	}, { corner(14), stroke(gear.Color, 2) }) :: Frame
+
+	local tile = create("Frame", {
+		Name = "Icon",
+		Position = UDim2.fromOffset(8, 8),
+		Size = UDim2.new(0.14, 0, 1, -16),
+		BackgroundColor3 = gear.Color,
+	}, {
+		corner(12),
+		gloss(),
+		create("UIAspectRatioConstraint", { AspectRatio = 1 }),
+	}) :: Frame
+	label({
+		Size = UDim2.fromScale(1, 1),
+		Text = string.sub(gear.DisplayName, 1, 1),
+		TextSize = 40,
+		OutlineThickness = 3,
+	}).Parent = tile
+	tile.Parent = card
+
+	label({
+		Name = "GearName",
+		Position = UDim2.new(0.17, 0, 0, 6),
+		Size = UDim2.new(0.55, 0, 0.42, 0),
+		Text = gear.DisplayName,
+		TextSize = 26,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}).Parent = card
+	label({
+		Name = "Description",
+		Position = UDim2.new(0.17, 0, 0.46, 0),
+		Size = UDim2.new(0.55, 0, 0.48, 0),
+		Text = gear.Description,
+		TextColor3 = COLORS.Muted,
+		TextSize = 16,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		OutlineThickness = 1,
+	}).Parent = card
+
+	local buyButton = button("", COLORS.Buy, {
+		Name = "BuyButton",
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -10, 0.5, 0),
+		Size = UDim2.new(0.24, 0, 0.6, 0),
+	})
+	buyButton.Parent = card
+	buyButton.Activated:Connect(function()
+		if gearPending or ownsGear(gear.Id) then
+			return
+		end
+		gearPending = true
+		local ok, success, message = pcall(function()
+			local buyGear = remotes:WaitForChild("BuyGear", 10)
+			if buyGear == nil or not buyGear:IsA("RemoteFunction") then
+				return false, "The Gear Shop is closed right now."
+			end
+			return buyGear:InvokeServer(gear.Id)
+		end)
+		gearPending = false
+		local bought = ok and success == true
+		showToast(if ok and typeof(message) == "string" then message else "Couldn't buy that, try again.", if bought then "Success" else "Error")
+		Sounds.play(if bought then "Purchase" else "Error")
+		refreshGearShop()
+	end)
+
+	card.Parent = gearBody
+	table.insert(gearCards, { Button = buyButton, Gear = gear })
+end
+refreshGearShop()
+player:GetAttributeChangedSignal("OwnedGear"):Connect(refreshGearShop)
 
 --------------------------------------------------------------------------------
 -- Live values
@@ -883,24 +1033,52 @@ confirmRebirthButton.Activated:Connect(function()
 	rebirthPending = false
 	if ok and typeof(message) == "string" then
 		showToast(message, if success == true then "Success" else "Error")
+		Sounds.play(if success == true then "Rebirth" else "Error")
 		if success == true then
 			rebirthFrame.Visible = false
 		end
 	else
 		showToast("Rebirth failed, try again.", "Error")
+		Sounds.play("Error")
 	end
 end)
 
--- The Robux Shop stall in the middle of the map opens the shop too.
-task.spawn(function()
-	local map = Workspace:WaitForChild("Map", 30)
-	local stall = if map then map:WaitForChild("ShopStall", 30) else nil
-	local counter = if stall then stall:WaitForChild("Counter", 30) else nil
-	local prompt = if counter then counter:WaitForChild("ShopPrompt", 30) else nil
-	if prompt and prompt:IsA("ProximityPrompt") then
-		prompt.Triggered:Connect(openShop)
+-- The stalls between the bases open the Robux Shop and the Gear Shop.
+local function connectStall(stallName: string, promptName: string, open: () -> ())
+	task.spawn(function()
+		local map = Workspace:WaitForChild("Map", 30)
+		local stall = if map then map:WaitForChild(stallName, 30) else nil
+		local counter = if stall then stall:WaitForChild("Counter", 30) else nil
+		local prompt = if counter then counter:WaitForChild(promptName, 30) else nil
+		if prompt and prompt:IsA("ProximityPrompt") then
+			prompt.Triggered:Connect(open)
+		end
+	end)
+end
+
+connectStall("ShopStall", "ShopPrompt", openShop)
+connectStall("GearShop", "GearPrompt", function()
+	if not gearFrame.Visible then
+		toggleModal(gearFrame)
+		refreshGearShop()
 	end
 end)
+
+-- Music on/off (bottom right).
+local musicButton = button("MUSIC: ON", COLORS.Music, {
+	Name = "MusicButton",
+	AnchorPoint = Vector2.new(1, 1),
+	Position = UDim2.new(1, -14, 1, -14),
+	Size = UDim2.fromOffset(150, 40),
+})
+musicButton.Parent = screenGui
+musicButton.Activated:Connect(function()
+	local enabled = not Sounds.isMusicEnabled()
+	Sounds.setMusicEnabled(enabled)
+	musicButton.Text = if enabled then "MUSIC: ON" else "MUSIC: OFF"
+	musicButton.BackgroundColor3 = if enabled then COLORS.Music else COLORS.Disabled
+end)
+Sounds.startMusic()
 
 --------------------------------------------------------------------------------
 -- Timers, income, "YOUR BASE" marker and clouds
@@ -973,6 +1151,15 @@ task.spawn(function()
 			empChip.Text = "EMP LASER BYPASS  " .. NumberFormat.duration(empEndsAt - now)
 		end
 
+		local eventName = ReplicatedStorage:GetAttribute("EventName")
+		local eventEndsAt = tonumber(ReplicatedStorage:GetAttribute("EventEndsAt")) or 0
+		eventChip.Visible = typeof(eventName) == "string" and eventEndsAt > now
+		if eventChip.Visible then
+			eventChip.Text = string.format("%s  %s", string.upper(tostring(eventName)), NumberFormat.duration(eventEndsAt - now))
+			local mutation = ReplicatedStorage:GetAttribute("EventMutation")
+			eventChip.BackgroundColor3 = if typeof(mutation) == "string" then EVENT_COLORS[mutation] or COLORS.Boost else COLORS.Boost
+		end
+
 		local income = tonumber(player:GetAttribute("IncomePerSecond")) or 0
 		incomeLabel.Text = "+" .. NumberFormat.cash(income) .. "/s"
 
@@ -987,17 +1174,80 @@ task.spawn(function()
 end)
 
 --------------------------------------------------------------------------------
+-- Mutation events: tinted sky and falling sparkles in the event's colour
+--------------------------------------------------------------------------------
+
+local eventTint = create("ColorCorrectionEffect", {
+	Name = "EventTint",
+	Enabled = false,
+}) :: ColorCorrectionEffect
+eventTint.Parent = Lighting
+
+local eventSky = create("Part", {
+	Name = "EventSparkles",
+	Anchored = true,
+	CanCollide = false,
+	CanQuery = false,
+	CanTouch = false,
+	Transparency = 1,
+	Size = Vector3.new(120, 1, 120),
+}) :: Part
+local eventEmitter = create("ParticleEmitter", {
+	Rate = 0,
+	Lifetime = NumberRange.new(4, 6),
+	Speed = NumberRange.new(10, 14),
+	EmissionDirection = Enum.NormalId.Bottom,
+	SpreadAngle = Vector2.new(10, 10),
+	LightEmission = 1,
+	LightInfluence = 0,
+	Size = NumberSequence.new(0.6),
+	RotSpeed = NumberRange.new(-120, 120),
+}) :: ParticleEmitter
+eventEmitter.Parent = eventSky
+
+RunService.RenderStepped:Connect(function()
+	local mutation = ReplicatedStorage:GetAttribute("EventMutation")
+	local endsAt = tonumber(ReplicatedStorage:GetAttribute("EventEndsAt")) or 0
+	local active = typeof(mutation) == "string" and endsAt > Workspace:GetServerTimeNow()
+	local colour = if active and typeof(mutation) == "string" then EVENT_COLORS[mutation] else nil
+	if colour == nil then
+		eventTint.Enabled = false
+		eventEmitter.Rate = 0
+		return
+	end
+	if mutation == "Rainbow" then
+		colour = Color3.fromHSV((os.clock() * 0.15) % 1, 0.7, 1)
+	end
+	eventTint.Enabled = true
+	eventTint.TintColor = Color3.new(1, 1, 1):Lerp(colour, 0.18)
+	eventEmitter.Color = ColorSequence.new(colour, Color3.new(1, 1, 1))
+	eventEmitter.Rate = 60
+	local camera = Workspace.CurrentCamera
+	if camera then
+		eventSky.CFrame = CFrame.new(camera.CFrame.Position + Vector3.new(0, 40, 0))
+		if eventSky.Parent ~= camera then
+			eventSky.Parent = camera
+		end
+	end
+end)
+
+--------------------------------------------------------------------------------
 -- Prompt filtering
 --------------------------------------------------------------------------------
 
 local function refreshPrompt(prompt: ProximityPrompt)
 	local kind = prompt:GetAttribute("PromptKind")
+	local ownedByMe = prompt:GetAttribute("OwnerUserId") == player.UserId
+	if kind == "Snipe" then
+		-- Someone else's brainrot walking home can be bought off them.
+		prompt.Enabled = prompt:GetAttribute("Snipeable") == true and not ownedByMe
+		return
+	end
 	if kind ~= "Steal" and kind ~= "Sell" then
 		return
 	end
-	local ownedByMe = prompt:GetAttribute("OwnerUserId") == player.UserId
-	local carried = prompt:GetAttribute("Carried") == true
-	prompt.Enabled = not carried and (if kind == "Steal" then not ownedByMe else ownedByMe)
+	local busy = prompt:GetAttribute("Carried") == true or prompt:GetAttribute("Walking") == true
+	prompt.Enabled = not busy and (if kind == "Steal" then not ownedByMe else ownedByMe)
 end
 
 local function trackPrompt(instance: Instance)
@@ -1005,12 +1255,11 @@ local function trackPrompt(instance: Instance)
 		return
 	end
 	refreshPrompt(instance)
-	instance:GetAttributeChangedSignal("Carried"):Connect(function()
-		refreshPrompt(instance)
-	end)
-	instance:GetAttributeChangedSignal("OwnerUserId"):Connect(function()
-		refreshPrompt(instance)
-	end)
+	for _, attribute in { "Carried", "Walking", "Snipeable", "OwnerUserId" } do
+		instance:GetAttributeChangedSignal(attribute):Connect(function()
+			refreshPrompt(instance)
+		end)
+	end
 end
 
 Workspace.DescendantAdded:Connect(trackPrompt)
