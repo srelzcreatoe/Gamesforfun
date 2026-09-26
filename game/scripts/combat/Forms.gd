@@ -260,12 +260,19 @@ static func mastery_fraction(entity_node: Node, form_id: String) -> float:
 
 # --- checks --------------------------------------------------------------
 
+## True while the dev menu's God mode is on for this entity. God mode is meant for looking at
+## the game, so it waives every *gate* on transforming (unlock, ki, mastery, prerequisites) -
+## but not the state checks below, which would otherwise transform on top of a transform.
+static func is_god(entity_node: Node) -> bool:
+	return entity_node != null and entity_node.get("god_mode") == true
+
 ## Everything that has to be true before transforming. Returns {ok, reason}.
 static func can_transform(entity_node: Node, form_id: String) -> Dictionary:
 	var d := def(form_id)
 	if d.is_empty():
 		return {"ok": false, "reason": "unknown form"}
-	if not is_unlocked(entity_node, form_id):
+	var god := is_god(entity_node)
+	if not god and not is_unlocked(entity_node, form_id):
 		return {"ok": false, "reason": "form not unlocked"}
 	var f := find_on(entity_node)
 	if f != null:
@@ -279,11 +286,14 @@ static func can_transform(entity_node: Node, form_id: String) -> Dictionary:
 				# a non-stackable form replaces the stack, which is allowed
 				pass
 			var need := float(d.get("stackOnMastery", 0.0))
-			if bool(d.get("formStackable", false)) and need > 0.0 and mastery(entity_node, form_id) < need:
+			if not god and bool(d.get("formStackable", false)) and need > 0.0 \
+					and mastery(entity_node, form_id) < need:
 				return {"ok": false, "reason": "needs %.0f%% mastery to stack" % need}
 			for active_id in f.stack:
 				if _incompatible(active_id, form_id) or _incompatible(form_id, active_id):
 					return {"ok": false, "reason": "incompatible with " + active_id}
+	if god:
+		return {"ok": true, "reason": ""}
 	var k := Ki.find_on(entity_node)
 	if k != null and k.ki_fraction() < MIN_KI_TO_TRANSFORM:
 		return {"ok": false, "reason": "not enough ki"}

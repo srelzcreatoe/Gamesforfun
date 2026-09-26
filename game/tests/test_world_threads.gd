@@ -15,6 +15,12 @@ extends TestCase
 ## Two things are asserted: nothing crashes, and every thread produces byte-for-byte the same
 ## column / mesh as a single-threaded reference run (a torn read of a shared cache shows up as
 ## a difference long before it shows up as a crash).
+##
+## The last two tests drive the real thing instead of the entry points: a World from
+## World.tscn with `_max_gen_tasks`/`_max_mesh_tasks` forced to 3, pumped frame by frame while
+## the main thread edits blocks, merges border light, queries heights and saves - and they
+## assert the ownership invariant, that a column a worker still owns is never reachable through
+## `ChunkManager.columns`, including while the view centre walks and columns unload.
 
 const SEED := 4242
 ## Real threads, deliberately more than the dev box has cores.
@@ -30,8 +36,9 @@ var _errors: PackedStringArray = PackedStringArray()
 func setup() -> void:
 	if not Registry.loaded:
 		Registry.load_all()
-	if not BlockTable.built:
-		BlockTable.build()
+	# Exactly what ChunkManager._ready() does before it may queue a task: build the block
+	# tables and touch every shared static lookup table on the main thread.
+	BlockTable.prewarm()
 	_errors = PackedStringArray()
 
 func _fail_t(msg: String) -> void:
@@ -128,8 +135,14 @@ func test_concurrent_mesh_matches_single_thread() -> void:
 	var sections := [3, 4, 5]
 	var want := {}
 	var pad0 := ChunkMesher.build_pad(snap)
+	var verts := 0
 	for s in sections:
-		want[s] = _surface_sizes(ChunkMesher.build_section(pad0, s, palette))
+		var sz := _surface_sizes(ChunkMesher.build_section(pad0, s, palette))
+		for k in sz.keys():
+			verts += int(sz[k])
+		want[s] = sz
+	# Guard against the test passing because the mesher failed to compile / produced nothing.
+	assert_true(verts > 0, "reference mesh is empty, the mesher produced no geometry")
 	for it in ITERATIONS:
 		var threads: Array[Thread] = []
 		for t in THREADS:
@@ -193,7 +206,7 @@ func test_concurrent_template_cache() -> void:
 			break
 
 func _tpl_worker(probe: Array, want: Dictionary, tid: int) -> void:
-	for pass_i in 2:
+	for _pass in 2:
 		for p in probe:
 			var hdr := Structures.header(String(p))
 			if hdr.is_empty() or not hdr.has("size"):
@@ -203,8 +216,11 @@ func _tpl_worker(probe: Array, want: Dictionary, tid: int) -> void:
 			if size.x <= 0:
 				_fail_t("thread %d: bad header size for %s" % [tid, p])
 				return
+			# Touch the header's entity list too: it is handed out by reference and read by
+			# every generator thread (Structures._spawn_entities).
 			var ents: Array = hdr.get("ents", [])
-			ents.size()
+			if ents.size() < 0:
+				return
 			var blk := Structures.blocks_of(String(p))
 			var got := [(blk["data"] as PackedInt32Array).size(), (blk["pal"] as PackedByteArray).size()]
 			if got != want[p]:
@@ -216,15 +232,19 @@ func _tpl_worker(probe: Array, want: Dictionary, tid: int) -> void:
 			var data: PackedInt32Array = blk["data"]
 			var pal: PackedByteArray = blk["pal"]
 			var total := 0
+			var solid := 0
 			for ti in 256:
 				var from := starts[ti]
 				for i in range(from, from + counts[ti]):
 					var v := data[i]
-					if pal[(v >> 24) & 255] == 0 and false:
-						return
+					if pal[(v >> 24) & 255] != 0:
+						solid += 1
 					total += 1
 			if total != data.size():
 				_fail_t("thread %d: %s offset table covers %d of %d cells" % [tid, p, total, data.size()])
+				return
+			if solid != total:
+				_fail_t("thread %d: %s has %d of %d cells on the air palette entry" % [tid, p, total - solid, total])
 				return
 
 # --- the dragon ball position cache ----------------------------------------
@@ -256,3 +276,125 @@ func _db_worker(want: Dictionary, tid: int) -> void:
 			if got[i] != exp[i]:
 				_fail_t("thread %d: set %s ball %d moved" % [tid, sid, i])
 				return
+
+# --- the real streaming pipeline -------------------------------------------
+
+const WORLD_SCENE := "res://scenes/world/World.tscn"
+
+var _world: Node = null
+
+func teardown() -> void:
+	if _world != null and is_instance_valid(_world):
+		if _world.manager != null:
+			_world.manager.shutdown()
+		if _world.get_parent() != null:
+			_world.get_parent().remove_child(_world)
+		_world.free()
+	_world = null
+
+## Drive ChunkManager with three generator and three mesher threads while the main thread does
+## what it normally does at the same time (block edits, light merges, height queries, saves).
+## Covers the column hand-off: an in-flight column must be unreachable, and a published one
+## must match what a single-threaded run produces.
+func test_chunk_manager_streams_on_three_threads() -> void:
+	var packed: PackedScene = load(WORLD_SCENE)
+	var w: Node = packed.instantiate()
+	add_node(w)
+	_world = w
+	w.fluids.enabled = false
+	w.sky = null
+	Game.settings["render_distance"] = 2
+	# slug "" keeps SaveManager disabled, so the test writes no files.
+	w.start({"planet": "earth", "seed": SEED, "slug": ""}, {"position": {"x": 0.5, "y": -1.0, "z": 0.5}})
+	var mgr: ChunkManager = w.manager
+	# Forced rather than trusted: a two-core CI box would otherwise run this single threaded
+	# and prove nothing. Three is what an 8-core phone picks.
+	mgr._max_gen_tasks = 3
+	mgr._max_mesh_tasks = 3
+	var reachable_in_flight := 0
+	var overlaps := 0
+	for frame in 400:
+		mgr._process(0.016)
+		# No frames elapse in a headless test, so give the workers real time to run - that is
+		# the whole point here: the main-thread work below must overlap with three live tasks.
+		OS.delay_msec(3)
+		# Main-thread world work, concurrent with the workers.
+		for k in mgr.columns.keys():
+			var col: ChunkColumn = mgr.columns[k]
+			if col.in_flight:
+				reachable_in_flight += 1
+			if mgr._pending_gen.has(k):
+				overlaps += 1
+		w.get_height(3, 5)
+		w.get_biome(3, 5)
+		w.get_block(3, 70, 5)
+		w.get_sky_light(3, 70, 5)
+		if frame % 37 == 0 and mgr.columns.has(Vector2i(0, 0)):
+			w.set_block(3, 70, 5, Registry.block_id("stone"))
+			w.set_block(3, 70, 5, 0)
+		if frame % 53 == 0:
+			mgr.save_modified()
+		if mgr.stream_progress() >= 1.0 and mgr._gen_ids.is_empty() and mgr._mesh_ids.is_empty():
+			break
+	mgr.shutdown()
+	assert_eq(reachable_in_flight, 0, "an in-flight column was reachable through ChunkManager.columns")
+	assert_eq(overlaps, 0, "a column was published while its generation task was still pending")
+	assert_true(mgr.columns.size() >= 9, "only %d columns streamed in" % mgr.columns.size())
+	# Byte-for-byte against a single-threaded generation of the same seed.
+	var def := Registry.planet("earth")
+	var gen: Object = WorldGenFactory.create(def, SEED)
+	var checked := 0
+	for k in mgr.columns.keys():
+		var col: ChunkColumn = mgr.columns[k]
+		if col.modified or col.state < ChunkColumn.LIT:
+			continue
+		var ref := ChunkColumn.new(k.x, k.y)
+		gen.call("generate_column", ref, SEED, def)
+		if col.blocks != ref.blocks:
+			assert_true(false, "column %s streamed different blocks than a single-threaded run" % str(k))
+			break
+		if col.biomes != ref.biomes:
+			assert_true(false, "column %s streamed different biomes than a single-threaded run" % str(k))
+			break
+		checked += 1
+		if checked >= 6:
+			break
+	assert_true(checked > 0, "no published column could be compared")
+
+## Unloading must never pull a column out from under a task that still references it.
+func test_unload_never_drops_an_in_flight_column() -> void:
+	var packed: PackedScene = load(WORLD_SCENE)
+	var w: Node = packed.instantiate()
+	add_node(w)
+	_world = w
+	w.fluids.enabled = false
+	w.sky = null
+	Game.settings["render_distance"] = 2
+	w.start({"planet": "earth", "seed": SEED, "slug": ""}, {"position": {"x": 0.5, "y": -1.0, "z": 0.5}})
+	var mgr: ChunkManager = w.manager
+	mgr._max_gen_tasks = 3
+	mgr._max_mesh_tasks = 3
+	var bad := 0
+	var seen := 0
+	var dropped := false
+	# Walk the centre one chunk at a time, slowly enough that columns actually finish and get
+	# published before the centre moves out of their range - otherwise nothing is ever
+	# unloaded and the test would pass without covering anything.
+	for frame in 420:
+		w.set_view_center(Vector3(float((frame / 60) * 16), 70.0, 0.0))
+		var before := mgr.columns.size()
+		mgr._process(0.016)
+		if mgr.columns.size() < before:
+			dropped = true
+		OS.delay_msec(3)
+		seen = maxi(seen, mgr.columns.size())
+		for k in mgr.columns.keys():
+			if (mgr.columns[k] as ChunkColumn).in_flight:
+				bad += 1
+		for k in mgr._pending_gen.keys():
+			if mgr.columns.has(k):
+				bad += 1
+	mgr.shutdown()
+	assert_eq(bad, 0, "an in-flight column was reachable while the view centre moved")
+	assert_true(seen >= 9, "only %d columns streamed while the view centre moved" % seen)
+	assert_true(dropped, "no column was ever unloaded, so the unload path was not covered")

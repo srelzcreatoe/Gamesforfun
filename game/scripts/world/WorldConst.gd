@@ -29,4 +29,8 @@ static func local_coord(v: int) -> int:
 	return v & 15
 
 ## Face indices used by meshing/textures: 0=+X east 1=-X west 2=+Y top 3=-Y bottom 4=+Z south 5=-Z north
-const FACE_NORMALS: Array[Vector3i] = [Vector3i(1, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 1, 0), Vector3i(0, -1, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1)]
+## Never `const`: a const container is read-only, and Godot's read-only element access
+## (`operator[]`, `for x in ...`) goes through ONE scratch Variant shared by every reader, so
+## two worker threads indexing it at once free each other's element - the `Array::_ref` crash.
+## See the THREAD SAFETY note in scripts/world/BlockShapes.gd.
+static var FACE_NORMALS: Array[Vector3i] = [Vector3i(1, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 1, 0), Vector3i(0, -1, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1)]

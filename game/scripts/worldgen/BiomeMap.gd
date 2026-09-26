@@ -169,7 +169,11 @@ func band_index(h: int) -> int:
 		return 2
 	return 1 if h >= terrain.sea_level + 7 else 0
 
-const BAND_NAMES := ["low", "mid", "high", "peak"]
+## Never `const`: a const container is read-only, and Godot's read-only element access
+## (`operator[]`, `for x in ...`) goes through ONE scratch Variant shared by every reader, so
+## two worker threads indexing it at once free each other's element - the `Array::_ref` crash.
+## See the THREAD SAFETY note in scripts/world/BlockShapes.gd.
+static var BAND_NAMES: Array = ["low", "mid", "high", "peak"]
 
 ## The climate half of the Earth selection, for a band index from `band_index()`.
 func pick_band(wx: int, wz: int, band: int) -> int:

@@ -16,13 +16,28 @@ var seed: int = 0
 var _hills := FastNoiseLite.new()
 var _detail := FastNoiseLite.new()
 var _ponds := FastNoiseLite.new()
+## name -> block id, filled once by `set_seed()` on the main thread. It used to be filled
+## lazily from `_id()`, which runs on every generator worker: an unguarded insert into a shared
+## Dictionary rehashes it under the other workers' reads. Filled up front it is read-only, and
+## `_id()` falls back to Registry (which is also read-only) for anything not listed.
 var _ids: Dictionary = {}
+## Every block this generator places, resolved up front so `_id()` never writes.
+const BLOCK_NAMES := ["stone", "dirt", "grass_block", "sand", "water", "bedrock", "gravel",
+	"coal_ore", "oak_log", "oak_leaves", "short_grass", "tall_grass", "poppy", "dandelion",
+	"cornflower", "oxeye_daisy", "torch", "lily_pad"]
 
 func _init(p_seed := 0) -> void:
 	set_seed(p_seed)
 
+## MAIN THREAD ONLY, like WorldGen.reseed: it rebuilds the noise objects and the id table that
+## the generator workers are sampling.
 func set_seed(p_seed: int) -> void:
 	seed = p_seed
+	var ids := {}
+	for n in BLOCK_NAMES:
+		var v := Registry.block_id(String(n))
+		ids[String(n)] = v if v > 0 else 0
+	_ids = ids
 	_hills.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
 	_hills.seed = p_seed
 	_hills.frequency = 0.008
@@ -34,14 +49,13 @@ func set_seed(p_seed: int) -> void:
 	_ponds.seed = p_seed + 4242
 	_ponds.frequency = 0.014
 
+## Worker safe: reads the table `set_seed()` filled, never writes it.
 func _id(name: String) -> int:
-	if _ids.has(name):
-		return _ids[name]
+	var hit: Variant = _ids.get(name, null)
+	if hit != null:
+		return int(hit)
 	var v := Registry.block_id(name)
-	if v < 0:
-		v = 0
-	_ids[name] = v
-	return v
+	return v if v > 0 else 0
 
 func height_at(wx: int, wz: int) -> int:
 	var h := float(SEA) + 4.0 + _hills.get_noise_2d(wx, wz) * 9.0 + _detail.get_noise_2d(wx, wz) * 1.5
@@ -52,7 +66,12 @@ func height_at(wx: int, wz: int) -> int:
 
 func generate_column(col: ChunkColumn, p_seed: int, planet: Dictionary) -> void:
 	if p_seed != seed:
-		set_seed(p_seed)
+		# Reseeding here would rebuild the noise objects and the id table while sibling workers
+		# are sampling them (see WorldGen.reseed); do it on the main thread instead.
+		if OS.get_thread_caller_id() == OS.get_main_thread_id():
+			set_seed(p_seed)
+		else:
+			Log.e("FlatTestGen: generate_column(seed %d) while configured for %d; call set_seed on the main thread" % [p_seed, seed])
 	var stone := _id("stone")
 	var dirt := _id("dirt")
 	var grass := _id("grass_block")

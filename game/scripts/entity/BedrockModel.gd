@@ -20,9 +20,19 @@ extends Node3D
 ##   Vegeta's scouter, a one-sleeve gi - therefore stays on the correct side.
 ##   Triangles are wound CLOCKWISE as seen from the front face, which is what
 ##   Godot rasterises as front-facing (`_add_quad` enforces it from the normal).
-## * Rotation mapping: the three json degrees are used AS IS
-##   (`euler = Vector3(rx, ry, rz)` in degrees) and composed Rz * Ry * Rx
-##   (`bedrock_basis()`), which reproduces Bedrock/GeckoLib bone order.
+## * Rotation mapping: the json degrees are used as `(-rx, -ry, +rz)` and
+##   composed Rz * Ry * Rx (`bedrock_basis()`), which is exactly what GeckoLib
+##   does when it bakes a Bedrock geometry (`GeoBone.updateRotation(-x, -y, z)`
+##   after `updatePivot(-pivot.x, pivot.y, pivot.z)`), so DragonMineZ geometry
+##   and animation data apply verbatim. The SIGNS MATTER: the DMZ saga/master
+##   models build hair, capes, muscles and animal limbs out of bones with large
+##   rest rotations (saga_raditz alone has 58 of them, up to 178 deg), and every
+##   sign error compounds down the bone chain - with `(+1, +1, +1)` the hair of
+##   every Saiyan exploded into a ball of spikes, Cell's torso scrambled and the
+##   dinosaurs lay on their side. The convention is checked against the
+##   geometries' own `visible_bounds_*` in tests/test_bedrock_model.gd: with
+##   `(-1, -1, 1)` exactly one of the 212 entity models pokes out of its declared
+##   bounds, with `(1, 1, 1)` seven do and by 17x as much.
 ##   Verified against the DMZ data: `base.walk` swings the right leg forward while
 ##   the right arm swings back, and `head.rotation.y = -query.head_y_rotation`
 ##   turns the head toward the side the entity looks at.
@@ -45,9 +55,10 @@ const HAIR_BONE_RE := "^(pelo|hair|cabello|cape|capa|cloth|manto|falda|skirt|tel
 
 static var prefer_hd := true
 ## Sign applied to the three Bedrock euler degrees before composing Rz*Ry*Rx.
-## Kept as a knob so the convention can be re-verified from ModelPreview
-## (--signs=1,-1,-1); the shipped value is the one that renders correctly.
-static var euler_signs := Vector3(1.0, 1.0, 1.0)
+## GeckoLib's own convention (see the header); kept as a knob so it can be
+## re-verified from ModelPreview (`--signs=1,1,1`) and from the bounds check in
+## tests/test_bedrock_model.gd.
+static var euler_signs := Vector3(-1.0, -1.0, 1.0)
 static var _geo_cache: Dictionary = {}          # rel path -> parsed geometry Dictionary
 static var _mesh_cache: Dictionary = {}         # rel path -> {bone: ArrayMesh}
 static var _hair_re: RegEx = null
@@ -557,6 +568,69 @@ func set_bone_material(name: String, tex: Texture2D, tint := Color.WHITE, nocull
 func bone_material(name: String) -> StandardMaterial3D:
 	var mi: MeshInstance3D = meshes.get(name)
 	return mi.material_override if mi != null else null
+
+## Swap the geometry (a transformation model) while KEEPING everything that was
+## attached to the old bone tree.
+##
+## `load_geo()` frees every child node, and the character's hair is a
+## `MeshInstance3D` named "Hair" parented to the `head` bone - so a plain
+## `load_geo()` on a form change silently deleted the hair (that is the "my hair
+## disappeared when I transformed" bug: 36 of the 57 forms in data/forms.json
+## carry a `model_override`, and `Forms._apply_visuals()` applies the form hair
+## and THEN swaps the model). This snapshots the texture, the scales, which bones
+## were hidden, the per-bone material overrides (armour layers) and the hair
+## (style + both tints), rebuilds, and puts them all back.
+func reload_geo(path_rel: String) -> bool:
+	var tex := get_texture()
+	var base_now := base_scale
+	var mult := form_scale_mult()
+	var tint := material.albedo_color if material != null else Color.WHITE
+	var hidden := PackedStringArray()
+	for b in bones.keys():
+		if not is_bone_visible(String(b)):
+			hidden.append(String(b))
+	var bone_mats: Dictionary = {}
+	for b in meshes.keys():
+		var mi: MeshInstance3D = meshes[b]
+		var m := mi.material_override as StandardMaterial3D
+		if m != null and m != material and m != material_nocull:
+			bone_mats[String(b)] = m
+	var hair_style := ""
+	var hair_cols: Array = []
+	var head: Node3D = get_bone("head")
+	var hair := head.get_node_or_null("Hair") as MeshInstance3D if head != null else null
+	if hair != null:
+		hair_style = String(hair.get_meta("hair_style", ""))
+		if not hair.visible:
+			hair_style = ""
+		var main := hair.material_override as StandardMaterial3D
+		if main != null:
+			hair_cols.append(main.albedo_color)
+		else:
+			for i in maxi(1, hair.mesh.get_surface_count() if hair.mesh != null else 1):
+				var sm := hair.get_surface_override_material(i) as StandardMaterial3D
+				if sm != null:
+					hair_cols.append(sm.albedo_color)
+	if not load_geo(path_rel):
+		return false
+	if tex != null:
+		set_texture(tex)
+	set_model_scale(base_now)
+	if not is_equal_approx(mult, 1.0):
+		set_form_scale(mult)
+	if tint != Color.WHITE:
+		set_tint(tint)
+	for b in hidden:
+		set_bone_visible(b, false)
+	for b in bone_mats.keys():
+		var mi2: MeshInstance3D = meshes.get(b)
+		if mi2 != null:
+			mi2.material_override = bone_mats[b]
+	# A transformation model that ships its OWN hair bones (oozaru, the frost demon
+	# and majin forms) keeps them; strand hair would sit inside its skull.
+	if hair_style != "" and has_bone("head") and not has_bone("pelo1") and not has_bone("hair1"):
+		HairBuilder.attach(self, hair_style, hair_cols[0] if hair_cols.size() > 0 else Color.WHITE)
+	return true
 
 ## Reset every bone to its rest pose (used by the animation player each frame).
 func reset_pose() -> void:

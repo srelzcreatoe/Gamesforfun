@@ -7,6 +7,9 @@ const ICONS := ["radial/fly", "radial/aura", "radial/sprint", "radial/kaioken",
 	"radial/kiweapon", "radial/ultimate", "radial/superforms", "radial/more"]
 
 var entries: Array = []          # {label, icon, action: Callable}
+## Which page of techniques is shown; only ever non-zero when the list overflows the wheel.
+## (Not `page`: ScreenBase already has a `page()` builder, and a member may not shadow it.)
+var tech_page := 0
 var hover := -1
 var centre := Vector2.ZERO
 var radius := 150.0
@@ -34,10 +37,17 @@ func build() -> void:
 
 func _collect() -> void:
 	entries.clear()
-	var known: Array = Game.profile.get("techniques", []) if Game != null else []
+	var known: Array = Techniques.usable_list(Game.player) if Game != null else []
+	# God mode offers all 30 techniques, which do not fit 8 slots: page through them with a
+	# "More" entry that takes the last technique slot.
+	var per_page := SLOTS - 2
+	var paged := known.size() > per_page
+	if paged:
+		per_page -= 1
+		var pages := int(ceil(float(known.size()) / float(per_page)))
+		tech_page = posmod(tech_page, pages)
+		known = known.slice(tech_page * per_page, mini((tech_page + 1) * per_page, known.size()))
 	for tid in known:
-		if entries.size() >= SLOTS - 2:
-			break
 		var def: Dictionary = Registry.technique(String(tid)) if Registry != null else {}
 		var id := String(tid)
 		entries.append({
@@ -46,6 +56,13 @@ func _collect() -> void:
 			"orb": UiUtil.color_hex(String(def.get("color", "#7FD4FF")), Color(0.5, 0.83, 1.0)),
 			"action": func() -> void: _cast(id),
 		})
+	if paged:
+		entries.append({"label": "More \u25B8", "icon": null, "orb": Color(0.75, 0.75, 0.8),
+			"action": func() -> void:
+				tech_page += 1
+				_collect()
+				if wheel != null:
+					wheel.queue_redraw()})
 	entries.append({"label": "Charge Ki", "icon": UiUtil.gui_tex("radial/aura"), "orb": null,
 		"action": func() -> void: _hold("ki_charge")})
 	entries.append({"label": "Fly", "icon": UiUtil.gui_tex("radial/fly"), "orb": null,

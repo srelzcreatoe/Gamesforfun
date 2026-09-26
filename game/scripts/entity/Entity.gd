@@ -233,10 +233,22 @@ func _build_model() -> void:
 		anim.load_clips(String(a))
 	# Serious Player Animations (MIT) fills the movement states DMZ has no clip
 	# for; they are registered under "spa." and never replace a DMZ clip.
-	if use_spa_clips and model.has_bone("right_arm") and FileAccess.file_exists(SPA_CLIPS_FILE):
+	# Only onto a HUMANOID rig: the pack animates `rightArm`/`leftLeg`/`torso`, and
+	# `right_arm` alone also matches the dinosaurs (whose legs are `leg_right`), so
+	# a dino used to be able to fall back to a human walk.
+	if use_spa_clips and _is_humanoid_rig() and FileAccess.file_exists(SPA_CLIPS_FILE):
 		anim.load_clips(SPA_CLIPS, BedrockAnimation.REMAP_SPA)
 	if anim.has_clip("idle"):
-		play_anim("idle")
+		set_locomotion("idle")
+
+## Does this model carry the bones the Serious Player Animations rig drives?
+func _is_humanoid_rig() -> bool:
+	if model == null:
+		return false
+	for b in ["head", "body", "right_arm", "left_arm", "right_leg", "left_leg"]:
+		if not model.has_bone(b):
+			return false
+	return true
 
 # --- frame --------------------------------------------------------------------
 
@@ -386,8 +398,8 @@ func play_anim(name: String, blend := 0.15, loop: Variant = null, speed := 1.0) 
 	_anim_name = name
 	return anim.play(name, blend, loop, speed)
 
-func play_upper_anim(name: String, blend := 0.1) -> bool:
-	return anim.play_upper(name, blend) if anim != null else false
+func play_upper_anim(name: String, blend := 0.1, loop: Variant = null) -> bool:
+	return anim.play_upper(name, blend, loop) if anim != null else false
 
 func current_anim() -> String:
 	return anim.current_clip() if anim != null else ""
@@ -404,16 +416,11 @@ func set_locomotion(state: String, speed := 0.0, blend := 0.18) -> bool:
 	var clip := AnimSelect.choose(state, anim)
 	if clip == "":
 		return false
-	var rate := 1.0
-	match state:
-		"walk", "walk_back", "sneak_walk", "sneak_walk_back", "crawl_move", "crawl_back":
-			rate = clampf(speed / 4.2, 0.6, 1.8)
-		"run", "sprint":
-			rate = clampf(speed / 5.6, 0.7, 1.9)
-		"swim", "swim_forward", "swim_back", "swim_up":
-			rate = clampf(speed / 2.4, 0.6, 1.6)
-		"fly_forward", "fly_fast", "fly_back", "fly_left", "fly_right":
-			rate = clampf(speed / 12.0, 0.7, 1.7)
+	# The rate is the speed ratio TIMES the clip's own cycle length over the cycle
+	# the state wants: without the second factor an imported clip authored at a
+	# different length plays at the wrong pace (the SPA walk is one stride over
+	# 6.6667 s and looked like slow motion). See AnimSelect.locomotion_rate.
+	var rate := AnimSelect.locomotion_rate(state, anim.cycle_length(clip), speed)
 	if locomotion == state and anim.current_clip() == clip and is_equal_approx(anim_speed, rate):
 		return true
 	locomotion = state
@@ -443,9 +450,14 @@ func play_action(state: String, blend := 0.08) -> bool:
 	var clip := AnimSelect.choose(state, anim)
 	if clip == "":
 		return false
-	if AnimSelect.is_upper_body(state):
-		return anim.play_upper(clip, blend)
 	var loop: Variant = false if AnimSelect.is_one_shot(state) else null
+	if AnimSelect.is_upper_body(state):
+		# A one shot has to be forced non-looping on the override layer too: DMZ's
+		# own `base.mining1` / `base.block` / `spa.shield` declare `loop: true`, so
+		# without this the layer never reports `finished`, `auto_release_upper`
+		# never fires and the arms stay locked in the last pose over every later
+		# locomotion clip.
+		return anim.play_upper(clip, blend, loop)
 	_anim_name = clip
 	return anim.play(clip, blend, loop, 1.0)
 
@@ -703,23 +715,55 @@ func set_model_override(path: String) -> void:
 	if path == model_override:
 		return
 	model_override = path
-	var want := path if path != "" else String(def.get("model", ""))
+	var want := resolve_model_override(path) if path != "" else ""
+	if want == "":
+		want = String(def.get("model", ""))      # no such DMZ model: keep our own
 	if want == "" or model == null:
 		return
-	var tex: Texture2D = model.get_texture()
-	var base_now := model.base_scale
-	var mult := model.form_scale_mult()         # keep any form scaling already applied
-	if not model.load_geo(want):
-		model.load_geo(String(def.get("model", "")))
-	model.set_model_scale(base_now)
-	if not is_equal_approx(mult, 1.0):
-		model.set_form_scale(mult)
-	if tex != null:
-		model.set_texture(tex)
+	# `reload_geo` keeps the texture, the scales, the hidden layer bones, the armour
+	# materials AND the hair mesh - a plain `load_geo` frees every child of the
+	# model, which is what used to delete the character's hair the moment a form
+	# with a `model_override` was applied (36 of the 57 forms have one).
+	if not model.reload_geo(want):
+		model.reload_geo(String(def.get("model", "")))
+	# The form's own hair (geometry + colour) is re-derived for the new bone tree.
+	if current_form != "" and ResourceLoader.exists("res://scripts/entity/RaceSkin.gd"):
+		var fd: Dictionary = Registry.form(current_form)
+		if not fd.is_empty():
+			RaceSkin.set_form_hair(model, fd)
 	if anim != null:
 		anim.setup(model, self)
 		if _anim_name != "":
 			anim.play(_anim_name, 0.0)
+
+## forms.json `customModel` / `model_override` holds DragonMineZ's own model NAME
+## ("buffed", "4arms", "oozaru", "bioandroid_semi", ...), not a path under
+## assets/models. Map it to the geometry the DMZ race pack actually ships and
+## fall back to the entity's own model when the pack has none (DMZ's "ssj4gt" is
+## the ordinary body plus a fur layer, for instance), so a form never swaps in a
+## model that does not exist.
+const MODEL_OVERRIDE_ALIAS := {
+	"buffed": "hbuffed",
+	"namekian_buffed": "hbuffed",
+	"4arms": "h4arms",
+	"majin_kid": "majin",
+	"majin_evil": "majin",
+	"majin_super": "majin",
+	"majin_ultra": "majin",
+	"frostdemon_mecha": "frostdemon_metalcore",
+}
+
+static func resolve_model_override(name: String) -> String:
+	if name == "":
+		return ""
+	if name.contains("/"):
+		return name                                  # already a path
+	var key := String(MODEL_OVERRIDE_ALIAS.get(name, name))
+	for base in ["entity/races/", "entity/sagas/", "entity/"]:
+		var rel := base + key
+		if FileAccess.file_exists(BedrockModel.MODELS_DIR + rel + ".geo.json"):
+			return rel
+	return ""
 
 func set_model_visible(v: bool) -> void:
 	if model != null:

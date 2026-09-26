@@ -2,6 +2,13 @@ class_name BlockTable
 ## Flat per-block-id lookup arrays built once from Registry/Textures so the mesher, lighting and
 ## physics never touch Dictionaries in hot loops. All arrays are read-only after build() and are
 ## safe to read from WorkerThreadPool tasks (copy the static var into a local first).
+##
+## THREAD SAFETY: `build()` must have finished before the first chunk task is queued, because it
+## clears and re-fills every table here (and can pull in Registry/Textures). It is idempotent,
+## serialised by `_build_mutex` and refuses to run off the main thread (it logs and returns), so
+## a stray call from a worker can never rebuild the tables under a mesher that is reading them.
+## `ChunkManager._ready()` builds them through `prewarm()` before `setup()` lets `_process`
+## queue anything; `World._ready()` builds them too.
 
 enum Shape { NONE, CUBE, CUTOUT_CUBE, TRANSLUCENT_CUBE, CROSS, CROP, LIQUID, SLAB_BOTTOM, TORCH, LADDER,
 	FENCE, DOOR, TRAPDOOR, WATERLILY, SNOW_LAYER, CARPET, MODEL, CACTUS }
@@ -14,7 +21,11 @@ const SHAPE_NAMES := {
 	"snow_layer": Shape.SNOW_LAYER, "carpet": Shape.CARPET, "model": Shape.MODEL, "cactus": Shape.CACTUS,
 }
 const TINT_NAMES := {"none": Tint.NONE, "grass": Tint.GRASS, "foliage": Tint.FOLIAGE, "water": Tint.WATER, "mask": Tint.MASK}
-const FACE_KEYS := ["east", "west", "top", "bottom", "south", "north"]
+## Never `const`: a const container is read-only, and Godot's read-only element access
+## (`operator[]`, `for x in ...`) goes through ONE scratch Variant shared by every reader, so
+## two worker threads indexing it at once free each other's element - the `Array::_ref` crash.
+## See the THREAD SAFETY note in scripts/world/BlockShapes.gd.
+static var FACE_KEYS: Array = ["east", "west", "top", "bottom", "south", "north"]
 
 static var built := false
 static var count := 0
@@ -50,9 +61,41 @@ static var emissive_ids := PackedInt32Array()
 static var water_id := -1
 static var lava_id := -1
 
+static var _build_mutex := Mutex.new()
+
 static func build() -> void:
 	if built:
 		return
+	# Building touches Registry, Textures and every table below. Doing that on a worker while
+	# the mesher reads the tables is the thread-safety bug this whole file guards against, so
+	# the build only ever runs on the main thread.
+	if OS.get_thread_caller_id() != OS.get_main_thread_id():
+		Log.e("BlockTable.build() called from a worker thread; tables must be built on the main thread before chunk tasks start")
+		return
+	_build_mutex.lock()
+	if built:
+		_build_mutex.unlock()
+		return
+	_build()
+	_build_mutex.unlock()
+
+## Touch every shared lookup table this class and its neighbours expose, on the main thread.
+## GDScript initialises a `static var` the first time its script is used, and that must not
+## happen concurrently on several worker threads - so the main thread does it first.
+static func prewarm() -> void:
+	build()
+	var _a: Array = BlockShapes.FACE_CORNERS
+	var _b: Array = BlockShapes.FACE_DIR
+	var _c: Array = BlockShapes.FACE_NORMAL
+	var _d: Array = BlockShapes.FACE_UV
+	var _e: Array = BlockShapes.FACING_DIR
+	var _f: Array = ChunkMesher.AO
+	var _g: Dictionary = Trees.WOOD
+	var _h: Array = BiomeMap.BAND_NAMES
+	var _i: Array = FACE_KEYS
+	ChunkMesher.ao_offsets()
+
+static func _build() -> void:
 	if not Registry.loaded:
 		Registry.load_all()
 	if not Textures.built:

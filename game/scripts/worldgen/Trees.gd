@@ -10,7 +10,11 @@ extends RefCounted
 const HEIGHT := WorldConst.HEIGHT
 
 ## Trunk / leaf blocks per tree type.
-const WOOD := {
+## Never `const`: a const container is read-only, and Godot's read-only element access
+## (`operator[]`, `for x in ...`) goes through ONE scratch Variant shared by every reader, so
+## two worker threads indexing it at once free each other's element - the `Array::_ref` crash.
+## See the THREAD SAFETY note in scripts/world/BlockShapes.gd.
+static var WOOD: Dictionary = {
 	"oak": ["oak_log", "oak_leaves"],
 	"big_oak": ["oak_log", "oak_leaves"],
 	"birch": ["birch_log", "birch_leaves"],
@@ -121,7 +125,11 @@ static func place(gen, col: ChunkColumn, ctx, kind: String,
 				_round(gen, col, ctx, "oak", wx, base, wz, hh, 4, 2, 2, 3)
 
 static func _ids(kind: String) -> Array:
-	var pair: Array = WOOD.get(kind, WOOD["oak"])
+	# `.get()` on both lookups: it resolves through the engine's getptr and copies the value
+	# out, where `WOOD["oak"]` would go through the read-only scratch slot if WOOD were const.
+	var pair: Array = WOOD.get(kind, WOOD.get("oak", []))
+	if pair.size() < 2:
+		return [0, 0]
 	return [Registry.block_id(String(pair[0])), Registry.block_id(String(pair[1]))]
 
 ## Straight trunk with a rounded canopy (oak / birch / cherry / sacred).

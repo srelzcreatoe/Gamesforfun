@@ -139,20 +139,44 @@ static func is_full_set(id: String) -> bool:
 
 ## forms.json `hairType` ("", "base", "ssj", "ssj2", "ssj3", "empty", or a legacy
 ## integer) -> the style to attach for a character wearing `base_style`.
+##
+## Only "empty" ever removes the hair. When the character's own preset has no
+## variant for the requested type - DMZ's presets 5 and 25 are single hair codes,
+## and preset 5 is the bald one - the variant is borrowed from the first preset
+## that DOES ship a full set, so powering up always produces a visible mane
+## instead of silently keeping (or, for the bald preset, showing no) hair.
 static func form_style_id(base_style: String, hair_type: Variant) -> String:
 	var key := str(hair_type).strip_edges().to_lower()
-	if key == "" or key == "base" or key == "-1" or key == "0":
-		return base_style
 	if key == "empty" or key == "none":
 		return ""
+	if key == "" or key == "base" or key == "-1" or key == "0":
+		return base_style
 	var variant := String(FORM_VARIANTS.get(key, ""))
 	if variant == "":
 		return base_style
 	var bare := _base_id(base_style)
 	var variants: Dictionary = presets().get(bare, {}).get("variants", {})
-	if variants.has(variant):
+	if variants.has(variant) and not _is_empty_variant(variants[variant]):
 		return "%s@%s" % [bare, variant]
-	return base_style                     # this preset has no full set
+	var donor := variant_donor(variant)
+	return "%s@%s" % [donor, variant] if donor != "" else base_style
+
+static func _is_empty_variant(v: Variant) -> bool:
+	if not (v is Dictionary):
+		return true
+	for face in FACE_ORDER:
+		for st in (v as Dictionary).get("strands", {}).get(face, []):
+			if int((st as Dictionary).get("l", 0)) > 0:
+				return true
+	return false
+
+## First preset (in the mod's own order) that ships a non-empty `variant`.
+static func variant_donor(variant: String) -> String:
+	for id in style_order():
+		var v: Dictionary = presets().get(String(id), {}).get("variants", {})
+		if v.has(variant) and not _is_empty_variant(v[variant]):
+			return String(id)
+	return ""
 
 ## The style for a form's `forcedHairCode`, or "" when it has none.
 static func forced_style_id(code: String) -> String:

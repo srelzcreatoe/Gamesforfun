@@ -345,8 +345,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		camera_rig.cycle_mode()
 
 func _read_input(delta: float) -> void:
+	jump_consumed = false
 	if keyboard != null:
 		keyboard.poll()
+	# Watchdog (bug: "keeps mining with no touch held"): the touch HUD reports how many fingers
+	# are really down, and nothing a finger started may outlive it.
+	input.prune_stale_touch()
 	if input.hotbar_select == -2:
 		select_hotbar(posmod(hotbar_index - 1, Inventory.HOTBAR_SIZE))
 	elif input.hotbar_select == -3:
@@ -355,10 +359,7 @@ func _read_input(delta: float) -> void:
 		select_hotbar(input.hotbar_select)
 	if camera_rig != null:
 		camera_rig.apply_look(input.look_delta)
-	if input.jump_pressed:
-		if _clock - _last_jump_time < DOUBLE_TAP_TIME:
-			toggle_fly()
-		_last_jump_time = _clock
+	_read_jump_taps()
 	if input.toggle_fly or input.fly_pressed:
 		toggle_fly()
 	if input.transform_pressed:
@@ -398,8 +399,35 @@ func _set_charging(on: bool) -> void:
 	if k != null:
 		k.set_charging(on)
 
+## The jump button doubles as the fly button (DragonMineZ): one tap jumps, two taps inside
+## DOUBLE_TAP_TIME take off (or land, while flying). Every rising edge of `jump` seen this frame
+## is handled, because two taps can land inside a single 60 fps frame.
+func _read_jump_taps() -> void:
+	var taps := input.jump_press_count
+	if taps <= 0:
+		return
+	for i in taps:
+		if _clock - _last_jump_time < DOUBLE_TAP_TIME and (is_flying or flight_allowed()):
+			# Second tap of a double tap: it toggles flight and is NOT also a jump.
+			_last_jump_time = -10.0
+			jump_consumed = true
+			toggle_fly()
+			continue
+		_last_jump_time = _clock
+
+## True while a jump tap has been eaten by the flight double tap, so the same tap cannot also
+## push the player off the ground / up a ladder / out of the water.
+var jump_consumed := false
+
+## Does the player want to go up this frame? A tap whose press and release both happen between
+## two ticks only leaves the edge flag behind, so the held bool alone used to lose it.
+func jump_wanted() -> bool:
+	return (input.jump or input.jump_pressed) and not jump_consumed
+
 func toggle_fly() -> void:
 	if not flight_allowed():
+		# Only the dedicated Fly button can land here: `_read_jump_taps` checks the unlock
+		# first, so a double jump without the skill is two jumps and no nag.
 		if Game != null and Game.ui != null:
 			Game.ui.call("show_hint", "You have not learned to fly yet.", 2.5)
 		return
@@ -602,7 +630,7 @@ func _integrate(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, want.z, accel * delta)
 	if is_flying or noclip:
 		var vy := 0.0
-		if input.jump:
+		if jump_wanted():
 			vy = FLY_VERTICAL
 		elif input.sneak:
 			vy = -FLY_VERTICAL
@@ -610,10 +638,10 @@ func _integrate(delta: float) -> void:
 			vy = camera_rig.look_direction().y * target_speed() * input.move.y
 		velocity.y = move_toward(velocity.y, vy, FLY_VERTICAL_ACCEL * delta)
 	elif on_ladder:
-		velocity.y = LADDER_SPEED if input.jump else (-LADDER_SPEED if input.sneak else 0.0)
+		velocity.y = LADDER_SPEED if jump_wanted() else (-LADDER_SPEED if input.sneak else 0.0)
 	elif in_liquid:
 		velocity.y -= LIQUID_GRAVITY * delta
-		if input.jump:
+		if jump_wanted():
 			velocity.y = minf(LIQUID_VY_MAX, velocity.y + SWIM_UP * delta * 6.0)
 		elif submerged > 0.6 and not input.sneak:
 			velocity.y += 8.8 * delta
@@ -621,7 +649,7 @@ func _integrate(delta: float) -> void:
 		velocity += flow * 1.5 * delta
 	else:
 		velocity.y = maxf(TERMINAL_VELOCITY, velocity.y - float(_phys["gravity"]) * gravity_scale() * delta)
-		if input.jump and on_ground:
+		if jump_wanted() and on_ground:
 			velocity.y = jump_speed()
 			on_ground = false
 			Audio.play_sfx("jump", -12.0)
@@ -633,7 +661,12 @@ func _integrate(delta: float) -> void:
 	if target != null and is_instance_valid(target):
 		look_at_head((target as Node3D).global_position)
 	else:
-		head_pitch_deg = clampf(camera_rig.pitch_deg if camera_rig != null else 0.0, -50.0, 50.0)
+		# Entity.head_pitch_deg follows the Bedrock `query.head_x_rotation` convention, where
+		# *positive is looking down* (Entity.look_at_head uses atan2(-d.y, ...) and
+		# Entity.aim_direction uses -sin(pitch)). CameraRig.pitch_deg is the opposite
+		# (positive = up), so it has to be negated - feeding it straight through made the
+		# character's head/body look up when the finger dragged down.
+		head_pitch_deg = clampf(-(camera_rig.pitch_deg if camera_rig != null else 0.0), -50.0, 50.0)
 		head_yaw_deg = 0.0
 
 func _apply_motion(motion: Vector3) -> void:

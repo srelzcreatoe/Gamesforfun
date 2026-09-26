@@ -245,12 +245,15 @@ func _build_rocks() -> void:
 	add_child(mmi)
 
 ## Race of the previewed form, so a Namekian form previews on a Namekian body.
+const FORM_DRIVEN_FX: Array[String] = ["transform", "transform_revert", "all", "aura", "lightning"]
+
 func _race_for_form() -> String:
-	if fx != "transform" and fx != "transform_revert" and fx != "all":
+	if not FORM_DRIVEN_FX.has(fx):
 		return "saiyan"
 	var d := Forms.def(form_id)
 	var r := String(d.get("race", "saiyan"))
-	return r if r != "" else "saiyan"
+	# kaioken / ultimate are race "any": they have to be shown on SOME race
+	return r if r != "" and r != "any" else "saiyan"
 
 ## A cliff face at +X: `raycast()` reports it as terrain, so ki blasts and beams
 ## detonate against something instead of flying into the void.
@@ -352,6 +355,13 @@ func _build_dummy() -> void:
 		dummy.add_child(rig)
 		dummy.camera_rig = rig
 		Game.player = dummy
+		# the dummy is now THE player, so the aura reads the profile's character colour
+		# (DMZ's rule for a form with no auraColor of its own): make the profile agree
+		# with the race this preview is showing, the way character creation would
+		var ch: Dictionary = Game.profile.get("character", {})
+		ch["race"] = dummy.race
+		ch["aura_color"] = dummy.aura_color
+		Game.profile["character"] = ch
 
 # --- fx scripts -----------------------------------------------------------
 
@@ -366,9 +376,13 @@ func _script_fx() -> void:
 			_at(0.35, func() -> void: Forms.transform(dummy, form_id))
 			_at(0.4 + FormVfx.for_id(form_id).duration, func() -> void: Forms.revert(dummy))
 		"aura":
+			# the idle/charging aura of ONE form, with nothing else on screen: this is
+			# the shot that says whether the aura reads as that form's flame
 			_at(0.2, func() -> void:
 				Ki.get_for(dummy).set_charging(true)
-				Aura.get_for(dummy).set_intensity(1.2))
+				var a := Aura.get_for(dummy)
+				a.set_form(Forms.def(form_id))
+				a.set_intensity(1.2))
 		"lightning":
 			_at(0.2, func() -> void:
 				var a := Aura.get_for(dummy)

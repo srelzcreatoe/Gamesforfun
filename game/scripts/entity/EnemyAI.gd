@@ -21,7 +21,13 @@ const BLAST_MIN := 6.0
 const BLAST_MAX := 20.0
 const BEAM_TELEGRAPH := 1.2
 const TIER1_WINDUP := 0.6
-const COMBO_CLIPS := ["base.jab_right", "base.jab_left", "base.combo_1", "base.attack1", "attack"]
+const WANDER_SPEED := 1.6
+const CHASE_SPEED := 4.2
+const RETREAT_SPEED := 7.0
+## Melee combo, as ANIMATION STATES (AnimSelect resolves each to the best clip
+## the entity actually ships: `base.jab_right` on the race rig, `attack1_1` on a
+## saga model, `attack` on a robot or a dinosaur).
+const COMBO_STATES := ["attack1", "attack2", "attack3"]
 
 var e: Entity = null
 var state := IDLE
@@ -65,14 +71,19 @@ func set_state(s: int) -> void:
 	state_time = 0.0
 	match s:
 		IDLE:
-			e.play_anim("idle")
+			e.set_locomotion("idle")
 		WANDER:
-			e.play_anim("walk")
+			e.set_locomotion("walk", WANDER_SPEED * e.speed_mult)
 		CHASE:
-			e.play_anim("run" if e.anim != null and e.anim.has_clip("run") else "walk")
+			e.set_locomotion("run", CHASE_SPEED * e.speed_mult)
+		ATTACK:
+			e.set_locomotion("idle")
 		RETREAT:
 			e.is_flying = e.can_fly
-			e.play_anim("fly_fast" if e.can_fly else "run")
+			if e.can_fly:
+				e.set_locomotion("fly_fast", RETREAT_SPEED * e.speed_mult)
+			else:
+				e.set_locomotion("run", RETREAT_SPEED * e.speed_mult)
 		DEAD:
 			pass
 
@@ -144,18 +155,18 @@ func provoke(source: Node) -> void:
 func _wander(delta: float) -> void:
 	if wander_wait > 0.0:
 		wander_wait -= delta
-		if e.anim != null and e.current_anim().ends_with("walk"):
-			e.play_anim("idle")
+		e.set_locomotion("idle")
 		return
 	var flat := Vector2(wander_point.x - e.global_position.x, wander_point.z - e.global_position.z)
 	if flat.length() < 0.8 or state_time > 12.0:
 		wander_point = home + Vector3(randf_range(-8.0, 8.0), 0.0, randf_range(-8.0, 8.0))
 		wander_wait = randf_range(1.5, 4.0)
 		state_time = 0.0
-		e.play_anim("idle")
+		e.set_locomotion("idle")
 		return
-	e.play_anim("walk")
-	_step_toward(wander_point, 1.6 * e.speed_mult, delta)
+	# the locomotion clip is driven by the speed the AI is actually moving at
+	e.set_locomotion("walk", e.ground_speed if e.ground_speed > 0.1 else WANDER_SPEED * e.speed_mult)
+	_step_toward(wander_point, WANDER_SPEED * e.speed_mult, delta)
 
 func _chase(delta: float) -> void:
 	if e.target == null:
@@ -169,10 +180,12 @@ func _chase(delta: float) -> void:
 	if dist <= KEEP_DIST + 0.6:
 		set_state(ATTACK)
 		return
+	var speed := CHASE_SPEED * e.speed_mult * (1.0 if not e.is_flying else 1.6)
 	if e.can_fly and (tp.y - e.global_position.y) > 2.5:
 		e.is_flying = true
-		e.play_anim("fly_front")
-	var speed := 4.2 * e.speed_mult * (1.0 if not e.is_flying else 1.6)
+		e.set_locomotion("fly_forward", speed)
+	else:
+		e.set_locomotion("run", e.ground_speed if e.ground_speed > 0.1 else speed)
 	_step_toward(tp, speed, delta)
 	if dist > BLAST_MIN and dist < BLAST_MAX and blast_cd <= 0.0:
 		_start_ranged(dist)
@@ -207,12 +220,12 @@ func _retreat(delta: float) -> void:
 	if away == Vector3.ZERO:
 		away = Vector3.FORWARD
 	var goal := e.global_position + away * 6.0 + Vector3(0, 2.0 if e.can_fly else 0.0, 0)
-	_step_toward(goal, 7.0 * e.speed_mult, delta)
+	_step_toward(goal, RETREAT_SPEED * e.speed_mult, delta)
 	e.face(e.target.global_position, false, 3.0, delta)
 	if state_time > 1.5 and e.health < e.max_health:
 		e.heal(e.max_health * 0.06 * delta)
-		if not e.current_anim().ends_with("ki_charge"):
-			e.play_anim("ki_charge")
+		if e.locomotion != "ki_charge":
+			e.set_locomotion("ki_charge")
 			Events.ki_charge_changed.emit(e, true)
 
 func _maybe_retreat() -> bool:
@@ -239,15 +252,17 @@ func _step_toward(goal: Vector3, speed: float, delta: float) -> void:
 # --- attacks ------------------------------------------------------------------
 
 func _start_melee() -> void:
-	var clip := ""
-	if e.anim != null:
-		for c in COMBO_CLIPS:
-			if e.anim.has_clip(c):
-				clip = c
-				break
+	# `play_action` puts the swing on the upper-body layer when the state is an
+	# upper-body one, so the legs keep their locomotion clip, and releases it when
+	# the clip ends.
+	var state := String(COMBO_STATES[combo_index % COMBO_STATES.size()])
+	var clip := e.clip_for(state)
+	if clip == "":
+		state = "attack1"
+		clip = e.clip_for(state)
 	var length := 0.6
 	if clip != "":
-		e.play_upper_anim(clip, 0.06)
+		e.play_action(state, 0.06)
 		length = maxf(e.anim.clip_length(clip), 0.4)
 	windup = TIER1_WINDUP if e.ai_tier <= 1 else 0.12
 	swing_time = windup + length * 0.4
@@ -291,7 +306,7 @@ func _begin_beam() -> void:
 		if not e.has_method("knows_technique") or e.knows_technique(beam_id):
 			beam_delegated = bool(api.call("begin", e, beam_id))
 	if not beam_delegated:
-		e.play_anim("ki_charge")
+		e.set_locomotion("ki_charge")
 		if Audio != null:
 			Audio.play_sfx_at("ki_charge", e.global_position, -3.0)
 	Events.technique_started.emit(e, beam_id if beam_id != "" else "beam")
@@ -307,7 +322,7 @@ func _fire_beam() -> void:
 		# Techniques sets auto_release for every non-player entity, so the charge
 		# fires itself; nothing to do here beyond keeping the aim on the target.
 		return
-	e.play_anim("idle", 0.1)
+	e.play_action("technique", 0.1)
 	_spawn_placeholder(e.melee_damage * 1.6, 34.0, Color(1.0, 0.85, 0.45), 0.55)
 
 func _spawn_placeholder(damage: float, speed: float, color := Color(0.55, 0.85, 1.0), radius := 0.35) -> void:

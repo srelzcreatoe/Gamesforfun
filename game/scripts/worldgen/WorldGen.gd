@@ -272,7 +272,17 @@ func remap_structure_y(y: int, _mode: String) -> int:
 func _features(_col: ChunkColumn, _ctx: Ctx) -> void:
 	pass
 
+## Reconfigure for a new seed. MAIN THREAD ONLY: `configure()` throws away and rebuilds every
+## table on this object and on `terrain` / `biome_map` / `decorator` / `structures`, so doing it
+## while other columns are generating would free containers out from under them (that is exactly
+## the `Array::_ref` class of crash). Called off the main thread it logs and does nothing;
+## `generate_column` then keeps using the configured seed, which stays deterministic.
 func reseed(p_seed: int) -> void:
+	if p_seed == seed:
+		return
+	if OS.get_thread_caller_id() != OS.get_main_thread_id():
+		Log.e("WorldGen.reseed(%d) from a worker thread while configured for %d; reconfigure on the main thread before queueing column tasks" % [p_seed, seed])
+		return
 	_mutex.lock()
 	if p_seed != seed:
 		seed = p_seed

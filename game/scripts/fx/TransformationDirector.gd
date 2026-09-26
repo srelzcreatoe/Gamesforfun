@@ -893,31 +893,67 @@ func _paint_hair(mat: StandardMaterial3D, c: Color, base: Color, on: bool) -> vo
 		mat.emission = c
 		mat.emission_energy_multiplier = 0.85
 
-## Material of the voxel hair mesh (`head` bone -> "Hair"), or null.
+## Material of the form hair, or null.
 ##
-## FULLY DUCK-TYPED ON PURPOSE. The entity subsystem owns `BedrockModel` and
-## `HairBuilder` and is edited concurrently; naming either of them here would resolve at
-## PARSE time, so a rename or a half-saved file over there takes the whole fx stack down
-## with a compile error instead of degrading to "no hair flicker". The walk below is
-## exactly what the entity side's `hair_material()` does - the main hair sits in
-## `material_override` for a single surface style and in surface 0 for a two tone style
-## (e.g. "gotenks"), whose surface 1 is the accent spikes - and it also works on the stub
-## model the preview builds when the entity scripts are not there at all.
+## ENTITY-SIDE API ONLY: `HairBuilder.hair_material(model)` is the entity engineer's
+## documented accessor ("Main hair material of a composed model, whichever slot it ended
+## up in"), and it is what we call. It is loaded BY PATH and called duck-typed: naming
+## `HairBuilder` here would resolve at PARSE time, so a rename or a half-saved file in
+## the concurrently edited entity subsystem would take the whole fx stack down with a
+## compile error instead of degrading to "no hair flicker" - and they are rebuilding the
+## form hair right now.
+##
+## The local walk below is only the fallback for when that accessor is not there (and
+## for the stub model the fx preview builds when the entity scripts are absent at all):
+## main hair in `material_override`, or surface 0 for a two tone style whose surface 1 is
+## the accent spikes.
+const HAIR_BUILDER_API := "hair_material"
+
 func _hair_material(model: Node3D) -> StandardMaterial3D:
 	if _hair_mat != null and is_instance_valid(_hair_mat):
 		return _hair_mat
+	var mat := _hair_material_from_api(model)
 	var hair := _hair_mesh(model)
-	if hair == null:
-		return null
-	var mat := hair.material_override as StandardMaterial3D
 	if mat == null:
-		mat = hair.get_surface_override_material(0) as StandardMaterial3D
+		if hair == null:
+			return null
+		mat = hair.material_override as StandardMaterial3D
+		if mat == null:
+			mat = hair.get_surface_override_material(0) as StandardMaterial3D
 	if mat == null:
 		return null
 	_hair_mat = mat
-	if hair.mesh != null and hair.mesh.get_surface_count() > 1:
+	if hair != null and hair.mesh != null and hair.mesh.get_surface_count() > 1:
 		_hair_accent_mat = hair.get_surface_override_material(1) as StandardMaterial3D
 	return _hair_mat
+
+## `HairBuilder.hair_material(model)`, when that script is present, still exposes it and
+## the model really is one of theirs (the accessor is typed `BedrockModel`, so handing it
+## the preview's stub model would be a runtime type error).
+static func _hair_material_from_api(model: Node3D) -> StandardMaterial3D:
+	if model == null or not _is_bedrock_model(model) or not ResourceLoader.exists(HAIR_BUILDER_PATH):
+		return null
+	var src: Variant = load(HAIR_BUILDER_PATH)
+	if not (src is GDScript):
+		return null
+	var has_api := false
+	for m: Dictionary in (src as GDScript).get_script_method_list():
+		if String(m.get("name", "")) == HAIR_BUILDER_API:
+			has_api = true
+			break
+	if not has_api:
+		return null
+	var mat: Variant = (src as GDScript).call(HAIR_BUILDER_API, model)
+	return mat as StandardMaterial3D
+
+## Is `n` scripted by the entity engineer's `BedrockModel` (or a subclass of it)?
+static func _is_bedrock_model(n: Node) -> bool:
+	var sc: Variant = n.get_script()
+	while sc is GDScript:
+		if (sc as GDScript).resource_path == BEDROCK_MODEL_PATH:
+			return true
+		sc = (sc as GDScript).get_base_script()
+	return false
 
 ## The "Hair" MeshInstance3D under the model's head bone, duck-typed.
 static func _hair_mesh(model: Node3D) -> MeshInstance3D:
@@ -932,6 +968,7 @@ static func _hair_mesh(model: Node3D) -> MeshInstance3D:
 ## hair builder owns the number (`ACCENT_LIGHTEN`); it is read out of that script at
 ## RUNTIME so the two cannot drift, with a local fallback when it is not there.
 const HAIR_BUILDER_PATH := "res://scripts/entity/HairBuilder.gd"
+const BEDROCK_MODEL_PATH := "res://scripts/entity/BedrockModel.gd"
 const ACCENT_LIGHTEN_FALLBACK := 0.45
 static var _accent_lighten := -1.0
 

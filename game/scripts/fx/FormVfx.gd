@@ -2,18 +2,33 @@ class_name FormVfx
 extends RefCounted
 ## Per-form VFX profile resolved from `data/forms.json` (+ `data/races.json`).
 ##
-## Every transformation in the game has to LOOK like itself: Super Saiyan is gold,
-## Kaioken is crimson, a Namekian super form is acid green, an Arcosian evolution is
-## violet, Majin forms are pink. `forms.json` only fills a few of the colour fields per
-## form, so this class walks the data in a fixed priority order and never lands on a
-## generic white unless the form really carries no colour anywhere.
+## THE RESOLUTION IS DragonMineZ'S OWN, verified against
+## `com.dragonminez.client.render.effects.AuraRenderer.getAuraLayers` (javap -p -c):
+##
+##   auraColor  = character.getAuraColor()                      # the character's colour
+##   auraType   = raceConfig.getAuraType() (else "kakarot")
+##   auraLayer  = 0
+##   if (character.hasActiveForm() && formData != null) {
+##       if (formData.getAuraColor() is non-empty) auraColor = formData.getAuraColor()
+##       if (formData.getAuraType()  is non-empty) auraType  = formData.getAuraType()
+##       auraLayer = formData.getAuraLayer() (else 0)
+##   }
+##
+## That is the WHOLE chain: the form's own `auraColor` when it has one, otherwise the
+## character's colour (which character creation seeds from `races.json.defaultAuraColor`),
+## otherwise nothing. The mod NEVER derives an aura colour from `lightningColor`,
+## `hairColor`, `bodyColor*`, `eye*Color`, `extraAuraColor` or a per-group palette, and
+## neither do we: a Namekian form with no `auraColor` is race green, not the colour of
+## its eyes. `aura_from_form` says whether the form itself carried the colour, so
+## `Aura.set_form` can let a player's own aura colour through when it did not.
 ##
 ##   var p := FormVfx.of(Forms.def("supersaiyan.supersaiyan2"))
 ##   p.aura, p.inner, p.lightning, p.lightning_color, p.hair, p.eye
+##   p.aura_type ("kakarot"/"god" -> the flame strip), p.aura_layer (0-6)
 ##   p.tier (0 minor / 1 major / 2 epic), p.duration, p.scale, p.giant, p.anim_state
 ##
-## `aura_source` names the json field the aura colour came from, so the tests can prove
-## that a form with colour data never falls through to the group/race/default palette.
+## `aura_source` names where the colour came from ("auraColor", "race" or "fallback"),
+## so the tests can prove that no form whose data has a colour falls back to a default.
 
 const TIER_MINOR := 0
 const TIER_MAJOR := 1
@@ -26,38 +41,8 @@ const TIER_DURATION: Array[float] = [2.6, 4.7, 5.8]
 ## Groups that are "power-up" style boosts rather than a new form.
 const MINOR_GROUPS: Array[String] = ["kaioken"]
 
-## Groups whose later forms crackle even when `hasLightnings` is not set in the data
-## (SSJ grade 3, 5th form, ultra Majin, super Namekian...).
-const LIGHTNING_GROUPS: Array[String] = [
-	"supersaiyan", "ssgrades", "evolutionforms", "bioevolution",
-	"legendaryforms", "pureforms", "superforms", "ultimate",
-]
-const LIGHTNING_FROM_ORDER := 2
-
-## Signature colour per form group, used ONLY when the form itself carries no colour
-## in any field. Derived from the DMZ race/form families, not invented per entity.
-const GROUP_PALETTE := {
-	"supersaiyan": "#FFD700",      # gold
-	"ssgrades": "#FFD700",
-	"oozaru": "#C8892E",           # great ape brown-gold
-	"kaioken": "#DB182C",          # crimson
-	"androidforms": "#59C7FF",     # electric blue
-	"bioevolution": "#B6FF5A",     # cell green
-	"evolutionforms": "#B06BFF",   # arcosian violet
-	"pureforms": "#FF6EC7",        # majin pink
-	"legendaryforms": "#7CFF3D",   # legendary green
-	"superforms": "#FFF3A0",       # pale gold
-	"ultimate": "#FFFFFF",
-}
-
-## Groups that are grab bags rather than one visual family: DMZ puts the Namekian
-## giant, the Janemba forms, the Arcosian metal forms and the "super" power-ups in the
-## same group, so a colourless form there takes its RACE colour (namekian green, majin
-## pink, arcosian violet) instead of the group signature.
-const RACE_FIRST_GROUPS: Array[String] = ["legendaryforms", "superforms"]
-
-## Colour ramps: a family name per hue so the climax light, the sparks and the inner
-## core sheet of every race read differently (god/blue/UI/golden/majin/namek/arcosian).
+## Colour ramps: a family name per hue, used for the spark tint and the "hot band" of
+## the aura so a gold aura burns white-yellow and a violet one burns magenta-white.
 const FAMILY_INNER := {
 	"gold": "#FFFBE0",
 	"crimson": "#FFD2B0",
@@ -85,21 +70,25 @@ const ANIM_STATE := {
 	"transf.kaioken": "transform",
 }
 
-## Colour fields of forms.json, in the order they are consulted for the aura colour.
-## `extraAuraColor` is skipped when it is the DMZ default white.
+## The ONLY forms.json field that may drive the aura colour (DMZ: FormData.getAuraColor).
+const AURA_COLOR_FIELD := "auraColor"
+## Kept for the tests / callers that want to know which colour fields a form authored.
 const COLOR_FIELDS: Array[String] = [
 	"auraColor", "extraAuraColor", "lightningColor", "hairColor",
 	"bodyColor1", "bodyColor2", "bodyColor3", "eye1Color", "eye2Color", "extraFormColor",
 ]
-
-## Fields that really describe an aura colour: they are taken as authored even when they
-## are grey/white. Any OTHER field (hair, body, eyes) only counts as an aura colour when
-## it is saturated enough to read as energy - DMZ stores brown-grey skin tones in
-## bodyColor*/hairColor and a brown aura is not a transformation.
-const AURA_FIELDS: Array[String] = ["auraColor", "extraAuraColor", "lightningColor"]
+const AURA_FIELDS: Array[String] = [AURA_COLOR_FIELD]
+## A colour below this saturation reads as "white/grey" rather than as energy.
 const MIN_AURA_SATURATION := 0.18
 
-const DEFAULT_AURA := Color(0.55, 0.92, 1.0)
+## DMZ's own default character aura colour, and the value `races.json` carries for the
+## races that do not tint it (human/saiyan `defaultAuraColor`).
+const DEFAULT_AURA := Color(127.0 / 255.0, 1.0, 1.0)        # #7FFFFF
+
+## The flame strip a layer is drawn with (`<type>_aura.png` / `<type>_cross.png`).
+const DEFAULT_AURA_TYPE := "kakarot"
+## DMZ clamps the layer id to 0..6 (AuraRenderer.putLayer -> Mth.clamp(id, 0, 6)).
+const MAX_AURA_LAYER := 6
 
 var id := ""
 var name := ""
@@ -123,9 +112,20 @@ var giant := false
 var anim := "transf.generic"
 var anim_state := "transform"
 
-## Where the aura colour came from: a forms.json field name, "group", "race" or
-## "fallback". Anything but the first two means the data had nothing to offer.
+## DMZ aura composition: which flame strip and which layer slot (0-6, nested outward).
+var aura_type := DEFAULT_AURA_TYPE
+var aura_layer := 0
+## DMZ body tint while the form is held (`tintColor` x `tintIntensity`; kaioken glows red).
+var tint := Color(1, 0, 0)
+var tint_amount := 0.0
+
+## Where the aura colour came from: "auraColor" (the form's own field), "race" (the
+## race default, which is also the character's own colour) or "fallback" (no data at
+## all). Only "auraColor" means the FORM chose it.
 var aura_source := "fallback"
+## True when the form's own `auraColor` decided the colour. When false, DMZ lets the
+## character's personal aura colour through, so `Aura.set_form` may override `aura`.
+var aura_from_form := false
 var family := "white"
 
 static var _cache: Dictionary = {}
@@ -177,28 +177,34 @@ func _resolve(d: Dictionary) -> void:
 	tier = _resolve_tier(d)
 	duration = TIER_DURATION[tier]
 
-	var found := _first_color(d, COLOR_FIELDS)
-	if found.is_empty():
-		var gp := String(GROUP_PALETTE.get(group, ""))
+	# DMZ AuraRenderer.getAuraLayers: the form's own auraColor, else the character's
+	# colour (seeded from the race default), else nothing. No other field, ever.
+	var own := _clean(String(d.get(AURA_COLOR_FIELD, "")))
+	if own != "":
+		aura = Color(own)
+		aura_source = AURA_COLOR_FIELD
+		aura_from_form = true
+	else:
 		var rc := _race_color()
-		var race_first := RACE_FIRST_GROUPS.has(group)
-		if rc != "" and (race_first or gp == ""):
+		if rc != "":
 			aura = Color(rc)
 			aura_source = "race"
-		elif gp != "":
-			aura = Color(gp)
-			aura_source = "group"
 		else:
 			aura = DEFAULT_AURA
 			aura_source = "fallback"
-	else:
-		aura = Color(String(found["color"]))
-		aura_source = String(found["field"])
+
+	aura_type = _resolve_aura_type(d)
+	aura_layer = clampi(int(d.get("auraLayer", 0)), 0, MAX_AURA_LAYER)
 
 	family = family_of(aura)
-	inner = _resolve_inner(d)
-	glow = aura.lerp(Color(1, 1, 1), 0.45)
-	spark = aura.lerp(inner, 0.5)
+	inner = hot_band(aura)
+	glow = aura.lerp(Color(1, 1, 1), 0.28)
+	spark = inner
+
+	var tc := _clean(String(d.get("tintColor", "")))
+	if tc != "":
+		tint = Color(tc)
+	tint_amount = clampf(float(d.get("tintIntensity", 0.0)), 0.0, 1.0)
 
 	var hc := _clean(String(d.get("hairColor", "")))
 	hair = Color(hc) if hc != "" else aura.lerp(Color(1, 1, 1), 0.35)
@@ -207,9 +213,27 @@ func _resolve(d: Dictionary) -> void:
 		ec = _clean(String(d.get("eye2Color", "")))
 	eye = Color(ec) if ec != "" else inner
 
-	lightning = _resolve_lightning(d)
+	lightning = bool(d.get("hasLightnings", false))
 	var lc := _clean(String(d.get("lightningColor", "")))
 	lightning_color = Color(lc) if lc != "" else aura.lerp(Color(0.85, 0.95, 1.0), 0.55)
+
+## The aura's hottest colour band, the way the mod's own shader builds it: the form
+## colour multiplied by 1.6 and clamped. It is the same HUE as the aura - never a
+## near-white pastel, which is what used to wash a green Namekian aura out to white.
+static func hot_band(c: Color) -> Color:
+	return Color(minf(c.r * 1.6, 1.0), minf(c.g * 1.6, 1.0), minf(c.b * 1.6, 1.0), c.a)
+
+## `auraType` of the form, else of the race, else DMZ's default ("kakarot").
+func _resolve_aura_type(d: Dictionary) -> String:
+	var t := String(d.get("auraType", "")).strip_edges().to_lower()
+	if t != "":
+		return t
+	if Registry != null and race != "":
+		var r: Dictionary = Registry.race(race)
+		var rt := String(r.get("auraType", "")).strip_edges().to_lower()
+		if rt != "":
+			return rt
+	return DEFAULT_AURA_TYPE
 
 ## Minor (kaioken-like) / major / epic, from group, order, scale and lightning.
 func _resolve_tier(d: Dictionary) -> int:
@@ -220,24 +244,11 @@ func _resolve_tier(d: Dictionary) -> int:
 		return TIER_EPIC
 	return TIER_MAJOR
 
-func _resolve_lightning(d: Dictionary) -> bool:
-	if bool(d.get("hasLightnings", false)):
-		return true
-	if MINOR_GROUPS.has(group):
-		return false
-	return LIGHTNING_GROUPS.has(group) and order >= LIGHTNING_FROM_ORDER
-
-## Inner core sheet colour: the form's own extra/hair colour when it has one, else the
-## family ramp so a gold aura burns white-yellow and a violet one burns magenta-white.
-func _resolve_inner(d: Dictionary) -> Color:
-	var extra := _clean(String(d.get("extraAuraColor", "")))
-	if extra != "" and extra != "#FFFFFF":
-		return Color(extra)
-	var hc := _clean(String(d.get("hairColor", "")))
-	if hc != "" and Color(hc) != aura:
-		return Color(hc).lerp(Color(1, 1, 1), 0.35)
+## Pale tint of the hue family, for the sparks/motes that should read lighter than the
+## flame itself (the aura's own bands are always the form colour).
+func pale() -> Color:
 	var ramp := String(FAMILY_INNER.get(family, "#FFFFFF"))
-	return aura.lerp(Color(ramp), 0.72)
+	return aura.lerp(Color(ramp), 0.6)
 
 func _race_color() -> String:
 	if Registry == null or race == "":
@@ -245,30 +256,20 @@ func _race_color() -> String:
 	var r: Dictionary = Registry.race(race)
 	return _clean(String(r.get("defaultAuraColor", "")))
 
-## First usable colour among `fields`; {} when the form carries none.
-static func _first_color(d: Dictionary, fields: Array[String]) -> Dictionary:
-	for f in fields:
-		var raw := _clean(String(d.get(f, "")))
-		if not _usable_aura_field(f, raw):
-			continue
-		return {"field": f, "color": raw}
-	return {}
+## Does this form's own data decide its aura colour? (DMZ: a non-empty `auraColor`.)
+static func has_own_color(d: Dictionary) -> bool:
+	return _clean(String(d.get(AURA_COLOR_FIELD, ""))) != ""
 
-## Is `raw` (already cleaned) a colour this field may hand to the aura?
-static func _usable_aura_field(field: String, raw: String) -> bool:
-	if raw == "":
-		return false
-	if field == "extraAuraColor" and raw == "#FFFFFF":
-		return false            # DMZ default, not an authored colour
-	if AURA_FIELDS.has(field):
-		return true
-	return Color(raw).s >= MIN_AURA_SATURATION
+## The form's own aura colour as authored, or "" - the ONLY field DMZ reads for the aura.
+static func own_color(d: Dictionary) -> String:
+	return _clean(String(d.get(AURA_COLOR_FIELD, "")))
 
-## Colour fields of a form that actually carry authored data (used by the tests).
+## Every colour field this form actually fills in (diagnostics + the colour table test).
+## Filling one of these is NOT enough to colour the aura: only `auraColor` is.
 static func authored_fields(d: Dictionary) -> PackedStringArray:
 	var out := PackedStringArray()
 	for f in COLOR_FIELDS:
-		if _usable_aura_field(f, _clean(String(d.get(f, "")))):
+		if _clean(String(d.get(f, ""))) != "":
 			out.append(f)
 	return out
 
@@ -280,14 +281,14 @@ static func _clean(s: String) -> String:
 		return ""
 	return t.to_upper()
 
-## Hue family of a colour, used for the inner ramp and the spark tint.
+## Hue family of a colour, used for the pale spark tint and the readability tests.
 static func family_of(c: Color) -> String:
 	var s := c.s
 	if s < 0.16:
 		return "white"
 	var h := c.h * 360.0
 	if h < 16.0 or h >= 330.0:
-		return "crimson" if h < 16.0 else "pink"
+		return "crimson" if h < 16.0 else "pink"      # 330-360 is rose/pink, not red
 	if h < 45.0:
 		return "gold" if c.v > 0.6 else "crimson"
 	if h < 70.0:
@@ -298,6 +299,8 @@ static func family_of(c: Color) -> String:
 		return "blue"
 	if h < 255.0:
 		return "blue"
-	if h < 290.0:
+	if h < 285.0:
 		return "violet"
-	return "divine"
+	# 285-330 is the magenta wedge: DMZ's majin pink (#FF6DFF, 300 deg) and the rose
+	# god palette both live here
+	return "pink"

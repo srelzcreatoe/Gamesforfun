@@ -9,7 +9,11 @@ extends Node
 ## Updates are queued per cell, run at 20 world ticks per second, budgeted per tick and
 ## clipped to `Game.settings.sim_distance` chunks around the view centre.
 
-const HORIZ: Array[Vector3i] = [Vector3i(1, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1)]
+## Never `const`: a const container is read-only, and Godot's read-only element access
+## (`operator[]`, `for x in ...`) goes through ONE scratch Variant shared by every reader, so
+## two worker threads indexing it at once free each other's element - the `Array::_ref` crash.
+## See the THREAD SAFETY note in scripts/world/BlockShapes.gd.
+static var HORIZ: Array[Vector3i] = [Vector3i(1, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1)]
 const SOURCE := 8
 const BUDGET_PER_TICK := 192
 

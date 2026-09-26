@@ -17,11 +17,7 @@ func _configure() -> void:
 	npc_id = String(def.get("npc", entity_type))
 	invulnerable = bool(def.get("invulnerable", true))
 	interact_kind = String(def.get("interact", "talk"))
-	if anim != null:
-		for c in ["idle", "base.idle"]:
-			if anim.has_clip(c):
-				play_anim(c)
-				break
+	set_locomotion("idle")
 
 func tick(delta: float) -> void:
 	_greet_cd = maxf(0.0, _greet_cd - delta)
@@ -46,8 +42,8 @@ func take_damage(amount: float, source: Node = null, kind_of := "melee", knockba
 func interact(player: Node = null) -> void:
 	if player is Node3D:
 		face((player as Node3D).global_position)
-	if anim != null and anim.has_clip("base.flex") and interact_kind == "train":
-		play_upper_anim("base.flex", 0.1)
+	if interact_kind == "train" and has_state("flex"):
+		play_action("flex", 0.1)
 	Events.dialog_requested.emit(self)
 	if Audio != null and _greet_cd <= 0.0:
 		_greet_cd = 1.0

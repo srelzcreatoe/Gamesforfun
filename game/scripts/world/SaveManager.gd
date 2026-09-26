@@ -23,6 +23,15 @@ var dir := ""
 var enabled := true
 var saved_count := 0
 var failed_count := 0
+## `load_column` runs on a generator worker while `save_column` runs on the main thread
+## (ChunkManager._unload_far), so the two counters are bumped from two threads.
+var _count_mutex := Mutex.new()
+
+func _bump(saved: int, failed: int) -> void:
+	_count_mutex.lock()
+	saved_count += saved
+	failed_count += failed
+	_count_mutex.unlock()
 
 func setup(p_slug: String, p_planet: String) -> void:
 	slug = p_slug
@@ -44,7 +53,7 @@ func save_column(col: ChunkColumn) -> bool:
 	var f := FileAccess.open(column_path(col.cx, col.cz), FileAccess.WRITE)
 	if f == null:
 		Log.w("SaveManager: cannot write " + column_path(col.cx, col.cz))
-		failed_count += 1
+		_bump(0, 1)
 		return false
 	var raw := col.pack()
 	var comp := raw.compress(FileAccess.COMPRESSION_DEFLATE)
@@ -63,7 +72,7 @@ func save_column(col: ChunkColumn) -> bool:
 		f.store_buffer(extra_bytes)
 	f.close()
 	col.modified = false
-	saved_count += 1
+	_bump(1, 0)
 	return true
 
 ## Returns true when the column was restored (blocks/meta/biomes filled, light still empty).
@@ -100,7 +109,7 @@ func load_column(col: ChunkColumn) -> bool:
 	f.close()
 	if not ok:
 		Log.w("SaveManager: corrupt chunk file, regenerating: " + path)
-		failed_count += 1
+		_bump(0, 1)
 		# Remove it so the column is regenerated and re-saved cleanly next time.
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(path) if not path.begins_with("user://") else path)
 		return false

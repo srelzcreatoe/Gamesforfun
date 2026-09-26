@@ -667,6 +667,19 @@ func _apply(pose: Dictionary) -> void:
 			node2.scale = Vector3.ONE
 		_touched.erase(bname)
 
+## Natural cycle length of a clip, in seconds, for playback-rate normalisation.
+##
+## The DMZ movement clips are pure Molang (`math.cos(query.anim_time*360)`), so
+## they have no keyframes, `animation_length` is null and one cycle is exactly
+## 1 s. Keyframed clips report their own length; the imported Serious Player
+## Animations walk is ONE stride authored over 6.6667 s, which is why a
+## locomotion rate has to be divided by this or it plays in slow motion.
+func cycle_length(name: String) -> float:
+	var c := resolve(name)
+	if c == null:
+		return 0.0
+	return c.length if c.length > 0.0 else 1.0
+
 ## Test/preview helper: pose the model at an absolute time of one clip.
 func sample_to(name: String, t: float) -> bool:
 	var clip := resolve(name)
@@ -694,3 +707,39 @@ func sample_channel(clip_name: String, bone: String, channel: String, t: float) 
 	_update_context()
 	_ctx[&"query.anim_time"] = t
 	return chan.sample(t, _ctx, Vector3.ONE if channel == "scale" else Vector3.ZERO)
+
+## Test/preview helper: pose the UPPER-BODY layer on top of whatever the base
+## layer already put on the bones, so a screenshot can show an attack blended
+## over a locomotion pose.
+func sample_upper_to(name: String, t: float) -> bool:
+	var clip := resolve(name)
+	if clip == null or model == null:
+		return false
+	var st: LayerState = _layers[LAYER_UPPER]
+	st.clip = clip
+	st.time = t
+	st.blend_left = 0.0
+	st.frozen = {}
+	st.finished = false
+	_update_context()
+	var pose := _pose_of(st, false)
+	var only: Dictionary = {}
+	for b in pose.keys():
+		if UPPER_BONES.has(b):
+			only[b] = pose[b]
+	_apply_over(only)
+	return true
+
+## Apply an offset pose without resetting the bones it does not mention (the
+## base layer already posed them).
+func _apply_over(pose: Dictionary) -> void:
+	var bones: Dictionary = model.bones
+	for bname in pose.keys():
+		var node: Node3D = bones.get(bname)
+		if node == null:
+			continue
+		var v: Array = pose[bname]
+		var rest_p: Vector3 = model.rest_position.get(bname, Vector3.ZERO)
+		var rest_r: Vector3 = model.rest_rotation.get(bname, Vector3.ZERO)
+		node.transform = Transform3D(BedrockModel.bedrock_basis(rest_r + (v[1] as Vector3)), rest_p + (v[0] as Vector3))
+		_touched[bname] = true

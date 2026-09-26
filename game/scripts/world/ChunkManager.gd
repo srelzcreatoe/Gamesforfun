@@ -79,13 +79,19 @@ var _frame_start := 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	# Every shared lookup table the workers read is built and touched here, on the main thread,
+	# before the first task can be queued (`_process` does nothing until `setup()` runs). A
+	# GDScript `static var` is initialised the first time its script is used, and that must not
+	# happen concurrently on several workers - see BlockTable.prewarm().
+	BlockTable.prewarm()
 	# Leave cores for the renderer and the main thread: oversubscribing the CPU makes frames
 	# stutter far more than a slightly slower stream does.
-	# One generator thread on phones. The Android crash log showed
-	# `Array::_ref` failing (a freed container) once three generator threads ran
-	# against the shared worldgen caches; a single worker removes worker-to-worker
-	# sharing entirely, and the main-thread handoff is mutex'd.
-	_max_gen_tasks = 1 if Game.is_mobile() else clampi(OS.get_processor_count() / 2, 1, 3)
+	# The Android crash log showed `Array::_ref` failing (a freed container) once three
+	# generator threads ran; the cause was GDScript `const` containers, whose read-only element
+	# access shares one scratch Variant between all readers (see BlockShapes.gd). Those are all
+	# `static var` now and tests/test_world_threads.gd covers the worker entry points, so
+	# phones get the same worker count as anything else with this many cores.
+	_max_gen_tasks = clampi(OS.get_processor_count() / 2, 1, 3)
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--profile"):
 			_force_profile = true
@@ -281,11 +287,16 @@ func _profile(delta: float) -> void:
 	_stat_timer = 0.0
 	if not _force_profile and not bool(Game.settings.get("show_fps", false)):
 		return
+	# The workers accumulate these under `_mutex`, so read them under it too.
+	_mutex.lock()
 	var gen_avg := stat_gen_ms / maxf(1.0, float(stat_gen_count))
 	var mesh_avg := stat_mesh_ms / maxf(1.0, float(stat_mesh_count))
+	var gen_count := stat_gen_count
+	var mesh_count := stat_mesh_count
+	_mutex.unlock()
 	var upd_avg := stat_update_sum / maxf(1.0, float(stat_frames))
 	Log.i("world: %d cols %d%% streamed | worker: gen %.0f ms/col (%d), mesh %.0f ms/section (%d) | main: update %.2f ms avg, %.2f ms max, upload %.2f ms | %d fps" % [
-		columns.size(), int(stream_progress() * 100.0), gen_avg, stat_gen_count, mesh_avg, stat_mesh_count,
+		columns.size(), int(stream_progress() * 100.0), gen_avg, gen_count, mesh_avg, mesh_count,
 		upd_avg, stat_update_max, stat_upload_ms, Engine.get_frames_per_second()])
 	stat_update_max = 0.0
 	stat_update_sum = 0.0
@@ -300,13 +311,19 @@ func _request_columns() -> void:
 		if columns.has(k) or _pending_gen.has(k):
 			continue
 		var col := ChunkColumn.new(k.x, k.y)
+		col.in_flight = true
 		_pending_gen[k] = true
-		var id := WorkerThreadPool.add_task(_gen_task.bind(col), false, "chunk gen")
+		# `world.seed` / `world.planet_def` are read here, on the main thread, and handed to
+		# the task: a worker must never reach back into a live node for its inputs.
+		var id := WorkerThreadPool.add_task(
+			_gen_task.bind(col, int(world.seed), world.planet_def), false, "chunk gen")
 		_gen_ids.append(id)
 		if _gen_ids.size() >= _max_gen_tasks:
 			return
 
-func _gen_task(col: ChunkColumn) -> void:
+## Worker thread. `col` is owned outright by this task (it is not in `columns` and
+## `col.in_flight` is set) and `p_seed` / `p_planet` were captured on the main thread.
+func _gen_task(col: ChunkColumn, p_seed: int, p_planet: Dictionary) -> void:
 	var t0 := Time.get_ticks_usec()
 	var loaded := false
 	if save != null:
@@ -315,7 +332,7 @@ func _gen_task(col: ChunkColumn) -> void:
 		col.state = ChunkColumn.DECORATED
 	else:
 		if generator != null and generator.has_method("generate_column"):
-			generator.call("generate_column", col, world.seed, world.planet_def)
+			generator.call("generate_column", col, p_seed, p_planet)
 		col.state = ChunkColumn.DECORATED
 		col.recompute_heightmap()
 	Lighting.compute_column(col)
@@ -360,6 +377,9 @@ func _collect_finished() -> void:
 func _publish(col: ChunkColumn) -> void:
 	var k := col.key()
 	_pending_gen.erase(k)
+	# The task has been collected (its result came through `_gen_done` under `_mutex`), so the
+	# hand-off is complete and the main thread owns the column from here on.
+	col.in_flight = false
 	if not _in_range(k, render_distance + 1):
 		return                                  # walked away while generating
 	columns[k] = col
@@ -552,6 +572,10 @@ func save_modified() -> int:
 		return 0
 	return save.save_all(columns)
 
+## Stop streaming and wait for every task that still references a column or a snapshot, so
+## nothing is running by the time the World (and with it the generator and the SaveManager) is
+## freed. `_collect_finished` removes ids as soon as they complete, so these lists only hold
+## tasks that have not been waited on yet and no id is waited on twice.
 func shutdown() -> void:
 	_shutting_down = true
 	for id in _gen_ids:
@@ -561,4 +585,21 @@ func shutdown() -> void:
 	_gen_ids.clear()
 	_mesh_ids.clear()
 	_upload_queue.clear()
+	# Columns that were generated but never published are dropped here. Their task is finished
+	# (we just waited for it), so hand ownership back before letting go of them - otherwise an
+	# abandoned column keeps claiming a worker owns it.
+	_mutex.lock()
+	var abandoned: Array = _gen_done.duplicate()
+	_gen_done.clear()
+	_mesh_done.clear()
+	_mutex.unlock()
+	for c in _publish_queue:
+		if c is ChunkColumn:
+			(c as ChunkColumn).in_flight = false
+	for c in abandoned:
+		if c is ChunkColumn:
+			(c as ChunkColumn).in_flight = false
 	_publish_queue.clear()
+	_pending_gen.clear()
+	for k in columns.keys():
+		(columns[k] as ChunkColumn).meshing_sections = 0

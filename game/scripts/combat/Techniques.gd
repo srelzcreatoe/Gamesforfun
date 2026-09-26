@@ -171,6 +171,19 @@ static func can_use(entity_node: Node, technique_id: String) -> Dictionary:
 	var t := get_for(entity_node)
 	return t.check(technique_id) if t != null else {"ok": false, "reason": "no entity"}
 
+## The techniques to offer in the UI: what the entity has learned, or - under the dev menu's
+## God mode - every technique in the registry, so the cheat can actually be used to try them.
+static func usable_list(entity_node: Node) -> Array:
+	if entity_node != null and entity_node.get("god_mode") == true and Registry != null:
+		var all: Array = []
+		for tid in Registry.techniques.keys():
+			all.append(String(tid))
+		all.sort()
+		return all
+	if Game != null and Game.player == entity_node:
+		return (Game.profile.get("techniques", []) as Array).duplicate()
+	return []
+
 # --- checks --------------------------------------------------------------
 
 func cooldown_of(technique_id: String) -> float:
@@ -199,6 +212,10 @@ func check(technique_id: String) -> Dictionary:
 		return {"ok": false, "reason": "busy"}
 	if cooldown_of(technique_id) > 0.0:
 		return {"ok": false, "reason": "cooling down"}
+	# God mode (dev menu) is allowed every technique, learned or not, and never runs out of ki.
+	# The busy / cooldown checks above still apply: they are state, not a gate on access.
+	if entity != null and entity.get("god_mode") == true:
+		return {"ok": true, "reason": ""}
 	if not _knows(technique_id):
 		return {"ok": false, "reason": "not learned"}
 	var k := Ki.get_for(entity)

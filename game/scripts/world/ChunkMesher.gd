@@ -19,7 +19,10 @@ class_name ChunkMesher
 
 const PAD := 18
 const HEIGHT := WorldConst.HEIGHT
-const AO := [0.55, 0.7, 0.85, 1.0]
+## Never `const`: a const container is read-only and Godot's read-only element access goes
+## through one shared scratch Variant inside the container, which is not thread safe (see the
+## THREAD SAFETY note in BlockShapes.gd). Same for the BlockShapes tables this file indexes.
+static var AO: Array = [0.55, 0.7, 0.85, 1.0]
 const WATER_COLOR := Color(0.247, 0.463, 0.894)      # #3F76E4
 const GRASS_FALLBACK := Color(0.569, 0.741, 0.349)   # #91BD59
 const FOLIAGE_FALLBACK := Color(0.467, 0.671, 0.184) # #77AB2F
@@ -49,6 +52,14 @@ class Ctx:
 	var full := PackedByteArray()
 	var opaque := PackedByteArray()
 	var ao_off := PackedInt32Array()
+	## Per-job *duplicates* of the BlockShapes geometry tables. `duplicate()` is what makes
+	## them private to this job: a plain copy of a container shares its ArrayPrivate, so a copy
+	## of a read-only container is still read-only (see BlockShapes.gd). One allocation per
+	## mesh job, and the inner loops then index a plain local Array.
+	var corners: Array = []
+	var normals: Array = []
+	var dirs: Array = []
+	var ao: Array = []
 
 	func at(dx: int, dy: int, dz: int) -> int:
 		return blocks[i + dx + dz * PAD + dy * plane]
@@ -174,6 +185,23 @@ static func build_pad(snaps: Array) -> Dictionary:
 		"blocks": blocks, "meta": metas, "light": lights, "biome": biome,
 	}
 
+## Give one mesh job its private copies of every shared lookup table. The BlockTable entries
+## are packed arrays (value types, copy on write) so they can be shared as they are; the
+## BlockShapes geometry tables are Variant Arrays and are `duplicate()`d, because a plain copy
+## of a container shares its storage - and a copy of a read-only container is still read-only
+## (see the THREAD SAFETY note in BlockShapes.gd).
+static func _load_tables(ctx: Ctx) -> void:
+	ctx.full = BlockTable.full_cube
+	ctx.opaque = BlockTable.opaque
+	ctx.ao_off = ao_offsets()
+	var corners: Array = []
+	for f in 6:
+		corners.append((BlockShapes.FACE_CORNERS[f] as Array).duplicate())
+	ctx.corners = corners
+	ctx.normals = BlockShapes.FACE_NORMAL.duplicate()
+	ctx.dirs = BlockShapes.FACE_DIR.duplicate()
+	ctx.ao = AO.duplicate()
+
 ## Precomputed pad-index offsets for per-vertex AO / smooth light:
 ## index = ((face * 4 + corner) * 4 + j), j = 0 outward cell, 1 and 2 the two side cells,
 ## 3 the diagonal cell. PAD and the plane stride are constants, so these never change.
@@ -218,9 +246,7 @@ static func build_section(pad: Dictionary, section: int, palette: Dictionary) ->
 	ctx.meta = pad["meta"]
 	ctx.light = pad["light"]
 	ctx.plane = PAD * PAD
-	ctx.full = BlockTable.full_cube
-	ctx.opaque = BlockTable.opaque
-	ctx.ao_off = ao_offsets()
+	_load_tables(ctx)
 	var biome: PackedByteArray = pad["biome"]
 	var cx: int = pad["cx"]
 	var cz: int = pad["cz"]
@@ -383,7 +409,7 @@ static func _corner(ctx: Ctx, face: int, k: int) -> Vector2:
 		sky = (sky * 2 + cnt) / (cnt * 2)      # rounded integer average
 		blk = (blk * 2 + cnt) / (cnt * 2)
 	var packed := sky * 16 + blk
-	return Vector2(AO[level if level >= 0 else 0], float(packed if packed < 256 else 255) / 255.0)
+	return Vector2(ctx.ao[level if level >= 0 else 0], float(packed if packed < 256 else 255) / 255.0)
 
 ## Flat light sample for plants and other non-cube shapes (own cell or the cell above).
 static func _own_light(ctx: Ctx) -> float:
@@ -416,13 +442,13 @@ static func _box(buf: Buf, ctx: Ctx, lo: Vector3, hi: Vector3, tint: Color, cull
 			4: flush = hi.z >= 1.0
 			_: flush = lo.z <= 0.0
 		if flush:
-			var d: Vector3i = BlockShapes.FACE_DIR[f]
+			var d: Vector3i = ctx.dirs[f]
 			var nid := ctx.at(d.x, d.y, d.z)
 			if full[nid] == 1:
 				continue
 			if cull_same and nid == id:
 				continue
-		var corners: Array = BlockShapes.FACE_CORNERS[f]
+		var corners: Array = ctx.corners[f]
 		var c0: Vector3 = corners[0]
 		var c1: Vector3 = corners[1]
 		var c2: Vector3 = corners[2]
@@ -438,7 +464,7 @@ static func _box(buf: Buf, ctx: Ctx, lo: Vector3, hi: Vector3, tint: Color, cull
 		buf.quad(
 			Vector3(bx + q0.x, by + q0.y, bz + q0.z), Vector3(bx + q1.x, by + q1.y, bz + q1.z),
 			Vector3(bx + q2.x, by + q2.y, bz + q2.z), Vector3(bx + q3.x, by + q3.y, bz + q3.z),
-			BlockShapes.FACE_NORMAL[f],
+			ctx.normals[f],
 			_uv_for(f, q0), _uv_for(f, q1), _uv_for(f, q2), _uv_for(f, q3),
 			_layer_uv(id, f, ctx.wx, ctx.wy, ctx.wz),
 			a0.y, a1.y, a2.y, a3.y, a0.x, a1.x, a2.x, a3.x, tint)
@@ -542,7 +568,7 @@ static func _fence(buf: Buf, ctx: Ctx, tint: Color) -> void:
 	_box(buf, ctx, Vector3(0.375, 0, 0.375), Vector3(0.625, 1, 0.625), tint, false)
 	for f in 4:
 		var face: int = [0, 1, 4, 5][f]
-		var d: Vector3i = BlockShapes.FACE_DIR[face]
+		var d: Vector3i = ctx.dirs[face]
 		var nid := ctx.at(d.x, d.y, d.z)
 		if nid == 0:
 			continue
@@ -627,7 +653,7 @@ static func _liquid(buf: Buf, ctx: Ctx, tint: Color) -> void:
 			still, light, light, light, light, 1.0, 1.0, 1.0, 1.0, tint)
 	for f in 4:
 		var face: int = [0, 1, 4, 5][f]
-		var d: Vector3i = BlockShapes.FACE_DIR[face]
+		var d: Vector3i = ctx.dirs[face]
 		var nid := ctx.at(d.x, d.y, d.z)
 		if liquid[nid] == 1 or full[nid] == 1:
 			continue
@@ -644,7 +670,7 @@ static func _liquid(buf: Buf, ctx: Ctx, tint: Color) -> void:
 				ta = hs[2]; tb = hs[3]; pa = Vector3(lx + 1, ly, lz + 1); pb = Vector3(lx, ly, lz + 1)
 			_:
 				ta = hs[0]; tb = hs[1]; pa = Vector3(lx, ly, lz); pb = Vector3(lx + 1, ly, lz)
-		buf.quad(pa + Vector3(0, ta, 0), pb + Vector3(0, tb, 0), pb, pa, BlockShapes.FACE_NORMAL[face],
+		buf.quad(pa + Vector3(0, ta, 0), pb + Vector3(0, tb, 0), pb, pa, ctx.normals[face],
 			Vector2(0, 1.0 - ta), Vector2(1, 1.0 - tb), Vector2(1, 1), Vector2(0, 1),
 			flow, light, light, light, light, 1.0, 1.0, 1.0, 1.0, tint)
 	var below := ctx.at(0, -1, 0)

@@ -83,13 +83,17 @@ func _section(title: String) -> void:
 func _player_tab() -> void:
 	var p := player()
 	_section("Cheats")
+	page_box.add_child(UiUtil.dim("God mode also unlocks every form and every technique.",
+		UiUtil.font_small(s)))
 	for pair in [["God mode", "god_mode"], ["Infinite ki", "infinite_ki"],
 			["Creative flight", "creative_flight"], ["Noclip", "noclip"]]:
 		var key := String(pair[1])
 		var on := p != null and p.has_method("cheat") and bool(p.call("cheat", key))
 		page_box.add_child(_toggle(String(pair[0]), on, func(v: bool) -> void:
 			if _need_player():
-				player().call("set_cheat", key, v)))
+				player().call("set_cheat", key, v)
+				if key == "god_mode":
+					rebuild()))
 	_section("Body")
 	page_box.add_child(_button_row([
 		["Heal", func() -> void:
@@ -354,25 +358,33 @@ func _kill_hostiles() -> void:
 			n += 1
 	_note("Defeated %d." % n)
 
+## Normally only the forms of the player's own race, because a Saiyan cannot use a Namekian
+## form. God mode lists every form in the registry instead: the cheat exists to look at them.
 func _form_list() -> Array:
 	var out: Array = []
 	if Registry == null:
 		return out
+	var god := Forms.is_god(player())
 	var race := String(Game.profile.get("character", {}).get("race", ""))
 	for fid in Registry.forms.keys():
 		var d: Dictionary = Registry.form(String(fid))
-		if race != "" and String(d.get("race", "")) != "" and String(d.get("race", "")) != race:
+		if not god and race != "" and String(d.get("race", "")) != "" \
+				and String(d.get("race", "")) != race:
 			continue
 		out.append(String(fid))
-		if out.size() >= 40:
-			break
+	out.sort()
 	return out
 
 func _transform(form_id: String) -> void:
 	if not _need_player():
 		return
-	Forms.unlock(player(), form_id)
-	if not Forms.transform(player(), form_id, true):
+	var p := player()
+	# Fill the ki bar first: a transform that fails on "not enough ki" is never what the dev
+	# menu was asked for. God mode skips the check outright, this covers the rest.
+	p.set("ki", p.get("max_ki"))
+	Events.ki_changed.emit(p.get("ki"), p.get("max_ki"))
+	Forms.unlock(p, form_id)
+	if not Forms.transform(p, form_id, true):
 		_note("Could not transform into " + form_id)
 
 func _set_time(ticks: float) -> void:

@@ -59,6 +59,11 @@ static func create(race := "saiyan", cls := "warrior", animated := false) -> FxD
 	d.animated = animated
 	d.race = race
 	d.stats = Stats.create(race, cls)
+	# the character's own aura colour, seeded from the race exactly as character
+	# creation seeds it (ProfileFactory / races.json defaultAuraColor)
+	if Registry != null:
+		var rd: Dictionary = Registry.race(race)
+		d.aura_color = String(rd.get("defaultAuraColor", d.aura_color))
 	d.refresh_derived()
 	d.ki = d.max_ki
 	d.health = d.max_health

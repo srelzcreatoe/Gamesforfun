@@ -595,6 +595,12 @@ static var _blocks_lru: PackedStringArray = PackedStringArray()
 static var _blocks_bytes := 0
 
 ## Header fields only - never touches the block data.
+##
+## The cached Dictionary is handed out by reference on purpose: `configure()` stores it in every
+## entry's "hdr" and all generator threads then read it for the rest of the run. That is safe
+## because a published header is immutable - `_headers` is insert-once (never replaced, never
+## evicted, never edited), so no thread can ever see it change or be freed. Two threads racing
+## on a cold path both parse; the loser's copy is simply dropped.
 static func header(path: String) -> Dictionary:
 	_hdr_mutex.lock()
 	var hit: Variant = _headers.get(path, null)
@@ -603,7 +609,11 @@ static func header(path: String) -> Dictionary:
 		return hit
 	var built := _read_header(path)
 	_hdr_mutex.lock()
-	_headers[path] = built
+	var existing: Variant = _headers.get(path, null)
+	if existing != null:
+		built = existing
+	else:
+		_headers[path] = built
 	_hdr_mutex.unlock()
 	return built
 
@@ -684,8 +694,12 @@ static func release_cache() -> void:
 	_tpl_mutex.unlock()
 
 static func cache_stats() -> Dictionary:
+	# Each half under its own lock: `_headers` belongs to `_hdr_mutex`, not `_tpl_mutex`.
+	_hdr_mutex.lock()
+	var headers := _headers.size()
+	_hdr_mutex.unlock()
 	_tpl_mutex.lock()
-	var out := {"templates": _blocks.size(), "bytes": _blocks_bytes, "headers": _headers.size()}
+	var out := {"templates": _blocks.size(), "bytes": _blocks_bytes, "headers": headers}
 	_tpl_mutex.unlock()
 	return out
 

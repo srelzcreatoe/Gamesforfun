@@ -245,6 +245,10 @@ func spawn_point_for(planet_id: String, seed_val: int) -> Vector3:
 	return WorldGenFactory.spawn_point(def, seed_val)
 
 func goto_main_menu() -> void:
+	# Drop every in-world screen (pause, inventory, and the HUD) before the menu is built,
+	# so none of it survives into the menu for a frame.
+	if ui != null and ui.has_method("close_all"):
+		ui.call("close_all")
 	if main != null and main.has_method("show_main_menu"):
 		main.show_main_menu()
 

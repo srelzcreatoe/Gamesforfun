@@ -23,6 +23,9 @@ static var _cache: Dictionary = {}
 static var _mutex := Mutex.new()
 
 ## World positions (feet centre) of every ball of a set, index 0 = 1 star.
+##
+## Callers get their own Array on every path, cache hit or miss: the cached one is shared by
+## every generator thread and must stay exactly as it was published.
 static func positions(set_id: String, seed: int) -> Array[Vector3]:
 	var key := "%s|%d" % [set_id, seed]
 	_mutex.lock()
@@ -34,9 +37,12 @@ static func positions(set_id: String, seed: int) -> Array[Vector3]:
 		return cached
 	var out := _compute(set_id, seed)
 	_mutex.lock()
-	_cache[key] = out
+	if not _cache.has(key):
+		_cache[key] = out
 	_mutex.unlock()
-	return out
+	var copy: Array[Vector3] = []
+	copy.assign(out)
+	return copy
 
 static func planet_of(set_id: String) -> String:
 	var def: Dictionary = SETS.get(set_id, {})

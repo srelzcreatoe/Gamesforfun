@@ -20,7 +20,7 @@ func _configure() -> void:
 	var h := model.visual_aabb().size.y if model != null else 8.0
 	if model != null:
 		model.position.y = -h
-	play_anim("idle")
+	set_locomotion("idle")
 	Events.dragon_summoned.emit(dragon_id)
 	if Audio != null:
 		Audio.play_sfx_at("dragon_summon", global_position, 2.0)

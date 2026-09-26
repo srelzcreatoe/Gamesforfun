@@ -131,26 +131,108 @@ func test_only_one_director_per_entity() -> void:
 	assert_true(TransformationDirector.is_playing(dummy))
 
 # --- B. per-form colour resolution ---------------------------------------
+#
+# The rule is DragonMineZ's own (AuraRenderer.getAuraLayers, read with javap):
+#   the form's `auraColor` when it has one, otherwise the character's colour, which
+#   character creation seeds from `races.json.defaultAuraColor`.
+# Nothing else may ever colour an aura - not `lightningColor`, not `hairColor`, not
+# `bodyColor*`, not `eye*Color`, not `extraAuraColor` (DMZ only draws the extra aura
+# when `extraAuraLayer >= 0`, and every form in our data has -1), and not a per-group
+# palette. A Namekian form is green because its race is green, even though its eyes are
+# crimson and its lightning is red.
 
-## Every form that carries a colour anywhere in forms.json must resolve its aura from
-## that data - never from the group palette, the race default or the generic fallback.
-func test_every_authored_form_resolves_its_own_colour() -> void:
-	var checked := 0
+## The whole table: form id -> (authored auraColor, resolved colours, which rule fired).
+## Printed with `FX_COLOR_TABLE=1 tools/run_tests.sh <name> fx` so the resolution of all
+## 57 forms can be eyeballed against the mod.
+func _colour_table() -> PackedStringArray:
+	var out := PackedStringArray()
+	out.append("%-34s %-11s %-9s %-9s %-9s %-9s %-9s %-5s %s" % [
+		"form", "rule", "auraColor", "aura", "hot band", "glow", "lightning", "arcs", "other colour fields"])
+	var ids: Array = Registry.forms.keys()
+	ids.sort()
+	for id: String in ids:
+		var def: Dictionary = Registry.forms[id]
+		var p := FormVfx.of(def)
+		var others := PackedStringArray()
+		for f in FormVfx.authored_fields(def):
+			if f != FormVfx.AURA_COLOR_FIELD:
+				others.append("%s=%s" % [f, String(def.get(f, ""))])
+		out.append("%-34s %-11s %-9s %-9s %-9s %-9s %-9s %-5s %s" % [
+			id, p.aura_source, _hex(FormVfx.own_color(def)), _hex(p.aura.to_html(false)),
+			_hex(p.inner.to_html(false)), _hex(p.glow.to_html(false)),
+			_hex(p.lightning_color.to_html(false)), str(p.lightning), " ".join(others)])
+	return out
+
+static func _hex(s: String) -> String:
+	if s == "":
+		return "-"
+	return ("#" + s.to_upper()) if not s.begins_with("#") else s.to_upper()
+
+## EVERY form in data/forms.json: the aura colour is the form's own `auraColor` when the
+## data has one, and the race default when it does not. No other field, no group palette,
+## no generic fallback.
+func test_every_form_resolves_its_colour_from_its_own_data() -> void:
+	if OS.get_environment("FX_COLOR_TABLE") == "1":
+		for line in _colour_table():
+			print(line)
 	var bad: PackedStringArray = PackedStringArray()
+	var own_count := 0
+	var race_count := 0
 	for id in Registry.forms.keys():
 		var def: Dictionary = Registry.forms[String(id)]
-		var authored := FormVfx.authored_fields(def)
-		if authored.is_empty():
-			continue
-		checked += 1
 		var p := FormVfx.of(def)
-		if not authored.has(p.aura_source):
-			bad.append("%s -> %s (authored: %s)" % [id, p.aura_source, str(authored)])
-	assert_true(checked >= 30, "checked %d authored forms" % checked)
-	assert_eq(bad.size(), 0, "forms falling back although they carry colour: %s" % str(bad))
+		var own := FormVfx.own_color(def)
+		if own != "":
+			own_count += 1
+			if p.aura_source != FormVfx.AURA_COLOR_FIELD or p.aura != Color(own):
+				bad.append("%s: auraColor %s -> %s from %s" % [id, own, p.aura.to_html(false), p.aura_source])
+			if not p.aura_from_form:
+				bad.append("%s: aura_from_form is false although auraColor is set" % id)
+			continue
+		var race: Dictionary = Registry.race(String(def.get("race", "")))
+		var rc := String(race.get("defaultAuraColor", ""))
+		if rc != "":
+			race_count += 1
+			if p.aura_source != "race" or p.aura != Color(rc):
+				bad.append("%s: no auraColor -> expected race %s, got %s from %s"
+					% [id, rc, p.aura.to_html(false), p.aura_source])
+		elif p.aura_source != "fallback":
+			bad.append("%s: race %s has no colour, expected the fallback, got %s"
+				% [id, def.get("race", ""), p.aura_source])
+		if p.aura_from_form:
+			bad.append("%s: aura_from_form is true although auraColor is empty" % id)
+	assert_eq(bad.size(), 0, str(bad))
+	assert_eq(Registry.forms.size(), 57, "every form in the data is checked")
+	assert_true(own_count >= 30, "%d forms carry their own auraColor" % own_count)
+	assert_true(race_count >= 20, "%d colourless forms follow their race" % race_count)
 
-## No form anywhere in the data may end up on the generic fallback colour, and none may
-## end up white unless its own data really says white.
+## The regression that started this: a form with no `auraColor` used to take the colour
+## of its LIGHTNING, HAIR, EYES or BODY (Cell semi-perfect came out electric blue from
+## `eye1Color`, a Frost Demon evolution came out red from `lightningColor`).
+func test_non_aura_colour_fields_never_reach_the_aura() -> void:
+	var leaks := ["lightningColor", "hairColor", "bodyColor1", "bodyColor2", "bodyColor3",
+		"eye1Color", "eye2Color", "extraAuraColor", "extraFormColor"]
+	var bad: PackedStringArray = PackedStringArray()
+	var checked := 0
+	for id in Registry.forms.keys():
+		var def: Dictionary = Registry.forms[String(id)]
+		if FormVfx.own_color(def) != "":
+			continue                      # its own auraColor decides, as it should
+		var p := FormVfx.of(def)
+		var race: Dictionary = Registry.race(String(def.get("race", "")))
+		var rc := String(race.get("defaultAuraColor", ""))
+		for f in leaks:
+			var raw := String(def.get(f, "")).strip_edges()
+			if raw == "" or (rc != "" and Color(raw) == Color(rc)):
+				continue
+			checked += 1
+			if p.aura == Color(raw):
+				bad.append("%s: aura took %s from %s" % [id, raw, f])
+	assert_true(checked >= 20, "%d colourless-but-tinted fields checked" % checked)
+	assert_eq(bad.size(), 0, str(bad))
+
+## No form may end up on the generic fallback colour, and none may end up white unless
+## its own data really says white (Ultimate/Mystic is #FFFFFF in DMZ).
 func test_no_form_falls_back_to_generic_white() -> void:
 	var bad: PackedStringArray = PackedStringArray()
 	for id in Registry.forms.keys():
@@ -159,34 +241,50 @@ func test_no_form_falls_back_to_generic_white() -> void:
 		if p.aura_source == "fallback":
 			bad.append("%s: no colour at all" % id)
 			continue
-		if p.aura.s < 0.1 and p.aura.v > 0.9:
-			# white is only allowed when the data itself is white
-			var authored := FormVfx.authored_fields(def)
-			var white_by_data := false
-			for f in authored:
-				if Color(String(def.get(f, "#000000"))).s < 0.1:
-					white_by_data = true
-			if not white_by_data:
-				bad.append("%s: generic white from %s" % [id, p.aura_source])
+		if p.aura.s < 0.1 and p.aura.v > 0.9 and FormVfx.own_color(def) == "":
+			bad.append("%s: generic white from %s" % [id, p.aura_source])
 	assert_eq(bad.size(), 0, str(bad))
 
 ## A DMZ body/hair colour is often a brown-grey skin tone: those must never become the
 ## aura colour (a "transformation" with a mud coloured aura is not a transformation).
 func test_desaturated_body_colours_never_become_the_aura() -> void:
 	var evil := FormVfx.for_id("pureforms.evil")
-	assert_true(evil.aura.s >= FormVfx.MIN_AURA_SATURATION,
-		"majin evil aura %s is too grey" % evil.aura.to_html(false))
+	assert_eq(evil.aura, Color("#FF6DFF"), "majin evil takes the majin race pink")
 	assert_ne(evil.aura, Color("#917979"), "the grey skin tone is not an aura")
-	# every form in the data: a saturated aura, or a colour the data authored as an aura
+	assert_ne(evil.aura, Color("#F52746"), "the red eyes are not an aura either")
 	var bad: PackedStringArray = PackedStringArray()
 	for id in Registry.forms.keys():
 		var p := FormVfx.for_id(String(id))
 		if p.aura.s >= FormVfx.MIN_AURA_SATURATION:
 			continue
-		if FormVfx.AURA_FIELDS.has(p.aura_source):
+		if p.aura_source == FormVfx.AURA_COLOR_FIELD:
 			continue          # the data really says "white aura" (Ultimate/Mystic)
 		bad.append("%s: %s from %s" % [id, p.aura.to_html(false), p.aura_source])
 	assert_eq(bad.size(), 0, str(bad))
+
+## The user report: "my aura looked weird and it wasn't even green". EVERY Namekian form
+## is green - the three with their own `auraColor` are DMZ's own dark-red evil Namek
+## family, everything else is the race's acid green.
+func test_namekian_forms_are_green() -> void:
+	var green := Color("#7FFF00")
+	assert_eq(FormVfx.for_id("superforms.supernamekian").aura, green, "super namekian")
+	assert_eq(FormVfx.for_id("superforms.supernamekian").family, "green")
+	for id in ["superforms.giant", "superforms.fullpower_namekian"]:
+		var p := FormVfx.for_id(id)
+		assert_eq(p.aura, green, "%s follows the namekian race colour" % id)
+		assert_eq(p.aura_source, "race")
+		assert_eq(p.family, "green")
+	# the hot band stays green too - it used to be a near-white pastel, which is what
+	# made a green aura render white
+	var hot := FormVfx.for_id("superforms.giant").inner
+	assert_eq(hot, FormVfx.hot_band(green), "the hot band is the form colour x1.6, clamped")
+	assert_near(hot.r, minf(green.r * 1.6, 1.0), 0.001)
+	assert_near(hot.g, 1.0, 0.001)
+	assert_near(hot.b, 0.0, 0.001)
+	assert_eq(FormVfx.family_of(hot), "green", "and it is still green")
+	# DMZ really does author the evil Namek family dark red
+	assert_eq(FormVfx.for_id("legendaryforms.evilnamek").aura, Color("#570B0B"))
+	assert_eq(FormVfx.for_id("legendaryforms.evilnamek").aura_source, FormVfx.AURA_COLOR_FIELD)
 
 func test_form_families_read_differently() -> void:
 	var ssj := FormVfx.for_id("ssgrades.supersaiyan")
@@ -194,42 +292,80 @@ func test_form_families_read_differently() -> void:
 	var namek := FormVfx.for_id("superforms.supernamekian")
 	var xeno := FormVfx.for_id("legendaryforms.xeno")
 	var majin := FormVfx.for_id("pureforms.evil")
+	var frost := FormVfx.for_id("evolutionforms.fifth")
 	assert_eq(ssj.aura, Color("#FFD700"), "super saiyan is gold")
 	assert_eq(ssj.family, "gold")
 	assert_eq(kaio.aura, Color("#DB182C"), "kaioken is crimson")
 	assert_eq(namek.aura, Color("#7FFF00"), "super namekian is acid green")
-	assert_eq(namek.family, "green")
 	assert_eq(xeno.family, "violet", "the xeno forms are violet")
+	assert_eq(majin.family, "pink", "a majin form is pink")
+	assert_eq(frost.aura, Color("#5F00FF"), "a frost demon evolution is arcosian violet")
+	assert_ne(frost.aura, Color("#F02B16"), "not the red of its lightning")
 	assert_ne(majin.aura, ssj.aura, "a majin form must not look like a saiyan one")
-	# the inner core is never the same flat white for every family
-	assert_ne(ssj.inner, namek.inner)
-	assert_ne(ssj.inner, xeno.inner)
 
-## A colourless form in a grab-bag group (DMZ dumps the Namekian giant, the Janemba
-## forms and the Arcosian metal forms into "legendaryforms"/"superforms") must take its
-## RACE colour, not the group signature - a giant Namekian is green, not pale gold.
-func test_colourless_forms_take_the_race_colour_in_grab_bag_groups() -> void:
-	var giant := FormVfx.for_id("superforms.giant")
-	assert_eq(giant.aura_source, "race", "namekian giant follows its race")
-	assert_eq(giant.aura, Color("#7FFF00"))
-	var demon := FormVfx.for_id("legendaryforms.innocencedemon")
-	assert_eq(demon.aura_source, "race", "Janemba follows the majin race colour")
-	assert_eq(demon.aura, Color("#FF6DFF"))
-	# a group that IS one family keeps its signature palette
-	var android := FormVfx.for_id("androidforms.androidbase")
-	assert_eq(android.aura_source, "group")
-	assert_eq(android.aura, Color("#59C7FF"))
-	var oozaru := FormVfx.for_id("oozaru.oozaru")
-	assert_eq(oozaru.aura_source, "group", "the great ape keeps its brown gold")
+## A colourless form takes its RACE's colour, whatever group it sits in: DMZ dumps the
+## Namekian giant, the Janemba forms, the Arcosian metal forms and the android forms into
+## grab-bag groups, and the mod colours all of them from the character/race.
+func test_colourless_forms_take_the_race_colour() -> void:
+	var cases := {
+		"superforms.giant": "#7FFF00",                  # namekian
+		"legendaryforms.innocencedemon": "#FF6DFF",     # majin (Janemba)
+		"legendaryforms.metal": "#5F00FF",              # frost demon
+		"androidforms.androidbase": "#7FFFFF",          # human
+		"oozaru.oozaru": "#7FFFFF",                     # saiyan
+		"bioevolution.semiperfect": "#1AA700",          # bio-android
+		"pureforms.kid": "#FF6DFF",                     # majin
+	}
+	for id: String in cases.keys():
+		var p := FormVfx.for_id(id)
+		assert_eq(p.aura_source, "race", "%s follows its race" % id)
+		assert_eq(p.aura, Color(String(cases[id])), "%s colour" % id)
 
+## A form's own `auraColor` may be anything, even the character's own hue: what matters
+## is that the FORM decided it (so the character's personal colour does not override).
+func test_a_form_with_its_own_colour_overrides_the_character() -> void:
+	var a := Aura.get_for(dummy)
+	if a == null:
+		return
+	dummy.aura_color = "#FF00FF"            # the character's personal aura colour
+	a.set_form(Forms.def("ssgrades.supersaiyan"))
+	assert_eq(a.outer_color, Color("#FFD700"), "the form's gold wins")
+	a.set_form(Forms.def("superforms.giant"))
+	assert_eq(a.outer_color, Color("#FF00FF"), "a colourless form keeps the character colour")
+	dummy.aura_color = ""
+
+## Lightning is `hasLightnings`, exactly as the data says it - no group heuristics.
 func test_lightning_is_data_driven() -> void:
 	assert_true(FormVfx.for_id(EPIC_FORM).lightning, "SSJ2 crackles")
 	assert_true(FormVfx.for_id("supersaiyan.supersaiyan3").lightning)
-	assert_true(FormVfx.for_id("ssgrades.supersaiyangrade3").lightning, "grade 3 by order")
+	assert_true(FormVfx.for_id("superforms.supernamekian").lightning)
+	assert_true(not FormVfx.for_id("ssgrades.supersaiyangrade3").lightning,
+		"DMZ grade 3 has hasLightnings false")
 	assert_true(not FormVfx.for_id(MINOR_FORM).lightning, "kaioken does not crackle")
 	assert_true(not FormVfx.for_id("ssgrades.supersaiyan").lightning)
 	var l := FormVfx.for_id(EPIC_FORM)
 	assert_eq(l.lightning_color, Color("#A1FFF9"), "lightningColor from the data")
+	# and every form that crackles has a colour for it in the data
+	for id in Registry.forms.keys():
+		var def: Dictionary = Registry.forms[String(id)]
+		if not bool(def.get("hasLightnings", false)):
+			continue
+		assert_true(String(def.get("lightningColor", "")) != "",
+			"%s has lightning but no lightningColor" % id)
+		assert_eq(FormVfx.of(def).lightning_color, Color(String(def["lightningColor"])),
+			"%s arcs use the authored colour" % id)
+
+## The aura composition itself: DMZ's own flame strip and layer slot per form.
+func test_aura_type_and_layer_come_from_the_data() -> void:
+	for id in Registry.forms.keys():
+		var def: Dictionary = Registry.forms[String(id)]
+		var p := FormVfx.of(def)
+		assert_eq(p.aura_type, String(def.get("auraType", "kakarot")).to_lower(),
+			"%s aura strip" % id)
+		assert_true(p.aura_layer >= 0 and p.aura_layer <= FormVfx.MAX_AURA_LAYER,
+			"%s layer %d is in DMZ's 0-6 range" % [id, p.aura_layer])
+	assert_eq(FormVfx.for_id(MINOR_FORM).aura_layer, 1, "kaioken sits on layer 1")
+	assert_eq(FormVfx.for_id("ssgrades.supersaiyan").aura_layer, 0)
 
 func test_giant_forms_scale_and_take_the_long_cinematic() -> void:
 	var p := FormVfx.for_id(GIANT_FORM)
@@ -394,6 +530,71 @@ func test_aura_takes_its_colour_and_lightning_from_the_form() -> void:
 	a.set_form(Forms.def(MINOR_FORM))
 	assert_eq(a.outer_color, Color("#DB182C"))
 	assert_true(not a.has_lightning, "a kaioken has no arcs")
+
+## The aura is DMZ's own composition and it has to stay cheap enough for a phone:
+## THREE textured quads (flame billboard, ground cross, shard overlay) driven by
+## `shaders/aura_sprite.gdshader`, two small CPU emitters, no lights, no procedural
+## flame shell and no additive white halo.
+func test_aura_is_three_quads_two_emitters_and_no_lights() -> void:
+	var a := Aura.get_for(dummy)
+	if a == null:
+		return
+	a.set_form(Forms.def("superforms.supernamekian"))
+	a.set_intensity(1.2)
+	a._process(0.1)
+	var quads := 0
+	var emitters := 0
+	var particles := 0
+	var lights := 0
+	var tris := 0
+	for c in a.get_children():
+		if c is MeshInstance3D:
+			quads += 1
+			var mesh: Mesh = (c as MeshInstance3D).mesh
+			assert_true(mesh is QuadMesh, "%s is a quad, not a shell" % c.name)
+			tris += 2
+			var mat: Material = (c as MeshInstance3D).material_override
+			assert_true(mat is ShaderMaterial, "%s is shader driven" % c.name)
+			var sm: ShaderMaterial = mat
+			assert_true(sm.shader != null and sm.shader.resource_path == Aura.AURA_SHADER,
+				"%s uses the DMZ aura shader" % c.name)
+			assert_eq(sm.get_shader_parameter("frames"), Aura.STRIP_FRAMES,
+				"%s samples a 4 frame strip" % c.name)
+			assert_true(sm.get_shader_parameter("aura_tex") is Texture2D,
+				"%s has one of the mod's aura strips" % c.name)
+			assert_eq(sm.get_shader_parameter("aura_color"), a.outer_color,
+				"%s is drawn in the form colour" % c.name)
+		elif c is CPUParticles3D:
+			emitters += 1
+			particles += (c as CPUParticles3D).amount
+		elif c is Light3D:
+			lights += 1
+	assert_eq(quads, 3, "flame + ground cross + shards")
+	assert_eq(emitters, 2, "sparks + rising motes only")
+	assert_true(particles <= 40, "%d aura particles (mobile scales this by 0.25)" % particles)
+	assert_eq(lights, 0, "the idle aura never adds a light")
+	assert_eq(tris, 6, "six triangles for the whole aura")
+	# the flame strip is animated by TIME in the shader: no per-frame script work
+	var before := FxAssets.cpu_take()
+	for i in 20:
+		a._process(0.016)
+	var usec := FxAssets.cpu_take()
+	assert_true(usec < 4000, "20 aura frames cost %d us of script time" % usec)
+	assert_true(before >= 0)
+
+## Every colour the aura hands to the shader stays on the form's hue: the four bands are
+## the form colour x1.6/1.3/1.0/0.75 (DMZ's own ramp), so nothing washes out to white.
+func test_aura_bands_keep_the_form_hue() -> void:
+	var a := Aura.get_for(dummy)
+	if a == null:
+		return
+	for id in ["superforms.supernamekian", "ssgrades.supersaiyan", MINOR_FORM, "pureforms.kid"]:
+		var p := FormVfx.for_id(String(id))
+		a.set_form(Forms.def(String(id)))
+		assert_eq(a.outer_color, p.aura, "%s aura colour" % id)
+		assert_eq(a.inner_color, FormVfx.hot_band(p.aura), "%s hot band" % id)
+		assert_eq(FormVfx.family_of(a.inner_color), p.family,
+			"%s hot band stays in the same hue family" % id)
 
 func test_aura_intensity_follows_its_inputs() -> void:
 	var a := Aura.get_for(dummy)

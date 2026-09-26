@@ -54,10 +54,20 @@ func _on_player_spawned(_p: Node) -> void:
 	show_hud(true)
 
 ## While a world is streaming its first chunks there is no player yet: show the loading bar.
+##
+## With no world we are on the menu, and the HUD has to be down. The HUD is deliberately not
+## on `stack` (it is never modal), so nothing in close_all() reached it and "Save and quit"
+## used to leave the bars, hotbar and touch buttons drawn over the main menu.
 func _process(_delta: float) -> void:
 	if Game == null:
 		return
-	var streaming := Game.world != null and (Game.player == null or not is_instance_valid(Game.player))
+	if Game.world == null:
+		if hud != null and is_instance_valid(hud) and hud.visible:
+			show_hud(false)
+		if is_open("loading"):
+			close("loading")
+		return
+	var streaming := Game.player == null or not is_instance_valid(Game.player)
 	if streaming and not is_open("loading") and not is_modal_open():
 		open("loading")
 	elif not streaming and is_open("loading"):
@@ -150,9 +160,11 @@ func close_top() -> void:
 		return
 	close(stack[stack.size() - 1])
 
+## Takes the HUD down too: it is not on `stack`, so the loop alone would leave it visible.
 func close_all() -> void:
 	for s in stack.duplicate():
 		close(s)
+	show_hud(false)
 
 func is_open(screen: String) -> bool:
 	return open_screens.has(screen) and is_instance_valid(open_screens[screen])

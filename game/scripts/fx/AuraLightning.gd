@@ -130,7 +130,10 @@ func _reroll(i: int) -> void:
 		return
 	var a := _rng.randf() * TAU
 	var r := radius * _rng.randf_range(0.7, 1.35) * (1.0 + reach)
-	var y := _rng.randf_range(0.1, height * 0.95)
+	# a sprite bolt is a tall strip centred on its origin, so it is hung around the
+	# middle of the body; a ribbon grows upward from its origin
+	var y := _rng.randf_range(0.1, height * 0.5) if _ribbon[i] \
+		else _rng.randf_range(height * 0.3, height * 0.72)
 	b.position = Vector3(cos(a) * r, y, sin(a) * r)
 	var alpha := clampf(0.4 + intensity * 0.45, 0.0, 0.95)
 	var m: StandardMaterial3D = b.material_override
@@ -140,8 +143,11 @@ func _reroll(i: int) -> void:
 		if m != null:
 			m.albedo_color = Color(1, 1, 1, 1)
 	else:
-		var s := _rng.randf_range(0.30, 0.75) * body_scale * (0.75 + intensity * 0.45)
-		b.scale = Vector3(s * _rng.randf_range(0.35, 0.8), s * 1.9, s)
+		# DMZ's own bolt mesh is 0.3 wide x 3.0 tall (getLightningMesh), i.e. a 1:10
+		# ribbon. Ours used to be 1:2.4, which read as three white banners stapled to
+		# the body instead of lightning.
+		var s := _rng.randf_range(0.55, 1.0) * body_scale * (0.75 + intensity * 0.45)
+		b.scale = Vector3(s * _rng.randf_range(0.10, 0.22), s * 1.25, s * 0.2)
 		if m != null:
 			m.albedo_color = Color(color.r, color.g, color.b, alpha * 0.85)
 	_timers[i] = _rng.randf_range(0.06, 0.16)
@@ -153,7 +159,9 @@ func _build_ribbon(mi: MeshInstance3D, alpha: float) -> void:
 	if im == null:
 		return
 	im.clear_surfaces()
-	var length := _rng.randf_range(0.7, 1.7) * body_scale * (0.8 + intensity * 0.4)
+	# a ribbon grows UP from its origin, which is hung in the lower half of the body:
+	# long enough to arc past the shoulders, never a streamer above the head
+	var length := _rng.randf_range(0.6, 1.3) * body_scale * (0.8 + intensity * 0.4)
 	var tilt := _rng.randf_range(-0.9, 0.9)
 	var width := _rng.randf_range(0.022, 0.055) * body_scale * (0.8 + intensity * 0.5)
 	var jitter := _rng.randf_range(0.06, 0.20) * body_scale

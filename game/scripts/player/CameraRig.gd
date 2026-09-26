@@ -99,7 +99,10 @@ func look_direction() -> Vector3:
 func eye_position() -> Vector3:
 	if player == null:
 		return global_position
-	var h := crouch_eye_height if bool(player.get("is_crouching")) else eye_height
+	# `get()` returns null for a node that has no such property (the HUD preview rig, tests):
+	# bool(null) is an error, not false.
+	var crouch: Variant = player.get("is_crouching")
+	var h := crouch_eye_height if (crouch != null and bool(crouch)) else eye_height
 	return player.global_position + Vector3(0.0, h, 0.0)
 
 func shake(strength: float, duration: float) -> void:
@@ -284,6 +287,18 @@ static func pull_in_distance(is_solid: Callable, origin: Vector3, dir: Vector3, 
 			return maxf(d - PULL_BACKOFF, PULL_START)
 		d += PULL_STEP
 	return max_dist
+
+## Where the camera actually points, in world space. In FRONT (selfie) mode the camera faces
+## back at the player, so its forward is the mirror of the aim - `aim_from_camera()` folds that
+## in, which is what "drag down = look down in every camera mode" has to be measured against.
+func camera_forward() -> Vector3:
+	if camera == null:
+		return look_direction()
+	return -camera.global_transform.basis.z
+
+func aim_from_camera() -> Vector3:
+	var f := camera_forward()
+	return -f if mode == Mode.FRONT else f
 
 func aim_origin() -> Vector3:
 	return eye_position()

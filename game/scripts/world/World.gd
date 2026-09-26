@@ -42,6 +42,7 @@ var _spawned := false
 var _spawn_wait := 0.0
 var _cache_key := Vector2i(0x7fffffff, 0x7fffffff)
 var _cache_col: ChunkColumn = null
+var _warned_in_flight := false
 var _autoplay := false
 var _force_debug_camera := false
 var _force_flat_gen := false
@@ -209,11 +210,26 @@ func invalidate_column_cache() -> void:
 	_cache_key = Vector2i(0x7fffffff, 0x7fffffff)
 	_cache_col = null
 
+## A column a WorkerThreadPool task still owns must not be touched from here. ChunkManager
+## keeps in-flight columns out of `columns` so this should never fire, but generation writes
+## `blocks`/`meta`/`light` with no lock at all, so the invariant is asserted rather than
+## assumed (see the OWNERSHIP note in ChunkColumn.gd).
+func _usable(col: ChunkColumn) -> bool:
+	if col == null:
+		return false
+	if col.in_flight:
+		# Reported once: the light flood would otherwise turn one mistake into a log flood.
+		if not _warned_in_flight:
+			_warned_in_flight = true
+			Log.e("World: main thread reached column %d,%d while a worker still owns it" % [col.cx, col.cz])
+		return false
+	return true
+
 func get_block(x: int, y: int, z: int) -> int:
 	if y < 0 or y >= HEIGHT:
 		return 0
 	var col := _col(x >> 4, z >> 4)
-	if col == null:
+	if not _usable(col):
 		return 0
 	return col.blocks[(x & 15) + 16 * ((z & 15) + 16 * y)]
 
@@ -222,7 +238,7 @@ func get_block_raw(x: int, y: int, z: int) -> int:
 	if y < 0 or y >= HEIGHT:
 		return 0
 	var col := _col(x >> 4, z >> 4)
-	if col == null:
+	if not _usable(col):
 		return -1
 	return col.blocks[(x & 15) + 16 * ((z & 15) + 16 * y)]
 
@@ -233,13 +249,13 @@ func get_block_meta(x: int, y: int, z: int) -> int:
 	if y < 0 or y >= HEIGHT:
 		return 0
 	var col := _col(x >> 4, z >> 4)
-	if col == null:
+	if not _usable(col):
 		return 0
 	return col.meta[(x & 15) + 16 * ((z & 15) + 16 * y)]
 
 func set_block_meta(x: int, y: int, z: int, v: int) -> void:
 	var col := _col(x >> 4, z >> 4)
-	if col == null:
+	if not _usable(col):
 		return
 	col.meta[(x & 15) + 16 * ((z & 15) + 16 * y)] = v & 255
 	col.modified = true
@@ -249,7 +265,7 @@ func set_block(x: int, y: int, z: int, id: int, meta := 0, notify := true) -> vo
 	if y < 0 or y >= HEIGHT:
 		return
 	var col := _col(x >> 4, z >> 4)
-	if col == null:
+	if not _usable(col):
 		return
 	var i := (x & 15) + 16 * ((z & 15) + 16 * y)
 	var old := col.blocks[i]
@@ -292,7 +308,7 @@ func _mark_dirty(x: int, y: int, z: int) -> void:
 
 func _dirty_column(cx: int, cz: int, section: int, ly: int) -> void:
 	var col: ChunkColumn = manager.columns.get(Vector2i(cx, cz), null) if manager != null else null
-	if col == null:
+	if col == null or col.in_flight:
 		return
 	col.mark_dirty(section)
 	if ly == 0:
@@ -312,13 +328,13 @@ func is_liquid(x: int, y: int, z: int) -> bool:
 
 func get_height(x: int, z: int) -> int:
 	var col := _col(x >> 4, z >> 4)
-	if col == null:
+	if not _usable(col):
 		return WorldConst.SEA_LEVEL + 1
 	return col.heightmap[(x & 15) + 16 * (z & 15)]
 
 func get_biome(x: int, z: int) -> String:
 	var col := _col(x >> 4, z >> 4)
-	if col == null:
+	if not _usable(col):
 		return ""
 	var idx := col.biomes[(x & 15) + 16 * (z & 15)]
 	if idx < Registry.biome_order.size():
@@ -333,7 +349,7 @@ func get_sky_light(x: int, y: int, z: int) -> int:
 	if y >= HEIGHT:
 		return 15
 	var col := _col(x >> 4, z >> 4)
-	if col == null:
+	if not _usable(col):
 		return 0
 	return col.light[(x & 15) + 16 * ((z & 15) + 16 * y)] >> 4
 
@@ -341,7 +357,7 @@ func get_block_light(x: int, y: int, z: int) -> int:
 	if y < 0 or y >= HEIGHT:
 		return 0
 	var col := _col(x >> 4, z >> 4)
-	if col == null:
+	if not _usable(col):
 		return 0
 	return col.light[(x & 15) + 16 * ((z & 15) + 16 * y)] & 15
 
@@ -349,7 +365,7 @@ func set_sky_light(x: int, y: int, z: int, v: int) -> void:
 	if y < 0 or y >= HEIGHT:
 		return
 	var col := _col(x >> 4, z >> 4)
-	if col == null:
+	if not _usable(col):
 		return
 	var i := (x & 15) + 16 * ((z & 15) + 16 * y)
 	col.light[i] = (col.light[i] & 0x0F) | ((v & 15) << 4)
@@ -359,7 +375,7 @@ func set_block_light(x: int, y: int, z: int, v: int) -> void:
 	if y < 0 or y >= HEIGHT:
 		return
 	var col := _col(x >> 4, z >> 4)
-	if col == null:
+	if not _usable(col):
 		return
 	var i := (x & 15) + 16 * ((z & 15) + 16 * y)
 	col.light[i] = (col.light[i] & 0xF0) | (v & 15)

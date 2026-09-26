@@ -51,6 +51,8 @@ var water_tint: ColorRect = null
 var button_layer: Control = null
 
 var _pointers: Dictionary = {}
+var _down: Dictionary = {}            # InputEventScreenTouch.index -> true, fingers really down
+var _touch_held: Dictionary = {}      # held "press" button id -> owning touch index
 var _look_owner := -1
 var _joy_owner := -1
 var _joy_home := Vector2.ZERO
@@ -82,6 +84,11 @@ func _ready() -> void:
 	Events.inventory_changed.connect(func() -> void: hotbar.queue_redraw())
 	Events.hotbar_changed.connect(func(i: int) -> void: hotbar.selected = i; hotbar.queue_redraw())
 	Events.hint.connect(show_hint)
+	# Any screen opening on top of the HUD eats the finger's release: drop the holds now.
+	Events.ui_opened.connect(func(screen: String) -> void:
+		if screen != "hud":
+			cancel_touches())
+	Events.ui_closed.connect(func(_screen: String) -> void: cancel_touches())
 	Events.damage_number.connect(_on_damage_number)
 	Events.saving_started.connect(func() -> void: _saving_t = 1.2)
 	Events.saving_finished.connect(func() -> void: _saving_t = 0.6)
@@ -94,6 +101,15 @@ func _ready() -> void:
 	Events.quest_objective_progress.connect(func(_q: String, _i: int, _c: int, _r: int) -> void: _refresh_tracker())
 	_refresh_tracker()
 	_sync_from_player()
+	_start_input_aids()
+
+## Android drops the touch release when the app goes to the background or loses focus, so the
+## finger would stay "down" forever (mining with nothing held). Treat it as a release.
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT, \
+		NOTIFICATION_WM_WINDOW_FOCUS_OUT, NOTIFICATION_EXIT_TREE:
+			cancel_touches()
 
 func _race_id() -> String:
 	return String(Game.profile.get("character", {}).get("race", "saiyan")) if Game != null else "saiyan"
@@ -465,31 +481,51 @@ func button_rect(id: String) -> Rect2:
 
 # --- input ------------------------------------------------------------------
 
+## Drop every finger and everything a finger holds. Called when a modal screen opens, when the
+## HUD is hidden or disabled, and on app pause / focus loss - the three cases where Android
+## never delivers the matching `InputEventScreenTouch` release.
 func cancel_touches() -> void:
 	_pointers.clear()
+	_down.clear()
 	_look_owner = -1
 	_joy_owner = -1
+	_touch_held.clear()
 	if joystick != null:
 		joystick.release()
-	var p := player()
-	if p != null:
-		var inp: PlayerInput = p.get("input")
-		if inp != null:
-			inp.move = Vector2.ZERO
-			inp.break_held = false
+		joystick.position = _joy_home
+	var inp := input_of_player()
+	if inp != null:
+		inp.move = Vector2.ZERO
+		inp.clear_touch_state()
 	for id in buttons.keys():
 		if String(buttons[id]["kind"]) != "toggle":
 			_set_button_down(id, false)
 
+func input_of_player() -> PlayerInput:
+	var p := player()
+	if p == null:
+		return null
+	var inp: Variant = p.get("input")
+	return inp if inp is PlayerInput else null
+
+## Fingers currently down, by `InputEventScreenTouch.index`. The pointer table is only ever
+## allowed to describe indices that appear here.
+func touch_count() -> int:
+	return _down.size()
+
 func _input(event: InputEvent) -> void:
-	if not input_enabled or not is_visible_in_tree():
-		return
 	if event is InputEventScreenTouch:
 		var t: InputEventScreenTouch = event
+		# A release is processed even when input is disabled / the HUD is hidden: dropping it is
+		# exactly how a held mining state used to survive the finger lifting.
 		if t.pressed:
+			if not input_enabled or not is_visible_in_tree():
+				return
 			_touch_down(t.index, t.position)
 		else:
 			_touch_up(t.index, t.position)
+		return
+	if not input_enabled or not is_visible_in_tree():
 		return
 	if event is InputEventScreenDrag:
 		var d: InputEventScreenDrag = event
@@ -501,13 +537,22 @@ func _joystick_side(pos: Vector2) -> bool:
 	return pos.x < 0.35 * size.x
 
 func _touch_down(index: int, pos: Vector2) -> void:
+	# Android reuses touch indices: whatever the previous finger with this index held is gone.
+	if _pointers.has(index) or _down.has(index):
+		_release_index(index)
+	_down[index] = true
+	_recover_stale_owners()
+	var inp0 := input_of_player()
+	if inp0 != null:
+		inp0.touch_input = true
+		inp0.touch_count = _down.size()
 	# 1. action buttons
 	for i in range(button_order.size() - 1, -1, -1):
 		var id := button_order[i]
 		var r := button_rect(id)
 		if r.size.x > 0.0 and pos.distance_to(r.get_center()) <= r.size.x * 0.62:
 			_pointers[index] = {"kind": "button", "id": id, "t": 0.0}
-			_press_button(id)
+			_press_button(id, index)
 			return
 	# 2. hotbar
 	var bar := hotbar_rect()
@@ -546,42 +591,93 @@ func _touch_move(index: int, pos: Vector2, rel: Vector2) -> void:
 			pt["acc"] = acc
 			if absf(acc.x) + absf(acc.y) > LOOK_MOVE_THRESHOLD * s:
 				pt["moved"] = true
-			var p := player()
-			if p != null:
-				var inp: PlayerInput = p.get("input")
-				if inp != null:
-					inp.add_look(rel)
-					if bool(pt["moved"]):
-						inp.break_held = false
+			var inp := input_of_player()
+			if inp != null:
+				inp.add_look(rel)
+				if bool(pt["moved"]) and inp.break_held:
+					inp.set_break_held(false)
 
-func _touch_up(index: int, pos: Vector2) -> void:
+func _touch_up(index: int, _pos: Vector2) -> void:
+	_down.erase(index)
+	var inp := input_of_player()
 	if not _pointers.has(index):
+		# No pointer for this finger (it was swallowed by a screen opening mid-hold, or the
+		# index was never claimed): still drop anything that index owns and re-check the rest.
+		_release_index(index)
+		if inp != null:
+			inp.touch_count = _down.size()
+			inp.prune_stale_touch()
 		return
 	var pt: Dictionary = _pointers[index]
 	match String(pt["kind"]):
 		"button":
-			_release_button(String(pt["id"]), float(pt["t"]))
+			_release_button(String(pt["id"]), float(pt["t"]), index)
 		"joy":
 			joystick.release()
 			joystick.position = _joy_home
 			_joy_owner = -1
-			var p0 := player()
-			if p0 != null:
-				var inp0: PlayerInput = p0.get("input")
-				if inp0 != null:
-					inp0.move = Vector2.ZERO
-					inp0.gesture_sprint = false
+			if inp != null:
+				inp.move = Vector2.ZERO
+				inp.gesture_sprint = false
 			_gesture_hits = 0
 		"look":
 			_look_owner = -1
-			var p := player()
-			var inp: PlayerInput = p.get("input") if p != null else null
 			if inp != null:
 				if not bool(pt["moved"]) and float(pt["t"]) < TAP_TIME:
 					inp.world_tap = true
 					UiUtil.vibrate(12)
-				inp.break_held = false
+				if inp.break_owner() == index or inp.break_held:
+					inp.set_break_held(false)
 	_pointers.erase(index)
+	if inp != null:
+		inp.touch_count = _down.size()
+		inp.prune_stale_touch()
+
+## Everything touch `index` holds, released: its pointer entry, its HUD button and the
+## look-region mining hold. Safe to call for an index that holds nothing.
+func _release_index(index: int) -> void:
+	var inp := input_of_player()
+	if _pointers.has(index):
+		var pt: Dictionary = _pointers[index]
+		match String(pt["kind"]):
+			"button":
+				var id := String(pt["id"])
+				if buttons.has(id) and String(buttons[id]["kind"]) == "press":
+					_set_button_down(id, false)
+					_touch_held.erase(id)
+					if inp != null and inp.touch_owner(id) == index:
+						inp.set_touch_action(id, false)
+				else:
+					_set_button_down(id, false)
+			"joy":
+				_joy_owner = -1
+				if joystick != null:
+					joystick.release()
+					joystick.position = _joy_home
+				if inp != null:
+					inp.move = Vector2.ZERO
+					inp.gesture_sprint = false
+				_gesture_hits = 0
+			"look":
+				_look_owner = -1
+		_pointers.erase(index)
+	_down.erase(index)
+	if inp != null:
+		inp.release_touch_index(index)
+		inp.touch_count = _down.size()
+
+## A look / joystick owner whose finger is no longer down (a release that never arrived) must
+## not block the next finger from claiming the region, and must not keep mining alive.
+func _recover_stale_owners() -> void:
+	if _look_owner >= 0 and not _down.has(_look_owner):
+		_release_index(_look_owner)
+		_look_owner = -1
+	if _joy_owner >= 0 and not _down.has(_joy_owner):
+		_release_index(_joy_owner)
+		_joy_owner = -1
+	for idx in _pointers.keys():
+		if not _down.has(int(idx)):
+			_release_index(int(idx))
 
 ## Put the stick under the thumb (clamped on-screen) so the first pixel of drag already moves.
 func _recentre_joystick(pos: Vector2) -> void:
@@ -617,7 +713,7 @@ func _joy_drag(pos: Vector2) -> void:
 		inp.gesture_sprint = false
 		_gesture_hits = 0
 
-func _press_button(id: String) -> void:
+func _press_button(id: String, index := -1) -> void:
 	var kind := String(buttons[id]["kind"])
 	UiUtil.click(0.6)
 	match kind:
@@ -628,16 +724,18 @@ func _press_button(id: String) -> void:
 			_apply_toggle(id, b.latched)
 		"press":
 			_set_button_down(id, true)
-			_apply_press(id, true)
+			_touch_held[id] = index
+			_apply_press(id, true, index)
 		"action":
 			_set_button_down(id, true)
 			_do_action(id)
 
-func _release_button(id: String, held: float) -> void:
+func _release_button(id: String, held: float, index := -1) -> void:
 	var kind := String(buttons[id]["kind"])
 	if kind == "press":
 		_set_button_down(id, false)
-		_apply_press(id, false)
+		_touch_held.erase(id)
+		_apply_press(id, false, index)
 		if id == "ki_blast" and held >= CHARGED_BLAST_HOLD:
 			var p := player()
 			if p != null:
@@ -654,14 +752,12 @@ func _set_button_down(id: String, down: bool) -> void:
 	b.down = down
 	b.queue_redraw()
 
-func _apply_press(id: String, down: bool) -> void:
-	var p := player()
-	if p == null:
-		return
-	var inp: PlayerInput = p.get("input")
+func _apply_press(id: String, down: bool, index := -1) -> void:
+	var inp := input_of_player()
 	if inp == null:
 		return
-	inp.set_action(id, down)
+	# Owned by the finger: the action cannot outlive it (PlayerInput.release_touch_index).
+	inp.set_touch_action(id, down, index)
 	if down and id == "attack":
 		UiUtil.vibrate(40)
 
@@ -712,15 +808,7 @@ func _do_action(id: String) -> void:
 # --- per frame --------------------------------------------------------------
 
 func _process(delta: float) -> void:
-	for idx in _pointers.keys():
-		var pt: Dictionary = _pointers[idx]
-		pt["t"] = float(pt["t"]) + delta
-		if String(pt["kind"]) == "look" and not bool(pt["moved"]) and float(pt["t"]) >= HOLD_TIME:
-			var p := player()
-			if p != null:
-				var inp: PlayerInput = p.get("input")
-				if inp != null:
-					inp.break_held = true
+	_drive_touch_state(delta)
 	_sync_from_player()
 	_update_hint(delta)
 	_update_damage_numbers(delta)
@@ -728,6 +816,54 @@ func _process(delta: float) -> void:
 	if _saving_t > 0.0:
 		_saving_t = maxf(0.0, _saving_t - delta)
 	saving_label.visible = _saving_t > 0.0
+
+## The HUD is the authority on every hold a finger started. Once per frame the whole touch-held
+## state is *recomputed* from the fingers that are really down, so a hold cannot survive its
+## finger under any circumstance (release outside the region, a second finger, an index reused,
+## a screen opening mid-hold, a swallowed release). This is the watchdog asked for in the bug
+## report: no touch down -> nothing held.
+func _drive_touch_state(delta: float) -> void:
+	var inp := input_of_player()
+	if not input_enabled or not is_visible_in_tree():
+		if not _pointers.is_empty() or not _down.is_empty():
+			cancel_touches()
+		elif inp != null:
+			inp.touch_count = 0
+			inp.prune_stale_touch()
+		return
+	_recover_stale_owners()
+	if inp == null:
+		return
+	inp.touch_count = _down.size()
+	var want_break := false
+	var break_idx := -1
+	var held: Dictionary = {}
+	for idx in _pointers.keys():
+		var pt: Dictionary = _pointers[idx]
+		pt["t"] = float(pt["t"]) + delta
+		match String(pt["kind"]):
+			"look":
+				if not bool(pt["moved"]) and float(pt["t"]) >= HOLD_TIME:
+					want_break = true
+					break_idx = int(idx)
+			"button":
+				var id := String(pt["id"])
+				if buttons.has(id) and String(buttons[id]["kind"]) == "press":
+					held[id] = int(idx)
+	if want_break != inp.break_held or (want_break and inp.break_owner() != break_idx):
+		inp.set_break_held(want_break, break_idx)
+	# Re-assert / drop the held HUD buttons this HUD owns (never ones it does not).
+	for id in _touch_held.keys():
+		if not held.has(id):
+			_touch_held.erase(id)
+			_set_button_down(id, false)
+			if inp.touch_owner(id) >= 0:
+				inp.set_touch_action(id, false)
+	for id in held.keys():
+		_touch_held[id] = held[id]
+		if not bool(inp.get(id)) or inp.touch_owner(id) != int(held[id]):
+			inp.set_touch_action(id, true, int(held[id]))
+	inp.prune_stale_touch()
 
 func _sync_from_player() -> void:
 	var p := player()
@@ -1011,3 +1147,152 @@ func _objective_text(o: Dictionary) -> String:
 		"TRAIN": return "Spend training points"
 		"WAIT": return "Wait"
 	return String(o.get("desc", "Objective"))
+
+# --- verification aids ------------------------------------------------------
+## In-world twins of CharacterCreation's `--ui_tap` (same idea: drive the *real* touch path with
+## `InputEventScreenTouch` / `InputEventScreenDrag` instead of emitting signals, so a headless
+## run proves the whole chain). Desktop automation only; they do nothing without the flags.
+##
+##   --tap=<button id|world>  tap a HUD button ("jump", "attack", "fly", ...) or the look region
+##   --taps=N                 how many taps (default 1)
+##   --tap_gap=<seconds>      gap between taps (default 0.08; > 0.35 makes it a slow double tap)
+##   --tap_hold=<seconds>     how long each tap stays down (default 0.04)
+##   --tap_after=<seconds>    wait before the first tap (default 2.5, lets the world stream in)
+##   --tap_index=<n>          touch index to use (default 0)
+##   --drag=<x>,<y>           then drag the look region by that many window pixels
+##   --drag_steps=N           steps for the drag (default 12)
+##   --release=<0|1>          release the last tap (default 1; 0 leaves the finger down)
+##   --cam_taps=N             tap the Camera button N times first (shoulder -> first -> selfie)
+##   --drag_first=1           drag before tapping instead of after
+##
+## Example: tools/screenshot.sh out.png --sandbox pl --seconds 9 \
+##   --args "--autoplay=99 --tap=jump --taps=2 --tap_gap=0.1 --tap_after=3"
+var aid_args: Dictionary = {}
+
+func _aid_flags() -> Dictionary:
+	var out: Dictionary = {}
+	for a in OS.get_cmdline_user_args():
+		if not a.begins_with("--"):
+			continue
+		var kv := a.substr(2).split("=", true, 1)
+		out[kv[0]] = kv[1] if kv.size() > 1 else "1"
+	return out
+
+func _start_input_aids() -> void:
+	aid_args = _aid_flags()
+	if aid_args.has("tap") or aid_args.has("drag"):
+		_run_input_aids()
+
+func _aid_state() -> String:
+	var p := player()
+	if p == null:
+		return "no player"
+	var ia: Variant = p.get("interaction")
+	var cam: Variant = p.get("camera_rig")
+	var fwd := Vector3.ZERO
+	var pitch := 0.0
+	if cam is CameraRig and (cam as CameraRig).camera != null:
+		fwd = -(cam as CameraRig).camera.global_transform.basis.z
+		pitch = (cam as CameraRig).pitch_deg
+	return "mining=%s break_held=%s attack=%s touches=%d flying=%s on_ground=%s vy=%.2f pitch=%.2f fwd.y=%.3f head_pitch=%.1f" % [
+		str(bool(ia.get("mining")) if ia != null else false),
+		str(bool((p.get("input") as PlayerInput).break_held)),
+		str(bool((p.get("input") as PlayerInput).attack)),
+		touch_count(), str(bool(p.get("is_flying"))), str(bool(p.get("on_ground"))),
+		float((p.get("velocity") as Vector3).y), pitch, fwd.y, float(p.get("head_pitch_deg"))]
+
+func _camera_mode_name() -> String:
+	var p := player()
+	var cam: Variant = p.get("camera_rig") if p != null else null
+	if not (cam is CameraRig):
+		return "?"
+	return ["shoulder", "first", "front"][clampi(int((cam as CameraRig).mode), 0, 2)]
+
+## Window coordinates for an injected event (the canvas may be stretched: 1280x720 units on a
+## 2340x1080 window differ by 1.83x), exactly like CharacterCreation._window_point.
+func _aid_window_point(canvas_point: Vector2) -> Vector2:
+	return get_viewport().get_screen_transform() * canvas_point
+
+func _aid_point(target: String) -> Vector2:
+	if buttons.has(target):
+		return _aid_window_point(button_rect(target).get_center())
+	# The look region: right of the joystick side, clear of every button cluster and the hotbar.
+	return _aid_window_point(Vector2(size.x * 0.45, size.y * 0.45))
+
+func _aid_touch(at: Vector2, pressed: bool, index: int) -> void:
+	var ev := InputEventScreenTouch.new()
+	ev.index = index
+	ev.position = at
+	ev.pressed = pressed
+	Input.parse_input_event(ev)
+
+func _run_input_aids() -> void:
+	# Wait for the world to hand over a player before driving anything (chunk streaming on
+	# llvmpipe takes several seconds), then honour --tap_after.
+	var waited := 0.0
+	while player() == null and waited < 60.0:
+		await get_tree().create_timer(0.25).timeout
+		waited += 0.25
+	await get_tree().create_timer(maxf(0.0, float(aid_args.get("tap_after", 2.5)))).timeout
+	var index := int(aid_args.get("tap_index", 0))
+	# --cam_taps=N: tap the real Camera button N times first (shoulder -> first -> selfie).
+	for i in maxi(0, int(aid_args.get("cam_taps", 0))):
+		var cam_at := _aid_point("camera")
+		_aid_touch(cam_at, true, index)
+		await get_tree().process_frame
+		_aid_touch(cam_at, false, index)
+		await get_tree().create_timer(0.15).timeout
+		print("HUDCAM tap %d: mode=%s" % [i + 1, str(_camera_mode_name())])
+	if bool(int(aid_args.get("drag_first", 0))):
+		await _aid_drag(index)
+		await _aid_taps(index)
+	else:
+		await _aid_taps(index)
+		await _aid_drag(index)
+
+func _aid_taps(index: int) -> void:
+	await get_tree().process_frame                # always a coroutine, so the caller can await
+	var target := String(aid_args.get("tap", ""))
+	if target != "":
+		var at := _aid_point(target)
+		var taps := maxi(1, int(aid_args.get("taps", 1)))
+		var gap := float(aid_args.get("tap_gap", 0.08))
+		var hold := float(aid_args.get("tap_hold", 0.04))
+		var release := bool(int(aid_args.get("release", 1)))
+		print("HUDTAP %s x%d at %s before: %s" % [target, taps, str(at), _aid_state()])
+		for i in taps:
+			_aid_touch(at, true, index)
+			await get_tree().process_frame
+			await get_tree().create_timer(hold).timeout
+			print("HUDTAP %s hold %d/%d: %s" % [target, i + 1, taps, _aid_state()])
+			if i < taps - 1 or release:
+				_aid_touch(at, false, index)
+				await get_tree().process_frame
+			print("HUDTAP %s tap %d/%d: %s" % [target, i + 1, taps, _aid_state()])
+			if i < taps - 1:
+				await get_tree().create_timer(gap).timeout
+		await get_tree().create_timer(0.4).timeout
+		print("HUDTAP %s after: %s" % [target, _aid_state()])
+func _aid_drag(index: int) -> void:
+	await get_tree().process_frame
+	if aid_args.has("drag"):
+		var parts := String(aid_args.get("drag", "0,0")).split(",")
+		var total := Vector2(float(parts[0]), float(parts[1]) if parts.size() > 1 else 0.0)
+		var steps := maxi(1, int(aid_args.get("drag_steps", 12)))
+		var step := total / float(steps)
+		var at2 := _aid_point("world")
+		print("HUDDRAG %s before: %s" % [str(total), _aid_state()])
+		_aid_touch(at2, true, index)
+		await get_tree().process_frame
+		for i in steps:
+			at2 += step
+			var dr := InputEventScreenDrag.new()
+			dr.index = index
+			dr.position = at2
+			dr.relative = step
+			Input.parse_input_event(dr)
+			await get_tree().process_frame
+		_aid_touch(at2, false, index)
+		await get_tree().process_frame
+		await get_tree().create_timer(0.3).timeout
+		print("HUDDRAG %s after: %s" % [str(total), _aid_state()])

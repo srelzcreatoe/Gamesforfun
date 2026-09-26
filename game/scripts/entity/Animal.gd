@@ -8,6 +8,9 @@ enum { IDLE, WANDER, GRAZE, FLEE, CHASE }
 const FLEE_DIST := 8.0
 const FLEE_TIME := 5.0
 const WANDER_RANGE := 10.0
+const WANDER_SPEED := 1.4
+const FLEE_SPEED := 4.0
+const CHASE_SPEED := 4.6
 
 var state := IDLE
 var state_time := 0.0
@@ -23,7 +26,7 @@ func _configure() -> void:
 	home = global_position
 	wander_point = home
 	state_time = randf_range(0.0, 2.0)
-	play_anim("idle")
+	set_locomotion("idle")
 
 func tick(delta: float) -> void:
 	state_time += delta
@@ -52,7 +55,8 @@ func _think(delta: float) -> void:
 				wander_point = home + Vector3(randf_range(-WANDER_RANGE, WANDER_RANGE), 0.0, randf_range(-WANDER_RANGE, WANDER_RANGE))
 				_set_state(IDLE)
 			else:
-				_move_to(wander_point, 1.4 * speed_mult, delta)
+				_move_to(wander_point, WANDER_SPEED * speed_mult, delta)
+				set_locomotion("walk", ground_speed if ground_speed > 0.1 else WANDER_SPEED * speed_mult)
 		FLEE:
 			if state_time > FLEE_TIME or dist > FLEE_DIST * 2.5:
 				_set_state(IDLE)
@@ -61,7 +65,8 @@ func _think(delta: float) -> void:
 				away.y = 0.0
 				if away.length() < 0.1:
 					away = Vector3.FORWARD
-				_move_to(global_position + away.normalized() * 4.0, 4.0 * speed_mult, delta)
+				_move_to(global_position + away.normalized() * 4.0, FLEE_SPEED * speed_mult, delta)
+				set_locomotion("run", ground_speed if ground_speed > 0.1 else FLEE_SPEED * speed_mult)
 		CHASE:
 			if not angry or dist > 24.0:
 				_set_state(IDLE)
@@ -69,23 +74,29 @@ func _think(delta: float) -> void:
 				face(player_pos, false, 6.0, delta)
 				if attack_cd <= 0.0:
 					attack_cd = 1.6
-					play_upper_anim("attack", 0.08)
+					# a quadruped's bite is a WHOLE BODY clip (head/neck/jaw bones the
+					# upper-body layer is not allowed to touch), so it goes on the base
+					# layer as a one shot and the AI puts the locomotion back after it
+					play_anim(clip_for("attack1"), 0.08, false)
 					if p is Entity:
 						var to := (player_pos - global_position).normalized()
 						(p as Entity).take_damage(melee_damage, self, "melee", to * 3.0 + Vector3(0, 1.5, 0))
 					_play_sound("attack")
+				elif attack_cd < 1.0:
+					set_locomotion("idle")      # release the one-shot bite
 			else:
-				_move_to(player_pos, 4.6 * speed_mult, delta)
+				_move_to(player_pos, CHASE_SPEED * speed_mult, delta)
+				set_locomotion("run", ground_speed if ground_speed > 0.1 else CHASE_SPEED * speed_mult)
 
 func _set_state(s: int) -> void:
 	state = s
 	state_time = 0.0
 	match s:
-		IDLE: play_anim("idle")
-		GRAZE: play_anim("graze" if anim != null and anim.has_clip("graze") else "idle")
-		WANDER: play_anim("walk")
-		FLEE: play_anim("run" if anim != null and anim.has_clip("run") else "walk", 0.1, null, 1.4)
-		CHASE: play_anim("run" if anim != null and anim.has_clip("run") else "walk")
+		IDLE: set_locomotion("idle")
+		GRAZE: set_locomotion("graze" if has_state("graze") else "idle")
+		WANDER: set_locomotion("walk", WANDER_SPEED * speed_mult)
+		FLEE: set_locomotion("run", FLEE_SPEED * speed_mult, 0.1)
+		CHASE: set_locomotion("run", CHASE_SPEED * speed_mult)
 
 func _move_to(goal: Vector3, speed: float, delta: float) -> void:
 	var d := goal - global_position

@@ -8,6 +8,21 @@ class_name BlockShapes
 ##             bit 2 (4) = open (door/trapdoor), bit 3 (8) = upper half (door)
 ##
 ## Face indices everywhere: 0=+X east 1=-X west 2=+Y top 3=-Y bottom 4=+Z south 5=-Z north.
+##
+## THREAD SAFETY - these tables are `static var`, never `const`.
+##
+## A GDScript `const` Array/Dictionary is a *read-only* container, and Godot implements
+## read-only element access (`operator[]`, and `for x in ...`) by copying the element into ONE
+## scratch `Variant` that lives inside the container and returning a reference to it
+## (core/variant/array.cpp, dictionary.cpp). Two threads indexing the same `const` at the same
+## moment therefore both write that single slot, so one thread frees the Variant the other is
+## still copying:
+##     ERROR: Condition "!success" is true.   at: _ref (core/variant/array.cpp:61)
+## That is the Android crash this class caused: `ChunkMesher` indexes FACE_CORNERS / FACE_DIR /
+## FACE_NORMAL once per block face on every mesh worker, and `Decorator` iterates FACE_DIR on
+## every generator worker. `static var` containers are not read-only, so their elements are
+## returned directly and concurrent reads are safe. tests/test_world_threads.gd locks this in.
+## Nothing here is ever written after load, so no mutex is needed - only "not const".
 
 const META_LEVEL := 0x0F
 const META_FALLING := 0x10
@@ -17,7 +32,7 @@ const META_UPPER := 0x08
 
 ## Vertex corners per face, ordered so Godot's clockwise-front winding faces outwards,
 ## with uv (0,0) at the top-left of the tile.
-const FACE_CORNERS: Array = [
+static var FACE_CORNERS: Array = [
 	# +X east
 	[Vector3(1, 1, 1), Vector3(1, 1, 0), Vector3(1, 0, 0), Vector3(1, 0, 1)],
 	# -X west
@@ -31,21 +46,21 @@ const FACE_CORNERS: Array = [
 	# -Z north
 	[Vector3(1, 1, 0), Vector3(0, 1, 0), Vector3(0, 0, 0), Vector3(1, 0, 0)],
 ]
-const FACE_UV: Array = [Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)]
-const FACE_NORMAL: Array = [
+static var FACE_UV: Array = [Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)]
+static var FACE_NORMAL: Array = [
 	Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 1, 0), Vector3(0, -1, 0), Vector3(0, 0, 1), Vector3(0, 0, -1),
 ]
-const FACE_DIR: Array = [
+static var FACE_DIR: Array = [
 	Vector3i(1, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 1, 0), Vector3i(0, -1, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1),
 ]
 ## Per-face brightness multiplier (the shader applies it, kept here for reference/tests).
-const FACE_LIGHT := [0.6, 0.6, 1.0, 0.5, 0.8, 0.8]
+static var FACE_LIGHT: Array = [0.6, 0.6, 1.0, 0.5, 0.8, 0.8]
 ## The four AO / smooth-light levels.
-const AO_LEVELS := [0.55, 0.7, 0.85, 1.0]
+static var AO_LEVELS: Array = [0.55, 0.7, 0.85, 1.0]
 
-const FACING_DIR: Array = [Vector3i(0, 0, 1), Vector3i(-1, 0, 0), Vector3i(0, 0, -1), Vector3i(1, 0, 0)]
+static var FACING_DIR: Array = [Vector3i(0, 0, 1), Vector3i(-1, 0, 0), Vector3i(0, 0, -1), Vector3i(1, 0, 0)]
 ## Face index that a "facing" value points at.
-const FACING_FACE := [4, 1, 5, 0]
+static var FACING_FACE: Array = [4, 1, 5, 0]
 
 ## Deterministic position hash (same one Textures uses for variant picks).
 static func hash3(x: int, y: int, z: int) -> int:

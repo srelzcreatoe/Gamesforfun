@@ -2,9 +2,21 @@ class_name Aura
 extends Node3D
 ## Runtime ki aura attached to an entity (docs/ARCHITECTURE.md §7/§8 fx).
 ##
-## Two additive flame shells (`shaders/aura.gdshader`) plus rising sparks, a ground
-## light quad and the optional lightning arcs of `AuraLightning.gd`. Intensity is
-## derived from three inputs and the loudest one wins:
+## Built the way DragonMineZ builds it (`AuraRenderer.executeAuraShaderDraw`, verified
+## with javap): ONE camera facing quad carrying the mod's own 4 frame flame strip
+## (`entity/races/aura/<auraType>_aura.png`, 4096x1024 = 4 x 1024) drawn with
+## `shaders/aura_sprite.gdshader`, which posterises the strip's mask into four bands of
+## the FORM colour and ALPHA blends them; a flat `<auraType>_cross.png` quad on the
+## ground that fades in as the camera looks down (DMZ crossfades them past 45 deg of
+## pitch); the `sparking_effects.png` shard overlay; rising sparks and the optional
+## lightning arcs of `AuraLightning.gd`.
+##
+## It replaced two ADDITIVE procedural flame shells plus a soft white halo quad, which
+## between them washed every aura out to white-ish (a green Namekian aura came out pale
+## white-green) and cost 700 shell triangles of noise-fbm fragment work. Two textured
+## quads read closer to the mod AND are cheaper on a phone.
+##
+## Intensity is derived from three inputs and the loudest one wins:
 ##   * charging (Ki.set_charging)        -> strongest, grows with charge time
 ##   * power release > 70 %              -> steady aura
 ##   * current form                      -> form colour + base intensity
@@ -19,15 +31,30 @@ extends Node3D
 ##   Aura.find_on(entity)                 # null when the entity has no aura yet
 
 const NODE_NAME := "Aura"
-const AURA_SHADER := "res://shaders/aura.gdshader"
-const DMZ_AURA_MODEL := "res://assets/models/entity/races/kiaura.geo.json"
+const AURA_SHADER := "res://shaders/aura_sprite.gdshader"
+const AURA_TEX_DIR := "races/aura/"
+const FALLBACK_AURA_TYPE := "kakarot"
 const LOOP_KEY_PREFIX := "aura_loop_"
 
-## Mesh proportions (entity 1.8 m tall; scaled by `body_scale`).
-const AURA_HEIGHT := 2.80
-const AURA_RADIUS := 0.54
-const RINGS := 10
-const SEGMENTS := 16
+## DMZ's own aura quad: 2 units tall/wide x `getAuraScale` (1.05 + 0.1 per active form,
+## so 1.15 for a transformed player), centred 0.7 above the feet in that scaled space.
+## The flame inside the strip fills ~74 % of the quad, i.e. ~1.7 m across a 0.6 m body.
+## (DMZ's 1.15 x 2 units, nudged ~10 % up so the flame's dense band clears the head of
+## our slightly differently proportioned voxel characters.)
+const QUAD_SIZE := 2.55
+const QUAD_CENTRE := 0.88
+## Frames in the strips (4096/1024 and 1920/480; DMZ's shader hardcodes 1/4).
+const STRIP_FRAMES := 4.0
+## DMZ: speed = (tick + partial) * 0.5 -> 10 frames per second.
+const STRIP_RATE := 10.0
+## The horizontal energy shards (`sparking_effects.png`), at DMZ's own 0.8/0.65 scale.
+const SPARKLE_SCALE := Vector2(0.8, 0.65)
+const SPARKLE_OFFSET := -0.25
+## Camera pitch (deg) past which DMZ fades the billboard out and the ground cross in.
+const PITCH_FADE_START := 45.0
+## ...and a floor under the ground cross so the aura still marks the ground at the
+## shallow pitch a third person camera actually sits at.
+const GROUND_FADE_MIN := 0.25
 
 const SPARK_COUNT := 20
 const RISE_COUNT := 16
@@ -45,17 +72,18 @@ var form_intensity := 0.0
 var manual_intensity := -1.0
 var aura_enabled := true
 
+## The DMZ flame billboard, the ground cross quad and the shard overlay.
 var _outer: MeshInstance3D
-var _inner: MeshInstance3D
 var _ground: MeshInstance3D
-var _flare: MeshInstance3D
+var _sparkle: MeshInstance3D
 var _sparks: CPUParticles3D
 var _rise: CPUParticles3D
 var _lightning: AuraLightning
 var _mat_outer: ShaderMaterial
-var _mat_inner: ShaderMaterial
-var _mat_ground: StandardMaterial3D
-var _mat_flare: StandardMaterial3D
+var _mat_ground: ShaderMaterial
+var _mat_sparkle: ShaderMaterial
+## `auraType` of the current form: which flame strip the quads sample.
+var aura_type := FALLBACK_AURA_TYPE
 var _intensity := 0.0
 var _target := 0.0
 var _loop_key := ""
@@ -65,6 +93,8 @@ var _height_t := 0.0
 ## Transformation flicker: >0 while the aura is snapping in and out (phase B).
 var _flicker := 0.0
 var _flicker_white := 0.0
+## Last frame's `_flicker_white`, so the colour is pushed once more when it drops to 0.
+var _flicker_white_last := 0.0
 
 # --- access ---------------------------------------------------------------
 
@@ -105,40 +135,67 @@ func _read_entity_defaults() -> void:
 		var s: Variant = entity.get("aabb_size")
 		if s is Vector3 and (s as Vector3).y > 0.1:
 			body_scale = (s as Vector3).y / 1.8
+	var col := _entity_color()
+	if col != null:
+		outer_color = col
+		inner_color = FormVfx.hot_band(outer_color)
+
+## The character's OWN aura colour (profile for the player, `aura_color` for any other
+## entity), or null when it has none. DMZ stores this on the character and only a form
+## with its own `auraColor` overrides it.
+##
+## `Entity.gd` initialises `aura_color` to the generic "#7FFFFF" for every spawn, which
+## is NOT a character's choice, so that exact value is ignored for anything but the
+## player when the entity's race carries a colour of its own: a Namekian boss must be
+## green, not the default cyan.
+func _entity_color() -> Variant:
 	var col: Variant = null
-	if Game != null and Game.player == entity:
+	var is_player := Game != null and Game.player == entity
+	if is_player:
 		col = Game.profile.get("character", {}).get("aura_color", null)
 	if col == null and entity != null and "aura_color" in entity:
 		col = entity.get("aura_color")
+	var c: Variant = null
 	if col is String and String(col) != "":
-		outer_color = Color(String(col))
+		c = Color(String(col))
 	elif col is Color:
-		outer_color = col
+		c = col
+	if c == null:
+		return null
+	if not is_player and (c as Color) == FormVfx.DEFAULT_AURA and _race_color() != null:
+		return null
+	return c
+
+## `races.json` colour of the entity's race, or null.
+func _race_color() -> Variant:
+	if Registry == null or entity == null or not ("race" in entity):
+		return null
+	var r: Dictionary = Registry.race(String(entity.get("race")))
+	var hex := String(r.get("defaultAuraColor", ""))
+	return Color(hex) if hex.begins_with("#") else null
 
 func _build() -> void:
-	var mesh := _build_shell(1.0)
-	_mat_outer = _make_material(outer_color, inner_color, 3.4, 3.6)
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE                  # scaled per frame, so one mesh fits all
+	_mat_outer = _make_material(_strip("aura"), true, 0.0)
 	_outer = MeshInstance3D.new()
-	_outer.name = "Outer"
-	_outer.mesh = mesh
+	_outer.name = "Flame"
+	_outer.mesh = quad
 	_outer.material_override = _mat_outer
 	_outer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_outer.scale = Vector3.ONE * body_scale
 	add_child(_outer)
 
-	_mat_inner = _make_material(inner_color, Color(1, 1, 1), 5.0, 4.2)
-	_mat_inner.set_shader_parameter("seed", 13.0)
-	_mat_inner.set_shader_parameter("tip_fade", 0.55)
-	_inner = MeshInstance3D.new()
-	_inner.name = "Inner"
-	_inner.mesh = _build_shell(0.62)
-	_inner.material_override = _mat_inner
-	_inner.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_inner.scale = Vector3.ONE * body_scale
-	add_child(_inner)
+	# the shards ride the same strip animation a quarter turn out of phase, so they do
+	# not pop in lockstep with the flame
+	_mat_sparkle = _make_material(_strip("sparking"), true, 1.7)
+	_sparkle = MeshInstance3D.new()
+	_sparkle.name = "Sparking"
+	_sparkle.mesh = quad
+	_sparkle.material_override = _mat_sparkle
+	_sparkle.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(_sparkle)
 
 	_build_ground()
-	_build_flare()
 	_build_particles()
 
 	_lightning = AuraLightning.new()
@@ -147,82 +204,44 @@ func _build() -> void:
 	_lightning.configure(lightning_color, body_scale, visual_height())
 	_lightning.set_active(false)
 
-func _make_material(c: Color, inner: Color, noise: float, scroll: float) -> ShaderMaterial:
+## One of the mod's own aura strips, e.g. "kakarot_aura" / "god_cross" /
+## "sparking_effects". Falls back to the kakarot strip when a form names an aura type we
+## have no texture for (`entity_particle` would otherwise hand back a soft dot, which is
+## not a 4 frame strip).
+func _strip(kind: String) -> Texture2D:
+	var tex_name := "sparking_effects" if kind == "sparking" else "%s_%s" % [aura_type, kind]
+	for rel: String in [AURA_TEX_DIR + tex_name, AURA_TEX_DIR + "%s_%s" % [FALLBACK_AURA_TYPE, kind]]:
+		if ResourceLoader.exists("res://assets/textures/entity/" + rel + ".png"):
+			return FxAssets.entity_particle(rel)
+	return FxAssets.entity_particle(AURA_TEX_DIR + tex_name)
+
+func _make_material(tex: Texture2D, billboard: bool, phase: float) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	if ResourceLoader.exists(AURA_SHADER):
 		m.shader = load(AURA_SHADER)
-	m.set_shader_parameter("aura_color", c)
-	m.set_shader_parameter("inner_color", inner)
-	m.set_shader_parameter("noise_scale", noise)
-	m.set_shader_parameter("scroll_speed", scroll)
+	m.set_shader_parameter("aura_tex", tex)
+	m.set_shader_parameter("aura_color", outer_color)
 	m.set_shader_parameter("intensity", 0.0)
-	m.set_shader_parameter("seed", randf() * 10.0)
+	m.set_shader_parameter("fade", 1.0)
+	m.set_shader_parameter("frames", STRIP_FRAMES)
+	m.set_shader_parameter("anim_rate", STRIP_RATE)
+	m.set_shader_parameter("phase", phase + randf())
+	m.set_shader_parameter("billboard", billboard)
 	return m
 
-## Teardrop surface of revolution; the aura shader carves the flame tongues out of it.
-func _build_shell(scale_r: float) -> ArrayMesh:
-	var verts := PackedVector3Array()
-	var uvs := PackedVector2Array()
-	var normals := PackedVector3Array()
-	var idx := PackedInt32Array()
-	for ring in RINGS + 1:
-		var t := float(ring) / float(RINGS)
-		var y := t * AURA_HEIGHT - 0.12
-		# bulge around the hips, taper to a point at the top
-		var r := AURA_RADIUS * scale_r * (0.55 + 0.85 * sin(clampf(t, 0.0, 1.0) * PI * 0.92))
-		r *= 1.0 - 0.35 * smoothstep(0.65, 1.0, t)
-		for seg in SEGMENTS + 1:
-			var a := float(seg) / float(SEGMENTS) * TAU
-			var dir := Vector3(cos(a), 0.0, sin(a))
-			verts.append(dir * r + Vector3(0, y, 0))
-			normals.append(dir)
-			uvs.append(Vector2(float(seg) / float(SEGMENTS), t))
-	for ring in RINGS:
-		for seg in SEGMENTS:
-			var a0 := ring * (SEGMENTS + 1) + seg
-			var a1 := a0 + 1
-			var b0 := a0 + SEGMENTS + 1
-			var b1 := b0 + 1
-			idx.append_array([a0, b0, a1, a1, b0, b1])
-	var arr := []
-	arr.resize(Mesh.ARRAY_MAX)
-	arr[Mesh.ARRAY_VERTEX] = verts
-	arr[Mesh.ARRAY_NORMAL] = normals
-	arr[Mesh.ARRAY_TEX_UV] = uvs
-	arr[Mesh.ARRAY_INDEX] = idx
-	var m := ArrayMesh.new()
-	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
-	return m
-
+## The flat `<auraType>_cross.png` quad DMZ draws on the ground under the aura.
 func _build_ground() -> void:
 	var q := QuadMesh.new()
-	q.size = Vector2(3.0, 3.0)
+	q.size = Vector2.ONE
 	q.orientation = PlaneMesh.FACE_Y
-	_mat_ground = StandardMaterial3D.new()
-	_mat_ground.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_mat_ground.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	_mat_ground.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_mat_ground.cull_mode = BaseMaterial3D.CULL_DISABLED
-	_mat_ground.no_depth_test = false
-	_mat_ground.disable_receive_shadows = true
-	_mat_ground.albedo_texture = FxAssets.soft_dot()
-	_mat_ground.albedo_color = Color(outer_color.r, outer_color.g, outer_color.b, 0.0)
+	_mat_ground = _make_material(_strip("cross"), false, 0.9)
 	_ground = MeshInstance3D.new()
 	_ground.name = "GroundGlow"
 	_ground.mesh = q
 	_ground.material_override = _mat_ground
-	_ground.position = Vector3(0, 0.03, 0)
+	_ground.position = Vector3(0, 0.04, 0)
 	_ground.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_ground)
-
-## Soft glow sheet behind the body: one billboard that gives the aura its halo and makes
-## the silhouette read against a bright sky (the flame shells alone are thin).
-func _build_flare() -> void:
-	_flare = FxAssets.make_quad("Flare", FxAssets.particle("ki_flash1", "ki_flash", "aaa/essentials/Circle"),
-		3.0, Color(outer_color.r, outer_color.g, outer_color.b, 0.0))
-	_flare.position = Vector3(0, 1.0 * body_scale, 0)
-	_mat_flare = _flare.material_override
-	add_child(_flare)
 
 func _build_particles() -> void:
 	_sparks = FxAssets.make_particles("Sparks", SPARK_COUNT, ["ki_spark_0", "ki_spark_1", "spark1"], outer_color)
@@ -257,29 +276,30 @@ func _build_particles() -> void:
 
 # --- configuration --------------------------------------------------------
 
+## Aura colour. `inner` is the hot band the sparks and other fx borrow; the aura's own
+## bands are derived from `outer` INSIDE the shader exactly as DMZ derives them
+## (x1.6 / x1.3 / x1.0 / x0.75), so the flame can never drift off the form's hue.
 func set_color(outer: Color, inner := Color(0, 0, 0, 0)) -> void:
 	outer_color = outer
-	if inner.a > 0.0:
-		inner_color = inner
-	else:
-		inner_color = outer.lightened(0.55)
-	if _mat_outer != null:
-		_mat_outer.set_shader_parameter("aura_color", outer_color)
-		_mat_outer.set_shader_parameter("inner_color", inner_color)
-	if _mat_inner != null:
-		_mat_inner.set_shader_parameter("aura_color", inner_color)
+	inner_color = inner if inner.a > 0.0 else FormVfx.hot_band(outer)
+	_push_color()
 	if _sparks != null:
-		_sparks.color = outer_color.lightened(0.3)
+		_sparks.color = inner_color
 	if _rise != null:
 		_rise.color = outer_color
-	if _mat_ground != null:
-		_mat_ground.albedo_color = Color(outer_color.r, outer_color.g, outer_color.b, _mat_ground.albedo_color.a)
-	if _mat_flare != null:
-		_mat_flare.albedo_color = Color(outer_color.r, outer_color.g, outer_color.b, _mat_flare.albedo_color.a)
 
-## Colour / lightning / base intensity straight out of a forms.json entry. The colours
-## are resolved by `FormVfx`, which walks every colour field of the form (and the race
-## defaults) so no form ever ends up with a generic white aura.
+## Colour (and the white flash of a transformation) into the three quad materials.
+func _push_color() -> void:
+	var c := outer_color if _flicker_white <= 0.0 else outer_color.lerp(Color(1, 1, 1), _flicker_white)
+	for m: ShaderMaterial in [_mat_outer, _mat_ground, _mat_sparkle]:
+		if m != null:
+			m.set_shader_parameter("aura_color", c)
+
+## Colour / lightning / base intensity straight out of a forms.json entry.
+##
+## `FormVfx` resolves the colour the way the mod does: the form's own `auraColor`, else
+## the race default. When the form itself carries no colour, DMZ keeps the CHARACTER's
+## own aura colour, so an entity/profile colour wins over the race default here.
 func set_form(form_def: Dictionary) -> void:
 	if form_def.is_empty():
 		form_intensity = 0.0
@@ -287,35 +307,51 @@ func set_form(form_def: Dictionary) -> void:
 		if _lightning != null:
 			_lightning.set_active(false)
 		_read_entity_defaults()
+		_set_aura_type(FormVfx.DEFAULT_AURA_TYPE)
 		set_color(outer_color)
 		refresh()
 		return
 	var p := FormVfx.of(form_def)
-	set_color(p.aura, p.inner)
+	var c := p.aura
+	if not p.aura_from_form:
+		var own := _entity_color()
+		if own != null:
+			c = own            # the character's personal aura colour, DMZ's own rule
+	_set_aura_type(p.aura_type)
+	set_color(c, FormVfx.hot_band(c))
 	has_lightning = p.lightning
 	lightning_color = p.lightning_color
 	if _lightning != null:
 		_lightning.configure(lightning_color, body_scale, visual_height())
 		_lightning.set_active(has_lightning)
-	if _sparks != null:
-		_sparks.color = p.spark
-	form_intensity = 0.7
+	# DMZ draws a third person aura at alp1 = 1.0 (the 0.45 in its renderer is the
+	# first person pass), so a held form shows its flame at full strength.
+	form_intensity = 1.0
 	refresh()
 
-## Grow the whole aura with the body (giant forms such as Oozaru). Cheap: the shells are
+## Swap the flame strips when a form asks for another `auraType` (kakarot / god).
+func _set_aura_type(t: String) -> void:
+	var want := t.strip_edges().to_lower()
+	if want == "" or want == aura_type:
+		return
+	aura_type = want
+	if _mat_outer != null:
+		_mat_outer.set_shader_parameter("aura_tex", _strip("aura"))
+	if _mat_ground != null:
+		_mat_ground.set_shader_parameter("aura_tex", _strip("cross"))
+
+## Grow the whole aura with the body (giant forms such as Oozaru). Cheap: the quads are
 ## re-scaled, never rebuilt.
 func set_body_scale(s: float) -> void:
 	body_scale = maxf(0.1, s)
 	if _lightning != null:
 		_lightning.configure(lightning_color, body_scale, visual_height())
-	if _flare != null:
-		_flare.position = Vector3(0, 1.0 * body_scale, 0)
 	if _sparks != null:
 		_sparks.emission_sphere_radius = 0.55 * body_scale
 		_sparks.position = Vector3(0, 0.9 * body_scale, 0)
 	if _rise != null:
 		_rise.emission_box_extents = Vector3(0.32, 0.1, 0.32) * body_scale
-	_apply_intensity(_intensity)     # re-scales _ground/_outer/_inner/_flare for the new body
+	_apply_intensity(_intensity)     # re-scales the quads for the new body
 
 func set_lightning(on: bool, color := Color(0, 0, 0, 0)) -> void:
 	has_lightning = on
@@ -420,34 +456,37 @@ func _process(delta: float) -> void:
 func _apply_intensity(v: float) -> void:
 	_intensity = v
 	var vis := v > 0.02
-	# idle motion: the shell breathes and the inner core counter-rotates, so a standing
-	# aura is never a frozen mesh even when the intensity does not change
+	# idle motion: the flame breathes so a standing aura is never a frozen quad even
+	# when the intensity does not change (the strip animation does the rest)
 	var breath := 1.0 + sin(_idle_t * 2.3) * 0.05 + sin(_idle_t * 5.7) * 0.02
 	var shown := v * (1.0 - _flicker * (0.5 + 0.5 * sin(_idle_t * 34.0)))
+	if _flicker_white > 0.0 or _flicker_white_last > 0.0:
+		_push_color()                       # the transformation's white-hot flash
+		_flicker_white_last = _flicker_white
+	# DMZ fades the billboard out and the ground cross in past 45 deg of camera pitch,
+	# so a flat quad is never seen edge on.
+	var down := _pitch_progress()
+	var size := QUAD_SIZE * body_scale * (1.0 + v * 0.10)
 	if _mat_outer != null:
 		_mat_outer.set_shader_parameter("intensity", shown)
-		if _flicker_white > 0.0:
-			_mat_outer.set_shader_parameter("inner_color", inner_color.lerp(Color(1, 1, 1), _flicker_white))
-	if _mat_inner != null:
-		_mat_inner.set_shader_parameter("intensity", shown * 0.85)
+		_mat_outer.set_shader_parameter("fade", 1.0 - down)
 	if _outer != null:
-		_outer.visible = vis
-		_outer.scale = Vector3(1.0 + v * 0.12, (1.0 + v * 0.22) * breath, 1.0 + v * 0.12) * body_scale
-		_outer.rotation.y = _idle_t * 0.35
-	if _inner != null:
-		_inner.visible = vis
-		_inner.rotation.y = -_idle_t * 0.6
-		_inner.scale = Vector3.ONE * body_scale * (1.0 + v * 0.05)
+		_outer.visible = vis and down < 1.0
+		_outer.scale = Vector3(size, size * breath * (1.0 - 0.5 * down), 1.0)
+		_outer.position = Vector3(0, QUAD_CENTRE * body_scale * (1.0 + v * 0.06), 0)
+	if _sparkle != null:
+		_sparkle.visible = vis and down < 1.0
+		var sp := 1.0 + 0.05 * sin(_idle_t * 3.2)        # DMZ's own shard pulse
+		_sparkle.scale = Vector3(size * SPARKLE_SCALE.x * sp, size * SPARKLE_SCALE.y * sp, 1.0)
+		_sparkle.position = Vector3(0, (QUAD_CENTRE + SPARKLE_OFFSET) * body_scale, 0)
+		_mat_sparkle.set_shader_parameter("intensity", shown * 0.85)
+		_mat_sparkle.set_shader_parameter("fade", 1.0 - down)
 	if _ground != null:
 		_ground.visible = vis
-		_mat_ground.albedo_color = Color(outer_color.r, outer_color.g, outer_color.b, clampf(v * 0.35, 0.0, 0.5))
+		_mat_ground.set_shader_parameter("intensity", shown)
+		_mat_ground.set_shader_parameter("fade", maxf(down, GROUND_FADE_MIN))
 		# body_scale like every other member: an Oozaru lights up a 3.8x patch of ground
-		_ground.scale = Vector3.ONE * body_scale * (0.8 + v * 0.5) * (1.0 + 0.04 * sin(_idle_t * 3.1))
-	if _flare != null:
-		_flare.visible = vis
-		_mat_flare.albedo_color = Color(outer_color.r, outer_color.g, outer_color.b,
-			clampf(shown * 0.15, 0.0, 0.30))
-		_flare.scale = Vector3.ONE * body_scale * (0.9 + v * 0.55) * breath
+		_ground.scale = Vector3.ONE * size * (1.0 + 0.04 * sin(_idle_t * 3.1))
 	if _sparks != null:
 		_sparks.emitting = v > 0.45
 	if _rise != null:
@@ -456,6 +495,18 @@ func _apply_intensity(v: float) -> void:
 		_lightning.set_active(has_lightning and v > 0.3)
 		_lightning.intensity = v
 	_update_loop(vis)
+
+## How far past DMZ's 45 deg pitch threshold the camera is looking down (0..1): the
+## billboard fades out over it and the ground cross fades in. 0 when there is no camera.
+func _pitch_progress() -> float:
+	var cam := FxAssets.camera(self)
+	if cam == null or not cam.is_inside_tree():
+		return 0.0
+	var pitch := absf(rad_to_deg(asin(clampf(-cam.global_transform.basis.z.y, -1.0, 1.0))))
+	if pitch <= PITCH_FADE_START:
+		return 0.0
+	var p := (pitch - PITCH_FADE_START) / PITCH_FADE_START
+	return clampf(p * p, 0.0, 1.0)
 
 func _update_loop(on: bool) -> void:
 	if not (Game != null and Game.player == entity):

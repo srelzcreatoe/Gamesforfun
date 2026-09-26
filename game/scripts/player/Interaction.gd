@@ -33,6 +33,30 @@ func setup(p: Player) -> void:
 func _ready() -> void:
 	_build_outline()
 	_build_crack()
+	# Any screen opening on top of the HUD swallows the finger's release, so the hold that
+	# started the mining would never end. Stop on sight.
+	Events.ui_opened.connect(_on_ui_opened)
+
+func _on_ui_opened(screen: String) -> void:
+	if screen != "hud":
+		stop_all()
+
+## Android never delivers the touch release when the app is backgrounded.
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT, \
+		NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+			stop_all()
+
+## Drop the mining state *and* the held input that feeds it.
+func stop_all() -> void:
+	_stop_mining()
+	if player != null and player.input != null:
+		player.input.clear_touch_state()
+		if player.input.attack:
+			player.input.release("attack")
+	if _crack != null:
+		_crack.visible = false
 
 func _build_outline() -> void:
 	_outline = MeshInstance3D.new()
@@ -137,7 +161,7 @@ func _process(delta: float) -> void:
 	if player == null:
 		return
 	if Game != null and Game.paused_by_ui:
-		_stop_mining()
+		stop_all()
 		_outline.visible = false
 		_crack.visible = false
 		return
@@ -149,7 +173,10 @@ func _process(delta: float) -> void:
 			combo_index = 0
 	_raycast()
 	var inp: PlayerInput = player.input
-	var wants_break: bool = inp.break_held or inp.attack
+	# Watchdog: nothing a finger started may outlive it. The HUD keeps `touch_count` equal to
+	# the fingers really down, so "no touch down" clears every touch-owned hold here too.
+	inp.prune_stale_touch()
+	var wants_break: bool = inp.wants_break()
 	if wants_break and _is_food_selected() and player.survival != null and player.survival.hunger < PlayerStats.HUNGER_MAX:
 		_eat(delta)
 		return
@@ -166,14 +193,18 @@ func _raycast() -> void:
 	has_target = false
 	var world: Node = player.world
 	if world == null or not world.has_method("raycast"):
+		_stop_mining()
 		return
 	var r: Dictionary = world.call("raycast", player.aim_origin(), player.aim_direction(), REACH, true)
 	if not bool(r.get("hit", false)):
+		_stop_mining()
 		return
 	has_target = true
 	var nb: Vector3i = r.get("block", Vector3i.ZERO)
 	if nb != target_block:
-		break_progress = 0.0
+		# Looking at a different block: the old break is void and the crack overlay must not
+		# be left on the new one.
+		_stop_mining()
 	target_block = nb
 	target_normal = r.get("normal", Vector3i.UP)
 
@@ -221,9 +252,8 @@ func _mine(delta: float) -> void:
 		_finish_break(id, def)
 
 func _stop_mining() -> void:
-	if mining:
-		mining = false
-		break_progress = 0.0
+	mining = false
+	break_progress = 0.0
 
 func _finish_break(id: int, def: Dictionary) -> void:
 	var world: Node = player.world

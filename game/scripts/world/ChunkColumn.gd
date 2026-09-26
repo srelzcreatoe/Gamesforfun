@@ -14,6 +14,12 @@ extends RefCounted
 ## light  : high nibble = sky light, low nibble = block light
 ## The PackedByteArrays are copy-on-write, so a worker thread that keeps a local reference
 ## sees an immutable snapshot even if the main thread edits the column afterwards.
+##
+## OWNERSHIP: while `in_flight` is true a WorkerThreadPool task owns this column outright and
+## writes `blocks`/`meta`/`light`/`biomes`/`heightmap`/`entities_pending`/`structure_marks`/
+## `extra`/`state` without any lock. ChunkManager keeps such a column out of `columns` until
+## `_publish`, so `World.get_column()` cannot reach it; the flag is what lets the main-thread
+## writers assert that instead of trusting it (see World.set_block).
 
 enum { EMPTY, GENERATED, DECORATED, LIT, MESHED }
 
@@ -38,6 +44,9 @@ var structure_marks: Array = []
 var meshing_sections: int = 0
 ## Set when the column was restored from disk (generation is skipped).
 var from_disk := false
+## True from the moment a generation task is queued until ChunkManager publishes the column.
+## Nothing on the main thread may read or write the voxel data of an in-flight column.
+var in_flight := false
 ## Section index -> MeshInstance3D (owned by ChunkManager).
 var mesh_nodes: Dictionary = {}
 var fluid_ticks: Dictionary = {}
