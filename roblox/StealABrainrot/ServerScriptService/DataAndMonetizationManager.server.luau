@@ -38,6 +38,8 @@
 	  BindableFunction TakeOfflineSeconds(player) -> number
 	  BindableFunction GetGear(player) -> { string }?
 	  BindableFunction AddGear(player, gearId) -> boolean
+	  BindableFunction GetItems(player) -> { [itemId]: charges }?
+	  BindableFunction UseItemCharge(player, itemId) -> boolean
 	  BindableFunction OwnsGamePass(player, gamePassIdOrName) -> boolean
 	  BindableFunction IsLaserBypassActive(player) -> boolean
 	  BindableFunction GetServerRarityMultiplier() -> number
@@ -45,6 +47,7 @@
 	  BindableEvent    EMPLaserOverriderExpired(player)
 	  BindableEvent    ServerRarityBoostChanged(multiplier, endsAtServerTime, purchaser?)
 	  BindableEvent    GamePassOwnershipChanged(player, gamePassName, isOwned)
+	  BindableEvent    ItemsChanged(player)
 
 	Replicated state (read-only for clients, handy for UI):
 	  Player attribute        DataLoaded (boolean)
@@ -122,6 +125,9 @@ local MAX_BRAINROT_ID_LENGTH = 64
 local MAX_PADS = 64
 local MAX_GEAR = 32
 local MAX_GEAR_ID_LENGTH = 32
+-- Uses left of each Robux troll item.
+local MAX_ITEM_CHARGES = 10000
+local ITEM_CHARGES: { [string]: number } = MonetizationConfig.ItemCharges
 
 -- Delays before each ownership check after a game pass purchase prompt closes.
 local GAME_PASS_VERIFY_DELAYS: { number } = { 0, 2, 5, 10 }
@@ -138,6 +144,7 @@ type PlayerData = {
 	Brainrots: { string },
 	PadCash: { number },
 	Gear: { string },
+	Items: { [string]: number },
 	PurchaseHistory: { string },
 }
 
@@ -227,6 +234,7 @@ local empLaserPurchasedEvent = createBindableEvent("EMPLaserOverriderPurchased")
 local empLaserExpiredEvent = createBindableEvent("EMPLaserOverriderExpired")
 local serverRarityBoostChangedEvent = createBindableEvent("ServerRarityBoostChanged")
 local gamePassOwnershipChangedEvent = createBindableEvent("GamePassOwnershipChanged")
+local itemsChangedEvent = createBindableEvent("ItemsChanged")
 
 ReplicatedStorage:SetAttribute("ServerRarityMultiplier", 1)
 ReplicatedStorage:SetAttribute("ServerRarityBoostEndsAt", 0)
@@ -262,6 +270,7 @@ local function createDefaultData(): PlayerData
 		Brainrots = {},
 		PadCash = {},
 		Gear = {},
+		Items = {},
 		PurchaseHistory = {},
 	}
 end
@@ -302,6 +311,21 @@ local function sanitizeGear(raw: any): { string }
 		end
 	end
 	return gear
+end
+
+local function sanitizeItems(raw: any): { [string]: number }
+	local items: { [string]: number } = {}
+	if typeof(raw) == "table" then
+		for itemId, charges in raw do
+			if typeof(itemId) == "string" and ITEM_CHARGES[itemId] ~= nil then
+				local count = toWholeNumber(charges, MAX_ITEM_CHARGES)
+				if count > 0 then
+					items[itemId] = count
+				end
+			end
+		end
+	end
+	return items
 end
 
 local function sanitizePadCash(raw: any): { number }
@@ -379,6 +403,7 @@ local function sanitizeData(raw: any): PlayerData
 		Brainrots = sanitizeBrainrotIds(raw.Brainrots),
 		PadCash = sanitizePadCash(raw.PadCash),
 		Gear = sanitizeGear(raw.Gear),
+		Items = sanitizeItems(raw.Items),
 		PurchaseHistory = purchaseHistory,
 	}
 end
@@ -423,6 +448,7 @@ local function copyDataForSave(data: PlayerData): PlayerData
 		Brainrots = table.clone(data.Brainrots),
 		PadCash = table.clone(data.PadCash),
 		Gear = table.clone(data.Gear),
+		Items = table.clone(data.Items),
 		PurchaseHistory = table.clone(data.PurchaseHistory),
 	}
 end
@@ -885,6 +911,20 @@ end
 -- Developer products
 --------------------------------------------------------------------------------
 
+-- Adds uses of a troll item; the tools are handed out by GearManager.
+local function addItemCharges(profile: Profile, itemId: string): boolean
+	local charges = ITEM_CHARGES[itemId]
+	if charges == nil then
+		return false
+	end
+	local items = profile.Data.Items
+	items[itemId] = math.min((items[itemId] or 0) + charges, MAX_ITEM_CHARGES)
+	task.defer(function()
+		itemsChangedEvent:Fire(profile.Player)
+	end)
+	return true
+end
+
 local PRODUCT_HANDLERS: { [number]: ProductHandler } = {
 	[PRODUCT_IDS.SmallCashBundle] = function(profile: Profile): boolean
 		return addCash(profile, SMALL_CASH_BUNDLE_AMOUNT)
@@ -899,6 +939,14 @@ local PRODUCT_HANDLERS: { [number]: ProductHandler } = {
 		return activateServerRarityBoost(profile.Player)
 	end,
 }
+for itemId in ITEM_CHARGES do
+	local productId = PRODUCT_IDS[itemId]
+	if productId then
+		PRODUCT_HANDLERS[productId] = function(profile: Profile): boolean
+			return addItemCharges(profile, itemId)
+		end
+	end
+end
 
 local function waitForActiveProfileAsync(player: Player, timeoutSeconds: number): Profile?
 	local started = os.clock()
@@ -1274,6 +1322,35 @@ createBindableFunction("AddGear", function(playerArg: any, gearId: any): boolean
 		return false
 	end
 	table.insert(gear, gearId)
+	return true
+end)
+
+createBindableFunction("GetItems", function(playerArg: any): { [string]: number }?
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil then
+		return nil
+	end
+	return table.clone(profile.Data.Items)
+end)
+
+-- Uses one charge of a troll item. Returns false when there is none left.
+createBindableFunction("UseItemCharge", function(playerArg: any, itemId: any): boolean
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil or typeof(itemId) ~= "string" then
+		return false
+	end
+	local items = profile.Data.Items
+	local charges = items[itemId]
+	if charges == nil or charges <= 0 then
+		return false
+	end
+	if charges > 1 then
+		items[itemId] = charges - 1
+	else
+		items[itemId] = nil
+	end
 	return true
 end)
 

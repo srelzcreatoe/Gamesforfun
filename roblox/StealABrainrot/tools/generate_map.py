@@ -34,8 +34,15 @@ PLOT_X = [-150, -50, 50, 150]
 PLOT_Z = 80
 PLOT_WIDTH = 56
 PLOT_DEPTH = 60
-WALL_HEIGHT = 14
+FLOORS = 4
+FLOOR_HEIGHT = 14
+WALL_HEIGHT = FLOORS * FLOOR_HEIGHT
 DOOR_WIDTH = 16
+DOOR_HEIGHT = 14
+# Stairs run along the inside of the front wall, left and right of the door,
+# alternating sides floor by floor.
+STAIR_STEPS = 14
+STAIR_LANE = 4.5
 CONVEYOR_LENGTH = 460
 CONVEYOR_WIDTH = 14
 # From the conveyor's edge to a base's door.
@@ -135,6 +142,78 @@ class Frame:
         return multiply(self.rotation, local_rotation)
 
 
+def floor_top(floor):
+    """Height of the top of a floor (1 = ground floor)."""
+    return 1 + (floor - 1) * FLOOR_HEIGHT
+
+
+def stair_side(floor):
+    """-1 = the stairs from this floor go up on the left, 1 = on the right."""
+    return -1 if floor % 2 == 1 else 1
+
+
+def build_stairs(f, r, floor, accent):
+    """Solid steps from `floor` up to the next one, plus markers for the
+    walking path (bottom and top step)."""
+    half_width = PLOT_WIDTH / 2
+    half_depth = PLOT_DEPTH / 2
+    side = stair_side(floor)
+    start_x = DOOR_WIDTH / 2 + 0.5
+    run = (half_width - 2 - start_x) / STAIR_STEPS
+    lane_z = -half_depth + 2 + STAIR_LANE / 2
+    base = floor_top(floor)
+    steps = []
+    for i in range(1, STAIR_STEPS + 1):
+        x = side * (start_x + run * (i - 0.5))
+        colour = accent if i % 2 == 0 else (0.62, 0.64, 0.68)
+        steps.append(part(f"Step{floor}_{i}", (run, i, STAIR_LANE), f.at([x, base + i / 2, lane_z]), r, colour, surfaces=STUDS))
+    bottom_x = side * (start_x + run * 0.5)
+    top_x = side * (start_x + run * (STAIR_STEPS - 0.5))
+    steps.append(hidden(f"StairBottom{floor}", (1, 1, 1), f.at([bottom_x, base + 1.5, lane_z]), r))
+    steps.append(hidden(f"StairTop{floor}", (1, 1, 1), f.at([top_x, base + STAIR_STEPS + 0.5, lane_z]), r))
+    return steps
+
+
+def build_slab(f, r, floor):
+    """The floor above the ground floor, with a hole over the stairs below."""
+    half_width = PLOT_WIDTH / 2
+    half_depth = PLOT_DEPTH / 2
+    inner_width = PLOT_WIDTH - 4
+    top = floor_top(floor)
+    lane_front = -half_depth + 2
+    lane_back = lane_front + STAIR_LANE
+    main_depth = (half_depth - 2) - lane_back
+    parts = [
+        part(
+            f"Slab{floor}",
+            (inner_width, 1, main_depth),
+            f.at([0, top - 0.5, lane_back + main_depth / 2]),
+            r,
+            (0.66, 0.68, 0.72),
+            surfaces=STUDS,
+        )
+    ]
+    # The strip along the front wall, open above the last steps below.
+    below_side = stair_side(floor - 1)
+    hole = 10
+    strip = inner_width - hole
+    strip_x = -below_side * (half_width - 2 - strip / 2)
+    parts.append(
+        part(
+            f"SlabFront{floor}",
+            (strip, 1, STAIR_LANE),
+            f.at([strip_x, top - 0.5, lane_front + STAIR_LANE / 2]),
+            r,
+            (0.66, 0.68, 0.72),
+            surfaces=STUDS,
+        )
+    )
+    # Rails around the hole so nobody walks off by accident.
+    rail_x = below_side * (half_width - 2 - hole)
+    parts.append(part(f"Rail{floor}", (0.4, 2.5, STAIR_LANE), f.at([rail_x, top + 1.25, lane_front + STAIR_LANE / 2]), r, WHITE))
+    return parts
+
+
 def build_plot(index, origin, rotation):
     f = Frame(origin, rotation)
     r = rotation
@@ -144,6 +223,7 @@ def build_plot(index, origin, rotation):
     roof_y = 1 + WALL_HEIGHT + 0.5
     front_piece = (PLOT_WIDTH - DOOR_WIDTH) / 2 - 1
     front_x = DOOR_WIDTH / 2 + front_piece / 2
+    lintel_height = WALL_HEIGHT - DOOR_HEIGHT
     accent = ACCENTS[index - 1]
 
     children = [
@@ -153,13 +233,18 @@ def build_plot(index, origin, rotation):
         part("WallRight", (2, WALL_HEIGHT, PLOT_DEPTH), f.at([half_width - 1, wall_y, 0]), r, WALL, surfaces=ALL_STUDS),
         part("WallFrontLeft", (front_piece, WALL_HEIGHT, 2), f.at([-front_x, wall_y, -half_depth + 1]), r, WALL, surfaces=ALL_STUDS),
         part("WallFrontRight", (front_piece, WALL_HEIGHT, 2), f.at([front_x, wall_y, -half_depth + 1]), r, WALL, surfaces=ALL_STUDS),
+        part(
+            "WallAboveDoor",
+            (DOOR_WIDTH + 2, lintel_height, 2),
+            f.at([0, 1 + DOOR_HEIGHT + lintel_height / 2, -half_depth + 1]),
+            r,
+            WALL,
+            surfaces=ALL_STUDS,
+        ),
         part("Roof", (PLOT_WIDTH + 2, 1, PLOT_DEPTH + 2), f.at([0, roof_y, 0]), r, WALL, surfaces=ALL_STUDS),
-        # Big picture window on the inside of the back wall.
-        part("WindowFrame", (40, 8, 0.4), f.at([0, 8, half_depth - 2.2]), r, WHITE),
-        part("WindowGlass", (37, 6, 0.4), f.at([0, 8, half_depth - 2.4]), r, DARK, "Glass", Reflectance=0.3),
         # Wooden sign above the door; GameplayManager writes the owner's name on it.
-        part("Sign", (30, 6, 1), f.at([0, roof_y + 3.5, -half_depth + 0.5]), r, WOOD, "WoodPlanks"),
-        part("SignBorder", (31, 7, 0.8), f.at([0, roof_y + 3.5, -half_depth + 0.9]), r, (0.4, 0.25, 0.13), "WoodPlanks"),
+        part("Sign", (30, 6, 1), f.at([0, 1 + DOOR_HEIGHT + 4, -half_depth - 0.5]), r, WOOD, "WoodPlanks"),
+        part("SignBorder", (31, 7, 0.8), f.at([0, 1 + DOOR_HEIGHT + 4, -half_depth - 0.1]), r, (0.4, 0.25, 0.13), "WoodPlanks"),
         part(
             "Carpet",
             (DOOR_WIDTH, 0.2, CARPET_LENGTH),
@@ -187,35 +272,90 @@ def build_plot(index, origin, rotation):
             CanCollide=False,
             CanTouch=False,
         ),
-        hidden("Interior", (PLOT_WIDTH - 4, 14, PLOT_DEPTH - 6), f.at([0, 8, 1]), r),
-        hidden("LaserZone", (DOOR_WIDTH, WALL_HEIGHT, 6), f.at([0, wall_y, -half_depth + 1]), r),
+        hidden("Interior", (PLOT_WIDTH - 4, WALL_HEIGHT, PLOT_DEPTH - 6), f.at([0, 1 + WALL_HEIGHT / 2, 1]), r),
+        hidden("LaserZone", (DOOR_WIDTH, DOOR_HEIGHT, 6), f.at([0, 1 + DOOR_HEIGHT / 2, -half_depth + 1]), r),
     ]
 
-    # Neon trim in the base's colour around the roof edge.
-    trim = []
+    # Floors 2 and up, the stairs between them, and a sign on each upper floor
+    # that says how to unlock it.
+    floors = []
+    for floor in range(1, FLOORS + 1):
+        if floor > 1:
+            floors.extend(build_slab(f, r, floor))
+            floors.append(hidden(f"FloorSign{floor}", (1, 1, 1), f.at([0, floor_top(floor) + 7, 12]), r))
+        if floor < FLOORS:
+            floors.extend(build_stairs(f, r, floor, accent))
+    children.append(folder("Floors", floors))
+
+    # Outside: windows on every floor, a glowing band where each floor
+    # starts, neon trim around the roof and a flag on top.
+    outside = []
+    for floor in range(1, FLOORS + 1):
+        y = floor_top(floor) + 6.5
+        outside.append(part(f"WindowBack{floor}", (38, 6, 0.4), f.at([0, y, half_depth + 0.2]), r, DARK, "Glass", Reflectance=0.35))
+        for side, name in ((-1, "Left"), (1, "Right")):
+            outside.append(
+                part(f"Window{name}{floor}", (0.4, 6, 40), f.at([side * (half_width + 0.2), y, 2]), r, DARK, "Glass", Reflectance=0.35)
+            )
+        if floor > 1:
+            band_y = floor_top(floor) - 0.5
+            outside.append(part(f"BandFront{floor}", (PLOT_WIDTH + 0.6, 0.6, 0.6), f.at([0, band_y, -half_depth - 0.3]), r, accent, "Neon", CanCollide=False))
+            outside.append(part(f"BandBack{floor}", (PLOT_WIDTH + 0.6, 0.6, 0.6), f.at([0, band_y, half_depth + 0.3]), r, accent, "Neon", CanCollide=False))
+            for side, name in ((-1, "Left"), (1, "Right")):
+                outside.append(
+                    part(f"Band{name}{floor}", (0.6, 0.6, PLOT_DEPTH + 0.6), f.at([side * (half_width + 0.3), band_y, 0]), r, accent, "Neon", CanCollide=False)
+                )
     for name, size, local in [
         ("TrimFront", (PLOT_WIDTH + 2.4, 0.5, 0.5), [0, roof_y, -half_depth - 1.2]),
         ("TrimBack", (PLOT_WIDTH + 2.4, 0.5, 0.5), [0, roof_y, half_depth + 1.2]),
         ("TrimLeft", (0.5, 0.5, PLOT_DEPTH + 2.4), [-half_width - 1.2, roof_y, 0]),
         ("TrimRight", (0.5, 0.5, PLOT_DEPTH + 2.4), [half_width + 1.2, roof_y, 0]),
     ]:
-        trim.append(part(name, size, f.at(local), r, accent, "Neon", CanCollide=False))
-    children.append(folder("Trim", trim))
+        outside.append(part(name, size, f.at(local), r, accent, "Neon", CanCollide=False))
+    # Corner pillars and a glowing door frame in the base's colour.
+    for cx in (-1, 1):
+        for cz in (-1, 1):
+            outside.append(
+                part(
+                    "Pillar",
+                    (3, WALL_HEIGHT + 1, 3),
+                    f.at([cx * (half_width + 0.3), wall_y + 0.5, cz * (half_depth + 0.3)]),
+                    r,
+                    accent,
+                    surfaces=ALL_STUDS,
+                )
+            )
+    for side in (-1, 1):
+        outside.append(
+            part("DoorFrame", (0.8, DOOR_HEIGHT, 0.8), f.at([side * (DOOR_WIDTH / 2 + 0.4), 1 + DOOR_HEIGHT / 2, -half_depth - 0.4]), r, accent, "Neon", CanCollide=False)
+        )
+    outside.append(
+        part("DoorFrameTop", (DOOR_WIDTH + 1.6, 0.8, 0.8), f.at([0, 1 + DOOR_HEIGHT + 0.4, -half_depth - 0.4]), r, accent, "Neon", CanCollide=False)
+    )
+    outside.append(part("FlagPole", (0.6, 12, 0.6), f.at([-22, roof_y + 6.5, 24]), r, WHITE, "Metal"))
+    outside.append(part("Flag", (6, 3.5, 0.2), f.at([-18.7, roof_y + 10.5, 24]), r, accent, "Fabric"))
+    outside.append(part("RoofBlock", (10, 3, 8), f.at([14, roof_y + 2, 18]), r, WALL, surfaces=ALL_STUDS))
+    outside.append(part("RoofVent", (4, 1, 4), f.at([14, roof_y + 4, 18]), r, DARK, "Metal"))
+    children.append(folder("Trim", outside))
 
     lamps = []
-    for number, (x, z) in enumerate([(-14, -8), (14, -8), (-14, 14), (14, 14)], start=1):
-        lamps.append(
-            part(
-                f"Lamp{number}",
-                (4, 0.4, 2),
-                f.at([x, roof_y - 0.7, z]),
-                r,
-                WHITE,
-                "Neon",
-                CanCollide=False,
-                children=[point_light(1.2, 22, (1, 0.97, 0.9))],
+    number = 1
+    for floor in range(1, FLOORS + 1):
+        ceiling = floor_top(floor) + FLOOR_HEIGHT - 1.7
+        for x in (-12, 12):
+            lamps.append(
+                part(
+                    f"Lamp{number}",
+                    (4, 0.4, 2),
+                    f.at([x, ceiling, 8]),
+                    r,
+                    WHITE,
+                    "Neon",
+                    CanCollide=False,
+                    children=[point_light(1.1, 24, (1, 0.97, 0.9))],
+                )
             )
-        )
+            number += 1
     children.append(folder("Lamps", lamps))
 
     lasers = []
@@ -236,27 +376,30 @@ def build_plot(index, origin, rotation):
         )
     children.append(folder("Lasers", lasers))
 
-    # A pedestal for each brainrot, with its green collect pad in front.
+    # A pedestal for each brainrot, with its green collect pad in front:
+    # 8 per floor, numbered floor by floor.
     slots = []
     pads = []
     number = 1
-    for z in [6, 18]:
-        for x in [-18, -6, 6, 18]:
-            slots.append(part(f"Slot{number}", (7, 1, 7), f.at([x, 1.5, z]), r, (0.62, 0.64, 0.68), surfaces=STUDS))
-            pads.append(
-                part(
-                    f"Pad{number}",
-                    (6, 0.2, 3),
-                    f.at([x, 1.1, z - 5.5]),
-                    r,
-                    PAD,
-                    "SmoothPlastic",
-                    CanCollide=False,
-                    CanQuery=False,
-                    CanTouch=False,
+    for floor in range(1, FLOORS + 1):
+        top = floor_top(floor)
+        for z in [6, 18]:
+            for x in [-18, -6, 6, 18]:
+                slots.append(part(f"Slot{number}", (7, 1, 7), f.at([x, top + 0.5, z]), r, (0.62, 0.64, 0.68), surfaces=STUDS))
+                pads.append(
+                    part(
+                        f"Pad{number}",
+                        (6, 0.2, 3),
+                        f.at([x, top + 0.1, z - 5.5]),
+                        r,
+                        PAD,
+                        "SmoothPlastic",
+                        CanCollide=False,
+                        CanQuery=False,
+                        CanTouch=False,
+                    )
                 )
-            )
-            number += 1
+                number += 1
     children.append(folder("Slots", slots))
     children.append(folder("Pads", pads))
 
@@ -293,10 +436,28 @@ def build_conveyor():
     )
 
 
+SELLER_SCALE = 1.6
+
+
+def figure_part(f, name, size, local, colour, material="SmoothPlastic", **extra):
+    """A part of a shopkeeper, sized and placed in shopkeeper units."""
+    k = SELLER_SCALE
+    return part(
+        name,
+        [v * k for v in size],
+        f.at([v * k for v in local]),
+        f.rotation,
+        colour,
+        material,
+        CanCollide=False,
+        **extra,
+    )
+
+
 def noob(f, shirt):
-    """A classic block noob shopkeeper."""
-    r = f.rotation
-    yellow, blue, green = (0.96, 0.8, 0.26), shirt, (0.3, 0.6, 0.2)
+    """A classic block noob shopkeeper. Parts are named Head*, LeftArm*,
+    RightArm* and so on, so the client can animate them in groups."""
+    yellow, green = (0.96, 0.8, 0.26), (0.3, 0.6, 0.2)
     face = {
         "Name": "face",
         "ClassName": "Decal",
@@ -305,18 +466,54 @@ def noob(f, shirt):
     return model(
         "Shopkeeper",
         [
-            part("LeftLeg", (1, 2, 1), f.at([-0.5, 1.6, 0]), r, green),
-            part("RightLeg", (1, 2, 1), f.at([0.5, 1.6, 0]), r, green),
-            part("Torso", (2, 2, 1), f.at([0, 3.6, 0]), r, blue),
-            part("LeftArm", (1, 2, 1), f.at([-1.5, 3.6, 0]), r, yellow),
-            part("RightArm", (1, 2, 1), f.at([1.5, 3.6, 0]), r, yellow),
-            part("Head", (1.2, 1.2, 1.2), f.at([0, 5.2, 0]), r, yellow, children=[face]),
+            figure_part(f, "LeftLeg", (1, 2, 1), (-0.5, 1, 0), green),
+            figure_part(f, "RightLeg", (1, 2, 1), (0.5, 1, 0), green),
+            figure_part(f, "Torso", (2, 2, 1), (0, 3, 0), shirt),
+            figure_part(f, "LeftArm", (1, 2, 1), (-1.5, 3, 0), yellow),
+            figure_part(f, "RightArm", (1, 2, 1), (1.5, 3, 0), yellow),
+            figure_part(f, "Head", (1.2, 1.2, 1.2), (0, 4.6, 0), yellow, children=[face]),
         ],
     )
 
 
-def build_stall(name, title, title_colour, title_stroke, awning, shirt, prompt_name, object_text, origin, facing):
-    """A market stall with a striped awning, a counter to open its menu and a noob shopkeeper."""
+def rat_seller(f):
+    """The Robux seller: a rat in a black suit with sunglasses and a fez,
+    holding a purple galaxy slap glove on a stick."""
+    grey, pink, black = (0.62, 0.62, 0.66), (1.0, 0.72, 0.74), (0.08, 0.08, 0.1)
+    white, blue, red, purple = WHITE, (0.1, 0.45, 0.95), (0.9, 0.12, 0.15), (0.62, 0.2, 0.95)
+    parts = [
+        figure_part(f, "LeftLeg", (1, 2, 1), (-0.5, 1, 0), black),
+        figure_part(f, "RightLeg", (1, 2, 1), (0.5, 1, 0), black),
+        figure_part(f, "Torso", (2, 2, 1), (0, 3, 0), black),
+        figure_part(f, "TorsoShirt", (0.7, 1.9, 0.1), (0, 3.05, -0.52), white),
+        figure_part(f, "TorsoTie", (0.22, 1.4, 0.12), (0, 3.1, -0.58), blue),
+        figure_part(f, "LeftArm", (1, 2, 1), (-1.5, 3, 0), black),
+        figure_part(f, "LeftArmHand", (0.9, 0.4, 0.9), (-1.5, 1.85, 0), grey),
+        figure_part(f, "RightArm", (1, 2, 1), (1.5, 3, 0), black),
+        figure_part(f, "RightArmHand", (0.9, 0.4, 0.9), (1.5, 1.85, 0), grey),
+        figure_part(f, "RightArmStick", (0.22, 2.4, 0.22), (1.5, 2.9, -0.7), black),
+        figure_part(f, "RightArmGlovePalm", (1.2, 1.2, 0.3), (1.5, 4.6, -0.7), purple, "Neon"),
+        figure_part(f, "RightArmGloveThumb", (0.55, 0.25, 0.25), (0.8, 4.5, -0.7), purple, "Neon"),
+        figure_part(f, "Head", (1.8, 1.5, 1.5), (0, 4.75, 0), grey),
+        figure_part(f, "HeadEarLeft", (0.9, 0.9, 0.15), (-1.1, 5.6, 0.2), pink),
+        figure_part(f, "HeadEarRight", (0.9, 0.9, 0.15), (1.1, 5.6, 0.2), pink),
+        figure_part(f, "HeadFez", (0.7, 0.5, 0.7), (0, 5.75, 0), red),
+        figure_part(f, "HeadGlasses", (1.7, 0.45, 0.1), (0, 4.95, -0.78), white),
+        figure_part(f, "HeadLensLeft", (0.6, 0.32, 0.1), (-0.42, 4.95, -0.84), black, "Glass"),
+        figure_part(f, "HeadLensRight", (0.6, 0.32, 0.1), (0.42, 4.95, -0.84), black, "Glass"),
+        figure_part(f, "HeadNose", (0.3, 0.2, 0.2), (0, 4.45, -0.84), pink),
+    ]
+    for i, x in enumerate((1.05, 1.3, 1.55, 1.8), start=1):
+        parts.append(figure_part(f, f"RightArmGloveFinger{i}", (0.22, 0.75, 0.22), (x, 5.55, -0.7), purple, "Neon"))
+    for side in (-1, 1):
+        for y in (4.45, 4.28):
+            parts.append(figure_part(f, "HeadWhisker", (1.1, 0.05, 0.05), (side * 0.95, y, -0.8), white))
+    return model("Shopkeeper", parts)
+
+
+def build_stall(name, title, title_colour, title_stroke, awning, seller, prompt_name, object_text, origin, facing):
+    """A market stall with a striped awning, a counter to open its menu and a shopkeeper
+    (`seller` builds it from a Frame)."""
     f = Frame(origin, yaw(facing))
     r = f.rotation
     prompt = {
@@ -374,7 +571,7 @@ def build_stall(name, title, title_colour, title_stroke, awning, shirt, prompt_n
     children.append(folder("Awning", stripes))
     children.append(hidden("TitleAnchor", (1, 1, 1), f.at([0, 10.5, 0]), r))
     children[-1]["Children"] = [title_gui]
-    children.append(noob(Frame(f.at([0, 0.6, 0.5]), f.turned(yaw(0))), shirt))
+    children.append(seller(Frame(f.at([0, 0.6, 1.2]), f.turned(yaw(0)))))
     return model(name, children)
 
 
@@ -387,7 +584,7 @@ def build_shop_stalls():
             (1, 0.45, 0.85),
             (0.3, 0.02, 0.2),
             ((0.9, 0.12, 0.15), WHITE),
-            (0.05, 0.41, 0.67),
+            rat_seller,
             "ShopPrompt",
             "Robux Shop",
             [0, 0, 45],
@@ -399,7 +596,7 @@ def build_shop_stalls():
             (0.35, 0.85, 1),
             (0.02, 0.15, 0.3),
             ((0.15, 0.45, 0.95), WHITE),
-            (0.85, 0.35, 0.1),
+            lambda frame: noob(frame, (0.85, 0.35, 0.1)),
             "GearPrompt",
             "Gear Shop",
             [0, 0, -45],
@@ -435,6 +632,111 @@ def build_leaderboards():
     )
 
 
+LEAF_GREENS = [(0.3, 0.72, 0.25), (0.22, 0.62, 0.2), (0.36, 0.8, 0.3), (0.45, 0.78, 0.22)]
+TRUNK = (0.45, 0.3, 0.17)
+
+
+def tree(name, x, z, size, kind, colour):
+    """A blocky tree: a round one (stacked leaf cubes) or a pine (stepped layers)."""
+    trunk_h = 6 * size
+    children = [part("Trunk", (1.6 * size, trunk_h, 1.6 * size), (x, trunk_h / 2, z), IDENTITY, TRUNK, "WoodPlanks")]
+    if kind == "pine":
+        y = trunk_h * 0.6
+        for i, width in enumerate((9, 7, 5, 3)):
+            children.append(part(f"Leaves{i + 1}", (width * size, 2.6 * size, width * size), (x, y + 1.3 * size, z), IDENTITY, colour, surfaces=STUDS))
+            y += 2.4 * size
+    else:
+        children.append(part("Leaves1", (8 * size, 5 * size, 8 * size), (x, trunk_h + 2 * size, z), IDENTITY, colour, surfaces=STUDS))
+        children.append(part("Leaves2", (5.5 * size, 3 * size, 5.5 * size), (x, trunk_h + 5.8 * size, z), IDENTITY, colour, surfaces=STUDS))
+        children.append(part("Leaves3", (10 * size, 2.5 * size, 5 * size), (x, trunk_h + 1.2 * size, z), IDENTITY, colour, surfaces=STUDS))
+    return model(name, children)
+
+
+def lamp_post(name, x, z, facing):
+    f = Frame([x, 0, z], yaw(facing))
+    r = f.rotation
+    return model(
+        name,
+        [
+            part("Base", (2, 1, 2), f.at([0, 0.5, 0]), r, DARK, "Metal"),
+            part("Pole", (0.6, 12, 0.6), f.at([0, 6.5, 0]), r, DARK, "Metal"),
+            part("Arm", (0.4, 0.4, 3), f.at([0, 12.3, -1.3]), r, DARK, "Metal"),
+            part(
+                "Light",
+                (1.4, 0.8, 1.4),
+                f.at([0, 11.9, -2.6]),
+                r,
+                (1, 0.9, 0.6),
+                "Neon",
+                CanCollide=False,
+                children=[point_light(1.4, 28, (1, 0.85, 0.6))],
+            ),
+        ],
+    )
+
+
+def build_scenery():
+    """Trees behind the bases and at the ends, bushes, rocks and lamp posts
+    along the walkway. Positions are random but the same on every run."""
+    import random
+
+    rng = random.Random(7)
+    trees = []
+    number = 1
+
+    def add_tree(x, z, big=1.0):
+        nonlocal number
+        kind = "pine" if rng.random() < 0.35 else "round"
+        size = rng.uniform(0.8, 1.25) * big
+        trees.append(tree(f"Tree{number}", round(x, 1), round(z, 1), size, kind, rng.choice(LEAF_GREENS)))
+        number += 1
+
+    for side in (-1, 1):
+        # Two loose rows behind the bases.
+        for row_z in (128, 150):
+            x = -275.0
+            while x < 275:
+                add_tree(x + rng.uniform(-5, 5), side * (row_z + rng.uniform(-4, 4)))
+                x += rng.uniform(20, 30)
+        # The far ends of the map, beside the tunnels.
+        for end_x in (255, 278):
+            z = -150.0
+            while z < 150:
+                if abs(z) > 22:
+                    add_tree(side * (end_x + rng.uniform(-4, 4)), z + rng.uniform(-4, 4))
+                z += rng.uniform(22, 32)
+        # Between the outer bases, behind the leaderboards.
+        for gap_x in (-100, 100):
+            add_tree(gap_x + rng.uniform(-6, 6), side * rng.uniform(88, 104), 1.1)
+
+    bushes = []
+    for i in range(36):
+        while True:
+            x, z = rng.uniform(-280, 280), rng.uniform(-158, 158)
+            near_base = any(abs(x - px) < 36 and 40 < abs(z) < 118 for px in PLOT_X)
+            if abs(z) > 118 or abs(x) > 238 or (abs(z) > 20 and not near_base and abs(x) > 26 and abs(abs(x) - 100) > 16):
+                break
+        w = rng.uniform(2.5, 4.5)
+        bushes.append(part(f"Bush{i + 1}", (w, w * 0.7, w), (round(x, 1), w * 0.35, round(z, 1)), IDENTITY, rng.choice(LEAF_GREENS), surfaces=STUDS))
+    rocks = []
+    for i in range(14):
+        x, z = rng.uniform(-280, 280), rng.choice([-1, 1]) * rng.uniform(120, 158)
+        w = rng.uniform(2, 5)
+        rocks.append(part(f"Rock{i + 1}", (w, w * 0.6, w * 0.8), (round(x, 1), w * 0.3, round(z, 1)), IDENTITY, (0.55, 0.56, 0.6), "Slate"))
+
+    lamps = []
+    number = 1
+    for side in (-1, 1):
+        for x in (-225, -200, -100, 0, 100, 200, 225):
+            lamps.append(lamp_post(f"LampPost{number}", x, side * 17, 0 if side > 0 else 180))
+            number += 1
+
+    return folder(
+        "Scenery",
+        [folder("Trees", trees), folder("Bushes", bushes), folder("Rocks", rocks), folder("LampPosts", lamps)],
+    )
+
+
 def build_border():
     walls = []
     height = 36
@@ -462,7 +764,14 @@ def build_map():
             index += 1
     return {
         "ClassName": "Model",
-        "Children": [build_conveyor(), folder("Plots", plots), *build_shop_stalls(), build_leaderboards(), build_border()],
+        "Children": [
+            build_conveyor(),
+            folder("Plots", plots),
+            *build_shop_stalls(),
+            build_leaderboards(),
+            build_scenery(),
+            build_border(),
+        ],
     }
 
 

@@ -23,6 +23,18 @@ local ProductIds = table.freeze({
 	MediumCashBundle = 100002,
 	EMPLaserOverrider = 100003,
 	ServerRarityBoost = 100004,
+	FreezeRay = 100005,
+	SpikeTrap = 100006,
+	LandMine = 100007,
+	BoogieBomb = 100008,
+})
+
+-- Troll items: each purchase adds this many uses of the tool (saved).
+local ItemCharges: { [string]: number } = table.freeze({
+	FreezeRay = 3,
+	SpikeTrap = 3,
+	LandMine = 3,
+	BoogieBomb = 2,
 })
 
 local GamePasses: { [string]: number } = table.freeze({
@@ -77,6 +89,42 @@ local ShopProducts: { ShopProduct } = {
 		IconText = "x2",
 		IconColor = Color3.fromRGB(200, 60, 200),
 	},
+	{
+		Key = "FreezeRay",
+		ProductId = ProductIds.FreezeRay,
+		DisplayName = "Freeze Ray x3",
+		Description = "Freeze a player solid for 4 seconds. Thieves drop what they carry!",
+		IconAssetId = 0,
+		IconText = "ICE",
+		IconColor = Color3.fromRGB(80, 200, 255),
+	},
+	{
+		Key = "SpikeTrap",
+		ProductId = ProductIds.SpikeTrap,
+		DisplayName = "Spike Trap x3",
+		Description = "Spikes that trap whoever steps on them for 3 seconds.",
+		IconAssetId = 0,
+		IconText = "!!",
+		IconColor = Color3.fromRGB(240, 110, 40),
+	},
+	{
+		Key = "LandMine",
+		ProductId = ProductIds.LandMine,
+		DisplayName = "Land Mine x3",
+		Description = "BOOM! Launches anyone who steps on it into the air.",
+		IconAssetId = 0,
+		IconText = "*",
+		IconColor = Color3.fromRGB(70, 150, 60),
+	},
+	{
+		Key = "BoogieBomb",
+		ProductId = ProductIds.BoogieBomb,
+		DisplayName = "Boogie Bomb x2",
+		Description = "Everyone near you can't stop dancing for 4 seconds.",
+		IconAssetId = 0,
+		IconText = "♪",
+		IconColor = Color3.fromRGB(230, 70, 200),
+	},
 }
 
 return table.freeze({
@@ -88,5 +136,6 @@ return table.freeze({
 	ServerRarityBoostDurationSeconds = SERVER_RARITY_BOOST_DURATION_SECONDS,
 	ServerRarityBoostMultiplier = SERVER_RARITY_BOOST_MULTIPLIER,
 	DoubleCashIncomeMultiplier = 2,
+	ItemCharges = ItemCharges,
 	ShopProducts = table.freeze(ShopProducts),
 })

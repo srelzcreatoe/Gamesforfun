@@ -64,7 +64,7 @@ ICON_SIZE = 128
 CHUNK = 8000  # characters per string literal
 MESH_FORMAT = 3
 # Legs: separate block groups touching the ground, at most this far up the model.
-MAX_HIP_FRACTION = 0.42
+MAX_HIP_FRACTION = 0.55
 MIN_LEG_BLOCKS = 6
 ICON_FORMAT = 1
 
@@ -219,7 +219,34 @@ def voxelise(mesh, texture):
     grid = np.zeros(solid.shape, dtype=np.int16)
     grid[solid] = -1
     grid[tuple(surface_index.T)] = labels + 1
-    return grid, palette
+    return clean_colours(grid), palette
+
+
+def clean_colours(grid, passes=2):
+    """Removes colour speckles: a visible block whose colour hardly appears
+    around it takes the colour most of its neighbours have.
+
+    Keeps small details like eyes (a few blocks of one colour together) and
+    makes flat areas look like clean painted blocks.
+    """
+    for _ in range(passes):
+        colours = [c for c in np.unique(grid) if c > 0]
+        counts = np.zeros((len(colours),) + grid.shape, dtype=np.float32)
+        for i, colour in enumerate(colours):
+            counts[i] = ndimage.uniform_filter((grid == colour).astype(np.float32), size=3, mode="constant") * 27
+        best = np.argmax(counts, axis=0)
+        best_count = np.take_along_axis(counts, best[None], axis=0)[0]
+        index_of = {colour: i for i, colour in enumerate(colours)}
+        own = np.zeros(grid.shape, dtype=np.float32)
+        for colour, i in index_of.items():
+            mask = grid == colour
+            own[mask] = counts[i][mask]
+        replace = (grid > 0) & (own <= 2.5) & (best_count >= 5)
+        if not replace.any():
+            break
+        grid = grid.copy()
+        grid[replace] = np.array(colours, dtype=np.int16)[best[replace]]
+    return grid
 
 
 def greedy_quads(grid):

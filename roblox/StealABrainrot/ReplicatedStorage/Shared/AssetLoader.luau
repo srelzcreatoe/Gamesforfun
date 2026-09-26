@@ -97,6 +97,10 @@ end
 local TINTS: { [string]: { Dark: Color3, Light: Color3 } } = {
 	Gold = { Dark = Color3.fromRGB(150, 90, 10), Light = Color3.fromRGB(255, 232, 120) },
 	Diamond = { Dark = Color3.fromRGB(30, 120, 220), Light = Color3.fromRGB(215, 250, 255) },
+	Bloodrot = { Dark = Color3.fromRGB(70, 0, 10), Light = Color3.fromRGB(255, 80, 90) },
+	Galaxy = { Dark = Color3.fromRGB(35, 10, 90), Light = Color3.fromRGB(230, 150, 255) },
+	Lava = { Dark = Color3.fromRGB(90, 20, 10), Light = Color3.fromRGB(255, 190, 60) },
+	Frozen = { Dark = Color3.fromRGB(70, 150, 220), Light = Color3.fromRGB(235, 250, 255) },
 }
 
 -- Recolours a palette entry for a mutation, keeping a little of the original.

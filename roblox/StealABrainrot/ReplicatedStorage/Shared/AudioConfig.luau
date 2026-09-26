@@ -21,6 +21,7 @@ local AudioConfig: {
 	MusicVolume: number,
 	FallbackSound: string,
 	Sounds: { [string]: SoundInfo },
+	RainSound: SoundInfo,
 } = {
 	-- Played in order, looping.
 	Music = table.freeze({
@@ -59,7 +60,18 @@ local AudioConfig: {
 		Swing = sound(12222200, 0.6), -- swoosh.wav
 		Cloak = sound(15675024286, 0.6), -- Roblox UI Whoosh 01
 		Event = sound(15675043410, 0.8), -- Roblox UI Tonal Stinger
+		-- Troll items
+		Freeze = sound(12222005, 0.7), -- glassbreak.wav
+		Place = sound(12222124, 0.6), -- Short spring sound.wav
+		Ouch = sound(12222058, 0.8), -- Kid saying Ouch.wav
+		Launch = sound(12222084, 0.7), -- Rocket shot.wav
+		Boogie = sound(1839931391, 0.6), -- Pizza Dance (APM)
+		-- Weather
+		Thunder = sound(12222030, 0.7), -- HalloweenThunder.wav
+		Lightning = sound(12222019, 0.5), -- HalloweenLightning.wav
 	}),
+	-- Looped while it rains.
+	RainSound = sound(1516791621, 0.35), -- Rain Effect
 }
 
 return table.freeze(AudioConfig)

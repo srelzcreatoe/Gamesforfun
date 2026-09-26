@@ -6,12 +6,16 @@
 	On this client, swaps each brainrot's simple server-side block figure for its
 	blocky Higgsfield model (rebuilt by AssetLoader as a body plus legs), then:
 	  * adds rarity effects: glow light, sparkles and a rising aura for the
-	    rarest, a pulsing light for Mythic, and extra shine
-	  * adds mutation effects: Gold and Diamond recolour the model and sparkle
-	    in their colour, Rainbow cycles through every colour
-	  * animates it: a real walk (legs stepping in turn, body bobbing and
-	    leaning) matched to how fast it moves, a gentle bob and sway while idle,
-	    and a wriggle while being carried. Models without two legs pirouette.
+	    rarest, a pulsing light for Mythic, a rainbow glow for Brainrot Gods and
+	    a dark aura with white sparks for Secrets, and extra shine
+	  * adds mutation effects: each mutation recolours the model and sparkles
+	    in its colour (Rainbow cycles through every colour, Lava smokes and
+	    throws embers, Bloodrot drips, Frozen and Galaxy shimmer)
+	  * animates it by its Motion: Walk is a real walk (legs stepping in turn,
+	    body bobbing and leaning) matched to how fast it moves; Fly hovers and
+	    banks, Drive rolls along with little bumps, Spin pirouettes and Hop
+	    bounces. Idle brainrots bob and sway, and carried ones wriggle. Walkers
+	    without two legs pirouette.
 
 	If a model can't be built, the block figure simply stays visible. When a
 	brainrot streams out and back in, its model is rebuilt. Nothing here affects
@@ -42,6 +46,10 @@ type RarityEffect = {
 	Aura: boolean,
 	Pulse: boolean,
 	Reflectance: number,
+	-- Brainrot God: the glow cycles through the rainbow.
+	RainbowLight: boolean?,
+	-- Secret: dark smoke and white sparks.
+	Dark: boolean?,
 }
 
 type PieceVisual = {
@@ -66,6 +74,8 @@ type Visual = {
 	BaseBrightness: number,
 	Pulse: boolean,
 	Rainbow: boolean,
+	RainbowLight: boolean,
+	Motion: string,
 	LastPosition: Vector3,
 	Speed: number,
 	Stride: number,
@@ -77,12 +87,37 @@ local RARITY_EFFECTS: { [string]: RarityEffect } = {
 	Epic = { Light = 1.3, Range = 10, Sparkles = 4, Aura = false, Pulse = false, Reflectance = 0.05 },
 	Legendary = { Light = 2, Range = 13, Sparkles = 7, Aura = true, Pulse = false, Reflectance = 0.1 },
 	Mythic = { Light = 3, Range = 16, Sparkles = 11, Aura = true, Pulse = true, Reflectance = 0.14 },
+	["Brainrot God"] = {
+		Light = 3.5,
+		Range = 18,
+		Sparkles = 14,
+		Aura = true,
+		Pulse = true,
+		Reflectance = 0.16,
+		RainbowLight = true,
+	},
+	Secret = { Light = 3, Range = 18, Sparkles = 16, Aura = true, Pulse = true, Reflectance = 0.2, Dark = true },
 }
 
 local MUTATION_REFLECTANCE: { [string]: number } = {
 	Gold = 0.22,
 	Diamond = 0.3,
 	Rainbow = 0.15,
+	Bloodrot = 0.1,
+	Galaxy = 0.2,
+	Lava = 0.12,
+	Frozen = 0.35,
+}
+
+local MUTATION_COLOURS: { [string]: ColorSequence } = {
+	Galaxy = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 60, 255)),
+		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 120, 230)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(90, 200, 255)),
+	}),
+	Lava = ColorSequence.new(Color3.fromRGB(255, 220, 80), Color3.fromRGB(255, 60, 10)),
+	Frozen = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(140, 220, 255)),
+	Bloodrot = ColorSequence.new(Color3.fromRGB(255, 60, 70), Color3.fromRGB(120, 0, 10)),
 }
 
 local RAINBOW_SEQUENCE = ColorSequence.new({
@@ -97,6 +132,7 @@ local map = Workspace:WaitForChild("Map")
 local brainrotsFolder = map:WaitForChild("Brainrots")
 
 local visuals: { [Model]: Visual } = {}
+local MOTIONS: { [string]: boolean } = { Walk = true, Fly = true, Drive = true, Spin = true, Hop = true }
 local attaching: { [Model]: boolean } = {}
 local rainbowAssets: { [AssetLoader.BrainrotAsset]: boolean } = {}
 
@@ -165,18 +201,64 @@ local function addEffects(visual: Visual, rarityName: string?, mutationName: str
 		visual.BaseBrightness = brightness
 	end
 
+	local rainbowRarity = effect ~= nil and effect.RainbowLight == true
+	local darkRarity = effect ~= nil and effect.Dark == true
 	if effect and effect.Sparkles > 0 and rarity then
-		sparkles(part, "RaritySparkles", effect.Sparkles, ColorSequence.new(rarity.Color), 0.45 * scale, false)
+		local colours = if rainbowRarity
+			then RAINBOW_SEQUENCE
+			elseif darkRarity then ColorSequence.new(Color3.new(1, 1, 1))
+			else ColorSequence.new(rarity.Color)
+		sparkles(part, "RaritySparkles", effect.Sparkles, colours, 0.45 * scale, false)
 	end
 	if effect and effect.Aura and rarity then
-		sparkles(part, "Aura", 6, ColorSequence.new(Color3.new(1, 1, 1), rarity.Color), 0.6 * scale, true)
+		local colours = if rainbowRarity
+			then RAINBOW_SEQUENCE
+			elseif darkRarity then ColorSequence.new(Color3.fromRGB(40, 40, 50), Color3.new(1, 1, 1))
+			else ColorSequence.new(Color3.new(1, 1, 1), rarity.Color)
+		sparkles(part, "Aura", if darkRarity then 10 else 6, colours, 0.6 * scale, true)
+	end
+	if darkRarity then
+		local smoke = Instance.new("Smoke")
+		smoke.Name = "SecretSmoke"
+		smoke.Color = Color3.fromRGB(25, 25, 35)
+		smoke.Opacity = 0.12
+		smoke.RiseVelocity = 1.5
+		smoke.Size = 1.5 * scale
+		smoke.Parent = part
+		if visual.Light then
+			(visual.Light :: PointLight).Color = Color3.fromRGB(230, 230, 255)
+		end
 	end
 	visual.Pulse = effect ~= nil and effect.Pulse
+	visual.RainbowLight = rainbowRarity and mutation == nil
 
 	if mutation then
-		local colours = if mutation.Name == "Rainbow" then RAINBOW_SEQUENCE else ColorSequence.new(mutation.Color, Color3.new(1, 1, 1))
+		local colours = if mutation.Name == "Rainbow"
+			then RAINBOW_SEQUENCE
+			else MUTATION_COLOURS[mutation.Name] or ColorSequence.new(mutation.Color, Color3.new(1, 1, 1))
 		sparkles(part, "MutationSparkles", 10, colours, 0.55 * scale, false)
 		sparkles(part, "MutationAura", 5, colours, 0.7 * scale, true)
+		if mutation.Name == "Lava" then
+			local fire = Instance.new("Fire")
+			fire.Name = "LavaFire"
+			fire.Color = Color3.fromRGB(255, 120, 20)
+			fire.SecondaryColor = Color3.fromRGB(255, 220, 60)
+			fire.Heat = 4
+			fire.Size = 2.5 * scale
+			fire.Parent = part
+		elseif mutation.Name == "Bloodrot" then
+			-- Dripping red.
+			local drips = Instance.new("ParticleEmitter")
+			drips.Name = "BloodDrips"
+			drips.Rate = 6
+			drips.Color = colours
+			drips.LightInfluence = 0.5
+			drips.Lifetime = NumberRange.new(0.6, 1)
+			drips.Speed = NumberRange.new(0, 0.5)
+			drips.Acceleration = Vector3.new(0, -20, 0)
+			drips.Size = NumberSequence.new(0.18 * scale)
+			drips.Parent = part
+		end
 	end
 end
 
@@ -214,6 +296,7 @@ local function attachModel(instance: Instance)
 	local height = instance:GetAttribute("FigureHeight")
 	local mutationAttribute = instance:GetAttribute("Mutation")
 	local rarityAttribute = instance:GetAttribute("Rarity")
+	local motionAttribute = instance:GetAttribute("Motion")
 	if typeof(brainrotId) ~= "string" or typeof(height) ~= "number" then
 		return
 	end
@@ -295,6 +378,8 @@ local function attachModel(instance: Instance)
 			BaseBrightness = 0,
 			Pulse = false,
 			Rainbow = mutation == "Rainbow",
+			RainbowLight = false,
+			Motion = if typeof(motionAttribute) == "string" and MOTIONS[motionAttribute] then motionAttribute else "Walk",
 			LastPosition = rootInstance.Position,
 			Speed = 0,
 			Stride = math.random() * math.pi * 2,
@@ -377,15 +462,43 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 
 	local swing = 0
 	local modelOffset: CFrame
+	local motion = visual.Motion
+	local moving = visual.Speed > MIN_WALK_SPEED
+	local blend = math.clamp(visual.Speed / 3, 0, 1)
+	if moving then
+		local stepsPerSecond = math.clamp(visual.Speed / (height * 1.1), 0.8, 2.4)
+		visual.Stride += dt * stepsPerSecond * math.pi * 2
+	end
+	local stride = visual.Stride
+
 	if state == "Carried" then
 		local wiggle = phase * 12
 		swing = math.sin(phase * 16) * math.rad(35)
 		modelOffset = centre * CFrame.Angles(math.sin(wiggle) * math.rad(10), 0, math.cos(wiggle * 0.7) * math.rad(14))
-	elseif visual.Speed > MIN_WALK_SPEED then
-		local blend = math.clamp(visual.Speed / 3, 0, 1)
-		local stepsPerSecond = math.clamp(visual.Speed / (height * 1.1), 0.8, 2.4)
-		visual.Stride += dt * stepsPerSecond * math.pi * 2
-		local stride = visual.Stride
+	elseif motion == "Fly" then
+		-- Hovers above the ground, banking and dipping as it flies.
+		local lift = (0.35 + 0.06 * math.sin(phase * 2.2)) * height
+		local bank = math.sin(phase * 0.9) * math.rad(if moving then 14 else 6)
+		local pitch = if moving then -math.rad(10) * blend else math.sin(phase * 1.3) * math.rad(4)
+		modelOffset = CFrame.new(0, lift, 0) * centre * CFrame.Angles(pitch, 0, bank)
+	elseif motion == "Drive" then
+		-- Rolls along with little bumps; rumbles in place when parked.
+		local bump = if moving then math.abs(math.sin(stride * 2)) * 0.03 * height else math.abs(math.sin(phase * 14)) * 0.006 * height
+		local rock = if moving then math.sin(stride * 2) * math.rad(3) else 0
+		modelOffset = CFrame.new(0, bump, 0) * centre * CFrame.Angles(rock - math.rad(3) * blend, 0, 0)
+	elseif motion == "Spin" then
+		-- Pirouettes: fast while travelling, a slow twirl while idle.
+		local turn = if moving then stride * 0.8 else phase * 0.8
+		local rise = math.abs(math.sin(if moving then stride else phase * 1.5)) * 0.06 * height
+		modelOffset = CFrame.new(0, rise, 0) * centre * CFrame.Angles(0, turn, 0)
+	elseif motion == "Hop" then
+		-- Bounces along in big hops, squashing a little on landing.
+		local cycle = if moving then stride * 0.5 else phase * 1.2
+		local air = math.abs(math.sin(cycle))
+		local hop = air * (if moving then 0.3 else 0.08) * height
+		swing = if moving then -math.rad(20) * air else 0
+		modelOffset = CFrame.new(0, hop, 0) * centre * CFrame.Angles(-math.rad(8) * air * blend, 0, 0)
+	elseif moving then
 		if visual.HasLegs then
 			-- Highest as the legs pass each other, leaning into the walk.
 			swing = math.sin(stride) * LEG_SWING * blend
@@ -444,7 +557,7 @@ RunService.RenderStepped:Connect(function()
 			if visual.Pulse then
 				light.Brightness = visual.BaseBrightness * (0.7 + 0.3 * math.sin(t * 4 + visual.Phase))
 			end
-			if visual.Rainbow then
+			if visual.Rainbow or visual.RainbowLight then
 				light.Color = Color3.fromHSV((t * 0.25) % 1, 0.8, 1)
 			end
 		end

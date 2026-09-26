@@ -17,7 +17,10 @@
 	  * brainrots can be sold or stolen; a slapped thief drops what they carry
 	  * each base has a laser door its owner can lock; the EMP Laser Overrider
 	    lets its buyer walk through any locked door
-	  * rebirths reset Cash (and the pads) for a permanent income bonus
+	  * rebirths reset Cash (and the pads) for a permanent income bonus and open
+	    the next floor of the base (4 floors of 8 pedestals)
+	  * events every few minutes: mutation events (Gold Rush, Blood Moon, ...),
+	    Taco Tuesday, Lucky Hour and Cash Rain (coins to collect)
 
 	Every decision is made here. Clients only press ProximityPrompts and call the
 	RequestRebirth remote, and each request is re-checked on the server
@@ -30,7 +33,9 @@
 	  ReplicatedStorage.Remotes.RequestRebirth (RemoteFunction)
 	  Player attributes IncomePerSecond (number), Carrying (boolean)
 	  Plot model attributes OwnerUserId (number, 0 = empty), LockEndsAt (server time)
-	  ReplicatedStorage attributes EventName, EventMutation, EventEndsAt (mutation event)
+	  ReplicatedStorage attributes EventName, EventMutation, EventEndsAt, EventSky,
+	    EventParticles (the running event)
+	  Workspace.Map.Coins (Cash Rain coins, attribute Spin for the client)
 	  Brainrot model attributes BrainrotId, State, OwnerUserId, ...
 	  ProximityPrompt attributes PromptKind ("Buy" | "Steal" | "Sell" | "Snipe"),
 	    OwnerUserId, Carried, Walking, Snipeable (used by the client to hide
@@ -67,6 +72,8 @@ local LANE_INSET = 3
 -- The pad in front of a pedestal, and the walkway between pads and door.
 local PAD_OFFSET = 5.5
 local PAD_REACH = 1
+-- How far from the stairs a walking brainrot steps off onto the floor above.
+local STAIR_EXIT_OFFSET = 4.75
 
 --------------------------------------------------------------------------------
 -- Types
@@ -107,6 +114,10 @@ type Plot = {
 	OfflinePads: { [number]: boolean },
 	Occupants: { [number]: Occupant },
 	Reserved: { [number]: boolean },
+	-- Stairs from floor N up to floor N + 1, and signs on locked floors.
+	Stairs: { [number]: Stair },
+	FloorSigns: { [number]: TextLabel },
+	UnlockedFloors: number,
 	Owner: Player?,
 	LockEndsAt: number,
 	SignTitle: TextLabel,
@@ -168,11 +179,9 @@ type ConveyorItem = {
 	Sold: boolean,
 }
 
-type MutationEvent = {
-	Name: string,
-	Mutation: string,
-	ChanceMultiplier: number,
-}
+type GameEvent = GameConfig.GameEvent
+
+type Stair = { Bottom: Vector3, Top: Vector3 }
 
 --------------------------------------------------------------------------------
 -- Data API (ServerStorage.DataAndMonetization)
@@ -280,7 +289,10 @@ local nextGuaranteedAt: { [string]: number } = {}
 for _, rule in GameConfig.GuaranteedRarities do
 	nextGuaranteedAt[rule.Rarity] = Workspace:GetServerTimeNow() + rule.IntervalSeconds
 end
-local activeEvent: MutationEvent? = nil
+local activeEvent: GameEvent? = nil
+local coinsFolder = Instance.new("Folder")
+coinsFolder.Name = "Coins"
+coinsFolder.Parent = map
 
 -- Walking brainrots follow the ground: the baseplate, the conveyor and the bases.
 local groundParams = RaycastParams.new()
@@ -333,8 +345,14 @@ local function isLocked(plot: Plot): boolean
 	return Workspace:GetServerTimeNow() < plot.LockEndsAt
 end
 
+local function floorOf(slotIndex: number): number
+	return (slotIndex - 1) // GameConfig.SlotsPerFloor + 1
+end
+
+-- Free pedestals are only handed out on floors the owner has opened.
 local function findFreeSlot(plot: Plot): number?
-	for index = 1, #plot.Slots do
+	local limit = math.min(#plot.Slots, plot.UnlockedFloors * GameConfig.SlotsPerFloor)
+	for index = 1, limit do
 		if plot.Occupants[index] == nil and not plot.Reserved[index] then
 			return index
 		end
@@ -570,6 +588,7 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, price:
 	model:SetAttribute("Rarity", definition.Rarity)
 	model:SetAttribute("Mutation", if mutation then mutation.Name else nil)
 	model:SetAttribute("Price", price)
+	model:SetAttribute("Motion", definition.Motion)
 	model:SetAttribute("State", "Idle")
 
 	local promptAttachment = Instance.new("Attachment")
@@ -602,7 +621,21 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, price:
 		addInfoLabel(billboard, mutation.Name, mutation.Color, 20, 0, mutation.Name == "Rainbow")
 	end
 	addInfoLabel(billboard, definition.DisplayName, Color3.new(1, 1, 1), 22, 1)
-	addInfoLabel(billboard, definition.Rarity, if rarity then rarity.Color else Color3.new(1, 1, 1), 20, 2, definition.Rarity == "Mythic")
+	local rarityLabel = addInfoLabel(
+		billboard,
+		definition.Rarity,
+		if rarity then rarity.Color else Color3.new(1, 1, 1),
+		20,
+		2,
+		rarity ~= nil and rarity.Style == "Rainbow"
+	)
+	if rarity and rarity.Style == "Secret" then
+		-- Black text with a white outline, like the original's Secrets.
+		local outline = rarityLabel:FindFirstChildOfClass("UIStroke")
+		if outline then
+			outline.Color = Color3.new(1, 1, 1)
+		end
+	end
 	addInfoLabel(billboard, NumberFormat.cash(incomeOf(definition, mutation)) .. "/s", Color3.fromRGB(255, 230, 70), 20, 3)
 	local priceLabel: TextLabel? = nil
 	if price then
@@ -732,6 +765,25 @@ local function buildPath(plot: Plot, slotIndex: number, from: Vector3): ({ Vecto
 	add(0, -halfDepth - 1)
 	local doorIndex = #points
 	add(0, -halfDepth + 2)
+	-- Upper floors: up each flight of stairs along the front wall, stepping
+	-- off onto the floor above at the top.
+	local aisleX = 0
+	for floor = 1, floorOf(slotIndex) - 1 do
+		local stair = plot.Stairs[floor]
+		if stair then
+			local bottom = floorFrame:PointToObjectSpace(stair.Bottom)
+			local top = floorFrame:PointToObjectSpace(stair.Top)
+			local exitZ = bottom.Z + STAIR_EXIT_OFFSET
+			add(bottom.X, exitZ)
+			add(bottom.X, bottom.Z)
+			add(top.X, top.Z)
+			add(top.X, exitZ)
+			aisleX = top.X
+		end
+	end
+	if aisleX ~= 0 then
+		add(0, floorFrame:PointToObjectSpace(points[#points]).Z)
+	end
 	add(0, padZ)
 	add(slotLocal.X, padZ)
 	add(slotLocal.X, slotLocal.Z)
@@ -1154,7 +1206,24 @@ local function pickFromRarity(rarityName: string): Definition?
 	if choices == nil or #choices == 0 then
 		return nil
 	end
-	return choices[rng:NextInteger(1, #choices)]
+	-- Events like Taco Tuesday make brainrots with a tag more likely.
+	local event = activeEvent
+	local boost = if event then event.TagBoost else nil
+	if boost == nil then
+		return choices[rng:NextInteger(1, #choices)]
+	end
+	local total = 0
+	for _, definition in choices do
+		total += if BrainrotConfig.hasTag(definition, boost.Tag) then boost.Multiplier else 1
+	end
+	local roll = rng:NextNumber(0, total)
+	for _, definition in choices do
+		roll -= if BrainrotConfig.hasTag(definition, boost.Tag) then boost.Multiplier else 1
+		if roll <= 0 then
+			return definition
+		end
+	end
+	return choices[#choices]
 end
 
 local function resetGuaranteeTimer(rarityName: string)
@@ -1178,7 +1247,8 @@ local function rollDefinition(): Definition?
 		end
 	end
 
-	local multiplier = tonumber(getServerRarityMultiplierFunction:Invoke()) or 1
+	local event = activeEvent
+	local multiplier = (tonumber(getServerRarityMultiplierFunction:Invoke()) or 1) * (if event and event.Luck then event.Luck else 1)
 	local commonRarity = BrainrotConfig.Rarities[1]
 
 	local totalWeight = 0
@@ -1209,7 +1279,11 @@ end
 local function mutationChance(mutation: Mutation): number
 	local event = activeEvent
 	if event and event.Mutation == mutation.Name then
-		return mutation.Chance * event.ChanceMultiplier
+		-- Event-only mutations get the event's own chance.
+		if event.MutationChance then
+			return event.MutationChance
+		end
+		return mutation.Chance * (event.ChanceMultiplier or 1)
 	end
 	return mutation.Chance
 end
@@ -1596,6 +1670,57 @@ local function sortedParts(parts: { [number]: BasePart }): { BasePart }
 	return list
 end
 
+local function createFloorSign(part: BasePart): TextLabel
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "FloorGui"
+	billboard.Adornee = part
+	billboard.Size = UDim2.fromOffset(360, 90)
+	billboard.MaxDistance = 90
+	billboard.LightInfluence = 0
+
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.fromScale(1, 1)
+	label.Font = Enum.Font.FredokaOne
+	label.TextScaled = true
+	label.TextColor3 = Color3.fromRGB(255, 220, 90)
+	label.TextStrokeTransparency = 0.1
+	label.Parent = billboard
+
+	billboard.Parent = part
+	return label
+end
+
+-- Shows which floors are still locked and what unlocks them.
+local function updateFloorSigns(plot: Plot)
+	for floor, label in plot.FloorSigns do
+		local rebirths = GameConfig.FloorUnlockRebirths[floor] or 0
+		if plot.Owner == nil or floor <= plot.UnlockedFloors then
+			label.Text = ""
+		else
+			label.Text = string.format("🔒 Floor %d\nUnlocks at Rebirth %d", floor, rebirths)
+		end
+	end
+end
+
+local function refreshUnlockedFloors(plot: Plot)
+	local owner = plot.Owner
+	local data = if owner then getPlayerData(owner) else nil
+	local rebirths = if data then tonumber(data.Rebirths) or 0 else 0
+	local floors = math.max(1, GameConfig.getUnlockedFloors(rebirths))
+	local maxFloors = math.ceil(#plot.Slots / GameConfig.SlotsPerFloor)
+	floors = math.min(floors, maxFloors)
+	if floors ~= plot.UnlockedFloors then
+		local gained = floors > plot.UnlockedFloors and plot.UnlockedFloors > 0 and owner ~= nil
+		plot.UnlockedFloors = floors
+		plot.Model:SetAttribute("UnlockedFloors", floors)
+		if gained and owner then
+			notify(owner, string.format("Floor %d of your base is unlocked! More room for brainrots.", floors), "Success", "Purchase")
+		end
+	end
+	updateFloorSigns(plot)
+end
+
 local function loadPlot(model: Instance, index: number): Plot?
 	if not model:IsA("Model") then
 		return nil
@@ -1628,6 +1753,24 @@ local function loadPlot(model: Instance, index: number): Plot?
 		end
 	end
 
+	-- Stairs and locked-floor signs on the upper floors.
+	local stairs: { [number]: Stair } = {}
+	local floorSigns: { [number]: TextLabel } = {}
+	local floorsFolder = model:FindFirstChild("Floors")
+	if floorsFolder then
+		local bottoms = collectNumberedParts(floorsFolder, "StairBottom")
+		local tops = collectNumberedParts(floorsFolder, "StairTop")
+		for floorNumber, bottom in bottoms do
+			local top = tops[floorNumber]
+			if top then
+				stairs[floorNumber] = { Bottom = bottom.Position, Top = top.Position }
+			end
+		end
+		for floorNumber, signPart in collectNumberedParts(floorsFolder, "FloorSign") do
+			floorSigns[floorNumber] = createFloorSign(signPart)
+		end
+	end
+
 	local title, subtitle = createSign(sign)
 	local plot: Plot = {
 		Index = index,
@@ -1649,10 +1792,15 @@ local function loadPlot(model: Instance, index: number): Plot?
 		SignTitle = title,
 		SignSubtitle = subtitle,
 		LockLabel = createLockLabel(lockButton),
+		Stairs = stairs,
+		FloorSigns = floorSigns,
+		UnlockedFloors = 1,
 	}
 
 	model:SetAttribute("OwnerUserId", 0)
 	model:SetAttribute("LockEndsAt", 0)
+	model:SetAttribute("UnlockedFloors", 1)
+	updateFloorSigns(plot)
 	setLasersActive(plot, false)
 	updatePlotLabels(plot)
 
@@ -1734,6 +1882,8 @@ local function assignPlot(player: Player)
 	plot.Owner = player
 	plotByPlayer[player] = plot
 	plot.Model:SetAttribute("OwnerUserId", player.UserId)
+	plot.UnlockedFloors = 0
+	refreshUnlockedFloors(plot)
 
 	local savedIds = getBrainrotsFunction:Invoke(player)
 	local changed = false
@@ -1798,6 +1948,9 @@ local function releasePlot(player: Player)
 	plot.LockEndsAt = 0
 	plot.Model:SetAttribute("OwnerUserId", 0)
 	plot.Model:SetAttribute("LockEndsAt", 0)
+	plot.UnlockedFloors = 1
+	plot.Model:SetAttribute("UnlockedFloors", 1)
+	updateFloorSigns(plot)
 	setLasersActive(plot, false)
 	clearPads(plot)
 	updatePlotLabels(plot)
@@ -1924,6 +2077,7 @@ local function slowTick()
 
 		local owner = plot.Owner
 		if owner then
+			refreshUnlockedFloors(plot)
 			local multiplier = getIncomeMultiplier(owner)
 			local incomePerSecond = 0
 			for index, occupant in plot.Occupants do
@@ -1963,21 +2117,150 @@ local function notifyAll(message: string, kind: NotifyKind, sound: string?)
 	end
 end
 
-local function runEvent(event: MutationEvent)
+local function eventMessage(event: GameEvent): string
+	local duration = NumberFormat.duration(GameConfig.EventDurationSeconds)
+	local boost = event.TagBoost
+	if boost then
+		return string.format("%s! %s brainrots are %sx more common for %s!", event.Name, boost.Tag, tostring(boost.Multiplier), duration)
+	elseif event.CashRain then
+		return string.format("%s! Grab the Cash falling from the sky for %s!", event.Name, duration)
+	elseif event.Luck then
+		return string.format("%s! Rare brainrots are %sx more likely for %s!", event.Name, tostring(event.Luck), duration)
+	elseif event.Mutation and event.MutationChance then
+		return string.format("%s! %s brainrots can spawn on the conveyor for %s!", event.Name, event.Mutation, duration)
+	elseif event.Mutation then
+		return string.format(
+			"%s! %s brainrots are %sx more common for %s!",
+			event.Name,
+			event.Mutation,
+			tostring(event.ChanceMultiplier or 1),
+			duration
+		)
+	end
+	return string.format("%s for %s!", event.Name, duration)
+end
+
+-- Cash Rain: coins land around the map; the first player to touch one gets
+-- Cash worth a few seconds of their income.
+local coinExpiresAt: { [BasePart]: number } = {}
+local coinArea: { Min: Vector3, Max: Vector3 }? = nil
+do
+	local baseplate = Workspace:FindFirstChild("Baseplate")
+	if baseplate and baseplate:IsA("BasePart") then
+		local half = baseplate.Size / 2 - Vector3.new(24, 0, 24)
+		local top = baseplate.Position.Y + baseplate.Size.Y / 2
+		coinArea = {
+			Min = Vector3.new(baseplate.Position.X - half.X, top, baseplate.Position.Z - half.Z),
+			Max = Vector3.new(baseplate.Position.X + half.X, top, baseplate.Position.Z + half.Z),
+		}
+	end
+end
+
+local function coinSpot(): Vector3?
+	local area = coinArea
+	if area == nil then
+		return nil
+	end
+	for _ = 1, 8 do
+		local x = rng:NextNumber(area.Min.X, area.Max.X)
+		local z = rng:NextNumber(area.Min.Z, area.Max.Z)
+		-- Only on open ground: not on a roof or inside a base.
+		local hit = Workspace:Raycast(Vector3.new(x, area.Min.Y + 80, z), Vector3.new(0, -100, 0))
+		if hit and hit.Position.Y <= area.Min.Y + 1.5 and not hit.Instance:IsDescendantOf(plotsFolder) then
+			return Vector3.new(x, hit.Position.Y, z)
+		end
+	end
+	return nil
+end
+
+local function spawnCoinWave()
+	local expiresAt = os.clock() + GameConfig.CashRainWaveSeconds * 2.5
+	for _ = 1, GameConfig.CashRainCoinsPerWave do
+		local spot = coinSpot()
+		if spot then
+			local coin = Instance.new("Part")
+			coin.Name = "Coin"
+			coin.Shape = Enum.PartType.Cylinder
+			coin.Size = Vector3.new(0.5, 3, 3)
+			coin.Material = Enum.Material.Neon
+			coin.Color = Color3.fromRGB(255, 205, 50)
+			coin.Anchored = true
+			coin.CanCollide = false
+			coin.CanQuery = false
+			coin.CanTouch = false
+			coin.CFrame = CFrame.new(spot + Vector3.new(0, 2.2, 0))
+			coin:SetAttribute("Spin", true)
+			coin.Parent = coinsFolder
+			coinExpiresAt[coin] = expiresAt
+		end
+	end
+end
+
+local function clearCoins()
+	for coin in coinExpiresAt do
+		coin:Destroy()
+	end
+	table.clear(coinExpiresAt)
+end
+
+-- Called from the fast tick.
+local function collectCoins()
+	if next(coinExpiresAt) == nil then
+		return
+	end
+	local clock = os.clock()
+	local roots: { [Player]: BasePart } = {}
+	for _, player in Players:GetPlayers() do
+		local rootPart = getLiveCharacter(player)
+		if rootPart then
+			roots[player] = rootPart
+		end
+	end
+	for coin, expiresAt in coinExpiresAt do
+		if clock >= expiresAt or coin.Parent == nil then
+			coinExpiresAt[coin] = nil
+			coin:Destroy()
+			continue
+		end
+		for player, rootPart in roots do
+			if (rootPart.Position - coin.Position).Magnitude <= 5 then
+				local income = tonumber(player:GetAttribute("IncomePerSecond")) or 0
+				local amount = math.max(GameConfig.CashRainMinCoin, math.floor(income * GameConfig.CashRainCoinIncomeSeconds))
+				coinExpiresAt[coin] = nil
+				coin:Destroy()
+				if addCash(player, amount) then
+					playSound(player, "Collect")
+					notify(player, "+" .. NumberFormat.cash(amount) .. " from the Cash Rain!", "Success")
+				end
+				break
+			end
+		end
+	end
+end
+
+local function runEvent(event: GameEvent)
 	local endsAt = Workspace:GetServerTimeNow() + GameConfig.EventDurationSeconds
 	activeEvent = event
 	ReplicatedStorage:SetAttribute("EventName", event.Name)
 	ReplicatedStorage:SetAttribute("EventMutation", event.Mutation)
+	ReplicatedStorage:SetAttribute("EventSky", event.Sky)
+	ReplicatedStorage:SetAttribute("EventParticles", event.Particles)
 	ReplicatedStorage:SetAttribute("EventEndsAt", endsAt)
-	notifyAll(
-		string.format("%s! %s brainrots are %dx more common for %s!", event.Name, event.Mutation, event.ChanceMultiplier, NumberFormat.duration(GameConfig.EventDurationSeconds)),
-		"Info",
-		"Event"
-	)
-	task.wait(GameConfig.EventDurationSeconds)
+	notifyAll(eventMessage(event), "Info", "Event")
+	if event.CashRain then
+		while Workspace:GetServerTimeNow() < endsAt do
+			spawnCoinWave()
+			task.wait(math.min(GameConfig.CashRainWaveSeconds, math.max(0.1, endsAt - Workspace:GetServerTimeNow())))
+		end
+	else
+		task.wait(GameConfig.EventDurationSeconds)
+	end
 	activeEvent = nil
+	clearCoins()
 	ReplicatedStorage:SetAttribute("EventName", nil)
 	ReplicatedStorage:SetAttribute("EventMutation", nil)
+	ReplicatedStorage:SetAttribute("EventSky", nil)
+	ReplicatedStorage:SetAttribute("EventParticles", nil)
 	ReplicatedStorage:SetAttribute("EventEndsAt", 0)
 	notifyAll(event.Name .. " is over.", "Info")
 end
@@ -2013,6 +2296,7 @@ requestRebirthFunction.OnServerInvoke = function(player: Player): (boolean, stri
 	local plot = plotByPlayer[player]
 	if plot then
 		clearPads(plot)
+		refreshUnlockedFloors(plot)
 	end
 	setPadCashFunction:Invoke(player, if plot then padCashList(plot) else {})
 
@@ -2119,6 +2403,7 @@ for _, player in Players:GetPlayers() do
 end
 
 runLoop(FAST_TICK_SECONDS, "Fast tick", fastTick)
+runLoop(FAST_TICK_SECONDS, "Cash Rain", collectCoins)
 runLoop(SLOW_TICK_SECONDS, "Slow tick", slowTick)
 
 RunService.Heartbeat:Connect(function(dt: number)
@@ -2145,6 +2430,7 @@ task.spawn(function()
 		if #events > 0 then
 			xpcall(runEvent, function(err: any)
 				activeEvent = nil
+				clearCoins()
 				warn(string.format("%s Event failed: %s", LOG_PREFIX, tostring(err)))
 			end, events[rng:NextInteger(1, #events)])
 		end

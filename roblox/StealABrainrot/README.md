@@ -1,12 +1,12 @@
 # Steal a Brainrot
 
-A playable Roblox game: buy brainrots from the conveyor, watch them walk home (other players can buy them off you on the way), collect the Cash they earn from the pads in your base (even while you're offline), steal other players' brainrots, and lock your base with a laser door.
+A playable Roblox game: buy brainrots from the conveyor, watch them walk home (other players can buy them off you on the way), collect the Cash they earn from the pads in your base (even while you're offline), steal other players' brainrots, lock your base with a laser door, and troll thieves with freeze rays, spike traps, land mines and Boogie Bombs.
 
-![The 14 blocky brainrot models](BrainrotModels/preview.png)
+![All 34 blocky brainrot models](BrainrotModels/preview.png)
 
 ## Open it in Studio
 
-Double-click `StealABrainrot-TestPlace.rbxlx`, or open Roblox Studio and use File → Open from File. The map is visible straight away: a studded red-carpet conveyor between two tunnels, 8 well-spaced grey bases with wooden signs and green collect pads, long carpets from the conveyor to each base, the Robux Shop and Gear Shop stalls, the global leaderboards and a dirt-and-grass border.
+Double-click `StealABrainrot-TestPlace.rbxlx`, or open Roblox Studio and use File → Open from File. The map is visible straight away: a studded red-carpet conveyor between two tunnels, 8 well-spaced 4-storey bases (neon trim, windows, a flag on the roof, stairs up to every floor and green collect pads), long carpets from the conveyor to each base, the Robux Shop (run by a rat in a suit with a galaxy slap glove) and Gear Shop stalls, the global leaderboards, trees, bushes, rocks and street lamps, and a dirt-and-grass border.
 
 Press **Play** (or **Test → Start** with 2 players to try stealing).
 
@@ -21,8 +21,9 @@ Press **Play** (or **Test → Start** with 2 players to try stealing).
 | Steal | Hold **E** on someone else's brainrot, then run it back into your base. If you die, take too long, or the owner catches you, it goes back |
 | Sell | Press **F** on your own brainrot for half its price |
 | Lock your base | Step on the red pad inside your base. Lasers zap intruders for 60 seconds |
-| Shop | **Shop** button or the Robux Shop stall: Cash bundles, EMP Laser Overrider (walk through lasers for 30s), Server Rarity Boost (x2 rare spawns for 15 min) |
-| Rebirth | **Rebirth** button: resets Cash (and the pads) for +50% income per rebirth; you keep your brainrots |
+| Floors | Each base has 4 floors of 8 pedestals. Floor 1 is open from the start; each rebirth opens the next floor (floor 4 at Rebirth 3). New brainrots walk up the stairs to their pedestal |
+| Shop | **Shop** button or the Robux Shop stall: Cash bundles, EMP Laser Overrider (walk through lasers for 30s), Server Rarity Boost (x2 rare spawns for 15 min) and the troll items (below) |
+| Rebirth | **Rebirth** button: resets Cash (and the pads) for +50% income per rebirth and opens the next floor of your base; you keep your brainrots |
 | Index | **Index** button: every brainrot with a spinning 3D preview, its stats, and how many you own |
 | Gear Shop | The Gear Shop stall: gear bought with Cash and kept forever (see below) |
 | Leaderboards | Top Cash, Top Steals and Top Rebirths across all servers on the boards between the bases; Cash, Steals and Rebirths in the player list |
@@ -34,24 +35,54 @@ New players get a free Noobini Pizzanini so income starts right away.
 
 | Gear | Price | What it does |
 |---|---|---|
-| Slap | Free | Knocks players back. A slapped thief drops the brainrot they're carrying |
+| Slap | Free | A giant purple slap glove on a stick. Knocks players back; a slapped thief drops the brainrot they're carrying |
 | Speed Coil | $7.5K | Run much faster while holding it |
 | Gravity Coil | $20K | Jump three times higher while holding it |
 | Invisibility Cloak | $100K | Click to turn invisible for 8 seconds (30 s recharge). Grabbing a brainrot reveals you |
 
 Coils don't work while you carry a stolen brainrot, so thieves stay catchable.
 
+### Troll items (Robux Shop)
+
+Bought with Robux like the original game's trolling gear. Each purchase gives a few charges, which are saved; the item shows up in your backpack as a tool (for example "Freeze Ray x3") until they're used up. Every one of them makes a thief drop the brainrot they're carrying.
+
+| Item | Charges | What it does |
+|---|---|---|
+| Freeze Ray | 3 | Freezes the player you're facing (up to 45 studs) in a block of ice for 4 seconds. Missing costs no charge |
+| Spike Trap | 3 | Put down in front of you. Whoever steps on it is stuck for 3 seconds ("OUCH!") |
+| Land Mine | 3 | Hidden mine with a blinking light. Whoever steps on it is launched sky high with an explosion (no damage) |
+| Boogie Bomb | 2 | A disco ball drops and everyone within 22 studs dances for 4 seconds and can't move |
+
+Up to 3 traps and mines each stay out for 2 minutes; your own never go off on you. A banner shows the victim what happened ("FROZEN SOLID!", "YOU CAN'T STOP DANCING!", ...).
+
 ### Events
 
-Every 7 to 11 minutes a mutation event runs for 3 minutes: **Gold Rush** (Gold x5 as common), **Diamond Storm** (Diamond x6) or **Rainbow Party** (Rainbow x10). The sky takes on the event's colour, sparkles fall, and a timer shows at the top of the screen.
+Every 5 to 8 minutes an event runs for 3 minutes, with its own sky colour, things falling from the sky and a timer at the top of the screen:
+
+| Event | What happens |
+|---|---|
+| Gold Rush / Diamond Storm / Rainbow Party | Gold x5, Diamond x6 or Rainbow x10 as common; gold sparkles, diamonds or confetti fall |
+| Blood Moon | It turns to midnight under a red sky with rising embers; brainrots can spawn **Bloodrot** (x3) |
+| Galaxy Night | Midnight under a purple sky full of stars; brainrots can spawn **Galaxy** (x4) |
+| Lava Rain | Meteors fly across an orange sky; brainrots can spawn **Lava** (x3.5) |
+| Frost Storm | Snow under an icy sky; brainrots can spawn **Frozen** (x2.5) |
+| Taco Tuesday | Tacos rain down and Taco brainrots are 8x more common |
+| Lucky Hour | Clovers fall and every rarity above Common is 3x more likely |
+| Cash Rain | Coins drop all over the map; grab one for 20 seconds of your income (at least $150) |
+
+### Day, night and weather
+
+A full day passes every 10 minutes (the night is shorter), and the street lamps and base lamps come on at night. Every 3 to 5 minutes the weather changes between clear skies, **rain**, **snow**, **fog** and **thunderstorms** with lightning bolts and thunder. Rain and snow stay out of the bases.
 
 ### Rarities, mutations and spawn timers
 
-- **Rarities** Common, Rare, Epic, Legendary and Mythic. Rarer brainrots glow in their rarity colour, sparkle, and (Legendary and Mythic) have a rising aura; Mythic glow pulses.
-- **Mutations**, rolled when a brainrot spawns: **Gold** (6%, x1.5 income and price), **Diamond** (2.5%, x2) and **Rainbow** (0.6%, x5). Mutated brainrots are recoloured, shine and sparkle in their colour; Rainbow cycles through every colour. Mutations are saved with the brainrot.
-- **Guaranteed spawns**: the sign over the spawn tunnel counts down to a guaranteed Legendary (every 4 minutes) and Mythic (every 15 minutes).
+- **34 brainrots** in 7 rarities: Common, Rare, Epic, Legendary, Mythic, **Brainrot God** (rainbow name and glow) and **Secret** (black name with a white outline, dark smoke and white sparks) — from Noobini Pizzanini up to Tralalero Tralala, Ratto Schiaffone, Gatto Pizzanave, Tacorita Bicicleta and the Secret **67**. Rarer brainrots glow in their rarity colour, sparkle and have a rising aura; Mythic and up pulse.
+- **Mutations**, rolled when a brainrot spawns: **Gold** (6%, x1.5 income and price), **Diamond** (2.5%, x2) and **Rainbow** (0.6%, x5), plus the event-only **Bloodrot** (x3), **Galaxy** (x4), **Lava** (x3.5, on fire) and **Frozen** (x2.5). Mutated brainrots are recoloured, shine and sparkle in their colour; Rainbow cycles through every colour. Mutations are saved with the brainrot.
+- **Guaranteed spawns**: the sign over the spawn tunnel counts down to a guaranteed Legendary (every 4 minutes), Mythic (10 minutes), Brainrot God (20 minutes) and Secret (45 minutes).
 
-Brainrots really walk: each blocky model is split into a body and its legs, and the legs swing in turn (with the body bobbing and leaning) at a pace that matches how fast the brainrot moves, on the conveyor and on the way home. The Ballerina, who stands on one leg, pirouettes instead. They bob and sway while idle and wriggle while being carried.
+Brainrots really move: each blocky model is split into a body and its legs, and walkers swing their legs in turn (with the body bobbing and leaning) at a pace that matches how fast they move, on the conveyor, on the way home and up the stairs. Planes and flying brainrots (Bombardiro Crocodilo, Gatto Pizzanave, Tacoplano Bombardino) hover and bank, vehicles (Piccione Macchina, Tacorita Bicicleta) roll along with little bumps, the Ballerina pirouettes, and Toro Palloncino and Spaghetti Tualetti hop. They bob and sway while idle and wriggle while being carried.
+
+The two shopkeepers are animated: the Robux rat winds up and slaps with its galaxy glove, the Gear Shop noob waves, both look around and talk in speech bubbles.
 
 ## Music and sound effects
 
@@ -61,7 +92,9 @@ The game plays a looping playlist of licensed production music (APM) and sound e
 
 ## 3D models and icons
 
-All 14 brainrots were made with Higgsfield (concept art with GPT Image 2.5, then SAM 3 3D) and turned into blocky models like the original game: each model is cut into blocks 48 tall, every block takes the colour of the model under it, and same-coloured faces are merged. The Index, Rebirth and Shop buttons, the shop cards and the boost timers use icons made with Higgsfield too.
+All 34 brainrots were made with Higgsfield (blocky concept art with GPT Image 2.5, using the Roblox-style reference line-up, then SAM 3 3D) and turned into blocky models like the original game: each model is cut into blocks 48 tall, every block takes the colour of the model under it, stray speckles are cleaned up, and same-coloured faces are merged. The Index, Rebirth and Shop buttons, the shop cards (including the four troll items) and the boost timers use icons made with Higgsfield too.
+
+**Customuse:** the Customuse account connected here has 0 credits, so no models could be generated there. To use Customuse models, top up at customuse.com, generate or pick a model, import it in Studio (File → Import 3D) and put it in `ReplicatedStorage.BrainrotModels` named after the brainrot's Id (see below) — it replaces the built-in model automatically.
 
 Nothing has to be uploaded to Roblox first: the models and icons are stored as compressed data in `ReplicatedStorage.Assets`, and each player's game rebuilds them with Roblox's EditableMesh and EditableImage. Mesh parts are made a few at a time and retried if Roblox refuses one (for example when a player joins a busy server), and a brainrot that streams out and back in gets its model rebuilt, so conveyor brainrots don't end up as plain block figures. If a player's game still can't build a model (for example, the device is out of memory), that player sees the simple block figure instead, and everything else works the same. The Output window then shows an `[AssetLoader]` warning with the reason.
 
@@ -73,7 +106,7 @@ An unpublished place can't use DataStores or sell products, so in Studio you get
 
 1. Publish the place (File → Publish to Roblox).
 2. Turn on Game Settings → Security → **Enable Studio Access to API Services**.
-3. Create the four developer products in the Creator Dashboard, upload the icons from `ProductIcons/`, and put the real IDs in `ReplicatedStorage/Shared/MonetizationConfig.luau`. Do the same for the game passes (VIP, DoubleCash).
+3. Create the eight developer products in the Creator Dashboard (Cash bundles, EMP Laser Overrider, Server Rarity Boost, Freeze Ray, Spike Trap, Land Mine and Boogie Bomb), upload the icons from `ProductIcons/`, and put the real IDs in `ReplicatedStorage/Shared/MonetizationConfig.luau`. Do the same for the game passes (VIP, DoubleCash).
 
 Global leaderboards also need a published place with API access; until then the boards rank the players in the current server.
 
@@ -81,24 +114,26 @@ Global leaderboards also need a published place with API access; until then the 
 
 | Path | What it is |
 |---|---|
-| `ServerScriptService/DataAndMonetizationManager.server.luau` | Player data (Cash, Steals, Rebirths, game passes, brainrots, gear, pad Cash, offline time), leaderstats and all Robux purchases |
-| `ServerScriptService/GameplayManager.server.luau` | Bases, conveyor, walking home and buying brainrots off other players, collect pads and offline cash, mutations and events, spawn timers, stealing, lasers, rebirths |
-| `ServerScriptService/GearManager.server.luau` | Gear Shop and the Slap, coils and cloak |
+| `ServerScriptService/DataAndMonetizationManager.server.luau` | Player data (Cash, Steals, Rebirths, game passes, brainrots, gear, troll item charges, pad Cash, offline time), leaderstats and all Robux purchases |
+| `ServerScriptService/GameplayManager.server.luau` | Bases and their floors, conveyor, walking home (up the stairs) and buying brainrots off other players, collect pads and offline cash, mutations and events (including Cash Rain), spawn timers, stealing, lasers, rebirths |
+| `ServerScriptService/GearManager.server.luau` | Gear Shop, the slap glove, coils and cloak, and the troll items (Freeze Ray, Spike Trap, Land Mine, Boogie Bomb) |
+| `ServerScriptService/WorldManager.server.luau` | Day and night, street lamps and the weather |
 | `ServerScriptService/LeaderboardManager.server.luau` | Global leaderboards and the logo board |
-| `StarterPlayerScripts/GameClient.client.luau` | HUD, Robux Shop, Gear Shop, rebirth screen, Index, pop-up messages, music button, event effects, clouds |
-| `StarterPlayerScripts/BrainrotVisuals.client.luau` | Blocky 3D models, rarity and mutation effects, walk cycle and other animations |
+| `StarterPlayerScripts/GameClient.client.luau` | HUD, Robux Shop, Gear Shop, rebirth screen, Index, pop-up messages, music button, clouds |
+| `StarterPlayerScripts/BrainrotVisuals.client.luau` | Blocky 3D models, rarity and mutation effects, walking, flying, driving, spinning and hopping |
+| `StarterPlayerScripts/WorldEffects.client.luau` | Weather, event skies and falling particles, lightning, animated shopkeepers, Cash Rain coins, the troll item banner |
 | `ReplicatedStorage/Shared/AssetLoader.luau` | Rebuilds the blocky models (body and legs) and icons from `ReplicatedStorage/Assets` |
 | `ReplicatedStorage/Shared/Sounds.luau` | Plays the music and sound effects on each player's game |
 | `ReplicatedStorage/Shared/AudioConfig.luau` | Music playlist and sound effect IDs |
-| `ReplicatedStorage/Shared/GearConfig.luau` | Gear prices, descriptions and tuning |
+| `ReplicatedStorage/Shared/GearConfig.luau` | Gear prices, descriptions and tuning, and the troll items |
 | `ReplicatedStorage/Assets/` | Packed models and icons, generated by `tools/build_assets.py` |
 | `BrainrotModels/` | Smooth models (`.glb`), blocky models (`Blocky/*.glb`) and `preview.png` |
 | `ReplicatedStorage/Shared/BrainrotConfig.luau` | Every brainrot, rarity and mutation: prices, income, colours, spawn chances |
-| `ReplicatedStorage/Shared/GameConfig.luau` | Gameplay tuning: conveyor and walking speed, spawn timers, lock time, offline cash, events, rebirth cost, ... |
+| `ReplicatedStorage/Shared/GameConfig.luau` | Gameplay tuning: conveyor and walking speed, spawn timers, floors, lock time, offline cash, events, day length, weather, rebirth cost, ... |
 | `ReplicatedStorage/Shared/MonetizationConfig.luau` | Product and game pass IDs and shop text |
 | `ReplicatedStorage/Shared/NumberFormat.luau` | `$1.2K`-style number formatting |
 | `Workspace/Map.model.json` | The map, generated by `tools/generate_map.py` |
-| `ProductIcons/` | 1024×1024 icons for the four developer products (made with Higgsfield) |
+| `ProductIcons/` | 1024×1024 icons for the eight developer products (made with Higgsfield) |
 | `UIIcons/` | Index, Rebirth and Shop button icons (made with Higgsfield) |
 | `StealABrainrot-TestPlace.rbxlx` | The built place |
 | `default.project.json` | [Rojo](https://rojo.space) project that builds the place |

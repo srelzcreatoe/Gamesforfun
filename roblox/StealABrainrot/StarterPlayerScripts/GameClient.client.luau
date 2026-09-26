@@ -18,7 +18,6 @@
 	prompt, rebirth and gear request.
 ]]
 
-local Lighting = game:GetService("Lighting")
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -65,10 +64,18 @@ local COLORS = {
 	Music = Color3.fromRGB(255, 120, 190),
 }
 -- Mutation events: chip colour and the sky tint.
+-- Event chip colour by the event's sky.
 local EVENT_COLORS: { [string]: Color3 } = {
 	Gold = Color3.fromRGB(255, 200, 40),
 	Diamond = Color3.fromRGB(90, 210, 255),
 	Rainbow = Color3.fromRGB(255, 90, 200),
+	Blood = Color3.fromRGB(200, 20, 40),
+	Galaxy = Color3.fromRGB(130, 70, 240),
+	Lava = Color3.fromRGB(255, 110, 20),
+	Frost = Color3.fromRGB(120, 200, 255),
+	Taco = Color3.fromRGB(240, 170, 40),
+	Lucky = Color3.fromRGB(60, 190, 80),
+	Cash = Color3.fromRGB(46, 180, 100),
 }
 -- Sounds for pop-up messages that don't name their own.
 local TOAST_SOUNDS: { [string]: string } = {
@@ -392,12 +399,26 @@ end
 -- Shop
 --------------------------------------------------------------------------------
 
-local shopFrame, shopBody = modal("Shop", "ROBUX SHOP", Color3.fromRGB(215, 70, 170), Vector2.new(660, 480))
-create("UIGridLayout", {
-	CellSize = UDim2.new(0.5, -8, 0.5, -8),
-	CellPadding = UDim2.fromOffset(12, 12),
-	SortOrder = Enum.SortOrder.LayoutOrder,
-}).Parent = shopBody
+local shopFrame, shopBody = modal("Shop", "ROBUX SHOP", Color3.fromRGB(215, 70, 170), Vector2.new(700, 500))
+local shopList = create("ScrollingFrame", {
+	Name = "Products",
+	Size = UDim2.fromScale(1, 1),
+	BackgroundTransparency = 1,
+	BorderSizePixel = 0,
+	ScrollBarThickness = 8,
+	ScrollBarImageColor3 = Color3.fromRGB(215, 70, 170),
+	CanvasSize = UDim2.new(),
+	AutomaticCanvasSize = Enum.AutomaticSize.Y,
+	ScrollingDirection = Enum.ScrollingDirection.Y,
+}, {
+	create("UIGridLayout", {
+		CellSize = UDim2.new(0.5, -10, 0, 170),
+		CellPadding = UDim2.fromOffset(12, 12),
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	}),
+	create("UIPadding", { PaddingRight = UDim.new(0, 8) }),
+}) :: ScrollingFrame
+shopList.Parent = shopBody
 
 -- Only trust product details that belong to this experience's creator, so a
 -- placeholder ID never shows another game's product.
@@ -517,7 +538,7 @@ for index, product in MonetizationConfig.ShopProducts do
 		end
 	end)
 
-	card.Parent = shopBody
+	card.Parent = shopList
 end
 
 --------------------------------------------------------------------------------
@@ -1156,8 +1177,8 @@ task.spawn(function()
 		eventChip.Visible = typeof(eventName) == "string" and eventEndsAt > now
 		if eventChip.Visible then
 			eventChip.Text = string.format("%s  %s", string.upper(tostring(eventName)), NumberFormat.duration(eventEndsAt - now))
-			local mutation = ReplicatedStorage:GetAttribute("EventMutation")
-			eventChip.BackgroundColor3 = if typeof(mutation) == "string" then EVENT_COLORS[mutation] or COLORS.Boost else COLORS.Boost
+			local sky = ReplicatedStorage:GetAttribute("EventSky")
+			eventChip.BackgroundColor3 = if typeof(sky) == "string" then EVENT_COLORS[sky] or COLORS.Boost else COLORS.Boost
 		end
 
 		local income = tonumber(player:GetAttribute("IncomePerSecond")) or 0
@@ -1170,64 +1191,6 @@ task.spawn(function()
 		baseMarker.Enabled = sign ~= nil
 
 		task.wait(0.25)
-	end
-end)
-
---------------------------------------------------------------------------------
--- Mutation events: tinted sky and falling sparkles in the event's colour
---------------------------------------------------------------------------------
-
-local eventTint = create("ColorCorrectionEffect", {
-	Name = "EventTint",
-	Enabled = false,
-}) :: ColorCorrectionEffect
-eventTint.Parent = Lighting
-
-local eventSky = create("Part", {
-	Name = "EventSparkles",
-	Anchored = true,
-	CanCollide = false,
-	CanQuery = false,
-	CanTouch = false,
-	Transparency = 1,
-	Size = Vector3.new(120, 1, 120),
-}) :: Part
-local eventEmitter = create("ParticleEmitter", {
-	Rate = 0,
-	Lifetime = NumberRange.new(4, 6),
-	Speed = NumberRange.new(10, 14),
-	EmissionDirection = Enum.NormalId.Bottom,
-	SpreadAngle = Vector2.new(10, 10),
-	LightEmission = 1,
-	LightInfluence = 0,
-	Size = NumberSequence.new(0.6),
-	RotSpeed = NumberRange.new(-120, 120),
-}) :: ParticleEmitter
-eventEmitter.Parent = eventSky
-
-RunService.RenderStepped:Connect(function()
-	local mutation = ReplicatedStorage:GetAttribute("EventMutation")
-	local endsAt = tonumber(ReplicatedStorage:GetAttribute("EventEndsAt")) or 0
-	local active = typeof(mutation) == "string" and endsAt > Workspace:GetServerTimeNow()
-	local colour = if active and typeof(mutation) == "string" then EVENT_COLORS[mutation] else nil
-	if colour == nil then
-		eventTint.Enabled = false
-		eventEmitter.Rate = 0
-		return
-	end
-	if mutation == "Rainbow" then
-		colour = Color3.fromHSV((os.clock() * 0.15) % 1, 0.7, 1)
-	end
-	eventTint.Enabled = true
-	eventTint.TintColor = Color3.new(1, 1, 1):Lerp(colour, 0.18)
-	eventEmitter.Color = ColorSequence.new(colour, Color3.new(1, 1, 1))
-	eventEmitter.Rate = 60
-	local camera = Workspace.CurrentCamera
-	if camera then
-		eventSky.CFrame = CFrame.new(camera.CFrame.Position + Vector3.new(0, 40, 0))
-		if eventSky.Parent ~= camera then
-			eventSky.Parent = camera
-		end
 	end
 end)
 
