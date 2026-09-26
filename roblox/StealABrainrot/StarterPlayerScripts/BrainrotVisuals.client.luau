@@ -110,20 +110,20 @@ type Visual = {
 
 local RARITY_EFFECTS: { [string]: RarityEffect } = {
 	Common = { Light = 0, Range = 0, Sparkles = 0, Aura = false, Pulse = false, Reflectance = 0 },
-	Rare = { Light = 0.8, Range = 8, Sparkles = 2, Aura = false, Pulse = false, Reflectance = 0.02 },
-	Epic = { Light = 1.3, Range = 10, Sparkles = 4, Aura = false, Pulse = false, Reflectance = 0.05 },
-	Legendary = { Light = 2, Range = 13, Sparkles = 7, Aura = true, Pulse = false, Reflectance = 0.1 },
-	Mythic = { Light = 3, Range = 16, Sparkles = 11, Aura = true, Pulse = true, Reflectance = 0.14 },
+	Rare = { Light = 0.4, Range = 6, Sparkles = 2, Aura = false, Pulse = false, Reflectance = 0.02 },
+	Epic = { Light = 0.6, Range = 7, Sparkles = 4, Aura = false, Pulse = false, Reflectance = 0.05 },
+	Legendary = { Light = 0.9, Range = 8, Sparkles = 7, Aura = true, Pulse = false, Reflectance = 0.1 },
+	Mythic = { Light = 1.2, Range = 9, Sparkles = 11, Aura = true, Pulse = true, Reflectance = 0.14 },
 	["Brainrot God"] = {
-		Light = 3.5,
-		Range = 18,
+		Light = 1.4,
+		Range = 10,
 		Sparkles = 14,
 		Aura = true,
 		Pulse = true,
 		Reflectance = 0.16,
 		RainbowLight = true,
 	},
-	Secret = { Light = 3, Range = 18, Sparkles = 16, Aura = true, Pulse = true, Reflectance = 0.2, Dark = true },
+	Secret = { Light = 1.3, Range = 10, Sparkles = 16, Aura = true, Pulse = true, Reflectance = 0.2, Dark = true },
 }
 
 local MUTATION_REFLECTANCE: { [string]: number } = {
@@ -226,8 +226,8 @@ local function addTraitEffects(visual: Visual, traitName: string?)
 		local glow = Instance.new("PointLight")
 		glow.Name = "FireGlow"
 		glow.Color = Color3.fromRGB(255, 140, 40)
-		glow.Brightness = 2
-		glow.Range = 10 * math.max(scale, 1)
+		glow.Brightness = 0.9
+		glow.Range = 8 * math.clamp(scale, 1, 1.5)
 		glow.Parent = part
 	elseif traitName == "Glitched" then
 		visual.Glitch = true
@@ -289,8 +289,8 @@ local function addEffects(visual: Visual, rarityName: string?, mutationName: str
 	local brightness = if effect then effect.Light else 0
 	local range = if effect then effect.Range else 0
 	if mutation then
-		brightness = math.max(brightness, 1.6)
-		range = math.max(range, 12)
+		brightness = math.max(brightness, 0.8)
+		range = math.max(range, 8)
 	end
 
 	local reflectance = math.max(
@@ -306,7 +306,7 @@ local function addEffects(visual: Visual, rarityName: string?, mutationName: str
 		light.Name = "Glow"
 		light.Color = glowColour
 		light.Brightness = brightness
-		light.Range = range * math.max(scale, 1)
+		light.Range = range * math.clamp(scale, 1, 1.5)
 		light.Shadows = false
 		light.Parent = part
 		visual.Light = light
@@ -488,9 +488,9 @@ local function attachImported(instance: Model)
 		local highlight = Instance.new("Highlight")
 		highlight.Name = "MutationGlow"
 		highlight.FillColor = mutationInfo.Color
-		highlight.FillTransparency = 0.6
+		highlight.FillTransparency = 0.78
 		highlight.OutlineColor = mutationInfo.Color
-		highlight.OutlineTransparency = 0.15
+		highlight.OutlineTransparency = 0.35
 		highlight.DepthMode = Enum.HighlightDepthMode.Occluded
 		highlight.Adornee = instance
 		highlight.Parent = instance

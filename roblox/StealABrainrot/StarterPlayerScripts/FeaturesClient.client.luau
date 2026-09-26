@@ -188,16 +188,11 @@ end
 -- Side buttons
 --------------------------------------------------------------------------------
 
-local leftColumn = UIKit.sideColumn(screen, "MoreButtons", 3, {
-	AnchorPoint = Vector2.new(0, 0.5),
-	Position = UDim2.new(0, 16 + UIKit.SideSize + 20, 0.5, 10),
-})
-local rightColumn = UIKit.sideColumn(screen, "RightButtons", 3, {
-	AnchorPoint = Vector2.new(1, 0.5),
-	Position = UDim2.new(1, -16, 0.5, 10),
-})
-UIKit.autoScale(leftColumn)
-UIKit.autoScale(rightColumn)
+local leftColumn = UIKit.sideColumn(screen, "MoreButtons", 3, {})
+local rightColumn = UIKit.sideColumn(screen, "RightButtons", 3, {})
+-- Next to the Index / Rebirth / Shop column, and at the right edge.
+UIKit.placeSideColumn(leftColumn, false, 1)
+UIKit.placeSideColumn(rightColumn, true, 0)
 
 local buttons = {
 	Spin = UIKit.sideButton(leftColumn, "SpinButton", "Spin", ACCENTS.Spin, "Spin", 1, "🎡"),

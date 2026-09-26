@@ -910,8 +910,9 @@ updateStun()
 
 type PlotLook = {
 	Trim: { BasePart },
-	Lights: { PointLight },
+	Lights: { Light },
 	LightColours: { Color3 },
+	LightBrightness: { number },
 	Panels: { BasePart },
 	PanelColours: { Color3 },
 	AlarmOn: boolean,
@@ -920,7 +921,16 @@ type PlotLook = {
 
 local plotLooks: { [Instance]: PlotLook } = {}
 for _, plot in plotsFolder:GetChildren() do
-	local look: PlotLook = { Trim = {}, Lights = {}, LightColours = {}, Panels = {}, PanelColours = {}, AlarmOn = false, Stars = nil }
+	local look: PlotLook = {
+		Trim = {},
+		Lights = {},
+		LightColours = {},
+		LightBrightness = {},
+		Panels = {},
+		PanelColours = {},
+		AlarmOn = false,
+		Stars = nil,
+	}
 	for _, descendant in plot:GetDescendants() do
 		if descendant:IsA("BasePart") and descendant:GetAttribute("SkinTrim") == true then
 			table.insert(look.Trim, descendant)
@@ -929,9 +939,10 @@ for _, plot in plotsFolder:GetChildren() do
 	local lamps = plot:FindFirstChild("Lamps")
 	if lamps then
 		for _, descendant in lamps:GetDescendants() do
-			if descendant:IsA("PointLight") then
+			if descendant:IsA("Light") then
 				table.insert(look.Lights, descendant)
 				table.insert(look.LightColours, descendant.Color)
+				table.insert(look.LightBrightness, descendant.Brightness)
 			elseif descendant:IsA("BasePart") and string.match(descendant.Name, "^Lamp") then
 				table.insert(look.Panels, descendant)
 				table.insert(look.PanelColours, descendant.Color)
@@ -986,9 +997,9 @@ local function animatePlots(t: number)
 		local alarm = plot:GetAttribute("Alarm") == true
 		if alarm then
 			local on = math.sin(t * 12) > 0
-			for _, light in look.Lights do
+			for index, light in look.Lights do
 				light.Color = ALARM_RED
-				light.Brightness = if on then 3 else 0.6
+				light.Brightness = look.LightBrightness[index] * (if on then 2 else 0.4)
 			end
 			for _, panel in look.Panels do
 				panel.Color = if on then ALARM_RED else Color3.fromRGB(90, 10, 10)
@@ -998,7 +1009,7 @@ local function animatePlots(t: number)
 			look.AlarmOn = false
 			for index, light in look.Lights do
 				light.Color = look.LightColours[index]
-				light.Brightness = 1.4
+				light.Brightness = look.LightBrightness[index]
 			end
 			for index, panel in look.Panels do
 				panel.Color = look.PanelColours[index]

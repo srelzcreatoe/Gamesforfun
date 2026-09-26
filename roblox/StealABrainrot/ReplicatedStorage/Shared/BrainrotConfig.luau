@@ -137,18 +137,22 @@ local Brainrots: { Brainrot } = {
 	brainrot("CapibaraTacoloco", "Capibara Tacoloco", "Legendary", 75000, 420, rgb(150, 100, 50), rgb(240, 200, 60), 1.1, "Walk", TACO),
 	brainrot("Cioccolatone", "Cioccolatone", "Legendary", 100000, 550, rgb(110, 60, 30), rgb(255, 150, 190), 1.3),
 	brainrot("PeperoncinoFigo", "Peperoncino Figo", "Legendary", 130000, 700, rgb(220, 30, 30), rgb(80, 200, 60), 1.3, "Walk", TACO),
+	brainrot("ChefCrabracadabra", "Chef Crabracadabra", "Legendary", 160000, 850, rgb(215, 35, 30), rgb(245, 245, 245), 1.2),
 	-- Mythic
 	brainrot("BombardiroCrocodilo", "Bombardiro Crocodilo", "Mythic", 250000, 1200, rgb(80, 150, 60), rgb(150, 150, 160), 0.8, "Fly"),
 	brainrot("TralaleroTralala", "Tralalero Tralala", "Mythic", 400000, 1800, rgb(40, 130, 230), rgb(250, 250, 250), 1.3),
 	brainrot("CoccodrilloTacorito", "Coccodrillo Tacorito", "Mythic", 600000, 2600, rgb(230, 200, 140), rgb(60, 170, 60), 1.4, "Walk", TACO),
 	brainrot("RattoSchiaffone", "Ratto Schiaffone", "Mythic", 850000, 3500, rgb(30, 30, 35), rgb(170, 60, 230), 1.4),
+	brainrot("FrigoCamelo", "Frigo Camelo", "Mythic", 1200000, 4800, rgb(235, 235, 240), rgb(210, 150, 80), 1.4),
 	-- Brainrot God
 	brainrot("GattoPizzanave", "Gatto Pizzanave", "Brainrot God", 2000000, 8000, rgb(240, 170, 70), rgb(150, 150, 160), 1, "Fly"),
 	brainrot("PiccioneMacchina", "Piccione Macchina", "Brainrot God", 3500000, 13000, rgb(140, 140, 150), rgb(60, 160, 120), 1.4, "Drive"),
 	brainrot("TacoplanoBombardino", "Tacoplano Bombardino", "Brainrot God", 5000000, 18000, rgb(130, 130, 140), rgb(240, 200, 60), 0.75, "Fly", TACO),
+	brainrot("CocofantoElefanto", "Cocofanto Elefanto", "Brainrot God", 8000000, 26000, rgb(120, 70, 35), rgb(150, 150, 160), 1.5),
 	-- Secret
 	brainrot("SpaghettiTualetti", "Spaghetti Tualetti", "Secret", 15000000, 50000, rgb(245, 245, 245), rgb(250, 210, 80), 1.5, "Hop"),
 	brainrot("TacoritaBicicleta", "Tacorita Bicicleta", "Secret", 25000000, 75000, rgb(240, 200, 60), rgb(40, 110, 230), 1.4, "Drive", TACO),
+	brainrot("LaVacaSaturnoSaturnita", "La Vaca Saturno Saturnita", "Secret", 35000000, 110000, rgb(245, 150, 50), rgb(240, 200, 40), 1.5),
 	brainrot("SessantaSette", "67", "Secret", 67000000, 167000, rgb(40, 140, 240), rgb(250, 250, 250), 1.8),
 }
 

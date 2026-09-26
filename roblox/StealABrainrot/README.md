@@ -2,11 +2,11 @@
 
 A playable Roblox game: buy brainrots and lucky blocks from the conveyor, watch them walk home (other players can buy them off you on the way), collect the Cash they earn from the pads in your base (even while you're offline), steal other players' brainrots (your base sounds the alarm), lock your base with a laser door, troll thieves with freeze rays, spike traps, land mines and Boogie Bombs, trade and fuse brainrots, fill the Index, spin the wheel, do daily quests and survive ADMIN ABUSE.
 
-![All 34 brainrot models](BrainrotModels/Import/preview.png)
+![All 38 brainrot models](BrainrotModels/Import/preview.png)
 
 ## Open it in Studio
 
-Double-click `StealABrainrot-TestPlace.rbxlx`, or open Roblox Studio and use File → Open from File. The map is visible straight away: a studded red-carpet conveyor between two tunnels, 8 well-spaced 4-storey bases (neon trim, real see-through glass windows on every floor, a flag on the roof, stairs up to every floor and green collect pads), long carpets from the conveyor to each base, the Robux Shop (run by a rat in a suit with a galaxy slap glove) and Gear Shop stalls, the glowing Fuse Machine, the global leaderboards, trees, bushes, rocks and street lamps, and a dirt-and-grass border.
+Double-click `StealABrainrot-TestPlace.rbxlx`, or open Roblox Studio and use File → Open from File. The map is visible straight away: a studded red-carpet conveyor between two tunnels, 8 well-spaced 4-storey bases (neon trim, real see-through glass windows on every floor, a flag on the roof, stairs up to every floor and green collect pads), long carpets from the conveyor to each base, the Robux Shop (run by a rat in a suit with a galaxy slap glove) and Gear Shop stalls, the glowing Fuse Machine by the spawn tunnel, the global leaderboards, trees, bushes, rocks and street lamps, and a dirt-and-grass border.
 
 Press **Play** (or **Test → Start** with 2 players to try stealing).
 
@@ -15,7 +15,7 @@ Press **Play** (or **Test → Start** with 2 players to try stealing).
 The real 3D models (made with Higgsfield and Customuse) are in one file, `BrainrotModels/Import/BrainrotModels.glb`. Roblox only shows real meshes after they're uploaded to your account, and Studio does that for you when you import:
 
 1. In Studio: **File → Import 3D** (or the Avatar tab → Import 3D) and pick `BrainrotModels.glb`.
-2. Press **Import**. A model with all 34 brainrots appears in the Workspace (you can move it into ReplicatedStorage, but you don't have to).
+2. Press **Import**. A model with all 38 brainrots appears in the Workspace (you can move it into ReplicatedStorage, but you don't have to).
 3. **File → Save** so the place keeps it.
 
 That's it: the game finds the models by their part names (`TimCheese_Body`, `TimCheese_Leg1`, ...), stands each one up facing the right way, and uses them for every brainrot, with its own animation: legs that walk, flying, driving, spinning and hopping, bobbing when idle and wriggling when carried. They load like any Roblox mesh. Tip: right-click the imported model → **Save to File** to keep a `.rbxm` you can drop into any newer version of the place instead of importing again.
@@ -43,7 +43,7 @@ Until you import them, each player's game builds blocky versions of the models i
 | Quests | **Quests** button: three daily quests (buy 5 brainrots, steal 2, open a lucky block, slap 5 players, ...) and a Mythic Lucky Block for finishing all three |
 | Gifts | **Gifts** button: the 7-day login streak (a better reward each day, up to a Brainrot God Lucky Block), playtime gifts that unlock after 3 to 60 minutes played today, codes, and the Group Chest |
 | Trade | **Trade** button: pick a player; each of you puts up to 4 brainrots on the table, both press Ready and it swaps after a 5 second countdown (any change un-readies both) |
-| Fuse | Walk up to the Fuse Machine: put in 3 brainrots of one rarity and get a random one of the next rarity (it keeps the mutation if all 3 share it) |
+| Fuse | Walk up to the Fuse Machine (by the tunnel where brainrots come out): put in 3 brainrots of one rarity and get a random one of the next rarity (it keeps the mutation if all 3 share it) |
 | Upgrade | **Upgrade** button: walk speed levels (+2 speed each, 10 levels) and base skins |
 | Settings | **Settings** button: music and sound volume, low graphics (no weather or sparkles), skip the tutorial |
 | Gear Shop | The Gear Shop stall: gear bought with Cash and kept forever (see below) |
@@ -101,7 +101,7 @@ A full day passes every 10 minutes (the night is shorter), and the street lamps 
 
 ### Rarities, mutations and spawn timers
 
-- **34 brainrots** in 7 rarities: Common, Rare, Epic, Legendary, Mythic, **Brainrot God** (rainbow name and glow) and **Secret** (black name with a white outline, dark smoke and white sparks) — from Noobini Pizzanini up to Tralalero Tralala, Ratto Schiaffone, Gatto Pizzanave, Tacorita Bicicleta and the Secret **67**. Rarer brainrots glow in their rarity colour, sparkle and have a rising aura; Mythic and up pulse.
+- **38 brainrots** in 7 rarities: Common, Rare, Epic, Legendary, Mythic, **Brainrot God** (rainbow name and glow) and **Secret** (black name with a white outline, dark smoke and white sparks) — from Noobini Pizzanini up to Chef Crabracadabra, Frigo Camelo, Tralalero Tralala, Ratto Schiaffone, Gatto Pizzanave, Cocofanto Elefanto, Tacorita Bicicleta, **La Vaca Saturno Saturnita** and the Secret **67**. Rarer brainrots glow in their rarity colour, sparkle and have a rising aura; Mythic and up pulse.
 - **Mutations**, rolled when a brainrot spawns: **Gold** (6%, x1.5 income and price), **Diamond** (2.5%, x2) and **Rainbow** (0.6%, x5), plus the event-only **Bloodrot** (x3), **Galaxy** (x4), **Lava** (x3.5, on fire) and **Frozen** (x2.5). Mutated brainrots are recoloured, shine and sparkle in their colour; Rainbow cycles through every colour. Mutations are saved with the brainrot.
 - **Traits**, rolled like mutations and stacking with them: **Fire** (3%, x2, burns), **Tiny** (3%, x1.5, small), **Giant** (2%, x3, big), **Glitched** (0.6%, x6, flickers and jumps about) and **Nyan** (0.3%, x8, a rainbow trail). A Fire Gold Tim Cheese earns 1.5 x 2 = 3x.
 - **Guaranteed spawns**: the sign over the spawn tunnel counts down to a guaranteed Legendary (every 4 minutes), Mythic (10 minutes), Brainrot God (20 minutes) and Secret (45 minutes).
@@ -129,10 +129,10 @@ The game plays a looping playlist of licensed production music (APM) and sound e
 
 ## 3D models and icons
 
-The imported models are the originals, simplified to fit a Roblox MeshPart (9,000 triangles and a 1024×1024 texture each) and cut at the hip so the legs can swing (`tools/build_import.py` builds the file). The blocky fallback models were made from them too: all 34 brainrots were made from blocky concept art (GPT Image 2.5 on Higgsfield, using the Roblox-style reference line-up) turned into 3D, then into blocky models like the original game: each model is cut into blocks 40 tall, every block takes the colour most of the model's texture under it has (so eyes, ties and glasses stay crisp), stray speckles are cleaned up, and same-coloured faces are merged.
+The imported models are the originals, simplified to fit a Roblox MeshPart (9,000 triangles and a 1024×1024 texture each) and cut at the hip so the legs can swing (`tools/build_import.py` builds the file). The blocky fallback models were made from them too: all 38 brainrots were made from blocky concept art (GPT Image 2.5 on Higgsfield, using the Roblox-style reference line-up) turned into 3D, then into blocky models like the original game: each model is cut into blocks 40 tall, every block takes the colour most of the model's texture under it has (so eyes, ties and glasses stay crisp), stray speckles are cleaned up, and same-coloured faces are merged.
 
 - **Customuse** (CR1 3D + Meshy texture from the same concept art) made the models whose details got lost the first time: Ratto Schiaffone (with his purple galaxy slap glove), Tung Tung Tung Sahur (with his bat), Tim Cheese, Lirili Larila, Bombardiro Crocodilo, Trippi Troppi, Tralalero Tralala and Brr Brr Patapim. The workflow is at https://customuse.com/workflow/02c37c8d-d0cb-430c-a948-816aad2d7f7c.
-- **Higgsfield** (SAM 3 3D) made the other 26.
+- **Higgsfield** (SAM 3 3D) made the other 30, including the four newest: La Vaca Saturno Saturnita, Cocofanto Elefanto, Frigo Camelo and Chef Crabracadabra.
 
 The side buttons (Index, Rebirth, Shop, Spin, Quests, Gifts, Trade, Upgrade, Settings), the shop cards (including the four troll items) and the boost timers use icons made with Higgsfield too (`UIIcons/`, `ProductIcons/`).
 

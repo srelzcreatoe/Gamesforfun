@@ -552,6 +552,42 @@ function UIKit.autoScale(target: GuiObject, designHeight: number?)
 	end
 end
 
+-- Places a column of side buttons: as big as fits between the top bar and
+-- the Cash in the bottom-left corner (never covering it), and a little above
+-- the middle of the screen. `slot` 0 is at the screen edge, 1 next to it.
+-- Pixels the columns keep clear: Roblox's top bar and the Cash, income and
+-- boost labels at the bottom.
+local SIDE_RESERVED_HEIGHT = 230
+local SIDE_CENTRE_OFFSET = -69
+
+function UIKit.placeSideColumn(column: Frame, onRight: boolean, slot: number)
+	local scale = Instance.new("UIScale")
+	scale.Name = "ScreenScale"
+	scale.Parent = column
+	local designHeight = column.Size.Y.Offset
+	local function update()
+		local camera = Workspace.CurrentCamera
+		local size = if camera then camera.ViewportSize else nil
+		local viewport = if typeof(size) == "Vector2" then size else Vector2.new(1280, 760)
+		if viewport.Y <= 1 then
+			return
+		end
+		local fit = math.min((viewport.Y - SIDE_RESERVED_HEIGHT) / designHeight, viewport.X / 1280)
+		local factor = math.clamp(fit, 0.5, 1)
+		scale.Scale = factor
+		local x = 16 + slot * (UIKit.SideSize + 20) * factor
+		column.AnchorPoint = Vector2.new(if onRight then 1 else 0, 0.5)
+		column.Position = if onRight
+			then UDim2.new(1, -x, 0.5, SIDE_CENTRE_OFFSET)
+			else UDim2.new(0, x, 0.5, SIDE_CENTRE_OFFSET)
+	end
+	update()
+	local camera = Workspace.CurrentCamera
+	if camera then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(update)
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Brainrot pictures: a still 3D model in a ViewportFrame.
 --------------------------------------------------------------------------------

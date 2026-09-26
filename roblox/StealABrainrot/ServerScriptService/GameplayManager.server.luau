@@ -742,14 +742,16 @@ local function addBodyPart(
 	return part
 end
 
-local function buildFigure(model: Model, root: BasePart, definition: Definition, glowColor: Color3?): number
+-- The simple block figure each client swaps for the brainrot's model (its
+-- glow and effects are added there).
+local function buildFigure(model: Model, root: BasePart, definition: Definition): number
 	local s = definition.Scale
 	local bodySize = if definition.BodyShape == "Ball" then Vector3.one * 2.8 * s else Vector3.new(2.6, 2.6, 2.2) * s
 	local bodyShape = if definition.BodyShape == "Ball" then Enum.PartType.Ball else Enum.PartType.Block
 	local white = Color3.new(1, 1, 1)
 	local black = Color3.new(0.1, 0.1, 0.1)
 
-	local body = addBodyPart(model, root, "Body", bodyShape, bodySize, Vector3.new(0, 1.5 * s, 0), definition.BodyColor, Enum.Material.SmoothPlastic)
+	addBodyPart(model, root, "Body", bodyShape, bodySize, Vector3.new(0, 1.5 * s, 0), definition.BodyColor, Enum.Material.SmoothPlastic)
 	addBodyPart(model, root, "Head", Enum.PartType.Ball, Vector3.one * 2.1 * s, Vector3.new(0, 3.7 * s, 0), definition.BodyColor, Enum.Material.SmoothPlastic)
 	for _, side in { -1, 1 } do
 		addBodyPart(model, root, "Eye", Enum.PartType.Ball, Vector3.one * 0.7 * s, Vector3.new(0.45 * side * s, 3.85 * s, -0.8 * s), white, Enum.Material.SmoothPlastic)
@@ -757,15 +759,6 @@ local function buildFigure(model: Model, root: BasePart, definition: Definition,
 		addBodyPart(model, root, "Foot", Enum.PartType.Block, Vector3.new(0.8, 0.5, 1) * s, Vector3.new(0.6 * side * s, 0.25 * s, 0), definition.AccentColor, Enum.Material.SmoothPlastic)
 	end
 	addBodyPart(model, root, "Hat", Enum.PartType.Block, Vector3.new(1.3, 0.6, 1.3) * s, Vector3.new(0, 4.85 * s, 0), definition.AccentColor, Enum.Material.SmoothPlastic)
-
-	if glowColor then
-		local light = Instance.new("PointLight")
-		light.Color = glowColor
-		light.Range = 12
-		light.Brightness = 2
-		light.Parent = body
-	end
-
 	return FIGURE_HEIGHT * s
 end
 
@@ -960,15 +953,27 @@ local RAINBOW = ColorSequence.new({
 	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 80, 200)),
 })
 
+-- A brainrot's label is sized in studs, so labels further away get smaller
+-- instead of piling up on the screen. Line heights are given in pixels of
+-- a label INFO_DESIGN_WIDTH wide, which is INFO_STUDS_WIDE studs across
+-- (less than the gap between two pedestals).
+local INFO_DESIGN_WIDTH = 260
+local INFO_STUDS_WIDE = 8
+
 local function addInfoLabel(parent: Instance, text: string, color: Color3, textSize: number, order: number, rainbow: boolean?): TextLabel
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
-	label.Size = UDim2.new(1, 0, 0, textSize + 6)
 	label.Font = Enum.Font.FredokaOne
 	label.Text = text
 	label.TextColor3 = if rainbow then Color3.new(1, 1, 1) else color
-	label.TextSize = textSize
+	label.TextScaled = true
 	label.LayoutOrder = order
+	label:SetAttribute("LineHeight", textSize + 6)
+
+	-- Up close the text stops growing.
+	local limit = Instance.new("UITextSizeConstraint")
+	limit.MaxTextSize = math.floor(textSize * 1.5)
+	limit.Parent = label
 
 	local outline = Instance.new("UIStroke")
 	outline.Color = Color3.new(0, 0, 0)
@@ -982,6 +987,28 @@ local function addInfoLabel(parent: Instance, text: string, color: Color3, textS
 	end
 	label.Parent = parent
 	return label
+end
+
+-- Sizes a label and its lines (again after a line is removed).
+local function layoutInfo(billboard: Instance?)
+	if billboard == nil or not billboard:IsA("BillboardGui") then
+		return
+	end
+	local total = 0
+	for _, child in billboard:GetChildren() do
+		if child:IsA("TextLabel") then
+			total += tonumber(child:GetAttribute("LineHeight")) or 0
+		end
+	end
+	if total <= 0 then
+		return
+	end
+	billboard.Size = UDim2.fromScale(INFO_STUDS_WIDE, INFO_STUDS_WIDE * total / INFO_DESIGN_WIDTH)
+	for _, child in billboard:GetChildren() do
+		if child:IsA("TextLabel") then
+			child.Size = UDim2.fromScale(1, (tonumber(child:GetAttribute("LineHeight")) or 0) / total)
+		end
+	end
 end
 
 local buildLuckyBlock: (model: Model, root: BasePart, definition: Definition) -> number
@@ -1071,8 +1098,8 @@ do
 
 		local light = Instance.new("PointLight")
 		light.Color = definition.BodyColor
-		light.Brightness = 2
-		light.Range = 12
+		light.Brightness = 1
+		light.Range = 9
 		light.Parent = body
 		body.Parent = model
 		model:SetAttribute("LuckyBlock", true)
@@ -1131,7 +1158,7 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, trait:
 	local height = if isBlock
 		then buildLuckyBlock(model, root, definition)
 		elseif template and template:IsA("Model") then buildCustomModel(model, root, template, FIGURE_HEIGHT * definition.Scale * traitScale)
-		else buildFigure(model, root, definition, if rarity and rarity.Glow then rarity.Color else nil)
+		else buildFigure(model, root, definition)
 	if not hasCustomModel and traitScale ~= 1 then
 		height *= traitScale
 	end
@@ -1156,12 +1183,8 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, trait:
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "Info"
 	billboard.Adornee = root
-	billboard.Size = UDim2.fromOffset(
-		260,
-		84 + (if price then 26 else 0) + (if mutation then 24 else 0) + (if trait then 24 else 0) + (if ownerText then 22 else 0)
-	)
 	billboard.StudsOffsetWorldSpace = Vector3.new(0, height + 2.4, 0)
-	billboard.MaxDistance = 90
+	billboard.MaxDistance = 80
 	billboard.LightInfluence = 0
 
 	local layout = Instance.new("UIListLayout")
@@ -1205,6 +1228,7 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, trait:
 	if price then
 		priceLabel = addInfoLabel(billboard, NumberFormat.cash(price), Color3.fromRGB(90, 255, 120), 22, 4)
 	end
+	layoutInfo(billboard)
 	billboard.Parent = root
 
 	return {
@@ -1215,6 +1239,11 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, trait:
 		OwnerLabel = ownerLabel,
 	}
 end
+
+local PROMPT_OFFSETS: { [string]: Vector2 } = {
+	Upgrade = Vector2.new(0, 84),
+	Open = Vector2.new(0, -84),
+}
 
 local function createPrompt(
 	attachment: Attachment,
@@ -1232,6 +1261,8 @@ local function createPrompt(
 	prompt.KeyboardKeyCode = keyCode
 	prompt.MaxActivationDistance = GameConfig.PromptDistance
 	prompt.RequiresLineOfSight = false
+	-- The owner's prompts share a spot: stack them so none hides another.
+	prompt.UIOffset = PROMPT_OFFSETS[kind] or Vector2.zero
 	prompt:SetAttribute("PromptKind", kind)
 	prompt:SetAttribute("Carried", false)
 	prompt:SetAttribute("Walking", false)
@@ -1313,6 +1344,7 @@ local function finishWalk(occupant: Occupant)
 	end
 	occupant.PriceLabel = nil
 	occupant.OwnerLabel = nil
+	layoutInfo(occupant.Root:FindFirstChild("Info"))
 end
 
 -- Height of the walkable surface at (x, z), looking down from `above`.

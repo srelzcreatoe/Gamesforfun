@@ -15021,9 +15021,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -15053,9 +15053,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -15065,16 +15065,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -15088,9 +15090,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -15120,9 +15122,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -15132,16 +15134,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -15155,9 +15159,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -15187,9 +15191,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -15199,16 +15203,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -15366,9 +15372,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -15398,9 +15404,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -15410,16 +15416,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -15433,9 +15441,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -15465,9 +15473,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -15477,16 +15485,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -15500,9 +15510,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -15532,9 +15542,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -15544,16 +15554,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -15711,9 +15723,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -15743,9 +15755,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -15755,16 +15767,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -15778,9 +15792,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -15810,9 +15824,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -15822,16 +15836,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -15845,9 +15861,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -15877,9 +15893,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -15889,16 +15905,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -16056,9 +16074,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -16088,9 +16106,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -16100,16 +16118,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -16123,9 +16143,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -16155,9 +16175,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -16167,16 +16187,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -16190,9 +16212,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -16222,9 +16244,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -16234,16 +16256,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -34171,9 +34195,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -34203,9 +34227,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -34215,16 +34239,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -34238,9 +34264,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -34270,9 +34296,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -34282,16 +34308,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -34305,9 +34333,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -34337,9 +34365,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -34349,16 +34377,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -34516,9 +34546,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -34548,9 +34578,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -34560,16 +34590,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -34583,9 +34615,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -34615,9 +34647,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -34627,16 +34659,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -34650,9 +34684,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -34682,9 +34716,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -34694,16 +34728,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -34861,9 +34897,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -34893,9 +34929,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -34905,16 +34941,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -34928,9 +34966,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -34960,9 +34998,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -34972,16 +35010,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -34995,9 +35035,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -35027,9 +35067,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -35039,16 +35079,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -35206,9 +35248,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -35238,9 +35280,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -35250,16 +35292,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -35273,9 +35317,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -35305,9 +35349,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -35317,16 +35361,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -35340,9 +35386,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -35372,9 +35418,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -35384,16 +35430,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -53321,9 +53369,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -53353,9 +53401,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -53365,16 +53413,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -53388,9 +53438,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -53420,9 +53470,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -53432,16 +53482,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -53455,9 +53507,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -53487,9 +53539,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -53499,16 +53551,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -53666,9 +53720,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -53698,9 +53752,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -53710,16 +53764,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -53733,9 +53789,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -53765,9 +53821,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -53777,16 +53833,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -53800,9 +53858,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -53832,9 +53890,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -53844,16 +53902,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -54011,9 +54071,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -54043,9 +54103,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -54055,16 +54115,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -54078,9 +54140,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -54110,9 +54172,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -54122,16 +54184,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -54145,9 +54209,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -54177,9 +54241,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -54189,16 +54253,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -54356,9 +54422,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -54388,9 +54454,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -54400,16 +54466,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -54423,9 +54491,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -54455,9 +54523,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -54467,16 +54535,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -54490,9 +54560,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -54522,9 +54592,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -54534,16 +54604,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -72471,9 +72543,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -72503,9 +72575,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -72515,16 +72587,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -72538,9 +72612,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -72570,9 +72644,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -72582,16 +72656,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -72605,9 +72681,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -72637,9 +72713,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -72649,16 +72725,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -72816,9 +72894,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -72848,9 +72926,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -72860,16 +72938,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -72883,9 +72963,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -72915,9 +72995,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -72927,16 +73007,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -72950,9 +73032,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -72982,9 +73064,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -72994,16 +73076,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -73161,9 +73245,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -73193,9 +73277,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -73205,16 +73289,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -73228,9 +73314,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -73260,9 +73346,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -73272,16 +73358,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -73295,9 +73383,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -73327,9 +73415,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -73339,16 +73427,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -73506,9 +73596,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -73538,9 +73628,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -73550,16 +73640,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -73573,9 +73665,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -73605,9 +73697,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -73617,16 +73709,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -73640,9 +73734,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -73672,9 +73766,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -73684,16 +73778,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -91621,9 +91717,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -91653,9 +91749,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -91665,16 +91761,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -91688,9 +91786,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -91720,9 +91818,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -91732,16 +91830,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -91755,9 +91855,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -91787,9 +91887,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -91799,16 +91899,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -91966,9 +92068,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -91998,9 +92100,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -92010,16 +92112,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -92033,9 +92137,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -92065,9 +92169,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -92077,16 +92181,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -92100,9 +92206,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -92132,9 +92238,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -92144,16 +92250,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -92311,9 +92419,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -92343,9 +92451,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -92355,16 +92463,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -92378,9 +92488,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -92410,9 +92520,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -92422,16 +92532,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -92445,9 +92557,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -92477,9 +92589,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -92489,16 +92601,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -92656,9 +92770,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -92688,9 +92802,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -92700,16 +92814,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -92723,9 +92839,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -92755,9 +92871,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -92767,16 +92883,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -92790,9 +92908,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -92822,9 +92940,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -92834,16 +92952,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -110771,9 +110891,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -110803,9 +110923,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -110815,16 +110935,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -110838,9 +110960,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -110870,9 +110992,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -110882,16 +111004,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -110905,9 +111029,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -110937,9 +111061,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -110949,16 +111073,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -111116,9 +111242,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -111148,9 +111274,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -111160,16 +111286,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -111183,9 +111311,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -111215,9 +111343,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -111227,16 +111355,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -111250,9 +111380,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -111282,9 +111412,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -111294,16 +111424,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -111461,9 +111593,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -111493,9 +111625,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -111505,16 +111637,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -111528,9 +111662,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -111560,9 +111694,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -111572,16 +111706,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -111595,9 +111731,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -111627,9 +111763,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -111639,16 +111775,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -111806,9 +111944,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -111838,9 +111976,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -111850,16 +111988,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -111873,9 +112013,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -111905,9 +112045,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -111917,16 +112057,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -111940,9 +112082,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -111972,9 +112114,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -111984,16 +112126,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -129921,9 +130065,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -129953,9 +130097,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -129965,16 +130109,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -129988,9 +130134,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -130020,9 +130166,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -130032,16 +130178,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -130055,9 +130203,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -130087,9 +130235,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -130099,16 +130247,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -130266,9 +130416,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -130298,9 +130448,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -130310,16 +130460,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -130333,9 +130485,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -130365,9 +130517,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -130377,16 +130529,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -130400,9 +130554,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -130432,9 +130586,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -130444,16 +130598,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -130611,9 +130767,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -130643,9 +130799,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -130655,16 +130811,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -130678,9 +130836,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -130710,9 +130868,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -130722,16 +130880,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -130745,9 +130905,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -130777,9 +130937,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -130789,16 +130949,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -130956,9 +131118,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -130988,9 +131150,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -131000,16 +131162,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -131023,9 +131187,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -131055,9 +131219,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -131067,16 +131231,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -131090,9 +131256,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -131122,9 +131288,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -131134,16 +131300,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -149071,9 +149239,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -149103,9 +149271,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -149115,16 +149283,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -149138,9 +149308,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -149170,9 +149340,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -149182,16 +149352,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -149205,9 +149377,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -149237,9 +149409,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -149249,16 +149421,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -149416,9 +149590,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -149448,9 +149622,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -149460,16 +149634,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -149483,9 +149659,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -149515,9 +149691,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -149527,16 +149703,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -149550,9 +149728,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -149582,9 +149760,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -149594,16 +149772,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -149761,9 +149941,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -149793,9 +149973,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -149805,16 +149985,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -149828,9 +150010,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -149860,9 +150042,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -149872,16 +150054,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -149895,9 +150079,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -149927,9 +150111,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -149939,16 +150123,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -150106,9 +150292,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -150138,9 +150324,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -150150,16 +150336,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -150173,9 +150361,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -150205,9 +150393,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -150217,16 +150405,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -150240,9 +150430,9 @@
                   "Properties": {
                     "Anchored": true,
                     "Size": [
-                      5,
-                      0.4,
-                      3
+                      4,
+                      0.3,
+                      1.6
                     ],
                     "CFrame": {
                       "CFrame": {
@@ -150272,9 +150462,9 @@
                     },
                     "Material": "Neon",
                     "Color": [
-                      0.96,
-                      0.96,
-                      0.96
+                      0.88,
+                      0.84,
+                      0.74
                     ],
                     "TopSurface": "Smooth",
                     "BottomSurface": "Smooth",
@@ -150284,16 +150474,18 @@
                   "Children": [
                     {
                       "Name": "Light",
-                      "ClassName": "PointLight",
+                      "ClassName": "SurfaceLight",
                       "Properties": {
-                        "Brightness": 1.4,
-                        "Range": 22,
+                        "Brightness": 0.9,
+                        "Range": 12,
                         "Color": [
                           1,
-                          0.96,
-                          0.88
+                          0.94,
+                          0.84
                         ],
-                        "Shadows": false
+                        "Shadows": false,
+                        "Face": "Bottom",
+                        "Angle": 120
                       },
                       "attributes": {
                         "AlwaysOn": true
@@ -158044,9 +158236,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  0.0,
+                  -205.0,
                   0.3,
-                  80.0
+                  42.0
                 ],
                 "orientation": [
                   [
@@ -158090,9 +158282,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  0.0,
+                  -205.0,
                   1.6,
-                  81.0
+                  43.0
                 ],
                 "orientation": [
                   [
@@ -158136,9 +158328,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  0.0,
+                  -205.0,
                   2.7,
-                  81.0
+                  43.0
                 ],
                 "orientation": [
                   [
@@ -158183,9 +158375,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  0.0,
+                  -205.0,
                   6.4,
-                  81.0
+                  43.0
                 ],
                 "orientation": [
                   [
@@ -158232,9 +158424,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  0.0,
+                  -205.0,
                   6.4,
-                  81.0
+                  43.0
                 ],
                 "orientation": [
                   [
@@ -158299,9 +158491,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  0.0,
+                  -205.0,
                   4.2,
-                  81.0
+                  43.0
                 ],
                 "orientation": [
                   [
@@ -158347,9 +158539,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  0.0,
+                  -205.0,
                   8.6,
-                  81.0
+                  43.0
                 ],
                 "orientation": [
                   [
@@ -158395,9 +158587,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  0.0,
+                  -205.0,
                   10.3,
-                  81.0
+                  43.0
                 ],
                 "orientation": [
                   [
@@ -158441,9 +158633,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  0.0,
+                  -205.0,
                   11.3,
-                  81.0
+                  43.0
                 ],
                 "orientation": [
                   [
@@ -158488,9 +158680,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  0.0,
+                  -205.0,
                   2.1,
-                  74.6
+                  36.6
                 ],
                 "orientation": [
                   [
@@ -158551,9 +158743,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  0.0,
+                  -205.0,
                   3.8,
-                  74.6
+                  36.6
                 ],
                 "orientation": [
                   [
@@ -158598,9 +158790,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  -4.6,
+                  -209.6,
                   5.6,
-                  81.0
+                  43.0
                 ],
                 "orientation": [
                   [
@@ -158644,9 +158836,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  -4.6,
+                  -209.6,
                   7.0,
-                  81.0
+                  43.0
                 ],
                 "orientation": [
                   [
@@ -158691,9 +158883,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  4.6,
+                  -200.4,
                   5.6,
-                  81.0
+                  43.0
                 ],
                 "orientation": [
                   [
@@ -158737,9 +158929,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  4.6,
+                  -200.4,
                   7.0,
-                  81.0
+                  43.0
                 ],
                 "orientation": [
                   [
@@ -158784,9 +158976,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  0.35,
+                  -204.65,
                   11.6,
-                  77.1
+                  39.1
                 ],
                 "orientation": [
                   [
@@ -158831,9 +159023,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  0.0,
+                  -205.0,
                   10.6,
-                  77.1
+                  39.1
                 ],
                 "orientation": [
                   [
@@ -158878,9 +159070,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  -0.35,
+                  -205.35,
                   9.6,
-                  77.1
+                  39.1
                 ],
                 "orientation": [
                   [
@@ -158925,9 +159117,9 @@
             "CFrame": {
               "CFrame": {
                 "position": [
-                  0.0,
+                  -205.0,
                   13,
-                  81.0
+                  43.0
                 ],
                 "orientation": [
                   [

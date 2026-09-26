@@ -205,15 +205,15 @@ UIKit.autoScale(chipRow)
 local boostPill = button("x1", Color3.fromRGB(255, 170, 40), {
 	Name = "BoostPill",
 	AnchorPoint = Vector2.new(0, 1),
-	Position = UDim2.new(0, 20, 1, -112),
-	Size = UDim2.fromOffset(96, 30),
+	Position = UDim2.new(0, 196, 1, -80),
+	Size = UDim2.fromOffset(84, 28),
 	Visible = false,
 })
 boostPill.Parent = screenGui
 local boostTip = label({
 	Name = "BoostInfo",
 	AnchorPoint = Vector2.new(0, 1),
-	Position = UDim2.new(0, 124, 1, -112),
+	Position = UDim2.new(0, 196, 1, -114),
 	Size = UDim2.fromOffset(260, 120),
 	BackgroundTransparency = 0.1,
 	BackgroundColor3 = COLORS.Panel,
@@ -240,12 +240,9 @@ end)
 -- like the original: a glossy colour block with a thick black outline and a
 -- shadow under it, the icon popping out of the top and a bold label. They
 -- bounce when hovered, squish when pressed and their icons bob about.
-local sideButtons = UIKit.sideColumn(screenGui, "SideButtons", 3, {
-	AnchorPoint = Vector2.new(0, 0.5),
-	Position = UDim2.new(0, 16, 0.5, 10),
-})
+local sideButtons = UIKit.sideColumn(screenGui, "SideButtons", 3, {})
 
-UIKit.autoScale(sideButtons)
+UIKit.placeSideColumn(sideButtons, false, 0)
 
 local function sideButton(name: string, text: string, color: Color3, iconName: string, order: number): TextButton
 	return UIKit.sideButton(sideButtons, name, text, color, iconName, order)

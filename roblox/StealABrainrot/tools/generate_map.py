@@ -119,6 +119,18 @@ def model(name, children):
     return {"Name": name, "ClassName": "Model", "Children": children}
 
 
+def surface_light(brightness, range_, color=(1, 1, 1), face="Bottom", angle=120):
+    """A light that only shines out of one face (a ceiling light shining
+    down), always on. Unlike a point light it can't shine up through the floor
+    above, so the floors of a base don't add up into a white-out."""
+    return {
+        "Name": "Light",
+        "ClassName": "SurfaceLight",
+        "Properties": {"Brightness": brightness, "Range": range_, "Color": list(color), "Shadows": False, "Face": face, "Angle": angle},
+        "attributes": {"AlwaysOn": True},
+    }
+
+
 def point_light(brightness, range_, color=(1, 1, 1), always_on=False):
     """A light; street lamps only shine at night, `always_on` ones (inside the
     bases and on the Fuse Machine) always do (see WorldManager)."""
@@ -395,14 +407,15 @@ def build_plot(index, origin, rotation):
             lamps.append(
                 part(
                     f"Lamp{number}",
-                    (5, 0.4, 3),
+                    (4, 0.3, 1.6),
                     f.at([x, ceiling, 12]),
                     r,
-                    WHITE,
+                    (0.88, 0.84, 0.74),
                     "Neon",
                     CanCollide=False,
                     CanQuery=False,
-                    children=[point_light(1.4, 22, (1, 0.96, 0.88), always_on=True)],
+                    # Reaches the floor under it, not the one below that.
+                    children=[surface_light(0.9, FLOOR_HEIGHT - 2, (1, 0.94, 0.84))],
                 )
             )
             number += 1
@@ -669,6 +682,9 @@ def build_shop_stalls():
     ]
 
 
+FUSE_MACHINE = [-205, 0, 42]
+
+
 def build_fuse_machine(origin, facing):
     """A glowing glass capsule on a metal base: bring three brainrots of one
     rarity and it fuses them into a rarer one. The counter opens its menu."""
@@ -871,7 +887,8 @@ def build_scenery():
         while True:
             x, z = rng.uniform(-280, 280), rng.uniform(-158, 158)
             near_base = any(abs(x - px) < 36 and 40 < abs(z) < 118 for px in PLOT_X)
-            if abs(z) > 118 or abs(x) > 238 or (abs(z) > 20 and not near_base and abs(x) > 26 and abs(abs(x) - 100) > 16):
+            near_fuse = abs(x - FUSE_MACHINE[0]) < 14 and abs(z - FUSE_MACHINE[2]) < 12
+            if not near_fuse and (abs(z) > 118 or abs(x) > 238 or (abs(z) > 20 and not near_base and abs(x) > 26 and abs(abs(x) - 100) > 16)):
                 break
         w = rng.uniform(2.5, 4.5)
         bushes.append(part(f"Bush{i + 1}", (w, w * 0.7, w), (round(x, 1), w * 0.35, round(z, 1)), IDENTITY, rng.choice(LEAF_GREENS), surfaces=STUDS))
@@ -925,7 +942,8 @@ def build_map():
             build_conveyor(),
             folder("Plots", plots),
             *build_shop_stalls(),
-            build_fuse_machine([0, 0, 80], 0),
+            # Near the spawn tunnel, facing the conveyor (clear of the shop signs).
+            build_fuse_machine(FUSE_MACHINE, 0),
             build_leaderboards(),
             build_scenery(),
             build_border(),
