@@ -9,32 +9,89 @@
         "$properties": {
           "Anchored": true,
           "Locked": true,
-          "Size": [512, 20, 512],
+          "Size": [
+            512,
+            20,
+            512
+          ],
           "CFrame": {
             "CFrame": {
-              "position": [0, -10, 0],
-              "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+              "position": [
+                0,
+                -10,
+                0
+              ],
+              "orientation": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ]
             }
           },
-          "Color": [0.36, 0.62, 0.3],
-          "Material": "Grass",
-          "TopSurface": "Smooth",
-          "BottomSurface": "Smooth"
+          "Color": [
+            0.29,
+            0.75,
+            0.25
+          ],
+          "Material": "Plastic",
+          "TopSurface": "Studs",
+          "BottomSurface": "Inlet"
         }
       },
       "SpawnLocation": {
         "$className": "SpawnLocation",
         "$properties": {
           "Anchored": true,
-          "Size": [12, 1, 12],
+          "Size": [
+            10,
+            1,
+            10
+          ],
           "CFrame": {
             "CFrame": {
-              "position": [-170, 0.5, 0],
-              "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+              "position": [
+                0,
+                0.5,
+                -30
+              ],
+              "orientation": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ]
             }
           },
-          "TopSurface": "Smooth",
-          "BottomSurface": "Smooth"
+          "TopSurface": "Studs",
+          "BottomSurface": "Inlet",
+          "Color": [
+            0.72,
+            0.73,
+            0.76
+          ]
         }
       },
       "Map": {
@@ -71,6 +128,70 @@
         },
         "BrainrotVisuals": {
           "$path": "StarterPlayerScripts/BrainrotVisuals.client.luau"
+        }
+      }
+    },
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "ClockTime": 13.5,
+        "Brightness": 2.6,
+        "Ambient": [
+          0.42,
+          0.42,
+          0.48
+        ],
+        "OutdoorAmbient": [
+          0.62,
+          0.62,
+          0.66
+        ],
+        "EnvironmentDiffuseScale": 1,
+        "EnvironmentSpecularScale": 1,
+        "GlobalShadows": true,
+        "ShadowSoftness": 0.25,
+        "Technology": "Future"
+      },
+      "ColorCorrection": {
+        "$className": "ColorCorrectionEffect",
+        "$properties": {
+          "Saturation": 0.3,
+          "Contrast": 0.08,
+          "Brightness": 0.03
+        }
+      },
+      "Bloom": {
+        "$className": "BloomEffect",
+        "$properties": {
+          "Intensity": 0.8,
+          "Size": 28,
+          "Threshold": 1.2
+        }
+      },
+      "SunRays": {
+        "$className": "SunRaysEffect",
+        "$properties": {
+          "Intensity": 0.04,
+          "Spread": 0.6
+        }
+      },
+      "Atmosphere": {
+        "$className": "Atmosphere",
+        "$properties": {
+          "Density": 0.2,
+          "Offset": 0.1,
+          "Color": [
+            0.78,
+            0.9,
+            1
+          ],
+          "Decay": [
+            0.55,
+            0.75,
+            1
+          ],
+          "Glare": 0.15,
+          "Haze": 0.6
         }
       }
     }

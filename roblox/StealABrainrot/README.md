@@ -2,11 +2,11 @@
 
 A playable Roblox game: buy brainrots from the conveyor, earn Cash from them in your base, steal other players' brainrots, and lock your base with a laser door.
 
-![The 14 brainrot 3D models](BrainrotModels/preview.png)
+![The 14 blocky brainrot models](BrainrotModels/preview.png)
 
 ## Open it in Studio
 
-Double-click `StealABrainrot-TestPlace.rbxlx`, or open Roblox Studio and use File → Open from File. The map is visible straight away: a conveyor down the middle and 8 bases.
+Double-click `StealABrainrot-TestPlace.rbxlx`, or open Roblox Studio and use File → Open from File. The map is visible straight away: a studded red-carpet conveyor between two tunnels, 8 grey bases with wooden signs, the Robux Shop stall and a dirt-and-grass border.
 
 Press **Play** (or **Test → Start** with 2 players to try stealing).
 
@@ -19,18 +19,27 @@ Press **Play** (or **Test → Start** with 2 players to try stealing).
 | Steal | Hold **E** on someone else's brainrot, then run it back into your base. If you die, take too long, or the owner catches you, it goes back |
 | Sell | Press **F** on your own brainrot for half its price |
 | Lock your base | Step on the red pad inside your base. Lasers zap intruders for 60 seconds |
-| Shop | **SHOP** button: Cash bundles, EMP Laser Overrider (walk through lasers for 30s), Server Rarity Boost (x2 rare spawns for 15 min) |
-| Rebirth | **REBIRTH** button: resets Cash for +50% income per rebirth; you keep your brainrots |
+| Shop | **Shop** button or the Robux Shop stall: Cash bundles, EMP Laser Overrider (walk through lasers for 30s), Server Rarity Boost (x2 rare spawns for 15 min) |
+| Rebirth | **Rebirth** button: resets Cash for +50% income per rebirth; you keep your brainrots |
+| Index | **Index** button: every brainrot with a spinning 3D preview, its stats, and how many you own |
 
 New players get a free Noobini Pizzanini so income starts right away.
 
+### Rarities, mutations and spawn timers
+
+- **Rarities** Common, Rare, Epic, Legendary and Mythic. Rarer brainrots glow in their rarity colour, sparkle, and (Legendary and Mythic) have a rising aura; Mythic glow pulses.
+- **Mutations**, rolled when a brainrot spawns: **Gold** (6%, x1.5 income and price), **Diamond** (2.5%, x2) and **Rainbow** (0.6%, x5). Mutated brainrots are recoloured, shine and sparkle in their colour; Rainbow cycles through every colour. Mutations are saved with the brainrot.
+- **Guaranteed spawns**: the sign over the spawn tunnel counts down to a guaranteed Legendary (every 4 minutes) and Mythic (every 15 minutes).
+
+Brainrots waddle along the conveyor and to their pedestal, bob and sway while idle, and wriggle while being carried.
+
 ## 3D models and icons
 
-All 14 brainrots are textured 3D models made with Higgsfield (concept art with GPT Image 2.5, then SAM 3 3D), and the shop and boost timers use the Higgsfield product icons. Nothing has to be uploaded to Roblox first: the models and icons are stored as compressed data in `ReplicatedStorage.Assets`, and each player's game rebuilds them with Roblox's EditableMesh and EditableImage.
+All 14 brainrots were made with Higgsfield (concept art with GPT Image 2.5, then SAM 3 3D) and turned into blocky models like the original game: each model is cut into blocks 48 tall, every block takes the colour of the model under it, and same-coloured faces are merged. The Index, Rebirth and Shop buttons, the shop cards and the boost timers use icons made with Higgsfield too.
 
-If a player's game can't build them (for example, the device is out of memory), that player sees simple block figures and coloured icon tiles instead, and everything else works the same. The Output window then shows an `[AssetLoader]` warning with the reason.
+Nothing has to be uploaded to Roblox first: the models and icons are stored as compressed data in `ReplicatedStorage.Assets`, and each player's game rebuilds them with Roblox's EditableMesh and EditableImage. If a player's game can't build them (for example, the device is out of memory), that player sees simple block figures and coloured icon tiles instead, and everything else works the same. The Output window then shows an `[AssetLoader]` warning with the reason.
 
-`BrainrotModels/*.glb` are the same models (6,000 triangles, 512px texture, facing Roblox's front). To use them as normal uploaded meshes instead, import them with File → Import 3D, put each Model in a `ReplicatedStorage.BrainrotModels` folder named after its Id (for example `TralaleroTralala`), and the game uses it at the right size.
+To use normal uploaded meshes instead, import the models from `BrainrotModels/Blocky/` (blocky, vertex colours) or `BrainrotModels/` (smooth, textured) with File → Import 3D, and put each Model in a `ReplicatedStorage.BrainrotModels` folder named after its Id (for example `TralaleroTralala`). The game scales it to the right size.
 
 ## Saving and purchases
 
@@ -45,18 +54,19 @@ An unpublished place can't use DataStores or sell products, so in Studio you get
 | Path | What it is |
 |---|---|
 | `ServerScriptService/DataAndMonetizationManager.server.luau` | Player data (Cash, Rebirths, game passes, brainrots), leaderstats and all Robux purchases |
-| `ServerScriptService/GameplayManager.server.luau` | Bases, conveyor, buying, income, stealing, lasers, rebirths |
-| `StarterPlayerScripts/GameClient.client.luau` | HUD, shop, rebirth screen, pop-up messages |
-| `StarterPlayerScripts/BrainrotVisuals.client.luau` | Shows each brainrot's 3D model in place of the block figure |
-| `ReplicatedStorage/Shared/AssetLoader.luau` | Rebuilds the 3D models and icons from `ReplicatedStorage/Assets` |
-| `ReplicatedStorage/Assets/` | Packed 3D models and icons, generated by `tools/build_assets.py` |
-| `BrainrotModels/` | The 14 brainrot models as `.glb`, plus `preview.png` |
-| `ReplicatedStorage/Shared/BrainrotConfig.luau` | Every brainrot and rarity: prices, income, colours, spawn chances |
-| `ReplicatedStorage/Shared/GameConfig.luau` | Gameplay tuning: conveyor speed, lock time, rebirth cost, ... |
+| `ServerScriptService/GameplayManager.server.luau` | Bases, conveyor, mutations, spawn timers, buying, income, stealing, lasers, rebirths |
+| `StarterPlayerScripts/GameClient.client.luau` | HUD, shop, rebirth screen, Index, pop-up messages, clouds |
+| `StarterPlayerScripts/BrainrotVisuals.client.luau` | Blocky 3D models, rarity and mutation effects, animations |
+| `ReplicatedStorage/Shared/AssetLoader.luau` | Rebuilds the blocky models and icons from `ReplicatedStorage/Assets` |
+| `ReplicatedStorage/Assets/` | Packed models and icons, generated by `tools/build_assets.py` |
+| `BrainrotModels/` | Smooth models (`.glb`), blocky models (`Blocky/*.glb`) and `preview.png` |
+| `ReplicatedStorage/Shared/BrainrotConfig.luau` | Every brainrot, rarity and mutation: prices, income, colours, spawn chances |
+| `ReplicatedStorage/Shared/GameConfig.luau` | Gameplay tuning: conveyor speed, spawn timers, lock time, rebirth cost, ... |
 | `ReplicatedStorage/Shared/MonetizationConfig.luau` | Product and game pass IDs and shop text |
 | `ReplicatedStorage/Shared/NumberFormat.luau` | `$1.2K`-style number formatting |
 | `Workspace/Map.model.json` | The map, generated by `tools/generate_map.py` |
 | `ProductIcons/` | 1024×1024 icons for the four developer products (made with Higgsfield) |
+| `UIIcons/` | Index, Rebirth and Shop button icons (made with Higgsfield) |
 | `StealABrainrot-TestPlace.rbxlx` | The built place |
 | `default.project.json` | [Rojo](https://rojo.space) project that builds the place |
 
@@ -69,7 +79,7 @@ python3 tools/generate_map.py
 rojo build default.project.json -o StealABrainrot-TestPlace.rbxlx
 ```
 
-After changing a model or icon, repack the assets first (needs `pip install numpy pillow trimesh pymeshlab zstandard`). To swap in a new model, put the raw `.glb` in `BrainrotModels/source/<Id>.glb`; the script simplifies it, turns it to face Roblox's front and overwrites `BrainrotModels/<Id>.glb`:
+After changing a model or icon, repack the assets first (needs `pip install numpy scipy pillow trimesh pymeshlab zstandard`). To swap in a new model, put the raw `.glb` in `BrainrotModels/source/<Id>.glb`; the script simplifies it, turns it to face Roblox's front, overwrites `BrainrotModels/<Id>.glb` and builds the blocky version:
 
 ```sh
 python3 tools/build_assets.py

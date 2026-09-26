@@ -1,6 +1,7 @@
 --!strict
--- Every brainrot that can appear on the conveyor, and the rarity tiers.
--- Each brainrot's 3D model (made with Higgsfield) is packed in
+-- Every brainrot that can appear on the conveyor, the rarity tiers and the
+-- mutations (Gold, Diamond, Rainbow).
+-- Each brainrot's blocky 3D model (made with Higgsfield) is packed in
 -- ReplicatedStorage.Assets.Brainrots and shown by the BrainrotVisuals client
 -- script; the server's simple block figure is the fallback. To use a model you
 -- imported in Studio instead, put a Model named after the brainrot's Id in
@@ -14,6 +15,15 @@ export type Rarity = {
 	-- Relative spawn chance on the conveyor.
 	Weight: number,
 	Glow: boolean,
+}
+
+export type Mutation = {
+	Name: string,
+	-- Chance for a conveyor brainrot to spawn with this mutation.
+	Chance: number,
+	-- Multiplies both income and price.
+	Multiplier: number,
+	Color: Color3,
 }
 
 export type Brainrot = {
@@ -92,7 +102,36 @@ for _, definition in Brainrots do
 	table.insert(ByRarity[definition.Rarity], definition)
 end
 
+local Mutations: { Mutation } = {
+	{ Name = "Gold", Chance = 0.06, Multiplier = 1.5, Color = Color3.fromRGB(255, 205, 50) },
+	{ Name = "Diamond", Chance = 0.025, Multiplier = 2, Color = Color3.fromRGB(110, 225, 255) },
+	{ Name = "Rainbow", Chance = 0.006, Multiplier = 5, Color = Color3.fromRGB(255, 110, 220) },
+}
+
+local MutationByName: { [string]: Mutation } = {}
+for _, mutation in Mutations do
+	MutationByName[mutation.Name] = mutation
+end
+
+-- Saved brainrots are "Id" or "Id:Mutation".
+local function encode(brainrotId: string, mutationName: string?): string
+	return if mutationName then brainrotId .. ":" .. mutationName else brainrotId
+end
+
+local function decode(entry: string): (Brainrot?, Mutation?)
+	local brainrotId, mutationName = string.match(entry, "^(%w+):?(%w*)$")
+	if brainrotId == nil then
+		return nil, nil
+	end
+	local mutation = if mutationName and mutationName ~= "" then MutationByName[mutationName] else nil
+	return ById[brainrotId], mutation
+end
+
 return table.freeze({
+	Mutations = table.freeze(Mutations),
+	MutationByName = table.freeze(MutationByName),
+	encode = encode,
+	decode = decode,
 	Rarities = table.freeze(Rarities),
 	Brainrots = table.freeze(Brainrots),
 	ById = table.freeze(ById),

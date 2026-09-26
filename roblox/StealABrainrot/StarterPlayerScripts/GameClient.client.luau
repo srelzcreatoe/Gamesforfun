@@ -3,9 +3,13 @@
 	GameClient
 	Location: StarterPlayer.StarterPlayerScripts (LocalScript)
 
-	Builds the HUD: Cash and income, boost timers, the Robux shop, the rebirth
-	screen and pop-up messages. It also hides ProximityPrompts that don't apply to
-	this player (Steal on your own brainrots, Sell on someone else's).
+	Builds the HUD in the style of the original game: square Index / Rebirth /
+	Shop buttons with Higgsfield icons on the left, big green Cash at the bottom
+	left with "+$" pop-ups, boost timers at the top, the Robux shop, the rebirth
+	screen, the brainrot Index and pop-up messages. It also points out your base,
+	opens the shop from the Robux Shop stall, adds clouds, and hides
+	ProximityPrompts that don't apply to this player (Steal on your own
+	brainrots, Sell on someone else's).
 
 	Nothing here can change game state. Purchases go through Roblox's purchase
 	prompt and ProcessReceipt on the server, and the server re-checks every
@@ -15,14 +19,16 @@
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local AssetLoader = require(Shared:WaitForChild("AssetLoader"))
+local BrainrotConfig = require(Shared:WaitForChild("BrainrotConfig"))
 local GameConfig = require(Shared:WaitForChild("GameConfig"))
 local MonetizationConfig = require(Shared:WaitForChild("MonetizationConfig"))
 local NumberFormat = require(Shared:WaitForChild("NumberFormat"))
-local AssetLoader = require(Shared:WaitForChild("AssetLoader"))
 
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local notifyEvent = remotes:WaitForChild("Notify") :: RemoteEvent
@@ -33,17 +39,22 @@ local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
 
 local FONT = Enum.Font.FredokaOne
 local COLORS = {
-	Panel = Color3.fromRGB(28, 30, 46),
-	PanelLight = Color3.fromRGB(44, 47, 70),
+	Panel = Color3.fromRGB(30, 32, 52),
+	PanelLight = Color3.fromRGB(48, 52, 82),
 	Text = Color3.new(1, 1, 1),
-	Muted = Color3.fromRGB(185, 190, 215),
-	Cash = Color3.fromRGB(90, 255, 120),
-	Shop = Color3.fromRGB(46, 204, 113),
-	Rebirth = Color3.fromRGB(160, 90, 255),
+	Muted = Color3.fromRGB(190, 196, 225),
+	Cash = Color3.fromRGB(80, 255, 110),
+	Income = Color3.fromRGB(255, 230, 70),
+	Buy = Color3.fromRGB(46, 204, 113),
+	Shop = Color3.fromRGB(140, 70, 215),
+	Rebirth = Color3.fromRGB(40, 175, 230),
+	Index = Color3.fromRGB(245, 170, 40),
+	SideButton = Color3.fromRGB(58, 64, 82),
 	Close = Color3.fromRGB(235, 70, 70),
-	Disabled = Color3.fromRGB(90, 92, 110),
-	Boost = Color3.fromRGB(200, 60, 200),
+	Disabled = Color3.fromRGB(95, 98, 118),
+	Boost = Color3.fromRGB(205, 60, 205),
 	Emp = Color3.fromRGB(60, 120, 255),
+	Owned = Color3.fromRGB(46, 204, 113),
 }
 local TOAST_COLORS: { [string]: Color3 } = {
 	Info = Color3.fromRGB(70, 130, 255),
@@ -53,6 +64,7 @@ local TOAST_COLORS: { [string]: Color3 } = {
 }
 local MAX_TOASTS = 4
 local TOAST_SECONDS = 4
+local MAX_CASH_POPUPS = 3
 
 --------------------------------------------------------------------------------
 -- UI helpers
@@ -79,6 +91,14 @@ local function stroke(color: Color3, thickness: number): Instance
 	return create("UIStroke", { Color = color, Thickness = thickness, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
 end
 
+-- Lighter at the top, like the original's glossy buttons.
+local function gloss(): Instance
+	return create("UIGradient", {
+		Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(190, 190, 190)),
+		Rotation = 90,
+	})
+end
+
 local function label(properties: { [string]: any }): TextLabel
 	local defaults: { [string]: any } = {
 		BackgroundTransparency = 1,
@@ -89,8 +109,12 @@ local function label(properties: { [string]: any }): TextLabel
 	for key, value in properties do
 		defaults[key] = value
 	end
+	-- Not a TextLabel property: the thickness of the black outline.
+	local outlineThickness = properties.OutlineThickness or 2
+	defaults.OutlineThickness = nil
 	local textLabel = create("TextLabel", defaults) :: TextLabel
 	create("UITextSizeConstraint", { MaxTextSize = properties.TextSize or 32 }).Parent = textLabel
+	create("UIStroke", { Color = Color3.new(0, 0, 0), Thickness = outlineThickness }).Parent = textLabel
 	return textLabel
 end
 
@@ -109,6 +133,7 @@ local function button(text: string, color: Color3, properties: { [string]: any }
 	local textButton = create("TextButton", defaults, {
 		corner(10),
 		stroke(Color3.new(0, 0, 0), 2),
+		gloss(),
 		create("UIPadding", {
 			PaddingLeft = UDim.new(0, 8),
 			PaddingRight = UDim.new(0, 8),
@@ -118,6 +143,15 @@ local function button(text: string, color: Color3, properties: { [string]: any }
 		create("UITextSizeConstraint", { MaxTextSize = 28 }),
 	}) :: TextButton
 	return textButton
+end
+
+local function setImage(imageLabel: ImageLabel, image: EditableImage?): boolean
+	if image == nil then
+		return false
+	end
+	imageLabel.ImageContent = Content.fromObject(image)
+	imageLabel.Visible = true
+	return true
 end
 
 --------------------------------------------------------------------------------
@@ -130,37 +164,38 @@ local screenGui = create("ScreenGui", {
 	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 }) :: ScreenGui
 
--- Cash and income (top centre)
+-- Cash (bottom left, like the original)
 local cashLabel = label({
 	Name = "Cash",
-	AnchorPoint = Vector2.new(0.5, 0),
-	Position = UDim2.new(0.5, 0, 0, 6),
-	Size = UDim2.fromOffset(320, 44),
+	AnchorPoint = Vector2.new(0, 1),
+	Position = UDim2.new(0, 18, 1, -14),
+	Size = UDim2.fromOffset(340, 64),
 	Text = "$0",
 	TextColor3 = COLORS.Cash,
-	TextSize = 40,
-	TextStrokeTransparency = 0.2,
+	TextSize = 60,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	OutlineThickness = 3,
 })
 cashLabel.Parent = screenGui
 
 local incomeLabel = label({
 	Name = "Income",
-	AnchorPoint = Vector2.new(0.5, 0),
-	Position = UDim2.new(0.5, 0, 0, 50),
-	Size = UDim2.fromOffset(240, 24),
+	AnchorPoint = Vector2.new(0, 1),
+	Position = UDim2.new(0, 20, 1, -80),
+	Size = UDim2.fromOffset(260, 28),
 	Text = "+$0/s",
-	TextColor3 = COLORS.Muted,
-	TextSize = 22,
-	TextStrokeTransparency = 0.4,
+	TextColor3 = COLORS.Income,
+	TextSize = 26,
+	TextXAlignment = Enum.TextXAlignment.Left,
 })
 incomeLabel.Parent = screenGui
 
--- Boost timers (under the Cash counter)
+-- Boost timers (top centre)
 local chipRow = create("Frame", {
 	Name = "Boosts",
 	AnchorPoint = Vector2.new(0.5, 0),
-	Position = UDim2.new(0.5, 0, 0, 80),
-	Size = UDim2.fromOffset(520, 30),
+	Position = UDim2.new(0.5, 0, 0, 8),
+	Size = UDim2.fromOffset(540, 34),
 	BackgroundTransparency = 1,
 }, {
 	create("UIListLayout", {
@@ -173,25 +208,26 @@ chipRow.Parent = screenGui
 
 local function chip(color: Color3, iconKey: string): TextLabel
 	local chipLabel = label({
-		Size = UDim2.fromOffset(250, 30),
+		Size = UDim2.fromOffset(260, 34),
 		BackgroundTransparency = 0,
 		BackgroundColor3 = color,
-		TextSize = 20,
+		TextSize = 22,
 		Visible = false,
 	})
-	corner(15).Parent = chipLabel
+	corner(17).Parent = chipLabel
+	gloss().Parent = chipLabel
 
 	local iconImage = AssetLoader.getProductIcon(iconKey)
 	if iconImage then
-		create("UIPadding", { PaddingLeft = UDim.new(0, 32) }).Parent = chipLabel
+		create("UIPadding", { PaddingLeft = UDim.new(0, 34) }).Parent = chipLabel
 		local icon = create("ImageLabel", {
 			Name = "Icon",
 			AnchorPoint = Vector2.new(0, 0.5),
-			Position = UDim2.new(0, -30, 0.5, 0),
-			Size = UDim2.fromOffset(26, 26),
+			Position = UDim2.new(0, -32, 0.5, 0),
+			Size = UDim2.fromOffset(30, 30),
 			BackgroundTransparency = 1,
-		}, { corner(13) }) :: ImageLabel
-		icon.ImageContent = Content.fromObject(iconImage)
+		}, { corner(15) }) :: ImageLabel
+		setImage(icon, iconImage)
 		icon.Parent = chipLabel
 	end
 
@@ -202,24 +238,63 @@ end
 local boostChip = chip(COLORS.Boost, "ServerRarityBoost")
 local empChip = chip(COLORS.Emp, "EMPLaserOverrider")
 
--- Side buttons (left middle)
+-- Square icon buttons (left middle): Index, Rebirth, Shop
 local sideButtons = create("Frame", {
 	Name = "SideButtons",
 	AnchorPoint = Vector2.new(0, 0.5),
-	Position = UDim2.new(0, 12, 0.5, 0),
-	Size = UDim2.fromOffset(150, 124),
+	Position = UDim2.new(0, 14, 0.5, 0),
+	Size = UDim2.fromOffset(92, 3 * 92 + 2 * 10),
 	BackgroundTransparency = 1,
 }, {
 	create("UIListLayout", { Padding = UDim.new(0, 10), SortOrder = Enum.SortOrder.LayoutOrder }),
 }) :: Frame
 sideButtons.Parent = screenGui
 
-local shopButton = button("SHOP", COLORS.Shop, { Name = "ShopButton", Size = UDim2.fromOffset(150, 54), LayoutOrder = 1 })
-shopButton.Parent = sideButtons
-local rebirthButton = button("REBIRTH", COLORS.Rebirth, { Name = "RebirthButton", Size = UDim2.fromOffset(150, 54), LayoutOrder = 2 })
-rebirthButton.Parent = sideButtons
+local function sideButton(name: string, text: string, color: Color3, iconName: string, order: number): TextButton
+	local square = create("TextButton", {
+		Name = name,
+		Size = UDim2.fromOffset(92, 92),
+		BackgroundColor3 = color,
+		AutoButtonColor = true,
+		Text = "",
+		LayoutOrder = order,
+	}, {
+		corner(12),
+		stroke(Color3.new(0, 0, 0), 3),
+		gloss(),
+	}) :: TextButton
 
-local function modal(name: string, title: string, size: Vector2): (Frame, Frame)
+	local icon = create("ImageLabel", {
+		Name = "Icon",
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0, 4),
+		Size = UDim2.fromOffset(64, 64),
+		BackgroundTransparency = 1,
+		Visible = false,
+	}) :: ImageLabel
+	icon.Parent = square
+	local hasIcon = setImage(icon, AssetLoader.getUIIcon(iconName))
+
+	label({
+		Name = "Label",
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, -2),
+		Size = if hasIcon then UDim2.new(1, -6, 0, 24) else UDim2.new(1, -6, 1, -8),
+		Text = text,
+		TextSize = if hasIcon then 22 else 26,
+	}).Parent = square
+
+	square.Parent = sideButtons
+	return square
+end
+
+local indexButton = sideButton("IndexButton", "Index", COLORS.SideButton, "Index", 1)
+local rebirthButton = sideButton("RebirthButton", "Rebirth", COLORS.SideButton, "Rebirth", 2)
+local shopButton = sideButton("ShopButton", "Shop", COLORS.Shop, "Shop", 3)
+
+local modals: { Frame } = {}
+
+local function modal(name: string, title: string, accent: Color3, size: Vector2): (Frame, Frame)
 	local frame = create("Frame", {
 		Name = name,
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -229,25 +304,33 @@ local function modal(name: string, title: string, size: Vector2): (Frame, Frame)
 		BackgroundColor3 = COLORS.Panel,
 		Visible = false,
 	}, {
-		corner(16),
-		stroke(Color3.new(0, 0, 0), 3),
+		corner(18),
+		stroke(Color3.new(0, 0, 0), 4),
 		create("UISizeConstraint", { MaxSize = size }),
 		create("UIAspectRatioConstraint", { AspectRatio = size.X / size.Y }),
 	}) :: Frame
 
+	local header = create("Frame", {
+		Name = "Header",
+		Size = UDim2.new(1, 0, 0, 62),
+		BackgroundColor3 = accent,
+	}, { corner(18), gloss() }) :: Frame
+	header.Parent = frame
+
 	label({
 		Name = "Title",
-		Position = UDim2.fromOffset(20, 10),
-		Size = UDim2.new(1, -90, 0, 44),
+		Position = UDim2.fromOffset(20, 8),
+		Size = UDim2.new(1, -90, 0, 46),
 		Text = title,
-		TextSize = 36,
+		TextSize = 40,
 		TextXAlignment = Enum.TextXAlignment.Left,
+		OutlineThickness = 3,
 	}).Parent = frame
 
 	local closeButton = button("X", COLORS.Close, {
 		Name = "CloseButton",
 		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -12, 0, 12),
+		Position = UDim2.new(1, -10, 0, 9),
 		Size = UDim2.fromOffset(44, 44),
 	})
 	closeButton.Parent = frame
@@ -257,20 +340,30 @@ local function modal(name: string, title: string, size: Vector2): (Frame, Frame)
 
 	local body = create("Frame", {
 		Name = "Body",
-		Position = UDim2.fromOffset(16, 64),
-		Size = UDim2.new(1, -32, 1, -80),
+		Position = UDim2.fromOffset(16, 74),
+		Size = UDim2.new(1, -32, 1, -90),
 		BackgroundTransparency = 1,
 	}) :: Frame
 	body.Parent = frame
 	frame.Parent = screenGui
+	table.insert(modals, frame)
 	return frame, body
+end
+
+local function toggleModal(frame: Frame): boolean
+	local open = not frame.Visible
+	for _, other in modals do
+		other.Visible = false
+	end
+	frame.Visible = open
+	return open
 end
 
 --------------------------------------------------------------------------------
 -- Shop
 --------------------------------------------------------------------------------
 
-local shopFrame, shopBody = modal("Shop", "SHOP", Vector2.new(640, 460))
+local shopFrame, shopBody = modal("Shop", "ROBUX SHOP", Color3.fromRGB(215, 70, 170), Vector2.new(660, 480))
 create("UIGridLayout", {
 	CellSize = UDim2.new(0.5, -8, 0.5, -8),
 	CellPadding = UDim2.fromOffset(12, 12),
@@ -298,7 +391,7 @@ for index, product in MonetizationConfig.ShopProducts do
 		Name = product.Key,
 		BackgroundColor3 = COLORS.PanelLight,
 		LayoutOrder = index,
-	}, { corner(12) }) :: Frame
+	}, { corner(14), stroke(product.IconColor, 2) }) :: Frame
 
 	local iconFrame = create("Frame", {
 		Name = "Icon",
@@ -306,7 +399,7 @@ for index, product in MonetizationConfig.ShopProducts do
 		Size = UDim2.new(0.38, 0, 1, -20),
 		BackgroundColor3 = product.IconColor,
 	}, {
-		corner(10),
+		corner(12),
 		create("UIAspectRatioConstraint", { AspectRatio = 1 }),
 	}) :: Frame
 	iconFrame.Parent = card
@@ -315,7 +408,6 @@ for index, product in MonetizationConfig.ShopProducts do
 		Size = UDim2.fromScale(1, 1),
 		Text = product.IconText,
 		TextSize = 48,
-		TextStrokeTransparency = 0.2,
 	})
 	iconText.Parent = iconFrame
 
@@ -323,7 +415,7 @@ for index, product in MonetizationConfig.ShopProducts do
 		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
 		Visible = false,
-	}, { corner(10) }) :: ImageLabel
+	}, { corner(12) }) :: ImageLabel
 	iconImage.Parent = iconFrame
 
 	local function showIcon(assetId: number)
@@ -333,19 +425,14 @@ for index, product in MonetizationConfig.ShopProducts do
 	end
 
 	-- Icon priority: an uploaded image ID from MonetizationConfig, then the
-	-- icon packed into ReplicatedStorage.Assets, then the product's own icon.
+	-- Higgsfield icon packed into ReplicatedStorage.Assets, then the product's own.
 	local hasIcon = false
 	if product.IconAssetId > 0 then
 		showIcon(product.IconAssetId)
 		hasIcon = true
-	else
-		local embeddedIcon = AssetLoader.getProductIcon(product.Key)
-		if embeddedIcon then
-			iconImage.ImageContent = Content.fromObject(embeddedIcon)
-			iconImage.Visible = true
-			iconText.Visible = false
-			hasIcon = true
-		end
+	elseif setImage(iconImage, AssetLoader.getProductIcon(product.Key)) then
+		iconText.Visible = false
+		hasIcon = true
 	end
 
 	label({
@@ -353,7 +440,7 @@ for index, product in MonetizationConfig.ShopProducts do
 		Position = UDim2.new(0.42, 0, 0, 10),
 		Size = UDim2.new(0.56, 0, 0.26, 0),
 		Text = product.DisplayName,
-		TextSize = 22,
+		TextSize = 24,
 		TextXAlignment = Enum.TextXAlignment.Left,
 	}).Parent = card
 
@@ -363,13 +450,14 @@ for index, product in MonetizationConfig.ShopProducts do
 		Size = UDim2.new(0.56, 0, 0.36, 0),
 		Text = product.Description,
 		TextColor3 = COLORS.Muted,
-		TextSize = 16,
+		TextSize = 17,
 		TextWrapped = true,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextYAlignment = Enum.TextYAlignment.Top,
+		OutlineThickness = 1,
 	}).Parent = card
 
-	local buyButton = button("BUY", COLORS.Shop, {
+	local buyButton = button("BUY", COLORS.Buy, {
 		Name = "BuyButton",
 		AnchorPoint = Vector2.new(0, 1),
 		Position = UDim2.new(0.42, 0, 1, -10),
@@ -407,13 +495,13 @@ end
 -- Rebirth
 --------------------------------------------------------------------------------
 
-local rebirthFrame, rebirthBody = modal("Rebirth", "REBIRTH", Vector2.new(460, 360))
+local rebirthFrame, rebirthBody = modal("Rebirth", "REBIRTH", COLORS.Rebirth, Vector2.new(480, 380))
 
 local rebirthInfo = label({
 	Name = "Info",
 	Size = UDim2.new(1, 0, 0.42, 0),
 	Text = "",
-	TextSize = 24,
+	TextSize = 26,
 	TextWrapped = true,
 })
 rebirthInfo.Parent = rebirthBody
@@ -421,22 +509,21 @@ rebirthInfo.Parent = rebirthBody
 local progressBack = create("Frame", {
 	Name = "Progress",
 	Position = UDim2.fromScale(0, 0.48),
-	Size = UDim2.new(1, 0, 0.12, 0),
+	Size = UDim2.new(1, 0, 0.13, 0),
 	BackgroundColor3 = COLORS.PanelLight,
-}, { corner(10) }) :: Frame
+}, { corner(12), stroke(Color3.new(0, 0, 0), 2) }) :: Frame
 progressBack.Parent = rebirthBody
 
 local progressFill = create("Frame", {
 	Size = UDim2.fromScale(0, 1),
 	BackgroundColor3 = COLORS.Rebirth,
-}, { corner(10) }) :: Frame
+}, { corner(12), gloss() }) :: Frame
 progressFill.Parent = progressBack
 
 local progressText = label({
 	Size = UDim2.fromScale(1, 1),
 	Text = "",
-	TextSize = 20,
-	TextStrokeTransparency = 0.3,
+	TextSize = 22,
 	ZIndex = 2,
 })
 progressText.Parent = progressBack
@@ -450,14 +537,167 @@ local confirmRebirthButton = button("REBIRTH", COLORS.Rebirth, {
 confirmRebirthButton.Parent = rebirthBody
 
 --------------------------------------------------------------------------------
+-- Index: every brainrot, with a spinning 3D preview
+--------------------------------------------------------------------------------
+
+local indexFrame, indexBody = modal("Index", "INDEX", COLORS.Index, Vector2.new(720, 520))
+
+local indexList = create("ScrollingFrame", {
+	Name = "List",
+	Size = UDim2.fromScale(1, 1),
+	BackgroundTransparency = 1,
+	BorderSizePixel = 0,
+	ScrollBarThickness = 8,
+	AutomaticCanvasSize = Enum.AutomaticSize.Y,
+	CanvasSize = UDim2.new(),
+}, {
+	create("UIGridLayout", {
+		CellSize = UDim2.fromOffset(160, 210),
+		CellPadding = UDim2.fromOffset(10, 10),
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	}),
+}) :: ScrollingFrame
+indexList.Parent = indexBody
+
+type IndexCard = { Frame: Frame, Viewport: ViewportFrame, Owned: TextLabel, Model: BasePart? }
+
+local indexCards: { [string]: IndexCard } = {}
+local rarityOrder: { [string]: number } = {}
+for order, rarity in BrainrotConfig.Rarities do
+	rarityOrder[rarity.Name] = order
+end
+
+for _, definition in BrainrotConfig.Brainrots do
+	local rarity = BrainrotConfig.RarityByName[definition.Rarity]
+	local rarityColour = if rarity then rarity.Color else Color3.new(1, 1, 1)
+	local card = create("Frame", {
+		Name = definition.Id,
+		BackgroundColor3 = COLORS.PanelLight,
+		LayoutOrder = (rarityOrder[definition.Rarity] or 0) * 1000000000 + definition.Price,
+	}, { corner(12), stroke(rarityColour, 3) }) :: Frame
+
+	local viewport = create("ViewportFrame", {
+		Name = "Preview",
+		Position = UDim2.fromOffset(8, 8),
+		Size = UDim2.new(1, -16, 0, 110),
+		BackgroundColor3 = rarityColour:Lerp(Color3.new(0, 0, 0), 0.55),
+		Ambient = Color3.fromRGB(200, 200, 200),
+		LightColor = Color3.new(1, 1, 1),
+		LightDirection = Vector3.new(-0.4, -1, 0.6),
+	}, { corner(10) }) :: ViewportFrame
+	viewport.Parent = card
+
+	label({
+		Name = "BrainrotName",
+		Position = UDim2.fromOffset(6, 120),
+		Size = UDim2.new(1, -12, 0, 22),
+		Text = definition.DisplayName,
+		TextSize = 20,
+	}).Parent = card
+	label({
+		Name = "Rarity",
+		Position = UDim2.fromOffset(6, 142),
+		Size = UDim2.new(1, -12, 0, 20),
+		Text = definition.Rarity,
+		TextColor3 = rarityColour,
+		TextSize = 18,
+	}).Parent = card
+	label({
+		Name = "Stats",
+		Position = UDim2.fromOffset(6, 162),
+		Size = UDim2.new(1, -12, 0, 20),
+		Text = NumberFormat.cash(definition.IncomePerSecond) .. "/s  " .. NumberFormat.cash(definition.Price),
+		TextColor3 = COLORS.Income,
+		TextSize = 17,
+	}).Parent = card
+	local owned = label({
+		Name = "Owned",
+		Position = UDim2.fromOffset(6, 184),
+		Size = UDim2.new(1, -12, 0, 20),
+		Text = "",
+		TextColor3 = COLORS.Owned,
+		TextSize = 17,
+	})
+	owned.Parent = card
+
+	card.Parent = indexList
+	indexCards[definition.Id] = { Frame = card, Viewport = viewport, Owned = owned, Model = nil }
+end
+
+local indexModelsLoaded = false
+
+local function loadIndexModels()
+	if indexModelsLoaded then
+		return
+	end
+	indexModelsLoaded = true
+	for brainrotId, card in indexCards do
+		task.spawn(function()
+			local part = AssetLoader.createBrainrotPart(brainrotId, nil, 4)
+			if part == nil then
+				return
+			end
+			part.Anchored = true
+			part.CFrame = CFrame.new()
+			part.Parent = card.Viewport
+			local camera = Instance.new("Camera")
+			camera.FieldOfView = 40
+			-- Models face -Z, so look at them from the front.
+			camera.CFrame = CFrame.lookAt(Vector3.new(0, 0.6, -8.5), Vector3.zero)
+			camera.Parent = card.Viewport
+			card.Viewport.CurrentCamera = camera
+			card.Model = part
+		end)
+	end
+end
+
+local function ownBrainrotCounts(): { [string]: number }
+	local counts: { [string]: number } = {}
+	local map = Workspace:FindFirstChild("Map")
+	local folder = if map then map:FindFirstChild("Brainrots") else nil
+	if folder == nil then
+		return counts
+	end
+	for _, model in folder:GetChildren() do
+		local brainrotId = model:GetAttribute("BrainrotId")
+		local prompt = model:FindFirstChildWhichIsA("ProximityPrompt", true)
+		if typeof(brainrotId) == "string" and prompt and prompt:GetAttribute("OwnerUserId") == player.UserId then
+			counts[brainrotId] = (counts[brainrotId] or 0) + 1
+		end
+	end
+	return counts
+end
+
+local function refreshIndex()
+	local counts = ownBrainrotCounts()
+	for brainrotId, card in indexCards do
+		local count = counts[brainrotId] or 0
+		card.Owned.Text = if count > 0 then string.format("OWNED x%d", count) else ""
+	end
+end
+
+RunService.RenderStepped:Connect(function()
+	if not indexFrame.Visible then
+		return
+	end
+	local spin = CFrame.Angles(0, os.clock() * 0.8, 0)
+	for _, card in indexCards do
+		local part = card.Model
+		if part then
+			part.CFrame = spin
+		end
+	end
+end)
+
+--------------------------------------------------------------------------------
 -- Toasts
 --------------------------------------------------------------------------------
 
 local toastContainer = create("Frame", {
 	Name = "Toasts",
 	AnchorPoint = Vector2.new(0.5, 1),
-	Position = UDim2.new(0.5, 0, 1, -110),
-	Size = UDim2.fromOffset(480, 200),
+	Position = UDim2.new(0.5, 0, 1, -120),
+	Size = UDim2.fromOffset(500, 210),
 	BackgroundTransparency = 1,
 }, {
 	create("UIListLayout", {
@@ -474,16 +714,17 @@ local toastCount = 0
 local function showToast(message: string, kind: string)
 	toastCount += 1
 	local toast = label({
-		Size = UDim2.fromOffset(480, 40),
+		Size = UDim2.fromOffset(500, 42),
 		BackgroundTransparency = 0.05,
 		BackgroundColor3 = TOAST_COLORS[kind] or TOAST_COLORS.Info,
 		Text = message,
-		TextSize = 22,
+		TextSize = 24,
 		TextWrapped = true,
 		LayoutOrder = toastCount,
 	})
-	corner(10).Parent = toast
-	create("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10) }).Parent = toast
+	corner(12).Parent = toast
+	gloss().Parent = toast
+	create("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12) }).Parent = toast
 	toast.Parent = toastContainer
 
 	local toasts: { TextLabel } = {}
@@ -523,6 +764,8 @@ end)
 
 local cashValue: IntValue? = nil
 local rebirthsValue: IntValue? = nil
+local shownCash: number? = nil
+local cashPopups = 0
 
 local function getCash(): number
 	return if cashValue then cashValue.Value else 0
@@ -530,6 +773,34 @@ end
 
 local function getRebirths(): number
 	return if rebirthsValue then rebirthsValue.Value else 0
+end
+
+-- "+$X" rising above the Cash counter when Cash goes up.
+local function showCashPopup(amount: number)
+	if cashPopups >= MAX_CASH_POPUPS then
+		return
+	end
+	cashPopups += 1
+	local popup = label({
+		Name = "CashPopup",
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0, 22, 1, -108),
+		Size = UDim2.fromOffset(260, 30),
+		Text = "+" .. NumberFormat.cash(amount),
+		TextColor3 = COLORS.Cash,
+		TextSize = 30,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	})
+	popup.Parent = screenGui
+	local rise = TweenService:Create(popup, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Position = UDim2.new(0, 22, 1, -170),
+		TextTransparency = 1,
+	})
+	rise.Completed:Connect(function()
+		cashPopups -= 1
+		popup:Destroy()
+	end)
+	rise:Play()
 end
 
 local function refreshRebirthScreen()
@@ -550,7 +821,13 @@ local function refreshRebirthScreen()
 end
 
 local function refreshCash()
-	cashLabel.Text = NumberFormat.cash(getCash())
+	local cash = getCash()
+	local previous = shownCash
+	if previous and cash > previous then
+		showCashPopup(cash - previous)
+	end
+	shownCash = cash
+	cashLabel.Text = NumberFormat.cash(cash)
 	if rebirthFrame.Visible then
 		refreshRebirthScreen()
 	end
@@ -571,15 +848,27 @@ task.spawn(function()
 	refreshCash()
 end)
 
+local function openShop()
+	if not shopFrame.Visible then
+		toggleModal(shopFrame)
+	end
+end
+
 shopButton.Activated:Connect(function()
-	shopFrame.Visible = not shopFrame.Visible
-	rebirthFrame.Visible = false
+	toggleModal(shopFrame)
 end)
 
 rebirthButton.Activated:Connect(function()
-	rebirthFrame.Visible = not rebirthFrame.Visible
-	shopFrame.Visible = false
-	refreshRebirthScreen()
+	if toggleModal(rebirthFrame) then
+		refreshRebirthScreen()
+	end
+end)
+
+indexButton.Activated:Connect(function()
+	if toggleModal(indexFrame) then
+		refreshIndex()
+		loadIndexModels()
+	end
 end)
 
 local rebirthPending = false
@@ -602,24 +891,43 @@ confirmRebirthButton.Activated:Connect(function()
 	end
 end)
 
+-- The Robux Shop stall in the middle of the map opens the shop too.
+task.spawn(function()
+	local map = Workspace:WaitForChild("Map", 30)
+	local stall = if map then map:WaitForChild("ShopStall", 30) else nil
+	local counter = if stall then stall:WaitForChild("Counter", 30) else nil
+	local prompt = if counter then counter:WaitForChild("ShopPrompt", 30) else nil
+	if prompt and prompt:IsA("ProximityPrompt") then
+		prompt.Triggered:Connect(openShop)
+	end
+end)
+
 --------------------------------------------------------------------------------
--- Timers, income and "YOUR BASE" marker
+-- Timers, income, "YOUR BASE" marker and clouds
 --------------------------------------------------------------------------------
 
 local baseMarker = create("BillboardGui", {
 	Name = "YourBaseMarker",
-	Size = UDim2.fromOffset(220, 50),
-	StudsOffsetWorldSpace = Vector3.new(0, 6, 0),
+	Size = UDim2.fromOffset(300, 110),
+	StudsOffsetWorldSpace = Vector3.new(0, 9, 0),
 	AlwaysOnTop = true,
 	LightInfluence = 0,
 	Enabled = false,
 }, {
 	label({
-		Size = UDim2.fromScale(1, 1),
+		Name = "Title",
+		Size = UDim2.new(1, 0, 0.6, 0),
 		Text = "YOUR BASE",
-		TextColor3 = Color3.fromRGB(255, 230, 80),
-		TextSize = 36,
-		TextStrokeTransparency = 0,
+		TextSize = 48,
+		OutlineThickness = 3,
+	}) :: Instance,
+	label({
+		Name = "Arrow",
+		Position = UDim2.fromScale(0, 0.55),
+		Size = UDim2.new(1, 0, 0.45, 0),
+		Text = "▼",
+		TextSize = 40,
+		OutlineThickness = 3,
 	}) :: Instance,
 }) :: BillboardGui
 baseMarker.Parent = playerGui
@@ -639,6 +947,13 @@ local function findOwnSign(): BasePart?
 		end
 	end
 	return nil
+end
+
+do
+	local terrain = Workspace:FindFirstChildOfClass("Terrain")
+	if terrain and terrain:FindFirstChildOfClass("Clouds") == nil then
+		create("Clouds", { Cover = 0.55, Density = 0.55, Color = Color3.new(1, 1, 1) }).Parent = terrain
+	end
 end
 
 task.spawn(function()

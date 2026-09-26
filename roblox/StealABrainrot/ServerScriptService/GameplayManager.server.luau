@@ -53,6 +53,7 @@ local REBIRTH_REQUEST_COOLDOWN_SECONDS = 1
 --------------------------------------------------------------------------------
 
 type Definition = BrainrotConfig.Brainrot
+type Mutation = BrainrotConfig.Mutation
 type NotifyKind = "Info" | "Success" | "Warning" | "Error"
 
 type Visual = {
@@ -82,6 +83,7 @@ type Plot = {
 
 type Occupant = {
 	Definition: Definition,
+	Mutation: Mutation?,
 	Plot: Plot,
 	SlotIndex: number,
 	Model: Model,
@@ -107,6 +109,8 @@ type Carry = {
 
 type ConveyorItem = {
 	Definition: Definition,
+	Mutation: Mutation?,
+	Price: number,
 	Model: Model,
 	Root: BasePart,
 	PromptAttachment: Attachment,
@@ -194,6 +198,10 @@ local conveyorItems: { [ConveyorItem]: boolean } = {}
 local conveyorItemCount = 0
 local lastRebirthRequest: { [Player]: number } = {}
 local rng = Random.new()
+local nextGuaranteedAt: { [string]: number } = {}
+for _, rule in GameConfig.GuaranteedRarities do
+	nextGuaranteedAt[rule.Rarity] = Workspace:GetServerTimeNow() + rule.IntervalSeconds
+end
 
 --------------------------------------------------------------------------------
 -- Helpers
@@ -245,12 +253,29 @@ local function getSlotCFrame(plot: Plot, slotIndex: number): CFrame
 	return CFrame.new(top) * plot.Floor.CFrame.Rotation
 end
 
+local function mutationMultiplier(mutation: Mutation?): number
+	return if mutation then mutation.Multiplier else 1
+end
+
+local function priceOf(definition: Definition, mutation: Mutation?): number
+	return math.floor(definition.Price * mutationMultiplier(mutation))
+end
+
+local function incomeOf(definition: Definition, mutation: Mutation?): number
+	return definition.IncomePerSecond * mutationMultiplier(mutation)
+end
+
+local function fullName(definition: Definition, mutation: Mutation?): string
+	return if mutation then mutation.Name .. " " .. definition.DisplayName else definition.DisplayName
+end
+
 local function getBrainrotIds(plot: Plot): { string }
 	local brainrotIds: { string } = {}
 	for index = 1, #plot.Slots do
 		local occupant = plot.Occupants[index]
 		if occupant then
-			table.insert(brainrotIds, occupant.Definition.Id)
+			local mutation = occupant.Mutation
+			table.insert(brainrotIds, BrainrotConfig.encode(occupant.Definition.Id, if mutation then mutation.Name else nil))
 		end
 	end
 	return brainrotIds
@@ -364,20 +389,39 @@ local function buildCustomModel(model: Model, root: BasePart, template: Model, t
 	return boxSize.Y
 end
 
-local function addInfoLabel(parent: Instance, text: string, color: Color3, textSize: number, order: number)
+local RAINBOW = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 70, 70)),
+	ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 190, 40)),
+	ColorSequenceKeypoint.new(0.4, Color3.fromRGB(90, 255, 90)),
+	ColorSequenceKeypoint.new(0.6, Color3.fromRGB(60, 200, 255)),
+	ColorSequenceKeypoint.new(0.8, Color3.fromRGB(150, 90, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 80, 200)),
+})
+
+local function addInfoLabel(parent: Instance, text: string, color: Color3, textSize: number, order: number, rainbow: boolean?)
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
-	label.Size = UDim2.new(1, 0, 0, textSize + 4)
+	label.Size = UDim2.new(1, 0, 0, textSize + 6)
 	label.Font = Enum.Font.FredokaOne
 	label.Text = text
-	label.TextColor3 = color
+	label.TextColor3 = if rainbow then Color3.new(1, 1, 1) else color
 	label.TextSize = textSize
-	label.TextStrokeTransparency = 0.2
 	label.LayoutOrder = order
+
+	local outline = Instance.new("UIStroke")
+	outline.Color = Color3.new(0, 0, 0)
+	outline.Thickness = 2
+	outline.Parent = label
+
+	if rainbow then
+		local gradient = Instance.new("UIGradient")
+		gradient.Color = RAINBOW
+		gradient.Parent = label
+	end
 	label.Parent = parent
 end
 
-local function buildBrainrot(definition: Definition, price: number?): Visual
+local function buildBrainrot(definition: Definition, mutation: Mutation?, price: number?): Visual
 	local rarity = BrainrotConfig.RarityByName[definition.Rarity]
 
 	local model = Instance.new("Model")
@@ -403,10 +447,15 @@ local function buildBrainrot(definition: Definition, price: number?): Visual
 		then buildCustomModel(model, root, template, FIGURE_HEIGHT * definition.Scale)
 		else buildFigure(model, root, definition, if rarity and rarity.Glow then rarity.Color else nil)
 
-	-- Tells BrainrotVisuals on each client which 3D model to show, and how tall.
+	-- Tells BrainrotVisuals on each client which 3D model to show, how tall,
+	-- which effects to add and how to animate it (State).
 	model:SetAttribute("BrainrotId", definition.Id)
 	model:SetAttribute("FigureHeight", height)
 	model:SetAttribute("CustomModel", hasCustomModel)
+	model:SetAttribute("Rarity", definition.Rarity)
+	model:SetAttribute("Mutation", if mutation then mutation.Name else nil)
+	model:SetAttribute("Price", price)
+	model:SetAttribute("State", "Idle")
 
 	local promptAttachment = Instance.new("Attachment")
 	promptAttachment.Name = "PromptAttachment"
@@ -416,8 +465,8 @@ local function buildBrainrot(definition: Definition, price: number?): Visual
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "Info"
 	billboard.Adornee = root
-	billboard.Size = UDim2.fromOffset(240, if price then 92 else 70)
-	billboard.StudsOffsetWorldSpace = Vector3.new(0, height + 2, 0)
+	billboard.Size = UDim2.fromOffset(260, 84 + (if price then 26 else 0) + (if mutation then 24 else 0))
+	billboard.StudsOffsetWorldSpace = Vector3.new(0, height + 2.4, 0)
 	billboard.MaxDistance = 90
 	billboard.LightInfluence = 0
 
@@ -427,11 +476,14 @@ local function buildBrainrot(definition: Definition, price: number?): Visual
 	layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
 	layout.Parent = billboard
 
-	addInfoLabel(billboard, definition.DisplayName, Color3.new(1, 1, 1), 20, 1)
-	addInfoLabel(billboard, definition.Rarity, if rarity then rarity.Color else Color3.new(1, 1, 1), 16, 2)
-	addInfoLabel(billboard, NumberFormat.cash(definition.IncomePerSecond) .. "/s", Color3.fromRGB(90, 255, 120), 16, 3)
+	if mutation then
+		addInfoLabel(billboard, mutation.Name, mutation.Color, 20, 0, mutation.Name == "Rainbow")
+	end
+	addInfoLabel(billboard, definition.DisplayName, Color3.new(1, 1, 1), 22, 1)
+	addInfoLabel(billboard, definition.Rarity, if rarity then rarity.Color else Color3.new(1, 1, 1), 20, 2, definition.Rarity == "Mythic")
+	addInfoLabel(billboard, NumberFormat.cash(incomeOf(definition, mutation)) .. "/s", Color3.fromRGB(255, 230, 70), 20, 3)
 	if price then
-		addInfoLabel(billboard, NumberFormat.cash(price), Color3.fromRGB(255, 220, 60), 20, 4)
+		addInfoLabel(billboard, NumberFormat.cash(price), Color3.fromRGB(90, 255, 120), 22, 4)
 	end
 	billboard.Parent = root
 
@@ -483,26 +535,34 @@ local function stopWalking(occupant: Occupant)
 	end
 end
 
-local function placeOccupant(plot: Plot, slotIndex: number, definition: Definition, fromCFrame: CFrame?): Occupant?
+local function placeOccupant(
+	plot: Plot,
+	slotIndex: number,
+	definition: Definition,
+	mutation: Mutation?,
+	fromCFrame: CFrame?
+): Occupant?
 	local owner = plot.Owner
 	if owner == nil or plot.Occupants[slotIndex] ~= nil then
 		return nil
 	end
 
-	local visual = buildBrainrot(definition, nil)
+	local visual = buildBrainrot(definition, mutation, nil)
 	visual.Model.Parent = brainrotsFolder
 	local targetCFrame = getSlotCFrame(plot, slotIndex)
-	local refund = math.floor(definition.Price * GameConfig.SellRefundFraction)
+	local refund = math.floor(priceOf(definition, mutation) * GameConfig.SellRefundFraction)
+	local name = fullName(definition, mutation)
 
 	local occupant: Occupant = {
 		Definition = definition,
+		Mutation = mutation,
 		Plot = plot,
 		SlotIndex = slotIndex,
 		Model = visual.Model,
 		Root = visual.Root,
 		PromptAttachment = visual.PromptAttachment,
-		StealPrompt = createPrompt(visual.PromptAttachment, "Steal", "Steal", definition.DisplayName, GameConfig.StealHoldSeconds, Enum.KeyCode.E, owner.UserId),
-		SellPrompt = createPrompt(visual.PromptAttachment, "Sell", "Sell for " .. NumberFormat.cash(refund), definition.DisplayName, 0.5, Enum.KeyCode.F, owner.UserId),
+		StealPrompt = createPrompt(visual.PromptAttachment, "Steal", "Steal", name, GameConfig.StealHoldSeconds, Enum.KeyCode.E, owner.UserId),
+		SellPrompt = createPrompt(visual.PromptAttachment, "Sell", "Sell for " .. NumberFormat.cash(refund), name, 0.5, Enum.KeyCode.F, owner.UserId),
 		WalkTween = nil,
 		Carrier = nil,
 	}
@@ -515,9 +575,13 @@ local function placeOccupant(plot: Plot, slotIndex: number, definition: Definiti
 			{ CFrame = targetCFrame }
 		)
 		occupant.WalkTween = walkTween
+		visual.Model:SetAttribute("State", "Walking")
 		walkTween.Completed:Connect(function()
 			if occupant.WalkTween == walkTween then
 				occupant.WalkTween = nil
+				if occupant.Carrier == nil then
+					visual.Model:SetAttribute("State", "Idle")
+				end
 			end
 		end)
 		walkTween:Play()
@@ -561,6 +625,7 @@ local function endCarry(carry: Carry, message: string?)
 	local victimPlot = carry.VictimPlot
 	if victimPlot.Occupants[occupant.SlotIndex] == occupant then
 		occupant.Root.CFrame = getSlotCFrame(victimPlot, occupant.SlotIndex)
+		occupant.Model:SetAttribute("State", "Idle")
 		setOccupantCarried(occupant, false)
 	else
 		destroyOccupant(occupant)
@@ -570,7 +635,7 @@ local function endCarry(carry: Carry, message: string?)
 		notify(thief, message, "Warning")
 		local victim = victimPlot.Owner
 		if victim then
-			notify(victim, string.format("Your %s is back home.", occupant.Definition.DisplayName), "Success")
+			notify(victim, string.format("Your %s is back home.", fullName(occupant.Definition, occupant.Mutation)), "Success")
 		end
 	end
 end
@@ -600,11 +665,12 @@ local function completeSteal(carry: Carry)
 		return
 	end
 
-	placeOccupant(targetPlot, carry.TargetSlot, occupant.Definition, nil)
+	placeOccupant(targetPlot, carry.TargetSlot, occupant.Definition, occupant.Mutation, nil)
 	saveBrainrots(targetPlot)
 
-	notify(thief, string.format("You stole %s!", occupant.Definition.DisplayName), "Success")
-	notify(victim, string.format("%s stole your %s!", thief.DisplayName, occupant.Definition.DisplayName), "Error")
+	local name = fullName(occupant.Definition, occupant.Mutation)
+	notify(thief, string.format("You stole %s!", name), "Success")
+	notify(victim, string.format("%s stole your %s!", thief.DisplayName, name), "Error")
 end
 
 onStealTriggered = function(occupant: Occupant, thief: Player)
@@ -635,6 +701,7 @@ onStealTriggered = function(occupant: Occupant, thief: Player)
 	thiefPlot.Reserved[targetSlot] = true
 	stopWalking(occupant)
 	occupant.Carrier = thief
+	occupant.Model:SetAttribute("State", "Carried")
 	setOccupantCarried(occupant, true)
 
 	local root = occupant.Root
@@ -659,7 +726,7 @@ onStealTriggered = function(occupant: Occupant, thief: Player)
 	}
 
 	notify(thief, "Run it back to your base!", "Info")
-	notify(victim, string.format("%s is stealing your %s! Catch them!", thief.DisplayName, occupant.Definition.DisplayName), "Warning")
+	notify(victim, string.format("%s is stealing your %s! Catch them!", thief.DisplayName, fullName(occupant.Definition, occupant.Mutation)), "Warning")
 end
 
 onSellTriggered = function(occupant: Occupant, player: Player)
@@ -678,18 +745,46 @@ onSellTriggered = function(occupant: Occupant, player: Player)
 	end
 	destroyOccupant(occupant)
 
-	local refund = math.floor(occupant.Definition.Price * GameConfig.SellRefundFraction)
+	local refund = math.floor(priceOf(occupant.Definition, occupant.Mutation) * GameConfig.SellRefundFraction)
 	if refund > 0 then
 		addCash(player, refund)
 	end
-	notify(player, string.format("Sold %s for %s", occupant.Definition.DisplayName, NumberFormat.cash(refund)), "Success")
+	notify(player, string.format("Sold %s for %s", fullName(occupant.Definition, occupant.Mutation), NumberFormat.cash(refund)), "Success")
 end
 
 --------------------------------------------------------------------------------
 -- Conveyor
 --------------------------------------------------------------------------------
 
+local function pickFromRarity(rarityName: string): Definition?
+	local choices = BrainrotConfig.ByRarity[rarityName]
+	if choices == nil or #choices == 0 then
+		return nil
+	end
+	return choices[rng:NextInteger(1, #choices)]
+end
+
+local function resetGuaranteeTimer(rarityName: string)
+	for _, rule in GameConfig.GuaranteedRarities do
+		if rule.Rarity == rarityName then
+			nextGuaranteedAt[rarityName] = Workspace:GetServerTimeNow() + rule.IntervalSeconds
+		end
+	end
+end
+
 local function rollDefinition(): Definition?
+	-- A guaranteed spawn whose timer ran out wins over the random roll.
+	local now = Workspace:GetServerTimeNow()
+	for _, rule in GameConfig.GuaranteedRarities do
+		if now >= (nextGuaranteedAt[rule.Rarity] or math.huge) then
+			resetGuaranteeTimer(rule.Rarity)
+			local guaranteed = pickFromRarity(rule.Rarity)
+			if guaranteed then
+				return guaranteed
+			end
+		end
+	end
+
 	local multiplier = tonumber(getServerRarityMultiplierFunction:Invoke()) or 1
 	local commonRarity = BrainrotConfig.Rarities[1]
 
@@ -711,12 +806,22 @@ local function rollDefinition(): Definition?
 	for index, rarity in BrainrotConfig.Rarities do
 		roll -= weights[index]
 		if roll <= 0 and weights[index] > 0 then
-			local choices = BrainrotConfig.ByRarity[rarity.Name]
-			return choices[rng:NextInteger(1, #choices)]
+			resetGuaranteeTimer(rarity.Name)
+			return pickFromRarity(rarity.Name)
 		end
 	end
-	local fallback = BrainrotConfig.ByRarity[commonRarity.Name]
-	return fallback[rng:NextInteger(1, #fallback)]
+	return pickFromRarity(commonRarity.Name)
+end
+
+local function rollMutation(): Mutation?
+	local roll = rng:NextNumber()
+	for _, mutation in BrainrotConfig.Mutations do
+		if roll < mutation.Chance then
+			return mutation
+		end
+		roll -= mutation.Chance
+	end
+	return nil
 end
 
 local function removeConveyorItem(item: ConveyorItem)
@@ -747,27 +852,28 @@ local function onBuyTriggered(item: ConveyorItem, player: Player)
 	end
 
 	local definition = item.Definition
+	local name = fullName(definition, item.Mutation)
 	item.Sold = true
 	plot.Reserved[slotIndex] = true
-	local paid = spendCash(player, definition.Price)
+	local paid = spendCash(player, item.Price)
 	plot.Reserved[slotIndex] = nil
 
 	if not paid then
 		item.Sold = false
-		notify(player, string.format("You need %s to buy %s.", NumberFormat.cash(definition.Price), definition.DisplayName), "Error")
+		notify(player, string.format("You need %s to buy %s.", NumberFormat.cash(item.Price), name), "Error")
 		return
 	end
 	if plot.Owner ~= player then
-		addCash(player, definition.Price)
+		addCash(player, item.Price)
 		item.Sold = false
 		return
 	end
 
 	local fromCFrame = item.Root.CFrame
 	removeConveyorItem(item)
-	placeOccupant(plot, slotIndex, definition, fromCFrame)
+	placeOccupant(plot, slotIndex, definition, item.Mutation, fromCFrame)
 	saveBrainrots(plot)
-	notify(player, string.format("You bought %s!", definition.DisplayName), "Success")
+	notify(player, string.format("You bought %s!", name), "Success")
 end
 
 local function spawnConveyorBrainrot()
@@ -775,6 +881,8 @@ local function spawnConveyorBrainrot()
 	if definition == nil then
 		return
 	end
+	local mutation = rollMutation()
+	local price = priceOf(definition, mutation)
 
 	local startPosition = conveyorStart.Position
 	local endPosition = Vector3.new(conveyorEnd.Position.X, startPosition.Y, conveyorEnd.Position.Z)
@@ -785,7 +893,8 @@ local function spawnConveyorBrainrot()
 	local startCFrame = CFrame.lookAt(startPosition, endPosition)
 	local endCFrame = startCFrame + direction
 
-	local visual = buildBrainrot(definition, definition.Price)
+	local visual = buildBrainrot(definition, mutation, price)
+	visual.Model:SetAttribute("State", "Conveyor")
 	visual.Root.CFrame = startCFrame
 	visual.Model.Parent = brainrotsFolder
 
@@ -797,6 +906,8 @@ local function spawnConveyorBrainrot()
 
 	local item: ConveyorItem = {
 		Definition = definition,
+		Mutation = mutation,
+		Price = price,
 		Model = visual.Model,
 		Root = visual.Root,
 		PromptAttachment = visual.PromptAttachment,
@@ -809,8 +920,8 @@ local function spawnConveyorBrainrot()
 	local prompt = createPrompt(
 		visual.PromptAttachment,
 		"Buy",
-		"Buy " .. NumberFormat.cash(definition.Price),
-		definition.DisplayName,
+		"Buy " .. NumberFormat.cash(price),
+		fullName(definition, mutation),
 		0,
 		Enum.KeyCode.E,
 		nil
@@ -1031,10 +1142,13 @@ local function assignPlot(player: Player)
 	local changed = false
 	local nextSlot = 1
 	if typeof(savedIds) == "table" then
-		for _, brainrotId in savedIds do
-			local definition = if typeof(brainrotId) == "string" then BrainrotConfig.ById[brainrotId] else nil
+		for _, entry in savedIds do
+			local definition, mutation = nil, nil
+			if typeof(entry) == "string" then
+				definition, mutation = BrainrotConfig.decode(entry)
+			end
 			if definition and nextSlot <= #plot.Slots then
-				placeOccupant(plot, nextSlot, definition, nil)
+				placeOccupant(plot, nextSlot, definition, mutation, nil)
 				nextSlot += 1
 			else
 				changed = true
@@ -1047,7 +1161,7 @@ local function assignPlot(player: Player)
 		local data = getPlayerData(player)
 		local starter = BrainrotConfig.ById[GameConfig.StarterBrainrotId]
 		if data and data.Cash == 0 and data.Rebirths == 0 and starter then
-			placeOccupant(plot, 1, starter, nil)
+			placeOccupant(plot, 1, starter, nil, nil)
 			changed = true
 			notify(player, string.format("Welcome! Here's a free %s to get you started.", starter.DisplayName), "Success")
 		end
@@ -1163,6 +1277,54 @@ local function fastTick()
 end
 
 -- Runs every SLOW_TICK_SECONDS: income, lock timers and signs.
+local spawnSignLabel: TextLabel? = nil
+do
+	local spawnSign = conveyorFolder:FindFirstChild("SpawnSign", true)
+	if spawnSign and spawnSign:IsA("BasePart") then
+		local surfaceGui = Instance.new("SurfaceGui")
+		surfaceGui.Name = "SignGui"
+		surfaceGui.Face = Enum.NormalId.Front
+		surfaceGui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		surfaceGui.PixelsPerStud = 40
+		surfaceGui.LightInfluence = 0
+
+		local label = Instance.new("TextLabel")
+		label.BackgroundColor3 = Color3.fromRGB(20, 24, 40)
+		label.Size = UDim2.fromScale(1, 1)
+		label.Font = Enum.Font.FredokaOne
+		label.RichText = true
+		label.TextScaled = true
+		label.TextColor3 = Color3.new(1, 1, 1)
+		label.Parent = surfaceGui
+		surfaceGui.Parent = spawnSign
+		spawnSignLabel = label
+	end
+end
+
+local function updateSpawnSign()
+	local label = spawnSignLabel
+	if label == nil then
+		return
+	end
+	local now = Workspace:GetServerTimeNow()
+	local lines: { string } = {}
+	for index = #GameConfig.GuaranteedRarities, 1, -1 do
+		local rule = GameConfig.GuaranteedRarities[index]
+		local rarity = BrainrotConfig.RarityByName[rule.Rarity]
+		local colour = if rarity then rarity.Color:ToHex() else "ffffff"
+		table.insert(
+			lines,
+			string.format(
+				'Guaranteed <font color="#%s">%s</font> in %s',
+				colour,
+				rule.Rarity,
+				NumberFormat.duration((nextGuaranteedAt[rule.Rarity] or now) - now)
+			)
+		)
+	end
+	label.Text = table.concat(lines, "\n")
+end
+
 local function slowTick()
 	local now = Workspace:GetServerTimeNow()
 	for _, plot in plots do
@@ -1177,7 +1339,7 @@ local function slowTick()
 			local baseIncome = 0
 			for _, occupant in plot.Occupants do
 				if occupant.Carrier == nil then
-					baseIncome += occupant.Definition.IncomePerSecond
+					baseIncome += incomeOf(occupant.Definition, occupant.Mutation)
 				end
 			end
 			local incomePerSecond = baseIncome * getIncomeMultiplier(owner)
@@ -1192,6 +1354,7 @@ local function slowTick()
 		end
 		updatePlotLabels(plot)
 	end
+	updateSpawnSign()
 end
 
 local function runLoop(intervalSeconds: number, name: string, callback: () -> ())

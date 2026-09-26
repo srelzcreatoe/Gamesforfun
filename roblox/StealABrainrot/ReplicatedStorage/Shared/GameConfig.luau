@@ -22,6 +22,13 @@ local GameConfig = {
 	CarrySpeedToleranceStuds = 8,
 	CatchDistance = 6,
 
+	-- Guaranteed spawns: when a timer runs out, the next conveyor brainrot is
+	-- of that rarity. Listed from rarest; a natural spawn also resets its timer.
+	GuaranteedRarities = table.freeze({
+		table.freeze({ Rarity = "Mythic", IntervalSeconds = 15 * 60 }),
+		table.freeze({ Rarity = "Legendary", IntervalSeconds = 4 * 60 }),
+	}),
+
 	-- Base lock
 	LockDurationSeconds = 60,
 
