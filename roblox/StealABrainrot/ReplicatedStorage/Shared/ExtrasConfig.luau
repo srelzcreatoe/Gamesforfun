@@ -134,6 +134,7 @@ ExtrasConfig.GuardCooldowns = table.freeze({
 	Mythic = 16,
 	["Brainrot God"] = 14,
 	Secret = 12,
+	OG = 10,
 } :: { [string]: number })
 ExtrasConfig.SuperGuardCooldownMultiplier = 0.5
 
@@ -152,6 +153,7 @@ ExtrasConfig.PetSpeedBonus = table.freeze({
 	Mythic = 3,
 	["Brainrot God"] = 3.5,
 	Secret = 4,
+	OG = 5,
 } :: { [string]: number })
 ExtrasConfig.PetSpeedCap = 8
 ExtrasConfig.PetExtraSpeedShare = 0.25
@@ -339,7 +341,9 @@ end
 
 --------------------------------------------------------------------------------
 -- Weekly limited brainrots: one famous-Roblox-limited brainrot is on sale
--- (for Robux) each week, then it's gone until it comes round again.
+-- (for Robux) each week, then it's gone until it comes round again. They're
+-- OG, rarer and stronger than any Secret, and the conveyor spawns one only
+-- very rarely (BrainrotConfig.OGChance).
 --------------------------------------------------------------------------------
 
 export type Limited = {
@@ -350,11 +354,11 @@ export type Limited = {
 }
 
 ExtrasConfig.LimitedRotation = table.freeze({
-	table.freeze({ Id = "KorbloxoScheletrino", Product = "LimitedKorbloxo", Robux = 149 }),
-	table.freeze({ Id = "ValkyrioPolpetto", Product = "LimitedValkyrio", Robux = 249 }),
-	table.freeze({ Id = "HeadlessoZuccone", Product = "LimitedHeadless", Robux = 399 }),
-	table.freeze({ Id = "DominussoCappuccinoso", Product = "LimitedDominus", Robux = 449 }),
-	table.freeze({ Id = "SparklinoFedorino", Product = "LimitedSparkle", Robux = 599 }),
+	table.freeze({ Id = "KorbloxoScheletrino", Product = "LimitedKorbloxo", Robux = 799 }),
+	table.freeze({ Id = "ValkyrioPolpetto", Product = "LimitedValkyrio", Robux = 999 }),
+	table.freeze({ Id = "HeadlessoZuccone", Product = "LimitedHeadless", Robux = 1299 }),
+	table.freeze({ Id = "DominussoCappuccinoso", Product = "LimitedDominus", Robux = 1499 }),
+	table.freeze({ Id = "SparklinoFedorino", Product = "LimitedSparkle", Robux = 1999 }),
 } :: { Limited })
 -- Weeks start on Mondays at 00:00 UTC.
 ExtrasConfig.LimitedWeekEpoch = 1767571200 -- Monday 2026-01-05

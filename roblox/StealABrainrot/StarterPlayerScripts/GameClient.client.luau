@@ -614,6 +614,25 @@ local rarityOrder: { [string]: number } = {}
 for order, rarity in BrainrotConfig.Rarities do
 	rarityOrder[rarity.Name] = order
 end
+-- Cards run from the most common rarity to the rarest, cheapest first. A rank
+-- rather than rarity * 1e9 + price, which LayoutOrder (32-bit) can't hold.
+local indexOrder: { [string]: number } = {}
+do
+	local sorted = table.clone(BrainrotConfig.Brainrots)
+	table.sort(sorted, function(a, b)
+		local rarityA, rarityB = rarityOrder[a.Rarity] or 0, rarityOrder[b.Rarity] or 0
+		if rarityA ~= rarityB then
+			return rarityA < rarityB
+		end
+		if a.Price ~= b.Price then
+			return a.Price < b.Price
+		end
+		return a.Id < b.Id
+	end)
+	for rank, definition in sorted do
+		indexOrder[definition.Id] = rank
+	end
+end
 
 for _, definition in BrainrotConfig.Brainrots do
 	local rarity = BrainrotConfig.RarityByName[definition.Rarity]
@@ -621,7 +640,7 @@ for _, definition in BrainrotConfig.Brainrots do
 	local card = create("Frame", {
 		Name = definition.Id,
 		BackgroundColor3 = COLORS.PanelLight,
-		LayoutOrder = (rarityOrder[definition.Rarity] or 0) * 1000000000 + definition.Price,
+		LayoutOrder = indexOrder[definition.Id] or 0,
 	}, { corner(12), stroke(rarityColour, 3) }) :: Frame
 	local cardStroke = card:FindFirstChildOfClass("UIStroke") :: UIStroke
 
@@ -637,7 +656,8 @@ for _, definition in BrainrotConfig.Brainrots do
 	}, { corner(10) }) :: ViewportFrame
 	viewport.Parent = card
 
-	-- Limited and season brainrots never ride the conveyor: say where they come from.
+	-- Say where limited brainrots (the weekly shop, or very rarely the conveyor
+	-- as OGs) and season ones come from.
 	local badgeText = if BrainrotConfig.hasTag(definition, "Limited")
 		then "⭐ LIMITED"
 		elseif BrainrotConfig.hasTag(definition, "Season") then "🏆 SEASON"
@@ -802,6 +822,10 @@ local function refreshIndex()
 	else
 		for _, rarity in BrainrotConfig.Rarities do
 			local choices = BrainrotConfig.DropsByRarity[rarity.Name]
+			-- (OG has no page to fill: its brainrots are the limited ones.)
+			if #choices == 0 then
+				continue
+			end
 			local have = 0
 			for _, definition in choices do
 				if found[definition.Id] then

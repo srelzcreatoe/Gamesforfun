@@ -31,6 +31,8 @@ That's it: the game finds the models by their part names (`TimCheese_Body`, `Tim
 
 Until you import the file, each player's game builds blocky versions of the models itself (slower, and it needs Game Settings → Security → **Allow Mesh / Image APIs** once published). Where that isn't allowed either, it builds them out of ordinary Parts (`ReplicatedStorage/Assets/BrainrotBoxes/`), so a brainrot is never invisible. The Output says which one the game is using.
 
+**A model under the wrong name?** The game checks every imported model's pieces and sizes against what that brainrot should look like (`ReplicatedStorage/Shared/ModelShapes.luau`). One that's really another brainrot's (say, Greg under La Vaca Saturno Saturnita's name) is used for the right brainrot, one that looks like none is left out (that brainrot is built from blocks), and an old import from before a model was rebuilt never wins over the current one. The Output says which. If it lists any, delete the BrainrotModels import, import the file again and save.
+
 **A model missing?** When you press Play, the Output lists every brainrot that has no imported model (for example `La Vaca Saturno Saturnita (One/LaVacaSaturnoSaturnita.glb)`). Each brainrot also has its own file in `BrainrotModels/Import/One/`: import just that file (File → Import 3D), save, and play again. The game finds imported models anywhere in the Workspace, ReplicatedStorage or ServerStorage, even inside folders.
 
 ## How to play
@@ -48,7 +50,7 @@ When you join, a title screen comes up over a slow, blurry flyover of the map: t
 | Upgrade a pedestal | Press **R** on your own brainrot: each level (up to 5) adds +25% to whatever stands on that pedestal, and the pedestal gets a glowing ring |
 | Manage a brainrot | Press **G** on your own brainrot: its level, its hat, and the Make Guard and pet buttons |
 | Levels | Brainrots level up while they stand on a pedestal: level 2 after 5 minutes, up to level 10 after 6 hours. Each level adds +10% income and shows on its sign ("⭐ Lv 3"). A stolen brainrot starts again at level 1; a traded one keeps its level |
-| Hats | 8 hats, from the Party Hat (+5% income) to the Crown (+25%), from the Hat Crate, the season pass and Boss Raids. Put one on from the Manage menu and it sits on the brainrot's head. If the brainrot is stolen, sold, fused or traded, the hat comes back to you |
+| Hats | 8 hats, from the Party Hat (+5% income) to the Crown (+25%), from the Hat Crate, the season pass and Boss Raids. Put one on from the Manage menu and it sits on top of the brainrot's head, sized to it: on the shark's head rather than its fin, on the ballerina's cup rather than her hands, on the pilot rather than the plane's tail (`tools/build_hat_anchors.py` finds each head from the brainrot's blocks). If the brainrot is stolen, sold, fused or traded, the hat comes back to you |
 | Guard | Make one brainrot your guard: it stands just outside your door and walks up and down in front of it. When someone else comes within 14 studs, a "❗" pops up over it for a moment (your warning to dodge), then it charges and knocks them back; a thief it catches drops the brainrot. Then it rests for 12 to 24 seconds (rarer is faster; half as long with the Super Guard pass). It's fair to thieves: it never leaves the front of your base, it can't see cloaked players, it's slower than a running player, and a slap knocks it out for 6 seconds. Your crew can walk past it. It keeps earning |
 | Pets | The **Pets** button (🐾, on the right) opens your pets: pick which brainrots follow you around as small copies. You start with 1 pet slot; more cost $1M, $25M, $500M, $10B and $100B (6 at most). Each pet makes you faster: the best one gives its full bonus (+1 for a Common up to +4 for a Secret) and every other one a quarter of its bonus, up to +8 in all. Your guard can't be a pet |
 | Revenge | When someone steals from you, you're faster (+6) for 60 seconds and a beam points at them. Steal anything back from them in time for a bonus of 2 minutes of your income (at least $500) |
@@ -69,7 +71,7 @@ When you join, a title screen comes up over a slow, blurry flyover of the map: t
 | Gear Shop | The Gear Shop stall: gear bought with Cash and kept forever (see below) |
 | Crews | **Crew** button: start a crew (pick a name and a colour) and invite up to 3 players. Each crewmate in the server adds +5% income, you walk through each other's lasers and can't steal from each other, and the crew's name shows on your name tags |
 | Season pass | **Season** button: everything earns XP (buying, stealing, collecting, quests, raids, heists, and 2 XP a minute just for playing), and every 150 XP opens a tier. Each of the 30 tiers has a free reward and a premium one for Season Pass owners: Cash, spins, lucky blocks, boosts, hats, Guesti Guacanini (tier 10), Orcalero Orcala (tier 20) and the season-only **Admino Supremo** (tier 30). A new season starts every 28 days |
-| Limited Shop | The gold stall: one limited brainrot a week (Korbloxo Scheletrino, Valkyrio Polpetto, Headlesso Zuccone, Dominusso Cappuccinoso, Sparklino Fedorino), sold for Robux and never on the conveyor. It spins on the stall's display with a countdown to the next one |
+| Limited Shop | The gold stall: one limited brainrot a week (Korbloxo Scheletrino, Valkyrio Polpetto, Headlesso Zuccone, Dominusso Cappuccinoso, Sparklino Fedorino), sold for Robux. They're **OG**, rarer and stronger than any Secret, and very rarely one turns up on the conveyor too. It spins on the stall's display with a countdown to the next one |
 | Leaderboards | Top Cash, Top Steals, Top Earners (best income per second) and Top Rebirths across all servers in the Hall of Fame, with the top thief's avatar on a podium; Cash, Steals and Rebirths in the player list |
 
 The HUD buttons are chunky and bright like the original's (a glossy colour block with a thick black outline, a 3D shadow and the icon popping out of the top); they bounce when you hover them, squish when you click, and their icons wiggle. A red **!** shows when something's waiting (a free spin, a daily reward, a finished quest). The Shop button has a pulsing NEW! badge. On small screens (phones) the buttons shrink to fit.
@@ -141,7 +143,8 @@ A full day passes every 10 minutes (the night is shorter), and the street lamps 
 
 ### Rarities, mutations and spawn timers
 
-- **113 brainrots** in 7 rarities: Common, Rare, Epic, Legendary, Mythic, **Brainrot God** (rainbow name and glow) and **Secret** (black name with a white outline, dark smoke and white sparks) — from Noobini Pizzanini up to Chef Crabracadabra, Frigo Camelo, Tralalero Tralala, Espresso Signora, Orcalero Orcala, Girafa Celestre, Gattatino Neonino, Cocofanto Elefanto, **La Vaca Saturno Saturnita**, Los Tralaleritos, Graipuss Medussi, La Grande Combinasion, Strawberry Elephant, Dragon Cannelloni and the Secret **67**, plus Roblox-themed ones like Guesti Guacanini, Bloxy Colino, Robuxino Monetino, Oofosauro Rex, Banhammero Giustiziere and Galattico Guestone, and the XRE mobs from Baconini Croccantini (Rare) up to Nonna Mattarella (Mythic), Espressino Motorino riding his scooter (Brainrot God) and the Secret Spaghettone Squalone, and three made from real life: **Canelito Cannolito** (Brainrot God), a fluffy puppy with a cannoli in his mouth riding a skateboard, **Benjini Skatini** (Secret), Benji riding his, and **Greggini Ricciolini** (Secret), Greg with his curly hair and white tee, on the same skateboard. Rarer brainrots glow in their rarity colour, sparkle and have a rising aura; Mythic and up pulse. The 5 weekly limited brainrots and Admino Supremo (season pass) are exclusive: they never spawn on the conveyor.
+- **113 brainrots** in 8 rarities: Common, Rare, Epic, Legendary, Mythic, **Brainrot God** (rainbow name and glow), **Secret** (black name with a white outline, dark smoke and white sparks) and **OG** (a shining aqua-white-gold name and the brightest glow) — from Noobini Pizzanini up to Chef Crabracadabra, Frigo Camelo, Tralalero Tralala, Espresso Signora, Orcalero Orcala, Girafa Celestre, Gattatino Neonino, Cocofanto Elefanto, **La Vaca Saturno Saturnita**, Los Tralaleritos, Graipuss Medussi, La Grande Combinasion, Strawberry Elephant, Dragon Cannelloni and the Secret **67**, plus Roblox-themed ones like Guesti Guacanini, Bloxy Colino, Robuxino Monetino, Oofosauro Rex, Banhammero Giustiziere and Galattico Guestone, and the XRE mobs from Baconini Croccantini (Rare) up to Nonna Mattarella (Mythic), Espressino Motorino riding his scooter (Brainrot God) and the Secret Spaghettone Squalone, and three made from real life: **Canelito Cannolito** (Brainrot God), a fluffy puppy with a cannoli in his mouth riding a skateboard, **Benjini Skatini** (Secret), Benji riding his, and **Greggini Ricciolini** (Secret), Greg with his curly hair and white tee, on the same skateboard. Rarer brainrots glow in their rarity colour, sparkle and have a rising aura; Mythic and up pulse. Admino Supremo (season pass) never spawns on the conveyor.
+- **OG brainrots**, the 5 weekly limited ones, are the rarest finds of all and the best: Korbloxo Scheletrino ($250M, $500K/s), Valkyrio Polpetto ($400M, $750K/s), Headlesso Zuccone ($600M, $1M/s), Dominusso Cappuccinoso ($800M, $1.3M/s) and Sparklino Fedorino ($1.2B, $2M/s). Besides the Limited Shop, every conveyor spawn has a 1 in 4,000 chance of being one (about one every 2-3 hours in a server; the Server Rarity Boost and lucky events raise it), and the whole server gets told when one appears. They can't be fused and aren't in lucky blocks (`BrainrotConfig.OGChance`).
 - **Mutations**, rolled when a brainrot spawns: **Gold** (6%, x1.5 income and price), **Diamond** (2.5%, x2) and **Rainbow** (0.6%, x5), plus the event and weather ones: **Bloodrot** (x3), **Galaxy** (x4), **Lava** (x3.5, on fire), **Frozen** (x2.5), **Taco** (x3), **Lucky** (x2.5), **Cash** (x3), **Storm** (x4), **Heist** (x3.5), **Boss** (x5, on fire) and **Admin** (x7, glitching). Mutated brainrots are recoloured, shine and sparkle in their colour, and neon blocks circle them (more for rarer mutations); Rainbow cycles through every colour. Mutations are saved with the brainrot.
 - **Traits**, rolled like mutations and stacking with them: **Fire** (3%, x2, burns), **Tiny** (3%, x1.5, small), **Giant** (2%, x3, big), **Glitched** (0.6%, x6, flickers and jumps about) and **Nyan** (0.3%, x8, a rainbow trail). A Fire Gold Tim Cheese earns 1.5 x 2 = 3x.
 - **Guaranteed spawns**: the sign over the spawn tunnel counts down to a guaranteed Legendary (every 4 minutes), Mythic (10 minutes), Brainrot God (20 minutes) and Secret (45 minutes).
@@ -269,11 +272,11 @@ Recommended Robux prices (what similar games charge; change them in the Creator 
 | Rainbow Base Skin | Colour-cycling base, forever | 199 |
 | Hat Crate | A random hat (Party Hat +5% up to Crown +25%) | 99 |
 | Season Tier Skip | One season pass tier (150 XP) | 49 |
-| Korbloxo Scheletrino (limited) | Epic, weekly limited | 149 |
-| Valkyrio Polpetto (limited) | Legendary, weekly limited | 249 |
-| Headlesso Zuccone (limited) | Mythic, weekly limited | 399 |
-| Dominusso Cappuccinoso (limited) | Mythic, weekly limited | 449 |
-| Sparklino Fedorino (limited) | Brainrot God, weekly limited | 599 |
+| Korbloxo Scheletrino (limited) | OG ($500K/s), weekly limited | 799 |
+| Valkyrio Polpetto (limited) | OG ($750K/s), weekly limited | 999 |
+| Headlesso Zuccone (limited) | OG ($1M/s), weekly limited | 1299 |
+| Dominusso Cappuccinoso (limited) | OG ($1.3M/s), weekly limited | 1499 |
+| Sparklino Fedorino (limited) | OG ($2M/s), weekly limited | 1999 |
 
 | Game pass | What you get | Robux |
 |---|---|---|
@@ -322,6 +325,8 @@ Global leaderboards also need a published place with API access; until then the 
 | `ReplicatedStorage/Shared/UIKit.luau` | The shared look of every menu: buttons, side buttons, windows, tabs, brainrot cards, confetti. Windows are laid out at one design size and scaled as a whole to fit between the side buttons on any screen |
 | `ReplicatedStorage/Shared/ExtrasConfig.luau` | Levels, hats, guards, pets, revenge, bounties, crews, the season pass and its tiers, the limited rotation, Boss Raids and Bank Heists |
 | `ReplicatedStorage/Shared/HatModels.luau` | The block-built hats |
+| `ReplicatedStorage/Shared/HatAnchors.luau` | Where each brainrot's hat goes and how wide it is (generated by `tools/build_hat_anchors.py`) |
+| `ReplicatedStorage/Shared/ModelShapes.luau` | Each brainrot's pieces and sizes, to catch imported models with the wrong name (generated by `tools/build_import.py`) |
 | `ReplicatedStorage/Shared/FeatureConfig.luau` | Index rewards, rebirth requirements, upgrade and skin prices, boosts, spin prizes, daily and playtime rewards, codes, quests, badges, trading, fusing, Admin Abuse |
 | `ReplicatedStorage/Shared/AssetLoader.luau` | Rebuilds the blocky models (body and legs) and icons from `ReplicatedStorage/Assets`, or builds them from Parts where meshes aren't allowed |
 | `ReplicatedStorage/Shared/TemplateModels.luau` | Copies an imported model onto a brainrot, guard, pet or boss |
@@ -370,6 +375,12 @@ Then rebuild the file to import (after changing any model):
 
 ```sh
 python3 tools/build_import.py
+```
+
+and where the hats go:
+
+```sh
+python3 tools/build_hat_anchors.py
 ```
 
 The script also finds each model's legs (the separate block groups that stand on the ground, up to where they join the body) so the game can swing them.

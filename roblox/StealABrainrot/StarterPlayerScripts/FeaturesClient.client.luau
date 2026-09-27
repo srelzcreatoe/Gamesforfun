@@ -1593,7 +1593,8 @@ do
 					picked = true
 				end
 			end
-			if picked or BrainrotConfig.isLuckyBlock(owned.Definition) or owned.Definition.Rarity == "Secret" then
+			local top = owned.Definition.Rarity == "Secret" or owned.Definition.Rarity == "OG"
+			if picked or BrainrotConfig.isLuckyBlock(owned.Definition) or top then
 				continue
 			end
 			local card = UIKit.brainrotCard(owned.Entry, { LayoutOrder = order })

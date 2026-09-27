@@ -47,6 +47,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local AssetLoader = require(Shared:WaitForChild("AssetLoader"))
 local BrainrotConfig = require(Shared:WaitForChild("BrainrotConfig"))
 local HatModels = require(Shared:WaitForChild("HatModels"))
+local HatAnchors = require(Shared:WaitForChild("HatAnchors"))
 
 local PIECE_ATTRIBUTE = "HiggsfieldPiece"
 local ANIMATION_DISTANCE = 220
@@ -152,6 +153,7 @@ local RARITY_EFFECTS: { [string]: RarityEffect } = {
 		RainbowLight = true,
 	},
 	Secret = { Light = 1.3, Range = 10, Sparkles = 16, Aura = true, Pulse = true, Reflectance = 0.2, Dark = true },
+	OG = { Light = 1.7, Range = 12, Sparkles = 20, Aura = true, Pulse = true, Reflectance = 0.25 },
 }
 
 local MUTATION_REFLECTANCE: { [string]: number } = {
@@ -373,7 +375,8 @@ local function addOrbiters(visual: Visual, mutation: BrainrotConfig.Mutation)
 	end
 end
 
--- The hat goes on the head (or the top of the body) and moves with it.
+-- The hat goes on top of the head (HatAnchors, worked out from each
+-- brainrot's shape by tools/build_hat_anchors.py) and moves with it.
 local function attachHat(visual: Visual)
 	local old = visual.Hat
 	if old then
@@ -384,18 +387,26 @@ local function attachHat(visual: Visual)
 	if typeof(hatName) ~= "string" then
 		return
 	end
+	local brainrotId = visual.Model:GetAttribute("BrainrotId")
+	local anchor = if typeof(brainrotId) == "string" then HatAnchors[brainrotId] else nil
 	local target: BasePart = visual.Body
 	for _, piece in visual.Pieces do
-		if piece.Kind == "Head" then
+		if piece.Kind == (if anchor then anchor.Piece else "Head") and piece.Kind ~= "Body" then
 			target = piece.Part
 		end
 	end
-	local width = math.clamp(math.min(target.Size.X, target.Size.Z) * 0.75, 0.6, visual.Height * 0.55)
+	-- (Without an anchor: the middle of the top of the head or body.)
+	local width = if anchor
+		then anchor.Width * visual.Height
+		else math.clamp(math.min(target.Size.X, target.Size.Z) * 0.75, 0.6, visual.Height * 0.55)
 	local hat = HatModels.build(hatName, width)
 	if hat == nil then
 		return
 	end
-	local top = CFrame.new(0, target.Size.Y / 2 - width * 0.06, 0)
+	local size = target.Size
+	local top = if anchor
+		then CFrame.new(anchor.X * size.X, anchor.Y * size.Y - width * 0.06, anchor.Z * size.Z)
+		else CFrame.new(0, size.Y / 2 - width * 0.06, 0)
 	for _, part in hat:GetDescendants() do
 		if part:IsA("BasePart") then
 			local offset = part.CFrame

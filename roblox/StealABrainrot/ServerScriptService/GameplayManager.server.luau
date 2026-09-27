@@ -880,6 +880,10 @@ local TemplateModels = require(ReplicatedStorage:WaitForChild("Shared"):WaitForC
 -- asset module has its Phase and Axis at Parts[3 + 1]), with an
 -- "<Id>_Pivot3" marker at the joint it turns about and an "<Id>_Built" marker.
 Tuning.MOVING_KINDS = { Leg = true, Arm = true, Wing = true, Tail = true, Head = true, Prop = true, Ear = true, Board = true } :: { [string]: boolean }
+-- How far (as a share) an imported model's piece sizes can be from its
+-- brainrot's (ModelShapes) and still count as it. The two most alike
+-- brainrots are 0.1 apart.
+Tuning.SHAPE_TOLERANCE = 0.05
 
 local function prepareImportedModels(): (number, { string })
 	local function isMarker(piece: string): boolean
@@ -934,15 +938,19 @@ local function prepareImportedModels(): (number, { string })
 		return 0, {}
 	end
 
-	-- Each brainrot's pieces come from one import (they're placed apart), the
-	-- one with its Built marker if an older import is still around too.
+	-- Each brainrot's pieces come from one import (they're placed apart). If
+	-- an older import is still around too, the one made the way the brainrot
+	-- is now (block-built, with a Built marker, or not) wins.
 	local groups: { [string]: { [string]: BasePart } } = {}
 	local groupBuilt: { [string]: boolean } = {}
+	-- (Imported pieces named "<Id>_<Piece>", rather than a hand-made model.)
+	local groupNamed: { [string]: boolean } = {}
 	for _, container in containers do
 		if container.Parent == nil then
 			continue
 		end
 		local found: { [string]: { [string]: BasePart } } = {}
+		local named: { [string]: boolean } = {}
 		for _, descendant in container:GetDescendants() do
 			if not descendant:IsA("BasePart") then
 				continue
@@ -951,6 +959,7 @@ local function prepareImportedModels(): (number, { string })
 			if brainrotId and piece and BrainrotConfig.ById[brainrotId] and isPiece(piece) then
 				found[brainrotId] = found[brainrotId] or {}
 				found[brainrotId][piece] = descendant
+				named[brainrotId] = true
 			else
 				-- A hand-made model: a Model named after the brainrot.
 				local ancestor = descendant:FindFirstAncestorWhichIsA("Model")
@@ -968,26 +977,123 @@ local function prepareImportedModels(): (number, { string })
 			end
 		end
 		for brainrotId, pieces in found do
-			local builtMarker: BasePart? = pieces.Built
 			-- (An import that lost its body doesn't count.)
 			local body: BasePart?, front: BasePart?, top: BasePart? = pieces.Body, pieces.Front, pieces.Top
 			local complete = body ~= nil or (front == nil and top == nil)
-			if complete and (groups[brainrotId] == nil or (builtMarker ~= nil and not groupBuilt[brainrotId])) then
+			local definition = BrainrotConfig.ById[brainrotId]
+			local wanted = definition ~= nil and definition.BlockBuilt
+			local builtMarker: BasePart? = pieces.Built
+			local isBuilt = builtMarker ~= nil
+			if complete and (groups[brainrotId] == nil or (isBuilt == wanted and groupBuilt[brainrotId] ~= wanted)) then
 				groups[brainrotId] = pieces
-				groupBuilt[brainrotId] = if builtMarker then true else false
+				groupBuilt[brainrotId] = isBuilt
+				groupNamed[brainrotId] = named[brainrotId] == true
 			end
 		end
+	end
+
+	-- A model can end up with another brainrot's name (the importer or an old
+	-- import mixing them up), so each imported one's pieces and their sizes
+	-- are checked against ModelShapes: one that's really another brainrot's is
+	-- used for that one, and one that looks like none is left out.
+	local ModelShapes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ModelShapes"))
+	local function shapeError(pieces: { [string]: BasePart }, shape: { [string]: { number } }): number
+		local body: BasePart? = pieces.Body
+		if body == nil then
+			return math.huge
+		end
+		local unit = math.max(body.Size.X, body.Size.Y, body.Size.Z)
+		local worst, count = 0, 0
+		for piece, part in pieces do
+			if isMarker(piece) then
+				continue
+			end
+			local want = shape[piece]
+			if want == nil or unit <= 0 then
+				return math.huge
+			end
+			count += 1
+			local sizes = { part.Size.X / unit, part.Size.Y / unit, part.Size.Z / unit }
+			table.sort(sizes, function(a: number, b: number): boolean
+				return a > b
+			end)
+			for index = 1, 3 do
+				worst = math.max(worst, math.abs(sizes[index] - want[index]) / math.max(want[index], 0.1))
+			end
+		end
+		local expected = 0
+		for _ in shape do
+			expected += 1
+		end
+		return if count == expected then worst else math.huge
+	end
+	local checked: { [string]: { [string]: BasePart } } = {}
+	local wrong: { string } = {}
+	for brainrotId, pieces in groups do
+		local shape = ModelShapes[brainrotId]
+		if shape == nil or not groupNamed[brainrotId] or shapeError(pieces, shape) <= Tuning.SHAPE_TOLERANCE then
+			checked[brainrotId] = pieces
+		else
+			table.insert(wrong, brainrotId)
+		end
+	end
+	table.sort(wrong)
+	-- (If most don't match, the importer must measure them differently: then
+	-- the check can't be trusted, so the names are kept.)
+	local namedCount = 0
+	for brainrotId in groups do
+		if groupNamed[brainrotId] then
+			namedCount += 1
+		end
+	end
+	if namedCount >= 4 and #wrong * 2 > namedCount then
+		warn(string.format("%s Couldn't check the imported models' names (most don't match their shapes), so they're used as named.", LOG_PREFIX))
+		for _, brainrotId in wrong do
+			checked[brainrotId] = groups[brainrotId]
+		end
+		table.clear(wrong)
+	end
+	local renamed: { string } = {}
+	local unknown: { string } = {}
+	for _, brainrotId in wrong do
+		local pieces = groups[brainrotId]
+		local best, bestError = nil :: string?, Tuning.SHAPE_TOLERANCE
+		for otherId, shape in ModelShapes do
+			local miss = shapeError(pieces, shape)
+			if miss <= bestError and checked[otherId] == nil then
+				best, bestError = otherId, miss
+			end
+		end
+		if best then
+			checked[best] = pieces
+			table.insert(renamed, string.format("%s (was named %s)", best, brainrotId))
+		else
+			table.insert(unknown, brainrotId)
+		end
+	end
+	if #renamed > 0 then
+		warn(string.format("%s Imported models with another brainrot's name, now used for the right one: %s.", LOG_PREFIX, table.concat(renamed, ", ")))
+	end
+	if #unknown > 0 then
+		warn(
+			string.format(
+				"%s These imported models don't look like the brainrot they're named after, so those brainrots are built from blocks: %s. Delete the BrainrotModels import, import BrainrotModels/Import/BrainrotModels.glb again and save.",
+				LOG_PREFIX,
+				table.concat(unknown, ", ")
+			)
+		)
 	end
 
 	local folder = Instance.new("Folder")
 	folder.Name = "BrainrotModels"
 	local count = 0
-	for brainrotId, pieces in groups do
+	for brainrotId, pieces in checked do
 		-- A block-built brainrot comes with a Built marker; an import of one
-		-- without it is from before it was rebuilt from blocks.
+		-- without it is from before it was rebuilt from blocks, and one with it
+		-- of a brainrot that isn't block-built any more is from when it was.
 		local definition = BrainrotConfig.ById[brainrotId]
 		local built: BasePart? = pieces.Built
-		if definition and definition.BlockBuilt and built == nil then
+		if definition and definition.BlockBuilt ~= (built ~= nil) then
 			continue
 		end
 		local front, top = pieces.Front, pieces.Top
@@ -1069,6 +1175,13 @@ Tuning.RAINBOW = ColorSequence.new({
 	ColorSequenceKeypoint.new(0.6, Color3.fromRGB(60, 200, 255)),
 	ColorSequenceKeypoint.new(0.8, Color3.fromRGB(150, 90, 255)),
 	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 80, 200)),
+})
+-- OG labels shine aqua, white and gold.
+Tuning.OG_SHINE = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 255, 215)),
+	ColorSequenceKeypoint.new(0.45, Color3.fromRGB(255, 255, 255)),
+	ColorSequenceKeypoint.new(0.55, Color3.fromRGB(255, 255, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 205, 60)),
 })
 
 -- A brainrot's label is sized in studs, so labels further away get smaller
@@ -1337,6 +1450,11 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, trait:
 		if outline then
 			outline.Color = Color3.new(1, 1, 1)
 		end
+	elseif rarity and rarity.Style == "OG" then
+		rarityLabel.TextColor3 = Color3.new(1, 1, 1)
+		local shine = Instance.new("UIGradient")
+		shine.Color = Tuning.OG_SHINE
+		shine.Parent = rarityLabel
 	end
 	local incomeLabel: TextLabel? = nil
 	if isBlock then
@@ -2199,6 +2317,10 @@ local function rollDefinition(): Definition?
 
 	local event = activeEvent
 	local multiplier = (tonumber(DataApi.GetServerRarityMultiplier:Invoke()) or 1) * (if event and event.Luck then event.Luck else 1)
+	-- OG finds: their own tiny chance on every spawn, raised by luck boosts.
+	if #BrainrotConfig.OGFinds > 0 and rng:NextNumber() < BrainrotConfig.OGChance * multiplier then
+		return BrainrotConfig.OGFinds[rng:NextInteger(1, #BrainrotConfig.OGFinds)]
+	end
 	local commonRarity = BrainrotConfig.Rarities[1]
 
 	local totalWeight = 0
@@ -2456,6 +2578,12 @@ local function spawnConveyorBrainrot()
 		end
 	end)
 	tween:Play()
+	-- An OG is so rare that the whole server hears about it.
+	if definition.Rarity == "OG" then
+		for _, player in Players:GetPlayers() do
+			notify(player, string.format("An OG %s is on the conveyor! It costs %s.", fullName(definition, mutation, trait), NumberFormat.cash(price)), "Success", "Event")
+		end
+	end
 end
 
 --------------------------------------------------------------------------------

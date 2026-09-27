@@ -22,7 +22,7 @@ export type Rarity = {
 	-- Relative spawn chance on the conveyor.
 	Weight: number,
 	Glow: boolean,
-	-- Billboard text style: "Plain", "Rainbow" or "Secret".
+	-- Billboard text style: "Plain", "Rainbow", "Secret" or "OG".
 	Style: string,
 }
 
@@ -67,8 +67,9 @@ export type Brainrot = {
 	-- Built from blocks (tools/blocky) rather than made with Higgsfield: an
 	-- imported Studio model never replaces it.
 	BlockBuilt: boolean,
-	-- Never on the conveyor or in lucky blocks: Limited ones are sold in the
-	-- weekly shop, Season ones are season pass rewards.
+	-- Never in the conveyor's normal roll, lucky blocks or fusing: Limited ones
+	-- are sold in the weekly shop (and turn up on the conveyor as OG finds, on
+	-- their own tiny chance: OGChance), Season ones are season pass rewards.
 	Exclusive: boolean,
 	-- Lucky blocks: the chance of each rarity when opened.
 	Odds: { [string]: number }?,
@@ -84,6 +85,9 @@ local Rarities: { Rarity } = {
 	{ Name = "Mythic", Color = rgb(255, 60, 90), Weight = 1.8, Glow = true, Style = "Plain" },
 	{ Name = "Brainrot God", Color = rgb(255, 120, 255), Weight = 0.5, Glow = true, Style = "Rainbow" },
 	{ Name = "Secret", Color = rgb(20, 20, 20), Weight = 0.12, Glow = true, Style = "Secret" },
+	-- Rarer than Secret: never in the normal roll (Weight 0). The OG brainrots
+	-- (the weekly limited ones) have their own chance on every spawn instead.
+	{ Name = "OG", Color = rgb(60, 255, 215), Weight = 0, Glow = true, Style = "OG" },
 }
 
 local function brainrot(
@@ -191,7 +195,6 @@ local Brainrots: { Brainrot } = {
 	brainrot("ToroPalloncino", "Toro Palloncino", "Epic", 26000, 170, rgb(150, 80, 40), rgb(240, 230, 200), 1.1, "Hop"),
 	blocky("CannolinoCannone", "Cannolino Cannone", "Epic", 28000, 180, rgb(230, 170, 80), rgb(120, 80, 40), 1, "Drive"),
 	blocky("TigriliniWatermelini", "Tigrilini Watermelini", "Epic", 31000, 200, rgb(60, 160, 60), rgb(255, 140, 30), 1.1),
-	blocky("KorbloxoScheletrino", "Korbloxo Scheletrino", "Epic", 34000, 215, rgb(40, 50, 110), rgb(120, 200, 255), 1.2, "Walk", LIMITED),
 
 	-- Legendary
 	brainrot("ChimpanziniBananini", "Chimpanzini Bananini", "Legendary", 40000, 240, rgb(250, 220, 60), rgb(110, 70, 40), 1.2),
@@ -212,7 +215,6 @@ local Brainrots: { Brainrot } = {
 	brainrot("ChefCrabracadabra", "Chef Crabracadabra", "Legendary", 160000, 850, rgb(215, 35, 30), rgb(245, 245, 245), 1.2),
 	blocky("GlorboFruttodrillo", "Glorbo Fruttodrillo", "Legendary", 175000, 920, rgb(60, 150, 60), rgb(230, 60, 70), 1.25),
 	blocky("LionelCactuseli", "Lionel Cactuseli", "Legendary", 190000, 1000, rgb(70, 160, 70), rgb(255, 120, 190), 1.3),
-	blocky("ValkyrioPolpetto", "Valkyrio Polpetto", "Legendary", 210000, 1100, rgb(130, 70, 40), rgb(200, 205, 215), 1.25, "Walk", LIMITED),
 
 	-- Mythic
 	brainrot("BombardiroCrocodilo", "Bombardiro Crocodilo", "Mythic", 250000, 1200, rgb(80, 150, 60), rgb(150, 150, 160), 0.8, "Fly"),
@@ -228,8 +230,6 @@ local Brainrots: { Brainrot } = {
 	blocky("BombombiniGusini", "Bombombini Gusini", "Mythic", 1050000, 4300, rgb(245, 245, 245), rgb(130, 135, 145), 0.9, "Fly"),
 	brainrot("FrigoCamelo", "Frigo Camelo", "Mythic", 1200000, 4800, rgb(235, 235, 240), rgb(210, 150, 80), 1.4),
 	blocky("GorilloWatermelondrillo", "Gorillo Watermelondrillo", "Mythic", 1400000, 5500, rgb(70, 70, 75), rgb(60, 160, 60), 1.45),
-	blocky("HeadlessoZuccone", "Headlesso Zuccone", "Mythic", 1600000, 6200, rgb(30, 30, 35), rgb(255, 130, 20), 1.35, "Walk", LIMITED),
-	blocky("DominussoCappuccinoso", "Dominusso Cappuccinoso", "Mythic", 1800000, 7000, rgb(30, 35, 60), rgb(240, 190, 60), 1.35, "Walk", LIMITED),
 
 	-- Brainrot God
 	brainrot("GattoPizzanave", "Gatto Pizzanave", "Brainrot God", 2000000, 8000, rgb(240, 170, 70), rgb(150, 150, 160), 1, "Fly"),
@@ -245,7 +245,6 @@ local Brainrots: { Brainrot } = {
 	brainrot("CocofantoElefanto", "Cocofanto Elefanto", "Brainrot God", 8000000, 26000, rgb(120, 70, 35), rgb(150, 150, 160), 1.5),
 	blocky("TrenostruzzoTurbo3000", "Trenostruzzo Turbo 3000", "Brainrot God", 9000000, 29000, rgb(40, 40, 45), rgb(220, 40, 40), 1.2, "Drive"),
 	blocky("BanhammeroGiustiziere", "Banhammero Giustiziere", "Brainrot God", 10000000, 32000, rgb(30, 30, 35), rgb(220, 30, 40), 1.5),
-	blocky("SparklinoFedorino", "Sparklino Fedorino", "Brainrot God", 12000000, 37000, rgb(245, 245, 240), rgb(140, 60, 200), 1.4, "Walk", LIMITED),
 	blocky("CanelitoCannolito", "Canelito Cannolito", "Brainrot God", 13500000, 41000, rgb(234, 208, 162), rgb(216, 50, 43), 1.2, "Skate"),
 
 	-- Secret
@@ -266,6 +265,14 @@ local Brainrots: { Brainrot } = {
 	blocky("LaGrandeCombinasion", "La Grande Combinasion", "Secret", 80000000, 190000, rgb(40, 130, 230), rgb(240, 190, 50), 1.9),
 	blocky("StrawberryElephant", "Strawberry Elephant", "Secret", 100000000, 230000, rgb(225, 40, 55), rgb(80, 170, 60), 1.8),
 	blocky("AdminoSupremo", "Admino Supremo", "Secret", 150000000, 300000, rgb(200, 30, 40), rgb(255, 210, 60), 1.7, "Walk", SEASON),
+
+	-- OG: rarer than any Secret. The weekly limited brainrots, which also turn
+	-- up on the conveyor on a tiny chance of their own (OGChance).
+	blocky("KorbloxoScheletrino", "Korbloxo Scheletrino", "OG", 250000000, 500000, rgb(40, 50, 110), rgb(120, 200, 255), 1.2, "Walk", LIMITED),
+	blocky("ValkyrioPolpetto", "Valkyrio Polpetto", "OG", 400000000, 750000, rgb(130, 70, 40), rgb(200, 205, 215), 1.25, "Walk", LIMITED),
+	blocky("HeadlessoZuccone", "Headlesso Zuccone", "OG", 600000000, 1000000, rgb(30, 30, 35), rgb(255, 130, 20), 1.35, "Walk", LIMITED),
+	blocky("DominussoCappuccinoso", "Dominusso Cappuccinoso", "OG", 800000000, 1300000, rgb(30, 35, 60), rgb(240, 190, 60), 1.35, "Walk", LIMITED),
+	blocky("SparklinoFedorino", "Sparklino Fedorino", "OG", 1200000000, 2000000, rgb(245, 245, 240), rgb(140, 60, 200), 1.4, "Walk", LIMITED),
 }
 
 -- Lucky blocks walk home like brainrots (hopping) and earn nothing; their
@@ -354,6 +361,16 @@ for _, definition in Brainrots do
 		table.insert(DropsByRarity[definition.Rarity], definition)
 	end
 end
+-- The OG finds: the Limited brainrots, which the conveyor can still spawn on
+-- a tiny chance of its own (OG_CHANCE per spawn, raised by luck boosts).
+local OGFinds: { Brainrot } = {}
+for _, definition in Brainrots do
+	if definition.Rarity == "OG" then
+		table.insert(OGFinds, definition)
+	end
+end
+-- About one every 2-3 hours in a server (a spawn every 2.5 seconds).
+local OG_CHANCE = 1 / 4000
 -- Lucky blocks can be saved, bought and stolen like brainrots, but aren't in
 -- Brainrots, ByRarity or the Index.
 for _, definition in LuckyBlocks do
@@ -491,5 +508,7 @@ return table.freeze({
 	ById = table.freeze(ById),
 	ByRarity = table.freeze(ByRarity),
 	DropsByRarity = table.freeze(DropsByRarity),
+	OGFinds = table.freeze(OGFinds),
+	OGChance = OG_CHANCE,
 	RarityByName = table.freeze(RarityByName),
 })

@@ -87,7 +87,7 @@ local function fuseResult(entries: { string }): (string?, string?)
 	local target = if rarity then nextRarity(rarity) else nil
 	local choices = if target then BrainrotConfig.DropsByRarity[target] else nil
 	if choices == nil or #choices == 0 then
-		return nil, "Secrets are already the best. They can't be fused!"
+		return nil, "Secrets and OGs are already the best. They can't be fused!"
 	end
 	local definition = choices[rng:NextInteger(1, #choices)]
 	return BrainrotConfig.encode(definition.Id, if sameMutation then mutationName else nil), nil
