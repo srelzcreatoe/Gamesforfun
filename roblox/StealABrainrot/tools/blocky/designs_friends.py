@@ -246,7 +246,7 @@ def canelito_cannolito(m):
 def greggini_ricciolini(m):
     skin, skin_shade, skin_light = "#e2b594", "#c99a78", "#eec8aa"
     hair, hair_light, hair_dark = "#1f1814", "#3a2c24", "#120e0c"
-    beard, stubble, lips = "#2a1e17", "#a88368", "#c9806e"
+    lips = "#c9806e"
     tee, tee_shade, tee_light = "#f6f6f8", "#e6e6ec", "#ffffff"
     pants, pants_dark = "#26262c", "#18181c"
     shoe, shoe_dark, sole = "#1d1d21", "#35353b", "#f1f1f1"
@@ -297,7 +297,7 @@ def greggini_ricciolini(m):
         m.box(x0, 15, 16, x0 + 2, 16, 20, skin_light, part=arm)
         m.box(x0, 15, 16, x0 + 2, 15, 20, skin_shade, part=arm)
 
-    # The head: relaxed half-closed eyes, a moustache and a goatee.
+    # The head: big wide-open eyes and a clean-shaven face.
     head = m.limb("Head", pivot=(16, 28, 18))
     m.mask(rounded_box_mask(m, 9, 28, 12, 22, 43, 24, 2.2), skin, part=head)
     m.paint_face(m.box_mask(9, 28, 0, 22, 28, 35), skin_shade, face="front")
@@ -307,22 +307,19 @@ def greggini_ricciolini(m):
     face = [
         ".bbbbb..bbbbb.",
         "..............",
-        "..dddd..dddd..",
+        "..wwww..wwww..",
         "..wkkw..wkkw..",
         "..wkhw..whkw..",
-        "..............",
+        "..wwww..wwww..",
         "......nn......",
-        "....shhhhs....",
-        "s....pppp....s",
-        "s.....hh.....s",
-        ".s..shhhhs..s.",
+        "..............",
+        ".....pppp.....",
+        "..............",
+        "..............",
     ]
-    m.pixels(9, 29, face, {"b": brow, "d": skin_shade, "w": WHITE, "k": iris, "h": beard, "n": skin_shade, "p": lips, "s": stubble})
-    m.paint_face(m.box_mask(12, 28, 0, 19, 28, 35), stubble, face="front")
+    m.pixels(9, 29, face, {"b": brow, "w": WHITE, "k": iris, "h": "#7a5a44", "n": skin_shade, "p": lips})
     m.box(15, 34, 11, 16, 35, 11, skin, part=head)  # nose
     m.box(15, 34, 11, 16, 34, 11, skin_shade, part=head)
-    # A little chin beard.
-    m.box(14, 28, 12, 17, 28, 12, beard, part=head)
 
     # Curly hair, not too long: a cap covered in curls, a few over his
     # forehead, short over the ears and at the back.
