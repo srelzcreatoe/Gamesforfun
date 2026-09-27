@@ -1,5 +1,6 @@
 """Block-built brainrots of real friends: Benjini Skatini (Benji on his
-skateboard) and Canelito Cannolito (his dog, with a cannoli)."""
+skateboard) and Canelito Cannolito (his dog, with a cannoli, on a skateboard
+too)."""
 
 from blocky import design, shade
 
@@ -28,6 +29,42 @@ def speckle(m, mask, colours, seed, density=0.1):
         m.paint(mask & band, colour)
 
 
+def skateboard(m, xa, xb, za, zb, trucks):
+    """Benji's skateboard, on the ground: a black deck with a wood edge from
+    xa to xb and za to zb (bounds included), kicked up at both ends, with
+    trucks at each z in `trucks` and four white wheels that spin (Props)."""
+    grip, wood = "#151517", "#e4c58e"
+    truck, truck_dark = "#9a9da3", "#5d6066"
+    wheel, wheel_core = "#f5f3ea", "#3c3c42"
+    cx = (xa + xb + 1) / 2
+    board = m.limb("Board", pivot=(cx, 4.5, (za + zb + 1) / 2))
+    for z in range(za, zb + 1):
+        lift = 0
+        if z < za + 4:
+            lift = (za + 4 - z + 1) // 2
+        elif z > zb - 4:
+            lift = (z - (zb - 4) + 1) // 2
+        # Rounded nose and tail.
+        inset = 2 if z in (za, zb) else 1 if z in (za + 1, zb - 1) else 0
+        m.box(xa + inset, 4 + lift, z, xb - inset, 4 + lift, z, wood, part=board)
+        m.box(xa + inset, 5 + lift, z, xb - inset, 5 + lift, z, grip, part=board)
+        m.box(xa + inset, 5 + lift, z, xa + inset, 5 + lift, z, wood, part=board)
+        m.box(xb - inset, 5 + lift, z, xb - inset, 5 + lift, z, wood, part=board)
+    middle = (za + zb) / 2
+    for zt in trucks:
+        # Bolts on the grip tape, the truck and its axle.
+        for z in ((zt + 1, zt + 3) if zt < middle else (zt - 2, zt)):
+            for x in (int(cx) - 2, int(cx) + 1):
+                m.box(x, 5, z, x, 5, z, "#4a4a50", part=board)
+        m.box(xa + 1, 3, zt, xb - 1, 3, zt + 1, truck, part=board)
+        m.box(int(cx) - 1, 2, zt, int(cx), 2, zt + 1, truck_dark, part=board)
+        m.box(xa - 1, 2, zt, xb + 1, 2, zt + 1, truck_dark, part=board)
+        for x0 in (xa - 1.4, xb + 0.4):
+            wheel_part = m.limb("Prop", pivot=(x0 + 1, 1.7, zt + 0.9), axis="X")
+            m.cylinder(x0, 1.7, zt + 0.9, 1.75, 2, wheel, axis="X", part=wheel_part)
+            m.cylinder(x0 - 0.1, 1.7, zt + 0.9, 0.6, 2.2, wheel_core, axis="X", part=wheel_part)
+
+
 # -- Benjini Skatini ---------------------------------------------------------------
 
 
@@ -38,42 +75,10 @@ def benjini_skatini(m):
     tee, tee_shade, tee_light = "#1d1d22", "#121216", "#2b2b32"
     jeans, jeans_dark, jeans_light = "#36496f", "#27354f", "#4a5f8a"
     shoe, shoe_dark, sole = "#f3f3f3", "#232326", "#d6d6d6"
-    grip, wood, wood_dark = "#151517", "#e4c58e", "#c7a266"
-    truck, truck_dark = "#9a9da3", "#5d6066"
-    wheel, wheel_core = "#f5f3ea", "#3c3c42"
     iris, brow, mouth = "#3a2416", "#121212", "#7a3a2a"
 
-    # The skateboard: a black deck with a wood edge, kicked up at both ends.
-    board = m.limb("Board", pivot=(16, 4.5, 17.5))
-    for z in range(2, 34):
-        lift = 0
-        if z < 6:
-            lift = (6 - z + 1) // 2
-        elif z > 29:
-            lift = (z - 29 + 1) // 2
-        # Rounded nose and tail.
-        inset = 2 if z in (2, 33) else 1 if z in (3, 32) else 0
-        m.box(11 + inset, 4 + lift, z, 20 - inset, 4 + lift, z, wood, part=board)
-        m.box(11 + inset, 5 + lift, z, 20 - inset, 5 + lift, z, grip, part=board)
-        m.box(11 + inset, 5 + lift, z, 11 + inset, 5 + lift, z, wood, part=board)
-        m.box(20 - inset, 5 + lift, z, 20 - inset, 5 + lift, z, wood, part=board)
-    # Bolts on the grip tape.
-    for z in (8, 10, 25, 27):
-        for x in (14, 17):
-            m.box(x, 5, z, x, 5, z, "#4a4a50", part=board)
-    # Trucks.
-    for z in (7, 8, 27, 28):
-        m.box(12, 3, z, 19, 3, z, truck, part=board)
-    for zc in (7, 27):
-        m.box(15, 2, zc, 16, 2, zc + 1, truck_dark, part=board)
-        m.box(10, 2, zc, 21, 2, zc + 1, truck_dark, part=board)
-
-    # Four white wheels that roll with his speed.
-    for zc in (7.9, 27.9):
-        for x0 in (9.6, 20.4):
-            wheel_part = m.limb("Prop", pivot=(x0 + 1, 1.7, zc), axis="X")
-            m.cylinder(x0, 1.7, zc, 1.75, 2, wheel, axis="X", part=wheel_part)
-            m.cylinder(x0 - 0.1, 1.7, zc, 0.6, 2.2, wheel_core, axis="X", part=wheel_part)
+    # His skateboard.
+    skateboard(m, 11, 20, 2, 33, trucks=(7, 27))
 
     # Legs in jeans and white sneakers; the right one kicks to push.
     for x0, phase in ((12, 0), (17, 1)):
@@ -154,7 +159,7 @@ def benjini_skatini(m):
 # -- Canelito Cannolito -------------------------------------------------------------
 
 
-@design("CanelitoCannolito", width=30, height=36, depth=42)
+@design("CanelitoCannolito", width=30, height=42, depth=42)
 def canelito_cannolito(m):
     fur, fur_shade, fur_light = "#ead0a2", "#d4b17c", "#f7e8c9"
     apricot, apricot_dark = "#d9ac72", "#b98a52"
@@ -162,43 +167,47 @@ def canelito_cannolito(m):
     collar, collar_dark, tag = "#d8322b", "#9e1f1a", "#f2c23a"
     shell, shell_dark, cream, pistachio, choc = "#d99a52", "#a96b31", "#fff7e8", "#8cc063", "#4a2a17"
 
-    # Four fluffy legs, trotting in diagonal pairs.
-    for x0, z0, phase in ((9, 12, 0), (17, 12, 1), (9, 27, 1), (17, 27, 0)):
-        leg = m.limb("Leg", pivot=(x0 + 2, 8, z0 + 2), phase=phase)
-        m.mask(rounded_box_mask(m, x0, 1, z0, x0 + 3, 8, z0 + 4, 1.2), fur, part=leg)
-        m.mask(rounded_box_mask(m, x0, 0, z0 - 1, x0 + 3, 1, z0 + 4, 0.8), paw if z0 == 12 else fur_light, part=leg)
-        m.pixels(x0, 0, [".k.k"], {"k": fur_shade}, part=leg)
+    # He rides the skateboard too; everything else stands on it (Y up).
+    skateboard(m, 9, 20, 5, 36, trucks=(10, 30))
+    Y = 6
+
+    # Four fluffy legs; one back paw kicks to push.
+    for x0, z0, phase in ((9, 12, 0), (17, 12, 0), (9, 27, 1), (17, 27, 0)):
+        leg = m.limb("Leg", pivot=(x0 + 2, Y + 8, z0 + 2), phase=phase)
+        m.mask(rounded_box_mask(m, x0, Y + 1, z0, x0 + 3, Y + 8, z0 + 4, 1.2), fur, part=leg)
+        m.mask(rounded_box_mask(m, x0, Y, z0 - 1, x0 + 3, Y + 1, z0 + 4, 0.8), paw if z0 == 12 else fur_light, part=leg)
+        m.pixels(x0, Y, [".k.k"], {"k": fur_shade}, part=leg)
 
     # A round, fluffy body.
-    m.ellipsoid(15, 12, 22, 8.2, 6.2, 11.5, fur)
-    speckle(m, m.ellipsoid_mask(15, 12, 22, 8.4, 6.4, 11.7), [fur_light, fur_shade], seed=1, density=0.08)
-    m.paint_face(m.box_mask(0, 5, 0, 29, 8, 41), fur_shade, face="bottom")
+    m.ellipsoid(15, Y + 12, 22, 8.2, 6.2, 11.5, fur)
+    speckle(m, m.ellipsoid_mask(15, Y + 12, 22, 8.4, 6.4, 11.7), [fur_light, fur_shade], seed=1, density=0.08)
+    m.paint_face(m.box_mask(0, Y + 5, 0, 29, Y + 8, 41), fur_shade, face="bottom")
 
     # A red collar with a gold tag.
-    collar_ring = m.ellipsoid_mask(15, 13.5, 13, 7.6, 6.6, 99) & ~m.ellipsoid_mask(15, 13.5, 13, 5.2, 4.2, 99)
-    m.mask(collar_ring & m.box_mask(0, 0, 12, 29, 35, 13), collar)
-    m.paint(collar_ring & m.box_mask(0, 0, 13, 29, 35, 13), collar_dark)
-    m.box(14, 7, 11, 16, 9, 11, tag)
-    m.box(15, 7, 10, 15, 8, 10, shade(tag, -0.25))
+    collar_ring = m.ellipsoid_mask(15, Y + 13.5, 13, 7.6, 6.6, 99) & ~m.ellipsoid_mask(15, Y + 13.5, 13, 5.2, 4.2, 99)
+    m.mask(collar_ring & m.box_mask(0, Y, 12, 29, 41, 13), collar)
+    m.paint(collar_ring & m.box_mask(0, Y, 13, 29, 41, 13), collar_dark)
+    m.box(14, Y + 7, 11, 16, Y + 9, 11, tag)
+    m.box(15, Y + 7, 10, 15, Y + 8, 10, shade(tag, -0.25))
 
     # A curly, fluffy tail that wags.
-    tail = m.limb("Tail", pivot=(15, 15, 32))
-    m.line((15, 15, 32), (15, 21, 36), 2.3, fur, part=tail)
-    m.line((15, 21, 36), (15, 24, 33), 2.1, fur, part=tail)
-    m.sphere(15, 24, 32.5, 2.2, fur_light, part=tail)
-    speckle(m, m.box_mask(10, 14, 30, 20, 27, 41), [fur_light, fur_shade], seed=4, density=0.08)
+    tail = m.limb("Tail", pivot=(15, Y + 15, 32))
+    m.line((15, Y + 15, 32), (15, Y + 21, 36), 2.3, fur, part=tail)
+    m.line((15, Y + 21, 36), (15, Y + 24, 33), 2.1, fur, part=tail)
+    m.sphere(15, Y + 24, 32.5, 2.2, fur_light, part=tail)
+    speckle(m, m.box_mask(10, Y + 14, 30, 20, Y + 27, 41), [fur_light, fur_shade], seed=4, density=0.08)
 
     # The big head: round eyes, a black button nose, a tan muzzle and a
     # cannoli held in his mouth.
-    head = m.limb("Head", pivot=(15, 15, 12))
-    m.ellipsoid(15, 22.5, 8, 8.6, 7.8, 7.2, fur, part=head)
-    speckle(m, m.ellipsoid_mask(15, 22.5, 8, 8.8, 8, 7.4), [fur_light, fur_shade], seed=6, density=0.07)
-    m.ellipsoid(15, 19.5, 2.4, 4.4, 3.4, 2.6, fur_light, part=head)
-    m.paint_face(m.ellipsoid_mask(15, 18, 0, 3.6, 1.8, 99), apricot, face="front")
+    head = m.limb("Head", pivot=(15, Y + 15, 12))
+    m.ellipsoid(15, Y + 22.5, 8, 8.6, 7.8, 7.2, fur, part=head)
+    speckle(m, m.ellipsoid_mask(15, Y + 22.5, 8, 8.8, 8, 7.4), [fur_light, fur_shade], seed=6, density=0.07)
+    m.ellipsoid(15, Y + 19.5, 2.4, 4.4, 3.4, 2.6, fur_light, part=head)
+    m.paint_face(m.ellipsoid_mask(15, Y + 18, 0, 3.6, 1.8, 99), apricot, face="front")
     # Button nose, sticking out.
-    m.box(14, 20, 0, 15, 21, 0, nose, part=head)
-    m.box(13, 19, 1, 16, 21, 1, nose, part=head)
-    m.voxel(14, 21, 0, "#5a4a44", part=head)
+    m.box(14, Y + 20, 0, 15, Y + 21, 0, nose, part=head)
+    m.box(13, Y + 19, 1, 16, Y + 21, 1, nose, part=head)
+    m.voxel(14, Y + 21, 0, "#5a4a44", part=head)
     # Big dark puppy eyes with a shine, and fluffy brows.
     eyes = [
         ".kk.",
@@ -206,23 +215,23 @@ def canelito_cannolito(m):
         "kkkk",
         ".kk.",
     ]
-    m.pixels(9, 22, eyes, {"k": eye, "h": WHITE})
-    m.pixels(17, 22, [".kk.", "kkhk", "kkkk", ".kk."], {"k": eye, "h": WHITE})
-    m.pixels(9, 26, ["llll"], {"l": fur_light})
-    m.pixels(17, 26, ["llll"], {"l": fur_light})
+    m.pixels(9, Y + 22, eyes, {"k": eye, "h": WHITE})
+    m.pixels(17, Y + 22, [".kk.", "kkhk", "kkkk", ".kk."], {"k": eye, "h": WHITE})
+    m.pixels(9, Y + 26, ["llll"], {"l": fur_light})
+    m.pixels(17, Y + 26, ["llll"], {"l": fur_light})
 
     # The cannoli, crosswise in his mouth: a golden shell with cream,
     # pistachios and chocolate chips at the ends.
-    m.cylinder(8, 16.8, 1.6, 1.6, 14, shell, axis="X", part=head)
-    speckle(m, m.cylinder_mask(8, 16.8, 1.6, 1.8, 14, axis="X"), [shell_dark], seed=7, density=0.25)
+    m.cylinder(8, Y + 16.8, 1.6, 1.6, 14, shell, axis="X", part=head)
+    speckle(m, m.cylinder_mask(8, Y + 16.8, 1.6, 1.8, 14, axis="X"), [shell_dark], seed=7, density=0.25)
     for x0 in (6, 22):
-        m.cylinder(x0, 16.8, 1.6, 1.4, 2, cream, axis="X", part=head)
+        m.cylinder(x0, Y + 16.8, 1.6, 1.4, 2, cream, axis="X", part=head)
     for x, y, z, colour in ((6, 17, 1, pistachio), (6, 16, 2, choc), (23, 17, 1, pistachio), (23, 16, 2, choc), (7, 17, 2, choc), (22, 16, 1, pistachio)):
-        m.voxel(x, y, z, colour, part=head)
+        m.voxel(x, Y + y, z, colour, part=head)
 
-    # Long floppy ears that bounce as he trots.
+    # Long floppy ears that bounce as he rides and fly up when he jumps.
     for cx, pivot_x, phase in ((5.5, 6.5, 0), (24.5, 23.5, 1)):
-        ear = m.limb("Ear", pivot=(pivot_x, 26, 8), phase=phase)
-        m.ellipsoid(cx, 20.5, 8, 1.9, 6.2, 3.4, apricot, part=ear)
-        speckle(m, m.ellipsoid_mask(cx, 20.5, 8, 2.1, 6.4, 3.6), [fur, apricot_dark], seed=8 + int(cx), density=0.12)
-        m.paint(m.ellipsoid_mask(cx, 15.5, 8, 2.2, 1.6, 3.6), apricot_dark)
+        ear = m.limb("Ear", pivot=(pivot_x, Y + 26, 8), phase=phase)
+        m.ellipsoid(cx, Y + 20.5, 8, 1.9, 6.2, 3.4, apricot, part=ear)
+        speckle(m, m.ellipsoid_mask(cx, Y + 20.5, 8, 2.1, 6.4, 3.6), [fur, apricot_dark], seed=8 + int(cx), density=0.12)
+        m.paint(m.ellipsoid_mask(cx, Y + 15.5, 8, 2.2, 1.6, 3.6), apricot_dark)

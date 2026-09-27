@@ -18,7 +18,7 @@ return {
 		},
 		{
 			Kind = "Board",
-			Pivot = { 16.00, 4.50, 17.50 },
+			Pivot = { 16.00, 4.50, 18.00 },
 			Phase = 0,
 			QuadCount = 117,
 			Quads = table.concat({

@@ -66,12 +66,10 @@ local MIN_WALK_SPEED = 0.4
 local ARM_SWING = math.rad(26)
 local PROP_SPIN = 16
 -- Skaters pop a trick this often (seconds; slower when parked), in the air
--- this long, this high (share of their height), with the board this far
--- under their feet mid-flip.
+-- this long and this high (share of their height).
 local SKATE_TRICK_EVERY = 3.4
 local SKATE_AIR_TIME = 0.8
 local SKATE_POP = 0.28
-local SKATE_TUCK = 0.1
 
 type RarityEffect = {
 	Light: number,
@@ -1067,14 +1065,14 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 	else
 		earFlop = math.rad(4) + (0.5 + 0.5 * math.sin(phase * 1.3)) * math.rad(5)
 	end
-	-- The skateboard: flips about its length for a kickflip, spins flat
-	-- for a shove-it, and drops a little under the feet mid-trick.
+	-- (They fly up when a skater jumps.)
+	earFlop += skateAir * math.rad(45)
+	-- The skateboard: flips about its length for a kickflip or spins flat
+	-- for a shove-it.
 	local boardTurn = CFrame.identity
-	local boardDrop = 0
 	if skateAir > 0 and skateTrick > 0 then
 		local spin = (1 - math.cos(skateAlpha * math.pi)) * math.pi
 		boardTurn = if skateTrick == 1 then CFrame.Angles(0, 0, spin) else CFrame.Angles(0, spin, 0)
-		boardDrop = skateAir * SKATE_TUCK * height
 	end
 
 	-- Glowing blocks circle the brainrot, bobbing and tumbling.
@@ -1101,7 +1099,10 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 			if piece.Kind == "Head" then
 				headPose = CFrame.new(piece.Hip) * nod * CFrame.new(-piece.Hip)
 			elseif piece.Kind == "Board" then
-				boardPose = CFrame.new(0, -boardDrop, 0) * CFrame.new(piece.Hip) * boardTurn * CFrame.new(-piece.Hip)
+				-- Mid-kickflip the board drops half its width under the feet,
+				-- so it flips clear of them.
+				local drop = if skateTrick == 1 then skateAir * piece.Part.Size.X * 0.5 else 0
+				boardPose = CFrame.new(0, -drop, 0) * CFrame.new(piece.Hip) * boardTurn * CFrame.new(-piece.Hip)
 			end
 		end
 	end
