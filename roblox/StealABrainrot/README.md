@@ -1,6 +1,6 @@
-# Steal a Brainrot
+# Snatch the Brainrot
 
-A playable Roblox game: buy brainrots and lucky blocks from the conveyor, watch them walk home (other players can buy them off you on the way), collect the Cash they earn from the pads in your base (even while you're offline), steal other players' brainrots (your base sounds the alarm), lock your base with a laser door, troll thieves with freeze rays, spike traps, land mines and Boogie Bombs, trade and fuse brainrots, fill the Index, spin the wheel, do daily quests and survive ADMIN ABUSE.
+A playable Roblox game in the style of Steal a Brainrot: buy brainrots and lucky blocks from the conveyor, watch them walk home (other players can buy them off you on the way), collect the Cash they earn from the pads in your base (even while you're offline), steal other players' brainrots (your base sounds the alarm), lock your base with a laser door, troll thieves with freeze rays, spike traps, land mines and Boogie Bombs, trade and fuse brainrots, fill the Index, spin the wheel, do daily quests and survive ADMIN ABUSE.
 
 On top of the original game: brainrots **level up** and wear **hats**, one can **guard** the front of your base and up to six can follow you as **pets**, **revenge** and **bounties**, **crews**, a 30-tier **season pass**, a **weekly limited brainrot**, **Boss Raids** and **Bank Heists**.
 

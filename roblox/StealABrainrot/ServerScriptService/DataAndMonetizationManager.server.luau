@@ -5,7 +5,7 @@
 
 	Owns every player's persistent data (Cash, Steals, Rebirths, game passes,
 	brainrots, gear, uncollected pad Cash), the leaderstats folder, and all Robux
-	purchases for Steal a Brainrot. It also measures how long a player was
+	purchases for Snatch the Brainrot. It also measures how long a player was
 	offline, for offline cash.
 
 	Security model

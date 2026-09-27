@@ -3,7 +3,7 @@
 	GameplayManager
 	Location: ServerScriptService (Script)
 
-	Runs the Steal a Brainrot loop on the server:
+	Runs the Snatch the Brainrot loop on the server:
 	  * gives each player one of the bases in Workspace.Map.Plots
 	  * spawns brainrots on the conveyor (rarer ones more often during a Server
 	    Rarity Boost, one mutation far more often during a mutation event) that

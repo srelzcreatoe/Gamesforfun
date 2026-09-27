@@ -185,7 +185,7 @@ local function drawLogo()
 	local title = text(surface, "Logo", {
 		Position = UDim2.fromScale(0.05, 0.12),
 		Size = UDim2.fromScale(0.9, 0.5),
-		Text = "STEAL A\nBRAINROT",
+		Text = "SNATCH THE\nBRAINROT",
 		TextStrokeTransparency = 0,
 	})
 	local gradient = Instance.new("UIGradient")

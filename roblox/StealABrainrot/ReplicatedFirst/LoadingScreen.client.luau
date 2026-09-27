@@ -5,7 +5,7 @@
 
 	The title and loading screen, like Grow a Garden's: the game's world
 	blurred behind it with the camera drifting over the map, a big bouncy
-	cartoon "STEAL A BRAINROT" logo, a loading bar with tips, a Skip button,
+	cartoon "SNATCH THE BRAINROT" logo, a loading bar with tips, a Skip button,
 	and a PLAY button once everything is ready. It needs nothing else from the
 	game, so it shows as soon as the player joins; the HUD and Roblox's own
 	menus stay hidden until the player goes in.
@@ -158,7 +158,7 @@ for index = 1, 14 do
 	})
 end
 
--- The logo: "STEAL A" over a huge "BRAINROT", every letter its own candy
+-- The logo: "SNATCH THE" over a huge "BRAINROT", every letter its own candy
 -- colour with a thick outline and a shadow, bobbing in a wave.
 local logo = create("Frame", {
 	Name = "Logo",
@@ -180,20 +180,20 @@ local function outline(label: TextLabel, ratio: number)
 	table.insert(outlined, { Label = label, Stroke = lineStroke, Ratio = ratio })
 end
 
-local stealLine = create("TextLabel", {
-	Name = "StealA",
+local titleLine = create("TextLabel", {
+	Name = "SnatchThe",
 	AnchorPoint = Vector2.new(0.5, 0),
 	Position = UDim2.fromScale(0.5, 0),
-	Size = UDim2.fromScale(0.62, 0.34),
+	Size = UDim2.fromScale(0.78, 0.34),
 	BackgroundTransparency = 1,
 	Font = TITLE_FONT,
-	Text = "STEAL A",
+	Text = "SNATCH THE",
 	TextScaled = true,
 	TextColor3 = rgb(255, 255, 255),
 	Rotation = -3,
 }, { gradient(rgb(255, 255, 255), rgb(255, 225, 120)) }) :: TextLabel
-stealLine.Parent = logo
-outline(stealLine, 0.07)
+titleLine.Parent = logo
+outline(titleLine, 0.07)
 
 local LETTER_COLOURS = {
 	rgb(255, 95, 162),
@@ -581,7 +581,7 @@ animation = RunService.RenderStepped:Connect(function(dt: number)
 		letter.Shadow.Position = UDim2.fromScale(0.5, 0.56 + y)
 		letter.Shadow.Rotation = turn
 	end
-	stealLine.Rotation = -3 + math.sin(t * 1.6) * 2
+	titleLine.Rotation = -3 + math.sin(t * 1.6) * 2
 	logo.Size = UDim2.fromScale(0.86 * (1 + math.sin(t * 2) * 0.015), 0.4)
 
 	for _, floater in floaterList do
