@@ -4339,12 +4339,23 @@ do
 			)
 		end
 	else
-		print(
+		warn(
 			string.format(
-				"%s No imported brainrot models yet, so each player's game builds blocky ones. For the real models, import BrainrotModels/Import/BrainrotModels.glb (File > Import 3D).",
+				"%s No imported brainrot models yet, so the ones made on Customuse and Higgsfield are built from rough blocks and look mushy. For the real models, import BrainrotModels/Import/BrainrotModels.glb (File > Import 3D), save and play again.",
 				LOG_PREFIX
 			)
 		)
+	end
+	-- In Studio, the StudioNotice banner says how many brainrots made on
+	-- Customuse or Higgsfield have no imported model (they look mushy).
+	if RunService:IsStudio() then
+		local notImported = 0
+		for _, definition in BrainrotConfig.Brainrots do
+			if definition.Kind == "Brainrot" and not definition.BlockBuilt and TemplateModels.get(definition.Id) == nil then
+				notImported += 1
+			end
+		end
+		ReplicatedStorage:SetAttribute("ModelsNotImported", notImported)
 	end
 end
 

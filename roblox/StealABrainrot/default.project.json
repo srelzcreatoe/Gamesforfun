@@ -182,6 +182,9 @@
         },
         "ExtrasClient": {
           "$path": "StarterPlayerScripts/ExtrasClient.client.luau"
+        },
+        "StudioNotice": {
+          "$path": "StarterPlayerScripts/StudioNotice.client.luau"
         }
       }
     },

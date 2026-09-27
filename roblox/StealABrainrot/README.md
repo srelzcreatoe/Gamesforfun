@@ -4,7 +4,7 @@ A playable Roblox game in the style of Steal a Brainrot: buy brainrots and lucky
 
 On top of the original game: brainrots **level up** and wear **hats**, one can **guard** the front of your base and up to six can follow you as **pets**, **revenge** and **bounties**, **crews**, a 30-tier **season pass**, a **weekly limited brainrot**, **Boss Raids** and **Bank Heists**.
 
-113 brainrots: 26 made from 3D models, and 87 built from blocks (including a remade Noobini Pizzanini, crisp block-built remakes of Tung Tung Tung Sahur, Lirili Larila, Tim Cheese, Brr Brr Patapim, Chimpanzini Bananini, Chef Crabracadabra, Bombardiro Crocodilo, Coccodrillo Tacorito, Cocofanto Elefanto, La Vaca Saturno Saturnita and 67, the Roblox-guest **Guesti Guacanini**, **Benjini Skatini** (Benji on his skateboard), his dog **Canelito Cannolito** and **Greggini Ricciolini** (Greg), on skateboards too, more of the original Italian brainrots, 30 new Roblox-themed ones and the 7 XRE mobs: Nonna Mattarella, Baconini Croccantini, Ospitino Senzanome, Nubbino Lasagnino, Pizzolino Fantasmino, Espressino Motorino and Spaghettone Squalone):
+113 brainrots: 37 made from 3D models, and 76 built from blocks (including a remade Noobini Pizzanini, the Roblox-guest **Guesti Guacanini**, **Benjini Skatini** (Benji on his skateboard), his dog **Canelito Cannolito** and **Greggini Ricciolini** (Greg), on skateboards too, more of the original Italian brainrots, 30 new Roblox-themed ones and the 7 XRE mobs: Nonna Mattarella, Baconini Croccantini, Ospitino Senzanome, Nubbino Lasagnino, Pizzolino Fantasmino, Espressino Motorino and Spaghettone Squalone):
 
 ![The block-built brainrots](BrainrotModels/Blocky/preview.png)
 
@@ -20,7 +20,7 @@ Press **Play** (or **Test → Start** with 2 players to try stealing).
 
 ## Import the brainrot models (once, about a minute)
 
-Every brainrot's model is in one file, `BrainrotModels/Import/BrainrotModels.glb`: the 26 made with Higgsfield and Customuse and all 87 built from blocks (each block-built one split into its moving pieces, with markers at the joints). Roblox only shows real meshes after they're uploaded to your account, and Studio does that for you when you import:
+Every brainrot's model is in one file, `BrainrotModels/Import/BrainrotModels.glb`: the 37 made with Higgsfield and Customuse and all 76 built from blocks (each block-built one split into its moving pieces, with markers at the joints). Roblox only shows real meshes after they're uploaded to your account, and Studio does that for you when you import:
 
 1. If you imported an older version of the file, delete that model first (the game ignores old block-built ones like the old Noobini Pizzanini anyway).
 2. In Studio: **File → Import 3D** (or the Avatar tab → Import 3D) and pick `BrainrotModels.glb`.
@@ -174,9 +174,9 @@ The imported models are the originals, simplified to fit a Roblox MeshPart (9,00
 - **Customuse** (CR1 3D + Meshy texture from the same concept art) made the models whose details got lost the first time: Ratto Schiaffone (with his purple galaxy slap glove), Tung Tung Tung Sahur (with his bat), Tim Cheese, Lirili Larila, Bombardiro Crocodilo, Trippi Troppi, Tralalero Tralala and Brr Brr Patapim. The workflow is at https://customuse.com/workflow/02c37c8d-d0cb-430c-a948-816aad2d7f7c.
 - **Higgsfield** (SAM 3 3D) made the other 30, including La Vaca Saturno Saturnita, Cocofanto Elefanto, Frigo Camelo and Chef Crabracadabra.
 
-Eleven of those looked mushy once shrunk down for the game, so they're now built from blocks instead, the same characters drawn crisply: Tung Tung Tung Sahur, Lirili Larila, Tim Cheese, Brr Brr Patapim, Chimpanzini Bananini, Chef Crabracadabra, Bombardiro Crocodilo, Coccodrillo Tacorito, Cocofanto Elefanto, La Vaca Saturno Saturnita and 67 (`tools/blocky/designs_remake_*.py`). Their original models are still in `BrainrotModels/`.
+These 37 only look right once `BrainrotModels.glb` is imported: until then the game builds a rough copy of each from blocks, which looks mushy, and in Studio a yellow banner says how many aren't imported yet. (Block-built versions of 11 of them are kept in `tools/blocky/archive/`, unused.)
 
-The other **87 brainrots are built from blocks** in code, like voxel art: each one is a design in `tools/blocky/` (boxes, spheres, cylinders, lines and painted faces on a grid about 40 blocks tall) with its moving pieces marked (legs, arms, wings, tails, heads, floppy ears, a skateboard and spinning props, each with its pivot). `tools/build_blocky.py` turns them into the same packed format as the other models, so they walk and animate the same way, and saves a `.glb` of each in `BrainrotModels/Blocky/`; `tools/build_import.py` also puts them in the file to import, piece by piece with a marker at each joint, so imported ones animate just the same. The hats are built from blocks too (`ReplicatedStorage/Shared/HatModels.luau`).
+The other **76 brainrots are built from blocks** in code, like voxel art: each one is a design in `tools/blocky/` (boxes, spheres, cylinders, lines and painted faces on a grid about 40 blocks tall) with its moving pieces marked (legs, arms, wings, tails, heads, floppy ears, a skateboard and spinning props, each with its pivot). `tools/build_blocky.py` turns them into the same packed format as the other models, so they walk and animate the same way, and saves a `.glb` of each in `BrainrotModels/Blocky/`; `tools/build_import.py` also puts them in the file to import, piece by piece with a marker at each joint, so imported ones animate just the same. The hats are built from blocks too (`ReplicatedStorage/Shared/HatModels.luau`).
 
 The side buttons (Index, Rebirth, Shop, Spin, Quests, Gifts, Trade, Upgrade, Settings), the shop cards (including the four troll items) and the boost timers use icons made with Higgsfield too (`UIIcons/`, `ProductIcons/`).
 
@@ -318,6 +318,7 @@ Global leaderboards also need a published place with API access; until then the 
 | `StarterPlayerScripts/BrainrotVisuals.client.luau` | Blocky 3D models, rarity, mutation and trait effects, walking, waddling, flying, driving, lucky blocks |
 | `StarterPlayerScripts/WorldEffects.client.luau` | Weather and clouds, snow on the ground, event skies with their sky props and falling particles, lightning, animated shopkeepers, Cash Rain coins, the troll item banner, animated base skins, alarm lights and the vault's lights |
 | `StarterPlayerScripts/ExtrasClient.client.luau` | The Manage menu (levels, hats, guard, pet), Season and Crew windows, the Limited Shop, the boss health bar, revenge, loot and bounty banners, and pets |
+| `StarterPlayerScripts/StudioNotice.client.luau` | Studio only: a yellow banner when the Customuse and Higgsfield brainrots aren't imported yet (so they'd look mushy), with how to import them |
 | `ReplicatedStorage/Shared/UIKit.luau` | The shared look of every menu: buttons, side buttons, windows, tabs, brainrot cards, confetti. Windows are laid out at one design size and scaled as a whole to fit between the side buttons on any screen |
 | `ReplicatedStorage/Shared/ExtrasConfig.luau` | Levels, hats, guards, pets, revenge, bounties, crews, the season pass and its tiers, the limited rotation, Boss Raids and Bank Heists |
 | `ReplicatedStorage/Shared/HatModels.luau` | The block-built hats |
