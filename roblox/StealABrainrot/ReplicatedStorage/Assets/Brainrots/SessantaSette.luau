@@ -2,8 +2,8 @@
 return {
 	Format = 3,
 	-- Voxel grid size in blocks (x, y, z); the model is scaled so y is 1 stud.
-	Dims = { 46, 44, 14 },
-	Palette = { 0x1f5fe0, 0x5690f7, 0x1542a6, 0xffffff, 0x141417, 0x0f2f7a, 0xc3ccd8, 0xf4f6fa, 0x2a6de6, 0x35b4f0, 0xf7f7f7, 0xcfd3da },
+	Dims = { 56, 49, 14 },
+	Palette = { 0x1f5fe0, 0x5a93f7, 0x1542a6, 0xffffff, 0x141417, 0x0f2d78, 0xaeb9c7, 0xf5f7fb, 0x2a6de6, 0x3cb6f2, 0xcdd2da },
 	-- The body, then each moving piece. Legs swing about their hip Pivot (block
 	-- units) and pieces with different Phase move in turn; arms swing, wings
 	-- flap, tails wag, heads nod and props spin about Axis. Quads are Zstd +
@@ -11,45 +11,45 @@ return {
 	Parts = {
 		{
 			Kind = "Body",
-			QuadCount = 372,
+			QuadCount = 462,
 			Quads = table.concat({
-		"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",
+		"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",
 	}),
 		},
 		{
 			Kind = "Leg",
-			Pivot = { 33.50, 19.00, 6.50 },
+			Pivot = { 40.00, 19.00, 6.50 },
 			Phase = 0,
-			QuadCount = 41,
+			QuadCount = 43,
 			Quads = table.concat({
-		"KLUv/WAfAHUEAALLGAwQ0w7TqgWiO541mwTB7hzH8YHHF1q5jRSwn6e7ULvTXt6h79AX9JW+Mjs3Fu4UIQXr6fPO8E6bgYt0OTU1NTU1oaKiluHLqZtPTpWB/xS+d1nBJpyFaDsLQ61ZoXWzgKgrKxooYCmoccDED4gXnA2DMSWJUOBBSIemLBAXEMrC4hg+vEi2pQW4fxQ=",
+		"KLUv/WAtAK0EABIMGw1AswNQVjwL4aJLtUwB+HMSI2hoaA0vx251cuy927GHwjqfr+n3P2YAXuUQCe/jyx+EA+mDO5JuJScnJycnJycnZGTkPlg5tZeR0/7MToP5zwaXQTYYiMqi1SsbClRlsT6cDehyFl129ojdbBeoMAoNlN8t1gyA0xoHcIYfgtYaMgNH/o6LZ2aohYo3a71a2FsK",
 	}),
 		},
 		{
 			Kind = "Leg",
-			Pivot = { 13.50, 19.00, 6.50 },
+			Pivot = { 17.00, 19.00, 6.50 },
 			Phase = 1,
-			QuadCount = 41,
+			QuadCount = 43,
 			Quads = table.concat({
-		"KLUv/WAfAE0EAAKLFwhgpj2oqYwmtaLuIw/kJDycocxdR1AvR2aiZaW1Mwu+RV/Q82ysKk8l7hsCiWrpz6zCfa4CH2caFRUVFRWdnp6ywk3hy79CFvgLw2t2FK7hYwi2j0G0ehStewSj5jEaKGApqHHAxA+IF5wNgzEliVDgQUiHpiwQFxDKwuIYPrxItqUFuH8U",
+		"KLUv/WAtAIUEABLMGZJEMkQyMRIBMgAQZaqRk3q9zmGh3B+TcpP8co+poVKJVtMuP1E0FgBXbimZLQYJqwURsXKu1+v1er1eb+jQofS4UHjPSSFNf+F4bePoVBhHBTDG+niMY8SMscZBjaM6NVanNRJpaQwXqDAKDZTfLdYMgNMaB3CGH4LWGjIDR/6Oi2dmqIWKN2u9WthbCg==",
 	}),
 		},
 		{
 			Kind = "Arm",
-			Pivot = { 41.50, 31.50, 6.00 },
+			Pivot = { 50.50, 31.50, 6.50 },
 			Phase = 0,
-			QuadCount = 101,
+			QuadCount = 166,
 			Quads = table.concat({
-		"KLUv/WDDAbUJAGaRLA+wcB1C+C+ecPgLmk9eyh0mACYAKADLR6LV3j0UrLI9HLI/7FW/eMjSJ95q3zgVCAU3HYTMzgJCtErmwU8y690txEIbHTGroSzMnu+E0c42dSrLn5iclLS4uKm0bbuwfZMCQ3+wn3h/A/2oHKWiXKRUiUo8JbKawrdKQT3Zb7XT4L4fylCr0BtjHUN/vCCDXLneygUkkECi2yYnLS5qW7TUylNtz47C3AJSZZ58k1wk+l1qqEFJqE6bktRYDiAvaNoG8G49BmftWOf5uN1wRIAH+Jrc5AHYAQdGViI6pjxiiPjq0YeX7LJAzCyjdo43ML4bTYxGvgfF+AGe5ns2q0EvNqGUUoKJCYLTM65gUhvkH6qO/OP1YwIx6blMAqFFoGDc6EheER3pWeGjblyn0BThVwM=",
+		"KLUv/WCKA2UPALYeTRDAMjdSpCgK8Dwr19pNk5tIRgBIAEsA3mZfScAACEfEFewPcQP7zeYXfQpswtMhgF3h1idgU/8NcJv9Z33naoHzNemMq6n1xbW3T+0hK99jtduPqto1L1Wt2S+qWikgzgCu29AVqeoILHyGCY5w3MxeGr5MrdiHFOz4IZdMUT8B7CNIOsMOEJyOyKz5nmD9kDXM5hcMim5PdKDRl/yihX7T5qXLDqlS9cw5xUxE54R0iF1A5zRvXM5drp5ap65qr+qT/kkLHz1oH21/NHDzllW0WVEh4TpRwRm6JC93qK6Uv1S9aA9Z79k7Gbxml2xfAppqRCUicOAKfK/WIe73e00bcL/f7/f7/f///6/qLxkUJajAB6/n5nqsVz1H1csGTIn2EJvUBRLQ+gRW5/plUy0Vsu4egJioIVhOYSlIWmg3ADGI0hygzB2BJEwm+n98IB606ioh4zjcPe6VT+mg5gdAFt/xx1B/C8OIcnUjPjBjpaTPd4agP4xxW2Ec+6P5+tQJMNluZk001aPsf0vnNCY3HVJgTCLf5dUM69HK0L39GioBVy0l6P5/sZPiELR4MrFJvcALwijhq2m4ZghlA/ygIHI73HUjcX8zsAPQPlKSP75tv4rSEocjRYP1F48Ht/9qDYCUUQSoCg==",
 	}),
 		},
 		{
 			Kind = "Arm",
-			Pivot = { 5.50, 37.50, 6.00 },
+			Pivot = { 5.50, 40.50, 6.50 },
 			Phase = 1,
-			QuadCount = 104,
+			QuadCount = 174,
 			Quads = table.concat({
-		"KLUv/WDYAS0JAAYSKQ7gVu2kSRtMmM19ZriyBSQAIgAkACQPaeZmvS9nmV5WyicHsT7ObNVQeeSQVjVrr2jCacMs3R7MAl/o099e5ygiz0cT+xNNv3koQFpypvbESSJltoc1YabXg8kWeCP5g9l29Zu7u9Ifckj546irFRu0Vx7afkJpNq64w5upsUACb1jw4D6nehZwoOnylUrix4VM7FPKhVh1q6XimZPLNiqPs1UdbKhhxZNoQVMo1g4QM2iaA/BwPRv5j3jS5RAJpTWKqq1CW2hSUSv7miQF2zWF9L98ctvumWnD3eDuH5lI+Mu/ffSRCRZ+PnacY8B/7o2L17kdLzwUUhQRtHEmQobwmWj+6Tgh1hvlWqsjXu8/hQhCPAA6KRL27D7I35u9MqoC",
+		"KLUv/WDCAx0OAKYfRRHA0okHrgDGiJxBEKSUFAl3C0AAPwBBAAZTMU3TNEv+mD7ySlmWZVmWxy9uiqs3ppPWlCGuZ8oUHa0fDFdXiog0hQWjnBjHh0ceQEJeHhh04PxDVN4ARAEHeVvuhiJTbAzIgzsxGb9JcqBa0jCdTy/Lx6ckr1Yka9lCWLYwvvXGLGHkkU+c1DpjSzk5yz7wI7+YR/nD8QEmtoCQABaTQ3d5ym494aGN1AclA2Qbbf0X5jNf0VtzfaJkzC09yPpiyhXKF4qUNEzTCUVOaFm3oG2veWOWOOZnKq0m7KFx4+UDZPx+P9/v9/v9XhbA+/3+////t7eEmQ9yue2mTJlCI/PJxX+/2pg0+Lhl2vuoHqhKKQmoB4CWqCBQIpKkaQMwLWjaBlAOvgGBal8alXUoPNSwiyuzgEeudaWvn4Uv1HERR1ggda67R6wI+Umo38O3CcIMoWs3NHxFs47hbW3Td1tlFUoMrVRAxFmf7+mdM1VAD3MMDywtoyzgRdMVwOEz+j7wzKUH5Tef6RA3Fytw+2WxYeZRRhmikoNAu4f2zQz2x+OthiXqqjqUcu5ESq8b8RzvFqbF4D4cD3D3ToRXPaY=",
 	}),
 		},
 	},
