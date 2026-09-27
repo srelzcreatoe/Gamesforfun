@@ -378,8 +378,9 @@ FeatureConfig.TradeCountdownSeconds = 5
 FeatureConfig.TradeRequestSeconds = 20
 
 --------------------------------------------------------------------------------
--- Admin Abuse: sometimes an event is replaced by this, and players listed in
--- AdminUserIds can start it by chatting "/abuse".
+-- Admin Abuse: sometimes an event is replaced by this. Players listed in
+-- AdminUserIds can start it by chatting "/abuse", and any event with
+-- "/event <name>" (see GameplayManager's admin event commands).
 --------------------------------------------------------------------------------
 
 FeatureConfig.AdminAbuseChance = 0.1

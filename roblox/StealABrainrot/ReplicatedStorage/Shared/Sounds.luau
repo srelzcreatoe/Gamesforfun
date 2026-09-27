@@ -2,8 +2,8 @@
 --[[
 	Sounds (client only)
 
-	Plays the background music playlist and the sound effects listed in
-	AudioConfig. Sound effects that fail to load on this device fall back to a
+	Plays the background music playlist (shuffled) and the sound effects
+	listed in AudioConfig. Sound effects that fail to load on this device fall back to a
 	built-in Roblox sound; a music track that doesn't load is skipped.
 ]]
 
@@ -94,18 +94,43 @@ local function musicVolumeOr1(): number
 	return if savedMusicVolume > 0 then savedMusicVolume else 1
 end
 local musicStarted = false
-local trackIndex = 0
+local trackQueue: { number } = {}
+local lastTrack: number? = nil
 local trackToken = 0
+local shuffleRng = Random.new()
+
+-- The first track in AudioConfig.Music plays first. After that the playlist is
+-- shuffled, and shuffled again each time it runs out, never playing the same
+-- track twice in a row.
+local function nextTrack(): number
+	local tracks = AudioConfig.Music
+	if #trackQueue == 0 then
+		if lastTrack == nil then
+			trackQueue = { tracks[1] }
+		else
+			trackQueue = table.clone(tracks)
+			for i = #trackQueue, 2, -1 do
+				local j = shuffleRng:NextInteger(1, i)
+				trackQueue[i], trackQueue[j] = trackQueue[j], trackQueue[i]
+			end
+			if #trackQueue > 1 and trackQueue[1] == lastTrack then
+				trackQueue[1], trackQueue[#trackQueue] = trackQueue[#trackQueue], trackQueue[1]
+			end
+		end
+	end
+	local track = table.remove(trackQueue, 1) :: number
+	lastTrack = track
+	return track
+end
 
 local function playNextTrack(failures: number)
 	local tracks = AudioConfig.Music
 	if #tracks == 0 or failures >= #tracks then
 		return
 	end
-	trackIndex = trackIndex % #tracks + 1
 	trackToken += 1
 	local token = trackToken
-	music.SoundId = "rbxassetid://" .. tostring(tracks[trackIndex])
+	music.SoundId = "rbxassetid://" .. tostring(nextTrack())
 	music.TimePosition = 0
 	music:Play()
 	task.delay(TRACK_LOAD_TIMEOUT_SECONDS, function()

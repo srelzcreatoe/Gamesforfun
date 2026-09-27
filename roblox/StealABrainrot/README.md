@@ -93,7 +93,20 @@ Every 5 to 8 minutes an event runs for 3 minutes, with its own sky colour, thing
 | Taco Tuesday | Tacos rain down and Taco brainrots are 8x more common |
 | Lucky Hour | Clovers fall and every rarity above Common is 3x more likely |
 | Cash Rain | Coins drop all over the map; grab one for 20 seconds of your income (at least $150) |
-| **ADMIN ABUSE** | Now and then (1 in 10 events) instead of a normal event: a shaking rainbow banner, every conveyor brainrot gets a mutation, prices are halved, 10x luck, traits 5x likelier and Cash rains. You can also start it by typing **/abuse** in the chat (in Studio, as the game's owner, or if your user ID is in `FeatureConfig.AdminUserIds`) |
+| **ADMIN ABUSE** | Now and then (1 in 10 events) instead of a normal event: a shaking rainbow banner, every conveyor brainrot gets a mutation, prices are halved, 10x luck, traits 5x likelier and Cash rains |
+
+#### Event commands
+
+Admins can start and stop events by typing in the chat. Admins are you in Studio, the game's owner (for a game owned by a user) and anyone whose user ID is in `FeatureConfig.AdminUserIds` (add yours there for a group-owned game). For everyone else the commands do nothing.
+
+| Command | What it does |
+|---|---|
+| `/events` | Lists every event and these commands |
+| `/event <name>` | Starts that event now, for the usual 3 minutes. Names aren't case-sensitive and the start of one is enough: `/event gold rush`, `/event diamond`, `/event rainbow`, `/event blood`, `/event galaxy`, `/event lava`, `/event frost`, `/event taco`, `/event lucky`, `/event cash`, `/event admin` |
+| `/abuse` | Starts ADMIN ABUSE |
+| `/endevent` | Ends the current event now |
+
+Starting an event while another is running ends that one first.
 
 ### Day, night and weather
 
@@ -123,7 +136,7 @@ The two shopkeepers are animated: the Robux rat winds up and slaps with its gala
 
 ## Music and sound effects
 
-The game plays a looping playlist of licensed production music (APM) and sound effects for buying, collecting, selling, stealing (an alarm when someone grabs yours), getting a brainrot back, being bought out, the laser zap, locking, rebirthing, slapping, the cloak, events and every button. All of them are audio from Roblox's Creator Store that any experience may use; most of the effects are Roblox's own. The IDs are in `ReplicatedStorage/Shared/AudioConfig.luau`: to use your own music or sounds, upload them in the Creator Dashboard and put their IDs there. If a sound can't load on a player's device, a built-in Roblox sound plays instead; a music track that can't load is skipped.
+The game plays a shuffled playlist of 22 upbeat licensed production tracks (APM: arcade, 8-bit, cartoon, funk and sneaky heist music, about 50 minutes before anything repeats) and sound effects for buying, collecting, selling, stealing (an alarm when someone grabs yours), getting a brainrot back, being bought out, the laser zap, locking, rebirthing, slapping, the cloak, events and every button. All of them are audio from Roblox's Creator Store that any experience may use; most of the effects are Roblox's own. The IDs are in `ReplicatedStorage/Shared/AudioConfig.luau`: to use your own music or sounds, upload them in the Creator Dashboard and put their IDs there. If a sound can't load on a player's device, a built-in Roblox sound plays instead; a music track that can't load is skipped.
 
 (Higgsfield's tools could not be used for audio here: its only general audio tool makes speech, and its music and sound-effect models are reserved for its game-generation pipeline.)
 

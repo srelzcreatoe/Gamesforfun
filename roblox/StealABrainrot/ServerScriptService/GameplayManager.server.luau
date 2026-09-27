@@ -3238,13 +3238,19 @@ local function runEvent(event: GameEvent)
 	ReplicatedStorage:SetAttribute("EventAdmin", event.AdminAbuse == true)
 	ReplicatedStorage:SetAttribute("EventEndsAt", endsAt)
 	notifyAll(eventMessage(event), "Info", "Event")
-	if event.CashRain then
-		while Workspace:GetServerTimeNow() < endsAt do
-			spawnCoinWave()
-			task.wait(math.min(GameConfig.CashRainWaveSeconds, math.max(0.1, endsAt - Workspace:GetServerTimeNow())))
+	-- The EventEndsAt attribute is the end time: /endevent moves it to now.
+	local nextWave = 0
+	while true do
+		local now = Workspace:GetServerTimeNow()
+		endsAt = tonumber(ReplicatedStorage:GetAttribute("EventEndsAt")) or 0
+		if now >= endsAt then
+			break
 		end
-	else
-		task.wait(GameConfig.EventDurationSeconds)
+		if event.CashRain and now >= nextWave then
+			spawnCoinWave()
+			nextWave = now + GameConfig.CashRainWaveSeconds
+		end
+		task.wait(math.clamp(endsAt - now, 0.1, 1))
 	end
 	activeEvent = nil
 	clearCoins()
@@ -3718,7 +3724,13 @@ updateSocial = function(player: Player)
 end
 
 --------------------------------------------------------------------------------
--- Admin Abuse on demand
+-- Admin event commands (chat):
+--   /events          list the events and these commands
+--   /event <name>    start an event now, e.g. /event gold rush or /event lava
+--   /abuse           start ADMIN ABUSE
+--   /endevent        end the current event now
+-- Starting an event ends the one running first. Only admins can use them:
+-- FeatureConfig.AdminUserIds, the place's owner, and anyone in Studio.
 --------------------------------------------------------------------------------
 
 do
@@ -3737,15 +3749,129 @@ do
 		end, event)
 	end
 
+	local allEvents: { GameEvent } = table.clone(GameConfig.Events)
+	table.insert(allEvents, GameConfig.AdminAbuseEvent)
+
+	-- "Gold Rush" -> "goldrush"
+	local function squash(text: string): string
+		return (string.gsub(string.lower(text), "[^%w]", ""))
+	end
+
+	-- Exact name first, then the start of a name, then anywhere in one.
+	local function findEvent(query: string): GameEvent?
+		local key = squash(query)
+		if key == "" then
+			return nil
+		end
+		for pass = 1, 3 do
+			for _, event in allEvents do
+				local name = squash(event.Name)
+				if
+					(pass == 1 and name == key)
+					or (pass == 2 and string.sub(name, 1, #key) == key)
+					or (pass == 3 and string.find(name, key, 1, true) ~= nil)
+				then
+					return event
+				end
+			end
+		end
+		return nil
+	end
+
+	-- Ends the running event and waits for it to clean up. False if it didn't.
+	local function endCurrentEvent(): boolean
+		if activeEvent == nil then
+			return true
+		end
+		ReplicatedStorage:SetAttribute("EventEndsAt", Workspace:GetServerTimeNow())
+		local giveUpAt = Workspace:GetServerTimeNow() + 5
+		while activeEvent ~= nil and Workspace:GetServerTimeNow() < giveUpAt do
+			task.wait(0.1)
+		end
+		return activeEvent == nil
+	end
+
+	local function startByCommand(player: Player, event: GameEvent)
+		if not endCurrentEvent() then
+			notify(player, "The current event didn't end. Try again in a moment.", "Warning")
+			return
+		end
+		task.spawn(startEvent, event)
+	end
+
+	local function listEvents(player: Player)
+		local names = {}
+		for _, event in allEvents do
+			table.insert(names, event.Name)
+		end
+		notify(player, "Events: " .. table.concat(names, ", "), "Info")
+		notify(player, "Chat /event <name> to start one, /abuse for ADMIN ABUSE, /endevent to stop it.", "Info")
+	end
+
+	-- A command can arrive twice (TextChatCommand and Player.Chatted).
+	local lastCommand: { [Player]: { text: string, at: number } } = setmetatable({}, { __mode = "k" }) :: any
+
 	onChatted = function(player: Player, message: string)
-		if string.lower(message) ~= "/abuse" or not isAdmin(player) then
+		local word, rest = string.match(message, "^%s*/(%S+)%s*(.-)%s*$")
+		if word == nil or rest == nil then
 			return
 		end
-		if activeEvent then
-			notify(player, "Wait for the current event to end first.", "Warning")
+		local command = string.lower(word)
+		if command ~= "events" and command ~= "event" and command ~= "abuse" and command ~= "endevent" then
 			return
 		end
-		task.spawn(startEvent, GameConfig.AdminAbuseEvent)
+		if not isAdmin(player) then
+			return
+		end
+		local now = Workspace:GetServerTimeNow()
+		local last = lastCommand[player]
+		if last and last.text == message and now - last.at < 1 then
+			return
+		end
+		lastCommand[player] = { text = message, at = now }
+
+		if command == "events" then
+			listEvents(player)
+		elseif command == "abuse" then
+			startByCommand(player, GameConfig.AdminAbuseEvent)
+		elseif command == "endevent" then
+			local current = activeEvent
+			if current == nil then
+				notify(player, "No event is running.", "Warning")
+			elseif endCurrentEvent() then
+				notify(player, "Ended " .. current.Name .. ".", "Success")
+			end
+		elseif rest == "" then
+			notify(player, "Say which event, like /event gold rush. Chat /events to see them all.", "Warning")
+		else
+			local event = findEvent(rest)
+			if event then
+				startByCommand(player, event)
+			else
+				notify(player, string.format('No event called "%s". Chat /events to see them all.', rest), "Warning")
+			end
+		end
+	end
+
+	-- With the new chat, register the commands so they don't show up in chat
+	-- (and so they work even if Player.Chatted doesn't fire for them).
+	local okChat, textChatService = pcall(function(): TextChatService
+		return game:GetService("TextChatService")
+	end)
+	if okChat and textChatService and textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+		for _, alias in { "/events", "/event", "/abuse", "/endevent" } do
+			local chatCommand = Instance.new("TextChatCommand")
+			chatCommand.Name = "BrainrotEvent" .. string.sub(alias, 2)
+			chatCommand.PrimaryAlias = alias
+			chatCommand.AutocompleteVisible = false
+			chatCommand.Triggered:Connect(function(source: TextSource, text: string)
+				local player = Players:GetPlayerByUserId(source.UserId)
+				if player then
+					onChatted(player, text)
+				end
+			end)
+			chatCommand.Parent = textChatService
+		end
 	end
 end
 

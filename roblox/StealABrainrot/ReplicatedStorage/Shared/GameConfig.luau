@@ -35,7 +35,7 @@ local EVENTS: { GameEvent } = {
 }
 
 -- Replaces a normal event now and then (FeatureConfig.AdminAbuseChance), or
--- starts when an admin chats "/abuse".
+-- starts when an admin chats "/abuse" (or "/event admin").
 local ADMIN_ABUSE: GameEvent = table.freeze({
 	Name = "ADMIN ABUSE",
 	Luck = 10,

@@ -23,12 +23,30 @@ local AudioConfig: {
 	Sounds: { [string]: SoundInfo },
 	RainSound: SoundInfo,
 } = {
-	-- Played in order, looping.
+	-- The first track plays first, then the rest shuffle (about 50 minutes).
 	Music = table.freeze({
 		1847524834, -- Happy And Quirky A (APM)
 		9047837288, -- Playful Promenade (APM)
 		9047843332, -- The Jazzy Pizzman (APM)
 		140228184971194, -- Game Lobby Alternate (APM)
+		1842976958, -- Arcade Weekend (APM)
+		1843599021, -- Fun Arcade (APM)
+		9045965605, -- Fun and Games (APM)
+		9048376991, -- Nice Day for 8 Bit (APM)
+		1837768352, -- Retro Gamer (APM)
+		1837768444, -- Coin Bonus (APM)
+		1845555797, -- Carnival Jive (APM)
+		95854834681311, -- Playful Pranks (APM)
+		1839802242, -- Bouncy Funk (APM)
+		1847418399, -- Goofy Groove (APM)
+		1847448281, -- Wacky Races (APM)
+		9047363636, -- Playtime Pop (APM)
+		1842834040, -- Bouncy Castle (APM)
+		1848353356, -- Funky Chicken (APM)
+		1844612050, -- Toytown Reggae (APM)
+		80170854893452, -- Sneaky Sneaky (APM)
+		9045939292, -- Code Heist (APM)
+		9043029912, -- Mischief Maker (APM)
 	}),
 	MusicVolume = 0.22,
 	FallbackSound = "rbxasset://sounds/electronicpingshort.wav",
