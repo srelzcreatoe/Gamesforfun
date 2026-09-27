@@ -2,7 +2,7 @@
 return {
 	Format = 3,
 	-- Voxel grid size in blocks (x, y, z); the model is scaled so y is 1 stud.
-	Dims = { 56, 49, 14 },
+	Dims = { 56, 48, 13 },
 	Palette = { 0x1f5fe0, 0x5a93f7, 0x1542a6, 0xffffff, 0x141417, 0x0f2d78, 0xaeb9c7, 0xf5f7fb, 0x2a6de6, 0x3cb6f2, 0xcdd2da },
 	-- The body, then each moving piece. Legs swing about their hip Pivot (block
 	-- units) and pieces with different Phase move in turn; arms swing, wings

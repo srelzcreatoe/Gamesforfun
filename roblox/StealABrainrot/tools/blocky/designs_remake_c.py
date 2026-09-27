@@ -81,26 +81,26 @@ def glyph_mask(m, x0, y0, rows, z0, z1, char="X"):
 # -- Cocofanto Elefanto ------------------------------------------------------------
 
 
-@design("CocofantoElefanto", width=56, height=48, depth=56)
+@design("CocofantoElefanto", width=48, height=41, depth=56)
 def cocofanto_elefanto(m):
-    cx = 28
+    cx = 24
     grey, grey_dark, grey_light = "#8a9199", "#666d75", "#a8aeb5"
     ear_in, ear_in_dark = "#e0a9a9", "#c48888"
-    shell_dark, shell, shell_light = "#4f1e0c", "#7b3416", "#a64c1e"
+    shell_dark, shell, shell_light = "#441709", "#6c2911", "#8f3c17"
     nail, tusk, tusk_shade = "#ece5d3", "#f7f0dc", "#ddd2b6"
     eye_black = "#16161a"
     xs, ys, zs = m._centres
 
     # Four thick grey legs with pale toenails; diagonal pairs step together.
-    for lx, lz, phase in ((19.5, 22, 0), (36.5, 22, 1), (19.5, 42, 1), (36.5, 42, 0)):
+    for lx, lz, phase in ((cx - 8.5, 22, 0), (cx + 8.5, 22, 1), (cx - 8.5, 42, 1), (cx + 8.5, 42, 0)):
         leg = m.limb("Leg", pivot=(lx, 14, lz), phase=phase)
         m.cylinder(lx, 0, lz, 4.2, 15, grey, part=leg)
         m.cylinder(lx, 0, lz, 4.6, 2, grey, part=leg)
         m.paint(m.cylinder_mask(lx, 0, lz, 5, 1), grey_dark)
-        for dx in (-2.5, 0, 2.5):
-            nx = int(math.floor(lx + dx))
-            nz = int(math.floor(lz - 4.4))
-            m.box(nx, 0, nz, nx, 1, nz, nail, part=leg)
+        rim = m.cylinder_mask(lx, 0, lz, 4.6, 2) & ~m.cylinder_mask(lx, 0, lz, 3.4, 2)
+        for dx in (-2.6, 0, 2.6):
+            nz = lz - math.sqrt(4.1**2 - dx**2)
+            m.paint(rim & ((xs - lx - dx) ** 2 + (zs - nz) ** 2 <= 1.3), nail)
 
     # The coconut body: a big round shell covered in layers of shaggy
     # fibres that hang down in clean zig-zag fringes.
@@ -185,9 +185,9 @@ def cocofanto_elefanto(m):
 # -- La Vaca Saturno Saturnita --------------------------------------------------
 
 
-@design("LaVacaSaturnoSaturnita", width=52, height=50, depth=50)
+@design("LaVacaSaturnoSaturnita", width=46, height=51, depth=46)
 def la_vaca_saturno_saturnita(m):
-    cx, cz = 26, 25
+    cx, cz = 23, 23
     cow_white, cow_white_shade, cow_black = "#f4f3ef", "#d6d5cf", "#1c1b1f"
     pink, pink_dark, pink_light = "#f28fa3", "#c9607a", "#f9b8c4"
     horn, horn_dark = "#e8d3a0", "#b89a5e"
@@ -225,50 +225,51 @@ def la_vaca_saturno_saturnita(m):
     m.paint(ring_mask & (rho <= 16.8), gold_dark)
     m.paint(ring_mask & (rho >= 19.2) & (rho <= 20.3), gold_light)
 
-    # The cow's head on top.
+    # The cow's head on top: big and boxy.
     head = m.limb("Head", pivot=(cx, 32, cz))
-    hx0, hx1, hy0, hy1, hz0, hz1 = cx - 10, cx + 9, 31, 46, cz - 7, cz + 6
+    hx0, hx1, hy0, hy1, hz0, hz1 = cx - 11, cx + 10, 30, 47, cz - 7, cz + 6
     head_mask = rounded_box_mask(m, hx0, hy0, hz0, hx1, hy1, hz1, 2.2)
     m.mask(head_mask, cow_white, part=head)
-    # Black patches: over the top, down one cheek and round the back.
-    m.paint(head_mask & (ys > 45), cow_black)
-    m.paint(head_mask & (ys > 44) & (np.abs(xs - cx - 0.5) > 3), cow_black)
-    # The back of the head is black down to a wavy edge, with a white spot.
-    wave = 38.5 + 1.2 * np.sin((xs - cx) * 0.7)
+    # Black patches: a cap over the top with a little tuft, one on each
+    # side, and the back of the head down to a wavy edge.
+    m.paint(head_mask & (ys > 46), cow_black)
+    m.paint(head_mask & (ys > 45) & (np.abs(xs - cx) < 2.5), cow_black)
+    wave = 39 + 1.2 * np.sin((xs - cx) * 0.7)
     m.paint(head_mask & (zs > cz + 1) & (ys > wave), cow_black)
-    m.paint(head_mask & m.ellipsoid_mask(cx - 3.5, 41.5, cz + 7, 3, 2.2, 3), cow_white)
-    # A patch on each side, one reaching round onto the cheek.
-    m.paint(head_mask & m.ellipsoid_mask(cx + 10, 35.5, cz - 3, 2.6, 3.4, 4.5), cow_black)
-    m.paint(head_mask & m.ellipsoid_mask(cx - 11, 36, cz + 1, 2.5, 3.5, 3.5), cow_black)
-    m.paint(head_mask & (ys < 32) & (m.grid == m.colour(cow_white)), cow_white_shade)
+    m.paint(head_mask & m.ellipsoid_mask(cx - 4, 42, cz + 7, 3, 2.2, 3), cow_white)
+    m.paint(head_mask & (xs > cx + 10) & (zs > hz0 + 1) & m.ellipsoid_mask(cx + 10, 37, cz - 1, 9, 5, 5), cow_black)
+    m.paint(head_mask & (xs < cx - 10) & (zs > hz0 + 1) & m.ellipsoid_mask(cx - 11, 35, cz + 2.5, 9, 3.5, 3.5), cow_black)
+    m.paint(head_mask & (ys < 31) & (m.grid == m.colour(cow_white)), cow_white_shade)
     # The pink snout sticking out, with nostrils.
     snout = rounded_box_mask(m, cx - 6, 30, cz - 10, cx + 5, 35, cz - 6, 1.4)
     m.mask(snout, pink, part=head)
     m.paint(snout & (ys < 31), pink_dark)
     m.paint(snout & m.surface("top", 1), pink_light)
     m.pixels(cx - 4, 32, ["nn....nn", "nn....nn"], {"n": pink_dark}, z=cz - 10, part=head)
-    # Huge round eyes: a black rim, white, and a big pupil with a shine.
+    # Huge googly eyes: a black rim, white, and a big pupil with a shine.
     eye = [
-        ".kkkkk.",
-        "kwwwwwk",
-        "kwkkkwk",
-        "kwkhkwk",
-        "kwkkkwk",
-        "kwwwwwk",
-        ".kkkkk.",
+        "..kkkkk..",
+        ".kwwwwwk.",
+        "kwwwwwwwk",
+        "kwkkkkkwk",
+        "kwkhkkkwk",
+        "kwkkkkkwk",
+        "kwkkkkkwk",
+        ".kwkkkwk.",
+        "..kkkkk..",
     ]
-    m.pixels(cx - 9, 36, eye, {"w": WHITE, "k": BLACK, "h": WHITE})
-    m.pixels(cx + 2, 36, eye, {"w": WHITE, "k": BLACK, "h": WHITE})
+    m.pixels(cx - 10, 36, eye, {"w": WHITE, "k": BLACK, "h": WHITE})
+    m.pixels(cx + 1, 36, eye, {"w": WHITE, "k": BLACK, "h": WHITE})
     # Ears out to the sides, pink inside.
     for x0, x1 in ((hx0 - 4, hx0 - 1), (hx1 + 1, hx1 + 4)):
-        m.box(x0, 39, cz - 2, x1, 41, cz + 1, cow_black, part=head)
-        m.pixels(x0, 39, ["pppp", "pppp"], {"p": pink}, part=head)
+        m.box(x0, 40, cz - 2, x1, 42, cz + 1, cow_black, part=head)
+        m.pixels(x0, 40, ["pppp", "pppp"], {"p": pink}, part=head)
     # Little horns, curving out.
     for sign, hx in ((-1, cx - 8), (1, cx + 6)):
-        m.box(hx, 46, cz - 2, hx + 1, 47, cz, horn, part=head)
-        m.box(hx + sign, 48, cz - 2, hx + 1 + sign, 48, cz - 1, horn, part=head)
+        m.box(hx, 47, cz - 2, hx + 1, 48, cz, horn, part=head)
+        m.box(hx + sign, 49, cz - 2, hx + 1 + sign, 49, cz - 1, horn, part=head)
         tip = hx if sign < 0 else hx + 1
-        m.box(tip + sign, 49, cz - 2, tip + sign, 49, cz - 1, horn_dark, part=head)
+        m.box(tip + sign, 50, cz - 2, tip + sign, 50, cz - 1, horn_dark, part=head)
 
 
 # -- Sessanta Sette (67) -----------------------------------------------------------
@@ -340,7 +341,7 @@ SEVEN = [
 ]
 
 
-@design("SessantaSette", width=56, height=49, depth=14)
+@design("SessantaSette", width=56, height=48, depth=13)
 def sessanta_sette(m):
     blue, blue_dark, blue_light = "#1f5fe0", "#1542a6", "#5a93f7"
     navy, sleeve = "#0f2d78", "#3cb6f2"

@@ -3,7 +3,7 @@ return {
 	Format = 3,
 	-- Voxel grid size in blocks (x, y, z); the model is scaled so y is 1 stud.
 	Dims = { 40, 47, 24 },
-	Palette = { 0xa8662f, 0x7b4520, 0xc47f40, 0xe8c38a, 0xc99a5c, 0x9c6a36, 0x3a2112, 0xffffff, 0x141417, 0x3f2414, 0xddb176, 0xa4733d, 0xf1d3a0 },
+	Palette = { 0xa8662f, 0x7b4520, 0xc47f40, 0xe8c38a, 0xc99a5c, 0x9c6a36, 0x3a2112, 0xffffff, 0x141417, 0x3f2414, 0xc07e40, 0x84501f },
 	-- The body, then each moving piece. Legs swing about their hip Pivot (block
 	-- units) and pieces with different Phase move in turn; arms swing, wings
 	-- flap, tails wag, heads nod and props spin about Axis. Quads are Zstd +
@@ -38,18 +38,18 @@ return {
 			Kind = "Arm",
 			Pivot = { 29.50, 33.00, 13.50 },
 			Phase = 0,
-			QuadCount = 232,
+			QuadCount = 218,
 			Quads = table.concat({
-		"KLUv/WBYBWUWABatcgww6HoNA4B5KHArUw9wAG0AbQABZOps0kBiQtQ7BJEAqQ5PJKIPjhLNNgYWd/q2vL9XV7275n+tdQamvuX3+qm6rSwyjQHUfc1Uf6MGzJUK1DBFxqaoQxCxAMEdHCaaRzAPaH9rKqCptqUC3FHdIRRQXI2DAr53cQKANdwyAcpcJBMQgzDtIEEiigSkb4C2Oa3ZglllVT8VyvYlMG9dqqX93s+mb407F7Z9kiuVjKnGpkBqIYgiFCCNw9MGh2hgIxh1/2t/1RZVPXW87+QSVf5UJA7R4qcMrdyheikw+VJZ29pr+a1xdeFk/X3KlS6jZG2pWgOJhnnEE4cHOnBw3hA1FAUIClL/UoxiwI0fwYCSU7Mpskr+VVPNVWQ44ZP61xu3rTj/KJXbPrZe0rqc16vlP/vs9NMCeEqA56rVVOWvy7W0b60leSdL2f5mvd+d3GRR48YOIIMyeC1UARX/xulggLHLcVQGK3R5BQPbnde0qdoT/wgS+jwiioMEB+YYFYUJCpQMYOuLAQUD5vRw/g2lPjY7jIy5fc9PqbI5RmaO39ZUS+7sZc66pLL2W63soAwGijdOf1SOix+hHP8bAUOXybEyJ1PBwLa8gOGokRzRQ5IkSabN4FgQpQOw3g1CQGSsJrXktzQBxb82jPr/ZGhBSxs5eoQ7qSf7/9bC27uQu9myLXR5yqirvzyQihl+QrRo45bzjkBdk900ulFgrC/cP0UVdQi2+HGU8Q45JmmXuJCoM4ojhU4CEbW4Y8moRSk5fkwgLY4r2Cy88/tR+NtQbtLDecss6iVCwcuZv3+esECTRAhX+HbKErZAjToVKIu3aAQOpHbSatVoCQqi3PJxXWSwH+E2BRI9FgHmiCFhGLpCnwZ2ySyJEAO4cGSa0IBaBsU/4V+ukHL9f6MORLM8dREY66lPmXADnnow2oAfE+Ml496/SKEq",
+		"KLUv/WD2BF0UAAarbAwwKDv9z3Oa41ssuQJpAGMAaAAOJF+IvgMkPTwnHOaa+MLudgw0NODDaJ6BI4fBPD8/PwOVetJbZ9WNmQaXXjj38006aBstwIA9D5UUqltojTIRBFJcISKguzY8hdNAwNnEY8J5gPsd84zcQCqg8B5HBQCLGAwFnLFCoYD11qepPPVse8/LyqjcSJnnQtqeZC82agZTDKS7NRSiywGCwxMf4URnQ6K5u59jfuilDOVnpgoFMZAXd3Uc/+W7fk+tta9q+un2lQGL9c3zcqPN4Lc9GkgvvGD2/EZ9g2nuMAUzkGLw6E/JZiq2WCFlb7InmayRwnlHuRe1Zr2kcp7JV8u0+tc9KTOdZu6vFGDf6WvderK1ZYsC1uXrbIzKNhfYpYwZ1CapDGKLUgig8ORQxYE6FKZISES0DnrEAwvnvKLZZf9l1/JNgYWPVEgDkGWQhIGFm/g/0HnOkLwUN4LPIyr5Kd4SHKb5J6soPGo5N0rDGFzSzylli61NO9ZvnYxK1qi116xyWyv8ozoYYNh5Bit+pDIYgJyhDHbGFKpoIgMd85wTG0jYeYQh+T9weBTXERSmgMeoMRgSTZUkSbIzBiAxaNIGgCofABh0HbABVwbxYEq5SMJcBlhoHLUrByvalB03RvRv0CTQlwkNmtPRLzqEKTLpfE5yaPYSAME4TCBO5qmpqMDxT+DICIUcQoI/zV7IEbAwGA7czGu1HEUfoYA7TPHFfc0r3DdXHU8b354w1PCOvEEZKFXsEqbrudUkGtRNmGywZY7/2oTnIajT/+NEPqKKyTGqpCIHZDWDRX1KWAEwJgAv6UVSUGKHUAvgPQB6Jx+iCgrRqVhaWCcRJQnUvWcFsEJIDQ==",
 	}),
 		},
 		{
 			Kind = "Arm",
 			Pivot = { 10.50, 33.00, 13.50 },
 			Phase = 1,
-			QuadCount = 16,
+			QuadCount = 12,
 			Quads = table.concat({
-		"KLUv/SBwRQIA0kQMCyDvDgBKzo4y6SXFrfMEEECA1jnB5bCoatir9mGaasPaie2D3veti3kzDlhuqOrDJggoIC3YAaDsA2At4kN/8tg4wt0E",
+		"KLUv/SBUtQEAQoUMCEB9w9exy4tIkMOWJL9WEuSw4eXXusOMYY/EFO7Io25H/joVmES+kP/0AiaRDeQ/LQgA",
 	}),
 		},
 	},

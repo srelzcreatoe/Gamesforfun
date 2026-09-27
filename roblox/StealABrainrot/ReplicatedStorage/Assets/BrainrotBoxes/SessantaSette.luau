@@ -3,7 +3,7 @@ return {
 	Format = 1,
 	-- Blocks per box unit: 1 = every block of the model, 2 = every 2nd, ...
 	Step = 1,
-	Dims = { 56, 49, 14 },
+	Dims = { 56, 48, 13 },
 	Palette = { 0x1f5fe0, 0x5a93f7, 0x1542a6, 0xffffff, 0x141417, 0x0f2d78, 0xaeb9c7, 0xf5f7fb, 0x2a6de6, 0x3cb6f2, 0xcdd2da },
 	-- The body, then each moving piece (Pivot in blocks, like the meshes).
 	-- Boxes are Base64, 7 bytes each: x, y, z, xSize, ySize, zSize
