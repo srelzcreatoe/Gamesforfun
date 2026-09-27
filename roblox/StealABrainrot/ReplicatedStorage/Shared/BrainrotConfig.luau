@@ -12,8 +12,9 @@
 export type BodyShape = "Ball" | "Block"
 
 -- How a brainrot moves: Walk swings its legs, Fly hovers and banks, Drive
--- bounces along, Spin pirouettes and Hop jumps.
-export type Motion = "Walk" | "Fly" | "Drive" | "Spin" | "Hop"
+-- bounces along, Spin pirouettes, Hop jumps and Skate rides a skateboard
+-- (carving, pushing and popping tricks).
+export type Motion = "Walk" | "Fly" | "Drive" | "Spin" | "Hop" | "Skate"
 
 export type Rarity = {
 	Name: string,
@@ -245,6 +246,7 @@ local Brainrots: { Brainrot } = {
 	blocky("TrenostruzzoTurbo3000", "Trenostruzzo Turbo 3000", "Brainrot God", 9000000, 29000, rgb(40, 40, 45), rgb(220, 40, 40), 1.2, "Drive"),
 	blocky("BanhammeroGiustiziere", "Banhammero Giustiziere", "Brainrot God", 10000000, 32000, rgb(30, 30, 35), rgb(220, 30, 40), 1.5),
 	blocky("SparklinoFedorino", "Sparklino Fedorino", "Brainrot God", 12000000, 37000, rgb(245, 245, 240), rgb(140, 60, 200), 1.4, "Walk", LIMITED),
+	blocky("CanelitoCannolito", "Canelito Cannolito", "Brainrot God", 13500000, 41000, rgb(234, 208, 162), rgb(216, 50, 43), 1.1),
 
 	-- Secret
 	brainrot("SpaghettiTualetti", "Spaghetti Tualetti", "Secret", 15000000, 50000, rgb(245, 245, 245), rgb(250, 210, 80), 1.5, "Hop"),
@@ -258,6 +260,7 @@ local Brainrots: { Brainrot } = {
 	blocky("NuclearoDinossauro", "Nuclearo Dinossauro", "Secret", 40000000, 120000, rgb(40, 90, 40), rgb(170, 255, 60), 1.7),
 	blocky("GalatticoGuestone", "Galattico Guestone", "Secret", 45000000, 130000, rgb(50, 30, 110), rgb(255, 120, 220), 1.7),
 	blocky("DragonCannelloni", "Dragon Cannelloni", "Secret", 50000000, 140000, rgb(245, 220, 150), rgb(210, 50, 40), 1.3, "Fly"),
+	blocky("BenjiniSkatini", "Benjini Skatini", "Secret", 58000000, 155000, rgb(29, 29, 34), rgb(228, 197, 142), 1.6, "Skate"),
 	brainrot("SessantaSette", "67", "Secret", 67000000, 167000, rgb(40, 140, 240), rgb(250, 250, 250), 1.8),
 	blocky("LaGrandeCombinasion", "La Grande Combinasion", "Secret", 80000000, 190000, rgb(40, 130, 230), rgb(240, 190, 50), 1.9),
 	blocky("StrawberryElephant", "Strawberry Elephant", "Secret", 100000000, 230000, rgb(225, 40, 55), rgb(80, 170, 60), 1.8),

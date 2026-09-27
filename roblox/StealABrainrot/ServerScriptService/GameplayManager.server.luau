@@ -879,7 +879,7 @@ local TemplateModels = require(ReplicatedStorage:WaitForChild("Shared"):WaitForC
 -- each moving piece, named by kind and number ("<Id>_Arm3": the brainrot's
 -- asset module has its Phase and Axis at Parts[3 + 1]), with an
 -- "<Id>_Pivot3" marker at the joint it turns about and an "<Id>_Built" marker.
-Tuning.MOVING_KINDS = { Leg = true, Arm = true, Wing = true, Tail = true, Head = true, Prop = true } :: { [string]: boolean }
+Tuning.MOVING_KINDS = { Leg = true, Arm = true, Wing = true, Tail = true, Head = true, Prop = true, Ear = true, Board = true } :: { [string]: boolean }
 
 local function prepareImportedModels(): (number, { string })
 	local function isMarker(piece: string): boolean

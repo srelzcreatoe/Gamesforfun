@@ -65,6 +65,13 @@ local MIN_WALK_SPEED = 0.4
 -- Arms swing a little less than legs; propellers turn this fast (radians a second).
 local ARM_SWING = math.rad(26)
 local PROP_SPIN = 16
+-- Skaters pop a trick this often (seconds; slower when parked), in the air
+-- this long, this high (share of their height), with the board this far
+-- under their feet mid-flip.
+local SKATE_TRICK_EVERY = 3.4
+local SKATE_AIR_TIME = 0.8
+local SKATE_POP = 0.28
+local SKATE_TUCK = 0.1
 
 type RarityEffect = {
 	Light: number,
@@ -82,7 +89,7 @@ type RarityEffect = {
 type PieceVisual = {
 	Part: BasePart,
 	Weld: Weld,
-	-- "Body", "Leg", "Arm", "Wing", "Tail", "Head" or "Prop".
+	-- "Body", "Leg", "Arm", "Wing", "Tail", "Head", "Prop", "Ear" or "Board".
 	Kind: string,
 	-- Rest pose relative to the Root (the brainrot's feet).
 	Base: CFrame,
@@ -222,7 +229,7 @@ local map = Workspace:WaitForChild("Map")
 local brainrotsFolder = map:WaitForChild("Brainrots")
 
 local visuals: { [Model]: Visual } = {}
-local MOTIONS: { [string]: boolean } = { Walk = true, Fly = true, Drive = true, Spin = true, Hop = true }
+local MOTIONS: { [string]: boolean } = { Walk = true, Fly = true, Drive = true, Spin = true, Hop = true, Skate = true }
 local attaching: { [Model]: boolean } = {}
 local rainbowAssets: { [AssetLoader.BrainrotAsset]: boolean } = {}
 
@@ -906,6 +913,9 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 		visual.LastState = state
 		visual.StateSince = t
 	end
+	-- Skating: how far through a trick (0 to 1), the height of the jump
+	-- (0 on the ground, 1 at the top), which trick, and the pushing foot.
+	local skateAlpha, skateAir, skateTrick, skatePush = 0, 0, 0, 0
 	if state == "Defeated" then
 		local fall = math.clamp((t - visual.StateSince) / 0.8, 0, 1)
 		local eased = fall * fall
@@ -936,6 +946,28 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 		local bank = math.sin(phase * 0.9) * math.rad(if moving then 12 else 6)
 		local pitch = if moving then -math.rad(10) * blend else math.sin(phase * 1.3) * math.rad(4)
 		modelOffset = CFrame.new(0, lift, 0) * centre * CFrame.Angles(pitch, 0, bank)
+	elseif motion == "Skate" and state ~= "Carried" then
+		-- Rides a skateboard: carves from side to side, kicks to push after
+		-- landing, and pops a trick every few seconds (an ollie, a kickflip
+		-- or a shove-it), even parked on a pedestal.
+		local period = if moving then SKATE_TRICK_EVERY else SKATE_TRICK_EVERY * 1.6
+		local cycle = phase % period
+		if cycle < SKATE_AIR_TIME then
+			skateAlpha = cycle / SKATE_AIR_TIME
+			skateAir = math.sin(skateAlpha * math.pi)
+			skateTrick = math.floor(phase / period) % 3
+		elseif moving then
+			local since = cycle - SKATE_AIR_TIME - 0.3
+			if since > 0 and since < 1.4 then
+				skatePush = math.max(0, math.sin(since / 1.4 * math.pi * 2)) * blend
+			end
+		end
+		local ground = 1 - skateAir
+		local carve = math.sin(phase * 1.6) * math.rad(if moving then 9 else 3) * ground
+		local weave = if moving then math.sin(phase * 1.6 - 0.8) * math.rad(8) * blend else math.sin(phase * 0.7) * math.rad(6)
+		-- Nose up on the way up, down on the way down.
+		local pitch = math.sin(skateAlpha * math.pi * 2) * math.rad(12)
+		modelOffset = CFrame.new(0, skateAir * SKATE_POP * height, 0) * centre * CFrame.Angles(pitch, weave, carve)
 	elseif motion == "Drive" then
 		-- Rolls along with little bumps; rumbles in place when parked.
 		local bump = if moving then math.abs(math.sin(stride * 2)) * 0.02 * height else math.abs(math.sin(phase * 14)) * 0.005 * height
@@ -990,6 +1022,8 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 	local armSwing: number
 	if state == "Carried" then
 		armSwing = math.sin(phase * 14) * math.rad(55)
+	elseif motion == "Skate" then
+		armSwing = math.sin(phase * 1.9) * math.rad(8)
 	elseif moving and motion ~= "Fly" and motion ~= "Drive" then
 		armSwing = -math.sin(stride) * ARM_SWING * blend
 	else
@@ -1000,15 +1034,48 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 	local flapRate = if flying then (if moving then 15 else 10) else 4
 	local flap = math.sin(t * flapRate + visual.Phase) * math.rad(if flying then 32 else 10)
 	local wag = math.sin(phase * (if moving then 9 else 4)) * math.rad(if moving then 22 else 14)
+	local hasEars, hasBoard = false, false
+	for _, piece in visual.Pieces do
+		if piece.Kind == "Ear" then
+			hasEars = true
+		elseif piece.Kind == "Board" then
+			hasBoard = true
+		end
+	end
 	local nod: CFrame
-	if moving then
+	if hasEars and not moving and state ~= "Carried" then
+		-- A puppy's head tilt every few seconds, one way then the other.
+		local cycle = phase % 5
+		local tilt = if cycle < 1.8 then math.sin(cycle / 1.8 * math.pi) * math.rad(20) else 0
+		local side = if math.floor(phase / 5) % 2 == 0 then 1 else -1
+		nod = CFrame.Angles(math.sin(phase * 0.9) * math.rad(3), math.sin(phase * 0.45) * math.rad(12), tilt * side)
+	elseif moving then
 		nod = CFrame.Angles(math.sin(stride * 2) * math.rad(5) * blend, math.sin(stride) * math.rad(4) * blend, 0)
 	else
 		-- Looks around now and then.
 		nod = CFrame.Angles(math.sin(phase * 0.9) * math.rad(3), math.sin(phase * 0.45) * math.rad(16), math.sin(phase * 0.7) * math.rad(3))
 	end
 	-- Propellers always turn; wheels roll with the ground speed; halos turn slowly.
-	visual.Spin += dt * (if motion == "Drive" then visual.Speed * 1.6 else PROP_SPIN)
+	visual.Spin += dt * (if motion == "Drive" or motion == "Skate" then visual.Speed * 1.6 else PROP_SPIN)
+
+	-- Ears flop outwards with every step (flapping when carried).
+	local earFlop: number
+	if state == "Carried" then
+		earFlop = (0.5 + 0.5 * math.sin(phase * 14)) * math.rad(40)
+	elseif moving then
+		earFlop = math.rad(4) + (0.5 + 0.5 * math.sin(stride * 2)) * math.rad(20) * blend
+	else
+		earFlop = math.rad(4) + (0.5 + 0.5 * math.sin(phase * 1.3)) * math.rad(5)
+	end
+	-- The skateboard: flips about its length for a kickflip, spins flat
+	-- for a shove-it, and drops a little under the feet mid-trick.
+	local boardTurn = CFrame.identity
+	local boardDrop = 0
+	if skateAir > 0 and skateTrick > 0 then
+		local spin = (1 - math.cos(skateAlpha * math.pi)) * math.pi
+		boardTurn = if skateTrick == 1 then CFrame.Angles(0, 0, spin) else CFrame.Angles(0, spin, 0)
+		boardDrop = skateAir * SKATE_TUCK * height
+	end
 
 	-- Glowing blocks circle the brainrot, bobbing and tumbling.
 	local orbiters = visual.Orbiters
@@ -1027,11 +1094,31 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 	-- modelOffset moves the model about its centre; the pieces' rest poses
 	-- are relative to the feet.
 	local frame = modelOffset * centre:Inverse()
+	-- Ears move with the head and wheels with the board.
+	local headPose, boardPose = CFrame.identity, CFrame.identity
+	if hasEars or hasBoard then
+		for _, piece in visual.Pieces do
+			if piece.Kind == "Head" then
+				headPose = CFrame.new(piece.Hip) * nod * CFrame.new(-piece.Hip)
+			elseif piece.Kind == "Board" then
+				boardPose = CFrame.new(0, -boardDrop, 0) * CFrame.new(piece.Hip) * boardTurn * CFrame.new(-piece.Hip)
+			end
+		end
+	end
 	for _, piece in visual.Pieces do
 		local kind = piece.Kind
 		local turn: CFrame? = nil
-		if kind == "Leg" then
+		-- Which side of the body it's on, for things that swing outwards.
+		local side = if piece.Hip.X >= 0 then 1 else -1
+		if kind == "Leg" and motion == "Skate" and state ~= "Carried" then
+			-- The back foot kicks to push; the other stays on the board.
+			turn = CFrame.Angles(if piece.Direction < 0 then -skatePush * math.rad(40) else 0, 0, 0)
+		elseif kind == "Leg" then
 			turn = CFrame.Angles(swing * piece.Direction, 0, 0)
+		elseif kind == "Arm" and motion == "Skate" and state ~= "Carried" then
+			-- Arms out for balance, flung up in the air.
+			local raise = math.rad(22) + math.sin(phase * 2.3 + piece.Direction) * math.rad(7) + skateAir * math.rad(50)
+			turn = CFrame.Angles(armSwing * piece.Direction, 0, raise * side)
 		elseif kind == "Arm" then
 			turn = CFrame.Angles(armSwing * piece.Direction, 0, 0)
 		elseif kind == "Wing" then
@@ -1042,9 +1129,16 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 			turn = nod
 		elseif kind == "Prop" then
 			local angle = if piece.Axis == Vector3.yAxis then visual.Spin * 0.25 else visual.Spin
-			turn = CFrame.fromAxisAngle(piece.Axis, angle * piece.Direction)
+			turn = boardPose * CFrame.new(piece.Hip) * CFrame.fromAxisAngle(piece.Axis, angle * piece.Direction) * CFrame.new(-piece.Hip)
+		elseif kind == "Board" then
+			turn = boardPose
+		elseif kind == "Ear" then
+			turn = headPose * CFrame.new(piece.Hip) * CFrame.Angles(0, 0, earFlop * side) * CFrame.new(-piece.Hip)
 		end
-		if turn then
+		if kind == "Prop" or kind == "Board" or kind == "Ear" then
+			-- (Already about its joint, and its parent's.)
+			piece.Weld.C0 = frame * (turn :: CFrame) * piece.Base
+		elseif turn then
 			piece.Weld.C0 = frame * CFrame.new(piece.Hip) * turn * CFrame.new(-piece.Hip) * piece.Base
 		else
 			piece.Weld.C0 = frame * piece.Base

@@ -30,7 +30,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local MESH_FORMAT = 3
 -- Pieces that move; anything else is part of the body.
-local MOVING_KINDS: { [string]: boolean } = { Leg = true, Arm = true, Wing = true, Tail = true, Head = true, Prop = true }
+local MOVING_KINDS: { [string]: boolean } = { Leg = true, Arm = true, Wing = true, Tail = true, Head = true, Prop = true, Ear = true, Board = true }
 local ICON_FORMAT = 1
 local QUAD_BYTES = 7
 -- CreateMeshPartAsync calls running at once, and tries per mesh part.
@@ -44,7 +44,7 @@ local RETRY_SECONDS = 20
 -- One mesh of a brainrot: its body or one moving piece. Sizes and positions
 -- are for a model 1 stud tall, relative to the model's centre.
 export type Piece = {
-	-- "Body", "Leg", "Arm", "Wing", "Tail", "Head" or "Prop".
+	-- "Body", "Leg", "Arm", "Wing", "Tail", "Head", "Prop", "Ear" or "Board".
 	Kind: string,
 	Mesh: EditableMesh,
 	ColorIds: { number },
@@ -82,7 +82,7 @@ export type BuiltPiece = {
 -- the piece, with its boxes welded to it (animate it like a mesh piece).
 export type BoxPiece = {
 	Part: BasePart,
-	-- "Body", "Leg", "Arm", "Wing", "Tail", "Head" or "Prop".
+	-- "Body", "Leg", "Arm", "Wing", "Tail", "Head", "Prop", "Ear" or "Board".
 	Kind: string,
 	-- Rest position relative to the model's centre, and what it turns about, in studs.
 	Offset: Vector3,

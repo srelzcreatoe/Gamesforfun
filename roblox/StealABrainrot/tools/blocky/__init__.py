@@ -32,6 +32,9 @@ Moving pieces (Model.limb):
   Head  nods while walking and looks around while idle.
   Prop  spins about its pivot: axis "Y" (a halo, rings) or "Z" (a propeller
         facing forwards) or "X" (wheels).
+  Ear   flops outwards with every step and follows the head.
+  Board a skateboard (with the "Skate" motion): flips and spins under the
+        rider for tricks, and the wheels (Props) go with it.
 Each voxel belongs to one piece: the last shape drawn with `part=` wins.
 """
 
@@ -43,7 +46,7 @@ from typing import Callable, Iterable
 
 import numpy as np
 
-KINDS = ("Leg", "Arm", "Wing", "Tail", "Head", "Prop")
+KINDS = ("Leg", "Arm", "Wing", "Tail", "Head", "Prop", "Ear", "Board")
 
 REGISTRY: dict[str, "Design"] = {}
 
