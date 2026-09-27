@@ -891,6 +891,10 @@ end
 --------------------------------------------------------------------------------
 
 local function checkGamePassOwnershipAsync(userId: number, passId: number): boolean?
+	-- A placeholder ID is some other creator's pass: owning that doesn't count.
+	if not MonetizationConfig.isSetUp(passId) then
+		return false
+	end
 	local ok, result = pcall(function(): boolean
 		return MarketplaceService:UserOwnsGamePassAsync(userId, passId)
 	end)

@@ -193,7 +193,7 @@ An unpublished place can't use DataStores or sell products, so in Studio you get
 
 ### Setting up Robux products
 
-The product and game pass IDs in `ReplicatedStorage/Shared/MonetizationConfig.luau` are **placeholders** (100001, 100002, ..., 200001, ...) until you put your own in. Product IDs are shared by every game on Roblox, so a placeholder is some other creator's old product: that's why the game never opens a purchase for one. Instead the Buy button says "Not for sale yet", and when you press Play the Output lists every item still to set up. Only you can make the real ones, because they have to belong to your game:
+The product and game pass IDs in `ReplicatedStorage/Shared/MonetizationConfig.luau` are **placeholders** (100001, 100002, ..., 200001, ...) until you put your own in. Product IDs are shared by every game on Roblox, so a placeholder is some other creator's old product: that's why the game never opens a purchase for one, and why owning a pass with a placeholder's number (someone else's pass) doesn't count. Instead the Buy button says "Not for sale yet", and when you press Play the Output lists every item still to set up. Only you can make the real ones, because they have to belong to your game:
 
 1. Publish the place (File → Publish to Roblox) so it has a page on the Creator Dashboard.
 2. Go to [create.roblox.com/dashboard/creations](https://create.roblox.com/dashboard/creations), click your game, and open **Monetization → Developer Products**.
@@ -236,6 +236,14 @@ The product and game pass IDs in `ReplicatedStorage/Shared/MonetizationConfig.lu
 | `SuperGuard` | Super Guard |
 
 The limited brainrots' prices are also written in `ExtrasConfig.LimitedRotation` (the Limited Shop shows them), so keep the two the same.
+
+### Before you make it public
+
+1. Import `BrainrotModels/Import/BrainrotModels.glb` (all the brainrots in one file) and **File → Save**, so every brainrot shows as a real mesh.
+2. Set up your Robux products and passes (above). Anything you skip just says "Not for sale yet".
+3. Publish (**File → Publish to Roblox**). Saving (DataStores) works on its own once the game is live.
+4. If the game belongs to a group rather than your account, put your user ID in `FeatureConfig.AdminUserIds` so the chat commands (`/event`, `/abuse`, ...) work for you. Nobody else can use them.
+5. On the Creator Dashboard, fill in your experience's **Maturity & Compliance** questionnaire, then in **Game Settings → Permissions** set it to **Public**.
 
 ## Prices
 
