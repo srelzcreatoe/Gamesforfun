@@ -250,7 +250,6 @@ def greggini_ricciolini(m):
     tee, tee_shade, tee_light = "#f6f6f8", "#e6e6ec", "#ffffff"
     pants, pants_dark = "#26262c", "#18181c"
     shoe, shoe_dark, sole = "#1d1d21", "#35353b", "#f1f1f1"
-    gold, gold_dark = "#f2c23a", "#c49419"
     iris, brow = "#2e1d13", "#161110"
 
     # Greg's on the skateboard too.
@@ -267,26 +266,10 @@ def greggini_ricciolini(m):
         m.box(x0, 8, 16, x0 + 2, 8, 20, shoe_dark, part=leg)
         m.pixels(x0, 7, ["www"], {"w": sole}, face="left" if phase == 0 else "right", part=leg)
 
-    # The white tee, with a gold chain and a gold cross.
+    # A plain white tee.
     m.mask(rounded_box_mask(m, 11, 16, 15, 20, 27, 21, 1.2), tee)
     m.paint_face(m.box_mask(11, 16, 0, 20, 16, 35), tee_shade, face="front")
     m.box(14, 27, 16, 17, 28, 20, skin)  # neck
-    m.pixels(11, 22, [
-        "g........g",
-        ".g......g.",
-        ".g......g.",
-        "..g....g..",
-        "...gggg...",
-    ], {"g": gold})
-    cross = [
-        ".gg.",
-        "gggg",
-        "gddg",
-        ".gg.",
-        ".gd.",
-        ".dd.",
-    ]
-    m.pixels(14, 16, cross, {"g": gold, "d": gold_dark}, z=14)
 
     # Arms out for balance: short white sleeves.
     for x0, phase in ((8, 0), (21, 1)):
