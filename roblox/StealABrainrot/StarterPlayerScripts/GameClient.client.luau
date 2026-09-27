@@ -432,6 +432,11 @@ for index, product in MonetizationConfig.ShopProducts do
 		if owned then
 			return
 		end
+		if not MonetizationConfig.isSetUp(product.ProductId) then
+			UIKit.toast(MonetizationConfig.NotSetUpMessage, "Warning")
+			Sounds.play("Error")
+			return
+		end
 		local ok, err = pcall(function()
 			if product.GamePass then
 				MarketplaceService:PromptGamePassPurchase(player, product.ProductId)
@@ -443,7 +448,7 @@ for index, product in MonetizationConfig.ShopProducts do
 			warn("[GameClient] Could not open the purchase prompt: " .. tostring(err))
 		end
 	end)
-	if product.GamePass then
+	if product.GamePass and MonetizationConfig.isSetUp(product.ProductId) then
 		task.spawn(function()
 			local ok, has = pcall(function()
 				return MarketplaceService:UserOwnsGamePassAsync(player.UserId, product.ProductId)

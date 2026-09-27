@@ -1,7 +1,11 @@
 --!strict
 -- Robux products and game passes. Read by DataAndMonetizationManager on the
 -- server and by the shop UI on the client, so the IDs only live here.
--- Replace every ID with the real ones from the Creator Dashboard.
+-- Replace every ID with the real ones from the Creator Dashboard (see the
+-- README's "Setting up Robux products"). Until then the numbers below are
+-- placeholders, and a Buy button with a placeholder doesn't open a purchase:
+-- product IDs are shared by every game on Roblox, so a placeholder is some
+-- other creator's old product.
 
 local NumberFormat = require(script.Parent:WaitForChild("NumberFormat"))
 
@@ -78,6 +82,30 @@ local GamePasses: { [string]: number } = table.freeze({
 	-- Your guard brainrot recovers twice as fast.
 	SuperGuard = 200005,
 })
+
+-- Real IDs from the Creator Dashboard are far bigger than the placeholders.
+local PLACEHOLDER_LIMIT = 10_000_000
+
+local function isSetUp(id: number?): boolean
+	return typeof(id) == "number" and id >= PLACEHOLDER_LIMIT
+end
+
+-- The products and passes still on a placeholder ID, by name.
+local function notSetUp(): { string }
+	local names: { string } = {}
+	for key, id in ProductIds :: { [string]: number } do
+		if not isSetUp(id) then
+			table.insert(names, key)
+		end
+	end
+	for key, id in GamePasses do
+		if not isSetUp(id) then
+			table.insert(names, key .. " (game pass)")
+		end
+	end
+	table.sort(names)
+	return names
+end
 
 local SMALL_CASH_BUNDLE_AMOUNT = 5000
 local MEDIUM_CASH_BUNDLE_AMOUNT = 25000
@@ -284,6 +312,9 @@ local ShopProducts: { ShopProduct } = {
 return table.freeze({
 	ProductIds = ProductIds,
 	GamePasses = GamePasses,
+	isSetUp = isSetUp,
+	notSetUp = notSetUp,
+	NotSetUpMessage = "🛠️ Not for sale yet: this Robux item hasn't been set up in the Creator Dashboard.",
 	SmallCashBundleAmount = SMALL_CASH_BUNDLE_AMOUNT,
 	MediumCashBundleAmount = MEDIUM_CASH_BUNDLE_AMOUNT,
 	LaserBypassDurationSeconds = LASER_BYPASS_DURATION_SECONDS,

@@ -1374,9 +1374,11 @@ local function animateHeistLights(t: number)
 		return
 	end
 	heistWasOpen = open
-	local pulse = if open then (0.5 + 0.5 * math.sin(t * 10)) else 0
+	-- Faster and brighter once the alarm goes off.
+	local alarm = ReplicatedStorage:GetAttribute("HeistAlarm") == true
+	local pulse = if open then (0.5 + 0.5 * math.sin(t * (if alarm then 24 else 10))) else 0
 	for _, light in heistLights do
-		light.Brightness = 4 * pulse
+		light.Brightness = (if alarm then 7 else 4) * pulse
 		local bulb = light.Parent
 		if bulb and bulb:IsA("BasePart") then
 			bulb.Color = Color3.fromRGB(80, 5, 5):Lerp(Color3.fromRGB(255, 30, 30), pulse)

@@ -686,23 +686,48 @@ local function attachModel(instance: Instance)
 		local mutation = if typeof(mutationAttribute) == "string" then mutationAttribute else nil
 		local rarity = if typeof(rarityAttribute) == "string" then rarityAttribute else nil
 
+		-- The blocky meshes, or where this device can't build meshes, the same
+		-- brainrot from plain boxes.
 		local built, asset = AssetLoader.createBrainrotParts(brainrotId, mutation, height)
-		if built == nil or asset == nil then
-			return
+		local placed: { AssetLoader.BoxPiece } = {}
+		if built and asset then
+			for _, entry in built do
+				table.insert(placed, {
+					Part = entry.Part :: BasePart,
+					Kind = entry.Piece.Kind,
+					Offset = entry.Offset,
+					Pivot = entry.Pivot,
+					Phase = entry.Piece.Phase,
+					Axis = entry.Piece.Axis,
+				})
+			end
+		else
+			local boxes = AssetLoader.createBrainrotBoxes(brainrotId, mutation, height)
+			if boxes == nil then
+				return
+			end
+			placed = boxes
 		end
 		if instance.Parent == nil or rootInstance.Parent ~= instance then
-			for _, entry in built do
+			for _, entry in placed do
 				entry.Part:Destroy()
 			end
 			return
 		end
 
 		local pieces: { PieceVisual } = {}
-		local body: MeshPart? = nil
+		local body: BasePart? = nil
+		local hasLegs = false
 		local centre = CFrame.new(0, height / 2, 0)
-		for _, entry in built do
+		for _, entry in placed do
 			local part = entry.Part
 			part:SetAttribute(PIECE_ATTRIBUTE, true)
+			-- (A box piece's boxes are ours too.)
+			for _, box in part:GetChildren() do
+				if box:IsA("BasePart") then
+					box:SetAttribute(PIECE_ATTRIBUTE, true)
+				end
+			end
 			part.Anchored = false
 			part.CanCollide = false
 			part.CanQuery = false
@@ -716,25 +741,23 @@ local function attachModel(instance: Instance)
 			weld.C0 = centre * CFrame.new(entry.Offset)
 			weld.Parent = part
 
-			local kind = entry.Piece.Kind
+			local kind = entry.Kind
+			hasLegs = hasLegs or kind == "Leg"
 			table.insert(pieces, {
-				Part = part :: BasePart,
+				Part = part,
 				Weld = weld,
 				Kind = kind,
 				Base = centre * CFrame.new(entry.Offset),
 				Hip = centre.Position + entry.Pivot,
-				Direction = if entry.Piece.Phase == 1 then -1 else 1,
-				Axis = if entry.Piece.Axis == "X"
-					then Vector3.xAxis
-					elseif entry.Piece.Axis == "Z" then Vector3.zAxis
-					else Vector3.yAxis,
+				Direction = if entry.Phase == 1 then -1 else 1,
+				Axis = if entry.Axis == "X" then Vector3.xAxis elseif entry.Axis == "Z" then Vector3.zAxis else Vector3.yAxis,
 			})
 			if kind == "Body" then
 				body = part
 			end
 		end
 		if body == nil then
-			for _, entry in built do
+			for _, entry in placed do
 				entry.Part:Destroy()
 			end
 			return
@@ -743,11 +766,11 @@ local function attachModel(instance: Instance)
 		local visual: Visual = {
 			Model = instance,
 			Root = rootInstance,
-			Body = body,
+			Body = body :: BasePart,
 			Imported = false,
 			Highlight = nil,
 			Pieces = pieces,
-			HasLegs = asset.HasLegs,
+			HasLegs = hasLegs,
 			Height = height,
 			Phase = math.random() * math.pi * 2,
 			Light = nil,
@@ -782,7 +805,7 @@ local function attachModel(instance: Instance)
 
 		visuals[instance] = visual
 		pcall(attachHat, visual)
-		if visual.Rainbow then
+		if visual.Rainbow and asset then
 			rainbowAssets[asset] = true
 		end
 	end, function(err: any)

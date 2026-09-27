@@ -98,16 +98,33 @@ function ExtrasConfig.randomHat(roll: number): Hat
 end
 
 --------------------------------------------------------------------------------
--- Guard brainrots: one brainrot per base stands at the door, chases anyone
--- who walks in and knocks them back. A thief it catches drops what they carry.
+-- Guard brainrots: one brainrot per base stands guard in front of its door,
+-- pacing across it. When someone who isn't the owner (or in their crew) comes
+-- close, it shouts ("!"), then charges and knocks them back; a thief it
+-- catches drops what they carry. Then it rests a while.
+--
+-- Balanced so stealing still works: it's slower than a walking player (only
+-- a thief carrying a brainrot is slower than it), gives a moment's warning,
+-- never chases far from its post, ignores cloaked players, rests after every
+-- hit, and a slap dazes it for a few seconds.
 --------------------------------------------------------------------------------
 
--- How far from the door the guard notices intruders, and how far it chases.
-ExtrasConfig.GuardRadius = 24
-ExtrasConfig.GuardChaseSpeed = 20
-ExtrasConfig.GuardHitDistance = 4.5
-ExtrasConfig.GuardKnockback = 70
-ExtrasConfig.GuardStunSeconds = 1.2
+-- How far in front of the door it stands, and how far either side it paces.
+ExtrasConfig.GuardPostDistance = 7
+ExtrasConfig.GuardPatrolWidth = 5
+-- It notices intruders this close to its post, and never chases further.
+ExtrasConfig.GuardRadius = 14
+ExtrasConfig.GuardLeash = 20
+-- The "!" before it charges.
+ExtrasConfig.GuardWindupSeconds = 0.8
+-- (Players walk at 16, or 11 carrying a brainrot.)
+ExtrasConfig.GuardChaseSpeed = 13
+ExtrasConfig.GuardPatrolSpeed = 4
+ExtrasConfig.GuardHitDistance = 4
+ExtrasConfig.GuardKnockback = 60
+ExtrasConfig.GuardStunSeconds = 1
+-- A slap glove dazes it this long.
+ExtrasConfig.GuardDazeSeconds = 6
 -- Seconds between hits, by the guard's rarity. The Super Guard pass halves it.
 ExtrasConfig.GuardCooldowns = table.freeze({
 	Common = 24,
@@ -121,7 +138,10 @@ ExtrasConfig.GuardCooldowns = table.freeze({
 ExtrasConfig.SuperGuardCooldownMultiplier = 0.5
 
 --------------------------------------------------------------------------------
--- Pets: one brainrot from your base follows you around and makes you faster.
+-- Pets: brainrots from your base follow you around, each making you faster:
+-- the fastest one in full, the others a quarter each, up to PetSpeedCap.
+-- Everyone starts with one pet slot; more cost Cash (the Pets button), and
+-- each costs a lot more than the last.
 --------------------------------------------------------------------------------
 
 ExtrasConfig.PetSpeedBonus = table.freeze({
@@ -133,6 +153,28 @@ ExtrasConfig.PetSpeedBonus = table.freeze({
 	["Brainrot God"] = 3.5,
 	Secret = 4,
 } :: { [string]: number })
+ExtrasConfig.PetSpeedCap = 8
+ExtrasConfig.PetExtraSpeedShare = 0.25
+-- The price of each pet slot (the first is free).
+ExtrasConfig.PetSlotPrices = table.freeze({ 0, 1_000_000, 25_000_000, 500_000_000, 10_000_000_000, 100_000_000_000 } :: { number })
+ExtrasConfig.MaxPetSlots = #ExtrasConfig.PetSlotPrices
+
+-- Walk speed from a set of pets (their rarities).
+function ExtrasConfig.petSpeed(rarities: { string }): number
+	local bonuses: { number } = {}
+	for _, rarity in rarities do
+		table.insert(bonuses, ExtrasConfig.PetSpeedBonus[rarity] or 1)
+	end
+	table.sort(bonuses, function(a, b)
+		return a > b
+	end)
+	local total = 0
+	for index, bonus in bonuses do
+		total += if index == 1 then bonus else bonus * ExtrasConfig.PetExtraSpeedShare
+	end
+	return math.min(total, ExtrasConfig.PetSpeedCap)
+end
+
 -- Height of a pet in studs (its model is shrunk to this).
 ExtrasConfig.PetHeight = 2.8
 
@@ -326,8 +368,12 @@ function ExtrasConfig.currentLimited(now: number): (Limited, number)
 end
 
 --------------------------------------------------------------------------------
--- Boss raids: a giant brainrot stomps around the middle of the map. Everyone
--- clicks (or slaps) it; the best raiders win lucky blocks and hats.
+-- Boss raids: a giant brainrot rampages around the middle of the map.
+-- Everyone clicks (or slaps) it. Each boss is a random tier: harder ones are
+-- bigger and tougher, attack faster with more attacks (stomps, aimed lasers,
+-- grabbing and throwing players, meteor rain, jump slams) and rage below
+-- BossRageFraction health, but drop better loot: lucky blocks for the top
+-- raiders (and on Hard and Mega for everyone who helped), Cash and hats.
 --------------------------------------------------------------------------------
 
 ExtrasConfig.BossIds = table.freeze({
@@ -340,6 +386,7 @@ ExtrasConfig.BossIds = table.freeze({
 	"BombardiroCrocodilo",
 	"TungTungTungSahur",
 })
+-- A Normal boss; tiers scale these.
 ExtrasConfig.BossHeight = 26
 ExtrasConfig.BossSpeed = 7
 ExtrasConfig.BossHealthPerPlayer = 450
@@ -348,28 +395,162 @@ ExtrasConfig.BossClickDamage = 5
 ExtrasConfig.BossClickCooldown = 0.12
 ExtrasConfig.BossSlapDamage = 45
 ExtrasConfig.BossClickRange = 60
-ExtrasConfig.BossStompSeconds = 7
 ExtrasConfig.BossStompRadius = 22
 ExtrasConfig.BossStompKnockback = 75
--- Prizes for the top three raiders, and for everyone who helped (at least
--- BossMinShare of the damage): Cash worth BossCashMinutes of their income and
--- a BossHatChance chance of a random hat.
-ExtrasConfig.BossPrizes = table.freeze({ "GodLuckyBlock", "MythicLuckyBlock", "LuckyBlock" })
+
+export type BossTier = {
+	Name: string,
+	-- Shown on the health bar and in the announcement.
+	Label: string,
+	Colour: Color3,
+	-- How often it's picked, against the other tiers.
+	Weight: number,
+	-- Multipliers for health, size and walking speed.
+	Health: number,
+	Size: number,
+	Speed: number,
+	-- Seconds between attacks, and which it can use.
+	AttackSeconds: number,
+	Attacks: { string },
+	-- Lucky blocks for the top raiders (1st, 2nd, 3rd), one for everyone else
+	-- who helped (or none), and a multiplier for the helpers' Cash.
+	Prizes: { string },
+	EveryonePrize: string?,
+	CashMultiplier: number,
+}
+
+ExtrasConfig.BossTiers = table.freeze({
+	table.freeze({
+		Name = "Easy",
+		Label = "🟢 EASY",
+		Colour = Color3.fromRGB(90, 220, 90),
+		Weight = 30,
+		Health = 0.6,
+		Size = 0.85,
+		Speed = 0.85,
+		AttackSeconds = 8,
+		Attacks = table.freeze({ "Stomp", "Laser" }),
+		Prizes = table.freeze({ "MythicLuckyBlock", "LuckyBlock", "LuckyBlock" }),
+		EveryonePrize = nil,
+		CashMultiplier = 1,
+	}),
+	table.freeze({
+		Name = "Normal",
+		Label = "🟡 NORMAL",
+		Colour = Color3.fromRGB(255, 210, 60),
+		Weight = 35,
+		Health = 1,
+		Size = 1,
+		Speed = 1,
+		AttackSeconds = 6.5,
+		Attacks = table.freeze({ "Stomp", "Laser", "Throw" }),
+		Prizes = table.freeze({ "GodLuckyBlock", "MythicLuckyBlock", "MythicLuckyBlock" }),
+		EveryonePrize = nil,
+		CashMultiplier = 1.5,
+	}),
+	table.freeze({
+		Name = "Hard",
+		Label = "🟠 HARD",
+		Colour = Color3.fromRGB(255, 130, 30),
+		Weight = 25,
+		Health = 1.8,
+		Size = 1.2,
+		Speed = 1.15,
+		AttackSeconds = 5,
+		Attacks = table.freeze({ "Stomp", "Laser", "Throw", "Meteors", "Slam" }),
+		Prizes = table.freeze({ "GodLuckyBlock", "GodLuckyBlock", "MythicLuckyBlock" }),
+		EveryonePrize = "MythicLuckyBlock",
+		CashMultiplier = 2,
+	}),
+	table.freeze({
+		Name = "Mega",
+		Label = "💀 MEGA",
+		Colour = Color3.fromRGB(200, 60, 255),
+		Weight = 10,
+		Health = 3,
+		Size = 1.5,
+		Speed = 1.3,
+		AttackSeconds = 4,
+		Attacks = table.freeze({ "Stomp", "Laser", "Throw", "Meteors", "Slam", "Laser" }),
+		Prizes = table.freeze({ "SecretLuckyBlock", "GodLuckyBlock", "GodLuckyBlock" }),
+		EveryonePrize = "MythicLuckyBlock",
+		CashMultiplier = 3,
+	}),
+} :: { BossTier })
+ExtrasConfig.BossTierByName = {} :: { [string]: BossTier }
+for _, tier in ExtrasConfig.BossTiers do
+	ExtrasConfig.BossTierByName[tier.Name] = tier
+end
+table.freeze(ExtrasConfig.BossTierByName)
+
+-- Below this much health it rages: attacks and walks this much faster.
+ExtrasConfig.BossRageFraction = 0.3
+ExtrasConfig.BossRageSpeedup = 1.4
+-- Laser: a red line shows where it'll fire, then a beam knocks back anyone in it.
+ExtrasConfig.BossLaserWindup = 1.2
+ExtrasConfig.BossLaserRange = 90
+ExtrasConfig.BossLaserWidth = 3.5
+ExtrasConfig.BossLaserKnockback = 60
+-- Throw: a red ring under someone; whoever's still in it gets grabbed and thrown.
+ExtrasConfig.BossThrowWindup = 1
+ExtrasConfig.BossThrowRange = 40
+ExtrasConfig.BossThrowRadius = 7
+ExtrasConfig.BossThrowStrength = 150
+-- Meteors: red circles, then a meteor lands on each.
+ExtrasConfig.BossMeteorCount = 6
+ExtrasConfig.BossMeteorWindup = 1.5
+ExtrasConfig.BossMeteorRadius = 8
+ExtrasConfig.BossMeteorKnockback = 70
+-- Slam: it leaps onto someone (they see the ring where it'll land).
+ExtrasConfig.BossSlamWindup = 1.4
+ExtrasConfig.BossSlamRadius = 26
+ExtrasConfig.BossSlamKnockback = 95
+-- Everyone who helped (at least BossMinShare of the damage) gets Cash worth
+-- BossCashMinutes of their income (times the tier's multiplier) and a
+-- BossHatChance chance of a random hat.
 ExtrasConfig.BossMinShare = 0.02
 ExtrasConfig.BossCashMinutes = 4
 ExtrasConfig.BossMinCash = 2500
 ExtrasConfig.BossHatChance = 0.35
 
 --------------------------------------------------------------------------------
--- Bank heists: the vault opens; grab a bag of loot and get it to your base.
+-- Bank heists: the vault opens. Grab loot from the piles (cash, gold bars or
+-- the odd pile of diamonds, each worth more and heavier to carry) and get it
+-- to your base. Security lasers sweep the vault: touch one and you're zapped
+-- back (dropping your bag). In the last minute the alarm goes off: faster
+-- lasers, double loot. The best robber wins a lucky block.
 --------------------------------------------------------------------------------
 
-ExtrasConfig.HeistLootIncomeSeconds = 45
-ExtrasConfig.HeistLootMin = 800
+export type HeistLoot = {
+	Name: string,
+	Label: string,
+	Colour: Color3,
+	-- How often a pile holds it, against the others.
+	Weight: number,
+	-- Worth this many seconds of your income (at least Min).
+	IncomeSeconds: number,
+	Min: number,
+	-- Walk speed while carrying it.
+	Speed: number,
+}
+
+ExtrasConfig.HeistLoot = table.freeze({
+	table.freeze({ Name = "Cash", Label = "💵 Cash Bag", Colour = Color3.fromRGB(110, 190, 80), Weight = 60, IncomeSeconds = 45, Min = 800, Speed = -3 }),
+	table.freeze({ Name = "Gold", Label = "🟨 Gold Bars", Colour = Color3.fromRGB(255, 200, 40), Weight = 30, IncomeSeconds = 90, Min = 2000, Speed = -5 }),
+	table.freeze({ Name = "Diamond", Label = "💎 Diamonds", Colour = Color3.fromRGB(90, 230, 255), Weight = 10, IncomeSeconds = 180, Min = 5000, Speed = -6 }),
+} :: { HeistLoot })
 ExtrasConfig.HeistGrabSeconds = 1.2
 ExtrasConfig.HeistRespawnSeconds = 6
--- Carrying a bag slows you down.
-ExtrasConfig.HeistLootSpeed = -4
+-- Security lasers: bars at leg height (jump over them) sweeping the vault.
+ExtrasConfig.HeistLaserCount = 3
+ExtrasConfig.HeistLaserSpeed = 7
+ExtrasConfig.HeistLaserKnockback = 45
+-- The alarm: the last this many seconds of the heist.
+ExtrasConfig.HeistAlarmSeconds = 60
+ExtrasConfig.HeistAlarmLaserSpeed = 13
+ExtrasConfig.HeistAlarmMultiplier = 2
+-- Whoever banks the most loot wins this.
+ExtrasConfig.HeistTopPrize = "MythicLuckyBlock"
 
 --------------------------------------------------------------------------------
 -- Walk speed from these features: each sets its own player attribute and the

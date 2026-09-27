@@ -7,13 +7,13 @@
 	in the same chunky style as the rest of the HUD (see UIKit):
 	  * the Manage menu (the G prompt on your own brainrot): its level, income
 	    and hat, guard duty and pet
-	  * a column of side buttons on the right: Season (the season pass) and
-	    Crew
+	  * a column of side buttons on the right: Season (the season pass), Crew
+	    and Pets (which brainrots follow you, and more pet slots)
 	  * crew invites, the Limited Shop on the map (this week's brainrot on its
 	    display, a countdown and the purchase window)
 	  * the boss's health bar and stomp shockwaves, the revenge arrow, the
 	    loot bag and bounty banners
-	  * pets: every player's pet brainrot follows them around (drawn here,
+	  * pets: every player's pet brainrots follow them around (drawn here,
 	    animated by BrainrotVisuals)
 
 	Nothing here decides anything: every button asks the server (the
@@ -37,6 +37,7 @@ local HatModels = require(Shared:WaitForChild("HatModels"))
 local MonetizationConfig = require(Shared:WaitForChild("MonetizationConfig"))
 local NumberFormat = require(Shared:WaitForChild("NumberFormat"))
 local Sounds = require(Shared:WaitForChild("Sounds"))
+local TemplateModels = require(Shared:WaitForChild("TemplateModels"))
 local UIKit = require(Shared:WaitForChild("UIKit"))
 
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
@@ -62,6 +63,7 @@ local ACCENTS = {
 	Manage = Color3.fromRGB(60, 190, 150),
 	Season = Color3.fromRGB(255, 170, 30),
 	Crew = Color3.fromRGB(80, 140, 255),
+	Pets = Color3.fromRGB(235, 120, 60),
 	Limited = Color3.fromRGB(255, 200, 40),
 	Premium = Color3.fromRGB(255, 190, 40),
 }
@@ -104,7 +106,9 @@ end
 
 local function promptProduct(key: string)
 	local productId = MonetizationConfig.ProductIds[key]
-	if productId then
+	if productId and not MonetizationConfig.isSetUp(productId) then
+		UIKit.toast(MonetizationConfig.NotSetUpMessage, "Warning")
+	elseif productId then
 		pcall(function()
 			MarketplaceService:PromptProductPurchase(player, productId)
 		end)
@@ -113,7 +117,9 @@ end
 
 local function promptPass(key: string)
 	local passId = MonetizationConfig.GamePasses[key]
-	if passId then
+	if passId and not MonetizationConfig.isSetUp(passId) then
+		UIKit.toast(MonetizationConfig.NotSetUpMessage, "Warning")
+	elseif passId then
 		pcall(function()
 			MarketplaceService:PromptGamePassPurchase(player, passId)
 		end)
@@ -158,10 +164,11 @@ end
 -- Side buttons (right, next to Trade/Upgrade/Settings)
 --------------------------------------------------------------------------------
 
-local column = UIKit.sideColumn(screen, "ExtraButtons", 2, {})
+local column = UIKit.sideColumn(screen, "ExtraButtons", 3, {})
 UIKit.placeSideColumn(column, true, 1)
 local seasonButton = UIKit.sideButton(column, "SeasonButton", "Season", ACCENTS.Season, "Season", 1, "🏆")
 local crewButton = UIKit.sideButton(column, "CrewButton", "Crew", ACCENTS.Crew, "Crew", 2, "👥")
+local petsButton = UIKit.sideButton(column, "PetsButton", "Pets", ACCENTS.Pets, "Pets", 3, "🐾")
 
 --------------------------------------------------------------------------------
 -- Manage menu: level, hat, guard and pet for one of your brainrots
@@ -298,7 +305,7 @@ do
 	end
 
 	local guardSlot: number? = nil
-	local petSlot: number? = nil
+	local petSlotList: { number } = {}
 	guardButton.Activated:Connect(function()
 		if manageSlot then
 			ask(companionFunction, if guardSlot == manageSlot then "Unguard" else "Guard", manageSlot)
@@ -307,7 +314,7 @@ do
 	end)
 	petButton.Activated:Connect(function()
 		if manageSlot then
-			ask(companionFunction, if petSlot == manageSlot then "Unpet" else "Pet", manageSlot)
+			ask(companionFunction, if table.find(petSlotList, manageSlot) then "Unpet" else "Pet", manageSlot)
 			refreshManage()
 		end
 	end)
@@ -330,7 +337,7 @@ do
 			return
 		end
 		guardSlot = if typeof(roles) == "table" then roles.Guard else nil
-		petSlot = if typeof(roles) == "table" then roles.Pet else nil
+		petSlotList = if typeof(roles) == "table" and typeof(roles.Pets) == "table" then roles.Pets else {}
 
 		-- Which brainrot is on that pedestal (from its model).
 		local entryId: string? = nil
@@ -368,7 +375,7 @@ do
 		incomeLabel.Text = NumberFormat.cash(tonumber(infoData.Income) or 0) .. "/s"
 
 		guardButton.Text = if guardSlot == slot then "🛡️ Stop Guarding" else "🛡️ Make Guard"
-		petButton.Text = if petSlot == slot then "🐾 Stop Pet" else "🐾 Make Pet"
+		petButton.Text = if table.find(petSlotList, slot) then "🐾 Stop Pet" else "🐾 Make Pet"
 		local hats = if typeof(infoData.Hats) == "table" then infoData.Hats else {}
 		local wearing = if typeof(infoData.Hat) == "string" then infoData.Hat else nil
 		local worn = if wearing then ExtrasConfig.HatByName[wearing] else nil
@@ -859,6 +866,225 @@ crewButton.Activated:Connect(function()
 end)
 
 --------------------------------------------------------------------------------
+-- Pets: which of your brainrots follow you, and buying more pet slots
+--------------------------------------------------------------------------------
+
+local petsFrame, petsBody = UIKit.modal(screen, "PetsMenu", "PETS", ACCENTS.Pets, Vector2.new(760, 580))
+local renderPets: () -> ()
+do
+	local summary = label({
+		Name = "Summary",
+		Size = UDim2.new(0.62, 0, 0, 34),
+		Text = "",
+		TextSize = 26,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	})
+	summary.Parent = petsBody
+	local speedLabel = label({
+		Name = "Speed",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.fromScale(1, 0),
+		Size = UDim2.new(0.38, 0, 0, 34),
+		Text = "",
+		TextColor3 = COLORS.Cash,
+		TextSize = 24,
+		TextXAlignment = Enum.TextXAlignment.Right,
+	})
+	speedLabel.Parent = petsBody
+
+	-- One tile per pet slot: its pet, empty, or locked with its price.
+	local slotRow = create("Frame", {
+		Name = "Slots",
+		Position = UDim2.fromOffset(0, 42),
+		Size = UDim2.new(1, 0, 0, 92),
+		BackgroundTransparency = 1,
+	}, {
+		create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }),
+	}) :: Frame
+	slotRow.Parent = petsBody
+	type SlotTile = { Frame: Frame, Text: TextLabel }
+	local slotTiles: { SlotTile } = {}
+	local slotCount = ExtrasConfig.MaxPetSlots
+	for index = 1, slotCount do
+		local tile = create("Frame", {
+			Name = "Slot" .. index,
+			Size = UDim2.new(1 / slotCount, -8 * (slotCount - 1) / slotCount, 1, 0),
+			BackgroundColor3 = COLORS.PanelLight,
+			LayoutOrder = index,
+		}, { corner(12), stroke(COLORS.Outline, 2) }) :: Frame
+		local text = label({
+			Name = "Text",
+			Position = UDim2.fromOffset(4, 4),
+			Size = UDim2.new(1, -8, 1, -8),
+			Text = "",
+			TextSize = 18,
+			TextWrapped = true,
+		})
+		text.Parent = tile
+		tile.Parent = slotRow
+		table.insert(slotTiles, { Frame = tile, Text = text })
+	end
+
+	local buyButton = button("", COLORS.Buy, {
+		Name = "BuySlot",
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0, 144),
+		Size = UDim2.new(0.7, 0, 0, 52),
+	})
+	buyButton.Parent = petsBody
+	buyButton.Activated:Connect(function()
+		ask(companionFunction, "BuySlot")
+		renderPets()
+	end)
+
+	label({
+		Name = "ListTitle",
+		Position = UDim2.fromOffset(0, 206),
+		Size = UDim2.new(1, 0, 0, 28),
+		Text = "Your brainrots: pick who follows you",
+		TextSize = 22,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}).Parent = petsBody
+	local list = create("ScrollingFrame", {
+		Name = "List",
+		Position = UDim2.fromOffset(0, 240),
+		Size = UDim2.new(1, 0, 1, -240),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 8,
+		ScrollBarImageColor3 = ACCENTS.Pets,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(),
+	}, {
+		create("UIGridLayout", {
+			CellSize = UDim2.fromOffset(UIKit.gridCells(UIKit.bodySize(petsFrame).X, 4, 10, 8), 122),
+			CellPadding = UDim2.fromOffset(10, 10),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}),
+	}) :: ScrollingFrame
+	list.Parent = petsBody
+
+	local function cashNow(): number
+		local stats = player:FindFirstChild("leaderstats")
+		local cash = if stats then stats:FindFirstChild("Cash") else nil
+		return if cash and cash:IsA("ValueBase") then tonumber((cash :: any).Value) or 0 else 0
+	end
+
+	renderPets = function()
+		local roles = fetch(companionFunction, "State")
+		local pets: { number } = if typeof(roles) == "table" and typeof(roles.Pets) == "table" then roles.Pets else {}
+		local owned = if typeof(roles) == "table" and typeof(roles.PetSlots) == "number" then roles.PetSlots else 1
+		local guarding = if typeof(roles) == "table" then roles.Guard else nil
+		-- Your brainrots, by pedestal.
+		local mine: { [number]: Model } = {}
+		for _, model in brainrotsFolder:GetChildren() do
+			local slot = model:GetAttribute("Slot")
+			if model:IsA("Model") and model:GetAttribute("OwnerUserId") == player.UserId and typeof(slot) == "number" then
+				mine[slot] = model
+			end
+		end
+		local function nameOf(model: Model?): string?
+			local id = if model then model:GetAttribute("BrainrotId") else nil
+			local definition = if typeof(id) == "string" then BrainrotConfig.ById[id] else nil
+			return if definition then definition.DisplayName else nil
+		end
+
+		summary.Text = string.format("🐾 Pets following you: %d / %d", #pets, owned)
+		speedLabel.Text = string.format("+%s walk speed", tostring(tonumber(player:GetAttribute("PetSpeed")) or 0))
+		for index, tile in slotTiles do
+			if index <= owned then
+				local name = if pets[index] then nameOf(mine[pets[index]]) else nil
+				tile.Text.Text = if name then "🐾 " .. name else "Empty"
+				tile.Frame.BackgroundColor3 = if name then ACCENTS.Pets:Lerp(COLORS.PanelLight, 0.45) else COLORS.PanelLight
+			else
+				tile.Text.Text = "🔒\n" .. NumberFormat.cash(ExtrasConfig.PetSlotPrices[index])
+				tile.Frame.BackgroundColor3 = COLORS.PanelDark
+			end
+		end
+		local price = ExtrasConfig.PetSlotPrices[owned + 1]
+		if price then
+			buyButton.Text = string.format("Unlock pet slot %d: %s", owned + 1, NumberFormat.cash(price))
+			UIKit.setEnabled(buyButton, cashNow() >= price, COLORS.Buy)
+		else
+			buyButton.Text = "Every pet slot unlocked!"
+			UIKit.setEnabled(buyButton, false, COLORS.Buy)
+		end
+
+		for _, child in list:GetChildren() do
+			if child:IsA("Frame") then
+				child:Destroy()
+			end
+		end
+		local order: { number } = {}
+		for slot in mine do
+			table.insert(order, slot)
+		end
+		table.sort(order)
+		for position, slot in order do
+			local model = mine[slot]
+			local id = model:GetAttribute("BrainrotId")
+			local definition = if typeof(id) == "string" then BrainrotConfig.ById[id] else nil
+			if definition == nil or BrainrotConfig.isLuckyBlock(definition) then
+				continue
+			end
+			local rarity = BrainrotConfig.RarityByName[definition.Rarity]
+			local mutation = model:GetAttribute("Mutation")
+			local following = table.find(pets, slot) ~= nil
+			local card = create("Frame", {
+				Name = "Slot" .. slot,
+				BackgroundColor3 = COLORS.PanelLight,
+				LayoutOrder = position,
+			}, { corner(12), stroke(if rarity then rarity.Color else COLORS.Outline, 2) }) :: Frame
+			label({
+				Name = "BrainrotName",
+				Position = UDim2.fromOffset(6, 6),
+				Size = UDim2.new(1, -12, 0, 26),
+				Text = (if typeof(mutation) == "string" then mutation .. " " else "") .. definition.DisplayName,
+				TextSize = 20,
+			}).Parent = card
+			label({
+				Name = "Info",
+				Position = UDim2.fromOffset(6, 34),
+				Size = UDim2.new(1, -12, 0, 22),
+				Text = string.format("%s   +%s speed", definition.Rarity, tostring(ExtrasConfig.PetSpeedBonus[definition.Rarity] or 1)),
+				TextColor3 = if rarity then rarity.Color else COLORS.Muted,
+				TextSize = 17,
+			}).Parent = card
+			local isGuard = slot == guarding
+			local action = button(if following then "Stop following" elseif isGuard then "🛡️ Guarding" else "🐾 Follow", if following then COLORS.Close else ACCENTS.Pets, {
+				Name = "Action",
+				Position = UDim2.new(0, 8, 1, -52),
+				Size = UDim2.new(1, -16, 0, 44),
+			})
+			if isGuard then
+				UIKit.setEnabled(action, false, ACCENTS.Pets)
+			end
+			action.Activated:Connect(function()
+				if not isGuard then
+					ask(companionFunction, if following then "Unpet" else "Pet", slot)
+					renderPets()
+				end
+			end)
+			action.Parent = card
+			card.Parent = list
+		end
+	end
+end
+
+petsButton.Activated:Connect(function()
+	if UIKit.toggleModal(petsFrame) then
+		renderPets()
+	end
+end)
+for _, attribute in { "PetBaseSlots", "PetCapacity" } do
+	player:GetAttributeChangedSignal(attribute):Connect(function()
+		if petsFrame.Visible then
+			renderPets()
+		end
+	end)
+end
+
+--------------------------------------------------------------------------------
 -- The Limited Shop: this week's limited brainrot
 --------------------------------------------------------------------------------
 
@@ -1054,6 +1280,7 @@ local bossBar = create("Frame", {
 	Visible = false,
 }, { corner(12), stroke(Color3.fromRGB(255, 80, 40), 3) }) :: Frame
 bossBar.Parent = banners
+local bossStroke = bossBar:FindFirstChildOfClass("UIStroke") :: UIStroke
 local bossName = label({ Name = "BossName", Position = UDim2.new(0, 10, 0, 2), Size = UDim2.new(1, -20, 0.42, 0), Text = "", TextSize = 24, TextColor3 = Color3.fromRGB(255, 200, 120) })
 bossName.Parent = bossBar
 local bossHealth, setBossHealth = UIKit.progressBar(Color3.fromRGB(230, 40, 40), {
@@ -1087,13 +1314,23 @@ local function updateBoss()
 	local maxHealth = tonumber(ReplicatedStorage:GetAttribute("BossMaxHealth")) or 0
 	local health = tonumber(ReplicatedStorage:GetAttribute("BossHealth")) or 0
 	local name = ReplicatedStorage:GetAttribute("BossName")
+	local tier = ReplicatedStorage:GetAttribute("BossTier")
+	local colour = ReplicatedStorage:GetAttribute("BossTierColour")
+	local enraged = ReplicatedStorage:GetAttribute("BossEnraged") == true
 	bossBar.Visible = maxHealth > 0
 	if maxHealth > 0 then
-		bossName.Text = string.format("👹 %s — click or slap it!", if typeof(name) == "string" then name else "BOSS")
+		-- The tier's colour on the frame; red hot when it rages.
+		bossStroke.Color = if enraged then Color3.fromRGB(255, 40, 20) elseif typeof(colour) == "Color3" then colour else Color3.fromRGB(255, 80, 40)
+		bossName.Text = string.format(
+			"%s %s%s",
+			if typeof(tier) == "string" then tier else "👹",
+			if typeof(name) == "string" then name else "BOSS",
+			if enraged then " — 😡 ENRAGED!" else " — click or slap it!"
+		)
 		setBossHealth(health / maxHealth, string.format("%s / %s", NumberFormat.commas(math.ceil(health)), NumberFormat.commas(maxHealth)))
 	end
 end
-for _, attribute in { "BossMaxHealth", "BossHealth", "BossName" } do
+for _, attribute in { "BossMaxHealth", "BossHealth", "BossName", "BossTier", "BossTierColour", "BossEnraged" } do
 	ReplicatedStorage:GetAttributeChangedSignal(attribute):Connect(updateBoss)
 end
 updateBoss()
@@ -1121,7 +1358,8 @@ local function watchBoss(model: Instance)
 		ring.CFrame = CFrame.new(root.Position + Vector3.new(0, 0.3, 0)) * CFrame.Angles(0, 0, math.rad(90))
 		ring.Transparency = 0.2
 		ring.Parent = Workspace
-		local diameter = ExtrasConfig.BossStompRadius * 2
+		local radius = tonumber(model:GetAttribute("StompRadius")) or ExtrasConfig.BossStompRadius
+		local diameter = radius * 2
 		local tween = TweenService:Create(ring, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			Size = Vector3.new(0.4, diameter, diameter),
 			Transparency = 1,
@@ -1132,7 +1370,7 @@ local function watchBoss(model: Instance)
 		end)
 		local character = player.Character
 		local ownRoot = if character then character:FindFirstChild("HumanoidRootPart") else nil
-		if ownRoot and ownRoot:IsA("BasePart") and (ownRoot.Position - root.Position).Magnitude < ExtrasConfig.BossStompRadius * 2 then
+		if ownRoot and ownRoot:IsA("BasePart") and (ownRoot.Position - root.Position).Magnitude < diameter then
 			shakeUntil = os.clock() + 0.45
 		end
 		Sounds.play("Slap")
@@ -1221,7 +1459,12 @@ RunService.RenderStepped:Connect(function()
 	local carrying = player:GetAttribute("CarryingLoot") == true
 	lootBanner.Visible = carrying
 	if carrying then
-		lootBanner.Text = string.format("💰 Loot bag %s: run it into your base!", NumberFormat.cash(tonumber(player:GetAttribute("LootValue")) or 0))
+		local kind = player:GetAttribute("LootKind")
+		lootBanner.Text = string.format(
+			"%s %s: run it into your base!",
+			if kind == "Diamond" then "💎 Diamonds" elseif kind == "Gold" then "🟨 Gold bars" else "💰 Loot bag",
+			NumberFormat.cash(tonumber(player:GetAttribute("LootValue")) or 0)
+		)
 	end
 	local holderId = ReplicatedStorage:GetAttribute("BountyHolder")
 	local holder = if typeof(holderId) == "number" and holderId > 0 then Players:GetPlayerByUserId(holderId) else nil
@@ -1235,39 +1478,40 @@ RunService.RenderStepped:Connect(function()
 end)
 
 --------------------------------------------------------------------------------
--- Pets: each player's pet follows them, drawn on every client
+-- Pets: each player's pets follow them, drawn on every client
 --------------------------------------------------------------------------------
 
-type Pet = { Owner: Player, Entry: string, Model: Model, Root: BasePart }
-local pets: { [Player]: Pet } = {}
+type Pet = { Entry: string, Model: Model, Root: BasePart }
+local pets: { [Player]: { Pet } } = {}
 
-local function removePet(owner: Player)
-	local pet = pets[owner]
-	pets[owner] = nil
-	if pet then
-		pet.Model:Destroy()
+-- Where each pet walks, behind its owner (in the owner's space): a V.
+local PET_SPOTS = {
+	Vector3.new(3, 0, 3.5),
+	Vector3.new(-3, 0, 3.5),
+	Vector3.new(0, 0, 5.5),
+	Vector3.new(5.5, 0, 6.5),
+	Vector3.new(-5.5, 0, 6.5),
+	Vector3.new(0, 0, 8.5),
+}
+
+local function removePets(owner: Player)
+	local list = pets[owner]
+	if list then
+		for _, pet in list do
+			pet.Model:Destroy()
+		end
 	end
+	pets[owner] = nil
 end
 
-local function refreshPet(owner: Player)
-	local entry = owner:GetAttribute("PetEntry")
-	local hat = owner:GetAttribute("PetHat")
-	local existing = pets[owner]
-	if typeof(entry) ~= "string" then
-		removePet(owner)
-		return
-	end
-	if existing and existing.Entry == entry then
-		existing.Model:SetAttribute("Hat", if typeof(hat) == "string" then hat else nil)
-		return
-	end
-	removePet(owner)
+local function makePet(owner: Player, index: number, entry: string, hat: string?): Pet?
 	local definition, mutation, trait = BrainrotConfig.decode(entry)
 	if definition == nil then
-		return
+		return nil
 	end
+	local height = ExtrasConfig.PetHeight * (if trait then trait.Scale else 1)
 	local model = Instance.new("Model")
-	model.Name = "Pet_" .. owner.UserId
+	model.Name = string.format("Pet_%d_%d", owner.UserId, index)
 	local root = Instance.new("Part")
 	root.Name = "Root"
 	root.Size = Vector3.one
@@ -1278,64 +1522,112 @@ local function refreshPet(owner: Player)
 	root.CanTouch = false
 	root.Parent = model
 	model.PrimaryPart = root
+	-- The imported model if there is one (else BrainrotVisuals builds it).
+	local template = TemplateModels.get(definition.Id)
+	if template then
+		TemplateModels.build(model, root, template, height)
+	end
 	model:SetAttribute("BrainrotId", definition.Id)
-	model:SetAttribute("FigureHeight", ExtrasConfig.PetHeight * (if trait then trait.Scale else 1))
-	model:SetAttribute("CustomModel", false)
+	model:SetAttribute("FigureHeight", height)
+	model:SetAttribute("CustomModel", template ~= nil)
 	model:SetAttribute("Rarity", definition.Rarity)
 	model:SetAttribute("Mutation", if mutation then mutation.Name else nil)
 	model:SetAttribute("Trait", if trait then trait.Name else nil)
 	model:SetAttribute("Motion", definition.Motion)
 	model:SetAttribute("State", "Pet")
-	model:SetAttribute("Hat", if typeof(hat) == "string" then hat else nil)
+	model:SetAttribute("Hat", hat)
 	local ownerRoot = rootOf(owner)
-	root.CFrame = if ownerRoot then ownerRoot.CFrame * CFrame.new(3, -2.5, 3) else CFrame.new(0, -100, 0)
+	local spot = PET_SPOTS[index] or PET_SPOTS[#PET_SPOTS]
+	root.CFrame = if ownerRoot then ownerRoot.CFrame * CFrame.new(spot.X, -2.5, spot.Z) else CFrame.new(0, -100, 0)
 	model.Parent = brainrotsFolder
-	pets[owner] = { Owner = owner, Entry = entry, Model = model, Root = root }
+	return { Entry = entry, Model = model, Root = root :: BasePart }
+end
+
+local function refreshPets(owner: Player)
+	local entriesAttribute = owner:GetAttribute("PetEntries")
+	local hatsAttribute = owner:GetAttribute("PetHats")
+	local entries: { string } = if typeof(entriesAttribute) == "string" and entriesAttribute ~= "" then string.split(entriesAttribute, ",") else {}
+	local hats: { string } = if typeof(hatsAttribute) == "string" then string.split(hatsAttribute, ",") else {}
+	local current: { [number]: Pet } = table.clone(pets[owner] or {})
+	local list: { Pet } = {}
+	for index, entry in entries do
+		local hat = hats[index]
+		local wearing = if hat and hat ~= "" then hat else nil
+		local existing = current[index]
+		if existing and existing.Entry == entry then
+			existing.Model:SetAttribute("Hat", wearing)
+			current[index] = nil
+			table.insert(list, existing)
+		else
+			local pet = makePet(owner, #list + 1, entry, wearing)
+			if pet then
+				table.insert(list, pet)
+			end
+		end
+	end
+	for _, leftover in current do
+		leftover.Model:Destroy()
+	end
+	if #list > 0 then
+		pets[owner] = list
+	else
+		pets[owner] = nil
+	end
 end
 
 local function watchPlayer(someone: Player)
-	for _, attribute in { "PetEntry", "PetHat" } do
+	for _, attribute in { "PetEntries", "PetHats" } do
 		someone:GetAttributeChangedSignal(attribute):Connect(function()
-			refreshPet(someone)
+			refreshPets(someone)
 		end)
 	end
-	refreshPet(someone)
+	refreshPets(someone)
 end
 Players.PlayerAdded:Connect(watchPlayer)
-Players.PlayerRemoving:Connect(removePet)
+Players.PlayerRemoving:Connect(removePets)
 for _, someone in Players:GetPlayers() do
 	task.spawn(watchPlayer, someone)
 end
 
--- Pets trot along behind and to the side of their owner, on the ground.
+-- Pets trot along behind their owner, on the ground.
 local groundParams = RaycastParams.new()
 groundParams.FilterType = Enum.RaycastFilterType.Exclude
 RunService.Heartbeat:Connect(function(dt: number)
-	for owner, pet in pets do
+	for owner, list in pets do
 		local ownerRoot = rootOf(owner)
-		if ownerRoot == nil or pet.Model.Parent == nil then
+		if ownerRoot == nil then
 			continue
 		end
-		local goal = ownerRoot.CFrame * CFrame.new(3, 0, 3.5)
-		local filter: { Instance } = { pet.Model }
+		local filter: { Instance } = {}
+		for _, pet in list do
+			table.insert(filter, pet.Model)
+		end
 		if owner.Character then
 			table.insert(filter, owner.Character)
 		end
 		groundParams.FilterDescendantsInstances = filter
-		local hit = Workspace:Raycast(goal.Position + Vector3.new(0, 2, 0), Vector3.new(0, -12, 0), groundParams)
-		local groundY = if hit then hit.Position.Y else ownerRoot.Position.Y - 3
-		local target = Vector3.new(goal.Position.X, groundY, goal.Position.Z)
-		local position = pet.Root.Position
-		local gap = target - position
-		if gap.Magnitude > 60 then
-			pet.Root.CFrame = CFrame.new(target) * ownerRoot.CFrame.Rotation
-			continue
+		for index, pet in list do
+			if pet.Model.Parent == nil then
+				continue
+			end
+			local spot = PET_SPOTS[index] or PET_SPOTS[#PET_SPOTS]
+			local goal = ownerRoot.CFrame * CFrame.new(spot)
+			local hit = Workspace:Raycast(goal.Position + Vector3.new(0, 2, 0), Vector3.new(0, -12, 0), groundParams)
+			local groundY = if hit then hit.Position.Y else ownerRoot.Position.Y - 3
+			local target = Vector3.new(goal.Position.X, groundY, goal.Position.Z)
+			local position = pet.Root.Position
+			local gap = target - position
+			if gap.Magnitude > 60 then
+				pet.Root.CFrame = CFrame.new(target) * ownerRoot.CFrame.Rotation
+				continue
+			end
+			local alpha = 1 - math.exp(-dt * 6)
+			local nextPosition = position:Lerp(target, alpha)
+			local flatGap = Vector3.new(gap.X, 0, gap.Z)
+			pet.Root.CFrame = if flatGap.Magnitude > 0.3
+				then CFrame.lookAt(nextPosition, nextPosition + flatGap)
+				else CFrame.new(nextPosition) * ownerRoot.CFrame.Rotation
 		end
-		local alpha = 1 - math.exp(-dt * 6)
-		local nextPosition = position:Lerp(target, alpha)
-		local flat = Vector3.new(gap.X, 0, gap.Z)
-		local facing = if flat.Magnitude > 0.3 then CFrame.lookAt(nextPosition, nextPosition + flat) else CFrame.new(nextPosition) * ownerRoot.CFrame.Rotation
-		pet.Root.CFrame = facing
 	end
 end)
 

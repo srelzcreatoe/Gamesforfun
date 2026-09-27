@@ -862,47 +862,9 @@ local function partsBounds(parts: { BasePart }): (Vector3, Vector3)
 	return low, high
 end
 
--- Copies a brainrot's template (see prepareImportedModels) at the brainrot's
--- height onto the root (its feet). Every part is held by a Weld whose C0 the
--- client animates: legs (named Leg1/Leg2) swing about their Hip.
-local function buildCustomModel(model: Model, root: BasePart, template: Model, targetHeight: number): number
-	local clone = template:Clone()
-	local height = tonumber(template:GetAttribute("Height")) or 1
-	local scale = targetHeight / math.max(height, 0.01)
-	for _, part in clone:GetDescendants() do
-		if part:IsA("BasePart") then
-			local rest = part.CFrame
-			local offset = CFrame.new(rest.Position * scale) * rest.Rotation
-			part.Size *= scale
-			part.Anchored = false
-			part.CanCollide = false
-			part.CanQuery = false
-			part.CanTouch = false
-			part.Massless = true
-			part.CFrame = root.CFrame * offset
-			local weld = Instance.new("Weld")
-			weld.Name = "Pose"
-			weld.Part0 = root
-			weld.Part1 = part
-			weld.C0 = offset
-			weld.Parent = part
-			local pivot = part:GetAttribute("Pivot")
-			if typeof(pivot) == "Vector3" then
-				-- A block-built brainrot's moving piece turns about its joint
-				-- (see prepareImportedModels), in the root's space.
-				part:SetAttribute("Hip", pivot * scale)
-				part:SetAttribute("LegPhase", if part:GetAttribute("PiecePhase") == 1 then 1 else 0)
-			elseif string.sub(part.Name, 1, 3) == "Leg" then
-				-- The hip: the top middle of the leg, in the root's space.
-				local _, top = partsBounds({ part })
-				part:SetAttribute("Hip", Vector3.new(offset.X, top.Y - root.Position.Y, offset.Z))
-				part:SetAttribute("LegPhase", if part.Name == "Leg2" then 1 else 0)
-			end
-		end
-	end
-	clone.Parent = model
-	return targetHeight
-end
+-- Imported models are copied onto a brainrot's root by TemplateModels.build
+-- (shared with guards and pets).
+local TemplateModels = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("TemplateModels"))
 
 -- Brainrot models imported in Studio (File > Import 3D of
 -- BrainrotModels/Import/BrainrotModels.glb) arrive as a "BrainrotModels"
@@ -919,7 +881,7 @@ end
 -- "<Id>_Pivot3" marker at the joint it turns about and an "<Id>_Built" marker.
 Tuning.MOVING_KINDS = { Leg = true, Arm = true, Wing = true, Tail = true, Head = true, Prop = true } :: { [string]: boolean }
 
-local function prepareImportedModels(): number
+local function prepareImportedModels(): (number, { string })
 	local function isMarker(piece: string): boolean
 		return piece == "Front" or piece == "Top" or piece == "Built" or string.match(piece, "^Pivot%d+$") ~= nil
 	end
@@ -948,23 +910,28 @@ local function prepareImportedModels(): number
 			table.insert(containers, container)
 		end
 	end
-	consider(ReplicatedStorage:FindFirstChild("BrainrotModels"))
-	consider(Workspace:FindFirstChild("BrainrotModels", true))
-	-- Whatever the importer named it: any model in Workspace holding a part
-	-- called "<Id>_Body".
-	for _, child in Workspace:GetChildren() do
-		if child ~= map and child:IsA("Model") then
-			for _, descendant in child:GetDescendants() do
-				local brainrotId = string.match(descendant.Name, "^(%w+)_Body")
-				if brainrotId and BrainrotConfig.ById[brainrotId] and descendant:IsA("BasePart") then
-					consider(child)
-					break
+	-- Wherever the imports ended up (Workspace, ReplicatedStorage or
+	-- ServerStorage, maybe in a folder), and whatever the importer named them:
+	-- any model holding a part called "<Id>_Body" (or "<Id>_Front"). One brainrot imported on
+	-- its own (BrainrotModels/Import/One/<Id>.glb) is a model too.
+	for _, place in { Workspace, ReplicatedStorage, ServerStorage } :: { Instance } do
+		consider(place:FindFirstChild("BrainrotModels", true))
+		for _, descendant in place:GetDescendants() do
+			-- (Its Front marker too, so an import that lost its body is tidied away.)
+			local brainrotId = string.match(descendant.Name, "^(%w+)_Body$") or string.match(descendant.Name, "^(%w+)_Front$")
+			if brainrotId and BrainrotConfig.ById[brainrotId] and descendant:IsA("BasePart") then
+				local holder: Instance = descendant
+				while holder.Parent and holder.Parent ~= place and not holder.Parent:IsA("Folder") do
+					holder = holder.Parent
+				end
+				if holder ~= descendant then
+					consider(holder)
 				end
 			end
 		end
 	end
 	if #containers == 0 then
-		return 0
+		return 0, {}
 	end
 
 	-- Each brainrot's pieces come from one import (they're placed apart), the
@@ -972,6 +939,9 @@ local function prepareImportedModels(): number
 	local groups: { [string]: { [string]: BasePart } } = {}
 	local groupBuilt: { [string]: boolean } = {}
 	for _, container in containers do
+		if container.Parent == nil then
+			continue
+		end
 		local found: { [string]: { [string]: BasePart } } = {}
 		for _, descendant in container:GetDescendants() do
 			if not descendant:IsA("BasePart") then
@@ -999,7 +969,10 @@ local function prepareImportedModels(): number
 		end
 		for brainrotId, pieces in found do
 			local builtMarker: BasePart? = pieces.Built
-			if groups[brainrotId] == nil or (builtMarker ~= nil and not groupBuilt[brainrotId]) then
+			-- (An import that lost its body doesn't count.)
+			local body: BasePart?, front: BasePart?, top: BasePart? = pieces.Body, pieces.Front, pieces.Top
+			local complete = body ~= nil or (front == nil and top == nil)
+			if complete and (groups[brainrotId] == nil or (builtMarker ~= nil and not groupBuilt[brainrotId])) then
 				groups[brainrotId] = pieces
 				groupBuilt[brainrotId] = if builtMarker then true else false
 			end
@@ -1079,7 +1052,14 @@ local function prepareImportedModels(): number
 		container:Destroy()
 	end
 	folder.Parent = ReplicatedStorage
-	return count
+	-- Brainrots still without a model (the import lost them, or they're new).
+	local missing: { string } = {}
+	for _, definition in BrainrotConfig.Brainrots do
+		if not BrainrotConfig.isLuckyBlock(definition) and folder:FindFirstChild(definition.Id) == nil then
+			table.insert(missing, definition.Id)
+		end
+	end
+	return count, missing
 end
 
 Tuning.RAINBOW = ColorSequence.new({
@@ -1296,7 +1276,7 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, trait:
 	local traitScale = if trait then trait.Scale else 1
 	local height = if isBlock
 		then buildLuckyBlock(model, root, definition)
-		elseif template and template:IsA("Model") then buildCustomModel(model, root, template, Tuning.FIGURE_HEIGHT * definition.Scale * traitScale)
+		elseif template and template:IsA("Model") then TemplateModels.build(model, root, template, Tuning.FIGURE_HEIGHT * definition.Scale * traitScale)
 		else buildFigure(model, root, definition)
 	if not hasCustomModel and traitScale ~= 1 then
 		height *= traitScale
@@ -4339,11 +4319,25 @@ end
 --------------------------------------------------------------------------------
 
 do
-	local ok, result = pcall(prepareImportedModels)
+	local ok, result, missing = pcall(prepareImportedModels)
 	if not ok then
 		warn(string.format("%s Couldn't set up the imported brainrot models: %s", LOG_PREFIX, tostring(result)))
 	elseif result > 0 then
 		print(string.format("%s Using %d imported brainrot models.", LOG_PREFIX, result))
+		if typeof(missing) == "table" and #missing > 0 then
+			local names = {}
+			for _, brainrotId in missing do
+				table.insert(names, string.format("%s (One/%s.glb)", BrainrotConfig.ById[brainrotId].DisplayName, brainrotId))
+			end
+			warn(
+				string.format(
+					"%s %d brainrots have no imported model, so they're built from blocks: %s. To add one, import BrainrotModels/Import/One/<Id>.glb (File > Import 3D) and play again.",
+					LOG_PREFIX,
+					#missing,
+					table.concat(names, ", ")
+				)
+			)
+		end
 	else
 		print(
 			string.format(

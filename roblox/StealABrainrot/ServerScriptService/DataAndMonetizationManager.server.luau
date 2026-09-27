@@ -1729,6 +1729,22 @@ apiFolder.Parent = ServerStorage
 MarketplaceService.ProcessReceipt = processReceipt
 MarketplaceService.PromptGamePassPurchaseFinished:Connect(onGamePassPurchaseFinished)
 
+-- Robux items still on a placeholder ID can't be bought yet (their Buy
+-- buttons say so): say which, so they're easy to set up.
+do
+	local missing = MonetizationConfig.notSetUp()
+	if #missing > 0 then
+		warn(
+			string.format(
+				"%s %d Robux items still have placeholder IDs, so they can't be bought yet: %s. Create them in the Creator Dashboard (your experience > Monetization > Developer Products / Passes) and paste their IDs into ReplicatedStorage > Shared > MonetizationConfig.",
+				LOG_PREFIX,
+				#missing,
+				table.concat(missing, ", ")
+			)
+		)
+	end
+end
+
 Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(onPlayerRemoving)
 for _, player in Players:GetPlayers() do

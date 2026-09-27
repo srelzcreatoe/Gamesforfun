@@ -17,6 +17,11 @@
 	brainrot after that is a clone of the templates, which is instant.
 	preloadBrainrot builds models in the background before they are needed;
 	models someone is waiting for go first.
+
+	Where meshes can't be built at all (EditableMesh isn't available on the
+	device, or in an unpublished place), createBrainrotBoxes builds the same
+	model from plain Parts (ReplicatedStorage.Assets.BrainrotBoxes, packed by
+	tools/build_boxes.py), using no engine API but Instance.new.
 ]]
 
 local AssetService = game:GetService("AssetService")
@@ -71,6 +76,19 @@ export type BuiltPiece = {
 	-- Rest position relative to the model's centre, in studs.
 	Offset: Vector3,
 	Pivot: Vector3,
+}
+
+-- One piece of a brainrot built from boxes: an invisible Part the size of
+-- the piece, with its boxes welded to it (animate it like a mesh piece).
+export type BoxPiece = {
+	Part: BasePart,
+	-- "Body", "Leg", "Arm", "Wing", "Tail", "Head" or "Prop".
+	Kind: string,
+	-- Rest position relative to the model's centre, and what it turns about, in studs.
+	Offset: Vector3,
+	Pivot: Vector3,
+	Phase: number,
+	Axis: string?,
 }
 
 local AssetLoader = {}
@@ -525,7 +543,8 @@ end
 function AssetLoader.createBrainrotModel(brainrotId: string, mutation: string?, height: number): Model?
 	local built = AssetLoader.createBrainrotParts(brainrotId, mutation, height)
 	if built == nil then
-		return nil
+		-- No meshes on this device: the same brainrot from boxes.
+		return AssetLoader.createBoxModel(brainrotId, mutation, height)
 	end
 	local model = Instance.new("Model")
 	model.Name = brainrotId
@@ -539,6 +558,216 @@ function AssetLoader.createBrainrotModel(brainrotId: string, mutation: string?, 
 	end
 	model.WorldPivot = CFrame.identity
 	return model
+end
+
+--------------------------------------------------------------------------------
+-- Box models: plain Parts, for devices that can't build meshes
+--------------------------------------------------------------------------------
+
+local BOXES_FORMAT = 1
+local BOX_BYTES = 7
+
+type BoxData = { Position: Vector3, Size: Vector3, Colour: number }
+-- A model 1 stud tall, centred on the origin.
+type BoxModel = {
+	Palette: { Color3 },
+	Parts: { { Kind: string, Centre: Vector3, Size: Vector3, Pivot: Vector3, Phase: number, Axis: string?, Boxes: { BoxData } } },
+}
+
+local boxModels: { [string]: BoxModel | false } = {}
+
+local BASE64_VALUES: { [number]: number } = {}
+do
+	local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+	for index = 1, #alphabet do
+		BASE64_VALUES[string.byte(alphabet, index)] = index - 1
+	end
+end
+
+-- Plain Luau, so it works where EncodingService doesn't.
+local function decodeBase64(text: string): buffer
+	local padding = if string.sub(text, -2) == "==" then 2 elseif string.sub(text, -1) == "=" then 1 else 0
+	local out = buffer.create(#text // 4 * 3 - padding)
+	local length = buffer.len(out)
+	local written = 0
+	for index = 1, #text, 4 do
+		local a, b, c, d = string.byte(text, index, index + 3)
+		local value = bit32.bor(
+			bit32.lshift(BASE64_VALUES[a] or 0, 18),
+			bit32.lshift(BASE64_VALUES[b or 0] or 0, 12),
+			bit32.lshift(BASE64_VALUES[c or 0] or 0, 6),
+			BASE64_VALUES[d or 0] or 0
+		)
+		for shift = 16, 0, -8 do
+			if written < length then
+				buffer.writeu8(out, written, bit32.band(bit32.rshift(value, shift), 255))
+				written += 1
+			end
+		end
+	end
+	return out
+end
+
+local function loadBoxModel(brainrotId: string): BoxModel?
+	local cached = boxModels[brainrotId]
+	if cached == false then
+		return nil
+	elseif cached ~= nil then
+		return cached :: BoxModel
+	end
+	boxModels[brainrotId] = false
+	local module = getModule("BrainrotBoxes", brainrotId)
+	if module == nil then
+		return nil
+	end
+	local ok, result = pcall(function(): BoxModel
+		local data = require(module) :: any
+		if data.Format ~= BOXES_FORMAT then
+			error("unknown box format")
+		end
+		local step: number = data.Step
+		local palette: { Color3 } = {}
+		for index, hex in data.Palette do
+			palette[index] = Color3.fromRGB(bit32.rshift(hex, 16), bit32.band(bit32.rshift(hex, 8), 255), bit32.band(hex, 255))
+		end
+		-- Every box in blocks first, for the model's bounds.
+		local low = Vector3.new(math.huge, math.huge, math.huge)
+		local high = -low
+		local raw: { { Boxes: { BoxData }, Low: Vector3, High: Vector3 } } = {}
+		for _, part in data.Parts do
+			local bytes = decodeBase64(part.Boxes)
+			if buffer.len(bytes) ~= part.BoxCount * BOX_BYTES then
+				error("box data does not match its header")
+			end
+			local boxes: { BoxData } = {}
+			local partLow = Vector3.new(math.huge, math.huge, math.huge)
+			local partHigh = -partLow
+			for box = 0, part.BoxCount - 1 do
+				local offset = box * BOX_BYTES
+				local corner = Vector3.new(buffer.readu8(bytes, offset), buffer.readu8(bytes, offset + 1), buffer.readu8(bytes, offset + 2)) * step
+				local size = Vector3.new(buffer.readu8(bytes, offset + 3), buffer.readu8(bytes, offset + 4), buffer.readu8(bytes, offset + 5)) * step
+				table.insert(boxes, { Position = corner + size / 2, Size = size, Colour = buffer.readu8(bytes, offset + 6) + 1 })
+				partLow = partLow:Min(corner)
+				partHigh = partHigh:Max(corner + size)
+			end
+			table.insert(raw, { Boxes = boxes, Low = partLow, High = partHigh })
+			if #boxes > 0 then
+				low = low:Min(partLow)
+				high = high:Max(partHigh)
+			end
+		end
+		local modelSize = high - low
+		if modelSize.Y <= 0 then
+			error("the model is empty")
+		end
+		local centre = (low + high) / 2
+		local scale = 1 / modelSize.Y
+		local model: BoxModel = { Palette = palette, Parts = {} }
+		for index, part in data.Parts do
+			local entry = raw[index]
+			if #entry.Boxes == 0 then
+				continue
+			end
+			local partCentre = (entry.Low + entry.High) / 2
+			local boxes: { BoxData } = {}
+			for _, box in entry.Boxes do
+				table.insert(boxes, { Position = (box.Position - partCentre) * scale, Size = box.Size * scale, Colour = box.Colour })
+			end
+			local pivot = part.Pivot
+			table.insert(model.Parts, {
+				Kind = if typeof(part.Kind) == "string" and MOVING_KINDS[part.Kind] then part.Kind else "Body",
+				Centre = (partCentre - centre) * scale,
+				Size = (entry.High - entry.Low) * scale,
+				Pivot = if typeof(pivot) == "table" then (Vector3.new(pivot[1], pivot[2], pivot[3]) - centre) * scale else Vector3.zero,
+				Phase = if part.Phase == 1 then 1 else 0,
+				Axis = if part.Axis == "X" or part.Axis == "Y" or part.Axis == "Z" then tostring(part.Axis) else nil,
+				Boxes = boxes,
+			})
+		end
+		return model
+	end)
+	if not ok then
+		warnLimited(string.format("Could not read the %s boxes (%s).", brainrotId, tostring(result)))
+		return nil
+	end
+	boxModels[brainrotId] = result
+	return result
+end
+
+local function boxPart(size: Vector3, colour: Color3): Part
+	local part = Instance.new("Part")
+	part.Size = size
+	part.Color = colour
+	part.Material = Enum.Material.SmoothPlastic
+	part.TopSurface = Enum.SurfaceType.Smooth
+	part.BottomSurface = Enum.SurfaceType.Smooth
+	part.Anchored = false
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.Massless = true
+	return part
+end
+
+-- The brainrot built from boxes, `height` studs tall: one invisible Part per
+-- piece (body, each leg, arm, ...) with its boxes welded to it. Nil when
+-- there's no box data for it.
+function AssetLoader.createBrainrotBoxes(brainrotId: string, mutation: string?, height: number): { BoxPiece }?
+	local model = loadBoxModel(brainrotId)
+	if model == nil then
+		return nil
+	end
+	local colours: { Color3 } = {}
+	for index, colour in model.Palette do
+		colours[index] = tint(colour, mutation)
+	end
+	local pieces: { BoxPiece } = {}
+	for _, part in model.Parts do
+		local holder = boxPart(part.Size * height, Color3.new(1, 1, 1))
+		holder.Name = part.Kind
+		holder.Transparency = 1
+		for _, box in part.Boxes do
+			local block = boxPart(box.Size * height, colours[box.Colour] or Color3.new(1, 1, 1))
+			block.Name = "Box"
+			local weld = Instance.new("Weld")
+			weld.Part0 = holder
+			weld.Part1 = block
+			weld.C0 = CFrame.new(box.Position * height)
+			weld.Parent = block
+			block.Parent = holder
+		end
+		table.insert(pieces, {
+			Part = holder :: BasePart,
+			Kind = part.Kind,
+			Offset = part.Centre * height,
+			Pivot = part.Pivot * height,
+			Phase = part.Phase,
+			Axis = part.Axis,
+		})
+	end
+	return pieces
+end
+
+-- An anchored Model of the brainrot from boxes, standing still and centred on
+-- its pivot, for previews.
+function AssetLoader.createBoxModel(brainrotId: string, mutation: string?, height: number): Model?
+	local model = loadBoxModel(brainrotId)
+	if model == nil then
+		return nil
+	end
+	local result = Instance.new("Model")
+	result.Name = brainrotId
+	for _, part in model.Parts do
+		for _, box in part.Boxes do
+			local block = boxPart(box.Size * height, tint(model.Palette[box.Colour] or Color3.new(1, 1, 1), mutation))
+			block.Name = part.Kind
+			block.Anchored = true
+			block.CFrame = CFrame.new((part.Centre + box.Position) * height)
+			block.Parent = result
+		end
+	end
+	result.WorldPivot = CFrame.identity
+	return result
 end
 
 -- Recolours a Rainbow brainrot; every MeshPart that shares it updates at once.

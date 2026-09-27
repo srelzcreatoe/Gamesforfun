@@ -3,7 +3,9 @@
     python3 tools/build_import.py            # every brainrot
     python3 tools/build_import.py TimCheese  # just these, for a quick look
 
-Writes BrainrotModels/Import/BrainrotModels.glb. In Roblox Studio use
+Writes BrainrotModels/Import/BrainrotModels.glb, and each brainrot on its own
+as BrainrotModels/Import/One/<Id>.glb (to add one that didn't import; the
+game's Output names any that are missing). In Roblox Studio use
 File > Import 3D, pick that file and press Import: Studio uploads the meshes
 and textures to your account and inserts a "BrainrotModels" model. The game
 finds it wherever it is (Workspace or ReplicatedStorage) and uses these models
@@ -20,7 +22,8 @@ ground and facing Roblox's front. Every part is named "<Id>_<Piece>":
   <Id>_Top          a tiny marker above it
 
 The game uses the two markers to stand each model up facing the right way
-(whatever axes the importer uses) and then deletes them.
+(whatever axes the importer uses) and then deletes them. Both sit straight
+over the middle of the model's bounds, so it stands exactly upright.
 
 The block-built brainrots (tools/blocky) are in the file too, so they load as
 real meshes like the others. Each is its body plus every moving piece, named
@@ -42,6 +45,7 @@ import build_assets as B  # noqa: E402
 
 IMPORT_DIR = B.MODELS_DIR / "Import"
 OUTPUT = IMPORT_DIR / "BrainrotModels.glb"
+ONE_DIR = IMPORT_DIR / "One"
 TRIANGLES = 9000
 TEXTURE_SIZE = 1024
 HEIGHT = 5.0  # studs; the game rescales every model anyway
@@ -96,8 +100,21 @@ def blocky_piece_mesh(quads, dims, pitch, colour_uvs, material):
     )
 
 
-def add_blocky(scene, brainrot_id, number):
-    """Adds a block-built brainrot's pieces and markers. Returns a summary."""
+def orientation_markers(meshes):
+    """The Front and Top markers: straight in front of and above the middle of
+    the pieces' bounds, so the game stands the model exactly upright."""
+    points = np.vstack([mesh.vertices for mesh in meshes])
+    low, high = points.min(axis=0), points.max(axis=0)
+    centre = (low + high) / 2
+    return [
+        ("Front", marker([255, 40, 40]), [centre[0], centre[1], low[2] - 0.6]),
+        ("Top", marker([40, 80, 255]), [centre[0], high[1] + 0.6, centre[2]]),
+    ]
+
+
+def blocky_nodes(brainrot_id):
+    """A block-built brainrot's pieces and markers as (name, mesh, position).
+    Also returns a summary line."""
     from build_blocky import model_parts
 
     dims, palette, parts, _ = model_parts(brainrot_id)
@@ -106,27 +123,51 @@ def add_blocky(scene, brainrot_id, number):
     material = trimesh.visual.material.PBRMaterial(
         name=f"{brainrot_id}_Skin", baseColorTexture=image, metallicFactor=0.0, roughnessFactor=0.9
     )
-    offset = trimesh.transformations.translation_matrix([number * SPACING, 0, 0])
-    front_z = 0.0
+    nodes = []
+    meshes = []
     names = []
     for index, part in enumerate(parts):
         name = "Body" if index == 0 else f"{part['kind']}{index}"
         mesh = blocky_piece_mesh(part["quads"], dims, pitch, colour_uvs, material)
-        front_z = min(front_z, mesh.vertices[:, 2].min())
-        scene.add_geometry(mesh, node_name=f"{brainrot_id}_{name}", geom_name=f"{brainrot_id}_{name}", transform=offset)
+        nodes.append((name, mesh, [0.0, 0.0, 0.0]))
+        meshes.append(mesh)
         names.append(name)
         if index > 0:
             pivot = (np.array(part["pivot"], dtype=np.float64) - np.array([dims[0] / 2, 0, dims[2] / 2])) * pitch
-            at = trimesh.transformations.translation_matrix([number * SPACING + pivot[0], pivot[1], pivot[2]])
-            scene.add_geometry(marker([255, 200, 40]), node_name=f"{brainrot_id}_Pivot{index}", geom_name=f"{brainrot_id}_Pivot{index}", transform=at)
-    front = trimesh.transformations.translation_matrix([number * SPACING, HEIGHT / 2, front_z - 0.6])
-    top = trimesh.transformations.translation_matrix([number * SPACING, HEIGHT + 0.6, 0])
-    built = trimesh.transformations.translation_matrix([number * SPACING, -0.6, 0])
-    scene.add_geometry(marker([255, 40, 40]), node_name=f"{brainrot_id}_Front", geom_name=f"{brainrot_id}_Front", transform=front)
-    scene.add_geometry(marker([40, 80, 255]), node_name=f"{brainrot_id}_Top", geom_name=f"{brainrot_id}_Top", transform=top)
-    scene.add_geometry(marker([40, 200, 80]), node_name=f"{brainrot_id}_Built", geom_name=f"{brainrot_id}_Built", transform=built)
+            nodes.append((f"Pivot{index}", marker([255, 200, 40]), list(pivot)))
+    nodes += orientation_markers(meshes)
+    nodes.append(("Built", marker([40, 200, 80]), [0.0, -0.6, 0.0]))
     triangles = sum(2 * len(p["quads"]) for p in parts)
-    return f"{brainrot_id:24s} {triangles:6d} triangles  pieces: {', '.join(names)}"
+    return nodes, f"{brainrot_id:24s} {triangles:6d} triangles  pieces: {', '.join(names)}"
+
+
+def smooth_nodes(brainrot_id):
+    """A Higgsfield or Customuse brainrot's pieces and markers as
+    (name, mesh, position), and a summary line."""
+    vertices, faces, uvs, texture = load_model(brainrot_id)
+    pieces = split_legs(vertices, faces, uvs, texture)
+    material = trimesh.visual.material.PBRMaterial(
+        name=f"{brainrot_id}_Skin", baseColorTexture=texture, metallicFactor=0.0, roughnessFactor=0.85
+    )
+    nodes = []
+    meshes = []
+    for piece, chosen in pieces.items():
+        mesh = piece_mesh(vertices, faces, uvs, material, chosen)
+        nodes.append((piece, mesh, [0.0, 0.0, 0.0]))
+        meshes.append(mesh)
+    nodes += orientation_markers(meshes)
+    return nodes, f"{brainrot_id:24s} {len(faces):6d} triangles  pieces: {', '.join(f'{k} {len(v)}' for k, v in pieces.items())}"
+
+
+def add_nodes(scene, brainrot_id, nodes, x):
+    for name, mesh, position in nodes:
+        at = trimesh.transformations.translation_matrix([x + position[0], position[1], position[2]])
+        scene.add_geometry(mesh, node_name=f"{brainrot_id}_{name}", geom_name=f"{brainrot_id}_{name}", transform=at)
+
+
+def write_glb(scene, path):
+    path.write_bytes(scene.export(file_type="glb"))
+    jpeg_textures(path)
 
 
 def brainrot_ids():
@@ -246,35 +287,21 @@ def jpeg_textures(path):
 
 def main():
     wanted = sys.argv[1:]
-    ids = brainrot_ids()
+    everything = [(brainrot_id, smooth_nodes) for brainrot_id in brainrot_ids()]
+    everything += [(brainrot_id, blocky_nodes) for brainrot_id in blocky_ids()]
     scene = trimesh.Scene()
-    IMPORT_DIR.mkdir(parents=True, exist_ok=True)
-    for number, brainrot_id in enumerate(ids):
+    ONE_DIR.mkdir(parents=True, exist_ok=True)
+    for number, (brainrot_id, make) in enumerate(everything):
         if wanted and brainrot_id not in wanted:
             continue
-        vertices, faces, uvs, texture = load_model(brainrot_id)
-        pieces = split_legs(vertices, faces, uvs, texture)
-        material = trimesh.visual.material.PBRMaterial(
-            name=f"{brainrot_id}_Skin", baseColorTexture=texture, metallicFactor=0.0, roughnessFactor=0.85
-        )
-        offset = trimesh.transformations.translation_matrix([number * SPACING, 0, 0])
-        for piece, chosen in pieces.items():
-            name = f"{brainrot_id}_{piece}"
-            scene.add_geometry(piece_mesh(vertices, faces, uvs, material, chosen), node_name=name, geom_name=name, transform=offset)
-        depth_front = vertices[:, 2].min()
-        front = trimesh.transformations.translation_matrix([number * SPACING, HEIGHT / 2, depth_front - 0.6])
-        top = trimesh.transformations.translation_matrix([number * SPACING, HEIGHT + 0.6, 0])
-        scene.add_geometry(marker([255, 40, 40]), node_name=f"{brainrot_id}_Front", geom_name=f"{brainrot_id}_Front", transform=front)
-        scene.add_geometry(marker([40, 80, 255]), node_name=f"{brainrot_id}_Top", geom_name=f"{brainrot_id}_Top", transform=top)
-        print(f"{brainrot_id:24s} {len(faces):6d} triangles  pieces: {', '.join(f'{k} {len(v)}' for k, v in pieces.items())}", flush=True)
-    first = len(ids)
-    for number, brainrot_id in enumerate(blocky_ids(), start=first):
-        if wanted and brainrot_id not in wanted:
-            continue
-        print(add_blocky(scene, brainrot_id, number), flush=True)
-    OUTPUT.write_bytes(scene.export(file_type="glb"))
-    jpeg_textures(OUTPUT)
-    print(f"Wrote {OUTPUT} ({OUTPUT.stat().st_size / 1e6:.1f} MB)")
+        nodes, summary = make(brainrot_id)
+        add_nodes(scene, brainrot_id, nodes, number * SPACING)
+        one = trimesh.Scene()
+        add_nodes(one, brainrot_id, nodes, 0.0)
+        write_glb(one, ONE_DIR / f"{brainrot_id}.glb")
+        print(summary, flush=True)
+    write_glb(scene, OUTPUT)
+    print(f"Wrote {OUTPUT} ({OUTPUT.stat().st_size / 1e6:.1f} MB) and {ONE_DIR}/<Id>.glb")
 
 
 if __name__ == "__main__":

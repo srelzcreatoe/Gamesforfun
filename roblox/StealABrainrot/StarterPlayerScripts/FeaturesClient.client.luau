@@ -104,6 +104,10 @@ local function promptProduct(key: string)
 	if productId == nil then
 		return
 	end
+	if not MonetizationConfig.isSetUp(productId) then
+		UIKit.toast(MonetizationConfig.NotSetUpMessage, "Warning")
+		return
+	end
 	local ok, err = pcall(function()
 		MarketplaceService:PromptProductPurchase(player, productId)
 	end)

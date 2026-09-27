@@ -2,7 +2,7 @@
 
 A playable Roblox game: buy brainrots and lucky blocks from the conveyor, watch them walk home (other players can buy them off you on the way), collect the Cash they earn from the pads in your base (even while you're offline), steal other players' brainrots (your base sounds the alarm), lock your base with a laser door, troll thieves with freeze rays, spike traps, land mines and Boogie Bombs, trade and fuse brainrots, fill the Index, spin the wheel, do daily quests and survive ADMIN ABUSE.
 
-On top of the original game: brainrots **level up** and wear **hats**, one can **guard** your base and one can follow you as a **pet**, **revenge** and **bounties**, **crews**, a 30-tier **season pass**, a **weekly limited brainrot**, **Boss Raids** and **Bank Heists**.
+On top of the original game: brainrots **level up** and wear **hats**, one can **guard** the front of your base and up to six can follow you as **pets**, **revenge** and **bounties**, **crews**, a 30-tier **season pass**, a **weekly limited brainrot**, **Boss Raids** and **Bank Heists**.
 
 110 brainrots: 37 made from 3D models, and 73 built from blocks (including a remade Noobini Pizzanini, the Roblox-guest **Guesti Guacanini**, more of the original Italian brainrots, 30 new Roblox-themed ones and the 7 XRE mobs: Nonna Mattarella, Baconini Croccantini, Ospitino Senzanome, Nubbino Lasagnino, Pizzolino Fantasmino, Espressino Motorino and Spaghettone Squalone):
 
@@ -29,7 +29,9 @@ Every brainrot's model is in one file, `BrainrotModels/Import/BrainrotModels.glb
 
 That's it: the game finds the models by their part names (`TimCheese_Body`, `TimCheese_Leg1`, `NoobiniPizzanini_Arm3`, ...), stands each one up facing the right way, and uses them for every brainrot, with its own animation: legs that walk, arms that swing, wings that flap, tails that wag, heads that nod, propellers and wheels that spin, flying, driving and hopping, bobbing when idle and wriggling when carried. They load like any Roblox mesh. Tip: right-click the imported model → **Save to File** to keep a `.rbxm` you can drop into any newer version of the place instead of importing again.
 
-Until you import the file, each player's game builds blocky versions of the models itself (slower, and it needs Game Settings → Security → **Allow Mesh / Image APIs** once published). The Output says which one the game is using.
+Until you import the file, each player's game builds blocky versions of the models itself (slower, and it needs Game Settings → Security → **Allow Mesh / Image APIs** once published). Where that isn't allowed either, it builds them out of ordinary Parts (`ReplicatedStorage/Assets/BrainrotBoxes/`), so a brainrot is never invisible. The Output says which one the game is using.
+
+**A model missing?** When you press Play, the Output lists every brainrot that has no imported model (for example `La Vaca Saturno Saturnita (One/LaVacaSaturnoSaturnita.glb)`). Each brainrot also has its own file in `BrainrotModels/Import/One/`: import just that file (File → Import 3D), save, and play again. The game finds imported models anywhere in the Workspace, ReplicatedStorage or ServerStorage, even inside folders.
 
 ## How to play
 
@@ -44,11 +46,11 @@ When you join, a title screen comes up over a slow, blurry flyover of the map: t
 | Steal | Hold **E** on someone else's brainrot, then run it back into your base. If you die, take too long, or the owner catches you, it goes back. The owner's screen flashes red with a siren and a line pointing at you, and their base lights flash red |
 | Sell | Press **F** on your own brainrot for half its price |
 | Upgrade a pedestal | Press **R** on your own brainrot: each level (up to 5) adds +25% to whatever stands on that pedestal, and the pedestal gets a glowing ring |
-| Manage a brainrot | Press **G** on your own brainrot: its level, its hat, and the Make Guard and Make Pet buttons |
+| Manage a brainrot | Press **G** on your own brainrot: its level, its hat, and the Make Guard and pet buttons |
 | Levels | Brainrots level up while they stand on a pedestal: level 2 after 5 minutes, up to level 10 after 6 hours. Each level adds +10% income and shows on its sign ("⭐ Lv 3"). A stolen brainrot starts again at level 1; a traded one keeps its level |
 | Hats | 8 hats, from the Party Hat (+5% income) to the Crown (+25%), from the Hat Crate, the season pass and Boss Raids. Put one on from the Manage menu and it sits on the brainrot's head. If the brainrot is stolen, sold, fused or traded, the hat comes back to you |
-| Guard | Make one brainrot your guard: it stands inside your door and knocks back anyone who walks into your base, and a thief it catches drops the brainrot. Then it rests for 12 to 24 seconds (rarer is faster; half as long with the Super Guard pass). It keeps earning |
-| Pet | Make one brainrot your pet: a small copy of it follows you around and makes you faster (+1 speed for a Common, up to +4 for a Secret) |
+| Guard | Make one brainrot your guard: it stands just outside your door and walks up and down in front of it. When someone else comes within 14 studs, a "❗" pops up over it for a moment (your warning to dodge), then it charges and knocks them back; a thief it catches drops the brainrot. Then it rests for 12 to 24 seconds (rarer is faster; half as long with the Super Guard pass). It's fair to thieves: it never leaves the front of your base, it can't see cloaked players, it's slower than a running player, and a slap knocks it out for 6 seconds. Your crew can walk past it. It keeps earning |
+| Pets | The **Pets** button (🐾, on the right) opens your pets: pick which brainrots follow you around as small copies. You start with 1 pet slot; more cost $1M, $25M, $500M, $10B and $100B (6 at most). Each pet makes you faster: the best one gives its full bonus (+1 for a Common up to +4 for a Secret) and every other one a quarter of its bonus, up to +8 in all. Your guard can't be a pet |
 | Revenge | When someone steals from you, you're faster (+6) for 60 seconds and a beam points at them. Steal anything back from them in time for a bonus of 2 minutes of your income (at least $500) |
 | Bounty | The server's top thief (3 or more steals) gets a 💰 bounty on their name tag: $1K plus 20 seconds of their income per steal. Steal from them to claim it |
 | Lucky blocks | They turn up on the conveyor now and then (or come from the Robux Shop, the wheel, quests and gifts). Take it home and hold **E** on it: it shakes, a roulette spins and it pops into a random brainrot |
@@ -114,8 +116,8 @@ Every 5 to 8 minutes an event runs for 3 minutes, with its own sky (a huge sun, 
 | Taco Tuesday | Tacos rain down, half the brainrots are Taco brainrots, and brainrots can spawn **Taco** (x3) |
 | Lucky Hour | Clovers fall, every rarity above Common is 3x more likely, and brainrots can spawn **Lucky** (x2.5) |
 | Cash Rain | Coins drop all over the map (grab one for 20 seconds of your income, at least $150), and brainrots can spawn **Cash** (x3) |
-| **Boss Raid** | The sky goes dark and a giant brainrot stomps up and down the middle of the map, knocking back anyone near. Everyone clicks it (or slaps it) to hurt it; a health bar shows at the top. When it falls, the top 3 raiders win a Brainrot God, Mythic or Lucky Block, everyone who helped gets 4 minutes of their income (at least $2.5K) and maybe a hat, and the event ends. Brainrots can spawn **Boss** (x5) |
-| **Bank Heist** | Searchlights sweep the sky and the vault door rolls open. Grab a bag from a gold pile (hold E), carry it into your own base for 45 seconds of your income (at least $800). You're slower with a bag, and a slap makes you drop it for anyone to grab. Brainrots can spawn **Heist** (x3.5) |
+| **Boss Raid** | The sky goes dark and a giant brainrot rampages up and down the middle of the map. Every boss is a random tier: 🟢 **Easy** (smaller, weaker, stomps and lasers), 🟡 **Normal** (adds grab-and-throw), 🟠 **Hard** (bigger and tougher, adds meteor rain and a jump slam) or 💀 **Mega** (huge, with every attack, faster). Every attack warns you first so you can dodge: a stomp shockwave, a red aiming line before its **laser beam**, a red ring under you before it **grabs and throws** you, red circles before **meteors** crash down, and the ring where it'll land before it **leaps and slams**. Below 30% health it's **enraged**: it's on fire, moves and attacks faster. Everyone clicks it (or slaps it) to hurt it; a health bar at the top shows its tier. When it falls, the top 3 raiders win lucky blocks: Easy a Mythic and two Lucky Blocks, Normal a Brainrot God and two Mythics, Hard two Brainrot Gods and a Mythic (and a Mythic Lucky Block for everyone else who helped), Mega a **Secret** and two Brainrot Gods (plus a Mythic for every helper). Everyone who helped gets 4 minutes of their income (x1.5 to x3 for tougher bosses, at least $2.5K) and maybe a hat, and the event ends. Brainrots can spawn **Boss** (x5) |
+| **Bank Heist** | Searchlights sweep the sky and the vault door rolls open. Each pile says what it holds: 💵 **Cash** (45 seconds of your income, at least $800), 🟨 **Gold Bars** (90 seconds, at least $2K) or rare 💎 **Diamonds** (3 minutes, at least $5K, sparkling on top). Grab a bag (hold E) and carry it into your own base; heavier loot slows you more, and a slap makes you drop it for anyone to grab. Red **security lasers** sweep the vault at ankle and knee height: jump over them or get zapped back and drop your bag. In the last minute the **alarm** goes off: the lights flash faster, the lasers speed up and loot is worth **double**. When it closes, whoever banked the most wins a Mythic Lucky Block. Brainrots can spawn **Heist** (x3.5) |
 | **ADMIN ABUSE** | Now and then (1 in 10 events) instead of a normal event: a shaking rainbow banner, every conveyor brainrot gets a mutation (sometimes the glitching **Admin** one, x7), prices are halved, 10x luck, traits 5x likelier and Cash rains |
 
 #### Event commands
@@ -182,12 +184,58 @@ To use normal uploaded meshes instead, import the models from `BrainrotModels/Bl
 
 ## Saving and purchases
 
-An unpublished place can't use DataStores or sell products, so in Studio you get fresh data every time and the shop's buy buttons show an error. To test saving and real purchases:
+An unpublished place can't use DataStores or sell products, so in Studio you get fresh data every time. To test saving and real purchases:
 
 1. Publish the place (File → Publish to Roblox).
 2. Turn on Game Settings → Security → **Enable Studio Access to API Services**.
-3. Create the 21 developer products in the Creator Dashboard (Cash bundles, EMP Laser Overrider, Server Rarity Boost, Freeze Ray, Spike Trap, Land Mine, Boogie Bomb, Brainrot God Lucky Block, Secret Lucky Block, 3 Wheel Spins, 2x Cash (30 min), Galaxy and Rainbow base skins, Hat Crate, Season Tier Skip and the 5 limited brainrots), upload the icons from `ProductIcons/`, and put the real IDs in `ReplicatedStorage/Shared/MonetizationConfig.luau`. Do the same for the 5 game passes (VIP, DoubleCash, LongLock, SeasonPass, SuperGuard). The limited brainrots' prices are also written in `ExtrasConfig.LimitedRotation` (the Limited Shop shows them), so keep the two the same. See **Prices** below.
+3. Set up your Robux products (below).
 4. Optional: create badges (Welcome, First Steal, First Rebirth, Rebirth 5, Lucky Opener, First Fuse, First Trade, Secret Owner, Millionaire, Index Master, Week Streak) and put their IDs in `FeatureConfig.Badges`, and put your group's ID in `FeatureConfig.GroupId` for the group boost and Group Chest.
+
+### Setting up Robux products
+
+The product and game pass IDs in `ReplicatedStorage/Shared/MonetizationConfig.luau` are **placeholders** (100001, 100002, ..., 200001, ...) until you put your own in. Product IDs are shared by every game on Roblox, so a placeholder is some other creator's old product: that's why the game never opens a purchase for one. Instead the Buy button says "Not for sale yet", and when you press Play the Output lists every item still to set up. Only you can make the real ones, because they have to belong to your game:
+
+1. Publish the place (File → Publish to Roblox) so it has a page on the Creator Dashboard.
+2. Go to [create.roblox.com/dashboard/creations](https://create.roblox.com/dashboard/creations), click your game, and open **Monetization → Developer Products**.
+3. Click **Create a Developer Product**. Give it the name from the table below, upload its icon from `ProductIcons/` (optional), set the price (see **Prices**) and save.
+4. Back in the list, click the product's **⋯ → Copy Asset ID**.
+5. In Studio, open `ReplicatedStorage → Shared → MonetizationConfig` and replace that product's placeholder with the ID you copied, for example `SmallCashBundle = 100001,` becomes `SmallCashBundle = 3312345678,`.
+6. Repeat for every product. Game passes are the same under **Monetization → Passes** (create the pass, set it **On Sale** with a price, copy its ID) and go in the `GamePasses` list lower down in the same file.
+7. Save and publish. The Output stops listing an item once its ID is real.
+
+| In MonetizationConfig | Name it (Developer Product) |
+|---|---|
+| `SmallCashBundle` | Small Cash Bundle |
+| `MediumCashBundle` | Medium Cash Bundle |
+| `EMPLaserOverrider` | EMP Laser Overrider |
+| `ServerRarityBoost` | Server Rarity Boost |
+| `FreezeRay` | Freeze Ray x3 |
+| `SpikeTrap` | Spike Trap x3 |
+| `LandMine` | Land Mine x3 |
+| `BoogieBomb` | Boogie Bomb x2 |
+| `GodLuckyBlock` | Brainrot God Lucky Block |
+| `SecretLuckyBlock` | Secret Lucky Block |
+| `SpinPack` | 3 Wheel Spins |
+| `CashBoost` | 2x Cash (30 min) |
+| `GalaxySkin` | Galaxy Base Skin |
+| `RainbowSkin` | Rainbow Base Skin |
+| `HatCrate` | Hat Crate |
+| `SeasonTierSkip` | Season Tier Skip |
+| `LimitedKorbloxo` | Korbloxo Scheletrino |
+| `LimitedValkyrio` | Valkyrio Polpetto |
+| `LimitedHeadless` | Headlesso Zuccone |
+| `LimitedDominus` | Dominusso Cappuccinoso |
+| `LimitedSparkle` | Sparklino Fedorino |
+
+| In GamePasses | Name it (Pass) |
+|---|---|
+| `VIP` | VIP |
+| `DoubleCash` | 2x Cash |
+| `LongLock` | Long Lock |
+| `SeasonPass` | Season Pass |
+| `SuperGuard` | Super Guard |
+
+The limited brainrots' prices are also written in `ExtrasConfig.LimitedRotation` (the Limited Shop shows them), so keep the two the same.
 
 ## Prices
 
@@ -264,11 +312,13 @@ Global leaderboards also need a published place with API access; until then the 
 | `ReplicatedStorage/Shared/ExtrasConfig.luau` | Levels, hats, guards, pets, revenge, bounties, crews, the season pass and its tiers, the limited rotation, Boss Raids and Bank Heists |
 | `ReplicatedStorage/Shared/HatModels.luau` | The block-built hats |
 | `ReplicatedStorage/Shared/FeatureConfig.luau` | Index rewards, rebirth requirements, upgrade and skin prices, boosts, spin prizes, daily and playtime rewards, codes, quests, badges, trading, fusing, Admin Abuse |
-| `ReplicatedStorage/Shared/AssetLoader.luau` | Rebuilds the blocky models (body and legs) and icons from `ReplicatedStorage/Assets` |
+| `ReplicatedStorage/Shared/AssetLoader.luau` | Rebuilds the blocky models (body and legs) and icons from `ReplicatedStorage/Assets`, or builds them from Parts where meshes aren't allowed |
+| `ReplicatedStorage/Shared/TemplateModels.luau` | Copies an imported model onto a brainrot, guard, pet or boss |
 | `ReplicatedStorage/Shared/Sounds.luau` | Plays the music and sound effects on each player's game |
 | `ReplicatedStorage/Shared/AudioConfig.luau` | Music playlist and sound effect IDs |
 | `ReplicatedStorage/Shared/GearConfig.luau` | Gear prices, descriptions and tuning, and the troll items |
-| `ReplicatedStorage/Assets/` | Packed models and icons, generated by `tools/build_assets.py` |
+| `ReplicatedStorage/Assets/` | Packed models and icons, generated by `tools/build_assets.py` (the Part-built versions in `BrainrotBoxes/` by `tools/build_boxes.py`) |
+| `BrainrotModels/Import/One/` | Each brainrot's model on its own, to import one that's missing |
 | `BrainrotModels/` | Smooth models (`.glb`), blocky models (`Blocky/*.glb`, with `Blocky/preview.png` of the block-built ones) and `preview.png` |
 | `tools/blocky/` | The block-built brainrot designs and the kit they're drawn with |
 | `ReplicatedStorage/Shared/BrainrotConfig.luau` | Every brainrot, rarity and mutation: prices, income, colours, spawn chances |

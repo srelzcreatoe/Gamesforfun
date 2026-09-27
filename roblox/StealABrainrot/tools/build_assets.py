@@ -467,6 +467,10 @@ def write_brainrot_module(brainrot_id: str, dims, palette, parts, source: str) -
         "\tParts = {\n" + "".join(part_lines) + "\t},\n"
         "}\n"
     )
+    # The same model as plain boxes, for devices that can't build meshes.
+    from build_boxes import build_boxes
+
+    build_boxes(brainrot_id)
     return module
 
 
