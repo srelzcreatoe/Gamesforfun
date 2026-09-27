@@ -2,7 +2,7 @@
 
 A playable Roblox game: buy brainrots and lucky blocks from the conveyor, watch them walk home (other players can buy them off you on the way), collect the Cash they earn from the pads in your base (even while you're offline), steal other players' brainrots (your base sounds the alarm), lock your base with a laser door, troll thieves with freeze rays, spike traps, land mines and Boogie Bombs, trade and fuse brainrots, fill the Index, spin the wheel, do daily quests and survive ADMIN ABUSE.
 
-On top of the original game: brainrots **level up** and wear **hats**, one can **guard** your base and one can follow you as a **pet**, **revenge** and **bounties**, **crews**, a 30-tier **season pass**, a **weekly limited brainrot**, **Boss Raids**, **Bank Heists** and a **radio**.
+On top of the original game: brainrots **level up** and wear **hats**, one can **guard** your base and one can follow you as a **pet**, **revenge** and **bounties**, **crews**, a 30-tier **season pass**, a **weekly limited brainrot**, **Boss Raids** and **Bank Heists**.
 
 110 brainrots: 37 made from 3D models, and 73 built from blocks (including a remade Noobini Pizzanini, the Roblox-guest **Guesti Guacanini**, more of the original Italian brainrots, 30 new Roblox-themed ones and the 7 XRE mobs: Nonna Mattarella, Baconini Croccantini, Ospitino Senzanome, Nubbino Lasagnino, Pizzolino Fantasmino, Espressino Motorino and Spaghettone Squalone):
 
@@ -56,7 +56,7 @@ When you join, a title screen comes up over a slow, blurry flyover of the map: t
 | Floors | Each base has 4 floors of 8 pedestals. Floor 1 is open from the start; each rebirth opens the next floor (floor 4 at Rebirth 3). New brainrots walk up the stairs to their pedestal |
 | Shop | **Shop** button or the Robux Shop stall: the game passes, Cash bundles, EMP Laser Overrider (walk through lasers for 30s), Server Rarity Boost (x2 rare spawns for 15 min), the Hat Crate and the troll items (below) |
 | Rebirth | **Rebirth** button: resets Cash (and the pads) for +50% income per rebirth and opens the next floor of your base. Each rebirth also needs certain brainrots in your base (rebirth 1: Tung Tung Tung Sahur and Trippi Troppi, then rarer ones); you keep them and all your other brainrots |
-| Index | **Index** button: every brainrot with a spinning 3D preview; ones you've never had are black silhouettes named "???". Pages for Gold, Diamond and Rainbow ones too. Finishing a page pays out once and adds income forever (see below). Limited and season brainrots are marked and don't count towards finishing a page |
+| Index | **Index** button: a big book of every brainrot, six to a row (scroll down for more), each with a spinning 3D preview; ones you've never had are black silhouettes named "???". Pages for Gold, Diamond and Rainbow ones too. Finishing a page pays out once and adds income forever (see below). Limited and season brainrots are marked and don't count towards finishing a page |
 | Spin | **Spin** button: one free spin of the prize wheel a day (+1 with Premium, +1 with VIP), more from spin packs, quests, gifts and codes |
 | Quests | **Quests** button: three daily quests (buy 5 brainrots, steal 2, open a lucky block, slap 5 players, ...) and a Mythic Lucky Block for finishing all three |
 | Gifts | **Gifts** button: the 7-day login streak (a better reward each day, up to a Brainrot God Lucky Block), playtime gifts that unlock after 3 to 60 minutes played today, codes, and the Group Chest |
@@ -68,14 +68,13 @@ When you join, a title screen comes up over a slow, blurry flyover of the map: t
 | Crews | **Crew** button: start a crew (pick a name and a colour) and invite up to 3 players. Each crewmate in the server adds +5% income, you walk through each other's lasers and can't steal from each other, and the crew's name shows on your name tags |
 | Season pass | **Season** button: everything earns XP (buying, stealing, collecting, quests, raids, heists, and 2 XP a minute just for playing), and every 150 XP opens a tier. Each of the 30 tiers has a free reward and a premium one for Season Pass owners: Cash, spins, lucky blocks, boosts, hats, Guesti Guacanini (tier 10), Orcalero Orcala (tier 20) and the season-only **Admino Supremo** (tier 30). A new season starts every 28 days |
 | Limited Shop | The gold stall: one limited brainrot a week (Korbloxo Scheletrino, Valkyrio Polpetto, Headlesso Zuccone, Dominusso Cappuccinoso, Sparklino Fedorino), sold for Robux and never on the conveyor. It spins on the stall's display with a countdown to the next one |
-| Radio | **Radio** button: pick a station (Mix, Arcade, Cartoon, Heist or Chill lofi). Your choice is saved |
 | Leaderboards | Top Cash, Top Steals, Top Earners (best income per second) and Top Rebirths across all servers in the Hall of Fame, with the top thief's avatar on a podium; Cash, Steals and Rebirths in the player list |
 
 The HUD buttons are chunky and bright like the original's (a glossy colour block with a thick black outline, a 3D shadow and the icon popping out of the top); they bounce when you hover them, squish when you click, and their icons wiggle. A red **!** shows when something's waiting (a free spin, a daily reward, a finished quest). The Shop button has a pulsing NEW! badge. On small screens (phones) the buttons shrink to fit.
 
 New players get a free Noobini Pizzanini so income starts right away, and a short tutorial with an arrow: buy a brainrot, collect its Cash, lock your base ($1K when you're done).
 
-Your income multiplier shows next to your income; tap it for the list of boosts: rebirths, the 2x Cash pass, a Cash Boost, **+10% for each friend in the server** (up to +50%), **Premium** (+10%), **VIP** (+15%), your **group** (+10%) and the **Index** (up to +100%).
+Your income multiplier shows in the bottom-right corner (above the jump button on phones and tablets); tap it for the list of boosts: rebirths, the 2x Cash pass, a Cash Boost, **+10% for each friend in the server** (up to +50%), **Premium** (+10%), **VIP** (+15%), your **group** (+10%) and the **Index** (up to +100%).
 
 ### Gear
 
@@ -162,7 +161,7 @@ The two shopkeepers are animated: the Robux rat winds up and slaps with its gala
 
 ## Music and sound effects
 
-The game plays a shuffled playlist (the radio's Mix station) of 22 upbeat licensed production tracks (APM: arcade, 8-bit, cartoon, funk and sneaky heist music, about 50 minutes before anything repeats) and sound effects for buying, collecting, selling, stealing (an alarm when someone grabs yours), getting a brainrot back, being bought out, the laser zap, locking, rebirthing, slapping, the cloak, events and every button. All of them are audio from Roblox's Creator Store that any experience may use; most of the effects are Roblox's own. The IDs are in `ReplicatedStorage/Shared/AudioConfig.luau`: to use your own music or sounds, upload them in the Creator Dashboard and put their IDs there. If a sound can't load on a player's device, a built-in Roblox sound plays instead; a music track that can't load is skipped.
+The game plays a playlist of 22 upbeat licensed production tracks (APM: arcade, 8-bit, cartoon, funk and sneaky heist music, about 50 minutes) and sound effects for buying, collecting, selling, stealing (an alarm when someone grabs yours), getting a brainrot back, being bought out, the laser zap, locking, rebirthing, slapping, the cloak, events and every button. The tracks play one after another in order, then start again from the top, and the music never just stops: a track that can't load, or stops partway, is skipped. All of them are audio from Roblox's Creator Store that any experience may use; most of the effects are Roblox's own. The IDs are in `ReplicatedStorage/Shared/AudioConfig.luau`: to use your own music or sounds, upload them in the Creator Dashboard and put their IDs there. If a sound effect can't load on a player's device, a built-in Roblox sound plays instead.
 
 (Higgsfield's tools could not be used for audio here: its only general audio tool makes speech, and its music and sound-effect models are reserved for its game-generation pipeline.)
 
@@ -260,8 +259,8 @@ Global leaderboards also need a published place with API access; until then the 
 | `StarterPlayerScripts/FeaturesClient.client.luau` | Spin wheel, gifts, quests, upgrades, settings, trading, Fuse Machine, lucky block roulette, base alarm, tutorial, Admin Abuse banner |
 | `StarterPlayerScripts/BrainrotVisuals.client.luau` | Blocky 3D models, rarity, mutation and trait effects, walking, waddling, flying, driving, lucky blocks |
 | `StarterPlayerScripts/WorldEffects.client.luau` | Weather and clouds, snow on the ground, event skies with their sky props and falling particles, lightning, animated shopkeepers, Cash Rain coins, the troll item banner, animated base skins, alarm lights and the vault's lights |
-| `StarterPlayerScripts/ExtrasClient.client.luau` | The Manage menu (levels, hats, guard, pet), Season, Crew and Radio windows, the Limited Shop, the boss health bar, revenge, loot and bounty banners, and pets |
-| `ReplicatedStorage/Shared/UIKit.luau` | The shared look of every menu: buttons, side buttons, windows, tabs, brainrot cards, confetti |
+| `StarterPlayerScripts/ExtrasClient.client.luau` | The Manage menu (levels, hats, guard, pet), Season and Crew windows, the Limited Shop, the boss health bar, revenge, loot and bounty banners, and pets |
+| `ReplicatedStorage/Shared/UIKit.luau` | The shared look of every menu: buttons, side buttons, windows, tabs, brainrot cards, confetti. Windows are laid out at one design size and scaled as a whole to fit between the side buttons on any screen |
 | `ReplicatedStorage/Shared/ExtrasConfig.luau` | Levels, hats, guards, pets, revenge, bounties, crews, the season pass and its tiers, the limited rotation, Boss Raids and Bank Heists |
 | `ReplicatedStorage/Shared/HatModels.luau` | The block-built hats |
 | `ReplicatedStorage/Shared/FeatureConfig.luau` | Index rewards, rebirth requirements, upgrade and skin prices, boosts, spin prizes, daily and playtime rewards, codes, quests, badges, trading, fusing, Admin Abuse |

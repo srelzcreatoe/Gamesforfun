@@ -7,8 +7,8 @@
 	in the same chunky style as the rest of the HUD (see UIKit):
 	  * the Manage menu (the G prompt on your own brainrot): its level, income
 	    and hat, guard duty and pet
-	  * a column of side buttons on the right: Season (the season pass), Crew
-	    and Radio (music stations)
+	  * a column of side buttons on the right: Season (the season pass) and
+	    Crew
 	  * crew invites, the Limited Shop on the map (this week's brainrot on its
 	    display, a countdown and the purchase window)
 	  * the boss's health bar and stomp shockwaves, the revenge arrow, the
@@ -30,7 +30,6 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
-local AudioConfig = require(Shared:WaitForChild("AudioConfig"))
 local BrainrotConfig = require(Shared:WaitForChild("BrainrotConfig"))
 local ExtrasConfig = require(Shared:WaitForChild("ExtrasConfig"))
 local FeatureConfig = require(Shared:WaitForChild("FeatureConfig"))
@@ -47,8 +46,6 @@ local crewFunction = remotes:WaitForChild("Crew") :: RemoteFunction
 local crewEvent = remotes:WaitForChild("CrewEvent") :: RemoteEvent
 local seasonFunction = remotes:WaitForChild("Season") :: RemoteFunction
 local seasonStateEvent = remotes:WaitForChild("SeasonState") :: RemoteEvent
-local rewardsFunction = remotes:WaitForChild("Rewards") :: RemoteFunction
-local rewardsStateEvent = remotes:WaitForChild("RewardsState") :: RemoteEvent
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
@@ -65,7 +62,6 @@ local ACCENTS = {
 	Manage = Color3.fromRGB(60, 190, 150),
 	Season = Color3.fromRGB(255, 170, 30),
 	Crew = Color3.fromRGB(80, 140, 255),
-	Radio = Color3.fromRGB(230, 80, 160),
 	Limited = Color3.fromRGB(255, 200, 40),
 	Premium = Color3.fromRGB(255, 190, 40),
 }
@@ -158,18 +154,14 @@ local function hatViewport(hatName: string, properties: { [string]: any }): View
 	return viewport
 end
 
--- The latest settings from RewardsManager (the radio saves its station with them).
-local savedSettings: { [string]: any } = {}
-
 --------------------------------------------------------------------------------
 -- Side buttons (right, next to Trade/Upgrade/Settings)
 --------------------------------------------------------------------------------
 
-local column = UIKit.sideColumn(screen, "ExtraButtons", 3, {})
+local column = UIKit.sideColumn(screen, "ExtraButtons", 2, {})
 UIKit.placeSideColumn(column, true, 1)
 local seasonButton = UIKit.sideButton(column, "SeasonButton", "Season", ACCENTS.Season, "Season", 1, "🏆")
 local crewButton = UIKit.sideButton(column, "CrewButton", "Crew", ACCENTS.Crew, "Crew", 2, "👥")
-local radioButton = UIKit.sideButton(column, "RadioButton", "Radio", ACCENTS.Radio, "Radio", 3, "📻")
 
 --------------------------------------------------------------------------------
 -- Manage menu: level, hat, guard and pet for one of your brainrots
@@ -863,67 +855,6 @@ end
 crewButton.Activated:Connect(function()
 	if UIKit.toggleModal(crewFrame) then
 		renderCrew()
-	end
-end)
-
---------------------------------------------------------------------------------
--- Radio
---------------------------------------------------------------------------------
-
-local radioFrame, radioBody = UIKit.modal(screen, "RadioMenu", "Radio", ACCENTS.Radio, Vector2.new(480, 500))
-local renderRadio: () -> ()
-do
-	local list = create("Frame", {
-		Name = "Stations",
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-	}, { create("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }) }) :: Frame
-	list.Parent = radioBody
-	local stationButtons: { [string]: TextButton } = {}
-	for order, station in AudioConfig.Stations do
-		local count = if #station.Tracks > 0 then #station.Tracks else #AudioConfig.Music
-		local stationButton = button(string.format("%s  %s  (%d songs)", station.Icon, station.Name, count), COLORS.PanelLight, {
-			Name = station.Name,
-			Size = UDim2.new(1, 0, 0, 62),
-			LayoutOrder = order,
-		})
-		stationButton.Activated:Connect(function()
-			Sounds.setStation(station.Name)
-			local settings = table.clone(savedSettings)
-			settings.Station = station.Name
-			savedSettings = settings
-			pcall(function()
-				rewardsFunction:InvokeServer("SaveSettings", settings)
-			end)
-			UIKit.toast(string.format("📻 Now playing: %s", station.Name), "Success")
-			renderRadio()
-		end)
-		stationButton.Parent = list
-		stationButtons[station.Name] = stationButton
-	end
-	renderRadio = function()
-		local current = Sounds.getStation()
-		for name, stationButton in stationButtons do
-			stationButton.BackgroundColor3 = if name == current then ACCENTS.Radio else COLORS.PanelLight
-		end
-	end
-	renderRadio()
-end
-
-radioButton.Activated:Connect(function()
-	if UIKit.toggleModal(radioFrame) then
-		renderRadio()
-	end
-end)
-
-rewardsStateEvent.OnClientEvent:Connect(function(state: any)
-	if typeof(state) == "table" and typeof(state.Settings) == "table" then
-		savedSettings = table.clone(state.Settings)
-		local station = savedSettings.Station
-		if typeof(station) == "string" and station ~= Sounds.getStation() then
-			Sounds.setStation(station)
-			renderRadio()
-		end
 	end
 end)
 

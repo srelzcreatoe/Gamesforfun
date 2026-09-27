@@ -5282,34 +5282,35 @@ return {
 	Format = 3,
 	-- Voxel grid size in blocks (x, y, z); the model is scaled so y is 1 stud.
 	Dims = { 35, 41, 27 },
-	Palette = { 0xffecec, 0xff9d9e, 0xe3dadd, 0x8e979d, 0x938f91, 0x8e8e8f, 0x8c8c8c, 0x5483a7, 0x74476c, 0x1b1b1b, 0x191919, 0x181818, 0x181618, 0x0a3d68, 0x171717, 0x161616, 0x141515, 0xdd0488, 0xb500d1, 0x2a1030, 0x131313, 0x121312, 0x101211, 0x111111, 0x110c10, 0x0e1010, 0x0d0e0f, 0x0d0d0d, 0x0b0c0b, 0x0a0a0b, 0x070b0a, 0x070707 },
-	-- The body, then each leg. Legs swing about their hip Pivot (block units);
-	-- legs with different Phase step in turn. Quads are Zstd + Base64, 7 bytes
-	-- each: axis * 2 + positive, slice, u, v, uSize, vSize, colour.
+	Palette = { 0xffe5e6, 0xff9c9d, 0xebe2e5, 0x8e989e, 0x938f91, 0x8e8e8e, 0x69869b, 0x693e61, 0x1b1b1b, 0x191919, 0x181818, 0x181618, 0x0c375b, 0x171717, 0x161616, 0x141515, 0xdc038b, 0xb400d1, 0x28102d, 0x131313, 0x121312, 0x101211, 0x111111, 0x101010, 0x0e1010, 0x0d0e0f, 0x0c0d0c, 0x0c0c0c, 0x0a0a0b, 0x0b0a08, 0x070b0a, 0x070707 },
+	-- The body, then each moving piece. Legs swing about their hip Pivot (block
+	-- units) and pieces with different Phase move in turn; arms swing, wings
+	-- flap, tails wag, heads nod and props spin about Axis. Quads are Zstd +
+	-- Base64, 7 bytes each: axis * 2 + positive, slice, u, v, uSize, vSize, colour.
 	Parts = {
 		{
 			Kind = "Body",
-			QuadCount = 1614,
+			QuadCount = 1681,
 			Quads = table.concat({
-		"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",
+		"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",
 	}),
 		},
 		{
 			Kind = "Leg",
 			Pivot = { 10.22, 11.00, 21.40 },
 			Phase = 1,
-			QuadCount = 307,
+			QuadCount = 323,
 			Quads = table.concat({
-		"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",
+		"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",
 	}),
 		},
 		{
 			Kind = "Leg",
 			Pivot = { 18.97, 11.00, 21.00 },
 			Phase = 0,
-			QuadCount = 315,
+			QuadCount = 311,
 			Quads = table.concat({
-		"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",
+		"KLUv/WCBB9UZANpDxAgNQE5tx5lGI7HAKzMymYUAhQCPAC9Ery3my/ymh5rpAq/qmz4zfgHc7xc9NOWWnqFf8Rc+fadezTdW1shffEZ28JDwz8jUeLacrNx01Oq3Pdnm4fGvvRu8HjmL5xoEw/EL3T+EUEPoPFT/HHo97ahXpdfAN3Mys+qEgXcpb/AZQA2EX324k6e5GoV620PNXXo1Z4PP4sUi1BC/wLt1vtfBt+OZ/toXrJFgLoDfAs+Ol7PBuZojr8ELdEhzUfgtPiv8Ol7QhkwB9OxgQ6rmLOaCNaT6NR7qK/p2PCuKfQ/zndf4Df4idogmTk/2ykvv4i8CA5O3U5NmnCzfeq56ePyL79RFzb/VT+XPvdNX9C0+Q4sepn+bq/q2z+C5jptwCE3OeVOYCZG+bJ7x13NgyPxJb84XxJaPP6xV4KP9c96kC0B9seXMB8EqsZhQqxDe7av6duy5Uq4gyaYTph4iTpWVQ0TJLZGVKspVM16xd/FUOGnmws5kwVOAiNqCGLAg8LmCqBYEtYIc7K2CxCWyQUdkUmLViBUjVov47QrfO+Pxzp0qd3qadhL+mdOxUx3GE6+Qh/YP4Y0+QJ3F8cR+iU/03CH9k57qaRLJgk6il3T/4IeGzHnUmzQBmC/OEyknxn/8wNAqOownzpd9oj+sA9+oBxTxy+DJTlKdPwiWOE4U/+yb9ADCF/Ek4BPvi8p/+YlvjAfEswg8Ab8EfvcokAMGcUL0TJQPit4EvjBncXnq3wKBRqhxNGN8FiTF0gGRviBuxnHLDgJZIcZOQOBVixlUnXYzaMBdjneZJKDH6BAHACO4dh9DjZ0qIbpiB3RMUQHvWIdAGfE6sumxJqbt4NPwsWWyfUlg/CaNe4R/wsEJktl+DiND+TyGI2Afb0YPMpUMYHzlqrtaaf6YmIQUPqbshkB1QjttF2MRmhwo4KPFeGN4gSPJOgKkjwT/wcWGpFvS6qyxMiCD1LQZucap7iBI7oZjgS3SYXQiNji89zdDjbsdcSAXOk8axDQkRSGiqj9eA38F/Cf7kX2KhEycAMgkiHo09sEfCAUNVYgajUvFgtaMxfI7FyJmlTC9Zu8SRJmWeGtqkaY=",
 	}),
 		},
 	},
@@ -8515,17 +8516,14 @@ local function sound(id: number, volume: number): SoundInfo
 	return table.freeze({ Id = id, Volume = volume })
 end
 
-export type Station = { Name: string, Icon: string, Tracks: { number } }
-
 local AudioConfig: {
 	Music: { number },
-	Stations: { Station },
 	MusicVolume: number,
 	FallbackSound: string,
 	Sounds: { [string]: SoundInfo },
 	RainSound: SoundInfo,
 } = {
-	-- The first track plays first, then the rest shuffle (about 50 minutes).
+	-- Played in this order, then from the top again (about 50 minutes).
 	Music = table.freeze({
 		1847524834, -- Happy And Quirky A (APM)
 		9047837288, -- Playful Promenade (APM)
@@ -8549,69 +8547,6 @@ local AudioConfig: {
 		80170854893452, -- Sneaky Sneaky (APM)
 		9045939292, -- Code Heist (APM)
 		9043029912, -- Mischief Maker (APM)
-	}),
-	-- The radio (Settings and the Radio button): Mix plays Music above; the
-	-- others play just their own tracks.
-	Stations = table.freeze({
-		table.freeze({ Name = "Mix", Icon = "🎶", Tracks = table.freeze({}) }),
-		table.freeze({
-			Name = "Arcade",
-			Icon = "🕹️",
-			Tracks = table.freeze({
-				1842976958, -- Arcade Weekend (APM)
-				1843599021, -- Fun Arcade (APM)
-				9045965605, -- Fun and Games (APM)
-				9048376991, -- Nice Day for 8 Bit (APM)
-				1837768352, -- Retro Gamer (APM)
-				1837768444, -- Coin Bonus (APM)
-				140228184971194, -- Game Lobby Alternate (APM)
-			}),
-		}),
-		table.freeze({
-			Name = "Cartoon",
-			Icon = "🤡",
-			Tracks = table.freeze({
-				1847524834, -- Happy And Quirky A (APM)
-				9047837288, -- Playful Promenade (APM)
-				9047843332, -- The Jazzy Pizzman (APM)
-				1845555797, -- Carnival Jive (APM)
-				95854834681311, -- Playful Pranks (APM)
-				1847418399, -- Goofy Groove (APM)
-				1847448281, -- Wacky Races (APM)
-				9047363636, -- Playtime Pop (APM)
-				1842834040, -- Bouncy Castle (APM)
-				1839802242, -- Bouncy Funk (APM)
-				1848353356, -- Funky Chicken (APM)
-				1844612050, -- Toytown Reggae (APM)
-			}),
-		}),
-		table.freeze({
-			Name = "Heist",
-			Icon = "🕵️",
-			Tracks = table.freeze({
-				80170854893452, -- Sneaky Sneaky (APM)
-				9045939292, -- Code Heist (APM)
-				9043029912, -- Mischief Maker (APM)
-				1837463238, -- Heist Time (APM)
-				1841825097, -- The Robbery (APM)
-				9042159897, -- Cyber Heist (APM)
-				1844258065, -- The Heist (APM)
-			}),
-		}),
-		table.freeze({
-			Name = "Chill",
-			Icon = "😎",
-			Tracks = table.freeze({
-				9043887091, -- Lo-fi Chill A (APM)
-				9044565954, -- Smooth Vibes (APM)
-				9046863253, -- Poolside (APM)
-				9046862941, -- Sunset Chill (APM)
-				9047104411, -- Beach Cushions (APM)
-				9046864489, -- Violet Clouds (APM)
-				9044564552, -- Sunday Chilling (APM)
-				9048510686, -- Slow Boat (APM)
-			}),
-		}),
 	}),
 	MusicVolume = 0.22,
 	FallbackSound = "rbxasset://sounds/electronicpingshort.wav",
@@ -9947,7 +9882,7 @@ FeatureConfig.AdminAbuseChance = 0.1
 FeatureConfig.AdminUserIds = table.freeze({} :: { number })
 
 -- Settings players can change (saved).
-FeatureConfig.DefaultSettings = table.freeze({ Music = 0.6, Sfx = 1, LowGraphics = false, Station = "Mix" })
+FeatureConfig.DefaultSettings = table.freeze({ Music = 0.6, Sfx = 1, LowGraphics = false })
 
 -- Cash from a Cash reward for a player earning `income` per second.
 function FeatureConfig.cashAmount(reward: Reward, income: number): number
@@ -10803,9 +10738,10 @@ return table.freeze(NumberFormat)
 --[[
 	Sounds (client only)
 
-	Plays the background music playlist (shuffled) and the sound effects
-	listed in AudioConfig. Sound effects that fail to load on this device fall back to a
-	built-in Roblox sound; a music track that doesn't load is skipped.
+	Plays the background music playlist (in order, over and over) and the
+	sound effects listed in AudioConfig. Sound effects that fail to load on
+	this device fall back to a built-in Roblox sound; a music track that
+	doesn't load, or stops partway, is skipped.
 ]]
 
 local ContentProvider = game:GetService("ContentProvider")
@@ -10816,6 +10752,10 @@ local AudioConfig = require(script.Parent:WaitForChild("AudioConfig"))
 
 -- A track that hasn't loaded after this long is skipped.
 local TRACK_LOAD_TIMEOUT_SECONDS = 12
+-- A playing track that hasn't moved for this long is moved on from.
+local TRACK_STALL_SECONDS = 5
+-- If no track will load at all, try again this often.
+local TRACK_RETRY_SECONDS = 30
 
 local Sounds = {}
 
@@ -10882,6 +10822,11 @@ end
 -- Music
 --------------------------------------------------------------------------------
 
+-- The playlist plays in order, one track after another, and starts over from
+-- the first when it runs out. A watchdog makes sure it never just stops: a
+-- track that doesn't load, or stops moving (even without Ended firing), is
+-- moved on from, and if nothing will load it keeps trying.
+
 local music = Instance.new("Sound")
 music.Name = "BackgroundMusic"
 music.Volume = AudioConfig.MusicVolume
@@ -10895,66 +10840,65 @@ local function musicVolumeOr1(): number
 	return if savedMusicVolume > 0 then savedMusicVolume else 1
 end
 local musicStarted = false
-local trackQueue: { number } = {}
-local lastTrack: number? = nil
-local trackToken = 0
-local shuffleRng = Random.new()
+local trackIndex = 0
+-- Tracks in a row that didn't load; after a whole playlist of them it waits.
+local failuresInARow = 0
+local trackStartedAt = 0
+local lastPosition = -1
+local lastMovedAt = 0
 
--- The radio station's tracks (Mix = the whole AudioConfig.Music playlist).
-local stationName = "Mix"
-local function stationTracks(): { number }
-	for _, station in AudioConfig.Stations do
-		if station.Name == stationName and #station.Tracks > 0 then
-			return station.Tracks
-		end
-	end
-	return AudioConfig.Music
-end
-
--- The first track in AudioConfig.Music plays first. After that the playlist is
--- shuffled, and shuffled again each time it runs out, never playing the same
--- track twice in a row.
-local function nextTrack(): number
-	local tracks = stationTracks()
-	if #trackQueue == 0 then
-		if lastTrack == nil then
-			trackQueue = { tracks[1] }
-		else
-			trackQueue = table.clone(tracks)
-			for i = #trackQueue, 2, -1 do
-				local j = shuffleRng:NextInteger(1, i)
-				trackQueue[i], trackQueue[j] = trackQueue[j], trackQueue[i]
-			end
-			if #trackQueue > 1 and trackQueue[1] == lastTrack then
-				trackQueue[1], trackQueue[#trackQueue] = trackQueue[#trackQueue], trackQueue[1]
-			end
-		end
-	end
-	local track = table.remove(trackQueue, 1) :: number
-	lastTrack = track
-	return track
-end
-
-local function playNextTrack(failures: number)
-	local tracks = stationTracks()
-	if #tracks == 0 or failures >= #tracks then
+local function playTrack(index: number)
+	local tracks = AudioConfig.Music
+	if #tracks == 0 then
 		return
 	end
-	trackToken += 1
-	local token = trackToken
-	music.SoundId = "rbxassetid://" .. tostring(nextTrack())
+	trackIndex = (index - 1) % #tracks + 1
+	music.SoundId = "rbxassetid://" .. tostring(tracks[trackIndex])
 	music.TimePosition = 0
 	music:Play()
-	task.delay(TRACK_LOAD_TIMEOUT_SECONDS, function()
-		if trackToken == token and not music.IsLoaded then
-			playNextTrack(failures + 1)
-		end
-	end)
+	trackStartedAt = os.clock()
+	lastPosition = -1
+	lastMovedAt = trackStartedAt
+end
+
+local function playNextTrack()
+	playTrack(trackIndex + 1)
 end
 
 music.Ended:Connect(function()
-	if musicEnabled then
-		playNextTrack(0)
+	failuresInARow = 0
+	if musicStarted and musicEnabled then
+		playNextTrack()
+	end
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(1)
+		local now = os.clock()
+		if not (musicStarted and musicEnabled) then
+			-- Paused on purpose: that isn't stuck.
+			lastMovedAt = now
+		elseif not music.IsLoaded then
+			-- After a whole playlist that wouldn't load, wait longer between tries.
+			local limit = if failuresInARow >= #AudioConfig.Music then TRACK_RETRY_SECONDS else TRACK_LOAD_TIMEOUT_SECONDS
+			if now - trackStartedAt >= limit then
+				failuresInARow += 1
+				playNextTrack()
+			end
+		else
+			local position = music.TimePosition
+			if position ~= lastPosition then
+				lastPosition = position
+				lastMovedAt = now
+				if position > 0 then
+					failuresInARow = 0
+				end
+			elseif now - lastMovedAt >= TRACK_STALL_SECONDS then
+				-- It stopped or got stuck without finishing: carry on.
+				playNextTrack()
+			end
+		end
 	end
 end)
 
@@ -10964,30 +10908,8 @@ function Sounds.startMusic()
 	end
 	musicStarted = true
 	if musicEnabled then
-		playNextTrack(0)
+		playTrack(1)
 	end
-end
-
--- Switches the radio station and starts one of its tracks.
-function Sounds.setStation(name: string)
-	local found = false
-	for _, station in AudioConfig.Stations do
-		found = found or station.Name == name
-	end
-	if not found or name == stationName then
-		return
-	end
-	stationName = name
-	trackQueue = {}
-	-- A new station starts on a random track of its own.
-	lastTrack = if name == "Mix" then nil else -1
-	if musicStarted and musicEnabled then
-		playNextTrack(0)
-	end
-end
-
-function Sounds.getStation(): string
-	return stationName
 end
 
 function Sounds.isMusicEnabled(): boolean
@@ -10999,7 +10921,7 @@ function Sounds.setMusicEnabled(enabled: boolean)
 	musicGroup.Volume = if enabled then musicVolumeOr1() else 0
 	if enabled and musicStarted and not music.IsPlaying then
 		if music.SoundId == "" then
-			playNextTrack(0)
+			playTrack(1)
 		else
 			music:Resume()
 		end
@@ -11240,15 +11162,27 @@ end
 --------------------------------------------------------------------------------
 
 UIKit.SideSize = 96
+UIKit.SideGap = 22
+
+-- Pixels the side columns keep clear: Roblox's top bar and the Cash, income
+-- and boost labels at the bottom.
+local SIDE_RESERVED_HEIGHT = 230
+local SIDE_CENTRE_OFFSET = -69
+local SIDE_COLUMN_HEIGHT = 3 * UIKit.SideSize + 2 * UIKit.SideGap
+
+-- How much the side columns are scaled down on this screen.
+local function sideFactor(viewport: Vector2): number
+	return math.clamp(math.min((viewport.Y - SIDE_RESERVED_HEIGHT) / SIDE_COLUMN_HEIGHT, viewport.X / 1280), 0.5, 1)
+end
 local wiggleIcons: { ImageLabel } = {}
 
 function UIKit.sideColumn(parent: Instance, name: string, count: number, properties: { [string]: any }): Frame
 	local column = create("Frame", {
 		Name = name,
-		Size = UDim2.fromOffset(UIKit.SideSize, count * UIKit.SideSize + (count - 1) * 22),
+		Size = UDim2.fromOffset(UIKit.SideSize, count * UIKit.SideSize + (count - 1) * UIKit.SideGap),
 		BackgroundTransparency = 1,
 	}, {
-		create("UIListLayout", { Padding = UDim.new(0, 22), SortOrder = Enum.SortOrder.LayoutOrder }),
+		create("UIListLayout", { Padding = UDim.new(0, UIKit.SideGap), SortOrder = Enum.SortOrder.LayoutOrder }),
 	}) :: Frame
 	for key, value in properties do
 		(column :: any)[key] = value
@@ -11333,11 +11267,12 @@ function UIKit.sideButton(column: Instance, name: string, text: string, color: C
 		hasIcon = true
 	end
 
+	-- The label stays inside the button (long words shrink to fit).
 	UIKit.label({
 		Name = "Label",
 		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, 6),
-		Size = if hasIcon then UDim2.new(1, 8, 0, 30) else UDim2.new(1, -6, 1, -8),
+		Position = UDim2.new(0.5, 0, 1, 4),
+		Size = if hasIcon then UDim2.new(1, -10, 0, 28) else UDim2.new(1, -10, 1, -8),
 		Text = text,
 		TextSize = if hasIcon then 26 else 30,
 		OutlineThickness = 3,
@@ -11393,21 +11328,48 @@ end)
 
 local modals: { Frame } = {}
 
+-- Windows are always laid out at their design size and scaled down as a
+-- whole to fit the screen, so everything in them fits on any screen.
+-- Roblox's top bar takes this much of the screen.
+local TOP_BAR_HEIGHT = 58
+
+local function viewportSize(): Vector2
+	local camera = Workspace.CurrentCamera
+	local size = if camera then camera.ViewportSize else nil
+	return if typeof(size) == "Vector2" and size.Y > 1 then size else Vector2.new(1280, 760)
+end
+
+-- Windows fit between the two pairs of side button columns (which would
+-- otherwise cover their edges) and under Roblox's top bar.
+local function fitScale(frame: Frame): number
+	local viewport = viewportSize()
+	local size = frame.Size
+	local sides = 16 + (2 * UIKit.SideSize + 20) * sideFactor(viewport) + 12
+	local width = viewport.X - 2 * sides
+	return math.min(1, width / size.X.Offset, (viewport.Y - TOP_BAR_HEIGHT) * 0.92 / size.Y.Offset)
+end
+
+local function refit(frame: Frame)
+	local scale = frame:FindFirstChild("FitScale") :: UIScale?
+	if scale then
+		scale.Scale = fitScale(frame)
+	end
+end
+
 function UIKit.modal(parent: Instance, name: string, title: string, accent: Color3, size: Vector2): (Frame, Frame)
 	local frame = create("Frame", {
 		Name = name,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		-- Fills most of a small screen, capped at the design size on large ones.
-		Size = UDim2.fromScale(0.92, 0.8),
+		Size = UDim2.fromOffset(size.X, size.Y),
 		BackgroundColor3 = UIKit.Colors.Panel,
 		Visible = false,
 	}, {
 		UIKit.corner(18),
 		UIKit.stroke(Color3.new(0, 0, 0), 4),
-		create("UISizeConstraint", { MaxSize = size }),
-		create("UIAspectRatioConstraint", { AspectRatio = size.X / size.Y }),
+		create("UIScale", { Name = "FitScale" }),
 	}) :: Frame
+	refit(frame)
 
 	create("Frame", {
 		Name = "Header",
@@ -11455,19 +11417,13 @@ function UIKit.toggleModal(frame: Frame): boolean
 		other.Visible = false
 	end
 	frame.Visible = open
-	if open then
+	local scale = frame:FindFirstChild("FitScale") :: UIScale?
+	if open and scale then
 		Sounds.play("Open")
 		-- A little pop as it opens.
-		local scale = frame:FindFirstChild("PopScale") :: UIScale?
-		if scale == nil then
-			local newScale = Instance.new("UIScale")
-			newScale.Name = "PopScale"
-			newScale.Parent = frame
-			scale = newScale
-		end
-		local popScale = scale :: UIScale
-		popScale.Scale = 0.85
-		TweenService:Create(popScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+		local target = fitScale(frame)
+		scale.Scale = target * 0.85
+		TweenService:Create(scale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = target }):Play()
 	end
 	return open
 end
@@ -11596,16 +11552,12 @@ end
 -- Places a column of side buttons: as big as fits between the top bar and
 -- the Cash in the bottom-left corner (never covering it), and a little above
 -- the middle of the screen. `slot` 0 is at the screen edge, 1 next to it.
--- Pixels the columns keep clear: Roblox's top bar and the Cash, income and
--- boost labels at the bottom.
-local SIDE_RESERVED_HEIGHT = 230
-local SIDE_CENTRE_OFFSET = -69
-
+-- Every column is placed as if it had three buttons, so all of them are the
+-- same size and a shorter one lines up with the top buttons of the others.
 function UIKit.placeSideColumn(column: Frame, onRight: boolean, slot: number)
 	local scale = Instance.new("UIScale")
 	scale.Name = "ScreenScale"
 	scale.Parent = column
-	local designHeight = column.Size.Y.Offset
 	local function update()
 		local camera = Workspace.CurrentCamera
 		local size = if camera then camera.ViewportSize else nil
@@ -11613,20 +11565,55 @@ function UIKit.placeSideColumn(column: Frame, onRight: boolean, slot: number)
 		if viewport.Y <= 1 then
 			return
 		end
-		local fit = math.min((viewport.Y - SIDE_RESERVED_HEIGHT) / designHeight, viewport.X / 1280)
-		local factor = math.clamp(fit, 0.5, 1)
+		local factor = sideFactor(viewport)
 		scale.Scale = factor
 		local x = 16 + slot * (UIKit.SideSize + 20) * factor
-		column.AnchorPoint = Vector2.new(if onRight then 1 else 0, 0.5)
-		column.Position = if onRight
-			then UDim2.new(1, -x, 0.5, SIDE_CENTRE_OFFSET)
-			else UDim2.new(0, x, 0.5, SIDE_CENTRE_OFFSET)
+		local top = SIDE_CENTRE_OFFSET - SIDE_COLUMN_HEIGHT * factor / 2
+		column.AnchorPoint = Vector2.new(if onRight then 1 else 0, 0)
+		column.Position = if onRight then UDim2.new(1, -x, 0.5, top) else UDim2.new(0, x, 0.5, top)
 	end
 	update()
 	local camera = Workspace.CurrentCamera
 	if camera then
 		camera:GetPropertyChangedSignal("ViewportSize"):Connect(update)
 	end
+end
+
+-- Grid cells for `columns` columns that exactly fill a scrolling list
+-- `width` pixels wide (clear of its scroll bar), with `gap` between them.
+function UIKit.gridCells(width: number, columns: number, gap: number, scrollBar: number): number
+	return math.floor((width - scrollBar - 4 - (columns - 1) * gap) / columns)
+end
+
+-- Changes a window's design size (see UIKit.modal), e.g. to fit its content.
+function UIKit.resizeModal(frame: Frame, size: Vector2)
+	frame.Size = UDim2.fromOffset(size.X, size.Y)
+	refit(frame)
+end
+
+-- The size of a window's Body at its design size.
+function UIKit.bodySize(frame: Frame): Vector2
+	return Vector2.new(frame.Size.X.Offset - 32, frame.Size.Y.Offset - 90)
+end
+
+-- Windows follow the screen size.
+do
+	local function refitAll()
+		for _, frame in modals do
+			refit(frame)
+		end
+	end
+	local camera = Workspace.CurrentCamera
+	if camera then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(refitAll)
+	end
+	Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+		local newCamera = Workspace.CurrentCamera
+		if newCamera then
+			newCamera:GetPropertyChangedSignal("ViewportSize"):Connect(refitAll)
+			refitAll()
+		end
+	end)
 end
 
 --------------------------------------------------------------------------------
@@ -21593,17 +21580,10 @@ HANDLERS.SaveSettings = function(player: Player, argument: any): (boolean, strin
 		return false, nil
 	end
 	local defaults = FeatureConfig.DefaultSettings
-	-- The radio saves its station on its own; other saves keep the old one.
-	local saved = getTable(player, "Settings")
-	local station = if typeof(argument.Station) == "string" and #argument.Station <= 24
-		then argument.Station
-		elseif typeof(saved.Station) == "string" then saved.Station
-		else defaults.Station
 	setProgress(player, "Settings", {
 		Music = math.clamp(tonumber(argument.Music) or defaults.Music, 0, 1),
 		Sfx = math.clamp(tonumber(argument.Sfx) or defaults.Sfx, 0, 1),
 		LowGraphics = argument.LowGraphics == true,
-		Station = station,
 	})
 	return true, nil
 end
@@ -24133,8 +24113,8 @@ end)
 	in the same chunky style as the rest of the HUD (see UIKit):
 	  * the Manage menu (the G prompt on your own brainrot): its level, income
 	    and hat, guard duty and pet
-	  * a column of side buttons on the right: Season (the season pass), Crew
-	    and Radio (music stations)
+	  * a column of side buttons on the right: Season (the season pass) and
+	    Crew
 	  * crew invites, the Limited Shop on the map (this week's brainrot on its
 	    display, a countdown and the purchase window)
 	  * the boss's health bar and stomp shockwaves, the revenge arrow, the
@@ -24156,7 +24136,6 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
-local AudioConfig = require(Shared:WaitForChild("AudioConfig"))
 local BrainrotConfig = require(Shared:WaitForChild("BrainrotConfig"))
 local ExtrasConfig = require(Shared:WaitForChild("ExtrasConfig"))
 local FeatureConfig = require(Shared:WaitForChild("FeatureConfig"))
@@ -24173,8 +24152,6 @@ local crewFunction = remotes:WaitForChild("Crew") :: RemoteFunction
 local crewEvent = remotes:WaitForChild("CrewEvent") :: RemoteEvent
 local seasonFunction = remotes:WaitForChild("Season") :: RemoteFunction
 local seasonStateEvent = remotes:WaitForChild("SeasonState") :: RemoteEvent
-local rewardsFunction = remotes:WaitForChild("Rewards") :: RemoteFunction
-local rewardsStateEvent = remotes:WaitForChild("RewardsState") :: RemoteEvent
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
@@ -24191,7 +24168,6 @@ local ACCENTS = {
 	Manage = Color3.fromRGB(60, 190, 150),
 	Season = Color3.fromRGB(255, 170, 30),
 	Crew = Color3.fromRGB(80, 140, 255),
-	Radio = Color3.fromRGB(230, 80, 160),
 	Limited = Color3.fromRGB(255, 200, 40),
 	Premium = Color3.fromRGB(255, 190, 40),
 }
@@ -24284,18 +24260,14 @@ local function hatViewport(hatName: string, properties: { [string]: any }): View
 	return viewport
 end
 
--- The latest settings from RewardsManager (the radio saves its station with them).
-local savedSettings: { [string]: any } = {}
-
 --------------------------------------------------------------------------------
 -- Side buttons (right, next to Trade/Upgrade/Settings)
 --------------------------------------------------------------------------------
 
-local column = UIKit.sideColumn(screen, "ExtraButtons", 3, {})
+local column = UIKit.sideColumn(screen, "ExtraButtons", 2, {})
 UIKit.placeSideColumn(column, true, 1)
 local seasonButton = UIKit.sideButton(column, "SeasonButton", "Season", ACCENTS.Season, "Season", 1, "🏆")
 local crewButton = UIKit.sideButton(column, "CrewButton", "Crew", ACCENTS.Crew, "Crew", 2, "👥")
-local radioButton = UIKit.sideButton(column, "RadioButton", "Radio", ACCENTS.Radio, "Radio", 3, "📻")
 
 --------------------------------------------------------------------------------
 -- Manage menu: level, hat, guard and pet for one of your brainrots
@@ -24989,67 +24961,6 @@ end
 crewButton.Activated:Connect(function()
 	if UIKit.toggleModal(crewFrame) then
 		renderCrew()
-	end
-end)
-
---------------------------------------------------------------------------------
--- Radio
---------------------------------------------------------------------------------
-
-local radioFrame, radioBody = UIKit.modal(screen, "RadioMenu", "Radio", ACCENTS.Radio, Vector2.new(480, 500))
-local renderRadio: () -> ()
-do
-	local list = create("Frame", {
-		Name = "Stations",
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-	}, { create("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }) }) :: Frame
-	list.Parent = radioBody
-	local stationButtons: { [string]: TextButton } = {}
-	for order, station in AudioConfig.Stations do
-		local count = if #station.Tracks > 0 then #station.Tracks else #AudioConfig.Music
-		local stationButton = button(string.format("%s  %s  (%d songs)", station.Icon, station.Name, count), COLORS.PanelLight, {
-			Name = station.Name,
-			Size = UDim2.new(1, 0, 0, 62),
-			LayoutOrder = order,
-		})
-		stationButton.Activated:Connect(function()
-			Sounds.setStation(station.Name)
-			local settings = table.clone(savedSettings)
-			settings.Station = station.Name
-			savedSettings = settings
-			pcall(function()
-				rewardsFunction:InvokeServer("SaveSettings", settings)
-			end)
-			UIKit.toast(string.format("📻 Now playing: %s", station.Name), "Success")
-			renderRadio()
-		end)
-		stationButton.Parent = list
-		stationButtons[station.Name] = stationButton
-	end
-	renderRadio = function()
-		local current = Sounds.getStation()
-		for name, stationButton in stationButtons do
-			stationButton.BackgroundColor3 = if name == current then ACCENTS.Radio else COLORS.PanelLight
-		end
-	end
-	renderRadio()
-end
-
-radioButton.Activated:Connect(function()
-	if UIKit.toggleModal(radioFrame) then
-		renderRadio()
-	end
-end)
-
-rewardsStateEvent.OnClientEvent:Connect(function(state: any)
-	if typeof(state) == "table" and typeof(state.Settings) == "table" then
-		savedSettings = table.clone(state.Settings)
-		local station = savedSettings.Station
-		if typeof(station) == "string" and station ~= Sounds.getStation() then
-			Sounds.setStation(station)
-			renderRadio()
-		end
 	end
 end)
 
@@ -26544,7 +26455,12 @@ end)
 -- Settings
 --------------------------------------------------------------------------------
 
-local settingsFrame, settingsBody = UIKit.modal(screen, "Settings", "SETTINGS", ACCENTS.Settings, Vector2.new(520, 460))
+-- Rows, top to bottom; the window is as tall as the rows it shows.
+local SETTINGS_WIDTH = 520
+local SETTINGS_SLIDER_HEIGHT = 70
+local SETTINGS_BUTTON_HEIGHT = 54
+local SETTINGS_GAP = 14
+local settingsFrame, settingsBody = UIKit.modal(screen, "Settings", "SETTINGS", ACCENTS.Settings, Vector2.new(SETTINGS_WIDTH, 400))
 do
 	local settings = {
 		Music = FeatureConfig.DefaultSettings.Music,
@@ -26571,22 +26487,24 @@ do
 		end)
 	end
 
-	create("UIListLayout", { Padding = UDim.new(0, 14), SortOrder = Enum.SortOrder.LayoutOrder }).Parent = settingsBody
+	create("UIListLayout", { Padding = UDim.new(0, SETTINGS_GAP), SortOrder = Enum.SortOrder.LayoutOrder }).Parent = settingsBody
 
 	type Slider = { Set: (number) -> () }
 	local function slider(name: string, text: string, order: number, onChange: (number) -> ()): Slider
 		local row = create("Frame", {
 			Name = name,
-			Size = UDim2.new(1, 0, 0, 70),
+			Size = UDim2.new(1, 0, 0, SETTINGS_SLIDER_HEIGHT),
 			BackgroundTransparency = 1,
 			LayoutOrder = order,
 		}) :: Frame
 		local title = label({ Name = "Title", Size = UDim2.new(1, 0, 0, 30), Text = text, TextSize = 26, TextXAlignment = Enum.TextXAlignment.Left })
 		title.Parent = row
+		-- The knob stays inside the bar, so every row lines up at both edges.
+		local knobSize = 30
 		local bar = create("TextButton", {
 			Name = "Bar",
 			Position = UDim2.fromOffset(0, 40),
-			Size = UDim2.new(1, -20, 0, 18),
+			Size = UDim2.new(1, 0, 0, 18),
 			BackgroundColor3 = COLORS.PanelDark,
 			AutoButtonColor = false,
 			Text = "",
@@ -26597,16 +26515,18 @@ do
 		local knob = create("Frame", {
 			Name = "Knob",
 			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = UDim2.fromScale(1, 0.5),
-			Size = UDim2.fromOffset(30, 30),
+			Position = UDim2.new(1, -knobSize / 2, 0.5, 0),
+			Size = UDim2.fromOffset(knobSize, knobSize),
 			BackgroundColor3 = Color3.new(1, 1, 1),
 			ZIndex = 2,
 		}, { UIKit.round(), stroke(COLORS.Outline, 3) }) :: Frame
 		knob.Parent = bar
 		local function set(value: number)
 			local fraction = math.clamp(value, 0, 1)
-			fill.Size = UDim2.fromScale(fraction, 1)
-			knob.Position = UDim2.fromScale(fraction, 0.5)
+			-- The knob's centre runs from half a knob in at 0% to half a knob in from the end at 100%.
+			local offset = knobSize / 2 - fraction * knobSize
+			fill.Size = UDim2.new(fraction, offset, 1, 0)
+			knob.Position = UDim2.new(fraction, offset, 0.5, 0)
 			title.Text = string.format("%s: %d%%", text, math.floor(fraction * 100 + 0.5))
 		end
 		local dragging = false
@@ -26615,7 +26535,9 @@ do
 			if width <= 0 then
 				return
 			end
-			local fraction = math.clamp((x - bar.AbsolutePosition.X) / width, 0, 1)
+			-- In screen pixels (the window may be scaled to fit).
+			local knobPixels = knob.AbsoluteSize.X
+			local fraction = math.clamp((x - bar.AbsolutePosition.X - knobPixels / 2) / math.max(1, width - knobPixels), 0, 1)
 			set(fraction)
 			onChange(fraction)
 		end
@@ -26651,7 +26573,7 @@ do
 	end)
 	local graphicsButton = button("", COLORS.PanelLight, {
 		Name = "LowGraphics",
-		Size = UDim2.new(1, -20, 0, 54),
+		Size = UDim2.new(1, 0, 0, SETTINGS_BUTTON_HEIGHT),
 		LayoutOrder = 3,
 	})
 	graphicsButton.Parent = settingsBody
@@ -26667,9 +26589,17 @@ do
 	end)
 	local tutorialButton = button("SKIP TUTORIAL", COLORS.PanelLight, {
 		Name = "Tutorial",
-		Size = UDim2.new(1, -20, 0, 54),
+		Size = UDim2.new(1, 0, 0, SETTINGS_BUTTON_HEIGHT),
 		LayoutOrder = 4,
 	})
+	-- The window fits the rows it shows (Skip Tutorial only during the tutorial).
+	local function fitSettings()
+		local height = 2 * SETTINGS_SLIDER_HEIGHT + SETTINGS_BUTTON_HEIGHT + 2 * SETTINGS_GAP
+		if tutorialButton.Visible then
+			height += SETTINGS_GAP + SETTINGS_BUTTON_HEIGHT
+		end
+		UIKit.resizeModal(settingsFrame, Vector2.new(SETTINGS_WIDTH, height + 90))
+	end
 	tutorialButton.Parent = settingsBody
 	tutorialButton.Activated:Connect(function()
 		ask("SkipTutorial")
@@ -26679,7 +26609,11 @@ do
 	showGraphics()
 
 	table.insert(refreshers, function()
-		tutorialButton.Visible = (tonumber(player:GetAttribute("TutorialStep")) or 0) > 0
+		local inTutorial = (tonumber(player:GetAttribute("TutorialStep")) or 0) > 0
+		if tutorialButton.Visible ~= inTutorial then
+			tutorialButton.Visible = inTutorial
+			fitSettings()
+		end
 		-- Saved settings apply once, when they first arrive.
 		if loaded or typeof(state.Settings) ~= "table" then
 			return
@@ -26694,6 +26628,7 @@ do
 		showGraphics()
 		apply()
 	end)
+	fitSettings()
 	apply()
 end
 
@@ -27787,6 +27722,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -27961,21 +27897,21 @@ local eventChip = chip(EVENT_COLORS.Gold, "ServerRarityBoost")
 local cashBoostChip = chip(Color3.fromRGB(40, 190, 90), "CashBoost")
 UIKit.autoScale(chipRow)
 
--- Your income multiplier (bottom left, by the income); tap it for the list of
+-- Your income multiplier (bottom-right corner); tap it for the list of
 -- boosts (rebirths, passes, friends, Premium, Index...).
 local boostPill = button("x1", Color3.fromRGB(255, 170, 40), {
 	Name = "BoostPill",
-	AnchorPoint = Vector2.new(0, 1),
-	Position = UDim2.new(0, 196, 1, -80),
-	Size = UDim2.fromOffset(84, 28),
+	AnchorPoint = Vector2.new(1, 1),
+	Position = UDim2.new(1, -16, 1, -16),
+	Size = UDim2.fromOffset(110, 40),
 	Visible = false,
 })
 boostPill.Parent = screenGui
 local boostTip = label({
 	Name = "BoostInfo",
-	AnchorPoint = Vector2.new(0, 1),
-	Position = UDim2.new(0, 196, 1, -114),
-	Size = UDim2.fromOffset(260, 120),
+	AnchorPoint = Vector2.new(1, 1),
+	Position = UDim2.new(1, -16, 1, -64),
+	Size = UDim2.fromOffset(280, 130),
 	BackgroundTransparency = 0.1,
 	BackgroundColor3 = COLORS.Panel,
 	Text = "",
@@ -27985,8 +27921,29 @@ local boostTip = label({
 	Visible = false,
 })
 corner(10).Parent = boostTip
-create("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingBottom = UDim.new(0, 8), PaddingTop = UDim.new(0, 8) }).Parent = boostTip
+create("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), PaddingBottom = UDim.new(0, 8), PaddingTop = UDim.new(0, 8) }).Parent = boostTip
 boostTip.Parent = screenGui
+-- The Cash, income and boost pill shrink on small screens, like the side
+-- buttons. On phones and tablets Roblox's jump button sits in the
+-- bottom-right corner, so the boost pill goes above it there.
+local function placeMoney()
+	local camera = Workspace.CurrentCamera
+	local size = if camera then camera.ViewportSize else nil
+	local viewport = if typeof(size) == "Vector2" and size.Y > 1 then size else Vector2.new(1280, 760)
+	local factor = math.clamp(math.min(viewport.Y / 760, viewport.X / 1280), 0.6, 1)
+	cashLabel.Size = UDim2.fromOffset(340 * factor, 64 * factor)
+	incomeLabel.Size = UDim2.fromOffset(260 * factor, 28 * factor)
+	incomeLabel.Position = UDim2.new(0, 20, 1, -14 - 66 * factor)
+	local touchOnly = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+	local bottom = if not touchOnly then 16 elseif math.min(viewport.X, viewport.Y) <= 500 then 110 else 230
+	boostPill.Size = UDim2.fromOffset(110 * factor, 40 * factor)
+	boostPill.Position = UDim2.new(1, -16, 1, -bottom)
+	boostTip.Position = UDim2.new(1, -16, 1, -bottom - 40 * factor - 8)
+end
+placeMoney()
+if Workspace.CurrentCamera then
+	Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(placeMoney)
+end
 boostPill.Activated:Connect(function()
 	boostTip.Visible = not boostTip.Visible
 end)
@@ -28058,12 +28015,12 @@ local shopList = create("ScrollingFrame", {
 	AutomaticCanvasSize = Enum.AutomaticSize.Y,
 	ScrollingDirection = Enum.ScrollingDirection.Y,
 }, {
+	-- Two columns filling the window, clear of the scroll bar.
 	create("UIGridLayout", {
-		CellSize = UDim2.new(0.5, -10, 0, 170),
+		CellSize = UDim2.fromOffset(UIKit.gridCells(UIKit.bodySize(shopFrame).X, 2, 12, 8), 170),
 		CellPadding = UDim2.fromOffset(12, 12),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}),
-	create("UIPadding", { PaddingRight = UDim.new(0, 8) }),
 }) :: ScrollingFrame
 shopList.Parent = shopBody
 
@@ -28279,7 +28236,7 @@ confirmRebirthButton.Parent = rebirthBody
 -- Index: every brainrot, with a spinning 3D preview
 --------------------------------------------------------------------------------
 
-local indexFrame, indexBody = modal("Index", "INDEX", COLORS.Index, Vector2.new(760, 580))
+local indexFrame, indexBody = modal("Index", "INDEX", COLORS.Index, Vector2.new(1240, 780))
 
 -- Pages: every brainrot, then every Gold, Diamond and Rainbow one.
 local INDEX_PAGES = { "Normal" }
@@ -28311,6 +28268,15 @@ local indexRewards = label({
 corner(10).Parent = indexRewards
 indexRewards.Parent = indexBody
 
+-- Six brainrots a row, filling the window, scrolling down for more.
+local INDEX_COLUMNS = 6
+local indexCell = UIKit.gridCells(UIKit.bodySize(indexFrame).X, INDEX_COLUMNS, 10, 8)
+local indexGrid = create("UIGridLayout", {
+	CellSize = UDim2.fromOffset(indexCell, math.floor(indexCell * 1.3)),
+	CellPadding = UDim2.fromOffset(10, 10),
+	FillDirectionMaxCells = INDEX_COLUMNS,
+	SortOrder = Enum.SortOrder.LayoutOrder,
+}) :: UIGridLayout
 local indexList = create("ScrollingFrame", {
 	Name = "List",
 	Position = UDim2.fromOffset(0, 98),
@@ -28318,15 +28284,10 @@ local indexList = create("ScrollingFrame", {
 	BackgroundTransparency = 1,
 	BorderSizePixel = 0,
 	ScrollBarThickness = 8,
+	ScrollBarImageColor3 = COLORS.Index,
 	AutomaticCanvasSize = Enum.AutomaticSize.Y,
 	CanvasSize = UDim2.new(),
-}, {
-	create("UIGridLayout", {
-		CellSize = UDim2.fromOffset(160, 210),
-		CellPadding = UDim2.fromOffset(10, 10),
-		SortOrder = Enum.SortOrder.LayoutOrder,
-	}),
-}) :: ScrollingFrame
+}, { indexGrid :: Instance }) :: ScrollingFrame
 indexList.Parent = indexBody
 
 type IndexCard = {
@@ -28355,10 +28316,11 @@ for _, definition in BrainrotConfig.Brainrots do
 	}, { corner(12), stroke(rarityColour, 3) }) :: Frame
 	local cardStroke = card:FindFirstChildOfClass("UIStroke") :: UIStroke
 
+	-- Everything in a card scales with it (see the grid above).
 	local viewport = create("ViewportFrame", {
 		Name = "Preview",
-		Position = UDim2.fromOffset(8, 8),
-		Size = UDim2.new(1, -16, 0, 110),
+		Position = UDim2.fromOffset(6, 6),
+		Size = UDim2.new(1, -12, 0.56, -6),
 		BackgroundColor3 = rarityColour:Lerp(Color3.new(0, 0, 0), 0.55),
 		Ambient = Color3.fromRGB(200, 200, 200),
 		LightColor = Color3.new(1, 1, 1),
@@ -28375,8 +28337,8 @@ for _, definition in BrainrotConfig.Brainrots do
 		local badge = label({
 			Name = "Badge",
 			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.new(1, -12, 0, 12),
-			Size = UDim2.fromOffset(96, 22),
+			Position = UDim2.new(1, -10, 0, 10),
+			Size = UDim2.new(0.62, 0, 0.09, 0),
 			BackgroundTransparency = 0,
 			BackgroundColor3 = if badgeText == "⭐ LIMITED" then Color3.fromRGB(230, 170, 20) else Color3.fromRGB(230, 110, 30),
 			Text = badgeText,
@@ -28389,35 +28351,35 @@ for _, definition in BrainrotConfig.Brainrots do
 
 	local nameLabel = label({
 		Name = "BrainrotName",
-		Position = UDim2.fromOffset(6, 120),
-		Size = UDim2.new(1, -12, 0, 22),
+		Position = UDim2.new(0, 6, 0.585, 0),
+		Size = UDim2.new(1, -12, 0.1, 0),
 		Text = definition.DisplayName,
-		TextSize = 20,
+		TextSize = 22,
 	})
 	nameLabel.Parent = card
 	label({
 		Name = "Rarity",
-		Position = UDim2.fromOffset(6, 142),
-		Size = UDim2.new(1, -12, 0, 20),
+		Position = UDim2.new(0, 6, 0.69, 0),
+		Size = UDim2.new(1, -12, 0.085, 0),
 		Text = definition.Rarity,
 		TextColor3 = rarityColour,
-		TextSize = 18,
+		TextSize = 20,
 	}).Parent = card
 	label({
 		Name = "Stats",
-		Position = UDim2.fromOffset(6, 162),
-		Size = UDim2.new(1, -12, 0, 20),
+		Position = UDim2.new(0, 6, 0.78, 0),
+		Size = UDim2.new(1, -12, 0.085, 0),
 		Text = NumberFormat.cash(definition.IncomePerSecond) .. "/s  " .. NumberFormat.cash(definition.Price),
 		TextColor3 = COLORS.Income,
-		TextSize = 17,
+		TextSize = 19,
 	}).Parent = card
 	local owned = label({
 		Name = "Owned",
-		Position = UDim2.fromOffset(6, 184),
-		Size = UDim2.new(1, -12, 0, 20),
+		Position = UDim2.new(0, 6, 0.87, 0),
+		Size = UDim2.new(1, -12, 0.085, 0),
 		Text = "",
 		TextColor3 = COLORS.Owned,
-		TextSize = 17,
+		TextSize = 19,
 	})
 	owned.Parent = card
 
@@ -28552,7 +28514,14 @@ local function refreshIndex()
 			)
 		end
 	end
-	indexRewards.Text = table.concat(parts, "   ")
+	-- Two even lines when there are many (the rarities), rather than one
+	-- word wrapping onto a line of its own.
+	if #parts > 4 then
+		local half = math.ceil(#parts / 2)
+		indexRewards.Text = table.concat(parts, "   ", 1, half) .. "\n" .. table.concat(parts, "   ", half + 1)
+	else
+		indexRewards.Text = table.concat(parts, "   ")
+	end
 	for name, tab in indexTabButtons do
 		tab.BackgroundColor3 = if name == indexPage then COLORS.Index else COLORS.PanelLight
 	end
@@ -28561,7 +28530,8 @@ end
 for order, pageName in INDEX_PAGES do
 	local tab = button(pageName, COLORS.PanelLight, {
 		Name = pageName .. "Tab",
-		Size = UDim2.new(1 / #INDEX_PAGES, -8, 1, 0),
+		-- The tabs fill the row exactly, with 8 pixels between them.
+		Size = UDim2.new(1 / #INDEX_PAGES, -8 * (#INDEX_PAGES - 1) / #INDEX_PAGES, 1, 0),
 		LayoutOrder = order,
 	})
 	tab.Parent = indexTabs

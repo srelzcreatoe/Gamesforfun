@@ -26,6 +26,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -200,21 +201,21 @@ local eventChip = chip(EVENT_COLORS.Gold, "ServerRarityBoost")
 local cashBoostChip = chip(Color3.fromRGB(40, 190, 90), "CashBoost")
 UIKit.autoScale(chipRow)
 
--- Your income multiplier (bottom left, by the income); tap it for the list of
+-- Your income multiplier (bottom-right corner); tap it for the list of
 -- boosts (rebirths, passes, friends, Premium, Index...).
 local boostPill = button("x1", Color3.fromRGB(255, 170, 40), {
 	Name = "BoostPill",
-	AnchorPoint = Vector2.new(0, 1),
-	Position = UDim2.new(0, 196, 1, -80),
-	Size = UDim2.fromOffset(84, 28),
+	AnchorPoint = Vector2.new(1, 1),
+	Position = UDim2.new(1, -16, 1, -16),
+	Size = UDim2.fromOffset(110, 40),
 	Visible = false,
 })
 boostPill.Parent = screenGui
 local boostTip = label({
 	Name = "BoostInfo",
-	AnchorPoint = Vector2.new(0, 1),
-	Position = UDim2.new(0, 196, 1, -114),
-	Size = UDim2.fromOffset(260, 120),
+	AnchorPoint = Vector2.new(1, 1),
+	Position = UDim2.new(1, -16, 1, -64),
+	Size = UDim2.fromOffset(280, 130),
 	BackgroundTransparency = 0.1,
 	BackgroundColor3 = COLORS.Panel,
 	Text = "",
@@ -224,8 +225,29 @@ local boostTip = label({
 	Visible = false,
 })
 corner(10).Parent = boostTip
-create("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingBottom = UDim.new(0, 8), PaddingTop = UDim.new(0, 8) }).Parent = boostTip
+create("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), PaddingBottom = UDim.new(0, 8), PaddingTop = UDim.new(0, 8) }).Parent = boostTip
 boostTip.Parent = screenGui
+-- The Cash, income and boost pill shrink on small screens, like the side
+-- buttons. On phones and tablets Roblox's jump button sits in the
+-- bottom-right corner, so the boost pill goes above it there.
+local function placeMoney()
+	local camera = Workspace.CurrentCamera
+	local size = if camera then camera.ViewportSize else nil
+	local viewport = if typeof(size) == "Vector2" and size.Y > 1 then size else Vector2.new(1280, 760)
+	local factor = math.clamp(math.min(viewport.Y / 760, viewport.X / 1280), 0.6, 1)
+	cashLabel.Size = UDim2.fromOffset(340 * factor, 64 * factor)
+	incomeLabel.Size = UDim2.fromOffset(260 * factor, 28 * factor)
+	incomeLabel.Position = UDim2.new(0, 20, 1, -14 - 66 * factor)
+	local touchOnly = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+	local bottom = if not touchOnly then 16 elseif math.min(viewport.X, viewport.Y) <= 500 then 110 else 230
+	boostPill.Size = UDim2.fromOffset(110 * factor, 40 * factor)
+	boostPill.Position = UDim2.new(1, -16, 1, -bottom)
+	boostTip.Position = UDim2.new(1, -16, 1, -bottom - 40 * factor - 8)
+end
+placeMoney()
+if Workspace.CurrentCamera then
+	Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(placeMoney)
+end
 boostPill.Activated:Connect(function()
 	boostTip.Visible = not boostTip.Visible
 end)
@@ -297,12 +319,12 @@ local shopList = create("ScrollingFrame", {
 	AutomaticCanvasSize = Enum.AutomaticSize.Y,
 	ScrollingDirection = Enum.ScrollingDirection.Y,
 }, {
+	-- Two columns filling the window, clear of the scroll bar.
 	create("UIGridLayout", {
-		CellSize = UDim2.new(0.5, -10, 0, 170),
+		CellSize = UDim2.fromOffset(UIKit.gridCells(UIKit.bodySize(shopFrame).X, 2, 12, 8), 170),
 		CellPadding = UDim2.fromOffset(12, 12),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}),
-	create("UIPadding", { PaddingRight = UDim.new(0, 8) }),
 }) :: ScrollingFrame
 shopList.Parent = shopBody
 
@@ -518,7 +540,7 @@ confirmRebirthButton.Parent = rebirthBody
 -- Index: every brainrot, with a spinning 3D preview
 --------------------------------------------------------------------------------
 
-local indexFrame, indexBody = modal("Index", "INDEX", COLORS.Index, Vector2.new(760, 580))
+local indexFrame, indexBody = modal("Index", "INDEX", COLORS.Index, Vector2.new(1240, 780))
 
 -- Pages: every brainrot, then every Gold, Diamond and Rainbow one.
 local INDEX_PAGES = { "Normal" }
@@ -550,6 +572,15 @@ local indexRewards = label({
 corner(10).Parent = indexRewards
 indexRewards.Parent = indexBody
 
+-- Six brainrots a row, filling the window, scrolling down for more.
+local INDEX_COLUMNS = 6
+local indexCell = UIKit.gridCells(UIKit.bodySize(indexFrame).X, INDEX_COLUMNS, 10, 8)
+local indexGrid = create("UIGridLayout", {
+	CellSize = UDim2.fromOffset(indexCell, math.floor(indexCell * 1.3)),
+	CellPadding = UDim2.fromOffset(10, 10),
+	FillDirectionMaxCells = INDEX_COLUMNS,
+	SortOrder = Enum.SortOrder.LayoutOrder,
+}) :: UIGridLayout
 local indexList = create("ScrollingFrame", {
 	Name = "List",
 	Position = UDim2.fromOffset(0, 98),
@@ -557,15 +588,10 @@ local indexList = create("ScrollingFrame", {
 	BackgroundTransparency = 1,
 	BorderSizePixel = 0,
 	ScrollBarThickness = 8,
+	ScrollBarImageColor3 = COLORS.Index,
 	AutomaticCanvasSize = Enum.AutomaticSize.Y,
 	CanvasSize = UDim2.new(),
-}, {
-	create("UIGridLayout", {
-		CellSize = UDim2.fromOffset(160, 210),
-		CellPadding = UDim2.fromOffset(10, 10),
-		SortOrder = Enum.SortOrder.LayoutOrder,
-	}),
-}) :: ScrollingFrame
+}, { indexGrid :: Instance }) :: ScrollingFrame
 indexList.Parent = indexBody
 
 type IndexCard = {
@@ -594,10 +620,11 @@ for _, definition in BrainrotConfig.Brainrots do
 	}, { corner(12), stroke(rarityColour, 3) }) :: Frame
 	local cardStroke = card:FindFirstChildOfClass("UIStroke") :: UIStroke
 
+	-- Everything in a card scales with it (see the grid above).
 	local viewport = create("ViewportFrame", {
 		Name = "Preview",
-		Position = UDim2.fromOffset(8, 8),
-		Size = UDim2.new(1, -16, 0, 110),
+		Position = UDim2.fromOffset(6, 6),
+		Size = UDim2.new(1, -12, 0.56, -6),
 		BackgroundColor3 = rarityColour:Lerp(Color3.new(0, 0, 0), 0.55),
 		Ambient = Color3.fromRGB(200, 200, 200),
 		LightColor = Color3.new(1, 1, 1),
@@ -614,8 +641,8 @@ for _, definition in BrainrotConfig.Brainrots do
 		local badge = label({
 			Name = "Badge",
 			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.new(1, -12, 0, 12),
-			Size = UDim2.fromOffset(96, 22),
+			Position = UDim2.new(1, -10, 0, 10),
+			Size = UDim2.new(0.62, 0, 0.09, 0),
 			BackgroundTransparency = 0,
 			BackgroundColor3 = if badgeText == "⭐ LIMITED" then Color3.fromRGB(230, 170, 20) else Color3.fromRGB(230, 110, 30),
 			Text = badgeText,
@@ -628,35 +655,35 @@ for _, definition in BrainrotConfig.Brainrots do
 
 	local nameLabel = label({
 		Name = "BrainrotName",
-		Position = UDim2.fromOffset(6, 120),
-		Size = UDim2.new(1, -12, 0, 22),
+		Position = UDim2.new(0, 6, 0.585, 0),
+		Size = UDim2.new(1, -12, 0.1, 0),
 		Text = definition.DisplayName,
-		TextSize = 20,
+		TextSize = 22,
 	})
 	nameLabel.Parent = card
 	label({
 		Name = "Rarity",
-		Position = UDim2.fromOffset(6, 142),
-		Size = UDim2.new(1, -12, 0, 20),
+		Position = UDim2.new(0, 6, 0.69, 0),
+		Size = UDim2.new(1, -12, 0.085, 0),
 		Text = definition.Rarity,
 		TextColor3 = rarityColour,
-		TextSize = 18,
+		TextSize = 20,
 	}).Parent = card
 	label({
 		Name = "Stats",
-		Position = UDim2.fromOffset(6, 162),
-		Size = UDim2.new(1, -12, 0, 20),
+		Position = UDim2.new(0, 6, 0.78, 0),
+		Size = UDim2.new(1, -12, 0.085, 0),
 		Text = NumberFormat.cash(definition.IncomePerSecond) .. "/s  " .. NumberFormat.cash(definition.Price),
 		TextColor3 = COLORS.Income,
-		TextSize = 17,
+		TextSize = 19,
 	}).Parent = card
 	local owned = label({
 		Name = "Owned",
-		Position = UDim2.fromOffset(6, 184),
-		Size = UDim2.new(1, -12, 0, 20),
+		Position = UDim2.new(0, 6, 0.87, 0),
+		Size = UDim2.new(1, -12, 0.085, 0),
 		Text = "",
 		TextColor3 = COLORS.Owned,
-		TextSize = 17,
+		TextSize = 19,
 	})
 	owned.Parent = card
 
@@ -791,7 +818,14 @@ local function refreshIndex()
 			)
 		end
 	end
-	indexRewards.Text = table.concat(parts, "   ")
+	-- Two even lines when there are many (the rarities), rather than one
+	-- word wrapping onto a line of its own.
+	if #parts > 4 then
+		local half = math.ceil(#parts / 2)
+		indexRewards.Text = table.concat(parts, "   ", 1, half) .. "\n" .. table.concat(parts, "   ", half + 1)
+	else
+		indexRewards.Text = table.concat(parts, "   ")
+	end
 	for name, tab in indexTabButtons do
 		tab.BackgroundColor3 = if name == indexPage then COLORS.Index else COLORS.PanelLight
 	end
@@ -800,7 +834,8 @@ end
 for order, pageName in INDEX_PAGES do
 	local tab = button(pageName, COLORS.PanelLight, {
 		Name = pageName .. "Tab",
-		Size = UDim2.new(1 / #INDEX_PAGES, -8, 1, 0),
+		-- The tabs fill the row exactly, with 8 pixels between them.
+		Size = UDim2.new(1 / #INDEX_PAGES, -8 * (#INDEX_PAGES - 1) / #INDEX_PAGES, 1, 0),
 		LayoutOrder = order,
 	})
 	tab.Parent = indexTabs

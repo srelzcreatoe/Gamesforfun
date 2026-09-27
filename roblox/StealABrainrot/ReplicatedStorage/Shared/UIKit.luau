@@ -199,15 +199,27 @@ end
 --------------------------------------------------------------------------------
 
 UIKit.SideSize = 96
+UIKit.SideGap = 22
+
+-- Pixels the side columns keep clear: Roblox's top bar and the Cash, income
+-- and boost labels at the bottom.
+local SIDE_RESERVED_HEIGHT = 230
+local SIDE_CENTRE_OFFSET = -69
+local SIDE_COLUMN_HEIGHT = 3 * UIKit.SideSize + 2 * UIKit.SideGap
+
+-- How much the side columns are scaled down on this screen.
+local function sideFactor(viewport: Vector2): number
+	return math.clamp(math.min((viewport.Y - SIDE_RESERVED_HEIGHT) / SIDE_COLUMN_HEIGHT, viewport.X / 1280), 0.5, 1)
+end
 local wiggleIcons: { ImageLabel } = {}
 
 function UIKit.sideColumn(parent: Instance, name: string, count: number, properties: { [string]: any }): Frame
 	local column = create("Frame", {
 		Name = name,
-		Size = UDim2.fromOffset(UIKit.SideSize, count * UIKit.SideSize + (count - 1) * 22),
+		Size = UDim2.fromOffset(UIKit.SideSize, count * UIKit.SideSize + (count - 1) * UIKit.SideGap),
 		BackgroundTransparency = 1,
 	}, {
-		create("UIListLayout", { Padding = UDim.new(0, 22), SortOrder = Enum.SortOrder.LayoutOrder }),
+		create("UIListLayout", { Padding = UDim.new(0, UIKit.SideGap), SortOrder = Enum.SortOrder.LayoutOrder }),
 	}) :: Frame
 	for key, value in properties do
 		(column :: any)[key] = value
@@ -292,11 +304,12 @@ function UIKit.sideButton(column: Instance, name: string, text: string, color: C
 		hasIcon = true
 	end
 
+	-- The label stays inside the button (long words shrink to fit).
 	UIKit.label({
 		Name = "Label",
 		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, 6),
-		Size = if hasIcon then UDim2.new(1, 8, 0, 30) else UDim2.new(1, -6, 1, -8),
+		Position = UDim2.new(0.5, 0, 1, 4),
+		Size = if hasIcon then UDim2.new(1, -10, 0, 28) else UDim2.new(1, -10, 1, -8),
 		Text = text,
 		TextSize = if hasIcon then 26 else 30,
 		OutlineThickness = 3,
@@ -352,21 +365,48 @@ end)
 
 local modals: { Frame } = {}
 
+-- Windows are always laid out at their design size and scaled down as a
+-- whole to fit the screen, so everything in them fits on any screen.
+-- Roblox's top bar takes this much of the screen.
+local TOP_BAR_HEIGHT = 58
+
+local function viewportSize(): Vector2
+	local camera = Workspace.CurrentCamera
+	local size = if camera then camera.ViewportSize else nil
+	return if typeof(size) == "Vector2" and size.Y > 1 then size else Vector2.new(1280, 760)
+end
+
+-- Windows fit between the two pairs of side button columns (which would
+-- otherwise cover their edges) and under Roblox's top bar.
+local function fitScale(frame: Frame): number
+	local viewport = viewportSize()
+	local size = frame.Size
+	local sides = 16 + (2 * UIKit.SideSize + 20) * sideFactor(viewport) + 12
+	local width = viewport.X - 2 * sides
+	return math.min(1, width / size.X.Offset, (viewport.Y - TOP_BAR_HEIGHT) * 0.92 / size.Y.Offset)
+end
+
+local function refit(frame: Frame)
+	local scale = frame:FindFirstChild("FitScale") :: UIScale?
+	if scale then
+		scale.Scale = fitScale(frame)
+	end
+end
+
 function UIKit.modal(parent: Instance, name: string, title: string, accent: Color3, size: Vector2): (Frame, Frame)
 	local frame = create("Frame", {
 		Name = name,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		-- Fills most of a small screen, capped at the design size on large ones.
-		Size = UDim2.fromScale(0.92, 0.8),
+		Size = UDim2.fromOffset(size.X, size.Y),
 		BackgroundColor3 = UIKit.Colors.Panel,
 		Visible = false,
 	}, {
 		UIKit.corner(18),
 		UIKit.stroke(Color3.new(0, 0, 0), 4),
-		create("UISizeConstraint", { MaxSize = size }),
-		create("UIAspectRatioConstraint", { AspectRatio = size.X / size.Y }),
+		create("UIScale", { Name = "FitScale" }),
 	}) :: Frame
+	refit(frame)
 
 	create("Frame", {
 		Name = "Header",
@@ -414,19 +454,13 @@ function UIKit.toggleModal(frame: Frame): boolean
 		other.Visible = false
 	end
 	frame.Visible = open
-	if open then
+	local scale = frame:FindFirstChild("FitScale") :: UIScale?
+	if open and scale then
 		Sounds.play("Open")
 		-- A little pop as it opens.
-		local scale = frame:FindFirstChild("PopScale") :: UIScale?
-		if scale == nil then
-			local newScale = Instance.new("UIScale")
-			newScale.Name = "PopScale"
-			newScale.Parent = frame
-			scale = newScale
-		end
-		local popScale = scale :: UIScale
-		popScale.Scale = 0.85
-		TweenService:Create(popScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+		local target = fitScale(frame)
+		scale.Scale = target * 0.85
+		TweenService:Create(scale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = target }):Play()
 	end
 	return open
 end
@@ -555,16 +589,12 @@ end
 -- Places a column of side buttons: as big as fits between the top bar and
 -- the Cash in the bottom-left corner (never covering it), and a little above
 -- the middle of the screen. `slot` 0 is at the screen edge, 1 next to it.
--- Pixels the columns keep clear: Roblox's top bar and the Cash, income and
--- boost labels at the bottom.
-local SIDE_RESERVED_HEIGHT = 230
-local SIDE_CENTRE_OFFSET = -69
-
+-- Every column is placed as if it had three buttons, so all of them are the
+-- same size and a shorter one lines up with the top buttons of the others.
 function UIKit.placeSideColumn(column: Frame, onRight: boolean, slot: number)
 	local scale = Instance.new("UIScale")
 	scale.Name = "ScreenScale"
 	scale.Parent = column
-	local designHeight = column.Size.Y.Offset
 	local function update()
 		local camera = Workspace.CurrentCamera
 		local size = if camera then camera.ViewportSize else nil
@@ -572,20 +602,55 @@ function UIKit.placeSideColumn(column: Frame, onRight: boolean, slot: number)
 		if viewport.Y <= 1 then
 			return
 		end
-		local fit = math.min((viewport.Y - SIDE_RESERVED_HEIGHT) / designHeight, viewport.X / 1280)
-		local factor = math.clamp(fit, 0.5, 1)
+		local factor = sideFactor(viewport)
 		scale.Scale = factor
 		local x = 16 + slot * (UIKit.SideSize + 20) * factor
-		column.AnchorPoint = Vector2.new(if onRight then 1 else 0, 0.5)
-		column.Position = if onRight
-			then UDim2.new(1, -x, 0.5, SIDE_CENTRE_OFFSET)
-			else UDim2.new(0, x, 0.5, SIDE_CENTRE_OFFSET)
+		local top = SIDE_CENTRE_OFFSET - SIDE_COLUMN_HEIGHT * factor / 2
+		column.AnchorPoint = Vector2.new(if onRight then 1 else 0, 0)
+		column.Position = if onRight then UDim2.new(1, -x, 0.5, top) else UDim2.new(0, x, 0.5, top)
 	end
 	update()
 	local camera = Workspace.CurrentCamera
 	if camera then
 		camera:GetPropertyChangedSignal("ViewportSize"):Connect(update)
 	end
+end
+
+-- Grid cells for `columns` columns that exactly fill a scrolling list
+-- `width` pixels wide (clear of its scroll bar), with `gap` between them.
+function UIKit.gridCells(width: number, columns: number, gap: number, scrollBar: number): number
+	return math.floor((width - scrollBar - 4 - (columns - 1) * gap) / columns)
+end
+
+-- Changes a window's design size (see UIKit.modal), e.g. to fit its content.
+function UIKit.resizeModal(frame: Frame, size: Vector2)
+	frame.Size = UDim2.fromOffset(size.X, size.Y)
+	refit(frame)
+end
+
+-- The size of a window's Body at its design size.
+function UIKit.bodySize(frame: Frame): Vector2
+	return Vector2.new(frame.Size.X.Offset - 32, frame.Size.Y.Offset - 90)
+end
+
+-- Windows follow the screen size.
+do
+	local function refitAll()
+		for _, frame in modals do
+			refit(frame)
+		end
+	end
+	local camera = Workspace.CurrentCamera
+	if camera then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(refitAll)
+	end
+	Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+		local newCamera = Workspace.CurrentCamera
+		if newCamera then
+			newCamera:GetPropertyChangedSignal("ViewportSize"):Connect(refitAll)
+			refitAll()
+		end
+	end)
 end
 
 --------------------------------------------------------------------------------

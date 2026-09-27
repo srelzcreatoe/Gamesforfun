@@ -647,17 +647,10 @@ HANDLERS.SaveSettings = function(player: Player, argument: any): (boolean, strin
 		return false, nil
 	end
 	local defaults = FeatureConfig.DefaultSettings
-	-- The radio saves its station on its own; other saves keep the old one.
-	local saved = getTable(player, "Settings")
-	local station = if typeof(argument.Station) == "string" and #argument.Station <= 24
-		then argument.Station
-		elseif typeof(saved.Station) == "string" then saved.Station
-		else defaults.Station
 	setProgress(player, "Settings", {
 		Music = math.clamp(tonumber(argument.Music) or defaults.Music, 0, 1),
 		Sfx = math.clamp(tonumber(argument.Sfx) or defaults.Sfx, 0, 1),
 		LowGraphics = argument.LowGraphics == true,
-		Station = station,
 	})
 	return true, nil
 end

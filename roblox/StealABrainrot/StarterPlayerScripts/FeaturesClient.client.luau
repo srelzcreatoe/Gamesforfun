@@ -1001,7 +1001,12 @@ end)
 -- Settings
 --------------------------------------------------------------------------------
 
-local settingsFrame, settingsBody = UIKit.modal(screen, "Settings", "SETTINGS", ACCENTS.Settings, Vector2.new(520, 460))
+-- Rows, top to bottom; the window is as tall as the rows it shows.
+local SETTINGS_WIDTH = 520
+local SETTINGS_SLIDER_HEIGHT = 70
+local SETTINGS_BUTTON_HEIGHT = 54
+local SETTINGS_GAP = 14
+local settingsFrame, settingsBody = UIKit.modal(screen, "Settings", "SETTINGS", ACCENTS.Settings, Vector2.new(SETTINGS_WIDTH, 400))
 do
 	local settings = {
 		Music = FeatureConfig.DefaultSettings.Music,
@@ -1028,22 +1033,24 @@ do
 		end)
 	end
 
-	create("UIListLayout", { Padding = UDim.new(0, 14), SortOrder = Enum.SortOrder.LayoutOrder }).Parent = settingsBody
+	create("UIListLayout", { Padding = UDim.new(0, SETTINGS_GAP), SortOrder = Enum.SortOrder.LayoutOrder }).Parent = settingsBody
 
 	type Slider = { Set: (number) -> () }
 	local function slider(name: string, text: string, order: number, onChange: (number) -> ()): Slider
 		local row = create("Frame", {
 			Name = name,
-			Size = UDim2.new(1, 0, 0, 70),
+			Size = UDim2.new(1, 0, 0, SETTINGS_SLIDER_HEIGHT),
 			BackgroundTransparency = 1,
 			LayoutOrder = order,
 		}) :: Frame
 		local title = label({ Name = "Title", Size = UDim2.new(1, 0, 0, 30), Text = text, TextSize = 26, TextXAlignment = Enum.TextXAlignment.Left })
 		title.Parent = row
+		-- The knob stays inside the bar, so every row lines up at both edges.
+		local knobSize = 30
 		local bar = create("TextButton", {
 			Name = "Bar",
 			Position = UDim2.fromOffset(0, 40),
-			Size = UDim2.new(1, -20, 0, 18),
+			Size = UDim2.new(1, 0, 0, 18),
 			BackgroundColor3 = COLORS.PanelDark,
 			AutoButtonColor = false,
 			Text = "",
@@ -1054,16 +1061,18 @@ do
 		local knob = create("Frame", {
 			Name = "Knob",
 			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = UDim2.fromScale(1, 0.5),
-			Size = UDim2.fromOffset(30, 30),
+			Position = UDim2.new(1, -knobSize / 2, 0.5, 0),
+			Size = UDim2.fromOffset(knobSize, knobSize),
 			BackgroundColor3 = Color3.new(1, 1, 1),
 			ZIndex = 2,
 		}, { UIKit.round(), stroke(COLORS.Outline, 3) }) :: Frame
 		knob.Parent = bar
 		local function set(value: number)
 			local fraction = math.clamp(value, 0, 1)
-			fill.Size = UDim2.fromScale(fraction, 1)
-			knob.Position = UDim2.fromScale(fraction, 0.5)
+			-- The knob's centre runs from half a knob in at 0% to half a knob in from the end at 100%.
+			local offset = knobSize / 2 - fraction * knobSize
+			fill.Size = UDim2.new(fraction, offset, 1, 0)
+			knob.Position = UDim2.new(fraction, offset, 0.5, 0)
 			title.Text = string.format("%s: %d%%", text, math.floor(fraction * 100 + 0.5))
 		end
 		local dragging = false
@@ -1072,7 +1081,9 @@ do
 			if width <= 0 then
 				return
 			end
-			local fraction = math.clamp((x - bar.AbsolutePosition.X) / width, 0, 1)
+			-- In screen pixels (the window may be scaled to fit).
+			local knobPixels = knob.AbsoluteSize.X
+			local fraction = math.clamp((x - bar.AbsolutePosition.X - knobPixels / 2) / math.max(1, width - knobPixels), 0, 1)
 			set(fraction)
 			onChange(fraction)
 		end
@@ -1108,7 +1119,7 @@ do
 	end)
 	local graphicsButton = button("", COLORS.PanelLight, {
 		Name = "LowGraphics",
-		Size = UDim2.new(1, -20, 0, 54),
+		Size = UDim2.new(1, 0, 0, SETTINGS_BUTTON_HEIGHT),
 		LayoutOrder = 3,
 	})
 	graphicsButton.Parent = settingsBody
@@ -1124,9 +1135,17 @@ do
 	end)
 	local tutorialButton = button("SKIP TUTORIAL", COLORS.PanelLight, {
 		Name = "Tutorial",
-		Size = UDim2.new(1, -20, 0, 54),
+		Size = UDim2.new(1, 0, 0, SETTINGS_BUTTON_HEIGHT),
 		LayoutOrder = 4,
 	})
+	-- The window fits the rows it shows (Skip Tutorial only during the tutorial).
+	local function fitSettings()
+		local height = 2 * SETTINGS_SLIDER_HEIGHT + SETTINGS_BUTTON_HEIGHT + 2 * SETTINGS_GAP
+		if tutorialButton.Visible then
+			height += SETTINGS_GAP + SETTINGS_BUTTON_HEIGHT
+		end
+		UIKit.resizeModal(settingsFrame, Vector2.new(SETTINGS_WIDTH, height + 90))
+	end
 	tutorialButton.Parent = settingsBody
 	tutorialButton.Activated:Connect(function()
 		ask("SkipTutorial")
@@ -1136,7 +1155,11 @@ do
 	showGraphics()
 
 	table.insert(refreshers, function()
-		tutorialButton.Visible = (tonumber(player:GetAttribute("TutorialStep")) or 0) > 0
+		local inTutorial = (tonumber(player:GetAttribute("TutorialStep")) or 0) > 0
+		if tutorialButton.Visible ~= inTutorial then
+			tutorialButton.Visible = inTutorial
+			fitSettings()
+		end
 		-- Saved settings apply once, when they first arrive.
 		if loaded or typeof(state.Settings) ~= "table" then
 			return
@@ -1151,6 +1174,7 @@ do
 		showGraphics()
 		apply()
 	end)
+	fitSettings()
 	apply()
 end
 

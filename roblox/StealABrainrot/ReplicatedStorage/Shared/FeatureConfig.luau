@@ -389,7 +389,7 @@ FeatureConfig.AdminAbuseChance = 0.1
 FeatureConfig.AdminUserIds = table.freeze({} :: { number })
 
 -- Settings players can change (saved).
-FeatureConfig.DefaultSettings = table.freeze({ Music = 0.6, Sfx = 1, LowGraphics = false, Station = "Mix" })
+FeatureConfig.DefaultSettings = table.freeze({ Music = 0.6, Sfx = 1, LowGraphics = false })
 
 -- Cash from a Cash reward for a player earning `income` per second.
 function FeatureConfig.cashAmount(reward: Reward, income: number): number

@@ -2,9 +2,10 @@
 --[[
 	Sounds (client only)
 
-	Plays the background music playlist (shuffled) and the sound effects
-	listed in AudioConfig. Sound effects that fail to load on this device fall back to a
-	built-in Roblox sound; a music track that doesn't load is skipped.
+	Plays the background music playlist (in order, over and over) and the
+	sound effects listed in AudioConfig. Sound effects that fail to load on
+	this device fall back to a built-in Roblox sound; a music track that
+	doesn't load, or stops partway, is skipped.
 ]]
 
 local ContentProvider = game:GetService("ContentProvider")
@@ -15,6 +16,10 @@ local AudioConfig = require(script.Parent:WaitForChild("AudioConfig"))
 
 -- A track that hasn't loaded after this long is skipped.
 local TRACK_LOAD_TIMEOUT_SECONDS = 12
+-- A playing track that hasn't moved for this long is moved on from.
+local TRACK_STALL_SECONDS = 5
+-- If no track will load at all, try again this often.
+local TRACK_RETRY_SECONDS = 30
 
 local Sounds = {}
 
@@ -81,6 +86,11 @@ end
 -- Music
 --------------------------------------------------------------------------------
 
+-- The playlist plays in order, one track after another, and starts over from
+-- the first when it runs out. A watchdog makes sure it never just stops: a
+-- track that doesn't load, or stops moving (even without Ended firing), is
+-- moved on from, and if nothing will load it keeps trying.
+
 local music = Instance.new("Sound")
 music.Name = "BackgroundMusic"
 music.Volume = AudioConfig.MusicVolume
@@ -94,66 +104,65 @@ local function musicVolumeOr1(): number
 	return if savedMusicVolume > 0 then savedMusicVolume else 1
 end
 local musicStarted = false
-local trackQueue: { number } = {}
-local lastTrack: number? = nil
-local trackToken = 0
-local shuffleRng = Random.new()
+local trackIndex = 0
+-- Tracks in a row that didn't load; after a whole playlist of them it waits.
+local failuresInARow = 0
+local trackStartedAt = 0
+local lastPosition = -1
+local lastMovedAt = 0
 
--- The radio station's tracks (Mix = the whole AudioConfig.Music playlist).
-local stationName = "Mix"
-local function stationTracks(): { number }
-	for _, station in AudioConfig.Stations do
-		if station.Name == stationName and #station.Tracks > 0 then
-			return station.Tracks
-		end
-	end
-	return AudioConfig.Music
-end
-
--- The first track in AudioConfig.Music plays first. After that the playlist is
--- shuffled, and shuffled again each time it runs out, never playing the same
--- track twice in a row.
-local function nextTrack(): number
-	local tracks = stationTracks()
-	if #trackQueue == 0 then
-		if lastTrack == nil then
-			trackQueue = { tracks[1] }
-		else
-			trackQueue = table.clone(tracks)
-			for i = #trackQueue, 2, -1 do
-				local j = shuffleRng:NextInteger(1, i)
-				trackQueue[i], trackQueue[j] = trackQueue[j], trackQueue[i]
-			end
-			if #trackQueue > 1 and trackQueue[1] == lastTrack then
-				trackQueue[1], trackQueue[#trackQueue] = trackQueue[#trackQueue], trackQueue[1]
-			end
-		end
-	end
-	local track = table.remove(trackQueue, 1) :: number
-	lastTrack = track
-	return track
-end
-
-local function playNextTrack(failures: number)
-	local tracks = stationTracks()
-	if #tracks == 0 or failures >= #tracks then
+local function playTrack(index: number)
+	local tracks = AudioConfig.Music
+	if #tracks == 0 then
 		return
 	end
-	trackToken += 1
-	local token = trackToken
-	music.SoundId = "rbxassetid://" .. tostring(nextTrack())
+	trackIndex = (index - 1) % #tracks + 1
+	music.SoundId = "rbxassetid://" .. tostring(tracks[trackIndex])
 	music.TimePosition = 0
 	music:Play()
-	task.delay(TRACK_LOAD_TIMEOUT_SECONDS, function()
-		if trackToken == token and not music.IsLoaded then
-			playNextTrack(failures + 1)
-		end
-	end)
+	trackStartedAt = os.clock()
+	lastPosition = -1
+	lastMovedAt = trackStartedAt
+end
+
+local function playNextTrack()
+	playTrack(trackIndex + 1)
 end
 
 music.Ended:Connect(function()
-	if musicEnabled then
-		playNextTrack(0)
+	failuresInARow = 0
+	if musicStarted and musicEnabled then
+		playNextTrack()
+	end
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(1)
+		local now = os.clock()
+		if not (musicStarted and musicEnabled) then
+			-- Paused on purpose: that isn't stuck.
+			lastMovedAt = now
+		elseif not music.IsLoaded then
+			-- After a whole playlist that wouldn't load, wait longer between tries.
+			local limit = if failuresInARow >= #AudioConfig.Music then TRACK_RETRY_SECONDS else TRACK_LOAD_TIMEOUT_SECONDS
+			if now - trackStartedAt >= limit then
+				failuresInARow += 1
+				playNextTrack()
+			end
+		else
+			local position = music.TimePosition
+			if position ~= lastPosition then
+				lastPosition = position
+				lastMovedAt = now
+				if position > 0 then
+					failuresInARow = 0
+				end
+			elseif now - lastMovedAt >= TRACK_STALL_SECONDS then
+				-- It stopped or got stuck without finishing: carry on.
+				playNextTrack()
+			end
+		end
 	end
 end)
 
@@ -163,30 +172,8 @@ function Sounds.startMusic()
 	end
 	musicStarted = true
 	if musicEnabled then
-		playNextTrack(0)
+		playTrack(1)
 	end
-end
-
--- Switches the radio station and starts one of its tracks.
-function Sounds.setStation(name: string)
-	local found = false
-	for _, station in AudioConfig.Stations do
-		found = found or station.Name == name
-	end
-	if not found or name == stationName then
-		return
-	end
-	stationName = name
-	trackQueue = {}
-	-- A new station starts on a random track of its own.
-	lastTrack = if name == "Mix" then nil else -1
-	if musicStarted and musicEnabled then
-		playNextTrack(0)
-	end
-end
-
-function Sounds.getStation(): string
-	return stationName
 end
 
 function Sounds.isMusicEnabled(): boolean
@@ -198,7 +185,7 @@ function Sounds.setMusicEnabled(enabled: boolean)
 	musicGroup.Volume = if enabled then musicVolumeOr1() else 0
 	if enabled and musicStarted and not music.IsPlaying then
 		if music.SoundId == "" then
-			playNextTrack(0)
+			playTrack(1)
 		else
 			music:Resume()
 		end
