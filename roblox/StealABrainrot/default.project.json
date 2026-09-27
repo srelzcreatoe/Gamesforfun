@@ -149,6 +149,12 @@
         "$path": "ReplicatedStorage/Assets"
       }
     },
+    "ReplicatedFirst": {
+      "$className": "ReplicatedFirst",
+      "LoadingScreen": {
+        "$path": "ReplicatedFirst/LoadingScreen.client.luau"
+      }
+    },
     "ServerStorage": {
       "$className": "ServerStorage"
     },

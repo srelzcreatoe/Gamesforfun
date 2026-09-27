@@ -33,6 +33,8 @@ Until you import the file, each player's game builds blocky versions of the mode
 
 ## How to play
 
+When you join, a title screen comes up over a slow, blurry flyover of the map: the bouncing, cartoon **STEAL A BRAINROT** logo, a loading bar with tips, and a **SKIP** button. Once everything has loaded, the bar fills and a big **PLAY!** button pops up; press it (or SKIP at any time) and the blur clears and the camera drops back to your character.
+
 | Action | How |
 |---|---|
 | Buy a brainrot | Walk up to one on the conveyor and press **E**. It walks to your base, and until it's through your door **anyone can buy it off you** for the same price (you get your Cash back) |
@@ -251,6 +253,7 @@ Global leaderboards also need a published place with API access; until then the 
 | `ServerScriptService/SocialManager.server.luau` | Name tags, crews, bounties and revenge |
 | `ServerScriptService/SeasonManager.server.luau` | The season pass and this week's limited brainrot |
 | `ServerScriptService/RaidManager.server.luau` | Boss Raids and Bank Heists |
+| `ReplicatedFirst/LoadingScreen.client.luau` | The loading and title screen: blurred map flyover, cartoon logo, loading bar and tips, SKIP and PLAY buttons |
 | `StarterPlayerScripts/GameClient.client.luau` | HUD, Robux Shop, Gear Shop, rebirth screen, Index, pop-up messages, boost timers, clouds |
 | `StarterPlayerScripts/FeaturesClient.client.luau` | Spin wheel, gifts, quests, upgrades, settings, trading, Fuse Machine, lucky block roulette, base alarm, tutorial, Admin Abuse banner |
 | `StarterPlayerScripts/BrainrotVisuals.client.luau` | Blocky 3D models, rarity, mutation and trait effects, walking, waddling, flying, driving, lucky blocks |
