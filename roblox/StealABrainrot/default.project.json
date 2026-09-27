@@ -149,6 +149,12 @@
         "$path": "ReplicatedStorage/Assets"
       }
     },
+    "TextChatService": {
+      "$className": "TextChatService",
+      "$properties": {
+        "ChatVersion": "TextChatService"
+      }
+    },
     "ReplicatedFirst": {
       "$className": "ReplicatedFirst",
       "LoadingScreen": {

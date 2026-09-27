@@ -121,7 +121,9 @@ Every 5 to 8 minutes an event runs for 3 minutes, with its own sky (a huge sun, 
 
 #### Event commands
 
-Admins can start and stop events by typing in the chat. Admins are you in Studio, the game's owner (for a game owned by a user) and anyone whose user ID is in `FeatureConfig.AdminUserIds` (add yours there for a group-owned game). For everyone else the commands do nothing.
+Admins can start and stop events by typing in the chat. Admins are you in Studio, the game's owner (for a game owned by a user) and anyone whose user ID is in `FeatureConfig.AdminUserIds` (add yours there for a group-owned game). Anyone else gets "Only admins can use ..." and the Output shows the user ID to add.
+
+Every command answers with a pop-up ("Starting Gold Rush!", "Ended Gold Rush.", ...) and a line in the Output (`[GameplayManager] Alice used /event gold`), so you can tell it arrived.
 
 | Command | What it does |
 |---|---|
@@ -130,7 +132,7 @@ Admins can start and stop events by typing in the chat. Admins are you in Studio
 | `/abuse` | Starts ADMIN ABUSE |
 | `/endevent` | Ends the current event now |
 
-Starting an event while another is running ends that one first.
+Starting an event while another is running ends that one first. The commands work with Roblox's current chat (TextChatService); the place is set to use it.
 
 ### Day, night and weather
 

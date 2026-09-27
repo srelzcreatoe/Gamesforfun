@@ -1343,4 +1343,24 @@ for _, descendant in Workspace:GetDescendants() do
 	trackPrompt(descendant)
 end
 
+-- Admin chat commands (/event, /events, /abuse, /endevent): pass them on to
+-- the server too, in case it doesn't hear them itself (it runs each once).
+task.spawn(function()
+	local chatCommandEvent = remotes:WaitForChild("ChatCommand") :: RemoteEvent
+	local textChatService = game:GetService("TextChatService")
+	local function hookCommand(child: Instance)
+		if child:IsA("TextChatCommand") and string.sub(child.Name, 1, 13) == "BrainrotEvent" then
+			child.Triggered:Connect(function(source: TextSource, text: string)
+				if source.UserId == player.UserId then
+					chatCommandEvent:FireServer(text)
+				end
+			end)
+		end
+	end
+	textChatService.ChildAdded:Connect(hookCommand)
+	for _, child in textChatService:GetChildren() do
+		hookCommand(child)
+	end
+end)
+
 screenGui.Parent = playerGui

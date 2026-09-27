@@ -329,6 +329,11 @@ Api.baseAlarmEvent = Instance.new("RemoteEvent")
 Api.baseAlarmEvent.Name = "BaseAlarm"
 Api.baseAlarmEvent.Parent = Api.remotesFolder
 
+-- The client passes chat commands on too, in case the server doesn't hear them.
+Api.chatCommandEvent = Instance.new("RemoteEvent")
+Api.chatCommandEvent.Name = "ChatCommand"
+Api.chatCommandEvent.Parent = Api.remotesFolder
+
 Api.remotesFolder.Parent = ReplicatedStorage
 
 -- Parented to ServerStorage once every function is set (see the end).
@@ -4108,6 +4113,8 @@ end
 --   /endevent        end the current event now
 -- Starting an event ends the one running first. Only admins can use them:
 -- FeatureConfig.AdminUserIds, the place's owner, and anyone in Studio.
+-- They reach the server three ways (the new chat's TextChatCommands, the
+-- client passing those on, and Player.Chatted); each command runs once.
 --------------------------------------------------------------------------------
 
 do
@@ -4173,6 +4180,7 @@ do
 			notify(player, "The current event didn't end. Try again in a moment.", "Warning")
 			return
 		end
+		notify(player, "Starting " .. event.Name .. "!", "Success")
 		task.spawn(startEvent, event)
 	end
 
@@ -4185,7 +4193,7 @@ do
 		notify(player, "Chat /event <name> to start one, /abuse for ADMIN ABUSE, /endevent to stop it.", "Info")
 	end
 
-	-- A command can arrive twice (TextChatCommand and Player.Chatted).
+	-- The same command can arrive more than once (see above).
 	local lastCommand: { [Player]: { text: string, at: number } } = setmetatable({}, { __mode = "k" }) :: any
 
 	onChatted = function(player: Player, message: string)
@@ -4197,15 +4205,18 @@ do
 		if command ~= "events" and command ~= "event" and command ~= "abuse" and command ~= "endevent" then
 			return
 		end
-		if not isAdmin(player) then
-			return
-		end
 		local now = Workspace:GetServerTimeNow()
 		local last = lastCommand[player]
-		if last and last.text == message and now - last.at < 1 then
+		if last and last.text == message and now - last.at < 2 then
 			return
 		end
 		lastCommand[player] = { text = message, at = now }
+		print(string.format("%s %s used %s", LOG_PREFIX, player.Name, message))
+		if not isAdmin(player) then
+			notify(player, "Only admins can use /" .. command .. ".", "Warning")
+			print(string.format("%s To let %s use commands, add %d to FeatureConfig.AdminUserIds.", LOG_PREFIX, player.Name, player.UserId))
+			return
+		end
 
 		if command == "events" then
 			listEvents(player)
@@ -4230,12 +4241,13 @@ do
 		end
 	end
 
-	-- With the new chat, register the commands so they don't show up in chat
-	-- (and so they work even if Player.Chatted doesn't fire for them).
+	-- Register the commands with the new chat, so they don't show up in chat.
+	-- Always: ChatVersion is deprecated and can still say LegacyChatService
+	-- while the new chat runs, and Player.Chatted doesn't fire there.
 	local okChat, textChatService = pcall(function(): TextChatService
 		return game:GetService("TextChatService")
 	end)
-	if okChat and textChatService and textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+	if okChat and textChatService then
 		for _, alias in { "/events", "/event", "/abuse", "/endevent" } do
 			local chatCommand = Instance.new("TextChatCommand")
 			chatCommand.Name = "BrainrotEvent" .. string.sub(alias, 2)
@@ -4250,6 +4262,11 @@ do
 			chatCommand.Parent = textChatService
 		end
 	end
+	Api.chatCommandEvent.OnServerEvent:Connect(function(player: Player, text: any)
+		if typeof(text) == "string" and #text <= 200 then
+			onChatted(player, text)
+		end
+	end)
 end
 
 --------------------------------------------------------------------------------
