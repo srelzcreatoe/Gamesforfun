@@ -71,6 +71,8 @@ OVERRIDES: dict[str, dict] = {
     "CocofantoElefanto": {"on": (0.0, -0.19)},
     # On the bread, just behind the toothpick through the front.
     "AeroplaninoPaninino": {"at": (0.0, 0.625, 0.05)},
+    # Flat, with its claws up higher than its head: on its chef's hat.
+    "ChefCrabracadabra": {"on": (0.08, 0.0)},
 }
 
 

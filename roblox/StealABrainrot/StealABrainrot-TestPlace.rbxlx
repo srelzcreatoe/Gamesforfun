@@ -18122,7 +18122,7 @@ local HatAnchors: { [string]: Anchor } = {
 	CapibaraTacoloco = { Piece = "Body", X = -0.014, Y = 0.5, Z = -0.231, Width = 0.307 },
 	CappuccinoAssassino = { Piece = "Body", X = -0.03, Y = 0.5, Z = 0.0, Width = 0.45 },
 	CapraAvocadra = { Piece = "Body", X = -0.246, Y = 0.5, Z = -0.267, Width = 0.22 },
-	ChefCrabracadabra = { Piece = "Body", X = -0.361, Y = 0.5, Z = -0.138, Width = 0.22 },
+	ChefCrabracadabra = { Piece = "Body", X = 0.08, Y = 0.306, Z = -0.062, Width = 0.22 },
 	ChicleteiraBicicleteira = { Piece = "Body", X = 0.0, Y = 0.449, Z = 0.09, Width = 0.286 },
 	ChimpanziniBananini = { Piece = "Body", X = 0.0, Y = 0.5, Z = 0.011, Width = 0.228 },
 	Cioccolatone = { Piece = "Body", X = 0.0, Y = 0.5, Z = 0.0, Width = 0.22 },
