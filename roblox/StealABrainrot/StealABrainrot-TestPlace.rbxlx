@@ -13267,30 +13267,35 @@ local ServerStorage = game:GetService("ServerStorage")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
-local Shared = ReplicatedStorage:WaitForChild("Shared")
-local BrainrotConfig = require(Shared:WaitForChild("BrainrotConfig"))
-local ExtrasConfig = require(Shared:WaitForChild("ExtrasConfig"))
-local FeatureConfig = require(Shared:WaitForChild("FeatureConfig"))
-local GameConfig = require(Shared:WaitForChild("GameConfig"))
-local MonetizationConfig = require(Shared:WaitForChild("MonetizationConfig"))
-local NumberFormat = require(Shared:WaitForChild("NumberFormat"))
+local BrainrotConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("BrainrotConfig"))
+local ExtrasConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ExtrasConfig"))
+local FeatureConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("FeatureConfig"))
+local GameConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("GameConfig"))
+local MonetizationConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("MonetizationConfig"))
+local NumberFormat = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("NumberFormat"))
 
 local LOG_PREFIX = "[GameplayManager]"
 
+-- Fixed numbers and look-up tables live in Tuning, and the objects this
+-- script makes in Api, rather than in locals of their own: Studio compiles
+-- scripts with full debug info, which allows only 200 locals at the top level
+-- of a script, and this one is big.
+local Tuning = {}
+
 -- Height of a carried brainrot's feet above the thief's HumanoidRootPart.
-local CARRY_HEIGHT = 3.2
+Tuning.CARRY_HEIGHT = 3.2
 -- Height in studs of a brainrot with Scale 1.
-local FIGURE_HEIGHT = 5.2
-local FAST_TICK_SECONDS = 0.1
-local SLOW_TICK_SECONDS = 1
-local REBIRTH_REQUEST_COOLDOWN_SECONDS = 1
+Tuning.FIGURE_HEIGHT = 5.2
+Tuning.FAST_TICK_SECONDS = 0.1
+Tuning.SLOW_TICK_SECONDS = 1
+Tuning.REBIRTH_REQUEST_COOLDOWN_SECONDS = 1
 -- Walking brainrots walk beside the conveyor this far from the carpet's end.
-local LANE_INSET = 3
+Tuning.LANE_INSET = 3
 -- The pad in front of a pedestal, and the walkway between pads and door.
-local PAD_OFFSET = 5.5
-local PAD_REACH = 1
+Tuning.PAD_OFFSET = 5.5
+Tuning.PAD_REACH = 1
 -- How far from the stairs a walking brainrot steps off onto the floor above.
-local STAIR_EXIT_OFFSET = 4.75
+Tuning.STAIR_EXIT_OFFSET = 4.75
 
 --------------------------------------------------------------------------------
 -- Types
@@ -13490,52 +13495,53 @@ end
 -- Remotes and server API
 --------------------------------------------------------------------------------
 
-local remotesFolder = Instance.new("Folder")
-remotesFolder.Name = "Remotes"
+local Api = {}
+Api.remotesFolder = Instance.new("Folder")
+Api.remotesFolder.Name = "Remotes"
 
-local notifyEvent = Instance.new("RemoteEvent")
-notifyEvent.Name = "Notify"
-notifyEvent.Parent = remotesFolder
+Api.notifyEvent = Instance.new("RemoteEvent")
+Api.notifyEvent.Name = "Notify"
+Api.notifyEvent.Parent = Api.remotesFolder
 
-local playSoundEvent = Instance.new("RemoteEvent")
-playSoundEvent.Name = "PlaySound"
-playSoundEvent.Parent = remotesFolder
+Api.playSoundEvent = Instance.new("RemoteEvent")
+Api.playSoundEvent.Name = "PlaySound"
+Api.playSoundEvent.Parent = Api.remotesFolder
 
-local requestRebirthFunction = Instance.new("RemoteFunction")
-requestRebirthFunction.Name = "RequestRebirth"
-requestRebirthFunction.Parent = remotesFolder
+Api.requestRebirthFunction = Instance.new("RemoteFunction")
+Api.requestRebirthFunction.Name = "RequestRebirth"
+Api.requestRebirthFunction.Parent = Api.remotesFolder
 
-local luckyRevealEvent = Instance.new("RemoteEvent")
-luckyRevealEvent.Name = "LuckyReveal"
-luckyRevealEvent.Parent = remotesFolder
+Api.luckyRevealEvent = Instance.new("RemoteEvent")
+Api.luckyRevealEvent.Name = "LuckyReveal"
+Api.luckyRevealEvent.Parent = Api.remotesFolder
 
-local baseAlarmEvent = Instance.new("RemoteEvent")
-baseAlarmEvent.Name = "BaseAlarm"
-baseAlarmEvent.Parent = remotesFolder
+Api.baseAlarmEvent = Instance.new("RemoteEvent")
+Api.baseAlarmEvent.Name = "BaseAlarm"
+Api.baseAlarmEvent.Parent = Api.remotesFolder
 
-remotesFolder.Parent = ReplicatedStorage
+Api.remotesFolder.Parent = ReplicatedStorage
 
 -- Parented to ServerStorage once every function is set (see the end).
-local gameplayApi = Instance.new("Folder")
-gameplayApi.Name = "Gameplay"
-local forceDropEvent = Instance.new("BindableEvent")
-forceDropEvent.Name = "ForceDrop"
-forceDropEvent.Parent = gameplayApi
-local activityEvent = Instance.new("BindableEvent")
-activityEvent.Name = "Activity"
-activityEvent.Parent = gameplayApi
+Api.gameplayApi = Instance.new("Folder")
+Api.gameplayApi.Name = "Gameplay"
+Api.forceDropEvent = Instance.new("BindableEvent")
+Api.forceDropEvent.Name = "ForceDrop"
+Api.forceDropEvent.Parent = Api.gameplayApi
+Api.activityEvent = Instance.new("BindableEvent")
+Api.activityEvent.Name = "Activity"
+Api.activityEvent.Parent = Api.gameplayApi
 
 local function reportActivity(player: Player, kind: string, amount: number?)
-	activityEvent:Fire(player, kind, amount or 1)
+	Api.activityEvent:Fire(player, kind, amount or 1)
 end
 
 -- `sound` names an entry in AudioConfig.Sounds for the client to play.
 local function notify(player: Player, message: string, kind: NotifyKind, sound: string?)
-	notifyEvent:FireClient(player, message, kind, sound)
+	Api.notifyEvent:FireClient(player, message, kind, sound)
 end
 
 local function playSound(player: Player, sound: string)
-	playSoundEvent:FireClient(player, sound)
+	Api.playSoundEvent:FireClient(player, sound)
 end
 
 --------------------------------------------------------------------------------
@@ -13701,12 +13707,12 @@ local function occupantIncome(occupant: Occupant): number
 		* (1 + if hat then hat.Bonus else 0)
 end
 
-local slotsChangedEvent = Instance.new("BindableEvent")
-slotsChangedEvent.Name = "SlotsChanged"
-slotsChangedEvent.Parent = gameplayApi
-local stolenEvent = Instance.new("BindableEvent")
-stolenEvent.Name = "Stolen"
-stolenEvent.Parent = gameplayApi
+Api.slotsChangedEvent = Instance.new("BindableEvent")
+Api.slotsChangedEvent.Name = "SlotsChanged"
+Api.slotsChangedEvent.Parent = Api.gameplayApi
+Api.stolenEvent = Instance.new("BindableEvent")
+Api.stolenEvent.Name = "Stolen"
+Api.stolenEvent.Parent = Api.gameplayApi
 
 -- A brainrot leaving its base (sold, stolen, fused, traded) gives its hat
 -- back to whoever owned it.
@@ -13725,7 +13731,7 @@ local function saveBrainrots(plot: Plot): boolean
 	end
 	local saved = DataApi.SetBrainrots:Invoke(owner, getBrainrotIds(plot)) == true
 	-- Guards, pets and the Manage menu follow what's in the base.
-	slotsChangedEvent:Fire(owner)
+	Api.slotsChangedEvent:Fire(owner)
 	return saved
 end
 
@@ -14012,7 +14018,7 @@ local function buildFigure(model: Model, root: BasePart, definition: Definition)
 		addBodyPart(model, root, "Foot", Enum.PartType.Block, Vector3.new(0.8, 0.5, 1) * s, Vector3.new(0.6 * side * s, 0.25 * s, 0), definition.AccentColor, Enum.Material.SmoothPlastic)
 	end
 	addBodyPart(model, root, "Hat", Enum.PartType.Block, Vector3.new(1.3, 0.6, 1.3) * s, Vector3.new(0, 4.85 * s, 0), definition.AccentColor, Enum.Material.SmoothPlastic)
-	return FIGURE_HEIGHT * s
+	return Tuning.FIGURE_HEIGHT * s
 end
 
 -- World-space box around some parts.
@@ -14085,7 +14091,7 @@ end
 -- the Front and Top markers, whatever axes the importer used), with the
 -- parts named Body/Leg1/Leg2 and a Height attribute. A Model named after a
 -- brainrot's Id (made or imported by hand) works too.
-local IMPORTED_PIECES: { [string]: boolean } = { Body = true, Leg1 = true, Leg2 = true, Front = true, Top = true }
+Tuning.IMPORTED_PIECES = { Body = true, Leg1 = true, Leg2 = true, Front = true, Top = true } :: { [string]: boolean }
 
 local function prepareImportedModels(): number
 	local containers: { Instance } = {}
@@ -14120,7 +14126,7 @@ local function prepareImportedModels(): number
 				continue
 			end
 			local brainrotId, piece = string.match(descendant.Name, "^(%w+)_(%a+%d*)")
-			if brainrotId and piece and BrainrotConfig.ById[brainrotId] and IMPORTED_PIECES[piece] then
+			if brainrotId and piece and BrainrotConfig.ById[brainrotId] and Tuning.IMPORTED_PIECES[piece] then
 				groups[brainrotId] = groups[brainrotId] or {}
 				groups[brainrotId][piece] = descendant
 			else
@@ -14186,7 +14192,7 @@ local function prepareImportedModels(): number
 			part.CanCollide = false
 			part.CanQuery = false
 			part.CanTouch = false
-			if IMPORTED_PIECES[piece] then
+			if Tuning.IMPORTED_PIECES[piece] then
 				part.Name = piece
 			end
 			part.Parent = template
@@ -14203,7 +14209,7 @@ local function prepareImportedModels(): number
 	return count
 end
 
-local RAINBOW = ColorSequence.new({
+Tuning.RAINBOW = ColorSequence.new({
 	ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 70, 70)),
 	ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 190, 40)),
 	ColorSequenceKeypoint.new(0.4, Color3.fromRGB(90, 255, 90)),
@@ -14214,10 +14220,10 @@ local RAINBOW = ColorSequence.new({
 
 -- A brainrot's label is sized in studs, so labels further away get smaller
 -- instead of piling up on the screen. Line heights are given in pixels of
--- a label INFO_DESIGN_WIDTH wide, which is INFO_STUDS_WIDE studs across
+-- a label Tuning.INFO_DESIGN_WIDTH wide, which is Tuning.INFO_STUDS_WIDE studs across
 -- (less than the gap between two pedestals).
-local INFO_DESIGN_WIDTH = 260
-local INFO_STUDS_WIDE = 8
+Tuning.INFO_DESIGN_WIDTH = 260
+Tuning.INFO_STUDS_WIDE = 8
 
 local function addInfoLabel(parent: Instance, text: string, color: Color3, textSize: number, order: number, rainbow: boolean?): TextLabel
 	local label = Instance.new("TextLabel")
@@ -14241,7 +14247,7 @@ local function addInfoLabel(parent: Instance, text: string, color: Color3, textS
 
 	if rainbow then
 		local gradient = Instance.new("UIGradient")
-		gradient.Color = RAINBOW
+		gradient.Color = Tuning.RAINBOW
 		gradient.Parent = label
 	end
 	label.Parent = parent
@@ -14262,7 +14268,7 @@ local function layoutInfo(billboard: Instance?)
 	if total <= 0 then
 		return
 	end
-	billboard.Size = UDim2.fromScale(INFO_STUDS_WIDE, INFO_STUDS_WIDE * total / INFO_DESIGN_WIDTH)
+	billboard.Size = UDim2.fromScale(Tuning.INFO_STUDS_WIDE, Tuning.INFO_STUDS_WIDE * total / Tuning.INFO_DESIGN_WIDTH)
 	for _, child in billboard:GetChildren() do
 		if child:IsA("TextLabel") then
 			child.Size = UDim2.fromScale(1, (tonumber(child:GetAttribute("LineHeight")) or 0) / total)
@@ -14417,7 +14423,7 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, trait:
 	local traitScale = if trait then trait.Scale else 1
 	local height = if isBlock
 		then buildLuckyBlock(model, root, definition)
-		elseif template and template:IsA("Model") then buildCustomModel(model, root, template, FIGURE_HEIGHT * definition.Scale * traitScale)
+		elseif template and template:IsA("Model") then buildCustomModel(model, root, template, Tuning.FIGURE_HEIGHT * definition.Scale * traitScale)
 		else buildFigure(model, root, definition)
 	if not hasCustomModel and traitScale ~= 1 then
 		height *= traitScale
@@ -14502,11 +14508,11 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, trait:
 	}
 end
 
-local PROMPT_OFFSETS: { [string]: Vector2 } = {
+Tuning.PROMPT_OFFSETS = {
 	Upgrade = Vector2.new(0, 84),
 	Open = Vector2.new(0, -84),
 	Manage = Vector2.new(0, -84),
-}
+} :: { [string]: Vector2 }
 
 -- Updates a base brainrot's label (income with its level, hat and pedestal)
 -- and the Level and Hat attributes the clients show.
@@ -14556,7 +14562,7 @@ local function createPrompt(
 	prompt.MaxActivationDistance = GameConfig.PromptDistance
 	prompt.RequiresLineOfSight = false
 	-- The owner's prompts share a spot: stack them so none hides another.
-	prompt.UIOffset = PROMPT_OFFSETS[kind] or Vector2.zero
+	prompt.UIOffset = Tuning.PROMPT_OFFSETS[kind] or Vector2.zero
 	prompt:SetAttribute("PromptKind", kind)
 	prompt:SetAttribute("Carried", false)
 	prompt:SetAttribute("Walking", false)
@@ -14658,12 +14664,12 @@ local function buildPath(plot: Plot, slotIndex: number, from: Vector3): ({ Vecto
 	local groundTop = plot.Floor.Position.Y + plot.Floor.Size.Y / 2
 	local carpet = plot.Carpet
 	local carpetLength = if carpet then carpet.Size.Z else 0
-	local laneZ = -halfDepth - carpetLength + LANE_INSET
+	local laneZ = -halfDepth - carpetLength + Tuning.LANE_INSET
 	local slot = plot.Slots[slotIndex]
 	local slotLocal = floorFrame:PointToObjectSpace(slot.Position)
 	local slotTop = slot.Position.Y + slot.Size.Y / 2
 	local fromLocal = floorFrame:PointToObjectSpace(from)
-	local padZ = slotLocal.Z - PAD_OFFSET
+	local padZ = slotLocal.Z - Tuning.PAD_OFFSET
 
 	local points: { Vector3 } = {}
 	local function add(x: number, z: number, y: number)
@@ -14695,7 +14701,7 @@ local function buildPath(plot: Plot, slotIndex: number, from: Vector3): ({ Vecto
 		if stair then
 			local bottom = floorFrame:PointToObjectSpace(stair.Bottom)
 			local top = floorFrame:PointToObjectSpace(stair.Top)
-			local exitZ = bottom.Z + STAIR_EXIT_OFFSET
+			local exitZ = bottom.Z + Tuning.STAIR_EXIT_OFFSET
 			local firstStep = surfaceAt(stair.Bottom.X, stair.Bottom.Z, stair.Bottom.Y + 1, 3) or floorTop + 1
 			local nextFloor = surfaceAt(stair.Top.X, stair.Top.Z, stair.Top.Y + 1, 3) or stair.Top.Y - 0.5
 			add(bottom.X, exitZ, floorTop)
@@ -15085,7 +15091,7 @@ local function updateAlarm(plot: Plot)
 		plot.Model:SetAttribute("Alarm", active)
 		local owner = plot.Owner
 		if not active and owner then
-			baseAlarmEvent:FireClient(owner, nil, nil)
+			Api.baseAlarmEvent:FireClient(owner, nil, nil)
 		end
 	end
 end
@@ -15166,7 +15172,7 @@ local function completeSteal(carry: Carry)
 		"Error",
 		"Stolen"
 	)
-	stolenEvent:Fire(thief, victim, occupantEntry(occupant))
+	Api.stolenEvent:Fire(thief, victim, occupantEntry(occupant))
 	placePending(victim)
 end
 
@@ -15213,7 +15219,7 @@ onStealTriggered = function(occupant: Occupant, thief: Player)
 	setOccupantCarried(occupant, true)
 
 	local root = occupant.Root
-	root.CFrame = rootPart.CFrame * CFrame.new(0, CARRY_HEIGHT, 0)
+	root.CFrame = rootPart.CFrame * CFrame.new(0, Tuning.CARRY_HEIGHT, 0)
 	root.Anchored = false
 	local weld = Instance.new("WeldConstraint")
 	weld.Part0 = rootPart
@@ -15237,7 +15243,7 @@ onStealTriggered = function(occupant: Occupant, thief: Player)
 	notify(thief, "Run it back to your base!", "Info", "Grab")
 	notify(victim, string.format("%s is stealing your %s! Catch them!", thief.DisplayName, name), "Warning", "Alarm")
 	victimPlot.Model:SetAttribute("Alarm", true)
-	baseAlarmEvent:FireClient(victim, thief, name)
+	Api.baseAlarmEvent:FireClient(victim, thief, name)
 end
 
 onSellTriggered = function(occupant: Occupant, player: Player)
@@ -15277,7 +15283,7 @@ onSellTriggered = function(occupant: Occupant, player: Player)
 end
 
 -- `catcher` is whoever made them drop it (a slap), for quests.
-forceDropEvent.Event:Connect(function(playerArg: any, message: any, catcher: any)
+Api.forceDropEvent.Event:Connect(function(playerArg: any, message: any, catcher: any)
 	if typeof(playerArg) ~= "Instance" or not playerArg:IsA("Player") then
 		return
 	end
@@ -15638,8 +15644,8 @@ end
 
 local function isOnPad(pad: BasePart, position: Vector3): boolean
 	local offset = pad.CFrame:PointToObjectSpace(position)
-	return math.abs(offset.X) <= pad.Size.X / 2 + PAD_REACH
-		and math.abs(offset.Z) <= pad.Size.Z / 2 + PAD_REACH
+	return math.abs(offset.X) <= pad.Size.X / 2 + Tuning.PAD_REACH
+		and math.abs(offset.Z) <= pad.Size.Z / 2 + Tuning.PAD_REACH
 		and offset.Y >= -1
 		and offset.Y <= 6
 end
@@ -16295,7 +16301,7 @@ local function movedTooFast(carry: Carry, position: Vector3, clock: number): boo
 	return horizontalDistance > speed * elapsed * 2 + GameConfig.CarrySpeedToleranceStuds
 end
 
--- Runs every FAST_TICK_SECONDS: laser doors, collect pads and brainrots being carried.
+-- Runs every Tuning.FAST_TICK_SECONDS: laser doors, collect pads and brainrots being carried.
 local function fastTick()
 	for _, plot in plots do
 		local owner = plot.Owner
@@ -16343,119 +16349,124 @@ local function fastTick()
 	end
 end
 
-local spawnSignLabel: TextLabel? = nil
+-- The spawn sign, brainrot levels and the slow tick (a block, so its helpers
+-- aren't top-level locals; see Tuning).
+local slowTick: () -> ()
 do
-	local spawnSign = conveyorFolder:FindFirstChild("SpawnSign", true)
-	if spawnSign and spawnSign:IsA("BasePart") then
-		local surfaceGui = Instance.new("SurfaceGui")
-		surfaceGui.Name = "SignGui"
-		surfaceGui.Face = Enum.NormalId.Front
-		surfaceGui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
-		surfaceGui.PixelsPerStud = 40
-		surfaceGui.LightInfluence = 0
+	local spawnSignLabel: TextLabel? = nil
+	do
+		local spawnSign = conveyorFolder:FindFirstChild("SpawnSign", true)
+		if spawnSign and spawnSign:IsA("BasePart") then
+			local surfaceGui = Instance.new("SurfaceGui")
+			surfaceGui.Name = "SignGui"
+			surfaceGui.Face = Enum.NormalId.Front
+			surfaceGui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+			surfaceGui.PixelsPerStud = 40
+			surfaceGui.LightInfluence = 0
 
-		local label = Instance.new("TextLabel")
-		label.BackgroundColor3 = Color3.fromRGB(20, 24, 40)
-		label.Size = UDim2.fromScale(1, 1)
-		label.Font = Enum.Font.FredokaOne
-		label.RichText = true
-		label.TextScaled = true
-		label.TextColor3 = Color3.new(1, 1, 1)
-		label.Parent = surfaceGui
-		surfaceGui.Parent = spawnSign
-		spawnSignLabel = label
+			local label = Instance.new("TextLabel")
+			label.BackgroundColor3 = Color3.fromRGB(20, 24, 40)
+			label.Size = UDim2.fromScale(1, 1)
+			label.Font = Enum.Font.FredokaOne
+			label.RichText = true
+			label.TextScaled = true
+			label.TextColor3 = Color3.new(1, 1, 1)
+			label.Parent = surfaceGui
+			surfaceGui.Parent = spawnSign
+			spawnSignLabel = label
+		end
 	end
-end
 
-local function updateSpawnSign()
-	local label = spawnSignLabel
-	if label == nil then
-		return
-	end
-	local now = Workspace:GetServerTimeNow()
-	local lines: { string } = {}
-	for index = #GameConfig.GuaranteedRarities, 1, -1 do
-		local rule = GameConfig.GuaranteedRarities[index]
-		local rarity = BrainrotConfig.RarityByName[rule.Rarity]
-		local colour = if rarity then rarity.Color:ToHex() else "ffffff"
-		table.insert(
-			lines,
-			string.format(
-				'Guaranteed <font color="#%s">%s</font> in %s',
-				colour,
-				rule.Rarity,
-				NumberFormat.duration((nextGuaranteedAt[rule.Rarity] or now) - now)
+	local function updateSpawnSign()
+		local label = spawnSignLabel
+		if label == nil then
+			return
+		end
+		local now = Workspace:GetServerTimeNow()
+		local lines: { string } = {}
+		for index = #GameConfig.GuaranteedRarities, 1, -1 do
+			local rule = GameConfig.GuaranteedRarities[index]
+			local rarity = BrainrotConfig.RarityByName[rule.Rarity]
+			local colour = if rarity then rarity.Color:ToHex() else "ffffff"
+			table.insert(
+				lines,
+				string.format(
+					'Guaranteed <font color="#%s">%s</font> in %s',
+					colour,
+					rule.Rarity,
+					NumberFormat.duration((nextGuaranteedAt[rule.Rarity] or now) - now)
+				)
 			)
-		)
-	end
-	label.Text = table.concat(lines, "\n")
-end
-
--- Brainrots on their pedestals level up over time (lucky blocks don't).
-local levelsDirtyAt: { [Plot]: number } = {}
-local LEVEL_SAVE_SECONDS = 30
-
-local function levelUp(occupant: Occupant, owner: Player)
-	if BrainrotConfig.isLuckyBlock(occupant.Definition) or occupant.OpeningResult then
-		return
-	end
-	local before = ExtrasConfig.levelOf(occupant.Seconds)
-	occupant.Seconds += SLOW_TICK_SECONDS
-	local after = ExtrasConfig.levelOf(occupant.Seconds)
-	local plot = occupant.Plot
-	levelsDirtyAt[plot] = levelsDirtyAt[plot] or os.clock()
-	if after ~= before then
-		refreshOccupantInfo(occupant)
-		-- A new level is saved right away.
-		levelsDirtyAt[plot] = nil
-		saveBrainrots(plot)
-		notify(
-			owner,
-			string.format("⭐ %s reached level %d! (+%d%% income)", occupant.Definition.DisplayName, after, math.floor(ExtrasConfig.IncomePerLevel * (after - 1) * 100 + 0.5)),
-			"Success",
-			"LevelUp"
-		)
-	end
-end
-
--- Runs every SLOW_TICK_SECONDS: income onto the pads, lock timers and signs.
-local function slowTick()
-	local now = Workspace:GetServerTimeNow()
-	for _, plot in plots do
-		if plot.LockEndsAt > 0 and now >= plot.LockEndsAt then
-			plot.LockEndsAt = 0
-			plot.Model:SetAttribute("LockEndsAt", 0)
-			setLasersActive(plot, false)
 		end
+		label.Text = table.concat(lines, "\n")
+	end
 
-		local owner = plot.Owner
-		if owner then
-			refreshUnlockedFloors(plot)
-			local multiplier, boostInfo = getIncomeMultiplier(owner)
-			local incomePerSecond = 0
-			for index, occupant in plot.Occupants do
-				if occupant.Carrier == nil and occupant.Walk == nil then
-					local income = occupantIncome(occupant) * multiplier
-					incomePerSecond += income
-					plot.PadCash[index] = (plot.PadCash[index] or 0) + income * SLOW_TICK_SECONDS
-					levelUp(occupant, owner)
+	-- Brainrots on their pedestals level up over time (lucky blocks don't).
+	local levelsDirtyAt: { [Plot]: number } = {}
+	Tuning.LEVEL_SAVE_SECONDS = 30
+
+	local function levelUp(occupant: Occupant, owner: Player)
+		if BrainrotConfig.isLuckyBlock(occupant.Definition) or occupant.OpeningResult then
+			return
+		end
+		local before = ExtrasConfig.levelOf(occupant.Seconds)
+		occupant.Seconds += Tuning.SLOW_TICK_SECONDS
+		local after = ExtrasConfig.levelOf(occupant.Seconds)
+		local plot = occupant.Plot
+		levelsDirtyAt[plot] = levelsDirtyAt[plot] or os.clock()
+		if after ~= before then
+			refreshOccupantInfo(occupant)
+			-- A new level is saved right away.
+			levelsDirtyAt[plot] = nil
+			saveBrainrots(plot)
+			notify(
+				owner,
+				string.format("⭐ %s reached level %d! (+%d%% income)", occupant.Definition.DisplayName, after, math.floor(ExtrasConfig.IncomePerLevel * (after - 1) * 100 + 0.5)),
+				"Success",
+				"LevelUp"
+			)
+		end
+	end
+
+	-- Runs every Tuning.SLOW_TICK_SECONDS: income onto the pads, lock timers and signs.
+	slowTick = function()
+		local now = Workspace:GetServerTimeNow()
+		for _, plot in plots do
+			if plot.LockEndsAt > 0 and now >= plot.LockEndsAt then
+				plot.LockEndsAt = 0
+				plot.Model:SetAttribute("LockEndsAt", 0)
+				setLasersActive(plot, false)
+			end
+
+			local owner = plot.Owner
+			if owner then
+				refreshUnlockedFloors(plot)
+				local multiplier, boostInfo = getIncomeMultiplier(owner)
+				local incomePerSecond = 0
+				for index, occupant in plot.Occupants do
+					if occupant.Carrier == nil and occupant.Walk == nil then
+						local income = occupantIncome(occupant) * multiplier
+						incomePerSecond += income
+						plot.PadCash[index] = (plot.PadCash[index] or 0) + income * Tuning.SLOW_TICK_SECONDS
+						levelUp(occupant, owner)
+					end
 				end
+				owner:SetAttribute("IncomePerSecond", incomePerSecond)
+				owner:SetAttribute("IncomeMultiplier", multiplier)
+				-- Level time is saved every little while, not every second.
+				local dirtySince = levelsDirtyAt[plot]
+				if dirtySince and os.clock() - dirtySince >= Tuning.LEVEL_SAVE_SECONDS then
+					levelsDirtyAt[plot] = nil
+					saveBrainrots(plot)
+				end
+				owner:SetAttribute("BoostInfo", table.concat(boostInfo, "\n"))
+				DataApi.SetPadCash:Invoke(owner, padCashList(plot))
+				updatePadLabels(plot)
 			end
-			owner:SetAttribute("IncomePerSecond", incomePerSecond)
-			owner:SetAttribute("IncomeMultiplier", multiplier)
-			-- Level time is saved every little while, not every second.
-			local dirtySince = levelsDirtyAt[plot]
-			if dirtySince and os.clock() - dirtySince >= LEVEL_SAVE_SECONDS then
-				levelsDirtyAt[plot] = nil
-				saveBrainrots(plot)
-			end
-			owner:SetAttribute("BoostInfo", table.concat(boostInfo, "\n"))
-			DataApi.SetPadCash:Invoke(owner, padCashList(plot))
-			updatePadLabels(plot)
+			updatePlotLabels(plot)
 		end
-		updatePlotLabels(plot)
+		updateSpawnSign()
 	end
-	updateSpawnSign()
 end
 
 local function runLoop(intervalSeconds: number, name: string, callback: () -> ())
@@ -16520,105 +16531,110 @@ end
 
 -- Cash Rain: coins land around the map; the first player to touch one gets
 -- Cash worth a few seconds of their income.
-local coinExpiresAt: { [BasePart]: number } = {}
-local coinArea: { Min: Vector3, Max: Vector3 }? = nil
+local spawnCoinWave: () -> ()
+local clearCoins: () -> ()
+local collectCoins: () -> ()
 do
-	local baseplate = Workspace:FindFirstChild("Baseplate")
-	if baseplate and baseplate:IsA("BasePart") then
-		local half = baseplate.Size / 2 - Vector3.new(24, 0, 24)
-		local top = baseplate.Position.Y + baseplate.Size.Y / 2
-		coinArea = {
-			Min = Vector3.new(baseplate.Position.X - half.X, top, baseplate.Position.Z - half.Z),
-			Max = Vector3.new(baseplate.Position.X + half.X, top, baseplate.Position.Z + half.Z),
-		}
+	local coinExpiresAt: { [BasePart]: number } = {}
+	local coinArea: { Min: Vector3, Max: Vector3 }? = nil
+	do
+		local baseplate = Workspace:FindFirstChild("Baseplate")
+		if baseplate and baseplate:IsA("BasePart") then
+			local half = baseplate.Size / 2 - Vector3.new(24, 0, 24)
+			local top = baseplate.Position.Y + baseplate.Size.Y / 2
+			coinArea = {
+				Min = Vector3.new(baseplate.Position.X - half.X, top, baseplate.Position.Z - half.Z),
+				Max = Vector3.new(baseplate.Position.X + half.X, top, baseplate.Position.Z + half.Z),
+			}
+		end
 	end
-end
 
-local function coinSpot(): Vector3?
-	local area = coinArea
-	if area == nil then
+	local function coinSpot(): Vector3?
+		local area = coinArea
+		if area == nil then
+			return nil
+		end
+		for _ = 1, 8 do
+			local x = rng:NextNumber(area.Min.X, area.Max.X)
+			local z = rng:NextNumber(area.Min.Z, area.Max.Z)
+			-- Only on open ground: not on a roof or inside a base.
+			local hit = Workspace:Raycast(Vector3.new(x, area.Min.Y + 80, z), Vector3.new(0, -100, 0))
+			if hit and hit.Position.Y <= area.Min.Y + 1.5 and not hit.Instance:IsDescendantOf(plotsFolder) then
+				return Vector3.new(x, hit.Position.Y, z)
+			end
+		end
 		return nil
 	end
-	for _ = 1, 8 do
-		local x = rng:NextNumber(area.Min.X, area.Max.X)
-		local z = rng:NextNumber(area.Min.Z, area.Max.Z)
-		-- Only on open ground: not on a roof or inside a base.
-		local hit = Workspace:Raycast(Vector3.new(x, area.Min.Y + 80, z), Vector3.new(0, -100, 0))
-		if hit and hit.Position.Y <= area.Min.Y + 1.5 and not hit.Instance:IsDescendantOf(plotsFolder) then
-			return Vector3.new(x, hit.Position.Y, z)
+
+	spawnCoinWave = function()
+		local expiresAt = os.clock() + GameConfig.CashRainWaveSeconds * 2.5
+		for _ = 1, GameConfig.CashRainCoinsPerWave do
+			local spot = coinSpot()
+			if spot then
+				local coin = Instance.new("Part")
+				coin.Name = "Coin"
+				coin.Shape = Enum.PartType.Cylinder
+				coin.Size = Vector3.new(0.5, 3, 3)
+				coin.Material = Enum.Material.Neon
+				coin.Color = Color3.fromRGB(255, 205, 50)
+				coin.Anchored = true
+				coin.CanCollide = false
+				coin.CanQuery = false
+				coin.CanTouch = false
+				coin.CFrame = CFrame.new(spot + Vector3.new(0, 2.2, 0))
+				coin:SetAttribute("Spin", true)
+				coin.Parent = coinsFolder
+				coinExpiresAt[coin] = expiresAt
+			end
 		end
 	end
-	return nil
-end
 
-local function spawnCoinWave()
-	local expiresAt = os.clock() + GameConfig.CashRainWaveSeconds * 2.5
-	for _ = 1, GameConfig.CashRainCoinsPerWave do
-		local spot = coinSpot()
-		if spot then
-			local coin = Instance.new("Part")
-			coin.Name = "Coin"
-			coin.Shape = Enum.PartType.Cylinder
-			coin.Size = Vector3.new(0.5, 3, 3)
-			coin.Material = Enum.Material.Neon
-			coin.Color = Color3.fromRGB(255, 205, 50)
-			coin.Anchored = true
-			coin.CanCollide = false
-			coin.CanQuery = false
-			coin.CanTouch = false
-			coin.CFrame = CFrame.new(spot + Vector3.new(0, 2.2, 0))
-			coin:SetAttribute("Spin", true)
-			coin.Parent = coinsFolder
-			coinExpiresAt[coin] = expiresAt
-		end
-	end
-end
-
-local function clearCoins()
-	for coin in coinExpiresAt do
-		coin:Destroy()
-	end
-	table.clear(coinExpiresAt)
-end
-
--- Called from the fast tick.
-local function collectCoins()
-	if next(coinExpiresAt) == nil then
-		return
-	end
-	local clock = os.clock()
-	local roots: { [Player]: BasePart } = {}
-	for _, player in Players:GetPlayers() do
-		local rootPart = getLiveCharacter(player)
-		if rootPart then
-			roots[player] = rootPart
-		end
-	end
-	for coin, expiresAt in coinExpiresAt do
-		if clock >= expiresAt or coin.Parent == nil then
-			coinExpiresAt[coin] = nil
+	clearCoins = function()
+		for coin in coinExpiresAt do
 			coin:Destroy()
-			continue
 		end
-		for player, rootPart in roots do
-			if (rootPart.Position - coin.Position).Magnitude <= 5 then
-				local income = tonumber(player:GetAttribute("IncomePerSecond")) or 0
-				local amount = math.max(GameConfig.CashRainMinCoin, math.floor(income * GameConfig.CashRainCoinIncomeSeconds))
+		table.clear(coinExpiresAt)
+	end
+
+	-- Called from the fast tick.
+	collectCoins = function()
+		if next(coinExpiresAt) == nil then
+			return
+		end
+		local clock = os.clock()
+		local roots: { [Player]: BasePart } = {}
+		for _, player in Players:GetPlayers() do
+			local rootPart = getLiveCharacter(player)
+			if rootPart then
+				roots[player] = rootPart
+			end
+		end
+		for coin, expiresAt in coinExpiresAt do
+			if clock >= expiresAt or coin.Parent == nil then
 				coinExpiresAt[coin] = nil
 				coin:Destroy()
-				if addCash(player, amount) then
-					playSound(player, "Collect")
-					notify(player, "+" .. NumberFormat.cash(amount) .. " from the Cash Rain!", "Success")
+				continue
+			end
+			for player, rootPart in roots do
+				if (rootPart.Position - coin.Position).Magnitude <= 5 then
+					local income = tonumber(player:GetAttribute("IncomePerSecond")) or 0
+					local amount = math.max(GameConfig.CashRainMinCoin, math.floor(income * GameConfig.CashRainCoinIncomeSeconds))
+					coinExpiresAt[coin] = nil
+					coin:Destroy()
+					if addCash(player, amount) then
+						playSound(player, "Collect")
+						notify(player, "+" .. NumberFormat.cash(amount) .. " from the Cash Rain!", "Success")
+					end
+					break
 				end
-				break
 			end
 		end
 	end
 end
 
-local eventChangedEvent = Instance.new("BindableEvent")
-eventChangedEvent.Name = "EventChanged"
-eventChangedEvent.Parent = gameplayApi
+Api.eventChangedEvent = Instance.new("BindableEvent")
+Api.eventChangedEvent.Name = "EventChanged"
+Api.eventChangedEvent.Parent = Api.gameplayApi
 
 local function runEvent(event: GameEvent)
 	local endsAt = Workspace:GetServerTimeNow() + GameConfig.EventDurationSeconds
@@ -16631,7 +16647,7 @@ local function runEvent(event: GameEvent)
 	ReplicatedStorage:SetAttribute("EventEndsAt", endsAt)
 	notifyAll(eventMessage(event), "Info", "Event")
 	-- Boss raids and bank heists are run by RaidManager.
-	eventChangedEvent:Fire(event.Name)
+	Api.eventChangedEvent:Fire(event.Name)
 	-- The EventEndsAt attribute is the end time: /endevent moves it to now.
 	local nextWave = 0
 	while true do
@@ -16654,7 +16670,7 @@ local function runEvent(event: GameEvent)
 	ReplicatedStorage:SetAttribute("EventParticles", nil)
 	ReplicatedStorage:SetAttribute("EventAdmin", false)
 	ReplicatedStorage:SetAttribute("EventEndsAt", 0)
-	eventChangedEvent:Fire(nil)
+	Api.eventChangedEvent:Fire(nil)
 	notifyAll(event.Name .. " is over.", "Info")
 end
 
@@ -16662,10 +16678,10 @@ end
 -- Rebirth
 --------------------------------------------------------------------------------
 
-requestRebirthFunction.OnServerInvoke = function(player: Player): (boolean, string)
+Api.requestRebirthFunction.OnServerInvoke = function(player: Player): (boolean, string)
 	local now = os.clock()
 	local last = lastRebirthRequest[player]
-	if last and now - last < REBIRTH_REQUEST_COOLDOWN_SECONDS then
+	if last and now - last < Tuning.REBIRTH_REQUEST_COOLDOWN_SECONDS then
 		return false, "Slow down!"
 	end
 	lastRebirthRequest[player] = now
@@ -16805,7 +16821,7 @@ onOpenTriggered = function(occupant: Occupant, player: Player)
 	end
 	occupant.Model:SetAttribute("State", "Opening")
 	setPromptFlag(occupant, "Carried", true)
-	luckyRevealEvent:FireAllClients(player.UserId, occupant.Definition.Id, entry, occupant.Root.Position)
+	Api.luckyRevealEvent:FireAllClients(player.UserId, occupant.Definition.Id, entry, occupant.Root.Position)
 	reportActivity(player, "OpenBlock")
 
 	-- The block shakes while the client shows a roulette, then pops.
@@ -17030,7 +17046,7 @@ do
 		local bindable = Instance.new("BindableFunction")
 		bindable.Name = name
 		bindable.OnInvoke = callback
-		bindable.Parent = gameplayApi
+		bindable.Parent = Api.gameplayApi
 	end
 
 	local function asPlayer(value: any): Player?
@@ -17101,7 +17117,7 @@ do
 	-- Hats: the owner puts one on (from their pile) or takes it off.
 	local manageFunction = Instance.new("RemoteFunction")
 	manageFunction.Name = "ManageBrainrot"
-	manageFunction.Parent = remotesFolder
+	manageFunction.Parent = Api.remotesFolder
 	local lastManage: { [Player]: number } = {}
 	manageFunction.OnServerInvoke = function(player: Player, action: any, slotIndex: any, argument: any): (boolean, string?, any)
 		local now = os.clock()
@@ -17474,7 +17490,7 @@ end
 ReplicatedStorage:SetAttribute("EventEndsAt", 0)
 ReplicatedStorage:SetAttribute("EventAdmin", false)
 -- Every API function exists by now.
-gameplayApi.Parent = ServerStorage
+Api.gameplayApi.Parent = ServerStorage
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(onPlayerRemoving)
@@ -17482,9 +17498,9 @@ for _, player in Players:GetPlayers() do
 	task.spawn(onPlayerAdded, player)
 end
 
-runLoop(FAST_TICK_SECONDS, "Fast tick", fastTick)
-runLoop(FAST_TICK_SECONDS, "Cash Rain", collectCoins)
-runLoop(SLOW_TICK_SECONDS, "Slow tick", slowTick)
+runLoop(Tuning.FAST_TICK_SECONDS, "Fast tick", fastTick)
+runLoop(Tuning.FAST_TICK_SECONDS, "Cash Rain", collectCoins)
+runLoop(Tuning.SLOW_TICK_SECONDS, "Slow tick", slowTick)
 
 RunService.Heartbeat:Connect(function(dt: number)
 	xpcall(stepWalkers, function(err: any)
