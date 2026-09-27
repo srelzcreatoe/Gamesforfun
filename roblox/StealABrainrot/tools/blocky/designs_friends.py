@@ -239,14 +239,14 @@ def canelito_cannolito(m):
         m.paint(m.ellipsoid_mask(cx, Y + 15.5, 8, 2.2, 1.6, 3.6), apricot_dark)
 
 
-# -- Gregorino Kickflippino ---------------------------------------------------------
+# -- Greggini Ricciolini (Greg: "ricciolini" are little curls) -----------------
 
 
-@design("GregorinoKickflippino", width=32, height=50, depth=36)
-def gregorino_kickflippino(m):
-    skin, skin_shade, skin_light = "#c79068", "#a8734f", "#d9a47c"
+@design("GregginiRicciolini", width=32, height=48, depth=36)
+def greggini_ricciolini(m):
+    skin, skin_shade, skin_light = "#e2b594", "#c99a78", "#eec8aa"
     hair, hair_light, hair_dark = "#1f1814", "#3a2c24", "#120e0c"
-    beard, stubble, lips = "#2a1e17", "#9a7156", "#b0685a"
+    beard, stubble, lips = "#2a1e17", "#a88368", "#c9806e"
     tee, tee_shade, tee_light = "#f6f6f8", "#e6e6ec", "#ffffff"
     pants, pants_dark = "#26262c", "#18181c"
     shoe, shoe_dark, sole = "#1d1d21", "#35353b", "#f1f1f1"
@@ -324,34 +324,34 @@ def gregorino_kickflippino(m):
     # A little chin beard.
     m.box(14, 28, 12, 17, 28, 12, beard, part=head)
 
-    # Big, curly hair: a thick cap covered in curls, falling over his
-    # forehead, short over the ears.
-    m.mask(rounded_box_mask(m, 8, 40, 12, 23, 45, 25, 2.5), hair, part=head)
-    m.ellipsoid(16, 45.5, 18.5, 9.4, 3.2, 8.4, hair, part=head)
-    m.box(8, 37, 15, 8, 42, 25, hair, part=head)
-    m.box(23, 37, 15, 23, 42, 25, hair, part=head)
-    m.box(8, 30, 21, 23, 42, 25, hair, part=head)
-    m.mask(rounded_box_mask(m, 9, 29, 22, 22, 42, 26, 1.5), hair, part=head)
+    # Curly hair, not too long: a cap covered in curls, a few over his
+    # forehead, short over the ears and at the back.
+    m.mask(rounded_box_mask(m, 8, 40, 12, 23, 44, 25, 2.5), hair, part=head)
+    m.ellipsoid(16, 44, 18.5, 8.8, 2.4, 7.8, hair, part=head)
+    m.box(8, 37, 15, 8, 41, 25, hair, part=head)
+    m.box(23, 37, 15, 23, 41, 25, hair, part=head)
+    m.box(8, 32, 21, 23, 41, 25, hair, part=head)
+    m.mask(rounded_box_mask(m, 9, 31, 22, 22, 41, 25, 1.5), hair, part=head)
     curls = []
     # Over the forehead.
     for index, x in enumerate(range(10, 23, 3)):
-        curls.append((x + 0.5, 40.2 - (index % 2) * 0.8, 11.8, 1.7))
+        curls.append((x + 0.5, 40.6 - (index % 2) * 0.5, 12.2, 1.4))
     # On top, in two rings.
     for index in range(10):
         angle = index / 10 * 6.283
-        curls.append((16 + 8.2 * math.cos(angle), 45.5 + (index % 3) * 0.6, 18.5 + 7.2 * math.sin(angle), 1.9))
+        curls.append((16 + 7.6 * math.cos(angle), 44.2 + (index % 3) * 0.4, 18.5 + 6.6 * math.sin(angle), 1.6))
     for index in range(6):
         angle = index / 6 * 6.283 + 0.5
-        curls.append((16 + 4 * math.cos(angle), 47.6 + (index % 2) * 0.5, 18.5 + 3.6 * math.sin(angle), 1.8))
-    # Over the sides and down the back.
-    for y in (38.5, 41.5):
+        curls.append((16 + 3.8 * math.cos(angle), 45.6 + (index % 2) * 0.4, 18.5 + 3.4 * math.sin(angle), 1.5))
+    # Over the sides and at the back.
+    for y in (38.5, 41):
         for z in (15.5, 19.5, 23.5):
-            curls.append((7.8, y, z, 1.5))
-            curls.append((24.2, y, z, 1.5))
+            curls.append((8.3, y, z, 1.2))
+            curls.append((23.7, y, z, 1.2))
     for x in range(10, 23, 3):
-        for y in (32, 35.5, 39):
-            curls.append((x + 0.5, y, 26, 1.6))
+        for y in (34, 38):
+            curls.append((x + 0.5, y, 25.6, 1.3))
     for x, y, z, radius in curls:
         m.sphere(x, y, z, radius, hair, part=head)
-    hair_mask = m.box_mask(0, 37, 0, 31, 49, 35) | m.box_mask(0, 29, 21, 31, 49, 35)
+    hair_mask = m.box_mask(0, 37, 0, 31, 47, 35) | m.box_mask(0, 31, 21, 31, 47, 35)
     speckle(m, hair_mask & ~m.box_mask(9, 28, 12, 22, 38, 20), [hair_light, hair_dark], seed=11, density=0.12)

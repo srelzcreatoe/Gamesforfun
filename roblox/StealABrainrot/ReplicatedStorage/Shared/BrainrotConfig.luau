@@ -261,7 +261,7 @@ local Brainrots: { Brainrot } = {
 	blocky("GalatticoGuestone", "Galattico Guestone", "Secret", 45000000, 130000, rgb(50, 30, 110), rgb(255, 120, 220), 1.7),
 	blocky("DragonCannelloni", "Dragon Cannelloni", "Secret", 50000000, 140000, rgb(245, 220, 150), rgb(210, 50, 40), 1.3, "Fly"),
 	blocky("BenjiniSkatini", "Benjini Skatini", "Secret", 58000000, 155000, rgb(29, 29, 34), rgb(228, 197, 142), 1.6, "Skate"),
-	blocky("GregorinoKickflippino", "Gregorino Kickflippino", "Secret", 62000000, 162000, rgb(246, 246, 248), rgb(242, 194, 58), 1.6, "Skate"),
+	blocky("GregginiRicciolini", "Greggini Ricciolini", "Secret", 62000000, 162000, rgb(246, 246, 248), rgb(242, 194, 58), 1.6, "Skate"),
 	brainrot("SessantaSette", "67", "Secret", 67000000, 167000, rgb(40, 140, 240), rgb(250, 250, 250), 1.8),
 	blocky("LaGrandeCombinasion", "La Grande Combinasion", "Secret", 80000000, 190000, rgb(40, 130, 230), rgb(240, 190, 50), 1.9),
 	blocky("StrawberryElephant", "Strawberry Elephant", "Secret", 100000000, 230000, rgb(225, 40, 55), rgb(80, 170, 60), 1.8),
