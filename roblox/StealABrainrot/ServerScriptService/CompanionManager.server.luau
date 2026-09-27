@@ -124,9 +124,19 @@ local function plotOf(player: Player): Model?
 	return nil
 end
 
+-- The brainrots in the player's base by slot.
 local function describe(player: Player): { [number]: { [string]: any } }?
 	local result = describeOccupantsFunction:Invoke(player)
-	return if typeof(result) == "table" then result else nil
+	if typeof(result) ~= "table" then
+		return nil
+	end
+	local bySlot: { [number]: { [string]: any } } = {}
+	for _, info in result do
+		if typeof(info) == "table" and typeof(info.Slot) == "number" then
+			bySlot[info.Slot] = info
+		end
+	end
+	return bySlot
 end
 
 local function saveCompanions(player: Player)

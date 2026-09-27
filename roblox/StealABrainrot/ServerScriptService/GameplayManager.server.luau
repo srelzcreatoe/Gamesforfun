@@ -3883,23 +3883,26 @@ do
 		return entries
 	end)
 
-	-- Every brainrot in the player's base (not lucky blocks): { [slot] = info }.
-	createApiFunction("DescribeOccupants", function(playerArg: any): { [number]: { [string]: any } }?
+	-- Every brainrot in the player's base (not lucky blocks), as a list of
+	-- infos with their Slot. (A list, because Bindables copy tables and a
+	-- table keyed by slot numbers with gaps doesn't survive the copy.)
+	createApiFunction("DescribeOccupants", function(playerArg: any): { { [string]: any } }?
 		local player = asPlayer(playerArg)
 		local plot = if player then plotByPlayer[player] else nil
 		if plot == nil then
 			return nil
 		end
-		local result: { [number]: { [string]: any } } = {}
+		local result: { { [string]: any } } = {}
 		for slotIndex, occupant in plot.Occupants do
 			if not BrainrotConfig.isLuckyBlock(occupant.Definition) and occupant.OpeningResult == nil then
-				result[slotIndex] = {
+				table.insert(result, {
+					Slot = slotIndex,
 					Entry = occupantEntry(occupant),
 					Hat = occupant.Hat,
 					Level = ExtrasConfig.levelOf(occupant.Seconds),
 					Rarity = occupant.Definition.Rarity,
 					Home = occupant.Walk == nil and occupant.Carrier == nil,
-				}
+				})
 			end
 		end
 		return result
