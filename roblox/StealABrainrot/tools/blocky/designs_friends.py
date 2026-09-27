@@ -1,6 +1,8 @@
-"""Block-built brainrots of real friends: Benjini Skatini (Benji on his
-skateboard) and Canelito Cannolito (his dog, with a cannoli, on a skateboard
-too)."""
+"""Block-built brainrots of real friends, all on the same skateboard: Benjini
+Skatini (Benji), Canelito Cannolito (his dog, with a cannoli) and Gregorino
+Kickflippino (Greg)."""
+
+import math
 
 from blocky import design, shade
 
@@ -235,3 +237,121 @@ def canelito_cannolito(m):
         m.ellipsoid(cx, Y + 20.5, 8, 1.9, 6.2, 3.4, apricot, part=ear)
         speckle(m, m.ellipsoid_mask(cx, Y + 20.5, 8, 2.1, 6.4, 3.6), [fur, apricot_dark], seed=8 + int(cx), density=0.12)
         m.paint(m.ellipsoid_mask(cx, Y + 15.5, 8, 2.2, 1.6, 3.6), apricot_dark)
+
+
+# -- Gregorino Kickflippino ---------------------------------------------------------
+
+
+@design("GregorinoKickflippino", width=32, height=50, depth=36)
+def gregorino_kickflippino(m):
+    skin, skin_shade, skin_light = "#c79068", "#a8734f", "#d9a47c"
+    hair, hair_light, hair_dark = "#1f1814", "#3a2c24", "#120e0c"
+    beard, stubble, lips = "#2a1e17", "#9a7156", "#b0685a"
+    tee, tee_shade, tee_light = "#f6f6f8", "#e6e6ec", "#ffffff"
+    pants, pants_dark = "#26262c", "#18181c"
+    shoe, shoe_dark, sole = "#1d1d21", "#35353b", "#f1f1f1"
+    gold, gold_dark = "#f2c23a", "#c49419"
+    iris, brow = "#2e1d13", "#161110"
+
+    # Greg's on the skateboard too.
+    skateboard(m, 11, 20, 2, 33, trucks=(7, 27))
+
+    # Black joggers and black high-tops with white soles; the right foot
+    # kicks to push.
+    for x0, phase in ((12, 0), (17, 1)):
+        leg = m.limb("Leg", pivot=(x0 + 1.5, 16, 18), phase=phase)
+        m.box(x0, 9, 16, x0 + 2, 16, 20, pants, part=leg)
+        m.box(x0, 9, 16, x0 + 2, 9, 20, pants_dark, part=leg)
+        m.box(x0, 6, 15, x0 + 2, 8, 21, shoe, part=leg)
+        m.box(x0, 6, 15, x0 + 2, 6, 21, sole, part=leg)
+        m.box(x0, 8, 16, x0 + 2, 8, 20, shoe_dark, part=leg)
+        m.pixels(x0, 7, ["www"], {"w": sole}, face="left" if phase == 0 else "right", part=leg)
+
+    # The white tee, with a gold chain and a gold cross.
+    m.mask(rounded_box_mask(m, 11, 16, 15, 20, 27, 21, 1.2), tee)
+    m.paint_face(m.box_mask(11, 16, 0, 20, 16, 35), tee_shade, face="front")
+    m.box(14, 27, 16, 17, 28, 20, skin)  # neck
+    m.pixels(11, 22, [
+        "g........g",
+        ".g......g.",
+        ".g......g.",
+        "..g....g..",
+        "...gggg...",
+    ], {"g": gold})
+    cross = [
+        ".gg.",
+        "gggg",
+        "gddg",
+        ".gg.",
+        ".gd.",
+        ".dd.",
+    ]
+    m.pixels(14, 16, cross, {"g": gold, "d": gold_dark}, z=14)
+
+    # Arms out for balance: short white sleeves.
+    for x0, phase in ((8, 0), (21, 1)):
+        arm = m.limb("Arm", pivot=(x0 + 1.5, 26.5, 18), phase=phase)
+        m.box(x0, 23, 16, x0 + 2, 27, 20, tee, part=arm)
+        m.box(x0, 23, 16, x0 + 2, 23, 20, tee_shade, part=arm)
+        m.box(x0, 17, 17, x0 + 2, 22, 19, skin, part=arm)
+        m.box(x0, 15, 16, x0 + 2, 16, 20, skin_light, part=arm)
+        m.box(x0, 15, 16, x0 + 2, 15, 20, skin_shade, part=arm)
+
+    # The head: relaxed half-closed eyes, a moustache and a goatee.
+    head = m.limb("Head", pivot=(16, 28, 18))
+    m.mask(rounded_box_mask(m, 9, 28, 12, 22, 43, 24, 2.2), skin, part=head)
+    m.paint_face(m.box_mask(9, 28, 0, 22, 28, 35), skin_shade, face="front")
+    for x in (8, 23):
+        m.box(x, 31, 17, x, 35, 20, skin, part=head)
+        m.box(x, 32, 18, x, 34, 19, skin_shade, part=head)
+    face = [
+        ".bbbbb..bbbbb.",
+        "..............",
+        "..dddd..dddd..",
+        "..wkkw..wkkw..",
+        "..wkhw..whkw..",
+        "..............",
+        "......nn......",
+        "....shhhhs....",
+        "s....pppp....s",
+        "s.....hh.....s",
+        ".s..shhhhs..s.",
+    ]
+    m.pixels(9, 29, face, {"b": brow, "d": skin_shade, "w": WHITE, "k": iris, "h": beard, "n": skin_shade, "p": lips, "s": stubble})
+    m.paint_face(m.box_mask(12, 28, 0, 19, 28, 35), stubble, face="front")
+    m.box(15, 34, 11, 16, 35, 11, skin, part=head)  # nose
+    m.box(15, 34, 11, 16, 34, 11, skin_shade, part=head)
+    # A little chin beard.
+    m.box(14, 28, 12, 17, 28, 12, beard, part=head)
+
+    # Big, curly hair: a thick cap covered in curls, falling over his
+    # forehead, short over the ears.
+    m.mask(rounded_box_mask(m, 8, 40, 12, 23, 45, 25, 2.5), hair, part=head)
+    m.ellipsoid(16, 45.5, 18.5, 9.4, 3.2, 8.4, hair, part=head)
+    m.box(8, 37, 15, 8, 42, 25, hair, part=head)
+    m.box(23, 37, 15, 23, 42, 25, hair, part=head)
+    m.box(8, 30, 21, 23, 42, 25, hair, part=head)
+    m.mask(rounded_box_mask(m, 9, 29, 22, 22, 42, 26, 1.5), hair, part=head)
+    curls = []
+    # Over the forehead.
+    for index, x in enumerate(range(10, 23, 3)):
+        curls.append((x + 0.5, 40.2 - (index % 2) * 0.8, 11.8, 1.7))
+    # On top, in two rings.
+    for index in range(10):
+        angle = index / 10 * 6.283
+        curls.append((16 + 8.2 * math.cos(angle), 45.5 + (index % 3) * 0.6, 18.5 + 7.2 * math.sin(angle), 1.9))
+    for index in range(6):
+        angle = index / 6 * 6.283 + 0.5
+        curls.append((16 + 4 * math.cos(angle), 47.6 + (index % 2) * 0.5, 18.5 + 3.6 * math.sin(angle), 1.8))
+    # Over the sides and down the back.
+    for y in (38.5, 41.5):
+        for z in (15.5, 19.5, 23.5):
+            curls.append((7.8, y, z, 1.5))
+            curls.append((24.2, y, z, 1.5))
+    for x in range(10, 23, 3):
+        for y in (32, 35.5, 39):
+            curls.append((x + 0.5, y, 26, 1.6))
+    for x, y, z, radius in curls:
+        m.sphere(x, y, z, radius, hair, part=head)
+    hair_mask = m.box_mask(0, 37, 0, 31, 49, 35) | m.box_mask(0, 29, 21, 31, 49, 35)
+    speckle(m, hair_mask & ~m.box_mask(9, 28, 12, 22, 38, 20), [hair_light, hair_dark], seed=11, density=0.12)
