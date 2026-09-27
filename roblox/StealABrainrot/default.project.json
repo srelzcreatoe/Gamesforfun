@@ -10,9 +10,9 @@
           "Anchored": true,
           "Locked": true,
           "Size": [
-            640,
+            840,
             20,
-            400
+            460
           ],
           "CFrame": {
             "CFrame": {
@@ -48,6 +48,9 @@
           "Material": "Plastic",
           "TopSurface": "Studs",
           "BottomSurface": "Inlet"
+        },
+        "$attributes": {
+          "Snow": "Ground"
         }
       },
       "SpawnLocation": {
@@ -123,6 +126,18 @@
       },
       "FuseManager": {
         "$path": "ServerScriptService/FuseManager.server.luau"
+      },
+      "CompanionManager": {
+        "$path": "ServerScriptService/CompanionManager.server.luau"
+      },
+      "SocialManager": {
+        "$path": "ServerScriptService/SocialManager.server.luau"
+      },
+      "SeasonManager": {
+        "$path": "ServerScriptService/SeasonManager.server.luau"
+      },
+      "RaidManager": {
+        "$path": "ServerScriptService/RaidManager.server.luau"
       }
     },
     "ReplicatedStorage": {
@@ -152,6 +167,9 @@
         },
         "FeaturesClient": {
           "$path": "StarterPlayerScripts/FeaturesClient.client.luau"
+        },
+        "ExtrasClient": {
+          "$path": "StarterPlayerScripts/ExtrasClient.client.luau"
         }
       }
     },

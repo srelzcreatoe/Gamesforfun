@@ -16,8 +16,11 @@ local function sound(id: number, volume: number): SoundInfo
 	return table.freeze({ Id = id, Volume = volume })
 end
 
+export type Station = { Name: string, Icon: string, Tracks: { number } }
+
 local AudioConfig: {
 	Music: { number },
+	Stations: { Station },
 	MusicVolume: number,
 	FallbackSound: string,
 	Sounds: { [string]: SoundInfo },
@@ -47,6 +50,69 @@ local AudioConfig: {
 		80170854893452, -- Sneaky Sneaky (APM)
 		9045939292, -- Code Heist (APM)
 		9043029912, -- Mischief Maker (APM)
+	}),
+	-- The radio (Settings and the Radio button): Mix plays Music above; the
+	-- others play just their own tracks.
+	Stations = table.freeze({
+		table.freeze({ Name = "Mix", Icon = "🎶", Tracks = table.freeze({}) }),
+		table.freeze({
+			Name = "Arcade",
+			Icon = "🕹️",
+			Tracks = table.freeze({
+				1842976958, -- Arcade Weekend (APM)
+				1843599021, -- Fun Arcade (APM)
+				9045965605, -- Fun and Games (APM)
+				9048376991, -- Nice Day for 8 Bit (APM)
+				1837768352, -- Retro Gamer (APM)
+				1837768444, -- Coin Bonus (APM)
+				140228184971194, -- Game Lobby Alternate (APM)
+			}),
+		}),
+		table.freeze({
+			Name = "Cartoon",
+			Icon = "🤡",
+			Tracks = table.freeze({
+				1847524834, -- Happy And Quirky A (APM)
+				9047837288, -- Playful Promenade (APM)
+				9047843332, -- The Jazzy Pizzman (APM)
+				1845555797, -- Carnival Jive (APM)
+				95854834681311, -- Playful Pranks (APM)
+				1847418399, -- Goofy Groove (APM)
+				1847448281, -- Wacky Races (APM)
+				9047363636, -- Playtime Pop (APM)
+				1842834040, -- Bouncy Castle (APM)
+				1839802242, -- Bouncy Funk (APM)
+				1848353356, -- Funky Chicken (APM)
+				1844612050, -- Toytown Reggae (APM)
+			}),
+		}),
+		table.freeze({
+			Name = "Heist",
+			Icon = "🕵️",
+			Tracks = table.freeze({
+				80170854893452, -- Sneaky Sneaky (APM)
+				9045939292, -- Code Heist (APM)
+				9043029912, -- Mischief Maker (APM)
+				1837463238, -- Heist Time (APM)
+				1841825097, -- The Robbery (APM)
+				9042159897, -- Cyber Heist (APM)
+				1844258065, -- The Heist (APM)
+			}),
+		}),
+		table.freeze({
+			Name = "Chill",
+			Icon = "😎",
+			Tracks = table.freeze({
+				9043887091, -- Lo-fi Chill A (APM)
+				9044565954, -- Smooth Vibes (APM)
+				9046863253, -- Poolside (APM)
+				9046862941, -- Sunset Chill (APM)
+				9047104411, -- Beach Cushions (APM)
+				9046864489, -- Violet Clouds (APM)
+				9044564552, -- Sunday Chilling (APM)
+				9048510686, -- Slow Boat (APM)
+			}),
+		}),
 	}),
 	MusicVolume = 0.22,
 	FallbackSound = "rbxasset://sounds/electronicpingshort.wav",

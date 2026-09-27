@@ -16,6 +16,8 @@ export type ShopProduct = {
 	IconAssetId: number,
 	IconText: string,
 	IconColor: Color3,
+	-- A game pass (ProductId is then its pass ID): bought once, kept forever.
+	GamePass: boolean?,
 }
 
 local ProductIds = table.freeze({
@@ -33,6 +35,16 @@ local ProductIds = table.freeze({
 	CashBoost = 100012,
 	GalaxySkin = 100013,
 	RainbowSkin = 100014,
+	-- A random hat for a brainrot (ExtrasConfig.Hats).
+	HatCrate = 100015,
+	-- One season pass tier.
+	SeasonTierSkip = 100016,
+	-- The weekly limited brainrots (ExtrasConfig.LimitedRotation), one each.
+	LimitedKorbloxo = 100017,
+	LimitedValkyrio = 100018,
+	LimitedHeadless = 100019,
+	LimitedDominus = 100020,
+	LimitedSparkle = 100021,
 })
 
 -- Lucky blocks bought with Robux land in your base (or wait until there's room).
@@ -61,6 +73,10 @@ local GamePasses: { [string]: number } = table.freeze({
 	DoubleCash = 200002,
 	-- Your base lock lasts twice as long.
 	LongLock = 200003,
+	-- The premium rewards on every season pass tier.
+	SeasonPass = 200004,
+	-- Your guard brainrot recovers twice as fast.
+	SuperGuard = 200005,
 })
 
 local SMALL_CASH_BUNDLE_AMOUNT = 5000
@@ -72,7 +88,58 @@ local SPIN_PACK_SPINS = 3
 local CASH_BOOST_SECONDS = 30 * 60
 local CASH_BOOST_MULTIPLIER = 2
 
+-- Game passes come first in the shop.
 local ShopProducts: { ShopProduct } = {
+	{
+		Key = "VIP",
+		ProductId = GamePasses.VIP,
+		DisplayName = "VIP",
+		Description = "+15% income forever, plus an extra free spin every day.",
+		IconAssetId = 0,
+		IconText = "VIP",
+		IconColor = Color3.fromRGB(255, 190, 30),
+		GamePass = true,
+	},
+	{
+		Key = "DoubleCash",
+		ProductId = GamePasses.DoubleCash,
+		DisplayName = "2x Cash Forever",
+		Description = "Every brainrot you own earns double. Forever!",
+		IconAssetId = 0,
+		IconText = "2x",
+		IconColor = Color3.fromRGB(30, 170, 80),
+		GamePass = true,
+	},
+	{
+		Key = "LongLock",
+		ProductId = GamePasses.LongLock,
+		DisplayName = "Long Lock",
+		Description = "Your base lock lasts twice as long.",
+		IconAssetId = 0,
+		IconText = "🔒",
+		IconColor = Color3.fromRGB(70, 110, 220),
+		GamePass = true,
+	},
+	{
+		Key = "SeasonPass",
+		ProductId = GamePasses.SeasonPass,
+		DisplayName = "Season Pass",
+		Description = "Premium rewards on every season tier, up to the exclusive Admino Supremo.",
+		IconAssetId = 0,
+		IconText = "🏆",
+		IconColor = Color3.fromRGB(255, 150, 20),
+		GamePass = true,
+	},
+	{
+		Key = "SuperGuard",
+		ProductId = GamePasses.SuperGuard,
+		DisplayName = "Super Guard",
+		Description = "Your guard brainrot gets back up twice as fast.",
+		IconAssetId = 0,
+		IconText = "🛡️",
+		IconColor = Color3.fromRGB(150, 80, 230),
+		GamePass = true,
+	},
 	{
 		Key = "SmallCashBundle",
 		ProductId = ProductIds.SmallCashBundle,
@@ -184,6 +251,15 @@ local ShopProducts: { ShopProduct } = {
 		IconAssetId = 0,
 		IconText = "2x",
 		IconColor = Color3.fromRGB(40, 190, 90),
+	},
+	{
+		Key = "HatCrate",
+		ProductId = ProductIds.HatCrate,
+		DisplayName = "Hat Crate",
+		Description = "A random hat for one of your brainrots: up to +25% income. Crowns are rare!",
+		IconAssetId = 0,
+		IconText = "🎩",
+		IconColor = Color3.fromRGB(150, 90, 230),
 	},
 	{
 		Key = "GalaxySkin",

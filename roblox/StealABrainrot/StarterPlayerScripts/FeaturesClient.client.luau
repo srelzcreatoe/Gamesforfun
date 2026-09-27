@@ -1770,13 +1770,13 @@ do
 	local function rollFiller(odds: { [string]: number }): BrainrotConfig.Brainrot?
 		local total = 0
 		for rarityName, weight in odds do
-			if #BrainrotConfig.ByRarity[rarityName] > 0 then
+			if #BrainrotConfig.DropsByRarity[rarityName] > 0 then
 				total += weight
 			end
 		end
 		local roll = math.random() * total
 		for rarityName, weight in odds do
-			local choices = BrainrotConfig.ByRarity[rarityName]
+			local choices = BrainrotConfig.DropsByRarity[rarityName]
 			if #choices > 0 then
 				roll -= weight
 				if roll <= 0 then
@@ -1784,7 +1784,7 @@ do
 				end
 			end
 		end
-		return BrainrotConfig.Brainrots[1]
+		return BrainrotConfig.Obtainable[1]
 	end
 
 	local function reveal(blockId: string, entry: string)
@@ -1917,7 +1917,8 @@ local function newPointer(colour: Color3, name: string): Pointer
 	beam.Parent = anchor
 	local marker = create("BillboardGui", {
 		Name = "Marker",
-		Size = UDim2.fromOffset(220, 80),
+		-- Studs plus a few pixels: sized like the world up close, still readable far away.
+		Size = UDim2.new(7, 44, 2.5, 16),
 		StudsOffsetWorldSpace = Vector3.new(0, 4, 0),
 		AlwaysOnTop = true,
 		LightInfluence = 0,

@@ -17,13 +17,19 @@
 	  * adds trait effects: Fire burns, Glitched flickers and jumps about,
 	    Nyan leaves a rainbow trail (Tiny and Giant are just their size)
 	  * animates it: anything with two legs really walks (legs stepping in
-	    turn, a small bob and lean) matched to how fast it moves; brainrots
+	    turn, a small bob and lean) matched to how fast it moves; block-built
+	    brainrots also swing their arms, flap their wings, wag their tails,
+	    nod and look around, and spin their propellers and wheels; brainrots
 	    without legs waddle side to side with each step; Fly hovers and banks
 	    and Drive rolls along with little bumps. Idle brainrots bob and sway
 	    (Spin ones twirl, Hop ones bounce a little), and carried ones wriggle.
 	    Lucky blocks float and turn, hop home, and shake before they pop.
 	  * a sparkle burst when a brainrot arrives out of nowhere (a gift, a
 	    trade, a fuse or an opened lucky block)
+	  * hats (the Hat attribute) on top of the head, and glowing blocks that
+	    orbit every mutated brainrot
+	  * guards, pets and bosses (State Guard, Pet, Boss) walk like any other;
+	    a beaten boss (State Defeated) topples over
 
 	Every model is built once in the background (a few milliseconds a frame)
 	and each brainrot gets a copy, so they appear straight away. If a model
@@ -40,6 +46,7 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local AssetLoader = require(Shared:WaitForChild("AssetLoader"))
 local BrainrotConfig = require(Shared:WaitForChild("BrainrotConfig"))
+local HatModels = require(Shared:WaitForChild("HatModels"))
 
 local PIECE_ATTRIBUTE = "HiggsfieldPiece"
 local ANIMATION_DISTANCE = 220
@@ -55,6 +62,9 @@ local WALK_BOB = 0.022
 local WADDLE_ROLL = math.rad(9)
 local WADDLE_TURN = math.rad(6)
 local MIN_WALK_SPEED = 0.4
+-- Arms swing a little less than legs; propellers turn this fast (radians a second).
+local ARM_SWING = math.rad(26)
+local PROP_SPIN = 16
 
 type RarityEffect = {
 	Light: number,
@@ -72,13 +82,16 @@ type RarityEffect = {
 type PieceVisual = {
 	Part: BasePart,
 	Weld: Weld,
-	IsLeg: boolean,
+	-- "Body", "Leg", "Arm", "Wing", "Tail", "Head" or "Prop".
+	Kind: string,
 	-- Rest pose relative to the Root (the brainrot's feet).
 	Base: CFrame,
-	-- Where a leg joins the body, relative to the Root.
+	-- What it moves about (a leg's hip, an arm's shoulder, ...), relative to the Root.
 	Hip: Vector3,
-	-- +1 or -1: which way this leg swings on the first step.
+	-- +1 or -1: which way it swings on the first step (wings: which side).
 	Direction: number,
+	-- A Prop spins about this axis.
+	Axis: Vector3,
 }
 
 type Visual = {
@@ -102,10 +115,20 @@ type Visual = {
 	LastPosition: Vector3,
 	Speed: number,
 	Stride: number,
+	-- How far wheels and propellers have turned.
+	Spin: number,
 	-- A lucky block (floats and turns, shakes while opening).
 	Block: boolean,
 	-- The Glitched trait: flickers and jumps about.
 	Glitch: boolean,
+	-- Its hat, if it wears one.
+	Hat: Model?,
+	-- Glowing blocks circling a mutated brainrot.
+	Orbiters: { BasePart },
+	OrbitRadius: number,
+	-- When the current State began (for the boss falling over).
+	StateSince: number,
+	LastState: any,
 }
 
 local RARITY_EFFECTS: { [string]: RarityEffect } = {
@@ -134,6 +157,31 @@ local MUTATION_REFLECTANCE: { [string]: number } = {
 	Galaxy = 0.2,
 	Lava = 0.12,
 	Frozen = 0.35,
+	Taco = 0.1,
+	Lucky = 0.18,
+	Cash = 0.2,
+	Storm = 0.25,
+	Heist = 0.3,
+	Boss = 0.12,
+	Admin = 0.2,
+}
+
+-- How many glowing blocks circle a brainrot with each mutation.
+local ORBITERS: { [string]: number } = {
+	Gold = 3,
+	Diamond = 4,
+	Rainbow = 6,
+	Bloodrot = 4,
+	Galaxy = 6,
+	Lava = 4,
+	Frozen = 4,
+	Taco = 5,
+	Lucky = 5,
+	Cash = 5,
+	Storm = 6,
+	Heist = 5,
+	Boss = 6,
+	Admin = 8,
 }
 
 local MUTATION_COLOURS: { [string]: ColorSequence } = {
@@ -145,6 +193,21 @@ local MUTATION_COLOURS: { [string]: ColorSequence } = {
 	Lava = ColorSequence.new(Color3.fromRGB(255, 220, 80), Color3.fromRGB(255, 60, 10)),
 	Frozen = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(140, 220, 255)),
 	Bloodrot = ColorSequence.new(Color3.fromRGB(255, 60, 70), Color3.fromRGB(120, 0, 10)),
+	Taco = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 210, 80)),
+		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 90, 40)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(110, 210, 60)),
+	}),
+	Lucky = ColorSequence.new(Color3.fromRGB(120, 255, 150), Color3.fromRGB(20, 170, 70)),
+	Cash = ColorSequence.new(Color3.fromRGB(190, 255, 110), Color3.fromRGB(255, 220, 70)),
+	Storm = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(80, 150, 255)),
+	Heist = ColorSequence.new(Color3.fromRGB(255, 225, 90), Color3.fromRGB(60, 50, 20)),
+	Boss = ColorSequence.new(Color3.fromRGB(255, 200, 60), Color3.fromRGB(255, 50, 20)),
+	Admin = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 40, 70)),
+		ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 40, 70)),
+	}),
 }
 
 local RAINBOW_SEQUENCE = ColorSequence.new({
@@ -278,6 +341,74 @@ local function arrivalBurst(visual: Visual)
 	end)
 end
 
+-- Glowing blocks circling a mutated brainrot (moved every frame in animate).
+local function addOrbiters(visual: Visual, mutation: BrainrotConfig.Mutation)
+	if lowGraphics() then
+		return
+	end
+	local count = ORBITERS[mutation.Name] or 3
+	local size = math.clamp(visual.Height * 0.07, 0.2, 1.2)
+	local width = visual.Body.Size.X
+	visual.OrbitRadius = math.max(width * 0.55, visual.Height * 0.35) + size
+	for index = 1, count do
+		local cube = Instance.new("Part")
+		cube.Name = "Orbiter"
+		cube.Size = Vector3.one * size * (if index % 2 == 0 then 0.7 else 1)
+		cube.Material = Enum.Material.Neon
+		cube.Color = if mutation.Name == "Rainbow" then Color3.fromHSV(index / count, 0.8, 1) else mutation.Color
+		cube.Anchored = true
+		cube.CanCollide = false
+		cube.CanQuery = false
+		cube.CanTouch = false
+		cube.CastShadow = false
+		cube.Transparency = 0.1
+		cube:SetAttribute(PIECE_ATTRIBUTE, true)
+		cube.Parent = visual.Root
+		table.insert(visual.Orbiters, cube)
+	end
+end
+
+-- The hat goes on the head (or the top of the body) and moves with it.
+local function attachHat(visual: Visual)
+	local old = visual.Hat
+	if old then
+		old:Destroy()
+		visual.Hat = nil
+	end
+	local hatName = visual.Model:GetAttribute("Hat")
+	if typeof(hatName) ~= "string" then
+		return
+	end
+	local target: BasePart = visual.Body
+	for _, piece in visual.Pieces do
+		if piece.Kind == "Head" then
+			target = piece.Part
+		end
+	end
+	local width = math.clamp(math.min(target.Size.X, target.Size.Z) * 0.75, 0.6, visual.Height * 0.55)
+	local hat = HatModels.build(hatName, width)
+	if hat == nil then
+		return
+	end
+	local top = CFrame.new(0, target.Size.Y / 2 - width * 0.06, 0)
+	for _, part in hat:GetDescendants() do
+		if part:IsA("BasePart") then
+			local offset = part.CFrame
+			part.Anchored = false
+			part.Massless = true
+			part:SetAttribute(PIECE_ATTRIBUTE, true)
+			part.CFrame = target.CFrame * top * offset
+			local weld = Instance.new("Weld")
+			weld.Part0 = target
+			weld.Part1 = part
+			weld.C0 = top * offset
+			weld.Parent = part
+		end
+	end
+	hat.Parent = target
+	visual.Hat = hat
+end
+
 local function addEffects(visual: Visual, rarityName: string?, mutationName: string?)
 	local part = visual.Body
 	local effect = if rarityName then RARITY_EFFECTS[rarityName] else nil
@@ -350,7 +481,11 @@ local function addEffects(visual: Visual, rarityName: string?, mutationName: str
 			else MUTATION_COLOURS[mutation.Name] or ColorSequence.new(mutation.Color, Color3.new(1, 1, 1))
 		sparkles(part, "MutationSparkles", 10, colours, 0.55 * scale, false)
 		sparkles(part, "MutationAura", 5, colours, 0.7 * scale, true)
-		if mutation.Name == "Lava" then
+		addOrbiters(visual, mutation)
+		if mutation.Name == "Admin" then
+			visual.Glitch = true
+		end
+		if mutation.Name == "Lava" or mutation.Name == "Boss" then
 			local fire = Instance.new("Fire")
 			fire.Name = "LavaFire"
 			fire.Color = Color3.fromRGB(255, 120, 20)
@@ -395,6 +530,13 @@ local function detach(instance: Model)
 		return
 	end
 	visuals[instance] = nil
+	for _, orbiter in visual.Orbiters do
+		orbiter:Destroy()
+	end
+	local hat = visual.Hat
+	if hat then
+		hat:Destroy()
+	end
 	if visual.Imported then
 		local highlight = visual.Highlight
 		if highlight then
@@ -438,10 +580,11 @@ local function attachImported(instance: Model)
 			table.insert(pieces, {
 				Part = part,
 				Weld = descendant,
-				IsLeg = isLeg,
+				Kind = if isLeg then "Leg" else "Body",
 				Base = descendant.C0,
 				Hip = if typeof(hip) == "Vector3" then hip else Vector3.zero,
 				Direction = if phase == 1 then -1 else 1,
+				Axis = Vector3.yAxis,
 			})
 			if part.Name == "Body" or (body == nil and not isLeg) then
 				body = part
@@ -475,13 +618,20 @@ local function attachImported(instance: Model)
 		LastPosition = root.Position,
 		Speed = 0,
 		Stride = math.random() * math.pi * 2,
+		Spin = 0,
 		Block = instance:GetAttribute("LuckyBlock") == true,
 		Glitch = false,
+		Hat = nil,
+		Orbiters = {},
+		OrbitRadius = 0,
+		StateSince = os.clock(),
+		LastState = nil,
 	}
 	addEffects(visual, if typeof(rarityAttribute) == "string" then rarityAttribute else nil, mutation)
 	local traitAttribute = instance:GetAttribute("Trait")
 	addTraitEffects(visual, if typeof(traitAttribute) == "string" then traitAttribute else nil)
 	pcall(arrivalBurst, visual)
+	pcall(attachHat, visual)
 	local mutationInfo = if mutation then BrainrotConfig.MutationByName[mutation] else nil
 	if mutationInfo then
 		-- Textured meshes can't be recoloured, so the mutation glows over them.
@@ -561,16 +711,20 @@ local function attachModel(instance: Instance)
 			weld.C0 = centre * CFrame.new(entry.Offset)
 			weld.Parent = part
 
-			local isLeg = entry.Piece.Kind == "Leg"
+			local kind = entry.Piece.Kind
 			table.insert(pieces, {
 				Part = part :: BasePart,
 				Weld = weld,
-				IsLeg = isLeg,
+				Kind = kind,
 				Base = centre * CFrame.new(entry.Offset),
 				Hip = centre.Position + entry.Pivot,
 				Direction = if entry.Piece.Phase == 1 then -1 else 1,
+				Axis = if entry.Piece.Axis == "X"
+					then Vector3.xAxis
+					elseif entry.Piece.Axis == "Z" then Vector3.zAxis
+					else Vector3.yAxis,
 			})
-			if not isLeg then
+			if kind == "Body" then
 				body = part
 			end
 		end
@@ -600,8 +754,14 @@ local function attachModel(instance: Instance)
 			LastPosition = rootInstance.Position,
 			Speed = 0,
 			Stride = math.random() * math.pi * 2,
+			Spin = 0,
 			Block = false,
 			Glitch = false,
+			Hat = nil,
+			Orbiters = {},
+			OrbitRadius = 0,
+			StateSince = os.clock(),
+			LastState = nil,
 		}
 		addEffects(visual, rarity, mutation)
 		local traitAttribute = instance:GetAttribute("Trait")
@@ -616,6 +776,7 @@ local function attachModel(instance: Instance)
 		end
 
 		visuals[instance] = visual
+		pcall(attachHat, visual)
 		if visual.Rainbow then
 			rainbowAssets[asset] = true
 		end
@@ -640,6 +801,12 @@ local function track(instance: Instance)
 		local visual = visuals[instance]
 		if visual then
 			hideFallback(visual, descendant)
+		end
+	end)
+	instance:GetAttributeChangedSignal("Hat"):Connect(function()
+		local visual = visuals[instance]
+		if visual then
+			pcall(attachHat, visual)
 		end
 	end)
 	instance.ChildRemoved:Connect(function(child: Instance)
@@ -707,7 +874,15 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 	end
 	local stride = visual.Stride
 
-	if state == "Carried" then
+	if state ~= visual.LastState then
+		visual.LastState = state
+		visual.StateSince = t
+	end
+	if state == "Defeated" then
+		local fall = math.clamp((t - visual.StateSince) / 0.8, 0, 1)
+		local eased = fall * fall
+		modelOffset = CFrame.new(0, -height * 0.2 * eased, 0) * centre * CFrame.Angles(0, 0, math.rad(85) * eased)
+	elseif state == "Carried" then
 		local wiggle = phase * 12
 		swing = math.sin(phase * 16) * math.rad(35)
 		modelOffset = centre * CFrame.Angles(math.sin(wiggle) * math.rad(10), 0, math.cos(wiggle * 0.7) * math.rad(14))
@@ -782,16 +957,67 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 		modelOffset = CFrame.new(jolt) * modelOffset * CFrame.Angles(0, (math.random() - 0.5) * 0.8, 0)
 	end
 
+	-- Arms swing against the legs (or with each waddle), flail when carried
+	-- and wave a little when idle.
+	local armSwing: number
+	if state == "Carried" then
+		armSwing = math.sin(phase * 14) * math.rad(55)
+	elseif moving and motion ~= "Fly" and motion ~= "Drive" then
+		armSwing = -math.sin(stride) * ARM_SWING * blend
+	else
+		armSwing = math.sin(phase * 1.6) * math.rad(6)
+	end
+	-- Wings flap fast in flight, slowly otherwise.
+	local flying = motion == "Fly" or state == "Carried"
+	local flapRate = if flying then (if moving then 15 else 10) else 4
+	local flap = math.sin(t * flapRate + visual.Phase) * math.rad(if flying then 32 else 10)
+	local wag = math.sin(phase * (if moving then 9 else 4)) * math.rad(if moving then 22 else 14)
+	local nod: CFrame
+	if moving then
+		nod = CFrame.Angles(math.sin(stride * 2) * math.rad(5) * blend, math.sin(stride) * math.rad(4) * blend, 0)
+	else
+		-- Looks around now and then.
+		nod = CFrame.Angles(math.sin(phase * 0.9) * math.rad(3), math.sin(phase * 0.45) * math.rad(16), math.sin(phase * 0.7) * math.rad(3))
+	end
+	-- Propellers always turn; wheels roll with the ground speed; halos turn slowly.
+	visual.Spin += dt * (if motion == "Drive" then visual.Speed * 1.6 else PROP_SPIN)
+
+	-- Glowing blocks circle the brainrot, bobbing and tumbling.
+	local orbiters = visual.Orbiters
+	if #orbiters > 0 then
+		local rootFrame = visual.Root.CFrame
+		local count = #orbiters
+		for index, cube in orbiters do
+			local angle = t * 1.6 + (index - 1) / count * math.pi * 2
+			local y = height * (0.5 + 0.25 * math.sin(t * 2 + index * 1.7))
+			cube.CFrame = rootFrame
+				* CFrame.new(math.cos(angle) * visual.OrbitRadius, y, math.sin(angle) * visual.OrbitRadius)
+				* CFrame.Angles(t * 2 + index, t * 3, 0)
+		end
+	end
+
 	-- modelOffset moves the model about its centre; the pieces' rest poses
 	-- are relative to the feet.
 	local frame = modelOffset * centre:Inverse()
 	for _, piece in visual.Pieces do
-		if piece.IsLeg then
-			piece.Weld.C0 = frame
-				* CFrame.new(piece.Hip)
-				* CFrame.Angles(swing * piece.Direction, 0, 0)
-				* CFrame.new(-piece.Hip)
-				* piece.Base
+		local kind = piece.Kind
+		local turn: CFrame? = nil
+		if kind == "Leg" then
+			turn = CFrame.Angles(swing * piece.Direction, 0, 0)
+		elseif kind == "Arm" then
+			turn = CFrame.Angles(armSwing * piece.Direction, 0, 0)
+		elseif kind == "Wing" then
+			turn = CFrame.Angles(0, 0, flap * piece.Direction)
+		elseif kind == "Tail" then
+			turn = CFrame.Angles(0, wag * piece.Direction, 0)
+		elseif kind == "Head" then
+			turn = nod
+		elseif kind == "Prop" then
+			local angle = if piece.Axis == Vector3.yAxis then visual.Spin * 0.25 else visual.Spin
+			turn = CFrame.fromAxisAngle(piece.Axis, angle * piece.Direction)
+		end
+		if turn then
+			piece.Weld.C0 = frame * CFrame.new(piece.Hip) * turn * CFrame.new(-piece.Hip) * piece.Base
 		else
 			piece.Weld.C0 = frame * piece.Base
 		end

@@ -308,9 +308,9 @@ shopList.Parent = shopBody
 
 -- Only trust product details that belong to this experience's creator, so a
 -- placeholder ID never shows another game's product.
-local function fetchOwnProductInfo(productId: number): { [string]: any }?
+local function fetchOwnProductInfo(productId: number, infoType: Enum.InfoType): { [string]: any }?
 	local ok, info = pcall(function()
-		return MarketplaceService:GetProductInfoAsync(productId, Enum.InfoType.Product)
+		return MarketplaceService:GetProductInfoAsync(productId, infoType)
 	end)
 	if not ok or typeof(info) ~= "table" or game.CreatorId == 0 then
 		return nil
@@ -400,22 +400,50 @@ for index, product in MonetizationConfig.ShopProducts do
 		Size = UDim2.new(0.55, 0, 0.26, 0),
 	})
 	buyButton.Parent = card
+	local owned = false
+	local function showOwned()
+		owned = true
+		buyButton.Text = "OWNED"
+		UIKit.setEnabled(buyButton, false, COLORS.Buy)
+	end
 	buyButton.Activated:Connect(function()
+		if owned then
+			return
+		end
 		local ok, err = pcall(function()
-			MarketplaceService:PromptProductPurchase(player, product.ProductId)
+			if product.GamePass then
+				MarketplaceService:PromptGamePassPurchase(player, product.ProductId)
+			else
+				MarketplaceService:PromptProductPurchase(player, product.ProductId)
+			end
 		end)
 		if not ok then
 			warn("[GameClient] Could not open the purchase prompt: " .. tostring(err))
 		end
 	end)
+	if product.GamePass then
+		task.spawn(function()
+			local ok, has = pcall(function()
+				return MarketplaceService:UserOwnsGamePassAsync(player.UserId, product.ProductId)
+			end)
+			if ok and has == true then
+				showOwned()
+			end
+		end)
+		MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(who: Player, passId: number, purchased: boolean)
+			if who == player and passId == product.ProductId and purchased then
+				showOwned()
+			end
+		end)
+	end
 
 	task.spawn(function()
-		local info = fetchOwnProductInfo(product.ProductId)
+		local info = fetchOwnProductInfo(product.ProductId, if product.GamePass then Enum.InfoType.GamePass else Enum.InfoType.Product)
 		if info == nil then
 			return
 		end
 		local price = tonumber(info.PriceInRobux)
-		if price then
+		if price and not owned then
 			buyButton.Text = "R$ " .. NumberFormat.commas(price)
 		end
 		local iconId = tonumber(info.IconImageAssetId)
@@ -577,6 +605,27 @@ for _, definition in BrainrotConfig.Brainrots do
 	}, { corner(10) }) :: ViewportFrame
 	viewport.Parent = card
 
+	-- Limited and season brainrots never ride the conveyor: say where they come from.
+	local badgeText = if BrainrotConfig.hasTag(definition, "Limited")
+		then "⭐ LIMITED"
+		elseif BrainrotConfig.hasTag(definition, "Season") then "🏆 SEASON"
+		else nil
+	if badgeText then
+		local badge = label({
+			Name = "Badge",
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.new(1, -12, 0, 12),
+			Size = UDim2.fromOffset(96, 22),
+			BackgroundTransparency = 0,
+			BackgroundColor3 = if badgeText == "⭐ LIMITED" then Color3.fromRGB(230, 170, 20) else Color3.fromRGB(230, 110, 30),
+			Text = badgeText,
+			TextSize = 15,
+			ZIndex = 3,
+		})
+		corner(6).Parent = badge
+		badge.Parent = card
+	end
+
 	local nameLabel = label({
 		Name = "BrainrotName",
 		Position = UDim2.fromOffset(6, 120),
@@ -659,7 +708,8 @@ local function ownBrainrotCounts(): { [string]: number }
 	end
 	for _, model in folder:GetChildren() do
 		local brainrotId = model:GetAttribute("BrainrotId")
-		if typeof(brainrotId) == "string" and model:GetAttribute("OwnerUserId") == player.UserId then
+		-- Only brainrots on pedestals (not guard copies or pets) have a Slot.
+		if typeof(brainrotId) == "string" and model:GetAttribute("OwnerUserId") == player.UserId and model:GetAttribute("Slot") ~= nil then
 			counts[brainrotId] = (counts[brainrotId] or 0) + 1
 		end
 	end
@@ -698,7 +748,7 @@ local function refreshIndex()
 	local parts: { string } = {}
 	if mutation then
 		local total, have = 0, 0
-		for _, definition in BrainrotConfig.Brainrots do
+		for _, definition in BrainrotConfig.Obtainable do
 			total += 1
 			if found[definition.Id .. ":" .. mutation.Name] then
 				have += 1
@@ -719,7 +769,7 @@ local function refreshIndex()
 		end
 	else
 		for _, rarity in BrainrotConfig.Rarities do
-			local choices = BrainrotConfig.ByRarity[rarity.Name]
+			local choices = BrainrotConfig.DropsByRarity[rarity.Name]
 			local have = 0
 			for _, definition in choices do
 				if found[definition.Id] then
@@ -1152,7 +1202,8 @@ Sounds.startMusic()
 
 local baseMarker = create("BillboardGui", {
 	Name = "YourBaseMarker",
-	Size = UDim2.fromOffset(300, 110),
+	-- Studs plus a few pixels: sized like the world up close, still readable far away.
+	Size = UDim2.new(10, 60, 3.7, 22),
 	StudsOffsetWorldSpace = Vector3.new(0, 9, 0),
 	AlwaysOnTop = true,
 	LightInfluence = 0,
@@ -1262,11 +1313,12 @@ local function refreshPrompt(prompt: ProximityPrompt)
 		prompt.Enabled = prompt:GetAttribute("Snipeable") == true and not ownedByMe
 		return
 	end
-	if kind ~= "Steal" and kind ~= "Sell" and kind ~= "Upgrade" and kind ~= "Open" then
+	if kind ~= "Steal" and kind ~= "Sell" and kind ~= "Upgrade" and kind ~= "Open" and kind ~= "Manage" then
 		return
 	end
 	local busy = prompt:GetAttribute("Carried") == true or prompt:GetAttribute("Walking") == true
-	-- Only the owner sells, upgrades pedestals and opens lucky blocks.
+	-- Only the owner sells, upgrades pedestals, opens lucky blocks and
+	-- manages (hats, guard, pet).
 	local forMe = if kind == "Steal" then not ownedByMe else ownedByMe
 	if kind == "Upgrade" and prompt:GetAttribute("MaxLevel") == true then
 		forMe = false

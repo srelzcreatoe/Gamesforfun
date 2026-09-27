@@ -99,11 +99,22 @@ local lastTrack: number? = nil
 local trackToken = 0
 local shuffleRng = Random.new()
 
+-- The radio station's tracks (Mix = the whole AudioConfig.Music playlist).
+local stationName = "Mix"
+local function stationTracks(): { number }
+	for _, station in AudioConfig.Stations do
+		if station.Name == stationName and #station.Tracks > 0 then
+			return station.Tracks
+		end
+	end
+	return AudioConfig.Music
+end
+
 -- The first track in AudioConfig.Music plays first. After that the playlist is
 -- shuffled, and shuffled again each time it runs out, never playing the same
 -- track twice in a row.
 local function nextTrack(): number
-	local tracks = AudioConfig.Music
+	local tracks = stationTracks()
 	if #trackQueue == 0 then
 		if lastTrack == nil then
 			trackQueue = { tracks[1] }
@@ -124,7 +135,7 @@ local function nextTrack(): number
 end
 
 local function playNextTrack(failures: number)
-	local tracks = AudioConfig.Music
+	local tracks = stationTracks()
 	if #tracks == 0 or failures >= #tracks then
 		return
 	end
@@ -154,6 +165,28 @@ function Sounds.startMusic()
 	if musicEnabled then
 		playNextTrack(0)
 	end
+end
+
+-- Switches the radio station and starts one of its tracks.
+function Sounds.setStation(name: string)
+	local found = false
+	for _, station in AudioConfig.Stations do
+		found = found or station.Name == name
+	end
+	if not found or name == stationName then
+		return
+	end
+	stationName = name
+	trackQueue = {}
+	-- A new station starts on a random track of its own.
+	lastTrack = if name == "Mix" then nil else -1
+	if musicStarted and musicEnabled then
+		playNextTrack(0)
+	end
+end
+
+function Sounds.getStation(): string
+	return stationName
 end
 
 function Sounds.isMusicEnabled(): boolean

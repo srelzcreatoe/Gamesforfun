@@ -40,6 +40,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local ExtrasConfig = require(Shared:WaitForChild("ExtrasConfig"))
 local FeatureConfig = require(Shared:WaitForChild("FeatureConfig"))
 local GameConfig = require(Shared:WaitForChild("GameConfig"))
 local GearConfig = require(Shared:WaitForChild("GearConfig"))
@@ -83,6 +84,22 @@ local playSoundEvent = remotes:WaitForChild("PlaySound") :: RemoteEvent
 local buyGearFunction = Instance.new("RemoteFunction")
 buyGearFunction.Name = "BuyGear"
 buyGearFunction.Parent = remotes
+
+-- Server API (ServerStorage.Gear) for guards and bosses:
+--   BindableFunction Knockback(player, direction, strength, stunSeconds?)
+--   BindableEvent    SlapSwing(player)   every swing of a slap glove
+--   BindableEvent    Slapped(player, target)   a slap that hit someone
+local gearApi = Instance.new("Folder")
+gearApi.Name = "Gear"
+local knockbackFunction = Instance.new("BindableFunction")
+knockbackFunction.Name = "Knockback"
+knockbackFunction.Parent = gearApi
+local slapSwingEvent = Instance.new("BindableEvent")
+slapSwingEvent.Name = "SlapSwing"
+slapSwingEvent.Parent = gearApi
+local slappedEvent = Instance.new("BindableEvent")
+slappedEvent.Name = "Slapped"
+slappedEvent.Parent = gearApi
 
 local lastBuyRequest: { [Player]: number } = {}
 local lastSlap: { [Player]: number } = {}
@@ -162,10 +179,13 @@ local function applyMovement(player: Player)
 		return
 	end
 	local level = math.clamp(tonumber(player:GetAttribute("SpeedLevel")) or 0, 0, #FeatureConfig.SpeedCosts)
-	humanoid.WalkSpeed = if carrying
-		then GameConfig.CarryWalkSpeed + level * FeatureConfig.CarrySpeedPerLevel
-		elseif gearId == "SpeedCoil" then GameConfig.DefaultWalkSpeed + level * FeatureConfig.SpeedPerLevel + GearConfig.SpeedCoilBonus
-		else GameConfig.DefaultWalkSpeed + level * FeatureConfig.SpeedPerLevel
+	-- Revenge, a pet and carrying loot add to (or take from) the speed.
+	local bonus = ExtrasConfig.speedBonusOf(player)
+	humanoid.WalkSpeed = bonus
+		+ if carrying
+			then GameConfig.CarryWalkSpeed + level * FeatureConfig.CarrySpeedPerLevel
+			elseif gearId == "SpeedCoil" then GameConfig.DefaultWalkSpeed + level * FeatureConfig.SpeedPerLevel + GearConfig.SpeedCoilBonus
+			else GameConfig.DefaultWalkSpeed + level * FeatureConfig.SpeedPerLevel
 	humanoid.UseJumpPower = false
 	humanoid.JumpHeight = if gearId == "GravityCoil" then GearConfig.GravityCoilJumpHeight else GearConfig.DefaultJumpHeight
 end
@@ -187,10 +207,8 @@ local function uncloak(player: Player, message: string?)
 			instance.Transparency = transparency
 		end
 	end
-	local _, humanoid = getLiveCharacter(player)
-	if humanoid then
-		humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Viewer
-	end
+	-- SocialManager shows the name tag again.
+	player:SetAttribute("Cloaked", nil)
 	if message then
 		notify(player, message, "Warning")
 	end
@@ -226,6 +244,8 @@ local function cloak(player: Player)
 	end
 	cloaked[player] = hidden
 	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	-- SocialManager hides the name tag while this is set.
+	player:SetAttribute("Cloaked", true)
 	notify(player, string.format("You're invisible for %d seconds!", GearConfig.CloakSeconds), "Success", "Cloak")
 
 	task.delay(GearConfig.CloakSeconds, function()
@@ -239,7 +259,7 @@ end
 -- Slap
 --------------------------------------------------------------------------------
 
-local function knockback(rootPart: BasePart, direction: Vector3)
+local function knockback(rootPart: BasePart, direction: Vector3, strength: number?)
 	local attachment = rootPart:FindFirstChild("RootAttachment")
 	if attachment == nil or not attachment:IsA("Attachment") then
 		local created = Instance.new("Attachment")
@@ -255,7 +275,7 @@ local function knockback(rootPart: BasePart, direction: Vector3)
 	velocity.RelativeTo = Enum.ActuatorRelativeTo.World
 	velocity.VelocityConstraintMode = Enum.VelocityConstraintMode.Vector
 	velocity.MaxForce = 1e6
-	velocity.VectorVelocity = direction * GearConfig.SlapKnockback + Vector3.new(0, 30, 0)
+	velocity.VectorVelocity = direction * (strength or GearConfig.SlapKnockback) + Vector3.new(0, 30, 0)
 	velocity.Parent = rootPart
 	Debris:AddItem(velocity, KNOCKBACK_SECONDS)
 end
@@ -271,6 +291,8 @@ local function slap(player: Player, tool: Tool)
 	if rootPart == nil or tool.Parent ~= player.Character then
 		return
 	end
+
+	slapSwingEvent:Fire(player)
 
 	-- Plays the character's tool swing animation.
 	local swing = Instance.new("StringValue")
@@ -305,6 +327,7 @@ local function slap(player: Player, tool: Tool)
 	playSoundEvent:FireClient(player, "Slap")
 	playSoundEvent:FireClient(target, "Slap")
 	activityEvent:Fire(player, "Slap", 1)
+	slappedEvent:Fire(player, target)
 	if target:GetAttribute("Carrying") == true then
 		forceDropEvent:Fire(target, string.format("%s slapped you and you dropped the brainrot!", player.DisplayName), player)
 		notify(player, string.format("You slapped %s and they dropped the brainrot!", target.DisplayName), "Success")
@@ -976,6 +999,11 @@ local function onPlayerAdded(player: Player)
 		end
 		applyMovement(player)
 	end)
+	for _, attribute in ExtrasConfig.SpeedAttributes do
+		player:GetAttributeChangedSignal(attribute):Connect(function()
+			applyMovement(player)
+		end)
+	end
 	player:GetAttributeChangedSignal("SpeedLevel"):Connect(function()
 		applyMovement(player)
 	end)
@@ -983,6 +1011,24 @@ local function onPlayerAdded(player: Player)
 		task.spawn(onCharacterAdded, player, player.Character)
 	end
 end
+
+knockbackFunction.OnInvoke = function(playerArg: any, direction: any, strength: any, stunSeconds: any): boolean
+	if typeof(playerArg) ~= "Instance" or not playerArg:IsA("Player") or typeof(direction) ~= "Vector3" then
+		return false
+	end
+	local rootPart = getLiveCharacter(playerArg)
+	if rootPart == nil then
+		return false
+	end
+	local flat = Vector3.new(direction.X, 0, direction.Z)
+	knockback(rootPart, if flat.Magnitude > 0.01 then flat.Unit else Vector3.zAxis, math.clamp(tonumber(strength) or GearConfig.SlapKnockback, 0, 200))
+	local seconds = tonumber(stunSeconds) or 0
+	if seconds > 0 then
+		stun(playerArg, math.min(seconds, 5), "Knocked")
+	end
+	return true
+end
+gearApi.Parent = ServerStorage
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(function(player: Player)

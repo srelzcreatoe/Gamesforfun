@@ -3,11 +3,12 @@
 	LeaderboardManager
 	Location: ServerScriptService (Script)
 
-	Draws the global leaderboards on the boards in Workspace.Map.Leaderboards:
-	Top Cash, Top Steals and Top Rebirths across every server, plus the game's
-	logo board. Each player's leaderstats are written to an OrderedDataStore
-	every couple of minutes (only when they changed) and the top 10 are read
-	back every minute.
+	Draws the global leaderboards in the Hall of Fame (Workspace.Map.Leaderboards):
+	Top Steals, Top Earners (best income per second), Top Cash and Top
+	Rebirths across every server, plus the game's logo board. Each player's
+	scores are written to an OrderedDataStore every couple of minutes (only
+	when they changed) and the top 10 are read back every minute. The top
+	thief's avatar stands on the Hall of Fame's podium.
 
 	When DataStores aren't available (an unpublished place in Studio), the
 	boards rank the players in this server instead and say so.
@@ -46,9 +47,14 @@ type BoardGui = {
 	Footer: TextLabel,
 }
 
+local function perSecond(value: number): string
+	return NumberFormat.cash(value) .. "/s"
+end
+
 local STATS: { Stat } = {
 	{ Name = "Cash", Board = "TopCash", Title = "TOP CASH", Color = Color3.fromRGB(80, 255, 110), Format = NumberFormat.cash },
 	{ Name = "Steals", Board = "TopSteals", Title = "TOP STEALS", Color = Color3.fromRGB(255, 90, 90), Format = NumberFormat.commas },
+	{ Name = "Earners", Board = "TopEarners", Title = "TOP EARNERS", Color = Color3.fromRGB(255, 210, 60), Format = perSecond },
 	{ Name = "Rebirths", Board = "TopRebirths", Title = "TOP REBIRTHS", Color = Color3.fromRGB(80, 190, 255), Format = NumberFormat.commas },
 }
 local RANK_COLORS = {
@@ -96,6 +102,7 @@ end
 
 local function getScreen(boardName: string): BasePart?
 	local board = if boardsFolder then boardsFolder:FindFirstChild(boardName) else nil
+	board = board or map:FindFirstChild(boardName, true)
 	local screen = if board then board:FindFirstChild("Screen") else nil
 	return if screen and screen:IsA("BasePart") then screen else nil
 end
@@ -221,7 +228,16 @@ end
 -- Data
 --------------------------------------------------------------------------------
 
+-- The best income per second each player reached this session.
+local bestIncome: { [Player]: number } = {}
+
 local function getStatValue(player: Player, statName: string): number?
+	if statName == "Earners" then
+		local current = math.floor(tonumber(player:GetAttribute("IncomePerSecond")) or 0)
+		local best = math.max(bestIncome[player] or 0, current)
+		bestIncome[player] = best
+		return if best > 0 then best else nil
+	end
 	local leaderstats = player:FindFirstChild("leaderstats")
 	local value = if leaderstats then leaderstats:FindFirstChild(statName) else nil
 	if value and value:IsA("IntValue") then
@@ -258,7 +274,14 @@ local function writeScores()
 				local value = getStatValue(player, stat.Name)
 				if store and value and value > 0 and written[stat.Name] ~= value then
 					local ok, err = pcall(function()
-						store:SetAsync(tostring(player.UserId), math.floor(value))
+						if stat.Name == "Earners" then
+							-- A record: only ever goes up.
+							store:UpdateAsync(tostring(player.UserId), function(old: any): number
+								return math.max(tonumber(old) or 0, math.floor(value))
+							end)
+						else
+							store:SetAsync(tostring(player.UserId), math.floor(value))
+						end
 					end)
 					if ok then
 						written[stat.Name] = value
@@ -312,13 +335,75 @@ local function readServerTop(stat: Stat): { Row }
 	return rows
 end
 
+-- The top thief's avatar on the Hall of Fame's podium.
+local championUserId = 0
+local function updateChampion(userId: number, name: string)
+	if userId == championUserId or userId <= 0 then
+		return
+	end
+	local spot = map:FindFirstChild("ChampionSpot", true)
+	if spot == nil or not spot:IsA("BasePart") then
+		return
+	end
+	local ok, result = pcall(function(): Model
+		return Players:CreateHumanoidModelFromUserId(userId)
+	end)
+	if not ok or typeof(result) ~= "Instance" or not result:IsA("Model") then
+		return
+	end
+	local statue: Model = result
+	championUserId = userId
+	local old = spot.Parent and spot.Parent:FindFirstChild("ChampionStatue")
+	if old then
+		old:Destroy()
+	end
+	statue.Name = "ChampionStatue"
+	for _, part in statue:GetDescendants() do
+		if part:IsA("BasePart") then
+			part.Anchored = true
+			part.CanCollide = false
+		end
+	end
+	local humanoid = statue:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.DisplayName = "👑 " .. name
+		humanoid.NameDisplayDistance = 0
+		humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	end
+	local _, size = statue:GetBoundingBox()
+	statue:PivotTo(spot.CFrame * CFrame.new(0, size.Y / 2 - 0.5, 0) * CFrame.Angles(0, math.pi, 0))
+	local label = Instance.new("BillboardGui")
+	label.Size = UDim2.fromScale(10, 2)
+	label.StudsOffset = Vector3.new(0, size.Y / 2 + 1.5, 0)
+	label.LightInfluence = 0
+	label.MaxDistance = 150
+	local nameLabel = Instance.new("TextLabel")
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.Size = UDim2.fromScale(1, 1)
+	nameLabel.Font = Enum.Font.FredokaOne
+	nameLabel.TextScaled = true
+	nameLabel.Text = "👑 " .. name
+	nameLabel.TextColor3 = Color3.fromRGB(255, 215, 70)
+	nameLabel.TextStrokeTransparency = 0
+	nameLabel.Parent = label
+	label.Parent = statue.PrimaryPart or statue:FindFirstChildWhichIsA("BasePart")
+	statue.Parent = spot.Parent
+end
+
 local function refreshBoards()
 	for _, stat in STATS do
-		local rows = readGlobalTop(stat)
-		if rows then
+		local rows: { Row }
+		local globalRows = readGlobalTop(stat)
+		if globalRows then
+			rows = globalRows
 			drawRows(stat, rows, "All servers - updates every minute")
 		else
-			drawRows(stat, readServerTop(stat), "This server only (publish the game for global scores)")
+			rows = readServerTop(stat)
+			drawRows(stat, rows, "This server only (publish the game for global scores)")
+		end
+		local top = rows[1]
+		if stat.Name == "Steals" and top then
+			task.spawn(updateChampion, top.UserId, top.Name)
 		end
 	end
 end
@@ -337,6 +422,7 @@ drawLogo()
 
 Players.PlayerRemoving:Connect(function(player: Player)
 	lastWritten[player] = nil
+	bestIncome[player] = nil
 end)
 
 task.spawn(function()

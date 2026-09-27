@@ -61,6 +61,7 @@ local progressChangedEvent = dataApi:WaitForChild("ProgressChanged") :: Bindable
 local giveBrainrotFunction = bindableFunction(gameplayApi, "GiveBrainrot")
 local getIncomeFunction = bindableFunction(gameplayApi, "GetIncome")
 local ownsGamePassFunction = bindableFunction(dataApi, "OwnsGamePass")
+local addHatFunction = bindableFunction(dataApi, "AddHat")
 local activityEvent = gameplayApi:WaitForChild("Activity") :: BindableEvent
 
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
@@ -149,8 +150,31 @@ local function grant(player: Player, reward: Reward): (boolean, string)
 	elseif (reward.Kind == "Block" or reward.Kind == "Brainrot") and reward.Id and BrainrotConfig.ById[reward.Id] then
 		local result = giveBrainrotFunction:Invoke(player, reward.Id)
 		return result == "Placed" or result == "Pending", FeatureConfig.describeReward(reward)
+	elseif reward.Kind == "Hat" then
+		local hatName = addHatFunction:Invoke(player, reward.Hat or "Random", 1)
+		if typeof(hatName) ~= "string" then
+			return false, "nothing"
+		end
+		return true, FeatureConfig.describeReward({ Kind = "Hat", Hat = hatName } :: Reward)
 	end
 	return false, "nothing"
+end
+
+-- Server API (ServerStorage.Rewards) for the season pass and boss raids:
+--   BindableFunction GrantReward(player, reward) -> (ok, description)
+do
+	local folder = Instance.new("Folder")
+	folder.Name = "Rewards"
+	local grantFunction = Instance.new("BindableFunction")
+	grantFunction.Name = "GrantReward"
+	grantFunction.OnInvoke = function(playerArg: any, reward: any): (boolean, string)
+		if typeof(playerArg) ~= "Instance" or not playerArg:IsA("Player") or typeof(reward) ~= "table" then
+			return false, "nothing"
+		end
+		return grant(playerArg, reward :: Reward)
+	end
+	grantFunction.Parent = folder
+	folder.Parent = ServerStorage
 end
 
 --------------------------------------------------------------------------------
@@ -522,6 +546,8 @@ HANDLERS.ClaimQuest = function(player: Player, argument: any): (boolean, string?
 	end
 	local ok, what = grant(player, info.Reward)
 	pushState(player)
+	-- Season pass XP.
+	activityEvent:Fire(player, "Quest", 1)
 	return ok, "Quest reward: " .. what .. "!"
 end
 
@@ -621,10 +647,17 @@ HANDLERS.SaveSettings = function(player: Player, argument: any): (boolean, strin
 		return false, nil
 	end
 	local defaults = FeatureConfig.DefaultSettings
+	-- The radio saves its station on its own; other saves keep the old one.
+	local saved = getTable(player, "Settings")
+	local station = if typeof(argument.Station) == "string" and #argument.Station <= 24
+		then argument.Station
+		elseif typeof(saved.Station) == "string" then saved.Station
+		else defaults.Station
 	setProgress(player, "Settings", {
 		Music = math.clamp(tonumber(argument.Music) or defaults.Music, 0, 1),
 		Sfx = math.clamp(tonumber(argument.Sfx) or defaults.Sfx, 0, 1),
 		LowGraphics = argument.LowGraphics == true,
+		Station = station,
 	})
 	return true, nil
 end

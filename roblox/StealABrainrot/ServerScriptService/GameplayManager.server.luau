@@ -79,6 +79,7 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local BrainrotConfig = require(Shared:WaitForChild("BrainrotConfig"))
+local ExtrasConfig = require(Shared:WaitForChild("ExtrasConfig"))
 local FeatureConfig = require(Shared:WaitForChild("FeatureConfig"))
 local GameConfig = require(Shared:WaitForChild("GameConfig"))
 local MonetizationConfig = require(Shared:WaitForChild("MonetizationConfig"))
@@ -116,6 +117,7 @@ type Visual = {
 	PromptAttachment: Attachment,
 	PriceLabel: TextLabel?,
 	OwnerLabel: TextLabel?,
+	IncomeLabel: TextLabel?,
 }
 
 type Pad = {
@@ -197,6 +199,12 @@ type Occupant = {
 	Carrier: Player?,
 	PriceLabel: TextLabel?,
 	OwnerLabel: TextLabel?,
+	-- The hat it wears (ExtrasConfig.Hats) and how long it has been levelling
+	-- up; both are saved with it (BrainrotConfig.encodeFull).
+	Hat: string?,
+	Seconds: number,
+	IncomeLabel: TextLabel?,
+	LevelLabel: TextLabel?,
 }
 
 type Carry = {
@@ -253,6 +261,9 @@ do
 			"GetServerRarityMultiplier",
 			"GetProgress",
 			"SetProgress",
+			"GetHats",
+			"AddHat",
+			"TakeHat",
 			"OwnsGamePass",
 			"SaveNow",
 			"ProgressChanged",
@@ -460,12 +471,26 @@ local function occupantEntry(occupant: Occupant): string
 	return occupant.OpeningResult or entryOf(occupant.Definition, occupant.Mutation, occupant.Trait)
 end
 
+-- What a base brainrot saves as: its entry plus its hat and level time.
+local function savedEntry(occupant: Occupant): string
+	if occupant.OpeningResult then
+		return occupant.OpeningResult
+	end
+	return BrainrotConfig.encodeFull(
+		occupant.Definition.Id,
+		if occupant.Mutation then occupant.Mutation.Name else nil,
+		if occupant.Trait then occupant.Trait.Name else nil,
+		occupant.Hat,
+		occupant.Seconds
+	)
+end
+
 local function getBrainrotIds(plot: Plot): { string }
 	local brainrotIds: { string } = {}
 	for index = 1, #plot.Slots do
 		local occupant = plot.Occupants[index]
 		if occupant then
-			table.insert(brainrotIds, occupantEntry(occupant))
+			table.insert(brainrotIds, savedEntry(occupant))
 		end
 	end
 	return brainrotIds
@@ -476,12 +501,42 @@ local function pedestalMultiplier(plot: Plot, slotIndex: number): number
 	return 1 + FeatureConfig.PedestalBonus * ((plot.Levels[slotIndex] or 1) - 1)
 end
 
+-- Everything a base brainrot earns per second before the player's own
+-- multipliers: its income, the pedestal, its level and its hat.
+local function occupantIncome(occupant: Occupant): number
+	local hat = if occupant.Hat then ExtrasConfig.HatByName[occupant.Hat] else nil
+	return incomeOf(occupant.Definition, occupant.Mutation, occupant.Trait)
+		* pedestalMultiplier(occupant.Plot, occupant.SlotIndex)
+		* ExtrasConfig.levelMultiplier(ExtrasConfig.levelOf(occupant.Seconds))
+		* (1 + if hat then hat.Bonus else 0)
+end
+
+local slotsChangedEvent = Instance.new("BindableEvent")
+slotsChangedEvent.Name = "SlotsChanged"
+slotsChangedEvent.Parent = gameplayApi
+local stolenEvent = Instance.new("BindableEvent")
+stolenEvent.Name = "Stolen"
+stolenEvent.Parent = gameplayApi
+
+-- A brainrot leaving its base (sold, stolen, fused, traded) gives its hat
+-- back to whoever owned it.
+local function returnHat(occupant: Occupant, owner: Player?)
+	local hatName = occupant.Hat
+	occupant.Hat = nil
+	if hatName and owner and owner.Parent == Players then
+		DataApi.AddHat:Invoke(owner, hatName, 1)
+	end
+end
+
 local function saveBrainrots(plot: Plot): boolean
 	local owner = plot.Owner
 	if owner == nil then
 		return false
 	end
-	return DataApi.SetBrainrots:Invoke(owner, getBrainrotIds(plot)) == true
+	local saved = DataApi.SetBrainrots:Invoke(owner, getBrainrotIds(plot)) == true
+	-- Guards, pets and the Manage menu follow what's in the base.
+	slotsChangedEvent:Fire(owner)
+	return saved
 end
 
 -- Income boosts that add up: friends in the server, Premium, the group and
@@ -564,6 +619,12 @@ do
 			bonus += index
 			table.insert(info, "Index: " .. percent(index))
 		end
+		-- Crewmates in the server (SocialManager sets CrewBoost).
+		local crew = math.clamp(tonumber(player:GetAttribute("CrewBoost")) or 0, 0, 0.5)
+		if crew > 0 then
+			bonus += crew
+			table.insert(info, "Crew: " .. percent(crew))
+		end
 		return multiplier * (1 + bonus), info
 	end
 end
@@ -572,9 +633,11 @@ local function setCarrying(player: Player, carrying: boolean)
 	local _, humanoid = getLiveCharacter(player)
 	if humanoid then
 		local level = math.clamp(tonumber(player:GetAttribute("SpeedLevel")) or 0, 0, #FeatureConfig.SpeedCosts)
-		humanoid.WalkSpeed = if carrying
-			then GameConfig.CarryWalkSpeed + level * FeatureConfig.CarrySpeedPerLevel
-			else GameConfig.DefaultWalkSpeed + level * FeatureConfig.SpeedPerLevel
+		local bonus = ExtrasConfig.speedBonusOf(player)
+		humanoid.WalkSpeed = bonus
+			+ if carrying
+				then GameConfig.CarryWalkSpeed + level * FeatureConfig.CarrySpeedPerLevel
+				else GameConfig.DefaultWalkSpeed + level * FeatureConfig.SpeedPerLevel
 	end
 	-- GearManager listens to this to re-apply coils once the carry ends.
 	player:SetAttribute("Carrying", carrying)
@@ -601,7 +664,7 @@ do
 	end
 
 	local function rarityComplete(found: { [string]: boolean }, rarityName: string): boolean
-		local choices = BrainrotConfig.ByRarity[rarityName]
+		local choices = BrainrotConfig.DropsByRarity[rarityName]
 		if choices == nil or #choices == 0 then
 			return false
 		end
@@ -614,12 +677,12 @@ do
 	end
 
 	local function mutationComplete(found: { [string]: boolean }, mutationName: string): boolean
-		for _, definition in BrainrotConfig.Brainrots do
+		for _, definition in BrainrotConfig.Obtainable do
 			if not found[definition.Id .. ":" .. mutationName] then
 				return false
 			end
 		end
-		return #BrainrotConfig.Brainrots > 0
+		return #BrainrotConfig.Obtainable > 0
 	end
 
 	-- Works out the Index income bonus and pays out pages finished for the first time.
@@ -892,6 +955,12 @@ local function prepareImportedModels(): number
 	folder.Name = "BrainrotModels"
 	local count = 0
 	for brainrotId, pieces in groups do
+		-- Block-built brainrots keep their own model (an old import of one is
+		-- from before it was rebuilt).
+		local definition = BrainrotConfig.ById[brainrotId]
+		if definition and definition.BlockBuilt then
+			continue
+		end
 		local front, top = pieces.Front, pieces.Top
 		local parts: { BasePart } = {}
 		for piece, part in pieces do
@@ -1012,6 +1081,7 @@ local function layoutInfo(billboard: Instance?)
 end
 
 local buildLuckyBlock: (model: Model, root: BasePart, definition: Definition) -> number
+local refreshOccupantInfo: (occupant: Occupant) -> ()
 do
 	-- A lucky block: a glossy cube with a "?" on every side and glowing edges,
 	-- held by a Pose weld so BrainrotVisuals can make it hop and float.
@@ -1219,10 +1289,11 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, trait:
 			outline.Color = Color3.new(1, 1, 1)
 		end
 	end
+	local incomeLabel: TextLabel? = nil
 	if isBlock then
 		addInfoLabel(billboard, "Opens into " .. luckyRange(definition), Color3.fromRGB(255, 230, 70), 18, 3)
 	else
-		addInfoLabel(billboard, NumberFormat.cash(incomeOf(definition, mutation, trait)) .. "/s", Color3.fromRGB(255, 230, 70), 20, 3)
+		incomeLabel = addInfoLabel(billboard, NumberFormat.cash(incomeOf(definition, mutation, trait)) .. "/s", Color3.fromRGB(255, 230, 70), 20, 3)
 	end
 	local priceLabel: TextLabel? = nil
 	if price then
@@ -1237,13 +1308,46 @@ local function buildBrainrot(definition: Definition, mutation: Mutation?, trait:
 		PromptAttachment = promptAttachment,
 		PriceLabel = priceLabel,
 		OwnerLabel = ownerLabel,
+		IncomeLabel = incomeLabel,
 	}
 end
 
 local PROMPT_OFFSETS: { [string]: Vector2 } = {
 	Upgrade = Vector2.new(0, 84),
 	Open = Vector2.new(0, -84),
+	Manage = Vector2.new(0, -84),
 }
+
+-- Updates a base brainrot's label (income with its level, hat and pedestal)
+-- and the Level and Hat attributes the clients show.
+refreshOccupantInfo = function(occupant: Occupant)
+	if BrainrotConfig.isLuckyBlock(occupant.Definition) then
+		return
+	end
+	local level = ExtrasConfig.levelOf(occupant.Seconds)
+	occupant.Model:SetAttribute("Level", level)
+	occupant.Model:SetAttribute("Hat", occupant.Hat)
+	local incomeLabel = occupant.IncomeLabel
+	if incomeLabel then
+		incomeLabel.Text = NumberFormat.cash(occupantIncome(occupant)) .. "/s"
+	end
+	local billboard = if incomeLabel then incomeLabel.Parent else nil
+	if billboard == nil then
+		return
+	end
+	local levelLabel = occupant.LevelLabel
+	if levelLabel == nil then
+		levelLabel = addInfoLabel(billboard, "", Color3.fromRGB(140, 230, 255), 18, 5)
+		occupant.LevelLabel = levelLabel
+		layoutInfo(billboard)
+	end
+	local hat = if occupant.Hat then ExtrasConfig.HatByName[occupant.Hat] else nil
+	local text = string.format("⭐ Lv %d%s", level, if level >= ExtrasConfig.MaxLevel then " MAX" else "")
+	if hat then
+		text ..= "  " .. hat.Icon .. " +" .. math.floor(hat.Bonus * 100 + 0.5) .. "%"
+	end
+	;(levelLabel :: TextLabel).Text = text
+end
 
 local function createPrompt(
 	attachment: Attachment,
@@ -1599,7 +1703,9 @@ local function placeOccupant(
 	mutation: Mutation?,
 	trait: Trait?,
 	walkFrom: CFrame?,
-	price: number?
+	price: number?,
+	hatName: string?,
+	seconds: number?
 ): Occupant?
 	local owner = plot.Owner
 	if owner == nil or plot.Occupants[slotIndex] ~= nil then
@@ -1639,6 +1745,10 @@ local function placeOccupant(
 		Carrier = nil,
 		PriceLabel = visual.PriceLabel,
 		OwnerLabel = visual.OwnerLabel,
+		Hat = if hatName and ExtrasConfig.HatByName[hatName] then hatName else nil,
+		Seconds = math.max(0, seconds or 0),
+		IncomeLabel = visual.IncomeLabel,
+		LevelLabel = nil,
 	}
 
 	occupant.StealPrompt.Triggered:Connect(function(player: Player)
@@ -1657,6 +1767,9 @@ local function placeOccupant(
 		openPrompt.Triggered:Connect(function(player: Player)
 			onOpenTriggered(occupant, player)
 		end)
+	else
+		-- Hats, guard duty and pets: the client opens a menu for this one.
+		createPrompt(visual.PromptAttachment, "Manage", "Manage", name, 0, Enum.KeyCode.G, owner.UserId)
 	end
 
 	if walkFrom then
@@ -1673,6 +1786,7 @@ local function placeOccupant(
 	end
 
 	plot.Occupants[slotIndex] = occupant
+	refreshOccupantInfo(occupant)
 	visual.Model.Parent = brainrotsFolder
 	return occupant
 end
@@ -1844,6 +1958,10 @@ local function completeSteal(carry: Carry)
 		return
 	end
 
+	-- A stolen brainrot starts over at level 1, and its hat falls off (back to
+	-- its old owner).
+	local hadHat = occupant.Hat
+	returnHat(occupant, victim)
 	placeOccupant(targetPlot, carry.TargetSlot, occupant.Definition, occupant.Mutation, occupant.Trait, nil, occupant.Price)
 	saveBrainrots(targetPlot)
 	DataApi.AddSteals:Invoke(thief, 1)
@@ -1852,7 +1970,13 @@ local function completeSteal(carry: Carry)
 
 	local name = fullName(occupant.Definition, occupant.Mutation, occupant.Trait)
 	notify(thief, string.format("You stole %s!", name), "Success", "StealSuccess")
-	notify(victim, string.format("%s stole your %s!", thief.DisplayName, name), "Error", "Stolen")
+	notify(
+		victim,
+		string.format("%s stole your %s!%s", thief.DisplayName, name, if hadHat then " (You kept its hat.)" else ""),
+		"Error",
+		"Stolen"
+	)
+	stolenEvent:Fire(thief, victim, occupantEntry(occupant))
 	placePending(victim)
 end
 
@@ -1867,6 +1991,15 @@ onStealTriggered = function(occupant: Occupant, thief: Player)
 	end
 	if carries[thief] then
 		notify(thief, "You're already carrying a brainrot!", "Warning")
+		return
+	end
+	local crew = thief:GetAttribute("CrewId")
+	if crew ~= nil and victim:GetAttribute("CrewId") == crew then
+		notify(thief, "That's your crewmate's brainrot!", "Warning")
+		return
+	end
+	if thief:GetAttribute("CarryingLoot") == true then
+		notify(thief, "Drop off your loot first!", "Warning")
 		return
 	end
 	local thiefPlot = plotByPlayer[thief]
@@ -1938,6 +2071,7 @@ onSellTriggered = function(occupant: Occupant, player: Player)
 		return
 	end
 	destroyOccupant(occupant)
+	returnHat(occupant, player)
 
 	local refund = math.floor(priceOf(occupant.Definition, occupant.Mutation, occupant.Trait) * GameConfig.SellRefundFraction)
 	if refund > 0 then
@@ -1971,7 +2105,7 @@ end)
 --------------------------------------------------------------------------------
 
 local function pickFromRarity(rarityName: string): Definition?
-	local choices = BrainrotConfig.ByRarity[rarityName]
+	local choices = BrainrotConfig.DropsByRarity[rarityName]
 	if choices == nil or #choices == 0 then
 		return nil
 	end
@@ -1981,18 +2115,16 @@ local function pickFromRarity(rarityName: string): Definition?
 	if boost == nil then
 		return choices[rng:NextInteger(1, #choices)]
 	end
-	local total = 0
+	local tagged: { Definition } = {}
 	for _, definition in choices do
-		total += if BrainrotConfig.hasTag(definition, boost.Tag) then boost.Multiplier else 1
-	end
-	local roll = rng:NextNumber(0, total)
-	for _, definition in choices do
-		roll -= if BrainrotConfig.hasTag(definition, boost.Tag) then boost.Multiplier else 1
-		if roll <= 0 then
-			return definition
+		if BrainrotConfig.hasTag(definition, boost.Tag) then
+			table.insert(tagged, definition)
 		end
 	end
-	return choices[#choices]
+	if #tagged > 0 and rng:NextNumber() < boost.Share then
+		return tagged[rng:NextInteger(1, #tagged)]
+	end
+	return choices[rng:NextInteger(1, #choices)]
 end
 
 local function resetGuaranteeTimer(rarityName: string)
@@ -2024,7 +2156,7 @@ local function rollDefinition(): Definition?
 	local weights: { number } = {}
 	for index, rarity in BrainrotConfig.Rarities do
 		local weight = 0
-		if #BrainrotConfig.ByRarity[rarity.Name] > 0 then
+		if #BrainrotConfig.DropsByRarity[rarity.Name] > 0 then
 			weight = if rarity == commonRarity then rarity.Weight else rarity.Weight * multiplier
 		end
 		weights[index] = weight
@@ -2053,6 +2185,15 @@ local function mutationChance(mutation: Mutation): number
 			return event.MutationChance
 		end
 		return mutation.Chance * (event.ChanceMultiplier or 1)
+	end
+	-- The weather has variants too: Storm brainrots in thunderstorms, Frozen
+	-- ones in the snow. ADMIN ABUSE can make Admin ones.
+	local weatherChance = GameConfig.WeatherMutations[mutation.Name]
+	if weatherChance and ReplicatedStorage:GetAttribute("Weather") == weatherChance.Weather then
+		return weatherChance.Chance
+	end
+	if mutation.Name == "Admin" and event and event.AdminAbuse then
+		return GameConfig.AdminMutationChance
 	end
 	return mutation.Chance
 end
@@ -2115,7 +2256,7 @@ end
 local function rollFromOdds(odds: { [string]: number }): Definition?
 	local total = 0
 	for _, rarity in BrainrotConfig.Rarities do
-		if #BrainrotConfig.ByRarity[rarity.Name] > 0 then
+		if #BrainrotConfig.DropsByRarity[rarity.Name] > 0 then
 			total += odds[rarity.Name] or 0
 		end
 	end
@@ -2124,7 +2265,7 @@ local function rollFromOdds(odds: { [string]: number }): Definition?
 	end
 	local roll = rng:NextNumber(0, total)
 	for _, rarity in BrainrotConfig.Rarities do
-		local weight = if #BrainrotConfig.ByRarity[rarity.Name] > 0 then odds[rarity.Name] or 0 else 0
+		local weight = if #BrainrotConfig.DropsByRarity[rarity.Name] > 0 then odds[rarity.Name] or 0 else 0
 		roll -= weight
 		if roll <= 0 and weight > 0 then
 			return pickFromRarity(rarity.Name)
@@ -2361,7 +2502,7 @@ local function createPadGui(part: BasePart): Pad
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "PadGui"
 	billboard.Adornee = part
-	billboard.Size = UDim2.fromOffset(160, 56)
+	billboard.Size = UDim2.fromScale(5, 1.75) -- studs, like everything in the world
 	billboard.StudsOffsetWorldSpace = Vector3.new(0, 2.2, 0)
 	billboard.MaxDistance = 50
 	billboard.LightInfluence = 0
@@ -2478,7 +2619,7 @@ local function createLockLabel(lockButton: BasePart): TextLabel
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "LockGui"
 	billboard.Adornee = lockButton
-	billboard.Size = UDim2.fromOffset(200, 40)
+	billboard.Size = UDim2.fromScale(7, 1.4)
 	billboard.StudsOffsetWorldSpace = Vector3.new(0, 3, 0)
 	billboard.MaxDistance = 60
 	billboard.LightInfluence = 0
@@ -2536,7 +2677,7 @@ local function createFloorSign(part: BasePart): TextLabel
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "FloorGui"
 	billboard.Adornee = part
-	billboard.Size = UDim2.fromOffset(360, 90)
+	billboard.Size = UDim2.fromScale(12, 3)
 	billboard.MaxDistance = 90
 	billboard.LightInfluence = 0
 
@@ -2785,8 +2926,14 @@ local function restorePads(player: Player, plot: Plot)
 		local incomeMultiplier = getIncomeMultiplier(player)
 		local multiplier = incomeMultiplier * GameConfig.OfflineIncomeFraction
 		for index, occupant in plot.Occupants do
-			local income = incomeOf(occupant.Definition, occupant.Mutation, occupant.Trait) * pedestalMultiplier(plot, index)
+			-- Offline cash at the level it had when its owner left; then it
+			-- levels up for the time away too.
+			local income = occupantIncome(occupant)
 			local earned = math.floor(income * multiplier * earningSeconds)
+			if not BrainrotConfig.isLuckyBlock(occupant.Definition) then
+				occupant.Seconds += earningSeconds
+				refreshOccupantInfo(occupant)
+			end
 			if earned > 0 then
 				plot.PadCash[index] = (plot.PadCash[index] or 0) + earned
 				plot.OfflinePads[index] = true
@@ -2796,6 +2943,9 @@ local function restorePads(player: Player, plot: Plot)
 	end
 	DataApi.SetPadCash:Invoke(player, padCashList(plot))
 	updatePadLabels(plot)
+	if total > 0 then
+		saveBrainrots(plot)
+	end
 
 	if total > 0 then
 		notify(
@@ -2858,11 +3008,13 @@ local function assignPlot(player: Player)
 	if typeof(savedIds) == "table" then
 		for _, entry in savedIds do
 			local definition, mutation, trait = nil, nil, nil
+			local hatName, seconds = nil, 0
 			if typeof(entry) == "string" then
 				definition, mutation, trait = BrainrotConfig.decode(entry)
+				hatName, seconds = BrainrotConfig.decodeExtras(entry)
 			end
 			if definition and nextSlot <= #plot.Slots then
-				placeOccupant(plot, nextSlot, definition, mutation, trait, nil, nil)
+				placeOccupant(plot, nextSlot, definition, mutation, trait, nil, nil, hatName, seconds)
 				discover(player, definition, mutation)
 				nextSlot += 1
 			else
@@ -2948,7 +3100,8 @@ local function movedTooFast(carry: Carry, position: Vector3, clock: number): boo
 	carry.LastPosition = position
 	carry.LastCheckedAt = clock
 	local level = math.clamp(tonumber(carry.Thief:GetAttribute("SpeedLevel")) or 0, 0, #FeatureConfig.SpeedCosts)
-	local speed = GameConfig.CarryWalkSpeed + level * FeatureConfig.CarrySpeedPerLevel
+	local bonus = math.max(0, ExtrasConfig.speedBonusOf(carry.Thief))
+	local speed = GameConfig.CarryWalkSpeed + level * FeatureConfig.CarrySpeedPerLevel + bonus
 	return horizontalDistance > speed * elapsed * 2 + GameConfig.CarrySpeedToleranceStuds
 end
 
@@ -2957,8 +3110,9 @@ local function fastTick()
 	for _, plot in plots do
 		local owner = plot.Owner
 		if owner and isLocked(plot) then
+			local ownerCrew = owner:GetAttribute("CrewId")
 			for _, player in Players:GetPlayers() do
-				if player ~= owner then
+				if player ~= owner and (ownerCrew == nil or player:GetAttribute("CrewId") ~= ownerCrew) then
 					local rootPart, humanoid = getLiveCharacter(player)
 					if
 						rootPart
@@ -3047,6 +3201,33 @@ local function updateSpawnSign()
 	label.Text = table.concat(lines, "\n")
 end
 
+-- Brainrots on their pedestals level up over time (lucky blocks don't).
+local levelsDirtyAt: { [Plot]: number } = {}
+local LEVEL_SAVE_SECONDS = 30
+
+local function levelUp(occupant: Occupant, owner: Player)
+	if BrainrotConfig.isLuckyBlock(occupant.Definition) or occupant.OpeningResult then
+		return
+	end
+	local before = ExtrasConfig.levelOf(occupant.Seconds)
+	occupant.Seconds += SLOW_TICK_SECONDS
+	local after = ExtrasConfig.levelOf(occupant.Seconds)
+	local plot = occupant.Plot
+	levelsDirtyAt[plot] = levelsDirtyAt[plot] or os.clock()
+	if after ~= before then
+		refreshOccupantInfo(occupant)
+		-- A new level is saved right away.
+		levelsDirtyAt[plot] = nil
+		saveBrainrots(plot)
+		notify(
+			owner,
+			string.format("⭐ %s reached level %d! (+%d%% income)", occupant.Definition.DisplayName, after, math.floor(ExtrasConfig.IncomePerLevel * (after - 1) * 100 + 0.5)),
+			"Success",
+			"LevelUp"
+		)
+	end
+end
+
 -- Runs every SLOW_TICK_SECONDS: income onto the pads, lock timers and signs.
 local function slowTick()
 	local now = Workspace:GetServerTimeNow()
@@ -3064,13 +3245,20 @@ local function slowTick()
 			local incomePerSecond = 0
 			for index, occupant in plot.Occupants do
 				if occupant.Carrier == nil and occupant.Walk == nil then
-					local income = incomeOf(occupant.Definition, occupant.Mutation, occupant.Trait) * multiplier * pedestalMultiplier(plot, index)
+					local income = occupantIncome(occupant) * multiplier
 					incomePerSecond += income
 					plot.PadCash[index] = (plot.PadCash[index] or 0) + income * SLOW_TICK_SECONDS
+					levelUp(occupant, owner)
 				end
 			end
 			owner:SetAttribute("IncomePerSecond", incomePerSecond)
 			owner:SetAttribute("IncomeMultiplier", multiplier)
+			-- Level time is saved every little while, not every second.
+			local dirtySince = levelsDirtyAt[plot]
+			if dirtySince and os.clock() - dirtySince >= LEVEL_SAVE_SECONDS then
+				levelsDirtyAt[plot] = nil
+				saveBrainrots(plot)
+			end
 			owner:SetAttribute("BoostInfo", table.concat(boostInfo, "\n"))
 			DataApi.SetPadCash:Invoke(owner, padCashList(plot))
 			updatePadLabels(plot)
@@ -3110,12 +3298,22 @@ local function eventMessage(event: GameEvent): string
 			duration,
 			tostring(event.Luck or 1)
 		)
+	elseif event.Boss then
+		return "BOSS RAID! A giant brainrot is stomping around the middle of the map. Click it (or slap it) to beat it together!"
+	elseif event.Heist then
+		return string.format("BANK HEIST! The vault is open for %s. Grab loot bags and run them home!", duration)
 	elseif boost then
-		return string.format("%s! %s brainrots are %sx more common for %s!", event.Name, boost.Tag, tostring(boost.Multiplier), duration)
+		return string.format(
+			"%s! Half the brainrots are %s brainrots, and %s-mutated ones can spawn, for %s!",
+			event.Name,
+			boost.Tag,
+			boost.Tag,
+			duration
+		)
 	elseif event.CashRain then
-		return string.format("%s! Grab the Cash falling from the sky for %s!", event.Name, duration)
+		return string.format("%s! Grab the Cash falling from the sky (and look out for Cash brainrots) for %s!", event.Name, duration)
 	elseif event.Luck then
-		return string.format("%s! Rare brainrots are %sx more likely for %s!", event.Name, tostring(event.Luck), duration)
+		return string.format("%s! Rare brainrots are %sx more likely, and Lucky ones can spawn, for %s!", event.Name, tostring(event.Luck), duration)
 	elseif event.Mutation and event.MutationChance then
 		return string.format("%s! %s brainrots can spawn on the conveyor for %s!", event.Name, event.Mutation, duration)
 	elseif event.Mutation then
@@ -3228,6 +3426,10 @@ local function collectCoins()
 	end
 end
 
+local eventChangedEvent = Instance.new("BindableEvent")
+eventChangedEvent.Name = "EventChanged"
+eventChangedEvent.Parent = gameplayApi
+
 local function runEvent(event: GameEvent)
 	local endsAt = Workspace:GetServerTimeNow() + GameConfig.EventDurationSeconds
 	activeEvent = event
@@ -3238,6 +3440,8 @@ local function runEvent(event: GameEvent)
 	ReplicatedStorage:SetAttribute("EventAdmin", event.AdminAbuse == true)
 	ReplicatedStorage:SetAttribute("EventEndsAt", endsAt)
 	notifyAll(eventMessage(event), "Info", "Event")
+	-- Boss raids and bank heists are run by RaidManager.
+	eventChangedEvent:Fire(event.Name)
 	-- The EventEndsAt attribute is the end time: /endevent moves it to now.
 	local nextWave = 0
 	while true do
@@ -3260,6 +3464,7 @@ local function runEvent(event: GameEvent)
 	ReplicatedStorage:SetAttribute("EventParticles", nil)
 	ReplicatedStorage:SetAttribute("EventAdmin", false)
 	ReplicatedStorage:SetAttribute("EventEndsAt", 0)
+	eventChangedEvent:Fire(nil)
 	notifyAll(event.Name .. " is over.", "Info")
 end
 
@@ -3363,6 +3568,7 @@ onUpgradeTriggered = function(occupant: Occupant, player: Player)
 	setProgress(player, "Pedestals", plot.Levels)
 	updatePedestalLook(plot, slotIndex)
 	refreshUpgradePrompt(occupant)
+	refreshOccupantInfo(occupant)
 	notify(
 		player,
 		string.format("Pedestal upgraded to Lv %d! Brainrots here earn %s.", level + 1, percent(FeatureConfig.PedestalBonus * level)),
@@ -3568,6 +3774,7 @@ do
 		end
 		for _, occupant in occupants do
 			destroyOccupant(occupant)
+			returnHat(occupant, player)
 		end
 		return entries
 	end
@@ -3594,11 +3801,22 @@ do
 		for _, occupant in fromSecond do
 			secondPlot.Occupants[occupant.SlotIndex] = nil
 		end
-		local function move(occupants: { Occupant }, plot: Plot, receiver: Player)
+		local function move(occupants: { Occupant }, plot: Plot, receiver: Player, giver: Player)
 			for _, occupant in occupants do
+				returnHat(occupant, giver)
 				local slotIndex = findFreeSlot(plot)
 				if slotIndex then
-					local placed = placeOccupant(plot, slotIndex, occupant.Definition, occupant.Mutation, occupant.Trait, nil, occupant.Price)
+					local placed = placeOccupant(
+						plot,
+						slotIndex,
+						occupant.Definition,
+						occupant.Mutation,
+						occupant.Trait,
+						nil,
+						occupant.Price,
+						nil,
+						occupant.Seconds
+					)
 					if placed then
 						placed.Model:SetAttribute("Arrived", Workspace:GetServerTimeNow())
 					end
@@ -3607,8 +3825,8 @@ do
 				destroyOccupant(occupant)
 			end
 		end
-		move(fromFirst, secondPlot, second)
-		move(fromSecond, firstPlot, first)
+		move(fromFirst, secondPlot, second, first)
+		move(fromSecond, firstPlot, first, second)
 		saveBrainrots(firstPlot)
 		saveBrainrots(secondPlot)
 		DataApi.SaveNow:Invoke(first)
@@ -3663,6 +3881,88 @@ do
 			table.insert(entries, occupantEntry(occupant))
 		end
 		return entries
+	end)
+
+	-- Every brainrot in the player's base (not lucky blocks): { [slot] = info }.
+	createApiFunction("DescribeOccupants", function(playerArg: any): { [number]: { [string]: any } }?
+		local player = asPlayer(playerArg)
+		local plot = if player then plotByPlayer[player] else nil
+		if plot == nil then
+			return nil
+		end
+		local result: { [number]: { [string]: any } } = {}
+		for slotIndex, occupant in plot.Occupants do
+			if not BrainrotConfig.isLuckyBlock(occupant.Definition) and occupant.OpeningResult == nil then
+				result[slotIndex] = {
+					Entry = occupantEntry(occupant),
+					Hat = occupant.Hat,
+					Level = ExtrasConfig.levelOf(occupant.Seconds),
+					Rarity = occupant.Definition.Rarity,
+					Home = occupant.Walk == nil and occupant.Carrier == nil,
+				}
+			end
+		end
+		return result
+	end)
+
+	-- Hats: the owner puts one on (from their pile) or takes it off.
+	local manageFunction = Instance.new("RemoteFunction")
+	manageFunction.Name = "ManageBrainrot"
+	manageFunction.Parent = remotesFolder
+	local lastManage: { [Player]: number } = {}
+	manageFunction.OnServerInvoke = function(player: Player, action: any, slotIndex: any, argument: any): (boolean, string?, any)
+		local now = os.clock()
+		if action ~= "Info" and now - (lastManage[player] or 0) < 0.3 then
+			return false, "Slow down!"
+		end
+		lastManage[player] = now
+		local plot = plotByPlayer[player]
+		local occupant = if plot and typeof(slotIndex) == "number" then plot.Occupants[slotIndex] else nil
+		if plot == nil or occupant == nil or plot.Owner ~= player or BrainrotConfig.isLuckyBlock(occupant.Definition) then
+			return false, "That brainrot isn't in your base."
+		end
+		if action == "Info" then
+			return true, nil, {
+				Level = ExtrasConfig.levelOf(occupant.Seconds),
+				NextLevelIn = ExtrasConfig.secondsToNextLevel(occupant.Seconds),
+				Hat = occupant.Hat,
+				Income = occupantIncome(occupant),
+				Hats = DataApi.GetHats:Invoke(player) or {},
+			}
+		end
+		if occupant.Walk ~= nil or occupant.Carrier ~= nil or occupant.OpeningResult ~= nil then
+			return false, "Wait until it's back on its pedestal."
+		end
+		if action == "PutHat" then
+			local hat = if typeof(argument) == "string" then ExtrasConfig.HatByName[argument] else nil
+			if hat == nil then
+				return false, "You don't have that hat."
+			end
+			if occupant.Hat == hat.Name then
+				return false, "It's already wearing one!"
+			end
+			if DataApi.TakeHat:Invoke(player, hat.Name) ~= true then
+				return false, "You don't have that hat."
+			end
+			returnHat(occupant, player)
+			occupant.Hat = hat.Name
+			refreshOccupantInfo(occupant)
+			saveBrainrots(plot)
+			playSound(player, "Purchase")
+			return true, string.format("%s is wearing the %s: +%d%% income!", occupant.Definition.DisplayName, hat.DisplayName, math.floor(hat.Bonus * 100 + 0.5))
+		elseif action == "RemoveHat" then
+			if occupant.Hat == nil then
+				return false, "It isn't wearing a hat."
+			end
+			returnHat(occupant, player)
+			refreshOccupantInfo(occupant)
+			saveBrainrots(plot)
+			return true, "Hat taken off."
+		end
+		return false, nil
+	end
+	Players.PlayerRemoving:Connect(function(player: Player)
+		lastManage[player] = nil
 	end)
 
 	createApiFunction("GetIncome", function(playerArg: any): number

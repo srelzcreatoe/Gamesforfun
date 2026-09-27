@@ -43,10 +43,12 @@ MARKER = 0.25
 
 
 def brainrot_ids():
+    """Brainrots made with Higgsfield or Customuse (block-built ones, from
+    tools/blocky, keep their blocky model and aren't imported)."""
     text = (B.ROOT / "ReplicatedStorage" / "Shared" / "BrainrotConfig.luau").read_text()
     import re
 
-    return re.findall(r'brainrot\("([A-Za-z0-9]+)"', text)
+    return re.findall(r'\bbrainrot\("([A-Za-z0-9]+)"', text)
 
 
 def load_model(brainrot_id):

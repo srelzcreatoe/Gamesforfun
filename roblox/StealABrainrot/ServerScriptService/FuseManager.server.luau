@@ -85,7 +85,7 @@ local function fuseResult(entries: { string }): (string?, string?)
 		end
 	end
 	local target = if rarity then nextRarity(rarity) else nil
-	local choices = if target then BrainrotConfig.ByRarity[target] else nil
+	local choices = if target then BrainrotConfig.DropsByRarity[target] else nil
 	if choices == nil or #choices == 0 then
 		return nil, "Secrets are already the best. They can't be fused!"
 	end

@@ -44,6 +44,12 @@
 	  BindableFunction IsLaserBypassActive(player) -> boolean
 	  BindableFunction GetServerRarityMultiplier() -> number
 	  BindableFunction GetProgress(player, key) -> value?   (a copy)
+	  BindableFunction GetHats(player) -> { [hatName]: count }?
+	  BindableFunction AddHat(player, hatName | "Random", count?) -> hatName?
+	  BindableFunction TakeHat(player, hatName) -> boolean   (one off the pile)
+	  BindableFunction GetSeason(player) -> { Id, XP }?   (this season's)
+	  BindableFunction AddSeasonXP(player, amount) -> number?   (the new XP)
+	  BindableEvent    HatCrateOpened(player, hatName)
 	  BindableFunction SetProgress(player, key, value) -> boolean
 	  BindableFunction SaveNow(player)   (saves soon, e.g. after a trade)
 	  BindableEvent    EMPLaserOverriderPurchased(player, durationSeconds, endsAtServerTime)
@@ -116,6 +122,7 @@ local ALLOW_UNSAVED_STUDIO_SESSIONS = true
 -- Product IDs, game pass IDs and reward amounts live in the shared config so
 -- the client shop uses the same values. Clients cannot change the server's copy.
 local MonetizationConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("MonetizationConfig"))
+local ExtrasConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ExtrasConfig"))
 
 local PRODUCT_IDS = MonetizationConfig.ProductIds
 local SMALL_CASH_BUNDLE_AMOUNT = MonetizationConfig.SmallCashBundleAmount
@@ -130,7 +137,8 @@ local GAME_PASSES: { [string]: number } = MonetizationConfig.GamePasses
 
 -- Brainrots a player owns, saved as a list of brainrot IDs.
 local MAX_BRAINROTS = 64
-local MAX_BRAINROT_ID_LENGTH = 64
+-- "Id:Mutation:Trait:Hat:LevelSeconds"
+local MAX_BRAINROT_ID_LENGTH = 96
 -- Uncollected Cash on each collect pad, and owned gear IDs.
 local MAX_PADS = 64
 local MAX_GEAR = 32
@@ -254,6 +262,7 @@ local serverRarityBoostChangedEvent = createBindableEvent("ServerRarityBoostChan
 local gamePassOwnershipChangedEvent = createBindableEvent("GamePassOwnershipChanged")
 local itemsChangedEvent = createBindableEvent("ItemsChanged")
 local progressChangedEvent = createBindableEvent("ProgressChanged")
+local hatCrateOpenedEvent = createBindableEvent("HatCrateOpened")
 
 ReplicatedStorage:SetAttribute("ServerRarityMultiplier", 1)
 ReplicatedStorage:SetAttribute("ServerRarityBoostEndsAt", 0)
@@ -1069,6 +1078,45 @@ local function grantSkin(profile: Profile, skin: string): boolean
 	return true
 end
 
+-- Hats a player owns, by name (ExtrasConfig.Hats).
+local MAX_HATS_EACH = 999
+
+local function addHat(profile: Profile, hatName: string, count: number): string?
+	if hatName == "Random" then
+		hatName = ExtrasConfig.randomHat(math.random()).Name
+	end
+	if ExtrasConfig.HatByName[hatName] == nil or count < 1 then
+		return nil
+	end
+	local progress = profile.Data.Progress
+	local hats = if typeof(progress.Hats) == "table" then progress.Hats else {}
+	hats[hatName] = math.clamp((tonumber(hats[hatName]) or 0) + math.floor(count), 0, MAX_HATS_EACH)
+	progress.Hats = hats
+	progressChanged(profile, "Hats")
+	return hatName
+end
+
+-- This season's XP; a new season starts from 0.
+local function getSeason(profile: Profile): { Id: number, XP: number }
+	local seasonId = ExtrasConfig.season(os.time())
+	local progress = profile.Data.Progress
+	local saved = progress.Season
+	if typeof(saved) ~= "table" or saved.Id ~= seasonId then
+		saved = { Id = seasonId, XP = 0 }
+		progress.Season = saved
+	end
+	saved.XP = math.max(0, tonumber(saved.XP) or 0)
+	return saved
+end
+
+local function addSeasonXP(profile: Profile, amount: number): number
+	local season = getSeason(profile)
+	local cap = ExtrasConfig.TierXP * ExtrasConfig.SeasonTierCount
+	season.XP = math.min(cap, season.XP + math.max(0, amount))
+	progressChanged(profile, "Season")
+	return season.XP
+end
+
 local PRODUCT_HANDLERS: { [number]: ProductHandler } = {
 	[PRODUCT_IDS.SmallCashBundle] = function(profile: Profile): boolean
 		return addCash(profile, SMALL_CASH_BUNDLE_AMOUNT)
@@ -1088,7 +1136,31 @@ local PRODUCT_HANDLERS: { [number]: ProductHandler } = {
 	[PRODUCT_IDS.CashBoost] = function(profile: Profile): boolean
 		return addCashBoost(profile, MonetizationConfig.CashBoostSeconds)
 	end,
+	[PRODUCT_IDS.HatCrate] = function(profile: Profile): boolean
+		local hatName = addHat(profile, "Random", 1)
+		if hatName == nil then
+			return false
+		end
+		task.defer(function()
+			hatCrateOpenedEvent:Fire(profile.Player, hatName)
+		end)
+		return true
+	end,
+	[PRODUCT_IDS.SeasonTierSkip] = function(profile: Profile): boolean
+		addSeasonXP(profile, ExtrasConfig.TierXP)
+		return true
+	end,
 }
+-- Each weekly limited brainrot has its own product, so a purchase always
+-- gives the brainrot that was on sale when it was bought.
+for _, limited in ExtrasConfig.LimitedRotation do
+	local productId = PRODUCT_IDS[limited.Product]
+	if productId then
+		PRODUCT_HANDLERS[productId] = function(profile: Profile): boolean
+			return addPending(profile, limited.Id)
+		end
+	end
+end
 for productKey, blockId in MonetizationConfig.LuckyBlockProducts do
 	local productId = PRODUCT_IDS[productKey]
 	if productId then
@@ -1575,6 +1647,68 @@ createBindableFunction("SetProgress", function(playerArg: any, key: any, value: 
 	end
 	progressChanged(profile, key)
 	return true
+end)
+
+createBindableFunction("GetHats", function(playerArg: any): { [string]: number }?
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil then
+		return nil
+	end
+	local hats: { [string]: number } = {}
+	local saved = profile.Data.Progress.Hats
+	if typeof(saved) == "table" then
+		for hatName, count in saved do
+			if typeof(hatName) == "string" and ExtrasConfig.HatByName[hatName] and (tonumber(count) or 0) > 0 then
+				hats[hatName] = tonumber(count) :: number
+			end
+		end
+	end
+	return hats
+end)
+
+createBindableFunction("AddHat", function(playerArg: any, hatName: any, count: any): string?
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil or typeof(hatName) ~= "string" then
+		return nil
+	end
+	return addHat(profile, hatName, math.clamp(math.floor(tonumber(count) or 1), 1, MAX_HATS_EACH))
+end)
+
+createBindableFunction("TakeHat", function(playerArg: any, hatName: any): boolean
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil or typeof(hatName) ~= "string" then
+		return false
+	end
+	local hats = profile.Data.Progress.Hats
+	local have = if typeof(hats) == "table" then tonumber(hats[hatName]) or 0 else 0
+	if have < 1 then
+		return false
+	end
+	hats[hatName] = if have > 1 then have - 1 else nil
+	progressChanged(profile, "Hats")
+	return true
+end)
+
+createBindableFunction("GetSeason", function(playerArg: any): { Id: number, XP: number }?
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil then
+		return nil
+	end
+	local season = getSeason(profile)
+	return { Id = season.Id, XP = season.XP }
+end)
+
+createBindableFunction("AddSeasonXP", function(playerArg: any, amount: any): number?
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil or not isFiniteNumber(amount) then
+		return nil
+	end
+	return addSeasonXP(profile, math.clamp(amount, 0, 100000))
 end)
 
 createBindableFunction("SaveNow", function(playerArg: any)

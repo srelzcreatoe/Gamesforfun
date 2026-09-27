@@ -2,8 +2,9 @@
 --[[
 	AssetLoader (client)
 
-	Rebuilds the blocky brainrot models (a body and its legs, so they can walk)
-	and the icons that tools/build_assets.py packed into ReplicatedStorage.Assets,
+	Rebuilds the blocky brainrot models (a body plus the pieces that move: legs,
+	and for block-built brainrots arms, wings, tails, heads and props) and the
+	icons that tools/build_assets.py packed into ReplicatedStorage.Assets,
 	using EditableMesh and EditableImage. This avoids uploading any assets to a
 	Roblox account first.
 
@@ -23,6 +24,8 @@ local EncodingService = game:GetService("EncodingService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local MESH_FORMAT = 3
+-- Pieces that move; anything else is part of the body.
+local MOVING_KINDS: { [string]: boolean } = { Leg = true, Arm = true, Wing = true, Tail = true, Head = true, Prop = true }
 local ICON_FORMAT = 1
 local QUAD_BYTES = 7
 -- CreateMeshPartAsync calls running at once, and tries per mesh part.
@@ -33,17 +36,21 @@ local BUILD_SLICE_SECONDS = 0.004
 -- A model that failed to build is tried again after this long.
 local RETRY_SECONDS = 20
 
--- One mesh of a brainrot: its body or one leg. Sizes and positions are for a
--- model 1 stud tall, relative to the model's centre.
+-- One mesh of a brainrot: its body or one moving piece. Sizes and positions
+-- are for a model 1 stud tall, relative to the model's centre.
 export type Piece = {
+	-- "Body", "Leg", "Arm", "Wing", "Tail", "Head" or "Prop".
 	Kind: string,
 	Mesh: EditableMesh,
 	ColorIds: { number },
 	Size: Vector3,
 	Offset: Vector3,
-	-- Legs swing about their hip; legs with different phases step in turn.
+	-- Pieces move about their pivot (a leg's hip, an arm's shoulder, ...);
+	-- pieces with different phases move in turn (wings: 0 left, 1 right).
 	Pivot: Vector3,
 	Phase: number,
+	-- A Prop spins about this axis ("X", "Y" or "Z").
+	Axis: string?,
 }
 
 export type BrainrotAsset = {
@@ -122,6 +129,13 @@ local TINTS: { [string]: { Dark: Color3, Light: Color3 } } = {
 	Galaxy = { Dark = Color3.fromRGB(35, 10, 90), Light = Color3.fromRGB(230, 150, 255) },
 	Lava = { Dark = Color3.fromRGB(90, 20, 10), Light = Color3.fromRGB(255, 190, 60) },
 	Frozen = { Dark = Color3.fromRGB(70, 150, 220), Light = Color3.fromRGB(235, 250, 255) },
+	Taco = { Dark = Color3.fromRGB(150, 75, 10), Light = Color3.fromRGB(255, 220, 110) },
+	Lucky = { Dark = Color3.fromRGB(10, 95, 45), Light = Color3.fromRGB(170, 255, 175) },
+	Cash = { Dark = Color3.fromRGB(45, 115, 25), Light = Color3.fromRGB(225, 255, 150) },
+	Storm = { Dark = Color3.fromRGB(20, 40, 120), Light = Color3.fromRGB(205, 232, 255) },
+	Heist = { Dark = Color3.fromRGB(55, 42, 12), Light = Color3.fromRGB(255, 226, 120) },
+	Boss = { Dark = Color3.fromRGB(95, 12, 5), Light = Color3.fromRGB(255, 150, 60) },
+	Admin = { Dark = Color3.fromRGB(85, 0, 20), Light = Color3.fromRGB(255, 130, 155) },
 }
 
 -- Recolours a palette entry for a mutation, keeping a little of the original.
@@ -302,7 +316,7 @@ local function createBlockyAsset(data: { [string]: any }, mutation: string?): Br
 			table.insert(created, mesh)
 			local pivot = part.Pivot
 			table.insert(pieces, {
-				Kind = if part.Kind == "Leg" then "Leg" else "Body",
+				Kind = if typeof(part.Kind) == "string" and MOVING_KINDS[part.Kind] then part.Kind else "Body",
 				Mesh = mesh,
 				ColorIds = colorIds,
 				Size = (partHigh - partLow) * scale,
@@ -311,6 +325,7 @@ local function createBlockyAsset(data: { [string]: any }, mutation: string?): Br
 					then (Vector3.new(pivot[1], pivot[2], pivot[3]) - modelCentre) * scale
 					else Vector3.zero,
 				Phase = if part.Phase == 1 then 1 else 0,
+				Axis = if part.Axis == "X" or part.Axis == "Y" or part.Axis == "Z" then tostring(part.Axis) else nil,
 			})
 		end
 	end)
@@ -395,7 +410,7 @@ local function buildAsset(brainrotId: string, mutation: string?): BrainrotAsset
 			-- White so the vertex colours show unchanged.
 			template.Color = Color3.new(1, 1, 1)
 			template.Material = Enum.Material.SmoothPlastic
-			template.Name = if piece.Kind == "Leg" then "Leg" else "Body"
+			template.Name = piece.Kind
 			table.insert(asset.Templates, template)
 		end
 	end)

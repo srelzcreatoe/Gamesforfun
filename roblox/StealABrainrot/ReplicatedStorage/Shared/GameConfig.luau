@@ -1,7 +1,9 @@
 --!strict
 -- Gameplay tuning shared by GameplayManager and the client HUD.
 
-export type TagBoost = { Tag: string, Multiplier: number }
+-- Share: the part of each rarity's spawns that comes from the brainrots with
+-- the tag (when that rarity has any), however big the roster grows.
+export type TagBoost = { Tag: string, Share: number }
 
 export type GameEvent = {
 	Name: string,
@@ -19,6 +21,10 @@ export type GameEvent = {
 	PriceMultiplier: number?,
 	TraitLuck: number?,
 	AdminAbuse: boolean?,
+	-- A giant boss brainrot to beat together (RaidManager).
+	Boss: boolean?,
+	-- The bank vault opens (RaidManager).
+	Heist: boolean?,
 }
 
 local EVENTS: { GameEvent } = {
@@ -29,9 +35,18 @@ local EVENTS: { GameEvent } = {
 	table.freeze({ Name = "Galaxy Night", Mutation = "Galaxy", MutationChance = 0.08, Sky = "Galaxy", Particles = "Stars" }),
 	table.freeze({ Name = "Lava Rain", Mutation = "Lava", MutationChance = 0.1, Sky = "Lava", Particles = "Meteors" }),
 	table.freeze({ Name = "Frost Storm", Mutation = "Frozen", MutationChance = 0.14, Sky = "Frost", Particles = "Snow" }),
-	table.freeze({ Name = "Taco Tuesday", TagBoost = table.freeze({ Tag = "Taco", Multiplier = 8 }), Sky = "Taco", Particles = "Tacos" }),
-	table.freeze({ Name = "Lucky Hour", Luck = 3, Sky = "Lucky", Particles = "Clovers" }),
-	table.freeze({ Name = "Cash Rain", CashRain = true, Sky = "Cash", Particles = "Cash" }),
+	table.freeze({
+		Name = "Taco Tuesday",
+		TagBoost = table.freeze({ Tag = "Taco", Share = 0.5 }),
+		Mutation = "Taco",
+		MutationChance = 0.1,
+		Sky = "Taco",
+		Particles = "Tacos",
+	}),
+	table.freeze({ Name = "Lucky Hour", Luck = 3, Mutation = "Lucky", MutationChance = 0.1, Sky = "Lucky", Particles = "Clovers" }),
+	table.freeze({ Name = "Cash Rain", CashRain = true, Mutation = "Cash", MutationChance = 0.1, Sky = "Cash", Particles = "Cash" }),
+	table.freeze({ Name = "Boss Raid", Boss = true, Mutation = "Boss", MutationChance = 0.05, Sky = "Boss", Particles = "Embers" }),
+	table.freeze({ Name = "Bank Heist", Heist = true, Mutation = "Heist", MutationChance = 0.08, Sky = "Heist", Particles = "Cash" }),
 }
 
 -- Replaces a normal event now and then (FeatureConfig.AdminAbuseChance), or
@@ -124,6 +139,14 @@ local GameConfig = {
 		table.freeze({ Name = "Thunderstorm", Weight = 1 }),
 		table.freeze({ Name = "Fog", Weight = 1 }),
 	}),
+	-- Mutations the weather brings: Storm brainrots in thunderstorms, Frozen
+	-- ones while it snows.
+	WeatherMutations = table.freeze({
+		Storm = table.freeze({ Weather = "Thunderstorm", Chance = 0.06 }),
+		Frozen = table.freeze({ Weather = "Snow", Chance = 0.05 }),
+	}) :: { [string]: { Weather: string, Chance: number } },
+	-- During ADMIN ABUSE, this share of the conveyor gets the Admin mutation.
+	AdminMutationChance = 0.03,
 
 	-- Economy
 	SellRefundFraction = 0.5,

@@ -7,7 +7,8 @@
 	  * Lighting.ClockTime runs through a whole day every
 	    GameConfig.DayLengthSeconds (the day part is longer than the night);
 	    the street lamps light up at night (lights inside the bases are always on)
-	  * Blood Moon and Galaxy Night turn it to midnight while they run
+	  * Blood Moon, Galaxy Night, Boss Raids and Bank Heists turn it to
+	    midnight while they run
 	  * every few minutes the weather changes (Clear, Rain, Snow, Thunderstorm
 	    or Fog, weighted by GameConfig.Weather)
 	The WorldEffects client script draws the weather and event skies.
@@ -28,7 +29,7 @@ local UPDATE_SECONDS = 0.5
 local DAY_FRACTION = 0.7
 -- Seconds for the sky to turn to midnight when a night event starts or ends.
 local NIGHT_BLEND_SECONDS = 6
-local NIGHT_SKIES: { [string]: boolean } = { Blood = true, Galaxy = true }
+local NIGHT_SKIES: { [string]: boolean } = { Blood = true, Galaxy = true, Boss = true, Heist = true }
 
 local rng = Random.new()
 

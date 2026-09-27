@@ -9,7 +9,13 @@
 	    inside the bases.
 	  * event skies (EventSky / EventParticles): the sky is tinted and gold
 	    sparkles, diamonds, confetti, embers, stars, meteors, snow, tacos,
-	    clovers or cash fall around you while the event runs
+	    clovers or cash fall around you while the event runs, and something
+	    big fills the sky: a golden sun, floating diamonds, a rainbow, a blood
+	    moon, planets and stars, a volcano glow, an aurora, a giant taco, a
+	    four-leaf clover, a coin, a boss eclipse or searchlights
+	  * clouds that follow the weather (and take on the event's colour), and
+	    snow settling on the ground, roofs and trees while it snows
+	  * the vault's alarm lights flash during a Bank Heist
 	  * the shopkeepers come alive: the Robux rat winds up and slaps with its
 	    galaxy glove, the Gear Shop noob waves, both look around and talk
 	  * Cash Rain coins drop from the sky and spin
@@ -430,7 +436,7 @@ local flash = Instance.new("ColorCorrectionEffect")
 flash.Name = "LightningFlash"
 flash.Parent = Lighting
 
-type SkyLook = { Tint: Color3, Saturation: number, Atmosphere: Color3, Decay: Color3 }
+type SkyLook = { Tint: Color3, Saturation: number, Atmosphere: Color3, Decay: Color3, Clouds: Color3? }
 
 local SKY_LOOKS: { [string]: SkyLook } = {
 	Gold = { Tint = Color3.fromRGB(255, 240, 200), Saturation = 0.1, Atmosphere = Color3.fromRGB(255, 225, 150), Decay = Color3.fromRGB(255, 190, 90) },
@@ -444,7 +450,338 @@ local SKY_LOOKS: { [string]: SkyLook } = {
 	Lucky = { Tint = Color3.fromRGB(215, 255, 215), Saturation = 0.15, Atmosphere = Color3.fromRGB(170, 255, 170), Decay = Color3.fromRGB(80, 200, 90) },
 	Cash = { Tint = Color3.fromRGB(225, 255, 215), Saturation = 0.15, Atmosphere = Color3.fromRGB(190, 255, 170), Decay = Color3.fromRGB(90, 200, 80) },
 	Admin = { Tint = Color3.new(1, 1, 1), Saturation = 0.45, Atmosphere = Color3.fromRGB(255, 190, 250), Decay = Color3.fromRGB(150, 120, 255) },
+	Boss = {
+		Tint = Color3.fromRGB(255, 190, 170),
+		Saturation = 0.1,
+		Atmosphere = Color3.fromRGB(150, 40, 30),
+		Decay = Color3.fromRGB(90, 10, 10),
+		Clouds = Color3.fromRGB(90, 30, 30),
+	},
+	Heist = {
+		Tint = Color3.fromRGB(220, 215, 255),
+		Saturation = -0.05,
+		Atmosphere = Color3.fromRGB(90, 90, 150),
+		Decay = Color3.fromRGB(40, 40, 90),
+		Clouds = Color3.fromRGB(70, 70, 110),
+	},
 }
+
+--------------------------------------------------------------------------------
+-- The big thing in the sky during an event. Parts sit far away and follow
+-- the camera sideways (never up and down), so they hang in the sky.
+--------------------------------------------------------------------------------
+
+type SkyProp = { Part: BasePart, Offset: CFrame, Spin: number }
+
+local skyFolder = Instance.new("Folder")
+skyFolder.Name = "SkyProps"
+skyFolder.Parent = Workspace
+local skyProps: { SkyProp } = {}
+local skyKind: string? = nil
+
+local function skyPart(size: Vector3, colour: Color3, shape: Enum.PartType?, transparency: number?): Part
+	local part = basicPart(size, colour, Enum.Material.Neon, transparency or 0)
+	part.Shape = shape or Enum.PartType.Block
+	part.Parent = skyFolder
+	return part
+end
+
+-- `offset` is from the camera's spot on the ground; `spin` turns it slowly.
+local function addSky(part: BasePart, offset: CFrame, spin: number?)
+	table.insert(skyProps, { Part = part, Offset = offset, Spin = spin or 0 })
+end
+
+local function clearSky()
+	for _, prop in skyProps do
+		prop.Part:Destroy()
+	end
+	table.clear(skyProps)
+	skyKind = nil
+end
+
+-- A big ball with a soft glow around it.
+local function glowBall(offset: CFrame, diameter: number, colour: Color3, halo: Color3)
+	addSky(skyPart(Vector3.one * diameter, colour, Enum.PartType.Ball), offset)
+	addSky(skyPart(Vector3.one * diameter * 1.35, halo, Enum.PartType.Ball, 0.75), offset)
+	addSky(skyPart(Vector3.one * diameter * 1.8, halo, Enum.PartType.Ball, 0.9), offset)
+end
+
+-- A ring of blocks (rainbow arcs, planet rings, halos).
+local function blockRing(centre: CFrame, radius: number, count: number, size: Vector3, colour: Color3, fromAngle: number, toAngle: number, spin: number?)
+	for index = 0, count - 1 do
+		local angle = fromAngle + (toAngle - fromAngle) * index / math.max(count - 1, 1)
+		local offset = centre * CFrame.Angles(0, 0, angle) * CFrame.new(radius, 0, 0)
+		addSky(skyPart(size, colour), offset, spin)
+	end
+end
+
+local SKY_BUILDERS: { [string]: () -> () } = {}
+
+SKY_BUILDERS.Sun = function()
+	glowBall(CFrame.new(-150, 420, 520), 110, Color3.fromRGB(255, 225, 90), Color3.fromRGB(255, 190, 60))
+	for index = 1, 12 do
+		local angle = index / 12 * math.pi * 2
+		addSky(skyPart(Vector3.new(8, 90, 3), Color3.fromRGB(255, 210, 80), nil, 0.35), CFrame.new(-150, 420, 520) * CFrame.Angles(0, 0, angle) * CFrame.new(0, 120, 0), 0.05)
+	end
+end
+
+SKY_BUILDERS.Diamonds = function()
+	for index = 1, 9 do
+		local angle = index / 9 * math.pi * 2
+		local offset = CFrame.new(math.cos(angle) * 480, 260 + (index % 3) * 70, math.sin(angle) * 480) * CFrame.Angles(math.rad(45), angle, math.rad(45))
+		addSky(skyPart(Vector3.new(34, 34, 34), Color3.fromRGB(150, 235, 255), nil, 0.2), offset, 0.4)
+	end
+end
+
+SKY_BUILDERS.Rainbow = function()
+	local colours = {
+		Color3.fromRGB(255, 60, 60),
+		Color3.fromRGB(255, 150, 40),
+		Color3.fromRGB(255, 235, 60),
+		Color3.fromRGB(70, 230, 90),
+		Color3.fromRGB(60, 160, 255),
+		Color3.fromRGB(150, 80, 255),
+	}
+	local centre = CFrame.new(0, -40, 560)
+	for index, colour in colours do
+		blockRing(centre, 420 - index * 22, 40, Vector3.new(24, 22, 6), colour, math.rad(5), math.rad(175))
+	end
+end
+
+SKY_BUILDERS.BloodMoon = function()
+	glowBall(CFrame.new(160, 330, 560), 150, Color3.fromRGB(200, 20, 30), Color3.fromRGB(150, 0, 10))
+end
+
+SKY_BUILDERS.Galaxy = function()
+	-- Planets with rings, a swirl of stars.
+	glowBall(CFrame.new(-260, 300, 480), 90, Color3.fromRGB(150, 90, 255), Color3.fromRGB(90, 40, 200))
+	blockRing(CFrame.new(-260, 300, 480) * CFrame.Angles(math.rad(70), 0, math.rad(20)), 90, 36, Vector3.new(12, 3, 12), Color3.fromRGB(255, 150, 230), 0, math.pi * 2)
+	glowBall(CFrame.new(300, 380, 420), 50, Color3.fromRGB(90, 200, 255), Color3.fromRGB(40, 120, 255))
+	for _ = 1, 70 do
+		local angle = rng:NextNumber(0, math.pi * 2)
+		local distance = rng:NextNumber(380, 620)
+		local offset = CFrame.new(math.cos(angle) * distance, rng:NextNumber(160, 520), math.sin(angle) * distance)
+		addSky(skyPart(Vector3.one * rng:NextNumber(3, 7), Color3.fromHSV(rng:NextNumber(0.55, 0.9), 0.3, 1)), offset)
+	end
+end
+
+SKY_BUILDERS.Volcano = function()
+	glowBall(CFrame.new(0, 90, 620), 220, Color3.fromRGB(255, 110, 20), Color3.fromRGB(255, 60, 10))
+	glowBall(CFrame.new(-360, 220, 400), 40, Color3.fromRGB(255, 190, 60), Color3.fromRGB(255, 90, 20))
+end
+
+local function aurora(colourA: Color3, colourB: Color3)
+	for band = 1, 3 do
+		for index = 0, 24 do
+			local x = -520 + index * 44
+			local wave = math.sin(index * 0.5 + band) * 60
+			local offset = CFrame.new(x, 300 + band * 40 + wave * 0.4, 520 + wave)
+			addSky(skyPart(Vector3.new(46, 90, 4), colourA:Lerp(colourB, index / 24), nil, 0.55 + band * 0.08), offset)
+		end
+	end
+end
+
+SKY_BUILDERS.Aurora = function()
+	aurora(Color3.fromRGB(90, 255, 200), Color3.fromRGB(80, 160, 255))
+end
+
+SKY_BUILDERS.Taco = function()
+	-- A giant taco hanging in the sky like a moon.
+	local centre = CFrame.new(-120, 360, 560)
+	blockRing(centre * CFrame.Angles(0, 0, 0), 110, 30, Vector3.new(34, 34, 30), Color3.fromRGB(245, 195, 80), math.rad(185), math.rad(355))
+	blockRing(centre * CFrame.new(0, 12, 0), 92, 24, Vector3.new(26, 26, 26), Color3.fromRGB(100, 200, 70), math.rad(190), math.rad(350))
+	blockRing(centre * CFrame.new(0, 20, 0), 78, 16, Vector3.new(20, 20, 22), Color3.fromRGB(230, 60, 40), math.rad(200), math.rad(340))
+end
+
+SKY_BUILDERS.Clover = function()
+	local centre = CFrame.new(140, 360, 560)
+	for leaf = 0, 3 do
+		local angle = leaf * math.pi / 2 + math.pi / 4
+		glowBall(centre * CFrame.new(math.cos(angle) * 55, math.sin(angle) * 55, 0), 70, Color3.fromRGB(60, 220, 90), Color3.fromRGB(30, 170, 60))
+	end
+	addSky(skyPart(Vector3.new(14, 110, 10), Color3.fromRGB(40, 150, 60)), centre * CFrame.Angles(0, 0, math.rad(20)) * CFrame.new(0, -90, 0))
+	aurora(Color3.fromRGB(120, 255, 140), Color3.fromRGB(40, 200, 90))
+end
+
+SKY_BUILDERS.Coin = function()
+	local centre = CFrame.new(-140, 380, 540)
+	addSky(skyPart(Vector3.new(16, 150, 150), Color3.fromRGB(255, 205, 50), Enum.PartType.Cylinder), centre * CFrame.Angles(0, math.rad(90), 0), 0.3)
+	addSky(skyPart(Vector3.new(18, 60, 20), Color3.fromRGB(255, 240, 150)), centre, 0.3)
+	SKY_BUILDERS.Sun()
+end
+
+SKY_BUILDERS.Eclipse = function()
+	glowBall(CFrame.new(0, 360, 580), 170, Color3.fromRGB(255, 80, 30), Color3.fromRGB(200, 30, 10))
+	addSky(skyPart(Vector3.one * 150, Color3.fromRGB(10, 5, 5), Enum.PartType.Ball), CFrame.new(-8, 362, 560))
+end
+
+SKY_BUILDERS.Searchlights = function()
+	for index = 1, 4 do
+		local base = CFrame.new(-330 + index * 130, 0, 420)
+		local beam = skyPart(Vector3.new(14, 420, 14), Color3.fromRGB(230, 235, 255), Enum.PartType.Block, 0.8)
+		addSky(beam, base * CFrame.Angles(0, 0, math.rad(-25 + index * 12)) * CFrame.new(0, 210, 0), 0)
+		beam:SetAttribute("Sweep", index)
+	end
+	glowBall(CFrame.new(220, 380, 520), 70, Color3.fromRGB(235, 240, 255), Color3.fromRGB(150, 170, 255))
+end
+
+SKY_BUILDERS.Admin = function()
+	SKY_BUILDERS.Rainbow()
+	SKY_BUILDERS.Galaxy()
+end
+
+-- Which sky goes with each event (EventSky).
+local SKY_FOR_EVENT: { [string]: string } = {
+	Gold = "Sun",
+	Diamond = "Diamonds",
+	Rainbow = "Rainbow",
+	Blood = "BloodMoon",
+	Galaxy = "Galaxy",
+	Lava = "Volcano",
+	Frost = "Aurora",
+	Taco = "Taco",
+	Lucky = "Clover",
+	Cash = "Coin",
+	Admin = "Admin",
+	Boss = "Eclipse",
+	Heist = "Searchlights",
+}
+
+local function setSky(kind: string?)
+	if kind == skyKind then
+		return
+	end
+	clearSky()
+	local builder = if kind then SKY_BUILDERS[kind] else nil
+	if builder then
+		skyKind = kind
+		builder()
+	end
+end
+
+local function stepSky(t: number)
+	if #skyProps == 0 then
+		return
+	end
+	local camera = Workspace.CurrentCamera
+	local position = if camera then camera.CFrame.Position else Vector3.zero
+	local anchor = CFrame.new(position.X, 0, position.Z)
+	for _, prop in skyProps do
+		local frame = anchor * prop.Offset
+		if prop.Spin ~= 0 then
+			frame *= CFrame.Angles(0, t * prop.Spin, 0)
+		end
+		local sweep = prop.Part:GetAttribute("Sweep")
+		if typeof(sweep) == "number" then
+			frame = anchor * CFrame.new(prop.Offset.Position.X, 0, prop.Offset.Position.Z)
+				* CFrame.Angles(math.sin(t * 0.6 + sweep) * 0.5, 0, math.sin(t * 0.8 + sweep * 1.7) * 0.6)
+				* CFrame.new(0, 210, 0)
+		end
+		prop.Part.CFrame = frame
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Clouds follow the weather.
+--------------------------------------------------------------------------------
+
+local terrain = Workspace:FindFirstChildOfClass("Terrain")
+local clouds: Clouds? = nil
+if terrain then
+	local existing = terrain:FindFirstChildOfClass("Clouds")
+	if existing then
+		clouds = existing
+	else
+		local ok, created = pcall(function(): Clouds
+			local new = Instance.new("Clouds")
+			new.Cover = 0.45
+			new.Density = 0.6
+			new.Color = Color3.new(1, 1, 1)
+			new.Parent = terrain
+			return new
+		end)
+		clouds = if ok then created else nil
+	end
+end
+
+local CLOUDS_FOR_WEATHER: { [string]: { Cover: number, Density: number, Color: Color3 } } = {
+	Clear = { Cover = 0.45, Density = 0.55, Color = Color3.new(1, 1, 1) },
+	Rain = { Cover = 0.85, Density = 0.75, Color = Color3.fromRGB(150, 155, 165) },
+	Thunderstorm = { Cover = 0.95, Density = 0.95, Color = Color3.fromRGB(70, 72, 85) },
+	Snow = { Cover = 0.85, Density = 0.7, Color = Color3.fromRGB(235, 238, 245) },
+	Fog = { Cover = 0.75, Density = 0.6, Color = Color3.fromRGB(200, 200, 205) },
+}
+
+local function applyClouds()
+	local cloudsInstance = clouds
+	if cloudsInstance == nil then
+		return
+	end
+	local weather = ReplicatedStorage:GetAttribute("Weather")
+	local look = CLOUDS_FOR_WEATHER[if typeof(weather) == "string" then weather else "Clear"] or CLOUDS_FOR_WEATHER.Clear
+	local sky = ReplicatedStorage:GetAttribute("EventSky")
+	local eventLook = if typeof(sky) == "string" then SKY_LOOKS[sky] else nil
+	local colour = look.Color
+	if eventLook then
+		colour = eventLook.Clouds or colour:Lerp(eventLook.Atmosphere, 0.45)
+	end
+	TweenService:Create(cloudsInstance, TweenInfo.new(3, Enum.EasingStyle.Sine), { Cover = look.Cover, Density = look.Density, Color = colour }):Play()
+end
+
+--------------------------------------------------------------------------------
+-- Snow settles on parts marked with the Snow attribute (see generate_map.py).
+--------------------------------------------------------------------------------
+
+type Snowy = { Part: BasePart, Kind: string, Color: Color3, Material: Enum.Material }
+local snowyParts: { Snowy } = {}
+local function findSnowy(root: Instance)
+	for _, descendant in root:GetDescendants() do
+		local kind = descendant:GetAttribute("Snow")
+		if descendant:IsA("BasePart") and typeof(kind) == "string" then
+			table.insert(snowyParts, { Part = descendant, Kind = kind, Color = descendant.Color, Material = descendant.Material })
+		end
+	end
+end
+findSnowy(map)
+do
+	local baseplate = Workspace:FindFirstChild("Baseplate")
+	local kind = if baseplate then baseplate:GetAttribute("Snow") else nil
+	if baseplate and baseplate:IsA("BasePart") and typeof(kind) == "string" then
+		table.insert(snowyParts, { Part = baseplate, Kind = kind, Color = baseplate.Color, Material = baseplate.Material })
+	end
+end
+
+local SNOW_WHITE = Color3.fromRGB(240, 244, 250)
+local SNOW_SETTLE = TweenInfo.new(10, Enum.EasingStyle.Sine)
+local snowing = false
+local snowToken = 0
+
+local function setSnow(on: boolean)
+	if on == snowing then
+		return
+	end
+	snowing = on
+	snowToken += 1
+	local token = snowToken
+	for _, snowy in snowyParts do
+		local target = if not on
+			then snowy.Color
+			elseif snowy.Kind == "Leaves" then snowy.Color:Lerp(SNOW_WHITE, 0.65)
+			else SNOW_WHITE
+		TweenService:Create(snowy.Part, SNOW_SETTLE, { Color = target }):Play()
+	end
+	-- Halfway through, the ground turns to snow (or back).
+	task.delay(SNOW_SETTLE.Time / 2, function()
+		if token ~= snowToken then
+			return
+		end
+		for _, snowy in snowyParts do
+			if snowy.Kind ~= "Leaves" then
+				snowy.Part.Material = if on then Enum.Material.Snow else snowy.Material
+			end
+		end
+	end)
+end
 
 -- Settings > Low graphics: no falling weather or event particles.
 local function lowGraphics(): boolean
@@ -468,6 +805,9 @@ local function applyEventSky()
 			Decay = if look then look.Decay else baseDecay,
 		}):Play()
 	end
+
+	setSky(if typeof(sky) == "string" and not lowGraphics() then SKY_FOR_EVENT[sky] else nil)
+	applyClouds()
 
 	removeLayer(eventLayer)
 	eventLayer = nil
@@ -513,6 +853,8 @@ local function applyWeather()
 		TweenService:Create(atmosphere, TWEEN, { Density = density, Haze = haze }):Play()
 	end
 	TweenService:Create(weatherTint, TWEEN, { Brightness = brightness, Saturation = saturation }):Play()
+	applyClouds()
+	setSnow(currentWeather == "Snow")
 
 	removeLayer(weatherLayer)
 	weatherLayer = if style and not lowGraphics() then createLayer("Weather" .. currentWeather, style) else nil
@@ -632,7 +974,7 @@ local function createBubble(head: BasePart): TextLabel
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "SpeechBubble"
 	billboard.Adornee = head
-	billboard.Size = UDim2.fromOffset(250, 64)
+	billboard.Size = UDim2.fromScale(8, 2.05)
 	billboard.StudsOffsetWorldSpace = Vector3.new(0, head.Size.Y / 2 + 3.2, 0)
 	billboard.MaxDistance = 70
 	billboard.LightInfluence = 0
@@ -1018,6 +1360,30 @@ local function animatePlots(t: number)
 	end
 end
 
+-- The vault's red alarm lights flash while the vault is open.
+local heistLights: { PointLight } = {}
+for _, descendant in map:GetDescendants() do
+	if descendant:IsA("PointLight") and descendant:GetAttribute("HeistLight") == true then
+		table.insert(heistLights, descendant)
+	end
+end
+local heistWasOpen = false
+local function animateHeistLights(t: number)
+	local open = ReplicatedStorage:GetAttribute("HeistOpen") == true
+	if not open and not heistWasOpen then
+		return
+	end
+	heistWasOpen = open
+	local pulse = if open then (0.5 + 0.5 * math.sin(t * 10)) else 0
+	for _, light in heistLights do
+		light.Brightness = 4 * pulse
+		local bulb = light.Parent
+		if bulb and bulb:IsA("BasePart") then
+			bulb.Color = Color3.fromRGB(80, 5, 5):Lerp(Color3.fromRGB(255, 30, 30), pulse)
+		end
+	end
+end
+
 local lastFrame = os.clock()
 RunService.RenderStepped:Connect(function()
 	local t = os.clock()
@@ -1037,6 +1403,8 @@ RunService.RenderStepped:Connect(function()
 	if rainbowSky then
 		eventTint.TintColor = Color3.fromHSV((t * 0.08) % 1, 0.12, 1)
 	end
+	stepSky(t)
+	animateHeistLights(t)
 	for _, seller in sellers do
 		animateSeller(seller, t)
 	end

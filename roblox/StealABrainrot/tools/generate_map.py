@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Generate Workspace/Map.model.json in the style of the original Steal a Brainrot.
 
-Studded plastic everywhere, a red carpet conveyor between two tunnels, eight
-grey garage-style bases with wooden signs and green collect pads, long carpets
-from the conveyor to each base, the Robux Shop and Gear Shop stalls, global
-leaderboards and a dirt-and-grass border. The scripts find parts by name, so
+Studded plastic everywhere, a long red carpet conveyor between two tunnels,
+eight grey garage-style bases with wooden signs and green collect pads, long
+carpets from the conveyor to each base, the Robux Shop, Gear Shop and Limited
+Shop stalls, the Fuse Machine, the Hall of Fame (Top Steals, Top Earners, Top
+Cash and Top Rebirths boards with the top thief's statue), the bank vault for
+heists, fountains, trees and a dirt-and-grass border. The scripts find parts by name, so
 the layout can also be edited in Studio afterwards. Run from the StealABrainrot folder:
 
     python3 tools/generate_map.py
@@ -30,8 +32,8 @@ def yaw(degrees):
 
 IDENTITY = yaw(0)
 
-PLOT_X = [-150, -50, 50, 150]
-PLOT_Z = 80
+PLOT_X = [-195, -65, 65, 195]
+PLOT_Z = 100
 PLOT_WIDTH = 56
 PLOT_DEPTH = 60
 FLOORS = 4
@@ -43,12 +45,18 @@ DOOR_HEIGHT = 14
 # alternating sides floor by floor.
 STAIR_STEPS = 14
 STAIR_LANE = 4.5
-CONVEYOR_LENGTH = 460
+CONVEYOR_LENGTH = 620
 CONVEYOR_WIDTH = 14
 # From the conveyor's edge to a base's door.
 CARPET_LENGTH = PLOT_Z - PLOT_DEPTH / 2 - CONVEYOR_WIDTH / 2
-BORDER_X = 290
-BORDER_Z = 165
+BORDER_X = 400
+BORDER_Z = 215
+# The gaps between the bases (shops, the Fuse Machine, fountains).
+GAP_X = 130
+GAP_Z = 60
+# Past the ends of the conveyor.
+END_X = 330
+END_Z = 115
 
 GRASS = (0.29, 0.75, 0.25)
 DIRT = (0.56, 0.36, 0.2)
@@ -109,6 +117,13 @@ def part(name, size, position, rotation, color, material="Plastic", surfaces=Non
 
 def hidden(name, size, position, rotation):
     return part(name, size, position, rotation, WHITE, Transparency=1, CanCollide=False, CanQuery=False, CanTouch=False)
+
+
+def snowy(node, kind="Ground"):
+    """Marks a part for snow: when it snows WorldEffects turns Ground and Roof
+    parts to white snow and frosts Leaves."""
+    node.setdefault("attributes", {})["Snow"] = kind
+    return node
 
 
 def folder(name, children):
@@ -295,7 +310,7 @@ def build_plot(index, origin, rotation):
             WALL,
             surfaces=ALL_STUDS,
         ),
-        part("Roof", (PLOT_WIDTH + 2, 1, PLOT_DEPTH + 2), f.at([0, roof_y, 0]), r, WALL, surfaces=ALL_STUDS),
+        snowy(part("Roof", (PLOT_WIDTH + 2, 1, PLOT_DEPTH + 2), f.at([0, roof_y, 0]), r, WALL, surfaces=ALL_STUDS), "Roof"),
         # Wooden sign above the door; GameplayManager writes the owner's name on it.
         part("Sign", (30, 6, 1), f.at([0, 1 + DOOR_HEIGHT + 4, -half_depth - 0.5]), r, WOOD, "WoodPlanks"),
         part("SignBorder", (31, 7, 0.8), f.at([0, 1 + DOOR_HEIGHT + 4, -half_depth - 0.1]), r, (0.4, 0.25, 0.13), "WoodPlanks"),
@@ -608,7 +623,8 @@ def build_stall(name, title, title_colour, title_stroke, awning, seller, prompt_
         "Name": "Title",
         "ClassName": "BillboardGui",
         "Properties": {
-            "Size": {"UDim2": [[0, 320], [0, 80]]},
+            # Sized in studs, so it looks like part of the world at any distance.
+            "Size": {"UDim2": [[12, 0], [3, 0]]},
             "StudsOffset": [0, 4, 0],
             "LightInfluence": 0,
             "MaxDistance": 180,
@@ -664,7 +680,7 @@ def build_shop_stalls():
             rat_seller,
             "ShopPrompt",
             "Robux Shop",
-            [0, 0, 45],
+            [0, 0, GAP_Z],
             0,
         ),
         build_stall(
@@ -676,13 +692,13 @@ def build_shop_stalls():
             lambda frame: noob(frame, (0.85, 0.35, 0.1)),
             "GearPrompt",
             "Gear Shop",
-            [0, 0, -45],
+            [0, 0, -GAP_Z],
             180,
         ),
     ]
 
 
-FUSE_MACHINE = [-205, 0, 42]
+FUSE_MACHINE = [-GAP_X, 0, GAP_Z]
 
 
 def build_fuse_machine(origin, facing):
@@ -708,7 +724,7 @@ def build_fuse_machine(origin, facing):
         "Name": "Title",
         "ClassName": "BillboardGui",
         "Properties": {
-            "Size": {"UDim2": [[0, 340], [0, 110]]},
+            "Size": {"UDim2": [[13, 0], [4.2, 0]]},
             "StudsOffset": [0, 3, 0],
             "LightInfluence": 0,
             "MaxDistance": 180,
@@ -778,29 +794,239 @@ def build_fuse_machine(origin, facing):
     return model("FuseMachine", children)
 
 
-def build_board(name, origin, facing, accent):
+def build_board(name, origin, facing, accent, scale=1.0):
     """A big board on two posts; scripts draw on the Screen's front face."""
     f = Frame(origin, yaw(facing))
     r = f.rotation
+    k = scale
     children = [
-        part("PostLeft", (1.6, 30, 1.6), f.at([-11, 15, 1]), r, WOOD, "WoodPlanks"),
-        part("PostRight", (1.6, 30, 1.6), f.at([11, 15, 1]), r, WOOD, "WoodPlanks"),
-        part("Frame", (22, 26, 1), f.at([0, 17, 0.4]), r, accent, "SmoothPlastic"),
-        part("Screen", (20.6, 24.6, 0.4), f.at([0, 17, -0.3]), r, DARK, "SmoothPlastic"),
-        part("Base", (26, 1, 6), f.at([0, 0.5, 1]), r, WALL, surfaces=ALL_STUDS),
+        part("PostLeft", (1.6, 30 * k, 1.6), f.at([-11 * k, 15 * k, 1]), r, WOOD, "WoodPlanks"),
+        part("PostRight", (1.6, 30 * k, 1.6), f.at([11 * k, 15 * k, 1]), r, WOOD, "WoodPlanks"),
+        part("Frame", (22 * k, 26 * k, 1), f.at([0, 17 * k, 0.4]), r, accent, "SmoothPlastic"),
+        part("Screen", (20.6 * k, 24.6 * k, 0.4), f.at([0, 17 * k, -0.3]), r, DARK, "SmoothPlastic"),
+        part("Base", (26 * k, 1, 6), f.at([0, 0.5, 1]), r, WALL, surfaces=ALL_STUDS),
     ]
     return model(name, children)
 
 
-def build_leaderboards():
-    # In the gaps between the outer bases, facing the conveyor.
-    return folder(
-        "Leaderboards",
+def surface_text(name, face, lines, pixels_per_stud=20):
+    """A SurfaceGui with lines of text: (text, height 0..1, colour, stroke colour)."""
+    labels = []
+    y = 0.0
+    for index, (text, height, colour, stroke) in enumerate(lines):
+        labels.append(
+            {
+                "Name": f"Line{index + 1}",
+                "ClassName": "TextLabel",
+                "Properties": {
+                    "Position": {"UDim2": [[0, 0], [y, 0]]},
+                    "Size": {"UDim2": [[1, 0], [height, 0]]},
+                    "BackgroundTransparency": 1,
+                    "Font": "FredokaOne",
+                    "Text": text,
+                    "TextColor3": list(colour),
+                    "TextScaled": True,
+                },
+                "Children": [{"Name": "Outline", "ClassName": "UIStroke", "Properties": {"Thickness": 4, "Color": list(stroke)}}],
+            }
+        )
+        y += height
+    return {
+        "Name": name,
+        "ClassName": "SurfaceGui",
+        "Properties": {"Face": face, "SizingMode": "PixelsPerStud", "PixelsPerStud": pixels_per_stud, "LightInfluence": 0},
+        "Children": labels,
+    }
+
+
+def build_hall_of_fame(origin, facing):
+    """The Hall of Fame: a marble plaza under a golden arch with the four
+    global leaderboards (Top Steals and Top Earners in the middle), and a
+    podium where LeaderboardManager stands the top thief's avatar."""
+    f = Frame(origin, yaw(facing))
+    r = f.rotation
+    gold = (1.0, 0.78, 0.18)
+    marble = (0.93, 0.92, 0.88)
+    red_carpet = (0.75, 0.1, 0.12)
+    children = [
+        part("Plaza", (112, 0.6, 56), f.at([0, 0.3, 0]), r, marble, "Marble"),
+        part("PlazaEdge", (114, 0.4, 58), f.at([0, 0.2, 0]), r, gold, "SmoothPlastic"),
+        part("Carpet", (12, 0.2, 30), f.at([0, 0.7, -14]), r, red_carpet, surfaces=STUDS),
+        part("ArchLeft", (5, 40, 5), f.at([-54, 20, 22]), r, marble, "Marble"),
+        part("ArchRight", (5, 40, 5), f.at([54, 20, 22]), r, marble, "Marble"),
+        part(
+            "ArchTop",
+            (114, 8, 5),
+            f.at([0, 43, 22]),
+            r,
+            gold,
+            "SmoothPlastic",
+            children=[
+                surface_text(
+                    "TitleGui",
+                    "Front",
+                    [("🏆 HALL OF FAME 🏆", 1.0, (1, 0.95, 0.7), (0.45, 0.25, 0.02))],
+                )
+            ],
+        ),
+        part("ArchGlow", (114, 0.6, 5.4), f.at([0, 38.7, 22]), r, gold, "Neon", CanCollide=False),
+        # The champion's podium, in front of the boards.
+        part("PodiumBase", (12, 2, 12), f.at([0, 1.6, 4]), r, gold, "SmoothPlastic", surfaces=STUDS),
+        part("PodiumTop", (9, 2, 9), f.at([0, 3.6, 4]), r, marble, "Marble"),
+        part("PodiumGlow", (9.4, 0.4, 9.4), f.at([0, 4.7, 4]), r, gold, "Neon", CanCollide=False),
+        hidden("ChampionSpot", (1, 1, 1), f.at([0, 4.6, 4]), r),
+        part(
+            "PodiumPlaque",
+            (8, 1.8, 0.4),
+            f.at([0, 1.8, -2.2]),
+            r,
+            (0.2, 0.15, 0.08),
+            "SmoothPlastic",
+            children=[surface_text("PlaqueGui", "Front", [("👑 TOP THIEF", 1.0, gold, (0.1, 0.05, 0))], 30)],
+        ),
+    ]
+    for i, (x, z) in enumerate([(-50, -24), (50, -24), (-50, 20), (50, 20)], start=1):
+        children.append(part(f"Torch{i}", (2, 8, 2), f.at([x, 4.6, z]), r, marble, "Marble"))
+        children.append(
+            part(
+                f"TorchFlame{i}",
+                (2.2, 1.6, 2.2),
+                f.at([x, 9.4, z]),
+                r,
+                (1, 0.6, 0.15),
+                "Neon",
+                CanCollide=False,
+                children=[point_light(2, 20, (1, 0.7, 0.3), always_on=True)],
+            )
+        )
+    boards = [
+        # name, local x, local z, turn (degrees), scale, accent
+        ("TopCash", -40, 12, 20, 1.0, (0.3, 1, 0.45)),
+        ("TopSteals", -14, 16, 0, 1.2, (1, 0.35, 0.35)),
+        ("TopEarners", 14, 16, 0, 1.2, (1, 0.8, 0.2)),
+        ("TopRebirths", 40, 12, -20, 1.0, (0.3, 0.75, 1)),
+    ]
+    board_models = [
+        build_board(name, f.at([x, 0.6, z]), facing + turn, accent, scale) for name, x, z, turn, scale, accent in boards
+    ]
+    return folder("Leaderboards", [model("HallOfFame", children), *board_models])
+
+
+def build_logo_board(origin, facing):
+    """The game's logo board (LeaderboardManager draws on it)."""
+    return folder("LogoBoards", [build_board("LogoBoard", origin, facing, (1, 0.8, 0.2))])
+
+
+def build_vault(origin, facing):
+    """The Banca Brainrot: a stone bank with columns and a huge round vault
+    door. During a Bank Heist RaidManager rolls the door aside and the gold
+    piles inside (LootSpot1..6) can be grabbed."""
+    f = Frame(origin, yaw(facing))
+    r = f.rotation
+    stone, dark_stone = (0.5, 0.51, 0.56), (0.32, 0.33, 0.38)
+    marble, gold, steel = (0.9, 0.89, 0.85), (1.0, 0.78, 0.15), (0.62, 0.64, 0.7)
+    width, depth, height = 46, 38, 24
+    door = 16
+    side_piece = (width - door) / 2
+    children = [
+        part("VaultFloor", (width, 1, depth), f.at([0, 0.5, 0]), r, (0.22, 0.22, 0.27), "DiamondPlate"),
+        part("BackWall", (width, height, 2), f.at([0, height / 2, depth / 2 - 1]), r, stone, "Slate"),
+        part("LeftWall", (2, height, depth), f.at([-width / 2 + 1, height / 2, 0]), r, stone, "Slate"),
+        part("RightWall", (2, height, depth), f.at([width / 2 - 1, height / 2, 0]), r, stone, "Slate"),
+        part("FrontLeft", (side_piece, height, 2), f.at([-(door / 2 + side_piece / 2), height / 2, -depth / 2 + 1]), r, stone, "Slate"),
+        part("FrontRight", (side_piece, height, 2), f.at([door / 2 + side_piece / 2, height / 2, -depth / 2 + 1]), r, stone, "Slate"),
+        part("FrontTop", (door, height - door, 2), f.at([0, door + (height - door) / 2, -depth / 2 + 1]), r, stone, "Slate"),
+        snowy(part("Roof", (width + 6, 2, depth + 12), f.at([0, height + 1, -3]), r, dark_stone, "Slate"), "Roof"),
+        part("Steps", (width + 6, 1, 8), f.at([0, 0.5, -depth / 2 - 5]), r, marble, "Marble"),
+        part(
+            "Pediment",
+            (width + 6, 6, 2),
+            f.at([0, height + 5, -depth / 2 - 8]),
+            r,
+            marble,
+            "Marble",
+            children=[surface_text("BankGui", "Front", [("🏦 BANCA BRAINROT", 1.0, gold, (0.25, 0.15, 0.02))])],
+        ),
+        part("PedimentTrim", (width + 6, 0.6, 2.4), f.at([0, height + 1.9, -depth / 2 - 8]), r, gold, "SmoothPlastic"),
+        hidden("DoorClosed", (1, 1, 1), f.at([0, door / 2 + 1, -depth / 2 + 1]), r),
+        hidden("DoorOpen", (1, 1, 1), f.at([door + 1, door / 2 + 1, -depth / 2 - 1.5]), r),
+        hidden("VaultInside", (width - 4, height, depth - 4), f.at([0, height / 2, 0]), r),
+    ]
+    for i, x in enumerate((-19, -7, 7, 19), start=1):
+        children.append(part(f"Column{i}", (3, height, 3), f.at([x, height / 2 + 1, -depth / 2 - 7]), r, marble, "Marble"))
+    # The round vault door: a steel disc with a gold rim and a wheel.
+    upright = f.turned([[0, 0, -1], [0, 1, 0], [1, 0, 0]])  # a cylinder's axis pointing forwards
+    door_parts = [
+        part("Disc", (2.4, door, door), f.at([0, door / 2 + 1, -depth / 2 + 1]), upright, steel, "Metal", Shape="Cylinder"),
+        part("Rim", (2.0, door + 1, door + 1), f.at([0, door / 2 + 1, -depth / 2 + 1.3]), upright, gold, "SmoothPlastic", Shape="Cylinder"),
+        part("Hub", (1.2, 3, 3), f.at([0, door / 2 + 1, -depth / 2 - 0.4]), upright, gold, "SmoothPlastic", Shape="Cylinder"),
+    ]
+    for i, angle in enumerate((0, 60, 120), start=1):
+        spoke = multiply(r, [[math.cos(math.radians(angle)), -math.sin(math.radians(angle)), 0], [math.sin(math.radians(angle)), math.cos(math.radians(angle)), 0], [0, 0, 1]])
+        door_parts.append(part(f"Spoke{i}", (0.6, 9, 0.6), f.at([0, door / 2 + 1, -depth / 2 - 0.6]), spoke, gold, "SmoothPlastic", CanCollide=False))
+    children.append(model("VaultDoor", door_parts))
+    # Gold inside: six piles of bars and cash, and red alarm lights.
+    loot = []
+    for i, (x, z) in enumerate([(-15, 12), (0, 13), (15, 12), (-15, -2), (15, -2), (0, 3)], start=1):
+        pile = [part("Pile", (5, 1.2, 4), f.at([x, 1.6, z]), r, (0.35, 0.25, 0.1), "WoodPlanks")]
+        for j, (bx, by, bz) in enumerate([(-1.3, 2.6, -0.8), (1.3, 2.6, -0.8), (-1.3, 2.6, 0.8), (1.3, 2.6, 0.8), (0, 3.6, 0), (-0.8, 3.6, 0.8)], start=1):
+            pile.append(part(f"Bar{j}", (2.2, 0.8, 1.2), f.at([x + bx, by, z + bz]), r, gold, "Foil", Reflectance=0.25, CanCollide=False))
+        pile.append(part("Cash", (2, 1, 1.4), f.at([x + 1.2, 3.7, z - 0.9]), r, (0.4, 0.85, 0.35), "SmoothPlastic", CanCollide=False))
+        loot.append(model(f"LootSpot{i}", pile))
+    children.append(folder("Loot", loot))
+    for i, (x, z) in enumerate([(-21, 10), (21, 10), (-21, -10), (21, -10)], start=1):
+        light = point_light(0, 30, (1, 0.1, 0.1), always_on=True)
+        light["attributes"]["HeistLight"] = True
+        children.append(part(f"AlarmLight{i}", (1, 1.6, 1.6), f.at([x, height - 3, z]), r, (0.5, 0.05, 0.05), "Neon", CanCollide=False, children=[light]))
+    return model("Vault", children)
+
+
+def golden_noob(f):
+    return noob(f, (1.0, 0.78, 0.15))
+
+
+def build_limited_shop(origin, facing):
+    """A gold stall selling this week's limited brainrot (the client puts it on
+    the display and fills in the sign)."""
+    stall = build_stall(
+        "LimitedShop",
+        "LIMITED",
+        (1, 0.85, 0.25),
+        (0.35, 0.18, 0.0),
+        ((1.0, 0.78, 0.15), (0.12, 0.12, 0.15)),
+        golden_noob,
+        "LimitedPrompt",
+        "Limited Brainrot",
+        origin,
+        facing,
+    )
+    f = Frame(origin, yaw(facing))
+    r = f.rotation
+    stall["Children"].extend(
         [
-            build_board("TopCash", [-100, 0, 62], 0, (0.3, 1, 0.45)),
-            build_board("TopSteals", [100, 0, 62], 0, (1, 0.35, 0.35)),
-            build_board("TopRebirths", [-100, 0, -62], 180, (0.3, 0.75, 1)),
-            build_board("LogoBoard", [100, 0, -62], 180, (1, 0.8, 0.2)),
+            part("DisplayBase", (5, 1.4, 5), f.at([9.5, 0.7, -2]), r, (0.12, 0.12, 0.15), "Marble"),
+            part("DisplayGlow", (5.4, 0.3, 5.4), f.at([9.5, 1.5, -2]), r, (1, 0.8, 0.2), "Neon", CanCollide=False),
+            hidden("LimitedDisplay", (1, 1, 1), f.at([9.5, 1.7, -2]), r),
+            hidden("LimitedInfoAnchor", (1, 1, 1), f.at([0, 11, -1]), r),
+        ]
+    )
+    return stall
+
+
+def build_fountain(name, origin):
+    """A round fountain with a jet of water."""
+    x, _, z = origin
+    upright = [[0, -1, 0], [1, 0, 0], [0, 0, 1]]
+    water = (0.35, 0.7, 1.0)
+    stone = (0.8, 0.8, 0.84)
+    return model(
+        name,
+        [
+            part("Basin", (2, 22, 22), (x, 1, z), upright, stone, "Marble", Shape="Cylinder"),
+            part("Water", (0.4, 19, 19), (x, 2.1, z), upright, water, "Glass", Transparency=0.25, Reflectance=0.3, Shape="Cylinder", CanCollide=False),
+            part("Pillar", (6, 2.6, 2.6), (x, 4, z), upright, stone, "Marble", Shape="Cylinder"),
+            part("Bowl", (1, 8, 8), (x, 7.2, z), upright, stone, "Marble", Shape="Cylinder"),
+            part("Jet", (5, 1, 1), (x, 9.6, z), upright, water, "Neon", Transparency=0.4, Shape="Cylinder", CanCollide=False),
         ],
     )
 
@@ -816,12 +1042,12 @@ def tree(name, x, z, size, kind, colour):
     if kind == "pine":
         y = trunk_h * 0.6
         for i, width in enumerate((9, 7, 5, 3)):
-            children.append(part(f"Leaves{i + 1}", (width * size, 2.6 * size, width * size), (x, y + 1.3 * size, z), IDENTITY, colour, surfaces=STUDS))
+            children.append(snowy(part(f"Leaves{i + 1}", (width * size, 2.6 * size, width * size), (x, y + 1.3 * size, z), IDENTITY, colour, surfaces=STUDS), "Leaves"))
             y += 2.4 * size
     else:
-        children.append(part("Leaves1", (8 * size, 5 * size, 8 * size), (x, trunk_h + 2 * size, z), IDENTITY, colour, surfaces=STUDS))
-        children.append(part("Leaves2", (5.5 * size, 3 * size, 5.5 * size), (x, trunk_h + 5.8 * size, z), IDENTITY, colour, surfaces=STUDS))
-        children.append(part("Leaves3", (10 * size, 2.5 * size, 5 * size), (x, trunk_h + 1.2 * size, z), IDENTITY, colour, surfaces=STUDS))
+        children.append(snowy(part("Leaves1", (8 * size, 5 * size, 8 * size), (x, trunk_h + 2 * size, z), IDENTITY, colour, surfaces=STUDS), "Leaves"))
+        children.append(snowy(part("Leaves2", (5.5 * size, 3 * size, 5.5 * size), (x, trunk_h + 5.8 * size, z), IDENTITY, colour, surfaces=STUDS), "Leaves"))
+        children.append(snowy(part("Leaves3", (10 * size, 2.5 * size, 5 * size), (x, trunk_h + 1.2 * size, z), IDENTITY, colour, surfaces=STUDS), "Leaves"))
     return model(name, children)
 
 
@@ -864,44 +1090,50 @@ def build_scenery():
         trees.append(tree(f"Tree{number}", round(x, 1), round(z, 1), size, kind, rng.choice(LEAF_GREENS)))
         number += 1
 
+    back = PLOT_Z + PLOT_DEPTH / 2
     for side in (-1, 1):
         # Two loose rows behind the bases.
-        for row_z in (128, 150):
-            x = -275.0
-            while x < 275:
+        for row_z in (back + 18, back + 42):
+            x = -290.0
+            while x < 290:
                 add_tree(x + rng.uniform(-5, 5), side * (row_z + rng.uniform(-4, 4)))
                 x += rng.uniform(20, 30)
-        # The far ends of the map, beside the tunnels.
-        for end_x in (255, 278):
-            z = -150.0
-            while z < 150:
-                if abs(z) > 22:
-                    add_tree(side * (end_x + rng.uniform(-4, 4)), z + rng.uniform(-4, 4))
+        # The far ends of the map, behind the Hall of Fame, the vault and the tunnels.
+        for end_x in (368, 388):
+            z = -200.0
+            while z < 200:
+                if abs(z) > 24:
+                    add_tree(side * (end_x + rng.uniform(-3, 3)), z + rng.uniform(-4, 4))
                 z += rng.uniform(22, 32)
-        # Between the outer bases, behind the leaderboards.
-        for gap_x in (-100, 100):
-            add_tree(gap_x + rng.uniform(-6, 6), side * rng.uniform(88, 104), 1.1)
+        # Between the outer bases, behind the Fuse Machine, fountains and Limited Shop.
+        for gap_x in (-GAP_X, GAP_X):
+            add_tree(gap_x + rng.uniform(-8, 8), side * rng.uniform(back + 2, back + 8), 1.1)
+
+    def clear_spot(x, z):
+        near_base = any(abs(x - px) < 36 and PLOT_Z - 40 < abs(z) < back + 8 for px in PLOT_X)
+        near_gap = any(abs(x - gx) < 16 and abs(abs(z) - GAP_Z) < 14 for gx in (-GAP_X, 0, GAP_X))
+        near_end = abs(x) > END_X - 40 and abs(x) < END_X + 32 and abs(z) > 50
+        near_walk = abs(z) < 24
+        return not (near_base or near_gap or near_end or near_walk)
 
     bushes = []
-    for i in range(36):
+    for i in range(52):
         while True:
-            x, z = rng.uniform(-280, 280), rng.uniform(-158, 158)
-            near_base = any(abs(x - px) < 36 and 40 < abs(z) < 118 for px in PLOT_X)
-            near_fuse = abs(x - FUSE_MACHINE[0]) < 14 and abs(z - FUSE_MACHINE[2]) < 12
-            if not near_fuse and (abs(z) > 118 or abs(x) > 238 or (abs(z) > 20 and not near_base and abs(x) > 26 and abs(abs(x) - 100) > 16)):
+            x, z = rng.uniform(-380, 380), rng.uniform(-205, 205)
+            if clear_spot(x, z):
                 break
         w = rng.uniform(2.5, 4.5)
-        bushes.append(part(f"Bush{i + 1}", (w, w * 0.7, w), (round(x, 1), w * 0.35, round(z, 1)), IDENTITY, rng.choice(LEAF_GREENS), surfaces=STUDS))
+        bushes.append(snowy(part(f"Bush{i + 1}", (w, w * 0.7, w), (round(x, 1), w * 0.35, round(z, 1)), IDENTITY, rng.choice(LEAF_GREENS), surfaces=STUDS), "Leaves"))
     rocks = []
-    for i in range(14):
-        x, z = rng.uniform(-280, 280), rng.choice([-1, 1]) * rng.uniform(120, 158)
+    for i in range(20):
+        x, z = rng.uniform(-360, 360), rng.choice([-1, 1]) * rng.uniform(back + 10, 205)
         w = rng.uniform(2, 5)
         rocks.append(part(f"Rock{i + 1}", (w, w * 0.6, w * 0.8), (round(x, 1), w * 0.3, round(z, 1)), IDENTITY, (0.55, 0.56, 0.6), "Slate"))
 
     lamps = []
     number = 1
     for side in (-1, 1):
-        for x in (-225, -200, -100, 0, 100, 200, 225):
+        for x in (-290, -250, -GAP_X, 0, GAP_X, 250, 290):
             lamps.append(lamp_post(f"LampPost{number}", x, side * 17, 0 if side > 0 else 180))
             number += 1
 
@@ -925,7 +1157,7 @@ def build_border():
     ]:
         walls.append(part(name, size, position, IDENTITY, DIRT, surfaces=ALL_STUDS))
         cap_size = (size[0], 2, size[2])
-        walls.append(part(name + "Grass", cap_size, (position[0], height + 1, position[2]), IDENTITY, GRASS, surfaces=STUDS))
+        walls.append(snowy(part(name + "Grass", cap_size, (position[0], height + 1, position[2]), IDENTITY, GRASS, surfaces=STUDS)))
     return folder("Border", walls)
 
 
@@ -936,15 +1168,27 @@ def build_map():
         for x in PLOT_X:
             plots.append(build_plot(index, (x, 0, z), yaw(facing)))
             index += 1
+    # Where the boss walks during a Boss Raid: the whole walkway between the
+    # rows of bases, conveyor included.
+    arena_x = PLOT_X[-1] + PLOT_WIDTH / 2
+    arena_z = PLOT_Z - PLOT_DEPTH / 2 - 8
     return {
         "ClassName": "Model",
         "Children": [
             build_conveyor(),
             folder("Plots", plots),
             *build_shop_stalls(),
-            # Near the spawn tunnel, facing the conveyor (clear of the shop signs).
+            # In the gaps between the outer bases, facing the conveyor.
             build_fuse_machine(FUSE_MACHINE, 0),
-            build_leaderboards(),
+            build_limited_shop([GAP_X, 0, GAP_Z], 0),
+            build_fountain("FountainWest", [-GAP_X, 0, -GAP_Z]),
+            build_fountain("FountainEast", [GAP_X, 0, -GAP_Z]),
+            # Past the ends of the conveyor: the Hall of Fame and the vault face
+            # the middle of the map.
+            build_hall_of_fame([END_X, 0, END_Z], 90),
+            build_logo_board([END_X, 0, -END_Z], 90),
+            build_vault([-END_X, 0, END_Z], -90),
+            hidden("BossArena", (2 * arena_x, 1, 2 * arena_z), (0, 1, 0), IDENTITY),
             build_scenery(),
             build_border(),
         ],
@@ -953,7 +1197,8 @@ def build_map():
 
 def main():
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(json.dumps(build_map(), indent=2) + "\n")
+    # ensure_ascii=False: Rojo can't read emoji written as \u escapes.
+    OUTPUT.write_text(json.dumps(build_map(), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"Wrote {OUTPUT}")
 
 

@@ -12,7 +12,7 @@ local rgb = Color3.fromRGB
 -- What a reward gives. Cash rewards scale with the player's income so they
 -- stay worth having: `Minutes` of income, at least `Min`.
 export type Reward = {
-	Kind: "Cash" | "Spins" | "Block" | "Brainrot" | "Boost",
+	Kind: "Cash" | "Spins" | "Block" | "Brainrot" | "Boost" | "Hat",
 	Minutes: number?,
 	Min: number?,
 	Count: number?,
@@ -20,6 +20,8 @@ export type Reward = {
 	Id: string?,
 	-- Cash Boost length (Boost).
 	Seconds: number?,
+	-- A hat's name (ExtrasConfig.Hats), or "Random".
+	Hat: string?,
 }
 
 export type SpinPrize = {
@@ -387,7 +389,7 @@ FeatureConfig.AdminAbuseChance = 0.1
 FeatureConfig.AdminUserIds = table.freeze({} :: { number })
 
 -- Settings players can change (saved).
-FeatureConfig.DefaultSettings = table.freeze({ Music = 0.6, Sfx = 1, LowGraphics = false })
+FeatureConfig.DefaultSettings = table.freeze({ Music = 0.6, Sfx = 1, LowGraphics = false, Station = "Mix" })
 
 -- Cash from a Cash reward for a player earning `income` per second.
 function FeatureConfig.cashAmount(reward: Reward, income: number): number
@@ -407,6 +409,13 @@ function FeatureConfig.describeReward(reward: Reward, income: number?): string
 		return string.format("+%d Spin%s", count, if count == 1 then "" else "s")
 	elseif reward.Kind == "Boost" then
 		return string.format("2x Cash %d min", (reward.Seconds or 0) // 60)
+	elseif reward.Kind == "Hat" then
+		local name = reward.Hat or "Random"
+		if name == "Random" then
+			return "Random Hat"
+		end
+		-- "TopHat" -> "Top Hat" (ExtrasConfig has the display names; it needs this module).
+		return (string.gsub(name, "(%l)(%u)", "%1 %2"))
 	end
 	local definition = if reward.Id then BrainrotConfig.ById[reward.Id] else nil
 	return if definition then definition.DisplayName else "???"
