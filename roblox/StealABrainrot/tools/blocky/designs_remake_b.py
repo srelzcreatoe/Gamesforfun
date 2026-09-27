@@ -83,8 +83,8 @@ def top_pixels(m, x0, z0, rows, colours):
 def chimpanzini_bananini(m):
     fur, fur_dark = "#5c2c1b", "#3f1b10"
     skin, skin_dark, skin_light = "#e39a62", "#c27643", "#f2b684"
-    peel, peel_dark, peel_light = "#f8d53a", "#dcaa1c", "#ffe77e"
-    flesh, flesh_dark = "#fff4c4", "#f1e19c"
+    peel, peel_dark, peel_light = "#f6cb24", "#d9a414", "#ffe066"
+    flesh, flesh_dark = "#fff7d6", "#f4e3a6"
     stem = "#5a3a1c"
     mouth = "#4a1a12"
     cx, cz = 20, 10
@@ -105,23 +105,25 @@ def chimpanzini_bananini(m):
     m.box(11, 28, 8, 13, 32, 11, fur, mirror=True)
 
     # The banana: a fat yellow pod, pointed at the bottom with a brown tip.
-    radius = {12: 1.6, 13: 2.7, 14: 3.7, 15: 4.6, 16: 5.4, 17: 6.1, 18: 6.7, 19: 7.2, 20: 7.6,
-              21: 7.9, 22: 8.2, 31: 8.2, 32: 8.0, 33: 7.8}
+    # Flat-faced like a real banana, with rounded corners.
     pod = np.zeros(m.grid.shape, dtype=bool)
     for y in range(12, 34):
-        rx = radius.get(y, 8.4)
-        rz = max(1.5, rx * 0.72)
-        pod |= layer(m, y) & (((xs - cx) / rx) ** 2 + ((zs - cz) / rz) ** 2 <= 1)
+        a = min(8, y - 11)
+        b = min(5.0, a * 0.9)
+        r = min(2.5, b)
+        dx = np.maximum(np.abs(xs - cx) - (a - r), 0)
+        dz = np.maximum(np.abs(zs - cz) - (b - r), 0)
+        pod |= layer(m, y) & (np.abs(xs - cx) <= a) & (np.abs(zs - cz) <= b) & (dx**2 + dz**2 <= r**2)
     m.mask(pod, peel)
     m.paint(pod & (ys < 17), peel_dark)
     m.paint(pod & (ys < 14), stem)
     m.paint_face(pod, flesh_dark, face="top")
-    # The peeled front shows the fruit: a cream V with a light rim.
-    for y in range(17, 34):
-        hw = min(6, max(0, 1 + (y - 19) // 2))
-        m.paint_face(m.box_mask(cx - hw - 1, y, 0, cx + hw, y, 19) & pod, peel_light, face="front")
+    # The peeled front shows the fruit: a cream V standing out of the peel.
+    for y in range(18, 34):
+        hw = min(4, (y - 18) // 2)
+        m.paint(m.box_mask(cx - hw - 1, y, 5, cx + hw, y, 5), peel_light)
         if hw:
-            m.paint_face(m.box_mask(cx - hw, y, 0, cx + hw - 1, y, 19) & pod, flesh, face="front")
+            m.box(cx - hw, y, 4, cx + hw - 1, y, 4, flesh if y > 21 else flesh_dark)
 
     # Strips of peel hang over his shoulders, front and back: yellow outside,
     # the cream inside turned outwards.
@@ -200,12 +202,6 @@ def chef_crabracadabra(m):
         m.mask(rounded_box_mask(m, x0 - 1, 0, 3, x0 + 4, 3, 10, 1.2), red, part=leg)
         m.paint(m.box_mask(x0 - 1, 0, 0, x0 + 4, 0, 15), red_deep)
 
-    # Little crab legs along the sides.
-    for z in (5, 8, 11):
-        m.box(13, 14, z, 16, 14, z, red_dark, mirror=True)
-        m.box(12, 8, z, 12, 14, z, red_dark, mirror=True)
-        m.voxel(12, 8, z, red_deep, mirror=True)
-
     # The carapace body.
     shell = rounded_box_mask(m, 16, 10, 3, 33, 27, 12, 2.5)
     m.mask(shell, red)
@@ -239,9 +235,9 @@ def chef_crabracadabra(m):
     m.box(21, 28, 7, 28, 31, 12, apron)
     for x in (22, 24, 25, 27):
         m.paint(m.box_mask(x, 28, 0, x, 31, 15) & m.surface("front"), apron_shade)
-    hat = rounded_box_mask(m, 20, 32, 6, 29, 39, 13, 2.2)
-    for hx, hy in ((22.5, 39.6), (25, 40.6), (27.5, 39.6)):
-        hat |= m.ellipsoid_mask(hx, hy, 9.5, 2.7, 2.2, 3.4)
+    hat = rounded_box_mask(m, 19, 32, 5, 30, 39, 13, 2.5)
+    for hx, hy in ((21, 40.2), (25, 41.2), (29, 40.2)):
+        hat |= m.ellipsoid_mask(hx, hy, 9.2, 2.6, 2.8, 3.8)
     m.mask(hat, apron)
     m.paint(hat & (ys < 33), apron_shade)
 
@@ -252,6 +248,9 @@ def chef_crabracadabra(m):
         m.box(x0, 37, 3, x0 + 4, 37, 7, red)
         m.paint(m.box_mask(x0, 37, 3, x0 + 4, 37, 3), red_dark)
         m.pixels(x0, 32, [".....", ".hh..", ".hh..", ".....", "....."], {"h": WHITE})
+    # The eyes and the hat look around together.
+    head = m.limb("Head", pivot=(25, 28, 8))
+    m.assign(m.box_mask(13, 28, 0, 36, 47, 15), head)
 
     # Big pincer claws held up high; the claws belong to the arms.
     claw = [
@@ -402,17 +401,20 @@ def bombardiro_crocodilo(m):
 
     # The croc head is the plane's nose: a long snout with a toothy grin,
     # eyes on top, and a leather flying cap with goggles.
-    head = m.limb("Head", pivot=(cx, 14, 12))
+    head = m.limb("Head", pivot=(cx, 14, 16))
     m.mask(rounded_box_mask(m, 21, 9, 7, 34, 21, 17, 2.5), croc, part=head)
     m.mask(rounded_box_mask(m, 21, 14, 0, 34, 18, 12, 1.3), croc, part=head)
     m.mask(rounded_box_mask(m, 21, 9, 1, 34, 11, 12, 1.0), jaw, part=head)
     m.paint(m.box_mask(21, 9, 0, 34, 9, 12), jaw_dark)
     m.box(22, 12, 1, 33, 13, 11, mouth, part=head)
-    # Interlocking teeth round the front and sides of the mouth.
-    for x in range(22, 34):
-        m.voxel(x, 13 if x % 2 == 0 else 12, 1, tooth, part=head)
-    for z in range(2, 12):
-        m.voxel(21, 13 if z % 2 == 0 else 12, z, tooth, part=head, mirror=True)
+    # A row of teeth round the front and sides of the mouth, and fangs
+    # sticking up from the jaw.
+    m.box(22, 13, 1, 33, 13, 1, tooth, part=head)
+    m.box(21, 13, 2, 21, 13, 11, tooth, part=head, mirror=True)
+    for x in (23, 26):
+        m.voxel(x, 12, 1, tooth, part=head, mirror=True)
+    for z in (4, 8):
+        m.voxel(21, 12, z, tooth, part=head, mirror=True)
     m.paint_face(m.box_mask(21, 18, 0, 34, 18, 12), croc_light, face="top")
     for x in (24, 31):
         m.box(x, 19, 1, x, 19, 2, croc, part=head)
@@ -420,7 +422,8 @@ def bombardiro_crocodilo(m):
     # Eyes on top.
     for x0 in (21, 30):
         m.box(x0, 19, 7, x0 + 4, 22, 10, croc, part=head)
-        m.pixels(x0, 19, ["ddddd", "wwkhw", "wwkkw", "wwwww"], {"d": croc_dark, "w": WHITE, "k": BLACK, "h": WHITE}, z=6, part=head)
+        pupil = ["ddddd", "wwkkw", "wwkkw", "wwwww"] if x0 < cx else ["ddddd", "wkkww", "wkkww", "wwwww"]
+        m.pixels(x0, 19, pupil, {"d": croc_dark, "w": WHITE, "k": BLACK}, z=6, part=head)
     # Leather flying cap with ear flaps, and goggles pushed up on it.
     cap = rounded_box_mask(m, 21, 21, 8, 34, 24, 17, 1.8)
     m.mask(cap, leather, part=head)
@@ -429,8 +432,9 @@ def bombardiro_crocodilo(m):
     m.box(20, 15, 11, 20, 15, 14, leather_dark, part=head, mirror=True)
     goggle = [".fff.", "fLLlf", "fLLLf", ".fff."]
     for x0 in (21, 30):
+        m.pixels(x0, 23, goggle, {"f": frame, "L": frame, "l": frame}, z=8, part=head)
         m.pixels(x0, 23, goggle, {"f": frame, "L": lens, "l": lens_light}, z=7, part=head)
-    m.box(26, 24, 7, 29, 25, 7, leather_dark, part=head)
+    m.box(26, 24, 7, 29, 25, 8, leather_dark, part=head)
 
 
 # -- Coccodrillo Tacorito --------------------------------------------------------
@@ -500,25 +504,26 @@ def coccodrillo_tacorito(m):
             m.paint(m.box_mask(x0 - 1, y, 0, x0 + 5, y + 1, 21), grill)
 
     # The croc head: a long snout with a toothy grin and eyes on top.
-    head = m.limb("Head", pivot=(cx, 35, 13))
-    m.mask(rounded_box_mask(m, 10, 35, 10, 23, 43, 18, 2.0), croc, part=head)
-    snout = rounded_box_mask(m, 11, 35, 0, 22, 41, 11, 1.3)
+    head = m.limb("Head", pivot=(cx, 35, 14))
+    m.mask(rounded_box_mask(m, 9, 35, 10, 24, 44, 19, 2.0), croc, part=head)
+    snout = rounded_box_mask(m, 10, 35, 0, 23, 41, 11, 1.3)
     m.mask(snout, croc, part=head)
     m.paint(snout & (ys < 38), jaw)
     m.paint(snout & (ys > 38) & (ys < 39), mouth)
-    for x in range(12, 22, 2):
+    for x in (11, 13, 15, 18, 20, 22):
         m.paint(m.box_mask(x, 38, 0, x, 38, 1), WHITE)
     for z in range(2, 11, 2):
-        m.paint(m.box_mask(11, 38, z, 11, 38, z), WHITE, mirror=True)
+        m.paint(m.box_mask(10, 38, z, 10, 38, z), WHITE, mirror=True)
     m.paint_face(snout & (ys > 40), croc_light, face="top")
     for x in (13, 20):
         m.box(x, 42, 1, x, 42, 2, croc, part=head)
         m.voxel(x, 42, 1, croc_dark, part=head)
     # Eyes.
-    for x0 in (10, 19):
+    for x0 in (9, 20):
         m.box(x0, 41, 9, x0 + 4, 45, 12, croc, part=head)
-        m.pixels(x0, 42, ["ddddd", "wwkhw", "wwkkw", "wwwww"], {"d": croc_dark, "w": WHITE, "k": BLACK, "h": WHITE}, z=8, part=head)
+        pupil = ["ddddd", "wwkkw", "wwkkw", "wwwww"] if x0 < cx else ["ddddd", "wkkww", "wkkww", "wwwww"]
+        m.pixels(x0, 42, pupil, {"d": croc_dark, "w": WHITE, "k": BLACK}, z=8, part=head)
     # Scutes along the back of the head.
     for z in (13, 16):
-        m.box(15, 44, z, 18, 44, z + 1, croc_dark, part=head)
-    m.paint(m.box_mask(10, 35, 0, 23, 35, 21) & (zs > 11), croc_dark)
+        m.box(15, 45, z, 18, 45, z + 1, croc_dark, part=head)
+    m.paint(m.box_mask(9, 35, 0, 24, 35, 21) & (zs > 11), croc_dark)
