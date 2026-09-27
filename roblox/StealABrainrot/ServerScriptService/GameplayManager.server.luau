@@ -881,7 +881,13 @@ local function buildCustomModel(model: Model, root: BasePart, template: Model, t
 			weld.Part1 = part
 			weld.C0 = offset
 			weld.Parent = part
-			if string.sub(part.Name, 1, 3) == "Leg" then
+			local pivot = part:GetAttribute("Pivot")
+			if typeof(pivot) == "Vector3" then
+				-- A block-built brainrot's moving piece turns about its joint
+				-- (see prepareImportedModels), in the root's space.
+				part:SetAttribute("Hip", pivot * scale)
+				part:SetAttribute("LegPhase", if part:GetAttribute("PiecePhase") == 1 then 1 else 0)
+			elseif string.sub(part.Name, 1, 3) == "Leg" then
 				-- The hip: the top middle of the leg, in the root's space.
 				local _, top = partsBounds({ part })
 				part:SetAttribute("Hip", Vector3.new(offset.X, top.Y - root.Position.Y, offset.Z))
@@ -901,9 +907,36 @@ end
 -- the Front and Top markers, whatever axes the importer used), with the
 -- parts named Body/Leg1/Leg2 and a Height attribute. A Model named after a
 -- brainrot's Id (made or imported by hand) works too.
-Tuning.IMPORTED_PIECES = { Body = true, Leg1 = true, Leg2 = true, Front = true, Top = true } :: { [string]: boolean }
+--
+-- Block-built brainrots (tools/blocky) are in the file as their body plus
+-- each moving piece, named by kind and number ("<Id>_Arm3": the brainrot's
+-- asset module has its Phase and Axis at Parts[3 + 1]), with an
+-- "<Id>_Pivot3" marker at the joint it turns about and an "<Id>_Built" marker.
+Tuning.MOVING_KINDS = { Leg = true, Arm = true, Wing = true, Tail = true, Head = true, Prop = true } :: { [string]: boolean }
 
 local function prepareImportedModels(): number
+	local function isMarker(piece: string): boolean
+		return piece == "Front" or piece == "Top" or piece == "Built" or string.match(piece, "^Pivot%d+$") ~= nil
+	end
+	local function isPiece(piece: string): boolean
+		if piece == "Body" or isMarker(piece) then
+			return true
+		end
+		local kind = string.match(piece, "^(%a+)%d+$")
+		return kind ~= nil and Tuning.MOVING_KINDS[kind] == true
+	end
+	-- A block-built brainrot's pieces as its asset module lists them.
+	local function assetParts(brainrotId: string): { any }?
+		local assets = ReplicatedStorage:FindFirstChild("Assets")
+		local folder = if assets then assets:FindFirstChild("Brainrots") else nil
+		local module = if folder then folder:FindFirstChild(brainrotId) else nil
+		if module == nil or not module:IsA("ModuleScript") then
+			return nil
+		end
+		local ok, data = pcall(require, module)
+		return if ok and typeof(data) == "table" and typeof(data.Parts) == "table" then data.Parts else nil
+	end
+
 	local containers: { Instance } = {}
 	local function consider(container: Instance?)
 		if container and container ~= map and not container:IsDescendantOf(map) and table.find(containers, container) == nil then
@@ -929,16 +962,20 @@ local function prepareImportedModels(): number
 		return 0
 	end
 
+	-- Each brainrot's pieces come from one import (they're placed apart), the
+	-- one with its Built marker if an older import is still around too.
 	local groups: { [string]: { [string]: BasePart } } = {}
+	local groupBuilt: { [string]: boolean } = {}
 	for _, container in containers do
+		local found: { [string]: { [string]: BasePart } } = {}
 		for _, descendant in container:GetDescendants() do
 			if not descendant:IsA("BasePart") then
 				continue
 			end
 			local brainrotId, piece = string.match(descendant.Name, "^(%w+)_(%a+%d*)")
-			if brainrotId and piece and BrainrotConfig.ById[brainrotId] and Tuning.IMPORTED_PIECES[piece] then
-				groups[brainrotId] = groups[brainrotId] or {}
-				groups[brainrotId][piece] = descendant
+			if brainrotId and piece and BrainrotConfig.ById[brainrotId] and isPiece(piece) then
+				found[brainrotId] = found[brainrotId] or {}
+				found[brainrotId][piece] = descendant
 			else
 				-- A hand-made model: a Model named after the brainrot.
 				local ancestor = descendant:FindFirstAncestorWhichIsA("Model")
@@ -946,13 +983,20 @@ local function prepareImportedModels(): number
 					ancestor = ancestor.Parent and ancestor.Parent:FindFirstAncestorWhichIsA("Model")
 				end
 				if ancestor and ancestor ~= container then
-					groups[ancestor.Name] = groups[ancestor.Name] or {}
+					found[ancestor.Name] = found[ancestor.Name] or {}
 					local key = descendant.Name
-					while groups[ancestor.Name][key] do
+					while found[ancestor.Name][key] do
 						key ..= "_"
 					end
-					groups[ancestor.Name][key] = descendant
+					found[ancestor.Name][key] = descendant
 				end
+			end
+		end
+		for brainrotId, pieces in found do
+			local builtMarker: BasePart? = pieces.Built
+			if groups[brainrotId] == nil or (builtMarker ~= nil and not groupBuilt[brainrotId]) then
+				groups[brainrotId] = pieces
+				groupBuilt[brainrotId] = if builtMarker then true else false
 			end
 		end
 	end
@@ -961,16 +1005,17 @@ local function prepareImportedModels(): number
 	folder.Name = "BrainrotModels"
 	local count = 0
 	for brainrotId, pieces in groups do
-		-- Block-built brainrots keep their own model (an old import of one is
-		-- from before it was rebuilt).
+		-- A block-built brainrot comes with a Built marker; an import of one
+		-- without it is from before it was rebuilt from blocks.
 		local definition = BrainrotConfig.ById[brainrotId]
-		if definition and definition.BlockBuilt then
+		local built: BasePart? = pieces.Built
+		if definition and definition.BlockBuilt and built == nil then
 			continue
 		end
 		local front, top = pieces.Front, pieces.Top
 		local parts: { BasePart } = {}
 		for piece, part in pieces do
-			if piece ~= "Front" and piece ~= "Top" then
+			if not isMarker(piece) then
 				table.insert(parts, part)
 			end
 		end
@@ -993,8 +1038,21 @@ local function prepareImportedModels(): number
 		end
 		low, high = partsBounds(parts)
 		local feet = Vector3.new((low.X + high.X) / 2, low.Y, (low.Z + high.Z) / 2)
+		-- Moving pieces of a block-built brainrot: their kind, joint, phase and axis.
+		local assetInfo = if built then assetParts(brainrotId) else nil
 		for piece, part in pieces do
-			if piece == "Front" or piece == "Top" then
+			local kind, number = string.match(piece, "^(%a+)(%d+)$")
+			local marker = if kind and number and Tuning.MOVING_KINDS[kind] then pieces["Pivot" .. number] else nil
+			if marker then
+				local info = if assetInfo then assetInfo[(tonumber(number) or 0) + 1] else nil
+				part:SetAttribute("PieceKind", kind)
+				part:SetAttribute("Pivot", frame:PointToObjectSpace(marker.Position) - feet)
+				part:SetAttribute("PiecePhase", if typeof(info) == "table" and info.Phase == 1 then 1 else 0)
+				part:SetAttribute("PieceAxis", if typeof(info) == "table" and typeof(info.Axis) == "string" then info.Axis else "Y")
+			end
+		end
+		for piece, part in pieces do
+			if isMarker(piece) then
 				continue
 			end
 			part.CFrame -= feet
@@ -1002,7 +1060,7 @@ local function prepareImportedModels(): number
 			part.CanCollide = false
 			part.CanQuery = false
 			part.CanTouch = false
-			if Tuning.IMPORTED_PIECES[piece] then
+			if isPiece(piece) then
 				part.Name = piece
 			end
 			part.Parent = template

@@ -571,22 +571,27 @@ local function attachImported(instance: Model)
 			if part == nil then
 				continue
 			end
+			-- Moving pieces carry their joint (Hip) and phase; block-built ones
+			-- also their kind (arm, wing, ...) and a prop's spin axis.
 			local hip = part:GetAttribute("Hip")
 			local phase = part:GetAttribute("LegPhase")
-			local isLeg = typeof(hip) == "Vector3" and typeof(phase) == "number"
-			if isLeg then
+			local kindAttribute = part:GetAttribute("PieceKind")
+			local axisAttribute = part:GetAttribute("PieceAxis")
+			local moving = typeof(hip) == "Vector3" and typeof(phase) == "number"
+			local kind = if not moving then "Body" elseif typeof(kindAttribute) == "string" then kindAttribute else "Leg"
+			if kind == "Leg" then
 				legs += 1
 			end
 			table.insert(pieces, {
 				Part = part,
 				Weld = descendant,
-				Kind = if isLeg then "Leg" else "Body",
+				Kind = kind,
 				Base = descendant.C0,
 				Hip = if typeof(hip) == "Vector3" then hip else Vector3.zero,
 				Direction = if phase == 1 then -1 else 1,
-				Axis = Vector3.yAxis,
+				Axis = if axisAttribute == "X" then Vector3.xAxis elseif axisAttribute == "Z" then Vector3.zAxis else Vector3.yAxis,
 			})
-			if part.Name == "Body" or (body == nil and not isLeg) then
+			if part.Name == "Body" or (body == nil and kind == "Body") then
 				body = part
 			end
 		end

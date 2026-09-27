@@ -4,9 +4,9 @@ A playable Roblox game: buy brainrots and lucky blocks from the conveyor, watch 
 
 On top of the original game: brainrots **level up** and wear **hats**, one can **guard** your base and one can follow you as a **pet**, **revenge** and **bounties**, **crews**, a 30-tier **season pass**, a **weekly limited brainrot**, **Boss Raids**, **Bank Heists** and a **radio**.
 
-103 brainrots: 37 made from 3D models, and 66 built from blocks (including a remade Noobini Pizzanini, the Roblox-guest **Guesti Guacanini**, more of the original Italian brainrots and 30 new Roblox-themed ones):
+110 brainrots: 37 made from 3D models, and 73 built from blocks (including a remade Noobini Pizzanini, the Roblox-guest **Guesti Guacanini**, more of the original Italian brainrots, 30 new Roblox-themed ones and the 7 XRE mobs: Nonna Mattarella, Baconini Croccantini, Ospitino Senzanome, Nubbino Lasagnino, Pizzolino Fantasmino, Espressino Motorino and Spaghettone Squalone):
 
-![The 66 block-built brainrots](BrainrotModels/Blocky/preview.png)
+![The 73 block-built brainrots](BrainrotModels/Blocky/preview.png)
 
 ![The 38 brainrot models](BrainrotModels/Import/preview.png)
 
@@ -20,17 +20,16 @@ Press **Play** (or **Test → Start** with 2 players to try stealing).
 
 ## Import the brainrot models (once, about a minute)
 
-The real 3D models (made with Higgsfield and Customuse) are in one file, `BrainrotModels/Import/BrainrotModels.glb`. Roblox only shows real meshes after they're uploaded to your account, and Studio does that for you when you import:
+Every brainrot's model is in one file, `BrainrotModels/Import/BrainrotModels.glb`: the 37 made with Higgsfield and Customuse and all 73 built from blocks (each block-built one split into its moving pieces, with markers at the joints). Roblox only shows real meshes after they're uploaded to your account, and Studio does that for you when you import:
 
-1. In Studio: **File → Import 3D** (or the Avatar tab → Import 3D) and pick `BrainrotModels.glb`.
-2. Press **Import**. A model with all 38 brainrots appears in the Workspace (you can move it into ReplicatedStorage, but you don't have to).
-3. **File → Save** so the place keeps it.
+1. If you imported an older version of the file, delete that model first (the game ignores old block-built ones like the old Noobini Pizzanini anyway).
+2. In Studio: **File → Import 3D** (or the Avatar tab → Import 3D) and pick `BrainrotModels.glb`.
+3. Press **Import**. A model with all 110 brainrots appears in the Workspace (you can move it into ReplicatedStorage, but you don't have to).
+4. **File → Save** so the place keeps it.
 
-That's it: the game finds the models by their part names (`TimCheese_Body`, `TimCheese_Leg1`, ...), stands each one up facing the right way, and uses them for every brainrot, with its own animation: legs that walk, flying, driving, spinning and hopping, bobbing when idle and wriggling when carried. They load like any Roblox mesh. Tip: right-click the imported model → **Save to File** to keep a `.rbxm` you can drop into any newer version of the place instead of importing again.
+That's it: the game finds the models by their part names (`TimCheese_Body`, `TimCheese_Leg1`, `NoobiniPizzanini_Arm3`, ...), stands each one up facing the right way, and uses them for every brainrot, with its own animation: legs that walk, arms that swing, wings that flap, tails that wag, heads that nod, propellers and wheels that spin, flying, driving and hopping, bobbing when idle and wriggling when carried. They load like any Roblox mesh. Tip: right-click the imported model → **Save to File** to keep a `.rbxm` you can drop into any newer version of the place instead of importing again.
 
-The 66 block-built brainrots (including Noobini Pizzanini, whose old model in that file is no longer used) don't need importing: they're made of blocks and every player's game builds them straight away.
-
-Until you import them, each player's game builds blocky versions of the models itself (slower, and it needs Game Settings → Security → **Allow Mesh / Image APIs** once published). The Output says which one the game is using.
+Until you import the file, each player's game builds blocky versions of the models itself (slower, and it needs Game Settings → Security → **Allow Mesh / Image APIs** once published). The Output says which one the game is using.
 
 ## How to play
 
@@ -137,7 +136,7 @@ A full day passes every 10 minutes (the night is shorter), and the street lamps 
 
 ### Rarities, mutations and spawn timers
 
-- **103 brainrots** in 7 rarities: Common, Rare, Epic, Legendary, Mythic, **Brainrot God** (rainbow name and glow) and **Secret** (black name with a white outline, dark smoke and white sparks) — from Noobini Pizzanini up to Chef Crabracadabra, Frigo Camelo, Tralalero Tralala, Espresso Signora, Orcalero Orcala, Girafa Celestre, Gattatino Neonino, Cocofanto Elefanto, **La Vaca Saturno Saturnita**, Los Tralaleritos, Graipuss Medussi, La Grande Combinasion, Strawberry Elephant, Dragon Cannelloni and the Secret **67**, plus Roblox-themed ones like Guesti Guacanini, Bloxy Colino, Robuxino Monetino, Oofosauro Rex, Banhammero Giustiziere and Galattico Guestone. Rarer brainrots glow in their rarity colour, sparkle and have a rising aura; Mythic and up pulse. The 5 weekly limited brainrots and Admino Supremo (season pass) are exclusive: they never spawn on the conveyor.
+- **110 brainrots** in 7 rarities: Common, Rare, Epic, Legendary, Mythic, **Brainrot God** (rainbow name and glow) and **Secret** (black name with a white outline, dark smoke and white sparks) — from Noobini Pizzanini up to Chef Crabracadabra, Frigo Camelo, Tralalero Tralala, Espresso Signora, Orcalero Orcala, Girafa Celestre, Gattatino Neonino, Cocofanto Elefanto, **La Vaca Saturno Saturnita**, Los Tralaleritos, Graipuss Medussi, La Grande Combinasion, Strawberry Elephant, Dragon Cannelloni and the Secret **67**, plus Roblox-themed ones like Guesti Guacanini, Bloxy Colino, Robuxino Monetino, Oofosauro Rex, Banhammero Giustiziere and Galattico Guestone, and the XRE mobs from Baconini Croccantini (Rare) up to Nonna Mattarella (Mythic), Espressino Motorino riding his scooter (Brainrot God) and the Secret Spaghettone Squalone. Rarer brainrots glow in their rarity colour, sparkle and have a rising aura; Mythic and up pulse. The 5 weekly limited brainrots and Admino Supremo (season pass) are exclusive: they never spawn on the conveyor.
 - **Mutations**, rolled when a brainrot spawns: **Gold** (6%, x1.5 income and price), **Diamond** (2.5%, x2) and **Rainbow** (0.6%, x5), plus the event and weather ones: **Bloodrot** (x3), **Galaxy** (x4), **Lava** (x3.5, on fire), **Frozen** (x2.5), **Taco** (x3), **Lucky** (x2.5), **Cash** (x3), **Storm** (x4), **Heist** (x3.5), **Boss** (x5, on fire) and **Admin** (x7, glitching). Mutated brainrots are recoloured, shine and sparkle in their colour, and neon blocks circle them (more for rarer mutations); Rainbow cycles through every colour. Mutations are saved with the brainrot.
 - **Traits**, rolled like mutations and stacking with them: **Fire** (3%, x2, burns), **Tiny** (3%, x1.5, small), **Giant** (2%, x3, big), **Glitched** (0.6%, x6, flickers and jumps about) and **Nyan** (0.3%, x8, a rainbow trail). A Fire Gold Tim Cheese earns 1.5 x 2 = 3x.
 - **Guaranteed spawns**: the sign over the spawn tunnel counts down to a guaranteed Legendary (every 4 minutes), Mythic (10 minutes), Brainrot God (20 minutes) and Secret (45 minutes).
@@ -170,7 +169,7 @@ The imported models are the originals, simplified to fit a Roblox MeshPart (9,00
 - **Customuse** (CR1 3D + Meshy texture from the same concept art) made the models whose details got lost the first time: Ratto Schiaffone (with his purple galaxy slap glove), Tung Tung Tung Sahur (with his bat), Tim Cheese, Lirili Larila, Bombardiro Crocodilo, Trippi Troppi, Tralalero Tralala and Brr Brr Patapim. The workflow is at https://customuse.com/workflow/02c37c8d-d0cb-430c-a948-816aad2d7f7c.
 - **Higgsfield** (SAM 3 3D) made the other 30, including La Vaca Saturno Saturnita, Cocofanto Elefanto, Frigo Camelo and Chef Crabracadabra.
 
-The other **66 brainrots are built from blocks** in code, like voxel art: each one is a design in `tools/blocky/` (boxes, spheres, cylinders, lines and painted faces on a grid about 40 blocks tall) with its moving pieces marked (legs, arms, wings, tails, heads and spinning props, each with its pivot). `tools/build_blocky.py` turns them into the same packed format as the other models, so they walk and animate the same way, and saves a `.glb` of each in `BrainrotModels/Blocky/`. The hats are built from blocks too (`ReplicatedStorage/Shared/HatModels.luau`).
+The other **73 brainrots are built from blocks** in code, like voxel art: each one is a design in `tools/blocky/` (boxes, spheres, cylinders, lines and painted faces on a grid about 40 blocks tall) with its moving pieces marked (legs, arms, wings, tails, heads and spinning props, each with its pivot). `tools/build_blocky.py` turns them into the same packed format as the other models, so they walk and animate the same way, and saves a `.glb` of each in `BrainrotModels/Blocky/`; `tools/build_import.py` also puts them in the file to import, piece by piece with a marker at each joint, so imported ones animate just the same. The hats are built from blocks too (`ReplicatedStorage/Shared/HatModels.luau`).
 
 The side buttons (Index, Rebirth, Shop, Spin, Quests, Gifts, Trade, Upgrade, Settings), the shop cards (including the four troll items) and the boost timers use icons made with Higgsfield too (`UIIcons/`, `ProductIcons/`).
 

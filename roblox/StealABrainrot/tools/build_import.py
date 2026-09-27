@@ -21,6 +21,13 @@ ground and facing Roblox's front. Every part is named "<Id>_<Piece>":
 
 The game uses the two markers to stand each model up facing the right way
 (whatever axes the importer uses) and then deletes them.
+
+The block-built brainrots (tools/blocky) are in the file too, so they load as
+real meshes like the others. Each is its body plus every moving piece, named
+after the piece's kind and its number in the brainrot's asset module
+(<Id>_Leg1, <Id>_Arm3, <Id>_Wing4, <Id>_Prop5, ...), with a tiny <Id>_Pivot<n>
+marker at the joint each one turns about and an <Id>_Built marker. They are
+coloured by a small palette texture.
 """
 
 import sys
@@ -40,6 +47,86 @@ TEXTURE_SIZE = 1024
 HEIGHT = 5.0  # studs; the game rescales every model anyway
 SPACING = 10.0
 MARKER = 0.25
+
+
+PALETTE_CELL = 16  # texture pixels per palette colour
+
+
+def blocky_ids():
+    """Block-built brainrots (tools/blocky designs) in BrainrotConfig."""
+    text = (B.ROOT / "ReplicatedStorage" / "Shared" / "BrainrotConfig.luau").read_text()
+    import re
+
+    return re.findall(r'\bblocky\("([A-Za-z0-9]+)"', text)
+
+
+def palette_texture(palette):
+    """A texture with one flat square per palette colour, and the (u, v) of
+    each colour's centre."""
+    count = len(palette)
+    cols = max(1, int(np.ceil(np.sqrt(count))))
+    rows = max(1, int(np.ceil(count / cols)))
+    image = Image.new("RGB", (cols * PALETTE_CELL, rows * PALETTE_CELL))
+    uvs = []
+    for index, colour in enumerate(palette):
+        cx, cy = index % cols, index // cols
+        image.paste(tuple(int(c) for c in colour), (cx * PALETTE_CELL, cy * PALETTE_CELL, (cx + 1) * PALETTE_CELL, (cy + 1) * PALETTE_CELL))
+        # trimesh's v runs up from the bottom of the image.
+        uvs.append(((cx + 0.5) / cols, 1 - (cy + 0.5) / rows))
+    return image, uvs
+
+
+def blocky_piece_mesh(quads, dims, pitch, colour_uvs, material):
+    """One piece of a block-built brainrot: its block faces, standing on y = 0
+    and centred like the rest of the model."""
+    import build_assets as assets
+
+    vertices, faces, uvs = [], [], []
+    for quad in quads:
+        base = len(vertices)
+        vertices.extend(assets.quad_corners(quad))
+        faces.extend([(base, base + 1, base + 2), (base, base + 2, base + 3)])
+        uvs.extend([colour_uvs[quad[7]]] * 4)
+    positions = (np.array(vertices, dtype=np.float64) - np.array([dims[0] / 2, 0, dims[2] / 2])) * pitch
+    return trimesh.Trimesh(
+        vertices=positions,
+        faces=np.array(faces),
+        visual=trimesh.visual.TextureVisuals(uv=np.array(uvs), material=material),
+        process=False,
+    )
+
+
+def add_blocky(scene, brainrot_id, number):
+    """Adds a block-built brainrot's pieces and markers. Returns a summary."""
+    from build_blocky import model_parts
+
+    dims, palette, parts, _ = model_parts(brainrot_id)
+    pitch = HEIGHT / dims[1]
+    image, colour_uvs = palette_texture(palette)
+    material = trimesh.visual.material.PBRMaterial(
+        name=f"{brainrot_id}_Skin", baseColorTexture=image, metallicFactor=0.0, roughnessFactor=0.9
+    )
+    offset = trimesh.transformations.translation_matrix([number * SPACING, 0, 0])
+    front_z = 0.0
+    names = []
+    for index, part in enumerate(parts):
+        name = "Body" if index == 0 else f"{part['kind']}{index}"
+        mesh = blocky_piece_mesh(part["quads"], dims, pitch, colour_uvs, material)
+        front_z = min(front_z, mesh.vertices[:, 2].min())
+        scene.add_geometry(mesh, node_name=f"{brainrot_id}_{name}", geom_name=f"{brainrot_id}_{name}", transform=offset)
+        names.append(name)
+        if index > 0:
+            pivot = (np.array(part["pivot"], dtype=np.float64) - np.array([dims[0] / 2, 0, dims[2] / 2])) * pitch
+            at = trimesh.transformations.translation_matrix([number * SPACING + pivot[0], pivot[1], pivot[2]])
+            scene.add_geometry(marker([255, 200, 40]), node_name=f"{brainrot_id}_Pivot{index}", geom_name=f"{brainrot_id}_Pivot{index}", transform=at)
+    front = trimesh.transformations.translation_matrix([number * SPACING, HEIGHT / 2, front_z - 0.6])
+    top = trimesh.transformations.translation_matrix([number * SPACING, HEIGHT + 0.6, 0])
+    built = trimesh.transformations.translation_matrix([number * SPACING, -0.6, 0])
+    scene.add_geometry(marker([255, 40, 40]), node_name=f"{brainrot_id}_Front", geom_name=f"{brainrot_id}_Front", transform=front)
+    scene.add_geometry(marker([40, 80, 255]), node_name=f"{brainrot_id}_Top", geom_name=f"{brainrot_id}_Top", transform=top)
+    scene.add_geometry(marker([40, 200, 80]), node_name=f"{brainrot_id}_Built", geom_name=f"{brainrot_id}_Built", transform=built)
+    triangles = sum(2 * len(p["quads"]) for p in parts)
+    return f"{brainrot_id:24s} {triangles:6d} triangles  pieces: {', '.join(names)}"
 
 
 def brainrot_ids():
@@ -138,7 +225,8 @@ def jpeg_textures(path):
     for index, view in enumerate(gltf.bufferViews):
         data = blob[view.byteOffset or 0 : (view.byteOffset or 0) + view.byteLength]
         image = image_views.get(index)
-        if image is not None:
+        # (Small palette textures stay PNG: exact colours, and tiny anyway.)
+        if image is not None and Image.open(io.BytesIO(data)).size[0] >= 256:
             out = io.BytesIO()
             Image.open(io.BytesIO(data)).convert("RGB").save(out, "JPEG", quality=90)
             data = out.getvalue()
@@ -179,6 +267,11 @@ def main():
         scene.add_geometry(marker([255, 40, 40]), node_name=f"{brainrot_id}_Front", geom_name=f"{brainrot_id}_Front", transform=front)
         scene.add_geometry(marker([40, 80, 255]), node_name=f"{brainrot_id}_Top", geom_name=f"{brainrot_id}_Top", transform=top)
         print(f"{brainrot_id:24s} {len(faces):6d} triangles  pieces: {', '.join(f'{k} {len(v)}' for k, v in pieces.items())}", flush=True)
+    first = len(ids)
+    for number, brainrot_id in enumerate(blocky_ids(), start=first):
+        if wanted and brainrot_id not in wanted:
+            continue
+        print(add_blocky(scene, brainrot_id, number), flush=True)
     OUTPUT.write_bytes(scene.export(file_type="glb"))
     jpeg_textures(OUTPUT)
     print(f"Wrote {OUTPUT} ({OUTPUT.stat().st_size / 1e6:.1f} MB)")
