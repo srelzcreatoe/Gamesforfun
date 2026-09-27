@@ -245,8 +245,9 @@ FeatureConfig.PremiumDailySpins = 1
 FeatureConfig.VipBoost = 0.15
 FeatureConfig.VipDailySpins = 1
 -- Your Roblox group: members earn more and can open the Group Chest once.
--- 0 turns the group perks off; put your group's ID here.
-FeatureConfig.GroupId = 0
+-- 0 turns the group perks off. This is the SNATCH THE BRAINROT community:
+-- https://www.roblox.com/communities/737518183/SNATCH-THE-BRAINROT
+FeatureConfig.GroupId = 737518183
 FeatureConfig.GroupBoost = 0.1
 FeatureConfig.GroupChest = block("MythicLuckyBlock")
 

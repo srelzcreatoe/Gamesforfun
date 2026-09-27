@@ -191,7 +191,7 @@ An unpublished place can't use DataStores or sell products, so in Studio you get
 1. Publish the place (File → Publish to Roblox).
 2. Turn on Game Settings → Security → **Enable Studio Access to API Services**.
 3. Set up your Robux products (below).
-4. Optional: create badges (Welcome, First Steal, First Rebirth, Rebirth 5, Lucky Opener, First Fuse, First Trade, Secret Owner, Millionaire, Index Master, Week Streak) and put their IDs in `FeatureConfig.Badges`, and put your group's ID in `FeatureConfig.GroupId` for the group boost and Group Chest.
+4. Optional: create badges (Welcome, First Steal, First Rebirth, Rebirth 5, Lucky Opener, First Fuse, First Trade, Secret Owner, Millionaire, Index Master, Week Streak) and put their IDs in `FeatureConfig.Badges`. The group boost and Group Chest already use the [SNATCH THE BRAINROT community](https://www.roblox.com/communities/737518183/SNATCH-THE-BRAINROT) (`FeatureConfig.GroupId = 737518183`).
 
 ### Setting up Robux products
 
