@@ -21,6 +21,7 @@ Inputs (paths relative to the StealABrainrot folder):
   BrainrotModels/<Id>.glb         smooth models, used when there is no raw one
   ProductIcons/<Key>.png          developer product icons
   PassIcons/<Key>.png             game pass pictures (packed with the product icons)
+  GearIcons/<GearId>.png          Gear Shop pictures (packed with the product icons)
   UIIcons/<Name>.png              HUD button icons
 
 Outputs:
@@ -55,9 +56,14 @@ MODELS_DIR = ROOT / "BrainrotModels"
 SOURCE_DIR = MODELS_DIR / "source"
 BLOCKY_DIR = MODELS_DIR / "Blocky"
 ASSETS_DIR = ROOT / "ReplicatedStorage" / "Assets"
-# (packed folder, source folder): the shop finds a pass's picture by its key
-# among the product icons.
-ICON_FOLDERS = [("ProductIcons", ROOT / "ProductIcons"), ("ProductIcons", ROOT / "PassIcons"), ("UIIcons", ROOT / "UIIcons")]
+# (packed folder, source folder): the shops find a pass's or a gear's picture by
+# its key among the product icons.
+ICON_FOLDERS = [
+    ("ProductIcons", ROOT / "ProductIcons"),
+    ("ProductIcons", ROOT / "PassIcons"),
+    ("ProductIcons", ROOT / "GearIcons"),
+    ("UIIcons", ROOT / "UIIcons"),
+]
 
 TARGET_TRIANGLES = 6000
 GLB_TEXTURE_SIZE = 512

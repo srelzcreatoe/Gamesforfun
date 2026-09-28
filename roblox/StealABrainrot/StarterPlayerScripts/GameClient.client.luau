@@ -319,32 +319,116 @@ local toggleModal = UIKit.toggleModal
 local GARDEN = UIKit.Garden
 local shopFrame, shopBody = modal("Shop", "Robux Shop", GARDEN.Green, Vector2.new(820, 620))
 UIKit.gardenStyle(shopFrame)
-local shopList = create("ScrollingFrame", {
-	Name = "Products",
-	Size = UDim2.fromScale(1, 1),
-	BackgroundColor3 = GARDEN.WoodDark,
-	BorderSizePixel = 0,
-	ScrollBarThickness = if UserInputService.TouchEnabled then 14 else 10,
-	ScrollBarImageColor3 = Color3.fromRGB(235, 195, 125),
-	CanvasSize = UDim2.new(),
-	AutomaticCanvasSize = Enum.AutomaticSize.Y,
-	ScrollingDirection = Enum.ScrollingDirection.Y,
-	SelectionGroup = true,
-}, {
-	corner(10),
-	stroke(GARDEN.WoodEdge, 3),
-	create("UIPadding", {
-		PaddingLeft = UDim.new(0, 10),
-		PaddingRight = UDim.new(0, 20),
-		PaddingTop = UDim.new(0, 10),
-		PaddingBottom = UDim.new(0, 12),
-	}),
-	create("UIListLayout", {
-		Padding = UDim.new(0, 12),
+-- A scrolling list of dark wood, for the shops' cards, bands and tiles.
+local function woodList(name: string): ScrollingFrame
+	return create("ScrollingFrame", {
+		Name = name,
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = GARDEN.WoodDark,
+		BorderSizePixel = 0,
+		ScrollBarThickness = if UserInputService.TouchEnabled then 14 else 10,
+		ScrollBarImageColor3 = Color3.fromRGB(235, 195, 125),
+		CanvasSize = UDim2.new(),
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		SelectionGroup = true,
+	}, {
+		corner(10),
+		stroke(GARDEN.WoodEdge, 3),
+		create("UIPadding", {
+			PaddingLeft = UDim.new(0, 10),
+			PaddingRight = UDim.new(0, 20),
+			PaddingTop = UDim.new(0, 10),
+			PaddingBottom = UDim.new(0, 12),
+		}),
+		create("UIListLayout", {
+			Padding = UDim.new(0, 12),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		}),
+	}) :: ScrollingFrame
+end
+
+-- A coloured band across a list with a section's title and a note.
+local function sectionBand(name: string, title: string, note: string, colour: Color3, order: number): Frame
+	local band = create("Frame", {
+		Name = name,
+		LayoutOrder = order,
+		Size = UDim2.new(1, 0, 0, 52),
+		BackgroundColor3 = colour,
+	}, {
+		corner(10),
+		stroke(colour:Lerp(Color3.new(0, 0, 0), 0.55), 3),
+		gloss(),
+	}) :: Frame
+	UIKit.addStuds(band, 26, 0.6)
+	label({
+		Name = "Title",
+		Position = UDim2.fromOffset(16, 4),
+		Size = UDim2.new(0.6, 0, 1, -8),
+		Text = title,
+		TextSize = 36,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		OutlineThickness = 3,
+	}).Parent = band
+	label({
+		Name = "Note",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -16, 0, 10),
+		Size = UDim2.new(0.36, 0, 1, -20),
+		Text = note,
+		TextColor3 = Color3.fromRGB(255, 240, 150),
+		TextSize = 24,
+		TextXAlignment = Enum.TextXAlignment.Right,
+	}).Parent = band
+	return band
+end
+
+-- A grid of tiles, and a function laying it out for a list `width` wide: up
+-- to 4 columns of tiles at least `minWidth` (166) wide, so fewer, bigger ones
+-- on a phone, and no taller than `maxHeight` if given (so a whole tile shows).
+-- A `balanced` grid uses as few columns as fit its tiles in the same number of
+-- rows (2 by 2, not 3 and 1).
+local function tileGrid(
+	name: string,
+	order: number,
+	minWidth: number?,
+	balanced: boolean?
+): (Frame, (width: number, maxHeight: number?) -> ())
+	local layout = create("UIGridLayout", {
+		CellPadding = UDim2.fromOffset(10, 10),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 		HorizontalAlignment = Enum.HorizontalAlignment.Center,
-	}),
-}) :: ScrollingFrame
+	}) :: UIGridLayout
+	local grid = create("Frame", {
+		Name = name,
+		LayoutOrder = order,
+		BackgroundTransparency = 1,
+	}) :: Frame
+	layout.Parent = grid
+	return grid, function(width: number, maxHeight: number?)
+		local count = 0
+		for _, child in grid:GetChildren() do
+			if child:IsA("GuiObject") then
+				count += 1
+			end
+		end
+		local columns = math.clamp(math.floor((width + 10) / ((minWidth or 166) + 10)), 2, 4)
+		local rows = math.ceil(count / columns)
+		while balanced and columns > 2 and math.ceil(count / (columns - 1)) == rows do
+			columns -= 1
+		end
+		local cellWidth = math.floor((width - (columns - 1) * 10) / columns)
+		if maxHeight then
+			cellWidth = math.min(cellWidth, math.floor(maxHeight / 1.58))
+		end
+		local cellHeight = math.floor(cellWidth * 1.58)
+		layout.CellSize = UDim2.fromOffset(cellWidth, cellHeight)
+		grid.Size = UDim2.new(1, 0, 0, rows * cellHeight + math.max(0, rows - 1) * 10)
+	end
+end
+
+local shopList = woodList("Products")
 shopList.Parent = shopBody
 
 -- Only trust product details that belong to this experience's creator, so a
@@ -869,64 +953,16 @@ local function productTile(product: MonetizationConfig.ShopProduct, order: numbe
 end
 local sectionOrder = 10
 for _, section in SHOP_SECTIONS do
-	local band = create("Frame", {
-		Name = section.Key .. "Band",
-		LayoutOrder = sectionOrder,
-		Size = UDim2.new(1, 0, 0, 52),
-		BackgroundColor3 = section.Color,
-	}, {
-		corner(10),
-		stroke(section.Color:Lerp(Color3.new(0, 0, 0), 0.55), 3),
-		gloss(),
-	}) :: Frame
-	UIKit.addStuds(band, 26, 0.6)
-	label({
-		Name = "Title",
-		Position = UDim2.fromOffset(16, 4),
-		Size = UDim2.new(0.6, 0, 1, -8),
-		Text = section.Title,
-		TextSize = 36,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		OutlineThickness = 3,
-	}).Parent = band
-	label({
-		Name = "Note",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -16, 0, 10),
-		Size = UDim2.new(0.36, 0, 1, -20),
-		Text = section.Note,
-		TextColor3 = Color3.fromRGB(255, 240, 150),
-		TextSize = 24,
-		TextXAlignment = Enum.TextXAlignment.Right,
-	}).Parent = band
-	band.Parent = shopList
-	local layout = create("UIGridLayout", {
-		CellPadding = UDim2.fromOffset(10, 10),
-		SortOrder = Enum.SortOrder.LayoutOrder,
-	}) :: UIGridLayout
-	local grid = create("Frame", {
-		Name = section.Key,
-		LayoutOrder = sectionOrder + 1,
-		BackgroundTransparency = 1,
-	}) :: Frame
-	layout.Parent = grid
-	local count = 0
+	sectionBand(section.Key .. "Band", section.Title, section.Note, section.Color, sectionOrder).Parent = shopList
+	local grid, relayout = tileGrid(section.Key, sectionOrder + 1)
 	for index, product in MonetizationConfig.ShopProducts do
 		if product.Section == section.Key then
 			productTile(product, index).Parent = grid
-			count += 1
 		end
 	end
 	grid.Parent = shopList
 	sectionOrder += 2
-	table.insert(shopLayouts, function(width: number)
-		local columns = math.clamp(math.floor((width + 10) / 176), 2, 4)
-		local cellWidth = math.floor((width - (columns - 1) * 10) / columns)
-		local cellHeight = math.floor(cellWidth * 1.58)
-		layout.CellSize = UDim2.fromOffset(cellWidth, cellHeight)
-		local rows = math.ceil(count / columns)
-		grid.Size = UDim2.new(1, 0, 0, rows * cellHeight + math.max(0, rows - 1) * 10)
-	end)
+	table.insert(shopLayouts, relayout)
 end
 
 -- The window takes the room the screen has (at least 0.8 size on a phone).
@@ -1435,16 +1471,34 @@ playSoundEvent.OnClientEvent:Connect(function(sound: any)
 end)
 
 --------------------------------------------------------------------------------
--- Gear Shop (opened from the Gear Shop stall)
+-- Gear Shop (opened from the Gear Shop stall), dressed like the Robux shop: a
+-- wooden window with a studded green title bar showing your Cash, and a tile
+-- per gear with its picture and a green Cash price button (its price goes red
+-- when you can't afford it yet). All 4 fit in a row, even on a phone.
 --------------------------------------------------------------------------------
 
-local gearFrame, gearBody = modal("GearShop", "GEAR SHOP", COLORS.Gear, Vector2.new(660, 500))
-create("UIListLayout", {
-	Padding = UDim.new(0, 10),
-	SortOrder = Enum.SortOrder.LayoutOrder,
-}).Parent = gearBody
+local gearFrame, gearBody = modal("GearShop", "Gear Shop", GARDEN.Green, Vector2.new(800, 400))
+UIKit.gardenStyle(gearFrame)
+local gearCash = label({
+	Name = "Cash",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -66, 0, 13),
+	Size = UDim2.new(0.4, -40, 0, 36),
+	BackgroundTransparency = 0.35,
+	BackgroundColor3 = Color3.fromRGB(30, 60, 20),
+	Text = "",
+	TextColor3 = Color3.fromRGB(255, 240, 150),
+	TextSize = 26,
+})
+corner(10).Parent = gearCash
+create("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10) }).Parent = gearCash
+gearCash.Parent = gearFrame
+local gearList = woodList("Items")
+gearList.Parent = gearBody
+local gearGrid, relayoutGear = tileGrid("Gear", 1, 140, true)
+gearGrid.Parent = gearList
 
-type GearCard = { Button: TextButton, Gear: GearConfig.Gear }
+type GearCard = { Button: TextButton, SetPrice: (string, boolean) -> (), Gear: GearConfig.Gear }
 local gearCards: { GearCard } = {}
 local gearPending = false
 
@@ -1457,94 +1511,125 @@ local function ownsGear(gearId: string): boolean
 end
 
 local function refreshGearShop()
+	local stats = player:FindFirstChild("leaderstats")
+	local cashStat = stats and stats:FindFirstChild("Cash")
+	local cash = if cashStat and cashStat:IsA("IntValue") then cashStat.Value else 0
+	gearCash.Text = "You have " .. NumberFormat.cash(cash)
 	for _, card in gearCards do
 		local owned = ownsGear(card.Gear.Id)
-		card.Button.Text = if owned
-			then "OWNED"
-			elseif card.Gear.Price <= 0 then "FREE"
-			else NumberFormat.cash(card.Gear.Price)
-		card.Button.BackgroundColor3 = if owned then COLORS.Disabled else COLORS.Buy
+		card.SetPrice(if owned then "OWNED" elseif card.Gear.Price <= 0 then "FREE" else NumberFormat.cash(card.Gear.Price), false)
+		UIKit.setEnabled(card.Button, not owned, GARDEN.Buy)
+		local price = card.Button:FindFirstChild("Price", true)
+		if price and price:IsA("TextLabel") then
+			price.TextColor3 = if not owned and cash < card.Gear.Price then Color3.fromRGB(255, 120, 110) else Color3.new(1, 1, 1)
+		end
 	end
 end
 
-for _, gear in GearConfig.Gear do
-	local card = create("Frame", {
-		Name = gear.Id,
-		Size = UDim2.new(1, 0, 0.25, -8),
-		BackgroundColor3 = COLORS.PanelLight,
-		LayoutOrder = gear.Order,
-	}, { corner(14), stroke(gear.Color, 2) }) :: Frame
+local function buyGear(gear: GearConfig.Gear)
+	if gearPending or ownsGear(gear.Id) then
+		return
+	end
+	gearPending = true
+	local ok, success, message = pcall(function()
+		local remote = remotes:WaitForChild("BuyGear", 10)
+		if remote == nil or not remote:IsA("RemoteFunction") then
+			return false, "The Gear Shop is closed right now."
+		end
+		return remote:InvokeServer(gear.Id)
+	end)
+	gearPending = false
+	local bought = ok and success == true
+	showToast(if ok and typeof(message) == "string" then message else "Couldn't buy that, try again.", if bought then "Success" else "Error")
+	Sounds.play(if bought then "Purchase" else "Error")
+	refreshGearShop()
+end
 
+for _, gear in GearConfig.Gear do
 	local tile = create("Frame", {
+		Name = gear.Id,
+		LayoutOrder = gear.Order,
+		BackgroundColor3 = GARDEN.Tile,
+	}, { corner(12), stroke(GARDEN.WoodEdge, 3) }) :: Frame
+	local iconFrame = create("Frame", {
 		Name = "Icon",
-		Position = UDim2.fromOffset(8, 8),
-		Size = UDim2.new(0.14, 0, 1, -16),
-		BackgroundColor3 = gear.Color,
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0, 8),
+		Size = UDim2.new(1, -16, 0.5, 0),
+		BackgroundColor3 = gear.Color:Lerp(Color3.new(0, 0, 0), 0.35),
 	}, {
-		corner(12),
-		gloss(),
+		corner(10),
+		stroke(GARDEN.WoodEdge, 2),
 		create("UIAspectRatioConstraint", { AspectRatio = 1 }),
 	}) :: Frame
-	label({
+	local picture = create("ImageLabel", {
+		Name = "Image",
 		Size = UDim2.fromScale(1, 1),
-		Text = string.sub(gear.DisplayName, 1, 1),
-		TextSize = 40,
-		OutlineThickness = 3,
-	}).Parent = tile
-	tile.Parent = card
-
+		BackgroundTransparency = 1,
+		Visible = false,
+	}, { corner(10) }) :: ImageLabel
+	picture.Parent = iconFrame
+	if not setImage(picture, AssetLoader.getProductIcon(gear.Id)) then
+		label({
+			Name = "IconText",
+			Size = UDim2.fromScale(1, 1),
+			Text = string.sub(gear.DisplayName, 1, 1),
+			TextSize = 48,
+			OutlineThickness = 3,
+		}).Parent = iconFrame
+	end
+	iconFrame.Parent = tile
 	label({
 		Name = "GearName",
-		Position = UDim2.new(0.17, 0, 0, 6),
-		Size = UDim2.new(0.55, 0, 0.42, 0),
+		Position = UDim2.new(0, 6, 0.545, 0),
+		Size = UDim2.new(1, -12, 0.1, 0),
 		Text = gear.DisplayName,
-		TextSize = 26,
-		TextXAlignment = Enum.TextXAlignment.Left,
-	}).Parent = card
+		TextSize = 24,
+	}).Parent = tile
 	label({
 		Name = "Description",
-		Position = UDim2.new(0.17, 0, 0.46, 0),
-		Size = UDim2.new(0.55, 0, 0.48, 0),
+		Position = UDim2.new(0, 6, 0.65, 0),
+		Size = UDim2.new(1, -12, 0.17, 0),
 		Text = gear.Description,
-		TextColor3 = COLORS.Muted,
-		TextSize = 16,
+		TextColor3 = Color3.fromRGB(255, 236, 200),
+		TextSize = 17,
 		TextWrapped = true,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextYAlignment = Enum.TextYAlignment.Top,
 		OutlineThickness = 1,
-	}).Parent = card
-
-	local buyButton = button("", COLORS.Buy, {
+	}).Parent = tile
+	local buyButton, setPrice = UIKit.robuxButton({
 		Name = "BuyButton",
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -10, 0.5, 0),
-		Size = UDim2.new(0.24, 0, 0.6, 0),
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, -8),
+		Size = UDim2.new(1, -16, 0.14, 0),
 	})
-	buyButton.Parent = card
+	buyButton.Parent = tile
 	buyButton.Activated:Connect(function()
-		if gearPending or ownsGear(gear.Id) then
+		buyGear(gear)
+	end)
+	tile.Parent = gearGrid
+	table.insert(gearCards, { Button = buyButton, SetPrice = setPrice, Gear = gear })
+end
+-- Like the Robux shop, the window takes the room the screen has; a
+-- controller starts on the first gear you don't have yet.
+UIKit.fillScreen(gearFrame, Vector2.new(800, 400), Vector2.new(440, 330), 0.8, function(size: Vector2)
+	-- The list's inside: the window's body less the list's padding.
+	relayoutGear(size.X - 32 - 30, size.Y - 90 - 22)
+end)
+local function selectFirstGear()
+	for _, card in gearCards do
+		if not ownsGear(card.Gear.Id) then
+			UIKit.setDefaultSelection(gearFrame, card.Button)
 			return
 		end
-		gearPending = true
-		local ok, success, message = pcall(function()
-			local buyGear = remotes:WaitForChild("BuyGear", 10)
-			if buyGear == nil or not buyGear:IsA("RemoteFunction") then
-				return false, "The Gear Shop is closed right now."
-			end
-			return buyGear:InvokeServer(gear.Id)
-		end)
-		gearPending = false
-		local bought = ok and success == true
-		showToast(if ok and typeof(message) == "string" then message else "Couldn't buy that, try again.", if bought then "Success" else "Error")
-		Sounds.play(if bought then "Purchase" else "Error")
-		refreshGearShop()
-	end)
-
-	card.Parent = gearBody
-	table.insert(gearCards, { Button = buyButton, Gear = gear })
+	end
+	UIKit.setDefaultSelection(gearFrame, gearCards[1].Button)
 end
+selectFirstGear()
 refreshGearShop()
-player:GetAttributeChangedSignal("OwnedGear"):Connect(refreshGearShop)
+player:GetAttributeChangedSignal("OwnedGear"):Connect(function()
+	refreshGearShop()
+	selectFirstGear()
+end)
 
 --------------------------------------------------------------------------------
 -- Live values
@@ -1630,6 +1715,9 @@ local function refreshCash()
 	cashLabel.Text = NumberFormat.cash(cash)
 	if rebirthFrame.Visible then
 		refreshRebirthScreen()
+	end
+	if gearFrame.Visible then
+		refreshGearShop()
 	end
 end
 
