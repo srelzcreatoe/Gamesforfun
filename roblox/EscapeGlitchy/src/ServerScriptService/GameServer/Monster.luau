@@ -13,6 +13,7 @@ local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
 
 local Config = require(game:GetService("ReplicatedStorage"):WaitForChild("Config"))
+local MapBuilder = require(script.Parent.MapBuilder)
 local Skins = require(script.Parent.Skins)
 
 local Monster = {}
@@ -128,7 +129,11 @@ end
 
 -- Returns the bot's model, and whether it came from ServerStorage.MonsterModel
 -- (a custom model keeps its own look and animations).
-local function buildBotModel(look: Skins.MonsterLook): (Model, boolean)
+-- Generated rigs are kept here per skin, so only the first round has to wait
+-- for Roblox to build one.
+local rigCache: { [string]: Model } = {}
+
+local function buildBotModel(look: Skins.MonsterLook, skinId: string): (Model, boolean)
 	local template = ServerStorage:FindFirstChild("MonsterModel")
 	if template then
 		local model = template:Clone()
@@ -137,6 +142,11 @@ local function buildBotModel(look: Skins.MonsterLook): (Model, boolean)
 		end
 		warn(`[{Config.GameName}] ServerStorage.MonsterModel needs a Humanoid and a HumanoidRootPart; using the default monster.`)
 		model:Destroy()
+	end
+
+	local cached = rigCache[skinId]
+	if cached then
+		return cached:Clone(), false
 	end
 
 	local description = Instance.new("HumanoidDescription")
@@ -150,6 +160,7 @@ local function buildBotModel(look: Skins.MonsterLook): (Model, boolean)
 		return Players:CreateHumanoidModelFromDescription(description, Enum.HumanoidRigType.R15)
 	end)
 	if ok and result then
+		rigCache[skinId] = result:Clone()
 		return result, false
 	end
 	warn(`[{Config.GameName}] Could not build the R15 monster ({result}); using a block monster.`)
@@ -204,6 +215,13 @@ local function hasLineOfSight(from: Vector3, to: Vector3, params: RaycastParams)
 	return workspace:Raycast(from, to - from, params) == nil
 end
 
+-- Close enough to catch: within CatchDistance sideways, and not too far above
+-- or below, so standing on furniture does not make a survivor untouchable.
+local function inCatchRange(from: Vector3, to: Vector3): boolean
+	local offset = to - from
+	return Vector2.new(offset.X, offset.Z).Magnitude <= Config.CatchDistance and math.abs(offset.Y) <= Config.CatchHeight
+end
+
 -- Places the bot wanders to.
 local function getWanderPoints(map: Model): { Vector3 }
 	local points = {}
@@ -225,7 +243,7 @@ end
 
 local function runBot(s: State, model: Model, humanoid: Humanoid, root: BasePart)
 	local path = PathfindingService:CreatePath({
-		AgentRadius = 2,
+		AgentRadius = 1.5,
 		AgentHeight = 5,
 		AgentCanJump = true,
 		WaypointSpacing = 4,
@@ -304,7 +322,7 @@ local function runBot(s: State, model: Model, humanoid: Humanoid, root: BasePart
 		for _, target in targets do
 			local distance = (target.root.Position - root.Position).Magnitude
 			local visible = distance <= Config.SightRange and hasLineOfSight(eyes, target.root.Position, rayParams)
-			if distance <= Config.CatchDistance and visible then
+			if visible and inCatchRange(root.Position, target.root.Position) then
 				s.onCatch(target.player)
 				caught = true
 				break
@@ -387,8 +405,10 @@ local function runPlayerCatcher(s: State, player: Player)
 		end
 		rayParams.FilterDescendantsInstances = exclude
 		for _, target in targets do
-			local distance = (target.root.Position - root.Position).Magnitude
-			if distance <= Config.CatchDistance and hasLineOfSight(root.Position, target.root.Position, rayParams) then
+			if
+				inCatchRange(root.Position, target.root.Position)
+				and hasLineOfSight(root.Position, target.root.Position, rayParams)
+			then
 				s.onCatch(target.player)
 				nextCatch = os.clock() + 1
 				break
@@ -448,7 +468,7 @@ function Monster.Start(options: {
 			humanoid.WalkSpeed = Config.MonsterPlayerSpeed
 			if s.released then
 				task.wait() -- let the character finish spawning before moving it
-				character:PivotTo(monsterSpawnCFrame(s.map))
+				MapBuilder.Teleport(player, character, monsterSpawnCFrame(s.map))
 			end
 			-- Wait for their avatar's clothes to load so they can be replaced.
 			if Skins.WaitForAppearance(player, character) and state == s then
@@ -461,7 +481,7 @@ function Monster.Start(options: {
 		table.insert(s.connections, player.CharacterAdded:Connect(setUpCharacter))
 		task.spawn(runPlayerCatcher, s, player)
 	else
-		local model, isCustomModel = buildBotModel(s.look)
+		local model, isCustomModel = buildBotModel(s.look, options.skin or Config.BotSkin)
 		model.Name = Config.MonsterName
 		local humanoid = model:FindFirstChildOfClass("Humanoid") :: Humanoid
 		humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
@@ -490,7 +510,7 @@ function Monster.Release()
 	if player then
 		local character = player.Character
 		if character then
-			character:PivotTo(monsterSpawnCFrame(s.map))
+			task.spawn(MapBuilder.Teleport, player, character, monsterSpawnCFrame(s.map))
 		end
 		return
 	end

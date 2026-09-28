@@ -14,7 +14,7 @@ local MAP_ORIGIN = Vector3.new(300, 0, 0)
 
 local WALL_HEIGHT = 12
 local DOOR_HEIGHT = 8
-local DOOR_WIDTH = 6
+local DOOR_WIDTH = 8 -- wide enough for the bot to pathfind through
 local FLOOR_TOP = 1
 
 local function box(parent, name, size, position, color, material)
@@ -241,7 +241,7 @@ local function buildTestHouse()
 	local spots = {
 		RedKey = { Vector3.new(-36, 1.5, 27), Vector3.new(10.5, 1.5, 27), Vector3.new(-26, 4.5, -15) },
 		BlueKey = { Vector3.new(10, 1.5, -27), Vector3.new(-36, 1.5, -5), Vector3.new(35, 1.5, 3), Vector3.new(-9, 1.5, 4) },
-		Wrench = { Vector3.new(36, 1.5, -24), Vector3.new(19, 1.5, -4) },
+		Wrench = { Vector3.new(34, 1.5, -20), Vector3.new(26, 1.5, -12) },
 	}
 	for itemId, positions in spots do
 		for _, position in positions do
@@ -264,6 +264,18 @@ local function buildTestHouse()
 	end
 
 	return map
+end
+
+-- Moves a player's character, first asking Roblox to load the area around the
+-- destination. Places with Workspace.StreamingEnabled on need this, or players
+-- can arrive before the floor has loaded and fall through.
+function MapBuilder.Teleport(player: Player, character: Model, cframe: CFrame)
+	pcall(function()
+		player:RequestStreamAroundAsync(cframe.Position, 5)
+	end)
+	if player.Character == character and character.Parent then
+		character:PivotTo(cframe)
+	end
 end
 
 -- Returns every map in ServerStorage > Maps, building the test house first if
@@ -291,7 +303,13 @@ end
 -- cannot be played at all.
 function MapBuilder.Validate(map)
 	local playerSpawns = map:FindFirstChild("PlayerSpawns")
-	if not playerSpawns or #playerSpawns:GetChildren() == 0 then
+	local spawnParts = 0
+	for _, child in if playerSpawns then playerSpawns:GetChildren() else {} do
+		if child:IsA("BasePart") then
+			spawnParts += 1
+		end
+	end
+	if spawnParts == 0 then
 		warn(`[{Config.GameName}] Map "{map.Name}" has no PlayerSpawns folder with parts in it, skipping it.`)
 		return false
 	end

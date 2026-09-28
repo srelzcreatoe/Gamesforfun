@@ -115,6 +115,11 @@ maps at random. Your map needs these things inside it:
 | `Exit` | A part players touch to escape. Make it non-collidable and put it behind the gate. |
 | `Waypoints` | Optional folder of parts the bot walks between when it isn't chasing anyone |
 
+Items can be picked up from about 7 studs away, even through a thin wall. So
+put item spawns inside locked rooms at least 8 studs from walls that border
+other rooms, or players can grab them without unlocking the door. Make
+doorways at least 8 studs wide so the bot can pathfind through them.
+
 Give the map Model a `DisplayName` attribute (e.g. "Chapter 2: The School")
 to show a nice name. Don't put SpawnLocations inside maps. The lobby has
 the only one.

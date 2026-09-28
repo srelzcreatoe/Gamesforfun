@@ -185,7 +185,7 @@ function spawnWorldItem(itemId, cframe)
 	prompt.ActionText = "Pick up"
 	prompt.ObjectText = info.DisplayName
 	prompt.HoldDuration = 0
-	prompt.MaxActivationDistance = 8
+	prompt.MaxActivationDistance = 7
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = model.PrimaryPart
 	prompt.Triggered:Connect(function(player)
@@ -203,13 +203,14 @@ local function spawnAtRandomPoint(itemId)
 	end
 end
 
--- Finds the floor under a position so dropped items do not float.
-local function groundBelow(position)
+-- Finds the floor under a position so dropped items do not float. Returns nil
+-- if there is no floor there (e.g. someone fell off the map).
+local function groundBelow(position: Vector3): Vector3?
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Include
 	params.FilterDescendantsInstances = { currentMap }
 	local result = workspace:Raycast(position + Vector3.new(0, 1, 0), Vector3.new(0, -20, 0), params)
-	return result and result.Position + Vector3.new(0, 0.4, 0) or position
+	return if result then result.Position + Vector3.new(0, 0.4, 0) else nil
 end
 
 local function openExit()
@@ -217,9 +218,9 @@ local function openExit()
 		return
 	end
 	exitOpen = true
-	for _, child in currentMap:GetChildren() do
-		if child.Name == "ExitGate" then
-			child:Destroy()
+	for _, descendant in currentMap:GetDescendants() do
+		if descendant.Name == "ExitGate" then
+			descendant:Destroy()
 		end
 	end
 	local exit = currentMap:FindFirstChild("Exit")
@@ -244,6 +245,10 @@ local function setupLock(lock)
 		else nil
 	if not part then
 		return
+	end
+
+	if not spawnPoints[required] then
+		warn(`[{Config.GameName}] Lock "{lock:GetFullName()}" needs "{required}", but the map has no ItemSpawns for it.`)
 	end
 
 	local isExitLock = lock:GetAttribute("ExitLock") == true
@@ -349,9 +354,9 @@ function Items.Setup(map: Model, exitOpenedCallback: () -> ())
 	end
 end
 
--- Takes the item away from a player. With a position the item is dropped
--- there; without one it goes back to a random spawn point (used when a player
--- leaves the game, so the round can still be finished).
+-- Takes the item away from a player. With a position the item is dropped on
+-- the floor there; otherwise (or if there is no floor) it goes back to a
+-- random spawn point, so the round can always still be finished.
 function Items.DropHeld(player: Player, position: Vector3?)
 	local itemId = held[player]
 	if not itemId then
@@ -361,8 +366,9 @@ function Items.DropHeld(player: Player, position: Vector3?)
 	if not currentMap or not currentMap.Parent then
 		return
 	end
-	if position then
-		spawnWorldItem(itemId, CFrame.new(groundBelow(position)))
+	local ground = if position then groundBelow(position) else nil
+	if ground then
+		spawnWorldItem(itemId, CFrame.new(ground))
 	else
 		spawnAtRandomPoint(itemId)
 	end

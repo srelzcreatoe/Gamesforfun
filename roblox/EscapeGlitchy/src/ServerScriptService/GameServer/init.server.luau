@@ -17,15 +17,20 @@ local Monster = require(script.Monster)
 local Skins = require(script.Skins)
 local Data = require(script.Data)
 
+-- Players whose respawn is still loading. They sit out the next round start.
+local respawning: { [Player]: boolean } = {}
+
 -- Respawns a player (in the lobby) without waiting for it to finish.
 local function sendToLobby(player: Player)
 	task.spawn(function()
 		if not player.Parent then
 			return
 		end
+		respawning[player] = true
 		local ok, err = pcall(function()
 			player:LoadCharacterAsync()
 		end)
+		respawning[player] = nil
 		if not ok then
 			warn(`[{Config.GameName}] Could not respawn {player.Name}: {err}`)
 		end
@@ -198,7 +203,7 @@ local function readyPlayers(): { Player }
 	for _, player in Players:GetPlayers() do
 		local character = player.Character
 		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-		if humanoid and humanoid.Health > 0 and character:FindFirstChild("HumanoidRootPart") then
+		if not respawning[player] and humanoid and humanoid.Health > 0 and character:FindFirstChild("HumanoidRootPart") then
 			table.insert(list, player)
 		end
 	end
@@ -309,7 +314,7 @@ local function playRound()
 		local spawnPart = spawns[(index - 1) % #spawns + 1]
 		r.survivors[player] = "Playing"
 		player:SetAttribute("Role", "Survivor")
-		character:PivotTo(spawnPart.CFrame + Vector3.new(0, 3, 0))
+		task.spawn(MapBuilder.Teleport, player, character, spawnPart.CFrame + Vector3.new(0, 3, 0))
 		table.insert(
 			r.connections,
 			humanoid.Died:Connect(function()
@@ -325,6 +330,7 @@ local function playRound()
 					r.survivors[player] = "Caught"
 					player:SetAttribute("Role", nil)
 					Items.DropHeld(player)
+					notify(player, "You respawned, so you're out of this round.")
 				end
 			end)
 		)
