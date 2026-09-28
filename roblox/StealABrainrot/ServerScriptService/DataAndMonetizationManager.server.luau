@@ -1628,6 +1628,31 @@ createBindableFunction("OwnsGamePass", function(playerArg: any, gamePass: any): 
 	return passId ~= nil and profile.Data.OwnedGamePasses[tostring(passId)] == true
 end)
 
+-- What a Robux item gives, for free: for the admins' /give chat command
+-- (GameplayManager checks who's asking). productKey is the item's name in
+-- MonetizationConfig.ProductIds or GamePasses.
+createBindableFunction("GrantProduct", function(playerArg: any, productKey: any): boolean
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil or typeof(productKey) ~= "string" then
+		return false
+	end
+	local passId = GAME_PASSES[productKey]
+	if passId then
+		setGamePassOwned(profile, passId, true)
+		return true
+	end
+	local productId = (PRODUCT_IDS :: { [string]: number })[productKey]
+	local handler = if productId then PRODUCT_HANDLERS[productId] else nil
+	if handler == nil then
+		return false
+	end
+	acquireProfileMutex(profile)
+	local ok, granted = pcall(handler, profile)
+	releaseProfileMutex(profile)
+	return ok and granted == true
+end)
+
 createBindableFunction("IsLaserBypassActive", function(playerArg: any): boolean
 	local player = asPlayer(playerArg)
 	return player ~= nil and isLaserBypassActive(player)

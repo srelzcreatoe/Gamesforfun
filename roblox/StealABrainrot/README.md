@@ -123,9 +123,9 @@ Every 5 to 8 minutes an event runs for 3 minutes, with its own sky (a huge sun, 
 | **Bank Heist** | Searchlights sweep the sky and the vault door rolls open. Each pile says what it holds: 💵 **Cash** (45 seconds of your income, at least $800), 🟨 **Gold Bars** (90 seconds, at least $2K) or rare 💎 **Diamonds** (3 minutes, at least $5K, sparkling on top). Grab a bag (hold E) and carry it into your own base; heavier loot slows you more, and a slap makes you drop it for anyone to grab. Red **security lasers** sweep the vault at ankle and knee height: jump over them or get zapped back and drop your bag. In the last minute the **alarm** goes off: the lights flash faster, the lasers speed up and loot is worth **double**. When it closes, whoever banked the most wins a Mythic Lucky Block. Brainrots can spawn **Heist** (x3.5) |
 | **ADMIN ABUSE** | Now and then (1 in 10 events) instead of a normal event: a shaking rainbow banner, every conveyor brainrot gets a mutation (sometimes the glitching **Admin** one, x7), prices are halved, 10x luck, traits 5x likelier and Cash rains |
 
-#### Event commands
+#### Admin commands
 
-Admins can start and stop events by typing in the chat. Admins are you in Studio, the game's owner (for a game owned by a user) and anyone whose user ID is in `FeatureConfig.AdminUserIds` (add yours there for a group-owned game). Anyone else gets "Only admins can use ..." and the Output shows the user ID to add.
+Admins can start and stop events, and give themselves anything, by typing in the chat. Admins are you in Studio, the game's owner (for a group's game, whoever owns the group) and anyone whose user ID is in `FeatureConfig.AdminUserIds`. Anyone else gets "Only admins can use ..." and the Output shows the user ID to add.
 
 Every command answers with a pop-up ("Starting Gold Rush!", "Ended Gold Rush.", ...) and a line in the Output (`[GameplayManager] Alice used /event gold`), so you can tell it arrived.
 
@@ -135,6 +135,15 @@ Every command answers with a pop-up ("Starting Gold Rush!", "Ended Gold Rush.", 
 | `/event <name>` | Starts that event now, for the usual 3 minutes. Names aren't case-sensitive and the start of one is enough: `/event gold rush`, `/event diamond`, `/event rainbow`, `/event blood`, `/event galaxy`, `/event lava`, `/event frost`, `/event taco`, `/event lucky`, `/event cash`, `/event boss` (Boss Raid), `/event bank` (Bank Heist), `/event admin` |
 | `/abuse` | Starts ADMIN ABUSE |
 | `/endevent` | Ends the current event now |
+| `/cash <amount>` | Gives you Cash: `/cash 5000`, `/cash 250k`, `/cash 1m`, `/cash 2.5b` (k, m, b, t and qd work) |
+| `/give <thing>` | Gives you anything. Names aren't case-sensitive and part of one is enough. Add `x5` on the end for five |
+| | **Brainrots:** `/give tung tung tung sahur`, `/give 67`, `/give la vaca saturno saturnita`. Put mutation and trait words in front: `/give rainbow tung`, `/give gold fire 67`, `/give admin nyan strawberry elephant` |
+| | **Lucky blocks and the crate:** `/give god lucky block`, `/give secret lucky block`, `/give dominus crate` |
+| | **Passes:** `/give vip`, `/give 2x cash forever`, `/give long lock`, `/give season pass`, `/give super guard` (kept forever, like a bought one) |
+| | **Robux shop items:** `/give freeze ray` (3 uses), `/give spike trap`, `/give land mine`, `/give boogie bomb`, `/give emp`, `/give server rarity boost`, `/give 3 wheel spins`, `/give 2x cash (30 min)`, `/give hat crate`, `/give galaxy base skin`, `/give rainbow base skin`, `/give season tier skip`, `/give small cash bundle` |
+| | **Hats:** `/give crown`, `/give halo`, `/give wizard hat`, `/give party hat`, ... **Gear:** `/give speed coil`, `/give gravity coil`, `/give invisibility cloak` |
+| | **Rebirths and Cash:** `/give 5 rebirths`, `/give 10m` |
+| `/give` | On its own: shows how it works |
 
 Starting an event while another is running ends that one first. The commands work with Roblox's current chat (TextChatService); the place is set to use it.
 
@@ -256,7 +265,7 @@ The limited brainrots' prices are also written in `ExtrasConfig.LimitedRotation`
 1. Import `BrainrotModels/Import/BrainrotModels.glb` (all the brainrots in one file) and **File → Save**, so every brainrot shows as a real mesh.
 2. Robux products and passes: already set up with the game's IDs (above). Upload each one's picture from `ProductIcons/` and `PassIcons/` on its Creator Dashboard page too.
 3. Publish (**File → Publish to Roblox**). Saving (DataStores) works on its own once the game is live.
-4. If the game belongs to a group rather than your account, put your user ID in `FeatureConfig.AdminUserIds` so the chat commands (`/event`, `/abuse`, ...) work for you. Nobody else can use them.
+4. The chat commands (`/event`, `/abuse`, `/give`, `/cash`, ...) work for the game's owner (for a group's game, the group's owner). To let someone else use them, put their user ID in `FeatureConfig.AdminUserIds`. Nobody else can use them.
 5. On the Creator Dashboard, fill in your experience's **Maturity & Compliance** questionnaire, then in **Game Settings → Permissions** set it to **Public**.
 
 ## Prices

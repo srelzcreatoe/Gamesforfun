@@ -24367,6 +24367,31 @@ createBindableFunction("OwnsGamePass", function(playerArg: any, gamePass: any): 
 	return passId ~= nil and profile.Data.OwnedGamePasses[tostring(passId)] == true
 end)
 
+-- What a Robux item gives, for free: for the admins' /give chat command
+-- (GameplayManager checks who's asking). productKey is the item's name in
+-- MonetizationConfig.ProductIds or GamePasses.
+createBindableFunction("GrantProduct", function(playerArg: any, productKey: any): boolean
+	local player = asPlayer(playerArg)
+	local profile = if player then getUsableProfile(player) else nil
+	if profile == nil or typeof(productKey) ~= "string" then
+		return false
+	end
+	local passId = GAME_PASSES[productKey]
+	if passId then
+		setGamePassOwned(profile, passId, true)
+		return true
+	end
+	local productId = (PRODUCT_IDS :: { [string]: number })[productKey]
+	local handler = if productId then PRODUCT_HANDLERS[productId] else nil
+	if handler == nil then
+		return false
+	end
+	acquireProfileMutex(profile)
+	local ok, granted = pcall(handler, profile)
+	releaseProfileMutex(profile)
+	return ok and granted == true
+end)
+
 createBindableFunction("IsLaserBypassActive", function(playerArg: any): boolean
 	local player = asPlayer(playerArg)
 	return player ~= nil and isLaserBypassActive(player)
@@ -24805,6 +24830,11 @@ Tuning.PAD_OFFSET = 5.5
 Tuning.PAD_REACH = 1
 -- How far from the stairs a walking brainrot steps off onto the floor above.
 Tuning.STAIR_EXIT_OFFSET = 4.75
+-- The admins' /give and /cash chat commands: "1m" is $1M, and the most
+-- Cash or copies of a thing one command gives.
+Tuning.CASH_SUFFIXES = { k = 1e3, m = 1e6, b = 1e9, t = 1e12, qd = 1e15 } :: { [string]: number }
+Tuning.MAX_GIVE_CASH = 1e15
+Tuning.MAX_GIVE_COUNT = 25
 
 --------------------------------------------------------------------------------
 -- Types
@@ -24969,6 +24999,7 @@ do
 			"AddHat",
 			"TakeHat",
 			"OwnsGamePass",
+			"GrantProduct",
 			"SaveNow",
 			"ProgressChanged",
 			"EMPLaserOverriderPurchased",
@@ -28917,23 +28948,49 @@ updateSocial = function(player: Player)
 end
 
 --------------------------------------------------------------------------------
--- Admin event commands (chat):
+-- Admin chat commands:
 --   /events          list the events and these commands
 --   /event <name>    start an event now, e.g. /event gold rush or /event lava
 --   /abuse           start ADMIN ABUSE
 --   /endevent        end the current event now
+--   /cash <amount>   give yourself Cash, e.g. /cash 1m or /cash 250k
+--   /give <thing>    give yourself anything (add x5 for five): a brainrot,
+--                    with mutation and trait words if you like (/give rainbow
+--                    fire tung tung tung sahur), a lucky block or the crate,
+--                    anything from the Robux shop (passes too), a hat, a gear,
+--                    "5 rebirths" or an amount of Cash (/give 10m)
 -- Starting an event ends the one running first. Only admins can use them:
--- FeatureConfig.AdminUserIds, the place's owner, and anyone in Studio.
+-- FeatureConfig.AdminUserIds, the place's owner (the owner of the group, for
+-- a group's game), and anyone in Studio.
 -- They reach the server three ways (the new chat's TextChatCommands, the
 -- client passing those on, and Player.Chatted); each command runs once.
 --------------------------------------------------------------------------------
 
 do
+	-- The user ID of whoever owns the group that owns the game (asked once).
+	local groupOwnerId: number? = nil
+
 	local function isAdmin(player: Player): boolean
 		if RunService:IsStudio() or table.find(FeatureConfig.AdminUserIds, player.UserId) ~= nil then
 			return true
 		end
-		return game.CreatorType == Enum.CreatorType.User and game.CreatorId == player.UserId
+		if game.CreatorType == Enum.CreatorType.User then
+			return game.CreatorId == player.UserId
+		end
+		if game.CreatorType ~= Enum.CreatorType.Group or game.CreatorId <= 0 then
+			return false
+		end
+		if groupOwnerId == nil then
+			local ok, info = pcall(function(): any
+				return game:GetService("GroupService"):GetGroupInfoAsync(game.CreatorId)
+			end)
+			local owner = if ok and typeof(info) == "table" then info.Owner else nil
+			if typeof(owner) ~= "table" or typeof(owner.Id) ~= "number" then
+				return false
+			end
+			groupOwnerId = owner.Id
+		end
+		return player.UserId == groupOwnerId
 	end
 
 	startEvent = function(event: GameEvent)
@@ -29002,6 +29059,239 @@ do
 		end
 		notify(player, "Events: " .. table.concat(names, ", "), "Info")
 		notify(player, "Chat /event <name> to start one, /abuse for ADMIN ABUSE, /endevent to stop it.", "Info")
+		notify(player, "Chat /give <anything> or /cash <amount> to give yourself things. /give on its own shows how.", "Info")
+	end
+
+	-- /give and /cash ------------------------------------------------------------
+
+	-- Something /give can hand out. Keys are its names squashed ("tungtungtungsahur").
+	type GiveThing = { Name: string, Keys: { string }, Brainrot: Definition?, Give: (player: Player) -> boolean }
+
+	local function giveEntry(player: Player, entry: string): boolean
+		local giveBrainrot = Api.gameplayApi:FindFirstChild("GiveBrainrot") :: BindableFunction?
+		return giveBrainrot ~= nil and giveBrainrot:Invoke(player, entry) ~= nil
+	end
+
+	local things: { GiveThing } = {}
+	for id, definition in BrainrotConfig.ById do
+		table.insert(things, {
+			Name = definition.DisplayName,
+			Keys = { squash(definition.DisplayName), squash(id) },
+			Brainrot = if definition.Kind == "Brainrot" then definition else nil,
+			Give = function(player: Player): boolean
+				return giveEntry(player, id)
+			end,
+		})
+	end
+	-- The shop's items by their names, and the Robux products sold elsewhere
+	-- (the Season Tier Skip, the weekly limiteds) by theirs: "Season Tier Skip".
+	local productNames: { [string]: string } = {}
+	for key in MonetizationConfig.ProductIds :: { [string]: number } do
+		productNames[key] = (string.gsub(key, "(%l)(%u)", "%1 %2"))
+	end
+	for _, product in MonetizationConfig.ShopProducts do
+		productNames[product.Key] = product.DisplayName
+	end
+	for key, name in productNames do
+		table.insert(things, {
+			Name = name,
+			Keys = { squash(name), squash(key) },
+			Give = function(player: Player): boolean
+				return DataApi.GrantProduct:Invoke(player, key) == true
+			end,
+		})
+	end
+	for _, hat in ExtrasConfig.Hats do
+		table.insert(things, {
+			Name = hat.DisplayName,
+			Keys = { squash(hat.DisplayName), squash(hat.Name) },
+			Give = function(player: Player): boolean
+				return DataApi.AddHat:Invoke(player, hat.Name, 1) ~= nil
+			end,
+		})
+	end
+	for _, gear in require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("GearConfig")).Gear do
+		table.insert(things, {
+			Name = gear.DisplayName,
+			Keys = { squash(gear.DisplayName), squash(gear.Id) },
+			Give = function(player: Player): boolean
+				local gearApi = ServerStorage:FindFirstChild("Gear")
+				local giveGear = if gearApi then gearApi:FindFirstChild("GiveGear") else nil
+				if giveGear == nil or not giveGear:IsA("BindableFunction") then
+					return false
+				end
+				return (giveGear :: BindableFunction):Invoke(player, gear.Id) == true
+			end,
+		})
+	end
+	-- Brainrots first, cheapest first (so "tung" finds Tung Tung Tung Sahur,
+	-- not Tung Tung Tung Oro), then shorter names.
+	table.sort(things, function(a: GiveThing, b: GiveThing): boolean
+		local brainrotA, brainrotB = a.Brainrot, b.Brainrot
+		if (brainrotA ~= nil) ~= (brainrotB ~= nil) then
+			return brainrotA ~= nil
+		end
+		if brainrotA and brainrotB and brainrotA.Price ~= brainrotB.Price then
+			return brainrotA.Price < brainrotB.Price
+		end
+		if #a.Keys[1] ~= #b.Keys[1] then
+			return #a.Keys[1] < #b.Keys[1]
+		end
+		return a.Keys[1] < b.Keys[1]
+	end)
+
+	-- Exact name first, then the start of a name, then anywhere in one.
+	local function findThing(query: string, brainrotsOnly: boolean): GiveThing?
+		local key = squash(query)
+		if key == "" then
+			return nil
+		end
+		for pass = 1, 3 do
+			for _, thing in things do
+				if brainrotsOnly and thing.Brainrot == nil then
+					continue
+				end
+				for _, name in thing.Keys do
+					if
+						(pass == 1 and name == key)
+						or (pass == 2 and string.sub(name, 1, #key) == key)
+						or (pass == 3 and string.find(name, key, 1, true) ~= nil)
+					then
+						return thing
+					end
+				end
+			end
+		end
+		return nil
+	end
+
+	-- "1.5m" -> 1500000; the second result says whether it was clearly Cash
+	-- ($, a suffix or the word cash) rather than a plain number.
+	local function parseCash(text: string): (number?, boolean)
+		local cleaned = string.lower(text)
+		local sure = string.find(cleaned, "$", 1, true) ~= nil or string.find(cleaned, "cash", 1, true) ~= nil
+		cleaned = (string.gsub(cleaned, "[%$,%s]", ""))
+		cleaned = (string.gsub(string.gsub(cleaned, "^cash", ""), "cash$", ""))
+		local digits, suffix = string.match(cleaned, "^(%d+%.?%d*)(%a*)$")
+		local amount = tonumber(digits)
+		if amount == nil or suffix == nil then
+			return nil, false
+		end
+		if suffix ~= "" then
+			local scale = Tuning.CASH_SUFFIXES[suffix]
+			if scale == nil then
+				return nil, false
+			end
+			amount *= scale
+			sure = true
+		end
+		amount = math.floor(amount)
+		if amount <= 0 or amount > Tuning.MAX_GIVE_CASH then
+			return nil, false
+		end
+		return amount, sure
+	end
+
+	local function giveCash(player: Player, amount: number)
+		if addCash(player, amount) then
+			notify(player, "Gave you " .. NumberFormat.cash(amount) .. "!", "Success", "Purchase")
+		else
+			notify(player, "Couldn't give you Cash right now.", "Warning")
+		end
+	end
+
+	local function giveHelp(player: Player)
+		notify(player, "/cash 1m gives you $1M. /give <thing> gives you anything, add x5 for five:", "Info")
+		notify(player, "/give tung tung tung sahur, /give rainbow fire 67, /give god lucky block, /give dominus crate", "Info")
+		notify(player, "/give vip, /give 2x cash forever, /give freeze ray, /give crown, /give speed coil, /give 5 rebirths, /give 10m", "Info")
+	end
+
+	local function onGive(player: Player, text: string)
+		if text == "" then
+			giveHelp(player)
+			return
+		end
+		-- "... x5" gives five.
+		local count = 1
+		local body, times = string.match(text, "^(.-)%s*[xX](%d+)$")
+		if body and times and body ~= "" then
+			text = body
+			count = math.clamp(tonumber(times) or 1, 1, Tuning.MAX_GIVE_COUNT)
+		end
+
+		local rebirths = string.match(string.lower(text), "^(%d*)%s*rebirths?$") or string.match(string.lower(text), "^rebirths?%s*(%d*)$")
+		if rebirths then
+			local amount = math.clamp(tonumber(rebirths) or 1, 1, 100) * count
+			if DataApi.AddRebirths:Invoke(player, amount) == true then
+				notify(player, string.format("Gave you %d rebirth%s!", amount, if amount == 1 then "" else "s"), "Success", "Purchase")
+			end
+			return
+		end
+
+		local cash, sureCash = parseCash(text)
+		if cash and sureCash then
+			giveCash(player, math.min(cash * count, Tuning.MAX_GIVE_CASH))
+			return
+		end
+
+		local thing = findThing(text, false)
+		local entry: string? = nil
+		local name = if thing then thing.Name else ""
+		if thing == nil then
+			-- Mutation and trait words: "rainbow fire tung tung tung sahur".
+			local mutation: Mutation? = nil
+			local trait: Trait? = nil
+			local rest = {}
+			for word in string.gmatch(text, "%S+") do
+				local lower = string.lower(word)
+				local foundMutation, foundTrait = nil, nil
+				for _, candidate in BrainrotConfig.Mutations do
+					if string.lower(candidate.Name) == lower then
+						foundMutation = candidate
+					end
+				end
+				for _, candidate in BrainrotConfig.Traits do
+					if string.lower(candidate.Name) == lower then
+						foundTrait = candidate
+					end
+				end
+				if foundMutation and mutation == nil then
+					mutation = foundMutation
+				elseif foundTrait and trait == nil then
+					trait = foundTrait
+				else
+					table.insert(rest, word)
+				end
+			end
+			thing = if mutation or trait then findThing(table.concat(rest, " "), true) else nil
+			local definition = if thing then thing.Brainrot else nil
+			if definition then
+				entry = BrainrotConfig.encode(definition.Id, if mutation then mutation.Name else nil, if trait then trait.Name else nil)
+				name = fullName(definition, mutation, trait)
+			end
+		end
+		if thing == nil then
+			if cash then
+				giveCash(player, math.min(cash * count, Tuning.MAX_GIVE_CASH))
+			else
+				notify(player, string.format('Nothing called "%s". Chat /give to see how it works.', text), "Warning")
+			end
+			return
+		end
+
+		local given = 0
+		for _ = 1, count do
+			local ok = if entry then giveEntry(player, entry) else thing.Give(player)
+			if not ok then
+				break
+			end
+			given += 1
+		end
+		if given == 0 then
+			notify(player, "Couldn't give you " .. name .. " right now.", "Warning")
+		else
+			notify(player, string.format("Gave you %s%s!", if given > 1 then given .. "x " else "", name), "Success", "Purchase")
+		end
 	end
 
 	-- The same command can arrive more than once (see above).
@@ -29013,7 +29303,14 @@ do
 			return
 		end
 		local command = string.lower(word)
-		if command ~= "events" and command ~= "event" and command ~= "abuse" and command ~= "endevent" then
+		if
+			command ~= "events"
+			and command ~= "event"
+			and command ~= "abuse"
+			and command ~= "endevent"
+			and command ~= "give"
+			and command ~= "cash"
+		then
 			return
 		end
 		local now = Workspace:GetServerTimeNow()
@@ -29031,6 +29328,15 @@ do
 
 		if command == "events" then
 			listEvents(player)
+		elseif command == "give" then
+			onGive(player, rest)
+		elseif command == "cash" then
+			local amount = parseCash(rest)
+			if amount then
+				giveCash(player, amount)
+			else
+				notify(player, "Say how much, like /cash 1m or /cash 250k.", "Warning")
+			end
 		elseif command == "abuse" then
 			startByCommand(player, GameConfig.AdminAbuseEvent)
 		elseif command == "endevent" then
@@ -29059,7 +29365,7 @@ do
 		return game:GetService("TextChatService")
 	end)
 	if okChat and textChatService then
-		for _, alias in { "/events", "/event", "/abuse", "/endevent" } do
+		for _, alias in { "/events", "/event", "/abuse", "/endevent", "/give", "/cash" } do
 			local chatCommand = Instance.new("TextChatCommand")
 			chatCommand.Name = "BrainrotEvent" .. string.sub(alias, 2)
 			chatCommand.PrimaryAlias = alias
@@ -29351,11 +29657,15 @@ buyGearFunction.Parent = remotes
 --   BindableFunction Knockback(player, direction, strength, stunSeconds?)
 --   BindableEvent    SlapSwing(player)   every swing of a slap glove
 --   BindableEvent    Slapped(player, target)   a slap that hit someone
+--   BindableFunction GiveGear(player, gearId)   free, for the admins' /give
 local gearApi = Instance.new("Folder")
 gearApi.Name = "Gear"
 local knockbackFunction = Instance.new("BindableFunction")
 knockbackFunction.Name = "Knockback"
 knockbackFunction.Parent = gearApi
+local giveGearFunction = Instance.new("BindableFunction")
+giveGearFunction.Name = "GiveGear"
+giveGearFunction.Parent = gearApi
 local slapSwingEvent = Instance.new("BindableEvent")
 slapSwingEvent.Name = "SlapSwing"
 slapSwingEvent.Parent = gearApi
@@ -30228,6 +30538,17 @@ buyGearFunction.OnServerInvoke = function(player: Player, gearId: any): (boolean
 	end
 	giveTools(player)
 	return true, string.format("You bought the %s! It's in your backpack.", gear.DisplayName)
+end
+
+giveGearFunction.OnInvoke = function(playerArg: any, gearId: any): boolean
+	if typeof(playerArg) ~= "Instance" or not playerArg:IsA("Player") or typeof(gearId) ~= "string" or GearConfig.ById[gearId] == nil then
+		return false
+	end
+	if addGearFunction:Invoke(playerArg, gearId) ~= true then
+		return false
+	end
+	giveTools(playerArg)
+	return true
 end
 
 --------------------------------------------------------------------------------
@@ -41402,8 +41723,9 @@ for _, descendant in Workspace:GetDescendants() do
 	trackPrompt(descendant)
 end
 
--- Admin chat commands (/event, /events, /abuse, /endevent): pass them on to
--- the server too, in case it doesn't hear them itself (it runs each once).
+-- Admin chat commands (/event, /events, /abuse, /endevent, /give, /cash): pass
+-- them on to the server too, in case it doesn't hear them itself (it runs each
+-- once, and only for admins).
 task.spawn(function()
 	local chatCommandEvent = remotes:WaitForChild("ChatCommand") :: RemoteEvent
 	local textChatService = game:GetService("TextChatService")

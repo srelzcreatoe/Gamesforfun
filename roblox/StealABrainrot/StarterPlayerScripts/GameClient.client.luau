@@ -2000,8 +2000,9 @@ for _, descendant in Workspace:GetDescendants() do
 	trackPrompt(descendant)
 end
 
--- Admin chat commands (/event, /events, /abuse, /endevent): pass them on to
--- the server too, in case it doesn't hear them itself (it runs each once).
+-- Admin chat commands (/event, /events, /abuse, /endevent, /give, /cash): pass
+-- them on to the server too, in case it doesn't hear them itself (it runs each
+-- once, and only for admins).
 task.spawn(function()
 	local chatCommandEvent = remotes:WaitForChild("ChatCommand") :: RemoteEvent
 	local textChatService = game:GetService("TextChatService")

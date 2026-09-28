@@ -89,11 +89,15 @@ buyGearFunction.Parent = remotes
 --   BindableFunction Knockback(player, direction, strength, stunSeconds?)
 --   BindableEvent    SlapSwing(player)   every swing of a slap glove
 --   BindableEvent    Slapped(player, target)   a slap that hit someone
+--   BindableFunction GiveGear(player, gearId)   free, for the admins' /give
 local gearApi = Instance.new("Folder")
 gearApi.Name = "Gear"
 local knockbackFunction = Instance.new("BindableFunction")
 knockbackFunction.Name = "Knockback"
 knockbackFunction.Parent = gearApi
+local giveGearFunction = Instance.new("BindableFunction")
+giveGearFunction.Name = "GiveGear"
+giveGearFunction.Parent = gearApi
 local slapSwingEvent = Instance.new("BindableEvent")
 slapSwingEvent.Name = "SlapSwing"
 slapSwingEvent.Parent = gearApi
@@ -966,6 +970,17 @@ buyGearFunction.OnServerInvoke = function(player: Player, gearId: any): (boolean
 	end
 	giveTools(player)
 	return true, string.format("You bought the %s! It's in your backpack.", gear.DisplayName)
+end
+
+giveGearFunction.OnInvoke = function(playerArg: any, gearId: any): boolean
+	if typeof(playerArg) ~= "Instance" or not playerArg:IsA("Player") or typeof(gearId) ~= "string" or GearConfig.ById[gearId] == nil then
+		return false
+	end
+	if addGearFunction:Invoke(playerArg, gearId) ~= true then
+		return false
+	end
+	giveTools(playerArg)
+	return true
 end
 
 --------------------------------------------------------------------------------
