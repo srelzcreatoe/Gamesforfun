@@ -16,7 +16,9 @@ The kit includes:
 - Locked doors, plus an exit gate with several locks that all have to be opened
 - A jumpscare when you're caught, and a red glow at the screen edges when
   Glitchy is close
-- Coins and escapes on the leaderboard, saved between visits
+- A **skin shop**: spend coins on survivor skins, and on monster skins you wear
+  when you're the monster. Any skin can also be sold for Robux with a Game Pass.
+- Coins, escapes and skins saved between visits
 - A built-in lobby and test chapter ("The House") so you can press Play right away
 - Works on PC, phone and console (Drop button on screen, G on keyboard, Y on gamepad)
 
@@ -42,6 +44,7 @@ code from the matching file:
 | ModuleScript | `MapBuilder` | the `GameServer` script | `src/ServerScriptService/GameServer/MapBuilder.luau` |
 | ModuleScript | `Items` | the `GameServer` script | `src/ServerScriptService/GameServer/Items.luau` |
 | ModuleScript | `Monster` | the `GameServer` script | `src/ServerScriptService/GameServer/Monster.luau` |
+| ModuleScript | `Skins` | the `GameServer` script | `src/ServerScriptService/GameServer/Skins.luau` |
 | ModuleScript | `Data` | the `GameServer` script | `src/ServerScriptService/GameServer/Data.luau` |
 | LocalScript | `GameClient` | StarterPlayer → StarterPlayerScripts | `src/StarterPlayer/StarterPlayerScripts/GameClient.client.luau` |
 
@@ -56,6 +59,7 @@ with the included `default.project.json`.
 - Walk up to an item and press **E** (or tap the prompt) to pick it up.
 - Walk up to a lock while holding the right item and hold **E** to use it.
 - Press **G** or tap **Drop** to drop what you're holding.
+- Tap **SHOP** on the left of the screen to buy and equip skins.
 - The test house: the **Red Key** opens the storage room, where the
   **Wrench** is. The exit gate in the garage needs the **Blue Key** *and*
   the **Wrench**. Once both locks are open, run through the gate!
@@ -66,6 +70,34 @@ Almost everything is in **`Config`**: the game and monster names, round
 times, monster speed and senses, coins, colors, the jumpscare sound, and the
 item list. To test Player mode with friends, set `Config.MonsterMode = "Player"`.
 In Studio you can simulate several players with **Test → Clients and Servers**.
+
+## The skin shop
+
+You earn coins for playing (5), escaping (50) and, as the monster, for each
+catch (20). Spend them in the shop:
+
+| Survivor skins | Price | | Monster skins | Price |
+|---|---|---|---|---|
+| Your Avatar | free | | Glitchy | free |
+| Classic Noob | 50 | | Toxic | 200 |
+| Midnight (glowing outline) | 150 | | Frostbite | 350 |
+| Ghost (see-through) | 300 | | Inferno | 600 |
+| Golden (metal) | 750 | | | |
+| Galaxy (neon, Robux-ready) | 2000 | | | |
+
+- **Survivor skins** show right away in the lobby, and on your next spawn if
+  you're in a round.
+- **Monster skins** are what you look like when you're picked as the monster
+  in Player mode. `Config.BotSkin` sets the AI monster's skin.
+- **Add your own skins** by adding an entry to `Config.Skins`, with colors, a
+  material, see-through amount or glowing outline. New skins show up in the
+  shop automatically.
+- **Sell a skin for Robux:** publish the game, create a Game Pass (Creator
+  Dashboard → your game → Monetization → Passes), and put its id in that
+  skin's `GamePassId`. A **Buy with Robux** button appears on the card. Buying
+  the pass unlocks the skin, and players who already own it get it
+  automatically when they join. `Galaxy` is set up as an example. It keeps its
+  coin price too, so it can be bought either way.
 
 ## Make your own chapter
 
@@ -100,11 +132,11 @@ You can also swap in your own models:
 - **New items:** add a line to `Config.Items`, then use its id in your map's
   `ItemSpawns` and `Locks`.
 
-## Saving coins
+## Saving progress
 
 Saving uses DataStores. It works automatically in a published game. To test it
 in Studio, open **Game Settings → Security** and turn on **Enable Studio Access
-to API Services**. Without that, everything still works, but coins reset every time.
+to API Services**. Without that, everything still works, but coins and skins reset every time.
 
 ## Publishing, and making Robux
 
@@ -112,10 +144,10 @@ to API Services**. Without that, everything still works, but coins reset every t
    Creator Dashboard to make it public.
 2. Fill in the **Maturity & Compliance questionnaire**. Jumpscares and horror
    can affect your game's content label.
-3. Ideas that games like this use to earn Robux: **skins** for survivors and
-   the monster (bought with coins or Robux), **game passes** (for example a
-   bigger coin bonus), and **developer products** (for example a revive).
-   Use `MarketplaceService` for these.
+3. The skin shop is already set up to sell skins for Robux (see
+   **The skin shop** above). Other things games like this sell: **game
+   passes** (for example a bigger coin bonus) and **developer products**
+   (for example a revive). Use `MarketplaceService` for these.
 4. Turning Robux into real money goes through Roblox's **DevEx** program,
    which has an age requirement and a minimum amount. Check Roblox's DevEx
    page for the current rules.
@@ -128,7 +160,6 @@ starting point, so rename and restyle it in `Config`.)
 
 - More chapters, each with its own map and story
 - Traps the monster can place (in Player mode)
-- A skin shop that spends the coins from the leaderboard
 - Spectating after you're caught
 - Chase music and footstep sounds
 - Different difficulties (monster speed and senses are already in `Config`)

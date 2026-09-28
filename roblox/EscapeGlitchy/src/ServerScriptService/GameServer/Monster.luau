@@ -13,6 +13,7 @@ local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
 
 local Config = require(game:GetService("ReplicatedStorage"):WaitForChild("Config"))
+local Skins = require(script.Parent.Skins)
 
 local Monster = {}
 
@@ -26,6 +27,7 @@ type State = {
 	onCatch: (Player) -> (),
 	player: Player?,
 	model: Model?,
+	look: Skins.MonsterLook,
 	connections: { RBXScriptConnection },
 }
 
@@ -42,8 +44,8 @@ local function weld(part0, part1)
 	constraint.Parent = part1
 end
 
--- Red glowing eyes, a red outline and no face: the "glitched avatar" look.
-local function addMonsterDetails(character: Model)
+-- Glowing eyes, a matching outline and no face: the "glitched avatar" look.
+local function addMonsterDetails(character: Model, look: Skins.MonsterLook)
 	local head = character:FindFirstChild("Head")
 	if head and head:IsA("BasePart") then
 		local face = head:FindFirstChildWhichIsA("Decal")
@@ -55,7 +57,7 @@ local function addMonsterDetails(character: Model)
 			eye.Name = "Eye"
 			eye.Shape = Enum.PartType.Ball
 			eye.Size = Vector3.new(0.28, 0.28, 0.28)
-			eye.Color = Config.MonsterEyeColor
+			eye.Color = look.EyeColor
 			eye.Material = Enum.Material.Neon
 			eye.CanCollide = false
 			eye.CanQuery = false
@@ -66,7 +68,7 @@ local function addMonsterDetails(character: Model)
 			eye.Parent = character
 		end
 		local glow = Instance.new("PointLight")
-		glow.Color = Config.MonsterEyeColor
+		glow.Color = look.EyeColor
 		glow.Range = 10
 		glow.Brightness = 2
 		glow.Parent = head
@@ -74,34 +76,24 @@ local function addMonsterDetails(character: Model)
 
 	local outline = Instance.new("Highlight")
 	outline.FillTransparency = 1
-	outline.OutlineColor = Config.MonsterEyeColor
+	outline.OutlineColor = look.EyeColor
 	outline.DepthMode = Enum.HighlightDepthMode.Occluded
 	outline.Parent = character
 
 	CollectionService:AddTag(character, "Monster")
 end
 
--- Turns a player's character into the monster.
-local function applyMonsterLook(character: Model)
-	for _, child in character:GetChildren() do
-		if child:IsA("Accessory") or child:IsA("Clothing") or child:IsA("ShirtGraphic") then
-			child:Destroy()
-		end
+-- Turns a player's character into the monster, in their monster skin.
+local function applyMonsterLook(character: Model, look: Skins.MonsterLook)
+	if character:FindFirstChild("Eye") then
+		return -- already done
 	end
-	local bodyColors = character:FindFirstChildOfClass("BodyColors")
-	if bodyColors then
-		bodyColors.HeadColor3 = Config.MonsterHeadColor
-		bodyColors.TorsoColor3 = Config.MonsterBodyColor
-		bodyColors.LeftArmColor3 = Config.MonsterBodyColor
-		bodyColors.RightArmColor3 = Config.MonsterBodyColor
-		bodyColors.LeftLegColor3 = Config.MonsterBodyColor
-		bodyColors.RightLegColor3 = Config.MonsterBodyColor
-	end
-	addMonsterDetails(character)
+	Skins.ApplyMonsterColors(character, look)
+	addMonsterDetails(character, look)
 end
 
 -- A plain block figure, only used if Roblox fails to build an R15 rig.
-local function buildBlockMonster(): Model
+local function buildBlockMonster(look: Skins.MonsterLook): Model
 	local model = Instance.new("Model")
 	local root = Instance.new("Part")
 	root.Name = "HumanoidRootPart"
@@ -119,12 +111,12 @@ local function buildBlockMonster(): Model
 		part.Parent = model
 		return part
 	end
-	limb("Torso", Vector3.new(2, 2, 1), Vector3.zero, Config.MonsterBodyColor)
-	limb("Head", Vector3.new(1.2, 1.2, 1.2), Vector3.new(0, 1.6, 0), Config.MonsterHeadColor)
-	limb("LeftArm", Vector3.new(1, 2, 1), Vector3.new(-1.5, 0, 0), Config.MonsterBodyColor)
-	limb("RightArm", Vector3.new(1, 2, 1), Vector3.new(1.5, 0, 0), Config.MonsterBodyColor)
-	limb("LeftLeg", Vector3.new(1, 2, 1), Vector3.new(-0.5, -2, 0), Config.MonsterBodyColor)
-	limb("RightLeg", Vector3.new(1, 2, 1), Vector3.new(0.5, -2, 0), Config.MonsterBodyColor)
+	limb("Torso", Vector3.new(2, 2, 1), Vector3.zero, look.BodyColor)
+	limb("Head", Vector3.new(1.2, 1.2, 1.2), Vector3.new(0, 1.6, 0), look.HeadColor)
+	limb("LeftArm", Vector3.new(1, 2, 1), Vector3.new(-1.5, 0, 0), look.BodyColor)
+	limb("RightArm", Vector3.new(1, 2, 1), Vector3.new(1.5, 0, 0), look.BodyColor)
+	limb("LeftLeg", Vector3.new(1, 2, 1), Vector3.new(-0.5, -2, 0), look.BodyColor)
+	limb("RightLeg", Vector3.new(1, 2, 1), Vector3.new(0.5, -2, 0), look.BodyColor)
 	local humanoid = Instance.new("Humanoid")
 	humanoid.RigType = Enum.HumanoidRigType.R15 -- so HipHeight is used
 	humanoid.HipHeight = 2
@@ -136,7 +128,7 @@ end
 
 -- Returns the bot's model, and whether it came from ServerStorage.MonsterModel
 -- (a custom model keeps its own look and animations).
-local function buildBotModel(): (Model, boolean)
+local function buildBotModel(look: Skins.MonsterLook): (Model, boolean)
 	local template = ServerStorage:FindFirstChild("MonsterModel")
 	if template then
 		local model = template:Clone()
@@ -148,12 +140,12 @@ local function buildBotModel(): (Model, boolean)
 	end
 
 	local description = Instance.new("HumanoidDescription")
-	description.HeadColor = Config.MonsterHeadColor
-	description.TorsoColor = Config.MonsterBodyColor
-	description.LeftArmColor = Config.MonsterBodyColor
-	description.RightArmColor = Config.MonsterBodyColor
-	description.LeftLegColor = Config.MonsterBodyColor
-	description.RightLegColor = Config.MonsterBodyColor
+	description.HeadColor = look.HeadColor
+	description.TorsoColor = look.BodyColor
+	description.LeftArmColor = look.BodyColor
+	description.RightArmColor = look.BodyColor
+	description.LeftLegColor = look.BodyColor
+	description.RightLegColor = look.BodyColor
 	local ok, result = pcall(function()
 		return Players:CreateHumanoidModelFromDescription(description, Enum.HumanoidRigType.R15)
 	end)
@@ -161,7 +153,7 @@ local function buildBotModel(): (Model, boolean)
 		return result, false
 	end
 	warn(`[{Config.GameName}] Could not build the R15 monster ({result}); using a block monster.`)
-	return buildBlockMonster(), false
+	return buildBlockMonster(look), false
 end
 
 local function setupBotAnimations(humanoid: Humanoid)
@@ -423,7 +415,14 @@ end
 --   options.player      the player who is the monster, or nil for a bot
 --   options.getTargets  returns the survivors that can be caught
 --   options.onCatch     called with a player when they are caught
-function Monster.Start(options: { map: Model, player: Player?, getTargets: () -> { Target }, onCatch: (Player) -> () })
+--   options.skin        the monster skin id to wear
+function Monster.Start(options: {
+	map: Model,
+	player: Player?,
+	getTargets: () -> { Target },
+	onCatch: (Player) -> (),
+	skin: string?,
+})
 	Monster.Stop()
 	local s: State = {
 		active = true,
@@ -433,6 +432,7 @@ function Monster.Start(options: { map: Model, player: Player?, getTargets: () ->
 		onCatch = options.onCatch,
 		player = options.player,
 		model = nil,
+		look = Skins.GetMonsterLook(options.skin),
 		connections = {},
 	}
 	state = s
@@ -445,11 +445,14 @@ function Monster.Start(options: { map: Model, player: Player?, getTargets: () ->
 			if not humanoid or not humanoid:IsA("Humanoid") or state ~= s then
 				return
 			end
-			applyMonsterLook(character)
 			humanoid.WalkSpeed = Config.MonsterPlayerSpeed
 			if s.released then
 				task.wait() -- let the character finish spawning before moving it
 				character:PivotTo(monsterSpawnCFrame(s.map))
+			end
+			-- Wait for their avatar's clothes to load so they can be replaced.
+			if Skins.WaitForAppearance(player, character) and state == s then
+				applyMonsterLook(character, s.look)
 			end
 		end
 		if player.Character then
@@ -458,7 +461,7 @@ function Monster.Start(options: { map: Model, player: Player?, getTargets: () ->
 		table.insert(s.connections, player.CharacterAdded:Connect(setUpCharacter))
 		task.spawn(runPlayerCatcher, s, player)
 	else
-		local model, isCustomModel = buildBotModel()
+		local model, isCustomModel = buildBotModel(s.look)
 		model.Name = Config.MonsterName
 		local humanoid = model:FindFirstChildOfClass("Humanoid") :: Humanoid
 		humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
@@ -468,7 +471,7 @@ function Monster.Start(options: { map: Model, player: Player?, getTargets: () ->
 		if isCustomModel then
 			CollectionService:AddTag(model, "Monster")
 		else
-			addMonsterDetails(model)
+			addMonsterDetails(model, s.look)
 		end
 		model:SetAttribute("CustomModel", isCustomModel)
 		s.model = model

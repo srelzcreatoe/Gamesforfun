@@ -66,4 +66,130 @@ Config.Items = {
 	Wrench = { DisplayName = "Wrench", Color = Color3.fromRGB(165, 165, 175), Shape = "Tool" },
 }
 
+---------------------------------------------------------------------------
+-- Skin shop
+-- "Survivor" skins change how you look as a survivor.
+-- "Monster" skins change how the monster looks when YOU are the monster
+-- (Player mode). BotSkin picks the look of the AI monster.
+--
+-- Price is in coins. To also sell a skin for Robux: create a Game Pass on the
+-- Creator Dashboard (your game > Monetization > Passes) and put its id in
+-- GamePassId. Buying the pass unlocks the skin.
+--
+-- Survivor skin options: HeadColor, TorsoColor, ArmColor, LegColor,
+-- Material, Transparency (0-1), Outline (a glowing outline color).
+-- Monster skin options: HeadColor, BodyColor, EyeColor.
+---------------------------------------------------------------------------
+Config.DefaultSurvivorSkin = "Default"
+Config.DefaultMonsterSkin = "Glitchy"
+Config.BotSkin = "Glitchy"
+
+Config.Skins = {
+	-- Survivors
+	{ Id = "Default", Type = "Survivor", Name = "Your Avatar", Price = 0 },
+	{
+		Id = "Noob",
+		Type = "Survivor",
+		Name = "Classic Noob",
+		Price = 50,
+		HeadColor = Color3.fromRGB(245, 205, 48),
+		TorsoColor = Color3.fromRGB(13, 105, 172),
+		ArmColor = Color3.fromRGB(245, 205, 48),
+		LegColor = Color3.fromRGB(40, 127, 71),
+	},
+	{
+		Id = "Midnight",
+		Type = "Survivor",
+		Name = "Midnight",
+		Price = 150,
+		HeadColor = Color3.fromRGB(40, 45, 80),
+		TorsoColor = Color3.fromRGB(20, 25, 55),
+		ArmColor = Color3.fromRGB(30, 35, 70),
+		LegColor = Color3.fromRGB(15, 18, 40),
+		Outline = Color3.fromRGB(90, 150, 255),
+	},
+	{
+		Id = "Ghost",
+		Type = "Survivor",
+		Name = "Ghost",
+		Price = 300,
+		HeadColor = Color3.fromRGB(230, 240, 255),
+		TorsoColor = Color3.fromRGB(210, 225, 245),
+		ArmColor = Color3.fromRGB(220, 232, 250),
+		LegColor = Color3.fromRGB(200, 215, 240),
+		Transparency = 0.35,
+	},
+	{
+		Id = "Golden",
+		Type = "Survivor",
+		Name = "Golden",
+		Price = 750,
+		HeadColor = Color3.fromRGB(255, 200, 60),
+		TorsoColor = Color3.fromRGB(240, 180, 40),
+		ArmColor = Color3.fromRGB(250, 190, 50),
+		LegColor = Color3.fromRGB(225, 165, 30),
+		Material = Enum.Material.Metal,
+	},
+	{
+		Id = "Galaxy",
+		Type = "Survivor",
+		Name = "Galaxy",
+		Price = 2000,
+		GamePassId = 0, -- put a Game Pass id here to also sell it for Robux
+		HeadColor = Color3.fromRGB(120, 60, 200),
+		TorsoColor = Color3.fromRGB(60, 20, 120),
+		ArmColor = Color3.fromRGB(90, 40, 170),
+		LegColor = Color3.fromRGB(40, 10, 90),
+		Material = Enum.Material.Neon,
+		Outline = Color3.fromRGB(255, 120, 255),
+	},
+
+	-- Monsters
+	{
+		Id = "Glitchy",
+		Type = "Monster",
+		Name = "Glitchy",
+		Price = 0,
+		HeadColor = Config.MonsterHeadColor,
+		BodyColor = Config.MonsterBodyColor,
+		EyeColor = Config.MonsterEyeColor,
+	},
+	{
+		Id = "Toxic",
+		Type = "Monster",
+		Name = "Toxic",
+		Price = 200,
+		HeadColor = Color3.fromRGB(40, 70, 35),
+		BodyColor = Color3.fromRGB(25, 45, 25),
+		EyeColor = Color3.fromRGB(90, 255, 60),
+	},
+	{
+		Id = "Frostbite",
+		Type = "Monster",
+		Name = "Frostbite",
+		Price = 350,
+		HeadColor = Color3.fromRGB(225, 240, 250),
+		BodyColor = Color3.fromRGB(190, 215, 235),
+		EyeColor = Color3.fromRGB(40, 190, 255),
+	},
+	{
+		Id = "Inferno",
+		Type = "Monster",
+		Name = "Inferno",
+		Price = 600,
+		HeadColor = Color3.fromRGB(90, 20, 10),
+		BodyColor = Color3.fromRGB(55, 12, 8),
+		EyeColor = Color3.fromRGB(255, 150, 0),
+	},
+}
+
+function Config.GetSkin(skinId: string)
+	for _, skin in Config.Skins do
+		if skin.Id == skinId then
+			return skin
+		end
+	end
+	return nil
+end
+
 return Config

@@ -4,7 +4,8 @@
 --   MapBuilder  lobby + test map, and map checks
 --   Items       items, locks and the exit
 --   Monster     the AI bot / player monster
---   Data        coins and saving
+--   Skins       the skin shop
+--   Data        coins, skins and saving
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -13,6 +14,7 @@ local Config = require(ReplicatedStorage:WaitForChild("Config"))
 local MapBuilder = require(script.MapBuilder)
 local Items = require(script.Items)
 local Monster = require(script.Monster)
+local Skins = require(script.Skins)
 local Data = require(script.Data)
 
 -- Respawns a player (in the lobby) without waiting for it to finish.
@@ -53,6 +55,7 @@ end
 local notifyRemote = newRemote("Notify")
 local jumpscareRemote = newRemote("Jumpscare")
 local dropRemote = newRemote("DropItem")
+local shopRemote = newRemote("Shop")
 remotes.Parent = ReplicatedStorage
 
 local gameState = Instance.new("Folder")
@@ -74,7 +77,8 @@ local function notify(player: Player, text: string)
 	notifyRemote:FireClient(player, text)
 end
 
-Data.Start()
+Skins.Init({ notify = notify, respawn = sendToLobby, shopRemote = shopRemote })
+Data.Start(Skins.OnDataLoaded)
 Items.Init({ notifyAll = notifyAll, notify = notify, dropRemote = dropRemote })
 
 ---------------------------------------------------------------------------
@@ -312,6 +316,18 @@ local function playRound()
 				onDied(player, character)
 			end)
 		)
+		-- Respawning for any other reason (e.g. equipping a skin just as the
+		-- round started) puts them back in the lobby, so they are out.
+		table.insert(
+			r.connections,
+			player.CharacterAdded:Connect(function()
+				if r.survivors[player] == "Playing" then
+					r.survivors[player] = "Caught"
+					player:SetAttribute("Role", nil)
+					Items.DropHeld(player)
+				end
+			end)
+		)
 	end
 
 	local exit = map:FindFirstChild("Exit")
@@ -327,7 +343,13 @@ local function playRound()
 		)
 	end
 
-	Monster.Start({ map = map, player = monsterPlayer, getTargets = getTargets, onCatch = onCaught })
+	Monster.Start({
+		map = map,
+		player = monsterPlayer,
+		getTargets = getTargets,
+		onCatch = onCaught,
+		skin = if monsterPlayer then Data.GetEquippedSkin(monsterPlayer, "Monster") else Config.BotSkin,
+	})
 
 	notifyAll(tostring(map:GetAttribute("DisplayName") or template.Name))
 	if monsterPlayer then
