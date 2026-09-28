@@ -51,6 +51,10 @@ export type Trait = {
 
 export type Kind = "Brainrot" | "LuckyBlock"
 
+-- One line of a lucky block's odds: a rarity (any brainrot of it) or one
+-- particular brainrot.
+export type OddsEntry = { Key: string, Weight: number, Rarity: string, Brainrot: Brainrot? }
+
 export type Brainrot = {
 	Id: string,
 	Kind: Kind,
@@ -69,9 +73,12 @@ export type Brainrot = {
 	BlockBuilt: boolean,
 	-- Never in the conveyor's normal roll, lucky blocks or fusing: Limited ones
 	-- are sold in the weekly shop (and turn up on the conveyor as OG finds, on
-	-- their own tiny chance: OGChance), Season ones are season pass rewards.
+	-- their own tiny chance: OGChance), Season ones are season pass rewards,
+	-- Crate ones come out of the Dominusso Cappuccinoso Crate and GodBlock ones
+	-- out of the Brainrot God Lucky Block.
 	Exclusive: boolean,
-	-- Lucky blocks: the chance of each rarity when opened.
+	-- Lucky blocks: the chance of each rarity when opened, and of particular
+	-- brainrots (keyed by Id) too.
 	Odds: { [string]: number }?,
 }
 
@@ -120,6 +127,9 @@ local function brainrot(
 	})
 end
 
+-- Tags that keep a brainrot out of the normal roll (see Brainrot.Exclusive).
+local EXCLUSIVE_TAGS = { "Limited", "Season", "Crate", "GodBlock" }
+
 -- A brainrot built from blocks (tools/blocky/designs_*.py).
 local function blocky(
 	id: string,
@@ -135,13 +145,19 @@ local function blocky(
 ): Brainrot
 	local definition = table.clone(brainrot(id, displayName, rarity, price, incomePerSecond, bodyColor, accentColor, scale, motion, tags))
 	definition.BlockBuilt = true
-	definition.Exclusive = table.find(definition.Tags, "Limited") ~= nil or table.find(definition.Tags, "Season") ~= nil
+	for _, tag in EXCLUSIVE_TAGS do
+		if table.find(definition.Tags, tag) then
+			definition.Exclusive = true
+		end
+	end
 	return table.freeze(definition)
 end
 
 local TACO = { "Taco" }
 local LIMITED = { "Limited" }
 local SEASON = { "Season" }
+local CRATE = { "Crate" }
+local GOD_BLOCK = { "GodBlock" }
 
 local Brainrots: { Brainrot } = {
 	-- Common
@@ -265,6 +281,15 @@ local Brainrots: { Brainrot } = {
 	blocky("LaGrandeCombinasion", "La Grande Combinasion", "Secret", 80000000, 190000, rgb(40, 130, 230), rgb(240, 190, 50), 1.9),
 	blocky("StrawberryElephant", "Strawberry Elephant", "Secret", 100000000, 230000, rgb(225, 40, 55), rgb(80, 170, 60), 1.8),
 	blocky("AdminoSupremo", "Admino Supremo", "Secret", 150000000, 300000, rgb(200, 30, 40), rgb(255, 210, 60), 1.7, "Walk", SEASON),
+	-- Only from the Dominusso Cappuccinoso Crate: famous Roblox outfits.
+	blocky("HackerinoVerdino", "Hackerino Verdino", "Secret", 70000000, 175000, rgb(21, 23, 27), rgb(61, 255, 98), 1.75, "Walk", CRATE),
+	blocky("NinjaccioViolino", "Ninjaccio Violino", "Secret", 85000000, 200000, rgb(93, 47, 168), rgb(201, 168, 255), 1.8, "Walk", CRATE),
+	blocky("DominussoRexino", "Dominusso Rexino", "Secret", 110000000, 250000, rgb(138, 43, 226), rgb(247, 194, 53), 1.95, "Walk", CRATE),
+	blocky("DominussoAureo", "Dominusso Aureo", "Secret", 140000000, 290000, rgb(255, 210, 58), rgb(255, 154, 26), 2, "Walk", CRATE),
+	-- Only from the Brainrot God Lucky Block.
+	blocky("RobuxoneDorato", "Robuxone Dorato", "Secret", 75000000, 185000, rgb(255, 207, 58), rgb(255, 249, 220), 1.75, "Walk", GOD_BLOCK),
+	blocky("TungTungTungOro", "Tung Tung Tung Oro", "Secret", 95000000, 215000, rgb(246, 196, 22), rgb(255, 246, 200), 1.6, "Walk", GOD_BLOCK),
+	blocky("TungTungTungDiamante", "Tung Tung Tung Diamante", "Secret", 130000000, 275000, rgb(127, 223, 255), rgb(255, 255, 255), 1.7, "Walk", GOD_BLOCK),
 
 	-- OG: rarer than any Secret. The weekly limited brainrots, which also turn
 	-- up on the conveyor on a tiny chance of their own (OGChance).
@@ -277,7 +302,8 @@ local Brainrots: { Brainrot } = {
 
 -- Lucky blocks walk home like brainrots (hopping) and earn nothing; their
 -- owner opens them in their base for a random brainrot. The first three can
--- turn up on the conveyor (ConveyorWeight); the Secret one is Robux only.
+-- turn up on the conveyor (ConveyorWeight); the Secret one and the Dominusso
+-- Cappuccinoso Crate are Robux only.
 local function luckyBlock(
 	id: string,
 	displayName: string,
@@ -319,14 +345,28 @@ local LuckyBlocks: { Brainrot } = {
 		["Brainrot God"] = 9,
 		Secret = 1,
 	}),
+	-- With a chance of its own three specials: the golden Robux coin and the
+	-- gold and diamond Tung Tung Tung Sahurs.
 	luckyBlock("GodLuckyBlock", "Brainrot God Lucky Block", "Brainrot God", 5000000, rgb(255, 120, 255), rgb(120, 240, 255), {
-		Mythic = 55,
-		["Brainrot God"] = 40,
-		Secret = 5,
+		Mythic = 40,
+		["Brainrot God"] = 38,
+		Secret = 8,
+		RobuxoneDorato = 7,
+		TungTungTungOro = 5,
+		TungTungTungDiamante = 2,
 	}),
 	luckyBlock("SecretLuckyBlock", "Secret Lucky Block", "Secret", 50000000, rgb(25, 25, 30), rgb(255, 255, 255), {
 		["Brainrot God"] = 70,
 		Secret = 30,
+	}),
+	-- Always one of the four famous-outfit brainrots, and now and then the OG
+	-- Dominusso Cappuccinoso himself.
+	luckyBlock("DominusCrate", "Dominusso Cappuccinoso Crate", "Secret", 80000000, rgb(31, 40, 80), rgb(245, 195, 50), {
+		HackerinoVerdino = 34,
+		NinjaccioViolino = 28,
+		DominussoRexino = 20,
+		DominussoAureo = 15,
+		DominussoCappuccinoso = 3,
 	}),
 }
 -- How often each lucky block turns up on the conveyor (relative), and the
@@ -481,6 +521,38 @@ local function fullName(definition: Brainrot, mutation: Mutation?, trait: Trait?
 	return name
 end
 
+-- A lucky block's odds in order: its rarities (commonest first, only those
+-- that have brainrots to give) and then its particular brainrots (cheapest
+-- first). Weights are relative.
+local function oddsList(odds: { [string]: number }): { OddsEntry }
+	local list: { OddsEntry } = {}
+	for _, rarity in Rarities do
+		local weight = odds[rarity.Name] or 0
+		if weight > 0 and #DropsByRarity[rarity.Name] > 0 then
+			table.insert(list, { Key = rarity.Name, Weight = weight, Rarity = rarity.Name })
+		end
+	end
+	local particular: { OddsEntry } = {}
+	for key, weight in odds do
+		local definition = ById[key]
+		if weight > 0 and definition and definition.Kind == "Brainrot" then
+			table.insert(particular, { Key = key, Weight = weight, Rarity = definition.Rarity, Brainrot = definition })
+		end
+	end
+	table.sort(particular, function(a: OddsEntry, b: OddsEntry): boolean
+		local priceA = if a.Brainrot then a.Brainrot.Price else 0
+		local priceB = if b.Brainrot then b.Brainrot.Price else 0
+		if priceA ~= priceB then
+			return priceA < priceB
+		end
+		return a.Key < b.Key
+	end)
+	for _, entry in particular do
+		table.insert(list, entry)
+	end
+	return list
+end
+
 local function hasTag(definition: Brainrot, tag: string): boolean
 	return table.find(definition.Tags, tag) ~= nil
 end
@@ -502,6 +574,7 @@ return table.freeze({
 	isLuckyBlock = isLuckyBlock,
 	fullName = fullName,
 	hasTag = hasTag,
+	oddsList = oddsList,
 	Rarities = table.freeze(Rarities),
 	Brainrots = table.freeze(Brainrots),
 	Obtainable = table.freeze(Obtainable),

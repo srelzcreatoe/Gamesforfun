@@ -822,55 +822,85 @@ for _, product in MonetizationConfig.ShopProducts do
 	}) :: Frame
 	iconFrame.Parent = card
 	local onIcon = productIcon(iconFrame, product)
+	-- A slot per rarity it opens into (showing that rarity's best brainrot)
+	-- and one per particular brainrot it can give (with a gold border and no
+	-- name), in a grid that wraps onto more rows (and a taller card) when
+	-- they don't fit.
+	local grid = create("UIGridLayout", {
+		CellSize = UDim2.fromOffset(96, 96),
+		CellPadding = UDim2.fromOffset(8, 8),
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	}) :: UIGridLayout
 	local slots = create("Frame", {
 		Name = "Odds",
 		Position = UDim2.fromOffset(172, 52),
 		Size = UDim2.new(1, -184, 0, 96),
 		BackgroundTransparency = 1,
-	}, {
-		create("UIListLayout", {
-			FillDirection = Enum.FillDirection.Horizontal,
-			Padding = UDim.new(0, 8),
-			SortOrder = Enum.SortOrder.LayoutOrder,
-		}),
 	}) :: Frame
+	grid.Parent = slots
 	slots.Parent = card
-	local odds: { [string]: number } = if block and block.Odds then block.Odds else {}
+	local entries: { BrainrotConfig.OddsEntry } = if block and block.Odds then BrainrotConfig.oddsList(block.Odds) else {}
 	local total = 0
-	for _, weight in odds do
-		total += weight
+	for _, entry in entries do
+		total += entry.Weight
 	end
-	for order, rarity in BrainrotConfig.Rarities do
-		local weight = odds[rarity.Name] or 0
-		local choices = BrainrotConfig.DropsByRarity[rarity.Name]
-		if weight <= 0 or total <= 0 or #choices == 0 then
+	for order, entry in entries do
+		local rarity = BrainrotConfig.RarityByName[entry.Rarity]
+		local shownId = if entry.Brainrot then entry.Brainrot.Id else nil
+		if shownId == nil then
+			-- The best of that rarity, to show off.
+			local best: BrainrotConfig.Brainrot? = nil
+			for _, choice in BrainrotConfig.DropsByRarity[entry.Rarity] do
+				if best == nil or choice.Price > best.Price then
+					best = choice
+				end
+			end
+			shownId = if best then best.Id else nil
+		end
+		if shownId == nil or rarity == nil or total <= 0 then
 			continue
 		end
-		-- The best of that rarity, to show off.
-		local best = choices[1]
-		for _, choice in choices do
-			if choice.Price > best.Price then
-				best = choice
-			end
-		end
-		local share = weight / total * 100
+		local share = entry.Weight / total * 100
 		-- (Secret's colour is black: white reads better on the dark slot.)
 		local colour = if rarity.Style == "Secret" then Color3.new(1, 1, 1) else rarity.Color
-		local slot = brainrotSlot(best.Id, if share >= 1 then string.format("%d%%", math.floor(share + 0.5)) else string.format("%.1f%%", share), colour, false)
-		slot.Name = rarity.Name
+		local slot = brainrotSlot(
+			shownId,
+			if share >= 1 then string.format("%d%%", math.floor(share + 0.5)) else string.format("%.1f%%", share),
+			colour,
+			entry.Brainrot ~= nil
+		)
+		slot.Name = entry.Key
 		slot.LayoutOrder = order
-		slot.Size = UDim2.fromOffset(96, 96)
-		label({
-			Name = "Rarity",
-			Position = UDim2.fromOffset(4, 2),
-			Size = UDim2.new(1, -8, 0.24, 0),
-			Text = rarity.Name,
-			TextColor3 = colour,
-			TextSize = 16,
-			TextXAlignment = Enum.TextXAlignment.Left,
-		}).Parent = slot
+		-- A rarity's slot says which; a particular brainrot's just shows it.
+		if entry.Brainrot == nil then
+			label({
+				Name = "Rarity",
+				Position = UDim2.fromOffset(4, 2),
+				Size = UDim2.new(1, -8, 0.24, 0),
+				Text = rarity.Name,
+				TextColor3 = colour,
+				TextSize = 16,
+				TextXAlignment = Enum.TextXAlignment.Left,
+			}).Parent = slot
+		end
 		slot.Parent = slots
 	end
+	local count = #slots:GetChildren() - 1
+	table.insert(shopLayouts, function(width: number)
+		local area = width - 184
+		local columns = math.max(1, count)
+		local cell = math.floor((area - 8 * (columns - 1)) / columns)
+		if cell < 80 then
+			columns = math.max(1, math.floor((area + 8) / 88))
+			cell = math.floor((area - 8 * (columns - 1)) / columns)
+		end
+		cell = math.min(cell, 96)
+		local rows = math.max(1, math.ceil(count / columns))
+		local height = rows * cell + (rows - 1) * 8
+		grid.CellSize = UDim2.fromOffset(cell, cell)
+		slots.Size = UDim2.new(1, -184, 0, height)
+		card.Size = UDim2.new(1, 0, 0, 206 + math.max(0, height - 96))
+	end)
 	label({
 		Name = "Description",
 		AnchorPoint = Vector2.new(0, 1),
@@ -1150,11 +1180,17 @@ for _, definition in BrainrotConfig.Brainrots do
 	viewport.Parent = card
 
 	-- Say where limited brainrots (the weekly shop, or very rarely the conveyor
-	-- as OGs) and season ones come from.
-	local badgeText = if BrainrotConfig.hasTag(definition, "Limited")
-		then "⭐ LIMITED"
-		elseif BrainrotConfig.hasTag(definition, "Season") then "🏆 SEASON"
-		else nil
+	-- as OGs), season ones, crate ones and God block specials come from.
+	local badgeText, badgeColour = nil, Color3.fromRGB(230, 110, 30)
+	if BrainrotConfig.hasTag(definition, "Limited") then
+		badgeText, badgeColour = "⭐ LIMITED", Color3.fromRGB(230, 170, 20)
+	elseif BrainrotConfig.hasTag(definition, "Season") then
+		badgeText = "🏆 SEASON"
+	elseif BrainrotConfig.hasTag(definition, "Crate") then
+		badgeText, badgeColour = "📦 CRATE", Color3.fromRGB(60, 80, 170)
+	elseif BrainrotConfig.hasTag(definition, "GodBlock") then
+		badgeText, badgeColour = "🎁 GOD BLOCK", Color3.fromRGB(200, 70, 200)
+	end
 	if badgeText then
 		local badge = label({
 			Name = "Badge",
@@ -1162,7 +1198,7 @@ for _, definition in BrainrotConfig.Brainrots do
 			Position = UDim2.new(1, -10, 0, 10),
 			Size = UDim2.new(0.62, 0, 0.09, 0),
 			BackgroundTransparency = 0,
-			BackgroundColor3 = if badgeText == "⭐ LIMITED" then Color3.fromRGB(230, 170, 20) else Color3.fromRGB(230, 110, 30),
+			BackgroundColor3 = badgeColour,
 			Text = badgeText,
 			TextSize = 15,
 			ZIndex = 3,

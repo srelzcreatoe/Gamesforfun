@@ -845,9 +845,15 @@ function UIKit.brainrotViewport(brainrotId: string, background: Color3, properti
 	for key, value in properties do
 		(viewport :: any)[key] = value
 	end
-	task.spawn(function()
+	-- Deferred until whoever asked for it has put it in place: an imported
+	-- model is copied without waiting, and this used to give up on a viewport
+	-- that wasn't in anything yet (so the shop's pictures stayed empty).
+	task.defer(function()
+		if viewport.Parent == nil then
+			return
+		end
 		local model = UIKit.previewModel(brainrotId, 4)
-		if model == nil or viewport.Parent == nil then
+		if model == nil then
 			return
 		end
 		model.Parent = viewport

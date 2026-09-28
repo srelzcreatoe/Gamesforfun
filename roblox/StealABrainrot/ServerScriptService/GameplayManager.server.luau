@@ -1342,11 +1342,14 @@ end
 -- The rarities a lucky block can open into, for its label: "Rare - Mythic".
 local function luckyRange(definition: Definition): string
 	local lowest, highest = math.huge, -math.huge
-	for index, rarity in BrainrotConfig.Rarities do
-		local odds = definition.Odds
-		if odds and (odds[rarity.Name] or 0) > 0 then
-			lowest = math.min(lowest, index)
-			highest = math.max(highest, index)
+	local odds = definition.Odds
+	local list: { BrainrotConfig.OddsEntry } = if odds then BrainrotConfig.oddsList(odds) else {}
+	for _, entry in list do
+		for index, rarity in BrainrotConfig.Rarities do
+			if rarity.Name == entry.Rarity then
+				lowest = math.min(lowest, index)
+				highest = math.max(highest, index)
+			end
 		end
 	end
 	local low, high = BrainrotConfig.Rarities[lowest], BrainrotConfig.Rarities[highest]
@@ -2424,25 +2427,26 @@ local function rollLuckyBlock(): Definition?
 end
 
 -- What a lucky block opens into: a rarity from its odds, then a brainrot of it.
+-- A lucky block's roll: a rarity (then any brainrot of it) or one of its
+-- particular brainrots (see BrainrotConfig.oddsList).
 local function rollFromOdds(odds: { [string]: number }): Definition?
+	local list = BrainrotConfig.oddsList(odds)
 	local total = 0
-	for _, rarity in BrainrotConfig.Rarities do
-		if #BrainrotConfig.DropsByRarity[rarity.Name] > 0 then
-			total += odds[rarity.Name] or 0
-		end
+	for _, entry in list do
+		total += entry.Weight
 	end
 	if total <= 0 then
 		return nil
 	end
 	local roll = rng:NextNumber(0, total)
-	for _, rarity in BrainrotConfig.Rarities do
-		local weight = if #BrainrotConfig.DropsByRarity[rarity.Name] > 0 then odds[rarity.Name] or 0 else 0
-		roll -= weight
-		if roll <= 0 and weight > 0 then
-			return pickFromRarity(rarity.Name)
+	for _, entry in list do
+		roll -= entry.Weight
+		if roll <= 0 then
+			return entry.Brainrot or pickFromRarity(entry.Rarity)
 		end
 	end
-	return nil
+	local last = list[#list]
+	return last.Brainrot or pickFromRarity(last.Rarity)
 end
 
 local function removeConveyorItem(item: ConveyorItem)
@@ -3820,7 +3824,7 @@ onOpenTriggered = function(occupant: Occupant, player: Player)
 		discover(player, definition, mutation)
 		local name = fullName(definition, mutation, trait)
 		notify(player, string.format("Your %s opened into %s!", occupant.Definition.DisplayName, name), "Success", "StealSuccess")
-		if definition.Rarity == "Secret" or definition.Rarity == "Brainrot God" then
+		if definition.Rarity == "Secret" or definition.Rarity == "Brainrot God" or definition.Rarity == "OG" then
 			for _, other in Players:GetPlayers() do
 				if other ~= player then
 					notify(other, string.format("%s unboxed %s (%s)!", player.DisplayName, name, definition.Rarity), "Info", "Event")

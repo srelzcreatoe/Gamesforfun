@@ -1795,22 +1795,23 @@ do
 		return card
 	end
 
-	-- Random brainrots in the proportions the block opens into.
+	-- Random brainrots in the proportions the block opens into (its rarities
+	-- and its particular brainrots).
 	local function rollFiller(odds: { [string]: number }): BrainrotConfig.Brainrot?
+		local list = BrainrotConfig.oddsList(odds)
 		local total = 0
-		for rarityName, weight in odds do
-			if #BrainrotConfig.DropsByRarity[rarityName] > 0 then
-				total += weight
-			end
+		for _, entry in list do
+			total += entry.Weight
 		end
 		local roll = math.random() * total
-		for rarityName, weight in odds do
-			local choices = BrainrotConfig.DropsByRarity[rarityName]
-			if #choices > 0 then
-				roll -= weight
-				if roll <= 0 then
-					return choices[math.random(1, #choices)]
+		for _, entry in list do
+			roll -= entry.Weight
+			if roll <= 0 then
+				if entry.Brainrot then
+					return entry.Brainrot
 				end
+				local choices = BrainrotConfig.DropsByRarity[entry.Rarity]
+				return choices[math.random(1, #choices)]
 			end
 		end
 		return BrainrotConfig.Obtainable[1]

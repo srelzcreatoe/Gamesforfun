@@ -55,12 +55,15 @@ local ProductIds = table.freeze({
 	LimitedHeadless = 100019,
 	LimitedDominus = 100020,
 	LimitedSparkle = 100021,
+	-- The Dominusso Cappuccinoso Crate (a lucky block of famous outfits).
+	DominusCrate = 100022,
 })
 
 -- Lucky blocks bought with Robux land in your base (or wait until there's room).
 local LuckyBlockProducts: { [string]: string } = table.freeze({
 	GodLuckyBlock = "GodLuckyBlock",
 	SecretLuckyBlock = "SecretLuckyBlock",
+	DominusCrate = "DominusCrate",
 })
 
 -- Base skins bought with Robux (see GameConfig.BaseSkins).
@@ -277,12 +280,23 @@ local ShopProducts: { ShopProduct } = {
 		IconColor = Color3.fromRGB(230, 70, 200),
 	},
 	{
+		Key = "DominusCrate",
+		Section = "Lucky",
+		Robux = 699,
+		ProductId = ProductIds.DominusCrate,
+		DisplayName = "Dominusso Cappuccinoso Crate",
+		Description = "A famous outfit brainrot every time, and a 3% chance of the OG Dominusso!",
+		IconAssetId = 0,
+		IconText = "D",
+		IconColor = Color3.fromRGB(31, 40, 80),
+	},
+	{
 		Key = "GodLuckyBlock",
 		Section = "Lucky",
-		Robux = 199,
+		Robux = 599,
 		ProductId = ProductIds.GodLuckyBlock,
 		DisplayName = "Brainrot God Lucky Block",
-		Description = "Opens into a Mythic, a Brainrot God or even a Secret!",
+		Description = "Brainrot Gods, Secrets, and 3 specials only it can give!",
 		IconAssetId = 0,
 		IconText = "?",
 		IconColor = Color3.fromRGB(255, 120, 255),

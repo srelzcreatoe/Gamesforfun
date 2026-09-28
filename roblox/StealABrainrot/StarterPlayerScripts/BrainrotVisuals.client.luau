@@ -48,6 +48,7 @@ local AssetLoader = require(Shared:WaitForChild("AssetLoader"))
 local BrainrotConfig = require(Shared:WaitForChild("BrainrotConfig"))
 local HatModels = require(Shared:WaitForChild("HatModels"))
 local HatAnchors = require(Shared:WaitForChild("HatAnchors"))
+local BrainrotFlair = require(Shared:WaitForChild("BrainrotFlair"))
 
 local PIECE_ATTRIBUTE = "HiggsfieldPiece"
 local ANIMATION_DISTANCE = 220
@@ -132,6 +133,13 @@ type Visual = {
 	-- Glowing blocks circling a mutated brainrot.
 	Orbiters: { BasePart },
 	OrbitRadius: number,
+	-- Glowing squares rising off the rarest brainrots (BrainrotFlair), each
+	-- with a seed for where and when it rises, how far out they start and
+	-- how big they are.
+	Squares: { BasePart },
+	SquareSeeds: { number },
+	SquareSpread: number,
+	SquareSize: number,
 	-- When the current State began (for the boss falling over).
 	StateSince: number,
 	LastState: any,
@@ -425,6 +433,81 @@ local function attachHat(visual: Visual)
 	visual.Hat = hat
 end
 
+-- The rarest brainrots' extra flash (BrainrotFlair): a shine, a coloured
+-- glow, sparkles, a fire on the head and glowing squares rising off them.
+local function addFlair(visual: Visual)
+	local brainrotId = visual.Model:GetAttribute("BrainrotId")
+	local flair = if typeof(brainrotId) == "string" then BrainrotFlair[brainrotId] else nil
+	if flair == nil then
+		return
+	end
+	local part = visual.Body
+	local scale = visual.Height / 5
+	for _, piece in visual.Pieces do
+		piece.Part.Reflectance = math.max(piece.Part.Reflectance, flair.Shine)
+	end
+	-- Its own glow instead of the Secret smoke.
+	local smoke = part:FindFirstChild("SecretSmoke")
+	if smoke then
+		smoke:Destroy()
+	end
+	local light = visual.Light
+	if light == nil then
+		local glow = Instance.new("PointLight")
+		glow.Name = "Glow"
+		glow.Shadows = false
+		glow.Parent = part
+		visual.Light = glow
+		light = glow
+	end
+	if light then
+		light.Color = flair.Glow
+		light.Brightness = 2
+		light.Range = 14 * math.clamp(scale, 1, 1.6)
+		visual.BaseBrightness = 2
+	end
+	visual.RainbowLight = false
+	if flair.Fire then
+		local head = part
+		for _, piece in visual.Pieces do
+			if piece.Kind == "Head" then
+				head = piece.Part
+			end
+		end
+		local fire = Instance.new("Fire")
+		fire.Name = "FlairFire"
+		fire.Color = flair.Fire[1]
+		fire.SecondaryColor = flair.Fire[2] or flair.Fire[1]
+		fire.Heat = 9
+		fire.Size = 2.2 * scale
+		fire.Parent = head
+	end
+	if lowGraphics() then
+		return
+	end
+	sparkles(part, "FlairSparkles", flair.Sparkles, flair.SparkleColours, 0.5 * scale, false)
+	sparkles(part, "FlairAura", math.floor(flair.Sparkles / 2), flair.SparkleColours, 0.75 * scale, true)
+	visual.SquareSpread = math.max(visual.Body.Size.X, visual.Body.Size.Z) * 0.45 + 0.3 * scale
+	visual.SquareSize = math.clamp(0.3 * scale, 0.2, 0.9)
+	for index = 1, flair.Squares do
+		local square = Instance.new("Part")
+		square.Name = "FlairSquare"
+		square.Size = Vector3.one * visual.SquareSize
+		square.Material = Enum.Material.Neon
+		square.Color = flair.SquareColours[(index - 1) % #flair.SquareColours + 1]
+		square.Anchored = true
+		square.CanCollide = false
+		square.CanQuery = false
+		square.CanTouch = false
+		square.CastShadow = false
+		square.Transparency = 1
+		square:SetAttribute(PIECE_ATTRIBUTE, true)
+		square.Parent = visual.Root
+		table.insert(visual.Squares, square)
+		table.insert(visual.SquareSeeds, (index - 1) / flair.Squares + math.random() * 0.05)
+	end
+end
+
 local function addEffects(visual: Visual, rarityName: string?, mutationName: string?)
 	local part = visual.Body
 	local effect = if rarityName then RARITY_EFFECTS[rarityName] else nil
@@ -523,6 +606,7 @@ local function addEffects(visual: Visual, rarityName: string?, mutationName: str
 			drips.Parent = part
 		end
 	end
+	addFlair(visual)
 end
 
 --------------------------------------------------------------------------------
@@ -548,6 +632,9 @@ local function detach(instance: Model)
 	visuals[instance] = nil
 	for _, orbiter in visual.Orbiters do
 		orbiter:Destroy()
+	end
+	for _, square in visual.Squares do
+		square:Destroy()
 	end
 	local hat = visual.Hat
 	if hat then
@@ -645,6 +732,10 @@ local function attachImported(instance: Model)
 		Hat = nil,
 		Orbiters = {},
 		OrbitRadius = 0,
+		Squares = {},
+		SquareSeeds = {},
+		SquareSpread = 0,
+		SquareSize = 0,
 		StateSince = os.clock(),
 		LastState = nil,
 	}
@@ -804,6 +895,10 @@ local function attachModel(instance: Instance)
 			Hat = nil,
 			Orbiters = {},
 			OrbitRadius = 0,
+			Squares = {},
+			SquareSeeds = {},
+			SquareSpread = 0,
+			SquareSize = 0,
 			StateSince = os.clock(),
 			LastState = nil,
 		}
@@ -1097,6 +1192,26 @@ local function animate(visual: Visual, state: any, t: number, dt: number)
 			cube.CFrame = rootFrame
 				* CFrame.new(math.cos(angle) * visual.OrbitRadius, y, math.sin(angle) * visual.OrbitRadius)
 				* CFrame.Angles(t * 2 + index, t * 3, 0)
+		end
+	end
+
+	-- Glowing squares rise off the rarest brainrots like flames: each starts
+	-- low somewhere round it, climbs, spins, shrinks and fades, then starts
+	-- again somewhere else.
+	local squares = visual.Squares
+	if #squares > 0 then
+		local rootFrame = visual.Root.CFrame
+		for index, square in squares do
+			local seed = visual.SquareSeeds[index]
+			local cycle = t / 1.7 + seed
+			local u = cycle % 1
+			local angle = seed * 40.1 + math.floor(cycle) * 2.39
+			local radius = visual.SquareSpread * (0.45 + 0.55 * ((seed * 7.31 + math.floor(cycle) * 0.37) % 1))
+			square.Size = Vector3.one * visual.SquareSize * (1.15 - 0.85 * u)
+			square.Transparency = 0.05 + 0.9 * u * u
+			square.CFrame = rootFrame
+				* CFrame.new(math.cos(angle) * radius, height * (0.05 + 1.05 * u), math.sin(angle) * radius)
+				* CFrame.Angles(u * 4 + seed * 6, u * 5, 0)
 		end
 	end
 
