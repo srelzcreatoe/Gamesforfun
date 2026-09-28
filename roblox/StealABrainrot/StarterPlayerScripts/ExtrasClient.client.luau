@@ -1102,6 +1102,7 @@ local function weeklyLimited(): (ExtrasConfig.Limited, number)
 end
 
 local limitedFrame, limitedBody = UIKit.modal(screen, "LimitedMenu", "⭐ LIMITED ⭐", ACCENTS.Limited, Vector2.new(560, 560))
+UIKit.gardenStyle(limitedFrame)
 local refreshLimited: () -> ()
 do
 	local preview = create("Frame", {
@@ -1132,7 +1133,7 @@ do
 		Name = "About",
 		Position = UDim2.new(0, 0, 0.58, 0),
 		Size = UDim2.new(1, 0, 0.16, 0),
-		Text = "A famous Roblox limited, as a brainrot! Sold this week only, then it's gone until it comes back round. It never shows up on the conveyor.",
+		Text = "A famous Roblox limited, as an OG brainrot: rarer and stronger than any Secret! Sold this week only, then it's gone until it comes back round (or roll one on the conveyor, if you're very lucky).",
 		TextSize = 18,
 		TextWrapped = true,
 		TextColor3 = COLORS.Muted,

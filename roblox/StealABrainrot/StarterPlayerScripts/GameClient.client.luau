@@ -32,6 +32,7 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local AssetLoader = require(Shared:WaitForChild("AssetLoader"))
 local BrainrotConfig = require(Shared:WaitForChild("BrainrotConfig"))
+local ExtrasConfig = require(Shared:WaitForChild("ExtrasConfig"))
 local FeatureConfig = require(Shared:WaitForChild("FeatureConfig"))
 local GameConfig = require(Shared:WaitForChild("GameConfig"))
 local GearConfig = require(Shared:WaitForChild("GearConfig"))
@@ -123,6 +124,8 @@ local screenGui = create("ScreenGui", {
 	ResetOnSpawn = false,
 	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 }) :: ScreenGui
+-- What a controller has selected gets a yellow outline.
+playerGui.SelectionImageObject = UIKit.selectionHighlight()
 
 -- Cash (bottom left, like the original)
 local cashLabel = label({
@@ -304,26 +307,42 @@ end
 local toggleModal = UIKit.toggleModal
 
 --------------------------------------------------------------------------------
--- Shop
+-- Shop, like Grow a Garden's: a wooden window with a studded green title bar.
+-- This week's OG limited brainrot on a rainbow LIMITED TIME card (with a
+-- countdown and every OG in the rotation), the lucky blocks on cards showing
+-- what they open into, then a coloured band per section with a tile for each
+-- item: its icon, name and a green Robux button. The window takes the room
+-- the screen has, so on a phone its buttons stay big and it has fewer
+-- columns; a controller starts on the limited's Buy button and B closes it.
 --------------------------------------------------------------------------------
 
-local shopFrame, shopBody = modal("Shop", "ROBUX SHOP", Color3.fromRGB(215, 70, 170), Vector2.new(700, 500))
+local GARDEN = UIKit.Garden
+local shopFrame, shopBody = modal("Shop", "Robux Shop", GARDEN.Green, Vector2.new(820, 620))
+UIKit.gardenStyle(shopFrame)
 local shopList = create("ScrollingFrame", {
 	Name = "Products",
 	Size = UDim2.fromScale(1, 1),
-	BackgroundTransparency = 1,
+	BackgroundColor3 = GARDEN.WoodDark,
 	BorderSizePixel = 0,
-	ScrollBarThickness = 8,
-	ScrollBarImageColor3 = Color3.fromRGB(215, 70, 170),
+	ScrollBarThickness = if UserInputService.TouchEnabled then 14 else 10,
+	ScrollBarImageColor3 = Color3.fromRGB(235, 195, 125),
 	CanvasSize = UDim2.new(),
 	AutomaticCanvasSize = Enum.AutomaticSize.Y,
 	ScrollingDirection = Enum.ScrollingDirection.Y,
+	SelectionGroup = true,
 }, {
-	-- Two columns filling the window, clear of the scroll bar.
-	create("UIGridLayout", {
-		CellSize = UDim2.fromOffset(UIKit.gridCells(UIKit.bodySize(shopFrame).X, 2, 12, 8), 170),
-		CellPadding = UDim2.fromOffset(12, 12),
+	corner(10),
+	stroke(GARDEN.WoodEdge, 3),
+	create("UIPadding", {
+		PaddingLeft = UDim.new(0, 10),
+		PaddingRight = UDim.new(0, 20),
+		PaddingTop = UDim.new(0, 10),
+		PaddingBottom = UDim.new(0, 12),
+	}),
+	create("UIListLayout", {
+		Padding = UDim.new(0, 12),
 		SortOrder = Enum.SortOrder.LayoutOrder,
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
 	}),
 }) :: ScrollingFrame
 shopList.Parent = shopBody
@@ -344,108 +363,73 @@ local function fetchOwnProductInfo(productId: number, infoType: Enum.InfoType): 
 	return info
 end
 
-for index, product in MonetizationConfig.ShopProducts do
-	local card = create("Frame", {
-		Name = product.Key,
-		BackgroundColor3 = COLORS.PanelLight,
-		LayoutOrder = index,
-	}, { corner(14), stroke(product.IconColor, 2) }) :: Frame
+-- Roblox's purchase window for a product or pass (never for a placeholder ID).
+local function promptPurchase(productId: number, gamePass: boolean?)
+	if not MonetizationConfig.isSetUp(productId) then
+		UIKit.toast(MonetizationConfig.NotSetUpMessage, "Warning")
+		Sounds.play("Error")
+		return
+	end
+	local ok, err = pcall(function()
+		if gamePass then
+			MarketplaceService:PromptGamePassPurchase(player, productId)
+		else
+			MarketplaceService:PromptProductPurchase(player, productId)
+		end
+	end)
+	if not ok then
+		warn("[GameClient] Could not open the purchase prompt: " .. tostring(err))
+	end
+end
 
-	local iconFrame = create("Frame", {
-		Name = "Icon",
-		Position = UDim2.fromOffset(10, 10),
-		Size = UDim2.new(0.38, 0, 1, -20),
-		BackgroundColor3 = product.IconColor,
-	}, {
-		corner(12),
-		create("UIAspectRatioConstraint", { AspectRatio = 1 }),
-	}) :: Frame
-	iconFrame.Parent = card
-
+-- A product's icon filling `holder`: an uploaded image (MonetizationConfig),
+-- else the icon packed in ReplicatedStorage.Assets, else its IconText. Returns
+-- a function to show the product's own Roblox icon if it has none of those.
+local function productIcon(holder: GuiObject, product: MonetizationConfig.ShopProduct): (number) -> ()
+	local image = create("ImageLabel", {
+		Name = "Image",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		Visible = false,
+	}, { corner(10) }) :: ImageLabel
+	image.Parent = holder
 	local iconText = label({
+		Name = "IconText",
 		Size = UDim2.fromScale(1, 1),
 		Text = product.IconText,
 		TextSize = 48,
 	})
-	iconText.Parent = iconFrame
-
-	local iconImage = create("ImageLabel", {
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-		Visible = false,
-	}, { corner(12) }) :: ImageLabel
-	iconImage.Parent = iconFrame
-
-	local function showIcon(assetId: number)
-		iconImage.Image = "rbxassetid://" .. tostring(assetId)
-		iconImage.Visible = true
+	iconText.Parent = holder
+	local function show(assetId: number)
+		image.Image = "rbxassetid://" .. tostring(assetId)
+		image.Visible = true
 		iconText.Visible = false
 	end
-
-	-- Icon priority: an uploaded image ID from MonetizationConfig, then the
-	-- Higgsfield icon packed into ReplicatedStorage.Assets, then the product's own.
-	local hasIcon = false
 	if product.IconAssetId > 0 then
-		showIcon(product.IconAssetId)
-		hasIcon = true
-	elseif setImage(iconImage, AssetLoader.getProductIcon(product.Key)) then
+		show(product.IconAssetId)
+	elseif setImage(image, AssetLoader.getProductIcon(product.Key)) then
 		iconText.Visible = false
-		hasIcon = true
 	end
+	return function(assetId: number)
+		if not image.Visible then
+			show(assetId)
+		end
+	end
+end
 
-	label({
-		Name = "ProductName",
-		Position = UDim2.new(0.42, 0, 0, 10),
-		Size = UDim2.new(0.56, 0, 0.26, 0),
-		Text = product.DisplayName,
-		TextSize = 24,
-		TextXAlignment = Enum.TextXAlignment.Left,
-	}).Parent = card
-
-	label({
-		Name = "Description",
-		Position = UDim2.new(0.42, 0, 0.3, 0),
-		Size = UDim2.new(0.56, 0, 0.36, 0),
-		Text = product.Description,
-		TextColor3 = COLORS.Muted,
-		TextSize = 17,
-		TextWrapped = true,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		OutlineThickness = 1,
-	}).Parent = card
-
-	local buyButton = button("BUY", COLORS.Buy, {
-		Name = "BuyButton",
-		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0.42, 0, 1, -10),
-		Size = UDim2.new(0.55, 0, 0.26, 0),
-	})
-	buyButton.Parent = card
+-- A product's green Robux button: its price (the real one once Roblox has
+-- it), OWNED for a pass you have, and the purchase when pressed.
+local function sellOn(buy: TextButton, setPrice: (string, boolean) -> (), product: MonetizationConfig.ShopProduct, onIcon: ((number) -> ())?)
 	local owned = false
+	setPrice(NumberFormat.commas(product.Robux), true)
 	local function showOwned()
 		owned = true
-		buyButton.Text = "OWNED"
-		UIKit.setEnabled(buyButton, false, COLORS.Buy)
+		setPrice("OWNED", false)
+		UIKit.setEnabled(buy, false, GARDEN.Buy)
 	end
-	buyButton.Activated:Connect(function()
-		if owned then
-			return
-		end
-		if not MonetizationConfig.isSetUp(product.ProductId) then
-			UIKit.toast(MonetizationConfig.NotSetUpMessage, "Warning")
-			Sounds.play("Error")
-			return
-		end
-		local ok, err = pcall(function()
-			if product.GamePass then
-				MarketplaceService:PromptGamePassPurchase(player, product.ProductId)
-			else
-				MarketplaceService:PromptProductPurchase(player, product.ProductId)
-			end
-		end)
-		if not ok then
-			warn("[GameClient] Could not open the purchase prompt: " .. tostring(err))
+	buy.Activated:Connect(function()
+		if not owned then
+			promptPurchase(product.ProductId, product.GamePass)
 		end
 	end)
 	if product.GamePass and MonetizationConfig.isSetUp(product.ProductId) then
@@ -463,7 +447,6 @@ for index, product in MonetizationConfig.ShopProducts do
 			end
 		end)
 	end
-
 	task.spawn(function()
 		local info = fetchOwnProductInfo(product.ProductId, if product.GamePass then Enum.InfoType.GamePass else Enum.InfoType.Product)
 		if info == nil then
@@ -471,16 +454,490 @@ for index, product in MonetizationConfig.ShopProducts do
 		end
 		local price = tonumber(info.PriceInRobux)
 		if price and not owned then
-			buyButton.Text = "R$ " .. NumberFormat.commas(price)
+			setPrice(NumberFormat.commas(price), true)
 		end
 		local iconId = tonumber(info.IconImageAssetId)
-		if not hasIcon and iconId and iconId > 0 then
-			showIcon(iconId)
+		if onIcon and iconId and iconId > 0 then
+			onIcon(iconId)
 		end
 	end)
-
-	card.Parent = shopList
 end
+
+-- A brainrot's picture in a slot, with a label along the bottom.
+local function brainrotSlot(brainrotId: string, caption: string, captionColour: Color3, highlight: boolean): Frame
+	local slot = create("Frame", {
+		Name = brainrotId,
+		BackgroundColor3 = Color3.new(0, 0, 0),
+		BackgroundTransparency = 0.45,
+	}, {
+		corner(10),
+		stroke(if highlight then Color3.fromRGB(255, 225, 60) else Color3.new(1, 1, 1), if highlight then 4 else 2),
+	}) :: Frame
+	UIKit.brainrotViewport(brainrotId, Color3.fromRGB(40, 30, 60), {
+		Name = "Picture",
+		Position = UDim2.fromOffset(4, 4),
+		Size = UDim2.new(1, -8, 1, -8),
+		BackgroundTransparency = 1,
+	}).Parent = slot
+	label({
+		Name = "Caption",
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.new(1, -4, 1, -2),
+		Size = UDim2.new(1, -8, 0.3, 0),
+		Text = caption,
+		TextColor3 = captionColour,
+		TextSize = 26,
+		TextXAlignment = Enum.TextXAlignment.Right,
+		OutlineThickness = 3,
+	}).Parent = slot
+	return slot
+end
+
+local RAINBOW_CARD = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 80, 200)),
+	ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 200, 40)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(70, 220, 90)),
+	ColorSequenceKeypoint.new(0.75, Color3.fromRGB(40, 170, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 80, 255)),
+})
+
+-- Resizes everything for the window's width (see the end of this section).
+local shopLayouts: { (width: number) -> () } = {}
+
+-- 1. This week's limited brainrot (OG), for a limited time.
+local limitedBuyButton: TextButton
+do
+	local card = create("Frame", {
+		Name = "Limited",
+		LayoutOrder = 1,
+		Size = UDim2.new(1, 0, 0, 236),
+		BackgroundColor3 = Color3.new(1, 1, 1),
+	}, {
+		corner(14),
+		stroke(GARDEN.WoodEdge, 4),
+		create("UIGradient", { Color = RAINBOW_CARD, Rotation = 20 }),
+	}) :: Frame
+	UIKit.addStuds(card, 30, 0.78)
+	local badge = label({
+		Name = "OG",
+		Position = UDim2.fromOffset(14, 6),
+		Size = UDim2.fromOffset(90, 42),
+		Rotation = -6,
+		Text = "OG!",
+		TextColor3 = Color3.fromRGB(255, 235, 60),
+		TextSize = 40,
+		OutlineThickness = 3,
+	})
+	badge.Parent = card
+	-- (Between the OG badge and the countdown.)
+	local title = label({
+		Name = "Title",
+		Position = UDim2.fromOffset(110, 8),
+		Size = UDim2.new(0.73, -122, 0, 42),
+		Text = "",
+		TextSize = 40,
+		OutlineThickness = 3,
+	})
+	title.Parent = card
+	label({
+		Name = "LimitedTime",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -12, 0, 6),
+		Size = UDim2.new(0.25, 0, 0, 26),
+		Text = "LIMITED TIME!",
+		TextColor3 = Color3.fromRGB(255, 60, 60),
+		TextSize = 26,
+		OutlineThickness = 3,
+	}).Parent = card
+	local timer = label({
+		Name = "Timer",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -12, 0, 32),
+		Size = UDim2.new(0.25, 0, 0, 24),
+		Text = "",
+		TextColor3 = Color3.fromRGB(255, 215, 215),
+		TextSize = 26,
+		OutlineThickness = 3,
+	})
+	timer.Parent = card
+	local icon = create("Frame", {
+		Name = "Icon",
+		Position = UDim2.fromOffset(10, 56),
+		Size = UDim2.fromOffset(166, 166),
+		Rotation = -6,
+		BackgroundTransparency = 1,
+	}) :: Frame
+	icon.Parent = card
+	local iconImage = create("ImageLabel", {
+		Name = "Image",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		Visible = false,
+	}, { corner(14), stroke(GARDEN.WoodEdge, 3) }) :: ImageLabel
+	iconImage.Parent = icon
+	local slots = create("Frame", {
+		Name = "Slots",
+		Position = UDim2.fromOffset(188, 58),
+		Size = UDim2.new(1, -200, 0, 112),
+		BackgroundTransparency = 1,
+	}, {
+		create("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			Padding = UDim.new(0, 8),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+		}),
+	}) :: Frame
+	slots.Parent = card
+	local info = label({
+		Name = "Info",
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0, 188, 1, -12),
+		Size = UDim2.new(1, -420, 0, 44),
+		Text = "",
+		TextSize = 22,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	})
+	info.Parent = card
+	local buy, setPrice = UIKit.robuxButton({
+		Name = "BuyLimited",
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.new(1, -12, 1, -10),
+		Size = UDim2.fromOffset(210, 50),
+	})
+	buy.Parent = card
+	limitedBuyButton = buy
+	card.Parent = shopList
+
+	-- This week's limited and how long it has left, as the server tells it.
+	local function weeklyLimited(): (ExtrasConfig.Limited, number)
+		local id = ReplicatedStorage:GetAttribute("LimitedId")
+		local endsAt = ReplicatedStorage:GetAttribute("LimitedEndsAt")
+		for _, limited in ExtrasConfig.LimitedRotation do
+			if limited.Id == id and typeof(endsAt) == "number" then
+				return limited, endsAt - Workspace:GetServerTimeNow()
+			end
+		end
+		local limited, localEndsAt = ExtrasConfig.currentLimited(os.time())
+		return limited, localEndsAt - os.time()
+	end
+	local current: ExtrasConfig.Limited? = nil
+	buy.Activated:Connect(function()
+		if current then
+			promptPurchase((MonetizationConfig.ProductIds :: { [string]: number })[current.Product] or 0, false)
+		end
+	end)
+	local slotCount = 5
+	local shown: string? = nil
+	local function refresh()
+		local limited, secondsLeft = weeklyLimited()
+		local left = math.max(0, math.floor(secondsLeft))
+		timer.Text = string.format("%02d:%02d:%02d:%02d", left // 86400, left // 3600 % 24, left // 60 % 60, left % 60)
+		if shown == limited.Id .. slotCount then
+			return
+		end
+		shown = limited.Id .. slotCount
+		current = limited
+		local definition = BrainrotConfig.ById[limited.Id]
+		title.Text = if definition then string.upper(definition.DisplayName) .. "!" else ""
+		info.Text = if definition
+			then string.format("%s · %s/s · rarer than any Secret!", definition.Rarity, NumberFormat.cash(definition.IncomePerSecond))
+			else ""
+		setPrice(NumberFormat.commas(limited.Robux), true)
+		if not setImage(iconImage, AssetLoader.getProductIcon(limited.Product)) then
+			iconImage.Visible = false
+			for _, child in icon:GetChildren() do
+				if child:IsA("ViewportFrame") then
+					child:Destroy()
+				end
+			end
+			UIKit.brainrotViewport(limited.Id, Color3.fromRGB(60, 30, 90), { Size = UDim2.fromScale(1, 1) }).Parent = icon
+		end
+		-- Every OG in the rotation: this week's, then the weeks after.
+		for _, child in slots:GetChildren() do
+			if child:IsA("Frame") then
+				child:Destroy()
+			end
+		end
+		local rotation = ExtrasConfig.LimitedRotation
+		local start = table.find(rotation, limited) or 1
+		for index = 1, math.min(slotCount, #rotation) do
+			local entry = rotation[(start - 1 + index - 1) % #rotation + 1]
+			local now = index == 1
+			local slot = brainrotSlot(
+				entry.Id,
+				if now then "NOW!" else string.format("IN %d WK", index - 1),
+				if now then Color3.fromRGB(120, 255, 120) else Color3.fromRGB(255, 255, 255),
+				now
+			)
+			slot.LayoutOrder = index
+			slot.Size = UDim2.new(1 / slotCount, -8 * (slotCount - 1) / slotCount, 1, 0)
+			slot.Parent = slots
+		end
+	end
+	refresh()
+	task.spawn(function()
+		while true do
+			task.wait(1)
+			if shopFrame.Visible then
+				refresh()
+			end
+		end
+	end)
+	table.insert(shopLayouts, function(width: number)
+		-- Narrow (a phone): fewer slots, and the text over the whole bottom.
+		local narrow = width < 640
+		slotCount = if width < 520 then 3 elseif narrow then 4 else 5
+		info.Visible = not narrow
+		refresh()
+	end)
+end
+
+-- 2. The lucky blocks, on cards showing what each opens into and how likely.
+local luckyOrder = 2
+for _, product in MonetizationConfig.ShopProducts do
+	if product.Section ~= "Lucky" then
+		continue
+	end
+	local blockId = MonetizationConfig.LuckyBlockProducts[product.Key]
+	local block = if blockId then BrainrotConfig.ById[blockId] else nil
+	local card = create("Frame", {
+		Name = product.Key,
+		LayoutOrder = luckyOrder,
+		Size = UDim2.new(1, 0, 0, 206),
+		BackgroundColor3 = Color3.new(1, 1, 1),
+	}, {
+		corner(14),
+		stroke(GARDEN.WoodEdge, 4),
+		create("UIGradient", {
+			Color = ColorSequence.new(
+				(if block then block.BodyColor else product.IconColor):Lerp(Color3.new(1, 1, 1), 0.1),
+				(if block then block.AccentColor else product.IconColor):Lerp(Color3.new(0, 0, 0), 0.25)
+			),
+			Rotation = 20,
+		}),
+	}) :: Frame
+	luckyOrder += 1
+	UIKit.addStuds(card, 30, 0.8)
+	label({
+		Name = "Title",
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 70, 0, 6),
+		Size = UDim2.new(1, -180, 0, 40),
+		Text = string.upper(product.DisplayName) .. "!",
+		TextSize = 36,
+		OutlineThickness = 3,
+	}).Parent = card
+	local iconFrame = create("Frame", {
+		Name = "Icon",
+		Position = UDim2.fromOffset(10, 22),
+		Size = UDim2.fromOffset(150, 150),
+		Rotation = -6,
+		BackgroundTransparency = 1,
+	}) :: Frame
+	iconFrame.Parent = card
+	local onIcon = productIcon(iconFrame, product)
+	local slots = create("Frame", {
+		Name = "Odds",
+		Position = UDim2.fromOffset(172, 52),
+		Size = UDim2.new(1, -184, 0, 96),
+		BackgroundTransparency = 1,
+	}, {
+		create("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			Padding = UDim.new(0, 8),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}),
+	}) :: Frame
+	slots.Parent = card
+	local odds: { [string]: number } = if block and block.Odds then block.Odds else {}
+	local total = 0
+	for _, weight in odds do
+		total += weight
+	end
+	for order, rarity in BrainrotConfig.Rarities do
+		local weight = odds[rarity.Name] or 0
+		local choices = BrainrotConfig.DropsByRarity[rarity.Name]
+		if weight <= 0 or total <= 0 or #choices == 0 then
+			continue
+		end
+		-- The best of that rarity, to show off.
+		local best = choices[1]
+		for _, choice in choices do
+			if choice.Price > best.Price then
+				best = choice
+			end
+		end
+		local share = weight / total * 100
+		-- (Secret's colour is black: white reads better on the dark slot.)
+		local colour = if rarity.Style == "Secret" then Color3.new(1, 1, 1) else rarity.Color
+		local slot = brainrotSlot(best.Id, if share >= 1 then string.format("%d%%", math.floor(share + 0.5)) else string.format("%.1f%%", share), colour, false)
+		slot.Name = rarity.Name
+		slot.LayoutOrder = order
+		slot.Size = UDim2.fromOffset(96, 96)
+		label({
+			Name = "Rarity",
+			Position = UDim2.fromOffset(4, 2),
+			Size = UDim2.new(1, -8, 0.24, 0),
+			Text = rarity.Name,
+			TextColor3 = colour,
+			TextSize = 16,
+			TextXAlignment = Enum.TextXAlignment.Left,
+		}).Parent = slot
+		slot.Parent = slots
+	end
+	label({
+		Name = "Description",
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0, 172, 1, -12),
+		Size = UDim2.new(1, -404, 0, 40),
+		Text = product.Description,
+		TextSize = 20,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}).Parent = card
+	local buy, setPrice = UIKit.robuxButton({
+		Name = "BuyButton",
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.new(1, -12, 1, -10),
+		Size = UDim2.fromOffset(210, 50),
+	})
+	buy.Parent = card
+	sellOn(buy, setPrice, product, onIcon)
+	card.Parent = shopList
+	table.insert(shopLayouts, function(width: number)
+		local description = card:FindFirstChild("Description")
+		if description and description:IsA("TextLabel") then
+			description.Visible = width >= 640
+		end
+	end)
+end
+
+-- 3. A band and a grid of tiles per section.
+local SHOP_SECTIONS = {
+	{ Key = "Passes", Title = "Game Passes", Note = "Yours forever!", Color = Color3.fromRGB(205, 38, 38) },
+	{ Key = "Boosts", Title = "Cash & Boosts", Note = "Instant!", Color = Color3.fromRGB(70, 165, 40) },
+	{ Key = "Troll", Title = "Troll Items", Note = "Stop the thieves!", Color = Color3.fromRGB(140, 60, 205) },
+	{ Key = "Skins", Title = "Skins & Hats", Note = "Look rich!", Color = Color3.fromRGB(35, 120, 215) },
+}
+local function productTile(product: MonetizationConfig.ShopProduct, order: number): Frame
+	local tile = create("Frame", {
+		Name = product.Key,
+		LayoutOrder = order,
+		BackgroundColor3 = GARDEN.Tile,
+	}, { corner(12), stroke(GARDEN.WoodEdge, 3) }) :: Frame
+	local iconFrame = create("Frame", {
+		Name = "Icon",
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0, 8),
+		Size = UDim2.new(1, -16, 0.5, 0),
+		BackgroundColor3 = product.IconColor:Lerp(Color3.new(0, 0, 0), 0.35),
+	}, {
+		corner(10),
+		stroke(GARDEN.WoodEdge, 2),
+		create("UIAspectRatioConstraint", { AspectRatio = 1 }),
+	}) :: Frame
+	iconFrame.Parent = tile
+	local onIcon = productIcon(iconFrame, product)
+	label({
+		Name = "ProductName",
+		Position = UDim2.new(0, 6, 0.545, 0),
+		Size = UDim2.new(1, -12, 0.1, 0),
+		Text = product.DisplayName,
+		TextSize = 24,
+	}).Parent = tile
+	label({
+		Name = "Description",
+		Position = UDim2.new(0, 6, 0.65, 0),
+		Size = UDim2.new(1, -12, 0.17, 0),
+		Text = product.Description,
+		TextColor3 = Color3.fromRGB(255, 236, 200),
+		TextSize = 17,
+		TextWrapped = true,
+		OutlineThickness = 1,
+	}).Parent = tile
+	local buy, setPrice = UIKit.robuxButton({
+		Name = "BuyButton",
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, -8),
+		Size = UDim2.new(1, -16, 0.14, 0),
+	})
+	buy.Parent = tile
+	sellOn(buy, setPrice, product, onIcon)
+	return tile
+end
+local sectionOrder = 10
+for _, section in SHOP_SECTIONS do
+	local band = create("Frame", {
+		Name = section.Key .. "Band",
+		LayoutOrder = sectionOrder,
+		Size = UDim2.new(1, 0, 0, 52),
+		BackgroundColor3 = section.Color,
+	}, {
+		corner(10),
+		stroke(section.Color:Lerp(Color3.new(0, 0, 0), 0.55), 3),
+		gloss(),
+	}) :: Frame
+	UIKit.addStuds(band, 26, 0.6)
+	label({
+		Name = "Title",
+		Position = UDim2.fromOffset(16, 4),
+		Size = UDim2.new(0.6, 0, 1, -8),
+		Text = section.Title,
+		TextSize = 36,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		OutlineThickness = 3,
+	}).Parent = band
+	label({
+		Name = "Note",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -16, 0, 10),
+		Size = UDim2.new(0.36, 0, 1, -20),
+		Text = section.Note,
+		TextColor3 = Color3.fromRGB(255, 240, 150),
+		TextSize = 24,
+		TextXAlignment = Enum.TextXAlignment.Right,
+	}).Parent = band
+	band.Parent = shopList
+	local layout = create("UIGridLayout", {
+		CellPadding = UDim2.fromOffset(10, 10),
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	}) :: UIGridLayout
+	local grid = create("Frame", {
+		Name = section.Key,
+		LayoutOrder = sectionOrder + 1,
+		BackgroundTransparency = 1,
+	}) :: Frame
+	layout.Parent = grid
+	local count = 0
+	for index, product in MonetizationConfig.ShopProducts do
+		if product.Section == section.Key then
+			productTile(product, index).Parent = grid
+			count += 1
+		end
+	end
+	grid.Parent = shopList
+	sectionOrder += 2
+	table.insert(shopLayouts, function(width: number)
+		local columns = math.clamp(math.floor((width + 10) / 176), 2, 4)
+		local cellWidth = math.floor((width - (columns - 1) * 10) / columns)
+		local cellHeight = math.floor(cellWidth * 1.58)
+		layout.CellSize = UDim2.fromOffset(cellWidth, cellHeight)
+		local rows = math.ceil(count / columns)
+		grid.Size = UDim2.new(1, 0, 0, rows * cellHeight + math.max(0, rows - 1) * 10)
+	end)
+end
+
+-- The window takes the room the screen has (at least 0.8 size on a phone).
+UIKit.fillScreen(shopFrame, Vector2.new(860, 640), Vector2.new(440, 330), 0.8, function(size: Vector2)
+	-- The list's inside width: the window's body less the list's padding.
+	local width = size.X - 32 - 30
+	for _, relayout in shopLayouts do
+		relayout(width)
+	end
+end)
+UIKit.setDefaultSelection(shopFrame, limitedBuyButton)
 
 --------------------------------------------------------------------------------
 -- Rebirth

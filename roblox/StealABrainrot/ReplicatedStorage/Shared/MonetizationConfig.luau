@@ -22,6 +22,12 @@ export type ShopProduct = {
 	IconColor: Color3,
 	-- A game pass (ProductId is then its pass ID): bought once, kept forever.
 	GamePass: boolean?,
+	-- Where it goes in the shop: "Passes", "Lucky" (the lucky block cards),
+	-- "Boosts", "Troll" or "Skins".
+	Section: string,
+	-- The price the shop shows until Roblox says the real one (the price you
+	-- set in the Creator Dashboard; see the README's Prices).
+	Robux: number,
 }
 
 local ProductIds = table.freeze({
@@ -120,6 +126,8 @@ local CASH_BOOST_MULTIPLIER = 2
 local ShopProducts: { ShopProduct } = {
 	{
 		Key = "VIP",
+		Section = "Passes",
+		Robux = 199,
 		ProductId = GamePasses.VIP,
 		DisplayName = "VIP",
 		Description = "+15% income forever, plus an extra free spin every day.",
@@ -130,6 +138,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "DoubleCash",
+		Section = "Passes",
+		Robux = 399,
 		ProductId = GamePasses.DoubleCash,
 		DisplayName = "2x Cash Forever",
 		Description = "Every brainrot you own earns double. Forever!",
@@ -140,6 +150,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "LongLock",
+		Section = "Passes",
+		Robux = 149,
 		ProductId = GamePasses.LongLock,
 		DisplayName = "Long Lock",
 		Description = "Your base lock lasts twice as long.",
@@ -150,6 +162,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "SeasonPass",
+		Section = "Passes",
+		Robux = 349,
 		ProductId = GamePasses.SeasonPass,
 		DisplayName = "Season Pass",
 		Description = "Premium rewards on every season tier, up to the exclusive Admino Supremo.",
@@ -160,6 +174,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "SuperGuard",
+		Section = "Passes",
+		Robux = 199,
 		ProductId = GamePasses.SuperGuard,
 		DisplayName = "Super Guard",
 		Description = "Your guard brainrot gets back up twice as fast.",
@@ -170,6 +186,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "SmallCashBundle",
+		Section = "Boosts",
+		Robux = 25,
 		ProductId = ProductIds.SmallCashBundle,
 		DisplayName = "Small Cash Bundle",
 		Description = string.format("+%s Cash instantly", NumberFormat.commas(SMALL_CASH_BUNDLE_AMOUNT)),
@@ -179,6 +197,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "MediumCashBundle",
+		Section = "Boosts",
+		Robux = 79,
 		ProductId = ProductIds.MediumCashBundle,
 		DisplayName = "Medium Cash Bundle",
 		Description = string.format("+%s Cash instantly", NumberFormat.commas(MEDIUM_CASH_BUNDLE_AMOUNT)),
@@ -188,6 +208,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "EMPLaserOverrider",
+		Section = "Boosts",
+		Robux = 49,
 		ProductId = ProductIds.EMPLaserOverrider,
 		DisplayName = "EMP Laser Overrider",
 		Description = string.format("Walk through every laser door for %d seconds", LASER_BYPASS_DURATION_SECONDS),
@@ -197,6 +219,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "ServerRarityBoost",
+		Section = "Boosts",
+		Robux = 99,
 		ProductId = ProductIds.ServerRarityBoost,
 		DisplayName = "Server Rarity Boost",
 		Description = string.format(
@@ -210,6 +234,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "FreezeRay",
+		Section = "Troll",
+		Robux = 49,
 		ProductId = ProductIds.FreezeRay,
 		DisplayName = "Freeze Ray x3",
 		Description = "Freeze a player solid for 4 seconds. Thieves drop what they carry!",
@@ -219,6 +245,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "SpikeTrap",
+		Section = "Troll",
+		Robux = 35,
 		ProductId = ProductIds.SpikeTrap,
 		DisplayName = "Spike Trap x3",
 		Description = "Spikes that trap whoever steps on them for 3 seconds.",
@@ -228,6 +256,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "LandMine",
+		Section = "Troll",
+		Robux = 35,
 		ProductId = ProductIds.LandMine,
 		DisplayName = "Land Mine x3",
 		Description = "BOOM! Launches anyone who steps on it into the air.",
@@ -237,6 +267,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "BoogieBomb",
+		Section = "Troll",
+		Robux = 49,
 		ProductId = ProductIds.BoogieBomb,
 		DisplayName = "Boogie Bomb x2",
 		Description = "Everyone near you can't stop dancing for 4 seconds.",
@@ -246,6 +278,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "GodLuckyBlock",
+		Section = "Lucky",
+		Robux = 199,
 		ProductId = ProductIds.GodLuckyBlock,
 		DisplayName = "Brainrot God Lucky Block",
 		Description = "Opens into a Mythic, a Brainrot God or even a Secret!",
@@ -255,6 +289,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "SecretLuckyBlock",
+		Section = "Lucky",
+		Robux = 499,
 		ProductId = ProductIds.SecretLuckyBlock,
 		DisplayName = "Secret Lucky Block",
 		Description = "Opens into a Brainrot God or a Secret. 30% Secret!",
@@ -264,6 +300,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "SpinPack",
+		Section = "Boosts",
+		Robux = 49,
 		ProductId = ProductIds.SpinPack,
 		DisplayName = string.format("%d Wheel Spins", SPIN_PACK_SPINS),
 		Description = "Spin the prize wheel for cash, lucky blocks and boosts.",
@@ -273,6 +311,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "CashBoost",
+		Section = "Boosts",
+		Robux = 79,
 		ProductId = ProductIds.CashBoost,
 		DisplayName = "2x Cash (30 min)",
 		Description = "Every brainrot earns double for 30 minutes. Stacks up!",
@@ -282,6 +322,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "HatCrate",
+		Section = "Skins",
+		Robux = 99,
 		ProductId = ProductIds.HatCrate,
 		DisplayName = "Hat Crate",
 		Description = "A random hat for one of your brainrots: up to +25% income. Crowns are rare!",
@@ -291,6 +333,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "GalaxySkin",
+		Section = "Skins",
+		Robux = 149,
 		ProductId = ProductIds.GalaxySkin,
 		DisplayName = "Galaxy Base Skin",
 		Description = "Purple space neon for your whole base. Yours forever.",
@@ -300,6 +344,8 @@ local ShopProducts: { ShopProduct } = {
 	},
 	{
 		Key = "RainbowSkin",
+		Section = "Skins",
+		Robux = 199,
 		ProductId = ProductIds.RainbowSkin,
 		DisplayName = "Rainbow Base Skin",
 		Description = "Your base glows through every colour. Yours forever.",

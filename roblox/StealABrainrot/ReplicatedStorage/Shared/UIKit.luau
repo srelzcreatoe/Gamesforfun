@@ -9,9 +9,13 @@
 	whichever script made it).
 ]]
 
+local AssetService = game:GetService("AssetService")
+local ContextActionService = game:GetService("ContextActionService")
+local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local AssetLoader = require(script.Parent:WaitForChild("AssetLoader"))
@@ -365,6 +369,98 @@ end)
 
 local modals: { Frame } = {}
 
+-- Controllers: when a window opens, a button in it is selected (see
+-- setDefaultSelection) so the D-pad or stick moves between its buttons, B
+-- closes it, and the selection goes back where it was.
+local defaultSelections: { [Frame]: GuiObject } = {}
+local selectedBefore: { [Frame]: GuiObject? } = {}
+local CLOSE_ACTION = "UIKitCloseWindow"
+
+local function usingGamepad(): boolean
+	return string.find(UserInputService:GetLastInputType().Name, "Gamepad", 1, true) ~= nil
+end
+
+local function isShown(target: GuiObject): boolean
+	local node: Instance? = target
+	while node and node:IsA("GuiObject") do
+		if not node.Visible then
+			return false
+		end
+		node = node.Parent
+	end
+	return target.Parent ~= nil
+end
+
+local function firstSelection(frame: Frame): GuiObject?
+	local chosen = defaultSelections[frame]
+	if chosen and chosen:IsDescendantOf(frame) and isShown(chosen) then
+		return chosen
+	end
+	for _, descendant in frame:GetDescendants() do
+		if descendant:IsA("GuiButton") and descendant.Name ~= "CloseButton" and descendant.Selectable and isShown(descendant) then
+			return descendant
+		end
+	end
+	return frame:FindFirstChild("CloseButton") :: GuiObject?
+end
+
+local function closeTopWindow(_action: string, state: Enum.UserInputState, _input: any): Enum.ContextActionResult
+	if state ~= Enum.UserInputState.Begin then
+		return Enum.ContextActionResult.Pass
+	end
+	for _, frame in modals do
+		if frame.Visible then
+			frame.Visible = false
+			return Enum.ContextActionResult.Sink
+		end
+	end
+	return Enum.ContextActionResult.Pass
+end
+
+local function onModalVisibility(frame: Frame)
+	if frame.Visible then
+		if usingGamepad() then
+			selectedBefore[frame] = GuiService.SelectedObject
+			GuiService.SelectedObject = firstSelection(frame)
+		end
+	else
+		local selected = GuiService.SelectedObject
+		if selected and selected:IsDescendantOf(frame) then
+			local before = selectedBefore[frame]
+			GuiService.SelectedObject = if before and isShown(before) then before else nil
+		end
+		selectedBefore[frame] = nil
+	end
+	local anyOpen = false
+	for _, other in modals do
+		anyOpen = anyOpen or other.Visible
+	end
+	if anyOpen then
+		ContextActionService:BindActionAtPriority(CLOSE_ACTION, closeTopWindow, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.ButtonB)
+	else
+		ContextActionService:UnbindAction(CLOSE_ACTION)
+	end
+end
+
+-- The button a controller starts on when this window opens.
+function UIKit.setDefaultSelection(frame: Frame, target: GuiObject)
+	defaultSelections[frame] = target
+end
+
+-- The outline round whatever a controller has selected (set it as the
+-- PlayerGui's SelectionImageObject).
+function UIKit.selectionHighlight(): Frame
+	return create("Frame", {
+		Name = "SelectionHighlight",
+		Size = UDim2.new(1, 8, 1, 8),
+		Position = UDim2.fromOffset(-4, -4),
+		BackgroundTransparency = 1,
+	}, {
+		UIKit.corner(12),
+		create("UIStroke", { Color = Color3.fromRGB(255, 230, 60), Thickness = 4, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }),
+	}) :: Frame
+end
+
 -- Windows are always laid out at their design size and scaled down as a
 -- whole to fit the screen, so everything in them fits on any screen.
 -- Roblox's top bar takes this much of the screen.
@@ -444,6 +540,9 @@ function UIKit.modal(parent: Instance, name: string, title: string, accent: Colo
 	body.Parent = frame
 	frame.Parent = parent
 	table.insert(modals, frame)
+	frame:GetPropertyChangedSignal("Visible"):Connect(function()
+		onModalVisibility(frame)
+	end)
 	return frame, body
 end
 
@@ -622,6 +721,33 @@ function UIKit.gridCells(width: number, columns: number, gap: number, scrollBar:
 	return math.floor((width - scrollBar - 4 - (columns - 1) * gap) / columns)
 end
 
+-- The room a window has on screen (between the side buttons, under the top
+-- bar), in pixels.
+function UIKit.windowArea(): Vector2
+	local viewport = viewportSize()
+	local sides = 16 + (2 * UIKit.SideSize + 20) * sideFactor(viewport) + 12
+	return Vector2.new(viewport.X - 2 * sides, (viewport.Y - TOP_BAR_HEIGHT) * 0.92)
+end
+
+-- A window that takes the room the screen has rather than shrinking a fixed
+-- design: on a phone it keeps its text and buttons big (at least `minScale`)
+-- and gets narrower (fewer columns) instead. `onResize` gets its new design
+-- size whenever the screen changes.
+function UIKit.fillScreen(frame: Frame, maxSize: Vector2, minSize: Vector2, minScale: number, onResize: (Vector2) -> ())
+	local function update()
+		local area = UIKit.windowArea()
+		local scale = math.clamp(area.Y / 560, minScale, 1)
+		local size = Vector2.new(math.clamp(area.X / scale, minSize.X, maxSize.X), math.clamp(area.Y / scale, minSize.Y, maxSize.Y))
+		UIKit.resizeModal(frame, Vector2.new(math.floor(size.X), math.floor(size.Y)))
+		onResize(Vector2.new(frame.Size.X.Offset, frame.Size.Y.Offset))
+	end
+	update()
+	local camera = Workspace.CurrentCamera
+	if camera then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(update)
+	end
+end
+
 -- Changes a window's design size (see UIKit.modal), e.g. to fit its content.
 function UIKit.resizeModal(frame: Frame, size: Vector2)
 	frame.Size = UDim2.fromOffset(size.X, size.Y)
@@ -781,6 +907,251 @@ function UIKit.brainrotCard(entry: string, properties: { [string]: any }): TextB
 		}).Parent = card
 	end
 	return card
+end
+
+--------------------------------------------------------------------------------
+-- The shop look, like Grow a Garden's: wooden windows with a studded green
+-- title bar, a square red close button and green Robux buttons. The studs and
+-- the Robux sign are drawn in code, so nothing has to be uploaded.
+--------------------------------------------------------------------------------
+
+UIKit.Garden = table.freeze({
+	Wood = Color3.fromRGB(141, 90, 46),
+	WoodDark = Color3.fromRGB(99, 60, 28),
+	WoodEdge = Color3.fromRGB(56, 32, 14),
+	Tile = Color3.fromRGB(122, 77, 38),
+	Green = Color3.fromRGB(98, 191, 63),
+	GreenEdge = Color3.fromRGB(46, 110, 28),
+	Buy = Color3.fromRGB(64, 205, 64),
+	BuyEdge = Color3.fromRGB(24, 105, 24),
+	Close = Color3.fromRGB(228, 46, 40),
+	CloseEdge = Color3.fromRGB(110, 12, 10),
+})
+
+-- A small picture drawn pixel by pixel; nil where the game can't make one.
+local function drawImage(size: number, shade: (x: number, y: number) -> (number, number, number, number)): EditableImage?
+	local ok, image = pcall(function(): EditableImage?
+		return AssetService:CreateEditableImage({ Size = Vector2.new(size, size) })
+	end)
+	if not ok or image == nil then
+		return nil
+	end
+	local pixels = buffer.create(size * size * 4)
+	for y = 0, size - 1 do
+		for x = 0, size - 1 do
+			local r, g, b, a = shade(x + 0.5, y + 0.5)
+			local offset = (y * size + x) * 4
+			buffer.writeu8(pixels, offset, r)
+			buffer.writeu8(pixels, offset + 1, g)
+			buffer.writeu8(pixels, offset + 2, b)
+			buffer.writeu8(pixels, offset + 3, a)
+		end
+	end
+	local written = pcall(function()
+		image:WritePixelsBuffer(Vector2.zero, Vector2.new(size, size), pixels)
+	end)
+	return if written then image else nil
+end
+
+local drawn: { [string]: EditableImage } = {}
+local drawnTried: { [string]: boolean } = {}
+local function drawnOnce(name: string, size: number, shade: (x: number, y: number) -> (number, number, number, number)): EditableImage?
+	if not drawnTried[name] then
+		drawnTried[name] = true
+		local image = drawImage(size, shade)
+		if image then
+			drawn[name] = image
+		end
+	end
+	return drawn[name]
+end
+
+-- One Lego stud, lit from the top left, with its shadow.
+function UIKit.studTexture(): EditableImage?
+	return drawnOnce("Stud", 32, function(x: number, y: number): (number, number, number, number)
+		local dx, dy = x - 15, y - 15
+		local distance = math.sqrt(dx * dx + dy * dy)
+		if distance <= 9 then
+			if distance > 8 then
+				return 0, 0, 0, 60
+			end
+			local light = -(dx + dy) / 12.7
+			if light > 0 then
+				return 255, 255, 255, math.floor(70 + 110 * light)
+			end
+			return 0, 0, 0, math.floor(-light * 70)
+		end
+		local sx, sy = x - 16.5, y - 16.5
+		if math.sqrt(sx * sx + sy * sy) <= 9 then
+			return 0, 0, 0, 70
+		end
+		return 0, 0, 0, 0
+	end)
+end
+
+-- Tiles studs over a panel, under whatever is in it.
+function UIKit.addStuds(target: GuiObject, tile: number, transparency: number)
+	local image = UIKit.studTexture()
+	if image == nil then
+		return
+	end
+	local layer = create("ImageLabel", {
+		Name = "Studs",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		ScaleType = Enum.ScaleType.Tile,
+		TileSize = UDim2.fromOffset(tile, tile),
+		ImageTransparency = transparency,
+		ZIndex = 0,
+	}) :: ImageLabel
+	local round = target:FindFirstChildOfClass("UICorner")
+	if round then
+		round:Clone().Parent = layer
+	end
+	UIKit.setImage(layer, image)
+	layer.Parent = target
+end
+
+local function insideHexagon(x: number, y: number, radius: number): boolean
+	local ax, ay = math.abs(x), math.abs(y)
+	return ax <= radius * 0.866 and ay <= radius - ax * 0.57735
+end
+
+-- The Robux sign: a hexagon ring round a square.
+function UIKit.robuxIcon(): EditableImage?
+	return drawnOnce("Robux", 48, function(x: number, y: number): (number, number, number, number)
+		local covered = 0
+		for sy = 0, 2 do
+			for sx = 0, 2 do
+				local px, py = x - 24 + (sx - 1) / 3, y - 24 + (sy - 1) / 3
+				local square = math.abs(px) <= 6 and math.abs(py) <= 6
+				if square or (insideHexagon(px, py, 21) and not insideHexagon(px, py, 14.5)) then
+					covered += 1
+				end
+			end
+		end
+		return 255, 255, 255, math.floor(covered / 9 * 255 + 0.5)
+	end)
+end
+
+-- A green buy button showing the Robux sign and a price. Returns it and a
+-- function to change what it says (`robux` false: plain text like OWNED).
+function UIKit.robuxButton(properties: { [string]: any }): (TextButton, (text: string, robux: boolean) -> ())
+	local garden = UIKit.Garden
+	local target = UIKit.button("", garden.Buy, properties)
+	local edge = target:FindFirstChildOfClass("UIStroke")
+	if edge then
+		edge.Color = garden.BuyEdge
+		edge.Thickness = 3
+	end
+	local row = create("Frame", {
+		Name = "Content",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+	}, {
+		create("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Center,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			Padding = UDim.new(0, 4),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}),
+	}) :: Frame
+	local icon = create("ImageLabel", {
+		Name = "RobuxIcon",
+		Size = UDim2.fromScale(0.72, 0.72),
+		SizeConstraint = Enum.SizeConstraint.RelativeYY,
+		BackgroundTransparency = 1,
+		LayoutOrder = 1,
+		Visible = false,
+	}) :: ImageLabel
+	local image = UIKit.robuxIcon()
+	icon.Parent = row
+	local price = UIKit.label({
+		Name = "Price",
+		Size = UDim2.fromScale(1, 1),
+		Text = "",
+		TextSize = 30,
+		LayoutOrder = 2,
+		OutlineThickness = 2,
+	})
+	price.Parent = row
+	row.Parent = target
+	local function set(text: string, robux: boolean)
+		local withIcon = robux and image ~= nil
+		if withIcon and image then
+			UIKit.setImage(icon, image)
+		end
+		icon.Visible = withIcon
+		price.Text = if robux and not withIcon then "R$ " .. text else text
+		price.TextXAlignment = if withIcon then Enum.TextXAlignment.Left else Enum.TextXAlignment.Center
+		price.Size = UDim2.fromScale(if withIcon then math.clamp(#text * 0.11, 0.3, 0.66) else 1, 1)
+	end
+	set("BUY", false)
+	return target, set
+end
+
+-- Dresses a window (from UIKit.modal) as a wooden one with a studded green
+-- title bar and a square red close button.
+function UIKit.gardenStyle(frame: Frame)
+	local garden = UIKit.Garden
+	frame.BackgroundColor3 = garden.Wood
+	local round = frame:FindFirstChildOfClass("UICorner")
+	if round then
+		round.CornerRadius = UDim.new(0, 12)
+	end
+	local edge = frame:FindFirstChildOfClass("UIStroke")
+	if edge then
+		edge.Color = garden.WoodEdge
+		edge.Thickness = 5
+	end
+	UIKit.addStuds(frame, 34, 0.86)
+	local header = frame:FindFirstChild("Header")
+	if header and header:IsA("Frame") then
+		header.BackgroundColor3 = garden.Green
+		local headerRound = header:FindFirstChildOfClass("UICorner")
+		if headerRound then
+			headerRound.CornerRadius = UDim.new(0, 12)
+		end
+		-- Square bottom corners and a dark edge under the bar.
+		create("Frame", {
+			Name = "Base",
+			AnchorPoint = Vector2.new(0, 1),
+			Position = UDim2.fromScale(0, 1),
+			Size = UDim2.new(1, 0, 0, 14),
+			BackgroundColor3 = garden.Green:Lerp(Color3.new(0, 0, 0), 0.22),
+			BorderSizePixel = 0,
+		}).Parent = header
+		create("Frame", {
+			Name = "Edge",
+			Position = UDim2.fromScale(0, 1),
+			Size = UDim2.new(1, 0, 0, 4),
+			BackgroundColor3 = garden.GreenEdge,
+			BorderSizePixel = 0,
+		}).Parent = header
+		UIKit.addStuds(header, 26, 0.5)
+	end
+	local title = frame:FindFirstChild("Title")
+	if title and title:IsA("TextLabel") then
+		local outline = title:FindFirstChildOfClass("UIStroke")
+		if outline then
+			outline.Thickness = 4
+			outline.Color = Color3.fromRGB(30, 60, 20)
+		end
+	end
+	local close = frame:FindFirstChild("CloseButton")
+	if close and close:IsA("TextButton") then
+		close.BackgroundColor3 = garden.Close
+		local closeRound = close:FindFirstChildOfClass("UICorner")
+		if closeRound then
+			closeRound.CornerRadius = UDim.new(0, 6)
+		end
+		local closeEdge = close:FindFirstChildOfClass("UIStroke")
+		if closeEdge then
+			closeEdge.Color = garden.CloseEdge
+			closeEdge.Thickness = 3
+		end
+	end
 end
 
 return UIKit
