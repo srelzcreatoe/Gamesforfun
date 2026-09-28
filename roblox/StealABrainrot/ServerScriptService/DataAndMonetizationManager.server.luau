@@ -906,7 +906,13 @@ local function checkGamePassOwnershipAsync(userId: number, passId: number): bool
 end
 
 local function syncGamePassesAsync(profile: Profile)
-	for _, passId in GAME_PASSES do
+	for passName, passId in GAME_PASSES do
+		-- A pass sold as a developer product is owned when the saved data says
+		-- so (it was bought through ProcessReceipt); Roblox doesn't track it.
+		if MonetizationConfig.PassesSoldAsProducts[passName] then
+			setGamePassOwned(profile, passId, profile.Data.OwnedGamePasses[tostring(passId)] == true)
+			continue
+		end
 		local owned = checkGamePassOwnershipAsync(profile.UserId, passId)
 		if not isUsable(profile) then
 			return
@@ -922,6 +928,9 @@ end
 local function onGamePassPurchaseFinished(player: Player, passId: number, wasPurchased: boolean)
 	if not wasPurchased or typeof(passId) ~= "number" or gamePassNamesById[passId] == nil then
 		return
+	end
+	if MonetizationConfig.PassesSoldAsProducts[gamePassNamesById[passId]] then
+		return -- bought as a developer product; ProcessReceipt grants it
 	end
 
 	for _, delaySeconds in GAME_PASS_VERIFY_DELAYS do
@@ -1186,6 +1195,15 @@ for itemId in ITEM_CHARGES do
 	if productId then
 		PRODUCT_HANDLERS[productId] = function(profile: Profile): boolean
 			return addItemCharges(profile, itemId)
+		end
+	end
+end
+-- Passes sold as developer products: the purchase unlocks the pass for good.
+for passName, passId in GAME_PASSES do
+	if MonetizationConfig.PassesSoldAsProducts[passName] then
+		PRODUCT_HANDLERS[passId] = function(profile: Profile): boolean
+			setGamePassOwned(profile, passId, true)
+			return true
 		end
 	end
 end

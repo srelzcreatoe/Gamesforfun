@@ -511,12 +511,24 @@ local function sellOn(buy: TextButton, setPrice: (string, boolean) -> (), produc
 		setPrice("OWNED", false)
 		UIKit.setEnabled(buy, false, GARDEN.Buy)
 	end
+	-- A pass sold as a developer product: bought like one, owned per the server.
+	local soldAsProduct = product.GamePass == true and MonetizationConfig.PassesSoldAsProducts[product.Key] == true
+	local isPass = product.GamePass == true and not soldAsProduct
 	buy.Activated:Connect(function()
 		if not owned then
-			promptPurchase(product.ProductId, product.GamePass)
+			promptPurchase(product.ProductId, isPass)
 		end
 	end)
-	if product.GamePass and MonetizationConfig.isSetUp(product.ProductId) then
+	if soldAsProduct then
+		local attribute = "OwnsGamePass_" .. product.Key
+		local function checkOwned()
+			if not owned and player:GetAttribute(attribute) == true then
+				showOwned()
+			end
+		end
+		player:GetAttributeChangedSignal(attribute):Connect(checkOwned)
+		checkOwned()
+	elseif isPass and MonetizationConfig.isSetUp(product.ProductId) then
 		task.spawn(function()
 			local ok, has = pcall(function()
 				return MarketplaceService:UserOwnsGamePassAsync(player.UserId, product.ProductId)
@@ -532,7 +544,7 @@ local function sellOn(buy: TextButton, setPrice: (string, boolean) -> (), produc
 		end)
 	end
 	task.spawn(function()
-		local info = fetchOwnProductInfo(product.ProductId, if product.GamePass then Enum.InfoType.GamePass else Enum.InfoType.Product)
+		local info = fetchOwnProductInfo(product.ProductId, if isPass then Enum.InfoType.GamePass else Enum.InfoType.Product)
 		if info == nil then
 			return
 		end

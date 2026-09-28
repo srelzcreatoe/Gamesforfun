@@ -121,7 +121,11 @@ local function promptPass(key: string)
 		UIKit.toast(MonetizationConfig.NotSetUpMessage, "Warning")
 	elseif passId then
 		pcall(function()
-			MarketplaceService:PromptGamePassPurchase(player, passId)
+			if MonetizationConfig.PassesSoldAsProducts[key] then
+				MarketplaceService:PromptProductPurchase(player, passId)
+			else
+				MarketplaceService:PromptGamePassPurchase(player, passId)
+			end
 		end)
 	end
 end

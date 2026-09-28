@@ -197,12 +197,14 @@ An unpublished place can't use DataStores or sell products, so in Studio you get
 
 1. Publish the place (File → Publish to Roblox).
 2. Turn on Game Settings → Security → **Enable Studio Access to API Services**.
-3. Set up your Robux products (below).
+3. The Robux products are already set up (below).
 4. Optional: create badges (Welcome, First Steal, First Rebirth, Rebirth 5, Lucky Opener, First Fuse, First Trade, Secret Owner, Millionaire, Index Master, Week Streak) and put their IDs in `FeatureConfig.Badges`. The group boost and Group Chest already use the [SNATCH THE BRAINROT community](https://www.roblox.com/communities/737518183/SNATCH-THE-BRAINROT) (`FeatureConfig.GroupId = 737518183`).
 
 ### Setting up Robux products
 
-The product and game pass IDs in `ReplicatedStorage/Shared/MonetizationConfig.luau` are **placeholders** (100001, 100002, ..., 200001, ...) until you put your own in. Product IDs are shared by every game on Roblox, so a placeholder is some other creator's old product: that's why the game never opens a purchase for one, and why owning a pass with a placeholder's number (someone else's pass) doesn't count. Instead the Buy button says "Not for sale yet", and when you press Play the Output lists every item still to set up. Only you can make the real ones, because they have to belong to your game:
+**Done:** all 27 IDs in `ReplicatedStorage/Shared/MonetizationConfig.luau` are the game's own, from its Creator Dashboard. The steps below are for adding a new product or changing one.
+
+A placeholder ID (a small number like 100001) is never sold: product IDs are shared by every game on Roblox, so a placeholder is some other creator's old product, and owning a pass with a placeholder's number (someone else's pass) doesn't count. Its Buy button says "Not for sale yet", and when you press Play the Output lists every item still to set up. Only you can make the real ones, because they have to belong to your game:
 
 1. Publish the place (File → Publish to Roblox) so it has a page on the Creator Dashboard.
 2. Go to [create.roblox.com/dashboard/creations](https://create.roblox.com/dashboard/creations), click your game, and open **Monetization → Developer Products**.
@@ -211,6 +213,8 @@ The product and game pass IDs in `ReplicatedStorage/Shared/MonetizationConfig.lu
 5. In Studio, open `ReplicatedStorage → Shared → MonetizationConfig` and replace that product's placeholder with the ID you copied, for example `SmallCashBundle = 100001,` becomes `SmallCashBundle = 3312345678,`.
 6. Repeat for every product. Game passes are the same under **Monetization → Passes** (create the pass with its picture from `PassIcons/`, set it **On Sale** with a price, copy its ID; `PassIcons/Alternates/` has a second choice for VIP and 2x Cash) and go in the `GamePasses` list lower down in the same file.
 7. Save and publish. The Output stops listing an item once its ID is real.
+
+**The 5 passes are developer products.** VIP, 2x Cash, Long Lock, Season Pass and Super Guard were made under Developer Products, not Passes, so `MonetizationConfig.PassesSoldAsProducts` lists them: the game sells each one as a product that unlocks it forever. The purchase is saved in the player's data (like their Cash), the shop shows **OWNED** once they have it, and the Season Pass and Super Guard buttons open the same purchase. To sell one as a real game pass later (they show on the game's Store tab), create it under **Monetization → Passes**, put the pass ID in `GamePasses` and take it out of `PassesSoldAsProducts`; players who bought the product version keep it.
 
 | In MonetizationConfig | Name it (Developer Product) |
 |---|---|
@@ -237,7 +241,7 @@ The product and game pass IDs in `ReplicatedStorage/Shared/MonetizationConfig.lu
 | `LimitedDominus` | Dominusso Cappuccinoso |
 | `LimitedSparkle` | Sparklino Fedorino |
 
-| In GamePasses | Name it (Pass) |
+| In GamePasses | Name it |
 |---|---|
 | `VIP` | VIP |
 | `DoubleCash` | 2x Cash |
@@ -250,7 +254,7 @@ The limited brainrots' prices are also written in `ExtrasConfig.LimitedRotation`
 ### Before you make it public
 
 1. Import `BrainrotModels/Import/BrainrotModels.glb` (all the brainrots in one file) and **File → Save**, so every brainrot shows as a real mesh.
-2. Set up your Robux products and passes (above). Anything you skip just says "Not for sale yet".
+2. Robux products and passes: already set up with the game's IDs (above). Upload each one's picture from `ProductIcons/` and `PassIcons/` on its Creator Dashboard page too.
 3. Publish (**File → Publish to Roblox**). Saving (DataStores) works on its own once the game is live.
 4. If the game belongs to a group rather than your account, put your user ID in `FeatureConfig.AdminUserIds` so the chat commands (`/event`, `/abuse`, ...) work for you. Nobody else can use them.
 5. On the Creator Dashboard, fill in your experience's **Maturity & Compliance** questionnaire, then in **Game Settings → Permissions** set it to **Public**.
@@ -275,7 +279,7 @@ Recommended Robux prices (what similar games charge; change them in the Creator 
 | Secret Lucky Block | Brainrot God or Secret (30%) | 499 |
 | Dominusso Cappuccinoso Crate | One of the 4 famous-outfit Secrets, or the OG Dominusso (3%) | 699 |
 | Galaxy Base Skin | Purple space base, forever | 149 |
-| Rainbow Base Skin | Colour-cycling base, forever | 199 |
+| Rainbow Base Skin | Colour-cycling base, forever | 200 |
 | Hat Crate | A random hat (Party Hat +5% up to Crown +25%) | 99 |
 | Season Tier Skip | One season pass tier (150 XP) | 49 |
 | Korbloxo Scheletrino (limited) | OG ($500K/s), weekly limited | 799 |
@@ -284,7 +288,7 @@ Recommended Robux prices (what similar games charge; change them in the Creator 
 | Dominusso Cappuccinoso (limited) | OG ($1.3M/s), weekly limited | 1499 |
 | Sparklino Fedorino (limited) | OG ($2M/s), weekly limited | 1999 |
 
-| Game pass | What you get | Robux |
+| Pass (sold as a developer product, kept forever) | What you get | Robux |
 |---|---|---|
 | VIP | +15% income and an extra free spin every day | 199 |
 | 2x Cash | Double income forever | 399 |
@@ -346,7 +350,7 @@ Global leaderboards also need a published place with API access; until then the 
 | `tools/blocky/` | The block-built brainrot designs and the kit they're drawn with |
 | `ReplicatedStorage/Shared/BrainrotConfig.luau` | Every brainrot, rarity and mutation: prices, income, colours, spawn chances |
 | `ReplicatedStorage/Shared/GameConfig.luau` | Gameplay tuning: conveyor and walking speed, spawn timers, floors, lock time, offline cash, events, day length, weather, rebirth cost, ... |
-| `ReplicatedStorage/Shared/MonetizationConfig.luau` | Product and game pass IDs and shop text |
+| `ReplicatedStorage/Shared/MonetizationConfig.luau` | Product and pass IDs (the game's real ones), which passes are sold as products, and shop text |
 | `ReplicatedStorage/Shared/NumberFormat.luau` | `$1.2K`-style number formatting |
 | `Workspace/Map.model.json` | The map, generated by `tools/generate_map.py` |
 | `ProductIcons/` | 1024×1024 icons for all 22 developer products (made with Higgsfield and Customuse; the limited brainrots' and the Dominusso crate's are renders of their game models) |

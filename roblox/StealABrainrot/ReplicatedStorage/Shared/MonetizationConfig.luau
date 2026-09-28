@@ -1,11 +1,10 @@
 --!strict
 -- Robux products and game passes. Read by DataAndMonetizationManager on the
 -- server and by the shop UI on the client, so the IDs only live here.
--- Replace every ID with the real ones from the Creator Dashboard (see the
--- README's "Setting up Robux products"). Until then the numbers below are
--- placeholders, and a Buy button with a placeholder doesn't open a purchase:
--- product IDs are shared by every game on Roblox, so a placeholder is some
--- other creator's old product.
+-- The IDs are the game's own, from the Creator Dashboard (see the README's
+-- "Setting up Robux products"). A Buy button with a placeholder ID (a small
+-- number) never opens a purchase: product IDs are shared by every game on
+-- Roblox, so a placeholder is some other creator's old product.
 
 local NumberFormat = require(script.Parent:WaitForChild("NumberFormat"))
 
@@ -31,32 +30,32 @@ export type ShopProduct = {
 }
 
 local ProductIds = table.freeze({
-	SmallCashBundle = 100001,
-	MediumCashBundle = 100002,
-	EMPLaserOverrider = 100003,
-	ServerRarityBoost = 100004,
-	FreezeRay = 100005,
-	SpikeTrap = 100006,
-	LandMine = 100007,
-	BoogieBomb = 100008,
-	GodLuckyBlock = 100009,
-	SecretLuckyBlock = 100010,
-	SpinPack = 100011,
-	CashBoost = 100012,
-	GalaxySkin = 100013,
-	RainbowSkin = 100014,
+	SmallCashBundle = 3715225545,
+	MediumCashBundle = 3715225630,
+	EMPLaserOverrider = 3715225666,
+	ServerRarityBoost = 3715225692,
+	FreezeRay = 3715225734,
+	SpikeTrap = 3715225794,
+	LandMine = 3715225963,
+	BoogieBomb = 3715226004,
+	GodLuckyBlock = 3715226125,
+	SecretLuckyBlock = 3715226170,
+	SpinPack = 3715226235,
+	CashBoost = 3715226289,
+	GalaxySkin = 3715226406,
+	RainbowSkin = 3715226443,
 	-- A random hat for a brainrot (ExtrasConfig.Hats).
-	HatCrate = 100015,
+	HatCrate = 3715226373,
 	-- One season pass tier.
-	SeasonTierSkip = 100016,
+	SeasonTierSkip = 3715226479,
 	-- The weekly limited brainrots (ExtrasConfig.LimitedRotation), one each.
-	LimitedKorbloxo = 100017,
-	LimitedValkyrio = 100018,
-	LimitedHeadless = 100019,
-	LimitedDominus = 100020,
-	LimitedSparkle = 100021,
+	LimitedKorbloxo = 3715226505,
+	LimitedValkyrio = 3715226553,
+	LimitedHeadless = 3715226586,
+	LimitedDominus = 3715226636,
+	LimitedSparkle = 3715226693,
 	-- The Dominusso Cappuccinoso Crate (a lucky block of famous outfits).
-	DominusCrate = 100022,
+	DominusCrate = 3715226053,
 })
 
 -- Lucky blocks bought with Robux land in your base (or wait until there's room).
@@ -82,14 +81,27 @@ local ItemCharges: { [string]: number } = table.freeze({
 
 local GamePasses: { [string]: number } = table.freeze({
 	-- +15% income and an extra free spin every day (FeatureConfig).
-	VIP = 200001,
-	DoubleCash = 200002,
+	VIP = 3715226868,
+	DoubleCash = 3715226791,
 	-- Your base lock lasts twice as long.
-	LongLock = 200003,
+	LongLock = 3715226899,
 	-- The premium rewards on every season pass tier.
-	SeasonPass = 200004,
+	SeasonPass = 3715226928,
 	-- Your guard brainrot recovers twice as fast.
-	SuperGuard = 200005,
+	SuperGuard = 3715226956,
+})
+
+-- Passes made as developer products in the Creator Dashboard (their IDs above
+-- are product IDs): buying one unlocks it forever, saved in the player's data,
+-- instead of Roblox keeping track of it. To sell one as a real game pass
+-- instead, create it under Monetization > Passes, put the pass ID above and
+-- take it out of this list.
+local PassesSoldAsProducts: { [string]: boolean } = table.freeze({
+	VIP = true,
+	DoubleCash = true,
+	LongLock = true,
+	SeasonPass = true,
+	SuperGuard = true,
 })
 
 -- Real IDs from the Creator Dashboard are far bigger than the placeholders.
@@ -359,7 +371,7 @@ local ShopProducts: { ShopProduct } = {
 	{
 		Key = "RainbowSkin",
 		Section = "Skins",
-		Robux = 199,
+		Robux = 200,
 		ProductId = ProductIds.RainbowSkin,
 		DisplayName = "Rainbow Base Skin",
 		Description = "Your base glows through every colour. Yours forever.",
@@ -372,6 +384,7 @@ local ShopProducts: { ShopProduct } = {
 return table.freeze({
 	ProductIds = ProductIds,
 	GamePasses = GamePasses,
+	PassesSoldAsProducts = PassesSoldAsProducts,
 	isSetUp = isSetUp,
 	notSetUp = notSetUp,
 	NotSetUpMessage = "🛠️ Not for sale yet: this Robux item hasn't been set up in the Creator Dashboard.",
