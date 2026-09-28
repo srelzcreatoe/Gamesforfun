@@ -140,6 +140,13 @@ simulation distance are separate settings with Low/Balanced/High presets.
   exact test matrix and what was **not** covered (no physical device was
   available in the build environment).
 
+## Also in this repo
+
+- [`roblox/EscapeGlitchy`](roblox/EscapeGlitchy): a Roblox chapter-style
+  escape horror game (in the style of Piggy/Guesty) with an AI monster,
+  random item spawns, locks and an exit. Open `EscapeGlitchy.rbxl` in Roblox
+  Studio and press Play.
+
 ## License / credits
 
 See [CREDITS.md](CREDITS.md). Engine: libGDX (Apache-2.0). All game content
