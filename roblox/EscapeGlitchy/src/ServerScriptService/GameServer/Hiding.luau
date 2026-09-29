@@ -17,6 +17,8 @@ local spotOf: { [Player]: Model } = {}
 local spotted: { [Player]: boolean } = {}
 local hiddenSince: { [Player]: number } = {}
 local lastUse: { [Player]: number } = {}
+local previousCameraMode: { [Player]: Enum.CameraMode } = {}
+local cooldownUntil: { [Player]: number } = {} -- after being pushed out
 local generation = 0 -- bumped every round so an old round's timer stops
 
 local notify: (Player, string) -> ()
@@ -42,7 +44,17 @@ function Hiding.Unhide(player: Player)
 		return
 	end
 	player:SetAttribute("Hiding", nil)
-	player.CameraMode = Enum.CameraMode.Classic
+	-- Put the camera back. Leaving first person keeps the camera zoomed all
+	-- the way in, so push the minimum zoom out for a moment.
+	player.CameraMode = previousCameraMode[player] or Enum.CameraMode.Classic
+	previousCameraMode[player] = nil
+	local minZoom = player.CameraMinZoomDistance
+	player.CameraMinZoomDistance = math.max(minZoom, 10)
+	task.delay(0.3, function()
+		if player.Parent and not spotOf[player] then
+			player.CameraMinZoomDistance = minZoom
+		end
+	end)
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if root and root:IsA("BasePart") then
@@ -65,6 +77,10 @@ local function hide(player: Player, spot: Model)
 		notify(player, "You're stuck in a trap!")
 		return
 	end
+	if (cooldownUntil[player] or 0) > os.clock() then
+		notify(player, "Catch your breath before hiding again!")
+		return
+	end
 	spotted[player] = canMonsterSee(root.Position)
 	occupant[spot] = player
 	spotOf[player] = spot
@@ -72,6 +88,7 @@ local function hide(player: Player, spot: Model)
 	player:SetAttribute("Hiding", true)
 	root.Anchored = true
 	character:PivotTo(inside.CFrame)
+	previousCameraMode[player] = player.CameraMode
 	player.CameraMode = Enum.CameraMode.LockFirstPerson
 end
 
@@ -80,13 +97,30 @@ function Hiding.IsHidden(player: Player): (boolean, boolean)
 	return spotOf[player] ~= nil, spotted[player] == true
 end
 
-function Hiding.Init(options: { notify: (Player, string) -> (), canMonsterSee: (Vector3) -> boolean, onSearched: (Player) -> () })
+-- A spot on the floor just in front of a hider's closet (for the bot).
+function Hiding.FrontOf(player: Player): Vector3?
+	local spot = spotOf[player]
+	local inside = spot and insidePart(spot)
+	return if inside then (inside.CFrame * CFrame.new(0, -1.5, -3)).Position else nil
+end
+
+function Hiding.Init(options: {
+	notify: (Player, string) -> (),
+	canMonsterSee: (Vector3) -> boolean,
+	onSearched: (Player) -> (),
+	leaveRemote: RemoteEvent,
+})
 	notify = options.notify
 	canMonsterSee = options.canMonsterSee
 	onSearched = options.onSearched
+	-- The LEAVE button on screen (easier than finding the prompt on a phone).
+	options.leaveRemote.OnServerEvent:Connect(function(player)
+		Hiding.Unhide(player)
+	end)
 	Players.PlayerRemoving:Connect(function(player)
 		Hiding.Unhide(player)
 		lastUse[player] = nil
+		cooldownUntil[player] = nil
 	end)
 end
 
@@ -106,7 +140,12 @@ function Hiding.Setup(map: Model)
 		prompt.MaxActivationDistance = 6
 		prompt.RequiresLineOfSight = false
 		prompt:SetAttribute("HidePrompt", true) -- the client changes the text to Leave / Search
-		prompt.Parent = inside
+		-- At eye level by the doors, so it's easy to see from inside and out.
+		local handle = Instance.new("Attachment")
+		handle.Name = "PromptSpot"
+		handle.Position = Vector3.new(0, 1.5, -1.3)
+		handle.Parent = inside
+		prompt.Parent = handle
 		prompt.Triggered:Connect(function(player)
 			local now = os.clock()
 			if (lastUse[player] or 0) + 0.6 > now then
@@ -141,6 +180,7 @@ function Hiding.Setup(map: Model)
 			for player, since in hiddenSince do
 				if os.clock() - since >= Config.MaxHideTime then
 					Hiding.Unhide(player)
+					cooldownUntil[player] = os.clock() + 8
 					notify(player, "You couldn't stay hidden any longer!")
 				end
 			end

@@ -491,8 +491,9 @@ function Chapters.Build(def): Model
 				post:SetAttribute("KeepOnUnlock", true)
 			end
 
-			-- A dim lamp every few tiles
-			if x % 5 == 3 and y % 5 == 3 and c ~= " " and c ~= "#" and c ~= "=" and c ~= "E" then
+			-- A dim lamp every few tiles (not over doorways, where the beam is)
+			local doorway = c == ":" or c == "G" or (lock ~= nil and not lock.Post)
+			if x % 5 == 3 and y % 5 == 3 and not doorway and c ~= " " and c ~= "#" and c ~= "=" and c ~= "E" then
 				local lamp = Build.Part(
 					structure,
 					"Lamp",

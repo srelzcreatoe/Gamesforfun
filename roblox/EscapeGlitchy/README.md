@@ -23,7 +23,7 @@ characters, maps, art or sounds are taken from those games.
   and then. Stepping in one holds you for a few seconds and tells the monster
   where you are.
 - **Hiding:** get into closets and lockers. The bot can't find you unless it
-  watched you get in, a player monster can search hiding spots, and you can't
+  saw you get in, a player monster can search hiding spots, and you can't
   stay in forever.
 - **Spectating:** watch the players who are still in the round after you're
   caught.
@@ -81,7 +81,8 @@ with the included `default.project.json`.
 | Pick up / use / hide | **E** at the prompt | tap the prompt | the prompt button |
 | Drop your item | **G** | **Drop** button | **Y** |
 | Enter a code | type it, then **Enter** | tap the number pad | tap the number pad |
-| Set a trap (player monster) | **F** | **SET TRAP** button | **X** |
+| Set a trap (player monster) | **F** | **SET TRAP** button | **R1** |
+| Get out of a hiding spot | **E** at the prompt | **LEAVE** button | the prompt button |
 | Open the shop | **SHOP** button, or the shop stall in the lobby | same | same |
 | Watch others after you're out | **SPECTATE** button | same | same |
 

@@ -77,6 +77,7 @@ local placeTrapRemote = newRemote("PlaceTrap")
 local keypadRemote = newRemote("Keypad")
 local codeRemote = newRemote("EnterCode")
 local spectateRemote = newRemote("Spectate")
+local leaveHidingRemote = newRemote("LeaveHiding")
 remotes.Parent = ReplicatedStorage
 
 -- Phase is "Waiting", "Intermission", "Playing" or "Results".
@@ -144,7 +145,13 @@ local function getTargets(): { Monster.Target }
 		if status == "Playing" and humanoid and humanoid.Health > 0 and root and root:IsA("BasePart") then
 			local hidden, spotted = Hiding.IsHidden(player)
 			if not hidden or spotted then
-				table.insert(list, { player = player, character = character :: Model, root = root, hidden = hidden })
+				table.insert(list, {
+					player = player,
+					character = character :: Model,
+					root = root,
+					hidden = hidden,
+					approach = if hidden then Hiding.FrontOf(player) else nil,
+				})
 			end
 		end
 	end
@@ -193,6 +200,7 @@ local function onDied(player: Player, character: Model)
 	if not r or r.survivors[player] ~= "Playing" then
 		return
 	end
+	Hiding.Unhide(player) -- out of the closet first, so any item drops outside it
 	local root = character:FindFirstChild("HumanoidRootPart")
 	leaveRound(r, player, "Caught", if root and root:IsA("BasePart") then root.Position else nil)
 	notifyAll(`{player.DisplayName} is out!`)
@@ -252,12 +260,18 @@ Hiding.Init({
 	onSearched = function(player)
 		onCaught(player)
 	end,
+	leaveRemote = leaveHidingRemote,
 })
 
 -- Caught players can watch the others; this makes the server stream in the
 -- area around whoever they are watching.
 spectateRemote.OnServerEvent:Connect(function(player, target)
-	local character = typeof(target) == "Instance" and target:IsA("Player") and target.Character
+	local allowed = round ~= nil
+		and player:GetAttribute("Role") == nil
+		and typeof(target) == "Instance"
+		and target:IsA("Player")
+		and target:GetAttribute("Role") ~= nil
+	local character = allowed and (target :: Player).Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	player.ReplicationFocus = if root and root:IsA("BasePart") then root else nil
 end)
@@ -301,6 +315,7 @@ local function intermission(): (Model?, string?)
 	end
 	local maps = playableMaps()
 	if #maps == 0 then
+		setPhase("Waiting")
 		setStatus("No playable maps! Check the Output window.")
 		task.wait(10)
 		return nil, nil
@@ -346,12 +361,15 @@ local function cleanUpRound(r: Round)
 		connection:Disconnect()
 	end
 	round = nil
+	setPhase("Results")
 
 	-- Everyone still in the map goes back to the lobby.
 	for player, status in r.survivors do
 		if player.Parent then
 			Data.AddCoins(player, Config.PlayCoins)
-			if status == "Playing" then
+			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			local frozen = root ~= nil and root:IsA("BasePart") and root.Anchored -- a respawn that failed
+			if status == "Playing" or frozen then
 				player:SetAttribute("Role", nil)
 				sendToLobby(player)
 			end
@@ -370,6 +388,9 @@ local function cleanUpRound(r: Round)
 end
 
 local function playRound(template: Model, mode: string)
+	if not template.Parent then
+		return -- the map was removed during the vote
+	end
 	local participants = readyPlayers()
 	if #participants < Config.MinPlayers then
 		return
@@ -497,7 +518,6 @@ local function playRound(template: Model, mode: string)
 		end
 	end
 	notifyAll(`{endReason} {escaped} escaped, {caught} caught.`)
-	setPhase("Results")
 	cleanUpRound(r)
 
 	for timeLeft = Config.RoundOverTime, 1, -1 do

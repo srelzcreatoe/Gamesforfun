@@ -67,9 +67,11 @@ function Spectate.Init(hud: ScreenGui)
 	})
 
 	local watching: Player? = nil
+	local watchedCharacter: Model? = nil
 
 	local function watch(target: Player?)
 		watching = target
+		watchedCharacter = target and target.Character
 		local camera = workspace.CurrentCamera
 		local humanoid = target and target.Character and target.Character:FindFirstChildOfClass("Humanoid")
 		if target and humanoid then
@@ -122,6 +124,8 @@ function Spectate.Init(hud: ScreenGui)
 					watch(nil)
 				elseif not table.find(list, watching) then
 					step(1)
+				elseif watching.Character ~= watchedCharacter then
+					watch(watching) -- they respawned (e.g. the player monster)
 				end
 			end
 		end

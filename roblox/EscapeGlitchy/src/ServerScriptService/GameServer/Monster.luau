@@ -21,8 +21,9 @@ local Traps = require(script.Parent.Traps)
 
 local Monster = {}
 
--- hidden = in a hiding spot, but the monster saw them get in.
-export type Target = { player: Player, character: Model, root: BasePart, hidden: boolean? }
+-- hidden = in a hiding spot, but the monster saw them get in; approach is
+-- where to stand to reach them (in front of the hiding spot).
+export type Target = { player: Player, character: Model, root: BasePart, hidden: boolean?, approach: Vector3? }
 
 type State = {
 	active: boolean,
@@ -317,7 +318,7 @@ local function runBot(s: State, model: Model, humanoid: Humanoid, root: BasePart
 		if alert then
 			s.alertPosition = nil
 			lastSeenPosition, searchUntil = alert, os.clock() + Config.ChaseMemory + 8
-			goal = nil
+			goal, lastPathTime = nil, 0
 		end
 
 		local targets = s.getTargets()
@@ -360,9 +361,9 @@ local function runBot(s: State, model: Model, humanoid: Humanoid, root: BasePart
 			-- Chase
 			wandering = false
 			humanoid.WalkSpeed = Config.BotChaseSpeed
-			local targetPosition = best.root.Position
+			local targetPosition = best.approach or best.root.Position
 			lastSeenPosition, searchUntil = targetPosition, os.clock() + Config.ChaseMemory
-			if bestVisible and bestDistance < 15 and math.abs(targetPosition.Y - root.Position.Y) < 3 then
+			if not best.hidden and bestVisible and bestDistance < 15 and math.abs(targetPosition.Y - root.Position.Y) < 3 then
 				waypoints, goal = nil, nil
 				humanoid:MoveTo(targetPosition)
 			else
@@ -377,6 +378,7 @@ local function runBot(s: State, model: Model, humanoid: Humanoid, root: BasePart
 		elseif lastSeenPosition and os.clock() < searchUntil then
 			-- Search where we last saw someone
 			wandering = false
+			humanoid.WalkSpeed = Config.BotChaseSpeed
 			local searchPosition = lastSeenPosition
 			if goal ~= searchPosition and os.clock() - lastPathTime > 0.5 then
 				computePath(searchPosition)
@@ -567,8 +569,8 @@ function Monster.Alert(position: Vector3)
 	end
 end
 
--- Whether the monster can see a position right now (or is close enough to
--- hear what happens there). Used to tell if it saw someone hide.
+-- Whether the monster can see a position right now (in range, nothing in the
+-- way). Used to tell if it saw someone hide.
 function Monster.CanSee(position: Vector3): boolean
 	local s = state
 	if not s or not s.released then
@@ -579,11 +581,8 @@ function Monster.CanSee(position: Vector3): boolean
 	if not root or not root:IsA("BasePart") then
 		return false
 	end
-	local distance = (position - root.Position).Magnitude
-	if distance > Config.SightRange then
+	if (position - root.Position).Magnitude > Config.SightRange then
 		return false
-	elseif distance <= Config.HearingRange then
-		return true
 	end
 	local exclude: { Instance } = { body :: Model }
 	for _, player in Players:GetPlayers() do

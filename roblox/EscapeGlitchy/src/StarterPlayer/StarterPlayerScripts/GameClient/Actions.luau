@@ -1,6 +1,7 @@
 -- Things that depend on what you're doing in a round:
---   * the monster's SET TRAP button (F on keyboard, X on gamepad)
---   * a dark screen edge while you hide, and a warning while you're trapped
+--   * the monster's SET TRAP button (F on keyboard, R1 on gamepad)
+--   * a dark screen edge and a LEAVE button while you hide, and a warning
+--     while you're trapped
 --   * prompt texts: hiding spots say Hide / Leave / Search, and the monster
 --     doesn't see item and lock prompts it can't use
 
@@ -18,7 +19,9 @@ local player = Players.LocalPlayer
 local Actions = {}
 
 function Actions.Init(hud: ScreenGui)
-	local placeTrapRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlaceTrap")
+	local remotes = ReplicatedStorage:WaitForChild("Remotes")
+	local placeTrapRemote = remotes:WaitForChild("PlaceTrap")
+	local leaveHidingRemote = remotes:WaitForChild("LeaveHiding")
 
 	---------------------------------------------------------------------------
 	-- Trap button for a player monster
@@ -42,7 +45,7 @@ function Actions.Init(hud: ScreenGui)
 			placeTrap()
 		end
 		return Enum.ContextActionResult.Pass
-	end, false, Enum.KeyCode.F, Enum.KeyCode.ButtonX)
+	end, false, Enum.KeyCode.F, Enum.KeyCode.ButtonR1) -- X is the prompt button
 
 	local function refreshTrapButton()
 		local left = player:GetAttribute("TrapsLeft")
@@ -91,9 +94,19 @@ function Actions.Init(hud: ScreenGui)
 		TextSize = 20,
 		TextColor3 = WHITE,
 		TextStrokeTransparency = 0.4,
-		Text = "You're hiding. Stay quiet... (use the prompt to get out)",
+		Text = "You're hiding. Stay quiet...",
 		Parent = hideShade,
 	})
+	local leaveButton = UI.button(hideShade, "LEAVE", {
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, -30),
+		Size = UDim2.new(0, 160, 0, 50),
+		BackgroundColor3 = Color3.fromRGB(150, 30, 30),
+		TextSize = 20,
+	})
+	leaveButton.Activated:Connect(function()
+		leaveHidingRemote:FireServer()
+	end)
 
 	local trappedLabel = create("TextLabel", {
 		AnchorPoint = Vector2.new(0.5, 0.5),

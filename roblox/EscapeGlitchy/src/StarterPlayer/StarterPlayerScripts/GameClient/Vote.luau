@@ -72,26 +72,43 @@ function Vote.Init(hud: ScreenGui)
 	local wasOpen = false
 
 	local render
+	-- Updates a list of vote buttons. Buttons are only rebuilt when the number
+	-- of options changes, so a tap isn't lost when someone else votes.
 	local function fill(list: Frame, entries, isChosen: (number, any) -> boolean, label: (any) -> string, onPick: (number, any) -> ())
+		local buttons = {}
 		for _, child in list:GetChildren() do
 			if child:IsA("TextButton") then
-				child:Destroy()
+				buttons[child.LayoutOrder] = child
+			end
+		end
+		if #buttons ~= #entries then
+			for _, button in buttons do
+				button:Destroy()
+			end
+			table.clear(buttons)
+			for index in entries do
+				local button = UI.button(list, "", {
+					LayoutOrder = index,
+					Size = UDim2.new(1, 0, 0, 32),
+					TextSize = 15,
+					TextXAlignment = Enum.TextXAlignment.Left,
+				})
+				create("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = button })
+				button.Activated:Connect(function()
+					local current = button:GetAttribute("Entry")
+					if current then
+						onPick(index, current)
+						render()
+					end
+				end)
+				buttons[index] = button
 			end
 		end
 		for index, entry in entries do
-			local chosen = isChosen(index, entry)
-			local button = UI.button(list, `{label(entry)}   {entry.votes}`, {
-				LayoutOrder = index,
-				Size = UDim2.new(1, 0, 0, 32),
-				TextSize = 15,
-				TextXAlignment = Enum.TextXAlignment.Left,
-				BackgroundColor3 = if chosen then Color3.fromRGB(150, 30, 30) else Color3.fromRGB(50, 50, 60),
-			})
-			create("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = button })
-			button.Activated:Connect(function()
-				onPick(index, entry)
-				render()
-			end)
+			local button = buttons[index]
+			button:SetAttribute("Entry", entry.name)
+			button.Text = `{label(entry)}   {entry.votes}`
+			button.BackgroundColor3 = if isChosen(index, entry) then Color3.fromRGB(150, 30, 30) else Color3.fromRGB(50, 50, 60)
 		end
 	end
 
@@ -122,9 +139,9 @@ function Vote.Init(hud: ScreenGui)
 			return entry.name == myMode
 		end, function(entry)
 			return MODE_NAMES[entry.name] or entry.name
-		end, function(_, entry)
-			myMode = entry.name
-			voteRemote:FireServer("Mode", entry.name)
+		end, function(_, name)
+			myMode = name
+			voteRemote:FireServer("Mode", name)
 		end)
 	end
 

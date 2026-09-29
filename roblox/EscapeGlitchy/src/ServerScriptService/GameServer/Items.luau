@@ -38,7 +38,11 @@ end
 local function canInteract(player)
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	return currentMap ~= nil and player:GetAttribute("Role") == "Survivor" and humanoid ~= nil and humanoid.Health > 0
+	return currentMap ~= nil
+		and player:GetAttribute("Role") == "Survivor"
+		and not player:GetAttribute("Hiding") -- no dropping items inside a closet
+		and humanoid ~= nil
+		and humanoid.Health > 0
 end
 
 local function weld(part0, part1)
@@ -391,7 +395,7 @@ function Items.Init(callbacks: {
 			return
 		end
 		local now = os.clock()
-		if (lastCodeTry[player] or 0) + 1 > now then
+		if (lastCodeTry[player] or 0) + 1.5 > now then
 			notify(player, "Slow down!")
 			return
 		end
