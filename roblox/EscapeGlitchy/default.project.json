@@ -19,7 +19,7 @@
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",
         "GameClient": {
-          "$path": "src/StarterPlayer/StarterPlayerScripts/GameClient.client.luau"
+          "$path": "src/StarterPlayer/StarterPlayerScripts/GameClient"
         }
       }
     }

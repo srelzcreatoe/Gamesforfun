@@ -38,6 +38,25 @@ Config.MonsterHeadColor = Color3.fromRGB(45, 45, 52)
 Config.MonsterEyeColor = Color3.fromRGB(255, 30, 30)
 
 ---------------------------------------------------------------------------
+-- Voting, traps, hiding
+---------------------------------------------------------------------------
+Config.Voting = true -- everyone votes for the chapter and the mode during intermission
+
+Config.TrapsPerRound = 3 -- traps a player monster can place (F key / Trap button)
+Config.TrapTime = 4 -- seconds a survivor is stuck in a trap
+Config.BotTrapInterval = 45 -- the bot drops a trap about this often (0 = never)
+Config.MaxBotTraps = 3 -- the most bot traps in the map at once
+
+Config.MaxHideTime = 25 -- seconds a survivor can stay in a closet or locker
+
+---------------------------------------------------------------------------
+-- Lobby
+---------------------------------------------------------------------------
+Config.SpookyLighting = true -- night and fog (only when the built-in lobby is used)
+Config.ObbyCoins = 10
+Config.ObbyCooldown = 300 -- seconds before the obby pays out to the same player again
+
+---------------------------------------------------------------------------
 -- Scares
 ---------------------------------------------------------------------------
 Config.JumpscareTime = 1.5
@@ -58,13 +77,16 @@ Config.PlayCoins = 5 -- for everyone who took part in a round
 -- The key of each entry is the item id. Maps refer to items by id:
 --   * item spawn points have an attribute Item = "RedKey"
 --   * locks have an attribute RequiredItem = "RedKey"
--- Shape is "Key" or "Tool". To use your own model, put a Model or Part named
+-- Shape is "Key", "Tool", "Card" or "Fuse". To use your own model, put a Model or Part named
 -- after the item id (e.g. "RedKey") in ServerStorage > ItemModels.
 ---------------------------------------------------------------------------
 Config.Items = {
 	RedKey = { DisplayName = "Red Key", Color = Color3.fromRGB(225, 45, 45), Shape = "Key" },
 	BlueKey = { DisplayName = "Blue Key", Color = Color3.fromRGB(45, 110, 235), Shape = "Key" },
 	Wrench = { DisplayName = "Wrench", Color = Color3.fromRGB(165, 165, 175), Shape = "Tool" },
+	JanitorKey = { DisplayName = "Janitor Key", Color = Color3.fromRGB(230, 180, 40), Shape = "Key" },
+	Fuse = { DisplayName = "Fuse", Color = Color3.fromRGB(255, 140, 30), Shape = "Fuse" },
+	Keycard = { DisplayName = "Keycard", Color = Color3.fromRGB(60, 200, 120), Shape = "Card" },
 }
 
 ---------------------------------------------------------------------------

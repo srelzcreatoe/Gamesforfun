@@ -1,19 +1,29 @@
--- Runs the game: intermission -> pick a map -> head start -> hunt -> results.
+-- Runs the game: intermission (with voting) -> chapter -> head start -> hunt
+-- -> results.
 --
 -- The other parts of the server live in the ModuleScripts inside this script:
---   MapBuilder  lobby + test map, and map checks
---   Items       items, locks and the exit
+--   Lobby       the waiting lobby, obby, leaderboard and shop stall
+--   MapBuilder  finds the maps (Chapters builds the included ones)
+--   Voting      chapter and mode votes
+--   Items       items, locks, keypads and the exit
 --   Monster     the AI bot / player monster
+--   Traps       traps the monster places
+--   Hiding      closets and lockers
 --   Skins       the skin shop
 --   Data        coins, skins and saving
+--   Build       helpers for building with parts
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage:WaitForChild("Config"))
+local Lobby = require(script.Lobby)
 local MapBuilder = require(script.MapBuilder)
+local Voting = require(script.Voting)
 local Items = require(script.Items)
 local Monster = require(script.Monster)
+local Traps = require(script.Traps)
+local Hiding = require(script.Hiding)
 local Skins = require(script.Skins)
 local Data = require(script.Data)
 
@@ -38,7 +48,7 @@ local function sendToLobby(player: Player)
 end
 
 -- Build the lobby before anything else so the first characters spawn in it.
-MapBuilder.EnsureLobby()
+local lobby = Lobby.Build()
 for _, player in Players:GetPlayers() do
 	if player.Character then
 		sendToLobby(player)
@@ -61,17 +71,29 @@ local notifyRemote = newRemote("Notify")
 local jumpscareRemote = newRemote("Jumpscare")
 local dropRemote = newRemote("DropItem")
 local shopRemote = newRemote("Shop")
+local openShopRemote = newRemote("OpenShop")
+local voteRemote = newRemote("Vote")
+local placeTrapRemote = newRemote("PlaceTrap")
+local keypadRemote = newRemote("Keypad")
+local codeRemote = newRemote("EnterCode")
+local spectateRemote = newRemote("Spectate")
 remotes.Parent = ReplicatedStorage
 
+-- Phase is "Waiting", "Intermission", "Playing" or "Results".
 local gameState = Instance.new("Folder")
 gameState.Name = "GameState"
 gameState:SetAttribute("Status", "Loading...")
 gameState:SetAttribute("TimeLeft", 0)
+gameState:SetAttribute("Phase", "Waiting")
 gameState.Parent = ReplicatedStorage
 
 local function setStatus(text: string, timeLeft: number?)
 	gameState:SetAttribute("Status", text)
 	gameState:SetAttribute("TimeLeft", timeLeft or 0)
+end
+
+local function setPhase(phase: string)
+	gameState:SetAttribute("Phase", phase)
 end
 
 local function notifyAll(text: string)
@@ -81,10 +103,6 @@ end
 local function notify(player: Player, text: string)
 	notifyRemote:FireClient(player, text)
 end
-
-Skins.Init({ notify = notify, respawn = sendToLobby, shopRemote = shopRemote })
-Data.Start(Skins.OnDataLoaded)
-Items.Init({ notifyAll = notifyAll, notify = notify, dropRemote = dropRemote })
 
 ---------------------------------------------------------------------------
 -- Round state
@@ -111,7 +129,8 @@ local function countPlaying(r: Round): number
 	return count
 end
 
--- The survivors the monster can catch right now.
+-- The survivors the monster can catch right now. Hiders are left out unless
+-- the monster saw them get in.
 local function getTargets(): { Monster.Target }
 	local list = {}
 	local r = round
@@ -123,10 +142,22 @@ local function getTargets(): { Monster.Target }
 		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		if status == "Playing" and humanoid and humanoid.Health > 0 and root and root:IsA("BasePart") then
-			table.insert(list, { player = player, character = character :: Model, root = root })
+			local hidden, spotted = Hiding.IsHidden(player)
+			if not hidden or spotted then
+				table.insert(list, { player = player, character = character :: Model, root = root, hidden = hidden })
+			end
 		end
 	end
 	return list
+end
+
+-- Marks a survivor as no longer in the round and cleans up after them.
+local function leaveRound(r: Round, player: Player, status: SurvivorStatus, dropAt: Vector3?)
+	r.survivors[player] = status
+	Hiding.Unhide(player)
+	player:SetAttribute("Role", nil)
+	player:SetAttribute("Trapped", nil)
+	Items.DropHeld(player, dropAt)
 end
 
 local function onCaught(player: Player)
@@ -134,16 +165,13 @@ local function onCaught(player: Player)
 	if not r or r.survivors[player] ~= "Playing" then
 		return
 	end
-	r.survivors[player] = "Caught"
-	player:SetAttribute("Role", nil)
-
+	Hiding.Unhide(player) -- pull them out first so the item drops where they are
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local position = if root and root:IsA("BasePart") then root.Position else nil
+	leaveRound(r, player, "Caught", position)
 	if root and root:IsA("BasePart") then
-		Items.DropHeld(player, root.Position)
 		root.Anchored = true -- freeze them during the jumpscare
-	else
-		Items.DropHeld(player)
 	end
 
 	jumpscareRemote:FireClient(player)
@@ -154,7 +182,7 @@ local function onCaught(player: Player)
 
 	task.delay(Config.JumpscareTime, function()
 		if player.Character == character then
-			sendToLobby(player)
+			sendToLobby(player) -- back to the lobby
 		end
 	end)
 end
@@ -165,10 +193,8 @@ local function onDied(player: Player, character: Model)
 	if not r or r.survivors[player] ~= "Playing" then
 		return
 	end
-	r.survivors[player] = "Caught"
-	player:SetAttribute("Role", nil)
 	local root = character:FindFirstChild("HumanoidRootPart")
-	Items.DropHeld(player, if root and root:IsA("BasePart") then root.Position else nil)
+	leaveRound(r, player, "Caught", if root and root:IsA("BasePart") then root.Position else nil)
 	notifyAll(`{player.DisplayName} is out!`)
 end
 
@@ -177,9 +203,7 @@ local function onEscaped(player: Player)
 	if not r or r.survivors[player] ~= "Playing" or not Items.IsExitOpen() then
 		return
 	end
-	r.survivors[player] = "Escaped"
-	player:SetAttribute("Role", nil)
-	Items.DropHeld(player)
+	leaveRound(r, player, "Escaped")
 	Data.AddCoins(player, Config.EscapeCoins)
 	Data.AddEscape(player)
 	notifyAll(`{player.DisplayName} escaped!`)
@@ -191,6 +215,51 @@ Players.PlayerRemoving:Connect(function(player)
 	if r and r.survivors[player] == "Playing" then
 		r.survivors[player] = "Left"
 	end
+	respawning[player] = nil
+end)
+
+---------------------------------------------------------------------------
+-- Start the other systems
+---------------------------------------------------------------------------
+
+Skins.Init({ notify = notify, respawn = sendToLobby, shopRemote = shopRemote })
+Data.Start(Skins.OnDataLoaded)
+Lobby.Start(lobby, { notify = notify, openShopRemote = openShopRemote })
+Voting.Init(gameState, voteRemote)
+Items.Init({
+	notifyAll = notifyAll,
+	notify = notify,
+	dropRemote = dropRemote,
+	keypadRemote = keypadRemote,
+	codeRemote = codeRemote,
+})
+Traps.Init({
+	notifyAll = notifyAll,
+	notify = notify,
+	placeRemote = placeTrapRemote,
+	onTriggered = function(player, position)
+		Monster.Alert(position)
+		local r = round
+		local monsterPlayer = r and r.monsterPlayer
+		if monsterPlayer then
+			notify(monsterPlayer, `{player.DisplayName} is stuck in a trap!`)
+		end
+	end,
+})
+Hiding.Init({
+	notify = notify,
+	canMonsterSee = Monster.CanSee,
+	onSearched = function(player)
+		onCaught(player)
+	end,
+})
+
+-- Caught players can watch the others; this makes the server stream in the
+-- area around whoever they are watching.
+spectateRemote.OnServerEvent:Connect(function(player, target)
+	local character = typeof(target) == "Instance" and target:IsA("Player") and target.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	player.ReplicationFocus = if root and root:IsA("BasePart") then root else nil
 end)
 
 ---------------------------------------------------------------------------
@@ -210,22 +279,51 @@ local function readyPlayers(): { Player }
 	return list
 end
 
--- Counts down the intermission. Returns false if there are not enough players.
-local function intermission(): boolean
+local function playableMaps(): { Model }
+	local maps = {}
+	for _, map in MapBuilder.GetMaps() do
+		if MapBuilder.Validate(map) then
+			table.insert(maps, map)
+		end
+	end
+	return maps
+end
+
+-- Counts down the intermission while everyone votes. Returns the chosen map
+-- and mode, or nil if the round can't start.
+local function intermission(): (Model?, string?)
 	local count = #Players:GetPlayers()
 	if count < Config.MinPlayers then
+		setPhase("Waiting")
 		setStatus(`Waiting for players ({count}/{Config.MinPlayers})`)
 		task.wait(1)
-		return false
+		return nil, nil
+	end
+	local maps = playableMaps()
+	if #maps == 0 then
+		setStatus("No playable maps! Check the Output window.")
+		task.wait(10)
+		return nil, nil
+	end
+
+	setPhase("Intermission")
+	if Config.Voting then
+		Voting.Open(maps)
 	end
 	for timeLeft = Config.IntermissionTime, 1, -1 do
 		if #Players:GetPlayers() < Config.MinPlayers then
-			return false
+			if Config.Voting then
+				Voting.Close()
+			end
+			return nil, nil
 		end
-		setStatus("Intermission", timeLeft)
+		setStatus(if Config.Voting then "Intermission - vote now!" else "Intermission", timeLeft)
 		task.wait(1)
 	end
-	return true
+	if Config.Voting then
+		return Voting.Close()
+	end
+	return maps[math.random(#maps)], Config.MonsterMode
 end
 
 -- Returns why the round should end, or nil to keep going.
@@ -241,7 +339,9 @@ end
 
 local function cleanUpRound(r: Round)
 	Monster.Stop()
+	Hiding.Reset()
 	Items.Reset()
+	Traps.Reset()
 	for _, connection in r.connections do
 		connection:Disconnect()
 	end
@@ -262,41 +362,34 @@ local function cleanUpRound(r: Round)
 		Data.AddCoins(monsterPlayer, Config.PlayCoins)
 		sendToLobby(monsterPlayer)
 	end
+	for _, player in Players:GetPlayers() do
+		player.ReplicationFocus = nil
+	end
 
 	r.map:Destroy()
 end
 
-local function playRound()
-	local maps = {}
-	for _, map in MapBuilder.GetMaps() do
-		if MapBuilder.Validate(map) then
-			table.insert(maps, map)
-		end
-	end
-	if #maps == 0 then
-		setStatus("No playable maps! Check the Output window.")
-		task.wait(10)
-		return
-	end
-
+local function playRound(template: Model, mode: string)
 	local participants = readyPlayers()
 	if #participants < Config.MinPlayers then
 		return
 	end
 
-	local template = maps[math.random(#maps)]
 	local map = template:Clone()
 	map.Name = "CurrentMap"
 	map.Parent = workspace
 
 	local monsterPlayer: Player? = nil
-	if Config.MonsterMode == "Player" and #participants >= 2 then
+	if mode == "Player" and #participants >= 2 then
 		monsterPlayer = table.remove(participants, math.random(#participants))
 	end
 
 	local r: Round = { map = map, survivors = {}, monsterPlayer = monsterPlayer, connections = {} }
 	round = r
+	setPhase("Playing")
 
+	Traps.Setup(map)
+	Hiding.Setup(map)
 	Items.Setup(map, function()
 		notifyAll("The exit is open! RUN!")
 	end)
@@ -327,9 +420,7 @@ local function playRound()
 			r.connections,
 			player.CharacterAdded:Connect(function()
 				if r.survivors[player] == "Playing" then
-					r.survivors[player] = "Caught"
-					player:SetAttribute("Role", nil)
-					Items.DropHeld(player)
+					leaveRound(r, player, "Caught")
 					notify(player, "You respawned, so you're out of this round.")
 				end
 			end)
@@ -357,7 +448,7 @@ local function playRound()
 		skin = if monsterPlayer then Data.GetEquippedSkin(monsterPlayer, "Monster") else Config.BotSkin,
 	})
 
-	notifyAll(tostring(map:GetAttribute("DisplayName") or template.Name))
+	notifyAll(MapBuilder.DisplayName(template))
 	if monsterPlayer then
 		notifyAll(`{monsterPlayer.DisplayName} is {Config.MonsterName}!`)
 	end
@@ -376,6 +467,9 @@ local function playRound()
 	-- The hunt
 	if not endReason then
 		Monster.Release()
+		if monsterPlayer then
+			monsterPlayer:SetAttribute("TrapsLeft", Config.TrapsPerRound)
+		end
 		notifyAll(`{Config.MonsterName} is coming...`)
 		local deadline = os.clock() + Config.RoundTime
 		while true do
@@ -403,6 +497,7 @@ local function playRound()
 		end
 	end
 	notifyAll(`{endReason} {escaped} escaped, {caught} caught.`)
+	setPhase("Results")
 	cleanUpRound(r)
 
 	for timeLeft = Config.RoundOverTime, 1, -1 do
@@ -412,8 +507,9 @@ local function playRound()
 end
 
 while true do
-	if intermission() then
-		local ok, err = xpcall(playRound, debug.traceback)
+	local map, mode = intermission()
+	if map and mode then
+		local ok, err = xpcall(playRound, debug.traceback, map, mode)
 		if not ok then
 			warn(`[{Config.GameName}] The round crashed:\n{err}`)
 			local r = round

@@ -143,8 +143,9 @@ simulation distance are separate settings with Low/Balanced/High presets.
 ## Also in this repo
 
 - [`roblox/EscapeGlitchy`](roblox/EscapeGlitchy): a Roblox chapter-style
-  escape horror game (in the style of Piggy/Guesty) with an AI monster,
-  random item spawns, locks and an exit. Open `EscapeGlitchy.rbxl` in Roblox
+  escape horror game (in the style of Piggy/Guesty) with two chapters, an AI
+  or player monster, voting, traps, hiding spots, keypads, spectating, a
+  lobby with an obby, and a skin shop. Open `EscapeGlitchy.rbxl` in Roblox
   Studio and press Play.
 
 ## License / credits

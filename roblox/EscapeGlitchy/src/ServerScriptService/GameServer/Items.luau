@@ -3,8 +3,10 @@
 -- Every round, each item id found in the map's ItemSpawns folder appears at one
 -- of its spawn points at random. A survivor can hold one item at a time: picking
 -- up another swaps them, and they can drop what they hold. Holding the right
--- item lets them open a lock. When every lock marked ExitLock is open, anything
--- named "ExitGate" is removed and the exit opens.
+-- item lets them open a lock. Locks with the attribute Code = true are keypads
+-- instead: the code is written on one of the map's CodeNotes, picked at
+-- random. When every lock marked ExitLock is open, anything named "ExitGate"
+-- is removed and the exit opens.
 
 local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
@@ -24,6 +26,10 @@ local lastDrop: { [Player]: number } = {}
 local exitLocksTotal = 0
 local exitLocksOpen = 0
 local exitOpen = false
+local roundCode = "" -- the keypad code for this round
+local opened: { [Instance]: boolean } = {}
+local lastCodeTry: { [Player]: number } = {}
+local keypadRemote: RemoteEvent
 
 local function itemInfo(itemId)
 	return Config.Items[itemId] or { DisplayName = itemId, Color = Color3.new(1, 1, 1), Shape = "Key" }
@@ -73,6 +79,20 @@ local function makeItemModel(itemId): Model
 			handle.Size = Vector3.new(0.3, 0.3, 1.8)
 			head.Size = Vector3.new(0.8, 0.3, 0.5)
 			head.CFrame = handle.CFrame * CFrame.new(0, 0, -1.05)
+		elseif info.Shape == "Card" then
+			handle.Size = Vector3.new(0.9, 0.06, 1.4)
+			handle.Material = Enum.Material.SmoothPlastic
+			head.Size = Vector3.new(0.92, 0.07, 0.3) -- a white stripe
+			head.Color = Color3.new(1, 1, 1)
+			head.Material = Enum.Material.SmoothPlastic
+			head.CFrame = handle.CFrame * CFrame.new(0, 0, -0.35)
+		elseif info.Shape == "Fuse" then
+			handle.Shape = Enum.PartType.Cylinder
+			handle.Size = Vector3.new(1.2, 0.5, 0.5)
+			handle.Material = Enum.Material.Glass
+			head.Shape = Enum.PartType.Cylinder
+			head.Size = Vector3.new(1.5, 0.3, 0.3) -- metal pins through the middle
+			head.Color = Color3.fromRGB(190, 190, 200)
 		else
 			handle.Size = Vector3.new(0.25, 0.25, 1.2)
 			head.Shape = Enum.PartType.Cylinder
@@ -186,7 +206,8 @@ function spawnWorldItem(itemId, cframe)
 	prompt.ObjectText = info.DisplayName
 	prompt.HoldDuration = 0
 	prompt.MaxActivationDistance = 7
-	prompt.RequiresLineOfSight = false
+	prompt.RequiresLineOfSight = true -- no grabbing items through walls
+	prompt:SetAttribute("ItemPrompt", true)
 	prompt.Parent = model.PrimaryPart
 	prompt.Triggered:Connect(function(player)
 		pickUp(player, model)
@@ -234,20 +255,75 @@ local function openExit()
 	end
 end
 
-local function setupLock(lock)
-	local required = lock:GetAttribute("RequiredItem")
-	if typeof(required) ~= "string" then
+local function lockPart(lock: Instance): BasePart?
+	if lock:IsA("BasePart") then
+		return lock
+	elseif lock:IsA("Model") then
+		return lock.PrimaryPart or lock:FindFirstChildWhichIsA("BasePart", true)
+	end
+	return nil
+end
+
+-- Writes this round's code on a note (or a keypad, if the map has no notes).
+local function showCode(part: BasePart)
+	for _, face in { Enum.NormalId.Front, Enum.NormalId.Back } do
+		local surface = Instance.new("SurfaceGui")
+		surface.Name = "Code"
+		surface.Face = face
+		surface.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		surface.PixelsPerStud = 60
+		surface.Parent = part
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.fromScale(1, 1)
+		label.BackgroundTransparency = 1
+		label.Font = Enum.Font.SpecialElite
+		label.TextScaled = true
+		label.TextColor3 = Color3.fromRGB(45, 30, 20)
+		label.Text = "CODE\n" .. roundCode
+		label.Parent = surface
+	end
+end
+
+-- Opens a lock. Doors disappear; lock pillars (KeepOnUnlock) light up green.
+local function unlock(lock: Instance, message: string, isExitLock: boolean)
+	if opened[lock] then
 		return
 	end
-	local part = if lock:IsA("BasePart")
-		then lock
-		elseif lock:IsA("Model") then lock.PrimaryPart or lock:FindFirstChildWhichIsA("BasePart", true)
-		else nil
+	opened[lock] = true
+	if lock:GetAttribute("KeepOnUnlock") then
+		for _, descendant in lock:GetDescendants() do
+			if descendant:IsA("ProximityPrompt") then
+				descendant:Destroy()
+			elseif descendant:IsA("BasePart") and descendant.Name == "Light" then
+				descendant.Color = Color3.fromRGB(60, 255, 120)
+			end
+		end
+	else
+		lock:Destroy()
+	end
+	notifyAll(message)
+
+	if isExitLock then
+		exitLocksOpen += 1
+		if exitLocksOpen >= exitLocksTotal then
+			openExit()
+		else
+			notifyAll(`Exit locks open: {exitLocksOpen}/{exitLocksTotal}`)
+		end
+	end
+end
+
+local function setupLock(lock: Instance)
+	local required = lock:GetAttribute("RequiredItem")
+	local isCode = lock:GetAttribute("Code") == true
+	if typeof(required) ~= "string" and not isCode then
+		return
+	end
+	local part = lockPart(lock)
 	if not part then
 		return
 	end
-
-	if not spawnPoints[required] then
+	if not isCode and not spawnPoints[required] then
 		warn(`[{Config.GameName}] Lock "{lock:GetFullName()}" needs "{required}", but the map has no ItemSpawns for it.`)
 	end
 
@@ -256,35 +332,37 @@ local function setupLock(lock)
 		exitLocksTotal += 1
 	end
 
-	local info = itemInfo(required)
 	local prompt = Instance.new("ProximityPrompt")
-	prompt.ActionText = "Use " .. info.DisplayName
+	prompt:SetAttribute("LockPrompt", true) -- the monster's client hides these
 	prompt.ObjectText = lock.Name
-	prompt.HoldDuration = 0.5
 	prompt.MaxActivationDistance = 9
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = part
+
+	if isCode then
+		prompt.ActionText = "Enter code"
+		prompt.HoldDuration = 0
+		prompt.Triggered:Connect(function(player)
+			if canInteract(player) and not opened[lock] then
+				keypadRemote:FireClient(player, lock)
+			end
+		end)
+		return
+	end
+
+	local info = itemInfo(required)
+	prompt.ActionText = "Use " .. info.DisplayName
+	prompt.HoldDuration = 0.5
 	prompt.Triggered:Connect(function(player)
-		if not canInteract(player) or not lock.Parent then
+		if not canInteract(player) or opened[lock] then
 			return
 		end
 		if held[player] ~= required then
 			notify(player, `You need the {info.DisplayName}!`)
 			return
 		end
-
 		setHeld(player, nil)
-		lock:Destroy()
-		notifyAll(`{player.DisplayName} used the {info.DisplayName}!`)
-
-		if isExitLock then
-			exitLocksOpen += 1
-			if exitLocksOpen >= exitLocksTotal then
-				openExit()
-			else
-				notifyAll(`Exit locks open: {exitLocksOpen}/{exitLocksTotal}`)
-			end
-		end
+		unlock(lock, `{player.DisplayName} used the {info.DisplayName}!`, isExitLock)
 	end)
 end
 
@@ -292,9 +370,43 @@ end
 -- Public
 ---------------------------------------------------------------------------
 
-function Items.Init(callbacks: { notifyAll: (string) -> (), notify: (Player, string) -> (), dropRemote: RemoteEvent })
+function Items.Init(callbacks: {
+	notifyAll: (string) -> (),
+	notify: (Player, string) -> (),
+	dropRemote: RemoteEvent,
+	keypadRemote: RemoteEvent,
+	codeRemote: RemoteEvent,
+})
 	notifyAll = callbacks.notifyAll
 	notify = callbacks.notify
+	keypadRemote = callbacks.keypadRemote
+
+	-- A player typed a code into a keypad.
+	callbacks.codeRemote.OnServerEvent:Connect(function(player, lock, code)
+		local map = currentMap
+		if typeof(lock) ~= "Instance" or typeof(code) ~= "string" or #code > 8 then
+			return
+		end
+		if not map or not canInteract(player) or opened[lock] or not lock:IsDescendantOf(map) or lock:GetAttribute("Code") ~= true then
+			return
+		end
+		local now = os.clock()
+		if (lastCodeTry[player] or 0) + 1 > now then
+			notify(player, "Slow down!")
+			return
+		end
+		lastCodeTry[player] = now
+		local part = lockPart(lock)
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if not part or not root or not root:IsA("BasePart") or (root.Position - part.Position).Magnitude > 16 then
+			return
+		end
+		if code == roundCode then
+			unlock(lock, `{player.DisplayName} entered the right code!`, lock:GetAttribute("ExitLock") == true)
+		else
+			notify(player, "Wrong code!")
+		end
+	end)
 
 	callbacks.dropRemote.OnServerEvent:Connect(function(player)
 		if not canInteract(player) or not held[player] then
@@ -317,6 +429,7 @@ function Items.Init(callbacks: { notifyAll: (string) -> (), notify: (Player, str
 		Items.DropHeld(player)
 		held[player] = nil
 		lastDrop[player] = nil
+		lastCodeTry[player] = nil
 	end)
 end
 
@@ -344,11 +457,40 @@ function Items.Setup(map: Model, exitOpenedCallback: () -> ())
 	end
 
 	local locks = map:FindFirstChild("Locks")
+	local codeLocks = {}
 	if locks then
 		for _, lock in locks:GetChildren() do
 			setupLock(lock)
+			if lock:GetAttribute("Code") == true then
+				table.insert(codeLocks, lock)
+			end
 		end
 	end
+
+	-- A new code every round, written on one note picked at random.
+	roundCode = string.format("%04d", math.random(0, 9999))
+	if #codeLocks > 0 then
+		local notes = {}
+		local notesFolder = map:FindFirstChild("CodeNotes")
+		for _, note in if notesFolder then notesFolder:GetChildren() else {} do
+			local part = lockPart(note)
+			if part then
+				table.insert(notes, part)
+			end
+		end
+		if #notes > 0 then
+			showCode(notes[math.random(#notes)])
+		else
+			warn(`[{Config.GameName}] Map "{map.Name}" has keypads but no CodeNotes, so the code is shown on the keypads.`)
+			for _, lock in codeLocks do
+				local part = lockPart(lock)
+				if part then
+					showCode(part)
+				end
+			end
+		end
+	end
+
 	if exitLocksTotal == 0 then
 		task.defer(openExit)
 	end
@@ -396,6 +538,8 @@ function Items.Reset()
 	exitLocksTotal = 0
 	exitLocksOpen = 0
 	exitOpen = false
+	roundCode = ""
+	table.clear(opened)
 end
 
 return Items

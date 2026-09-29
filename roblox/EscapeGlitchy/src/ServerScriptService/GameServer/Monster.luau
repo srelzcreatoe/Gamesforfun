@@ -2,7 +2,9 @@
 --
 -- The bot wanders between the map's Waypoints. When it sees a survivor (or
 -- hears one close by) it chases them with pathfinding, and it keeps searching
--- where it last saw them for a few seconds after losing them.
+-- where it last saw them for a few seconds after losing them. It drops a trap
+-- now and then, and comes running when someone steps in one. It can't find a
+-- survivor who is hiding unless it saw them get in.
 --
 -- To use your own monster model for the bot, put a Model named "MonsterModel"
 -- (with a Humanoid and a HumanoidRootPart) in ServerStorage.
@@ -15,10 +17,12 @@ local ServerStorage = game:GetService("ServerStorage")
 local Config = require(game:GetService("ReplicatedStorage"):WaitForChild("Config"))
 local MapBuilder = require(script.Parent.MapBuilder)
 local Skins = require(script.Parent.Skins)
+local Traps = require(script.Parent.Traps)
 
 local Monster = {}
 
-export type Target = { player: Player, character: Model, root: BasePart }
+-- hidden = in a hiding spot, but the monster saw them get in.
+export type Target = { player: Player, character: Model, root: BasePart, hidden: boolean? }
 
 type State = {
 	active: boolean,
@@ -29,6 +33,7 @@ type State = {
 	player: Player?,
 	model: Model?,
 	look: Skins.MonsterLook,
+	alertPosition: Vector3?, -- somewhere the bot should go and look
 	connections: { RBXScriptConnection },
 }
 
@@ -258,8 +263,9 @@ local function runBot(s: State, model: Model, humanoid: Humanoid, root: BasePart
 	local lastPathTime = 0
 	local wandering = false
 	local lastSeenPosition: Vector3? = nil
-	local lastSeenTime = -math.huge
+	local searchUntil = 0 -- keep searching lastSeenPosition until this time
 	local pausedUntil = 0
+	local nextTrap = os.clock() + Config.BotTrapInterval * 0.5
 	local stuckPosition, stuckTime = root.Position, os.clock()
 
 	local function computePath(target: Vector3): boolean
@@ -306,6 +312,14 @@ local function runBot(s: State, model: Model, humanoid: Humanoid, root: BasePart
 			continue
 		end
 
+		-- Someone stepped in a trap: go and look.
+		local alert = s.alertPosition
+		if alert then
+			s.alertPosition = nil
+			lastSeenPosition, searchUntil = alert, os.clock() + Config.ChaseMemory + 8
+			goal = nil
+		end
+
 		local targets = s.getTargets()
 		local exclude: { Instance } = { model }
 		for _, target in targets do
@@ -321,7 +335,10 @@ local function runBot(s: State, model: Model, humanoid: Humanoid, root: BasePart
 		local caught = false
 		for _, target in targets do
 			local distance = (target.root.Position - root.Position).Magnitude
-			local visible = distance <= Config.SightRange and hasLineOfSight(eyes, target.root.Position, rayParams)
+			-- A hider it saw getting in can't be seen through the doors, but
+			-- it knows where they are.
+			local visible = distance <= Config.SightRange
+				and (target.hidden or hasLineOfSight(eyes, target.root.Position, rayParams))
 			if visible and inCatchRange(root.Position, target.root.Position) then
 				s.onCatch(target.player)
 				caught = true
@@ -344,7 +361,7 @@ local function runBot(s: State, model: Model, humanoid: Humanoid, root: BasePart
 			wandering = false
 			humanoid.WalkSpeed = Config.BotChaseSpeed
 			local targetPosition = best.root.Position
-			lastSeenPosition, lastSeenTime = targetPosition, os.clock()
+			lastSeenPosition, searchUntil = targetPosition, os.clock() + Config.ChaseMemory
 			if bestVisible and bestDistance < 15 and math.abs(targetPosition.Y - root.Position.Y) < 3 then
 				waypoints, goal = nil, nil
 				humanoid:MoveTo(targetPosition)
@@ -357,7 +374,7 @@ local function runBot(s: State, model: Model, humanoid: Humanoid, root: BasePart
 					humanoid:MoveTo(targetPosition)
 				end
 			end
-		elseif lastSeenPosition and os.clock() - lastSeenTime < Config.ChaseMemory then
+		elseif lastSeenPosition and os.clock() < searchUntil then
 			-- Search where we last saw someone
 			wandering = false
 			local searchPosition = lastSeenPosition
@@ -372,6 +389,15 @@ local function runBot(s: State, model: Model, humanoid: Humanoid, root: BasePart
 			humanoid.WalkSpeed = Config.BotWanderSpeed
 			if not wandering or not followPath() then
 				wandering = #wanderPoints > 0 and computePath(wanderPoints[math.random(#wanderPoints)])
+			end
+		end
+
+		-- Now and then, leave a trap behind.
+		if Config.BotTrapInterval > 0 and os.clock() >= nextTrap then
+			nextTrap = os.clock() + Config.BotTrapInterval * (0.75 + math.random() * 0.5)
+			local floor = Traps.FloorBelow(root.Position)
+			if floor and Traps.Count("Bot") < Config.MaxBotTraps then
+				Traps.Place(floor, "Bot")
 			end
 		end
 
@@ -407,7 +433,7 @@ local function runPlayerCatcher(s: State, player: Player)
 		for _, target in targets do
 			if
 				inCatchRange(root.Position, target.root.Position)
-				and hasLineOfSight(root.Position, target.root.Position, rayParams)
+				and (target.hidden or hasLineOfSight(root.Position, target.root.Position, rayParams))
 			then
 				s.onCatch(target.player)
 				nextCatch = os.clock() + 1
@@ -453,6 +479,7 @@ function Monster.Start(options: {
 		player = options.player,
 		model = nil,
 		look = Skins.GetMonsterLook(options.skin),
+		alertPosition = nil,
 		connections = {},
 	}
 	state = s
@@ -530,6 +557,44 @@ function Monster.Release()
 		setupBotAnimations(humanoid)
 	end
 	task.spawn(runBot, s, model, humanoid, root)
+end
+
+-- Sends the bot to look at a position (e.g. where a trap went off).
+function Monster.Alert(position: Vector3)
+	local s = state
+	if s and not s.player then
+		s.alertPosition = position
+	end
+end
+
+-- Whether the monster can see a position right now (or is close enough to
+-- hear what happens there). Used to tell if it saw someone hide.
+function Monster.CanSee(position: Vector3): boolean
+	local s = state
+	if not s or not s.released then
+		return false
+	end
+	local body = if s.player then s.player.Character else s.model
+	local root = body and body:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return false
+	end
+	local distance = (position - root.Position).Magnitude
+	if distance > Config.SightRange then
+		return false
+	elseif distance <= Config.HearingRange then
+		return true
+	end
+	local exclude: { Instance } = { body :: Model }
+	for _, player in Players:GetPlayers() do
+		if player.Character then
+			table.insert(exclude, player.Character)
+		end
+	end
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = exclude
+	return hasLineOfSight(root.Position + Vector3.new(0, 1.5, 0), position, params)
 end
 
 function Monster.Stop()
