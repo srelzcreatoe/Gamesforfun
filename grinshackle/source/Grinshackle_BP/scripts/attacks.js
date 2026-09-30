@@ -20,7 +20,7 @@ export function canStart(kind, entity, player) {
   const r = S.record; const a = ATTACKS[kind];
   if (!a || !r || !isValid(entity) || !isValid(player)) return false;
   if (r.pendingAttack || S.tick < r.nextAttack) return false;
-  if (!reservation.validate(entity) || !playerEligible(player)) return false;
+  if (!reservation.validate(entity) || !playerEligible(player) || !worldAllowsEncounters() || !masterEnabled()) return false;
   if (dist(entity.location, player.location) > a.start) return false;
   if (Math.abs(entity.location.y - player.location.y) > a.vertical) return false;
   return perception.lineOfSight(entity, player);

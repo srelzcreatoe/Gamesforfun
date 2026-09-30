@@ -142,5 +142,25 @@
  [
   "attack_crawl",
   "arm_r/arm_l rotation.x +4.5 (matches the crawl fix)"
+ ],
+ [
+  "roar",
+  "neck.position.y +2.0 over 0.27-2.0 s (the open jaw clears the chest collar during the head throw-back: jaw-in-chest 39% -> 0%)"
+ ],
+ [
+  "chain_snap",
+  "first/last 0.3 s eased onto the battle_idle stance (it only fires mid-hunt; blend pop reduced)"
+ ],
+ [
+  "lunge",
+  "neck.position.y +1.0 and jaw x -6 over the forward-lean window (jaw out of the chest collar: 19% -> 6%)"
+ ],
+ [
+  "chain_whip",
+  "neck.position.y +1.0 and jaw x -6 over the forward-lean window (jaw out of the chest collar: 19% -> 6%)"
+ ],
+ [
+  "collapse",
+  "neck.position.y +1.5 and jaw x -6 over the forward-lean window (jaw out of the chest collar: 19% -> 6%)"
  ]
 ]

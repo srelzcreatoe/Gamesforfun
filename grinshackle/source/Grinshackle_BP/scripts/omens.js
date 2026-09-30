@@ -109,7 +109,7 @@ export function pick(record, player) {
   if (om && S.tick < (om.nextAllowed || 0)) return undefined;
   const candidates = KINDS.filter((k) => !!get(TOGGLE[k]) && S.tick >= cooldownUntil[k] && !(om && om.lastKind === k) && available(k, player));
   if (!candidates.length) return undefined;
-  return candidates.includes('answering_mine') && chance(0.7) ? 'answering_mine' : pickOne(candidates);
+  return candidates.includes('answering_mine') && chance(0.85) ? 'answering_mine' : pickOne(candidates);
 }
 
 // ---------------------------------------------------------------- lifecycle

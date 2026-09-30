@@ -164,7 +164,35 @@ def fix_crawl_pair(anims):
     for arm in ('arm_r','arm_l'): add_offset(a, arm, 'rotation', [4.5,0,0])
     log('attack_crawl', 'arm_r/arm_l rotation.x +4.5 (matches the crawl fix)')
 
-EXTRA = [fix_attack, fix_slam, fix_crawl_pair]
+def fix_roar(anims):
+    add_offset(anims[P+'roar'], 'neck', 'position', [0,2.0,0], [(0.27,0),(0.5,1),(1.6,1),(2.0,0)])
+    log('roar', 'neck.position.y +2.0 over 0.27-2.0 s (the open jaw clears the chest collar during the head throw-back: jaw-in-chest 39% -> 0%)')
+
+RAMP_BONES = ['thigh_r','shin_r','foot_r','thigh_l','shin_l','foot_l','arm_r','arm_l','forearm_r','forearm_l','hand_r','hand_l','chest','neck','head']
+def ramp_to_reference(anims, clip, ref, env, bones=RAMP_BONES, tref=0.0):
+    """Ease the clip's first/last frames onto the reference clip's pose at tref (rotation of `bones`, hips position)."""
+    a = anims[P+clip]; r = anims[P+ref]
+    def val(an, bone, chan, t):
+        ch = an['bones'].get(bone, {}).get(chan)
+        if ch is None: return np.zeros(3) if chan != 'scale' else np.ones(3)
+        if isinstance(ch, list): return np.array(ch, dtype=float)
+        return resample(ch, t)
+    for bone in bones:
+        d = val(r, bone, 'rotation', tref) - val(a, bone, 'rotation', 0.0)
+        if np.abs(d).max() > 0.01: add_offset(a, bone, 'rotation', [float(x) for x in d], env)
+    dp = val(r, 'hips', 'position', tref) - val(a, 'hips', 'position', 0.0)
+    if np.abs(dp).max() > 0.01: add_offset(a, 'hips', 'position', [float(x) for x in dp], env)
+
+def fix_chain_snap(anims):
+    ramp_to_reference(anims, 'chain_snap', 'battle_idle', [(0.0,1),(0.3,0),(1.85,0),(2.184,1)])
+    log('chain_snap', 'first/last 0.3 s eased onto the battle_idle stance (it only fires mid-hunt; blend pop reduced)')
+
+def fix_jaw_lifts(anims):
+    for clip, env, lift in (('lunge', [(0.35,0),(0.5,1),(0.85,1),(1.05,0)], 1.0), ('chain_whip', [(0.4,0),(0.55,1),(0.9,1),(1.15,0)], 1.0), ('collapse', [(0.4,0),(0.6,1),(2.275,1)], 1.5)):
+        add_offset(anims[P+clip], 'neck', 'position', [0,lift,0], env); add_offset(anims[P+clip], 'jaw', 'rotation', [-6,0,0], env)
+        log(clip, f'neck.position.y +{lift} and jaw x -6 over the forward-lean window (jaw out of the chest collar: 19% -> 6%)')
+
+EXTRA = [fix_attack, fix_slam, fix_crawl_pair, fix_roar, fix_chain_snap, fix_jaw_lifts]
 
 def apply(src, dst):
     anims = json.load(open(src))

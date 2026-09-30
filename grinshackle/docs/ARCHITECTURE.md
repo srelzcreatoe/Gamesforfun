@@ -1,5 +1,11 @@
 # Grinshackle — The Chainbound Dweller: architecture contract (v2.0.0)
 
+> Implementation notes (what changed while building against this contract): a fourth controller `controller.animation.gs.track` drives the
+> head-tracking overlay; the pose controller's `stalk`/`walk`/`run`/`crawl` states are split into moving and `_still` sub-states with real blend
+> transitions; motion groups gained `hunt_slow`/`crawl_slow` for `speedScale < 0.9`; the creature carries a large engine health pool while the
+> script tracks the configurable 80-point pool so the collapse clip can play in full; attack reach was tightened to the visual claw reach
+> (start 1.7/1.6/1.8, hit 1.8/1.7/1.95 blocks); join protection is 20 s and death protection 60 s.
+
 This document is the binding contract for every file in the add-on. Implementers must use exactly the identifiers,
 property names, event names, state names, timings and module exports listed here. If something is missing, add it to
 your module's own exports but do NOT rename anything listed here.

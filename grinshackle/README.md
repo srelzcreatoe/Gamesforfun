@@ -11,7 +11,7 @@ new namespace `gs:`, new encounter director, new audio, new items, a configurati
 1. Open `Grinshackle_Chainbound_Dweller_v2.0.0.mcaddon` with Minecraft Bedrock (1.21.90 or later).
 2. Add **Grinshackle — The Chainbound Dweller [BP]** and **[RP]** to a world. Leave every experiment toggle **off**; none is needed.
 3. Play Survival or Adventure on Easy/Normal/Hard. Natural encounters happen in the **Overworld only**, underground, at or below **Y = 0**
-   by default (configurable), for players who are not in Creative/Spectator and not freshly (re)spawned.
+   by default (configurable), for players who are not in Creative/Spectator, joined more than 20 s ago and did not die in the last 60 s.
 4. The first natural encounter starts after a two-minute grace period; later ones wait three to six minutes (random). Not every omen leads to a
    spawn, and not every sighting becomes a chase.
 
@@ -121,4 +121,6 @@ player and stops on retreat, defeat, target loss, disable, dimension change and 
 * `assets/` — supplied `.bbmodel`, geometry, 64×64 PNG, original animation JSON, and the revised `grinshackle_chainreaver_v2.bbmodel` /
   animation JSON with the documented corrections.
 * `preview/` — software-rendered animation preview (GIF + contact sheets). **Not in-game footage.**
+* `tests/` — the Node.js mock-API harness and 21 behaviour scenarios (102 checks, all passing). This is not a Minecraft playtest; see
+  `test_report.md` for exactly what was and was not tested.
 * `animation_usage_report.md`, `compatibility_report.md`, `test_report.md`, `docs/ARCHITECTURE.md`.

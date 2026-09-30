@@ -66,5 +66,10 @@ See `fixlog.json` in `assets/` for the machine-readable list. Summary:
 * `attack` / `slam`: first and last 0.35–0.45 s eased onto the battle_idle stance (blend pop 9.0 u → 1.8 u); neck lift + jaw cap during the lean
   (jaw-in-chest 25 % → 0 %); root z lunge removed (no planted-foot skate); `slam` arms spread ±16° while raised (hands through horns 70 % → 3 %).
 * `alert`: head roll ×0.6 during the stare hold (jaw out of the collar). `twitch`: spike ×0.7 (jaw out of the collar, jerk still visible).
+* `roar`: neck raised 2 u during the head throw-back (jaw-in-chest 39 % → 0 %). `lunge`, `chain_whip`: neck +1 u and jaw −6° over the lean
+  (19 % → 6 %, the idle baseline). `collapse`: neck +1.5 u held from 0.4 s (19 % → 6 %).
+* `chain_snap`: first/last 0.3 s eased onto the battle_idle stance (it only fires mid-hunt; blend pop 7.3 u → 1.2 u).
+* Audited with no change needed: `idle`, `stare`, `battle_idle`, `crouch`, `emerge` (rises 38 u through the floor by design, fully up at
+  1.9 s), `vanish` (sinks below the floor and holds), `hurt` (idle-family rest stance).
 * Strike direction verified: at impact the striking hand is at its most-forward point toward -Z (attack: hand −0.98 blocks, claws −1.33 blocks;
   slam: −0.94 / −1.22; crawl strike claws ≈ −1.5). Coded reach was reduced to match (see README combat table).

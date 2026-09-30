@@ -7,14 +7,15 @@ import { get } from './config.js';
 import { isUnderground } from './world_scan.js';
 import * as reservation from './reservation.js';
 
-const RESPAWN_PROTECT_TICKS = 1200; // 60 s after a death or (re)spawn
+const DEATH_PROTECT_TICKS = 1200; // 60 s after a death or respawn
+const JOIN_PROTECT_TICKS = 400;    // 20 s after joining the world
 
 export function masterEnabled() { return !!(S.config && S.config.master); }
 export function naturalEnabled() { return masterEnabled() && !!S.config.naturalSpawning; }
 export function worldAllowsEncounters() { return safe(() => world.getDifficulty() !== Difficulty.Peaceful, false); }
 
 /** Survival/Adventure, alive, not respawn-protected, in the Overworld. */
-export function playerEligible(p) {
+export function playerEligible(p, opts = {}) {
   if (!isValid(p)) return false;
   const mode = safe(() => p.getGameMode(), undefined);
   if (mode !== GameMode.Survival && mode !== GameMode.Adventure) return false;
@@ -22,9 +23,11 @@ export function playerEligible(p) {
   if (!hp || !(hp.currentValue > 0)) return false;
   if (safe(() => p.dimension.id, '') !== IDS.OVERWORLD) return false;
   const lastDeath = safe(() => p.getDynamicProperty(IDS.PLAYER_LAST_DEATH), undefined);
-  if (typeof lastDeath === 'number' && S.tick - lastDeath < RESPAWN_PROTECT_TICKS) return false;
-  const lastSpawn = safe(() => p.getDynamicProperty(IDS.PLAYER_LAST_SPAWN), undefined);
-  if (typeof lastSpawn === 'number' && S.tick - lastSpawn < RESPAWN_PROTECT_TICKS) return false;
+  if (typeof lastDeath === 'number' && S.tick - lastDeath < DEATH_PROTECT_TICKS) return false;
+  if (!opts.ignoreJoinProtection) {
+    const lastSpawn = safe(() => p.getDynamicProperty(IDS.PLAYER_LAST_SPAWN), undefined);
+    if (typeof lastSpawn === 'number' && S.tick - lastSpawn < JOIN_PROTECT_TICKS) return false;
+  }
   return true;
 }
 

@@ -35,6 +35,21 @@ updates the packs in place. The v1 entity `cr:chainreaver` is kept as a stub def
 | Radial configuration wheel | No custom UI without JSON-UI overrides (would conflict with other packs and could not be tested here) | Standard `ActionFormData` / `ModalFormData` / `MessageFormData` menus. The README does not claim a radial interface. |
 | Death animation | The engine removes a dead entity after its vanilla death animation (about 1 s) | The entity carries a large engine health pool while the script tracks the configurable 80-point pool; at 0 it plays the full `collapse` clip, spawns the loot items and experience, then removes itself. `/kill` still works (engine loot table). |
 
+## Facts confirmed on learn.microsoft.com (stable moniker) during this build
+
+* `minecraft:timer`: `time`, `looping`, `time_down_event` as `{ "event": ... }` (waypoint helper expiry).
+* `minecraft:experience_reward`: `on_death` accepts a Molang string or a number.
+* `minecraft:damage_sensor`: triggers with `cause` (`"fall"` is a documented value) and `deals_damage: "no"`; `fall_damage` is not a cause and
+  was removed from the entity file.
+* `minecraft:cooldown` item component: `category` + `duration` (format ≥ 1.20.10) — used by the Rattle Lure.
+* Animations: rotations are degrees applied X-then-Y-then-Z; channels are added component-wise across animations before the transform is built
+  (which is why the run clip's wrapped Euler triple had to be re-expressed); `anim_time_update` is a documented animation field (the vanilla
+  quadruped walk uses it); `loop: "hold_on_last_frame"` is documented.
+* Molang: `query.ground_speed` is in metres/second; `query.target_x_rotation` / `query.target_y_rotation` need a current target (provided by the
+  `nearest_attackable_target` goal); `query.property('gs:pose') == 'idle'` string comparison; `query.modified_move_speed` for moving/still.
+* Script API: every member used exists in the shipped `@minecraft/server` 2.0.0 / `@minecraft/server-ui` 2.0.0 declarations (verified by
+  TypeScript `checkJs` over all 22 modules; `Player.isOp`, `commandPermissionLevel`, block light and camera APIs are absent and not used).
+
 ## Animation conventions used by the audit
 
 * Model forward is **-Z** (eyes, pupils and teeth sit on the -Z side of the head). Forward strikes were verified to travel toward -Z.

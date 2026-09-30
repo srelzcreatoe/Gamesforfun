@@ -147,7 +147,7 @@ export function spawnTest(player) {
   if (S.record && S.record.state === 'OMENS') { omens.end(S.record); S.record = undefined; }
   const e = trySpawn(player, 'test', true);
   if (!e) return text.gateSentence('no_safe_location');
-  const tgt = gates.playerEligible(player) ? player : perception.chooseTarget(e, 32);
+  const tgt = gates.playerEligible(player, { ignoreJoinProtection: true }) ? player : perception.chooseTarget(e, 32);
   const ok = beginEncounter(e, 'test', tgt);
   if (!ok) return 'Spawn failed.';
   return tgt ? `Grinshackle spawned (variant ${S.record.variant}). Target: ${tgt.name}.` : 'Grinshackle spawned, but no Survival/Adventure target is eligible — it will only linger and leave.';
@@ -230,7 +230,7 @@ function enterState(next, opts = {}) {
       if (p) navigation.snapFace(p.location);
       let ticks;
       if (r.lastLink.active) { r.lastLink.active = false; r.lastLink.releasedAt = S.tick; animation.setOverlay(0); audio.fxAt(SOUNDS.click_release, e, { volume: 0.7, radius: 16 }); if (p) text.cue(p, 'release'); ticks = animation.setAction('alert'); audio.fxAt(SOUNDS.alert, e, { volume: 0.8, radius: 20 }); }
-      else if (!r.warned && chance(0.25)) { ticks = animation.setAction('roar'); audio.fxAt(SOUNDS.roar, e, { volume: 1.0, radius: 32 }); if (p) text.cue(p, 'roar'); }
+      else if (!r.warned && chance(0.25)) { ticks = animation.setAction('roar'); audio.fxAt(SOUNDS.roar, e, { volume: 0.85, radius: 32 }); if (p) text.cue(p, 'roar'); }
       else { ticks = animation.setAction('chain_whip'); audio.fxAt(SOUNDS.warning, e, { volume: 0.9, radius: 24 }); if (p) text.cue(p, 'warning'); }
       r.warned = true; r.warningUntil = S.tick + (ticks || 30);
       if (p) audio.music(p, 'stalk');

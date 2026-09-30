@@ -3,31 +3,38 @@ import { IDS, LIGHT_BLOCKS, MINESHAFT_BLOCKS, NON_FLOOR } from './constants.js';
 import { S } from './state.js';
 import { dist, flatDist, floorPos, dot, norm, sub, rand, safe } from './util.js';
 
+// Read budget: a scan (findSpawnPoint, lightApprox, ...) may read at most MAX_CALLS blocks per call. Simple helpers reset the
+// budget when they are called on their own and share the outer budget when called from inside a scan.
 const MAX_CALLS = 400;
-let calls = 0;
-function budget() { calls = 0; }
+let calls = 0, scanning = false;
+function begin() { if (!scanning) calls = 0; }
+function budget() { calls = 0; scanning = true; }
+function done() { scanning = false; }
 function block(dim, x, y, z) {
   if (++calls > MAX_CALLS) return undefined;
   try { return dim.getBlock({ x, y, z }); } catch { return undefined; }
 }
-export function isAir(dim, p) { const b = block(dim, Math.floor(p.x), Math.floor(p.y), Math.floor(p.z)); return !!b && b.isAir === true; }
-export function isPassable(dim, p) { const b = block(dim, Math.floor(p.x), Math.floor(p.y), Math.floor(p.z)); return !!b && (b.isAir === true || b.isLiquid === false && /(:air|_carpet|snow_layer|torch|rail|web|flower|grass|tallgrass|fern|sapling|vine|button|lever|pressure_plate)/.test(b.typeId)); }
-export function typeAt(dim, p) { const b = block(dim, Math.floor(p.x), Math.floor(p.y), Math.floor(p.z)); return b ? b.typeId : ''; }
+export function isAir(dim, p) { begin(); const b = block(dim, Math.floor(p.x), Math.floor(p.y), Math.floor(p.z)); return !!b && b.isAir === true; }
+export function isPassable(dim, p) { begin(); const b = block(dim, Math.floor(p.x), Math.floor(p.y), Math.floor(p.z)); return !!b && (b.isAir === true || b.isLiquid === false && /(:air|_carpet|snow_layer|torch|rail|web|flower|grass|tallgrass|fern|sapling|vine|button|lever|pressure_plate)/.test(b.typeId)); }
+export function typeAt(dim, p) { begin(); const b = block(dim, Math.floor(p.x), Math.floor(p.y), Math.floor(p.z)); return b ? b.typeId : ''; }
 
 /** Solid, non-liquid floor block directly under p. */
 export function isSolidFloor(dim, p) {
+  begin();
   const b = block(dim, Math.floor(p.x), Math.floor(p.y) - 1, Math.floor(p.z));
   if (!b || b.isAir || b.isLiquid) return false;
   return !NON_FLOOR.test(b.typeId);
 }
 /** `height` blocks of air starting at p (feet). */
 export function standRoom(dim, p, height = 3) {
+  begin();
   const x = Math.floor(p.x), y = Math.floor(p.y), z = Math.floor(p.z);
   for (let i = 0; i < height; i++) { const b = block(dim, x, y + i, z); if (!b || !b.isAir) return false; }
   return true;
 }
 /** Underground = Overworld and a non-air block somewhere in the 24 blocks above, or already at/below the sea of stone (y < 0 counts if the 8 blocks above are not all air). */
 export function isUnderground(dim, p) {
+  begin();
   if (safe(() => dim.id, '') !== IDS.OVERWORLD) return false;
   const x = Math.floor(p.x), z = Math.floor(p.z), y = Math.floor(p.y);
   let solidAbove = false;
@@ -38,6 +45,8 @@ export function isUnderground(dim, p) {
 /** Placed-light approximation: counts light-emitting blocks near p that have an unobstructed ray to p. NOT a light-level reading. */
 export function lightApprox(dim, p, radius = 4, threshold = 3) {
   budget();
+  try {
+  return (() => {
   const cx = Math.floor(p.x), cy = Math.floor(p.y), cz = Math.floor(p.z);
   let count = 0, rays = 0;
   const target = { x: cx + 0.5, y: cy + 1.0, z: cz + 0.5 };
@@ -56,6 +65,8 @@ export function lightApprox(dim, p, radius = 4, threshold = 3) {
     count++;
   }
   return { count, strong: count >= threshold };
+  })();
+  } finally { done(); }
 }
 
 export function materialAt(dim, p) {
@@ -70,12 +81,16 @@ export function materialAt(dim, p) {
 /** Nearby-block heuristic for mineshaft-like areas (not structure recognition). */
 export function mineshaftScore(dim, p) {
   budget();
+  try {
+  return (() => {
   const cx = Math.floor(p.x), cy = Math.floor(p.y), cz = Math.floor(p.z);
   let n = 0;
   for (let dx = -4; dx <= 4; dx += 2) for (let dy = -1; dy <= 2; dy++) for (let dz = -4; dz <= 4; dz += 2) {
     const b = block(dim, cx + dx, cy + dy, cz + dz); if (b && MINESHAFT_BLOCKS.test(b.typeId)) n++;
   }
   return n;
+  })();
+  } finally { done(); }
 }
 
 export function hasLineOfSight(dim, from, to) {
@@ -92,6 +107,8 @@ export function hasLineOfSight(dim, from, to) {
  */
 export function findSpawnPoint(player, opts = {}) {
   budget();
+  try {
+  return (() => {
   const dim = player.dimension; const loc = player.location;
   const min = opts.min ?? 12, max = opts.max ?? 24, height = opts.height ?? 3;
   const view = safe(() => player.getViewDirection(), { x: 0, y: 0, z: 1 });
@@ -118,11 +135,15 @@ export function findSpawnPoint(player, opts = {}) {
     if (calls > MAX_CALLS) break;
   }
   return best;
+  })();
+  } finally { done(); }
 }
 
 /** A walkable floor point near `pos` (radius r) with 2 blocks of headroom, optionally out of the player's line of sight. */
 export function walkableNear(dim, pos, radius = 6, opts = {}) {
   budget();
+  try {
+  return (() => {
   let best;
   for (let i = 0; i < 20; i++) {
     const a = Math.random() * Math.PI * 2; const r = rand(Math.max(1, radius * 0.5), radius);
@@ -136,6 +157,8 @@ export function walkableNear(dim, pos, radius = 6, opts = {}) {
     if (calls > MAX_CALLS) break;
   }
   return best;
+  })();
+  } finally { done(); }
 }
 
 /**
@@ -144,6 +167,8 @@ export function walkableNear(dim, pos, radius = 6, opts = {}) {
  */
 export function findCoverPoint(dim, fromPos, playerHead, opts = {}) {
   budget();
+  try {
+  return (() => {
   const min = opts.min ?? 6, max = opts.max ?? 14;
   for (let i = 0; i < 18; i++) {
     const a = Math.random() * Math.PI * 2; const r = rand(min, max);
@@ -168,10 +193,13 @@ export function findCoverPoint(dim, fromPos, playerHead, opts = {}) {
     if (calls > MAX_CALLS) break;
   }
   return undefined;
+  })();
+  } finally { done(); }
 }
 
 /** Count air blocks in the 8 horizontal neighbours at feet level (low = narrow passage / bend). */
 export function openness(dim, p) {
+  begin();
   const x = Math.floor(p.x), y = Math.floor(p.y), z = Math.floor(p.z);
   let n = 0;
   for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) { if (!dx && !dz) continue; const b = block(dim, x + dx, y, z + dz); if (b && b.isAir) n++; }

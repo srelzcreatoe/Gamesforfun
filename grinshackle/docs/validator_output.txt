@@ -1,0 +1,17 @@
+OK   all JSON files parsed
+OK   manifests: stable @minecraft/server 2.0.0 + server-ui 2.0.0, RP dependency resolves
+OK   entity: events resolve, no native melee damage component
+OK   all 21 supplied clips are reachable from controller states
+OK   gs:pose enum matches pose controller states
+OK   geometry geometry.grinshackle_chainreaver: 77 bones, all animated bones exist
+OK   entity texture is 64x64
+OK   25 sound definitions resolve to Ogg files
+OK   7 particle effects resolve textures
+OK   items: icons and lang entries resolve
+OK   recipes and loot reference known items
+OK   functions map to scriptevent gs:control
+OK   23 script modules, all relative imports resolve
+
+
+
+13 ok, 0 warnings, 0 failures
