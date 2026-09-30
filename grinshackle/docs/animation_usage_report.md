@@ -1,4 +1,4 @@
-# Animation usage report — Grinshackle v2.0.0
+# Animation usage report — Grinshackle v4.0.0
 
 All 21 supplied clips are referenced by exact identifier (`animation.grinshackle_chainreaver.<suffix>`), reachable through a real gameplay
 trigger, and selectable in preview mode (`/scriptevent gs:control preview <suffix>`, or `preview loop` to cycle all 21).

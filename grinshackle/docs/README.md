@@ -1,4 +1,4 @@
-# Grinshackle — The Chainbound Dweller (v2.0.0)
+# Grinshackle — The Chainbound Dweller (v4.0.0)
 
 A non-experimental Minecraft Bedrock add-on built around the supplied Grinshackle Chainreaver rig (77 bones, 736 cubes, 64×64 texture,
 21 animations). Grinshackle listens, remembers, and deliberately lets you notice it. Its chains give it away — until it learns to hold them still.
@@ -8,7 +8,7 @@ new namespace `gs:`, new encounter director, new audio, new items, a configurati
 
 ## Install and play
 
-1. Open `Grinshackle_Chainbound_Dweller_v2.0.0.mcaddon` with Minecraft Bedrock (1.21.90 or later).
+1. Open `Grinshackle_Chainbound_Dweller_v4.0.0.mcaddon` with Minecraft Bedrock (1.21.90 or later).
 2. Add **Grinshackle — The Chainbound Dweller [BP]** and **[RP]** to a world. Leave every experiment toggle **off**; none is needed.
 3. Play Survival or Adventure on Easy/Normal/Hard. Natural encounters happen in the **Overworld only**, underground, at or below **Y = 0**
    by default (configurable), for players who are not in Creative/Spectator, joined more than 20 s ago and did not die in the last 60 s.
@@ -116,9 +116,9 @@ player and stops on retreat, defeat, target loss, disable, dimension change and 
 
 ## Files
 
-* `Grinshackle_Chainbound_Dweller_v2.0.0.mcaddon` — installable.
+* `Grinshackle_Chainbound_Dweller_v4.0.0.mcaddon` — installable.
 * `source/Grinshackle_BP`, `source/Grinshackle_RP` — editable packs (the same files).
-* `assets/` — supplied `.bbmodel`, geometry, 64×64 PNG, original animation JSON, and the revised `grinshackle_chainreaver_v2.bbmodel` /
+* `assets/` — supplied `.bbmodel`, geometry, 64×64 PNG, original animation JSON, and the revised `grinshackle_chainreaver_v4.bbmodel` /
   animation JSON with the documented corrections.
 * `preview/` — software-rendered animation preview (GIF + contact sheets). **Not in-game footage.**
 * `tests/` — the Node.js mock-API harness and 21 behaviour scenarios (102 checks, all passing). This is not a Minecraft playtest; see

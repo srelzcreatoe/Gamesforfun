@@ -8,8 +8,8 @@ mkdir -p "$R/source" "$R/assets" "$R/docs" "$R/tools" "$R/tests" "$R/preview" "$
 cp -r "$S/build/Grinshackle_BP" "$S/build/Grinshackle_RP" "$R/source/"
 cp "$S/upload/Chainreaver_v1/assets/grinshackle_chainreaver.bbmodel" "$R/assets/grinshackle_chainreaver_supplied.bbmodel"
 cp "$S/upload/Chainreaver_v1/assets/grinshackle_chainreaver.animation.json" "$R/assets/grinshackle_chainreaver_supplied.animation.json"
-cp "$S/build_assets/grinshackle_chainreaver_v2.bbmodel" "$R/assets/"
-cp "$S/build_anim/grinshackle_chainreaver.animation.json" "$R/assets/grinshackle_chainreaver_v2.animation.json"
+cp "$S/build_assets/grinshackle_chainreaver_v4.bbmodel" "$R/assets/"
+cp "$S/build_anim/grinshackle_chainreaver.animation.json" "$R/assets/grinshackle_chainreaver_v4.animation.json"
 cp "$S/build_anim/fixlog.json" "$R/assets/"
 cp "$S/upload/Chainreaver_v1/assets/grinshackle_chainreaver.geo.json" "$S/upload/Chainreaver_v1/assets/grinshackle_chainreaver.png" "$R/assets/"
 cp "$S"/docs/*.md "$S/docs/validator_output.txt" "$R/docs/"; cp "$S/design/ARCHITECTURE.md" "$R/docs/"; cp "$S/docs/README.md" "$R/README.md"
@@ -21,6 +21,6 @@ sed -i "s#../Grinshackle_BP/scripts/#../source/Grinshackle_BP/scripts/#g" "$R/te
 cp "$S/preview/grinshackle_animation_preview.gif" "$S"/preview/*_sheet.png "$R/preview/"
 cp "$S"/dist/*.mcaddon "$R/dist/"
 # the editable zip the user asked for (packs + assets + docs + preview + tools + tests)
-cd "$R/.." && rm -f "$S/dist/Grinshackle_Chainbound_Dweller_v2.0.0_editable.zip" && zip -q -r -X "$S/dist/Grinshackle_Chainbound_Dweller_v2.0.0_editable.zip" grinshackle -x '*/dist/*' -x '*/__pycache__/*'
-cp "$S/dist/Grinshackle_Chainbound_Dweller_v2.0.0_editable.zip" "$R/dist/"
+cd "$R/.." && rm -f "$S/dist/Grinshackle_Chainbound_Dweller_v4.0.0_editable.zip" && zip -q -r -X "$S/dist/Grinshackle_Chainbound_Dweller_v4.0.0_editable.zip" grinshackle -x '*/dist/*' -x '*/__pycache__/*'
+cp "$S/dist/Grinshackle_Chainbound_Dweller_v4.0.0_editable.zip" "$R/dist/"
 du -sh "$R"; ls -la "$R/dist"

@@ -35,7 +35,7 @@ if bm and rm:
     else: ok('manifests: stable @minecraft/server 2.0.0 + server-ui 2.0.0, RP dependency resolves')
     sm = [m for m in bm['modules'] if m['type'] == 'script'][0]
     if not os.path.exists(f'{BP}/{sm["entry"]}'): fail('script entry missing')
-    if bm['header']['version'] != [2,0,0] or rm['header']['version'] != [2,0,0]: warn('pack versions are not 2.0.0')
+    if bm['header']['version'] != [4,0,0] or rm['header']['version'] != [4,0,0]: warn('pack versions are not 4.0.0')
 # --- entity (BP)
 ent = load(f'{BP}/entities/grinshackle.json')
 client = load(f'{RP}/entity/grinshackle.entity.json')

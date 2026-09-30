@@ -1,4 +1,4 @@
-# Test report — Grinshackle v2.0.0
+# Test report — Grinshackle v4.0.0
 
 Three kinds of testing are distinguished below. Only the first two happened. **No Minecraft client or dedicated server was available in the
 build environment, so no in-game playtest was performed.** Everything marked "in-game" is a checklist for the first real playtest.

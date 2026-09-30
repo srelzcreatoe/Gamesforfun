@@ -1,4 +1,4 @@
-# Compatibility report — Grinshackle v2.0.0
+# Compatibility report — Grinshackle v4.0.0
 
 ## Target and dependencies
 
@@ -15,7 +15,7 @@ input, network requests or account data.
 
 ## Update identity
 
-Both manifest header UUIDs and module UUIDs are the v1 values; the version is bumped to 2.0.0. Importing the v2 `.mcaddon` over a v1 world
+Both manifest header UUIDs and module UUIDs are the v1 values; the version is bumped to 4.0.0. Importing the v2 `.mcaddon` over a v1 world
 updates the packs in place. The v1 entity `cr:chainreaver` is kept as a stub definition that despawns instantly; the v1 world properties
 (`cr:active_id`, `cr:enabled`, `cr:muted`, `cr:fast`) are cleared once on first load (`gs:migrated_v1`).
 

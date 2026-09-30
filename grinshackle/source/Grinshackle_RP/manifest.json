@@ -2,10 +2,10 @@
   "format_version": 2,
   "header": {
     "name": "Grinshackle \u2014 The Chainbound Dweller [RP]",
-    "description": "Model, 21 animations, original audio and particles for Grinshackle. v2.0.0 \u2014 no experiments.",
+    "description": "Model, 21 animations, original audio and particles for Grinshackle. v4.0.0 \u2014 no experiments.",
     "uuid": "b38b5319-54bc-5df9-92c5-df66cdde87cb",
     "version": [
-      2,
+      4,
       0,
       0
     ],
@@ -20,7 +20,7 @@
       "type": "resources",
       "uuid": "3218ca77-2630-5cf6-81d3-a417fe1955a5",
       "version": [
-        2,
+        4,
         0,
         0
       ]

@@ -1,4 +1,4 @@
-# Grinshackle — The Chainbound Dweller: architecture contract (v2.0.0)
+# Grinshackle — The Chainbound Dweller: architecture contract (v4.0.0)
 
 > Implementation notes (what changed while building against this contract): a fourth controller `controller.animation.gs.track` drives the
 > head-tracking overlay; the pose controller's `stalk`/`walk`/`run`/`crawl` states are split into moving and `_still` sub-states with real blend

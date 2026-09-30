@@ -35,7 +35,7 @@ function boot() {
     for (const e of safe(() => world.getDimension(id).getEntities({ type: IDS.LEGACY_ENTITY }), [])) safe(() => e.remove());
     for (const w of safe(() => world.getDimension(id).getEntities({ type: IDS.WAYPOINT }), [])) safe(() => w.remove());
   }
-  log('info', `loaded v2.0.0 (master ${config.get('master') ? 'on' : 'off'}, natural ${config.get('naturalSpawning') ? 'on' : 'off'})`);
+  log('info', `loaded v4.0.0 (master ${config.get('master') ? 'on' : 'off'}, natural ${config.get('naturalSpawning') ? 'on' : 'off'})`);
 }
 
 /** A creature spawned or loaded: decide whether it is the reserved one, a duplicate, stale, or a preview. */
