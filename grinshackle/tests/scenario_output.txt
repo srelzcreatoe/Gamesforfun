@@ -9,12 +9,12 @@ PASS S02 natural OFF reported — natural_off
 PASS S02 player above Y=0 → wrong_habitat — wrong_habitat
 PASS S03 natural encounter (omens or emerge) begins when the gate is open — OMENS
 PASS S03 creature eventually spawns (or the omen-only encounter ends cleanly) — EMERGE
-PASS S03 natural spawn distance within 12..24 blocks — 15.8
+PASS S03 natural spawn distance within 12..24 blocks — 21.9
 PASS S03 reservation written
 PASS S04 test spawn creates the creature — EMERGE
 PASS S04 emerge → stalk/observe — STALK
 PASS S04 tension 100 → WARNING → HUNT — HUNT
-PASS S04 an attack starts when in reach — 1.57 blocks
+PASS S04 an attack starts when in reach — 1.59 blocks
 PASS S04 no damage before the impact tick — 0
 PASS S04 exactly one damage application at impact — [10]
 PASS S04 attack deals base damage 10 on Normal — 10
@@ -35,31 +35,37 @@ PASS S07 master OFF: creature removed, reservation released, markers cleared, no
 PASS S07 master OFF: music stopped
 PASS S07 master OFF blocks test spawns
 PASS S07 natural OFF still allows an authorised test spawn
-PASS S08 fragments dropped during the hunt (bounded ≤ 12) — 2
+PASS S08 fragments dropped during the hunt (bounded ≤ 12) — 1
+PASS S08 sneaking over a fragment does not trigger a snap — snapUntil=0
+PASS S08 walking over a fragment triggers chain_snap — snapUntil=149
+PASS S08 rattle cue played
+PASS S08 enrage begins only after the snap clip (4 s) — 79
+PASS S08 a second fragment during the cooldown does not refresh or stack the enrage — 229 vs 229
+PASS S08 enraged strike deals base +2 (12) — 12
 PASS S08 fragments expire within six seconds after the hunt pauses
 PASS S09 hunt leaves HUNT within the 45 s cap (search/retreat) — SEARCH
 PASS S09 encounter ends (vanish) and releases the reservation
-PASS S09 cooldown scheduled after the encounter — 6586
+PASS S09 cooldown scheduled after the encounter — 3657
 PASS S09 looping audio stopped on retreat
 PASS S10 target switching to Creative → retreat without an attack — RETREAT
 PASS S10 target disconnect → retargets a nearby eligible player — 38
 PASS S11 muted: no Grinshackle sounds or music
 PASS S11 muted: actionbar subtitle cues still appear
 PASS S11 restore: sounds resume
-PASS S12 four placed torches around the player make it hesitate at the threshold — lit={"count":3,"threshold":3,"hesitating":true,"until":121,"strong":true}
-PASS S12 it eventually withdraws instead of approaching a lit refuge — RETREAT
+PASS S12 four placed torches around the player make it hesitate at the threshold — lit={"count":3,"threshold":3,"hesitating":true,"until":165,"strong":true}
+PASS S12 it eventually withdraws instead of approaching a lit refuge — SEARCH
 PASS S12 a single distant torch does not count as a strong refuge — {"count":0,"strong":false}
 PASS S13 preview spawns a creature with a preview reservation
 PASS S13 preview plays a requested clip via the action property
 PASS S13 preview loop cycles many clips — poses=idle,battle_idle,stalk,walk,run,stare,crouch,crawl,emerge,vanish,collapse actions=8,0,1,2,3,4,5,6,7,9,10
 PASS S13 preview never targets or damages
 PASS S13 preview expires after two minutes and releases the reservation
-PASS S14 lure sets a redirect while observing — {"point":{"x":-0.5,"y":-30,"z":6.5},"until":175,"strength":1}
+PASS S14 lure sets a redirect while observing — {"point":{"x":1.5,"y":-30,"z":4.5},"until":175,"strength":1}
 PASS S14 one lure consumed — 2
-PASS S14 repeat placement is weaker — {"point":{"x":-1.5,"y":-30,"z":4.5},"until":116,"strength":0.6}
+PASS S14 repeat placement is weaker — {"point":{"x":0.5,"y":-30,"z":4.5},"until":116,"strength":0.6}
 PASS S14 visible feedback given
 PASS S14 a lure never cancels a committed attack
-PASS S15 footsteps omen available after walking then stopping — borrowed_footsteps
+PASS S15 footsteps omen available after walking then stopping — distant_drag
 PASS S15 pick respects the omen toggles — borrowed_footsteps
 PASS S15 borrowed footsteps play exactly 3 steps (two, pause, one) — 3
 PASS S15 footsteps come from 6..10 blocks away
@@ -73,7 +79,7 @@ PASS S16 80 virtual health reached 0 → COLLAPSE — COLLAPSE
 PASS S16 collapse drops Broken Chain and Ink-soaked Scrap after the clip — gs:broken_chain,gs:ink_scrap
 PASS S16 creature removed and reservation released after defeat
 PASS S16 no attack while collecting drops
-PASS S16 longer cooldown after a defeat — 353.95
+PASS S16 longer cooldown after a defeat — 350.9
 PASS S17 unloaded creature: record dropped, reservation kept
 PASS S17 spawn gate reports reserved_unloaded — reserved_unloaded
 PASS S17 lost reservation retired after the timeout
@@ -101,4 +107,4 @@ PASS S21 non-admin personal audio preference saved — {"musicVolume":0.5,"effec
 PASS S21 non-admin gets the admin-only notice instead of the Master form
 PASS S21 preset applied through the dial
 
-102/102 checks passed
+108/108 checks passed

@@ -121,6 +121,6 @@ player and stops on retreat, defeat, target loss, disable, dimension change and 
 * `assets/` — supplied `.bbmodel`, geometry, 64×64 PNG, original animation JSON, and the revised `grinshackle_chainreaver_v4.bbmodel` /
   animation JSON with the documented corrections.
 * `preview/` — software-rendered animation preview (GIF + contact sheets). **Not in-game footage.**
-* `tests/` — the Node.js mock-API harness and 21 behaviour scenarios (102 checks, all passing). This is not a Minecraft playtest; see
+* `tests/` — the Node.js mock-API harness and 21 behaviour scenarios (108 checks, all passing). This is not a Minecraft playtest; see
   `test_report.md` for exactly what was and was not tested.
 * `animation_usage_report.md`, `compatibility_report.md`, `test_report.md`, `docs/ARCHITECTURE.md`.

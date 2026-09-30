@@ -31,7 +31,7 @@ The bbmodel round trip (`tools/update_bbmodel.py`) rewrote 100 881 keyframes wit
 `tests/scenarios.mjs` runs the real behaviour-pack scripts against `tests/mock/` (a mock of `@minecraft/server` derived from the 2.0.0
 declarations, with a block map, ray casts, entity queries, navigation stand-in, events, dynamic properties and forms).
 
-**Result: 102/102 checks passed** (`tests/scenario_output.txt` has the raw log).
+**Result: 108/108 checks passed** (`tests/scenario_output.txt` has the raw log).
 
 | Scenario | Result |
 |---|---|
@@ -73,6 +73,12 @@ declarations, with a block map, ray casts, entity queries, navigation stand-in, 
 | S07 master OFF blocks test spawns | pass |
 | S07 natural OFF still allows an authorised test spawn | pass |
 | S08 fragments dropped during the hunt (bounded ≤ 12) | pass |
+| S08 sneaking over a fragment does not trigger a snap | pass |
+| S08 walking over a fragment triggers chain_snap | pass |
+| S08 rattle cue played | pass |
+| S08 enrage begins only after the snap clip (4 s) | pass |
+| S08 a second fragment during the cooldown does not refresh or stack the enrage | pass |
+| S08 enraged strike deals base +2 (12) | pass |
 | S08 fragments expire within six seconds after the hunt pauses | pass |
 | S09 hunt leaves HUNT within the 45 s cap (search/retreat) | pass |
 | S09 encounter ends (vanish) and releases the reservation | pass |

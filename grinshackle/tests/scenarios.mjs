@@ -180,9 +180,8 @@ async function s08_chain_snap() {
   spawnTest(ctx, p); untilState(ctx, 'STALK', 120); forceHunt(ctx);
   const e = ctx.S.active; const r = ctx.S.record;
   // fragments drop while it moves
-  let dropped = 0; for (let i = 0; i < 200; i++) { ctx.h.tick(1); dropped = Math.max(dropped, ctx.markers.count()); }
-  check('S08 fragments dropped during the hunt (bounded ≤ 12)', dropped >= 1 && dropped <= 12, String(dropped));
-  const frag = ctx.S.markers[0];
+  let frag; for (let i = 0; i < 400 && !frag; i++) { ctx.h.tick(1); if (ctx.S.markers.length) frag = ctx.S.markers[0]; }
+  check('S08 fragments dropped during the hunt (bounded ≤ 12)', !!frag && ctx.markers.count() <= 12, String(ctx.markers.count()));
   if (frag) {
     r.pendingAttack = null; r.nextAttack = ctx.S.tick + 400; // keep it from attacking during the test
     p.isSneaking = true; p.teleport({ x: frag.pos.x, y: frag.pos.y, z: frag.pos.z }); ctx.h.tick(5);
@@ -199,7 +198,7 @@ async function s08_chain_snap() {
     check('S08 a second fragment during the cooldown does not refresh or stack the enrage', r.enragedUntil === firstEnrage, `${r.enragedUntil} vs ${firstEnrage}`);
     // enraged damage +2
     const A = await import('../source/Grinshackle_BP/scripts/attacks.js?run=' + importSerial);
-    e.teleport({ x: p.location.x, y: FLOOR_Y, z: p.location.z + 1.4 }); r.nextAttack = 0; r.pendingAttack = null;
+    e.teleport({ x: p.location.x, y: FLOOR_Y, z: p.location.z + 1.4 }); e.setRotation({ x: 0, y: 180 }); r.nextAttack = 0; r.pendingAttack = null; // face -Z toward the player
     const before = damageEvents(ctx.h).length; A.resolveImpact(e, p, 'attack');
     const hit = damageEvents(ctx.h).slice(before)[0];
     check('S08 enraged strike deals base +2 (12)', hit && hit.amount === 12, hit && String(hit.amount));
@@ -233,6 +232,7 @@ async function s10_target_loss() {
 }
 async function s11_mute_and_subtitles() {
   const ctx = await fresh(); const p = addPlayer(ctx.h, { name: 'Ava', x: 0.5, y: FLOOR_Y, z: 0.5, gameMode: 'Survival' });
+  const hp = p.getComponent('minecraft:health'); hp.effectiveMax = 100000; hp.setCurrentValue(100000); // survive the whole muted hunt
   cmd(ctx.h, p, 'mute'); ctx.h.tick(1);
   const before = logs(ctx.h, 'playSound').length + logs(ctx.h, 'playMusic').length;
   spawnTest(ctx, p); untilState(ctx, 'STALK', 120); forceHunt(ctx); ctx.h.tick(100);

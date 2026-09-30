@@ -7,7 +7,7 @@ scripts; it does not reproduce pathfinding, rendering, latency or chunk loading.
 ```bash
 cd tests
 node --import ./mock/loader.mjs mock/selftest.mjs     # harness self-test
-node --import ./mock/loader.mjs scenarios.mjs         # 21 scenarios / 102 checks
+node --import ./mock/loader.mjs scenarios.mjs         # 21 scenarios / 108 checks
 ```
 
 The scenarios import the scripts from `../source/Grinshackle_BP/scripts/` (relative to `tests/`), so keep the folder layout of `source/`.
