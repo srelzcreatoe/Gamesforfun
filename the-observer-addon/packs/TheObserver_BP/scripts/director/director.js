@@ -44,6 +44,14 @@ const TIER_POINTS = [0, 1, 2, 3, 4];
 const TIER_TENSION = [0, 6, 12, 22, 35];
 const GLOBAL_GAP = 35;
 
+/** Deferrals (prepare found nothing to do here): per player state -> streak and per-type retry times. Not persisted. */
+const deferrals = new WeakMap();
+function deferInfo(s) {
+  let d = deferrals.get(s);
+  if (!d) deferrals.set(s, (d = { streak: 0, until: /** @type {Record<string,number>} */ ({}) }));
+  return d;
+}
+
 /** Seconds of play before the Observer starts. */
 const graceSeconds = () => S().graceMinutes * 60;
 
@@ -73,6 +81,7 @@ export function eligibleWeight(def, s, c) {
   if ((def.minManip ?? 0) > manip()) return 0;
   if ((def.minAggression ?? 0) > 0 && (aggression() < def.minAggression || (s.witnessed))) return 0;
   if (s.witnessed && s.endMode === "attendant" && !def.benign) return 0;
+  if ((deferInfo(s).until[def.id] ?? 0) > now()) return 0;
   const last = s.typeLast[def.id];
   if (last !== undefined && now() - last < def.cooldown / Math.max(0.5, S().frequency)) return 0;
   let w = def.weight(c, s);
@@ -101,11 +110,14 @@ export function tick() {
   if (t < W.globalCooldownUntil) return;
   const candidates = allPlayers().filter((p) => ready(p, t));
   if (candidates.length === 0) return;
-  // fairness: whoever has waited longest (scaled by stage) goes first
+  // fairness: whoever has waited longest (scaled by stage) goes first; ineligible players
+  // (creative, sleeping, dead) are skipped without using up one of the two attempts
   candidates.sort((a, b) => score(b, t) - score(a, t));
-  for (const p of candidates.slice(0, 2)) {
+  let attempts = 0;
+  for (const p of candidates) {
     const c = context(p);
     if (!c.eligible) continue;
+    if (++attempts > 2) break;
     const s = ps(p);
     const pool = REGISTRY.filter((d) => !(d.needsBody && active));
     const def = weightedPick(pool, (d) => eligibleWeight(d, s, c));
@@ -174,16 +186,15 @@ async function run(enc) {
 
 async function cleanup(enc) {
   enc.clearFog();
-  if (enc.def.needsBody && active === enc && body.exists()) {
-    const b = body.get();
-    if (b && b.enc === enc.id) {
-      if (enc.aborted) body.despawn(enc.aborted === "struck" ? "unravel" : "abort");
-      else {
-        try {
-          await body.withdraw(enc.p.isValid ? enc.watchers() : [], 120);
-        } catch {
-          body.despawn("cleanup");
-        }
+  // any encounter that still owns the body removes it (some body-free encounters borrow it)
+  const b = body.get();
+  if (b && b.enc === enc.id) {
+    if (enc.aborted) body.despawn(enc.aborted === "struck" ? "unravel" : "abort");
+    else {
+      try {
+        await body.withdraw(enc.p.isValid ? enc.watchers() : [], 120);
+      } catch {
+        body.despawn("cleanup");
       }
     }
   }
@@ -199,11 +210,16 @@ function finish(enc) {
   }
   if (personal.get(enc.pid) === enc) personal.delete(enc.pid);
   const deferred = enc.outcome === "deferred";
+  const di = deferInfo(s);
   if (deferred) {
-    // try something else soon, and don't immediately retry this type
-    s.nextAt = Math.max(s.nextAt, t + 15);
-    s.typeLast[enc.def.id] = t - enc.def.cooldown + 90;
+    // nothing fitted here: free the director for other players at once, back this player off a
+    // little more each time (15, 30, 60, 120, 240 s) and don't retry this type for a while
+    di.streak++;
+    s.nextAt = Math.max(s.nextAt, t + Math.min(240, 15 * 2 ** (di.streak - 1)));
+    di.until[enc.def.id] = t + 90 + 30 * di.streak;
+    W.globalCooldownUntil = Math.min(W.globalCooldownUntil, t + 5);
   } else {
+    di.streak = 0;
     s.typeLast[enc.def.id] = t;
     s.hist.push([enc.def.id, Math.floor(t), enc.outcome, enc.ctx.d, Math.floor(enc.startLoc.x), Math.floor(enc.startLoc.z)]);
     if (s.hist.length > 12) s.hist.shift();
@@ -243,6 +259,9 @@ export function tryManual(id, p) {
   const s = ps(p);
   const t = now();
   if (def.minStage > s.stage || (def.minManip ?? 0) > manip()) return null;
+  // the same eligibility as the timer path, except that sleeping is allowed (the night visit)
+  const gm = safe(() => p.getGameMode());
+  if (gm !== GameMode.Survival && gm !== GameMode.Adventure) return null;
   if (s.witnessed && s.endMode === "rest") return null;
   if (s.witnessed && s.endMode === "attendant" && !def.benign) return null;
   if (t < s.quietUntil || t < s.recoveryUntil) return null;

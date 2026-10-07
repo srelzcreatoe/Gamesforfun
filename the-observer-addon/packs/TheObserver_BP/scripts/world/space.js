@@ -46,7 +46,18 @@ export function standAt(dim, x, z, yTop, maxDown, o = {}) {
   // must start in open space, otherwise we'd find the surface of the rock we're inside
   const startBlock = safe(() => dim.getBlock(probe));
   if (!startBlock || !(startBlock.isAir || startBlock.isLiquid || isReplaceable(startBlock))) return undefined;
-  const ground = safe(() => dim.getBlockBelow(probe, { includePassableBlocks: false, includeLiquidBlocks: true, maxDistance: maxDown }));
+  let ground = safe(() => dim.getBlockBelow(probe, { includePassableBlocks: false, includeLiquidBlocks: true, maxDistance: maxDown }));
+  if (o.liquidSurface) {
+    // the raycast can pass through water (it counts as passable), so look for the surface explicitly
+    const bottom = ground ? ground.location.y : Math.floor(probe.y) - maxDown;
+    for (let y = Math.floor(probe.y); y > bottom; y--) {
+      const b = safe(() => dim.getBlock({ x: bx, y, z: bz }));
+      if (b && b.isLiquid) {
+        ground = b;
+        break;
+      }
+    }
+  }
   if (!ground) return undefined;
   const g = ground.location;
   if (g.y + 1 >= range.max - 5 || g.y <= range.min + 1) return undefined;

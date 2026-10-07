@@ -74,12 +74,15 @@ python3 tests/bds/run_bds.py --bds /path/to/bedrock-server --testkit --fresh \
 ```
 
 Scenarios: `load.txt` (packs load cleanly), `proto.txt` (capability probes), `speed.txt` (movement calibration),
-`suite_smoke.txt`, `suite_full.txt` (all encounter tests), `restart_a.txt` + `restart_b.txt` (interrupted encounter
-across a server restart). The harness patches the **installed test copy** of the BP to import
+`suite_smoke.txt`, `suite_full.txt` (all 42 test groups), `suite_extra.txt` (a short subset), `restart_a.txt` +
+`restart_b.txt` (interrupted encounter across a server restart), `tps.txt` (tick rate; run once more with `--no-addon`
+for the baseline). Results and the manual client procedure are in [TEST_REPORT.md](TEST_REPORT.md).
+
+The harness patches the **installed test copy** of the BP to import
 `@minecraft/server-gametest` so simulated players are visible to the add-on's script context; the shipped manifest is
 untouched.
 
-With tracing on, the add-on publishes structured events as script events `observer_evt:start|end|discovery|body|ledger|smudge|info`
+With tracing on, the add-on publishes structured events as script events `observer_evt:start|end|discovery|body|ledger|strike|smudge|info`
 that the test kit asserts on. In normal play nothing is emitted.
 
 ## 4. Adding an encounter
@@ -167,7 +170,7 @@ Strings are split into 30 000-character chunks (`key`, `key#1`, …). `v` is the
   100 ticks (saves), 1200 ticks (decay, stray sweep, ward validation).
 * Spot searches sample ≤ 40 candidates once per encounter start, with 2–5 raycasts each.
 * Block searches use the native `dimension.getBlocks(volume, {includeTypes})` within ≤ 16 blocks.
-* Hard caps: one body, ≤ 400 ledger entries, ≤ 16 traces, ≤ 8 chalk marks per player, ≤ 64 wards.
+* Hard caps: one body, ≤ 800 ledger entries, ≤ 16 traces, ≤ 8 chalk marks per player, ≤ 64 wards.
 * Measured on BDS with the full suite running: see TEST_REPORT.md (tick-rate monitor).
 
 ## 9. Compatibility

@@ -9,11 +9,11 @@
 // States (client animation, entity property observer:state):
 //   watch stare tilt walk run attack peek recoil hidden
 import { world, system, EntityDamageCause } from "@minecraft/server";
-import { OBSERVER_ID, TARGET_TAG, ENTITY_ENC_PROP, PARTICLES, SOUNDS } from "../core/constants.js";
+import { OBSERVER_ID, TARGET_TAG, ENTITY_ENC_PROP, PARTICLES, SOUNDS, DANGER } from "../core/constants.js";
 import { V, safe, DEBUG, trace, emit, allPlayers } from "../core/util.js";
 import { S, strikeDamage } from "../core/settings.js";
 import { visibility, lineOfSight, seenByAny } from "../world/sight.js";
-import { standNear } from "../world/space.js";
+import { standNear, isReplaceable } from "../world/space.js";
 
 /** @typedef {import("@minecraft/server").Entity} Entity */
 /** @typedef {import("@minecraft/server").Player} Player */
@@ -156,22 +156,58 @@ export function despawn(why = "") {
   body = null;
 }
 
+const TURNS = [0, 30, -30, 60, -60, 100, -100, 140, -140];
+
 /**
- * Leave the scene: walk away (retreat mode) and remove the body once no player sees it,
- * or after maxTicks (then it "unravels" in place, a rare visible exit).
+ * One walking step of at most 1 block up or down, with 3 open blocks above the feet.
+ * @param {import("@minecraft/server").Dimension} dim @param {Vec} pos @param {Vec} dir @param {number} len
+ */
+function step(dim, pos, dir, len) {
+  for (const a of TURNS) {
+    const r = (a * Math.PI) / 180;
+    const d = { x: dir.x * Math.cos(r) - dir.z * Math.sin(r), y: 0, z: dir.x * Math.sin(r) + dir.z * Math.cos(r) };
+    const nx = pos.x + d.x * len, nz = pos.z + d.z * len;
+    const ground = safe(() => dim.getBlockBelow({ x: nx, y: pos.y + 1.2, z: nz }, { includePassableBlocks: false, includeLiquidBlocks: true, maxDistance: 3.5 }));
+    if (!ground || DANGER.has(ground.typeId)) continue;
+    const fy = ground.location.y + 1;
+    if (Math.abs(fy - pos.y) > 1.05) continue;
+    let open = true;
+    for (let h = 0; h < 3 && open; h++) open = isReplaceable(safe(() => dim.getBlock({ x: nx, y: fy + h, z: nz })));
+    if (open) return { loc: { x: nx, y: fy, z: nz }, dir: d };
+  }
+  return undefined;
+}
+
+/**
+ * Leave the scene: walk away from the watchers (script-driven steps; the retreat AI goal proved
+ * unreliable in testing) and remove the body once no player sees it, or after maxTicks (then it
+ * "unravels" in place, a rare visible exit).
  * @param {Player[]} watchers @param {number} maxTicks
  */
 export async function withdraw(watchers, maxTicks = 160) {
   const b = get();
   if (!b) return;
-  setStoop(b.stoop);
+  const dim = b.e.dimension;
+  setMode("still");
+  b.faceTarget = false;
   setState("walk");
-  setMode("retreat");
-  safe(() => b.e.dimension.playSound(SOUNDS.fabric, b.e.location, { volume: 0.5 }));
-  for (let t = 0; t < maxTicks; t += 4) {
-    await system.waitTicks(4);
-    if (!get()) return;
-    if (t >= 16 && !visibleTo(watchers)) {
+  safe(() => dim.playSound(SOUNDS.fabric, b.e.location, { volume: 0.5 }));
+  let pos = b.e.location;
+  const near = watchers.filter((p) => p.isValid && p.dimension.id === dim.id);
+  let dir = near.length
+    ? V.flat(V.sub(pos, near.reduce((a, p) => V.add(a, V.scale(p.location, 1 / near.length)), { x: 0, y: 0, z: 0 })))
+    : V.fromYaw((safe(() => b.e.getRotation().y, 0) ?? 0) + 180);
+  for (let t = 0; t < maxTicks; t += 2) {
+    await system.waitTicks(2);
+    // stop if the body was removed or replaced by another encounter's body meanwhile
+    if (get() !== b) return;
+    const st = step(dim, pos, dir, 0.18);
+    if (st) {
+      pos = st.loc;
+      dir = st.dir;
+      safe(() => b.e.teleport(pos, { facingLocation: { x: pos.x + dir.x * 4, y: pos.y + 3, z: pos.z + dir.z * 4 } }));
+    } else setState("watch"); // cornered: it waits to be unobserved
+    if (t >= 16 && t % 4 === 0 && !visibleTo(watchers)) {
       despawn("withdrew");
       return;
     }
@@ -197,8 +233,10 @@ export async function strike(target) {
   const tl = target.location;
   const fwd = V.fromYaw(b.e.getRotation().y);
   const to = V.flat(V.sub(tl, o));
-  const inFront = V.dot(fwd, to) > 0.35;
-  const reach = V.hdist(o, tl) <= 3.3 && Math.abs(tl.y - o.y) < 2.5;
+  const d = V.hdist(o, tl);
+  // a running body can end up almost on top of the target: at that range direction is meaningless
+  const inFront = d < 1.2 || V.dot(fwd, V.flat(to)) > 0.35;
+  const reach = d <= 3.3 && Math.abs(tl.y - o.y) < 2.5;
   const clear = lineOfSight(b.e.dimension, { x: o.x, y: o.y + 2.2, z: o.z }, target.getHeadLocation()).clear;
   let result = "miss";
   const dmg = strikeDamage();
@@ -215,6 +253,8 @@ export async function strike(target) {
     safe(() => b.e.dimension.playSound(SOUNDS.whiff, o, { volume: 0.8 }));
     if (inFront && reach && clear && dmg === 0) result = "hit"; // Atmosphere preset: contact without damage
   }
+  trace(`strike ${result}: front=${inFront} reach=${reach} d=${d.toFixed(2)} dy=${(tl.y - o.y).toFixed(2)} clear=${clear} dmg=${dmg}`);
+  emit("strike", { result, inFront, reach, clear, d, dy: tl.y - o.y });
   await system.waitTicks(13);
   if (get()) setState("stare");
   return /** @type {any} */ (result);

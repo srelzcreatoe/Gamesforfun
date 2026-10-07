@@ -15,6 +15,8 @@ import { NATURAL } from "../core/constants.js";
 import { viewAngle } from "../world/sight.js";
 import { sighting, travelDir } from "./common.js";
 
+/** @typedef {{x:number,y:number,z:number}} Vec */
+
 /** A low wall (1-2 high, up to 3 wide) across the path at dist along dir on open ground. */
 function wallAt(dim, p, dir, dist) {
   const base = V.add(p.location, V.scale(dir, dist));
@@ -32,15 +34,32 @@ function wallAt(dim, p, dir, dist) {
   return cells;
 }
 
-/** A 1x2 natural wall section near the path that can be carved open. */
+const SIDES = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+const isNatural = (dim, l) => NATURAL.has(safe(() => dim.getBlock(l)?.typeId) ?? "");
+const isOpen = (dim, l) => isReplaceable(safe(() => dim.getBlock(l)));
+
+/**
+ * A new opening in a natural wall beside the path: a wall face at feet and head height that faces
+ * open space, 4-10 blocks away and out of view, carved two blocks deep (never a pit in the floor).
+ * @returns {Vec[]|undefined}
+ */
 function carveCandidate(dim, p) {
-  const blocks = findBlocks(dim, p.location, 8, 2, NATURAL, 40);
+  const fy = Math.floor(p.location.y);
+  const blocks = findBlocks(dim, { x: p.location.x, y: fy + 0.5, z: p.location.z }, 10, 0, NATURAL, 200);
   for (const b of blocks) {
+    const d = V.dist({ x: b.x + 0.5, y: b.y, z: b.z + 0.5 }, p.location);
+    if (d < 4 || d > 10) continue;
     const above = { x: b.x, y: b.y + 1, z: b.z };
-    const t2 = safe(() => dim.getBlock(above)?.typeId);
-    if (!t2 || !NATURAL.has(t2)) continue;
-    if (V.dist(b, p.location) < 4 || viewAngle(p, { x: b.x + 0.5, y: b.y + 1, z: b.z + 0.5 }) < 80) continue;
-    return [b, above];
+    if (!isNatural(dim, above)) continue;
+    // must stand on solid ground and face open space at both heights
+    if (isOpen(dim, { x: b.x, y: b.y - 1, z: b.z })) continue;
+    const face = SIDES.find(([dx, dz]) => isOpen(dim, { x: b.x + dx, y: b.y, z: b.z + dz }) && isOpen(dim, { x: b.x + dx, y: b.y + 1, z: b.z + dz }));
+    if (!face) continue;
+    if (viewAngle(p, { x: b.x + 0.5, y: b.y + 1, z: b.z + 0.5 }) < 80) continue;
+    const cells = [b, above];
+    const deep = { x: b.x - face[0], y: b.y, z: b.z - face[1] };
+    if (isNatural(dim, deep) && isNatural(dim, { x: deep.x, y: deep.y + 1, z: deep.z })) cells.push(deep, { x: deep.x, y: deep.y + 1, z: deep.z });
+    return cells;
   }
   return undefined;
 }

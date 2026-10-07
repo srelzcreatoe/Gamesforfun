@@ -130,6 +130,18 @@ async function observerGone(ticks = 200) {
   }
   return false;
 }
+/** Record damage a player takes (health regenerates, so comparing health before/after is unreliable). */
+function trackDamage(p) {
+  const r = { total: 0, minHp: 1e9, stop: () => world.afterEvents.entityHurt.unsubscribe(cb) };
+  const cb = world.afterEvents.entityHurt.subscribe((ev) => {
+    if (ev.hurtEntity.id !== p.id) return;
+    r.total += ev.damage;
+    const hp = p.getComponent("minecraft:health")?.currentValue ?? 0;
+    r.minHp = Math.min(r.minHp, hp);
+  });
+  return r;
+}
+
 const discovered = (from, id, player = "Tester") => since(from, "discovery").some((d) => d.id === id && d.player === player);
 
 // ------------------------------------------------------------------ tests
@@ -488,11 +500,14 @@ async function tunnelRun(name, behaviour) {
 
 TESTS.closed_path_escape = async () => {
   const r = await tunnelRun("closed_path_escape", async (p, veils) => {
-    for (const v of veils) {
+    // break a 1x2 gap in the player's own lane, as a player would, and get away through it
+    const lane = Math.floor(p.location.z);
+    const gap = veils.filter((v) => v.z === lane && v.y <= TUNNEL.y + 1);
+    for (const v of gap.length ? gap : veils) {
       p.lookAtBlock(v);
       await wait(4);
       p.breakBlock(v);
-      await wait(14);
+      await wait(14); // hand-breaking a Veil block takes 0.4 s
     }
     p.lookAtLocation({ x: 900, y: TUNNEL.y + 1.6, z: 1085.5 });
     p.moveRelative(0, 1, 1);
@@ -519,15 +534,16 @@ TESTS.closed_path_held = async () => {
 };
 
 TESTS.closed_path_struck = async () => {
-  let hp0 = 20;
+  let dmg;
   const r = await tunnelRun("closed_path_struck", async (p) => {
-    hp0 = p.getComponent("minecraft:health").currentValue;
+    dmg = trackDamage(p);
     p.lookAtLocation({ x: 900, y: TUNNEL.y + 1.6, z: 1085.5 }); // facing away: it approaches
   });
   const atk = await waitEvent("end", (d) => d.type === "closed_path", 20 * 50, r.m);
-  const hp1 = r.p.getComponent("minecraft:health").currentValue;
-  check("closed_path_struck_outcome", atk && (atk.outcome === "struck" || atk.outcome === "dodged"), atk ? atk.outcome : "none");
-  check("closed_path_struck_damage_capped", hp1 < hp0 && hp1 >= 1, `hp ${hp0} -> ${hp1}`);
+  dmg?.stop();
+  const strike = since(r.m, "strike")[0];
+  check("closed_path_struck_outcome", atk && (atk.outcome === "struck" || atk.outcome === "dodged"), `${atk ? atk.outcome : "none"} ${JSON.stringify(strike)}`);
+  check("closed_path_struck_damage_capped", !!dmg && dmg.total > 0 && dmg.minHp >= 1, dmg ? `damage ${dmg.total} lowest hp ${dmg.minHp}` : "no tracker");
   await wait(200);
 };
 
@@ -577,7 +593,7 @@ TESTS.unfamiliar_route = async () => {
 TESTS.pursuit = async () => {
   ow().runCommand("time set midnight");
   const p = await freshTarget("Tester", { x: 950.5, y: Y, z: 1000.5 }, { x: 990, y: Y + 1.6, z: 1000.5 });
-  const hp0 = p.getComponent("minecraft:health").currentValue;
+  const dmg = trackDamage(p);
   const m = mark();
   obs("trigger", "pursuit", "Tester");
   const e = await waitObserver(200);
@@ -595,9 +611,10 @@ TESTS.pursuit = async () => {
   const d2 = e.isValid ? hdist(e.location, p.location) : 0;
   check("pursuit_runs", d1 - d2 > 2.5, `speed≈${(d1 - d2).toFixed(2)} b/s`);
   const end = await endOf("pursuit", m, 20 * 40);
-  const hp1 = p.getComponent("minecraft:health").currentValue;
-  check("pursuit_struck", end && (end.outcome === "struck" || end.outcome === "dodged"), end ? end.outcome : "none");
-  check("pursuit_damage_nonlethal", hp1 >= 1 && hp1 < hp0, `hp ${hp0} -> ${hp1}`);
+  dmg.stop();
+  const strike = since(m, "strike")[0];
+  check("pursuit_struck", end && (end.outcome === "struck" || end.outcome === "dodged"), `${end ? end.outcome : "none"} ${JSON.stringify(strike)}`);
+  check("pursuit_damage_nonlethal", dmg.total > 0 && dmg.minHp >= 1, `damage ${dmg.total} lowest hp ${dmg.minHp}`);
   ow().runCommand("time set noon");
   await observerGone(300);
 };
@@ -916,6 +933,71 @@ TESTS.carve = async () => {
   if (cv) check("carve_restored", ow().getBlock(cv).typeId === cv.from, ow().getBlock(cv).typeId);
   obs("preset", "standard");
   await observerGone(200);
+};
+
+TESTS.withdraw_walks = async () => {
+  // noticed and still watched: it walks away (scripted steps) and unravels only after a while
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 });
+  const m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  const e = await waitObserver(60);
+  if (!check("withdraw_body", !!e, (since(m, "end")[0] || {}).outcome)) return;
+  const l0 = { ...e.location };
+  let maxD = 0;
+  for (let t = 0; t < 20 * 25 && e.isValid; t += 2) {
+    p.lookAtLocation({ x: e.location.x, y: e.location.y + 2.2, z: e.location.z });
+    maxD = Math.max(maxD, hdist(e.location, l0));
+    await wait(2);
+  }
+  await wait(4);
+  const gone = since(m, "body").find((d) => d.what === "remove");
+  check("withdraw_walks_away", maxD > 4, `moved ${maxD.toFixed(1)} blocks while watched`);
+  check("withdraw_removed", !e.isValid, gone ? gone.why : "still there");
+};
+
+TESTS.seal_occupied = async () => {
+  // a second player standing where the seal goes is never sealed in
+  obs("restore");
+  ow().runCommand(`fill ${TUNNEL.x0} ${TUNNEL.y} ${TUNNEL.z0} ${TUNNEL.x1} ${TUNNEL.y + 2} ${TUNNEL.z1} air replace observer:veil`);
+  const p = await freshTarget("Tester", { x: 930.5, y: TUNNEL.y, z: 1085.5 }, { x: 958, y: TUNNEL.y + 1.6, z: 1085.5 });
+  const f = spawn("Friend", { x: 927.5, y: TUNNEL.y, z: 1085.5 });
+  f.teleport({ x: 927.5, y: TUNNEL.y, z: 1085.5 }, { facingLocation: { x: 958, y: TUNNEL.y + 1.6, z: 1085.5 } });
+  heal(f);
+  await wait(10);
+  const m = mark();
+  obs("trigger", "closed_path", "Tester");
+  await waitEvent("ledger", (d) => d.what === "change" && d.kind === "veil", 200, m);
+  await wait(10);
+  const veils = since(m, "ledger").filter((d) => d.what === "change" && d.kind === "veil");
+  const fx = Math.floor(f.location.x), fy = Math.floor(f.location.y), fz = Math.floor(f.location.z);
+  const sealedIn = veils.filter((v) => v.x === fx && v.z === fz && (v.y === fy || v.y === fy + 1));
+  check("seal_occupied_some_sealed", veils.length > 0, `veils=${veils.length}`);
+  check("seal_occupied_friend_free", sealedIn.length === 0 && ow().getBlock(f.getHeadLocation())?.typeId !== "observer:veil",
+    `friend at ${fx},${fy},${fz}; veil cells ${veils.map((v) => `${v.x},${v.y},${v.z}`).join(" ")}`);
+  obs("abort");
+  await endOf("closed_path", m, 300);
+  f.disconnect();
+  await wait(100);
+};
+
+TESTS.mp_fairness = async () => {
+  // two creative players who have waited longer must not block a survival player
+  const builders = [];
+  for (const [i, name] of ["Builder1", "Builder2"].entries()) {
+    const b = await freshTarget(name, { x: 905.5 + i * 3, y: Y, z: 1035.5 }, { x: 905.5, y: Y + 1.6, z: 1000 });
+    b.setGameMode(GameMode.Creative);
+    builders.push(b);
+  }
+  await wait(200);
+  const p = await freshTarget("Tester", { x: 950.5, y: Y, z: 1000.5 }, { x: 950.5, y: Y + 1.6, z: 960 }, 1);
+  const m = mark();
+  obs("pause", "off");
+  const st = await waitEvent("start", (d) => !d.forced, 20 * 90, m);
+  obs("pause");
+  check("mp_fairness_survival_served", !!st && st.target === "Tester", st ? `${st.target}: ${st.type}` : "no encounter started");
+  obs("abort");
+  for (const b of builders) b.disconnect();
+  await wait(200);
 };
 
 TESTS.animals = async () => {

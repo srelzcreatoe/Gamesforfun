@@ -68,8 +68,11 @@ export function sample(p) {
   if (t - h[4] > 1) h[5] = Math.round((h[5] * 3 + loc.y) / 4);
   h[4] = t;
   if (s.haunts.length > HAUNT_MAX) {
-    s.haunts.sort((a, b) => b[3] - a[3]);
-    s.haunts.length = HAUNT_MAX;
+    // evict the weakest cell other than the one the player is in, so a new home can grow
+    const rest = s.haunts.filter((x) => x !== h).sort((a, b) => b[3] - a[3]);
+    rest.length = HAUNT_MAX - 1;
+    rest.push(h);
+    s.haunts = rest.sort((a, b) => b[3] - a[3]);
   }
 
   // route familiarity: distinct visits to 8x8 cells (a visit = arriving after 2+ minutes away)

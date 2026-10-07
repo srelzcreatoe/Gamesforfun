@@ -32,6 +32,11 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 * Gliding players are excluded from most encounters (nothing can keep pace); encounters resume after landing.
 * In the End it needs solid ground (islands); over the void it defers. In the Nether it never stands on lava.
 * Weather during the vigil is world-wide (announced in chat, can be disabled in settings).
+* Changes waiting to be restored in areas nobody revisits stay pending (unloaded chunks cannot be edited). At most 800
+  open changes exist world-wide; when that many are waiting, the Observer makes no new block changes until some are
+  restored.
+* A piston can push a *mimic* stone out of its recorded cell. The ledger then treats the cell as player-changed and the
+  pushed block stays where it is (one ordinary natural block).
 * English text only (`en_US.lang`).
 * Requires Bedrock 1.26.50+ (`@minecraft/server` 2.10.0).
 
@@ -47,6 +52,8 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   `camerashake` command were accepted by the server).
 
 ### Verified only partially
+* Walking away is script-driven (small validated teleport steps with the walk animation state). The server shows it
+  covering ~10 blocks in 6 s; whether it reads as natural walking in a client — rather than gliding — is unverified.
 * Disconnect/rejoin: state saving is exercised by every test (player dynamic properties), but a real player leaving and
   rejoining was not simulated (simulated players cannot reconnect with the same identity).
 * Pacing rules (quiet periods, recovery, global gap, anti-repetition) run in every test and the natural-director test
@@ -60,6 +67,7 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 |---|---|---|
 | A sound feels too loud/quiet | medium | all levels in `sound_definitions.json`; regenerate with `tools/synth_sounds.py` |
 | Peek leans into cover instead of out | low–medium | single sign in `make_supplemental_anims.py` |
+| Walking away looks like gliding in a client | low–medium | step length/rate are two constants in `body.withdraw`; the walk clip plays from the state property |
 | Observer clips into foliage on hills | low | spot search rejects leaves as ground, needs ≥ 3 blocks headroom |
 | Players dislike base intrusion | — | Ward Lantern, manipulation levels, `/observer:restore`, Atmosphere preset |
 | Pack removed without restoring | low | documented; Veil/Effigy would remain as unknown blocks |

@@ -122,8 +122,10 @@ lowers the figure to 2.81 blocks so it fits its 2.9-block collision box.
 * Collision 0.8 × 2.9 (fits 3-high corridors stooped; cannot pass 2-high doors — it opens them to look in instead).
 * Immune to damage, knockback and status effects; not pushable; fire-immune; breathes water.
 * Modes (component groups): **still** (no gravity — it can stand on water and ledges), **approach** (~1.5 b/s),
-  **pursue** (~4.8 b/s: faster than walking 4.3, slower than sprinting 5.6), **retreat** (walks away from players).
-  Speeds were calibrated on the dedicated server (speed ≈ 3.88 × multiplier² b/s for this entity).
+  **pursue** (~4.8 b/s: faster than walking 4.3, slower than sprinting 5.6). Speeds were calibrated on the dedicated
+  server (speed ≈ 3.88 × multiplier² b/s for this entity). Walking *away* is script-driven (validated 0.18-block
+  steps at ~1.8 b/s, at most one block up or down, three open blocks overhead): the vanilla `avoid_mob_type` goal in
+  the unused `retreat` group did not move it away from players in the capability probe.
 * Head tracking, auto-stoop by headroom, and eye glints: when it stands in light ≤ 6, players in front of it see two
   faint unlit glints where its eyes are — the model's eyes are texture-only, so this is how observant players can spot
   it in darkness.
@@ -159,17 +161,18 @@ deferred** (the director tries something else soon) — it never forces an inval
 
 ### 5.3 Relocation
 It is moved by teleport only while no player can see the destination (`arriveUnseen`) or the encounter deliberately
-repositions it out of view. Visible movement always uses real pathfinding (approach/pursue/retreat modes). It leaves a
-scene by walking away and is removed once no watcher can see it; only if it is still watched after 6–8 s does it
-"unravel" in place (rare, with a smoke burst).
+repositions it out of view. Visible approaches use real pathfinding (approach/pursue modes). It leaves a scene by
+walking away from its watchers in validated steps and is removed once no watcher can see it; only if it is still
+watched after 6 s does it "unravel" in place (with a smoke burst).
 
 ### 5.4 Continuity
 * **Travel and fast movement**: placement is computed from the player's current position each encounter; the director
   does not need a body to keep up.
 * **Dimension changes**: the running encounter aborts and its changes revert after 30 s; 60–150 s later a
   "It Came Through" follow-up plays at the arrival point (heavy arrival, two steps, footprints) — stage ≥ 2.
-* **Disconnect / rejoin**: per-player state is saved every 5 s and on shutdown; on rejoin it continues from the same
-  stage, tension, history and memory.
+* **Disconnect / rejoin**: per-player state is saved every 5 s, on shutdown and at the moment the player leaves; on
+  rejoin it continues from the same stage, tension, history and memory. Any fog layer or chase tag left on a player
+  who disconnected mid-encounter is cleared when they rejoin.
 * **Reload / crash**: the active encounter is recorded in world state. On load it is treated as interrupted, its
   changes are scheduled for restoration in 20 s, and any Observer entity that does not belong to a running encounter is
   removed when its chunk loads (`body.registerEvents`, `sweepStrays`).
@@ -211,7 +214,7 @@ All block changes go through the **ledger** (§8). Intensity is set by the *Envi
 | M4 | **Veil** (`placeVeil`) | obstruction, sealed route | closed_path (seal), vigil (sightline screens); level ≥ 1 | ≤ 10 cells per seal, only into air/grass | custom `observer:veil` block (dark, light-blocking, breakable by hand in 0.4 s, immovable, no drops) | smoke burst, seal sound | removed 5 s after the encounter | hum + lights out + seal sound → break through / light / hold its gaze | shared | always removed; broken veil leaves nothing | `closed_path_*` tests |
 | M5 | **Mimic route** (`placeMimic`) | familiar route made unfamiliar | unfamiliar_route; level ≥ 2 | ≤ 10 cells, 8–14 blocks behind on a route walked ≥ 3 times | natural blocks imitating the surroundings (stone, deepslate, dirt…) placed into air only | — | reverts ~2.5 min after the encounter | the way back is wrong → dig through | shared | mining it is cancelled and the block removed without drops | `unfamiliar_route` test |
 | M6 | **Effigy** (`placeEffigy`) | staged evidence, a calling card | home_visit, close_breath, borrowed_sound, night_visit; level ≥ 1 | 1 per encounter, floor cell near the scene | custom `observer:effigy` block facing the player | — | crumbles after 45 min if unbroken | find it → break it for a Vestige | shared (any player can claim it) | removed on expiry; loot-free, Vestige granted once by script | `home_visit` test |
-| M7 | **Carve** (`carve`) | "is that opening different?" | unfamiliar_route; level 3 only | 1×2 natural wall section | natural blocks → air | — | reverts ~2.5 min after the encounter | a new opening → notice it | shared | restored only if the space is still empty (a player's later block wins) | covered by ledger tests; level 3 path unit-checked |
+| M7 | **Carve** (`carve`) | "is that opening different?" | unfamiliar_route; level 3 only | a 1-wide, 2-high, up to 2-deep opening in a natural wall face beside the path, 4–10 blocks away, out of view (never the floor) | natural blocks → air | — | reverts ~2.5 min after the encounter | a new opening → notice it | shared | restored only if the space is still empty (a player's later block wins) and nobody stands in it | `carve_opening_made`, `carve_restored` |
 | M8 | **Animals turn** (`animalsFace`) | entity interaction tell | distant_watch at stage ≥ 2 (30%) | ≤ 12 passive mobs within 24 blocks | rotation only, for 8 s | — | per encounter | look where they look | shared | nothing to clean | code review (not separately asserted) |
 
 Additional non-block manipulation: personal fog (`observer:dread`, `dread_soft`, `vigil`), camera fades/shakes
@@ -227,10 +230,16 @@ Additional non-block manipulation: personal fog (`observer:dread`, `dread_soft`,
 * **Player changes win**: restoration only happens if the block still holds what the Observer set. If a player (or
   redstone, pistons, another add-on) changed it, the entry is dropped and the player's version stays.
 * **No duplication**: Observer-placed blocks (veil, mimic, effigy) cancel the break event and remove themselves without
-  drops; removed torches/lanterns never drop; the effigy's Vestige is granted by script exactly once.
+  drops; removed torches/lanterns never drop; the effigy's Vestige is granted by script exactly once. Mimic blocks are
+  never gravity blocks (sand → sandstone, red sand → red sandstone, gravel → andesite), so nothing can fall out of its
+  recorded cell.
+* **Never on anyone**: Veil, mimic and effigy blocks are never placed into a cell occupied by a player, mob or the
+  Observer, and a carved opening is not refilled while someone stands in it (it waits). Carving only opens wall faces
+  at feet and head height beside open space — never a pit in the floor.
 * **Persistence**: the ledger is saved in world dynamic properties every 5 s and on shutdown; restoration continues
   after reloads; unloaded positions wait.
-* **Limits**: ≤ 400 open entries world-wide; per-encounter caps above; Ward Lanterns protect a 12-block radius and
+* **Limits**: ≤ 800 open entries world-wide (entries waiting in areas no one revisits count toward this; when full, no
+  new changes are made and a debug warning is logged); per-encounter caps above; Ward Lanterns protect a 12-block radius and
   release anything already changed inside it when placed.
 * **Turning it off**: setting manipulation to Off or disabling the add-on restores every loaded change immediately
   (`/observer:restore` does the same on demand). Before uninstalling, run `/observer:restore` so no Veil/Effigy blocks
@@ -256,9 +265,12 @@ A global gap (≈ 52 s after body encounters, ≈ 21 s after body-free ones) sep
 Tension rises by tier and decays 3/min; high tension steers selection toward subtle encounters.
 
 **Selection**: `weight = base(context) × stage/setting gates × per-type cooldown × anti-repetition (×0.15 if last, ×0.45 in last 3, ×0.75 in last 6) × tension fit`.
-Each encounter's `prepare()` must find valid positions/blocks; if not, it is **deferred** and something else is tried.
+Each encounter's `prepare()` must find valid positions/blocks; if not, it is **deferred**: the global gap is released
+at once (other players are not held up), that type is skipped for this player for 90 s + 30 s per consecutive
+deferral, and the player's next attempt backs off 15, 30, 60, 120, then 240 s.
 
-**Multiplayer targeting**: one body. The eligible player who has waited longest (× 1 + 0.15·stage, ±15%) goes first;
+**Multiplayer targeting**: one body. The eligible player who has waited longest (× 1 + 0.15·stage, ±15%) goes first
+(players in creative/spectator, asleep or dead are skipped and never use up a turn);
 body-free encounters (turned object, door, night visit, follow-ups) can run for other players at the same time.
 
 ## 10. Signature encounters
@@ -305,7 +317,7 @@ All 18 implemented encounters and 17 further concepts are catalogued in [ENCOUNT
 | Do nearby players share it? | Yes: the body, block changes and real door/block sounds are shared; cues (steps, breath, chimes, fog, captions) are personal to the target |
 | How can players help? | Any player's gaze counts for holding it and noticing it; any player can relight, close doors, break veils/effigies, use a lens or a ward; *Second Witness* rewards warning each other |
 | Target leaves / dies / changes dimension | Encounter aborts; body removed; changes revert in ≤ 30 s; death adds a 5-minute recovery |
-| Conflicting world changes | One body encounter at a time; ledger positions are locked per encounter; ≤ 400 entries |
+| Conflicting world changes | One body encounter at a time; ledger positions are locked per encounter; ≤ 800 entries |
 | Is it one Observer per player? | No. One physical body; per-player logical relationships |
 
 ## 13. Settings, presets and accessibility

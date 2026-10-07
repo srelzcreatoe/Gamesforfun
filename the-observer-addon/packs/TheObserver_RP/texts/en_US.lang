@@ -199,3 +199,4 @@ observer.disc.close.lesson=A breath behind you means turn around. Facing it ends
 observer.disc.through_the_lens.title=Through the Lens
 observer.disc.through_the_lens.text=I looked at it through the lens and it flinched. When there is nothing to see, the lens shows where it walked.
 observer.disc.through_the_lens.lesson=The Witness Lens makes it recoil and withdraw. Use it to read its trails.
+observer.msg.vigil_busy=§7Not now. Its attention is on someone else. Try again in a little while.

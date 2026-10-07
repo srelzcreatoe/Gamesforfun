@@ -1,16 +1,17 @@
 // @ts-check
 // The Observer — entry point.
 import { world, system, MolangVariableMap } from "@minecraft/server";
-import { W, loadWorld, saveWorld, savePlayers, ps, now, dropPlayer, markPlayerDirty, markWorldDirty } from "./core/state.js";
+import { W, loadWorld, saveWorld, savePlayers, savePlayer, ps, now, dropPlayer, markPlayerDirty, markWorldDirty } from "./core/state.js";
 import { S } from "./core/settings.js";
 import { DEBUG, safe, trace, dimIndex, V, allPlayers } from "./core/util.js";
-import { PARTICLES } from "./core/constants.js";
+import { PARTICLES, TARGET_TAG } from "./core/constants.js";
 import * as ledger from "./world/ledger.js";
 import * as body from "./observer/body.js";
 import * as memory from "./observer/memory.js";
 import * as director from "./director/director.js";
 import * as items from "./progression/items.js";
 import * as dev from "./dev/commands.js";
+import { vigilStatus } from "./ui/forms.js";
 
 // encounter library (each file registers itself)
 import "./encounters/distant_watch.js";
@@ -60,7 +61,7 @@ body.registerEvents(() => director.activeEncId());
 // blocks placed by involved players are routed to their running encounters (e.g. bringing a light)
 world.afterEvents.playerPlaceBlock.subscribe((ev) => {
   for (const enc of director.running()) {
-    if (enc.pid !== ev.player.id && !enc.witnesses(48).some((w) => w.id === ev.player.id)) continue;
+    if (enc.pid !== ev.player.id && !(enc.p.isValid && enc.witnesses(48).some((w) => w.id === ev.player.id))) continue;
     enc.inputs.push({ kind: "place", typeId: ev.block.typeId, loc: ev.block.location, player: ev.player });
   }
 });
@@ -74,14 +75,23 @@ ledger.onRelease((e, how, player) => {
 items.registerEvents({
   startVigil: (p) => {
     const def = director.byId("vigil");
-    if (def) director.start(def, p, undefined, true);
+    // the form may have stayed open for a while: check everything again
+    if (!def || !S().enabled || !vigilStatus(p).ok) return;
+    const own = director.encounterFor(p.id);
+    if (own && own.def.id === "vigil") return;
+    const act = director.activeEncounter();
+    if (act && act.pid !== p.id) {
+      safe(() => p.sendMessage({ rawtext: [{ translate: "observer.msg.vigil_busy" }] }));
+      return;
+    }
+    director.start(def, p, undefined, true);
   },
   onLensed: (encId) => {
     const enc = director.running().find((x) => x.id === encId);
     if (enc) enc.data.lensed = true;
   },
-  onBodyHit: () => {
-    const enc = director.activeEncounter();
+  onBodyHit: (p, encId) => {
+    const enc = director.running().find((x) => x.id === encId);
     if (!enc) return;
     if (enc.def.id === "closed_path" || enc.def.id === "pursuit") enc.data.hit = true;
     else {
@@ -98,11 +108,23 @@ world.afterEvents.playerSpawn.subscribe((ev) => {
   if (!ready) init();
   const p = ev.player;
   ps(p);
-  if (ev.initialSpawn) memory.motion(p);
+  if (!ev.initialSpawn) return;
+  memory.motion(p);
+  // someone who left (or crashed) mid-encounter keeps fog layers and tags on their player: clear ours
+  if (!director.running().some((e) => e.pid === p.id)) {
+    safe(() => p.removeTag(TARGET_TAG));
+    for (const d of director.REGISTRY) safe(() => p.runCommand(`fog @s remove observer_${d.id}`));
+  }
 });
 
 world.beforeEvents.playerLeave.subscribe((ev) => {
   const id = ev.player.id;
+  // save while the player object is still valid (dynamic properties may be written here)
+  try {
+    savePlayer(ev.player);
+  } catch (e) {
+    DEBUG.log(`leave save failed: ${e}`);
+  }
   system.run(() => {
     director.abortFor(id, "target_left");
     memory.forget(id);
@@ -126,12 +148,13 @@ world.afterEvents.playerDimensionChange.subscribe((ev) => {
 });
 
 system.beforeEvents.shutdown.subscribe(() => {
-  try {
-    saveWorld(true);
-    savePlayers(true);
-    ledger.save(true);
-  } catch (e) {
-    // shutdown may run in a restricted context; periodic saves cover this case
+  // each save on its own: one failing must not skip the others (periodic saves cover any failure)
+  for (const fn of [() => saveWorld(true), () => savePlayers(true), () => ledger.save(true)]) {
+    try {
+      fn();
+    } catch (e) {
+      DEBUG.log(`shutdown save failed: ${e}`);
+    }
   }
 });
 

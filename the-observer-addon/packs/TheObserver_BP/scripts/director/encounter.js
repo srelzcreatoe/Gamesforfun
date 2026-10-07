@@ -157,12 +157,16 @@ export class Encounter {
   fog(kind = "dread") {
     const id = S().camera === 0 && kind === "dread" ? FOGS.soft : FOGS[kind] ?? FOGS.dread;
     if (this.fogOn) this.clearFog();
-    safe(() => this.p.runCommand(`fog @s push ${id} observer_enc`));
+    safe(() => this.p.runCommand(`fog @s push ${id} ${this.fogId}`));
     this.fogOn = true;
+  }
+  /** Fog layer id: one per encounter type, so one encounter's cleanup never removes another's fog. */
+  get fogId() {
+    return `observer_${this.def.id}`;
   }
   clearFog() {
     if (!this.fogOn) return;
-    safe(() => this.p.runCommand("fog @s remove observer_enc"));
+    safe(() => this.p.runCommand(`fog @s remove ${this.fogId}`));
     this.fogOn = false;
   }
   /** Camera shake: full camera setting only. */

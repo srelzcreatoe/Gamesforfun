@@ -52,7 +52,8 @@ register({
         safe(() => p.spawnParticle("observer:dust", c));
         break;
       }
-      if (enc.released.length) {
+      // only a player putting it back counts (not a ward, an explosion or a restore)
+      if (enc.released.some((r) => r.player && (r.how === "player_restored" || r.how === "player_changed"))) {
         enc.result("turned_back", true);
         enc.discover("something_facing");
         enc.discover("put_back");

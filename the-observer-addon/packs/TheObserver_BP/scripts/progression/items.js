@@ -3,7 +3,7 @@
 //   Field Notes     journal: discoveries, learned tells, the vigil, settings (operators)
 //   Tally Chalk     mark up to 8 spots; a mark smudges (sound + message) when the Observer changes
 //                   anything within 4 blocks of it — attention made into a tool
-//   Witness Lens    look at it through the lens: it recoils and withdraws (30 s cooldown);
+//   Witness Lens    look at it through the lens: it recoils and withdraws (20 s cooldown);
 //                   with nothing to hold, the lens shows where it has walked (its trails, its effigies)
 //   Ward Lantern    it will not stand or change blocks within 12 blocks (protects a build)
 //   Vestige         fragments from effigies and discoveries; crafting material
@@ -111,10 +111,13 @@ export function renderMarks() {
 
 // ---------------------------------------------------------------- lens
 
+/** Seconds; matches the item's minecraft:cooldown component (category observer_lens). */
+const LENS_COOLDOWN = 20;
+
 /** @param {Player} p @param {(enc:any)=>void} onLensed */
 function useLens(p, onLensed) {
   const t = now();
-  if (t - (lensUsed.get(p.id) ?? -99) < 2) return;
+  if (t - (lensUsed.get(p.id) ?? -99) < LENS_COOLDOWN) return;
   lensUsed.set(p.id, t);
   safe(() => p.playSound(SOUNDS.lens, { volume: 0.7 }));
   const b = body.get();
@@ -171,7 +174,7 @@ export function validateWards() {
 // ---------------------------------------------------------------- registration
 
 /**
- * @param {{startVigil:(p:Player)=>void, onLensed:(enc:number)=>void, onBodyHit:(p:Player)=>void}} hooks
+ * @param {{startVigil:(p:Player)=>void, onLensed:(enc:number)=>void, onBodyHit:(p:Player, enc:number)=>void}} hooks
  */
 export function registerEvents(hooks) {
   world.afterEvents.itemUse.subscribe((ev) => {
@@ -226,6 +229,6 @@ export function registerEvents(hooks) {
     }
     safe(() => e.dimension.playSound(SOUNDS.fabric, e.location, { volume: 0.9 }));
     pressure(p);
-    hooks.onBodyHit(p);
+    hooks.onBodyHit(p, /** @type {number} */ (safe(() => e.getDynamicProperty(ENTITY_ENC_PROP))));
   });
 }

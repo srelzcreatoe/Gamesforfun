@@ -102,11 +102,15 @@ export const NATURAL = new Set([
   "minecraft:snow", "minecraft:packed_ice", "minecraft:mud", "minecraft:clay", "minecraft:moss_block",
 ]);
 /** What a mimic block becomes when it imitates a natural block (grass and mycelium would look wrong underground). */
-export const MIMIC_AS = { "minecraft:grass_block": "minecraft:dirt", "minecraft:mycelium": "minecraft:dirt", "minecraft:podzol": "minecraft:dirt" };
+// Mimic blocks are never gravity blocks: a falling block would leave its recorded cell (and duplicate)
+export const MIMIC_AS = {
+  "minecraft:grass_block": "minecraft:dirt", "minecraft:mycelium": "minecraft:dirt", "minecraft:podzol": "minecraft:dirt",
+  "minecraft:sand": "minecraft:sandstone", "minecraft:red_sand": "minecraft:red_sandstone", "minecraft:gravel": "minecraft:andesite",
+};
 
 /** Blocks the Observer must never stand in or on. */
 export const DANGER = new Set([
-  "minecraft:lava", "minecraft:fire", "minecraft:soul_fire", "minecraft:magma", "minecraft:cactus",
+  "minecraft:lava", "minecraft:flowing_lava", "minecraft:fire", "minecraft:soul_fire", "minecraft:magma", "minecraft:cactus",
   "minecraft:sweet_berry_bush", "minecraft:powder_snow", "minecraft:web", "minecraft:campfire",
   "minecraft:soul_campfire", "minecraft:wither_rose", "minecraft:pointed_dripstone", "minecraft:end_portal",
   "minecraft:portal", "minecraft:bedrock", "minecraft:barrier",

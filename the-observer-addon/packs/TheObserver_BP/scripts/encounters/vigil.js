@@ -117,9 +117,7 @@ register({
       await enc.until(() => visibility(p, last.loc, { fov: 40 }).points > 0, 200, 4);
       body.setState("tilt");
       await enc.wait(70);
-      body.setState("walk");
-      body.setMode("retreat");
-      await enc.wait(80);
+      await body.withdraw([p], 100);
     }
     enc.s.witnessed = true;
     enc.s.endMode = enc.s.endMode || "attendant";

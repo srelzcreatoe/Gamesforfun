@@ -5,6 +5,7 @@ import { DEBUG, allPlayers } from "./util.js";
 const CHUNK = 30000;
 const WORLD_KEY = "observer:world";
 const PLAYER_KEY = "observer:player";
+const CLOCK_KEY = "observer:clock";
 export const SCHEMA_VERSION = 1;
 
 /**
@@ -83,6 +84,9 @@ export function loadWorld() {
   const loaded = loadJSON(world, WORLD_KEY, null);
   W = Object.assign(freshWorld(), loaded || {});
   if (W.v !== SCHEMA_VERSION) W.v = SCHEMA_VERSION; // future migrations go here
+  // the clock is saved every few seconds on its own, so timers survive a crash between full saves
+  const c = world.getDynamicProperty(CLOCK_KEY);
+  if (typeof c === "number" && c > W.clock) W.clock = c;
   clockBase = W.clock;
   clockBaseTick = system.currentTick;
   return !!loaded;
@@ -94,6 +98,11 @@ export function markWorldDirty() {
 
 export function saveWorld(force = false) {
   W.clock = now();
+  try {
+    world.setDynamicProperty(CLOCK_KEY, W.clock);
+  } catch (e) {
+    DEBUG.log(`save clock failed: ${e}`);
+  }
   if (!worldDirty && !force) return;
   saveJSON(world, WORLD_KEY, W);
   worldDirty = false;
@@ -201,6 +210,14 @@ export function savePlayers(force = false) {
       DEBUG.log(`save player ${p.name} failed: ${e}`);
     }
   }
+}
+
+/** Save one player now (used when they leave). @param {import("@minecraft/server").Player} player */
+export function savePlayer(player) {
+  const s = players.get(player.id);
+  if (!s) return;
+  saveJSON(player, PLAYER_KEY, s);
+  dirtyPlayers.delete(player.id);
 }
 
 /** Forget cached state for a player who left (it was saved on the player while online). @param {string} id */

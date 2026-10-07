@@ -20,10 +20,11 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Entity loads cleanly | `BP/entities/the_observer.json` | world load | no content-log errors | `load.txt` scenario (0 errors) | ✅ Runtime |
 | State/stoop/side properties sync | `observer/body.js` | script | property values next tick | `set_get_property` | ✅ Runtime |
 | Auto-stoop under low ceilings | `body.maintain` | headroom < 5 | `observer:stoop` true in 3-high tunnel | `closed_path_*_stooped_in_tunnel` | ✅ Runtime (visual ❔) |
-| Modes & calibrated speeds | entity component groups | `setMode` | creep ≈1.5, pursue ≈4.6–4.8, retreat away | `approach_mode_moves_closer`, `retreat_mode_moves_away`, speed calibration, `pursuit_runs` (4.6 b/s), `pursuit_watched_slow` (1.45–1.49 b/s) | ✅ Runtime |
+| Modes & calibrated speeds | entity component groups | `setMode` | creep ≈1.5, pursue ≈4.6–4.8 | `approach_mode_moves_closer`, `pursue_mode_speed`, speed calibration, `pursuit_runs` (4.6 b/s), `pursuit_watched_slow` (1.45–1.49 b/s) | ✅ Runtime |
+| Walking away | `body.withdraw` (scripted, validated steps) | end of an encounter | walks away from watchers, removed once unseen | `withdraw_walks_away` (10.6 blocks while watched), `withdraw_removed`. The vanilla `avoid_mob_type` retreat goal **failed** its probe (`retreat_mode_moves_away`) and is no longer used | ✅ Runtime (walk visual ❔) |
 | Still mode floats (no gravity) | `observer:still` | spawn | stays at placed height | `still_mode_no_gravity`, `water_stands_on_surface` | ✅ Runtime |
 | Damage immunity; hit reaction | entity `damage_sensor`, `items.js` | player hits it | health unchanged; recoil/withdraw | `hit_event_immune` | ✅ Runtime |
-| Telegraphed strike synced to clip | `body.strike` | contact | damage at 0.6 s, capped | `pursuit_struck`, `pursuit_damage_nonlethal`, `closed_path_struck_*` | ✅ Runtime |
+| Telegraphed strike synced to clip | `body.strike` | contact | damage at 0.6 s, capped, never lethal from > 50 % health | `pursuit_struck`, `pursuit_damage_nonlethal`, `closed_path_struck_*` (damage measured from hurt events) | ✅ Runtime |
 | Eye glints in darkness | `body.maintain` | light ≤ 6 | two glints for players in front | — | ⚪ (particle visual ❔) |
 | Sounds on animation states | controller `sound_effects` | attack/recoil | wind-up / cloth | validator (effects resolve) | 🟡 Static ✅ / audio ❔ |
 
@@ -33,23 +34,23 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Valid placement only | `world/space.js` | every placement | solid ground, headroom, not in rock | `distant_watch_valid_ground`, `elevated_valid_ground` | ✅ Runtime |
 | Deferral instead of forcing | `director.run` / `prepare` | no valid spot | outcome `deferred`, nothing spawned | observed in natural run (`borrowed_sound` deferred) | ✅ Runtime |
 | Edge-of-attention, partly concealed | `distant_watch` | encounter | 12–48 blocks, peripheral | `distant_watch_distance`, `distant_watch_state` | ✅ Runtime |
-| Withdraws out of sight | `body.withdraw` | after noticed / timeout | body removed | `distant_watch_withdrew`, `unnoticed_body_removed` | ✅ Runtime |
-| Standing on water; sinks | `distant_watch` (water), `common.sink` | player in water | body on water surface; sinks when seen | `water_stands_on_surface`, `water_sank` | ✅ Runtime |
+| Withdraws out of sight | `body.withdraw` | after noticed / timeout | body removed | `distant_watch_withdrew`, `unnoticed_body_removed`, `withdraw_removed` | ✅ Runtime |
+| Standing on water; sinks | `distant_watch` (water), `common.sink`, `space.standAt` (explicit surface scan) | player in water | body on water surface; sinks when seen | `water_stands_on_surface`, `water_sank` | ✅ Runtime |
 | Below an elevated player | `distant_watch` (below) | player >12 blocks up | body on ground ≥12 below | `elevated_below` | ✅ Runtime |
 | Caves / tunnels | `findSpot` yMode near | underground | spawns at tunnel level | `closed_path_*_arrived_ahead` | ✅ Runtime |
 | Nether | all | player in Nether | valid Nether placement | `dimension_nether_body` | ✅ Runtime |
 | Arrives unseen | `common.arriveUnseen` | echo/closed path | appears only when spot unwatched | `echo_ahead_arrived`, `closed_path_*_arrived_ahead` | ✅ Runtime |
 | Dimension change aborts & follows | `main.js`, `portal_follow` | dimension change | abort, body removed, follow-up later | `dimension_abort`, `dimension_body_removed`, `dimension_follow`, `dimension_elsewhere_too` | ✅ Runtime |
 | Restart mid-encounter | `recoverInterrupted`, `body.registerEvents` | server restart | stray body removed; changes restored | `interrupt_*`, `recovery_no_stray_bodies`, `recovery_veil_restored` | ✅ Runtime |
-| Disconnect / rejoin state | `core/state.js` | player leaves | state persisted on the player | saves exercised every run; reconnect not simulated | ⚪ |
+| Disconnect / rejoin state | `core/state.js`, `main.js` | player leaves | state saved at the moment of leaving (and every 5 s); fog/tag cleared on rejoin | saves exercised every run; reconnect not simulated | ⚪ |
 
 ## Director and progression
 | Feature | Implementation | Trigger | Expected result | Test | Status |
 |---|---|---|---|---|---|
 | Grace period → stage 1, onboarding line | `director.ready` | play time | stage 1 after grace | trace "grace period over" in natural/TPS runs | ✅ Runtime |
 | Natural scheduling & context selection | `director.tick` | timer | encounters start unforced | `natural_director_started_encounters`; TPS run started 2 | ✅ Runtime |
-| Cooldowns, quiet periods, recovery, anti-repetition, tension | `director.finish`, `eligibleWeight` | after encounters | spacing per DESIGN §9 | exercised in every run, rules not individually asserted | ⚪ |
-| Multiplayer fairness / one body | `director.tick`, `start` | several players | longest-waiting first; single body | second_witness runs with 2 players | ⚪ (fairness ordering not asserted) |
+| Cooldowns, quiet periods, recovery, anti-repetition, tension, deferral back-off | `director.finish`, `eligibleWeight` | after encounters | spacing per DESIGN §9 | exercised in every run, rules not individually asserted | ⚪ |
+| Multiplayer fairness / one body | `director.tick`, `start` | several players | longest-waiting eligible player first; ineligible players never block others; single body | `mp_fairness_survival_served` (two creative players who waited longer do not block a survival player); `second_witness` with 2 players | ✅ Runtime (ordering among several eligible players ⚪) |
 | Stage gating | `eligibleWeight` | stage | tiers unlock by stage | forced triggers bypass; natural run at stage 3 | ⚪ |
 | Exposure → stage advancement | `discoveries.expose` | encounter end | stage rises with exposure | `/observer:status` output | ⚪ |
 | Death recovery | `director.onDeath` | player death | abort + 5 min recovery | — | ⚪ |
@@ -87,19 +88,21 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | M4 Veil | `placeVeil` | closed path, vigil | cross-section sealed, cleared | `closed_path_*_sealed`, `*_veil_cleared` | ✅ Runtime |
 | M5 mimic route | `placeMimic` | path changed | natural-looking blocks behind | `unfamiliar_route_*` | ✅ Runtime |
 | M6 effigy | `placeEffigy` | home/close/borrowed/night | effigy placed facing player | `home_visit_effigy_placed` | ✅ Runtime (model visual ❔) |
-| M7 carve | `carve` | path changed at level 3 | natural wall opened, restored | `carve_opening_made`, `carve_restored` | ✅ Runtime |
+| M7 carve | `carve` | path changed at level 3 | opening in a wall face beside the path (not the floor), restored | `carve_opening_made`, `carve_restored` | ✅ Runtime |
 | M8 animals turn | `animalsFace` | distant watch / dev hook | animals face the spot | `animals_face_it` | ✅ Runtime |
 | Ledger: player change wins | `ledger.restore/scan` | player alters block | no later overwrite | `door_ajar_player_change_kept` | ✅ Runtime |
 | Ledger: no drops / no duplication | `ledger` break handler | mining Observer blocks | cancelled, removed, no items | `break_cancel_no_drop`, `*_no_drops`, `unfamiliar_route_no_dupes`, `home_visit_no_item_drop` | ✅ Runtime |
 | Ledger persists across restart | `ledger.save/load` | restart | restoration continues | `recovery_veil_restored` | ✅ Runtime |
+| Never builds on anyone | `ledger.occupied` | veil/mimic/effigy placement, carve restore | occupied cells skipped / restore waits | `seal_occupied_friend_free` (a second player standing in the seal cross-section is left free) | ✅ Runtime |
+| No gravity-block mimics | `MIMIC_AS` | path changed on sand/gravel | sandstone/andesite instead | code review | ⚪ |
 | Ward Lantern protection | `space.isWarded`, `items` | ward placed | no changes within 12 blocks | `ward_placed`, `ward_protects_door`, `ward_no_ledger_change` | ✅ Runtime |
 | Manipulation Off | `manip()` | setting 0 | no block changes | `manip_off_*` | ✅ Runtime |
-| Allow-listed vanilla IDs | `core/constants.js` | — | all 140 exist in vanilla 1.26.52 | validator | ✅ Static |
+| Allow-listed vanilla IDs | `core/constants.js` | — | all 141 exist in vanilla 1.26.52 | validator | ✅ Static |
 
 ## Tools, UI, settings, accessibility
 | Feature | Implementation | Trigger | Expected result | Test | Status |
 |---|---|---|---|---|---|
-| Witness Lens | `items.useLens` | use while looking at it | recoil, discovery, withdrawal | `lens_recoil`, `lens_discovery` | ✅ Runtime |
+| Witness Lens | `items.useLens` | use while looking at it | recoil, discovery, withdrawal; 20 s cooldown | `lens_recoil`, `lens_discovery` | ✅ Runtime |
 | Tally Chalk smudge | `items.useChalk`, `smudgeNear` | change within 4 blocks of a mark | smudge + message | `chalk_smudged_by_change` (final run) | see TEST_REPORT |
 | Items / blocks / recipes load | BP items, blocks, recipes | world load | no errors | `load.txt` (0 errors) | ✅ Runtime (crafting UI ❔) |
 | Field Notes / settings forms | `ui/forms.js` | item use / command | forms open | — (simulated players have no UI) | ⚪ client ❔ |

@@ -225,7 +225,7 @@ for (const m of block("ITEMS").matchAll(/:\s*"([^"]+)"/g)) if (!itemIds.has(m[1]
 for (const m of block("BLOCKS").matchAll(/:\s*"([^"]+)"/g)) if (!blockIds.has(m[1])) fail(`script block ${m[1]} not defined`);
 for (const m of src.matchAll(/"(observer:[a-z_]+)"/g)) {
   const id = m[1];
-  if (/^observer:(the_observer|encounter|preset|state|stoop|side|enc|world|player|ledger|probe|dread|dread_soft|vigil)$/.test(id)) continue;
+  if (/^observer:(the_observer|encounter|preset|state|stoop|side|enc|world|player|clock|ledger|probe|dread|dread_soft|vigil)$/.test(id)) continue;
   if (!itemIds.has(id) && !blockIds.has(id) && !particleIds.has(id) && !fogIds.has(id)) fail(`script references unknown id ${id}`);
 }
 // entity properties and events used by scripts

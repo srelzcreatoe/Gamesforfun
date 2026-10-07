@@ -12,6 +12,7 @@ import { world, system, BlockPermutation } from "@minecraft/server";
 import { saveJSON, loadJSON, now } from "../core/state.js";
 import { safe, blockKey, dimIndex, dimByIndex, trace, DEBUG, emit, allPlayers } from "../core/util.js";
 import { isWarded, loaded } from "./space.js";
+import { OBSERVER_ID } from "../core/constants.js";
 
 /** @typedef {{x:number,y:number,z:number}} Vec */
 /** @typedef {[string, Record<string, string|number|boolean>]} PermInfo */
@@ -31,7 +32,7 @@ import { isWarded, loaded } from "./space.js";
 
 export const F = { NODROP: 1, EFFIGY: 2 };
 const KEY = "observer:ledger";
-export const MAX_ENTRIES = 400;
+export const MAX_ENTRIES = 800;
 
 /** @type {Map<string, Entry>} */
 const entries = new Map();
@@ -81,6 +82,27 @@ export const onChange = (cb) => changeListeners.push(cb);
 /** @param {(e:Entry, how:string, player?:import("@minecraft/server").Player)=>void} cb */
 export const onRelease = (cb) => releaseListeners.push(cb);
 
+let capWarned = false;
+/** Changes that put a solid block into an open cell. */
+const SOLID_KINDS = new Set(["veil", "mimic", "effigy"]);
+const NOT_OCCUPANTS = new Set(["minecraft:item", "minecraft:xp_orb", "minecraft:arrow", "minecraft:snowball", "minecraft:egg"]);
+
+/**
+ * Is a player, mob or the Observer inside this block cell?
+ * @param {import("@minecraft/server").Dimension} dim @param {Vec} loc
+ */
+export function occupied(dim, loc) {
+  const c = { x: Math.floor(loc.x) + 0.5, y: Math.floor(loc.y), z: Math.floor(loc.z) + 0.5 };
+  const list = safe(() => dim.getEntities({ location: { x: c.x, y: c.y + 0.5, z: c.z }, maxDistance: 3.5 }), []) ?? [];
+  for (const en of list) {
+    if (NOT_OCCUPANTS.has(en.typeId)) continue;
+    const l = en.location;
+    const h = en.typeId === OBSERVER_ID ? 2.9 : 1.9;
+    if (Math.abs(l.x - c.x) < 0.85 && Math.abs(l.z - c.z) < 0.85 && l.y < c.y + 1 && l.y + h > c.y) return true;
+  }
+  return false;
+}
+
 /**
  * Change a block and record it.
  * @param {import("@minecraft/server").Dimension} dim
@@ -93,8 +115,16 @@ export const onRelease = (cb) => releaseListeners.push(cb);
 export function change(dim, loc, perm, o) {
   const d = dimIndex(dim.id);
   const k = blockKey(d, loc);
-  if (entries.has(k) || entries.size >= MAX_ENTRIES) return undefined;
+  if (entries.has(k)) return undefined;
+  if (entries.size >= MAX_ENTRIES) {
+    if (!capWarned) DEBUG.log(`ledger full (${MAX_ENTRIES} entries waiting, most in unloaded areas): no new changes until some are restored`);
+    capWarned = true;
+    return undefined;
+  }
+  capWarned = false;
   if (!loaded(dim, loc)) return undefined;
+  // never put a solid block where someone stands
+  if (SOLID_KINDS.has(o.kind) && occupied(dim, loc)) return undefined;
   if (!o.ignoreWard && isWarded(d, loc)) return undefined;
   const block = safe(() => dim.getBlock(loc));
   if (!block) return undefined;
@@ -131,6 +161,8 @@ export function restore(e) {
   if (!loaded(dim, loc)) return "pending";
   const block = safe(() => dim.getBlock(loc));
   if (!block) return "pending";
+  // a carved opening is not refilled while someone stands in it
+  if (e.kind === "carve" && holds(block, e.n) && occupied(dim, loc)) return "pending";
   let result = "player_changed";
   if (holds(block, e.n)) {
     const ok = safe(() => {
@@ -220,6 +252,7 @@ export function processDue(maxOps = 12) {
 
 /** Drop an entry without touching the block (the block is gone or now belongs to the player). */
 function drop(e, how, player) {
+  if (entries.get(e.k) !== e) return; // already released (events can arrive twice)
   entries.delete(e.k);
   dirty = true;
   emit("ledger", { what: how, kind: e.kind, x: e.x, y: e.y, z: e.z, enc: e.enc, player: player ? player.name : "" });
