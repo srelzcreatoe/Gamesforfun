@@ -161,6 +161,17 @@ TESTS.setup = async () => {
   check("setup_tunnel_air", ow().getBlock({ x: 931, y: TUNNEL.y, z: 1086 })?.isAir);
 };
 
+TESTS.wheel_welcome = async () => {
+  // the first player in a world is told the add-on is running and is handed the Config Wheel
+  const p = spawn("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
+  let given = false;
+  for (let t = 0; t < 160 && !given; t += 5) {
+    given = hasItem(p, "observer:config_wheel");
+    await wait(5);
+  }
+  check("wheel_given_to_first_player", given);
+};
+
 TESTS.distant_watch = async () => {
   const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x, y: Y + 1.6, z: FIELD.z - 30 });
   const m = mark();
@@ -934,6 +945,55 @@ TESTS.carve = async () => {
   await wait(60);
   if (cv) check("carve_restored", ow().getBlock(cv).typeId === cv.from, ow().getBlock(cv).typeId);
   obs("preset", "standard");
+  await observerGone(200);
+};
+
+TESTS.showcase = async () => {
+  // Config Wheel "See it now": works in creative, shows every state in front of the player, harmless
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 });
+  p.setGameMode(GameMode.Creative);
+  const dmg = trackDamage(p);
+  const m = mark();
+  obs("trigger", "showcase", "Tester");
+  const e = await waitObserver(60);
+  if (!check("showcase_body", !!e, (since(m, "end")[0] || {}).outcome)) {
+    dmg.stop();
+    p.setGameMode(GameMode.Survival);
+    return;
+  }
+  const d = hdist(e.location, p.location);
+  const v = p.getViewDirection();
+  const to = { x: e.location.x - p.location.x, z: e.location.z - p.location.z };
+  const ang = (Math.acos((v.x * to.x + v.z * to.z) / (Math.hypot(v.x, v.z) * Math.hypot(to.x, to.z))) * 180) / Math.PI;
+  check("showcase_in_front", d >= 3.5 && d <= 13 && ang < 60, `d=${d.toFixed(1)} angle=${ang.toFixed(0)}`);
+  const seen = new Set();
+  for (let t = 0; t < 20 * 32 && e.isValid; t += 4) {
+    seen.add(e.getProperty("observer:state"));
+    await wait(4);
+  }
+  check("showcase_all_states", ["watch", "stare", "tilt", "peek", "walk", "run", "attack", "recoil"].every((s) => seen.has(s)), [...seen].join(","));
+  const end = await endOf("showcase", m, 400);
+  dmg.stop();
+  check("showcase_outcome", end && end.outcome === "shown", end ? end.outcome : "none");
+  check("showcase_harmless", dmg.total === 0 && since(m, "ledger").length === 0 && since(m, "discovery").length === 0,
+    `damage=${dmg.total} changes=${since(m, "ledger").length} discoveries=${since(m, "discovery").length}`);
+  p.setGameMode(GameMode.Survival);
+  await observerGone(200);
+};
+
+TESTS.toggles = async () => {
+  // encounter types switched off on the Config Wheel are never chosen by the director
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
+  const all = ["distant_watch", "extra_step", "home_visit", "closed_path", "borrowed_sound", "turned_object", "door_ajar", "snuffed_lights",
+    "mirror_bearing", "echo_ahead", "unfamiliar_route", "close_breath", "pursuit", "window_watch", "second_witness", "night_visit", "portal_follow"];
+  obs("set", "off", all.filter((x) => x !== "distant_watch").join(","));
+  const m = mark();
+  obs("pause", "off");
+  const st = await waitEvent("start", (d) => !d.forced, 20 * 90, m);
+  obs("pause");
+  check("toggles_only_enabled_type", !!st && st.type === "distant_watch", st ? `${st.target}: ${st.type}` : "no encounter started");
+  obs("abort");
+  obs("set", "off", "");
   await observerGone(200);
 };
 

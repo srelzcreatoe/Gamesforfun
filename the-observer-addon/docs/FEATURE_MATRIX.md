@@ -26,7 +26,8 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Damage immunity; hit reaction | entity `damage_sensor`, `items.js` | player hits it | health unchanged; recoil/withdraw | `hit_event_immune` | ✅ Runtime |
 | Telegraphed strike synced to clip | `body.strike` | contact | damage at 0.6 s, capped, never lethal from > 50 % health | `pursuit_struck`, `pursuit_damage_nonlethal`, `closed_path_struck_*` (damage measured from hurt events) | ✅ Runtime |
 | Eye glints in darkness | `body.maintain` | light ≤ 6 | two glints for players in front | — | ⚪ (particle visual ❔) |
-| Sounds on animation states | controller `sound_effects` | attack/recoil | wind-up / cloth | validator (effects resolve) | 🟡 Static ✅ / audio ❔ |
+| Sounds on animation states | controller `sound_effects` | attack/recoil | wind-up / cloth | validator (effects resolve, string form) | 🟡 Static ✅ / audio ❔ |
+| Client loads the entity files | `RP/entity`, `animation_controllers` | world load in a client | no content-log errors | `tools/check_vanilla_shapes.py` against Mojang's vanilla RP (0 mismatches). The first client load reported 3 errors (object `sound_effects`, empty `animations` list); both fixed | ✅ Static; client re-check ❔ |
 
 ## Presence and stalking
 | Feature | Implementation | Trigger | Expected result | Test | Status |
@@ -102,6 +103,10 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 ## Tools, UI, settings, accessibility
 | Feature | Implementation | Trigger | Expected result | Test | Status |
 |---|---|---|---|---|---|
+| Config Wheel item | `items/config_wheel.json`, `ui/wheel.js` | first join (only player / operator), or crafting | wheel in inventory; menu opens on use | `wheel_given_to_first_player`; menu itself needs a client (simulated players have no UI) | ✅ Runtime (menu ❔) |
+| See it now (preview) | `encounters/showcase.js` | Config Wheel | appears in front, shows all 8 states, harmless, works in Creative | `showcase_body`, `showcase_in_front`, `showcase_all_states`, `showcase_outcome`, `showcase_harmless` | ✅ Runtime (visual ❔) |
+| Encounter toggles | `settings.off`, `director.eligibleWeight`, `tryManual` | Config Wheel | switched-off types never chosen | `toggles_only_enabled_type` | ✅ Runtime |
+| Start it now | `wheel.startNow` | Config Wheel | grace skipped, encounter within ~1 min | — (same state change as the tested `skipgrace` dev command) | ⚪ |
 | Witness Lens | `items.useLens` | use while looking at it | recoil, discovery, withdrawal; 20 s cooldown | `lens_recoil`, `lens_discovery` | ✅ Runtime |
 | Tally Chalk smudge | `items.useChalk`, `smudgeNear` | change within 4 blocks of a mark | smudge + message | `chalk_smudged_by_change` | ✅ Runtime (mark particles ❔) |
 | Items / blocks / recipes load | BP items, blocks, recipes | world load | no errors | `load.txt` (0 errors) | ✅ Runtime (crafting UI ❔) |
@@ -118,4 +123,4 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Measure | Result | Test |
 |---|---|---|
 | Server tick rate, 180 s walking player, director active (2 encounters ran) | 20.00 mean / 19.99 min TPS — identical to the add-on-free baseline (20.00 / 19.99) | `tps.txt` with and without `--no-addon` |
-| No content-log or script errors during full suite | 0 errors (final run: 165/165 assertions, min 19.8 TPS between tests) | `run_bds.py` summary |
+| No content-log or script errors during full suite | 0 errors (final run: 173/173 assertions, min 19.8 TPS between tests) | `run_bds.py` summary |

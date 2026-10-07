@@ -13,14 +13,16 @@ your light — always deliberately, always reversibly — and watches what you d
 ## Install
 1. Open **`dist/TheObserver.mcaddon`** with Minecraft Bedrock 1.26.50+ (or import the two `.mcpack` files).
 2. Activate **The Observer (Behaviour)** on a world (the resource pack follows as a dependency). No experiments needed.
-3. Play. Details: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md).
+3. Join: a chat message confirms it is running and you receive the **Observer Config Wheel** (operators / the only
+   player). Use it to **See it now**, start it early, switch encounters on or off, or change any setting.
+4. Play. Nothing happens for the first 12 minutes on the Standard preset. Details: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md).
 
 ## Status
-Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final integration run passed 165 of 165
+Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final integration run passed 173 of 173
 checks with no content-log or script errors, restart recovery passed, and the server held 20 TPS with and without the
-add-on. How it looks and sounds in a game client has **not** been checked yet: see
-[docs/TEST_REPORT.md](docs/TEST_REPORT.md) §6 for the one manual pass needed before sharing it, and
-[docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md) for known limitations.
+add-on. The first load in a game client reported three resource-pack errors, which are fixed in this build and now
+caught by a comparison with Mojang's vanilla files. How it looks and sounds in a client still has to be confirmed: see
+[docs/TEST_REPORT.md](docs/TEST_REPORT.md) §6 and [docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md).
 
 ## What's inside
 * **One physical Observer** built on the supplied model: 5 supplied clips + 5 supplemental clips (stalking walk, peek,
@@ -35,8 +37,10 @@ add-on. How it looks and sounds in a game client has **not** been checked yet: s
 * **Bounded memory** of each player: breadcrumbs, home, familiar routes, habits, a favoured bearing.
 * **Progression**: 22 discoveries written in the Field Notes; Tally Chalk, Witness Lens, Ward Lantern, Vestiges; the
   Vigil as the long-term goal; three post-ending modes.
-* **Settings**: Atmosphere / Standard / Relentless presets plus separate frequency, aggression, manipulation,
-  sudden-scare, camera-effect and caption controls.
+* **Config Wheel**: one item for status, a harmless *See it now* preview of the creature and all its animations,
+  start-now, presets (Atmosphere / Standard / Relentless), every individual setting (frequency, aggression,
+  manipulation, sudden scares, camera effects, captions, grace period), a toggle per encounter type, *Test an
+  encounter*, and *Undo its changes*.
 * **28 original synthesized sounds**, 7 particles, 3 fogs, original item and block art.
 
 ## Documentation

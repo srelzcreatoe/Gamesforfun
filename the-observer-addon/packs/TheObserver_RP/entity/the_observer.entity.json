@@ -33,12 +33,8 @@
         ]
       },
       "sound_effects": {
-        "windup": {
-          "effect": "observer.windup"
-        },
-        "recoil": {
-          "effect": "observer.fabric"
-        }
+        "windup": "observer.windup",
+        "recoil": "observer.fabric"
       },
       "render_controllers": [
         "controller.render.observer.the_observer"

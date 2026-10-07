@@ -18,7 +18,6 @@
       },
       "minecraft:emitter_shape_disc": {
         "radius": 0.35,
-        "plane_normal": "y",
         "surface_only": false,
         "direction": [
           0,

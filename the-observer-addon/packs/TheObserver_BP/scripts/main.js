@@ -4,7 +4,7 @@ import { world, system, MolangVariableMap } from "@minecraft/server";
 import { W, loadWorld, saveWorld, savePlayers, savePlayer, ps, now, dropPlayer, markPlayerDirty, markWorldDirty } from "./core/state.js";
 import { S } from "./core/settings.js";
 import { DEBUG, safe, trace, dimIndex, V, allPlayers } from "./core/util.js";
-import { PARTICLES, TARGET_TAG } from "./core/constants.js";
+import { PARTICLES, TARGET_TAG, ITEMS } from "./core/constants.js";
 import * as ledger from "./world/ledger.js";
 import * as body from "./observer/body.js";
 import * as memory from "./observer/memory.js";
@@ -12,6 +12,8 @@ import * as director from "./director/director.js";
 import * as items from "./progression/items.js";
 import * as dev from "./dev/commands.js";
 import { vigilStatus } from "./ui/forms.js";
+import { openWheel, canConfigure } from "./ui/wheel.js";
+import { give } from "./progression/discoveries.js";
 
 // encounter library (each file registers itself)
 import "./encounters/distant_watch.js";
@@ -32,6 +34,7 @@ import "./encounters/second_witness.js";
 import "./encounters/night_visit.js";
 import "./encounters/portal_follow.js";
 import "./encounters/vigil.js";
+import "./encounters/showcase.js";
 
 let ready = false;
 
@@ -73,6 +76,7 @@ ledger.onRelease((e, how, player) => {
 });
 
 items.registerEvents({
+  openWheel,
   startVigil: (p) => {
     const def = director.byId("vigil");
     // the form may have stayed open for a while: check everything again
@@ -110,6 +114,20 @@ world.afterEvents.playerSpawn.subscribe((ev) => {
   ps(p);
   if (!ev.initialSpawn) return;
   memory.motion(p);
+  // first join: say that the add-on is running, and hand operators the Config Wheel
+  const s = ps(p);
+  if (!s.welcomed) {
+    s.welcomed = true;
+    markPlayerDirty(p);
+    system.runTimeout(() => {
+      if (!p.isValid) return;
+      safe(() => p.sendMessage({ rawtext: [{ translate: "observer.msg.welcome", with: [String(S().graceMinutes)] }] }));
+      if (canConfigure(p)) {
+        give(p, ITEMS.wheel, 1);
+        safe(() => p.sendMessage({ rawtext: [{ translate: "observer.msg.welcome_wheel" }] }));
+      } else safe(() => p.sendMessage({ rawtext: [{ translate: "observer.msg.welcome_other" }] }));
+    }, 60);
+  }
   // someone who left (or crashed) mid-encounter keeps fog layers and tags on their player: clear ours
   if (!director.running().some((e) => e.pid === p.id)) {
     safe(() => p.removeTag(TARGET_TAG));
@@ -160,14 +178,20 @@ system.beforeEvents.shutdown.subscribe(() => {
 
 // ------------------------------------------------------------------ loops
 
+// Loops count their own runs: `system.currentTick % n` inside an interval only works if the
+// interval happens to start on a multiple of n, which depends on load timing.
+let fastRuns = 0;
 system.runInterval(() => {
   if (!ready) return;
-  body.maintain(system.currentTick);
-  if (system.currentTick % 10 === 0) safe(() => ledger.scan(new Set(director.running().map((e) => e.id))));
+  fastRuns++;
+  body.maintain(fastRuns);
+  if (fastRuns % 2 === 0) safe(() => ledger.scan(new Set(director.running().map((e) => e.id))));
 }, 5);
 
+let slowRuns = 0;
 system.runInterval(() => {
   if (!ready) return;
+  slowRuns++;
   const tick = system.currentTick;
   for (const p of allPlayers()) {
     safe(() => memory.sample(p));
@@ -185,7 +209,7 @@ system.runInterval(() => {
   }
   safe(() => director.tick());
   safe(() => ledger.processDue(12));
-  if (tick % 40 === 0) {
+  if (slowRuns % 2 === 0) {
     safe(() => items.renderMarks());
     safe(() => tickTraces());
   }

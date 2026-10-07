@@ -24,6 +24,7 @@ import { GazeTracker } from "../world/sight.js";
  * @property {number} [minAggression]
  * @property {boolean} [benign]     allowed after the ending in attendant mode
  * @property {boolean} [manual]     never chosen by the director (vigil, follow-ups)
+ * @property {boolean} [preview]    Config Wheel preview: runs in any game mode, even when switched off; no progress
  * @property {(c:import("./context.js").Ctx, s:any)=>number} weight  0 = not eligible here
  * @property {(e:Encounter)=>Promise<boolean|void>|boolean|void} [prepare]  return false to defer
  * @property {(e:Encounter)=>Promise<void>} run
@@ -74,14 +75,14 @@ export class Encounter {
     if (this.aborted) throw new AbortError(this.aborted);
     const p = this.p;
     if (!p.isValid) this.abort("target_left");
-    else if (p.dimension.id !== this.dimId && !this.def.manual) this.abort("dimension");
+    else if (p.dimension.id !== this.dimId && (!this.def.manual || this.def.preview)) this.abort("dimension");
     else {
       const gm = safe(() => p.getGameMode(), GameMode.Survival);
-      if (gm === GameMode.Creative || gm === GameMode.Spectator) this.abort("gamemode");
+      if (!this.def.preview && (gm === GameMode.Creative || gm === GameMode.Spectator)) this.abort("gamemode");
       const hp = p.getComponent("minecraft:health");
       if (hp && hp.currentValue <= 0) this.abort("target_died");
     }
-    if (!S().enabled) this.abort("disabled");
+    if (!S().enabled && !this.def.preview) this.abort("disabled");
     body.exists();
     if (this.def.needsBody && body.wasLost(this.id)) this.abort("body_lost");
     if (this.aborted) throw new AbortError(this.aborted);

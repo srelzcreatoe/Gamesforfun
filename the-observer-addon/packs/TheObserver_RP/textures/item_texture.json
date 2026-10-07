@@ -31,6 +31,11 @@
       "textures": [
         "textures/items/observer/ward_lantern"
       ]
+    },
+    "observer_config_wheel": {
+      "textures": [
+        "textures/items/observer/config_wheel"
+      ]
     }
   }
 }

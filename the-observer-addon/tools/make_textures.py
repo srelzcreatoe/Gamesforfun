@@ -216,6 +216,28 @@ def ward_item():
     return save(outline(img), "textures", "items", "observer", "ward_lantern.png")
 
 
+def config_wheel():
+    """A small iron gear with an eye at its hub: The Observer's settings item."""
+    img = canvas()
+    d = ImageDraw.Draw(img)
+    iron, dark, rim = (128, 126, 138, 255), (34, 33, 40, 255), (92, 90, 102, 255)
+    for k in range(8):  # teeth
+        a = k * math.pi / 4
+        cx, cy = 7.5 + math.cos(a) * 6.2, 7.5 + math.sin(a) * 6.2
+        d.rectangle([round(cx - 1), round(cy - 1), round(cx), round(cy)], fill=rim)
+    d.ellipse([2, 2, 13, 13], fill=iron, outline=rim)
+    d.ellipse([5, 5, 10, 10], fill=dark)
+    for x in (6, 7, 8, 9):  # the eye
+        d.point((x, 7), fill=(232, 228, 220, 255))
+        d.point((x, 8), fill=(232, 228, 220, 255))
+    d.point((7, 7), fill=(14, 14, 16, 255))
+    d.point((8, 8), fill=(14, 14, 16, 255))
+    d.point((8, 7), fill=(14, 14, 16, 255))
+    d.point((7, 8), fill=(14, 14, 16, 255))
+    d.point((4, 4), fill=(176, 174, 186, 255))  # highlight
+    return save(outline(img), "textures", "items", "observer", "config_wheel.png")
+
+
 # ----------------------------------------------------------------------------- particles
 
 def soft_dot(size, color, falloff=1.6):
@@ -288,7 +310,7 @@ def pack_icon():
 
 
 def main():
-    made = [veil(), effigy(), ward_lantern(), field_notes(), chalk(), witness_lens(), vestige(), observers_eye(), ward_item()]
+    made = [veil(), effigy(), ward_lantern(), field_notes(), chalk(), witness_lens(), vestige(), observers_eye(), ward_item(), config_wheel()]
     made += particles()
     icon = pack_icon()
     icon.save(os.path.join(RP, "pack_icon.png"))
@@ -301,7 +323,7 @@ def main():
     json.dump(terrain, open(os.path.join(RP, "textures", "terrain_texture.json"), "w"), indent=2)
     items = {"resource_pack_name": "the_observer", "texture_name": "atlas.items",
              "texture_data": {f"observer_{n}": {"textures": [f"textures/items/observer/{n}"]}
-                              for n in ("field_notes", "chalk", "witness_lens", "vestige", "observers_eye", "ward_lantern")}}
+                              for n in ("field_notes", "chalk", "witness_lens", "vestige", "observers_eye", "ward_lantern", "config_wheel")}}
     json.dump(items, open(os.path.join(RP, "textures", "item_texture.json"), "w"), indent=2)
     for m in made:
         print(os.path.relpath(m, ROOT))

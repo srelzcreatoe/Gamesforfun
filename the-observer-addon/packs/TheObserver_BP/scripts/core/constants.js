@@ -14,6 +14,7 @@ export const ITEMS = {
   vestige: "observer:vestige",
   eye: "observer:observers_eye",
   ward: "observer:ward_lantern",
+  wheel: "observer:config_wheel",
 };
 
 export const BLOCKS = {

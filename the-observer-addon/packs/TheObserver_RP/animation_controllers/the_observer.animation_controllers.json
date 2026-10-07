@@ -306,7 +306,6 @@
           ]
         },
         "hidden": {
-          "animations": [],
           "transitions": [
             {
               "watch": "q.property('observer:state') == 'watch'"

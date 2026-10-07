@@ -110,8 +110,12 @@ export function run(name, args, caller) {
       updateSettings({ preset: args[0] });
       return `preset ${args[0]}`;
     case "set": {
-      // set <key> <value> (tests): numeric/boolean settings
+      // set <key> <value> (tests): numeric/boolean settings; "set off a,b,c" switches encounter types off
       const k = args[0];
+      if (k === "off") {
+        updateSettings({ off: (args[1] ?? "").split(",").filter(Boolean) });
+        return `off=${S().off.join(",")}`;
+      }
       const v = args[1] === "true" ? true : args[1] === "false" ? false : Number(args[1]);
       updateSettings({ [k]: v, preset: "custom" });
       return `${k}=${S()[k]}`;

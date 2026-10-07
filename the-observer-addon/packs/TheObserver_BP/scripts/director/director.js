@@ -8,7 +8,7 @@
 // (weighted by stage); body-free encounters may run for other players at the same time.
 import { world, system, GameMode } from "@minecraft/server";
 import { W, ps, now, markWorldDirty, markPlayerDirty } from "../core/state.js";
-import { S } from "../core/settings.js";
+import { S, typeOn } from "../core/settings.js";
 import { aggression } from "../core/settings.js";
 import { AbortError, rand, weightedPick, trace, DEBUG, safe, V, emit, allPlayers } from "../core/util.js";
 import { context, moodFactor } from "./context.js";
@@ -76,7 +76,7 @@ function ready(p, t) {
 
 /** Weight of an encounter type for this player and context, or 0. */
 export function eligibleWeight(def, s, c) {
-  if (def.manual) return 0;
+  if (def.manual || !typeOn(def.id)) return 0;
   if (def.minStage > s.stage) return 0;
   if ((def.minManip ?? 0) > manip()) return 0;
   if ((def.minAggression ?? 0) > 0 && (aggression() < def.minAggression || (s.witnessed))) return 0;
@@ -158,7 +158,7 @@ export function start(def, p, c, force = false) {
     active = enc;
     W.active = { enc: id, type: def.id, target: p.id, started: t };
   } else personal.set(p.id, enc);
-  W.globalCooldownUntil = t + GLOBAL_GAP * (def.needsBody ? 1.5 : 0.6);
+  if (!def.preview) W.globalCooldownUntil = t + GLOBAL_GAP * (def.needsBody ? 1.5 : 0.6);
   markWorldDirty();
   trace(`START enc=${id} type=${def.id} target=${p.name} stage=${enc.s.stage}`);
   emit("start", { enc: id, type: def.id, target: p.name, stage: enc.s.stage, forced: force });
@@ -209,6 +209,13 @@ function finish(enc) {
     W.active = null;
   }
   if (personal.get(enc.pid) === enc) personal.delete(enc.pid);
+  if (enc.def.preview) {
+    // a preview from the Config Wheel is not part of the story: no history, pacing or progress
+    markWorldDirty();
+    trace(`END enc=${enc.id} type=${enc.def.id} outcome=${enc.outcome || "done"} (preview)`);
+    emit("end", { enc: enc.id, type: enc.def.id, outcome: enc.outcome || "done", noticed: enc.noticed, target: enc.p.isValid ? enc.p.name : enc.pid, aborted: enc.aborted });
+    return;
+  }
   const deferred = enc.outcome === "deferred";
   const di = deferInfo(s);
   if (deferred) {
@@ -255,7 +262,7 @@ function finish(enc) {
  */
 export function tryManual(id, p) {
   const def = byId(id);
-  if (!def || !S().enabled) return null;
+  if (!def || !S().enabled || !typeOn(id)) return null;
   const s = ps(p);
   const t = now();
   if (def.minStage > s.stage || (def.minManip ?? 0) > manip()) return null;

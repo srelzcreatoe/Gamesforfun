@@ -44,6 +44,8 @@ the-observer-addon/
 | `progression/discoveries.js` | discoveries, Vestiges, stage advancement |
 | `progression/items.js` | Field Notes, Chalk, Lens, Ward Lantern, effigy rewards, blows |
 | `ui/forms.js` | Field Notes UI, settings form, after-vigil choice |
+| `ui/wheel.js` | the Config Wheel menu: status, preview, start now, presets, settings, encounter toggles, test, undo |
+| `encounters/showcase.js` | the *See it now* preview (`preview: true`: any game mode, no progress, no block changes) |
 | `dev/commands.js` | `/observer:*` commands and `/scriptevent observer:*` equivalents |
 
 ## 2. Tooling
@@ -52,6 +54,9 @@ the-observer-addon/
 npm install                      # dev dependencies only (typings, schemas, ajv, typescript)
 npm run typecheck                # tsc --checkJs against @minecraft/server 2.10.0 typings
 npm run validate                 # official JSON schemas + cross-reference checks
+python3 tools/check_vanilla_shapes.py --samples <bedrock-samples>/resource_pack
+                                 # compare RP JSON value types with Mojang's vanilla files (catches
+                                 # client-only load errors the schema package accepts; see its docstring)
 python3 tools/build.py           # validate + typecheck + package into dist/
 python3 tools/integrate_supplied_assets.py    # re-derive the namespaced supplied assets (asserts identity)
 python3 tools/make_supplemental_anims.py      # regenerate supplemental clips (FK-grounded)
@@ -74,7 +79,7 @@ python3 tests/bds/run_bds.py --bds /path/to/bedrock-server --testkit --fresh \
 ```
 
 Scenarios: `load.txt` (packs load cleanly), `proto.txt` (capability probes), `speed.txt` (movement calibration),
-`suite_smoke.txt`, `suite_full.txt` (all 42 test groups), `suite_extra.txt` (a short subset), `restart_a.txt` +
+`suite_smoke.txt`, `suite_full.txt` (all 45 test groups), `suite_extra.txt` (a short subset), `restart_a.txt` +
 `restart_b.txt` (interrupted encounter across a server restart), `tps.txt` (tick rate; run once more with `--no-addon`
 for the baseline). Results and the manual client procedure are in [TEST_REPORT.md](TEST_REPORT.md).
 

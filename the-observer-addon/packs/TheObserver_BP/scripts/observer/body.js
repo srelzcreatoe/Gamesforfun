@@ -265,8 +265,9 @@ export async function strike(target) {
 /**
  * Called every 5 ticks: keep facing the target while still, stoop under low ceilings,
  * and show eye glints to nearby players when it stands in darkness.
+ * @param {number} run  how many times the 5-tick loop has run
  */
-export function maintain(tick) {
+export function maintain(run) {
   const b = get();
   if (!b) return;
   const e = b.e;
@@ -275,7 +276,7 @@ export function maintain(tick) {
   // headroom: stoop when fewer than 5 open blocks above
   const ceil = safe(() => e.dimension.getBlockAbove({ x: l.x, y: l.y + 0.1, z: l.z }, { includePassableBlocks: false, includeLiquidBlocks: true, maxDistance: 5 }));
   setStoop(!!ceil && ceil.location.y - Math.floor(l.y) < 5);
-  if (tick % 10 === 0 && b.state !== "hidden") {
+  if (run % 2 === 0 && b.state !== "hidden") {
     const head = { x: l.x, y: l.y + (b.stoop ? 2.45 : 3.62), z: l.z };
     const light = safe(() => e.dimension.getLightLevel(head), 15) ?? 15;
     if (light <= 6) {

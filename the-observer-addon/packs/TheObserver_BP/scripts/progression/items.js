@@ -174,7 +174,7 @@ export function validateWards() {
 // ---------------------------------------------------------------- registration
 
 /**
- * @param {{startVigil:(p:Player)=>void, onLensed:(enc:number)=>void, onBodyHit:(p:Player, enc:number)=>void}} hooks
+ * @param {{startVigil:(p:Player)=>void, onLensed:(enc:number)=>void, onBodyHit:(p:Player, enc:number)=>void, openWheel:(p:Player)=>Promise<void>}} hooks
  */
 export function registerEvents(hooks) {
   world.afterEvents.itemUse.subscribe((ev) => {
@@ -184,6 +184,7 @@ export function registerEvents(hooks) {
     else if (id === ITEMS.lens) useLens(p, hooks.onLensed);
     else if (id === ITEMS.chalk) useChalk(p);
     else if (id === ITEMS.eye) showLater(() => openAfter(p));
+    else if (id === ITEMS.wheel) showLater(() => hooks.openWheel(p));
   });
 
   ledger.onChange(smudgeNear);

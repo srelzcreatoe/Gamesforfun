@@ -155,6 +155,7 @@ export function now() {
  * @property {number} vigilTries
  * @property {number} deaths
  * @property {boolean} [captions] per-player caption preference (undefined = world default)
+ * @property {boolean} welcomed    first-join message (and Config Wheel for operators) shown
  * @property {number} [followAt]   pending dimension follow-up (clock)
  * @property {number[]} [followFrom] [dim,x,y,z] where the player left/arrived
  */
@@ -166,7 +167,7 @@ export function freshPlayer(t) {
     recoveryUntil: 0, sinceQuiet: 0, encCount: 0, hist: [], typeLast: {}, disc: [], sightings: 0,
     bearing: 0, bearingDist: 0, bearingHits: 0, haunts: [], crumbs: [], route: {}, habits: {}, lastAct: {},
     attn: 0.5, composure: 3, witnessed: false, endMode: "", marks: [], notesGiven: false, stingAt: -1e9,
-    vigilTries: 0, deaths: 0,
+    vigilTries: 0, deaths: 0, welcomed: false,
   };
 }
 

@@ -162,7 +162,17 @@ for (const [k, v] of Object.entries(soundDefs)) for (const s of v.sounds) {
   if (!exists(RP, n + ".ogg")) fail(`sound ${k}: ${n}.ogg missing`);
 }
 const clientEntity = readJSON(path.join(RP, "entity", "the_observer.entity.json"))["minecraft:client_entity"].description;
-for (const [k, v] of Object.entries(clientEntity.sound_effects ?? {})) if (!soundDefs[v.effect]) fail(`client entity sound effect ${k} -> ${v.effect} not defined`);
+// the game client accepts only "short name": "sound event" strings here (objects are rejected at load)
+for (const [k, v] of Object.entries(clientEntity.sound_effects ?? {})) {
+  if (typeof v !== "string") fail(`client entity sound effect ${k} must be a string (the client rejects objects)`);
+  else if (!soundDefs[v]) fail(`client entity sound effect ${k} -> ${v} not defined`);
+}
+// the game client rejects an empty "animations" list in a controller state
+for (const f of walk(path.join(RP, "animation_controllers"))) {
+  for (const [cn, c] of Object.entries(readJSON(f).animation_controllers)) {
+    for (const [sn, st] of Object.entries(c.states)) if (Array.isArray(st.animations) && st.animations.length === 0) fail(`${rel(f)}: ${cn} state ${sn} has an empty animations list`);
+  }
+}
 const entSounds = readJSON(path.join(RP, "sounds.json"));
 for (const ev of Object.values(entSounds.entity_sounds.entities["observer:the_observer"].events)) if (!soundDefs[ev.sound]) fail(`entity sound ${ev.sound} not defined`);
 

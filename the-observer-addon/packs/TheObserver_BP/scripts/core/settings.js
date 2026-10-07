@@ -16,9 +16,10 @@ import { DEBUG } from "./util.js";
  * @property {number} graceMinutes    quiet period for new players
  * @property {boolean} worldEffects   allow world-wide weather during the finale
  * @property {boolean} dev            developer tracing and debug overlay
+ * @property {string[]} off           encounter types switched off (Config Wheel toggles)
  */
 
-/** @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects">>} */
+/** @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects"|"off">>} */
 export const PRESETS = {
   atmosphere: { frequency: 0.6, aggression: 0, manipulation: 1, scares: 0, camera: 1, graceMinutes: 15 },
   standard: { frequency: 1.0, aggression: 2, manipulation: 2, scares: 1, camera: 2, graceMinutes: 12 },
@@ -27,7 +28,7 @@ export const PRESETS = {
 
 /** @returns {Settings} */
 export function defaults() {
-  return { enabled: true, preset: "standard", ...PRESETS.standard, captions: false, worldEffects: true, dev: false };
+  return { enabled: true, preset: "standard", ...PRESETS.standard, captions: false, worldEffects: true, dev: false, off: [] };
 }
 
 /** @returns {Settings} */
@@ -36,8 +37,12 @@ export function S() {
     W.settings = defaults();
     markWorldDirty();
   }
+  if (!Array.isArray(W.settings.off)) W.settings.off = []; // worlds saved before the toggles existed
   return W.settings;
 }
+
+/** Is this encounter type switched on? @param {string} id */
+export const typeOn = (id) => !S().off.includes(id);
 
 /** @param {Partial<Settings>} patch */
 export function updateSettings(patch) {
@@ -48,6 +53,7 @@ export function updateSettings(patch) {
   for (const k of ["aggression", "manipulation"]) next[k] = Math.min(3, Math.max(0, Math.round(next[k])));
   for (const k of ["scares", "camera"]) next[k] = Math.min(2, Math.max(0, Math.round(next[k])));
   next.graceMinutes = Math.min(60, Math.max(0, Math.round(next.graceMinutes)));
+  next.off = Array.isArray(next.off) ? next.off.filter((x) => typeof x === "string").slice(0, 64) : [];
   W.settings = next;
   DEBUG.on = !!next.dev;
   markWorldDirty();

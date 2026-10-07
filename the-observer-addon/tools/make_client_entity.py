@@ -44,8 +44,9 @@ def prop(s):
 def state_controller():
     states = {"default": {"transitions": [{s: prop(s)} for s in STATES]}}
     for s, anims in STATES.items():
-        st = {"animations": anims, "transitions": [{o: prop(o)} for o in STATES if o != s],
-              "blend_transition": BLEND.get(s, 0.25)}
+        st = {"transitions": [{o: prop(o)} for o in STATES if o != s], "blend_transition": BLEND.get(s, 0.25)}
+        if anims:  # the client rejects an empty "animations" list ("Required child not found")
+            st = {"animations": anims, **st}
         if s in STATE_SOUNDS:
             st["sound_effects"] = STATE_SOUNDS[s]
         states[s] = st
@@ -85,7 +86,8 @@ def main():
             "ctrl_stoop": "controller.animation.observer.stoop",
         },
         "scripts": {"animate": ["ctrl_state", "ctrl_stoop"]},
-        "sound_effects": {"windup": {"effect": "observer.windup"}, "recoil": {"effect": "observer.fabric"}},
+        # short name -> sound event, as plain strings (the client rejects {"effect": ...} objects here)
+        "sound_effects": {"windup": "observer.windup", "recoil": "observer.fabric"},
         "render_controllers": ["controller.render.observer.the_observer"],
         "spawn_egg": {"base_color": "#0e0e10", "overlay_color": "#d8d4cf"},
     }}}

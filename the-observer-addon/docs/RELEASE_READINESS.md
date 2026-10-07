@@ -2,7 +2,14 @@
 
 ## Verdict
 
-**Functionally complete and runtime-verified on the server side; not yet verified in a game client.**
+**Functionally complete and runtime-verified on the server side; only partly checked in a game client.**
+
+The first load in a Windows client (by the user) showed three resource-pack errors in the content log — an empty
+`animations` list in one controller state and two client-entity `sound_effects` written as objects instead of strings
+— which could stop the creature from rendering. Both are fixed in this build, and a new check
+(`tools/check_vanilla_shapes.py`) now compares every resource-pack file with Mojang's own vanilla files so this kind of
+client-only error is caught before release. The creature's look, animations, sounds and menus still have to be
+confirmed in a client.
 
 Everything that runs on the server — the director, all 18 encounters, the restoration ledger, persistence across a
 restart, multiplayer targeting, dimension travel, items, wards, settings — was exercised on a real Bedrock Dedicated

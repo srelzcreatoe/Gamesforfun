@@ -21,6 +21,22 @@ Test arena (`tests/bds/testkit_BP/scripts/arenas.js`): a 220 × 80 platform at y
 furnished house (door, torches, pumpkin, stonecutter), a 64 × 72 pool, a 20-block pillar, a 57-block 2 × 3 tunnel
 inside solid stone at y = 125, and a Nether platform.
 
+### 1.1 First load in a game client (reported by the user)
+
+The user imported the first build into a Windows client. The content log showed three errors, all in the resource pack
+and therefore invisible to a dedicated server (which never loads resource packs) and accepted by the official schema
+package:
+
+| Error | Cause | Fix |
+|---|---|---|
+| `controller.animation.observer.state | states | hidden | animations | Required child not found` | the `hidden` state had `"animations": []` | the key is omitted when a state plays nothing (`tools/make_client_entity.py`) |
+| `sound_effects | windup` and `| recoil`: `Allowed types: 'string'` | client-entity `sound_effects` were `{"effect": "…"}` objects | plain `"short name": "sound event"` strings, as in vanilla |
+
+Both now also fail `tools/validate.mjs`. A new check, `tools/check_vanilla_shapes.py`, compares the JSON value type at
+every position in our 15 entity / controller / render-controller / animation / particle / fog files with Mojang's
+vanilla resource pack (`Mojang/bedrock-samples`, 839 files): run on the old files it flags both reported problems
+(and nothing else of consequence), flagged one optional particle field (`plane_normal`, removed), and reports **0 mismatches** on this build.
+
 ## 2. Static verification
 
 | Check | Tool | Result |
@@ -76,7 +92,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 42 test groups (including setup and a status check) with 165 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 45 test groups (including setup and a status check) with 173 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -90,21 +106,20 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | 3 | 136 | 3 | water placement, vigil home threshold |
 | 4 | 140 | 6 | water surface (raycasts pass through water), carve candidates, escape timing, a strike miss at point-blank range |
 | targeted re-runs after the fixes in §7 | 44 + 34 | 3 + 0 | the 3 were test-side (blocks broken faster than a hand can, health compared after regeneration) and were corrected |
-| **final** | **165** | **0** | all assertions passed, including the new tests for walking away, occupied seals and multiplayer fairness |
+| 5 (first release build) | 165 | 0 | all passed, including the new tests for walking away, occupied seals and multiplayer fairness. Its log then showed the carve opening facing away from the path; fixed and re-tested (13/13) |
+| 6 (with the Config Wheel; stopped early) | — | 6 so far | door, home-visit and night-visit tests: the player's own door changes were no longer noticed. Cause: a loop timing bug (§7) that the new code's different load time exposed. The run was stopped and the bug fixed |
+| **final** | **173** | **0** | all passed: the earlier suite plus the Config Wheel tests (wheel on first join, See it now, encounter toggles) and the carve-direction check |
 
-Final run: 1041 s, minimum TPS between tests 19.8, **0 content-log or script errors**.
-
-After the final run, its log showed that the carve test's opening (939, 125, 1089) faced open space *behind* the test
-arena's stone block rather than the tunnel. The candidate search now requires the open side to face the player's path,
-the test gained an assertion for it (`carve_in_tunnel_wall`), and `setup carve unfamiliar_route status` was re-run:
-**13 / 13 passed** (opening at 934, 125, 1084 — the tunnel wall), 0 errors. The full suite was not repeated after this
-one-line change.
+Final run: 1080 s, minimum TPS between tests 19.8, **0 content-log or script errors**. The pack version was then raised
+to 1.0.1 (so the fixed build replaces 1.0.0 on import); `setup wheel_welcome showcase toggles distant_watch status`
+was re-run on that build: 19 / 19, 0 errors.
 
 ### 5.2 Final run by area
 
 | Test group | Assertions passed | Failed |
 |---|---|---|
 | `setup` | 3 | — |
+| `wheel_welcome` | 1 | — |
 | `distant_watch` | 9 | — |
 | `unnoticed_trace` | 3 | — |
 | `mirror_bearing` | 3 | — |
@@ -135,7 +150,7 @@ one-line change.
 | `ward` | 4 | — |
 | `chalk` | 1 | — |
 | `manip_off` | 2 | — |
-| `carve` | 2 | — |
+| `carve` | 3 | — |
 | `animals` | 1 | — |
 | `vigil` | 3 | — |
 | `withdraw_walks` | 3 | — |
@@ -144,6 +159,8 @@ one-line change.
 | `pursuit_water_escape` | 3 | — |
 | `closed_path_light` | 7 | — |
 | `bearing_three` | 2 | — |
+| `showcase` | 5 | — |
+| `toggles` | 1 | — |
 | `natural` | 1 | — |
 | `status` | 0 | — |
 
@@ -159,8 +176,10 @@ interrupted encounter's Veil cells were **restored** (0 Veil blocks left) within
 A dedicated server cannot render, play audio, or show forms. Before distribution, one pass in a Bedrock client
 (1.26.50+) is required. Create a flat creative test world, activate both packs, then switch to survival:
 
-1. **Model & animation** — `/observer:trigger distant_watch`; look at it. Check: supplied model and texture correct,
-   idle/stare clips play, head follows you. `/observer:stage 5` then `/observer:trigger pursuit`, look away: run clip,
+1. **Model & animation** — on joining, a chat message should confirm the add-on is running and you should receive the
+   Observer Config Wheel. Use it → **See it now**: the Observer appears a few blocks ahead and plays each state, named
+   on the action bar (watching, staring, head tilt, peeking, stalking walk, running, strike wind-up, recoil), then
+   walks away. Check: supplied model and texture correct, each clip plays, head follows you, the content log is empty. `/observer:stage 5` then `/observer:trigger pursuit`, look away: run clip,
    attack wind-up ~0.6 s before the hit, recoil on hit with the lens.
 2. **Stoop** — dig a 3-high tunnel; `/observer:trigger closed_path` while walking. It must crouch (no head through the
    ceiling) and the walk must look like walking (not gliding) when it leaves.
@@ -172,7 +191,8 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
    appear in the recipe book after picking up an ingredient.
 6. **Audio** — listen for every sound in `RP/sounds/sound_definitions.json` (each is used by at least one encounter):
    steps, extra step, hum, seal, snuff, chime, breath, strike, whiff, vigil drone. Adjust levels if any is too loud.
-7. **UI** — Field Notes form (pages, lessons, vigil button), settings form (operator only), captions toggle, action-bar
+7. **UI** — every Config Wheel button (status text, presets, all settings, encounter toggles, Test an encounter in
+   Survival, Undo its changes, captions), Field Notes form (pages, lessons, vigil button), settings form (operator only), captions toggle, action-bar
    captions, title card after the vigil, camera fade/shake only when the camera setting allows them.
 8. **Natural play** — `/observer:preset standard`, play 40–60 minutes normally (building, a cave, a night). Expect nothing
    during the 12-minute grace period, then an encounter every few minutes (2.5–5 min apart at stage 1, shorter at night
@@ -199,7 +219,14 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
   faces beside the path, 4–10 blocks away.
 * The vanilla retreat goal did not move the body → scripted walk-away.
 * Carving could open a wall face toward space behind the wall instead of toward the path → the open side must face the
-  player (found in the final run's log).
+  player (found in run 5's log).
+* Periodic work inside fixed-rate loops was gated on `system.currentTick % n`, which only ever matches if the loop
+  happens to start on a multiple of n. After the Config Wheel changed load timing, the block-change scan never ran, so
+  a player closing a door the Observer had opened went unnoticed (run 6). Eye glints, chalk-mark display and footprint
+  trails used the same pattern. All loops now count their own runs.
+
+**Found by loading the pack in a game client (reported by the user)**
+* An empty `animations` list in a controller state and object-valued client-entity `sound_effects` (see §1.1).
 * A strike at point-blank range could "miss" because direction is meaningless at 0.4 blocks → in-front test skipped
   under 1.2 blocks.
 
