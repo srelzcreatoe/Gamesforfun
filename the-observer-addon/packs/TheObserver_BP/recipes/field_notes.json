@@ -1,0 +1,28 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "observer:field_notes"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "unlock": [
+      {
+        "item": "minecraft:book"
+      }
+    ],
+    "ingredients": [
+      {
+        "item": "minecraft:book"
+      },
+      {
+        "item": "minecraft:charcoal"
+      }
+    ],
+    "result": {
+      "item": "observer:field_notes",
+      "count": 1
+    }
+  }
+}

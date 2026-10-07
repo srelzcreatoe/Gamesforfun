@@ -1,0 +1,18 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Observer Test Kit (dev only)",
+    "description": "GameTest simulated-player harness for The Observer. Requires Beta APIs. Not for release.",
+    "uuid": "2ae67cdb-985f-4d0f-967d-ab2aafce6925",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 26, 50]
+  },
+  "modules": [
+    { "type": "data", "uuid": "3b67a20b-25bc-4c19-bdad-98a48ecdeec4", "version": [1, 0, 0] },
+    { "type": "script", "language": "javascript", "uuid": "d76a94e4-5125-4f5c-983f-0f819cbc7e61", "version": [1, 0, 0], "entry": "scripts/testkit.js" }
+  ],
+  "dependencies": [
+    { "module_name": "@minecraft/server", "version": "2.10.0" },
+    { "module_name": "@minecraft/server-gametest", "version": "1.0.0-beta" }
+  ]
+}

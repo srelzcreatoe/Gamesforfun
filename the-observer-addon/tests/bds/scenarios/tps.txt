@@ -1,0 +1,5 @@
+# Tick-rate measurement: 90 s with one simulated player walking (run with and without --no-addon)
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:tps
+expect \[OTEST\] TPS DONE 400

@@ -1,0 +1,22 @@
+{
+  "name": "the-observer-addon",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Development tooling for The Observer (Minecraft Bedrock add-on). Not shipped in the packs.",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "validate": "node tools/validate.mjs",
+    "build": "python3 tools/build.py",
+    "check": "npm run typecheck && npm run validate"
+  },
+  "devDependencies": {
+    "@minecraft/bedrock-schemas": "1.26.50",
+    "@minecraft/server": "2.10.0",
+    "@minecraft/server-gametest": "1.0.0-beta.1.26.52-stable",
+    "@minecraft/server-ui": "2.2.0",
+    "@minecraft/vanilla-data": "1.26.52",
+    "ajv": "^8.17.1",
+    "typescript": "^5.9.3"
+  },
+  "type": "module"
+}

@@ -1,0 +1,23 @@
+{
+  "entity_sounds": {
+    "entities": {
+      "observer:the_observer": {
+        "volume": 0.9,
+        "pitch": [
+          0.85,
+          1.0
+        ],
+        "events": {
+          "step": {
+            "sound": "observer.step",
+            "volume": 0.45,
+            "pitch": [
+              0.85,
+              1.0
+            ]
+          }
+        }
+      }
+    }
+  }
+}

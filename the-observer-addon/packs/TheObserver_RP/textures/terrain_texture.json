@@ -1,0 +1,23 @@
+{
+  "resource_pack_name": "the_observer",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "observer_veil": {
+      "textures": [
+        "textures/blocks/observer/veil"
+      ]
+    },
+    "observer_effigy": {
+      "textures": [
+        "textures/blocks/observer/effigy"
+      ]
+    },
+    "observer_ward_lantern": {
+      "textures": [
+        "textures/blocks/observer/ward_lantern"
+      ]
+    }
+  }
+}

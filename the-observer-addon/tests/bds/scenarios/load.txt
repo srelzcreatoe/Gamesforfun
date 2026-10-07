@@ -1,0 +1,5 @@
+expect \[OTEST\] testkit loaded 90
+cmd scriptevent observer:trace on
+expect trace on 20
+cmd scriptevent observer:status
+wait 3

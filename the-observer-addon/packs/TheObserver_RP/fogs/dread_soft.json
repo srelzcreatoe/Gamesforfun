@@ -1,0 +1,28 @@
+{
+  "format_version": "1.16.100",
+  "minecraft:fog_settings": {
+    "description": {
+      "identifier": "observer:dread_soft"
+    },
+    "distance": {
+      "air": {
+        "fog_start": 10,
+        "fog_end": 42,
+        "fog_color": "#101014",
+        "render_distance_type": "fixed"
+      },
+      "weather": {
+        "fog_start": 10,
+        "fog_end": 42,
+        "fog_color": "#101014",
+        "render_distance_type": "fixed"
+      },
+      "water": {
+        "fog_start": 0,
+        "fog_end": 25.2,
+        "fog_color": "#101014",
+        "render_distance_type": "fixed"
+      }
+    }
+  }
+}

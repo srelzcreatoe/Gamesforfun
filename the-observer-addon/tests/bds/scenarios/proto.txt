@@ -1,0 +1,7 @@
+# Stage B capability probes
+expect \[Observer\] prototype main loaded 60
+expect \[OTEST\] testkit loaded 60
+wait 2
+cmd scriptevent otest:proto
+expect \[OTEST\] PROTO DONE 240
+wait 2

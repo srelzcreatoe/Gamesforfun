@@ -1,0 +1,52 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "observer:the_observer",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/observer/the_observer"
+      },
+      "geometry": {
+        "default": "geometry.observer.the_observer"
+      },
+      "animations": {
+        "idle": "animation.observer.idle",
+        "pose": "animation.observer.pose",
+        "staring": "animation.observer.staring",
+        "running": "animation.observer.running",
+        "attack": "animation.observer.attack",
+        "stalk_walk": "animation.observer.stalk_walk",
+        "peek": "animation.observer.peek",
+        "recoil": "animation.observer.recoil",
+        "stoop": "animation.observer.stoop",
+        "look_at_target": "animation.observer.look_at_target",
+        "ctrl_state": "controller.animation.observer.state",
+        "ctrl_stoop": "controller.animation.observer.stoop"
+      },
+      "scripts": {
+        "animate": [
+          "ctrl_state",
+          "ctrl_stoop"
+        ]
+      },
+      "sound_effects": {
+        "windup": {
+          "effect": "observer.windup"
+        },
+        "recoil": {
+          "effect": "observer.fabric"
+        }
+      },
+      "render_controllers": [
+        "controller.render.observer.the_observer"
+      ],
+      "spawn_egg": {
+        "base_color": "#0e0e10",
+        "overlay_color": "#d8d4cf"
+      }
+    }
+  }
+}

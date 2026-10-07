@@ -1,0 +1,4 @@
+expect \[OTEST\] testkit loaded 60
+wait 2
+cmd scriptevent otest:speed
+expect \[OTEST\] SPEED DONE 120

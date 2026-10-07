@@ -1,0 +1,6 @@
+# Session A: start a Closed Path and stop the server while it is running.
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:interrupt
+expect \[OTEST\] INTERRUPT READY 300
+wait 1

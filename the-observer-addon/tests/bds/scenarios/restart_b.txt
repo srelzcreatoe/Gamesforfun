@@ -1,0 +1,5 @@
+# Session B (same world): stray bodies are removed and the interrupted changes restored.
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:recovery
+expect \[OTEST\] RECOVERY DONE 200

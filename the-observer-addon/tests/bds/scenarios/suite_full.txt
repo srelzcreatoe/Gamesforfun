@@ -1,0 +1,4 @@
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup distant_watch unnoticed_trace mirror_bearing extra_step_turn extra_step_sneak door_ajar turned_object turned_object_noticed snuffed_lights window_watch close_breath borrowed_sound echo_ahead home_visit closed_path_escape closed_path_held closed_path_struck aggression_zero unfamiliar_route pursuit pursuit_watched_walks lens second_witness night_visit dimension water elevated ward chalk manip_off carve animals vigil natural status
+expect \[OTEST\] SUITE DONE 3400

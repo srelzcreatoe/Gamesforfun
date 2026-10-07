@@ -1,0 +1,4 @@
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup distant_watch status
+expect \[OTEST\] SUITE DONE 400

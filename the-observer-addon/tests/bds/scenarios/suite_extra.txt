@@ -1,0 +1,4 @@
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup pursuit_water_escape closed_path_light bearing_three status
+expect \[OTEST\] SUITE DONE 900

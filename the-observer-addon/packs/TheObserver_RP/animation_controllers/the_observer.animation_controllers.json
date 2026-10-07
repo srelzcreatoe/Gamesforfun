@@ -1,0 +1,365 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.observer.state": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "transitions": [
+            {
+              "watch": "q.property('observer:state') == 'watch'"
+            },
+            {
+              "stare": "q.property('observer:state') == 'stare'"
+            },
+            {
+              "tilt": "q.property('observer:state') == 'tilt'"
+            },
+            {
+              "walk": "q.property('observer:state') == 'walk'"
+            },
+            {
+              "run": "q.property('observer:state') == 'run'"
+            },
+            {
+              "attack": "q.property('observer:state') == 'attack'"
+            },
+            {
+              "peek": "q.property('observer:state') == 'peek'"
+            },
+            {
+              "recoil": "q.property('observer:state') == 'recoil'"
+            },
+            {
+              "hidden": "q.property('observer:state') == 'hidden'"
+            }
+          ]
+        },
+        "watch": {
+          "animations": [
+            "idle",
+            "look_at_target"
+          ],
+          "transitions": [
+            {
+              "stare": "q.property('observer:state') == 'stare'"
+            },
+            {
+              "tilt": "q.property('observer:state') == 'tilt'"
+            },
+            {
+              "walk": "q.property('observer:state') == 'walk'"
+            },
+            {
+              "run": "q.property('observer:state') == 'run'"
+            },
+            {
+              "attack": "q.property('observer:state') == 'attack'"
+            },
+            {
+              "peek": "q.property('observer:state') == 'peek'"
+            },
+            {
+              "recoil": "q.property('observer:state') == 'recoil'"
+            },
+            {
+              "hidden": "q.property('observer:state') == 'hidden'"
+            }
+          ],
+          "blend_transition": 0.25
+        },
+        "stare": {
+          "animations": [
+            "staring",
+            "look_at_target"
+          ],
+          "transitions": [
+            {
+              "watch": "q.property('observer:state') == 'watch'"
+            },
+            {
+              "tilt": "q.property('observer:state') == 'tilt'"
+            },
+            {
+              "walk": "q.property('observer:state') == 'walk'"
+            },
+            {
+              "run": "q.property('observer:state') == 'run'"
+            },
+            {
+              "attack": "q.property('observer:state') == 'attack'"
+            },
+            {
+              "peek": "q.property('observer:state') == 'peek'"
+            },
+            {
+              "recoil": "q.property('observer:state') == 'recoil'"
+            },
+            {
+              "hidden": "q.property('observer:state') == 'hidden'"
+            }
+          ],
+          "blend_transition": 0.25
+        },
+        "tilt": {
+          "animations": [
+            "pose"
+          ],
+          "transitions": [
+            {
+              "watch": "q.property('observer:state') == 'watch'"
+            },
+            {
+              "stare": "q.property('observer:state') == 'stare'"
+            },
+            {
+              "walk": "q.property('observer:state') == 'walk'"
+            },
+            {
+              "run": "q.property('observer:state') == 'run'"
+            },
+            {
+              "attack": "q.property('observer:state') == 'attack'"
+            },
+            {
+              "peek": "q.property('observer:state') == 'peek'"
+            },
+            {
+              "recoil": "q.property('observer:state') == 'recoil'"
+            },
+            {
+              "hidden": "q.property('observer:state') == 'hidden'"
+            }
+          ],
+          "blend_transition": 0.25
+        },
+        "walk": {
+          "animations": [
+            "stalk_walk",
+            "look_at_target"
+          ],
+          "transitions": [
+            {
+              "watch": "q.property('observer:state') == 'watch'"
+            },
+            {
+              "stare": "q.property('observer:state') == 'stare'"
+            },
+            {
+              "tilt": "q.property('observer:state') == 'tilt'"
+            },
+            {
+              "run": "q.property('observer:state') == 'run'"
+            },
+            {
+              "attack": "q.property('observer:state') == 'attack'"
+            },
+            {
+              "peek": "q.property('observer:state') == 'peek'"
+            },
+            {
+              "recoil": "q.property('observer:state') == 'recoil'"
+            },
+            {
+              "hidden": "q.property('observer:state') == 'hidden'"
+            }
+          ],
+          "blend_transition": 0.25
+        },
+        "run": {
+          "animations": [
+            "running"
+          ],
+          "transitions": [
+            {
+              "watch": "q.property('observer:state') == 'watch'"
+            },
+            {
+              "stare": "q.property('observer:state') == 'stare'"
+            },
+            {
+              "tilt": "q.property('observer:state') == 'tilt'"
+            },
+            {
+              "walk": "q.property('observer:state') == 'walk'"
+            },
+            {
+              "attack": "q.property('observer:state') == 'attack'"
+            },
+            {
+              "peek": "q.property('observer:state') == 'peek'"
+            },
+            {
+              "recoil": "q.property('observer:state') == 'recoil'"
+            },
+            {
+              "hidden": "q.property('observer:state') == 'hidden'"
+            }
+          ],
+          "blend_transition": 0.2
+        },
+        "attack": {
+          "animations": [
+            "attack"
+          ],
+          "transitions": [
+            {
+              "watch": "q.property('observer:state') == 'watch'"
+            },
+            {
+              "stare": "q.property('observer:state') == 'stare'"
+            },
+            {
+              "tilt": "q.property('observer:state') == 'tilt'"
+            },
+            {
+              "walk": "q.property('observer:state') == 'walk'"
+            },
+            {
+              "run": "q.property('observer:state') == 'run'"
+            },
+            {
+              "peek": "q.property('observer:state') == 'peek'"
+            },
+            {
+              "recoil": "q.property('observer:state') == 'recoil'"
+            },
+            {
+              "hidden": "q.property('observer:state') == 'hidden'"
+            }
+          ],
+          "blend_transition": 0.1,
+          "sound_effects": [
+            {
+              "effect": "windup"
+            }
+          ]
+        },
+        "peek": {
+          "animations": [
+            "idle",
+            "peek"
+          ],
+          "transitions": [
+            {
+              "watch": "q.property('observer:state') == 'watch'"
+            },
+            {
+              "stare": "q.property('observer:state') == 'stare'"
+            },
+            {
+              "tilt": "q.property('observer:state') == 'tilt'"
+            },
+            {
+              "walk": "q.property('observer:state') == 'walk'"
+            },
+            {
+              "run": "q.property('observer:state') == 'run'"
+            },
+            {
+              "attack": "q.property('observer:state') == 'attack'"
+            },
+            {
+              "recoil": "q.property('observer:state') == 'recoil'"
+            },
+            {
+              "hidden": "q.property('observer:state') == 'hidden'"
+            }
+          ],
+          "blend_transition": 0.25
+        },
+        "recoil": {
+          "animations": [
+            "recoil"
+          ],
+          "transitions": [
+            {
+              "watch": "q.property('observer:state') == 'watch'"
+            },
+            {
+              "stare": "q.property('observer:state') == 'stare'"
+            },
+            {
+              "tilt": "q.property('observer:state') == 'tilt'"
+            },
+            {
+              "walk": "q.property('observer:state') == 'walk'"
+            },
+            {
+              "run": "q.property('observer:state') == 'run'"
+            },
+            {
+              "attack": "q.property('observer:state') == 'attack'"
+            },
+            {
+              "peek": "q.property('observer:state') == 'peek'"
+            },
+            {
+              "hidden": "q.property('observer:state') == 'hidden'"
+            }
+          ],
+          "blend_transition": 0.05,
+          "sound_effects": [
+            {
+              "effect": "recoil"
+            }
+          ]
+        },
+        "hidden": {
+          "animations": [],
+          "transitions": [
+            {
+              "watch": "q.property('observer:state') == 'watch'"
+            },
+            {
+              "stare": "q.property('observer:state') == 'stare'"
+            },
+            {
+              "tilt": "q.property('observer:state') == 'tilt'"
+            },
+            {
+              "walk": "q.property('observer:state') == 'walk'"
+            },
+            {
+              "run": "q.property('observer:state') == 'run'"
+            },
+            {
+              "attack": "q.property('observer:state') == 'attack'"
+            },
+            {
+              "peek": "q.property('observer:state') == 'peek'"
+            },
+            {
+              "recoil": "q.property('observer:state') == 'recoil'"
+            }
+          ],
+          "blend_transition": 0.0
+        }
+      }
+    },
+    "controller.animation.observer.stoop": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "transitions": [
+            {
+              "stooped": "q.property('observer:stoop')"
+            }
+          ],
+          "blend_transition": 0.4
+        },
+        "stooped": {
+          "animations": [
+            "stoop"
+          ],
+          "transitions": [
+            {
+              "default": "!q.property('observer:stoop')"
+            }
+          ],
+          "blend_transition": 0.4
+        }
+      }
+    }
+  }
+}

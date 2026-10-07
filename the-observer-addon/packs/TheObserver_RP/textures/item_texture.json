@@ -1,0 +1,36 @@
+{
+  "resource_pack_name": "the_observer",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "observer_field_notes": {
+      "textures": [
+        "textures/items/observer/field_notes"
+      ]
+    },
+    "observer_chalk": {
+      "textures": [
+        "textures/items/observer/chalk"
+      ]
+    },
+    "observer_witness_lens": {
+      "textures": [
+        "textures/items/observer/witness_lens"
+      ]
+    },
+    "observer_vestige": {
+      "textures": [
+        "textures/items/observer/vestige"
+      ]
+    },
+    "observer_observers_eye": {
+      "textures": [
+        "textures/items/observer/observers_eye"
+      ]
+    },
+    "observer_ward_lantern": {
+      "textures": [
+        "textures/items/observer/ward_lantern"
+      ]
+    }
+  }
+}

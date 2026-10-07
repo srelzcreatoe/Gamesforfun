@@ -1,0 +1,31 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "observer:ward_lantern"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "unlock": [
+      {
+        "item": "observer:vestige"
+      }
+    ],
+    "ingredients": [
+      {
+        "item": "minecraft:lantern"
+      },
+      {
+        "item": "observer:vestige"
+      },
+      {
+        "item": "observer:vestige"
+      }
+    ],
+    "result": {
+      "item": "observer:ward_lantern",
+      "count": 1
+    }
+  }
+}

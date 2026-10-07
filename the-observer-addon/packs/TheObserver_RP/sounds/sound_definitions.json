@@ -1,0 +1,245 @@
+{
+  "format_version": "1.20.20",
+  "sound_definitions": {
+    "observer.step": {
+      "category": "hostile",
+      "max_distance": 24,
+      "sounds": [
+        {
+          "name": "sounds/observer/step1",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/observer/step2",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/observer/step3",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/observer/step4",
+          "volume": 1.0
+        }
+      ]
+    },
+    "observer.hum": {
+      "category": "ambient",
+      "max_distance": 48,
+      "sounds": [
+        {
+          "name": "sounds/observer/hum",
+          "volume": 1.0,
+          "stream": true
+        }
+      ]
+    },
+    "observer.tell": {
+      "category": "hostile",
+      "max_distance": 48,
+      "sounds": [
+        {
+          "name": "sounds/observer/tell",
+          "volume": 0.9
+        }
+      ]
+    },
+    "observer.breath": {
+      "category": "hostile",
+      "max_distance": 16,
+      "sounds": [
+        {
+          "name": "sounds/observer/breath1",
+          "volume": 0.9
+        },
+        {
+          "name": "sounds/observer/breath2",
+          "volume": 0.9
+        }
+      ]
+    },
+    "observer.fabric": {
+      "category": "hostile",
+      "max_distance": 20,
+      "sounds": [
+        {
+          "name": "sounds/observer/fabric1",
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/observer/fabric2",
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/observer/fabric3",
+          "volume": 0.8
+        }
+      ]
+    },
+    "observer.knock": {
+      "category": "block",
+      "max_distance": 24,
+      "sounds": [
+        {
+          "name": "sounds/observer/knock",
+          "volume": 1.0
+        }
+      ]
+    },
+    "observer.snuff": {
+      "category": "block",
+      "max_distance": 20,
+      "sounds": [
+        {
+          "name": "sounds/observer/snuff",
+          "volume": 0.8
+        }
+      ]
+    },
+    "observer.windup": {
+      "category": "hostile",
+      "max_distance": 24,
+      "sounds": [
+        {
+          "name": "sounds/observer/windup",
+          "volume": 1.0
+        }
+      ]
+    },
+    "observer.strike": {
+      "category": "hostile",
+      "max_distance": 24,
+      "sounds": [
+        {
+          "name": "sounds/observer/strike",
+          "volume": 1.0
+        }
+      ]
+    },
+    "observer.whiff": {
+      "category": "hostile",
+      "max_distance": 20,
+      "sounds": [
+        {
+          "name": "sounds/observer/whiff",
+          "volume": 0.9
+        }
+      ]
+    },
+    "observer.sting": {
+      "category": "hostile",
+      "max_distance": 32,
+      "sounds": [
+        {
+          "name": "sounds/observer/sting",
+          "volume": 0.9
+        }
+      ]
+    },
+    "observer.seal": {
+      "category": "block",
+      "max_distance": 32,
+      "sounds": [
+        {
+          "name": "sounds/observer/seal",
+          "volume": 1.0
+        }
+      ]
+    },
+    "observer.arrival": {
+      "category": "hostile",
+      "max_distance": 40,
+      "sounds": [
+        {
+          "name": "sounds/observer/arrival",
+          "volume": 1.0
+        }
+      ]
+    },
+    "observer.chalk": {
+      "category": "player",
+      "max_distance": 12,
+      "sounds": [
+        {
+          "name": "sounds/observer/chalk1",
+          "volume": 0.7
+        },
+        {
+          "name": "sounds/observer/chalk2",
+          "volume": 0.7
+        }
+      ]
+    },
+    "observer.discovery": {
+      "category": "ui",
+      "max_distance": 8,
+      "sounds": [
+        {
+          "name": "sounds/observer/discovery",
+          "volume": 0.7
+        }
+      ]
+    },
+    "observer.lens": {
+      "category": "player",
+      "max_distance": 16,
+      "sounds": [
+        {
+          "name": "sounds/observer/lens",
+          "volume": 0.8
+        }
+      ]
+    },
+    "observer.effigy_break": {
+      "category": "block",
+      "max_distance": 16,
+      "sounds": [
+        {
+          "name": "sounds/observer/effigy_break",
+          "volume": 0.9
+        }
+      ]
+    },
+    "observer.vigil": {
+      "category": "ambient",
+      "max_distance": 64,
+      "sounds": [
+        {
+          "name": "sounds/observer/vigil",
+          "volume": 1.0,
+          "stream": true
+        }
+      ]
+    },
+    "observer.turn": {
+      "category": "block",
+      "max_distance": 16,
+      "sounds": [
+        {
+          "name": "sounds/observer/turn",
+          "volume": 0.8
+        }
+      ]
+    },
+    "observer.sink": {
+      "category": "hostile",
+      "max_distance": 32,
+      "sounds": [
+        {
+          "name": "sounds/observer/sink",
+          "volume": 0.9
+        }
+      ]
+    },
+    "observer.ring": {
+      "category": "player",
+      "max_distance": 8,
+      "sounds": [
+        {
+          "name": "sounds/observer/ring",
+          "volume": 0.5
+        }
+      ]
+    }
+  }
+}
