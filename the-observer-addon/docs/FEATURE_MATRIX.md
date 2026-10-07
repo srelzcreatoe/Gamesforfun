@@ -77,7 +77,7 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Second Witness | `second_witness.js` | witness sees, both see | ✅ Runtime |
 | While You Slept | `night_visit.js` | staging, answered | ✅ Runtime (sleep trigger itself ⚪) |
 | It Came Through | `portal_follow.js` | follow-up after dimension change | ✅ Runtime |
-| The Vigil | `vigil.js` | three rounds, Witnessed, reward | see TEST_REPORT final run |
+| The Vigil | `vigil.js` | three rounds found, Witnessed, Observer's Eye reward, changes restored | ✅ Runtime |
 
 ## Environmental manipulation and safety
 | Feature | Implementation | Trigger | Expected result | Test | Status |
@@ -103,7 +103,7 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Feature | Implementation | Trigger | Expected result | Test | Status |
 |---|---|---|---|---|---|
 | Witness Lens | `items.useLens` | use while looking at it | recoil, discovery, withdrawal; 20 s cooldown | `lens_recoil`, `lens_discovery` | ✅ Runtime |
-| Tally Chalk smudge | `items.useChalk`, `smudgeNear` | change within 4 blocks of a mark | smudge + message | `chalk_smudged_by_change` (final run) | see TEST_REPORT |
+| Tally Chalk smudge | `items.useChalk`, `smudgeNear` | change within 4 blocks of a mark | smudge + message | `chalk_smudged_by_change` | ✅ Runtime (mark particles ❔) |
 | Items / blocks / recipes load | BP items, blocks, recipes | world load | no errors | `load.txt` (0 errors) | ✅ Runtime (crafting UI ❔) |
 | Field Notes / settings forms | `ui/forms.js` | item use / command | forms open | — (simulated players have no UI) | ⚪ client ❔ |
 | Presets & settings | `core/settings.js` | command/form | values applied | used throughout (`preset`, `set`) | ✅ Runtime |
@@ -118,4 +118,4 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Measure | Result | Test |
 |---|---|---|
 | Server tick rate, 180 s walking player, director active (2 encounters ran) | 20.00 mean / 19.99 min TPS — identical to the add-on-free baseline (20.00 / 19.99) | `tps.txt` with and without `--no-addon` |
-| No content-log or script errors during full suite | 0 errors | `run_bds.py` summary |
+| No content-log or script errors during full suite | 0 errors (final run: 165/165 assertions, min 19.8 TPS between tests) | `run_bds.py` summary |

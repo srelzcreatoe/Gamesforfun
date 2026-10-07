@@ -53,7 +53,9 @@ function carveCandidate(dim, p) {
     if (!isNatural(dim, above)) continue;
     // must stand on solid ground and face open space at both heights
     if (isOpen(dim, { x: b.x, y: b.y - 1, z: b.z })) continue;
-    const face = SIDES.find(([dx, dz]) => isOpen(dim, { x: b.x + dx, y: b.y, z: b.z + dz }) && isOpen(dim, { x: b.x + dx, y: b.y + 1, z: b.z + dz }));
+    // the open side must be the player's side (the path), not some space behind the wall
+    const near = (dx, dz) => V.hdist({ x: b.x + dx + 0.5, y: 0, z: b.z + dz + 0.5 }, p.location) < V.hdist({ x: b.x + 0.5, y: 0, z: b.z + 0.5 }, p.location);
+    const face = SIDES.find(([dx, dz]) => near(dx, dz) && isOpen(dim, { x: b.x + dx, y: b.y, z: b.z + dz }) && isOpen(dim, { x: b.x + dx, y: b.y + 1, z: b.z + dz }));
     if (!face) continue;
     if (viewAngle(p, { x: b.x + 0.5, y: b.y + 1, z: b.z + 0.5 }) < 80) continue;
     const cells = [b, above];

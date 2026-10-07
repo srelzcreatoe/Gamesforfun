@@ -926,6 +926,8 @@ TESTS.carve = async () => {
   p.stopMoving();
   const cv = await waitEvent("ledger", (d) => d.what === "change" && d.kind === "carve", 300, m);
   check("carve_opening_made", !!cv, cv ? `${cv.from} at ${cv.x},${cv.y},${cv.z}` : (since(m, "end")[0] || {}).outcome);
+  // the opening is in a tunnel wall (z 1084 or 1087), at feet or head height, not in the floor or behind the wall
+  if (cv) check("carve_in_tunnel_wall", (cv.z === TUNNEL.z0 - 1 || cv.z === TUNNEL.z1 + 1) && (cv.y === TUNNEL.y || cv.y === TUNNEL.y + 1), `${cv.x},${cv.y},${cv.z}`);
   obs("abort");
   await endOf("unfamiliar_route", m, 200);
   obs("timewarp", "200");

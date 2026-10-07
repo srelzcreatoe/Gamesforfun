@@ -15,6 +15,13 @@ your light — always deliberately, always reversibly — and watches what you d
 2. Activate **The Observer (Behaviour)** on a world (the resource pack follows as a dependency). No experiments needed.
 3. Play. Details: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md).
 
+## Status
+Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final integration run passed 165 of 165
+checks with no content-log or script errors, restart recovery passed, and the server held 20 TPS with and without the
+add-on. How it looks and sounds in a game client has **not** been checked yet: see
+[docs/TEST_REPORT.md](docs/TEST_REPORT.md) §6 for the one manual pass needed before sharing it, and
+[docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md) for known limitations.
+
 ## What's inside
 * **One physical Observer** built on the supplied model: 5 supplied clips + 5 supplemental clips (stalking walk, peek,
   recoil, stoop crouch for low ceilings, head tracking), state-driven animation controllers, eye glints in darkness.
