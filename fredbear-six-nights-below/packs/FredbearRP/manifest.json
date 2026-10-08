@@ -1,0 +1,22 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "FREDBEAR: Six Nights Below (Resources)",
+    "description": "Animatronic models, skins, animations, sounds and UI text. Target: Minecraft Bedrock 1.26.50.",
+    "uuid": "77822624-d129-4f03-981a-2f464906553c",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 26, 50]
+  },
+  "modules": [
+    {
+      "description": "Resources",
+      "type": "resources",
+      "uuid": "3d0675d2-f6eb-49af-8e40-fed90f00e573",
+      "version": [1, 0, 0]
+    }
+  ],
+  "metadata": {
+    "authors": ["FREDBEAR: Six Nights Below project"],
+    "license": "Original work; see README. Not affiliated with Scott Cawthon or Mojang."
+  }
+}
