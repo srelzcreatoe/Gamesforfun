@@ -93,8 +93,12 @@ function posters(P, room, count, keys = ['glazed_yellow', 'glazed_purple', 'glaz
   }
 }
 
-/** Wall sign facing into the room on the given side ('n','s','w','e'). */
-function wallSign(P, room, side, text, { along, dy = 2, wood = 'sign' } = {}) {
+/**
+ * Wall sign facing into the room on the given side ('n','s','w','e').
+ * @param {{ along?: number, dy?: number, wood?: string }} [opts]
+ */
+function wallSign(P, room, side, text, opts = {}) {
+  const { along, dy = 2, wood = 'sign' } = opts;
   const i = interior(room);
   const y = i.y1 + dy;
   const span = side === 'n' || side === 's' ? [i.x1 + 1, i.x2 - 1] : [i.z1 + 1, i.z2 - 1];

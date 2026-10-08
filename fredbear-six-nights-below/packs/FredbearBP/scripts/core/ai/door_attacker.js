@@ -80,7 +80,7 @@ export class DoorAttacker extends Animatronic {
       this.forceNextMove = true;
       this.watchedTicks = 0;
     }
-    if (this.extraRoam?.()) return; // character-specific activity consumed this tick
+    if (this.extraRoam()) return; // character-specific activity consumed this tick
     if (--this.moTimer > 0) return;
     this.moTimer = s.rng.jitter(this.cfg.moInterval);
     const a = this.aggression;
@@ -111,7 +111,8 @@ export class DoorAttacker extends Animatronic {
     return true;
   }
 
-  stepWeight() {
+  /** @param {any} _option @param {any} _node */
+  stepWeight(_option, _node) {
     return 1;
   }
 
@@ -128,7 +129,7 @@ export class DoorAttacker extends Animatronic {
       return false;
     }
     this.entry = entry;
-    this.onApproachStart?.();
+    this.onApproachStart();
     this.setState('APPROACH', `moving into entry ${entry}`);
     return true;
   }
@@ -178,7 +179,7 @@ export class DoorAttacker extends Animatronic {
         return;
       default:
         this.setState(n.zone === 'near' ? 'STALK' : 'PATROL', `arrived ${node}`);
-        this.onReachNode?.(node);
+        this.onReachNode(node);
     }
   }
 
@@ -189,7 +190,7 @@ export class DoorAttacker extends Animatronic {
     this.holdTicks = 0;
     this.anim = 'threat';
     this.setState('TELEGRAPH', `at entry ${this.entry}, window ${this.timer}t`);
-    this.onTelegraphStart?.();
+    this.onTelegraphStart();
   }
 
   thinkTelegraph() {

@@ -1,7 +1,8 @@
 // Story text: wall signs, phone messages, night intros, secrets and ending.
 // All writing is original to this project.
 
-const S = (room, side, text, extra = {}) => ({ room, side, text, ...extra });
+/** @param {{ along?: number, dy?: number }} [extra] */
+const S = (room, side, text, extra = {}) => ({ room, side, text, along: extra.along, dy: extra.dy });
 
 /** Wall signs placed by the kits' sign pass (max ~4 short lines each). */
 export const STORY_SIGNS = Object.freeze([

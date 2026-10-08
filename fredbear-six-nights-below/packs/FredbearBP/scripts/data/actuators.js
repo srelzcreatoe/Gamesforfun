@@ -235,9 +235,12 @@ export const CONTROL = Object.freeze({ x1: 22, x2: 177, y: -9, rows: Object.free
 
 /** Assign every module a pad position. Deterministic packing west->east, row by row. */
 export function layoutModules() {
+  /** @type {any[]} */
   const placed = [];
   let row = 0;
+  /** @type {number} */
   let x = CONTROL.x1;
+  /** @type {string | null} */
   let lastSection = null;
   for (const m of MODULES) {
     const len = 2 + m.cmds.length; // pad + impulse + chains (first chain clears the pad)
@@ -253,6 +256,7 @@ export function layoutModules() {
     lastSection = m.section;
   }
   // Repeaters at the end of the last row.
+  /** @type {any[]} */
   const rep = [];
   for (const r of REPEATERS) {
     if (x + 2 > CONTROL.x2) {

@@ -8,8 +8,9 @@
 //
 // audioOnly cameras render a black feed and relay nearby audio cues instead.
 
+/** @param {{ audioOnly?: boolean, lostSignalBefore?: number }} [extra] */
 const C = (id, label, room, loc, look, sees, extra = {}) =>
-  Object.freeze({ id, label, room, loc: Object.freeze(loc), look: Object.freeze(look), sees: Object.freeze(sees), ...extra });
+  Object.freeze({ id, label, room, loc: Object.freeze(loc), look: Object.freeze(look), sees: Object.freeze(sees), audioOnly: !!extra.audioOnly, lostSignalBefore: extra.lostSignalBefore });
 
 export const CAMERAS = Object.freeze([
   C('C01', 'CAM 01 · SHOW STAGE', 'STAGE', [100.5, 5.0, 50.5], [100.5, 1.5, 22.5], ['STAGE_F', 'STAGE_B', 'STAGE_C', 'STAGE_FRONT']),

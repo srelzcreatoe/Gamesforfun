@@ -1,0 +1,80 @@
+{
+  "format_version": "1.26.50",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "fb:chica",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "is_experimental": false,
+      "spawn_category": "misc",
+      "properties": {
+        "fb:anim": {
+          "type": "enum",
+          "values": [
+            "idle",
+            "perform",
+            "walk",
+            "stalk",
+            "crawl",
+            "look",
+            "pause",
+            "threat",
+            "attack",
+            "retreat",
+            "dormant",
+            "music"
+          ],
+          "default": "idle",
+          "client_sync": true
+        },
+        "fb:eyes": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        },
+        "fb:hidden": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "fb_animatronic",
+          "inanimate"
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 0.5,
+        "height": 2.2
+      },
+      "minecraft:scale": {
+        "value": 1.2
+      },
+      "minecraft:physics": {
+        "has_gravity": false,
+        "has_collision": false
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "all",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:health": {
+        "value": 100,
+        "max": 100
+      },
+      "minecraft:knockback_resistance": {
+        "value": 1.0
+      },
+      "minecraft:fire_immune": {},
+      "minecraft:persistent": {}
+    },
+    "events": {}
+  }
+}

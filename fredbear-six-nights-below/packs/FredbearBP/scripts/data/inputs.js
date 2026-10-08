@@ -14,7 +14,8 @@
 import { CAMERA_MAP_LAYOUT, CAMERA_BY_ID } from './cameras.js';
 
 // I(id, action, kind, [x, y, z] pedestal top-of-floor position, label, extra)
-const I = (id, action, kind, p, label, extra = {}) => Object.freeze({ id, action, kind, p: Object.freeze(p), label, ...extra });
+/** @param {{ block?: string, lamp?: number[] }} [extra] */
+const I = (id, action, kind, p, label, extra = {}) => Object.freeze({ id, action, kind, p: Object.freeze(p), label, block: extra.block, lamp: extra.lamp });
 
 const office = [
   I('in.office.door_l', 'door_l', 'button', [96, 0, 130], 'LEFT DOOR', { block: 'console_red' }),

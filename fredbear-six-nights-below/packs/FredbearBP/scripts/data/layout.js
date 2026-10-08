@@ -43,8 +43,9 @@ export const TICKING_AREAS = Object.freeze([
 
 // zone: public | staff | restricted | secret | safe | exterior | dev
 // gameplay notes are reproduced in docs/02_FLOOR_PLAN.md.
+/** @param {{ dark?: boolean, shaftFloorY?: number }} [extra] */
 const R = (id, name, level, box, h, kit, style, zone, purpose, extra = {}) =>
-  Object.freeze({ id, name, level, box, h, kit, style, zone, purpose, ...extra });
+  Object.freeze({ id, name, level, box, h, kit, style, zone, purpose, dark: !!extra.dark, shaftFloorY: extra.shaftFloorY });
 
 export const ROOMS = Object.freeze([
   // ---------------------------------------------------------------- L1 north
@@ -150,8 +151,9 @@ export const SOLIDS = Object.freeze([
 // Openings. axis 'x' => wall at x = c, spanning z a1..a2; axis 'z' => wall at
 // z = c spanning x a1..a2. y1..y2 are absolute local Y. kind:
 //   door | arch | window | vent | sealed | gate (dynamic barrier) | secret
+/** @param {{ gate?: string, exterior?: boolean, glass?: boolean }} [extra] */
 const O = (id, axis, c, a1, a2, y1, y2, kind = 'door', extra = {}) =>
-  Object.freeze({ id, axis, c, a1, a2, y1, y2, kind, ...extra });
+  Object.freeze({ id, axis, c, a1, a2, y1, y2, kind, gate: extra.gate, exterior: !!extra.exterior, glass: !!extra.glass });
 const L1D = (id, axis, c, a1, a2, h = 3, kind = 'door', extra) => O(id, axis, c, a1, a2, 0, h - 1, kind, extra);
 const L0D = (id, axis, c, a1, a2, h = 3, kind = 'door', extra) => O(id, axis, c, a1, a2, -9, -9 + h - 1, kind, extra);
 const L2D = (id, axis, c, a1, a2, h = 3, kind = 'door', extra) => O(id, axis, c, a1, a2, 8, 8 + h - 1, kind, extra);

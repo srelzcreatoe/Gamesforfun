@@ -179,7 +179,26 @@ export class Animatronic {
     }
   }
 
-  onArrive() {}
+  /** @param {string} _node */
+  onArrive(_node) {}
+
+  // Optional character hooks (no-ops by default).
+  /** @returns {boolean} true when the hook consumed this tick */
+  extraRoam() {
+    return false;
+  }
+
+  onApproachStart() {}
+
+  /** @param {string} _node */
+  onReachNode(_node) {}
+
+  onTelegraphStart() {}
+
+  /** @param {string} _reason */
+  repelled(_reason) {}
+
+  startRetreat() {}
 
   /** Current world pose for the puppet entity (local coordinates). */
   pose() {

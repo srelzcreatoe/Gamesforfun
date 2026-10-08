@@ -9,7 +9,14 @@
 // entry: L (left door) | R (right door) | H (office hatch)
 // golden: designated supernatural relocation node (Fredbear only, warned).
 
-const N = (id, x, y, z, room, zone, extra = {}) => Object.freeze({ id, x, y, z, room, zone, ...extra });
+/**
+ * @param {string} id @param {number} x @param {number} y @param {number} z @param {string} room @param {string} zone
+ * @param {{ yaw?: number, home?: string, golden?: boolean, dark?: boolean, entry?: string, kitchen?: boolean, crawl?: boolean }} [extra]
+ */
+const N = (id, x, y, z, room, zone, extra = {}) => Object.freeze({
+  id, x, y, z, room, zone,
+  yaw: extra.yaw, home: extra.home, golden: !!extra.golden, dark: !!extra.dark, entry: extra.entry, kitchen: !!extra.kitchen, crawl: !!extra.crawl,
+});
 
 export const NODES = Object.freeze([
   // Stage and north rooms
@@ -70,8 +77,9 @@ export const NODE_BY_ID = Object.freeze(Object.fromEntries(NODES.map((n) => [n.i
 
 const P = (x, y, z) => [x, y, z];
 // E(id, a, b, access, points-between, mode). Endpoints come from the nodes.
+/** @param {string} a @param {string} b @param {string} access @param {number[][]} [mid] @param {string} [mode] @param {{ gate?: string }} [extra] */
 const E = (a, b, access, mid = [], mode = 'walk', extra = {}) =>
-  Object.freeze({ id: `${a}-${b}`, a, b, access, mid: Object.freeze(mid), mode, ...extra });
+  Object.freeze({ id: `${a}-${b}`, a, b, access, mid: Object.freeze(mid), mode, gate: extra.gate });
 
 export const EDGES = Object.freeze([
   // --- stage exits
