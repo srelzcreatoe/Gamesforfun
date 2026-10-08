@@ -7,7 +7,7 @@
 | **Static validation** | **Completed** — 6 validators, all passing (below) |
 | **Automated logic tests** (night simulation, AI, power, director) | **Completed** — 18 tests passing, plus the balance simulator (docs/05) |
 | **Automated structure tests** (command-block files) | **Completed** — 6 tests passing |
-| **Automated integration tests** (real pack scripts on a mock `@minecraft/server`) | **Completed** — 16 tests passing |
+| **Automated integration tests** (real pack scripts on a mock `@minecraft/server`) | **Completed** — 17 tests passing |
 | **In-game tests** (Minecraft Bedrock running) | **None.** Minecraft was not available in the build environment. No platform (Windows, console, mobile) has been tested in-game. |
 | **Manual tests still required** | The checklist at the end of this file |
 
@@ -30,7 +30,7 @@ Run everything with `npm run validate && npm test`.
 | `tools/validate_assets.mjs` | 31 JSON files parse; BP ↔ RP ↔ script entity ids; textures, geometry, animations, controllers, render-controller keys resolve; UV boxes inside 128×64; every animated bone exists; every `fb:anim` value has a controller state; scripts only set enum values; items → icons; 48 sounds with files; every script sound id defined; 6 fogs; lang names | PASS |
 | `tsc --checkJs` | every Script API call in the 40 script files against `@minecraft/server` 2.10.0 and `server-ui` 2.2.0 declarations | PASS |
 
-## Automated tests (40, all passing)
+## Automated tests (41, all passing)
 
 **Core simulation (`tests/core.test.mjs`, 18):** same seed reproduces a night exactly · all six nights completable (oracle, 10 seeds each) ·
 every lethal attack preceded by its telegraph and never through a closed barrier · closed door always stops Bonnie · 6 AM boundary ·
@@ -43,7 +43,7 @@ lights only · Freddy never moves while watched · Night 6 finale · input debou
 input action handled · module wiring (impulse needs redstone, chain always active, first block clears its pad) · no position collisions ·
 exactly one repeating block · command-block NBT keys, `Version` and block version match a structure exported by Bedrock.
 
-**Integration (`tests/integration.test.mjs`, 16):** main.js wiring · `/fb:setup` builds the map and installs 448 command blocks ·
+**Integration (`tests/integration.test.mjs`, 17):** main.js wiring · structure-id resolution · `/fb:setup` builds the map and installs 448 command blocks ·
 the built world equals the offline voxel model (> 2 million cells) · in-game self-test 9/9 PASS · training shift through the
 physical controls · night start and office controls (blocks change, power drains, spoofed input rejected) · 6 AM win persists unlock ·
 jumpscare → game over → immediate retry · maintenance pause/resume · ten randomized play/reset cycles · duplicate and stray puppets removed ·

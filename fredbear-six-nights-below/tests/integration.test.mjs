@@ -134,6 +134,14 @@ test('main.js wiring: custom commands at startup, unbuilt prompt after world loa
   mock.reload(); // drop main.js's instance; the rest of the file drives its own Game
 });
 
+test('structure ids resolve as fb:<name>, or by file name under another namespace', async () => {
+  const { resolveStructureId } = await import('../packs/FredbearBP/scripts/mc/builder.js');
+  assert.equal(resolveStructureId('fb:cb_row_0', new Set(['fb:cb_row_0'])), 'fb:cb_row_0');
+  assert.equal(resolveStructureId('fb:cb_row_0', new Set(['mystructure:cb_row_0'])), 'mystructure:cb_row_0');
+  assert.equal(resolveStructureId('fb:cb_row_0', new Set(['fb/cb_row_0'])), 'fb/cb_row_0');
+  assert.equal(resolveStructureId('fb:cb_row_9', new Set(['fb:cb_row_0'])), undefined);
+});
+
 test('/fb:setup builds the whole map, installs 448 command blocks and reaches the lobby', async () => {
   startGame();
   assert.equal(game.state, 'UNBUILT');

@@ -18,7 +18,7 @@ command-block network from structure files, and runs four animatronics with expl
 ## Status — read before playing
 
 Everything here was generated and verified **without running Minecraft**: 6 static validators against Mojang's official
-1.26.50 metadata and schemas, 40 automated tests, a balance simulator, and an integration harness that runs the real pack
+1.26.50 metadata and schemas, 41 automated tests, a balance simulator, and an integration harness that runs the real pack
 scripts against a mock of the Script API (full build, self-test, tutorial, a complete six-night campaign through the office
 buttons, resets, reloads). **No in-game test has been performed on any platform.** The remaining in-game checks are listed in
 [docs/10_TEST_REPORT.md](docs/10_TEST_REPORT.md), and engine behaviour that could not be verified is listed in
@@ -60,7 +60,7 @@ loading), [docs/04_AI_DESIGN.md](docs/04_AI_DESIGN.md) (state machines, detectio
 ```
 npm install        # dev-only: pinned Script API typings + TypeScript
 npm run validate   # static validators
-npm test           # 40 tests (core, structures, integration mock)
+npm test           # 41 tests (core, structures, integration mock)
 npm run build      # regenerate structures, register, floor plans, RP assets, docs, dist/
 ```
 

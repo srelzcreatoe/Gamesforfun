@@ -22,6 +22,19 @@ import { INPUTS, inputCbPos } from '../data/inputs.js';
 import { log } from './log.js';
 
 export const BUILD_VERSION = 1;
+
+/**
+ * Pack structure id for a generated structure. Files live at structures/fb/<name>.mcstructure and are expected
+ * as "fb:<name>"; if the game reports them under another namespace, match by file name instead.
+ * @param {string} id
+ * @param {Set<string>} available ids from world.structureManager.getPackStructureIds()
+ * @returns {string | undefined}
+ */
+export function resolveStructureId(id, available) {
+  if (available.has(id)) return id;
+  const name = id.split(':').pop();
+  return [...available].find((a) => a.split(/[:/]/).pop() === name);
+}
 const OPS_PER_TICK = 24; // fill operations per job slice
 const MAX_FILL = 32768;
 
@@ -157,12 +170,14 @@ export class Builder {
   *placeStructures() {
     const available = new Set(world.structureManager.getPackStructureIds());
     for (const s of CB_STRUCTURES) {
-      if (!available.has(s.id)) {
+      const id = resolveStructureId(s.id, available);
+      if (!id) {
         this.errors.push(`structure ${s.id} missing from the behavior pack`);
         continue;
       }
+      if (id !== s.id) log.warn(`structure ${s.id} found as ${id}`);
       try {
-        world.structureManager.place(s.id, dim(), { x: s.at[0], y: s.at[1], z: s.at[2] });
+        world.structureManager.place(id, dim(), { x: s.at[0], y: s.at[1], z: s.at[2] });
       } catch (e) {
         this.errors.push(`structure ${s.id}: ${e?.message ?? e}`);
       }

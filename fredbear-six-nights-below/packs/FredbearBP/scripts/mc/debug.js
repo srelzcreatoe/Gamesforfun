@@ -16,6 +16,7 @@ import { ANCHORS } from '../data/layout.js';
 import { checkPalette, dim, W, Wv } from './world_io.js';
 import { storeSave } from './persistence.js';
 import { restorePlayerView } from './camera_view.js';
+import { resolveStructureId } from './builder.js';
 import * as ui from './ui.js';
 import { log, setVerbose } from './log.js';
 
@@ -285,7 +286,7 @@ export async function selfTest(game, player) {
   const badPal = checkPalette();
   add(!badPal.length, `palette resolves in this game version (${badPal.length} invalid)`);
   const ids = new Set(world.structureManager.getPackStructureIds());
-  const missingS = CB_STRUCTURES.filter((s) => !ids.has(s.id)).map((s) => s.id);
+  const missingS = CB_STRUCTURES.filter((s) => !resolveStructureId(s.id, ids)).map((s) => s.id);
   add(!missingS.length, `${CB_STRUCTURES.length} command-block structures present in the pack${missingS.length ? ` (missing ${missingS.slice(0, 3)})` : ''}`);
   let cbOk = 0;
   const cbBad = [];
