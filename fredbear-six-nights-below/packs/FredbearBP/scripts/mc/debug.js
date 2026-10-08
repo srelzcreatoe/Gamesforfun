@@ -305,6 +305,8 @@ export async function selfTest(game, player) {
   game.bus.trigger('diag.ping');
   await new Promise((r) => system.runTimeout(() => r(undefined), 20));
   add(game.bus.pong >= pingAt, `actuator bus round trip (script -> pad -> command block -> scriptevent)`);
+  // The heartbeat repeats every 100 ticks: right after a world load it may not have reported yet.
+  for (let waited = 0; waited < 120 && !game.bus.commandBlocksAlive(); waited += 10) await new Promise((r) => system.runTimeout(() => r(undefined), 10));
   add(game.bus.commandBlocksAlive(), 'repeating heartbeat command block reporting');
   const blocked = validateRoutes(player);
   add(!blocked.length, `AI routes clear in the built world (${blocked.length} blocked samples)`);

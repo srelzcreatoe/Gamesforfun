@@ -521,6 +521,51 @@ function inputLabels(P) {
   }
 }
 
+// ------------------------------------------------------------------ camera illumination
+// Soft, invisible light blocks where each security camera looks, so the feeds
+// stay readable (in addition to night vision and the clear camera-feed fog).
+// Nodes the AI treats as dark get a dimmer light so they stay murky. The two
+// door-corner cameras (C08, C13) and audio-only feeds get none, and every light
+// is far enough from the office and its door alcoves that no light reaches
+// them: seeing the corners must still require the hall lights.
+const NO_LIGHT_CAMERAS = new Set(['C08', 'C13']);
+const KEEP_DARK = [90, -1, 126, 110, 5, 140]; // office + both door alcoves (x1, y1, z1, x2, y2, z2)
+
+function distanceToBox(x, y, z, b) {
+  const dx = Math.max(b[0] - x, 0, x - b[3]);
+  const dy = Math.max(b[1] - y, 0, y - b[4]);
+  const dz = Math.max(b[2] - z, 0, z - b[5]);
+  return dx + dy + dz;
+}
+
+/** Light cells for every camera: [x, y, z, level] (local), placed only into air. */
+export function cameraLightCells() {
+  const camCells = new Set(CAMERAS.map((c) => `${Math.floor(c.loc[0])},${Math.floor(c.loc[1])},${Math.floor(c.loc[2])}`));
+  const out = new Map();
+  const add = (x, y, z, level) => {
+    const k = `${x},${y},${z}`;
+    if (camCells.has(k)) return;
+    const reach = distanceToBox(x, y, z, KEEP_DARK);
+    const lv = Math.min(level, reach - 1); // light level drops 1 per block (Manhattan)
+    if (lv < 4) return;
+    if (!out.has(k) || out.get(k)[3] < lv) out.set(k, [x, y, z, lv]);
+  };
+  for (const c of CAMERAS) {
+    if (c.audioOnly || NO_LIGHT_CAMERAS.has(c.id)) continue;
+    for (const id of c.sees) {
+      const n = NODE_BY_ID[id];
+      if (n.zone === 'entry') continue;
+      add(Math.floor(n.x), Math.floor(n.y) + 2, Math.floor(n.z), n.dark ? 6 : 10);
+    }
+    add(Math.floor(c.look[0]), Math.floor(c.look[1]) + 1, Math.floor(c.look[2]), 8);
+  }
+  return [...out.values()];
+}
+
+function cameraLights(P) {
+  for (const [x, y, z, level] of cameraLightCells()) P.fillAir(x, y, z, x, y, z, `light_${level}`);
+}
+
 // ------------------------------------------------------------------ entry point
 export function generatePlan() {
   const P = new PlanBuilder(1983);
@@ -532,6 +577,7 @@ export function generatePlan() {
   P.setPhase('decor');
   for (const room of ROOMS) decorateRoom(P, room);
   reopen(P);
+  cameraLights(P);
   P.setPhase('exterior');
   buildExterior(P);
   consoles(P);

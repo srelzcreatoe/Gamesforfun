@@ -14,6 +14,7 @@ import { world, system, InputButton, ButtonState, GameMode } from '@minecraft/se
 import { NightSession } from '../core/session.js';
 import { CONFIG } from '../core/config.js';
 import { mixSeed } from '../core/rng.js';
+import { GuideGraph } from '../core/guide_path.js';
 import { ANCHORS, OFFICE_BOUNDS, ROOM_BY_ID, interior } from '../data/layout.js';
 import { CAMERA_BY_ID } from '../data/cameras.js';
 import { NODE_BY_ID } from '../data/nodes.js';
@@ -22,14 +23,14 @@ import { isKnownInputAction } from '../data/input_actions.js';
 import { PHONE, TASKS, MAINTENANCE, SECRETS, ENDING, TUTORIAL_STEPS } from '../data/story.js';
 import { ActuatorBus } from './actuator_bus.js';
 import { settleTicks } from '../data/actuators.js';
-import { Builder } from './builder.js';
+import { Builder, BUILD_VERSION } from './builder.js';
 import { Puppets } from './puppets.js';
 import { CameraView, restorePlayerView } from './camera_view.js';
 import { Audio } from './audio.js';
 import { Hud, hourLabel } from './hud.js';
 import { giveKit, clearKit, ITEMS, ANCHOR_SLOT } from './items.js';
 import * as ui from './ui.js';
-import { loadSave, storeSave, eraseSave, defaultSave, markSession, readSession, clearSession } from './persistence.js';
+import { loadSave, storeSave, eraseSave, defaultSave, markSession, readSession, clearSession, loadBuild } from './persistence.js';
 import { COMMAND_TEMPLATES, fogCommand } from './commands.js';
 import { dim, W, Wv, L, runCmd } from './world_io.js';
 import { log } from './log.js';
@@ -41,7 +42,8 @@ const CB_INPUT = new Map(INPUTS.map((i) => {
 }));
 // Ticks the reset command-block chains need before anything else may actuate.
 const RESET_SETTLE = settleTicks('reset.world') + 4;
-const SCALE = Object.freeze({ freddy: 1.25, bonnie: 1.2, chica: 1.2, fredbear: 1.3 });
+const OFFICE_TARGET = 'anchor:officeSeat'; // route-guidance target name (data/guide_graph.generated.js)
+const SCALE = Object.freeze({ freddy: 1.35, bonnie: 1.3, chica: 1.3, fredbear: 1.45 }); // = minecraft:scale in BP entities (validate_assets checks)
 const ZONE_ACTUATOR = Object.freeze({ 'zone:cove': 'zone.cove', 'zone:freezer': 'zone.freezer', 'zone:diner': 'zone.diner', 'zone:chamber': 'zone.chamber', 'zone:attic': 'zone.attic', 'zone:basement': 'env.pipes', 'zone:backstage': 'env.distant_music' });
 
 export class Game {
@@ -68,6 +70,9 @@ export class Game {
     this.zoneCooldown = Object.create(null);
     this.taskBonus = { power: false, charge: false };
     this.overlay = !!this.save.settings.debugOverlay;
+    this.routes = new GuideGraph();
+    this.guideLeft = undefined; // blocks left on the current breadcrumb route
+    this.outdatedBuild = false; // built by an older pack version: /fb:setup rebuilds
     /** @type {((action: string, player: any) => any) | undefined} */
     this.debugHook = undefined;
     /** Developer command entry for `/scriptevent fb:debug <action> [a1] [a2]` (the helper .mcfunction files). */
@@ -89,6 +94,8 @@ export class Game {
   boot() {
     for (const p of world.getAllPlayers()) restorePlayerView(p);
     if (!this.builder.isBuilt()) {
+      const b = loadBuild();
+      this.outdatedBuild = b.done && b.version !== BUILD_VERSION;
       this.state = 'UNBUILT';
       return;
     }
@@ -109,7 +116,12 @@ export class Game {
     try {
       switch (this.state) {
         case 'UNBUILT':
-          if (now % 60 === 0) for (const p of world.getAllPlayers()) p.onScreenDisplay.setActionBar('§eFREDBEAR: SIX NIGHTS BELOW\n§fRun §b/fb:setup§f to build the map (cheats on).');
+          if (now % 60 === 0) {
+            const text = this.outdatedBuild
+              ? '§eFREDBEAR: SIX NIGHTS BELOW was updated\n§fRun §b/fb:setup§f to rebuild the map (your progress is kept).'
+              : '§eFREDBEAR: SIX NIGHTS BELOW\n§fRun §b/fb:setup§f to build the map (cheats on).';
+            for (const p of world.getAllPlayers()) p.onScreenDisplay.setActionBar(text);
+          }
           break;
         case 'LOBBY':
         case 'FREE_ROAM':
@@ -212,6 +224,7 @@ export class Game {
     this.bus.fence(RESET_SETTLE); // a night started in this same tick must not be undone by night.end
     this.applyGates();
     runCmd(COMMAND_TEMPLATES.fogPop[0]);
+    runCmd(COMMAND_TEMPLATES.camFogPop[0]);
     for (const c of COMMAND_TEMPLATES.hudReset) runCmd(c);
     for (const p of world.getAllPlayers()) {
       restorePlayerView(p);
@@ -283,10 +296,12 @@ export class Game {
     if (now % 20 === 0) this.puppets.sync(null, 'perform');
     const g = this.guard();
     if (!g) return;
-    if (now % 10 === 0) this.guideParticles(g, this.intro.taskDone || !this.intro.task ? [100.5, 0, 131.5] : this.taskTarget(this.intro.task.action));
+    const toTask = this.intro.task && !this.intro.taskDone;
+    if (now % 10 === 0) this.guideLeft = this.guideTo(g, toTask ? this.targetFor(this.intro.task.action) : OFFICE_TARGET);
     if (now % 40 === 0 && !this.hudBusy(now)) {
       const left = Math.max(0, Math.ceil((this.intro.deadline - now) / 20));
-      g.onScreenDisplay.setActionBar(`§fNight ${this.night} starts at midnight · §e${left}s\n§7Go to the office and press §aSTART SHIFT§7${this.intro.task && !this.intro.taskDone ? ' · optional task pending' : ''}`);
+      const route = this.guideLeft ? ` · §a${this.guideLeft} blocks§7 (follow the green sparkles)` : '';
+      g.onScreenDisplay.setActionBar(`§fNight ${this.night} starts at midnight · §e${left}s\n§7${toTask ? 'Optional task first, then the office' : 'Go to the office and press §aSTART SHIFT§7'}${route}`);
     }
     if (now >= this.intro.deadline) {
       this.hudMessage('Midnight. Your shift has started.', 80);
@@ -294,25 +309,26 @@ export class Game {
     }
   }
 
-  taskTarget(action) {
-    const inp = INPUTS.find((i) => i.action === action);
-    return inp ? [inp.p[0] + 0.5, inp.p[1], inp.p[2] + 0.5] : [100.5, 0, 131.5];
+  /** Route-guidance target name for a task / maintenance action (the input's standing spot). */
+  targetFor(action) {
+    return INPUTS.find((i) => i.action === action)?.id ?? OFFICE_TARGET;
   }
 
-  /** Breadcrumb particles from the player toward a local target. */
-  guideParticles(player, target) {
+  /**
+   * Breadcrumb sparkles along the walkable route to `target` (doors, corridors,
+   * stairs and ladders from the generated guide graph, never through walls).
+   * @returns {number | undefined} blocks left to walk, 0 when arrived
+   */
+  guideTo(player, target) {
     try {
-      const p = L(player.location);
-      const dx = target[0] - p.x;
-      const dz = target[2] - p.z;
-      const d = Math.hypot(dx, dz);
-      if (d < 3) return;
-      for (let k = 1; k <= 3; k++) {
-        const f = Math.min(1, (k * 2) / d);
-        dim().spawnParticle('minecraft:villager_happy', Wv({ x: p.x + dx * f, y: p.y + 0.3, z: p.z + dz * f }));
-      }
-    } catch {
-      // ignore
+      const r = this.routes.route(L(player.location), target);
+      if (!r) return undefined;
+      if (r.arrived) return 0;
+      for (const c of GuideGraph.crumbs(r.points)) dim().spawnParticle('minecraft:villager_happy', Wv({ x: c.x, y: c.y + 0.35, z: c.z }));
+      return Math.max(1, Math.round(r.remaining));
+    } catch (e) {
+      log.warn(`guide: ${e?.message ?? e}`);
+      return undefined;
     }
   }
 
@@ -386,7 +402,7 @@ export class Game {
     this.tickDisplays();
     if (this.tutorial) this.tickTutorial(now);
     if (this.cams.active) this.cams.tick(this.camCover(s));
-    if (s.phase === 'MAINT' && now % 10 === 0 && this.maint) this.guideParticles(g, this.maint.done ? [100.5, 0, 131.5] : this.taskTarget(MAINTENANCE[this.maint.task].action));
+    if (s.phase === 'MAINT' && now % 10 === 0 && this.maint) this.guideLeft = this.guideTo(g, this.maint.done ? OFFICE_TARGET : this.targetFor(MAINTENANCE[this.maint.task].action));
     if (now % 5 === 0) this.renderNightHud(g, now);
   }
 
@@ -410,7 +426,8 @@ export class Game {
     }
     if (s.phase === 'MAINT' && this.maint) {
       const m = MAINTENANCE[this.maint.task];
-      g.onScreenDisplay.setActionBar(`§e${m.title}§f - ${this.maint.done ? 'Done. Return to the office and press START/RESUME.' : m.text}\n§7Clock paused · animatronics offline`);
+      const route = this.guideLeft ? ` · §a${this.guideLeft} blocks§7 - follow the green sparkles` : '';
+      g.onScreenDisplay.setActionBar(`§e${m.title}§f - ${this.maint.done ? 'Done. Return to the office and press START/RESUME.' : m.hint ?? m.text}\n§7Clock paused · animatronics offline${route}`);
       return;
     }
     g.onScreenDisplay.setActionBar(this.hud.nightLines(snap, view, now, { captions: this.save.settings.captions, overlay }));

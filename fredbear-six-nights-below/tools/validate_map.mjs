@@ -7,7 +7,7 @@
 //   F. every input command block is fully enclosed (never visible)
 // Writes tools/out/map_report.json and exits non-zero on errors.
 import fs from 'node:fs';
-import { buildVoxel, passable, opaque, standable } from './voxel.mjs';
+import { buildVoxel, passable, opaque, standable, canStand, walkNeighbours } from './voxel.mjs';
 import { NODES, NODE_BY_ID, EDGES, edgePolyline } from '../packs/FredbearBP/scripts/data/nodes.js';
 import { CAMERAS } from '../packs/FredbearBP/scripts/data/cameras.js';
 import { ROOMS, ANCHORS, OPENINGS, interior } from '../packs/FredbearBP/scripts/data/layout.js';
@@ -137,36 +137,13 @@ export function validateMap({ quiet = false } = {}) {
   const walk = (start) => {
     const seen = new Set();
     const q = [start];
-    const canStand = (x, y, z) => passable(V.get(x, y, z)) && passable(V.get(x, y + 1, z)) && standable(V.get(x, y - 1, z));
     while (q.length) {
       const [x, y, z] = q.pop();
       const k = `${x},${y},${z}`;
       if (seen.has(k)) continue;
-      if (!canStand(x, y, z)) continue;
+      if (!seen.size && !canStand(V, x, y, z)) continue;
       seen.add(k);
-      for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-        const nx = x + dx;
-        const nz = z + dz;
-        // up one (jump/step) needs headroom at the origin, or down up to 3
-        for (const dy of [0, 1, -1, -2, -3]) {
-          const ny = y + dy;
-          if (dy === 1 && !passable(V.get(x, y + 2, z))) continue;
-          if (dy < 0) {
-            let clear = true;
-            for (let yy = ny + 1; yy <= y + 1; yy++) if (!passable(V.get(nx, yy, nz))) clear = false;
-            if (!clear) continue;
-          }
-          if (canStand(nx, ny, nz)) {
-            q.push([nx, ny, nz]);
-            break;
-          }
-        }
-      }
-      // ladders: climb straight up/down
-      const here = V.get(x, y, z) ?? '';
-      if (here.startsWith('ladder_') || (V.get(x, y - 1, z) ?? '').startsWith('ladder_')) {
-        for (const dy of [1, -1]) if (passable(V.get(x, y + dy, z))) q.push([x, y + dy, z]);
-      }
+      for (const n of walkNeighbours(V, x, y, z)) if (!seen.has(n.join(','))) q.push(n);
     }
     return seen;
   };

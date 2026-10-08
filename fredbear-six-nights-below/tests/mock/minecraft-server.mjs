@@ -58,6 +58,7 @@ export const STATE = {
   handlerErrors: [], // exceptions thrown inside event handlers / scheduled callbacks
   commands: [], // every command executed (script runCommand + command blocks)
   sounds: [], // { id, where }
+  particles: [], // { id, loc } (last 400)
   cbRuns: 0,
   maxFill: 0,
 };
@@ -649,8 +650,10 @@ class Dimension {
     return { stop() {} };
   }
 
-  spawnParticle(id) {
+  spawnParticle(id, loc) {
     if (!id.startsWith('minecraft:')) misuse(`spawnParticle: ${id}`);
+    STATE.particles.push({ id, loc: { ...loc }, tick: system.currentTick });
+    if (STATE.particles.length > 400) STATE.particles.shift();
   }
 }
 
@@ -803,7 +806,7 @@ export const mock = {
     unloadedChunks.clear();
     this.reload();
     system.currentTick = 0;
-    Object.assign(STATE, { errors: [], handlerErrors: [], commands: [], sounds: [], cbRuns: 0, maxFill: 0 });
+    Object.assign(STATE, { errors: [], handlerErrors: [], commands: [], sounds: [], particles: [], cbRuns: 0, maxFill: 0 });
   },
   /** Simulate quitting and reopening the world: scripts restart, world data persists. */
   reload() {

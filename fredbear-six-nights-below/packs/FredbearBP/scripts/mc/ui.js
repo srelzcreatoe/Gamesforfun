@@ -6,6 +6,7 @@ import { system } from '@minecraft/server';
 import { ActionFormData, ModalFormData, MessageFormData, FormCancelationReason } from '@minecraft/server-ui';
 import { CAMERAS, CAMERA_MAP_LAYOUT } from '../data/cameras.js';
 import { SECRETS, TUTORIAL_STEPS } from '../data/story.js';
+import { GUIDE_SECTIONS } from '../data/guide_text.js';
 import { log } from './log.js';
 
 async function show(player, form, retries = 2) {
@@ -63,19 +64,21 @@ export async function officeRemote(player, snap) {
   return items[r.selection][0];
 }
 
+/** Shift Guide: a topic menu; each topic explains one mechanic (data/guide_text.js). */
 export async function guide(player) {
-  const f = new ActionFormData().title('§lSHIFT GUIDE').body([
-    '§lDOORS§r stop anything standing in the corner outside them. They drain power while shut.',
-    '§lHALL LIGHTS§r reveal the corners through the office windows. They switch off by themselves.',
-    '§lCAMERAS§r: raise the monitor (dark console button or Camera Tablet). Scroll the hotbar to change camera, sneak to lower it.',
-    '§lPOWER§r: if it hits 0% the doors open and the lights die. From night 3 an emergency reserve lever gives one 8% top-up.',
-    '§lFREDBEAR§r (night 4+): when a music box plays at an entry, CLOSE THAT DOOR/HATCH, then fire the STROBE. The flash alone only stuns him.',
-    '§lCHICA§r trips the hall-light breaker: press RESET BREAKER (doors still work).',
-    '§lFREDDY§r moves only when unwatched and slips in while you stare at the cameras with the right door open.',
-    '§lECHOES§r (purple, labelled ECHO) are fake camera images.',
-  ].join('\n\n'));
-  f.button('OK');
-  await show(player, f);
+  for (;;) {
+    const menu = new ActionFormData()
+      .title('§lSHIFT GUIDE')
+      .body('Pick a topic. Every mechanic of the game is explained here.\n§7The night keeps running while this menu is open.');
+    for (const s of GUIDE_SECTIONS) menu.button(s.title);
+    menu.button('§cClose');
+    const r = await show(player, menu);
+    if (!r || r.canceled || r.selection === undefined || r.selection >= GUIDE_SECTIONS.length) return;
+    const topic = GUIDE_SECTIONS[r.selection];
+    const page = new ActionFormData().title(`§l${topic.title.toUpperCase()}`).body(topic.body).button('Back to topics').button('Close');
+    const r2 = await show(player, page);
+    if (!r2 || r2.canceled || r2.selection !== 0) return;
+  }
 }
 
 export async function lobbyConfirm(player, title, body, yes = 'Yes', no = 'Cancel') {

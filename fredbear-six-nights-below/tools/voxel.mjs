@@ -131,6 +131,41 @@ export class Voxel {
   }
 }
 
+/** Can a player (2 cells tall) stand at this cell? */
+export function canStand(V, x, y, z) {
+  return passable(V.get(x, y, z)) && passable(V.get(x, y + 1, z)) && standable(V.get(x, y - 1, z));
+}
+
+/**
+ * Cells a player can move to from a standing cell: one step in x/z (up one with
+ * headroom, level, or down up to three with a clear drop), and straight up/down
+ * on ladders. Shared by the map validator (walkability) and the route-guidance
+ * graph generator.
+ */
+export function* walkNeighbours(V, x, y, z) {
+  for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    const nx = x + dx;
+    const nz = z + dz;
+    for (const dy of [0, 1, -1, -2, -3]) {
+      const ny = y + dy;
+      if (dy === 1 && !passable(V.get(x, y + 2, z))) continue;
+      if (dy < 0) {
+        let clear = true;
+        for (let yy = ny + 1; yy <= y + 1; yy++) if (!passable(V.get(nx, yy, nz))) clear = false;
+        if (!clear) continue;
+      }
+      if (canStand(V, nx, ny, nz)) {
+        yield [nx, ny, nz];
+        break;
+      }
+    }
+  }
+  const here = V.get(x, y, z) ?? '';
+  if (here.startsWith('ladder_') || (V.get(x, y - 1, z) ?? '').startsWith('ladder_')) {
+    for (const dy of [1, -1]) if (passable(V.get(x, y + dy, z))) yield [x, y + dy, z];
+  }
+}
+
 let cached;
 export function buildVoxel() {
   if (!cached) cached = new Voxel().apply(generatePlan());

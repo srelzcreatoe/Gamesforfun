@@ -255,6 +255,48 @@ test('training shift: every step completes through the physical controls, then b
   await assertCleanLobby();
 });
 
+test('intro breadcrumbs follow a walkable route (no sparkles inside walls) and the HUD shows the distance', async () => {
+  press('in.lobby.night_1');
+  await mock.tick(2);
+  assert.equal(game.state, 'INTRO');
+  STATE.particles.length = 0;
+  await mock.tick(25);
+  const crumbs = STATE.particles.filter((p) => p.id === 'minecraft:villager_happy');
+  assert.ok(crumbs.length >= 8, `${crumbs.length} breadcrumbs`);
+  const solidAt = (x, y, z) => {
+    const t = mock.blockAt(Math.floor(x), Math.floor(y), Math.floor(z)).split('[')[0];
+    return !(t === 'minecraft:air' || t.startsWith('minecraft:light_block') || t.includes('carpet') || t.includes('button') || t.includes('sign') || t.includes('plate'));
+  };
+  for (const c of crumbs) {
+    assert.ok(!solidAt(c.loc.x, c.loc.y, c.loc.z), `breadcrumb inside a block at ${JSON.stringify(c.loc)}`);
+    assert.ok(solidAt(c.loc.x, c.loc.y - 1, c.loc.z) || solidAt(c.loc.x, c.loc.y - 2, c.loc.z), `breadcrumb floating at ${JSON.stringify(c.loc)}`);
+  }
+  // After the 13 s intro message, the action bar shows the walking distance left.
+  await until(() => /\d+ blocks/.test(player.actionBar), 400);
+  commands.get('fb:lobby')();
+  await mock.tick(2);
+  await assertCleanLobby();
+});
+
+test('Shift Guide item opens a topic menu covering every mechanic', async () => {
+  const { GUIDE_SECTIONS } = await import('../packs/FredbearBP/scripts/data/guide_text.js');
+  const seen = [];
+  uiMock.respond = (f) => {
+    seen.push(f.title);
+    if (f.title === '§lSHIFT GUIDE') return seen.length === 1 ? { selection: f.buttons.indexOf('Fredbear') } : { selection: f.buttons.length - 1 };
+    return { selection: 0 }; // back to topics
+  };
+  mock.useItem(player, 'fb:guide');
+  await mock.tick(3);
+  uiMock.respond = () => undefined;
+  assert.deepEqual(seen, ['§lSHIFT GUIDE', '§lFREDBEAR', '§lSHIFT GUIDE']);
+  const menu = uiMock.shown.find((f) => f.title === '§lSHIFT GUIDE');
+  assert.equal(menu.buttons.length, GUIDE_SECTIONS.length + 1);
+  for (const t of ['Power', 'Doors', 'Hall lights', 'Cameras', 'Office hatch', 'Emergency strobe', 'Bonnie', 'Chica', 'Freddy', 'Fredbear', 'Maintenance and tasks']) assert.ok(menu.buttons.includes(t), t);
+  for (const sct of GUIDE_SECTIONS) assert.doesNotMatch(sct.body, /undefined|NaN/, sct.title);
+  noMockErrors();
+});
+
 test('night 1 from the time clock: intro, office start, controls drive session and command blocks', async () => {
   game.save.settings.deterministic = true;
   game.save.settings.seed = 1983;
@@ -340,6 +382,11 @@ test('maintenance pause: clock stops, the lever completes it, START resumes the 
   press('in.office.start'); // task not done yet
   await mock.tick(2);
   assert.equal(s.phase, 'MAINT');
+  STATE.particles.length = 0;
+  await mock.tick(20);
+  const crumbs = STATE.particles.filter((p) => p.id === 'minecraft:villager_happy');
+  assert.ok(crumbs.length >= 5, 'breadcrumbs toward the generator');
+  assert.match(player.actionBar, /Staff Stairwell/);
   press('in.maint.generator');
   await mock.tick(2);
   player.teleport(Wv(ANCHORS.officeSeat));
@@ -474,7 +521,7 @@ test('helper .mcfunction files drive the game through /scriptevent', async () =>
   run('debug_overlay');
   await mock.tick(1);
   run('selftest');
-  await mock.tick(30);
+  await mock.tick(150);
   const report = log.recent(40).filter((l) => l.includes('self-test')).at(-1) ?? '';
   assert.match(report, /PASS/);
   assert.doesNotMatch(report, /FAIL/);
@@ -563,5 +610,22 @@ test('full campaign: erase progress, nights 1-6 through the office controls, end
   startGame();
   await mock.tick(2);
   assert.equal(game.save.campaignDone, true);
+  await assertCleanLobby();
+});
+
+test('upgrading a world built by an older pack version: asks for /fb:setup, rebuilds, keeps progress', async () => {
+  const save = world.getDynamicProperty('fb:save');
+  world.setDynamicProperty('fb:build', JSON.stringify({ version: 1, done: true, phase: 9, op: 0 }));
+  mock.reload();
+  startGame();
+  mock.respawn(player);
+  await mock.tick(61);
+  assert.equal(game.state, 'UNBUILT');
+  assert.match(player.actionBar, /updated/);
+  commands.get('fb:setup')({ sourceEntity: player }, false);
+  await until(() => game.state === 'LOBBY', 5000, 10);
+  assert.equal(world.getDynamicProperty('fb:save'), save, 'campaign progress kept');
+  const { BUILD_VERSION } = await import('../packs/FredbearBP/scripts/mc/builder.js');
+  assert.equal(JSON.parse(world.getDynamicProperty('fb:build')).version, BUILD_VERSION);
   await assertCleanLobby();
 });

@@ -48,10 +48,10 @@
       },
       "minecraft:collision_box": {
         "width": 0.5,
-        "height": 2.2
+        "height": 2.4
       },
       "minecraft:scale": {
-        "value": 1.25
+        "value": 1.35
       },
       "minecraft:physics": {
         "has_gravity": false,

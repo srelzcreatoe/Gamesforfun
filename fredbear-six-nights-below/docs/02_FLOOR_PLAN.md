@@ -265,6 +265,21 @@ Access letters: B = bonnie, C = chica, F = freddy, G = fredbear. Entries: L → 
 | TS_W ↔ TS_MID | G | walk | - | 24.5 | 2 |
 | TS_MID ↔ SUB_N | G | crawl | - | 11.5 | 3 |
 
+## Player route guidance
+
+The green breadcrumb sparkles (introduction, optional tasks, maintenance) follow a walkable waypoint graph generated from the voxel model by `tools/gen_guide.mjs`: 1767 nodes (a 6-block grid in every room, both sides of every doorway, every stairway and the ladder, every control) and 3027 edges, each a straight line a player can walk both ways under the map validator's rules (steps, drops, no squeezing past corners). The game runs Dijkstra from the target and lays sparkles along the next 14 blocks of the real route.
+
+| From | To | Walking distance | Rooms on the way |
+|---|---|---|---|
+| Time clock | Security office | 105 blocks | Employee Entrance (Time Clock) → Party Room D → East Hall → Security Office |
+| Security office | GENERATOR RESTART | 181 blocks | Security Office → East Hall Corner → East Hall → Party Room D → Employee Entrance (Time Clock) → East Service Corridor → Staff Stairwell → East Maintenance Tunnel → Generator Room |
+| Security office | BREAKER BANK B | 182 blocks | Security Office → East Hall Corner → East Hall → Party Room D → Employee Entrance (Time Clock) → East Service Corridor → Staff Stairwell → East Maintenance Tunnel → Electrical Maintenance |
+| Time clock | Night 2 task | 120 blocks | Employee Entrance (Time Clock) → East Service Corridor → Pantry & Receiving → Kitchen |
+| Time clock | Night 3 task | 135 blocks | Employee Entrance (Time Clock) → East Service Corridor → Staff Stairwell → East Maintenance Tunnel → Generator Room |
+| Time clock | Night 4 task | 195 blocks | Employee Entrance (Time Clock) → East Service Corridor → Staff Stairwell → East Maintenance Tunnel → North Maintenance Tunnel → West Maintenance Tunnel |
+| Time clock | Night 5 task | 163 blocks | Employee Entrance (Time Clock) → Party Room D → Staff Break Room → Management Office → Upper Hall → Camera Server Room |
+| Time clock | Night 6 task | 139 blocks | Employee Entrance (Time Clock) → Party Room D → Staff Break Room → Management Office → Upper Hall → Records Room |
+
 ## Command-block control room
 
 Underground at local y -9 (world -59), x 22..177, in 9 rows at local z 169, 172, 175, 178, 181, 184, 187, 190, 193. Each of the 102 actuator modules is a redstone-block pad, an impulse block and its chain (east-facing). The full block-by-block register is docs/06_COMMAND_BLOCK_REGISTER.md.

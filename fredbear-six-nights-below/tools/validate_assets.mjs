@@ -177,9 +177,26 @@ export function validateAssets() {
     for (const b of g.bones) {
       if (b.parent && !names.has(b.parent)) err(`${gid}: bone ${b.name} parent ${b.parent} missing`);
       for (const c of b.cubes ?? []) {
-        const [w, h, dd] = c.size;
-        const [u, v] = c.uv;
-        if (u < 0 || v < 0 || u + 2 * (w + dd) > W || v + dd + h > H) err(`${gid}: bone ${b.name} cube uv ${c.uv} size ${c.size} exceeds ${W}x${H}`);
+        if (Array.isArray(c.uv)) {
+          // box UV
+          const [w, h, dd] = c.size;
+          const [u, v] = c.uv;
+          if (u < 0 || v < 0 || u + 2 * (w + dd) > W || v + dd + h > H) err(`${gid}: bone ${b.name} cube uv ${c.uv} size ${c.size} exceeds ${W}x${H}`);
+        } else {
+          // per-face UV: every face present, rect (negative sizes flip) inside the texture
+          for (const face of ['north', 'south', 'east', 'west', 'up', 'down']) {
+            const f = c.uv[face];
+            if (!f) {
+              err(`${gid}: bone ${b.name} cube at ${c.origin} has no '${face}' UV`);
+              continue;
+            }
+            const [u, v] = f.uv;
+            const [sw, sh] = f.uv_size;
+            const [u0, u1] = [Math.min(u, u + sw), Math.max(u, u + sw)];
+            const [v0, v1] = [Math.min(v, v + sh), Math.max(v, v + sh)];
+            if (u0 < 0 || v0 < 0 || u1 > W || v1 > H || sw === 0 || sh === 0) err(`${gid}: bone ${b.name} ${face} UV ${f.uv}/${f.uv_size} outside ${W}x${H}`);
+          }
+        }
       }
     }
     for (const b of animatedBones) if (!names.has(b)) err(`${gid}: animated bone '${b}' missing (${rel(file)})`);
@@ -220,6 +237,12 @@ export function validateAssets() {
   }
   for (const a of animLiterals) if (!animEnum.has(a)) err(`script sets anim '${a}' not in the fb:anim enum`);
   for (const a of ['walk', 'stalk', 'crawl', 'retreat']) if (!animLiterals.has(a)) warnings.push(`anim '${a}' never set by scripts`);
+  // Jumpscare framing (game.js SCALE) must match the entities' minecraft:scale.
+  const scaleBlock = scriptText.match(/const SCALE = Object\.freeze\(\{([^}]+)\}\)/)?.[1] ?? '';
+  for (const m of scaleBlock.matchAll(/(\w+):\s*([\d.]+)/g)) {
+    const v = bpEntities.get(`fb:${m[1]}`)?.components?.['minecraft:scale']?.value;
+    if (v !== Number(m[2])) err(`game.js SCALE.${m[1]} = ${m[2]} but fb:${m[1]} minecraft:scale = ${v}`);
+  }
   const puppetTypes = [...scriptText.matchAll(/PUPPET_TYPES = Object\.freeze\(\{([^}]+)\}/g)][0]?.[1] ?? '';
   for (const m of puppetTypes.matchAll(/'(fb:[a-z_]+)'/g)) if (!bpEntities.has(m[1])) err(`PUPPET_TYPES lists ${m[1]} with no BP entity`);
 
@@ -266,7 +289,9 @@ export function validateAssets() {
     const id = docs.get(p)?.['minecraft:fog_settings']?.description?.identifier;
     if (id) fogIds.add(id);
   }
-  for (const n of [1, 2, 3, 4, 5, 6]) if (!fogIds.has(`fb:night_${n}`)) err(`fog fb:night_${n} missing (pushed by scripts/mc/commands.js)`);
+  const pushed = [...scriptText.matchAll(/fog @a push ([a-z_]+:[a-z_0-9]+)(?![a-z_0-9$])/g)].map((m) => m[1]);
+  for (const n of [1, 2, 3, 4, 5, 6]) pushed.push(`fb:night_${n}`); // fogCommand(n) builds these ids
+  for (const id of new Set(pushed)) if (!fogIds.has(id)) err(`fog ${id} missing (pushed by scripts/mc/commands.js)`);
 
   // ------------------------------------------------------------ lang
   const lang = fs.readFileSync(path.join(RP, 'texts/en_US.lang'), 'utf8');

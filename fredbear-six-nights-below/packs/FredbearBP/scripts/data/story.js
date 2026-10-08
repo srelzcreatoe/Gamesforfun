@@ -117,8 +117,8 @@ export const TASKS = Object.freeze({
 
 /** Mid-night maintenance sections (clock paused, animatronics suspended). */
 export const MAINTENANCE = Object.freeze({
-  generator: { action: 'maint:generator', title: 'GENERATOR RESTART', text: 'Go to the GENERATOR ROOM (basement) and pull the restart lever, then return and press START/RESUME on the office console.', target: [135, -9, 91] },
-  electrical: { action: 'maint:electrical', title: 'BREAKER BANK B', text: 'Go to ELECTRICAL MAINTENANCE (basement, east) and pull breaker bank B, then return and press START/RESUME.', target: [170, -9, 91] },
+  generator: { action: 'maint:generator', title: 'GENERATOR RESTART', hint: 'Generator Room (basement) via the Staff Stairwell - pull the lever', text: 'Go to the GENERATOR ROOM in the basement: out the RIGHT door, through the East Hall, Party Room D and the Employee Entrance to the East Service Corridor, down the STAFF STAIRWELL, then along the East Maintenance Tunnel. Pull the restart lever, come back and press START/RESUME on the office console. Follow the green sparkles.', target: [135, -9, 91] },
+  electrical: { action: 'maint:electrical', title: 'BREAKER BANK B', hint: 'Electrical Maintenance (basement) via the Staff Stairwell - pull bank B', text: 'Go to ELECTRICAL MAINTENANCE in the basement: out the RIGHT door to the East Service Corridor, down the STAFF STAIRWELL and east along the East Maintenance Tunnel. Pull breaker bank B, come back and press START/RESUME. Follow the green sparkles.', target: [170, -9, 91] },
 });
 
 export const SECRETS = Object.freeze({

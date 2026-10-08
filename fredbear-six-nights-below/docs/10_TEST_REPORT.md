@@ -7,8 +7,9 @@
 | **Static validation** | **Completed** — 6 validators, all passing (below) |
 | **Automated logic tests** (night simulation, AI, power, director) | **Completed** — 18 tests passing, plus the balance simulator (docs/05) |
 | **Automated structure tests** (command-block files) | **Completed** — 6 tests passing |
-| **Automated integration tests** (real pack scripts on a mock `@minecraft/server`) | **Completed** — 17 tests passing |
-| **In-game tests** (Minecraft Bedrock running) | **None.** Minecraft was not available in the build environment. No platform (Windows, console, mobile) has been tested in-game. |
+| **Automated route-guidance tests** (walkable graph vs the voxel model) | **Completed** — 5 tests passing |
+| **Automated integration tests** (real pack scripts on a mock `@minecraft/server`) | **Completed** — 20 tests passing |
+| **In-game tests** (Minecraft Bedrock running) | **No systematic pass.** Minecraft is not available in the build environment. The map owner built and played the previous version in-game and reported dark camera feeds, odd mouths and hard-to-follow breadcrumbs; those are fixed in this version (table below) but the fixes have **not** been re-checked in-game yet. |
 | **Manual tests still required** | The checklist at the end of this file |
 
 The integration tests run the real behavior-pack scripts against a headless model of the Script API (`tests/mock/`).
@@ -30,7 +31,7 @@ Run everything with `npm run validate && npm test`.
 | `tools/validate_assets.mjs` | 31 JSON files parse; BP ↔ RP ↔ script entity ids; textures, geometry, animations, controllers, render-controller keys resolve; UV boxes inside 128×64; every animated bone exists; every `fb:anim` value has a controller state; scripts only set enum values; items → icons; 48 sounds with files; every script sound id defined; 6 fogs; lang names | PASS |
 | `tsc --checkJs` | every Script API call in the 40 script files against `@minecraft/server` 2.10.0 and `server-ui` 2.2.0 declarations | PASS |
 
-## Automated tests (41, all passing)
+## Automated tests (49, all passing)
 
 **Core simulation (`tests/core.test.mjs`, 18):** same seed reproduces a night exactly · all six nights completable (oracle, 10 seeds each) ·
 every lethal attack preceded by its telegraph and never through a closed barrier · closed door always stops Bonnie · 6 AM boundary ·
@@ -43,12 +44,14 @@ lights only · Freddy never moves while watched · Night 6 finale · input debou
 input action handled · module wiring (impulse needs redstone, chain always active, first block clears its pad) · no position collisions ·
 exactly one repeating block · command-block NBT keys, `Version` and block version match a structure exported by Bedrock.
 
-**Integration (`tests/integration.test.mjs`, 17):** main.js wiring · structure-id resolution · `/fb:setup` builds the map and installs 448 command blocks ·
+**Route guidance (`tests/guide.test.mjs`, 5):** the generated graph matches the current build plan · every edge is walkable both ways · routes reach the office, both basement maintenance rooms and every pre-shift task · the generator route goes down the Staff Stairwell into the basement · breadcrumbs start beside the player and never sit inside walls.
+
+**Integration (`tests/integration.test.mjs`, 20):** main.js wiring · structure-id resolution · intro breadcrumbs over walkable floor with the distance on the HUD · Shift Guide topic menu · `/fb:setup` builds the map and installs 448 command blocks ·
 the built world equals the offline voxel model (> 2 million cells) · in-game self-test 9/9 PASS · training shift through the
 physical controls · night start and office controls (blocks change, power drains, spoofed input rejected) · 6 AM win persists unlock ·
 jumpscare → game over → immediate retry · maintenance pause/resume · ten randomized play/reset cycles · duplicate and stray puppets removed ·
 unloaded chunks recovery · quit mid-night and reload · progress survives reload · helper `.mcfunction` files · full campaign nights 1-6
-through the console buttons, ending and persistent completion.
+through the console buttons, ending and persistent completion · upgrading a world built by an older version (asks for /fb:setup, rebuilds, keeps progress).
 
 ## The 20 required tests
 
@@ -82,6 +85,12 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 
 | Found by | Problem | Fix |
 |---|---|---|
+| player report (in-game) | The breadcrumb sparkles pointed in a straight line through walls and floors, so the basement generator was hard to find | walkable route-guidance graph generated from the build plan; sparkles follow doors, corridors and stairs; distance on the HUD; directions in the maintenance text |
+| player report (in-game screenshot) | Mouths looked like a second nose: a narrow protruding muzzle with its own painted nose under the skin's nose | head split along the skin's face; full-width hinged jaw from the skin's own lower face, mouth line one block higher; teeth and cavity only show when the jaw opens; Chica's beak extruded from her own skin pixels |
+| player report (in-game) | Camera feeds too dark to read | clear `fb:camera_feed` fog while the monitor is up; 40 soft hidden lights where cameras look (door corners excluded) |
+| player request | Animatronics slightly larger; better animations | scale ×1.35 / 1.3 / 1.3 / 1.45; one stage performance per character with props in the hands; jaw motion in every animation |
+| preview vs screenshot | Bonnie's ears leaned inward (the A shape in the screenshot): the ear roll sign was inverted | ear rolls flipped; the preview renderer's roll sign now matches vanilla animations |
+| integration test | The in-game self-test reported the heartbeat as FAIL when run within 5 s of loading the world | the self-test waits up to 6 s for the repeating heartbeat block |
 | integration test | Training shift and debug night/scenario start called `fullReset` and `beginNight` in the same tick; the reset's chained `night.end` module ran after `night.begin` and re-opened the doorways | actuator bus `fence()`: triggers after a reset wait until the reset chains finish (docs/03) |
 | integration test | helper `.mcfunction` files sent `scriptevent fb:setup` / `fb:debug`, which the game did not handle | handlers added; `lobby` debug action; control-room teleport fixed |
 | schema / vanilla check | `minecraft:pushable` no longer exists in 1.26.50 entity definitions (split into `pushable_by_*`); `minecraft:breathable` keys were wrong | components removed (puppets are teleported; damage sensor covers suffocation) |
@@ -100,9 +109,10 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 3. `/fb:debug selftest`: 9 × PASS. In particular *command blocks in place* (structure ids `fb:*` load) and *actuator round trip*.
 4. Walk the map in FREE ROAM: stairs face the right way, doors/windows/props look right, signs readable, no floating or
    missing blocks; control room labels readable.
-5. Check the four animatronics on the stage and Fredbear in the chamber: textures, ears, hats, beak, props, scale; glowing eyes in the dark.
+5. Check the four animatronics on the stage and Fredbear in the chamber: textures, ears, hats, beak, props, the new jaw (closed and open), scale; glowing eyes in the dark. At the new sizes, hats and Bonnie's ears may poke through the top of 3-block doorways while walking.
 6. TRAINING SHIFT end to end, then nights 1-6 (use `/fb:debug scenario …` to reach specific situations quickly).
-7. Cameras: every feed shows its room and puppets at render distance 11+, then at 6-8 chunks; feeds never leave the player stuck.
+7. Cameras: every feed is bright enough to read (camera fog + lights), shows its room and puppets at render distance 11+, then at 6-8 chunks; the door corners stay dark on camera and through the windows; feeds never leave the player stuck.
+7b. Breadcrumbs: from the time clock to the office, and on nights 3 and 5 from the office to the basement maintenance rooms.
 8. Animations: walk, stalk, crawl in vents (hidden), threat at doors, attack lunge with the free camera aimed at the face.
 9. Sounds: positional footsteps audible from the office, music boxes stop when the cue ends, captions match.
 10. Quit mid-night and reload; quit mid-build and run `/fb:setup` again.

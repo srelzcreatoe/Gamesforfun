@@ -12,6 +12,10 @@ import { INPUTS, inputCbPos } from '../packs/FredbearBP/scripts/data/inputs.js';
 import { CONTROL, MODULES } from '../packs/FredbearBP/scripts/data/actuators.js';
 import { CONFIG } from '../packs/FredbearBP/scripts/core/config.js';
 import { simulate, table, detailTable } from './balance_sim.mjs';
+import { GuideGraph } from '../packs/FredbearBP/scripts/core/guide_path.js';
+import { GUIDE_NODES, GUIDE_EDGES, GUIDE_TARGETS } from '../packs/FredbearBP/scripts/data/guide_graph.generated.js';
+import { MAINTENANCE, TASKS } from '../packs/FredbearBP/scripts/data/story.js';
+import { roomAt, ROOM_BY_ID } from '../packs/FredbearBP/scripts/data/layout.js';
 
 const ROOT = new URL('../', import.meta.url).pathname;
 const w = (x, y, z) => `${x + ORIGIN.x} ${y + ORIGIN.y} ${z + ORIGIN.z}`;
@@ -75,6 +79,29 @@ function floorPlan() {
   for (const e of EDGES) {
     const pts = edgePolyline(e, e.a);
     L.push(`| ${e.a} ↔ ${e.b} | ${e.access} | ${e.mode} | ${e.gate ?? '-'} | ${polylineLength(pts).toFixed(1)} | ${pts.length} |`);
+  }
+  L.push('', '## Player route guidance', '');
+  L.push(`The green breadcrumb sparkles (introduction, optional tasks, maintenance) follow a walkable waypoint graph generated from the voxel model by \`tools/gen_guide.mjs\`: ${GUIDE_NODES.length / 4} nodes (a 6-block grid in every room, both sides of every doorway, every stairway and the ladder, every control) and ${GUIDE_EDGES.length / 3} edges, each a straight line a player can walk both ways under the map validator's rules (steps, drops, no squeezing past corners). The game runs Dijkstra from the target and lays sparkles along the next 14 blocks of the real route.`, '');
+  L.push('| From | To | Walking distance | Rooms on the way |', '|---|---|---|---|');
+  const guide = new GuideGraph();
+  const officeSeat = { x: ANCHORS.officeSeat.x, y: ANCHORS.officeSeat.y, z: ANCHORS.officeSeat.z };
+  const lobby = { x: ANCHORS.lobbySpawn.x, y: ANCHORS.lobbySpawn.y, z: ANCHORS.lobbySpawn.z };
+  const inputFor = (action) => INPUTS.find((i) => i.action === action).id;
+  const trips = [['Time clock', lobby, 'Security office', 'anchor:officeSeat'],
+    ...Object.values(MAINTENANCE).map((m) => ['Security office', officeSeat, m.title, inputFor(m.action)]),
+    ...Object.entries(TASKS).map(([n, t]) => ['Time clock', lobby, `Night ${n} task`, inputFor(t.action)])];
+  for (const [fromName, from, toName, target] of trips) {
+    const f = guide.field(target);
+    let i = guide.entry(from, f);
+    const dist = Math.round(f.dist[i]);
+    const rooms = [];
+    while (i >= 0) {
+      const nd = guide.node(i);
+      const r = roomAt(nd.x, nd.y, nd.z)?.id;
+      if (r && rooms.at(-1) !== r) rooms.push(r);
+      i = f.next[i];
+    }
+    L.push(`| ${fromName} | ${toName} | ${dist} blocks | ${rooms.map((r) => ROOM_BY_ID[r].name).join(' → ')} |`);
   }
   L.push('', '## Command-block control room', '');
   L.push(`Underground at local y ${CONTROL.y} (world ${CONTROL.y + ORIGIN.y}), x ${CONTROL.x1}..${CONTROL.x2}, in ${CONTROL.rows.length} rows at local z ${CONTROL.rows.join(', ')}. Each of the ${MODULES.length} actuator modules is a redstone-block pad, an impulse block and its chain (east-facing). The full block-by-block register is docs/06_COMMAND_BLOCK_REGISTER.md.`, '');

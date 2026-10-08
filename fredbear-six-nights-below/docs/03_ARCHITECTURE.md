@@ -11,7 +11,8 @@
 | Physical world changes (iron doors, light blocks, trapdoors, lamps, sounds placed in the world, camera shake) | command-block **modules** in the control room | be *triggered* by the script through the actuator bus |
 | Player inputs | console buttons/levers → input command blocks → `/scriptevent fb:input` | — (the script accepts an event only from the registered block position) |
 | Visible animatronics | `Puppets` (`scripts/mc/puppets.js`) mirroring `session.anim[*].pose()` | — |
-| Player view (free camera, input permissions, night vision) | `CameraView` | `restorePlayerView()` on every exit path |
+| Player view (free camera, input permissions, night vision, the `fb_cam` camera-feed fog) | `CameraView` | `restorePlayerView()` on every exit path; `fullReset()` also removes the `fb_cam` fog |
+| Player route guidance (green breadcrumbs) | `GuideGraph` (`scripts/core/guide_path.js`) over the generated walkable graph | — |
 | Campaign progress | `persistence.js` (`fb:save` dynamic property) | — |
 | Map construction | `Builder` (`scripts/mc/builder.js`) executing `generatePlan()` | — |
 
@@ -85,7 +86,7 @@ Restores, in this order, every item the brief lists:
 | Power | a new session always starts at 100 % (105 % with the task bonus); meter module `pwr.meter_full`, `pwr.charges_0` |
 | Player position and inventory | teleport to the lobby anchor (or office for a retry); kit re-issued (locked slots 0-2) |
 | Camera and input state | `CameraView.close()` and `restorePlayerView()` for every player: `camera.clear()`, input permissions restored, night vision removed |
-| Temporary effects and sounds | all effects removed then saturation re-applied; music-box loops stopped (`SoundInstance.stop`); `stopsound @a` in `night.end`; fog stack popped; HUD reset |
+| Temporary effects and sounds | all effects removed then saturation re-applied; music-box loops stopped (`SoundInstance.stop`); `stopsound @a` in `night.end`; night and camera-feed fogs removed; HUD reset |
 | Game state | `LOBBY`, `FREE_ROAM` or `RESET`; `fb:session` marker cleared |
 
 **Ordering fence.** Command-block chains run after the tick that triggers them; `reset.world` re-triggers

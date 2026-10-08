@@ -17,14 +17,23 @@
 
 The build is resumable: if you leave, run `/fb:setup` again.
 
+### Updating from an earlier version
+
+1. Import the new `.mcaddon` (version 1.1.0 or later).
+2. In the world's settings, open **Behavior Packs** and make sure **FREDBEAR: Six Nights Below (Behavior)** shows the new
+   version; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
+3. Enter the world. If the map needs rebuilding the action bar says so: run **`/fb:setup`**. Unlocked nights, secrets and
+   settings are kept.
+
 ## The time clock (lobby)
 
 The employee entrance terminal has: **TRAINING SHIFT**, **NIGHT 1-6** (lamps show unlocked nights), **CONTINUE**
 (highest unlocked night), **FREE ROAM** (explore safely, find secrets), **SETTINGS** (captions, hints, deterministic seed,
 developer overlay), **ARCHIVE & CREDITS** (secrets found) and **ERASE PROGRESS**.
 
-Choosing a night starts its **introduction** at 11:55 PM: walk to the **Security Office** (follow the green sparkles) and press
-**START SHIFT** on the back wall. Some nights offer an optional pre-shift task (shown on screen) that grants +5 % power or an
+Choosing a night starts its **introduction** at 11:55 PM: walk to the **Security Office** and press **START SHIFT** on the back
+wall. **Green sparkles** show the way: they follow a real walkable route (doors, corridors, stairs) and the action bar shows how
+many blocks are left. Some nights offer an optional pre-shift task (shown on screen) that grants +5 % power or an
 extra strobe charge. After 180 seconds the shift starts anyway and you are moved to the office.
 
 ## The office
@@ -63,6 +72,9 @@ The action bar shows time, power %, usage bars and captions.
 * Lower: **sneak** (Shift / right-stick / sneak button), the MONITOR button again, or the tablet menu.
 * CAM 10 (kitchen) is **audio only**: you hear Chica's clatter through it. CAM 16 (sealed diner) has no signal before night 4.
 * Purple, scan-lined figures labelled **ECHO** are false images (night 5+). Static means Fredbear is disrupting the feeds.
+* Feeds are lit for you: night vision while the monitor is up, a clear camera fog instead of the night fog, and soft hidden
+  lights where each camera looks. The two door-corner cameras are the exception: those corners stay dark, which is why the hall
+  lights matter.
 
 ### Items (locked to your hotbar)
 
@@ -70,7 +82,7 @@ The action bar shows time, power %, usage bars and captions.
 |---|---|---|
 | 1 | Camera Tablet | raise the monitor / camera menu while viewing |
 | 2 | Office Remote | menu with every office control (accessible alternative to the console) |
-| 3 | Shift Guide | the rules below |
+| 3 | Shift Guide | a topic menu that explains every mechanic: power, doors, lights, cameras, hatch, strobe, breaker, reserve, phone, panel lamps, maintenance and tasks, each animatronic, Fredbear's powers, sound cues, the six nights, lobby and settings |
 
 On touch screens these items show an on-screen interact button (Cameras / Office / Guide).
 
@@ -88,7 +100,9 @@ On touch screens these items show an on-screen interact button (Cameras / Office
   **Close that door or hatch, then fire the STROBE** while he is there. A strobe with the barrier open only stuns him.
   If you keep the barrier closed without strobing he forces it open — you can still strobe him in that moment.
   Night 5+: warned teleports (chime + shimmer + static), false camera echoes, short blackouts (doors still work).
-* **Maintenance** (nights 3 and 5): the clock stops and every animatronic shuts down; go to the named room, pull the lever,
+* **Maintenance** (nights 3 and 5): the clock stops and every animatronic shuts down; follow the green sparkles to the named room
+  (both are in the basement: out the right door, through the employee entrance to the east service corridor, down the Staff
+  Stairwell), pull the lever,
   come back and press START/RESUME.
 * **6 AM** wins — even if an animatronic was about to attack. Night 6 ends with the finale and the ending.
 

@@ -31,7 +31,7 @@
         "pose_controller": "controller.animation.fb.pose",
         "hide_prop": "animation.fb.hide_prop",
         "idle": "animation.fb.idle",
-        "perform": "animation.fb.perform",
+        "perform": "animation.fb.perform.bonnie",
         "walk": "animation.fb.walk",
         "stalk": "animation.fb.stalk",
         "crawl": "animation.fb.crawl",

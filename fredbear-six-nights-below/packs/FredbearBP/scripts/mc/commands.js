@@ -19,6 +19,9 @@ export const COMMAND_TEMPLATES = Object.freeze({
   stopSounds: ['stopsound @a'],
   fogPush: [1, 2, 3, 4, 5, 6].map((n) => `fog @a push fb:night_${n} fb_night`),
   fogPop: ['fog @a remove fb_night'],
+  // Clear "camera feed" fog on top of the night fog while the monitor is up (RP fogs/fb_camera_feed.json).
+  camFogPush: ['fog @a push fb:camera_feed fb_cam'],
+  camFogPop: ['fog @a remove fb_cam'],
   hudCams: ['hud @a hide paperdoll', 'hud @a hide armor', 'hud @a hide health', 'hud @a hide hunger', 'hud @a hide status_effects'],
   hudReset: ['hud @a reset'],
 });

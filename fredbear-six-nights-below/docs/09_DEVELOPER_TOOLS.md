@@ -66,7 +66,8 @@ lines are kept in memory and the last 6 appear in `/fb:debug state`.
 
 | Command | What it does |
 |---|---|
-| `npm test` | 41 tests: core simulation (18), command-block structures (6), integration against the mock runtime (17) |
+| `npm test` | 49 tests: core simulation (18), command-block structures (6), route guidance (5), integration against the mock runtime (20) |
+| `node tools/gen_guide.mjs` | regenerate the player route-guidance graph from the build plan (`scripts/data/guide_graph.generated.js`) |
 | `npm run validate` | palette, map, commands, JSON schemas, asset references, Script API types |
 | `npm run typecheck` | `tsc` over all scripts against `@minecraft/server` 2.10.0 / `server-ui` 2.2.0 |
 | `npm run build` | regenerate everything and package `dist/` |
