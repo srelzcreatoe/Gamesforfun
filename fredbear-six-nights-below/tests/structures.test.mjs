@@ -91,3 +91,28 @@ test('no command block shares a position with another, a pad, or a console', () 
 test('only one repeating command block exists (event-driven design)', () => {
   assert.equal(allCommandBlocks().filter((b) => b.type === 'repeating').length, 1);
 });
+
+test('command-block NBT matches a structure exported by Bedrock (tools/ref/reference_command_blocks.mcstructure)', () => {
+  const ref = plain(readNbt(fs.readFileSync(new URL('../tools/ref/reference_command_blocks.mcstructure', import.meta.url))).root);
+  const refPal = ref.structure.palette.default;
+  const refCb = Object.values(refPal.block_position_data).map((v) => v.block_entity_data).filter((b) => b?.id === 'CommandBlock');
+  assert.ok(refCb.length > 0);
+  const refKeys = Object.keys(refCb[0]).sort();
+  const refBlockVersions = new Set(refPal.block_palette.filter((p) => p.name.includes('command_block')).map((p) => p.version));
+  const refStateKeys = new Set(refPal.block_palette.filter((p) => p.name.includes('command_block')).flatMap((p) => Object.keys(p.states)));
+  for (const f of fs.readdirSync(DIR)) {
+    const d = plain(readNbt(fs.readFileSync(path.join(DIR, f))).root);
+    const pal = d.structure.palette.default;
+    for (const p of pal.block_palette) {
+      assert.ok(refBlockVersions.has(p.version), `${f}: block version ${p.version}`);
+      assert.deepEqual(Object.keys(p.states).sort(), [...refStateKeys].sort(), `${f}: block state keys`);
+    }
+    for (const v of Object.values(pal.block_position_data)) {
+      const be = v.block_entity_data;
+      assert.deepEqual(Object.keys(be).sort(), refKeys, `${f}: command-block NBT keys`);
+      assert.equal(be.Version, refCb[0].Version, `${f}: command-block Version`);
+    }
+  }
+  assert.equal(COMMAND_VERSION, refCb[0].Version);
+  assert.ok(refBlockVersions.has(BLOCK_VERSION));
+});

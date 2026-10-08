@@ -70,7 +70,9 @@ No part of this project has been run inside Minecraft (see docs/10). Items that 
 
 1. **Structure ids.** Files at `structures/fb/<name>.mcstructure` are addressed as `fb:<name>` (Microsoft's documented
    folder-as-namespace rule). The builder checks `getPackStructureIds()` and reports any missing id instead of failing silently.
-2. **Command-block NBT in structures** (block-entity `Version` 42, block version 18161159, `LPCommandMode`, `TickDelay`, `auto`).
+2. **Command blocks loading from our structures in 1.26.50.** Their NBT matches a structure exported by Bedrock
+   (`tools/ref/reference_command_blocks.mcstructure`: same keys, `Version` 42, block version 18161159; tested), but the
+   files have not been loaded by the game itself. The builder reports any structure that fails to place.
 3. **Stair orientation**: `weirdo_direction` values 0-3 are mapped to +x/−x/+z/−z; visual facing is unverified.
 4. **Custom item use**: whether `itemUse` fires for the three kit items (no `use_modifiers`). All office functions also
    exist as physical buttons, so this only affects convenience.

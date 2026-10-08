@@ -543,7 +543,7 @@ export function generatePlan() {
   return P.result();
 }
 
-/** Count ops and affected blocks per phase (docs/diagnostics). */
+/** Count ops and affected blocks per phase (docs/07_CONSTRUCTION.md phase table). */
 export function planStats(plan) {
   const out = [];
   for (const ph of plan.phases) {

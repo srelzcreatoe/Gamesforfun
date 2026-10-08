@@ -5,6 +5,7 @@ import path from 'node:path';
 import { allCommandBlocks, structureGroups } from './gen_structures.mjs';
 import { SECTIONS, MODULES, REPEATERS, layoutModules } from '../packs/FredbearBP/scripts/data/actuators.js';
 import { INPUTS } from '../packs/FredbearBP/scripts/data/inputs.js';
+import { CB_STRUCTURES } from '../packs/FredbearBP/scripts/data/cb_structures.generated.js';
 
 const ROOT = new URL('../', import.meta.url).pathname;
 const blocks = allCommandBlocks();
@@ -72,8 +73,18 @@ They are shipped preconfigured inside \`.mcstructure\` files in the behavior pac
 \`world.structureManager.place()\` API, the same mechanism as \`/structure load\`. Each file stores the command,
 mode, conditional flag, redstone mode and tick delay for every block; command-block \`Version\` is 42 and the
 block-state version is 18161159, both copied from a structure exported by Bedrock itself
-(see docs/01_COMPATIBILITY.md). If a structure ever fails to load, **docs/07_CONSTRUCTION.md** describes
+(\`tools/ref/reference_command_blocks.mcstructure\`; checked by \`tests/structures.test.mjs\`). If a structure ever fails to load, **docs/07_CONSTRUCTION.md** describes
 how to rebuild any module by hand from this table.
+
+## Structure files
+
+Each file is placed with its minimum corner at the listed world position (\`world.structureManager.place\`, equivalent to
+\`/structure load <id> <x> <y> <z>\`). Cells that hold no command block are structure void, so loading never overwrites
+the surrounding build.
+
+| Structure id | World origin (min corner) | Size x×y×z | Command blocks |
+|---|---|---|---:|
+${CB_STRUCTURES.map((st) => `| \`${st.id}\` | ${st.at.join(' ')} | ${st.size.join('×')} | ${st.blocks} |`).join('\n')}
 
 ## Control room layout
 

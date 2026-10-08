@@ -56,8 +56,47 @@ They are shipped preconfigured inside `.mcstructure` files in the behavior pack
 `world.structureManager.place()` API, the same mechanism as `/structure load`. Each file stores the command,
 mode, conditional flag, redstone mode and tick delay for every block; command-block `Version` is 42 and the
 block-state version is 18161159, both copied from a structure exported by Bedrock itself
-(see docs/01_COMPATIBILITY.md). If a structure ever fails to load, **docs/07_CONSTRUCTION.md** describes
+(`tools/ref/reference_command_blocks.mcstructure`; checked by `tests/structures.test.mjs`). If a structure ever fails to load, **docs/07_CONSTRUCTION.md** describes
 how to rebuild any module by hand from this table.
+
+## Structure files
+
+Each file is placed with its minimum corner at the listed world position (`world.structureManager.place`, equivalent to
+`/structure load <id> <x> <y> <z>`). Cells that hold no command block are structure void, so loading never overwrites
+the surrounding build.
+
+| Structure id | World origin (min corner) | Size x×y×z | Command blocks |
+|---|---|---|---:|
+| `fb:cb_row_0` | 23 -59 169 | 153×1×1 | 99 |
+| `fb:cb_row_1` | 23 -59 172 | 152×1×1 | 100 |
+| `fb:cb_row_2` | 23 -59 175 | 150×1×1 | 88 |
+| `fb:cb_row_3` | 23 -59 178 | 138×1×1 | 86 |
+| `fb:in_g_3_4` | 96 -51 128 | 31×1×12 | 22 |
+| `fb:in_g_3_3` | 98 -51 127 | 6×1×1 | 6 |
+| `fb:in_g_5_3` | 168 -51 98 | 14×1×25 | 13 |
+| `fb:in_g_5_4` | 166 -51 148 | 1×1×1 | 1 |
+| `fb:in_g_5_1` | 178 -51 47 | 1×1×1 | 1 |
+| `fb:in_b_4_2` | 135 -60 92 | 1×1×1 | 1 |
+| `fb:in_b_2_2` | 69 -60 80 | 1×1×1 | 1 |
+| `fb:in_b_5_2` | 160 -61 78 | 11×2×15 | 2 |
+| `fb:in_u_3_4` | 110 -43 128 | 9×1×21 | 2 |
+| `fb:in_u_4_4` | 134 -43 148 | 1×1×1 | 1 |
+| `fb:in_g_1_0` | 48 -51 14 | 1×1×1 | 1 |
+| `fb:in_g_2_0` | 74 -51 14 | 1×1×1 | 1 |
+| `fb:in_g_0_2` | 18 -51 68 | 1×1×1 | 1 |
+| `fb:in_g_5_2` | 176 -52 72 | 7×2×7 | 2 |
+| `fb:in_u_0_4` | 18 -43 150 | 1×1×1 | 1 |
+| `fb:in_u_4_3` | 146 -43 118 | 1×1×1 | 1 |
+| `fb:in_b_3_2` | 118 -60 80 | 1×1×1 | 1 |
+| `fb:in_b_0_2` | 18 -60 94 | 1×1×1 | 1 |
+| `fb:in_b_0_0` | 18 -60 30 | 1×1×1 | 1 |
+| `fb:in_g_0_1` | 30 -52 60 | 1×1×1 | 1 |
+| `fb:in_g_1_1` | 58 -52 34 | 1×1×1 | 1 |
+| `fb:in_b_1_2` | 56 -61 88 | 1×1×1 | 1 |
+| `fb:in_b_0_1` | 24 -61 34 | 1×1×1 | 1 |
+| `fb:in_u_1_4` | 34 -43 128 | 1×1×1 | 1 |
+| `fb:in_b_0_5` | 26 -60 166 | 5×1×1 | 3 |
+| `fb:in_b_1_5` | 32 -60 166 | 13×1×1 | 7 |
 
 ## Control room layout
 

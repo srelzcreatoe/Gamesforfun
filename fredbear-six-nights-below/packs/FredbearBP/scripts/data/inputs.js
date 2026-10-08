@@ -9,7 +9,7 @@
 // Pressure plates sit on a floor block; their CB is one block below that.
 //
 // The script accepts an input only if the scriptevent's sourceBlock matches
-// the registered CB location (see scripts/mc/inputs.js).
+// the registered CB location (see Game.onScriptEvent in scripts/mc/game.js).
 
 import { CAMERA_MAP_LAYOUT, CAMERA_BY_ID } from './cameras.js';
 
