@@ -740,7 +740,7 @@ function officeKit(P, room, i) {
   P.set(97, y + 1, 128, 'white_carpet');
   posters(P, room, 4, ['glazed_yellow', 'glazed_purple', 'glazed_red']);
   // Ceiling lamp.
-  hanging(P, 100, 133, i.ceilY, 2, 'lantern_hang');
+  hanging(P, 100, 133, i.ceilY, 2, 'redstone_lamp'); // non-emissive fixture: light comes from actuated light blocks
   P.set(100, i.ceilY - 1, 135, 'light_11');
   P.set(100, i.ceilY - 1, 129, 'light_10');
   P.claim('L1', 95, 127, 11, 13);

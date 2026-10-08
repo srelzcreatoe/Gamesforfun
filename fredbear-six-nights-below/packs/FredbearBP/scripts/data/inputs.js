@@ -86,16 +86,16 @@ const zones = [
 
 // Developer panel in the control room.
 const dev = [
-  I('in.dev.exit', 'dev:exit', 'button', [26, -9, 172], 'EXIT TO LOBBY', { block: 'console_green' }),
-  I('in.dev.selftest', 'dev:selftest', 'button', [28, -9, 172], 'SELF-TEST', { block: 'console_dark' }),
-  I('in.dev.overlay', 'dev:overlay', 'button', [30, -9, 172], 'DEBUG OVERLAY', { block: 'console_dark' }),
-  I('in.dev.deterministic', 'dev:deterministic', 'button', [32, -9, 172], 'DETERMINISTIC SEED', { block: 'console_dark' }),
-  I('in.dev.menu', 'dev:menu', 'button', [34, -9, 172], 'DEBUG MENU', { block: 'console_gold' }),
-  I('in.dev.graph', 'dev:graph', 'button', [36, -9, 172], 'VALIDATE ROUTES', { block: 'console_dark' }),
-  I('in.dev.state', 'dev:state', 'button', [38, -9, 172], 'DUMP STATE', { block: 'console_dark' }),
-  I('in.dev.puppets', 'dev:puppets', 'button', [40, -9, 172], 'RESPAWN PUPPETS', { block: 'console_dark' }),
-  I('in.dev.skip_hour', 'dev:skip_hour', 'button', [42, -9, 172], 'SKIP HOUR', { block: 'console_red' }),
-  I('in.dev.reset', 'dev:reset', 'button', [44, -9, 172], 'FULL RESET', { block: 'console_red' }),
+  I('in.dev.exit', 'dev:exit', 'button', [26, -9, 166], 'EXIT TO LOBBY', { block: 'console_green' }),
+  I('in.dev.selftest', 'dev:selftest', 'button', [28, -9, 166], 'SELF-TEST', { block: 'console_dark' }),
+  I('in.dev.overlay', 'dev:overlay', 'button', [30, -9, 166], 'DEBUG OVERLAY', { block: 'console_dark' }),
+  I('in.dev.deterministic', 'dev:deterministic', 'button', [32, -9, 166], 'DETERMINISTIC SEED', { block: 'console_dark' }),
+  I('in.dev.menu', 'dev:menu', 'button', [34, -9, 166], 'DEBUG MENU', { block: 'console_gold' }),
+  I('in.dev.graph', 'dev:graph', 'button', [36, -9, 166], 'VALIDATE ROUTES', { block: 'console_dark' }),
+  I('in.dev.state', 'dev:state', 'button', [38, -9, 166], 'DUMP STATE', { block: 'console_dark' }),
+  I('in.dev.puppets', 'dev:puppets', 'button', [40, -9, 166], 'RESPAWN PUPPETS', { block: 'console_dark' }),
+  I('in.dev.skip_hour', 'dev:skip_hour', 'button', [42, -9, 166], 'SKIP HOUR', { block: 'console_red' }),
+  I('in.dev.reset', 'dev:reset', 'button', [44, -9, 166], 'FULL RESET', { block: 'console_red' }),
 ];
 
 export const INPUTS = Object.freeze([...office, ...map, ...lobby, ...training, ...maintenance, ...secrets, ...zones, ...dev]);

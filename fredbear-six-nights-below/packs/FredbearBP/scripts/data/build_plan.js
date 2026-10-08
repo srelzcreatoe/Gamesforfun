@@ -15,6 +15,7 @@ import { NODE_BY_ID } from './nodes.js';
 import { PlanBuilder } from './plan_builder.js';
 import { STAIR_KEY } from './palette.js';
 import { decorateRoom } from './kits.js';
+import { layoutModules, SECTIONS } from './actuators.js';
 import { buildExterior } from './exterior.js';
 
 // ------------------------------------------------------------------ styles
@@ -491,6 +492,35 @@ function controls(P) {
   P.flush();
 }
 
+// ------------------------------------------------------------------ labels
+/** Control room: a sign north of every module's impulse block + section headers on the west wall. */
+function controlRoomLabels(P) {
+  const { modules, repeaters } = layoutModules();
+  const rowSections = new Map();
+  for (const p of modules) {
+    const [x, y, z] = p.impulse;
+    const short = p.module.id.length > 15 ? p.module.id.slice(0, 15) : p.module.id;
+    P.sign(x, y, z - 1, 'north', `${p.module.section}: ${short}\n${p.module.purpose.slice(0, 45)}`);
+    if (!rowSections.has(z)) rowSections.set(z, new Set());
+    rowSections.get(z).add(p.module.section);
+  }
+  for (const r of repeaters) P.sign(r.pos[0], r.pos[1], r.pos[2] - 1, 'north', `L: ${r.repeater.id}\nREPEATING`);
+  for (const [z, secs] of rowSections) {
+    P.sign(21, -8, z, 'east', [...secs].map((s) => `${s} ${SECTIONS[s].slice(0, 14)}`).join('\n'));
+  }
+}
+
+/** Short labels next to consoles (lobby terminal, office front row, maintenance, dev panel). */
+function inputLabels(P) {
+  for (const inp of INPUTS) {
+    const [x, y, z] = inp.p;
+    if (inp.id.startsWith('in.lobby.') && x === 181) P.sign(181, y + 2, z, 'west', inp.label);
+    else if (inp.id.startsWith('in.office.') && z === 130) P.sign(x, y, z + 1, 'south', inp.label);
+    else if (inp.id.startsWith('in.dev.')) P.sign(x, y, z + 1, 'south', inp.label);
+    else if (inp.id.startsWith('in.maint.') || inp.id === 'in.training.begin') P.sign(x, y, z + 1, 'south', inp.label);
+  }
+}
+
 // ------------------------------------------------------------------ entry point
 export function generatePlan() {
   const P = new PlanBuilder(1983);
@@ -508,6 +538,8 @@ export function generatePlan() {
   controls(P);
   P.setPhase('signs');
   for (const room of ROOMS) decorateRoom(P, room, { signsOnly: true });
+  controlRoomLabels(P);
+  inputLabels(P);
   return P.result();
 }
 
