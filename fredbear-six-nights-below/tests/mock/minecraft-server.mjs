@@ -169,6 +169,13 @@ class Store {
 let store = new Store();
 const typeOf = (key) => key.split('[')[0];
 
+// Chunk loading: tests may unload chunk columns to emulate a player far away
+// without ticking areas. Unloaded chunks have no blocks, and their entities are
+// invalid and invisible to queries until the chunk loads again.
+const unloadedChunks = new Set();
+const chunkKey = (x, z) => `${Math.floor(x / 16)},${Math.floor(z / 16)}`;
+const loadedAt = (x, z) => !unloadedChunks.has(chunkKey(x, z));
+
 class SignComponent {
   constructor(k) {
     this.k = k;
@@ -282,7 +289,7 @@ function facingOf(x, y, z) {
 /** Run a command block and schedule the chain behind it. */
 function runCommandBlock(x, y, z) {
   const be = store.blockEntities.get(`${x},${y},${z}`);
-  if (!be) return;
+  if (!be || !loadedAt(x, z)) return;
   STATE.cbRuns++;
   executeCommand(be.command, { block: new Block(world.getDimension('overworld'), x, y, z) });
   const [dx, dy, dz] = FACING_DELTA[facingOf(x, y, z)];
@@ -339,7 +346,7 @@ export function executeCommand(cmd, ctx = {}) {
     case 'setblock': {
       const [x, y, z] = [num(t[1]), num(t[2]), num(t[3])];
       const { perm } = parseBlockArg(t, 4);
-      if (!store.inside(x, y, z)) return 0;
+      if (!store.inside(x, y, z) || !loadedAt(x, z)) return 0;
       store.set(x, y, z, perm.key);
       return 1;
     }
@@ -353,7 +360,7 @@ export function executeCommand(cmd, ctx = {}) {
       if (vol > 32768) misuse(`fill volume ${vol} > 32768: ${cmd}`);
       let n = 0;
       for (const [x, y, z] of new BlockVolume({ x: a[0], y: a[1], z: a[2] }, { x: b[0], y: b[1], z: b[2] }).cells()) {
-        if (!store.inside(x, y, z)) continue;
+        if (!store.inside(x, y, z) || !loadedAt(x, z)) continue;
         if (filter && typeOf(store.get(x, y, z)) !== filter) continue;
         store.set(x, y, z, perm.key);
         n++;
@@ -396,11 +403,11 @@ class Entity {
   }
 
   get isValid() {
-    return this.valid;
+    return this.valid && (this.typeId === 'minecraft:player' || loadedAt(this.location.x, this.location.z));
   }
 
   teleport(loc, opts) {
-    if (!this.valid) throw new Error('entity is invalid');
+    if (!this.isValid) throw new Error('entity is invalid');
     this.location = { ...loc };
     if (opts?.rotation) this.rotation = { ...opts.rotation };
   }
@@ -424,7 +431,7 @@ class Entity {
   }
 
   setProperty(name, value) {
-    if (!this.valid) throw new Error('entity is invalid');
+    if (!this.isValid) throw new Error('entity is invalid');
     const def = ENTITY_DEFS.get(this.typeId)?.properties?.[name];
     if (!def) misuse(`setProperty: ${this.typeId} has no property ${name}`);
     if (def.type === 'enum' && !def.values.includes(value)) misuse(`setProperty: ${name}='${value}' not in enum`);
@@ -565,7 +572,7 @@ class Player extends Entity {
 
 // ------------------------------------------------------------------ dimension / world / system
 function matchesQuery(e, q = {}) {
-  if (!e.valid) return false;
+  if (!e.isValid) return false;
   if (q.type && e.typeId !== q.type) return false;
   if (q.families && !q.families.every((f) => (ENTITY_DEFS.get(e.typeId)?.families ?? []).includes(f))) return false;
   if (q.tags && !q.tags.every((t) => e.tags.has(t))) return false;
@@ -585,7 +592,7 @@ class Dimension {
     const x = Math.floor(loc.x);
     const y = Math.floor(loc.y);
     const z = Math.floor(loc.z);
-    if (!store.inside(x, y, z)) return undefined;
+    if (!store.inside(x, y, z) || !loadedAt(x, z)) return undefined;
     return new Block(this, x, y, z);
   }
 
@@ -600,7 +607,7 @@ class Dimension {
     STATE.maxFill = Math.max(STATE.maxFill, volume.getCapacity());
     let n = 0;
     for (const [x, y, z] of volume.cells()) {
-      if (!store.inside(x, y, z)) throw new Error(`UnloadedChunksError at ${x},${y},${z}`);
+      if (!store.inside(x, y, z) || !loadedAt(x, z)) throw new Error(`UnloadedChunksError at ${x},${y},${z}`);
       if (include && !include.includes(typeOf(store.get(x, y, z)))) continue;
       store.set(x, y, z, perm.key);
       n++;
@@ -609,7 +616,7 @@ class Dimension {
   }
 
   isChunkLoaded(loc) {
-    return store.inside(Math.floor(loc.x), Math.floor(loc.y), Math.floor(loc.z));
+    return store.inside(Math.floor(loc.x), Math.floor(loc.y), Math.floor(loc.z)) && loadedAt(loc.x, loc.z);
   }
 
   runCommand(cmd) {
@@ -793,6 +800,7 @@ export const mock = {
     dynamicProps = new Map();
     players = [];
     pendingCb.length = 0;
+    unloadedChunks.clear();
     this.reload();
     system.currentTick = 0;
     Object.assign(STATE, { errors: [], handlerErrors: [], commands: [], sounds: [], cbRuns: 0, maxFill: 0 });
@@ -873,6 +881,13 @@ export const mock = {
   },
   blockAt(wx, wy, wz) {
     return store.get(wx, wy, wz);
+  },
+  /** Unload every chunk column touching the world-coordinate box [x1..x2] x [z1..z2]. */
+  unloadChunks(x1, z1, x2, z2) {
+    for (let cx = Math.floor(x1 / 16); cx <= Math.floor(x2 / 16); cx++) for (let cz = Math.floor(z1 / 16); cz <= Math.floor(z2 / 16); cz++) unloadedChunks.add(`${cx},${cz}`);
+  },
+  loadAllChunks() {
+    unloadedChunks.clear();
   },
   commandBlockCount() {
     return store.blockEntities.size;

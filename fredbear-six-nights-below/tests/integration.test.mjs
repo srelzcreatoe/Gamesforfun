@@ -382,6 +382,38 @@ test('duplicate and stray animatronic entities are removed by the integrity pass
   await assertCleanLobby();
 });
 
+test('unloaded chunks: the night keeps running; puppets and actuations recover without duplicates', async () => {
+  press('in.lobby.night_5');
+  await mock.tick(2);
+  await goToOfficeAndStart();
+  await mock.tick(40);
+  const s = game.session;
+  // Unload the stage / dining area (the trio's homes) and the whole command-block control room.
+  mock.unloadChunks(60, 0, 140, 60);
+  mock.unloadChunks(22, 169, 177, 193);
+  const t0 = s.t;
+  const deferred0 = game.bus.stats.deferred;
+  press('in.office.door_l');
+  await mock.tick(200);
+  assert.ok(s.t >= t0 + 199, 'the night clock does not depend on loaded chunks');
+  assert.equal(s.devices.doorL, true, 'the session accepted the input');
+  assert.deepEqual([...new Set(box(94, 0, 129, 94, 2, 130))], ['minecraft:barrier'], 'actuation waits while its command blocks are unloaded');
+  assert.ok(game.bus.stats.deferred > deferred0, 'bus deferred the pad');
+  mock.loadAllChunks();
+  await mock.tick(45);
+  assert.deepEqual([...new Set(box(94, 0, 129, 94, 2, 130))], ['minecraft:iron_block'], 'deferred actuation applied after reload');
+  for (const [who, type] of Object.entries(TYPES)) {
+    const list = puppetsOf(type);
+    assert.equal(list.length, 1, `exactly one ${who} after the chunks return`);
+    const pose = Wv(s.anim[who].pose());
+    assert.ok(Math.hypot(list[0].location.x - pose.x, list[0].location.z - pose.z) < 0.5, `${who} puppet synced to its logical pose`);
+  }
+  noMockErrors();
+  commands.get('fb:lobby')();
+  await mock.tick(2);
+  await assertCleanLobby();
+});
+
 test('quitting mid-night: on reload the night is abandoned, progress kept, back at the time clock', async () => {
   const before = world.getDynamicProperty('fb:save');
   press('in.lobby.night_4');
@@ -411,5 +443,83 @@ test('progress and settings survive a reload', async () => {
   assert.equal(game.save.settings.captions, false);
   assert.equal(game.save.unlocked, 6);
   assert.equal(game.save.tutorialDone, true);
+  await assertCleanLobby();
+});
+
+// ------------------------------------------------------------------------------------------
+// Full campaign through the physical controls (brief test items 18-20 in the mock).
+const ENGAGED = ['APPROACH', 'TELEGRAPH', 'LURK', 'FORCING', 'JAMMED'];
+
+/** Oracle policy (tools/lib/bots.mjs) expressed as button presses on the office console. */
+function oraclePress(s) {
+  const snap = s.snapshot();
+  const want = { L: false, R: false, H: false };
+  for (const id of s.order) {
+    const a = s.anim[id];
+    if (ENGAGED.includes(a.state) && a.entry) want[a.entry] = true;
+  }
+  if (s.anim.freddy.state === 'STALK' && s.anim.freddy.node === 'EH_S') want.R = true;
+  const d = snap.devices;
+  if (snap.phase === 'POWER_OUT' && snap.powerOut?.stage === 'reserve') return press('in.office.reserve');
+  if (snap.phase !== 'RUNNING') return undefined;
+  if (want.L !== d.doorL && !snap.jammed.L) press('in.office.door_l');
+  if (want.R !== d.doorR && !snap.jammed.R) press('in.office.door_r');
+  if (snap.hatchInstalled && want.H !== d.hatch && !snap.jammed.H) press('in.office.hatch');
+  const fb = s.anim.fredbear;
+  if (['TELEGRAPH', 'FORCING', 'JAMMED'].includes(fb.state) && fb.entry && (s.barrierClosed(fb.entry) || s.jammed[fb.entry]) && snap.strobe.cooldown === 0) press('in.office.strobe');
+  if (snap.breaker.tripped && snap.breaker.resetting === 0) press('in.office.breaker');
+  return undefined;
+}
+
+test('full campaign: erase progress, nights 1-6 through the office controls, ending, persistent completion', async () => {
+  const { MAINTENANCE } = await import('../packs/FredbearBP/scripts/data/story.js');
+  const { INPUTS } = await import('../packs/FredbearBP/scripts/data/inputs.js');
+  uiMock.respond = (f) => (f.title === 'Erase progress?' ? { selection: 1 } : undefined);
+  press('in.lobby.reset');
+  await mock.tick(3);
+  assert.equal(game.save.unlocked, 1);
+  uiMock.respond = () => undefined;
+  game.save.settings.deterministic = true;
+  game.save.settings.seed = 4242;
+  const nightTicks = [];
+  for (let n = 1; n <= 6; n++) {
+    press(`in.lobby.night_${n}`);
+    await mock.tick(2);
+    assert.equal(game.state, 'INTRO', `night ${n} intro`);
+    await goToOfficeAndStart();
+    let guard = 0;
+    while (game.state === 'NIGHT' && guard++ < 20000) {
+      const s = game.session;
+      if (s.phase === 'MAINT' && game.maint && !game.maint.done) {
+        const inp = INPUTS.find((i) => i.action === MAINTENANCE[game.maint.task].action);
+        press(inp.id);
+        await mock.tick(2);
+        player.teleport(Wv(ANCHORS.officeSeat));
+        press('in.office.start');
+      } else oraclePress(s);
+      await mock.tick(1);
+    }
+    assert.equal(game.state, 'RESULT', `night ${n} ended`);
+    assert.equal(game.result.won, true, `night ${n} won`);
+    assert.equal(game.session.t, 9600, `night ${n} clock reached 6 AM (9600 ticks)`);
+    nightTicks.push(guard);
+    if (n < 6) {
+      await until(() => game.state === 'LOBBY', 400);
+      assert.equal(JSON.parse(world.getDynamicProperty('fb:save')).unlocked, n + 1, `night ${n + 1} unlocked and saved`);
+    }
+  }
+  await until(() => game.state === 'ENDING', 400);
+  await until(() => game.state === 'LOBBY', 2000);
+  const save = JSON.parse(world.getDynamicProperty('fb:save'));
+  console.log(`campaign: game ticks per night ${nightTicks.join(', ')}`);
+  assert.equal(save.campaignDone, true);
+  assert.deepEqual(save.completed, [1, 2, 3, 4, 5, 6]);
+  assert.ok(uiMock.shown.some((f) => f.title.includes('ARCHIVE')), 'credits / archive shown after the ending');
+  await assertCleanLobby();
+  // The chamber stays open once the campaign is complete (applyGates follows progress).
+  mock.reload();
+  startGame();
+  await mock.tick(2);
+  assert.equal(game.save.campaignDone, true);
   await assertCleanLobby();
 });
