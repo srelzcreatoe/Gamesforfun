@@ -240,6 +240,80 @@
           "volume": 0.5
         }
       ]
+    },
+    "observer.voice": {
+      "category": "hostile",
+      "max_distance": 20,
+      "sounds": [
+        {
+          "name": "sounds/observer/voice1",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/observer/voice2",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/observer/voice3",
+          "volume": 1.0
+        }
+      ]
+    },
+    "observer.presence": {
+      "category": "hostile",
+      "max_distance": 40,
+      "sounds": [
+        {
+          "name": "sounds/observer/presence1",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/observer/presence2",
+          "volume": 1.0
+        }
+      ]
+    },
+    "observer.notice": {
+      "category": "hostile",
+      "max_distance": 28,
+      "sounds": [
+        {
+          "name": "sounds/observer/notice1",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/observer/notice2",
+          "volume": 1.0
+        }
+      ]
+    },
+    "observer.shriek": {
+      "category": "hostile",
+      "max_distance": 56,
+      "sounds": [
+        {
+          "name": "sounds/observer/shriek1",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/observer/shriek2",
+          "volume": 1.0
+        }
+      ]
+    },
+    "observer.vanish": {
+      "category": "hostile",
+      "max_distance": 28,
+      "sounds": [
+        {
+          "name": "sounds/observer/vanish1",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/observer/vanish2",
+          "volume": 1.0
+        }
+      ]
     }
   }
 }

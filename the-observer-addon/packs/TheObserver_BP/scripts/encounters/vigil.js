@@ -106,7 +106,6 @@ register({
       body.setState("tilt");
       enc.sound(SOUNDS.lens, body.loc() ?? spot.loc, 0.8);
       await enc.wait(30);
-      enc.particle(PARTICLES.unravel, { x: spot.loc.x, y: spot.loc.y + 1.8, z: spot.loc.z });
       body.despawn("round_done");
       await enc.wait(120);
     }

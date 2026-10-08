@@ -1,7 +1,9 @@
 // @ts-check
 // Shared building blocks for encounter scripts.
-import { V, rand, safe } from "../core/util.js";
+import { V, rand, safe, DEBUG } from "../core/util.js";
 import { ps, markPlayerDirty } from "../core/state.js";
+import { S, aggression } from "../core/settings.js";
+import { SOUNDS } from "../core/constants.js";
 import * as body from "../observer/body.js";
 import { standNear, findSpot } from "../world/space.js";
 import { visibility } from "../world/sight.js";
@@ -31,6 +33,12 @@ export async function observe(enc, o) {
 
 /** Record a sighting (and its discoveries) for whoever saw it. */
 export function sighting(enc, by = enc.p) {
+  // the moment it knows it has been seen: a rattle of clicks and a crack of the neck
+  const l = body.loc();
+  if (l && !enc.data.noticeSounded) {
+    enc.data.noticeSounded = true;
+    enc.worldSound(SOUNDS.notice, { x: l.x, y: l.y + 3, z: l.z }, 0.9);
+  }
   enc.result("noticed", true);
   const s = ps(by);
   s.sightings++;
@@ -102,6 +110,61 @@ export async function acknowledge(enc, holdTicks = 14, tiltTicks = 26) {
   await enc.wait(holdTicks);
   body.setState("tilt");
   await enc.wait(tiltTicks);
+}
+
+/**
+ * Should it lunge now that it has been seen? Stage 3+, aggression above "never", and only within the
+ * sudden-scare budget (Settings: Sudden scares), so it stays a shock rather than a routine.
+ * @param {Encounter} enc
+ */
+export function wantsLunge(enc) {
+  if (DEBUG.lunge === "always") return true;
+  if (DEBUG.lunge === "never") return false;
+  if (enc.s.stage < 3 || aggression() < 1 || enc.s.witnessed || !enc.canScare()) return false;
+  return Math.random() < (S().scares >= 2 ? 0.35 : 0.2);
+}
+
+/**
+ * The lunge: it shrieks and comes at you in jerks (short unseen-proof hops, ~14 blocks/s), then tears
+ * apart right in front of you. On High aggression it strikes instead (still the telegraphed, dodgeable strike).
+ * @param {Encounter} enc @param {{harmless?:boolean}} [o] harmless: never strikes, uses no scare budget (preview)
+ */
+export async function lunge(enc, o = {}) {
+  const p = enc.p;
+  const b = body.get();
+  if (!b) return;
+  if (!o.harmless) enc.usedScare();
+  b.autoPeek = false;
+  b.faceTarget = true;
+  body.setState("run");
+  enc.worldSound(SOUNDS.shriek, { x: b.e.location.x, y: b.e.location.y + 3, z: b.e.location.z }, 1);
+  enc.caption("caption.shriek");
+  enc.shake(0.25, 0.6);
+  enc.emit("lunge", {});
+  for (let i = 0; i < 40; i++) {
+    await enc.wait(3);
+    const l = body.loc();
+    if (!l || !p.isValid) return;
+    const d = V.dist(l, p.location);
+    if (d <= 3.2) {
+      if (aggression() >= 3 && !o.harmless) {
+        const r = await body.strike(p);
+        enc.result(r === "hit" ? "lunge_hit" : "lunge_dodged", true);
+      } else {
+        enc.fade(0.05, 0.2, 0.5);
+        enc.result("lunged", true);
+      }
+      body.despawn("lunge");
+      return;
+    }
+    const dir = V.flat(V.sub(p.location, l));
+    const next = V.add(l, V.scale(dir, Math.min(2.3, d - 2.6)));
+    const st = standNear(enc.dim, next.x, next.z, next.y);
+    if (!st) break;
+    body.moveTo(st.loc, p.getHeadLocation());
+  }
+  enc.result("lunged", true);
+  body.despawn("lunge");
 }
 
 /** Water exit: sink below the surface, then vanish. */

@@ -18,7 +18,7 @@ your light — always deliberately, always reversibly — and watches what you d
 4. Play. Nothing happens for the first 12 minutes on the Standard preset. Details: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md).
 
 ## Status
-Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final integration run passed 173 of 173
+Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final integration run passed 193 of 193
 checks with no content-log or script errors, restart recovery passed, and the server held 20 TPS with and without the
 add-on. The first load in a game client reported three resource-pack errors, which are fixed in this build and now
 caught by a comparison with Mojang's vanilla files. How it looks and sounds in a client still has to be confirmed: see
@@ -26,11 +26,13 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
 
 ## What's inside
 * **One physical Observer** built on the supplied model: 5 supplied clips + 5 supplemental clips (stalking walk, peek,
-  recoil, stoop crouch for low ceilings, head tracking), state-driven animation controllers, eye glints in darkness.
+  recoil, stoop crouch for low ceilings, head tracking), state-driven animation controllers, eyes that glow in the
+  dark, a glowing wisp aura, a crimson vanish burst, and its own voice, arrival, notice, shriek and vanish sounds.
 * **A horror director**: grace period, five escalating stages, per-player and global cooldowns, quiet periods,
   recovery after deaths, anti-repetition, context-weighted selection, fair multiplayer targeting.
-* **18 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*),
-  plus 17 further designed concepts — see [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md).
+* **19 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*)
+  and *Closer Each Time* (it only moves while unwatched), a lunge when it is spotted, plus 17 further designed concepts
+  — see [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md).
 * **8 environmental manipulation mechanics** (doors, lights, turned objects, Veil obstructions, mimic route changes,
   effigies, temporary openings, animals turning) through a **restoration ledger**: recorded, locked, reload-safe,
   dupe-proof, and the player's own changes always win.
@@ -41,14 +43,15 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   start-now, presets (Atmosphere / Standard / Relentless), every individual setting (frequency, aggression,
   manipulation, sudden scares, camera effects, captions, grace period), a toggle per encounter type, *Test an
   encounter*, and *Undo its changes*.
-* **28 original synthesized sounds**, 7 particles, 3 fogs, original item and block art.
+* **39 original synthesized sounds**, 9 particles (two from user-supplied sprite sheets), 3 fogs, original item and
+  block art.
 
 ## Documentation
 | Document | Contents |
 |---|---|
 | [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md) | installing, tools, settings, accessibility, multiplayer, removal |
 | [docs/DESIGN.md](docs/DESIGN.md) | identity, rules, systems, manipulation specs, director, signature encounters |
-| [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md) | the encounter library (18 implemented, 17 planned) |
+| [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md) | the encounter library (19 implemented, 17 planned) |
 | [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) | architecture, adding encounters, testing, tuning |
 | [docs/FEATURE_MATRIX.md](docs/FEATURE_MATRIX.md) | feature → files → trigger → expected → test → status |
 | [docs/TEST_REPORT.md](docs/TEST_REPORT.md) | what was tested, how, and the results; manual in-game procedure |

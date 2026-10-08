@@ -8,7 +8,7 @@ Implemented encounters live in `packs/TheObserver_BP/scripts/encounters/` (one f
 the director. Concepts marked *planned* are design-ready but not implemented in 1.0.0 — they are not advertised as
 features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stage at which the director may choose it.
 
-## Implemented (18 mechanically distinct types)
+## Implemented (19 mechanically distinct types)
 
 | # | Encounter (file) | Tier / Stage | Context | Location | Cue | Intention | Manipulation | Player response | Consequence |
 |---|---|---|---|---|---|---|---|---|---|
@@ -24,12 +24,21 @@ features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stag
 | 10 | **Echo Ahead** (`echo_ahead`) | 2 / 3 | moving | 20–32 blocks ahead | dark motes rising + chime at the spot | prediction tell | — | watch the spot / look away then back | it arrives only unwatched (*Echo Ahead*); denied → it shows itself behind you instead |
 | 11 | **The Path Changed** (`unfamiliar_route`) | 2 / 3 | on a route walked ≥ 3 separate times | 8–14 blocks behind (the way back) | the way back is wrong | to make the familiar unfamiliar | M5 mimic blocks, M1 a door on the route, M7 a carved opening (level 3) | dig through / study it | *Wrong Way*; mimic blocks drop nothing; reverts ~2.5 min later |
 | 12 | **Close** (`close_breath`) | 3 / 3 | standing still 6+ s | 2.6–4 blocks behind (8–11 with scares off) | cloth, then a slow exhale | contact without harm | M6 effigy if you never turn (60%) | turn around / don't | it is there, head tilted, then gone (*Close*); otherwise it leans in and leaves an effigy |
-| 13 | **Breathing Room** (`pursuit`) | 4 / 5, aggression ≥ 1 | night/underground/dark, health ≥ 50 % | appears in view 24–34 blocks | rising hum, lights die, fog, 3 s stare | to hunt | M2 lights | sprint / keep it in view / light / water / lens / strike | escape (*Breathing Room*); repelled; one telegraphed strike then it leaves |
+| 13 | **Breathing Room** (`pursuit`) | 4 / 4, aggression ≥ 1 | night/underground/dark, health ≥ 50 % | appears in view 24–34 blocks | rising hum, lights die, fog, 3 s stare | to hunt | M2 lights | sprint / keep it in view / light / water / lens / strike | escape (*Breathing Room*); repelled; one telegraphed strike then it leaves |
 | 14 | **At the Window** (`window_watch`) | 2 / 2 | indoors (roof, sky light outside) | outside, framed by a window or opening | a figure at the window | walls do not stop it | — | look / don't | it steps out of the frame (*The Window*); footprints under the window |
 | 15 | **Second Witness** (`second_witness`) | 2 / 2 | ≥ 2 players within 40 blocks | hidden from the target, visible to the other | chime to the witness | to be seen by the wrong person | — | the witness warns the target | both see it (*Second Witness*) |
 | 16 | **While You Slept** (`night_visit`) | 2 / 2 | the player sleeps (event-triggered) | the bed and nearest door | door creak on waking; footprints door → bed | it came in | M1 door, M2 a light, M6 effigy at the foot of the bed | close the door / break the effigy | *While You Slept*; reverts in 5 min |
 | 17 | **It Came Through** (`portal_follow`) | 1 / 2 | 60–150 s after a dimension change | the arrival point | heavy arrival, two steps, footprints away | continuity | — | — | *Elsewhere Too* (Nether/End) |
 | 18 | **The Vigil** (`vigil`) | finale | player-initiated: 12 pages, a Witness Lens, night, near home | the home grounds | chime per round, title cards | to be witnessed | M1, M2, M4 screens; optional global rain | find it and hold it three times | **Witnessed** + The Observer's Eye; or blackout and retry |
+| 19 | **Closer Each Time** (`creeping`) | 3 / 3 | night, darkness or a cave, on open ground | appears in view 20–30 blocks ahead; then wherever it gets to | a low hum, soft fog, glowing eyes, a click each time it has moved | to come for you, but only unseen | — | keep it in view (8 s backs it off), stand in bright light, use the lens, or get 56 blocks away | it is closer every time you look away; if it reaches you: a shriek and the telegraphed strike (aggression "never": only darkness). *Held Gaze* |
+
+**Lunge (shared reaction, stage 3+).** When it is noticed in *The Figure at the Edge* or *Always the Same Place*, it
+may shriek and come at the player in jerks (~14 blocks/s), then tear apart right in front of them. It only strikes on
+High aggression, never at aggression "never", and only within the sudden-scare budget (35 % of sightings on Standard
+scares, 20 % on Rare, never when scares are off).
+
+**Peeking.** Whenever it stands still beside cover (a trunk, a wall corner, a door frame) relative to the player, it
+leans out from behind it; without cover it stands normally.
 
 ★ = signature encounter (combines stalking, a noticeable discrepancy, environmental manipulation and a meaningful
 choice). Context-adaptive placement (water surface, ground below elevated players, caves, Nether/End) is part of
@@ -39,23 +48,23 @@ encounter 1 rather than counted as separate types.
 
 | # | Concept | Context → cue → intention → manipulation → response → consequence |
 |---|---|---|
-| 19 | **Rooftop** | indoors under a roof → heavy steps directly above your head that stop when you stop → closeness → none → go outside and look up → footprints on the roof |
-| 20 | **Held Door** | you open a door it is behind → the door will not open for two seconds (state reset each tick) → it is on the other side → M1 → step back / use the lens → it lets go; knock |
-| 21 | **Lantern Trail** | night travel → a line of lanterns (temporary, no drops) leading into darkness → to lead you somewhere → place lights → follow / ignore → at the end: an effigy or it, waiting |
-| 22 | **Imprint** | returning to bed → footprints lead to your bed and stop → it lay where you sleep → none → move your bed / ward the room → *Imprint* page |
-| 23 | **Herd Watch** | farm or pasture → every animal stops and faces one spot → that is where it stands → M8 extended → look where they look → it steps out of sight |
-| 24 | **Swap** | two identical decorative blocks nearby → they exchange places → is it the same room? → two linked ledger changes → notice / put back → *Put Back* |
-| 25 | **Borrowed Voice** | near villagers → villager sounds carry your habit sounds → imitation through others → positional sounds at mobs → investigate → footprints between them |
-| 26 | **The Waypoint** | open terrain → a locator-bar waypoint (script Waypoint API) flickers once, pointing at it → being findable → none → follow it → it is gone when you arrive; effigy |
-| 27 | **Where You Fell** | after a death → an effigy stands at the death location facing where you fell → memory → M6 → retrieve your items / break it → *Where You Fell* page |
-| 28 | **Night Shift** (multiplayer) | one player sleeps, another is awake → it visits the one who is awake, near the sleeper → protectiveness? → M1/M2 → wake the sleeper / guard → shared discovery |
-| 29 | **Copy Cat** (Unsettling) | branch mining → a parallel tunnel appears beside yours (carved, restored later) → imitation → M7 → explore it → it stands at the end |
-| 30 | **Undertow** | swimming far from shore → a gentle current pulls toward where it stands on the water → isolation → small impulses → swim against it / get in a boat → it sinks |
-| 31 | **Distant Lights** | night on high ground → torches lit far away in a line pointing at you → announcement → temporary placed lights → go and look / ward → the line points somewhere new |
-| 32 | **The Visitor's Chair** | your work spot (crafting/furnace) → a stair block placed facing it, as if someone sat watching → it watched you work → mimic placement → sit in it / remove it → *The Visitor's Chair* page |
-| 33 | **Counted** | after 7+ in-game days → seven knocks at the door at dusk → it counts with you → none → open the door → nothing but footprints |
-| 34 | **Map Edge** | exploring new chunks → the first new area you enter has its footprints already in it → it went ahead → traces → follow the trail → *It Went Ahead* page |
-| 35 | **Second Echo** (multiplayer) | two players far apart → each hears the other's work sounds where they are → it carries you to each other → borrowed sounds across players → compare notes → shared *Borrowed Work* |
+| 20 | **Rooftop** | indoors under a roof → heavy steps directly above your head that stop when you stop → closeness → none → go outside and look up → footprints on the roof |
+| 21 | **Held Door** | you open a door it is behind → the door will not open for two seconds (state reset each tick) → it is on the other side → M1 → step back / use the lens → it lets go; knock |
+| 22 | **Lantern Trail** | night travel → a line of lanterns (temporary, no drops) leading into darkness → to lead you somewhere → place lights → follow / ignore → at the end: an effigy or it, waiting |
+| 23 | **Imprint** | returning to bed → footprints lead to your bed and stop → it lay where you sleep → none → move your bed / ward the room → *Imprint* page |
+| 24 | **Herd Watch** | farm or pasture → every animal stops and faces one spot → that is where it stands → M8 extended → look where they look → it steps out of sight |
+| 25 | **Swap** | two identical decorative blocks nearby → they exchange places → is it the same room? → two linked ledger changes → notice / put back → *Put Back* |
+| 26 | **Borrowed Voice** | near villagers → villager sounds carry your habit sounds → imitation through others → positional sounds at mobs → investigate → footprints between them |
+| 27 | **The Waypoint** | open terrain → a locator-bar waypoint (script Waypoint API) flickers once, pointing at it → being findable → none → follow it → it is gone when you arrive; effigy |
+| 28 | **Where You Fell** | after a death → an effigy stands at the death location facing where you fell → memory → M6 → retrieve your items / break it → *Where You Fell* page |
+| 29 | **Night Shift** (multiplayer) | one player sleeps, another is awake → it visits the one who is awake, near the sleeper → protectiveness? → M1/M2 → wake the sleeper / guard → shared discovery |
+| 30 | **Copy Cat** (Unsettling) | branch mining → a parallel tunnel appears beside yours (carved, restored later) → imitation → M7 → explore it → it stands at the end |
+| 31 | **Undertow** | swimming far from shore → a gentle current pulls toward where it stands on the water → isolation → small impulses → swim against it / get in a boat → it sinks |
+| 32 | **Distant Lights** | night on high ground → torches lit far away in a line pointing at you → announcement → temporary placed lights → go and look / ward → the line points somewhere new |
+| 33 | **The Visitor's Chair** | your work spot (crafting/furnace) → a stair block placed facing it, as if someone sat watching → it watched you work → mimic placement → sit in it / remove it → *The Visitor's Chair* page |
+| 34 | **Counted** | after 7+ in-game days → seven knocks at the door at dusk → it counts with you → none → open the door → nothing but footprints |
+| 35 | **Map Edge** | exploring new chunks → the first new area you enter has its footprints already in it → it went ahead → traces → follow the trail → *It Went Ahead* page |
+| 36 | **Second Echo** (multiplayer) | two players far apart → each hears the other's work sounds where they are → it carries you to each other → borrowed sounds across players → compare notes → shared *Borrowed Work* |
 
 ## Adding a new encounter
 

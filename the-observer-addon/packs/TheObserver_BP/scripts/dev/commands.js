@@ -102,6 +102,9 @@ export function run(name, args, caller) {
       updateSettings({ dev: args[0] === "on" || args[0] === "true" });
       DEBUG.trace = S().dev;
       return `debug ${S().dev ? "on" : "off"}`;
+    case "lunge":
+      DEBUG.lunge = args[0] === "always" || args[0] === "never" ? args[0] : "auto";
+      return `lunge ${DEBUG.lunge}`;
     case "trace":
       DEBUG.trace = args[0] !== "off";
       return `trace ${DEBUG.trace ? "on" : "off"}`;

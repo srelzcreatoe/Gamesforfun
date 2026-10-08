@@ -130,6 +130,11 @@ async function observerGone(ticks = 200) {
   }
   return false;
 }
+/** Move every other player far out of sight (any player's gaze counts for encounters like Closer Each Time). */
+function isolate(p) {
+  for (const o of world.getAllPlayers()) if (o && o.id !== p.id) o.teleport({ x: 1112.5, y: Y, z: 966.5 });
+}
+
 /** Record damage a player takes (health regenerates, so comparing health before/after is unreliable). */
 function trackDamage(p) {
   const r = { total: 0, minHp: 1e9, stop: () => world.afterEvents.entityHurt.unsubscribe(cb) };
@@ -153,6 +158,7 @@ TESTS.setup = async () => {
   obs("pause", "on");
   obs("preset", "standard");
   obs("set", "graceMinutes", "0");
+  obs("lunge", "never"); // the lunge is random in play; its own test switches it on
   await wait(20);
   const p = spawn("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
   await wait(20);
@@ -975,6 +981,7 @@ TESTS.showcase = async () => {
   const end = await endOf("showcase", m, 400);
   dmg.stop();
   check("showcase_outcome", end && end.outcome === "shown", end ? end.outcome : "none");
+  check("showcase_ends_in_vanish", since(m, "fx").some((d) => d.what === "vanish"), JSON.stringify(since(m, "fx")));
   check("showcase_harmless", dmg.total === 0 && since(m, "ledger").length === 0 && since(m, "discovery").length === 0,
     `damage=${dmg.total} changes=${since(m, "ledger").length} discoveries=${since(m, "discovery").length}`);
   p.setGameMode(GameMode.Survival);
@@ -984,7 +991,7 @@ TESTS.showcase = async () => {
 TESTS.toggles = async () => {
   // encounter types switched off on the Config Wheel are never chosen by the director
   const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
-  const all = ["distant_watch", "extra_step", "home_visit", "closed_path", "borrowed_sound", "turned_object", "door_ajar", "snuffed_lights",
+  const all = ["creeping", "distant_watch", "extra_step", "home_visit", "closed_path", "borrowed_sound", "turned_object", "door_ajar", "snuffed_lights",
     "mirror_bearing", "echo_ahead", "unfamiliar_route", "close_breath", "pursuit", "window_watch", "second_witness", "night_visit", "portal_follow"];
   obs("set", "off", all.filter((x) => x !== "distant_watch").join(","));
   const m = mark();
@@ -994,6 +1001,159 @@ TESTS.toggles = async () => {
   check("toggles_only_enabled_type", !!st && st.type === "distant_watch", st ? `${st.target}: ${st.type}` : "no encounter started");
   obs("abort");
   obs("set", "off", "");
+  await observerGone(200);
+};
+
+TESTS.presence_fx = async () => {
+  // eyes glow at night (observer:dark), not at noon in the open; removal tears it apart (vanish effect)
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 });
+  ow().runCommand("time set midnight");
+  let m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  let e = await waitObserver(60);
+  if (!check("presence_body_night", !!e, (since(m, "end")[0] || {}).outcome)) return;
+  await wait(30);
+  check("eyes_glow_at_night", e.isValid && e.getProperty("observer:dark") === true, String(e.isValid && e.getProperty("observer:dark")));
+  obs("abort");
+  const v = await waitEvent("fx", (d) => d.what === "vanish", 60, m);
+  check("vanish_effect_on_removal", !!v, v ? v.why : "none");
+  await endOf("distant_watch", m, 200);
+  ow().runCommand("time set noon");
+  await wait(20);
+  m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  e = await waitObserver(60);
+  if (e) {
+    await wait(30);
+    const light = ow().getLightLevel({ x: e.location.x, y: e.location.y + 3.6, z: e.location.z });
+    check("eyes_dim_at_noon", e.isValid && (e.getProperty("observer:dark") === false || light <= 7), `dark=${e.isValid && e.getProperty("observer:dark")} light=${light}`);
+  }
+  obs("abort");
+  await endOf("distant_watch", m, 200);
+  await observerGone(200);
+};
+
+TESTS.auto_peek = async () => {
+  // something beside it (a wall, a trunk): it leans out from behind it; take it away and it stands normally
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z + 30 });
+  const m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  const e = await waitObserver(60);
+  if (!check("auto_peek_body", !!e, (since(m, "end")[0] || {}).outcome)) return;
+  p.lookAtLocation({ x: p.location.x - (e.location.x - p.location.x), y: Y + 1.6, z: p.location.z - (e.location.z - p.location.z) });
+  const toEye = { x: p.location.x - e.location.x, z: p.location.z - e.location.z };
+  const len = Math.hypot(toEye.x, toEye.z);
+  const side = { x: -toEye.z / len, z: toEye.x / len };
+  const col = { x: Math.floor(e.location.x + side.x * 0.9), z: Math.floor(e.location.z + side.z * 0.9) };
+  const fy = Math.floor(e.location.y);
+  const placed = [];
+  for (const h of [1, 2, 3]) {
+    const b = ow().getBlock({ x: col.x, y: fy + h, z: col.z });
+    if (b && b.isAir) {
+      b.setType("minecraft:oak_log");
+      placed.push({ x: col.x, y: fy + h, z: col.z });
+    }
+  }
+  let peeked = false;
+  for (let t = 0; t < 60 && e.isValid; t += 5) {
+    await wait(5);
+    if (e.getProperty("observer:state") === "peek") peeked = true;
+    if (peeked) break;
+  }
+  check("auto_peek_leans_out", peeked && placed.length > 0, `state=${e.isValid ? e.getProperty("observer:state") : "gone"} side=${e.isValid ? e.getProperty("observer:side") : "?"} logs=${placed.length}`);
+  for (const b of placed) ow().getBlock(b)?.setType("minecraft:air");
+  let back = false;
+  for (let t = 0; t < 60 && e.isValid; t += 5) {
+    await wait(5);
+    if (e.getProperty("observer:state") === "watch") back = true;
+    if (back) break;
+  }
+  check("auto_peek_stands_without_cover", back, `state=${e.isValid ? e.getProperty("observer:state") : "gone"}`);
+  obs("abort");
+  await endOf("distant_watch", m, 200);
+  await observerGone(200);
+};
+
+TESTS.lunge = async () => {
+  // stage 3+, seen: it shrieks, comes at you in jerks and tears apart in front of you (no damage below High)
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 4);
+  const dmg = trackDamage(p);
+  obs("lunge", "always");
+  const m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  const e = await waitObserver(60);
+  if (!check("lunge_body", !!e, (since(m, "end")[0] || {}).outcome)) {
+    obs("lunge", "never");
+    dmg.stop();
+    return;
+  }
+  const d0 = hdist(e.location, p.location);
+  let minD = d0;
+  for (let t = 0; t < 20 * 12 && e.isValid; t += 2) {
+    p.lookAtLocation({ x: e.location.x, y: e.location.y + 2.2, z: e.location.z });
+    minD = Math.min(minD, hdist(e.location, p.location));
+    await wait(2);
+  }
+  const end = await endOf("distant_watch", m, 200);
+  dmg.stop();
+  obs("lunge", "never");
+  check("lunge_charged", !!since(m, "lunge")[0] && minD < 5, `from ${d0.toFixed(1)} to ${minD.toFixed(1)} blocks`);
+  check("lunge_tore_apart", since(m, "fx").some((d) => d.what === "vanish" && d.why === "lunge"), JSON.stringify(since(m, "fx")));
+  check("lunge_outcome_harmless", end && end.outcome === "lunged" && dmg.total === 0, `${end ? end.outcome : "none"} damage=${dmg.total}`);
+  await observerGone(200);
+};
+
+TESTS.creeping_held = async () => {
+  // Closer Each Time: it moves only while unwatched; held in view for 8 s it backs off
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 4);
+  isolate(p);
+  ow().runCommand("time set midnight");
+  const m = mark();
+  obs("trigger", "creeping", "Tester");
+  const e = await waitObserver(120);
+  if (!check("creeping_body", !!e, (since(m, "end")[0] || {}).outcome)) return;
+  // watched: it does not move
+  const l0 = { ...e.location };
+  await lookAtObserverFor(p, 40);
+  check("creeping_frozen_while_watched", e.isValid && hdist(e.location, l0) < 0.3, e.isValid ? `moved ${hdist(e.location, l0).toFixed(2)}` : "gone");
+  // look away: it is closer
+  const d0 = hdist(e.location, p.location);
+  p.lookAtLocation({ x: p.location.x - (e.location.x - p.location.x), y: Y + 1.6, z: p.location.z - (e.location.z - p.location.z) });
+  const c = await waitEvent("creep", () => true, 60, m);
+  check("creeping_closer_when_unwatched", !!c && c.d < d0, c ? `${d0.toFixed(1)} -> ${c.d.toFixed(1)}` : "did not move");
+  // hold its gaze
+  await lookAtObserverFor(p, 200);
+  const end = await endOf("creeping", m, 300);
+  check("creeping_stared_down", end && end.outcome === "stared_down", end ? end.outcome : "none");
+  check("creeping_held_gaze_discovery", discovered(m, "held_gaze"));
+  ow().runCommand("time set noon");
+  await observerGone(200);
+};
+
+TESTS.creeping_reaches = async () => {
+  // never looked at: it reaches the player and strikes (telegraphed); the strike never kills
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 4);
+  isolate(p);
+  ow().runCommand("time set midnight");
+  const dmg = trackDamage(p);
+  const m = mark();
+  obs("trigger", "creeping", "Tester");
+  const e = await waitObserver(120);
+  if (!check("creeping_reaches_body", !!e, (since(m, "end")[0] || {}).outcome)) {
+    dmg.stop();
+    return;
+  }
+  // look the other way the whole time
+  for (let t = 0; t < 20 * 40 && e.isValid; t += 4) {
+    p.lookAtLocation({ x: p.location.x - (e.location.x - p.location.x), y: Y + 1.6, z: p.location.z - (e.location.z - p.location.z) });
+    await wait(4);
+  }
+  const end = await endOf("creeping", m, 300);
+  dmg.stop();
+  const moves = since(m, "creep").length;
+  check("creeping_reaches_outcome", end && (end.outcome === "struck" || end.outcome === "dodged"), `${end ? end.outcome : "none"} moves=${moves}`);
+  check("creeping_reaches_nonlethal", dmg.minHp >= 1, `damage ${dmg.total} lowest hp ${dmg.minHp}`);
+  ow().runCommand("time set noon");
   await observerGone(200);
 };
 

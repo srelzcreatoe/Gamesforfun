@@ -35,6 +35,7 @@ import "./encounters/night_visit.js";
 import "./encounters/portal_follow.js";
 import "./encounters/vigil.js";
 import "./encounters/showcase.js";
+import "./encounters/creeping.js";
 
 let ready = false;
 

@@ -4,10 +4,12 @@
     "description": {
       "identifier": "observer:the_observer",
       "materials": {
-        "default": "entity_alphatest"
+        "default": "entity_alphatest",
+        "eyes": "entity_alphatest"
       },
       "textures": {
-        "default": "textures/entity/observer/the_observer"
+        "default": "textures/entity/observer/the_observer",
+        "eyes": "textures/entity/observer/the_observer_eyes"
       },
       "geometry": {
         "default": "geometry.observer.the_observer"
@@ -24,20 +26,29 @@
         "stoop": "animation.observer.stoop",
         "look_at_target": "animation.observer.look_at_target",
         "ctrl_state": "controller.animation.observer.state",
-        "ctrl_stoop": "controller.animation.observer.stoop"
+        "ctrl_stoop": "controller.animation.observer.stoop",
+        "ctrl_aura": "controller.animation.observer.aura",
+        "ctrl_eyes": "controller.animation.observer.eyes"
       },
       "scripts": {
         "animate": [
           "ctrl_state",
-          "ctrl_stoop"
+          "ctrl_stoop",
+          "ctrl_aura",
+          "ctrl_eyes"
         ]
+      },
+      "particle_effects": {
+        "wisp": "observer:wisp",
+        "eye_glow": "observer:eye_glow"
       },
       "sound_effects": {
         "windup": "observer.windup",
         "recoil": "observer.fabric"
       },
       "render_controllers": [
-        "controller.render.observer.the_observer"
+        "controller.render.observer.the_observer",
+        "controller.render.observer.eyes"
       ],
       "spawn_egg": {
         "base_color": "#0e0e10",

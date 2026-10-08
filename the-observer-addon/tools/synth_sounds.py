@@ -7,6 +7,7 @@ Design notes per sound are in docs/AUDIO.md.
 
 Output: packs/TheObserver_RP/sounds/observer/<name>.ogg  (mono, 44.1 kHz)
 Requires numpy and ffmpeg with libvorbis.
+`--only voice,presence,notice,shriek,vanish` regenerates just those (OGG files differ byte-wise between runs).
 """
 import os
 import subprocess
@@ -350,7 +351,135 @@ def ring():
     return sine(6200, sec) * env(n, 0.5, 0.2, 0.4, 0.7, 0.8) * 0.5
 
 
+# ----------------------------------------------------------------------------- its own voice (1.0.2)
+
+def trim(x, floor=0.003):
+    """Cut the silent end of a reverb tail (keeps 60 ms after the last audible sample)."""
+    m = np.max(np.abs(x)) or 1
+    idx = np.nonzero(np.abs(x) > floor * m)[0]
+    end = min(len(x), (idx[-1] if len(idx) else len(x)) + int(SR * 0.06))
+    return x[:end]
+
+
+def glottal(f0_fn, sec, jitter=0.08):
+    """Irregular glottal pulse train (vocal fry): one short decaying pulse per period."""
+    n = int(round(SR * sec))
+    x = np.zeros(n)
+    tpos = 0.0
+    while tpos < sec:
+        i = int(tpos * SR)
+        ln = min(n - i, int(SR * 0.012))
+        if ln > 0:
+            x[i:i + ln] += np.exp(-np.arange(ln) / (SR * 0.0025)) * rng.uniform(0.6, 1.0)
+        f = max(8.0, f0_fn(tpos)) * (1 + rng.uniform(-jitter, jitter))
+        tpos += 1.0 / f
+    return x
+
+
+def formants(x, centres, q=1.6):
+    return sum(bp(x, fc / q, fc * q) * g for fc, g in centres)
+
+
+def voice(v):
+    """Its own noise: a slow creaking groan through cloth, a wet inhale, and throat clicks."""
+    sec = 3.2 + v * 0.5
+    n = int(round(SR * sec))
+    tt = t(sec)
+    base = 42 - v * 5
+    fry = glottal(lambda q: base * (1.0 - 0.25 * q / sec) + 6 * np.sin(2 * np.pi * 0.7 * q), sec)
+    groan = formants(fry, [(330 + v * 40, 1.0), (880, 0.6), (2300, 0.25)])
+    shape = np.clip(tt / 0.6, 0, 1) * np.clip((sec - tt) / 1.0, 0, 1)
+    groan *= shape * (1 + 0.25 * np.sin(2 * np.pi * 5.5 * tt))
+    # wet inhale before the groan, a dry exhale after it
+    inhale = bp(noise(n), 500, 3200) * np.exp(-((tt - 0.35) / 0.22) ** 2) * 0.35
+    exhale = bp(noise(n), 300, 1800) * np.exp(-((tt - (sec - 0.6)) / 0.3) ** 2) * 0.25
+    clicks = np.zeros(n)
+    for _ in range(4 + v):
+        s0 = int(rng.uniform(0.5, sec - 0.4) * SR)
+        ln = int(SR * 0.008)
+        f = rng.uniform(1800, 3800)
+        clicks[s0:s0 + ln] += np.sin(2 * np.pi * f * np.arange(ln) / SR) * np.exp(-np.arange(ln) / (SR * 0.0015)) * rng.uniform(0.4, 0.9)
+    sub = sine(base * 0.5, sec) * shape * 0.25
+    return trim(reverb(groan * 1.3 + inhale + exhale + clicks * 0.6 + sub, 0.9, 0.35))
+
+
+def presence(v):
+    """It arrives: pressure in the ears, a reversed swell that cuts off, and a thin whine."""
+    sec = 2.6
+    n = int(round(SR * sec))
+    tt = t(sec)
+    swell = np.clip(tt / 1.9, 0, 1) ** 3 * (tt < 1.95)
+    rev = bp(noise(n), 400, 7000) * swell * 0.7
+    sub = sine(lambda q: 38 + 10 * v + 12 * np.clip(q / 1.9, 0, 1), sec) * np.clip(tt / 1.2, 0, 1) * np.clip((sec - tt) / 0.7, 0, 1)
+    whine = sine(6800 + 300 * v, sec) * np.clip((tt - 1.95) / 0.05, 0, 1) * np.exp(-np.maximum(tt - 1.95, 0) / 0.5) * 0.12
+    thud = sine(lambda q: 55 * (1 - 0.5 * np.clip((q - 1.95) / 0.3, 0, 1)), sec) * (tt >= 1.95) * np.exp(-np.maximum(tt - 1.95, 0) / 0.18)
+    return trim(reverb(rev + sub * 0.8 + whine + thud * 0.9, 1.2, 0.4))
+
+
+def notice(v):
+    """It notices you looking: accelerating wet clicks and a crack of the neck."""
+    sec = 1.1
+    n = int(round(SR * sec))
+    x = np.zeros(n)
+    tpos, gap = 0.02, 0.11
+    for _ in range(10):  # ten clicks, each gap shorter than the last
+        i = int(tpos * SR)
+        ln = int(SR * 0.012)
+        f = rng.uniform(1400, 3200)
+        x[i:i + ln] += np.sin(2 * np.pi * f * np.arange(ln) / SR) * np.exp(-np.arange(ln) / (SR * 0.002))
+        x[i:i + ln] += bp(noise(ln), 800, 5000) * np.exp(-np.arange(ln) / (SR * 0.003)) * 0.6
+        tpos += gap
+        gap *= 0.78
+    c = int(SR * (0.68 + 0.03 * v))
+    ln = n - c
+    crack = bp(noise(ln), 150, 2400) * np.exp(-np.arange(ln) / (SR * 0.035))
+    crack += sine(lambda q: 90 * (1 - 0.6 * np.minimum(q / 0.1, 1)), ln / SR) * np.exp(-np.arange(ln) / (SR * 0.06)) * 0.8
+    x[c:] += crack * 1.4
+    return trim(reverb(x, 0.6, 0.3))
+
+
+def shriek(v):
+    """A distorted scream that rises: detuned saws through an 'ee' formant, saturated."""
+    sec = 1.9
+    n = int(round(SR * sec))
+    tt = t(sec)
+    f0 = lambda q: (260 + 40 * v) * (1 + 1.6 * np.clip(q / 0.5, 0, 1) ** 0.7) * (1 + 0.03 * np.sin(2 * np.pi * 9 * q))
+    saw = np.zeros(n)
+    for det in (0.985, 1.0, 1.013, 1.5):
+        ph = np.cumsum(f0(tt) * det) / SR
+        saw += 2 * (ph - np.floor(ph + 0.5))
+    voiced = formants(saw, [(380, 0.6), (2600, 1.0), (3400, 0.7)], 1.4)
+    rasp = bp(noise(n), 1500, 7000) * 0.5
+    x = (voiced + rasp) * np.clip(tt / 0.04, 0, 1) * np.clip((sec - tt) / 0.7, 0, 1)
+    x = np.tanh(x * 3.5)
+    return trim(reverb(x, 1.0, 0.35))
+
+
+def vanish(v):
+    """It tears apart: ripping cloth, a sucked-in breath, a soft collapse."""
+    sec = 1.4
+    n = int(round(SR * sec))
+    tt = t(sec)
+    crackle = (rng.random(n) < 0.004 + 0.003 * v).astype(float) * rng.uniform(0.3, 1.0, n)
+    rip = sweep_bp(noise(n) * 0.4 + crackle * 3, 5000, 900) * np.clip(tt / 0.02, 0, 1) * np.exp(-tt / 0.35)
+    suck = bp(noise(n), 600, 4000) * np.clip(tt / 0.5, 0, 1) ** 2 * (tt < 0.5) * 0.4
+    whump = sine(lambda q: 70 * (1 - 0.5 * np.minimum(q / 0.4, 1)), sec) * np.exp(-np.maximum(tt - 0.45, 0) / 0.2) * (tt >= 0.45)
+    return trim(reverb(rip * 1.2 + suck[::-1] * 0.3 + whump * 0.8, 0.8, 0.35))
+
+
 def main():
+    only = set(sys.argv[2].split(",")) if len(sys.argv) > 2 and sys.argv[1] == "--only" else None
+    if only:
+        made = []
+        gens = {"voice": (voice, 3, 0.8), "presence": (presence, 2, 0.8), "notice": (notice, 2, 0.8),
+                "shriek": (shriek, 2, 0.7), "vanish": (vanish, 2, 0.8)}
+        for name in only:
+            fn, variants, peak = gens[name]
+            for v in range(variants):
+                made.append(write(f"{name}{v + 1}", fn(v), peak))
+        for path, dur in made:
+            print(f"{os.path.relpath(path, ROOT)}  {dur:.2f}s  {os.path.getsize(path)} bytes")
+        return 0
     made = []
     for v in range(4):
         made.append(write(f"step{v + 1}", step(v)))
@@ -377,6 +506,10 @@ def main():
     made.append(write("turn", turn(), 0.7))
     made.append(write("sink", sink(), 0.8))
     made.append(write("ring", ring(), 0.35))
+    for name, fn, variants, peak in (("voice", voice, 3, 0.8), ("presence", presence, 2, 0.8), ("notice", notice, 2, 0.8),
+                                     ("shriek", shriek, 2, 0.7), ("vanish", vanish, 2, 0.8)):
+        for v in range(variants):
+            made.append(write(f"{name}{v + 1}", fn(v), peak))
     for path, dur in made:
         print(f"{os.path.relpath(path, ROOT)}  {dur:.2f}s  {os.path.getsize(path)} bytes")
 

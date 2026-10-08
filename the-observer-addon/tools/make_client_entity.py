@@ -15,6 +15,11 @@ State -> animation mapping (q.property('observer:state') is set by the behaviour
 
 observer:stoop (bool) layers the additive stoop crouch on top of any state so the
 4-block figure fits 3-block spaces.
+
+Presence effects (client side, so they follow the body exactly):
+  * aura   while it is shown: glowing wisps (supplied wisp sprites) around it from head to toe
+  * eyes   a second render layer with only the two eye cubes, drawn at full brightness (ignore_lighting),
+           and, while q.property('observer:dark') is set (night or light <= 7), a soft glow at the eye locators
 """
 import json
 import os
@@ -61,15 +66,36 @@ def stoop_controller():
     }}
 
 
+SHOWN = "q.property('observer:state') != 'hidden'"
+DARK = f"q.property('observer:dark') && {SHOWN}"
+
+
+def aura_controller():
+    return {"initial_state": "default", "states": {
+        "default": {"transitions": [{"aura": SHOWN}]},
+        "aura": {"particle_effects": [{"effect": "wisp"}], "transitions": [{"default": f"!({SHOWN})"}]},
+    }}
+
+
+def eyes_controller():
+    return {"initial_state": "default", "states": {
+        "default": {"transitions": [{"glow": DARK}]},
+        "glow": {"particle_effects": [{"effect": "eye_glow", "locator": "eye_1"}, {"effect": "eye_glow", "locator": "eye_2"}],
+                 "transitions": [{"default": f"!({DARK})"}]},
+    }}
+
+
 def main():
     ac = {"format_version": "1.10.0", "animation_controllers": {
         "controller.animation.observer.state": state_controller(),
         "controller.animation.observer.stoop": stoop_controller(),
+        "controller.animation.observer.aura": aura_controller(),
+        "controller.animation.observer.eyes": eyes_controller(),
     }}
     client = {"format_version": "1.10.0", "minecraft:client_entity": {"description": {
         "identifier": "observer:the_observer",
-        "materials": {"default": "entity_alphatest"},
-        "textures": {"default": "textures/entity/observer/the_observer"},
+        "materials": {"default": "entity_alphatest", "eyes": "entity_alphatest"},
+        "textures": {"default": "textures/entity/observer/the_observer", "eyes": "textures/entity/observer/the_observer_eyes"},
         "geometry": {"default": "geometry.observer.the_observer"},
         "animations": {
             "idle": "animation.observer.idle",
@@ -84,11 +110,14 @@ def main():
             "look_at_target": "animation.observer.look_at_target",
             "ctrl_state": "controller.animation.observer.state",
             "ctrl_stoop": "controller.animation.observer.stoop",
+            "ctrl_aura": "controller.animation.observer.aura",
+            "ctrl_eyes": "controller.animation.observer.eyes",
         },
-        "scripts": {"animate": ["ctrl_state", "ctrl_stoop"]},
+        "scripts": {"animate": ["ctrl_state", "ctrl_stoop", "ctrl_aura", "ctrl_eyes"]},
+        "particle_effects": {"wisp": "observer:wisp", "eye_glow": "observer:eye_glow"},
         # short name -> sound event, as plain strings (the client rejects {"effect": ...} objects here)
         "sound_effects": {"windup": "observer.windup", "recoil": "observer.fabric"},
-        "render_controllers": ["controller.render.observer.the_observer"],
+        "render_controllers": ["controller.render.observer.the_observer", "controller.render.observer.eyes"],
         "spawn_egg": {"base_color": "#0e0e10", "overlay_color": "#d8d4cf"},
     }}}
     rc = {"format_version": "1.8.0", "render_controllers": {"controller.render.observer.the_observer": {
@@ -96,6 +125,13 @@ def main():
         "materials": [{"*": "Material.default"}],
         "textures": ["Texture.default"],
         "part_visibility": [{"*": "q.property('observer:state') != 'hidden'"}],
+    }, "controller.render.observer.eyes": {
+        # only the eye cubes have pixels in this texture; drawn at full brightness so they glow in the dark
+        "geometry": "Geometry.default",
+        "materials": [{"*": "Material.eyes"}],
+        "textures": ["Texture.eyes"],
+        "ignore_lighting": True,
+        "part_visibility": [{"*": False}, {"head": "q.property('observer:state') != 'hidden'"}],
     }}}
     out = {
         os.path.join(RP, "animation_controllers", "the_observer.animation_controllers.json"): ac,

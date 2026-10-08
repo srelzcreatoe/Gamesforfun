@@ -6,7 +6,7 @@
 import { register } from "../director/director.js";
 import * as body from "../observer/body.js";
 import { animalsFace } from "../world/manipulate.js";
-import { observe, sighting, favouredBearing, bearingHit, trailAway, findSpotLoose, sink } from "./common.js";
+import { observe, sighting, favouredBearing, bearingHit, trailAway, findSpotLoose, sink, wantsLunge, lunge } from "./common.js";
 import { V, chance, rand } from "../core/util.js";
 
 register({
@@ -69,6 +69,7 @@ register({
     if (r.noticed) {
       sighting(enc, r.by ?? enc.p);
       if (mode === "bearing") bearingHit(enc);
+      if (!spot.liquid && wantsLunge(enc)) return lunge(enc);
       body.setState("stare");
       await enc.wait(Math.round(rand(10, 26)));
       if (spot.liquid) await sink(enc);

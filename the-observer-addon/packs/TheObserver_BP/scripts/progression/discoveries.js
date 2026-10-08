@@ -18,8 +18,8 @@ export const DISCOVERIES = [
 export const VIGIL_REQUIREMENT = 12;
 
 /** Stage thresholds on exposure points. Stage 1 begins when the grace period ends. */
-export const STAGE_EXPOSURE = [0, 0, 4, 10, 18, 30];
-export const STAGE_MIN_ENCOUNTERS = [0, 0, 2, 4, 7, 10];
+export const STAGE_EXPOSURE = [0, 0, 3, 8, 14, 22];
+export const STAGE_MIN_ENCOUNTERS = [0, 0, 2, 3, 5, 8];
 
 /** @param {Player} p @param {string} id @returns {boolean} newly unlocked */
 export function discover(p, id) {

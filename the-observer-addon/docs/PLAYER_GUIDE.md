@@ -18,7 +18,7 @@ Minecraft imports both packs. Then:
 3. Play. Nothing happens during the grace period (12 minutes of play on the Standard preset). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from 1.0.0:** import the new `.mcaddon` (version 1.0.1). If a world still uses the old copy, open the world's
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.0.2). If a world still uses the old copy, open the world's
 settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.0.1 packs again.
 
 **Existing worlds:** back the world up first, then add the packs as above. The add-on only changes blocks in small,
@@ -33,11 +33,16 @@ The Observer does not attack on sight and it rarely shows itself. Early on you w
 should not be there, a door you closed standing open, a pumpkin facing you. Later, footsteps that match yours. Later
 still, it will come closer. How you respond matters — most encounters end peacefully if you notice and answer them.
 
+When you do see it: a four-block figure wrapped in drifting, faintly glowing wisps, its two white eyes burning in the
+dark. It groans to itself when it is near. When it knows you have seen it there is a rattle of clicks and a crack —
+and from the third stage on it may shriek and come straight at you. When it leaves, it tears apart into crimson shreds.
+
 Some useful habits (no spoilers beyond what the game tells you early):
 * If something changed, **put it back** — or look closely at it.
 * If you hear something you did, from somewhere you are not, **go and look**.
 * If steps behind you stop when you stop, **turn around**.
-* It does not like being looked at. **Keep your eyes on it** when it matters.
+* It does not like being looked at. **Keep your eyes on it** when it matters — some nights it only moves while
+  nobody is watching it.
 * **Light** helps. So does a friend watching your back.
 
 ## The Config Wheel
@@ -48,7 +53,7 @@ Players who are not operators only see the status and their own caption setting.
 | Button | What it does |
 |---|---|
 | status (top) | on/off and preset, your stage or how long until it begins, whether something may happen soon, how many changed blocks are waiting to be put back; warns you if your game mode keeps it away |
-| **See it now** | a harmless preview: it appears a few blocks in front of you and shows each animation (watching, staring, head tilt, peeking, stalking walk, running, strike wind-up, recoil), named on screen, then walks away. Works in Creative, changes nothing and does not count toward the story |
+| **See it now** | a harmless preview: it appears a few blocks in front of you and shows each animation (watching, staring, head tilt, peeking, stalking walk, running, strike wind-up with its shriek, recoil), named on screen, then lunges at you and tears apart. Glowing wisps surround it; at night its eyes glow. Works in Creative, never hurts, changes nothing and does not count toward the story |
 | **Start it for me now** / **Make something happen soon** | skips the grace period (or the current wait) for you; the first encounter follows within about a minute (Survival or Adventure only) |
 | **Switch The Observer on/off** | master switch; switching off puts back everything it changed |
 | **Presets** | Atmosphere, Standard, Relentless |

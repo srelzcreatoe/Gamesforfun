@@ -176,6 +176,11 @@ export class Encounter {
     safe(() => this.p.runCommand(`camerashake add @s ${intensity} ${seconds} rotational`));
   }
   /** Fade to black: reduced or full camera setting. */
+  /** Brief vanilla Darkness pulses (full camera effects only). @param {number} seconds */
+  darkness(seconds = 2) {
+    if (S().camera < 2) return;
+    safe(() => this.p.addEffect("darkness", Math.round(seconds * 20), { amplifier: 0, showParticles: false }));
+  }
   fade(inS = 0.4, hold = 0.4, outS = 0.8) {
     if (S().camera < 1) return false;
     safe(() => this.p.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: inS, holdTime: hold, fadeOutTime: outS } }));

@@ -22,7 +22,7 @@ import { DEBUG } from "./util.js";
 /** @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects"|"off">>} */
 export const PRESETS = {
   atmosphere: { frequency: 0.6, aggression: 0, manipulation: 1, scares: 0, camera: 1, graceMinutes: 15 },
-  standard: { frequency: 1.0, aggression: 2, manipulation: 2, scares: 1, camera: 2, graceMinutes: 12 },
+  standard: { frequency: 1.0, aggression: 2, manipulation: 2, scares: 2, camera: 2, graceMinutes: 12 },
   relentless: { frequency: 1.5, aggression: 3, manipulation: 3, scares: 2, camera: 2, graceMinutes: 5 },
 };
 

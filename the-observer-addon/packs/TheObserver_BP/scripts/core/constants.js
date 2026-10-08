@@ -27,7 +27,7 @@ export const PARTICLES = {
   footprint: "observer:footprint",
   motes: "observer:motes",
   unravel: "observer:unravel",
-  glint: "observer:eye_glint",
+  vanish: "observer:vanish",
   chalk: "observer:chalk_mark",
   chalkSmudged: "observer:chalk_smudged",
   dust: "observer:dust",
@@ -54,6 +54,11 @@ export const SOUNDS = {
   turn: "observer.turn",
   sink: "observer.sink",
   ring: "observer.ring",
+  voice: "observer.voice",
+  presence: "observer.presence",
+  notice: "observer.notice",
+  shriek: "observer.shriek",
+  vanish: "observer.vanish",
 };
 
 export const FOGS = { dread: "observer:dread", soft: "observer:dread_soft", vigil: "observer:vigil" };

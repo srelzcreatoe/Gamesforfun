@@ -104,9 +104,9 @@ export function coverSide(dim, feet, eye) {
     return false;
   };
   const left = solidAt(side), right = solidAt(V.scale(side, -1));
-  if (left && !right) return { side: -1, has: true };
-  if (right && !left) return { side: 1, has: true };
-  return { side: 1, has: left && right };
+  if (left && !right) return { side: -1, has: true, one: true };
+  if (right && !left) return { side: 1, has: true, one: true };
+  return { side: 1, has: left && right, one: false };
 }
 
 /**

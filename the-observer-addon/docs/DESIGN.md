@@ -126,9 +126,19 @@ lowers the figure to 2.81 blocks so it fits its 2.9-block collision box.
   server (speed ≈ 3.88 × multiplier² b/s for this entity). Walking *away* is script-driven (validated 0.18-block
   steps at ~1.8 b/s, at most one block up or down, three open blocks overhead): the vanilla `avoid_mob_type` goal in
   the unused `retreat` group did not move it away from players in the capability probe.
-* Head tracking, auto-stoop by headroom, and eye glints: when it stands in light ≤ 6, players in front of it see two
-  faint unlit glints where its eyes are — the model's eyes are texture-only, so this is how observant players can spot
-  it in darkness.
+* Head tracking and auto-stoop by headroom.
+* **Eyes**: a second render layer holds only the two white eye cubes and is drawn at full brightness, so the eyes
+  glow in darkness the way the vanilla Creaking's do. At night or in light ≤ 7 (`observer:dark`), a soft glow is also
+  attached to two locators on the eye cubes, so it follows every head movement.
+* **Aura**: while it is shown, glowing wisps (the user-supplied wisp sprites, additive, unlit) drift around it from
+  feet to head (`observer:wisp`, bound to the entity).
+* **Vanish**: every time it is removed — leaving, being stared down, a lunge, an abort — it tears apart into the
+  user-supplied crimson shreds (`observer:vanish`) with a ripping sound.
+* **Its own sounds**: an ambient voice every 5–12 s (a creaking groan through cloth with a wet inhale and throat
+  clicks, `observer.voice`), a pressure swell when it arrives (`observer.presence`), a rattle of clicks and a neck crack
+  the moment it is seen (`observer.notice`), a rising distorted shriek when it comes at you (`observer.shriek`), and the
+  rip when it vanishes (`observer.vanish`). All synthesized for this project.
+* **Peeking**: whenever it stands still with cover on one side relative to the player, it leans out from behind it.
 
 ## 5. Presence and stalking
 
@@ -192,7 +202,10 @@ watched after 6 s does it "unravel" in place (with a smoke burst).
 | Dark motes and a chime at a spot ahead | `echo_ahead` | watch the spot and it cannot arrive |
 | A tunnel or path that ends where it did not | `unfamiliar_route` | dig through; the stone drops nothing |
 | Animals all facing one way | `distant_watch` (stage ≥ 2) | look where they look |
-| Two pale glints in the dark | body maintenance | its eyes |
+| Two white eyes glowing in the dark | eye layer + eye glow | it is there, and it is looking at you |
+| A groan through cloth nearby | its ambient voice | it is close, even if you cannot see it |
+| A rattle of clicks and a crack | `observer.notice` | it knows you have seen it |
+| A shriek | lunge, *Closer Each Time* | it is coming at you: hold your ground and look, or step back from the strike |
 | Footprints that appear when you return to where it stood | evidence traces | it was here |
 | A low rising hum | `closed_path`, `pursuit` | danger: find light, keep it in view, or leave |
 | Cloth shifting, then breath | `close_breath` | turn around |
@@ -253,10 +266,10 @@ Additional non-block manipulation: personal fog (`observer:dread`, `dread_soft`,
 | Stage | Exposure | Encounters | Unlocks |
 |---|---|---|---|
 | 1 | grace ends (12 min standard) | — | distant watch, borrowed sound, turned object, door |
-| 2 | 4 | 2 | extra step, home visit, lights out, bearing, window, second witness, night visit, follow-ups |
-| 3 | 10 | 4 | echo ahead, path changed, close |
-| 4 | 18 | 7 | the closed path |
-| 5 | 30 | 10 | pursuit (aggression ≥ 1) |
+| 2 | 3 | 2 | extra step, home visit, lights out, bearing, window, second witness, night visit, follow-ups |
+| 3 | 8 | 3 | echo ahead, path changed, close, **closer each time**, the **lunge** when it is noticed |
+| 4 | 14 | 5 | the closed path, pursuit (aggression ≥ 1) |
+| 5 | 22 | 8 | everything, at its most frequent |
 
 **Pacing**: after each encounter the next is scheduled `rand(150, 320) s ÷ frequency × (1 − 0.04·stage) × mood × (1 + tension/150)`,
 where mood is shorter at night, underground, in darkness and in other dimensions. Every 3–5 encounters a genuine quiet
@@ -325,7 +338,7 @@ All 18 implemented encounters and 17 further concepts are catalogued in [ENCOUNT
 | Preset | Frequency | Aggression | Manipulation | Sudden scares | Camera | Grace |
 |---|---|---|---|---|---|---|
 | Atmosphere | 0.6× | never attacks | subtle | off | reduced | 15 min |
-| Standard | 1.0× | standard (6 dmg, capped) | standard | rare | full | 12 min |
+| Standard | 1.0× | standard (6 dmg, capped) | standard | standard | full | 12 min |
 | Relentless | 1.5× | high (9 dmg) | unsettling | standard | full | 5 min |
 
 Independent controls (operators, Field Notes → Settings or `/observer:settings`): enabled, frequency 25–200 %,
@@ -335,7 +348,8 @@ Strike damage is capped: above half health a strike cannot take more than 70 % o
 
 ## 14. Audio
 
-All 28 sound files are original, synthesized by `tools/synth_sounds.py` (no samples): heavy cloth-and-weight footsteps
+All 39 sound files are original, synthesized by `tools/synth_sounds.py` (no samples) — including its own voice,
+arrival, notice, shriek and vanish sounds: heavy cloth-and-weight footsteps
 (4 variants), the hum (detuned 46/47.3/69.5 Hz drone with a swell), the tell (an inharmonic, tuning-fork-like chime),
 breath (band-passed exhale), cloth rustles, knocks, snuff, wind-up/strike/whiff, the sting (a dissonant swell, cut
 short — not a scream), the seal, the arrival, chalk, the discovery scribble-and-bell, the lens shimmer, effigy crumble,

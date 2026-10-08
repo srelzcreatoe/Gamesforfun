@@ -359,6 +359,59 @@
           "blend_transition": 0.4
         }
       }
+    },
+    "controller.animation.observer.aura": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "transitions": [
+            {
+              "aura": "q.property('observer:state') != 'hidden'"
+            }
+          ]
+        },
+        "aura": {
+          "particle_effects": [
+            {
+              "effect": "wisp"
+            }
+          ],
+          "transitions": [
+            {
+              "default": "!(q.property('observer:state') != 'hidden')"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.observer.eyes": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "transitions": [
+            {
+              "glow": "q.property('observer:dark') && q.property('observer:state') != 'hidden'"
+            }
+          ]
+        },
+        "glow": {
+          "particle_effects": [
+            {
+              "effect": "eye_glow",
+              "locator": "eye_1"
+            },
+            {
+              "effect": "eye_glow",
+              "locator": "eye_2"
+            }
+          ],
+          "transitions": [
+            {
+              "default": "!(q.property('observer:dark') && q.property('observer:state') != 'hidden')"
+            }
+          ]
+        }
+      }
     }
   }
 }

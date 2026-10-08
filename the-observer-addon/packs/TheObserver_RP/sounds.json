@@ -15,6 +15,14 @@
               0.85,
               1.0
             ]
+          },
+          "ambient": {
+            "sound": "observer.voice",
+            "volume": 0.9,
+            "pitch": [
+              0.85,
+              1.0
+            ]
           }
         }
       }

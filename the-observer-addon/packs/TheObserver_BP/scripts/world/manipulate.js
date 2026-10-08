@@ -235,9 +235,11 @@ export function animalsFace(dim, around, observerLoc, radius = 20, durationTicks
   const mobs = safe(() => dim.getEntities({ location: around, maxDistance: radius }), []) ?? [];
   const chosen = mobs.filter((m) => WATCHERS.includes(m.typeId)).slice(0, 12);
   if (chosen.length === 0) return 0;
+  // they stop where they are (heavy slowness, no particles) and keep turning to it
+  for (const m of chosen) safe(() => m.addEffect("slowness", durationTicks, { amplifier: 6, showParticles: false }));
   let t = 0;
   const id = system.runInterval(() => {
-    t += 4;
+    t += 2;
     for (const m of chosen) {
       if (!m.isValid) continue;
       const yaw = V.yawTo(m.location, observerLoc);
@@ -246,6 +248,6 @@ export function animalsFace(dim, around, observerLoc, radius = 20, durationTicks
       safe(() => m.clearVelocity());
     }
     if (t >= durationTicks) system.clearRun(id);
-  }, 4);
+  }, 2);
   return chosen.length;
 }

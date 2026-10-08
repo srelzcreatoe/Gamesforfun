@@ -43,7 +43,9 @@ vanilla resource pack (`Mojang/bedrock-samples`, 839 files): run on the old file
 |---|---|---|
 | Type check of all 37 script files against the official 2.10.0 / 2.2.0 typings | `tsc --checkJs` (`npm run typecheck`) | **0 errors** |
 | JSON schema validation | `tools/validate.mjs` with the official `@minecraft/bedrock-schemas` 1.26.50 | **34 files valid**; 15 files hit known defects of the schema package itself and are listed in the validator with the reason (recipe catalog points at the brewing schema; loot typed as object; fog id; numeric geometry vectors; `part_visibility` arrays; `languages.json`) |
-| Cross-references | `tools/validate.mjs` | OK: geometry ↔ bones in every animation, controller states ↔ animation short names, render controller ↔ textures/geometry, 21 sound events ↔ 28 `.ogg` files, particles, fogs, lang keys for every item/block/entity/UI string, recipes ↔ items, script IDs ↔ definitions, entity properties/events used by scripts |
+| Cross-references | `tools/validate.mjs` | OK: geometry ↔ bones in every animation, controller states ↔ animation short names, render controller ↔ textures/geometry, 26 sound events ↔ 39 `.ogg` files, particles, fogs, lang keys for every item/block/entity/UI string, recipes ↔ items, script IDs ↔ definitions, entity properties/events used by scripts |
+| Resource-pack structure vs. vanilla | `tools/check_vanilla_shapes.py` against Mojang's `bedrock-samples` (839 vanilla files) | **17 files, 0 mismatches** (entity, controllers, render controllers incl. the eye layer, animations, all 9 particles, fogs) |
+| New creature sounds | `ffmpeg` decode + level and spectrogram check | voice, presence, notice, shriek, vanish: no silence, no clipping (shriek peak lowered to 0.7 after the first render clipped at 1.0), reverb tails trimmed; spectrograms show the intended structure (creak pulses, swell-then-cut, accelerating clicks, rising harmonics, rip-then-thump) |
 | Vanilla block IDs the add-on may touch | `tools/validate.mjs` against `@minecraft/vanilla-data` | **141 / 141** exist (found and fixed: `minecraft:terracotta` → `hardened_clay`; removed `end_gateway`) |
 | Supplied assets preserved | `tools/integrate_supplied_assets.py`, `source_assets/supplied/SHA256SUMS.txt` | texture byte-identical; geometry bones/cubes/UVs identical; only the identifier was namespaced |
 | Animation poses | `tools/render_model.py` (forward kinematics, matched against the supplied preview renders) | `docs/media/animation_states.png`, `docs/media/stalk_walk.gif`; stoop height 2.81 blocks |
@@ -92,7 +94,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 45 test groups (including setup and a status check) with 173 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 50 test groups (including setup and a status check) with 193 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -108,11 +110,15 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | targeted re-runs after the fixes in §7 | 44 + 34 | 3 + 0 | the 3 were test-side (blocks broken faster than a hand can, health compared after regeneration) and were corrected |
 | 5 (first release build) | 165 | 0 | all passed, including the new tests for walking away, occupied seals and multiplayer fairness. Its log then showed the carve opening facing away from the path; fixed and re-tested (13/13) |
 | 6 (with the Config Wheel; stopped early) | — | 6 so far | door, home-visit and night-visit tests: the player's own door changes were no longer noticed. Cause: a loop timing bug (§7) that the new code's different load time exposed. The run was stopped and the bug fixed |
-| **final** | **173** | **0** | all passed: the earlier suite plus the Config Wheel tests (wheel on first join, See it now, encounter toggles) and the carve-direction check |
+| 7 (1.0.1) | 173 | 0 | all passed: the earlier suite plus the Config Wheel tests (wheel on first join, See it now, encounter toggles) and the carve-direction check |
+| targeted (1.0.2 creature update) | 41 | 0 | new tests for glowing eyes, vanish, auto-peek, lunge, *Closer Each Time* (held and reaching), the extended preview |
+| 8 (1.0.2, first full run) | 190 | 3 | `animals_face_it` 2/4 (always borderline at 3/4: the cows' own AI turned them between updates — animals now stop and are re-aimed every 2 ticks: 4/4 three times in a row); both *Closer Each Time* tests: a second simulated player left over from an earlier test kept watching it, and any player's gaze freezes it (by design) — the tests now move other players out of range. Re-run of those tests after a witness test: 17 / 17 |
+| **final (1.0.2)** | **193** | **0** | all passed, including the creature update (eyes, vanish, peeking, lunge, Closer Each Time) with the animal and test-isolation fixes |
 
-Final run: 1080 s, minimum TPS between tests 19.8, **0 content-log or script errors**. The pack version was then raised
-to 1.0.1 (so the fixed build replaces 1.0.0 on import); `setup wheel_welcome showcase toggles distant_watch status`
-was re-run on that build: 19 / 19, 0 errors.
+Run 7 (1.0.1): 1080 s, minimum TPS 19.8, 0 errors; after the version bump to 1.0.1, `setup wheel_welcome showcase
+toggles distant_watch status` was re-run: 19 / 19.
+
+Final run (1.0.2): 1105 s, minimum TPS between tests 19.9, **0 content-log or script errors**.
 
 ### 5.2 Final run by area
 
@@ -159,8 +165,13 @@ was re-run on that build: 19 / 19, 0 errors.
 | `pursuit_water_escape` | 3 | — |
 | `closed_path_light` | 7 | — |
 | `bearing_three` | 2 | — |
-| `showcase` | 5 | — |
+| `showcase` | 6 | — |
 | `toggles` | 1 | — |
+| `presence_fx` | 4 | — |
+| `auto_peek` | 3 | — |
+| `lunge` | 4 | — |
+| `creeping_held` | 5 | — |
+| `creeping_reaches` | 3 | — |
 | `natural` | 1 | — |
 | `status` | 0 | — |
 
@@ -185,7 +196,9 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
    ceiling) and the walk must look like walking (not gliding) when it leaves.
 3. **Peek lean** — `/observer:trigger distant_watch` near a tree: when it peeks from cover, it must lean *out* from the
    cover. If it leans into the wall, flip the sign in `tools/make_supplemental_anims.py` and rebuild.
-4. **Particles & fog** — footprints oriented along the walk direction, eye glints in darkness, chalk marks, effigy dust;
+4. **Presence** — at night: the eyes glow (two bright points that follow the head), wisps drift around the body from
+   feet to head and glow, its voice is audible within ~20 blocks; when it leaves it bursts into crimson shreds.
+   **Particles & fog** — footprints oriented along the walk direction, chalk marks, effigy dust;
    the dread fog during a closed path clears afterwards.
 5. **Blocks & items** — Veil, Effigy (all four facings), Ward Lantern models and light; all item icons; crafting recipes
    appear in the recipe book after picking up an ingredient.
@@ -225,6 +238,13 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
   a player closing a door the Observer had opened went unnoticed (run 6). Eye glints, chalk-mark display and footprint
   trails used the same pattern. All loops now count their own runs.
 
+* *Peeking* only happened when a placement happened to be partly visible; nothing reacted to actual cover. It now
+  follows the blocks beside it every second (`auto_peek_*`, found from the user's report).
+* Animals meant to stand and stare at it kept drifting back to their own movement between rotation updates
+  (`animals_face_it` was 3/4 in every run, 2/4 once) → they are now slowed to a standstill and re-aimed every 2 ticks.
+* The new "notice" sound generator never terminated (its click gaps shrink geometrically and never reach the end
+  time) — a tool bug caught while rendering, fixed before anything shipped.
+
 **Found by loading the pack in a game client (reported by the user)**
 * An empty `animations` list in a controller state and object-valued client-entity `sound_effects` (see §1.1).
 * A strike at point-blank range could "miss" because direction is meaningless at 0.4 blocks → in-front test skipped
@@ -252,8 +272,8 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
 
 ## 8. Not verified
 
-* Anything a client shows or plays: model, animations, particles, fog, block models, icons, sounds, forms, captions,
-  camera effects (§6).
+* Anything a client shows or plays: model, animations, the glowing eyes, wisp aura and vanish burst, other particles,
+  fog, block models, icons, sounds (including the new voice and shriek), forms, captions, camera effects (§6).
 * A real player disconnecting and reconnecting (simulated players cannot reconnect with the same identity).
 * Each pacing rule individually (quiet periods, recovery, anti-repetition, deferral back-off): they run in every test,
   and the natural-director tests start encounters on their own, but timings were not asserted one by one.

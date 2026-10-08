@@ -16,6 +16,26 @@
           "*": "q.property('observer:state') != 'hidden'"
         }
       ]
+    },
+    "controller.render.observer.eyes": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.eyes"
+        }
+      ],
+      "textures": [
+        "Texture.eyes"
+      ],
+      "ignore_lighting": true,
+      "part_visibility": [
+        {
+          "*": false
+        },
+        {
+          "head": "q.property('observer:state') != 'hidden'"
+        }
+      ]
     }
   }
 }

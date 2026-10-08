@@ -15,7 +15,7 @@ the-observer-addon/
 │       ├── animations/the_observer.animation.json      supplied clips (namespaced copy)
 │       ├── animations/the_observer_supplemental.animation.json   stalk_walk, peek, recoil, stoop, look_at_target
 │       ├── animation_controllers/  entity/  render_controllers/
-│       ├── sounds/ (28 original .ogg + definitions)  particles/  fogs/  textures/  texts/
+│       ├── sounds/ (39 original .ogg + definitions)  particles/  fogs/  textures/  texts/
 ├── source_assets/supplied/        the ZIP's contents, untouched, with SHA256SUMS.txt
 ├── tools/                         asset pipeline, validator, packager, offline renderer
 ├── tests/bds/                     dedicated-server harness + GameTest test kit (dev only)
@@ -35,7 +35,7 @@ the-observer-addon/
 | `world/space.js` | valid standing positions, cover, wards, `findSpot`, corridor detection |
 | `world/ledger.js` | recorded, reversible block changes; break/interact/scan handling; persistence |
 | `world/manipulate.js` | the manipulation mechanics M1–M8 |
-| `observer/body.js` | the single physical Observer: spawn, state/mode, facing, stoop, glints, strike, withdraw, strays |
+| `observer/body.js` | the single physical Observer: spawn, state/mode, facing, stoop, eye-glow flag, auto-peek, strike, withdraw, vanish, strays |
 | `observer/memory.js` | breadcrumbs, haunts, route familiarity, habits, attentiveness |
 | `director/context.js` | per-player situation snapshot |
 | `director/encounter.js` | the runtime object passed to encounter scripts |
@@ -63,6 +63,8 @@ python3 tools/make_supplemental_anims.py      # regenerate supplemental clips (F
 python3 tools/make_client_entity.py           # client entity, render & animation controllers
 python3 tools/synth_sounds.py                 # regenerate all .ogg (needs ffmpeg + libvorbis)
 python3 tools/make_textures.py                # textures, block models, pack icons
+python3 tools/integrate_particle_sheets.py     # user-supplied vanish/wisp sheets -> particle atlases (pixels unchanged)
+python3 tools/synth_sounds.py --only voice,presence,notice,shriek,vanish   # regenerate selected sounds
 python3 tools/render_model.py GEO TEX out.png --anim FILE NAME TIME --view side --debug-colors
 ```
 
@@ -79,7 +81,7 @@ python3 tests/bds/run_bds.py --bds /path/to/bedrock-server --testkit --fresh \
 ```
 
 Scenarios: `load.txt` (packs load cleanly), `proto.txt` (capability probes), `speed.txt` (movement calibration),
-`suite_smoke.txt`, `suite_full.txt` (all 45 test groups), `suite_extra.txt` (a short subset), `restart_a.txt` +
+`suite_smoke.txt`, `suite_full.txt` (all 50 test groups), `suite_extra.txt` (a short subset), `restart_a.txt` +
 `restart_b.txt` (interrupted encounter across a server restart), `tps.txt` (tick rate; run once more with `--no-addon`
 for the baseline). Results and the manual client procedure are in [TEST_REPORT.md](TEST_REPORT.md).
 
@@ -170,7 +172,7 @@ Strings are split into 30 000-character chunks (`key`, `key#1`, …). `v` is the
 
 ## 8. Performance budget
 
-* No per-tick world scans. Loops: 5 ticks (body upkeep: one ceiling probe, glints), 10 ticks (ledger scan of the running
+* No per-tick world scans. Loops: 5 ticks (body upkeep: one ceiling probe; every 4th run a light check and the cover check), 10 ticks (ledger scan of the running
   encounters' few entries), 20 ticks (memory sampling, director, ≤ 12 restorations), 40 ticks (marks, traces),
   100 ticks (saves), 1200 ticks (decay, stray sweep, ward validation).
 * Spot searches sample ≤ 40 candidates once per encounter start, with 2–5 raycasts each.

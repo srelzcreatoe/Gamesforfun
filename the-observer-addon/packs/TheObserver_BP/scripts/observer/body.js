@@ -13,7 +13,7 @@ import { OBSERVER_ID, TARGET_TAG, ENTITY_ENC_PROP, PARTICLES, SOUNDS, DANGER } f
 import { V, safe, DEBUG, trace, emit, allPlayers } from "../core/util.js";
 import { S, strikeDamage } from "../core/settings.js";
 import { visibility, lineOfSight, seenByAny } from "../world/sight.js";
-import { standNear, isReplaceable } from "../world/space.js";
+import { standNear, isReplaceable, coverSide } from "../world/space.js";
 
 /** @typedef {import("@minecraft/server").Entity} Entity */
 /** @typedef {import("@minecraft/server").Player} Player */
@@ -29,6 +29,8 @@ import { standNear, isReplaceable } from "../world/space.js";
  * @property {number} side
  * @property {Player|undefined} target
  * @property {boolean} faceTarget
+ * @property {boolean} dark        eyes glowing (observer:dark)
+ * @property {boolean} autoPeek    switch between watch and peek by the cover beside it
  * @property {number} spawnedTick
  */
 
@@ -52,7 +54,7 @@ export const wasLost = (enc) => lostEnc === enc;
 /**
  * Spawn the Observer for an encounter.
  * @param {import("@minecraft/server").Dimension} dim @param {Vec} loc
- * @param {{enc:number, target?:Player, state?:string, stoop?:boolean, side?:number, face?:Vec}} o
+ * @param {{enc:number, target?:Player, state?:string, stoop?:boolean, side?:number, face?:Vec, silent?:boolean, autoPeek?:boolean}} o
  * @returns {Body|null}
  */
 export function spawn(dim, loc, o) {
@@ -60,7 +62,10 @@ export function spawn(dim, loc, o) {
   const e = safe(() => dim.spawnEntity(OBSERVER_ID, loc, { initialPersistence: false }));
   if (!e) return null;
   safe(() => e.setDynamicProperty(ENTITY_ENC_PROP, o.enc));
-  body = { e, enc: o.enc, state: "watch", mode: "still", stoop: false, side: 1, target: o.target, faceTarget: true, spawnedTick: system.currentTick };
+  body = { e, enc: o.enc, state: "watch", mode: "still", stoop: false, side: 1, target: o.target, faceTarget: true, spawnedTick: system.currentTick,
+    dark: false, autoPeek: o.autoPeek ?? true };
+  // pressure in the ears: it has arrived (quieter when it arrives unseen behind someone)
+  if (!o.silent) safe(() => dim.playSound(SOUNDS.presence, loc, { volume: 0.75 }));
   setState(o.state ?? "watch");
   setStoop(!!o.stoop);
   if (o.side) setSide(o.side);
@@ -147,7 +152,13 @@ export function despawn(why = "") {
   const e = body.e;
   if (e.isValid) {
     const l = e.location;
-    if (why === "unravel") safe(() => e.dimension.spawnParticle(PARTICLES.unravel, { x: l.x, y: l.y + 1.6, z: l.z }));
+    // it tears apart into crimson shreds (supplied vanish sprites), unless it is only being replaced
+    if (why !== "replace") {
+      const seen = safe(() => seenByAny(allPlayers().filter((p) => p.dimension.id === e.dimension.id), l, body.stoop), false);
+      safe(() => e.dimension.spawnParticle(PARTICLES.vanish, l));
+      safe(() => e.dimension.playSound(SOUNDS.vanish, l, { volume: seen ? 0.9 : 0.45 }));
+      emit("fx", { what: "vanish", why, seen: !!seen });
+    }
     safe(() => e.remove());
   }
   for (const p of world.getPlayers({ tags: [TARGET_TAG] })) safe(() => p.removeTag(TARGET_TAG));
@@ -276,23 +287,29 @@ export function maintain(run) {
   // headroom: stoop when fewer than 5 open blocks above
   const ceil = safe(() => e.dimension.getBlockAbove({ x: l.x, y: l.y + 0.1, z: l.z }, { includePassableBlocks: false, includeLiquidBlocks: true, maxDistance: 5 }));
   setStoop(!!ceil && ceil.location.y - Math.floor(l.y) < 5);
-  if (run % 2 === 0 && b.state !== "hidden") {
-    const head = { x: l.x, y: l.y + (b.stoop ? 2.45 : 3.62), z: l.z };
-    const light = safe(() => e.dimension.getLightLevel(head), 15) ?? 15;
-    if (light <= 6) {
-      const yaw = e.getRotation().y;
-      const fwd = V.fromYaw(yaw);
-      const side = { x: -fwd.z, y: 0, z: fwd.x };
-      for (const p of e.dimension.getPlayers({ location: l, maxDistance: 56 })) {
-        // only toward players in front of it: the glint is its eyes catching the light
-        if (V.dot(fwd, V.flat(V.sub(p.location, l))) < 0.2) continue;
-        for (const s of [-1, 1]) {
-          const eye = V.add(V.add(head, V.scale(fwd, 0.27)), V.scale(side, 0.13 * s));
-          safe(() => p.spawnParticle(PARTICLES.glint, eye));
-        }
-      }
-    }
+  if (run % 4 !== 0) return;
+  // eyes glow (client layer + glow at the eye locators) at night or in darkness
+  const head = { x: l.x, y: l.y + (b.stoop ? 2.45 : 3.62), z: l.z };
+  const light = safe(() => e.dimension.getLightLevel(head), 15) ?? 15;
+  const tod = safe(() => world.getTimeOfDay(), 6000) ?? 6000;
+  const night = e.dimension.id === "minecraft:overworld" && tod > 12800 && tod < 23200;
+  setDark(night || light <= 7);
+  // it peeks out from behind whatever stands beside it (a trunk, a wall corner, a door frame)
+  if (b.mode === "still" && b.autoPeek && (b.state === "watch" || b.state === "peek") && b.target?.isValid && b.target.dimension.id === e.dimension.id) {
+    const cover = coverSide(e.dimension, l, b.target.getHeadLocation());
+    if (cover.one) {
+      setSide(cover.side);
+      setState("peek");
+    } else if (b.state === "peek") setState("watch");
   }
+}
+
+/** @param {boolean} v */
+function setDark(v) {
+  const b = get();
+  if (!b || b.dark === v) return;
+  b.dark = v;
+  safe(() => b.e.setProperty("observer:dark", v));
 }
 
 /** Remove Observers that do not belong to the active encounter (left over after a crash or reload). */

@@ -17,7 +17,7 @@ import { sighting } from "./common.js";
 register({
   id: "pursuit",
   tier: 4,
-  minStage: 5,
+  minStage: 4,
   needsBody: true,
   minAggression: 1,
   cooldown: 1800,

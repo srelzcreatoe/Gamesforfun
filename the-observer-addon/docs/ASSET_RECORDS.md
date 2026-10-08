@@ -2,6 +2,10 @@
 
 Provenance of every asset shipped in the packs. No third-party samples, textures, models or code are included.
 
+**Not used:** a third-party add-on (*The One Who Watches*, credited to Mythicus and shanewolf38, redistributed by a
+download site) was uploaded during development with a request to reuse its code. Nothing from it was copied or
+adapted: its contents were only opened to read its credits, then deleted from the working area.
+
 ## Supplied assets (from the request ZIP `Hollow_Dweller_Pack.zip`)
 
 The ZIP contents are preserved unmodified in `source_assets/supplied/` with `SHA256SUMS.txt`.
@@ -18,6 +22,16 @@ ZIP SHA-256: `c2bac9de2be22c0b2167bb13f76ab7f4449c78be2398ceba038db6d3b300a4c9`
 | `dweller_turnaround.png` | `4384e39a9fb696e1…` | rotation-convention reference |
 | `hollow_dweller.animation.json` | `b56fa4c40ad02571…` | shipped (clip names namespaced) |
 | `hollow_dweller.geo.json` | `8118cdbe35797eae…` | shipped (identifier namespaced) |
+
+## Particle sheets supplied by the user (chat, 2026-10-08)
+
+Preserved unmodified in `source_assets/supplied_particles/` with `SHA256SUMS.txt`. As with the model, the rights to
+these two images must be confirmed by whoever supplied them before the add-on is distributed.
+
+| File | SHA-256 | Use |
+|---|---|---|
+| `vanish_sheet.png` (crimson shreds, 100×100) | `aa2d54a40c130716…` | the Observer tearing apart when it vanishes (`observer:vanish`) |
+| `wisp_sheet.png` (grey wisps, 100×100) | `f9fa59f885989d11…` | the glowing aura around its body (`observer:wisp`) |
 
 ## Shipped resource files
 
@@ -36,8 +50,14 @@ ZIP SHA-256: `c2bac9de2be22c0b2167bb13f76ab7f4449c78be2398ceba038db6d3b300a4c9`
 | `TheObserver_RP/sounds/observer/hum.ogg` | original — synthesized by tools/synth_sounds.py | `2bdd47e2bd5a2358` |
 | `TheObserver_RP/sounds/observer/knock.ogg` | original — synthesized by tools/synth_sounds.py | `0de61b0c5460ac2a` |
 | `TheObserver_RP/sounds/observer/lens.ogg` | original — synthesized by tools/synth_sounds.py | `2074db49d4bd8e16` |
+| `TheObserver_RP/sounds/observer/notice1.ogg` | original — synthesized by tools/synth_sounds.py | `0f3f23cb4c7c7816` |
+| `TheObserver_RP/sounds/observer/notice2.ogg` | original — synthesized by tools/synth_sounds.py | `c1b327df423e8298` |
+| `TheObserver_RP/sounds/observer/presence1.ogg` | original — synthesized by tools/synth_sounds.py | `dd69ad05946ca09f` |
+| `TheObserver_RP/sounds/observer/presence2.ogg` | original — synthesized by tools/synth_sounds.py | `03b64de34ad46373` |
 | `TheObserver_RP/sounds/observer/ring.ogg` | original — synthesized by tools/synth_sounds.py | `ff2eeaac0253cdaa` |
 | `TheObserver_RP/sounds/observer/seal.ogg` | original — synthesized by tools/synth_sounds.py | `ccb32fcda6aecd81` |
+| `TheObserver_RP/sounds/observer/shriek1.ogg` | original — synthesized by tools/synth_sounds.py | `3ecbff34de5f20e8` |
+| `TheObserver_RP/sounds/observer/shriek2.ogg` | original — synthesized by tools/synth_sounds.py | `504717baa781dde9` |
 | `TheObserver_RP/sounds/observer/sink.ogg` | original — synthesized by tools/synth_sounds.py | `6c6e7fea42343da7` |
 | `TheObserver_RP/sounds/observer/snuff.ogg` | original — synthesized by tools/synth_sounds.py | `e83b2133ae9b3786` |
 | `TheObserver_RP/sounds/observer/step1.ogg` | original — synthesized by tools/synth_sounds.py | `63a56e276d623455` |
@@ -48,14 +68,21 @@ ZIP SHA-256: `c2bac9de2be22c0b2167bb13f76ab7f4449c78be2398ceba038db6d3b300a4c9`
 | `TheObserver_RP/sounds/observer/strike.ogg` | original — synthesized by tools/synth_sounds.py | `34e6d22a5b06a2a3` |
 | `TheObserver_RP/sounds/observer/tell.ogg` | original — synthesized by tools/synth_sounds.py | `79aaa953fd4eaef8` |
 | `TheObserver_RP/sounds/observer/turn.ogg` | original — synthesized by tools/synth_sounds.py | `4b37c2faffef1d53` |
+| `TheObserver_RP/sounds/observer/vanish1.ogg` | original — synthesized by tools/synth_sounds.py | `e89456d0c30b68dc` |
+| `TheObserver_RP/sounds/observer/vanish2.ogg` | original — synthesized by tools/synth_sounds.py | `702acf48d0d2f3fd` |
 | `TheObserver_RP/sounds/observer/vigil.ogg` | original — synthesized by tools/synth_sounds.py | `e758ff7a2004fa2a` |
+| `TheObserver_RP/sounds/observer/voice1.ogg` | original — synthesized by tools/synth_sounds.py | `774634ca8641f449` |
+| `TheObserver_RP/sounds/observer/voice2.ogg` | original — synthesized by tools/synth_sounds.py | `c8408c3b3bc99d04` |
+| `TheObserver_RP/sounds/observer/voice3.ogg` | original — synthesized by tools/synth_sounds.py | `5dec2769f6949575` |
 | `TheObserver_RP/sounds/observer/whiff.ogg` | original — synthesized by tools/synth_sounds.py | `c608d5345eec2f8d` |
 | `TheObserver_RP/sounds/observer/windup.ogg` | original — synthesized by tools/synth_sounds.py | `1ea1f5f28e9bbb40` |
 | `TheObserver_RP/textures/blocks/observer/effigy.png` | original — drawn by tools/make_textures.py | `22c4f4e9499ef0ad` |
 | `TheObserver_RP/textures/blocks/observer/veil.png` | original — drawn by tools/make_textures.py | `088dbf6781e9b937` |
 | `TheObserver_RP/textures/blocks/observer/ward_lantern.png` | original — drawn by tools/make_textures.py | `80ed13cb45faa368` |
 | `TheObserver_RP/textures/entity/observer/the_observer.png` | supplied — byte copy of source_assets/supplied/dweller_texture.png | `dfe172002e070d8c` |
+| `TheObserver_RP/textures/entity/observer/the_observer_eyes.png` | derived — only the two eye cubes' pixels of the supplied texture (tools/integrate_supplied_assets.py) | `f0d4128927c35473` |
 | `TheObserver_RP/textures/items/observer/chalk.png` | original — drawn by tools/make_textures.py | `61c5f11bc4336204` |
+| `TheObserver_RP/textures/items/observer/config_wheel.png` | original — drawn by tools/make_textures.py | `f37c7dd0b7558917` |
 | `TheObserver_RP/textures/items/observer/field_notes.png` | original — drawn by tools/make_textures.py | `870cc046d4176aee` |
 | `TheObserver_RP/textures/items/observer/observers_eye.png` | original — drawn by tools/make_textures.py | `dddd6404d452a15d` |
 | `TheObserver_RP/textures/items/observer/vestige.png` | original — drawn by tools/make_textures.py | `0b3414b3e07abde5` |
@@ -68,17 +95,19 @@ ZIP SHA-256: `c2bac9de2be22c0b2167bb13f76ab7f4449c78be2398ceba038db6d3b300a4c9`
 | `TheObserver_RP/textures/particle/observer/glint.png` | original — drawn by tools/make_textures.py | `f01a2640559c0981` |
 | `TheObserver_RP/textures/particle/observer/mote.png` | original — drawn by tools/make_textures.py | `1fbddbcb046d205c` |
 | `TheObserver_RP/textures/particle/observer/smoke.png` | original — drawn by tools/make_textures.py | `53ef19d15ff9afb4` |
-| `TheObserver_RP/pack_icon.png` | derived — crop of supplied dweller_preview.png on a generated background (tools/make_textures.py) | `2529bdac03c514e1` |
+| `TheObserver_RP/textures/particle/observer/vanish.png` | supplied by the user (chat, 2026-10-08) — shapes from source_assets/supplied_particles/vanish_sheet.png copied pixel-for-pixel into a grid (tools/integrate_particle_sheets.py) | `3fe39a53c0fc8df8` |
+| `TheObserver_RP/textures/particle/observer/wisp.png` | supplied by the user (chat, 2026-10-08) — shapes from source_assets/supplied_particles/wisp_sheet.png copied pixel-for-pixel into a grid (tools/integrate_particle_sheets.py) | `d6f06c5e60c01904` |
 | `TheObserver_BP/pack_icon.png` | derived — crop of supplied dweller_preview.png on a generated background (tools/make_textures.py) | `2529bdac03c514e1` |
-| `TheObserver_RP/models/entity/the_observer.geo.json` | supplied — hollow_dweller.geo.json, identifier renamed only (tools/integrate_supplied_assets.py asserts identity) | `25e05757263f157b` |
 | `TheObserver_RP/animations/the_observer.animation.json` | supplied — hollow_dweller.animation.json, clip names renamed only | `3d684b6f10a5acc8` |
 | `TheObserver_RP/animations/the_observer_supplemental.animation.json` | original — tools/make_supplemental_anims.py (uses supplied bone names) | `52a03bbd72838d33` |
 | `TheObserver_RP/models/blocks/effigy.geo.json` | original — tools/make_textures.py | `e85d1aee3108b4c0` |
 | `TheObserver_RP/models/blocks/ward_lantern.geo.json` | original — tools/make_textures.py | `fa03764ae1ebdcb9` |
+| `TheObserver_RP/models/entity/the_observer.geo.json` | supplied — hollow_dweller.geo.json, identifier renamed and two eye locators added (tools/integrate_supplied_assets.py asserts cubes/UVs unchanged) | `48b77f6164817a47` |
+| `TheObserver_RP/pack_icon.png` | derived — crop of supplied dweller_preview.png on a generated background (tools/make_textures.py) | `2529bdac03c514e1` |
 
 ## Vanilla references
 
 Matched footsteps and "borrowed" work sounds call vanilla Bedrock sound events by name (`step.*`, `dig.*`, `use.*`,
 `random.door_open/close`, `random.chestopen/closed`, `random.eat`, `random.bow`, `random.wood_click`, `game.player.hurt`).
 No vanilla audio files are copied into the packs. Block identifiers used by the scripts were checked against
-`@minecraft/vanilla-data` 1.26.52 (140 identifiers, see `tools/validate.mjs`).
+`@minecraft/vanilla-data` 1.26.52 (141 identifiers, see `tools/validate.mjs`).

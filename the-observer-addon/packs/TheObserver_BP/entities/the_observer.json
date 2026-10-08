@@ -35,6 +35,11 @@
           ],
           "default": 1,
           "client_sync": true
+        },
+        "observer:dark": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
         }
       }
     },
@@ -246,7 +251,12 @@
         "max": 64
       },
       "minecraft:conditional_bandwidth_optimization": {},
-      "minecraft:is_hidden_when_invisible": {}
+      "minecraft:is_hidden_when_invisible": {},
+      "minecraft:ambient_sound_interval": {
+        "event_name": "ambient",
+        "value": 5.0,
+        "range": 7.0
+      }
     },
     "events": {
       "minecraft:entity_spawned": {

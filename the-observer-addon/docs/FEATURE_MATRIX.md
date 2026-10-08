@@ -25,7 +25,11 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Still mode floats (no gravity) | `observer:still` | spawn | stays at placed height | `still_mode_no_gravity`, `water_stands_on_surface` | ✅ Runtime |
 | Damage immunity; hit reaction | entity `damage_sensor`, `items.js` | player hits it | health unchanged; recoil/withdraw | `hit_event_immune` | ✅ Runtime |
 | Telegraphed strike synced to clip | `body.strike` | contact | damage at 0.6 s, capped, never lethal from > 50 % health | `pursuit_struck`, `pursuit_damage_nonlethal`, `closed_path_struck_*` (damage measured from hurt events) | ✅ Runtime |
-| Eye glints in darkness | `body.maintain` | light ≤ 6 | two glints for players in front | — | ⚪ (particle visual ❔) |
+| Glowing eyes | `render_controllers` eyes layer (ignore_lighting), `observer:dark`, `eye_glow` at locators `eye_1`/`eye_2` | always (layer); night or light ≤ 7 (glow) | eyes full-bright; glow at night | `eyes_glow_at_night`, `eyes_dim_at_noon` (property); vanilla-shape check | 🟡 Server ✅ / visual ❔ |
+| Wisp aura (user-supplied sprites) | `particles/wisp.json`, aura controller | while shown | glowing wisps head to toe | vanilla-shape check; atlas built pixel-for-pixel | ✅ Static; visual ❔ |
+| Vanish burst (user-supplied sprites) | `particles/vanish.json`, `body.despawn` | every removal | crimson shreds + rip sound | `vanish_effect_on_removal`, `lunge_tore_apart`, `showcase_ends_in_vanish` | 🟡 Server ✅ / visual ❔ |
+| Its own sounds | `sounds.json` ambient, `observer.voice/presence/notice/shriek/vanish` | near it / arrival / seen / lunge / removal | heard in game | validator (files resolve), spectrogram and level check of each new file | 🟡 Static ✅ / audio ❔ |
+| Peeks from cover | `body.maintain` auto-peek, `space.coverSide` | cover on one side | leans out; stands normally without cover | `auto_peek_leans_out`, `auto_peek_stands_without_cover` | ✅ Runtime (lean visual ❔) |
 | Sounds on animation states | controller `sound_effects` | attack/recoil | wind-up / cloth | validator (effects resolve, string form) | 🟡 Static ✅ / audio ❔ |
 | Client loads the entity files | `RP/entity`, `animation_controllers` | world load in a client | no content-log errors | `tools/check_vanilla_shapes.py` against Mojang's vanilla RP (0 mismatches). The first client load reported 3 errors (object `sound_effects`, empty `animations` list); both fixed | ✅ Static; client re-check ❔ |
 
@@ -58,7 +62,7 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Discoveries recorded | `discoveries.discover` | noticing/answering | page + Vestige | 20 of 22 asserted (not asserted: someone_was_home, the_window): the_figure, out_of_step, quiet_feet, put_back, small_likeness, something_facing, the_door, lights_out, light_it_doesnt_make, held_gaze, behind_left, borrowed_work, echo_ahead, wrong_way, breathing_room, second_witness, while_you_slept, elsewhere_too, close, through_the_lens | ✅ Runtime |
 | First discovery gives Field Notes + Vestige | `discoveries.discover` | first page | items in inventory | `first_discovery_gives_notes_and_vestige` | ✅ Runtime |
 
-## Encounters (18)
+## Encounters (19 + the lunge reaction)
 | Encounter | File | Branches asserted | Status |
 |---|---|---|---|
 | The Figure at the Edge | `distant_watch.js` | noticed, unnoticed (+trace), water, elevated, Nether | ✅ Runtime |
@@ -73,6 +77,8 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Echo Ahead | `echo_ahead.js` | cue, unseen arrival ahead, noticed | ✅ Runtime (denied branch ⚪) |
 | The Path Changed | `unfamiliar_route.js` | mimic behind, natural look, no dupes, cleared; carve at level 3 + restored | ✅ Runtime |
 | Close | `close_breath.js` | placed behind, faced | ✅ Runtime (unaware branch ⚪) |
+| Closer Each Time | `creeping.js` | frozen while watched, closer when unwatched, stared down, reaches and strikes (non-lethal) | ✅ Runtime |
+| Lunge (on being seen, stage 3+) | `common.lunge` | charges from ~28 to ~3 blocks, tears apart, no damage below High | ✅ Runtime |
 | Breathing Room (pursuit) | `pursuit.js` | in view, response window, runs, slows when watched, strike, water escape | ✅ Runtime |
 | At the Window | `window_watch.js` | outside the house, noticed | ✅ Runtime |
 | Second Witness | `second_witness.js` | witness sees, both see | ✅ Runtime |
@@ -123,4 +129,4 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Measure | Result | Test |
 |---|---|---|
 | Server tick rate, 180 s walking player, director active (2 encounters ran) | 20.00 mean / 19.99 min TPS — identical to the add-on-free baseline (20.00 / 19.99) | `tps.txt` with and without `--no-addon` |
-| No content-log or script errors during full suite | 0 errors (final run: 173/173 assertions, min 19.8 TPS between tests) | `run_bds.py` summary |
+| No content-log or script errors during full suite | 0 errors (final run: 193/193 assertions, min 19.9 TPS between tests) | `run_bds.py` summary |

@@ -11,7 +11,7 @@ The first load in a Windows client (by the user) showed three resource-pack erro
 client-only error is caught before release. The creature's look, animations, sounds and menus still have to be
 confirmed in a client.
 
-Everything that runs on the server — the director, all 18 encounters, the restoration ledger, persistence across a
+Everything that runs on the server — the director, all 19 encounters, the restoration ledger, persistence across a
 restart, multiplayer targeting, dimension travel, items, wards, settings — was exercised on a real Bedrock Dedicated
 Server 1.26.52.3 with GameTest simulated players (see [TEST_REPORT.md](TEST_REPORT.md)). What a dedicated server cannot
 show — how the model, animations, particles, fog, sounds and forms *look and sound* on a client — has been checked
@@ -29,7 +29,7 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 |---|---|
 | Entities cannot be hidden from individual players | The body is visible to everyone present; personal cues (steps, breath, chimes, fog, captions) are used for one-player moments |
 | Mob collision boxes cannot change height per pose for pathfinding | Collision is 0.8 × 2.9: it walks through 3-high spaces (stooping automatically) but not 2-high doorways or tunnels. Encounters in 2-high spaces use unseen arrival instead of walking; *The Closed Path* defers there. It opens doors to look in rather than entering |
-| No emissive eye material is used (the supplied texture's eyes are plain pixels) | In darkness, unlit "eye glint" particles mark its eyes for players in front of it |
+| The supplied eyes are plain texture pixels on two tiny cubes | A second, full-brightness render layer holds only those pixels (the vanilla Creaking technique), plus a glow attached to locators on the eye cubes at night / in darkness |
 | Footprints are particles, not decals | They last 40 s and are re-shown whenever a player returns within 25 minutes |
 | Script dynamic-property saves cannot be forced at disconnect | State saves every 5 s and on shutdown; at most the last few seconds of memory updates can be lost |
 
@@ -50,9 +50,11 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 ### Unverified in a client (implemented and statically validated)
 * Model rendering with the supplied texture; animation playback and blending per state; stoop overlay; head tracking
   (`query.target_x/y_rotation`); peek lean direction (`observer:side` sign); `hidden` part visibility.
-* Particle appearance (footprint orientation via `variable.yaw`, glints, motes, chalk marks); fog look; block models
-  (effigy, ward lantern) and their rotations; item icons.
-* Audio: all 21 sound events resolve to files (validated) but mix levels, attenuation and the feel of each sound have
+* Particle appearance (the wisp aura and vanish burst built from the user-supplied sheets, the eye glow, footprint
+  orientation via `variable.yaw`, motes, chalk marks); the full-brightness eye layer; fog look; block models (effigy,
+  ward lantern) and their rotations; item icons.
+* Audio: all 26 sound events resolve to files (validated; the five new creature sounds were also checked for level and
+  shape by spectrogram) but mix levels, attenuation and the feel of each sound have
   not been auditioned in game. Vanilla sound IDs used for borrowed sounds were taken from a published Bedrock sound
   list and are not verifiable on a server.
 * Forms (Field Notes, settings), action-bar captions, title cards, camera fades and shakes (the fade API and the
@@ -82,7 +84,7 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 ## 3. Marketplace readiness (evidence-based, not a certification)
 | Area | Status | Evidence / gap |
 |---|---|---|
-| Original content | ✅ for everything generated here; ⚠ the creature model and animations are the *supplied* assets — rights and attribution must be confirmed by the supplier | [ASSET_RECORDS.md](ASSET_RECORDS.md) |
+| Original content | ✅ for everything generated here; ⚠ the creature model and animations, and the two particle sheets, are *supplied* assets — rights and attribution must be confirmed by the supplier. A third-party add-on offered for reuse was not used | [ASSET_RECORDS.md](ASSET_RECORDS.md) |
 | Stable APIs, no experiments | ✅ | manifests; BDS load with zero content-log errors |
 | Namespacing / no vanilla overrides | ✅ | all identifiers `observer:`; no vanilla files replaced |
 | Performance | ✅ server: 20.00 TPS with and without the add-on (see TEST_REPORT §4); ❔ client frame time on low-end devices untested |
@@ -104,7 +106,7 @@ the sounds of your own work and plays them from where you are not. It gets home 
 you to find. It closes the tunnel behind you. It can be understood — and if you pay attention long enough, you can
 finally meet its gaze.
 
-* 18 encounter types, three signature encounters, five escalating stages
+* 19 encounter types, three signature encounters, five escalating stages
 * Real, reversible world changes — your builds are protected and your own changes always win
 * 22 discoveries, a Witness Lens, Tally Chalk, Ward Lanterns, and an ending you can reach
 * Works across the Overworld, caves, water, the Nether and the End; multiplayer-aware

@@ -8,7 +8,7 @@ import { register } from "../director/director.js";
 import { SOUNDS } from "../core/constants.js";
 import { V } from "../core/util.js";
 import { findSpot } from "../world/space.js";
-import { observe, sighting, favouredBearing, bearingHit, acknowledge, trailAway } from "./common.js";
+import { observe, sighting, favouredBearing, bearingHit, acknowledge, trailAway, wantsLunge, lunge } from "./common.js";
 
 register({
   id: "mirror_bearing",
@@ -45,6 +45,7 @@ register({
     if (r.noticed) {
       sighting(enc, r.by ?? p);
       bearingHit(enc);
+      if (wantsLunge(enc)) return lunge(enc);
       await acknowledge(enc, 8, 12);
     } else {
       enc.result("unseen");

@@ -117,6 +117,8 @@ export function safe(fn, fallback) {
 /** Debug logging is opt-in (dev mode setting or /observer:debug). */
 export const DEBUG = {
   on: false,
+  /** tests: "always" / "never" override the lunge chance ("auto" = normal play) */
+  lunge: "auto",
   /** low-volume lifecycle lines (encounter start/end); enabled in dev mode and by the test kit */
   trace: false,
   /** @param {string} msg */
