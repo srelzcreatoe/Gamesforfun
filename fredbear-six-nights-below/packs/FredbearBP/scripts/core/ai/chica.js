@@ -10,7 +10,7 @@
 // * Sabotage: while lingering, each movement opportunity may trip the hall-light
 //   breaker (chance aggression/40, at most maxSabotage per night, 60 s apart).
 //   A trip disables BOTH hall lights until the player presses Reset Breaker
-//   (2 s, 1.5 % power). Doors, cameras and the strobe are never affected, so
+//   (2 s, 1 % power). Doors, cameras and the strobe are never affected, so
 //   the defence that actually stops her always remains available.
 // * Approach tells: metallic footsteps; heavy breathing at the right door.
 
