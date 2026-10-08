@@ -1,0 +1,415 @@
+// Integration tests: the real behavior-pack scripts (main.js, Game, builder,
+// actuator bus, puppets, camera view, persistence, debug tools) running
+// against the headless mock of @minecraft/server in tests/mock/.
+//
+// These prove the scripts, the generated .mcstructure command blocks and the
+// build plan work together as designed INSIDE THE MOCK. They are not an
+// in-game playthrough: rendering, physics, redstone timing and the real
+// engine are not involved (see docs/10_TEST_REPORT.md).
+import { register } from 'node:module';
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+
+register('./mock/loader.mjs', import.meta.url);
+
+const { mock, STATE, world, system, BlockPermutation } = await import('./mock/minecraft-server.mjs');
+const { uiMock } = await import('./mock/minecraft-server-ui.mjs');
+const { Game } = await import('../packs/FredbearBP/scripts/mc/game.js');
+const { installDebug, registerCommands, handleDebug } = await import('../packs/FredbearBP/scripts/mc/debug.js');
+const { INPUT_BY_ID, inputCbPos } = await import('../packs/FredbearBP/scripts/data/inputs.js');
+const { ANCHORS } = await import('../packs/FredbearBP/scripts/data/layout.js');
+const { NODE_BY_ID } = await import('../packs/FredbearBP/scripts/data/nodes.js');
+const { PALETTE } = await import('../packs/FredbearBP/scripts/data/palette.js');
+const { W, Wv } = await import('../packs/FredbearBP/scripts/mc/world_io.js');
+const { allCommandBlocks } = await import('../tools/gen_structures.mjs');
+const { buildVoxel, BOUNDS } = await import('../tools/voxel.mjs');
+const { Rng } = await import('../packs/FredbearBP/scripts/core/rng.js');
+
+const HOME = { freddy: 'STAGE_F', bonnie: 'STAGE_B', chica: 'STAGE_C', fredbear: 'CHAMBER_F' };
+const TYPES = { freddy: 'fb:freddy', bonnie: 'fb:bonnie', chica: 'fb:chica', fredbear: 'fb:fredbear' };
+
+let game;
+let player;
+let commands;
+
+function startGame() {
+  game = new Game();
+  installDebug(game);
+  game.start();
+  commands = new Map();
+  registerCommands({ registerCommand: (def, cb) => commands.set(def.name, cb) }, () => game);
+  return game;
+}
+
+/** Press the physical control wired to an input command block. */
+function press(inputId) {
+  const inp = INPUT_BY_ID[inputId];
+  assert.ok(inp, `input ${inputId}`);
+  const w = W(...inputCbPos(inp));
+  mock.activateCommandBlockAt(w.x, w.y, w.z);
+}
+
+const at = (x, y, z) => {
+  const w = W(x, y, z);
+  return mock.blockAt(w.x, w.y, w.z);
+};
+const typeAt = (x, y, z) => at(x, y, z).split('[')[0];
+const box = (x1, y1, z1, x2, y2, z2) => {
+  const out = [];
+  for (let x = x1; x <= x2; x++) for (let y = y1; y <= y2; y++) for (let z = z1; z <= z2; z++) out.push(typeAt(x, y, z));
+  return out;
+};
+
+async function until(pred, max = 2000, step = 1) {
+  for (let t = 0; t < max; t += step) {
+    if (pred()) return t;
+    await mock.tick(step);
+  }
+  assert.fail(`condition not reached within ${max} ticks`);
+}
+
+function noMockErrors() {
+  assert.deepEqual(STATE.errors, [], 'API misuse detected by the mock');
+  assert.deepEqual(STATE.handlerErrors, [], 'exceptions in event handlers / scheduled callbacks');
+}
+
+function puppetsOf(type) {
+  return mock.entities().filter((e) => e.typeId === type && e.isValid);
+}
+
+async function goToOfficeAndStart() {
+  player.teleport(Wv(ANCHORS.officeSeat));
+  press('in.office.start');
+  await mock.tick(3);
+  assert.equal(game.state, 'NIGHT');
+}
+
+/** Everything a full reset promises (game.js fullReset header). */
+async function assertCleanLobby() {
+  await mock.tick(30); // let the reset command-block chains run
+  assert.equal(game.state, 'LOBBY');
+  assert.equal(game.session, null);
+  assert.equal(world.getDynamicProperty('fb:session'), undefined, 'interrupted-night marker cleared');
+  for (const [who, type] of Object.entries(TYPES)) {
+    const list = puppetsOf(type);
+    assert.equal(list.length, 1, `exactly one ${who}`);
+    const n = Wv(NODE_BY_ID[HOME[who]]);
+    const l = list[0].location;
+    assert.ok(Math.hypot(l.x - n.x, l.y - n.y, l.z - n.z) < 0.01, `${who} back home`);
+    assert.equal(list[0].getProperty('fb:hidden'), false);
+  }
+  assert.equal(puppetsOf('fb:fredbear_echo').length, 0, 'no echo left');
+  assert.deepEqual([...new Set(box(94, 0, 129, 94, 2, 130))], ['minecraft:air'], 'left doorway open');
+  assert.deepEqual([...new Set(box(106, 0, 129, 106, 2, 130))], ['minecraft:air'], 'right doorway open');
+  for (const t of [...box(91, 0, 127, 93, 3, 133), ...box(107, 0, 127, 109, 3, 133), ...box(95, 0, 127, 105, 5, 139)]) {
+    assert.ok(!['minecraft:light_block_14', 'minecraft:light_block_7', 'minecraft:light_block_15', 'minecraft:light_block_12'].includes(t), `stray light ${t}`);
+  }
+  assert.equal(player.cameraState.preset, null, 'normal camera');
+  assert.ok(!player.effects.has('minecraft:night_vision'), 'night vision removed');
+  for (const v of Object.values(player.permissions)) assert.equal(v, true, 'input permissions restored');
+  assert.deepEqual(player.inventory.slots.slice(0, 3).map((s) => s?.typeId), ['fb:tablet', 'fb:remote', 'fb:guide']);
+  assert.equal(player.inventory.slots[0].lockMode, 'slot');
+  assert.equal(game.cams.active, false);
+  assert.equal(game.audio.loops.size, 0);
+  assert.equal(game.bus.queue.length, 0, 'actuator queue drained');
+  assert.equal(game.bus.stats.stuck, 0, 'no stuck pads');
+  assert.equal(game.bus.stats.unknown, 0, 'no unknown actuators');
+  const lobby = Wv(ANCHORS.lobbySpawn);
+  assert.ok(Math.hypot(player.location.x - lobby.x, player.location.z - lobby.z) < 0.01, 'player at the time clock');
+  noMockErrors();
+}
+
+// ------------------------------------------------------------------------------------------
+test('main.js wiring: custom commands at startup, unbuilt prompt after world load', async () => {
+  mock.resetAll();
+  uiMock.reset();
+  await import('../packs/FredbearBP/scripts/main.js');
+  const cmds = mock.fireStartup();
+  assert.deepEqual([...cmds.keys()].sort(), ['fb:debug', 'fb:lobby', 'fb:setup']);
+  mock.fireWorldLoad();
+  player = mock.addPlayer('Guard');
+  await mock.tick(60);
+  assert.match(player.actionBar, /fb:setup/);
+  noMockErrors();
+  mock.reload(); // drop main.js's instance; the rest of the file drives its own Game
+});
+
+test('/fb:setup builds the whole map, installs 448 command blocks and reaches the lobby', async () => {
+  startGame();
+  assert.equal(game.state, 'UNBUILT');
+  commands.get('fb:setup')({ sourceEntity: player }, false);
+  await until(() => game.state === 'LOBBY', 5000, 10);
+  assert.equal(mock.commandBlockCount(), 448);
+  assert.ok(STATE.maxFill <= 32768, `largest single fill ${STATE.maxFill}`);
+  assert.equal(uiMock.shown.filter((f) => f.title === 'Build report').length, 0, 'no build warnings');
+  await assertCleanLobby();
+});
+
+test('the built world equals the offline voxel model outside command-block-controlled cells', () => {
+  const vox = buildVoxel();
+  // Cells that command blocks legitimately change after the build.
+  const skip = new Set();
+  const mark = (x, y, z) => skip.add(`${x},${y},${z}`);
+  for (const b of allCommandBlocks()) {
+    mark(...b.world);
+    if (b.pad) mark(...W(...b.pad).x === undefined ? b.pad : [W(...b.pad).x, W(...b.pad).y, W(...b.pad).z]);
+    const t = b.command.split(/\s+/);
+    if (t[0] === 'setblock') mark(+t[1], +t[2], +t[3]);
+    if (t[0] === 'fill') {
+      for (let x = Math.min(+t[1], +t[4]); x <= Math.max(+t[1], +t[4]); x++) {
+        for (let y = Math.min(+t[2], +t[5]); y <= Math.max(+t[2], +t[5]); y++) for (let z = Math.min(+t[3], +t[6]); z <= Math.max(+t[3], +t[6]); z++) mark(x, y, z);
+      }
+    }
+  }
+  const expected = new Map();
+  const keyOf = (k) => {
+    let v = expected.get(k);
+    if (v === undefined) {
+      const p = PALETTE[k];
+      v = k === 'air' ? 'minecraft:air' : k === 'dirt' ? 'minecraft:dirt' : BlockPermutation.resolve(p.name, p.states ?? {}).key;
+      expected.set(k, v);
+    }
+    return v;
+  };
+  let compared = 0;
+  const diffs = [];
+  for (let x = BOUNDS.x0; x <= BOUNDS.x1; x++) {
+    for (let y = BOUNDS.y0; y <= BOUNDS.y1; y++) {
+      for (let z = BOUNDS.z0; z <= BOUNDS.z1; z++) {
+        const w = W(x, y, z);
+        if (skip.has(`${w.x},${w.y},${w.z}`)) continue;
+        compared++;
+        const want = keyOf(vox.get(x, y, z));
+        const got = mock.blockAt(w.x, w.y, w.z);
+        if (want !== got && diffs.length < 10) diffs.push(`(${x},${y},${z}) want ${want} got ${got}`);
+      }
+    }
+  }
+  assert.ok(compared > 2_000_000, `compared ${compared} cells`);
+  assert.deepEqual(diffs, []);
+});
+
+test('in-game self-test passes inside the mock (palette, structures, CBs, bus round trip, heartbeat, routes, cameras, puppets)', async () => {
+  await mock.tick(120); // heartbeat repeats every 100 ticks
+  const { selfTest } = await import('../packs/FredbearBP/scripts/mc/debug.js');
+  const p = selfTest(game, undefined);
+  await mock.tick(25);
+  const lines = await p;
+  assert.equal(lines.length, 9);
+  for (const l of lines) assert.match(l, /PASS/, l.replace(/§./g, ''));
+  noMockErrors();
+});
+
+test('training shift: every step completes through the physical controls, then back to the lobby', async () => {
+  press('in.lobby.tutorial');
+  await mock.tick(5);
+  assert.equal(game.state, 'NIGHT');
+  assert.equal(game.night, 0);
+  await mock.tick(20);
+  // Shift start must leave the doorways sealed with barriers (doors "open").
+  assert.deepEqual([...new Set(box(94, 0, 129, 94, 2, 130))], ['minecraft:barrier'], 'left doorway sealed at shift start');
+  assert.deepEqual([...new Set(box(106, 0, 129, 106, 2, 130))], ['minecraft:barrier'], 'right doorway sealed at shift start');
+  const step = () => game.tutorial.step;
+  press('in.office.door_l');
+  await mock.tick(5);
+  assert.equal(step(), 1);
+  assert.deepEqual([...new Set(box(94, 0, 129, 94, 2, 130))], ['minecraft:iron_block'], 'door closed physically');
+  await mock.tick(10);
+  press('in.office.door_l');
+  await mock.tick(5);
+  assert.equal(step(), 2);
+  assert.deepEqual([...new Set(box(94, 0, 129, 94, 2, 130))], ['minecraft:barrier']);
+  press('in.office.light_l');
+  await mock.tick(5);
+  assert.equal(step(), 3);
+  assert.ok(box(91, 0, 127, 93, 3, 133).includes('minecraft:light_block_14'), 'hall light on');
+  press('in.office.cams');
+  await mock.tick(5);
+  assert.equal(step(), 4);
+  assert.equal(player.cameraState.preset, 'minecraft:free');
+  assert.equal(player.permissions[4], false, 'lateral movement locked while viewing');
+  mock.hotbar(player, 4, 5);
+  await mock.tick(5);
+  assert.equal(step(), 5);
+  mock.sneak(player);
+  await mock.tick(5);
+  assert.equal(step(), 6);
+  assert.equal(player.cameraState.preset, null);
+  // Demo: Bonnie walks to the left door; close it while he telegraphs.
+  await until(() => game.session.anim.bonnie.state === 'TELEGRAPH', 4000);
+  press('in.office.door_l');
+  await until(() => step() === 7, 400);
+  press('in.office.strobe');
+  await mock.tick(5);
+  assert.equal(game.tutorial.done, true);
+  await until(() => game.state === 'LOBBY', 200);
+  assert.equal(JSON.parse(world.getDynamicProperty('fb:save')).tutorialDone, true);
+  await assertCleanLobby();
+});
+
+test('night 1 from the time clock: intro, office start, controls drive session and command blocks', async () => {
+  game.save.settings.deterministic = true;
+  game.save.settings.seed = 1983;
+  press('in.lobby.night_1');
+  await mock.tick(2);
+  assert.equal(game.state, 'INTRO');
+  press('in.office.start'); // still in the lobby: refused
+  await mock.tick(2);
+  assert.equal(game.state, 'INTRO');
+  await goToOfficeAndStart();
+  assert.ok(STATE.commands.includes('fog @a push fb:night_1 fb_night'));
+  await mock.tick(20);
+  const s = game.session;
+  const p0 = s.power;
+  press('in.office.door_r');
+  await mock.tick(4);
+  assert.equal(s.devices.doorR, true);
+  assert.deepEqual([...new Set(box(106, 0, 129, 106, 2, 130))], ['minecraft:iron_block']);
+  assert.equal(typeAt(106, 3, 129), 'minecraft:ochre_froglight', 'door indicator');
+  press('in.office.map_c05'); // map button opens the monitor on that feed
+  await mock.tick(4);
+  assert.equal(s.devices.cams.open, true);
+  assert.equal(s.devices.cams.cam, 'C05');
+  mock.useItem(player, 'fb:tablet'); // tablet while viewing -> camera menu form
+  await mock.tick(2);
+  assert.ok(uiMock.shown.some((f) => f.title.includes('SECURITY CAMERAS')));
+  await mock.tick(200);
+  assert.ok(s.power < p0, 'power drains');
+  // Unregistered block cannot drive the office.
+  const fake = mock.store();
+  void fake;
+  system.afterEvents.scriptEventReceive.emit({ id: 'fb:input', message: 'door_r', sourceBlock: { location: { x: 0, y: -60, z: 0 } } });
+  await mock.tick(10);
+  assert.equal(s.devices.doorR, true, 'spoofed input ignored');
+  noMockErrors();
+});
+
+test('6 AM win unlocks night 2 and persists; result form returns to the lobby', async () => {
+  const s = game.session;
+  uiMock.respond = (f) => (f.title.includes('COMPLETE') ? { selection: f.buttons.indexOf('Return to the lobby') } : undefined);
+  s.setTick(s.length - 3);
+  await until(() => game.state === 'RESULT', 50);
+  await until(() => game.state === 'LOBBY', 400);
+  const save = JSON.parse(world.getDynamicProperty('fb:save'));
+  assert.equal(save.unlocked, 2);
+  assert.deepEqual(save.completed, [1]);
+  uiMock.respond = () => undefined;
+  await assertCleanLobby();
+});
+
+test('jumpscare -> game over -> immediate retry restarts the same night in the office', async () => {
+  press('in.lobby.night_2');
+  await mock.tick(2);
+  await goToOfficeAndStart();
+  await mock.tick(40);
+  uiMock.respond = (f) => (f.title.includes('GAME OVER') ? { selection: 0 } : undefined);
+  handleDebug(game, 'lose', 'bonnie', undefined, player);
+  await until(() => game.state === 'RESULT', 300);
+  assert.ok(player.sounds.includes('fb.js.bonnie'), 'scream played');
+  assert.ok(player.cameraState.history.some((h) => h.preset === 'minecraft:free'), 'jumpscare camera');
+  await until(() => game.state === 'NIGHT' && game.session?.t > 5, 400);
+  assert.equal(game.night, 2);
+  assert.equal(game.session.phase, 'RUNNING');
+  await mock.tick(10);
+  assert.deepEqual([...new Set(box(94, 0, 129, 94, 2, 130))], ['minecraft:barrier'], 'retry sealed the doorway');
+  uiMock.respond = () => undefined;
+  commands.get('fb:lobby')();
+  await mock.tick(2);
+  await assertCleanLobby();
+});
+
+test('maintenance pause: clock stops, the lever completes it, START resumes the night', async () => {
+  handleDebug(game, 'unlock', '3', undefined, player);
+  press('in.lobby.night_3');
+  await mock.tick(2);
+  await goToOfficeAndStart();
+  const s = game.session;
+  s.setTick(3195);
+  await until(() => s.phase === 'MAINT', 30);
+  const t0 = s.t;
+  await mock.tick(40);
+  assert.equal(s.t, t0, 'clock paused');
+  press('in.office.start'); // task not done yet
+  await mock.tick(2);
+  assert.equal(s.phase, 'MAINT');
+  press('in.maint.generator');
+  await mock.tick(2);
+  player.teleport(Wv(ANCHORS.officeSeat));
+  press('in.office.start');
+  await mock.tick(5);
+  assert.equal(s.phase, 'RUNNING');
+  assert.ok(s.t > t0);
+  commands.get('fb:lobby')();
+  await mock.tick(2);
+  await assertCleanLobby();
+});
+
+test('ten randomized play / reset cycles leave no residue', async () => {
+  const rng = new Rng(77);
+  const controls = ['in.office.door_l', 'in.office.door_r', 'in.office.light_l', 'in.office.light_r', 'in.office.cams', 'in.office.hatch', 'in.office.strobe', 'in.office.map_c02', 'in.office.map_c11', 'in.office.breaker'];
+  handleDebug(game, 'unlock', '6', undefined, player);
+  for (let cycle = 0; cycle < 10; cycle++) {
+    const night = 1 + rng.int(0, 5);
+    press(`in.lobby.night_${night}`);
+    await mock.tick(2);
+    await goToOfficeAndStart();
+    const actions = 20 + rng.int(0, 20);
+    for (let i = 0; i < actions && game.state === 'NIGHT'; i++) {
+      press(rng.pick(controls));
+      if (rng.chance(0.2)) mock.sneak(player);
+      if (rng.chance(0.2)) mock.hotbar(player, 4, rng.pick([3, 5]));
+      if (cycle % 3 === 1 && i === 5 && game.session) game.session.setTick(game.session.tph * 3 - 5);
+      if (cycle === 4 && i === 8 && game.session) handleDebug(game, 'scenario', 'blackout', undefined, player);
+      if (cycle === 7 && i === 8 && game.session) game.puppets.showEcho('DIN_C');
+      await mock.tick(5 + rng.int(0, 25));
+    }
+    // Leave the way a player would: the developer/console reset or the result screen.
+    if (game.state === 'RESULT') await until(() => game.state !== 'RESULT', 400);
+    commands.get('fb:lobby')();
+    await mock.tick(2);
+    await assertCleanLobby();
+  }
+});
+
+test('duplicate and stray animatronic entities are removed by the integrity pass', async () => {
+  const dim = world.getDimension('overworld');
+  const extra = dim.spawnEntity('fb:bonnie', Wv(NODE_BY_ID.DIN_C));
+  extra.addTag('fb_puppet');
+  dim.spawnEntity('fb:chica', Wv(NODE_BY_ID.DIN_C)); // untagged stray
+  dim.spawnEntity('fb:freddy', Wv(NODE_BY_ID.DIN_C));
+  await mock.tick(41);
+  for (const type of Object.values(TYPES)) assert.equal(puppetsOf(type).length, 1, type);
+  await assertCleanLobby();
+});
+
+test('quitting mid-night: on reload the night is abandoned, progress kept, back at the time clock', async () => {
+  const before = world.getDynamicProperty('fb:save');
+  press('in.lobby.night_4');
+  await mock.tick(2);
+  await goToOfficeAndStart();
+  press('in.office.door_l');
+  await mock.tick(200);
+  assert.equal(JSON.parse(world.getDynamicProperty('fb:session')).active, true);
+  // Close the world: scripts stop, blocks/entities/dynamic properties persist.
+  mock.reload();
+  startGame();
+  mock.respawn(player);
+  await mock.tick(2);
+  assert.equal(game.state, 'LOBBY');
+  assert.match(game.hud.message ?? '', /interrupted/);
+  assert.equal(world.getDynamicProperty('fb:save'), before, 'save untouched by the abandoned night');
+  assert.equal(game.save.unlocked, 6);
+  await assertCleanLobby();
+});
+
+test('progress and settings survive a reload', async () => {
+  game.save.settings.captions = false;
+  (await import('../packs/FredbearBP/scripts/mc/persistence.js')).storeSave(game.save);
+  mock.reload();
+  startGame();
+  await mock.tick(2);
+  assert.equal(game.save.settings.captions, false);
+  assert.equal(game.save.unlocked, 6);
+  assert.equal(game.save.tutorialDone, true);
+  await assertCleanLobby();
+});

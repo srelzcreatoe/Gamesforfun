@@ -230,6 +230,28 @@ export const REPEATERS = Object.freeze([
 
 export const MODULE_BY_ID = Object.freeze(Object.fromEntries(MODULES.map((m) => [m.id, m])));
 
+/**
+ * Ticks until a module's chain - and every module it TRIGGERs - has run:
+ * one tick from pad to impulse block, each chain delay, and one more tick per
+ * TRIGGER hop (a redstone block placed by a command block powers the next pad).
+ * @param {string} id
+ * @param {Set<string>} [seen]
+ * @returns {number}
+ */
+export function settleTicks(id, seen = new Set()) {
+  const m = MODULE_BY_ID[id];
+  if (!m || seen.has(id)) return 0;
+  seen.add(id);
+  let elapsed = 1;
+  let longest = 1;
+  for (const c of m.cmds) {
+    elapsed += c.delay ?? 0;
+    const t = /^TRIGGER:(.+)$/.exec(c.c);
+    if (t) longest = Math.max(longest, elapsed + 1 + settleTicks(t[1], seen));
+  }
+  return Math.max(elapsed, longest);
+}
+
 // ------------------------------------------------------------------ physical layout
 export const CONTROL = Object.freeze({ x1: 22, x2: 177, y: -9, rows: Object.freeze([169, 172, 175, 178, 181, 184, 187, 190, 193]) });
 

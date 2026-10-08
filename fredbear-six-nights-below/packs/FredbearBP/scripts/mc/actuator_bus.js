@@ -6,7 +6,10 @@
 //   * a module fires at most once per 2 ticks (later requests wait in order);
 //   * pads in unloaded chunks are retried (counted as deferred);
 //   * a pad that is still powered 4+ ticks after firing means command blocks
-//     are not running - it is cleared and a diagnostic is raised.
+//     are not running - it is cleared and a diagnostic is raised;
+//   * fence(n): everything triggered after the call waits n ticks, so a reset's
+//     command-block chains (reset.world -> night.end) always finish before the
+//     next shift's modules (night.begin, doors, lights) run. Order is preserved.
 
 import { system } from '@minecraft/server';
 import { layoutModules } from '../data/actuators.js';
@@ -25,6 +28,7 @@ export class ActuatorBus {
     this.stats = { fired: 0, deferred: 0, unknown: 0, stuck: 0 };
     this.pong = 0;
     this.heartbeat = 0;
+    this.fenceUntil = 0;
   }
 
   has(id) {
@@ -38,7 +42,12 @@ export class ActuatorBus {
       log.warn(`unknown actuator ${id}`);
       return;
     }
-    this.queue.push(real);
+    this.queue.push({ id: real, notBefore: this.fenceUntil });
+  }
+
+  /** Hold every later trigger until `ticks` from now (see header). */
+  fence(ticks) {
+    this.fenceUntil = Math.max(this.fenceUntil, system.currentTick + ticks);
   }
 
   tick() {
@@ -46,10 +55,15 @@ export class ActuatorBus {
     const now = system.currentTick;
     const later = [];
     const firedThisTick = new Set();
-    for (const id of this.queue) {
+    for (const item of this.queue) {
+      const { id } = item;
+      if (item.notBefore > now) {
+        later.push(item);
+        continue;
+      }
       const last = this.lastFire.get(id) ?? -100;
       if (now - last < 2 || firedThisTick.has(id)) {
-        later.push(id);
+        later.push(item);
         continue;
       }
       const [x, y, z] = PADS.get(id);
@@ -58,7 +72,7 @@ export class ActuatorBus {
         const block = dim().getBlock(loc);
         if (!block) {
           this.stats.deferred++;
-          later.push(id);
+          later.push(item);
           continue;
         }
         if (block.typeId === 'minecraft:redstone_block') {
@@ -66,7 +80,7 @@ export class ActuatorBus {
           this.stats.stuck++;
           log.warn(`actuator ${id} pad still powered - are command blocks enabled?`);
           block.setType('minecraft:air');
-          later.push(id);
+          later.push(item);
           continue;
         }
         block.setType('minecraft:redstone_block');
@@ -75,7 +89,7 @@ export class ActuatorBus {
         this.stats.fired++;
       } catch (e) {
         this.stats.deferred++;
-        later.push(id);
+        later.push(item);
         log.warn(`actuator ${id} deferred: ${e?.message ?? e}`);
       }
     }

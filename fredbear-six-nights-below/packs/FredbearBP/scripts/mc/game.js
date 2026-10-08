@@ -21,6 +21,7 @@ import { INPUTS, inputCbPos } from '../data/inputs.js';
 import { isKnownInputAction } from '../data/input_actions.js';
 import { PHONE, TASKS, MAINTENANCE, SECRETS, ENDING, TUTORIAL_STEPS } from '../data/story.js';
 import { ActuatorBus } from './actuator_bus.js';
+import { settleTicks } from '../data/actuators.js';
 import { Builder } from './builder.js';
 import { Puppets } from './puppets.js';
 import { CameraView, restorePlayerView } from './camera_view.js';
@@ -38,6 +39,8 @@ const CB_INPUT = new Map(INPUTS.map((i) => {
   const w = W(x, y, z);
   return [`${w.x},${w.y},${w.z}`, i];
 }));
+// Ticks the reset command-block chains need before anything else may actuate.
+const RESET_SETTLE = settleTicks('reset.world') + 4;
 const SCALE = Object.freeze({ freddy: 1.25, bonnie: 1.2, chica: 1.2, fredbear: 1.3 });
 const ZONE_ACTUATOR = Object.freeze({ 'zone:cove': 'zone.cove', 'zone:freezer': 'zone.freezer', 'zone:diner': 'zone.diner', 'zone:chamber': 'zone.chamber', 'zone:attic': 'zone.attic', 'zone:basement': 'env.pipes', 'zone:backstage': 'env.distant_music' });
 
@@ -203,6 +206,7 @@ export class Game {
     this.puppets.hideEcho();
     clearSession();
     for (const id of ['reset.world', 'sig.stage_lights_on', 'init.policy', 'init.time', 'pwr.meter_full', 'pwr.charges_0', 'lobby.lamps_reset']) this.bus.trigger(id);
+    this.bus.fence(RESET_SETTLE); // a night started in this same tick must not be undone by night.end
     this.applyGates();
     runCmd(COMMAND_TEMPLATES.fogPop[0]);
     for (const c of COMMAND_TEMPLATES.hudReset) runCmd(c);
