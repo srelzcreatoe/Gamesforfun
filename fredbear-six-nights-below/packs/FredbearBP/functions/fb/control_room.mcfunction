@@ -1,2 +1,2 @@
-# Developer: teleport into the command-block control room (world coordinates).
-tp @s 30 -59 170 facing 30 -59 180
+# Developer: teleport into the command-block control room (world coordinates; local anchor controlRoom 30.5 -9 180.5).
+tp @s 30.5 -59 180.5 -90 0

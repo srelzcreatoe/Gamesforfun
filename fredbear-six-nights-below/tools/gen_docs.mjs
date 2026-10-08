@@ -49,11 +49,18 @@ function floorPlan() {
   L.push('| ID | Kind | Local position | Direction | From → to standing y |', '|---|---|---|---|---|');
   for (const s of STAIRS) L.push(`| ${s.id} | ${s.kind} | ${s.x} ${s.z} | ${s.dir ?? '-'} | ${s.fromStand ?? '-'} → ${s.toStand ?? '-'} |`);
   L.push('', '## Security cameras (16)', '');
-  L.push('| ID | Label | Room | Position (local) | Looks at (local) | Sees nodes | Notes |', '|---|---|---|---|---|---|---|');
+  L.push('| ID | Label | Room | Position (local) | Looks at (local) | Sees nodes | Farthest point from office seat | Notes |', '|---|---|---|---|---|---|---|---|');
+  const seat = ANCHORS.officeSeat;
+  const nodeById = Object.fromEntries(NODES.map((n) => [n.id, n]));
+  let worst = 0;
   for (const c of CAMERAS) {
     const notes = [c.audioOnly ? 'audio only' : '', c.lostSignalBefore ? `no signal before night ${c.lostSignalBefore}` : ''].filter(Boolean).join('; ') || '-';
-    L.push(`| ${c.id} | ${c.label} | ${c.room} | ${c.loc.map(fmt).join(' ')} | ${c.look.map(fmt).join(' ')} | ${c.sees.join(', ') || '-'} | ${notes} |`);
+    const pts = [c.loc, c.look, ...c.sees.map((id) => [nodeById[id].x, nodeById[id].y, nodeById[id].z])];
+    const far = Math.max(...pts.map((p) => Math.hypot(p[0] - seat.x, p[2] - seat.z)));
+    worst = Math.max(worst, far);
+    L.push(`| ${c.id} | ${c.label} | ${c.room} | ${c.loc.map(fmt).join(' ')} | ${c.look.map(fmt).join(' ')} | ${c.sees.join(', ') || '-'} | ${far.toFixed(0)} blocks (${Math.ceil(far / 16)} chunks) | ${notes} |`);
   }
+  L.push('', `**Rendering reach.** Camera views move the player's *view* (\`minecraft:free\` camera) but not the player, so what a feed can show is limited by what the client has loaded around the player in the office. The farthest point any feed must show is ${worst.toFixed(0)} blocks (${Math.ceil(worst / 16)} chunks) from the office seat. Ticking areas keep those chunks *simulated* (puppets keep being teleported and synced) but do not by themselves make them *render*; set the render distance to at least ${Math.ceil(worst / 16) + 2} chunks (docs/08_INSTALL_AND_PLAY.md). Whether distant feeds render correctly at lower settings has not been verified in-game.`);
   L.push('', '## AI route graph', '');
   L.push(`${NODES.length} nodes and ${EDGES.length} edges. Every edge is a polyline of waypoints the puppet follows; tools/validate_map.mjs samples every 0.5 blocks of every polyline against the voxel model (body + head cells must be passable), and the in-game self-test repeats the check against the built world.`);
   L.push(`Access letters: ${Object.entries(ACCESS).map(([k, v]) => `${v} = ${k}`).join(', ')}. Entries: ${Object.entries(ENTRY_NODE).map(([k, v]) => `${k} → ${v} (barrier ${ENTRY_BARRIER[k]})`).join(', ')}. Fredbear's golden nodes: ${GOLDEN_NODES.join(', ')}.`, '');

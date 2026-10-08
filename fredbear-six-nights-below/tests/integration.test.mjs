@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 
 register('./mock/loader.mjs', import.meta.url);
 
-const { mock, STATE, world, system, BlockPermutation } = await import('./mock/minecraft-server.mjs');
+const { mock, STATE, world, system, BlockPermutation, executeCommand } = await import('./mock/minecraft-server.mjs');
 const { uiMock } = await import('./mock/minecraft-server-ui.mjs');
 const { Game } = await import('../packs/FredbearBP/scripts/mc/game.js');
 const { installDebug, registerCommands, handleDebug } = await import('../packs/FredbearBP/scripts/mc/debug.js');
@@ -443,6 +443,40 @@ test('progress and settings survive a reload', async () => {
   assert.equal(game.save.settings.captions, false);
   assert.equal(game.save.unlocked, 6);
   assert.equal(game.save.tutorialDone, true);
+  await assertCleanLobby();
+});
+
+test('helper .mcfunction files drive the game through /scriptevent', async () => {
+  const fs = await import('node:fs');
+  const { log } = await import('../packs/FredbearBP/scripts/mc/log.js');
+  const run = (name) => {
+    const text = fs.readFileSync(new URL(`../packs/FredbearBP/functions/fb/${name}.mcfunction`, import.meta.url), 'utf8');
+    for (const line of text.split('\n')) if (line.trim() && !line.trim().startsWith('#')) executeCommand(line.trim(), {});
+  };
+  press('in.lobby.night_1');
+  await mock.tick(2);
+  await goToOfficeAndStart();
+  run('lobby');
+  await mock.tick(2);
+  assert.equal(game.state, 'LOBBY', 'lobby.mcfunction abandons the night');
+  const overlay = game.overlay;
+  run('debug_overlay');
+  await mock.tick(1);
+  assert.equal(game.overlay, !overlay);
+  run('debug_overlay');
+  await mock.tick(1);
+  run('selftest');
+  await mock.tick(30);
+  const report = log.recent(40).filter((l) => l.includes('self-test')).at(-1) ?? '';
+  assert.match(report, /PASS/);
+  assert.doesNotMatch(report, /FAIL/);
+  // control_room.mcfunction lands the player in open air on a solid floor.
+  assert.equal(mock.blockAt(30, -59, 180), 'minecraft:air');
+  assert.equal(mock.blockAt(30, -58, 180), 'minecraft:air');
+  assert.notEqual(mock.blockAt(30, -60, 180), 'minecraft:air');
+  run('setup');
+  assert.equal(game.state, 'BUILDING', 'setup.mcfunction starts the builder');
+  await until(() => game.state === 'LOBBY', 5000, 10);
   await assertCleanLobby();
 });
 

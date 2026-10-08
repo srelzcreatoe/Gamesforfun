@@ -70,6 +70,9 @@ export class Game {
     this.overlay = !!this.save.settings.debugOverlay;
     /** @type {((action: string, player: any) => any) | undefined} */
     this.debugHook = undefined;
+    /** Developer command entry for `/scriptevent fb:debug <action> [a1] [a2]` (the helper .mcfunction files). */
+    /** @type {((action: string, a1: string | undefined, a2: string | undefined, player: any) => any) | undefined} */
+    this.debugCommand = undefined;
   }
 
   // ================================================================ lifecycle
@@ -804,6 +807,14 @@ export class Game {
         this.onInput(reg.action, player ?? this.guard());
       } else if (ev.id === 'fb:diag') {
         this.bus.onDiag(ev.message);
+      } else if (ev.id === 'fb:setup') {
+        // functions/fb/setup.mcfunction and rebuild.mcfunction
+        this.setup(ev.message.trim() === 'rebuild');
+      } else if (ev.id === 'fb:debug') {
+        // functions/fb/{lobby,selftest,debug_overlay}.mcfunction (and any /scriptevent fb:debug ...)
+        const [action, a1, a2] = ev.message.trim().split(/\s+/);
+        const src = ev.sourceEntity;
+        this.debugCommand?.(action, a1, a2, src?.typeId === 'minecraft:player' ? src : undefined);
       }
     } catch (e) {
       log.error('script event', e);

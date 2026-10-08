@@ -129,24 +129,26 @@ Openings: 83 doors, archways and windows. Stairs, ladders and the office hatch:
 
 ## Security cameras (16)
 
-| ID | Label | Room | Position (local) | Looks at (local) | Sees nodes | Notes |
-|---|---|---|---|---|---|---|
-| C01 | CAM 01 · SHOW STAGE | STAGE | 100.5 5 50.5 | 100.5 1.5 22.5 | STAGE_F, STAGE_B, STAGE_C, STAGE_FRONT | - |
-| C02 | CAM 02 · DINING HALL WEST | DINING | 98.5 11 98.5 | 72 0 66 | DIN_NW, DIN_W, DIN_C, DIN_SW, STAGE_B, STAGE_F, STAGE_FRONT | - |
-| C03 | CAM 03 · BACKSTAGE | BACKSTAGE | 74.5 4.5 38.5 | 58.5 0.5 15.5 | BACK | - |
-| C04 | CAM 04 · STARLIGHT COVE | COVE | 50.5 2.8 58.5 | 21.5 1.5 55.5 | COVE_FRONT, COVE_STAGE | - |
-| C05 | CAM 05 · ARCADE | ARCADE | 50.5 5.4 102.5 | 24.5 0.5 76.5 | ARCADE | - |
-| C06 | CAM 06 · PARTS & SERVICE | PARTS | 50.5 5.4 38.5 | 22.5 0.5 14.5 | PARTS | - |
-| C07 | CAM 07 · WEST HALL | W_HALL | 87.5 4.6 98.5 | 87.5 0.5 128.5 | WH_N, WH_M, WH_S | - |
-| C08 | CAM 08 · WEST CORNER | W_ALCOVE | 91.5 4.6 127.5 | 92.5 0.8 132.5 | W_DOOR | - |
-| C09 | CAM 09 · SUPPLY CLOSET | SUPPLY | 82.5 4.5 138.5 | 76.5 0.5 120.5 | SUP | - |
-| C10 | CAM 10 · KITCHEN (AUDIO ONLY) | KITCHEN | 182.5 4.5 48.5 | 160.5 0.5 20.5 | KIT | audio only |
-| C11 | CAM 11 · EAST SERVICE | E_SERVICE | 152.5 4.6 63.2 | 152.5 0.5 99.5 | ES_N, ES_M, ES_S, EMP | - |
-| C12 | CAM 12 · EAST HALL | E_HALL | 113.5 4.6 98.5 | 113.5 0.5 128.5 | EH_N, EH_M, EH_S | - |
-| C13 | CAM 13 · EAST CORNER | E_ALCOVE | 108.5 4.6 127.5 | 107.5 0.8 132.5 | E_DOOR | - |
-| C14 | CAM 14 · DINING HALL EAST | DINING | 102.5 11 98.5 | 140.5 0 62.5 | DIN_E, DIN_EE, DIN_SE, STAGE_C | - |
-| C15 | CAM 15 · MAINTENANCE TUNNEL | TUNNEL_S | 72.5 -4.6 107.5 | 110.5 -9 107 | TS_W, TS_MID | - |
-| C16 | CAM 16 · SEALED DINER | DINER | 62.5 -4.6 94.5 | 40.5 -8 50.5 | DINER_STAGE, DINER_FLOOR | no signal before night 4 |
+| ID | Label | Room | Position (local) | Looks at (local) | Sees nodes | Farthest point from office seat | Notes |
+|---|---|---|---|---|---|---|---|
+| C01 | CAM 01 · SHOW STAGE | STAGE | 100.5 5 50.5 | 100.5 1.5 22.5 | STAGE_F, STAGE_B, STAGE_C, STAGE_FRONT | 109 blocks (7 chunks) | - |
+| C02 | CAM 02 · DINING HALL WEST | DINING | 98.5 11 98.5 | 72 0 66 | DIN_NW, DIN_W, DIN_C, DIN_SW, STAGE_B, STAGE_F, STAGE_FRONT | 109 blocks (7 chunks) | - |
+| C03 | CAM 03 · BACKSTAGE | BACKSTAGE | 74.5 4.5 38.5 | 58.5 0.5 15.5 | BACK | 123 blocks (8 chunks) | - |
+| C04 | CAM 04 · STARLIGHT COVE | COVE | 50.5 2.8 58.5 | 21.5 1.5 55.5 | COVE_FRONT, COVE_STAGE | 110 blocks (7 chunks) | - |
+| C05 | CAM 05 · ARCADE | ARCADE | 50.5 5.4 102.5 | 24.5 0.5 76.5 | ARCADE | 94 blocks (6 chunks) | - |
+| C06 | CAM 06 · PARTS & SERVICE | PARTS | 50.5 5.4 38.5 | 22.5 0.5 14.5 | PARTS | 141 blocks (9 chunks) | - |
+| C07 | CAM 07 · WEST HALL | W_HALL | 87.5 4.6 98.5 | 87.5 0.5 128.5 | WH_N, WH_M, WH_S | 35 blocks (3 chunks) | - |
+| C08 | CAM 08 · WEST CORNER | W_ALCOVE | 91.5 4.6 127.5 | 92.5 0.8 132.5 | W_DOOR | 10 blocks (1 chunks) | - |
+| C09 | CAM 09 · SUPPLY CLOSET | SUPPLY | 82.5 4.5 138.5 | 76.5 0.5 120.5 | SUP | 26 blocks (2 chunks) | - |
+| C10 | CAM 10 · KITCHEN (AUDIO ONLY) | KITCHEN | 182.5 4.5 48.5 | 160.5 0.5 20.5 | KIT | 126 blocks (8 chunks) | audio only |
+| C11 | CAM 11 · EAST SERVICE | E_SERVICE | 152.5 4.6 63.2 | 152.5 0.5 99.5 | ES_N, ES_M, ES_S, EMP | 86 blocks (6 chunks) | - |
+| C12 | CAM 12 · EAST HALL | E_HALL | 113.5 4.6 98.5 | 113.5 0.5 128.5 | EH_N, EH_M, EH_S | 35 blocks (3 chunks) | - |
+| C13 | CAM 13 · EAST CORNER | E_ALCOVE | 108.5 4.6 127.5 | 107.5 0.8 132.5 | E_DOOR | 9 blocks (1 chunks) | - |
+| C14 | CAM 14 · DINING HALL EAST | DINING | 102.5 11 98.5 | 140.5 0 62.5 | DIN_E, DIN_EE, DIN_SE, STAGE_C | 108 blocks (7 chunks) | - |
+| C15 | CAM 15 · MAINTENANCE TUNNEL | TUNNEL_S | 72.5 -4.6 107.5 | 110.5 -9 107 | TS_W, TS_MID | 37 blocks (3 chunks) | - |
+| C16 | CAM 16 · SEALED DINER | DINER | 62.5 -4.6 94.5 | 40.5 -8 50.5 | DINER_STAGE, DINER_FLOOR | 101 blocks (7 chunks) | no signal before night 4 |
+
+**Rendering reach.** Camera views move the player's *view* (`minecraft:free` camera) but not the player, so what a feed can show is limited by what the client has loaded around the player in the office. The farthest point any feed must show is 141 blocks (9 chunks) from the office seat. Ticking areas keep those chunks *simulated* (puppets keep being teleported and synced) but do not by themselves make them *render*; set the render distance to at least 11 chunks (docs/08_INSTALL_AND_PLAY.md). Whether distant feeds render correctly at lower settings has not been verified in-game.
 
 ## AI route graph
 

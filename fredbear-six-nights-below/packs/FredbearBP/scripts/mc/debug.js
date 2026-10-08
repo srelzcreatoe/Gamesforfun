@@ -20,7 +20,7 @@ import * as ui from './ui.js';
 import { log, setVerbose } from './log.js';
 
 const HELP = [
-  'overlay | selftest | graph | state | puppets | camtour',
+  'lobby | overlay | selftest | graph | state | puppets | camtour',
   'night <0-6> | hour <0-5> | power <pct> | seed <n> | unlock <1-6>',
   'ai <who> <0-20> | place <who> <node> | approach <who> <L|R|H>',
   'scenario <slice|boundary|power_zero|double|freddy|fredbear_hatch|fredbear_left|blackout|finale>',
@@ -68,6 +68,7 @@ export const SCENARIOS = Object.freeze({
 
 export function installDebug(game) {
   game.debugHook = (action, player) => handleDev(game, action, player);
+  game.debugCommand = (action, a1, a2, player) => handleDebug(game, action, a1, a2, player);
 }
 
 export function registerCommands(registry, getGame) {
@@ -131,6 +132,9 @@ export function handleDebug(game, action, a1, a2, player) {
   switch (action) {
     case 'help':
       return say(player, HELP);
+    case 'lobby':
+      game.fullReset('lobby');
+      return say(player, 'full reset: back at the time clock');
     case 'overlay':
       game.overlay = !game.overlay;
       game.save.settings.debugOverlay = game.overlay;
