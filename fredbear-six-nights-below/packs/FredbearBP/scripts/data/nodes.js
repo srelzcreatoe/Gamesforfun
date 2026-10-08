@@ -48,7 +48,7 @@ export const NODES = Object.freeze([
   N('EMP', 152.5, 0, 106.5, 'EMPLOYEE', 'mid'),
   N('KIT', 166.5, 0, 30.5, 'KITCHEN', 'far', { dark: true, kitchen: true }),
   N('PAN', 156.5, 0, 56.5, 'PANTRY', 'far', { dark: true }),
-  N('ES_N', 152.5, 0, 66.5, 'E_SERVICE', 'mid', { dark: true }),
+  N('ES_N', 152.5, 0, 72.5, 'E_SERVICE', 'mid', { dark: true }),
   N('ES_M', 152.5, 0, 81.5, 'E_SERVICE', 'mid', { dark: true }),
   N('ES_S', 152.5, 0, 96.5, 'E_SERVICE', 'mid', { dark: true }),
   N('RH', 162.5, 0, 83.5, 'RESTROOM_HALL', 'mid', { dark: true }),
@@ -63,7 +63,7 @@ export const NODES = Object.freeze([
   N('TS_W', 75.5, -9, 107.0, 'TUNNEL_S', 'mid', { dark: true }),
   N('TS_MID', 100.0, -9, 107.0, 'TUNNEL_S', 'mid', { dark: true }),
   N('SUB_N', 100.5, -9, 118.5, 'SUBFLOOR', 'near', { golden: true, dark: true }),
-  N('H_DOOR', 100.0, -3.5, 138.0, 'SUBFLOOR', 'entry', { entry: 'H', yaw: 180, dark: true }),
+  N('H_DOOR', 100.0, -2.2, 137.0, 'SUBFLOOR', 'entry', { entry: 'H', yaw: 180, dark: true }),
 ]);
 
 export const NODE_BY_ID = Object.freeze(Object.fromEntries(NODES.map((n) => [n.id, n])));
@@ -75,11 +75,11 @@ const E = (a, b, access, mid = [], mode = 'walk', extra = {}) =>
 
 export const EDGES = Object.freeze([
   // --- stage exits
-  E('STAGE_B', 'STAGE_FRONT', 'B', [P(93.5, 1, 30.5), P(93.5, 0, 32.5)]),
-  E('STAGE_C', 'STAGE_FRONT', 'C', [P(107.5, 1, 30.5), P(107.5, 0, 32.5)]),
-  E('STAGE_F', 'STAGE_FRONT', 'F', [P(100.5, 1, 30.5), P(100.5, 0, 31.5)]),
-  E('STAGE_B', 'BACK', 'B', [P(83.5, 1, 19.0), P(80.5, 0, 19.0), P(76.5, 0, 19.0), P(70.5, 0, 19.0)]),
-  E('STAGE_C', 'PRP', 'C', [P(117.5, 1, 19.0), P(120.5, 0, 19.0), P(124.5, 0, 19.0), P(130.5, 0, 19.0)]),
+  E('STAGE_B', 'STAGE_FRONT', 'B', [P(93.5, 1, 30.5), P(93.5, 1, 31.2), P(93.5, 0, 31.7)]),
+  E('STAGE_C', 'STAGE_FRONT', 'C', [P(107.5, 1, 30.5), P(107.5, 1, 31.2), P(107.5, 0, 31.7)]),
+  E('STAGE_F', 'STAGE_FRONT', 'F', [P(100.5, 1, 30.5), P(100.5, 1, 31.2), P(100.5, 0, 31.7)]),
+  E('STAGE_B', 'BACK', 'B', [P(82.4, 1, 19.0), P(81.9, 1, 19.0), P(81.4, 0, 19.0), P(76.5, 0, 19.0), P(70.5, 0, 19.0)]),
+  E('STAGE_C', 'PRP', 'C', [P(118.6, 1, 19.0), P(119.1, 1, 19.0), P(119.6, 0, 19.0), P(124.5, 0, 19.0), P(130.5, 0, 19.0)]),
   // --- north rooms to dining
   E('BACK', 'DIN_NW', 'B', [P(65.0, 0, 38.5), P(65.0, 0, 41.5)]),
   E('BACK', 'PARTS', 'B', [P(53.5, 0, 26.0), P(50.5, 0, 26.0)]),
@@ -126,13 +126,13 @@ export const EDGES = Object.freeze([
   E('PD', 'EH_M', 'CF', [P(117.5, 0, 108.0), P(114.5, 0, 108.0)]),
   E('PD', 'DIN_SE', 'CF', [P(132.0, 0, 101.5), P(132.0, 0, 98.5)]),
   // --- Fredbear hidden routes (basement)
-  E('CHAMBER_F', 'DINER_STAGE', 'G', [P(34.5, -9, 42.5), P(34.5, -9, 45.5), P(36.5, -8, 47.5)], 'walk', { gate: 'chamber_wall' }),
-  E('DINER_STAGE', 'DINER_FLOOR', 'G', [P(40.5, -8, 54.5), P(40.5, -9, 55.5)]),
+  E('CHAMBER_F', 'DINER_STAGE', 'G', [P(34.5, -9, 42.5), P(34.5, -9, 44.3), P(34.5, -8, 44.8), P(36.5, -8, 47.5)], 'walk', { gate: 'chamber_wall' }),
+  E('DINER_STAGE', 'DINER_FLOOR', 'G', [P(40.5, -8, 55.2), P(40.5, -9, 55.7)]),
   E('DINER_FLOOR', 'DINER_KITCHEN', 'G', [P(27.0, -9, 93.5), P(27.0, -9, 97.5)]),
   E('DINER_KITCHEN', 'CRAWL_MID', 'G', [P(38.0, -9, 110.5), P(38.0, -9, 114.0)], 'crawl'),
   E('CRAWL_MID', 'CRAWL_END', 'G', [], 'crawl'),
   E('CRAWL_END', 'SUB_N', 'G', [P(93.5, -9, 114.0)], 'crawl'),
-  E('SUB_N', 'H_DOOR', 'G', [P(100.0, -9, 136.0), P(100.0, -9, 138.0)], 'climb'),
+  E('SUB_N', 'H_DOOR', 'G', [P(100.0, -9, 135.0), P(100.0, -9, 137.0)], 'climb'),
   E('DINER_FLOOR', 'TW_SEAL', 'G', [P(60.5, -9, 85.5), P(65.5, -9, 85.5)], 'walk', { gate: 'diner_seal' }),
   E('TW_SEAL', 'TS_W', 'G', [P(67.0, -9, 107.0)]),
   E('TS_W', 'TS_MID', 'G', []),
