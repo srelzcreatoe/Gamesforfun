@@ -1,0 +1,22 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:fog_settings": {
+    "description": {
+      "identifier": "fb:night_3"
+    },
+    "distance": {
+      "air": {
+        "fog_start": 5.3,
+        "fog_end": 41,
+        "fog_color": "#06070c",
+        "render_distance_type": "fixed"
+      },
+      "weather": {
+        "fog_start": 5.3,
+        "fog_end": 41,
+        "fog_color": "#06070c",
+        "render_distance_type": "fixed"
+      }
+    }
+  }
+}

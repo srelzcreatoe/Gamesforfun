@@ -1,0 +1,15 @@
+{
+  "resource_pack_name": "fredbear",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "fb_tablet": {
+      "textures": "textures/items/fb_tablet"
+    },
+    "fb_remote": {
+      "textures": "textures/items/fb_remote"
+    },
+    "fb_guide": {
+      "textures": "textures/items/fb_guide"
+    }
+  }
+}

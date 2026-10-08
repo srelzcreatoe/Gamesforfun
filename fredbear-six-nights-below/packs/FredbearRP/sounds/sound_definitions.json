@@ -1,0 +1,551 @@
+{
+  "format_version": "1.26.50",
+  "sound_definitions": {
+    "fb.amb.creak": {
+      "category": "ambient",
+      "sounds": [
+        {
+          "name": "sounds/fb/amb/creak",
+          "is3D": true,
+          "volume": 0.8
+        }
+      ],
+      "max_distance": 32.0,
+      "min_distance": 1.0
+    },
+    "fb.amb.distant_music": {
+      "category": "ambient",
+      "sounds": [
+        {
+          "name": "sounds/fb/amb/distant_music",
+          "is3D": true,
+          "volume": 0.6
+        }
+      ],
+      "max_distance": 128.0,
+      "min_distance": 1.0
+    },
+    "fb.amb.pipes": {
+      "category": "ambient",
+      "sounds": [
+        {
+          "name": "sounds/fb/amb/pipes",
+          "is3D": true,
+          "volume": 0.9
+        }
+      ],
+      "max_distance": 64.0,
+      "min_distance": 1.0
+    },
+    "fb.bonnie.groan": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/bonnie/groan",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 32.0,
+      "min_distance": 1.0
+    },
+    "fb.breaker.reset": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/breaker/reset",
+          "is3D": true,
+          "volume": 0.8
+        }
+      ],
+      "max_distance": 16.0,
+      "min_distance": 1.0
+    },
+    "fb.breaker.trip": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/breaker/trip",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 48.0,
+      "min_distance": 1.0
+    },
+    "fb.cam.down": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fb/cam/down",
+          "is3D": false,
+          "volume": 0.6
+        }
+      ]
+    },
+    "fb.cam.static": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fb/cam/static",
+          "is3D": false,
+          "volume": 0.5
+        }
+      ]
+    },
+    "fb.cam.switch": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fb/cam/switch",
+          "is3D": false,
+          "volume": 0.5
+        }
+      ]
+    },
+    "fb.cam.up": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fb/cam/up",
+          "is3D": false,
+          "volume": 0.6
+        }
+      ]
+    },
+    "fb.chica.breath": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/chica/breath",
+          "is3D": true,
+          "volume": 0.9
+        }
+      ],
+      "max_distance": 20.0,
+      "min_distance": 1.0
+    },
+    "fb.chica.clatter": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/chica/clatter",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 64.0,
+      "min_distance": 1.0
+    },
+    "fb.clock.cheer": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/clock/cheer",
+          "is3D": true,
+          "volume": 0.9
+        }
+      ],
+      "max_distance": 48.0,
+      "min_distance": 1.0
+    },
+    "fb.clock.chime": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/clock/chime",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 48.0,
+      "min_distance": 1.0
+    },
+    "fb.clock.hour": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/clock/hour",
+          "is3D": true,
+          "volume": 0.7
+        }
+      ],
+      "max_distance": 24.0,
+      "min_distance": 1.0
+    },
+    "fb.door.bang": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/door/bang",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 32.0,
+      "min_distance": 1.0
+    },
+    "fb.door.close": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/door/close",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 24.0,
+      "min_distance": 1.0
+    },
+    "fb.door.jam": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/door/jam",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 32.0,
+      "min_distance": 1.0
+    },
+    "fb.door.open": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/door/open",
+          "is3D": true,
+          "volume": 0.9
+        }
+      ],
+      "max_distance": 24.0,
+      "min_distance": 1.0
+    },
+    "fb.ending.theme": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/fb/ending/theme",
+          "is3D": false,
+          "volume": 0.8
+        }
+      ]
+    },
+    "fb.fredbear.chime": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/fredbear/chime",
+          "is3D": true,
+          "volume": 0.9
+        }
+      ],
+      "max_distance": 32.0,
+      "min_distance": 1.0
+    },
+    "fb.fredbear.finale": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/fredbear/finale",
+          "is3D": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "fb.fredbear.glitch": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/fredbear/glitch",
+          "is3D": false,
+          "volume": 0.8
+        }
+      ]
+    },
+    "fb.fredbear.musicbox": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/fredbear/musicbox",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 48.0,
+      "min_distance": 1.0
+    },
+    "fb.fredbear.roar": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/fredbear/roar",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 64.0,
+      "min_distance": 1.0
+    },
+    "fb.freddy.laugh": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/freddy/laugh",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 48.0,
+      "min_distance": 1.0
+    },
+    "fb.freddy.musicbox": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/freddy/musicbox",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 40.0,
+      "min_distance": 1.0
+    },
+    "fb.js.bonnie": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/js/bonnie",
+          "is3D": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "fb.js.chica": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/js/chica",
+          "is3D": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "fb.js.fredbear": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/js/fredbear",
+          "is3D": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "fb.js.freddy": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/js/freddy",
+          "is3D": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "fb.light.buzz": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/light/buzz",
+          "is3D": true,
+          "volume": 0.6
+        }
+      ],
+      "max_distance": 16.0,
+      "min_distance": 1.0
+    },
+    "fb.night.start": {
+      "category": "ambient",
+      "sounds": [
+        {
+          "name": "sounds/fb/night/start",
+          "is3D": false,
+          "volume": 0.8
+        }
+      ]
+    },
+    "fb.phone.ring": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/phone/ring",
+          "is3D": true,
+          "volume": 0.9
+        }
+      ],
+      "max_distance": 24.0,
+      "min_distance": 1.0
+    },
+    "fb.power.alarm": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/power/alarm",
+          "is3D": true,
+          "volume": 0.8
+        }
+      ],
+      "max_distance": 32.0,
+      "min_distance": 1.0
+    },
+    "fb.power.dark": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/power/dark",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 32.0,
+      "min_distance": 1.0
+    },
+    "fb.power.down": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/power/down",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 32.0,
+      "min_distance": 1.0
+    },
+    "fb.power.reserve": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/power/reserve",
+          "is3D": true,
+          "volume": 0.9
+        }
+      ],
+      "max_distance": 32.0,
+      "min_distance": 1.0
+    },
+    "fb.power.whine": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/power/whine",
+          "is3D": true,
+          "volume": 0.5
+        }
+      ],
+      "max_distance": 24.0,
+      "min_distance": 1.0
+    },
+    "fb.step.bonnie": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/step/bonnie",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 44.0,
+      "min_distance": 1.0
+    },
+    "fb.step.chica": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/step/chica",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 44.0,
+      "min_distance": 1.0
+    },
+    "fb.step.fredbear": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/step/fredbear",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 48.0,
+      "min_distance": 1.0
+    },
+    "fb.step.freddy": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/step/freddy",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 44.0,
+      "min_distance": 1.0
+    },
+    "fb.strobe.fire": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fb/strobe/fire",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 24.0,
+      "min_distance": 1.0
+    },
+    "fb.ui.accept": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fb/ui/accept",
+          "is3D": false,
+          "volume": 0.7
+        }
+      ]
+    },
+    "fb.ui.blip": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fb/ui/blip",
+          "is3D": false,
+          "volume": 0.6
+        }
+      ]
+    },
+    "fb.ui.deny": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fb/ui/deny",
+          "is3D": false,
+          "volume": 0.7
+        }
+      ]
+    },
+    "fb.vent.clank": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/vent/clank",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 40.0,
+      "min_distance": 1.0
+    }
+  }
+}

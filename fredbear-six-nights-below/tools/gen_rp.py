@@ -1,0 +1,697 @@
+#!/usr/bin/env python3
+"""Generate the resource pack's art and model JSON from the four supplied skins.
+
+Inputs  : art/skins/*.png (the skins supplied by the map owner, unmodified)
+Outputs : packs/FredbearRP/
+            textures/entity/fb/<name>.png        128x64: skin (left half) + accessory atlas (right half)
+            textures/entity/fb/<name>_eyes.png   128x64: only the glowing pupils
+            textures/items/fb_*.png              16x16 item icons
+            textures/item_texture.json
+            models/entity/fb_<name>.geo.json     geometry (format 1.21.0, humanoid layout + accessories)
+            animations/fb_animatronic.animation.json
+            animation_controllers/fb_animatronic.animation_controllers.json
+            render_controllers/fb_animatronic.render_controllers.json
+            entity/fb_<name>.entity.json         client entities (format 1.10.0)
+            fogs/fb_night_<n>.json               per-night fog (format 1.21.90)
+            texts/en_US.lang, texts/languages.json
+            pack_icon.png (both packs)
+
+Formats mirror the vanilla files in Mojang/bedrock-samples v1.26.50.4:
+  geometry 1.21.0 (models/entity/humanoid.custom.geo.json), client entity 1.10.0,
+  animations 1.8.0, animation controllers 1.10.0, render controllers 1.10.0
+  (creaking two-layer eyes pattern), fogs 1.21.90.
+
+The script is deterministic: running it twice produces identical files.
+"""
+import json
+import pathlib
+import random
+
+from PIL import Image, ImageDraw
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+SKINS = ROOT / "art" / "skins"
+RP = ROOT / "packs" / "FredbearRP"
+BP = ROOT / "packs" / "FredbearBP"
+TEX_W, TEX_H = 128, 64
+ANIMS = ["idle", "perform", "walk", "stalk", "crawl", "look", "pause", "threat", "attack", "retreat", "dormant", "music"]
+BONES = ["root", "waist", "body", "head", "snout", "jaw", "leftEar", "rightEar", "crown", "leftArm", "rightArm", "leftLeg", "rightLeg", "prop"]
+
+
+def rgb(h, a=255):
+    h = h.lstrip("#")
+    return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16), a)
+
+
+def mul(c, f):
+    return (max(0, min(255, int(c[0] * f))), max(0, min(255, int(c[1] * f))), max(0, min(255, int(c[2] * f))), c[3])
+
+
+def write_json(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+
+# --------------------------------------------------------------------------- skins
+def legacy_to_64x64(src):
+    """Convert a legacy 64x32 skin to 64x64 the way the game does: the left arm
+    and left leg reuse the right limbs, each face mirrored, outer faces swapped."""
+    out = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    out.paste(src, (0, 0))
+
+    def copy(sx, sy, dx, dy, w, h):
+        region = src.crop((sx, sy, sx + w, sy + h)).transpose(Image.FLIP_LEFT_RIGHT)
+        out.paste(region, (sx + dx, sy + dy))
+
+    # leg (0,16) -> left leg (16,48)
+    copy(4, 16, 16, 32, 4, 4)
+    copy(8, 16, 16, 32, 4, 4)
+    copy(0, 20, 24, 32, 4, 12)
+    copy(4, 20, 16, 32, 4, 12)
+    copy(8, 20, 8, 32, 4, 12)
+    copy(12, 20, 16, 32, 4, 12)
+    # arm (40,16) -> left arm (32,48)
+    copy(44, 16, -8, 32, 4, 4)
+    copy(48, 16, -8, 32, 4, 4)
+    copy(40, 20, 0, 32, 4, 12)
+    copy(44, 20, -8, 32, 4, 12)
+    copy(48, 20, -16, 32, 4, 12)
+    copy(52, 20, -8, 32, 4, 12)
+    return out
+
+
+def load_skin(name):
+    im = Image.open(SKINS / name).convert("RGBA")
+    if im.size == (64, 32):
+        return legacy_to_64x64(im)
+    if im.size != (64, 64):
+        raise SystemExit(f"{name}: unsupported skin size {im.size}")
+    return im
+
+
+# --------------------------------------------------------------------------- atlas
+class Atlas:
+    """Shelf packer for box-UV accessory cubes in the right half of the texture."""
+
+    def __init__(self, x0=64, x1=128, y0=0, y1=64):
+        self.x0, self.x1, self.y1 = x0, x1, y1
+        self.x, self.y, self.row_h = x0, y0, 0
+
+    def alloc(self, w, h):
+        if self.x + w > self.x1:
+            self.x = self.x0
+            self.y += self.row_h
+            self.row_h = 0
+        if self.y + h > self.y1:
+            raise SystemExit("accessory atlas full")
+        u, v = self.x, self.y
+        self.x += w
+        self.row_h = max(self.row_h, h)
+        return u, v
+
+
+def box_faces(u, v, size):
+    w, h, d = size
+    return {
+        "top": (u + d, v, w, d),
+        "bottom": (u + d + w, v, w, d),
+        "east": (u, v + d, d, h),
+        "front": (u + d, v + d, w, h),
+        "west": (u + d + w, v + d, d, h),
+        "back": (u + 2 * d + w, v + d, w, h),
+    }
+
+
+def fill(color, noise=0.07, edge=0.82):
+    def paint(img, x0, y0, w, h, rnd):
+        for yy in range(h):
+            for xx in range(w):
+                f = 1.0 + rnd.uniform(-noise, noise)
+                if w >= 3 and h >= 3 and (xx in (0, w - 1) or yy in (0, h - 1)):
+                    f *= edge
+                img.putpixel((x0 + xx, y0 + yy), mul(color, f))
+    return paint
+
+
+def rows(*painters):
+    """Front painter built from per-row painters (top row first); extra rows reuse the last."""
+    def paint(img, x0, y0, w, h, rnd):
+        for yy in range(h):
+            p = painters[min(yy, len(painters) - 1)]
+            p(img, x0, y0 + yy, w, 1, rnd)
+    return paint
+
+
+def teeth(tooth, gap):
+    def paint(img, x0, y0, w, h, rnd):
+        for yy in range(h):
+            for xx in range(w):
+                img.putpixel((x0 + xx, y0 + yy), tooth if xx % 2 == 0 else gap)
+    return paint
+
+
+def nose(base, dark):
+    def paint(img, x0, y0, w, h, rnd):
+        fill(base, edge=1.0)(img, x0, y0, w, h, rnd)
+        c = w // 2
+        for xx in (c - 1, c):
+            if 0 <= xx < w:
+                img.putpixel((x0 + xx, y0), dark)
+    return paint
+
+
+def inner(border, centre):
+    def paint(img, x0, y0, w, h, rnd):
+        fill(border, edge=1.0)(img, x0, y0, w, h, rnd)
+        for yy in range(1, max(1, h - 1)):
+            for xx in range(1, max(1, w - 1)):
+                img.putpixel((x0 + xx, y0 + yy), mul(centre, 1.0 + rnd.uniform(-0.05, 0.05)))
+    return paint
+
+
+def band(base, band_color, band_rows=1):
+    def paint(img, x0, y0, w, h, rnd):
+        fill(base, edge=1.0)(img, x0, y0, w, h, rnd)
+        for yy in range(max(0, h - band_rows), h):
+            for xx in range(w):
+                img.putpixel((x0 + xx, y0 + yy), band_color)
+    return paint
+
+
+def dots(base, dot, positions):
+    def paint(img, x0, y0, w, h, rnd):
+        fill(base, edge=1.0)(img, x0, y0, w, h, rnd)
+        for (xx, yy) in positions:
+            if xx < w and yy < h:
+                img.putpixel((x0 + xx, y0 + yy), dot)
+    return paint
+
+
+def cube(origin, size, paint, inflate=None):
+    """paint: a painter for every face, or a dict face -> painter with key '*' as default."""
+    return {"origin": origin, "size": size, "paint": paint, "inflate": inflate}
+
+
+# --------------------------------------------------------------------------- characters
+def character_specs():
+    fr = dict(fur=rgb("613819"), fur2=rgb("4d2c14"), muzzle=rgb("a9774a"), nose=rgb("1c1c1c"),
+              tooth=rgb("efe6cf"), gap=rgb("3a2a1a"), mouth=rgb("3a0d0b"), hat=rgb("161616"), band=rgb("2e2e2e"),
+              inner=rgb("39200f"))
+    bo = dict(fur=rgb("611d62"), fur2=rgb("4f1850"), muzzle=rgb("8f84a5"), nose=rgb("1a0a1a"),
+              tooth=rgb("dcdcdc"), gap=rgb("2a1030"), mouth=rgb("2a0a10"), inner=rgb("b28fc0"),
+              red=rgb("b01818"), wood=rgb("3b2410"), hole=rgb("1a0606"))
+    ch = dict(fur=rgb("a4a219"), fur2=rgb("bab81c"), beak=rgb("d9512b"), beak2=rgb("b23f1f"),
+              tooth=rgb("f0f0e0"), gap=rgb("5a1a0a"), mouth=rgb("3a0a05"), tuft=rgb("d1ce1f"),
+              plate=rgb("e4e4e4"), wrapper=rgb("e7a6c0"), frosting=rgb("ff5fa2"), candle=rgb("fff2a0"),
+              eye=rgb("101010"))
+    fb = dict(fur=rgb("907600"), fur2=rgb("755f00"), muzzle=rgb("bb9900"), nose=rgb("1c1601"),
+              tooth=rgb("f5e5a7"), gap=rgb("2c2301"), mouth=rgb("2c0a01"), purple=rgb("3c0496"),
+              purple2=rgb("4d1977"), band=rgb("1c0a3a"), metal=rgb("8a8a8a"), grill=rgb("4a4a4a"),
+              handle=rgb("c8a000"))
+    mic_fr = [
+        cube([-6.5, 10.5, -5], [1, 1, 5], fill(rgb("303030"))),
+        cube([-7, 10, -7], [2, 2, 2], {"*": fill(rgb("8a8a8a")), "front": dots(rgb("8a8a8a"), rgb("4a4a4a"), [(0, 0), (1, 1)])}),
+    ]
+    mic_fb = [
+        cube([-6.5, 10.5, -5], [1, 1, 5], fill(fb["handle"])),
+        cube([-7, 10, -7], [2, 2, 2], {"*": fill(fb["metal"]), "front": dots(fb["metal"], fb["grill"], [(0, 0), (1, 1)])}),
+    ]
+
+    def snout_jaw(c, base_key="muzzle", snout_origin=(-2, 25, -6), snout_size=(4, 2, 2), jaw_origin=(-2, 24, -6), jaw_size=(4, 1, 2)):
+        base = c[base_key]
+        return {
+            "snout": dict(pivot=[0, 26, -4], cubes=[cube(list(snout_origin), list(snout_size), {
+                "*": fill(base),
+                "front": rows(nose(base, c.get("nose", c["gap"])), teeth(c["tooth"], c["gap"])),
+                "bottom": fill(c["mouth"], edge=1.0),
+            })]),
+            "jaw": dict(pivot=[0, 25, -3], cubes=[cube(list(jaw_origin), list(jaw_size), {
+                "*": fill(mul(base, 0.92)),
+                "front": teeth(c["tooth"], c["gap"]),
+                "top": fill(c["mouth"], edge=1.0),
+            })]),
+        }
+
+    specs = {}
+    specs["freddy"] = dict(
+        skin="freddy_source.png", label="Freddy",
+        eyes=[((10, 11), "e8f4ff"), ((13, 11), "e8f4ff")],
+        bones={
+            **snout_jaw(fr),
+            "leftEar": dict(pivot=[3, 32, 0], cubes=[cube([2, 32, -0.5], [3, 3, 1], {"*": fill(fr["fur"]), "front": inner(fr["fur"], fr["inner"])})]),
+            "rightEar": dict(pivot=[-3, 32, 0], cubes=[cube([-5, 32, -0.5], [3, 3, 1], {"*": fill(fr["fur"]), "front": inner(fr["fur"], fr["inner"])})]),
+            "crown": dict(pivot=[0, 32.5, 0], rotation=[-6, 0, 0], cubes=[
+                cube([-3, 32.5, -3], [6, 1, 6], fill(fr["hat"])),
+                cube([-2, 33.5, -2], [4, 4, 4], {"*": band(fr["hat"], fr["band"]), "top": fill(fr["hat"]), "bottom": fill(fr["hat"])}),
+            ]),
+            "prop": dict(parent="rightArm", pivot=[-6, 12, 0], cubes=mic_fr),
+        },
+        hide_prop_unless_perform=False,
+    )
+    specs["bonnie"] = dict(
+        skin="bonnie_source.png", label="Bonnie",
+        eyes=[((9, 10), "ffe8ff"), ((10, 10), "ffe8ff"), ((9, 11), "ffe8ff"),
+              ((13, 10), "ffe8ff"), ((14, 10), "ffe8ff"), ((14, 11), "ffe8ff")],
+        bones={
+            **snout_jaw(bo),
+            "leftEar": dict(pivot=[2, 32, 0], rotation=[0, 0, -10], cubes=[cube([1, 32, -0.5], [2, 8, 1], {"*": fill(bo["fur"]), "front": inner(bo["fur"], bo["inner"])})]),
+            "rightEar": dict(pivot=[-2, 32, 0], rotation=[0, 0, 10], cubes=[cube([-3, 32, -0.5], [2, 8, 1], {"*": fill(bo["fur"]), "front": inner(bo["fur"], bo["inner"])})]),
+            "crown": dict(pivot=[0, 32, 0], cubes=[]),
+            "prop": dict(parent="body", pivot=[0, 17, -3], rotation=[0, 0, 30], cubes=[
+                cube([-3, 12, -4.5], [6, 5, 1], {"*": fill(bo["red"]), "front": dots(bo["red"], bo["hole"], [(2, 2), (3, 2)])}),
+                cube([-0.5, 17, -4.5], [1, 8, 1], fill(bo["wood"])),
+                cube([-1, 25, -4.5], [2, 2, 1], fill(bo["red"])),
+            ]),
+        },
+        hide_prop_unless_perform=True,
+    )
+    specs["chica"] = dict(
+        skin="chica_source_legacy64x32.png", label="Chica",
+        eyes=[((10, 12), "d070ff"), ((13, 12), "d070ff"), ((9, 12), "ffffff"), ((14, 12), "ffffff")],
+        bones={
+            "snout": dict(pivot=[0, 26.5, -4], cubes=[cube([-2, 26, -7], [4, 1, 3], {
+                "*": fill(ch["beak"]), "front": teeth(ch["tooth"], ch["gap"]), "bottom": fill(ch["mouth"], edge=1.0)})]),
+            "jaw": dict(pivot=[0, 25.5, -4], cubes=[cube([-2, 25, -6], [4, 1, 2], {
+                "*": fill(ch["beak2"]), "front": teeth(ch["tooth"], ch["gap"]), "top": fill(ch["mouth"], edge=1.0)})]),
+            "leftEar": dict(pivot=[2, 32, 0], cubes=[]),
+            "rightEar": dict(pivot=[-2, 32, 0], cubes=[]),
+            "crown": dict(pivot=[0, 32, 0], cubes=[
+                cube([-1, 32.5, -1.5], [1, 2, 1], fill(ch["tuft"])),
+                cube([0, 32.5, -0.5], [1, 3, 1], fill(ch["tuft"])),
+                cube([-1, 32.5, 0.5], [1, 2, 1], fill(ch["tuft"])),
+            ]),
+            "prop": dict(parent="leftArm", pivot=[6, 12, 0], cubes=[
+                cube([4, 10.5, -6], [4, 1, 4], fill(ch["plate"])),
+                cube([5, 11.5, -5], [2, 1, 2], fill(ch["wrapper"])),
+                cube([5, 12.5, -5], [2, 2, 2], {"*": fill(ch["frosting"]), "front": dots(ch["frosting"], ch["eye"], [(0, 0), (1, 0)])}),
+                cube([5.5, 14.5, -4.5], [1, 1, 1], fill(ch["candle"])),
+            ]),
+        },
+        hide_prop_unless_perform=False,
+    )
+    specs["fredbear"] = dict(
+        skin="fredbear_source.png", label="Fredbear",
+        eyes=[((10, 11), "fff6d0"), ((13, 11), "fff6d0")],
+        bones={
+            **snout_jaw(fb),
+            "leftEar": dict(pivot=[3, 32, 0], cubes=[cube([2, 32, -0.5], [3, 3, 1], {"*": fill(fb["fur"]), "front": inner(fb["fur"], fb["purple"])})]),
+            "rightEar": dict(pivot=[-3, 32, 0], cubes=[cube([-5, 32, -0.5], [3, 3, 1], {"*": fill(fb["fur"]), "front": inner(fb["fur"], fb["purple"])})]),
+            "crown": dict(pivot=[0, 32.5, 0], rotation=[-4, 0, 0], cubes=[
+                cube([-3, 32.5, -3], [6, 1, 6], fill(fb["purple"])),
+                cube([-2, 33.5, -2], [4, 4, 4], {"*": band(fb["purple2"], fb["band"]), "top": fill(fb["purple2"]), "bottom": fill(fb["purple2"])}),
+            ]),
+            "prop": dict(parent="rightArm", pivot=[-6, 12, 0], cubes=mic_fb),
+        },
+        hide_prop_unless_perform=False,
+    )
+    return specs
+
+
+# --------------------------------------------------------------------------- geometry
+def humanoid_bones():
+    """Bone set of vanilla geometry.humanoid.custom (bedrock-samples models/entity/humanoid.custom.geo.json)."""
+    return [
+        dict(name="root", pivot=[0, 0, 0]),
+        dict(name="waist", parent="root", pivot=[0, 12, 0]),
+        dict(name="body", parent="waist", pivot=[0, 24, 0], cubes=[
+            {"origin": [-4, 12, -2], "size": [8, 12, 4], "uv": [16, 16]},
+            {"origin": [-4, 12, -2], "size": [8, 12, 4], "uv": [16, 32], "inflate": 0.25},
+        ]),
+        dict(name="head", parent="body", pivot=[0, 24, 0], cubes=[
+            {"origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [0, 0]},
+            {"origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [32, 0], "inflate": 0.5},
+        ]),
+        dict(name="leftArm", parent="body", pivot=[5, 22, 0], cubes=[
+            {"origin": [4, 12, -2], "size": [4, 12, 4], "uv": [32, 48]},
+            {"origin": [4, 12, -2], "size": [4, 12, 4], "uv": [48, 48], "inflate": 0.25},
+        ]),
+        dict(name="rightArm", parent="body", pivot=[-5, 22, 0], cubes=[
+            {"origin": [-8, 12, -2], "size": [4, 12, 4], "uv": [40, 16]},
+            {"origin": [-8, 12, -2], "size": [4, 12, 4], "uv": [40, 32], "inflate": 0.25},
+        ]),
+        dict(name="leftLeg", parent="root", pivot=[1.9, 12, 0], cubes=[
+            {"origin": [-0.1, 0, -2], "size": [4, 12, 4], "uv": [16, 48]},
+            {"origin": [-0.1, 0, -2], "size": [4, 12, 4], "uv": [0, 48], "inflate": 0.25},
+        ]),
+        dict(name="rightLeg", parent="root", pivot=[-1.9, 12, 0], cubes=[
+            {"origin": [-3.9, 0, -2], "size": [4, 12, 4], "uv": [0, 16]},
+            {"origin": [-3.9, 0, -2], "size": [4, 12, 4], "uv": [0, 32], "inflate": 0.25},
+        ]),
+    ]
+
+
+def build_character(name, spec):
+    skin = load_skin(spec["skin"])
+    tex = Image.new("RGBA", (TEX_W, TEX_H), (0, 0, 0, 0))
+    tex.paste(skin, (0, 0))
+    atlas = Atlas()
+    rnd = random.Random(f"fb-{name}")
+    bones = humanoid_bones()
+    for bone_name in ["snout", "jaw", "leftEar", "rightEar", "crown", "prop"]:
+        b = spec["bones"][bone_name]
+        parent = b.get("parent", "head")
+        bone = {"name": bone_name, "parent": parent, "pivot": b["pivot"]}
+        if "rotation" in b:
+            bone["rotation"] = b["rotation"]
+        cubes = []
+        for c in b["cubes"]:
+            w, h, d = c["size"]
+            u, v = atlas.alloc(2 * (d + w), d + h)
+            paint = c["paint"]
+            for face, (x0, y0, fw, fh) in box_faces(u, v, c["size"]).items():
+                p = paint.get(face, paint["*"]) if isinstance(paint, dict) else paint
+                p(tex, x0, y0, fw, fh, rnd)
+            entry = {"origin": c["origin"], "size": c["size"], "uv": [u, v]}
+            if c["inflate"]:
+                entry["inflate"] = c["inflate"]
+            cubes.append(entry)
+        if cubes:
+            bone["cubes"] = cubes
+        bones.append(bone)
+    geo = {
+        "format_version": "1.21.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": f"geometry.fb.{name}",
+                "texture_width": TEX_W,
+                "texture_height": TEX_H,
+                "visible_bounds_width": 3,
+                "visible_bounds_height": 3.5,
+                "visible_bounds_offset": [0, 1.5, 0],
+            },
+            "bones": bones,
+        }],
+    }
+    eyes = Image.new("RGBA", (TEX_W, TEX_H), (0, 0, 0, 0))
+    for (x, y), col in spec["eyes"]:
+        eyes.putpixel((x, y), rgb(col))
+    return tex, eyes, geo
+
+
+def echo_texture(src):
+    """Fredbear's false-camera echo: purple, scan-lined and partly broken up."""
+    out = Image.new("RGBA", src.size, (0, 0, 0, 0))
+    rnd = random.Random("fb-echo")
+    for y in range(src.size[1]):
+        for x in range(src.size[0]):
+            r, g, b, a = src.getpixel((x, y))
+            if a == 0:
+                continue
+            lum = (0.3 * r + 0.59 * g + 0.11 * b) / 255.0
+            f = 0.55 if y % 2 else 1.0
+            col = (int((70 + 120 * lum) * f), int((10 + 40 * lum) * f), int((120 + 135 * lum) * f), 255)
+            if y % 2 and rnd.random() < 0.18:
+                continue  # broken scanline pixel (alpha-tested hole)
+            out.putpixel((x, y), col)
+    return out
+
+
+# --------------------------------------------------------------------------- animations
+def kf(*pairs):
+    return {f"{t:.2f}": v for t, v in pairs}
+
+
+def snap(before, after):
+    return {"pre": before, "post": after}
+
+
+def animations():
+    A = {}
+    A["animation.fb.idle"] = {"loop": True, "animation_length": 4.0, "bones": {
+        "body": {"rotation": kf((0, [0, 0, 0]), (2, [1.5, 0, 0]), (4, [0, 0, 0]))},
+        "head": {"rotation": {"0.00": [0, 0, 0], "1.60": snap([0, 0, 0], [2, 8, 0]), "2.40": snap([2, 8, 0], [0, 0, 0]), "4.00": [0, 0, 0]}},
+        "leftArm": {"rotation": kf((0, [0, 0, -3]), (2, [2, 0, -5]), (4, [0, 0, -3]))},
+        "rightArm": {"rotation": kf((0, [0, 0, 3]), (2, [2, 0, 5]), (4, [0, 0, 3]))},
+    }}
+    A["animation.fb.perform"] = {"loop": True, "animation_length": 1.6, "bones": {
+        "head": {"rotation": kf((0, [0, 0, 0]), (0.4, [8, 0, 4]), (0.8, [0, 0, 0]), (1.2, [8, 0, -4]), (1.6, [0, 0, 0]))},
+        "jaw": {"rotation": kf((0, [0, 0, 0]), (0.2, [18, 0, 0]), (0.4, [0, 0, 0]), (0.6, [14, 0, 0]), (0.8, [0, 0, 0]), (1.0, [18, 0, 0]), (1.2, [0, 0, 0]), (1.6, [0, 0, 0]))},
+        "body": {"rotation": kf((0, [0, 0, -3]), (0.8, [0, 0, 3]), (1.6, [0, 0, -3]))},
+        "rightArm": {"rotation": kf((0, [-55, 0, 8]), (0.2, [-40, 0, 8]), (0.4, [-55, 0, 8]), (0.6, [-40, 0, 8]), (0.8, [-55, 0, 8]), (1.0, [-40, 0, 8]), (1.2, [-55, 0, 8]), (1.6, [-55, 0, 8]))},
+        "leftArm": {"rotation": kf((0, [-45, -20, -6]), (0.8, [-35, -20, -6]), (1.6, [-45, -20, -6]))},
+        "rightLeg": {"rotation": kf((0, [0, 0, 0]), (0.4, [-6, 0, 0]), (0.8, [0, 0, 0]), (1.6, [0, 0, 0]))},
+    }}
+    A["animation.fb.walk"] = {"loop": True, "animation_length": 1.2, "bones": {
+        "leftLeg": {"rotation": kf((0, [25, 0, 0]), (0.6, [-25, 0, 0]), (1.2, [25, 0, 0]))},
+        "rightLeg": {"rotation": kf((0, [-25, 0, 0]), (0.6, [25, 0, 0]), (1.2, [-25, 0, 0]))},
+        "leftArm": {"rotation": kf((0, [-15, 0, -4]), (0.6, [15, 0, -4]), (1.2, [-15, 0, -4]))},
+        "rightArm": {"rotation": kf((0, [15, 0, 4]), (0.6, [-15, 0, 4]), (1.2, [15, 0, 4]))},
+        "body": {"rotation": kf((0, [0, 4, 0]), (0.6, [0, -4, 0]), (1.2, [0, 4, 0]))},
+        "head": {"rotation": {"0.00": [5, 0, 0], "0.30": snap([5, 0, 0], [5, 6, 0]), "0.90": snap([5, 6, 0], [5, 0, 0]), "1.20": [5, 0, 0]}},
+        "root": {"position": kf((0, [0, 0, 0]), (0.3, [0, 0.6, 0]), (0.6, [0, 0, 0]), (0.9, [0, 0.6, 0]), (1.2, [0, 0, 0]))},
+    }}
+    A["animation.fb.stalk"] = {"loop": True, "animation_length": 2.0, "bones": {
+        "waist": {"rotation": [16, 0, 0]},
+        "head": {"rotation": kf((0, [-14, 0, 0]), (1, [-14, 10, 4]), (2, [-14, 0, 0]))},
+        "leftArm": {"rotation": kf((0, [-35, 0, -6]), (1, [-25, 0, -6]), (2, [-35, 0, -6]))},
+        "rightArm": {"rotation": kf((0, [-25, 0, 6]), (1, [-35, 0, 6]), (2, [-25, 0, 6]))},
+        "leftLeg": {"rotation": kf((0, [15, 0, 0]), (1, [-15, 0, 0]), (2, [15, 0, 0]))},
+        "rightLeg": {"rotation": kf((0, [-15, 0, 0]), (1, [15, 0, 0]), (2, [-15, 0, 0]))},
+    }}
+    A["animation.fb.crawl"] = {"loop": True, "animation_length": 1.6, "bones": {
+        "root": {"rotation": [80, 0, 0], "position": [0, 2, 0]},
+        "head": {"rotation": [-60, 0, 0]},
+        "leftArm": {"rotation": kf((0, [-100, 0, 0]), (0.8, [-60, 0, 0]), (1.6, [-100, 0, 0]))},
+        "rightArm": {"rotation": kf((0, [-60, 0, 0]), (0.8, [-100, 0, 0]), (1.6, [-60, 0, 0]))},
+        "leftLeg": {"rotation": kf((0, [6, 0, 0]), (0.8, [-6, 0, 0]), (1.6, [6, 0, 0]))},
+        "rightLeg": {"rotation": kf((0, [-6, 0, 0]), (0.8, [6, 0, 0]), (1.6, [-6, 0, 0]))},
+    }}
+    A["animation.fb.look"] = {"loop": True, "animation_length": 4.0, "bones": {
+        "head": {"rotation": {
+            "0.00": [0, 0, 0],
+            "0.50": snap([0, 0, 0], [0, 35, 0]),
+            "1.80": snap([0, 35, 0], [4, 20, 6]),
+            "2.10": snap([4, 20, 6], [0, -35, 0]),
+            "3.40": snap([0, -35, 0], [0, 0, 0]),
+            "4.00": [0, 0, 0]}},
+        "body": {"rotation": kf((0, [0, 0, 0]), (1, [0, 6, 0]), (2.5, [0, -6, 0]), (4, [0, 0, 0]))},
+    }}
+    A["animation.fb.pause"] = {"loop": True, "animation_length": 2.0, "bones": {
+        "head": {"rotation": kf((0, [6, 22, 12]), (1, [6, 23, 12.5]), (2, [6, 22, 12]))},
+        "leftLeg": {"rotation": [14, 0, 0]},
+        "rightLeg": {"rotation": [-14, 0, 0]},
+        "leftArm": {"rotation": [-10, 0, -4]},
+        "rightArm": {"rotation": [10, 0, 4]},
+        "jaw": {"rotation": [6, 0, 0]},
+    }}
+    A["animation.fb.threat"] = {"loop": True, "animation_length": 1.0, "bones": {
+        "waist": {"rotation": [10, 0, 0]},
+        "head": {"rotation": {"0.00": [-6, 0, 8], "0.45": snap([-6, 0, 8], [-6, 6, -8]), "0.85": snap([-6, 6, -8], [-6, 0, 8]), "1.00": [-6, 0, 8]}},
+        "jaw": {"rotation": kf((0, [20, 0, 0]), (0.5, [30, 0, 0]), (1, [20, 0, 0]))},
+        "leftArm": {"rotation": kf((0, [-55, 0, -10]), (0.5, [-48, 0, -12]), (1, [-55, 0, -10]))},
+        "rightArm": {"rotation": kf((0, [-45, 0, 10]), (0.5, [-52, 0, 12]), (1, [-45, 0, 10]))},
+    }}
+    A["animation.fb.attack"] = {"loop": "hold_on_last_frame", "animation_length": 0.8, "bones": {
+        "root": {"position": kf((0, [0, 0, 0]), (0.15, [0, 1, -4]), (0.8, [0, 1, -4]))},
+        "leftArm": {"rotation": kf((0, [-40, 0, -10]), (0.15, [-150, 0, -25]), (0.8, [-145, 0, -25]))},
+        "rightArm": {"rotation": kf((0, [-40, 0, 10]), (0.15, [-150, 0, 25]), (0.8, [-145, 0, 25]))},
+        "head": {"rotation": kf((0, [0, 0, 0]), (0.15, [-20, 0, 0]), (0.3, [-20, 10, 0]), (0.4, [-20, -10, 0]), (0.5, [-20, 10, 0]), (0.6, [-20, -10, 0]), (0.8, [-20, 0, 0]))},
+        "jaw": {"rotation": kf((0, [0, 0, 0]), (0.12, [45, 0, 0]), (0.8, [45, 0, 0]))},
+    }}
+    A["animation.fb.retreat"] = {"loop": True, "animation_length": 1.4, "bones": {
+        "leftLeg": {"rotation": kf((0, [-20, 0, 0]), (0.7, [20, 0, 0]), (1.4, [-20, 0, 0]))},
+        "rightLeg": {"rotation": kf((0, [20, 0, 0]), (0.7, [-20, 0, 0]), (1.4, [20, 0, 0]))},
+        "head": {"rotation": [18, 0, 0]},
+        "leftArm": {"rotation": [6, 0, -3]},
+        "rightArm": {"rotation": [6, 0, 3]},
+    }}
+    A["animation.fb.dormant"] = {"loop": True, "animation_length": 6.0, "bones": {
+        "waist": {"rotation": [24, 0, 4]},
+        "head": {"rotation": {"0.00": [40, 0, 15], "4.20": snap([40, 0, 15], [34, 6, 10]), "4.40": snap([34, 6, 10], [40, 0, 15]), "6.00": [40, 0, 15]}},
+        "jaw": {"rotation": [20, 0, 0]},
+        "leftArm": {"rotation": [12, 0, -10]},
+        "rightArm": {"rotation": [8, 0, 14]},
+        "leftLeg": {"rotation": [-4, 0, -3]},
+        "rightLeg": {"rotation": [-4, 0, 3]},
+    }}
+    A["animation.fb.music"] = {"loop": True, "animation_length": 3.0, "bones": {
+        "head": {"rotation": kf((0, [0, -20, -6]), (1.5, [0, 20, 6]), (3, [0, -20, -6]))},
+        "jaw": {"rotation": kf((0, [0, 0, 0]), (0.75, [10, 0, 0]), (1.5, [0, 0, 0]), (2.25, [10, 0, 0]), (3, [0, 0, 0]))},
+        "body": {"rotation": kf((0, [0, 0, -3]), (1.5, [0, 0, 3]), (3, [0, 0, -3]))},
+    }}
+    A["animation.fb.hide_prop"] = {"loop": True, "bones": {"prop": {"scale": 0}}}
+    return {"format_version": "1.8.0", "animations": A}
+
+
+def controller():
+    states = {}
+    for a in ANIMS:
+        st = {"animations": [a], "blend_transition": 0.05 if a == "attack" else 0.2,
+              "transitions": [{b: f"variable.fb_anim == '{b}'"} for b in ANIMS if b != a]}
+        states[a] = st
+    return {"format_version": "1.10.0", "animation_controllers": {
+        "controller.animation.fb.pose": {"initial_state": "idle", "states": states}}}
+
+
+def render_controllers():
+    return {"format_version": "1.10.0", "render_controllers": {
+        "controller.render.fb.animatronic": {
+            "geometry": "Geometry.default",
+            "materials": [{"*": "Material.default"}],
+            "textures": ["Texture.default"],
+            "part_visibility": [{"*": "!variable.fb_hidden"}],
+        },
+        "controller.render.fb.eyes": {
+            "geometry": "Geometry.default",
+            "materials": [{"*": "Material.eyes"}],
+            "textures": ["Texture.eyes"],
+            "ignore_lighting": True,
+            "part_visibility": [{"*": "variable.fb_eyes && !variable.fb_hidden"}],
+        },
+    }}
+
+
+def client_entity(identifier, geo, tex, eyes_tex, hide_prop):
+    animate = ["pose_controller"]
+    if hide_prop:
+        animate.append({"hide_prop": "variable.fb_anim != 'perform'"})
+    anims = {"pose_controller": "controller.animation.fb.pose", "hide_prop": "animation.fb.hide_prop"}
+    for a in ANIMS:
+        anims[a] = f"animation.fb.{a}"
+    return {"format_version": "1.10.0", "minecraft:client_entity": {"description": {
+        "identifier": identifier,
+        "materials": {"default": "entity_alphatest", "eyes": "creaking_eyes"},
+        "textures": {"default": tex, "eyes": eyes_tex},
+        "geometry": {"default": geo},
+        "scripts": {
+            "pre_animation": [
+                "variable.fb_anim = query.property('fb:anim');",
+                "variable.fb_eyes = query.property('fb:eyes');",
+                "variable.fb_hidden = query.property('fb:hidden');",
+            ],
+            "animate": animate,
+        },
+        "animations": anims,
+        "render_controllers": ["controller.render.fb.animatronic", "controller.render.fb.eyes"],
+    }}}
+
+
+# --------------------------------------------------------------------------- items, icons, fogs, text
+def item_icons():
+    out = {}
+    # Camera tablet: dark frame, green camera feed with a REC dot.
+    im = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([1, 3, 14, 12], fill=rgb("2a2a2e"))
+    d.rectangle([2, 4, 12, 11], fill=rgb("0f3d1a"))
+    for y in range(4, 12, 2):
+        d.line([2, y, 12, y], fill=rgb("16592a"))
+    d.point([11, 5], fill=rgb("ff2020"))
+    d.rectangle([5, 7, 8, 9], fill=rgb("3fae5a"))
+    d.point([13, 7], fill=rgb("8a8a8a"))
+    out["fb_tablet"] = im
+    # Office remote: black body, red/yellow/blue buttons.
+    im = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([5, 1, 10, 14], fill=rgb("1e1e22"))
+    d.rectangle([6, 2, 9, 3], fill=rgb("5a5a60"))
+    d.point([6, 5], fill=rgb("e02020"))
+    d.point([9, 5], fill=rgb("e02020"))
+    d.point([6, 8], fill=rgb("f0c020"))
+    d.point([9, 8], fill=rgb("f0c020"))
+    d.rectangle([7, 10, 8, 11], fill=rgb("3070e0"))
+    out["fb_remote"] = im
+    # Shift guide: brown booklet with a golden bear face.
+    im = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([2, 1, 13, 14], fill=rgb("5a3418"))
+    d.line([3, 1, 3, 14], fill=rgb("3a200c"))
+    d.rectangle([6, 5, 11, 10], fill=rgb("c8a000"))
+    d.point([6, 4], fill=rgb("c8a000"))
+    d.point([11, 4], fill=rgb("c8a000"))
+    d.point([7, 7], fill=rgb("1a1a1a"))
+    d.point([10, 7], fill=rgb("1a1a1a"))
+    d.line([8, 9, 9, 9], fill=rgb("3c0496"))
+    out["fb_guide"] = im
+    return out
+
+
+def face_icon(skin, scale):
+    """Head front (base + hat layer) of a 64x64 skin, upscaled with nearest neighbour."""
+    face = skin.crop((8, 8, 16, 16))
+    hat = skin.crop((40, 8, 48, 16))
+    face.alpha_composite(hat)
+    return face.resize((8 * scale, 8 * scale), Image.NEAREST)
+
+
+def pack_icons(skins):
+    rp = Image.new("RGBA", (128, 128), rgb("0b0a10"))
+    rp.alpha_composite(face_icon(skins["fredbear"], 13), (12, 12))
+    bp = Image.new("RGBA", (128, 128), rgb("0b0a10"))
+    for i, n in enumerate(["freddy", "bonnie", "chica", "fredbear"]):
+        bp.alpha_composite(face_icon(skins[n], 7), (4 + (i % 2) * 64, 4 + (i // 2) * 64))
+    return rp, bp
+
+
+def fogs():
+    out = {}
+    for n in range(1, 7):
+        start = round(8 - n * 0.9, 1)
+        end = 56 - n * 5
+        colour = "#06070c" if n < 4 else ("#07050c" if n < 6 else "#090410")
+        setting = {"fog_start": start, "fog_end": end, "fog_color": colour, "render_distance_type": "fixed"}
+        out[n] = {"format_version": "1.21.90", "minecraft:fog_settings": {
+            "description": {"identifier": f"fb:night_{n}"},
+            "distance": {"air": dict(setting), "weather": dict(setting)},
+        }}
+    return out
+
+
+LANG = """## FREDBEAR: Six Nights Below
+entity.fb:freddy.name=Freddy
+entity.fb:bonnie.name=Bonnie
+entity.fb:chica.name=Chica
+entity.fb:fredbear.name=Fredbear
+entity.fb:fredbear_echo.name=Fredbear (Echo)
+item.fb:tablet=Camera Tablet
+item.fb:remote=Office Remote
+item.fb:guide=Shift Guide
+"""
+
+
+# --------------------------------------------------------------------------- main
+def main():
+    specs = character_specs()
+    tex_dir = RP / "textures" / "entity" / "fb"
+    tex_dir.mkdir(parents=True, exist_ok=True)
+    skins = {}
+    for name, spec in specs.items():
+        tex, eyes, geo = build_character(name, spec)
+        skins[name] = load_skin(spec["skin"])
+        tex.save(tex_dir / f"{name}.png")
+        eyes.save(tex_dir / f"{name}_eyes.png")
+        write_json(RP / "models" / "entity" / f"fb_{name}.geo.json", geo)
+        write_json(RP / "entity" / f"fb_{name}.entity.json", client_entity(
+            f"fb:{name}", f"geometry.fb.{name}", f"textures/entity/fb/{name}", f"textures/entity/fb/{name}_eyes", spec["hide_prop_unless_perform"]))
+        if name == "fredbear":
+            echo = echo_texture(tex)
+            echo_eyes = Image.new("RGBA", (TEX_W, TEX_H), (0, 0, 0, 0))
+            for (x, y), _ in spec["eyes"]:
+                echo_eyes.putpixel((x, y), rgb("e070ff"))
+            echo.save(tex_dir / "fredbear_echo.png")
+            echo_eyes.save(tex_dir / "fredbear_echo_eyes.png")
+            write_json(RP / "entity" / "fb_fredbear_echo.entity.json", client_entity(
+                "fb:fredbear_echo", "geometry.fb.fredbear", "textures/entity/fb/fredbear_echo", "textures/entity/fb/fredbear_echo_eyes", False))
+    write_json(RP / "animations" / "fb_animatronic.animation.json", animations())
+    write_json(RP / "animation_controllers" / "fb_animatronic.animation_controllers.json", controller())
+    write_json(RP / "render_controllers" / "fb_animatronic.render_controllers.json", render_controllers())
+    item_dir = RP / "textures" / "items"
+    item_dir.mkdir(parents=True, exist_ok=True)
+    data = {}
+    for key, im in item_icons().items():
+        im.save(item_dir / f"{key}.png")
+        data[key] = {"textures": f"textures/items/{key}"}
+    write_json(RP / "textures" / "item_texture.json", {"resource_pack_name": "fredbear", "texture_name": "atlas.items", "texture_data": data})
+    for n, f in fogs().items():
+        write_json(RP / "fogs" / f"fb_night_{n}.json", f)
+    (RP / "texts").mkdir(parents=True, exist_ok=True)
+    (RP / "texts" / "en_US.lang").write_text(LANG, encoding="utf-8")
+    write_json(RP / "texts" / "languages.json", ["en_US"])
+    rp_icon, bp_icon = pack_icons(skins)
+    rp_icon.save(RP / "pack_icon.png")
+    bp_icon.save(BP / "pack_icon.png")
+    print(f"rp: {len(specs)} animatronics (+ echo), {len(ANIMS)} animations, 6 fogs, 3 item icons")
+
+
+if __name__ == "__main__":
+    main()

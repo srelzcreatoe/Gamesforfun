@@ -1,0 +1,9 @@
+## FREDBEAR: Six Nights Below
+entity.fb:freddy.name=Freddy
+entity.fb:bonnie.name=Bonnie
+entity.fb:chica.name=Chica
+entity.fb:fredbear.name=Fredbear
+entity.fb:fredbear_echo.name=Fredbear (Echo)
+item.fb:tablet=Camera Tablet
+item.fb:remote=Office Remote
+item.fb:guide=Shift Guide

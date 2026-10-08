@@ -1,0 +1,52 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "fb:bonnie",
+      "materials": {
+        "default": "entity_alphatest",
+        "eyes": "creaking_eyes"
+      },
+      "textures": {
+        "default": "textures/entity/fb/bonnie",
+        "eyes": "textures/entity/fb/bonnie_eyes"
+      },
+      "geometry": {
+        "default": "geometry.fb.bonnie"
+      },
+      "scripts": {
+        "pre_animation": [
+          "variable.fb_anim = query.property('fb:anim');",
+          "variable.fb_eyes = query.property('fb:eyes');",
+          "variable.fb_hidden = query.property('fb:hidden');"
+        ],
+        "animate": [
+          "pose_controller",
+          {
+            "hide_prop": "variable.fb_anim != 'perform'"
+          }
+        ]
+      },
+      "animations": {
+        "pose_controller": "controller.animation.fb.pose",
+        "hide_prop": "animation.fb.hide_prop",
+        "idle": "animation.fb.idle",
+        "perform": "animation.fb.perform",
+        "walk": "animation.fb.walk",
+        "stalk": "animation.fb.stalk",
+        "crawl": "animation.fb.crawl",
+        "look": "animation.fb.look",
+        "pause": "animation.fb.pause",
+        "threat": "animation.fb.threat",
+        "attack": "animation.fb.attack",
+        "retreat": "animation.fb.retreat",
+        "dormant": "animation.fb.dormant",
+        "music": "animation.fb.music"
+      },
+      "render_controllers": [
+        "controller.render.fb.animatronic",
+        "controller.render.fb.eyes"
+      ]
+    }
+  }
+}
