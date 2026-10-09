@@ -7,6 +7,10 @@
 //
 // PHASES: RUNNING | MAINT | POWER_OUT | JUMPSCARE | WON | LOST
 //
+// MODIFIERS (options.mods, challenge modes): noDoors (doors and hatch welded
+// open; a lit hall light counts as that side's barrier), strobeNoBarrier,
+// deviceDrainMult, reserveAmount, noCams, loudSteps, lightAutoOff, captions.
+//
 // PER-TICK ORDER (defines priority of simultaneous events):
 //   1. WON/LOST: nothing.  JUMPSCARE: count down to LOST (clock frozen).
 //   2. queued player inputs (debounced)
@@ -35,10 +39,10 @@ const ENTRY_LABEL = Object.freeze({ L: 'LEFT DOOR', R: 'RIGHT DOOR', H: 'HATCH' 
 export class NightSession {
   /**
    * @param {object} p
-   * @param {number} p.night 0..6 (0 = training / test slice)
+   * @param {number} p.night 0..7 (0 = training / test slice)
    * @param {number} [p.seed]
-   * @param {object} [p.overrides] night definition overrides (debug/tests)
-   * @param {object} [p.options] { noDeath, captions, taskBonusPower, bonusCharges }
+   * @param {object} [p.overrides] night definition overrides (debug/tests/challenges)
+   * @param {object} [p.options] { noDeath, captions, taskBonusPower, bonusCharges, mods }
    */
   constructor({ night, seed = 1, overrides = {}, options = {} }) {
     this.night = night;
@@ -46,13 +50,16 @@ export class NightSession {
     this.tph = this.def.ticksPerHour;
     this.length = this.tph * CONFIG.clock.hours;
     this.options = { noDeath: false, captions: true, ...options };
+    this.mods = Object.freeze({ ...(options.mods ?? {}) });
+    if (this.mods.captions) this.options.captions = true;
     this.seed = seed >>> 0;
     this.rng = new Rng(mixSeed(this.seed, night + 1));
+    this.shadowRng = new Rng(mixSeed(this.seed, 7700 + night)); // separate stream: rare events never shift the AI rolls
     this.t = 0;
     this.phase = 'RUNNING';
     this.fx = [];
     this.log = [];
-    this.stats = { drain: 0, doorTicks: 0, lightTicks: 0, camTicks: 0, hatchTicks: 0, repels: 0, strobes: 0, attacks: [], sabotage: 0, inputs: 0 };
+    this.stats = { drain: 0, doorTicks: 0, lightTicks: 0, camTicks: 0, hatchTicks: 0, repels: 0, holds: 0, strobes: 0, attacks: [], sabotage: 0, inputs: 0, shadows: 0 };
     const P = CONFIG.power;
     this.power = P.start + (this.options.taskBonusPower ? P.taskBonus : 0);
     this.devices = {
@@ -72,6 +79,7 @@ export class NightSession {
     this.foreshadow = null;
     this.jammed = { L: false, R: false, H: false };
     this.jamTimer = { L: 0, R: 0, H: 0 };
+    this.held = { L: false, R: false, H: false }; // a door / the hatch already held Fredbear off tonight
     this.gates = { diner_seal: fbPhase >= 1, chamber_wall: fbPhase >= 1 };
     this.reserveUsed = false;
     this.powerOut = null;
@@ -118,9 +126,20 @@ export class NightSession {
 
   barrierClosed(entry) {
     const b = ENTRY_BARRIER[entry];
+    if (this.mods.noDoors) {
+      // Doors welded open: a lit hall light is the only defence on that side.
+      if (b === 'door_l') return this.devices.lightL;
+      if (b === 'door_r') return this.devices.lightR;
+      return false;
+    }
     if (b === 'door_l') return this.devices.doorL;
     if (b === 'door_r') return this.devices.doorR;
     return this.devices.hatch;
+  }
+
+  /** Who runs the power-out sequence: Fredbear on nights he is awake, Freddy otherwise. */
+  get powerOutAttacker() {
+    return (this.def.fredbear?.phase ?? 0) >= 1 ? 'fredbear' : 'freddy';
   }
 
   usage() {
@@ -132,14 +151,14 @@ export class NightSession {
   drainPerTick() {
     const P = CONFIG.power;
     const d = this.devices;
-    let drain = P.baseDrain[this.night] ?? 4;
-    if (d.doorL) drain += P.door;
-    if (d.doorR) drain += P.door;
-    if (d.lightL) drain += P.light;
-    if (d.lightR) drain += P.light;
-    if (d.cams.open) drain += P.cams;
-    if (d.hatch) drain += P.hatch;
-    return drain;
+    let used = 0;
+    if (d.doorL) used += P.door;
+    if (d.doorR) used += P.door;
+    if (d.lightL) used += P.light;
+    if (d.lightR) used += P.light;
+    if (d.cams.open) used += P.cams;
+    if (d.hatch) used += P.hatch;
+    return (P.baseDrain[this.night] ?? 4) + used * (this.mods.deviceDrainMult ?? 1);
   }
 
   /** Queue a player action (applied at the start of the next tick). */
@@ -170,6 +189,7 @@ export class NightSession {
     if (h !== this.lastHour) {
       this.lastHour = h;
       this.emit({ fx: 'hour', hour: h });
+      if (this.phase === 'RUNNING') this.maybeShadow(h);
     }
     if (this.t >= this.length) {
       this.win();
@@ -239,19 +259,21 @@ export class NightSession {
       this.emit({ fx: 'power_out', stage: 'reserve' });
       this.caption('POWER OUT — pull the EMERGENCY RESERVE lever!', 'session');
     } else {
-      this.beginFreddyMusic();
+      this.beginPowerOutMusic();
     }
   }
 
-  beginFreddyMusic() {
+  /** Power-out sequence: a music box and eyes at the left door, darkness, then the attack (6 AM still wins). */
+  beginPowerOutMusic() {
+    const who = this.powerOutAttacker;
     const music = 100 * this.rng.int(1, 4);
     const dark = this.rng.int(40, 80);
-    this.powerOut = { stage: 'music', timer: music, dark };
-    this.anim.freddy.startPowerOut(music, dark);
+    this.powerOut = { stage: 'music', timer: music, dark, who };
+    this.anim[who].startPowerOut(music, dark);
     const n = NODE_BY_ID.W_DOOR;
-    this.emit({ fx: 'sound', id: 'fb.freddy.musicbox', at: { x: n.x, y: 1.5, z: n.z }, vol: 1.0, loopKey: 'freddy_music' });
-    this.emit({ fx: 'power_out', stage: 'music' });
-    this.caption('A music box plays at the LEFT DOOR…', 'freddy');
+    this.emit({ fx: 'sound', id: `fb.${who}.musicbox`, at: { x: n.x, y: 1.5, z: n.z }, vol: 1.0, loopKey: 'powerout_music' });
+    this.emit({ fx: 'power_out', stage: 'music', who });
+    this.caption(who === 'fredbear' ? 'A music box plays at the LEFT DOOR… golden eyes in the dark' : 'A music box plays at the LEFT DOOR…', who);
   }
 
   tickPowerOut() {
@@ -259,34 +281,39 @@ export class NightSession {
     if (!po) return;
     po.timer--;
     if (po.stage === 'reserve') {
-      if (po.timer <= 0) this.beginFreddyMusic();
+      if (po.timer <= 0) this.beginPowerOutMusic();
       return;
     }
+    const a = this.anim[po.who];
     if (po.stage === 'music' && po.timer <= 0) {
       po.stage = 'dark';
       po.timer = po.dark;
-      this.anim.freddy.eyes = false;
-      this.emit({ fx: 'stop_loop', loopKey: 'freddy_music' });
+      a.eyes = false;
+      this.emit({ fx: 'stop_loop', loopKey: 'powerout_music' });
       this.emit({ fx: 'actuate', id: 'pwr.dark' });
-      this.emit({ fx: 'power_out', stage: 'dark' });
+      this.emit({ fx: 'power_out', stage: 'dark', who: po.who });
       return;
     }
-    if (po.stage === 'dark' && po.timer <= 0 && this.director.requestAttack('freddy')) {
-      this.anim.freddy.anim = 'attack';
-      this.anim.freddy.setState('ATTACK', 'power-out sequence complete');
-      this.beginJumpscare('freddy');
+    if (po.stage === 'dark' && po.timer <= 0 && this.director.requestAttack(po.who)) {
+      a.anim = 'attack';
+      a.setState('ATTACK', 'power-out sequence complete');
+      this.beginJumpscare(po.who);
     }
+  }
+
+  get reserveAmount() {
+    return this.mods.reserveAmount ?? CONFIG.power.reserveAmount;
   }
 
   engageReserve() {
     this.reserveUsed = true;
-    this.power = CONFIG.power.reserveAmount;
+    this.power = this.reserveAmount;
     this.powerOut = null;
     this.phase = 'RUNNING';
     this.emit({ fx: 'actuate', id: 'pwr.reserve' });
     this.emit({ fx: 'power_out', stage: 'restored' });
     this.logTransition('session', 'POWER_OUT', 'RUNNING', 'emergency reserve engaged');
-    this.caption('Emergency reserve engaged: 8% power', 'session');
+    this.caption(`Emergency reserve engaged: ${Math.round(this.reserveAmount / CONFIG.power.unitsPerPercent)}% power`, 'session');
   }
 
   // ------------------------------------------------------------ devices
@@ -300,7 +327,7 @@ export class NightSession {
   setLight(side, on) {
     const key = side === 'L' ? 'lightL' : 'lightR';
     this.devices[key] = on;
-    this.devices.lightTimer[side] = on ? CONFIG.devices.lightAutoOff : 0;
+    this.devices.lightTimer[side] = on ? this.mods.lightAutoOff ?? CONFIG.devices.lightAutoOff : 0;
     this.emit({ fx: 'actuate', id: `light_${side.toLowerCase()}_${on ? 'on' : 'off'}` });
     this.emit({ fx: 'device', device: key, value: on });
   }
@@ -347,6 +374,7 @@ export class NightSession {
       case 'door_r': {
         const side = action === 'door_r' ? 'R' : 'L';
         if (!running) return this.feedback(action, false, this.phase === 'POWER_OUT' ? 'no power' : 'unavailable');
+        if (this.mods.noDoors) return this.feedback(action, false, 'welded open');
         if (this.jammed[side]) return this.feedback(action, false, 'jammed');
         if (this.debounced(action, D.doorDebounce)) return this.feedback(action, false, 'cooldown');
         const closed = !(side === 'L' ? this.devices.doorL : this.devices.doorR);
@@ -378,6 +406,7 @@ export class NightSession {
       case 'cam_select': {
         const cam = arg && CAMERA_BY_ID[arg] ? arg : this.devices.cams.cam;
         if (!running) return this.feedback(action, false, this.phase === 'POWER_OUT' ? 'no power' : 'unavailable');
+        if (this.mods.noCams) return this.feedback(action, false, 'no signal');
         if (this.blackout.stage === 'on') return this.feedback(action, false, 'blackout');
         if (!this.view.inOffice) return this.feedback(action, false, 'not in office');
         if (this.devices.cams.open) {
@@ -422,6 +451,7 @@ export class NightSession {
       case 'hatch': {
         if (!this.hatchInstalled) return this.feedback(action, false, 'welded shut');
         if (!running) return this.feedback(action, false, this.phase === 'POWER_OUT' ? 'no power' : 'unavailable');
+        if (this.mods.noDoors) return this.feedback(action, false, 'welded open');
         if (this.jammed.H) return this.feedback(action, false, 'jammed');
         if (this.debounced('hatch', D.hatchDebounce)) return this.feedback(action, false, 'cooldown');
         const closed = !this.devices.hatch;
@@ -463,6 +493,7 @@ export class NightSession {
     }
     if (this.strobe.cooldown > 0) this.strobe.cooldown--;
     if (this.disrupt.left > 0 && --this.disrupt.left === 0) this.emit({ fx: 'disrupt', on: false });
+    if (this.echo?.kind === 'shadow') this.tickShadow();
     if (this.echo && --this.echo.left <= 0) {
       this.emit({ fx: 'echo', on: false, cam: this.echo.cam, node: this.echo.node, kind: this.echo.kind });
       this.echo = null;
@@ -497,8 +528,32 @@ export class NightSession {
   }
 
   startEcho(cam, node, duration, kind) {
-    this.echo = { cam, node, left: duration, kind };
+    this.echo = { cam, node, left: duration, kind, stare: 0 };
     this.emit({ fx: 'echo', on: true, cam, node, kind });
+  }
+
+  // ------------------------------------------------------------ shadow Fredbear
+  /** Rare silhouette on the show stage: rolled once per hour from 1 AM (own RNG stream). */
+  maybeShadow(hour) {
+    const S = CONFIG.shadow;
+    if (hour < 1 || this.night < S.fromNight || this.options.noDeath || this.echo || this.finale) return;
+    if (!this.shadowRng.chance(S.chancePerHour)) return;
+    this.stats.shadows++;
+    this.startEcho('C01', S.node, S.holdTicks, 'shadow');
+    this.logTransition('session', 'SHADOW', 'SHADOW', `silhouette on the stage at ${S.node}`);
+  }
+
+  /** Staring at the silhouette (any feed that shows its node) costs power and makes it vanish. */
+  tickShadow() {
+    const S = CONFIG.shadow;
+    const c = this.devices.cams;
+    const cam = c.open && this.disrupt.left === 0 ? CAMERA_BY_ID[c.cam] : null;
+    if (!cam || !cam.sees.includes(this.echo.node)) return;
+    if (++this.echo.stare < S.stareTicks) return;
+    this.spend(S.drain);
+    this.emit({ fx: 'sound', id: 'fb.fredbear.glitch', at: 'office', vol: 0.9 });
+    this.caption('The shadow is gone… and so is some of your power.', 'session');
+    this.echo.left = 1; // removed by tickDevices this tick
   }
 
   startForeshadow(ev) {
@@ -714,6 +769,8 @@ export class NightSession {
     const p = this.power;
     return {
       night: this.night,
+      mods: this.mods,
+      held: { ...this.held },
       t: this.t,
       hour: this.hour,
       phase: this.phase,
@@ -734,6 +791,7 @@ export class NightSession {
       powerOut: this.powerOut ? { ...this.powerOut } : null,
       maint: this.maint ? { ...this.maint } : null,
       finale: this.finale,
+      shadow: this.echo?.kind === 'shadow',
       anim: Object.fromEntries(ORDER.map((id) => {
         const a = this.anim[id];
         return [id, { state: a.state, node: a.node, moving: !!a.move, to: a.move?.to, aggression: a.aggression, entry: a.entry }];

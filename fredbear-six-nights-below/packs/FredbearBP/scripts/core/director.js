@@ -113,7 +113,7 @@ export class Director {
   requestAttack(who) {
     const s = this.s;
     if (this.attackToken && this.attackToken !== who) return false;
-    if (s.phase !== 'RUNNING' && !(s.phase === 'POWER_OUT' && who === 'freddy')) return false;
+    if (s.phase !== 'RUNNING' && !(s.phase === 'POWER_OUT' && who === s.powerOut?.who)) return false;
     this.attackToken = who;
     return true;
   }

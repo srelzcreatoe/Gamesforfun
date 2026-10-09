@@ -237,11 +237,12 @@ export class Animatronic {
 
   emitStep() {
     if (++this.stepCounter % 14 !== 0) return;
+    const loud = !!this.s.mods.loudSteps; // Broken Cameras challenge: louder, earlier footsteps
     const d = this.distanceToOffice();
-    if (d > 42) return;
+    if (d > (loud ? 60 : 42)) return;
     const p = this.pose();
-    this.s.emit({ fx: 'sound', id: `fb.step.${this.id}`, at: { x: p.x, y: p.y, z: p.z }, vol: d < 16 ? 1.0 : 0.7 });
-    if (d < 24 && this.stepCounter % 56 === 0) this.s.caption(`Footsteps — ${this.sideName()}`, this.id);
+    this.s.emit({ fx: 'sound', id: `fb.step.${this.id}`, at: { x: p.x, y: p.y, z: p.z }, vol: (d < 16 ? 1.0 : 0.7) * (loud ? 1.5 : 1) });
+    if (d < (loud ? 36 : 24) && this.stepCounter % 56 === 0) this.s.caption(`Footsteps — ${this.sideName()}`, this.id);
   }
 
   sideName() {

@@ -23,43 +23,67 @@ export const PLAN = [
 
 const pct = (units) => Math.round((units / CONFIG.power.unitsPerPercent) * 10) / 10;
 
-export async function simulate({ nights = [1, 2, 3, 4, 5, 6], plan = PLAN } = {}) {
+export const NIGHTS = [1, 2, 3, 4, 5, 6, 7];
+
+/** One night (or challenge) for one player model over `seeds` seeds. */
+async function runSeries(p, { night, overrides, options }) {
+  const runs = [];
+  for (let i = 0; i < p.seeds; i++) {
+    const seed = 1000 + i;
+    const r = await runNight(NightSession, { night, seed, bot: p.make(seed), overrides, options });
+    const tph = r.session.tph;
+    runs.push({
+      won: r.result === 'WON',
+      endPower: pct(r.power),
+      minPower: pct(r.minPower),
+      lostAtHour: r.result === 'LOST' ? Math.floor(r.t / tph) : null,
+      attacker: r.result === 'LOST' ? r.attacker : null,
+      powerOut: r.fx.some((f) => f.fx === 'power_out' && f.stage === 'down'),
+    });
+  }
+  const wins = runs.filter((r) => r.won);
+  const losses = runs.filter((r) => !r.won);
+  const by = {};
+  for (const l of losses) by[l.attacker ?? 'none'] = (by[l.attacker ?? 'none'] ?? 0) + 1;
+  return {
+    winRate: Math.round((wins.length / runs.length) * 100),
+    meanEndPower: wins.length ? Math.round((wins.reduce((a, r) => a + r.endPower, 0) / wins.length) * 10) / 10 : null,
+    worstMinPower: Math.min(...runs.map((r) => r.minPower)),
+    powerOuts: runs.filter((r) => r.powerOut).length,
+    lossesBy: by,
+    meanLossHour: losses.length ? Math.round((losses.reduce((a, r) => a + r.lostAtHour, 0) / losses.length) * 10) / 10 : null,
+  };
+}
+
+/** Challenge modes for the oracle and both human models. */
+export async function simulateChallenges(plan = PLAN.filter((p) => ['oracle', 'human', 'human_low'].includes(p.key))) {
   const out = {};
   for (const p of plan) {
-    out[p.key] = { label: p.label, seeds: p.seeds, nights: {} };
-    for (const night of nights) {
-      const runs = [];
-      for (let i = 0; i < p.seeds; i++) {
-        const seed = 1000 + i;
-        const r = await runNight(NightSession, { night, seed, bot: p.make(seed) });
-        const tph = r.session.tph;
-        runs.push({
-          won: r.result === 'WON',
-          endPower: pct(r.power),
-          minPower: pct(r.minPower),
-          lostAtHour: r.result === 'LOST' ? Math.floor(r.t / tph) : null,
-          attacker: r.result === 'LOST' ? r.attacker : null,
-          powerOut: r.fx.some((f) => f.fx === 'power_out' && f.stage === 'down'),
-        });
-      }
-      const wins = runs.filter((r) => r.won);
-      const losses = runs.filter((r) => !r.won);
-      const by = {};
-      for (const l of losses) by[l.attacker ?? 'none'] = (by[l.attacker ?? 'none'] ?? 0) + 1;
-      out[p.key].nights[night] = {
-        winRate: Math.round((wins.length / runs.length) * 100),
-        meanEndPower: wins.length ? Math.round((wins.reduce((a, r) => a + r.endPower, 0) / wins.length) * 10) / 10 : null,
-        worstMinPower: Math.min(...runs.map((r) => r.minPower)),
-        powerOuts: runs.filter((r) => r.powerOut).length,
-        lossesBy: by,
-        meanLossHour: losses.length ? Math.round((losses.reduce((a, r) => a + r.lostAtHour, 0) / losses.length) * 10) / 10 : null,
-      };
+    out[p.key] = { label: p.label, seeds: p.seeds, challenges: {} };
+    for (const [id, c] of Object.entries(CONFIG.challenges)) {
+      out[p.key].challenges[id] = await runSeries(p, { night: c.base, overrides: c.overrides, options: { mods: c.mods } });
     }
   }
   return out;
 }
 
-export function table(res, nights = [1, 2, 3, 4, 5, 6]) {
+export function challengeTable(res) {
+  const ids = Object.keys(CONFIG.challenges);
+  const lines = [`| Player model | ${ids.map((id) => CONFIG.challenges[id].title).join(' | ')} |`, `|---|${ids.map(() => '---').join('|')}|`];
+  for (const r of Object.values(res)) lines.push(`| ${r.label} (${r.seeds} seeds) | ${ids.map((id) => `${r.challenges[id].winRate}%`).join(' | ')} |`);
+  return lines.join('\n');
+}
+
+export async function simulate({ nights = NIGHTS, plan = PLAN } = {}) {
+  const out = {};
+  for (const p of plan) {
+    out[p.key] = { label: p.label, seeds: p.seeds, nights: {} };
+    for (const night of nights) out[p.key].nights[night] = await runSeries(p, { night });
+  }
+  return out;
+}
+
+export function table(res, nights = NIGHTS) {
   const lines = [];
   lines.push(`| Player model | ${nights.map((n) => `N${n}`).join(' | ')} |`);
   lines.push(`|---|${nights.map(() => '---').join('|')}|`);
@@ -69,7 +93,7 @@ export function table(res, nights = [1, 2, 3, 4, 5, 6]) {
   return lines.join('\n');
 }
 
-export function detailTable(res, key, nights = [1, 2, 3, 4, 5, 6]) {
+export function detailTable(res, key, nights = NIGHTS) {
   const r = res[key];
   const lines = ['| Night | Win rate | Mean power left (wins) | Lowest power seen | Power-outs | Losses by | Mean loss hour |', '|---|---|---|---|---|---|---|'];
   for (const n of nights) {
@@ -83,11 +107,13 @@ export function detailTable(res, key, nights = [1, 2, 3, 4, 5, 6]) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const t0 = Date.now();
   const res = await simulate();
+  const ch = await simulateChallenges();
   fs.mkdirSync(path.join(ROOT, 'tools/out'), { recursive: true });
-  fs.writeFileSync(path.join(ROOT, 'tools/out/balance.json'), JSON.stringify(res, null, 1));
+  fs.writeFileSync(path.join(ROOT, 'tools/out/balance.json'), JSON.stringify({ nights: res, challenges: ch }, null, 1));
   console.log(table(res));
   for (const k of ['oracle', 'human', 'human_low']) {
     console.log(`\n${res[k].label}\n${detailTable(res, k)}`);
   }
+  console.log(`\nChallenges\n${challengeTable(ch)}`);
   console.log(`\n(${Math.round((Date.now() - t0) / 1000)} s)`);
 }

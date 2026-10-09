@@ -93,6 +93,9 @@ export const CONFIG = Object.freeze({
       stunTicks: 40,
       relocateWarn: 40,
       holdMax: 200,
+      yieldTicks: 40, // a door or the hatch held: he bows at the entry, then vanishes
+      flickerNear: 40, // office lamp flicker interval while he is next to the office
+      flickerClose: 16, // ... and while he is climbing / walking into an entry
     }),
   }),
 
@@ -138,7 +141,7 @@ export const CONFIG = Object.freeze({
       title: 'Night 4 — Something Below', mechanic: 'Fredbear wakes: office hatch, emergency strobe, camera disruption',
       ai: { freddy: 10, bonnie: 11, chica: 10, fredbear: 5 },
       activation: { freddy: 0, bonnie: 0, chica: 0, fredbear: 1600 },
-      ramp: true, strobeCharges: 3, reserve: true, maxSabotage: 2,
+      ramp: true, strobeCharges: 4, reserve: true, maxSabotage: 2,
       fredbear: { phase: 1, entries: ['H'], stir: 500, cooldown: 1400, maxAttempts: 2, powers: ['disrupt'] },
       events: [],
     }),
@@ -146,7 +149,7 @@ export const CONFIG = Object.freeze({
       title: 'Night 5 — Golden Echoes', mechanic: 'Fredbear relocates, false camera events, local blackouts',
       ai: { freddy: 14, bonnie: 15, chica: 14, fredbear: 12 },
       activation: { freddy: 0, bonnie: 0, chica: 0, fredbear: 1200 },
-      ramp: true, strobeCharges: 3, reserve: true, maxSabotage: 3,
+      ramp: true, strobeCharges: 5, reserve: true, maxSabotage: 3,
       fredbear: { phase: 2, entries: ['H', 'L', 'R'], stir: 300, cooldown: 1100, maxAttempts: 3, powers: ['disrupt', 'false_cam', 'blackout', 'relocate'] },
       events: [{ at: 4800, kind: 'maintenance', task: 'electrical' }],
     }),
@@ -154,11 +157,55 @@ export const CONFIG = Object.freeze({
       title: 'Night 6 — Six Nights Below', mechanic: "Fredbear's Golden Hour and the finale",
       ai: { freddy: 18, bonnie: 19, chica: 18, fredbear: 20 },
       activation: { freddy: 0, bonnie: 0, chica: 0, fredbear: 200 },
-      ramp: true, strobeCharges: 4, reserve: true, maxSabotage: 3,
+      ramp: true, strobeCharges: 6, reserve: true, maxSabotage: 3,
       fredbear: { phase: 3, entries: ['H', 'L', 'R'], stir: 200, cooldown: 900, maxAttempts: 4, powers: ['disrupt', 'false_cam', 'blackout', 'relocate'], finale: { atHour: 5, extraAttempts: 2, extraCharges: 2, cooldown: 500 } },
       events: [{ at: 8000, kind: 'finale' }],
     }),
+    7: Object.freeze({
+      title: "Night 7 — Fredbear's Revenge", mechanic: 'Only Fredbear, every power, every entry, all night',
+      ai: { freddy: 0, bonnie: 0, chica: 0, fredbear: 20 },
+      activation: { freddy: 99999, bonnie: 99999, chica: 99999, fredbear: 200 },
+      ramp: false, strobeCharges: 6, reserve: true, maxSabotage: 0,
+      fredbear: { phase: 3, entries: ['H', 'L', 'R'], stir: 200, cooldown: 700, maxAttempts: 7, powers: ['disrupt', 'false_cam', 'blackout', 'relocate'] },
+      events: [],
+    }),
   }),
+
+  // Challenge modes (unlocked after night 6). Each one is a normal 12-6 AM
+  // night built on a base night with overrides, plus session modifiers
+  // (NightSession options.mods). Each takes something away and gives
+  // something back; tools/balance_sim.mjs checks they stay beatable.
+  challenges: Object.freeze({
+    no_doors: Object.freeze({
+      title: 'No Doors', base: 4,
+      text: 'The doors and the hatch are welded open. Keep a hall light on Bonnie, Chica or Freddy in the corner and they back off (Bonnie and Chica after 2 s, Freddy after 5 s). The strobe drives Fredbear off without closing anything.',
+      overrides: { ai: { freddy: 5, bonnie: 6, chica: 5, fredbear: 4 }, strobeCharges: 4 },
+      mods: { noDoors: true, strobeNoBarrier: true, lightAutoOff: 200 },
+    }),
+    fredbear_only: Object.freeze({
+      title: 'Fredbear Only', base: 5,
+      text: 'Just Fredbear, at night 5 strength, with every entry and his night 5 powers. A warm-up for night 7.',
+      overrides: { ai: { freddy: 0, bonnie: 0, chica: 0, fredbear: 12 }, activation: { freddy: 99999, bonnie: 99999, chica: 99999, fredbear: 400 }, strobeCharges: 6, maxSabotage: 0, events: [], fredbear: { maxAttempts: 4 } },
+      mods: {},
+    }),
+    double_drain: Object.freeze({
+      title: 'Double Power Drain', base: 3,
+      text: 'Doors, hall lights and the camera monitor use twice as much power. The emergency reserve gives 25 % instead of 8 %, and the animatronics are calmer than on night 3.',
+      overrides: { ai: { freddy: 3, bonnie: 4, chica: 3, fredbear: 0 } },
+      mods: { deviceDrainMult: 2, reserveAmount: 25000 },
+    }),
+    no_cams: Object.freeze({
+      title: 'Broken Cameras', base: 3,
+      text: 'The camera system is dead: no feeds at all. Footsteps are louder, captions are always on and the hall lights stay on twice as long. Freddy stays on the stage (he only hunts through the cameras).',
+      overrides: { ai: { freddy: 0, bonnie: 8, chica: 7, fredbear: 0 }, activation: { freddy: 99999 } },
+      mods: { noCams: true, loudSteps: true, lightAutoOff: 200, captions: true },
+    }),
+  }),
+
+  // Shadow Fredbear: a rare black silhouette on the show stage (CAM 01/02).
+  // Checked once per hour from 1 AM on nights 2+; watching it for `stareTicks`
+  // in total drains `drain` power units and it vanishes.
+  shadow: Object.freeze({ chancePerHour: 0.05, node: 'STAGE_FRONT', holdTicks: 600, stareTicks: 60, drain: 1000, fromNight: 2 }),
 
   // Fredbear power tuning by phase (1..3).
   fredbearPowers: Object.freeze({
@@ -169,7 +216,10 @@ export const CONFIG = Object.freeze({
   }),
 });
 
-/** Effective night definition with optional overrides (debug/test). */
+export const LAST_NIGHT = 7;
+export const CHALLENGE_IDS = Object.freeze(Object.keys(CONFIG.challenges));
+
+/** Effective night definition with optional overrides (debug/test/challenges). */
 export function nightDef(n, overrides = {}) {
   const base = CONFIG.nights[n];
   if (!base) throw new Error(`Unknown night ${n}`);

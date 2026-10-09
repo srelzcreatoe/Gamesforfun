@@ -15,16 +15,27 @@
 //   TELEGRAPH W1 = max(100, 180-4A) ticks: golden glow + music box at the entry.
 //            Barrier OPEN at the end -> ATTACK. Barrier CLOSED -> FORCING.
 //   FORCING  W2 = max(60, 100-2A) ticks of pounding. Opening the barrier -> ATTACK.
-//            Window ends -> the barrier is forced open and JAMMED.
+//            Window ends -> if that door / the hatch has not held yet tonight
+//            (and it is not the Golden Hour) it HOLDS: YIELD. Otherwise the
+//            barrier is forced open and JAMMED.
+//   YIELD    40 ticks: he bows at the entry, then vanishes to the diner
+//            (counts as one of his attempts).
 //   JAMMED   W3 = 60 ticks with the barrier stuck open -> ATTACK unless repelled.
-//   RECOVER  cooldown after a repel; powers may still be used.
-//   SPENT    mercy cap: after maxAttempts repelled attempts he stays in the diner.
+//   RECOVER  cooldown after a repel or a hold; powers may still be used.
+//   SPENT    mercy cap: after maxAttempts attempts (repelled or held) he stays in the diner.
+//   RISE     night 6 Golden Hour: a showman pose on the diner stage, then the hunt.
+//   POWEROUT nights he is awake: he owns the power-out sequence at the left door.
 //
 // COUNTERMEASURE: fire the EMERGENCY STROBE while he is at an entry
-// (TELEGRAPH/FORCING/JAMMED) AND that entry's barrier is closed or jammed.
-// A strobe with the barrier open only stuns him (+40 ticks, once per attempt).
-// He never attacks through a closed barrier: a closed barrier is first visibly
-// forced open (JAMMED) and a further strobe window follows.
+// (TELEGRAPH/FORCING/JAMMED) AND that entry's barrier is closed or jammed
+// (No Doors challenge: no barrier needed). A strobe with the barrier open
+// only stuns him (+40 ticks, once per attempt). He never attacks through a
+// closed barrier: a closed barrier is first visibly forced open (JAMMED) and
+// a further strobe window follows - unless it holds (once per entry per night).
+//
+// CUES: a laugh every time he starts a hunt; the office lamp flickers while
+// he is next to the office (approach nodes) and faster while he climbs or
+// walks into an entry.
 
 import { Animatronic } from './base.js';
 import { CONFIG } from '../config.js';
@@ -34,6 +45,7 @@ import { CAMERAS } from '../../data/cameras.js';
 const APPROACH_NODE = Object.freeze({ H: 'SUB_N', L: 'WH_S', R: 'EH_S' });
 const ENTRY_NAME = Object.freeze({ L: 'LEFT DOOR', R: 'RIGHT DOOR', H: 'HATCH' });
 const BASEMENT_GOLDEN = Object.freeze(['DINER_STAGE', 'CRAWL_MID', 'SUB_N']);
+const NEAR_OFFICE = new Set([...Object.values(APPROACH_NODE), 'CRAWL_END']);
 
 export class Fredbear extends Animatronic {
   constructor(session) {
@@ -50,6 +62,12 @@ export class Fredbear extends Animatronic {
     this.holdTicks = 0;
     this.anim = 'dormant';
     this.target = 'H';
+    this.nextFlicker = 0;
+  }
+
+  tick() {
+    super.tick();
+    this.tickFlicker();
   }
 
   get fdef() {
@@ -90,10 +108,7 @@ export class Fredbear extends Animatronic {
           return;
         }
         this.anim = 'look';
-        if (--this.timer <= 0) {
-          this.chooseEntry();
-          this.setState('PATROL', `hunting toward ${this.target}`);
-        }
+        if (--this.timer <= 0) this.startHunt('stirred on the diner stage');
         return;
       case 'PATROL':
       case 'STALK':
@@ -117,6 +132,10 @@ export class Fredbear extends Animatronic {
         return this.thinkTelegraph();
       case 'FORCING':
         return this.thinkForcing();
+      case 'YIELD':
+        this.anim = 'bow';
+        if (--this.timer <= 0) this.vanishToDiner(`gave up at the ${ENTRY_NAME[this.entry]}`);
+        return;
       case 'JAMMED':
         return this.thinkJammed();
       case 'RECOVER':
@@ -126,18 +145,25 @@ export class Fredbear extends Animatronic {
             this.becomeSpent();
             return;
           }
-          this.chooseEntry();
-          this.setState('PATROL', `recovered; hunting toward ${this.target}`);
+          this.startHunt('recovered');
         }
         return;
       case 'SPENT':
         this.anim = 'idle';
         this.eyes = false;
         if (this.attempts < this.maxAttempts) {
-          // The finale grants extra attempts.
-          this.chooseEntry();
-          this.setState('PATROL', 'finale: Fredbear rises again');
+          // The finale grants extra attempts: a showman pose on the stage first.
+          this.anim = 'showman';
+          this.eyes = true;
+          this.timer = 60;
+          this.setState('RISE', 'finale: Fredbear rises again');
         }
+        return;
+      case 'RISE':
+        this.anim = 'showman';
+        if (--this.timer <= 0) this.startHunt('finale hunt');
+        return;
+      case 'POWEROUT':
         return;
       case 'SUSPENDED':
         this.anim = 'dormant';
@@ -147,6 +173,28 @@ export class Fredbear extends Animatronic {
   }
 
   // ------------------------------------------------------------ hunting
+  /** Every hunt starts with his laugh (the warning cue) and a fresh entry choice. */
+  startHunt(reason) {
+    this.chooseEntry();
+    this.setState('PATROL', `${reason}; hunting toward ${this.target}`);
+    this.s.emit({ fx: 'sound', id: 'fb.fredbear.laugh', at: 'office', vol: 0.8 });
+    this.s.caption('Laughter from somewhere below — Fredbear is coming', this.id);
+  }
+
+  /** Office lamp flicker while he is next to the office (never during a blackout or for an echo). */
+  tickFlicker() {
+    const s = this.s;
+    if (s.phase !== 'RUNNING' || s.blackout.stage !== 'none' || s.night === 0) return;
+    const C = CONFIG.characters.fredbear;
+    let every = 0;
+    if (this.state === 'APPROACH') every = C.flickerClose;
+    else if (['PATROL', 'STALK'].includes(this.state) && (NEAR_OFFICE.has(this.node) || (this.move && NEAR_OFFICE.has(this.move.to)))) every = C.flickerNear;
+    else if (this.state === 'RELOCATING' && NEAR_OFFICE.has(this.relocateTo)) every = C.flickerNear;
+    if (!every || s.t < this.nextFlicker) return;
+    this.nextFlicker = s.t + every;
+    s.emit({ fx: 'actuate', id: 'env.flicker_office' });
+  }
+
   chooseEntry() {
     const entries = this.fdef.entries ?? ['H'];
     if (entries.length === 1) {
@@ -285,10 +333,31 @@ export class Fredbear extends Animatronic {
       s.emit({ fx: 'sound', id: 'fb.door.bang', at: { x: p.x, y: p.y + 1, z: p.z }, vol: 1.0 });
     }
     if (--this.timer > 0) return;
+    if (!s.held[this.entry] && !s.finale) {
+      this.yieldAt(this.entry);
+      return;
+    }
     s.jamBarrier(this.entry);
     this.timer = this.cfg.w3;
     this.setState('JAMMED', `${ENTRY_NAME[this.entry]} forced open`);
     s.caption(`The ${ENTRY_NAME[this.entry]} is jammed open — STROBE NOW!`, this.id);
+  }
+
+  /** The door / hatch held: once per entry per night (never in the Golden Hour). */
+  yieldAt(entry) {
+    const s = this.s;
+    s.held[entry] = true;
+    s.stats.holds++;
+    this.attempts++;
+    this.memory.lastEntry = entry;
+    s.emit({ fx: 'stop_loop', loopKey: 'fredbear_entry' });
+    s.emit({ fx: 'actuate', id: 'sig.fredbear_glow_off' });
+    s.emit({ fx: 'actuate', id: `sig.strain_end_${entry.toLowerCase()}` });
+    s.emit({ fx: 'held', entry });
+    s.caption(`The ${ENTRY_NAME[entry]} held. It won't hold him again tonight.`, this.id);
+    this.timer = CONFIG.characters.fredbear.yieldTicks;
+    this.anim = 'bow';
+    this.setState('YIELD', `${ENTRY_NAME[entry]} held (attempt ${this.attempts}/${this.maxAttempts})`);
   }
 
   thinkJammed() {
@@ -300,7 +369,7 @@ export class Fredbear extends Animatronic {
   onStrobe() {
     const s = this.s;
     if (!['TELEGRAPH', 'FORCING', 'JAMMED'].includes(this.state)) return 'none';
-    if (s.barrierClosed(this.entry) || s.jammed[this.entry]) {
+    if (s.barrierClosed(this.entry) || s.jammed[this.entry] || s.mods.strobeNoBarrier) {
       this.repel();
       return 'repelled';
     }
@@ -319,14 +388,20 @@ export class Fredbear extends Animatronic {
     this.attempts++;
     this.memory.repelled[entry] = Math.min(5, this.memory.repelled[entry] + 1);
     this.memory.lastEntry = entry;
+    if (this.state === 'FORCING') s.emit({ fx: 'actuate', id: `sig.strain_end_${entry.toLowerCase()}` });
     s.unjam(entry);
-    s.director.releaseEntry(this.id);
     s.emit({ fx: 'actuate', id: `sig.fredbear_glow_off` });
     s.emit({ fx: 'stop_loop', loopKey: 'fredbear_entry' });
     s.emit({ fx: 'sound', id: 'fb.fredbear.roar', at: 'office', vol: 0.9 });
     s.emit({ fx: 'repel', who: this.id, entry });
+    this.vanishToDiner(`repelled at ${ENTRY_NAME[entry]}`);
+  }
+
+  /** Vanishes (in the flash, or after yielding) and reappears on the diner stage (documented). */
+  vanishToDiner(reason) {
+    const s = this.s;
+    s.director.releaseEntry(this.id);
     this.entry = null;
-    // Vanishes in the flash and reappears on the diner stage (documented).
     if (this.move) {
       s.occupancy.release(this.move.to, this.id);
       this.move = null;
@@ -339,7 +414,35 @@ export class Fredbear extends Animatronic {
     this.eyes = false;
     this.anim = 'idle';
     this.timer = s.finale ? this.fdef.finale?.cooldown ?? 500 : this.fdef.cooldown ?? 1200;
-    this.setState('RECOVER', `repelled at ${ENTRY_NAME[entry]} (attempt ${this.attempts}/${this.maxAttempts})`);
+    this.setState('RECOVER', `${reason} (attempt ${this.attempts}/${this.maxAttempts})`);
+  }
+
+  // ------------------------------------------------------------ power out
+  /** Nights he is awake: the power-out sequence is his (music box and golden eyes at the left door). */
+  startPowerOut(musicTicks, darkTicks) {
+    const s = this.s;
+    s.director.releaseEntry(this.id);
+    s.emit({ fx: 'stop_loop', loopKey: 'fredbear_entry' });
+    s.emit({ fx: 'actuate', id: 'sig.fredbear_glow_off' });
+    if (this.move) {
+      s.occupancy.release(this.move.to, this.id);
+      this.move = null;
+    }
+    if (this.relocateTo) {
+      s.occupancy.release(this.relocateTo, this.id);
+      this.relocateTo = null;
+    }
+    this.path = [];
+    this.entry = null;
+    s.occupancy.release(this.node, this.id);
+    // Documented exception (as for Freddy): with all power gone he appears at the left door.
+    this.node = 'W_DOOR';
+    s.occupancy.force('W_DOOR', this.id);
+    this.yaw = NODE_BY_ID.W_DOOR.yaw;
+    this.eyes = true;
+    this.hidden = false;
+    this.anim = 'music';
+    this.setState('POWEROUT', `music ${musicTicks}t, dark ${darkTicks}t`);
   }
 
   attack(reason) {

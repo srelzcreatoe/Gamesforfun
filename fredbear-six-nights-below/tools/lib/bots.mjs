@@ -34,10 +34,21 @@ export function oracleBot() {
       const d = snap.devices;
       if (snap.phase === 'POWER_OUT' && snap.powerOut?.stage === 'reserve') s.input('reserve');
       if (snap.phase !== 'RUNNING') return;
+      const fb = s.anim.fredbear;
+      if (snap.mods.noDoors) {
+        // No Doors challenge: a lit hall light is the barrier (one side at a time).
+        const side = want.L && !(want.R && d.lightL && s.anim.bonnie.state !== 'TELEGRAPH') ? 'L' : want.R ? 'R' : null;
+        if (side === 'L' && !d.lightL) s.input('light_l');
+        else if (side === 'R' && !d.lightR) s.input('light_r');
+        else if (!side && d.lightL) s.input('light_l');
+        else if (!side && d.lightR) s.input('light_r');
+        if (fb.entry && ['TELEGRAPH', 'FORCING', 'JAMMED'].includes(fb.state) && snap.strobe.cooldown === 0) s.input('strobe');
+        if (snap.breaker.tripped && snap.breaker.resetting === 0) s.input('breaker');
+        return;
+      }
       if (want.L !== d.doorL && !snap.jammed.L) s.input('door_l');
       if (want.R !== d.doorR && !snap.jammed.R) s.input('door_r');
       if (snap.hatchInstalled && want.H !== d.hatch && !snap.jammed.H) s.input('hatch');
-      const fb = s.anim.fredbear;
       if (['TELEGRAPH', 'FORCING', 'JAMMED'].includes(fb.state) && fb.entry && (s.barrierClosed(fb.entry) || s.jammed[fb.entry]) && snap.strobe.cooldown === 0) s.input('strobe');
       if (snap.breaker.tripped && snap.breaker.resetting === 0) s.input('breaker');
     },
@@ -128,6 +139,15 @@ export function humanBot(seed = 7, skill = 1.0) {
       }
       if (snap.phase !== 'RUNNING') return;
       const d = snap.devices;
+      const noDoors = !!snap.mods.noDoors;
+      // No Doors challenge: while a side is believed threatened, its hall light is the barrier.
+      if (noDoors && (belief.L > s.t || belief.R > s.t)) {
+        const both = belief.L > s.t && belief.R > s.t;
+        const side = both ? (s.t % 120 < 60 ? 'L' : 'R') : belief.L > s.t ? 'L' : 'R';
+        const key = side === 'L' ? 'lightL' : 'lightR';
+        if (!d[key] && !snap.breaker.tripped) s.input(side === 'L' ? 'light_l' : 'light_r');
+        checkSide = null;
+      }
       // Targeted light check prompted by footsteps.
       if (checkSide && s.t >= checkUntil) {
         const node = checkSide === 'L' ? 'W_DOOR' : 'E_DOOR';
@@ -143,7 +163,7 @@ export function humanBot(seed = 7, skill = 1.0) {
         return;
       }
       // Light routine: flash left, then right, every ~4-7 s.
-      if (s.t >= nextRoutine && !d.camsOpen && !checkSide) {
+      if (s.t >= nextRoutine && !d.camsOpen && !checkSide && !(noDoors && (belief.L > s.t || belief.R > s.t))) {
         if (lightPhase === 0 && !snap.breaker.tripped) {
           if (!d.lightL) s.input('light_l');
           lightPhase = 1;
@@ -168,7 +188,7 @@ export function humanBot(seed = 7, skill = 1.0) {
       // Breaker tripped: rely on cameras for the corners instead of lights.
       if (snap.breaker.tripped && snap.breaker.resetting === 0) react(s, () => s.input('breaker'));
       // Camera checks.
-      if (!d.camsOpen && s.t >= nextCams && snap.blackout === 'none') {
+      if (!snap.mods.noCams && !d.camsOpen && s.t >= nextCams && snap.blackout === 'none') {
         if (freddyNear > s.t && !d.doorR) {
           s.input('door_r');
           belief.R = Math.max(belief.R, s.t + 200);
@@ -203,10 +223,12 @@ export function humanBot(seed = 7, skill = 1.0) {
       const wantL = belief.L > s.t;
       const wantR = belief.R > s.t || (freddyNear > s.t && d.camsOpen);
       const wantH = belief.H > s.t;
-      if (wantL !== d.doorL && !snap.jammed.L) s.input('door_l');
-      if (wantR !== d.doorR && !snap.jammed.R) s.input('door_r');
-      if (snap.hatchInstalled && wantH !== d.hatch && !snap.jammed.H) s.input('hatch');
-      if (fredbearEntry && belief[fredbearEntry] > s.t && s.barrierClosed(fredbearEntry)) {
+      if (!noDoors) {
+        if (wantL !== d.doorL && !snap.jammed.L) s.input('door_l');
+        if (wantR !== d.doorR && !snap.jammed.R) s.input('door_r');
+        if (snap.hatchInstalled && wantH !== d.hatch && !snap.jammed.H) s.input('hatch');
+      }
+      if (fredbearEntry && belief[fredbearEntry] > s.t && (s.barrierClosed(fredbearEntry) || snap.mods.strobeNoBarrier)) {
         const fb = s.anim.fredbear;
         if (['TELEGRAPH', 'FORCING', 'JAMMED'].includes(fb.state) && snap.strobe.cooldown === 0 && snap.strobe.charges > 0) {
           // The player only knows Fredbear is there from the cue; strobe once the barrier is shut.
