@@ -49,7 +49,7 @@ Numbers stay fixed from now on: new items are added at the end.
 
 | # | Item | Status |
 |---|---|---|
-| 21 | Replace Fredbear's model with the owner's "Fredbear V6 (no eye dots)" model and use all 12 of its animations; keep the old model's files outside the game | planned |
+| 21 | Replace Fredbear's model with the owner's "Fredbear V6 (no eye dots)" model and use all 12 of its animations; keep the old model's files outside the game; same size as now (owner's choice) | planned |
 
 ### More ideas (round 2, not chosen yet)
 
@@ -65,6 +65,21 @@ Numbers stay fixed from now on: new items are added at the end.
 | 29 | Camera night-vision switch: clearer feed but more power drain, and Fredbear notices you more | idea |
 | 30 | Props that move: knocked-over chairs, dropped party hats and drag marks on camera show where they have been | idea |
 | 31 | Two-player co-op: one player on the cameras, one on the doors (big job) | idea |
+
+### More ideas (round 3, not chosen yet)
+
+| # | Item | Status |
+|---|---|---|
+| 32 | Night 7 "Fredbear's Revenge": a bonus story night after the true ending, just you and Fredbear with every power | idea |
+| 33 | Phantoms (FNAF 3 style): burnt-looking animatronics flash in the office window on nights 5-6; keep looking and they knock out your cameras or power for a moment | idea |
+| 34 | Freddy mask (FNAF 2 style): put it on when Bonnie or Chica reach the office to fool them; Fredbear is never fooled | idea |
+| 35 | A music box to wind through a camera (FNAF 2 style); let it run down and Fredbear wakes early and angrier | idea |
+| 36 | Generator heat gauge: it heats up through the night; vent it from the office (costs power) or it shuts down at a bad moment | idea |
+| 37 | Hiding spots (lockers, under desks) in the basement to hide from whatever follows you during maintenance (goes with 16) | idea |
+| 38 | Night length setting: short 5-minute, normal 8-minute or long 12-minute nights | idea |
+| 39 | Camera snapshots: photograph strange things on camera (echoes, the empty suit) to fill a photo album at the time clock | idea |
+| 40 | A cupcake that moves between cameras on its own (like Chica's Carl), as a small extra threat or easter egg | idea |
+| 41 | Record wall in the lobby: best power left and cleanest run for each night | idea |
 
 ### Every update finishes with
 
@@ -165,8 +180,9 @@ Plan:
 * Missing pieces to make for the new rig: a crawl / climb pose (he crawls through the basement crawlspace and up the hatch),
   and the glowing-eyes layer (a new eye mask for the dark eye lenses on the 256×256 texture).
 * The purple ECHO (false Fredbear on cameras) uses the new model too, with its texture made from the new one.
-* Size: the new model is 3.1 blocks tall at scale 1 (the current Fredbear is about 3.4 blocks with the hat). Scale about 1.1
-  matches today's size; 0.95 or less lets him pass the 3-block doorways without the hat clipping. Ask the owner.
+* Size: **same size as now** (owner's choice). The new model is 50 units (3.1 blocks) tall at scale 1, and the current
+  Fredbear is 37.5 units × 1.45 = 54.4 units (3.4 blocks) with the hat. That means scale 1.09 for Fredbear and the ECHO
+  (`minecraft:scale`, `SCALE` in game.js, collision box). His hat may clip through the 3-block doorways, as it can today.
 * Keep the old model: move the current `fb_fredbear.geo.json` and its textures to `art/models_archive/fredbear_v1/`, outside
   the packs, so they are not in the game.
 * Shrink the animation JSON (round values, drop repeated keys) so the pack stays small, and check it still matches the
