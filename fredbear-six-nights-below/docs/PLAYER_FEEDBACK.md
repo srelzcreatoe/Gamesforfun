@@ -33,11 +33,12 @@ The original files are saved untouched in `art/sounds_incoming/`.
 | `fredbearboi.mp3` | 3.3 s | Fredbear's jumpscare | `fb.js.fredbear` |
 | `161190__volivieri__storm-door-slam-01.wav` | 4.9 s (slam, long tail) | doors and hatch (open / close) | `fb.door.close` / `fb.door.open` (doors and hatch both use these) |
 | `75826__analog-bleep-ten__metal-door.wav` | 1.25 s | doors and hatch (open / close) | as above |
-| `740223__fossarts__cctv-camera-system-in-op-2.wav` | 19.3 s steady hum | the "lil noise" while you are on the cameras: loop while the monitor is up, stop when it is lowered | new sound (`fb.cam.up` / `fb.cam.down` stay as the open/close sounds unless the owner picks a clip for them) |
+| `740223__fossarts__cctv-camera-system-in-op-2.wav` | 19.3 s steady hum | the "lil noise" while you are on the cameras: loop while the monitor is up, stop when it is lowered | new sound |
+| `camera_open.mp3` | 1.75 s | raising the camera monitor | `fb.cam.up` |
+| `camera_close.mp3` | 1.75 s | lowering the camera monitor | `fb.cam.down` |
 
 To confirm with the owner before building:
 * Which door clip goes where. Suggested: storm-door slam for closing, metal door for opening (same for the hatch).
-* Camera opening/closing: no separate clip was given. Options: keep the current up/down sounds, or fade the CCTV hum in and out.
 
 Implementation notes:
 * Bedrock reads `.ogg` (and `.wav`), not `.mp3`: convert everything to mono OGG Vorbis and trim the door slam's tail.
@@ -50,6 +51,6 @@ Implementation notes:
   * 740223 by FOSSarts: CC0 (no credit required).
   * 161190 by volivieri: CC BY 4.0 (credit required).
   * 75826 by Analog Bleep Ten: Sampling+ 1.0 (credit required; non-commercial sharing only).
-  * The two `.mp3` jumpscares came from the owner with no source given. If they come from the FNAF games, they belong to
-    Scott Cawthon.
+  * The two `.mp3` jumpscares and the two camera `.mp3` clips came from the owner with no source given. If they come from
+    the FNAF games, they belong to Scott Cawthon.
   * The README's "all sounds were synthesised" credit must be updated.
