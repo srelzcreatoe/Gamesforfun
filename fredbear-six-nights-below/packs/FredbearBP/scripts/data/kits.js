@@ -7,6 +7,7 @@ import { pixelText, textWidth } from './font.js';
 import { STORY_SIGNS } from './story.js';
 import { CAMERAS } from './cameras.js';
 import { NODE_BY_ID } from './nodes.js';
+import { LOBBY_NIGHTS, nightButtonZ, CHALLENGE_LAMPS, CLIPPING_BOARD } from './inputs.js';
 
 // Camera view rays (segments) so airborne props can stay out of them.
 const RAYS = CAMERAS.flatMap((c) => c.sees.map((id) => {
@@ -753,18 +754,35 @@ function officeKit(P, room, i) {
 // ------------------------------------------------------------------ lobby
 function lobbyKit(P, room, i) {
   const y = i.y1;
-  // Time-clock terminal backing (two blocks deep behind the console row).
-  P.fill(182, y, 103, 183, y + 1, 121, 'polished_deepslate');
-  for (let n = 1; n <= 6; n++) P.set(184, 3, 104 + n * 2, 'ind_off'); // unlock lamps (in the wall)
-  P.fill(182, y + 2, 103, 183, y + 2, 121, 'polished_blackstone');
-  // Benches and lockers.
-  for (let x = 152; x <= 170; x += 3) if (P.canPlace('L1', i, x, i.z1, 2, 1)) {
-    P.claim('L1', x, i.z1, 2, 1);
-    P.fill(x, y, i.z1, x, y + 2, i.z1, 'iron_block');
+  // Time-clock terminal (east wall): console row at x 181 (inputs.js), backing two blocks deep.
+  P.fill(182, y, 103, 183, y + 1, 123, 'polished_deepslate');
+  P.fill(182, y + 2, 103, 183, y + 2, 123, 'polished_blackstone');
+  P.claim('L1', 180, 103, 4, 21);
+  P.claim('L1', 155, 121, 6, 3); // CHALLENGES panel
+  // Newspaper board (north wall): dark frame, cork, seven paper clippings; reading spot in front.
+  const B = CLIPPING_BOARD;
+  P.fill(B.x1, y + 1, B.z, B.x2, y + 4, B.z, 'dark_oak');
+  P.fill(B.x1 + 1, y + 2, B.z, B.x2 - 1, y + 3, B.z, 'brown_t');
+  for (const x of B.papers) P.fill(x, y + 2, B.z, x, y + 3, B.z, 'white_c');
+  P.claim('L1', B.x1, B.z, B.x2 - B.x1 + 1, 3);
+  // Staff lockers along the west wall, benches in the middle.
+  for (let z = 112; z <= 120; z += 2) if (P.canPlace('L1', i, i.x1, z, 1, 2)) {
+    P.claim('L1', i.x1, z, 1, 2);
+    P.fill(i.x1, y, z, i.x1, y + 2, z, 'iron_block');
+    P.set(i.x1, y + 1, z + 1, 'iron_trapdoor_open');
   }
-  P.scatter('L1', i, 2, 3, 1, (x, z) => P.fill(x, y, z, x + 2, y, z, 'spruce_slab_top'));
+  P.scatter('L1', i, 3, 3, 1, (x, z) => P.fill(x, y, z, x + 2, y, z, 'spruce_slab_top'), { margin: 1 });
+  posters(P, room, 3, ['glazed_yellow', 'glazed_red', 'glazed_orange']);
   lights(P, room, 8, 6, 'white_sg');
-  P.claim('L1', 180, 103, 4, 20);
+  // Lamps last so no poster can cover them: night unlocks (east wall), challenges (south wall).
+  for (const n of LOBBY_NIGHTS) P.set(184, 3, nightButtonZ(n), 'ind_off');
+  for (const [x, ly, z] of Object.values(CHALLENGE_LAMPS)) P.set(x, ly, z, 'ind_off');
+}
+
+/** Signs that belong to the lobby furniture (signs pass). */
+function lobbySigns(P) {
+  P.sign(169, 4, CLIPPING_BOARD.z + 1, 'south', 'LOCAL NEWS\nClippings unlock\nas you survive.\nPress to read.');
+  P.sign(158, 2, 123, 'north', 'CHALLENGES\nunlock after\nnight 6');
 }
 
 // ------------------------------------------------------------------ control room
@@ -777,6 +795,7 @@ export function decorateRoom(P, room, { signsOnly = false } = {}) {
   const i = interior(room);
   if (signsOnly) {
     for (const s of STORY_SIGNS.filter((t) => t.room === room.id)) wallSign(P, room, s.side, s.text, { along: s.along, dy: s.dy ?? 2 });
+    if (room.kit === 'lobby') lobbySigns(P);
     return;
   }
   const kit = KITS[room.kit];

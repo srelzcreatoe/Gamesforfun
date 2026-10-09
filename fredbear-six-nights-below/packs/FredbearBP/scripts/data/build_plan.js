@@ -515,6 +515,7 @@ function inputLabels(P) {
   for (const inp of INPUTS) {
     const [x, y, z] = inp.p;
     if (inp.id.startsWith('in.lobby.') && x === 181) P.sign(181, y + 2, z, 'west', inp.label);
+    else if (inp.id.startsWith('in.lobby.') && z === 122) P.sign(x, y, z + 1, 'north', inp.label);
     else if (inp.id.startsWith('in.office.') && z === 130) P.sign(x, y, z + 1, 'south', inp.label);
     else if (inp.id.startsWith('in.dev.')) P.sign(x, y, z + 1, 'south', inp.label);
     else if (inp.id.startsWith('in.maint.') || inp.id === 'in.training.begin') P.sign(x, y, z + 1, 'south', inp.label);

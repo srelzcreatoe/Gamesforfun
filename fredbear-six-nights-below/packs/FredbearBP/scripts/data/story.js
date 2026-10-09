@@ -1,4 +1,5 @@
-// Story text: wall signs, phone messages, night intros, secrets and ending.
+// Story text: wall signs, phone messages, night intros, secrets, newspaper
+// clippings, the night 4 flashback and the endings.
 // All writing is original to this project.
 
 /** @param {{ along?: number, dy?: number }} [extra] */
@@ -92,7 +93,8 @@ export const PHONE = Object.freeze({
   4: [
     "Listen. They unwelded the hatch behind your chair. Something came up the old crawlspace.",
     "If you hear a music box, find WHERE it is. Shut that door or the hatch. Then hit the STROBE.",
-    'Shut it first. The flash alone just makes him angry. You get three charges. Make them count.',
+    'Shut it first. The flash alone just makes him angry. You get four charges. Make them count.',
+    "A shut door or hatch can hold him off by itself - once. After that it's the flash or nothing.",
   ],
   5: [
     "The cameras have been showing things that aren't there. Purple, glitched, labelled ECHO. Ignore those.",
@@ -103,6 +105,12 @@ export const PHONE = Object.freeze({
     "This is the last message I can leave. I found the old diner records. It was never a costume.",
     "Around 5 AM the others will back off. That's when he comes for real. You'll get extra strobe cells.",
     'Barrier, then flash. Every time. Make it to six. Please.',
+  ],
+  7: [
+    '...this line was disconnected in 1987. If you can hear this, you came back.',
+    "They're all asleep on the stage tonight. All of them except him. He knows you beat him.",
+    'Every door, the hatch, every trick he has. The doors hold once each. Then it is the flash.',
+    'Make it to six, and then decide what happens to this place. For good.',
   ],
 });
 
@@ -136,6 +144,26 @@ export const SECRETS = Object.freeze({
   '12': ['Crawlspace note', 'Previous guard: "Shut the right door FIRST, then flash. Never the other way around."'],
 });
 
+/** Newspaper clippings (lobby board): one unlocks after each night is survived. */
+export const CLIPPINGS = Object.freeze([
+  { night: 1, date: 'Hurricane Herald, June 2, 1983', headline: "FREDBEAR'S FAMILY DINER OPENS ON ROUTE 9", text: `Families lined up around the block for the opening of Fredbear's Family Diner, where a golden singing bear and his friend entertain young guests between slices. "He knows every child by name," said one delighted mother.` },
+  { night: 2, date: 'Hurricane Herald, August 19, 1983', headline: 'DINER CLOSES AFTER BIRTHDAY PARTY INCIDENT', text: `Fredbear's Family Diner closed its doors without notice on Saturday after what police called "an accident involving the performing animal suit" during a birthday party. No further details were released. The owners declined to comment.` },
+  { night: 3, date: 'Hurricane Herald, March 4, 1984', headline: 'OLD DINER SITE SOLD; "WE WILL BUILD SOMETHING HAPPIER"', text: 'The Route 9 lot has been bought by the same family. Plans show a large family pizzeria built directly over the old diner. "The past stays in the past," the new manager said. Construction crews were told the basement would be sealed.' },
+  { night: 4, date: 'Hurricane Herald, May 30, 1987', headline: "FREDBEAR'S FAMILY PIZZERIA OPENS TO RECORD CROWDS", text: `Three new performers - Freddy, Bonnie and Chica - debuted on the show stage to cheering crowds. Asked about the diner's famous golden bear, staff said he had been "retired with honours." Several guests reported a music box playing somewhere beneath the dining hall.` },
+  { night: 5, date: 'Hurricane Herald, October 11, 1987', headline: 'NIGHT GUARD MISSING; POLICE SEARCH PIZZERIA', text: `A night security guard at Fredbear's Family Pizzeria did not return home on Friday. Police found the office doors jammed open and the hatch behind the guard's chair "pulled up from below." The pizzeria reopened the next morning.` },
+  { night: 6, date: 'Hurricane Herald, November 2, 1987', headline: 'PIZZERIA TO CLOSE "FOR RENOVATIONS"', text: `Fredbear's Family Pizzeria will close at the end of the month. A former employee, who asked not to be named, said: "Don't let them tell you it was a costume. We all heard him laughing under the floor."` },
+  { night: 7, date: 'Hurricane Herald, today', headline: 'FORMER NIGHT GUARD WALKS OUT AT DAWN', text: `A night guard was seen leaving the long-closed pizzeria on Route 9 at six in the morning, carrying a set of keys and a strobe lamp. What the guard did next is up to you.` },
+]);
+
+/** Night 4 flashback (shown once, before the first night 4 shift): [title, subtitle] per shot. */
+export const FLASHBACK = Object.freeze([
+  ['§61983', "Fredbear's Family Diner"],
+  [' ', 'Every Saturday, the golden bear sang for the children.'],
+  [' ', 'He knew every name. He never forgot a face.'],
+  [' ', 'Then one birthday, the music stopped.'],
+  ['§4SOMETHING BELOW', 'has woken up.'],
+]);
+
 export const ENDING = Object.freeze([
   '6 AM. The music box winds down mid-note.',
   'Below the office, something golden settles back into the dark of the old diner.',
@@ -144,6 +172,31 @@ export const ENDING = Object.freeze([
   'Six nights. You made it. He is still below.',
   'THE END - thank you for playing FREDBEAR: SIX NIGHTS BELOW.',
 ]);
+
+/** Night 7 endings: the player's choice after surviving Fredbear's Revenge. */
+export const FINAL_CHOICE = Object.freeze({
+  question: 'Six AM. The keys to the whole building are in your hand, and the strobe still has a charge. What happens to this place?',
+  seal: Object.freeze({
+    button: 'SEAL IT FOREVER',
+    lines: Object.freeze([
+      ['§fSEALED', 'You chain the diner door and pour the last of the concrete over the crawlspace.'],
+      [' ', 'The music box below plays one last note, then nothing.'],
+      [' ', 'You lock the front doors behind you and hang the sign: CLOSED.'],
+      [' ', 'He is still down there. He is still golden. And he is still waiting.'],
+      ['§6THE END', 'Ending: SEALED.'],
+    ]),
+  }),
+  burn: Object.freeze({
+    button: 'BURN IT DOWN',
+    lines: Object.freeze([
+      ['§cFIRE', 'You splash fuel across the old diner floor and strike the match.'],
+      [' ', 'The stage curtains go first. Then the posters. Then the golden fur.'],
+      [' ', 'Somewhere in the smoke, a music box plays faster and faster... and stops.'],
+      [' ', 'By sunrise, there is nothing left of Fredbear\'s but ash.'],
+      ['§6THE END', 'Ending: ASHES.'],
+    ]),
+  }),
+});
 
 export const TUTORIAL_STEPS = Object.freeze([
   { id: 'door', text: 'Press the RED button on the left of the console to CLOSE THE LEFT DOOR.', expect: 'door_l' },

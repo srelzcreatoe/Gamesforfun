@@ -15,6 +15,7 @@
 // the command-block command version cannot change command semantics.
 
 import { ORIGIN } from './layout.js';
+import { LOBBY_NIGHTS, nightButtonZ, CHALLENGE_LAMPS } from './inputs.js';
 
 const W = (x, y, z) => `${x + ORIGIN.x} ${y + ORIGIN.y} ${z + ORIGIN.z}`;
 const BOX = (x1, y1, z1, x2, y2, z2) => `${W(x1, y1, z1)} ${W(x2, y2, z2)}`;
@@ -67,8 +68,11 @@ export const MODULES = Object.freeze([
   ]),
   M('init.time', 'A', 'Midnight, clear sky', ['time set 18000', 'weather clear', 'difficulty normal']),
   // ---------------------------------------------------------------- B lobby & tutorial
-  ...[1, 2, 3, 4, 5, 6].map((n) => M(`lobby.lamp_${n}`, 'B', `Time-clock lamp: night ${n} unlocked`, [`setblock ${W(184, 3, 104 + n * 2)} verdant_froglight`])),
-  M('lobby.lamps_reset', 'B', 'Time-clock lamps: all locked', [`fill ${BOX(184, 3, 106, 184, 3, 116)} gray_concrete`]),
+  ...LOBBY_NIGHTS.map((n) => M(`lobby.lamp_${n}`, 'B', `Time-clock lamp: night ${n} unlocked`, [`setblock ${W(184, 3, nightButtonZ(n))} ${n === 7 ? 'ochre_froglight' : 'verdant_froglight'}`])),
+  ...Object.entries(CHALLENGE_LAMPS).map(([id, [x, y, z]]) => M(`lobby.chal_${id}`, 'B', `Challenge lamp: ${id} beaten`, [`setblock ${W(x, y, z)} pearlescent_froglight`])),
+  M('lobby.lamps_reset', 'B', 'Time-clock and challenge lamps: all off', [
+    `fill ${BOX(184, 3, nightButtonZ(1), 184, 3, nightButtonZ(LOBBY_NIGHTS.length))} gray_concrete`, `fill ${BOX(156, 3, 124, 159, 3, 124)} gray_concrete`,
+  ]),
   M('lobby.accept', 'B', 'Lobby choice accepted', [SND('fb.ui.accept', 180, 1, 112)]),
   M('lobby.deny', 'B', 'Lobby choice denied (locked)', [SND('fb.ui.deny', 180, 1, 112)]),
   ...[['door_l', 96], ['light_l', 97], ['cams', 98], ['strobe', 100], ['hatch', 99]].map(([k, x]) => M(`tut.hl_${k}`, 'B', `Training: highlight the ${k} console`, [
@@ -168,6 +172,9 @@ export const MODULES = Object.freeze([
   M('sig.unjam_l', 'H', 'Left door released', [`fill ${DOOR_L} barrier`, `setblock ${IND.doorL} verdant_froglight`]),
   M('sig.unjam_r', 'H', 'Right door released', [`fill ${DOOR_R} barrier`, `setblock ${IND.doorR} verdant_froglight`]),
   M('sig.unjam_h', 'H', 'Hatch released', [`setblock ${IND.hatch2} gray_concrete`]),
+  M('sig.strain_end_l', 'H', 'Fredbear stopped forcing the (still closed) left door', [`setblock ${IND.doorL} ochre_froglight`]),
+  M('sig.strain_end_r', 'H', 'Fredbear stopped forcing the (still closed) right door', [`setblock ${IND.doorR} ochre_froglight`]),
+  M('sig.strain_end_h', 'H', 'Fredbear stopped forcing the hatch', [`setblock ${IND.hatch2} gray_concrete`]),
   M('sig.blackout_on', 'H', 'Fredbear blackout: office lights out', [`setblock ${OFFICE_LAMP_A} air`, `setblock ${OFFICE_LAMP_B} air`, SND('fb.power.dark', 100, 2, 133, 0.8)]),
   M('sig.blackout_off', 'H', 'Blackout over', [`setblock ${OFFICE_LAMP_A} light_block_11`, `setblock ${OFFICE_LAMP_B} light_block_10`, SND('fb.light.buzz', 100, 4, 133)]),
   M('sig.finale', 'H', 'Night 6 Golden Hour begins', [SND('fb.fredbear.finale', 100, 2, 133), 'camerashake add @a 0.2 3 rotational', `particle minecraft:totem_particle ${W(100, 1, 133)}`]),
@@ -187,6 +194,13 @@ export const MODULES = Object.freeze([
   M('env.flicker_ehall', 'I', 'East hall lights flicker', [
     `fill ${BOX(111, 5, 101, 115, 5, 133)} light_block_9 replace light_block_1`, D(`fill ${BOX(111, 5, 101, 115, 5, 133)} light_block_1 replace light_block_9`, 3),
     D(`fill ${BOX(111, 5, 101, 115, 5, 133)} light_block_9 replace light_block_1`, 4), D(`fill ${BOX(111, 5, 101, 115, 5, 133)} light_block_1 replace light_block_9`, 2),
+  ]),
+  M('env.flicker_office', 'I', 'Office lamp flickers (Fredbear is close); only touches the lamp while it is lit', [
+    `fill ${BOX(100, 5, 129, 100, 5, 135)} light_block_3 replace light_block_11`, `fill ${BOX(100, 5, 129, 100, 5, 135)} light_block_2 replace light_block_10`,
+    SND('fb.light.buzz', 100, 4, 133, 0.5, 0.7),
+    D(`fill ${BOX(100, 5, 129, 100, 5, 135)} light_block_11 replace light_block_3`, 2), `fill ${BOX(100, 5, 129, 100, 5, 135)} light_block_10 replace light_block_2`,
+    D(`fill ${BOX(100, 5, 129, 100, 5, 135)} light_block_3 replace light_block_11`, 3), `fill ${BOX(100, 5, 129, 100, 5, 135)} light_block_2 replace light_block_10`,
+    D(`fill ${BOX(100, 5, 129, 100, 5, 135)} light_block_11 replace light_block_3`, 2), `fill ${BOX(100, 5, 129, 100, 5, 135)} light_block_10 replace light_block_2`,
   ]),
   M('env.distant_music', 'I', 'Faint music from the show stage', [SND('fb.amb.distant_music', 100, 3, 22, 0.8)]),
   M('env.pipes', 'I', 'Basement pipes knock', [SND('fb.amb.pipes', 100, -6, 60, 1), D(SND('fb.amb.pipes', 140, -6, 90, 0.8), 20)]),
