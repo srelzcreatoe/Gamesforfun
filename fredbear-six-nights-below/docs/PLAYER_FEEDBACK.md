@@ -3,8 +3,11 @@
 Requests from the map owner after their in-game playthrough (campaign completed through night 6). Work only starts when
 the owner says go.
 
-Status: **done (untested)** = in WIP commit `cb939b3`, not yet validated, packaged or tried in-game. **planned** = agreed,
-not started. **idea** = suggested, not chosen yet.
+Status: **done in 1.2.0 (untested in-game)** = built, passes every validator and automated test, packaged in the 1.2.0
+`.mcaddon`, but not tried in Minecraft yet. **planned** = agreed, not started. **idea** = suggested, not chosen yet.
+
+Every agreed item (1-9, 21, 32, 44, 46, 48, 49, 50, 54, 57, 58, 61) is done in 1.2.0. The time-clock room (lobby) was
+rebuilt to hold the challenge console and the newspaper board; the rest of the pizzeria is unchanged.
 
 ## The list
 
@@ -14,20 +17,20 @@ Numbers stay fixed from now on: new items are added at the end.
 
 | # | Item | Status |
 |---|---|---|
-| 1 | Freddy, Bonnie and Chica jumpscares use `Jumpscare_animatronics`; Fredbear's uses `fredbearboi` | done (untested) |
-| 2 | Doors and hatch: storm-door slam when closing, metal door when opening | done (untested) |
-| 3 | Camera open / close sounds use the owner's clips | done (untested) |
-| 4 | CCTV hum loops while the camera monitor is up | done (untested) |
-| 5 | Freddy's laugh replaced by the owner's laughs (4 variants) | done (untested) |
-| 6 | Fredbear's laughs are imported (4 variants) but don't play anywhere yet. Plan: he laughs each time he starts coming for you, as a warning | planned |
-| 7 | Background music: "PIZZA DINNER" (FNAF 1 Remake OST) loops from 12 AM to 6 AM; Minecraft's own music is silenced while it plays (other sounds are not); a Music ON/OFF option in the Shift Guide | planned |
+| 1 | Freddy, Bonnie and Chica jumpscares use `Jumpscare_animatronics`; Fredbear's uses `fredbearboi` | done in 1.2.0 (untested in-game) |
+| 2 | Doors and hatch: storm-door slam when closing, metal door when opening | done in 1.2.0 (untested in-game) |
+| 3 | Camera open / close sounds use the owner's clips | done in 1.2.0 (untested in-game) |
+| 4 | CCTV hum loops while the camera monitor is up | done in 1.2.0 (untested in-game) |
+| 5 | Freddy's laugh replaced by the owner's laughs (4 variants) | done in 1.2.0 (untested in-game) |
+| 6 | Fredbear's laughs (4 variants) play each time he starts coming for you, as a warning | done in 1.2.0 (untested in-game) |
+| 7 | Background music: "PIZZA DINNER" (FNAF 1 Remake OST) loops from 12 AM to 6 AM; Minecraft's own music is silenced while it plays (other sounds are not); a Music ON/OFF option in the Shift Guide | done in 1.2.0 (untested in-game) |
 
 ### Gameplay fixes (details in sections B and C)
 
 | # | Item | Status |
 |---|---|---|
-| 8 | More strobe charges: night 4: 3 → 4, night 5: 3 → 5, night 6: 4 → 6 (plus 2 at 5 AM), always 2 spare | planned |
-| 9 | Fredbear door fix: each door and the hatch holds him off once per night (he pounds, gives up, goes back); the second time at the same entry he breaks it unless strobed; at 5 AM on night 6 nothing holds him; the strobe still always works | planned |
+| 8 | More strobe charges: night 4: 3 → 4, night 5: 3 → 5, night 6: 4 → 6 (plus 2 at 5 AM), always 2 spare | done in 1.2.0 (untested in-game) |
+| 9 | Fredbear door fix: each door and the hatch holds him off once per night (he pounds, gives up, goes back); the second time at the same entry he breaks it unless strobed; at 5 AM on night 6 nothing holds him; the strobe still always works | done in 1.2.0 (untested in-game) |
 
 ### Creepy ideas (details in section D)
 
@@ -49,7 +52,7 @@ Numbers stay fixed from now on: new items are added at the end.
 
 | # | Item | Status |
 |---|---|---|
-| 21 | Replace Fredbear's model with the owner's "Fredbear V6 (no eye dots)" model and use all 12 of its animations; keep the old model's files outside the game; same size as now (owner's choice) | planned |
+| 21 | Replace Fredbear's model with the owner's "Fredbear V6 (no eye dots)" model and use all 12 of its animations; keep the old model's files outside the game; same size as now (owner's choice) | done in 1.2.0 (untested in-game) |
 
 ### More ideas (round 2, not chosen yet)
 
@@ -70,7 +73,7 @@ Numbers stay fixed from now on: new items are added at the end.
 
 | # | Item | Status |
 |---|---|---|
-| 32 | Night 7 "Fredbear's Revenge": a bonus story night after the true ending, just you and Fredbear with every power (section G) | planned |
+| 32 | Night 7 "Fredbear's Revenge": a bonus story night after the true ending, just you and Fredbear with every power (section G) | done in 1.2.0 (untested in-game) |
 | 33 | Phantoms (FNAF 3 style): burnt-looking animatronics flash in the office window on nights 5-6; keep looking and they knock out your cameras or power for a moment | idea |
 | 34 | Freddy mask (FNAF 2 style): put it on when Bonnie or Chica reach the office to fool them; Fredbear is never fooled | idea |
 | 35 | A music box to wind through a camera (FNAF 2 style); let it run down and Fredbear wakes early and angrier | idea |
@@ -87,13 +90,13 @@ Numbers stay fixed from now on: new items are added at the end.
 |---|---|---|
 | 42 | After night 7, the real finale: walk into Fredbear's chamber yourself and survive one last chase to the exit | idea |
 | 43 | Fredbear talks: short lines on screen on nights 6-7 ("I always come back") | idea |
-| 44 | Fredbear's power-out: when the power dies on nights 4+, his golden eyes appear in the dark doorway instead of Freddy's (section H) | planned |
+| 44 | Fredbear's power-out: when the power dies on nights 4+, his golden eyes appear in the dark doorway instead of Freddy's (section H) | done in 1.2.0 (untested in-game) |
 | 45 | A hidden Parts & Service room behind the stage (spare heads and suits), opened by pressing buttons in the right order | idea |
-| 46 | The office lamp flickers when Fredbear is close, a warning you can learn (section I) | planned |
+| 46 | The office lamp flickers when Fredbear is close, a warning you can learn (section I) | done in 1.2.0 (untested in-game) |
 | 47 | Plushies on the desk as trophies: one for each night beaten and each challenge done | idea |
-| 48 | Challenge modes: no doors, Fredbear only, double power drain, broken cameras; each tuned so it stays manageable (section J) | planned |
-| 49 | Newspaper clippings in the lobby that unlock as you beat nights and tell what happened in 1983 (section K) | planned |
-| 50 | Night intro fly-through: a short camera tour at 11:55 showing where everyone is standing (section L) | planned |
+| 48 | Challenge modes: no doors, Fredbear only, double power drain, broken cameras; each tuned so it stays manageable (section J) | done in 1.2.0 (untested in-game) |
+| 49 | Newspaper clippings in the lobby that unlock as you beat nights and tell what happened in 1983 (section K) | done in 1.2.0 (untested in-game) |
+| 50 | Night intro fly-through: a short camera tour at 11:55 showing where everyone is standing (section L) | done in 1.2.0 (untested in-game) |
 | 51 | Fake shutdown on night 7: the office goes fully dark and silent for 10 seconds before he arrives | idea |
 
 ### More ideas (round 5, not chosen yet)
@@ -102,19 +105,22 @@ Numbers stay fixed from now on: new items are added at the end.
 |---|---|---|
 | 52 | Desk fan: switch it off to hear footsteps better and save a little power; left on, it masks quiet sounds | idea |
 | 53 | Behind you: on night 6 a camera rarely shows your own office with Fredbear behind your chair; nothing is there when you turn around | idea |
-| 54 | Holiday versions: pumpkins at Halloween and string lights at Christmas, from the device's date | planned |
+| 54 | Holiday versions: pumpkins, jack-o'-lanterns and cobwebs at Halloween; trees, presents and string lights at Christmas; from the device's date (can be switched off in Settings) | done in 1.2.0 (untested in-game) |
 | 55 | Bulbs burn out: a hall light used a lot can burn out; swap the bulb from a box in the office (takes a few seconds) | idea |
 | 56 | Heartbeat: a heartbeat speeds up when something is at a door you are not watching | idea |
-| 57 | A flashback the first time you meet Fredbear on night 4: a short scripted memory of 1983 | planned |
-| 58 | Shadow Fredbear: a rare black silhouette on the stage camera; look too long and it drains 1 % power | planned |
+| 57 | A flashback the first time you meet Fredbear on night 4: a short scripted memory of 1983 | done in 1.2.0 (untested in-game) |
+| 58 | Shadow Fredbear: a rare black silhouette on the stage camera; look too long and it drains 1 % power | done in 1.2.0 (untested in-game) |
 | 59 | Dawn: near 6 AM, light slowly creeps in through the windows | idea |
 | 60 | The stage music box plays a short tune every hour | idea |
-| 61 | A choice at the end of night 7: seal the building or burn it down, two different final scenes | planned |
+| 61 | A choice at the end of night 7: seal the building or burn it down, two different final scenes | done in 1.2.0 (untested in-game) |
 
 ### Every update finishes with
 
-* credits (README, docs, in-game), Shift Guide text, the night 4 phone call ("three charges") when item 8 is built;
-* all checks, a new `.mcaddon` (next version 1.2.0), push and send.
+* credits (README, docs, in-game), Shift Guide text, the night 4 phone call (now "four charges");
+* all checks, a new `.mcaddon` (1.2.0), push and send. Done for 1.2.0.
+
+The sections below are the agreed plans as they were written before building. What was actually built is described in
+docs/04 (AI), docs/07 (assets, lobby, decorations) and docs/08 (how to play).
 
 ## A. Sounds
 

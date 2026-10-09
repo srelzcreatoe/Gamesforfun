@@ -11,7 +11,7 @@ import { CAMERAS } from '../packs/FredbearBP/scripts/data/cameras.js';
 import { INPUTS, inputCbPos } from '../packs/FredbearBP/scripts/data/inputs.js';
 import { CONTROL, MODULES } from '../packs/FredbearBP/scripts/data/actuators.js';
 import { CONFIG } from '../packs/FredbearBP/scripts/core/config.js';
-import { simulate, table, detailTable } from './balance_sim.mjs';
+import { simulate, table, detailTable, simulateChallenges, challengeTable } from './balance_sim.mjs';
 import { GuideGraph } from '../packs/FredbearBP/scripts/core/guide_path.js';
 import { GUIDE_NODES, GUIDE_EDGES, GUIDE_TARGETS } from '../packs/FredbearBP/scripts/data/guide_graph.generated.js';
 import { MAINTENANCE, TASKS } from '../packs/FredbearBP/scripts/data/story.js';
@@ -153,13 +153,24 @@ async function nightsAndBalance() {
   L.push('## Night table', '');
   L.push('Aggression (A) is 0-20. Activation = tick at which the character leaves home. Nights ≥ 2 add the hourly ramp ' + `[${CONFIG.hourlyRamp.join(', ')}] (12 AM..5 AM) to every character except Fredbear (cap 20).`, '');
   L.push('| Night | Title | Freddy | Bonnie | Chica | Fredbear | Activation F/B/C/G (ticks) | Strobe | Reserve | Max sabotage | Fredbear phase | Events |', '|---|---|---|---|---|---|---|---|---|---|---|---|');
-  for (let n = 0; n <= 6; n++) {
+  for (let n = 0; n <= 7; n++) {
     const d = CONFIG.nights[n];
     const ev = d.events.map((e) => `${e.kind}${e.task ? `:${e.task}` : e.id ? `:${e.id}` : ''}@${e.at}`).join(', ') || '-';
     const fb = d.fredbear.phase ? `${d.fredbear.phase} (entries ${d.fredbear.entries.join('/')}, max ${d.fredbear.maxAttempts} attempts, powers ${d.fredbear.powers.join(', ')})` : 'dormant';
     L.push(`| ${n} | ${d.title} | ${d.ai.freddy} | ${d.ai.bonnie} | ${d.ai.chica} | ${d.ai.fredbear} | ${d.activation.freddy}/${d.activation.bonnie}/${d.activation.chica}/${d.activation.fredbear} | ${d.strobeCharges} | ${d.reserve ? 'yes' : 'no'} | ${d.maxSabotage} | ${fb} | ${ev} |`);
   }
-  L.push('', 'Night 0 is the training shift / vertical slice (400 ticks per hour; the tutorial further slows it to 12000 so the clock never ends a lesson).', '');
+  L.push('', 'Night 0 is the training shift / vertical slice (400 ticks per hour; the tutorial further slows it to 12000 so the clock never ends a lesson). Night 7 unlocks after night 6: only Fredbear hunts (the others stay powered down on the stage).', '');
+  L.push('## Challenge modes', '');
+  L.push('Unlocked after night 6. Each is a full night on a base night with overrides and session modifiers (`CONFIG.challenges`, `NightSession` options.mods).', '');
+  L.push('| Challenge | Base night | Aggression F/B/C/G | Strobe | Modifiers | What the player gets back |', '|---|---|---|---|---|---|');
+  for (const c of Object.values(CONFIG.challenges)) {
+    const d = CONFIG.nights[c.base];
+    const ai = { ...d.ai, ...(c.overrides.ai ?? {}) };
+    L.push(`| ${c.title} | ${c.base} | ${ai.freddy}/${ai.bonnie}/${ai.chica}/${ai.fredbear} | ${c.overrides.strobeCharges ?? d.strobeCharges} | ${Object.entries(c.mods).map(([k, v]) => `${k}=${v}`).join(', ') || '-'} | ${c.text} |`);
+  }
+  L.push('');
+  L.push('## Fredbear: doors that hold', '');
+  L.push(`When a forcing window (W2) ends and that door or the hatch has not held yet tonight (and it is not the Golden Hour), it holds: Fredbear bows for ${CONFIG.characters.fredbear.yieldTicks} ticks and vanishes to the diner, which counts as one of his attempts. Otherwise the barrier is jammed open and W3 follows. Strobe charges are his attempts + 2 on nights 4-6 (night 4: ${CONFIG.nights[4].strobeCharges} for ${CONFIG.nights[4].fredbear.maxAttempts}, night 5: ${CONFIG.nights[5].strobeCharges} for ${CONFIG.nights[5].fredbear.maxAttempts}, night 6: ${CONFIG.nights[6].strobeCharges} for ${CONFIG.nights[6].fredbear.maxAttempts} + ${CONFIG.nights[6].fredbear.finale.extraCharges} for ${CONFIG.nights[6].fredbear.finale.extraAttempts} at 5 AM); night 7: ${CONFIG.nights[7].strobeCharges} charges for ${CONFIG.nights[7].fredbear.maxAttempts} attempts, with three entries that can each hold once.`, '');
   L.push('## Formulas (ticks)', '');
   const C = CONFIG.characters;
   const f = [
@@ -181,13 +192,17 @@ async function nightsAndBalance() {
   L.push('## Simulation results', '');
   L.push('Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). The oracle reads the true AI state and proves a valid defence exists every night; the human models react only to what a player can perceive (lights they switch on, the feed they watch, audio captions) with 8-20 tick reaction delays and imperfect routines. These are models, not playtests.', '');
   const res = await simulate();
-  fs.writeFileSync(path.join(ROOT, 'tools/out/balance.json'), JSON.stringify(res, null, 1));
+  const ch = await simulateChallenges();
+  fs.writeFileSync(path.join(ROOT, 'tools/out/balance.json'), JSON.stringify({ nights: res, challenges: ch }, null, 1));
   L.push(table(res), '');
   for (const k of ['oracle', 'human', 'human_low']) L.push(`### ${res[k].label}`, '', detailTable(res, k), '');
+  L.push('### Challenge modes', '', challengeTable(ch), '');
+  L.push('The challenges were tuned until the human model wins most runs ("manageable" was the owner\'s brief): Double Power Drain was first built as "everything x2" and won 0-3 % of human-model runs; it now doubles the devices only, gives a 25 % reserve and runs at calmer aggression.', '');
   L.push('### Reading the results', '');
   L.push('* The oracle wins every seed of every night with power to spare (lowest point on night 6 shown above): no night is unwinnable.');
   L.push('* Idle play usually survives night 1 (the introduction), rarely night 2 and never from night 3; "everything on" always runs out of power — power management matters.');
-  L.push('* The human models lose almost exclusively to **power exhaustion followed by Freddy\'s power-out sequence** from night 4 on, not to unfair attacks: every attack is preceded by its telegraph window. This is the intended pressure (Fredbear\'s hatch/strobe defence costs power) and also the first tuning knob if playtesting shows nights 5-6 are too hard: lower `power.door` / `power.hatch` or the night 5-6 base drain in `scripts/core/config.js`.');
+  L.push('* The human models lose mostly to **power exhaustion followed by the power-out sequence** (Fredbear\'s from night 4) on nights 4-6, not to unfair attacks: every attack is preceded by its telegraph window. This is the intended pressure and also the first tuning knob if playtesting shows nights 5-6 are too hard: lower `power.door` / `power.hatch` or the night 5-6 base drain in `scripts/core/config.js`.');
+  L.push('* Night 7 (Fredbear alone, every power) is lost mid-night rather than to power: it is meant as the hardest night. Its first knob is `nights[7].fredbear.cooldown` / `maxAttempts`.');
   L.push('');
   return L.join('\n') + '\n';
 }

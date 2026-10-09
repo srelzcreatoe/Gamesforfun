@@ -267,7 +267,7 @@ Access letters: B = bonnie, C = chica, F = freddy, G = fredbear. Entries: L → 
 
 ## Player route guidance
 
-The green breadcrumb sparkles (introduction, optional tasks, maintenance) follow a walkable waypoint graph generated from the voxel model by `tools/gen_guide.mjs`: 1767 nodes (a 6-block grid in every room, both sides of every doorway, every stairway and the ladder, every control) and 3027 edges, each a straight line a player can walk both ways under the map validator's rules (steps, drops, no squeezing past corners). The game runs Dijkstra from the target and lays sparkles along the next 14 blocks of the real route.
+The green breadcrumb sparkles (introduction, optional tasks, maintenance) follow a walkable waypoint graph generated from the voxel model by `tools/gen_guide.mjs`: 1770 nodes (a 6-block grid in every room, both sides of every doorway, every stairway and the ladder, every control) and 3038 edges, each a straight line a player can walk both ways under the map validator's rules (steps, drops, no squeezing past corners). The game runs Dijkstra from the target and lays sparkles along the next 14 blocks of the real route.
 
 | From | To | Walking distance | Rooms on the way |
 |---|---|---|---|
@@ -282,9 +282,9 @@ The green breadcrumb sparkles (introduction, optional tasks, maintenance) follow
 
 ## Command-block control room
 
-Underground at local y -9 (world -59), x 22..177, in 9 rows at local z 169, 172, 175, 178, 181, 184, 187, 190, 193. Each of the 102 actuator modules is a redstone-block pad, an impulse block and its chain (east-facing). The full block-by-block register is docs/06_COMMAND_BLOCK_REGISTER.md.
+Underground at local y -9 (world -59), x 22..177, in 9 rows at local z 169, 172, 175, 178, 181, 184, 187, 190, 193. Each of the 111 actuator modules is a redstone-block pad, an impulse block and its chain (east-facing). The full block-by-block register is docs/06_COMMAND_BLOCK_REGISTER.md.
 
-## Inputs (75)
+## Inputs (78)
 
 Every physical control sits on a console block; the impulse command block one block below it runs `scriptevent fb:input <action>`. The script accepts an input only if the event comes from the registered block position.
 
@@ -324,11 +324,14 @@ Every physical control sits on a console block; the impulse command block one bl
 | in.lobby.night_4 | `lobby:night:4` | button | 181 0 112 | 181 -51 112 | NIGHT 4 |
 | in.lobby.night_5 | `lobby:night:5` | button | 181 0 114 | 181 -51 114 | NIGHT 5 |
 | in.lobby.night_6 | `lobby:night:6` | button | 181 0 116 | 181 -51 116 | NIGHT 6 |
-| in.lobby.continue | `lobby:continue` | button | 181 0 118 | 181 -51 118 | CONTINUE |
-| in.lobby.free_roam | `lobby:free_roam` | button | 181 0 120 | 181 -51 120 | FREE ROAM |
+| in.lobby.night_7 | `lobby:night:7` | button | 181 0 118 | 181 -51 118 | NIGHT 7 |
+| in.lobby.continue | `lobby:continue` | button | 181 0 120 | 181 -51 120 | CONTINUE |
+| in.lobby.free_roam | `lobby:free_roam` | button | 181 0 122 | 181 -51 122 | FREE ROAM |
 | in.lobby.settings | `lobby:settings` | button | 178 0 122 | 178 -51 122 | SETTINGS |
 | in.lobby.extras | `lobby:extras` | button | 174 0 122 | 174 -51 122 | ARCHIVE & CREDITS |
 | in.lobby.reset | `lobby:reset` | button | 170 0 122 | 170 -51 122 | ERASE PROGRESS |
+| in.lobby.challenges | `lobby:challenges` | button | 158 0 122 | 158 -51 122 | CHALLENGES |
+| in.lobby.clippings | `lobby:clippings` | button | 169 0 103 | 169 -51 103 | READ CLIPPINGS |
 | in.training.begin | `lobby:tutorial` | button | 166 0 148 | 166 -51 148 | BEGIN TRAINING |
 | in.maint.kitchen_breaker | `maint:kitchen_breaker` | button | 178 0 47 | 178 -51 47 | KITCHEN BREAKER PANEL |
 | in.maint.generator | `maint:generator` | lever | 135 -9 92 | 135 -60 92 | GENERATOR RESTART |

@@ -5,11 +5,12 @@
 | Category | Status |
 |---|---|
 | **Static validation** | **Completed** — 6 validators, all passing (below) |
-| **Automated logic tests** (night simulation, AI, power, director) | **Completed** — 18 tests passing, plus the balance simulator (docs/05) |
+| **Automated logic tests** (night simulation, AI, power, director) | **Completed** — 24 tests passing, plus the balance simulator (docs/05) |
 | **Automated structure tests** (command-block files) | **Completed** — 6 tests passing |
 | **Automated route-guidance tests** (walkable graph vs the voxel model) | **Completed** — 5 tests passing |
-| **Automated integration tests** (real pack scripts on a mock `@minecraft/server`) | **Completed** — 20 tests passing |
-| **In-game tests** (Minecraft Bedrock running) | **No systematic pass.** Minecraft is not available in the build environment. The map owner built and played the previous version in-game and reported dark camera feeds, odd mouths and hard-to-follow breadcrumbs; those are fixed in this version (table below) but the fixes have **not** been re-checked in-game yet. |
+| **Automated holiday-decoration tests** (generated cells vs the build plan) | **Completed** — 3 tests passing |
+| **Automated integration tests** (real pack scripts on a mock `@minecraft/server`) | **Completed** — 28 tests passing |
+| **In-game tests** (Minecraft Bedrock running) | **No systematic pass.** Minecraft is not available in the build environment. The map owner played version 1.1 in-game up to night 6 and reported that the strobe had too few charges and that Fredbear always broke the doors and hatch; both are changed in 1.2.0 (table below). **Nothing added in 1.2.0 has been checked in-game yet**: the Fredbear V6 model and its animations, the recorded sounds and music, night 7, the challenges, the cutscenes, the decorations and the reworked time-clock room. |
 | **Manual tests still required** | The checklist at the end of this file |
 
 The integration tests run the real behavior-pack scripts against a headless model of the Script API (`tests/mock/`).
@@ -24,19 +25,21 @@ Run everything with `npm run validate && npm test`.
 
 | Validator | Checks | Result |
 |---|---|---|
-| `tools/validate_blocks.mjs` | 253 palette entries: block names, state names and values vs official 1.26.50 block metadata | PASS |
-| `tools/validate_map.mjs` | voxel model of the whole build: every AI route polyline sampled every 0.5 blocks (6,762 samples), every route node a valid standing position, every camera in open air and seeing exactly its designed nodes (ray casts), office sealed except its doors and hatch, players can walk from the lobby to every gameplay space (66,132 walkable cells), every input command block enclosed | PASS (0 errors, 0 warnings) |
-| `tools/validate_commands.mjs` | 488 command strings (448 command blocks, 7 functions, script templates) parsed against the official 1.26.50 command grammar; block states, particles, sound ids, function paths, fill volume, height limits | PASS |
+| `tools/validate_blocks.mjs` | 261 palette entries: block names, state names and values vs official 1.26.50 block metadata | PASS |
+| `tools/validate_map.mjs` | voxel model of the whole build: every AI route polyline sampled every 0.5 blocks (6,762 samples), every route node a valid standing position, every camera in open air and seeing exactly its designed nodes (ray casts), office sealed except its doors and hatch, players can walk from the lobby to every gameplay space (66,109 walkable cells), every input command block enclosed | PASS (0 errors, 0 warnings) |
+| `tools/validate_commands.mjs` | 525 command strings (478 command blocks, 7 functions, script templates) parsed against the official 1.26.50 command grammar; block states, particles, sound ids, function paths, fill volume, height limits | PASS |
 | `tools/validate_schemas.py` | 5 entities vs `server/entity/1.26.50` schema, 3 items vs `server/item/1.26.30`, both manifests (format 2, dependencies, unique UUIDs, script entry exists) | PASS |
-| `tools/validate_assets.mjs` | 31 JSON files parse; BP ↔ RP ↔ script entity ids; textures, geometry, animations, controllers, render-controller keys resolve; UV boxes inside 128×64; every animated bone exists; every `fb:anim` value has a controller state; scripts only set enum values; items → icons; 48 sounds with files; every script sound id defined; 6 fogs; lang names | PASS |
-| `tsc --checkJs` | every Script API call in the 40 script files against `@minecraft/server` 2.10.0 and `server-ui` 2.2.0 declarations | PASS |
+| `tools/validate_assets.mjs` | 37 JSON files parse; BP ↔ RP ↔ script entity ids; textures, 4 geometries, 34 animations, both animation controllers, render-controller keys resolve; UV boxes inside each texture (128×64, Fredbear 256×256); every animated bone exists in that entity's own geometry; every `fb:anim` value of each entity has a state in its own controller; scripts only set enum values; items → icons; 52 sounds with files; every script sound id defined, the music track is in the `music` category; 10 fogs; lang names | PASS |
+| `tsc --checkJs` | every Script API call in the 45 script files against `@minecraft/server` 2.10.0 and `server-ui` 2.2.0 declarations | PASS |
 
-## Automated tests (49, all passing)
+## Automated tests (66, all passing)
 
-**Core simulation (`tests/core.test.mjs`, 18):** same seed reproduces a night exactly · all six nights completable (oracle, 10 seeds each) ·
+**Core simulation (`tests/core.test.mjs`, 24):** same seed reproduces a night exactly · all seven nights completable (oracle, 10 seeds each) ·
 every lethal attack preceded by its telegraph and never through a closed barrier · closed door always stops Bonnie · 6 AM boundary ·
 power zero (reserve window, Freddy sequence, devices off) · power out just before 6 AM survivable · Fredbear barrier + strobe / stun /
-forced-open · Fredbear window floors for every aggression · mercy cap · simultaneous threats (≤ 2 entries, none beside Fredbear, one
+forced-open · a door or the hatch holds Fredbear once per night (never in the Golden Hour) · Fredbear's laugh at every hunt start
+and the office lamp flicker when he is near · night 7 (Fredbear alone, every entry and power) · challenge modifiers · every challenge
+beatable (oracle, 8 seeds each) · Shadow Fredbear (rare, drains 1 % when stared at) · Fredbear window floors for every aggression · mercy cap · simultaneous threats (≤ 2 entries, none beside Fredbear, one
 attack token) · ten fresh sessions start identical · maintenance pauses clock and AI then resumes with grace · Chica's breaker affects
 lights only · Freddy never moves while watched · Night 6 finale · input debounce and feedback · no AI outside RUNNING.
 
@@ -46,12 +49,22 @@ exactly one repeating block · command-block NBT keys, `Version` and block versi
 
 **Route guidance (`tests/guide.test.mjs`, 5):** the generated graph matches the current build plan · every edge is walkable both ways · routes reach the office, both basement maintenance rooms and every pre-shift task · the generator route goes down the Staff Stairwell into the basement · breadcrumbs start beside the player and never sit inside walls.
 
-**Integration (`tests/integration.test.mjs`, 20):** main.js wiring · structure-id resolution · intro breadcrumbs over walkable floor with the distance on the HUD · Shift Guide topic menu · `/fb:setup` builds the map and installs 448 command blocks ·
+**Holiday decorations (`tests/holidays.test.mjs`, 3):** the generated cells match the current build plan · for Halloween and for Christmas:
+every cell is air in the built map and the routes, the route guidance and every camera are unaffected with the decorations placed.
+
+**Integration (`tests/integration.test.mjs`, 28):** main.js wiring · structure-id resolution · intro camera tour (sneak skips) · intro breadcrumbs over walkable floor with the distance on the HUD · Shift Guide topic menu with the music switch · `/fb:setup` builds the map and installs 478 command blocks ·
 the built world equals the offline voxel model (> 2 million cells) · in-game self-test 9/9 PASS · training shift through the
 physical controls · night start and office controls (blocks change, power drains, spoofed input rejected) · 6 AM win persists unlock ·
 jumpscare → game over → immediate retry · maintenance pause/resume · ten randomized play/reset cycles · duplicate and stray puppets removed ·
 unloaded chunks recovery · quit mid-night and reload · progress survives reload · helper `.mcfunction` files · full campaign nights 1-6
-through the console buttons, ending and persistent completion · upgrading a world built by an older version (asks for /fb:setup, rebuilds, keeps progress).
+through the console buttons, ending and persistent completion · night 4 flashback once · night music (loops, stops at a jumpscare and 6 AM,
+follows the setting) · challenges (locked until night 6, modifiers applied, win saved, lamp lit) · newspaper clippings · holiday decorations
+placed into air only and removed · Shadow Fredbear · night 7 and both final endings · upgrading a world built by an older version (asks for
+/fb:setup, rebuilds, keeps progress).
+
+**Mock limits for 1.2.0 features:** the mock checks that `playMusic` is only called with a `music`-category sound and records what plays;
+it cannot hear whether Minecraft's own music really stops. It checks that every animation, bone and controller state resolves; it cannot
+show how the V6 model moves.
 
 ## The 20 required tests
 
@@ -63,13 +76,13 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 | 1 | Import and activate both packs | both packs import from the `.mcaddon`; activating the BP adds the RP | `dist/` archives built reproducibly and integrity-checked (`zipfile.testzip`); manifests valid (format 2, unique UUIDs, BP depends on RP, stable script modules). Import itself not performed | S · **Manual** |
 | 2 | Pack dependency and JSON validation | all JSON valid; dependencies resolvable | `validate_schemas.py`, `validate_assets.mjs` PASS; entity/item components checked against official 1.26.50 schemas | S |
 | 3 | Every command and referenced identifier | no invalid command, block, state, particle, sound, effect, item, camera preset or entity property | 488 commands PASS; mock rejects unknown blocks/states, sounds, effects, items, presets, entity properties — 0 rejections over all integration runs | S · M |
-| 4 | Skins, models and animations | four recognizable animatronics, correct UVs, all animations play | UV/bone/controller checks PASS; offline preview sheet (docs/model_previews.png) shows correct mapping and accessories. In-game look, scale and animation feel unverified | S · **Manual** |
-| 5 | All six nights start and complete | each night starts from the time clock and ends at 6 AM | oracle 100 % on 20 seeds per night (docs/05); integration: nights 1-6 played through the office buttons, each clock reached 9,600 ticks | L · M · **Manual** |
+| 4 | Skins, models and animations | four recognizable animatronics, correct UVs, all animations play | UV/bone/controller checks PASS; offline preview sheet (docs/model_previews.png) shows correct mapping and accessories, and Fredbear V6 in its poses. In-game look, scale and animation feel unverified | S · **Manual** |
+| 5 | All nights start and complete | each night starts from the time clock and ends at 6 AM | oracle 100 % on 20 seeds per night, nights 1-7 (docs/05); integration: nights 1-6 played through the office buttons, each clock reached 9,600 ticks; night 7 through to both endings | L · M · **Manual** |
 | 6 | Each animatronic's attack and defense | every attack has a telegraph and a working counter | core tests for Bonnie, Chica (breaker), Freddy (lurk, watched freeze, power-out), Fredbear (barrier + strobe); human-model simulations lose only after power exhaustion | L |
 | 7 | Closed-door protection | no attack through a closed door/hatch | core tests: closed door always repels Bonnie; attack log never shows a closed barrier; Fredbear forces the barrier open first (visible JAMMED state) | L |
 | 8 | Camera entry, switching and exit | free camera on the selected feed; switch; sneak/button exits; view restored after exit, death, retry, win | integration: console button and map buttons open feeds (`minecraft:free`), lateral movement locked, hotbar switches, sneak exits, camera cleared and permissions restored after every reset/retry/win. Rendering of remote feeds unverified | M · **Manual** |
 | 9 | Power reaching zero | doors open, lights off, reserve window (N3+), Freddy music → dark → attack unless 6 AM | core tests (reserve, sequence, survivable before 6 AM) | L |
-| 10 | Fredbear's phases and countermeasures | foreshadow N1-3, phases 1-3 on N4-6, powers signalled, strobe counter works | core tests (windows, strobe rules, mercy cap, finale); campaign mock test N4-6 won with hatch/doors + strobe through the console | L · M |
+| 10 | Fredbear's phases and countermeasures | foreshadow N1-3, phases 1-3 on N4-7, powers signalled, strobe counter works | core tests (windows, strobe rules, hold rule, laugh and flicker cues, power-out, mercy cap, finale, night 7); campaign mock test N4-6 won with hatch/doors + strobe through the console | L · M |
 | 11 | Simultaneous threats | ≤ 2 engaged entries, one attack at a time | core test "simultaneous threats"; scenario `double` | L |
 | 12 | 6 AM boundary | 6 AM wins unless an attack already started | core test; scenario `boundary` | L |
 | 13 | Death and immediate retry | jumpscare → game over → retry restarts the night in the office | integration: scream played, free jumpscare camera, retry restarts night 2 sealed in the office | M · **Manual** |
@@ -85,6 +98,12 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 
 | Found by | Problem | Fix |
 |---|---|---|
+| player report (in-game, 1.1) | The strobe felt too risky: too few charges | 4 / 5 / 6 charges on nights 4 / 5 / 6 (was 3 / 3 / 4); 6 on night 7 |
+| player report (in-game, 1.1) | Fredbear always broke the doors and the hatch | each door and the hatch now hold him off once per night (he bows and leaves); nothing holds in the Golden Hour |
+| balance simulation (1.2) | Double Power Drain as first built ("everything × 2") was won by 0-3 % of human-model runs | devices only × 2, a 25 % reserve, calmer aggression: 90 % |
+| static check (1.2) | the asset validator checked animated bones and `fb:anim` values against all entities at once, which hid per-model mistakes | checks are per entity (own geometry, own controller) |
+| integration test (1.2) | after a reload the player's music state could still name the night track | boot always calls `stopMusic` |
+| offline preview (1.2) | the first Fredbear crawl pose bent the wrong way (sign of the torso and shins) | rotation signs checked against the renderer side view and corrected |
 | player report (in-game) | The breadcrumb sparkles pointed in a straight line through walls and floors, so the basement generator was hard to find | walkable route-guidance graph generated from the build plan; sparkles follow doors, corridors and stairs; distance on the HUD; directions in the maintenance text |
 | player report (in-game screenshot) | Mouths looked like a second nose: a narrow protruding muzzle with its own painted nose under the skin's nose | head split along the skin's face; full-width hinged jaw from the skin's own lower face, mouth line one block higher; teeth and cavity only show when the jaw opens; Chica's beak extruded from her own skin pixels |
 | player report (in-game) | Camera feeds too dark to read | clear `fb:camera_feed` fog while the monitor is up; 40 soft hidden lights where cameras look (door corners excluded) |
@@ -105,6 +124,7 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 ## Manual checks still required (Windows Bedrock 1.26.50 recommended)
 
 1. Import `dist/Fredbear_Six_Nights_Below.mcaddon`; create a Flat world with cheats; activate the BP (RP added automatically).
+   For an existing world: check that both packs show 1.2.0, then run `/fb:setup` when asked.
 2. `/fb:setup`: build completes without a *Build report*; time the build and note any lag.
 3. `/fb:debug selftest`: 9 × PASS. In particular *command blocks in place* (structure ids `fb:*` load) and *actuator round trip*.
 4. Walk the map in FREE ROAM: stairs face the right way, doors/windows/props look right, signs readable, no floating or
@@ -118,6 +138,12 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 10. Quit mid-night and reload; quit mid-build and run `/fb:setup` again.
 11. Controller and touch: buttons, items (does the item interact button fire `itemUse`?), hotbar camera switching, sneak exit.
 12. Performance: frame rate in the office with the monitor up; tick rate during the build.
+13. **1.2.0 additions**: Fredbear V6 on the diner stage (the performances play one after another), walking, crawling up the
+    hatch, bowing when a door holds, the three jumpscares (does the face fill the view at scale 1.09?); the night music
+    replaces Minecraft's music and loops; the door slam / metal door, camera up / down and the CCTV hum; Freddy's and
+    Fredbear's laughs; the office lamp flicker; the intro camera tour and the flashback; Shadow Fredbear on CAM 01; night 7 and
+    both endings (fire particles, sunrise); each challenge; the clippings; `/fb:debug holiday halloween` and `christmas`
+    to see the decorations; the reworked time-clock room.
 
 ## Known limitations
 
@@ -125,4 +151,6 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
   and validated here (docs/01).
 * Camera feeds are single views (one at a time); there are no simultaneous live video feeds.
 * Unverified engine behaviour is listed in docs/01 "Unverified items".
-* Balance is tuned with player models, not with people; nights 5-6 are hard for the human model mainly because of power (docs/05).
+* Balance is tuned with player models, not with people; nights 5-6 are hard for the human model mainly because of power, and
+  night 7 is the hardest night by design (docs/05).
+* Only the time-clock room was rebuilt in 1.2.0; the rest of the pizzeria is the 1.1 layout.

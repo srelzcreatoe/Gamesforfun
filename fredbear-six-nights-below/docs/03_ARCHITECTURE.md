@@ -15,6 +15,9 @@
 | Player route guidance (green breadcrumbs) | `GuideGraph` (`scripts/core/guide_path.js`) over the generated walkable graph | — |
 | Campaign progress | `persistence.js` (`fb:save` dynamic property) | — |
 | Map construction | `Builder` (`scripts/mc/builder.js`) executing `generatePlan()` | — |
+| Night music | `Game.startMusic()` / `stopMusic()` (`Player.playMusic` / `stopMusic`) | the Shift Guide switch and Settings only flip `settings.music` |
+| Seasonal decorations | `Holidays` (`scripts/mc/holidays.js`, cells from `data/holiday_decor.generated.js`) | — (only ever writes air cells it owns; the placed season is in `fb:holiday`) |
+| Cutscenes (intro camera tour, night 4 flashback, night 7 ending) | `Game` (`tickTour`, `tickFlashback`, `tickFinalEnding`) | — (Shift skips any of them) |
 
 Command blocks never advance a timer, never charge power and never decide an attack. The script never places
 door or light blocks itself during a night; it only sets a module's redstone pad. So no system has two writers.
@@ -46,9 +49,9 @@ door or light blocks itself during a night; it only sets a module's redstone pad
 |---|---|---|---|
 | SETUP | `BOOT` → `UNBUILT` → `BUILDING` | world load; `/fb:setup` | `LOBBY` when the build completes |
 | LOBBY | `LOBBY` (also `FREE_ROAM`) | full reset | `INTRO` (night button), `NIGHT` (training), `FREE_ROAM` |
-| INTRO | `INTRO` | night chosen at the time clock | `NIGHT` (START SHIFT in the office, or after 180 s) |
+| INTRO | `INTRO` (with an optional camera tour on the first visit to a night, and the night 4 flashback once) | night or challenge chosen at the time clock | `NIGHT` (START SHIFT in the office, or after 180 s) |
 | NIGHT_RUNNING | `NIGHT` (session phases `RUNNING`, `MAINT`, `POWER_OUT`, `JUMPSCARE`) | `beginNight()` | `RESULT` |
-| WIN / LOSE | `RESULT` (`won` true/false); night 6 win → `ENDING` | session `win` / `lose` effects | `RESET` → `LOBBY`, next `INTRO`, or `NIGHT` (retry) |
+| WIN / LOSE | `RESULT` (`won` true/false); night 6 win → `ENDING`; night 7 win → the seal-or-burn choice → `ENDING` | session `win` / `lose` effects | `RESET` → `LOBBY`, next `INTRO`, or `NIGHT` (retry) |
 | RESET | `RESET` (office) or the reset inside `fullReset()` | result screen, `/fb:lobby`, errors | `LOBBY` / `NIGHT` |
 
 **Simultaneous events** are resolved by the fixed per-tick order in `NightSession.tick()`:
@@ -86,7 +89,9 @@ Restores, in this order, every item the brief lists:
 | Power | a new session always starts at 100 % (105 % with the task bonus); meter module `pwr.meter_full`, `pwr.charges_0` |
 | Player position and inventory | teleport to the lobby anchor (or office for a retry); kit re-issued (locked slots 0-2) |
 | Camera and input state | `CameraView.close()` and `restorePlayerView()` for every player: `camera.clear()`, input permissions restored, night vision removed |
-| Temporary effects and sounds | all effects removed then saturation re-applied; music-box loops stopped (`SoundInstance.stop`); `stopsound @a` in `night.end`; night and camera-feed fogs removed; HUD reset |
+| Temporary effects and sounds | all effects removed then saturation re-applied; music-box loops and the camera hum stopped (`SoundInstance.stop`); night music stopped (`stopMusic`); `stopsound @a` in `night.end`; night, camera-feed and cutscene fogs removed; HUD reset |
+| Cutscenes and challenges | tour, flashback and ending state cleared; the active challenge cleared; challenge lamps reset |
+| Decorations | `Holidays.sync()` re-applies the current season (or removes it when switched off) |
 | Game state | `LOBBY`, `FREE_ROAM` or `RESET`; `fb:session` marker cleared |
 
 **Ordering fence.** Command-block chains run after the tick that triggers them; `reset.world` re-triggers
@@ -104,6 +109,10 @@ Integration test "ten randomized play / reset cycles leave no residue" checks al
 | `fb:save` | unlocked night, completed nights, tutorial/campaign flags, secrets, settings, stats | permanent until *Erase progress* |
 | `fb:build` | builder phase/op (resumable construction) and version | permanent |
 | `fb:session` | `{active, night, seed}` while a night runs | cleared on win, loss and every reset |
+| `fb:holiday` | which season's decorations are placed (`null`, `halloween`, `christmas`) | cleared by a rebuild (the builder clears the air cells first) |
+
+Save version 2 adds challenge wins, the night 7 endings seen, the flashback flag and the music / decorations
+settings. A version-1 save migrates automatically: a finished campaign unlocks night 7.
 
 Temporary night state (clock, power, AI) is **never** persisted. If the world closes mid-night, the next load
 runs `boot()`: it sees `fb:session.active`, performs a full reset to the lobby and tells the player the shift was
@@ -123,11 +132,15 @@ resumes from the stored phase/op on the next `/fb:setup`.
 
 ## Entities, tags, sounds and particles
 
-* Exactly one entity per animatronic, tagged `fb_puppet` and `fb_<who>`; at most one `fb:fredbear_echo`. All have the
+* Exactly one entity per animatronic, tagged `fb_puppet` and `fb_<who>`; at most one `fb:fredbear_echo` (the camera
+  echo or, with `fb:variant` 1, Shadow Fredbear). All have the
   family `fb_animatronic`. The integrity pass (every 40 ticks) removes duplicates and untagged strays, respawns missing
   puppets and snaps any puppet more than 3 blocks from its logical pose.
 * Puppets have no gravity or collision, take no damage, are persistent and cannot be pushed.
 * At most 6 script sounds per tick (`Audio`), guide particles 3 per 10 ticks, one shimmer per relocation.
+* Music: one track (`fb.night.bgm`, music category, streamed) per player, started at the start of a night and
+  stopped on a jumpscare, on the power-out music box, at 6 AM and on every reset. Minecraft's own music stays silent
+  while a `playMusic` track plays; other sound categories are unaffected.
 * Selectors in command blocks are limited to `@a`, `@s` and `@e[type=item]` (item cleanup in the reset).
 
 ## Inputs and accessibility

@@ -88,26 +88,39 @@ Weights: dark nodes ×1.5, nodes no camera covers ×1.3, nodes of the most-watch
 
 Phases by night: **0** foreshadow only (N1-3: a golden figure briefly shown on CAM 04 Starlight Cove, in the sealed
 diner on CAM 16, and in the west hall on CAM 07, each only while the player happens to watch that feed); **1 Stirring** (N4: hatch only, camera disruption); **2 Haunting** (N5: all three entries,
-relocation, false camera events, blackouts); **3 Golden Hour** (N6: shorter cooldowns plus the finale). He alone may use
+relocation, false camera events, blackouts); **3 Golden Hour** (N6: shorter cooldowns plus the finale; N7 the same
+phase, alone, with 7 attempts and a 700-tick cooldown). He alone may use
 the diner seal and the chamber wall (gated edges, open from N4).
 
 | State | Meaning and exit |
 |---|---|
 | DORMANT | in the chamber until activation |
-| STIR | walks to the diner stage and stands there (`stir` ticks, visible on CAM 16) → PATROL |
+| STIR | walks to the diner stage and stands there (`stir` ticks, visible on CAM 16) → PATROL, with his **laugh** |
 | PATROL | chooses an entry (prefers less-defended entries, halves the last one) and hunts there on foot through hidden basement routes, or by RELOCATING |
 | RELOCATING | **warned teleport** between designated golden nodes only: 40 ticks of chime + golden shimmer + static on the destination camera, then he appears there |
 | APPROACH | walks/climbs the last edge into the entry |
 | TELEGRAPH (W1) | music box + golden glow at that entry for `max(100, 180 − 4A)` ticks. Barrier **open** at the end → ATTACK. **Closed** → FORCING |
-| FORCING (W2) | `max(60, 100 − 2A)` ticks of pounding. Opening the barrier → ATTACK. End → the barrier is forced open (**JAMMED**) |
+| FORCING (W2) | `max(60, 100 − 2A)` ticks of pounding. Opening the barrier → ATTACK. End → if that door / the hatch has not held yet tonight it **holds** (YIELD); otherwise it is forced open (**JAMMED**) |
+| YIELD | the barrier held: 40 ticks bowing at the entry, then he vanishes to the diner stage (counts as an attempt). **Each door and the hatch hold once per night; nothing holds in the Golden Hour** |
 | JAMMED (W3) | 60 ticks with the barrier stuck open → ATTACK unless repelled |
-| RECOVER | after a repel; he vanishes back to the diner stage; powers keep working; cooldown per night (1,400 / 1,100 / 900; 500 in the finale) |
-| SPENT | mercy cap: after `maxAttempts` repelled attempts (2 / 3 / 4) he stays in the diner (the finale grants 2 more) |
+| RECOVER | after a repel or a hold; he vanishes back to the diner stage; powers keep working; cooldown per night (1,400 / 1,100 / 900 / 700 on N7; 500 in the finale). Every new hunt starts with his **laugh** |
+| SPENT | mercy cap: after `maxAttempts` attempts, repelled or held (2 / 3 / 4 / 7 on N7), he stays in the diner (the finale grants 2 more) |
+| RISE | Golden Hour: a 60-tick showman pose on the diner stage, then the hunt |
+| POWEROUT | on nights he is awake (phase ≥ 1) the power-out is his: he appears at the left door with his own music box and golden eyes (instead of Freddy) |
 
 **Countermeasure (learnable, unique to him):** identify the real entry (music box, glow, caption), **close that barrier**,
 then fire the **EMERGENCY STROBE** while he is in TELEGRAPH, FORCING or JAMMED. Barrier closed or jammed + strobe = repelled.
 Strobe with the barrier open = stunned 40 ticks once per attempt. He never attacks through a closed barrier: it is first
-visibly forced open, and the strobe still works during W3. Strobe charges: 3 / 3 / 4 (+2 in the finale), cooldown 200 ticks, 2 % power.
+visibly forced open, and the strobe still works during W3. Strobe charges: 4 / 5 / 6 on nights 4 / 5 / 6 (+2 in the finale)
+and 6 on night 7, cooldown 200 ticks, 2 % power.
+
+**Hold rule.** The first time Fredbear forces a given door (or the hatch) in a night, it holds: W2 ends in YIELD,
+not JAMMED. So a player out of strobe charges still survives one attempt per entry. The second attempt at the same
+entry jams it as before. In the Golden Hour nothing holds.
+
+**Cues.** His laugh (one of four recordings, at the office) marks every hunt start. The office lamps flicker (module
+`env.flicker_office`: two lamps dim, then return) every 40 ticks while he is on a node next to the office or relocating
+to one, and every 16 ticks while he walks or climbs into an entry. No flicker during a blackout and never for an echo.
 
 ### Powers (concrete values; phase 1 / 2 / 3)
 
@@ -121,11 +134,38 @@ visibly forced open, and the strobe still works during W3. Strobe charges: 3 / 3
 Powers never stack to remove every defence: doors work during blackouts and disruption, telegraph windows pause in
 blackouts, the director forbids a second entry beside Fredbear's, and only one attack token exists.
 
+## Shadow Fredbear (nights 2+)
+
+A rare black silhouette with white eyes on the show stage (`STAGE_FRONT`, seen on CAM 01/02). From 1 AM, once per
+in-game hour, chance 5 %, from its own RNG stream (`mixSeed(seed, 7700 + night)`, so it never shifts the AI rolls).
+It stays 600 ticks. Watching it for 60 ticks in total costs 1 % power and it vanishes with a glitch and a caption.
+Harmless otherwise: it never moves or attacks, and never appears during the finale, an echo or the training shift.
+
+## Challenge modifiers
+
+| Modifier | Effect |
+|---|---|
+| `noDoors` | doors and hatch are welded open; a lit hall light on the corner acts as the barrier for Bonnie, Chica and Freddy |
+| `strobeNoBarrier` | the strobe repels Fredbear without a closed barrier |
+| `lightAutoOff` | hall lights stay on 200 ticks instead of 100 |
+| `deviceDrainMult` | doors, lights and the monitor use × N power (base drain unchanged) |
+| `reserveAmount` | the reserve lever gives this many power units |
+| `noCams` | the monitor has no signal at all |
+| `loudSteps`, `captions` | footsteps louder and captions forced on |
+
 ## Night 6 finale
 
 At 5 AM (tick 8000) **The Golden Hour** begins: Bonnie, Chica and Freddy withdraw to the stage (`WITHDRAWN`),
 Fredbear gains 2 attempts and 2 strobe charges with a 500-tick cooldown. Surviving to 6 AM plays the ending
-(chamber shot, the dormant suit's eyes going dark, the building at dawn, credits) and marks the campaign complete.
+(chamber shot, the dormant suit's eyes going dark, the building at dawn, credits) and marks the campaign complete,
+unlocking night 7.
+
+## Night 7 — Fredbear's Revenge
+
+Fredbear alone (the others stay powered down on the stage), at aggression 20, phase 3, from tick 200, with 7 attempts,
+a 700-tick cooldown, 6 strobe charges and the reserve lever. The hold rule applies (it is not the Golden Hour).
+Surviving to 6 AM asks the player to **seal** the chamber or **burn** the pizzeria; each choice has its own ending
+scene and both are recorded in Extras.
 
 ## Fairness guarantees (tested)
 

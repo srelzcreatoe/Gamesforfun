@@ -195,36 +195,56 @@ def render(geo, tex, yaw_deg, pose, size=(220, 300), scale=6.0, ground=12):
 
 def main():
     anims = json.loads((RP / "animations" / "fb_animatronic.animation.json").read_text())["animations"]
+    fb_anims = json.loads((RP / "animations" / "fb_fredbear.animation.json").read_text())["animations"]
     rest = {"rot": {}, "pos": {}, "scale": {}}
     hide_prop = pose_from(anims["animation.fb.hide_prop"], 0)
-    names = ["freddy", "bonnie", "chica", "fredbear", "fredbear_echo"]
     tile_w, tile_h = 220, 300
-    sheet = Image.new("RGBA", (tile_w * 5, tile_h * len(names) + 20), (12, 12, 16, 255))
-    d = ImageDraw.Draw(sheet)
-    for r, n in enumerate(names):
-        geo_name = "fredbear" if n == "fredbear_echo" else n
+    rows = []
+    for n in ["freddy", "bonnie", "chica"]:
         entity = json.loads((RP / "entity" / f"fb_{n}.entity.json").read_text())["minecraft:client_entity"]["description"]
-        geo = json.loads((RP / "models" / "entity" / f"fb_{geo_name}.geo.json").read_text())
-        tex = Image.open(RP / "textures" / "entity" / "fb" / f"{n}.png").convert("RGBA")
         hides = any(isinstance(a, dict) and "hide_prop" in a for a in entity["scripts"]["animate"])
 
-        def with_hide(p):
+        def with_hide(p, hides=hides):
             if not hides:
                 return p
             return {"rot": p["rot"], "pos": p["pos"], "scale": {**p["scale"], **hide_prop["scale"]}}
 
-        perform = pose_from(anims[entity["animations"]["perform"]], 0.25)
-        views = [
+        rows.append((n, n, n, [
             ("front", 0, with_hide(rest)),
             ("three-quarter", 35, with_hide(rest)),
-            ("perform", 25, perform),
+            ("perform", 25, pose_from(anims[entity["animations"]["perform"]], 0.25)),
             ("threat (jaw open)", 20, with_hide(pose_from(anims["animation.fb.threat"], 0.5))),
             ("attack", 25, with_hide(pose_from(anims["animation.fb.attack"], 0.8))),
-        ]
-        for c, (label, yaw, pose) in enumerate(views):
-            sheet.alpha_composite(render(geo, tex, yaw, pose), (c * tile_w, r * tile_h))
-            d.text((c * tile_w + 6, r * tile_h + 4), f"{n} - {label}", fill=(230, 230, 230, 255))
-    d.text((6, tile_h * len(names) + 4), "Offline preview of geometry, UVs and animation poses (tools/render_preview.py). Not an in-game screenshot.", fill=(200, 200, 200, 255))
+        ]))
+    fb = lambda clip, t: pose_from(fb_anims[f"animation.fb.fredbear.{clip}"], t)
+    rows.append(("fredbear", "fredbear", "fredbear", [
+        ("front (idle)", 0, fb("idle", 0)), ("three-quarter", 35, fb("idle", 1.2)), ("show: sing", 25, fb("perform_sing", 1.6)),
+        ("threat (points at you)", 20, fb("perform_crowd_point", 2.0)), ("jumpscare: snap bite", 20, fb("jumpscare_snap_bite", 0.7)),
+    ]))
+    rows.append(("fredbear (more)", "fredbear", "fredbear", [
+        ("crawl (added)", 60, fb("crawl", 0.3)), ("bow (door held)", 70, fb("pose_bow", 2.0)), ("showman (Golden Hour)", 25, fb("pose_showman", 3.0)),
+        ("jumpscare: dual lunge", 20, fb("jumpscare_dual_lunge", 0.8)), ("jumpscare: left grab", 30, fb("jumpscare_left_grab", 0.8)),
+    ]))
+    rows.append(("echo / shadow", "fredbear", "fredbear_echo", [
+        ("echo (false camera)", 20, fb("idle", 0)), ("echo three-quarter", 40, fb("idle", 0)),
+    ]))
+    shadow_row = ("shadow", "fredbear", "fredbear_shadow", [("shadow on the stage", 15, fb("idle", 0)), ("shadow three-quarter", 40, fb("idle", 0))])
+    sheet = Image.new("RGBA", (tile_w * 5, tile_h * len(rows) + 20), (12, 12, 16, 255))
+    d = ImageDraw.Draw(sheet)
+    for r, (label, geo_name, tex_name, views) in enumerate(rows):
+        geo = json.loads((RP / "models" / "entity" / f"fb_{geo_name}.geo.json").read_text())
+        tex = Image.open(RP / "textures" / "entity" / "fb" / f"{tex_name}.png").convert("RGBA")
+        scale = 4.4 if geo_name == "fredbear" else 6.0
+        tiles = list(views)
+        if label == "echo / shadow":
+            stex = Image.open(RP / "textures" / "entity" / "fb" / "fredbear_shadow.png").convert("RGBA")
+            tiles += [(v[0], v[1], v[2], stex) for v in shadow_row[3]]
+        for c, view in enumerate(tiles):
+            name, yaw, pose = view[:3]
+            t = view[3] if len(view) > 3 else tex
+            sheet.alpha_composite(render(geo, t, yaw, pose, scale=scale), (c * tile_w, r * tile_h))
+            d.text((c * tile_w + 6, r * tile_h + 4), f"{label.split(' ')[0] if label.startswith('echo') else label} - {name}", fill=(230, 230, 230, 255))
+    d.text((6, tile_h * len(rows) + 4), "Offline preview of geometry, UVs and animation poses (tools/render_preview.py). Not an in-game screenshot.", fill=(200, 200, 200, 255))
     OUT.parent.mkdir(parents=True, exist_ok=True)
     sheet.save(OUT)
     print(f"wrote {OUT.relative_to(ROOT)}")

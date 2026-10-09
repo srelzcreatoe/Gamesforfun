@@ -9,10 +9,13 @@ and runs the night simulation with the stable Script API.
 
 * Map: abandoned entertainment complex, 200 × 200 footprint, 3 levels, 62 rooms and spaces (docs/02).
 * Enemies: Freddy, Bonnie, Chica and Fredbear, each with its own state machine (docs/04).
-* Campaign: training shift + six nights, persistent unlocks, Night 6 finale and ending (docs/05).
+* Campaign: training shift + seven nights, persistent unlocks, Night 6 finale and ending, Night 7 with a choice of two
+  endings, four challenge modes, newspaper clippings, a night 4 flashback, seasonal decorations (docs/05, docs/08).
 * Office: two doors, two hall lights, 16 cameras, hatch, emergency strobe, breaker, reserve lever, power and
   hour displays, warning indicators (docs/03).
-* Command blocks: 448 blocks in 30 structure files, each one listed in docs/06.
+* Command blocks: 478 blocks in 32 structure files, each one listed in docs/06.
+* Assets: the owner's Fredbear V6 model (730 cubes, all 12 of its animations, plus stalk, crawl and dormant poses made
+  from them), the owner's sound recordings and night music, and synthesised sounds (docs/07).
 
 ## Target versions (pinned)
 
@@ -38,8 +41,8 @@ Official references are vendored in `tools/ref/` (provenance in `tools/ref/SOURC
 
 | What | Checked against | Tool |
 |---|---|---|
-| Every command (448 command blocks, 7 functions, script command templates — 488 strings) | `mojang-commands.json` overloads, enums and parameter types | `tools/validate_commands.mjs` |
-| Every block name and block state (253 palette entries, command arguments, structure palettes) | `mojang-blocks.json` | `tools/validate_blocks.mjs`, the mock's `BlockPermutation.resolve` |
+| Every command (478 command blocks, 7 functions, script command templates — 525 strings) | `mojang-commands.json` overloads, enums and parameter types | `tools/validate_commands.mjs` |
+| Every block name and block state (261 palette entries, command arguments, structure palettes) | `mojang-blocks.json` | `tools/validate_blocks.mjs`, the mock's `BlockPermutation.resolve` |
 | Particles, camera presets, effects, item ids | `vanilla_particles.txt`, `mojang-camera-presets.json`, `mojang-effects.json`, `mojang-items.json` | validators + integration mock |
 | Entities and items JSON | `metadata/json_schemas` (server/entity/1.26.50, server/item/1.26.30) | `tools/validate_schemas.py` |
 | Script API usage (every call, option bag and enum) | `@minecraft/server` 2.10.0 / `server-ui` 2.2.0 type declarations | `tsc --checkJs` (`npm run typecheck`) |
@@ -54,9 +57,13 @@ Official references are vendored in `tools/ref/` (provenance in `tools/ref/SOURC
 * Camera: `Player.camera.setCamera('minecraft:free', { location, facingLocation, easeOptions })`, `fade`, `clear`.
 * Input: `Player.inputPermissions.setPermissionCategory`, `world.afterEvents.playerButtonInput`
   (`InputButton.Sneak`), `world.afterEvents.playerHotbarSelectedSlotChange`.
-* Entities: client-synced entity properties (`fb:anim` enum, `fb:eyes`, `fb:hidden`) set with `Entity.setProperty`.
+* Entities: client-synced entity properties (`fb:anim` enum, `fb:eyes`, `fb:hidden`, Fredbear's `fb:variant` int) set
+  with `Entity.setProperty`; render-controller texture arrays indexed by `fb:variant` (echo / shadow).
 * Items: `ItemStack.lockMode = ItemLockMode.slot`, `keepOnDeath`.
-* Audio: `Player.playSound` / `Dimension.playSound` returning `SoundInstance` (`stop()` for music-box loops).
+* Audio: `Player.playSound` / `Dimension.playSound` returning `SoundInstance` (`stop()` for music-box loops and the
+  camera hum), `Player.playMusic(track, { loop, fade, volume })` / `Player.stopMusic()` for the night music (a
+  `music`-category, streamed sound).
+* Date: the standard JavaScript `Date` (device clock) for the seasonal decorations.
 * Events from command blocks: `/scriptevent` → `system.afterEvents.scriptEventReceive` with `sourceBlock`.
 * Persistence: world dynamic properties.
 * UI: `ActionFormData`, `ModalFormData`, `MessageFormData`, `FormCancelationReason.UserBusy` retry.
@@ -83,3 +90,12 @@ No part of this project has been run inside Minecraft (see docs/10). Items that 
 7. **Forms during a night**: forms do not pause the game; the clock keeps running while one is open.
 8. **Builder duration and lag** on real hardware (about 2,500 plan operations, fills of at most 32,768 blocks each).
 9. **Platforms**: designed for Windows (keyboard/mouse), controller and touch; **no platform has been tested in-game**.
+10. **Night music**: that a track started with `playMusic` keeps Minecraft's own music silent while it plays (the
+    documented behaviour of music tracks), that `loop: true` loops it without a gap, and that `stopsound @a` (sent by the
+    night-end command block) does not interfere.
+11. **Fredbear V6 in the game**: the model's own README says it was never opened in Blockbench or Minecraft. Its
+    geometry, texture and clips pass every static check here and render correctly in the offline preview; the chained
+    stage shows rely on `query.all_animations_finished` for one-shot clips; the three jumpscares framing at scale 1.09.
+12. **Holiday dates** come from the device clock (`new Date()` in the script engine); a device with the wrong date shows
+    the wrong (or no) decorations.
+13. **Cutscene fogs and particles** (flashback sepia, burn ending orange smoke, flame particles): look and feel.

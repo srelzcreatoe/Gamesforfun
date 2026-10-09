@@ -9,6 +9,7 @@ const steps = [
   ['command-block structures + register data', 'node', ['tools/gen_structures.mjs']],
   ['command-block register (docs/06, CSV)', 'node', ['tools/gen_cb_register.mjs']],
   ['player route-guidance graph', 'node', ['tools/gen_guide.mjs']],
+  ['seasonal decorations (needs the guidance graph)', 'node', ['tools/gen_holidays.mjs']],
   ['floor plan data', 'node', ['tools/export_floorplan.mjs']],
   ['floor plan images', 'python3', ['tools/render_floorplans.py']],
   ['resource pack art, models, animations, fogs, icons', 'python3', ['tools/gen_rp.py']],

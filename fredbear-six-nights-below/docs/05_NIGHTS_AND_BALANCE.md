@@ -12,11 +12,27 @@ Aggression (A) is 0-20. Activation = tick at which the character leaves home. Ni
 | 1 | Night 1 — First Shift | 1 | 3 | 2 | 0 | 4800/400/1600/99999 | 0 | no | 0 | dormant | foreshadow:cove_glint@4800 |
 | 2 | Night 2 — Kitchen Duty | 4 | 5 | 4 | 0 | 3200/0/400/99999 | 0 | no | 1 | dormant | foreshadow:diner_glimpse@6400 |
 | 3 | Night 3 — Generator Trouble | 7 | 8 | 7 | 0 | 1600/0/0/99999 | 0 | yes | 2 | dormant | maintenance:generator@3200, foreshadow:its_me@7200 |
-| 4 | Night 4 — Something Below | 10 | 11 | 10 | 5 | 0/0/0/1600 | 3 | yes | 2 | 1 (entries H, max 2 attempts, powers disrupt) | - |
-| 5 | Night 5 — Golden Echoes | 14 | 15 | 14 | 12 | 0/0/0/1200 | 3 | yes | 3 | 2 (entries H/L/R, max 3 attempts, powers disrupt, false_cam, blackout, relocate) | maintenance:electrical@4800 |
-| 6 | Night 6 — Six Nights Below | 18 | 19 | 18 | 20 | 0/0/0/200 | 4 | yes | 3 | 3 (entries H/L/R, max 4 attempts, powers disrupt, false_cam, blackout, relocate) | finale@8000 |
+| 4 | Night 4 — Something Below | 10 | 11 | 10 | 5 | 0/0/0/1600 | 4 | yes | 2 | 1 (entries H, max 2 attempts, powers disrupt) | - |
+| 5 | Night 5 — Golden Echoes | 14 | 15 | 14 | 12 | 0/0/0/1200 | 5 | yes | 3 | 2 (entries H/L/R, max 3 attempts, powers disrupt, false_cam, blackout, relocate) | maintenance:electrical@4800 |
+| 6 | Night 6 — Six Nights Below | 18 | 19 | 18 | 20 | 0/0/0/200 | 6 | yes | 3 | 3 (entries H/L/R, max 4 attempts, powers disrupt, false_cam, blackout, relocate) | finale@8000 |
+| 7 | Night 7 — Fredbear's Revenge | 0 | 0 | 0 | 20 | 99999/99999/99999/200 | 6 | yes | 0 | 3 (entries H/L/R, max 7 attempts, powers disrupt, false_cam, blackout, relocate) | - |
 
-Night 0 is the training shift / vertical slice (400 ticks per hour; the tutorial further slows it to 12000 so the clock never ends a lesson).
+Night 0 is the training shift / vertical slice (400 ticks per hour; the tutorial further slows it to 12000 so the clock never ends a lesson). Night 7 unlocks after night 6: only Fredbear hunts (the others stay powered down on the stage).
+
+## Challenge modes
+
+Unlocked after night 6. Each is a full night on a base night with overrides and session modifiers (`CONFIG.challenges`, `NightSession` options.mods).
+
+| Challenge | Base night | Aggression F/B/C/G | Strobe | Modifiers | What the player gets back |
+|---|---|---|---|---|---|
+| No Doors | 4 | 5/6/5/4 | 4 | noDoors=true, strobeNoBarrier=true, lightAutoOff=200 | The doors and the hatch are welded open. Keep a hall light on Bonnie, Chica or Freddy in the corner and they back off (Bonnie and Chica after 2 s, Freddy after 5 s). The strobe drives Fredbear off without closing anything. |
+| Fredbear Only | 5 | 0/0/0/12 | 6 | - | Just Fredbear, at night 5 strength, with every entry and his night 5 powers. A warm-up for night 7. |
+| Double Power Drain | 3 | 3/4/3/0 | 0 | deviceDrainMult=2, reserveAmount=25000 | Doors, hall lights and the camera monitor use twice as much power. The emergency reserve gives 25 % instead of 8 %, and the animatronics are calmer than on night 3. |
+| Broken Cameras | 3 | 0/8/7/0 | 0 | noCams=true, loudSteps=true, lightAutoOff=200, captions=true | The camera system is dead: no feeds at all. Footsteps are louder, captions are always on and the hall lights stay on twice as long. Freddy stays on the stage (he only hunts through the cameras). |
+
+## Fredbear: doors that hold
+
+When a forcing window (W2) ends and that door or the hatch has not held yet tonight (and it is not the Golden Hour), it holds: Fredbear bows for 40 ticks and vanishes to the diner, which counts as one of his attempts. Otherwise the barrier is jammed open and W3 follows. Strobe charges are his attempts + 2 on nights 4-6 (night 4: 4 for 2, night 5: 5 for 3, night 6: 6 for 4 + 2 for 2 at 5 AM); night 7: 6 charges for 7 attempts, with three entries that can each hold once.
 
 ## Formulas (ticks)
 
@@ -68,13 +84,13 @@ One-shot costs: emergency strobe 2.0 %, breaker reset 1.0 %. Emergency reserve (
 
 Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). The oracle reads the true AI state and proves a valid defence exists every night; the human models react only to what a player can perceive (lights they switch on, the feed they watch, audio captions) with 8-20 tick reaction delays and imperfect routines. These are models, not playtests.
 
-| Player model | N1 | N2 | N3 | N4 | N5 | N6 |
-|---|---|---|---|---|---|---|
-| Oracle (perfect information) (20 seeds) | 100% | 100% | 100% | 100% | 100% | 100% |
-| Human model (skill 1.0) (30 seeds) | 100% | 100% | 100% | 87% | 57% | 40% |
-| Human model (skill 0.7) (30 seeds) | 100% | 100% | 100% | 83% | 73% | 37% |
-| Idle (does nothing) (10 seeds) | 80% | 20% | 0% | 0% | 0% | 0% |
-| Wasteful (everything on) (10 seeds) | 0% | 0% | 0% | 0% | 0% | 0% |
+| Player model | N1 | N2 | N3 | N4 | N5 | N6 | N7 |
+|---|---|---|---|---|---|---|---|
+| Oracle (perfect information) (20 seeds) | 100% | 100% | 100% | 100% | 100% | 100% | 100% |
+| Human model (skill 1.0) (30 seeds) | 100% | 100% | 100% | 87% | 57% | 37% | 53% |
+| Human model (skill 0.7) (30 seeds) | 100% | 100% | 100% | 83% | 73% | 33% | 50% |
+| Idle (does nothing) (10 seeds) | 80% | 20% | 0% | 0% | 0% | 0% | 0% |
+| Wasteful (everything on) (10 seeds) | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
 
 ### Oracle (perfect information)
 
@@ -85,7 +101,8 @@ Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). 
 | 3 | 100% | 53.8% | 49.3% | 0 | - | - |
 | 4 | 100% | 43.1% | 34.3% | 0 | - | - |
 | 5 | 100% | 38.9% | 29.7% | 0 | - | - |
-| 6 | 100% | 30.9% | 17.7% | 0 | - | - |
+| 6 | 100% | 30.6% | 12% | 0 | - | - |
+| 7 | 100% | 39.6% | 34.8% | 0 | - | - |
 
 ### Human model (skill 1.0)
 
@@ -94,9 +111,10 @@ Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). 
 | 1 | 100% | 52.1% | 43.1% | 0 | - | - |
 | 2 | 100% | 30% | 11.5% | 0 | - | - |
 | 3 | 100% | 19.9% | 5.5% | 0 | - | - |
-| 4 | 87% | 8.7% | 0% | 13 | freddy 4 | 5 AM |
-| 5 | 57% | 5.1% | 0% | 22 | freddy 13 | 5 AM |
-| 6 | 40% | 2.8% | 0% | 25 | freddy 18 | 4.7 AM |
+| 4 | 87% | 8.7% | 0% | 13 | fredbear 4 | 5 AM |
+| 5 | 57% | 5.1% | 0% | 22 | fredbear 11, freddy 2 | 5 AM |
+| 6 | 37% | 3.4% | 0% | 27 | fredbear 17, freddy 2 | 4.7 AM |
+| 7 | 53% | 24.1% | 20% | 0 | fredbear 14 | 3.9 AM |
 
 ### Human model (skill 0.7)
 
@@ -105,13 +123,25 @@ Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). 
 | 1 | 100% | 52.2% | 42.3% | 0 | - | - |
 | 2 | 100% | 29.9% | 11.4% | 0 | - | - |
 | 3 | 100% | 22% | 6.9% | 0 | - | - |
-| 4 | 83% | 6.7% | 0% | 12 | freddy 5 | 5 AM |
-| 5 | 73% | 4.8% | 0% | 23 | freddy 8 | 5 AM |
-| 6 | 37% | 5% | 0% | 29 | freddy 19 | 5 AM |
+| 4 | 83% | 6.7% | 0% | 12 | fredbear 4, freddy 1 | 5 AM |
+| 5 | 73% | 4.8% | 0% | 23 | fredbear 8 | 5 AM |
+| 6 | 33% | 5.2% | 0% | 29 | fredbear 20 | 5 AM |
+| 7 | 50% | 24% | 20% | 0 | fredbear 15 | 3.9 AM |
+
+### Challenge modes
+
+| Player model | No Doors | Fredbear Only | Double Power Drain | Broken Cameras |
+|---|---|---|---|---|
+| Oracle (perfect information) (20 seeds) | 100% | 100% | 100% | 100% |
+| Human model (skill 1.0) (30 seeds) | 83% | 100% | 90% | 100% |
+| Human model (skill 0.7) (30 seeds) | 77% | 100% | 90% | 100% |
+
+The challenges were tuned until the human model wins most runs ("manageable" was the owner's brief): Double Power Drain was first built as "everything x2" and won 0-3 % of human-model runs; it now doubles the devices only, gives a 25 % reserve and runs at calmer aggression.
 
 ### Reading the results
 
 * The oracle wins every seed of every night with power to spare (lowest point on night 6 shown above): no night is unwinnable.
 * Idle play usually survives night 1 (the introduction), rarely night 2 and never from night 3; "everything on" always runs out of power — power management matters.
-* The human models lose almost exclusively to **power exhaustion followed by Freddy's power-out sequence** from night 4 on, not to unfair attacks: every attack is preceded by its telegraph window. This is the intended pressure (Fredbear's hatch/strobe defence costs power) and also the first tuning knob if playtesting shows nights 5-6 are too hard: lower `power.door` / `power.hatch` or the night 5-6 base drain in `scripts/core/config.js`.
+* The human models lose mostly to **power exhaustion followed by the power-out sequence** (Fredbear's from night 4) on nights 4-6, not to unfair attacks: every attack is preceded by its telegraph window. This is the intended pressure and also the first tuning knob if playtesting shows nights 5-6 are too hard: lower `power.door` / `power.hatch` or the night 5-6 base drain in `scripts/core/config.js`.
+* Night 7 (Fredbear alone, every power) is lost mid-night rather than to power: it is meant as the hardest night. Its first knob is `nights[7].fredbear.cooldown` / `maxAttempts`.
 

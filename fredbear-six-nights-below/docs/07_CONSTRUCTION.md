@@ -63,21 +63,25 @@ Only needed if the self-test reports missing command blocks or a failed round tr
 
 ## Resource pack assets
 
-All art derives from the four skins supplied by the map owner (`art/skins/`, unmodified). `tools/gen_rp.py` regenerates
-every file below deterministically.
+Freddy, Bonnie and Chica derive from the skins supplied by the map owner (`art/skins/`, unmodified). Fredbear is the
+owner's **Fredbear V6** model (`art/models_incoming/Fredbear_V6_NoEyeDots_Complete.zip`), imported by
+`tools/fredbear_v6.py`; the old skin-built Fredbear is kept outside the game in `art/models_archive/fredbear_v1/` with
+instructions to restore it. `tools/gen_rp.py` regenerates every file below deterministically.
 
 | Asset | Files | Notes |
 |---|---|---|
 | Textures | `textures/entity/fb/{freddy,bonnie,chica,fredbear,fredbear_echo}.png` (128×64) | left half = the supplied 64×64 skin; right half = accessory atlas. Chica's skin is legacy 64×32 and is converted to 64×64 with the standard legacy-skin conversion (left arm and leg mirrored from the right ones, outer faces swapped) |
 | Eye layers | `*_eyes.png` | only the pupils (taken from each skin's face) are opaque; drawn with the vanilla `creaking_eyes` material and `ignore_lighting`, shown when `fb:eyes` is true |
-| Fredbear echo | `fredbear_echo.png` | purple, scan-lined, partly broken copy used for false camera events |
+| Fredbear V6 | `models/entity/fb_fredbear.geo.json` (43 bones, 730 cubes), `textures/entity/fb/fredbear.png` (256×256), `animations/fb_fredbear.animation.json`, `controller.animation.fb.fredbear` | imported unchanged except: a geometry id of `geometry.fb.fredbear`, an eye layer made from the model's lens faces (`fredbear_eyes.png`), and keyframes thinned with linear interpolation within 0.2° / 0.02 (largest measured error 0.17° / 0.016). All 12 of its clips are used: idle, walk, run (retreat), showman (Golden Hour rise), bow (a held door), the four stage performances chained one after another on the diner stage, and the three jumpscares (picked at random per jumpscare). Added for the game: `stalk` (the walk at 60 % speed), `crawl` (a crawl made for the hatch and vents), `dormant` (the deepest bow frame, held). Scale 1.09 (the same height as the old model) |
+| Fredbear echo / shadow | `fredbear_echo.png`, `fredbear_shadow.png` (+ eye layers) | purple, scan-lined copy for false camera events; a black silhouette with white eyes for Shadow Fredbear. One entity, the texture chosen by `fb:variant` |
 | Geometry | `models/entity/fb_<name>.geo.json` (format 1.21.0) | the vanilla `geometry.humanoid.custom` bone set and UVs (body + jacket, arms + sleeves, legs + pants). The head is split with per-face UVs: rows 0-5 of the skin's face stay on the head, rows 6-7 form a full-width **jaw** hinged at the back of the head (base and hat layer), so the closed face is exactly the supplied skin (one nose, the skin's own mouth line). A dark mouth cavity and upper/lower teeth sit inside the closed head and show when the jaw opens. Extra bones `snout` (Chica's upper beak), `leftEar`, `rightEar`, `crown`, `prop` |
 | Accessories | in the atlas | Freddy: round ears, black top hat, microphone. Bonnie: long ears with inner colour, red guitar (shown only while performing). Chica: a slightly extruded beak made of the skin's own beak pixels (upper on the head, lower on the jaw), head tuft, cupcake on a plate. Fredbear: round ears with purple inner, purple top hat, microphone. Bow ties and Chica's bib come from the supplied skins. In-game size: Freddy ×1.35, Bonnie and Chica ×1.3, Fredbear ×1.45 |
 | Animations | `animations/fb_animatronic.animation.json` | idle, walk, stalk, crawl, look (head turns), pause (suspicious freeze), threat (doorway, jaw working), attack (jumpscare lunge, jaw wide open), retreat, dormant, music, plus one stage performance per character: Freddy sings into the microphone, Bonnie strums the guitar (left hand on the neck), Chica presents the cupcake (plate kept level) and waves, Fredbear sings with a sweeping arm. Every pose has a matching jaw motion |
 | Animation controller | `controller.animation.fb.pose` | one state per `fb:anim` value, 0.2 s blends (0.05 s into attack) |
-| Render controllers | `controller.render.fb.animatronic`, `controller.render.fb.eyes` | `fb:hidden` hides the whole model (vent crawls) |
-| Sounds | `sounds/fb/**.ogg` (48 ids), `sounds/sound_definitions.json` | synthesised by `tools/gen_sounds.py`: footsteps per character, door/light/camera/power/breaker/strobe devices, clock chimes, phone, ambience, groan, breathing, kitchen clatter, laughter, music boxes, roar, glitch, four jumpscare screams, finale, ending theme. Freddy's music box plays Bizet's *Toreador March* (public domain); all other melodies are original |
-| Fogs | `fogs/fb_night_{1..6}.json`, `fogs/fb_camera_feed.json` | night fogs get darker and closer each night (`fog @a push fb:night_<n> fb_night`); while the camera monitor is up the clear, faintly green `fb:camera_feed` fog is pushed on top (`fb_cam`) so feeds are not blacked out |
+| Render controllers | `controller.render.fb.animatronic`, `controller.render.fb.eyes`, plus echo controllers with texture arrays | `fb:hidden` hides the whole model (vent crawls) |
+| Sounds | `sounds/fb/**.ogg` (52 ids), `sounds/sound_definitions.json` | **recordings supplied by the map owner** (`art/sounds_incoming/`, converted by `tools/gen_sounds.py`): the animatronic jumpscare and Fredbear's own jumpscare, the storm-door slam (door / hatch closing), the metal door (opening), camera up / down, the looping CCTV hum while the monitor is up, Freddy's laugh (4 cuts), Fredbear's laugh (4 cuts) and the night music. **Synthesised**: footsteps, lights, power, breaker, strobe, clock chimes, phone, ambience, groan, breathing, kitchen clatter, music boxes, roar, glitch, finale, ending theme and the fire of the burn ending. Freddy's music box plays Bizet's *Toreador March* (public domain); all other synthesised melodies are original |
+| Night music | `sounds/fb/night/bgm.ogg` (`fb.night.bgm`, category `music`, `stream: true`) | *PIZZA DINNER* from the FNAF 1 Remake fan-game soundtrack, supplied by the map owner; looped by `playMusic` from 12 AM to 6 AM |
+| Fogs | `fogs/fb_night_{1..7}.json`, `fogs/fb_camera_feed.json`, `fogs/fb_flashback.json`, `fogs/fb_ending_fire.json` | night fogs get darker and closer each night (`fog @a push fb:night_<n> fb_night`); while the camera monitor is up the clear, faintly green `fb:camera_feed` fog is pushed on top (`fb_cam`) so feeds are not blacked out; a sepia fog for the night 4 flashback and an orange smoke fog for the burn ending (`fb_scene`) |
 | Items | `textures/items/fb_{tablet,remote,guide}.png`, `textures/item_texture.json` | 16×16 icons |
 | Text | `texts/en_US.lang`, `texts/languages.json` | entity and item names |
 | Pack icons | `pack_icon.png` in both packs | faces from the supplied skins |
@@ -85,7 +89,23 @@ every file below deterministically.
 ![Model previews](model_previews.png)
 
 The preview sheet is rendered offline by `tools/render_preview.py` from the geometry and textures (front,
-three-quarter, a frame of each character's performance, the threat pose and the attack pose, sampled from the real animation file). It checks UV mapping, accessory placement and that props sit in the hands; **it is not an in-game screenshot**.
+three-quarter, a frame of each character's performance, the threat pose and the attack pose, sampled from the real
+animation file; for Fredbear also his walk, crawl, bow, showman and the three jumpscares, and the echo and shadow). It checks UV mapping, accessory placement and that props sit in the hands; **it is not an in-game screenshot**.
+
+## Time-clock room (lobby) rework
+
+The lobby was rebuilt for 1.2 (`lobbyKit` in `data/kits.js`): a terminal wall with all seven night buttons, CONTINUE and
+FREE ROAM, a **challenge console** with four lamps (lit once a challenge is beaten), a **newspaper board** whose
+button opens the clippings, lockers along the west wall, benches and posters. The rest of the pizzeria is unchanged.
+
+## Seasonal decorations
+
+`tools/gen_holidays.mjs` writes `data/holiday_decor.generated.js`: Halloween (jack-o'-lanterns, pumpkins, cobwebs —
+155 cells) and Christmas (three small trees in the employee room, reception and dining room, presents, lights — 408
+cells). Cells are chosen only where the built map has air and where no camera sight line, route polyline, guide edge,
+input or module needs the space (`forbiddenCells()`). The script places them from the device date (Halloween
+15 Oct – 2 Nov, Christmas 10 Dec – 6 Jan), 48 cells per tick, and removes them again by writing air. Settings can switch
+them off.
 
 ## Regenerating everything
 

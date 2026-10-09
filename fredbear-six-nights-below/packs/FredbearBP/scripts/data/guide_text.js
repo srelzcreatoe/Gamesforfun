@@ -4,7 +4,7 @@
 
 import { CONFIG, TPS } from '../core/config.js';
 import { CAMERAS } from './cameras.js';
-import { TASKS, MAINTENANCE } from './story.js';
+import { TASKS, MAINTENANCE, CLIPPINGS } from './story.js';
 
 const P = CONFIG.power;
 const D = CONFIG.devices;
@@ -22,7 +22,7 @@ const camLines = CAMERAS.map((c) => {
   return `• ${c.label}${notes ? ` §7(${notes})§r` : ''}`;
 });
 
-const nightLines = [1, 2, 3, 4, 5, 6].map((n) => {
+const nightLines = [1, 2, 3, 4, 5, 6, 7].map((n) => {
   const d = N[n];
   return `${H(d.title)}\n${d.mechanic}. Strobe charges: ${d.strobeCharges}. Emergency reserve: ${d.reserve ? 'yes' : 'no'}.`;
 });
@@ -33,9 +33,10 @@ export const GUIDE_SECTIONS = Object.freeze([
     body: [
       `${H('Survive from 12 AM to 6 AM')} in the Security Office. A night lasts ${CONFIG.clock.hours} in-game hours of ${sec(CONFIG.clock.ticksPerHour)} each (${Math.round((CONFIG.clock.hours * CONFIG.clock.ticksPerHour) / TPS / 60)} minutes). If the game lags, the clock slows down with it.`,
       `${H('6 AM always wins')}: the moment the clock reaches 6 AM the night is over, even if an animatronic was about to attack. Only an attack that already started can still end the night.`,
-      `${H('You lose')} if an animatronic gets into the office through an open entry, or if Freddy reaches you after the power runs out.`,
+      `${H('You lose')} if an animatronic gets into the office through an open entry, or if Freddy (Fredbear from night 4) reaches you after the power runs out.`,
       `${H('Every attack is announced')}: before any jumpscare the animatronic stands at an entry for a while (its warning window). If that entry is closed in time, the attack fails.`,
-      'Winning a night unlocks the next one at the time clock. Progress is saved in the world.',
+      'Winning a night unlocks the next one at the time clock. Beating night 6 opens night 7 and the CHALLENGES. Progress is saved in the world.',
+      `${H('Night music')}: "Pizza Dinner" plays from 12 AM to 6 AM in place of Minecraft's own music (other sounds are not affected). It stops when the power goes out. Switch it off or on with the first button of this guide or in SETTINGS; it follows your Music volume slider.`,
       '§7The night keeps running while this guide or any menu is open.§r',
     ].join('\n\n'),
   },
@@ -54,7 +55,7 @@ export const GUIDE_SECTIONS = Object.freeze([
       `You start each night with ${pct(P.start)} power (${pct(P.start + P.taskBonus)} after a power task). The power meter above the console has 10 lamps; the action bar shows the exact % and usage bars.`,
       `${H('Always on')}: ${pctPerSec(P.baseDrain[1])} on nights 1, ${pctPerSec(P.baseDrain[2])} from night 2.`,
       `${H('Extra drain while active')}:\n• each closed door: ${pctPerSec(P.door)}\n• each lit hall light: ${pctPerSec(P.light)}\n• camera monitor up: ${pctPerSec(P.cams)}\n• office hatch sealed: ${pctPerSec(P.hatch)}\n• emergency strobe: ${pct(P.strobeCost)} per shot\n• breaker reset: ${pct(P.breakerResetCost)}`,
-      `${H('At 0%')}: everything switches off and the doors open. From night 3 you then have ${sec(P.reserveWindow)} to pull the EMERGENCY RESERVE lever for one ${pct(P.reserveAmount)} top-up. Otherwise a music box plays at the left door, the lights die, and Freddy comes - unless 6 AM arrives first.`,
+      `${H('At 0%')}: everything switches off and the doors open. From night 3 you then have ${sec(P.reserveWindow)} to pull the EMERGENCY RESERVE lever for one ${pct(P.reserveAmount)} top-up. Otherwise a music box plays at the left door, the lights die, and someone comes - Freddy on nights 1-3, Fredbear (golden eyes in the dark doorway) from night 4 - unless 6 AM arrives first.`,
       'Tip: doing nothing costs little; keeping doors shut all night is what empties the battery.',
     ].join('\n\n'),
   },
@@ -63,7 +64,7 @@ export const GUIDE_SECTIONS = Object.freeze([
     body: [
       `The two red buttons close the LEFT and RIGHT steel doors. A closed door stops Bonnie, Chica and Freddy at that side: if it stays closed while one of them waits there, they give up and leave. It costs ${pctPerSec(P.door)} per door while closed.`,
       `A door can be toggled every ${sec(D.doorDebounce)}. Open doors still keep you inside the office (an invisible barrier); they just do not stop animatronics.`,
-      `Fredbear can force a closed door or the hatch open: it shows as JAMMED (red indicator) for ${sec(D.jamTicks)} and cannot be closed during that time. Use the strobe (see Fredbear).`,
+      `${H('Against Fredbear')}: each door and the hatch can hold him off ONCE per night - he pounds on it, gives up and bows out. The next time he comes to that same door or hatch he forces it open: it shows as JAMMED (red indicator) for ${sec(D.jamTicks)} and cannot be closed during that time. Use the strobe (see Fredbear). At 5 AM on night 6 (the Golden Hour) nothing holds him.`,
       'Door indicator above each door: green = open, yellow = closed, red = being forced or jammed.',
     ].join('\n\n'),
   },
@@ -79,7 +80,8 @@ export const GUIDE_SECTIONS = Object.freeze([
     title: 'Cameras',
     body: [
       `${H('16 security cameras')}, one feed at a time:\n${camLines.join('\n')}`,
-      `${H('Reading the feeds')}:\n• Static and a glitch sound: Fredbear is disrupting the cameras for a few seconds.\n• A purple, scan-lined figure: a false ECHO of Fredbear (night 5+). It is not real and cannot hurt you.\n• "No signal": that camera is not working yet.\n• CAM 10 Kitchen is audio only: you can hear Chica's pots and pans through it.`,
+      `${H('Reading the feeds')}:\n• Static and a glitch sound: Fredbear is disrupting the cameras for a few seconds.\n• A purple, scan-lined figure: a false ECHO of Fredbear (night 5+). It is not real and cannot hurt you.\n• A pitch-black silhouette on the stage (CAM 01 / CAM 02, rare, night 2+): Shadow Fredbear. Do not stare at it - after ${sec(CONFIG.shadow.stareTicks)} of watching it vanishes and takes ${pct(CONFIG.shadow.drain)} of your power with it.\n• "No signal": that camera is not working yet.\n• CAM 10 Kitchen is audio only: you can hear Chica's pots and pans through it.\n• The low electrical hum is the camera system itself.`,
+      `${H('11:55 camera tour')}: before each night the cameras show where everyone starts. Sneak to skip it.`,
       `${H('Cameras matter to the animatronics')}: Freddy cannot move while the feed you watch shows him; Bonnie gets restless if you stare at him; Fredbear disrupts the cameras more often while you watch them. The monitor costs ${pctPerSec(P.cams)}.`,
       'Blind spots: the supply-closet vent and the shaft under the office hatch are not on any camera, and the basement is only partly covered (CAM 15 tunnel, CAM 16 diner). Listen for footsteps, clanks and music boxes.',
     ].join('\n\n'),
@@ -95,8 +97,9 @@ export const GUIDE_SECTIONS = Object.freeze([
   {
     title: 'Emergency strobe',
     body: [
-      `The orange STROBE button fires a blinding flash (${pct(P.strobeCost)} power, ${sec(D.strobeCooldown)} cooldown). Charges per night: ${[4, 5, 6].map((n) => `night ${n}: ${N[n].strobeCharges}`).join(', ')} (the lamps on the panel show what is left).`,
-      `${H('It only works on Fredbear, and only when the entry he is at is CLOSED (or jammed)')}: close that door or hatch first, then strobe. He is driven back to the diner.`,
+      `The orange STROBE button fires a blinding flash (${pct(P.strobeCost)} power, ${sec(D.strobeCooldown)} cooldown). Charges per night: ${[4, 5, 6, 7].map((n) => `night ${n}: ${N[n].strobeCharges}`).join(', ')}, plus ${N[6].fredbear.finale.extraCharges} at 5 AM on night 6 - always a couple more than his attempts, so one miss is not fatal. The lamps on the panel show up to 4; the action bar shows the exact count.`,
+      `${H('It only works on Fredbear, and only when the entry he is at is CLOSED (or jammed)')}: close that door or hatch first, then strobe. He is driven back to the diner, every time.`,
+      `${H('Saving a charge')}: the first time he pounds on a given door or the hatch, it holds by itself and he leaves. You can let that happen instead of strobing - but it only works once per door and per the hatch each night.`,
       `A strobe while that entry is open only stuns him for ${sec(C.fredbear.stunTicks)} (once per attempt). A strobe with nobody there is wasted.`,
     ].join('\n\n'),
   },
@@ -152,17 +155,19 @@ export const GUIDE_SECTIONS = Object.freeze([
       'The brown bear. Slow, patient, and comes to the RIGHT door corner through dark rooms.',
       `${H('Rules')}: he never moves while the camera you are watching shows him. If you ignore him, he gets bolder (+1 aggression for every ${sec(C.freddy.ignoreBonusEvery)} unwatched, up to +${C.freddy.ignoreBonusMax}); looking at him calms him down. A deep laugh means he moved closer.`,
       `${H('At the right corner')} (glowing eyes in the right window):\n• Close the right door for ${sec(C.freddy.repelTicks)} and he leaves.\n• Do NOT use the cameras with the right door open while he is there: after ${sec(C.freddy.slipTicks)} he slips into the office and attacks as soon as you lower the monitor.\n• Leave the door open and he attacks after ${range(C.freddy.patience, 1, 20)}.`,
-      `${H('Power out')}: when the power runs out, Freddy plays a music box at the left door, then everything goes dark, then he attacks - unless 6 AM comes first.`,
+      `${H('Power out')} (nights 1-3): when the power runs out, Freddy plays a music box at the left door, then everything goes dark, then he attacks - unless 6 AM comes first.`,
     ].join('\n\n'),
   },
   {
     title: 'Fredbear',
     body: [
-      `${H('The golden bear')}. Nights 1-3 you may only glimpse him on camera. From night 4 he hunts you: night 4 only through the floor HATCH; nights 5-6 through the left door, the right door or the hatch.`,
+      `${H('The golden bear')}. Nights 1-3 you may only glimpse him on camera. From night 4 he hunts you: night 4 only through the floor HATCH; nights 5-7 through the left door, the right door or the hatch.`,
+      `${H('Early warnings')}: a laugh from somewhere below every time he starts coming for you, and the office lamp flickers while he is right next to the office (faster while he climbs or walks into an entry) - a few seconds before the music box.`,
       `${H('Warning')}: a music box and a golden glow at the entry he chose. You then have ${range(C.fredbear.w1, 5, 20)} to CLOSE THAT ENTRY.`,
-      `${H('Counter')}: entry closed + STROBE = he is repelled back to the diner. If the entry stays closed but you do not strobe, he pounds on it for ${range(C.fredbear.w2, 5, 20)} and then forces it open (JAMMED): you get one last ${sec(C.fredbear.w3)} to strobe him. He never gets through a closed entry without forcing it first.`,
+      `${H('Counter')}: entry closed + STROBE = he is repelled back to the diner. If the entry stays closed but you do not strobe, he pounds on it for ${range(C.fredbear.w2, 5, 20)}. The FIRST time at each door and at the hatch it holds: he bows and leaves. After that (and always in the Golden Hour) he forces it open (JAMMED): you get one last ${sec(C.fredbear.w3)} to strobe him. He never gets through a closed entry without forcing it first.`,
+      `${H('Power out')} (nights 4-7): his golden eyes appear in the dark left doorway with his music box, then darkness, then he attacks - unless 6 AM comes first. The reserve lever still comes first.`,
       `${H('His powers')} (night 4 only the first):\n• Camera disruption: static on every feed for ${sec(FP.disrupt.duration[1])}-${sec(FP.disrupt.duration[3])}.\n• False camera: a purple ECHO of him appears on a camera where he is not, for ${sec(FP.false_cam.duration[2])}.\n• Blackout: an electrical whine, then the office lights and monitor fail for ${sec(FP.blackout.duration[2])}-${sec(FP.blackout.duration[3])}. Doors still work, and the warning windows (Bonnie, Chica, Freddy at the corner, Fredbear's music box) pause until the lights return.\n• Teleport: a chime, a golden shimmer and static on the destination camera warn you ${sec(C.fredbear.relocateWarn)} before he appears somewhere else.`,
-      `${H('Mercy')}: after you repel him ${N[4].fredbear.maxAttempts} / ${N[5].fredbear.maxAttempts} / ${N[6].fredbear.maxAttempts} times (nights 4 / 5 / 6) he stays in the diner for the rest of the night.`,
+      `${H('Mercy')}: after ${N[4].fredbear.maxAttempts} / ${N[5].fredbear.maxAttempts} / ${N[6].fredbear.maxAttempts} / ${N[7].fredbear.maxAttempts} attempts (nights 4 / 5 / 6 / 7; repelled or held) he stays in the diner for the rest of the night.`,
       `${H('Night 6 - The Golden Hour')}: at 5 AM the other three go back to the stage and Fredbear rises again with ${N[6].fredbear.finale.extraAttempts} more attempts; you get ${N[6].fredbear.finale.extraCharges} extra strobe charges.`,
     ].join('\n\n'),
   },
@@ -172,24 +177,36 @@ export const GUIDE_SECTIONS = Object.freeze([
       '• Metallic footsteps (side shown in captions): someone is walking near the office.',
       '• Groan at the left: Bonnie in the corner. Vent clank: Bonnie in the vent.',
       '• Pots and pans: Chica in the kitchen. Breathing at the right: Chica at the door.',
-      '• Deep laughter: Freddy moved closer.',
+      '• Deep laughter (east side): Freddy moved closer.',
+      '• Laughter from below: Fredbear has started coming for you.',
+      '• The office lamp flickering: Fredbear is right next to the office.',
       '• Music box at an entry: Fredbear is there - close it, then strobe.',
-      '• Music box at the left door with no power: Freddy, power out.',
+      '• Music box at the left door with no power: Freddy (nights 1-3) or Fredbear (nights 4-7), power out.',
+      '• A low electrical hum: the camera monitor is up.',
       '• Chime and shimmer: Fredbear is about to teleport.',
       '• Electrical whine: a blackout in 2 seconds. Glitch: camera disruption.',
       '• Door bangs: something is pounding on a closed entry (or just left).',
     ].join('\n'),
   },
   {
-    title: 'The six nights',
-    body: nightLines.join('\n\n'),
+    title: 'The seven nights',
+    body: [...nightLines, `${H('Night 4, the first time')}: before the shift starts you see a memory of 1983 (sneak to skip it).`, `${H('After night 7')}: you decide what happens to the building - seal it forever or burn it down. Each choice has its own ending; the Archive shows which ones you have seen.`].join('\n\n'),
+  },
+  {
+    title: 'Challenges',
+    body: [
+      'Unlocked after beating night 6: press CHALLENGES at the time clock. Each one is a full 12-6 AM night that takes something away and gives something back. A lamp above the button lights up for each one you beat.',
+      ...Object.values(CONFIG.challenges).map((c) => `${H(c.title)}: ${c.text}`),
+    ].join('\n\n'),
   },
   {
     title: 'Lobby, free roam and settings',
     body: [
       `${H('Time clock')}: choose any unlocked night, the TRAINING SHIFT (a safe practice night), CONTINUE, or FREE ROAM.`,
       `${H('Free roam')}: explore the whole building safely - no animatronic moves. 12 secrets are hidden around the map; ARCHIVE & CREDITS lists the ones you found.`,
-      `${H('Settings')}: captions for every sound cue, hints, a fixed seed (the same night plays out the same way every time) and a developer overlay.`,
+      `${H('Settings')}: captions for every sound cue, hints, a fixed seed (the same night plays out the same way every time), a developer overlay, night music on/off and holiday decorations on/off.`,
+      `${H('Newspaper clippings')}: the board on the north wall of the time-clock room. One of ${CLIPPINGS.length} clippings unlocks for every night you survive; press READ CLIPPINGS to read them. Together they tell what happened in 1983.`,
+      `${H('Holidays')}: around Halloween (Oct 15 - Nov 2) and Christmas (Dec 10 - Jan 6, by your device's date) the pizzeria decorates itself: jack o'lanterns and cobwebs, or Christmas trees and string lights.`,
       `${H('Leaving mid-night')}: if you quit during a night, the night is abandoned and you return to the time clock next time. Unlocked nights and secrets are kept.`,
     ].join('\n\n'),
   },

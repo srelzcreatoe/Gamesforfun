@@ -14,10 +14,15 @@
 | `/fb:debug state` | dump game state, bus statistics, heartbeat, puppet counts, session snapshot and the last 8 AI transitions to chat |
 | `/fb:debug puppets` | delete and respawn all puppets |
 | `/fb:debug camtour` | cycle through all 16 camera views (3 s each) |
-| `/fb:debug night <0-6>` | start a night immediately in the office |
+| `/fb:debug night <0-7>` | start a night immediately in the office |
+| `/fb:debug challenge <id>` | start a challenge in the office (`no_doors`, `fredbear_only`, `double_drain`, `no_cams`) |
+| `/fb:debug ending [seal\|burn]` | play the night 7 ending (the choice form, or straight to one ending) |
+| `/fb:debug flashback` | play the night 4 flashback |
+| `/fb:debug holiday [halloween\|christmas]` | place a season's decorations now (no argument removes them); the device date decides again at the next lobby reset |
+| `/fb:debug shadow` | show Shadow Fredbear on the stage now (and at every following hour of this night) |
 | `/fb:debug scenario <name>` | start a repeatable test scenario (seed 4242, see below) |
 | `/fb:debug seed <n>` | deterministic mode with seed *n* for the next nights |
-| `/fb:debug unlock <1-6>` | set the highest unlocked night |
+| `/fb:debug unlock <1-7>` | set the highest unlocked night (7 also marks the campaign complete, unlocking the challenges) |
 | `/fb:debug hour <0-5>` / `skip` | jump to an hour / to the next hour |
 | `/fb:debug power <pct>` | set power |
 | `/fb:debug ai <who> <0-20>` | set an animatronic's aggression |
@@ -52,8 +57,8 @@ module's impulse block and every row's sections; docs/06 lists every block.
 
 ## Self-test (`/fb:debug selftest`)
 
-Nine checks, each PASS/FAIL with evidence: palette resolves; all 30 structures present in the pack; 177 command blocks
-(102 module impulse blocks + 75 inputs) in place; actuator round trip (script → pad → command block → `scriptevent`
+Nine checks, each PASS/FAIL with evidence: palette resolves; all 32 structures present in the pack; 189 command blocks
+(111 module impulse blocks + 78 inputs) in place; actuator round trip (script → pad → command block → `scriptevent`
 back to the script); heartbeat repeating command block reporting; AI routes clear in the built world; camera positions
 in open air; exactly one puppet per animatronic; office, stage, chamber and control-room chunks loaded.
 
@@ -66,12 +71,15 @@ lines are kept in memory and the last 6 appear in `/fb:debug state`.
 
 | Command | What it does |
 |---|---|
-| `npm test` | 49 tests: core simulation (18), command-block structures (6), route guidance (5), integration against the mock runtime (20) |
+| `npm test` | 66 tests: core simulation (24), command-block structures (6), route guidance (5), holiday decorations (3), integration against the mock runtime (28) |
 | `node tools/gen_guide.mjs` | regenerate the player route-guidance graph from the build plan (`scripts/data/guide_graph.generated.js`) |
 | `npm run validate` | palette, map, commands, JSON schemas, asset references, Script API types |
 | `npm run typecheck` | `tsc` over all scripts against `@minecraft/server` 2.10.0 / `server-ui` 2.2.0 |
 | `npm run build` | regenerate everything and package `dist/` |
-| `node tools/balance_sim.mjs` | balance tables (docs/05) |
+| `node tools/balance_sim.mjs` | balance tables for the seven nights and the four challenges (docs/05) |
+| `node tools/gen_holidays.mjs` | regenerate the seasonal decoration cells (`scripts/data/holiday_decor.generated.js`) |
+| `python3 tools/gen_rp.py` | regenerate the resource pack art, including the Fredbear V6 import (`tools/fredbear_v6.py`) and the archive of the old model |
+| `python3 tools/gen_sounds.py` | convert the owner's recordings and music (`art/sounds_incoming/`) and synthesise the other sounds |
 | `node tools/validate_map.mjs` | routes, cameras (voxel ray casts), office seal, walkability, hidden command blocks; writes `tools/out/map_report.json` |
 | `python3 tools/render_preview.py` | offline model preview sheet |
 
@@ -93,6 +101,9 @@ fredbear-six-nights-below/
   packs/FredbearRP/          resource pack: entity, models, animations, controllers, render controllers, textures,
                              sounds, fogs, texts
   art/skins/                 the four supplied skins (source art)
+  art/sounds_incoming/       the owner's sound recordings and night music (source audio)
+  art/models_incoming/       the owner's Fredbear V6 model (zip, source)
+  art/models_archive/        the old Fredbear model, kept outside the game
   tools/                     generators, validators, simulators, packager; tools/ref = official reference data
   tests/                     node:test suites + tests/mock (integration runtime)
   docs/                      this documentation; floor plans; model previews; command-block register (MD + CSV)

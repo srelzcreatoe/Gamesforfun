@@ -1291,7 +1291,7 @@ export class Game {
         });
         return true;
       case 'reset':
-        ui.lobbyConfirm(player, 'Erase progress?', 'This locks nights 2-6 again and clears secrets and settings. It cannot be undone.', 'Erase').then((yes) => {
+        ui.lobbyConfirm(player, 'Erase progress?', 'This locks nights 2-7 again and clears secrets and settings. It cannot be undone.', 'Erase').then((yes) => {
           if (!yes) return;
           eraseSave();
           this.save = defaultSave();
