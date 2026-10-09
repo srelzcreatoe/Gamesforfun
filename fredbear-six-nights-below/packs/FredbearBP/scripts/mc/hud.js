@@ -36,7 +36,7 @@ export class Hud {
   }
 
   /** Build the action bar for a running night. */
-  nightLines(snap, view, now, { captions = true, overlay = null } = {}) {
+  nightLines(snap, view, now, { captions = true, overlay = null, title = undefined } = {}) {
     const lines = [];
     if (snap.devices.camsOpen) {
       const cam = CAMERA_BY_ID[snap.devices.cam];
@@ -50,7 +50,7 @@ export class Hud {
       lines.push(`§e${this.message}`);
     }
     const p = snap.powerPct;
-    let status = `§fNIGHT ${snap.night} §7· §e${hourLabel(snap.hour)} §7· ${powerColor(p)}POWER ${p}% §7USAGE ${usageBar(snap.usage)}`;
+    let status = `§f${title ?? `NIGHT ${snap.night}`} §7· §e${hourLabel(snap.hour)} §7· ${powerColor(p)}POWER ${p}% §7USAGE ${usageBar(snap.usage)}`;
     if (snap.strobe.installed) status += ` §7· §6STROBE ${snap.strobe.charges}${snap.strobe.cooldown > 0 ? '…' : ''}`;
     lines.push(status);
     const warn = [];

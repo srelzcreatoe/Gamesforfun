@@ -133,14 +133,16 @@ export class Puppets {
     }
   }
 
-  // ------------------------------------------------------------ echo (false camera event / foreshadow)
-  showEcho(nodeId) {
+  // ------------------------------------------------------------ echo (false camera event / foreshadow / shadow)
+  /** @param {string} nodeId @param {'echo' | 'shadow'} [kind] shadow = the black stage silhouette (fb:variant 1) */
+  showEcho(nodeId, kind = 'echo') {
     this.hideEcho();
     const n = NODE_BY_ID[nodeId];
     if (!n) return;
     const e = this.spawn('echo', { x: n.x, y: n.y, z: n.z, yaw: n.yaw ?? 0 });
     if (e) {
-      e.setProperty('fb:anim', 'look');
+      e.setProperty('fb:variant', kind === 'shadow' ? 1 : 0);
+      e.setProperty('fb:anim', kind === 'shadow' ? 'idle' : 'look');
       e.setProperty('fb:eyes', true);
       this.echo = e;
     }
@@ -155,15 +157,20 @@ export class Puppets {
     this.echo = undefined;
   }
 
-  /** Place `who` right in front of the player's eyes for a jumpscare. */
-  lunge(who, eye, viewDir, scale) {
+  /**
+   * Place `who` right in front of the player's eyes for a jumpscare.
+   * @param {number} eyeHeight the model's eye height in blocks (already scaled)
+   * @param {number} [variant] Fredbear: which of his jumpscare animations plays (fb:variant)
+   */
+  lunge(who, eye, viewDir, eyeHeight, variant = 0) {
     const e = this.entity(who, homePose(who, 'attack'));
     if (!e) return undefined;
-    const d = 1.15;
-    const pos = { x: eye.x + viewDir.x * d, y: eye.y - 1.55 * scale, z: eye.z + viewDir.z * d };
+    const d = who === 'fredbear' ? 1.7 : 1.15; // the taller Fredbear rig lunges forward in its own animation
+    const pos = { x: eye.x + viewDir.x * d, y: eye.y - eyeHeight, z: eye.z + viewDir.z * d };
     const yaw = (Math.atan2(viewDir.x, -viewDir.z) * 180) / Math.PI;
     try {
       e.teleport(pos, { rotation: { x: 0, y: yaw } });
+      if (who === 'fredbear') e.setProperty('fb:variant', variant);
       e.setProperty('fb:anim', 'attack');
       e.setProperty('fb:eyes', true);
       e.setProperty('fb:hidden', false);
@@ -171,7 +178,7 @@ export class Puppets {
     } catch (err) {
       log.warn(`lunge ${who}: ${err?.message ?? err}`);
     }
-    return { x: pos.x, y: pos.y + 1.55 * scale, z: pos.z };
+    return { x: pos.x, y: pos.y + eyeHeight, z: pos.z };
   }
 
   status() {

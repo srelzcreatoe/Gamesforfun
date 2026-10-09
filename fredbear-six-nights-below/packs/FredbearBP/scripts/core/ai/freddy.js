@@ -64,7 +64,7 @@ export class Freddy extends Animatronic {
     const s = this.s;
     switch (this.state) {
       case 'DORMANT':
-        this.anim = 'perform';
+        this.anim = this.activationTick >= 99999 ? 'dormant' : 'perform'; // powered down for the whole night
         if (s.t >= this.activationTick && this.aggression > 0) this.setState('PATROL', 'activation time reached');
         return;
       case 'PATROL':

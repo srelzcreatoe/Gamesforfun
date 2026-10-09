@@ -22,7 +22,7 @@ export class DoorAttacker extends Animatronic {
     const s = this.s;
     switch (this.state) {
       case 'DORMANT':
-        this.anim = 'perform';
+        this.anim = this.activationTick >= 99999 ? 'dormant' : 'perform'; // powered down for the whole night (night 7)
         if (s.t >= this.activationTick && this.aggression > 0) {
           this.chooseTarget();
           this.setState('PATROL', 'activation time reached');

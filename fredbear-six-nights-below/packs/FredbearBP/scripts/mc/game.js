@@ -1,8 +1,11 @@
 // Global state machine and orchestrator.
 //
 //   BOOT -> UNBUILT -(/fb:setup)-> BUILDING -> LOBBY
-//   LOBBY -> INTRO(n) -> NIGHT(n) -> RESULT(win|lose) -> RESET -> LOBBY | INTRO(n+1) | NIGHT(n) (retry)
-//   NIGHT(6) win -> ENDING -> RESET -> LOBBY
+//   LOBBY -> INTRO(n) [camera tour] -> NIGHT(n) -> RESULT(win|lose) -> RESET -> LOBBY | INTRO(n+1) | NIGHT(n) (retry)
+//   INTRO(4), first time -> FLASHBACK (1983 memory) -> NIGHT(4)
+//   NIGHT(6) win -> ENDING -> RESET -> LOBBY (night 7 and the challenges unlock)
+//   NIGHT(7) win -> ENDING (choice: seal | burn, two final scenes) -> RESET -> LOBBY
+//   LOBBY -> challenge (INTRO/NIGHT on a base night with modifiers) -> RESULT
 //   LOBBY <-> FREE_ROAM ; LOBBY -> TUTORIAL (a NIGHT(0) with the training controller)
 //
 // Ownership: the NightSession owns the clock, power, devices and AI; this
@@ -12,7 +15,7 @@
 
 import { world, system, InputButton, ButtonState, GameMode } from '@minecraft/server';
 import { NightSession } from '../core/session.js';
-import { CONFIG } from '../core/config.js';
+import { CONFIG, LAST_NIGHT } from '../core/config.js';
 import { mixSeed } from '../core/rng.js';
 import { GuideGraph } from '../core/guide_path.js';
 import { ANCHORS, OFFICE_BOUNDS, ROOM_BY_ID, interior } from '../data/layout.js';
@@ -20,7 +23,7 @@ import { CAMERA_BY_ID } from '../data/cameras.js';
 import { NODE_BY_ID } from '../data/nodes.js';
 import { INPUTS, inputCbPos } from '../data/inputs.js';
 import { isKnownInputAction } from '../data/input_actions.js';
-import { PHONE, TASKS, MAINTENANCE, SECRETS, ENDING, TUTORIAL_STEPS } from '../data/story.js';
+import { PHONE, TASKS, MAINTENANCE, SECRETS, ENDING, TUTORIAL_STEPS, FLASHBACK, FINAL_CHOICE } from '../data/story.js';
 import { ActuatorBus } from './actuator_bus.js';
 import { settleTicks } from '../data/actuators.js';
 import { Builder, BUILD_VERSION } from './builder.js';
@@ -30,7 +33,8 @@ import { Audio } from './audio.js';
 import { Hud, hourLabel } from './hud.js';
 import { giveKit, clearKit, ITEMS, ANCHOR_SLOT } from './items.js';
 import * as ui from './ui.js';
-import { loadSave, storeSave, eraseSave, defaultSave, markSession, readSession, clearSession, loadBuild } from './persistence.js';
+import { loadSave, storeSave, eraseSave, defaultSave, markSession, readSession, clearSession, loadBuild, storeHoliday } from './persistence.js';
+import { Holidays, seasonFor } from './holidays.js';
 import { COMMAND_TEMPLATES, fogCommand } from './commands.js';
 import { dim, W, Wv, L, runCmd } from './world_io.js';
 import { log } from './log.js';
@@ -43,7 +47,19 @@ const CB_INPUT = new Map(INPUTS.map((i) => {
 // Ticks the reset command-block chains need before anything else may actuate.
 const RESET_SETTLE = settleTicks('reset.world') + 4;
 const OFFICE_TARGET = 'anchor:officeSeat'; // route-guidance target name (data/guide_graph.generated.js)
-const SCALE = Object.freeze({ freddy: 1.35, bonnie: 1.3, chica: 1.3, fredbear: 1.45 }); // = minecraft:scale in BP entities (validate_assets checks)
+const SCALE = Object.freeze({ freddy: 1.35, bonnie: 1.3, chica: 1.3, fredbear: 1.09 }); // = minecraft:scale in BP entities (validate_assets checks)
+// Eye height of each model at scale 1 (blocks): the jumpscare camera looks here. Fredbear V6 is a taller rig.
+const EYE_HEIGHT = Object.freeze({ freddy: 1.55, bonnie: 1.55, chica: 1.55, fredbear: 2.64 });
+const FREDBEAR_JUMPSCARES = 3; // fb:variant 0-2 picks one of the V6 jumpscares (snap bite, dual lunge, left grab)
+const MUSIC_TRACK = 'fb.night.bgm'; // "Pizza Dinner" (music category: replaces Minecraft's own music while it plays)
+const SHOT = 70; // ticks per cutscene caption
+// Cutscene camera spots (local).
+const SCENES = Object.freeze({
+  dinerStage: { from: { x: 40.5, y: -6.2, z: 61.5 }, to: { x: 40.5, y: -6.6, z: 50.5 } },
+  dinerWall: { from: { x: 73.5, y: -7.4, z: 85.5 }, to: { x: 64.5, y: -8, z: 85.5 } },
+  showStage: { from: { x: 100.5, y: 5, z: 50.5 }, to: { x: 100.5, y: 2, z: 22.5 } },
+  frontLot: { from: { x: 100.5, y: 6, z: 190.5 }, to: { x: 100.5, y: 12, z: 152 } },
+});
 const CAM_HUM_TICKS = 200; // fb.cam.hum restarts every 10 s while the monitor is up (tools/gen_sounds.py HUM_PERIOD)
 const ZONE_ACTUATOR = Object.freeze({ 'zone:cove': 'zone.cove', 'zone:freezer': 'zone.freezer', 'zone:diner': 'zone.diner', 'zone:chamber': 'zone.chamber', 'zone:attic': 'zone.attic', 'zone:basement': 'env.pipes', 'zone:backstage': 'env.distant_music' });
 
@@ -74,6 +90,11 @@ export class Game {
     this.routes = new GuideGraph();
     this.camHum = []; // fb.cam.hum SoundInstances (tickCamHum)
     this.camHumNext = 0;
+    this.musicPlaying = false;
+    this.holidays = new Holidays();
+    this.challenge = null; // { id, title, base, overrides, mods } while a challenge mode runs
+    this.tour = null; // intro camera tour
+    this.flashback = null; // night 4 memory scene
     this.guideLeft = undefined; // blocks left on the current breadcrumb route
     this.outdatedBuild = false; // built by an older pack version: /fb:setup rebuilds
     /** @type {((action: string, player: any) => any) | undefined} */
@@ -142,6 +163,9 @@ export class Game {
         case 'ENDING':
           this.tickEnding(now);
           break;
+        case 'FLASHBACK':
+          this.tickFlashback(now);
+          break;
         default:
       }
     } catch (e) {
@@ -185,13 +209,60 @@ export class Game {
       if (!g) return;
       const text = this.state === 'FREE_ROAM'
         ? '§bFREE ROAM§f - explore safely. Secrets found: ' + `${this.save.secrets.length}/12\n§7Press FREE ROAM at the time clock to return.`
-        : `§eTIME CLOCK§f - choose a night. Unlocked: §a${this.save.unlocked}/6${this.save.campaignDone ? ' §6(campaign complete)' : ''}`;
+        : `§eTIME CLOCK§f - choose a night. Unlocked: §a${this.save.unlocked}/${LAST_NIGHT}${this.save.campaignDone ? ' §6(campaign complete: night 7 and CHALLENGES open)' : ''}`;
       if (!this.hudBusy(now)) g.onScreenDisplay.setActionBar(text);
     }
   }
 
   hudBusy(now) {
     return this.hud.message && now < this.hud.messageUntil;
+  }
+
+  // ================================================================ music
+  musicWanted() {
+    return this.save.settings.music !== false;
+  }
+
+  /** Night music: loops while a shift runs; a music-category track replaces Minecraft's own music. */
+  startMusic() {
+    if (!this.musicWanted() || this.musicPlaying) return;
+    const g = this.guard();
+    if (!g) return;
+    try {
+      g.playMusic(MUSIC_TRACK, { loop: true, fade: 1.5, volume: 0.7 });
+      this.musicPlaying = true;
+    } catch (e) {
+      log.warn(`music: ${e?.message ?? e}`);
+    }
+  }
+
+  stopMusic() {
+    if (!this.musicPlaying) return;
+    this.musicPlaying = false;
+    for (const p of world.getAllPlayers()) {
+      try {
+        p.stopMusic();
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  /** Shift Guide / settings switch. Takes effect immediately during a shift. */
+  toggleMusic(on = !this.musicWanted()) {
+    this.save.settings.music = on;
+    storeSave(this.save);
+    if (!on) this.stopMusic();
+    else if (this.state === 'NIGHT' && this.session && ['RUNNING', 'MAINT'].includes(this.session.phase) && this.night >= 1) this.startMusic();
+  }
+
+  /** Seasonal decorations follow the device date (and the settings switch); only changed outside nights. */
+  syncHolidays() {
+    try {
+      this.holidays.sync(this.save.settings.holidays === false ? null : seasonFor(new Date()));
+    } catch (e) {
+      log.warn(`holidays: ${e?.message ?? e}`);
+    }
   }
 
   hudMessage(text, ticks = 100) {
@@ -212,6 +283,7 @@ export class Game {
     const g = this.guard();
     if (msg === 'done') {
       log.warn(`build complete: ${JSON.stringify(report)}`);
+      storeHoliday(null); // a fresh build has no seasonal decorations yet
       this.fullReset('lobby');
       if (g) {
         g.onScreenDisplay.setTitle('§6FREDBEAR', { fadeInDuration: 10, stayDuration: 60, fadeOutDuration: 20, subtitle: 'SIX NIGHTS BELOW' });
@@ -237,7 +309,12 @@ export class Game {
    * pending events and cooldowns.
    */
   fullReset(target = 'lobby') {
+    this.stopMusic();
+    if (this.tour || this.flashback) runCmd(COMMAND_TEMPLATES.sceneFogPop[0]);
     this.session = null;
+    this.challenge = null;
+    this.tour = null;
+    this.flashback = null;
     this.intro = null;
     this.maint = null;
     this.tutorial = null;
@@ -256,6 +333,7 @@ export class Game {
     this.applyGates();
     runCmd(COMMAND_TEMPLATES.fogPop[0]);
     runCmd(COMMAND_TEMPLATES.camFogPop[0]);
+    runCmd(COMMAND_TEMPLATES.sceneFogPop[0]);
     for (const c of COMMAND_TEMPLATES.hudReset) runCmd(c);
     for (const p of world.getAllPlayers()) {
       restorePlayerView(p);
@@ -276,8 +354,10 @@ export class Game {
       }
     }
     for (let n = 1; n <= this.save.unlocked; n++) this.bus.trigger(`lobby.lamp_${n}`);
+    for (const id of this.save.challenges) this.bus.trigger(`lobby.chal_${id}`);
     this.puppets.sync(null, 'perform');
     this.state = target === 'free_roam' ? 'FREE_ROAM' : target === 'office' ? 'RESET' : 'LOBBY';
+    if (target !== 'office') this.syncHolidays();
   }
 
   /** Diner seal and chamber wall follow campaign progress outside nights. */
@@ -293,7 +373,7 @@ export class Game {
     if (this.state !== 'LOBBY') return this.deny(player, 'Finish what you are doing first.');
     if (n > this.save.unlocked) {
       this.bus.trigger('lobby.deny');
-      return this.deny(player, `Night ${n} is locked. Survive night ${n - 1} first.`);
+      return this.deny(player, n === LAST_NIGHT ? `Night ${n} is locked. Beat night 6 first.` : `Night ${n} is locked. Survive night ${n - 1} first.`);
     }
     this.bus.trigger('lobby.accept');
     this.guardId = player?.id;
@@ -311,22 +391,145 @@ export class Game {
     return false;
   }
 
-  enterIntro(n) {
+  /** @param {number} n @param {{ challenge?: string }} [opts] */
+  enterIntro(n, { challenge } = {}) {
     this.fullReset('lobby');
     this.night = n;
+    this.challenge = challenge ? { id: challenge, ...CONFIG.challenges[challenge] } : null;
     this.state = 'INTRO';
-    const task = TASKS[n];
+    const task = this.challenge ? undefined : TASKS[n];
     this.intro = { started: system.currentTick, task, taskDone: false, deadline: system.currentTick + 20 * 180 };
     this.applyGates(n);
-    this.hudMessage(`11:55 PM - Night ${n}. Walk to the SECURITY OFFICE and press START SHIFT.${task ? ` ${task.text}` : ''}`, 260);
+    const label = this.nightLabel();
+    this.hudMessage(`11:55 PM - ${label}. Walk to the SECURITY OFFICE and press START SHIFT.${task ? ` ${task.text}` : ''}`, 260);
     const g = this.guard();
-    if (g) g.onScreenDisplay.setTitle(`§fNight ${n}`, { fadeInDuration: 10, stayDuration: 50, fadeOutDuration: 20, subtitle: CONFIG.nights[n].title.replace(/^Night \d+ — /, '') });
+    if (g) g.onScreenDisplay.setTitle(`§f${label}`, { fadeInDuration: 10, stayDuration: 50, fadeOutDuration: 20, subtitle: this.challenge ? 'CHALLENGE' : CONFIG.nights[n].title.replace(/^Night \d+ — /, '') });
+    this.startTour(n);
+  }
+
+  /** "Night 4" or the challenge title. */
+  nightLabel() {
+    return this.challenge ? `Challenge: ${this.challenge.title}` : `Night ${this.night}`;
+  }
+
+  /** Rest pose for the stage trio outside a night (powered down before night 7 / the Fredbear-only challenge). */
+  restAnim() {
+    return this.night === LAST_NIGHT || this.challenge?.id === 'fredbear_only' ? 'dormant' : 'perform';
+  }
+
+  // ---------------------------------------------------------------- intro camera tour
+  /** 11:55 tour through the cameras that show where everyone starts (sneak skips). */
+  startTour(n) {
+    const g = this.guard();
+    if (!g) return;
+    const shots = [['C01', 60], ['C07', 34], ['C12', 34]];
+    if (n >= 4) shots.push(['C16', 50]);
+    this.tour = { shots, i: 0, next: system.currentTick + 20 };
+    this.intro.deadline += shots.reduce((a, [, t]) => a + t, 20);
+  }
+
+  tickTour(now, g) {
+    const t = this.tour;
+    if (now < t.next) return;
+    if (t.i >= t.shots.length) return this.endTour();
+    const [cam, ticks] = t.shots[t.i];
+    try {
+      if (t.i === 0) this.cams.open(g, cam);
+      else this.cams.show(cam);
+      const c = CAMERA_BY_ID[cam];
+      g.onScreenDisplay.setTitle(' ', { fadeInDuration: 0, stayDuration: ticks, fadeOutDuration: 5, subtitle: `§7${c.label}${t.i === 0 ? ' · §fsneak to skip' : ''}` });
+    } catch (e) {
+      log.warn(`tour: ${e?.message ?? e}`);
+    }
+    t.i++;
+    t.next = now + ticks;
+  }
+
+  endTour() {
+    if (!this.tour) return;
+    this.tour = null;
+    this.cams.close();
+    const g = this.guard();
+    try {
+      g?.onScreenDisplay.setTitle(' ', { fadeInDuration: 0, stayDuration: 1, fadeOutDuration: 0 });
+    } catch {
+      // ignore
+    }
+  }
+
+  // ---------------------------------------------------------------- night 4 flashback
+  /** First night 4 only: a short memory of 1983 on the old diner stage, then the shift starts. */
+  startFlashback() {
+    const g = this.guard();
+    if (!g) return this.beginNight(this.night, { teleport: true });
+    this.endTour();
+    this.state = 'FLASHBACK';
+    this.flashback = { step: 0, next: system.currentTick + 10 };
+    this.save.flashbackSeen = true;
+    storeSave(this.save);
+    runCmd(COMMAND_TEMPLATES.sceneFogFlashback[0]);
+    try {
+      g.addEffect('night_vision', 20 * 60, { amplifier: 0, showParticles: false });
+      const n = NODE_BY_ID.DINER_STAGE;
+      this.puppets.apply('fredbear', { x: n.x, y: n.y, z: n.z, yaw: n.yaw ?? 0, anim: 'perform', eyes: false, hidden: false });
+      g.camera.setCamera('minecraft:free', { location: Wv(SCENES.dinerStage.from), facingLocation: Wv(SCENES.dinerStage.to) });
+    } catch (e) {
+      log.warn(`flashback: ${e?.message ?? e}`);
+    }
+    this.audio.play({ id: 'fb.fredbear.musicbox', at: 'player', vol: 0.5, loopKey: 'flashback' }, g);
+    return true;
+  }
+
+  tickFlashback(now) {
+    const f = this.flashback;
+    const g = this.guard();
+    if (!f || !g || now < f.next) return;
+    if (f.step >= FLASHBACK.length) return this.endFlashback();
+    const [title, sub] = FLASHBACK[f.step];
+    try {
+      if (f.step === FLASHBACK.length - 2) this.audio.stop('flashback');
+      if (f.step === FLASHBACK.length - 1) {
+        const n = NODE_BY_ID.DINER_STAGE;
+        this.puppets.apply('fredbear', { x: n.x, y: n.y, z: n.z, yaw: n.yaw ?? 0, anim: 'threat', eyes: true, hidden: false });
+        g.playSound('fb.fredbear.laugh', { volume: 1.0 });
+      }
+      g.onScreenDisplay.setTitle(title, { fadeInDuration: 10, stayDuration: SHOT - 20, fadeOutDuration: 10, subtitle: sub });
+    } catch (e) {
+      log.warn(`flashback shot ${f.step}: ${e?.message ?? e}`);
+    }
+    f.step++;
+    f.next = now + SHOT;
+  }
+
+  endFlashback() {
+    const g = this.guard();
+    this.flashback = null;
+    this.audio.stop('flashback');
+    runCmd(COMMAND_TEMPLATES.sceneFogPop[0]);
+    if (g) {
+      restorePlayerView(g);
+      try {
+        g.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0.1, holdTime: 0.6, fadeOutTime: 0.6 } });
+      } catch {
+        // ignore
+      }
+    }
+    this.state = 'INTRO';
+    this.beginNight(this.night, { teleport: true });
+  }
+
+  /** Start the shift (START SHIFT or the intro deadline); night 4 shows the flashback the first time. */
+  startShift() {
+    this.endTour();
+    if (this.night === 4 && !this.challenge && !this.save.flashbackSeen) return this.startFlashback();
+    return this.beginNight(this.night, { teleport: true });
   }
 
   tickIntro(now) {
-    if (now % 20 === 0) this.puppets.sync(null, 'perform');
+    if (now % 20 === 0) this.puppets.sync(null, this.restAnim());
     const g = this.guard();
     if (!g) return;
+    if (this.tour) return this.tickTour(now, g);
     const toTask = this.intro.task && !this.intro.taskDone;
     if (now % 10 === 0) this.guideLeft = this.guideTo(g, toTask ? this.targetFor(this.intro.task.action) : OFFICE_TARGET);
     if (now % 40 === 0 && !this.hudBusy(now)) {
@@ -336,7 +539,7 @@ export class Game {
     }
     if (now >= this.intro.deadline) {
       this.hudMessage('Midnight. Your shift has started.', 80);
-      this.beginNight(this.night, { teleport: true });
+      this.startShift();
     }
   }
 
@@ -367,20 +570,22 @@ export class Game {
   beginNight(n, { teleport = false, overrides = {}, options = {}, scenario = null } = {}) {
     const g = this.guard();
     if (!g) return;
+    this.endTour();
     this.night = n;
     const s = this.save.settings;
     const seed = s.deterministic ? s.seed : mixSeed(system.currentTick, Math.floor(Math.random() * 0xffffffff));
+    const ch = this.challenge;
     this.session = new NightSession({
       night: n,
       seed,
-      overrides,
-      options: { captions: s.captions, taskBonusPower: this.taskBonus.power, bonusCharges: this.taskBonus.charge ? 1 : 0, ...options },
+      overrides: ch ? { ...ch.overrides, ...overrides } : overrides,
+      options: { captions: s.captions, taskBonusPower: this.taskBonus.power, bonusCharges: this.taskBonus.charge ? 1 : 0, ...(ch ? { mods: ch.mods } : {}), ...options },
     });
     this.seed = seed;
-    markSession({ active: true, night: n, seed });
+    markSession({ active: true, night: n, seed, challenge: ch?.id });
     this.state = 'NIGHT';
     this.maint = null;
-    this.timers.phone = { lines: PHONE[n] ?? [], i: 0, next: system.currentTick + 40 };
+    this.timers.phone = { lines: ch ? [ch.text] : PHONE[n] ?? [], i: 0, next: system.currentTick + 40 };
     for (const id of ['init.policy', 'init.time', 'night.begin', 'sig.stage_lights_off', 'pwr.meter_full', `pwr.charges_${Math.min(4, this.session.strobe.charges)}`, 'env.phone_ring']) this.bus.trigger(id);
     this.applyGates(n);
     if (n >= 1) runCmd(fogCommand(n));
@@ -394,7 +599,8 @@ export class Game {
     this.lastPowerSeg = 10;
     this.lastCharges = this.session.strobe.charges;
     if (scenario) scenario(this.session);
-    log.info(`night ${n} started, seed ${seed}`);
+    if (n >= 1) this.startMusic();
+    log.info(`night ${n} started, seed ${seed}${ch ? `, challenge ${ch.id}` : ''}`);
   }
 
   inOffice(p) {
@@ -461,7 +667,7 @@ export class Game {
       g.onScreenDisplay.setActionBar(`§e${m.title}§f - ${this.maint.done ? 'Done. Return to the office and press START/RESUME.' : m.hint ?? m.text}\n§7Clock paused · animatronics offline${route}`);
       return;
     }
-    g.onScreenDisplay.setActionBar(this.hud.nightLines(snap, view, now, { captions: this.save.settings.captions, overlay }));
+    g.onScreenDisplay.setActionBar(this.hud.nightLines(snap, view, now, { captions: this.save.settings.captions || !!snap.mods.captions, overlay, title: this.challenge?.title.toUpperCase() }));
   }
 
   tickPhone(now, g) {
@@ -546,10 +752,13 @@ export class Game {
       case 'disrupt':
         if (f.on) this.bus.trigger('cam.server_fault');
         break;
+      case 'held':
+        this.hud.setMessage(`The ${s.entryLabel(f.entry)} held - it won't hold him again tonight.`, system.currentTick, 80);
+        break;
       case 'echo':
         if (f.on) {
           this.echo = { cam: f.cam, node: f.node, kind: f.kind };
-          this.puppets.showEcho(f.node);
+          this.puppets.showEcho(f.node, f.kind === 'shadow' ? 'shadow' : 'echo');
           if (f.kind === 'false' && this.cams.active && this.cams.cam === f.cam) g.playSound('fb.fredbear.chime', { volume: 0.5, pitch: 0.7 });
         } else {
           this.echo = null;
@@ -570,7 +779,10 @@ export class Game {
         if (f.stage === 'on') g.onScreenDisplay.setTitle(' ', { fadeInDuration: 0, stayDuration: 20, fadeOutDuration: 10, subtitle: '§8the lights are out' });
         break;
       case 'power_out':
-        if (f.stage === 'down') g.onScreenDisplay.setTitle('§cPOWER OUT', { fadeInDuration: 0, stayDuration: 40, fadeOutDuration: 20 });
+        if (f.stage === 'down') {
+          this.stopMusic();
+          g.onScreenDisplay.setTitle('§cPOWER OUT', { fadeInDuration: 0, stayDuration: 40, fadeOutDuration: 20 });
+        } else if (f.stage === 'restored') this.startMusic();
         break;
       case 'repel':
         this.hud.setMessage('Fredbear repelled!', system.currentTick, 60);
@@ -579,6 +791,7 @@ export class Game {
         g.onScreenDisplay.setTitle('§6THE GOLDEN HOUR', { fadeInDuration: 10, stayDuration: 60, fadeOutDuration: 20, subtitle: 'the others are withdrawing' });
         break;
       case 'jumpscare':
+        this.stopMusic();
         this.jumpscare(f.who, g);
         break;
       case 'tutorial_fail':
@@ -621,7 +834,8 @@ export class Game {
       const eye = g.getHeadLocation();
       const dir = g.getViewDirection();
       const flat = Math.hypot(dir.x, dir.z) || 1;
-      const head = this.puppets.lunge(who, eye, { x: dir.x / flat, y: 0, z: dir.z / flat }, SCALE[who] ?? 1.2);
+      const variant = who === 'fredbear' ? Math.floor(Math.random() * FREDBEAR_JUMPSCARES) : 0;
+      const head = this.puppets.lunge(who, eye, { x: dir.x / flat, y: 0, z: dir.z / flat }, (EYE_HEIGHT[who] ?? 1.55) * (SCALE[who] ?? 1.2), variant);
       if (head) g.camera.setCamera('minecraft:free', { location: eye, facingLocation: head });
     } catch (e) {
       log.warn(`jumpscare camera: ${e?.message ?? e}`);
@@ -630,36 +844,43 @@ export class Game {
 
   onWin(g) {
     const n = this.night;
+    const ch = this.challenge;
     clearSession();
+    this.stopMusic();
     this.cams.close();
     this.bus.trigger('win.six_am');
     this.bus.trigger('night.end');
     runCmd(COMMAND_TEMPLATES.fogPop[0]);
-    g.onScreenDisplay.setTitle('§f6 AM', { fadeInDuration: 10, stayDuration: 80, fadeOutDuration: 20, subtitle: n === 0 ? 'Training complete' : `Night ${n} complete` });
-    if (n >= 1) {
+    g.onScreenDisplay.setTitle('§f6 AM', { fadeInDuration: 10, stayDuration: 80, fadeOutDuration: 20, subtitle: n === 0 ? 'Training complete' : `${this.nightLabel()} complete` });
+    if (ch) {
+      if (!this.save.challenges.includes(ch.id)) this.save.challenges.push(ch.id);
+      this.save.stats.wins++;
+      storeSave(this.save);
+    } else if (n >= 1) {
       if (!this.save.completed.includes(n)) this.save.completed.push(n);
-      this.save.unlocked = Math.max(this.save.unlocked, Math.min(6, n + 1));
+      this.save.unlocked = Math.max(this.save.unlocked, Math.min(LAST_NIGHT, n + 1));
       this.save.stats.wins++;
       if (n === 6) this.save.campaignDone = true;
       storeSave(this.save);
     }
     this.state = 'RESULT';
-    this.result = { won: true, night: n, at: system.currentTick + 140 };
+    this.result = { won: true, night: n, challenge: ch?.id, at: system.currentTick + 140 };
   }
 
   onLose(who, g) {
     clearSession();
+    this.stopMusic();
     this.save.stats.deaths++;
     storeSave(this.save);
     this.bus.trigger('lose.static');
     try {
       g.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0.2, holdTime: 2.5, fadeOutTime: 0.5 } });
-      g.onScreenDisplay.setTitle('§4GAME OVER', { fadeInDuration: 5, stayDuration: 60, fadeOutDuration: 20, subtitle: `Night ${this.night} · ${hourLabel(this.session?.hour ?? 0)}` });
+      g.onScreenDisplay.setTitle('§4GAME OVER', { fadeInDuration: 5, stayDuration: 60, fadeOutDuration: 20, subtitle: `${this.nightLabel()} · ${hourLabel(this.session?.hour ?? 0)}` });
     } catch {
       // ignore
     }
     this.state = 'RESULT';
-    this.result = { won: false, night: this.night, at: system.currentTick + 70 };
+    this.result = { won: false, night: this.night, challenge: this.challenge?.id, at: system.currentTick + 70 };
   }
 
   tickResult(now) {
@@ -668,8 +889,12 @@ export class Game {
     r.asked = true;
     const g = this.guard();
     for (const p of world.getAllPlayers()) restorePlayerView(p);
-    if (r.won && r.night === 6) {
+    if (r.won && !r.challenge && r.night === 6) {
       this.startEnding();
+      return;
+    }
+    if (r.won && !r.challenge && r.night === LAST_NIGHT) {
+      this.startFinalEnding();
       return;
     }
     if (r.night === 0) {
@@ -678,7 +903,8 @@ export class Game {
     }
     this.fullReset(r.won ? 'lobby' : 'office');
     if (!g) return;
-    ui.resultForm(g, { won: r.won, night: r.night, canNext: r.won && r.night < 6 }).then((choice) => {
+    const label = r.challenge ? `Challenge: ${CONFIG.challenges[r.challenge].title}` : `Night ${r.night}`;
+    ui.resultForm(g, { won: r.won, night: r.night, label, canNext: r.won && !r.challenge && r.night < 6 }).then((choice) => {
       if (choice === 'next') {
         this.state = 'LOBBY';
         this.enterIntro(r.night + 1);
@@ -686,7 +912,10 @@ export class Game {
         // Immediate retry: straight into the office, shift starts in 3 s.
         this.fullReset('office');
         this.state = 'RESET';
-        system.runTimeout(() => this.beginNight(r.night, { teleport: true }), 60);
+        system.runTimeout(() => {
+          this.challenge = r.challenge ? { id: r.challenge, ...CONFIG.challenges[r.challenge] } : null;
+          this.beginNight(r.night, { teleport: true });
+        }, 60);
       } else {
         this.fullReset('lobby');
       }
@@ -725,7 +954,9 @@ export class Game {
   tickEnding(now) {
     const e = this.ending;
     const g = this.guard();
-    if (!g || now < e.next) return;
+    if (!g || !e) return;
+    if (e.kind === 'final') return this.tickFinalEnding(now, g);
+    if (now < e.next) return;
     const ch = NODE_BY_ID.CHAMBER_F;
     const shots = [
       () => {
@@ -750,6 +981,7 @@ export class Game {
       () => {
         restorePlayerView(g);
         this.fullReset('lobby');
+        this.hudMessage('NIGHT 7 and the CHALLENGES are now open at the time clock.', 200);
         ui.extrasForm(g, this.save);
       },
     ];
@@ -761,6 +993,116 @@ export class Game {
     }
     e.step++;
     e.next = now + 140;
+  }
+
+  // ---------------------------------------------------------------- night 7 ending (the player's choice)
+  startFinalEnding() {
+    this.fullReset('lobby');
+    this.state = 'ENDING';
+    this.ending = { kind: 'final', choice: null, step: 0, next: Infinity };
+    const g = this.guard();
+    if (!g) return;
+    try {
+      g.camera.setCamera('minecraft:free', { location: Wv(SCENES.frontLot.from), facingLocation: Wv(SCENES.frontLot.to) });
+    } catch {
+      // ignore
+    }
+    ui.finalChoiceForm(g).then((choice) => {
+      if (!this.ending || this.ending.kind !== 'final') return;
+      this.ending.choice = choice;
+      this.ending.next = system.currentTick + 10;
+      if (!this.save.endings.includes(choice)) this.save.endings.push(choice);
+      if (!this.save.completed.includes(LAST_NIGHT)) this.save.completed.push(LAST_NIGHT);
+      storeSave(this.save);
+    });
+  }
+
+  tickFinalEnding(now, g) {
+    const e = this.ending;
+    if (!e.choice) return;
+    if (e.choice === 'burn' && e.step >= 1 && e.step <= 5 && now % 2 === 0) this.fireFx(e.step - 1);
+    if (now < e.next) return;
+    const lines = FINAL_CHOICE[e.choice].lines;
+    const camAt = (sc) => g.camera.setCamera('minecraft:free', { location: Wv(SCENES[sc].from), facingLocation: Wv(SCENES[sc].to) });
+    const n = NODE_BY_ID.DINER_STAGE;
+    const fredbear = (anim, eyes, hidden = false) => this.puppets.apply('fredbear', { x: n.x, y: n.y, z: n.z, yaw: n.yaw ?? 0, anim, eyes, hidden });
+    try {
+      if (e.step < lines.length) {
+        const [title, sub] = lines[e.step];
+        if (e.choice === 'seal') {
+          if (e.step === 0) {
+            this.bus.trigger('sig.diner_unseal');
+            camAt('dinerWall');
+            system.runTimeout(() => this.bus.trigger('sig.diner_seal'), 30);
+            system.runTimeout(() => g.playSound('fb.door.close', { volume: 1 }), 31);
+          } else if (e.step === 1) {
+            camAt('dinerStage');
+            fredbear('dormant', true);
+            this.audio.play({ id: 'fb.fredbear.musicbox', at: 'player', vol: 0.6, loopKey: 'final' }, g);
+            system.runTimeout(() => this.audio.stop('final'), 50);
+          } else if (e.step === 2) {
+            camAt('frontLot');
+          } else if (e.step === 3) {
+            camAt('dinerStage');
+            fredbear('dormant', true);
+            system.runTimeout(() => fredbear('dormant', false), 45);
+          } else camAt('frontLot');
+        } else {
+          if (e.step === 0) {
+            camAt('dinerStage');
+            fredbear('idle', true);
+            runCmd(COMMAND_TEMPLATES.sceneFogFire[0]);
+            g.playSound('fb.ending.fire', { volume: 0.6 });
+          } else if (e.step === 1) {
+            camAt('showStage');
+            g.playSound('fb.ending.fire', { volume: 1 });
+          } else if (e.step === 2) {
+            camAt('dinerStage');
+            fredbear('threat', true);
+            this.audio.play({ id: 'fb.fredbear.musicbox', at: 'player', vol: 0.8, pitch: 1.5, loopKey: 'final' }, g);
+            system.runTimeout(() => {
+              this.audio.stop('final');
+              fredbear('dormant', false, true);
+            }, 60);
+          } else if (e.step === 3) {
+            runCmd(COMMAND_TEMPLATES.sunrise[0]);
+            camAt('frontLot');
+            g.playSound('fb.ending.fire', { volume: 0.8 });
+          } else camAt('frontLot');
+        }
+        g.onScreenDisplay.setTitle(title, { fadeInDuration: 10, stayDuration: 110, fadeOutDuration: 10, subtitle: sub });
+      } else if (e.step === lines.length) {
+        this.bus.trigger('win.campaign');
+        g.onScreenDisplay.setTitle('§lTHE END', { fadeInDuration: 10, stayDuration: 110, fadeOutDuration: 10, subtitle: ENDING[5] });
+      } else {
+        this.audio.stop('final');
+        restorePlayerView(g);
+        this.fullReset('lobby');
+        ui.extrasForm(g, this.save);
+        return;
+      }
+    } catch (err) {
+      log.warn(`final ending ${e.choice} ${e.step}: ${err?.message ?? err}`);
+    }
+    e.step++;
+    e.next = now + 140;
+  }
+
+  /** Burn ending: particles only (no real fire, the map is never damaged). `shot` = caption being shown. */
+  fireFx(shot) {
+    // [x, y, z, half-width, height] (local)
+    const spots = shot === 1 ? [[100, 1, 27, 16, 5]] : shot >= 3 ? [[100, 0, 153.5, 40, 13], [100, 13, 150, 40, 3]] : [[40.5, -8, 51.5, 3, shot === 2 ? 4 : 2]];
+    try {
+      for (const [cx, cy, cz, w, h] of spots) {
+        for (let k = 0; k < 4; k++) {
+          const p = { x: cx + (Math.random() - 0.5) * 2 * w, y: cy + Math.random() * h, z: cz + (Math.random() - 0.5) * 3 };
+          dim().spawnParticle(k % 2 ? 'minecraft:basic_flame_particle' : 'minecraft:mobflame_single', Wv(p));
+          if (k === 0) dim().spawnParticle('minecraft:campfire_tall_smoke_particle', Wv({ x: p.x, y: p.y + 1, z: p.z }));
+        }
+      }
+    } catch {
+      // unloaded: skip this frame
+    }
   }
 
   // ================================================================ tutorial
@@ -879,7 +1221,7 @@ export class Game {
     if (kind === 'maint') return this.onMaint(action, player);
     // ----- office / night controls
     if (action === 'start_shift') {
-      if (this.state === 'INTRO' && player && this.inOffice(player)) return this.beginNight(this.night);
+      if (this.state === 'INTRO' && player && this.inOffice(player)) return this.startShift();
       if (this.state === 'NIGHT' && s?.phase === 'MAINT') {
         if (!this.maint?.done) return this.deny(player, 'Finish the maintenance task first.');
         if (!this.inOffice(player)) return this.deny(player, 'Be in the office to resume.');
@@ -923,10 +1265,27 @@ export class Game {
           this.save.settings = { ...this.save.settings, ...v };
           this.overlay = v.debugOverlay;
           storeSave(this.save);
+          if (!v.music) this.stopMusic();
+          if (this.state === 'LOBBY' || this.state === 'FREE_ROAM') this.syncHolidays();
         });
         return true;
       case 'extras':
         ui.extrasForm(player, this.save);
+        return true;
+      case 'clippings':
+        ui.clippingsForm(player, this.save);
+        return true;
+      case 'challenges':
+        if (!this.save.campaignDone) {
+          this.bus.trigger('lobby.deny');
+          return this.deny(player, 'Beat night 6 to unlock the challenges.');
+        }
+        ui.challengeForm(player, this.save).then((id) => {
+          if (!id || this.state !== 'LOBBY') return;
+          this.bus.trigger('lobby.accept');
+          this.guardId = player?.id;
+          this.enterIntro(CONFIG.challenges[id].base, { challenge: id });
+        });
         return true;
       case 'reset':
         ui.lobbyConfirm(player, 'Erase progress?', 'This locks nights 2-6 again and clears secrets and settings. It cannot be undone.', 'Erase').then((yes) => {
@@ -1000,9 +1359,10 @@ export class Game {
   onItemUse(player, typeId) {
     if (!player || !typeId) return;
     const s = this.session;
-    if (typeId === ITEMS.guide) return void ui.guide(player);
+    const guideHooks = { music: () => this.musicWanted(), toggleMusic: () => this.toggleMusic() };
+    if (typeId === ITEMS.guide) return void ui.guide(player, guideHooks);
     if (typeId === ITEMS.tablet) {
-      if (this.state !== 'NIGHT' || !s) return void ui.guide(player);
+      if (this.state !== 'NIGHT' || !s) return void ui.guide(player, guideHooks);
       if (s.devices.cams.open) {
         ui.cameraMenu(player, s.snapshot()).then((c) => {
           if (!c || !this.session) return;
@@ -1021,7 +1381,10 @@ export class Game {
   }
 
   onSneak(player) {
-    if (this.state === 'NIGHT' && this.session?.devices.cams.open && player.id === this.guard()?.id) this.session.input('cams_close');
+    if (player.id !== this.guard()?.id) return;
+    if (this.tour) return void this.endTour();
+    if (this.state === 'FLASHBACK') return void this.endFlashback();
+    if (this.state === 'NIGHT' && this.session?.devices.cams.open) this.session.input('cams_close');
   }
 
   onHotbar(player, prev, next) {

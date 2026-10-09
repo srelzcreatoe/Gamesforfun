@@ -89,7 +89,13 @@ export const PALETTE = Object.freeze({
   packed_ice: B('packed_ice'), blue_ice: B('blue_ice'), snow: B('snow'),
   gold: B('gold_block'), raw_gold: B('raw_gold_block'), gilded: B('gilded_blackstone'), crying_obsidian: B('crying_obsidian'),
   amethyst: B('amethyst_block'), purpur: B('purpur_block'),
-  oak_leaves: B('oak_leaves', { persistent_bit: true, update_bit: false }), dark_oak_log_x: B('dark_oak_log', { pillar_axis: 'x' }),
+  oak_leaves: B('oak_leaves', { persistent_bit: true, update_bit: false }),
+  // seasonal decorations (data/holiday_decor.generated.js, mc/holidays.js)
+  jack_north: B('lit_pumpkin', { 'minecraft:cardinal_direction': 'north' }), jack_south: B('lit_pumpkin', { 'minecraft:cardinal_direction': 'south' }),
+  jack_east: B('lit_pumpkin', { 'minecraft:cardinal_direction': 'east' }), jack_west: B('lit_pumpkin', { 'minecraft:cardinal_direction': 'west' }),
+  pumpkin: B('pumpkin', { 'minecraft:cardinal_direction': 'south' }),
+  spruce_leaves: B('spruce_leaves', { persistent_bit: true, update_bit: false }), spruce_log: B('spruce_log', { pillar_axis: 'y' }),
+  green_wool: B('green_wool'), dark_oak_log_x: B('dark_oak_log', { pillar_axis: 'x' }),
   deadbush: B('deadbush'), brewing_stand: B('brewing_stand', { brewing_stand_slot_a_bit: false, brewing_stand_slot_b_bit: false, brewing_stand_slot_c_bit: false }),
   // carpets & wool
   white_carpet: B('white_carpet'), red_carpet: B('red_carpet'), black_carpet: B('black_carpet'), purple_carpet: B('purple_carpet'),

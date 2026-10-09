@@ -19,10 +19,12 @@ import { restorePlayerView } from './camera_view.js';
 import { resolveStructureId } from './builder.js';
 import * as ui from './ui.js';
 import { log, setVerbose } from './log.js';
+import { CONFIG, LAST_NIGHT } from '../core/config.js';
 
 const HELP = [
   'lobby | overlay | selftest | graph | state | puppets | camtour',
-  'night <0-6> | hour <0-5> | power <pct> | seed <n> | unlock <1-6>',
+  'night <0-7> | hour <0-5> | power <pct> | seed <n> | unlock <1-7>',
+  'challenge <no_doors|fredbear_only|double_drain|no_cams> | ending <seal|burn> | flashback | holiday <halloween|christmas|none> | shadow',
   'ai <who> <0-20> | place <who> <node> | approach <who> <L|R|H>',
   'scenario <slice|boundary|power_zero|double|freddy|fredbear_hatch|fredbear_left|blackout|finale>',
   'win | lose | maint | skip | verbose',
@@ -166,7 +168,36 @@ export function handleDebug(game, action, a1, a2, player) {
     case 'night':
       game.guardId = player?.id ?? game.guardId;
       game.fullReset('office');
-      return game.beginNight(Math.max(0, Math.min(6, num(a1, 1))), { teleport: true });
+      return game.beginNight(Math.max(0, Math.min(LAST_NIGHT, num(a1, 1))), { teleport: true });
+    case 'challenge': {
+      const c = CONFIG.challenges[a1];
+      if (!c) return say(player, `challenges: ${Object.keys(CONFIG.challenges).join(', ')}`);
+      game.guardId = player?.id ?? game.guardId;
+      game.fullReset('office');
+      game.challenge = { id: a1, ...c };
+      game.beginNight(c.base, { teleport: true });
+      return say(player, `challenge ${c.title}`);
+    }
+    case 'ending':
+      game.guardId = player?.id ?? game.guardId;
+      game.startFinalEnding();
+      if (a1 === 'seal' || a1 === 'burn') {
+        game.ending.choice = a1;
+        game.ending.next = system.currentTick + 10;
+      }
+      return say(player, 'night 7 ending');
+    case 'flashback':
+      game.guardId = player?.id ?? game.guardId;
+      game.fullReset('lobby');
+      game.night = 4;
+      game.state = 'INTRO';
+      game.intro = { started: system.currentTick, task: undefined, taskDone: false, deadline: system.currentTick + 6000 };
+      game.applyGates(4);
+      game.startFlashback();
+      return say(player, 'night 4 flashback');
+    case 'holiday':
+      game.holidays.sync(a1 === 'halloween' || a1 === 'christmas' ? a1 : null);
+      return say(player, `holiday decorations: ${a1 ?? 'none'} (the device date decides again at the next lobby visit)`);
     case 'scenario': {
       const sc = SCENARIOS[a1];
       if (!sc) return say(player, `scenarios: ${Object.keys(SCENARIOS).join(', ')}`);
@@ -183,7 +214,8 @@ export function handleDebug(game, action, a1, a2, player) {
       storeSave(game.save);
       return say(player, `deterministic seed ${game.save.settings.seed} (next night)`);
     case 'unlock':
-      game.save.unlocked = Math.max(1, Math.min(6, num(a1, 6)));
+      game.save.unlocked = Math.max(1, Math.min(LAST_NIGHT, num(a1, 6)));
+      if (game.save.unlocked === LAST_NIGHT) game.save.campaignDone = true;
       storeSave(game.save);
       return say(player, `unlocked up to night ${game.save.unlocked}`);
     default:
@@ -218,6 +250,10 @@ export function handleDebug(game, action, a1, a2, player) {
     case 'maint':
       if (s.phase === 'RUNNING') s.beginMaintenance(a1 === 'electrical' ? 'electrical' : 'generator');
       return undefined;
+    case 'shadow':
+      s.shadowRng = { chance: () => true };
+      s.maybeShadow(Math.max(1, s.hour));
+      return say(player, 'shadow Fredbear on the stage (CAM 01)');
     default:
       return say(player, `unknown debug action '${action}'. ${HELP}`);
   }
