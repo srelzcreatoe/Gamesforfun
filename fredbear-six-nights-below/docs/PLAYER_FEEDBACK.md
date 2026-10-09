@@ -31,14 +31,13 @@ The original files are saved untouched in `art/sounds_incoming/`.
 |---|---|---|---|
 | `Jumpscare_animatronics.mp3` | 2.8 s | Freddy, Bonnie and Chica jumpscares | `fb.js.freddy`, `fb.js.bonnie`, `fb.js.chica` |
 | `fredbearboi.mp3` | 3.3 s | Fredbear's jumpscare | `fb.js.fredbear` |
-| `161190__volivieri__storm-door-slam-01.wav` | 4.9 s (slam, long tail) | doors and hatch (open / close) | `fb.door.close` / `fb.door.open` (doors and hatch both use these) |
-| `75826__analog-bleep-ten__metal-door.wav` | 1.25 s | doors and hatch (open / close) | as above |
+| `161190__volivieri__storm-door-slam-01.wav` | 4.9 s (slam, long tail) | closing the doors and the hatch | `fb.door.close` (doors and hatch) |
+| `75826__analog-bleep-ten__metal-door.wav` | 1.25 s | opening the doors and the hatch | `fb.door.open` (doors and hatch) |
 | `740223__fossarts__cctv-camera-system-in-op-2.wav` | 19.3 s steady hum | the "lil noise" while you are on the cameras: loop while the monitor is up, stop when it is lowered | new sound |
 | `camera_open.mp3` | 1.75 s | raising the camera monitor | `fb.cam.up` |
 | `camera_close.mp3` | 1.75 s | lowering the camera monitor | `fb.cam.down` |
 
-To confirm with the owner before building:
-* Which door clip goes where. Suggested: storm-door slam for closing, metal door for opening (same for the hatch).
+All choices are confirmed by the owner. Waiting for the go-ahead to build.
 
 Implementation notes:
 * Bedrock reads `.ogg` (and `.wav`), not `.mp3`: convert everything to mono OGG Vorbis and trim the door slam's tail.
