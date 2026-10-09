@@ -83,6 +83,16 @@
         }
       ]
     },
+    "fb.cam.hum": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fb/cam/hum",
+          "is3D": false,
+          "volume": 0.5
+        }
+      ]
+    },
     "fb.cam.static": {
       "category": "ui",
       "sounds": [
@@ -263,6 +273,31 @@
         }
       ]
     },
+    "fb.fredbear.laugh": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/fredbear/laugh_1",
+          "is3D": false,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/fb/fredbear/laugh_2",
+          "is3D": false,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/fb/fredbear/laugh_3",
+          "is3D": false,
+          "volume": 0.8
+        },
+        {
+          "name": "sounds/fb/fredbear/laugh_4",
+          "is3D": false,
+          "volume": 0.8
+        }
+      ]
+    },
     "fb.fredbear.musicbox": {
       "category": "hostile",
       "sounds": [
@@ -291,7 +326,22 @@
       "category": "hostile",
       "sounds": [
         {
-          "name": "sounds/fb/freddy/laugh",
+          "name": "sounds/fb/freddy/laugh_1",
+          "is3D": true,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/fb/freddy/laugh_2",
+          "is3D": true,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/fb/freddy/laugh_3",
+          "is3D": true,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/fb/freddy/laugh_4",
           "is3D": true,
           "volume": 1.0
         }
@@ -315,7 +365,7 @@
       "category": "hostile",
       "sounds": [
         {
-          "name": "sounds/fb/js/bonnie",
+          "name": "sounds/fb/js/animatronic",
           "is3D": false,
           "volume": 1.0
         }
@@ -325,7 +375,7 @@
       "category": "hostile",
       "sounds": [
         {
-          "name": "sounds/fb/js/chica",
+          "name": "sounds/fb/js/animatronic",
           "is3D": false,
           "volume": 1.0
         }
@@ -345,7 +395,7 @@
       "category": "hostile",
       "sounds": [
         {
-          "name": "sounds/fb/js/freddy",
+          "name": "sounds/fb/js/animatronic",
           "is3D": false,
           "volume": 1.0
         }

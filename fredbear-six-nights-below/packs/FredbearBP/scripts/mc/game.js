@@ -44,6 +44,7 @@ const CB_INPUT = new Map(INPUTS.map((i) => {
 const RESET_SETTLE = settleTicks('reset.world') + 4;
 const OFFICE_TARGET = 'anchor:officeSeat'; // route-guidance target name (data/guide_graph.generated.js)
 const SCALE = Object.freeze({ freddy: 1.35, bonnie: 1.3, chica: 1.3, fredbear: 1.45 }); // = minecraft:scale in BP entities (validate_assets checks)
+const CAM_HUM_TICKS = 200; // fb.cam.hum restarts every 10 s while the monitor is up (tools/gen_sounds.py HUM_PERIOD)
 const ZONE_ACTUATOR = Object.freeze({ 'zone:cove': 'zone.cove', 'zone:freezer': 'zone.freezer', 'zone:diner': 'zone.diner', 'zone:chamber': 'zone.chamber', 'zone:attic': 'zone.attic', 'zone:basement': 'env.pipes', 'zone:backstage': 'env.distant_music' });
 
 export class Game {
@@ -71,6 +72,8 @@ export class Game {
     this.taskBonus = { power: false, charge: false };
     this.overlay = !!this.save.settings.debugOverlay;
     this.routes = new GuideGraph();
+    this.camHum = []; // fb.cam.hum SoundInstances (tickCamHum)
+    this.camHumNext = 0;
     this.guideLeft = undefined; // blocks left on the current breadcrumb route
     this.outdatedBuild = false; // built by an older pack version: /fb:setup rebuilds
     /** @type {((action: string, player: any) => any) | undefined} */
@@ -144,7 +147,35 @@ export class Game {
     } catch (e) {
       log.error(`tick (${this.state})`, e);
     }
+    this.tickCamHum(now);
     this.bus.tick();
+  }
+
+  /** The camera feed's electrical hum: plays while the monitor is up, stops with it (any close path). */
+  tickCamHum(now) {
+    if (!this.cams.active) {
+      if (this.camHum.length) {
+        for (const inst of this.camHum) {
+          try {
+            inst.stop();
+          } catch {
+            // already finished
+          }
+        }
+        this.camHum = [];
+      }
+      return;
+    }
+    if (now < this.camHumNext && this.camHum.length) return;
+    const g = this.guard();
+    if (!g) return;
+    try {
+      this.camHum = [...this.camHum.slice(-1), g.playSound('fb.cam.hum')]; // the previous copy fades out under the new one
+      this.camHumNext = now + CAM_HUM_TICKS;
+    } catch (e) {
+      log.warn(`camera hum: ${e?.message ?? e}`);
+      this.camHumNext = now + CAM_HUM_TICKS;
+    }
   }
 
   tickRest(now) {

@@ -107,7 +107,12 @@ export async function extrasForm(player, save) {
   const f = new ActionFormData().title('§lARCHIVE & CREDITS').body([
     `Secrets found: ${found.size}/12`, '', ...lines, '',
     '§lCREDITS§r', 'FREDBEAR: SIX NIGHTS BELOW - an original fan-made Minecraft Bedrock map.',
-    'Animatronic skins supplied by the map owner. All sounds synthesised for this project.',
+    'Animatronic skins supplied by the map owner.',
+    'Jumpscares, laughter and camera monitor sounds supplied by the map owner.',
+    'Door slam: "storm door slam 01" by volivieri (freesound.org/s/161190, CC BY 4.0), shortened.',
+    'Door opening: "Metal Door.wav" by Analog Bleep Ten (freesound.org/s/75826, CC Sampling+ 1.0), trimmed.',
+    'Camera hum: "CCTV camera system in op 2" by FOSSarts (freesound.org/s/740223, CC0).',
+    'All other sounds synthesised for this project.',
     'Inspired by Five Nights at Freddy\'s (Scott Cawthon). Not affiliated with or endorsed by Scott Cawthon or Mojang.',
   ].join('\n'));
   f.button('Close');

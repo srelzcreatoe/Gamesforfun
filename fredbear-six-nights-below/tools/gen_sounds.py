@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
-"""Synthesise every fb.* sound used by the map and write sound_definitions.json.
+"""Build every fb.* sound used by the map and write sound_definitions.json.
 
-All audio is generated here from scratch (oscillators, filtered noise and
-envelopes); no recorded or third-party audio is used. Melodies are original,
-except Freddy's music box, which plays the opening of Bizet's "Toreador
-March" (1875, public domain).
+Most audio is synthesised here from scratch (oscillators, filtered noise and
+envelopes). Melodies are original, except Freddy's music box, which plays the
+opening of Bizet's "Toreador March" (1875, public domain).
 
-Output: packs/FredbearRP/sounds/fb/**.ogg (mono, 22.05 kHz, Ogg Vorbis via
-ffmpeg/libvorbis, bit-exact flags so reruns are reproducible) and
+The jumpscares, door and hatch, camera monitor, camera hum and laughter use
+recordings supplied by the map owner (art/sounds_incoming, credits in the
+README): see RECORDINGS and RECORDED_IDS below.
+
+Output: packs/FredbearRP/sounds/fb/**.ogg (Ogg Vorbis via ffmpeg/libvorbis,
+bit-exact flags so reruns are reproducible; synthesised sounds are mono
+22.05 kHz, recordings 44.1 kHz, mono when positional) and
 packs/FredbearRP/sounds/sound_definitions.json.
-Requires: numpy, ffmpeg with libvorbis.
+Requires: numpy, ffmpeg with libvorbis (and mp3 decoding).
 """
 import json
 import pathlib
@@ -164,10 +168,6 @@ def build_sounds():
     S = {}
 
     # ---- office devices
-    S["door/close"] = norm(mix(thud(0.7, 90, 45, 9, rng), 0.5 * metal_hit(0.7, [310, 523, 811], 7, rng)))
-    t = t_axis(0.6)
-    hiss = bandpass(noise(len(t), rng), 2000, 6000) * np.linspace(1, 0, len(t)) ** 2
-    S["door/open"] = norm(mix(0.6 * hiss, at(thud(0.25, 120, 70, 18, rng), 0.35, 0.6)))
     S["door/bang"] = norm(mix(thud(0.5, 70, 35, 8, rng, 0.7), 0.7 * metal_hit(0.5, [190, 377, 640, 1010], 6, rng)))
     t = t_axis(1.0)
     grind = bandpass(noise(len(t), rng), 300, 2500) * (0.6 + 0.4 * sine(t, 13))
@@ -176,12 +176,6 @@ def build_sounds():
     t = t_axis(1.0)
     buzz = sum(sine(t, 120 * k) / k for k in range(1, 8)) * (0.7 + 0.3 * square(t, 9))
     S["light/buzz"] = norm(buzz * env(len(t), 0.01, 0.15)) * 0.7
-    t = t_axis(0.5)
-    S["cam/up"] = norm(mix(bandpass(noise(len(t), rng), 800, 4000) * np.sin(np.pi * t / 0.5) * 0.5,
-                           at(0.4 * sine(t_axis(0.12), 1320) * env(int(SR * 0.12)), 0.32, 0.5)))
-    t = t_axis(0.4)
-    S["cam/down"] = norm(mix(bandpass(noise(len(t), rng), 300, 2000) * np.sin(np.pi * t / 0.4) * 0.5,
-                             at(thud(0.08, 600, 400, 40, rng), 0.3, 0.4)))
     t = t_axis(0.15)
     S["cam/switch"] = norm(mix(highpass(noise(len(t), rng), 3000) * decay(t, 25), at(thud(0.03, 2000, 1500, 80, rng), 0, 0.15)))
     t = t_axis(1.5)
@@ -256,12 +250,6 @@ def build_sounds():
         off = float(rng.uniform(0, 0.8))
         clatter += at(metal_hit(0.4, list(rng.uniform(400, 3000, 3)), 10, rng, 50), off, 1.2)
     S["chica/clatter"] = norm(clatter)
-    laugh = np.zeros(int(SR * 1.6))
-    for k, off in enumerate((0.0, 0.42, 0.84)):
-        tt = t_axis(0.32)
-        src = saw(tt, 95 - 6 * k) * np.sin(np.pi * tt / 0.32)
-        laugh += at(resonator(src, 600, 5) + 0.7 * resonator(src, 1000, 6), off, 1.6)
-    S["freddy/laugh"] = norm(echo(laugh, 0.09, 0.3, 3))
     toreador = [("C5", 1), ("D5", 0.75), ("C5", 0.25), ("A4", 1), ("A4", 1), ("A4", 0.75), ("G4", 0.25), ("A4", 0.75), ("A#4", 0.25),
                 ("A4", 2), ("A#4", 1), ("G4", 0.75), ("C5", 0.25), ("A4", 2), ("F4", 1), ("D4", 0.75), ("G4", 0.25), ("C4", 3)]
     # Power-out music lasts 5-20 s and is stopped by the script (SoundInstance.stop), so the clip runs ~25 s.
@@ -300,18 +288,6 @@ def build_sounds():
     S["step/chica"] = step(1.0, 1.15)
     S["step/fredbear"] = step(1.5, 0.75)
 
-    def scream(base, rough):
-        tt = t_axis(1.4)
-        f = base * (1 + 0.8 * np.exp(-tt * 4)) * (1 + 0.03 * sine(tt, 31))
-        src = saw(tt, f) + rough * highpass(noise(len(tt), rng), 1200)
-        harsh = np.tanh(4 * src)
-        return norm(mix(resonator(harsh, base * 6, 5), 0.8 * resonator(harsh, base * 11, 6), 0.5 * harsh) * env(len(tt), 0.01, 0.3))
-
-    S["js/freddy"] = scream(190, 0.8)
-    S["js/bonnie"] = scream(230, 1.0)
-    S["js/chica"] = scream(280, 0.9)
-    S["js/fredbear"] = scream(160, 1.2)
-
     # ---- UI
     S["ui/accept"] = norm(mix(sine(t_axis(0.12), 880) * env(int(SR * 0.12)), at(sine(t_axis(0.16), 1320) * env(int(SR * 0.16)), 0.12, 0.3))) * 0.7
     S["ui/blip"] = norm(sine(t_axis(0.12), 1200) * decay(t_axis(0.12), 20)) * 0.6
@@ -325,7 +301,7 @@ META = {
     "door.close": ("block", True, 24, 1.0), "door.open": ("block", True, 24, 0.9), "door.bang": ("hostile", True, 32, 1.0),
     "door.jam": ("hostile", True, 32, 1.0), "light.buzz": ("block", True, 16, 0.6),
     "cam.up": ("ui", False, None, 0.6), "cam.down": ("ui", False, None, 0.6), "cam.switch": ("ui", False, None, 0.5),
-    "cam.static": ("ui", False, None, 0.5),
+    "cam.static": ("ui", False, None, 0.5), "cam.hum": ("ui", False, None, 0.5),
     "breaker.trip": ("block", True, 48, 1.0), "breaker.reset": ("block", True, 16, 0.8), "strobe.fire": ("block", True, 24, 1.0),
     "power.alarm": ("block", True, 32, 0.8), "power.down": ("block", True, 32, 1.0), "power.dark": ("block", True, 32, 1.0),
     "power.reserve": ("block", True, 32, 0.9), "power.whine": ("block", True, 24, 0.5),
@@ -336,7 +312,7 @@ META = {
     "bonnie.groan": ("hostile", True, 32, 1.0), "chica.breath": ("hostile", True, 20, 0.9), "chica.clatter": ("hostile", True, 64, 1.0),
     "freddy.laugh": ("hostile", True, 48, 1.0), "freddy.musicbox": ("hostile", True, 40, 1.0),
     "fredbear.musicbox": ("hostile", True, 48, 1.0), "fredbear.chime": ("hostile", True, 32, 0.9), "fredbear.glitch": ("hostile", False, None, 0.8),
-    "fredbear.roar": ("hostile", True, 64, 1.0), "fredbear.finale": ("hostile", False, None, 1.0), "ending.theme": ("music", False, None, 0.8),
+    "fredbear.roar": ("hostile", True, 64, 1.0), "fredbear.laugh": ("hostile", False, None, 0.8), "fredbear.finale": ("hostile", False, None, 1.0), "ending.theme": ("music", False, None, 0.8),
     "step.freddy": ("hostile", True, 44, 1.0), "step.bonnie": ("hostile", True, 44, 1.0), "step.chica": ("hostile", True, 44, 1.0),
     "step.fredbear": ("hostile", True, 48, 1.0),
     "js.freddy": ("hostile", False, None, 1.0), "js.bonnie": ("hostile", False, None, 1.0), "js.chica": ("hostile", False, None, 1.0),
@@ -345,35 +321,149 @@ META = {
 }
 
 
-def encode(samples, path):
+# --------------------------------------------------------------------------- recordings
+CLIPS = ROOT / "art" / "sounds_incoming"
+CLIP_SR = 44100
+SLAM = "161190__volivieri__storm-door-slam-01.wav"
+FREDDY_LAUGH = "Fnaf_Freddy_Laugh.mp3"
+FREDBEAR_LAUGH = "Fredbear_laugh_Fnaf_4.mp3"
+
+# Output file -> (source in art/sounds_incoming, start s, end s or None, channels).
+# Positional (is3D) sounds must be mono. The long laugh recordings hold several
+# separate laughs; each one becomes a variant (Bedrock picks one at random).
+RECORDINGS = {
+    "js/animatronic": ("Jumpscare_animatronics.mp3", 0.0, None, 2),
+    "js/fredbear": ("fredbearboi.mp3", 0.0, None, 2),
+    "door/close": (SLAM, 0.0, 2.4, 1),
+    "door/open": ("75826__analog-bleep-ten__metal-door.wav", 0.15, None, 1),
+    "cam/up": ("camera_open.mp3", 0.0, None, 2),
+    "cam/down": ("camera_close.mp3", 0.0, None, 2),
+    "freddy/laugh_1": (FREDDY_LAUGH, 0.40, 6.00, 1),
+    "freddy/laugh_2": (FREDDY_LAUGH, 6.00, 9.28, 1),
+    "freddy/laugh_3": (FREDDY_LAUGH, 9.28, 13.82, 1),
+    "freddy/laugh_4": (FREDDY_LAUGH, 13.82, 19.48, 1),
+    "fredbear/laugh_1": (FREDBEAR_LAUGH, 0.20, 3.98, 2),
+    "fredbear/laugh_2": (FREDBEAR_LAUGH, 6.45, 9.12, 2),
+    "fredbear/laugh_3": (FREDBEAR_LAUGH, 9.12, 13.35, 2),
+    "fredbear/laugh_4": (FREDBEAR_LAUGH, 13.35, 16.43, 2),
+}
+# Camera-feed hum: the script restarts it every HUM_PERIOD seconds while the monitor is up
+# (packs/FredbearBP/scripts/mc/game.js CAM_HUM_TICKS); the clip is HUM_FADE longer with
+# equal-power fades at both ends, so consecutive copies cross-fade instead of clicking.
+HUM = ("740223__fossarts__cctv-camera-system-in-op-2.wav", 2.0, 2)
+HUM_PERIOD = 10.0
+HUM_FADE = 0.5
+
+# Sound id -> recorded files it plays.
+RECORDED_IDS = {
+    "js.freddy": ["js/animatronic"], "js.bonnie": ["js/animatronic"], "js.chica": ["js/animatronic"],
+    "js.fredbear": ["js/fredbear"],
+    "door.close": ["door/close"], "door.open": ["door/open"],
+    "cam.up": ["cam/up"], "cam.down": ["cam/down"], "cam.hum": ["cam/hum"],
+    "freddy.laugh": [f"freddy/laugh_{k}" for k in range(1, 5)],
+    "fredbear.laugh": [f"fredbear/laugh_{k}" for k in range(1, 5)],
+}
+
+
+def decode(name, start, end, channels):
+    """Decode part of a recording to float samples, shape (n, channels)."""
+    cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-ss", f"{start:.3f}", "-i", str(CLIPS / name)]
+    if end is not None:
+        cmd += ["-t", f"{end - start:.3f}"]
+    cmd += ["-f", "f32le", "-ar", str(CLIP_SR), "-ac", str(channels), "pipe:1"]
+    raw = subprocess.run(cmd, capture_output=True, check=True).stdout
+    return np.frombuffer(raw, "<f4").astype(np.float64).reshape(-1, channels)
+
+
+def fade(x, fade_in, fade_out, power=False):
+    n = len(x)
+    g = np.ones(n)
+    a, b = min(n, int(CLIP_SR * fade_in)), min(n, int(CLIP_SR * fade_out))
+    if a:
+        g[:a] = np.linspace(0, 1, a)
+    if b:
+        g[n - b:] = np.minimum(g[n - b:], np.linspace(1, 0, b))
+    if power:
+        g = np.sin(g * np.pi / 2)
+    return x * g[:, None]
+
+
+def prepare(name, start, end, channels):
+    x = decode(name, start, end, channels)
+    level = np.abs(x).max(axis=1)
+    loud = np.nonzero(level > 10 ** (-60 / 20))[0]
+    if len(loud):
+        x = x[: loud[-1] + int(CLIP_SR * 0.02)]  # drop trailing silence
+    cut = end is not None and name != SLAM
+    x = fade(x, 0.005, 0.25 if cut else 0.03)
+    if name == SLAM:
+        x = fade(x, 0, 0.9)  # shorten the slam's long reverb tail
+    return x / np.abs(x).max() * 0.89
+
+
+def build_recordings():
+    R = {key: prepare(*spec) for key, spec in RECORDINGS.items()}
+    name, start, channels = HUM
+    hum = decode(name, start, start + HUM_PERIOD + HUM_FADE, channels)
+    hum = fade(hum, HUM_FADE, HUM_FADE, power=True)
+    R["cam/hum"] = hum / np.abs(hum).max() * 0.89
+    return R
+
+
+def encode(samples, path, sr=SR):
     path.parent.mkdir(parents=True, exist_ok=True)
+    channels = 1 if samples.ndim == 1 else samples.shape[1]
     data = np.clip(samples, -1, 1).astype("<f4").tobytes()
-    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "f32le", "-ar", str(SR), "-ac", "1", "-i", "pipe:0",
-                    "-c:a", "libvorbis", "-q:a", "3", "-fflags", "+bitexact", "-flags:a", "+bitexact", "-map_metadata", "-1",
-                    "-serial_offset", "1983", str(path)], input=data, check=True)
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "f32le", "-ar", str(sr), "-ac", str(channels), "-i", "pipe:0",
+                    "-c:a", "libvorbis", "-q:a", "4" if sr == CLIP_SR else "3", "-fflags", "+bitexact", "-flags:a", "+bitexact",
+                    "-map_metadata", "-1", "-serial_offset", "1983", str(path)], input=data, check=True)
+
+
+def definition(sid, files):
+    cat, is3d, maxd, vol = META[sid]
+    entry = {"category": cat, "sounds": [{"name": f"sounds/fb/{f}", "is3D": is3d, "volume": vol} for f in files]}
+    if maxd is not None:
+        entry["max_distance"] = float(maxd)
+        entry["min_distance"] = 1.0
+    return entry
 
 
 def main():
     sounds = build_sounds()
+    recordings = build_recordings()
+    out_dir = RP / "sounds" / "fb"
+    written = set()
     defs = {}
     for key, samples in sorted(sounds.items()):
-        sid = "fb." + key.replace("/", ".")
-        if sid[3:] not in META:
-            raise SystemExit(f"no metadata for {sid}")
-        encode(samples, RP / "sounds" / "fb" / f"{key}.ogg")
-        cat, is3d, maxd, vol = META[sid[3:]]
-        entry = {"category": cat, "sounds": [{"name": f"sounds/fb/{key}", "is3D": is3d, "volume": vol}]}
-        if maxd is not None:
-            entry["max_distance"] = float(maxd)
-            entry["min_distance"] = 1.0
-        defs[sid] = entry
+        sid = key.replace("/", ".")
+        if sid not in META:
+            raise SystemExit(f"no metadata for fb.{sid}")
+        if sid in RECORDED_IDS:
+            raise SystemExit(f"fb.{sid} is both synthesised and recorded")
+        encode(samples, out_dir / f"{key}.ogg")
+        written.add(f"{key}.ogg")
+        defs["fb." + sid] = definition(sid, [key])
+    for key, samples in sorted(recordings.items()):
+        encode(samples, out_dir / f"{key}.ogg", CLIP_SR)
+        written.add(f"{key}.ogg")
+    for sid, files in sorted(RECORDED_IDS.items()):
+        missing = [f for f in files if f not in recordings]
+        if missing or sid not in META:
+            raise SystemExit(f"fb.{sid}: no recording {missing} or no metadata")
+        if META[sid][1] and any(recordings[f].shape[1] != 1 for f in files):
+            raise SystemExit(f"fb.{sid} is positional but a recording is not mono")
+        defs["fb." + sid] = definition(sid, files)
+    defs = dict(sorted(defs.items()))
     missing = sorted(set(META) - {d[3:] for d in defs})
     if missing:
         raise SystemExit(f"metadata without audio: {missing}")
+    for stale in sorted(p for p in out_dir.rglob("*.ogg") if p.relative_to(out_dir).as_posix() not in written):
+        stale.unlink()
+        print(f"removed stale {stale.relative_to(ROOT)}")
     out = {"format_version": "1.26.50", "sound_definitions": defs}
     (RP / "sounds" / "sound_definitions.json").write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
-    total = sum(len(s) for s in sounds.values()) / SR
-    print(f"sounds: {len(defs)} ids, {total:.1f} s of audio")
+    total = sum(len(s) for s in sounds.values()) / SR + sum(len(r) for r in recordings.values()) / CLIP_SR
+    print(f"sounds: {len(defs)} ids, {len(written)} files, {total:.1f} s of audio ({len(recordings)} recorded files)")
 
 
 if __name__ == "__main__":
