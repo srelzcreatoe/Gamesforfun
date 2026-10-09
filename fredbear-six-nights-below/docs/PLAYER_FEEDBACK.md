@@ -22,3 +22,34 @@ The strobe felt risky because there are too few charges.
 * This is how it was designed, but in play it reads as "he always breaks through". Options to weigh later: let a closed
   barrier sometimes hold him off, give longer forcing windows, make the "use the STROBE" moment clearer, or rely on fix 1
   (more charges) alone.
+
+## 3. Replace sounds with the owner's clips (requested, not started)
+
+The original files are saved untouched in `art/sounds_incoming/`.
+
+| Clip | Length | Use it for | Replaces |
+|---|---|---|---|
+| `Jumpscare_animatronics.mp3` | 2.8 s | Freddy, Bonnie and Chica jumpscares | `fb.js.freddy`, `fb.js.bonnie`, `fb.js.chica` |
+| `fredbearboi.mp3` | 3.3 s | Fredbear's jumpscare | `fb.js.fredbear` |
+| `161190__volivieri__storm-door-slam-01.wav` | 4.9 s (slam, long tail) | doors and hatch (open / close) | `fb.door.close` / `fb.door.open` (doors and hatch both use these) |
+| `75826__analog-bleep-ten__metal-door.wav` | 1.25 s | doors and hatch (open / close) | as above |
+| `740223__fossarts__cctv-camera-system-in-op-2.wav` | 19.3 s steady hum | the "lil noise" while you are on the cameras: loop while the monitor is up, stop when it is lowered | new sound (`fb.cam.up` / `fb.cam.down` stay as the open/close sounds unless the owner picks a clip for them) |
+
+To confirm with the owner before building:
+* Which door clip goes where. Suggested: storm-door slam for closing, metal door for opening (same for the hatch).
+* Camera opening/closing: no separate clip was given. Options: keep the current up/down sounds, or fade the CCTV hum in and out.
+
+Implementation notes:
+* Bedrock reads `.ogg` (and `.wav`), not `.mp3`: convert everything to mono OGG Vorbis and trim the door slam's tail.
+* The CCTV hum is quiet (about −38 dBFS RMS) and 96 kHz float stereo (14.8 MB). It needs gain, downsampling and a
+  seamless crossfaded loop (about 8-10 s).
+* Check in-game where a sound is heard while the camera view is active (player position vs. camera position), so the hum
+  is audible on every camera.
+* `tools/gen_sounds.py` synthesises every sound today. It needs a step that converts these clips for the ids above instead.
+* Licences and credits (checked on freesound.org 2026-10-09):
+  * 740223 by FOSSarts: CC0 (no credit required).
+  * 161190 by volivieri: CC BY 4.0 (credit required).
+  * 75826 by Analog Bleep Ten: Sampling+ 1.0 (credit required; non-commercial sharing only).
+  * The two `.mp3` jumpscares came from the owner with no source given. If they come from the FNAF games, they belong to
+    Scott Cawthon.
+  * The README's "all sounds were synthesised" credit must be updated.
