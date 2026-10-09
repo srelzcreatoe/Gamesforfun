@@ -8,6 +8,8 @@ not started. **idea** = suggested, not chosen yet.
 
 ## The list
 
+Numbers stay fixed from now on: new items are added at the end.
+
 ### Sounds and music (details in sections A and E)
 
 | # | Item | Status |
@@ -43,12 +45,31 @@ not started. **idea** = suggested, not chosen yet.
 | 19 | Custom Night (night 7): set each animatronic 0-20 | idea |
 | 20 | Hard mode after beating night 6, with a star on the time clock | idea |
 
-### Finishing an update
+### Models (details in section F)
 
 | # | Item | Status |
 |---|---|---|
-| 21 | Credits (README, docs), Shift Guide text, night 4 phone call ("three charges") | planned |
-| 22 | All checks, new `.mcaddon` (version 1.2.0), push and send | planned |
+| 21 | Replace Fredbear's model with the owner's "Fredbear V6 (no eye dots)" model and use all 12 of its animations; keep the old model's files outside the game | planned |
+
+### More ideas (round 2, not chosen yet)
+
+| # | Item | Status |
+|---|---|---|
+| 22 | Game-over hints: the death screen says who got you and one tip to stop them | idea |
+| 23 | Night report: power left, closest call, strobes used; a star for a clean night | idea |
+| 24 | Audio lure (FNAF 3 style): play a sound on a camera to pull an animatronic away from your door; costs power and can fail | idea |
+| 25 | Rare easter egg: Fredbear's empty suit slumped in your office (1 in 500 nights); stare too long and the night "crashes" back to the lobby | idea |
+| 26 | Thunderstorm on nights 5-6: lightning flashes through the windows show shapes in the halls; thunder covers footsteps | idea |
+| 27 | Cassette tapes hidden in Free Roam that tell the story (the owner could supply voice recordings) | idea |
+| 28 | Freddy's nose on the office poster honks when you press it (classic FNAF 1 easter egg) | idea |
+| 29 | Camera night-vision switch: clearer feed but more power drain, and Fredbear notices you more | idea |
+| 30 | Props that move: knocked-over chairs, dropped party hats and drag marks on camera show where they have been | idea |
+| 31 | Two-player co-op: one player on the cameras, one on the doors (big job) | idea |
+
+### Every update finishes with
+
+* credits (README, docs, in-game), Shift Guide text, the night 4 phone call ("three charges") when item 8 is built;
+* all checks, a new `.mcaddon` (next version 1.2.0), push and send.
 
 ## A. Sounds
 
@@ -112,3 +133,43 @@ Suggested by Claude, not chosen yet. The suggested first picks were 16, 11 and 1
 * Option: a "Music: ON / OFF" button in the Shift Guide menu, saved with the other settings (default ON).
 * It plays at the player's in-game Music volume slider.
 * Still to check in-game: the loop seam (the track is 3:00), and that vanilla music does not come back while it is playing.
+
+## F. Fredbear V6 model (item 21)
+
+Source: `art/models_incoming/Fredbear_V6_NoEyeDots_Complete.zip` (saved untouched, SHA-256 679d74e5...). Its README says it
+was never tried in Blockbench or Minecraft.
+
+What is in it:
+* `geometry.fredbear`: 43 bones and 730 cubes (the current Fredbear has about 40), with fingers, a jaw, ears, a hat, a bow
+  tie and a microphone in the right hand.
+* Its own 256×256 texture: Fredbear will look like this texture, not like the `1.png` skin.
+* 12 animations (baked keyframes, 6 MB of JSON):
+  * loops: idle, walk, run, perform_sing, perform_greet, perform_mic_sway, perform_crowd_point;
+  * poses: pose_showman (holds), pose_bow;
+  * jumpscares: jumpscare_snap_bite, jumpscare_dual_lunge, jumpscare_left_grab.
+
+Plan:
+* The game's animation states map to the new clips:
+
+  | Game state | New clip |
+  |---|---|
+  | idle, pause, look | idle |
+  | walk, stalk (slowed) | walk |
+  | retreat | run |
+  | lobby / free-roam stage show (`perform`, `music`) | the four performances in rotation |
+  | music box at a door or the hatch (`threat`) | perform_crowd_point (pointing at you) |
+  | night 6 Golden Hour rise | pose_showman |
+  | giving up at a held door or hatch (item 9) | pose_bow |
+  | every jumpscare | one of the three, picked at random |
+  | dormant | the bow pose frozen |
+* Missing pieces to make for the new rig: a crawl / climb pose (he crawls through the basement crawlspace and up the hatch),
+  and the glowing-eyes layer (a new eye mask for the dark eye lenses on the 256×256 texture).
+* The purple ECHO (false Fredbear on cameras) uses the new model too, with its texture made from the new one.
+* Size: the new model is 3.1 blocks tall at scale 1 (the current Fredbear is about 3.4 blocks with the hat). Scale about 1.1
+  matches today's size; 0.95 or less lets him pass the 3-block doorways without the hat clipping. Ask the owner.
+* Keep the old model: move the current `fb_fredbear.geo.json` and its textures to `art/models_archive/fredbear_v1/`, outside
+  the packs, so they are not in the game.
+* Shrink the animation JSON (round values, drop repeated keys) so the pack stays small, and check it still matches the
+  original.
+* The animations have never been tested in Minecraft, by the author or here. The preview video in the zip is an offline
+  render.
