@@ -21,7 +21,7 @@ import { loadBuild, storeBuild } from './persistence.js';
 import { INPUTS, inputCbPos } from '../data/inputs.js';
 import { log } from './log.js';
 
-export const BUILD_VERSION = 2; // 2: camera lights added - worlds built with 1 ask for /fb:setup again
+export const BUILD_VERSION = 3; // 2: camera lights; 3: time-clock room rework, night 7, challenge lamps, new command blocks - older builds ask for /fb:setup
 
 /**
  * Pack structure id for a generated structure. Files live at structures/fb/<name>.mcstructure and are expected

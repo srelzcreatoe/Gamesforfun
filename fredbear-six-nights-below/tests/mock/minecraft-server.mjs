@@ -27,7 +27,9 @@ import { loadBlockMeta, checkBlock } from '../../tools/validate_blocks.mjs';
 const ROOT = new URL('../../', import.meta.url).pathname;
 const readJson = (p) => JSON.parse(fs.readFileSync(path.join(ROOT, p), 'utf8'));
 const BLOCK_META = loadBlockMeta();
-const SOUND_IDS = new Set(Object.keys(readJson('packs/FredbearRP/sounds/sound_definitions.json').sound_definitions));
+const SOUND_DEFS = readJson('packs/FredbearRP/sounds/sound_definitions.json').sound_definitions;
+const SOUND_IDS = new Set(Object.keys(SOUND_DEFS));
+const PARTICLES = new Set(fs.readFileSync(path.join(ROOT, 'tools/ref/vanilla_particles.txt'), 'utf8').split('\n').filter(Boolean));
 const EFFECT_IDS = new Set(readJson('tools/ref/mojang-effects.json').data_items.map((d) => d.name));
 const CAMERA_PRESETS = new Set(readJson('tools/ref/mojang-camera-presets.json').data_items.map((d) => d.name));
 const VANILLA_ITEMS = new Set(readJson('tools/ref/mojang-items.json').data_items.map((d) => d.name));
@@ -59,6 +61,7 @@ export const STATE = {
   commands: [], // every command executed (script runCommand + command blocks)
   sounds: [], // { id, where }
   particles: [], // { id, loc } (last 400)
+  music: [], // playMusic / stopMusic calls
   cbRuns: 0,
   maxFill: 0,
 };
@@ -557,6 +560,18 @@ class Player extends Entity {
     return { stop() {} };
   }
 
+  /** Music track (MusicOptions { fade, loop, volume }); only music-category sounds are tracks. */
+  playMusic(trackId, opts = {}) {
+    if (SOUND_DEFS[trackId]?.category !== 'music') misuse(`player.playMusic: ${trackId} is not a music-category sound`);
+    this.music = { id: trackId, loop: !!opts.loop };
+    STATE.music.push({ id: trackId, loop: !!opts.loop, tick: system.currentTick });
+  }
+
+  stopMusic() {
+    this.music = null;
+    STATE.music.push({ id: null, tick: system.currentTick });
+  }
+
   sendMessage(m) {
     this.messages.push(String(m));
   }
@@ -651,7 +666,7 @@ class Dimension {
   }
 
   spawnParticle(id, loc) {
-    if (!id.startsWith('minecraft:')) misuse(`spawnParticle: ${id}`);
+    if (!PARTICLES.has(id)) misuse(`spawnParticle: ${id} is not a vanilla particle`);
     STATE.particles.push({ id, loc: { ...loc }, tick: system.currentTick });
     if (STATE.particles.length > 400) STATE.particles.shift();
   }
@@ -806,7 +821,7 @@ export const mock = {
     unloadedChunks.clear();
     this.reload();
     system.currentTick = 0;
-    Object.assign(STATE, { errors: [], handlerErrors: [], commands: [], sounds: [], particles: [], cbRuns: 0, maxFill: 0 });
+    Object.assign(STATE, { errors: [], handlerErrors: [], commands: [], sounds: [], particles: [], music: [], cbRuns: 0, maxFill: 0 });
   },
   /** Simulate quitting and reopening the world: scripts restart, world data persists. */
   reload() {

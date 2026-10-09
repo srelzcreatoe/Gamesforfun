@@ -1,0 +1,22 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:fog_settings": {
+    "description": {
+      "identifier": "fb:flashback"
+    },
+    "distance": {
+      "air": {
+        "fog_start": 3,
+        "fog_end": 36,
+        "fog_color": "#5a3f1e",
+        "render_distance_type": "fixed"
+      },
+      "weather": {
+        "fog_start": 3,
+        "fog_end": 36,
+        "fog_color": "#5a3f1e",
+        "render_distance_type": "fixed"
+      }
+    }
+  }
+}

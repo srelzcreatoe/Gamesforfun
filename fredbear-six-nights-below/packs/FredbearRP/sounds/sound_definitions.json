@@ -231,13 +231,24 @@
       "max_distance": 24.0,
       "min_distance": 1.0
     },
+    "fb.ending.fire": {
+      "category": "ambient",
+      "sounds": [
+        {
+          "name": "sounds/fb/ending/fire",
+          "is3D": false,
+          "volume": 1.0
+        }
+      ]
+    },
     "fb.ending.theme": {
       "category": "music",
       "sounds": [
         {
           "name": "sounds/fb/ending/theme",
           "is3D": false,
-          "volume": 0.8
+          "volume": 0.8,
+          "stream": true
         }
       ]
     },
@@ -412,6 +423,17 @@
       ],
       "max_distance": 16.0,
       "min_distance": 1.0
+    },
+    "fb.night.bgm": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/fb/night/bgm",
+          "is3D": false,
+          "volume": 0.8,
+          "stream": true
+        }
+      ]
     },
     "fb.night.start": {
       "category": "ambient",

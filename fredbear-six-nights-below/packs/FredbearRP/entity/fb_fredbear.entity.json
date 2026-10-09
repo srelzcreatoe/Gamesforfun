@@ -18,27 +18,32 @@
         "pre_animation": [
           "variable.fb_anim = query.property('fb:anim');",
           "variable.fb_eyes = query.property('fb:eyes');",
-          "variable.fb_hidden = query.property('fb:hidden');"
+          "variable.fb_hidden = query.property('fb:hidden');",
+          "variable.fb_variant = query.property('fb:variant');"
         ],
         "animate": [
           "pose_controller"
         ]
       },
       "animations": {
-        "pose_controller": "controller.animation.fb.pose",
-        "hide_prop": "animation.fb.hide_prop",
-        "idle": "animation.fb.idle",
-        "perform": "animation.fb.perform.fredbear",
-        "walk": "animation.fb.walk",
-        "stalk": "animation.fb.stalk",
-        "crawl": "animation.fb.crawl",
-        "look": "animation.fb.look",
-        "pause": "animation.fb.pause",
-        "threat": "animation.fb.threat",
-        "attack": "animation.fb.attack",
-        "retreat": "animation.fb.retreat",
-        "dormant": "animation.fb.dormant",
-        "music": "animation.fb.music"
+        "pose_controller": "controller.animation.fb.fredbear",
+        "perform_mic_sway_once": "animation.fb.fredbear.perform_mic_sway_once",
+        "jumpscare_dual_lunge": "animation.fb.fredbear.jumpscare_dual_lunge",
+        "run": "animation.fb.fredbear.run",
+        "pose_showman": "animation.fb.fredbear.pose_showman",
+        "perform_crowd_point": "animation.fb.fredbear.perform_crowd_point",
+        "perform_greet_once": "animation.fb.fredbear.perform_greet_once",
+        "dormant": "animation.fb.fredbear.dormant",
+        "perform_crowd_point_once": "animation.fb.fredbear.perform_crowd_point_once",
+        "idle": "animation.fb.fredbear.idle",
+        "stalk": "animation.fb.fredbear.stalk",
+        "walk": "animation.fb.fredbear.walk",
+        "jumpscare_left_grab": "animation.fb.fredbear.jumpscare_left_grab",
+        "pose_bow": "animation.fb.fredbear.pose_bow",
+        "jumpscare_snap_bite": "animation.fb.fredbear.jumpscare_snap_bite",
+        "crawl": "animation.fb.fredbear.crawl",
+        "perform_mic_sway": "animation.fb.fredbear.perform_mic_sway",
+        "perform_sing_once": "animation.fb.fredbear.perform_sing_once"
       },
       "render_controllers": [
         "controller.render.fb.animatronic",

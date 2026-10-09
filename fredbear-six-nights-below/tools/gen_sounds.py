@@ -5,9 +5,9 @@ Most audio is synthesised here from scratch (oscillators, filtered noise and
 envelopes). Melodies are original, except Freddy's music box, which plays the
 opening of Bizet's "Toreador March" (1875, public domain).
 
-The jumpscares, door and hatch, camera monitor, camera hum and laughter use
-recordings supplied by the map owner (art/sounds_incoming, credits in the
-README): see RECORDINGS and RECORDED_IDS below.
+The jumpscares, door and hatch, camera monitor, camera hum, laughter and the
+night music use recordings supplied by the map owner (art/sounds_incoming,
+credits in the README): see RECORDINGS and RECORDED_IDS below.
 
 Output: packs/FredbearRP/sounds/fb/**.ogg (Ogg Vorbis via ffmpeg/libvorbis,
 bit-exact flags so reruns are reproducible; synthesised sounds are mono
@@ -273,6 +273,16 @@ def build_sounds():
     rumble = lowpass(noise(len(t), rng), 120) * env(len(t), 1.0, 1.0)
     detuned = melody([("E5", 1), ("G5", 1), ("B4", 1), ("C5", 2)], 0.45, voice=lambda f, d: music_box_note(f * 0.97, d) + music_box_note(f * 1.03, d), tail=1.0)
     S["fredbear/finale"] = norm(mix(2.0 * rumble, 0.6 * detuned))
+    # Burn ending: crackling fire over a low roar (6 s, the script replays it per shot).
+    t = t_axis(6.0)
+    roar = lowpass(noise(len(t), rng), 300) * (0.6 + 0.4 * sine(t, 0.7))
+    crackle = np.zeros(len(t))
+    for _ in range(140):
+        at_ = int(rng.integers(0, len(t) - 600))
+        L = int(rng.integers(40, 400))
+        burst = highpass(noise(L, rng), 2500) * np.exp(-np.arange(L) / SR * 60) * float(rng.uniform(0.3, 1.0))
+        crackle[at_:at_ + L] += burst
+    S["ending/fire"] = norm(mix(roar, 0.8 * crackle) * env(len(t), 0.4, 0.8))
     S["ending/theme"] = norm(melody(
         [("C5", 1), ("E5", 1), ("G5", 1), ("E5", 1), ("F5", 2), ("D5", 2), ("E5", 1), ("C5", 1), ("D5", 1), ("B4", 1), ("C5", 4),
          ("A4", 1), ("C5", 1), ("E5", 1), ("C5", 1), ("D5", 2), ("G4", 2), ("C5", 6)], 0.4, tail=2.0)) * 0.8
@@ -313,6 +323,7 @@ META = {
     "freddy.laugh": ("hostile", True, 48, 1.0), "freddy.musicbox": ("hostile", True, 40, 1.0),
     "fredbear.musicbox": ("hostile", True, 48, 1.0), "fredbear.chime": ("hostile", True, 32, 0.9), "fredbear.glitch": ("hostile", False, None, 0.8),
     "fredbear.roar": ("hostile", True, 64, 1.0), "fredbear.laugh": ("hostile", False, None, 0.8), "fredbear.finale": ("hostile", False, None, 1.0), "ending.theme": ("music", False, None, 0.8),
+    "ending.fire": ("ambient", False, None, 1.0), "night.bgm": ("music", False, None, 0.8),
     "step.freddy": ("hostile", True, 44, 1.0), "step.bonnie": ("hostile", True, 44, 1.0), "step.chica": ("hostile", True, 44, 1.0),
     "step.fredbear": ("hostile", True, 48, 1.0),
     "js.freddy": ("hostile", False, None, 1.0), "js.bonnie": ("hostile", False, None, 1.0), "js.chica": ("hostile", False, None, 1.0),
@@ -327,6 +338,7 @@ CLIP_SR = 44100
 SLAM = "161190__volivieri__storm-door-slam-01.wav"
 FREDDY_LAUGH = "Fnaf_Freddy_Laugh.mp3"
 FREDBEAR_LAUGH = "Fredbear_laugh_Fnaf_4.mp3"
+MUSIC = "PIZZA_DINNER_-_FNAF_1_REMAKE_OST.mp3"
 
 # Output file -> (source in art/sounds_incoming, start s, end s or None, channels).
 # Positional (is3D) sounds must be mono. The long laugh recordings hold several
@@ -346,6 +358,8 @@ RECORDINGS = {
     "fredbear/laugh_2": (FREDBEAR_LAUGH, 6.45, 9.12, 2),
     "fredbear/laugh_3": (FREDBEAR_LAUGH, 9.12, 13.35, 2),
     "fredbear/laugh_4": (FREDBEAR_LAUGH, 13.35, 16.43, 2),
+    # Night music (Player.playMusic with loop: true): the 50 ms of leading silence is cut so the loop is seamless.
+    "night/bgm": (MUSIC, 0.05, None, 2),
 }
 # Camera-feed hum: the script restarts it every HUM_PERIOD seconds while the monitor is up
 # (packs/FredbearBP/scripts/mc/game.js CAM_HUM_TICKS); the clip is HUM_FADE longer with
@@ -362,6 +376,7 @@ RECORDED_IDS = {
     "cam.up": ["cam/up"], "cam.down": ["cam/down"], "cam.hum": ["cam/hum"],
     "freddy.laugh": [f"freddy/laugh_{k}" for k in range(1, 5)],
     "fredbear.laugh": [f"fredbear/laugh_{k}" for k in range(1, 5)],
+    "night.bgm": ["night/bgm"],
 }
 
 
@@ -421,7 +436,8 @@ def encode(samples, path, sr=SR):
 
 def definition(sid, files):
     cat, is3d, maxd, vol = META[sid]
-    entry = {"category": cat, "sounds": [{"name": f"sounds/fb/{f}", "is3D": is3d, "volume": vol} for f in files]}
+    stream = {"stream": True} if cat == "music" else {}  # long music files are streamed, as vanilla music is
+    entry = {"category": cat, "sounds": [{"name": f"sounds/fb/{f}", "is3D": is3d, "volume": vol, **stream} for f in files]}
     if maxd is not None:
         entry["max_distance"] = float(maxd)
         entry["min_distance"] = 1.0

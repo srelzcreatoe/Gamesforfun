@@ -1,0 +1,22 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:fog_settings": {
+    "description": {
+      "identifier": "fb:ending_fire"
+    },
+    "distance": {
+      "air": {
+        "fog_start": 6,
+        "fog_end": 60,
+        "fog_color": "#7a2c08",
+        "render_distance_type": "fixed"
+      },
+      "weather": {
+        "fog_start": 6,
+        "fog_end": 60,
+        "fog_color": "#7a2c08",
+        "render_distance_type": "fixed"
+      }
+    }
+  }
+}

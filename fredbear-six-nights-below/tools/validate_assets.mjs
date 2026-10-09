@@ -4,9 +4,11 @@
 //  * client entity textures/geometry/animations/render controllers resolve
 //  * render controller Geometry/Material/Texture keys exist on each user
 //  * geometry UV boxes stay inside the texture and match the PNG size,
-//    bone parents exist, every animated bone exists in every geometry
+//    bone parents exist, every bone an entity animates exists in its geometry
 //  * animation controller states/transitions reference real animations/states
-//  * fb:anim values used by scripts and controllers are in the BP enum
+//  * fb:anim values used by scripts and controllers are in the BP enum, and
+//    every value of an entity's enum has a state in that entity's controller
+//  * the night music track is a defined, music-category sound
 //  * q.property() names used by the RP are declared in the BP
 //  * item icons resolve through item_texture.json to 16x16 PNGs
 //  * sound files exist; every sound id the scripts emit is defined
@@ -139,9 +141,14 @@ export function validateAssets() {
       }
     }
     // controller -> short animation names of this entity
+    const enumVals = bpEntities.get(d.identifier)?.description?.properties?.['fb:anim']?.values ?? [];
+    const played = new Set(Object.values(d.animations ?? {}).filter((a) => !a.startsWith('controller.')));
+    const geo = geometries.get(Object.values(d.geometry ?? {})[0]);
     for (const full of Object.values(d.animations ?? {})) {
       const c = controllers.get(full);
       if (!c) continue;
+      // 'perform' / 'attack' may be state groups (perform_0.., attack_0..) entered on the same value.
+      for (const v of enumVals) if (!(v in c.states) && !(`${v}_0` in c.states)) err(`${rel(p)}: ${full} has no state for fb:anim value '${v}'`);
       for (const [sn, st] of Object.entries(c.states)) {
         for (const a of st.animations ?? []) {
           const k = typeof a === 'string' ? a : Object.keys(a)[0];
@@ -154,6 +161,13 @@ export function validateAssets() {
       }
       if (!(c.initial_state in c.states)) err(`${full}: initial_state ${c.initial_state} missing`);
     }
+    // every bone this entity animates exists in its geometry
+    if (geo) {
+      const names = new Set(geo.g.bones.map((b) => b.name));
+      for (const full of played) {
+        for (const b of Object.keys(animations.get(full)?.bones ?? {})) if (!names.has(b)) err(`${rel(p)}: ${full} animates bone '${b}' missing from ${geo.g.description.identifier}`);
+      }
+    }
     // Molang property names
     const text = JSON.stringify(d);
     for (const m of text.matchAll(/query\.property\('([^']+)'\)|q\.property\('([^']+)'\)/g)) {
@@ -164,9 +178,7 @@ export function validateAssets() {
   for (const id of bpEntities.keys()) if (!clientIds.has(id)) err(`BP entity ${id} has no client entity`);
 
   // ------------------------------------------------------------ geometry checks
-  const animatedBones = new Set();
-  for (const a of animations.values()) for (const b of Object.keys(a.bones ?? {})) animatedBones.add(b);
-  for (const [gid, { g, file }] of geometries) {
+  for (const [gid, { g }] of geometries) {
     const W = g.description.texture_width;
     const H = g.description.texture_height;
     const names = new Set();
@@ -199,7 +211,6 @@ export function validateAssets() {
         }
       }
     }
-    for (const b of animatedBones) if (!names.has(b)) err(`${gid}: animated bone '${b}' missing (${rel(file)})`);
   }
 
   // ------------------------------------------------------------ animations
@@ -220,7 +231,6 @@ export function validateAssets() {
         for (const m of expr.matchAll(/fb_anim == '([^']+)'/g)) if (!animEnum.has(m[1])) err(`${id}: transition tests fb_anim == '${m[1]}' not in the BP enum`);
       }
     }
-    for (const v of animEnum) if (!(v in c.states) && id === 'controller.animation.fb.pose') err(`${id}: no state for fb:anim value '${v}'`);
   }
 
   // ------------------------------------------------------------ scripts
@@ -280,8 +290,12 @@ export function validateAssets() {
     used.add(`fb.step.${who}`); // base.js emitStep: `fb.step.${this.id}`
     used.add(`fb.js.${who}`); // game.js applyFx: `fb.js.${who}` for actuate js.<who>
   }
+  for (const who of ['freddy', 'fredbear']) used.add(`fb.${who}.musicbox`); // session.beginPowerOutMusic: `fb.${who}.musicbox`
   for (const id of used) if (!(id in sd)) err(`script sound '${id}' not defined in sound_definitions.json`);
   for (const id of Object.keys(sd)) if (!used.has(id) && !fs.readFileSync(path.join(BP, 'scripts/data/actuators.js'), 'utf8').includes(id)) warnings.push(`sound ${id} defined but never played`);
+  const music = scriptText.match(/const MUSIC_TRACK = '([^']+)'/)?.[1];
+  if (!music) err('game.js: MUSIC_TRACK not found');
+  else if (sd[music]?.category !== 'music') err(`night music ${music} must be a music-category sound (it replaces Minecraft's own music)`);
 
   // ------------------------------------------------------------ fogs
   const fogIds = new Set();
@@ -290,7 +304,7 @@ export function validateAssets() {
     if (id) fogIds.add(id);
   }
   const pushed = [...scriptText.matchAll(/fog @a push ([a-z_]+:[a-z_0-9]+)(?![a-z_0-9$])/g)].map((m) => m[1]);
-  for (const n of [1, 2, 3, 4, 5, 6]) pushed.push(`fb:night_${n}`); // fogCommand(n) builds these ids
+  for (const n of [1, 2, 3, 4, 5, 6, 7]) pushed.push(`fb:night_${n}`); // fogCommand(n) builds these ids
   for (const id of new Set(pushed)) if (!fogIds.has(id)) err(`fog ${id} missing (pushed by scripts/mc/commands.js)`);
 
   // ------------------------------------------------------------ lang

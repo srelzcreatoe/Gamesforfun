@@ -117,6 +117,7 @@ export class Game {
 
   boot() {
     for (const p of world.getAllPlayers()) restorePlayerView(p);
+    this.stopMusic(true);
     if (!this.builder.isBuilt()) {
       const b = loadBuild();
       this.outdatedBuild = b.done && b.version !== BUILD_VERSION;
@@ -236,8 +237,9 @@ export class Game {
     }
   }
 
-  stopMusic() {
-    if (!this.musicPlaying) return;
+  /** @param {boolean} [force] also when this script instance did not start it (after /reload or a world load) */
+  stopMusic(force = false) {
+    if (!this.musicPlaying && !force) return;
     this.musicPlaying = false;
     for (const p of world.getAllPlayers()) {
       try {
@@ -422,10 +424,11 @@ export class Game {
   startTour(n) {
     const g = this.guard();
     if (!g) return;
+    /** @type {[string, number][]} [camera, ticks] */
     const shots = [['C01', 60], ['C07', 34], ['C12', 34]];
     if (n >= 4) shots.push(['C16', 50]);
     this.tour = { shots, i: 0, next: system.currentTick + 20 };
-    this.intro.deadline += shots.reduce((a, [, t]) => a + t, 20);
+    this.intro.deadline += shots.reduce((a, s) => a + s[1], 20);
   }
 
   tickTour(now, g) {

@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-"""Generate the resource pack's art and model JSON from the four supplied skins.
+"""Generate the resource pack's art and model JSON from the supplied skins and Fredbear model.
 
 Inputs  : art/skins/*.png (the skins supplied by the map owner, unmodified)
+          art/models_incoming/Fredbear_V6_NoEyeDots_Complete.zip (the owner's Fredbear model,
+          read as-is; see tools/fredbear_v6.py). Fredbear's skin-built model is still generated,
+          but only into art/models_archive/fredbear_v1/ (kept, not in the game).
 Outputs : packs/FredbearRP/
             textures/entity/fb/<name>.png        128x64: skin (left half) + accessory atlas (right half)
             textures/entity/fb/<name>_eyes.png   128x64: only the glowing pupils
@@ -29,8 +32,12 @@ import random
 
 from PIL import Image, ImageDraw
 
+import fredbear_v6 as V6
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKINS = ROOT / "art" / "skins"
+FREDBEAR_ZIP = ROOT / "art" / "models_incoming" / "Fredbear_V6_NoEyeDots_Complete.zip"
+ARCHIVE = ROOT / "art" / "models_archive" / "fredbear_v1"
 RP = ROOT / "packs" / "FredbearRP"
 BP = ROOT / "packs" / "FredbearBP"
 TEX_W, TEX_H = 128, 64
@@ -510,14 +517,6 @@ def animations():
         "prop": {"rotation": kf((0, [50, 0, 0]), (1, [56, 0, 0]), (2, [50, 0, 0]))},  # keeps the plate level
         "rightArm": {"rotation": kf((0, [-20, 0, 45]), (0.5, [-20, 0, 70]), (1, [-20, 0, 45]), (1.5, [-20, 0, 70]), (2, [-20, 0, 45]))},  # waving
     }}
-    A["animation.fb.perform.fredbear"] = {"loop": True, "animation_length": 2.4, "bones": {
-        "waist": {"rotation": kf((0, [0, 0, 0]), (1.2, [3, 0, 0]), (2.4, [0, 0, 0]))},
-        "body": {"rotation": kf((0, [0, 0, -4]), (1.2, [0, 0, 4]), (2.4, [0, 0, -4]))},
-        "head": {"rotation": kf((0, [0, 0, -5]), (0.6, [8, 0, 0]), (1.2, [0, 0, 5]), (1.8, [8, 0, 0]), (2.4, [0, 0, -5]))},
-        "jaw": {"rotation": kf((0, jaw(2)), (0.3, jaw(20)), (0.6, jaw(3)), (0.9, jaw(16)), (1.2, jaw(3)), (1.5, jaw(20)), (1.8, jaw(3)), (2.1, jaw(12)), (2.4, jaw(2)))},
-        "rightArm": {"rotation": kf((0, [-80, 0, 4]), (1.2, [-86, 0, 7]), (2.4, [-80, 0, 4]))},  # microphone at the mouth
-        "leftArm": {"rotation": kf((0, [-70, 0, -35]), (1.2, [-85, 0, -45]), (2.4, [-70, 0, -35]))},
-    }}
     A["animation.fb.walk"] = {"loop": True, "animation_length": 1.2, "bones": {
         "leftLeg": {"rotation": kf((0, [25, 0, 0]), (0.6, [-25, 0, 0]), (1.2, [25, 0, 0]))},
         "rightLeg": {"rotation": kf((0, [-25, 0, 0]), (0.6, [25, 0, 0]), (1.2, [-25, 0, 0]))},
@@ -605,6 +604,17 @@ def animations():
     return {"format_version": "1.8.0", "animations": A}
 
 
+# The skin-built Fredbear's stage show (archived with that model, see archive_old_fredbear).
+OLD_FREDBEAR_PERFORM = {"loop": True, "animation_length": 2.4, "bones": {
+    "waist": {"rotation": kf((0, [0, 0, 0]), (1.2, [3, 0, 0]), (2.4, [0, 0, 0]))},
+    "body": {"rotation": kf((0, [0, 0, -4]), (1.2, [0, 0, 4]), (2.4, [0, 0, -4]))},
+    "head": {"rotation": kf((0, [0, 0, -5]), (0.6, [8, 0, 0]), (1.2, [0, 0, 5]), (1.8, [8, 0, 0]), (2.4, [0, 0, -5]))},
+    "jaw": {"rotation": kf((0, jaw(2)), (0.3, jaw(20)), (0.6, jaw(3)), (0.9, jaw(16)), (1.2, jaw(3)), (1.5, jaw(20)), (1.8, jaw(3)), (2.1, jaw(12)), (2.4, jaw(2)))},
+    "rightArm": {"rotation": kf((0, [-80, 0, 4]), (1.2, [-86, 0, 7]), (2.4, [-80, 0, 4]))},  # microphone at the mouth
+    "leftArm": {"rotation": kf((0, [-70, 0, -35]), (1.2, [-85, 0, -45]), (2.4, [-70, 0, -35]))},
+}}
+
+
 def controller():
     states = {}
     for a in ANIMS:
@@ -627,6 +637,22 @@ def render_controllers():
             "geometry": "Geometry.default",
             "materials": [{"*": "Material.eyes"}],
             "textures": ["Texture.eyes"],
+            "ignore_lighting": True,
+            "part_visibility": [{"*": "variable.fb_eyes && !variable.fb_hidden"}],
+        },
+        # Fredbear's camera echo: fb:variant 0 = purple ECHO feed, 1 = black stage silhouette (shadow Fredbear).
+        "controller.render.fb.echo": {
+            "arrays": {"textures": {"Array.skins": ["Texture.default", "Texture.shadow"]}},
+            "geometry": "Geometry.default",
+            "materials": [{"*": "Material.default"}],
+            "textures": ["Array.skins[variable.fb_variant]"],
+            "part_visibility": [{"*": "!variable.fb_hidden"}],
+        },
+        "controller.render.fb.echo_eyes": {
+            "arrays": {"textures": {"Array.eyes": ["Texture.eyes", "Texture.shadow_eyes"]}},
+            "geometry": "Geometry.default",
+            "materials": [{"*": "Material.eyes"}],
+            "textures": ["Array.eyes[variable.fb_variant]"],
             "ignore_lighting": True,
             "part_visibility": [{"*": "variable.fb_eyes && !variable.fb_hidden"}],
         },
@@ -657,6 +683,81 @@ def client_entity(identifier, geo, tex, eyes_tex, hide_prop, perform):
         "animations": anims,
         "render_controllers": ["controller.render.fb.animatronic", "controller.render.fb.eyes"],
     }}}
+
+
+def fredbear_client_entity(identifier, textures, render_controllers):
+    """Fredbear V6 client entity: own controller (rotating shows, three jumpscares by fb:variant)."""
+    return {"format_version": "1.10.0", "minecraft:client_entity": {"description": {
+        "identifier": identifier,
+        "materials": {"default": "entity_alphatest", "eyes": "creaking_eyes"},
+        "textures": textures,
+        "geometry": {"default": "geometry.fb.fredbear"},
+        "scripts": {
+            "pre_animation": [
+                "variable.fb_anim = query.property('fb:anim');",
+                "variable.fb_eyes = query.property('fb:eyes');",
+                "variable.fb_hidden = query.property('fb:hidden');",
+                "variable.fb_variant = query.property('fb:variant');",
+            ],
+            "animate": ["pose_controller"],
+        },
+        "animations": V6.client_animation_map(),
+        "render_controllers": render_controllers,
+    }}}
+
+
+def build_fredbear_v6(tex_dir):
+    """The owner's Fredbear V6 model with all 12 clips (+ crawl, stalk, dormant, chained shows)."""
+    geo, raw, tex = V6.load(FREDBEAR_ZIP)
+    g = V6.geometry(geo)
+    write_json(RP / "models" / "entity" / "fb_fredbear.geo.json", g)
+    tex.save(tex_dir / "fredbear.png")
+    size = tex.size
+    V6.eye_mask(g, size, rgb("fff3b0"), rgb("ffb020")).save(tex_dir / "fredbear_eyes.png")
+    echo_texture(tex).save(tex_dir / "fredbear_echo.png")
+    V6.eye_mask(g, size, rgb("f0a0ff"), rgb("b040e0")).save(tex_dir / "fredbear_echo_eyes.png")
+    V6.shadow_texture(tex).save(tex_dir / "fredbear_shadow.png")
+    V6.eye_mask(g, size, rgb("ff3a2a"), rgb("8a0a06")).save(tex_dir / "fredbear_shadow_eyes.png")
+    clips, worst = V6.clips(raw)
+    write_json(RP / "animations" / "fb_fredbear.animation.json", {"format_version": "1.8.0", "animations": clips})
+    write_json(RP / "animation_controllers" / "fb_fredbear.animation_controllers.json", {"format_version": "1.10.0", "animation_controllers": V6.controller()})
+    write_json(RP / "entity" / "fb_fredbear.entity.json", fredbear_client_entity(
+        "fb:fredbear", {"default": "textures/entity/fb/fredbear", "eyes": "textures/entity/fb/fredbear_eyes"},
+        ["controller.render.fb.animatronic", "controller.render.fb.eyes"]))
+    write_json(RP / "entity" / "fb_fredbear_echo.entity.json", fredbear_client_entity(
+        "fb:fredbear_echo", {"default": "textures/entity/fb/fredbear_echo", "shadow": "textures/entity/fb/fredbear_shadow",
+                             "eyes": "textures/entity/fb/fredbear_echo_eyes", "shadow_eyes": "textures/entity/fb/fredbear_shadow_eyes"},
+        ["controller.render.fb.echo", "controller.render.fb.echo_eyes"]))
+    return len(clips), worst
+
+
+def archive_old_fredbear(tex, eyes, geo, spec):
+    """The previous, skin-built Fredbear: kept outside the packs (not in the game), regenerated with the rest."""
+    ARCHIVE.mkdir(parents=True, exist_ok=True)
+    tex.save(ARCHIVE / "fredbear.png")
+    eyes.save(ARCHIVE / "fredbear_eyes.png")
+    echo = echo_texture(tex)
+    echo_eyes = Image.new("RGBA", (TEX_W, TEX_H), (0, 0, 0, 0))
+    for (x, y), _ in spec["eyes"]:
+        echo_eyes.putpixel((x, y), rgb("e070ff"))
+    echo.save(ARCHIVE / "fredbear_echo.png")
+    echo_eyes.save(ARCHIVE / "fredbear_echo_eyes.png")
+    write_json(ARCHIVE / "fb_fredbear.geo.json", geo)
+    old_anims = {"format_version": "1.8.0", "animations": {k: v for k, v in animations()["animations"].items()}}
+    old_anims["animations"]["animation.fb.perform.fredbear"] = OLD_FREDBEAR_PERFORM
+    write_json(ARCHIVE / "fb_fredbear_v1.animation.json", old_anims)
+    write_json(ARCHIVE / "fb_fredbear.entity.json", client_entity(
+        "fb:fredbear", "geometry.fb.fredbear", "textures/entity/fb/fredbear", "textures/entity/fb/fredbear_eyes", spec["hide_prop_unless_perform"], "fredbear"))
+    (ARCHIVE / "README.md").write_text(
+        "# Fredbear v1 (archived)\n\n"
+        "The skin-built Fredbear model used up to version 1.1 of the map, built from `art/skins/fredbear_source.png` by\n"
+        "`tools/gen_rp.py`. It is **not in the game** any more: version 1.2 uses the map owner's Fredbear V6 model\n"
+        "(`art/models_incoming/Fredbear_V6_NoEyeDots_Complete.zip`, imported by `tools/fredbear_v6.py`).\n\n"
+        "To put this model back, copy `fb_fredbear.geo.json` to `packs/FredbearRP/models/entity/`, the textures to\n"
+        "`packs/FredbearRP/textures/entity/fb/`, `fb_fredbear.entity.json` to `packs/FredbearRP/entity/` and add\n"
+        "`animation.fb.perform.fredbear` from `fb_fredbear_v1.animation.json` to the shared animation file; then set\n"
+        "`minecraft:scale` back to 1.45 in `packs/FredbearBP/entities/fredbear*.json` and `SCALE.fredbear` in\n"
+        "`scripts/mc/game.js`.\n", encoding="utf-8")
 
 
 # --------------------------------------------------------------------------- items, icons, fogs, text
@@ -718,10 +819,10 @@ def pack_icons(skins):
 
 def fogs():
     out = {}
-    for n in range(1, 7):
+    for n in range(1, 8):
         start = round(8 - n * 0.9, 1)
         end = 56 - n * 5
-        colour = "#06070c" if n < 4 else ("#07050c" if n < 6 else "#090410")
+        colour = "#06070c" if n < 4 else ("#07050c" if n < 6 else "#090410" if n == 6 else "#0b0608")
         setting = {"fog_start": start, "fog_end": end, "fog_color": colour, "render_distance_type": "fixed"}
         out[n] = {"format_version": "1.21.90", "minecraft:fog_settings": {
             "description": {"identifier": f"fb:night_{n}"},
@@ -734,6 +835,15 @@ def fogs():
         "description": {"identifier": "fb:camera_feed"},
         "distance": {"air": dict(feed), "weather": dict(feed)},
     }}
+    # Cutscenes: the night 4 flashback (warm sepia memory) and the burn ending (orange smoke).
+    for key, ident, setting in (
+        ("flashback", "fb:flashback", {"fog_start": 3, "fog_end": 36, "fog_color": "#5a3f1e", "render_distance_type": "fixed"}),
+        ("ending_fire", "fb:ending_fire", {"fog_start": 6, "fog_end": 60, "fog_color": "#7a2c08", "render_distance_type": "fixed"}),
+    ):
+        out[key] = {"format_version": "1.21.90", "minecraft:fog_settings": {
+            "description": {"identifier": ident},
+            "distance": {"air": dict(setting), "weather": dict(setting)},
+        }}
     return out
 
 
@@ -758,20 +868,15 @@ def main():
     for name, spec in specs.items():
         tex, eyes, geo = build_character(name, spec)
         skins[name] = load_skin(spec["skin"])
+        if name == "fredbear":
+            archive_old_fredbear(tex, eyes, geo, spec)
+            continue
         tex.save(tex_dir / f"{name}.png")
         eyes.save(tex_dir / f"{name}_eyes.png")
         write_json(RP / "models" / "entity" / f"fb_{name}.geo.json", geo)
         write_json(RP / "entity" / f"fb_{name}.entity.json", client_entity(
             f"fb:{name}", f"geometry.fb.{name}", f"textures/entity/fb/{name}", f"textures/entity/fb/{name}_eyes", spec["hide_prop_unless_perform"], name))
-        if name == "fredbear":
-            echo = echo_texture(tex)
-            echo_eyes = Image.new("RGBA", (TEX_W, TEX_H), (0, 0, 0, 0))
-            for (x, y), _ in spec["eyes"]:
-                echo_eyes.putpixel((x, y), rgb("e070ff"))
-            echo.save(tex_dir / "fredbear_echo.png")
-            echo_eyes.save(tex_dir / "fredbear_echo_eyes.png")
-            write_json(RP / "entity" / "fb_fredbear_echo.entity.json", client_entity(
-                "fb:fredbear_echo", "geometry.fb.fredbear", "textures/entity/fb/fredbear_echo", "textures/entity/fb/fredbear_echo_eyes", False, "fredbear"))
+    v6_clips, v6_err = build_fredbear_v6(tex_dir)
     write_json(RP / "animations" / "fb_animatronic.animation.json", animations())
     write_json(RP / "animation_controllers" / "fb_animatronic.animation_controllers.json", controller())
     write_json(RP / "render_controllers" / "fb_animatronic.render_controllers.json", render_controllers())
@@ -790,7 +895,7 @@ def main():
     rp_icon, bp_icon = pack_icons(skins)
     rp_icon.save(RP / "pack_icon.png")
     bp_icon.save(BP / "pack_icon.png")
-    print(f"rp: {len(specs)} animatronics (+ echo), {len(ANIMS)} animation states + {len(specs)} performances, {len(fogs())} fogs, 3 item icons")
+    print(f"rp: {len(specs) - 1} skin-built animatronics + Fredbear V6 ({v6_clips} clips, max change {v6_err['rotation']:.2f} deg / {v6_err['position']:.3f} units) + echo/shadow, {len(fogs())} fogs, 3 item icons")
 
 
 if __name__ == "__main__":

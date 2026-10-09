@@ -81,6 +81,11 @@ async function goToOfficeAndStart() {
   player.teleport(Wv(ANCHORS.officeSeat));
   press('in.office.start');
   await mock.tick(3);
+  if (game.state === 'FLASHBACK') {
+    // First night 4 shows the 1983 memory; sneaking skips it (tested on its own below).
+    mock.sneak(player);
+    await mock.tick(3);
+  }
   assert.equal(game.state, 'NIGHT');
 }
 
@@ -110,6 +115,9 @@ async function assertCleanLobby() {
   assert.deepEqual(player.inventory.slots.slice(0, 3).map((s) => s?.typeId), ['fb:tablet', 'fb:remote', 'fb:guide']);
   assert.equal(player.inventory.slots[0].lockMode, 'slot');
   assert.equal(game.cams.active, false);
+  assert.equal(game.tour, null, 'no camera tour running');
+  assert.equal(game.musicPlaying, false, 'night music stopped');
+  assert.equal(player.music ?? null, null, 'no music track left playing');
   assert.equal(game.audio.loops.size, 0);
   assert.equal(game.bus.queue.length, 0, 'actuator queue drained');
   assert.equal(game.bus.stats.stuck, 0, 'no stuck pads');
@@ -142,12 +150,13 @@ test('structure ids resolve as fb:<name>, or by file name under another namespac
   assert.equal(resolveStructureId('fb:cb_row_9', new Set(['fb:cb_row_0'])), undefined);
 });
 
-test('/fb:setup builds the whole map, installs 448 command blocks and reaches the lobby', async () => {
+test('/fb:setup builds the whole map, installs every command block and reaches the lobby', async () => {
   startGame();
   assert.equal(game.state, 'UNBUILT');
   commands.get('fb:setup')({ sourceEntity: player }, false);
   await until(() => game.state === 'LOBBY', 5000, 10);
-  assert.equal(mock.commandBlockCount(), 448);
+  assert.equal(mock.commandBlockCount(), allCommandBlocks().length);
+  assert.equal(mock.commandBlockCount(), 478);
   assert.ok(STATE.maxFill <= 32768, `largest single fill ${STATE.maxFill}`);
   assert.equal(uiMock.shown.filter((f) => f.title === 'Build report').length, 0, 'no build warnings');
   await assertCleanLobby();
@@ -255,10 +264,31 @@ test('training shift: every step completes through the physical controls, then b
   await assertCleanLobby();
 });
 
+test('intro camera tour at 11:55: shows the cameras, sneak skips it, then the walk starts', async () => {
+  press('in.lobby.night_1');
+  await mock.tick(25);
+  assert.equal(game.state, 'INTRO');
+  assert.ok(game.tour, 'tour running');
+  assert.equal(game.cams.active, true, 'tour uses the camera view');
+  assert.equal(player.cameraState.preset, 'minecraft:free');
+  await mock.tick(70);
+  assert.equal(game.cams.cam, 'C07', 'second shot: west hall');
+  mock.sneak(player);
+  await mock.tick(2);
+  assert.equal(game.tour, null);
+  assert.equal(game.cams.active, false);
+  assert.equal(player.cameraState.preset, null, 'view restored');
+  commands.get('fb:lobby')();
+  await mock.tick(2);
+  await assertCleanLobby();
+});
+
 test('intro breadcrumbs follow a walkable route (no sparkles inside walls) and the HUD shows the distance', async () => {
   press('in.lobby.night_1');
   await mock.tick(2);
   assert.equal(game.state, 'INTRO');
+  mock.sneak(player); // skip the camera tour
+  await mock.tick(2);
   STATE.particles.length = 0;
   await mock.tick(25);
   const crumbs = STATE.particles.filter((p) => p.id === 'minecraft:villager_happy');
@@ -278,7 +308,7 @@ test('intro breadcrumbs follow a walkable route (no sparkles inside walls) and t
   await assertCleanLobby();
 });
 
-test('Shift Guide item opens a topic menu covering every mechanic', async () => {
+test('Shift Guide item opens a topic menu covering every mechanic, with a Music on/off switch', async () => {
   const { GUIDE_SECTIONS } = await import('../packs/FredbearBP/scripts/data/guide_text.js');
   const seen = [];
   uiMock.respond = (f) => {
@@ -291,7 +321,17 @@ test('Shift Guide item opens a topic menu covering every mechanic', async () => 
   uiMock.respond = () => undefined;
   assert.deepEqual(seen, ['§lSHIFT GUIDE', '§lFREDBEAR', '§lSHIFT GUIDE']);
   const menu = uiMock.shown.find((f) => f.title === '§lSHIFT GUIDE');
-  assert.equal(menu.buttons.length, GUIDE_SECTIONS.length + 1);
+  assert.equal(menu.buttons.length, GUIDE_SECTIONS.length + 2, 'music switch + topics + close');
+  assert.match(menu.buttons[0], /Music: ON/);
+  // The switch flips the saved setting (and back).
+  uiMock.respond = (f) => (f.title === '§lSHIFT GUIDE' ? { selection: uiMock.shown.filter((x) => x.title === '§lSHIFT GUIDE').length === 1 ? 0 : f.buttons.length - 1 } : undefined);
+  uiMock.shown.length = 0;
+  mock.useItem(player, 'fb:guide');
+  await mock.tick(3);
+  assert.equal(game.save.settings.music, false);
+  assert.match(uiMock.shown.filter((f) => f.title === '§lSHIFT GUIDE')[1].buttons[0], /Music: OFF/);
+  game.toggleMusic(true);
+  uiMock.respond = () => undefined;
   for (const t of ['Power', 'Doors', 'Hall lights', 'Cameras', 'Office hatch', 'Emergency strobe', 'Bonnie', 'Chica', 'Freddy', 'Fredbear', 'Maintenance and tasks']) assert.ok(menu.buttons.includes(t), t);
   for (const sct of GUIDE_SECTIONS) assert.doesNotMatch(sct.body, /undefined|NaN/, sct.title);
   noMockErrors();
@@ -610,6 +650,206 @@ test('full campaign: erase progress, nights 1-6 through the office controls, end
   startGame();
   await mock.tick(2);
   assert.equal(game.save.campaignDone, true);
+  await assertCleanLobby();
+});
+
+test('night 4 flashback: the 1983 memory plays once before the first night 4 shift, then never again', async () => {
+  handleDebug(game, 'unlock', '6', undefined, player);
+  game.save.flashbackSeen = false;
+  press('in.lobby.night_4');
+  await mock.tick(2);
+  mock.sneak(player); // skip the camera tour
+  await mock.tick(2);
+  player.teleport(Wv(ANCHORS.officeSeat));
+  STATE.commands.length = 0;
+  press('in.office.start');
+  await mock.tick(3);
+  assert.equal(game.state, 'FLASHBACK');
+  assert.ok(STATE.commands.includes('fog @a push fb:flashback fb_scene'), 'sepia memory fog');
+  const fb = puppetsOf('fb:fredbear')[0];
+  const stage = Wv(NODE_BY_ID.DINER_STAGE);
+  assert.ok(Math.hypot(fb.location.x - stage.x, fb.location.z - stage.z) < 0.01, 'Fredbear on the old diner stage');
+  assert.equal(fb.getProperty('fb:anim'), 'perform');
+  assert.equal(player.cameraState.preset, 'minecraft:free');
+  await until(() => game.state === 'NIGHT', 700);
+  assert.equal(game.save.flashbackSeen, true);
+  assert.ok(STATE.commands.includes('fog @a remove fb_scene'), 'memory fog removed');
+  assert.equal(game.session.night, 4);
+  commands.get('fb:lobby')();
+  await mock.tick(2);
+  await assertCleanLobby();
+  // Second time: straight into the shift.
+  press('in.lobby.night_4');
+  await mock.tick(2);
+  player.teleport(Wv(ANCHORS.officeSeat));
+  press('in.office.start');
+  await mock.tick(3);
+  assert.equal(game.state, 'NIGHT');
+  commands.get('fb:lobby')();
+  await mock.tick(2);
+  await assertCleanLobby();
+});
+
+test('night music: loops for the whole shift, stops at a jumpscare and at 6 AM, and follows the setting', async () => {
+  press('in.lobby.night_1');
+  await mock.tick(2);
+  await goToOfficeAndStart();
+  assert.deepEqual(player.music, { id: 'fb.night.bgm', loop: true }, 'Pizza Dinner loops (a music track: Minecraft music is replaced)');
+  assert.equal(game.musicPlaying, true);
+  handleDebug(game, 'lose', 'bonnie', undefined, player);
+  await mock.tick(2);
+  assert.equal(player.music, null, 'stopped by the jumpscare');
+  await until(() => game.state === 'RESULT', 200);
+  commands.get('fb:lobby')();
+  await mock.tick(2);
+  await assertCleanLobby();
+  // Switched off: no music at all; switched on mid-shift: starts at once.
+  game.toggleMusic(false);
+  press('in.lobby.night_1');
+  await mock.tick(2);
+  await goToOfficeAndStart();
+  assert.equal(player.music ?? null, null);
+  game.toggleMusic(true);
+  assert.deepEqual(player.music, { id: 'fb.night.bgm', loop: true });
+  handleDebug(game, 'win', undefined, undefined, player);
+  await until(() => game.state === 'RESULT', 50);
+  assert.equal(player.music, null, 'stopped at 6 AM');
+  await until(() => game.state === 'LOBBY', 400);
+  await assertCleanLobby();
+});
+
+test('challenges: locked until night 6; the menu starts one with its modifiers; a win is saved and lights its lamp', async () => {
+  const { CHALLENGE_LAMPS } = await import('../packs/FredbearBP/scripts/data/inputs.js');
+  game.save.campaignDone = false;
+  uiMock.shown.length = 0;
+  press('in.lobby.challenges');
+  await mock.tick(2);
+  assert.match(game.hud.message, /Beat night 6/);
+  assert.equal(uiMock.shown.filter((f) => f.title === '§lCHALLENGES').length, 0);
+  game.save.campaignDone = true;
+  uiMock.respond = (f) => {
+    if (f.title === '§lCHALLENGES') return { selection: f.buttons.indexOf('No Doors') };
+    if (f.title === '§lNO DOORS') return { selection: 1 }; // Start
+    return undefined;
+  };
+  press('in.lobby.challenges');
+  await mock.tick(3);
+  uiMock.respond = () => undefined;
+  assert.equal(game.state, 'INTRO');
+  assert.equal(game.challenge.id, 'no_doors');
+  mock.sneak(player);
+  await mock.tick(2);
+  await goToOfficeAndStart();
+  assert.equal(game.session.mods.noDoors, true);
+  assert.equal(game.session.night, 4, 'built on night 4');
+  press('in.office.door_l');
+  await mock.tick(3);
+  assert.match(game.hud.message, /welded open/);
+  assert.match(player.actionBar, /NO DOORS/);
+  handleDebug(game, 'win', undefined, undefined, player);
+  await until(() => game.state === 'RESULT', 50);
+  await until(() => game.state === 'LOBBY', 400);
+  assert.ok(game.save.challenges.includes('no_doors'));
+  assert.ok(uiMock.shown.some((f) => f.title === '§lCHALLENGE: NO DOORS COMPLETE'), 'result form names the challenge');
+  await mock.tick(10);
+  assert.equal(typeAt(...CHALLENGE_LAMPS.no_doors), 'minecraft:pearlescent_froglight', 'challenge lamp lit');
+  assert.equal(typeAt(...CHALLENGE_LAMPS.no_cams), 'minecraft:gray_concrete');
+  await assertCleanLobby();
+});
+
+test('newspaper clippings: one per night survived, readable from the lobby board', async () => {
+  const { CLIPPINGS } = await import('../packs/FredbearBP/scripts/data/story.js');
+  game.save.completed = [1, 2];
+  uiMock.shown.length = 0;
+  uiMock.respond = (f) => (f.title === '§lLOCAL NEWS' && uiMock.shown.filter((x) => x.title === '§lLOCAL NEWS').length === 1 ? { selection: 1 } : undefined);
+  press('in.lobby.clippings');
+  await mock.tick(3);
+  uiMock.respond = () => undefined;
+  const board = uiMock.shown.find((f) => f.title === '§lLOCAL NEWS');
+  assert.equal(board.buttons.length, CLIPPINGS.length + 1);
+  assert.match(board.body, /2\/7/);
+  assert.equal(board.buttons.filter((b) => b.includes('???')).length, CLIPPINGS.length - 2);
+  assert.ok(uiMock.shown.some((f) => f.title === `§l${CLIPPINGS[1].headline}` && f.body.includes(CLIPPINGS[1].text)), 'clipping 2 opened');
+  noMockErrors();
+});
+
+test('holiday decorations: Halloween / Christmas from the date, placed only into air and removed afterwards', async () => {
+  const { seasonFor } = await import('../packs/FredbearBP/scripts/mc/holidays.js');
+  const { HOLIDAY_DECOR } = await import('../packs/FredbearBP/scripts/data/holiday_decor.generated.js');
+  assert.equal(seasonFor(new Date(2026, 9, 31)), 'halloween');
+  assert.equal(seasonFor(new Date(2026, 11, 24)), 'christmas');
+  assert.equal(seasonFor(new Date(2027, 0, 3)), 'christmas');
+  assert.equal(seasonFor(new Date(2026, 6, 4)), null);
+  const cells = (season) => {
+    const out = [];
+    const { keys, cells: c } = HOLIDAY_DECOR[season];
+    for (let i = 0; i < c.length; i += 4) out.push([c[i], c[i + 1], c[i + 2], PALETTE[keys[c[i + 3]]].name]);
+    return out;
+  };
+  for (const season of ['christmas', 'halloween']) {
+    for (const [x, y, z] of cells(season)) assert.equal(typeAt(x, y, z), 'minecraft:air', `${season} cell ${x},${y},${z} is free before`);
+    game.holidays.sync(season);
+    await until(() => !game.holidays.busy, 400);
+    assert.equal(game.holidays.lastResult.failed, 0);
+    for (const [x, y, z, name] of cells(season)) assert.equal(typeAt(x, y, z), name, `${season} decoration at ${x},${y},${z}`);
+    game.holidays.sync(null);
+    await until(() => !game.holidays.busy, 400);
+    for (const [x, y, z] of cells(season)) assert.equal(typeAt(x, y, z), 'minecraft:air', `${season} removed at ${x},${y},${z}`);
+  }
+  assert.equal(JSON.parse(world.getDynamicProperty('fb:holiday')).season, null);
+  noMockErrors();
+});
+
+test('shadow Fredbear: a black silhouette on CAM 01; staring at it costs power and it vanishes', async () => {
+  press('in.lobby.night_2');
+  await mock.tick(2);
+  await goToOfficeAndStart();
+  handleDebug(game, 'shadow', undefined, undefined, player);
+  await mock.tick(2);
+  const echo = puppetsOf('fb:fredbear_echo');
+  assert.equal(echo.length, 1);
+  assert.equal(echo[0].getProperty('fb:variant'), 1, 'shadow texture');
+  const node = Wv(NODE_BY_ID.STAGE_FRONT);
+  assert.ok(Math.hypot(echo[0].location.x - node.x, echo[0].location.z - node.z) < 0.01);
+  const p0 = game.session.power;
+  press('in.office.map_c01');
+  await mock.tick(80);
+  assert.equal(puppetsOf('fb:fredbear_echo').length, 0, 'gone after the stare');
+  assert.ok(p0 - game.session.power >= 1000, 'cost at least 1 % power');
+  commands.get('fb:lobby')();
+  await mock.tick(2);
+  await assertCleanLobby();
+});
+
+test('night 7: Fredbear alone, then the final choice: burn (and seal) play their endings and are saved', async () => {
+  handleDebug(game, 'unlock', '7', undefined, player);
+  assert.equal(game.save.unlocked, 7);
+  press('in.lobby.night_7');
+  await mock.tick(2);
+  assert.equal(game.state, 'INTRO');
+  await goToOfficeAndStart();
+  assert.equal(game.session.night, 7);
+  await mock.tick(20);
+  for (const who of ['freddy', 'bonnie', 'chica']) assert.equal(puppetsOf(TYPES[who])[0].getProperty('fb:anim'), 'dormant', `${who} powered down`);
+  STATE.commands.length = 0;
+  STATE.particles.length = 0;
+  uiMock.respond = (f) => (f.title === '§l6 AM' ? { selection: 1 } : undefined); // BURN IT DOWN
+  handleDebug(game, 'win', undefined, undefined, player);
+  await until(() => game.state === 'ENDING', 400);
+  await until(() => game.state === 'LOBBY', 2000);
+  uiMock.respond = () => undefined;
+  assert.ok(game.save.endings.includes('burn'));
+  assert.ok(game.save.completed.includes(7));
+  assert.ok(STATE.commands.includes('fog @a push fb:ending_fire fb_scene'));
+  assert.ok(STATE.commands.includes('time set 23500'), 'sunrise');
+  assert.ok(STATE.particles.some((p) => p.id === 'minecraft:mobflame_single' || p.id === 'minecraft:basic_flame_particle'), 'fire particles (no real fire)');
+  assert.ok(uiMock.shown.some((f) => f.title.includes('ARCHIVE')), 'archive after the ending');
+  await assertCleanLobby();
+  // The other ending through the debug shortcut.
+  handleDebug(game, 'ending', 'seal', undefined, player);
+  await until(() => game.state === 'LOBBY', 2000);
+  assert.deepEqual([...game.save.endings].sort(), ['burn', 'seal']);
+  assert.equal(typeAt(64, -8, 85), 'minecraft:brick_block', 'the diner is bricked up again');
   await assertCleanLobby();
 });
 
