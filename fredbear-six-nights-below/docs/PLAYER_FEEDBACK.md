@@ -70,7 +70,7 @@ Numbers stay fixed from now on: new items are added at the end.
 
 | # | Item | Status |
 |---|---|---|
-| 32 | Night 7 "Fredbear's Revenge": a bonus story night after the true ending, just you and Fredbear with every power | idea |
+| 32 | Night 7 "Fredbear's Revenge": a bonus story night after the true ending, just you and Fredbear with every power (section G) | planned |
 | 33 | Phantoms (FNAF 3 style): burnt-looking animatronics flash in the office window on nights 5-6; keep looking and they knock out your cameras or power for a moment | idea |
 | 34 | Freddy mask (FNAF 2 style): put it on when Bonnie or Chica reach the office to fool them; Fredbear is never fooled | idea |
 | 35 | A music box to wind through a camera (FNAF 2 style); let it run down and Fredbear wakes early and angrier | idea |
@@ -80,6 +80,21 @@ Numbers stay fixed from now on: new items are added at the end.
 | 39 | Camera snapshots: photograph strange things on camera (echoes, the empty suit) to fill a photo album at the time clock | idea |
 | 40 | A cupcake that moves between cameras on its own (like Chica's Carl), as a small extra threat or easter egg | idea |
 | 41 | Record wall in the lobby: best power left and cleanest run for each night | idea |
+
+### More ideas (round 4, not chosen yet)
+
+| # | Item | Status |
+|---|---|---|
+| 42 | After night 7, the real finale: walk into Fredbear's chamber yourself and survive one last chase to the exit | idea |
+| 43 | Fredbear talks: short lines on screen on nights 6-7 ("I always come back") | idea |
+| 44 | Fredbear's power-out: when the power dies on nights 4+, his golden eyes appear in the dark doorway instead of Freddy's | idea |
+| 45 | A hidden Parts & Service room behind the stage (spare heads and suits), opened by pressing buttons in the right order | idea |
+| 46 | The office lamp flickers when Fredbear is close, a warning you can learn | idea |
+| 47 | Plushies on the desk as trophies: one for each night beaten and each challenge done | idea |
+| 48 | Challenge modes: no doors, Fredbear only, double power drain, broken cameras | idea |
+| 49 | Newspaper clippings in the lobby that unlock as you beat nights and tell what happened in 1983 | idea |
+| 50 | Night intro fly-through: a short camera tour at 11:55 showing where everyone is standing | idea |
+| 51 | Fake shutdown on night 7: the office goes fully dark and silent for 10 seconds before he arrives | idea |
 
 ### Every update finishes with
 
@@ -189,3 +204,15 @@ Plan:
   original.
 * The animations have never been tested in Minecraft, by the author or here. The preview video in the zip is an offline
   render.
+
+## G. Night 7 "Fredbear's Revenge" (item 32)
+
+Chosen by the owner; details to settle when it is built.
+* Unlock: after beating night 6. Item 18 (two endings) is not chosen, so there is no true ending to unlock it from yet. If
+  item 18 is built later, it can move behind the true ending.
+* Only Fredbear is active (Freddy, Bonnie and Chica stay on the stage), with every power from the start: camera disruption,
+  false echoes, blackouts and teleports. He uses all three entries (left door, right door, hatch) all night.
+* Tuning to balance with `tools/balance_sim.mjs`: more attempts than night 6, shorter cooldowns, enough strobe charges
+  (item 8's "2 spare" rule) and the door/hatch rule from item 9.
+* Needs: a night 7 entry in `config.js`, a lamp/button at the time clock, a phone call or intro text, Shift Guide text,
+  save data (unlocked up to 7) and the ending/credits after it.
