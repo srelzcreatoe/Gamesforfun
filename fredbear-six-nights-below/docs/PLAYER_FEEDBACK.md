@@ -102,14 +102,14 @@ Numbers stay fixed from now on: new items are added at the end.
 |---|---|---|
 | 52 | Desk fan: switch it off to hear footsteps better and save a little power; left on, it masks quiet sounds | idea |
 | 53 | Behind you: on night 6 a camera rarely shows your own office with Fredbear behind your chair; nothing is there when you turn around | idea |
-| 54 | Holiday versions: pumpkins at Halloween and string lights at Christmas, from the device's date | idea |
+| 54 | Holiday versions: pumpkins at Halloween and string lights at Christmas, from the device's date | planned |
 | 55 | Bulbs burn out: a hall light used a lot can burn out; swap the bulb from a box in the office (takes a few seconds) | idea |
 | 56 | Heartbeat: a heartbeat speeds up when something is at a door you are not watching | idea |
-| 57 | A flashback the first time you meet Fredbear on night 4: a short scripted memory of 1983 | idea |
-| 58 | Shadow Fredbear: a rare black silhouette on the stage camera; look too long and it drains 1 % power | idea |
+| 57 | A flashback the first time you meet Fredbear on night 4: a short scripted memory of 1983 | planned |
+| 58 | Shadow Fredbear: a rare black silhouette on the stage camera; look too long and it drains 1 % power | planned |
 | 59 | Dawn: near 6 AM, light slowly creeps in through the windows | idea |
 | 60 | The stage music box plays a short tune every hour | idea |
-| 61 | A choice at the end of night 7: seal the building or burn it down, two different final scenes | idea |
+| 61 | A choice at the end of night 7: seal the building or burn it down, two different final scenes | planned |
 
 ### Every update finishes with
 
