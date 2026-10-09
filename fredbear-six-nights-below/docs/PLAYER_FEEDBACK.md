@@ -87,14 +87,29 @@ Numbers stay fixed from now on: new items are added at the end.
 |---|---|---|
 | 42 | After night 7, the real finale: walk into Fredbear's chamber yourself and survive one last chase to the exit | idea |
 | 43 | Fredbear talks: short lines on screen on nights 6-7 ("I always come back") | idea |
-| 44 | Fredbear's power-out: when the power dies on nights 4+, his golden eyes appear in the dark doorway instead of Freddy's | idea |
+| 44 | Fredbear's power-out: when the power dies on nights 4+, his golden eyes appear in the dark doorway instead of Freddy's (section H) | planned |
 | 45 | A hidden Parts & Service room behind the stage (spare heads and suits), opened by pressing buttons in the right order | idea |
-| 46 | The office lamp flickers when Fredbear is close, a warning you can learn | idea |
+| 46 | The office lamp flickers when Fredbear is close, a warning you can learn (section I) | planned |
 | 47 | Plushies on the desk as trophies: one for each night beaten and each challenge done | idea |
-| 48 | Challenge modes: no doors, Fredbear only, double power drain, broken cameras | idea |
-| 49 | Newspaper clippings in the lobby that unlock as you beat nights and tell what happened in 1983 | idea |
-| 50 | Night intro fly-through: a short camera tour at 11:55 showing where everyone is standing | idea |
+| 48 | Challenge modes: no doors, Fredbear only, double power drain, broken cameras; each tuned so it stays manageable (section J) | planned |
+| 49 | Newspaper clippings in the lobby that unlock as you beat nights and tell what happened in 1983 (section K) | planned |
+| 50 | Night intro fly-through: a short camera tour at 11:55 showing where everyone is standing (section L) | planned |
 | 51 | Fake shutdown on night 7: the office goes fully dark and silent for 10 seconds before he arrives | idea |
+
+### More ideas (round 5, not chosen yet)
+
+| # | Item | Status |
+|---|---|---|
+| 52 | Desk fan: switch it off to hear footsteps better and save a little power; left on, it masks quiet sounds | idea |
+| 53 | Behind you: on night 6 a camera rarely shows your own office with Fredbear behind your chair; nothing is there when you turn around | idea |
+| 54 | Holiday versions: pumpkins at Halloween and string lights at Christmas, from the device's date | idea |
+| 55 | Bulbs burn out: a hall light used a lot can burn out; swap the bulb from a box in the office (takes a few seconds) | idea |
+| 56 | Heartbeat: a heartbeat speeds up when something is at a door you are not watching | idea |
+| 57 | A flashback the first time you meet Fredbear on night 4: a short scripted memory of 1983 | idea |
+| 58 | Shadow Fredbear: a rare black silhouette on the stage camera; look too long and it drains 1 % power | idea |
+| 59 | Dawn: near 6 AM, light slowly creeps in through the windows | idea |
+| 60 | The stage music box plays a short tune every hour | idea |
+| 61 | A choice at the end of night 7: seal the building or burn it down, two different final scenes | idea |
 
 ### Every update finishes with
 
@@ -216,3 +231,54 @@ Chosen by the owner; details to settle when it is built.
   (item 8's "2 spare" rule) and the door/hatch rule from item 9.
 * Needs: a night 7 entry in `config.js`, a lamp/button at the time clock, a phone call or intro text, Shift Guide text,
   save data (unlocked up to 7) and the ending/credits after it.
+
+## H. Fredbear's power-out (item 44)
+
+* Today: at 0 % power (after the reserve lever, nights 3+), Freddy's eyes and music box appear at the left door. The player
+  survives if 6 AM comes first.
+* Plan: on nights where Fredbear is active (4-7), he replaces Freddy in that sequence:
+  * golden eyes in the dark doorway and his own music box;
+  * same timing rules, so it is not harder than today;
+  * the reserve lever still works first.
+
+## I. Office lamp flicker (item 46)
+
+* The office lamp flickers while Fredbear is close: on his approach node, climbing toward an entry, or teleporting to a
+  spot next to the office. It flickers faster in the last seconds before he reaches the entry.
+* It is a learnable warning, a few seconds earlier than the music box. It must not fire for the ECHO (false images).
+* Needs a new command-block module for the office lamp (only the hall lights flicker today). New modules mean a map rebuild
+  (`/fb:setup`) after updating.
+
+## J. Challenge modes (item 48), kept manageable
+
+* Unlocked after beating night 6, picked at the time clock, one at a time. Each one is a normal 12-6 AM night. Beating it
+  lights its lamp at the time clock.
+* Each mode takes something away and gives something back, built on night 3-4 difficulty instead of night 6:
+  * **No doors:** the doors are welded open.
+    * Shining a hall light on Bonnie or Chica at the corner for 2 seconds sends them back.
+    * Fredbear can be strobed without closing anything.
+    * Lower aggression all round.
+  * **Fredbear only:** night 5-level Fredbear with item 9's door rule.
+    * Easier than night 7 (the story version), so it is a warm-up rather than a second night 7.
+  * **Double power drain:** everything drains twice as fast.
+    * Start at 100 %, the reserve lever gives +20 % instead of +8 %, and night 3-level aggression.
+  * **Broken cameras:** no camera feeds (the map buttons only play static).
+    * Louder footsteps and captions on, longer hall lights, Freddy is not active (he depends on cameras), and night
+      3-level aggression.
+* Check each mode with `tools/balance_sim.mjs` before shipping. The standard bot must win most runs; if a mode is too hard,
+  lower aggression rather than adding rules.
+
+## K. Newspaper clippings (item 49)
+
+* A wall in the lobby (by the time clock) with framed clippings. One unlocks after each night beaten (1-6, plus 7 when item
+  32 is built). Pressing a clipping shows its full text.
+* They tell the 1983 story in order, in the same voice as the secrets and the ending text already in `data/story.js`, so
+  they never contradict them.
+* Unlocks are saved with the other progress. ERASE PROGRESS clears them.
+
+## L. Night intro camera tour (item 50)
+
+* At 11:55, before the walk to the office, a short tour (about 8-10 seconds) cuts through 4-5 cameras and shows where each
+  animatronic starts tonight. Fredbear's camera appears from night 4.
+* Sneak skips it. It plays once per night start, not on Retry.
+* It uses the existing camera views and the camera fade.
