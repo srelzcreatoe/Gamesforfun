@@ -126,12 +126,13 @@ Numbers stay fixed from now on: new items are added at the end.
 | 64 | AI fix: Freddy or Bonnie got stuck at the door in their idle pose and never left | planned |
 | 65 | Chica comes to the office about as often as Bonnie (she barely came) | planned |
 | 66 | Out of strobe charges = Fredbear is guaranteed to get you; options 1-5 in section M (recommended 1 + 2) | to decide |
+| 117 | Camera map HUD like FNAF 1: a map of the building in the corner of the screen while on cameras, every camera as a labelled box, the current one highlighted, YOU in the office (section N) | planned |
 
 ### More ideas (round 6, not chosen yet)
 
 | # | Item | Status |
 |---|---|---|
-| 67 | Vent seals: buttons in the office that seal Bonnie's vent and Fredbear's hatch shaft for a while (cost power; goes with 62-63) | idea |
+| 67 | Vent seals: buttons in the office that seal Bonnie's vent and Fredbear's hatch shaft for a while (cost power; goes with 62-63) | planned |
 | 68 | Flashlight: a torch with a small battery to check the dark corners without the hall lights | idea |
 | 69 | Motion radar: a small screen with movement blips (no names); cheaper than cameras but vague | idea |
 | 70 | Reboot panel (FNAF 3 style): cameras, audio or ventilation fail and take a few seconds to reboot | idea |
@@ -142,15 +143,15 @@ Numbers stay fixed from now on: new items are added at the end.
 | 75 | The phone rings mid-night: mute it fast or the noise draws them to you | idea |
 | 76 | Camera zoom: zoom into a feed to spot small details (eyes in the dark) for extra power | idea |
 | 77 | "Last seen" markers on the camera map: each animatronic's icon stays where you last saw it, with how long ago | idea |
-| 78 | Spring Bonnie: Fredbear's partner from the original diner, as a bonus threat (a challenge or a harder night 7) | idea |
+| 78 | Spring Bonnie: Fredbear's partner from the original diner, as a bonus threat (a challenge or a harder night 7) | planned |
 | 79 | Runner: an endoskeleton in Parts & Service sprints to your door if you don't check its camera often enough | idea |
 | 80 | Fake-outs: sometimes an animatronic walks right up to your door, then turns around | idea |
-| 81 | Teamwork: Bonnie bangs on one door to make you look while Chica sneaks to the other | idea |
+| 81 | Teamwork: Bonnie bangs on one door to make you look while Chica sneaks to the other | planned |
 | 82 | Garbled robot voice lines when one of them stands at your door | idea |
 | 83 | Grudges: whoever got you last is a little more aggressive on the retry | idea |
 | 84 | A shadow in the doorway a moment before Freddy actually arrives | idea |
-| 85 | Jumpscares by place: Bonnie bursts out of the vent, Fredbear rises through the hatch | idea |
-| 86 | Withered look: on night 7 or harder modes the trio look damaged (torn suits, missing face plates) | idea |
+| 85 | Jumpscares by place: Bonnie bursts out of the vent, Fredbear rises through the hatch | planned |
+| 86 | Withered look: on night 7 or harder modes the trio look damaged (torn suits, missing face plates) | planned |
 | 87 | Arcade machines switch on by themselves at 3 AM and play a jingle | idea |
 | 88 | Balloons drifting down the halls on camera | idea |
 | 89 | An office TV that plays static, then an old Fredbear's Diner commercial | idea |
@@ -181,6 +182,39 @@ Numbers stay fixed from now on: new items are added at the end.
 | 114 | A short tutorial card the first time a new mechanic shows up | idea |
 | 115 | A playground outside on a new camera, with swings moving by themselves | idea |
 | 116 | A working prize counter: win tickets on the arcade in Free Roam and trade them for plushies | idea |
+
+### More ideas (round 7: creepier and harder, not chosen yet)
+
+| # | Item | Status |
+|---|---|---|
+| 118 | It knows you: phone calls, clippings and the death screen use your Minecraft name ("Goodnight, <name>") | idea |
+| 119 | The night music slows and warps when Fredbear gets close, and cuts out completely when someone is right at your door | idea |
+| 120 | Real-time scares: playing between midnight and 3 AM in real life unlocks extra rare events | idea |
+| 121 | A call at 3 AM: the phone rings and it's only breathing, or the phone guy's voice played backwards | idea |
+| 122 | The office lights dim slowly through the night; by 5 AM you can barely see the console | idea |
+| 123 | Time stops: on nights 6-7 the clock freezes at 4 AM for a minute while the lamps flicker | idea |
+| 124 | Stage curtain: it closes when nobody is watching; when it opens again, someone is missing | idea |
+| 125 | Death trophies: each time you die, something of yours shows up on the stage the next night (badge, hat) | idea |
+| 126 | Free Roam isn't safe after the ending: sometimes Fredbear's footsteps follow you | idea |
+| 127 | In Free Roam the animatronics on stage turn their heads to watch you walk past | idea |
+| 128 | Eyes only in the dark: on late nights their glowing eyes only show with the hall light off | idea |
+| 129 | Lying sounds: on nights 6-7 footsteps sometimes play on the wrong side | idea |
+| 130 | Lying whispers: on night 7 a whisper tells you which door to close, and sometimes it's wrong | idea |
+| 131 | Something else in the kitchen: rarely you hear breathing on CAM 10 while Chica is on another camera | idea |
+| 132 | Shuffled starts: on late nights they start in different places (the intro tour is your only warning) | idea |
+| 133 | Camera lag: on nights 6-7 the feeds run a second or two behind | idea |
+| 134 | Rusty doors: the doors close a little slower each night, so you have to react earlier | idea |
+| 135 | Slams wake Fredbear: every door slam makes him a little more aggressive | idea |
+| 136 | Desperation: everyone speeds up when your power drops below 10 % | idea |
+| 137 | Something in the generator room: power drains faster while an animatronic stands there | idea |
+| 138 | Lying lamps: on nights 6+ a door lamp sometimes shows "closed" when it isn't; look before you trust it | idea |
+| 139 | Fredbear takes the monitor: on nights 6-7 he can switch your camera to a random feed | idea |
+| 140 | Tablet battery: the camera tablet has its own battery; charge it on the desk (no cameras while it charges) | idea |
+| 141 | Fredbear remembers: on night 7 he favours the entry you struggled with most on nights 4-6 | idea |
+| 142 | No-HUD mode: no power % or time on screen, only the panel lamps | idea |
+| 143 | One-life campaign: die once and you start again from night 1 (with its own lamp at the time clock) | idea |
+| 144 | Chica's ovens: while she is in the kitchen the ovens are on and drain your power faster | idea |
+| 145 | Double trouble: two animatronics at the same door take twice as long to back off | idea |
 
 ### Every update finishes with
 
@@ -382,3 +416,30 @@ Reported after playing 1.2.0 to the end. Nothing here is built yet; the causes h
   5. **Play dead:** when he jams a door, switch everything off and stay still for a few seconds; he might leave.
 
   Recommended: 1 + 2.
+
+## N. Camera map HUD (item 117) and the round 6 picks
+
+**117 Camera map HUD.** Reference picture from the owner: `art/reference/camera_map_hud_reference.png` (the FNAF 1
+camera map). While the monitor is up, a map of the building sits in a corner of the screen:
+
+* dark background, the rooms and halls as thin white outlines;
+* every camera as a white box with its label (CAM 01 … CAM 16, plus the new vent cameras 62-63); the camera you are
+  watching is highlighted (blinking, or a different colour);
+* a **YOU** marker in the office;
+* the cameras on other floors (basement, upper floor) shown in a small strip or inset, so the whole map fits.
+
+To check when building it: Bedrock can draw pictures on the HUD through a resource-pack HUD change or custom font
+glyphs, but you probably can't click on the HUD while viewing a camera. Switching cameras would stay on the hotbar,
+the office map buttons and the tablet menu; the HUD map shows where you are.
+
+The handwritten "Control Room for stage?" note on the reference picture is not part of the request.
+
+**Round 6 picks (planned):**
+
+* **67** Vent seals for Bonnie's vent and Fredbear's hatch shaft (pairs with the vent cameras 62-63).
+* **78** Spring Bonnie, Fredbear's partner from the original diner, as a bonus threat.
+* **81** Teamwork: Bonnie bangs on one door so you look while Chica sneaks to the other.
+* **85** Jumpscares by place: Bonnie bursts out of the vent, Fredbear rises through the hatch.
+* **86** Withered look for the trio on night 7 or harder modes.
+
+Where exactly Spring Bonnie and the withered look appear (night 7, a challenge, a new mode) is still to decide.
