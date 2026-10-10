@@ -40,7 +40,7 @@ Numbers stay fixed from now on: new items are added at the end.
 | # | Item | Status |
 |---|---|---|
 | 10 | The building changes between nights (posters, missing props, a Fredbear head on the desk) | idea |
-| 11 | They stare back: watched too long on camera, they turn their head to the lens | idea |
+| 11 | They stare back: watched on camera, they slowly turn their heads to look straight into the lens in an unsettling way (section O) | planned |
 | 12 | Close-ups: rarely, a face fills the whole camera feed for a moment | idea |
 | 13 | Hallucinations on nights 5-6: flash of Fredbear's face, red office, whispers | idea |
 | 14 | Phone calls fall apart on nights 5-6 (static, last call cut off by the music box) | idea |
@@ -126,6 +126,13 @@ Numbers stay fixed from now on: new items are added at the end.
 | 64 | AI fix: Freddy or Bonnie got stuck at the door in their idle pose and never left | planned |
 | 65 | Chica comes to the office about as often as Bonnie (she barely came) | planned |
 | 66 | Out of strobe charges = Fredbear is guaranteed to get you; options 1-5 in section M (recommended 1 + 2) | to decide |
+| 146 | Camera hum quieter (now at half volume; about half that again) | planned |
+| 147 | More cameras in the sealed diner, where Fredbear is (his chamber, the diner floor, the old kitchen) | planned |
+| 148 | Night 7: the trio are moved to Parts & Service, switched off, when the night starts; Fredbear is everywhere, teleporting all over the pizzeria, even onto the main stage | planned |
+| 149 | Fredbear's music box replaced by the owner's "Fredbear's Family Diner" music box (the Fredbear jingle) | planned |
+| 150 | Chica's kitchen clatter replaced by the owner's "Chica in the Kitchen" sounds | planned |
+| 151 | Morgrave (owner's nightmare rabbit model): role in the game to decide (section O) | to decide |
+| 152 | Valek (owner's nightmare gray bear model): role in the game to decide (section O) | to decide |
 | 117 | Camera map HUD like FNAF 1: a map of the building in the corner of the screen while on cameras, every camera as a labelled box, the current one highlighted, YOU in the office (section N) | planned |
 
 ### More ideas (round 6, not chosen yet)
@@ -196,7 +203,7 @@ Numbers stay fixed from now on: new items are added at the end.
 | 124 | Stage curtain: it closes when nobody is watching; when it opens again, someone is missing | idea |
 | 125 | Death trophies: each time you die, something of yours shows up on the stage the next night (badge, hat) | idea |
 | 126 | Free Roam isn't safe after the ending: sometimes Fredbear's footsteps follow you | idea |
-| 127 | In Free Roam the animatronics on stage turn their heads to watch you walk past | idea |
+| 127 | In Free Roam the animatronics on stage turn their heads to watch you walk past | planned |
 | 128 | Eyes only in the dark: on late nights their glowing eyes only show with the hall light off | idea |
 | 129 | Lying sounds: on nights 6-7 footsteps sometimes play on the wrong side | idea |
 | 130 | Lying whispers: on night 7 a whisper tells you which door to close, and sometimes it's wrong | idea |
@@ -214,7 +221,32 @@ Numbers stay fixed from now on: new items are added at the end.
 | 142 | No-HUD mode: no power % or time on screen, only the panel lamps | idea |
 | 143 | One-life campaign: die once and you start again from night 1 (with its own lamp at the time clock) | idea |
 | 144 | Chica's ovens: while she is in the kitchen the ovens are on and drain your power faster | idea |
-| 145 | Double trouble: two animatronics at the same door take twice as long to back off | idea |
+| 145 | Double trouble: two animatronics at the same door take twice as long to back off | planned |
+
+### More ideas (round 8: eerie and lore, not chosen yet)
+
+| # | Item | Status |
+|---|---|---|
+| 153 | The birthday room: a sealed party room in the old diner, still set for the 1983 party (cake, hats, a banner with a name); the candles relight every night | idea |
+| 154 | The missing guard's locker in the time-clock room: each night you survive opens one more item (badge, notebook, a torn photo) | idea |
+| 155 | The old diner's speaker crackles on at 3 AM and plays the 1983 welcome announcement | idea |
+| 156 | A wall in Fredbear's chamber covered in scratched children's names ("he knows every child by name"); after night 6 yours is the newest | idea |
+| 157 | Security tapes from 1987 in the office: replay the night the guard vanished on the monitor | idea |
+| 158 | An employee handbook whose rules get stranger every night ("If you hear the music box, do not answer it") | idea |
+| 159 | Building blueprints in the office that show a room the pizzeria doesn't have | idea |
+| 160 | Framed 1983 diner photos in the halls: a figure in the background gets closer to the camera each night | idea |
+| 161 | Fredbear's old microphone: find it in Free Roam; on your desk it calms him a little, but he laughs when you move it | idea |
+| 162 | An old answering-machine message from the missing 1987 guard plays after the nights 5-7 calls | idea |
+| 163 | Rarely, Fredbear's laugh comes out as a child's laugh | idea |
+| 164 | At exactly 3 AM the stage speakers play "Happy Birthday" slowed down, and the trio turn to face the sealed diner | idea |
+| 165 | A hidden memorial in Parts & Service; one candle goes out for every night you survive | idea |
+| 166 | Maintenance tags on every animatronic with service notes that tell their history (Fredbear's: "DO NOT WEAR") | idea |
+| 167 | On night 7, CAM 16 rarely shows a figure in a 1987 guard uniform standing in the diner, facing away | idea |
+| 168 | Night 1987: a short playable prologue as the guard who vanished, with a fixed ending | idea |
+| 169 | Your ending changes the world: after Seal, the chamber wall cracks a little more each visit; after Burn, Free Roam is scorched | idea |
+| 170 | A construction tunnel in the basement with 1987 workers' graffiti ("DON'T SEAL HIM IN", "he sings at night") | idea |
+| 171 | Sheet music in the old diner: play the melody on note blocks by the stage in Free Roam to open a secret | idea |
+| 172 | A clipping dated tomorrow appears on the newspaper board, describing your death | idea |
 
 ### Every update finishes with
 
@@ -443,3 +475,40 @@ The handwritten "Control Room for stage?" note on the reference picture is not p
 * **86** Withered look for the trio on night 7 or harder modes.
 
 Where exactly Spring Bonnie and the withered look appear (night 7, a challenge, a new mode) is still to decide.
+
+## O. Owner's requests after the round 7 ideas (items 11, 127, 145, 146-152)
+
+Files supplied (saved, not used in the game yet):
+
+* `art/models_incoming/Morgrave_Longer_Torso_Complete.zip`: Morgrave, a withered golden-brown rabbit with exposed ribs
+  and spine. Bedrock geometry, texture, Blockbench project and four clips (idle, walk, perform, jumpscare).
+* `art/models_incoming/Valek_Reworked_Complete.zip`: Valek, a heavy gray bear with tiny eye lights and a broken tooth.
+  Bedrock geometry, 512 × 512 texture, Blockbench project and four clips (idle, walk, perform, jumpscare).
+* `art/sounds_incoming/FNaF_Fredbear_family_dinners_music_box_-_320_Kbps.mp3` (65 s): replaces Fredbear's music box
+  (item 149), used at the entries and in his power-out. Freddy's power-out music box (Toreador March) stays unless the
+  owner says otherwise.
+* `art/sounds_incoming/FNaF_Sounds_-_Chica_in_the_Kitchen.mp3` (28 s): replaces Chica's kitchen clatter (item 150),
+  either cut into several short variants or looped while she is in the kitchen.
+
+Only the model files (geometry, texture, animations) would be imported, like Fredbear V6; the separate showcase packs
+inside the zips (spawn eggs, their own entities) are not used. Each model has 4 clips; the game needs more poses
+(stalk, crawl, look, threat, dormant), which would be made from those clips as was done for Fredbear.
+
+* **11 Unsettling stare:** when you watch a camera, the animatronic on it slowly turns its head to look straight into
+  the lens, sometimes with a small head tilt; it snaps back when you switch away.
+* **127 / 145:** as in the tables.
+* **146 Camera hum:** from volume 0.5 to about 0.25.
+* **147 Sealed-diner cameras:** new cameras for Fredbear's chamber, the diner floor and the old diner kitchen (CAM 16
+  only shows the stage now). They go on the camera map HUD (117) too.
+* **148 Night 7:** at the start of night 7 the trio are moved to Parts & Service, switched off. Fredbear can appear
+  anywhere in the pizzeria, including the main stage, by teleporting. To stay fair: every teleport still has a cue
+  (chime, shimmer, static), and every attack still starts with his music box and glow at an entry.
+* **151 / 152 Morgrave and Valek:** proposed roles (to decide):
+  * Morgrave is Fredbear's friend from the 1983 diner (the first clipping mentions "a golden singing bear and his
+    friend"). He could take the place of the planned Spring Bonnie (78). He would crawl through the vents and the hatch
+    shaft, using the vent cameras (62-63), the vent seals (67) and the vent jumpscare (85).
+  * Valek is the gray bear nobody remembers ordering, found in Parts & Service the week the 1987 guard went missing. He
+    only shows up in the dark (small eyes in a dark corner), copies the others' footsteps and laughs (129), and vanishes
+    when you light him, coming back closer each time.
+  * Where they appear: a night 8 that depends on your night 7 ending (Seal → Morgrave, walled in with Fredbear;
+    Burn → Valek, walking out of the smoke), then a final night with both after you have seen both endings.
