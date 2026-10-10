@@ -4,10 +4,13 @@ Requests from the map owner after their in-game playthrough (campaign completed 
 the owner says go.
 
 Status: **done in 1.2.0 (untested in-game)** = built, passes every validator and automated test, packaged in the 1.2.0
-`.mcaddon`, but not tried in Minecraft yet. **planned** = agreed, not started. **idea** = suggested, not chosen yet.
+`.mcaddon`, but not tried in Minecraft yet. **planned** = agreed, not started. **to decide** = reported, the fix is not
+chosen yet. **idea** = suggested, not chosen yet.
 
 Every agreed item (1-9, 21, 32, 44, 46, 48, 49, 50, 54, 57, 58, 61) is done in 1.2.0. The time-clock room (lobby) was
 rebuilt to hold the challenge console and the newspaper board; the rest of the pizzeria is unchanged.
+
+The owner then played 1.2.0 to the end and reported items 62-66 (section M).
 
 ## The list
 
@@ -113,6 +116,71 @@ Numbers stay fixed from now on: new items are added at the end.
 | 59 | Dawn: near 6 AM, light slowly creeps in through the windows | idea |
 | 60 | The stage music box plays a short tune every hour | idea |
 | 61 | A choice at the end of night 7: seal the building or burn it down, two different final scenes | done in 1.2.0 (untested in-game) |
+
+### Owner's report after finishing 1.2.0 (details in section M)
+
+| # | Item | Status |
+|---|---|---|
+| 62 | Camera for Fredbear's hatch shaft: watch him climb up toward the office hatch | planned |
+| 63 | Camera for Bonnie's vent: watch him crawl through it before he pops out in front of the left door | planned |
+| 64 | AI fix: Freddy or Bonnie got stuck at the door in their idle pose and never left | planned |
+| 65 | Chica comes to the office about as often as Bonnie (she barely came) | planned |
+| 66 | Out of strobe charges = Fredbear is guaranteed to get you; options 1-5 in section M (recommended 1 + 2) | to decide |
+
+### More ideas (round 6, not chosen yet)
+
+| # | Item | Status |
+|---|---|---|
+| 67 | Vent seals: buttons in the office that seal Bonnie's vent and Fredbear's hatch shaft for a while (cost power; goes with 62-63) | idea |
+| 68 | Flashlight: a torch with a small battery to check the dark corners without the hall lights | idea |
+| 69 | Motion radar: a small screen with movement blips (no names); cheaper than cameras but vague | idea |
+| 70 | Reboot panel (FNAF 3 style): cameras, audio or ventilation fail and take a few seconds to reboot | idea |
+| 71 | Bad air: if ventilation fails, the screen slowly blurs and you start seeing things until you reboot it | idea |
+| 72 | Door motor overheat: a door kept closed too long pops open for a few seconds; a lamp shows the heat | idea |
+| 73 | Barricade: once per night, board up one door for good, but you can no longer light that side | idea |
+| 74 | Window shutters: nothing can peek in, but you can't see out either | idea |
+| 75 | The phone rings mid-night: mute it fast or the noise draws them to you | idea |
+| 76 | Camera zoom: zoom into a feed to spot small details (eyes in the dark) for extra power | idea |
+| 77 | "Last seen" markers on the camera map: each animatronic's icon stays where you last saw it, with how long ago | idea |
+| 78 | Spring Bonnie: Fredbear's partner from the original diner, as a bonus threat (a challenge or a harder night 7) | idea |
+| 79 | Runner: an endoskeleton in Parts & Service sprints to your door if you don't check its camera often enough | idea |
+| 80 | Fake-outs: sometimes an animatronic walks right up to your door, then turns around | idea |
+| 81 | Teamwork: Bonnie bangs on one door to make you look while Chica sneaks to the other | idea |
+| 82 | Garbled robot voice lines when one of them stands at your door | idea |
+| 83 | Grudges: whoever got you last is a little more aggressive on the retry | idea |
+| 84 | A shadow in the doorway a moment before Freddy actually arrives | idea |
+| 85 | Jumpscares by place: Bonnie bursts out of the vent, Fredbear rises through the hatch | idea |
+| 86 | Withered look: on night 7 or harder modes the trio look damaged (torn suits, missing face plates) | idea |
+| 87 | Arcade machines switch on by themselves at 3 AM and play a jingle | idea |
+| 88 | Balloons drifting down the halls on camera | idea |
+| 89 | An office TV that plays static, then an old Fredbear's Diner commercial | idea |
+| 90 | Red emergency lights in the halls when power drops below 20 % | idea |
+| 91 | VHS camera overlay: REC dot, camera name and the time | idea |
+| 92 | Kids' drawings on the office wall that change to hint where the animatronics are tonight | idea |
+| 93 | Basement fog that thickens as the night goes on | idea |
+| 94 | A pipe bursts in the basement at 4 AM: steam blocks one basement camera for a while | idea |
+| 95 | Street lights in the parking lot go out one by one through the night (parking camera) | idea |
+| 96 | Fake 6 AM: the cheer starts at 5:45, then cuts out and the night goes on (you still win at the real 6 AM) | idea |
+| 97 | 8-bit minigames on the lobby arcade machines that tell the 1983 story | idea |
+| 98 | Old guards' logbook in the office with hints for tonight's night | idea |
+| 99 | Restore the old Fredbear's Diner sign: find its pieces in Free Roam to light it up | idea |
+| 100 | Phone archive at the time clock: replay every phone call | idea |
+| 101 | A short post-credits scene after each ending | idea |
+| 102 | Campaign stats in the end credits (deaths, strobes used, best night) | idea |
+| 103 | A locked basement door that opens only after you have seen both endings, with a final secret | idea |
+| 104 | Achievements ("night 5 without the strobe", "night 4 without closing the hatch") | idea |
+| 105 | Faz-Tokens: earn tokens each night and buy office upgrades (bigger battery, faster doors, an extra charge) | idea |
+| 106 | Assist mode: slower animatronics and more power for players who just want the story | idea |
+| 107 | Endless mode: survive as many hours as you can while everyone keeps getting faster | idea |
+| 108 | Practice mode: pick one animatronic and practise against only them | idea |
+| 109 | Daily night: a special night whose layout changes every day | idea |
+| 110 | Speedrun timer for finding every secret in Free Roam | idea |
+| 111 | Volume sliders for music and sound effects | idea |
+| 112 | Pause menu during a night | idea |
+| 113 | Colour-blind friendly panel lamps (symbols as well as colours) | idea |
+| 114 | A short tutorial card the first time a new mechanic shows up | idea |
+| 115 | A playground outside on a new camera, with swings moving by themselves | idea |
+| 116 | A working prize counter: win tickets on the arcade in Free Roam and trade them for plushies | idea |
 
 ### Every update finishes with
 
@@ -288,3 +356,29 @@ Chosen by the owner; details to settle when it is built.
   animatronic starts tonight. Fredbear's camera appears from night 4.
 * Sneak skips it. It plays once per night start, not on Retry.
 * It uses the existing camera views and the camera fade.
+
+## M. Owner's report after finishing 1.2.0 (items 62-66)
+
+Reported after playing 1.2.0 to the end. Nothing here is built yet; the causes have not been looked into yet.
+
+* **62 Hatch-shaft camera.** Fredbear climbs to the office hatch through a shaft under the office that no camera shows
+  now. Add a camera there so you can see him coming up. He must be visible in the shaft (crawl animation), not hidden.
+* **63 Bonnie's vent camera.** From night 2 Bonnie can take the supply-closet vent and come out in front of the left door.
+  He is hidden while he crawls through it, and no camera shows the vent. Add a camera inside the vent and make him visible
+  there.
+* **64 Stuck at the door.** Freddy or Bonnie stood at the door in their idle pose and never left. To check: what state
+  they were in (the developer overlay shows it), whether the door was open or closed, and whether another animatronic was
+  standing in the hall behind them.
+* **65 Chica too passive.** She barely came to the office. Bonnie's pace is the target. Things that slow her down now:
+  she waits in the kitchen for 10-30 s after every retreat and may trip the breaker instead of moving.
+* **66 Out of strobe charges.** A closed door or hatch holds Fredbear only once per night (never in the Golden Hour).
+  After that, his next try at the same entry ends in a jam and an attack, and only the strobe stops that. A strobe pressed
+  when he isn't at an entry, or after he already flinched, still uses a charge. Options:
+  1. **No wasted shots:** a charge is only used when the strobe hits him (driven off, or the first flinch). A miss keeps the
+     charge. Open choices: does a miss still cost 2 % power, and should its 10 s wait shrink to about 2 s?
+  2. **Last resort at 0 charges:** a closed door or hatch always holds, but each hold costs about 5 % power.
+  3. **Recharging:** 1 charge comes back at 2 AM and at 4 AM.
+  4. **Spare charges:** a box in the office or basement with 1-2 extra charges you have to fetch.
+  5. **Play dead:** when he jams a door, switch everything off and stay still for a few seconds; he might leave.
+
+  Recommended: 1 + 2.
