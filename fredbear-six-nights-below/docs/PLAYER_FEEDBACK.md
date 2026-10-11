@@ -267,7 +267,7 @@ Numbers stay fixed from now on: new items are added at the end.
 | 176 | Vibrant Visuals compatible: the map works with Minecraft's Vibrant Visuals graphics mode | done in 1.3.1 (untested in-game) |
 | 177 | A camera inside the hatch shaft itself (CAM 17 only shows the crawlspace end below the office; the climb up to the hatch is a blind spot) | planned |
 | 178 | A completely separate room for Valek and Morgrave that is nightmare fuel (section S) | planned |
-| 179 | Morgrave's mechanic is confusing: pick a rework, options 1-5 in section S | to decide |
+| 179 | Morgrave's mechanic is confusing: pick a rework, options 1-10 in section S | to decide |
 
 ### Every update finishes with
 
@@ -617,6 +617,21 @@ if he gets past, **close the left door or the hatch** within 3.5 s (you hear him
 5. **Sound lure** (FNAF 3 style): a new PLAY AUDIO button plays a child's laugh on the camera you are watching; Morgrave
    crawls toward the sound. Lure him away from the office through the vents and crawlspaces; the lure has a cooldown
    and can fail if overused.
+6. **Behind you**: no doors, no vents. Sometimes a soft breathing starts *behind* your chair (he is in the office).
+   Turn around and look straight at him within 3 s and he sinks back into the floor. If you are on the cameras you
+   will not notice in time, so you have to keep listening.
+7. **In the walls**: he crawls inside the office walls (left, right, ceiling, floor). Scratching tells you which one.
+   Four new SHOCK buttons: shock the right wall and he retreats; shock the wrong one and you waste power and the noise
+   draws the trio toward you.
+8. **Keep the party going** (lore): he guards the sealed 1983 birthday room (CAM 20). The candles on the cake slowly
+   go out; while they burn he stays at the party. Relight them from the office (CANDLES button, cooldown). When the last
+   candle dies he leaves the party and comes for you fast.
+9. **Hunted below**: on his nights a mid-night errand sends you down to the basement (like the generator task), and he
+   hunts you in the tunnels while the clock is stopped. Hide in lockers when the scraping gets close, then run for the
+   lever and back to the office.
+10. **Springlocks**: a springlock gauge on the panel unwinds all night. To wind it you must watch CAM 19 (his chamber) and
+    hold a WIND button, which keeps you on the cameras and away from the doors. Let it run out and the springlocks snap
+    open: he comes straight through the vent, fast.
 
 **Shaft camera (177):** a camera in the vertical shaft between the subfloor and the office hatch, looking up the climb,
 added to the camera map HUD. Fredbear's and Morgrave's climbs to the hatch would no longer be a blind spot.
