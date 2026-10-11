@@ -267,7 +267,8 @@ Numbers stay fixed from now on: new items are added at the end.
 | 176 | Vibrant Visuals compatible: the map works with Minecraft's Vibrant Visuals graphics mode | done in 1.3.1 (untested in-game) |
 | 177 | A camera inside the hatch shaft itself (CAM 17 only shows the crawlspace end below the office; the climb up to the hatch is a blind spot) | planned |
 | 178 | A completely separate room for Valek and Morgrave that is nightmare fuel (section S) | planned |
-| 179 | Morgrave's mechanic is confusing: pick a rework, options 1-10 in section S | to decide |
+| 179 | Morgrave's mechanic is confusing: pick a rework, options 1-10 in section S; proposed: "Blind, hunts by sound" (section T) | to decide |
+| 180 | A vent in the ceiling above the office: the only vent Morgrave and Valek use; they also use both doors (left and right). They no longer use the supply duct, the crawlspace or the hatch (section T) | planned |
 
 ### Every update finishes with
 
@@ -641,4 +642,27 @@ torn costume parts, endoskeleton heads on hooks, rows of small chairs facing a w
 faces in progress, one flickering lamp and a TV showing static. Morgrave's nest of stuffing in one corner; Valek's
 corner kept pitch black, with extra pairs of painted eyes so you never know which pair is his. Both start each night
 there (a new camera shows them). Details to agree with the owner before building.
+
+## T. The ceiling vent (item 180) and Morgrave's new mechanic (item 179, proposed)
+
+**Routes (owner's decision):** Morgrave and Valek come to the office three ways only: the **left door**, the **right
+door** and a new **vent in the ceiling above the office** (with its own camera). The supply duct and the crawlspace /
+hatch stay Bonnie's and Fredbear's.
+
+**Morgrave: blind, hunts by sound (proposed).** He cannot see; he goes where he last heard you.
+* Every button makes noise, shown by a small noise meter on the screen: doors are loud, lights and the camera monitor
+  quiet, the phone very loud.
+* Where the noise comes from decides where he comes: noise on the left side of the office (left door, left light) →
+  left door; right side → right door; the middle (monitor, phone) → the ceiling vent.
+* At a door: close it. He scratches and waits, and gives up only after you stay quiet for a few seconds (every new noise
+  resets his patience, so slamming buttons keeps him there).
+* In the ceiling vent there is no door: dripping and creaking above you. Stay completely silent (no buttons) for about
+  5 s and he crawls away; make any noise and he drops on you.
+* You can use it: ring the phone or make noise on a side whose door is already shut to pull him away from the open side.
+* On night 9 it collides with Valek: lighting Valek's corner makes noise on that side and calls Morgrave there.
+
+**Valek with the new routes:** keeps his rules (only moves while unwatched, only his eyes, light him and he vanishes
+angrier, hold the door and he backs off) on the left and right halls, and gains the ceiling vent: there his eyes stare down
+through the grate. Light cannot reach the vent; instead, look up straight at him (the player's own view) for 2 s and he
+backs off. While you look up you are not watching the doors.
 
