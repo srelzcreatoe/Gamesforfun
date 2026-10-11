@@ -259,6 +259,12 @@ Numbers stay fixed from now on: new items are added at the end.
 | 173 | Replace Freddy and Bonnie with the owner's Freddy V6 and Bonnie V2 models | done in 1.3.0 (untested in-game) |
 | 174 | Night 9: Valek and Morgrave come for you together with Fredbear, whatever ending you got; creepy, eerie and hard | done in 1.3.0 (untested in-game) |
 
+### Owner's requests after 1.3.0 (details in section Q)
+
+| # | Item | Status |
+|---|---|---|
+| 175 | A simple command (like `/fb:...`) that marks every night completed and says so ("All nights completed"), so the player can open and see every night | planned |
+
 ### Every update finishes with
 
 * credits (README, docs, in-game), Shift Guide text, the night 4 phone call (now "four charges");
@@ -556,3 +562,20 @@ Details are in docs/04 (AI), docs/07 (assets and map) and docs/08 (how to play).
 * **Lore (153, 156, 157, 170):** the 1983 birthday room (candles relit every night), the wall of names (yours after night
   6), the TAPE DECK with the 1987 tapes (after night 5), the 1987 crew graffiti.
 * **Still open:** item 66 (out of strobe charges). Options are in section M.
+
+## Q. "All nights completed" command (item 175)
+
+The owner wants a short command that unlocks everything at once, so every night can be seen and played without beating
+the campaign first. Saved, not built yet.
+
+* **Command:** a new top-level custom command next to `/fb:setup` and `/fb:lobby`, for example **`/fb:allnights`**
+  (cheats on, same permission level as the others).
+* **What it does:** marks nights 1-9 as survived and unlocks night 9 (so all nine NIGHT buttons light up at the time
+  clock), marks the campaign complete (the challenges open), saves, and says on screen: **"All nights completed!
+  Every night is unlocked at the time clock."**
+* **Side effects to keep in mind:** survived nights also unlock all the newspaper clippings and the 1987 tapes. Night 8
+  needs a night 7 ending to pick its version; if none has been played yet the command would leave the seal version
+  (Morgrave) as the default. It does not mark the endings or the challenges as seen.
+* **Already possible today:** `/fb:debug unlock 9` unlocks every night and the challenges, but it is a developer command,
+  it does not mark nights 1-6 as survived (clippings), and its message is a plain debug line.
+
