@@ -263,7 +263,7 @@ Numbers stay fixed from now on: new items are added at the end.
 
 | # | Item | Status |
 |---|---|---|
-| 175 | A simple command (like `/fb:...`) that marks every night completed and says so ("All nights completed"), so the player can open and see every night | planned |
+| 175 | A simple command (like `/fb:...`) that marks every night completed and unlocks all the lore and extras too, and says so ("All nights completed"), so the player can see everything | planned |
 
 ### Every update finishes with
 
@@ -565,17 +565,22 @@ Details are in docs/04 (AI), docs/07 (assets and map) and docs/08 (how to play).
 
 ## Q. "All nights completed" command (item 175)
 
-The owner wants a short command that unlocks everything at once, so every night can be seen and played without beating
-the campaign first. Saved, not built yet.
+The owner wants a short command that unlocks everything at once (every night, plus the lore and the other extras), so
+everything can be seen and played without beating the campaign first. Saved, not built yet.
 
 * **Command:** a new top-level custom command next to `/fb:setup` and `/fb:lobby`, for example **`/fb:allnights`**
   (cheats on, same permission level as the others).
-* **What it does:** marks nights 1-9 as survived and unlocks night 9 (so all nine NIGHT buttons light up at the time
-  clock), marks the campaign complete (the challenges open), saves, and says on screen: **"All nights completed!
-  Every night is unlocked at the time clock."**
-* **Side effects to keep in mind:** survived nights also unlock all the newspaper clippings and the 1987 tapes. Night 8
-  needs a night 7 ending to pick its version; if none has been played yet the command would leave the seal version
-  (Morgrave) as the default. It does not mark the endings or the challenges as seen.
+* **What it unlocks:**
+  * **Nights:** nights 1-9 marked as survived, night 9 unlocked (all nine NIGHT buttons light up at the time clock), the
+    campaign marked complete (the challenges open).
+  * **Lore:** all 9 newspaper clippings on the board, the 1987 tapes on the office TAPE DECK, the player's name on the wall
+    of names in Fredbear's chamber, both night 7 endings recorded in the Archive.
+  * **Extras:** all 12 Free Roam secrets listed as found in ARCHIVE & CREDITS, and the night 4 flashback marked as seen.
+  * Then it saves and says on screen: **"All nights completed! Every night and all the lore are unlocked."**
+* **Left as they are:** the challenge lamps (they light only when a challenge is really beaten; say if they should light
+  too). The birthday room and the crew graffiti are always there to visit in Free Roam, so they need nothing.
+* **Night 8:** its version follows the last night 7 ending. With both endings recorded, the command would set the last one
+  to *seal* (Morgrave); `/fb:debug lastending burn` switches to Valek.
 * **Already possible today:** `/fb:debug unlock 9` unlocks every night and the challenges, but it is a developer command,
   it does not mark nights 1-6 as survived (clippings), and its message is a plain debug line.
 
