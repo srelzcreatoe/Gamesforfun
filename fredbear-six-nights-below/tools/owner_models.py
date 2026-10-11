@@ -341,7 +341,7 @@ def client_animation_map(who, spec):
     m = {"pose_controller": f"controller.animation.fb.{who}", LOOK_ANIM: f"animation.fb.{who}.{LOOK_ANIM}"}
     names = set(spec["clips"].values()) | set(spec["jumpscares"])
     names |= {f"{p}_once" for p in spec["performances"]} if len(spec["performances"]) > 1 else set(spec["performances"])
-    for c in names:
+    for c in sorted(names):  # sorted: the generated file is identical on every run
         m[c] = f"animation.fb.{who}.{c}"
     return m
 

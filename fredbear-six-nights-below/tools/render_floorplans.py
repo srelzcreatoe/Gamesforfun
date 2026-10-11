@@ -18,7 +18,7 @@ COLORS = {
     '#': (52, 52, 58), '.': (214, 210, 200), 'p': (150, 132, 112), 'g': (120, 190, 210),
     ',': (78, 112, 64), '=': (92, 92, 96), 'r': (64, 64, 70), ' ': (20, 20, 24),
 }
-ACCESS = {'B': (140, 70, 200), 'C': (230, 190, 30), 'F': (150, 90, 40), 'G': (230, 160, 0)}
+ACCESS = {'B': (140, 70, 200), 'C': (230, 190, 30), 'F': (150, 90, 40), 'G': (230, 160, 0), 'M': (200, 120, 80)}
 ZONE_TINT = {'safe': (80, 200, 120), 'restricted': (220, 80, 60), 'secret': (200, 150, 0), 'dev': (90, 120, 230)}
 
 
@@ -110,7 +110,7 @@ def main():
         # title + legend
         d.text((MARGIN, 14), f'FREDBEAR: SIX NIGHTS BELOW  -  {names[lid]}', font=f_big, fill=(255, 210, 90))
         ly = H - 80
-        items = [('Bonnie route', ACCESS['B']), ('Chica route', ACCESS['C']), ('Freddy route', ACCESS['F']), ('Fredbear route', ACCESS['G']),
+        items = [('Bonnie route', ACCESS['B']), ('Chica route', ACCESS['C']), ('Freddy route', ACCESS['F']), ('Fredbear route', ACCESS['G']), ('Morgrave route', ACCESS['M']),
                  ('Shared route', (230, 230, 230)), ('Attack entry', (255, 60, 60)), ('Golden relocation node', (255, 220, 0)),
                  ('Camera (view)', (80, 200, 255)), ('Button/lever input', (60, 220, 60)), ('Pressure plate', (220, 120, 220))]
         x = MARGIN

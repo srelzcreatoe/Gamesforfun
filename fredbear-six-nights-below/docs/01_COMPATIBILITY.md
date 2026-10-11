@@ -8,14 +8,16 @@ whole map inside your own world (`/fb:setup`), installs the command-block networ
 and runs the night simulation with the stable Script API.
 
 * Map: abandoned entertainment complex, 200 × 200 footprint, 3 levels, 62 rooms and spaces (docs/02).
-* Enemies: Freddy, Bonnie, Chica and Fredbear, each with its own state machine (docs/04).
-* Campaign: training shift + seven nights, persistent unlocks, Night 6 finale and ending, Night 7 with a choice of two
-  endings, four challenge modes, newspaper clippings, a night 4 flashback, seasonal decorations (docs/05, docs/08).
-* Office: two doors, two hall lights, 16 cameras, hatch, emergency strobe, breaker, reserve lever, power and
-  hour displays, warning indicators (docs/03).
+* Enemies: Freddy, Bonnie, Chica, Fredbear, and (1.3) Morgrave and Valek, each with its own state machine (docs/04).
+* Campaign: training shift + nine nights, persistent unlocks, Night 6 finale and ending, Night 7 with a choice of two
+  endings, Night 8 decided by that choice, Night 9 and its ending, four challenge modes, newspaper clippings, the 1987 tapes,
+  lore rooms, a night 4 flashback, seasonal decorations (docs/05, docs/08).
+* Office: two doors, two hall lights, 21 cameras with an on-screen camera map, hatch, vent and shaft seals, emergency strobe,
+  breaker, reserve lever, tape deck, power and hour displays, warning indicators (docs/03).
 * Command blocks: 478 blocks in 32 structure files, each one listed in docs/06.
-* Assets: the owner's Fredbear V6 model (730 cubes, all 12 of its animations, plus stalk, crawl and dormant poses made
-  from them), the owner's sound recordings and night music, and synthesised sounds (docs/07).
+* Assets: the owner's Fredbear V6 (730 cubes), Freddy V6, Bonnie V2, Morgrave and Valek models with their own animations,
+  plus crawl, stalk, hurry, threat, dormant, attack and look clips made from them; the owner's sound recordings and night
+  music; synthesised sounds; the camera-map HUD (docs/07).
 
 ## Target versions (pinned)
 
@@ -99,3 +101,13 @@ No part of this project has been run inside Minecraft (see docs/10). Items that 
 12. **Holiday dates** come from the device clock (`new Date()` in the script engine); a device with the wrong date shows
     the wrong (or no) decorations.
 13. **Cutscene fogs and particles** (flashback sepia, burn ending orange smoke, flame particles): look and feel.
+14. **Camera map HUD** (1.3): `ui/hud_screen.json` adds the map to the HUD root panel with a `modifications` insert and
+    shows it while the title text (`#hud_title_text_string`) contains an invisible marker made of formatting codes; each
+    highlight shows while the title equals its camera's code. This is a common community technique, but Mojang does not
+    document JSON UI as a stable API: if the map never appears, or appears with the wrong camera lit, the rest of the game is
+    not affected (switch it off in Settings). Also unverified: that a title made only of formatting codes draws nothing, and
+    the blink animation.
+15. **The new owner models in the game** (Freddy V6, Bonnie V2, Morgrave, Valek): like Fredbear V6, they pass every static
+    check and render in the offline preview; the added clips, the stare (`fb:look_*` properties eased in `pre_animation`), the
+    withered skins, Valek's eyes-only render controller and the jumpscare framing at their scales are unverified in-game.
+16. **New 1.3 sound recordings** (Fredbear's music box, *Chica in the Kitchen* in five takes): loudness and loop timing.

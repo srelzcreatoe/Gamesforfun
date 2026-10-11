@@ -3,14 +3,18 @@
 Requests from the map owner after their in-game playthrough (campaign completed through night 6). Work only starts when
 the owner says go.
 
-Status: **done in 1.2.0 (untested in-game)** = built, passes every validator and automated test, packaged in the 1.2.0
-`.mcaddon`, but not tried in Minecraft yet. **planned** = agreed, not started. **to decide** = reported, the fix is not
+Status: **done in 1.2.0 / 1.3.0 (untested in-game)** = built, passes every validator and automated test, packaged in that
+version's `.mcaddon`, but not tried in Minecraft yet. **planned** = agreed, not started. **to decide** = reported, the fix is not
 chosen yet. **idea** = suggested, not chosen yet.
 
 Every agreed item (1-9, 21, 32, 44, 46, 48, 49, 50, 54, 57, 58, 61) is done in 1.2.0. The time-clock room (lobby) was
 rebuilt to hold the challenge console and the newspaper board; the rest of the pizzeria is unchanged.
 
 The owner then played 1.2.0 to the end and reported items 62-66 (section M).
+
+**1.3.0** builds every planned item (11, 62-65, 67, 78, 81, 85, 86, 117, 127, 145-152), the lore items the owner picked
+(153, 156, 157, 170) and the owner's last requests (173-174: the Freddy V6 and Bonnie V2 models, and night 9). Item 66
+(out of strobe charges) is still **to decide**: the owner has not picked one of the options in section M.
 
 ## The list
 
@@ -40,7 +44,7 @@ Numbers stay fixed from now on: new items are added at the end.
 | # | Item | Status |
 |---|---|---|
 | 10 | The building changes between nights (posters, missing props, a Fredbear head on the desk) | idea |
-| 11 | They stare back: watched on camera, they slowly turn their heads to look straight into the lens in an unsettling way (section O) | planned |
+| 11 | They stare back: watched on camera, they slowly turn their heads to look straight into the lens in an unsettling way (section O) | done in 1.3.0 (untested in-game) |
 | 12 | Close-ups: rarely, a face fills the whole camera feed for a moment | idea |
 | 13 | Hallucinations on nights 5-6: flash of Fredbear's face, red office, whispers | idea |
 | 14 | Phone calls fall apart on nights 5-6 (static, last call cut off by the music box) | idea |
@@ -121,25 +125,25 @@ Numbers stay fixed from now on: new items are added at the end.
 
 | # | Item | Status |
 |---|---|---|
-| 62 | Camera for Fredbear's hatch shaft: watch him climb up toward the office hatch | planned |
-| 63 | Camera for Bonnie's vent: watch him crawl through it before he pops out in front of the left door | planned |
-| 64 | AI fix: Freddy or Bonnie got stuck at the door in their idle pose and never left | planned |
-| 65 | Chica comes to the office about as often as Bonnie (she barely came) | planned |
+| 62 | Camera for Fredbear's hatch shaft: watch him climb up toward the office hatch | done in 1.3.0 (untested in-game) |
+| 63 | Camera for Bonnie's vent: watch him crawl through it before he pops out in front of the left door | done in 1.3.0 (untested in-game) |
+| 64 | AI fix: Freddy or Bonnie got stuck at the door in their idle pose and never left | done in 1.3.0 (untested in-game) |
+| 65 | Chica comes to the office about as often as Bonnie (she barely came) | done in 1.3.0 (untested in-game) |
 | 66 | Out of strobe charges = Fredbear is guaranteed to get you; options 1-5 in section M (recommended 1 + 2) | to decide |
-| 146 | Camera hum quieter (now at half volume; about half that again) | planned |
-| 147 | More cameras in the sealed diner, where Fredbear is (his chamber, the diner floor, the old kitchen) | planned |
-| 148 | Night 7: the trio are moved to Parts & Service, switched off, when the night starts; Fredbear is everywhere, teleporting all over the pizzeria, even onto the main stage | planned |
-| 149 | Fredbear's music box replaced by the owner's "Fredbear's Family Diner" music box (the Fredbear jingle) | planned |
-| 150 | Chica's kitchen clatter replaced by the owner's "Chica in the Kitchen" sounds | planned |
-| 151 | Morgrave (owner's nightmare rabbit model): role in the game to decide (section O) | to decide |
-| 152 | Valek (owner's nightmare gray bear model): role in the game to decide (section O) | to decide |
-| 117 | Camera map HUD like FNAF 1: a map of the building in the corner of the screen while on cameras, every camera as a labelled box, the current one highlighted, YOU in the office (section N) | planned |
+| 146 | Camera hum quieter (now at half volume; about half that again) | done in 1.3.0 (untested in-game) |
+| 147 | More cameras in the sealed diner, where Fredbear is (his chamber, the diner floor, the old kitchen) | done in 1.3.0 (untested in-game) |
+| 148 | Night 7: the trio are moved to Parts & Service, switched off, when the night starts; Fredbear is everywhere, teleporting all over the pizzeria, even onto the main stage | done in 1.3.0 (untested in-game) |
+| 149 | Fredbear's music box replaced by the owner's "Fredbear's Family Diner" music box (the Fredbear jingle) | done in 1.3.0 (untested in-game) |
+| 150 | Chica's kitchen clatter replaced by the owner's "Chica in the Kitchen" sounds | done in 1.3.0 (untested in-game) |
+| 151 | Morgrave (owner's nightmare rabbit model): the rabbit in the walls, crawls through the duct and the crawlspace; night 8 after the seal ending, and night 9 (section P) | done in 1.3.0 (untested in-game) |
+| 152 | Valek (owner's nightmare gray bear model): the gray bear in the dark, only his eyes, steps only while unwatched, mimics the others; night 8 after the burn ending, and night 9 (section P) | done in 1.3.0 (untested in-game) |
+| 117 | Camera map HUD like FNAF 1: a map of the building in the corner of the screen while on cameras, every camera as a labelled box, the current one highlighted, YOU in the office (section N) | done in 1.3.0 (untested in-game) |
 
 ### More ideas (round 6, not chosen yet)
 
 | # | Item | Status |
 |---|---|---|
-| 67 | Vent seals: buttons in the office that seal Bonnie's vent and Fredbear's hatch shaft for a while (cost power; goes with 62-63) | planned |
+| 67 | Vent seals: buttons in the office that seal Bonnie's vent and Fredbear's hatch shaft for a while (cost power; goes with 62-63) | done in 1.3.0 (untested in-game) |
 | 68 | Flashlight: a torch with a small battery to check the dark corners without the hall lights | idea |
 | 69 | Motion radar: a small screen with movement blips (no names); cheaper than cameras but vague | idea |
 | 70 | Reboot panel (FNAF 3 style): cameras, audio or ventilation fail and take a few seconds to reboot | idea |
@@ -150,15 +154,15 @@ Numbers stay fixed from now on: new items are added at the end.
 | 75 | The phone rings mid-night: mute it fast or the noise draws them to you | idea |
 | 76 | Camera zoom: zoom into a feed to spot small details (eyes in the dark) for extra power | idea |
 | 77 | "Last seen" markers on the camera map: each animatronic's icon stays where you last saw it, with how long ago | idea |
-| 78 | Spring Bonnie: Fredbear's partner from the original diner, as a bonus threat (a challenge or a harder night 7) | planned |
+| 78 | Spring Bonnie: Fredbear's partner from the original diner, as a bonus threat (a challenge or a harder night 7) | done in 1.3.0 as Morgrave (untested in-game) |
 | 79 | Runner: an endoskeleton in Parts & Service sprints to your door if you don't check its camera often enough | idea |
 | 80 | Fake-outs: sometimes an animatronic walks right up to your door, then turns around | idea |
-| 81 | Teamwork: Bonnie bangs on one door to make you look while Chica sneaks to the other | planned |
+| 81 | Teamwork: Bonnie bangs on one door to make you look while Chica sneaks to the other | done in 1.3.0 (untested in-game) |
 | 82 | Garbled robot voice lines when one of them stands at your door | idea |
 | 83 | Grudges: whoever got you last is a little more aggressive on the retry | idea |
 | 84 | A shadow in the doorway a moment before Freddy actually arrives | idea |
-| 85 | Jumpscares by place: Bonnie bursts out of the vent, Fredbear rises through the hatch | planned |
-| 86 | Withered look: on night 7 or harder modes the trio look damaged (torn suits, missing face plates) | planned |
+| 85 | Jumpscares by place: Bonnie bursts out of the vent, Fredbear rises through the hatch | done in 1.3.0 (untested in-game) |
+| 86 | Withered look: on night 7 or harder modes the trio look damaged (torn suits, missing face plates) | done in 1.3.0 (untested in-game) |
 | 87 | Arcade machines switch on by themselves at 3 AM and play a jingle | idea |
 | 88 | Balloons drifting down the halls on camera | idea |
 | 89 | An office TV that plays static, then an old Fredbear's Diner commercial | idea |
@@ -203,7 +207,7 @@ Numbers stay fixed from now on: new items are added at the end.
 | 124 | Stage curtain: it closes when nobody is watching; when it opens again, someone is missing | idea |
 | 125 | Death trophies: each time you die, something of yours shows up on the stage the next night (badge, hat) | idea |
 | 126 | Free Roam isn't safe after the ending: sometimes Fredbear's footsteps follow you | idea |
-| 127 | In Free Roam the animatronics on stage turn their heads to watch you walk past | planned |
+| 127 | In Free Roam the animatronics on stage turn their heads to watch you walk past | done in 1.3.0 (untested in-game) |
 | 128 | Eyes only in the dark: on late nights their glowing eyes only show with the hall light off | idea |
 | 129 | Lying sounds: on nights 6-7 footsteps sometimes play on the wrong side | idea |
 | 130 | Lying whispers: on night 7 a whisper tells you which door to close, and sometimes it's wrong | idea |
@@ -221,17 +225,17 @@ Numbers stay fixed from now on: new items are added at the end.
 | 142 | No-HUD mode: no power % or time on screen, only the panel lamps | idea |
 | 143 | One-life campaign: die once and you start again from night 1 (with its own lamp at the time clock) | idea |
 | 144 | Chica's ovens: while she is in the kitchen the ovens are on and drain your power faster | idea |
-| 145 | Double trouble: two animatronics at the same door take twice as long to back off | planned |
+| 145 | Double trouble: two animatronics at the same door take twice as long to back off | done in 1.3.0 (untested in-game) |
 
 ### More ideas (round 8: eerie and lore, not chosen yet)
 
 | # | Item | Status |
 |---|---|---|
-| 153 | The birthday room: a sealed party room in the old diner, still set for the 1983 party (cake, hats, a banner with a name); the candles relight every night | idea |
+| 153 | The birthday room: a sealed party room in the old diner, still set for the 1983 party (cake, hats, a banner with a name); the candles relight every night | done in 1.3.0 (untested in-game) |
 | 154 | The missing guard's locker in the time-clock room: each night you survive opens one more item (badge, notebook, a torn photo) | idea |
 | 155 | The old diner's speaker crackles on at 3 AM and plays the 1983 welcome announcement | idea |
-| 156 | A wall in Fredbear's chamber covered in scratched children's names ("he knows every child by name"); after night 6 yours is the newest | idea |
-| 157 | Security tapes from 1987 in the office: replay the night the guard vanished on the monitor | idea |
+| 156 | A wall in Fredbear's chamber covered in scratched children's names ("he knows every child by name"); after night 6 yours is the newest | done in 1.3.0 (untested in-game) |
+| 157 | Security tapes from 1987 in the office: replay the night the guard vanished on the monitor | done in 1.3.0 (untested in-game) |
 | 158 | An employee handbook whose rules get stranger every night ("If you hear the music box, do not answer it") | idea |
 | 159 | Building blueprints in the office that show a room the pizzeria doesn't have | idea |
 | 160 | Framed 1983 diner photos in the halls: a figure in the background gets closer to the camera each night | idea |
@@ -244,14 +248,21 @@ Numbers stay fixed from now on: new items are added at the end.
 | 167 | On night 7, CAM 16 rarely shows a figure in a 1987 guard uniform standing in the diner, facing away | idea |
 | 168 | Night 1987: a short playable prologue as the guard who vanished, with a fixed ending | idea |
 | 169 | Your ending changes the world: after Seal, the chamber wall cracks a little more each visit; after Burn, Free Roam is scorched | idea |
-| 170 | A construction tunnel in the basement with 1987 workers' graffiti ("DON'T SEAL HIM IN", "he sings at night") | idea |
+| 170 | A construction tunnel in the basement with 1987 workers' graffiti ("DON'T SEAL HIM IN", "he sings at night") | done in 1.3.0 (untested in-game) |
 | 171 | Sheet music in the old diner: play the melody on note blocks by the stage in Free Roam to open a secret | idea |
 | 172 | A clipping dated tomorrow appears on the newspaper board, describing your death | idea |
+
+### Owner's requests with 1.3 (details in section P)
+
+| # | Item | Status |
+|---|---|---|
+| 173 | Replace Freddy and Bonnie with the owner's Freddy V6 and Bonnie V2 models | done in 1.3.0 (untested in-game) |
+| 174 | Night 9: Valek and Morgrave come for you together with Fredbear, whatever ending you got; creepy, eerie and hard | done in 1.3.0 (untested in-game) |
 
 ### Every update finishes with
 
 * credits (README, docs, in-game), Shift Guide text, the night 4 phone call (now "four charges");
-* all checks, a new `.mcaddon` (1.2.0), push and send. Done for 1.2.0.
+* all checks, a new `.mcaddon`, push and send. Done for 1.2.0 and 1.3.0.
 
 The sections below are the agreed plans as they were written before building. What was actually built is described in
 docs/04 (AI), docs/07 (assets, lobby, decorations) and docs/08 (how to play).
@@ -512,3 +523,36 @@ inside the zips (spawn eggs, their own entities) are not used. Each model has 4 
     when you light him, coming back closer each time.
   * Where they appear: a night 8 that depends on your night 7 ending (Seal → Morgrave, walled in with Fredbear;
     Burn → Valek, walking out of the smoke), then a final night with both after you have seen both endings.
+
+## P. What 1.3.0 built (items 11, 62-65, 67, 78, 81, 85, 86, 117, 127, 145-157, 170, 173, 174)
+
+Details are in docs/04 (AI), docs/07 (assets and map) and docs/08 (how to play). In short:
+
+* **Models (173, 151, 152):** Freddy V6, Bonnie V2, Morgrave and Valek imported like Fredbear V6, each scaled to the
+  height of the character it replaces or matches, with crawl / stalk / hurry / threat / dormant / attack and a head-turn
+  clip added. The 1.2 Freddy and Bonnie are kept in `art/models_archive/`.
+* **Morgrave (151, 78):** night 8 after the *seal* ending. Crawls out of the walls through the supply duct (CAM 18) to the
+  left door, or through the crawlspace (CAM 17) up under the hatch. Vent clanks and scraping, never footsteps. The seals
+  (67) turn him back; at the door or hatch he has a short window, and you only hear him arrive 3 times in 4.
+* **Valek (152):** night 8 after the *burn* ending. Only his eyes; steps from dark spot to dark spot down a hall, only while
+  his spot is off your camera; half his steps sound like someone else on the other side. Light him: he vanishes, angrier
+  and closer next time. Hold the door: he backs off.
+* **Night 9 (174):** Fredbear (everywhere, 5 attempts, 6 strobe charges), Morgrave and Valek together, unlocked by night 8
+  whichever version you played; the trio switched off in Parts & Service; no music; its own ending in the old diner. In the
+  balance simulation a perfect player wins every seed and the human model about 1 night in 10 - the hardest night by far.
+  (The section O proposal asked for both endings first; the owner chose "no matter what ending you get".)
+* **Night 7 (148):** the trio start switched off in Parts & Service (CAM 06); Fredbear haunts the whole pizzeria between
+  attempts, the main stage too, every move still cued.
+* **AI (64, 65, 81, 145):** nobody stands idle at a door any more (checked on every tick of nights 2-8 in the tests); Chica
+  reaches a door about as often as Bonnie; teamwork and double trouble from aggression 8. Fixing item 64 made nights 5-6 much
+  easier for the simulated players (stuck animatronics had kept doors shut and drained power), so nights 5-6 now drain a
+  little more power at all times (0.10 %/s instead of 0.08 %/s) to keep their 1.2 difficulty.
+* **Cameras (62, 63, 147, 117):** CAM 17 subfloor, CAM 18 supply duct, CAM 19-21 in the sealed diner, and the FNAF-style
+  map in the corner of the screen (Settings can switch it off).
+* **Look (11, 127, 86, 85):** watched on camera they turn to stare into the lens; in Free Roam they follow you with their
+  heads; the trio look withered from night 7; Bonnie and Morgrave burst out of the vent, Fredbear and Morgrave rise through
+  the hatch.
+* **Sounds (146, 149, 150):** quieter camera hum, the owner's Fredbear music box and *Chica in the Kitchen* (five takes).
+* **Lore (153, 156, 157, 170):** the 1983 birthday room (candles relit every night), the wall of names (yours after night
+  6), the TAPE DECK with the 1987 tapes (after night 5), the 1987 crew graffiti.
+* **Still open:** item 66 (out of strobe charges). Options are in section M.

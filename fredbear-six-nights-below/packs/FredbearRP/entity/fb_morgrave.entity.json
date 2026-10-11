@@ -32,15 +32,15 @@
       "animations": {
         "pose_controller": "controller.animation.fb.morgrave",
         "look_at": "animation.fb.morgrave.look_at",
-        "jumpscare": "animation.fb.morgrave.jumpscare",
-        "hurry": "animation.fb.morgrave.hurry",
-        "walk": "animation.fb.morgrave.walk",
-        "threat": "animation.fb.morgrave.threat",
         "crawl": "animation.fb.morgrave.crawl",
         "dormant": "animation.fb.morgrave.dormant",
+        "hurry": "animation.fb.morgrave.hurry",
         "idle": "animation.fb.morgrave.idle",
+        "jumpscare": "animation.fb.morgrave.jumpscare",
         "perform": "animation.fb.morgrave.perform",
-        "stalk": "animation.fb.morgrave.stalk"
+        "stalk": "animation.fb.morgrave.stalk",
+        "threat": "animation.fb.morgrave.threat",
+        "walk": "animation.fb.morgrave.walk"
       },
       "render_controllers": [
         "controller.render.fb.animatronic",

@@ -248,7 +248,7 @@ def controller():
 def client_animation_map():
     """Short names used by controller states -> animation identifiers (client entity 'animations')."""
     m = {"pose_controller": "controller.animation.fb.fredbear"}
-    for c in set(STATE_CLIPS.values()) | {f"{p}_once" for p in PERFORMANCES} | set(JUMPSCARES):
+    for c in sorted(set(STATE_CLIPS.values()) | {f"{p}_once" for p in PERFORMANCES} | set(JUMPSCARES)):  # sorted: identical output on every run
         m[c] = f"animation.fb.fredbear.{c}"
     return m
 

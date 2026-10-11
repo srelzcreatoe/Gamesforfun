@@ -19,19 +19,21 @@ The build is resumable: if you leave, run `/fb:setup` again.
 
 ### Updating from an earlier version
 
-1. Import the new `.mcaddon` (version **1.2.0**).
+1. Import the new `.mcaddon` (version **1.3.0**).
 2. In the world's settings, open **Behavior Packs** and make sure **FREDBEAR: Six Nights Below (Behavior)** shows
-   version 1.2.0; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
-   Check **Resource Packs** too: only the 1.2.0 resource pack should be active.
-3. Enter the world. Version 1.2.0 changes the time-clock room, so the action bar asks you to rebuild: run
-   **`/fb:setup`** and wait for the title. Unlocked nights, secrets and settings are kept (a finished campaign also
-   unlocks night 7).
+   version 1.3.0; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
+   Check **Resource Packs** too: only the 1.3.0 resource pack should be active.
+3. Enter the world. Version 1.3.0 adds cameras, the supply duct, the vent and shaft seals, the lore rooms and the night 8-9
+   buttons, so the action bar asks you to rebuild: run **`/fb:setup`** and wait for the title. Unlocked nights, secrets,
+   endings and settings are kept: if you already beat night 7, night 8 is open (Morgrave if your last ending was *seal*,
+   Valek if it was *burn*).
 
 ## The time clock (lobby)
 
-The employee entrance terminal has: **TRAINING SHIFT**, **NIGHT 1-7** (lamps show unlocked nights; night 7 unlocks after
-night 6), **CONTINUE** (highest unlocked night), **FREE ROAM** (explore safely, find secrets), **SETTINGS** (captions,
-hints, night music, holiday decorations, deterministic seed, developer overlay), **ARCHIVE & CREDITS** (secrets found,
+The employee entrance terminal has: **TRAINING SHIFT**, **NIGHT 1-9** (lamps show unlocked nights; night 7 unlocks after
+night 6, night 8 after night 7, night 9 after night 8), **CONTINUE** (highest unlocked night), **FREE ROAM** (explore
+safely, find secrets; the animatronics turn their heads to follow you when you walk past), **SETTINGS** (captions, hints,
+night music, holiday decorations, the on-screen camera map, deterministic seed, developer overlay), **ARCHIVE & CREDITS** (secrets found,
 endings, challenges, credits) and **ERASE PROGRESS**.
 
 Also in the time-clock room:
@@ -40,6 +42,11 @@ Also in the time-clock room:
   Power Drain, Broken Cameras. Each lamp lights once that challenge is beaten. Challenges never change your campaign
   progress. Every challenge has been balanced so a careful player can win it.
 * **NEWSPAPER BOARD**: press its button to read the clippings. A new one appears for every night you finish.
+* **TAPE DECK 1987** (in the office, on the back wall): once you have survived night 5, it plays the 1987 security tapes
+  on the monitor - the night the last guard vanished. Only outside a shift; sneak to stop.
+* Lore to find in Free Roam: the sealed 1983 **birthday room** in the old diner (CAM 20; the candles relight every night),
+  the **wall of names** in Fredbear's chamber (after night 6 there is a new one) and the 1987 **crew graffiti** in the west
+  maintenance tunnel.
 * **Decorations**: in late October the pizzeria gets pumpkins, jack-o'-lanterns and cobwebs; in December and early
   January, Christmas trees, presents and string lights. They follow your device's date and can be switched off in Settings.
 
@@ -53,12 +60,13 @@ night 4, a short **1983 flashback** plays before the shift (sneak to skip).
 ## The office
 
 ```
-                 north wall: camera MAP (16 buttons, one per camera; press to view that feed)
+                 north wall: camera MAP (21 buttons, one per camera; press to view that feed)
    LEFT WINDOW ┐ ┌───────────────────────────────────────────────┐ ┌ RIGHT WINDOW
    LEFT DOOR ──┤ │ DOOR  LIGHT  MONITOR  HATCH  STROBE  BREAKER  PHONE  LIGHT  DOOR │ ├── RIGHT DOOR
                │ │ (L)   (L)                                                (R)  (R)  │ │
                │ │                       HATCH in the floor                            │ │
-               │ │ RESERVE lever                               START / RESUME          │ │
+               │ │ SEAL VENT / SEAL SHAFT (left of the console)                        │ │
+               │ │ RESERVE lever          TAPE DECK 1987        START / RESUME          │ │
                └─┴───────────────────────────── back wall ──────────────────────────────┴─┘
 ```
 
@@ -68,11 +76,14 @@ night 4, a short **1983 flashback** plays before the shift (sneak to skip).
 | **LIGHT** (white) | lights the corner outside that door for 5 s; look through the window | 0.12 %/s each |
 | **MONITOR** (dark) | raises the camera monitor (your view moves to the selected camera) | 0.06 %/s |
 | **HATCH** (gold, nights 4+) | seals the floor hatch Fredbear can climb through | 0.14 %/s |
-| **STROBE** (orange, nights 4+) | emergency strobe: repels Fredbear **only when the barrier he is at is closed**. Charges: 4 on night 4, 5 on night 5, 6 on nights 6 and 7 | 2 % per shot |
+| **STROBE** (orange, nights 4+) | emergency strobe: repels Fredbear **only when the barrier he is at is closed**. Charges: 4 on night 4, 5 on night 5, 6 on nights 6, 7 and 9 | 2 % per shot |
+| **SEAL VENT** (white) | drops a shutter into the supply duct for 20 s (Bonnie's vent; Morgrave's duct); 15 s to recharge | 3 % per use |
+| **SEAL SHAFT** (gold, when the hatch is installed) | the same for the crawlspace below the office hatch (Fredbear's and Morgrave's way up) | 3 % per use |
 | **RESET BREAKER** | restores the hall lights after Chica trips the breaker (2 s) | 1 % |
 | **PHONE** | replays tonight's phone call | — |
 | **RESERVE** lever (nights 3+) | at 0 % power you have 5 s to pull it for one +8 % top-up | — |
 | **START / RESUME** | starts the shift; resumes after a maintenance task | — |
+| **TAPE DECK 1987** | plays the 1987 security tapes (outside a shift, after night 5) | — |
 
 The panel above the console shows **power** (10 lamps), the **hour** (lamps from 12 AM to 5 AM) and **warning
 indicators** for each door, light, hatch and the breaker (green / yellow / grey show the device state; red means a fault or a
@@ -85,13 +96,20 @@ The action bar shows time, power %, usage bars and captions.
 * Switch: scroll the hotbar / press RB-LB / tap another hotbar slot, or press a map button, or use the Camera Tablet menu.
 * Lower: **sneak** (Shift / right-stick / sneak button), the MONITOR button again, or the tablet menu.
 * The monitor makes its own sounds: a click going up and down, and a low CCTV hum while you watch.
-* CAM 10 (kitchen) is **audio only**: you hear Chica's clatter through it. CAM 16 (sealed diner) has no signal before night 4.
+* **Camera map**: while you watch the cameras, a map of the building sits in the bottom-right corner of the screen, like
+  FNAF 1: every camera is a numbered box, the one you are on blinks green, and YOU marks the office. The basement cameras
+  are on the left. Switch it off in Settings if it is in the way.
+* CAM 10 (kitchen) is **audio only**: you hear Chica's clatter through it. CAM 16, 19, 20 and 21 (the sealed diner, Fredbear's
+  chamber, the party room and the diner kitchen) have no signal before night 4.
+* CAM 17 looks at the subfloor under the office hatch (whoever climbs up passes it) and CAM 18 into the supply duct (Bonnie
+  and Morgrave crawl through it to the left door).
+* **They stare back**: whoever you watch on a feed for a couple of seconds slowly turns to look straight into the lens.
 * From night 2, very rarely, a **black Fredbear silhouette** stands on the show stage. Don't stare at it: watching it for
   3 seconds costs 1 % power and it vanishes.
 * Purple, scan-lined figures labelled **ECHO** are false images (night 5+). Static means Fredbear is disrupting the feeds.
 * Feeds are lit for you: night vision while the monitor is up, a clear camera fog instead of the night fog, and soft hidden
   lights where each camera looks. The two door-corner cameras are the exception: those corners stay dark, which is why the hall
-  lights matter.
+  lights matter (and Valek is only ever two eyes in the dark).
 
 ### Items (locked to your hotbar)
 
@@ -99,17 +117,19 @@ The action bar shows time, power %, usage bars and captions.
 |---|---|---|
 | 1 | Camera Tablet | raise the monitor / camera menu while viewing |
 | 2 | Office Remote | menu with every office control (accessible alternative to the console) |
-| 3 | Shift Guide | a topic menu that explains every mechanic: power, doors, lights, cameras, hatch, strobe, breaker, reserve, phone, panel lamps, maintenance and tasks, each animatronic, Fredbear's powers, sound cues, the seven nights, challenges, lobby and settings. Its first button is the **Music: ON / OFF** switch |
+| 3 | Shift Guide | a topic menu that explains every mechanic: power, doors, lights, cameras, hatch, strobe, breaker, reserve, phone, panel lamps, maintenance and tasks, each animatronic (Morgrave and Valek too), Fredbear's powers, vent seals, sound cues, the nine nights, challenges, lobby and settings. Its first button is the **Music: ON / OFF** switch |
 
 On touch screens these items show an on-screen interact button (Cameras / Office / Guide).
 
 ## How to survive
 
 * **Power** lasts the night only if you use doors and lights when needed. At 0 % everything shuts off.
-* **Bonnie** (left side; from night 2 he can also flank to the right door and crawl through a vent): footsteps and a groan; light the
-  corner, close the door while he stands there, open it when he leaves.
+* **Bonnie** (left side; from night 2 he can also flank to the right door and crawl through a vent - CAM 18 shows him in the
+  duct, SEAL VENT keeps him out): footsteps and a groan; light the corner, close the door while he stands there, open it when
+  he leaves. On hard nights he may **bang on the left door** to keep your eyes there while Chica sneaks to the right one.
 * **Chica** (right side, through the kitchen): kitchen clatter means she is in the kitchen; breathing at the right door means
-  she is there. She may trip the hall-light breaker: press RESET BREAKER. Doors always work.
+  she is there. She may trip the hall-light breaker: press RESET BREAKER. Doors always work. On hard nights she flanks to the
+  left door, and two animatronics can wait at the right door together - **two at one door take twice as long to give up**.
 * **Freddy** (right side): moves only when the camera you are watching does not show him; laughs when he advances.
   Glowing eyes in the right corner: **close the right door**. Never stare at cameras with the right door open while he is
   there. At 0 % power he plays a music box at the left door…
@@ -126,13 +146,25 @@ On touch screens these items show an on-screen interact button (Cameras / Office
   Stairwell), pull the lever,
   come back and press START/RESUME.
 * **6 AM** wins — even if an animatronic was about to attack. Night 6 ends with the finale and the ending.
-* **Night 7 — Fredbear's Revenge**: only Fredbear, at full strength, from the start; 6 strobe charges and the reserve
-  lever. At 6 AM you choose: **seal** him in the chamber, or **burn** the pizzeria. Each choice has its own ending.
+* **Night 7 — Fredbear's Revenge**: only Fredbear, at full strength, from the start, and he is **everywhere**: between
+  attempts he blinks from room to room all over the pizzeria, even onto the main stage. Freddy, Bonnie and Chica sit switched
+  off in Parts & Service. 6 strobe charges and the reserve lever. At 6 AM you choose: **seal** him in the chamber, or
+  **burn** the pizzeria. Each choice has its own ending, and it decides night 8.
+* **Night 8 after the seal — Morgrave**, the rabbit in the walls: scraping inside the walls when he comes out (the caption
+  names the route), vent clanks, never footsteps. He crawls through the supply duct (CAM 18) to the left door, or through the
+  crawlspace (CAM 17) up under the hatch. **Seal** the duct or the shaft in front of him and he gives up; or close the left
+  door / the hatch when he gets there. You will not always hear him arrive.
+* **Night 8 after the burn — Valek**, the gray bear: only his two small eyes, stepping from dark spot to dark spot down the
+  West or East Hall, and only while you are not watching his spot. He **lies**: half his steps sound like someone else on the
+  other side of the building. At the door corner: **light him and he vanishes - but comes back angrier and closer; hold the
+  door shut and he backs off**; leave the corner dark and open and he attacks.
+* **Night 9 — Three Below**: whatever you chose, Fredbear, Morgrave and Valek come for you together. No music, the trio switched
+  off in Parts & Service. Very hard on purpose.
 
 ## Music
 
 From 12 AM to 6 AM the night music loops (*PIZZA DINNER*). It replaces Minecraft's own music while it plays; every other
-sound plays normally. It stops for jumpscares, the power-out music box and 6 AM. Switch it off with the first button
+sound plays normally. It stops for jumpscares, the power-out music box and 6 AM. Night 9 has no music at all. Switch it off with the first button
 of the Shift Guide or in Settings at the time clock.
 
 ## After a night

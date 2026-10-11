@@ -32,15 +32,15 @@
       "animations": {
         "pose_controller": "controller.animation.fb.valek",
         "look_at": "animation.fb.valek.look_at",
-        "jumpscare": "animation.fb.valek.jumpscare",
-        "hurry": "animation.fb.valek.hurry",
-        "walk": "animation.fb.valek.walk",
-        "threat": "animation.fb.valek.threat",
         "crawl": "animation.fb.valek.crawl",
         "dormant": "animation.fb.valek.dormant",
+        "hurry": "animation.fb.valek.hurry",
         "idle": "animation.fb.valek.idle",
+        "jumpscare": "animation.fb.valek.jumpscare",
         "perform": "animation.fb.valek.perform",
-        "stalk": "animation.fb.valek.stalk"
+        "stalk": "animation.fb.valek.stalk",
+        "threat": "animation.fb.valek.threat",
+        "walk": "animation.fb.valek.walk"
       },
       "render_controllers": [
         "controller.render.fb.valek",

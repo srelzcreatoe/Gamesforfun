@@ -13,16 +13,20 @@
 | `/fb:debug graph` | walk every route polyline in the built world and report blocked samples |
 | `/fb:debug state` | dump game state, bus statistics, heartbeat, puppet counts, session snapshot and the last 8 AI transitions to chat |
 | `/fb:debug puppets` | delete and respawn all puppets |
-| `/fb:debug camtour` | cycle through all 16 camera views (3 s each) |
-| `/fb:debug night <0-7>` | start a night immediately in the office |
+| `/fb:debug camtour` | cycle through all 21 camera views (3 s each) |
+| `/fb:debug night <0-9>` | start a night immediately in the office (night 8 follows the last night 7 ending, see `lastending`) |
 | `/fb:debug challenge <id>` | start a challenge in the office (`no_doors`, `fredbear_only`, `double_drain`, `no_cams`) |
 | `/fb:debug ending [seal\|burn]` | play the night 7 ending (the choice form, or straight to one ending) |
 | `/fb:debug flashback` | play the night 4 flashback |
+| `/fb:debug ending9` | play the night 9 ending |
+| `/fb:debug lastending <seal\|burn>` | choose which night 8 comes next (seal: Morgrave, burn: Valek) |
+| `/fb:debug tapes` | play the 1987 security tapes (outside a shift; needs night 5 survived) |
+| `/fb:debug seal <vent\|shaft>` | press the vent / shaft seal during a night |
 | `/fb:debug holiday [halloween\|christmas]` | place a season's decorations now (no argument removes them); the device date decides again at the next lobby reset |
 | `/fb:debug shadow` | show Shadow Fredbear on the stage now (and at every following hour of this night) |
 | `/fb:debug scenario <name>` | start a repeatable test scenario (seed 4242, see below) |
 | `/fb:debug seed <n>` | deterministic mode with seed *n* for the next nights |
-| `/fb:debug unlock <1-7>` | set the highest unlocked night (7 also marks the campaign complete, unlocking the challenges) |
+| `/fb:debug unlock <1-9>` | set the highest unlocked night (7+ also marks the campaign complete, unlocking the challenges, and marks the nights before it survived so the save stays consistent) |
 | `/fb:debug hour <0-5>` / `skip` | jump to an hour / to the next hour |
 | `/fb:debug power <pct>` | set power |
 | `/fb:debug ai <who> <0-20>` | set an animatronic's aggression |
@@ -37,7 +41,7 @@ Functions (same effects, for command blocks or chat): `/function fb/setup`, `fb/
 
 ## Control-room developer panel
 
-Underground at world y −59, x 26-44, z 166 (`/function fb/control_room`): EXIT TO LOBBY, SELF-TEST, DEBUG OVERLAY,
+Underground at world y −59, x 26-44, z 166 (`/function fb/control_room` lands you at x 30.5, z 179.5): EXIT TO LOBBY, SELF-TEST, DEBUG OVERLAY,
 DETERMINISTIC SEED, DEBUG MENU, VALIDATE ROUTES, DUMP STATE, RESPAWN PUPPETS, SKIP HOUR, FULL RESET. Signs label every
 module's impulse block and every row's sections; docs/06 lists every block.
 
@@ -71,14 +75,15 @@ lines are kept in memory and the last 6 appear in `/fb:debug state`.
 
 | Command | What it does |
 |---|---|
-| `npm test` | 66 tests: core simulation (24), command-block structures (6), route guidance (5), holiday decorations (3), integration against the mock runtime (28) |
+| `npm test` | 76 tests: core simulation (24), nights 8-9 / 1.3 AI (8), command-block structures (6), route guidance (5), holiday decorations (3), integration against the mock runtime (30) |
 | `node tools/gen_guide.mjs` | regenerate the player route-guidance graph from the build plan (`scripts/data/guide_graph.generated.js`) |
 | `npm run validate` | palette, map, commands, JSON schemas, asset references, Script API types |
 | `npm run typecheck` | `tsc` over all scripts against `@minecraft/server` 2.10.0 / `server-ui` 2.2.0 |
 | `npm run build` | regenerate everything and package `dist/` |
-| `node tools/balance_sim.mjs` | balance tables for the seven nights and the four challenges (docs/05) |
+| `node tools/balance_sim.mjs` | balance tables for the nine nights (night 8 in both versions) and the four challenges (docs/05) |
 | `node tools/gen_holidays.mjs` | regenerate the seasonal decoration cells (`scripts/data/holiday_decor.generated.js`) |
-| `python3 tools/gen_rp.py` | regenerate the resource pack art, including the Fredbear V6 import (`tools/fredbear_v6.py`) and the archive of the old model |
+| `python3 tools/gen_rp.py` | regenerate the resource pack art, including the Fredbear V6 import (`tools/fredbear_v6.py`), the Freddy V6 / Bonnie V2 / Morgrave / Valek imports (`tools/owner_models.py`) and the archive of the old models |
+| `python3 tools/gen_cam_map.py` | regenerate the camera-map HUD (`ui/hud_screen.json` and its textures) from `tools/out/floorplan.json` |
 | `python3 tools/gen_sounds.py` | convert the owner's recordings and music (`art/sounds_incoming/`) and synthesise the other sounds |
 | `node tools/validate_map.mjs` | routes, cameras (voxel ray casts), office seal, walkability, hidden command blocks; writes `tools/out/map_report.json` |
 | `python3 tools/render_preview.py` | offline model preview sheet |
@@ -99,11 +104,11 @@ fredbear-six-nights-below/
                              scripts/ (main.js, core/ simulation + AI, data/ map/nodes/cameras/inputs/actuators/story,
                              mc/ Minecraft adapter: game, builder, bus, puppets, camera view, audio, HUD, UI, debug)
   packs/FredbearRP/          resource pack: entity, models, animations, controllers, render controllers, textures,
-                             sounds, fogs, texts
+                             sounds, fogs, texts, ui/ (camera map HUD) and textures/ui/fb
   art/skins/                 the four supplied skins (source art)
   art/sounds_incoming/       the owner's sound recordings and night music (source audio)
-  art/models_incoming/       the owner's Fredbear V6 model (zip, source)
-  art/models_archive/        the old Fredbear model, kept outside the game
+  art/models_incoming/       the owner's models: Fredbear V6, Freddy V6, Bonnie V2, Morgrave, Valek (zips, source)
+  art/models_archive/        the old skin-built Freddy, Bonnie and Fredbear, kept outside the game
   tools/                     generators, validators, simulators, packager; tools/ref = official reference data
   tests/                     node:test suites + tests/mock (integration runtime)
   docs/                      this documentation; floor plans; model previews; command-block register (MD + CSV)

@@ -440,6 +440,7 @@ class Entity {
     if (!def) misuse(`setProperty: ${this.typeId} has no property ${name}`);
     if (def.type === 'enum' && !def.values.includes(value)) misuse(`setProperty: ${name}='${value}' not in enum`);
     if (def.type === 'bool' && typeof value !== 'boolean') misuse(`setProperty: ${name} expects a boolean`);
+    if (def.type === 'int' && (!Number.isInteger(value) || (def.range && (value < def.range[0] || value > def.range[1])))) misuse(`setProperty: ${name}=${value} outside int range ${JSON.stringify(def.range)}`);
     this.props[name] = value;
   }
 
