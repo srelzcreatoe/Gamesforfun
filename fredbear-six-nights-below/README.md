@@ -33,7 +33,7 @@ Everything here was generated and verified **without running Minecraft**: 6 stat
 1.26.50 metadata and schemas, 76 automated tests, a balance simulator, and an integration harness that runs the real pack
 scripts against a mock of the Script API (full build, self-test, tutorial, a complete six-night campaign through the office
 buttons, night 7 and both endings, nights 8 and 9 and the night 9 ending, the camera map, the tapes, challenges, resets,
-reloads). The map owner played version 1.2 in-game to the end; **nothing added in 1.3.0 has been tested in-game yet.** The remaining in-game checks are listed in
+reloads). The map owner played version 1.2 in-game to the end; **nothing added in 1.3.0 or 1.3.1 has been tested in-game yet.** The remaining in-game checks are listed in
 [docs/10_TEST_REPORT.md](docs/10_TEST_REPORT.md), and engine behaviour that could not be verified is listed in
 [docs/01_COMPATIBILITY.md](docs/01_COMPATIBILITY.md).
 
@@ -46,9 +46,12 @@ validated here).
 2. New world: **Flat**, **cheats on**, activate **FREDBEAR: Six Nights Below (Behavior)**. Render distance ≥ 11 chunks.
 3. In the world: `/fb:setup`, wait for the title, then clock in at the time clock.
 
-**Updating to 1.3.0:** import the new `.mcaddon`, check that both packs show 1.3.0 in the world settings, enter the world
-and run `/fb:setup` when asked (new cameras, the duct, seals and lore rooms are built). Your progress is kept; if you already
-beat night 7, night 8 is open.
+**Updating:** import the new `.mcaddon`, check that both packs show 1.3.1 in the world settings and enter the world. Coming
+from 1.2 or older, run `/fb:setup` when asked (new cameras, the duct, seals and lore rooms are built); 1.3.0 → 1.3.1 changes
+only the resource pack and needs no rebuild. Your progress is kept; if you already beat night 7, night 8 is open.
+
+**Vibrant Visuals:** supported since 1.3.1 (Settings → Video → Graphics Mode → Vibrant Visuals). Untested in-game; see
+[docs/08](docs/08_INSTALL_AND_PLAY.md#vibrant-visuals).
 
 Full instructions, controls and troubleshooting: [docs/08_INSTALL_AND_PLAY.md](docs/08_INSTALL_AND_PLAY.md).
 

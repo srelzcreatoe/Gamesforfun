@@ -17,6 +17,18 @@
         "fog_color": "#06070c",
         "render_distance_type": "fixed"
       }
+    },
+    "volumetric": {
+      "density": {
+        "air": {
+          "max_density": 0.018,
+          "uniform": true
+        },
+        "weather": {
+          "max_density": 0.018,
+          "uniform": true
+        }
+      }
     }
   }
 }

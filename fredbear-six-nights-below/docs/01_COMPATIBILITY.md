@@ -111,3 +111,12 @@ No part of this project has been run inside Minecraft (see docs/10). Items that 
     check and render in the offline preview; the added clips, the stare (`fb:look_*` properties eased in `pre_animation`), the
     withered skins, Valek's eyes-only render controller and the jumpscare framing at their scales are unverified in-game.
 16. **New 1.3 sound recordings** (Fredbear's music box, *Chica in the Kitchen* in five takes): loudness and loop timing.
+17. **Vibrant Visuals** (1.3.1). Per Mojang's docs, a resource pack without the `pbr` capability restricts the graphics mode
+    to Fancy or lower, so 1.3.0 switched Vibrant Visuals off. The RP now declares `"capabilities": ["pbr"]` (min engine
+    1.26.50 ≥ the required 1.21.120). Every custom entity and item texture has a `*.texture_set.json` with uniform MER
+    values (format 1.16.100): rough non-metals, fully emissive eye layers, a faintly emissive echo. The fogs add a
+    `volumetric` density (0 while the camera monitor is up). Unverified in-game: how the office, the feeds and the dark
+    corners look under deferred lighting, whether `creaking_eyes` + `ignore_lighting` + emissive eyes look right, and
+    whether the HUD camera map is affected. Lighting, atmospherics and colour grading are left at Mojang's defaults.
+    Sources: learn.microsoft.com "Vibrant Visuals Resource Packs", "Texture Set JSON", "Fog in Resource Packs";
+    minecraft.wiki "Vibrant Visuals".

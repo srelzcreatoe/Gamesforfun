@@ -10,7 +10,7 @@
 | **Automated route-guidance tests** (walkable graph vs the voxel model) | **Completed** — 5 tests passing |
 | **Automated holiday-decoration tests** (generated cells vs the build plan) | **Completed** — 3 tests passing |
 | **Automated integration tests** (real pack scripts on a mock `@minecraft/server`) | **Completed** — 30 tests passing |
-| **In-game tests** (Minecraft Bedrock running) | **No systematic pass.** Minecraft is not available in the build environment. The map owner played version 1.1 up to night 6 and version 1.2 to the end, and reported the problems fixed in 1.2.0 and 1.3.0 (table below). **Nothing added in 1.3.0 has been checked in-game yet**: the Freddy V6, Bonnie V2, Morgrave and Valek models, Morgrave and Valek themselves, nights 8 and 9, the new cameras, the camera map HUD, the seals, the stare, the withered look, the new sounds, the lore rooms and the tapes. |
+| **In-game tests** (Minecraft Bedrock running) | **No systematic pass.** Minecraft is not available in the build environment. The map owner played version 1.1 up to night 6 and version 1.2 to the end, and reported the problems fixed in 1.2.0 and 1.3.0 (table below). **Nothing added in 1.3.0 or 1.3.1 has been checked in-game yet** (1.3.1: Vibrant Visuals support): the Freddy V6, Bonnie V2, Morgrave and Valek models, Morgrave and Valek themselves, nights 8 and 9, the new cameras, the camera map HUD, the seals, the stare, the withered look, the new sounds, the lore rooms and the tapes. |
 | **Manual tests still required** | The checklist at the end of this file |
 
 The integration tests run the real behavior-pack scripts against a headless model of the Script API (`tests/mock/`).
@@ -29,7 +29,7 @@ Run everything with `npm run validate && npm test`.
 | `tools/validate_map.mjs` | voxel model of the whole build: every AI route polyline sampled every 0.5 blocks (6,982 samples), every route node a valid standing position, every camera in open air and seeing exactly its designed nodes (ray casts), office sealed except its doors and hatch, players can walk from the lobby to every gameplay space (66,133 walkable cells), every input command block enclosed | PASS (0 errors, 0 warnings) |
 | `tools/validate_commands.mjs` | 572 command strings (523 command blocks, 7 functions, script templates) parsed against the official 1.26.50 command grammar; block states, particles, sound ids, function paths, fill volume, height limits | PASS |
 | `tools/validate_schemas.py` | 7 entities vs `server/entity/1.26.50` schema, 3 items vs `server/item/1.26.30`, both manifests (format 2, dependencies, unique UUIDs, script entry exists) | PASS |
-| `tools/validate_assets.mjs` | 54 JSON files parse; BP ↔ RP ↔ script entity ids; textures, 6 geometries, 89 animations, every animation controller, render-controller keys resolve; UV boxes inside each texture (Chica 128×64, Freddy 128×128, Fredbear 256×256, Bonnie 512×256, Morgrave and Valek 512×512); every animated bone exists in that entity's own geometry; every `fb:anim` value of each entity has a state in its own controller; scripts only set enum values; the jumpscare framing scale matches each entity's `minecraft:scale`; items → icons; 57 sounds with files; every script sound id defined, the music track is in the `music` category; 12 fogs (nights 1-9); the camera map HUD's textures exist, its marker matches the script and every camera has a highlight; lang names | PASS |
+| `tools/validate_assets.mjs` | 76 JSON files parse; BP ↔ RP ↔ script entity ids; textures, 6 geometries, 89 animations, every animation controller, render-controller keys resolve; UV boxes inside each texture (Chica 128×64, Freddy 128×128, Fredbear 256×256, Bonnie 512×256, Morgrave and Valek 512×512); every animated bone exists in that entity's own geometry; every `fb:anim` value of each entity has a state in its own controller; scripts only set enum values; the jumpscare framing scale matches each entity's `minecraft:scale`; items → icons; 57 sounds with files; every script sound id defined, the music track is in the `music` category; 12 fogs (nights 1-9); the camera map HUD's textures exist, its marker matches the script and every camera has a highlight; Vibrant Visuals: the RP declares `pbr` with a high enough min engine, every entity and item texture has a valid texture set (eye layers fully emissive), volumetric densities in range and cleared for the camera feed; lang names | PASS |
 | `tsc --checkJs` | every Script API call in the 48 script files against `@minecraft/server` 2.10.0 and `server-ui` 2.2.0 declarations | PASS |
 
 ## Automated tests (76, all passing)
@@ -111,6 +111,7 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 
 | Found by | Problem | Fix |
 |---|---|---|
+| owner request (1.3.1) | Vibrant Visuals could not be used with the map: a resource pack without the `pbr` capability limits graphics to Fancy | `pbr` capability, texture sets for every custom texture (emissive eyes), volumetric fog settings; the asset validator now checks all three |
 | player report (in-game, 1.2) | Freddy or Bonnie stood at a door in their idle pose and never left | retreats may walk past an occupied hall node; anyone found on a door node outside its warning state leaves at once; a test checks every tick of nights 2-8 |
 | player report (in-game, 1.2) | Chica barely came to the office | Bonnie's pace, shorter kitchen stops, closer retreats, flanking; she now reaches a door about as often as Bonnie in the simulation |
 | balance simulation (1.3) | with the stuck bug fixed, nights 5-6 became much easier for the human model (93 % / 77 %, against 57 % / 37 % in 1.2) | base drain on nights 5-6 raised from 0.08 to 0.10 %/s: back to about 70 % / 33 % |
@@ -169,6 +170,9 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
     night 8 both ways (`/fb:debug lastending seal|burn`): Morgrave in the duct and the shaft, out of the vent, up through the
     hatch; Valek's eyes in the dark corners, his mimicry; night 9 and its ending (`/fb:debug ending9`); the new music box and
     kitchen sounds, the quieter hum; the birthday room, the wall of names (your name after night 6), the graffiti, the tapes.
+15. **Vibrant Visuals (1.3.1)**: with Graphics Mode → Vibrant Visuals the mode stays available with the packs active; the
+    office, the hall corners and every camera feed are readable (the feeds have no haze); the eyes glow in the dark corners;
+    the suits do not look wet or shiny; the camera map HUD still shows; the burn-ending smoke and the flashback haze.
 
 ## Known limitations
 

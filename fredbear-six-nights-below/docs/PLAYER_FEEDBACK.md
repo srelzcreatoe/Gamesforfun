@@ -264,6 +264,7 @@ Numbers stay fixed from now on: new items are added at the end.
 | # | Item | Status |
 |---|---|---|
 | 175 | A simple command (like `/fb:...`) that marks every night completed and unlocks all the lore and extras too, and says so ("All nights completed"), so the player can see everything | planned |
+| 176 | Vibrant Visuals compatible: the map works with Minecraft's Vibrant Visuals graphics mode | done in 1.3.1 (untested in-game) |
 
 ### Every update finishes with
 
@@ -584,3 +585,10 @@ everything can be seen and played without beating the campaign first. Saved, not
 * **Already possible today:** `/fb:debug unlock 9` unlocks every night and the challenges, but it is a developer command,
   it does not mark nights 1-6 as survived (clippings), and its message is a plain debug line.
 
+## R. Vibrant Visuals (item 176)
+
+1.3.0 switched Vibrant Visuals off while its resource pack was active (a pack without the `pbr` capability limits the
+graphics mode to Fancy). 1.3.1 declares `pbr`, gives every custom texture a texture set (the eyes glow, the suits are
+rough and not shiny), keeps the camera feeds free of volumetric haze and adds a thin haze to the nights that thickens
+night by night. Lighting, sky and colour grading stay Mojang's. Details: docs/01 item 17, docs/08 "Vibrant Visuals".
+Not tried in-game yet.

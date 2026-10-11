@@ -19,11 +19,12 @@ The build is resumable: if you leave, run `/fb:setup` again.
 
 ### Updating from an earlier version
 
-1. Import the new `.mcaddon` (version **1.3.0**).
+1. Import the new `.mcaddon` (version **1.3.1**).
 2. In the world's settings, open **Behavior Packs** and make sure **FREDBEAR: Six Nights Below (Behavior)** shows
-   version 1.3.0; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
-   Check **Resource Packs** too: only the 1.3.0 resource pack should be active.
-3. Enter the world. Version 1.3.0 adds cameras, the supply duct, the vent and shaft seals, the lore rooms and the night 8-9
+   version 1.3.1; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
+   Check **Resource Packs** too: only the 1.3.1 resource pack should be active.
+3. Enter the world. From 1.3.0, version 1.3.1 changes only the resource pack (Vibrant Visuals): nothing to rebuild.
+   From 1.2 or older: version 1.3 adds cameras, the supply duct, the vent and shaft seals, the lore rooms and the night 8-9
    buttons, so the action bar asks you to rebuild: run **`/fb:setup`** and wait for the title. Unlocked nights, secrets,
    endings and settings are kept: if you already beat night 7, night 8 is open (Morgrave if your last ending was *seal*,
    Valek if it was *burn*).
@@ -172,6 +173,20 @@ of the Shift Guide or in Settings at the time clock.
 Win: the next night unlocks and is saved. Loss: **Retry** (straight back into the office) or return to the lobby.
 Progress (unlocked nights, secrets, settings) is saved in the world. If you leave mid-night, the night is abandoned and you
 return to the time clock next time; your progress is kept.
+
+## Vibrant Visuals
+
+Since 1.3.1 the resource pack declares Vibrant Visuals support (the `pbr` capability). Before that, having the pack active
+locked the graphics mode to *Fancy*. To use it: **Settings → Video → Graphics Mode → Vibrant Visuals** (on devices that
+support it).
+
+* The animatronics' eyes are marked as glowing (emissive), so they still light up in the dark under the new lighting.
+* Suits and skins are set up as rough, non-shiny materials. The Fredbear echo glows faintly.
+* While the camera monitor is up, the volumetric haze is switched off so the feeds stay readable. The nights get a thin
+  haze that thickens night by night, the 1983 flashback a warm one and the burn ending orange smoke.
+* Lighting, sky and colour grading are Mojang's defaults; the pack does not change them.
+* **Not tested in-game yet.** Vibrant Visuals lights rooms differently; if the camera feeds or the office are too dark or too
+  bright with it on, switch back to *Fancy* (the game plays the same) and report what you saw.
 
 ## Accessibility
 

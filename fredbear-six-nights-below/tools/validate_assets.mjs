@@ -317,6 +317,34 @@ export function validateAssets() {
     for (const c of CAMERAS) if (!hudText.includes(`fb_cam_map_${c.id.toLowerCase()}`)) err(`camera map: no highlight for ${c.id}`);
   }
 
+  // ------------------------------------------------------------ Vibrant Visuals (PBR)
+  // Without the "pbr" capability (min engine 1.21.120+) the game limits graphics to Fancy while the pack is active.
+  const rpMan = docs.get(path.join(RP, 'manifest.json'));
+  if (!rpMan?.capabilities?.includes('pbr')) err('RP manifest: "pbr" capability missing (Vibrant Visuals would be switched off)');
+  const eng = rpMan?.header?.min_engine_version ?? [0, 0, 0];
+  if (eng[0] * 1e6 + eng[1] * 1e3 + eng[2] < 1021120) err('RP manifest: min_engine_version must be 1.21.120+ for the "pbr" capability');
+  for (const dir of ['textures/entity/fb', 'textures/items']) {
+    const abs = path.join(RP, dir);
+    for (const png of fs.readdirSync(abs).filter((f) => f.endsWith('.png'))) {
+      const name = png.slice(0, -4);
+      const ts = docs.get(path.join(abs, `${name}.texture_set.json`))?.['minecraft:texture_set'];
+      if (!ts) {
+        err(`${dir}/${name}: no texture set (Vibrant Visuals)`);
+        continue;
+      }
+      if (ts.color !== name) err(`${dir}/${name}.texture_set.json: color must be "${name}"`);
+      const mer = ts.metalness_emissive_roughness;
+      if (!Array.isArray(mer) || mer.length !== 3 || mer.some((v) => !Number.isInteger(v) || v < 0 || v > 255)) err(`${dir}/${name}.texture_set.json: MER must be 3 integers 0-255`);
+      if (ts.metalness_emissive_roughness_subsurface || (ts.normal && ts.heightmap)) err(`${dir}/${name}.texture_set.json: invalid layer combination`);
+      if (name.endsWith('_eyes') && mer?.[1] !== 255) err(`${dir}/${name}: eye layers must be fully emissive`);
+    }
+  }
+  for (const p of walk(path.join(RP, 'fogs'), '.json')) {
+    const v = docs.get(p)?.['minecraft:fog_settings']?.volumetric;
+    for (const d of Object.values(v?.density ?? {})) if (!(d.max_density >= 0 && d.max_density <= 1)) err(`${rel(p)}: volumetric max_density must be 0-1`);
+  }
+  if (docs.get(path.join(RP, 'fogs/fb_camera_feed.json'))?.['minecraft:fog_settings']?.volumetric?.density?.air?.max_density !== 0) err('fb:camera_feed must clear the volumetric fog (feeds stay readable in Vibrant Visuals)');
+
   // ------------------------------------------------------------ lang
   const lang = fs.readFileSync(path.join(RP, 'texts/en_US.lang'), 'utf8');
   for (const id of bpEntities.keys()) if (!lang.includes(`entity.${id}.name=`)) err(`en_US.lang: no name for ${id}`);

@@ -925,6 +925,8 @@ def fogs():
         out[n] = {"format_version": "1.21.90", "minecraft:fog_settings": {
             "description": {"identifier": f"fb:night_{n}"},
             "distance": {"air": dict(setting), "weather": dict(setting)},
+            # Vibrant Visuals only (the classic renderer ignores it): a thin haze that thickens night by night.
+            "volumetric": volumetric(round(0.01 + 0.008 * n, 3)),
         }}
     # Pushed on top of the night fog while the camera monitor is up: the feeds look into rooms 10-50 blocks
     # away, which the night fog would black out. Far, faint and slightly green, like a night-vision camera.
@@ -932,17 +934,46 @@ def fogs():
     out["camera_feed"] = {"format_version": "1.21.90", "minecraft:fog_settings": {
         "description": {"identifier": "fb:camera_feed"},
         "distance": {"air": dict(feed), "weather": dict(feed)},
+        "volumetric": volumetric(0.0),  # Vibrant Visuals: no haze on the feeds
     }}
     # Cutscenes: the night 4 flashback (warm sepia memory) and the burn ending (orange smoke).
-    for key, ident, setting in (
-        ("flashback", "fb:flashback", {"fog_start": 3, "fog_end": 36, "fog_color": "#5a3f1e", "render_distance_type": "fixed"}),
-        ("ending_fire", "fb:ending_fire", {"fog_start": 6, "fog_end": 60, "fog_color": "#7a2c08", "render_distance_type": "fixed"}),
+    for key, ident, setting, haze in (
+        ("flashback", "fb:flashback", {"fog_start": 3, "fog_end": 36, "fog_color": "#5a3f1e", "render_distance_type": "fixed"}, 0.08),
+        ("ending_fire", "fb:ending_fire", {"fog_start": 6, "fog_end": 60, "fog_color": "#7a2c08", "render_distance_type": "fixed"}, 0.2),
     ):
         out[key] = {"format_version": "1.21.90", "minecraft:fog_settings": {
             "description": {"identifier": ident},
             "distance": {"air": dict(setting), "weather": dict(setting)},
+            "volumetric": volumetric(haze),
         }}
     return out
+
+
+def volumetric(density):
+    """Volumetric fog (used by Vibrant Visuals): uniform density in air and weather, 0 = none, 1 = near opaque."""
+    d = {"max_density": density, "uniform": True}
+    return {"density": {"air": dict(d), "weather": dict(d)}}
+
+
+# Vibrant Visuals / PBR: one texture set per custom texture (docs/01 "Vibrant Visuals"). Uniform MER values
+# (metalness, emissive, roughness; 0-255). Suits and skins are rough non-metals; the eye layers are fully
+# emissive so the eyes still glow under deferred lighting; the purple echo glows faintly.
+MER_DEFAULT = [0, 0, 200]
+MER_BY_SUFFIX = (("_eyes", [0, 255, 255]), ("fredbear_echo", [0, 60, 220]))
+
+
+def texture_sets():
+    written = []
+    for folder in (RP / "textures" / "entity" / "fb", RP / "textures" / "items"):
+        for png in sorted(folder.glob("*.png")):
+            name = png.stem
+            mer = next((v for k, v in MER_BY_SUFFIX if name.endswith(k) or name == k), MER_DEFAULT)
+            write_json(folder / f"{name}.texture_set.json", {"format_version": "1.16.100", "minecraft:texture_set": {
+                "color": name,
+                "metalness_emissive_roughness": mer,
+            }})
+            written.append(name)
+    return written
 
 
 LANG = """## FREDBEAR: Six Nights Below
@@ -994,6 +1025,7 @@ def main():
         im.save(item_dir / f"{key}.png")
         data[key] = {"textures": f"textures/items/{key}"}
     write_json(RP / "textures" / "item_texture.json", {"resource_pack_name": "fredbear", "texture_name": "atlas.items", "texture_data": data})
+    sets = texture_sets()
     for n, f in fogs().items():
         write_json(RP / "fogs" / (f"fb_night_{n}.json" if isinstance(n, int) else f"fb_{n}.json"), f)
     (RP / "texts").mkdir(parents=True, exist_ok=True)
@@ -1003,7 +1035,7 @@ def main():
     rp_icon.save(RP / "pack_icon.png")
     bp_icon.save(BP / "pack_icon.png")
     owner_txt = ", ".join(f"{w} {o['clips']} clips" for w, o in owners.items())
-    print(f"rp: Chica (skin-built), owner models ({owner_txt}), Fredbear V6 ({v6_clips} clips, max change {v6_err['rotation']:.2f} deg / {v6_err['position']:.3f} units) + echo/shadow, withered skins, {len(fogs())} fogs, 3 item icons")
+    print(f"rp: Chica (skin-built), owner models ({owner_txt}), Fredbear V6 ({v6_clips} clips, max change {v6_err['rotation']:.2f} deg / {v6_err['position']:.3f} units) + echo/shadow, withered skins, {len(fogs())} fogs, 3 item icons, {len(sets)} texture sets")
 
 
 if __name__ == "__main__":
