@@ -6,7 +6,7 @@
 //     p(switch) = clamp(0.25 + 0.15*repelled[last] + 0.03*(doorUse[last]-doorUse[other]), 0.15, 0.75)
 // * From aggression 6 the Supply Closet maintenance duct is available: a
 //   hidden vent crawl that skips the West Hall camera and ends at the left
-//   door. It is announced by a vent clank at the closet (CAM 09) and under the
+//   door. It is announced by a vent clank at the closet (CAM 15) and under the
 //   left alcove.
 // * Being watched on camera for 3 s agitates him: his next movement
 //   opportunity is guaranteed.
@@ -46,7 +46,7 @@ export class Bonnie extends DoorAttacker {
     return 1;
   }
 
-  /** Entering the supply duct (CAM 18 shows him crawling through it). */
+  /** Entering the supply duct (CAM 16 shows him crawling through it). */
   onVentEnter() {
     this.s.emit({ fx: 'sound', id: 'fb.vent.clank', at: { x: 80.5, y: 0.5, z: 132.5 }, vol: 1.0 });
     this.s.caption('Clanking in the vents — west side', this.id);

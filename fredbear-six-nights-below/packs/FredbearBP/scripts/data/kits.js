@@ -756,6 +756,8 @@ function officeKit(P, room, i) {
   // Seal lamps (north wall, west end): duct seal above, shaft seal below.
   P.set(95, 3, 126, 'ind_off');
   P.set(95, 2, 126, 'ind_off');
+  // Ceiling-vent grate lamp (1.4), north wall above the VENT GRATE button.
+  P.set(104, 3, 126, 'ind_off');
   // Ceiling lamp.
   hanging(P, 100, 133, i.ceilY, 2, 'redstone_lamp'); // non-emissive fixture: light comes from actuated light blocks
   P.set(100, i.ceilY - 1, 135, 'light_11');

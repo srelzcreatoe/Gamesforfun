@@ -24,6 +24,7 @@ export const CONFIG = Object.freeze({
     light: 6, // per lit hall light, per tick
     cams: 3, // while the camera monitor is up
     hatch: 7, // while the office hatch is sealed
+    grate: 6, // while the ceiling-vent grate is open (1.4: the cold comes down; leaving it open is not free)
     strobeCost: 2000, // one-shot 2 %
     breakerResetCost: 1000, // one-shot 1 %
     reserveAmount: 8000, // emergency reserve restores 8 %
@@ -109,23 +110,29 @@ export const CONFIG = Object.freeze({
       flickerNear: 40, // office lamp flicker interval while he is next to the office
       flickerClose: 16, // ... and while he is climbing / walking into an entry
     }),
-    // Nights 8-9. Morgrave crawls through the vents and the crawlspace (ai/morgrave.js).
+    // Nights 8-9 (1.4). Morgrave only wants to be let in (ai/morgrave.js): he knocks at the left door, the
+    // right door or the ceiling vent; an open entry lets him walk past, a shut one makes him angrier.
     morgrave: Object.freeze({
-      moInterval: 80, home: 'M_HOME',
-      telegraph: (a) => Math.max(50, 110 - 3 * a), // short: you should have heard him crawling
-      repelTicks: 40,
-      sealGiveUp: 160, // 8 s against a sealed duct or shaft and he gives up
-      arrivalCueChance: 0.75, // a scratch at the door / hatch when he gets there (not always: watch CAM 17 / 18)
-      recover: (a) => Math.max(240, 560 - 12 * a),
+      home: 'M_HOME',
+      softKnockTicks: 30, // three soft knocks
+      angry: (a) => Math.max(50, 120 - 5 * a), // each of the two angry stages (knocking, then pounding)
+      holdFloor: 60, // while someone else is held at that door he waits; after they leave you still get 3 s
+      passTicks: 50, // walking (or crawling) past
+      recover: (a) => Math.max(160, 440 - 14 * a), // back inside the walls between visits
+      ventWeight: 1.2, // how often he picks the ceiling vent (a door: 1 + how much you use it, + shutBonus while it is shut)
+      shutBonus: 2,
     }),
-    // Nights 8-9. Valek steps through the dark halls and shows only his eyes (ai/valek.js).
+    // Nights 8-9 (1.4). Valek: a staring contest (ai/valek.js). His eyes appear at the left door, the right
+    // door or the ceiling vent; look at them until he looks away first, or he steps closer.
     valek: Object.freeze({
-      moInterval: 90, home: 'V_HOME',
-      telegraph: (a) => Math.max(80, 170 - 4 * a), minWindow: 60,
-      repelTicks: 60,
-      vanishTicks: 200, // lit: gone for 10 s, then back - closer
-      recover: (a) => Math.max(300, 600 - 12 * a),
-      mimicChance: 0.5, humChance: 0.6,
+      home: 'V_HOME',
+      find: (a) => Math.max(60, 140 - 3 * a), // ticks to start looking at him once his eyes appear
+      findNear: (a) => Math.max(40, 100 - 2 * a), // ... once they are closer
+      hold: (a) => [60, 100 + 5 * a], // he looks away first after 3 s to (5 + A/4) s of being stared at
+      slack: 16, // a glance away shorter than this does not count (a quick press of a desk button)
+      slackNear: 8, // ... once he is close
+      turnAway: 20, // he turns his head away, then he is gone
+      recover: (a) => Math.max(180, 520 - 16 * a),
     }),
   }),
 
@@ -154,7 +161,7 @@ export const CONFIG = Object.freeze({
       activation: { freddy: 3200, bonnie: 0, chica: 400, fredbear: 99999 },
       ramp: true, strobeCharges: 0, reserve: false, maxSabotage: 1,
       fredbear: { phase: 0 },
-      events: [{ at: 6400, kind: 'foreshadow', id: 'diner_glimpse', cam: 'C16', node: 'DINER_STAGE', hold: 1600 }],
+      events: [{ at: 6400, kind: 'foreshadow', id: 'diner_glimpse', cam: 'C21', node: 'DINER_STAGE', hold: 1600 }],
     }),
     3: Object.freeze({
       title: 'Night 3 — Generator Trouble', mechanic: 'Maintenance shortcuts, mid-night generator restart, emergency reserve',
@@ -164,7 +171,7 @@ export const CONFIG = Object.freeze({
       fredbear: { phase: 0 },
       events: [
         { at: 3200, kind: 'maintenance', task: 'generator' },
-        { at: 7200, kind: 'foreshadow', id: 'its_me', cam: 'C07', node: 'WH_S', hold: 800 },
+        { at: 7200, kind: 'foreshadow', id: 'its_me', cam: 'C14', node: 'WH_S', hold: 800 },
       ],
     }),
     4: Object.freeze({
@@ -200,22 +207,22 @@ export const CONFIG = Object.freeze({
       events: [],
     }),
     // Night 8 depends on how night 7 ended (variants, chosen by the game from the save):
-    // seal -> Morgrave crawls out of the walls; burn -> Valek walks out of the smoke.
+    // seal -> Morgrave knocks to be let in; burn -> Valek's staring contest.
     8: Object.freeze({
       title: 'Night 8 — Below the Walls', mechanic: 'A new animatronic, decided by your night 7 ending, joins the trio',
-      ai: { freddy: 7, bonnie: 8, chica: 7, fredbear: 0, morgrave: 0, valek: 0 },
+      ai: { freddy: 13, bonnie: 14, chica: 13, fredbear: 0, morgrave: 0, valek: 0 },
       activation: { freddy: 800, bonnie: 0, chica: 0, fredbear: 99999, morgrave: 99999, valek: 99999 },
       ramp: true, strobeCharges: 0, reserve: true, maxSabotage: 2, hatch: true, basementOpen: true,
       fredbear: { phase: 0 },
       events: [],
       variants: Object.freeze({
-        seal: Object.freeze({ title: 'Night 8 — Walled In', mechanic: 'Morgrave crawls out of the walls: vents, the crawlspace and the hatch', ai: { morgrave: 13 }, activation: { morgrave: 600 } }),
-        burn: Object.freeze({ title: 'Night 8 — Out of the Smoke', mechanic: 'Valek walks out of the smoke: only his eyes, only in the dark', ai: { valek: 15 }, activation: { valek: 600 } }),
+        seal: Object.freeze({ title: 'Night 8 — Walled In', mechanic: 'Morgrave knocks at the doors and the ceiling vent: let him in, or he breaks in', ai: { morgrave: 15, freddy: 15, bonnie: 16, chica: 15 }, activation: { morgrave: 600 } }),
+        burn: Object.freeze({ title: 'Night 8 — Out of the Smoke', mechanic: 'Valek\'s eyes in the dark: stare him down until he looks away', ai: { valek: 15 }, activation: { valek: 600 } }),
       }),
     }),
     9: Object.freeze({
       title: 'Night 9 — Three Below', mechanic: 'Fredbear, Morgrave and Valek together; the others are switched off in Parts & Service',
-      ai: { freddy: 0, bonnie: 0, chica: 0, fredbear: 16, morgrave: 13, valek: 13 },
+      ai: { freddy: 0, bonnie: 0, chica: 0, fredbear: 18, morgrave: 20, valek: 20 },
       activation: { freddy: 99999, bonnie: 99999, chica: 99999, fredbear: 400, morgrave: 200, valek: 800 },
       ramp: false, strobeCharges: 6, reserve: true, maxSabotage: 0, hatch: true, basementOpen: true, store: ['freddy', 'bonnie', 'chica'],
       music: false, // no night music: only the building
@@ -255,7 +262,7 @@ export const CONFIG = Object.freeze({
     }),
   }),
 
-  // Shadow Fredbear: a rare black silhouette on the show stage (CAM 01/02).
+  // Shadow Fredbear: a rare black silhouette on the show stage (CAM 01/06).
   // Checked once per hour from 1 AM on nights 2+; watching it for `stareTicks`
   // in total drains `drain` power units and it vanishes.
   shadow: Object.freeze({ chancePerHour: 0.05, node: 'STAGE_FRONT', holdTicks: 600, stareTicks: 60, drain: 1000, fromNight: 2 }),

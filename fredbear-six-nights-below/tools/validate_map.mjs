@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import { buildVoxel, passable, opaque, standable, canStand, walkNeighbours } from './voxel.mjs';
 import { NODES, NODE_BY_ID, EDGES, edgePolyline } from '../packs/FredbearBP/scripts/data/nodes.js';
 import { CAMERAS } from '../packs/FredbearBP/scripts/data/cameras.js';
+import { MORGRAVE_SPOTS, VALEK_SPOTS, CEILING_VENT } from '../packs/FredbearBP/scripts/data/visitors.js';
 import { ROOMS, ANCHORS, OPENINGS, interior } from '../packs/FredbearBP/scripts/data/layout.js';
 import { INPUTS, inputCbPos, inputControlPos } from '../packs/FredbearBP/scripts/data/inputs.js';
 
@@ -108,6 +109,37 @@ export function validateMap({ quiet = false } = {}) {
     if (extra.length) warnings.push(`camera ${cam.id} also shows unlisted nodes: ${extra.join(', ')}`);
   }
   info.cameraVisibility = camVis;
+
+  // ---------------------------------------------------------------- C2. Morgrave's and Valek's spots (1.4)
+  // Morgrave knocks and walks / crawls past at fixed spots: floor under him, room for him, a clear way past.
+  for (const [e, sp] of Object.entries(MORGRAVE_SPOTS)) {
+    const tall = e === 'V' ? 1 : 2; // he crawls in the vent
+    const n = 12;
+    for (let k = 0; k <= n; k++) {
+      const x = sp.knock.x + ((sp.past.x - sp.knock.x) * k) / n;
+      const z = sp.knock.z + ((sp.past.z - sp.knock.z) * k) / n;
+      const feet = Math.floor(sp.knock.y + 0.01);
+      for (let dy = 0; dy < tall; dy++) if (!passable(V.get(x, feet + dy, z))) errors.push(`Morgrave ${e}: blocked at ${x.toFixed(1)} ${feet + dy} ${z.toFixed(1)} (${V.get(x, feet + dy, z)})`);
+      if (!standable(V.get(x, feet - 1, z))) errors.push(`Morgrave ${e}: nothing to stand on at ${x.toFixed(1)} ${z.toFixed(1)}`);
+    }
+  }
+  // Valek's eyes must be visible from the office seat (through the windows and the vent grate).
+  const seat = [ANCHORS.officeEye.x, ANCHORS.officeEye.y, ANCHORS.officeEye.z];
+  for (const [e, stages] of Object.entries(VALEK_SPOTS)) {
+    for (const [stage, sp] of Object.entries(stages)) {
+      const p = [sp.eye.x, sp.eye.y, sp.eye.z];
+      if (opaque(V.get(...p))) errors.push(`Valek ${e} ${stage}: eyes inside ${V.get(...p)}`);
+      const r = los(seat, p);
+      if (!r.ok) errors.push(`Valek ${e} ${stage}: eyes not visible from the office seat (blocked by ${r.key} at ${r.at.map((v) => v.toFixed(1))})`);
+    }
+  }
+  // The ceiling vent: a hole in the office ceiling under a grate in the crawlspace floor.
+  for (let x = CEILING_VENT.x1; x <= CEILING_VENT.x2; x++) {
+    for (let z = CEILING_VENT.z1; z <= CEILING_VENT.z2; z++) {
+      if (V.get(x, CEILING_VENT.holeY, z) !== 'air') errors.push(`ceiling vent: ${x} ${CEILING_VENT.holeY} ${z} is ${V.get(x, CEILING_VENT.holeY, z)}, expected air`);
+      if (V.get(x, CEILING_VENT.grateY, z) !== 'iron_trapdoor_closed') errors.push(`ceiling vent: no grate at ${x} ${CEILING_VENT.grateY} ${z}`);
+    }
+  }
 
   // ---------------------------------------------------------------- D. office seal
   {

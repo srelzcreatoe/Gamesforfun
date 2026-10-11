@@ -84,7 +84,7 @@ deterministically.
 | Animations (Chica) | `animations/fb_animatronic.animation.json` | idle, walk, stalk, crawl, look (head turns), pause (suspicious freeze), threat (doorway, jaw working), attack (jumpscare lunge, jaw wide open), retreat, dormant, music, plus one stage performance per character: Freddy sings into the microphone, Bonnie strums the guitar (left hand on the neck), Chica presents the cupcake (plate kept level) and waves, Fredbear sings with a sweeping arm. Every pose has a matching jaw motion |
 | Animation controller | `controller.animation.fb.pose` | one state per `fb:anim` value, 0.2 s blends (0.05 s into attack) |
 | Render controllers | `controller.render.fb.animatronic`, `controller.render.fb.eyes`, plus echo controllers with texture arrays | `fb:hidden` hides the whole model (vent crawls) |
-| Sounds | `sounds/fb/**.ogg` (57 ids), `sounds/sound_definitions.json` | **recordings supplied by the map owner** (`art/sounds_incoming/`, converted by `tools/gen_sounds.py`): the animatronic jumpscare and Fredbear's own jumpscare, the storm-door slam (door / hatch closing), the metal door (opening), camera up / down, the looping CCTV hum while the monitor is up (1.3: quieter), Freddy's laugh (4 cuts), Fredbear's laugh (4 cuts), the night music, and in 1.3 Fredbear's music box (*Fredbear's Family Diner*) and Chica's kitchen (*Chica in the Kitchen*, 5 takes). **Synthesised**: footsteps, lights, power, breaker, strobe, seals, clock chimes, phone, ambience, groan, breathing, Freddy's music box, roar, glitch, finale, ending theme, the fire of the burn ending, Morgrave's scrape and Valek's hum and vanish. Freddy's music box plays Bizet's *Toreador March* (public domain); all other synthesised melodies are original |
+| Sounds | `sounds/fb/**.ogg` (59 ids), `sounds/sound_definitions.json` | **recordings supplied by the map owner** (`art/sounds_incoming/`, converted by `tools/gen_sounds.py`): the animatronic jumpscare and Fredbear's own jumpscare, the storm-door slam (door / hatch closing), the metal door (opening), camera up / down, the looping CCTV hum while the monitor is up (1.3: quieter), Freddy's laugh (4 cuts), Fredbear's laugh (4 cuts), the night music, and in 1.3 Fredbear's music box (*Fredbear's Family Diner*) and Chica's kitchen (*Chica in the Kitchen*, 5 takes). **Synthesised**: footsteps, lights, power, breaker, strobe, seals, clock chimes, phone, ambience, groan, breathing, Freddy's music box, roar, glitch, finale, ending theme, the fire of the burn ending, Morgrave's scrape and (1.4) his soft and hard knocks, Valek's hum and vanish. Freddy's music box plays Bizet's *Toreador March* (public domain); all other synthesised melodies are original |
 | Night music | `sounds/fb/night/bgm.ogg` (`fb.night.bgm`, category `music`, `stream: true`) | *PIZZA DINNER* from the FNAF 1 Remake fan-game soundtrack, supplied by the map owner; looped by `playMusic` from 12 AM to 6 AM |
 | Texture sets (1.3.1, Vibrant Visuals) | `textures/entity/fb/*.texture_set.json`, `textures/items/*.texture_set.json` | one per texture, uniform MER (metalness, emissive, roughness 0-255): `[0, 0, 200]` for suits and icons, `[0, 255, 255]` for the eye layers (they glow), `[0, 60, 220]` for the echo; the RP manifest declares the `pbr` capability |
 | Fogs | `fogs/fb_night_{1..9}.json`, `fogs/fb_camera_feed.json`, `fogs/fb_flashback.json`, `fogs/fb_ending_fire.json` | night fogs get darker and closer each night (`fog @a push fb:night_<n> fb_night`); while the camera monitor is up the clear, faintly green `fb:camera_feed` fog is pushed on top (`fb_cam`) so feeds are not blacked out; a sepia fog for the night 4 flashback and an orange smoke fog for the burn ending (`fb_scene`) |
@@ -107,14 +107,33 @@ button opens the clippings, lockers along the west wall, benches and posters.
 
 ## 1.3 additions to the map
 
-* **Cameras**: CAM 17 (office subfloor), CAM 18 (supply duct), CAM 19 (Fredbear's chamber), CAM 20 (diner party room),
-  CAM 21 (diner kitchen); the tabletop map gains a column of buttons.
+* **Cameras**: CAM 17 (office subfloor), CAM 16 (supply duct), CAM 22 (Fredbear's chamber), CAM 20 (diner party room),
+  CAM 19 (diner kitchen); the tabletop map gains a column of buttons.
 * **Supply duct** (`VENT_DUCT`, y -3..-2 under the supply closet floor to the left door corner) with the **vent seal** and
   a **shaft seal** in the crawlspace; their shutters and lamps are command-block modules (`seal.*`).
 * **Parts & Service**: three storage spots for the trio on nights 7 and 9, and Valek's spot.
 * **Lore** (`data/lore.js`): the sealed 1983 birthday party in the old diner (table, cake, candles relit by `night.begin`,
   presents, banner), the wall of names in Fredbear's chamber (the player's name is added after night 6), and the 1987 crew
   graffiti in the west maintenance tunnel. The office gets the TAPE DECK button.
+
+## 1.4 additions to the map
+
+* **Ceiling vent** (`data/visitors.js` `CEILING_VENT`, layout stair kind `ceilvent`): the office ceiling (y 6) is cut open
+  over the desk at x 101-102, z 127-128, under a 2 × 2 grate of iron trapdoors in the crawlspace floor (y 7). The crawlspace
+  strip above the office (x 95-113, z 126-129 on L2) is reserved so nothing is built into it. Command-block modules
+  `grate_open` / `grate_close` flip the trapdoors, set the grate lamp on the office's north wall (green / amber) and play the
+  door sound; `night.begin` and `night.end` close it.
+* **VENT GRATE** button at the right end of the tabletop camera map (input `in.office.vent_grate`), with a sign.
+* **CAM 12 · CEILING VENT** in the crawlspace, looking along it at the grate.
+* **Cameras renumbered** in walking order (neighbouring cameras, neighbouring numbers): 01 show stage, 02 backstage,
+  03 Parts & Service, 04 Starlight Cove, 05 arcade, 06-07 dining hall west / east, 08 kitchen (audio), 09 east service,
+  10 east hall, 11 east corner, 12 ceiling vent, 13 west corner, 14 west hall, 15 supply closet, 16 supply duct, 17 office
+  subfloor, 18 maintenance tunnel, 19 diner kitchen, 20 diner party room, 21 sealed diner, 22 Fredbear's chamber. The
+  console buttons keep their places; their labels, the HUD map and every reference follow the new numbers.
+* `tools/validate_map.mjs` checks the vent (hole and grate), the floor and headroom along Morgrave's knock-to-pass paths
+  and that each of Valek's eye points is visible from the office seat (the grate and the door windows are see-through).
+* **Jumpscare framing**: `tools/gen_jumpscare_reach.py` (run by the build after the RP art) writes
+  `data/jumpscare_reach.generated.js`, the distance each animatronic stands from the camera (docs/04).
 
 ## Seasonal decorations
 

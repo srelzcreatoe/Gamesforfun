@@ -16,9 +16,9 @@ Aggression (A) is 0-20. Activation = tick at which the character leaves home. Ni
 | 5 | Night 5 — Golden Echoes | 14 | 15 | 14 | 12 | 0 | 0 | 0/0/0/1200/off/off | 5 | yes | 3 | 2 (entries H/L/R, max 3 attempts, powers disrupt, false_cam, blackout, relocate) | maintenance:electrical@4800 |
 | 6 | Night 6 — Six Nights Below | 18 | 19 | 18 | 20 | 0 | 0 | 0/0/0/200/off/off | 6 | yes | 3 | 3 (entries H/L/R, max 4 attempts, powers disrupt, false_cam, blackout, relocate) | finale@8000 |
 | 7 | Night 7 — Fredbear's Revenge | 0 | 0 | 0 | 20 | 0 | 0 | off/off/off/200/off/off | 6 | yes | 0 | 3 (entries H/L/R, max 7 attempts, powers disrupt, false_cam, blackout, relocate, everywhere) | - |
-| 8 (seal) | Night 8 — Walled In | 7 | 8 | 7 | 0 | 13 | 0 | 800/0/0/off/600/off | 0 | yes | 2 | dormant | - |
-| 8 (burn) | Night 8 — Out of the Smoke | 7 | 8 | 7 | 0 | 0 | 15 | 800/0/0/off/off/600 | 0 | yes | 2 | dormant | - |
-| 9 | Night 9 — Three Below | 0 | 0 | 0 | 16 | 13 | 13 | off/off/off/400/200/800 | 6 | yes | 0 | 3 (entries H/L/R, max 5 attempts, powers disrupt, false_cam, blackout, relocate, everywhere) | - |
+| 8 (seal) | Night 8 — Walled In | 15 | 16 | 15 | 0 | 15 | 0 | 800/0/0/off/600/off | 0 | yes | 2 | dormant | - |
+| 8 (burn) | Night 8 — Out of the Smoke | 13 | 14 | 13 | 0 | 0 | 15 | 800/0/0/off/off/600 | 0 | yes | 2 | dormant | - |
+| 9 | Night 9 — Three Below | 0 | 0 | 0 | 18 | 20 | 20 | off/off/off/400/200/800 | 6 | yes | 0 | 3 (entries H/L/R, max 5 attempts, powers disrupt, false_cam, blackout, relocate, everywhere) | - |
 
 Night 0 is the training shift / vertical slice (400 ticks per hour; the tutorial further slows it to 12000 so the clock never ends a lesson). Night 7 unlocks after night 6: only Fredbear hunts, everywhere at once (the trio are switched off in Parts & Service). Night 8 unlocks after night 7 and depends on the last night 7 ending (seal: Morgrave; burn: Valek). Night 9 unlocks after night 8: Fredbear, Morgrave and Valek together, the trio switched off again.
 
@@ -49,15 +49,18 @@ When a forcing window (W2) ends and that door or the hatch has not held yet toni
 | Freddy recovery | `Math.max(260, 540 - 12 * a)` | 480 | 420 | 360 | 300 |
 | Fredbear W1: music box — close that barrier | `Math.max(100, 180 - 4 * a)` | 160 | 140 | 120 | 100 |
 | Fredbear W2: forcing — strobe now | `Math.max(60, 100 - 2 * a)` | 90 | 80 | 70 | 60 |
-| Morgrave telegraph (left door / hatch) | `Math.max(50, 110 - 3 * a)` | 95 | 80 | 65 | 50 |
-| Morgrave recovery (back in the walls) | `Math.max(240, 560 - 12 * a)` | 500 | 440 | 380 | 320 |
-| Valek corner window (minus 20 per anger, floor 60) | `Math.max(80, 170 - 4 * a)` | 150 | 130 | 110 | 90 |
-| Valek recovery | `Math.max(300, 600 - 12 * a)` | 540 | 480 | 420 | 360 |
+| Morgrave angry knocking (each of the two stages; open up to let him pass) | `Math.max(50, 120 - 5 * a)` | 95 | 70 | 50 | 50 |
+| Morgrave recovery (back in the walls) | `Math.max(160, 440 - 14 * a)` | 370 | 300 | 230 | 160 |
+| Valek: time to start staring once his eyes appear (far) | `Math.max(60, 140 - 3 * a)` | 125 | 110 | 95 | 80 |
+| Valek: ... once he stepped closer (near) | `Math.max(40, 100 - 2 * a)` | 90 | 80 | 70 | 60 |
+| Valek recovery | `Math.max(180, 520 - 16 * a)` | 440 | 360 | 280 | 200 |
 
-Movement opportunities: Bonnie every 90 ticks, Chica 70, Freddy 60, Fredbear 60, Morgrave 80, Valek 90. At each opportunity a d20 roll ≤ A moves the character (bounded randomness; seeded mulberry32 so a seed replays exactly).
+Movement opportunities: Bonnie every 90 ticks, Chica 70, Freddy 60, Fredbear 60 (Morgrave and Valek do not walk the halls: they come out of the walls / the dark after their recovery). At each opportunity a d20 roll ≤ A moves the character (bounded randomness; seeded mulberry32 so a seed replays exactly).
 Fredbear W3 (barrier jammed open, strobe still works) = 60 ticks; a strobe without a closed/jammed barrier only stuns him for 40 ticks. Freddy slips in after 40 ticks of camera use with the right door open; Bonnie flanks from A ≥ 5 and uses the vent from A ≥ 6; Chica sabotage chance per opportunity = `a / 30` (cooldown 1200).
 
-1.3 behaviours: double trouble (from A ≥ 8, Bonnie or Chica joins whoever holds the right door; a pair needs twice the repel time), Bonnie's teamwork (A ≥ 8, chance 0.4, cooldown 2400: bangs on the left door while Chica sneaks to the right), Chica flanks left from A ≥ 8. Morgrave gives up after 160 ticks against a seal; his scratch at the entry is heard 75 % of the time. Valek mimics another animatronic on 50 % of his steps and hums at the corner 60 % of the time; lighting him sends him away for 200 ticks but raises his anger (max 2).
+1.3 behaviours: double trouble (from A ≥ 8, Bonnie or Chica joins whoever holds the right door; a pair needs twice the repel time), Bonnie's teamwork (A ≥ 8, chance 0.4, cooldown 2400: bangs on the left door while Chica sneaks to the right), Chica flanks left from A ≥ 8. 
+
+1.4 visitors (left door, right door, ceiling vent): Morgrave knocks softly for 30 ticks; an open entry lets him walk (crawl) past in 50 ticks, a shut one starts the two angry stages, and he never breaks through while someone else is held at that door (then at least 60 ticks after they leave). He picks the vent with weight 1.2 and a door with 1 + door use / 4 (+2 while it is shut). An open vent grate costs 6 units per tick. Valek's eyes appear at an entry; stare at them and he looks away first after `[60, 100 + 5 * a]` ticks (A = 15: 60-175); a glance away longer than 16 ticks (8 once he is close), or the cameras, makes him step closer (far, near, attack); he turns away in 20 ticks.
 
 Director limits: at most 2 entries engaged at once, one attack token, nobody engages beside Fredbear, 60-tick grace after a blackout and 200 after maintenance. Adaptation memory is capped: door-use counters 0-10 per entry, noise heat 0-10 (decays every 80 ticks), camera focus decays ×0.999 per tick.
 
@@ -100,8 +103,8 @@ Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). 
 | Player model | N1 | N2 | N3 | N4 | N5 | N6 | N7 | N8 seal | N8 burn | N9 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Oracle (perfect information) (20 seeds) | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% |
-| Human model (skill 1.0) (30 seeds) | 100% | 100% | 97% | 93% | 70% | 33% | 53% | 50% | 37% | 7% |
-| Human model (skill 0.7) (30 seeds) | 100% | 100% | 100% | 97% | 90% | 33% | 47% | 50% | 33% | 17% |
+| Human model (skill 1.0) (30 seeds) | 100% | 100% | 93% | 93% | 73% | 33% | 53% | 80% | 33% | 33% |
+| Human model (skill 0.7) (30 seeds) | 100% | 100% | 100% | 97% | 87% | 37% | 47% | 80% | 27% | 7% |
 | Idle (does nothing) (10 seeds) | 80% | 10% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
 | Wasteful (everything on) (10 seeds) | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
 
@@ -116,9 +119,9 @@ Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). 
 | 5 | 100% | 28.1% | 21.6% | 0 | - | - |
 | 6 | 100% | 20.5% | 15.9% | 0 | - | - |
 | 7 | 100% | 38.1% | 34.9% | 0 | - | - |
-| 8 seal | 100% | 46.6% | 42.8% | 0 | - | - |
-| 8 burn | 100% | 60.1% | 54.2% | 0 | - | - |
-| 9 | 100% | 36.3% | 30.5% | 0 | - | - |
+| 8 seal | 100% | 53.5% | 47.1% | 0 | - | - |
+| 8 burn | 100% | 58.4% | 53.6% | 0 | - | - |
+| 9 | 100% | 48.3% | 45.5% | 0 | - | - |
 
 ### Human model (skill 1.0)
 
@@ -126,29 +129,29 @@ Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). 
 |---|---|---|---|---|---|---|
 | 1 | 100% | 51.5% | 44.8% | 0 | - | - |
 | 2 | 100% | 30.2% | 18% | 0 | - | - |
-| 3 | 97% | 21.4% | 11.9% | 0 | freddy 1 | 2 AM |
-| 4 | 93% | 10.6% | 0% | 2 | freddy 2 | 2 AM |
-| 5 | 70% | 2.2% | 0% | 25 | chica 2, fredbear 7 | 4.9 AM |
-| 6 | 33% | 1.1% | 0% | 23 | fredbear 14, bonnie 2, chica 3, freddy 1 | 4.3 AM |
+| 3 | 93% | 21.7% | 12.3% | 0 | freddy 1, chica 1 | 3 AM |
+| 4 | 93% | 10.1% | 0% | 1 | freddy 2 | 2 AM |
+| 5 | 73% | 2.1% | 0% | 25 | chica 2, fredbear 6 | 4.9 AM |
+| 6 | 33% | 0.9% | 0% | 23 | fredbear 14, chica 4, freddy 1, bonnie 1 | 4.3 AM |
 | 7 | 53% | 23.7% | 19.4% | 0 | fredbear 14 | 3.7 AM |
-| 8 seal | 50% | 2.5% | 0% | 17 | morgrave 9, freddy 5, bonnie 1 | 3.3 AM |
-| 8 burn | 37% | 17.5% | 8.8% | 0 | valek 19 | 2.9 AM |
-| 9 | 7% | 0.4% | 0% | 5 | morgrave 11, valek 14, fredbear 3 | 2.6 AM |
+| 8 seal | 80% | 22.1% | 9% | 0 | freddy 2, chica 2, bonnie 1, morgrave 1 | 2.5 AM |
+| 8 burn | 33% | 26.3% | 16.5% | 0 | bonnie 1, valek 17, chica 2 | 2.9 AM |
+| 9 | 33% | 33.5% | 27.3% | 0 | valek 20 | 2.4 AM |
 
 ### Human model (skill 0.7)
 
 | Night | Win rate | Mean power left (wins) | Lowest power seen | Power-outs | Losses by | Mean loss hour |
 |---|---|---|---|---|---|---|
 | 1 | 100% | 51.5% | 41.9% | 0 | - | - |
-| 2 | 100% | 31% | 17% | 0 | - | - |
-| 3 | 100% | 21.1% | 1.7% | 0 | - | - |
-| 4 | 97% | 12.1% | 0% | 2 | freddy 1 | 2 AM |
-| 5 | 90% | 2.6% | 0% | 26 | fredbear 3 | 5 AM |
-| 6 | 33% | 0.9% | 0% | 28 | fredbear 19, chica 1 | 4.9 AM |
+| 2 | 100% | 31.1% | 18% | 0 | - | - |
+| 3 | 100% | 21.6% | 1.7% | 0 | - | - |
+| 4 | 97% | 12.4% | 0% | 2 | freddy 1 | 2 AM |
+| 5 | 87% | 2.8% | 0% | 26 | fredbear 3, chica 1 | 5 AM |
+| 6 | 37% | 0.8% | 0% | 28 | fredbear 18, chica 1 | 4.8 AM |
 | 7 | 47% | 21.7% | 16.9% | 0 | fredbear 16 | 3.8 AM |
-| 8 seal | 50% | 3% | 0% | 16 | morgrave 13, freddy 2 | 3.1 AM |
-| 8 burn | 33% | 17.6% | 8.4% | 0 | valek 20 | 2.9 AM |
-| 9 | 17% | 1.4% | 0% | 13 | morgrave 4, fredbear 8, valek 13 | 3.2 AM |
+| 8 seal | 80% | 22% | 8.6% | 0 | chica 2, morgrave 1, bonnie 1, freddy 2 | 2.8 AM |
+| 8 burn | 27% | 22.4% | 9.1% | 0 | valek 21, chica 1 | 2 AM |
+| 9 | 7% | 37% | 33.6% | 0 | valek 28 | 1.9 AM |
 
 ### Challenge modes
 
@@ -166,5 +169,6 @@ The challenges were tuned until the human model wins most runs ("manageable" was
 * Idle play usually survives night 1 (the introduction), rarely night 2 and never from night 3; "everything on" always runs out of power — power management matters.
 * The human models lose mostly to **power exhaustion followed by the power-out sequence** (Fredbear's from night 4) on nights 4-6, not to unfair attacks: every attack is preceded by its telegraph window. This is the intended pressure and also the first tuning knob if playtesting shows nights 5-6 are too hard: lower `power.door` / `power.hatch` or the night 5-6 base drain in `scripts/core/config.js`.
 * 1.3 fixed the "stuck at the door" bug. Stuck animatronics had kept doors shut and drained power, so with the fix nights 5-6 became much easier for the human models (93 % / 77 %, against 57 % / 37 % in 1.2). Their base drain went from 4 to 5 units per tick to bring the curve back.
-* Night 7 (Fredbear alone, everywhere) and nights 8-9 are lost mid-night rather than to power. Night 8 is about as hard as night 7 either way. The burn version (Valek) is harder for the models because his mimicry fools a player who trusts the captions. Night 9 is the hardest night by design ("creepy, eerie and hard" was the brief). A perfect-information player still wins every seed. First knobs: `nights[7|9].fredbear.cooldown` / `maxAttempts`, `characters.morgrave.arrivalCueChance` and `characters.valek.mimicChance`.
+* Night 7 (Fredbear alone, everywhere) and nights 8-9 are lost mid-night rather than to power. Night 9 is the hardest night by design ("creepy, eerie and hard" was the brief). A perfect-information player still wins every seed.
+* 1.4 (Morgrave: let him in; Valek: the staring contest). The human models react to every knock caption within a second and never mishear one, so Morgrave rarely kills them: on the seal night most losses come from the trio (raised to 15/16/15 on that night), and Morgrave is mostly a steady demand for attention. Valek punishes every glance away: a model that presses a desk button while staring looks away for 8-18 ticks (11-26 at skill 0.7). These are the least certain numbers in this table; real players are slower to turn, aim and press. First knobs: `characters.morgrave.angry` / `softKnockTicks` / `recover`, `characters.valek.hold` / `slack` / `slackNear` / `recover`, and the night 8 / 9 aggression.
 

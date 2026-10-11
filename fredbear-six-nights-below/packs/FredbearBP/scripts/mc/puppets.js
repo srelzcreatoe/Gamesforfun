@@ -14,6 +14,7 @@ import { system } from '@minecraft/server';
 import { dim, Wv } from './world_io.js';
 import { NODE_BY_ID } from '../data/nodes.js';
 import { log } from './log.js';
+import { JUMPSCARE_REACH } from '../data/jumpscare_reach.generated.js';
 
 export const PUPPET_TYPES = Object.freeze({
   freddy: 'fb:freddy',
@@ -43,6 +44,8 @@ export class Puppets {
     this.withered = false; // nights 7-9 and the challenges: the trio wear their withered suits (fb:variant 1)
     /** @type {Record<string, { yaw: number, pitch: number, tilt: number }>} head turns (the stare, Free Roam) */
     this.looks = Object.create(null);
+    /** @type {Record<string, number>} body yaw overrides (Valek turning to keep staring at you, 1.4) */
+    this.bodyYaw = Object.create(null);
   }
 
   /** Locate (or create) the single puppet entity for `who`. */
@@ -92,6 +95,7 @@ export class Puppets {
     const e = this.entity(who, pose);
     if (!e) return;
     const a = this.applied[who] ?? {};
+    if (this.bodyYaw[who] !== undefined && pose.anim !== 'attack') pose = { ...pose, yaw: this.bodyYaw[who] };
     const moved = a.x === undefined || Math.abs(a.x - pose.x) > 0.005 || Math.abs(a.y - pose.y) > 0.005 || Math.abs(a.z - pose.z) > 0.005 || Math.abs((a.yaw ?? 0) - pose.yaw) > 0.5;
     try {
       if (moved) e.teleport(Wv(pose), { rotation: { x: 0, y: pose.yaw } });
@@ -175,21 +179,27 @@ export class Puppets {
   /**
    * Place `who` right in front of the player's eyes for a jumpscare.
    * Styles (docs/04 "Jumpscares by place"): 'front'; 'below' rises up through the floor
-   * (the hatch); 'vent' bursts up from low at one side (out of the vent).
+   * (the hatch); 'vent' bursts up from low at one side (out of the vent); 'above' drops down
+   * from the ceiling vent (1.4).
+   * The distance comes from the attack animation itself (tools/gen_jumpscare_reach.py): far
+   * enough that the lunge never pushes the face (or a hand) through the camera.
    * @param {number} eyeHeight the model's eye height in blocks (already scaled)
    * @param {number} [variant] Fredbear: which of his jumpscare animations plays (fb:variant)
-   * @param {'front' | 'below' | 'vent'} [style]
+   * @param {'front' | 'below' | 'vent' | 'above'} [style]
    */
   lunge(who, eye, viewDir, eyeHeight, variant = 0, style = 'front') {
     const e = this.entity(who, homePose(who, 'attack'));
     if (!e) return undefined;
-    const d = who === 'fredbear' ? 1.7 : 1.15; // the taller rigs lunge forward in their own animation
+    delete this.bodyYaw[who];
+    const reach = JUMPSCARE_REACH[who] ?? [];
+    const d = (reach.find((r) => r.variant === variant) ?? reach[0])?.distance ?? 1.6;
     const pos = { x: eye.x + viewDir.x * d, y: eye.y - eyeHeight, z: eye.z + viewDir.z * d };
     const yaw = (Math.atan2(viewDir.x, -viewDir.z) * 180) / Math.PI;
     // Start lower (and, out of the vent, off to one side), then rise into the face over a few ticks.
     const side = { x: -viewDir.z, z: viewDir.x };
     const start = style === 'below' ? { x: pos.x, y: pos.y - 2.2, z: pos.z }
-      : style === 'vent' ? { x: pos.x + side.x * 1.1, y: pos.y - 1.4, z: pos.z + side.z * 1.1 } : pos;
+      : style === 'vent' ? { x: pos.x + side.x * 1.1, y: pos.y - 1.4, z: pos.z + side.z * 1.1 }
+        : style === 'above' ? { x: pos.x, y: pos.y + 2.4, z: pos.z } : pos;
     try {
       e.teleport(start, { rotation: { x: 0, y: yaw } });
       if (who === 'fredbear') e.setProperty('fb:variant', variant);

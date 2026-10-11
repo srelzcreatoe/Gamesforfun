@@ -6,8 +6,9 @@ same code runs in the game, in the balance simulator and in the tests. Every sta
 
 ## Shared machinery
 
-* **Route graph** (`data/nodes.js`): 55 nodes, 61 edges. Each edge has an access mask (which characters may use it:
-  B Bonnie, C Chica, F Freddy, G Fredbear, M Morgrave; Valek has no edges, he steps along `VALEK_LADDER`), a mode (`walk`,
+* **Route graph** (`data/nodes.js`): 54 nodes, 60 edges. Each edge has an access mask (which characters may use it:
+  B Bonnie, C Chica, F Freddy, G Fredbear; since 1.4 Morgrave and Valek walk no edges: they appear at fixed spots,
+  `data/visitors.js`), a mode (`walk`,
   `vent`, `crawl`, `climb`), an optional gate (`diner_seal`, `chamber_wall`, and in 1.3 `vent_seal` / `shaft_seal`, closed
   while the player seals the duct or the shaft) and a waypoint polyline.
   Puppets move along the polyline at the edge's speed, so they follow doorways, corners and stairs and never cut
@@ -71,7 +72,7 @@ all memory above is per night and capped.
 
 Identity: primary entry **left**; from A ≥ 5 he can **flank right** through Party Room A with
 p = clamp(0.25 + 0.15·repelled[last] + 0.03·(doorUse[last] − doorUse[other]), 0.15, 0.75); from A ≥ 6 he uses the
-**supply-closet vent** (hidden from CAM 07, shown by CAM 18 in the duct, announced by a vent clank; a sealed duct turns him
+**supply-closet vent** (hidden from CAM 14, shown by CAM 16 in the duct, announced by a vent clank; a sealed duct turns him
 back). Cues: footsteps with side captions, a groan in the corner (probability max(0.3, 1 − A/25)), his silhouette in the lit
 corner. **Teamwork (1.3)**: from A ≥ 8 (chance 0.4, at most every 2,400 ticks), while he waits at the left door and the right door is free,
 he pounds on the left door (captioned) to hold the player's attention while Chica sneaks to the right one without footsteps.
@@ -84,7 +85,7 @@ Same telegraph/retreat rules as Bonnie with her own numbers (window `max(80, 160
 after a retreat only a quarter of the time, and from A ≥ 8 flanks to the LEFT door when the right one is taken (chance 0.4).
 In the human-model simulation she now reaches a door about as often as Bonnie. In the **kitchen** she lingers 60-180 ticks,
 playing the owner's *Chica in the Kitchen* recording (five takes, every 120-180 ticks; a sound only Chica makes, relayed by
-audio-only CAM 10). While lingering, each opportunity may **trip the hall-light breaker** (chance A/30, at most 1-3 per night,
+audio-only CAM 08). While lingering, each opportunity may **trip the hall-light breaker** (chance A/30, at most 1-3 per night,
 1,200 ticks apart): both hall lights fail until RESET BREAKER (40 ticks,
 1 % power). Doors, cameras and the strobe are never affected, so the defence that stops her always remains.
 Approach tells: footsteps, heavy breathing at the right door.
@@ -97,7 +98,7 @@ Approach tells: footsteps, heavy breathing at the right door.
 | PATROL / STALK | (move) | opportunity succeeds **and the current feed does not show him** (he freezes mid-walk) | every 60 ± 6 ticks, effective A = A + ignore bonus (+1 per 600 unwatched ticks, max +4) |
 | STALK at the east-hall end | APPROACH → LURK | right entry reserved | laugh cue |
 | LURK | RETREAT | right door closed 100 consecutive ticks | — |
-| LURK | ATTACK | door open and the player on cameras (any feed but CAM 13) for 40 ticks ⇒ he slips in (hidden) and attacks when the monitor goes down or 100 ticks later | — |
+| LURK | ATTACK | door open and the player on cameras (any feed but CAM 11) for 40 ticks ⇒ he slips in (hidden) and attacks when the monitor goes down or 100 ticks later | — |
 | LURK | ATTACK | door open, player not on cameras, patience `max(120, 320 − 10A)` runs out (laugh at half) | — |
 | RETREAT → RECOVER → PATROL | | as above | recovery `max(260, 540 − 12A)` |
 | any | POWEROUT | power reaches 0 (after the reserve window on nights 3+) | music box at the left door 100-400 ticks, darkness 40-80 ticks, then attack unless 6 AM comes first |
@@ -107,7 +108,7 @@ Weights: dark nodes ×1.5, nodes no camera covers ×1.3, nodes of the most-watch
 ## Fredbear — the central threat (`ai/fredbear.js`)
 
 Phases by night: **0** foreshadow only (N1-3: a golden figure briefly shown on CAM 04 Starlight Cove, in the sealed
-diner on CAM 16, and in the west hall on CAM 07, each only while the player happens to watch that feed); **1 Stirring** (N4: hatch only, camera disruption); **2 Haunting** (N5: all three entries,
+diner on CAM 21, and in the west hall on CAM 14, each only while the player happens to watch that feed); **1 Stirring** (N4: hatch only, camera disruption); **2 Haunting** (N5: all three entries,
 relocation, false camera events, blackouts); **3 Golden Hour** (N6: shorter cooldowns plus the finale; N7 the same
 phase, alone, with 7 attempts and a 700-tick cooldown). He alone may use
 the diner seal and the chamber wall (gated edges, open from N4).
@@ -115,7 +116,7 @@ the diner seal and the chamber wall (gated edges, open from N4).
 | State | Meaning and exit |
 |---|---|
 | DORMANT | in the chamber until activation |
-| STIR | walks to the diner stage and stands there (`stir` ticks, visible on CAM 16) → PATROL, with his **laugh** |
+| STIR | walks to the diner stage and stands there (`stir` ticks, visible on CAM 21) → PATROL, with his **laugh** |
 | PATROL | chooses an entry (prefers less-defended entries, halves the last one) and hunts there on foot through hidden basement routes, or by RELOCATING |
 | RELOCATING | **warned teleport** between designated golden nodes only: 40 ticks of chime + golden shimmer + static on the destination camera, then he appears there |
 | APPROACH | walks/climbs the last edge into the entry |
@@ -156,7 +157,7 @@ blackouts, the director forbids a second entry beside Fredbear's, and only one a
 
 ## Shadow Fredbear (nights 2+)
 
-A rare black silhouette with white eyes on the show stage (`STAGE_FRONT`, seen on CAM 01/02). From 1 AM, once per
+A rare black silhouette with white eyes on the show stage (`STAGE_FRONT`, seen on CAM 01/06). From 1 AM, once per
 in-game hour, chance 5 %, from its own RNG stream (`mixSeed(seed, 7700 + night)`, so it never shifts the AI rolls).
 It stays 600 ticks. Watching it for 60 ticks in total costs 1 % power and it vanishes with a glitch and a caption.
 Harmless otherwise: it never moves or attacks, and never appears during the finale, an echo or the training shift.
@@ -173,12 +174,21 @@ Harmless otherwise: it never moves or attacks, and never appears during the fina
 | `noCams` | the monitor has no signal at all |
 | `loudSteps`, `captions` | footsteps louder and captions forced on |
 
-## Jumpscares by place (1.3)
+## Jumpscares by place (1.3, 1.4)
 
 `NightSession.jumpscareStyle(who)` tells the game where an attack comes from: **below** for any attack at the hatch
-(Fredbear, Morgrave: the puppet rises out of the floor in three steps), **vent** for an attacker that came out of the duct
-to the left door (Bonnie's vent route, Morgrave's L route: it rises out of the vent), otherwise **front**. Power-out attacks
-are always front.
+(Fredbear: the puppet rises out of the floor in three steps), **vent** for an attacker that came out of the duct to the
+left door (Bonnie's vent route: it rises out of the vent), **above** (1.4) for Morgrave or Valek at the ceiling vent (it
+drops from the ceiling), otherwise **front**. Power-out attacks are always front.
+
+**Jumpscare view (1.4 fix).** In 1.3 the camera sat 1.15 blocks from every animatronic, but the attack clips move the head
+up to 1.15 blocks forward (Freddy) and the arms up to 1.9, so the face could pass through the camera; the free camera also
+showed the player's own body. Now `tools/gen_jumpscare_reach.py` poses each model through its attack clip (the same bone
+maths as the preview renderer) and measures how close the head and anything in the line of sight come; the puppet stands
+so that the face stays ≥ 0.55 blocks and everything else ≥ 0.3 blocks from the camera
+(`data/jumpscare_reach.generated.js`: Freddy 2.21, Bonnie 1.59, Chica 1.3, Fredbear 1.42 / 1.83 / 1.93 by variant,
+Morgrave 1.44, Valek 1.5). For the jumpscare the player is invisible (5 s, removed when the view is restored) and an empty
+hotbar slot is selected.
 
 ## Night 6 finale
 
@@ -191,54 +201,68 @@ unlocking night 7.
 
 Fredbear alone, at aggression 20, phase 3, from tick 200, with 7 attempts, a 700-tick cooldown, 6 strobe charges and the
 reserve lever. The hold rule applies (it is not the Golden Hour). **1.3**: Freddy, Bonnie and Chica start the night switched
-off in Parts & Service (`store`, nodes `PARTS_F/B/C`, CAM 06), and Fredbear is **omnipresent**: between attempts he
+off in Parts & Service (`store`, nodes `PARTS_F/B/C`, CAM 03), and Fredbear is **omnipresent**: between attempts he
 **haunts** - every 180-320 ticks he vanishes and reappears on another `haunt` node anywhere in the pizzeria (the main stage
 too), and his warned relocations may start from any node. Surviving to 6 AM asks the player to **seal** the chamber or
 **burn** the pizzeria; each choice has its own ending scene, both are recorded in Extras, and the last one decides night 8.
 
-## Morgrave — the rabbit in the walls (`ai/morgrave.js`, nights 8 and 9)
+## The ceiling vent (1.4)
 
-Fredbear's partner from the 1983 diner, walled in with him. He never walks the halls and makes no footsteps.
+A 2 × 2 hole in the office ceiling (over the desk) under a grate of iron trapdoors in the crawlspace floor
+(`data/visitors.js` `CEILING_VENT`). The **VENT GRATE** button on the desk opens and closes it (lamp on the north wall:
+amber = closed, green = open); it starts every night closed. An open grate costs power like a hall light. CAM 12 looks
+along the crawlspace at it. Morgrave and Valek are the only ones who use it; they also use both doors, and nothing else.
+
+## Morgrave — the rabbit who wants to be let in (`ai/morgrave.js`, nights 8 and 9, 1.4)
+
+Fredbear's partner from the 1983 diner, walled in with him. He never walks the halls and makes no footsteps: he comes out
+of the walls at the **left door**, the **right door** or the **ceiling vent** and knocks. He only wants to be let in.
 
 | From | To | Condition | Timing |
 |---|---|---|---|
-| DORMANT | WALLS | tick ≥ activation, A > 0 | hidden in Fredbear's chamber (`M_HOME`, CAM 19) until then |
-| WALLS | CRAWL | cooldown ends; comes out at the start of a route (scraping inside the walls, captioned with the route) | route L (supply closet → duct `VENT_W` → left door) or H (crawlspace → subfloor `SUB_N` → hatch); prefers the less-defended route, ×0.6 for the one he last used |
-| CRAWL | (move) | movement opportunity succeeds (d20 ≤ A every 80 ± 8 ticks); a vent clank on every move | — |
-| CRAWL | WALLS | the next edge is sealed (`vent_seal` / `shaft_seal`) for 160 ticks | "Something gave up inside the vents"; recovery `max(240, 560 − 12A)` |
-| CRAWL | APPROACH | next node is the entry and the director reserves it | "climbing out of the vent — LEFT corner" / "Scraping beneath the office floor" |
-| APPROACH | TELEGRAPH | arrives at the left door corner or under the hatch | window `max(50, 110 − 3A)`; a scratch at the entry (captioned) **75 % of the time** |
-| TELEGRAPH | WALLS | barrier closed 40 ticks, or closed at the end of the window | door bang, "Scraping fades back into the walls" |
-| TELEGRAPH | ATTACK | barrier open at the end of the window | jumpscare rising out of the vent / the hatch |
+| DORMANT | WALLS | tick ≥ activation, A > 0 | hidden in Fredbear's chamber (`M_HOME`, CAM 22) until then |
+| WALLS | KNOCK | cooldown ends and a visit may start (running, past the grace, no blackout, Fredbear not engaged, not the finale) | picks an entry: the vent with weight 1.2; a door with 1 + door use / 4, + 2 while it is shut; × 0.6 for the last one used |
+| KNOCK | PASS | that entry is **open** when the three soft knocks end | soft knocks 30 ticks, captioned "Three soft knocks — LEFT DOOR / RIGHT DOOR / CEILING VENT" |
+| KNOCK | ANGRY 1 | it is shut | "Knocking — …, louder"; each angry stage `max(50, 120 − 5A)` ticks |
+| ANGRY 1 | ANGRY 2 | still shut | "Pounding — …!" |
+| ANGRY | PASS | the entry is opened at any point | "let in late" |
+| ANGRY 2 | ATTACK | still shut at the end | he breaks through: the door is forced open (jammed) or the grate bursts open; jumpscare (front, or above at the vent) |
+| PASS | WALLS | after 50 ticks walking past the doorway / crawling past over the grate | he shuts the grate behind him ("The vent grate clangs shut"); recovery `max(160, 440 − 14A)` |
 
-Counterplay: watch CAM 18 / CAM 17, **seal** the duct or the shaft in front of him (cheaper than holding a door), or close
-the left door / the hatch when he arrives. The 25 % silent arrivals are what make him dangerous: remember where you last
-heard him.
+**The risk** is the other animatronics: on night 8 the trio is hunting, so opening a door for him can let Bonnie, Chica or
+Freddy in. Fairness: while another animatronic is engaged at that same door (holding it, or beside it as a partner), he
+never breaks through; once they leave he still waits at least 60 ticks (3 s), so there is always time to check the light
+and open up. The angry stages pause during a blackout.
 
-## Valek — the gray bear in the dark (`ai/valek.js`, nights 8 and 9)
+## Valek — the staring contest (`ai/valek.js`, nights 8 and 9, 1.4)
 
-Nobody remembers ordering him; he was found in Parts & Service (`V_HOME`, CAM 06) the week the 1987 guard went missing. On the
-hunt only his two small eyes show (`fb:variant` 1 hides the body).
+Nobody remembers ordering him; he was found in Parts & Service (`V_HOME`, CAM 03) the week the 1987 guard went missing.
+On the hunt only his two small eyes show (`fb:variant` 1 hides the body). Doors and the grate do not stop him; looking
+straight back at him does.
 
 | From | To | Condition | Timing |
 |---|---|---|---|
 | DORMANT | VANISH | tick ≥ activation, A > 0 | — |
-| VANISH | STEP | timer ends; appears on a rung of the West or East Hall ladder (`VALEK_LADDER`: far room → hall north → middle → south), as many rungs closer as his anger (0-2) | prefers the side whose door you use least; angrier ⇒ changes sides more |
-| STEP | (step) | every 90 ± 9 ticks, **only if the spot he stands on is not on the feed you are watching**, d20 ≤ A: one rung closer, silently | half of his steps play another animatronic's sound on the **other** side of the building, captioned as theirs (mimicry) |
-| STEP | CORNER | the next rung is the door corner and the director reserves the entry | window `max(60, max(80, 170 − 4A) − 20·anger)`; a faint hum (captioned) 60 % of the time |
-| CORNER | VANISH | that hall light is on | at once; **anger + 1** (max 2), back in 200 ticks |
-| CORNER | VANISH | door held closed 60 ticks, or closed at the end of the window | anger − 1; recovery `max(300, 600 − 12A)` |
-| CORNER | ATTACK | dark and open at the end of the window | jumpscare |
+| VANISH | STARE (far) | timer ends and he may appear (same rules as Morgrave) | eyes in the dark through the window beside the left or right door, or through the vent grate; "Two small eyes in the dark — …"; a hum; × 0.5 for the last entry |
+| STARE | LEAVE | the player looks straight at his eyes and keeps looking for a random `hold(A)` = 60 to `100 + 5A` ticks | **he looks away first** ("He looks away first…") |
+| STARE far | STARE near | not looked at within `max(60, 140 − 3A)` ticks; or, once the contest started, looked away for more than 16 ticks; or the **cameras** opened | "The eyes are closer — …"; a new contest, `max(40, 100 − 2A)` ticks to look |
+| STARE near | ATTACK | the same, but the glance allowance is 8 ticks | jumpscare (front, or above at the vent) |
+| LEAVE | VANISH | 20 ticks: he slowly turns his head away | recovery `max(180, 520 − 16A)` |
 
-He is the night for players who trust the captions: his only honest sound is the hum.
+**Gaze.** The game compares the player's view direction with the line from the player's eyes to his eye point
+(`mc/game.js` `gazeAt`): within 12° counts as looking at him; the cameras up never does. **Head lock.** While he stares,
+his head follows the player around the office (`fb:look_yaw/pitch/tilt`), and when the player moves more than 70° to one
+side his whole body turns too (`valekLooks`). When he loses he turns his head away before he is gone.
+`tools/validate_map.mjs` checks that every eye point is visible from the office seat.
 
 ## Nights 8 and 9
 
 * **Night 8** (unlocks after night 7) has two versions, chosen from the **last night 7 ending** in the save
   (`nightVariant(8, lastEnding)`): *Walled In* (seal → Morgrave, A 13 from tick 600) or *Out of the Smoke* (burn → Valek,
-  A 15 from tick 600). The trio play as on night 3 (A 7/8/7, hourly ramp), the hatch and the basement are open, no strobe.
+  A 15 from tick 600). The trio hunt too (A 13/14/13 with Valek, 15/16/15 with Morgrave, hourly ramp); the hatch and the
+  basement are open, no strobe.
 * **Night 9 — Three Below** (unlocks after night 8, whatever the ending): Fredbear (A 16, omnipresent, 5 attempts, 6 strobe
-  charges), Morgrave (A 13 from tick 200) and Valek (A 13 from tick 800) together; the trio switched off in Parts & Service; no
+  charges), Morgrave (A 20 from tick 200) and Valek (A 20 from tick 800) together; the trio switched off in Parts & Service; no
   night music. Surviving it plays its own ending (`NIGHT_NINE_ENDING`): the three of them in the old diner, turning to look at you, then the morning.
 
 ## Fairness guarantees (tested)
@@ -246,7 +270,9 @@ He is the night for players who trust the captions: his only honest sound is the
 `tests/core.test.mjs`: every lethal attack is preceded by its telegraph state and never passes a closed barrier; a closed
 door always repels Bonnie; Fredbear's windows respect the floors for every aggression; the mercy cap holds; at most two
 entries engage; Freddy never moves while watched; won/lost sessions are inert; same seed ⇒ same night.
-`tests/nights_8_9.test.mjs` (1.3): nights 8 (both versions) and 9 are winnable with a valid defence; Morgrave and Valek
-attack only from their warning state through an open entry; seals cost power, expire and turn Morgrave back; Valek never
-steps while watched, vanishes when lit and attacks from a dark open corner; nobody stands idle at a door; double trouble
-needs twice the repel time.
+`tests/nights_8_9.test.mjs` (1.4): nights 8 (both versions) and 9 are winnable with a valid defence; Morgrave only attacks
+from ANGRY after a shut entry stayed shut, Valek only from STARE; an open door lets Morgrave pass, opening late lets him
+pass, the vent grate lets him crawl past and is shut again behind him; he never breaks a door while someone else is held at
+it and leaves 3 s once they go; nobody comes knocking while Fredbear is engaged; Valek looks away when stared down, steps
+closer when ignored or when the player looks away or opens the cameras, and a closed door does not stop him; seals cost
+power and expire; nobody stands idle at a door; double trouble needs twice the repel time.

@@ -10,7 +10,7 @@
 | **Automated route-guidance tests** (walkable graph vs the voxel model) | **Completed** — 5 tests passing |
 | **Automated holiday-decoration tests** (generated cells vs the build plan) | **Completed** — 3 tests passing |
 | **Automated integration tests** (real pack scripts on a mock `@minecraft/server`) | **Completed** — 30 tests passing |
-| **In-game tests** (Minecraft Bedrock running) | **No systematic pass.** Minecraft is not available in the build environment. The map owner played version 1.1 up to night 6 and version 1.2 to the end, and reported the problems fixed in 1.2.0 and 1.3.0 (table below). **Nothing added in 1.3.0 or 1.3.1 has been checked in-game yet** (1.3.1: Vibrant Visuals support): the Freddy V6, Bonnie V2, Morgrave and Valek models, Morgrave and Valek themselves, nights 8 and 9, the new cameras, the camera map HUD, the seals, the stare, the withered look, the new sounds, the lore rooms and the tapes. |
+| **In-game tests** (Minecraft Bedrock running) | **No systematic pass.** Minecraft is not available in the build environment. The map owner played version 1.1 up to night 6 and version 1.2 to the end, and reported the problems fixed in 1.2.0 and 1.3.0 (table below). **Nothing added in 1.3.0, 1.3.1 or 1.4.0 has been checked in-game yet** (1.3.1: Vibrant Visuals support; 1.4.0: the ceiling vent and its grate, Morgrave's knocking, Valek's staring contest and head lock, the renumbered cameras, the jumpscare-view fix): the Freddy V6, Bonnie V2, Morgrave and Valek models, Morgrave and Valek themselves, nights 8 and 9, the new cameras, the camera map HUD, the seals, the stare, the withered look, the new sounds, the lore rooms and the tapes. |
 | **Manual tests still required** | The checklist at the end of this file |
 
 The integration tests run the real behavior-pack scripts against a headless model of the Script API (`tests/mock/`).
@@ -26,13 +26,13 @@ Run everything with `npm run validate && npm test`.
 | Validator | Checks | Result |
 |---|---|---|
 | `tools/validate_blocks.mjs` | 263 palette entries: block names, state names and values vs official 1.26.50 block metadata | PASS |
-| `tools/validate_map.mjs` | voxel model of the whole build: every AI route polyline sampled every 0.5 blocks (6,982 samples), every route node a valid standing position, every camera in open air and seeing exactly its designed nodes (ray casts), office sealed except its doors and hatch, players can walk from the lobby to every gameplay space (66,133 walkable cells), every input command block enclosed | PASS (0 errors, 0 warnings) |
-| `tools/validate_commands.mjs` | 572 command strings (523 command blocks, 7 functions, script templates) parsed against the official 1.26.50 command grammar; block states, particles, sound ids, function paths, fill volume, height limits | PASS |
+| `tools/validate_map.mjs` | voxel model of the whole build: every AI route polyline sampled every 0.5 blocks (6,908 samples; since 1.4 also Morgrave's knock-to-pass paths, Valek's eye points visible from the office seat, and the ceiling vent's hole and grate), every route node a valid standing position, every camera in open air and seeing exactly its designed nodes (ray casts), office sealed except its doors and hatch, players can walk from the lobby to every gameplay space (66,133 walkable cells), every input command block enclosed | PASS (0 errors, 0 warnings) |
+| `tools/validate_commands.mjs` | 586 command strings (537 command blocks, 7 functions, script templates) parsed against the official 1.26.50 command grammar; block states, particles, sound ids, function paths, fill volume, height limits | PASS |
 | `tools/validate_schemas.py` | 7 entities vs `server/entity/1.26.50` schema, 3 items vs `server/item/1.26.30`, both manifests (format 2, dependencies, unique UUIDs, script entry exists) | PASS |
-| `tools/validate_assets.mjs` | 76 JSON files parse; BP ↔ RP ↔ script entity ids; textures, 6 geometries, 89 animations, every animation controller, render-controller keys resolve; UV boxes inside each texture (Chica 128×64, Freddy 128×128, Fredbear 256×256, Bonnie 512×256, Morgrave and Valek 512×512); every animated bone exists in that entity's own geometry; every `fb:anim` value of each entity has a state in its own controller; scripts only set enum values; the jumpscare framing scale matches each entity's `minecraft:scale`; items → icons; 57 sounds with files; every script sound id defined, the music track is in the `music` category; 12 fogs (nights 1-9); the camera map HUD's textures exist, its marker matches the script and every camera has a highlight; Vibrant Visuals: the RP declares `pbr` with a high enough min engine, every entity and item texture has a valid texture set (eye layers fully emissive), volumetric densities in range and cleared for the camera feed; lang names | PASS |
+| `tools/validate_assets.mjs` | 76 JSON files parse; BP ↔ RP ↔ script entity ids; textures, 6 geometries, 89 animations, every animation controller, render-controller keys resolve; UV boxes inside each texture (Chica 128×64, Freddy 128×128, Fredbear 256×256, Bonnie 512×256, Morgrave and Valek 512×512); every animated bone exists in that entity's own geometry; every `fb:anim` value of each entity has a state in its own controller; scripts only set enum values; the jumpscare framing scale matches each entity's `minecraft:scale`; items → icons; 59 sounds with files; Valek's eye height matches his model and scale; the jumpscare distance table covers every animatronic; every script sound id defined, the music track is in the `music` category; 12 fogs (nights 1-9); the camera map HUD's textures exist, its marker matches the script and every camera has a highlight; Vibrant Visuals: the RP declares `pbr` with a high enough min engine, every entity and item texture has a valid texture set (eye layers fully emissive), volumetric densities in range and cleared for the camera feed; lang names | PASS |
 | `tsc --checkJs` | every Script API call in the 48 script files against `@minecraft/server` 2.10.0 and `server-ui` 2.2.0 declarations | PASS |
 
-## Automated tests (76, all passing)
+## Automated tests (82, all passing)
 
 **Core simulation (`tests/core.test.mjs`, 24):** same seed reproduces a night exactly · all seven nights completable (oracle, 10 seeds each) ·
 every lethal attack preceded by its telegraph and never through a closed barrier · closed door always stops Bonnie · 6 AM boundary ·
@@ -43,11 +43,15 @@ beatable (oracle, 8 seeds each) · Shadow Fredbear (rare, drains 1 % when stared
 attack token) · ten fresh sessions start identical · maintenance pauses clock and AI then resumes with grace · Chica's breaker affects
 lights only · Freddy never moves while watched · Night 6 finale · input debounce and feedback · no AI outside RUNNING.
 
-**Nights 8-9 and the 1.3 AI (`tests/nights_8_9.test.mjs`, 8):** nine nights, night 8 in a seal and a burn version · nights 8
-(both) and 9 completable (oracle, 10 seeds each) · who hunts on each (Morgrave / Valek / all three; the trio stored in Parts &
-Service on night 9) · Morgrave and Valek attack only from their warning state through an open entry · seals cost power, block
-the duct, expire and recharge, and Morgrave gives up against one · Valek never steps while watched, vanishes angrier when lit,
-attacks from a dark open corner · nobody stands idle at a door (every tick of nights 2-8, two player models, the 1.2 bug) ·
+**Nights 8-9, Morgrave and Valek (`tests/nights_8_9.test.mjs`, 14):** nine nights, night 8 in a seal and a burn version ·
+nights 8 (both) and 9 completable (oracle, 10 seeds each) · who hunts on each (Morgrave / Valek / all three; the trio stored in
+Parts & Service on night 9) · Morgrave attacks only from ANGRY after a shut entry stayed shut, Valek only from STARE · Morgrave:
+an open door lets him pass; a shut one makes him knock louder, pound and break through (door jammed); opening late lets him
+pass · the ceiling vent: the grate lets him crawl past and he shuts it behind him; kept shut he comes from above · he never
+breaks a door while someone else is held at it, and waits 3 s after they leave · the VENT GRATE button and its debounce; nobody
+comes knocking while Fredbear is engaged · Valek: stared down he looks away first; ignored he steps closer and attacks through
+a shut door; a short glance away is forgiven, a long one is not; the cameras count as looking away · seals cost power, block
+the duct, expire and recharge · nobody stands idle at a door (every tick of nights 2-8, two player models, the 1.2 bug) ·
 double trouble and teamwork happen, and two at one door need twice the repel time.
 
 **Structures (`tests/structures.test.mjs`, 6):** every `.mcstructure` round-trips and matches the register · every command valid and every
@@ -59,15 +63,15 @@ exactly one repeating block · command-block NBT keys, `Version` and block versi
 **Holiday decorations (`tests/holidays.test.mjs`, 3):** the generated cells match the current build plan · for Halloween and for Christmas:
 every cell is air in the built map and the routes, the route guidance and every camera are unaffected with the decorations placed.
 
-**Integration (`tests/integration.test.mjs`, 30):** main.js wiring · structure-id resolution · intro camera tour (sneak skips) · intro breadcrumbs over walkable floor with the distance on the HUD · Shift Guide topic menu with the music switch · `/fb:setup` builds the map and installs 523 command blocks ·
+**Integration (`tests/integration.test.mjs`, 30):** main.js wiring · structure-id resolution · intro camera tour (sneak skips) · intro breadcrumbs over walkable floor with the distance on the HUD · Shift Guide topic menu with the music switch · `/fb:setup` builds the map and installs 537 command blocks ·
 the built world equals the offline voxel model (> 2 million cells) · in-game self-test 9/9 PASS · training shift through the
 physical controls · night start and office controls (blocks change, power drains, spoofed input rejected) · 6 AM win persists unlock ·
-jumpscare → game over → immediate retry · maintenance pause/resume · ten randomized play/reset cycles · duplicate and stray puppets removed ·
+jumpscare → game over → immediate retry (1.4: the player is invisible with an empty hand during the jumpscare and visible again after; the animatronic stands at its measured distance) · maintenance pause/resume · ten randomized play/reset cycles · duplicate and stray puppets removed ·
 unloaded chunks recovery · quit mid-night and reload · progress survives reload · helper `.mcfunction` files · full campaign nights 1-6
 through the console buttons, ending and persistent completion · night 4 flashback once · night music (loops, stops at a jumpscare and 6 AM,
 follows the setting) · challenges (locked until night 6, modifiers applied, win saved, lamp lit) · newspaper clippings · holiday decorations
 placed into air only and removed · Shadow Fredbear · night 7 and both final endings · nights 8 and 9: night 8 follows the last ending,
-the camera map title appears with the monitor and matches the HUD file, night 9 with the trio switched off, the night 9 ending, the
+the camera map title appears with the monitor and matches the HUD file, the VENT GRATE button opens and closes the grate blocks, Valek's gaze follows where the player looks and his head locks on, night 9 with the trio switched off, the night 9 ending, the
 tape deck locked before night 5 and playing after · 1.1 / 1.2 saves unlock nights 7-9 only by survived nights · upgrading a world
 built by an older version (asks for /fb:setup, rebuilds, keeps progress).
 
@@ -111,6 +115,9 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 
 | Found by | Problem | Fix |
 |---|---|---|
+| player report (in-game, 1.3) | In jumpscares the animatronic's face sometimes went through the camera, and the player could see their own body | each animatronic now stands at a distance measured from its attack clip (`tools/gen_jumpscare_reach.py`: the face stays ≥ 0.55 blocks and everything else ≥ 0.3 blocks from the camera; was a fixed 1.15); the player is invisible with an empty hand for the jumpscare |
+| owner request (1.4) | Cameras that are next to each other had numbers far apart | renumbered in walking order (docs/07, docs/08) |
+| balance simulation (1.4) | the new Morgrave (let him in) is easy for the human model: it reacts to every knock caption within a second | the trio hunt harder on the seal night (15/16/15), tighter knock windows, an open grate costs power; Valek's hold grows with aggression and he forgives only short glances once close; night 9 at A 20 for both. Human model: night 8 seal 80 %, burn 33 %, night 9 33 % (skill 1.0); docs/05 |
 | owner request (1.3.1) | Vibrant Visuals could not be used with the map: a resource pack without the `pbr` capability limits graphics to Fancy | `pbr` capability, texture sets for every custom texture (emissive eyes), volumetric fog settings; the asset validator now checks all three |
 | player report (in-game, 1.2) | Freddy or Bonnie stood at a door in their idle pose and never left | retreats may walk past an occupied hall node; anyone found on a door node outside its warning state leaves at once; a test checks every tick of nights 2-8 |
 | player report (in-game, 1.2) | Chica barely came to the office | Bonnie's pace, shorter kitchen stops, closer retreats, flanking; she now reaches a door about as often as Bonnie in the simulation |
@@ -135,7 +142,7 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 | audio review | Freddy's and Fredbear's music-box clips were shorter than their cues (up to 20 s / 17 s) | clips lengthened; the script stops them when the cue ends |
 | balance simulation | oracle lost nights 5-6 to power-outs | device and base drain retuned; recovery floors raised |
 | logic tests | Chica's linger fell through to a movement roll; Freddy's retreat fallback; withdraw pathing | fixed in `ai/*` |
-| map validator (21 findings) | blocked stage routes, sign text over a door, vent passability, unreachable props loft (web on the ladder), camera sightlines blocked (C02/C04/C05/C06/C07/C11/C12/C14 moved), exposed attic command block, arcade cabinets too tall | layout, kits and cameras corrected; validator now clean |
+| map validator (21 findings) | blocked stage routes, sign text over a door, vent passability, unreachable props loft (web on the ladder), camera sightlines blocked (C06/C04/C05/C03/C14/C09/C10/C07 moved), exposed attic command block, arcade cabinets too tall | layout, kits and cameras corrected; validator now clean |
 | command validator | 502 command blocks with duplicated logic | shared modules → 448 blocks (docs/06 "Why 448") |
 | tutorial review | one action advanced two tutorial steps | one event source per step |
 | typecheck | API misuse caught by `tsc` against official typings | fixed |
@@ -143,7 +150,7 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 ## Manual checks still required (Windows Bedrock 1.26.50 recommended)
 
 1. Import `dist/Fredbear_Six_Nights_Below.mcaddon`; create a Flat world with cheats; activate the BP (RP added automatically).
-   For an existing world: check that both packs show 1.3.0, then run `/fb:setup` when asked.
+   For an existing world: check that both packs show 1.4.0, then run `/fb:setup` when asked.
 2. `/fb:setup`: build completes without a *Build report*; time the build and note any lag.
 3. `/fb:debug selftest`: 9 × PASS. In particular *command blocks in place* (structure ids `fb:*` load) and *actuator round trip*.
 4. Walk the map in FREE ROAM: stairs face the right way, doors/windows/props look right, signs readable, no floating or
@@ -165,7 +172,7 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
     to see the decorations; the reworked time-clock room.
 14. **1.3.0 additions**: Freddy V6 and Bonnie V2 on the stage (shows, walking, crawling, threat at the door, jumpscares, size);
     the stare on camera and the heads following you in Free Roam; the withered trio on nights 7-9; the camera map in the
-    bottom-right corner (does it appear only on cameras, light the right box, stay out of the way on touch screens?); CAM 17-21;
+    bottom-right corner (does it appear only on cameras, light the right box, stay out of the way on touch screens?); the subfloor, duct and sealed-diner cameras;
     the vent and shaft seals (shutters, lamps); night 7 with the trio in Parts & Service and Fredbear haunting the pizzeria;
     night 8 both ways (`/fb:debug lastending seal|burn`): Morgrave in the duct and the shaft, out of the vent, up through the
     hatch; Valek's eyes in the dark corners, his mimicry; night 9 and its ending (`/fb:debug ending9`); the new music box and
@@ -173,6 +180,14 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 15. **Vibrant Visuals (1.3.1)**: with Graphics Mode → Vibrant Visuals the mode stays available with the packs active; the
     office, the hall corners and every camera feed are readable (the feeds have no haze); the eyes glow in the dark corners;
     the suits do not look wet or shiny; the camera map HUD still shows; the burn-ending smoke and the flashback haze.
+16. **1.4**: the ceiling vent (hole over the desk, grate, lamp, VENT GRATE button, CAM 12); the camera numbers on the console
+    labels, the tablet and the HUD map match the new order; Morgrave (`/fb:debug lastending seal`, then night 8;
+    `/fb:debug visit morgrave L|R|V`): the soft / loud knocks and the pounding are audible and come from the right place, he
+    walks past an open door and crawls past over the open grate, he shuts the grate, he breaks a shut door or the grate;
+    Valek (`/fb:debug visit valek L|R|V`): his eyes are findable through each door window and the grate, staring at them makes
+    him look away, his head follows you as you move around the office and his body turns past 70°, looking away or the
+    cameras bring him closer; jumpscares of all six from the front and from above: the face never cuts through the view, you
+    never see your own body or hand.
 
 ## Known limitations
 

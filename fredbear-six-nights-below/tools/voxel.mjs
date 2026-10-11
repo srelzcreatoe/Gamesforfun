@@ -8,6 +8,7 @@ export const BOUNDS = Object.freeze({ x0: -14, x1: 213, y0: -14, y1: 34, z0: -14
 const NON_SOLID = new Set(['air', 'web', 'barrier_gate']);
 const PARTIAL_PREFIX = ['light_', 'sign_', 'sign_spruce_', 'eye_button_', 'ladder_'];
 const PARTIAL = new Set([
+  'iron_trapdoor_closed', 'iron_trapdoor_open', // thin perforated plates (the hatch, the ceiling-vent grate)
   'iron_bars', 'iron_chain', 'glass_pane', 'gray_sg_pane', 'dark_oak_fence', 'oak_fence', 'nether_fence', 'sb_wall', 'cobble_wall',
   'white_carpet', 'red_carpet', 'black_carpet', 'purple_carpet', 'yellow_carpet', 'gray_carpet', 'lgray_carpet', 'blue_carpet', 'cyan_carpet', 'brown_carpet',
   'lantern_hang', 'soul_lantern_hang', 'lantern', 'end_rod_down', 'flower_pot', 'cake', 'cake_bitten', 'deadbush', 'button_up', 'dark_button_up', 'lever_up', 'plate',

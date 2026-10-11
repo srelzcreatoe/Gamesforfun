@@ -15,6 +15,7 @@ import { NODE_BY_ID, NODES } from './nodes.js';
 import { PlanBuilder } from './plan_builder.js';
 import { STAIR_KEY } from './palette.js';
 import { decorateRoom } from './kits.js';
+import { CEILING_VENT } from './visitors.js';
 import { layoutModules, SECTIONS } from './actuators.js';
 import { buildExterior } from './exterior.js';
 
@@ -310,6 +311,13 @@ function stairs(P) {
         P.set(x + size, 0, z + dz, 'iron_bars');
       }
       P.flush();
+    } else if (s.kind === 'ceilvent') {
+      // Morgrave's and Valek's way in (1.4): the office ceiling is cut open under a 2x2 grate in the
+      // crawlspace floor; the grate is opened and closed by the VENT GRATE button (actuators grate_*).
+      const V = CEILING_VENT;
+      P.fill(V.x1, V.holeY, V.z1, V.x2, V.holeY, V.z2, 'air');
+      P.fill(V.x1, V.grateY, V.z1, V.x2, V.grateY, V.z2, 'iron_trapdoor_closed');
+      P.flush();
     } else if (s.kind === 'duct') {
       const [[x1, z1], [x2]] = [s.from, s.to];
       P.fill(x1, s.y, z1, x2, s.y + (s.h ?? 1) - 1, z1, 'air'); // y -3..-2; the grates sit in the floor at y -1
@@ -411,6 +419,8 @@ function reservations(P) {
   for (const s of STAIRS) {
     if (s.kind !== 'stairs') {
       if (s.kind === 'hatch') P.reserveRect('L1', s.x - 1, s.z - 1, s.x + 2, s.z + 2);
+      // The crawlspace strip over the office: Morgrave crawls along it past the grate and CAM 12 looks along it.
+      if (s.kind === 'ceilvent') P.reserveRect('L2', 95, 126, 113, 129);
       if (s.kind === 'ladder') {
         P.reserveRect('L1', 145, s.z - 1, 147, s.z + 1);
         P.reserveRect('L2', 145, s.z - 1, 147, s.z + 1);
@@ -525,6 +535,7 @@ function inputLabels(P) {
     else if (inp.id.startsWith('in.office.') && z === 130) P.sign(x, y, z + 1, 'south', inp.label);
     else if (inp.id.startsWith('in.office.seal_')) P.sign(x - 1, y, z, 'west', inp.label);
     else if (inp.id === 'in.office.tapes') P.sign(x, y, z - 1, 'north', inp.label);
+    else if (inp.id === 'in.office.vent_grate') P.sign(x + 1, y, z, 'south', inp.label);
     else if (inp.id.startsWith('in.dev.')) P.sign(x, y, z + 1, 'south', inp.label);
     else if (inp.id.startsWith('in.maint.') || inp.id === 'in.training.begin') P.sign(x, y, z + 1, 'south', inp.label);
   }
@@ -534,10 +545,10 @@ function inputLabels(P) {
 // Soft, invisible light blocks where each security camera looks, so the feeds
 // stay readable (in addition to night vision and the clear camera-feed fog).
 // Nodes the AI treats as dark get a dimmer light so they stay murky. The two
-// door-corner cameras (C08, C13) and audio-only feeds get none, and every light
+// door-corner cameras (C13, C11) and audio-only feeds get none, and every light
 // is far enough from the office and its door alcoves that no light reaches
 // them: seeing the corners must still require the hall lights.
-const NO_LIGHT_CAMERAS = new Set(['C08', 'C13']);
+const NO_LIGHT_CAMERAS = new Set(['C13', 'C11']);
 const KEEP_DARK = [90, -1, 126, 110, 5, 140]; // office + both door alcoves (x1, y1, z1, x2, y2, z2)
 
 function distanceToBox(x, y, z, b) {

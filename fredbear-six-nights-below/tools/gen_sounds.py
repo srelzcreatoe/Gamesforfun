@@ -322,6 +322,18 @@ def build_sounds():
     breath = bandpass(noise(len(t), rng), 200, 1800) * (t / 0.9) ** 2
     fall = sine(t, 300 - 220 * t / 0.9) * np.exp(-((t - 0.75) ** 2) / 0.01)
     S["valek/vanish"] = norm(mix(breath, 0.6 * fall) * env(len(t), 0.02, 0.06)) * 0.8
+    # ---- 1.4: Morgrave knocking (added last, as above). Three soft knocks on metal, then hard ones.
+    def knock(dur, f0, rate, hard):
+        k = thud(dur, f0, f0 * 0.7, rate, rng, 0.5 + 0.4 * hard)
+        return mix(k, 0.35 * hard * metal_hit(dur, [310, 590], rate * 1.5, rng, 25))
+    soft = np.zeros(int(SR * 1.6))
+    for off in (0.0, 0.42, 0.84):
+        soft = mix(soft, at(knock(0.22, 150, 28, 0.2), off, 1.6))
+    S["morgrave/knock_soft"] = norm(lowpass(soft, 1800)) * 0.55
+    hard = np.zeros(int(SR * 1.0))
+    for off in (0.0, 0.22, 0.44):
+        hard = mix(hard, at(knock(0.2, 120, 22, 1.0), off, 1.0))
+    S["morgrave/knock_hard"] = norm(hard) * 0.95
     return S
 
 
@@ -349,6 +361,7 @@ META = {
     "js.freddy": ("hostile", False, None, 1.0), "js.bonnie": ("hostile", False, None, 1.0), "js.chica": ("hostile", False, None, 1.0),
     "js.fredbear": ("hostile", False, None, 1.0), "js.morgrave": ("hostile", False, None, 1.0), "js.valek": ("hostile", False, None, 1.0),
     "morgrave.scrape": ("hostile", True, 48, 1.0), "valek.hum": ("hostile", True, 16, 0.7), "valek.vanish": ("hostile", True, 24, 0.8),
+    "morgrave.knock_soft": ("hostile", True, 24, 0.8), "morgrave.knock_hard": ("hostile", True, 32, 1.0),
     "ui.accept": ("ui", False, None, 0.7), "ui.blip": ("ui", False, None, 0.6), "ui.deny": ("ui", False, None, 0.7),
 }
 

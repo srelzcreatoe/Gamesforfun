@@ -55,6 +55,7 @@ export const GUIDE_SECTIONS = Object.freeze([
       `${H('Camera monitor')}: press the dark MONITOR button, a camera MAP button, or use the Camera Tablet. Change camera by scrolling the hotbar / pressing number keys / LB-RB, by pressing a map button, or from the tablet menu. Lower the monitor by SNEAKING, pressing MONITOR again, or from the tablet menu.`,
       `${H('Your items')} (locked in your hotbar):\n• Camera Tablet: raises the monitor; while it is up, opens the camera list.\n• Office Remote: a menu with every office control (an alternative to walking to the console).\n• Shift Guide: this guide.\nOn touch screens these items show an on-screen button.`,
       `${H('While the monitor is up')} you cannot walk or jump; sneak to come back.`,
+      `${H('VENT GRATE')} (gold button, north-east corner of the desk): opens and closes the grate of the ceiling vent above the office. It starts every night closed; the lamp above it is yellow while closed, green while open. While it is open it costs ${pctPerSec(P.grate)}, so close it again once Morgrave has gone past.`,
       `${H('Camera map')}: while you watch the cameras a map of the building sits in the bottom-right corner, every camera a labelled box and the one you are on highlighted (switch it off in SETTINGS).`,
     ].join('\n\n'),
   },
@@ -81,7 +82,7 @@ export const GUIDE_SECTIONS = Object.freeze([
     title: 'Hall lights',
     body: [
       `The white buttons light the corner just outside each door for ${sec(D.lightAutoOff)}, then switch off by themselves. Look through the office windows next to the doors: if someone stands in the lit corner, close that door.`,
-      `Each lit light costs ${pctPerSec(P.light)}. The corners are dark otherwise, and the corner cameras (CAM 08 / CAM 13) look straight at them too.`,
+      `Each lit light costs ${pctPerSec(P.light)}. The corners are dark otherwise, and the corner cameras (CAM 13 / CAM 11) look straight at them too.`,
       'If both lights stop working, Chica has tripped the breaker: press RESET BREAKER.',
     ].join('\n\n'),
   },
@@ -89,10 +90,10 @@ export const GUIDE_SECTIONS = Object.freeze([
     title: 'Cameras',
     body: [
       `${H(`${CAMERAS.length} security cameras`)}, one feed at a time:\n${camLines.join('\n')}`,
-      `${H('Reading the feeds')}:\n• Static and a glitch sound: Fredbear is disrupting the cameras for a few seconds.\n• A purple, scan-lined figure: a false ECHO of Fredbear (night 5+). It is not real and cannot hurt you.\n• A pitch-black silhouette on the stage (CAM 01 / CAM 02, rare, night 2+): Shadow Fredbear. Do not stare at it - after ${sec(CONFIG.shadow.stareTicks)} of watching it vanishes and takes ${pct(CONFIG.shadow.drain)} of your power with it.\n• "No signal": that camera is not working yet.\n• CAM 10 Kitchen is audio only: you can hear Chica's pots and pans through it.\n• The low electrical hum is the camera system itself.\n• They stare back: whoever you watch on a feed for a couple of seconds slowly turns to look straight into the lens. It means nothing. Probably.`,
+      `${H('Reading the feeds')}:\n• Static and a glitch sound: Fredbear is disrupting the cameras for a few seconds.\n• A purple, scan-lined figure: a false ECHO of Fredbear (night 5+). It is not real and cannot hurt you.\n• A pitch-black silhouette on the stage (CAM 01 / CAM 06, rare, night 2+): Shadow Fredbear. Do not stare at it - after ${sec(CONFIG.shadow.stareTicks)} of watching it vanishes and takes ${pct(CONFIG.shadow.drain)} of your power with it.\n• "No signal": that camera is not working yet.\n• CAM 08 Kitchen is audio only: you can hear Chica's pots and pans through it.\n• The low electrical hum is the camera system itself.\n• They stare back: whoever you watch on a feed for a couple of seconds slowly turns to look straight into the lens. It means nothing. Probably.`,
       `${H('11:55 camera tour')}: before each night the cameras show where everyone starts. Sneak to skip it.`,
       `${H('Cameras matter to the animatronics')}: Freddy cannot move while the feed you watch shows him; Bonnie gets restless if you stare at him; Fredbear disrupts the cameras more often while you watch them. The monitor costs ${pctPerSec(P.cams)}.`,
-      'The supply duct (CAM 18) and the subfloor under the office hatch (CAM 17) show Bonnie in the vent and Fredbear (or Morgrave) climbing toward the hatch. The sealed diner has CAM 16, 19, 20 and 21 (from night 4). Blind spots remain - the far end of the vent, the shaft itself, the dark corners: listen for footsteps, clanks and music boxes.',
+      'The supply duct (CAM 16) and the subfloor under the office hatch (CAM 17) show Bonnie in the vent and Fredbear climbing toward the hatch. CAM 12 looks along the crawlspace above the office, at the ceiling-vent grate (Morgrave and Valek). The sealed diner has CAM 21, 19, 20 and 21 (from night 4). Blind spots remain - the far end of the vent, the shaft itself, the dark corners: listen for footsteps, clanks and music boxes.',
     ].join('\n\n'),
   },
   {
@@ -107,8 +108,8 @@ export const GUIDE_SECTIONS = Object.freeze([
     title: 'Vent seals',
     body: [
       `${H('SEAL VENT')} (white button left of the console) and ${H('SEAL SHAFT')} (gold, from night 4) drop a steel shutter into the supply duct or into the crawlspace below the office for ${sec(SE.duration)}. Each use costs ${pct(SE.cost)} power; then the seal needs ${sec(SE.cooldown)} to recharge. The lamps above the buttons are yellow while sealed.`,
-      `${H('What they stop')}: Bonnie crawling through the vent, and Morgrave (night 8 / 9) in the duct or the crawlspace - if he finds the way sealed for ${sec(C.morgrave.sealGiveUp)} he gives up. Fredbear's teleports are not stopped; his walk through the shaft is.`,
-      'Watch CAM 18 (duct) and CAM 17 (subfloor) and seal when something is in there: cheaper than holding a door shut.',
+      `${H('What they stop')}: Bonnie crawling through the vent, and Fredbear walking up through the crawlspace to the shaft. Fredbear's teleports are not stopped. (The ceiling vent is something else: see Morgrave and Valek.)`,
+      'Watch CAM 16 (duct) and CAM 17 (subfloor) and seal when something is in there: cheaper than holding a door shut.',
     ].join('\n\n'),
   },
   {
@@ -154,7 +155,7 @@ export const GUIDE_SECTIONS = Object.freeze([
       'The purple rabbit. Fast and aggressive; usually comes to the LEFT door down the West Hall.',
       `${H('Warning')}: metallic footsteps, a groan, his silhouette in the lit left corner. He waits there for ${range(C.bonnie.telegraph, 3, 20)} before attacking.`,
       `${H('Counter')}: close the left door while he is there. Keeping it closed for ${sec(C.bonnie.repelTicks)} sends him away.`,
-      `${H('Tricks')}: from aggression ${C.bonnie.flankMinAI} (night 2 on) he can circle round to the RIGHT door, more likely if you keep defending one side. From aggression ${C.bonnie.ventMinAI} he crawls through the supply-closet vent to the left door - a metal clank in the vent gives him away, CAM 18 shows him in the duct, and SEAL VENT keeps him out. Staring at him on camera makes him move sooner.`,
+      `${H('Tricks')}: from aggression ${C.bonnie.flankMinAI} (night 2 on) he can circle round to the RIGHT door, more likely if you keep defending one side. From aggression ${C.bonnie.ventMinAI} he crawls through the supply-closet vent to the left door - a metal clank in the vent gives him away, CAM 16 shows him in the duct, and SEAL VENT keeps him out. Staring at him on camera makes him move sooner.`,
       `${H('Teamwork')} (aggression ${C.bonnie.teamworkMinAI}+): sometimes he bangs on the LEFT door to draw your eyes while Chica sneaks to the RIGHT one without a sound. When the banging starts, check the right light too.`,
     ].join('\n\n'),
   },
@@ -162,7 +163,7 @@ export const GUIDE_SECTIONS = Object.freeze([
     title: 'Chica',
     body: [
       'The yellow chicken. Comes to the RIGHT door through the kitchen and the east side.',
-      `${H('Tells')}: pots-and-pans clatter means she is in the KITCHEN (only she makes that sound; listen on CAM 10). Heavy breathing at the right door means she is there. She waits ${range(C.chica.telegraph, 2, 20)} before attacking.`,
+      `${H('Tells')}: pots-and-pans clatter means she is in the KITCHEN (only she makes that sound; listen on CAM 08). Heavy breathing at the right door means she is there. She waits ${range(C.chica.telegraph, 2, 20)} before attacking.`,
       `${H('Counter')}: close the right door while she is there; ${sec(C.chica.repelTicks)} closed sends her back to the kitchen.`,
       `${H('Sabotage')}: while in the kitchen she may trip the hall-light breaker (up to ${N[6].maxSabotage} times a night, at least ${sec(C.chica.sabotageCooldown)} apart). Press RESET BREAKER.`,
       `${H('Flanking')} (aggression ${C.chica.flankMinAI}+): when someone already holds the right door she may come to the LEFT one instead.`,
@@ -194,19 +195,21 @@ export const GUIDE_SECTIONS = Object.freeze([
   {
     title: 'Morgrave',
     body: [
-      `${H('The rabbit in the walls')} (night 8 after you SEALED the building, and night 9). Fredbear's partner from the 1983 diner. He never walks the halls: he crawls.`,
-      `${H('Routes')}: out of the supply-closet grate, through the duct (CAM 18) and out of the vent at the LEFT door; or through the old crawlspace below the office (CAM 17) and up under the HATCH.`,
-      `${H('Warning')}: scraping inside the walls when he comes out (the caption names the route), vent clanks as he crawls, never footsteps. At the door or hatch he waits only ${range(C.morgrave.telegraph, 8, 20)}.`,
-      `${H('Counter')}: seal the duct or the shaft in front of him (he gives up after ${sec(C.morgrave.sealGiveUp)}), or close the left door / the hatch for ${sec(C.morgrave.repelTicks)}. Listen: he is quiet, and his warning window is short.`,
+      `${H('The rabbit in the walls')} (night 8 after you SEALED the building, and night 9). Fredbear's partner from the 1983 diner. He only wants to be let in.`,
+      `${H('Where')}: the LEFT door, the RIGHT door or the CEILING VENT above your desk (CAM 12). Nowhere else.`,
+      `${H('Three soft knocks')}: that is him (the caption says where). Make sure that door or the vent grate is OPEN and he walks past - or crawls past over the grate - and goes away. If it was already open, you have nothing to do.`,
+      `${H('Shut him out')} and the knocks get angrier: knocking, then pounding, each about ${range(C.morgrave.angry, 8, 20)}. Open up during the angry knocks and he still goes past. Stay shut through both and he breaks through.`,
+      `${H('The catch')}: if Bonnie, Chica, Freddy or Fredbear is at that same door, opening it lets THEM in. He waits while someone else is at his door, and you always get ${sec(C.morgrave.holdFloor)} after they leave. The vent grate he always shuts behind him, so every visit to the vent needs you.`,
     ].join('\n\n'),
   },
   {
     title: 'Valek',
     body: [
-      `${H('The gray bear')} (night 8 after you BURNED the building, and night 9). Nobody remembers ordering him. On the hunt you only ever see his two small eyes.`,
-      `${H('Rules')}: he never walks. He steps from one dark spot to the next down the West or East Hall - only while you are not watching the spot he stands on.`,
-      `${H('He lies')}: half of his steps play another animatronic's sound on the OTHER side of the building, and the caption believes it. His only honest sound is a faint hum in the corner, and not every time.`,
-      `${H('At the corner')} (eyes in the dark window): LIGHT him and he vanishes at once - but he comes back angrier and closer. Hold the door shut for ${sec(C.valek.repelTicks)} and he backs off, calmer. Leave the corner dark and open and he attacks after ${range(C.valek.telegraph, 8, 20)} (shorter when angry).`,
+      `${H('The gray bear')} (night 8 after you BURNED the building, and night 9). Nobody remembers ordering him. You only ever see his two small eyes.`,
+      `${H('Where')}: in the dark outside the LEFT window, the RIGHT window, or above the CEILING VENT grate. A faint hum and the caption tell you where. Doors and the grate do not stop him.`,
+      `${H('Staring contest')}: look straight at his eyes and keep looking. After a few seconds HE looks away first, turns his head and is gone. You won.`,
+      `${H('Look away')} - a quick glance is fine while his eyes are far, not once they are close - or open the cameras, and he steps closer. Never look at all and he steps closer too. Lose again up close and he attacks.`,
+      `${H('His head follows you')}: while he stares, his head turns to keep looking at you wherever you move in the office, and past a point his whole body turns. In the vent he looks down at you: look up.`,
     ].join('\n\n'),
   },
   {
@@ -224,8 +227,8 @@ export const GUIDE_SECTIONS = Object.freeze([
       '• Chime and shimmer: Fredbear is about to teleport.',
       '• Electrical whine: a blackout in 2 seconds. Glitch: camera disruption.',
       '• Door bangs: something is pounding on a closed entry (or just left). Bonnie banging on the left door can be a distraction for Chica on the right.',
-      '• Scraping inside the walls: Morgrave came out (the caption names the route).',
-      '• A faint hum in a dark corner: Valek. Any other sound might be him too.',
+      '• Three soft knocks: Morgrave wants in at that door or the vent - open it. Knocking, then pounding: he is losing patience.',
+      '• A faint hum: Valek\'s eyes are out - find them and stare back.',
     ].join('\n'),
   },
   {

@@ -10,7 +10,7 @@ Writes into the resource pack:
 
 How the HUD knows what to show: the script (mc/game.js mapTitle) sends a title
 made only of formatting codes, so nothing is drawn by the vanilla title:
-  MAP_ON + the camera digits as codes  e.g. CAM 07 -> '§k§r§k§r§l§0§7'
+  MAP_ON + the camera digits as codes  e.g. CAM 14 -> '§k§r§k§r§l§0§7'
   MAP_OFF                              '§k§r§k§r§o'
 The map panel is visible while the title text contains MAP_ON; each overlay
 while the title text equals its camera's code. Any other title (night cards,
@@ -41,15 +41,16 @@ BELOW_ROOMS = {"CHAMBER", "DINER", "DINER_KITCHEN", "CRAWL_D", "TUNNEL_W", "TUNN
 # (next to the room each camera watches, never overlapping; checked below).
 POS = {
     # ground floor
-    "C06": (34, 24), "C03": (64, 24), "C01": (100, 24), "C10": (166, 28),
-    "C04": (34, 55), "C02": (76, 68), "C14": (124, 68), "C11": (162, 84),
-    "C05": (34, 88), "C07": (82, 108), "C12": (118, 108),
-    "C08": (86, 124), "C13": (114, 124), "C09": (60, 128), "C18": (72, 144),
+    "C03": (34, 24), "C02": (64, 24), "C01": (100, 24), "C08": (166, 28),
+    "C04": (34, 55), "C06": (76, 68), "C07": (124, 68), "C09": (162, 84),
+    "C05": (34, 88), "C14": (82, 108), "C10": (118, 108),
+    "C13": (82, 123), "C11": (120, 123), "C15": (57, 130), "C16": (74, 146),
+    "C12": (101, 146),  # the ceiling vent above the office (1.4)
     # basement
-    "C19": (34, 36), "C16": (40, 56), "C20": (40, 84), "C21": (28, 104), "C15": (90, 100), "C17": (98, 126),
+    "C22": (34, 36), "C21": (40, 56), "C20": (40, 84), "C19": (28, 104), "C18": (90, 100), "C17": (98, 126),
 }
-BASEMENT = {"C15", "C16", "C17", "C19", "C20", "C21"}
-YOU_AT = (101, 138)
+BASEMENT = {"C18", "C21", "C17", "C22", "C20", "C19"}
+YOU_AT = (101, 133)
 
 WALL = (215, 215, 215, 235)
 ROOM_FILL = (24, 24, 28, 120)

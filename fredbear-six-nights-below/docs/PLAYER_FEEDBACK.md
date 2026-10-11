@@ -16,6 +16,11 @@ The owner then played 1.2.0 to the end and reported items 62-66 (section M).
 (153, 156, 157, 170) and the owner's last requests (173-174: the Freddy V6 and Bonnie V2 models, and night 9). Item 66
 (out of strobe charges) is still **to decide**: the owner has not picked one of the options in section M.
 
+**1.4.0** builds items 179-183 (section U): the ceiling vent over the office, Morgrave's new mechanic (*Invite him in*), Valek's
+staring contest with his head locked on to the player, the jumpscare view fix and the cameras renumbered in order. Items
+175, 177 and 178 are still planned, item 66 is still to decide. **Camera numbers changed in 1.4**: the sections below were
+written with the old numbers (table in section U).
+
 ## The list
 
 Numbers stay fixed from now on: new items are added at the end.
@@ -267,13 +272,16 @@ Numbers stay fixed from now on: new items are added at the end.
 | 176 | Vibrant Visuals compatible: the map works with Minecraft's Vibrant Visuals graphics mode | done in 1.3.1 (untested in-game) |
 | 177 | A camera inside the hatch shaft itself (CAM 17 only shows the crawlspace end below the office; the climb up to the hatch is a blind spot) | planned |
 | 178 | A completely separate room for Valek and Morgrave that is nightmare fuel (section S) | planned |
-| 179 | Morgrave's mechanic is confusing: pick a rework, options 1-10 in section S; proposed: "Blind, hunts by sound" (section T) | to decide |
-| 180 | A vent in the ceiling above the office: the only vent Morgrave and Valek use; they also use both doors (left and right). They no longer use the supply duct, the crawlspace or the hatch (section T) | planned |
+| 179 | Morgrave's mechanic is confusing: pick a rework (section S). Owner's pick: **Invite him in**: he knocks softly three times; open the door and he walks past the office, he only wanted to be let in; keep it shut and the knocks get angrier until he breaks through; risky if someone else is at that door (section U) | done in 1.4.0 (untested in-game) |
+| 180 | A vent in the ceiling above the office: the only vent Morgrave and Valek use; they also use both doors (left and right). They no longer use the supply duct, the crawlspace or the hatch (section U) | done in 1.4.0 (untested in-game) |
+| 181 | Valek: **staring contest**. When his eyes appear at a door or the vent, look straight at them and don't look away until he looks away first; look away early, or open the cameras, and he steps closer. His head locks on to you: when you move, his head follows (section U) | done in 1.4.0 (untested in-game) |
+| 182 | Jumpscare view: the animatronic's face sometimes goes through the camera, and the player can see their own body during the jumpscare | done in 1.4.0 (untested in-game) |
+| 183 | Cameras that are close to each other should have numbers in order, not spread around | done in 1.4.0 (untested in-game) |
 
 ### Every update finishes with
 
 * credits (README, docs, in-game), Shift Guide text, the night 4 phone call (now "four charges");
-* all checks, a new `.mcaddon`, push and send. Done for 1.2.0 and 1.3.0.
+* all checks, a new `.mcaddon`, push and send. Done for 1.2.0, 1.3.0, 1.3.1 and 1.4.0.
 
 The sections below are the agreed plans as they were written before building. What was actually built is described in
 docs/04 (AI), docs/07 (assets, lobby, decorations) and docs/08 (how to play).
@@ -666,3 +674,51 @@ angrier, hold the door and he backs off) on the left and right halls, and gains 
 through the grate. Light cannot reach the vent; instead, look up straight at him (the player's own view) for 2 s and he
 backs off. While you look up you are not watching the doors.
 
+## U. What 1.4.0 built (items 179-183)
+
+* **Ceiling vent (180):** a 2 × 2 hole in the office ceiling over the desk, under a grate in the crawlspace above; the
+  **VENT GRATE** button (right end of the camera map) opens and closes it, a lamp shows green (open) or amber (closed); it
+  starts every night closed, and an open grate costs power like a hall light. **CAM 12** looks along the crawlspace at
+  it. Morgrave and Valek use only the left door, the right door and this vent; the supply duct, the crawlspace and the
+  hatch are Bonnie's and Fredbear's again.
+* **Morgrave, Invite him in (179):** three soft knocks at a door or the vent (captioned). Open it and he walks past the
+  doorway (crawls past over the grate) and goes back into the walls; he shuts the grate behind him. Keep it shut: louder
+  knocking, then pounding, then he breaks through (the door is forced open, or the grate bursts, and he drops from above).
+  The risk is the trio on night 8: opening a door for him can let them in. Fair rule: he never breaks a door while someone
+  else is held at it, and waits at least 3 s after they leave.
+* **Valek, the staring contest (181):** his eyes appear through the window beside either door or through the grate. Look
+  straight at them (within 12°) and keep looking: after 3 s to (5 + aggression/4) s he looks away first and is gone. Never
+  look, look away for more than 0.8 s (0.4 s once he is close), or raise the cameras, and he steps closer; from close up
+  he attacks. Doors do not stop him. While he stares his head follows you around the office, and his body turns when you
+  move far to one side.
+* **Jumpscare view (182):** each animatronic stands at a distance measured from its own attack animation, so the face
+  never reaches the camera; the player is invisible with an empty hand during the jumpscare.
+* **Camera order (183):** new numbers, old → new:
+
+| Camera | Old | New |
+|---|---|---|
+| Show stage | 01 | 01 |
+| Backstage | 03 | 02 |
+| Parts & Service | 06 | 03 |
+| Starlight Cove | 04 | 04 |
+| Arcade | 05 | 05 |
+| Dining hall west | 02 | 06 |
+| Dining hall east | 14 | 07 |
+| Kitchen (audio) | 10 | 08 |
+| East service | 11 | 09 |
+| East hall | 12 | 10 |
+| East corner | 13 | 11 |
+| Ceiling vent (new in 1.4) | 22 | 12 |
+| West corner | 08 | 13 |
+| West hall | 07 | 14 |
+| Supply closet | 09 | 15 |
+| Supply duct | 18 | 16 |
+| Office subfloor | 17 | 17 |
+| Maintenance tunnel | 15 | 18 |
+| Diner kitchen | 21 | 19 |
+| Diner party room | 20 | 20 |
+| Sealed diner | 16 | 21 |
+| Fredbear's chamber | 19 | 22 |
+
+* **Balance:** nights 8 and 9 were retuned to stay hard (docs/05): the trio hunt harder on night 8 (13/14/13 with Valek,
+  15/16/15 with Morgrave), Morgrave and Valek are at aggression 20 on night 9.

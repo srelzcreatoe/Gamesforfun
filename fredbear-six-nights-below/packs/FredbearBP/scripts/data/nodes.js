@@ -3,9 +3,9 @@
 // Nodes are places an animatronic may stand. Edges are walkable polylines that
 // pass through real doorways; tools/validate_map.mjs voxel-checks every
 // segment against the generated build so ordinary movement never crosses a
-// wall. Access letters: B = Bonnie, C = Chica, F = Freddy, G = Fredbear,
-// M = Morgrave (the vents and the old crawlspace only). Valek has no edges: he
-// steps between dark nodes (VALEK_LADDER) without walking. Nodes with
+// wall. Access letters: B = Bonnie, C = Chica, F = Freddy, G = Fredbear.
+// Morgrave and Valek (1.4) have no edges: they come out of the walls / the dark
+// at fixed spots by the doors and the ceiling vent (data/visitors.js). Nodes with
 // `store` are standing spots only (no edges): homes and the Parts & Service
 // storage spots the trio are moved to on nights 7 and 9.
 //
@@ -52,8 +52,7 @@ export const NODES = Object.freeze([
   N('ARCADE', 34.5, 0, 87.5, 'ARCADE', 'far', { haunt: true }),
   N('PC', 68.5, 0, 108.5, 'PARTY_C', 'mid'),
   N('SUP', 78.5, 0, 128.5, 'SUPPLY', 'near', { dark: true }),
-  N('M_SUP', 81.5, 0, 137.5, 'SUPPLY', 'near', { dark: true }),
-  // Inside the supply duct (two blocks high, under the west corner; CAM 18).
+  // Inside the supply duct (two blocks high, under the west corner; CAM 16).
   N('VENT_W', 86.5, -3, 132.5, 'VENT', 'near', { dark: true, crawl: true, yaw: -90 }),
   N('WH_N', 87.5, 0, 103.5, 'W_HALL', 'mid', { dark: true }),
   N('WH_M', 87.5, 0, 116.5, 'W_HALL', 'near', { dark: true }),
@@ -130,10 +129,9 @@ export const EDGES = Object.freeze([
   E('WH_M', 'WH_S', 'BCG', []),
   E('WH_S', 'W_DOOR', 'BCFG', [P(90.5, 0, 130.0)]),
   E('WH_M', 'SUP', 'B', [P(86.5, 0, 121.0), P(82.5, 0, 121.0), P(78.5, 0, 124.5)]),
-  // Supply duct: down through the closet grate, along the duct (VENT_W, CAM 18), up through the corner grate.
+  // Supply duct: down through the closet grate, along the duct (VENT_W, CAM 16), up through the corner grate.
   E('SUP', 'VENT_W', 'B', [P(80.5, 0, 132.5), P(80.5, -3, 132.5)], 'vent'),
-  E('M_SUP', 'VENT_W', 'M', [P(80.5, 0, 132.5), P(80.5, -3, 132.5)], 'vent'),
-  E('VENT_W', 'W_DOOR', 'BM', [P(92.5, -3, 132.5), P(92.5, 0, 132.5)], 'vent', { gate: 'vent_seal' }),
+  E('VENT_W', 'W_DOOR', 'B', [P(92.5, -3, 132.5), P(92.5, 0, 132.5)], 'vent', { gate: 'vent_seal' }),
   E('WH_N', 'PA', 'BC', [P(88.5, 0, 106.0), P(91.5, 0, 106.0)]),
   E('PA', 'EH_N', 'BC', [P(109.0, 0, 106.0), P(111.5, 0, 106.0)]),
   // --- east wing
@@ -159,9 +157,9 @@ export const EDGES = Object.freeze([
   E('DINER_STAGE', 'DINER_FLOOR', 'G', [P(40.5, -8, 55.2), P(40.5, -9, 55.7)]),
   E('DINER_FLOOR', 'DINER_KITCHEN', 'G', [P(27.0, -9, 93.5), P(27.0, -9, 97.5)]),
   E('DINER_KITCHEN', 'CRAWL_MID', 'G', [P(38.0, -9, 110.5), P(38.0, -9, 114.0)], 'crawl'),
-  E('CRAWL_MID', 'CRAWL_END', 'GM', [], 'crawl'),
-  E('CRAWL_END', 'SUB_N', 'GM', [P(93.5, -9, 114.0)], 'crawl', { gate: 'shaft_seal' }),
-  E('SUB_N', 'H_DOOR', 'GM', [P(100.0, -9, 135.0), P(100.0, -9, 137.0)], 'climb'),
+  E('CRAWL_MID', 'CRAWL_END', 'G', [], 'crawl'),
+  E('CRAWL_END', 'SUB_N', 'G', [P(93.5, -9, 114.0)], 'crawl', { gate: 'shaft_seal' }),
+  E('SUB_N', 'H_DOOR', 'G', [P(100.0, -9, 135.0), P(100.0, -9, 137.0)], 'climb'),
   E('DINER_FLOOR', 'TW_SEAL', 'G', [P(60.5, -9, 85.5), P(65.5, -9, 85.5)], 'walk', { gate: 'diner_seal' }),
   E('TW_SEAL', 'TS_W', 'G', [P(67.0, -9, 107.0)]),
   E('TS_W', 'TS_MID', 'G', []),
@@ -186,18 +184,6 @@ export const HAUNT_NODES = Object.freeze(NODES.filter((n) => n.haunt).map((n) =>
 
 /** Night 7 / 9: the trio, switched off, in Parts & Service. */
 export const STORE_NODE = Object.freeze({ freddy: 'PARTS_F', bonnie: 'PARTS_B', chica: 'PARTS_C' });
-
-/** Valek's dark ladders: far stage -> ... -> the door corner (he steps, never walks). */
-export const VALEK_LADDER = Object.freeze({
-  L: Object.freeze(['COVE_FRONT', 'WH_N', 'WH_M', 'WH_S', 'W_DOOR']),
-  R: Object.freeze(['PRP', 'EH_N', 'EH_M', 'EH_S', 'E_DOOR']),
-});
-
-/** Morgrave's crawl routes: where he comes out of the walls -> ... -> the entry. */
-export const MORGRAVE_ROUTE = Object.freeze({
-  L: Object.freeze(['M_SUP', 'VENT_W', 'W_DOOR']),
-  H: Object.freeze(['CRAWL_MID', 'CRAWL_END', 'SUB_N', 'H_DOOR']),
-});
 
 /** Character -> access letter. */
 export const ACCESS = Object.freeze({ bonnie: 'B', chica: 'C', freddy: 'F', fredbear: 'G', morgrave: 'M', valek: 'V' });

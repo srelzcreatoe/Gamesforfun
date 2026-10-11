@@ -254,6 +254,15 @@ export function validateAssets() {
     const v = bpEntities.get(`fb:${m[1]}`)?.components?.['minecraft:scale']?.value;
     if (v !== Number(m[2])) err(`game.js SCALE.${m[1]} = ${m[2]} but fb:${m[1]} minecraft:scale = ${v}`);
   }
+  // Valek's eye point (data/visitors.js VALEK_EYE) is his EYE_HEIGHT x SCALE; the jumpscare reach
+  // table (tools/gen_jumpscare_reach.py) must cover every animatronic in SCALE and be current.
+  const scaleOf = Object.fromEntries([...scaleBlock.matchAll(/(\w+):\s*([\d.]+)/g)].map((m) => [m[1], Number(m[2])]));
+  const eyeBlock = scriptText.match(/const EYE_HEIGHT = Object\.freeze\(\{([^}]+)\}\)/)?.[1] ?? '';
+  const eyeOf = Object.fromEntries([...eyeBlock.matchAll(/(\w+):\s*([\d.]+)/g)].map((m) => [m[1], Number(m[2])]));
+  const valekEye = Number(scriptText.match(/export const VALEK_EYE = ([\d.]+)/)?.[1]);
+  if (!(Math.abs(valekEye - eyeOf.valek * scaleOf.valek) < 0.01)) err(`visitors.js VALEK_EYE = ${valekEye} but EYE_HEIGHT.valek x SCALE.valek = ${(eyeOf.valek * scaleOf.valek).toFixed(3)}`);
+  const reachText = fs.readFileSync(path.join(BP, 'scripts/data/jumpscare_reach.generated.js'), 'utf8');
+  for (const who of Object.keys(scaleOf)) if (!new RegExp(`^\\s*${who}: Object\\.freeze\\(\\[\\{`, 'm').test(reachText)) err(`jumpscare_reach.generated.js has no rows for ${who} (run tools/gen_jumpscare_reach.py)`);
   const puppetTypes = [...scriptText.matchAll(/PUPPET_TYPES = Object\.freeze\(\{([^}]+)\}/g)][0]?.[1] ?? '';
   for (const m of puppetTypes.matchAll(/'(fb:[a-z_]+)'/g)) if (!bpEntities.has(m[1])) err(`PUPPET_TYPES lists ${m[1]} with no BP entity`);
 

@@ -9,11 +9,11 @@ export const CB_STRUCTURES = Object.freeze([
    169
   ],
   "size": [
-   134,
+   136,
    1,
    1
   ],
-  "blocks": 84
+  "blocks": 86
  },
  {
   "id": "fb:cb_row_1",
@@ -23,11 +23,11 @@ export const CB_STRUCTURES = Object.freeze([
    172
   ],
   "size": [
-   151,
+   150,
    1,
    1
   ],
-  "blocks": 103
+  "blocks": 102
  },
  {
   "id": "fb:cb_row_2",
@@ -37,11 +37,11 @@ export const CB_STRUCTURES = Object.freeze([
    175
   ],
   "size": [
-   153,
+   152,
    1,
    1
   ],
-  "blocks": 95
+  "blocks": 96
  },
  {
   "id": "fb:cb_row_3",
@@ -51,11 +51,11 @@ export const CB_STRUCTURES = Object.freeze([
    178
   ],
   "size": [
-   151,
+   150,
    1,
    1
   ],
-  "blocks": 91
+  "blocks": 90
  },
  {
   "id": "fb:cb_row_4",
@@ -65,11 +65,11 @@ export const CB_STRUCTURES = Object.freeze([
    181
   ],
   "size": [
-   92,
+   111,
    1,
    1
   ],
-  "blocks": 62
+  "blocks": 73
  },
  {
   "id": "fb:in_g_3_4",
@@ -83,7 +83,7 @@ export const CB_STRUCTURES = Object.freeze([
    1,
    12
   ],
-  "blocks": 29
+  "blocks": 30
  },
  {
   "id": "fb:in_g_3_3",
@@ -93,11 +93,11 @@ export const CB_STRUCTURES = Object.freeze([
    127
   ],
   "size": [
-   7,
+   8,
    1,
    1
   ],
-  "blocks": 7
+  "blocks": 8
  },
  {
   "id": "fb:in_g_5_3",

@@ -60,6 +60,7 @@ export class Hud {
     if (snap.powerOut?.stage === 'reserve') warn.push('§c§lPOWER OUT: PULL THE RESERVE LEVER');
     if (snap.seals?.vent.left > 0) warn.push(`§bVENT SEALED ${Math.ceil(snap.seals.vent.left / 20)}s`);
     if (snap.seals?.shaft.left > 0) warn.push(`§bSHAFT SEALED ${Math.ceil(snap.seals.shaft.left / 20)}s`);
+    if (snap.devices?.grate === false) warn.push('§2VENT GRATE OPEN');
     if (warn.length) lines.push(warn.join(' §7· '));
     if (captions && this.caption && now < this.captionUntil) lines.push(`§7[${this.caption}]`);
     if (overlay) lines.push(overlay);

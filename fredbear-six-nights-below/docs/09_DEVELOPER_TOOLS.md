@@ -20,6 +20,7 @@
 | `/fb:debug flashback` | play the night 4 flashback |
 | `/fb:debug ending9` | play the night 9 ending |
 | `/fb:debug lastending <seal\|burn>` | choose which night 8 comes next (seal: Morgrave, burn: Valek) |
+| `/fb:debug visit <morgrave\|valek> <L\|R\|V>` | (1.4) Morgrave knocks / Valek's eyes appear at the left door, the right door or the ceiling vent right now (still waits for the usual rules: past the grace, no blackout, Fredbear not engaged) |
 | `/fb:debug tapes` | play the 1987 security tapes (outside a shift; needs night 5 survived) |
 | `/fb:debug seal <vent\|shaft>` | press the vent / shaft seal during a night |
 | `/fb:debug holiday [halloween\|christmas]` | place a season's decorations now (no argument removes them); the device date decides again at the next lobby reset |
@@ -83,6 +84,7 @@ lines are kept in memory and the last 6 appear in `/fb:debug state`.
 | `node tools/balance_sim.mjs` | balance tables for the nine nights (night 8 in both versions) and the four challenges (docs/05) |
 | `node tools/gen_holidays.mjs` | regenerate the seasonal decoration cells (`scripts/data/holiday_decor.generated.js`) |
 | `python3 tools/gen_rp.py` | regenerate the resource pack art, including the Fredbear V6 import (`tools/fredbear_v6.py`), the Freddy V6 / Bonnie V2 / Morgrave / Valek imports (`tools/owner_models.py`) and the archive of the old models |
+| `python3 tools/gen_jumpscare_reach.py` | (1.4) measure each attack clip and write `data/jumpscare_reach.generated.js`: how far each animatronic stands from the camera in its jumpscare so its face never passes through the view |
 | `python3 tools/gen_cam_map.py` | regenerate the camera-map HUD (`ui/hud_screen.json` and its textures) from `tools/out/floorplan.json` |
 | `python3 tools/gen_sounds.py` | convert the owner's recordings and music (`art/sounds_incoming/`) and synthesise the other sounds |
 | `node tools/validate_map.mjs` | routes, cameras (voxel ray casts), office seal, walkability, hidden command blocks; writes `tools/out/map_report.json` |

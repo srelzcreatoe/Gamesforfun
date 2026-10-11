@@ -7,6 +7,11 @@
 //
 // PHASES: RUNNING | MAINT | POWER_OUT | JUMPSCARE | WON | LOST
 //
+// CEILING VENT (1.4): entry 'V', only Morgrave and Valek use it. The grate is a device like a door
+// (devices.grate, true = closed; closed at the start of every night, no power cost). Morgrave wants it
+// OPEN when he knocks; Valek ignores barriers (his counter is the stare: view.gaze, set by the
+// adapter from where the player looks, or by a test bot).
+//
 // SEALS: seal_vent / seal_shaft close the supply duct (gate vent_seal) or the
 // crawlspace into the office subfloor (gate shaft_seal) for CONFIG.seals.duration
 // ticks; walkers mid-duct turn back (Animatronic.stepMove), teleports still work.
@@ -41,7 +46,7 @@ import { CAMERA_ORDER, CAMERA_BY_ID } from '../data/cameras.js';
 import { ENTRY_BARRIER, NODE_BY_ID } from '../data/nodes.js';
 
 export const ORDER = Object.freeze(['fredbear', 'freddy', 'bonnie', 'chica', 'morgrave', 'valek']);
-const ENTRY_LABEL = Object.freeze({ L: 'LEFT DOOR', R: 'RIGHT DOOR', H: 'HATCH' });
+const ENTRY_LABEL = Object.freeze({ L: 'LEFT DOOR', R: 'RIGHT DOOR', H: 'HATCH', V: 'CEILING VENT' });
 
 export class NightSession {
   /**
@@ -70,7 +75,7 @@ export class NightSession {
     const P = CONFIG.power;
     this.power = P.start + (this.options.taskBonusPower ? P.taskBonus : 0);
     this.devices = {
-      doorL: false, doorR: false, lightL: false, lightR: false, hatch: false,
+      doorL: false, doorR: false, lightL: false, lightR: false, hatch: false, grate: true,
       cams: { open: false, cam: 'C01' },
       deb: Object.create(null), lightTimer: { L: 0, R: 0 },
     };
@@ -109,7 +114,8 @@ export class NightSession {
       valek: new Valek(this),
     };
     this.queue = [];
-    this.view = { inOffice: true };
+    // gaze: who the player is looking straight at right now ('valek' or null; the adapter / a bot sets it).
+    this.view = { inOffice: true, gaze: null };
     this.lastHour = 0;
     this.emit({ fx: 'night_start', night, gates: { ...this.gates }, power: this.power });
   }
@@ -137,6 +143,7 @@ export class NightSession {
   }
 
   barrierClosed(entry) {
+    if (entry === 'V') return this.devices.grate;
     const b = ENTRY_BARRIER[entry];
     if (this.mods.noDoors) {
       // Doors welded open: a lit hall light is the only defence on that side.
@@ -156,7 +163,7 @@ export class NightSession {
 
   usage() {
     const d = this.devices;
-    const n = (d.doorL ? 1 : 0) + (d.doorR ? 1 : 0) + (d.lightL ? 1 : 0) + (d.lightR ? 1 : 0) + (d.cams.open ? 1 : 0) + (d.hatch ? 1 : 0);
+    const n = (d.doorL ? 1 : 0) + (d.doorR ? 1 : 0) + (d.lightL ? 1 : 0) + (d.lightR ? 1 : 0) + (d.cams.open ? 1 : 0) + (d.hatch ? 1 : 0) + (d.grate ? 0 : 1);
     return Math.min(5, 1 + n);
   }
 
@@ -170,6 +177,7 @@ export class NightSession {
     if (d.lightR) used += P.light;
     if (d.cams.open) used += P.cams;
     if (d.hatch) used += P.hatch;
+    if (!d.grate) used += P.grate;
     return (P.baseDrain[this.night] ?? 4) + used * (this.mods.deviceDrainMult ?? 1);
   }
 
@@ -351,6 +359,17 @@ export class NightSession {
     this.emit({ fx: 'device', device: 'hatch', value: closed });
   }
 
+  setGrate(closed) {
+    this.devices.grate = closed;
+    this.emit({ fx: 'actuate', id: `grate_${closed ? 'close' : 'open'}` });
+    this.emit({ fx: 'device', device: 'grate', value: closed });
+  }
+
+  /** Where the player is looking (adapter / bots): 'valek' while staring straight at his eyes, else null. */
+  setGaze(who) {
+    this.view.gaze = who ?? null;
+  }
+
   setCams(open, cam, reason = '') {
     const c = this.devices.cams;
     c.open = open;
@@ -482,6 +501,14 @@ export class NightSession {
         this.emit({ fx: 'actuate', id: 'pwr.breaker_reset' });
         this.spend(P.breakerResetCost);
         return this.feedback(action, true, 'resetting');
+      }
+      case 'vent_grate': {
+        if (!running) return this.feedback(action, false, this.phase === 'POWER_OUT' ? 'no power' : 'unavailable');
+        if (this.debounced(action, D.doorDebounce)) return this.feedback(action, false, 'cooldown');
+        const closed = !this.devices.grate;
+        this.setGrate(closed);
+        this.director.noise('door', 1);
+        return this.feedback(action, true, closed ? 'closed' : 'opened');
       }
       case 'seal_vent':
       case 'seal_shaft': {
@@ -725,11 +752,12 @@ export class NightSession {
     this.logTransition('session', 'RUNNING', 'JUMPSCARE', `${who} attack`);
   }
 
-  /** Where the attack comes from (docs/04 "Jumpscares by place"): front | below (hatch) | vent. */
+  /** Where the attack comes from (docs/04 "Jumpscares by place"): front | below (hatch) | vent | above (ceiling vent). */
   jumpscareStyle(who) {
     const a = this.anim[who];
     if (this.phase === 'POWER_OUT' || this.powerOut) return 'front';
     if (a.entry === 'H') return 'below';
+    if (a.entry === 'V') return 'above';
     if (a.viaVent && a.entry === 'L') return 'vent';
     return 'front';
   }
@@ -833,7 +861,7 @@ export class NightSession {
       usage: this.usage(),
       devices: {
         doorL: this.devices.doorL, doorR: this.devices.doorR, lightL: this.devices.lightL, lightR: this.devices.lightR,
-        hatch: this.devices.hatch, camsOpen: this.devices.cams.open, cam: this.devices.cams.cam,
+        hatch: this.devices.hatch, grate: this.devices.grate, camsOpen: this.devices.cams.open, cam: this.devices.cams.cam,
       },
       strobe: { ...this.strobe },
       seals: { vent: { ...this.seals.vent }, shaft: { ...this.seals.shaft } },
@@ -889,6 +917,16 @@ export class NightSession {
   setTick(t) {
     this.t = Math.max(0, Math.min(this.length - 1, t));
     this.lastHour = this.hour;
+  }
+
+  /** Debug (1.4): Morgrave or Valek comes to `entry` (L, R or V) right now. */
+  forceVisit(who, entry) {
+    const a = this.anim[who];
+    if (!['morgrave', 'valek'].includes(who) || !['L', 'R', 'V'].includes(entry)) return false;
+    a.forced = entry;
+    if (who === 'morgrave') a.intoWalls(`debug: visit at ${entry}`, 1);
+    else a.vanish(`debug: visit at ${entry}`, 1);
+    return true;
   }
 
   /** Training helper: walk `who` to its approach node then into `entry`. */

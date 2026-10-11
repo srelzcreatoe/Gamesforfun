@@ -71,6 +71,8 @@ const MAP_ON = '§k§r§k§r§l';
 const MAP_OFF = '§k§r§k§r§o';
 const mapTitle = (cam) => (cam ? MAP_ON + cam.slice(1).split('').map((d) => `§${d}`).join('') : MAP_OFF);
 const STARE_AFTER = 40; // ticks of watching an animatronic on camera before it turns its head to the lens
+const GAZE_DEG = 12; // Valek's staring contest (1.4): the view must point within this angle of his eyes
+const VALEK_BODY_TURN = 70; // beyond this head turn his whole body turns to keep staring at you
 const ROAM_LOOK_RANGE = 14; // Free Roam: animatronics this close turn their heads to follow you
 const CAM_HUM_TICKS = 200; // fb.cam.hum restarts every 10 s while the monitor is up (tools/gen_sounds.py HUM_PERIOD)
 const ZONE_ACTUATOR = Object.freeze({ 'zone:cove': 'zone.cove', 'zone:freezer': 'zone.freezer', 'zone:diner': 'zone.diner', 'zone:chamber': 'zone.chamber', 'zone:attic': 'zone.attic', 'zone:basement': 'env.pipes', 'zone:backstage': 'env.distant_music' });
@@ -485,10 +487,10 @@ export class Game {
     const g = this.guard();
     if (!g) return;
     /** @type {[string, number][]} [camera, ticks] */
-    const shots = [['C01', 60], ['C07', 34], ['C12', 34]];
-    if (n >= 4) shots.push(['C16', 50]);
-    if (n >= 7) shots.push(['C06', 40]); // Parts & Service: Valek standing there, and the trio on nights 7 and 9
-    if (n >= 8) shots.push(['C19', 40], ['C18', 30]); // the chamber and the duct
+    const shots = [['C01', 60], ['C14', 34], ['C10', 34]];
+    if (n >= 4) shots.push(['C21', 50]);
+    if (n >= 7) shots.push(['C03', 40]); // Parts & Service: Valek standing there, and the trio on nights 7 and 9
+    if (n >= 8) shots.push(['C22', 40], ['C16', 30]); // the chamber and the duct
     this.tour = { shots, i: 0, next: system.currentTick + 20 };
     this.intro.deadline += shots.reduce((a, s) => a + s[1], 20);
   }
@@ -691,6 +693,7 @@ export class Game {
       return;
     }
     s.view.inOffice = this.inOffice(g);
+    s.setGaze(this.gazeAt(g, s));
     if (s.phase === 'RUNNING' && !s.view.inOffice) {
       this.timers.outside = (this.timers.outside ?? 0) + 1;
       if (this.timers.outside > 60) {
@@ -704,6 +707,7 @@ export class Game {
     if (!this.session) return; // reset from an effect
 
     if (now % 4 === 0) this.stareLooks(s);
+    if (now % 2 === 0) this.valekLooks(s, g);
     if (this.cams.active && now % 60 === 0) this.showCamMap(g, s.devices.cams.cam);
     if (s.phase !== 'JUMPSCARE' && s.phase !== 'LOST') this.puppets.sync(s);
     this.tickPhone(now, g);
@@ -784,7 +788,7 @@ export class Game {
         }
         break;
       case 'sound':
-        this.audio.play(f, g, { relayKitchen: this.cams.active && this.cams.cam === 'C10' });
+        this.audio.play(f, g, { relayKitchen: this.cams.active && this.cams.cam === 'C08' });
         break;
       case 'stop_loop':
         this.audio.stop(f.loopKey);
@@ -897,7 +901,7 @@ export class Game {
     // Training: door/light/strobe steps listen to accepted inputs; camera steps listen to 'cams' effects.
     if (this.tutorial && f.ok && ['door_l', 'light_l', 'strobe'].includes(f.action)) this.tutorialEvent(f.action);
     if (f.ok) return;
-    const names = { door_l: 'LEFT DOOR', door_r: 'RIGHT DOOR', light_l: 'LEFT LIGHT', light_r: 'RIGHT LIGHT', cams_open: 'CAMERAS', cam_select: 'CAMERAS', strobe: 'STROBE', hatch: 'HATCH', breaker: 'BREAKER', reserve: 'RESERVE', seal_vent: 'VENT SEAL', seal_shaft: 'SHAFT SEAL' };
+    const names = { door_l: 'LEFT DOOR', door_r: 'RIGHT DOOR', light_l: 'LEFT LIGHT', light_r: 'RIGHT LIGHT', cams_open: 'CAMERAS', cam_select: 'CAMERAS', strobe: 'STROBE', hatch: 'HATCH', breaker: 'BREAKER', reserve: 'RESERVE', seal_vent: 'VENT SEAL', seal_shaft: 'SHAFT SEAL', vent_grate: 'VENT GRATE' };
     if (f.ok && (f.action === 'seal_vent' || f.action === 'seal_shaft')) this.hud.setMessage(`${f.action === 'seal_vent' ? 'The vent' : 'The shaft'} is sealed for ${Math.round(CONFIG.seals.duration / 20)} s`, system.currentTick, 60);
     if (f.reason === 'cooldown' || f.reason === 'same camera') return;
     try {
@@ -909,7 +913,7 @@ export class Game {
   }
 
   // ================================================================ outcomes
-  /** @param {'front' | 'below' | 'vent'} [style] where the attack comes from (docs/04 "Jumpscares by place") */
+  /** @param {'front' | 'below' | 'vent' | 'above'} [style] where the attack comes from (docs/04 "Jumpscares by place") */
   jumpscare(who, g, style = 'front') {
     this.cams.close();
     try {
@@ -919,6 +923,10 @@ export class Game {
       const variant = who === 'fredbear' ? Math.floor(Math.random() * FREDBEAR_JUMPSCARES) : 0;
       if (style === 'below') g.playSound('fb.door.jam', { volume: 1.2 });
       else if (style === 'vent') g.playSound('fb.vent.clank', { volume: 1.4 });
+      // 1.4: the player's own body must not show in the jumpscare view (the free camera renders it):
+      // invisible for the jumpscare (restorePlayerView clears it) and nothing in the hand.
+      g.addEffect('invisibility', 100, { amplifier: 0, showParticles: false });
+      g.selectedSlotIndex = ANCHOR_SLOT;
       const head = this.puppets.lunge(who, eye, { x: dir.x / flat, y: 0, z: dir.z / flat }, (EYE_HEIGHT[who] ?? 1.55) * (SCALE[who] ?? 1.2), variant, style);
       if (head) g.camera.setCamera('minecraft:free', { location: eye, facingLocation: head });
     } catch (e) {
@@ -1241,6 +1249,61 @@ export class Game {
       looks[id] = this.lookToward(id, p, { x, y, z }, (id.length % 2 ? 1 : -1) * 16);
     }
     this.puppets.looks = looks;
+  }
+
+  /**
+   * Valek's staring contest (1.4): is the player looking straight at his eyes? The view direction
+   * must point within GAZE_DEG of the eye point; the camera monitor counts as looking away.
+   */
+  gazeAt(g, s) {
+    const v = s.anim.valek;
+    const eye = v.state === 'STARE' ? v.eyePoint() : null;
+    if (!eye || this.cams.active) return null;
+    try {
+      const head = L(g.getHeadLocation());
+      const dir = g.getViewDirection();
+      const dx = eye.x - head.x;
+      const dy = eye.y - head.y;
+      const dz = eye.z - head.z;
+      const len = Math.hypot(dx, dy, dz) || 1;
+      const dot = (dir.x * dx + dir.y * dy + dir.z * dz) / len;
+      return (Math.acos(Math.max(-1, Math.min(1, dot))) * 180) / Math.PI <= GAZE_DEG ? 'valek' : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Valek's head locks on to the player while he stares: it follows you as you move around the
+   * office, and past VALEK_BODY_TURN his whole body turns. When he loses the contest he turns his
+   * head away before he is gone.
+   */
+  valekLooks(s, g) {
+    const v = s.anim.valek;
+    const p = v.pose();
+    if (!g || (!p.staring && !p.turningAway)) {
+      delete this.puppets.bodyYaw.valek;
+      return;
+    }
+    if (p.turningAway) {
+      this.puppets.looks = { ...this.puppets.looks, valek: { yaw: 80, pitch: -10, tilt: 20 } };
+      return;
+    }
+    try {
+      const me = L(g.getHeadLocation());
+      const want = (Math.atan2(-(me.x - p.x), me.z - p.z) * 180) / Math.PI;
+      let rel = want - p.yaw;
+      while (rel > 180) rel -= 360;
+      while (rel < -180) rel += 360;
+      let body = p.yaw;
+      if (Math.abs(rel) > VALEK_BODY_TURN) {
+        body = want - Math.sign(rel) * 40; // the body turns, the head keeps the last 40 degrees
+        this.puppets.bodyYaw.valek = body;
+      } else delete this.puppets.bodyYaw.valek;
+      this.puppets.looks = { ...this.puppets.looks, valek: this.lookToward('valek', { ...p, yaw: body }, me, 8) };
+    } catch {
+      // unloaded: skip this frame
+    }
   }
 
   /** Free Roam (127): the animatronics turn their heads to follow you when you walk close. */

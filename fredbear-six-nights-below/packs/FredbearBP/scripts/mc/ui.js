@@ -55,6 +55,7 @@ export async function officeRemote(player, snap) {
     ['cams_toggle', d.camsOpen ? 'LOWER MONITOR' : 'RAISE MONITOR'],
   ];
   if (snap.hatchInstalled) items.push(['hatch', `HATCH  ${d.hatch ? '§6[sealed]' : '§2[open]'}`]);
+  items.push(['vent_grate', `VENT GRATE (ceiling)  ${d.grate ? '§6[closed]' : '§2[open]'}`]);
   const seal = (k) => (snap.seals[k].left > 0 ? `§b[sealed ${Math.ceil(snap.seals[k].left / 20)}s]` : snap.seals[k].cooldown > 0 ? '§8[recharging]' : '§7[3% power]');
   items.push(['seal_vent', `SEAL THE VENT  ${seal('vent')}`]);
   if (snap.hatchInstalled) items.push(['seal_shaft', `SEAL THE SHAFT  ${seal('shaft')}`]);

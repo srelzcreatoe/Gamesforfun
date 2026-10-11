@@ -19,15 +19,19 @@ The build is resumable: if you leave, run `/fb:setup` again.
 
 ### Updating from an earlier version
 
-1. Import the new `.mcaddon` (version **1.3.1**).
+1. Import the new `.mcaddon` (version **1.4.0**).
 2. In the world's settings, open **Behavior Packs** and make sure **FREDBEAR: Six Nights Below (Behavior)** shows
-   version 1.3.1; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
-   Check **Resource Packs** too: only the 1.3.1 resource pack should be active.
-3. Enter the world. From 1.3.0, version 1.3.1 changes only the resource pack (Vibrant Visuals): nothing to rebuild.
-   From 1.2 or older: version 1.3 adds cameras, the supply duct, the vent and shaft seals, the lore rooms and the night 8-9
-   buttons, so the action bar asks you to rebuild: run **`/fb:setup`** and wait for the title. Unlocked nights, secrets,
-   endings and settings are kept: if you already beat night 7, night 8 is open (Morgrave if your last ending was *seal*,
-   Valek if it was *burn*).
+   version 1.4.0; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
+   Check **Resource Packs** too: only the 1.4.0 resource pack should be active.
+3. Enter the world. Version 1.4 changes the map (the ceiling vent over the office, its grate and the VENT GRATE button,
+   a new camera, renumbered camera buttons), so the action bar asks you to rebuild: run **`/fb:setup`** once and wait for
+   the title. Unlocked nights, secrets, endings and settings are kept: if you already beat night 7, night 8 is open
+   (Morgrave if your last ending was *seal*, Valek if it was *burn*).
+4. **The cameras have new numbers** (1.4): neighbouring cameras now have neighbouring numbers. CAM 01-05 are the stage,
+   backstage, Parts & Service, Starlight Cove and the arcade; 06-07 the dining hall; 08-09 the kitchen and the east service
+   hall; 10-14 round the office (east hall, east corner, the ceiling vent, west corner, west hall); 15-16 the supply closet
+   and its duct; 17-22 below (office subfloor, maintenance tunnel, diner kitchen, party room, sealed diner, Fredbear's
+   chamber).
 
 ## The time clock (lobby)
 
@@ -61,7 +65,7 @@ night 4, a short **1983 flashback** plays before the shift (sneak to skip).
 ## The office
 
 ```
-                 north wall: camera MAP (21 buttons, one per camera; press to view that feed)
+                 north wall: camera MAP (22 buttons, one per camera; press to view that feed) + VENT GRATE
    LEFT WINDOW ┐ ┌───────────────────────────────────────────────┐ ┌ RIGHT WINDOW
    LEFT DOOR ──┤ │ DOOR  LIGHT  MONITOR  HATCH  STROBE  BREAKER  PHONE  LIGHT  DOOR │ ├── RIGHT DOOR
                │ │ (L)   (L)                                                (R)  (R)  │ │
@@ -78,8 +82,9 @@ night 4, a short **1983 flashback** plays before the shift (sneak to skip).
 | **MONITOR** (dark) | raises the camera monitor (your view moves to the selected camera) | 0.06 %/s |
 | **HATCH** (gold, nights 4+) | seals the floor hatch Fredbear can climb through | 0.14 %/s |
 | **STROBE** (orange, nights 4+) | emergency strobe: repels Fredbear **only when the barrier he is at is closed**. Charges: 4 on night 4, 5 on night 5, 6 on nights 6, 7 and 9 | 2 % per shot |
-| **SEAL VENT** (white) | drops a shutter into the supply duct for 20 s (Bonnie's vent; Morgrave's duct); 15 s to recharge | 3 % per use |
-| **SEAL SHAFT** (gold, when the hatch is installed) | the same for the crawlspace below the office hatch (Fredbear's and Morgrave's way up) | 3 % per use |
+| **SEAL VENT** (white) | drops a shutter into the supply duct for 20 s (Bonnie's vent); 15 s to recharge | 3 % per use |
+| **SEAL SHAFT** (gold, when the hatch is installed) | the same for the crawlspace below the office hatch (Fredbear's way up) | 3 % per use |
+| **VENT GRATE** (gold, right end of the camera map, 1.4) | opens / closes the grate of the **ceiling vent** above the desk (lamp on the north wall: amber closed, green open). Closed at the start of every night; only Morgrave and Valek use that vent | 0.12 %/s while open |
 | **RESET BREAKER** | restores the hall lights after Chica trips the breaker (2 s) | 1 % |
 | **PHONE** | replays tonight's phone call | — |
 | **RESERVE** lever (nights 3+) | at 0 % power you have 5 s to pull it for one +8 % top-up | — |
@@ -100,10 +105,10 @@ The action bar shows time, power %, usage bars and captions.
 * **Camera map**: while you watch the cameras, a map of the building sits in the bottom-right corner of the screen, like
   FNAF 1: every camera is a numbered box, the one you are on blinks green, and YOU marks the office. The basement cameras
   are on the left. Switch it off in Settings if it is in the way.
-* CAM 10 (kitchen) is **audio only**: you hear Chica's clatter through it. CAM 16, 19, 20 and 21 (the sealed diner, Fredbear's
-  chamber, the party room and the diner kitchen) have no signal before night 4.
-* CAM 17 looks at the subfloor under the office hatch (whoever climbs up passes it) and CAM 18 into the supply duct (Bonnie
-  and Morgrave crawl through it to the left door).
+* CAM 08 (kitchen) is **audio only**: you hear Chica's clatter through it. CAM 19-22 (the diner kitchen, the party room, the
+  sealed diner and Fredbear's chamber) have no signal before night 4.
+* CAM 17 looks at the subfloor under the office hatch (whoever climbs up passes it), CAM 16 into the supply duct (Bonnie
+  crawls through it to the left door) and CAM 12 along the crawlspace above the office at the ceiling-vent grate.
 * **They stare back**: whoever you watch on a feed for a couple of seconds slowly turns to look straight into the lens.
 * From night 2, very rarely, a **black Fredbear silhouette** stands on the show stage. Don't stare at it: watching it for
   3 seconds costs 1 % power and it vanishes.
@@ -125,7 +130,7 @@ On touch screens these items show an on-screen interact button (Cameras / Office
 ## How to survive
 
 * **Power** lasts the night only if you use doors and lights when needed. At 0 % everything shuts off.
-* **Bonnie** (left side; from night 2 he can also flank to the right door and crawl through a vent - CAM 18 shows him in the
+* **Bonnie** (left side; from night 2 he can also flank to the right door and crawl through a vent - CAM 16 shows him in the
   duct, SEAL VENT keeps him out): footsteps and a groan; light the corner, close the door while he stands there, open it when
   he leaves. On hard nights he may **bang on the left door** to keep your eyes there while Chica sneaks to the right one.
 * **Chica** (right side, through the kitchen): kitchen clatter means she is in the kitchen; breathing at the right door means
@@ -151,16 +156,20 @@ On touch screens these items show an on-screen interact button (Cameras / Office
   attempts he blinks from room to room all over the pizzeria, even onto the main stage. Freddy, Bonnie and Chica sit switched
   off in Parts & Service. 6 strobe charges and the reserve lever. At 6 AM you choose: **seal** him in the chamber, or
   **burn** the pizzeria. Each choice has its own ending, and it decides night 8.
-* **Night 8 after the seal — Morgrave**, the rabbit in the walls: scraping inside the walls when he comes out (the caption
-  names the route), vent clanks, never footsteps. He crawls through the supply duct (CAM 18) to the left door, or through the
-  crawlspace (CAM 17) up under the hatch. **Seal** the duct or the shaft in front of him and he gives up; or close the left
-  door / the hatch when he gets there. You will not always hear him arrive.
-* **Night 8 after the burn — Valek**, the gray bear: only his two small eyes, stepping from dark spot to dark spot down the
-  West or East Hall, and only while you are not watching his spot. He **lies**: half his steps sound like someone else on the
-  other side of the building. At the door corner: **light him and he vanishes - but comes back angrier and closer; hold the
-  door shut and he backs off**; leave the corner dark and open and he attacks.
+* **Night 8 after the seal — Morgrave**, the rabbit who only wants to be let in. He comes out of the walls at the left
+  door, the right door or the **ceiling vent** and **knocks softly three times**. **Open** that door (or the VENT GRATE) and
+  he walks past the office (crawls past over the grate) and goes away; he shuts the grate behind him. Keep it shut and the
+  knocking gets louder, then turns to pounding, and then he breaks through. The risk: Freddy, Bonnie and Chica are hunting
+  too, so check the light before you open a door. He never breaks a door while one of them is standing at it, and once they
+  leave you still have 3 seconds.
+* **Night 8 after the burn — Valek**, the gray bear: a **staring contest**. His two small eyes appear in the dark at the
+  left door, the right door (through the window) or the ceiling vent (through the grate, look up). **Look straight at
+  them and keep looking**: after a few seconds he looks away first and is gone. Look away for more than a moment, or raise
+  the cameras, and he steps closer; do it again and he attacks. Doors do not stop him. His head follows you while he
+  stares, wherever you move in the office.
 * **Night 9 — Three Below**: whatever you chose, Fredbear, Morgrave and Valek come for you together. No music, the trio switched
-  off in Parts & Service. Very hard on purpose.
+  off in Parts & Service. Very hard on purpose: you may have to let Morgrave in while Valek is staring at you (a quick
+  press is forgiven while his eyes are far away, not once they are close).
 
 ## Music
 

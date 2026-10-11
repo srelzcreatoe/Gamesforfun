@@ -10,7 +10,7 @@
 // * Laughter cue whenever he advances within ~60 blocks of the office.
 // * His telegraph is LURK at the RIGHT door (different from Bonnie/Chica):
 //     - right door closed for 5 s -> he retreats;
-//     - door open while the player is on cameras (any feed except CAM 13)
+//     - door open while the player is on cameras (any feed except CAM 11)
 //       for 2 s -> he slips into the office and attacks when the monitor
 //       goes down (or after 5 more seconds);
 //     - door open and player off cameras -> he waits out his patience
@@ -191,7 +191,7 @@ export class Freddy extends Animatronic {
     this.closedTicks = 0;
     if (s.blackout.stage === 'on') return;
     const cams = s.devices.cams;
-    if (cams.open && cams.cam !== 'C13') this.slip++;
+    if (cams.open && cams.cam !== 'C11') this.slip++;
     if (this.slip >= this.cfg.slipTicks && !this.slipped) {
       this.slipped = true;
       this.hidden = true; // he is now inside the office, out of the corner

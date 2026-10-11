@@ -119,7 +119,7 @@ export const PHONE = Object.freeze({
     "You sealed him in. Good. But he wasn't alone down there.",
     "There was a rabbit at the diner. His partner. They walled it in with him in '83 and nobody wrote it down.",
     'It does not walk the halls. It lives in the walls: the supply duct on the left, the crawlspace under your hatch.',
-    "Listen for scraping. Watch CAM 18 and CAM 17. The new SEAL buttons on your desk close the duct and the shaft for a while.",
+    "Listen for scraping. Watch CAM 16 and CAM 17. The new SEAL buttons on your desk close the duct and the shaft for a while.",
   ],
   '8_burn': [
     "You burned it. Most of it. They rebuilt the rest in a week, like nothing happened.",

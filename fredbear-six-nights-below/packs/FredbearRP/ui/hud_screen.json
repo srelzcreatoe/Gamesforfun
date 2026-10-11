@@ -573,6 +573,31 @@
             }
           ]
         }
+      },
+      {
+        "fb_cam_map_c22": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c22",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§2§2')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
       }
     ]
   },

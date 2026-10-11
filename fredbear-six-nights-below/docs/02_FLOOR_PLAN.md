@@ -51,15 +51,15 @@ Box = outer wall box `[x1, z1, x2, z2]` in local coordinates (walls included).
 
 | ID | Name | Level | Box (local) | World NW corner | Zone | Purpose |
 |---|---|---|---|---|---|---|
-| PARTS | Parts & Service | L1 | 16, 12, 52, 40 | 16 -50 12 | staff | Spare endoskeletons and heads; freight stairs to the basement; CAM 06. |
-| BACKSTAGE | Backstage | L1 | 52, 12, 76, 40 | 52 -50 12 | staff | Bonnie route node; spare-head shelves; CAM 03. |
+| PARTS | Parts & Service | L1 | 16, 12, 52, 40 | 16 -50 12 | staff | Spare endoskeletons and heads; freight stairs to the basement; CAM 03. |
+| BACKSTAGE | Backstage | L1 | 52, 12, 76, 40 | 52 -50 12 | staff | Bonnie route node; spare-head shelves; CAM 02. |
 | STAGE | Show Stage | L1 | 76, 12, 124, 40 | 76 -50 12 | public | Start positions of Freddy, Bonnie and Chica; lighting catwalk above; CAM 01. |
 | PROPS | Prop & Costume Storage | L1 | 124, 12, 148, 40 | 124 -50 12 | staff | Costume racks and props; ladder to the stage loft. |
-| KITCHEN | Kitchen | L1 | 148, 12, 184, 50 | 148 -50 12 | staff | Chica clatter and breaker sabotage; loading door; CAM 10 is audio-only. |
+| KITCHEN | Kitchen | L1 | 148, 12, 184, 50 | 148 -50 12 | staff | Chica clatter and breaker sabotage; loading door; CAM 08 is audio-only. |
 | COVE | Fredbear's Starlight Cove | L1 | 16, 40, 52, 70 | 16 -50 40 | public | Curtained side stage, OUT OF ORDER. Fredbear foreshadowing; CAM 04. |
-| DINING | Main Dining Hall | L1 | 52, 40, 148, 100 | 52 -50 40 | public | Central hub joining every public route; CAM 02. |
+| DINING | Main Dining Hall | L1 | 52, 40, 148, 100 | 52 -50 40 | public | Central hub joining every public route; CAM 06. |
 | PANTRY | Pantry & Receiving | L1 | 148, 50, 184, 62 | 148 -50 50 | staff | Dry stores between kitchen and service corridor. |
-| E_SERVICE | East Service Corridor | L1 | 148, 62, 156, 100 | 148 -50 62 | staff | Chica and Freddy staff route; CAM 11. |
+| E_SERVICE | East Service Corridor | L1 | 148, 62, 156, 100 | 148 -50 62 | staff | Chica and Freddy staff route; CAM 09. |
 | STAFF_STAIRS | Staff Stairwell | L1 | 156, 62, 166, 80 | 156 -50 62 | staff | Stairs to the basement maintenance tunnels. |
 | FREEZER | Walk-in Freezer | L1 | 166, 62, 184, 80 | 166 -50 62 | staff | Cold storage, hanging chains; story note. |
 | RESTROOM_HALL | Restroom Vestibule | L1 | 156, 80, 184, 86 | 156 -50 80 | public | Access to restrooms. |
@@ -70,14 +70,14 @@ Box = outer wall box `[x1, z1, x2, z2]` in local coordinates (walls included).
 | GIFT | Gift Shop | L1 | 16, 124, 52, 152 | 16 -50 124 | public | Plush shelves; front-of-house loop. |
 | PARTY_C | Party Room C | L1 | 52, 100, 84, 116 | 52 -50 100 | public | Links dining, prize counter and the west hall. |
 | LOCKERS | Staff Lockers | L1 | 52, 116, 72, 140 | 52 -50 116 | staff | Lockers; previous guard notes. |
-| SUPPLY | Supply Closet | L1 | 72, 116, 84, 140 | 72 -50 116 | staff | Bonnie's maintenance-duct shortcut to the west alcove; CAM 09. |
-| W_HALL | West Hall | L1 | 84, 100, 90, 134 | 84 -50 100 | restricted | Left approach to the office; CAM 07. |
-| W_ALCOVE | West Hall Corner | L1 | 90, 126, 94, 134 | 90 -50 126 | restricted | Blind corner outside the left door; lit by the left hall light; CAM 08. |
-| PARTY_A | Party Room A | L1 | 90, 100, 110, 112 | 90 -50 100 | public | Cross-link between the halls (Bonnie flank route); CAM 14. |
+| SUPPLY | Supply Closet | L1 | 72, 116, 84, 140 | 72 -50 116 | staff | Bonnie's maintenance-duct shortcut to the west alcove; CAM 15. |
+| W_HALL | West Hall | L1 | 84, 100, 90, 134 | 84 -50 100 | restricted | Left approach to the office; CAM 14. |
+| W_ALCOVE | West Hall Corner | L1 | 90, 126, 94, 134 | 90 -50 126 | restricted | Blind corner outside the left door; lit by the left hall light; CAM 13. |
+| PARTY_A | Party Room A | L1 | 90, 100, 110, 112 | 90 -50 100 | public | Cross-link between the halls (Bonnie flank route); CAM 07. |
 | PARTY_B | Party Room B | L1 | 90, 112, 110, 126 | 90 -50 112 | public | Small party room north of the office. |
 | OFFICE | Security Office | L1 | 94, 126, 106, 140 | 94 -50 126 | safe | Player station: doors, lights, cameras, power, strobe, hatch. |
-| E_ALCOVE | East Hall Corner | L1 | 106, 126, 110, 134 | 106 -50 126 | restricted | Blind corner outside the right door; lit by the right hall light; CAM 13. |
-| E_HALL | East Hall | L1 | 110, 100, 116, 134 | 110 -50 100 | restricted | Right approach to the office; CAM 12. |
+| E_ALCOVE | East Hall Corner | L1 | 106, 126, 110, 134 | 106 -50 126 | restricted | Blind corner outside the right door; lit by the right hall light; CAM 11. |
+| E_HALL | East Hall | L1 | 110, 100, 116, 134 | 110 -50 100 | restricted | Right approach to the office; CAM 10. |
 | PARTY_D | Party Room D | L1 | 116, 100, 148, 116 | 116 -50 100 | public | Joins dining, east hall and the employee entrance. |
 | JANITOR | Janitor Closet | L1 | 116, 116, 128, 140 | 116 -50 116 | staff | Mops, buckets; secret note. |
 | STAFF_BREAK | Staff Break Room | L1 | 128, 116, 148, 140 | 128 -50 116 | staff | Break room; stairs to management. |
@@ -99,7 +99,7 @@ Box = outer wall box `[x1, z1, x2, z2]` in local coordinates (walls included).
 | BOILER | Boiler & Machinery Hall | L0 | 76, 12, 124, 72 | 76 -59 12 | staff | Boilers, pipes and tanks below the stage and dining hall. |
 | KITCHEN_CELLAR | Kitchen Cellar | L0 | 148, 12, 184, 50 | 148 -59 12 | staff | Cold cellar under the kitchen. |
 | CHAMBER | Fredbear's Chamber | L0 | 16, 28, 52, 44 | 16 -59 28 | secret | Fredbear's dormant node and the campaign ending set. |
-| DINER | Sealed Diner (Fredbear's Family Diner, 1983) | L0 | 16, 44, 64, 96 | 16 -59 44 | secret | The original diner the pizzeria was built over; Fredbear stirring node; CAM 16. |
+| DINER | Sealed Diner (Fredbear's Family Diner, 1983) | L0 | 16, 44, 64, 96 | 16 -59 44 | secret | The original diner the pizzeria was built over; Fredbear stirring node; CAM 21. |
 | DINER_KITCHEN | Diner Back Kitchen | L0 | 16, 96, 40, 112 | 16 -59 96 | secret | Entrance to the old crawlspace. |
 | CRAWL_D | Old Crawlspace | L0 | 36, 112, 92, 116 | 36 -59 112 | secret | Fredbear's hidden route toward the office subfloor. |
 | TUNNEL_W | West Maintenance Tunnel | L0 | 64, 72, 70, 110 | 64 -59 72 | staff | Passes the bricked diner entrance. |
@@ -108,7 +108,7 @@ Box = outer wall box `[x1, z1, x2, z2]` in local coordinates (walls included).
 | TUNNEL_E | East Maintenance Tunnel | L0 | 150, 62, 156, 104 | 150 -59 62 | staff | Links the staff stairwell to the tunnels. |
 | PUMP | Pump Room | L0 | 70, 78, 100, 104 | 70 -59 78 | staff | Water pumps and pipes. |
 | ARCHIVE | Old Archive | L0 | 100, 78, 120, 104 | 100 -59 78 | staff | Diner-era records and newspaper clippings. |
-| GENERATOR | Generator Room | L0 | 120, 78, 150, 104 | 120 -59 78 | staff | Main generator; Night 3 pre-shift and mid-night maintenance; CAM 15. |
+| GENERATOR | Generator Room | L0 | 120, 78, 150, 104 | 120 -59 78 | staff | Main generator; Night 3 pre-shift and mid-night maintenance; CAM 18. |
 | ELECTRICAL | Electrical Maintenance | L0 | 156, 80, 184, 104 | 156 -59 80 | staff | Breaker banks; Night 5 mid-night maintenance. |
 | CRAWL_A | Subfloor Access | L0 | 97, 110, 103, 112 | 97 -59 110 | restricted | Short crawl from the south tunnel to the office subfloor. |
 | SUBFLOOR | Office Subfloor | L0 | 92, 112, 108, 142 | 92 -59 112 | restricted | Crawlspace below the office leading to the maintenance hatch. |
@@ -126,95 +126,96 @@ Openings: 83 doors, archways and windows. Stairs, ladders and the office hatch:
 | LOFT_LADDER | ladder | 146 30 | - | 0 → 8 |
 | OFFICE_HATCH | hatch | 99 136 | - | -9 → 0 |
 | VENT_DUCT | duct | undefined undefined | - | - → - |
+| CEILING_VENT | ceilvent | undefined undefined | - | - → - |
 
 ## Security cameras (16)
 
 | ID | Label | Room | Position (local) | Looks at (local) | Sees nodes | Farthest point from office seat | Notes |
 |---|---|---|---|---|---|---|---|
 | C01 | CAM 01 · SHOW STAGE | STAGE | 100.5 5 50.5 | 100.5 1.5 22.5 | STAGE_F, STAGE_B, STAGE_C, STAGE_FRONT | 109 blocks (7 chunks) | - |
-| C02 | CAM 02 · DINING HALL WEST | DINING | 98.5 11 98.5 | 72 0 66 | DIN_NW, DIN_W, DIN_C, DIN_SW, STAGE_B, STAGE_F, STAGE_FRONT | 109 blocks (7 chunks) | - |
-| C03 | CAM 03 · BACKSTAGE | BACKSTAGE | 74.5 4.5 38.5 | 58.5 0.5 15.5 | BACK | 123 blocks (8 chunks) | - |
+| C02 | CAM 02 · BACKSTAGE | BACKSTAGE | 74.5 4.5 38.5 | 58.5 0.5 15.5 | BACK | 123 blocks (8 chunks) | - |
+| C03 | CAM 03 · PARTS & SERVICE | PARTS | 50.5 5.4 38.5 | 22.5 0.5 14.5 | PARTS, PARTS_F, PARTS_B, PARTS_C, V_HOME | 141 blocks (9 chunks) | - |
 | C04 | CAM 04 · STARLIGHT COVE | COVE | 50.5 2.8 58.5 | 21.5 1.5 55.5 | COVE_FRONT, COVE_STAGE | 110 blocks (7 chunks) | - |
 | C05 | CAM 05 · ARCADE | ARCADE | 50.5 5.4 102.5 | 24.5 0.5 76.5 | ARCADE | 94 blocks (6 chunks) | - |
-| C06 | CAM 06 · PARTS & SERVICE | PARTS | 50.5 5.4 38.5 | 22.5 0.5 14.5 | PARTS, PARTS_F, PARTS_B, PARTS_C, V_HOME | 141 blocks (9 chunks) | - |
-| C07 | CAM 07 · WEST HALL | W_HALL | 87.5 4.6 98.5 | 87.5 0.5 128.5 | WH_N, WH_M, WH_S | 35 blocks (3 chunks) | - |
-| C08 | CAM 08 · WEST CORNER | W_ALCOVE | 91.5 4.6 127.5 | 92.5 0.8 132.5 | W_DOOR | 10 blocks (1 chunks) | - |
-| C09 | CAM 09 · SUPPLY CLOSET | SUPPLY | 82.5 4.5 138.5 | 76.5 0.5 120.5 | SUP | 26 blocks (2 chunks) | - |
-| C10 | CAM 10 · KITCHEN (AUDIO ONLY) | KITCHEN | 182.5 4.5 48.5 | 160.5 0.5 20.5 | KIT | 126 blocks (8 chunks) | audio only |
-| C11 | CAM 11 · EAST SERVICE | E_SERVICE | 152.5 4.6 63.2 | 152.5 0.5 99.5 | ES_N, ES_M, ES_S, EMP | 86 blocks (6 chunks) | - |
-| C12 | CAM 12 · EAST HALL | E_HALL | 113.5 4.6 98.5 | 113.5 0.5 128.5 | EH_N, EH_M, EH_S | 35 blocks (3 chunks) | - |
-| C13 | CAM 13 · EAST CORNER | E_ALCOVE | 108.5 4.6 127.5 | 107.5 0.8 132.5 | E_DOOR, E_DOOR_B | 9 blocks (1 chunks) | - |
-| C14 | CAM 14 · DINING HALL EAST | DINING | 102.5 11 98.5 | 140.5 0 62.5 | DIN_E, DIN_EE, DIN_SE, STAGE_C | 108 blocks (7 chunks) | - |
-| C15 | CAM 15 · MAINTENANCE TUNNEL | TUNNEL_S | 72.5 -4.6 107.5 | 110.5 -9 107 | TS_W, TS_MID | 37 blocks (3 chunks) | - |
-| C16 | CAM 16 · SEALED DINER | DINER | 62.5 -4.6 94.5 | 40.5 -8 50.5 | DINER_STAGE, DINER_FLOOR | 101 blocks (7 chunks) | no signal before night 4 |
+| C06 | CAM 06 · DINING HALL WEST | DINING | 98.5 11 98.5 | 72 0 66 | DIN_NW, DIN_W, DIN_C, DIN_SW, STAGE_B, STAGE_F, STAGE_FRONT | 109 blocks (7 chunks) | - |
+| C07 | CAM 07 · DINING HALL EAST | DINING | 102.5 11 98.5 | 140.5 0 62.5 | DIN_E, DIN_EE, DIN_SE, STAGE_C | 108 blocks (7 chunks) | - |
+| C08 | CAM 08 · KITCHEN (AUDIO ONLY) | KITCHEN | 182.5 4.5 48.5 | 160.5 0.5 20.5 | KIT | 126 blocks (8 chunks) | audio only |
+| C09 | CAM 09 · EAST SERVICE | E_SERVICE | 152.5 4.6 63.2 | 152.5 0.5 99.5 | ES_N, ES_M, ES_S, EMP | 86 blocks (6 chunks) | - |
+| C10 | CAM 10 · EAST HALL | E_HALL | 113.5 4.6 98.5 | 113.5 0.5 128.5 | EH_N, EH_M, EH_S | 35 blocks (3 chunks) | - |
+| C11 | CAM 11 · EAST CORNER | E_ALCOVE | 108.5 4.6 127.5 | 107.5 0.8 132.5 | E_DOOR, E_DOOR_B | 9 blocks (1 chunks) | - |
+| C12 | CAM 12 · CEILING VENT | CRAWL_UP | 111.5 9.6 127.5 | 101.5 7.9 127.9 | - | 12 blocks (1 chunks) | - |
+| C13 | CAM 13 · WEST CORNER | W_ALCOVE | 91.5 4.6 127.5 | 92.5 0.8 132.5 | W_DOOR | 10 blocks (1 chunks) | - |
+| C14 | CAM 14 · WEST HALL | W_HALL | 87.5 4.6 98.5 | 87.5 0.5 128.5 | WH_N, WH_M, WH_S | 35 blocks (3 chunks) | - |
+| C15 | CAM 15 · SUPPLY CLOSET | SUPPLY | 82.5 4.5 138.5 | 76.5 0.5 120.5 | SUP | 26 blocks (2 chunks) | - |
+| C16 | CAM 16 · SUPPLY DUCT | VENT | 80.5 -2.5 132.5 | 92.5 -2.5 132.5 | VENT_W | 20 blocks (2 chunks) | - |
 | C17 | CAM 17 · OFFICE SUBFLOOR | SUBFLOOR | 106.5 -6.5 114.5 | 100 -8 135 | SUB_N | 18 blocks (2 chunks) | - |
-| C18 | CAM 18 · SUPPLY DUCT | VENT | 80.5 -2.5 132.5 | 92.5 -2.5 132.5 | VENT_W | 20 blocks (2 chunks) | - |
-| C19 | CAM 19 · FREDBEAR'S CHAMBER | CHAMBER | 49.5 -4.8 42.5 | 30 -9 35 | CHAMBER_F, M_HOME | 122 blocks (8 chunks) | no signal before night 4 |
+| C18 | CAM 18 · MAINTENANCE TUNNEL | TUNNEL_S | 72.5 -4.6 107.5 | 110.5 -9 107 | TS_W, TS_MID | 37 blocks (3 chunks) | - |
+| C19 | CAM 19 · DINER KITCHEN | DINER_KITCHEN | 38.5 -5 110.5 | 20 -9 98 | DINER_KITCHEN | 87 blocks (6 chunks) | no signal before night 4 |
 | C20 | CAM 20 · DINER PARTY ROOM | DINER | 20.5 -4.6 60.5 | 48 -9 88 | DINER_FLOOR, DINER_KITCHEN | 107 blocks (7 chunks) | no signal before night 4 |
-| C21 | CAM 21 · DINER KITCHEN | DINER_KITCHEN | 38.5 -5 110.5 | 20 -9 98 | DINER_KITCHEN | 87 blocks (6 chunks) | no signal before night 4 |
+| C21 | CAM 21 · SEALED DINER | DINER | 62.5 -4.6 94.5 | 40.5 -8 50.5 | DINER_STAGE, DINER_FLOOR | 101 blocks (7 chunks) | no signal before night 4 |
+| C22 | CAM 22 · FREDBEAR'S CHAMBER | CHAMBER | 49.5 -4.8 42.5 | 30 -9 35 | CHAMBER_F, M_HOME | 122 blocks (8 chunks) | no signal before night 4 |
 
 **Rendering reach.** Camera views move the player's *view* (`minecraft:free` camera) but not the player, so what a feed can show is limited by what the client has loaded around the player in the office. The farthest point any feed must show is 141 blocks (9 chunks) from the office seat. Ticking areas keep those chunks *simulated* (puppets keep being teleported and synced) but do not by themselves make them *render*; set the render distance to at least 11 chunks (docs/08_INSTALL_AND_PLAY.md). Whether distant feeds render correctly at lower settings has not been verified in-game.
 
 ## AI route graph
 
-55 nodes and 61 edges. Every edge is a polyline of waypoints the puppet follows; tools/validate_map.mjs samples every 0.5 blocks of every polyline against the voxel model (body + head cells must be passable), and the in-game self-test repeats the check against the built world.
+54 nodes and 60 edges. Every edge is a polyline of waypoints the puppet follows; tools/validate_map.mjs samples every 0.5 blocks of every polyline against the voxel model (body + head cells must be passable), and the in-game self-test repeats the check against the built world.
 Access letters: B = bonnie, C = chica, F = freddy, G = fredbear, M = morgrave, V = valek. Entries: L → W_DOOR (barrier door_l), R → E_DOOR (barrier door_r), H → H_DOOR (barrier hatch). Fredbear's golden nodes: COVE_STAGE, WH_S, EH_S, DINER_STAGE, CRAWL_MID, SUB_N.
 
 | Node | Room | Local x y z | Flags | Seen by |
 |---|---|---|---|---|
-| STAGE_F | STAGE | 100.5 1 22.5 | home of freddy, zone far | C01, C02 |
-| STAGE_B | STAGE | 93.5 1 23.5 | home of bonnie, zone far | C01, C02 |
-| STAGE_C | STAGE | 107.5 1 23.5 | home of chica, zone far | C01, C14 |
-| STAGE_FRONT | STAGE | 100.5 0 35.5 | zone far | C01, C02 |
-| BACK | BACKSTAGE | 64.5 0 26.5 | zone far | C03 |
-| PARTS | PARTS | 34.5 0 26.5 | dark, zone far | C06 |
+| STAGE_F | STAGE | 100.5 1 22.5 | home of freddy, zone far | C01, C06 |
+| STAGE_B | STAGE | 93.5 1 23.5 | home of bonnie, zone far | C01, C06 |
+| STAGE_C | STAGE | 107.5 1 23.5 | home of chica, zone far | C01, C07 |
+| STAGE_FRONT | STAGE | 100.5 0 35.5 | zone far | C01, C06 |
+| BACK | BACKSTAGE | 64.5 0 26.5 | zone far | C02 |
+| PARTS | PARTS | 34.5 0 26.5 | dark, zone far | C03 |
 | PRP | PROPS | 136.5 0 24.5 | dark, zone far | - |
-| PARTS_F | PARTS | 30.5 0 17.5 | dark, zone far | C06 |
-| PARTS_B | PARTS | 26.5 0 17.5 | dark, zone far | C06 |
-| PARTS_C | PARTS | 34.5 0 17.5 | dark, zone far | C06 |
-| V_HOME | PARTS | 21.5 0 33.5 | home of valek, dark, zone far | C06 |
-| DIN_NW | DINING | 64.5 0 50.5 | zone mid | C02 |
-| DIN_W | DINING | 62.5 0 84.5 | zone mid | C02 |
-| DIN_C | DINING | 100.5 0 70.5 | zone mid | C02 |
-| DIN_E | DINING | 136.5 0 58.5 | zone mid | C14 |
-| DIN_EE | DINING | 140.5 0 80.5 | zone mid | C14 |
-| DIN_SW | DINING | 87.5 0 94.5 | zone mid | C02 |
-| DIN_SE | DINING | 113.5 0 94.5 | zone mid | C14 |
+| PARTS_F | PARTS | 30.5 0 17.5 | dark, zone far | C03 |
+| PARTS_B | PARTS | 26.5 0 17.5 | dark, zone far | C03 |
+| PARTS_C | PARTS | 34.5 0 17.5 | dark, zone far | C03 |
+| V_HOME | PARTS | 21.5 0 33.5 | home of valek, dark, zone far | C03 |
+| DIN_NW | DINING | 64.5 0 50.5 | zone mid | C06 |
+| DIN_W | DINING | 62.5 0 84.5 | zone mid | C06 |
+| DIN_C | DINING | 100.5 0 70.5 | zone mid | C06 |
+| DIN_E | DINING | 136.5 0 58.5 | zone mid | C07 |
+| DIN_EE | DINING | 140.5 0 80.5 | zone mid | C07 |
+| DIN_SW | DINING | 87.5 0 94.5 | zone mid | C06 |
+| DIN_SE | DINING | 113.5 0 94.5 | zone mid | C07 |
 | COVE_FRONT | COVE | 36.5 0 55.5 | dark, zone far | C04 |
 | COVE_STAGE | COVE | 21.5 1 55.5 | golden, dark, zone far | C04 |
 | ARCADE | ARCADE | 34.5 0 87.5 | zone far | C05 |
 | PC | PARTY_C | 68.5 0 108.5 | zone mid | - |
-| SUP | SUPPLY | 78.5 0 128.5 | dark, zone near | C09 |
-| M_SUP | SUPPLY | 81.5 0 137.5 | dark, zone near | - |
-| VENT_W | VENT | 86.5 -3 132.5 | dark, crawl, zone near | C18 |
-| WH_N | W_HALL | 87.5 0 103.5 | dark, zone mid | C07 |
-| WH_M | W_HALL | 87.5 0 116.5 | dark, zone near | C07 |
-| WH_S | W_HALL | 87.5 0 130.5 | golden, dark, zone near | C07 |
-| W_DOOR | W_ALCOVE | 92.5 0 130 | dark, entry L, zone entry | C08 |
+| SUP | SUPPLY | 78.5 0 128.5 | dark, zone near | C15 |
+| VENT_W | VENT | 86.5 -3 132.5 | dark, crawl, zone near | C16 |
+| WH_N | W_HALL | 87.5 0 103.5 | dark, zone mid | C14 |
+| WH_M | W_HALL | 87.5 0 116.5 | dark, zone near | C14 |
+| WH_S | W_HALL | 87.5 0 130.5 | golden, dark, zone near | C14 |
+| W_DOOR | W_ALCOVE | 92.5 0 130 | dark, entry L, zone entry | C13 |
 | PA | PARTY_A | 100.5 0 106.5 | zone mid | - |
-| EH_N | E_HALL | 113.5 0 103.5 | dark, zone mid | C12 |
-| EH_M | E_HALL | 113.5 0 116.5 | dark, zone near | C12 |
-| EH_S | E_HALL | 113.5 0 130.5 | golden, dark, zone near | C12 |
-| E_DOOR | E_ALCOVE | 107.5 0 130 | dark, entry R, zone entry | C13 |
-| E_DOOR_B | E_ALCOVE | 108.5 0 132.5 | dark, entry R, zone entry | C13 |
+| EH_N | E_HALL | 113.5 0 103.5 | dark, zone mid | C10 |
+| EH_M | E_HALL | 113.5 0 116.5 | dark, zone near | C10 |
+| EH_S | E_HALL | 113.5 0 130.5 | golden, dark, zone near | C10 |
+| E_DOOR | E_ALCOVE | 107.5 0 130 | dark, entry R, zone entry | C11 |
+| E_DOOR_B | E_ALCOVE | 108.5 0 132.5 | dark, entry R, zone entry | C11 |
 | PD | PARTY_D | 130.5 0 108.5 | zone mid | - |
-| EMP | EMPLOYEE | 152.5 0 106.5 | zone mid | C11 |
-| KIT | KITCHEN | 166.5 0 30.5 | dark, kitchen, zone far | C10 |
+| EMP | EMPLOYEE | 152.5 0 106.5 | zone mid | C09 |
+| KIT | KITCHEN | 166.5 0 30.5 | dark, kitchen, zone far | C08 |
 | PAN | PANTRY | 156.5 0 56.5 | dark, zone far | - |
-| ES_N | E_SERVICE | 152.5 0 72.5 | dark, zone mid | C11 |
-| ES_M | E_SERVICE | 152.5 0 81.5 | dark, zone mid | C11 |
-| ES_S | E_SERVICE | 152.5 0 96.5 | dark, zone mid | C11 |
+| ES_N | E_SERVICE | 152.5 0 72.5 | dark, zone mid | C09 |
+| ES_M | E_SERVICE | 152.5 0 81.5 | dark, zone mid | C09 |
+| ES_S | E_SERVICE | 152.5 0 96.5 | dark, zone mid | C09 |
 | RH | RESTROOM_HALL | 162.5 0 83.5 | dark, zone mid | - |
-| CHAMBER_F | CHAMBER | 34.5 -9 36.5 | home of fredbear, dark, zone far | C19 |
-| M_HOME | CHAMBER | 22.5 -9 37.5 | home of morgrave, dark, zone far | C19 |
-| DINER_STAGE | DINER | 40.5 -8 50.5 | golden, dark, zone far | C16 |
-| DINER_FLOOR | DINER | 40.5 -9 70.5 | dark, zone far | C16, C20 |
-| DINER_KITCHEN | DINER_KITCHEN | 28.5 -9 104.5 | dark, zone far | C20, C21 |
+| CHAMBER_F | CHAMBER | 34.5 -9 36.5 | home of fredbear, dark, zone far | C22 |
+| M_HOME | CHAMBER | 22.5 -9 37.5 | home of morgrave, dark, zone far | C22 |
+| DINER_STAGE | DINER | 40.5 -8 50.5 | golden, dark, zone far | C21 |
+| DINER_FLOOR | DINER | 40.5 -9 70.5 | dark, zone far | C20, C21 |
+| DINER_KITCHEN | DINER_KITCHEN | 28.5 -9 104.5 | dark, zone far | C19, C20 |
 | CRAWL_MID | CRAWL_D | 64.5 -9 114 | golden, dark, crawl, zone mid | - |
 | CRAWL_END | CRAWL_D | 90.5 -9 114 | dark, crawl, zone near | - |
 | TW_SEAL | TUNNEL_W | 67 -9 85.5 | dark, zone mid | - |
-| TS_W | TUNNEL_S | 75.5 -9 107 | dark, zone mid | C15 |
-| TS_MID | TUNNEL_S | 100 -9 107 | dark, zone mid | C15 |
+| TS_W | TUNNEL_S | 75.5 -9 107 | dark, zone mid | C18 |
+| TS_MID | TUNNEL_S | 100 -9 107 | dark, zone mid | C18 |
 | SUB_N | SUBFLOOR | 100.5 -9 118.5 | golden, dark, zone near | C17 |
 | H_DOOR | SUBFLOOR | 100 -2.2 137 | dark, entry H, zone entry | - |
 
@@ -249,8 +250,7 @@ Access letters: B = bonnie, C = chica, F = freddy, G = fredbear, M = morgrave, V
 | WH_S ↔ W_DOOR | BCFG | walk | - | 5.0 | 3 |
 | WH_M ↔ SUP | B | walk | - | 17.9 | 5 |
 | SUP ↔ VENT_W | B | vent | - | 13.5 | 4 |
-| M_SUP ↔ VENT_W | M | vent | - | 14.1 | 4 |
-| VENT_W ↔ W_DOOR | BM | vent | vent_seal | 11.5 | 4 |
+| VENT_W ↔ W_DOOR | B | vent | vent_seal | 11.5 | 4 |
 | WH_N ↔ PA | BC | walk | - | 14.7 | 4 |
 | PA ↔ EH_N | BC | walk | - | 14.2 | 4 |
 | DIN_SE ↔ EH_N | BCF | walk | - | 9.0 | 3 |
@@ -274,9 +274,9 @@ Access letters: B = bonnie, C = chica, F = freddy, G = fredbear, M = morgrave, V
 | DINER_STAGE ↔ DINER_FLOOR | G | walk | - | 20.6 | 4 |
 | DINER_FLOOR ↔ DINER_KITCHEN | G | walk | - | 37.8 | 4 |
 | DINER_KITCHEN ↔ CRAWL_MID | G | crawl | - | 41.2 | 4 |
-| CRAWL_MID ↔ CRAWL_END | GM | crawl | - | 26.0 | 2 |
-| CRAWL_END ↔ SUB_N | GM | crawl | shaft_seal | 11.3 | 3 |
-| SUB_N ↔ H_DOOR | GM | climb | - | 25.3 | 4 |
+| CRAWL_MID ↔ CRAWL_END | G | crawl | - | 26.0 | 2 |
+| CRAWL_END ↔ SUB_N | G | crawl | shaft_seal | 11.3 | 3 |
+| SUB_N ↔ H_DOOR | G | climb | - | 25.3 | 4 |
 | DINER_FLOOR ↔ TW_SEAL | G | walk | diner_seal | 31.5 | 4 |
 | TW_SEAL ↔ TS_W | G | walk | - | 30.0 | 3 |
 | TS_W ↔ TS_MID | G | walk | - | 24.5 | 2 |
@@ -284,7 +284,7 @@ Access letters: B = bonnie, C = chica, F = freddy, G = fredbear, M = morgrave, V
 
 ## Player route guidance
 
-The green breadcrumb sparkles (introduction, optional tasks, maintenance) follow a walkable waypoint graph generated from the voxel model by `tools/gen_guide.mjs`: 1784 nodes (a 6-block grid in every room, both sides of every doorway, every stairway and the ladder, every control) and 3053 edges, each a straight line a player can walk both ways under the map validator's rules (steps, drops, no squeezing past corners). The game runs Dijkstra from the target and lays sparkles along the next 14 blocks of the real route.
+The green breadcrumb sparkles (introduction, optional tasks, maintenance) follow a walkable waypoint graph generated from the voxel model by `tools/gen_guide.mjs`: 1785 nodes (a 6-block grid in every room, both sides of every doorway, every stairway and the ladder, every control) and 3055 edges, each a straight line a player can walk both ways under the map validator's rules (steps, drops, no squeezing past corners). The game runs Dijkstra from the target and lays sparkles along the next 14 blocks of the real route.
 
 | From | To | Walking distance | Rooms on the way |
 |---|---|---|---|
@@ -299,9 +299,9 @@ The green breadcrumb sparkles (introduction, optional tasks, maintenance) follow
 
 ## Command-block control room
 
-Underground at local y -9 (world -59), x 22..177, in 9 rows at local z 169, 172, 175, 178, 181, 184, 187, 190, 193. Each of the 117 actuator modules is a redstone-block pad, an impulse block and its chain (east-facing). The full block-by-block register is docs/06_COMMAND_BLOCK_REGISTER.md.
+Underground at local y -9 (world -59), x 22..177, in 9 rows at local z 169, 172, 175, 178, 181, 184, 187, 190, 193. Each of the 119 actuator modules is a redstone-block pad, an impulse block and its chain (east-facing). The full block-by-block register is docs/06_COMMAND_BLOCK_REGISTER.md.
 
-## Inputs (88)
+## Inputs (90)
 
 Every physical control sits on a console block; the impulse command block one block below it runs `scriptevent fb:input <action>`. The script accepts an input only if the event comes from the registered block position.
 
@@ -321,27 +321,29 @@ Every physical control sits on a console block; the impulse command block one bl
 | in.office.seal_vent | `seal_vent` | button | 96 0 128 | 96 -51 128 | SEAL VENT |
 | in.office.seal_shaft | `seal_shaft` | button | 96 0 129 | 96 -51 129 | SEAL SHAFT |
 | in.office.tapes | `tapes` | button | 102 0 139 | 102 -51 139 | TAPE DECK 1987 |
-| in.office.map_c19 | `cam:C19` | button | 97 0 127 | 97 -51 127 | CAM 19 · FREDBEAR'S CHAMBER |
-| in.office.map_c06 | `cam:C06` | button | 98 0 127 | 98 -51 127 | CAM 06 · PARTS & SERVICE |
-| in.office.map_c03 | `cam:C03` | button | 99 0 127 | 99 -51 127 | CAM 03 · BACKSTAGE |
+| in.office.vent_grate | `vent_grate` | button | 104 0 127 | 104 -51 127 | VENT GRATE |
+| in.office.map_c22 | `cam:C22` | button | 97 0 127 | 97 -51 127 | CAM 22 · FREDBEAR'S CHAMBER |
+| in.office.map_c03 | `cam:C03` | button | 98 0 127 | 98 -51 127 | CAM 03 · PARTS & SERVICE |
+| in.office.map_c02 | `cam:C02` | button | 99 0 127 | 99 -51 127 | CAM 02 · BACKSTAGE |
 | in.office.map_c01 | `cam:C01` | button | 100 0 127 | 100 -51 127 | CAM 01 · SHOW STAGE |
-| in.office.map_c02 | `cam:C02` | button | 101 0 127 | 101 -51 127 | CAM 02 · DINING HALL WEST |
-| in.office.map_c10 | `cam:C10` | button | 102 0 127 | 102 -51 127 | CAM 10 · KITCHEN (AUDIO ONLY) |
-| in.office.map_c11 | `cam:C11` | button | 103 0 127 | 103 -51 127 | CAM 11 · EAST SERVICE |
+| in.office.map_c06 | `cam:C06` | button | 101 0 127 | 101 -51 127 | CAM 06 · DINING HALL WEST |
+| in.office.map_c08 | `cam:C08` | button | 102 0 127 | 102 -51 127 | CAM 08 · KITCHEN (AUDIO ONLY) |
+| in.office.map_c09 | `cam:C09` | button | 103 0 127 | 103 -51 127 | CAM 09 · EAST SERVICE |
 | in.office.map_c20 | `cam:C20` | button | 97 0 128 | 97 -51 128 | CAM 20 · DINER PARTY ROOM |
 | in.office.map_c04 | `cam:C04` | button | 98 0 128 | 98 -51 128 | CAM 04 · STARLIGHT COVE |
 | in.office.map_c05 | `cam:C05` | button | 99 0 128 | 99 -51 128 | CAM 05 · ARCADE |
-| in.office.map_c07 | `cam:C07` | button | 100 0 128 | 100 -51 128 | CAM 07 · WEST HALL |
-| in.office.map_c14 | `cam:C14` | button | 101 0 128 | 101 -51 128 | CAM 14 · DINING HALL EAST |
-| in.office.map_c12 | `cam:C12` | button | 102 0 128 | 102 -51 128 | CAM 12 · EAST HALL |
-| in.office.map_c15 | `cam:C15` | button | 103 0 128 | 103 -51 128 | CAM 15 · MAINTENANCE TUNNEL |
-| in.office.map_c18 | `cam:C18` | button | 104 0 128 | 104 -51 128 | CAM 18 · SUPPLY DUCT |
-| in.office.map_c21 | `cam:C21` | button | 97 0 129 | 97 -51 129 | CAM 21 · DINER KITCHEN |
-| in.office.map_c16 | `cam:C16` | button | 98 0 129 | 98 -51 129 | CAM 16 · SEALED DINER |
-| in.office.map_c09 | `cam:C09` | button | 99 0 129 | 99 -51 129 | CAM 09 · SUPPLY CLOSET |
-| in.office.map_c08 | `cam:C08` | button | 100 0 129 | 100 -51 129 | CAM 08 · WEST CORNER |
-| in.office.map_c13 | `cam:C13` | button | 102 0 129 | 102 -51 129 | CAM 13 · EAST CORNER |
+| in.office.map_c14 | `cam:C14` | button | 100 0 128 | 100 -51 128 | CAM 14 · WEST HALL |
+| in.office.map_c07 | `cam:C07` | button | 101 0 128 | 101 -51 128 | CAM 07 · DINING HALL EAST |
+| in.office.map_c10 | `cam:C10` | button | 102 0 128 | 102 -51 128 | CAM 10 · EAST HALL |
+| in.office.map_c18 | `cam:C18` | button | 103 0 128 | 103 -51 128 | CAM 18 · MAINTENANCE TUNNEL |
+| in.office.map_c16 | `cam:C16` | button | 104 0 128 | 104 -51 128 | CAM 16 · SUPPLY DUCT |
+| in.office.map_c19 | `cam:C19` | button | 97 0 129 | 97 -51 129 | CAM 19 · DINER KITCHEN |
+| in.office.map_c21 | `cam:C21` | button | 98 0 129 | 98 -51 129 | CAM 21 · SEALED DINER |
+| in.office.map_c15 | `cam:C15` | button | 99 0 129 | 99 -51 129 | CAM 15 · SUPPLY CLOSET |
+| in.office.map_c13 | `cam:C13` | button | 100 0 129 | 100 -51 129 | CAM 13 · WEST CORNER |
+| in.office.map_c11 | `cam:C11` | button | 102 0 129 | 102 -51 129 | CAM 11 · EAST CORNER |
 | in.office.map_c17 | `cam:C17` | button | 103 0 129 | 103 -51 129 | CAM 17 · OFFICE SUBFLOOR |
+| in.office.map_c12 | `cam:C12` | button | 104 0 129 | 104 -51 129 | CAM 12 · CEILING VENT |
 | in.lobby.tutorial | `lobby:tutorial` | button | 181 0 104 | 181 -51 104 | TRAINING SHIFT |
 | in.lobby.night_1 | `lobby:night:1` | button | 181 0 106 | 181 -51 106 | NIGHT 1 |
 | in.lobby.night_2 | `lobby:night:2` | button | 181 0 107 | 181 -51 107 | NIGHT 2 |

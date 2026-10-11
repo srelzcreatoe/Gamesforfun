@@ -16,7 +16,7 @@ export function idleBot() {
   return { name: 'idle', act() {} };
 }
 
-const ENGAGED = ['APPROACH', 'TELEGRAPH', 'LURK', 'FORCING', 'JAMMED', 'CORNER'];
+const ENGAGED = ['APPROACH', 'TELEGRAPH', 'LURK', 'FORCING', 'JAMMED'];
 
 export function oracleBot() {
   return {
@@ -35,6 +35,12 @@ export function oracleBot() {
       if (snap.phase === 'POWER_OUT' && snap.powerOut?.stage === 'reserve') s.input('reserve');
       if (snap.phase !== 'RUNNING') return;
       const fb = s.anim.fredbear;
+      // Valek (1.4): stare straight back while his eyes are out.
+      s.setGaze(s.anim.valek.state === 'STARE' ? 'valek' : null);
+      // Morgrave (1.4): let him in. A door he knocks at opens by itself below unless someone else
+      // needs it shut (he waits for that); the ceiling-vent grate has to be opened for him.
+      const m = s.anim.morgrave;
+      if (['KNOCK', 'ANGRY'].includes(m.state) && m.visit?.entry === 'V' && d.grate) s.input('vent_grate');
       if (snap.mods.noDoors) {
         // No Doors challenge: a lit hall light is the barrier (one side at a time).
         const side = want.L && !(want.R && d.lightL && s.anim.bonnie.state !== 'TELEGRAPH') ? 'L' : want.R ? 'R' : null;
@@ -73,6 +79,9 @@ export function humanBot(seed = 7, skill = 1.0) {
   const checks = []; // queued targeted light checks
   let checkSide = null;
   let checkUntil = 0;
+  let staring = false; // looking straight at Valek's eyes (1.4)
+  let wantGrate = false; // Morgrave knocks at the ceiling vent: open the grate
+  let glanceUntil = 0; // pressing a button means looking away from his eyes for a moment
   const react = (s, fn) => pending.push([s.t + rng.int(Math.round(8 / skill), Math.round(20 / skill)), fn]);
 
   // Visible = standing on the node, or (while walking) physically within
@@ -126,24 +135,26 @@ export function humanBot(seed = 7, skill = 1.0) {
         react(s, () => checks.push(side));
       } else if (/footsteps — beneath/i.test(t) && s.hatchInstalled) {
         react(s, () => (belief.H = Math.max(belief.H, s.t + 200)));
-      } else if (/Scraping inside the walls — the west vent/.test(t)) {
-        // Morgrave came out at the supply duct: seal it (cheap) most of the time, else watch the left door.
-        react(s, () => (rng.chance(0.7) ? s.input('seal_vent') : (belief.L = Math.max(belief.L, s.t + 200))));
-      } else if (/Scraping inside the walls — below the office/.test(t) && s.hatchInstalled) {
-        react(s, () => (rng.chance(0.7) ? s.input('seal_shaft') : (belief.H = Math.max(belief.H, s.t + 260))));
-      } else if (/faint hum — (LEFT|RIGHT) corner/.test(t)) {
-        // Valek's eyes are in that corner: shut that door (lighting him only brings him back closer).
-        const e = t.includes('LEFT') ? 'L' : 'R';
-        react(s, () => (belief[e] = Math.max(belief[e], s.t + 120)));
-      } else if (/climbing out of the vent — LEFT/.test(t)) {
-        react(s, () => (belief.L = Math.max(belief.L, s.t + 140)));
-      } else if (/beneath the office floor/.test(t) && s.hatchInstalled) {
-        // Morgrave started the long climb up the shaft: keep the hatch shut for a while (a guess).
-        react(s, () => (belief.H = Math.max(belief.H, s.t + rng.int(300, 520))));
-      } else if (/Scratching at the (LEFT door|HATCH)/.test(t)) {
-        // Morgrave is at that entry now.
-        const e = t.includes('HATCH') ? 'H' : 'L';
-        react(s, () => (belief[e] = Math.max(belief[e], s.t + 160)));
+      } else if (/(Three soft knocks|Knocking|Pounding) — (LEFT DOOR|RIGHT DOOR|CEILING VENT)/.test(t)) {
+        // Morgrave wants in: open that entry - at once on the vent, on a door once it seems safe
+        // (sooner the angrier he gets; the player cannot be sure nobody else is out there).
+        const e = t.includes('CEILING VENT') ? 'V' : t.includes('LEFT') ? 'L' : 'R';
+        const urgency = t.startsWith('Pounding') ? 0 : t.startsWith('Knocking') ? 40 : 120;
+        if (t.startsWith('Three soft') && rng.chance(0.3 / skill)) return; // quiet: easy to miss
+        react(s, () => {
+          if (e === 'V') {
+            wantGrate = true;
+          } else {
+            // Before opening up, look through the window: is someone else out there?
+            if (s.barrierClosed(e) && !checks.includes(e) && checkSide !== e) checks.push(e);
+            belief[e] = Math.min(belief[e], s.t + urgency);
+          }
+        });
+      } else if (/(Two small eyes in the dark|The eyes are closer) — /.test(t)) {
+        // Valek: find his eyes and stare back (the monitor goes down first).
+        react(s, () => (staring = true));
+      } else if (/He looks away first/.test(t)) {
+        staring = false;
       }
     },
     act(s) {
@@ -155,9 +166,23 @@ export function humanBot(seed = 7, skill = 1.0) {
           fn();
         }
       }
-      if (snap.phase !== 'RUNNING') return;
+      if (snap.phase !== 'RUNNING') {
+        staring = false;
+        s.setGaze(null);
+        return;
+      }
       const d = snap.devices;
       const noDoors = !!snap.mods.noDoors;
+      // Valek's staring contest: hold the gaze (no cameras meanwhile); now and then a player glances away.
+      if (staring && s.anim.valek.state !== 'STARE') staring = false;
+      if (staring && rng.chance(0.0012 / skill)) staring = false;
+      s.setGaze(staring && s.t >= glanceUntil ? 'valek' : null);
+      if (staring && d.camsOpen) s.input('cams_close');
+      // While staring, the buttons on the desk are out of sight: every press is a glance away.
+      const press = (action) => {
+        if (staring && s.t >= glanceUntil) glanceUntil = s.t + rng.int(Math.round(8 / skill), Math.round(18 / skill));
+        s.input(action);
+      };
       // No Doors challenge: while a side is believed threatened, its hall light is the barrier.
       if (noDoors && (belief.L > s.t || belief.R > s.t)) {
         const both = belief.L > s.t && belief.R > s.t;
@@ -181,7 +206,7 @@ export function humanBot(seed = 7, skill = 1.0) {
         return;
       }
       // Light routine: flash left, then right, every ~4-7 s.
-      if (s.t >= nextRoutine && !d.camsOpen && !checkSide && !(noDoors && (belief.L > s.t || belief.R > s.t))) {
+      if (s.t >= nextRoutine && !d.camsOpen && !checkSide && !staring && !(noDoors && (belief.L > s.t || belief.R > s.t))) {
         if (lightPhase === 0 && !snap.breaker.tripped) {
           if (!d.lightL) s.input('light_l');
           lightPhase = 1;
@@ -206,13 +231,13 @@ export function humanBot(seed = 7, skill = 1.0) {
       // Breaker tripped: rely on cameras for the corners instead of lights.
       if (snap.breaker.tripped && snap.breaker.resetting === 0) react(s, () => s.input('breaker'));
       // Camera checks.
-      if (!snap.mods.noCams && !d.camsOpen && s.t >= nextCams && snap.blackout === 'none') {
+      if (!snap.mods.noCams && !d.camsOpen && s.t >= nextCams && snap.blackout === 'none' && !staring) {
         if (freddyNear > s.t && !d.doorR) {
           s.input('door_r');
           belief.R = Math.max(belief.R, s.t + 200);
         }
-        camPlan = ['C07', 'C12'];
-        if (rng.chance(0.4)) camPlan.push(s.night >= 4 ? 'C16' : 'C01');
+        camPlan = ['C14', 'C10'];
+        if (rng.chance(0.4)) camPlan.push(s.night >= 4 ? 'C21' : 'C01');
         s.input('cams_open', camPlan.shift());
         camUntil = s.t + 30;
       } else if (d.camsOpen && s.t >= camUntil) {
@@ -242,9 +267,14 @@ export function humanBot(seed = 7, skill = 1.0) {
       const wantR = belief.R > s.t || (freddyNear > s.t && d.camsOpen);
       const wantH = belief.H > s.t;
       if (!noDoors) {
-        if (wantL !== d.doorL && !snap.jammed.L) s.input('door_l');
-        if (wantR !== d.doorR && !snap.jammed.R) s.input('door_r');
-        if (snap.hatchInstalled && wantH !== d.hatch && !snap.jammed.H) s.input('hatch');
+        // While staring, a door is only opened once the stare is over (closing one cannot wait).
+        if (wantL !== d.doorL && !snap.jammed.L && (wantL || !staring || morgraveAt(s, 'L'))) press('door_l');
+        if (wantR !== d.doorR && !snap.jammed.R && (wantR || !staring || morgraveAt(s, 'R'))) press('door_r');
+        if (snap.hatchInstalled && wantH !== d.hatch && !snap.jammed.H) press('hatch');
+      }
+      if (wantGrate) {
+        if (d.grate) press('vent_grate');
+        wantGrate = false;
       }
       if (fredbearEntry && belief[fredbearEntry] > s.t && (s.barrierClosed(fredbearEntry) || snap.mods.strobeNoBarrier)) {
         const fb = s.anim.fredbear;
@@ -256,6 +286,12 @@ export function humanBot(seed = 7, skill = 1.0) {
       }
     },
   };
+}
+
+/** Morgrave is pounding at `entry` (the player hears it): letting him in cannot wait any longer. */
+function morgraveAt(s, entry) {
+  const m = s.anim.morgrave;
+  return m.state === 'ANGRY' && m.visit?.entry === entry && m.visit.stage === 2;
 }
 
 export function wastefulBot() {

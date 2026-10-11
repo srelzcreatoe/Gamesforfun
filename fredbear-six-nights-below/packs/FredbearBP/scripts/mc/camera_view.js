@@ -123,6 +123,7 @@ export function restorePlayerView(p) {
   }
   try {
     p.removeEffect('night_vision');
+    p.removeEffect('invisibility'); // set for the jumpscare view (Game.jumpscare)
     for (const c of [InputPermissionCategory.Camera, InputPermissionCategory.Movement, InputPermissionCategory.LateralMovement, InputPermissionCategory.Jump, InputPermissionCategory.Sneak]) {
       p.inputPermissions.setPermissionCategory(c, true);
     }

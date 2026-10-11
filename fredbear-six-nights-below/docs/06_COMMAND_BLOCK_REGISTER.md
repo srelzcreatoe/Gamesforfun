@@ -10,17 +10,17 @@ Coordinates are **world** coordinates (local + (0, -50, 0)).
 
 | | Count |
 |---|---:|
-| Command blocks | **523** |
-| Impulse (needs redstone) | 205 |
-| Chain (always active) | 317 |
+| Command blocks | **537** |
+| Impulse (needs redstone) | 209 |
+| Chain (always active) | 327 |
 | Repeating (always active) | 1 |
-| Actuator modules (control room) | 117 |
-| Physical inputs (buttons / levers / plates) | 88 |
+| Actuator modules (control room) | 119 |
+| Physical inputs (buttons / levers / plates) | 90 |
 | Structure files | 32 |
 
-Per section: A Setup & initialisation: 17 · B Lobby & tutorial: 48 · C Night controls: 64 · D Office doors, lights & hatch: 58 · E Camera controls: 8 · F Power & emergency systems: 80 · G Room triggers (exploration events): 16 · H Animatronic signals: 77 · I Environmental events: 29 · J Jumpscare coordination: 5 · K Win & lose transitions: 15 · L Reset & diagnostics: 18 · Inputs: 88
+Per section: A Setup & initialisation: 17 · B Lobby & tutorial: 48 · C Night controls: 68 · D Office doors, lights & hatch: 66 · E Camera controls: 8 · F Power & emergency systems: 80 · G Room triggers (exploration events): 16 · H Animatronic signals: 77 · I Environmental events: 29 · J Jumpscare coordination: 5 · K Win & lose transitions: 15 · L Reset & diagnostics: 18 · Inputs: 90
 
-### Why 523 and not 150-250
+### Why 537 and not 150-250
 
 The brief suggested roughly 150-250 *useful* blocks. This design ends higher, without padding, for three reasons:
 
@@ -67,13 +67,13 @@ the surrounding build.
 
 | Structure id | World origin (min corner) | Size x×y×z | Command blocks |
 |---|---|---|---:|
-| `fb:cb_row_0` | 23 -59 169 | 134×1×1 | 84 |
-| `fb:cb_row_1` | 23 -59 172 | 151×1×1 | 103 |
-| `fb:cb_row_2` | 23 -59 175 | 153×1×1 | 95 |
-| `fb:cb_row_3` | 23 -59 178 | 151×1×1 | 91 |
-| `fb:cb_row_4` | 23 -59 181 | 92×1×1 | 62 |
-| `fb:in_g_3_4` | 96 -51 128 | 31×1×12 | 29 |
-| `fb:in_g_3_3` | 97 -51 127 | 7×1×1 | 7 |
+| `fb:cb_row_0` | 23 -59 169 | 136×1×1 | 86 |
+| `fb:cb_row_1` | 23 -59 172 | 150×1×1 | 102 |
+| `fb:cb_row_2` | 23 -59 175 | 152×1×1 | 96 |
+| `fb:cb_row_3` | 23 -59 178 | 150×1×1 | 90 |
+| `fb:cb_row_4` | 23 -59 181 | 111×1×1 | 73 |
+| `fb:in_g_3_4` | 96 -51 128 | 31×1×12 | 30 |
+| `fb:in_g_3_3` | 97 -51 127 | 8×1×1 | 8 |
 | `fb:in_g_5_3` | 168 -51 98 | 14×1×25 | 17 |
 | `fb:in_g_4_3` | 158 -51 122 | 1×1×1 | 1 |
 | `fb:in_g_5_4` | 166 -51 148 | 1×1×1 | 1 |
@@ -133,100 +133,102 @@ block names its module; the west wall labels each row's sections. Developer butt
 | `tut.hl_cams` | B | 120 -59 169 | 3 | Training: highlight the cams console |
 | `tut.hl_strobe` | B | 125 -59 169 | 3 | Training: highlight the strobe console |
 | `tut.hl_hatch` | B | 130 -59 169 | 3 | Training: highlight the hatch console |
-| `night.begin` | C | 137 -59 169 | 19 | Start of shift: seal doorways with barriers, office lights on |
-| `night.end` | C | 22 -59 172 | 22 | End of shift: open doorways, clear light blocks, stop sounds |
-| `night.hour` | C | 46 -59 172 | 2 | Hour chime |
-| `night.hour_0` | C | 50 -59 172 | 2 | Office clock lamp for 12 AM lights (night.begin clears the strip) |
-| `night.hour_1` | C | 54 -59 172 | 2 | Office clock lamp for 1 AM lights (night.begin clears the strip) |
-| `night.hour_2` | C | 58 -59 172 | 2 | Office clock lamp for 2 AM lights (night.begin clears the strip) |
-| `night.hour_3` | C | 62 -59 172 | 2 | Office clock lamp for 3 AM lights (night.begin clears the strip) |
-| `night.hour_4` | C | 66 -59 172 | 2 | Office clock lamp for 4 AM lights (night.begin clears the strip) |
-| `night.hour_5` | C | 70 -59 172 | 2 | Office clock lamp for 5 AM lights (night.begin clears the strip) |
-| `night.maint_begin` | C | 74 -59 172 | 5 | Maintenance: unlock the office, alarm |
-| `night.maint_end` | C | 81 -59 172 | 4 | Maintenance over: re-seal the office |
-| `door_l_close` | D | 89 -59 172 | 4 | Left door closes |
-| `door_l_open` | D | 95 -59 172 | 4 | Left door opens (barrier keeps the guard inside) |
-| `door_r_close` | D | 101 -59 172 | 4 | Right door closes |
-| `door_r_open` | D | 107 -59 172 | 4 | Right door opens |
-| `light_l_on` | D | 113 -59 172 | 4 | Left hall light on |
-| `light_l_off` | D | 119 -59 172 | 3 | Left hall light off |
-| `light_r_on` | D | 124 -59 172 | 4 | Right hall light on |
-| `light_r_off` | D | 130 -59 172 | 3 | Right hall light off |
-| `hatch_close` | D | 135 -59 172 | 4 | Office hatch sealed |
-| `hatch_open` | D | 141 -59 172 | 4 | Office hatch opened |
-| `seal.vent_close` | D | 147 -59 172 | 5 | Vent seal: bars across the supply duct (CAM 18) |
-| `seal.vent_open` | D | 154 -59 172 | 4 | Vent seal released |
-| `seal.shaft_close` | D | 160 -59 172 | 6 | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17) |
-| `seal.shaft_open` | D | 168 -59 172 | 5 | Shaft seal released |
-| `cam.up` | E | 22 -59 175 | 2 | Monitor raised (office sound) |
-| `cam.down` | E | 26 -59 175 | 2 | Monitor lowered |
-| `cam.server_fault` | E | 30 -59 175 | 4 | Camera server sparks (upper floor) during disruption |
-| `pwr.out` | F | 38 -59 175 | 10 | Power out: office lights die, indicators dark |
-| `pwr.dark` | F | 50 -59 175 | 3 | Power out: final darkness |
-| `pwr.reserve` | F | 55 -59 175 | 7 | Emergency reserve engaged: lights back |
-| `pwr.strobe` | F | 64 -59 175 | 9 | Emergency strobe flash (office + entries) |
-| `pwr.breaker_trip` | F | 75 -59 175 | 7 | Chica's sabotage: kitchen breaker trips |
-| `pwr.breaker_reset` | F | 84 -59 175 | 3 | Breaker reset in progress |
-| `pwr.breaker_ok` | F | 89 -59 175 | 5 | Breaker restored |
-| `pwr.meter_1` | F | 96 -59 175 | 2 | Power meter: segment 1 (10%) goes dark |
-| `pwr.meter_2` | F | 100 -59 175 | 2 | Power meter: segment 2 (20%) goes dark |
-| `pwr.meter_3` | F | 104 -59 175 | 2 | Power meter: segment 3 (30%) goes dark |
-| `pwr.meter_4` | F | 108 -59 175 | 2 | Power meter: segment 4 (40%) goes dark |
-| `pwr.meter_5` | F | 112 -59 175 | 2 | Power meter: segment 5 (50%) goes dark |
-| `pwr.meter_6` | F | 116 -59 175 | 2 | Power meter: segment 6 (60%) goes dark |
-| `pwr.meter_7` | F | 120 -59 175 | 2 | Power meter: segment 7 (70%) goes dark |
-| `pwr.meter_8` | F | 124 -59 175 | 2 | Power meter: segment 8 (80%) goes dark |
-| `pwr.meter_9` | F | 128 -59 175 | 2 | Power meter: segment 9 (90%) goes dark |
-| `pwr.meter_10` | F | 132 -59 175 | 2 | Power meter: segment 10 (100%) goes dark |
-| `pwr.meter_full` | F | 136 -59 175 | 2 | Power meter: all segments lit |
-| `pwr.charges_0` | F | 140 -59 175 | 2 | Strobe charge lamps: 0 |
-| `pwr.charges_1` | F | 144 -59 175 | 3 | Strobe charge lamps: 1 |
-| `pwr.charges_2` | F | 149 -59 175 | 3 | Strobe charge lamps: 2 |
-| `pwr.charges_3` | F | 154 -59 175 | 3 | Strobe charge lamps: 3 |
-| `pwr.charges_4` | F | 159 -59 175 | 3 | Strobe charge lamps: 4+ |
-| `zone.cove` | G | 166 -59 175 | 4 | Exploration: Starlight Cove curtain shiver |
-| `zone.freezer` | G | 172 -59 175 | 3 | Exploration: freezer knock |
-| `zone.diner` | G | 22 -59 178 | 3 | Exploration: diner jukebox wakes |
-| `zone.chamber` | G | 27 -59 178 | 3 | Exploration: golden shrine glows |
-| `zone.attic` | G | 32 -59 178 | 3 | Exploration: footsteps above the attic |
-| `sig.fredbear_glow_l` | H | 39 -59 178 | 3 | Fredbear telegraph: golden glow at the left door |
-| `sig.fredbear_glow_r` | H | 44 -59 178 | 3 | Fredbear telegraph: golden glow at the right door |
-| `sig.fredbear_glow_h` | H | 49 -59 178 | 3 | Fredbear telegraph: golden glow under the hatch |
-| `sig.fredbear_glow_off` | H | 54 -59 178 | 3 | Fredbear glow cleared |
-| `sig.strain_l` | H | 59 -59 178 | 4 | Fredbear forcing the left door |
-| `sig.strain_r` | H | 65 -59 178 | 4 | Fredbear forcing the right door |
-| `sig.strain_h` | H | 71 -59 178 | 4 | Fredbear forcing the hatch |
-| `sig.jam_l` | H | 77 -59 178 | 4 | Left door jammed open (barrier keeps the guard inside) |
-| `sig.jam_r` | H | 83 -59 178 | 4 | Right door jammed open (barrier keeps the guard inside) |
-| `sig.jam_h` | H | 89 -59 178 | 4 | Hatch jammed open |
-| `sig.unjam_l` | H | 95 -59 178 | 3 | Left door released |
-| `sig.unjam_r` | H | 100 -59 178 | 3 | Right door released |
-| `sig.unjam_h` | H | 105 -59 178 | 2 | Hatch released |
-| `sig.strain_end_l` | H | 109 -59 178 | 2 | Fredbear stopped forcing the (still closed) left door |
-| `sig.strain_end_r` | H | 113 -59 178 | 2 | Fredbear stopped forcing the (still closed) right door |
-| `sig.strain_end_h` | H | 117 -59 178 | 2 | Fredbear stopped forcing the hatch |
-| `sig.blackout_on` | H | 121 -59 178 | 4 | Fredbear blackout: office lights out |
-| `sig.blackout_off` | H | 127 -59 178 | 4 | Blackout over |
-| `sig.finale` | H | 133 -59 178 | 4 | Night 6 Golden Hour begins |
-| `sig.diner_unseal` | H | 139 -59 178 | 3 | The bricked diner entrance is broken open |
-| `sig.diner_seal` | H | 144 -59 178 | 2 | Diner entrance bricked up (baseline) |
-| `sig.chamber_open` | H | 148 -59 178 | 2 | Fredbear's chamber wall opens |
-| `sig.chamber_close` | H | 152 -59 178 | 2 | Fredbear's chamber wall sealed (baseline) |
-| `sig.stage_lights_off` | H | 156 -59 178 | 2 | Show stage spotlights off for the night |
-| `sig.stage_lights_on` | H | 160 -59 178 | 4 | Show stage spotlights on (lobby / free roam) |
-| `env.flicker_whall` | I | 168 -59 178 | 5 | West hall lights flicker |
-| `env.flicker_ehall` | I | 22 -59 181 | 5 | East hall lights flicker |
-| `env.flicker_office` | I | 29 -59 181 | 10 | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit |
-| `env.distant_music` | I | 41 -59 181 | 2 | Faint music from the show stage |
-| `env.pipes` | I | 45 -59 181 | 3 | Basement pipes knock |
-| `env.phone_ring` | I | 50 -59 181 | 4 | Office phone rings |
-| `js.common` | J | 58 -59 181 | 5 | Jumpscare: camera shake + light burst (the script plays the character scream at the player) |
-| `win.six_am` | K | 67 -59 181 | 7 | 6 AM: chimes and lights |
-| `lose.static` | K | 76 -59 181 | 3 | Game over static |
-| `win.campaign` | K | 81 -59 181 | 5 | Campaign complete fanfare |
-| `reset.world` | L | 90 -59 181 | 12 | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles |
-| `diag.ping` | L | 104 -59 181 | 2 | Actuator-bus round trip test (answers the script) |
-| `diag.lamp_test` | L | 108 -59 181 | 3 | Indicator lamp test (all office lamps on for 2 s) |
+| `night.begin` | C | 137 -59 169 | 21 | Start of shift: seal doorways with barriers, office lights on |
+| `night.end` | C | 22 -59 172 | 24 | End of shift: open doorways, clear light blocks, stop sounds |
+| `night.hour` | C | 48 -59 172 | 2 | Hour chime |
+| `night.hour_0` | C | 52 -59 172 | 2 | Office clock lamp for 12 AM lights (night.begin clears the strip) |
+| `night.hour_1` | C | 56 -59 172 | 2 | Office clock lamp for 1 AM lights (night.begin clears the strip) |
+| `night.hour_2` | C | 60 -59 172 | 2 | Office clock lamp for 2 AM lights (night.begin clears the strip) |
+| `night.hour_3` | C | 64 -59 172 | 2 | Office clock lamp for 3 AM lights (night.begin clears the strip) |
+| `night.hour_4` | C | 68 -59 172 | 2 | Office clock lamp for 4 AM lights (night.begin clears the strip) |
+| `night.hour_5` | C | 72 -59 172 | 2 | Office clock lamp for 5 AM lights (night.begin clears the strip) |
+| `night.maint_begin` | C | 76 -59 172 | 5 | Maintenance: unlock the office, alarm |
+| `night.maint_end` | C | 83 -59 172 | 4 | Maintenance over: re-seal the office |
+| `door_l_close` | D | 91 -59 172 | 4 | Left door closes |
+| `door_l_open` | D | 97 -59 172 | 4 | Left door opens (barrier keeps the guard inside) |
+| `door_r_close` | D | 103 -59 172 | 4 | Right door closes |
+| `door_r_open` | D | 109 -59 172 | 4 | Right door opens |
+| `light_l_on` | D | 115 -59 172 | 4 | Left hall light on |
+| `light_l_off` | D | 121 -59 172 | 3 | Left hall light off |
+| `light_r_on` | D | 126 -59 172 | 4 | Right hall light on |
+| `light_r_off` | D | 132 -59 172 | 3 | Right hall light off |
+| `hatch_close` | D | 137 -59 172 | 4 | Office hatch sealed |
+| `hatch_open` | D | 143 -59 172 | 4 | Office hatch opened |
+| `grate_close` | D | 149 -59 172 | 4 | Ceiling-vent grate closes (Morgrave knocks on it; he also shuts it behind him) |
+| `grate_open` | D | 155 -59 172 | 4 | Ceiling-vent grate opens |
+| `seal.vent_close` | D | 161 -59 172 | 5 | Vent seal: bars across the supply duct (CAM 16) |
+| `seal.vent_open` | D | 168 -59 172 | 4 | Vent seal released |
+| `seal.shaft_close` | D | 22 -59 175 | 6 | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17) |
+| `seal.shaft_open` | D | 30 -59 175 | 5 | Shaft seal released |
+| `cam.up` | E | 39 -59 175 | 2 | Monitor raised (office sound) |
+| `cam.down` | E | 43 -59 175 | 2 | Monitor lowered |
+| `cam.server_fault` | E | 47 -59 175 | 4 | Camera server sparks (upper floor) during disruption |
+| `pwr.out` | F | 55 -59 175 | 10 | Power out: office lights die, indicators dark |
+| `pwr.dark` | F | 67 -59 175 | 3 | Power out: final darkness |
+| `pwr.reserve` | F | 72 -59 175 | 7 | Emergency reserve engaged: lights back |
+| `pwr.strobe` | F | 81 -59 175 | 9 | Emergency strobe flash (office + entries) |
+| `pwr.breaker_trip` | F | 92 -59 175 | 7 | Chica's sabotage: kitchen breaker trips |
+| `pwr.breaker_reset` | F | 101 -59 175 | 3 | Breaker reset in progress |
+| `pwr.breaker_ok` | F | 106 -59 175 | 5 | Breaker restored |
+| `pwr.meter_1` | F | 113 -59 175 | 2 | Power meter: segment 1 (10%) goes dark |
+| `pwr.meter_2` | F | 117 -59 175 | 2 | Power meter: segment 2 (20%) goes dark |
+| `pwr.meter_3` | F | 121 -59 175 | 2 | Power meter: segment 3 (30%) goes dark |
+| `pwr.meter_4` | F | 125 -59 175 | 2 | Power meter: segment 4 (40%) goes dark |
+| `pwr.meter_5` | F | 129 -59 175 | 2 | Power meter: segment 5 (50%) goes dark |
+| `pwr.meter_6` | F | 133 -59 175 | 2 | Power meter: segment 6 (60%) goes dark |
+| `pwr.meter_7` | F | 137 -59 175 | 2 | Power meter: segment 7 (70%) goes dark |
+| `pwr.meter_8` | F | 141 -59 175 | 2 | Power meter: segment 8 (80%) goes dark |
+| `pwr.meter_9` | F | 145 -59 175 | 2 | Power meter: segment 9 (90%) goes dark |
+| `pwr.meter_10` | F | 149 -59 175 | 2 | Power meter: segment 10 (100%) goes dark |
+| `pwr.meter_full` | F | 153 -59 175 | 2 | Power meter: all segments lit |
+| `pwr.charges_0` | F | 157 -59 175 | 2 | Strobe charge lamps: 0 |
+| `pwr.charges_1` | F | 161 -59 175 | 3 | Strobe charge lamps: 1 |
+| `pwr.charges_2` | F | 166 -59 175 | 3 | Strobe charge lamps: 2 |
+| `pwr.charges_3` | F | 171 -59 175 | 3 | Strobe charge lamps: 3 |
+| `pwr.charges_4` | F | 22 -59 178 | 3 | Strobe charge lamps: 4+ |
+| `zone.cove` | G | 29 -59 178 | 4 | Exploration: Starlight Cove curtain shiver |
+| `zone.freezer` | G | 35 -59 178 | 3 | Exploration: freezer knock |
+| `zone.diner` | G | 40 -59 178 | 3 | Exploration: diner jukebox wakes |
+| `zone.chamber` | G | 45 -59 178 | 3 | Exploration: golden shrine glows |
+| `zone.attic` | G | 50 -59 178 | 3 | Exploration: footsteps above the attic |
+| `sig.fredbear_glow_l` | H | 57 -59 178 | 3 | Fredbear telegraph: golden glow at the left door |
+| `sig.fredbear_glow_r` | H | 62 -59 178 | 3 | Fredbear telegraph: golden glow at the right door |
+| `sig.fredbear_glow_h` | H | 67 -59 178 | 3 | Fredbear telegraph: golden glow under the hatch |
+| `sig.fredbear_glow_off` | H | 72 -59 178 | 3 | Fredbear glow cleared |
+| `sig.strain_l` | H | 77 -59 178 | 4 | Fredbear forcing the left door |
+| `sig.strain_r` | H | 83 -59 178 | 4 | Fredbear forcing the right door |
+| `sig.strain_h` | H | 89 -59 178 | 4 | Fredbear forcing the hatch |
+| `sig.jam_l` | H | 95 -59 178 | 4 | Left door jammed open (barrier keeps the guard inside) |
+| `sig.jam_r` | H | 101 -59 178 | 4 | Right door jammed open (barrier keeps the guard inside) |
+| `sig.jam_h` | H | 107 -59 178 | 4 | Hatch jammed open |
+| `sig.unjam_l` | H | 113 -59 178 | 3 | Left door released |
+| `sig.unjam_r` | H | 118 -59 178 | 3 | Right door released |
+| `sig.unjam_h` | H | 123 -59 178 | 2 | Hatch released |
+| `sig.strain_end_l` | H | 127 -59 178 | 2 | Fredbear stopped forcing the (still closed) left door |
+| `sig.strain_end_r` | H | 131 -59 178 | 2 | Fredbear stopped forcing the (still closed) right door |
+| `sig.strain_end_h` | H | 135 -59 178 | 2 | Fredbear stopped forcing the hatch |
+| `sig.blackout_on` | H | 139 -59 178 | 4 | Fredbear blackout: office lights out |
+| `sig.blackout_off` | H | 145 -59 178 | 4 | Blackout over |
+| `sig.finale` | H | 151 -59 178 | 4 | Night 6 Golden Hour begins |
+| `sig.diner_unseal` | H | 157 -59 178 | 3 | The bricked diner entrance is broken open |
+| `sig.diner_seal` | H | 162 -59 178 | 2 | Diner entrance bricked up (baseline) |
+| `sig.chamber_open` | H | 166 -59 178 | 2 | Fredbear's chamber wall opens |
+| `sig.chamber_close` | H | 170 -59 178 | 2 | Fredbear's chamber wall sealed (baseline) |
+| `sig.stage_lights_off` | H | 22 -59 181 | 2 | Show stage spotlights off for the night |
+| `sig.stage_lights_on` | H | 26 -59 181 | 4 | Show stage spotlights on (lobby / free roam) |
+| `env.flicker_whall` | I | 34 -59 181 | 5 | West hall lights flicker |
+| `env.flicker_ehall` | I | 41 -59 181 | 5 | East hall lights flicker |
+| `env.flicker_office` | I | 48 -59 181 | 10 | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit |
+| `env.distant_music` | I | 60 -59 181 | 2 | Faint music from the show stage |
+| `env.pipes` | I | 64 -59 181 | 3 | Basement pipes knock |
+| `env.phone_ring` | I | 69 -59 181 | 4 | Office phone rings |
+| `js.common` | J | 77 -59 181 | 5 | Jumpscare: camera shake + light burst (the script plays the character scream at the player) |
+| `win.six_am` | K | 86 -59 181 | 7 | 6 AM: chimes and lights |
+| `lose.static` | K | 95 -59 181 | 3 | Game over static |
+| `win.campaign` | K | 100 -59 181 | 5 | Campaign complete fanfare |
+| `reset.world` | L | 109 -59 181 | 12 | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles |
+| `diag.ping` | L | 123 -59 181 | 2 | Actuator-bus round trip test (answers the script) |
+| `diag.lamp_test` | L | 127 -59 181 | 3 | Indicator lamp test (all office lamps on for 2 s) |
 | `diag.heartbeat` | L | (none) | 1 | Heartbeat every 100 ticks (command blocks enabled + control room loaded) |
 
 ## Every command block
@@ -316,10 +318,12 @@ All blocks are unconditional. Facing: E = east (+X, the chain direction), U = up
 | `night.begin#12` | 150 -59 169 | C | AA | 0 | E | `setblock 101 -47 140 verdant_froglight` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
 | `night.begin#13` | 151 -59 169 | C | AA | 0 | E | `fill 96 -46 126 105 -46 126 verdant_froglight` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
 | `night.begin#14` | 152 -59 169 | C | AA | 0 | E | `fill 97 -45 126 102 -45 126 gray_concrete` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
-| `night.begin#15` | 153 -59 169 | C | AA | 0 | E | `playsound fb.night.start @a 100 -49 133 1 1` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
-| `night.begin#16` | 154 -59 169 | C | AA | 0 | E | `setblock 49 -58 90 pink_candle_cake ["lit"=true]` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
-| `night.begin#17` | 155 -59 169 | C | AA | 0 | E | `setblock 46 -58 91 white_candle ["candles"=3,"lit"=true]` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
-| `night.begin#18` | 156 -59 169 | C | AA | 0 | E | `setblock 52 -58 91 white_candle ["candles"=3,"lit"=true]` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
+| `night.begin#15` | 153 -59 169 | C | AA | 0 | E | `fill 101 -43 127 102 -43 128 iron_trapdoor ["direction"=0,"open_bit"=false,"upside_down_bit"=true]` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
+| `night.begin#16` | 154 -59 169 | C | AA | 0 | E | `setblock 104 -47 126 ochre_froglight` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
+| `night.begin#17` | 155 -59 169 | C | AA | 0 | E | `playsound fb.night.start @a 100 -49 133 1 1` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
+| `night.begin#18` | 156 -59 169 | C | AA | 0 | E | `setblock 49 -58 90 pink_candle_cake ["lit"=true]` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
+| `night.begin#19` | 157 -59 169 | C | AA | 0 | E | `setblock 46 -58 91 white_candle ["candles"=3,"lit"=true]` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
+| `night.begin#20` | 158 -59 169 | C | AA | 0 | E | `setblock 52 -58 91 white_candle ["candles"=3,"lit"=true]` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
 | `night.end#0` | 23 -59 172 | I | NR | 0 | E | `setblock 22 -59 172 air` | End of shift: open doorways, clear light blocks, stop sounds (trigger; clears pad); script places minecraft:redstone_block at pad 22 -9 172 (local) |
 | `night.end#1` | 24 -59 172 | C | AA | 0 | E | `fill 94 -50 129 94 -48 130 air` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
 | `night.end#2` | 25 -59 172 | C | AA | 0 | E | `fill 106 -50 129 106 -48 130 air` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
@@ -339,338 +343,348 @@ All blocks are unconditional. Facing: E = east (+X, the chain direction), U = up
 | `night.end#16` | 39 -59 172 | C | AA | 0 | E | `fill 99 -59 112 101 -57 112 air replace iron_bars` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
 | `night.end#17` | 40 -59 172 | C | AA | 0 | E | `setblock 95 -47 126 gray_concrete` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
 | `night.end#18` | 41 -59 172 | C | AA | 0 | E | `setblock 95 -48 126 gray_concrete` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
-| `night.end#19` | 42 -59 172 | C | AA | 0 | E | `setblock 49 -58 90 pink_candle_cake ["lit"=false]` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
-| `night.end#20` | 43 -59 172 | C | AA | 0 | E | `setblock 46 -58 91 white_candle ["candles"=3,"lit"=false]` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
-| `night.end#21` | 44 -59 172 | C | AA | 0 | E | `setblock 52 -58 91 white_candle ["candles"=3,"lit"=false]` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
-| `night.hour#0` | 47 -59 172 | I | NR | 0 | E | `setblock 46 -59 172 air` | Hour chime (trigger; clears pad); script places minecraft:redstone_block at pad 46 -9 172 (local) |
-| `night.hour#1` | 48 -59 172 | C | AA | 0 | E | `playsound fb.clock.hour @a 100 -47 133 0.6 1` | Hour chime; previous block in night.hour |
-| `night.hour_0#0` | 51 -59 172 | I | NR | 0 | E | `setblock 50 -59 172 air` | Office clock lamp for 12 AM lights (night.begin clears the strip) (trigger; clears pad); script places minecraft:redstone_block at pad 50 -9 172 (local) |
-| `night.hour_0#1` | 52 -59 172 | C | AA | 0 | E | `setblock 97 -45 126 ochre_froglight` | Office clock lamp for 12 AM lights (night.begin clears the strip); previous block in night.hour_0 |
-| `night.hour_1#0` | 55 -59 172 | I | NR | 0 | E | `setblock 54 -59 172 air` | Office clock lamp for 1 AM lights (night.begin clears the strip) (trigger; clears pad); script places minecraft:redstone_block at pad 54 -9 172 (local) |
-| `night.hour_1#1` | 56 -59 172 | C | AA | 0 | E | `setblock 98 -45 126 ochre_froglight` | Office clock lamp for 1 AM lights (night.begin clears the strip); previous block in night.hour_1 |
-| `night.hour_2#0` | 59 -59 172 | I | NR | 0 | E | `setblock 58 -59 172 air` | Office clock lamp for 2 AM lights (night.begin clears the strip) (trigger; clears pad); script places minecraft:redstone_block at pad 58 -9 172 (local) |
-| `night.hour_2#1` | 60 -59 172 | C | AA | 0 | E | `setblock 99 -45 126 ochre_froglight` | Office clock lamp for 2 AM lights (night.begin clears the strip); previous block in night.hour_2 |
-| `night.hour_3#0` | 63 -59 172 | I | NR | 0 | E | `setblock 62 -59 172 air` | Office clock lamp for 3 AM lights (night.begin clears the strip) (trigger; clears pad); script places minecraft:redstone_block at pad 62 -9 172 (local) |
-| `night.hour_3#1` | 64 -59 172 | C | AA | 0 | E | `setblock 100 -45 126 ochre_froglight` | Office clock lamp for 3 AM lights (night.begin clears the strip); previous block in night.hour_3 |
-| `night.hour_4#0` | 67 -59 172 | I | NR | 0 | E | `setblock 66 -59 172 air` | Office clock lamp for 4 AM lights (night.begin clears the strip) (trigger; clears pad); script places minecraft:redstone_block at pad 66 -9 172 (local) |
-| `night.hour_4#1` | 68 -59 172 | C | AA | 0 | E | `setblock 101 -45 126 ochre_froglight` | Office clock lamp for 4 AM lights (night.begin clears the strip); previous block in night.hour_4 |
-| `night.hour_5#0` | 71 -59 172 | I | NR | 0 | E | `setblock 70 -59 172 air` | Office clock lamp for 5 AM lights (night.begin clears the strip) (trigger; clears pad); script places minecraft:redstone_block at pad 70 -9 172 (local) |
-| `night.hour_5#1` | 72 -59 172 | C | AA | 0 | E | `setblock 102 -45 126 ochre_froglight` | Office clock lamp for 5 AM lights (night.begin clears the strip); previous block in night.hour_5 |
-| `night.maint_begin#0` | 75 -59 172 | I | NR | 0 | E | `setblock 74 -59 172 air` | Maintenance: unlock the office, alarm (trigger; clears pad); script places minecraft:redstone_block at pad 74 -9 172 (local) |
-| `night.maint_begin#1` | 76 -59 172 | C | AA | 0 | E | `fill 94 -50 129 94 -48 130 air` | Maintenance: unlock the office, alarm; previous block in night.maint_begin |
-| `night.maint_begin#2` | 77 -59 172 | C | AA | 0 | E | `fill 106 -50 129 106 -48 130 air` | Maintenance: unlock the office, alarm; previous block in night.maint_begin |
-| `night.maint_begin#3` | 78 -59 172 | C | AA | 0 | E | `playsound fb.power.alarm @a 100 -48 133 1 1` | Maintenance: unlock the office, alarm; previous block in night.maint_begin |
-| `night.maint_begin#4` | 79 -59 172 | C | AA | 30 | E | `playsound fb.power.alarm @a 100 -48 133 1 1` | Maintenance: unlock the office, alarm; previous block in night.maint_begin |
-| `night.maint_end#0` | 82 -59 172 | I | NR | 0 | E | `setblock 81 -59 172 air` | Maintenance over: re-seal the office (trigger; clears pad); script places minecraft:redstone_block at pad 81 -9 172 (local) |
-| `night.maint_end#1` | 83 -59 172 | C | AA | 0 | E | `fill 94 -50 129 94 -48 130 barrier` | Maintenance over: re-seal the office; previous block in night.maint_end |
-| `night.maint_end#2` | 84 -59 172 | C | AA | 0 | E | `fill 106 -50 129 106 -48 130 barrier` | Maintenance over: re-seal the office; previous block in night.maint_end |
-| `night.maint_end#3` | 85 -59 172 | C | AA | 0 | E | `playsound fb.power.reserve @a 100 -48 133 1 1` | Maintenance over: re-seal the office; previous block in night.maint_end |
-| `door_l_close#0` | 90 -59 172 | I | NR | 0 | E | `setblock 89 -59 172 air` | Left door closes (trigger; clears pad); script places minecraft:redstone_block at pad 89 -9 172 (local) |
-| `door_l_close#1` | 91 -59 172 | C | AA | 0 | E | `fill 94 -50 129 94 -48 130 iron_block` | Left door closes; previous block in door_l_close |
-| `door_l_close#2` | 92 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 94 -49 129.5 1 1` | Left door closes; previous block in door_l_close |
-| `door_l_close#3` | 93 -59 172 | C | AA | 0 | E | `setblock 94 -47 129 ochre_froglight` | Left door closes; previous block in door_l_close |
-| `door_l_open#0` | 96 -59 172 | I | NR | 0 | E | `setblock 95 -59 172 air` | Left door opens (barrier keeps the guard inside) (trigger; clears pad); script places minecraft:redstone_block at pad 95 -9 172 (local) |
-| `door_l_open#1` | 97 -59 172 | C | AA | 0 | E | `fill 94 -50 129 94 -48 130 barrier` | Left door opens (barrier keeps the guard inside); previous block in door_l_open |
-| `door_l_open#2` | 98 -59 172 | C | AA | 0 | E | `playsound fb.door.open @a 94 -49 129.5 1 1` | Left door opens (barrier keeps the guard inside); previous block in door_l_open |
-| `door_l_open#3` | 99 -59 172 | C | AA | 0 | E | `setblock 94 -47 129 verdant_froglight` | Left door opens (barrier keeps the guard inside); previous block in door_l_open |
-| `door_r_close#0` | 102 -59 172 | I | NR | 0 | E | `setblock 101 -59 172 air` | Right door closes (trigger; clears pad); script places minecraft:redstone_block at pad 101 -9 172 (local) |
-| `door_r_close#1` | 103 -59 172 | C | AA | 0 | E | `fill 106 -50 129 106 -48 130 iron_block` | Right door closes; previous block in door_r_close |
-| `door_r_close#2` | 104 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 106 -49 129.5 1 1` | Right door closes; previous block in door_r_close |
-| `door_r_close#3` | 105 -59 172 | C | AA | 0 | E | `setblock 106 -47 129 ochre_froglight` | Right door closes; previous block in door_r_close |
-| `door_r_open#0` | 108 -59 172 | I | NR | 0 | E | `setblock 107 -59 172 air` | Right door opens (trigger; clears pad); script places minecraft:redstone_block at pad 107 -9 172 (local) |
-| `door_r_open#1` | 109 -59 172 | C | AA | 0 | E | `fill 106 -50 129 106 -48 130 barrier` | Right door opens; previous block in door_r_open |
-| `door_r_open#2` | 110 -59 172 | C | AA | 0 | E | `playsound fb.door.open @a 106 -49 129.5 1 1` | Right door opens; previous block in door_r_open |
-| `door_r_open#3` | 111 -59 172 | C | AA | 0 | E | `setblock 106 -47 129 verdant_froglight` | Right door opens; previous block in door_r_open |
-| `light_l_on#0` | 114 -59 172 | I | NR | 0 | E | `setblock 113 -59 172 air` | Left hall light on (trigger; clears pad); script places minecraft:redstone_block at pad 113 -9 172 (local) |
-| `light_l_on#1` | 115 -59 172 | C | AA | 0 | E | `fill 91 -50 127 93 -47 133 light_block_14 replace air` | Left hall light on; previous block in light_l_on |
-| `light_l_on#2` | 116 -59 172 | C | AA | 0 | E | `setblock 94 -47 130 verdant_froglight` | Left hall light on; previous block in light_l_on |
-| `light_l_on#3` | 117 -59 172 | C | AA | 0 | E | `playsound fb.light.buzz @a 92 -47 130 1 1` | Left hall light on; previous block in light_l_on |
-| `light_l_off#0` | 120 -59 172 | I | NR | 0 | E | `setblock 119 -59 172 air` | Left hall light off (trigger; clears pad); script places minecraft:redstone_block at pad 119 -9 172 (local) |
-| `light_l_off#1` | 121 -59 172 | C | AA | 0 | E | `fill 91 -50 127 93 -47 133 air replace light_block_14` | Left hall light off; previous block in light_l_off |
-| `light_l_off#2` | 122 -59 172 | C | AA | 0 | E | `setblock 94 -47 130 gray_concrete` | Left hall light off; previous block in light_l_off |
-| `light_r_on#0` | 125 -59 172 | I | NR | 0 | E | `setblock 124 -59 172 air` | Right hall light on (trigger; clears pad); script places minecraft:redstone_block at pad 124 -9 172 (local) |
-| `light_r_on#1` | 126 -59 172 | C | AA | 0 | E | `fill 107 -50 127 109 -47 133 light_block_14 replace air` | Right hall light on; previous block in light_r_on |
-| `light_r_on#2` | 127 -59 172 | C | AA | 0 | E | `setblock 106 -47 130 verdant_froglight` | Right hall light on; previous block in light_r_on |
-| `light_r_on#3` | 128 -59 172 | C | AA | 0 | E | `playsound fb.light.buzz @a 108 -47 130 1 1` | Right hall light on; previous block in light_r_on |
-| `light_r_off#0` | 131 -59 172 | I | NR | 0 | E | `setblock 130 -59 172 air` | Right hall light off (trigger; clears pad); script places minecraft:redstone_block at pad 130 -9 172 (local) |
-| `light_r_off#1` | 132 -59 172 | C | AA | 0 | E | `fill 107 -50 127 109 -47 133 air replace light_block_14` | Right hall light off; previous block in light_r_off |
-| `light_r_off#2` | 133 -59 172 | C | AA | 0 | E | `setblock 106 -47 130 gray_concrete` | Right hall light off; previous block in light_r_off |
-| `hatch_close#0` | 136 -59 172 | I | NR | 0 | E | `setblock 135 -59 172 air` | Office hatch sealed (trigger; clears pad); script places minecraft:redstone_block at pad 135 -9 172 (local) |
-| `hatch_close#1` | 137 -59 172 | C | AA | 0 | E | `fill 99 -51 136 100 -51 137 iron_trapdoor ["direction"=0,"open_bit"=false,"upside_down_bit"=true]` | Office hatch sealed; previous block in hatch_close |
-| `hatch_close#2` | 138 -59 172 | C | AA | 0 | E | `setblock 99 -47 140 ochre_froglight` | Office hatch sealed; previous block in hatch_close |
-| `hatch_close#3` | 139 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 99.5 -50 136.5 0.8 0.8` | Office hatch sealed; previous block in hatch_close |
-| `hatch_open#0` | 142 -59 172 | I | NR | 0 | E | `setblock 141 -59 172 air` | Office hatch opened (trigger; clears pad); script places minecraft:redstone_block at pad 141 -9 172 (local) |
-| `hatch_open#1` | 143 -59 172 | C | AA | 0 | E | `fill 99 -51 136 100 -51 137 iron_trapdoor ["direction"=0,"open_bit"=true,"upside_down_bit"=true]` | Office hatch opened; previous block in hatch_open |
-| `hatch_open#2` | 144 -59 172 | C | AA | 0 | E | `setblock 99 -47 140 gray_concrete` | Office hatch opened; previous block in hatch_open |
-| `hatch_open#3` | 145 -59 172 | C | AA | 0 | E | `playsound fb.door.open @a 99.5 -50 136.5 0.8 0.8` | Office hatch opened; previous block in hatch_open |
-| `seal.vent_close#0` | 148 -59 172 | I | NR | 0 | E | `setblock 147 -59 172 air` | Vent seal: bars across the supply duct (CAM 18) (trigger; clears pad); script places minecraft:redstone_block at pad 147 -9 172 (local) |
-| `seal.vent_close#1` | 149 -59 172 | C | AA | 0 | E | `fill 91 -53 132 91 -52 132 iron_bars` | Vent seal: bars across the supply duct (CAM 18); previous block in seal.vent_close |
-| `seal.vent_close#2` | 150 -59 172 | C | AA | 0 | E | `setblock 95 -47 126 ochre_froglight` | Vent seal: bars across the supply duct (CAM 18); previous block in seal.vent_close |
-| `seal.vent_close#3` | 151 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 91 -52 132 0.8 1.3` | Vent seal: bars across the supply duct (CAM 18); previous block in seal.vent_close |
-| `seal.vent_close#4` | 152 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 96 -49 128 0.5 1.3` | Vent seal: bars across the supply duct (CAM 18); previous block in seal.vent_close |
-| `seal.vent_open#0` | 155 -59 172 | I | NR | 0 | E | `setblock 154 -59 172 air` | Vent seal released (trigger; clears pad); script places minecraft:redstone_block at pad 154 -9 172 (local) |
-| `seal.vent_open#1` | 156 -59 172 | C | AA | 0 | E | `fill 91 -53 132 91 -52 132 air replace iron_bars` | Vent seal released; previous block in seal.vent_open |
-| `seal.vent_open#2` | 157 -59 172 | C | AA | 0 | E | `setblock 95 -47 126 gray_concrete` | Vent seal released; previous block in seal.vent_open |
-| `seal.vent_open#3` | 158 -59 172 | C | AA | 0 | E | `playsound fb.door.open @a 96 -49 128 0.5 1.3` | Vent seal released; previous block in seal.vent_open |
-| `seal.shaft_close#0` | 161 -59 172 | I | NR | 0 | E | `setblock 160 -59 172 air` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17) (trigger; clears pad); script places minecraft:redstone_block at pad 160 -9 172 (local) |
-| `seal.shaft_close#1` | 162 -59 172 | C | AA | 0 | E | `fill 92 -59 113 92 -58 114 iron_bars` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
-| `seal.shaft_close#2` | 163 -59 172 | C | AA | 0 | E | `fill 99 -59 112 101 -57 112 iron_bars` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
-| `seal.shaft_close#3` | 164 -59 172 | C | AA | 0 | E | `setblock 95 -48 126 ochre_froglight` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
-| `seal.shaft_close#4` | 165 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 100 -58 113 0.8 1.3` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
-| `seal.shaft_close#5` | 166 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 96 -49 129 0.5 1.3` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
-| `seal.shaft_open#0` | 169 -59 172 | I | NR | 0 | E | `setblock 168 -59 172 air` | Shaft seal released (trigger; clears pad); script places minecraft:redstone_block at pad 168 -9 172 (local) |
-| `seal.shaft_open#1` | 170 -59 172 | C | AA | 0 | E | `fill 92 -59 113 92 -58 114 air replace iron_bars` | Shaft seal released; previous block in seal.shaft_open |
-| `seal.shaft_open#2` | 171 -59 172 | C | AA | 0 | E | `fill 99 -59 112 101 -57 112 air replace iron_bars` | Shaft seal released; previous block in seal.shaft_open |
-| `seal.shaft_open#3` | 172 -59 172 | C | AA | 0 | E | `setblock 95 -48 126 gray_concrete` | Shaft seal released; previous block in seal.shaft_open |
-| `seal.shaft_open#4` | 173 -59 172 | C | AA | 0 | E | `playsound fb.door.open @a 96 -49 129 0.5 1.3` | Shaft seal released; previous block in seal.shaft_open |
-| `cam.up#0` | 23 -59 175 | I | NR | 0 | E | `setblock 22 -59 175 air` | Monitor raised (office sound) (trigger; clears pad); script places minecraft:redstone_block at pad 22 -9 175 (local) |
-| `cam.up#1` | 24 -59 175 | C | AA | 0 | E | `playsound fb.cam.up @a 98 -49 130 1 1` | Monitor raised (office sound); previous block in cam.up |
-| `cam.down#0` | 27 -59 175 | I | NR | 0 | E | `setblock 26 -59 175 air` | Monitor lowered (trigger; clears pad); script places minecraft:redstone_block at pad 26 -9 175 (local) |
-| `cam.down#1` | 28 -59 175 | C | AA | 0 | E | `playsound fb.cam.down @a 98 -49 130 1 1` | Monitor lowered; previous block in cam.down |
-| `cam.server_fault#0` | 31 -59 175 | I | NR | 0 | E | `setblock 30 -59 175 air` | Camera server sparks (upper floor) during disruption (trigger; clears pad); script places minecraft:redstone_block at pad 30 -9 175 (local) |
-| `cam.server_fault#1` | 32 -59 175 | C | AA | 0 | E | `particle minecraft:electric_spark_particle 110 -40.5 141` | Camera server sparks (upper floor) during disruption; previous block in cam.server_fault |
-| `cam.server_fault#2` | 33 -59 175 | C | AA | 0 | E | `playsound fb.breaker.trip @a 110 -41 141 0.7 1` | Camera server sparks (upper floor) during disruption; previous block in cam.server_fault |
-| `cam.server_fault#3` | 34 -59 175 | C | AA | 8 | E | `particle minecraft:electric_spark_particle 113 -40.5 141` | Camera server sparks (upper floor) during disruption; previous block in cam.server_fault |
-| `pwr.out#0` | 39 -59 175 | I | NR | 0 | E | `setblock 38 -59 175 air` | Power out: office lights die, indicators dark (trigger; clears pad); script places minecraft:redstone_block at pad 38 -9 175 (local) |
-| `pwr.out#1` | 40 -59 175 | C | AA | 0 | E | `setblock 100 -45 135 air` | Power out: office lights die, indicators dark; previous block in pwr.out |
-| `pwr.out#2` | 41 -59 175 | C | AA | 0 | E | `setblock 100 -45 129 air` | Power out: office lights die, indicators dark; previous block in pwr.out |
-| `pwr.out#3` | 42 -59 175 | C | AA | 0 | E | `fill 96 -46 126 105 -46 126 gray_concrete` | Power out: office lights die, indicators dark; previous block in pwr.out |
-| `pwr.out#4` | 43 -59 175 | C | AA | 0 | E | `setblock 94 -47 129 gray_concrete` | Power out: office lights die, indicators dark; previous block in pwr.out |
-| `pwr.out#5` | 44 -59 175 | C | AA | 0 | E | `setblock 106 -47 129 gray_concrete` | Power out: office lights die, indicators dark; previous block in pwr.out |
-| `pwr.out#6` | 45 -59 175 | C | AA | 0 | E | `setblock 94 -47 130 gray_concrete` | Power out: office lights die, indicators dark; previous block in pwr.out |
-| `pwr.out#7` | 46 -59 175 | C | AA | 0 | E | `setblock 106 -47 130 gray_concrete` | Power out: office lights die, indicators dark; previous block in pwr.out |
-| `pwr.out#8` | 47 -59 175 | C | AA | 0 | E | `setblock 101 -47 140 red_concrete` | Power out: office lights die, indicators dark; previous block in pwr.out |
-| `pwr.out#9` | 48 -59 175 | C | AA | 0 | E | `playsound fb.power.down @a 100 -48 133 1 1` | Power out: office lights die, indicators dark; previous block in pwr.out |
-| `pwr.dark#0` | 51 -59 175 | I | NR | 0 | E | `setblock 50 -59 175 air` | Power out: final darkness (trigger; clears pad); script places minecraft:redstone_block at pad 50 -9 175 (local) |
-| `pwr.dark#1` | 52 -59 175 | C | AA | 0 | E | `playsound fb.power.dark @a 100 -48 133 1 1` | Power out: final darkness; previous block in pwr.dark |
-| `pwr.dark#2` | 53 -59 175 | C | AA | 0 | E | `camerashake add @a 0.15 2 rotational` | Power out: final darkness; previous block in pwr.dark |
-| `pwr.reserve#0` | 56 -59 175 | I | NR | 0 | E | `setblock 55 -59 175 air` | Emergency reserve engaged: lights back (trigger; clears pad); script places minecraft:redstone_block at pad 55 -9 175 (local) |
-| `pwr.reserve#1` | 57 -59 175 | C | AA | 0 | E | `setblock 100 -45 135 light_block_11` | Emergency reserve engaged: lights back; previous block in pwr.reserve |
-| `pwr.reserve#2` | 58 -59 175 | C | AA | 0 | E | `setblock 100 -45 129 light_block_10` | Emergency reserve engaged: lights back; previous block in pwr.reserve |
-| `pwr.reserve#3` | 59 -59 175 | C | AA | 0 | E | `setblock 101 -47 140 verdant_froglight` | Emergency reserve engaged: lights back; previous block in pwr.reserve |
-| `pwr.reserve#4` | 60 -59 175 | C | AA | 0 | E | `setblock 94 -47 129 verdant_froglight` | Emergency reserve engaged: lights back; previous block in pwr.reserve |
-| `pwr.reserve#5` | 61 -59 175 | C | AA | 0 | E | `setblock 106 -47 129 verdant_froglight` | Emergency reserve engaged: lights back; previous block in pwr.reserve |
-| `pwr.reserve#6` | 62 -59 175 | C | AA | 0 | E | `playsound fb.power.reserve @a 100 -48 133 1 1` | Emergency reserve engaged: lights back; previous block in pwr.reserve |
-| `pwr.strobe#0` | 65 -59 175 | I | NR | 0 | E | `setblock 64 -59 175 air` | Emergency strobe flash (office + entries) (trigger; clears pad); script places minecraft:redstone_block at pad 64 -9 175 (local) |
-| `pwr.strobe#1` | 66 -59 175 | C | AA | 0 | E | `fill 95 -50 127 105 -45 139 light_block_15 replace air` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
-| `pwr.strobe#2` | 67 -59 175 | C | AA | 0 | E | `fill 91 -50 127 93 -47 133 light_block_15 replace air` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
-| `pwr.strobe#3` | 68 -59 175 | C | AA | 0 | E | `fill 107 -50 127 109 -47 133 light_block_15 replace air` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
-| `pwr.strobe#4` | 69 -59 175 | C | AA | 0 | E | `playsound fb.strobe.fire @a 100 -48 133 1 1` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
-| `pwr.strobe#5` | 70 -59 175 | C | AA | 0 | E | `camerashake add @a 0.4 0.4 rotational` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
-| `pwr.strobe#6` | 71 -59 175 | C | AA | 4 | E | `fill 95 -50 127 105 -45 139 air replace light_block_15` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
-| `pwr.strobe#7` | 72 -59 175 | C | AA | 0 | E | `fill 91 -50 127 93 -47 133 air replace light_block_15` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
-| `pwr.strobe#8` | 73 -59 175 | C | AA | 0 | E | `fill 107 -50 127 109 -47 133 air replace light_block_15` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
-| `pwr.breaker_trip#0` | 76 -59 175 | I | NR | 0 | E | `setblock 75 -59 175 air` | Chica's sabotage: kitchen breaker trips (trigger; clears pad); script places minecraft:redstone_block at pad 75 -9 175 (local) |
-| `pwr.breaker_trip#1` | 77 -59 175 | C | AA | 0 | E | `particle minecraft:electric_spark_particle 178 -48 47` | Chica's sabotage: kitchen breaker trips; previous block in pwr.breaker_trip |
-| `pwr.breaker_trip#2` | 78 -59 175 | C | AA | 0 | E | `playsound fb.breaker.trip @a 178 -49 47 1 1` | Chica's sabotage: kitchen breaker trips; previous block in pwr.breaker_trip |
-| `pwr.breaker_trip#3` | 79 -59 175 | C | AA | 0 | E | `playsound fb.breaker.trip @a 100 -48 133 0.5 1` | Chica's sabotage: kitchen breaker trips; previous block in pwr.breaker_trip |
-| `pwr.breaker_trip#4` | 80 -59 175 | C | AA | 0 | E | `setblock 101 -47 140 red_concrete` | Chica's sabotage: kitchen breaker trips; previous block in pwr.breaker_trip |
-| `pwr.breaker_trip#5` | 81 -59 175 | C | AA | 0 | E | `setblock 94 -47 130 red_concrete` | Chica's sabotage: kitchen breaker trips; previous block in pwr.breaker_trip |
-| `pwr.breaker_trip#6` | 82 -59 175 | C | AA | 0 | E | `setblock 106 -47 130 red_concrete` | Chica's sabotage: kitchen breaker trips; previous block in pwr.breaker_trip |
-| `pwr.breaker_reset#0` | 85 -59 175 | I | NR | 0 | E | `setblock 84 -59 175 air` | Breaker reset in progress (trigger; clears pad); script places minecraft:redstone_block at pad 84 -9 175 (local) |
-| `pwr.breaker_reset#1` | 86 -59 175 | C | AA | 0 | E | `setblock 101 -47 140 ochre_froglight` | Breaker reset in progress; previous block in pwr.breaker_reset |
-| `pwr.breaker_reset#2` | 87 -59 175 | C | AA | 0 | E | `playsound fb.breaker.reset @a 101 -49 130 1 1` | Breaker reset in progress; previous block in pwr.breaker_reset |
-| `pwr.breaker_ok#0` | 90 -59 175 | I | NR | 0 | E | `setblock 89 -59 175 air` | Breaker restored (trigger; clears pad); script places minecraft:redstone_block at pad 89 -9 175 (local) |
-| `pwr.breaker_ok#1` | 91 -59 175 | C | AA | 0 | E | `setblock 101 -47 140 verdant_froglight` | Breaker restored; previous block in pwr.breaker_ok |
-| `pwr.breaker_ok#2` | 92 -59 175 | C | AA | 0 | E | `setblock 94 -47 130 gray_concrete` | Breaker restored; previous block in pwr.breaker_ok |
-| `pwr.breaker_ok#3` | 93 -59 175 | C | AA | 0 | E | `setblock 106 -47 130 gray_concrete` | Breaker restored; previous block in pwr.breaker_ok |
-| `pwr.breaker_ok#4` | 94 -59 175 | C | AA | 0 | E | `playsound fb.ui.accept @a 101 -49 130 1 1` | Breaker restored; previous block in pwr.breaker_ok |
-| `pwr.meter_1#0` | 97 -59 175 | I | NR | 0 | E | `setblock 96 -59 175 air` | Power meter: segment 1 (10%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 96 -9 175 (local) |
-| `pwr.meter_1#1` | 98 -59 175 | C | AA | 0 | E | `setblock 96 -46 126 gray_concrete` | Power meter: segment 1 (10%) goes dark; previous block in pwr.meter_1 |
-| `pwr.meter_2#0` | 101 -59 175 | I | NR | 0 | E | `setblock 100 -59 175 air` | Power meter: segment 2 (20%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 100 -9 175 (local) |
-| `pwr.meter_2#1` | 102 -59 175 | C | AA | 0 | E | `setblock 97 -46 126 gray_concrete` | Power meter: segment 2 (20%) goes dark; previous block in pwr.meter_2 |
-| `pwr.meter_3#0` | 105 -59 175 | I | NR | 0 | E | `setblock 104 -59 175 air` | Power meter: segment 3 (30%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 104 -9 175 (local) |
-| `pwr.meter_3#1` | 106 -59 175 | C | AA | 0 | E | `setblock 98 -46 126 gray_concrete` | Power meter: segment 3 (30%) goes dark; previous block in pwr.meter_3 |
-| `pwr.meter_4#0` | 109 -59 175 | I | NR | 0 | E | `setblock 108 -59 175 air` | Power meter: segment 4 (40%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 108 -9 175 (local) |
-| `pwr.meter_4#1` | 110 -59 175 | C | AA | 0 | E | `setblock 99 -46 126 gray_concrete` | Power meter: segment 4 (40%) goes dark; previous block in pwr.meter_4 |
-| `pwr.meter_5#0` | 113 -59 175 | I | NR | 0 | E | `setblock 112 -59 175 air` | Power meter: segment 5 (50%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 112 -9 175 (local) |
-| `pwr.meter_5#1` | 114 -59 175 | C | AA | 0 | E | `setblock 100 -46 126 gray_concrete` | Power meter: segment 5 (50%) goes dark; previous block in pwr.meter_5 |
-| `pwr.meter_6#0` | 117 -59 175 | I | NR | 0 | E | `setblock 116 -59 175 air` | Power meter: segment 6 (60%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 116 -9 175 (local) |
-| `pwr.meter_6#1` | 118 -59 175 | C | AA | 0 | E | `setblock 101 -46 126 gray_concrete` | Power meter: segment 6 (60%) goes dark; previous block in pwr.meter_6 |
-| `pwr.meter_7#0` | 121 -59 175 | I | NR | 0 | E | `setblock 120 -59 175 air` | Power meter: segment 7 (70%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 120 -9 175 (local) |
-| `pwr.meter_7#1` | 122 -59 175 | C | AA | 0 | E | `setblock 102 -46 126 gray_concrete` | Power meter: segment 7 (70%) goes dark; previous block in pwr.meter_7 |
-| `pwr.meter_8#0` | 125 -59 175 | I | NR | 0 | E | `setblock 124 -59 175 air` | Power meter: segment 8 (80%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 124 -9 175 (local) |
-| `pwr.meter_8#1` | 126 -59 175 | C | AA | 0 | E | `setblock 103 -46 126 gray_concrete` | Power meter: segment 8 (80%) goes dark; previous block in pwr.meter_8 |
-| `pwr.meter_9#0` | 129 -59 175 | I | NR | 0 | E | `setblock 128 -59 175 air` | Power meter: segment 9 (90%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 128 -9 175 (local) |
-| `pwr.meter_9#1` | 130 -59 175 | C | AA | 0 | E | `setblock 104 -46 126 gray_concrete` | Power meter: segment 9 (90%) goes dark; previous block in pwr.meter_9 |
-| `pwr.meter_10#0` | 133 -59 175 | I | NR | 0 | E | `setblock 132 -59 175 air` | Power meter: segment 10 (100%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 132 -9 175 (local) |
-| `pwr.meter_10#1` | 134 -59 175 | C | AA | 0 | E | `setblock 105 -46 126 gray_concrete` | Power meter: segment 10 (100%) goes dark; previous block in pwr.meter_10 |
-| `pwr.meter_full#0` | 137 -59 175 | I | NR | 0 | E | `setblock 136 -59 175 air` | Power meter: all segments lit (trigger; clears pad); script places minecraft:redstone_block at pad 136 -9 175 (local) |
-| `pwr.meter_full#1` | 138 -59 175 | C | AA | 0 | E | `fill 96 -46 126 105 -46 126 verdant_froglight` | Power meter: all segments lit; previous block in pwr.meter_full |
-| `pwr.charges_0#0` | 141 -59 175 | I | NR | 0 | E | `setblock 140 -59 175 air` | Strobe charge lamps: 0 (trigger; clears pad); script places minecraft:redstone_block at pad 140 -9 175 (local) |
-| `pwr.charges_0#1` | 142 -59 175 | C | AA | 0 | E | `fill 102 -47 140 105 -47 140 gray_concrete` | Strobe charge lamps: 0; previous block in pwr.charges_0 |
-| `pwr.charges_1#0` | 145 -59 175 | I | NR | 0 | E | `setblock 144 -59 175 air` | Strobe charge lamps: 1 (trigger; clears pad); script places minecraft:redstone_block at pad 144 -9 175 (local) |
-| `pwr.charges_1#1` | 146 -59 175 | C | AA | 0 | E | `fill 102 -47 140 105 -47 140 gray_concrete` | Strobe charge lamps: 1; previous block in pwr.charges_1 |
-| `pwr.charges_1#2` | 147 -59 175 | C | AA | 0 | E | `fill 102 -47 140 102 -47 140 pearlescent_froglight` | Strobe charge lamps: 1; previous block in pwr.charges_1 |
-| `pwr.charges_2#0` | 150 -59 175 | I | NR | 0 | E | `setblock 149 -59 175 air` | Strobe charge lamps: 2 (trigger; clears pad); script places minecraft:redstone_block at pad 149 -9 175 (local) |
-| `pwr.charges_2#1` | 151 -59 175 | C | AA | 0 | E | `fill 102 -47 140 105 -47 140 gray_concrete` | Strobe charge lamps: 2; previous block in pwr.charges_2 |
-| `pwr.charges_2#2` | 152 -59 175 | C | AA | 0 | E | `fill 102 -47 140 103 -47 140 pearlescent_froglight` | Strobe charge lamps: 2; previous block in pwr.charges_2 |
-| `pwr.charges_3#0` | 155 -59 175 | I | NR | 0 | E | `setblock 154 -59 175 air` | Strobe charge lamps: 3 (trigger; clears pad); script places minecraft:redstone_block at pad 154 -9 175 (local) |
-| `pwr.charges_3#1` | 156 -59 175 | C | AA | 0 | E | `fill 102 -47 140 105 -47 140 gray_concrete` | Strobe charge lamps: 3; previous block in pwr.charges_3 |
-| `pwr.charges_3#2` | 157 -59 175 | C | AA | 0 | E | `fill 102 -47 140 104 -47 140 pearlescent_froglight` | Strobe charge lamps: 3; previous block in pwr.charges_3 |
-| `pwr.charges_4#0` | 160 -59 175 | I | NR | 0 | E | `setblock 159 -59 175 air` | Strobe charge lamps: 4+ (trigger; clears pad); script places minecraft:redstone_block at pad 159 -9 175 (local) |
-| `pwr.charges_4#1` | 161 -59 175 | C | AA | 0 | E | `fill 102 -47 140 105 -47 140 gray_concrete` | Strobe charge lamps: 4+; previous block in pwr.charges_4 |
-| `pwr.charges_4#2` | 162 -59 175 | C | AA | 0 | E | `fill 102 -47 140 105 -47 140 pearlescent_froglight` | Strobe charge lamps: 4+; previous block in pwr.charges_4 |
-| `zone.cove#0` | 167 -59 175 | I | NR | 0 | E | `setblock 166 -59 175 air` | Exploration: Starlight Cove curtain shiver (trigger; clears pad); script places minecraft:redstone_block at pad 166 -9 175 (local) |
-| `zone.cove#1` | 168 -59 175 | C | AA | 0 | E | `fill 28 -50 54 28 -48 57 purple_wool` | Exploration: Starlight Cove curtain shiver; previous block in zone.cove |
-| `zone.cove#2` | 169 -59 175 | C | AA | 0 | E | `playsound fb.amb.creak @a 28 -49 56 1 1` | Exploration: Starlight Cove curtain shiver; previous block in zone.cove |
-| `zone.cove#3` | 170 -59 175 | C | AA | 12 | E | `fill 28 -50 54 28 -48 57 air` | Exploration: Starlight Cove curtain shiver; previous block in zone.cove |
-| `zone.freezer#0` | 173 -59 175 | I | NR | 0 | E | `setblock 172 -59 175 air` | Exploration: freezer knock (trigger; clears pad); script places minecraft:redstone_block at pad 172 -9 175 (local) |
-| `zone.freezer#1` | 174 -59 175 | C | AA | 0 | E | `playsound fb.door.bang @a 183 -49 72 0.6 1` | Exploration: freezer knock; previous block in zone.freezer |
-| `zone.freezer#2` | 175 -59 175 | C | AA | 14 | E | `playsound fb.door.bang @a 183 -49 72 0.6 1` | Exploration: freezer knock; previous block in zone.freezer |
-| `zone.diner#0` | 23 -59 178 | I | NR | 0 | E | `setblock 22 -59 178 air` | Exploration: diner jukebox wakes (trigger; clears pad); script places minecraft:redstone_block at pad 22 -9 178 (local) |
-| `zone.diner#1` | 24 -59 178 | C | AA | 0 | E | `playsound fb.fredbear.musicbox @a 18 -58 94 0.6 1` | Exploration: diner jukebox wakes; previous block in zone.diner |
-| `zone.diner#2` | 25 -59 178 | C | AA | 0 | E | `particle minecraft:note_particle 18 -57.5 94` | Exploration: diner jukebox wakes; previous block in zone.diner |
-| `zone.chamber#0` | 28 -59 178 | I | NR | 0 | E | `setblock 27 -59 178 air` | Exploration: golden shrine glows (trigger; clears pad); script places minecraft:redstone_block at pad 27 -9 178 (local) |
-| `zone.chamber#1` | 29 -59 178 | C | AA | 0 | E | `particle minecraft:totem_particle 34.5 -58 36.5` | Exploration: golden shrine glows; previous block in zone.chamber |
-| `zone.chamber#2` | 30 -59 178 | C | AA | 0 | E | `playsound fb.fredbear.chime @a 34 -58 36 1 1` | Exploration: golden shrine glows; previous block in zone.chamber |
-| `zone.attic#0` | 33 -59 178 | I | NR | 0 | E | `setblock 32 -59 178 air` | Exploration: footsteps above the attic (trigger; clears pad); script places minecraft:redstone_block at pad 32 -9 178 (local) |
-| `zone.attic#1` | 34 -59 178 | C | AA | 0 | E | `playsound fb.step.fredbear @a 30 -37 128 0.7 1` | Exploration: footsteps above the attic; previous block in zone.attic |
-| `zone.attic#2` | 35 -59 178 | C | AA | 12 | E | `playsound fb.step.fredbear @a 36 -37 128 0.7 1` | Exploration: footsteps above the attic; previous block in zone.attic |
-| `sig.fredbear_glow_l#0` | 40 -59 178 | I | NR | 0 | E | `setblock 39 -59 178 air` | Fredbear telegraph: golden glow at the left door (trigger; clears pad); script places minecraft:redstone_block at pad 39 -9 178 (local) |
-| `sig.fredbear_glow_l#1` | 41 -59 178 | C | AA | 0 | E | `fill 91 -50 127 93 -47 133 light_block_7 replace air` | Fredbear telegraph: golden glow at the left door; previous block in sig.fredbear_glow_l |
-| `sig.fredbear_glow_l#2` | 42 -59 178 | C | AA | 0 | E | `particle minecraft:totem_particle 92.5 -48.5 130` | Fredbear telegraph: golden glow at the left door; previous block in sig.fredbear_glow_l |
-| `sig.fredbear_glow_r#0` | 45 -59 178 | I | NR | 0 | E | `setblock 44 -59 178 air` | Fredbear telegraph: golden glow at the right door (trigger; clears pad); script places minecraft:redstone_block at pad 44 -9 178 (local) |
-| `sig.fredbear_glow_r#1` | 46 -59 178 | C | AA | 0 | E | `fill 107 -50 127 109 -47 133 light_block_7 replace air` | Fredbear telegraph: golden glow at the right door; previous block in sig.fredbear_glow_r |
-| `sig.fredbear_glow_r#2` | 47 -59 178 | C | AA | 0 | E | `particle minecraft:totem_particle 107.5 -48.5 130` | Fredbear telegraph: golden glow at the right door; previous block in sig.fredbear_glow_r |
-| `sig.fredbear_glow_h#0` | 50 -59 178 | I | NR | 0 | E | `setblock 49 -59 178 air` | Fredbear telegraph: golden glow under the hatch (trigger; clears pad); script places minecraft:redstone_block at pad 49 -9 178 (local) |
-| `sig.fredbear_glow_h#1` | 51 -59 178 | C | AA | 0 | E | `particle minecraft:totem_particle 100 -49.5 137` | Fredbear telegraph: golden glow under the hatch; previous block in sig.fredbear_glow_h |
-| `sig.fredbear_glow_h#2` | 52 -59 178 | C | AA | 10 | E | `particle minecraft:totem_particle 100 -49.5 137` | Fredbear telegraph: golden glow under the hatch; previous block in sig.fredbear_glow_h |
-| `sig.fredbear_glow_off#0` | 55 -59 178 | I | NR | 0 | E | `setblock 54 -59 178 air` | Fredbear glow cleared (trigger; clears pad); script places minecraft:redstone_block at pad 54 -9 178 (local) |
-| `sig.fredbear_glow_off#1` | 56 -59 178 | C | AA | 0 | E | `fill 91 -50 127 93 -47 133 air replace light_block_7` | Fredbear glow cleared; previous block in sig.fredbear_glow_off |
-| `sig.fredbear_glow_off#2` | 57 -59 178 | C | AA | 0 | E | `fill 107 -50 127 109 -47 133 air replace light_block_7` | Fredbear glow cleared; previous block in sig.fredbear_glow_off |
-| `sig.strain_l#0` | 60 -59 178 | I | NR | 0 | E | `setblock 59 -59 178 air` | Fredbear forcing the left door (trigger; clears pad); script places minecraft:redstone_block at pad 59 -9 178 (local) |
-| `sig.strain_l#1` | 61 -59 178 | C | AA | 0 | E | `playsound fb.door.bang @a 94 -49 129.5 1 1` | Fredbear forcing the left door; previous block in sig.strain_l |
-| `sig.strain_l#2` | 62 -59 178 | C | AA | 0 | E | `camerashake add @a 0.25 2 positional` | Fredbear forcing the left door; previous block in sig.strain_l |
-| `sig.strain_l#3` | 63 -59 178 | C | AA | 0 | E | `setblock 94 -47 129 red_concrete` | Fredbear forcing the left door; previous block in sig.strain_l |
-| `sig.strain_r#0` | 66 -59 178 | I | NR | 0 | E | `setblock 65 -59 178 air` | Fredbear forcing the right door (trigger; clears pad); script places minecraft:redstone_block at pad 65 -9 178 (local) |
-| `sig.strain_r#1` | 67 -59 178 | C | AA | 0 | E | `playsound fb.door.bang @a 106 -49 129.5 1 1` | Fredbear forcing the right door; previous block in sig.strain_r |
-| `sig.strain_r#2` | 68 -59 178 | C | AA | 0 | E | `camerashake add @a 0.25 2 positional` | Fredbear forcing the right door; previous block in sig.strain_r |
-| `sig.strain_r#3` | 69 -59 178 | C | AA | 0 | E | `setblock 106 -47 129 red_concrete` | Fredbear forcing the right door; previous block in sig.strain_r |
-| `sig.strain_h#0` | 72 -59 178 | I | NR | 0 | E | `setblock 71 -59 178 air` | Fredbear forcing the hatch (trigger; clears pad); script places minecraft:redstone_block at pad 71 -9 178 (local) |
-| `sig.strain_h#1` | 73 -59 178 | C | AA | 0 | E | `playsound fb.door.bang @a 99.5 -50 136.5 1 1` | Fredbear forcing the hatch; previous block in sig.strain_h |
-| `sig.strain_h#2` | 74 -59 178 | C | AA | 0 | E | `camerashake add @a 0.25 2 positional` | Fredbear forcing the hatch; previous block in sig.strain_h |
-| `sig.strain_h#3` | 75 -59 178 | C | AA | 0 | E | `setblock 100 -47 140 red_concrete` | Fredbear forcing the hatch; previous block in sig.strain_h |
-| `sig.jam_l#0` | 78 -59 178 | I | NR | 0 | E | `setblock 77 -59 178 air` | Left door jammed open (barrier keeps the guard inside) (trigger; clears pad); script places minecraft:redstone_block at pad 77 -9 178 (local) |
-| `sig.jam_l#1` | 79 -59 178 | C | AA | 0 | E | `fill 94 -50 129 94 -48 130 barrier` | Left door jammed open (barrier keeps the guard inside); previous block in sig.jam_l |
-| `sig.jam_l#2` | 80 -59 178 | C | AA | 0 | E | `setblock 94 -47 129 red_concrete` | Left door jammed open (barrier keeps the guard inside); previous block in sig.jam_l |
-| `sig.jam_l#3` | 81 -59 178 | C | AA | 0 | E | `playsound fb.door.jam @a 94 -49 129.5 1 1` | Left door jammed open (barrier keeps the guard inside); previous block in sig.jam_l |
-| `sig.jam_r#0` | 84 -59 178 | I | NR | 0 | E | `setblock 83 -59 178 air` | Right door jammed open (barrier keeps the guard inside) (trigger; clears pad); script places minecraft:redstone_block at pad 83 -9 178 (local) |
-| `sig.jam_r#1` | 85 -59 178 | C | AA | 0 | E | `fill 106 -50 129 106 -48 130 barrier` | Right door jammed open (barrier keeps the guard inside); previous block in sig.jam_r |
-| `sig.jam_r#2` | 86 -59 178 | C | AA | 0 | E | `setblock 106 -47 129 red_concrete` | Right door jammed open (barrier keeps the guard inside); previous block in sig.jam_r |
-| `sig.jam_r#3` | 87 -59 178 | C | AA | 0 | E | `playsound fb.door.jam @a 106 -49 129.5 1 1` | Right door jammed open (barrier keeps the guard inside); previous block in sig.jam_r |
-| `sig.jam_h#0` | 90 -59 178 | I | NR | 0 | E | `setblock 89 -59 178 air` | Hatch jammed open (trigger; clears pad); script places minecraft:redstone_block at pad 89 -9 178 (local) |
-| `sig.jam_h#1` | 91 -59 178 | C | AA | 0 | E | `fill 99 -51 136 100 -51 137 iron_trapdoor ["direction"=0,"open_bit"=true,"upside_down_bit"=true]` | Hatch jammed open; previous block in sig.jam_h |
-| `sig.jam_h#2` | 92 -59 178 | C | AA | 0 | E | `setblock 100 -47 140 red_concrete` | Hatch jammed open; previous block in sig.jam_h |
-| `sig.jam_h#3` | 93 -59 178 | C | AA | 0 | E | `playsound fb.door.jam @a 99.5 -50 136.5 1 1` | Hatch jammed open; previous block in sig.jam_h |
-| `sig.unjam_l#0` | 96 -59 178 | I | NR | 0 | E | `setblock 95 -59 178 air` | Left door released (trigger; clears pad); script places minecraft:redstone_block at pad 95 -9 178 (local) |
-| `sig.unjam_l#1` | 97 -59 178 | C | AA | 0 | E | `fill 94 -50 129 94 -48 130 barrier` | Left door released; previous block in sig.unjam_l |
-| `sig.unjam_l#2` | 98 -59 178 | C | AA | 0 | E | `setblock 94 -47 129 verdant_froglight` | Left door released; previous block in sig.unjam_l |
-| `sig.unjam_r#0` | 101 -59 178 | I | NR | 0 | E | `setblock 100 -59 178 air` | Right door released (trigger; clears pad); script places minecraft:redstone_block at pad 100 -9 178 (local) |
-| `sig.unjam_r#1` | 102 -59 178 | C | AA | 0 | E | `fill 106 -50 129 106 -48 130 barrier` | Right door released; previous block in sig.unjam_r |
-| `sig.unjam_r#2` | 103 -59 178 | C | AA | 0 | E | `setblock 106 -47 129 verdant_froglight` | Right door released; previous block in sig.unjam_r |
-| `sig.unjam_h#0` | 106 -59 178 | I | NR | 0 | E | `setblock 105 -59 178 air` | Hatch released (trigger; clears pad); script places minecraft:redstone_block at pad 105 -9 178 (local) |
-| `sig.unjam_h#1` | 107 -59 178 | C | AA | 0 | E | `setblock 100 -47 140 gray_concrete` | Hatch released; previous block in sig.unjam_h |
-| `sig.strain_end_l#0` | 110 -59 178 | I | NR | 0 | E | `setblock 109 -59 178 air` | Fredbear stopped forcing the (still closed) left door (trigger; clears pad); script places minecraft:redstone_block at pad 109 -9 178 (local) |
-| `sig.strain_end_l#1` | 111 -59 178 | C | AA | 0 | E | `setblock 94 -47 129 ochre_froglight` | Fredbear stopped forcing the (still closed) left door; previous block in sig.strain_end_l |
-| `sig.strain_end_r#0` | 114 -59 178 | I | NR | 0 | E | `setblock 113 -59 178 air` | Fredbear stopped forcing the (still closed) right door (trigger; clears pad); script places minecraft:redstone_block at pad 113 -9 178 (local) |
-| `sig.strain_end_r#1` | 115 -59 178 | C | AA | 0 | E | `setblock 106 -47 129 ochre_froglight` | Fredbear stopped forcing the (still closed) right door; previous block in sig.strain_end_r |
-| `sig.strain_end_h#0` | 118 -59 178 | I | NR | 0 | E | `setblock 117 -59 178 air` | Fredbear stopped forcing the hatch (trigger; clears pad); script places minecraft:redstone_block at pad 117 -9 178 (local) |
-| `sig.strain_end_h#1` | 119 -59 178 | C | AA | 0 | E | `setblock 100 -47 140 gray_concrete` | Fredbear stopped forcing the hatch; previous block in sig.strain_end_h |
-| `sig.blackout_on#0` | 122 -59 178 | I | NR | 0 | E | `setblock 121 -59 178 air` | Fredbear blackout: office lights out (trigger; clears pad); script places minecraft:redstone_block at pad 121 -9 178 (local) |
-| `sig.blackout_on#1` | 123 -59 178 | C | AA | 0 | E | `setblock 100 -45 135 air` | Fredbear blackout: office lights out; previous block in sig.blackout_on |
-| `sig.blackout_on#2` | 124 -59 178 | C | AA | 0 | E | `setblock 100 -45 129 air` | Fredbear blackout: office lights out; previous block in sig.blackout_on |
-| `sig.blackout_on#3` | 125 -59 178 | C | AA | 0 | E | `playsound fb.power.dark @a 100 -48 133 0.8 1` | Fredbear blackout: office lights out; previous block in sig.blackout_on |
-| `sig.blackout_off#0` | 128 -59 178 | I | NR | 0 | E | `setblock 127 -59 178 air` | Blackout over (trigger; clears pad); script places minecraft:redstone_block at pad 127 -9 178 (local) |
-| `sig.blackout_off#1` | 129 -59 178 | C | AA | 0 | E | `setblock 100 -45 135 light_block_11` | Blackout over; previous block in sig.blackout_off |
-| `sig.blackout_off#2` | 130 -59 178 | C | AA | 0 | E | `setblock 100 -45 129 light_block_10` | Blackout over; previous block in sig.blackout_off |
-| `sig.blackout_off#3` | 131 -59 178 | C | AA | 0 | E | `playsound fb.light.buzz @a 100 -46 133 1 1` | Blackout over; previous block in sig.blackout_off |
-| `sig.finale#0` | 134 -59 178 | I | NR | 0 | E | `setblock 133 -59 178 air` | Night 6 Golden Hour begins (trigger; clears pad); script places minecraft:redstone_block at pad 133 -9 178 (local) |
-| `sig.finale#1` | 135 -59 178 | C | AA | 0 | E | `playsound fb.fredbear.finale @a 100 -48 133 1 1` | Night 6 Golden Hour begins; previous block in sig.finale |
-| `sig.finale#2` | 136 -59 178 | C | AA | 0 | E | `camerashake add @a 0.2 3 rotational` | Night 6 Golden Hour begins; previous block in sig.finale |
-| `sig.finale#3` | 137 -59 178 | C | AA | 0 | E | `particle minecraft:totem_particle 100 -49 133` | Night 6 Golden Hour begins; previous block in sig.finale |
-| `sig.diner_unseal#0` | 140 -59 178 | I | NR | 0 | E | `setblock 139 -59 178 air` | The bricked diner entrance is broken open (trigger; clears pad); script places minecraft:redstone_block at pad 139 -9 178 (local) |
-| `sig.diner_unseal#1` | 141 -59 178 | C | AA | 0 | E | `fill 64 -59 84 64 -57 86 air` | The bricked diner entrance is broken open; previous block in sig.diner_unseal |
-| `sig.diner_unseal#2` | 142 -59 178 | C | AA | 0 | E | `playsound fb.door.bang @a 64 -58 85 1 1` | The bricked diner entrance is broken open; previous block in sig.diner_unseal |
-| `sig.diner_seal#0` | 145 -59 178 | I | NR | 0 | E | `setblock 144 -59 178 air` | Diner entrance bricked up (baseline) (trigger; clears pad); script places minecraft:redstone_block at pad 144 -9 178 (local) |
-| `sig.diner_seal#1` | 146 -59 178 | C | AA | 0 | E | `fill 64 -59 84 64 -57 86 brick_block` | Diner entrance bricked up (baseline); previous block in sig.diner_seal |
-| `sig.chamber_open#0` | 149 -59 178 | I | NR | 0 | E | `setblock 148 -59 178 air` | Fredbear's chamber wall opens (trigger; clears pad); script places minecraft:redstone_block at pad 148 -9 178 (local) |
-| `sig.chamber_open#1` | 150 -59 178 | C | AA | 0 | E | `fill 33 -59 44 35 -56 44 air` | Fredbear's chamber wall opens; previous block in sig.chamber_open |
-| `sig.chamber_close#0` | 153 -59 178 | I | NR | 0 | E | `setblock 152 -59 178 air` | Fredbear's chamber wall sealed (baseline) (trigger; clears pad); script places minecraft:redstone_block at pad 152 -9 178 (local) |
-| `sig.chamber_close#1` | 154 -59 178 | C | AA | 0 | E | `fill 33 -59 44 35 -56 44 cracked_stone_bricks` | Fredbear's chamber wall sealed (baseline); previous block in sig.chamber_close |
-| `sig.stage_lights_off#0` | 157 -59 178 | I | NR | 0 | E | `setblock 156 -59 178 air` | Show stage spotlights off for the night (trigger; clears pad); script places minecraft:redstone_block at pad 156 -9 178 (local) |
-| `sig.stage_lights_off#1` | 158 -59 178 | C | AA | 0 | E | `fill 82 -44 14 118 -44 30 air replace light_block_9` | Show stage spotlights off for the night; previous block in sig.stage_lights_off |
-| `sig.stage_lights_on#0` | 161 -59 178 | I | NR | 0 | E | `setblock 160 -59 178 air` | Show stage spotlights on (lobby / free roam) (trigger; clears pad); script places minecraft:redstone_block at pad 160 -9 178 (local) |
-| `sig.stage_lights_on#1` | 162 -59 178 | C | AA | 0 | E | `setblock 100 -44 22 light_block_9` | Show stage spotlights on (lobby / free roam); previous block in sig.stage_lights_on |
-| `sig.stage_lights_on#2` | 163 -59 178 | C | AA | 0 | E | `setblock 93 -44 23 light_block_9` | Show stage spotlights on (lobby / free roam); previous block in sig.stage_lights_on |
-| `sig.stage_lights_on#3` | 164 -59 178 | C | AA | 0 | E | `setblock 107 -44 23 light_block_9` | Show stage spotlights on (lobby / free roam); previous block in sig.stage_lights_on |
-| `env.flicker_whall#0` | 169 -59 178 | I | NR | 0 | E | `setblock 168 -59 178 air` | West hall lights flicker (trigger; clears pad); script places minecraft:redstone_block at pad 168 -9 178 (local) |
-| `env.flicker_whall#1` | 170 -59 178 | C | AA | 0 | E | `fill 85 -45 101 89 -45 133 light_block_9 replace light_block_1` | West hall lights flicker; previous block in env.flicker_whall |
-| `env.flicker_whall#2` | 171 -59 178 | C | AA | 3 | E | `fill 85 -45 101 89 -45 133 light_block_1 replace light_block_9` | West hall lights flicker; previous block in env.flicker_whall |
-| `env.flicker_whall#3` | 172 -59 178 | C | AA | 4 | E | `fill 85 -45 101 89 -45 133 light_block_9 replace light_block_1` | West hall lights flicker; previous block in env.flicker_whall |
-| `env.flicker_whall#4` | 173 -59 178 | C | AA | 2 | E | `fill 85 -45 101 89 -45 133 light_block_1 replace light_block_9` | West hall lights flicker; previous block in env.flicker_whall |
-| `env.flicker_ehall#0` | 23 -59 181 | I | NR | 0 | E | `setblock 22 -59 181 air` | East hall lights flicker (trigger; clears pad); script places minecraft:redstone_block at pad 22 -9 181 (local) |
-| `env.flicker_ehall#1` | 24 -59 181 | C | AA | 0 | E | `fill 111 -45 101 115 -45 133 light_block_9 replace light_block_1` | East hall lights flicker; previous block in env.flicker_ehall |
-| `env.flicker_ehall#2` | 25 -59 181 | C | AA | 3 | E | `fill 111 -45 101 115 -45 133 light_block_1 replace light_block_9` | East hall lights flicker; previous block in env.flicker_ehall |
-| `env.flicker_ehall#3` | 26 -59 181 | C | AA | 4 | E | `fill 111 -45 101 115 -45 133 light_block_9 replace light_block_1` | East hall lights flicker; previous block in env.flicker_ehall |
-| `env.flicker_ehall#4` | 27 -59 181 | C | AA | 2 | E | `fill 111 -45 101 115 -45 133 light_block_1 replace light_block_9` | East hall lights flicker; previous block in env.flicker_ehall |
-| `env.flicker_office#0` | 30 -59 181 | I | NR | 0 | E | `setblock 29 -59 181 air` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit (trigger; clears pad); script places minecraft:redstone_block at pad 29 -9 181 (local) |
-| `env.flicker_office#1` | 31 -59 181 | C | AA | 0 | E | `fill 100 -45 129 100 -45 135 light_block_3 replace light_block_11` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
-| `env.flicker_office#2` | 32 -59 181 | C | AA | 0 | E | `fill 100 -45 129 100 -45 135 light_block_2 replace light_block_10` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
-| `env.flicker_office#3` | 33 -59 181 | C | AA | 0 | E | `playsound fb.light.buzz @a 100 -46 133 0.5 0.7` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
-| `env.flicker_office#4` | 34 -59 181 | C | AA | 2 | E | `fill 100 -45 129 100 -45 135 light_block_11 replace light_block_3` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
-| `env.flicker_office#5` | 35 -59 181 | C | AA | 0 | E | `fill 100 -45 129 100 -45 135 light_block_10 replace light_block_2` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
-| `env.flicker_office#6` | 36 -59 181 | C | AA | 3 | E | `fill 100 -45 129 100 -45 135 light_block_3 replace light_block_11` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
-| `env.flicker_office#7` | 37 -59 181 | C | AA | 0 | E | `fill 100 -45 129 100 -45 135 light_block_2 replace light_block_10` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
-| `env.flicker_office#8` | 38 -59 181 | C | AA | 2 | E | `fill 100 -45 129 100 -45 135 light_block_11 replace light_block_3` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
-| `env.flicker_office#9` | 39 -59 181 | C | AA | 0 | E | `fill 100 -45 129 100 -45 135 light_block_10 replace light_block_2` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
-| `env.distant_music#0` | 42 -59 181 | I | NR | 0 | E | `setblock 41 -59 181 air` | Faint music from the show stage (trigger; clears pad); script places minecraft:redstone_block at pad 41 -9 181 (local) |
-| `env.distant_music#1` | 43 -59 181 | C | AA | 0 | E | `playsound fb.amb.distant_music @a 100 -47 22 0.8 1` | Faint music from the show stage; previous block in env.distant_music |
-| `env.pipes#0` | 46 -59 181 | I | NR | 0 | E | `setblock 45 -59 181 air` | Basement pipes knock (trigger; clears pad); script places minecraft:redstone_block at pad 45 -9 181 (local) |
-| `env.pipes#1` | 47 -59 181 | C | AA | 0 | E | `playsound fb.amb.pipes @a 100 -56 60 1 1` | Basement pipes knock; previous block in env.pipes |
-| `env.pipes#2` | 48 -59 181 | C | AA | 20 | E | `playsound fb.amb.pipes @a 140 -56 90 0.8 1` | Basement pipes knock; previous block in env.pipes |
-| `env.phone_ring#0` | 51 -59 181 | I | NR | 0 | E | `setblock 50 -59 181 air` | Office phone rings (trigger; clears pad); script places minecraft:redstone_block at pad 50 -9 181 (local) |
-| `env.phone_ring#1` | 52 -59 181 | C | AA | 0 | E | `playsound fb.phone.ring @a 102 -49 130 1 1` | Office phone rings; previous block in env.phone_ring |
-| `env.phone_ring#2` | 53 -59 181 | C | AA | 30 | E | `playsound fb.phone.ring @a 102 -49 130 1 1` | Office phone rings; previous block in env.phone_ring |
-| `env.phone_ring#3` | 54 -59 181 | C | AA | 30 | E | `playsound fb.phone.ring @a 102 -49 130 1 1` | Office phone rings; previous block in env.phone_ring |
-| `js.common#0` | 59 -59 181 | I | NR | 0 | E | `setblock 58 -59 181 air` | Jumpscare: camera shake + light burst (the script plays the character scream at the player) (trigger; clears pad); script places minecraft:redstone_block at pad 58 -9 181 (local) |
-| `js.common#1` | 60 -59 181 | C | AA | 0 | E | `camerashake add @a 1.2 1.6 rotational` | Jumpscare: camera shake + light burst (the script plays the character scream at the player); previous block in js.common |
-| `js.common#2` | 61 -59 181 | C | AA | 0 | E | `fill 95 -50 127 105 -45 139 light_block_15 replace air` | Jumpscare: camera shake + light burst (the script plays the character scream at the player); previous block in js.common |
-| `js.common#3` | 62 -59 181 | C | AA | 3 | E | `fill 95 -50 127 105 -45 139 air replace light_block_15` | Jumpscare: camera shake + light burst (the script plays the character scream at the player); previous block in js.common |
-| `js.common#4` | 63 -59 181 | C | AA | 30 | E | `camerashake stop @a` | Jumpscare: camera shake + light burst (the script plays the character scream at the player); previous block in js.common |
-| `win.six_am#0` | 68 -59 181 | I | NR | 0 | E | `setblock 67 -59 181 air` | 6 AM: chimes and lights (trigger; clears pad); script places minecraft:redstone_block at pad 67 -9 181 (local) |
-| `win.six_am#1` | 69 -59 181 | C | AA | 0 | E | `playsound fb.clock.chime @a 100 -47 133 1.2 1` | 6 AM: chimes and lights; previous block in win.six_am |
-| `win.six_am#2` | 70 -59 181 | C | AA | 25 | E | `playsound fb.clock.chime @a 100 -47 133 1.2 1` | 6 AM: chimes and lights; previous block in win.six_am |
-| `win.six_am#3` | 71 -59 181 | C | AA | 25 | E | `playsound fb.clock.chime @a 100 -47 133 1.2 1` | 6 AM: chimes and lights; previous block in win.six_am |
-| `win.six_am#4` | 72 -59 181 | C | AA | 10 | E | `playsound fb.clock.cheer @a 100 -47 133 1 1` | 6 AM: chimes and lights; previous block in win.six_am |
-| `win.six_am#5` | 73 -59 181 | C | AA | 0 | E | `fill 95 -50 127 105 -45 139 light_block_12 replace air` | 6 AM: chimes and lights; previous block in win.six_am |
-| `win.six_am#6` | 74 -59 181 | C | AA | 60 | E | `fill 95 -50 127 105 -45 139 air replace light_block_12` | 6 AM: chimes and lights; previous block in win.six_am |
-| `lose.static#0` | 77 -59 181 | I | NR | 0 | E | `setblock 76 -59 181 air` | Game over static (trigger; clears pad); script places minecraft:redstone_block at pad 76 -9 181 (local) |
-| `lose.static#1` | 78 -59 181 | C | AA | 0 | E | `playsound fb.cam.static @a 100 -48.4 131.5 1 1` | Game over static; previous block in lose.static |
-| `lose.static#2` | 79 -59 181 | C | AA | 20 | E | `playsound fb.cam.static @a 100 -48.4 131.5 1 0.8` | Game over static; previous block in lose.static |
-| `win.campaign#0` | 82 -59 181 | I | NR | 0 | E | `setblock 81 -59 181 air` | Campaign complete fanfare (trigger; clears pad); script places minecraft:redstone_block at pad 81 -9 181 (local) |
-| `win.campaign#1` | 83 -59 181 | C | AA | 0 | E | `playsound fb.ending.theme @a 100 -47 150 1 1` | Campaign complete fanfare; previous block in win.campaign |
-| `win.campaign#2` | 84 -59 181 | C | AA | 0 | E | `particle minecraft:totem_particle 100 -47 156` | Campaign complete fanfare; previous block in win.campaign |
-| `win.campaign#3` | 85 -59 181 | C | AA | 10 | E | `particle minecraft:totem_particle 96 -47 156` | Campaign complete fanfare; previous block in win.campaign |
-| `win.campaign#4` | 86 -59 181 | C | AA | 10 | E | `particle minecraft:totem_particle 104 -47 156` | Campaign complete fanfare; previous block in win.campaign |
-| `reset.world#0` | 91 -59 181 | I | NR | 0 | E | `setblock 90 -59 181 air` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles (trigger; clears pad); script places minecraft:redstone_block at pad 90 -9 181 (local) |
-| `reset.world#1` | 92 -59 181 | C | AA | 0 | E | `setblock 22 -59 172 redstone_block` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
-| `reset.world#2` | 93 -59 181 | C | AA | 0 | E | `fill 95 -50 127 105 -45 139 air replace light_block_12` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
-| `reset.world#3` | 94 -59 181 | C | AA | 0 | E | `setblock 94 -47 129 verdant_froglight` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
-| `reset.world#4` | 95 -59 181 | C | AA | 0 | E | `setblock 106 -47 129 verdant_froglight` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
-| `reset.world#5` | 96 -59 181 | C | AA | 0 | E | `setblock 94 -47 130 gray_concrete` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
-| `reset.world#6` | 97 -59 181 | C | AA | 0 | E | `setblock 106 -47 130 gray_concrete` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
-| `reset.world#7` | 98 -59 181 | C | AA | 0 | E | `setblock 99 -47 140 gray_concrete` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
-| `reset.world#8` | 99 -59 181 | C | AA | 0 | E | `setblock 100 -47 140 gray_concrete` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
-| `reset.world#9` | 100 -59 181 | C | AA | 0 | E | `setblock 101 -47 140 verdant_froglight` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
-| `reset.world#10` | 101 -59 181 | C | AA | 0 | E | `kill @e[type=item]` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
-| `reset.world#11` | 102 -59 181 | C | AA | 0 | E | `title @a clear` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
-| `diag.ping#0` | 105 -59 181 | I | NR | 0 | E | `setblock 104 -59 181 air` | Actuator-bus round trip test (answers the script) (trigger; clears pad); script places minecraft:redstone_block at pad 104 -9 181 (local) |
-| `diag.ping#1` | 106 -59 181 | C | AA | 0 | E | `scriptevent fb:diag pong` | Actuator-bus round trip test (answers the script); previous block in diag.ping |
-| `diag.lamp_test#0` | 109 -59 181 | I | NR | 0 | E | `setblock 108 -59 181 air` | Indicator lamp test (all office lamps on for 2 s) (trigger; clears pad); script places minecraft:redstone_block at pad 108 -9 181 (local) |
-| `diag.lamp_test#1` | 110 -59 181 | C | AA | 0 | E | `fill 96 -46 126 105 -46 126 ochre_froglight` | Indicator lamp test (all office lamps on for 2 s); previous block in diag.lamp_test |
-| `diag.lamp_test#2` | 111 -59 181 | C | AA | 40 | E | `fill 96 -46 126 105 -46 126 verdant_froglight` | Indicator lamp test (all office lamps on for 2 s); previous block in diag.lamp_test |
-| `diag.heartbeat#0` | 114 -59 181 | R | AA | 100 | E | `scriptevent fb:diag heartbeat` | Heartbeat every 100 ticks (command blocks enabled + control room loaded); always active (repeats every delay ticks) |
+| `night.end#19` | 42 -59 172 | C | AA | 0 | E | `fill 101 -43 127 102 -43 128 iron_trapdoor ["direction"=0,"open_bit"=false,"upside_down_bit"=true]` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
+| `night.end#20` | 43 -59 172 | C | AA | 0 | E | `setblock 104 -47 126 gray_concrete` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
+| `night.end#21` | 44 -59 172 | C | AA | 0 | E | `setblock 49 -58 90 pink_candle_cake ["lit"=false]` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
+| `night.end#22` | 45 -59 172 | C | AA | 0 | E | `setblock 46 -58 91 white_candle ["candles"=3,"lit"=false]` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
+| `night.end#23` | 46 -59 172 | C | AA | 0 | E | `setblock 52 -58 91 white_candle ["candles"=3,"lit"=false]` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
+| `night.hour#0` | 49 -59 172 | I | NR | 0 | E | `setblock 48 -59 172 air` | Hour chime (trigger; clears pad); script places minecraft:redstone_block at pad 48 -9 172 (local) |
+| `night.hour#1` | 50 -59 172 | C | AA | 0 | E | `playsound fb.clock.hour @a 100 -47 133 0.6 1` | Hour chime; previous block in night.hour |
+| `night.hour_0#0` | 53 -59 172 | I | NR | 0 | E | `setblock 52 -59 172 air` | Office clock lamp for 12 AM lights (night.begin clears the strip) (trigger; clears pad); script places minecraft:redstone_block at pad 52 -9 172 (local) |
+| `night.hour_0#1` | 54 -59 172 | C | AA | 0 | E | `setblock 97 -45 126 ochre_froglight` | Office clock lamp for 12 AM lights (night.begin clears the strip); previous block in night.hour_0 |
+| `night.hour_1#0` | 57 -59 172 | I | NR | 0 | E | `setblock 56 -59 172 air` | Office clock lamp for 1 AM lights (night.begin clears the strip) (trigger; clears pad); script places minecraft:redstone_block at pad 56 -9 172 (local) |
+| `night.hour_1#1` | 58 -59 172 | C | AA | 0 | E | `setblock 98 -45 126 ochre_froglight` | Office clock lamp for 1 AM lights (night.begin clears the strip); previous block in night.hour_1 |
+| `night.hour_2#0` | 61 -59 172 | I | NR | 0 | E | `setblock 60 -59 172 air` | Office clock lamp for 2 AM lights (night.begin clears the strip) (trigger; clears pad); script places minecraft:redstone_block at pad 60 -9 172 (local) |
+| `night.hour_2#1` | 62 -59 172 | C | AA | 0 | E | `setblock 99 -45 126 ochre_froglight` | Office clock lamp for 2 AM lights (night.begin clears the strip); previous block in night.hour_2 |
+| `night.hour_3#0` | 65 -59 172 | I | NR | 0 | E | `setblock 64 -59 172 air` | Office clock lamp for 3 AM lights (night.begin clears the strip) (trigger; clears pad); script places minecraft:redstone_block at pad 64 -9 172 (local) |
+| `night.hour_3#1` | 66 -59 172 | C | AA | 0 | E | `setblock 100 -45 126 ochre_froglight` | Office clock lamp for 3 AM lights (night.begin clears the strip); previous block in night.hour_3 |
+| `night.hour_4#0` | 69 -59 172 | I | NR | 0 | E | `setblock 68 -59 172 air` | Office clock lamp for 4 AM lights (night.begin clears the strip) (trigger; clears pad); script places minecraft:redstone_block at pad 68 -9 172 (local) |
+| `night.hour_4#1` | 70 -59 172 | C | AA | 0 | E | `setblock 101 -45 126 ochre_froglight` | Office clock lamp for 4 AM lights (night.begin clears the strip); previous block in night.hour_4 |
+| `night.hour_5#0` | 73 -59 172 | I | NR | 0 | E | `setblock 72 -59 172 air` | Office clock lamp for 5 AM lights (night.begin clears the strip) (trigger; clears pad); script places minecraft:redstone_block at pad 72 -9 172 (local) |
+| `night.hour_5#1` | 74 -59 172 | C | AA | 0 | E | `setblock 102 -45 126 ochre_froglight` | Office clock lamp for 5 AM lights (night.begin clears the strip); previous block in night.hour_5 |
+| `night.maint_begin#0` | 77 -59 172 | I | NR | 0 | E | `setblock 76 -59 172 air` | Maintenance: unlock the office, alarm (trigger; clears pad); script places minecraft:redstone_block at pad 76 -9 172 (local) |
+| `night.maint_begin#1` | 78 -59 172 | C | AA | 0 | E | `fill 94 -50 129 94 -48 130 air` | Maintenance: unlock the office, alarm; previous block in night.maint_begin |
+| `night.maint_begin#2` | 79 -59 172 | C | AA | 0 | E | `fill 106 -50 129 106 -48 130 air` | Maintenance: unlock the office, alarm; previous block in night.maint_begin |
+| `night.maint_begin#3` | 80 -59 172 | C | AA | 0 | E | `playsound fb.power.alarm @a 100 -48 133 1 1` | Maintenance: unlock the office, alarm; previous block in night.maint_begin |
+| `night.maint_begin#4` | 81 -59 172 | C | AA | 30 | E | `playsound fb.power.alarm @a 100 -48 133 1 1` | Maintenance: unlock the office, alarm; previous block in night.maint_begin |
+| `night.maint_end#0` | 84 -59 172 | I | NR | 0 | E | `setblock 83 -59 172 air` | Maintenance over: re-seal the office (trigger; clears pad); script places minecraft:redstone_block at pad 83 -9 172 (local) |
+| `night.maint_end#1` | 85 -59 172 | C | AA | 0 | E | `fill 94 -50 129 94 -48 130 barrier` | Maintenance over: re-seal the office; previous block in night.maint_end |
+| `night.maint_end#2` | 86 -59 172 | C | AA | 0 | E | `fill 106 -50 129 106 -48 130 barrier` | Maintenance over: re-seal the office; previous block in night.maint_end |
+| `night.maint_end#3` | 87 -59 172 | C | AA | 0 | E | `playsound fb.power.reserve @a 100 -48 133 1 1` | Maintenance over: re-seal the office; previous block in night.maint_end |
+| `door_l_close#0` | 92 -59 172 | I | NR | 0 | E | `setblock 91 -59 172 air` | Left door closes (trigger; clears pad); script places minecraft:redstone_block at pad 91 -9 172 (local) |
+| `door_l_close#1` | 93 -59 172 | C | AA | 0 | E | `fill 94 -50 129 94 -48 130 iron_block` | Left door closes; previous block in door_l_close |
+| `door_l_close#2` | 94 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 94 -49 129.5 1 1` | Left door closes; previous block in door_l_close |
+| `door_l_close#3` | 95 -59 172 | C | AA | 0 | E | `setblock 94 -47 129 ochre_froglight` | Left door closes; previous block in door_l_close |
+| `door_l_open#0` | 98 -59 172 | I | NR | 0 | E | `setblock 97 -59 172 air` | Left door opens (barrier keeps the guard inside) (trigger; clears pad); script places minecraft:redstone_block at pad 97 -9 172 (local) |
+| `door_l_open#1` | 99 -59 172 | C | AA | 0 | E | `fill 94 -50 129 94 -48 130 barrier` | Left door opens (barrier keeps the guard inside); previous block in door_l_open |
+| `door_l_open#2` | 100 -59 172 | C | AA | 0 | E | `playsound fb.door.open @a 94 -49 129.5 1 1` | Left door opens (barrier keeps the guard inside); previous block in door_l_open |
+| `door_l_open#3` | 101 -59 172 | C | AA | 0 | E | `setblock 94 -47 129 verdant_froglight` | Left door opens (barrier keeps the guard inside); previous block in door_l_open |
+| `door_r_close#0` | 104 -59 172 | I | NR | 0 | E | `setblock 103 -59 172 air` | Right door closes (trigger; clears pad); script places minecraft:redstone_block at pad 103 -9 172 (local) |
+| `door_r_close#1` | 105 -59 172 | C | AA | 0 | E | `fill 106 -50 129 106 -48 130 iron_block` | Right door closes; previous block in door_r_close |
+| `door_r_close#2` | 106 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 106 -49 129.5 1 1` | Right door closes; previous block in door_r_close |
+| `door_r_close#3` | 107 -59 172 | C | AA | 0 | E | `setblock 106 -47 129 ochre_froglight` | Right door closes; previous block in door_r_close |
+| `door_r_open#0` | 110 -59 172 | I | NR | 0 | E | `setblock 109 -59 172 air` | Right door opens (trigger; clears pad); script places minecraft:redstone_block at pad 109 -9 172 (local) |
+| `door_r_open#1` | 111 -59 172 | C | AA | 0 | E | `fill 106 -50 129 106 -48 130 barrier` | Right door opens; previous block in door_r_open |
+| `door_r_open#2` | 112 -59 172 | C | AA | 0 | E | `playsound fb.door.open @a 106 -49 129.5 1 1` | Right door opens; previous block in door_r_open |
+| `door_r_open#3` | 113 -59 172 | C | AA | 0 | E | `setblock 106 -47 129 verdant_froglight` | Right door opens; previous block in door_r_open |
+| `light_l_on#0` | 116 -59 172 | I | NR | 0 | E | `setblock 115 -59 172 air` | Left hall light on (trigger; clears pad); script places minecraft:redstone_block at pad 115 -9 172 (local) |
+| `light_l_on#1` | 117 -59 172 | C | AA | 0 | E | `fill 91 -50 127 93 -47 133 light_block_14 replace air` | Left hall light on; previous block in light_l_on |
+| `light_l_on#2` | 118 -59 172 | C | AA | 0 | E | `setblock 94 -47 130 verdant_froglight` | Left hall light on; previous block in light_l_on |
+| `light_l_on#3` | 119 -59 172 | C | AA | 0 | E | `playsound fb.light.buzz @a 92 -47 130 1 1` | Left hall light on; previous block in light_l_on |
+| `light_l_off#0` | 122 -59 172 | I | NR | 0 | E | `setblock 121 -59 172 air` | Left hall light off (trigger; clears pad); script places minecraft:redstone_block at pad 121 -9 172 (local) |
+| `light_l_off#1` | 123 -59 172 | C | AA | 0 | E | `fill 91 -50 127 93 -47 133 air replace light_block_14` | Left hall light off; previous block in light_l_off |
+| `light_l_off#2` | 124 -59 172 | C | AA | 0 | E | `setblock 94 -47 130 gray_concrete` | Left hall light off; previous block in light_l_off |
+| `light_r_on#0` | 127 -59 172 | I | NR | 0 | E | `setblock 126 -59 172 air` | Right hall light on (trigger; clears pad); script places minecraft:redstone_block at pad 126 -9 172 (local) |
+| `light_r_on#1` | 128 -59 172 | C | AA | 0 | E | `fill 107 -50 127 109 -47 133 light_block_14 replace air` | Right hall light on; previous block in light_r_on |
+| `light_r_on#2` | 129 -59 172 | C | AA | 0 | E | `setblock 106 -47 130 verdant_froglight` | Right hall light on; previous block in light_r_on |
+| `light_r_on#3` | 130 -59 172 | C | AA | 0 | E | `playsound fb.light.buzz @a 108 -47 130 1 1` | Right hall light on; previous block in light_r_on |
+| `light_r_off#0` | 133 -59 172 | I | NR | 0 | E | `setblock 132 -59 172 air` | Right hall light off (trigger; clears pad); script places minecraft:redstone_block at pad 132 -9 172 (local) |
+| `light_r_off#1` | 134 -59 172 | C | AA | 0 | E | `fill 107 -50 127 109 -47 133 air replace light_block_14` | Right hall light off; previous block in light_r_off |
+| `light_r_off#2` | 135 -59 172 | C | AA | 0 | E | `setblock 106 -47 130 gray_concrete` | Right hall light off; previous block in light_r_off |
+| `hatch_close#0` | 138 -59 172 | I | NR | 0 | E | `setblock 137 -59 172 air` | Office hatch sealed (trigger; clears pad); script places minecraft:redstone_block at pad 137 -9 172 (local) |
+| `hatch_close#1` | 139 -59 172 | C | AA | 0 | E | `fill 99 -51 136 100 -51 137 iron_trapdoor ["direction"=0,"open_bit"=false,"upside_down_bit"=true]` | Office hatch sealed; previous block in hatch_close |
+| `hatch_close#2` | 140 -59 172 | C | AA | 0 | E | `setblock 99 -47 140 ochre_froglight` | Office hatch sealed; previous block in hatch_close |
+| `hatch_close#3` | 141 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 99.5 -50 136.5 0.8 0.8` | Office hatch sealed; previous block in hatch_close |
+| `hatch_open#0` | 144 -59 172 | I | NR | 0 | E | `setblock 143 -59 172 air` | Office hatch opened (trigger; clears pad); script places minecraft:redstone_block at pad 143 -9 172 (local) |
+| `hatch_open#1` | 145 -59 172 | C | AA | 0 | E | `fill 99 -51 136 100 -51 137 iron_trapdoor ["direction"=0,"open_bit"=true,"upside_down_bit"=true]` | Office hatch opened; previous block in hatch_open |
+| `hatch_open#2` | 146 -59 172 | C | AA | 0 | E | `setblock 99 -47 140 gray_concrete` | Office hatch opened; previous block in hatch_open |
+| `hatch_open#3` | 147 -59 172 | C | AA | 0 | E | `playsound fb.door.open @a 99.5 -50 136.5 0.8 0.8` | Office hatch opened; previous block in hatch_open |
+| `grate_close#0` | 150 -59 172 | I | NR | 0 | E | `setblock 149 -59 172 air` | Ceiling-vent grate closes (Morgrave knocks on it; he also shuts it behind him) (trigger; clears pad); script places minecraft:redstone_block at pad 149 -9 172 (local) |
+| `grate_close#1` | 151 -59 172 | C | AA | 0 | E | `fill 101 -43 127 102 -43 128 iron_trapdoor ["direction"=0,"open_bit"=false,"upside_down_bit"=true]` | Ceiling-vent grate closes (Morgrave knocks on it; he also shuts it behind him); previous block in grate_close |
+| `grate_close#2` | 152 -59 172 | C | AA | 0 | E | `setblock 104 -47 126 ochre_froglight` | Ceiling-vent grate closes (Morgrave knocks on it; he also shuts it behind him); previous block in grate_close |
+| `grate_close#3` | 153 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 101.5 -44 127.5 0.7 1.4` | Ceiling-vent grate closes (Morgrave knocks on it; he also shuts it behind him); previous block in grate_close |
+| `grate_open#0` | 156 -59 172 | I | NR | 0 | E | `setblock 155 -59 172 air` | Ceiling-vent grate opens (trigger; clears pad); script places minecraft:redstone_block at pad 155 -9 172 (local) |
+| `grate_open#1` | 157 -59 172 | C | AA | 0 | E | `fill 101 -43 127 102 -43 128 iron_trapdoor ["direction"=0,"open_bit"=true,"upside_down_bit"=true]` | Ceiling-vent grate opens; previous block in grate_open |
+| `grate_open#2` | 158 -59 172 | C | AA | 0 | E | `setblock 104 -47 126 verdant_froglight` | Ceiling-vent grate opens; previous block in grate_open |
+| `grate_open#3` | 159 -59 172 | C | AA | 0 | E | `playsound fb.door.open @a 101.5 -44 127.5 0.7 1.3` | Ceiling-vent grate opens; previous block in grate_open |
+| `seal.vent_close#0` | 162 -59 172 | I | NR | 0 | E | `setblock 161 -59 172 air` | Vent seal: bars across the supply duct (CAM 16) (trigger; clears pad); script places minecraft:redstone_block at pad 161 -9 172 (local) |
+| `seal.vent_close#1` | 163 -59 172 | C | AA | 0 | E | `fill 91 -53 132 91 -52 132 iron_bars` | Vent seal: bars across the supply duct (CAM 16); previous block in seal.vent_close |
+| `seal.vent_close#2` | 164 -59 172 | C | AA | 0 | E | `setblock 95 -47 126 ochre_froglight` | Vent seal: bars across the supply duct (CAM 16); previous block in seal.vent_close |
+| `seal.vent_close#3` | 165 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 91 -52 132 0.8 1.3` | Vent seal: bars across the supply duct (CAM 16); previous block in seal.vent_close |
+| `seal.vent_close#4` | 166 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 96 -49 128 0.5 1.3` | Vent seal: bars across the supply duct (CAM 16); previous block in seal.vent_close |
+| `seal.vent_open#0` | 169 -59 172 | I | NR | 0 | E | `setblock 168 -59 172 air` | Vent seal released (trigger; clears pad); script places minecraft:redstone_block at pad 168 -9 172 (local) |
+| `seal.vent_open#1` | 170 -59 172 | C | AA | 0 | E | `fill 91 -53 132 91 -52 132 air replace iron_bars` | Vent seal released; previous block in seal.vent_open |
+| `seal.vent_open#2` | 171 -59 172 | C | AA | 0 | E | `setblock 95 -47 126 gray_concrete` | Vent seal released; previous block in seal.vent_open |
+| `seal.vent_open#3` | 172 -59 172 | C | AA | 0 | E | `playsound fb.door.open @a 96 -49 128 0.5 1.3` | Vent seal released; previous block in seal.vent_open |
+| `seal.shaft_close#0` | 23 -59 175 | I | NR | 0 | E | `setblock 22 -59 175 air` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17) (trigger; clears pad); script places minecraft:redstone_block at pad 22 -9 175 (local) |
+| `seal.shaft_close#1` | 24 -59 175 | C | AA | 0 | E | `fill 92 -59 113 92 -58 114 iron_bars` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
+| `seal.shaft_close#2` | 25 -59 175 | C | AA | 0 | E | `fill 99 -59 112 101 -57 112 iron_bars` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
+| `seal.shaft_close#3` | 26 -59 175 | C | AA | 0 | E | `setblock 95 -48 126 ochre_froglight` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
+| `seal.shaft_close#4` | 27 -59 175 | C | AA | 0 | E | `playsound fb.door.close @a 100 -58 113 0.8 1.3` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
+| `seal.shaft_close#5` | 28 -59 175 | C | AA | 0 | E | `playsound fb.door.close @a 96 -49 129 0.5 1.3` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
+| `seal.shaft_open#0` | 31 -59 175 | I | NR | 0 | E | `setblock 30 -59 175 air` | Shaft seal released (trigger; clears pad); script places minecraft:redstone_block at pad 30 -9 175 (local) |
+| `seal.shaft_open#1` | 32 -59 175 | C | AA | 0 | E | `fill 92 -59 113 92 -58 114 air replace iron_bars` | Shaft seal released; previous block in seal.shaft_open |
+| `seal.shaft_open#2` | 33 -59 175 | C | AA | 0 | E | `fill 99 -59 112 101 -57 112 air replace iron_bars` | Shaft seal released; previous block in seal.shaft_open |
+| `seal.shaft_open#3` | 34 -59 175 | C | AA | 0 | E | `setblock 95 -48 126 gray_concrete` | Shaft seal released; previous block in seal.shaft_open |
+| `seal.shaft_open#4` | 35 -59 175 | C | AA | 0 | E | `playsound fb.door.open @a 96 -49 129 0.5 1.3` | Shaft seal released; previous block in seal.shaft_open |
+| `cam.up#0` | 40 -59 175 | I | NR | 0 | E | `setblock 39 -59 175 air` | Monitor raised (office sound) (trigger; clears pad); script places minecraft:redstone_block at pad 39 -9 175 (local) |
+| `cam.up#1` | 41 -59 175 | C | AA | 0 | E | `playsound fb.cam.up @a 98 -49 130 1 1` | Monitor raised (office sound); previous block in cam.up |
+| `cam.down#0` | 44 -59 175 | I | NR | 0 | E | `setblock 43 -59 175 air` | Monitor lowered (trigger; clears pad); script places minecraft:redstone_block at pad 43 -9 175 (local) |
+| `cam.down#1` | 45 -59 175 | C | AA | 0 | E | `playsound fb.cam.down @a 98 -49 130 1 1` | Monitor lowered; previous block in cam.down |
+| `cam.server_fault#0` | 48 -59 175 | I | NR | 0 | E | `setblock 47 -59 175 air` | Camera server sparks (upper floor) during disruption (trigger; clears pad); script places minecraft:redstone_block at pad 47 -9 175 (local) |
+| `cam.server_fault#1` | 49 -59 175 | C | AA | 0 | E | `particle minecraft:electric_spark_particle 110 -40.5 141` | Camera server sparks (upper floor) during disruption; previous block in cam.server_fault |
+| `cam.server_fault#2` | 50 -59 175 | C | AA | 0 | E | `playsound fb.breaker.trip @a 110 -41 141 0.7 1` | Camera server sparks (upper floor) during disruption; previous block in cam.server_fault |
+| `cam.server_fault#3` | 51 -59 175 | C | AA | 8 | E | `particle minecraft:electric_spark_particle 113 -40.5 141` | Camera server sparks (upper floor) during disruption; previous block in cam.server_fault |
+| `pwr.out#0` | 56 -59 175 | I | NR | 0 | E | `setblock 55 -59 175 air` | Power out: office lights die, indicators dark (trigger; clears pad); script places minecraft:redstone_block at pad 55 -9 175 (local) |
+| `pwr.out#1` | 57 -59 175 | C | AA | 0 | E | `setblock 100 -45 135 air` | Power out: office lights die, indicators dark; previous block in pwr.out |
+| `pwr.out#2` | 58 -59 175 | C | AA | 0 | E | `setblock 100 -45 129 air` | Power out: office lights die, indicators dark; previous block in pwr.out |
+| `pwr.out#3` | 59 -59 175 | C | AA | 0 | E | `fill 96 -46 126 105 -46 126 gray_concrete` | Power out: office lights die, indicators dark; previous block in pwr.out |
+| `pwr.out#4` | 60 -59 175 | C | AA | 0 | E | `setblock 94 -47 129 gray_concrete` | Power out: office lights die, indicators dark; previous block in pwr.out |
+| `pwr.out#5` | 61 -59 175 | C | AA | 0 | E | `setblock 106 -47 129 gray_concrete` | Power out: office lights die, indicators dark; previous block in pwr.out |
+| `pwr.out#6` | 62 -59 175 | C | AA | 0 | E | `setblock 94 -47 130 gray_concrete` | Power out: office lights die, indicators dark; previous block in pwr.out |
+| `pwr.out#7` | 63 -59 175 | C | AA | 0 | E | `setblock 106 -47 130 gray_concrete` | Power out: office lights die, indicators dark; previous block in pwr.out |
+| `pwr.out#8` | 64 -59 175 | C | AA | 0 | E | `setblock 101 -47 140 red_concrete` | Power out: office lights die, indicators dark; previous block in pwr.out |
+| `pwr.out#9` | 65 -59 175 | C | AA | 0 | E | `playsound fb.power.down @a 100 -48 133 1 1` | Power out: office lights die, indicators dark; previous block in pwr.out |
+| `pwr.dark#0` | 68 -59 175 | I | NR | 0 | E | `setblock 67 -59 175 air` | Power out: final darkness (trigger; clears pad); script places minecraft:redstone_block at pad 67 -9 175 (local) |
+| `pwr.dark#1` | 69 -59 175 | C | AA | 0 | E | `playsound fb.power.dark @a 100 -48 133 1 1` | Power out: final darkness; previous block in pwr.dark |
+| `pwr.dark#2` | 70 -59 175 | C | AA | 0 | E | `camerashake add @a 0.15 2 rotational` | Power out: final darkness; previous block in pwr.dark |
+| `pwr.reserve#0` | 73 -59 175 | I | NR | 0 | E | `setblock 72 -59 175 air` | Emergency reserve engaged: lights back (trigger; clears pad); script places minecraft:redstone_block at pad 72 -9 175 (local) |
+| `pwr.reserve#1` | 74 -59 175 | C | AA | 0 | E | `setblock 100 -45 135 light_block_11` | Emergency reserve engaged: lights back; previous block in pwr.reserve |
+| `pwr.reserve#2` | 75 -59 175 | C | AA | 0 | E | `setblock 100 -45 129 light_block_10` | Emergency reserve engaged: lights back; previous block in pwr.reserve |
+| `pwr.reserve#3` | 76 -59 175 | C | AA | 0 | E | `setblock 101 -47 140 verdant_froglight` | Emergency reserve engaged: lights back; previous block in pwr.reserve |
+| `pwr.reserve#4` | 77 -59 175 | C | AA | 0 | E | `setblock 94 -47 129 verdant_froglight` | Emergency reserve engaged: lights back; previous block in pwr.reserve |
+| `pwr.reserve#5` | 78 -59 175 | C | AA | 0 | E | `setblock 106 -47 129 verdant_froglight` | Emergency reserve engaged: lights back; previous block in pwr.reserve |
+| `pwr.reserve#6` | 79 -59 175 | C | AA | 0 | E | `playsound fb.power.reserve @a 100 -48 133 1 1` | Emergency reserve engaged: lights back; previous block in pwr.reserve |
+| `pwr.strobe#0` | 82 -59 175 | I | NR | 0 | E | `setblock 81 -59 175 air` | Emergency strobe flash (office + entries) (trigger; clears pad); script places minecraft:redstone_block at pad 81 -9 175 (local) |
+| `pwr.strobe#1` | 83 -59 175 | C | AA | 0 | E | `fill 95 -50 127 105 -45 139 light_block_15 replace air` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
+| `pwr.strobe#2` | 84 -59 175 | C | AA | 0 | E | `fill 91 -50 127 93 -47 133 light_block_15 replace air` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
+| `pwr.strobe#3` | 85 -59 175 | C | AA | 0 | E | `fill 107 -50 127 109 -47 133 light_block_15 replace air` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
+| `pwr.strobe#4` | 86 -59 175 | C | AA | 0 | E | `playsound fb.strobe.fire @a 100 -48 133 1 1` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
+| `pwr.strobe#5` | 87 -59 175 | C | AA | 0 | E | `camerashake add @a 0.4 0.4 rotational` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
+| `pwr.strobe#6` | 88 -59 175 | C | AA | 4 | E | `fill 95 -50 127 105 -45 139 air replace light_block_15` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
+| `pwr.strobe#7` | 89 -59 175 | C | AA | 0 | E | `fill 91 -50 127 93 -47 133 air replace light_block_15` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
+| `pwr.strobe#8` | 90 -59 175 | C | AA | 0 | E | `fill 107 -50 127 109 -47 133 air replace light_block_15` | Emergency strobe flash (office + entries); previous block in pwr.strobe |
+| `pwr.breaker_trip#0` | 93 -59 175 | I | NR | 0 | E | `setblock 92 -59 175 air` | Chica's sabotage: kitchen breaker trips (trigger; clears pad); script places minecraft:redstone_block at pad 92 -9 175 (local) |
+| `pwr.breaker_trip#1` | 94 -59 175 | C | AA | 0 | E | `particle minecraft:electric_spark_particle 178 -48 47` | Chica's sabotage: kitchen breaker trips; previous block in pwr.breaker_trip |
+| `pwr.breaker_trip#2` | 95 -59 175 | C | AA | 0 | E | `playsound fb.breaker.trip @a 178 -49 47 1 1` | Chica's sabotage: kitchen breaker trips; previous block in pwr.breaker_trip |
+| `pwr.breaker_trip#3` | 96 -59 175 | C | AA | 0 | E | `playsound fb.breaker.trip @a 100 -48 133 0.5 1` | Chica's sabotage: kitchen breaker trips; previous block in pwr.breaker_trip |
+| `pwr.breaker_trip#4` | 97 -59 175 | C | AA | 0 | E | `setblock 101 -47 140 red_concrete` | Chica's sabotage: kitchen breaker trips; previous block in pwr.breaker_trip |
+| `pwr.breaker_trip#5` | 98 -59 175 | C | AA | 0 | E | `setblock 94 -47 130 red_concrete` | Chica's sabotage: kitchen breaker trips; previous block in pwr.breaker_trip |
+| `pwr.breaker_trip#6` | 99 -59 175 | C | AA | 0 | E | `setblock 106 -47 130 red_concrete` | Chica's sabotage: kitchen breaker trips; previous block in pwr.breaker_trip |
+| `pwr.breaker_reset#0` | 102 -59 175 | I | NR | 0 | E | `setblock 101 -59 175 air` | Breaker reset in progress (trigger; clears pad); script places minecraft:redstone_block at pad 101 -9 175 (local) |
+| `pwr.breaker_reset#1` | 103 -59 175 | C | AA | 0 | E | `setblock 101 -47 140 ochre_froglight` | Breaker reset in progress; previous block in pwr.breaker_reset |
+| `pwr.breaker_reset#2` | 104 -59 175 | C | AA | 0 | E | `playsound fb.breaker.reset @a 101 -49 130 1 1` | Breaker reset in progress; previous block in pwr.breaker_reset |
+| `pwr.breaker_ok#0` | 107 -59 175 | I | NR | 0 | E | `setblock 106 -59 175 air` | Breaker restored (trigger; clears pad); script places minecraft:redstone_block at pad 106 -9 175 (local) |
+| `pwr.breaker_ok#1` | 108 -59 175 | C | AA | 0 | E | `setblock 101 -47 140 verdant_froglight` | Breaker restored; previous block in pwr.breaker_ok |
+| `pwr.breaker_ok#2` | 109 -59 175 | C | AA | 0 | E | `setblock 94 -47 130 gray_concrete` | Breaker restored; previous block in pwr.breaker_ok |
+| `pwr.breaker_ok#3` | 110 -59 175 | C | AA | 0 | E | `setblock 106 -47 130 gray_concrete` | Breaker restored; previous block in pwr.breaker_ok |
+| `pwr.breaker_ok#4` | 111 -59 175 | C | AA | 0 | E | `playsound fb.ui.accept @a 101 -49 130 1 1` | Breaker restored; previous block in pwr.breaker_ok |
+| `pwr.meter_1#0` | 114 -59 175 | I | NR | 0 | E | `setblock 113 -59 175 air` | Power meter: segment 1 (10%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 113 -9 175 (local) |
+| `pwr.meter_1#1` | 115 -59 175 | C | AA | 0 | E | `setblock 96 -46 126 gray_concrete` | Power meter: segment 1 (10%) goes dark; previous block in pwr.meter_1 |
+| `pwr.meter_2#0` | 118 -59 175 | I | NR | 0 | E | `setblock 117 -59 175 air` | Power meter: segment 2 (20%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 117 -9 175 (local) |
+| `pwr.meter_2#1` | 119 -59 175 | C | AA | 0 | E | `setblock 97 -46 126 gray_concrete` | Power meter: segment 2 (20%) goes dark; previous block in pwr.meter_2 |
+| `pwr.meter_3#0` | 122 -59 175 | I | NR | 0 | E | `setblock 121 -59 175 air` | Power meter: segment 3 (30%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 121 -9 175 (local) |
+| `pwr.meter_3#1` | 123 -59 175 | C | AA | 0 | E | `setblock 98 -46 126 gray_concrete` | Power meter: segment 3 (30%) goes dark; previous block in pwr.meter_3 |
+| `pwr.meter_4#0` | 126 -59 175 | I | NR | 0 | E | `setblock 125 -59 175 air` | Power meter: segment 4 (40%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 125 -9 175 (local) |
+| `pwr.meter_4#1` | 127 -59 175 | C | AA | 0 | E | `setblock 99 -46 126 gray_concrete` | Power meter: segment 4 (40%) goes dark; previous block in pwr.meter_4 |
+| `pwr.meter_5#0` | 130 -59 175 | I | NR | 0 | E | `setblock 129 -59 175 air` | Power meter: segment 5 (50%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 129 -9 175 (local) |
+| `pwr.meter_5#1` | 131 -59 175 | C | AA | 0 | E | `setblock 100 -46 126 gray_concrete` | Power meter: segment 5 (50%) goes dark; previous block in pwr.meter_5 |
+| `pwr.meter_6#0` | 134 -59 175 | I | NR | 0 | E | `setblock 133 -59 175 air` | Power meter: segment 6 (60%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 133 -9 175 (local) |
+| `pwr.meter_6#1` | 135 -59 175 | C | AA | 0 | E | `setblock 101 -46 126 gray_concrete` | Power meter: segment 6 (60%) goes dark; previous block in pwr.meter_6 |
+| `pwr.meter_7#0` | 138 -59 175 | I | NR | 0 | E | `setblock 137 -59 175 air` | Power meter: segment 7 (70%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 137 -9 175 (local) |
+| `pwr.meter_7#1` | 139 -59 175 | C | AA | 0 | E | `setblock 102 -46 126 gray_concrete` | Power meter: segment 7 (70%) goes dark; previous block in pwr.meter_7 |
+| `pwr.meter_8#0` | 142 -59 175 | I | NR | 0 | E | `setblock 141 -59 175 air` | Power meter: segment 8 (80%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 141 -9 175 (local) |
+| `pwr.meter_8#1` | 143 -59 175 | C | AA | 0 | E | `setblock 103 -46 126 gray_concrete` | Power meter: segment 8 (80%) goes dark; previous block in pwr.meter_8 |
+| `pwr.meter_9#0` | 146 -59 175 | I | NR | 0 | E | `setblock 145 -59 175 air` | Power meter: segment 9 (90%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 145 -9 175 (local) |
+| `pwr.meter_9#1` | 147 -59 175 | C | AA | 0 | E | `setblock 104 -46 126 gray_concrete` | Power meter: segment 9 (90%) goes dark; previous block in pwr.meter_9 |
+| `pwr.meter_10#0` | 150 -59 175 | I | NR | 0 | E | `setblock 149 -59 175 air` | Power meter: segment 10 (100%) goes dark (trigger; clears pad); script places minecraft:redstone_block at pad 149 -9 175 (local) |
+| `pwr.meter_10#1` | 151 -59 175 | C | AA | 0 | E | `setblock 105 -46 126 gray_concrete` | Power meter: segment 10 (100%) goes dark; previous block in pwr.meter_10 |
+| `pwr.meter_full#0` | 154 -59 175 | I | NR | 0 | E | `setblock 153 -59 175 air` | Power meter: all segments lit (trigger; clears pad); script places minecraft:redstone_block at pad 153 -9 175 (local) |
+| `pwr.meter_full#1` | 155 -59 175 | C | AA | 0 | E | `fill 96 -46 126 105 -46 126 verdant_froglight` | Power meter: all segments lit; previous block in pwr.meter_full |
+| `pwr.charges_0#0` | 158 -59 175 | I | NR | 0 | E | `setblock 157 -59 175 air` | Strobe charge lamps: 0 (trigger; clears pad); script places minecraft:redstone_block at pad 157 -9 175 (local) |
+| `pwr.charges_0#1` | 159 -59 175 | C | AA | 0 | E | `fill 102 -47 140 105 -47 140 gray_concrete` | Strobe charge lamps: 0; previous block in pwr.charges_0 |
+| `pwr.charges_1#0` | 162 -59 175 | I | NR | 0 | E | `setblock 161 -59 175 air` | Strobe charge lamps: 1 (trigger; clears pad); script places minecraft:redstone_block at pad 161 -9 175 (local) |
+| `pwr.charges_1#1` | 163 -59 175 | C | AA | 0 | E | `fill 102 -47 140 105 -47 140 gray_concrete` | Strobe charge lamps: 1; previous block in pwr.charges_1 |
+| `pwr.charges_1#2` | 164 -59 175 | C | AA | 0 | E | `fill 102 -47 140 102 -47 140 pearlescent_froglight` | Strobe charge lamps: 1; previous block in pwr.charges_1 |
+| `pwr.charges_2#0` | 167 -59 175 | I | NR | 0 | E | `setblock 166 -59 175 air` | Strobe charge lamps: 2 (trigger; clears pad); script places minecraft:redstone_block at pad 166 -9 175 (local) |
+| `pwr.charges_2#1` | 168 -59 175 | C | AA | 0 | E | `fill 102 -47 140 105 -47 140 gray_concrete` | Strobe charge lamps: 2; previous block in pwr.charges_2 |
+| `pwr.charges_2#2` | 169 -59 175 | C | AA | 0 | E | `fill 102 -47 140 103 -47 140 pearlescent_froglight` | Strobe charge lamps: 2; previous block in pwr.charges_2 |
+| `pwr.charges_3#0` | 172 -59 175 | I | NR | 0 | E | `setblock 171 -59 175 air` | Strobe charge lamps: 3 (trigger; clears pad); script places minecraft:redstone_block at pad 171 -9 175 (local) |
+| `pwr.charges_3#1` | 173 -59 175 | C | AA | 0 | E | `fill 102 -47 140 105 -47 140 gray_concrete` | Strobe charge lamps: 3; previous block in pwr.charges_3 |
+| `pwr.charges_3#2` | 174 -59 175 | C | AA | 0 | E | `fill 102 -47 140 104 -47 140 pearlescent_froglight` | Strobe charge lamps: 3; previous block in pwr.charges_3 |
+| `pwr.charges_4#0` | 23 -59 178 | I | NR | 0 | E | `setblock 22 -59 178 air` | Strobe charge lamps: 4+ (trigger; clears pad); script places minecraft:redstone_block at pad 22 -9 178 (local) |
+| `pwr.charges_4#1` | 24 -59 178 | C | AA | 0 | E | `fill 102 -47 140 105 -47 140 gray_concrete` | Strobe charge lamps: 4+; previous block in pwr.charges_4 |
+| `pwr.charges_4#2` | 25 -59 178 | C | AA | 0 | E | `fill 102 -47 140 105 -47 140 pearlescent_froglight` | Strobe charge lamps: 4+; previous block in pwr.charges_4 |
+| `zone.cove#0` | 30 -59 178 | I | NR | 0 | E | `setblock 29 -59 178 air` | Exploration: Starlight Cove curtain shiver (trigger; clears pad); script places minecraft:redstone_block at pad 29 -9 178 (local) |
+| `zone.cove#1` | 31 -59 178 | C | AA | 0 | E | `fill 28 -50 54 28 -48 57 purple_wool` | Exploration: Starlight Cove curtain shiver; previous block in zone.cove |
+| `zone.cove#2` | 32 -59 178 | C | AA | 0 | E | `playsound fb.amb.creak @a 28 -49 56 1 1` | Exploration: Starlight Cove curtain shiver; previous block in zone.cove |
+| `zone.cove#3` | 33 -59 178 | C | AA | 12 | E | `fill 28 -50 54 28 -48 57 air` | Exploration: Starlight Cove curtain shiver; previous block in zone.cove |
+| `zone.freezer#0` | 36 -59 178 | I | NR | 0 | E | `setblock 35 -59 178 air` | Exploration: freezer knock (trigger; clears pad); script places minecraft:redstone_block at pad 35 -9 178 (local) |
+| `zone.freezer#1` | 37 -59 178 | C | AA | 0 | E | `playsound fb.door.bang @a 183 -49 72 0.6 1` | Exploration: freezer knock; previous block in zone.freezer |
+| `zone.freezer#2` | 38 -59 178 | C | AA | 14 | E | `playsound fb.door.bang @a 183 -49 72 0.6 1` | Exploration: freezer knock; previous block in zone.freezer |
+| `zone.diner#0` | 41 -59 178 | I | NR | 0 | E | `setblock 40 -59 178 air` | Exploration: diner jukebox wakes (trigger; clears pad); script places minecraft:redstone_block at pad 40 -9 178 (local) |
+| `zone.diner#1` | 42 -59 178 | C | AA | 0 | E | `playsound fb.fredbear.musicbox @a 18 -58 94 0.6 1` | Exploration: diner jukebox wakes; previous block in zone.diner |
+| `zone.diner#2` | 43 -59 178 | C | AA | 0 | E | `particle minecraft:note_particle 18 -57.5 94` | Exploration: diner jukebox wakes; previous block in zone.diner |
+| `zone.chamber#0` | 46 -59 178 | I | NR | 0 | E | `setblock 45 -59 178 air` | Exploration: golden shrine glows (trigger; clears pad); script places minecraft:redstone_block at pad 45 -9 178 (local) |
+| `zone.chamber#1` | 47 -59 178 | C | AA | 0 | E | `particle minecraft:totem_particle 34.5 -58 36.5` | Exploration: golden shrine glows; previous block in zone.chamber |
+| `zone.chamber#2` | 48 -59 178 | C | AA | 0 | E | `playsound fb.fredbear.chime @a 34 -58 36 1 1` | Exploration: golden shrine glows; previous block in zone.chamber |
+| `zone.attic#0` | 51 -59 178 | I | NR | 0 | E | `setblock 50 -59 178 air` | Exploration: footsteps above the attic (trigger; clears pad); script places minecraft:redstone_block at pad 50 -9 178 (local) |
+| `zone.attic#1` | 52 -59 178 | C | AA | 0 | E | `playsound fb.step.fredbear @a 30 -37 128 0.7 1` | Exploration: footsteps above the attic; previous block in zone.attic |
+| `zone.attic#2` | 53 -59 178 | C | AA | 12 | E | `playsound fb.step.fredbear @a 36 -37 128 0.7 1` | Exploration: footsteps above the attic; previous block in zone.attic |
+| `sig.fredbear_glow_l#0` | 58 -59 178 | I | NR | 0 | E | `setblock 57 -59 178 air` | Fredbear telegraph: golden glow at the left door (trigger; clears pad); script places minecraft:redstone_block at pad 57 -9 178 (local) |
+| `sig.fredbear_glow_l#1` | 59 -59 178 | C | AA | 0 | E | `fill 91 -50 127 93 -47 133 light_block_7 replace air` | Fredbear telegraph: golden glow at the left door; previous block in sig.fredbear_glow_l |
+| `sig.fredbear_glow_l#2` | 60 -59 178 | C | AA | 0 | E | `particle minecraft:totem_particle 92.5 -48.5 130` | Fredbear telegraph: golden glow at the left door; previous block in sig.fredbear_glow_l |
+| `sig.fredbear_glow_r#0` | 63 -59 178 | I | NR | 0 | E | `setblock 62 -59 178 air` | Fredbear telegraph: golden glow at the right door (trigger; clears pad); script places minecraft:redstone_block at pad 62 -9 178 (local) |
+| `sig.fredbear_glow_r#1` | 64 -59 178 | C | AA | 0 | E | `fill 107 -50 127 109 -47 133 light_block_7 replace air` | Fredbear telegraph: golden glow at the right door; previous block in sig.fredbear_glow_r |
+| `sig.fredbear_glow_r#2` | 65 -59 178 | C | AA | 0 | E | `particle minecraft:totem_particle 107.5 -48.5 130` | Fredbear telegraph: golden glow at the right door; previous block in sig.fredbear_glow_r |
+| `sig.fredbear_glow_h#0` | 68 -59 178 | I | NR | 0 | E | `setblock 67 -59 178 air` | Fredbear telegraph: golden glow under the hatch (trigger; clears pad); script places minecraft:redstone_block at pad 67 -9 178 (local) |
+| `sig.fredbear_glow_h#1` | 69 -59 178 | C | AA | 0 | E | `particle minecraft:totem_particle 100 -49.5 137` | Fredbear telegraph: golden glow under the hatch; previous block in sig.fredbear_glow_h |
+| `sig.fredbear_glow_h#2` | 70 -59 178 | C | AA | 10 | E | `particle minecraft:totem_particle 100 -49.5 137` | Fredbear telegraph: golden glow under the hatch; previous block in sig.fredbear_glow_h |
+| `sig.fredbear_glow_off#0` | 73 -59 178 | I | NR | 0 | E | `setblock 72 -59 178 air` | Fredbear glow cleared (trigger; clears pad); script places minecraft:redstone_block at pad 72 -9 178 (local) |
+| `sig.fredbear_glow_off#1` | 74 -59 178 | C | AA | 0 | E | `fill 91 -50 127 93 -47 133 air replace light_block_7` | Fredbear glow cleared; previous block in sig.fredbear_glow_off |
+| `sig.fredbear_glow_off#2` | 75 -59 178 | C | AA | 0 | E | `fill 107 -50 127 109 -47 133 air replace light_block_7` | Fredbear glow cleared; previous block in sig.fredbear_glow_off |
+| `sig.strain_l#0` | 78 -59 178 | I | NR | 0 | E | `setblock 77 -59 178 air` | Fredbear forcing the left door (trigger; clears pad); script places minecraft:redstone_block at pad 77 -9 178 (local) |
+| `sig.strain_l#1` | 79 -59 178 | C | AA | 0 | E | `playsound fb.door.bang @a 94 -49 129.5 1 1` | Fredbear forcing the left door; previous block in sig.strain_l |
+| `sig.strain_l#2` | 80 -59 178 | C | AA | 0 | E | `camerashake add @a 0.25 2 positional` | Fredbear forcing the left door; previous block in sig.strain_l |
+| `sig.strain_l#3` | 81 -59 178 | C | AA | 0 | E | `setblock 94 -47 129 red_concrete` | Fredbear forcing the left door; previous block in sig.strain_l |
+| `sig.strain_r#0` | 84 -59 178 | I | NR | 0 | E | `setblock 83 -59 178 air` | Fredbear forcing the right door (trigger; clears pad); script places minecraft:redstone_block at pad 83 -9 178 (local) |
+| `sig.strain_r#1` | 85 -59 178 | C | AA | 0 | E | `playsound fb.door.bang @a 106 -49 129.5 1 1` | Fredbear forcing the right door; previous block in sig.strain_r |
+| `sig.strain_r#2` | 86 -59 178 | C | AA | 0 | E | `camerashake add @a 0.25 2 positional` | Fredbear forcing the right door; previous block in sig.strain_r |
+| `sig.strain_r#3` | 87 -59 178 | C | AA | 0 | E | `setblock 106 -47 129 red_concrete` | Fredbear forcing the right door; previous block in sig.strain_r |
+| `sig.strain_h#0` | 90 -59 178 | I | NR | 0 | E | `setblock 89 -59 178 air` | Fredbear forcing the hatch (trigger; clears pad); script places minecraft:redstone_block at pad 89 -9 178 (local) |
+| `sig.strain_h#1` | 91 -59 178 | C | AA | 0 | E | `playsound fb.door.bang @a 99.5 -50 136.5 1 1` | Fredbear forcing the hatch; previous block in sig.strain_h |
+| `sig.strain_h#2` | 92 -59 178 | C | AA | 0 | E | `camerashake add @a 0.25 2 positional` | Fredbear forcing the hatch; previous block in sig.strain_h |
+| `sig.strain_h#3` | 93 -59 178 | C | AA | 0 | E | `setblock 100 -47 140 red_concrete` | Fredbear forcing the hatch; previous block in sig.strain_h |
+| `sig.jam_l#0` | 96 -59 178 | I | NR | 0 | E | `setblock 95 -59 178 air` | Left door jammed open (barrier keeps the guard inside) (trigger; clears pad); script places minecraft:redstone_block at pad 95 -9 178 (local) |
+| `sig.jam_l#1` | 97 -59 178 | C | AA | 0 | E | `fill 94 -50 129 94 -48 130 barrier` | Left door jammed open (barrier keeps the guard inside); previous block in sig.jam_l |
+| `sig.jam_l#2` | 98 -59 178 | C | AA | 0 | E | `setblock 94 -47 129 red_concrete` | Left door jammed open (barrier keeps the guard inside); previous block in sig.jam_l |
+| `sig.jam_l#3` | 99 -59 178 | C | AA | 0 | E | `playsound fb.door.jam @a 94 -49 129.5 1 1` | Left door jammed open (barrier keeps the guard inside); previous block in sig.jam_l |
+| `sig.jam_r#0` | 102 -59 178 | I | NR | 0 | E | `setblock 101 -59 178 air` | Right door jammed open (barrier keeps the guard inside) (trigger; clears pad); script places minecraft:redstone_block at pad 101 -9 178 (local) |
+| `sig.jam_r#1` | 103 -59 178 | C | AA | 0 | E | `fill 106 -50 129 106 -48 130 barrier` | Right door jammed open (barrier keeps the guard inside); previous block in sig.jam_r |
+| `sig.jam_r#2` | 104 -59 178 | C | AA | 0 | E | `setblock 106 -47 129 red_concrete` | Right door jammed open (barrier keeps the guard inside); previous block in sig.jam_r |
+| `sig.jam_r#3` | 105 -59 178 | C | AA | 0 | E | `playsound fb.door.jam @a 106 -49 129.5 1 1` | Right door jammed open (barrier keeps the guard inside); previous block in sig.jam_r |
+| `sig.jam_h#0` | 108 -59 178 | I | NR | 0 | E | `setblock 107 -59 178 air` | Hatch jammed open (trigger; clears pad); script places minecraft:redstone_block at pad 107 -9 178 (local) |
+| `sig.jam_h#1` | 109 -59 178 | C | AA | 0 | E | `fill 99 -51 136 100 -51 137 iron_trapdoor ["direction"=0,"open_bit"=true,"upside_down_bit"=true]` | Hatch jammed open; previous block in sig.jam_h |
+| `sig.jam_h#2` | 110 -59 178 | C | AA | 0 | E | `setblock 100 -47 140 red_concrete` | Hatch jammed open; previous block in sig.jam_h |
+| `sig.jam_h#3` | 111 -59 178 | C | AA | 0 | E | `playsound fb.door.jam @a 99.5 -50 136.5 1 1` | Hatch jammed open; previous block in sig.jam_h |
+| `sig.unjam_l#0` | 114 -59 178 | I | NR | 0 | E | `setblock 113 -59 178 air` | Left door released (trigger; clears pad); script places minecraft:redstone_block at pad 113 -9 178 (local) |
+| `sig.unjam_l#1` | 115 -59 178 | C | AA | 0 | E | `fill 94 -50 129 94 -48 130 barrier` | Left door released; previous block in sig.unjam_l |
+| `sig.unjam_l#2` | 116 -59 178 | C | AA | 0 | E | `setblock 94 -47 129 verdant_froglight` | Left door released; previous block in sig.unjam_l |
+| `sig.unjam_r#0` | 119 -59 178 | I | NR | 0 | E | `setblock 118 -59 178 air` | Right door released (trigger; clears pad); script places minecraft:redstone_block at pad 118 -9 178 (local) |
+| `sig.unjam_r#1` | 120 -59 178 | C | AA | 0 | E | `fill 106 -50 129 106 -48 130 barrier` | Right door released; previous block in sig.unjam_r |
+| `sig.unjam_r#2` | 121 -59 178 | C | AA | 0 | E | `setblock 106 -47 129 verdant_froglight` | Right door released; previous block in sig.unjam_r |
+| `sig.unjam_h#0` | 124 -59 178 | I | NR | 0 | E | `setblock 123 -59 178 air` | Hatch released (trigger; clears pad); script places minecraft:redstone_block at pad 123 -9 178 (local) |
+| `sig.unjam_h#1` | 125 -59 178 | C | AA | 0 | E | `setblock 100 -47 140 gray_concrete` | Hatch released; previous block in sig.unjam_h |
+| `sig.strain_end_l#0` | 128 -59 178 | I | NR | 0 | E | `setblock 127 -59 178 air` | Fredbear stopped forcing the (still closed) left door (trigger; clears pad); script places minecraft:redstone_block at pad 127 -9 178 (local) |
+| `sig.strain_end_l#1` | 129 -59 178 | C | AA | 0 | E | `setblock 94 -47 129 ochre_froglight` | Fredbear stopped forcing the (still closed) left door; previous block in sig.strain_end_l |
+| `sig.strain_end_r#0` | 132 -59 178 | I | NR | 0 | E | `setblock 131 -59 178 air` | Fredbear stopped forcing the (still closed) right door (trigger; clears pad); script places minecraft:redstone_block at pad 131 -9 178 (local) |
+| `sig.strain_end_r#1` | 133 -59 178 | C | AA | 0 | E | `setblock 106 -47 129 ochre_froglight` | Fredbear stopped forcing the (still closed) right door; previous block in sig.strain_end_r |
+| `sig.strain_end_h#0` | 136 -59 178 | I | NR | 0 | E | `setblock 135 -59 178 air` | Fredbear stopped forcing the hatch (trigger; clears pad); script places minecraft:redstone_block at pad 135 -9 178 (local) |
+| `sig.strain_end_h#1` | 137 -59 178 | C | AA | 0 | E | `setblock 100 -47 140 gray_concrete` | Fredbear stopped forcing the hatch; previous block in sig.strain_end_h |
+| `sig.blackout_on#0` | 140 -59 178 | I | NR | 0 | E | `setblock 139 -59 178 air` | Fredbear blackout: office lights out (trigger; clears pad); script places minecraft:redstone_block at pad 139 -9 178 (local) |
+| `sig.blackout_on#1` | 141 -59 178 | C | AA | 0 | E | `setblock 100 -45 135 air` | Fredbear blackout: office lights out; previous block in sig.blackout_on |
+| `sig.blackout_on#2` | 142 -59 178 | C | AA | 0 | E | `setblock 100 -45 129 air` | Fredbear blackout: office lights out; previous block in sig.blackout_on |
+| `sig.blackout_on#3` | 143 -59 178 | C | AA | 0 | E | `playsound fb.power.dark @a 100 -48 133 0.8 1` | Fredbear blackout: office lights out; previous block in sig.blackout_on |
+| `sig.blackout_off#0` | 146 -59 178 | I | NR | 0 | E | `setblock 145 -59 178 air` | Blackout over (trigger; clears pad); script places minecraft:redstone_block at pad 145 -9 178 (local) |
+| `sig.blackout_off#1` | 147 -59 178 | C | AA | 0 | E | `setblock 100 -45 135 light_block_11` | Blackout over; previous block in sig.blackout_off |
+| `sig.blackout_off#2` | 148 -59 178 | C | AA | 0 | E | `setblock 100 -45 129 light_block_10` | Blackout over; previous block in sig.blackout_off |
+| `sig.blackout_off#3` | 149 -59 178 | C | AA | 0 | E | `playsound fb.light.buzz @a 100 -46 133 1 1` | Blackout over; previous block in sig.blackout_off |
+| `sig.finale#0` | 152 -59 178 | I | NR | 0 | E | `setblock 151 -59 178 air` | Night 6 Golden Hour begins (trigger; clears pad); script places minecraft:redstone_block at pad 151 -9 178 (local) |
+| `sig.finale#1` | 153 -59 178 | C | AA | 0 | E | `playsound fb.fredbear.finale @a 100 -48 133 1 1` | Night 6 Golden Hour begins; previous block in sig.finale |
+| `sig.finale#2` | 154 -59 178 | C | AA | 0 | E | `camerashake add @a 0.2 3 rotational` | Night 6 Golden Hour begins; previous block in sig.finale |
+| `sig.finale#3` | 155 -59 178 | C | AA | 0 | E | `particle minecraft:totem_particle 100 -49 133` | Night 6 Golden Hour begins; previous block in sig.finale |
+| `sig.diner_unseal#0` | 158 -59 178 | I | NR | 0 | E | `setblock 157 -59 178 air` | The bricked diner entrance is broken open (trigger; clears pad); script places minecraft:redstone_block at pad 157 -9 178 (local) |
+| `sig.diner_unseal#1` | 159 -59 178 | C | AA | 0 | E | `fill 64 -59 84 64 -57 86 air` | The bricked diner entrance is broken open; previous block in sig.diner_unseal |
+| `sig.diner_unseal#2` | 160 -59 178 | C | AA | 0 | E | `playsound fb.door.bang @a 64 -58 85 1 1` | The bricked diner entrance is broken open; previous block in sig.diner_unseal |
+| `sig.diner_seal#0` | 163 -59 178 | I | NR | 0 | E | `setblock 162 -59 178 air` | Diner entrance bricked up (baseline) (trigger; clears pad); script places minecraft:redstone_block at pad 162 -9 178 (local) |
+| `sig.diner_seal#1` | 164 -59 178 | C | AA | 0 | E | `fill 64 -59 84 64 -57 86 brick_block` | Diner entrance bricked up (baseline); previous block in sig.diner_seal |
+| `sig.chamber_open#0` | 167 -59 178 | I | NR | 0 | E | `setblock 166 -59 178 air` | Fredbear's chamber wall opens (trigger; clears pad); script places minecraft:redstone_block at pad 166 -9 178 (local) |
+| `sig.chamber_open#1` | 168 -59 178 | C | AA | 0 | E | `fill 33 -59 44 35 -56 44 air` | Fredbear's chamber wall opens; previous block in sig.chamber_open |
+| `sig.chamber_close#0` | 171 -59 178 | I | NR | 0 | E | `setblock 170 -59 178 air` | Fredbear's chamber wall sealed (baseline) (trigger; clears pad); script places minecraft:redstone_block at pad 170 -9 178 (local) |
+| `sig.chamber_close#1` | 172 -59 178 | C | AA | 0 | E | `fill 33 -59 44 35 -56 44 cracked_stone_bricks` | Fredbear's chamber wall sealed (baseline); previous block in sig.chamber_close |
+| `sig.stage_lights_off#0` | 23 -59 181 | I | NR | 0 | E | `setblock 22 -59 181 air` | Show stage spotlights off for the night (trigger; clears pad); script places minecraft:redstone_block at pad 22 -9 181 (local) |
+| `sig.stage_lights_off#1` | 24 -59 181 | C | AA | 0 | E | `fill 82 -44 14 118 -44 30 air replace light_block_9` | Show stage spotlights off for the night; previous block in sig.stage_lights_off |
+| `sig.stage_lights_on#0` | 27 -59 181 | I | NR | 0 | E | `setblock 26 -59 181 air` | Show stage spotlights on (lobby / free roam) (trigger; clears pad); script places minecraft:redstone_block at pad 26 -9 181 (local) |
+| `sig.stage_lights_on#1` | 28 -59 181 | C | AA | 0 | E | `setblock 100 -44 22 light_block_9` | Show stage spotlights on (lobby / free roam); previous block in sig.stage_lights_on |
+| `sig.stage_lights_on#2` | 29 -59 181 | C | AA | 0 | E | `setblock 93 -44 23 light_block_9` | Show stage spotlights on (lobby / free roam); previous block in sig.stage_lights_on |
+| `sig.stage_lights_on#3` | 30 -59 181 | C | AA | 0 | E | `setblock 107 -44 23 light_block_9` | Show stage spotlights on (lobby / free roam); previous block in sig.stage_lights_on |
+| `env.flicker_whall#0` | 35 -59 181 | I | NR | 0 | E | `setblock 34 -59 181 air` | West hall lights flicker (trigger; clears pad); script places minecraft:redstone_block at pad 34 -9 181 (local) |
+| `env.flicker_whall#1` | 36 -59 181 | C | AA | 0 | E | `fill 85 -45 101 89 -45 133 light_block_9 replace light_block_1` | West hall lights flicker; previous block in env.flicker_whall |
+| `env.flicker_whall#2` | 37 -59 181 | C | AA | 3 | E | `fill 85 -45 101 89 -45 133 light_block_1 replace light_block_9` | West hall lights flicker; previous block in env.flicker_whall |
+| `env.flicker_whall#3` | 38 -59 181 | C | AA | 4 | E | `fill 85 -45 101 89 -45 133 light_block_9 replace light_block_1` | West hall lights flicker; previous block in env.flicker_whall |
+| `env.flicker_whall#4` | 39 -59 181 | C | AA | 2 | E | `fill 85 -45 101 89 -45 133 light_block_1 replace light_block_9` | West hall lights flicker; previous block in env.flicker_whall |
+| `env.flicker_ehall#0` | 42 -59 181 | I | NR | 0 | E | `setblock 41 -59 181 air` | East hall lights flicker (trigger; clears pad); script places minecraft:redstone_block at pad 41 -9 181 (local) |
+| `env.flicker_ehall#1` | 43 -59 181 | C | AA | 0 | E | `fill 111 -45 101 115 -45 133 light_block_9 replace light_block_1` | East hall lights flicker; previous block in env.flicker_ehall |
+| `env.flicker_ehall#2` | 44 -59 181 | C | AA | 3 | E | `fill 111 -45 101 115 -45 133 light_block_1 replace light_block_9` | East hall lights flicker; previous block in env.flicker_ehall |
+| `env.flicker_ehall#3` | 45 -59 181 | C | AA | 4 | E | `fill 111 -45 101 115 -45 133 light_block_9 replace light_block_1` | East hall lights flicker; previous block in env.flicker_ehall |
+| `env.flicker_ehall#4` | 46 -59 181 | C | AA | 2 | E | `fill 111 -45 101 115 -45 133 light_block_1 replace light_block_9` | East hall lights flicker; previous block in env.flicker_ehall |
+| `env.flicker_office#0` | 49 -59 181 | I | NR | 0 | E | `setblock 48 -59 181 air` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit (trigger; clears pad); script places minecraft:redstone_block at pad 48 -9 181 (local) |
+| `env.flicker_office#1` | 50 -59 181 | C | AA | 0 | E | `fill 100 -45 129 100 -45 135 light_block_3 replace light_block_11` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
+| `env.flicker_office#2` | 51 -59 181 | C | AA | 0 | E | `fill 100 -45 129 100 -45 135 light_block_2 replace light_block_10` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
+| `env.flicker_office#3` | 52 -59 181 | C | AA | 0 | E | `playsound fb.light.buzz @a 100 -46 133 0.5 0.7` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
+| `env.flicker_office#4` | 53 -59 181 | C | AA | 2 | E | `fill 100 -45 129 100 -45 135 light_block_11 replace light_block_3` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
+| `env.flicker_office#5` | 54 -59 181 | C | AA | 0 | E | `fill 100 -45 129 100 -45 135 light_block_10 replace light_block_2` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
+| `env.flicker_office#6` | 55 -59 181 | C | AA | 3 | E | `fill 100 -45 129 100 -45 135 light_block_3 replace light_block_11` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
+| `env.flicker_office#7` | 56 -59 181 | C | AA | 0 | E | `fill 100 -45 129 100 -45 135 light_block_2 replace light_block_10` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
+| `env.flicker_office#8` | 57 -59 181 | C | AA | 2 | E | `fill 100 -45 129 100 -45 135 light_block_11 replace light_block_3` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
+| `env.flicker_office#9` | 58 -59 181 | C | AA | 0 | E | `fill 100 -45 129 100 -45 135 light_block_10 replace light_block_2` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
+| `env.distant_music#0` | 61 -59 181 | I | NR | 0 | E | `setblock 60 -59 181 air` | Faint music from the show stage (trigger; clears pad); script places minecraft:redstone_block at pad 60 -9 181 (local) |
+| `env.distant_music#1` | 62 -59 181 | C | AA | 0 | E | `playsound fb.amb.distant_music @a 100 -47 22 0.8 1` | Faint music from the show stage; previous block in env.distant_music |
+| `env.pipes#0` | 65 -59 181 | I | NR | 0 | E | `setblock 64 -59 181 air` | Basement pipes knock (trigger; clears pad); script places minecraft:redstone_block at pad 64 -9 181 (local) |
+| `env.pipes#1` | 66 -59 181 | C | AA | 0 | E | `playsound fb.amb.pipes @a 100 -56 60 1 1` | Basement pipes knock; previous block in env.pipes |
+| `env.pipes#2` | 67 -59 181 | C | AA | 20 | E | `playsound fb.amb.pipes @a 140 -56 90 0.8 1` | Basement pipes knock; previous block in env.pipes |
+| `env.phone_ring#0` | 70 -59 181 | I | NR | 0 | E | `setblock 69 -59 181 air` | Office phone rings (trigger; clears pad); script places minecraft:redstone_block at pad 69 -9 181 (local) |
+| `env.phone_ring#1` | 71 -59 181 | C | AA | 0 | E | `playsound fb.phone.ring @a 102 -49 130 1 1` | Office phone rings; previous block in env.phone_ring |
+| `env.phone_ring#2` | 72 -59 181 | C | AA | 30 | E | `playsound fb.phone.ring @a 102 -49 130 1 1` | Office phone rings; previous block in env.phone_ring |
+| `env.phone_ring#3` | 73 -59 181 | C | AA | 30 | E | `playsound fb.phone.ring @a 102 -49 130 1 1` | Office phone rings; previous block in env.phone_ring |
+| `js.common#0` | 78 -59 181 | I | NR | 0 | E | `setblock 77 -59 181 air` | Jumpscare: camera shake + light burst (the script plays the character scream at the player) (trigger; clears pad); script places minecraft:redstone_block at pad 77 -9 181 (local) |
+| `js.common#1` | 79 -59 181 | C | AA | 0 | E | `camerashake add @a 1.2 1.6 rotational` | Jumpscare: camera shake + light burst (the script plays the character scream at the player); previous block in js.common |
+| `js.common#2` | 80 -59 181 | C | AA | 0 | E | `fill 95 -50 127 105 -45 139 light_block_15 replace air` | Jumpscare: camera shake + light burst (the script plays the character scream at the player); previous block in js.common |
+| `js.common#3` | 81 -59 181 | C | AA | 3 | E | `fill 95 -50 127 105 -45 139 air replace light_block_15` | Jumpscare: camera shake + light burst (the script plays the character scream at the player); previous block in js.common |
+| `js.common#4` | 82 -59 181 | C | AA | 30 | E | `camerashake stop @a` | Jumpscare: camera shake + light burst (the script plays the character scream at the player); previous block in js.common |
+| `win.six_am#0` | 87 -59 181 | I | NR | 0 | E | `setblock 86 -59 181 air` | 6 AM: chimes and lights (trigger; clears pad); script places minecraft:redstone_block at pad 86 -9 181 (local) |
+| `win.six_am#1` | 88 -59 181 | C | AA | 0 | E | `playsound fb.clock.chime @a 100 -47 133 1.2 1` | 6 AM: chimes and lights; previous block in win.six_am |
+| `win.six_am#2` | 89 -59 181 | C | AA | 25 | E | `playsound fb.clock.chime @a 100 -47 133 1.2 1` | 6 AM: chimes and lights; previous block in win.six_am |
+| `win.six_am#3` | 90 -59 181 | C | AA | 25 | E | `playsound fb.clock.chime @a 100 -47 133 1.2 1` | 6 AM: chimes and lights; previous block in win.six_am |
+| `win.six_am#4` | 91 -59 181 | C | AA | 10 | E | `playsound fb.clock.cheer @a 100 -47 133 1 1` | 6 AM: chimes and lights; previous block in win.six_am |
+| `win.six_am#5` | 92 -59 181 | C | AA | 0 | E | `fill 95 -50 127 105 -45 139 light_block_12 replace air` | 6 AM: chimes and lights; previous block in win.six_am |
+| `win.six_am#6` | 93 -59 181 | C | AA | 60 | E | `fill 95 -50 127 105 -45 139 air replace light_block_12` | 6 AM: chimes and lights; previous block in win.six_am |
+| `lose.static#0` | 96 -59 181 | I | NR | 0 | E | `setblock 95 -59 181 air` | Game over static (trigger; clears pad); script places minecraft:redstone_block at pad 95 -9 181 (local) |
+| `lose.static#1` | 97 -59 181 | C | AA | 0 | E | `playsound fb.cam.static @a 100 -48.4 131.5 1 1` | Game over static; previous block in lose.static |
+| `lose.static#2` | 98 -59 181 | C | AA | 20 | E | `playsound fb.cam.static @a 100 -48.4 131.5 1 0.8` | Game over static; previous block in lose.static |
+| `win.campaign#0` | 101 -59 181 | I | NR | 0 | E | `setblock 100 -59 181 air` | Campaign complete fanfare (trigger; clears pad); script places minecraft:redstone_block at pad 100 -9 181 (local) |
+| `win.campaign#1` | 102 -59 181 | C | AA | 0 | E | `playsound fb.ending.theme @a 100 -47 150 1 1` | Campaign complete fanfare; previous block in win.campaign |
+| `win.campaign#2` | 103 -59 181 | C | AA | 0 | E | `particle minecraft:totem_particle 100 -47 156` | Campaign complete fanfare; previous block in win.campaign |
+| `win.campaign#3` | 104 -59 181 | C | AA | 10 | E | `particle minecraft:totem_particle 96 -47 156` | Campaign complete fanfare; previous block in win.campaign |
+| `win.campaign#4` | 105 -59 181 | C | AA | 10 | E | `particle minecraft:totem_particle 104 -47 156` | Campaign complete fanfare; previous block in win.campaign |
+| `reset.world#0` | 110 -59 181 | I | NR | 0 | E | `setblock 109 -59 181 air` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles (trigger; clears pad); script places minecraft:redstone_block at pad 109 -9 181 (local) |
+| `reset.world#1` | 111 -59 181 | C | AA | 0 | E | `setblock 22 -59 172 redstone_block` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
+| `reset.world#2` | 112 -59 181 | C | AA | 0 | E | `fill 95 -50 127 105 -45 139 air replace light_block_12` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
+| `reset.world#3` | 113 -59 181 | C | AA | 0 | E | `setblock 94 -47 129 verdant_froglight` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
+| `reset.world#4` | 114 -59 181 | C | AA | 0 | E | `setblock 106 -47 129 verdant_froglight` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
+| `reset.world#5` | 115 -59 181 | C | AA | 0 | E | `setblock 94 -47 130 gray_concrete` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
+| `reset.world#6` | 116 -59 181 | C | AA | 0 | E | `setblock 106 -47 130 gray_concrete` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
+| `reset.world#7` | 117 -59 181 | C | AA | 0 | E | `setblock 99 -47 140 gray_concrete` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
+| `reset.world#8` | 118 -59 181 | C | AA | 0 | E | `setblock 100 -47 140 gray_concrete` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
+| `reset.world#9` | 119 -59 181 | C | AA | 0 | E | `setblock 101 -47 140 verdant_froglight` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
+| `reset.world#10` | 120 -59 181 | C | AA | 0 | E | `kill @e[type=item]` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
+| `reset.world#11` | 121 -59 181 | C | AA | 0 | E | `title @a clear` | Full reset: runs night.end (via its pad), then restores indicators and clears items/titles; previous block in reset.world |
+| `diag.ping#0` | 124 -59 181 | I | NR | 0 | E | `setblock 123 -59 181 air` | Actuator-bus round trip test (answers the script) (trigger; clears pad); script places minecraft:redstone_block at pad 123 -9 181 (local) |
+| `diag.ping#1` | 125 -59 181 | C | AA | 0 | E | `scriptevent fb:diag pong` | Actuator-bus round trip test (answers the script); previous block in diag.ping |
+| `diag.lamp_test#0` | 128 -59 181 | I | NR | 0 | E | `setblock 127 -59 181 air` | Indicator lamp test (all office lamps on for 2 s) (trigger; clears pad); script places minecraft:redstone_block at pad 127 -9 181 (local) |
+| `diag.lamp_test#1` | 129 -59 181 | C | AA | 0 | E | `fill 96 -46 126 105 -46 126 ochre_froglight` | Indicator lamp test (all office lamps on for 2 s); previous block in diag.lamp_test |
+| `diag.lamp_test#2` | 130 -59 181 | C | AA | 40 | E | `fill 96 -46 126 105 -46 126 verdant_froglight` | Indicator lamp test (all office lamps on for 2 s); previous block in diag.lamp_test |
+| `diag.heartbeat#0` | 133 -59 181 | R | AA | 100 | E | `scriptevent fb:diag heartbeat` | Heartbeat every 100 ticks (command blocks enabled + control room loaded); always active (repeats every delay ticks) |
 | `in.office.door_l#0` | 96 -51 130 | I | NR | 0 | U | `scriptevent fb:input door_l` | Input: LEFT DOOR (button); button on top of the console block above this CB |
 | `in.office.light_l#0` | 97 -51 130 | I | NR | 0 | U | `scriptevent fb:input light_l` | Input: LEFT LIGHT (button); button on top of the console block above this CB |
 | `in.office.cams#0` | 98 -51 130 | I | NR | 0 | U | `scriptevent fb:input cams_toggle` | Input: MONITOR (button); button on top of the console block above this CB |
@@ -685,27 +699,29 @@ All blocks are unconditional. Facing: E = east (+X, the chain direction), U = up
 | `in.office.seal_vent#0` | 96 -51 128 | I | NR | 0 | U | `scriptevent fb:input seal_vent` | Input: SEAL VENT (button); button on top of the console block above this CB |
 | `in.office.seal_shaft#0` | 96 -51 129 | I | NR | 0 | U | `scriptevent fb:input seal_shaft` | Input: SEAL SHAFT (button); button on top of the console block above this CB |
 | `in.office.tapes#0` | 102 -51 139 | I | NR | 0 | U | `scriptevent fb:input tapes` | Input: TAPE DECK 1987 (button); button on top of the console block above this CB |
-| `in.office.map_c19#0` | 97 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C19` | Input: CAM 19 · FREDBEAR'S CHAMBER (button); button on top of the console block above this CB |
-| `in.office.map_c06#0` | 98 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C06` | Input: CAM 06 · PARTS & SERVICE (button); button on top of the console block above this CB |
-| `in.office.map_c03#0` | 99 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C03` | Input: CAM 03 · BACKSTAGE (button); button on top of the console block above this CB |
+| `in.office.vent_grate#0` | 104 -51 127 | I | NR | 0 | U | `scriptevent fb:input vent_grate` | Input: VENT GRATE (button); button on top of the console block above this CB |
+| `in.office.map_c22#0` | 97 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C22` | Input: CAM 22 · FREDBEAR'S CHAMBER (button); button on top of the console block above this CB |
+| `in.office.map_c03#0` | 98 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C03` | Input: CAM 03 · PARTS & SERVICE (button); button on top of the console block above this CB |
+| `in.office.map_c02#0` | 99 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C02` | Input: CAM 02 · BACKSTAGE (button); button on top of the console block above this CB |
 | `in.office.map_c01#0` | 100 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C01` | Input: CAM 01 · SHOW STAGE (button); button on top of the console block above this CB |
-| `in.office.map_c02#0` | 101 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C02` | Input: CAM 02 · DINING HALL WEST (button); button on top of the console block above this CB |
-| `in.office.map_c10#0` | 102 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C10` | Input: CAM 10 · KITCHEN (AUDIO ONLY) (button); button on top of the console block above this CB |
-| `in.office.map_c11#0` | 103 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C11` | Input: CAM 11 · EAST SERVICE (button); button on top of the console block above this CB |
+| `in.office.map_c06#0` | 101 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C06` | Input: CAM 06 · DINING HALL WEST (button); button on top of the console block above this CB |
+| `in.office.map_c08#0` | 102 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C08` | Input: CAM 08 · KITCHEN (AUDIO ONLY) (button); button on top of the console block above this CB |
+| `in.office.map_c09#0` | 103 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C09` | Input: CAM 09 · EAST SERVICE (button); button on top of the console block above this CB |
 | `in.office.map_c20#0` | 97 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C20` | Input: CAM 20 · DINER PARTY ROOM (button); button on top of the console block above this CB |
 | `in.office.map_c04#0` | 98 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C04` | Input: CAM 04 · STARLIGHT COVE (button); button on top of the console block above this CB |
 | `in.office.map_c05#0` | 99 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C05` | Input: CAM 05 · ARCADE (button); button on top of the console block above this CB |
-| `in.office.map_c07#0` | 100 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C07` | Input: CAM 07 · WEST HALL (button); button on top of the console block above this CB |
-| `in.office.map_c14#0` | 101 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C14` | Input: CAM 14 · DINING HALL EAST (button); button on top of the console block above this CB |
-| `in.office.map_c12#0` | 102 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C12` | Input: CAM 12 · EAST HALL (button); button on top of the console block above this CB |
-| `in.office.map_c15#0` | 103 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C15` | Input: CAM 15 · MAINTENANCE TUNNEL (button); button on top of the console block above this CB |
-| `in.office.map_c18#0` | 104 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C18` | Input: CAM 18 · SUPPLY DUCT (button); button on top of the console block above this CB |
-| `in.office.map_c21#0` | 97 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C21` | Input: CAM 21 · DINER KITCHEN (button); button on top of the console block above this CB |
-| `in.office.map_c16#0` | 98 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C16` | Input: CAM 16 · SEALED DINER (button); button on top of the console block above this CB |
-| `in.office.map_c09#0` | 99 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C09` | Input: CAM 09 · SUPPLY CLOSET (button); button on top of the console block above this CB |
-| `in.office.map_c08#0` | 100 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C08` | Input: CAM 08 · WEST CORNER (button); button on top of the console block above this CB |
-| `in.office.map_c13#0` | 102 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C13` | Input: CAM 13 · EAST CORNER (button); button on top of the console block above this CB |
+| `in.office.map_c14#0` | 100 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C14` | Input: CAM 14 · WEST HALL (button); button on top of the console block above this CB |
+| `in.office.map_c07#0` | 101 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C07` | Input: CAM 07 · DINING HALL EAST (button); button on top of the console block above this CB |
+| `in.office.map_c10#0` | 102 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C10` | Input: CAM 10 · EAST HALL (button); button on top of the console block above this CB |
+| `in.office.map_c18#0` | 103 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C18` | Input: CAM 18 · MAINTENANCE TUNNEL (button); button on top of the console block above this CB |
+| `in.office.map_c16#0` | 104 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C16` | Input: CAM 16 · SUPPLY DUCT (button); button on top of the console block above this CB |
+| `in.office.map_c19#0` | 97 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C19` | Input: CAM 19 · DINER KITCHEN (button); button on top of the console block above this CB |
+| `in.office.map_c21#0` | 98 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C21` | Input: CAM 21 · SEALED DINER (button); button on top of the console block above this CB |
+| `in.office.map_c15#0` | 99 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C15` | Input: CAM 15 · SUPPLY CLOSET (button); button on top of the console block above this CB |
+| `in.office.map_c13#0` | 100 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C13` | Input: CAM 13 · WEST CORNER (button); button on top of the console block above this CB |
+| `in.office.map_c11#0` | 102 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C11` | Input: CAM 11 · EAST CORNER (button); button on top of the console block above this CB |
 | `in.office.map_c17#0` | 103 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C17` | Input: CAM 17 · OFFICE SUBFLOOR (button); button on top of the console block above this CB |
+| `in.office.map_c12#0` | 104 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C12` | Input: CAM 12 · CEILING VENT (button); button on top of the console block above this CB |
 | `in.lobby.tutorial#0` | 181 -51 104 | I | NR | 0 | U | `scriptevent fb:input lobby:tutorial` | Input: TRAINING SHIFT (button); button on top of the console block above this CB |
 | `in.lobby.night_1#0` | 181 -51 106 | I | NR | 0 | U | `scriptevent fb:input lobby:night:1` | Input: NIGHT 1 (button); button on top of the console block above this CB |
 | `in.lobby.night_2#0` | 181 -51 107 | I | NR | 0 | U | `scriptevent fb:input lobby:night:2` | Input: NIGHT 2 (button); button on top of the console block above this CB |

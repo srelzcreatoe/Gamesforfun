@@ -29,7 +29,7 @@ export class Audio {
         if (guard?.isValid) inst = guard.playSound(fx.id, opts);
       } else {
         inst = dim().playSound(fx.id, Wv(fx.at), opts);
-        if (relayKitchen && fx.kitchen && guard?.isValid) guard.playSound(fx.id, { volume: 0.9 }); // CAM 10 audio relay
+        if (relayKitchen && fx.kitchen && guard?.isValid) guard.playSound(fx.id, { volume: 0.9 }); // CAM 08 audio relay
       }
       if (fx.loopKey && inst) {
         this.stop(fx.loopKey);

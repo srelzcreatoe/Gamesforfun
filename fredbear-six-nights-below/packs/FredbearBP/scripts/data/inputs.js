@@ -33,6 +33,8 @@ const office = [
   I('in.office.seal_vent', 'seal_vent', 'button', [96, 0, 128], 'SEAL VENT', { block: 'console_white' }),
   I('in.office.seal_shaft', 'seal_shaft', 'button', [96, 0, 129], 'SEAL SHAFT', { block: 'console_gold' }),
   I('in.office.tapes', 'tapes', 'button', [102, 0, 139], 'TAPE DECK 1987', { block: 'console_dark' }),
+  // 1.4: the ceiling-vent grate (desk, north-east corner; the map cell [6, 0] stays a plain button).
+  I('in.office.vent_grate', 'vent_grate', 'button', [104, 0, 127], 'VENT GRATE', { block: 'console_gold' }),
 ];
 
 const map = Object.entries(CAMERA_MAP_LAYOUT).map(([cam, [c, r]]) =>

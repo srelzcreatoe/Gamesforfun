@@ -120,3 +120,11 @@ No part of this project has been run inside Minecraft (see docs/10). Items that 
     whether the HUD camera map is affected. Lighting, atmospherics and colour grading are left at Mojang's defaults.
     Sources: learn.microsoft.com "Vibrant Visuals Resource Packs", "Texture Set JSON", "Fog in Resource Packs";
     minecraft.wiki "Vibrant Visuals".
+18. **1.4: gaze, head lock and the jumpscare view.** Valek's staring contest reads `Player.getViewDirection()` and
+    `getHeadLocation()` every tick (both stable in @minecraft/server 2.x) and counts a look within 12° of his eye point; how
+    forgiving that feels, and whether his eyes are easy to find through the door windows and the grate in the dark, is
+    unverified in-game. His head lock reuses the stare properties (`fb:look_*`) plus a body turn past 70°: unverified how
+    smooth it looks. The jumpscare view now hides the player with the `invisibility` effect and selects an empty hotbar
+    slot (the owner saw their own body in the 1.3 jumpscare view); that this hides every part of the player in a free
+    camera view (armour, the held item) is unverified. The new framing distances come from the attack
+    clips' geometry (offline), not from watching them in-game.

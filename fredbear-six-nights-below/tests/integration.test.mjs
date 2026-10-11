@@ -156,7 +156,7 @@ test('/fb:setup builds the whole map, installs every command block and reaches t
   commands.get('fb:setup')({ sourceEntity: player }, false);
   await until(() => game.state === 'LOBBY', 5000, 10);
   assert.equal(mock.commandBlockCount(), allCommandBlocks().length);
-  assert.equal(mock.commandBlockCount(), 523);
+  assert.equal(mock.commandBlockCount(), 537);
   assert.ok(STATE.maxFill <= 32768, `largest single fill ${STATE.maxFill}`);
   assert.equal(uiMock.shown.filter((f) => f.title === 'Build report').length, 0, 'no build warnings');
   await assertCleanLobby();
@@ -272,7 +272,7 @@ test('intro camera tour at 11:55: shows the cameras, sneak skips it, then the wa
   assert.equal(game.cams.active, true, 'tour uses the camera view');
   assert.equal(player.cameraState.preset, 'minecraft:free');
   await mock.tick(70);
-  assert.equal(game.cams.cam, 'C07', 'second shot: west hall');
+  assert.equal(game.cams.cam, 'C14', 'second shot: west hall');
   mock.sneak(player);
   await mock.tick(2);
   assert.equal(game.tour, null);
@@ -394,12 +394,21 @@ test('jumpscare -> game over -> immediate retry restarts the same night in the o
   await mock.tick(40);
   uiMock.respond = (f) => (f.title.includes('GAME OVER') ? { selection: 0 } : undefined);
   handleDebug(game, 'lose', 'bonnie', undefined, player);
+  // 1.4 jumpscare view: the player's own body is hidden, nothing in the hand, and the face stays
+  // clear of the camera (distance from the measured attack-clip reach, tools/gen_jumpscare_reach.py).
+  await until(() => player.effects.has('minecraft:invisibility'), 40);
+  assert.equal(player.selectedSlotIndex, 4, 'the empty slot is selected');
+  const { JUMPSCARE_REACH } = await import('../packs/FredbearBP/scripts/data/jumpscare_reach.generated.js');
+  const bon = puppetsOf(TYPES.bonnie)[0];
+  const head = player.getHeadLocation();
+  assert.ok(Math.hypot(bon.location.x - head.x, bon.location.z - head.z) >= JUMPSCARE_REACH.bonnie[0].distance - 0.01, 'Bonnie stands far enough away');
   await until(() => game.state === 'RESULT', 300);
   assert.ok(player.sounds.includes('fb.js.bonnie'), 'scream played');
   assert.ok(player.cameraState.history.some((h) => h.preset === 'minecraft:free'), 'jumpscare camera');
   await until(() => game.state === 'NIGHT' && game.session?.t > 5, 400);
   assert.equal(game.night, 2);
   assert.equal(game.session.phase, 'RUNNING');
+  assert.ok(!player.effects.has('minecraft:invisibility'), 'visible again after the retry');
   await mock.tick(10);
   assert.deepEqual([...new Set(box(94, 0, 129, 94, 2, 130))], ['minecraft:barrier'], 'retry sealed the doorway');
   uiMock.respond = () => undefined;
@@ -441,7 +450,7 @@ test('maintenance pause: clock stops, the lever completes it, START resumes the 
 
 test('ten randomized play / reset cycles leave no residue', async () => {
   const rng = new Rng(77);
-  const controls = ['in.office.door_l', 'in.office.door_r', 'in.office.light_l', 'in.office.light_r', 'in.office.cams', 'in.office.hatch', 'in.office.strobe', 'in.office.map_c02', 'in.office.map_c11', 'in.office.breaker'];
+  const controls = ['in.office.door_l', 'in.office.door_r', 'in.office.light_l', 'in.office.light_r', 'in.office.cams', 'in.office.hatch', 'in.office.strobe', 'in.office.map_c06', 'in.office.map_c09', 'in.office.breaker'];
   handleDebug(game, 'unlock', '6', undefined, player);
   for (let cycle = 0; cycle < 10; cycle++) {
     const night = 1 + rng.int(0, 5);
@@ -879,6 +888,32 @@ test('nights 8 and 9: night 8 follows the last ending, the camera map HUD, the t
   await mock.tick(4);
   assert.ok(!game.session.devices.cams.open);
   assert.ok(player.titles.some((t) => t.t === '§k§r§k§r§o'), 'map off');
+  // 1.4: the VENT GRATE button opens the iron trapdoors over the ceiling vent and closes them again.
+  assert.match(at(101, 7, 127), /iron_trapdoor.*open_bit"?=false/, 'the grate starts closed');
+  press('in.office.vent_grate');
+  await mock.tick(3);
+  assert.equal(game.session.devices.grate, false);
+  for (const [x, z] of [[101, 127], [102, 128]]) assert.match(at(x, 7, z), /open_bit"?=true/, 'the grate opened');
+  await mock.tick(10);
+  press('in.office.vent_grate');
+  await mock.tick(3);
+  assert.equal(game.session.devices.grate, true);
+  assert.match(at(102, 7, 127), /open_bit"?=false/, 'and closed');
+  // Valek's staring contest: where the player looks is the gaze, and his head follows the player.
+  const s8 = game.session;
+  s8.setTick(2400);
+  s8.forceVisit('valek', 'L');
+  await until(() => s8.anim.valek.state === 'STARE', 200);
+  const seat = ANCHORS.officeSeat;
+  const lookAt = (p) => player.teleport(Wv(seat), { rotation: { x: 0, y: (Math.atan2(-(p.x - seat.x), p.z - seat.z) * 180) / Math.PI } });
+  lookAt(s8.anim.valek.eyePoint());
+  await mock.tick(3);
+  assert.equal(s8.view.gaze, 'valek', 'looking straight at his eyes');
+  assert.ok(game.puppets.looks.valek, 'his head is locked on to the player');
+  assert.equal(puppetsOf(TYPES.valek)[0].getProperty('fb:variant'), 1, 'only his eyes show');
+  lookAt({ x: seat.x + 6, z: seat.z }); // the other way
+  await mock.tick(3);
+  assert.equal(s8.view.gaze, null, 'looking away');
   // Survive night 8 -> night 9 opens.
   handleDebug(game, 'win', undefined, undefined, player);
   await until(() => game.state !== 'NIGHT', 400);

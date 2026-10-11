@@ -1,77 +1,84 @@
-// MORGRAVE - the rabbit in the walls (nights 8 and 9).
+// MORGRAVE - the rabbit in the walls who only wants to be let in (nights 8 and 9, 1.4).
 //
-// Fredbear's partner from the 1983 diner ("a golden singing bear and his
-// friend"), walled in with him. He never walks the halls: he comes out of the
-// walls at the start of one of two crawl routes (MORGRAVE_ROUTE) and crawls
-// node by node toward the office.
-//   L  supply closet grate -> the duct (VENT_W, CAM 18) -> out of the vent at
-//      the LEFT door corner
-//   H  the old crawlspace -> the office subfloor (SUB_N, CAM 17) -> up under
-//      the HATCH
+// Fredbear's partner from the 1983 diner, walled in with him. He never walks the halls: he comes
+// out of the walls at the LEFT door, the RIGHT door or the CEILING VENT above the office
+// (data/visitors.js MORGRAVE_SPOTS) and knocks.
 //
 // STATES
-//   DORMANT    slumped in Fredbear's chamber (M_HOME) until activation.
-//   WALLS      inside the walls (hidden) for a cooldown, then comes out at a route start.
-//   CRAWL      on a route; a movement opportunity (d20 <= A every moInterval)
-//              moves him one node on. Every move clanks in the vents.
-//   APPROACH   the last edge into the entry (out of the vent / up the shaft).
-//   TELEGRAPH  window max(50, 110 - 3A): barrier closed for repelTicks, or
-//              closed when it ends -> back into the walls; open -> ATTACK.
+//   DORMANT  slumped in Fredbear's chamber (M_HOME) until activation.
+//   WALLS    inside the walls (hidden) for a cooldown, then he picks an entry.
+//   KNOCK    three soft knocks (captioned). When they end:
+//              * that entry is OPEN  -> PASS (he only wanted to be let in);
+//              * it is shut          -> ANGRY 1.
+//   ANGRY    1: knocking, louder; 2: pounding. Each stage lasts max(70, 150 - 4A) ticks.
+//            Open the entry at any point and he passes. Shut through both stages -> ATTACK
+//            (he breaks the door or the grate).
+//   PASS     walks past the doorway / crawls past over the grate, then back into the walls.
+//            He closes the vent grate behind him, so the vent always needs you.
 //
-// COUNTERPLAY
-//   * vent seals: a sealed duct or shaft in front of him for sealGiveUp ticks
-//     and he gives up (back into the walls) - cheaper than holding a door;
-//   * the door / hatch, as for everyone else.
-// CUES: scraping inside the walls when he comes out (captioned with the
-// route), vent clanks as he crawls, no footsteps. CAM 18 / CAM 17 show him.
+// FAIRNESS: while another animatronic is engaged at that same door (holding the entry or beside it
+// as a partner), he never breaks through: his timer stays at least holdFloor (3 s), so once they
+// leave there is always time to open up. He never starts a visit while Fredbear is engaged, during
+// a blackout, in a grace period or in the finale.
 
 import { Animatronic } from './base.js';
-import { NODE_BY_ID, MORGRAVE_ROUTE, ENTRY_NODE } from '../../data/nodes.js';
+import { MORGRAVE_SPOTS, VISIT_ENTRIES, VISIT_LABEL } from '../../data/visitors.js';
 
-const ROUTE_NAME = Object.freeze({ L: 'the west vent', H: 'below the office' });
-const SCRAPE_AT = Object.freeze({ L: { x: 80.5, y: 0.5, z: 132.5 }, H: { x: 64.5, y: -8, z: 114.0 } });
+const KNOCK_SOUND = Object.freeze(['fb.morgrave.knock_soft', 'fb.morgrave.knock_hard', 'fb.door.bang']);
+const KNOCK_EVERY = Object.freeze([0, 20, 12]); // ticks between knocks while angry (stage 1, 2)
 
 export class Morgrave extends Animatronic {
   constructor(session) {
     super(session, 'morgrave');
   }
 
-  /** Silent: no footsteps, only the vents (clanks are emitted by his crawl steps). */
+  /** Silent: no footsteps (his cue is the knocking). */
   emitStep() {}
 
   reset() {
     super.reset();
     this.anim = 'dormant';
-    this.route = null;
-    this.sealedTicks = 0;
-    this.viaVent = false;
+    this.visit = null;
+    this.forced = null; // debug: the entry of the next visit
   }
 
+  // ------------------------------------------------------------ pose
+  pose() {
+    const v = this.visit;
+    if (!v) return { ...super.pose(), hidden: this.hidden };
+    const sp = MORGRAVE_SPOTS[v.entry];
+    if (this.state === 'PASS') {
+      const f = 1 - Math.max(0, this.timer) / this.cfg.passTicks;
+      const dx = sp.past.x - sp.knock.x;
+      const dz = sp.past.z - sp.knock.z;
+      return {
+        x: sp.knock.x + dx * f, y: sp.knock.y, z: sp.knock.z + dz * f,
+        yaw: (Math.atan2(-dx, dz) * 180) / Math.PI, anim: sp.passAnim, eyes: true, hidden: false,
+      };
+    }
+    return { ...sp.knock, anim: this.anim, eyes: this.eyes, hidden: false };
+  }
+
+  // ------------------------------------------------------------ think
   think() {
     const s = this.s;
     switch (this.state) {
       case 'DORMANT':
         this.anim = 'dormant';
-        if (s.t >= this.activationTick && this.aggression > 0) {
-          this.timer = 40;
-          this.intoWalls('activation: he crawls into the walls');
-        }
+        if (s.t >= this.activationTick && this.aggression > 0) this.intoWalls('activation: he crawls into the walls', 40);
         return;
       case 'WALLS':
         this.hidden = true;
         if (--this.timer > 0) return;
         this.comeOut();
         return;
-      case 'CRAWL':
-        return this.thinkCrawl();
-      case 'APPROACH':
-        if (!this.move) {
-          s.director.releaseEntry(this.id);
-          this.setState('CRAWL', 'approach blocked');
-        }
+      case 'KNOCK':
+        return this.thinkKnock();
+      case 'ANGRY':
+        return this.thinkAngry();
+      case 'PASS':
+        if (--this.timer <= 0) this.finishPass();
         return;
-      case 'TELEGRAPH':
-        return this.thinkTelegraph();
       case 'SUSPENDED':
         this.anim = 'dormant';
         return;
@@ -83,146 +90,133 @@ export class Morgrave extends Animatronic {
   }
 
   // ------------------------------------------------------------ walls
-  intoWalls(reason, cooldown = this.timer) {
-    const s = this.s;
-    s.director.releaseEntry(this.id);
+  intoWalls(reason, ticks) {
+    this.visit = null;
     this.entry = null;
-    if (this.move) {
-      s.occupancy.release(this.move.to, this.id);
-      this.move = null;
-    }
-    this.path = [];
-    s.occupancy.release(this.node, this.id);
-    this.node = this.cfg.home;
-    s.occupancy.force(this.node, this.id);
     this.hidden = true;
     this.eyes = false;
     this.anim = 'crawl';
-    this.timer = cooldown;
-    this.route = null;
+    this.timer = ticks;
     this.setState('WALLS', reason);
   }
 
-  chooseRoute() {
+  /** May a visit start now? Same rules every other attacker follows. */
+  mayCome() {
     const s = this.s;
-    const routes = ['L', 'H'].filter((r) => r !== 'H' || s.hatchInstalled);
-    const d = s.director.doorUse;
-    const w = routes.map((r) => (1 + (10 - d[r]) / 5) * (r === this.memory.lastEntry ? 0.6 : 1));
-    return s.rng.weighted(routes, w);
+    const d = s.director;
+    return s.phase === 'RUNNING' && s.t >= d.graceUntil && s.blackout.stage === 'none' && !d.fredbearEngaged() && !s.finale;
+  }
+
+  chooseEntry() {
+    const s = this.s;
+    if (this.forced) {
+      const e = this.forced;
+      this.forced = null;
+      return e;
+    }
+    const d = s.director;
+    const w = VISIT_ENTRIES.map((e) => {
+      let x = e === 'V' ? this.cfg.ventWeight : 1 + d.doorUse[e] / 4 + (s.barrierClosed(e) ? this.cfg.shutBonus : 0);
+      if (e === this.memory.lastEntry) x *= 0.6;
+      return x;
+    });
+    return s.rng.weighted([...VISIT_ENTRIES], w);
   }
 
   comeOut() {
     const s = this.s;
-    const r = this.chooseRoute();
-    const start = MORGRAVE_ROUTE[r][0];
-    if (!s.occupancy.claim(start, this.id)) {
-      this.timer = 40; // someone is standing there: try again shortly
+    if (!this.mayCome()) {
+      this.timer = 40;
       return;
     }
-    s.occupancy.release(this.node, this.id);
-    this.node = start;
-    this.route = r;
-    this.target = r;
+    const entry = this.chooseEntry();
+    this.visit = { entry, stage: 0 };
+    this.entry = entry;
+    this.memory.lastEntry = entry;
     this.hidden = false;
     this.eyes = true;
-    this.sealedTicks = 0;
-    this.yaw = NODE_BY_ID[start].yaw ?? this.yaw;
-    this.anim = NODE_BY_ID[start].crawl ? 'crawl' : 'look';
-    this.moTimer = s.rng.jitter(this.cfg.moInterval);
-    this.setState('CRAWL', `out of the walls: ${ROUTE_NAME[r]}`);
-    s.emit({ fx: 'sound', id: 'fb.morgrave.scrape', at: SCRAPE_AT[r], vol: 1.0 });
-    s.caption(`Scraping inside the walls — ${ROUTE_NAME[r]}`, this.id);
+    this.anim = MORGRAVE_SPOTS[entry].anim;
+    this.timer = this.cfg.softKnockTicks;
+    this.setState('KNOCK', `three soft knocks at the ${VISIT_LABEL[entry]}`);
+    this.knock(0, 0.7);
+    s.caption(`Three soft knocks — ${VISIT_LABEL[entry]}`, this.id);
   }
 
-  // ------------------------------------------------------------ crawling
-  thinkCrawl() {
-    const s = this.s;
-    const route = MORGRAVE_ROUTE[this.route];
-    const i = route.indexOf(this.node);
-    const next = route[i + 1];
-    if (!next) return this.intoWalls('lost his route', 200);
-    const edge = this.graph.edgeBetween(this.node, next);
-    if (edge?.gate && !s.gateOpen(edge.gate)) {
-      // Sealed in front of him: he scratches at the seal, then gives up.
-      if (++this.sealedTicks % 40 === 1) s.emit({ fx: 'sound', id: 'fb.vent.clank', at: this.pose(), vol: 0.9 });
-      this.anim = 'look';
-      if (this.sealedTicks >= this.cfg.sealGiveUp) {
-        this.memory.repelled[this.route] = Math.min(5, this.memory.repelled[this.route] + 1);
-        this.memory.lastEntry = this.route;
-        this.intoWalls(`sealed out of ${ROUTE_NAME[this.route]}`, this.cfg.recover(this.aggression));
-        s.caption('Something gave up inside the vents', this.id);
-      }
-      return;
-    }
-    this.sealedTicks = 0;
-    if (--this.moTimer > 0) return;
-    this.moTimer = s.rng.jitter(this.cfg.moInterval);
-    if (!s.rng.d20(this.aggression)) return;
-    if (next === ENTRY_NODE[this.route]) {
-      if (!s.director.reserveEntry(this.id, this.route)) return;
-      if (!this.beginEdgeMove(next, 'stalk')) {
-        s.director.releaseEntry(this.id);
-        return;
-      }
-      this.entry = this.route;
-      this.viaVent = this.route === 'L';
-      this.setState('APPROACH', this.route === 'L' ? 'climbing out of the vent' : 'climbing up under the hatch');
-      const p = this.pose();
-      s.emit({ fx: 'sound', id: 'fb.vent.clank', at: { x: p.x, y: p.y + 0.5, z: p.z }, vol: 1.0 });
-      s.caption(this.route === 'L' ? 'Something is climbing out of the vent — LEFT corner' : 'Scraping beneath the office floor', this.id);
-      return;
-    }
-    if (this.beginEdgeMove(next, 'stalk')) {
-      const p = this.pose();
-      s.emit({ fx: 'sound', id: 'fb.vent.clank', at: { x: p.x, y: p.y + 0.5, z: p.z }, vol: 0.8 });
-    }
+  knockAt() {
+    const p = MORGRAVE_SPOTS[this.visit.entry].knock;
+    return { x: p.x, y: p.y + 1.2, z: p.z };
   }
 
-  onArrive(node) {
-    const n = NODE_BY_ID[node];
-    if (this.state === 'APPROACH' && n.zone === 'entry') this.startTelegraph();
-    else this.anim = n.crawl ? 'crawl' : 'look';
+  knock(stage, vol) {
+    this.s.emit({ fx: 'sound', id: KNOCK_SOUND[stage], at: this.knockAt(), vol });
   }
 
-  // ------------------------------------------------------------ telegraph
-  startTelegraph() {
-    const s = this.s;
-    this.timer = this.cfg.telegraph(this.aggression);
-    this.closedTicks = 0;
-    this.anim = 'threat';
-    this.eyes = true;
-    this.setState('TELEGRAPH', `at entry ${this.entry}, window ${this.timer}t`);
-    // A scratch at the entry itself - not every time (the climb up the shaft is long and quiet):
-    // watch CAM 17 / CAM 18 and remember where you last heard him.
-    if (s.rng.chance(this.cfg.arrivalCueChance)) {
-      const p = this.pose();
-      s.emit({ fx: 'sound', id: 'fb.morgrave.scrape', at: { x: p.x, y: p.y + 1, z: p.z }, vol: 0.8 });
-      s.caption(this.entry === 'H' ? 'Scratching at the HATCH' : 'Scratching at the LEFT door', this.id);
-    }
-  }
-
-  thinkTelegraph() {
-    const s = this.s;
-    const closed = s.barrierClosed(this.entry);
-    this.closedTicks = closed ? this.closedTicks + 1 : 0;
-    if (this.closedTicks >= this.cfg.repelTicks) return this.repelled('barrier held closed');
-    if (s.blackout.stage === 'on') return; // window paused for fairness
+  // ------------------------------------------------------------ knocking
+  thinkKnock() {
     if (--this.timer > 0) return;
-    if (closed) return this.repelled('barrier closed at end of window');
-    if (s.director.requestAttack(this.id)) {
-      this.anim = 'attack';
-      this.setState('ATTACK', 'barrier open at end of window');
-      s.beginJumpscare(this.id);
+    if (!this.s.barrierClosed(this.visit.entry)) this.startPass('the way was open');
+    else this.startAngry(1);
+  }
+
+  startAngry(stage) {
+    const s = this.s;
+    const label = VISIT_LABEL[this.visit.entry];
+    this.visit.stage = stage;
+    this.timer = this.cfg.angry(this.aggression);
+    this.anim = this.visit.entry === 'V' ? 'crawl' : 'threat';
+    if (this.state === 'ANGRY') s.logTransition(this.id, 'ANGRY', 'ANGRY', `pounding at the ${label}, ${this.timer}t`);
+    else this.setState('ANGRY', `knocking at the ${label}, ${this.timer}t`);
+    this.knock(stage, stage === 1 ? 1.0 : 1.2);
+    s.caption(stage === 1 ? `Knocking — ${label}, louder` : `Pounding — ${label}!`, this.id);
+  }
+
+  /** Someone else is engaged at this entry (holding it, or beside it as a partner). */
+  othersAtEntry() {
+    const d = this.s.director;
+    const e = this.visit.entry;
+    if (e === 'V') return false;
+    return [d.entries[e], d.partners[e]].some((w) => w && w !== this.id);
+  }
+
+  thinkAngry() {
+    const s = this.s;
+    const v = this.visit;
+    if (!s.barrierClosed(v.entry)) return this.startPass('let in late');
+    if (s.blackout.stage === 'on') return; // window paused for fairness
+    if (this.stateTicks % KNOCK_EVERY[v.stage] === 0) this.knock(v.stage, v.stage === 1 ? 0.9 : 1.1);
+    if (v.stage === 2 && this.othersAtEntry()) this.timer = Math.max(this.timer, this.cfg.holdFloor);
+    if (--this.timer > 0) return;
+    if (v.stage === 1) return this.startAngry(2);
+    if (!s.director.requestAttack(this.id)) return;
+    // He breaks through: the door is forced open, or the grate bursts open.
+    if (v.entry === 'V') s.setGrate(false);
+    else s.jamBarrier(v.entry);
+    this.anim = 'attack';
+    this.setState('ATTACK', `the ${VISIT_LABEL[v.entry]} stayed shut: he broke through`);
+    s.beginJumpscare(this.id);
+  }
+
+  // ------------------------------------------------------------ passing
+  startPass(reason) {
+    const s = this.s;
+    const e = this.visit.entry;
+    this.timer = this.cfg.passTicks;
+    this.anim = MORGRAVE_SPOTS[e].passAnim;
+    this.setState('PASS', reason);
+    s.emit({ fx: 'sound', id: 'fb.morgrave.scrape', at: this.knockAt(), vol: 0.5 });
+    s.caption(e === 'V' ? 'Something crawls past above the grate' : `Footsteps go past the ${VISIT_LABEL[e]}`, this.id);
+  }
+
+  finishPass() {
+    const s = this.s;
+    if (this.visit.entry === 'V' && !s.devices.grate) {
+      s.setGrate(true); // he shuts it behind him
+      s.caption('The vent grate clangs shut', this.id);
     }
+    this.intoWalls('let in: he went past', this.cfg.recover(this.aggression));
   }
 
   repelled(reason) {
-    const s = this.s;
-    const entry = this.entry;
-    this.memory.repelled[entry] = Math.min(5, this.memory.repelled[entry] + 1);
-    this.memory.lastEntry = entry;
-    s.emit({ fx: 'sound', id: 'fb.door.bang', at: { x: this.pose().x, y: 1, z: this.pose().z }, vol: 0.8 });
-    s.caption('Scraping fades back into the walls', this.id);
     this.intoWalls(reason, this.cfg.recover(this.aggression));
   }
 }

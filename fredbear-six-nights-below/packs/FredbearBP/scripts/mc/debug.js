@@ -26,7 +26,7 @@ const HELP = [
   'lobby | overlay | selftest | graph | state | puppets | camtour',
   'night <0-9> | hour <0-5> | power <pct> | seed <n> | unlock <1-9> | lastending <seal|burn>',
   'challenge <no_doors|fredbear_only|double_drain|no_cams> | ending <seal|burn> | ending9 | flashback | tapes | holiday <halloween|christmas|none> | shadow | seal <vent|shaft>',
-  'ai <who> <0-20> | place <who> <node> | approach <who> <L|R|H>',
+  'ai <who> <0-20> | place <who> <node> | approach <who> <L|R|H> | visit <morgrave|valek> <L|R|V>',
   'scenario <slice|boundary|power_zero|double|freddy|fredbear_hatch|fredbear_left|blackout|finale>',
   'win | lose | maint | skip | verbose',
 ].join('\n');
@@ -262,6 +262,9 @@ export function handleDebug(game, action, a1, a2, player) {
     case 'maint':
       if (s.phase === 'RUNNING') s.beginMaintenance(a1 === 'electrical' ? 'electrical' : 'generator');
       return undefined;
+    case 'visit':
+      if (!s.forceVisit(a1, (a2 ?? 'V').toUpperCase())) return say(player, 'usage: visit <morgrave|valek> <L|R|V>');
+      return say(player, `${a1} is coming to ${(a2 ?? 'V').toUpperCase()}`);
     case 'seal':
       s.input(a1 === 'shaft' ? 'seal_shaft' : 'seal_vent');
       return say(player, `sealing the ${a1 === 'shaft' ? 'shaft' : 'vent'}`);

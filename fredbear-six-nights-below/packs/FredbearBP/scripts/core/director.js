@@ -158,7 +158,7 @@ export class Director {
     if (this.activeEntryCount() > 0) return false;
     for (const a of s.order) {
       const st = s.anim[a].state;
-      if (['APPROACH', 'TELEGRAPH', 'LURK', 'FORCING', 'JAMMED', 'CORNER'].includes(st)) return false;
+      if (['APPROACH', 'TELEGRAPH', 'LURK', 'FORCING', 'JAMMED', 'KNOCK', 'ANGRY', 'STARE'].includes(st)) return false;
     }
     return true;
   }

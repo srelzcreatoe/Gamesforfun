@@ -41,7 +41,7 @@ export class Animatronic {
     this.anim = 'perform';
     this.eyes = false;
     this.hidden = false;
-    this.ventVisible = true; // the duct is two blocks high and has its own camera (CAM 18)
+    this.ventVisible = true; // the duct is two blocks high and has its own camera (CAM 16)
     this.yaw = NODE_BY_ID[this.node].yaw ?? 0;
     this.stepCounter = 0;
     this.watchedTicks = 0;

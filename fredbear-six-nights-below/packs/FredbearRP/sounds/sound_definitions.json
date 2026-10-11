@@ -464,6 +464,30 @@
       "max_distance": 16.0,
       "min_distance": 1.0
     },
+    "fb.morgrave.knock_hard": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/morgrave/knock_hard",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 32.0,
+      "min_distance": 1.0
+    },
+    "fb.morgrave.knock_soft": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/morgrave/knock_soft",
+          "is3D": true,
+          "volume": 0.8
+        }
+      ],
+      "max_distance": 24.0,
+      "min_distance": 1.0
+    },
     "fb.morgrave.scrape": {
       "category": "hostile",
       "sounds": [
