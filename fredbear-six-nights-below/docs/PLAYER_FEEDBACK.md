@@ -265,6 +265,9 @@ Numbers stay fixed from now on: new items are added at the end.
 |---|---|---|
 | 175 | A simple command (like `/fb:...`) that marks every night completed and unlocks all the lore and extras too, and says so ("All nights completed"), so the player can see everything | planned |
 | 176 | Vibrant Visuals compatible: the map works with Minecraft's Vibrant Visuals graphics mode | done in 1.3.1 (untested in-game) |
+| 177 | A camera inside the hatch shaft itself (CAM 17 only shows the crawlspace end below the office; the climb up to the hatch is a blind spot) | planned |
+| 178 | A completely separate room for Valek and Morgrave that is nightmare fuel (section S) | planned |
+| 179 | Morgrave's mechanic is confusing: pick a rework, options 1-5 in section S | to decide |
 
 ### Every update finishes with
 
@@ -592,3 +595,35 @@ graphics mode to Fancy). 1.3.1 declares `pbr`, gives every custom texture a text
 rough and not shiny), keeps the camera feeds free of volumetric haze and adds a thin haze to the nights that thickens
 night by night. Lighting, sky and colour grading stay Mojang's. Details: docs/01 item 17, docs/08 "Vibrant Visuals".
 Not tried in-game yet.
+
+## S. Morgrave rework, the shaft camera and their room (items 177-179)
+
+**How Morgrave works in 1.3.1 (the part that is confusing):** he hides in the walls, then comes out on one of two
+routes (scraping, captioned). Route 1: supply closet → duct (CAM 18) → out of the vent at the left door. Route 2:
+crawlspace → subfloor (CAM 17) → a long climb up the shaft to the hatch. Two different counters: a **seal** (vent seal
+while he is in the duct; shaft seal only while he is still in the crawlspace, *before* CAM 17) makes him give up after 8 s;
+if he gets past, **close the left door or the hatch** within 3.5 s (you hear him arrive only 3 times in 4).
+
+**Rework options (owner to pick one, or keep the current one):**
+
+1. **Simpler Morgrave**: one route only (the vent), always heard, one counter (the vent seal while he is on CAM 18; too
+   late = close the left door).
+2. **Don't move**: when he reaches the vent right outside the office, everything goes quiet and you must stay completely
+   still for a few seconds - no buttons, no monitor. Any input and he lunges. Dangerous when the trio are at the doors.
+3. **Watch him or he comes, watch too long and he runs**: the opposite of Valek. He only advances while nobody checks
+   CAM 17 / 18, but staring at him for more than 3 s makes him sprint one step closer.
+4. **Prying the hatch**: he only comes up under the hatch and slowly pries it open (a lamp on the panel fills up). Tap
+   the HATCH button to slam it back down (costs a little power each time); let the lamp fill and he climbs in.
+5. **Sound lure** (FNAF 3 style): a new PLAY AUDIO button plays a child's laugh on the camera you are watching; Morgrave
+   crawls toward the sound. Lure him away from the office through the vents and crawlspaces; the lure has a cooldown
+   and can fail if overused.
+
+**Shaft camera (177):** a camera in the vertical shaft between the subfloor and the office hatch, looking up the climb,
+added to the camera map HUD. Fredbear's and Morgrave's climbs to the hatch would no longer be a blind spot.
+
+**Their room (178), first sketch:** a sealed workshop below the old diner, reachable in Free Roam through a crawl hole:
+torn costume parts, endoskeleton heads on hooks, rows of small chairs facing a wall of scratched eyes, a workbench with
+faces in progress, one flickering lamp and a TV showing static. Morgrave's nest of stuffing in one corner; Valek's
+corner kept pitch black, with extra pairs of painted eyes so you never know which pair is his. Both start each night
+there (a new camera shows them). Details to agree with the owner before building.
+
