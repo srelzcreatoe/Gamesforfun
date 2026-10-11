@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { NightSession } from '../packs/FredbearBP/scripts/core/session.js';
-import { CONFIG } from '../packs/FredbearBP/scripts/core/config.js';
+import { CONFIG, nightVariant } from '../packs/FredbearBP/scripts/core/config.js';
 import { idleBot, oracleBot, humanBot, wastefulBot, runNight } from './lib/bots.mjs';
 
 const ROOT = new URL('../', import.meta.url).pathname;
@@ -23,7 +23,14 @@ export const PLAN = [
 
 const pct = (units) => Math.round((units / CONFIG.power.unitsPerPercent) * 10) / 10;
 
-export const NIGHTS = [1, 2, 3, 4, 5, 6, 7];
+export const NIGHTS = [1, 2, 3, 4, 5, 6, 7, '8s', '8b', 9];
+
+/** Night keys: a number, or '8s' / '8b' for night 8 after the seal / burn ending. */
+export function nightSpec(k) {
+  if (k === '8s') return { night: 8, overrides: nightVariant(8, 'seal'), label: 'N8 seal' };
+  if (k === '8b') return { night: 8, overrides: nightVariant(8, 'burn'), label: 'N8 burn' };
+  return { night: Number(k), overrides: undefined, label: `N${k}` };
+}
 
 /** One night (or challenge) for one player model over `seeds` seeds. */
 async function runSeries(p, { night, overrides, options }) {
@@ -78,14 +85,14 @@ export async function simulate({ nights = NIGHTS, plan = PLAN } = {}) {
   const out = {};
   for (const p of plan) {
     out[p.key] = { label: p.label, seeds: p.seeds, nights: {} };
-    for (const night of nights) out[p.key].nights[night] = await runSeries(p, { night });
+    for (const k of nights) out[p.key].nights[k] = await runSeries(p, nightSpec(k));
   }
   return out;
 }
 
 export function table(res, nights = NIGHTS) {
   const lines = [];
-  lines.push(`| Player model | ${nights.map((n) => `N${n}`).join(' | ')} |`);
+  lines.push(`| Player model | ${nights.map((n) => nightSpec(n).label).join(' | ')} |`);
   lines.push(`|---|${nights.map(() => '---').join('|')}|`);
   for (const r of Object.values(res)) {
     lines.push(`| ${r.label} (${r.seeds} seeds) | ${nights.map((n) => `${r.nights[n].winRate}%`).join(' | ')} |`);
@@ -99,7 +106,7 @@ export function detailTable(res, key, nights = NIGHTS) {
   for (const n of nights) {
     const d = r.nights[n];
     const by = Object.entries(d.lossesBy).map(([k, v]) => `${k} ${v}`).join(', ') || '-';
-    lines.push(`| ${n} | ${d.winRate}% | ${d.meanEndPower ?? '-'}% | ${d.worstMinPower}% | ${d.powerOuts} | ${by} | ${d.meanLossHour === null ? '-' : `${d.meanLossHour === 0 ? 12 : d.meanLossHour} AM`} |`);
+    lines.push(`| ${nightSpec(n).label.slice(1)} | ${d.winRate}% | ${d.meanEndPower ?? '-'}% | ${d.worstMinPower}% | ${d.powerOuts} | ${by} | ${d.meanLossHour === null ? '-' : `${d.meanLossHour === 0 ? 12 : d.meanLossHour} AM`} |`);
   }
   return lines.join('\n');
 }

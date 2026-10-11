@@ -10,7 +10,7 @@ import { NODES, EDGES, ACCESS, ENTRY_NODE, ENTRY_BARRIER, GOLDEN_NODES, edgePoly
 import { CAMERAS } from '../packs/FredbearBP/scripts/data/cameras.js';
 import { INPUTS, inputCbPos } from '../packs/FredbearBP/scripts/data/inputs.js';
 import { CONTROL, MODULES } from '../packs/FredbearBP/scripts/data/actuators.js';
-import { CONFIG } from '../packs/FredbearBP/scripts/core/config.js';
+import { CONFIG, nightDef } from '../packs/FredbearBP/scripts/core/config.js';
 import { simulate, table, detailTable, simulateChallenges, challengeTable } from './balance_sim.mjs';
 import { GuideGraph } from '../packs/FredbearBP/scripts/core/guide_path.js';
 import { GUIDE_NODES, GUIDE_EDGES, GUIDE_TARGETS } from '../packs/FredbearBP/scripts/data/guide_graph.generated.js';
@@ -125,16 +125,17 @@ function powerMaths() {
   L.push(`Fixed-point integers: **${P.unitsPerPercent} units = 1 %**, start ${P.start} units (100 %). Every tick drains the base rate plus each active device. A night is ${len} ticks (${CONFIG.clock.hours} hours × ${CONFIG.clock.ticksPerHour}; 8 minutes at 20 TPS). Integer arithmetic makes results identical on every platform.`, '');
   L.push('| Consumer | Units / tick | % per second | % per in-game hour |', '|---|---|---|---|');
   const row = (name, u) => L.push(`| ${name} | ${u} | ${((u * 20) / P.unitsPerPercent).toFixed(2)} | ${pc(u * CONFIG.clock.ticksPerHour)} |`);
-  row('Base drain, nights 0-1', P.baseDrain[1]);
-  row('Base drain, nights 2-6', P.baseDrain[6]);
+  const groups = new Map();
+  for (let n = 0; n <= 9; n++) groups.set(P.baseDrain[n], [...(groups.get(P.baseDrain[n]) ?? []), n]);
+  for (const [u, ns] of groups) row(`Base drain, nights ${ns.join(', ')}`, u);
   row('Each closed door', P.door);
   row('Each lit hall light', P.light);
   row('Camera monitor up', P.cams);
   row('Office hatch sealed', P.hatch);
-  L.push('', `One-shot costs: emergency strobe ${pc(P.strobeCost)} %, breaker reset ${pc(P.breakerResetCost)} %. Emergency reserve (nights 3+): one ${pc(P.reserveAmount)} % top-up if the lever is pulled within ${P.reserveWindow} ticks of reaching 0 %. Pre-shift power task: start at ${pc(P.start + P.taskBonus)} %.`, '');
+  L.push('', `One-shot costs: emergency strobe ${pc(P.strobeCost)} %, breaker reset ${pc(P.breakerResetCost)} %, vent / shaft seal ${pc(CONFIG.seals.cost)} % (sealed ${CONFIG.seals.duration} ticks, then ${CONFIG.seals.cooldown} ticks to recharge). Emergency reserve (nights 3+): one ${pc(P.reserveAmount)} % top-up if the lever is pulled within ${P.reserveWindow} ticks of reaching 0 %. Pre-shift power task: start at ${pc(P.start + P.taskBonus)} %.`, '');
   L.push('### Worked examples (full 9600-tick night)', '');
   L.push('| Night | Idle (base only) | Reasonable play* | Wasteful (everything on) |', '|---|---|---|---|');
-  for (let n = 1; n <= 6; n++) {
+  for (let n = 1; n <= 9; n++) {
     const base = P.baseDrain[n] * len;
     const hasHatch = n >= 4;
     const strobes = n >= 4 ? 2 : 0;
@@ -152,14 +153,19 @@ async function nightsAndBalance() {
   L.push('# 05 · Nights, formulas and balance', '', GEN, '');
   L.push('## Night table', '');
   L.push('Aggression (A) is 0-20. Activation = tick at which the character leaves home. Nights ≥ 2 add the hourly ramp ' + `[${CONFIG.hourlyRamp.join(', ')}] (12 AM..5 AM) to every character except Fredbear (cap 20).`, '');
-  L.push('| Night | Title | Freddy | Bonnie | Chica | Fredbear | Activation F/B/C/G (ticks) | Strobe | Reserve | Max sabotage | Fredbear phase | Events |', '|---|---|---|---|---|---|---|---|---|---|---|---|');
-  for (let n = 0; n <= 7; n++) {
-    const d = CONFIG.nights[n];
-    const ev = d.events.map((e) => `${e.kind}${e.task ? `:${e.task}` : e.id ? `:${e.id}` : ''}@${e.at}`).join(', ') || '-';
-    const fb = d.fredbear.phase ? `${d.fredbear.phase} (entries ${d.fredbear.entries.join('/')}, max ${d.fredbear.maxAttempts} attempts, powers ${d.fredbear.powers.join(', ')})` : 'dormant';
-    L.push(`| ${n} | ${d.title} | ${d.ai.freddy} | ${d.ai.bonnie} | ${d.ai.chica} | ${d.ai.fredbear} | ${d.activation.freddy}/${d.activation.bonnie}/${d.activation.chica}/${d.activation.fredbear} | ${d.strobeCharges} | ${d.reserve ? 'yes' : 'no'} | ${d.maxSabotage} | ${fb} | ${ev} |`);
+  L.push('| Night | Title | Freddy | Bonnie | Chica | Fredbear | Morgrave | Valek | Activation F/B/C/G/M/V (ticks) | Strobe | Reserve | Max sabotage | Fredbear phase | Events |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
+  const rows = [];
+  for (let n = 0; n <= 9; n++) {
+    if (CONFIG.nights[n].variants) for (const [k, v] of Object.entries(CONFIG.nights[n].variants)) rows.push([`${n} (${k})`, nightDef(n, v)]);
+    else rows.push([String(n), nightDef(n)]);
   }
-  L.push('', 'Night 0 is the training shift / vertical slice (400 ticks per hour; the tutorial further slows it to 12000 so the clock never ends a lesson). Night 7 unlocks after night 6: only Fredbear hunts (the others stay powered down on the stage).', '');
+  for (const [n, d] of rows) {
+    const ev = d.events.map((e) => `${e.kind}${e.task ? `:${e.task}` : e.id ? `:${e.id}` : ''}@${e.at}`).join(', ') || '-';
+    const fb = d.fredbear.phase ? `${d.fredbear.phase} (entries ${d.fredbear.entries.join('/')}, max ${d.fredbear.maxAttempts} attempts, powers ${d.fredbear.powers.join(', ')}${d.fredbear.omnipresent ? ', everywhere' : ''})` : 'dormant';
+    const act = ['freddy', 'bonnie', 'chica', 'fredbear', 'morgrave', 'valek'].map((w) => (d.activation[w] ?? 99999) >= 99999 ? 'off' : d.activation[w]).join('/');
+    L.push(`| ${n} | ${d.title} | ${d.ai.freddy} | ${d.ai.bonnie} | ${d.ai.chica} | ${d.ai.fredbear} | ${d.ai.morgrave ?? 0} | ${d.ai.valek ?? 0} | ${act} | ${d.strobeCharges} | ${d.reserve ? 'yes' : 'no'} | ${d.maxSabotage} | ${fb} | ${ev} |`);
+  }
+  L.push('', 'Night 0 is the training shift / vertical slice (400 ticks per hour; the tutorial further slows it to 12000 so the clock never ends a lesson). Night 7 unlocks after night 6: only Fredbear hunts, everywhere at once (the trio are switched off in Parts & Service). Night 8 unlocks after night 7 and depends on the last night 7 ending (seal: Morgrave; burn: Valek). Night 9 unlocks after night 8: Fredbear, Morgrave and Valek together, the trio switched off again.', '');
   L.push('## Challenge modes', '');
   L.push('Unlocked after night 6. Each is a full night on a base night with overrides and session modifiers (`CONFIG.challenges`, `NightSession` options.mods).', '');
   L.push('| Challenge | Base night | Aggression F/B/C/G | Strobe | Modifiers | What the player gets back |', '|---|---|---|---|---|---|');
@@ -170,7 +176,7 @@ async function nightsAndBalance() {
   }
   L.push('');
   L.push('## Fredbear: doors that hold', '');
-  L.push(`When a forcing window (W2) ends and that door or the hatch has not held yet tonight (and it is not the Golden Hour), it holds: Fredbear bows for ${CONFIG.characters.fredbear.yieldTicks} ticks and vanishes to the diner, which counts as one of his attempts. Otherwise the barrier is jammed open and W3 follows. Strobe charges are his attempts + 2 on nights 4-6 (night 4: ${CONFIG.nights[4].strobeCharges} for ${CONFIG.nights[4].fredbear.maxAttempts}, night 5: ${CONFIG.nights[5].strobeCharges} for ${CONFIG.nights[5].fredbear.maxAttempts}, night 6: ${CONFIG.nights[6].strobeCharges} for ${CONFIG.nights[6].fredbear.maxAttempts} + ${CONFIG.nights[6].fredbear.finale.extraCharges} for ${CONFIG.nights[6].fredbear.finale.extraAttempts} at 5 AM); night 7: ${CONFIG.nights[7].strobeCharges} charges for ${CONFIG.nights[7].fredbear.maxAttempts} attempts, with three entries that can each hold once.`, '');
+  L.push(`When a forcing window (W2) ends and that door or the hatch has not held yet tonight (and it is not the Golden Hour), it holds: Fredbear bows for ${CONFIG.characters.fredbear.yieldTicks} ticks and vanishes to the diner, which counts as one of his attempts. Otherwise the barrier is jammed open and W3 follows. Strobe charges are his attempts + 2 on nights 4-6 (night 4: ${CONFIG.nights[4].strobeCharges} for ${CONFIG.nights[4].fredbear.maxAttempts}, night 5: ${CONFIG.nights[5].strobeCharges} for ${CONFIG.nights[5].fredbear.maxAttempts}, night 6: ${CONFIG.nights[6].strobeCharges} for ${CONFIG.nights[6].fredbear.maxAttempts} + ${CONFIG.nights[6].fredbear.finale.extraCharges} for ${CONFIG.nights[6].fredbear.finale.extraAttempts} at 5 AM); night 7: ${CONFIG.nights[7].strobeCharges} charges for ${CONFIG.nights[7].fredbear.maxAttempts} attempts and night 9: ${CONFIG.nights[9].strobeCharges} for ${CONFIG.nights[9].fredbear.maxAttempts}, with three entries that can each hold once.`, '');
   L.push('## Formulas (ticks)', '');
   const C = CONFIG.characters;
   const f = [
@@ -182,11 +188,16 @@ async function nightsAndBalance() {
     ['Freddy recovery', C.freddy.recover],
     ['Fredbear W1: music box — close that barrier', C.fredbear.w1],
     ['Fredbear W2: forcing — strobe now', C.fredbear.w2],
+    ['Morgrave telegraph (left door / hatch)', C.morgrave.telegraph],
+    ['Morgrave recovery (back in the walls)', C.morgrave.recover],
+    ['Valek corner window (minus 20 per anger, floor ' + C.valek.minWindow + ')', C.valek.telegraph],
+    ['Valek recovery', C.valek.recover],
   ];
   L.push('| Window | Formula | A = 5 | A = 10 | A = 15 | A = 20 |', '|---|---|---|---|---|---|');
   for (const [name, fn] of f) L.push(`| ${name} | \`${fn.toString().replace(/\(a\) => /, '')}\` | ${fn(5)} | ${fn(10)} | ${fn(15)} | ${fn(20)} |`);
-  L.push('', `Movement opportunities: Bonnie every ${C.bonnie.moInterval} ticks, Chica ${C.chica.moInterval}, Freddy ${C.freddy.moInterval}, Fredbear ${C.fredbear.moInterval}. At each opportunity a d20 roll ≤ A moves the character (bounded randomness; seeded mulberry32 so a seed replays exactly).`);
-  L.push(`Fredbear W3 (barrier jammed open, strobe still works) = ${C.fredbear.w3} ticks; a strobe without a closed/jammed barrier only stuns him for ${C.fredbear.stunTicks} ticks. Freddy slips in after ${C.freddy.slipTicks} ticks of camera use with the right door open; Bonnie flanks from A ≥ ${C.bonnie.flankMinAI} and uses the vent from A ≥ ${C.bonnie.ventMinAI}; Chica sabotage chance per opportunity = A/40 (cooldown ${C.chica.sabotageCooldown}).`, '');
+  L.push('', `Movement opportunities: Bonnie every ${C.bonnie.moInterval} ticks, Chica ${C.chica.moInterval}, Freddy ${C.freddy.moInterval}, Fredbear ${C.fredbear.moInterval}, Morgrave ${C.morgrave.moInterval}, Valek ${C.valek.moInterval}. At each opportunity a d20 roll ≤ A moves the character (bounded randomness; seeded mulberry32 so a seed replays exactly).`);
+  L.push(`Fredbear W3 (barrier jammed open, strobe still works) = ${C.fredbear.w3} ticks; a strobe without a closed/jammed barrier only stuns him for ${C.fredbear.stunTicks} ticks. Freddy slips in after ${C.freddy.slipTicks} ticks of camera use with the right door open; Bonnie flanks from A ≥ ${C.bonnie.flankMinAI} and uses the vent from A ≥ ${C.bonnie.ventMinAI}; Chica sabotage chance per opportunity = \`${C.chica.sabotageChance.toString().replace(/\(a\) => /, '')}\` (cooldown ${C.chica.sabotageCooldown}).`, '');
+  L.push(`1.3 behaviours: double trouble (from A ≥ ${C.bonnie.partnerMinAI}, Bonnie or Chica joins whoever holds the right door; a pair needs twice the repel time), Bonnie's teamwork (A ≥ ${C.bonnie.teamworkMinAI}, chance ${C.bonnie.teamworkChance}, cooldown ${C.bonnie.teamworkCooldown}: bangs on the left door while Chica sneaks to the right), Chica flanks left from A ≥ ${C.chica.flankMinAI}. Morgrave gives up after ${C.morgrave.sealGiveUp} ticks against a seal; his scratch at the entry is heard ${Math.round(C.morgrave.arrivalCueChance * 100)} % of the time. Valek mimics another animatronic on ${Math.round(C.valek.mimicChance * 100)} % of his steps and hums at the corner ${Math.round(C.valek.humChance * 100)} % of the time; lighting him sends him away for ${C.valek.vanishTicks} ticks but raises his anger (max 2).`, '');
   L.push(`Director limits: at most ${CONFIG.director.maxConcurrentEntries} entries engaged at once, one attack token, nobody engages beside Fredbear, ${CONFIG.director.blackoutGrace}-tick grace after a blackout and ${CONFIG.director.maintenanceGrace} after maintenance. Adaptation memory is capped: door-use counters 0-10 per entry, noise heat 0-10 (decays every ${CONFIG.director.noiseDecayTicks} ticks), camera focus decays ×${CONFIG.director.camFocusDecay} per tick.`, '');
   L.push(powerMaths());
   L.push('## Simulation results', '');
@@ -202,7 +213,8 @@ async function nightsAndBalance() {
   L.push('* The oracle wins every seed of every night with power to spare (lowest point on night 6 shown above): no night is unwinnable.');
   L.push('* Idle play usually survives night 1 (the introduction), rarely night 2 and never from night 3; "everything on" always runs out of power — power management matters.');
   L.push('* The human models lose mostly to **power exhaustion followed by the power-out sequence** (Fredbear\'s from night 4) on nights 4-6, not to unfair attacks: every attack is preceded by its telegraph window. This is the intended pressure and also the first tuning knob if playtesting shows nights 5-6 are too hard: lower `power.door` / `power.hatch` or the night 5-6 base drain in `scripts/core/config.js`.');
-  L.push('* Night 7 (Fredbear alone, every power) is lost mid-night rather than to power: it is meant as the hardest night. Its first knob is `nights[7].fredbear.cooldown` / `maxAttempts`.');
+  L.push('* 1.3 fixed the "stuck at the door" bug. Stuck animatronics had kept doors shut and drained power, so with the fix nights 5-6 became much easier for the human models (93 % / 77 %, against 57 % / 37 % in 1.2). Their base drain went from 4 to 5 units per tick to bring the curve back.');
+  L.push('* Night 7 (Fredbear alone, everywhere) and nights 8-9 are lost mid-night rather than to power. Night 8 is about as hard as night 7 either way. The burn version (Valek) is harder for the models because his mimicry fools a player who trusts the captions. Night 9 is the hardest night by design ("creepy, eerie and hard" was the brief). A perfect-information player still wins every seed. First knobs: `nights[7|9].fredbear.cooldown` / `maxAttempts`, `characters.morgrave.arrivalCueChance` and `characters.valek.mimicChance`.');
   L.push('');
   return L.join('\n') + '\n';
 }

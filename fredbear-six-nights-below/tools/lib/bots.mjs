@@ -16,7 +16,7 @@ export function idleBot() {
   return { name: 'idle', act() {} };
 }
 
-const ENGAGED = ['APPROACH', 'TELEGRAPH', 'LURK', 'FORCING', 'JAMMED'];
+const ENGAGED = ['APPROACH', 'TELEGRAPH', 'LURK', 'FORCING', 'JAMMED', 'CORNER'];
 
 export function oracleBot() {
   return {
@@ -126,6 +126,24 @@ export function humanBot(seed = 7, skill = 1.0) {
         react(s, () => checks.push(side));
       } else if (/footsteps — beneath/i.test(t) && s.hatchInstalled) {
         react(s, () => (belief.H = Math.max(belief.H, s.t + 200)));
+      } else if (/Scraping inside the walls — the west vent/.test(t)) {
+        // Morgrave came out at the supply duct: seal it (cheap) most of the time, else watch the left door.
+        react(s, () => (rng.chance(0.7) ? s.input('seal_vent') : (belief.L = Math.max(belief.L, s.t + 200))));
+      } else if (/Scraping inside the walls — below the office/.test(t) && s.hatchInstalled) {
+        react(s, () => (rng.chance(0.7) ? s.input('seal_shaft') : (belief.H = Math.max(belief.H, s.t + 260))));
+      } else if (/faint hum — (LEFT|RIGHT) corner/.test(t)) {
+        // Valek's eyes are in that corner: shut that door (lighting him only brings him back closer).
+        const e = t.includes('LEFT') ? 'L' : 'R';
+        react(s, () => (belief[e] = Math.max(belief[e], s.t + 120)));
+      } else if (/climbing out of the vent — LEFT/.test(t)) {
+        react(s, () => (belief.L = Math.max(belief.L, s.t + 140)));
+      } else if (/beneath the office floor/.test(t) && s.hatchInstalled) {
+        // Morgrave started the long climb up the shaft: keep the hatch shut for a while (a guess).
+        react(s, () => (belief.H = Math.max(belief.H, s.t + rng.int(300, 520))));
+      } else if (/Scratching at the (LEFT door|HATCH)/.test(t)) {
+        // Morgrave is at that entry now.
+        const e = t.includes('HATCH') ? 'H' : 'L';
+        react(s, () => (belief[e] = Math.max(belief[e], s.t + 160)));
       }
     },
     act(s) {

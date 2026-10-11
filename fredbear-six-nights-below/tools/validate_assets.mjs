@@ -15,6 +15,7 @@
 //  * fog ids pushed by commands exist; lang has a name for every entity
 import fs from 'node:fs';
 import path from 'node:path';
+import { CAMERAS } from '../packs/FredbearBP/scripts/data/cameras.js';
 
 const ROOT = new URL('../', import.meta.url).pathname;
 const BP = path.join(ROOT, 'packs/FredbearBP');
@@ -286,10 +287,8 @@ export function validateAssets() {
     }
   }
   const used = new Set([...scriptText.matchAll(/'(fb\.[a-z_]+\.[a-z_0-9]+)'/g)].map((m) => m[1]));
-  for (const who of ['freddy', 'bonnie', 'chica', 'fredbear']) {
-    used.add(`fb.step.${who}`); // base.js emitStep: `fb.step.${this.id}`
-    used.add(`fb.js.${who}`); // game.js applyFx: `fb.js.${who}` for actuate js.<who>
-  }
+  for (const who of ['freddy', 'bonnie', 'chica', 'fredbear']) used.add(`fb.step.${who}`); // base.js emitStep: `fb.step.${this.id}` (Morgrave crawls silently, Valek never walks)
+  for (const who of ['freddy', 'bonnie', 'chica', 'fredbear', 'morgrave', 'valek']) used.add(`fb.js.${who}`); // game.js applyFx: `fb.js.${who}` for actuate js.<who>
   for (const who of ['freddy', 'fredbear']) used.add(`fb.${who}.musicbox`); // session.beginPowerOutMusic: `fb.${who}.musicbox`
   for (const id of used) if (!(id in sd)) err(`script sound '${id}' not defined in sound_definitions.json`);
   for (const id of Object.keys(sd)) if (!used.has(id) && !fs.readFileSync(path.join(BP, 'scripts/data/actuators.js'), 'utf8').includes(id)) warnings.push(`sound ${id} defined but never played`);
@@ -304,8 +303,19 @@ export function validateAssets() {
     if (id) fogIds.add(id);
   }
   const pushed = [...scriptText.matchAll(/fog @a push ([a-z_]+:[a-z_0-9]+)(?![a-z_0-9$])/g)].map((m) => m[1]);
-  for (const n of [1, 2, 3, 4, 5, 6, 7]) pushed.push(`fb:night_${n}`); // fogCommand(n) builds these ids
+  for (let n = 1; n <= 9; n++) pushed.push(`fb:night_${n}`); // fogCommand(n) builds these ids
   for (const id of new Set(pushed)) if (!fogIds.has(id)) err(`fog ${id} missing (pushed by scripts/mc/commands.js)`);
+
+  // ------------------------------------------------------------ HUD camera map (tools/gen_cam_map.py)
+  const hud = docs.get(path.join(RP, 'ui/hud_screen.json'));
+  if (!hud) err('ui/hud_screen.json missing (camera map HUD)');
+  else {
+    const hudText = JSON.stringify(hud);
+    for (const m of hudText.matchAll(/"texture":"(textures\/ui\/[^"]+)"/g)) if (!fs.existsSync(path.join(RP, `${m[1]}.png`))) err(`hud_screen.json: texture ${m[1]}.png missing`);
+    const on = scriptText.match(/const MAP_ON = '([^']+)'/)?.[1];
+    if (!on || !hudText.includes(on)) err('camera map: game.js MAP_ON does not match ui/hud_screen.json');
+    for (const c of CAMERAS) if (!hudText.includes(`fb_cam_map_${c.id.toLowerCase()}`)) err(`camera map: no highlight for ${c.id}`);
+  }
 
   // ------------------------------------------------------------ lang
   const lang = fs.readFileSync(path.join(RP, 'texts/en_US.lang'), 'utf8');

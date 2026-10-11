@@ -5,9 +5,10 @@ Most audio is synthesised here from scratch (oscillators, filtered noise and
 envelopes). Melodies are original, except Freddy's music box, which plays the
 opening of Bizet's "Toreador March" (1875, public domain).
 
-The jumpscares, door and hatch, camera monitor, camera hum, laughter and the
-night music use recordings supplied by the map owner (art/sounds_incoming,
-credits in the README): see RECORDINGS and RECORDED_IDS below.
+The jumpscares, door and hatch, camera monitor, camera hum, laughter, the
+night music, Fredbear's music box and Chica's kitchen sounds use recordings
+supplied by the map owner (art/sounds_incoming, credits in the README): see
+RECORDINGS and RECORDED_IDS below.
 
 Output: packs/FredbearRP/sounds/fb/**.ogg (Ogg Vorbis via ffmpeg/libvorbis,
 bit-exact flags so reruns are reproducible; synthesised sounds are mono
@@ -249,14 +250,14 @@ def build_sounds():
     for k in range(7):
         off = float(rng.uniform(0, 0.8))
         clatter += at(metal_hit(0.4, list(rng.uniform(400, 3000, 3)), 10, rng, 50), off, 1.2)
-    S["chica/clatter"] = norm(clatter)
+    # Replaced by the owner's "Chica in the Kitchen" recording (1.3). Still computed so the random
+    # sequence - and so every later synthesised sound - stays exactly as before.
+    clatter = norm(clatter)
     toreador = [("C5", 1), ("D5", 0.75), ("C5", 0.25), ("A4", 1), ("A4", 1), ("A4", 0.75), ("G4", 0.25), ("A4", 0.75), ("A#4", 0.25),
                 ("A4", 2), ("A#4", 1), ("G4", 0.75), ("C5", 0.25), ("A4", 2), ("F4", 1), ("D4", 0.75), ("G4", 0.25), ("C4", 3)]
     # Power-out music lasts 5-20 s and is stopped by the script (SoundInstance.stop), so the clip runs ~25 s.
     S["freddy/musicbox"] = norm(melody(toreador * 3, 0.42))
-    fb_tune = [("E5", 1), ("G5", 1), ("B4", 1), ("C5", 2), ("E5", 1), ("D#5", 1), ("B4", 1), ("A4", 3), ("G4", 1), ("A4", 1), ("B4", 1), ("E5", 3)]
-    # Telegraph cue: stopped by the script when Fredbear is repelled or attacks; ~20 s covers the longest warning (17 s).
-    S["fredbear/musicbox"] = norm(melody(fb_tune * 3, 0.36, voice=lambda f, d: music_box_note(f * (1 + 0.004 * np.sin(f)), d)))
+    # Fredbear's music box is the owner's Fredbear's Family Diner recording since 1.3 (RECORDINGS).
     S["fredbear/chime"] = norm(melody([("E5", 1), ("B4", 2)], 0.3))
     t = t_axis(0.8)
     glitch = np.zeros(len(t))
@@ -302,6 +303,25 @@ def build_sounds():
     S["ui/accept"] = norm(mix(sine(t_axis(0.12), 880) * env(int(SR * 0.12)), at(sine(t_axis(0.16), 1320) * env(int(SR * 0.16)), 0.12, 0.3))) * 0.7
     S["ui/blip"] = norm(sine(t_axis(0.12), 1200) * decay(t_axis(0.12), 20)) * 0.6
     S["ui/deny"] = norm(lowpass(square(t_axis(0.35), 140), 1500) * env(int(SR * 0.35), 0.005, 0.05)) * 0.7
+
+    # ---- 1.3: Morgrave and Valek (added last so every earlier sound keeps its random sequence)
+    # Morgrave coming out of the walls: metal dragged through a duct, with knocks.
+    t = t_axis(1.8)
+    drag = bandpass(noise(len(t), rng), 900, 3200) * (0.55 + 0.45 * np.sin(2 * np.pi * 2.6 * t) ** 2)
+    scrape = drag * env(len(t), 0.15, 0.4)
+    for off in (0.2, 0.75, 1.3):
+        scrape = mix(scrape, at(metal_hit(0.3, [220, 410, 760], 14, rng, 30), off, 1.8))
+    S["morgrave/scrape"] = norm(resonator(scrape, 1400, 10) + 0.6 * scrape) * 0.9
+    # Valek's corner: a low, unsteady electrical hum.
+    t = t_axis(1.6)
+    hum = sine(t, 55) + 0.5 * sine(t, 110) + 0.25 * sine(t, 165) + 0.12 * sine(t, 220.7)
+    hum *= (0.75 + 0.25 * np.sin(2 * np.pi * 5.3 * t)) * env(len(t), 0.25, 0.5)
+    S["valek/hum"] = norm(hum + 0.05 * lowpass(noise(len(t), rng), 400)) * 0.7
+    # Valek vanishing: a breath drawn backwards and a falling tone.
+    t = t_axis(0.9)
+    breath = bandpass(noise(len(t), rng), 200, 1800) * (t / 0.9) ** 2
+    fall = sine(t, 300 - 220 * t / 0.9) * np.exp(-((t - 0.75) ** 2) / 0.01)
+    S["valek/vanish"] = norm(mix(breath, 0.6 * fall) * env(len(t), 0.02, 0.06)) * 0.8
     return S
 
 
@@ -311,7 +331,7 @@ META = {
     "door.close": ("block", True, 24, 1.0), "door.open": ("block", True, 24, 0.9), "door.bang": ("hostile", True, 32, 1.0),
     "door.jam": ("hostile", True, 32, 1.0), "light.buzz": ("block", True, 16, 0.6),
     "cam.up": ("ui", False, None, 0.6), "cam.down": ("ui", False, None, 0.6), "cam.switch": ("ui", False, None, 0.5),
-    "cam.static": ("ui", False, None, 0.5), "cam.hum": ("ui", False, None, 0.5),
+    "cam.static": ("ui", False, None, 0.5), "cam.hum": ("ui", False, None, 0.25),
     "breaker.trip": ("block", True, 48, 1.0), "breaker.reset": ("block", True, 16, 0.8), "strobe.fire": ("block", True, 24, 1.0),
     "power.alarm": ("block", True, 32, 0.8), "power.down": ("block", True, 32, 1.0), "power.dark": ("block", True, 32, 1.0),
     "power.reserve": ("block", True, 32, 0.9), "power.whine": ("block", True, 24, 0.5),
@@ -327,7 +347,8 @@ META = {
     "step.freddy": ("hostile", True, 44, 1.0), "step.bonnie": ("hostile", True, 44, 1.0), "step.chica": ("hostile", True, 44, 1.0),
     "step.fredbear": ("hostile", True, 48, 1.0),
     "js.freddy": ("hostile", False, None, 1.0), "js.bonnie": ("hostile", False, None, 1.0), "js.chica": ("hostile", False, None, 1.0),
-    "js.fredbear": ("hostile", False, None, 1.0),
+    "js.fredbear": ("hostile", False, None, 1.0), "js.morgrave": ("hostile", False, None, 1.0), "js.valek": ("hostile", False, None, 1.0),
+    "morgrave.scrape": ("hostile", True, 48, 1.0), "valek.hum": ("hostile", True, 16, 0.7), "valek.vanish": ("hostile", True, 24, 0.8),
     "ui.accept": ("ui", False, None, 0.7), "ui.blip": ("ui", False, None, 0.6), "ui.deny": ("ui", False, None, 0.7),
 }
 
@@ -339,6 +360,8 @@ SLAM = "161190__volivieri__storm-door-slam-01.wav"
 FREDDY_LAUGH = "Fnaf_Freddy_Laugh.mp3"
 FREDBEAR_LAUGH = "Fredbear_laugh_Fnaf_4.mp3"
 MUSIC = "PIZZA_DINNER_-_FNAF_1_REMAKE_OST.mp3"
+MUSIC_BOX = "FNaF_Fredbear_family_dinners_music_box_-_320_Kbps.mp3"
+KITCHEN = "FNaF_Sounds_-_Chica_in_the_Kitchen.mp3"
 
 # Output file -> (source in art/sounds_incoming, start s, end s or None, channels).
 # Positional (is3D) sounds must be mono. The long laugh recordings hold several
@@ -360,6 +383,14 @@ RECORDINGS = {
     "fredbear/laugh_4": (FREDBEAR_LAUGH, 13.35, 16.43, 2),
     # Night music (Player.playMusic with loop: true): the 50 ms of leading silence is cut so the loop is seamless.
     "night/bgm": (MUSIC, 0.05, None, 2),
+    # Fredbear's music box (telegraph and power-out; the script stops it when the cue ends).
+    "fredbear/musicbox": (MUSIC_BOX, 0.0, None, 1),
+    # Chica in the kitchen: the recording's bursts of clatter, cut at its silent gaps (one plays per clatter cue).
+    "chica/clatter_1": (KITCHEN, 0.25, 6.80, 1),
+    "chica/clatter_2": (KITCHEN, 7.60, 11.00, 1),
+    "chica/clatter_3": (KITCHEN, 12.70, 17.30, 1),
+    "chica/clatter_4": (KITCHEN, 17.30, 22.10, 1),
+    "chica/clatter_5": (KITCHEN, 22.80, 27.80, 1),
 }
 # Camera-feed hum: the script restarts it every HUM_PERIOD seconds while the monitor is up
 # (packs/FredbearBP/scripts/mc/game.js CAM_HUM_TICKS); the clip is HUM_FADE longer with
@@ -377,6 +408,9 @@ RECORDED_IDS = {
     "freddy.laugh": [f"freddy/laugh_{k}" for k in range(1, 5)],
     "fredbear.laugh": [f"fredbear/laugh_{k}" for k in range(1, 5)],
     "night.bgm": ["night/bgm"],
+    "fredbear.musicbox": ["fredbear/musicbox"],
+    "chica.clatter": [f"chica/clatter_{k}" for k in range(1, 6)],
+    "js.morgrave": ["js/animatronic"], "js.valek": ["js/animatronic"],
 }
 
 

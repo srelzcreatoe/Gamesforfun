@@ -9,7 +9,8 @@
       },
       "textures": {
         "default": "textures/entity/fb/freddy",
-        "eyes": "textures/entity/fb/freddy_eyes"
+        "eyes": "textures/entity/fb/freddy_eyes",
+        "withered": "textures/entity/fb/freddy_withered"
       },
       "geometry": {
         "default": "geometry.fb.freddy"
@@ -18,30 +19,35 @@
         "pre_animation": [
           "variable.fb_anim = query.property('fb:anim');",
           "variable.fb_eyes = query.property('fb:eyes');",
-          "variable.fb_hidden = query.property('fb:hidden');"
+          "variable.fb_hidden = query.property('fb:hidden');",
+          "variable.fb_variant = query.property('fb:variant');",
+          "variable.fb_ly = math.lerp(variable.fb_ly, query.property('fb:look_yaw'), 0.06);",
+          "variable.fb_lp = math.lerp(variable.fb_lp, query.property('fb:look_pitch'), 0.06);",
+          "variable.fb_lt = math.lerp(variable.fb_lt, query.property('fb:look_tilt'), 0.05);"
         ],
         "animate": [
-          "pose_controller"
+          "pose_controller",
+          "look_at"
         ]
       },
       "animations": {
-        "pose_controller": "controller.animation.fb.pose",
-        "hide_prop": "animation.fb.hide_prop",
-        "idle": "animation.fb.idle",
-        "perform": "animation.fb.perform.freddy",
-        "walk": "animation.fb.walk",
-        "stalk": "animation.fb.stalk",
-        "crawl": "animation.fb.crawl",
-        "look": "animation.fb.look",
-        "pause": "animation.fb.pause",
-        "threat": "animation.fb.threat",
-        "attack": "animation.fb.attack",
-        "retreat": "animation.fb.retreat",
-        "dormant": "animation.fb.dormant",
-        "music": "animation.fb.music"
+        "pose_controller": "controller.animation.fb.freddy",
+        "look_at": "animation.fb.freddy.look_at",
+        "attack": "animation.fb.freddy.attack",
+        "walk": "animation.fb.freddy.walk",
+        "run": "animation.fb.freddy.run",
+        "perform_groove_once": "animation.fb.freddy.perform_groove_once",
+        "perform_showman_once": "animation.fb.freddy.perform_showman_once",
+        "threat": "animation.fb.freddy.threat",
+        "crawl": "animation.fb.freddy.crawl",
+        "dormant": "animation.fb.freddy.dormant",
+        "perform_showman": "animation.fb.freddy.perform_showman",
+        "idle": "animation.fb.freddy.idle",
+        "stalk": "animation.fb.freddy.stalk",
+        "pose": "animation.fb.freddy.pose"
       },
       "render_controllers": [
-        "controller.render.fb.animatronic",
+        "controller.render.fb.withered",
         "controller.render.fb.eyes"
       ]
     }

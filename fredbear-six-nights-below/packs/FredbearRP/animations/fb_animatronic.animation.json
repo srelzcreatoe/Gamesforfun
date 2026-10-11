@@ -1798,6 +1798,18 @@
           "scale": 0
         }
       }
+    },
+    "animation.fb.look_at": {
+      "loop": true,
+      "bones": {
+        "head": {
+          "rotation": [
+            "variable.fb_lp",
+            "variable.fb_ly",
+            "variable.fb_lt"
+          ]
+        }
+      }
     }
   }
 }

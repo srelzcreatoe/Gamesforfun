@@ -29,15 +29,19 @@ const office = [
   I('in.office.door_r', 'door_r', 'button', [104, 0, 130], 'RIGHT DOOR', { block: 'console_red' }),
   I('in.office.reserve', 'reserve', 'lever', [97, 0, 139], 'EMERGENCY RESERVE', { block: 'console_gold' }),
   I('in.office.start', 'start_shift', 'button', [103, 0, 139], 'START / RESUME SHIFT', { block: 'console_green' }),
+  // 1.3: vent seals (desk, west end) and the 1987 tape deck (back wall).
+  I('in.office.seal_vent', 'seal_vent', 'button', [96, 0, 128], 'SEAL VENT', { block: 'console_white' }),
+  I('in.office.seal_shaft', 'seal_shaft', 'button', [96, 0, 129], 'SEAL SHAFT', { block: 'console_gold' }),
+  I('in.office.tapes', 'tapes', 'button', [102, 0, 139], 'TAPE DECK 1987', { block: 'console_dark' }),
 ];
 
 const map = Object.entries(CAMERA_MAP_LAYOUT).map(([cam, [c, r]]) =>
   I(`in.office.map_${cam.toLowerCase()}`, `cam:${cam}`, 'button', [98 + c, 0, 127 + r], CAMERA_BY_ID[cam].label, { block: 'console_map' }));
 
-/** Nights on the time-clock terminal (night 7 unlocks after night 6). */
-export const LOBBY_NIGHTS = Object.freeze([1, 2, 3, 4, 5, 6, 7]);
+/** Nights on the time-clock terminal (7 unlocks after 6, 8 after 7, 9 after 8). */
+export const LOBBY_NIGHTS = Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 /** z of a night's button (x 181) and of its unlock lamp in the east wall (x 184, y 3). */
-export const nightButtonZ = (n) => 104 + n * 2;
+export const nightButtonZ = (n) => 105 + n;
 /** Challenge lamps in the south wall above the CHALLENGES button (ids = CONFIG.challenges). */
 export const CHALLENGE_LAMPS = Object.freeze({ no_doors: [156, 3, 124], fredbear_only: [157, 3, 124], double_drain: [158, 3, 124], no_cams: [159, 3, 124] });
 /** Newspaper board on the north wall of the time-clock room (clippings, docs/08). */
@@ -45,9 +49,9 @@ export const CLIPPING_BOARD = Object.freeze({ x1: 162, x2: 176, z: 101, papers: 
 
 const lobby = [
   I('in.lobby.tutorial', 'lobby:tutorial', 'button', [181, 0, 104], 'TRAINING SHIFT', { block: 'console_dark' }),
-  ...LOBBY_NIGHTS.map((n) => I(`in.lobby.night_${n}`, `lobby:night:${n}`, 'button', [181, 0, nightButtonZ(n)], `NIGHT ${n}`, { block: n === 7 ? 'console_gold' : 'console_dark', lamp: [184, 3, nightButtonZ(n)] })),
-  I('in.lobby.continue', 'lobby:continue', 'button', [181, 0, 120], 'CONTINUE', { block: 'console_green' }),
-  I('in.lobby.free_roam', 'lobby:free_roam', 'button', [181, 0, 122], 'FREE ROAM', { block: 'console_white' }),
+  ...LOBBY_NIGHTS.map((n) => I(`in.lobby.night_${n}`, `lobby:night:${n}`, 'button', [181, 0, nightButtonZ(n)], `NIGHT ${n}`, { block: n >= 8 ? 'console_red' : n === 7 ? 'console_gold' : 'console_dark', lamp: [184, 3, nightButtonZ(n)] })),
+  I('in.lobby.continue', 'lobby:continue', 'button', [181, 0, 117], 'CONTINUE', { block: 'console_green' }),
+  I('in.lobby.free_roam', 'lobby:free_roam', 'button', [181, 0, 120], 'FREE ROAM', { block: 'console_white' }),
   I('in.lobby.settings', 'lobby:settings', 'button', [178, 0, 122], 'SETTINGS', { block: 'console_dark' }),
   I('in.lobby.extras', 'lobby:extras', 'button', [174, 0, 122], 'ARCHIVE & CREDITS', { block: 'console_dark' }),
   I('in.lobby.reset', 'lobby:reset', 'button', [170, 0, 122], 'ERASE PROGRESS', { block: 'console_red' }),

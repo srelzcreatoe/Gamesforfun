@@ -1799,6 +1799,18 @@
         }
       }
     },
+    "animation.fb.look_at": {
+      "loop": true,
+      "bones": {
+        "head": {
+          "rotation": [
+            "variable.fb_lp",
+            "variable.fb_ly",
+            "variable.fb_lt"
+          ]
+        }
+      }
+    },
     "animation.fb.perform.fredbear": {
       "loop": true,
       "animation_length": 2.4,

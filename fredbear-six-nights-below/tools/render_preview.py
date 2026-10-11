@@ -193,57 +193,84 @@ def render(geo, tex, yaw_deg, pose, size=(220, 300), scale=6.0, ground=12):
     return img
 
 
+def load_clips(who):
+    return json.loads((RP / "animations" / f"fb_{who}.animation.json").read_text())["animations"]
+
+
 def main():
     anims = json.loads((RP / "animations" / "fb_animatronic.animation.json").read_text())["animations"]
-    fb_anims = json.loads((RP / "animations" / "fb_fredbear.animation.json").read_text())["animations"]
     rest = {"rot": {}, "pos": {}, "scale": {}}
     hide_prop = pose_from(anims["animation.fb.hide_prop"], 0)
     tile_w, tile_h = 220, 300
+    clips = {who: load_clips(who) for who in ("fredbear", "freddy", "bonnie", "morgrave", "valek")}
+
+    def clip(who, name, t):
+        return pose_from(clips[who][f"animation.fb.{who}.{name}"], t)
+
+    def with_hide(p):  # Chica's cupcake is hidden outside the show
+        return {"rot": p["rot"], "pos": p["pos"], "scale": {**p["scale"], **hide_prop["scale"]}}
+
+    # rows: (label, [(tile name, geometry, texture, yaw, pose)])
     rows = []
-    for n in ["freddy", "bonnie", "chica"]:
-        entity = json.loads((RP / "entity" / f"fb_{n}.entity.json").read_text())["minecraft:client_entity"]["description"]
-        hides = any(isinstance(a, dict) and "hide_prop" in a for a in entity["scripts"]["animate"])
-
-        def with_hide(p, hides=hides):
-            if not hides:
-                return p
-            return {"rot": p["rot"], "pos": p["pos"], "scale": {**p["scale"], **hide_prop["scale"]}}
-
-        rows.append((n, n, n, [
-            ("front", 0, with_hide(rest)),
-            ("three-quarter", 35, with_hide(rest)),
-            ("perform", 25, pose_from(anims[entity["animations"]["perform"]], 0.25)),
-            ("threat (jaw open)", 20, with_hide(pose_from(anims["animation.fb.threat"], 0.5))),
-            ("attack", 25, with_hide(pose_from(anims["animation.fb.attack"], 0.8))),
+    for who, show, extra in (("freddy", "perform_showman", "stalk"), ("bonnie", "perform_solo", "crawl")):
+        rows.append((who, [
+            ("front (idle)", who, who, 0, clip(who, "idle", 0)),
+            ("three-quarter", who, who, 35, clip(who, "idle", 1.0)),
+            (f"show: {show.split('_')[1]}", who, who, 25, clip(who, show, 1.2)),
+            (f"{extra} (added)", who, who, 50, clip(who, extra, 0.4)),
+            ("threat (added)", who, who, 20, clip(who, "threat", 0.5)),
         ]))
-    fb = lambda clip, t: pose_from(fb_anims[f"animation.fb.fredbear.{clip}"], t)
-    rows.append(("fredbear", "fredbear", "fredbear", [
-        ("front (idle)", 0, fb("idle", 0)), ("three-quarter", 35, fb("idle", 1.2)), ("show: sing", 25, fb("perform_sing", 1.6)),
-        ("threat (points at you)", 20, fb("perform_crowd_point", 2.0)), ("jumpscare: snap bite", 20, fb("jumpscare_snap_bite", 0.7)),
+    rows.append(("chica", [
+        ("front", "chica", "chica", 0, with_hide(rest)),
+        ("three-quarter", "chica", "chica", 35, with_hide(rest)),
+        ("perform", "chica", "chica", 25, pose_from(anims["animation.fb.perform.chica"], 0.25)),
+        ("threat (jaw open)", "chica", "chica", 20, with_hide(pose_from(anims["animation.fb.threat"], 0.5))),
+        ("attack", "chica", "chica", 25, with_hide(pose_from(anims["animation.fb.attack"], 0.8))),
     ]))
-    rows.append(("fredbear (more)", "fredbear", "fredbear", [
-        ("crawl (added)", 60, fb("crawl", 0.3)), ("bow (door held)", 70, fb("pose_bow", 2.0)), ("showman (Golden Hour)", 25, fb("pose_showman", 3.0)),
-        ("jumpscare: dual lunge", 20, fb("jumpscare_dual_lunge", 0.8)), ("jumpscare: left grab", 30, fb("jumpscare_left_grab", 0.8)),
+    rows.append(("withered (night 7+)", [
+        ("freddy", "freddy", "freddy_withered", 20, clip("freddy", "idle", 0)),
+        ("bonnie", "bonnie", "bonnie_withered", 20, clip("bonnie", "idle", 0)),
+        ("chica", "chica", "chica_withered", 20, with_hide(rest)),
+        ("bonnie: dormant", "bonnie", "bonnie_withered", 35, clip("bonnie", "pose_powered_down", 0.5)),
+        ("freddy: dormant", "freddy", "freddy_withered", 35, clip("freddy", "dormant", 0.5)),
     ]))
-    rows.append(("echo / shadow", "fredbear", "fredbear_echo", [
-        ("echo (false camera)", 20, fb("idle", 0)), ("echo three-quarter", 40, fb("idle", 0)),
+    for who, extra in (("morgrave", "crawl"), ("valek", "stalk")):
+        rows.append((who, [
+            ("front (idle)", who, who, 0, clip(who, "idle", 0)),
+            ("three-quarter", who, who, 35, clip(who, "idle", 1.0)),
+            (f"{extra} (added)", who, who, 60 if extra == "crawl" else 30, clip(who, extra, 0.4 if extra == "crawl" else 0.9)),
+            ("threat (added)", who, who, 20, clip(who, "threat", 0.5)),
+            ("jumpscare", who, who, 15, clip(who, "jumpscare", 1.1)),
+        ]))
+    rows.append(("fredbear", [
+        ("front (idle)", "fredbear", "fredbear", 0, clip("fredbear", "idle", 0)),
+        ("three-quarter", "fredbear", "fredbear", 35, clip("fredbear", "idle", 1.2)),
+        ("show: sing", "fredbear", "fredbear", 25, clip("fredbear", "perform_sing", 1.6)),
+        ("threat (points at you)", "fredbear", "fredbear", 20, clip("fredbear", "perform_crowd_point", 2.0)),
+        ("jumpscare: snap bite", "fredbear", "fredbear", 20, clip("fredbear", "jumpscare_snap_bite", 0.7)),
     ]))
-    shadow_row = ("shadow", "fredbear", "fredbear_shadow", [("shadow on the stage", 15, fb("idle", 0)), ("shadow three-quarter", 40, fb("idle", 0))])
+    rows.append(("fredbear (more)", [
+        ("crawl (added)", "fredbear", "fredbear", 60, clip("fredbear", "crawl", 0.3)),
+        ("bow (door held)", "fredbear", "fredbear", 70, clip("fredbear", "pose_bow", 2.0)),
+        ("showman (Golden Hour)", "fredbear", "fredbear", 25, clip("fredbear", "pose_showman", 3.0)),
+        ("echo (false camera)", "fredbear", "fredbear_echo", 20, clip("fredbear", "idle", 0)),
+        ("shadow on the stage", "fredbear", "fredbear_shadow", 15, clip("fredbear", "idle", 0)),
+    ]))
+    geos, texs, scales = {}, {}, {}
+    for _, tiles in rows:
+        for _, g, t, _, _ in tiles:
+            if g not in geos:
+                geos[g] = json.loads((RP / "models" / "entity" / f"fb_{g}.geo.json").read_text())
+                top = max(c["origin"][1] + c["size"][1] for b in geos[g]["minecraft:geometry"][0]["bones"] for c in b.get("cubes", []))
+                scales[g] = min(6.0, 250.0 / top)
+            if t not in texs:
+                texs[t] = Image.open(RP / "textures" / "entity" / "fb" / f"{t}.png").convert("RGBA")
     sheet = Image.new("RGBA", (tile_w * 5, tile_h * len(rows) + 20), (12, 12, 16, 255))
     d = ImageDraw.Draw(sheet)
-    for r, (label, geo_name, tex_name, views) in enumerate(rows):
-        geo = json.loads((RP / "models" / "entity" / f"fb_{geo_name}.geo.json").read_text())
-        tex = Image.open(RP / "textures" / "entity" / "fb" / f"{tex_name}.png").convert("RGBA")
-        scale = 4.4 if geo_name == "fredbear" else 6.0
-        tiles = list(views)
-        if label == "echo / shadow":
-            stex = Image.open(RP / "textures" / "entity" / "fb" / "fredbear_shadow.png").convert("RGBA")
-            tiles += [(v[0], v[1], v[2], stex) for v in shadow_row[3]]
-        for c, view in enumerate(tiles):
-            name, yaw, pose = view[:3]
-            t = view[3] if len(view) > 3 else tex
-            sheet.alpha_composite(render(geo, t, yaw, pose, scale=scale), (c * tile_w, r * tile_h))
-            d.text((c * tile_w + 6, r * tile_h + 4), f"{label.split(' ')[0] if label.startswith('echo') else label} - {name}", fill=(230, 230, 230, 255))
+    for r, (label, tiles) in enumerate(rows):
+        for c, (name, g, t, yaw, pose) in enumerate(tiles):
+            sheet.alpha_composite(render(geos[g], texs[t], yaw, pose, scale=scales[g]), (c * tile_w, r * tile_h))
+            d.text((c * tile_w + 6, r * tile_h + 4), f"{label} - {name}", fill=(230, 230, 230, 255))
     d.text((6, tile_h * len(rows) + 4), "Offline preview of geometry, UVs and animation poses (tools/render_preview.py). Not an in-game screenshot.", fill=(200, 200, 200, 255))
     OUT.parent.mkdir(parents=True, exist_ok=True)
     sheet.save(OUT)

@@ -7,6 +7,10 @@
 //
 // PHASES: RUNNING | MAINT | POWER_OUT | JUMPSCARE | WON | LOST
 //
+// SEALS: seal_vent / seal_shaft close the supply duct (gate vent_seal) or the
+// crawlspace into the office subfloor (gate shaft_seal) for CONFIG.seals.duration
+// ticks; walkers mid-duct turn back (Animatronic.stepMove), teleports still work.
+//
 // MODIFIERS (options.mods, challenge modes): noDoors (doors and hatch welded
 // open; a lit hall light counts as that side's barrier), strobeNoBarrier,
 // deviceDrainMult, reserveAmount, noCams, loudSteps, lightAutoOff, captions.
@@ -20,7 +24,8 @@
 //      clock, so it is never overturned by 6 AM either.
 //   4. power drain (may enter POWER_OUT)
 //   5. director memory + scheduled events (may enter MAINT)
-//   6. device timers, then AI in fixed order: Fredbear, Freddy, Bonnie, Chica.
+//   6. device timers, then AI in fixed order: Fredbear, Freddy, Bonnie, Chica,
+//      Morgrave, Valek.
 
 import { CONFIG, nightDef } from './config.js';
 import { Rng, mixSeed } from './rng.js';
@@ -30,16 +35,18 @@ import { Bonnie } from './ai/bonnie.js';
 import { Chica } from './ai/chica.js';
 import { Freddy } from './ai/freddy.js';
 import { Fredbear } from './ai/fredbear.js';
+import { Morgrave } from './ai/morgrave.js';
+import { Valek } from './ai/valek.js';
 import { CAMERA_ORDER, CAMERA_BY_ID } from '../data/cameras.js';
 import { ENTRY_BARRIER, NODE_BY_ID } from '../data/nodes.js';
 
-export const ORDER = Object.freeze(['fredbear', 'freddy', 'bonnie', 'chica']);
+export const ORDER = Object.freeze(['fredbear', 'freddy', 'bonnie', 'chica', 'morgrave', 'valek']);
 const ENTRY_LABEL = Object.freeze({ L: 'LEFT DOOR', R: 'RIGHT DOOR', H: 'HATCH' });
 
 export class NightSession {
   /**
    * @param {object} p
-   * @param {number} p.night 0..7 (0 = training / test slice)
+   * @param {number} p.night 0..9 (0 = training / test slice)
    * @param {number} [p.seed]
    * @param {object} [p.overrides] night definition overrides (debug/tests/challenges)
    * @param {object} [p.options] { noDeath, captions, taskBonusPower, bonusCharges, mods }
@@ -69,7 +76,7 @@ export class NightSession {
     };
     const fbPhase = this.def.fredbear?.phase ?? 0;
     this.strobe = { installed: fbPhase >= 1 || night === 0, charges: (this.def.strobeCharges ?? 0) + (this.options.bonusCharges ?? 0), cooldown: 0 };
-    this.hatchInstalled = fbPhase >= 1;
+    this.hatchInstalled = fbPhase >= 1 || !!this.def.hatch;
     this.breaker = { tripped: false, resetting: 0 };
     this.sabotageCount = 0;
     this.nextSabotageTick = 0;
@@ -80,7 +87,10 @@ export class NightSession {
     this.jammed = { L: false, R: false, H: false };
     this.jamTimer = { L: 0, R: 0, H: 0 };
     this.held = { L: false, R: false, H: false }; // a door / the hatch already held Fredbear off tonight
-    this.gates = { diner_seal: fbPhase >= 1, chamber_wall: fbPhase >= 1 };
+    const openBelow = fbPhase >= 1 || !!this.def.basementOpen;
+    // gates[g] === true means OPEN. vent_seal / shaft_seal close while the player seals them (docs/04 "Seals").
+    this.gates = { diner_seal: openBelow, chamber_wall: openBelow, vent_seal: true, shaft_seal: true };
+    this.seals = { vent: { left: 0, cooldown: 0 }, shaft: { left: 0, cooldown: 0 } };
     this.reserveUsed = false;
     this.powerOut = null;
     this.jumpscare = null;
@@ -95,6 +105,8 @@ export class NightSession {
       freddy: new Freddy(this),
       bonnie: new Bonnie(this),
       chica: new Chica(this),
+      morgrave: new Morgrave(this),
+      valek: new Valek(this),
     };
     this.queue = [];
     this.view = { inOffice: true };
@@ -249,6 +261,7 @@ export class NightSession {
   startPowerOut() {
     this.phase = 'POWER_OUT';
     this.forceDevicesOff('power');
+    for (const k of ['vent', 'shaft']) this.unseal(k);
     for (const e of ['L', 'R', 'H']) this.unjam(e);
     this.cancelFredbearEffects();
     this.emit({ fx: 'actuate', id: 'pwr.out' });
@@ -470,6 +483,22 @@ export class NightSession {
         this.spend(P.breakerResetCost);
         return this.feedback(action, true, 'resetting');
       }
+      case 'seal_vent':
+      case 'seal_shaft': {
+        const k = action === 'seal_vent' ? 'vent' : 'shaft';
+        if (k === 'shaft' && !this.hatchInstalled) return this.feedback(action, false, 'not installed');
+        if (!running) return this.feedback(action, false, this.phase === 'POWER_OUT' ? 'no power' : 'unavailable');
+        const sl = this.seals[k];
+        if (sl.left > 0) return this.feedback(action, false, 'already sealed');
+        if (sl.cooldown > 0) return this.feedback(action, false, 'cooldown');
+        sl.left = CONFIG.seals.duration;
+        this.gates[`${k}_seal`] = false;
+        this.emit({ fx: 'actuate', id: `seal.${k}_close` });
+        this.emit({ fx: 'device', device: `seal_${k}`, value: true });
+        this.director.noise('seal', 2);
+        this.spend(CONFIG.seals.cost);
+        return this.feedback(action, true, 'sealed');
+      }
       case 'reserve': {
         if (this.phase !== 'POWER_OUT' || this.powerOut?.stage !== 'reserve') return this.feedback(action, false, 'unavailable');
         this.engageReserve();
@@ -492,6 +521,11 @@ export class NightSession {
       this.caption('Hall lights restored', 'session');
     }
     if (this.strobe.cooldown > 0) this.strobe.cooldown--;
+    for (const k of ['vent', 'shaft']) {
+      const sl = this.seals[k];
+      if (sl.left > 0 && --sl.left === 0) this.unseal(k);
+      else if (sl.cooldown > 0) sl.cooldown--;
+    }
     if (this.disrupt.left > 0 && --this.disrupt.left === 0) this.emit({ fx: 'disrupt', on: false });
     if (this.echo?.kind === 'shadow') this.tickShadow();
     if (this.echo && --this.echo.left <= 0) {
@@ -503,6 +537,16 @@ export class NightSession {
     for (const e of ['L', 'R', 'H']) {
       if (this.jammed[e] && --this.jamTimer[e] <= 0) this.unjam(e);
     }
+  }
+
+  unseal(k) {
+    const sl = this.seals[k];
+    if (this.gates[`${k}_seal`]) return;
+    sl.left = 0;
+    sl.cooldown = CONFIG.seals.cooldown;
+    this.gates[`${k}_seal`] = true;
+    this.emit({ fx: 'actuate', id: `seal.${k}_open` });
+    this.emit({ fx: 'device', device: `seal_${k}`, value: false });
   }
 
   // ------------------------------------------------------------ Chica sabotage
@@ -677,8 +721,17 @@ export class NightSession {
     if (this.devices.cams.open) this.setCams(false, null, 'jumpscare');
     this.emit({ fx: 'stop_loop', loopKey: '*' });
     this.emit({ fx: 'actuate', id: `js.${who}` });
-    this.emit({ fx: 'jumpscare', who });
+    this.emit({ fx: 'jumpscare', who, style: this.jumpscareStyle(who) });
     this.logTransition('session', 'RUNNING', 'JUMPSCARE', `${who} attack`);
+  }
+
+  /** Where the attack comes from (docs/04 "Jumpscares by place"): front | below (hatch) | vent. */
+  jumpscareStyle(who) {
+    const a = this.anim[who];
+    if (this.phase === 'POWER_OUT' || this.powerOut) return 'front';
+    if (a.entry === 'H') return 'below';
+    if (a.viaVent && a.entry === 'L') return 'vent';
+    return 'front';
   }
 
   win() {
@@ -694,6 +747,7 @@ export class NightSession {
     this.phase = 'MAINT';
     this.maint = { task, startedAt: this.t };
     this.forceDevicesOff('maintenance');
+    for (const k of ['vent', 'shaft']) this.unseal(k);
     this.cancelFredbearEffects();
     this.director.attackToken = null;
     for (const id of ORDER) {
@@ -716,7 +770,7 @@ export class NightSession {
       const a = this.anim[id];
       const from = a.suspendedFrom ?? 'PATROL';
       a.entry = null;
-      if (['DORMANT', 'STIR', 'SPENT', 'WITHDRAWN'].includes(from)) {
+      if (['DORMANT', 'STIR', 'SPENT', 'WITHDRAWN', 'WALLS', 'VANISH'].includes(from)) {
         a.setState(from, 'maintenance over');
         continue;
       }
@@ -782,6 +836,7 @@ export class NightSession {
         hatch: this.devices.hatch, camsOpen: this.devices.cams.open, cam: this.devices.cams.cam,
       },
       strobe: { ...this.strobe },
+      seals: { vent: { ...this.seals.vent }, shaft: { ...this.seals.shaft } },
       hatchInstalled: this.hatchInstalled,
       breaker: { ...this.breaker },
       blackout: this.blackout.stage,

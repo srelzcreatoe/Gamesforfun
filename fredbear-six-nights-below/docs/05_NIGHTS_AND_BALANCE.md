@@ -6,18 +6,21 @@
 
 Aggression (A) is 0-20. Activation = tick at which the character leaves home. Nights ≥ 2 add the hourly ramp [0, 0, 1, 2, 3, 3] (12 AM..5 AM) to every character except Fredbear (cap 20).
 
-| Night | Title | Freddy | Bonnie | Chica | Fredbear | Activation F/B/C/G (ticks) | Strobe | Reserve | Max sabotage | Fredbear phase | Events |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0 | Training Shift | 0 | 10 | 0 | 0 | 99999/200/99999/99999 | 2 | no | 0 | dormant | - |
-| 1 | Night 1 — First Shift | 1 | 3 | 2 | 0 | 4800/400/1600/99999 | 0 | no | 0 | dormant | foreshadow:cove_glint@4800 |
-| 2 | Night 2 — Kitchen Duty | 4 | 5 | 4 | 0 | 3200/0/400/99999 | 0 | no | 1 | dormant | foreshadow:diner_glimpse@6400 |
-| 3 | Night 3 — Generator Trouble | 7 | 8 | 7 | 0 | 1600/0/0/99999 | 0 | yes | 2 | dormant | maintenance:generator@3200, foreshadow:its_me@7200 |
-| 4 | Night 4 — Something Below | 10 | 11 | 10 | 5 | 0/0/0/1600 | 4 | yes | 2 | 1 (entries H, max 2 attempts, powers disrupt) | - |
-| 5 | Night 5 — Golden Echoes | 14 | 15 | 14 | 12 | 0/0/0/1200 | 5 | yes | 3 | 2 (entries H/L/R, max 3 attempts, powers disrupt, false_cam, blackout, relocate) | maintenance:electrical@4800 |
-| 6 | Night 6 — Six Nights Below | 18 | 19 | 18 | 20 | 0/0/0/200 | 6 | yes | 3 | 3 (entries H/L/R, max 4 attempts, powers disrupt, false_cam, blackout, relocate) | finale@8000 |
-| 7 | Night 7 — Fredbear's Revenge | 0 | 0 | 0 | 20 | 99999/99999/99999/200 | 6 | yes | 0 | 3 (entries H/L/R, max 7 attempts, powers disrupt, false_cam, blackout, relocate) | - |
+| Night | Title | Freddy | Bonnie | Chica | Fredbear | Morgrave | Valek | Activation F/B/C/G/M/V (ticks) | Strobe | Reserve | Max sabotage | Fredbear phase | Events |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | Training Shift | 0 | 10 | 0 | 0 | 0 | 0 | off/200/off/off/off/off | 2 | no | 0 | dormant | - |
+| 1 | Night 1 — First Shift | 1 | 3 | 2 | 0 | 0 | 0 | 4800/400/1600/off/off/off | 0 | no | 0 | dormant | foreshadow:cove_glint@4800 |
+| 2 | Night 2 — Kitchen Duty | 4 | 5 | 4 | 0 | 0 | 0 | 3200/0/400/off/off/off | 0 | no | 1 | dormant | foreshadow:diner_glimpse@6400 |
+| 3 | Night 3 — Generator Trouble | 7 | 8 | 7 | 0 | 0 | 0 | 1600/0/0/off/off/off | 0 | yes | 2 | dormant | maintenance:generator@3200, foreshadow:its_me@7200 |
+| 4 | Night 4 — Something Below | 10 | 11 | 10 | 5 | 0 | 0 | 0/0/0/1600/off/off | 4 | yes | 2 | 1 (entries H, max 2 attempts, powers disrupt) | - |
+| 5 | Night 5 — Golden Echoes | 14 | 15 | 14 | 12 | 0 | 0 | 0/0/0/1200/off/off | 5 | yes | 3 | 2 (entries H/L/R, max 3 attempts, powers disrupt, false_cam, blackout, relocate) | maintenance:electrical@4800 |
+| 6 | Night 6 — Six Nights Below | 18 | 19 | 18 | 20 | 0 | 0 | 0/0/0/200/off/off | 6 | yes | 3 | 3 (entries H/L/R, max 4 attempts, powers disrupt, false_cam, blackout, relocate) | finale@8000 |
+| 7 | Night 7 — Fredbear's Revenge | 0 | 0 | 0 | 20 | 0 | 0 | off/off/off/200/off/off | 6 | yes | 0 | 3 (entries H/L/R, max 7 attempts, powers disrupt, false_cam, blackout, relocate, everywhere) | - |
+| 8 (seal) | Night 8 — Walled In | 7 | 8 | 7 | 0 | 13 | 0 | 800/0/0/off/600/off | 0 | yes | 2 | dormant | - |
+| 8 (burn) | Night 8 — Out of the Smoke | 7 | 8 | 7 | 0 | 0 | 15 | 800/0/0/off/off/600 | 0 | yes | 2 | dormant | - |
+| 9 | Night 9 — Three Below | 0 | 0 | 0 | 16 | 13 | 13 | off/off/off/400/200/800 | 6 | yes | 0 | 3 (entries H/L/R, max 5 attempts, powers disrupt, false_cam, blackout, relocate, everywhere) | - |
 
-Night 0 is the training shift / vertical slice (400 ticks per hour; the tutorial further slows it to 12000 so the clock never ends a lesson). Night 7 unlocks after night 6: only Fredbear hunts (the others stay powered down on the stage).
+Night 0 is the training shift / vertical slice (400 ticks per hour; the tutorial further slows it to 12000 so the clock never ends a lesson). Night 7 unlocks after night 6: only Fredbear hunts, everywhere at once (the trio are switched off in Parts & Service). Night 8 unlocks after night 7 and depends on the last night 7 ending (seal: Morgrave; burn: Valek). Night 9 unlocks after night 8: Fredbear, Morgrave and Valek together, the trio switched off again.
 
 ## Challenge modes
 
@@ -32,7 +35,7 @@ Unlocked after night 6. Each is a full night on a base night with overrides and 
 
 ## Fredbear: doors that hold
 
-When a forcing window (W2) ends and that door or the hatch has not held yet tonight (and it is not the Golden Hour), it holds: Fredbear bows for 40 ticks and vanishes to the diner, which counts as one of his attempts. Otherwise the barrier is jammed open and W3 follows. Strobe charges are his attempts + 2 on nights 4-6 (night 4: 4 for 2, night 5: 5 for 3, night 6: 6 for 4 + 2 for 2 at 5 AM); night 7: 6 charges for 7 attempts, with three entries that can each hold once.
+When a forcing window (W2) ends and that door or the hatch has not held yet tonight (and it is not the Golden Hour), it holds: Fredbear bows for 40 ticks and vanishes to the diner, which counts as one of his attempts. Otherwise the barrier is jammed open and W3 follows. Strobe charges are his attempts + 2 on nights 4-6 (night 4: 4 for 2, night 5: 5 for 3, night 6: 6 for 4 + 2 for 2 at 5 AM); night 7: 6 charges for 7 attempts and night 9: 6 for 5, with three entries that can each hold once.
 
 ## Formulas (ticks)
 
@@ -41,14 +44,20 @@ When a forcing window (W2) ends and that door or the hatch has not held yet toni
 | Bonnie telegraph (door corner) before attacking | `Math.max(70, 150 - 4 * a)` | 130 | 110 | 90 | 70 |
 | Bonnie recovery after being repelled | `Math.max(240, 480 - 12 * a)` | 420 | 360 | 300 | 240 |
 | Chica telegraph | `Math.max(80, 160 - 4 * a)` | 140 | 120 | 100 | 80 |
-| Chica recovery | `Math.max(260, 520 - 12 * a)` | 460 | 400 | 340 | 280 |
+| Chica recovery | `Math.max(200, 420 - 12 * a)` | 360 | 300 | 240 | 200 |
 | Freddy patience (right door open, monitor down) | `Math.max(120, 320 - 10 * a)` | 270 | 220 | 170 | 120 |
 | Freddy recovery | `Math.max(260, 540 - 12 * a)` | 480 | 420 | 360 | 300 |
 | Fredbear W1: music box — close that barrier | `Math.max(100, 180 - 4 * a)` | 160 | 140 | 120 | 100 |
 | Fredbear W2: forcing — strobe now | `Math.max(60, 100 - 2 * a)` | 90 | 80 | 70 | 60 |
+| Morgrave telegraph (left door / hatch) | `Math.max(50, 110 - 3 * a)` | 95 | 80 | 65 | 50 |
+| Morgrave recovery (back in the walls) | `Math.max(240, 560 - 12 * a)` | 500 | 440 | 380 | 320 |
+| Valek corner window (minus 20 per anger, floor 60) | `Math.max(80, 170 - 4 * a)` | 150 | 130 | 110 | 90 |
+| Valek recovery | `Math.max(300, 600 - 12 * a)` | 540 | 480 | 420 | 360 |
 
-Movement opportunities: Bonnie every 90 ticks, Chica 100, Freddy 60, Fredbear 60. At each opportunity a d20 roll ≤ A moves the character (bounded randomness; seeded mulberry32 so a seed replays exactly).
-Fredbear W3 (barrier jammed open, strobe still works) = 60 ticks; a strobe without a closed/jammed barrier only stuns him for 40 ticks. Freddy slips in after 40 ticks of camera use with the right door open; Bonnie flanks from A ≥ 5 and uses the vent from A ≥ 6; Chica sabotage chance per opportunity = A/40 (cooldown 1200).
+Movement opportunities: Bonnie every 90 ticks, Chica 70, Freddy 60, Fredbear 60, Morgrave 80, Valek 90. At each opportunity a d20 roll ≤ A moves the character (bounded randomness; seeded mulberry32 so a seed replays exactly).
+Fredbear W3 (barrier jammed open, strobe still works) = 60 ticks; a strobe without a closed/jammed barrier only stuns him for 40 ticks. Freddy slips in after 40 ticks of camera use with the right door open; Bonnie flanks from A ≥ 5 and uses the vent from A ≥ 6; Chica sabotage chance per opportunity = `a / 30` (cooldown 1200).
+
+1.3 behaviours: double trouble (from A ≥ 8, Bonnie or Chica joins whoever holds the right door; a pair needs twice the repel time), Bonnie's teamwork (A ≥ 8, chance 0.4, cooldown 2400: bangs on the left door while Chica sneaks to the right), Chica flanks left from A ≥ 8. Morgrave gives up after 160 ticks against a seal; his scratch at the entry is heard 75 % of the time. Valek mimics another animatronic on 50 % of his steps and hums at the corner 60 % of the time; lighting him sends him away for 200 ticks but raises his anger (max 2).
 
 Director limits: at most 2 entries engaged at once, one attack token, nobody engages beside Fredbear, 60-tick grace after a blackout and 200 after maintenance. Adaptation memory is capped: door-use counters 0-10 per entry, noise heat 0-10 (decays every 80 ticks), camera focus decays ×0.999 per tick.
 
@@ -58,14 +67,15 @@ Fixed-point integers: **1000 units = 1 %**, start 100000 units (100 %). Every ti
 
 | Consumer | Units / tick | % per second | % per in-game hour |
 |---|---|---|---|
-| Base drain, nights 0-1 | 3 | 0.06 | 4.8 |
-| Base drain, nights 2-6 | 4 | 0.08 | 6.4 |
+| Base drain, nights 0, 1, 8, 9 | 3 | 0.06 | 4.8 |
+| Base drain, nights 2, 3, 4, 7 | 4 | 0.08 | 6.4 |
+| Base drain, nights 5, 6 | 5 | 0.10 | 8.0 |
 | Each closed door | 9 | 0.18 | 14.4 |
 | Each lit hall light | 6 | 0.12 | 9.6 |
 | Camera monitor up | 3 | 0.06 | 4.8 |
 | Office hatch sealed | 7 | 0.14 | 11.2 |
 
-One-shot costs: emergency strobe 2.0 %, breaker reset 1.0 %. Emergency reserve (nights 3+): one 8.0 % top-up if the lever is pulled within 100 ticks of reaching 0 %. Pre-shift power task: start at 105.0 %.
+One-shot costs: emergency strobe 2.0 %, breaker reset 1.0 %, vent / shaft seal 3.0 % (sealed 400 ticks, then 300 ticks to recharge). Emergency reserve (nights 3+): one 8.0 % top-up if the lever is pulled within 100 ticks of reaching 0 %. Pre-shift power task: start at 105.0 %.
 
 ### Worked examples (full 9600-tick night)
 
@@ -75,8 +85,11 @@ One-shot costs: emergency strobe 2.0 %, breaker reset 1.0 %. Emergency reserve (
 | 2 | 38.4 % used → 61.6 % left | 73.5 % used → 26.5 % left | 37 units/tick: 0 % after 2703 ticks (1.69 h, 135 s) |
 | 3 | 38.4 % used → 61.6 % left | 73.5 % used → 26.5 % left | 37 units/tick: 0 % after 2703 ticks (1.69 h, 135 s) |
 | 4 | 38.4 % used → 61.6 % left | 80.9 % used → 19.1 % left | 44 units/tick: 0 % after 2273 ticks (1.42 h, 114 s) |
-| 5 | 38.4 % used → 61.6 % left | 80.9 % used → 19.1 % left | 44 units/tick: 0 % after 2273 ticks (1.42 h, 114 s) |
-| 6 | 38.4 % used → 61.6 % left | 80.9 % used → 19.1 % left | 44 units/tick: 0 % after 2273 ticks (1.42 h, 114 s) |
+| 5 | 48.0 % used → 52.0 % left | 90.5 % used → 9.5 % left | 45 units/tick: 0 % after 2223 ticks (1.39 h, 111 s) |
+| 6 | 48.0 % used → 52.0 % left | 90.5 % used → 9.5 % left | 45 units/tick: 0 % after 2223 ticks (1.39 h, 111 s) |
+| 7 | 38.4 % used → 61.6 % left | 80.9 % used → 19.1 % left | 44 units/tick: 0 % after 2273 ticks (1.42 h, 114 s) |
+| 8 | 28.8 % used → 71.2 % left | 71.3 % used → 28.7 % left | 43 units/tick: 0 % after 2326 ticks (1.45 h, 116 s) |
+| 9 | 28.8 % used → 71.2 % left | 71.3 % used → 28.7 % left | 43 units/tick: 0 % after 2326 ticks (1.45 h, 116 s) |
 
 \* Reasonable: monitor up 30 % of the night, each hall light on 8 %, each door closed 10 %, hatch sealed 5 % (nights 4+), two strobe shots (nights 4+).
 
@@ -84,57 +97,66 @@ One-shot costs: emergency strobe 2.0 %, breaker reset 1.0 %. Emergency reserve (
 
 Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). The oracle reads the true AI state and proves a valid defence exists every night; the human models react only to what a player can perceive (lights they switch on, the feed they watch, audio captions) with 8-20 tick reaction delays and imperfect routines. These are models, not playtests.
 
-| Player model | N1 | N2 | N3 | N4 | N5 | N6 | N7 |
-|---|---|---|---|---|---|---|---|
-| Oracle (perfect information) (20 seeds) | 100% | 100% | 100% | 100% | 100% | 100% | 100% |
-| Human model (skill 1.0) (30 seeds) | 100% | 100% | 100% | 87% | 57% | 37% | 53% |
-| Human model (skill 0.7) (30 seeds) | 100% | 100% | 100% | 83% | 73% | 33% | 50% |
-| Idle (does nothing) (10 seeds) | 80% | 20% | 0% | 0% | 0% | 0% | 0% |
-| Wasteful (everything on) (10 seeds) | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
+| Player model | N1 | N2 | N3 | N4 | N5 | N6 | N7 | N8 seal | N8 burn | N9 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Oracle (perfect information) (20 seeds) | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% |
+| Human model (skill 1.0) (30 seeds) | 100% | 100% | 97% | 93% | 70% | 33% | 53% | 50% | 37% | 7% |
+| Human model (skill 0.7) (30 seeds) | 100% | 100% | 100% | 97% | 90% | 33% | 47% | 50% | 33% | 17% |
+| Idle (does nothing) (10 seeds) | 80% | 10% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
+| Wasteful (everything on) (10 seeds) | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
 
 ### Oracle (perfect information)
 
 | Night | Win rate | Mean power left (wins) | Lowest power seen | Power-outs | Losses by | Mean loss hour |
 |---|---|---|---|---|---|---|
-| 1 | 100% | 70.8% | 69.1% | 0 | - | - |
-| 2 | 100% | 57.1% | 50.6% | 0 | - | - |
-| 3 | 100% | 53.8% | 49.3% | 0 | - | - |
-| 4 | 100% | 43.1% | 34.3% | 0 | - | - |
-| 5 | 100% | 38.9% | 29.7% | 0 | - | - |
-| 6 | 100% | 30.6% | 12% | 0 | - | - |
-| 7 | 100% | 39.6% | 34.8% | 0 | - | - |
+| 1 | 100% | 71% | 69.9% | 0 | - | - |
+| 2 | 100% | 57% | 53.8% | 0 | - | - |
+| 3 | 100% | 53.3% | 48.1% | 0 | - | - |
+| 4 | 100% | 45.8% | 38.9% | 0 | - | - |
+| 5 | 100% | 28.1% | 21.6% | 0 | - | - |
+| 6 | 100% | 20.5% | 15.9% | 0 | - | - |
+| 7 | 100% | 38.1% | 34.9% | 0 | - | - |
+| 8 seal | 100% | 46.6% | 42.8% | 0 | - | - |
+| 8 burn | 100% | 60.1% | 54.2% | 0 | - | - |
+| 9 | 100% | 36.3% | 30.5% | 0 | - | - |
 
 ### Human model (skill 1.0)
 
 | Night | Win rate | Mean power left (wins) | Lowest power seen | Power-outs | Losses by | Mean loss hour |
 |---|---|---|---|---|---|---|
-| 1 | 100% | 52.1% | 43.1% | 0 | - | - |
-| 2 | 100% | 30% | 11.5% | 0 | - | - |
-| 3 | 100% | 19.9% | 5.5% | 0 | - | - |
-| 4 | 87% | 8.7% | 0% | 13 | fredbear 4 | 5 AM |
-| 5 | 57% | 5.1% | 0% | 22 | fredbear 11, freddy 2 | 5 AM |
-| 6 | 37% | 3.4% | 0% | 27 | fredbear 17, freddy 2 | 4.7 AM |
-| 7 | 53% | 24.1% | 20% | 0 | fredbear 14 | 3.9 AM |
+| 1 | 100% | 51.5% | 44.8% | 0 | - | - |
+| 2 | 100% | 30.2% | 18% | 0 | - | - |
+| 3 | 97% | 21.4% | 11.9% | 0 | freddy 1 | 2 AM |
+| 4 | 93% | 10.6% | 0% | 2 | freddy 2 | 2 AM |
+| 5 | 70% | 2.2% | 0% | 25 | chica 2, fredbear 7 | 4.9 AM |
+| 6 | 33% | 1.1% | 0% | 23 | fredbear 14, bonnie 2, chica 3, freddy 1 | 4.3 AM |
+| 7 | 53% | 23.7% | 19.4% | 0 | fredbear 14 | 3.7 AM |
+| 8 seal | 50% | 2.5% | 0% | 17 | morgrave 9, freddy 5, bonnie 1 | 3.3 AM |
+| 8 burn | 37% | 17.5% | 8.8% | 0 | valek 19 | 2.9 AM |
+| 9 | 7% | 0.4% | 0% | 5 | morgrave 11, valek 14, fredbear 3 | 2.6 AM |
 
 ### Human model (skill 0.7)
 
 | Night | Win rate | Mean power left (wins) | Lowest power seen | Power-outs | Losses by | Mean loss hour |
 |---|---|---|---|---|---|---|
-| 1 | 100% | 52.2% | 42.3% | 0 | - | - |
-| 2 | 100% | 29.9% | 11.4% | 0 | - | - |
-| 3 | 100% | 22% | 6.9% | 0 | - | - |
-| 4 | 83% | 6.7% | 0% | 12 | fredbear 4, freddy 1 | 5 AM |
-| 5 | 73% | 4.8% | 0% | 23 | fredbear 8 | 5 AM |
-| 6 | 33% | 5.2% | 0% | 29 | fredbear 20 | 5 AM |
-| 7 | 50% | 24% | 20% | 0 | fredbear 15 | 3.9 AM |
+| 1 | 100% | 51.5% | 41.9% | 0 | - | - |
+| 2 | 100% | 31% | 17% | 0 | - | - |
+| 3 | 100% | 21.1% | 1.7% | 0 | - | - |
+| 4 | 97% | 12.1% | 0% | 2 | freddy 1 | 2 AM |
+| 5 | 90% | 2.6% | 0% | 26 | fredbear 3 | 5 AM |
+| 6 | 33% | 0.9% | 0% | 28 | fredbear 19, chica 1 | 4.9 AM |
+| 7 | 47% | 21.7% | 16.9% | 0 | fredbear 16 | 3.8 AM |
+| 8 seal | 50% | 3% | 0% | 16 | morgrave 13, freddy 2 | 3.1 AM |
+| 8 burn | 33% | 17.6% | 8.4% | 0 | valek 20 | 2.9 AM |
+| 9 | 17% | 1.4% | 0% | 13 | morgrave 4, fredbear 8, valek 13 | 3.2 AM |
 
 ### Challenge modes
 
 | Player model | No Doors | Fredbear Only | Double Power Drain | Broken Cameras |
 |---|---|---|---|---|
 | Oracle (perfect information) (20 seeds) | 100% | 100% | 100% | 100% |
-| Human model (skill 1.0) (30 seeds) | 83% | 100% | 90% | 100% |
-| Human model (skill 0.7) (30 seeds) | 77% | 100% | 90% | 100% |
+| Human model (skill 1.0) (30 seeds) | 97% | 100% | 100% | 100% |
+| Human model (skill 0.7) (30 seeds) | 93% | 100% | 97% | 100% |
 
 The challenges were tuned until the human model wins most runs ("manageable" was the owner's brief): Double Power Drain was first built as "everything x2" and won 0-3 % of human-model runs; it now doubles the devices only, gives a 25 % reserve and runs at calmer aggression.
 
@@ -143,5 +165,6 @@ The challenges were tuned until the human model wins most runs ("manageable" was
 * The oracle wins every seed of every night with power to spare (lowest point on night 6 shown above): no night is unwinnable.
 * Idle play usually survives night 1 (the introduction), rarely night 2 and never from night 3; "everything on" always runs out of power — power management matters.
 * The human models lose mostly to **power exhaustion followed by the power-out sequence** (Fredbear's from night 4) on nights 4-6, not to unfair attacks: every attack is preceded by its telegraph window. This is the intended pressure and also the first tuning knob if playtesting shows nights 5-6 are too hard: lower `power.door` / `power.hatch` or the night 5-6 base drain in `scripts/core/config.js`.
-* Night 7 (Fredbear alone, every power) is lost mid-night rather than to power: it is meant as the hardest night. Its first knob is `nights[7].fredbear.cooldown` / `maxAttempts`.
+* 1.3 fixed the "stuck at the door" bug. Stuck animatronics had kept doors shut and drained power, so with the fix nights 5-6 became much easier for the human models (93 % / 77 %, against 57 % / 37 % in 1.2). Their base drain went from 4 to 5 units per tick to bring the curve back.
+* Night 7 (Fredbear alone, everywhere) and nights 8-9 are lost mid-night rather than to power. Night 8 is about as hard as night 7 either way. The burn version (Valek) is harder for the models because his mimicry fools a player who trusts the captions. Night 9 is the hardest night by design ("creepy, eerie and hard" was the brief). A perfect-information player still wins every seed. First knobs: `nights[7|9].fredbear.cooldown` / `maxAttempts`, `characters.morgrave.arrivalCueChance` and `characters.valek.mimicChance`.
 

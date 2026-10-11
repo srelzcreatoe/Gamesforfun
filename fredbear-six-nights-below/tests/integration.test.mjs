@@ -25,8 +25,8 @@ const { allCommandBlocks } = await import('../tools/gen_structures.mjs');
 const { buildVoxel, BOUNDS } = await import('../tools/voxel.mjs');
 const { Rng } = await import('../packs/FredbearBP/scripts/core/rng.js');
 
-const HOME = { freddy: 'STAGE_F', bonnie: 'STAGE_B', chica: 'STAGE_C', fredbear: 'CHAMBER_F' };
-const TYPES = { freddy: 'fb:freddy', bonnie: 'fb:bonnie', chica: 'fb:chica', fredbear: 'fb:fredbear' };
+const HOME = { freddy: 'STAGE_F', bonnie: 'STAGE_B', chica: 'STAGE_C', fredbear: 'CHAMBER_F', morgrave: 'M_HOME', valek: 'V_HOME' };
+const TYPES = { freddy: 'fb:freddy', bonnie: 'fb:bonnie', chica: 'fb:chica', fredbear: 'fb:fredbear', morgrave: 'fb:morgrave', valek: 'fb:valek' };
 
 let game;
 let player;
@@ -156,7 +156,7 @@ test('/fb:setup builds the whole map, installs every command block and reaches t
   commands.get('fb:setup')({ sourceEntity: player }, false);
   await until(() => game.state === 'LOBBY', 5000, 10);
   assert.equal(mock.commandBlockCount(), allCommandBlocks().length);
-  assert.equal(mock.commandBlockCount(), 478);
+  assert.equal(mock.commandBlockCount(), 523);
   assert.ok(STATE.maxFill <= 32768, `largest single fill ${STATE.maxFill}`);
   assert.equal(uiMock.shown.filter((f) => f.title === 'Build report').length, 0, 'no build warnings');
   await assertCleanLobby();
@@ -566,9 +566,9 @@ test('helper .mcfunction files drive the game through /scriptevent', async () =>
   assert.match(report, /PASS/);
   assert.doesNotMatch(report, /FAIL/);
   // control_room.mcfunction lands the player in open air on a solid floor.
-  assert.equal(mock.blockAt(30, -59, 180), 'minecraft:air');
-  assert.equal(mock.blockAt(30, -58, 180), 'minecraft:air');
-  assert.notEqual(mock.blockAt(30, -60, 180), 'minecraft:air');
+  assert.equal(mock.blockAt(30, -59, 179), 'minecraft:air');
+  assert.equal(mock.blockAt(30, -58, 179), 'minecraft:air');
+  assert.notEqual(mock.blockAt(30, -60, 179), 'minecraft:air');
   run('setup');
   assert.equal(game.state, 'BUILDING', 'setup.mcfunction starts the builder');
   await until(() => game.state === 'LOBBY', 5000, 10);
@@ -767,7 +767,7 @@ test('newspaper clippings: one per night survived, readable from the lobby board
   uiMock.respond = () => undefined;
   const board = uiMock.shown.find((f) => f.title === '§lLOCAL NEWS');
   assert.equal(board.buttons.length, CLIPPINGS.length + 1);
-  assert.match(board.body, /2\/7/);
+  assert.match(board.body, new RegExp(`2/${CLIPPINGS.length}`));
   assert.equal(board.buttons.filter((b) => b.includes('???')).length, CLIPPINGS.length - 2);
   assert.ok(uiMock.shown.some((f) => f.title === `§l${CLIPPINGS[1].headline}` && f.body.includes(CLIPPINGS[1].text)), 'clipping 2 opened');
   noMockErrors();
@@ -851,6 +851,88 @@ test('night 7: Fredbear alone, then the final choice: burn (and seal) play their
   assert.deepEqual([...game.save.endings].sort(), ['burn', 'seal']);
   assert.equal(typeAt(64, -8, 85), 'minecraft:brick_block', 'the diner is bricked up again');
   await assertCleanLobby();
+});
+
+test('nights 8 and 9: night 8 follows the last ending, the camera map HUD, the tapes, the night 9 ending', async () => {
+  // The seal ending was the last one played (previous test): night 8 is Morgrave's.
+  assert.equal(game.save.lastEnding, 'seal');
+  assert.ok(game.save.unlocked >= 8, 'night 7 survived opens night 8');
+  press('in.lobby.night_8');
+  await mock.tick(2);
+  assert.equal(game.state, 'INTRO');
+  assert.match(game.nightTitle(8), /Walled In/);
+  await goToOfficeAndStart();
+  assert.equal(game.session.night, 8);
+  assert.ok(game.session.def.ai.morgrave > 0 && !game.session.def.ai.valek, 'Morgrave, not Valek');
+  // Camera map: a formatting-code-only title while the monitor is up, the "off" marker when it goes down.
+  player.titles.length = 0;
+  press('in.office.cams');
+  await mock.tick(4);
+  assert.ok(game.session.devices.cams.open);
+  const cam = game.session.devices.cams.cam;
+  const code = `§k§r§k§r§l${cam.slice(1).split('').map((d) => `§${d}`).join('')}`;
+  assert.ok(player.titles.some((t) => t.t === code), `map title for ${cam}`);
+  const hud = JSON.parse((await import('node:fs')).readFileSync(new URL('../packs/FredbearRP/ui/hud_screen.json', import.meta.url), 'utf8'));
+  assert.ok(JSON.stringify(hud).includes(`'${code}'`), 'the HUD file highlights that exact title');
+  player.titles.length = 0;
+  mock.sneak(player);
+  await mock.tick(4);
+  assert.ok(!game.session.devices.cams.open);
+  assert.ok(player.titles.some((t) => t.t === '§k§r§k§r§o'), 'map off');
+  // Survive night 8 -> night 9 opens.
+  handleDebug(game, 'win', undefined, undefined, player);
+  await until(() => game.state !== 'NIGHT', 400);
+  await until(() => game.state === 'LOBBY' || game.state === 'RESULT', 400);
+  if (game.state === 'RESULT') handleDebug(game, 'lobby', undefined, undefined, player);
+  await assertCleanLobby();
+  assert.ok(game.save.completed.includes(8));
+  assert.equal(game.save.unlocked, 9);
+  // Night 9: the trio switched off in Parts & Service; then the ending.
+  press('in.lobby.night_9');
+  await mock.tick(2);
+  await goToOfficeAndStart();
+  assert.equal(game.session.night, 9);
+  await mock.tick(20);
+  for (const who of ['freddy', 'bonnie', 'chica']) assert.equal(puppetsOf(TYPES[who])[0].getProperty('fb:anim'), 'dormant', `${who} powered down`);
+  handleDebug(game, 'win', undefined, undefined, player);
+  await until(() => game.state === 'ENDING', 400);
+  await until(() => game.state === 'LOBBY', 3000);
+  assert.ok(game.save.completed.includes(9));
+  await assertCleanLobby();
+  // The 1987 tapes play on the office monitor outside a shift, once night 5 has been survived.
+  player.teleport(Wv(ANCHORS.officeSeat));
+  game.save.completed = game.save.completed.filter((n) => n !== 5);
+  press('in.office.tapes');
+  await mock.tick(3);
+  assert.ok(!game.tape);
+  assert.match(player.actionBar, /jammed/, 'locked before night 5');
+  game.save.completed.push(5);
+  await mock.tick(20);
+  press('in.office.tapes');
+  await mock.tick(3);
+  assert.ok(game.tape, 'the tape deck plays');
+  mock.sneak(player);
+  await until(() => !game.tape, 400);
+  assert.equal(game.save.tapesSeen, true);
+  handleDebug(game, 'lobby', undefined, undefined, player);
+  await assertCleanLobby();
+  noMockErrors();
+});
+
+test('saves from 1.1 / 1.2 unlock nights 7-9 only by survived nights', async () => {
+  const { loadSave } = await import('../packs/FredbearBP/scripts/mc/persistence.js');
+  const keep = world.getDynamicProperty('fb:save');
+  const load = (s) => {
+    world.setDynamicProperty('fb:save', JSON.stringify(s));
+    return loadSave();
+  };
+  assert.equal(load({ unlocked: 6, campaignDone: true, completed: [1, 2, 3, 4, 5, 6] }).unlocked, 7, '1.1 save: night 7 opens');
+  assert.equal(load({ unlocked: 7, campaignDone: true, completed: [1, 2, 3, 4, 5, 6, 7], endings: ['burn'] }).unlocked, 8, '1.2 save with night 7 beaten: night 8');
+  assert.equal(load({ unlocked: 7, campaignDone: true, completed: [1, 2, 3, 4, 5, 6, 7], endings: ['burn'] }).lastEnding, 'burn', 'night 8 version from the last ending');
+  assert.equal(load({ unlocked: 9, campaignDone: true, completed: [1, 2, 3, 4, 5, 6] }).unlocked, 7, 'never past an unbeaten night');
+  assert.equal(load({ unlocked: 9, completed: [1, 2, 3, 4, 5, 6, 7, 8] }).unlocked, 9);
+  assert.equal(load({ settings: { music: false } }).settings.camMap, true, 'the camera map is on by default');
+  world.setDynamicProperty('fb:save', keep);
 });
 
 test('upgrading a world built by an older pack version: asks for /fb:setup, rebuilds, keeps progress', async () => {

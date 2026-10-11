@@ -259,7 +259,7 @@ export const STAIRS = Object.freeze([
   { id: 'CELLAR_STAIRS', kind: 'stairs', x: 178, z: 16, dir: '+z', width: 3, fromStand: 0, toStand: -9, material: 'stone_brick' },
   { id: 'LOFT_LADDER', kind: 'ladder', x: 146, z: 30, face: 'west', fromStand: 0, toStand: 8 },
   { id: 'OFFICE_HATCH', kind: 'hatch', x: 99, z: 136, size: 2, fromStand: -9, toStand: 0, gate: 'hatch' },
-  { id: 'VENT_DUCT', kind: 'duct', from: [80, 132], to: [92, 132], y: -2 },
+  { id: 'VENT_DUCT', kind: 'duct', from: [80, 132], to: [92, 132], y: -3, h: 2 }, // two high since 1.3 (CAM 18 looks along it)
 ]);
 
 /** Room lookup by id. */
@@ -294,7 +294,7 @@ export const ANCHORS = Object.freeze({
   officeEye: { x: 100.5, y: 1.62, z: 131.5 },
   trainingSpawn: { x: 166.5, y: 0, z: 138.5, yaw: 0 },
   parkingSpawn: { x: 100.5, y: 0, z: 178.5, yaw: 180 },
-  controlRoom: { x: 30.5, y: -9, z: 180.5, yaw: -90 },
+  controlRoom: { x: 30.5, y: -9, z: 179.5, yaw: -90 }, // the walkway between module rows z 178 and z 181 (labels at z 180)
   endingCam: { x: 34.5, y: -6.5, z: 40.5 },
 });
 

@@ -40,6 +40,9 @@ for (const [id, lv] of Object.entries(LEVELS)) {
     inputs: INPUTS.filter((i) => (id === 'L0' ? i.p[1] <= -4 : id === 'L1' ? i.p[1] > -4 && i.p[1] < 7 : i.p[1] >= 7)),
   };
 }
+// Every camera (the HUD camera map, tools/gen_cam_map.py, needs all of them, whatever their level).
+out.cameras = CAMERAS.map((c) => ({ id: c.id, label: c.label, loc: c.loc, look: c.look, audioOnly: c.audioOnly }));
+out.rooms = ROOMS.map((r) => ({ id: r.id, level: r.level, box: r.box }));
 fs.mkdirSync(new URL('./out/', import.meta.url), { recursive: true });
 fs.writeFileSync(new URL('./out/floorplan.json', import.meta.url), JSON.stringify(out));
 console.log('wrote tools/out/floorplan.json');

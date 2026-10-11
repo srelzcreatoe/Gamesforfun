@@ -5,9 +5,21 @@
 // for repelTicks at any point, or is closed when T expires, it RETREATs.
 // If the barrier is open when T expires it requests the single attack token
 // and ATTACKs. The window pauses during a Fredbear blackout.
+//
+// DOUBLE TROUBLE: from aggression 8 a second door attacker may join one that is
+// already telegraphing at the same door (its own corner spot, PARTNER_NODE).
+// While two stand there, the barrier must stay closed twice as long
+// (2 x repelTicks) before they back off, and a barrier closed when a window
+// ends no longer sends them away early.
+//
+// NEVER IDLE AT A DOOR: outside APPROACH / TELEGRAPH / ATTACK a door attacker
+// standing on an entry node leaves at once, and retreats walk past anyone in
+// the hall (Animatronic.beginEdgeMove pass) - see docs/04 "Stuck at the door".
 
 import { Animatronic } from './base.js';
-import { NODE_BY_ID, ENTRY_NODE } from '../../data/nodes.js';
+import { NODE_BY_ID, ENTRY_NODE, PARTNER_NODE } from '../../data/nodes.js';
+
+const AT_DOOR_OK = Object.freeze(['APPROACH', 'TELEGRAPH', 'ATTACK', 'RETREAT', 'WITHDRAWN', 'SUSPENDED', 'POWEROUT']);
 
 export class DoorAttacker extends Animatronic {
   reset() {
@@ -16,10 +28,16 @@ export class DoorAttacker extends Animatronic {
     this.closedTicks = 0;
     this.holdTicks = 0;
     this.investigateLeft = 0;
+    this.partner = false;
+    this.quiet = false;
   }
 
   think() {
     const s = this.s;
+    if (this.idleAtEntry(AT_DOOR_OK)) {
+      this.leaveEntry(`${this.state.toLowerCase()} at a door: leaving`);
+      return;
+    }
     switch (this.state) {
       case 'DORMANT':
         this.anim = this.activationTick >= 99999 ? 'dormant' : 'perform'; // powered down for the whole night (night 7)
@@ -62,11 +80,24 @@ export class DoorAttacker extends Animatronic {
         }
         if (!(this.path.length && this.advancePath())) {
           const path = this.graph.path(this.node, this.cfg.home);
-          if (path && path.length > 1) this.followPath(path.slice(1), 'walk');
+          if (path && path.length > 1) this.followPath(path.slice(1), 'walk', { pass: true });
         }
         return;
       default:
     }
+  }
+
+  /** Off an entry node right away (no repel memory, no sound). */
+  leaveEntry(reason) {
+    this.s.director.releaseEntry(this.id);
+    this.entry = null;
+    this.partner = false;
+    this.setState('RETREAT', reason);
+    this.startRetreat();
+  }
+
+  emitStep() {
+    if (!this.quiet) super.emitStep();
   }
 
   // ------------------------------------------------------------ roaming
@@ -81,6 +112,8 @@ export class DoorAttacker extends Animatronic {
       this.watchedTicks = 0;
     }
     if (this.extraRoam()) return; // character-specific activity consumed this tick
+    // Right behind a door someone else is already at: try to join them (double trouble), once a second.
+    if (s.t % 20 === 0 && PARTNER_NODE[this.target] && this.graph.edgeBetween(this.node, PARTNER_NODE[this.target]) && this.wantsEntry() && this.tryPartner()) return;
     if (--this.moTimer > 0) return;
     this.moTimer = s.rng.jitter(this.cfg.moInterval);
     const a = this.aggression;
@@ -98,7 +131,7 @@ export class DoorAttacker extends Animatronic {
     }
     const entryNode = ENTRY_NODE[this.target];
     if (this.graph.edgeBetween(this.node, entryNode) && this.wantsEntry()) {
-      this.tryApproach();
+      if (!this.tryApproach()) this.tryPartner();
       return;
     }
     const next = this.chooseStep(this.goalNode(), { weight: (o, n) => this.stepWeight(o, n) });
@@ -131,6 +164,27 @@ export class DoorAttacker extends Animatronic {
     this.entry = entry;
     this.onApproachStart();
     this.setState('APPROACH', `moving into entry ${entry}`);
+    return true;
+  }
+
+  /** Double trouble: join another door attacker already telegraphing at the target door. */
+  tryPartner() {
+    const s = this.s;
+    const entry = this.target;
+    const spot = PARTNER_NODE[entry];
+    if (!spot || this.aggression < (this.cfg.partnerMinAI ?? 99)) return false;
+    const holder = s.director.entries[entry];
+    // The holder may be Bonnie or Chica telegraphing, or Freddy lurking in the right corner.
+    if (!holder || holder === this.id || !['bonnie', 'chica', 'freddy'].includes(holder) || !['TELEGRAPH', 'LURK'].includes(s.anim[holder].state)) return false;
+    if (!this.graph.edgeBetween(this.node, spot) || !s.rng.chance(0.35)) return false;
+    if (!s.director.reservePartner(this.id, entry)) return false;
+    if (!this.beginEdgeMove(spot, 'stalk')) {
+      s.director.releaseEntry(this.id);
+      return false;
+    }
+    this.entry = entry;
+    this.partner = true;
+    this.setState('APPROACH', `joining ${holder} at entry ${entry}`);
     return true;
   }
 
@@ -196,19 +250,24 @@ export class DoorAttacker extends Animatronic {
   thinkTelegraph() {
     const s = this.s;
     const closed = s.barrierClosed(this.entry);
+    const pair = s.director.pairAt(this.entry);
     this.closedTicks = closed ? this.closedTicks + 1 : 0;
-    if (this.closedTicks >= this.cfg.repelTicks) {
-      this.repelled('barrier held closed');
+    if (this.closedTicks >= this.cfg.repelTicks * (pair ? 2 : 1)) {
+      this.repelled(pair ? 'barrier held closed against two' : 'barrier held closed');
       return;
     }
     if (s.blackout.stage === 'on') return; // window paused for fairness
+    if (this.banging && this.stateTicks % 25 === 0) {
+      const p = this.pose();
+      s.emit({ fx: 'sound', id: 'fb.door.bang', at: { x: p.x, y: 1.5, z: p.z }, vol: 1.0 });
+    }
     if (this.timer > 0) {
       this.timer--;
       return;
     }
     if (closed) {
-      this.repelled('barrier closed at end of window');
-      return;
+      if (!pair) this.repelled('barrier closed at end of window');
+      return; // two at the door: they only leave once it has held for the full double time
     }
     if (s.director.requestAttack(this.id)) {
       this.anim = 'attack';
@@ -227,6 +286,8 @@ export class DoorAttacker extends Animatronic {
     s.emit({ fx: 'sound', id: 'fb.door.bang', at: { x: this.pose().x, y: 1, z: this.pose().z }, vol: 0.8 });
     s.director.releaseEntry(this.id);
     this.entry = null;
+    this.partner = false;
+    this.banging = false;
     this.setState('RETREAT', reason);
     this.startRetreat();
   }
@@ -237,7 +298,8 @@ export class DoorAttacker extends Animatronic {
     const dest = s.rng.pick(candidates.length ? candidates : this.cfg.retreatNodes);
     const path = this.graph.path(this.node, dest);
     this.anim = 'retreat';
-    if (!path || path.length < 2 || !this.followPath(path.slice(1), 'retreat')) this.beginRecover('no retreat path');
+    // pass: walk past anyone waiting in the hall instead of freezing at the door.
+    if (!path || path.length < 2 || !this.followPath(path.slice(1), 'retreat', { pass: true })) this.beginRecover('no retreat path');
   }
 
   beginRecover(reason) {
@@ -255,6 +317,8 @@ export class DoorAttacker extends Animatronic {
     this.s.director.releaseEntry(this.id);
     this.s.director.releaseAttack(this.id);
     this.entry = null;
+    this.partner = false;
+    this.banging = false;
     this.eyes = false;
     this.path = [];
     this.setState('WITHDRAWN', 'finale: withdrawing to the stage');

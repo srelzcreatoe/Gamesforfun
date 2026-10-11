@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Generate the resource pack's art and model JSON from the supplied skins and Fredbear model.
+"""Generate the resource pack's art and model JSON from the supplied skins and models.
 
 Inputs  : art/skins/*.png (the skins supplied by the map owner, unmodified)
-          art/models_incoming/Fredbear_V6_NoEyeDots_Complete.zip (the owner's Fredbear model,
-          read as-is; see tools/fredbear_v6.py). Fredbear's skin-built model is still generated,
-          but only into art/models_archive/fredbear_v1/ (kept, not in the game).
+          art/models_incoming/*.zip (the owner's models, read as-is): Fredbear V6
+          (tools/fredbear_v6.py); Freddy V6, Bonnie V2, Morgrave and Valek (tools/owner_models.py).
+          Chica is still built from her skin. The skin-built Freddy, Bonnie and Fredbear
+          are still generated, but only into art/models_archive/<name>_v1/ (kept, not in the game).
 Outputs : packs/FredbearRP/
             textures/entity/fb/<name>.png        128x64: skin (left half) + accessory atlas (right half)
             textures/entity/fb/<name>_eyes.png   128x64: only the glowing pupils
@@ -33,11 +34,19 @@ import random
 from PIL import Image, ImageDraw
 
 import fredbear_v6 as V6
+import owner_models as OM
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKINS = ROOT / "art" / "skins"
 FREDBEAR_ZIP = ROOT / "art" / "models_incoming" / "Fredbear_V6_NoEyeDots_Complete.zip"
 ARCHIVE = ROOT / "art" / "models_archive" / "fredbear_v1"
+MODELS_IN = ROOT / "art" / "models_incoming"
+# Head turn toward a point (the stare at the camera, heads following you in Free Roam), eased per frame.
+LOOK_PRE = [
+    "variable.fb_ly = math.lerp(variable.fb_ly, query.property('fb:look_yaw'), 0.06);",
+    "variable.fb_lp = math.lerp(variable.fb_lp, query.property('fb:look_pitch'), 0.06);",
+    "variable.fb_lt = math.lerp(variable.fb_lt, query.property('fb:look_tilt'), 0.05);",
+]
 RP = ROOT / "packs" / "FredbearRP"
 BP = ROOT / "packs" / "FredbearBP"
 TEX_W, TEX_H = 128, 64
@@ -601,6 +610,8 @@ def animations():
         "body": {"rotation": kf((0, [0, 0, -3]), (1.5, [0, 0, 3]), (3, [0, 0, -3]))},
     }}
     A["animation.fb.hide_prop"] = {"loop": True, "bones": {"prop": {"scale": 0}}}
+    # Additive head turn toward a point (fb:look_* properties, eased in the client entity's pre_animation).
+    A["animation.fb.look_at"] = {"loop": True, "bones": {"head": {"rotation": ["variable.fb_lp", "variable.fb_ly", "variable.fb_lt"]}}}
     return {"format_version": "1.8.0", "animations": A}
 
 
@@ -640,6 +651,21 @@ def render_controllers():
             "ignore_lighting": True,
             "part_visibility": [{"*": "variable.fb_eyes && !variable.fb_hidden"}],
         },
+        # Freddy, Bonnie, Chica: fb:variant 1 = withered suit (nights 7-9 and the challenges).
+        "controller.render.fb.withered": {
+            "arrays": {"textures": {"Array.skins": ["Texture.default", "Texture.withered"]}},
+            "geometry": "Geometry.default",
+            "materials": [{"*": "Material.default"}],
+            "textures": ["Array.skins[variable.fb_variant]"],
+            "part_visibility": [{"*": "!variable.fb_hidden"}],
+        },
+        # Valek: fb:variant 1 = only his eyes show (on the hunt, in the dark).
+        "controller.render.fb.valek": {
+            "geometry": "Geometry.default",
+            "materials": [{"*": "Material.default"}],
+            "textures": ["Texture.default"],
+            "part_visibility": [{"*": "!variable.fb_hidden && variable.fb_variant != 1"}],
+        },
         # Fredbear's camera echo: fb:variant 0 = purple ECHO feed, 1 = black stage silhouette (shadow Fredbear).
         "controller.render.fb.echo": {
             "arrays": {"textures": {"Array.skins": ["Texture.default", "Texture.shadow"]}},
@@ -659,33 +685,38 @@ def render_controllers():
     }}
 
 
-def client_entity(identifier, geo, tex, eyes_tex, hide_prop, perform):
-    animate = ["pose_controller"]
+def client_entity(identifier, geo, tex, eyes_tex, hide_prop, perform, withered=None):
+    animate = ["pose_controller", "look_at"]
     if hide_prop:
         animate.append({"hide_prop": "variable.fb_anim != 'perform'"})
-    anims = {"pose_controller": "controller.animation.fb.pose", "hide_prop": "animation.fb.hide_prop"}
+    anims = {"pose_controller": "controller.animation.fb.pose", "hide_prop": "animation.fb.hide_prop", "look_at": "animation.fb.look_at"}
     for a in ANIMS:
         anims[a] = f"animation.fb.{a}"
     anims["perform"] = f"animation.fb.perform.{perform}"
+    textures = {"default": tex, "eyes": eyes_tex}
+    if withered:
+        textures["withered"] = withered
     return {"format_version": "1.10.0", "minecraft:client_entity": {"description": {
         "identifier": identifier,
         "materials": {"default": "entity_alphatest", "eyes": "creaking_eyes"},
-        "textures": {"default": tex, "eyes": eyes_tex},
+        "textures": textures,
         "geometry": {"default": geo},
         "scripts": {
             "pre_animation": [
                 "variable.fb_anim = query.property('fb:anim');",
                 "variable.fb_eyes = query.property('fb:eyes');",
                 "variable.fb_hidden = query.property('fb:hidden');",
+                "variable.fb_variant = query.property('fb:variant');",
+                *LOOK_PRE,
             ],
             "animate": animate,
         },
         "animations": anims,
-        "render_controllers": ["controller.render.fb.animatronic", "controller.render.fb.eyes"],
+        "render_controllers": ["controller.render.fb.withered" if withered else "controller.render.fb.animatronic", "controller.render.fb.eyes"],
     }}}
 
 
-def fredbear_client_entity(identifier, textures, render_controllers):
+def fredbear_client_entity(identifier, textures, render_controllers, look=True):
     """Fredbear V6 client entity: own controller (rotating shows, three jumpscares by fb:variant)."""
     return {"format_version": "1.10.0", "minecraft:client_entity": {"description": {
         "identifier": identifier,
@@ -698,10 +729,11 @@ def fredbear_client_entity(identifier, textures, render_controllers):
                 "variable.fb_eyes = query.property('fb:eyes');",
                 "variable.fb_hidden = query.property('fb:hidden');",
                 "variable.fb_variant = query.property('fb:variant');",
+                *(LOOK_PRE if look else []),
             ],
-            "animate": ["pose_controller"],
+            "animate": ["pose_controller", *(["look_at"] if look else [])],
         },
-        "animations": V6.client_animation_map(),
+        "animations": {**V6.client_animation_map(), **({"look_at": "animation.fb.fredbear.look_at"} if look else {})},
         "render_controllers": render_controllers,
     }}}
 
@@ -719,6 +751,7 @@ def build_fredbear_v6(tex_dir):
     V6.shadow_texture(tex).save(tex_dir / "fredbear_shadow.png")
     V6.eye_mask(g, size, rgb("ff3a2a"), rgb("8a0a06")).save(tex_dir / "fredbear_shadow_eyes.png")
     clips, worst = V6.clips(raw)
+    clips["animation.fb.fredbear.look_at"] = {"loop": True, "bones": {"head": {"rotation": ["variable.fb_lp", "variable.fb_ly", "variable.fb_lt"]}}}
     write_json(RP / "animations" / "fb_fredbear.animation.json", {"format_version": "1.8.0", "animations": clips})
     write_json(RP / "animation_controllers" / "fb_fredbear.animation_controllers.json", {"format_version": "1.10.0", "animation_controllers": V6.controller()})
     write_json(RP / "entity" / "fb_fredbear.entity.json", fredbear_client_entity(
@@ -727,8 +760,72 @@ def build_fredbear_v6(tex_dir):
     write_json(RP / "entity" / "fb_fredbear_echo.entity.json", fredbear_client_entity(
         "fb:fredbear_echo", {"default": "textures/entity/fb/fredbear_echo", "shadow": "textures/entity/fb/fredbear_shadow",
                              "eyes": "textures/entity/fb/fredbear_echo_eyes", "shadow_eyes": "textures/entity/fb/fredbear_shadow_eyes"},
-        ["controller.render.fb.echo", "controller.render.fb.echo_eyes"]))
+        ["controller.render.fb.echo", "controller.render.fb.echo_eyes"], look=False))
     return len(clips), worst
+
+
+def owner_client_entity(who, spec, textures, render_controllers):
+    return {"format_version": "1.10.0", "minecraft:client_entity": {"description": {
+        "identifier": f"fb:{who}",
+        "materials": {"default": "entity_alphatest", "eyes": "creaking_eyes"},
+        "textures": textures,
+        "geometry": {"default": f"geometry.fb.{who}"},
+        "scripts": {
+            "pre_animation": [
+                "variable.fb_anim = query.property('fb:anim');",
+                "variable.fb_eyes = query.property('fb:eyes');",
+                "variable.fb_hidden = query.property('fb:hidden');",
+                "variable.fb_variant = query.property('fb:variant');",
+                *LOOK_PRE,
+            ],
+            "animate": ["pose_controller", OM.LOOK_ANIM],
+        },
+        "animations": OM.client_animation_map(who, spec),
+        "render_controllers": render_controllers,
+    }}}
+
+
+def build_owner_model(who, tex_dir):
+    """Freddy V6, Bonnie V2, Morgrave, Valek (tools/owner_models.py). Returns a summary dict."""
+    spec = OM.MODELS[who]
+    geo, raw, tex = OM.load(MODELS_IN / spec["zip"], spec)
+    write_json(RP / "models" / "entity" / f"fb_{who}.geo.json", OM.geometry(geo, who))
+    tex.save(tex_dir / f"{who}.png")
+    OM.eye_texture(geo, tex, spec).save(tex_dir / f"{who}_eyes.png")
+    textures = {"default": f"textures/entity/fb/{who}", "eyes": f"textures/entity/fb/{who}_eyes"}
+    rcs = ["controller.render.fb.animatronic", "controller.render.fb.eyes"]
+    if spec["withered"]:
+        OM.withered_texture(tex, geo, seed=f"withered-{who}").save(tex_dir / f"{who}_withered.png")
+        textures["withered"] = f"textures/entity/fb/{who}_withered"
+        rcs[0] = "controller.render.fb.withered"
+    if who == "valek":
+        rcs[0] = "controller.render.fb.valek"
+    clips, worst = OM.clips(who, geo, raw, spec)
+    write_json(RP / "animations" / f"fb_{who}.animation.json", {"format_version": "1.8.0", "animations": clips})
+    write_json(RP / "animation_controllers" / f"fb_{who}.animation_controllers.json", {"format_version": "1.10.0", "animation_controllers": OM.controller(who, spec)})
+    write_json(RP / "entity" / f"fb_{who}.entity.json", owner_client_entity(who, spec, textures, rcs))
+    return {"clips": len(clips), "worst": worst, "scale": OM.scale_for(geo, spec), "eye_height": OM.eye_height(geo, spec)}
+
+
+def archive_old_character(name, tex, eyes, geo, spec):
+    """The previous, skin-built Freddy / Bonnie: kept outside the packs (not in the game)."""
+    out = ROOT / "art" / "models_archive" / f"{name}_v1"
+    out.mkdir(parents=True, exist_ok=True)
+    tex.save(out / f"{name}.png")
+    eyes.save(out / f"{name}_eyes.png")
+    write_json(out / f"fb_{name}.geo.json", geo)
+    write_json(out / f"fb_{name}.entity.json", client_entity(
+        f"fb:{name}", f"geometry.fb.{name}", f"textures/entity/fb/{name}", f"textures/entity/fb/{name}_eyes", spec["hide_prop_unless_perform"], name))
+    model = {"freddy": "Freddy_V6_Blink_Coverage.zip", "bonnie": "Bonnie_V2_Proportions_Fixed_Eyes.zip"}[name]
+    (out / "README.md").write_text(
+        f"# {name.capitalize()} v1 (archived)\n\n"
+        f"The skin-built {name.capitalize()} used up to version 1.2 of the map, built from `art/skins/` by `tools/gen_rp.py`.\n"
+        f"It is **not in the game** any more: version 1.3 uses the map owner's model (`art/models_incoming/{model}`,\n"
+        "imported by `tools/owner_models.py`). Its animations are the shared `animation.fb.*` clips that Chica still uses\n"
+        "(`packs/FredbearRP/animations/fb_animatronic.animation.json`).\n\n"
+        "To put it back, copy the geometry to `packs/FredbearRP/models/entity/`, the textures to `packs/FredbearRP/textures/entity/fb/`,\n"
+        f"`fb_{name}.entity.json` to `packs/FredbearRP/entity/`, and restore `minecraft:scale` in `packs/FredbearBP/entities/{name}.json`\n"
+        "and `SCALE` / `EYE_HEIGHT` in `scripts/mc/game.js` (1.35 / 1.3 and 1.55).\n", encoding="utf-8")
 
 
 def archive_old_fredbear(tex, eyes, geo, spec):
@@ -819,10 +916,11 @@ def pack_icons(skins):
 
 def fogs():
     out = {}
-    for n in range(1, 8):
-        start = round(8 - n * 0.9, 1)
-        end = 56 - n * 5
-        colour = "#06070c" if n < 4 else ("#07050c" if n < 6 else "#090410" if n == 6 else "#0b0608")
+    for n in range(1, 10):
+        start = round(max(1.0, 8 - n * 0.9), 1)
+        end = 56 - min(n, 7) * 5 - (4 if n == 9 else 0)
+        # night 8: cold blue-black; night 9: the darkest, a dried-blood red-black
+        colour = "#06070c" if n < 4 else ("#07050c" if n < 6 else "#090410" if n == 6 else "#0b0608" if n == 7 else "#05070d" if n == 8 else "#0e0405")
         setting = {"fog_start": start, "fog_end": end, "fog_color": colour, "render_distance_type": "fixed"}
         out[n] = {"format_version": "1.21.90", "minecraft:fog_settings": {
             "description": {"identifier": f"fb:night_{n}"},
@@ -853,6 +951,8 @@ entity.fb:bonnie.name=Bonnie
 entity.fb:chica.name=Chica
 entity.fb:fredbear.name=Fredbear
 entity.fb:fredbear_echo.name=Fredbear (Echo)
+entity.fb:morgrave.name=Morgrave
+entity.fb:valek.name=Valek
 item.fb:tablet=Camera Tablet
 item.fb:remote=Office Remote
 item.fb:guide=Shift Guide
@@ -871,11 +971,18 @@ def main():
         if name == "fredbear":
             archive_old_fredbear(tex, eyes, geo, spec)
             continue
+        if name in ("freddy", "bonnie"):
+            archive_old_character(name, tex, eyes, geo, spec)
+            continue
         tex.save(tex_dir / f"{name}.png")
         eyes.save(tex_dir / f"{name}_eyes.png")
+        OM.withered_texture(tex, geo, seed=f"withered-{name}").save(tex_dir / f"{name}_withered.png")
         write_json(RP / "models" / "entity" / f"fb_{name}.geo.json", geo)
         write_json(RP / "entity" / f"fb_{name}.entity.json", client_entity(
-            f"fb:{name}", f"geometry.fb.{name}", f"textures/entity/fb/{name}", f"textures/entity/fb/{name}_eyes", spec["hide_prop_unless_perform"], name))
+            f"fb:{name}", f"geometry.fb.{name}", f"textures/entity/fb/{name}", f"textures/entity/fb/{name}_eyes", spec["hide_prop_unless_perform"], name,
+            withered=f"textures/entity/fb/{name}_withered"))
+    owners = {who: build_owner_model(who, tex_dir) for who in OM.MODELS}
+    write_json(ROOT / "tools" / "out" / "owner_models.json", owners)
     v6_clips, v6_err = build_fredbear_v6(tex_dir)
     write_json(RP / "animations" / "fb_animatronic.animation.json", animations())
     write_json(RP / "animation_controllers" / "fb_animatronic.animation_controllers.json", controller())
@@ -895,7 +1002,8 @@ def main():
     rp_icon, bp_icon = pack_icons(skins)
     rp_icon.save(RP / "pack_icon.png")
     bp_icon.save(BP / "pack_icon.png")
-    print(f"rp: {len(specs) - 1} skin-built animatronics + Fredbear V6 ({v6_clips} clips, max change {v6_err['rotation']:.2f} deg / {v6_err['position']:.3f} units) + echo/shadow, {len(fogs())} fogs, 3 item icons")
+    owner_txt = ", ".join(f"{w} {o['clips']} clips" for w, o in owners.items())
+    print(f"rp: Chica (skin-built), owner models ({owner_txt}), Fredbear V6 ({v6_clips} clips, max change {v6_err['rotation']:.2f} deg / {v6_err['position']:.3f} units) + echo/shadow, withered skins, {len(fogs())} fogs, 3 item icons")
 
 
 if __name__ == "__main__":

@@ -81,6 +81,7 @@ export const PALETTE = Object.freeze({
   crafting_table: B('crafting_table'), bookshelf: B('bookshelf'), loom: B('loom', { direction: 0 }),
   observer: B('observer', { 'minecraft:facing_direction': 'up', powered_bit: false }), jukebox: B('jukebox'), noteblock: B('noteblock'),
   cake: B('cake', { bite_counter: 0 }), cake_bitten: B('cake', { bite_counter: 3 }), flower_pot: B('flower_pot'),
+  party_cake: B('pink_candle_cake', { lit: false }), party_candles: B('white_candle', { candles: 3, lit: false }),
   decorated_pot: B('decorated_pot'), hopper: B('hopper', { facing_direction: 0, toggle_bit: false }),
   anvil: B('anvil', { 'minecraft:cardinal_direction': 'south' }), target: B('target'), hay: B('hay_block', { pillar_axis: 'y' }),
   web: B('web'), ladder_north: B('ladder', { facing_direction: 2 }), ladder_south: B('ladder', { facing_direction: 3 }),

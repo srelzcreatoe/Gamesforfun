@@ -4,7 +4,10 @@
 //   LOBBY -> INTRO(n) [camera tour] -> NIGHT(n) -> RESULT(win|lose) -> RESET -> LOBBY | INTRO(n+1) | NIGHT(n) (retry)
 //   INTRO(4), first time -> FLASHBACK (1983 memory) -> NIGHT(4)
 //   NIGHT(6) win -> ENDING -> RESET -> LOBBY (night 7 and the challenges unlock)
-//   NIGHT(7) win -> ENDING (choice: seal | burn, two final scenes) -> RESET -> LOBBY
+//   NIGHT(7) win -> ENDING (choice: seal | burn, two final scenes) -> RESET -> LOBBY (night 8 opens;
+//     its version follows the last ending: seal -> Morgrave, burn -> Valek)
+//   NIGHT(9) win -> ENDING (the three below) -> RESET -> LOBBY
+//   TAPE DECK (office, outside nights): the 1987 security tapes play on the monitor
 //   LOBBY -> challenge (INTRO/NIGHT on a base night with modifiers) -> RESULT
 //   LOBBY <-> FREE_ROAM ; LOBBY -> TUTORIAL (a NIGHT(0) with the training controller)
 //
@@ -15,19 +18,20 @@
 
 import { world, system, InputButton, ButtonState, GameMode } from '@minecraft/server';
 import { NightSession } from '../core/session.js';
-import { CONFIG, LAST_NIGHT } from '../core/config.js';
+import { CONFIG, LAST_NIGHT, STORE_NIGHTS, nightVariant, nightDef } from '../core/config.js';
 import { mixSeed } from '../core/rng.js';
 import { GuideGraph } from '../core/guide_path.js';
 import { ANCHORS, OFFICE_BOUNDS, ROOM_BY_ID, interior } from '../data/layout.js';
 import { CAMERA_BY_ID } from '../data/cameras.js';
 import { NODE_BY_ID } from '../data/nodes.js';
+import { TAPE, TAPE_UNLOCK_NIGHT, NAME_SIGN } from '../data/lore.js';
 import { INPUTS, inputCbPos } from '../data/inputs.js';
 import { isKnownInputAction } from '../data/input_actions.js';
-import { PHONE, TASKS, MAINTENANCE, SECRETS, ENDING, TUTORIAL_STEPS, FLASHBACK, FINAL_CHOICE } from '../data/story.js';
+import { PHONE, TASKS, MAINTENANCE, SECRETS, ENDING, TUTORIAL_STEPS, FLASHBACK, FINAL_CHOICE, NIGHT_NINE_ENDING } from '../data/story.js';
 import { ActuatorBus } from './actuator_bus.js';
 import { settleTicks } from '../data/actuators.js';
 import { Builder, BUILD_VERSION } from './builder.js';
-import { Puppets } from './puppets.js';
+import { Puppets, MAIN } from './puppets.js';
 import { CameraView, restorePlayerView } from './camera_view.js';
 import { Audio } from './audio.js';
 import { Hud, hourLabel } from './hud.js';
@@ -47,9 +51,10 @@ const CB_INPUT = new Map(INPUTS.map((i) => {
 // Ticks the reset command-block chains need before anything else may actuate.
 const RESET_SETTLE = settleTicks('reset.world') + 4;
 const OFFICE_TARGET = 'anchor:officeSeat'; // route-guidance target name (data/guide_graph.generated.js)
-const SCALE = Object.freeze({ freddy: 1.35, bonnie: 1.3, chica: 1.3, fredbear: 1.09 }); // = minecraft:scale in BP entities (validate_assets checks)
-// Eye height of each model at scale 1 (blocks): the jumpscare camera looks here. Fredbear V6 is a taller rig.
-const EYE_HEIGHT = Object.freeze({ freddy: 1.55, bonnie: 1.55, chica: 1.55, fredbear: 2.64 });
+// = minecraft:scale in BP entities (validate_assets checks); the owner's models keep the old in-game heights (tools/owner_models.py).
+const SCALE = Object.freeze({ freddy: 0.992, bonnie: 0.605, chica: 1.3, fredbear: 1.09, morgrave: 0.768, valek: 0.87 });
+// Eye height of each model at scale 1 (blocks): the jumpscare camera and the stare look from here.
+const EYE_HEIGHT = Object.freeze({ freddy: 2.604, bonnie: 3.986, chica: 1.55, fredbear: 2.64, morgrave: 3.259, valek: 3.442 });
 const FREDBEAR_JUMPSCARES = 3; // fb:variant 0-2 picks one of the V6 jumpscares (snap bite, dual lunge, left grab)
 const MUSIC_TRACK = 'fb.night.bgm'; // "Pizza Dinner" (music category: replaces Minecraft's own music while it plays)
 const SHOT = 70; // ticks per cutscene caption
@@ -60,6 +65,13 @@ const SCENES = Object.freeze({
   showStage: { from: { x: 100.5, y: 5, z: 50.5 }, to: { x: 100.5, y: 2, z: 22.5 } },
   frontLot: { from: { x: 100.5, y: 6, z: 190.5 }, to: { x: 100.5, y: 12, z: 152 } },
 });
+// Camera map HUD (RP ui/hud_screen.json): an invisible title made only of formatting codes tells the HUD
+// to draw the map and which camera to highlight ("§k§r§k§r§l" + the camera number as two codes).
+const MAP_ON = '§k§r§k§r§l';
+const MAP_OFF = '§k§r§k§r§o';
+const mapTitle = (cam) => (cam ? MAP_ON + cam.slice(1).split('').map((d) => `§${d}`).join('') : MAP_OFF);
+const STARE_AFTER = 40; // ticks of watching an animatronic on camera before it turns its head to the lens
+const ROAM_LOOK_RANGE = 14; // Free Roam: animatronics this close turn their heads to follow you
 const CAM_HUM_TICKS = 200; // fb.cam.hum restarts every 10 s while the monitor is up (tools/gen_sounds.py HUM_PERIOD)
 const ZONE_ACTUATOR = Object.freeze({ 'zone:cove': 'zone.cove', 'zone:freezer': 'zone.freezer', 'zone:diner': 'zone.diner', 'zone:chamber': 'zone.chamber', 'zone:attic': 'zone.attic', 'zone:basement': 'env.pipes', 'zone:backstage': 'env.distant_music' });
 
@@ -95,6 +107,8 @@ export class Game {
     this.challenge = null; // { id, title, base, overrides, mods } while a challenge mode runs
     this.tour = null; // intro camera tour
     this.flashback = null; // night 4 memory scene
+    this.tape = null; // the 1987 security tapes (office TAPE DECK)
+    this.stareTicks = Object.create(null); // per animatronic: ticks watched on the current camera
     this.guideLeft = undefined; // blocks left on the current breadcrumb route
     this.outdatedBuild = false; // built by an older pack version: /fb:setup rebuilds
     /** @type {((action: string, player: any) => any) | undefined} */
@@ -172,6 +186,7 @@ export class Game {
     } catch (e) {
       log.error(`tick (${this.state})`, e);
     }
+    if (this.tape) this.tickTape(now);
     this.tickCamHum(now);
     this.bus.tick();
   }
@@ -204,13 +219,14 @@ export class Game {
   }
 
   tickRest(now) {
-    if (now % 20 === 0) this.puppets.sync(null, 'perform');
+    if (this.state === 'FREE_ROAM' && now % 10 === 0) this.roamLooks();
+    if (now % (this.state === 'FREE_ROAM' ? 10 : 20) === 0 && !this.tape) this.puppets.sync(null, 'perform');
     if (now % 40 === 0) {
       const g = this.guard();
       if (!g) return;
       const text = this.state === 'FREE_ROAM'
         ? '§bFREE ROAM§f - explore safely. Secrets found: ' + `${this.save.secrets.length}/12\n§7Press FREE ROAM at the time clock to return.`
-        : `§eTIME CLOCK§f - choose a night. Unlocked: §a${this.save.unlocked}/${LAST_NIGHT}${this.save.campaignDone ? ' §6(campaign complete: night 7 and CHALLENGES open)' : ''}`;
+        : `§eTIME CLOCK§f - choose a night. Unlocked: §a${this.save.unlocked}/${LAST_NIGHT}${this.save.campaignDone ? ' §6(campaign complete: CHALLENGES open)' : ''}`;
       if (!this.hudBusy(now)) g.onScreenDisplay.setActionBar(text);
     }
   }
@@ -224,9 +240,9 @@ export class Game {
     return this.save.settings.music !== false;
   }
 
-  /** Night music: loops while a shift runs; a music-category track replaces Minecraft's own music. */
+  /** Night music: loops while a shift runs; a music-category track replaces Minecraft's own music. Night 9 has none. */
   startMusic() {
-    if (!this.musicWanted() || this.musicPlaying) return;
+    if (!this.musicWanted() || this.musicPlaying || this.session?.def.music === false) return;
     const g = this.guard();
     if (!g) return;
     try {
@@ -317,6 +333,10 @@ export class Game {
     this.challenge = null;
     this.tour = null;
     this.flashback = null;
+    this.tape = null;
+    this.stareTicks = Object.create(null);
+    this.puppets.looks = Object.create(null);
+    this.puppets.withered = false;
     this.intro = null;
     this.maint = null;
     this.tutorial = null;
@@ -359,7 +379,27 @@ export class Game {
     for (const id of this.save.challenges) this.bus.trigger(`lobby.chal_${id}`);
     this.puppets.sync(null, 'perform');
     this.state = target === 'free_roam' ? 'FREE_ROAM' : target === 'office' ? 'RESET' : 'LOBBY';
-    if (target !== 'office') this.syncHolidays();
+    if (target !== 'office') {
+      this.syncHolidays();
+      this.writeNameSign();
+    }
+  }
+
+  /** Fredbear's chamber names wall (lore): after night 6 the guard's own name is the newest one. */
+  writeNameSign() {
+    try {
+      const g = this.guard();
+      const sign = dim().getBlock(W(NAME_SIGN.x, NAME_SIGN.y, NAME_SIGN.z))?.getComponent('minecraft:sign');
+      if (!sign) return;
+      const text = this.save.campaignDone && g ? `§8${g.name.toUpperCase()}\n§4tonight` : ' ';
+      if (sign.getText() !== text) {
+        sign.setWaxed(false);
+        sign.setText(text);
+        sign.setWaxed(true);
+      }
+    } catch (e) {
+      log.warn(`name sign: ${e?.message ?? e}`);
+    }
   }
 
   /** Diner seal and chamber wall follow campaign progress outside nights. */
@@ -375,7 +415,7 @@ export class Game {
     if (this.state !== 'LOBBY') return this.deny(player, 'Finish what you are doing first.');
     if (n > this.save.unlocked) {
       this.bus.trigger('lobby.deny');
-      return this.deny(player, n === LAST_NIGHT ? `Night ${n} is locked. Beat night 6 first.` : `Night ${n} is locked. Survive night ${n - 1} first.`);
+      return this.deny(player, n === 7 ? 'Night 7 is locked. Beat night 6 first.' : `Night ${n} is locked. Survive night ${n - 1} first.`);
     }
     this.bus.trigger('lobby.accept');
     this.guardId = player?.id;
@@ -402,11 +442,31 @@ export class Game {
     const task = this.challenge ? undefined : TASKS[n];
     this.intro = { started: system.currentTick, task, taskDone: false, deadline: system.currentTick + 20 * 180 };
     this.applyGates(n);
+    this.puppets.withered = this.witheredNight(n);
     const label = this.nightLabel();
     this.hudMessage(`11:55 PM - ${label}. Walk to the SECURITY OFFICE and press START SHIFT.${task ? ` ${task.text}` : ''}`, 260);
     const g = this.guard();
-    if (g) g.onScreenDisplay.setTitle(`§f${label}`, { fadeInDuration: 10, stayDuration: 50, fadeOutDuration: 20, subtitle: this.challenge ? 'CHALLENGE' : CONFIG.nights[n].title.replace(/^Night \d+ — /, '') });
+    if (g) g.onScreenDisplay.setTitle(`§f${label}`, { fadeInDuration: 10, stayDuration: 50, fadeOutDuration: 20, subtitle: this.challenge ? 'CHALLENGE' : this.nightTitle(n).replace(/^Night \d+ — /, '') });
     this.startTour(n);
+  }
+
+  /** Night overrides that are not a challenge: night 8 follows the last night 7 ending (seal: Morgrave, burn: Valek). */
+  nightOverrides(n) {
+    return n === 8 ? nightVariant(8, this.save.lastEnding ?? 'seal') : {};
+  }
+
+  /** Tonight's phone call (night 8 has one per night 7 ending). */
+  phoneLines(n) {
+    return PHONE[n === 8 ? `8_${this.save.lastEnding ?? 'seal'}` : n] ?? [];
+  }
+
+  nightTitle(n) {
+    return nightDef(n, this.nightOverrides(n)).title;
+  }
+
+  /** The trio wear their withered suits on nights 7-9 and in every challenge. */
+  witheredNight(n) {
+    return n >= 7 || !!this.challenge;
   }
 
   /** "Night 4" or the challenge title. */
@@ -414,9 +474,9 @@ export class Game {
     return this.challenge ? `Challenge: ${this.challenge.title}` : `Night ${this.night}`;
   }
 
-  /** Rest pose for the stage trio outside a night (powered down before night 7 / the Fredbear-only challenge). */
+  /** Rest pose for the stage trio outside a night (powered down before nights 7 and 9 / the Fredbear-only challenge). */
   restAnim() {
-    return this.night === LAST_NIGHT || this.challenge?.id === 'fredbear_only' ? 'dormant' : 'perform';
+    return STORE_NIGHTS.includes(this.night) || this.challenge?.id === 'fredbear_only' ? 'dormant' : 'perform';
   }
 
   // ---------------------------------------------------------------- intro camera tour
@@ -427,6 +487,8 @@ export class Game {
     /** @type {[string, number][]} [camera, ticks] */
     const shots = [['C01', 60], ['C07', 34], ['C12', 34]];
     if (n >= 4) shots.push(['C16', 50]);
+    if (n >= 7) shots.push(['C06', 40]); // Parts & Service: Valek standing there, and the trio on nights 7 and 9
+    if (n >= 8) shots.push(['C19', 40], ['C18', 30]); // the chamber and the duct
     this.tour = { shots, i: 0, next: system.currentTick + 20 };
     this.intro.deadline += shots.reduce((a, s) => a + s[1], 20);
   }
@@ -529,7 +591,8 @@ export class Game {
   }
 
   tickIntro(now) {
-    if (now % 20 === 0) this.puppets.sync(null, this.restAnim());
+    if (now % 20 === 0 && !this.tape) this.puppets.sync(null, this.restAnim());
+    if (this.tape) return;
     const g = this.guard();
     if (!g) return;
     if (this.tour) return this.tickTour(now, g);
@@ -578,17 +641,20 @@ export class Game {
     const s = this.save.settings;
     const seed = s.deterministic ? s.seed : mixSeed(system.currentTick, Math.floor(Math.random() * 0xffffffff));
     const ch = this.challenge;
+    this.endTape();
+    this.puppets.withered = this.witheredNight(n);
+    this.stareTicks = Object.create(null);
     this.session = new NightSession({
       night: n,
       seed,
-      overrides: ch ? { ...ch.overrides, ...overrides } : overrides,
+      overrides: ch ? { ...ch.overrides, ...overrides } : { ...this.nightOverrides(n), ...overrides },
       options: { captions: s.captions, taskBonusPower: this.taskBonus.power, bonusCharges: this.taskBonus.charge ? 1 : 0, ...(ch ? { mods: ch.mods } : {}), ...options },
     });
     this.seed = seed;
     markSession({ active: true, night: n, seed, challenge: ch?.id });
     this.state = 'NIGHT';
     this.maint = null;
-    this.timers.phone = { lines: ch ? [ch.text] : PHONE[n] ?? [], i: 0, next: system.currentTick + 40 };
+    this.timers.phone = { lines: ch ? [ch.text] : this.phoneLines(n), i: 0, next: system.currentTick + 40 };
     for (const id of ['init.policy', 'init.time', 'night.begin', 'sig.stage_lights_off', 'pwr.meter_full', `pwr.charges_${Math.min(4, this.session.strobe.charges)}`, 'env.phone_ring']) this.bus.trigger(id);
     this.applyGates(n);
     if (n >= 1) runCmd(fogCommand(n));
@@ -637,6 +703,8 @@ export class Game {
     for (const f of fx) this.applyFx(f, g);
     if (!this.session) return; // reset from an effect
 
+    if (now % 4 === 0) this.stareLooks(s);
+    if (this.cams.active && now % 60 === 0) this.showCamMap(g, s.devices.cams.cam);
     if (s.phase !== 'JUMPSCARE' && s.phase !== 'LOST') this.puppets.sync(s);
     this.tickPhone(now, g);
     this.tickDisplays();
@@ -730,9 +798,12 @@ export class Game {
       case 'hour':
         this.bus.trigger('night.hour');
         this.bus.trigger(`night.hour_${f.hour}`);
-        g.onScreenDisplay.setTitle(`§f${hourLabel(f.hour)}`, { fadeInDuration: 5, stayDuration: 40, fadeOutDuration: 15 });
+        // While the monitor is up the hour goes in the subtitle so the camera map (title) stays on screen.
+        if (this.cams.active && this.save.settings.camMap !== false) g.onScreenDisplay.setTitle(mapTitle(s.devices.cams.cam), { fadeInDuration: 0, stayDuration: 120, fadeOutDuration: 0, subtitle: `§f${hourLabel(f.hour)}` });
+        else g.onScreenDisplay.setTitle(`§f${hourLabel(f.hour)}`, { fadeInDuration: 5, stayDuration: 40, fadeOutDuration: 15 });
         if (f.hour >= 2 && s.rng.chance(0.6)) this.bus.trigger(s.rng.chance(0.5) ? 'env.flicker_whall' : 'env.flicker_ehall');
         if (f.hour === 3) this.bus.trigger('env.pipes');
+        if (s.def.music === false && f.hour >= 1) this.bus.trigger(f.hour % 2 ? 'env.distant_music' : 'env.pipes'); // night 9: only the building
         break;
       case 'cams':
         if (f.open && !this.cams.active) {
@@ -744,11 +815,15 @@ export class Game {
           } catch {
             // ignore
           }
-        } else if (f.open) this.cams.show(f.cam);
-        else if (this.cams.active) {
+          this.showCamMap(g, f.cam);
+        } else if (f.open) {
+          this.cams.show(f.cam);
+          this.showCamMap(g, f.cam);
+        } else if (this.cams.active) {
           this.cams.close();
           this.bus.trigger('cam.down');
           for (const c of COMMAND_TEMPLATES.hudReset) runCmd(c);
+          this.showCamMap(g, null);
         }
         if (this.tutorial) this.tutorialEvent(f.open ? (f.reason === 'switch' ? 'cam_switch' : 'cams_open') : 'cams_close');
         break;
@@ -786,6 +861,7 @@ export class Game {
           this.stopMusic();
           g.onScreenDisplay.setTitle('§cPOWER OUT', { fadeInDuration: 0, stayDuration: 40, fadeOutDuration: 20 });
         } else if (f.stage === 'restored') this.startMusic();
+        if (f.stage === 'down' && this.cams.active) this.showCamMap(g, null);
         break;
       case 'repel':
         this.hud.setMessage('Fredbear repelled!', system.currentTick, 60);
@@ -795,7 +871,8 @@ export class Game {
         break;
       case 'jumpscare':
         this.stopMusic();
-        this.jumpscare(f.who, g);
+        this.showCamMap(g, null);
+        this.jumpscare(f.who, g, f.style);
         break;
       case 'tutorial_fail':
         this.tutorialEvent('fail');
@@ -820,7 +897,8 @@ export class Game {
     // Training: door/light/strobe steps listen to accepted inputs; camera steps listen to 'cams' effects.
     if (this.tutorial && f.ok && ['door_l', 'light_l', 'strobe'].includes(f.action)) this.tutorialEvent(f.action);
     if (f.ok) return;
-    const names = { door_l: 'LEFT DOOR', door_r: 'RIGHT DOOR', light_l: 'LEFT LIGHT', light_r: 'RIGHT LIGHT', cams_open: 'CAMERAS', cam_select: 'CAMERAS', strobe: 'STROBE', hatch: 'HATCH', breaker: 'BREAKER', reserve: 'RESERVE' };
+    const names = { door_l: 'LEFT DOOR', door_r: 'RIGHT DOOR', light_l: 'LEFT LIGHT', light_r: 'RIGHT LIGHT', cams_open: 'CAMERAS', cam_select: 'CAMERAS', strobe: 'STROBE', hatch: 'HATCH', breaker: 'BREAKER', reserve: 'RESERVE', seal_vent: 'VENT SEAL', seal_shaft: 'SHAFT SEAL' };
+    if (f.ok && (f.action === 'seal_vent' || f.action === 'seal_shaft')) this.hud.setMessage(`${f.action === 'seal_vent' ? 'The vent' : 'The shaft'} is sealed for ${Math.round(CONFIG.seals.duration / 20)} s`, system.currentTick, 60);
     if (f.reason === 'cooldown' || f.reason === 'same camera') return;
     try {
       g.playSound('fb.ui.deny', { volume: 0.7 });
@@ -831,14 +909,17 @@ export class Game {
   }
 
   // ================================================================ outcomes
-  jumpscare(who, g) {
+  /** @param {'front' | 'below' | 'vent'} [style] where the attack comes from (docs/04 "Jumpscares by place") */
+  jumpscare(who, g, style = 'front') {
     this.cams.close();
     try {
       const eye = g.getHeadLocation();
       const dir = g.getViewDirection();
       const flat = Math.hypot(dir.x, dir.z) || 1;
       const variant = who === 'fredbear' ? Math.floor(Math.random() * FREDBEAR_JUMPSCARES) : 0;
-      const head = this.puppets.lunge(who, eye, { x: dir.x / flat, y: 0, z: dir.z / flat }, (EYE_HEIGHT[who] ?? 1.55) * (SCALE[who] ?? 1.2), variant);
+      if (style === 'below') g.playSound('fb.door.jam', { volume: 1.2 });
+      else if (style === 'vent') g.playSound('fb.vent.clank', { volume: 1.4 });
+      const head = this.puppets.lunge(who, eye, { x: dir.x / flat, y: 0, z: dir.z / flat }, (EYE_HEIGHT[who] ?? 1.55) * (SCALE[who] ?? 1.2), variant, style);
       if (head) g.camera.setCamera('minecraft:free', { location: eye, facingLocation: head });
     } catch (e) {
       log.warn(`jumpscare camera: ${e?.message ?? e}`);
@@ -896,8 +977,12 @@ export class Game {
       this.startEnding();
       return;
     }
-    if (r.won && !r.challenge && r.night === LAST_NIGHT) {
+    if (r.won && !r.challenge && r.night === 7) {
       this.startFinalEnding();
+      return;
+    }
+    if (r.won && !r.challenge && r.night === 9) {
+      this.startNightNineEnding();
       return;
     }
     if (r.night === 0) {
@@ -907,7 +992,7 @@ export class Game {
     this.fullReset(r.won ? 'lobby' : 'office');
     if (!g) return;
     const label = r.challenge ? `Challenge: ${CONFIG.challenges[r.challenge].title}` : `Night ${r.night}`;
-    ui.resultForm(g, { won: r.won, night: r.night, label, canNext: r.won && !r.challenge && r.night < 6 }).then((choice) => {
+    ui.resultForm(g, { won: r.won, night: r.night, label, canNext: r.won && !r.challenge && [1, 2, 3, 4, 5, 8].includes(r.night) }).then((choice) => {
       if (choice === 'next') {
         this.state = 'LOBBY';
         this.enterIntro(r.night + 1);
@@ -959,6 +1044,7 @@ export class Game {
     const g = this.guard();
     if (!g || !e) return;
     if (e.kind === 'final') return this.tickFinalEnding(now, g);
+    if (e.kind === 'nine') return this.tickNightNineEnding(now, g);
     if (now < e.next) return;
     const ch = NODE_BY_ID.CHAMBER_F;
     const shots = [
@@ -1015,7 +1101,9 @@ export class Game {
       this.ending.choice = choice;
       this.ending.next = system.currentTick + 10;
       if (!this.save.endings.includes(choice)) this.save.endings.push(choice);
-      if (!this.save.completed.includes(LAST_NIGHT)) this.save.completed.push(LAST_NIGHT);
+      this.save.lastEnding = choice; // decides which night 8 comes next
+      if (!this.save.completed.includes(7)) this.save.completed.push(7);
+      this.save.unlocked = Math.max(this.save.unlocked, 8);
       storeSave(this.save);
     });
   }
@@ -1081,6 +1169,7 @@ export class Game {
         this.audio.stop('final');
         restorePlayerView(g);
         this.fullReset('lobby');
+        this.hudMessage(`NIGHT 8 is open at the time clock (${e.choice === 'seal' ? 'something was walled in with him' : 'something walked out of the smoke'}).`, 200);
         ui.extrasForm(g, this.save);
         return;
       }
@@ -1106,6 +1195,169 @@ export class Game {
     } catch {
       // unloaded: skip this frame
     }
+  }
+
+  // ================================================================ camera map, stare, head turns
+  /** Camera map HUD (117): marker title on (camera to highlight) or off. Honours the Settings switch. */
+  showCamMap(g, cam) {
+    if (!g || (this.save.settings.camMap === false && cam)) return;
+    try {
+      g.onScreenDisplay.setTitle(mapTitle(cam), { fadeInDuration: 0, stayDuration: cam ? 120 : 1, fadeOutDuration: 0 });
+    } catch {
+      // ignore
+    }
+  }
+
+  /** Head turn from `who`'s pose toward a local point, as fb:look_* values (relative to the body). */
+  lookToward(who, p, target, tilt = 0) {
+    const headY = p.y + (EYE_HEIGHT[who] ?? 1.55) * (SCALE[who] ?? 1);
+    const dx = target.x - p.x;
+    const dz = target.z - p.z;
+    const want = (Math.atan2(-dx, dz) * 180) / Math.PI;
+    let rel = want - (p.yaw ?? 0);
+    while (rel > 180) rel -= 360;
+    while (rel < -180) rel += 360;
+    if (Math.abs(rel) > 120) return { yaw: 0, pitch: 0, tilt: 0 }; // behind them: they do not turn that far
+    const pitch = (-Math.atan2(target.y - headY, Math.hypot(dx, dz)) * 180) / Math.PI;
+    const clamp = (v, m) => Math.max(-m, Math.min(m, Math.round(v)));
+    return { yaw: clamp(rel, 80), pitch: clamp(pitch, 50), tilt: clamp(tilt, 30) };
+  }
+
+  /** The stare (11): whoever you watch on a camera slowly turns to look straight into the lens, head tilted. */
+  stareLooks(s) {
+    const c = s.devices.cams;
+    const cam = c.open && !this.camCover(s) ? CAMERA_BY_ID[c.cam] : null;
+    const looks = Object.create(null);
+    for (const id of s.order) {
+      const a = s.anim[id];
+      const p = a.pose();
+      if (!cam || p.hidden || a.move || !cam.sees.includes(a.node) || ['attack', 'crawl'].includes(p.anim)) {
+        this.stareTicks[id] = 0;
+        continue;
+      }
+      this.stareTicks[id] = (this.stareTicks[id] ?? 0) + 4;
+      if (this.stareTicks[id] < STARE_AFTER) continue;
+      const [x, y, z] = cam.loc;
+      looks[id] = this.lookToward(id, p, { x, y, z }, (id.length % 2 ? 1 : -1) * 16);
+    }
+    this.puppets.looks = looks;
+  }
+
+  /** Free Roam (127): the animatronics turn their heads to follow you when you walk close. */
+  roamLooks() {
+    const g = this.guard();
+    const looks = Object.create(null);
+    if (g) {
+      const me = L(g.getHeadLocation());
+      for (const who of MAIN) {
+        const a = this.puppets.applied[who];
+        if (!a || Math.hypot(me.x - a.x, me.z - a.z) > ROAM_LOOK_RANGE || Math.abs(me.y - a.y) > 6) continue;
+        looks[who] = this.lookToward(who, a, me);
+      }
+    }
+    this.puppets.looks = looks;
+  }
+
+  // ================================================================ the 1987 tapes (lore 157)
+  startTape(player) {
+    if (!['INTRO', 'LOBBY', 'FREE_ROAM'].includes(this.state) || this.tour || this.tape) return this.deny(player, 'The tape deck only plays when no shift is running.');
+    if (!this.save.completed.includes(TAPE_UNLOCK_NIGHT)) return this.deny(player, 'The tape deck is jammed. (Survive night 5 first.)');
+    const g = player ?? this.guard();
+    if (!g) return false;
+    this.guardId = g.id;
+    this.tape = { i: 0, next: system.currentTick + 10 };
+    try {
+      g.playSound('fb.cam.static', { volume: 0.8 });
+    } catch {
+      // ignore
+    }
+    return true;
+  }
+
+  tickTape(now) {
+    const t = this.tape;
+    const g = this.guard();
+    if (!g) return this.endTape();
+    if (now < t.next) return;
+    if (t.i >= TAPE.length) return this.endTape();
+    const [cam, ticks, title, sub, figure] = TAPE[t.i];
+    try {
+      if (t.i === 0) this.cams.open(g, cam);
+      else this.cams.show(cam);
+      if (figure) {
+        const n = NODE_BY_ID[figure];
+        this.puppets.apply('fredbear', { x: n.x, y: n.y, z: n.z, yaw: n.yaw ?? 0, anim: 'look', eyes: true, hidden: false });
+      } else this.puppets.apply('fredbear', { ...NODE_BY_ID.CHAMBER_F, yaw: 0, anim: 'dormant', eyes: false, hidden: false });
+      g.onScreenDisplay.setTitle(title, { fadeInDuration: 5, stayDuration: ticks - 10, fadeOutDuration: 5, subtitle: `${sub}${t.i === 0 ? ' §7· sneak to stop' : ''}` });
+      if (t.i === TAPE.length - 1) g.playSound('fb.cam.static', { volume: 1.0 });
+    } catch (e) {
+      log.warn(`tape: ${e?.message ?? e}`);
+    }
+    t.i++;
+    t.next = now + ticks;
+  }
+
+  endTape() {
+    if (!this.tape) return;
+    this.tape = null;
+    this.cams.close();
+    this.save.tapesSeen = true;
+    storeSave(this.save);
+    const g = this.guard();
+    try {
+      g?.onScreenDisplay.setTitle(' ', { fadeInDuration: 0, stayDuration: 1, fadeOutDuration: 0 });
+    } catch {
+      // ignore
+    }
+    this.puppets.sync(null, this.state === 'INTRO' ? this.restAnim() : 'perform');
+  }
+
+  // ================================================================ night 9 ending
+  startNightNineEnding() {
+    this.fullReset('lobby');
+    this.state = 'ENDING';
+    this.ending = { kind: 'nine', step: 0, next: system.currentTick + 20 };
+  }
+
+  tickNightNineEnding(now, g) {
+    const e = this.ending;
+    if (now < e.next) return;
+    const st = NODE_BY_ID.DINER_STAGE;
+    const fl = NODE_BY_ID.DINER_FLOOR;
+    const cam = SCENES.dinerStage.from;
+    const place = (who, x, z, anim, eyes) => this.puppets.apply(who, { x, y: who === 'fredbear' ? st.y : fl.y, z, yaw: 180, anim, eyes, hidden: false, variant: 0 });
+    try {
+      if (e.step < NIGHT_NINE_ENDING.length) {
+        const [title, sub] = NIGHT_NINE_ENDING[e.step];
+        if (e.step === 0) {
+          this.bus.trigger('sig.diner_unseal');
+          place('fredbear', st.x, st.z, 'dormant', true);
+          place('morgrave', st.x - 5, st.z + 6, 'dormant', true);
+          place('valek', st.x + 5, st.z + 6, 'dormant', true);
+          g.camera.setCamera('minecraft:free', { location: Wv(cam), facingLocation: Wv(SCENES.dinerStage.to) });
+          this.audio.play({ id: 'fb.fredbear.musicbox', at: 'player', vol: 0.5, loopKey: 'final' }, g);
+        } else if (e.step === 1) {
+          this.audio.stop('final');
+          this.puppets.looks = Object.fromEntries(['fredbear', 'morgrave', 'valek'].map((w) => [w, this.lookToward(w, this.puppets.applied[w], cam, w === 'valek' ? -18 : 14)]));
+          for (const w of ['fredbear', 'morgrave', 'valek']) this.puppets.apply(w, { ...this.puppets.applied[w], anim: 'idle' });
+        } else if (e.step === 2) {
+          runCmd(COMMAND_TEMPLATES.sunrise[0]);
+          g.camera.setCamera('minecraft:free', { location: Wv(SCENES.frontLot.from), facingLocation: Wv(SCENES.frontLot.to) });
+          this.bus.trigger('win.campaign');
+        }
+        g.onScreenDisplay.setTitle(title, { fadeInDuration: 10, stayDuration: 110, fadeOutDuration: 10, subtitle: sub });
+      } else {
+        restorePlayerView(g);
+        this.fullReset('lobby');
+        this.hudMessage('You survived every night. Thank you for playing.', 200);
+        ui.extrasForm(g, this.save);
+        return;
+      }
+    } catch (err) {
+      log.warn(`night 9 ending ${e.step}: ${err?.message ?? err}`);
+    }
+    e.step++;
+    e.next = now + 140;
   }
 
   // ================================================================ tutorial
@@ -1234,8 +1486,9 @@ export class Game {
       }
       return this.deny(player, this.state === 'NIGHT' ? 'Your shift is already running.' : 'Clock in at the time clock first.');
     }
+    if (action === 'tapes') return this.startTape(player);
     if (action === 'phone') {
-      if (this.state === 'NIGHT') this.timers.phone = { lines: PHONE[this.night] ?? [], i: 0, next: system.currentTick };
+      if (this.state === 'NIGHT') this.timers.phone = { lines: this.challenge ? [this.challenge.text] : this.phoneLines(this.night), i: 0, next: system.currentTick };
       this.bus.trigger('env.phone_ring');
       return true;
     }
@@ -1291,7 +1544,7 @@ export class Game {
         });
         return true;
       case 'reset':
-        ui.lobbyConfirm(player, 'Erase progress?', 'This locks nights 2-7 again and clears secrets and settings. It cannot be undone.', 'Erase').then((yes) => {
+        ui.lobbyConfirm(player, 'Erase progress?', 'This locks nights 2-9 again and clears secrets and settings. It cannot be undone.', 'Erase').then((yes) => {
           if (!yes) return;
           eraseSave();
           this.save = defaultSave();
@@ -1385,6 +1638,7 @@ export class Game {
 
   onSneak(player) {
     if (player.id !== this.guard()?.id) return;
+    if (this.tape) return void this.endTape();
     if (this.tour) return void this.endTour();
     if (this.state === 'FLASHBACK') return void this.endFlashback();
     if (this.state === 'NIGHT' && this.session?.devices.cams.open) this.session.input('cams_close');

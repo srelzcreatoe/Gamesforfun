@@ -19,7 +19,7 @@ import { log } from './log.js';
 const PADS = new Map(layoutModules().modules.map((p) => [p.module.id, p.pad]));
 
 /** Session effect ids that map onto a shared module. */
-const ALIASES = Object.freeze({ 'js.freddy': 'js.common', 'js.bonnie': 'js.common', 'js.chica': 'js.common', 'js.fredbear': 'js.common' });
+const ALIASES = Object.freeze({ 'js.freddy': 'js.common', 'js.bonnie': 'js.common', 'js.chica': 'js.common', 'js.fredbear': 'js.common', 'js.morgrave': 'js.common', 'js.valek': 'js.common' });
 
 export class ActuatorBus {
   constructor() {

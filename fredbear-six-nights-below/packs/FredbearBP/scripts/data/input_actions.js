@@ -4,7 +4,7 @@
 import { CAMERA_ORDER } from './cameras.js';
 import { LOBBY_NIGHTS } from './inputs.js';
 
-export const NIGHT_ACTIONS = Object.freeze(['door_l', 'door_r', 'light_l', 'light_r', 'cams_toggle', 'hatch', 'strobe', 'breaker', 'reserve', 'phone', 'start_shift']);
+export const NIGHT_ACTIONS = Object.freeze(['door_l', 'door_r', 'light_l', 'light_r', 'cams_toggle', 'hatch', 'strobe', 'breaker', 'reserve', 'phone', 'start_shift', 'seal_vent', 'seal_shaft', 'tapes']);
 export const CAMERA_ACTIONS = Object.freeze(CAMERA_ORDER.map((c) => `cam:${c}`));
 export const LOBBY_ACTIONS = Object.freeze(['lobby:tutorial', 'lobby:continue', 'lobby:free_roam', 'lobby:settings', 'lobby:extras', 'lobby:reset', 'lobby:challenges', 'lobby:clippings', ...LOBBY_NIGHTS.map((n) => `lobby:night:${n}`)]);
 export const MAINT_ACTIONS = Object.freeze(['maint:kitchen_breaker', 'maint:generator', 'maint:diner_wall', 'maint:electrical', 'maint:cam_server', 'maint:records_key']);

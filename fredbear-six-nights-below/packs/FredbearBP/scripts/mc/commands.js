@@ -17,7 +17,7 @@ export const COMMAND_TEMPLATES = Object.freeze({
     'weather clear',
   ],
   stopSounds: ['stopsound @a'],
-  fogPush: [1, 2, 3, 4, 5, 6, 7].map((n) => `fog @a push fb:night_${n} fb_night`),
+  fogPush: [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `fog @a push fb:night_${n} fb_night`),
   fogPop: ['fog @a remove fb_night'],
   // Clear "camera feed" fog on top of the night fog while the monitor is up (RP fogs/fb_camera_feed.json).
   camFogPush: ['fog @a push fb:camera_feed fb_cam'],
@@ -32,4 +32,4 @@ export const COMMAND_TEMPLATES = Object.freeze({
 });
 
 /** Fog id per night (resource pack fogs/*.json). */
-export const fogCommand = (night) => `fog @a push fb:night_${Math.max(1, Math.min(7, night))} fb_night`;
+export const fogCommand = (night) => `fog @a push fb:night_${Math.max(1, Math.min(9, night))} fb_night`;

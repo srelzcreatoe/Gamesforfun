@@ -20,6 +20,7 @@ export class Director {
     this.camFocus = Object.create(null);
     this.attackToken = null;
     this.entries = { L: null, R: null, H: null }; // reserved by character id
+    this.partners = { L: null, R: null, H: null }; // second attacker at the same door (double trouble)
     this.graceUntil = 0;
     this.eventsDone = new Set();
     this.finale = false;
@@ -105,8 +106,36 @@ export class Director {
     return true;
   }
 
+  /**
+   * Double trouble: a second door attacker may join the one already telegraphing at `entry`.
+   * Same guards as an approach, except the entry is held by the first one (not a new entry).
+   */
+  reservePartner(who, entry) {
+    const s = this.s;
+    const holder = this.entries[entry];
+    if (!holder || holder === who || this.partners[entry]) return false;
+    if (s.phase !== 'RUNNING' || s.t < this.graceUntil || s.blackout.stage !== 'none' || s.finale) return false;
+    if (this.fredbearEngaged()) return false;
+    this.partners[entry] = who;
+    return true;
+  }
+
+  /** True while two attackers stand at `entry` together. */
+  pairAt(entry) {
+    const a = this.entries[entry];
+    const b = this.partners[entry];
+    const at = (w) => ['TELEGRAPH', 'LURK'].includes(this.s.anim[w]?.state);
+    return !!(a && b && at(a) && at(b));
+  }
+
   releaseEntry(who) {
-    for (const k of ['L', 'R', 'H']) if (this.entries[k] === who) this.entries[k] = null;
+    for (const k of ['L', 'R', 'H']) {
+      if (this.entries[k] === who) {
+        this.entries[k] = this.partners[k]; // the partner (if any) now holds the door alone
+        this.partners[k] = null;
+      }
+      if (this.partners[k] === who) this.partners[k] = null;
+    }
   }
 
   /** Single attack token: the first valid requester wins; the night stops on a lethal attack. */
@@ -129,7 +158,7 @@ export class Director {
     if (this.activeEntryCount() > 0) return false;
     for (const a of s.order) {
       const st = s.anim[a].state;
-      if (['APPROACH', 'TELEGRAPH', 'LURK', 'FORCING', 'JAMMED'].includes(st)) return false;
+      if (['APPROACH', 'TELEGRAPH', 'LURK', 'FORCING', 'JAMMED', 'CORNER'].includes(st)) return false;
     }
     return true;
   }

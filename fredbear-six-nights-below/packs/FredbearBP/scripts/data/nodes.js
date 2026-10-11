@@ -3,44 +3,58 @@
 // Nodes are places an animatronic may stand. Edges are walkable polylines that
 // pass through real doorways; tools/validate_map.mjs voxel-checks every
 // segment against the generated build so ordinary movement never crosses a
-// wall. Access letters: B = Bonnie, C = Chica, F = Freddy, G = Fredbear.
+// wall. Access letters: B = Bonnie, C = Chica, F = Freddy, G = Fredbear,
+// M = Morgrave (the vents and the old crawlspace only). Valek has no edges: he
+// steps between dark nodes (VALEK_LADDER) without walking. Nodes with
+// `store` are standing spots only (no edges): homes and the Parts & Service
+// storage spots the trio are moved to on nights 7 and 9.
 //
 // zone: far | mid | near | entry   (entry = attack position outside a barrier)
 // entry: L (left door) | R (right door) | H (office hatch)
 // golden: designated supernatural relocation node (Fredbear only, warned).
+// partner: second attack spot beside an entry (two animatronics at one door).
 
 /**
  * @param {string} id @param {number} x @param {number} y @param {number} z @param {string} room @param {string} zone
- * @param {{ yaw?: number, home?: string, golden?: boolean, dark?: boolean, entry?: string, kitchen?: boolean, crawl?: boolean }} [extra]
+ * @param {{ yaw?: number, home?: string, golden?: boolean, dark?: boolean, entry?: string, kitchen?: boolean, crawl?: boolean, partner?: boolean, store?: boolean, haunt?: boolean }} [extra]
  */
 const N = (id, x, y, z, room, zone, extra = {}) => Object.freeze({
   id, x, y, z, room, zone,
   yaw: extra.yaw, home: extra.home, golden: !!extra.golden, dark: !!extra.dark, entry: extra.entry, kitchen: !!extra.kitchen, crawl: !!extra.crawl,
+  partner: !!extra.partner, store: !!extra.store, haunt: !!extra.haunt,
 });
 
 export const NODES = Object.freeze([
   // Stage and north rooms
-  N('STAGE_F', 100.5, 1, 22.5, 'STAGE', 'far', { yaw: 0, home: 'freddy' }),
-  N('STAGE_B', 93.5, 1, 23.5, 'STAGE', 'far', { yaw: 0, home: 'bonnie' }),
-  N('STAGE_C', 107.5, 1, 23.5, 'STAGE', 'far', { yaw: 0, home: 'chica' }),
+  N('STAGE_F', 100.5, 1, 22.5, 'STAGE', 'far', { yaw: 0, home: 'freddy', haunt: true }),
+  N('STAGE_B', 93.5, 1, 23.5, 'STAGE', 'far', { yaw: 0, home: 'bonnie', haunt: true }),
+  N('STAGE_C', 107.5, 1, 23.5, 'STAGE', 'far', { yaw: 0, home: 'chica', haunt: true }),
   N('STAGE_FRONT', 100.5, 0, 35.5, 'STAGE', 'far'),
   N('BACK', 64.5, 0, 26.5, 'BACKSTAGE', 'far'),
   N('PARTS', 34.5, 0, 26.5, 'PARTS', 'far', { dark: true }),
-  N('PRP', 136.5, 0, 24.5, 'PROPS', 'far', { dark: true }),
+  N('PRP', 136.5, 0, 24.5, 'PROPS', 'far', { dark: true, haunt: true }),
+  // Parts & Service storage: the trio, switched off, on nights 7 and 9; Valek's spot every night.
+  N('PARTS_F', 30.5, 0, 17.5, 'PARTS', 'far', { yaw: 0, store: true, dark: true }),
+  N('PARTS_B', 26.5, 0, 17.5, 'PARTS', 'far', { yaw: 0, store: true, dark: true }),
+  N('PARTS_C', 34.5, 0, 17.5, 'PARTS', 'far', { yaw: 0, store: true, dark: true }),
+  N('V_HOME', 21.5, 0, 33.5, 'PARTS', 'far', { yaw: -90, home: 'valek', store: true, dark: true }),
   // Dining hall
   N('DIN_NW', 64.5, 0, 50.5, 'DINING', 'mid'),
   N('DIN_W', 62.5, 0, 84.5, 'DINING', 'mid'),
-  N('DIN_C', 100.5, 0, 70.5, 'DINING', 'mid'),
+  N('DIN_C', 100.5, 0, 70.5, 'DINING', 'mid', { haunt: true }),
   N('DIN_E', 136.5, 0, 58.5, 'DINING', 'mid'),
   N('DIN_EE', 140.5, 0, 80.5, 'DINING', 'mid'),
   N('DIN_SW', 87.5, 0, 94.5, 'DINING', 'mid'),
   N('DIN_SE', 113.5, 0, 94.5, 'DINING', 'mid'),
   // West wing
   N('COVE_FRONT', 36.5, 0, 55.5, 'COVE', 'far', { dark: true }),
-  N('COVE_STAGE', 21.5, 1, 55.5, 'COVE', 'far', { dark: true, golden: true, yaw: -90 }),
-  N('ARCADE', 34.5, 0, 87.5, 'ARCADE', 'far'),
+  N('COVE_STAGE', 21.5, 1, 55.5, 'COVE', 'far', { dark: true, golden: true, yaw: -90, haunt: true }),
+  N('ARCADE', 34.5, 0, 87.5, 'ARCADE', 'far', { haunt: true }),
   N('PC', 68.5, 0, 108.5, 'PARTY_C', 'mid'),
   N('SUP', 78.5, 0, 128.5, 'SUPPLY', 'near', { dark: true }),
+  N('M_SUP', 81.5, 0, 137.5, 'SUPPLY', 'near', { dark: true }),
+  // Inside the supply duct (two blocks high, under the west corner; CAM 18).
+  N('VENT_W', 86.5, -3, 132.5, 'VENT', 'near', { dark: true, crawl: true, yaw: -90 }),
   N('WH_N', 87.5, 0, 103.5, 'W_HALL', 'mid', { dark: true }),
   N('WH_M', 87.5, 0, 116.5, 'W_HALL', 'near', { dark: true }),
   N('WH_S', 87.5, 0, 130.5, 'W_HALL', 'near', { dark: true, golden: true, yaw: -90 }),
@@ -51,9 +65,10 @@ export const NODES = Object.freeze([
   N('EH_M', 113.5, 0, 116.5, 'E_HALL', 'near', { dark: true }),
   N('EH_S', 113.5, 0, 130.5, 'E_HALL', 'near', { dark: true, golden: true, yaw: 90 }),
   N('E_DOOR', 107.5, 0, 130.0, 'E_ALCOVE', 'entry', { entry: 'R', yaw: 90, dark: true }),
+  N('E_DOOR_B', 108.5, 0, 132.5, 'E_ALCOVE', 'entry', { entry: 'R', yaw: 90, dark: true, partner: true }),
   N('PD', 130.5, 0, 108.5, 'PARTY_D', 'mid'),
   N('EMP', 152.5, 0, 106.5, 'EMPLOYEE', 'mid'),
-  N('KIT', 166.5, 0, 30.5, 'KITCHEN', 'far', { dark: true, kitchen: true }),
+  N('KIT', 166.5, 0, 30.5, 'KITCHEN', 'far', { dark: true, kitchen: true, haunt: true }),
   N('PAN', 156.5, 0, 56.5, 'PANTRY', 'far', { dark: true }),
   N('ES_N', 152.5, 0, 72.5, 'E_SERVICE', 'mid', { dark: true }),
   N('ES_M', 152.5, 0, 81.5, 'E_SERVICE', 'mid', { dark: true }),
@@ -61,6 +76,7 @@ export const NODES = Object.freeze([
   N('RH', 162.5, 0, 83.5, 'RESTROOM_HALL', 'mid', { dark: true }),
   // Basement (Fredbear)
   N('CHAMBER_F', 34.5, -9, 36.5, 'CHAMBER', 'far', { home: 'fredbear', yaw: 0, dark: true }),
+  N('M_HOME', 22.5, -9, 37.5, 'CHAMBER', 'far', { home: 'morgrave', yaw: -90, store: true, dark: true }),
   N('DINER_STAGE', 40.5, -8, 50.5, 'DINER', 'far', { golden: true, yaw: 0, dark: true }),
   N('DINER_FLOOR', 40.5, -9, 70.5, 'DINER', 'far', { dark: true }),
   N('DINER_KITCHEN', 28.5, -9, 104.5, 'DINER_KITCHEN', 'far', { dark: true }),
@@ -101,27 +117,32 @@ export const EDGES = Object.freeze([
   E('DIN_NW', 'COVE_FRONT', 'B', [P(54.5, 0, 55.0), P(49.5, 0, 55.0)]),
   E('DIN_W', 'ARCADE', 'B', [P(50.5, 0, 85.0)]),
   E('DIN_W', 'DIN_SW', 'B', []),
-  E('DIN_C', 'DIN_SW', 'BF', []),
+  E('DIN_C', 'DIN_SW', 'BCF', []),
   E('DIN_C', 'DIN_SE', 'CF', []),
   E('DIN_C', 'DIN_E', 'CF', []),
   E('DIN_E', 'DIN_EE', 'CF', []),
   E('DIN_EE', 'DIN_SE', 'CF', []),
   // --- west wing
-  E('DIN_SW', 'WH_N', 'B', [P(87.5, 0, 100.5)]),
+  E('DIN_SW', 'WH_N', 'BC', [P(87.5, 0, 100.5)]),
   E('DIN_W', 'PC', 'B', [P(67.0, 0, 98.5), P(67.0, 0, 101.5)]),
   E('PC', 'WH_M', 'B', [P(82.5, 0, 108.0), P(86.5, 0, 108.0)]),
-  E('WH_N', 'WH_M', 'B', []),
-  E('WH_M', 'WH_S', 'BG', []),
-  E('WH_S', 'W_DOOR', 'BFG', [P(90.5, 0, 130.0)]),
+  E('WH_N', 'WH_M', 'BC', []),
+  E('WH_M', 'WH_S', 'BCG', []),
+  E('WH_S', 'W_DOOR', 'BCFG', [P(90.5, 0, 130.0)]),
   E('WH_M', 'SUP', 'B', [P(86.5, 0, 121.0), P(82.5, 0, 121.0), P(78.5, 0, 124.5)]),
-  E('SUP', 'W_DOOR', 'B', [P(80.5, 0, 132.5), P(80.5, -1.6, 132.5), P(92.5, -1.6, 132.5), P(92.5, 0, 132.5)], 'vent'),
-  E('WH_N', 'PA', 'B', [P(88.5, 0, 106.0), P(91.5, 0, 106.0)]),
-  E('PA', 'EH_N', 'B', [P(109.0, 0, 106.0), P(111.5, 0, 106.0)]),
+  // Supply duct: down through the closet grate, along the duct (VENT_W, CAM 18), up through the corner grate.
+  E('SUP', 'VENT_W', 'B', [P(80.5, 0, 132.5), P(80.5, -3, 132.5)], 'vent'),
+  E('M_SUP', 'VENT_W', 'M', [P(80.5, 0, 132.5), P(80.5, -3, 132.5)], 'vent'),
+  E('VENT_W', 'W_DOOR', 'BM', [P(92.5, -3, 132.5), P(92.5, 0, 132.5)], 'vent', { gate: 'vent_seal' }),
+  E('WH_N', 'PA', 'BC', [P(88.5, 0, 106.0), P(91.5, 0, 106.0)]),
+  E('PA', 'EH_N', 'BC', [P(109.0, 0, 106.0), P(111.5, 0, 106.0)]),
   // --- east wing
   E('DIN_SE', 'EH_N', 'BCF', [P(113.5, 0, 100.5)]),
   E('EH_N', 'EH_M', 'BCF', []),
   E('EH_M', 'EH_S', 'BCFG', []),
   E('EH_S', 'E_DOOR', 'BCFG', [P(109.5, 0, 130.0)]),
+  E('EH_S', 'E_DOOR_B', 'BC', [P(110.5, 0, 132.5)]),
+  E('EH_M', 'E_DOOR_B', 'BC', [P(113.5, 0, 129.5), P(110.5, 0, 132.5)]),
   E('DIN_E', 'KIT', 'C', [P(146.5, 0, 45.5), P(150.5, 0, 45.5)]),
   E('KIT', 'PAN', 'C', [P(161.0, 0, 48.5), P(161.0, 0, 51.5)]),
   E('PAN', 'ES_N', 'C', [P(152.0, 0, 60.5), P(152.0, 0, 63.5)]),
@@ -138,13 +159,13 @@ export const EDGES = Object.freeze([
   E('DINER_STAGE', 'DINER_FLOOR', 'G', [P(40.5, -8, 55.2), P(40.5, -9, 55.7)]),
   E('DINER_FLOOR', 'DINER_KITCHEN', 'G', [P(27.0, -9, 93.5), P(27.0, -9, 97.5)]),
   E('DINER_KITCHEN', 'CRAWL_MID', 'G', [P(38.0, -9, 110.5), P(38.0, -9, 114.0)], 'crawl'),
-  E('CRAWL_MID', 'CRAWL_END', 'G', [], 'crawl'),
-  E('CRAWL_END', 'SUB_N', 'G', [P(93.5, -9, 114.0)], 'crawl'),
-  E('SUB_N', 'H_DOOR', 'G', [P(100.0, -9, 135.0), P(100.0, -9, 137.0)], 'climb'),
+  E('CRAWL_MID', 'CRAWL_END', 'GM', [], 'crawl'),
+  E('CRAWL_END', 'SUB_N', 'GM', [P(93.5, -9, 114.0)], 'crawl', { gate: 'shaft_seal' }),
+  E('SUB_N', 'H_DOOR', 'GM', [P(100.0, -9, 135.0), P(100.0, -9, 137.0)], 'climb'),
   E('DINER_FLOOR', 'TW_SEAL', 'G', [P(60.5, -9, 85.5), P(65.5, -9, 85.5)], 'walk', { gate: 'diner_seal' }),
   E('TW_SEAL', 'TS_W', 'G', [P(67.0, -9, 107.0)]),
   E('TS_W', 'TS_MID', 'G', []),
-  E('TS_MID', 'SUB_N', 'G', [P(100.0, -9, 113.5)], 'crawl'),
+  E('TS_MID', 'SUB_N', 'G', [P(100.0, -9, 113.5)], 'crawl', { gate: 'shaft_seal' }),
 ]);
 
 /** Fredbear's supernatural relocation pairs (no polyline; warned teleport). */
@@ -157,8 +178,29 @@ export const ENTRY_NODE = Object.freeze({ L: 'W_DOOR', R: 'E_DOOR', H: 'H_DOOR' 
 /** Entry -> approach node from which the final move into the entry starts. */
 export const ENTRY_APPROACH = Object.freeze({ L: ['WH_S', 'SUP'], R: ['EH_S'], H: ['SUB_N'] });
 
+/** Entry -> second attack spot (double trouble, docs/04). */
+export const PARTNER_NODE = Object.freeze({ R: 'E_DOOR_B' });
+
+/** Fredbear's haunting spots on nights he is everywhere (7 and 9): anywhere in the pizzeria, the main stage too. */
+export const HAUNT_NODES = Object.freeze(NODES.filter((n) => n.haunt).map((n) => n.id));
+
+/** Night 7 / 9: the trio, switched off, in Parts & Service. */
+export const STORE_NODE = Object.freeze({ freddy: 'PARTS_F', bonnie: 'PARTS_B', chica: 'PARTS_C' });
+
+/** Valek's dark ladders: far stage -> ... -> the door corner (he steps, never walks). */
+export const VALEK_LADDER = Object.freeze({
+  L: Object.freeze(['COVE_FRONT', 'WH_N', 'WH_M', 'WH_S', 'W_DOOR']),
+  R: Object.freeze(['PRP', 'EH_N', 'EH_M', 'EH_S', 'E_DOOR']),
+});
+
+/** Morgrave's crawl routes: where he comes out of the walls -> ... -> the entry. */
+export const MORGRAVE_ROUTE = Object.freeze({
+  L: Object.freeze(['M_SUP', 'VENT_W', 'W_DOOR']),
+  H: Object.freeze(['CRAWL_MID', 'CRAWL_END', 'SUB_N', 'H_DOOR']),
+});
+
 /** Character -> access letter. */
-export const ACCESS = Object.freeze({ bonnie: 'B', chica: 'C', freddy: 'F', fredbear: 'G' });
+export const ACCESS = Object.freeze({ bonnie: 'B', chica: 'C', freddy: 'F', fredbear: 'G', morgrave: 'M', valek: 'V' });
 
 /** Full polyline for an edge, oriented from `from` to the other endpoint. */
 export function edgePolyline(edge, from) {

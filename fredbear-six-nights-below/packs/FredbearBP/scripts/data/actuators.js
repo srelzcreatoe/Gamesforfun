@@ -16,6 +16,7 @@
 
 import { ORIGIN } from './layout.js';
 import { LOBBY_NIGHTS, nightButtonZ, CHALLENGE_LAMPS } from './inputs.js';
+import { PARTY } from './lore.js';
 
 const W = (x, y, z) => `${x + ORIGIN.x} ${y + ORIGIN.y} ${z + ORIGIN.z}`;
 const BOX = (x1, y1, z1, x2, y2, z2) => `${W(x1, y1, z1)} ${W(x2, y2, z2)}`;
@@ -33,6 +34,13 @@ const IND = { doorL: W(94, 3, 129), lightL: W(94, 3, 130), doorR: W(106, 3, 129)
 const OFFICE_LAMP_A = W(100, 5, 135);
 const OFFICE_LAMP_B = W(100, 5, 129);
 const TRAPDOOR = (open) => `iron_trapdoor ["direction"=0,"open_bit"=${open},"upside_down_bit"=true]`;
+// Vent seals (1.3): bars in the supply duct just before the corner grate, and in both crawl openings into the subfloor.
+const SEAL_VENT = BOX(91, -3, 132, 91, -2, 132);
+const SEAL_SHAFT_A = BOX(92, -9, 113, 92, -8, 114);
+const SEAL_SHAFT_B = BOX(99, -9, 112, 101, -7, 112);
+const IND_SEAL = { vent: W(95, 3, 126), shaft: W(95, 2, 126) };
+const CAKE = W(...PARTY.cake);
+const CANDLES = PARTY.candles.map((c) => W(...c));
 
 const M = (id, section, purpose, cmds, extra = {}) => Object.freeze({
   id, section, purpose,
@@ -68,7 +76,7 @@ export const MODULES = Object.freeze([
   ]),
   M('init.time', 'A', 'Midnight, clear sky', ['time set 18000', 'weather clear', 'difficulty normal']),
   // ---------------------------------------------------------------- B lobby & tutorial
-  ...LOBBY_NIGHTS.map((n) => M(`lobby.lamp_${n}`, 'B', `Time-clock lamp: night ${n} unlocked`, [`setblock ${W(184, 3, nightButtonZ(n))} ${n === 7 ? 'ochre_froglight' : 'verdant_froglight'}`])),
+  ...LOBBY_NIGHTS.map((n) => M(`lobby.lamp_${n}`, 'B', `Time-clock lamp: night ${n} unlocked`, [`setblock ${W(184, 3, nightButtonZ(n))} ${n >= 8 ? 'pearlescent_froglight' : n === 7 ? 'ochre_froglight' : 'verdant_froglight'}`])),
   ...Object.entries(CHALLENGE_LAMPS).map(([id, [x, y, z]]) => M(`lobby.chal_${id}`, 'B', `Challenge lamp: ${id} beaten`, [`setblock ${W(x, y, z)} pearlescent_froglight`])),
   M('lobby.lamps_reset', 'B', 'Time-clock and challenge lamps: all off', [
     `fill ${BOX(184, 3, nightButtonZ(1), 184, 3, nightButtonZ(LOBBY_NIGHTS.length))} gray_concrete`, `fill ${BOX(156, 3, 124, 159, 3, 124)} gray_concrete`,
@@ -86,6 +94,8 @@ export const MODULES = Object.freeze([
     `setblock ${IND.lightR} gray_concrete`, `setblock ${IND.hatch} gray_concrete`, `setblock ${IND.breaker} verdant_froglight`,
     `fill ${BOX(96, 4, 126, 105, 4, 126)} verdant_froglight`, `fill ${BOX(97, 5, 126, 102, 5, 126)} gray_concrete`,
     SND('fb.night.start', 100, 1, 133),
+    // The 1983 birthday cake in the sealed diner: its candles light again, every night.
+    `setblock ${CAKE} pink_candle_cake ["lit"=true]`, ...CANDLES.map((c) => `setblock ${c} white_candle ["candles"=3,"lit"=true]`),
   ]),
   M('night.end', 'C', 'End of shift: open doorways, clear light blocks, stop sounds', [
     `fill ${DOOR_L} air`, `fill ${DOOR_R} air`, `fill ${HATCH_CAP} air`, `fill ${HATCH} ${TRAPDOOR(false)}`,
@@ -93,6 +103,9 @@ export const MODULES = Object.freeze([
     `fill ${ALCOVE_L} air replace light_block_7`, `fill ${ALCOVE_R} air replace light_block_7`,
     `fill ${OFFICE_AIR} air replace light_block_15`, `setblock ${OFFICE_LAMP_A} light_block_11`, `setblock ${OFFICE_LAMP_B} light_block_10`,
     'stopsound @a', 'camerashake stop @a',
+    `fill ${SEAL_VENT} air replace iron_bars`, `fill ${SEAL_SHAFT_A} air replace iron_bars`, `fill ${SEAL_SHAFT_B} air replace iron_bars`,
+    `setblock ${IND_SEAL.vent} gray_concrete`, `setblock ${IND_SEAL.shaft} gray_concrete`,
+    `setblock ${CAKE} pink_candle_cake ["lit"=false]`, ...CANDLES.map((c) => `setblock ${c} white_candle ["candles"=3,"lit"=false]`),
   ]),
   M('night.hour', 'C', 'Hour chime', [SND('fb.clock.hour', 100, 3, 133, 0.6)]),
   ...[0, 1, 2, 3, 4, 5].map((h) => M(`night.hour_${h}`, 'C', `Office clock lamp for ${h === 0 ? 12 : h} AM lights (night.begin clears the strip)`, [
@@ -113,6 +126,17 @@ export const MODULES = Object.freeze([
   M('light_r_off', 'D', 'Right hall light off', [`fill ${ALCOVE_R} air replace light_block_14`, `setblock ${IND.lightR} gray_concrete`]),
   M('hatch_close', 'D', 'Office hatch sealed', [`fill ${HATCH} ${TRAPDOOR(false)}`, `setblock ${IND.hatch} ochre_froglight`, SND('fb.door.close', 99.5, 0, 136.5, 0.8, 0.8)]),
   M('hatch_open', 'D', 'Office hatch opened', [`fill ${HATCH} ${TRAPDOOR(true)}`, `setblock ${IND.hatch} gray_concrete`, SND('fb.door.open', 99.5, 0, 136.5, 0.8, 0.8)]),
+  M('seal.vent_close', 'D', 'Vent seal: bars across the supply duct (CAM 18)', [
+    `fill ${SEAL_VENT} iron_bars`, `setblock ${IND_SEAL.vent} ochre_froglight`, SND('fb.door.close', 91, -2, 132, 0.8, 1.3), SND('fb.door.close', 96, 1, 128, 0.5, 1.3),
+  ]),
+  M('seal.vent_open', 'D', 'Vent seal released', [`fill ${SEAL_VENT} air replace iron_bars`, `setblock ${IND_SEAL.vent} gray_concrete`, SND('fb.door.open', 96, 1, 128, 0.5, 1.3)]),
+  M('seal.shaft_close', 'D', 'Shaft seal: bars across both crawl openings into the office subfloor (CAM 17)', [
+    `fill ${SEAL_SHAFT_A} iron_bars`, `fill ${SEAL_SHAFT_B} iron_bars`, `setblock ${IND_SEAL.shaft} ochre_froglight`,
+    SND('fb.door.close', 100, -8, 113, 0.8, 1.3), SND('fb.door.close', 96, 1, 129, 0.5, 1.3),
+  ]),
+  M('seal.shaft_open', 'D', 'Shaft seal released', [
+    `fill ${SEAL_SHAFT_A} air replace iron_bars`, `fill ${SEAL_SHAFT_B} air replace iron_bars`, `setblock ${IND_SEAL.shaft} gray_concrete`, SND('fb.door.open', 96, 1, 129, 0.5, 1.3),
+  ]),
   // ---------------------------------------------------------------- E cameras
   M('cam.up', 'E', 'Monitor raised (office sound)', [SND('fb.cam.up', 98, 1, 130)]),
   M('cam.down', 'E', 'Monitor lowered', [SND('fb.cam.down', 98, 1, 130)]),

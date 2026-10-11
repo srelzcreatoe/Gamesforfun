@@ -20,10 +20,15 @@ export const PUPPET_TYPES = Object.freeze({
   bonnie: 'fb:bonnie',
   chica: 'fb:chica',
   fredbear: 'fb:fredbear',
+  morgrave: 'fb:morgrave',
+  valek: 'fb:valek',
   echo: 'fb:fredbear_echo',
 });
-const MAIN = ['freddy', 'bonnie', 'chica', 'fredbear'];
-const HOME = Object.freeze({ freddy: 'STAGE_F', bonnie: 'STAGE_B', chica: 'STAGE_C', fredbear: 'CHAMBER_F' });
+export const MAIN = Object.freeze(['freddy', 'bonnie', 'chica', 'fredbear', 'morgrave', 'valek']);
+const TRIO = new Set(['freddy', 'bonnie', 'chica']);
+const HOME = Object.freeze({ freddy: 'STAGE_F', bonnie: 'STAGE_B', chica: 'STAGE_C', fredbear: 'CHAMBER_F', morgrave: 'M_HOME', valek: 'V_HOME' });
+const ALWAYS_DORMANT = new Set(['fredbear', 'morgrave', 'valek']); // outside a night they stand switched off
+const NO_LOOK = Object.freeze({ yaw: 0, pitch: 0, tilt: 0 });
 
 function homePose(who, anim) {
   const n = NODE_BY_ID[HOME[who]];
@@ -35,6 +40,9 @@ export class Puppets {
     this.ents = Object.create(null);
     this.applied = Object.create(null);
     this.stats = { spawned: 0, removed: 0, snapped: 0 };
+    this.withered = false; // nights 7-9 and the challenges: the trio wear their withered suits (fb:variant 1)
+    /** @type {Record<string, { yaw: number, pitch: number, tilt: number }>} head turns (the stare, Free Roam) */
+    this.looks = Object.create(null);
   }
 
   /** Locate (or create) the single puppet entity for `who`. */
@@ -90,17 +98,24 @@ export class Puppets {
       if (a.anim !== pose.anim) e.setProperty('fb:anim', pose.anim);
       if (a.eyes !== pose.eyes) e.setProperty('fb:eyes', !!pose.eyes);
       if (a.hidden !== pose.hidden) e.setProperty('fb:hidden', !!pose.hidden);
-      this.applied[who] = { ...pose };
+      const variant = pose.variant ?? (TRIO.has(who) ? (this.withered ? 1 : 0) : undefined);
+      if (variant !== undefined && a.variant !== variant) e.setProperty('fb:variant', variant);
+      const look = pose.anim === 'attack' || pose.hidden ? NO_LOOK : this.looks[who] ?? NO_LOOK;
+      const al = a.look ?? {};
+      if (al.yaw !== look.yaw) e.setProperty('fb:look_yaw', look.yaw);
+      if (al.pitch !== look.pitch) e.setProperty('fb:look_pitch', look.pitch);
+      if (al.tilt !== look.tilt) e.setProperty('fb:look_tilt', look.tilt);
+      this.applied[who] = { ...pose, variant, look };
     } catch (err) {
       delete this.ents[who];
       log.warn(`puppet apply ${who}: ${err?.message ?? err}`);
     }
   }
 
-  /** Sync all four from a night session (or rest poses when there is none). */
+  /** Sync every animatronic from a night session (or rest poses when there is none). */
   sync(session, restAnim = 'perform') {
     for (const who of MAIN) {
-      const pose = session ? session.anim[who].pose() : homePose(who, who === 'fredbear' ? 'dormant' : restAnim);
+      const pose = session ? session.anim[who].pose() : homePose(who, ALWAYS_DORMANT.has(who) ? 'dormant' : restAnim);
       this.apply(who, pose);
     }
     if (system.currentTick % 40 === 0) this.integrity(session);
@@ -159,22 +174,43 @@ export class Puppets {
 
   /**
    * Place `who` right in front of the player's eyes for a jumpscare.
+   * Styles (docs/04 "Jumpscares by place"): 'front'; 'below' rises up through the floor
+   * (the hatch); 'vent' bursts up from low at one side (out of the vent).
    * @param {number} eyeHeight the model's eye height in blocks (already scaled)
    * @param {number} [variant] Fredbear: which of his jumpscare animations plays (fb:variant)
+   * @param {'front' | 'below' | 'vent'} [style]
    */
-  lunge(who, eye, viewDir, eyeHeight, variant = 0) {
+  lunge(who, eye, viewDir, eyeHeight, variant = 0, style = 'front') {
     const e = this.entity(who, homePose(who, 'attack'));
     if (!e) return undefined;
-    const d = who === 'fredbear' ? 1.7 : 1.15; // the taller Fredbear rig lunges forward in its own animation
+    const d = who === 'fredbear' ? 1.7 : 1.15; // the taller rigs lunge forward in their own animation
     const pos = { x: eye.x + viewDir.x * d, y: eye.y - eyeHeight, z: eye.z + viewDir.z * d };
     const yaw = (Math.atan2(viewDir.x, -viewDir.z) * 180) / Math.PI;
+    // Start lower (and, out of the vent, off to one side), then rise into the face over a few ticks.
+    const side = { x: -viewDir.z, z: viewDir.x };
+    const start = style === 'below' ? { x: pos.x, y: pos.y - 2.2, z: pos.z }
+      : style === 'vent' ? { x: pos.x + side.x * 1.1, y: pos.y - 1.4, z: pos.z + side.z * 1.1 } : pos;
     try {
-      e.teleport(pos, { rotation: { x: 0, y: yaw } });
+      e.teleport(start, { rotation: { x: 0, y: yaw } });
       if (who === 'fredbear') e.setProperty('fb:variant', variant);
+      else if (who === 'valek') e.setProperty('fb:variant', 0); // the whole bear, not just the eyes
       e.setProperty('fb:anim', 'attack');
       e.setProperty('fb:eyes', true);
       e.setProperty('fb:hidden', false);
+      for (const k of ['fb:look_yaw', 'fb:look_pitch', 'fb:look_tilt']) e.setProperty(k, 0);
       this.applied[who] = undefined;
+      if (start !== pos) {
+        for (let k = 1; k <= 3; k++) {
+          const f = k / 3;
+          system.runTimeout(() => {
+            try {
+              if (e.isValid) e.teleport({ x: start.x + (pos.x - start.x) * f, y: start.y + (pos.y - start.y) * f, z: start.z + (pos.z - start.z) * f }, { rotation: { x: 0, y: yaw } });
+            } catch {
+              // ignore
+            }
+          }, k * 2);
+        }
+      }
     } catch (err) {
       log.warn(`lunge ${who}: ${err?.message ?? err}`);
     }

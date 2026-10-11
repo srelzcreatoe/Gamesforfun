@@ -40,7 +40,7 @@ Four ticking areas of 8 × 8 chunks keep the whole property, the basement and th
 | officeEye | 100.5 1.6 131.5 | 100.5 -48.4 131.5 | - |
 | trainingSpawn | 166.5 0 138.5 | 166.5 -50 138.5 | 0 |
 | parkingSpawn | 100.5 0 178.5 | 100.5 -50 178.5 | 180 |
-| controlRoom | 30.5 -9 180.5 | 30.5 -59 180.5 | -90 |
+| controlRoom | 30.5 -9 179.5 | 30.5 -59 179.5 | -90 |
 | endingCam | 34.5 -6.5 40.5 | 34.5 -56.5 40.5 | - |
 
 Office interior bounds (local): x 95..105.999, z 127..139.999, y -0.5..6.
@@ -136,24 +136,29 @@ Openings: 83 doors, archways and windows. Stairs, ladders and the office hatch:
 | C03 | CAM 03 · BACKSTAGE | BACKSTAGE | 74.5 4.5 38.5 | 58.5 0.5 15.5 | BACK | 123 blocks (8 chunks) | - |
 | C04 | CAM 04 · STARLIGHT COVE | COVE | 50.5 2.8 58.5 | 21.5 1.5 55.5 | COVE_FRONT, COVE_STAGE | 110 blocks (7 chunks) | - |
 | C05 | CAM 05 · ARCADE | ARCADE | 50.5 5.4 102.5 | 24.5 0.5 76.5 | ARCADE | 94 blocks (6 chunks) | - |
-| C06 | CAM 06 · PARTS & SERVICE | PARTS | 50.5 5.4 38.5 | 22.5 0.5 14.5 | PARTS | 141 blocks (9 chunks) | - |
+| C06 | CAM 06 · PARTS & SERVICE | PARTS | 50.5 5.4 38.5 | 22.5 0.5 14.5 | PARTS, PARTS_F, PARTS_B, PARTS_C, V_HOME | 141 blocks (9 chunks) | - |
 | C07 | CAM 07 · WEST HALL | W_HALL | 87.5 4.6 98.5 | 87.5 0.5 128.5 | WH_N, WH_M, WH_S | 35 blocks (3 chunks) | - |
 | C08 | CAM 08 · WEST CORNER | W_ALCOVE | 91.5 4.6 127.5 | 92.5 0.8 132.5 | W_DOOR | 10 blocks (1 chunks) | - |
 | C09 | CAM 09 · SUPPLY CLOSET | SUPPLY | 82.5 4.5 138.5 | 76.5 0.5 120.5 | SUP | 26 blocks (2 chunks) | - |
 | C10 | CAM 10 · KITCHEN (AUDIO ONLY) | KITCHEN | 182.5 4.5 48.5 | 160.5 0.5 20.5 | KIT | 126 blocks (8 chunks) | audio only |
 | C11 | CAM 11 · EAST SERVICE | E_SERVICE | 152.5 4.6 63.2 | 152.5 0.5 99.5 | ES_N, ES_M, ES_S, EMP | 86 blocks (6 chunks) | - |
 | C12 | CAM 12 · EAST HALL | E_HALL | 113.5 4.6 98.5 | 113.5 0.5 128.5 | EH_N, EH_M, EH_S | 35 blocks (3 chunks) | - |
-| C13 | CAM 13 · EAST CORNER | E_ALCOVE | 108.5 4.6 127.5 | 107.5 0.8 132.5 | E_DOOR | 9 blocks (1 chunks) | - |
+| C13 | CAM 13 · EAST CORNER | E_ALCOVE | 108.5 4.6 127.5 | 107.5 0.8 132.5 | E_DOOR, E_DOOR_B | 9 blocks (1 chunks) | - |
 | C14 | CAM 14 · DINING HALL EAST | DINING | 102.5 11 98.5 | 140.5 0 62.5 | DIN_E, DIN_EE, DIN_SE, STAGE_C | 108 blocks (7 chunks) | - |
 | C15 | CAM 15 · MAINTENANCE TUNNEL | TUNNEL_S | 72.5 -4.6 107.5 | 110.5 -9 107 | TS_W, TS_MID | 37 blocks (3 chunks) | - |
 | C16 | CAM 16 · SEALED DINER | DINER | 62.5 -4.6 94.5 | 40.5 -8 50.5 | DINER_STAGE, DINER_FLOOR | 101 blocks (7 chunks) | no signal before night 4 |
+| C17 | CAM 17 · OFFICE SUBFLOOR | SUBFLOOR | 106.5 -6.5 114.5 | 100 -8 135 | SUB_N | 18 blocks (2 chunks) | - |
+| C18 | CAM 18 · SUPPLY DUCT | VENT | 80.5 -2.5 132.5 | 92.5 -2.5 132.5 | VENT_W | 20 blocks (2 chunks) | - |
+| C19 | CAM 19 · FREDBEAR'S CHAMBER | CHAMBER | 49.5 -4.8 42.5 | 30 -9 35 | CHAMBER_F, M_HOME | 122 blocks (8 chunks) | no signal before night 4 |
+| C20 | CAM 20 · DINER PARTY ROOM | DINER | 20.5 -4.6 60.5 | 48 -9 88 | DINER_FLOOR, DINER_KITCHEN | 107 blocks (7 chunks) | no signal before night 4 |
+| C21 | CAM 21 · DINER KITCHEN | DINER_KITCHEN | 38.5 -5 110.5 | 20 -9 98 | DINER_KITCHEN | 87 blocks (6 chunks) | no signal before night 4 |
 
 **Rendering reach.** Camera views move the player's *view* (`minecraft:free` camera) but not the player, so what a feed can show is limited by what the client has loaded around the player in the office. The farthest point any feed must show is 141 blocks (9 chunks) from the office seat. Ticking areas keep those chunks *simulated* (puppets keep being teleported and synced) but do not by themselves make them *render*; set the render distance to at least 11 chunks (docs/08_INSTALL_AND_PLAY.md). Whether distant feeds render correctly at lower settings has not been verified in-game.
 
 ## AI route graph
 
-47 nodes and 57 edges. Every edge is a polyline of waypoints the puppet follows; tools/validate_map.mjs samples every 0.5 blocks of every polyline against the voxel model (body + head cells must be passable), and the in-game self-test repeats the check against the built world.
-Access letters: B = bonnie, C = chica, F = freddy, G = fredbear. Entries: L → W_DOOR (barrier door_l), R → E_DOOR (barrier door_r), H → H_DOOR (barrier hatch). Fredbear's golden nodes: COVE_STAGE, WH_S, EH_S, DINER_STAGE, CRAWL_MID, SUB_N.
+55 nodes and 61 edges. Every edge is a polyline of waypoints the puppet follows; tools/validate_map.mjs samples every 0.5 blocks of every polyline against the voxel model (body + head cells must be passable), and the in-game self-test repeats the check against the built world.
+Access letters: B = bonnie, C = chica, F = freddy, G = fredbear, M = morgrave, V = valek. Entries: L → W_DOOR (barrier door_l), R → E_DOOR (barrier door_r), H → H_DOOR (barrier hatch). Fredbear's golden nodes: COVE_STAGE, WH_S, EH_S, DINER_STAGE, CRAWL_MID, SUB_N.
 
 | Node | Room | Local x y z | Flags | Seen by |
 |---|---|---|---|---|
@@ -164,6 +169,10 @@ Access letters: B = bonnie, C = chica, F = freddy, G = fredbear. Entries: L → 
 | BACK | BACKSTAGE | 64.5 0 26.5 | zone far | C03 |
 | PARTS | PARTS | 34.5 0 26.5 | dark, zone far | C06 |
 | PRP | PROPS | 136.5 0 24.5 | dark, zone far | - |
+| PARTS_F | PARTS | 30.5 0 17.5 | dark, zone far | C06 |
+| PARTS_B | PARTS | 26.5 0 17.5 | dark, zone far | C06 |
+| PARTS_C | PARTS | 34.5 0 17.5 | dark, zone far | C06 |
+| V_HOME | PARTS | 21.5 0 33.5 | home of valek, dark, zone far | C06 |
 | DIN_NW | DINING | 64.5 0 50.5 | zone mid | C02 |
 | DIN_W | DINING | 62.5 0 84.5 | zone mid | C02 |
 | DIN_C | DINING | 100.5 0 70.5 | zone mid | C02 |
@@ -176,6 +185,8 @@ Access letters: B = bonnie, C = chica, F = freddy, G = fredbear. Entries: L → 
 | ARCADE | ARCADE | 34.5 0 87.5 | zone far | C05 |
 | PC | PARTY_C | 68.5 0 108.5 | zone mid | - |
 | SUP | SUPPLY | 78.5 0 128.5 | dark, zone near | C09 |
+| M_SUP | SUPPLY | 81.5 0 137.5 | dark, zone near | - |
+| VENT_W | VENT | 86.5 -3 132.5 | dark, crawl, zone near | C18 |
 | WH_N | W_HALL | 87.5 0 103.5 | dark, zone mid | C07 |
 | WH_M | W_HALL | 87.5 0 116.5 | dark, zone near | C07 |
 | WH_S | W_HALL | 87.5 0 130.5 | golden, dark, zone near | C07 |
@@ -185,6 +196,7 @@ Access letters: B = bonnie, C = chica, F = freddy, G = fredbear. Entries: L → 
 | EH_M | E_HALL | 113.5 0 116.5 | dark, zone near | C12 |
 | EH_S | E_HALL | 113.5 0 130.5 | golden, dark, zone near | C12 |
 | E_DOOR | E_ALCOVE | 107.5 0 130 | dark, entry R, zone entry | C13 |
+| E_DOOR_B | E_ALCOVE | 108.5 0 132.5 | dark, entry R, zone entry | C13 |
 | PD | PARTY_D | 130.5 0 108.5 | zone mid | - |
 | EMP | EMPLOYEE | 152.5 0 106.5 | zone mid | C11 |
 | KIT | KITCHEN | 166.5 0 30.5 | dark, kitchen, zone far | C10 |
@@ -193,16 +205,17 @@ Access letters: B = bonnie, C = chica, F = freddy, G = fredbear. Entries: L → 
 | ES_M | E_SERVICE | 152.5 0 81.5 | dark, zone mid | C11 |
 | ES_S | E_SERVICE | 152.5 0 96.5 | dark, zone mid | C11 |
 | RH | RESTROOM_HALL | 162.5 0 83.5 | dark, zone mid | - |
-| CHAMBER_F | CHAMBER | 34.5 -9 36.5 | home of fredbear, dark, zone far | - |
+| CHAMBER_F | CHAMBER | 34.5 -9 36.5 | home of fredbear, dark, zone far | C19 |
+| M_HOME | CHAMBER | 22.5 -9 37.5 | home of morgrave, dark, zone far | C19 |
 | DINER_STAGE | DINER | 40.5 -8 50.5 | golden, dark, zone far | C16 |
-| DINER_FLOOR | DINER | 40.5 -9 70.5 | dark, zone far | C16 |
-| DINER_KITCHEN | DINER_KITCHEN | 28.5 -9 104.5 | dark, zone far | - |
+| DINER_FLOOR | DINER | 40.5 -9 70.5 | dark, zone far | C16, C20 |
+| DINER_KITCHEN | DINER_KITCHEN | 28.5 -9 104.5 | dark, zone far | C20, C21 |
 | CRAWL_MID | CRAWL_D | 64.5 -9 114 | golden, dark, crawl, zone mid | - |
 | CRAWL_END | CRAWL_D | 90.5 -9 114 | dark, crawl, zone near | - |
 | TW_SEAL | TUNNEL_W | 67 -9 85.5 | dark, zone mid | - |
 | TS_W | TUNNEL_S | 75.5 -9 107 | dark, zone mid | C15 |
 | TS_MID | TUNNEL_S | 100 -9 107 | dark, zone mid | C15 |
-| SUB_N | SUBFLOOR | 100.5 -9 118.5 | golden, dark, zone near | - |
+| SUB_N | SUBFLOOR | 100.5 -9 118.5 | golden, dark, zone near | C17 |
 | H_DOOR | SUBFLOOR | 100 -2.2 137 | dark, entry H, zone entry | - |
 
 | Edge | Access | Mode | Gate | Length (blocks) | Waypoints |
@@ -223,25 +236,29 @@ Access letters: B = bonnie, C = chica, F = freddy, G = fredbear. Entries: L → 
 | DIN_NW ↔ COVE_FRONT | B | walk | - | 29.0 | 4 |
 | DIN_W ↔ ARCADE | B | walk | - | 28.2 | 3 |
 | DIN_W ↔ DIN_SW | B | walk | - | 26.9 | 2 |
-| DIN_C ↔ DIN_SW | BF | walk | - | 27.3 | 2 |
+| DIN_C ↔ DIN_SW | BCF | walk | - | 27.3 | 2 |
 | DIN_C ↔ DIN_SE | CF | walk | - | 27.3 | 2 |
 | DIN_C ↔ DIN_E | CF | walk | - | 37.9 | 2 |
 | DIN_E ↔ DIN_EE | CF | walk | - | 22.4 | 2 |
 | DIN_EE ↔ DIN_SE | CF | walk | - | 30.4 | 2 |
-| DIN_SW ↔ WH_N | B | walk | - | 9.0 | 3 |
+| DIN_SW ↔ WH_N | BC | walk | - | 9.0 | 3 |
 | DIN_W ↔ PC | B | walk | - | 24.9 | 4 |
 | PC ↔ WH_M | B | walk | - | 26.6 | 4 |
-| WH_N ↔ WH_M | B | walk | - | 13.0 | 2 |
-| WH_M ↔ WH_S | BG | walk | - | 14.0 | 2 |
-| WH_S ↔ W_DOOR | BFG | walk | - | 5.0 | 3 |
+| WH_N ↔ WH_M | BC | walk | - | 13.0 | 2 |
+| WH_M ↔ WH_S | BCG | walk | - | 14.0 | 2 |
+| WH_S ↔ W_DOOR | BCFG | walk | - | 5.0 | 3 |
 | WH_M ↔ SUP | B | walk | - | 17.9 | 5 |
-| SUP ↔ W_DOOR | B | vent | - | 22.2 | 6 |
-| WH_N ↔ PA | B | walk | - | 14.7 | 4 |
-| PA ↔ EH_N | B | walk | - | 14.2 | 4 |
+| SUP ↔ VENT_W | B | vent | - | 13.5 | 4 |
+| M_SUP ↔ VENT_W | M | vent | - | 14.1 | 4 |
+| VENT_W ↔ W_DOOR | BM | vent | vent_seal | 11.5 | 4 |
+| WH_N ↔ PA | BC | walk | - | 14.7 | 4 |
+| PA ↔ EH_N | BC | walk | - | 14.2 | 4 |
 | DIN_SE ↔ EH_N | BCF | walk | - | 9.0 | 3 |
 | EH_N ↔ EH_M | BCF | walk | - | 13.0 | 2 |
 | EH_M ↔ EH_S | BCFG | walk | - | 14.0 | 2 |
 | EH_S ↔ E_DOOR | BCFG | walk | - | 6.0 | 3 |
+| EH_S ↔ E_DOOR_B | BC | walk | - | 5.6 | 3 |
+| EH_M ↔ E_DOOR_B | BC | walk | - | 19.2 | 4 |
 | DIN_E ↔ KIT | C | walk | - | 42.3 | 4 |
 | KIT ↔ PAN | C | walk | - | 28.5 | 4 |
 | PAN ↔ ES_N | C | walk | - | 18.0 | 4 |
@@ -257,17 +274,17 @@ Access letters: B = bonnie, C = chica, F = freddy, G = fredbear. Entries: L → 
 | DINER_STAGE ↔ DINER_FLOOR | G | walk | - | 20.6 | 4 |
 | DINER_FLOOR ↔ DINER_KITCHEN | G | walk | - | 37.8 | 4 |
 | DINER_KITCHEN ↔ CRAWL_MID | G | crawl | - | 41.2 | 4 |
-| CRAWL_MID ↔ CRAWL_END | G | crawl | - | 26.0 | 2 |
-| CRAWL_END ↔ SUB_N | G | crawl | - | 11.3 | 3 |
-| SUB_N ↔ H_DOOR | G | climb | - | 25.3 | 4 |
+| CRAWL_MID ↔ CRAWL_END | GM | crawl | - | 26.0 | 2 |
+| CRAWL_END ↔ SUB_N | GM | crawl | shaft_seal | 11.3 | 3 |
+| SUB_N ↔ H_DOOR | GM | climb | - | 25.3 | 4 |
 | DINER_FLOOR ↔ TW_SEAL | G | walk | diner_seal | 31.5 | 4 |
 | TW_SEAL ↔ TS_W | G | walk | - | 30.0 | 3 |
 | TS_W ↔ TS_MID | G | walk | - | 24.5 | 2 |
-| TS_MID ↔ SUB_N | G | crawl | - | 11.5 | 3 |
+| TS_MID ↔ SUB_N | G | crawl | shaft_seal | 11.5 | 3 |
 
 ## Player route guidance
 
-The green breadcrumb sparkles (introduction, optional tasks, maintenance) follow a walkable waypoint graph generated from the voxel model by `tools/gen_guide.mjs`: 1770 nodes (a 6-block grid in every room, both sides of every doorway, every stairway and the ladder, every control) and 3038 edges, each a straight line a player can walk both ways under the map validator's rules (steps, drops, no squeezing past corners). The game runs Dijkstra from the target and lays sparkles along the next 14 blocks of the real route.
+The green breadcrumb sparkles (introduction, optional tasks, maintenance) follow a walkable waypoint graph generated from the voxel model by `tools/gen_guide.mjs`: 1784 nodes (a 6-block grid in every room, both sides of every doorway, every stairway and the ladder, every control) and 3053 edges, each a straight line a player can walk both ways under the map validator's rules (steps, drops, no squeezing past corners). The game runs Dijkstra from the target and lays sparkles along the next 14 blocks of the real route.
 
 | From | To | Walking distance | Rooms on the way |
 |---|---|---|---|
@@ -277,14 +294,14 @@ The green breadcrumb sparkles (introduction, optional tasks, maintenance) follow
 | Time clock | Night 2 task | 120 blocks | Employee Entrance (Time Clock) → East Service Corridor → Pantry & Receiving → Kitchen |
 | Time clock | Night 3 task | 135 blocks | Employee Entrance (Time Clock) → East Service Corridor → Staff Stairwell → East Maintenance Tunnel → Generator Room |
 | Time clock | Night 4 task | 195 blocks | Employee Entrance (Time Clock) → East Service Corridor → Staff Stairwell → East Maintenance Tunnel → North Maintenance Tunnel → West Maintenance Tunnel |
-| Time clock | Night 5 task | 163 blocks | Employee Entrance (Time Clock) → Party Room D → Staff Break Room → Management Office → Upper Hall → Camera Server Room |
-| Time clock | Night 6 task | 139 blocks | Employee Entrance (Time Clock) → Party Room D → Staff Break Room → Management Office → Upper Hall → Records Room |
+| Time clock | Night 5 task | 162 blocks | Employee Entrance (Time Clock) → Party Room D → Staff Break Room → Management Office → Upper Hall → Camera Server Room |
+| Time clock | Night 6 task | 138 blocks | Employee Entrance (Time Clock) → Party Room D → Staff Break Room → Management Office → Upper Hall → Records Room |
 
 ## Command-block control room
 
-Underground at local y -9 (world -59), x 22..177, in 9 rows at local z 169, 172, 175, 178, 181, 184, 187, 190, 193. Each of the 111 actuator modules is a redstone-block pad, an impulse block and its chain (east-facing). The full block-by-block register is docs/06_COMMAND_BLOCK_REGISTER.md.
+Underground at local y -9 (world -59), x 22..177, in 9 rows at local z 169, 172, 175, 178, 181, 184, 187, 190, 193. Each of the 117 actuator modules is a redstone-block pad, an impulse block and its chain (east-facing). The full block-by-block register is docs/06_COMMAND_BLOCK_REGISTER.md.
 
-## Inputs (78)
+## Inputs (88)
 
 Every physical control sits on a console block; the impulse command block one block below it runs `scriptevent fb:input <action>`. The script accepts an input only if the event comes from the registered block position.
 
@@ -301,32 +318,42 @@ Every physical control sits on a console block; the impulse command block one bl
 | in.office.door_r | `door_r` | button | 104 0 130 | 104 -51 130 | RIGHT DOOR |
 | in.office.reserve | `reserve` | lever | 97 0 139 | 97 -51 139 | EMERGENCY RESERVE |
 | in.office.start | `start_shift` | button | 103 0 139 | 103 -51 139 | START / RESUME SHIFT |
+| in.office.seal_vent | `seal_vent` | button | 96 0 128 | 96 -51 128 | SEAL VENT |
+| in.office.seal_shaft | `seal_shaft` | button | 96 0 129 | 96 -51 129 | SEAL SHAFT |
+| in.office.tapes | `tapes` | button | 102 0 139 | 102 -51 139 | TAPE DECK 1987 |
+| in.office.map_c19 | `cam:C19` | button | 97 0 127 | 97 -51 127 | CAM 19 · FREDBEAR'S CHAMBER |
 | in.office.map_c06 | `cam:C06` | button | 98 0 127 | 98 -51 127 | CAM 06 · PARTS & SERVICE |
 | in.office.map_c03 | `cam:C03` | button | 99 0 127 | 99 -51 127 | CAM 03 · BACKSTAGE |
 | in.office.map_c01 | `cam:C01` | button | 100 0 127 | 100 -51 127 | CAM 01 · SHOW STAGE |
 | in.office.map_c02 | `cam:C02` | button | 101 0 127 | 101 -51 127 | CAM 02 · DINING HALL WEST |
 | in.office.map_c10 | `cam:C10` | button | 102 0 127 | 102 -51 127 | CAM 10 · KITCHEN (AUDIO ONLY) |
 | in.office.map_c11 | `cam:C11` | button | 103 0 127 | 103 -51 127 | CAM 11 · EAST SERVICE |
+| in.office.map_c20 | `cam:C20` | button | 97 0 128 | 97 -51 128 | CAM 20 · DINER PARTY ROOM |
 | in.office.map_c04 | `cam:C04` | button | 98 0 128 | 98 -51 128 | CAM 04 · STARLIGHT COVE |
 | in.office.map_c05 | `cam:C05` | button | 99 0 128 | 99 -51 128 | CAM 05 · ARCADE |
 | in.office.map_c07 | `cam:C07` | button | 100 0 128 | 100 -51 128 | CAM 07 · WEST HALL |
 | in.office.map_c14 | `cam:C14` | button | 101 0 128 | 101 -51 128 | CAM 14 · DINING HALL EAST |
 | in.office.map_c12 | `cam:C12` | button | 102 0 128 | 102 -51 128 | CAM 12 · EAST HALL |
 | in.office.map_c15 | `cam:C15` | button | 103 0 128 | 103 -51 128 | CAM 15 · MAINTENANCE TUNNEL |
+| in.office.map_c18 | `cam:C18` | button | 104 0 128 | 104 -51 128 | CAM 18 · SUPPLY DUCT |
+| in.office.map_c21 | `cam:C21` | button | 97 0 129 | 97 -51 129 | CAM 21 · DINER KITCHEN |
 | in.office.map_c16 | `cam:C16` | button | 98 0 129 | 98 -51 129 | CAM 16 · SEALED DINER |
 | in.office.map_c09 | `cam:C09` | button | 99 0 129 | 99 -51 129 | CAM 09 · SUPPLY CLOSET |
 | in.office.map_c08 | `cam:C08` | button | 100 0 129 | 100 -51 129 | CAM 08 · WEST CORNER |
 | in.office.map_c13 | `cam:C13` | button | 102 0 129 | 102 -51 129 | CAM 13 · EAST CORNER |
+| in.office.map_c17 | `cam:C17` | button | 103 0 129 | 103 -51 129 | CAM 17 · OFFICE SUBFLOOR |
 | in.lobby.tutorial | `lobby:tutorial` | button | 181 0 104 | 181 -51 104 | TRAINING SHIFT |
 | in.lobby.night_1 | `lobby:night:1` | button | 181 0 106 | 181 -51 106 | NIGHT 1 |
-| in.lobby.night_2 | `lobby:night:2` | button | 181 0 108 | 181 -51 108 | NIGHT 2 |
-| in.lobby.night_3 | `lobby:night:3` | button | 181 0 110 | 181 -51 110 | NIGHT 3 |
-| in.lobby.night_4 | `lobby:night:4` | button | 181 0 112 | 181 -51 112 | NIGHT 4 |
-| in.lobby.night_5 | `lobby:night:5` | button | 181 0 114 | 181 -51 114 | NIGHT 5 |
-| in.lobby.night_6 | `lobby:night:6` | button | 181 0 116 | 181 -51 116 | NIGHT 6 |
-| in.lobby.night_7 | `lobby:night:7` | button | 181 0 118 | 181 -51 118 | NIGHT 7 |
-| in.lobby.continue | `lobby:continue` | button | 181 0 120 | 181 -51 120 | CONTINUE |
-| in.lobby.free_roam | `lobby:free_roam` | button | 181 0 122 | 181 -51 122 | FREE ROAM |
+| in.lobby.night_2 | `lobby:night:2` | button | 181 0 107 | 181 -51 107 | NIGHT 2 |
+| in.lobby.night_3 | `lobby:night:3` | button | 181 0 108 | 181 -51 108 | NIGHT 3 |
+| in.lobby.night_4 | `lobby:night:4` | button | 181 0 109 | 181 -51 109 | NIGHT 4 |
+| in.lobby.night_5 | `lobby:night:5` | button | 181 0 110 | 181 -51 110 | NIGHT 5 |
+| in.lobby.night_6 | `lobby:night:6` | button | 181 0 111 | 181 -51 111 | NIGHT 6 |
+| in.lobby.night_7 | `lobby:night:7` | button | 181 0 112 | 181 -51 112 | NIGHT 7 |
+| in.lobby.night_8 | `lobby:night:8` | button | 181 0 113 | 181 -51 113 | NIGHT 8 |
+| in.lobby.night_9 | `lobby:night:9` | button | 181 0 114 | 181 -51 114 | NIGHT 9 |
+| in.lobby.continue | `lobby:continue` | button | 181 0 117 | 181 -51 117 | CONTINUE |
+| in.lobby.free_roam | `lobby:free_roam` | button | 181 0 120 | 181 -51 120 | FREE ROAM |
 | in.lobby.settings | `lobby:settings` | button | 178 0 122 | 178 -51 122 | SETTINGS |
 | in.lobby.extras | `lobby:extras` | button | 174 0 122 | 174 -51 122 | ARCHIVE & CREDITS |
 | in.lobby.reset | `lobby:reset` | button | 170 0 122 | 170 -51 122 | ERASE PROGRESS |

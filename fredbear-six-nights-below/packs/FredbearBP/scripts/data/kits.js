@@ -8,6 +8,7 @@ import { STORY_SIGNS } from './story.js';
 import { CAMERAS } from './cameras.js';
 import { NODE_BY_ID } from './nodes.js';
 import { LOBBY_NIGHTS, nightButtonZ, CHALLENGE_LAMPS, CLIPPING_BOARD } from './inputs.js';
+import { PARTY, NAME_WALL, NAME_SIGN, GRAFFITI } from './lore.js';
 
 // Camera view rays (segments) so airborne props can stay out of them.
 const RAYS = CAMERAS.flatMap((c) => c.sees.map((id) => {
@@ -618,6 +619,16 @@ const KITS = {
   },
   diner(P, room, i) {
     const y = i.y1;
+    // 1983 birthday party, still set (CAM 20). Placed first so nothing else lands on it.
+    {
+      const [x1, z1, x2, z2] = PARTY.table;
+      P.claim('L0', x1 - 1, z1 - 2, x2 - x1 + 3, z2 - z1 + 5);
+      P.fill(x1, y, z1, x2, y, z2, 'quartz_slab_top');
+      P.set(...PARTY.cake, 'party_cake');
+      for (const c of PARTY.candles) P.set(...c, 'party_candles');
+      for (const [x, z] of PARTY.stools) P.set(x, y, z, 'red_c');
+      for (const [x, z, k] of PARTY.presents) P.set(x, y, z, k);
+    }
     // The old diner stage (Fredbear's original stage) at the north.
     P.fill(26, y, 45, 54, y, 54, 'dark_oak');
     // Curtain parts at x 33-35 where the secret door behind the stage opens.
@@ -718,7 +729,7 @@ function officeKit(P, room, i) {
   P.fill(96, y, 128, 97, y, 129, 'dark_oak');
   P.fill(104, y, 128, 104, y, 129, 'dark_oak');
   P.set(101, y, 129, 'gold'); // YOU ARE HERE marker on the map ([3, 2])
-  P.set(103, y, 129, 'dark_oak'); // spare map cell [5, 2]
+  P.fill(104, y, 127, 104, y, 129, 'dark_oak'); // map column 6 (spare cells stay desk)
   // Monitors and the power/clock indicator strips on the north wall.
   P.fill(97, 2, 126, 103, 3, 126, 'black_c');
   P.fill(98, 2, 126, 102, 2, 126, 'gray_sg_pane');
@@ -741,9 +752,10 @@ function officeKit(P, room, i) {
   P.set(105, y, 139, 'iron_block');
   P.set(105, y + 1, 139, 'iron_trapdoor_open');
   P.set(96, y + 1, 127, 'cake');
-  P.set(104, y + 1, 127, 'flower_pot');
-  P.set(97, y + 1, 128, 'white_carpet');
   posters(P, room, 4, ['glazed_yellow', 'glazed_purple', 'glazed_red']);
+  // Seal lamps (north wall, west end): duct seal above, shaft seal below.
+  P.set(95, 3, 126, 'ind_off');
+  P.set(95, 2, 126, 'ind_off');
   // Ceiling lamp.
   hanging(P, 100, 133, i.ceilY, 2, 'redstone_lamp'); // non-emissive fixture: light comes from actuated light blocks
   P.set(100, i.ceilY - 1, 135, 'light_11');
@@ -780,6 +792,19 @@ function lobbyKit(P, room, i) {
 }
 
 /** Signs that belong to the lobby furniture (signs pass). */
+/** Fredbear's chamber: the names wall (lore 156); the player's sign stays blank until night 6 is beaten. */
+function chamberSigns(P) {
+  const W = NAME_WALL;
+  P.sign(W.x, W.header.y, W.header.z, 'east', W.header.text);
+  for (const [y, z, name] of W.names) P.sign(W.x, y, z, 'east', `§8${name}`);
+  P.sign(NAME_SIGN.x, NAME_SIGN.y, NAME_SIGN.z, 'east', ' ');
+}
+
+/** West maintenance tunnel: the 1987 crew's graffiti (lore 170). */
+function tunnelGraffiti(P, room) {
+  for (const [side, along, dy, text] of GRAFFITI) wallSign(P, room, side, text, { along, dy });
+}
+
 function lobbySigns(P) {
   P.sign(169, 4, CLIPPING_BOARD.z + 1, 'south', 'LOCAL NEWS\nClippings unlock\nas you survive.\nPress to read.');
   P.sign(158, 2, 123, 'north', 'CHALLENGES\nunlock after\nnight 6');
@@ -796,6 +821,8 @@ export function decorateRoom(P, room, { signsOnly = false } = {}) {
   if (signsOnly) {
     for (const s of STORY_SIGNS.filter((t) => t.room === room.id)) wallSign(P, room, s.side, s.text, { along: s.along, dy: s.dy ?? 2 });
     if (room.kit === 'lobby') lobbySigns(P);
+    if (room.id === 'CHAMBER') chamberSigns(P);
+    if (room.id === 'TUNNEL_W') tunnelGraffiti(P, room);
     return;
   }
   const kit = KITS[room.kit];

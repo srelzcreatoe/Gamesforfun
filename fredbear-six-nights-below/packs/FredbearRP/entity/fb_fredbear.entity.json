@@ -19,31 +19,36 @@
           "variable.fb_anim = query.property('fb:anim');",
           "variable.fb_eyes = query.property('fb:eyes');",
           "variable.fb_hidden = query.property('fb:hidden');",
-          "variable.fb_variant = query.property('fb:variant');"
+          "variable.fb_variant = query.property('fb:variant');",
+          "variable.fb_ly = math.lerp(variable.fb_ly, query.property('fb:look_yaw'), 0.06);",
+          "variable.fb_lp = math.lerp(variable.fb_lp, query.property('fb:look_pitch'), 0.06);",
+          "variable.fb_lt = math.lerp(variable.fb_lt, query.property('fb:look_tilt'), 0.05);"
         ],
         "animate": [
-          "pose_controller"
+          "pose_controller",
+          "look_at"
         ]
       },
       "animations": {
         "pose_controller": "controller.animation.fb.fredbear",
-        "crawl": "animation.fb.fredbear.crawl",
-        "jumpscare_left_grab": "animation.fb.fredbear.jumpscare_left_grab",
-        "perform_mic_sway": "animation.fb.fredbear.perform_mic_sway",
-        "perform_crowd_point": "animation.fb.fredbear.perform_crowd_point",
-        "perform_mic_sway_once": "animation.fb.fredbear.perform_mic_sway_once",
-        "perform_sing_once": "animation.fb.fredbear.perform_sing_once",
-        "idle": "animation.fb.fredbear.idle",
-        "jumpscare_dual_lunge": "animation.fb.fredbear.jumpscare_dual_lunge",
-        "dormant": "animation.fb.fredbear.dormant",
         "pose_bow": "animation.fb.fredbear.pose_bow",
-        "perform_crowd_point_once": "animation.fb.fredbear.perform_crowd_point_once",
-        "jumpscare_snap_bite": "animation.fb.fredbear.jumpscare_snap_bite",
+        "perform_crowd_point": "animation.fb.fredbear.perform_crowd_point",
+        "perform_mic_sway": "animation.fb.fredbear.perform_mic_sway",
         "walk": "animation.fb.fredbear.walk",
-        "perform_greet_once": "animation.fb.fredbear.perform_greet_once",
+        "jumpscare_dual_lunge": "animation.fb.fredbear.jumpscare_dual_lunge",
+        "jumpscare_left_grab": "animation.fb.fredbear.jumpscare_left_grab",
+        "run": "animation.fb.fredbear.run",
         "pose_showman": "animation.fb.fredbear.pose_showman",
+        "perform_sing_once": "animation.fb.fredbear.perform_sing_once",
+        "perform_greet_once": "animation.fb.fredbear.perform_greet_once",
+        "crawl": "animation.fb.fredbear.crawl",
+        "dormant": "animation.fb.fredbear.dormant",
+        "jumpscare_snap_bite": "animation.fb.fredbear.jumpscare_snap_bite",
+        "idle": "animation.fb.fredbear.idle",
+        "perform_crowd_point_once": "animation.fb.fredbear.perform_crowd_point_once",
         "stalk": "animation.fb.fredbear.stalk",
-        "run": "animation.fb.fredbear.run"
+        "perform_mic_sway_once": "animation.fb.fredbear.perform_mic_sway_once",
+        "look_at": "animation.fb.fredbear.look_at"
       },
       "render_controllers": [
         "controller.render.fb.animatronic",

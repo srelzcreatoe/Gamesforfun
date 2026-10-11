@@ -36,10 +36,16 @@
 // CUES: a laugh every time he starts a hunt; the office lamp flickers while
 // he is next to the office (approach nodes) and faster while he climbs or
 // walks into an entry.
+//
+// EVERYWHERE (nights 7 and 9, fdef.omnipresent): between hunts he haunts the
+// whole pizzeria - warned teleports (chime, shimmer, static on that camera) to
+// HAUNT_NODES, the main stage included - his hunts relocate from wherever he
+// stands, and a repel sends him to a random haunt spot instead of the diner.
+// Every attack still starts with the music box and glow at an entry.
 
 import { Animatronic } from './base.js';
 import { CONFIG } from '../config.js';
-import { NODE_BY_ID, ENTRY_NODE, GOLDEN_NODES } from '../../data/nodes.js';
+import { NODE_BY_ID, ENTRY_NODE, GOLDEN_NODES, HAUNT_NODES } from '../../data/nodes.js';
 import { CAMERAS } from '../../data/cameras.js';
 
 const APPROACH_NODE = Object.freeze({ H: 'SUB_N', L: 'WH_S', R: 'EH_S' });
@@ -63,11 +69,55 @@ export class Fredbear extends Animatronic {
     this.anim = 'dormant';
     this.target = 'H';
     this.nextFlicker = 0;
+    this.haunt = null; // { dest, timer } while a haunting teleport is being announced
+    this.nextHaunt = 0;
   }
 
   tick() {
     super.tick();
     this.tickFlicker();
+    this.tickHaunt();
+  }
+
+  get omnipresent() {
+    return !!this.fdef.omnipresent;
+  }
+
+  /** Nights 7 / 9: announced teleports all over the pizzeria while he is between hunts. */
+  tickHaunt() {
+    const s = this.s;
+    if (!this.omnipresent || s.phase !== 'RUNNING') return;
+    if (this.haunt) {
+      if (!['RECOVER', 'PATROL', 'STALK'].includes(this.state) || this.move) {
+        s.occupancy.release(this.haunt.dest, this.id);
+        this.haunt = null;
+        return;
+      }
+      if (--this.haunt.timer > 0) return;
+      s.occupancy.release(this.node, this.id);
+      this.prevNode = this.node;
+      this.node = this.haunt.dest;
+      s.occupancy.force(this.node, this.id);
+      this.yaw = NODE_BY_ID[this.node].yaw ?? this.yaw;
+      this.anim = s.rng.chance(0.5) ? 'showman' : 'look';
+      this.eyes = true;
+      s.logTransition(this.id, this.state, this.state, `haunting ${this.node}`);
+      this.haunt = null;
+      return;
+    }
+    const waiting = this.state === 'RECOVER' || (['PATROL', 'STALK'].includes(this.state) && this.cool.relocate > 0 && !NEAR_OFFICE.has(this.node));
+    if (!waiting || this.move || s.t < this.nextHaunt) return;
+    const [lo, hi] = this.fdef.hauntEvery ?? [180, 320];
+    this.nextHaunt = s.t + s.rng.int(lo, hi);
+    const options = HAUNT_NODES.filter((n) => n !== this.node && !s.occupancy.isTaken(n, this.id));
+    const dest = s.rng.pick(options);
+    if (!dest || !s.occupancy.claim(dest, this.id)) return;
+    this.haunt = { dest, timer: CONFIG.characters.fredbear.relocateWarn };
+    const n = NODE_BY_ID[dest];
+    s.emit({ fx: 'shimmer', node: dest, at: { x: n.x, y: n.y + 1, z: n.z } });
+    s.emit({ fx: 'sound', id: 'fb.fredbear.chime', at: { x: n.x, y: n.y + 1.5, z: n.z }, vol: 0.8 });
+    const cam = CAMERAS.find((c) => c.sees.includes(dest));
+    if (cam) s.emit({ fx: 'camfx', kind: 'static_burst', cam: cam.id });
   }
 
   get fdef() {
@@ -230,8 +280,9 @@ export class Fredbear extends Animatronic {
       }
       return;
     }
-    // Supernatural relocation (phase 2+): only between golden nodes, always warned.
-    if (this.phase >= 2 && this.hasPower('relocate') && this.cool.relocate === 0 && GOLDEN_NODES.includes(this.node)) {
+    // Supernatural relocation (phase 2+): only between golden nodes, always warned
+    // (on his "everywhere" nights from any node).
+    if (this.phase >= 2 && this.hasPower('relocate') && this.cool.relocate === 0 && (GOLDEN_NODES.includes(this.node) || this.omnipresent) && !this.haunt) {
       const dest = APPROACH_NODE[entry];
       if (dest !== this.node && GOLDEN_NODES.includes(dest) && !s.occupancy.isTaken(dest, this.id)) {
         this.startRelocate(dest);
@@ -248,7 +299,7 @@ export class Fredbear extends Animatronic {
       if (this.phase < 2 || !this.hasPower('relocate')) {
         this.target = 'H';
         goal = ENTRY_NODE.H;
-      } else if (GOLDEN_NODES.includes(this.node)) {
+      } else if (GOLDEN_NODES.includes(this.node) || this.omnipresent) {
         this.anim = 'look';
         return;
       } else {
@@ -408,8 +459,13 @@ export class Fredbear extends Animatronic {
     }
     this.path = [];
     s.occupancy.release(this.node, this.id);
-    this.node = s.occupancy.isTaken('DINER_STAGE', this.id) ? 'DINER_FLOOR' : 'DINER_STAGE';
+    const haunts = this.omnipresent ? HAUNT_NODES.filter((n) => !s.occupancy.isTaken(n, this.id)) : [];
+    this.node = haunts.length ? s.rng.pick(haunts) : s.occupancy.isTaken('DINER_STAGE', this.id) ? 'DINER_FLOOR' : 'DINER_STAGE';
     s.occupancy.force(this.node, this.id);
+    if (this.haunt) {
+      s.occupancy.release(this.haunt.dest, this.id);
+      this.haunt = null;
+    }
     this.yaw = NODE_BY_ID[this.node].yaw ?? 0;
     this.eyes = false;
     this.anim = 'idle';

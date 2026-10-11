@@ -11,7 +11,7 @@ import { PROPERTY, ROOMS, OPENINGS, STAIRS, SOLIDS, LEVELS, ANCHORS, interior } 
 import { EDGES, edgePolyline } from './nodes.js';
 import { INPUTS, inputControlPos } from './inputs.js';
 import { CAMERAS } from './cameras.js';
-import { NODE_BY_ID } from './nodes.js';
+import { NODE_BY_ID, NODES } from './nodes.js';
 import { PlanBuilder } from './plan_builder.js';
 import { STAIR_KEY } from './palette.js';
 import { decorateRoom } from './kits.js';
@@ -312,7 +312,7 @@ function stairs(P) {
       P.flush();
     } else if (s.kind === 'duct') {
       const [[x1, z1], [x2]] = [s.from, s.to];
-      P.fill(x1, s.y, z1, x2, s.y, z1, 'air');
+      P.fill(x1, s.y, z1, x2, s.y + (s.h ?? 1) - 1, z1, 'air'); // y -3..-2; the grates sit in the floor at y -1
       P.set(x1, -1, z1, 'iron_trapdoor_closed');
       P.set(x2, -1, z1, 'iron_trapdoor_closed');
       P.flush();
@@ -394,6 +394,12 @@ function reservations(P) {
         for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) P.reserve(lvl, x + a, z + b);
       }
     }
+  }
+  // Standing spots without edges (homes, Parts & Service storage) and the partner spot: keep a 3 x 3 clear.
+  for (const n of NODES) {
+    if (!n.store && !n.partner && !n.home) continue;
+    const lvl = P.levelOfY(n.y);
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) P.reserve(lvl, n.x + a, n.z + b);
   }
   // Doorways: keep the approach on both sides clear.
   for (const o of OPENINGS) {
@@ -517,6 +523,8 @@ function inputLabels(P) {
     if (inp.id.startsWith('in.lobby.') && x === 181) P.sign(181, y + 2, z, 'west', inp.label);
     else if (inp.id.startsWith('in.lobby.') && z === 122) P.sign(x, y, z + 1, 'north', inp.label);
     else if (inp.id.startsWith('in.office.') && z === 130) P.sign(x, y, z + 1, 'south', inp.label);
+    else if (inp.id.startsWith('in.office.seal_')) P.sign(x - 1, y, z, 'west', inp.label);
+    else if (inp.id === 'in.office.tapes') P.sign(x, y, z - 1, 'north', inp.label);
     else if (inp.id.startsWith('in.dev.')) P.sign(x, y, z + 1, 'south', inp.label);
     else if (inp.id.startsWith('in.maint.') || inp.id === 'in.training.begin') P.sign(x, y, z + 1, 'south', inp.label);
   }

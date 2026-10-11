@@ -36,6 +36,42 @@
           "type": "bool",
           "default": false,
           "client_sync": true
+        },
+        "fb:variant": {
+          "type": "int",
+          "range": [
+            0,
+            3
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "fb:look_yaw": {
+          "type": "int",
+          "range": [
+            -90,
+            90
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "fb:look_pitch": {
+          "type": "int",
+          "range": [
+            -60,
+            60
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "fb:look_tilt": {
+          "type": "int",
+          "range": [
+            -30,
+            30
+          ],
+          "default": 0,
+          "client_sync": true
         }
       }
     },
@@ -47,11 +83,11 @@
         ]
       },
       "minecraft:collision_box": {
-        "width": 0.5,
-        "height": 2.4
+        "width": 0.6,
+        "height": 3.25
       },
       "minecraft:scale": {
-        "value": 1.3
+        "value": 0.605
       },
       "minecraft:physics": {
         "has_gravity": false,

@@ -89,7 +89,7 @@
         {
           "name": "sounds/fb/cam/hum",
           "is3D": false,
-          "volume": 0.5
+          "volume": 0.25
         }
       ]
     },
@@ -139,7 +139,27 @@
       "category": "hostile",
       "sounds": [
         {
-          "name": "sounds/fb/chica/clatter",
+          "name": "sounds/fb/chica/clatter_1",
+          "is3D": true,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/fb/chica/clatter_2",
+          "is3D": true,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/fb/chica/clatter_3",
+          "is3D": true,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/fb/chica/clatter_4",
+          "is3D": true,
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/fb/chica/clatter_5",
           "is3D": true,
           "volume": 1.0
         }
@@ -412,6 +432,26 @@
         }
       ]
     },
+    "fb.js.morgrave": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/js/animatronic",
+          "is3D": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "fb.js.valek": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/js/animatronic",
+          "is3D": false,
+          "volume": 1.0
+        }
+      ]
+    },
     "fb.light.buzz": {
       "category": "block",
       "sounds": [
@@ -422,6 +462,18 @@
         }
       ],
       "max_distance": 16.0,
+      "min_distance": 1.0
+    },
+    "fb.morgrave.scrape": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/morgrave/scrape",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 48.0,
       "min_distance": 1.0
     },
     "fb.night.bgm": {
@@ -606,6 +658,30 @@
           "volume": 0.7
         }
       ]
+    },
+    "fb.valek.hum": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/valek/hum",
+          "is3D": true,
+          "volume": 0.7
+        }
+      ],
+      "max_distance": 16.0,
+      "min_distance": 1.0
+    },
+    "fb.valek.vanish": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/valek/vanish",
+          "is3D": true,
+          "volume": 0.8
+        }
+      ],
+      "max_distance": 24.0,
+      "min_distance": 1.0
     },
     "fb.vent.clank": {
       "category": "hostile",

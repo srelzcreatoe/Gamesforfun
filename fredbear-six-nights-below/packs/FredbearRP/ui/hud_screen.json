@@ -1,0 +1,595 @@
+{
+  "namespace": "hud",
+  "root_panel": {
+    "modifications": [
+      {
+        "array_name": "controls",
+        "operation": "insert_back",
+        "value": [
+          {
+            "fb_cam_map@hud.fb_cam_map": {}
+          }
+        ]
+      }
+    ]
+  },
+  "fb_cam_map": {
+    "type": "panel",
+    "size": [
+      129,
+      69
+    ],
+    "anchor_from": "bottom_right",
+    "anchor_to": "bottom_right",
+    "offset": [
+      -2,
+      -2
+    ],
+    "layer": 5,
+    "bindings": [
+      {
+        "binding_name": "#hud_title_text_string",
+        "binding_type": "global"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#hud_title_text_string - '§k§r§k§r§l') = #hud_title_text_string))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "fb_cam_map_base": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 1
+        }
+      },
+      {
+        "fb_cam_map_c01": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c01",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§1')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c02": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c02",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§2')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c03": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c03",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§3')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c04": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c04",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§4')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c05": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c05",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§5')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c06": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c06",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§6')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c07": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c07",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§7')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c08": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c08",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§8')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c09": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c09",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§9')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c10": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c10",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§0')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c11": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c11",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§1')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c12": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c12",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§2')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c13": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c13",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§3')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c14": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c14",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§4')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c15": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c15",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§5')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c16": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c16",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§6')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c17": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c17",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§7')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c18": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c18",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§8')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c19": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c19",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§9')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c20": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c20",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§2§0')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c21": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c21",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§2§1')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "fb_cam_map_blink_out": {
+    "anim_type": "alpha",
+    "easing": "linear",
+    "duration": 0.45,
+    "from": 1.0,
+    "to": 0.35,
+    "next": "@hud.fb_cam_map_blink_in"
+  },
+  "fb_cam_map_blink_in": {
+    "anim_type": "alpha",
+    "easing": "linear",
+    "duration": 0.45,
+    "from": 0.35,
+    "to": 1.0,
+    "next": "@hud.fb_cam_map_blink_out"
+  }
+}

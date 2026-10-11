@@ -15,6 +15,7 @@ import { INPUTS, inputCbPos } from '../data/inputs.js';
 import { ANCHORS } from '../data/layout.js';
 import { checkPalette, dim, W, Wv } from './world_io.js';
 import { storeSave } from './persistence.js';
+import { MAIN } from './puppets.js';
 import { restorePlayerView } from './camera_view.js';
 import { resolveStructureId } from './builder.js';
 import * as ui from './ui.js';
@@ -23,8 +24,8 @@ import { CONFIG, LAST_NIGHT } from '../core/config.js';
 
 const HELP = [
   'lobby | overlay | selftest | graph | state | puppets | camtour',
-  'night <0-7> | hour <0-5> | power <pct> | seed <n> | unlock <1-7>',
-  'challenge <no_doors|fredbear_only|double_drain|no_cams> | ending <seal|burn> | flashback | holiday <halloween|christmas|none> | shadow',
+  'night <0-9> | hour <0-5> | power <pct> | seed <n> | unlock <1-9> | lastending <seal|burn>',
+  'challenge <no_doors|fredbear_only|double_drain|no_cams> | ending <seal|burn> | ending9 | flashback | tapes | holiday <halloween|christmas|none> | shadow | seal <vent|shaft>',
   'ai <who> <0-20> | place <who> <node> | approach <who> <L|R|H>',
   'scenario <slice|boundary|power_zero|double|freddy|fredbear_hatch|fredbear_left|blackout|finale>',
   'win | lose | maint | skip | verbose',
@@ -153,7 +154,7 @@ export function handleDebug(game, action, a1, a2, player) {
     case 'state':
       return dumpState(game, player);
     case 'puppets':
-      for (const who of ['freddy', 'bonnie', 'chica', 'fredbear']) {
+      for (const who of MAIN) {
         try {
           for (const e of dim().getEntities({ type: `fb:${who}` })) e.remove();
         } catch {
@@ -195,6 +196,16 @@ export function handleDebug(game, action, a1, a2, player) {
       game.applyGates(4);
       game.startFlashback();
       return say(player, 'night 4 flashback');
+    case 'tapes':
+      return game.startTape(player ?? game.guard());
+    case 'ending9':
+      game.guardId = player?.id ?? game.guardId;
+      game.startNightNineEnding();
+      return say(player, 'night 9 ending');
+    case 'lastending':
+      game.save.lastEnding = a1 === 'burn' ? 'burn' : 'seal';
+      storeSave(game.save);
+      return say(player, `night 8 will be the ${game.save.lastEnding === 'burn' ? 'Valek (burn)' : 'Morgrave (seal)'} version`);
     case 'holiday':
       game.holidays.sync(a1 === 'halloween' || a1 === 'christmas' ? a1 : null);
       return say(player, `holiday decorations: ${a1 ?? 'none'} (the device date decides again at the next lobby visit)`);
@@ -215,7 +226,8 @@ export function handleDebug(game, action, a1, a2, player) {
       return say(player, `deterministic seed ${game.save.settings.seed} (next night)`);
     case 'unlock':
       game.save.unlocked = Math.max(1, Math.min(LAST_NIGHT, num(a1, 6)));
-      if (game.save.unlocked === LAST_NIGHT) game.save.campaignDone = true;
+      if (game.save.unlocked >= 7) game.save.campaignDone = true;
+      for (let n = 7; n < game.save.unlocked; n++) if (!game.save.completed.includes(n)) game.save.completed.push(n); // keep the save consistent (loadSave caps unlocks by survived nights)
       storeSave(game.save);
       return say(player, `unlocked up to night ${game.save.unlocked}`);
     default:
@@ -250,6 +262,9 @@ export function handleDebug(game, action, a1, a2, player) {
     case 'maint':
       if (s.phase === 'RUNNING') s.beginMaintenance(a1 === 'electrical' ? 'electrical' : 'generator');
       return undefined;
+    case 'seal':
+      s.input(a1 === 'shaft' ? 'seal_shaft' : 'seal_vent');
+      return say(player, `sealing the ${a1 === 'shaft' ? 'shaft' : 'vent'}`);
     case 'shadow':
       s.shadowRng = { chance: () => true };
       s.maybeShadow(Math.max(1, s.hour));

@@ -1,0 +1,116 @@
+{
+  "format_version": "1.26.50",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "fb:valek",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "is_experimental": false,
+      "spawn_category": "misc",
+      "properties": {
+        "fb:anim": {
+          "type": "enum",
+          "values": [
+            "idle",
+            "perform",
+            "walk",
+            "stalk",
+            "crawl",
+            "look",
+            "pause",
+            "threat",
+            "attack",
+            "retreat",
+            "dormant",
+            "music"
+          ],
+          "default": "idle",
+          "client_sync": true
+        },
+        "fb:eyes": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        },
+        "fb:hidden": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        },
+        "fb:variant": {
+          "type": "int",
+          "range": [
+            0,
+            3
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "fb:look_yaw": {
+          "type": "int",
+          "range": [
+            -90,
+            90
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "fb:look_pitch": {
+          "type": "int",
+          "range": [
+            -60,
+            60
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "fb:look_tilt": {
+          "type": "int",
+          "range": [
+            -30,
+            30
+          ],
+          "default": 0,
+          "client_sync": true
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "fb_animatronic",
+          "inanimate"
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 0.6,
+        "height": 3.4
+      },
+      "minecraft:scale": {
+        "value": 0.87
+      },
+      "minecraft:physics": {
+        "has_gravity": false,
+        "has_collision": false
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "all",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:health": {
+        "value": 100,
+        "max": 100
+      },
+      "minecraft:knockback_resistance": {
+        "value": 1.0
+      },
+      "minecraft:fire_immune": {},
+      "minecraft:persistent": {}
+    },
+    "events": {}
+  }
+}

@@ -23,6 +23,7 @@ import { NODE_BY_ID } from '../../data/nodes.js';
 import { CAMERAS } from '../../data/cameras.js';
 
 const COVERED = new Set(CAMERAS.filter((c) => !c.audioOnly).flatMap((c) => c.sees));
+const AT_DOOR_OK = Object.freeze(['APPROACH', 'LURK', 'ATTACK', 'RETREAT', 'POWEROUT', 'WITHDRAWN', 'SUSPENDED']);
 
 export class Freddy extends Animatronic {
   constructor(session) {
@@ -45,6 +46,12 @@ export class Freddy extends Animatronic {
   }
 
   tick() {
+    // Never stand at the door outside LURK (the "stuck at the door" bug): leave first, even while watched.
+    if (this.idleAtEntry(AT_DOOR_OK)) {
+      this.stateTicks++;
+      this.leaveEntry(`${this.state.toLowerCase()} at the door: leaving`);
+      return;
+    }
     // Observed: freeze, including mid-walk (except retreating/power-out/finale).
     if (this.state !== 'DORMANT' && !['RETREAT', 'POWEROUT', 'WITHDRAWN', 'SUSPENDED'].includes(this.state)) {
       if (this.isObserved()) {
@@ -97,7 +104,7 @@ export class Freddy extends Animatronic {
         }
         if (!(this.path.length && this.advancePath())) {
           const path = this.graph.path(this.node, this.cfg.home);
-          if (path && path.length > 1) this.followPath(path.slice(1), 'walk');
+          if (path && path.length > 1) this.followPath(path.slice(1), 'walk', { pass: true });
         }
         return;
       default:
@@ -177,7 +184,8 @@ export class Freddy extends Animatronic {
     if (closed) {
       this.closedTicks++;
       this.slip = 0;
-      if (this.closedTicks >= this.cfg.repelTicks) this.repelled('right door held closed');
+      const pair = s.director.pairAt('R'); // double trouble: Chica or Bonnie beside him
+      if (this.closedTicks >= this.cfg.repelTicks * (pair ? 2 : 1)) this.repelled(pair ? 'right door held closed against two' : 'right door held closed');
       return;
     }
     this.closedTicks = 0;
@@ -210,8 +218,13 @@ export class Freddy extends Animatronic {
   }
 
   repelled(reason) {
-    const s = this.s;
     this.memory.repelled.R = Math.min(5, this.memory.repelled.R + 1);
+    this.leaveEntry(reason);
+  }
+
+  /** Back off to a retreat node, walking past anyone in the hall (never freezes at the door). */
+  leaveEntry(reason) {
+    const s = this.s;
     s.director.releaseEntry(this.id);
     this.entry = null;
     this.eyes = false;
@@ -220,7 +233,7 @@ export class Freddy extends Animatronic {
     const free = this.cfg.retreatNodes.filter((n) => !s.occupancy.isTaken(n, this.id) && n !== this.node);
     const dest = s.rng.pick(free.length ? free : this.cfg.retreatNodes);
     const path = this.graph.path(this.node, dest);
-    if (!path || path.length < 2 || !this.followPath(path.slice(1), 'walk')) this.beginRecover('no retreat path');
+    if (!path || path.length < 2 || !this.followPath(path.slice(1), 'walk', { pass: true })) this.beginRecover('no retreat path');
   }
 
   beginRecover(reason) {

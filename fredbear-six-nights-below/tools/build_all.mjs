@@ -13,6 +13,7 @@ const steps = [
   ['floor plan data', 'node', ['tools/export_floorplan.mjs']],
   ['floor plan images', 'python3', ['tools/render_floorplans.py']],
   ['resource pack art, models, animations, fogs, icons', 'python3', ['tools/gen_rp.py']],
+  ['camera map HUD (needs the floor plan data)', 'python3', ['tools/gen_cam_map.py']],
   ['resource pack sounds', 'python3', ['tools/gen_sounds.py']],
   ['model preview sheet', 'python3', ['tools/render_preview.py']],
   ['generated docs (02 floor plan, 05 balance)', 'node', ['tools/gen_docs.mjs']],

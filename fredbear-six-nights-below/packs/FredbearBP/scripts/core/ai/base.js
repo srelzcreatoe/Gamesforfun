@@ -9,7 +9,7 @@
 
 import { CONFIG } from '../config.js';
 import { RouteGraph } from '../graph.js';
-import { NODE_BY_ID, edgePolyline, ENTRY_BARRIER, ENTRY_NODE } from '../../data/nodes.js';
+import { NODE_BY_ID, edgePolyline, ENTRY_BARRIER, ENTRY_NODE, STORE_NODE } from '../../data/nodes.js';
 import { CAMERA_BY_ID } from '../../data/cameras.js';
 
 export const OFFICE_CENTER = Object.freeze({ x: 100.5, y: 0, z: 133.5 });
@@ -25,7 +25,9 @@ export class Animatronic {
 
   reset() {
     if (this.node) this.s.occupancy.release(this.node, this.id);
-    this.node = this.cfg.home;
+    // Nights 7 and 9: the trio start (and stay) switched off in Parts & Service.
+    this.stored = !!this.s.def.store?.includes(this.id) && !!STORE_NODE[this.id];
+    this.node = this.stored ? STORE_NODE[this.id] : this.cfg.home;
     this.s.occupancy.force(this.node, this.id);
     this.prevNode = null;
     this.move = null;
@@ -39,6 +41,7 @@ export class Animatronic {
     this.anim = 'perform';
     this.eyes = false;
     this.hidden = false;
+    this.ventVisible = true; // the duct is two blocks high and has its own camera (CAM 18)
     this.yaw = NODE_BY_ID[this.node].yaw ?? 0;
     this.stepCounter = 0;
     this.watchedTicks = 0;
@@ -103,15 +106,23 @@ export class Animatronic {
 
   // ------------------------------------------------------------ movement
   speed(kind) {
-    return CONFIG.speeds[kind] ?? CONFIG.speeds.walk;
+    return (CONFIG.speeds[kind] ?? CONFIG.speeds.walk) * (this.cfg.speedMult ?? 1);
   }
 
-  /** Begin walking the edge from the current node to `to`. */
-  beginEdgeMove(to, speedKind = 'walk') {
+  /**
+   * Begin walking the edge from the current node to `to`.
+   * `pass`: walking past (retreats and withdrawals) - an occupied node does not
+   * block the move; it is simply not claimed. Without this a character turned
+   * away at a door could not leave while another one waited in the hall behind
+   * it, and both stood still (the "stuck at the door" bug).
+   * @param {string} to @param {string} [speedKind] @param {{ pass?: boolean }} [opts]
+   */
+  beginEdgeMove(to, speedKind = 'walk', opts = {}) {
     const edge = this.graph.edgeBetween(this.node, to);
     if (!edge) return false;
     if (edge.gate && !this.s.gateOpen(edge.gate)) return false;
-    if (!this.s.occupancy.claim(to, this.id)) return false;
+    const claimed = this.s.occupancy.claim(to, this.id);
+    if (!claimed && !opts.pass) return false;
     const pts = edgePolyline(edge, this.node);
     const cum = [0];
     for (let i = 1; i < pts.length; i++) {
@@ -126,23 +137,28 @@ export class Animatronic {
     else if (mode === 'climb') kind = 'climb';
     else if (this.id === 'fredbear' && speedKind === 'walk') kind = 'fredbearWalk';
     this.s.occupancy.release(this.node, this.id);
-    this.move = { edge, from: this.node, to, pts, cum, total: cum[cum.length - 1], d: 0, speed: this.speed(kind), mode, kind };
+    this.move = { edge, from: this.node, to, pts, cum, total: cum[cum.length - 1], d: 0, speed: this.speed(kind), mode, kind, passing: !claimed };
     this.prevNode = this.node;
     this.anim = mode === 'crawl' || mode === 'vent' ? 'crawl' : kind === 'stalk' ? 'stalk' : kind === 'retreat' ? 'retreat' : 'walk';
+    if (mode === 'vent' && NODE_BY_ID[this.prevNode]?.y >= -0.5) this.onVentEnter(to);
     return true;
   }
 
-  /** Follow a multi-hop path (array of node ids after the current node). */
-  followPath(path, speedKind = 'walk') {
+  /**
+   * Follow a multi-hop path (array of node ids after the current node).
+   * @param {string[]} path @param {string} [speedKind] @param {{ pass?: boolean }} [opts]
+   */
+  followPath(path, speedKind = 'walk', opts = {}) {
     this.path = path.slice();
     this.pathSpeed = speedKind;
+    this.pathPass = !!opts.pass;
     return this.advancePath();
   }
 
   advancePath() {
     while (this.path.length) {
       const next = this.path[0];
-      if (this.beginEdgeMove(next, this.pathSpeed)) {
+      if (this.beginEdgeMove(next, this.pathSpeed, { pass: this.pathPass })) {
         this.path.shift();
         return true;
       }
@@ -174,6 +190,7 @@ export class Animatronic {
       const n = NODE_BY_ID[this.node];
       if (n.yaw !== undefined) this.yaw = n.yaw;
       if (this.path.length && this.advancePath()) return;
+      if (m.passing) this.s.occupancy.claim(this.node, this.id); // stopped here: take the spot if it is free now
       this.anim = 'idle';
       this.onArrive(this.node);
     }
@@ -190,6 +207,9 @@ export class Animatronic {
 
   onApproachStart() {}
 
+  /** @param {string} _to entering a duct from a room */
+  onVentEnter(_to) {}
+
   /** @param {string} _node */
   onReachNode(_node) {}
 
@@ -199,6 +219,11 @@ export class Animatronic {
   repelled(_reason) {}
 
   startRetreat() {}
+
+  /** Standing still on an entry node outside an engagement (must never last). */
+  idleAtEntry(engaged) {
+    return !this.move && NODE_BY_ID[this.node]?.zone === 'entry' && !engaged.includes(this.state);
+  }
 
   /** Current world pose for the puppet entity (local coordinates). */
   pose() {
@@ -220,7 +245,7 @@ export class Animatronic {
       const dx = b[0] - a[0];
       const dz = b[2] - a[2];
       if (Math.abs(dx) + Math.abs(dz) > 0.01) this.yaw = (Math.atan2(-dx, dz) * 180) / Math.PI;
-      if (m.mode === 'vent' && y < -0.5) hidden = true;
+      if (m.mode === 'vent' && y < -0.5 && !this.ventVisible) hidden = true;
     } else {
       const n = NODE_BY_ID[this.node];
       x = n.x;

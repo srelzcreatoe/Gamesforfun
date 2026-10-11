@@ -59,7 +59,8 @@ export const STORY_SIGNS = Object.freeze([
   S('GENERATOR', 's', 'GENERATOR\nRestart lever:\npull once.'),
   S('ELECTRICAL', 's', 'ELECTRICAL\nBreaker bank B'),
   S('SUBFLOOR', 'w', 'Something sleeps\nunder the office.'),
-  S('DINER', 's', "FREDBEAR'S\nFAMILY DINER\n1983", { along: 40 }),
+  S('DINER', 's', "FREDBEAR'S\nFAMILY DINER\n1983", { along: 30 }),
+  S('DINER', 's', 'HAPPY 8TH\nBIRTHDAY\n- C. -\nAug 19, 1983', { along: 49, dy: 2 }),
   S('DINER_KITCHEN', 'n', 'Diner kitchen\nCrawlspace ->'),
   S('CHAMBER', 's', 'HE IS STILL\nGOLDEN', { along: 34 }),
   S('CONTROL', 'n', 'COMMAND BLOCK\nCONTROL ROOM\nDeveloper area', { along: 30 }),
@@ -108,9 +109,30 @@ export const PHONE = Object.freeze({
   ],
   7: [
     '...this line was disconnected in 1987. If you can hear this, you came back.',
-    "They're all asleep on the stage tonight. All of them except him. He knows you beat him.",
+    "They switched the others off and dragged them into Parts & Service tonight. All of them except him. He knows you beat him.",
+    "He is everywhere tonight - the halls, the kitchen, even the main stage. Don't trust where you saw him last.",
     'Every door, the hatch, every trick he has. The doors hold once each. Then it is the flash.',
     'Make it to six, and then decide what happens to this place. For good.',
+  ],
+  // Night 8 depends on how night 7 ended (game.js phoneLines).
+  '8_seal': [
+    "You sealed him in. Good. But he wasn't alone down there.",
+    "There was a rabbit at the diner. His partner. They walled it in with him in '83 and nobody wrote it down.",
+    'It does not walk the halls. It lives in the walls: the supply duct on the left, the crawlspace under your hatch.',
+    "Listen for scraping. Watch CAM 18 and CAM 17. The new SEAL buttons on your desk close the duct and the shaft for a while.",
+  ],
+  '8_burn': [
+    "You burned it. Most of it. They rebuilt the rest in a week, like nothing happened.",
+    "The fire crew found a bear in Parts & Service. Gray. Nobody remembers ordering it. It wasn't even scorched.",
+    'You will only see its eyes. It steps closer through the dark when nobody is looking at that spot.',
+    "Light its corner and it's gone - but it comes back closer, and angrier. A closed door calms it down. It copies the others' sounds. Don't trust your ears.",
+  ],
+  9: [
+    '...',
+    'No music tonight. Just the building.',
+    'The others are switched off in Parts & Service. The three of them are not.',
+    'Fredbear everywhere. The rabbit in the walls. The gray bear in the dark. Seal, close, flash, light - and keep your power.',
+    'Make it to six. This is the last shift.',
   ],
 });
 
@@ -153,6 +175,8 @@ export const CLIPPINGS = Object.freeze([
   { night: 5, date: 'Hurricane Herald, October 11, 1987', headline: 'NIGHT GUARD MISSING; POLICE SEARCH PIZZERIA', text: `A night security guard at Fredbear's Family Pizzeria did not return home on Friday. Police found the office doors jammed open and the hatch behind the guard's chair "pulled up from below." The pizzeria reopened the next morning.` },
   { night: 6, date: 'Hurricane Herald, November 2, 1987', headline: 'PIZZERIA TO CLOSE "FOR RENOVATIONS"', text: `Fredbear's Family Pizzeria will close at the end of the month. A former employee, who asked not to be named, said: "Don't let them tell you it was a costume. We all heard him laughing under the floor."` },
   { night: 7, date: 'Hurricane Herald, today', headline: 'FORMER NIGHT GUARD WALKS OUT AT DAWN', text: `A night guard was seen leaving the long-closed pizzeria on Route 9 at six in the morning, carrying a set of keys and a strobe lamp. What the guard did next is up to you.` },
+  { night: 8, date: 'Hurricane Herald, the next week', headline: 'NEIGHBOURS REPORT SOUNDS FROM CLOSED PIZZERIA', text: `Residents near the Route 9 pizzeria describe "scraping inside the walls" and a low hum after midnight. The owners have hired a night guard again. Asked why, a spokesman said only: "Insurance."` },
+  { night: 9, date: 'Hurricane Herald, undated', headline: 'THE LAST SHIFT', text: `A typed note was left on the office desk: "All three were awake. I made it to six. The doors are open. The music box is quiet. Whoever reads this: don't take the job."` },
 ]);
 
 /** Night 4 flashback (shown once, before the first night 4 shift): [title, subtitle] per shot. */
@@ -162,6 +186,14 @@ export const FLASHBACK = Object.freeze([
   [' ', 'He knew every name. He never forgot a face.'],
   [' ', 'Then one birthday, the music stopped.'],
   ['§4SOMETHING BELOW', 'has woken up.'],
+]);
+
+/** Night 9 ending: [title, subtitle] per shot. */
+export const NIGHT_NINE_ENDING = Object.freeze([
+  ['§f6 AM', 'The music box in the old diner winds down for the last time.'],
+  [' ', 'Three of them stand below. Every one of them turns to look at you.'],
+  [' ', 'You walk out into the morning. Nobody follows. Not tonight.'],
+  ['§lTHE END', 'You survived every night of FREDBEAR: SIX NIGHTS BELOW. Thank you for playing.'],
 ]);
 
 export const ENDING = Object.freeze([

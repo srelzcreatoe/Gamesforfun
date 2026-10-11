@@ -1,0 +1,549 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.fb.bonnie": {
+      "initial_state": "idle",
+      "states": {
+        "idle": {
+          "animations": [
+            "idle"
+          ],
+          "blend_transition": 0.25,
+          "transitions": [
+            {
+              "look": "variable.fb_anim == 'look'"
+            },
+            {
+              "pause": "variable.fb_anim == 'pause'"
+            },
+            {
+              "walk": "variable.fb_anim == 'walk'"
+            },
+            {
+              "stalk": "variable.fb_anim == 'stalk'"
+            },
+            {
+              "retreat": "variable.fb_anim == 'retreat'"
+            },
+            {
+              "crawl": "variable.fb_anim == 'crawl'"
+            },
+            {
+              "threat": "variable.fb_anim == 'threat'"
+            },
+            {
+              "dormant": "variable.fb_anim == 'dormant'"
+            },
+            {
+              "music": "variable.fb_anim == 'music'"
+            },
+            {
+              "perform_0": "variable.fb_anim == 'perform'"
+            },
+            {
+              "attack_0": "variable.fb_anim == 'attack'"
+            }
+          ]
+        },
+        "look": {
+          "animations": [
+            "pose_watch"
+          ],
+          "blend_transition": 0.25,
+          "transitions": [
+            {
+              "idle": "variable.fb_anim == 'idle'"
+            },
+            {
+              "pause": "variable.fb_anim == 'pause'"
+            },
+            {
+              "walk": "variable.fb_anim == 'walk'"
+            },
+            {
+              "stalk": "variable.fb_anim == 'stalk'"
+            },
+            {
+              "retreat": "variable.fb_anim == 'retreat'"
+            },
+            {
+              "crawl": "variable.fb_anim == 'crawl'"
+            },
+            {
+              "threat": "variable.fb_anim == 'threat'"
+            },
+            {
+              "dormant": "variable.fb_anim == 'dormant'"
+            },
+            {
+              "music": "variable.fb_anim == 'music'"
+            },
+            {
+              "perform_0": "variable.fb_anim == 'perform'"
+            },
+            {
+              "attack_0": "variable.fb_anim == 'attack'"
+            }
+          ]
+        },
+        "pause": {
+          "animations": [
+            "pose_watch"
+          ],
+          "blend_transition": 0.25,
+          "transitions": [
+            {
+              "idle": "variable.fb_anim == 'idle'"
+            },
+            {
+              "look": "variable.fb_anim == 'look'"
+            },
+            {
+              "walk": "variable.fb_anim == 'walk'"
+            },
+            {
+              "stalk": "variable.fb_anim == 'stalk'"
+            },
+            {
+              "retreat": "variable.fb_anim == 'retreat'"
+            },
+            {
+              "crawl": "variable.fb_anim == 'crawl'"
+            },
+            {
+              "threat": "variable.fb_anim == 'threat'"
+            },
+            {
+              "dormant": "variable.fb_anim == 'dormant'"
+            },
+            {
+              "music": "variable.fb_anim == 'music'"
+            },
+            {
+              "perform_0": "variable.fb_anim == 'perform'"
+            },
+            {
+              "attack_0": "variable.fb_anim == 'attack'"
+            }
+          ]
+        },
+        "walk": {
+          "animations": [
+            "walk"
+          ],
+          "blend_transition": 0.25,
+          "transitions": [
+            {
+              "idle": "variable.fb_anim == 'idle'"
+            },
+            {
+              "look": "variable.fb_anim == 'look'"
+            },
+            {
+              "pause": "variable.fb_anim == 'pause'"
+            },
+            {
+              "stalk": "variable.fb_anim == 'stalk'"
+            },
+            {
+              "retreat": "variable.fb_anim == 'retreat'"
+            },
+            {
+              "crawl": "variable.fb_anim == 'crawl'"
+            },
+            {
+              "threat": "variable.fb_anim == 'threat'"
+            },
+            {
+              "dormant": "variable.fb_anim == 'dormant'"
+            },
+            {
+              "music": "variable.fb_anim == 'music'"
+            },
+            {
+              "perform_0": "variable.fb_anim == 'perform'"
+            },
+            {
+              "attack_0": "variable.fb_anim == 'attack'"
+            }
+          ]
+        },
+        "stalk": {
+          "animations": [
+            "stalk"
+          ],
+          "blend_transition": 0.25,
+          "transitions": [
+            {
+              "idle": "variable.fb_anim == 'idle'"
+            },
+            {
+              "look": "variable.fb_anim == 'look'"
+            },
+            {
+              "pause": "variable.fb_anim == 'pause'"
+            },
+            {
+              "walk": "variable.fb_anim == 'walk'"
+            },
+            {
+              "retreat": "variable.fb_anim == 'retreat'"
+            },
+            {
+              "crawl": "variable.fb_anim == 'crawl'"
+            },
+            {
+              "threat": "variable.fb_anim == 'threat'"
+            },
+            {
+              "dormant": "variable.fb_anim == 'dormant'"
+            },
+            {
+              "music": "variable.fb_anim == 'music'"
+            },
+            {
+              "perform_0": "variable.fb_anim == 'perform'"
+            },
+            {
+              "attack_0": "variable.fb_anim == 'attack'"
+            }
+          ]
+        },
+        "retreat": {
+          "animations": [
+            "run"
+          ],
+          "blend_transition": 0.25,
+          "transitions": [
+            {
+              "idle": "variable.fb_anim == 'idle'"
+            },
+            {
+              "look": "variable.fb_anim == 'look'"
+            },
+            {
+              "pause": "variable.fb_anim == 'pause'"
+            },
+            {
+              "walk": "variable.fb_anim == 'walk'"
+            },
+            {
+              "stalk": "variable.fb_anim == 'stalk'"
+            },
+            {
+              "crawl": "variable.fb_anim == 'crawl'"
+            },
+            {
+              "threat": "variable.fb_anim == 'threat'"
+            },
+            {
+              "dormant": "variable.fb_anim == 'dormant'"
+            },
+            {
+              "music": "variable.fb_anim == 'music'"
+            },
+            {
+              "perform_0": "variable.fb_anim == 'perform'"
+            },
+            {
+              "attack_0": "variable.fb_anim == 'attack'"
+            }
+          ]
+        },
+        "crawl": {
+          "animations": [
+            "crawl"
+          ],
+          "blend_transition": 0.25,
+          "transitions": [
+            {
+              "idle": "variable.fb_anim == 'idle'"
+            },
+            {
+              "look": "variable.fb_anim == 'look'"
+            },
+            {
+              "pause": "variable.fb_anim == 'pause'"
+            },
+            {
+              "walk": "variable.fb_anim == 'walk'"
+            },
+            {
+              "stalk": "variable.fb_anim == 'stalk'"
+            },
+            {
+              "retreat": "variable.fb_anim == 'retreat'"
+            },
+            {
+              "threat": "variable.fb_anim == 'threat'"
+            },
+            {
+              "dormant": "variable.fb_anim == 'dormant'"
+            },
+            {
+              "music": "variable.fb_anim == 'music'"
+            },
+            {
+              "perform_0": "variable.fb_anim == 'perform'"
+            },
+            {
+              "attack_0": "variable.fb_anim == 'attack'"
+            }
+          ]
+        },
+        "threat": {
+          "animations": [
+            "threat"
+          ],
+          "blend_transition": 0.25,
+          "transitions": [
+            {
+              "idle": "variable.fb_anim == 'idle'"
+            },
+            {
+              "look": "variable.fb_anim == 'look'"
+            },
+            {
+              "pause": "variable.fb_anim == 'pause'"
+            },
+            {
+              "walk": "variable.fb_anim == 'walk'"
+            },
+            {
+              "stalk": "variable.fb_anim == 'stalk'"
+            },
+            {
+              "retreat": "variable.fb_anim == 'retreat'"
+            },
+            {
+              "crawl": "variable.fb_anim == 'crawl'"
+            },
+            {
+              "dormant": "variable.fb_anim == 'dormant'"
+            },
+            {
+              "music": "variable.fb_anim == 'music'"
+            },
+            {
+              "perform_0": "variable.fb_anim == 'perform'"
+            },
+            {
+              "attack_0": "variable.fb_anim == 'attack'"
+            }
+          ]
+        },
+        "dormant": {
+          "animations": [
+            "pose_powered_down"
+          ],
+          "blend_transition": 0.25,
+          "transitions": [
+            {
+              "idle": "variable.fb_anim == 'idle'"
+            },
+            {
+              "look": "variable.fb_anim == 'look'"
+            },
+            {
+              "pause": "variable.fb_anim == 'pause'"
+            },
+            {
+              "walk": "variable.fb_anim == 'walk'"
+            },
+            {
+              "stalk": "variable.fb_anim == 'stalk'"
+            },
+            {
+              "retreat": "variable.fb_anim == 'retreat'"
+            },
+            {
+              "crawl": "variable.fb_anim == 'crawl'"
+            },
+            {
+              "threat": "variable.fb_anim == 'threat'"
+            },
+            {
+              "music": "variable.fb_anim == 'music'"
+            },
+            {
+              "perform_0": "variable.fb_anim == 'perform'"
+            },
+            {
+              "attack_0": "variable.fb_anim == 'attack'"
+            }
+          ]
+        },
+        "music": {
+          "animations": [
+            "idle"
+          ],
+          "blend_transition": 0.25,
+          "transitions": [
+            {
+              "idle": "variable.fb_anim == 'idle'"
+            },
+            {
+              "look": "variable.fb_anim == 'look'"
+            },
+            {
+              "pause": "variable.fb_anim == 'pause'"
+            },
+            {
+              "walk": "variable.fb_anim == 'walk'"
+            },
+            {
+              "stalk": "variable.fb_anim == 'stalk'"
+            },
+            {
+              "retreat": "variable.fb_anim == 'retreat'"
+            },
+            {
+              "crawl": "variable.fb_anim == 'crawl'"
+            },
+            {
+              "threat": "variable.fb_anim == 'threat'"
+            },
+            {
+              "dormant": "variable.fb_anim == 'dormant'"
+            },
+            {
+              "perform_0": "variable.fb_anim == 'perform'"
+            },
+            {
+              "attack_0": "variable.fb_anim == 'attack'"
+            }
+          ]
+        },
+        "perform_0": {
+          "animations": [
+            "perform_rhythm_once"
+          ],
+          "blend_transition": 0.25,
+          "transitions": [
+            {
+              "idle": "variable.fb_anim == 'idle'"
+            },
+            {
+              "look": "variable.fb_anim == 'look'"
+            },
+            {
+              "pause": "variable.fb_anim == 'pause'"
+            },
+            {
+              "walk": "variable.fb_anim == 'walk'"
+            },
+            {
+              "stalk": "variable.fb_anim == 'stalk'"
+            },
+            {
+              "retreat": "variable.fb_anim == 'retreat'"
+            },
+            {
+              "crawl": "variable.fb_anim == 'crawl'"
+            },
+            {
+              "threat": "variable.fb_anim == 'threat'"
+            },
+            {
+              "dormant": "variable.fb_anim == 'dormant'"
+            },
+            {
+              "music": "variable.fb_anim == 'music'"
+            },
+            {
+              "attack_0": "variable.fb_anim == 'attack'"
+            },
+            {
+              "perform_1": "variable.fb_anim == 'perform' && query.all_animations_finished"
+            }
+          ]
+        },
+        "perform_1": {
+          "animations": [
+            "perform_solo_once"
+          ],
+          "blend_transition": 0.25,
+          "transitions": [
+            {
+              "idle": "variable.fb_anim == 'idle'"
+            },
+            {
+              "look": "variable.fb_anim == 'look'"
+            },
+            {
+              "pause": "variable.fb_anim == 'pause'"
+            },
+            {
+              "walk": "variable.fb_anim == 'walk'"
+            },
+            {
+              "stalk": "variable.fb_anim == 'stalk'"
+            },
+            {
+              "retreat": "variable.fb_anim == 'retreat'"
+            },
+            {
+              "crawl": "variable.fb_anim == 'crawl'"
+            },
+            {
+              "threat": "variable.fb_anim == 'threat'"
+            },
+            {
+              "dormant": "variable.fb_anim == 'dormant'"
+            },
+            {
+              "music": "variable.fb_anim == 'music'"
+            },
+            {
+              "attack_0": "variable.fb_anim == 'attack'"
+            },
+            {
+              "perform_0": "variable.fb_anim == 'perform' && query.all_animations_finished"
+            }
+          ]
+        },
+        "attack_0": {
+          "animations": [
+            "attack"
+          ],
+          "blend_transition": 0.05,
+          "transitions": [
+            {
+              "idle": "variable.fb_anim == 'idle'"
+            },
+            {
+              "look": "variable.fb_anim == 'look'"
+            },
+            {
+              "pause": "variable.fb_anim == 'pause'"
+            },
+            {
+              "walk": "variable.fb_anim == 'walk'"
+            },
+            {
+              "stalk": "variable.fb_anim == 'stalk'"
+            },
+            {
+              "retreat": "variable.fb_anim == 'retreat'"
+            },
+            {
+              "crawl": "variable.fb_anim == 'crawl'"
+            },
+            {
+              "threat": "variable.fb_anim == 'threat'"
+            },
+            {
+              "dormant": "variable.fb_anim == 'dormant'"
+            },
+            {
+              "music": "variable.fb_anim == 'music'"
+            },
+            {
+              "perform_0": "variable.fb_anim == 'perform'"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -28,7 +28,7 @@ test('same seed reproduces the same night exactly (deterministic debug mode)', a
   assert.notDeepEqual(a.session.log, c.session.log);
 });
 
-test('all seven nights start and complete with a valid defence (oracle, 10 seeds each)', async () => {
+test('nights 1-7 start and complete with a valid defence (oracle, 10 seeds each)', async () => {
   for (let night = 1; night <= 7; night++) {
     for (let seed = 1; seed <= 10; seed++) {
       const r = await runNight(NightSession, { night, seed, bot: oracleBot() });

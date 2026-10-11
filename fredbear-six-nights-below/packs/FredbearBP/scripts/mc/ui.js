@@ -55,6 +55,9 @@ export async function officeRemote(player, snap) {
     ['cams_toggle', d.camsOpen ? 'LOWER MONITOR' : 'RAISE MONITOR'],
   ];
   if (snap.hatchInstalled) items.push(['hatch', `HATCH  ${d.hatch ? '§6[sealed]' : '§2[open]'}`]);
+  const seal = (k) => (snap.seals[k].left > 0 ? `§b[sealed ${Math.ceil(snap.seals[k].left / 20)}s]` : snap.seals[k].cooldown > 0 ? '§8[recharging]' : '§7[3% power]');
+  items.push(['seal_vent', `SEAL THE VENT  ${seal('vent')}`]);
+  if (snap.hatchInstalled) items.push(['seal_shaft', `SEAL THE SHAFT  ${seal('shaft')}`]);
   if (snap.strobe.installed) items.push(['strobe', `§6EMERGENCY STROBE (${snap.strobe.charges})`]);
   if (snap.breaker.tripped) items.push(['breaker', '§cRESET BREAKER']);
   if (snap.powerOut?.stage === 'reserve') items.push(['reserve', '§c§lPULL EMERGENCY RESERVE']);
@@ -108,11 +111,12 @@ export async function settingsForm(player, settings) {
     .slider('Seed (deterministic mode)', 1, 9999, { defaultValue: Math.max(1, Math.min(9999, settings.seed)), valueStep: 1 })
     .toggle('Developer overlay', { defaultValue: settings.debugOverlay })
     .toggle('Night music (12 AM - 6 AM)', { defaultValue: settings.music !== false })
-    .toggle('Holiday decorations (Halloween, Christmas)', { defaultValue: settings.holidays !== false });
+    .toggle('Holiday decorations (Halloween, Christmas)', { defaultValue: settings.holidays !== false })
+    .toggle('Camera map on screen while watching the cameras', { defaultValue: settings.camMap !== false });
   const r = await show(player, f);
   if (!r || r.canceled || !r.formValues) return undefined;
-  const [captions, hints, deterministic, seed, debugOverlay, music, holidays] = r.formValues;
-  return { captions: !!captions, hints: !!hints, deterministic: !!deterministic, seed: Number(seed) || 1983, debugOverlay: !!debugOverlay, music: !!music, holidays: !!holidays };
+  const [captions, hints, deterministic, seed, debugOverlay, music, holidays, camMap] = r.formValues;
+  return { captions: !!captions, hints: !!hints, deterministic: !!deterministic, seed: Number(seed) || 1983, debugOverlay: !!debugOverlay, music: !!music, holidays: !!holidays, camMap: !!camMap };
 }
 
 /** Challenge modes. Resolves to a challenge id or undefined. */
@@ -168,6 +172,8 @@ export async function extrasForm(player, save) {
     '§lCREDITS§r', 'FREDBEAR: SIX NIGHTS BELOW - an original fan-made Minecraft Bedrock map.',
     'Animatronic skins supplied by the map owner.',
     'Fredbear 3D model, texture and animations (Fredbear V6) supplied by the map owner.',
+    'Freddy (Freddy V6), Bonnie (Bonnie V2), Morgrave and Valek models, textures and animations supplied by the map owner.',
+    "Fredbear's music box: the Fredbear's Family Diner music box; Chica's kitchen: \"Chica in the Kitchen\"; both supplied by the map owner.",
     'Night music: "Pizza Dinner" from the FNAF 1 Remake fan-game soundtrack, supplied by the map owner.',
     'Jumpscares, laughter and camera monitor sounds supplied by the map owner.',
     'Door slam: "storm door slam 01" by volivieri (freesound.org/s/161190, CC BY 4.0), shortened.',
