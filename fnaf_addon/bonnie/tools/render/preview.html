@@ -1,0 +1,274 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Bonnie Preview</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #dcdde1; overflow: hidden; }
+  #stage { position: relative; }
+  canvas { display: block; }
+  .ov { position: absolute; font-family: "DejaVu Serif", Georgia, serif; color: #2a2c3a; letter-spacing: 0.18em; }
+  #title { left: 48px; top: 36px; font-family: "DejaVu Sans", sans-serif; font-weight: 700; font-size: 54px; letter-spacing: 0.04em; color: #252838; }
+  #subtitle { left: 50px; top: 104px; font-size: 15px; }
+  #label { right: 48px; bottom: 40px; font-size: 22px; text-align: right; }
+  #sublabel { right: 48px; bottom: 74px; font-size: 13px; color: #585a68; text-align: right; }
+  #rule { left: 50px; top: 132px; width: 180px; height: 2px; background: #2a2c3a; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "/three/build/three.module.js", "three/addons/": "/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+<div id="stage">
+  <div id="title" class="ov">BONNIE</div>
+  <div id="subtitle" class="ov">MINECRAFT-STYLE FNAF MODEL</div>
+  <div id="rule" class="ov"></div>
+  <div id="sublabel" class="ov"></div>
+  <div id="label" class="ov"></div>
+</div>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const params = new URLSearchParams(location.search);
+const W = parseInt(params.get('w') || '1280');
+const H = parseInt(params.get('h') || '720');
+const MODEL = params.get('model') || '/model/bonnie.bbmodel';
+const EMISSIVE = params.get('emissive') || '/model/textures/bonnie_emissive.png';
+const BG = 0xdcdde1;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.getElementById('stage').prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(BG);
+
+const camera = new THREE.PerspectiveCamera(30, W / H, 1, 2000);
+
+// studio lighting similar to the reference sheet
+scene.add(new THREE.HemisphereLight(0xffffff, 0xa4a4ae, 1.9));
+const key = new THREE.DirectionalLight(0xffffff, 2.1);
+key.position.set(70, 120, -110);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+Object.assign(key.shadow.camera, { left: -110, right: 110, top: 110, bottom: -110, near: 10, far: 500 });
+key.shadow.bias = -0.0005;
+key.shadow.radius = 4;
+scene.add(key);
+const fill = new THREE.DirectionalLight(0xdfe4ff, 0.9);
+fill.position.set(-120, 60, -60);
+scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffffff, 0.7);
+rim.position.set(0, 90, 140);
+scene.add(rim);
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.ShadowMaterial({ opacity: 0.22 }));
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const composer = new EffectComposer(renderer);
+composer.setSize(W, H);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.55, 0.12, 1.4);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+const deg = Math.PI / 180;
+const bones = {};
+let model = null;
+let bb = null;
+
+function loadTexture(url) {
+  return new Promise((res, rej) => new THREE.TextureLoader().load(url, res, undefined, rej));
+}
+
+// face corners (TL, TR, BL, BR) as seen from outside; matches Blockbench's per-face UV orientation
+function faceCorners(f, a, b) {
+  const [x0, y0, z0] = a, [x1, y1, z1] = b;
+  switch (f) {
+    case 'north': return [[x1, y1, z0], [x0, y1, z0], [x1, y0, z0], [x0, y0, z0], [0, 0, -1]];
+    case 'south': return [[x0, y1, z1], [x1, y1, z1], [x0, y0, z1], [x1, y0, z1], [0, 0, 1]];
+    case 'east':  return [[x1, y1, z1], [x1, y1, z0], [x1, y0, z1], [x1, y0, z0], [1, 0, 0]];
+    case 'west':  return [[x0, y1, z0], [x0, y1, z1], [x0, y0, z0], [x0, y0, z1], [-1, 0, 0]];
+    case 'up':    return [[x0, y1, z0], [x1, y1, z0], [x0, y1, z1], [x1, y1, z1], [0, 1, 0]];
+    case 'down':  return [[x0, y0, z1], [x1, y0, z1], [x0, y0, z0], [x1, y0, z0], [0, -1, 0]];
+  }
+}
+
+function cubeGeometry(el, texW, texH) {
+  const o = el.origin;
+  const inf = el.inflate || 0;
+  const a = [el.from[0] - o[0] - inf, el.from[1] - o[1] - inf, el.from[2] - o[2] - inf];
+  const b = [el.to[0] - o[0] + inf, el.to[1] - o[1] + inf, el.to[2] - o[2] + inf];
+  const pos = [], nor = [], uv = [], idx = [];
+  for (const f of ['north', 'east', 'south', 'west', 'up', 'down']) {
+    const face = el.faces[f];
+    if (!face || face.texture === null || face.texture === undefined) continue;
+    const [tl, tr, bl, br, n] = faceCorners(f, a, b);
+    const [u1, v1, u2, v2] = face.uv;
+    const base = pos.length / 3;
+    for (const [p, u, v] of [[tl, u1, v1], [tr, u2, v1], [bl, u1, v2], [br, u2, v2]]) {
+      pos.push(...p); nor.push(...n); uv.push(u / texW, 1 - v / texH);
+    }
+    idx.push(base, base + 2, base + 1, base + 1, base + 2, base + 3);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  return g;
+}
+
+async function build() {
+  bb = await (await fetch(MODEL)).json();
+  const texW = bb.resolution.width, texH = bb.resolution.height;
+  const map = await loadTexture(bb.textures[0].source);
+  const emi = await loadTexture(EMISSIVE);
+  for (const t of [map, emi]) {
+    t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.generateMipmaps = false;
+  }
+  map.colorSpace = THREE.SRGBColorSpace;
+  emi.colorSpace = THREE.SRGBColorSpace;
+  const mat = new THREE.MeshStandardMaterial({ map, emissiveMap: emi, emissive: 0xffffff, emissiveIntensity: 3.2, roughness: 0.88, metalness: 0.0 });
+  const elements = Object.fromEntries(bb.elements.map(e => [e.uuid, e]));
+  model = new THREE.Group();
+  const addGroup = (g, parent, parentOrigin) => {
+    const obj = new THREE.Group();
+    obj.name = g.name;
+    obj.position.set(g.origin[0] - parentOrigin[0], g.origin[1] - parentOrigin[1], g.origin[2] - parentOrigin[2]);
+    const r = g.rotation || [0, 0, 0];
+    obj.rotation.order = 'ZYX';
+    obj.rotation.set(r[0] * deg, r[1] * deg, r[2] * deg);
+    obj.userData.basePos = obj.position.clone();
+    obj.userData.baseRot = r.map(v => v * deg);
+    bones[g.name] = obj;
+    for (const ch of g.children) {
+      if (typeof ch === 'string') {
+        const el = elements[ch];
+        const mesh = new THREE.Mesh(cubeGeometry(el, texW, texH), mat);
+        mesh.position.set(el.origin[0] - g.origin[0], el.origin[1] - g.origin[1], el.origin[2] - g.origin[2]);
+        const er = el.rotation || [0, 0, 0];
+        mesh.rotation.order = 'ZYX';
+        mesh.rotation.set(er[0] * deg, er[1] * deg, er[2] * deg);
+        mesh.castShadow = true; mesh.receiveShadow = true;
+        obj.add(mesh);
+      } else addGroup(ch, obj, g.origin);
+    }
+    parent.add(obj);
+  };
+  for (const g of bb.outliner) addGroup(g, model, [0, 0, 0]);
+  scene.add(model);
+}
+
+// ---------------------------------------------------------------- animation
+function catmull(p0, p1, p2, p3, t) {
+  const t2 = t * t, t3 = t2 * t;
+  return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
+}
+function kfVal(k) { const d = k.data_points[0]; return [+d.x, +d.y, +d.z]; }
+function sample(kfs, t) {
+  if (t <= kfs[0].time) return kfVal(kfs[0]);
+  const last = kfs[kfs.length - 1];
+  if (t >= last.time) return kfVal(last);
+  let i = 0;
+  while (!(kfs[i].time <= t && t < kfs[i + 1].time)) i++;
+  const a = kfs[i], b = kfs[i + 1];
+  const al = (t - a.time) / (b.time - a.time);
+  const va = kfVal(a), vb = kfVal(b);
+  if (a.interpolation === 'step') return va;
+  if (a.interpolation === 'catmullrom' || b.interpolation === 'catmullrom') {
+    const v0 = kfVal(kfs[Math.max(0, i - 1)]), v3 = kfVal(kfs[Math.min(kfs.length - 1, i + 2)]);
+    return [0, 1, 2].map(j => catmull(v0[j], va[j], vb[j], v3[j], al));
+  }
+  return [0, 1, 2].map(j => va[j] + (vb[j] - va[j]) * al);
+}
+
+function poseOf(animName, time) {
+  const anim = bb.animations.find(a => a.name === animName);
+  const pose = {};
+  if (!anim) return pose;
+  let t = time;
+  if (anim.loop === 'loop' && anim.length > 0) t = ((time % anim.length) + anim.length) % anim.length;
+  else t = Math.min(time, anim.length);
+  for (const animator of Object.values(anim.animators)) {
+    const byCh = {};
+    for (const k of animator.keyframes) (byCh[k.channel] ||= []).push(k);
+    const p = {};
+    for (const [ch, kfs] of Object.entries(byCh)) {
+      kfs.sort((x, y) => x.time - y.time);
+      p[ch] = sample(kfs, t);
+    }
+    pose[animator.name] = p;
+  }
+  return pose;
+}
+
+function mix(a, b, w) {
+  // blend two poses (for transitions between clips)
+  const out = {};
+  const names = new Set([...Object.keys(a), ...Object.keys(b)]);
+  const def = { rotation: [0, 0, 0], position: [0, 0, 0], scale: [1, 1, 1] };
+  for (const n of names) {
+    out[n] = {};
+    for (const ch of ['rotation', 'position', 'scale']) {
+      const va = (a[n] && a[n][ch]) || def[ch], vb = (b[n] && b[n][ch]) || def[ch];
+      out[n][ch] = [0, 1, 2].map(j => va[j] * (1 - w) + vb[j] * w);
+    }
+  }
+  return out;
+}
+
+function applyPose(pose) {
+  for (const [name, obj] of Object.entries(bones)) {
+    const p = pose[name] || {};
+    const r = p.rotation || [0, 0, 0], q = p.position || [0, 0, 0], s = p.scale || [1, 1, 1];
+    const br = obj.userData.baseRot, bp = obj.userData.basePos;
+    obj.rotation.set(br[0] - r[0] * deg, br[1] - r[1] * deg, br[2] + r[2] * deg);
+    obj.position.set(bp.x - q[0], bp.y + q[1], bp.z + q[2]);
+    obj.scale.set(Math.max(s[0], 1e-4), Math.max(s[1], 1e-4), Math.max(s[2], 1e-4));
+    obj.visible = !(s[0] === 0 && s[1] === 0 && s[2] === 0);
+  }
+}
+
+function setCamera({ az = 0, el = 8, dist = 190, target = [0, 27, 0], fov = 30 }) {
+  camera.fov = fov;
+  camera.updateProjectionMatrix();
+  const a = az * deg, e = el * deg;
+  // az 0 = in front of the character (the character faces -Z)
+  camera.position.set(target[0] + dist * Math.cos(e) * Math.sin(a), target[1] + dist * Math.sin(e), target[2] - dist * Math.cos(e) * Math.cos(a));
+  camera.lookAt(...target);
+}
+
+function setText({ label = '', sublabel = '', showTitle = true } = {}) {
+  document.getElementById('label').textContent = label;
+  document.getElementById('sublabel').textContent = sublabel;
+  for (const id of ['title', 'subtitle', 'rule']) document.getElementById(id).style.display = showTitle ? '' : 'none';
+}
+
+window.api = {
+  ready: build().then(() => true),
+  animations: () => bb.animations.map(a => ({ name: a.name, length: a.length, loop: a.loop })),
+  frame(opts) {
+    const { anim = null, time = 0, blendFrom = null, blendTime = 0, blendW = 1, cam = {}, text = {} } = opts;
+    let pose = anim ? poseOf(anim, time) : {};
+    if (blendFrom && blendW < 1) pose = mix(poseOf(blendFrom, blendTime), pose, blendW);
+    applyPose(pose);
+    setCamera(cam);
+    setText(text);
+    composer.render();
+    return true;
+  },
+};
+</script>
+</body>
+</html>

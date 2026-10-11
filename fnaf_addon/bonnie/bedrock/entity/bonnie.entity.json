@@ -1,0 +1,39 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:bonnie",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/bonnie/bonnie_glow"
+			},
+			"geometry": {
+				"default": "geometry.bonnie"
+			},
+			"animations": {
+				"idle": "animation.bonnie.idle",
+				"walk": "animation.bonnie.walk",
+				"run": "animation.bonnie.run",
+				"pose1": "animation.bonnie.pose1",
+				"pose2": "animation.bonnie.pose2",
+				"performance1": "animation.bonnie.performance1",
+				"performance2": "animation.bonnie.performance2",
+				"controller": "controller.animation.bonnie.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.bonnie"
+			],
+			"spawn_egg": {
+				"base_color": "#3a3d6b",
+				"overlay_color": "#8e2a2c"
+			}
+		}
+	}
+}
