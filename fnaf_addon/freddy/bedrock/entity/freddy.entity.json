@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:freddy",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/freddy/freddy_glow"
+			},
+			"geometry": {
+				"default": "geometry.freddy"
+			},
+			"animations": {
+				"idle": "animation.freddy.idle",
+				"walk": "animation.freddy.walk",
+				"run": "animation.freddy.run",
+				"pose1": "animation.freddy.pose1",
+				"pose2": "animation.freddy.pose2",
+				"performance1": "animation.freddy.performance1",
+				"performance2": "animation.freddy.performance2",
+				"jumpscare1": "animation.freddy.jumpscare1",
+				"jumpscare2": "animation.freddy.jumpscare2",
+				"controller": "controller.animation.freddy.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.freddy"
+			],
+			"spawn_egg": {
+				"base_color": "#7a3f22",
+				"overlay_color": "#d29a66"
+			}
+		}
+	}
+}

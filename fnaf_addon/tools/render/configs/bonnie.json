@@ -1,0 +1,450 @@
+{
+  "title": "BONNIE",
+  "subtitle": "MINECRAFT-STYLE FNAF MODEL",
+  "views": {
+    "front": {
+      "az": 0,
+      "el": 4,
+      "dist": 200,
+      "target": [
+        0,
+        26,
+        0
+      ],
+      "fov": 28
+    },
+    "side": {
+      "az": 90,
+      "el": 4,
+      "dist": 200,
+      "target": [
+        0,
+        26,
+        0
+      ],
+      "fov": 28
+    },
+    "back": {
+      "az": 180,
+      "el": 4,
+      "dist": 200,
+      "target": [
+        0,
+        26,
+        0
+      ],
+      "fov": 28
+    },
+    "three_quarter": {
+      "az": 32,
+      "el": 10,
+      "dist": 175,
+      "target": [
+        0,
+        28,
+        0
+      ],
+      "fov": 30
+    },
+    "face": {
+      "az": 0,
+      "el": 2,
+      "dist": 70,
+      "target": [
+        0,
+        39,
+        -4
+      ],
+      "fov": 22
+    }
+  },
+  "stills_cam": {
+    "az": 30,
+    "el": 8,
+    "dist": 190,
+    "target": [
+      0,
+      26,
+      0
+    ],
+    "fov": 30
+  },
+  "turnaround": {
+    "secs": 6,
+    "cam": {
+      "az": [
+        32,
+        392
+      ],
+      "el": 9,
+      "dist": 165,
+      "target": [
+        0,
+        28,
+        0
+      ],
+      "fov": 30
+    }
+  },
+  "closeups": [
+    {
+      "clip": "idle",
+      "secs": 3,
+      "label": "FACE DETAIL (NORMAL)",
+      "cam": {
+        "az": [
+          18,
+          -18
+        ],
+        "el": 4,
+        "dist": 92,
+        "target": [
+          -7,
+          39,
+          -3
+        ],
+        "fov": 24
+      }
+    },
+    {
+      "clip": "performance1",
+      "secs": 3,
+      "label": "FACE DETAIL (PERFORMANCE)",
+      "cam": {
+        "az": [
+          18,
+          -18
+        ],
+        "el": 4,
+        "dist": 92,
+        "target": [
+          -7,
+          39,
+          -3
+        ],
+        "fov": 24
+      }
+    }
+  ],
+  "default_cam": {
+    "az": [
+      40,
+      -10
+    ],
+    "el": 9,
+    "dist": 155,
+    "target": [
+      0,
+      28,
+      0
+    ],
+    "fov": 30
+  },
+  "clips": [
+    {
+      "name": "idle",
+      "secs": 5
+    },
+    {
+      "name": "walk",
+      "secs": 4,
+      "cam": {
+        "az": [
+          55,
+          15
+        ],
+        "el": 8,
+        "dist": 160,
+        "target": [
+          0,
+          27,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "run",
+      "secs": 4,
+      "cam": {
+        "az": [
+          70,
+          30
+        ],
+        "el": 8,
+        "dist": 160,
+        "target": [
+          0,
+          27,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "pose1",
+      "secs": 4
+    },
+    {
+      "name": "pose2",
+      "secs": 4
+    },
+    {
+      "name": "performance1",
+      "secs": 6
+    },
+    {
+      "name": "performance2",
+      "secs": 6
+    }
+  ],
+  "sheet": {
+    "tagline": [
+      "THE",
+      "SHOW",
+      "NEVER",
+      "ENDS."
+    ],
+    "blurb": [
+      "A trusted face",
+      "for a brighter",
+      "tomorrow."
+    ],
+    "corner": [
+      "SAME SONGS.",
+      "DIFFERENT ENDING.",
+      "SOME FRIENDSHIPS",
+      "LAST FOREVER."
+    ],
+    "side_a": [
+      "MUSIC",
+      "LIVES",
+      "ON."
+    ],
+    "side_b": [
+      "A",
+      "BRIGHTER",
+      "STAGE",
+      "AWAITS."
+    ],
+    "palette": [
+      [
+        51,
+        54,
+        86
+      ],
+      [
+        78,
+        81,
+        124
+      ],
+      [
+        179,
+        175,
+        175
+      ],
+      [
+        129,
+        128,
+        133
+      ],
+      [
+        127,
+        41,
+        42
+      ],
+      [
+        22,
+        22,
+        21
+      ]
+    ],
+    "shots": {
+      "front": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 0,
+          "el": 3,
+          "dist": 170,
+          "target": [
+            0,
+            27,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "side": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 90,
+          "el": 3,
+          "dist": 170,
+          "target": [
+            0,
+            27,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "back": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 180,
+          "el": 3,
+          "dist": 170,
+          "target": [
+            0,
+            27,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "main": {
+        "anim": "performance1",
+        "time": 0.25,
+        "cam": {
+          "az": 34,
+          "el": 7,
+          "dist": 118,
+          "target": [
+            0,
+            30,
+            -3
+          ],
+          "fov": 34
+        }
+      }
+    },
+    "faces": [
+      {
+        "label": "FACE DETAIL (NORMAL)",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 0,
+          "el": 2,
+          "dist": 48,
+          "target": [
+            0,
+            39,
+            -4
+          ],
+          "fov": 22
+        }
+      },
+      {
+        "label": "FACE DETAIL (PERFORMANCE)",
+        "anim": "performance1",
+        "time": 1.875,
+        "cam": {
+          "az": 4,
+          "el": 2,
+          "dist": 50,
+          "target": [
+            0.6,
+            38.0,
+            -4.5
+          ],
+          "fov": 22
+        }
+      }
+    ],
+    "details": [
+      {
+        "label": "HAND DETAIL",
+        "anim": "pose1",
+        "time": 0.5,
+        "cam": {
+          "az": 12,
+          "el": 5,
+          "dist": 21,
+          "target": [
+            11.8,
+            41.3,
+            -5.2
+          ],
+          "fov": 30
+        }
+      },
+      {
+        "label": "BANJO DETAIL",
+        "anim": null,
+        "time": 0,
+        "cam": {
+          "az": -4,
+          "el": 4,
+          "dist": 42,
+          "target": [
+            -1.0,
+            24.5,
+            -8
+          ],
+          "fov": 30
+        }
+      },
+      {
+        "label": "JOINT DETAIL",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 62,
+          "el": 4,
+          "dist": 19,
+          "target": [
+            8.8,
+            24.4,
+            0
+          ],
+          "fov": 30
+        }
+      }
+    ],
+    "strip": [
+      [
+        "idle",
+        0.0
+      ],
+      [
+        "walk",
+        0.3125
+      ],
+      [
+        "run",
+        0.1875
+      ],
+      [
+        "pose1",
+        0.5
+      ],
+      [
+        "pose2",
+        0.5
+      ],
+      [
+        "performance1",
+        0.25
+      ],
+      [
+        "performance2",
+        0.25
+      ]
+    ],
+    "strip_cam": {
+      "az": 22,
+      "el": 6,
+      "dist": 150,
+      "target": [
+        0,
+        27,
+        0
+      ],
+      "fov": 30
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:withered_freddy",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/withered_freddy/withered_freddy_glow"
+			},
+			"geometry": {
+				"default": "geometry.withered_freddy"
+			},
+			"animations": {
+				"idle": "animation.withered_freddy.idle",
+				"walk": "animation.withered_freddy.walk",
+				"run": "animation.withered_freddy.run",
+				"pose1": "animation.withered_freddy.pose1",
+				"pose2": "animation.withered_freddy.pose2",
+				"performance1": "animation.withered_freddy.performance1",
+				"performance2": "animation.withered_freddy.performance2",
+				"jumpscare1": "animation.withered_freddy.jumpscare1",
+				"jumpscare2": "animation.withered_freddy.jumpscare2",
+				"controller": "controller.animation.withered_freddy.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.withered_freddy"
+			],
+			"spawn_egg": {
+				"base_color": "#6b3a1f",
+				"overlay_color": "#1d1d1d"
+			}
+		}
+	}
+}

@@ -1,82 +1,22 @@
-"""Bonnie geometry, texture painting and forward kinematics.
+"""Bonnie: geometry, texture painting and animations.
 
-Coordinates are Blockbench's own: +Y is up, the character faces north (-Z) and
-the character's RIGHT side is +X.  One unit is one Minecraft model pixel; the
-texture is painted at TPU texels per unit so the pixel grain matches the
-reference sheet.
+Built from the "BONNIE - Minecraft-style FNAF character model" reference sheet.
 """
 import math
-from collections import OrderedDict
+import os
 
 import numpy as np
 
-TPU = 2  # texels per model unit
-
-# --------------------------------------------------------------------------
-# Rig containers
-# --------------------------------------------------------------------------
-
-
-class Cube:
-    def __init__(self, name, frm, to, mat, faces=None, painter=None, rot=None, origin=None):
-        self.name = name
-        self.frm = [float(v) for v in frm]
-        self.to = [float(v) for v in to]
-        assert all(self.to[i] > self.frm[i] for i in range(3)), name
-        self.mat = mat
-        self.faces = dict(faces or {})  # face -> material override
-        self.painter = painter  # fn(ctx) for custom detail
-        self.rot = rot
-        self.origin = origin
-        self.uv = {}  # face -> [u1, v1, u2, v2] (filled by the atlas packer)
-
-
-class Bone:
-    def __init__(self, name, parent, pivot, rot=None):
-        self.name = name
-        self.parent = parent
-        self.pivot = [float(v) for v in pivot]
-        self.rot = [float(v) for v in (rot or [0, 0, 0])]
-        self.cubes = []
-        self.children = []
-
-
-BONES = OrderedDict()
-
-
-def bone(name, parent, pivot, rot=None):
-    b = Bone(name, parent, pivot, rot)
-    BONES[name] = b
-    if parent:
-        BONES[parent].children.append(name)
-    return b
-
-
-def mx(lo, hi, s):
-    """Mirror an x interval for side s (+1 right / -1 left)."""
-    a, b = lo * s, hi * s
-    return (min(a, b), max(a, b))
-
-
-def cube(bone_name, name, frm, to, mat, s=1, faces=None, painter=None, rot=None, origin=None):
-    x0, x1 = mx(frm[0], to[0], s)
-    if s < 0 and faces:
-        swap = {"east": "west", "west": "east"}
-        faces = {swap.get(k, k): v for k, v in faces.items()}
-    if rot is not None and s < 0:
-        rot = [rot[0], -rot[1], -rot[2]]
-    if origin is not None and s < 0:
-        origin = [-origin[0], origin[1], origin[2]]
-    c = Cube(name, [x0, frm[1], frm[2]], [x1, to[1], to[2]], mat, faces, painter, rot, origin)
-    BONES[bone_name].cubes.append(c)
-    return c
-
+from fnafkit import export
+from fnafkit.anim import (TAU, S, bone_goal, cs, flat_foot, ground, make_clip, pos, setp, setr, sets, sn,
+                          solve_arm, torso_goal)
+from fnafkit.rig import bone, cube
 
 # --------------------------------------------------------------------------
 # Materials (albedo tones sampled from the reference palette)
 # --------------------------------------------------------------------------
 
-MATS = {
+MATERIALS = {
     "fur": dict(
         tones=[(54, 57, 94), (60, 63, 103), (66, 69, 112), (72, 75, 121), (78, 81, 130), (85, 88, 140)],
         w=[1, 2, 3, 3, 2, 1],
@@ -117,92 +57,6 @@ MATS = {
     "metal": dict(tones=[(176, 176, 178), (192, 192, 194), (206, 206, 208)], w=[1, 2, 1], spots=[]),
     "pupil_red": dict(tones=[(255, 52, 44)], w=[1], spots=[]),
 }
-
-
-def hash01(ix, iy, iz, seed):
-    h = (ix.astype(np.int64) * 73856093) ^ (iy.astype(np.int64) * 19349663) ^ (iz.astype(np.int64) * 83492791)
-    h = (h ^ (seed * 2654435761)) & 0xFFFFFFFF
-    h = ((h ^ (h >> 13)) * 1274126177) & 0xFFFFFFFF
-    h = h ^ (h >> 16)
-    return (h & 0xFFFF) / 65535.0
-
-
-class PaintCtx:
-    def __init__(self, cube_obj, face, X, Y, Z, rng):
-        self.cube = cube_obj
-        self.face = face
-        self.X, self.Y, self.Z = X, Y, Z
-        self.rng = rng
-        self.rgb = np.zeros(X.shape + (3,), np.float32)
-        self.emi = np.zeros(X.shape + (3,), np.float32)
-
-    def paint(self, mat, mask=None, mult=1.0):
-        col = material_fill(mat, self.X, self.Y, self.Z, self.rng) * mult
-        if mask is None:
-            self.rgb[...] = col
-        else:
-            self.rgb[mask] = col[mask]
-
-    def glow(self, color, mask=None, strength=1.0):
-        c = np.array(color, np.float32) * strength
-        if mask is None:
-            self.emi[...] = c
-        else:
-            self.emi[mask] = c
-
-
-def material_fill(mat, X, Y, Z, rng):
-    m = MATS[mat]
-    tones = np.array(m["tones"], np.float32)
-    w = np.array(m["w"], np.float64)
-    idx = rng.choice(len(tones), size=X.shape, p=w / w.sum())
-    col = tones[idx]
-    # low frequency mottling so the grain clumps like the reference
-    q = 1.5
-    lf = hash01(np.floor(X / q + 1000), np.floor(Y / q + 1000), np.floor(Z / q + 1000), 7)
-    col = col * (0.95 + 0.10 * lf[..., None])
-    for spot_col, p in m["spots"]:
-        sp = rng.random(X.shape) < p
-        col[sp] = np.array(spot_col, np.float32) * (0.9 + 0.2 * rng.random((sp.sum(), 1)))
-    return col
-
-
-def face_dims(c, face):
-    dx, dy, dz = (c.to[i] - c.frm[i] for i in range(3))
-    return {
-        "north": (dx, dy), "south": (dx, dy),
-        "east": (dz, dy), "west": (dz, dy),
-        "up": (dx, dz), "down": (dx, dz),
-    }[face]
-
-
-def tex_size(v):
-    return max(1, int(round(v * TPU)))
-
-
-def face_points(c, face, W, H):
-    """3D position of every texel centre, using Blockbench's per-face UV orientation."""
-    (x0, y0, z0), (x1, y1, z1) = c.frm, c.to
-    s = (np.arange(W) + 0.5) / W
-    t = (np.arange(H) + 0.5) / H
-    S, T = np.meshgrid(s, t)
-    full = np.full_like(S, 0.0)
-    if face == "north":
-        return x1 - S * (x1 - x0), y1 - T * (y1 - y0), full + z0
-    if face == "south":
-        return x0 + S * (x1 - x0), y1 - T * (y1 - y0), full + z1
-    if face == "east":
-        return full + x1, y1 - T * (y1 - y0), z1 - S * (z1 - z0)
-    if face == "west":
-        return full + x0, y1 - T * (y1 - y0), z0 + S * (z1 - z0)
-    if face == "up":
-        return x0 + S * (x1 - x0), full + y1, z0 + T * (z1 - z0)
-    if face == "down":
-        return x0 + S * (x1 - x0), full + y0, z1 - T * (z1 - z0)
-    raise ValueError(face)
-
-
-FACES = ["north", "east", "south", "west", "up", "down"]
 
 # --------------------------------------------------------------------------
 # Detail painters
@@ -337,8 +191,7 @@ def p_headstock(ctx):
 # --------------------------------------------------------------------------
 
 
-def build():
-    BONES.clear()
+def build_geometry():
     bone("root", None, [0, 0, 0])
 
     # ---- body / pelvis ---------------------------------------------------
@@ -488,120 +341,280 @@ def build():
 
 
 # --------------------------------------------------------------------------
-# Texture atlas
+# Animations
 # --------------------------------------------------------------------------
 
 
-def all_cubes():
-    for b in BONES.values():
-        for c in b.cubes:
-            yield b, c
+def hide_banjo(p):
+    sets(p, "banjo", 0)
 
 
-def pack_atlas(width=512):
-    """Lay each cube out in a box-UV style cross and shelf-pack the crosses."""
-    blocks = []
-    for _, c in all_cubes():
-        W = tex_size(c.to[0] - c.frm[0])
-        H = tex_size(c.to[1] - c.frm[1])
-        D = tex_size(c.to[2] - c.frm[2])
-        blocks.append((c, W, H, D, 2 * D + 2 * W, D + H))
-    order = sorted(blocks, key=lambda b: (-b[5], -b[4]))
-    x = y = shelf_h = 0
-    for c, W, H, D, bw, bh in order:
-        if x + bw > width:
-            x, y = 0, y + shelf_h
-            shelf_h = 0
-        ox, oy = x, y
-        c.uv = {
-            "up": [ox + D, oy, ox + D + W, oy + D],
-            "down": [ox + D + W, oy, ox + D + 2 * W, oy + D],
-            "east": [ox, oy + D, ox + D, oy + D + H],
-            "north": [ox + D, oy + D, ox + D + W, oy + D + H],
-            "west": [ox + D + W, oy + D, ox + 2 * D + W, oy + D + H],
-            "south": [ox + 2 * D + W, oy + D, ox + 2 * D + 2 * W, oy + D + H],
-        }
-        x += bw
-        shelf_h = max(shelf_h, bh)
-    used_h = y + shelf_h
-    height = 64
-    while height < used_h:
-        height *= 2
-    return width, height
+def performance_eyes(p):
+    sets(p, "eyesNormal", 0)
+    setp(p, "eyesPerformance", 0, 0, -0.4)
 
-
-def paint_atlas(width, height, seed=1987):
-    rgb = np.zeros((height, width, 3), np.float32)
-    emi = np.zeros((height, width, 3), np.float32)
-    ci = 0
-    for _, c in all_cubes():
-        ci += 1
-        for fi, face in enumerate(FACES):
-            u1, v1, u2, v2 = c.uv[face]
-            W, H = u2 - u1, v2 - v1
-            X, Y, Z = face_points(c, face, W, H)
-            rng = np.random.default_rng(seed + ci * 16 + fi)
-            ctx = PaintCtx(c, face, X, Y, Z, rng)
-            if c.painter:
-                c.painter(ctx)
-            else:
-                ctx.paint(c.faces.get(face, c.mat))
-            rgb[v1:v2, u1:u2] = ctx.rgb
-            emi[v1:v2, u1:u2] = ctx.emi
-    return np.clip(rgb, 0, 255).astype(np.uint8), np.clip(emi, 0, 255).astype(np.uint8)
 
 
 # --------------------------------------------------------------------------
-# Forward kinematics (mirrors Blockbench's preview maths)
+# clips
 # --------------------------------------------------------------------------
 
 
-def rot_zyx(rx, ry, rz):
-    """three.js Euler order 'ZYX' (degrees) -> 3x3 matrix  (M = Rz @ Ry @ Rx)."""
-    rx, ry, rz = map(math.radians, (rx, ry, rz))
-    cx, sx, cy, sy, cz, sz = math.cos(rx), math.sin(rx), math.cos(ry), math.sin(ry), math.cos(rz), math.sin(rz)
-    Rx = np.array([[1, 0, 0], [0, cx, -sx], [0, sx, cx]])
-    Ry = np.array([[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]])
-    Rz = np.array([[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]])
-    return Rz @ Ry @ Rx
+def idle(t):
+    L = 4.0
+    w = TAU * t / L
+    p = {}
+    hide_banjo(p)
+    setr(p, "body", 0, 0, 0)
+    setr(p, "torso", 1.2 * sn(w), 0, 0)
+    setp(p, "torso", 0, 0.12 * sn(w), 0)
+    setr(p, "head", 2.0 * sn(w + 0.6), 7.0 * sn(w * 0.5 + 0.4) , 1.5 * sn(w * 0.5))
+    setr(p, "jaw", 1.5 + 1.5 * sn(w * 2), 0, 0)
+    for side in ("right", "left"):
+        s = S[side]
+        ph = 0 if s > 0 else 0.7
+        setr(p, f"{side}Arm", 2.0 * sn(w + ph), 0, s * (1.0 + 1.2 * sn(w + ph)))
+        setr(p, f"{side}Forearm", -5.0 - 2.0 * sn(w + ph), 0, 0)
+        setr(p, f"{side}Hand", 0, 0, s * 2.0 * sn(w + ph + 0.5))
+        setr(p, f"{side}Fingers", 4.0 * sn(w * 0.5 + ph), 0, 0)
+        setr(p, f"{side}Leg", 0, 0, s * 1.0)
+        setr(p, f"{side}Shin", 0, 0, 0)
+        flat_foot(p, side)
+        setr(p, f"{side}Ear", -2.0 * sn(w + ph), 0, s * 1.5 * sn(w * 2 + ph))
+        setr(p, f"{side}EarTip", -3.0 * sn(w * 2 + ph + 1.0), 0, 0)
+    ground(p)
+    return p
 
 
-def world_matrices(pose, only=None):
-    """pose: {bone: {'rotation': [x,y,z], 'position': [x,y,z]}} in Bedrock animation values.
-
-    Returns {bone: 4x4 matrix} mapping (point - bone.pivot) to world space.  With
-    `only`, just those bones and their ancestors are evaluated.
-    """
-    names = BONES.keys()
-    if only is not None:
-        need = set()
-        for n in only:
-            while n and n not in need:
-                need.add(n)
-                n = BONES[n].parent
-        names = [n for n in BONES if n in need]
-    out = {}
-    for name in names:
-        b = BONES[name]
-        p = pose.get(name, {})
-        ar = p.get("rotation", [0, 0, 0])
-        ap = p.get("position", [0, 0, 0])
-        rot = [b.rot[0] - ar[0], b.rot[1] - ar[1], b.rot[2] + ar[2]]
-        parent_pivot = BONES[b.parent].pivot if b.parent else [0, 0, 0]
-        t = [b.pivot[i] - parent_pivot[i] for i in range(3)]
-        t = [t[0] - ap[0], t[1] + ap[1], t[2] + ap[2]]
-        M = np.eye(4)
-        M[:3, :3] = rot_zyx(*rot)
-        M[:3, 3] = t
-        out[name] = (out[b.parent] @ M) if b.parent else M
-    return out
+def walk(t):
+    L = 1.25
+    f = TAU * t / L
+    p = {}
+    hide_banjo(p)
+    for side in ("right", "left"):
+        s = S[side]
+        ph = f if s > 0 else f + math.pi
+        th = -24.0 * sn(ph)
+        bend = 6.0 + 34.0 * pos(cs(ph + 0.35)) ** 1.4
+        setr(p, f"{side}Leg", th, 0, s * 1.0)
+        setr(p, f"{side}Shin", bend, 0, 0)
+        flat_foot(p, side, toe=-10.0 * sn(ph))
+        setr(p, f"{side}Arm", 18.0 * sn(ph), 0, s * (1.5 + 1.5 * pos(-sn(ph))))
+        setr(p, f"{side}Forearm", -10.0 - 10.0 * pos(-sn(ph)), 0, 0)
+        setr(p, f"{side}Hand", 4.0 * sn(ph - 0.6), 0, 0)
+        setr(p, f"{side}Ear", 3.0 * sn(2 * f - 1.0), 0, s * 2.0 * cs(f))
+        setr(p, f"{side}EarUpper", 2.0 * sn(2 * f - 1.4), 0, 0)
+        setr(p, f"{side}EarTip", 5.0 * sn(2 * f - 1.8), 0, 0)
+    setr(p, "body", 0, -5.0 * sn(f), 3.0 * cs(f))
+    setp(p, "body", 0.4 * cs(f), 0, 0)
+    setr(p, "torso", 2.0, 10.0 * sn(f), -1.5 * cs(f))
+    setr(p, "head", 2.0 + 2.0 * cs(2 * f), -6.0 * sn(f), -2.0 * cs(f))
+    setr(p, "jaw", 2.0, 0, 0)
+    ground(p)
+    return p
 
 
-def to_world(mats, bone_name, point):
-    b = BONES[bone_name]
-    v = np.array([point[0] - b.pivot[0], point[1] - b.pivot[1], point[2] - b.pivot[2], 1.0])
-    return (mats[bone_name] @ v)[:3]
+def run(t):
+    L = 0.75
+    f = TAU * t / L
+    p = {}
+    hide_banjo(p)
+    for side in ("right", "left"):
+        s = S[side]
+        ph = f if s > 0 else f + math.pi
+        th = -12.0 - 42.0 * sn(ph)
+        bend = 16.0 + 84.0 * pos(cs(ph + 0.45)) ** 1.2
+        setr(p, f"{side}Leg", th, 0, s * 2.0)
+        setr(p, f"{side}Shin", bend, 0, 0)
+        flat_foot(p, side, toe=-14.0 * sn(ph) + 6.0)
+        setr(p, f"{side}Arm", 50.0 * sn(ph) - 8.0, 0, s * 6.0)
+        setr(p, f"{side}Forearm", -78.0 + 14.0 * sn(ph), 0, 0)
+        setr(p, f"{side}Hand", 6.0 * sn(ph), 0, 0)
+        setr(p, f"{side}Fingers", 15.0, 0, 0)
+        setr(p, f"{side}Ear", 14.0 + 6.0 * sn(2 * f - 1.2), 0, s * 3.0 * cs(f))
+        setr(p, f"{side}EarUpper", 6.0 + 4.0 * sn(2 * f - 1.6), 0, 0)
+        setr(p, f"{side}EarTip", 8.0 + 8.0 * sn(2 * f - 2.0), 0, 0)
+    setr(p, "body", 12.0, -6.0 * sn(f), 2.0 * cs(f))
+    setr(p, "torso", 4.0, 12.0 * sn(f), 0)
+    setr(p, "head", -14.0 + 3.0 * cs(2 * f), -8.0 * sn(f), 0)
+    setr(p, "jaw", 6.0, 0, 0)
+    ground(p, extra=1.2 * pos(sn(2 * f + 0.9)))
+    return p
 
 
-def dir_world(mats, bone_name, d):
-    return mats[bone_name][:3, :3] @ np.array(d, float)
+def wave_pose(t):
+    L = 2.0
+    w = TAU * t / L
+    p = {}
+    hide_banjo(p)
+    setr(p, "torso", 0, -4.0, -2.0)
+    setr(p, "head", 3.0 * sn(w * 2), 8.0, -6.0 + 2.0 * sn(w))
+    setr(p, "jaw", 4.0 + 4.0 * pos(sn(w * 2)), 0, 0)
+    # left arm relaxed
+    setr(p, "leftArm", -4.0, 0, -2.0)
+    setr(p, "leftForearm", -14.0, 0, 0)
+    setr(p, "leftHand", 0, 0, -4.0)
+    for side in ("right", "left"):
+        s = S[side]
+        setr(p, f"{side}Leg", 0, 0, s * 1.5)
+        flat_foot(p, side)
+    setr(p, "rightEar", 0, 0, -6.0 + 4.0 * sn(w * 2))
+    setr(p, "rightEarTip", 6.0 * sn(w * 2 + 1.0), 0, 0)
+    setr(p, "leftEar", 0, 0, 3.0 * sn(w * 2 + 0.5))
+    # right hand waves beside the head, palm toward the viewer
+    swing = sn(w * 2)
+    ang = math.radians(16.0 * swing)
+    goal = torso_goal((12.5 + 1.6 * swing, 41.0, -4.0), normal=(0, 0, 1),
+                      fingers=(-math.sin(ang), -math.cos(ang), 0), elbow=(13.5, 30.0, -1.0))
+    x0 = wave_pose.last or [0, 0, 80, -10, 0, 70, 0, 80, 0]
+    wave_pose.last, _ = solve_arm(p, "right", goal, x0, restarts=1 if wave_pose.last else 6)
+    setr(p, "rightFingers", -10.0, 0, 0)
+    setr(p, "rightThumb", 0, 0, 20.0)
+    ground(p)
+    return p
+
+
+wave_pose.last = None
+
+
+def cool_pose(t):
+    L = 2.0
+    w = TAU * t / L
+    p = {}
+    hide_banjo(p)
+    setr(p, "body", 0, 8.0, -6.0)
+    setp(p, "body", -0.6, 0, 0)
+    setr(p, "torso", -2.0 + 1.0 * sn(w), -6.0, 9.0)
+    setr(p, "head", -4.0 + 1.5 * sn(w + 0.5), 10.0, -14.0)
+    setr(p, "jaw", 3.0, 0, 0)
+    # right leg kicked out to the side, heel down
+    setr(p, "rightLeg", -14.0, -10.0, 18.0)
+    setr(p, "rightShin", 4.0, 0, 0)
+    flat_foot(p, "right", toe=-14.0)
+    setr(p, "leftLeg", 3.0, 6.0, -2.0)
+    setr(p, "leftShin", 2.0, 0, 0)
+    flat_foot(p, "left")
+    # loose right arm
+    setr(p, "rightArm", -12.0 + 1.5 * sn(w), 0, 4.0)
+    setr(p, "rightForearm", -28.0, 0, 6.0)
+    setr(p, "rightHand", 0, 0, 8.0)
+    setr(p, "rightFingers", 10.0, 0, 0)
+    # floppy ear like the sheet
+    setr(p, "rightEar", 0, 0, -22.0)
+    setr(p, "rightEarUpper", 0, 0, -38.0)
+    setr(p, "rightEarTip", -10.0 + 4.0 * sn(w), 0, -28.0)
+    setr(p, "leftEar", 0, 0, -18.0)
+    setr(p, "leftEarUpper", 0, 0, -10.0)
+    setr(p, "leftEarTip", 10.0, 0, -30.0)
+    # left hand on the hip, elbow out
+    goal = torso_goal((-6.6, 21.5, -0.5), normal=(1, 0, 0), fingers=(0, -0.35, -1), elbow=(-13.0, 26.5, 1.5))
+    x0 = cool_pose.last or [10, 0, -40, -70, 0, 0, 0, 0, 0]
+    cool_pose.last, _ = solve_arm(p, "left", goal, x0, restarts=1 if cool_pose.last else 6)
+    ground(p)
+    return p
+
+
+cool_pose.last = None
+
+
+def performance(t, energetic=False):
+    """Bonnie plays the banjo.  4 beats per 2 s loop (120 BPM), strumming in eighths."""
+    L = 2.0
+    beat = TAU * t / 0.5
+    w = TAU * t / L
+    p = {}
+    performance_eyes(p)
+    st = performance.state.setdefault(energetic, {})
+    if not energetic:
+        dip = 0.5 - 0.5 * cs(beat)
+        for side in ("right", "left"):
+            s = S[side]
+            setr(p, f"{side}Leg", -8.0 - 6.0 * dip, s * 6.0, s * 9.0)
+            setr(p, f"{side}Shin", 14.0 + 12.0 * dip, 0, 0)
+            flat_foot(p, side)
+        setr(p, "body", 2.0, 0, 2.5 * sn(beat / 2))
+        setr(p, "torso", 2.0, 5.0 * sn(w), 2.0 * sn(beat / 2))
+        setr(p, "head", 4.0 + 7.0 * dip, 8.0 * sn(w + 0.4), -5.0 * sn(beat / 2))
+        setr(p, "jaw", 9.0 * pos(sn(beat - 0.6)), 0, 0)
+        setr(p, "banjo", 0, 0, 0)
+        strum = cs(beat * 2)
+        chord = -12.0 if (t % 2.0) < 1.0 else -10.0
+        ears = 1.0
+    else:
+        dip = 0.5 - 0.5 * cs(beat)
+        setr(p, "rightLeg", 2.0, 10.0, 16.0)
+        setr(p, "rightShin", 4.0, 0, 0)
+        flat_foot(p, "right", toe=-16.0 * pos(sn(beat)))
+        setr(p, "leftLeg", -22.0 - 5.0 * dip, -10.0, -8.0)
+        setr(p, "leftShin", 30.0 + 10.0 * dip, 0, 0)
+        flat_foot(p, "left")
+        setr(p, "body", -5.0, -6.0, 4.0 + 2.0 * sn(beat / 2))
+        setr(p, "torso", -5.0 + 2.0 * dip, -4.0 + 5.0 * sn(w), 3.0 * sn(beat / 2))
+        setr(p, "head", 2.0 + 12.0 * dip, -6.0 + 6.0 * sn(w), 10.0 + 3.0 * sn(beat / 2))
+        setr(p, "jaw", 12.0 * pos(sn(beat - 0.5)), 0, 0)
+        setr(p, "banjo", 4.0 * sn(beat / 2), 0, -10.0 - 4.0 * sn(w))
+        strum = cs(beat * 2)
+        chord = (-12.5, -10.0, -11.0, -9.0)[int((t % 2.0) // 0.5)]
+        ears = 1.8
+    for side in ("right", "left"):
+        s = S[side]
+        ph = 0.0 if s > 0 else 0.5
+        setr(p, f"{side}Ear", 4.0 * ears * cs(beat + 1.0 + ph), 0, s * 2.0 * ears * sn(beat / 2))
+        setr(p, f"{side}EarUpper", 3.0 * ears * cs(beat + 0.6 + ph), 0, 0)
+        setr(p, f"{side}EarTip", 6.0 * ears * cs(beat + 0.2 + ph), 0, 0)
+    # strumming hand over the strings near the neck joint
+    swing = 1.3 if energetic else 1.0
+    g_r = banjo_goal((0.5 + 0.3 * strum, 0.3 * swing * strum, -2.05),
+                     local_normal=(0, 0, 1), local_fingers=(0.35, -1.0, 0.0), elbow=(10.5, 26.0, -1.0))
+    x0 = st.get("right") or [-35, 25, 15, -55, 10, 0, 20, -20, 10]
+    st["right"], _ = solve_arm(p, "right", g_r, x0, restarts=1 if st.get("right") else 8)
+    setr(p, "rightFingers", 18.0 + 6.0 * strum, 0, 0)
+    # fretting hand under the neck, palm up toward the fingerboard
+    slide = st.get("chord", chord)
+    slide += (chord - slide) * 0.55
+    st["chord"] = slide
+    g_l = banjo_goal((slide, -2.15, -0.1), local_normal=(0, 1, 0), local_fingers=(0.25, 0.1, -1.0),
+                     elbow=(-11.0, 24.0, -3.0))
+    x0 = st.get("left") or [-60, -30, -20, -60, 0, 0, 30, 40, 0]
+    st["left"], _ = solve_arm(p, "left", g_l, x0, restarts=1 if st.get("left") else 8)
+    setr(p, "leftFingers", 25.0 + 8.0 * sn(beat), 0, 0)
+    setr(p, "leftThumb", 0, 0, -15.0)
+    ground(p)
+    return p
+
+
+performance.state = {}
+
+
+def build_anims():
+    wave_pose.last = None
+    cool_pose.last = None
+    performance.state = {}
+    # key times all land on Blockbench's 24 fps snapping grid
+    make_clip("animation.bonnie.idle", 4.0, idle, 16)
+    make_clip("animation.bonnie.walk", 1.25, walk, 15)
+    make_clip("animation.bonnie.run", 0.75, run, 18)
+    make_clip("animation.bonnie.pose1", 2.0, wave_pose, 16)
+    make_clip("animation.bonnie.pose2", 2.0, cool_pose, 8)
+    make_clip("animation.bonnie.performance1", 2.0, lambda t: performance(t, False), 48)
+    make_clip("animation.bonnie.performance2", 2.0, lambda t: performance(t, True), 48)
+
+
+def banjo_goal(local_point, local_normal=None, local_fingers=None, elbow=None):
+    """IK goal on the banjo, in the banjo's local frame (drum centre = origin)."""
+    P = BANJO_PIVOT
+    return bone_goal("banjo", (local_point[0] + P[0], local_point[1] + P[1], local_point[2] + P[2]),
+                     normal=local_normal, fingers=local_fingers, elbow=elbow)
+
+
+SPEC = export.Character(
+    model_id="bonnie",
+    entity_id="fnaf:bonnie",
+    out_dir=os.path.join(export.TOOLS_DIR, "..", "bonnie"),
+    materials=MATERIALS,
+    build_geometry=build_geometry,
+    build_anims=build_anims,
+    sources=[os.path.abspath(__file__)],
+    spawn_egg=("#3a3d6b", "#8e2a2c"),
+    arm=dict(palm=(7.875, 17.0, 0.0), chest=dict(half_x=7.0, z=(-5.5, 5.0), y=(19.0, 34.0))),
+)

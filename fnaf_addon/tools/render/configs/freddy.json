@@ -1,0 +1,530 @@
+{
+  "title": "FREDDY",
+  "subtitle": "MINECRAFT-STYLE FNAF MODEL",
+  "views": {
+    "front": {
+      "az": 0,
+      "el": 4,
+      "dist": 200,
+      "target": [
+        0,
+        26,
+        0
+      ],
+      "fov": 28
+    },
+    "side": {
+      "az": 90,
+      "el": 4,
+      "dist": 200,
+      "target": [
+        0,
+        26,
+        0
+      ],
+      "fov": 28
+    },
+    "back": {
+      "az": 180,
+      "el": 4,
+      "dist": 200,
+      "target": [
+        0,
+        26,
+        0
+      ],
+      "fov": 28
+    },
+    "three_quarter": {
+      "az": 32,
+      "el": 10,
+      "dist": 175,
+      "target": [
+        0,
+        28,
+        0
+      ],
+      "fov": 30
+    },
+    "face": {
+      "az": 0,
+      "el": 2,
+      "dist": 62,
+      "target": [
+        0,
+        40,
+        -4
+      ],
+      "fov": 24
+    }
+  },
+  "stills_cam": {
+    "az": 30,
+    "el": 8,
+    "dist": 190,
+    "target": [
+      0,
+      26,
+      0
+    ],
+    "fov": 30
+  },
+  "turnaround": {
+    "secs": 6,
+    "cam": {
+      "az": [
+        32,
+        392
+      ],
+      "el": 9,
+      "dist": 165,
+      "target": [
+        0,
+        28,
+        0
+      ],
+      "fov": 30
+    }
+  },
+  "closeups": [
+    {
+      "clip": "idle",
+      "secs": 3,
+      "label": "FACE DETAIL",
+      "cam": {
+        "az": [
+          18,
+          -18
+        ],
+        "el": 4,
+        "dist": 95,
+        "target": [
+          -7,
+          40,
+          -3
+        ],
+        "fov": 24
+      }
+    },
+    {
+      "clip": "idle",
+      "secs": 3,
+      "label": "MICROPHONE DETAIL",
+      "cam": {
+        "az": [
+          50,
+          10
+        ],
+        "el": 8,
+        "dist": 60,
+        "target": [
+          6.0,
+          18.0,
+          -3.0
+        ],
+        "fov": 30
+      }
+    }
+  ],
+  "default_cam": {
+    "az": [
+      40,
+      -10
+    ],
+    "el": 9,
+    "dist": 155,
+    "target": [
+      0,
+      28,
+      0
+    ],
+    "fov": 30
+  },
+  "clips": [
+    {
+      "name": "idle",
+      "secs": 5
+    },
+    {
+      "name": "walk",
+      "secs": 4,
+      "cam": {
+        "az": [
+          55,
+          15
+        ],
+        "el": 8,
+        "dist": 160,
+        "target": [
+          0,
+          27,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "run",
+      "secs": 4,
+      "cam": {
+        "az": [
+          70,
+          30
+        ],
+        "el": 8,
+        "dist": 160,
+        "target": [
+          0,
+          27,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "pose1",
+      "secs": 4,
+      "cam": {
+        "az": [
+          -30,
+          -60
+        ],
+        "el": 8,
+        "dist": 150,
+        "target": [
+          0,
+          29,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "pose2",
+      "secs": 4,
+      "cam": {
+        "az": [
+          80,
+          50
+        ],
+        "el": 8,
+        "dist": 160,
+        "target": [
+          0,
+          28,
+          -4
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "performance1",
+      "secs": 6
+    },
+    {
+      "name": "performance2",
+      "secs": 6,
+      "cam": {
+        "az": [
+          70,
+          30
+        ],
+        "el": 8,
+        "dist": 160,
+        "target": [
+          0,
+          28,
+          -3
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "jumpscare1",
+      "secs": 2.5,
+      "cam": {
+        "az": 0,
+        "el": 0,
+        "dist": 75,
+        "target": [
+          0,
+          36,
+          0
+        ],
+        "fov": 42
+      }
+    },
+    {
+      "name": "jumpscare2",
+      "secs": 2.75,
+      "cam": {
+        "az": 0,
+        "el": 0,
+        "dist": 75,
+        "target": [
+          0,
+          36,
+          0
+        ],
+        "fov": 42
+      }
+    }
+  ],
+  "sheet": {
+    "tagline": [
+      "THE",
+      "STAR",
+      "OF THE",
+      "SHOW."
+    ],
+    "blurb": [
+      "Lead singer of",
+      "the Fazbear",
+      "band."
+    ],
+    "corner": [
+      "MIC CHECK.",
+      "ONE, TWO.",
+      "THE BAND",
+      "IS BACK."
+    ],
+    "side_a": [
+      "HAR",
+      "HAR",
+      "HAR."
+    ],
+    "side_b": [
+      "IT'S",
+      "SHOW",
+      "TIME."
+    ],
+    "palette": [
+      [
+        125,
+        64,
+        34
+      ],
+      [
+        70,
+        37,
+        21
+      ],
+      [
+        201,
+        147,
+        100
+      ],
+      [
+        82,
+        82,
+        86
+      ],
+      [
+        30,
+        30,
+        30
+      ],
+      [
+        38,
+        92,
+        204
+      ]
+    ],
+    "shots": {
+      "front": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 0,
+          "el": 3,
+          "dist": 170,
+          "target": [
+            0,
+            27,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "side": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 90,
+          "el": 3,
+          "dist": 170,
+          "target": [
+            0,
+            27,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "back": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 180,
+          "el": 3,
+          "dist": 170,
+          "target": [
+            0,
+            27,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "main": {
+        "anim": "performance1",
+        "time": 0.25,
+        "cam": {
+          "az": 34,
+          "el": 7,
+          "dist": 118,
+          "target": [
+            0,
+            30,
+            -3
+          ],
+          "fov": 34
+        }
+      }
+    },
+    "faces": [
+      {
+        "label": "FACE DETAIL",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 0,
+          "el": 2,
+          "dist": 52,
+          "target": [
+            0,
+            39.5,
+            -4
+          ],
+          "fov": 24
+        }
+      },
+      {
+        "label": "JUMPSCARE",
+        "anim": "jumpscare1",
+        "time": 0.75,
+        "cam": {
+          "az": 0,
+          "el": 0,
+          "dist": 60,
+          "target": [
+            0,
+            37,
+            -6
+          ],
+          "fov": 40
+        }
+      }
+    ],
+    "details": [
+      {
+        "label": "MICROPHONE DETAIL",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 20,
+          "el": 10,
+          "dist": 36,
+          "target": [
+            7.5,
+            16.5,
+            -3.0
+          ],
+          "fov": 30
+        }
+      },
+      {
+        "label": "EAR DETAIL",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 35,
+          "el": 8,
+          "dist": 26,
+          "target": [
+            6.2,
+            45.6,
+            0.2
+          ],
+          "fov": 30
+        }
+      },
+      {
+        "label": "JOINT DETAIL",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 40,
+          "el": 4,
+          "dist": 26,
+          "target": [
+            3.3,
+            12.0,
+            0
+          ],
+          "fov": 30
+        }
+      }
+    ],
+    "strip": [
+      [
+        "idle",
+        0.0
+      ],
+      [
+        "walk",
+        0.3125
+      ],
+      [
+        "run",
+        0.1875
+      ],
+      [
+        "pose1",
+        0.5
+      ],
+      [
+        "pose2",
+        0.5
+      ],
+      [
+        "performance1",
+        0.25
+      ],
+      [
+        "performance2",
+        1.4
+      ],
+      [
+        "jumpscare1",
+        0.7
+      ],
+      [
+        "jumpscare2",
+        0.9
+      ]
+    ],
+    "strip_cam": {
+      "az": 22,
+      "el": 6,
+      "dist": 150,
+      "target": [
+        0,
+        27,
+        0
+      ],
+      "fov": 30
+    },
+    "strap": "PLAY. PERFORM. JUMPSCARE."
+  }
+}

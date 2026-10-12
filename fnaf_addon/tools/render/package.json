@@ -1,0 +1,15 @@
+{
+  "name": "fnaf-preview-renderer",
+  "private": true,
+  "type": "module",
+  "description": "Headless three.js preview renderer for the FNAF .bbmodel files",
+  "scripts": {
+    "video": "node render.mjs",
+    "stills": "node render.mjs",
+    "sheet": "python3 make_sheet.py"
+  },
+  "dependencies": {
+    "playwright": "1.56.1",
+    "three": "0.160.0"
+  }
+}

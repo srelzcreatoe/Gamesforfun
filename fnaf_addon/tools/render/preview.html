@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Bonnie Preview</title>
+<title>FNAF Model Preview</title>
 <style>
   html, body { margin: 0; padding: 0; background: #dcdde1; overflow: hidden; }
   #stage { position: relative; }
@@ -20,8 +20,8 @@
 </head>
 <body>
 <div id="stage">
-  <div id="title" class="ov">BONNIE</div>
-  <div id="subtitle" class="ov">MINECRAFT-STYLE FNAF MODEL</div>
+  <div id="title" class="ov"></div>
+  <div id="subtitle" class="ov"></div>
   <div id="rule" class="ov"></div>
   <div id="sublabel" class="ov"></div>
   <div id="label" class="ov"></div>
@@ -36,8 +36,10 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 const params = new URLSearchParams(location.search);
 const W = parseInt(params.get('w') || '1280');
 const H = parseInt(params.get('h') || '720');
-const MODEL = params.get('model') || '/model/bonnie.bbmodel';
-const EMISSIVE = params.get('emissive') || '/model/textures/bonnie_emissive.png';
+const MODEL = params.get('model');
+const EMISSIVE = params.get('emissive');
+document.getElementById('title').textContent = params.get('title') || '';
+document.getElementById('subtitle').textContent = params.get('subtitle') || 'MINECRAFT-STYLE FNAF MODEL';
 const BG = 0xdcdde1;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });

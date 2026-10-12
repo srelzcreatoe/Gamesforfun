@@ -1,35 +1,43 @@
-#!/usr/bin/env python3
-"""Builds the Minecraft-style FNAF Bonnie model for Blockbench (Bedrock entity format).
+"""Shared exporter: .bbmodel, Bedrock geometry / animations and resource-pack wiring.
 
-    python3 fnaf_addon/bonnie/tools/build_bonnie.py
-
-Writes, relative to fnaf_addon/bonnie/:
-  bonnie.bbmodel                                  Blockbench project (geometry, texture, animations)
-  textures/bonnie.png                             texture atlas
-  textures/bonnie_emissive.png                    glow mask for the eyes (preview renderer / emissive setup)
-  bedrock/models/entity/bonnie.geo.json           Bedrock geometry (same as Blockbench's export)
-  bedrock/animations/bonnie.animation.json        Bedrock animations (same as Blockbench's export)
-  bedrock/entity, render_controllers, animation_controllers, textures/entity/bonnie
-                                                  example resource-pack wiring (glowing eyes in-game)
+The geometry and animation files follow the same conventions as Blockbench's own
+"Export Bedrock Geometry / Animations" (checked against Blockbench 5.2.2), so
+they match what you would get by exporting the .bbmodel by hand.
 """
 import base64
 import hashlib
 import io
 import json
 import os
-import sys
 import uuid
+from dataclasses import dataclass, field
 
 import numpy as np
 from PIL import Image
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import rig  # noqa: E402
-import anims  # noqa: E402
+from . import anim, rig
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NS = uuid.UUID("6b1f4c1e-7a1b-4f39-9a52-b0001e000000")
-MODEL_ID = "bonnie"
+TOOLS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+@dataclass
+class Character:
+    """Everything the exporter needs to know about one model."""
+
+    model_id: str                 # file names, geometry.<id>, animation.<id>.*
+    entity_id: str                # client entity identifier
+    out_dir: str                  # where the deliverables are written
+    materials: dict
+    build_geometry: object        # () -> None, fills rig.BONES
+    build_anims: object           # () -> None, fills anim.ANIMS
+    sources: list                 # files whose contents key the animation cache
+    spawn_egg: tuple = ("#3a3d6b", "#8e2a2c")
+    variant_states: dict = field(default_factory=lambda: {"pose1": 1, "pose2": 2, "performance1": 3, "performance2": 4})
+    arm: dict = None              # anim.ARM overrides (palm centre, chest box)
+    visible_box: tuple = (4, 4.5, 2.25)
+    atlas_width: int = 512
+    tpu: int = 2                  # texels per model pixel
 
 
 def uid(*parts):
@@ -50,7 +58,7 @@ def rl(vals, nd=4):
 # --------------------------------------------------------------------------
 
 
-def bbmodel(tex_w, tex_h, png_bytes):
+def bbmodel(ch, tex_w, tex_h, png_bytes):
     elements = []
     cube_ids = {}
     for b, c in rig.all_cubes():
@@ -101,7 +109,7 @@ def bbmodel(tex_w, tex_h, png_bytes):
     outliner = [group(n) for n, b in rig.BONES.items() if b.parent is None]
 
     animations = []
-    for name, a in anims.ANIMS.items():
+    for name, a in anim.ANIMS.items():
         animators = {}
         for bname, chans in a["bones"].items():
             kfs = []
@@ -133,9 +141,9 @@ def bbmodel(tex_w, tex_h, png_bytes):
 
     return {
         "meta": {"format_version": "4.10", "model_format": "bedrock", "box_uv": False},
-        "name": MODEL_ID,
-        "model_identifier": MODEL_ID,
-        "visible_box": [4, 4.5, 2.25],
+        "name": ch.model_id,
+        "model_identifier": ch.model_id,
+        "visible_box": list(ch.visible_box),
         "variable_placeholders": "",
         "variable_placeholder_buttons": [],
         "timeline_setups": [],
@@ -145,7 +153,7 @@ def bbmodel(tex_w, tex_h, png_bytes):
         "outliner": outliner,
         "textures": [{
             "path": "",
-            "name": "bonnie.png",
+            "name": f"{ch.model_id}.png",
             "folder": "",
             "namespace": "",
             "id": "0",
@@ -165,7 +173,7 @@ def bbmodel(tex_w, tex_h, png_bytes):
             "visible": True,
             "internal": True,
             "saved": True,
-            "uuid": uid("texture", "bonnie"),
+            "uuid": uid("texture", ch.model_id),
             "source": "data:image/png;base64," + base64.b64encode(png_bytes).decode(),
         }],
         "animations": animations,
@@ -191,7 +199,7 @@ def outliner_order():
     return out
 
 
-def geo_json(tex_w, tex_h):
+def geo_json(ch, tex_w, tex_h):
     bones = []
     for name in outliner_order():
         b = rig.BONES[name]
@@ -225,12 +233,12 @@ def geo_json(tex_w, tex_h):
         "format_version": "1.12.0",
         "minecraft:geometry": [{
             "description": {
-                "identifier": f"geometry.{MODEL_ID}",
+                "identifier": f"geometry.{ch.model_id}",
                 "texture_width": tex_w,
                 "texture_height": tex_h,
-                "visible_bounds_width": 4,
-                "visible_bounds_height": 4.5,
-                "visible_bounds_offset": [0, 2.25, 0],
+                "visible_bounds_width": ch.visible_box[0],
+                "visible_bounds_height": ch.visible_box[1],
+                "visible_bounds_offset": [0, ch.visible_box[2], 0],
             },
             "bones": bones,
         }],
@@ -239,7 +247,7 @@ def geo_json(tex_w, tex_h):
 
 def animation_json():
     out = {}
-    for name, a in anims.ANIMS.items():
+    for name, a in anim.ANIMS.items():
         aj = {}
         if a["loop"] == "loop":
             aj["loop"] = True
@@ -268,28 +276,29 @@ def animation_json():
     return {"format_version": "1.8.0", "animations": out}
 
 
-def client_files():
+def client_files(ch):
     """Example resource-pack wiring so the model drops straight into an addon."""
-    anim_names = {n.split(".")[-1]: n for n in anims.ANIMS}
+    mid = ch.model_id
+    anim_names = {n.split(".")[-1]: n for n in anim.ANIMS}
     entity = {
         "format_version": "1.10.0",
         "minecraft:client_entity": {
             "description": {
-                "identifier": "fnaf:bonnie",
+                "identifier": ch.entity_id,
                 "materials": {"default": "entity_emissive_alpha"},
-                "textures": {"default": "textures/entity/bonnie/bonnie_glow"},
-                "geometry": {"default": f"geometry.{MODEL_ID}"},
-                "animations": {**anim_names, "controller": "controller.animation.bonnie.main"},
+                "textures": {"default": f"textures/entity/{mid}/{mid}_glow"},
+                "geometry": {"default": f"geometry.{mid}"},
+                "animations": {**anim_names, "controller": f"controller.animation.{mid}.main"},
                 "scripts": {"animate": ["controller"]},
-                "render_controllers": ["controller.render.bonnie"],
-                "spawn_egg": {"base_color": "#3a3d6b", "overlay_color": "#8e2a2c"},
+                "render_controllers": [f"controller.render.{mid}"],
+                "spawn_egg": {"base_color": ch.spawn_egg[0], "overlay_color": ch.spawn_egg[1]},
             }
         },
     }
     render = {
         "format_version": "1.8.0",
         "render_controllers": {
-            "controller.render.bonnie": {
+            f"controller.render.{mid}": {
                 "geometry": "Geometry.default",
                 "materials": [{"*": "Material.default"}],
                 "textures": ["Texture.default"],
@@ -298,7 +307,7 @@ def client_files():
     }
     moving = "query.ground_speed > 0.3"
     running = "query.ground_speed > 3.5"
-    variant_states = {"pose1": 1, "pose2": 2, "performance1": 3, "performance2": 4}
+    variant_states = ch.variant_states
     states = {
         "idle": {
             "animations": ["idle"],
@@ -326,79 +335,76 @@ def client_files():
     controller = {
         "format_version": "1.10.0",
         "animation_controllers": {
-            "controller.animation.bonnie.main": {"initial_state": "idle", "states": states}
+            f"controller.animation.{mid}.main": {"initial_state": "idle", "states": states}
         },
     }
     return {
-        os.path.join("entity", "bonnie.entity.json"): entity,
-        os.path.join("render_controllers", "bonnie.render_controllers.json"): render,
-        os.path.join("animation_controllers", "bonnie.animation_controllers.json"): controller,
+        os.path.join("entity", f"{mid}.entity.json"): entity,
+        os.path.join("render_controllers", f"{mid}.render_controllers.json"): render,
+        os.path.join("animation_controllers", f"{mid}.animation_controllers.json"): controller,
     }
 
 
-def build_anims():
-    """anims.build() runs an IK solve per keyframe (minutes); cache it by source hash."""
-    here = os.path.dirname(os.path.abspath(__file__))
-    h = hashlib.sha256()
-    for fn in ("rig.py", "anims.py"):
-        with open(os.path.join(here, fn), "rb") as f:
-            h.update(f.read())
-    cache = os.path.join(here, ".cache", f"anims-{h.hexdigest()[:16]}.json")
+def build_anims(ch):
+    """ch.build_anims() runs an IK solve per keyframe (minutes); cache it by source hash."""
+    h = hashlib.sha256(ch.model_id.encode())
+    kit = os.path.dirname(os.path.abspath(__file__))
+    for fn in sorted(os.listdir(kit)) + list(ch.sources):
+        path = fn if os.path.isabs(fn) else os.path.join(kit, fn)
+        if path.endswith(".py"):
+            with open(path, "rb") as f:
+                h.update(f.read())
+    cache = os.path.join(TOOLS_DIR, ".cache", f"{ch.model_id}-{h.hexdigest()[:16]}.json")
+    anim.reset(ch.arm)
     if os.path.exists(cache):
         with open(cache) as f:
             for name, a in json.load(f):
-                a["bones"] = {b: {ch: [tuple(k) for k in keys] for ch, keys in chans.items()} for b, chans in a["bones"]}
-                anims.ANIMS[name] = a
+                a["bones"] = {b: {c: [tuple(k) for k in keys] for c, keys in chans.items()} for b, chans in a["bones"]}
+                anim.ANIMS[name] = a
         return
-    anims.build()
+    ch.build_anims()
     os.makedirs(os.path.dirname(cache), exist_ok=True)
     with open(cache, "w") as f:
-        json.dump([[n, {**a, "bones": [[b, chans] for b, chans in a["bones"].items()]}] for n, a in anims.ANIMS.items()], f)
+        json.dump([[n, {**a, "bones": [[b, chans] for b, chans in a["bones"].items()]}] for n, a in anim.ANIMS.items()], f)
 
 
-def main():
-    rig.build()
-    tex_w, tex_h = rig.pack_atlas(512)
+def write_json(path, data, **kw):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(data, f, **kw)
+
+
+def build(ch):
+    rig.reset(ch.materials, ch.tpu)
+    anim.reset(ch.arm)
+    ch.build_geometry()
+    tex_w, tex_h = rig.pack_atlas(ch.atlas_width)
     rgb, emi = rig.paint_atlas(tex_w, tex_h)
-    build_anims()
+    build_anims(ch)
 
-    os.makedirs(os.path.join(ROOT, "textures"), exist_ok=True)
+    mid, root = ch.model_id, ch.out_dir
+    os.makedirs(os.path.join(root, "textures"), exist_ok=True)
     buf = io.BytesIO()
     Image.fromarray(rgb, "RGB").convert("RGBA").save(buf, "PNG", optimize=True)
     png = buf.getvalue()
-    with open(os.path.join(ROOT, "textures", "bonnie.png"), "wb") as f:
+    with open(os.path.join(root, "textures", f"{mid}.png"), "wb") as f:
         f.write(png)
-    Image.fromarray(emi, "RGB").save(os.path.join(ROOT, "textures", "bonnie_emissive.png"), optimize=True)
+    Image.fromarray(emi, "RGB").save(os.path.join(root, "textures", f"{mid}_emissive.png"), optimize=True)
 
-    with open(os.path.join(ROOT, "bonnie.bbmodel"), "w") as f:
-        json.dump(bbmodel(tex_w, tex_h, png), f, separators=(",", ":"))
+    write_json(os.path.join(root, f"{mid}.bbmodel"), bbmodel(ch, tex_w, tex_h, png), separators=(",", ":"))
+    write_json(os.path.join(root, "bedrock", "models", "entity", f"{mid}.geo.json"), geo_json(ch, tex_w, tex_h), indent="\t")
+    write_json(os.path.join(root, "bedrock", "animations", f"{mid}.animation.json"), animation_json(), indent="\t")
 
-    geo_dir = os.path.join(ROOT, "bedrock", "models", "entity")
-    anim_dir = os.path.join(ROOT, "bedrock", "animations")
-    os.makedirs(geo_dir, exist_ok=True)
-    os.makedirs(anim_dir, exist_ok=True)
-    with open(os.path.join(geo_dir, "bonnie.geo.json"), "w") as f:
-        json.dump(geo_json(tex_w, tex_h), f, indent="\t")
-    with open(os.path.join(anim_dir, "bonnie.animation.json"), "w") as f:
-        json.dump(animation_json(), f, indent="\t")
-
-    # in-game copy of the texture: eye pixels get low alpha, which the
-    # entity_emissive_alpha material renders full-bright (glowing eyes)
-    tex_dir = os.path.join(ROOT, "bedrock", "textures", "entity", "bonnie")
+    # in-game copy of the texture: glowing pixels get low alpha, which the
+    # entity_emissive_alpha material renders full-bright
+    tex_dir = os.path.join(root, "bedrock", "textures", "entity", mid)
     os.makedirs(tex_dir, exist_ok=True)
-    with open(os.path.join(tex_dir, "bonnie.png"), "wb") as f:
+    with open(os.path.join(tex_dir, f"{mid}.png"), "wb") as f:
         f.write(png)
     alpha = 255 - np.clip(emi.max(axis=2).astype(np.float32) * 1.7, 0, 255).astype(np.uint8)
-    Image.fromarray(np.dstack([rgb, alpha]), "RGBA").save(os.path.join(tex_dir, "bonnie_glow.png"), optimize=True)
-    for rel, data in client_files().items():
-        path = os.path.join(ROOT, "bedrock", rel)
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w") as f:
-            json.dump(data, f, indent="\t")
+    Image.fromarray(np.dstack([rgb, alpha]), "RGBA").save(os.path.join(tex_dir, f"{mid}_glow.png"), optimize=True)
+    for rel, data in client_files(ch).items():
+        write_json(os.path.join(root, "bedrock", rel), data, indent="\t")
 
     ncubes = sum(len(b.cubes) for b in rig.BONES.values())
-    print(f"bones={len(rig.BONES)} cubes={ncubes} texture={tex_w}x{tex_h} animations={len(anims.ANIMS)}")
-
-
-if __name__ == "__main__":
-    main()
+    print(f"{mid}: bones={len(rig.BONES)} cubes={ncubes} texture={tex_w}x{tex_h} animations={len(anim.ANIMS)}")

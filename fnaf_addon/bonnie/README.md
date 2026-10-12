@@ -18,7 +18,7 @@ This is a Blockbench model of Bonnie in the **Bedrock Entity** format, built fro
 | `textures/bonnie.png` | Texture atlas (the same one embedded in the .bbmodel) |
 | `textures/bonnie_emissive.png` | Glow mask for the eyes |
 | `bedrock/` | Resource-pack-ready files (see below). These match Blockbench's own *Export Bedrock Geometry / Animations* output. |
-| `tools/` | Generator (`build_bonnie.py`) and preview renderer (`render/`) |
+| `../tools/` | Shared generator and preview renderer for all the FNAF models (see [../README.md](../README.md)) |
 
 ## Opening it in Blockbench
 
@@ -91,14 +91,16 @@ bedrock/textures/entity/bonnie/*.png                       -> RP/textures/entity
 
 ## Rebuilding / re-rendering
 
+From the `fnaf_addon/` folder:
+
 ```bash
-python3 tools/build_bonnie.py          # regenerates the .bbmodel, textures and bedrock/ files
-cd tools/render && npm install         # three.js + playwright
-node render.mjs video ../../preview/bonnie_preview.mp4
-python3 make_sheet.py                  # preview/bonnie_sheet.png
+python3 tools/build.py bonnie               # regenerates the .bbmodel, textures and bedrock/ files
+cd tools/render && npm install              # three.js + playwright
+node render.mjs bonnie video                # preview/bonnie_preview.mp4
+python3 make_sheet.py bonnie                # preview/bonnie_sheet.png
 ```
 
-- The geometry, the texture painting and the animations are all plain Python in `tools/rig.py` and `tools/anims.py`.
+- Bonnie's geometry, texture painting and animations are plain Python in `tools/characters/bonnie.py`. The shared code lives in `tools/fnafkit/`.
 - The first animation build takes a few minutes because it runs the IK solver. After that, the result is cached in `tools/.cache/`.
 - The preview renderer reads `bonnie.bbmodel` directly. I checked its posing against Blockbench's own viewport.
 
