@@ -18,7 +18,9 @@ The owner then played 1.2.0 to the end and reported items 62-66 (section M).
 
 **1.5.0** builds items 178 and 184-187 (section V): the new Classic Freddy (with his own Withered Freddy), the Midnight
 Banjo Bonnie, a new Chica built on the same body, Springbonnie as Fredbear's partner, and Valek and Morgrave's workshop.
-Item 188 (rebuild the whole pizzeria and the office with a new layout) is next, as its own update.
+
+**1.6.0** builds item 188 (section W): the whole ground floor and the office rebuilt with a new, bigger and creepier layout
+(the owner's picks: a new layout, "bigger and creepier").
 
 **1.4.0** builds items 179-183 (section U): the ceiling vent over the office, Morgrave's new mechanic (*Invite him in*), Valek's
 staring contest with his head locked on to the player, the jumpscare view fix and the cameras renumbered in order. Items
@@ -285,7 +287,7 @@ Numbers stay fixed from now on: new items are added at the end.
 | 185 | Replace Bonnie with the owner's Midnight Banjo Bonnie | done in 1.5.0 (untested in-game) |
 | 186 | A new Chica based on the Freddy and Bonnie models and their animations, with the same height and vibe | done in 1.5.0 (untested in-game) |
 | 187 | Springbonnie (Springbonnie_Spotty_Complete.zip): "with Fredbear" - owner's pick: Fredbear's partner (chamber, flashback, endings, night 6 Golden Hour) | done in 1.5.0 (untested in-game) |
-| 188 | Switch up the whole pizzeria and the office: rebuild everything, with a new layout (owner's pick) | planned (1.6) |
+| 188 | Switch up the whole pizzeria and the office: rebuild everything, with a new layout (owner's pick: bigger and creepier) | done in 1.6.0 (untested in-game) |
 | 189 | Spotty the Dog (in the Springbonnie zip): owner asked for ideas | idea |
 
 ### Every update finishes with
@@ -759,3 +761,25 @@ backs off. While you look up you are not watching the doors.
 3. **A helper**: in Free Roam he follows you and barks when an animatronic is close.
 4. **The challenge dog**: a new challenge where Spotty replaces Freddy (the patient stalker), faster but louder.
 5. **Night 10**: Spotty and Springbonnie, the two 1983 suits nobody talks about.
+
+## W. What 1.6.0 built (item 188)
+
+The owner asked to "switch up the pizzeria, make the place better, the whole pizzeria, even the office, rebuild
+everything", and picked a new layout, bigger and creepier. The office, its door corners, the supply closet and its duct,
+the staff wing, the reception and everything upstairs and below stay where they were, so every office system works the
+same way.
+
+* **The Fredbear Theatre:** the show stage now stands in a tall theatre (14 blocks): rows of seats with an aisle, red
+  curtains, a gold frame, a catwalk across the hall, red velvet walls; backstage and the props room are its wings.
+* **The west side:** the **Play Place** (ball pit, climbing frame, slide, CAM 04), **Fredbear's Starlight Cove** as a
+  curtained side stage with a starry backdrop (look through the gap, CAM 05), a long **arcade hall** (CAM 06) and the
+  **party wing** with Party Rooms 1-3 (CAM 07).
+* **The dining hall:** long party tables under the theatre arch (CAM 08 / 09).
+* **Winding halls:** both halls to the office now bend twice (past the photo booth and the prize corner). The hall
+  cameras (CAM 12 / 16) hang at the last bend: **the bends are blind**, so footsteps matter more. Party Room B, right
+  above the office, joins the two halls (Bonnie's way to switch sides).
+* **The office:** the classic look - a checkerboard band round the walls, the desk out to both corners with a fan and
+  Chica's cupcake, children's drawings, a CELEBRATE! poster. The seal buttons and the VENT GRATE moved to the back
+  counter so the camera map fits all **25 cameras**; every other button is where it was.
+* **Balance:** nights 5 and 6 drain a little less power (the winding halls keep the right door shut longer); the
+  balance simulator's numbers match 1.5 again (docs/05).

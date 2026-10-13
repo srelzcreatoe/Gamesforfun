@@ -180,7 +180,16 @@ export class NightSession {
     if (d.cams.open) used += P.cams;
     if (d.hatch) used += P.hatch;
     if (!d.grate) used += P.grate;
-    return (P.baseDrain[this.night] ?? 4) + used * (this.mods.deviceDrainMult ?? 1);
+    return this.baseDrainNow() + used * (this.mods.deviceDrainMult ?? 1);
+  }
+
+  /**
+   * Base drain this tick, always a whole number of units. A base rate with tenths (1.6: 4.8 on night 5, 4.7 on night 6)
+   * is spread over the ticks so every ten ticks drain exactly ten times the rate (4.8 -> 5,5,5,5,4,...).
+   */
+  baseDrainNow() {
+    const tenths = Math.round((CONFIG.power.baseDrain[this.night] ?? 4) * 10);
+    return Math.floor(((this.t + 1) * tenths) / 10) - Math.floor((this.t * tenths) / 10);
   }
 
   /** Queue a player action (applied at the start of the next tick). */

@@ -1,7 +1,7 @@
 // SPRINGBONNIE - Fredbear's partner (1.5).
 //
 // The golden rabbit who sang with Fredbear on the 1983 diner stage. All game long he sits slumped
-// beside Fredbear in the chamber (SB_HOME, CAM 23) - he is there in the 1983 flashback and in the
+// beside Fredbear in the chamber (SB_HOME, CAM 25) - he is there in the 1983 flashback and in the
 // night 6 ending too. On night 6, when the Golden Hour starts (the finale at 5 AM), his springlocks
 // snap loose and he hunts WITH Fredbear: he climbs out of the supply-closet floor grate (up the duct
 // from below) and walks the West Hall to the LEFT door only; he never takes the vent.

@@ -156,7 +156,7 @@ test('/fb:setup builds the whole map, installs every command block and reaches t
   commands.get('fb:setup')({ sourceEntity: player }, false);
   await until(() => game.state === 'LOBBY', 5000, 10);
   assert.equal(mock.commandBlockCount(), allCommandBlocks().length);
-  assert.equal(mock.commandBlockCount(), 538);
+  assert.equal(mock.commandBlockCount(), 540);
   assert.ok(STATE.maxFill <= 32768, `largest single fill ${STATE.maxFill}`);
   assert.equal(uiMock.shown.filter((f) => f.title === 'Build report').length, 0, 'no build warnings');
   await assertCleanLobby();
@@ -272,7 +272,7 @@ test('intro camera tour at 11:55: shows the cameras, sneak skips it, then the wa
   assert.equal(game.cams.active, true, 'tour uses the camera view');
   assert.equal(player.cameraState.preset, 'minecraft:free');
   await mock.tick(70);
-  assert.equal(game.cams.cam, 'C14', 'second shot: west hall');
+  assert.equal(game.cams.cam, 'C16', 'second shot: west hall');
   mock.sneak(player);
   await mock.tick(2);
   assert.equal(game.tour, null);
@@ -356,14 +356,14 @@ test('night 1 from the time clock: intro, office start, controls drive session a
   assert.equal(s.devices.doorR, true);
   assert.deepEqual([...new Set(box(106, 0, 129, 106, 2, 130))], ['minecraft:iron_block']);
   assert.equal(typeAt(106, 3, 129), 'minecraft:ochre_froglight', 'door indicator');
-  press('in.office.map_c05'); // map button opens the monitor on that feed
+  press('in.office.map_c06'); // map button opens the monitor on that feed
   await mock.tick(4);
   assert.equal(s.devices.cams.open, true);
-  assert.equal(s.devices.cams.cam, 'C05');
+  assert.equal(s.devices.cams.cam, 'C06');
   // 1.5: the desk-corner button opens the workshop feed; Springbonnie sits slumped beside Fredbear in the chamber.
-  press('in.office.map_c19');
+  press('in.office.map_c21');
   await mock.tick(4);
-  assert.equal(s.devices.cams.cam, 'C19');
+  assert.equal(s.devices.cams.cam, 'C21');
   const sb = puppetsOf(TYPES.springbonnie);
   assert.equal(sb.length, 1, 'one Springbonnie puppet');
   const home = W(NODE_BY_ID.SB_HOME.x, NODE_BY_ID.SB_HOME.y, NODE_BY_ID.SB_HOME.z);
@@ -459,7 +459,7 @@ test('maintenance pause: clock stops, the lever completes it, START resumes the 
 
 test('ten randomized play / reset cycles leave no residue', async () => {
   const rng = new Rng(77);
-  const controls = ['in.office.door_l', 'in.office.door_r', 'in.office.light_l', 'in.office.light_r', 'in.office.cams', 'in.office.hatch', 'in.office.strobe', 'in.office.map_c06', 'in.office.map_c09', 'in.office.breaker'];
+  const controls = ['in.office.door_l', 'in.office.door_r', 'in.office.light_l', 'in.office.light_r', 'in.office.cams', 'in.office.hatch', 'in.office.strobe', 'in.office.map_c08', 'in.office.map_c11', 'in.office.breaker'];
   handleDebug(game, 'unlock', '6', undefined, player);
   for (let cycle = 0; cycle < 10; cycle++) {
     const night = 1 + rng.int(0, 5);

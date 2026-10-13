@@ -83,7 +83,7 @@ export const CB_STRUCTURES = Object.freeze([
    1,
    12
   ],
-  "blocks": 30
+  "blocks": 32
  },
  {
   "id": "fb:in_g_3_3",
@@ -242,7 +242,7 @@ export const CB_STRUCTURES = Object.freeze([
  {
   "id": "fb:in_g_2_0",
   "at": [
-   74,
+   68,
    -51,
    14
   ],
@@ -254,18 +254,18 @@ export const CB_STRUCTURES = Object.freeze([
   "blocks": 1
  },
  {
-  "id": "fb:in_g_0_2",
+  "id": "fb:in_g_2_1",
   "at": [
-   18,
-   -51,
-   68
+   66,
+   -52,
+   34
   ],
   "size": [
-   1,
-   1,
-   1
+   3,
+   2,
+   9
   ],
-  "blocks": 1
+  "blocks": 2
  },
  {
   "id": "fb:in_g_5_2",
@@ -352,25 +352,11 @@ export const CB_STRUCTURES = Object.freeze([
   "blocks": 1
  },
  {
-  "id": "fb:in_g_0_1",
-  "at": [
-   30,
-   -52,
-   60
-  ],
-  "size": [
-   1,
-   1,
-   1
-  ],
-  "blocks": 1
- },
- {
   "id": "fb:in_g_1_1",
   "at": [
-   58,
+   56,
    -52,
-   34
+   62
   ],
   "size": [
    1,

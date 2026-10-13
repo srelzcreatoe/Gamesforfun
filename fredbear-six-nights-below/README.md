@@ -1,13 +1,14 @@
 # FREDBEAR: SIX NIGHTS BELOW
 
 A Five Nights at Freddy's–inspired survival-horror campaign for **Minecraft Bedrock Edition 1.26.50**, built as a
-behavior pack + resource pack. The behavior pack constructs the whole map in your own world, installs a 538-block
+behavior pack + resource pack. The behavior pack constructs the whole map in your own world, installs a 540-block
 command-block network from structure files, and runs seven animatronics with explainable AI on the stable Script API
 (`@minecraft/server` 2.10.0, `@minecraft/server-ui` 2.2.0). No experimental features.
 
 * **Location:** an abandoned family entertainment complex, 200 × 200 blocks, three levels (basement, ground, upper floor),
-  63 rooms and spaces, from the parking lot, dining hall and show stage to the sealed original Fredbear's Diner, his hidden
-  chamber and (1.5) the workshop where Valek and Morgrave wait between nights.
+  73 rooms and spaces, from the parking lot, the theatre with its show stage, the play place, the arcade hall, the party
+  wing and the dining hall to the winding halls round the office, the sealed original Fredbear's Diner, his hidden chamber
+  and the workshop where Valek and Morgrave wait between nights. 1.6 rebuilt the whole ground floor and the office.
 * **Animatronics:** Freddy (patient stalker), Bonnie (aggressive flanker, vent crawler, bangs on a door so Chica can sneak
   in), Chica (resource pressure, flanks, joins the others at the door) and Fredbear (phased central threat with camera
   disruption, false camera echoes, blackouts, warned relocation, his own power-out, a laugh when he starts hunting and
@@ -28,7 +29,7 @@ command-block network from structure files, and runs seven animatronics with exp
   Halloween and Christmas decorations, persistent unlocks, retry, secrets, free roam.
 * **Sound:** the owner's recordings for the jumpscares, doors, camera monitor, CCTV hum, laughs, Fredbear's music box and
   Chica in the kitchen, and looping night music with an on/off switch in the Shift Guide.
-* **Office:** two doors, two hall lights, 23 cameras (numbered in walking order) with a physical map and an
+* **Office:** the classic guard office (checkered walls, desk fan, Chica's cupcake, drawings, CELEBRATE! poster): two doors, two hall lights, 25 cameras (numbered in walking order) with a physical map and an
   on-screen FNAF-style camera map, floor hatch, a ceiling vent with a grate, vent and shaft seals, emergency strobe, breaker, reserve lever, tape deck, power meter, hour lamps, warning indicators,
   captions.
 
@@ -38,10 +39,11 @@ Everything here was generated and verified **without running Minecraft**: 6 stat
 1.26.50 metadata and schemas, 85 automated tests, a balance simulator, and an integration harness that runs the real pack
 scripts against a mock of the Script API (full build, self-test, tutorial, a complete six-night campaign through the office
 buttons, night 7 and both endings, nights 8 and 9 and the night 9 ending, the camera map, the tapes, challenges, resets,
-reloads). The map owner played version 1.2 in-game to the end; **nothing added in 1.3.0, 1.3.1, 1.4.0 or 1.5.0 has been tested in-game
+reloads). The map owner played version 1.2 in-game to the end; **nothing added in 1.3.0, 1.3.1, 1.4.0, 1.5.0 or 1.6.0 has been tested in-game
 yet** (in 1.4: the ceiling vent, Morgrave's knocking, Valek's staring contest and head lock, the camera renumbering and the
 jumpscare-view fix; in 1.5: the Classic Freddy, Withered Freddy, Midnight Banjo Bonnie and Springbonnie models, the new
-Chica, Springbonnie's Golden Hour and the workshop). The remaining in-game checks are listed in
+Chica, Springbonnie's Golden Hour and the workshop; in 1.6: the rebuilt ground floor and office, the new routes and
+cameras). The remaining in-game checks are listed in
 [docs/10_TEST_REPORT.md](docs/10_TEST_REPORT.md), and engine behaviour that could not be verified is listed in
 [docs/01_COMPATIBILITY.md](docs/01_COMPATIBILITY.md).
 
@@ -54,8 +56,8 @@ validated here).
 2. New world: **Flat**, **cheats on**, activate **FREDBEAR: Six Nights Below (Behavior)**. Render distance ≥ 11 chunks.
 3. In the world: `/fb:setup`, wait for the title, then clock in at the time clock.
 
-**Updating:** import the new `.mcaddon`, check that both packs show 1.5.0 in the world settings and enter the world, then
-run `/fb:setup` once when the action bar asks (1.5 builds the workshop, its camera button and Springbonnie's spot). Your
+**Updating:** import the new `.mcaddon`, check that both packs show 1.6.0 in the world settings and enter the world, then
+run `/fb:setup` once when the action bar asks (1.6 rebuilds the ground floor and the office). Your
 progress is kept; if you already beat night 7, night 8 is open. Camera numbers: see
 [docs/08](docs/08_INSTALL_AND_PLAY.md#updating-from-an-earlier-version).
 
@@ -72,7 +74,7 @@ Full instructions, controls and troubleshooting: [docs/08_INSTALL_AND_PLAY.md](d
 | 2 | Floor plan, coordinate registry, route graph | [docs/02_FLOOR_PLAN.md](docs/02_FLOOR_PLAN.md), `docs/floorplan_L*.png` |
 | 3 | Project folder structure | [docs/09_DEVELOPER_TOOLS.md](docs/09_DEVELOPER_TOOLS.md#repository-layout) |
 | 4 | Behavior-pack and resource-pack source | `packs/FredbearBP/`, `packs/FredbearRP/` |
-| 5 | Assets | textures, models, animations, 57 sounds, fogs, icons, the camera map HUD in `packs/FredbearRP/`; source skins, recordings and the owner's models in `art/`; [docs/07](docs/07_CONSTRUCTION.md#resource-pack-assets) |
+| 5 | Assets | textures, models, animations, 62 sounds, fogs, icons, the camera map HUD in `packs/FredbearRP/`; source skins, recordings and the owner's models in `art/`; [docs/07](docs/07_CONSTRUCTION.md#resource-pack-assets) |
 | 6 | Command-block placement and configuration register | [docs/06_COMMAND_BLOCK_REGISTER.md](docs/06_COMMAND_BLOCK_REGISTER.md), `docs/command_blocks.csv` |
 | 7 | Construction procedure | [docs/07_CONSTRUCTION.md](docs/07_CONSTRUCTION.md) (automatic builder + manual fallback) |
 | 8 | Playable package | `dist/*.mcpack`, `dist/Fredbear_Six_Nights_Below.mcaddon` (no `.mcworld`, see above) |

@@ -21,7 +21,7 @@ import { loadBuild, storeBuild } from './persistence.js';
 import { INPUTS, inputCbPos } from '../data/inputs.js';
 import { log } from './log.js';
 
-export const BUILD_VERSION = 6; // 2: camera lights; 3: time-clock room rework, night 7, challenge lamps, new command blocks; 4: 1.3 cameras, duct, seals, lore rooms, nights 8-9; 5: 1.4 ceiling vent, grate button; 6: 1.5 the workshop, CAM 19, Springbonnie's spot - older builds ask for /fb:setup
+export const BUILD_VERSION = 7; // 2: camera lights; 3: time-clock room rework, night 7, challenge lamps, new command blocks; 4: 1.3 cameras, duct, seals, lore rooms, nights 8-9; 5: 1.4 ceiling vent, grate button; 6: 1.5 the workshop, CAM 21, Springbonnie's spot; 7: 1.6 the rebuilt ground floor and office, 25 cameras - older builds ask for /fb:setup
 
 /**
  * Pack structure id for a generated structure. Files live at structures/fb/<name>.mcstructure and are expected

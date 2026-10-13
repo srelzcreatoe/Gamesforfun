@@ -19,19 +19,40 @@ The build is resumable: if you leave, run `/fb:setup` again.
 
 ### Updating from an earlier version
 
-1. Import the new `.mcaddon` (version **1.5.0**).
+1. Import the new `.mcaddon` (version **1.6.0**).
 2. In the world's settings, open **Behavior Packs** and make sure **FREDBEAR: Six Nights Below (Behavior)** shows
-   version 1.5.0; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
-   Check **Resource Packs** too: only the 1.5.0 resource pack should be active.
-3. Enter the world. Version 1.5 changes the map (Valek and Morgrave's workshop below the old diner, its camera and a new
-   map button in the desk's north-west corner, Springbonnie's spot in the chamber), so the action bar asks you to rebuild:
-   run **`/fb:setup`** once and wait for the title. Unlocked nights, secrets, endings and settings are kept: if you already beat night 7, night 8 is open
-   (Morgrave if your last ending was *seal*, Valek if it was *burn*).
-4. **Camera numbers** (neighbouring cameras have neighbouring numbers since 1.4): CAM 01-05 are the stage, backstage,
-   Parts & Service, Starlight Cove and the arcade; 06-07 the dining hall; 08-09 the kitchen and the east service hall;
-   10-14 round the office (east hall, east corner, the ceiling vent, west corner, west hall); 15-16 the supply closet and
-   its duct; 17-23 below (office subfloor, maintenance tunnel, **19 the workshop** (new in 1.5), diner kitchen, party room,
-   sealed diner, Fredbear's chamber).
+   version 1.6.0; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
+   Check **Resource Packs** too: only the 1.6.0 resource pack should be active.
+3. Enter the world. Version 1.6 **rebuilds the whole ground floor and the office** (see *The pizzeria* below), so the
+   action bar asks you to rebuild: run **`/fb:setup`** once and wait for the title. Unlocked nights, secrets, endings and
+   settings are kept: if you already beat night 7, night 8 is open (Morgrave if your last ending was *seal*, Valek if it
+   was *burn*).
+4. **Camera numbers** (neighbouring cameras have neighbouring numbers; 1.6 has 25): CAM 01-03 are the show stage,
+   backstage and Parts & Service; 04-07 the west side (**04 the Play Place**, 05 Starlight Cove, 06 the arcade hall,
+   **07 the party wing**); 08-09 the dining hall; 10-11 the kitchen (audio only) and the east service hall; 12-16 round the
+   office (east hall, east corner, the ceiling vent, west corner, west hall); 17-18 the supply closet and its duct; 19-25
+   below (office subfloor, maintenance tunnel, the workshop, diner kitchen, diner party room, sealed diner, Fredbear's
+   chamber).
+
+### The pizzeria (1.6)
+
+The ground floor was rebuilt bigger and darker; the office, its two door corners, the supply closet and its duct, the
+staff wing, the reception and everything below stay where they were.
+
+* **The Fredbear Theatre** (north): the show stage now stands in a tall theatre with rows of seats, red curtains, a gold
+  frame and a catwalk. Backstage is its west wing (spare heads), Prop & Costume Storage its east wing.
+* **The west side**: Parts & Service, the **Play Place** (ball pit, climbing frame, slide), **Fredbear's Starlight Cove**
+  (a curtained side stage, OUT OF ORDER - look through the gap in the curtain), a long **arcade hall** and the **party
+  wing** (Party Rooms 1-3).
+* **The dining hall** (middle): long party tables under the theatre arch; every route crosses it.
+* **The east side**: Party Room E between the theatre wing and the kitchen, Party Room D by the employee entrance.
+* **Two winding halls** lead from the dining hall to the office. Each one bends twice (past the photo booth in the west,
+  past the prize corner in the east); the hall cameras sit at the last bend and only show the straight run to the door,
+  so **the bends are blind**. Party Room B, right above the office, joins the two halls: Bonnie uses it to switch sides.
+* **The office** was redone in the classic style: a checkerboard band round the walls, a desk fan and Chica's cupcake on
+  the corners of the desk, children's drawings on the west wall and a CELEBRATE! poster on the east wall. Every button
+  is where it was, except the two **seal** buttons and the **VENT GRATE**, which moved to the **back counter** with their
+  lamps above them (so the camera map has room for all 25 cameras).
 
 ## The time clock (lobby)
 
@@ -49,7 +70,7 @@ Also in the time-clock room:
 * **NEWSPAPER BOARD**: press its button to read the clippings. A new one appears for every night you finish.
 * **TAPE DECK 1987** (in the office, on the back wall): once you have survived night 5, it plays the 1987 security tapes
   on the monitor - the night the last guard vanished. Only outside a shift; sneak to stop.
-* Lore to find in Free Roam: the sealed 1983 **birthday room** in the old diner (CAM 21; the candles relight every night),
+* Lore to find in Free Roam: the sealed 1983 **birthday room** in the old diner (CAM 23; the candles relight every night),
   the **wall of names** in Fredbear's chamber (after night 6 there is a new one) and the 1987 **crew graffiti** in the west
   maintenance tunnel.
 * **Decorations**: in late October the pizzeria gets pumpkins, jack-o'-lanterns and cobwebs; in December and early
@@ -65,13 +86,12 @@ night 4, a short **1983 flashback** plays before the shift (sneak to skip).
 ## The office
 
 ```
-                 north wall: camera MAP (22 buttons, one per camera; press to view that feed) + VENT GRATE
+                 north wall: camera MAP (25 buttons, one per camera; press to view that feed)
    LEFT WINDOW ┐ ┌───────────────────────────────────────────────┐ ┌ RIGHT WINDOW
    LEFT DOOR ──┤ │ DOOR  LIGHT  MONITOR  HATCH  STROBE  BREAKER  PHONE  LIGHT  DOOR │ ├── RIGHT DOOR
                │ │ (L)   (L)                                                (R)  (R)  │ │
                │ │                       HATCH in the floor                            │ │
-               │ │ SEAL VENT / SEAL SHAFT (left of the console)                        │ │
-               │ │ RESERVE lever          TAPE DECK 1987        START / RESUME          │ │
+               │ │ RESERVE  SEAL VENT  SEAL SHAFT  VENT GRATE  TAPE DECK 1987  START    │ │
                └─┴───────────────────────────── back wall ──────────────────────────────┴─┘
 ```
 
@@ -82,9 +102,9 @@ night 4, a short **1983 flashback** plays before the shift (sneak to skip).
 | **MONITOR** (dark) | raises the camera monitor (your view moves to the selected camera) | 0.06 %/s |
 | **HATCH** (gold, nights 4+) | seals the floor hatch Fredbear can climb through | 0.14 %/s |
 | **STROBE** (orange, nights 4+) | emergency strobe: repels Fredbear **only when the barrier he is at is closed**. Charges: 4 on night 4, 5 on night 5, 6 on nights 6, 7 and 9 | 2 % per shot |
-| **SEAL VENT** (white) | drops a shutter into the supply duct for 20 s (Bonnie's vent); 15 s to recharge | 3 % per use |
-| **SEAL SHAFT** (gold, when the hatch is installed) | the same for the crawlspace below the office hatch (Fredbear's way up) | 3 % per use |
-| **VENT GRATE** (gold, right end of the camera map, 1.4) | opens / closes the grate of the **ceiling vent** above the desk (lamp on the north wall: amber closed, green open). Closed at the start of every night; only Morgrave and Valek use that vent | 0.12 %/s while open |
+| **SEAL VENT** (white, back counter) | drops a shutter into the supply duct for 20 s (Bonnie's vent); 15 s to recharge | 3 % per use |
+| **SEAL SHAFT** (gold, back counter, when the hatch is installed) | the same for the crawlspace below the office hatch (Fredbear's way up) | 3 % per use |
+| **VENT GRATE** (gold, back counter since 1.6) | opens / closes the grate of the **ceiling vent** above the desk (lamp on the back wall above it: amber closed, green open). Closed at the start of every night; only Morgrave and Valek use that vent | 0.12 %/s while open |
 | **RESET BREAKER** | restores the hall lights after Chica trips the breaker (2 s) | 1 % |
 | **PHONE** | replays tonight's phone call | — |
 | **RESERVE** lever (nights 3+) | at 0 % power you have 5 s to pull it for one +8 % top-up | — |
@@ -105,10 +125,12 @@ The action bar shows time, power %, usage bars and captions.
 * **Camera map**: while you watch the cameras, a map of the building sits in the bottom-right corner of the screen, like
   FNAF 1: every camera is a numbered box, the one you are on blinks green, and YOU marks the office. The basement cameras
   are on the left. Switch it off in Settings if it is in the way.
-* CAM 08 (kitchen) is **audio only**: you hear Chica's clatter through it. CAM 19-23 (the workshop, the diner kitchen, the
+* CAM 10 (kitchen) is **audio only**: you hear Chica's clatter through it. CAM 21-25 (the workshop, the diner kitchen, the
   party room, the sealed diner and Fredbear's chamber) have no signal before night 4.
-* CAM 17 looks at the subfloor under the office hatch (whoever climbs up passes it), CAM 16 into the supply duct (Bonnie
-  crawls through it to the left door) and CAM 12 along the crawlspace above the office at the ceiling-vent grate.
+* CAM 19 looks at the subfloor under the office hatch (whoever climbs up passes it), CAM 18 into the supply duct (Bonnie
+  crawls through it to the left door) and CAM 14 along the crawlspace above the office at the ceiling-vent grate.
+* The hall cameras (CAM 12 east, CAM 16 west) show only the last straight run to each door (1.6): the bends before it,
+  the party rooms and the photo booth are blind. Listen for footsteps.
 * **They stare back**: whoever you watch on a feed for a couple of seconds slowly turns to look straight into the lens.
 * From night 2, very rarely, a **black Fredbear silhouette** stands on the show stage. Don't stare at it: watching it for
   3 seconds costs 1 % power and it vanishes.
@@ -130,7 +152,7 @@ On touch screens these items show an on-screen interact button (Cameras / Office
 ## How to survive
 
 * **Power** lasts the night only if you use doors and lights when needed. At 0 % everything shuts off.
-* **Bonnie** (left side; from night 2 he can also flank to the right door and crawl through a vent - CAM 16 shows him in the
+* **Bonnie** (left side; from night 2 he can also flank to the right door and crawl through a vent - CAM 18 shows him in the
   duct, SEAL VENT keeps him out): footsteps and a groan; light the corner, close the door while he stands there, open it when
   he leaves. On hard nights he may **bang on the left door** to keep your eyes there while Chica sneaks to the right one.
 * **Chica** (right side, through the kitchen): kitchen clatter means she is in the kitchen; breathing at the right door means
@@ -145,7 +167,7 @@ On touch screens these items show an on-screen interact button (Cameras / Office
   If you keep the barrier closed without strobing he pounds on it: **the first time each night, each door and the hatch
   hold** and he gives up (he bows and leaves). The second time at the same door or hatch he forces it open — you can still
   strobe him in that moment. Nothing holds him in the Golden Hour (night 6, 5 AM).
-* **Springbonnie** (1.5): Fredbear's golden partner, slumped beside him in the chamber (CAM 23). At 5 AM on night 6 (the
+* **Springbonnie** (1.5): Fredbear's golden partner, slumped beside him in the chamber (CAM 25). At 5 AM on night 6 (the
   Golden Hour) he wakes, climbs out of the supply-closet grate and walks the West Hall to the **left door**. A springlock
   **twang** at the left door means he is there: close it and keep it shut until he backs off. He never comes while
   Fredbear is at an entry.

@@ -10,17 +10,17 @@ Coordinates are **world** coordinates (local + (0, -50, 0)).
 
 | | Count |
 |---|---:|
-| Command blocks | **538** |
-| Impulse (needs redstone) | 210 |
+| Command blocks | **540** |
+| Impulse (needs redstone) | 212 |
 | Chain (always active) | 327 |
 | Repeating (always active) | 1 |
 | Actuator modules (control room) | 119 |
-| Physical inputs (buttons / levers / plates) | 91 |
-| Structure files | 32 |
+| Physical inputs (buttons / levers / plates) | 93 |
+| Structure files | 31 |
 
-Per section: A Setup & initialisation: 17 · B Lobby & tutorial: 48 · C Night controls: 68 · D Office doors, lights & hatch: 66 · E Camera controls: 8 · F Power & emergency systems: 80 · G Room triggers (exploration events): 16 · H Animatronic signals: 77 · I Environmental events: 29 · J Jumpscare coordination: 5 · K Win & lose transitions: 15 · L Reset & diagnostics: 18 · Inputs: 91
+Per section: A Setup & initialisation: 17 · B Lobby & tutorial: 48 · C Night controls: 68 · D Office doors, lights & hatch: 66 · E Camera controls: 8 · F Power & emergency systems: 80 · G Room triggers (exploration events): 16 · H Animatronic signals: 77 · I Environmental events: 29 · J Jumpscare coordination: 5 · K Win & lose transitions: 15 · L Reset & diagnostics: 18 · Inputs: 93
 
-### Why 538 and not 150-250
+### Why 540 and not 150-250
 
 The brief suggested roughly 150-250 *useful* blocks. This design ends higher, without padding, for three reasons:
 
@@ -72,7 +72,7 @@ the surrounding build.
 | `fb:cb_row_2` | 23 -59 175 | 152×1×1 | 96 |
 | `fb:cb_row_3` | 23 -59 178 | 150×1×1 | 90 |
 | `fb:cb_row_4` | 23 -59 181 | 111×1×1 | 73 |
-| `fb:in_g_3_4` | 96 -51 128 | 31×1×12 | 30 |
+| `fb:in_g_3_4` | 96 -51 128 | 31×1×12 | 32 |
 | `fb:in_g_3_3` | 96 -51 127 | 9×1×1 | 9 |
 | `fb:in_g_5_3` | 168 -51 98 | 14×1×25 | 17 |
 | `fb:in_g_4_3` | 158 -51 122 | 1×1×1 | 1 |
@@ -84,16 +84,15 @@ the surrounding build.
 | `fb:in_u_3_4` | 110 -43 128 | 9×1×21 | 2 |
 | `fb:in_u_4_4` | 134 -43 148 | 1×1×1 | 1 |
 | `fb:in_g_1_0` | 48 -51 14 | 1×1×1 | 1 |
-| `fb:in_g_2_0` | 74 -51 14 | 1×1×1 | 1 |
-| `fb:in_g_0_2` | 18 -51 68 | 1×1×1 | 1 |
+| `fb:in_g_2_0` | 68 -51 14 | 1×1×1 | 1 |
+| `fb:in_g_2_1` | 66 -52 34 | 3×2×9 | 2 |
 | `fb:in_g_5_2` | 176 -52 72 | 7×2×7 | 2 |
 | `fb:in_u_0_4` | 18 -43 150 | 1×1×1 | 1 |
 | `fb:in_u_4_3` | 146 -43 118 | 1×1×1 | 1 |
 | `fb:in_b_3_2` | 118 -60 80 | 1×1×1 | 1 |
 | `fb:in_b_0_2` | 18 -60 94 | 1×1×1 | 1 |
 | `fb:in_b_0_0` | 18 -60 30 | 1×1×1 | 1 |
-| `fb:in_g_0_1` | 30 -52 60 | 1×1×1 | 1 |
-| `fb:in_g_1_1` | 58 -52 34 | 1×1×1 | 1 |
+| `fb:in_g_1_1` | 56 -52 62 | 1×1×1 | 1 |
 | `fb:in_b_1_2` | 56 -61 88 | 1×1×1 | 1 |
 | `fb:in_b_0_1` | 24 -61 34 | 1×1×1 | 1 |
 | `fb:in_u_1_4` | 34 -43 128 | 1×1×1 | 1 |
@@ -156,9 +155,9 @@ block names its module; the west wall labels each row's sections. Developer butt
 | `hatch_open` | D | 143 -59 172 | 4 | Office hatch opened |
 | `grate_close` | D | 149 -59 172 | 4 | Ceiling-vent grate closes (Morgrave knocks on it; he also shuts it behind him) |
 | `grate_open` | D | 155 -59 172 | 4 | Ceiling-vent grate opens |
-| `seal.vent_close` | D | 161 -59 172 | 5 | Vent seal: bars across the supply duct (CAM 16) |
+| `seal.vent_close` | D | 161 -59 172 | 5 | Vent seal: bars across the supply duct (CAM 18) |
 | `seal.vent_open` | D | 168 -59 172 | 4 | Vent seal released |
-| `seal.shaft_close` | D | 22 -59 175 | 6 | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17) |
+| `seal.shaft_close` | D | 22 -59 175 | 6 | Shaft seal: bars across both crawl openings into the office subfloor (CAM 19) |
 | `seal.shaft_open` | D | 30 -59 175 | 5 | Shaft seal released |
 | `cam.up` | E | 39 -59 175 | 2 | Monitor raised (office sound) |
 | `cam.down` | E | 43 -59 175 | 2 | Monitor lowered |
@@ -186,7 +185,7 @@ block names its module; the west wall labels each row's sections. Developer butt
 | `pwr.charges_2` | F | 166 -59 175 | 3 | Strobe charge lamps: 2 |
 | `pwr.charges_3` | F | 171 -59 175 | 3 | Strobe charge lamps: 3 |
 | `pwr.charges_4` | F | 22 -59 178 | 3 | Strobe charge lamps: 4+ |
-| `zone.cove` | G | 29 -59 178 | 4 | Exploration: Starlight Cove curtain shiver |
+| `zone.cove` | G | 29 -59 178 | 4 | Exploration: Starlight Cove curtain shiver (the gap in the side-stage curtain closes, then opens) |
 | `zone.freezer` | G | 35 -59 178 | 3 | Exploration: freezer knock |
 | `zone.diner` | G | 40 -59 178 | 3 | Exploration: diner jukebox wakes |
 | `zone.chamber` | G | 45 -59 178 | 3 | Exploration: golden shrine glows |
@@ -319,7 +318,7 @@ All blocks are unconditional. Facing: E = east (+X, the chain direction), U = up
 | `night.begin#13` | 151 -59 169 | C | AA | 0 | E | `fill 96 -46 126 105 -46 126 verdant_froglight` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
 | `night.begin#14` | 152 -59 169 | C | AA | 0 | E | `fill 97 -45 126 102 -45 126 gray_concrete` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
 | `night.begin#15` | 153 -59 169 | C | AA | 0 | E | `fill 101 -43 127 102 -43 128 iron_trapdoor ["direction"=0,"open_bit"=false,"upside_down_bit"=true]` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
-| `night.begin#16` | 154 -59 169 | C | AA | 0 | E | `setblock 104 -47 126 ochre_froglight` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
+| `night.begin#16` | 154 -59 169 | C | AA | 0 | E | `setblock 100 -48 140 ochre_froglight` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
 | `night.begin#17` | 155 -59 169 | C | AA | 0 | E | `playsound fb.night.start @a 100 -49 133 1 1` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
 | `night.begin#18` | 156 -59 169 | C | AA | 0 | E | `setblock 49 -58 90 pink_candle_cake ["lit"=true]` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
 | `night.begin#19` | 157 -59 169 | C | AA | 0 | E | `setblock 46 -58 91 white_candle ["candles"=3,"lit"=true]` | Start of shift: seal doorways with barriers, office lights on; previous block in night.begin |
@@ -341,10 +340,10 @@ All blocks are unconditional. Facing: E = east (+X, the chain direction), U = up
 | `night.end#14` | 37 -59 172 | C | AA | 0 | E | `fill 91 -53 132 91 -52 132 air replace iron_bars` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
 | `night.end#15` | 38 -59 172 | C | AA | 0 | E | `fill 92 -59 113 92 -58 114 air replace iron_bars` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
 | `night.end#16` | 39 -59 172 | C | AA | 0 | E | `fill 99 -59 112 101 -57 112 air replace iron_bars` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
-| `night.end#17` | 40 -59 172 | C | AA | 0 | E | `setblock 95 -47 126 gray_concrete` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
-| `night.end#18` | 41 -59 172 | C | AA | 0 | E | `setblock 95 -48 126 gray_concrete` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
+| `night.end#17` | 40 -59 172 | C | AA | 0 | E | `setblock 98 -48 140 gray_concrete` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
+| `night.end#18` | 41 -59 172 | C | AA | 0 | E | `setblock 99 -48 140 gray_concrete` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
 | `night.end#19` | 42 -59 172 | C | AA | 0 | E | `fill 101 -43 127 102 -43 128 iron_trapdoor ["direction"=0,"open_bit"=false,"upside_down_bit"=true]` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
-| `night.end#20` | 43 -59 172 | C | AA | 0 | E | `setblock 104 -47 126 gray_concrete` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
+| `night.end#20` | 43 -59 172 | C | AA | 0 | E | `setblock 100 -48 140 gray_concrete` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
 | `night.end#21` | 44 -59 172 | C | AA | 0 | E | `setblock 49 -58 90 pink_candle_cake ["lit"=false]` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
 | `night.end#22` | 45 -59 172 | C | AA | 0 | E | `setblock 46 -58 91 white_candle ["candles"=3,"lit"=false]` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
 | `night.end#23` | 46 -59 172 | C | AA | 0 | E | `setblock 52 -58 91 white_candle ["candles"=3,"lit"=false]` | End of shift: open doorways, clear light blocks, stop sounds; previous block in night.end |
@@ -411,32 +410,32 @@ All blocks are unconditional. Facing: E = east (+X, the chain direction), U = up
 | `hatch_open#3` | 147 -59 172 | C | AA | 0 | E | `playsound fb.door.open @a 99.5 -50 136.5 0.8 0.8` | Office hatch opened; previous block in hatch_open |
 | `grate_close#0` | 150 -59 172 | I | NR | 0 | E | `setblock 149 -59 172 air` | Ceiling-vent grate closes (Morgrave knocks on it; he also shuts it behind him) (trigger; clears pad); script places minecraft:redstone_block at pad 149 -9 172 (local) |
 | `grate_close#1` | 151 -59 172 | C | AA | 0 | E | `fill 101 -43 127 102 -43 128 iron_trapdoor ["direction"=0,"open_bit"=false,"upside_down_bit"=true]` | Ceiling-vent grate closes (Morgrave knocks on it; he also shuts it behind him); previous block in grate_close |
-| `grate_close#2` | 152 -59 172 | C | AA | 0 | E | `setblock 104 -47 126 ochre_froglight` | Ceiling-vent grate closes (Morgrave knocks on it; he also shuts it behind him); previous block in grate_close |
+| `grate_close#2` | 152 -59 172 | C | AA | 0 | E | `setblock 100 -48 140 ochre_froglight` | Ceiling-vent grate closes (Morgrave knocks on it; he also shuts it behind him); previous block in grate_close |
 | `grate_close#3` | 153 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 101.5 -44 127.5 0.7 1.4` | Ceiling-vent grate closes (Morgrave knocks on it; he also shuts it behind him); previous block in grate_close |
 | `grate_open#0` | 156 -59 172 | I | NR | 0 | E | `setblock 155 -59 172 air` | Ceiling-vent grate opens (trigger; clears pad); script places minecraft:redstone_block at pad 155 -9 172 (local) |
 | `grate_open#1` | 157 -59 172 | C | AA | 0 | E | `fill 101 -43 127 102 -43 128 iron_trapdoor ["direction"=0,"open_bit"=true,"upside_down_bit"=true]` | Ceiling-vent grate opens; previous block in grate_open |
-| `grate_open#2` | 158 -59 172 | C | AA | 0 | E | `setblock 104 -47 126 verdant_froglight` | Ceiling-vent grate opens; previous block in grate_open |
+| `grate_open#2` | 158 -59 172 | C | AA | 0 | E | `setblock 100 -48 140 verdant_froglight` | Ceiling-vent grate opens; previous block in grate_open |
 | `grate_open#3` | 159 -59 172 | C | AA | 0 | E | `playsound fb.door.open @a 101.5 -44 127.5 0.7 1.3` | Ceiling-vent grate opens; previous block in grate_open |
-| `seal.vent_close#0` | 162 -59 172 | I | NR | 0 | E | `setblock 161 -59 172 air` | Vent seal: bars across the supply duct (CAM 16) (trigger; clears pad); script places minecraft:redstone_block at pad 161 -9 172 (local) |
-| `seal.vent_close#1` | 163 -59 172 | C | AA | 0 | E | `fill 91 -53 132 91 -52 132 iron_bars` | Vent seal: bars across the supply duct (CAM 16); previous block in seal.vent_close |
-| `seal.vent_close#2` | 164 -59 172 | C | AA | 0 | E | `setblock 95 -47 126 ochre_froglight` | Vent seal: bars across the supply duct (CAM 16); previous block in seal.vent_close |
-| `seal.vent_close#3` | 165 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 91 -52 132 0.8 1.3` | Vent seal: bars across the supply duct (CAM 16); previous block in seal.vent_close |
-| `seal.vent_close#4` | 166 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 96 -49 128 0.5 1.3` | Vent seal: bars across the supply duct (CAM 16); previous block in seal.vent_close |
+| `seal.vent_close#0` | 162 -59 172 | I | NR | 0 | E | `setblock 161 -59 172 air` | Vent seal: bars across the supply duct (CAM 18) (trigger; clears pad); script places minecraft:redstone_block at pad 161 -9 172 (local) |
+| `seal.vent_close#1` | 163 -59 172 | C | AA | 0 | E | `fill 91 -53 132 91 -52 132 iron_bars` | Vent seal: bars across the supply duct (CAM 18); previous block in seal.vent_close |
+| `seal.vent_close#2` | 164 -59 172 | C | AA | 0 | E | `setblock 98 -48 140 ochre_froglight` | Vent seal: bars across the supply duct (CAM 18); previous block in seal.vent_close |
+| `seal.vent_close#3` | 165 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 91 -52 132 0.8 1.3` | Vent seal: bars across the supply duct (CAM 18); previous block in seal.vent_close |
+| `seal.vent_close#4` | 166 -59 172 | C | AA | 0 | E | `playsound fb.door.close @a 98 -49 139 0.5 1.3` | Vent seal: bars across the supply duct (CAM 18); previous block in seal.vent_close |
 | `seal.vent_open#0` | 169 -59 172 | I | NR | 0 | E | `setblock 168 -59 172 air` | Vent seal released (trigger; clears pad); script places minecraft:redstone_block at pad 168 -9 172 (local) |
 | `seal.vent_open#1` | 170 -59 172 | C | AA | 0 | E | `fill 91 -53 132 91 -52 132 air replace iron_bars` | Vent seal released; previous block in seal.vent_open |
-| `seal.vent_open#2` | 171 -59 172 | C | AA | 0 | E | `setblock 95 -47 126 gray_concrete` | Vent seal released; previous block in seal.vent_open |
-| `seal.vent_open#3` | 172 -59 172 | C | AA | 0 | E | `playsound fb.door.open @a 96 -49 128 0.5 1.3` | Vent seal released; previous block in seal.vent_open |
-| `seal.shaft_close#0` | 23 -59 175 | I | NR | 0 | E | `setblock 22 -59 175 air` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17) (trigger; clears pad); script places minecraft:redstone_block at pad 22 -9 175 (local) |
-| `seal.shaft_close#1` | 24 -59 175 | C | AA | 0 | E | `fill 92 -59 113 92 -58 114 iron_bars` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
-| `seal.shaft_close#2` | 25 -59 175 | C | AA | 0 | E | `fill 99 -59 112 101 -57 112 iron_bars` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
-| `seal.shaft_close#3` | 26 -59 175 | C | AA | 0 | E | `setblock 95 -48 126 ochre_froglight` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
-| `seal.shaft_close#4` | 27 -59 175 | C | AA | 0 | E | `playsound fb.door.close @a 100 -58 113 0.8 1.3` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
-| `seal.shaft_close#5` | 28 -59 175 | C | AA | 0 | E | `playsound fb.door.close @a 96 -49 129 0.5 1.3` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 17); previous block in seal.shaft_close |
+| `seal.vent_open#2` | 171 -59 172 | C | AA | 0 | E | `setblock 98 -48 140 gray_concrete` | Vent seal released; previous block in seal.vent_open |
+| `seal.vent_open#3` | 172 -59 172 | C | AA | 0 | E | `playsound fb.door.open @a 98 -49 139 0.5 1.3` | Vent seal released; previous block in seal.vent_open |
+| `seal.shaft_close#0` | 23 -59 175 | I | NR | 0 | E | `setblock 22 -59 175 air` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 19) (trigger; clears pad); script places minecraft:redstone_block at pad 22 -9 175 (local) |
+| `seal.shaft_close#1` | 24 -59 175 | C | AA | 0 | E | `fill 92 -59 113 92 -58 114 iron_bars` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 19); previous block in seal.shaft_close |
+| `seal.shaft_close#2` | 25 -59 175 | C | AA | 0 | E | `fill 99 -59 112 101 -57 112 iron_bars` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 19); previous block in seal.shaft_close |
+| `seal.shaft_close#3` | 26 -59 175 | C | AA | 0 | E | `setblock 99 -48 140 ochre_froglight` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 19); previous block in seal.shaft_close |
+| `seal.shaft_close#4` | 27 -59 175 | C | AA | 0 | E | `playsound fb.door.close @a 100 -58 113 0.8 1.3` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 19); previous block in seal.shaft_close |
+| `seal.shaft_close#5` | 28 -59 175 | C | AA | 0 | E | `playsound fb.door.close @a 99 -49 139 0.5 1.3` | Shaft seal: bars across both crawl openings into the office subfloor (CAM 19); previous block in seal.shaft_close |
 | `seal.shaft_open#0` | 31 -59 175 | I | NR | 0 | E | `setblock 30 -59 175 air` | Shaft seal released (trigger; clears pad); script places minecraft:redstone_block at pad 30 -9 175 (local) |
 | `seal.shaft_open#1` | 32 -59 175 | C | AA | 0 | E | `fill 92 -59 113 92 -58 114 air replace iron_bars` | Shaft seal released; previous block in seal.shaft_open |
 | `seal.shaft_open#2` | 33 -59 175 | C | AA | 0 | E | `fill 99 -59 112 101 -57 112 air replace iron_bars` | Shaft seal released; previous block in seal.shaft_open |
-| `seal.shaft_open#3` | 34 -59 175 | C | AA | 0 | E | `setblock 95 -48 126 gray_concrete` | Shaft seal released; previous block in seal.shaft_open |
-| `seal.shaft_open#4` | 35 -59 175 | C | AA | 0 | E | `playsound fb.door.open @a 96 -49 129 0.5 1.3` | Shaft seal released; previous block in seal.shaft_open |
+| `seal.shaft_open#3` | 34 -59 175 | C | AA | 0 | E | `setblock 99 -48 140 gray_concrete` | Shaft seal released; previous block in seal.shaft_open |
+| `seal.shaft_open#4` | 35 -59 175 | C | AA | 0 | E | `playsound fb.door.open @a 99 -49 139 0.5 1.3` | Shaft seal released; previous block in seal.shaft_open |
 | `cam.up#0` | 40 -59 175 | I | NR | 0 | E | `setblock 39 -59 175 air` | Monitor raised (office sound) (trigger; clears pad); script places minecraft:redstone_block at pad 39 -9 175 (local) |
 | `cam.up#1` | 41 -59 175 | C | AA | 0 | E | `playsound fb.cam.up @a 98 -49 130 1 1` | Monitor raised (office sound); previous block in cam.up |
 | `cam.down#0` | 44 -59 175 | I | NR | 0 | E | `setblock 43 -59 175 air` | Monitor lowered (trigger; clears pad); script places minecraft:redstone_block at pad 43 -9 175 (local) |
@@ -525,10 +524,10 @@ All blocks are unconditional. Facing: E = east (+X, the chain direction), U = up
 | `pwr.charges_4#0` | 23 -59 178 | I | NR | 0 | E | `setblock 22 -59 178 air` | Strobe charge lamps: 4+ (trigger; clears pad); script places minecraft:redstone_block at pad 22 -9 178 (local) |
 | `pwr.charges_4#1` | 24 -59 178 | C | AA | 0 | E | `fill 102 -47 140 105 -47 140 gray_concrete` | Strobe charge lamps: 4+; previous block in pwr.charges_4 |
 | `pwr.charges_4#2` | 25 -59 178 | C | AA | 0 | E | `fill 102 -47 140 105 -47 140 pearlescent_froglight` | Strobe charge lamps: 4+; previous block in pwr.charges_4 |
-| `zone.cove#0` | 30 -59 178 | I | NR | 0 | E | `setblock 29 -59 178 air` | Exploration: Starlight Cove curtain shiver (trigger; clears pad); script places minecraft:redstone_block at pad 29 -9 178 (local) |
-| `zone.cove#1` | 31 -59 178 | C | AA | 0 | E | `fill 28 -50 54 28 -48 57 purple_wool` | Exploration: Starlight Cove curtain shiver; previous block in zone.cove |
-| `zone.cove#2` | 32 -59 178 | C | AA | 0 | E | `playsound fb.amb.creak @a 28 -49 56 1 1` | Exploration: Starlight Cove curtain shiver; previous block in zone.cove |
-| `zone.cove#3` | 33 -59 178 | C | AA | 12 | E | `fill 28 -50 54 28 -48 57 air` | Exploration: Starlight Cove curtain shiver; previous block in zone.cove |
+| `zone.cove#0` | 30 -59 178 | I | NR | 0 | E | `setblock 29 -59 178 air` | Exploration: Starlight Cove curtain shiver (the gap in the side-stage curtain closes, then opens) (trigger; clears pad); script places minecraft:redstone_block at pad 29 -9 178 (local) |
+| `zone.cove#1` | 31 -59 178 | C | AA | 0 | E | `fill 62 -50 51 62 -48 54 purple_wool` | Exploration: Starlight Cove curtain shiver (the gap in the side-stage curtain closes, then opens); previous block in zone.cove |
+| `zone.cove#2` | 32 -59 178 | C | AA | 0 | E | `playsound fb.amb.creak @a 62 -49 52 1 1` | Exploration: Starlight Cove curtain shiver (the gap in the side-stage curtain closes, then opens); previous block in zone.cove |
+| `zone.cove#3` | 33 -59 178 | C | AA | 12 | E | `fill 62 -50 51 62 -48 54 air` | Exploration: Starlight Cove curtain shiver (the gap in the side-stage curtain closes, then opens); previous block in zone.cove |
 | `zone.freezer#0` | 36 -59 178 | I | NR | 0 | E | `setblock 35 -59 178 air` | Exploration: freezer knock (trigger; clears pad); script places minecraft:redstone_block at pad 35 -9 178 (local) |
 | `zone.freezer#1` | 37 -59 178 | C | AA | 0 | E | `playsound fb.door.bang @a 183 -49 72 0.6 1` | Exploration: freezer knock; previous block in zone.freezer |
 | `zone.freezer#2` | 38 -59 178 | C | AA | 14 | E | `playsound fb.door.bang @a 183 -49 72 0.6 1` | Exploration: freezer knock; previous block in zone.freezer |
@@ -619,15 +618,15 @@ All blocks are unconditional. Facing: E = east (+X, the chain direction), U = up
 | `sig.stage_lights_on#2` | 29 -59 181 | C | AA | 0 | E | `setblock 93 -44 23 light_block_9` | Show stage spotlights on (lobby / free roam); previous block in sig.stage_lights_on |
 | `sig.stage_lights_on#3` | 30 -59 181 | C | AA | 0 | E | `setblock 107 -44 23 light_block_9` | Show stage spotlights on (lobby / free roam); previous block in sig.stage_lights_on |
 | `env.flicker_whall#0` | 35 -59 181 | I | NR | 0 | E | `setblock 34 -59 181 air` | West hall lights flicker (trigger; clears pad); script places minecraft:redstone_block at pad 34 -9 181 (local) |
-| `env.flicker_whall#1` | 36 -59 181 | C | AA | 0 | E | `fill 85 -45 101 89 -45 133 light_block_9 replace light_block_1` | West hall lights flicker; previous block in env.flicker_whall |
-| `env.flicker_whall#2` | 37 -59 181 | C | AA | 3 | E | `fill 85 -45 101 89 -45 133 light_block_1 replace light_block_9` | West hall lights flicker; previous block in env.flicker_whall |
-| `env.flicker_whall#3` | 38 -59 181 | C | AA | 4 | E | `fill 85 -45 101 89 -45 133 light_block_9 replace light_block_1` | West hall lights flicker; previous block in env.flicker_whall |
-| `env.flicker_whall#4` | 39 -59 181 | C | AA | 2 | E | `fill 85 -45 101 89 -45 133 light_block_1 replace light_block_9` | West hall lights flicker; previous block in env.flicker_whall |
+| `env.flicker_whall#1` | 36 -59 181 | C | AA | 0 | E | `fill 71 -45 101 89 -45 133 light_block_9 replace light_block_1` | West hall lights flicker; previous block in env.flicker_whall |
+| `env.flicker_whall#2` | 37 -59 181 | C | AA | 3 | E | `fill 71 -45 101 89 -45 133 light_block_1 replace light_block_9` | West hall lights flicker; previous block in env.flicker_whall |
+| `env.flicker_whall#3` | 38 -59 181 | C | AA | 4 | E | `fill 71 -45 101 89 -45 133 light_block_9 replace light_block_1` | West hall lights flicker; previous block in env.flicker_whall |
+| `env.flicker_whall#4` | 39 -59 181 | C | AA | 2 | E | `fill 71 -45 101 89 -45 133 light_block_1 replace light_block_9` | West hall lights flicker; previous block in env.flicker_whall |
 | `env.flicker_ehall#0` | 42 -59 181 | I | NR | 0 | E | `setblock 41 -59 181 air` | East hall lights flicker (trigger; clears pad); script places minecraft:redstone_block at pad 41 -9 181 (local) |
-| `env.flicker_ehall#1` | 43 -59 181 | C | AA | 0 | E | `fill 111 -45 101 115 -45 133 light_block_9 replace light_block_1` | East hall lights flicker; previous block in env.flicker_ehall |
-| `env.flicker_ehall#2` | 44 -59 181 | C | AA | 3 | E | `fill 111 -45 101 115 -45 133 light_block_1 replace light_block_9` | East hall lights flicker; previous block in env.flicker_ehall |
-| `env.flicker_ehall#3` | 45 -59 181 | C | AA | 4 | E | `fill 111 -45 101 115 -45 133 light_block_9 replace light_block_1` | East hall lights flicker; previous block in env.flicker_ehall |
-| `env.flicker_ehall#4` | 46 -59 181 | C | AA | 2 | E | `fill 111 -45 101 115 -45 133 light_block_1 replace light_block_9` | East hall lights flicker; previous block in env.flicker_ehall |
+| `env.flicker_ehall#1` | 43 -59 181 | C | AA | 0 | E | `fill 111 -45 101 129 -45 133 light_block_9 replace light_block_1` | East hall lights flicker; previous block in env.flicker_ehall |
+| `env.flicker_ehall#2` | 44 -59 181 | C | AA | 3 | E | `fill 111 -45 101 129 -45 133 light_block_1 replace light_block_9` | East hall lights flicker; previous block in env.flicker_ehall |
+| `env.flicker_ehall#3` | 45 -59 181 | C | AA | 4 | E | `fill 111 -45 101 129 -45 133 light_block_9 replace light_block_1` | East hall lights flicker; previous block in env.flicker_ehall |
+| `env.flicker_ehall#4` | 46 -59 181 | C | AA | 2 | E | `fill 111 -45 101 129 -45 133 light_block_1 replace light_block_9` | East hall lights flicker; previous block in env.flicker_ehall |
 | `env.flicker_office#0` | 49 -59 181 | I | NR | 0 | E | `setblock 48 -59 181 air` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit (trigger; clears pad); script places minecraft:redstone_block at pad 48 -9 181 (local) |
 | `env.flicker_office#1` | 50 -59 181 | C | AA | 0 | E | `fill 100 -45 129 100 -45 135 light_block_3 replace light_block_11` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
 | `env.flicker_office#2` | 51 -59 181 | C | AA | 0 | E | `fill 100 -45 129 100 -45 135 light_block_2 replace light_block_10` | Office lamp flickers (Fredbear is close); only touches the lamp while it is lit; previous block in env.flicker_office |
@@ -696,33 +695,35 @@ All blocks are unconditional. Facing: E = east (+X, the chain direction), U = up
 | `in.office.door_r#0` | 104 -51 130 | I | NR | 0 | U | `scriptevent fb:input door_r` | Input: RIGHT DOOR (button); button on top of the console block above this CB |
 | `in.office.reserve#0` | 97 -51 139 | I | NR | 0 | U | `scriptevent fb:input reserve` | Input: EMERGENCY RESERVE (lever); lever on top of the console block above this CB |
 | `in.office.start#0` | 103 -51 139 | I | NR | 0 | U | `scriptevent fb:input start_shift` | Input: START / RESUME SHIFT (button); button on top of the console block above this CB |
-| `in.office.seal_vent#0` | 96 -51 128 | I | NR | 0 | U | `scriptevent fb:input seal_vent` | Input: SEAL VENT (button); button on top of the console block above this CB |
-| `in.office.seal_shaft#0` | 96 -51 129 | I | NR | 0 | U | `scriptevent fb:input seal_shaft` | Input: SEAL SHAFT (button); button on top of the console block above this CB |
+| `in.office.seal_vent#0` | 98 -51 139 | I | NR | 0 | U | `scriptevent fb:input seal_vent` | Input: SEAL VENT (button); button on top of the console block above this CB |
+| `in.office.seal_shaft#0` | 99 -51 139 | I | NR | 0 | U | `scriptevent fb:input seal_shaft` | Input: SEAL SHAFT (button); button on top of the console block above this CB |
+| `in.office.vent_grate#0` | 100 -51 139 | I | NR | 0 | U | `scriptevent fb:input vent_grate` | Input: VENT GRATE (button); button on top of the console block above this CB |
 | `in.office.tapes#0` | 102 -51 139 | I | NR | 0 | U | `scriptevent fb:input tapes` | Input: TAPE DECK 1987 (button); button on top of the console block above this CB |
-| `in.office.vent_grate#0` | 104 -51 127 | I | NR | 0 | U | `scriptevent fb:input vent_grate` | Input: VENT GRATE (button); button on top of the console block above this CB |
-| `in.office.map_c19#0` | 96 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C19` | Input: CAM 19 · THE WORKSHOP (button); button on top of the console block above this CB |
-| `in.office.map_c23#0` | 97 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C23` | Input: CAM 23 · FREDBEAR'S CHAMBER (button); button on top of the console block above this CB |
+| `in.office.map_c21#0` | 96 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C21` | Input: CAM 21 · THE WORKSHOP (button); button on top of the console block above this CB |
+| `in.office.map_c25#0` | 97 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C25` | Input: CAM 25 · FREDBEAR'S CHAMBER (button); button on top of the console block above this CB |
 | `in.office.map_c03#0` | 98 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C03` | Input: CAM 03 · PARTS & SERVICE (button); button on top of the console block above this CB |
 | `in.office.map_c02#0` | 99 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C02` | Input: CAM 02 · BACKSTAGE (button); button on top of the console block above this CB |
 | `in.office.map_c01#0` | 100 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C01` | Input: CAM 01 · SHOW STAGE (button); button on top of the console block above this CB |
-| `in.office.map_c06#0` | 101 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C06` | Input: CAM 06 · DINING HALL WEST (button); button on top of the console block above this CB |
-| `in.office.map_c08#0` | 102 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C08` | Input: CAM 08 · KITCHEN (AUDIO ONLY) (button); button on top of the console block above this CB |
-| `in.office.map_c09#0` | 103 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C09` | Input: CAM 09 · EAST SERVICE (button); button on top of the console block above this CB |
-| `in.office.map_c21#0` | 97 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C21` | Input: CAM 21 · DINER PARTY ROOM (button); button on top of the console block above this CB |
-| `in.office.map_c04#0` | 98 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C04` | Input: CAM 04 · STARLIGHT COVE (button); button on top of the console block above this CB |
-| `in.office.map_c05#0` | 99 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C05` | Input: CAM 05 · ARCADE (button); button on top of the console block above this CB |
-| `in.office.map_c14#0` | 100 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C14` | Input: CAM 14 · WEST HALL (button); button on top of the console block above this CB |
-| `in.office.map_c07#0` | 101 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C07` | Input: CAM 07 · DINING HALL EAST (button); button on top of the console block above this CB |
-| `in.office.map_c10#0` | 102 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C10` | Input: CAM 10 · EAST HALL (button); button on top of the console block above this CB |
-| `in.office.map_c18#0` | 103 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C18` | Input: CAM 18 · MAINTENANCE TUNNEL (button); button on top of the console block above this CB |
-| `in.office.map_c16#0` | 104 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C16` | Input: CAM 16 · SUPPLY DUCT (button); button on top of the console block above this CB |
-| `in.office.map_c20#0` | 97 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C20` | Input: CAM 20 · DINER KITCHEN (button); button on top of the console block above this CB |
-| `in.office.map_c22#0` | 98 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C22` | Input: CAM 22 · SEALED DINER (button); button on top of the console block above this CB |
-| `in.office.map_c15#0` | 99 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C15` | Input: CAM 15 · SUPPLY CLOSET (button); button on top of the console block above this CB |
-| `in.office.map_c13#0` | 100 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C13` | Input: CAM 13 · WEST CORNER (button); button on top of the console block above this CB |
-| `in.office.map_c11#0` | 102 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C11` | Input: CAM 11 · EAST CORNER (button); button on top of the console block above this CB |
-| `in.office.map_c17#0` | 103 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C17` | Input: CAM 17 · OFFICE SUBFLOOR (button); button on top of the console block above this CB |
-| `in.office.map_c12#0` | 104 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C12` | Input: CAM 12 · CEILING VENT (button); button on top of the console block above this CB |
+| `in.office.map_c08#0` | 101 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C08` | Input: CAM 08 · DINING HALL WEST (button); button on top of the console block above this CB |
+| `in.office.map_c09#0` | 102 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C09` | Input: CAM 09 · DINING HALL EAST (button); button on top of the console block above this CB |
+| `in.office.map_c10#0` | 103 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C10` | Input: CAM 10 · KITCHEN (AUDIO ONLY) (button); button on top of the console block above this CB |
+| `in.office.map_c11#0` | 104 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C11` | Input: CAM 11 · EAST SERVICE (button); button on top of the console block above this CB |
+| `in.office.map_c23#0` | 96 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C23` | Input: CAM 23 · DINER PARTY ROOM (button); button on top of the console block above this CB |
+| `in.office.map_c04#0` | 97 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C04` | Input: CAM 04 · PLAY PLACE (button); button on top of the console block above this CB |
+| `in.office.map_c05#0` | 98 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C05` | Input: CAM 05 · STARLIGHT COVE (button); button on top of the console block above this CB |
+| `in.office.map_c06#0` | 99 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C06` | Input: CAM 06 · ARCADE HALL (button); button on top of the console block above this CB |
+| `in.office.map_c16#0` | 100 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C16` | Input: CAM 16 · WEST HALL (button); button on top of the console block above this CB |
+| `in.office.map_c14#0` | 101 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C14` | Input: CAM 14 · CEILING VENT (button); button on top of the console block above this CB |
+| `in.office.map_c12#0` | 102 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C12` | Input: CAM 12 · EAST HALL (button); button on top of the console block above this CB |
+| `in.office.map_c20#0` | 103 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C20` | Input: CAM 20 · MAINTENANCE TUNNEL (button); button on top of the console block above this CB |
+| `in.office.map_c18#0` | 104 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C18` | Input: CAM 18 · SUPPLY DUCT (button); button on top of the console block above this CB |
+| `in.office.map_c22#0` | 96 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C22` | Input: CAM 22 · DINER KITCHEN (button); button on top of the console block above this CB |
+| `in.office.map_c24#0` | 97 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C24` | Input: CAM 24 · SEALED DINER (button); button on top of the console block above this CB |
+| `in.office.map_c07#0` | 98 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C07` | Input: CAM 07 · PARTY WING (button); button on top of the console block above this CB |
+| `in.office.map_c17#0` | 99 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C17` | Input: CAM 17 · SUPPLY CLOSET (button); button on top of the console block above this CB |
+| `in.office.map_c15#0` | 100 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C15` | Input: CAM 15 · WEST CORNER (button); button on top of the console block above this CB |
+| `in.office.map_c13#0` | 102 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C13` | Input: CAM 13 · EAST CORNER (button); button on top of the console block above this CB |
+| `in.office.map_c19#0` | 103 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C19` | Input: CAM 19 · OFFICE SUBFLOOR (button); button on top of the console block above this CB |
 | `in.lobby.tutorial#0` | 181 -51 104 | I | NR | 0 | U | `scriptevent fb:input lobby:tutorial` | Input: TRAINING SHIFT (button); button on top of the console block above this CB |
 | `in.lobby.night_1#0` | 181 -51 106 | I | NR | 0 | U | `scriptevent fb:input lobby:night:1` | Input: NIGHT 1 (button); button on top of the console block above this CB |
 | `in.lobby.night_2#0` | 181 -51 107 | I | NR | 0 | U | `scriptevent fb:input lobby:night:2` | Input: NIGHT 2 (button); button on top of the console block above this CB |
@@ -748,8 +749,8 @@ All blocks are unconditional. Facing: E = east (+X, the chain direction), U = up
 | `in.maint.cam_server#0` | 110 -43 148 | I | NR | 0 | U | `scriptevent fb:input maint:cam_server` | Input: CAMERA SERVER REBOOT (button); button on top of the console block above this CB |
 | `in.maint.records_key#0` | 134 -43 148 | I | NR | 0 | U | `scriptevent fb:input maint:records_key` | Input: FILE CABINET F-87 (button); button on top of the console block above this CB |
 | `in.secret.01#0` | 48 -51 14 | I | NR | 0 | U | `scriptevent fb:input secret:01` | Input: Parts bin (button); button on top of the console block above this CB |
-| `in.secret.02#0` | 74 -51 14 | I | NR | 0 | U | `scriptevent fb:input secret:02` | Input: Spare head shelf (button); button on top of the console block above this CB |
-| `in.secret.03#0` | 18 -51 68 | I | NR | 0 | U | `scriptevent fb:input secret:03` | Input: Cove backstage (button); button on top of the console block above this CB |
+| `in.secret.02#0` | 68 -51 14 | I | NR | 0 | U | `scriptevent fb:input secret:02` | Input: Spare head shelf (button); button on top of the console block above this CB |
+| `in.secret.03#0` | 68 -51 42 | I | NR | 0 | U | `scriptevent fb:input secret:03` | Input: Cove backstage (button); button on top of the console block above this CB |
 | `in.secret.04#0` | 182 -51 78 | I | NR | 0 | U | `scriptevent fb:input secret:04` | Input: Freezer crate (button); button on top of the console block above this CB |
 | `in.secret.05#0` | 168 -51 98 | I | NR | 0 | U | `scriptevent fb:input secret:05` | Input: Restroom mirror (button); button on top of the console block above this CB |
 | `in.secret.06#0` | 126 -51 138 | I | NR | 0 | U | `scriptevent fb:input secret:06` | Input: Janitor bucket (button); button on top of the console block above this CB |
@@ -759,8 +760,8 @@ All blocks are unconditional. Facing: E = east (+X, the chain direction), U = up
 | `in.secret.10#0` | 18 -60 94 | I | NR | 0 | U | `scriptevent fb:input secret:10` | Input: Diner jukebox (button); button on top of the console block above this CB |
 | `in.secret.11#0` | 18 -60 30 | I | NR | 0 | U | `scriptevent fb:input secret:11` | Input: Golden shrine (button); button on top of the console block above this CB |
 | `in.secret.12#0` | 118 -43 128 | I | NR | 0 | U | `scriptevent fb:input secret:12` | Input: Crawlspace note (button); button on top of the console block above this CB |
-| `in.zone.cove#0` | 30 -52 60 | I | NR | 0 | U | `scriptevent fb:input zone:cove` | Input: Starlight Cove (plate); pressure plate above the floor block on top of this CB |
-| `in.zone.backstage#0` | 58 -52 34 | I | NR | 0 | U | `scriptevent fb:input zone:backstage` | Input: Backstage (plate); pressure plate above the floor block on top of this CB |
+| `in.zone.cove#0` | 56 -52 62 | I | NR | 0 | U | `scriptevent fb:input zone:cove` | Input: Starlight Cove (plate); pressure plate above the floor block on top of this CB |
+| `in.zone.backstage#0` | 66 -52 34 | I | NR | 0 | U | `scriptevent fb:input zone:backstage` | Input: Backstage (plate); pressure plate above the floor block on top of this CB |
 | `in.zone.freezer#0` | 176 -52 72 | I | NR | 0 | U | `scriptevent fb:input zone:freezer` | Input: Freezer (plate); pressure plate above the floor block on top of this CB |
 | `in.zone.basement#0` | 160 -61 78 | I | NR | 0 | U | `scriptevent fb:input zone:basement` | Input: Basement (plate); pressure plate above the floor block on top of this CB |
 | `in.zone.diner#0` | 56 -61 88 | I | NR | 0 | U | `scriptevent fb:input zone:diner` | Input: Sealed diner (plate); pressure plate above the floor block on top of this CB |

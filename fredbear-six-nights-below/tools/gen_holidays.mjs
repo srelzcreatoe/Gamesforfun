@@ -26,7 +26,7 @@ import { Rng } from '../packs/FredbearBP/scripts/core/rng.js';
 const ROOT = new URL('../', import.meta.url).pathname;
 const OUT = path.join(ROOT, 'packs/FredbearBP/scripts/data/holiday_decor.generated.js');
 const KEEP_DARK = [86, -1, 100, 116, 6, 140]; // office, both door alcoves and both halls (x1, y1, z1, x2, y2, z2)
-const LIT_ROOMS = new Set(['DINING', 'RECEPTION', 'EMPLOYEE', 'PARTY_A', 'PARTY_B', 'PARTY_C', 'PARTY_D', 'GIFT', 'PRIZE', 'ARCADE', 'STAFF_BREAK', 'GOLDEN_PARTY']);
+const LIT_ROOMS = new Set(['DINING', 'THEATRE', 'RECEPTION', 'EMPLOYEE', 'PARTY_A', 'PARTY_B', 'PARTY_D', 'PARTY_E', 'PARTY_HALL', 'GIFT', 'PRIZE', 'ARCADE', 'STAFF_BREAK', 'GOLDEN_PARTY']);
 const TREE_ROOMS = { EMPLOYEE: [166, 111], RECEPTION: [100, 145], DINING: [100, 86] }; // preferred tree centres (x, z); skipped if no safe spot
 const key = (x, y, z) => `${x},${y},${z}`;
 

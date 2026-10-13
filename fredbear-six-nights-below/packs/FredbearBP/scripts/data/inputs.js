@@ -29,12 +29,12 @@ const office = [
   I('in.office.door_r', 'door_r', 'button', [104, 0, 130], 'RIGHT DOOR', { block: 'console_red' }),
   I('in.office.reserve', 'reserve', 'lever', [97, 0, 139], 'EMERGENCY RESERVE', { block: 'console_gold' }),
   I('in.office.start', 'start_shift', 'button', [103, 0, 139], 'START / RESUME SHIFT', { block: 'console_green' }),
-  // 1.3: vent seals (desk, west end) and the 1987 tape deck (back wall).
-  I('in.office.seal_vent', 'seal_vent', 'button', [96, 0, 128], 'SEAL VENT', { block: 'console_white' }),
-  I('in.office.seal_shaft', 'seal_shaft', 'button', [96, 0, 129], 'SEAL SHAFT', { block: 'console_gold' }),
+  // The back counter: the vent seals (1.3), the ceiling-vent grate (1.4) and the 1987 tape deck. 1.6 moved
+  // the seals and the grate here from the desk so the camera map has room for all 25 feeds.
+  I('in.office.seal_vent', 'seal_vent', 'button', [98, 0, 139], 'SEAL VENT', { block: 'console_white' }),
+  I('in.office.seal_shaft', 'seal_shaft', 'button', [99, 0, 139], 'SEAL SHAFT', { block: 'console_gold' }),
+  I('in.office.vent_grate', 'vent_grate', 'button', [100, 0, 139], 'VENT GRATE', { block: 'console_gold' }),
   I('in.office.tapes', 'tapes', 'button', [102, 0, 139], 'TAPE DECK 1987', { block: 'console_dark' }),
-  // 1.4: the ceiling-vent grate (desk, north-east corner; the map cell [6, 0] stays a plain button).
-  I('in.office.vent_grate', 'vent_grate', 'button', [104, 0, 127], 'VENT GRATE', { block: 'console_gold' }),
 ];
 
 const map = Object.entries(CAMERA_MAP_LAYOUT).map(([cam, [c, r]]) =>
@@ -78,8 +78,8 @@ const maintenance = [
 // room kits in build_plan.js so they sit in plausible, partially hidden spots.
 const secrets = [
   I('in.secret.01', 'secret:01', 'button', [48, 0, 14], 'Parts bin', { block: 'console_hidden' }),
-  I('in.secret.02', 'secret:02', 'button', [74, 0, 14], 'Spare head shelf', { block: 'console_hidden' }),
-  I('in.secret.03', 'secret:03', 'button', [18, 0, 68], 'Cove backstage', { block: 'console_hidden' }),
+  I('in.secret.02', 'secret:02', 'button', [68, 0, 14], 'Spare head shelf', { block: 'console_hidden' }),
+  I('in.secret.03', 'secret:03', 'button', [68, 0, 42], 'Cove backstage', { block: 'console_hidden' }),
   I('in.secret.04', 'secret:04', 'button', [182, 0, 78], 'Freezer crate', { block: 'console_hidden' }),
   I('in.secret.05', 'secret:05', 'button', [168, 0, 98], 'Restroom mirror', { block: 'console_hidden' }),
   I('in.secret.06', 'secret:06', 'button', [126, 0, 138], 'Janitor bucket', { block: 'console_hidden' }),
@@ -93,8 +93,8 @@ const secrets = [
 
 // Exploration room triggers (stone pressure plates). Ignored during nights.
 const zones = [
-  I('in.zone.cove', 'zone:cove', 'plate', [30, 0, 60], 'Starlight Cove'),
-  I('in.zone.backstage', 'zone:backstage', 'plate', [58, 0, 34], 'Backstage'),
+  I('in.zone.cove', 'zone:cove', 'plate', [56, 0, 62], 'Starlight Cove'),
+  I('in.zone.backstage', 'zone:backstage', 'plate', [66, 0, 34], 'Backstage'),
   I('in.zone.freezer', 'zone:freezer', 'plate', [176, 0, 72], 'Freezer'),
   I('in.zone.basement', 'zone:basement', 'plate', [160, -9, 78], 'Basement'),
   I('in.zone.diner', 'zone:diner', 'plate', [56, -9, 88], 'Sealed diner'),

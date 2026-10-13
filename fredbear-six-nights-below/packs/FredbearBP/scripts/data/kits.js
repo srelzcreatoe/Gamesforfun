@@ -175,58 +175,77 @@ function rugAt(P, i, y, keys, chance) {
 
 // ------------------------------------------------------------------ kits
 const KITS = {
-  stage(P, room, i) {
+  // 1.6: the Fredbear Theatre. The old show stage (same place, so the spotlights and the trio's spots are
+  // unchanged) at the north end of a tall hall of red seats, with a catwalk to the loft and a grand arch
+  // into the dining hall.
+  theatre(P, room, i) {
     const y = i.y1;
-    // Raised platform (top at y=0, performers stand at y=1).
+    // Raised platform (top at y=0, performers stand at y=1) with steps at both front corners.
     P.fill(82, y, 14, 118, y, 30, 'dark_oak');
     P.fill(82, y, 30, 118, y, 30, 'stripped_dark_oak');
     for (const x of [86, 87, 88, 112, 113, 114]) P.set(x, y, 31, 'dark_oak_stairs-z');
-    // Backdrop with stars and banner.
+    // Backdrop with stars and the banner.
     P.fill(77, y, 13, 123, y + 12, 13, 'black_c');
-    for (let n = 0; n < 40; n++) P.set(P.rng.int(78, 122), P.rng.int(y + 3, y + 12), 13, P.rng.chance(0.7) ? 'yellow_c' : 'white_c');
+    for (let n = 0; n < 50; n++) P.set(P.rng.int(78, 122), P.rng.int(y + 3, y + 12), 13, P.rng.chance(0.7) ? 'yellow_c' : 'white_c');
     const text = 'CELEBRATE!';
     const w = textWidth(text);
     pixelText(P, text, 100 - Math.floor(w / 2), y + 10, 13, 'x', 'red_c');
-    // Side curtains and speaker stacks.
-    for (const [x1, x2] of [[77, 81], [119, 123]]) P.fill(x1, y + 1, 37, x2, y + 12, 39, 'red_wool');
+    // Proscenium: red curtains drawn to both sides of the stage, a gold frame above.
+    for (const [x1, x2] of [[77, 81], [119, 123]]) P.fill(x1, y + 1, 31, x2, y + 12, 32, 'red_wool');
+    P.fill(77, y + 12, 31, 123, y + 13, 32, 'red_wool');
+    P.fill(77, y + 11, 33, 123, y + 11, 33, 'gold');
     for (const x of [83, 117]) {
       P.set(x, y + 1, 15, 'noteblock');
       P.set(x, y + 2, 15, 'black_c');
       P.set(x, y + 3, 15, 'noteblock');
     }
-    // Spotlights on the three performers and the catwalk overhead.
+    // Spotlights on the three performers (sig.stage_lights_*), the catwalk to the loft door.
     for (const [x, z] of [[100, 22], [93, 23], [107, 23]]) P.set(x, y + 6, z, 'light_9');
-    P.fill(77, 7, 13, 123, 7, 16, 'dark_oak');
-    P.fill(77, 8, 17, 123, 8, 17, 'iron_bars');
+    P.fill(71, 7, 13, 129, 7, 16, 'dark_oak');
+    P.fill(71, 8, 17, 129, 8, 17, 'iron_bars');
     for (let x = 80; x <= 120; x += 8) hanging(P, x, 18, 14, 4, 'lantern_hang');
+    // Rows of seats facing the stage, a centre aisle and side aisles (route corridors stay clear).
+    for (let z = 37; z <= 59; z += 3) {
+      for (let x = 73; x <= 127; x++) {
+        if (x >= 97 && x <= 103) continue;
+        if (!P.canPlace('L1', i, x, z, 1, 1)) continue;
+        P.claim('L1', x, z);
+        P.set(x, y, z, P.rng.chance(0.06) ? 'red_wool' : 'dark_oak_stairs+z');
+      }
+    }
+    // A few dropped party hats and streamers between the seats.
+    P.scatter('L1', i, 6, 1, 1, (x, z) => P.set(x, y, z, P.rng.pick(['red_carpet', 'yellow_carpet', 'purple_carpet'])));
+    // Dead wall sconces, one dim light over the seats.
+    for (const x of [71, 129]) for (let z = 38; z <= 60; z += 8) if (P.isFree('L1', x, z)) P.set(x, y + 4, z, 'redstone_lamp');
     lights(P, room, 0, 9, 'redstone_lamp');
+    P.set(100, i.ceilY - 1, 48, 'light_4');
+    posters(P, room, 4, ['glazed_red', 'glazed_yellow', 'glazed_purple']);
+    webs(P, room, 14);
   },
+  // 1.6: the dining hall, south of the theatre arch: long party tables, pillars, lanterns and balloons.
   dining(P, room, i) {
     const y = i.y1;
-    // Pillars every 16 blocks.
-    for (let x = 68; x <= 132; x += 16) for (const z of [56, 84]) {
+    for (let x = 86; x <= 134; x += 16) for (const z of [72, 92]) {
       if (P.canPlace('L1', i, x, z, 1, 1) && columnClear(x, z, y, i.ceilY - 1)) {
         P.claim('L1', x, z);
         P.fill(x, y, z, x, i.ceilY - 1, z, 'quartz');
-        P.set(x, y + 9, z, 'light_7');
+        P.set(x, y + 6, z, 'light_6');
       }
     }
-    // Rows of party tables.
-    for (let z = 45; z <= 95; z += 5) {
-      for (let x = 55; x <= 143; x += 1) {
+    for (let z = 69; z <= 96; z += 5) {
+      for (let x = 73; x <= 143; x += 1) {
         if (!P.canPlace('L1', i, x, z - 1, 4, 3)) continue;
         P.claim('L1', x - 1, z - 1, 6, 3);
         partyTable(P, x, y, z, 4, 'x');
         x += 5;
       }
     }
-    rugAt(P, i, y, ['yellow_carpet', 'purple_carpet', 'red_carpet', 'blue_carpet'], 0.01);
-    // Hanging cold lights and balloons.
-    for (let x = 60; x <= 140; x += 12) for (let z = 48; z <= 92; z += 14) hanging(P, x, z, i.ceilY, 4, P.rng.chance(0.4) ? 'soul_lantern_hang' : 'lantern_hang');
-    for (let n = 0; n < 30; n++) {
+    rugAt(P, i, y, ['yellow_carpet', 'purple_carpet', 'red_carpet', 'blue_carpet'], 0.012);
+    for (let x = 78; x <= 142; x += 12) for (let z = 70; z <= 96; z += 12) hanging(P, x, z, i.ceilY, 3, P.rng.chance(0.4) ? 'soul_lantern_hang' : 'lantern_hang');
+    for (let n = 0; n < 34; n++) {
       const x = P.rng.int(i.x1, i.x2);
       const z = P.rng.int(i.z1, i.z2);
-      const by = P.rng.int(9, 11);
+      const by = P.rng.int(7, 9);
       if (nearCameraRay(x, by, z)) continue;
       P.set(x, by, z, P.rng.pick(['red_wool', 'yellow_wool', 'blue_wool', 'purple_wool', 'lime_wool']));
     }
@@ -378,7 +397,7 @@ const KITS = {
       }
     }
     rugAt(P, i, y, ['purple_carpet', 'blue_carpet', 'cyan_carpet'], 0.15);
-    pixelText(P, 'ARCADE', 22, i.y1 + 5, room.box[1], 'x', 'yellow_c');
+    pixelText(P, 'ARCADE', i.x1, i.y1 + 5, room.box[3], 'x', 'yellow_c'); // x 17-39, clear of the party-wing arch
     lights(P, room, 2, 8, 'white_sg', { skipChance: 0.4 });
   },
   prize(P, room, i) {
@@ -407,18 +426,76 @@ const KITS = {
     }
     lights(P, room, 5, 7, 'white_sg');
   },
+  // 1.6: between the play place and the theatre. The mini stage runs along the east wall behind a purple
+  // curtain with a gap (CAM 05 glimpses inside); the gap is where the curtain shivers (zone.cove).
   cove(P, room, i) {
     const y = i.y1;
-    // Mini stage behind a purple curtain with a gap (CAM 04 can glimpse inside).
-    P.fill(i.x1, y, 46, 27, y, 65, 'dark_oak');
-    P.fill(28, y, 46, 28, y + 4, 53, 'purple_wool');
-    P.fill(28, y, 58, 28, y + 4, 65, 'purple_wool');
-    P.fill(28, y + 3, 54, 28, y + 4, 57, 'purple_wool');
-    for (let n = 0; n < 14; n++) P.set(room.box[0], P.rng.int(y + 1, y + 4), P.rng.int(46, 65), P.rng.pick(['yellow_c', 'white_c']));
-    pixelText(P, 'STARLIGHT', 17, i.y1 + 5, room.box[1], 'x', 'yellow_c');
-    P.scatter('L1', i, 3, 3, 1, (x, z) => partyTable(P, x, y, z, 3, 'x'));
+    P.fill(63, y, 44, i.x2, y, 60, 'dark_oak');
+    P.fill(62, y, 44, 62, y + 4, 50, 'purple_wool');
+    P.fill(62, y, 55, 62, y + 4, 60, 'purple_wool');
+    P.fill(62, y + 3, 51, 62, y + 4, 54, 'purple_wool');
+    // The night-sky backdrop behind the little stage, dotted with stars.
+    P.fill(i.x2, y + 1, 44, i.x2, i.y2, 60, 'purple_c');
+    for (let n = 0; n < 16; n++) P.set(i.x2, P.rng.int(y + 1, i.y2), P.rng.int(44, 60), P.rng.pick(['yellow_c', 'white_c']));
+    for (let n = 0; n < 14; n++) P.set(P.rng.int(63, i.x2), P.rng.int(y + 3, y + 5), i.z1, P.rng.pick(['yellow_c', 'white_c']));
+    P.scatter('L1', i, 2, 3, 1, (x, z) => partyTable(P, x, y, z, 3, 'x'));
     lights(P, room, 2, 9, 'white_sg', { skipChance: 0.5 });
     webs(P, room, 8);
+  },
+  // 1.6: the play place: a ball pit, a climbing frame with a slide, all faded in the dark.
+  playplace(P, room, i) {
+    const y = i.y1;
+    if (P.canPlace('L1', i, 18, 43, 12, 10)) {
+      P.claim('L1', 18, 43, 12, 10);
+      P.fill(18, y, 43, 29, y, 52, 'lime_c');
+      for (let x = 19; x <= 28; x++) for (let z = 44; z <= 51; z++) P.set(x, y, z, P.rng.pick(['red_wool', 'yellow_wool', 'blue_wool', 'lime_wool', 'magenta_wool', 'white_wool']));
+    }
+    if (P.canPlace('L1', i, 38, 42, 12, 10)) {
+      P.claim('L1', 38, 42, 12, 10);
+      for (const [x, z] of [[38, 42], [49, 42], [38, 51], [49, 51]]) P.fill(x, y, z, x, y + 5, z, 'blue_c');
+      P.fill(38, y + 3, 42, 49, y + 3, 51, 'yellow_c');
+      P.fill(39, y + 3, 43, 48, y + 3, 50, 'red_c');
+      P.fill(38, y + 4, 42, 49, y + 4, 42, 'oak_fence');
+      P.fill(38, y + 4, 51, 49, y + 4, 51, 'oak_fence');
+      // The slide: down the south side, only where nothing else needs the floor.
+      for (let k = 0; k < 3; k++) {
+        if (!P.isFree('L1', 46, 52 + k)) break;
+        P.claim('L1', 46, 52 + k);
+        P.set(46, y + 2 - k, 52 + k, 'yellow_c');
+      }
+    }
+    P.scatter('L1', i, 8, 1, 1, (x, z) => P.set(x, y, z, P.rng.pick(['red_wool', 'yellow_wool', 'blue_wool'])));
+    pixelText(P, 'PLAY', i.x1 + 1, i.y1 + 5, room.box[1], 'x', 'lime_c'); // x 18-32, clear of the Parts door
+    lights(P, room, 1, 9, 'white_sg', { skipChance: 0.5 });
+    webs(P, room, 10);
+  },
+  // 1.6: the party wing corridor: balloons, string lights, party hats.
+  partyhall(P, room, i) {
+    const y = i.y1;
+    for (let x = i.x1 + 3; x <= i.x2 - 1; x += 4) if (!nearCameraRay(x, i.ceilY - 1, i.z1)) P.set(x, i.ceilY - 1, i.z1, P.rng.pick(['red_wool', 'yellow_wool', 'blue_wool', 'purple_wool']));
+    P.scatter('L1', i, 4, 1, 1, (x, z) => P.set(x, y, z, P.rng.pick(['yellow_carpet', 'red_carpet'])), { edge: true });
+    posters(P, room, 6);
+    lights(P, room, 1, 6, 'redstone_lamp');
+    webs(P, room, 4);
+  },
+  // 1.6: the photo booth: a curtained booth, a camera on a tripod, polaroids pinned to the walls.
+  photo(P, room, i) {
+    const y = i.y1;
+    if (P.canPlace('L1', i, 84, 101, 5, 4)) {
+      P.claim('L1', 84, 101, 5, 4);
+      P.fill(85, y, 101, 88, y + 3, 101, 'black_c');
+      P.fill(85, y, 104, 88, y + 3, 104, 'black_c');
+      P.fill(88, y, 102, 88, y + 3, 103, 'black_c');
+      P.fill(85, y + 3, 102, 87, y + 3, 103, 'black_c');
+      P.fill(85, y, 102, 85, y + 2, 103, 'red_wool');
+    }
+    if (P.canPlace('L1', i, 80, 107, 1, 1)) {
+      P.claim('L1', 80, 107);
+      P.set(80, y, 107, 'iron_bars');
+      P.set(80, y + 1, 107, 'observer');
+    }
+    for (let x = i.x1 + 1; x <= i.x2 - 1; x += 2) if (P.rng.chance(0.6)) P.set(x, y + 2, room.box[3], 'white_c');
+    webs(P, room, 6);
   },
   party(P, room, i) {
     const y = i.y1;
@@ -619,7 +696,7 @@ const KITS = {
   },
   diner(P, room, i) {
     const y = i.y1;
-    // 1983 birthday party, still set (CAM 21). Placed first so nothing else lands on it.
+    // 1983 birthday party, still set (CAM 23). Placed first so nothing else lands on it.
     {
       const [x1, z1, x2, z2] = PARTY.table;
       P.claim('L0', x1 - 1, z1 - 2, x2 - x1 + 3, z2 - z1 + 5);
@@ -787,13 +864,15 @@ const KITS = {
 // ------------------------------------------------------------------ office
 function officeKit(P, room, i) {
   const y = i.y1; // 0
-  // Console base row (the input consoles themselves are placed in the
-  // 'consoles' phase; here we add the desk around them).
-  P.fill(96, y, 127, 104, y, 127, 'dark_oak');
+  // 1.6: the classic guard office. The console row and the camera map (x 96-104, z 127-130) and the back
+  // counter (z 139) keep their places; the inputs themselves are placed in the 'consoles' phase, here we
+  // build the desk around them.
+  P.fill(95, y, 127, 105, y, 127, 'dark_oak'); // desk top row, out to both corners
   P.fill(96, y, 128, 97, y, 129, 'dark_oak');
-  P.fill(104, y, 128, 104, y, 129, 'dark_oak');
+  P.fill(104, y, 128, 104, y, 129, 'dark_oak'); // map cell [6, 2] stays plain desk
   P.set(101, y, 129, 'gold'); // YOU ARE HERE marker on the map ([3, 2])
-  P.fill(104, y, 127, 104, y, 129, 'dark_oak'); // map column 6 (spare cells stay desk)
+  P.set(95, y + 1, 127, 'heavy_core'); // the desk fan (west corner)
+  P.set(105, y + 1, 127, 'party_cake'); // Chica's cupcake (east corner)
   // Monitors and the power/clock indicator strips on the north wall.
   P.fill(97, 2, 126, 103, 3, 126, 'black_c');
   P.fill(98, 2, 126, 102, 2, 126, 'gray_sg_pane');
@@ -806,22 +885,31 @@ function officeKit(P, room, i) {
     P.fill(wx, 0, 128, wx, 3, 128, 'iron_block');
     P.fill(wx, 0, 131, wx, 3, 131, 'iron_block');
   }
-  // Hatch indicator and strobe charge lamps on the back wall.
-  P.set(99, 3, 140, 'ind_off');
-  P.set(100, 3, 140, 'ind_off');
-  for (let x = 102; x <= 106; x++) if (x <= 105) P.set(x, 3, 140, 'ind_off');
-  P.set(101, 3, 140, 'ind_off'); // breaker lamp
-  // Back wall: lockers, fan, papers.
+  // Back wall: lockers, papers; the back counter's lamps.
   for (let x = 95; x <= 97; x++) P.fill(x, y, 139, x, y + 2, 139, 'iron_block');
   P.set(105, y, 139, 'iron_block');
   P.set(105, y + 1, 139, 'iron_trapdoor_open');
-  P.set(96, y + 3, 139, 'cake'); // on the lockers (1.5: the desk corner holds the CAM 19 button)
-  posters(P, room, 4, ['glazed_yellow', 'glazed_purple', 'glazed_red']);
-  // Seal lamps (north wall, west end): duct seal above, shaft seal below.
-  P.set(95, 3, 126, 'ind_off');
-  P.set(95, 2, 126, 'ind_off');
-  // Ceiling-vent grate lamp (1.4), north wall above the VENT GRATE button.
-  P.set(104, 3, 126, 'ind_off');
+  posters(P, room, 2, ['glazed_yellow', 'glazed_red']);
+  // Children's drawings taped along the west wall, at child height.
+  const drawings = ['glazed_yellow', 'glazed_purple', 'glazed_orange', 'glazed_lime', 'glazed_cyan', 'glazed_magenta'];
+  for (let k = 0; k < drawings.length; k++) P.set(room.box[0], y + 2, 133 + k, drawings[k]);
+  // The CELEBRATE! poster on the east wall: the band above, Freddy, Bonnie and Chica below.
+  P.fill(room.box[2], y + 4, 134, room.box[2], y + 4, 138, 'red_c');
+  [['brown_c', 'brown_t'], ['purple_c', 'purple_t'], ['yellow_c', 'yellow_t']].forEach(([head, body], k) => {
+    P.set(room.box[2], y + 3, 135 + k, head);
+    P.set(room.box[2], y + 2, 135 + k, body);
+  });
+  P.set(room.box[2], y + 3, 134, 'black_c');
+  P.set(room.box[2], y + 2, 134, 'black_c');
+  P.set(room.box[2], y + 3, 138, 'black_c');
+  P.set(room.box[2], y + 2, 138, 'black_c');
+  // Back counter lamps (1.6): duct seal, shaft seal and the ceiling-vent grate, each over its button.
+  for (const x of [98, 99, 100]) P.set(x, 2, 140, 'ind_off');
+  // Hatch indicator and strobe charge lamps on the back wall.
+  P.set(99, 3, 140, 'ind_off');
+  P.set(100, 3, 140, 'ind_off');
+  for (let x = 102; x <= 105; x++) P.set(x, 3, 140, 'ind_off');
+  P.set(101, 3, 140, 'ind_off'); // breaker lamp
   // Ceiling lamp.
   hanging(P, 100, 133, i.ceilY, 2, 'redstone_lamp'); // non-emissive fixture: light comes from actuated light blocks
   P.set(100, i.ceilY - 1, 135, 'light_11');

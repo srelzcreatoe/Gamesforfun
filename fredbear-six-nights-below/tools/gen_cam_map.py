@@ -10,7 +10,7 @@ Writes into the resource pack:
 
 How the HUD knows what to show: the script (mc/game.js mapTitle) sends a title
 made only of formatting codes, so nothing is drawn by the vanilla title:
-  MAP_ON + the camera digits as codes  e.g. CAM 14 -> '§k§r§k§r§l§0§7'
+  MAP_ON + the camera digits as codes  e.g. CAM 16 -> '§k§r§k§r§l§0§7'
   MAP_OFF                              '§k§r§k§r§o'
 The map panel is visible while the title text contains MAP_ON; each overlay
 while the title text equals its camera's code. Any other title (night cards,
@@ -40,17 +40,17 @@ BELOW_ROOMS = {"CHAMBER", "DINER", "DINER_KITCHEN", "CRAWL_D", "NIGHTMARE", "TUN
 # Box centres in local block coordinates, placed by hand like the FNAF map
 # (next to the room each camera watches, never overlapping; checked below).
 POS = {
-    # ground floor
-    "C03": (34, 24), "C02": (64, 24), "C01": (100, 24), "C08": (166, 28),
-    "C04": (34, 55), "C06": (76, 68), "C07": (124, 68), "C09": (162, 84),
-    "C05": (34, 88), "C14": (82, 108), "C10": (118, 108),
-    "C13": (82, 123), "C11": (120, 123), "C15": (57, 130), "C16": (74, 146),
-    "C12": (101, 146),  # the ceiling vent above the office (1.4)
+    # ground floor (1.6 layout)
+    "C03": (34, 24), "C02": (61, 24), "C01": (100, 24), "C10": (166, 28),
+    "C04": (34, 52), "C05": (61, 55), "C08": (86, 76), "C09": (126, 76), "C11": (162, 84),
+    "C06": (40, 81), "C07": (34, 110), "C16": (82, 107), "C12": (118, 107),
+    "C15": (82, 123), "C13": (120, 123), "C17": (57, 130), "C18": (74, 146),
+    "C14": (101, 146),  # the ceiling vent above the office (1.4)
     # basement
-    "C23": (34, 36), "C22": (40, 56), "C21": (40, 84), "C20": (28, 104), "C18": (90, 100), "C17": (98, 126),
-    "C19": (40, 130),  # the workshop (1.5)
+    "C25": (34, 36), "C24": (40, 56), "C23": (40, 84), "C22": (28, 104), "C20": (90, 100), "C19": (98, 126),
+    "C21": (40, 130),  # the workshop (1.5)
 }
-BASEMENT = {"C17", "C18", "C19", "C20", "C21", "C22", "C23"}
+BASEMENT = {"C19", "C20", "C21", "C22", "C23", "C24", "C25"}
 YOU_AT = (101, 133)
 
 WALL = (215, 215, 215, 235)

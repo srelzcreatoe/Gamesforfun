@@ -25,46 +25,52 @@ const N = (id, x, y, z, room, zone, extra = {}) => Object.freeze({
 });
 
 export const NODES = Object.freeze([
-  // Stage and north rooms
-  N('STAGE_F', 100.5, 1, 22.5, 'STAGE', 'far', { yaw: 0, home: 'freddy', haunt: true }),
-  N('STAGE_B', 93.5, 1, 23.5, 'STAGE', 'far', { yaw: 0, home: 'bonnie', haunt: true }),
-  N('STAGE_C', 107.5, 1, 23.5, 'STAGE', 'far', { yaw: 0, home: 'chica', haunt: true }),
-  N('STAGE_FRONT', 100.5, 0, 35.5, 'STAGE', 'far'),
-  N('BACK', 64.5, 0, 26.5, 'BACKSTAGE', 'far'),
+  // Theatre (1.6: the old show stage, same spots) and the north rooms
+  N('STAGE_F', 100.5, 1, 22.5, 'THEATRE', 'far', { yaw: 0, home: 'freddy', haunt: true }),
+  N('STAGE_B', 93.5, 1, 23.5, 'THEATRE', 'far', { yaw: 0, home: 'bonnie', haunt: true }),
+  N('STAGE_C', 107.5, 1, 23.5, 'THEATRE', 'far', { yaw: 0, home: 'chica', haunt: true }),
+  N('STAGE_FRONT', 100.5, 0, 35.5, 'THEATRE', 'far'),
+  N('BACK', 61.5, 0, 26.5, 'BACKSTAGE', 'far'),
   N('PARTS', 34.5, 0, 26.5, 'PARTS', 'far', { dark: true }),
-  N('PRP', 136.5, 0, 24.5, 'PROPS', 'far', { dark: true, haunt: true }),
-  // Parts & Service storage: the trio, switched off, on nights 7 and 9; Valek's spot every night.
+  N('PRP', 138.5, 0, 24.5, 'PROPS', 'far', { dark: true, haunt: true }),
+  // Parts & Service storage: the trio, switched off, on nights 7 and 9.
   N('PARTS_F', 30.5, 0, 17.5, 'PARTS', 'far', { yaw: 0, store: true, dark: true }),
   N('PARTS_B', 26.5, 0, 17.5, 'PARTS', 'far', { yaw: 0, store: true, dark: true }),
   N('PARTS_C', 34.5, 0, 17.5, 'PARTS', 'far', { yaw: 0, store: true, dark: true }),
+  // West wing (1.6): play place, Starlight Cove, arcade hall, party wing
+  N('PLAY', 34.5, 0, 57.5, 'PLAY_PLACE', 'far', { dark: true, haunt: true }),
+  N('COVE_FRONT', 57.5, 0, 55.5, 'COVE', 'far', { dark: true }),
+  N('COVE_STAGE', 66.5, 1, 52.5, 'COVE', 'far', { dark: true, golden: true, yaw: 90, haunt: true }),
+  N('ARCADE', 40.5, 0, 81.5, 'ARCADE', 'far', { haunt: true }),
+  N('PW', 42.5, 0, 95.5, 'PARTY_HALL', 'mid', { dark: true }),
+  N('PC', 61.5, 0, 107.5, 'PARTY_3', 'mid', { dark: true }),
   // Dining hall
-  N('DIN_NW', 64.5, 0, 50.5, 'DINING', 'mid'),
-  N('DIN_W', 62.5, 0, 84.5, 'DINING', 'mid'),
-  N('DIN_C', 100.5, 0, 70.5, 'DINING', 'mid', { haunt: true }),
-  N('DIN_E', 136.5, 0, 58.5, 'DINING', 'mid'),
-  N('DIN_EE', 140.5, 0, 80.5, 'DINING', 'mid'),
-  N('DIN_SW', 87.5, 0, 94.5, 'DINING', 'mid'),
-  N('DIN_SE', 113.5, 0, 94.5, 'DINING', 'mid'),
-  // West wing
-  N('COVE_FRONT', 36.5, 0, 55.5, 'COVE', 'far', { dark: true }),
-  N('COVE_STAGE', 21.5, 1, 55.5, 'COVE', 'far', { dark: true, golden: true, yaw: -90, haunt: true }),
-  N('ARCADE', 34.5, 0, 87.5, 'ARCADE', 'far', { haunt: true }),
-  N('PC', 68.5, 0, 108.5, 'PARTY_C', 'mid'),
+  N('DIN_NW', 80.5, 0, 70.5, 'DINING', 'mid'),
+  N('DIN_W', 74.5, 0, 82.5, 'DINING', 'mid'),
+  N('DIN_C', 100.5, 0, 80.5, 'DINING', 'mid', { haunt: true }),
+  N('DIN_E', 138.5, 0, 70.5, 'DINING', 'mid'),
+  N('DIN_EE', 143.5, 0, 86.5, 'DINING', 'mid'),
+  N('DIN_SW', 80.5, 0, 95.5, 'DINING', 'mid'),
+  N('DIN_SE', 127.5, 0, 95.5, 'DINING', 'mid'),
+  // The winding West Hall (1.6): north leg, bend, south leg to the corner
   N('SUP', 78.5, 0, 128.5, 'SUPPLY', 'near', { dark: true }),
-  // Inside the supply duct (two blocks high, under the west corner; CAM 16).
+  // Inside the supply duct (two blocks high, under the west corner; CAM 18).
   N('VENT_W', 86.5, -3, 132.5, 'VENT', 'near', { dark: true, crawl: true, yaw: -90 }),
-  N('WH_N', 87.5, 0, 103.5, 'W_HALL', 'mid', { dark: true }),
-  N('WH_M', 87.5, 0, 116.5, 'W_HALL', 'near', { dark: true }),
+  N('WH_N', 73.5, 0, 105.5, 'W_HALL_N', 'mid', { dark: true }),
+  N('WH_T', 80.5, 0, 113.5, 'W_HALL_T', 'mid', { dark: true }),
+  N('WH_M', 87.5, 0, 121.5, 'W_HALL', 'near', { dark: true }),
   N('WH_S', 87.5, 0, 130.5, 'W_HALL', 'near', { dark: true, golden: true, yaw: -90 }),
   N('W_DOOR', 92.5, 0, 130.0, 'W_ALCOVE', 'entry', { entry: 'L', yaw: -90, dark: true }),
-  N('PA', 100.5, 0, 106.5, 'PARTY_A', 'mid'),
-  // East wing
-  N('EH_N', 113.5, 0, 103.5, 'E_HALL', 'mid', { dark: true }),
-  N('EH_M', 113.5, 0, 116.5, 'E_HALL', 'near', { dark: true }),
+  N('PA', 100.5, 0, 113.5, 'PARTY_B', 'mid', { dark: true }),
+  // The winding East Hall (1.6)
+  N('EH_N', 127.5, 0, 105.5, 'E_HALL_N', 'mid', { dark: true }),
+  N('EH_T', 120.5, 0, 113.5, 'E_HALL_T', 'mid', { dark: true }),
+  N('EH_M', 113.5, 0, 121.5, 'E_HALL', 'near', { dark: true }),
   N('EH_S', 113.5, 0, 130.5, 'E_HALL', 'near', { dark: true, golden: true, yaw: 90 }),
   N('E_DOOR', 107.5, 0, 130.0, 'E_ALCOVE', 'entry', { entry: 'R', yaw: 90, dark: true }),
   N('E_DOOR_B', 108.5, 0, 132.5, 'E_ALCOVE', 'entry', { entry: 'R', yaw: 90, dark: true, partner: true }),
-  N('PD', 130.5, 0, 108.5, 'PARTY_D', 'mid'),
+  N('PD', 139.5, 0, 108.5, 'PARTY_D', 'mid'),
+  N('PE', 139.5, 0, 52.5, 'PARTY_E', 'far', { dark: true }),
   N('EMP', 152.5, 0, 106.5, 'EMPLOYEE', 'mid'),
   N('KIT', 166.5, 0, 30.5, 'KITCHEN', 'far', { dark: true, kitchen: true, haunt: true }),
   N('PAN', 156.5, 0, 56.5, 'PANTRY', 'far', { dark: true }),
@@ -75,7 +81,7 @@ export const NODES = Object.freeze([
   // Basement (Fredbear)
   N('CHAMBER_F', 34.5, -9, 36.5, 'CHAMBER', 'far', { home: 'fredbear', yaw: 0, dark: true }),
   // 1.5: Valek and Morgrave start every night in their workshop (item 178): Morgrave in his nest of stuffing,
-  // Valek in the pitch-black corner (CAM 19).
+  // Valek in the pitch-black corner (CAM 21).
   N('M_HOME', 22.5, -9, 135.5, 'NIGHTMARE', 'far', { home: 'morgrave', yaw: 180, store: true, dark: true }),
   N('V_HOME', 53.5, -9, 135.5, 'NIGHTMARE', 'far', { home: 'valek', yaw: 180, store: true, dark: true }),
   // 1.5: Springbonnie slumped beside Fredbear (he leaves it only in night 6's Golden Hour, ai/springbonnie.js).
@@ -101,51 +107,60 @@ const E = (a, b, access, mid = [], mode = 'walk', extra = {}) =>
   Object.freeze({ id: `${a}-${b}`, a, b, access, mid: Object.freeze(mid), mode, gate: extra.gate });
 
 export const EDGES = Object.freeze([
-  // --- stage exits
+  // --- stage exits (the stage is unchanged; the wings are the backstage and the props room)
   E('STAGE_B', 'STAGE_FRONT', 'B', [P(93.5, 1, 30.5), P(93.5, 1, 31.2), P(93.5, 0, 31.7)]),
   E('STAGE_C', 'STAGE_FRONT', 'C', [P(107.5, 1, 30.5), P(107.5, 1, 31.2), P(107.5, 0, 31.7)]),
   E('STAGE_F', 'STAGE_FRONT', 'F', [P(100.5, 1, 30.5), P(100.5, 1, 31.2), P(100.5, 0, 31.7)]),
-  E('STAGE_B', 'BACK', 'B', [P(82.4, 1, 19.0), P(81.9, 1, 19.0), P(81.4, 0, 19.0), P(76.5, 0, 19.0), P(70.5, 0, 19.0)]),
-  E('STAGE_C', 'PRP', 'C', [P(118.6, 1, 19.0), P(119.1, 1, 19.0), P(119.6, 0, 19.0), P(124.5, 0, 19.0), P(130.5, 0, 19.0)]),
-  // --- north rooms to dining
-  E('BACK', 'DIN_NW', 'B', [P(65.0, 0, 38.5), P(65.0, 0, 41.5)]),
+  E('STAGE_B', 'BACK', 'B', [P(82.4, 1, 19.0), P(81.9, 1, 19.0), P(81.4, 0, 19.0), P(72.5, 0, 19.0), P(68.5, 0, 19.0), P(64.5, 0, 22.5)]),
+  E('STAGE_C', 'PRP', 'C', [P(118.6, 1, 19.0), P(119.1, 1, 19.0), P(119.6, 0, 19.0), P(128.5, 0, 19.0), P(132.5, 0, 19.0)]),
+  // --- the theatre down the centre aisle and through the grand arch into the dining hall
+  E('STAGE_FRONT', 'DIN_C', 'BCF', [P(100.5, 0, 62.0), P(100.5, 0, 66.0)]),
+  E('STAGE_FRONT', 'DIN_NW', 'B', [P(100.5, 0, 58.0), P(94.5, 0, 62.0), P(94.5, 0, 66.0)]),
+  E('STAGE_FRONT', 'DIN_E', 'CF', [P(100.5, 0, 58.0), P(106.5, 0, 62.0), P(106.5, 0, 66.0)]),
+  // --- west wing
   E('BACK', 'PARTS', 'B', [P(53.5, 0, 26.0), P(50.5, 0, 26.0)]),
-  E('PARTS', 'COVE_FRONT', 'B', [P(34.0, 0, 38.5), P(34.0, 0, 41.5)]),
-  E('PRP', 'DIN_E', 'C', [P(136.0, 0, 38.5), P(136.0, 0, 41.5)]),
-  E('STAGE_FRONT', 'DIN_NW', 'B', []),
-  E('STAGE_FRONT', 'DIN_C', 'BCF', []),
-  E('STAGE_FRONT', 'DIN_E', 'CF', []),
+  E('BACK', 'COVE_FRONT', 'B', [P(57.0, 0, 38.5), P(57.0, 0, 41.5)]),
+  E('PARTS', 'PLAY', 'B', [P(34.0, 0, 38.5), P(34.0, 0, 41.5)]),
+  E('PLAY', 'COVE_FRONT', 'B', [P(50.5, 0, 55.0), P(53.5, 0, 55.0)]),
+  E('PLAY', 'ARCADE', 'B', [P(31.5, 0, 68.5), P(31.5, 0, 71.5)]),
+  E('COVE_FRONT', 'ARCADE', 'B', [P(57.0, 0, 68.5), P(57.0, 0, 71.5)]),
+  E('ARCADE', 'DIN_W', 'B', [P(68.5, 0, 82.5), P(71.5, 0, 82.5)]),
+  E('ARCADE', 'PW', 'B', [P(42.5, 0, 90.5), P(42.5, 0, 93.5)]),
+  E('PW', 'PC', 'B', [P(61.0, 0, 95.5), P(61.0, 0, 99.5)]),
+  E('PC', 'WH_N', 'B', [P(68.5, 0, 105.0), P(71.5, 0, 105.0)]),
   // --- dining internal
   E('DIN_NW', 'DIN_W', 'B', []),
-  E('DIN_NW', 'COVE_FRONT', 'B', [P(54.5, 0, 55.0), P(49.5, 0, 55.0)]),
-  E('DIN_W', 'ARCADE', 'B', [P(50.5, 0, 85.0)]),
   E('DIN_W', 'DIN_SW', 'B', []),
   E('DIN_C', 'DIN_SW', 'BCF', []),
   E('DIN_C', 'DIN_SE', 'CF', []),
   E('DIN_C', 'DIN_E', 'CF', []),
   E('DIN_E', 'DIN_EE', 'CF', []),
   E('DIN_EE', 'DIN_SE', 'CF', []),
-  // --- west wing
-  E('DIN_SW', 'WH_N', 'BC', [P(87.5, 0, 100.5)]),
-  E('DIN_W', 'PC', 'B', [P(67.0, 0, 98.5), P(67.0, 0, 101.5)]),
-  E('PC', 'WH_M', 'B', [P(82.5, 0, 108.0), P(86.5, 0, 108.0)]),
-  E('WH_N', 'WH_M', 'BC', []),
+  // --- the winding West Hall
+  E('DIN_SW', 'WH_N', 'BC', [P(73.5, 0, 98.5), P(73.5, 0, 101.5)]),
+  E('WH_N', 'WH_T', 'BC', [P(73.5, 0, 113.5)]),
+  E('WH_T', 'WH_M', 'BC', [P(87.5, 0, 113.5)]),
   E('WH_M', 'WH_S', 'BCG', []),
   E('WH_S', 'W_DOOR', 'BCFG', [P(90.5, 0, 130.0)]),
   E('WH_M', 'SUP', 'B', [P(86.5, 0, 121.0), P(82.5, 0, 121.0), P(78.5, 0, 124.5)]),
-  // Supply duct: down through the closet grate, along the duct (VENT_W, CAM 16), up through the corner grate.
+  // Supply duct: down through the closet grate, along the duct (VENT_W, CAM 18), up through the corner grate.
   E('SUP', 'VENT_W', 'B', [P(80.5, 0, 132.5), P(80.5, -3, 132.5)], 'vent'),
   E('VENT_W', 'W_DOOR', 'B', [P(92.5, -3, 132.5), P(92.5, 0, 132.5)], 'vent', { gate: 'vent_seal' }),
-  E('WH_N', 'PA', 'BC', [P(88.5, 0, 106.0), P(91.5, 0, 106.0)]),
-  E('PA', 'EH_N', 'BC', [P(109.0, 0, 106.0), P(111.5, 0, 106.0)]),
-  // --- east wing
-  E('DIN_SE', 'EH_N', 'BCF', [P(113.5, 0, 100.5)]),
-  E('EH_N', 'EH_M', 'BCF', []),
+  // The cross-link through Party Room B, right above the office (Bonnie's flank, Chica's way left).
+  E('WH_T', 'PA', 'BC', [P(88.5, 0, 113.0), P(91.5, 0, 113.0)]),
+  E('PA', 'EH_T', 'BC', [P(108.5, 0, 113.0), P(111.5, 0, 113.0)]),
+  // --- the winding East Hall
+  E('DIN_SE', 'EH_N', 'BCF', [P(127.5, 0, 98.5), P(127.5, 0, 101.5)]),
+  E('EH_N', 'EH_T', 'BCF', [P(127.5, 0, 113.5)]),
+  E('EH_T', 'EH_M', 'BCF', [P(113.5, 0, 113.5)]),
   E('EH_M', 'EH_S', 'BCFG', []),
   E('EH_S', 'E_DOOR', 'BCFG', [P(109.5, 0, 130.0)]),
   E('EH_S', 'E_DOOR_B', 'BC', [P(110.5, 0, 132.5)]),
   E('EH_M', 'E_DOOR_B', 'BC', [P(113.5, 0, 129.5), P(110.5, 0, 132.5)]),
-  E('DIN_E', 'KIT', 'C', [P(146.5, 0, 45.5), P(150.5, 0, 45.5)]),
+  // --- east: props, party room E, kitchen, service corridor, employee entrance
+  E('PRP', 'PE', 'C', [P(139.0, 0, 38.5), P(139.0, 0, 41.5)]),
+  E('PE', 'DIN_E', 'C', [P(139.0, 0, 62.5), P(139.0, 0, 65.5)]),
+  E('PE', 'KIT', 'C', [P(146.5, 0, 45.5), P(150.5, 0, 45.5)]),
   E('KIT', 'PAN', 'C', [P(161.0, 0, 48.5), P(161.0, 0, 51.5)]),
   E('PAN', 'ES_N', 'C', [P(152.0, 0, 60.5), P(152.0, 0, 63.5)]),
   E('ES_N', 'ES_M', 'CF', []),
@@ -154,8 +169,8 @@ export const EDGES = Object.freeze([
   E('ES_M', 'RH', 'F', [P(155.0, 0, 83.0), P(158.5, 0, 83.0)]),
   E('ES_S', 'EMP', 'CF', [P(152.0, 0, 98.5), P(152.0, 0, 101.5)]),
   E('EMP', 'PD', 'CF', [P(149.5, 0, 105.0), P(146.5, 0, 105.0)]),
-  E('PD', 'EH_M', 'CF', [P(117.5, 0, 108.0), P(114.5, 0, 108.0)]),
-  E('PD', 'DIN_SE', 'CF', [P(132.0, 0, 101.5), P(132.0, 0, 98.5)]),
+  E('PD', 'EH_N', 'CF', [P(131.5, 0, 105.0), P(128.5, 0, 105.0)]),
+  E('PD', 'DIN_SE', 'CF', [P(139.0, 0, 101.5), P(139.0, 0, 98.5)]),
   // --- Fredbear hidden routes (basement)
   E('CHAMBER_F', 'DINER_STAGE', 'G', [P(34.5, -9, 42.5), P(34.5, -9, 44.3), P(34.5, -8, 44.8), P(36.5, -8, 47.5)], 'walk', { gate: 'chamber_wall' }),
   E('DINER_STAGE', 'DINER_FLOOR', 'G', [P(40.5, -8, 55.2), P(40.5, -9, 55.7)]),

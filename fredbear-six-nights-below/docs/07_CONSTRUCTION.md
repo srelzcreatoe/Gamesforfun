@@ -149,6 +149,47 @@ button opens the clippings, lockers along the west wall, benches and posters.
   diner 22, Fredbear's chamber 23) so the numbers stay in walking order.
 * **Springbonnie's spot** (`SB_HOME`) beside Fredbear's in the chamber (CAM 23 shows both).
 
+## 1.6: the ground floor and the office rebuilt
+
+Owner item 188 ("switch up the pizzeria, make the whole place better, even the office, rebuild everything"; the owner
+chose a new layout, bigger and creepier). Everything west of the staff wing on the ground floor was redrawn
+(`data/layout.js`); the office, its two door corners, the supply closet and its duct, the staff wing, the reception, the
+upper floor and the basement keep their coordinates, so the office systems, the duct, the hatch shaft and every basement
+route line up as before. The show stage also keeps its coordinates (x 82-118, z 14-30), so its spotlights, the
+animatronics' homes and the stage actuators are unchanged.
+
+* **The Fredbear Theatre** (`THEATRE`, x 70-130, z 12-64, 14 high, style `theatre`: worn red carpet with a black-and-white
+  aisle, red velvet walls between black pilasters, a gold band, a dark purple upper wall): the stage, red curtains, a gold
+  frame, a catwalk across the hall at y 7 (reached from the stage loft), rows of seats with an aisle, and a 17-wide arch
+  into the dining hall. Backstage (x 52-70) and Prop & Costume Storage (x 130-148) are its two wings; the stage loft moved
+  above the props room.
+* **West side**: Parts & Service (unchanged), the **Play Place** (`PLAY_PLACE`, ball pit, climbing frame, slide),
+  **Fredbear's Starlight Cove** (`COVE`, a side stage behind a purple curtain with a gap, a starry backdrop), the **arcade
+  hall** (`ARCADE`, x 16-70, z 70-92) and the **party wing** (`PARTY_HALL` and Party Rooms 1-3).
+* **Dining hall** (`DINING`, x 70-148, z 64-100, 10 high): quartz pillars, long party tables, hanging lanterns.
+* **East side**: Party Room E (between the props room, the kitchen and the dining hall), Party Room D (unchanged place).
+* **Two winding halls**: `W_HALL_N` → `W_HALL_T` → `W_HALL` and `E_HALL_N` → `E_HALL_T` → `E_HALL`, each with two blind
+  bends; the photo booth (`PHOTO`) and the prize corner sit inside the bends, Party Room A between the halls on the dining
+  side and **Party Room B** right above the office, joining both bends (Bonnie's flank route). The hall flicker modules
+  now cover all three legs of each hall.
+* **Route graph** (`data/nodes.js`): new nodes `PLAY`, `PW` (party wing), `PE` (Party Room E), `WH_T` and `EH_T` (the
+  bends); the others moved into the new rooms. 60 nodes, 66 edges.
+* **Cameras**: 25 (new: **CAM 04 · PLAY PLACE** and **CAM 07 · PARTY WING**), renumbered in walking order. The hall
+  cameras (CAM 12 east, CAM 16 west) hang at the last bend and look down the straight run to the door; the bends, the party
+  rooms and the photo booth are blind. The console map (`CAMERA_MAP_LAYOUT`) now uses 25 of the 26 cells; the HUD map
+  (`tools/gen_cam_map.py`) has new boxes for the new rooms.
+* **The office** (`officeKit`, style `office`): a black-and-white checker band round the walls, grimy grey panels above;
+  the desk runs out to both corners with a fan (west) and Chica's cupcake (east); children's drawings on the west wall; a
+  CELEBRATE! poster (red band, Freddy, Bonnie and Chica) on the east wall. **SEAL VENT**, **SEAL SHAFT** and **VENT GRATE**
+  moved from the desk to the **back counter** (x 98, 99, 100, z 139) with their lamps on the back wall above them
+  (x 98-100, y 2); every other button keeps its place.
+* **Moved inputs**: secret 02 (spare head shelf) to backstage (68, 0, 14), secret 03 (cove backstage) to the cove
+  (68, 0, 42), the cove pressure plate to (56, 0, 62) and the backstage plate to (66, 0, 34) (it used to sit on Bonnie's
+  route). The cove curtain shiver (`zone.cove`) now closes the gap in the cove curtain (x 62, z 51-54).
+* **Build version 7**: worlds built with an older version ask for `/fb:setup`.
+* Balance: the winding halls keep the right door shut a little longer on nights 5 and 6, so their base drain went from 5
+  to 4.8 and 4.7 units per tick (docs/05).
+
 ## Seasonal decorations
 
 `tools/gen_holidays.mjs` writes `data/holiday_decor.generated.js`: Halloween (jack-o'-lanterns, pumpkins, cobwebs —

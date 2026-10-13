@@ -251,7 +251,7 @@ test('Valek: opening the cameras counts as looking away', () => {
   v.visit.need = 10000;
   step(s, 10, () => s.setGaze('valek'));
   assert.equal(v.visit.stage, 'far');
-  act(s, 'cams_open', 'C14');
+  act(s, 'cams_open', 'C16');
   step(s, 2, () => s.setGaze('valek'));
   assert.equal(v.visit.stage, 'near', 'the cameras broke the stare');
 });

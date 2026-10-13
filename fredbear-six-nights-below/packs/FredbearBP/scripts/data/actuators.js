@@ -17,6 +17,7 @@
 import { ORIGIN } from './layout.js';
 import { LOBBY_NIGHTS, nightButtonZ, CHALLENGE_LAMPS } from './inputs.js';
 import { PARTY } from './lore.js';
+import { CEILING_VENT } from './visitors.js';
 
 const W = (x, y, z) => `${x + ORIGIN.x} ${y + ORIGIN.y} ${z + ORIGIN.z}`;
 const BOX = (x1, y1, z1, x2, y2, z2) => `${W(x1, y1, z1)} ${W(x2, y2, z2)}`;
@@ -38,10 +39,10 @@ const TRAPDOOR = (open) => `iron_trapdoor ["direction"=0,"open_bit"=${open},"ups
 const SEAL_VENT = BOX(91, -3, 132, 91, -2, 132);
 const SEAL_SHAFT_A = BOX(92, -9, 113, 92, -8, 114);
 const SEAL_SHAFT_B = BOX(99, -9, 112, 101, -7, 112);
-const IND_SEAL = { vent: W(95, 3, 126), shaft: W(95, 2, 126) };
+const IND_SEAL = { vent: W(98, 2, 140), shaft: W(99, 2, 140) }; // back wall, over their buttons (1.6)
 // Ceiling vent (1.4): the 2x2 grate in the crawlspace floor over the office (data/visitors.js CEILING_VENT).
 const GRATE = BOX(101, 7, 127, 102, 7, 128);
-const IND_GRATE = W(104, 3, 126);
+const IND_GRATE = W(...CEILING_VENT.lamp);
 const CAKE = W(...PARTY.cake);
 const CANDLES = PARTY.candles.map((c) => W(...c));
 
@@ -135,16 +136,16 @@ export const MODULES = Object.freeze([
     `fill ${GRATE} ${TRAPDOOR(false)}`, `setblock ${IND_GRATE} ochre_froglight`, SND('fb.door.close', 101.5, 6, 127.5, 0.7, 1.4),
   ]),
   M('grate_open', 'D', 'Ceiling-vent grate opens', [`fill ${GRATE} ${TRAPDOOR(true)}`, `setblock ${IND_GRATE} verdant_froglight`, SND('fb.door.open', 101.5, 6, 127.5, 0.7, 1.3)]),
-  M('seal.vent_close', 'D', 'Vent seal: bars across the supply duct (CAM 16)', [
-    `fill ${SEAL_VENT} iron_bars`, `setblock ${IND_SEAL.vent} ochre_froglight`, SND('fb.door.close', 91, -2, 132, 0.8, 1.3), SND('fb.door.close', 96, 1, 128, 0.5, 1.3),
+  M('seal.vent_close', 'D', 'Vent seal: bars across the supply duct (CAM 18)', [
+    `fill ${SEAL_VENT} iron_bars`, `setblock ${IND_SEAL.vent} ochre_froglight`, SND('fb.door.close', 91, -2, 132, 0.8, 1.3), SND('fb.door.close', 98, 1, 139, 0.5, 1.3),
   ]),
-  M('seal.vent_open', 'D', 'Vent seal released', [`fill ${SEAL_VENT} air replace iron_bars`, `setblock ${IND_SEAL.vent} gray_concrete`, SND('fb.door.open', 96, 1, 128, 0.5, 1.3)]),
-  M('seal.shaft_close', 'D', 'Shaft seal: bars across both crawl openings into the office subfloor (CAM 17)', [
+  M('seal.vent_open', 'D', 'Vent seal released', [`fill ${SEAL_VENT} air replace iron_bars`, `setblock ${IND_SEAL.vent} gray_concrete`, SND('fb.door.open', 98, 1, 139, 0.5, 1.3)]),
+  M('seal.shaft_close', 'D', 'Shaft seal: bars across both crawl openings into the office subfloor (CAM 19)', [
     `fill ${SEAL_SHAFT_A} iron_bars`, `fill ${SEAL_SHAFT_B} iron_bars`, `setblock ${IND_SEAL.shaft} ochre_froglight`,
-    SND('fb.door.close', 100, -8, 113, 0.8, 1.3), SND('fb.door.close', 96, 1, 129, 0.5, 1.3),
+    SND('fb.door.close', 100, -8, 113, 0.8, 1.3), SND('fb.door.close', 99, 1, 139, 0.5, 1.3),
   ]),
   M('seal.shaft_open', 'D', 'Shaft seal released', [
-    `fill ${SEAL_SHAFT_A} air replace iron_bars`, `fill ${SEAL_SHAFT_B} air replace iron_bars`, `setblock ${IND_SEAL.shaft} gray_concrete`, SND('fb.door.open', 96, 1, 129, 0.5, 1.3),
+    `fill ${SEAL_SHAFT_A} air replace iron_bars`, `fill ${SEAL_SHAFT_B} air replace iron_bars`, `setblock ${IND_SEAL.shaft} gray_concrete`, SND('fb.door.open', 99, 1, 139, 0.5, 1.3),
   ]),
   // ---------------------------------------------------------------- E cameras
   M('cam.up', 'E', 'Monitor raised (office sound)', [SND('fb.cam.up', 98, 1, 130)]),
@@ -184,8 +185,8 @@ export const MODULES = Object.freeze([
     ...(n > 0 ? [`fill ${BOX(102, 3, 140, 101 + n, 3, 140)} pearlescent_froglight`] : []),
   ])),
   // ---------------------------------------------------------------- G room triggers
-  M('zone.cove', 'G', 'Exploration: Starlight Cove curtain shiver', [
-    `fill ${BOX(28, 0, 54, 28, 2, 57)} purple_wool`, SND('fb.amb.creak', 28, 1, 56), D(`fill ${BOX(28, 0, 54, 28, 2, 57)} air`, 12),
+  M('zone.cove', 'G', 'Exploration: Starlight Cove curtain shiver (the gap in the side-stage curtain closes, then opens)', [
+    `fill ${BOX(62, 0, 51, 62, 2, 54)} purple_wool`, SND('fb.amb.creak', 62, 1, 52), D(`fill ${BOX(62, 0, 51, 62, 2, 54)} air`, 12),
   ]),
   M('zone.freezer', 'G', 'Exploration: freezer knock', [SND('fb.door.bang', 183, 1, 72, 0.6), D(SND('fb.door.bang', 183, 1, 72, 0.6), 14)]),
   M('zone.diner', 'G', 'Exploration: diner jukebox wakes', [SND('fb.fredbear.musicbox', 18, -8, 94, 0.6), `particle minecraft:note_particle ${W(18, -7.5, 94)}`]),
@@ -221,12 +222,12 @@ export const MODULES = Object.freeze([
   ]),
   // ---------------------------------------------------------------- I environment
   M('env.flicker_whall', 'I', 'West hall lights flicker', [
-    `fill ${BOX(85, 5, 101, 89, 5, 133)} light_block_9 replace light_block_1`, D(`fill ${BOX(85, 5, 101, 89, 5, 133)} light_block_1 replace light_block_9`, 3),
-    D(`fill ${BOX(85, 5, 101, 89, 5, 133)} light_block_9 replace light_block_1`, 4), D(`fill ${BOX(85, 5, 101, 89, 5, 133)} light_block_1 replace light_block_9`, 2),
+    `fill ${BOX(71, 5, 101, 89, 5, 133)} light_block_9 replace light_block_1`, D(`fill ${BOX(71, 5, 101, 89, 5, 133)} light_block_1 replace light_block_9`, 3),
+    D(`fill ${BOX(71, 5, 101, 89, 5, 133)} light_block_9 replace light_block_1`, 4), D(`fill ${BOX(71, 5, 101, 89, 5, 133)} light_block_1 replace light_block_9`, 2),
   ]),
   M('env.flicker_ehall', 'I', 'East hall lights flicker', [
-    `fill ${BOX(111, 5, 101, 115, 5, 133)} light_block_9 replace light_block_1`, D(`fill ${BOX(111, 5, 101, 115, 5, 133)} light_block_1 replace light_block_9`, 3),
-    D(`fill ${BOX(111, 5, 101, 115, 5, 133)} light_block_9 replace light_block_1`, 4), D(`fill ${BOX(111, 5, 101, 115, 5, 133)} light_block_1 replace light_block_9`, 2),
+    `fill ${BOX(111, 5, 101, 129, 5, 133)} light_block_9 replace light_block_1`, D(`fill ${BOX(111, 5, 101, 129, 5, 133)} light_block_1 replace light_block_9`, 3),
+    D(`fill ${BOX(111, 5, 101, 129, 5, 133)} light_block_9 replace light_block_1`, 4), D(`fill ${BOX(111, 5, 101, 129, 5, 133)} light_block_1 replace light_block_9`, 2),
   ]),
   M('env.flicker_office', 'I', 'Office lamp flickers (Fredbear is close); only touches the lamp while it is lit', [
     `fill ${BOX(100, 5, 129, 100, 5, 135)} light_block_3 replace light_block_11`, `fill ${BOX(100, 5, 129, 100, 5, 135)} light_block_2 replace light_block_10`,

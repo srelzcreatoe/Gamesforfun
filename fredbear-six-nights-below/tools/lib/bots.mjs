@@ -239,8 +239,8 @@ export function humanBot(seed = 7, skill = 1.0) {
           s.input('door_r');
           belief.R = Math.max(belief.R, s.t + 200);
         }
-        camPlan = ['C14', 'C10'];
-        if (rng.chance(0.4)) camPlan.push(s.night >= 4 ? 'C22' : 'C01');
+        camPlan = ['C16', 'C12'];
+        if (rng.chance(0.4)) camPlan.push(s.night >= 4 ? 'C24' : 'C01');
         s.input('cams_open', camPlan.shift());
         camUntil = s.t + 30;
       } else if (d.camsOpen && s.t >= camUntil) {

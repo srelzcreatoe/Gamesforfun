@@ -82,7 +82,7 @@ export const GUIDE_SECTIONS = Object.freeze([
     title: 'Hall lights',
     body: [
       `The white buttons light the corner just outside each door for ${sec(D.lightAutoOff)}, then switch off by themselves. Look through the office windows next to the doors: if someone stands in the lit corner, close that door.`,
-      `Each lit light costs ${pctPerSec(P.light)}. The corners are dark otherwise, and the corner cameras (CAM 13 / CAM 11) look straight at them too.`,
+      `Each lit light costs ${pctPerSec(P.light)}. The corners are dark otherwise, and the corner cameras (CAM 15 / CAM 13) look straight at them too.`,
       'If both lights stop working, Chica has tripped the breaker: press RESET BREAKER.',
     ].join('\n\n'),
   },
@@ -90,10 +90,10 @@ export const GUIDE_SECTIONS = Object.freeze([
     title: 'Cameras',
     body: [
       `${H(`${CAMERAS.length} security cameras`)}, one feed at a time:\n${camLines.join('\n')}`,
-      `${H('Reading the feeds')}:\n• Static and a glitch sound: Fredbear is disrupting the cameras for a few seconds.\n• A purple, scan-lined figure: a false ECHO of Fredbear (night 5+). It is not real and cannot hurt you.\n• A pitch-black silhouette on the stage (CAM 01 / CAM 06, rare, night 2+): Shadow Fredbear. Do not stare at it - after ${sec(CONFIG.shadow.stareTicks)} of watching it vanishes and takes ${pct(CONFIG.shadow.drain)} of your power with it.\n• "No signal": that camera is not working yet.\n• CAM 08 Kitchen is audio only: you can hear Chica's pots and pans through it.\n• The low electrical hum is the camera system itself.\n• They stare back: whoever you watch on a feed for a couple of seconds slowly turns to look straight into the lens. It means nothing. Probably.`,
+      `${H('Reading the feeds')}:\n• Static and a glitch sound: Fredbear is disrupting the cameras for a few seconds.\n• A purple, scan-lined figure: a false ECHO of Fredbear (night 5+). It is not real and cannot hurt you.\n• A pitch-black silhouette on the stage (CAM 01 / CAM 08, rare, night 2+): Shadow Fredbear. Do not stare at it - after ${sec(CONFIG.shadow.stareTicks)} of watching it vanishes and takes ${pct(CONFIG.shadow.drain)} of your power with it.\n• "No signal": that camera is not working yet.\n• CAM 10 Kitchen is audio only: you can hear Chica's pots and pans through it.\n• The low electrical hum is the camera system itself.\n• They stare back: whoever you watch on a feed for a couple of seconds slowly turns to look straight into the lens. It means nothing. Probably.`,
       `${H('11:55 camera tour')}: before each night the cameras show where everyone starts. Sneak to skip it.`,
       `${H('Cameras matter to the animatronics')}: Freddy cannot move while the feed you watch shows him; Bonnie gets restless if you stare at him; Fredbear disrupts the cameras more often while you watch them. The monitor costs ${pctPerSec(P.cams)}.`,
-      'The supply duct (CAM 16) and the subfloor under the office hatch (CAM 17) show Bonnie in the vent and Fredbear climbing toward the hatch. CAM 12 looks along the crawlspace above the office, at the ceiling-vent grate (Morgrave and Valek). The sealed diner has CAM 22, 19, 20 and 21 (from night 4). Blind spots remain - the far end of the vent, the shaft itself, the dark corners: listen for footsteps, clanks and music boxes.',
+      'The supply duct (CAM 18) and the subfloor under the office hatch (CAM 19) show Bonnie in the vent and Fredbear climbing toward the hatch. CAM 14 looks along the crawlspace above the office, at the ceiling-vent grate (Morgrave and Valek). CAM 20 watches the maintenance tunnel; the workshop (CAM 21) and the sealed diner down to the chamber (CAM 22-25) come online from night 4. Blind spots remain - the bends of both halls, the party rooms, the far end of the vent, the shaft itself, the dark corners: listen for footsteps, clanks and music boxes.',
     ].join('\n\n'),
   },
   {
@@ -109,7 +109,7 @@ export const GUIDE_SECTIONS = Object.freeze([
     body: [
       `${H('SEAL VENT')} (white button left of the console) and ${H('SEAL SHAFT')} (gold, from night 4) drop a steel shutter into the supply duct or into the crawlspace below the office for ${sec(SE.duration)}. Each use costs ${pct(SE.cost)} power; then the seal needs ${sec(SE.cooldown)} to recharge. The lamps above the buttons are yellow while sealed.`,
       `${H('What they stop')}: Bonnie crawling through the vent, and Fredbear walking up through the crawlspace to the shaft. Fredbear's teleports are not stopped. (The ceiling vent is something else: see Morgrave and Valek.)`,
-      'Watch CAM 16 (duct) and CAM 17 (subfloor) and seal when something is in there: cheaper than holding a door shut.',
+      'Watch CAM 18 (duct) and CAM 19 (subfloor) and seal when something is in there: cheaper than holding a door shut.',
     ].join('\n\n'),
   },
   {
@@ -155,7 +155,7 @@ export const GUIDE_SECTIONS = Object.freeze([
       'The purple rabbit. Fast and aggressive; usually comes to the LEFT door down the West Hall.',
       `${H('Warning')}: metallic footsteps, a groan, his silhouette in the lit left corner. He waits there for ${range(C.bonnie.telegraph, 3, 20)} before attacking.`,
       `${H('Counter')}: close the left door while he is there. Keeping it closed for ${sec(C.bonnie.repelTicks)} sends him away.`,
-      `${H('Tricks')}: from aggression ${C.bonnie.flankMinAI} (night 2 on) he can circle round to the RIGHT door, more likely if you keep defending one side. From aggression ${C.bonnie.ventMinAI} he crawls through the supply-closet vent to the left door - a metal clank in the vent gives him away, CAM 16 shows him in the duct, and SEAL VENT keeps him out. Staring at him on camera makes him move sooner.`,
+      `${H('Tricks')}: from aggression ${C.bonnie.flankMinAI} (night 2 on) he can circle round to the RIGHT door, more likely if you keep defending one side. From aggression ${C.bonnie.ventMinAI} he crawls through the supply-closet vent to the left door - a metal clank in the vent gives him away, CAM 18 shows him in the duct, and SEAL VENT keeps him out. Staring at him on camera makes him move sooner.`,
       `${H('Teamwork')} (aggression ${C.bonnie.teamworkMinAI}+): sometimes he bangs on the LEFT door to draw your eyes while Chica sneaks to the RIGHT one without a sound. When the banging starts, check the right light too.`,
     ].join('\n\n'),
   },
@@ -163,7 +163,7 @@ export const GUIDE_SECTIONS = Object.freeze([
     title: 'Chica',
     body: [
       'The yellow chicken. Comes to the RIGHT door through the kitchen and the east side.',
-      `${H('Tells')}: pots-and-pans clatter means she is in the KITCHEN (only she makes that sound; listen on CAM 08). Heavy breathing at the right door means she is there. She waits ${range(C.chica.telegraph, 2, 20)} before attacking.`,
+      `${H('Tells')}: pots-and-pans clatter means she is in the KITCHEN (only she makes that sound; listen on CAM 10). Heavy breathing at the right door means she is there. She waits ${range(C.chica.telegraph, 2, 20)} before attacking.`,
       `${H('Counter')}: close the right door while she is there; ${sec(C.chica.repelTicks)} closed sends her back to the kitchen.`,
       `${H('Sabotage')}: while in the kitchen she may trip the hall-light breaker (up to ${N[6].maxSabotage} times a night, at least ${sec(C.chica.sabotageCooldown)} apart). Press RESET BREAKER.`,
       `${H('Flanking')} (aggression ${C.chica.flankMinAI}+): when someone already holds the right door she may come to the LEFT one instead.`,
@@ -195,7 +195,7 @@ export const GUIDE_SECTIONS = Object.freeze([
   {
     title: 'Springbonnie',
     body: [
-      `${H("Fredbear's partner")}. The golden rabbit who sang with Fredbear on the 1983 diner stage. All game long he sits slumped beside Fredbear in the chamber (CAM 23).`,
+      `${H("Fredbear's partner")}. The golden rabbit who sang with Fredbear on the 1983 diner stage. All game long he sits slumped beside Fredbear in the chamber (CAM 25).`,
       `${H('Night 6 - The Golden Hour')}: at 5 AM his springlocks snap loose. He climbs out of the supply-closet floor grate and walks the West Hall to the LEFT door only (never the vents).`,
       `${H('At the door')}: a springlock TWANG (always heard, captioned). Close the LEFT door and keep it shut through his ${range(C.springbonnie.telegraph, 5, 20)}; he backs off and comes round again. He waits while Fredbear is at an entry, so you never need the door and the strobe in two places at once.`,
     ].join('\n\n'),
@@ -204,7 +204,7 @@ export const GUIDE_SECTIONS = Object.freeze([
     title: 'Morgrave',
     body: [
       `${H('The rabbit in the walls')} (night 8 after you SEALED the building, and night 9). Walled in with Fredbear below the 1983 diner. He only wants to be let in.`,
-      `${H('Where')}: the LEFT door, the RIGHT door or the CEILING VENT above your desk (CAM 12). Nowhere else.`,
+      `${H('Where')}: the LEFT door, the RIGHT door or the CEILING VENT above your desk (CAM 14). Nowhere else.`,
       `${H('Three soft knocks')}: that is him (the caption says where). Make sure that door or the vent grate is OPEN and he walks past - or crawls past over the grate - and goes away. If it was already open, you have nothing to do.`,
       `${H('Shut him out')} and the knocks get angrier: knocking, then pounding, each about ${range(C.morgrave.angry, 8, 20)}. Open up during the angry knocks and he still goes past. Stay shut through both and he breaks through.`,
       `${H('The catch')}: if Bonnie, Chica, Freddy or Fredbear is at that same door, opening it lets THEM in. He waits while someone else is at his door, and you always get ${sec(C.morgrave.holdFloor)} after they leave. The vent grate he always shuts behind him, so every visit to the vent needs you.`,

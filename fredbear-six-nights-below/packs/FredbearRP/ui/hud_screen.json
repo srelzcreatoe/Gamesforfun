@@ -623,6 +623,56 @@
             }
           ]
         }
+      },
+      {
+        "fb_cam_map_c24": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c24",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§2§4')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_map_c25": {
+          "type": "image",
+          "texture": "textures/ui/fb/cam_map_c25",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 2,
+          "anims": [
+            "@hud.fb_cam_map_blink_out"
+          ],
+          "bindings": [
+            {
+              "binding_name": "#hud_title_text_string",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§2§5')",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
       }
     ]
   },

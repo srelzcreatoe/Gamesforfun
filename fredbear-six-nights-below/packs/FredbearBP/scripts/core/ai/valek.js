@@ -7,7 +7,7 @@
 // not stop him; the only thing that does is looking straight back at him.
 //
 // STATES
-//   DORMANT  standing in the black corner of the workshop (V_HOME, CAM 19) until activation.
+//   DORMANT  standing in the black corner of the workshop (V_HOME, CAM 21) until activation.
 //   VANISH   gone (cooldown), then his eyes appear at an entry (a hum, captioned).
 //   STARE    the contest, at stage `far`, then `near`:
 //              * start looking at his eyes within find(A) (near: findNear(A)) ticks, and keep

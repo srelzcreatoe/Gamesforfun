@@ -42,6 +42,9 @@ function floorKey(style, x, z, rng) {
       return pick(rng, [['gray_c', 0.08], ['cracked_dt', 0.05], ['lgray_c', 0.05]]) ?? (even ? 'white_c' : 'black_c');
     case 'golden':
       return even ? 'yellow_t' : 'white_t';
+    case 'theatre': // worn red carpet with a black-and-white aisle runner
+      if (x >= 98 && x <= 102) return (x + z) % 2 === 0 ? 'white_c' : 'black_c';
+      return pick(rng, [['brown_t', 0.06], ['red_t', 0.1]]) ?? 'red_c';
     case 'nightmare': // a stained, faded checkerboard
       return pick(rng, [['red_t', 0.06], ['brown_t', 0.05], ['cracked_dt', 0.06]]) ?? (even ? 'gray_c' : 'black_c');
     case 'kitchen':
@@ -74,15 +77,22 @@ function wallKey(style, r, a, h, rng) {
       if (r === 1 || r === 2) return ['magenta_t', 'yellow_t', 'lime_t', 'lblue_t'][(a * 7 + r * 3) % 4];
       if (r === 3) return 'purple_t';
       return pick(rng, [['lgray_t', 0.08]]) ?? 'white_t';
-    case 'office':
+    case 'office': // 1.6: the classic guard office - a checker band, grimy grey panels above it
       if (r === 0) return 'black_t';
-      if (r <= 3) return pick(rng, [['gray_t', 0.06]]) ?? 'gray_c';
-      return 'lgray_c';
+      if (r === 1) return a % 2 === 0 ? 'black_c' : 'white_c';
+      if (r === 2) return pick(rng, [['gray_t', 0.08]]) ?? 'gray_c';
+      if (r === 3) return 'black_t';
+      return pick(rng, [['gray_t', 0.1]]) ?? 'lgray_c';
     case 'golden':
       if (r === 0) return 'brown_t';
       if (r === 1 || r === 2) return (a + r) % 2 === 0 ? 'yellow_c' : 'purple_t';
       if (r === 3) return 'gold';
       return 'yellow_t';
+    case 'theatre': // black skirting, red velvet panels between black pilasters, a dark purple upper wall
+      if (r === 0) return 'black_t';
+      if (r <= 4) return a % 8 === 0 ? 'black_c' : pick(rng, [['brown_t', 0.04]]) ?? 'red_c';
+      if (r === 5) return 'gold';
+      return pick(rng, [['black_c', 0.08]]) ?? 'purple_t';
     case 'nightmare': // old party-room wallpaper gone black, the stripes still showing
       if (r === 0) return 'black_t';
       if (r === 1 || r === 2) return pick(rng, [['black_c', 0.35]]) ?? ((a + r) % 2 === 0 ? 'purple_t' : 'gray_t');
@@ -124,6 +134,8 @@ function ceilingKey(style, x, z, rng) {
       return rng.chance(0.2) ? 'brown_t' : 'terracotta';
     case 'nightmare':
       return rng.chance(0.2) ? 'cracked_dt' : 'black_c';
+    case 'theatre':
+      return (x + z) % 9 === 0 ? 'purple_t' : 'black_c';
     case 'golden':
       return 'white_t';
     case 'office':
@@ -135,7 +147,7 @@ function ceilingKey(style, x, z, rng) {
   }
 }
 
-const STYLE_ORDER = ['control', 'basement', 'nightmare', 'staff', 'kitchen', 'freezer', 'tile', 'party', 'golden', 'diner', 'pizzeria', 'office'];
+const STYLE_ORDER = ['control', 'basement', 'nightmare', 'staff', 'kitchen', 'freezer', 'tile', 'party', 'golden', 'diner', 'pizzeria', 'theatre', 'office'];
 
 // ------------------------------------------------------------------ phases
 function terrain(P) {
@@ -428,7 +440,9 @@ function reservations(P) {
   for (const s of STAIRS) {
     if (s.kind !== 'stairs') {
       if (s.kind === 'hatch') P.reserveRect('L1', s.x - 1, s.z - 1, s.x + 2, s.z + 2);
-      // The crawlspace strip over the office: Morgrave crawls along it past the grate and CAM 12 looks along it.
+      // Both floor grates of the supply duct (the closet end and the west-corner end) stay clear of props.
+      if (s.kind === 'duct') for (const [gx, gz] of [s.from, s.to]) P.reserveRect('L1', gx - 1, gz - 1, gx + 1, gz + 1);
+      // The crawlspace strip over the office: Morgrave crawls along it past the grate and CAM 14 looks along it.
       if (s.kind === 'ceilvent') P.reserveRect('L2', 95, 126, 113, 129);
       if (s.kind === 'ladder') {
         P.reserveRect('L1', 145, s.z - 1, 147, s.z + 1);
@@ -542,9 +556,7 @@ function inputLabels(P) {
     if (inp.id.startsWith('in.lobby.') && x === 181) P.sign(181, y + 2, z, 'west', inp.label);
     else if (inp.id.startsWith('in.lobby.') && z === 122) P.sign(x, y, z + 1, 'north', inp.label);
     else if (inp.id.startsWith('in.office.') && z === 130) P.sign(x, y, z + 1, 'south', inp.label);
-    else if (inp.id.startsWith('in.office.seal_')) P.sign(x - 1, y, z, 'west', inp.label);
-    else if (inp.id === 'in.office.tapes') P.sign(x, y, z - 1, 'north', inp.label);
-    else if (inp.id === 'in.office.vent_grate') P.sign(x + 1, y, z, 'south', inp.label);
+    else if (inp.id === 'in.office.tapes' || inp.id.startsWith('in.office.seal_') || inp.id === 'in.office.vent_grate') P.sign(x, y, z - 1, 'north', inp.label);
     else if (inp.id.startsWith('in.dev.')) P.sign(x, y, z + 1, 'south', inp.label);
     else if (inp.id.startsWith('in.maint.') || inp.id === 'in.training.begin') P.sign(x, y, z + 1, 'south', inp.label);
   }
@@ -554,10 +566,10 @@ function inputLabels(P) {
 // Soft, invisible light blocks where each security camera looks, so the feeds
 // stay readable (in addition to night vision and the clear camera-feed fog).
 // Nodes the AI treats as dark get a dimmer light so they stay murky. The two
-// door-corner cameras (C13, C11) and audio-only feeds get none, and every light
+// door-corner cameras (C15, C13) and audio-only feeds get none, and every light
 // is far enough from the office and its door alcoves that no light reaches
 // them: seeing the corners must still require the hall lights.
-const NO_LIGHT_CAMERAS = new Set(['C13', 'C11']);
+const NO_LIGHT_CAMERAS = new Set(['C15', 'C13']);
 const KEEP_DARK = [90, -1, 126, 110, 5, 140]; // office + both door alcoves (x1, y1, z1, x2, y2, z2)
 
 function distanceToBox(x, y, z, b) {

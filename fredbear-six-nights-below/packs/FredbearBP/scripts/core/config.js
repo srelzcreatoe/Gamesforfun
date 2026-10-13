@@ -6,7 +6,8 @@
 //
 // Power uses fixed-point integer arithmetic: 1000 units = 1 % (so 100 % =
 // 100000). Every per-tick drain is an integer, so results are exact and
-// reproducible across platforms.
+// reproducible across platforms (a base drain with tenths is spread over the
+// ticks as whole units: NightSession.baseDrainNow).
 
 export const TPS = 20;
 
@@ -19,7 +20,9 @@ export const CONFIG = Object.freeze({
     // Baseline drain (units/tick) by night. 4 => 0.08 %/s => 38.4 % per 8-minute night.
     // 1.3: nights 5-6 drain 5 - fixing the "stuck at the door" bug had made them much easier
     // than 1.2 (the stuck animatronics kept doors shut and drained power; docs/05).
-    baseDrain: Object.freeze({ 0: 3, 1: 3, 2: 4, 3: 4, 4: 4, 5: 5, 6: 5, 7: 4, 8: 3, 9: 3 }),
+    // 1.6: nights 5-6 drain 4.8 / 4.7 (tenths are spread over the ticks) - the winding halls keep the right door shut
+    // a little longer, which had made night 6 much harder (docs/05).
+    baseDrain: Object.freeze({ 0: 3, 1: 3, 2: 4, 3: 4, 4: 4, 5: 4.8, 6: 4.7, 7: 4, 8: 3, 9: 3 }),
     door: 9, // per closed door, per tick (one door closed for a full hour = 14.4 %)
     light: 6, // per lit hall light, per tick
     cams: 3, // while the camera monitor is up
@@ -163,7 +166,7 @@ export const CONFIG = Object.freeze({
       activation: { freddy: 4800, bonnie: 400, chica: 1600, fredbear: 99999 },
       ramp: false, strobeCharges: 0, reserve: false, maxSabotage: 0,
       fredbear: { phase: 0 },
-      events: [{ at: 4800, kind: 'foreshadow', id: 'cove_glint', cam: 'C04', node: 'COVE_STAGE', hold: 1600 }],
+      events: [{ at: 4800, kind: 'foreshadow', id: 'cove_glint', cam: 'C05', node: 'COVE_STAGE', hold: 1600 }],
     }),
     2: Object.freeze({
       title: 'Night 2 — Kitchen Duty', mechanic: "Chica's breaker sabotage; Bonnie flanks",
@@ -171,7 +174,7 @@ export const CONFIG = Object.freeze({
       activation: { freddy: 3200, bonnie: 0, chica: 400, fredbear: 99999 },
       ramp: true, strobeCharges: 0, reserve: false, maxSabotage: 1,
       fredbear: { phase: 0 },
-      events: [{ at: 6400, kind: 'foreshadow', id: 'diner_glimpse', cam: 'C22', node: 'DINER_STAGE', hold: 1600 }],
+      events: [{ at: 6400, kind: 'foreshadow', id: 'diner_glimpse', cam: 'C24', node: 'DINER_STAGE', hold: 1600 }],
     }),
     3: Object.freeze({
       title: 'Night 3 — Generator Trouble', mechanic: 'Maintenance shortcuts, mid-night generator restart, emergency reserve',
@@ -181,7 +184,7 @@ export const CONFIG = Object.freeze({
       fredbear: { phase: 0 },
       events: [
         { at: 3200, kind: 'maintenance', task: 'generator' },
-        { at: 7200, kind: 'foreshadow', id: 'its_me', cam: 'C14', node: 'WH_S', hold: 800 },
+        { at: 7200, kind: 'foreshadow', id: 'its_me', cam: 'C16', node: 'WH_S', hold: 800 },
       ],
     }),
     4: Object.freeze({

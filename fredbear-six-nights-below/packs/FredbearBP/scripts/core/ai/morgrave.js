@@ -5,7 +5,7 @@
 // (data/visitors.js MORGRAVE_SPOTS) and knocks.
 //
 // STATES
-//   DORMANT  slumped in his nest in the workshop (M_HOME, CAM 19) until activation.
+//   DORMANT  slumped in his nest in the workshop (M_HOME, CAM 21) until activation.
 //   WALLS    inside the walls (hidden) for a cooldown, then he picks an entry.
 //   KNOCK    three soft knocks (captioned). When they end:
 //              * that entry is OPEN  -> PASS (he only wanted to be let in);

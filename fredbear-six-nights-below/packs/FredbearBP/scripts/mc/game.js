@@ -488,10 +488,10 @@ export class Game {
     const g = this.guard();
     if (!g) return;
     /** @type {[string, number][]} [camera, ticks] */
-    const shots = [['C01', 60], ['C14', 34], ['C10', 34]];
-    if (n >= 4) shots.push(['C22', 50]);
+    const shots = [['C01', 60], ['C16', 34], ['C12', 34]];
+    if (n >= 4) shots.push(['C24', 50]);
     if (n >= 7) shots.push(['C03', 40]); // Parts & Service: Valek standing there, and the trio on nights 7 and 9
-    if (n >= 8) shots.push(['C23', 40], ['C16', 30]); // the chamber and the duct
+    if (n >= 8) shots.push(['C25', 40], ['C18', 30]); // the chamber and the duct
     this.tour = { shots, i: 0, next: system.currentTick + 20 };
     this.intro.deadline += shots.reduce((a, s) => a + s[1], 20);
   }
@@ -792,7 +792,7 @@ export class Game {
         }
         break;
       case 'sound':
-        this.audio.play(f, g, { relayKitchen: this.cams.active && this.cams.cam === 'C08' });
+        this.audio.play(f, g, { relayKitchen: this.cams.active && this.cams.cam === 'C10' });
         break;
       case 'stop_loop':
         this.audio.stop(f.loopKey);

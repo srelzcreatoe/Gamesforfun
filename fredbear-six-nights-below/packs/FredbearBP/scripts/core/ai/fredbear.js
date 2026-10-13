@@ -6,7 +6,7 @@
 //
 // STATES
 //   DORMANT  in his chamber until the night's activation tick.
-//   STIR     walks to the sealed diner stage and stands (CAM 22) for `stir` ticks.
+//   STIR     walks to the sealed diner stage and stands (CAM 24) for `stir` ticks.
 //   PATROL   hunts toward the chosen entry along hidden basement routes
 //            (on foot to the hatch) or by warned RELOCATION between golden nodes.
 //   RELOCATING  40-tick warning (chime + golden shimmer + static on the

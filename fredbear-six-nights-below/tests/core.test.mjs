@@ -415,8 +415,8 @@ test("Chica's breaker trip disables hall lights only; doors still work; reset re
 test('Freddy never moves while the current camera shows him', () => {
   const s = new NightSession({ night: 6, seed: 9 });
   for (const id of ['bonnie', 'chica', 'fredbear']) s.setAggression(id, 0);
-  s.place('freddy', 'EH_N', 'PATROL');
-  s.input('cams_open', 'C10');
+  s.place('freddy', 'EH_M', 'PATROL');
+  s.input('cams_open', 'C12');
   runTicks(s, 1);
   const before = s.anim.freddy.node;
   runTicks(s, 1200);

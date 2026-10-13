@@ -10,7 +10,7 @@ export const CEILING_VENT = Object.freeze({
   holeY: 6, // the office ceiling layer, cut open
   grateY: 7, // the crawlspace floor: iron trapdoors (top half, flush with the crawl floor)
   center: Object.freeze({ x: 102.0, y: 7.9, z: 128.0 }),
-  lamp: Object.freeze([104, 3, 126]), // grate indicator on the office's north wall
+  lamp: Object.freeze([100, 2, 140]), // grate indicator on the office's back wall, over the VENT GRATE button (1.6)
 });
 
 /** Entry labels for captions and the HUD. */

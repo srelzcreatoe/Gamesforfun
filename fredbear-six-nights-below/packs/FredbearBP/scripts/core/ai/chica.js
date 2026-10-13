@@ -6,7 +6,7 @@
 // * At the start, and after some retreats (40 %), she goes to the kitchen first
 //   and lingers 3-9 s. While there she makes pots-and-pans clatter (the owner's recording, 3-6 s bursts) every 6-9 s. This clatter is
 //   ONLY ever produced by Chica in the kitchen (ambient sounds never use it),
-//   so it is a reliable tell. CAM 08 relays it.
+//   so it is a reliable tell. CAM 10 relays it.
 // * Sabotage: while lingering, each movement opportunity may trip the hall-light
 //   breaker (chance aggression/40, at most maxSabotage per night, 60 s apart).
 //   A trip disables BOTH hall lights until the player presses Reset Breaker
