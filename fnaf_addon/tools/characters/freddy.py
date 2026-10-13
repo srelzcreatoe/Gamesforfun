@@ -10,10 +10,11 @@ import os
 
 import numpy as np
 
+from characters.night import NightClips, ease, lerp, window
 from fnafkit import export
-from fnafkit.anim import (TAU, S, bone_goal, cs, flat_foot, ground, make_clip, pos, setp, setr, sn,
-                          solve_arm, torso_goal)
+from fnafkit.anim import S, TAU, bone_goal, cs, flat_foot, pos, setp, setr, sn, torso_goal
 from fnafkit.rig import bone, cube, hash01
+from fnafkit.servo import add_rot, meta, stepper
 
 # --------------------------------------------------------------------------
 # Materials (sampled from the references)
@@ -532,192 +533,57 @@ def build_geometry(variant):
 # --------------------------------------------------------------------------
 
 
-def smooth(t, t0, t1):
-    """0 before t0, 1 after t1, smoothstep in between."""
-    if t1 <= t0:
-        return 1.0 if t >= t1 else 0.0
-    x = min(1.0, max(0.0, (t - t0) / (t1 - t0)))
-    return x * x * (3 - 2 * x)
+class FreddyNight(NightClips):
+    """Freddy's own clips on top of the shared night set.
 
-
-def bump(t, t0, w):
-    return math.exp(-((t - t0) / w) ** 2)
-
-
-def lerp(a, b, k):
-    return a + (b - a) * k
-
-
-class Clips:
-    """The nine clips; `withered` switches the personality (limp, twitchy, jaw hanging open)."""
+    Classic is the calm lead singer from the show stage: he stands his ground, holds the
+    mic steady, sways a little and turns his head across the audience in servo steps.
+    Withered runs the same show, slower and broken: tilted head, hanging jaw, stalls.
+    """
 
     def __init__(self, variant):
-        self.v = variant
-        self.w = variant == "withered"
-        self.mic = mic_info(variant)
-        self.D = DIMS[variant]
-        self.ik = {}
+        D = DIMS[variant]
+        withered = variant == "withered"
+        super().__init__(dict(
+            mouth=(0.0, D["snout"][0] - 0.2, D["snout_z"] - 2.4),
+            mouth_axis=(0, 0.9, 0.45) if withered else (0, 0.45, 0.9),
+            half_w=D["half_w"], torso=D["torso"], mic=mic_info(variant),
+            jaw_max=26.0 if withered else 42.0, withered=withered))
+        self.D = D
+        self.IK_CLIPS = ("performance1", "performance2") if withered else ("pose1", "pose2", "performance1", "performance2")
 
-    # ---- helpers ------------------------------------------------------------
-    def mic_effector(self):
-        return ("mic", self.mic["head"], self.mic["axis"])
+    # lyric rhythm for the singing jaw: (start, end, degrees)
+    SONG = [(0.0, 0.2, 10), (0.25, 0.45, 7), (0.5, 0.85, 12), (1.0, 1.2, 8), (1.25, 1.45, 10), (1.5, 1.95, 13),
+            (2.5, 2.7, 9), (2.75, 2.95, 7), (3.0, 3.35, 12), (3.5, 3.9, 10)]
 
-    def mic_to_grip(self, p):
-        """Withered keeps the mic inside its forearm; this slides it into the fist (Bedrock values)."""
-        setp(p, "mic", *self.mic["grip_offset"])
-        setr(p, "mic", *self.mic["grip_rot"])
+    def sing(self, p, t, scale=1.0):
+        add_rot(p, "jaw", scale * sum(a * window(t, t0, t1, 0.04) for t0, t1, a in self.SONG), 0, 0)
 
-    def mouth_goal(self, forward=2.4, elbow=(11.5, 27.0, -5.0)):
-        """Mic head just in front of the mouth.  Withered's short mic is held more upright so the
-        head shows above the fist."""
-        D = self.D
-        mouth = (0.0, D["snout"][0] - 0.2, D["snout_z"] - forward)
-        axis = (0, 0.9, 0.45) if self.w else (0, 0.45, 0.9)
-        return bone_goal("head", mouth, axis=axis, elbow=elbow)
+    def schedule(self, name, L):
+        if name == "pose1" and not self.w:
+            up = stepper(0.5, 0.2)
+            return {"torso": up, "head": up, "armL": up, "armR": stepper(1.0, 0.2, 0.5)}
+        if name == "pose2" and not self.w:
+            body = stepper(1.0, 0.25)
+            return {"torso": body, "armR": body, "armL": body, "head": stepper(0.5, 0.15, 0.2)}
+        if name == "performance1":
+            body = stepper(0.5, 0.25 if self.w else 0.22)
+            return {"torso": body, "head": body, "armR": body,
+                    "armL": stepper(1.0, 0.3, 0.4) if self.w else stepper(0.5, 0.2, 0.25)}
+        if name == "performance2":
+            body = stepper(0.5, 0.25 if self.w else 0.2)
+            return {"torso": body, "armR": body, "armL": body, "head": stepper(0.5, 0.18, 0.25)}
+        return super().schedule(name, L)
 
-    def arm_ik(self, key, p, side, goal, x0, effector=None, lock_hand=None):
-        prev = self.ik.get(key)
-        self.ik[key], _ = solve_arm(p, side, goal, prev or x0, restarts=1 if prev else 8,
-                                    effector=effector, lock_hand=lock_hand)
-
-    def legs_stand(self, p, spread=1.5, bend=0.0):
-        for side in ("right", "left"):
-            s = S[side]
-            setr(p, f"{side}Leg", -bend, 0, s * spread)
-            setr(p, f"{side}Shin", bend * 1.8, 0, 0)
-            flat_foot(p, side)
-
-    def ears(self, p, phase, amp=2.0):
-        for side in ("right", "left"):
-            s = S[side]
-            setr(p, f"{side}Ear", amp * sn(phase + (0 if s > 0 else 0.8)), 0, s * amp * 0.6 * cs(phase))
-
-    def fingers_open(self, p, k):
-        for side in ("right", "left"):
-            if side == "right" and not self.w:
-                continue            # Classic keeps its grip on the mic
-            setr(p, f"{side}Fingers", 0, 0, S[side] * 38 * k)
-            setr(p, f"{side}Thumb", 0, 0, -S[side] * 20 * k)
-
-    # ---- idle -----------------------------------------------------------------
-    def idle(self, t):
-        L = 4.0
-        w = TAU * t / L
-        p = {}
-        setr(p, "torso", 1.2 * sn(w), 0, 0)
-        setp(p, "torso", 0, 0.12 * sn(w), 0)
-        if self.w:
-            tw = bump(t, 1.35, 0.06) - bump(t, 1.55, 0.05)
-            tw2 = bump(t, 3.0, 0.05)
-            setr(p, "body", 2.0, 0, -1.5)
-            setr(p, "head", 6.0 + 2.0 * sn(w), 4.0 * sn(w * 0.5) + 14.0 * tw, 7.0 - 12.0 * tw2)
-            setr(p, "jaw", 3.0 * sn(w * 2) + 6.0 * tw2, 0, 0)
-            setr(p, "rightArm", 3.0 + 2.0 * sn(w), 0, -2.0)
-            setr(p, "rightForearm", -4.0, 0, 0)
-            setr(p, "leftArm", 1.0 * sn(w + 0.7), 0, -1.0 - 1.0 * sn(w + 0.7) - 8.0 * tw)
-            setr(p, "leftForearm", -8.0 - 2.0 * sn(w), 0, 0)
-            setr(p, "leftHand", 0, 0, -6.0 * tw)
-            self.legs_stand(p, 2.0, 2.0)
-            setr(p, "rightEar", 0, 0, -6.0 + 8.0 * tw2)
-            setr(p, "leftEar", 2.0 * sn(w), 0, 4.0)
-            setr(p, "hat", 0, 0, 4.0 - 3.0 * tw2)
-        else:
-            setr(p, "head", 2.0 * sn(w + 0.6), 7.0 * sn(w * 0.5 + 0.4), 1.5 * sn(w * 0.5))
-            setr(p, "jaw", 1.0 + 1.0 * sn(w * 2), 0, 0)
-            for side in ("right", "left"):
-                s = S[side]
-                ph = 0 if s > 0 else 0.7
-                setr(p, f"{side}Arm", 2.0 * sn(w + ph) - (6.0 if s > 0 else 0), 0, s * (1.0 + 1.2 * sn(w + ph)))
-                setr(p, f"{side}Forearm", (-22.0 if s > 0 else -5.0) - 2.0 * sn(w + ph), 0, 0)
-                setr(p, f"{side}Hand", 0, 0, s * 2.0 * sn(w + ph + 0.5))
-            self.legs_stand(p)
-            self.ears(p, w * 2, 1.5)
-            setr(p, "hat", 1.0 * sn(w), 0, 1.0 * sn(w * 0.5))
-        ground(p)
-        return p
-
-    # ---- walk / run -----------------------------------------------------------
-    def walk(self, t):
-        L = 1.5 if self.w else 1.25
-        f = TAU * t / L
-        p = {}
-        for side in ("right", "left"):
-            s = S[side]
-            ph = f if s > 0 else f + math.pi
-            limp = self.w and side == "left"
-            th = (-14.0 if limp else -24.0) * sn(ph)
-            bend = 6.0 + (12.0 if limp else 34.0) * pos(cs(ph + 0.35)) ** 1.4
-            setr(p, f"{side}Leg", th, 0, s * (3.0 if limp else 1.0))
-            setr(p, f"{side}Shin", bend, 0, 0)
-            flat_foot(p, side, toe=(-4.0 if limp else -10.0) * sn(ph))
-            mic_arm = side == "right" and not self.w
-            swing = 10.0 if mic_arm else (24.0 if self.w else 18.0)
-            setr(p, f"{side}Arm", swing * sn(ph - (0.5 if self.w else 0)), 0, s * (1.5 + 1.5 * pos(-sn(ph))))
-            setr(p, f"{side}Forearm", (-28.0 if mic_arm else -10.0) - 8.0 * pos(-sn(ph)), 0, 0)
-            setr(p, f"{side}Hand", 4.0 * sn(ph - 0.6), 0, 0)
-        if self.w:
-            lurch = pos(-sn(f))                      # heavier on the bad (left) leg
-            setr(p, "body", 3.0, -6.0 * sn(f), 3.0 * cs(f) + 5.0 * lurch)
-            setr(p, "torso", 4.0, 9.0 * sn(f), -2.0 * cs(f))
-            setr(p, "head", 6.0 + 3.0 * cs(2 * f) + 6.0 * bump(t, 0.9, 0.05), -6.0 * sn(f), 8.0 - 4.0 * lurch)
-            setr(p, "jaw", 6.0 * pos(sn(2 * f)), 0, 0)
-            setr(p, "hat", 0, 0, 4.0 + 2.0 * sn(2 * f))
-        else:
-            setr(p, "body", 0, -5.0 * sn(f), 3.0 * cs(f))
-            setp(p, "body", 0.4 * cs(f), 0, 0)
-            setr(p, "torso", 2.0, 10.0 * sn(f), -1.5 * cs(f))
-            setr(p, "head", 2.0 + 2.0 * cs(2 * f), -6.0 * sn(f), -2.0 * cs(f))
-            setr(p, "hat", -1.5 * cs(2 * f), 0, 0)
-        self.ears(p, 2 * f - 1.0, 2.0)
-        ground(p)
-        return p
-
-    def run(self, t):
-        L = 0.75
-        f = TAU * t / L
-        p = {}
-        for side in ("right", "left"):
-            s = S[side]
-            ph = f if s > 0 else f + math.pi
-            th = -12.0 - 40.0 * sn(ph)
-            bend = 16.0 + 80.0 * pos(cs(ph + 0.45)) ** 1.2
-            setr(p, f"{side}Leg", th, 0, s * 2.0)
-            setr(p, f"{side}Shin", bend, 0, 0)
-            flat_foot(p, side, toe=-14.0 * sn(ph) + 6.0)
-            if self.w:
-                # arms flung forward, grabbing
-                setr(p, f"{side}Arm", -70.0 + 22.0 * sn(ph), 0, s * 10.0)
-                setr(p, f"{side}Forearm", -20.0 + 10.0 * sn(ph), 0, 0)
-                setr(p, f"{side}Fingers", 0, 0, s * 30.0)
-            else:
-                setr(p, f"{side}Arm", 48.0 * sn(ph) - 8.0, 0, s * 6.0)
-                setr(p, f"{side}Forearm", -78.0 + 14.0 * sn(ph), 0, 0)
-                setr(p, f"{side}Hand", 6.0 * sn(ph), 0, 0)
-        if self.w:
-            setr(p, "body", 18.0, -6.0 * sn(f), 3.0 * cs(f))
-            setr(p, "torso", 6.0, 8.0 * sn(f), 0)
-            setr(p, "head", -18.0 + 4.0 * cs(2 * f) + 8.0 * bump(t, 0.4, 0.04), -8.0 * sn(f), 6.0)
-            setr(p, "jaw", 10.0 + 6.0 * sn(2 * f), 0, 0)
-        else:
-            setr(p, "body", 12.0, -6.0 * sn(f), 2.0 * cs(f))
-            setr(p, "torso", 4.0, 12.0 * sn(f), 0)
-            setr(p, "head", -14.0 + 3.0 * cs(2 * f), -8.0 * sn(f), 0)
-            setr(p, "jaw", 4.0, 0, 0)
-        setr(p, "hat", 4.0 * sn(2 * f + 1.0), 0, 0)
-        self.ears(p, 2 * f - 1.4, 3.0)
-        ground(p, extra=1.2 * pos(sn(2 * f + 0.9)))
-        return p
-
-    # ---- poses ------------------------------------------------------------------
+    # ---- poses ---------------------------------------------------------------------------
     def pose1(self, t):
-        L = 2.0
-        w = TAU * t / L
+        w = TAU * t / 2.0
         p = {}
         if self.w:
             # powered-down slump, head lolling, jaw hanging wide
             setr(p, "body", 6.0, 6.0, -4.0)
             setr(p, "torso", 10.0 + 1.0 * sn(w), -4.0, -5.0)
-            setr(p, "head", 26.0 + 2.0 * sn(w), 8.0, 14.0 + 1.5 * sn(w + 0.5) + 6.0 * bump(t, 1.2, 0.05))
+            setr(p, "head", 26.0 + 2.0 * sn(w), 8.0, 14.0 + 1.5 * sn(w + 0.5))
             setr(p, "jaw", 16.0 + 2.0 * sn(w), 0, 0)
             setr(p, "rightArm", 14.0, 0, -6.0)
             setr(p, "rightForearm", -6.0, 0, 0)
@@ -734,34 +600,40 @@ class Clips:
             setr(p, "leftEar", 8.0, 0, 12.0)
             setr(p, "hat", 6.0, 0, 10.0)
         else:
-            # tips his hat, mic down at his side
-            lift = 0.75 + 0.25 * sn(w)
+            # tips his hat with a small bow, mic down at his side
+            lift = 0.5 - 0.5 * cs(w)
             setr(p, "body", 2.0, 0, 0)
-            setr(p, "torso", 8.0 + 2.0 * sn(w), 6.0, 2.0)
-            setr(p, "head", 6.0 + 3.0 * sn(w), 12.0, 8.0)
-            setr(p, "jaw", 4.0 * pos(sn(w)), 0, 0)
+            setr(p, "torso", 4.0 + 8.0 * lift, 6.0, 2.0)
+            setr(p, "head", 4.0 + 6.0 * lift, 12.0, 8.0 * lift)
             setr(p, "hat", 10.0 * lift, 0, -14.0 * lift)
             setp(p, "hat", 0.6 * lift, 1.4 * lift, 0)
             setr(p, "rightArm", -8.0, 0, 6.0)
             setr(p, "rightForearm", -24.0, 0, 0)
-            self.legs_stand(p, 2.0)
+            self.stance(p, 2.0)
             hb = self.D["hat"]
             goal = bone_goal("hat", (-hb[0] + 0.2, hb[1] + 0.5, 1.2), normal=(1, 0, 0), fingers=(0, 1, 0.2),
                              elbow=(-15.0, 36.0, 1.5))
             self.arm_ik("pose1_left", p, "left", goal, [-120, 20, -30, -60, 0, 0, 0, 0, 0])
             setr(p, "leftFingers", 0, 0, -20.0)
-        ground(p)
+        meta(p)
         return p
 
+    def pose1_post(self, p, t):
+        if self.w:
+            g = window(t, 1.2, 1.4, 0.03)
+            add_rot(p, "head", 0, 0, 10.0 * g)
+            add_rot(p, "rightHand", 0, 0, 12.0 * window(t, 0.4, 0.6, 0.03))
+        else:
+            add_rot(p, "jaw", 5.0 * window(t, 0.6, 1.4, 0.06), 0, 0)
+
     def pose2(self, t):
-        L = 2.0
-        w = TAU * t / L
+        w = TAU * t / 2.0
         p = {}
         if self.w:
             # stalking: arms reaching forward, head cocked
             setr(p, "body", 10.0, -6.0, 0)
             setr(p, "torso", 6.0 + 1.5 * sn(w), -6.0 + 3.0 * sn(w), 3.0 * sn(w))
-            setr(p, "head", -10.0 + 2.0 * sn(w), 8.0, -16.0 + 3.0 * sn(w * 2) + 10.0 * bump(t, 0.7, 0.05))
+            setr(p, "head", -10.0 + 2.0 * sn(w), 8.0, -16.0 + 3.0 * sn(w * 2))
             setr(p, "jaw", 12.0 + 4.0 * pos(sn(w * 2)), 0, 0)
             for side in ("right", "left"):
                 s = S[side]
@@ -769,7 +641,7 @@ class Clips:
                 setr(p, f"{side}Arm", -78.0 + 6.0 * sn(w + ph), s * 6.0, s * (8.0 + 3.0 * sn(w + ph)))
                 setr(p, f"{side}Forearm", -18.0 + 6.0 * sn(w + ph + 0.5), 0, 0)
                 setr(p, f"{side}Hand", 10.0, 0, 0)
-            self.fingers_open(p, 0.8 + 0.2 * sn(w * 2))
+            self.fingers_open(p, 0.9)
             setr(p, "rightLeg", -22.0, 6.0, 4.0)
             setr(p, "rightShin", 16.0, 0, 0)
             flat_foot(p, "right")
@@ -783,8 +655,7 @@ class Clips:
             setr(p, "body", 0, 10.0, -5.0)
             setp(p, "body", -0.5, 0, 0)
             setr(p, "torso", -2.0 + 1.0 * sn(w), -8.0, 6.0)
-            setr(p, "head", -4.0 + 1.5 * sn(w + 0.5), -10.0, -8.0)
-            setr(p, "jaw", 8.0 + 4.0 * pos(sn(w * 2)), 0, 0)
+            setr(p, "head", -4.0, -10.0 - 12.0 * (0.5 - 0.5 * cs(w)), -8.0)
             setr(p, "rightLeg", -12.0, -8.0, 14.0)
             setr(p, "rightShin", 4.0, 0, 0)
             flat_foot(p, "right", toe=-12.0)
@@ -794,175 +665,98 @@ class Clips:
             setr(p, "hat", -4.0, 0, 6.0)
             goal = torso_goal((5.0, 37.0 + 0.5 * sn(w), -17.0), axis=(0, 0.25, -1), elbow=(12.0, 30.0, -6.0))
             self.arm_ik("pose2_right", p, "right", goal, [-80, 10, 10, -20, 0, 0, 0, 0, 0], effector=self.mic_effector())
-            hw = self.D["half_w"]
-            goal = torso_goal((-hw - 1.1, self.D["torso"][0] + 1.0, -0.5), normal=(1, 0, 0), fingers=(0, -0.35, -1),
-                              elbow=(-hw - 8.0, self.D["torso"][0] + 6.0, 1.5))
-            self.arm_ik("pose2_left", p, "left", goal, [10, 0, -40, -70, 0, 0, 0, 0, 0])
+            self.arm_ik("pose2_left", p, "left", self.hip_goal("left"), [10, 0, -40, -70, 0, 0, 0, 0, 0])
         self.ears(p, w * 2, 1.5)
-        ground(p)
+        meta(p)
         return p
 
-    # ---- performances -----------------------------------------------------------
-    def performance1(self, t):
-        """Sings into the mic at 120 BPM; withered stutters and twitches."""
-        L = 2.0
+    def pose2_post(self, p, t):
         if self.w:
-            t_eff = t - 0.06 * sn(TAU * t / 0.5) ** 3          # uneven, stuttering beat
+            add_rot(p, "head", 0, 0, 12.0 * window(t, 0.7, 0.85, 0.02))
         else:
-            t_eff = t
-        beat = TAU * t_eff / 0.5
-        w = TAU * t / L
+            add_rot(p, "jaw", 9.0 * window(t, 0.5, 0.75, 0.04) + 7.0 * window(t, 1.5, 1.7, 0.04), 0, 0)
+
+    # ---- performances: calm, the way he sings on the show stage ---------------------------------
+    def performance1(self, t):
+        """Sings into the mic: steady stance, gentle sway, head scanning the audience."""
+        W = self.w
+        k = 0.6 if W else 1.0
         p = {}
-        dip = 0.5 - 0.5 * cs(beat)
-        setr(p, "rightLeg", -4.0 - 4.0 * dip, 0, 4.0)
-        setr(p, "rightShin", 8.0 + 8.0 * dip, 0, 0)
-        flat_foot(p, "right")
-        setr(p, "leftLeg", -4.0 - 4.0 * dip, 0, -4.0)
-        setr(p, "leftShin", 8.0 + 8.0 * dip, 0, 0)
-        flat_foot(p, "left", toe=-14.0 * pos(sn(beat)))
-        setr(p, "body", 1.0, 0, 3.0 * sn(beat / 2))
-        setr(p, "torso", 3.0, 6.0 * sn(w), 2.0 * sn(beat / 2))
-        twitch = (bump(t, 0.62, 0.04) - bump(t, 1.38, 0.04)) if self.w else 0.0
-        setr(p, "head", 4.0 + 6.0 * dip, 6.0 * sn(w + 0.4) + 16.0 * twitch, -4.0 * sn(beat / 2) + (6.0 if self.w else 0))
-        jaw = 12.0 * pos(sn(beat - 0.6)) + 5.0 * pos(sn(2 * beat))
-        setr(p, "jaw", jaw * (1.4 if self.w else 1.0), 0, 0)
-        setr(p, "hat", -3.0 * dip, 0, 2.0 * sn(beat / 2) + (5.0 if self.w else 0))
-        self.ears(p, beat + 1.0, 2.5)
-        # free arm opens out to the audience on beats 3-4
-        g = smooth(t % 2.0, 0.9, 1.15) * (1 - smooth(t % 2.0, 1.75, 2.0))
-        setr(p, "leftArm", -20.0 * g - 8.0, 0, -(12.0 + 38.0 * g))
-        setr(p, "leftForearm", -45.0 + 30.0 * g, 0, 0)
+        setr(p, "body", 1.0, 0, k * 2.5 * sn(TAU * t / 2.0))
+        setr(p, "torso", 2.0 + (3.0 if W else 0.0), k * 4.0 * sn(TAU * t / 4.0), k * 1.5 * sn(TAU * t / 2.0))
+        setr(p, "head", 3.0 + 2.0 * cs(TAU * t) + (5.0 if W else 0.0), 16.0 * k * sn(TAU * t / 4.0 + 0.5),
+             -3.0 * sn(TAU * t / 2.0) + (9.0 if W else 0.0))
+        knee = 2.0 + 2.0 * (0.5 - 0.5 * cs(TAU * t))
+        self.stance(p, 2.0, knee * (0.5 if W else 1.0))
+        # free arm opens toward the audience on the second phrase, palm up
+        g = ease((t - 1.5) / 0.5) * (1 - ease((t - 3.2) / 0.5))
+        setr(p, "leftArm", -35.0 * g - 4.0, 0, -(8.0 + 22.0 * g))
+        setr(p, "leftForearm", -40.0 + 18.0 * g, 0, 0)
         setr(p, "leftHand", 0, -30.0 * g, 0)
-        setr(p, "leftFingers", 0, 0, -30.0 * g)
-        if self.w:
-            self.mic_to_grip(p)
-            self.arm_ik("perf1_right", p, "right", self.mouth_goal(), [-120, 20, 20, -70, 0, 0], effector=self.mic_effector(),
-                        lock_hand=(0, 0, 0))
+        setr(p, "leftFingers", 0, 0, -20.0 * g)
+        if W:
+            setp(p, "mic", *self.i["mic"]["grip_offset"])
+            setr(p, "mic", *self.i["mic"]["grip_rot"])
+            self.arm_ik("perf1_right", p, "right", self.mouth_goal(), [-120, 20, 20, -70, 0, 0],
+                        effector=self.mic_effector(), lock_hand=(0, 0, 0))
         else:
             self.arm_ik("perf1_right", p, "right", self.mouth_goal(), [-120, 20, 20, -70, 0, 0, 0, 0, 0],
                         effector=self.mic_effector())
-        ground(p)
+        self.ears(p, TAU * t / 2.0, 1.0)
+        meta(p)
         return p
+
+    def performance1_post(self, p, t):
+        if self.w:
+            add_rot(p, "jaw", 6.0, 0, 0)
+            self.sing(p, t, 0.6)
+            g = window(t, 2.7, 3.0, 0.03)                  # stalls and twitches mid-song
+            add_rot(p, "head", 0, 8.0 * g, -14.0 * g)
+            add_rot(p, "leftForearm", -10.0 * window(t, 0.9, 1.1, 0.03), 0, 0)
+        else:
+            self.sing(p, t)
 
     def performance2(self, t):
-        L = 2.0
-        beat = TAU * t / 0.5
-        w = TAU * t / L
+        """Waves hello to the crowd, then his "har har har" laugh."""
+        W = self.w
         p = {}
-        dip = 0.5 - 0.5 * cs(beat)
-        for side in ("right", "left"):
-            s = S[side]
-            setr(p, f"{side}Leg", -8.0 - 8.0 * dip, s * 6.0, s * 7.0)
-            setr(p, f"{side}Shin", 14.0 + 16.0 * dip, 0, 0)
-            flat_foot(p, side)
-        setr(p, "body", 2.0, 0, 3.0 * sn(beat / 2))
-        setr(p, "torso", 2.0 + 2.0 * dip, 5.0 * sn(w), 2.5 * sn(beat / 2))
-        self.ears(p, beat + 0.6, 3.0)
-        if self.w:
-            # claps along to the beat, head bobbing with the odd twitch
-            twitch = bump(t, 1.12, 0.04)
-            setr(p, "head", 4.0 + 8.0 * dip, 8.0 * sn(w), 6.0 * sn(beat / 2) + 14.0 * twitch)
-            setr(p, "jaw", 10.0 + 8.0 * pos(sn(2 * beat)), 0, 0)
-            setr(p, "hat", -4.0 * dip, 0, 6.0 + 3.0 * twitch)
-            apart = 0.5 + 0.5 * cs(beat)                      # 0 on the beat = hands together
-            y = 29.0 + 1.5 * dip
-            for side in ("right", "left"):
-                s = S[side]
-                goal = torso_goal((s * (1.15 + 3.2 * apart), y, -9.5), normal=(s, 0, 0), fingers=(0, 0.75, -0.6),
-                                  elbow=(s * 11.0, 27.0, -4.0))
-                self.arm_ik(f"perf2_{side}", p, side, goal, [-70, s * 20, 0, -60, 0, 0, 0, 0, 0])
+        setr(p, "body", 1.0, 0, 1.5 * sn(TAU * t / 2.0))
+        h = ease((t - 2.1) / 0.3) * (1 - ease((t - 3.6) / 0.3))          # laugh
+        setr(p, "torso", 2.0 + (3.0 if W else 0.0) - 3.0 * h, 3.0 * sn(TAU * t / 4.0), 0)
+        setr(p, "head", 3.0 + (5.0 if W else 0.0) - 9.0 * h, -10.0 * sn(TAU * t / 4.0), 6.0 * h + (9.0 if W else 0.0))
+        self.stance(p, 2.0, 1.0)
+        if W:
+            self.arms_hang(p, fwd=0.0, out=-2.0, elbow=-8.0)              # mic stays stowed
         else:
-            # mic to the mouth on beats 1-2, out to the crowd on beats 3-4, free fist pumping
-            m = smooth(t % 2.0, 0.8, 1.05) * (1 - smooth(t % 2.0, 1.75, 2.0))
-            setr(p, "head", 4.0 + 6.0 * dip - 10.0 * m, 6.0 * sn(w), -4.0 * sn(beat / 2) + 6.0 * m)
-            setr(p, "jaw", (12.0 * pos(sn(beat - 0.6)) + 4.0) * (1 - m) + 14.0 * m * pos(sn(2 * beat)), 0, 0)
-            setr(p, "hat", -3.0 * dip, 0, 3.0 * sn(beat / 2))
-            mouth = self.mouth_goal()
-            crowd = torso_goal((4.0, 34.0, -18.0), axis=(0, 0.2, -1), elbow=(12.0, 29.0, -6.0))
-
-            def goal(mats):
-                a, b = mouth(mats), crowd(mats)
-                ax = a["axis"] * (1 - m) + b["axis"] * m
-                return {"point": a["point"] * (1 - m) + b["point"] * m, "axis": ax / np.linalg.norm(ax),
-                        "elbow": a["elbow"] * (1 - m) + b["elbow"] * m}
-
-            goal.bones = ("head",)
-            self.arm_ik("perf2_right", p, "right", goal, [-120, 20, 20, -70, 0, 0, 0, 0, 0], effector=self.mic_effector())
-            pump = m * (0.5 + 0.5 * cs(beat))
-            setr(p, "leftArm", -150.0 * m + 25.0 * pump - 10.0 * (1 - m), 0, -(8.0 + 30.0 * (1 - m)))
-            setr(p, "leftForearm", -30.0 * m - 40.0 * (1 - m), 0, 0)
-            setr(p, "leftFingers", 0, 0, -30.0 * (1 - m))
-        ground(p)
+            self.mic_hand_rest(p)
+            setr(p, "leftArm", -2.0, 0, -2.0)
+            setr(p, "leftForearm", -8.0, 0, 0)
+        # wave with the free hand during the first two seconds
+        g = ease((t - 0.2) / 0.3) * (1 - ease((t - 1.75) / 0.3))
+        sw = sn(TAU * t * (0.75 if W else 1.0))
+        goal = torso_goal((-(self.i["half_w"] + 6.5) - 1.4 * sw, self.D["head_pivot"] + 6.0, -4.0), normal=(0, 0, 1),
+                          fingers=(math.sin(math.radians(14 * sw)), -math.cos(math.radians(14 * sw)), 0),
+                          elbow=(-(self.i["half_w"] + 7.5), self.i["torso"][1] - 4.0, -1.0))
+        rest = {b: list(p.get(b, {}).get("rotation", [0.0, 0.0, 0.0])) for b in ("leftArm", "leftForearm", "leftHand")}
+        self.arm_ik("perf2_left", p, "left", goal, [0, 0, -80, -10, 0, -70, 0, -80, 0])
+        for b, r in rest.items():
+            setr(p, b, *[lerp(r[j], p[b]["rotation"][j], g) for j in range(3)])
+        setr(p, "leftFingers", 0, 0, 10.0 * g)
+        meta(p)
         return p
 
-    # ---- jumpscares ---------------------------------------------------------------
-    def jumpscare1(self, t):
-        """Lunges at the camera, arms up, jaw wide, head shaking."""
-        p = {}
-        a = smooth(t, 0.0, 0.12)                 # anticipation
-        k = smooth(t, 0.12, 0.3)                 # lunge
-        shake = k * (1 if (round(t * 24) % 2 == 0) else -1) * (1 - 0.4 * smooth(t, 0.9, 1.25))
-        jaw_max = 26.0 if self.w else 42.0
-        setr(p, "body", lerp(-6.0 * a, 18.0, k), 0, 1.5 * shake)
-        setr(p, "torso", lerp(-3.0 * a, 8.0, k), 0, 0)
-        setr(p, "head", lerp(5.0 * a, -32.0, k), 6.0 * shake, 5.0 * shake * (1.6 if self.w else 1.0))
-        setr(p, "jaw", jaw_max * k + 4.0 * shake * k, 0, 0)
-        setr(p, "hat", lerp(0, -10.0, k), 0, 4.0 * shake)
-        for side in ("right", "left"):
-            s = S[side]
-            setr(p, f"{side}Arm", lerp(15.0 * a, -100.0, k) + 3.0 * shake, s * 10.0 * k, s * lerp(0, 18.0, k))
-            setr(p, f"{side}Forearm", lerp(0, -18.0, k), 0, 0)
-            setr(p, f"{side}Hand", lerp(0, -20.0, k), 0, 0)
-        self.fingers_open(p, k)
-        setr(p, "rightLeg", lerp(0, -30.0, k), 0, 2.0)
-        setr(p, "rightShin", lerp(0, 22.0, k), 0, 0)
-        flat_foot(p, "right")
-        setr(p, "leftLeg", lerp(0, 16.0, k), 0, -2.0)
-        setr(p, "leftShin", lerp(0, 10.0, k), 0, 0)
-        flat_foot(p, "left", toe=12.0 * k)
-        self.ears(p, t * 40, 4.0 * k)
-        ground(p, z=lerp(1.0 * a, -9.0, k))
-        return p
-
-    def jumpscare2(self, t):
-        """Rises up out of a crouch, arms flung wide, head jerking while the jaw snaps."""
-        p = {}
-        up = smooth(t, 0.28, 0.44)
-        jerk = sn(TAU * 6 * t) * smooth(t, 0.44, 0.5) * (1 - smooth(t, 1.25, 1.4))
-        chomp = 0.65 + 0.35 * cs(TAU * 4 * (t - 0.44)) if t > 0.44 else 1.0
-        jaw_max = 30.0 if self.w else 48.0
-        for side in ("right", "left"):
-            s = S[side]
-            setr(p, f"{side}Leg", lerp(-42.0, -8.0, up), s * 4.0, s * 4.0)
-            setr(p, f"{side}Shin", lerp(80.0, 14.0, up), 0, 0)
-            flat_foot(p, side)
-            setr(p, f"{side}Arm", lerp(-18.0, -40.0, up), 0, s * lerp(4.0, 92.0, up) + 4.0 * jerk)
-            setr(p, f"{side}Forearm", lerp(-10.0, -34.0, up), 0, 0)
-            setr(p, f"{side}Hand", 0, 0, s * lerp(0, -20.0, up))
-        self.fingers_open(p, up)
-        setr(p, "body", lerp(34.0, 8.0, up), 0, 2.0 * jerk)
-        setr(p, "torso", lerp(10.0, 2.0, up), 0, 0)
-        setr(p, "head", lerp(36.0, -18.0, up), 14.0 * jerk, (10.0 if self.w else 4.0) * jerk)
-        setr(p, "jaw", jaw_max * up * chomp, 0, 0)
-        setr(p, "hat", 0, 0, 6.0 * jerk)
-        self.ears(p, t * 30, 3.0 * up)
-        ground(p, z=lerp(0, -6.0, up))
-        return p
+    def performance2_post(self, p, t):
+        hars = sum(window(t, t0, t0 + 0.2, 0.04) for t0 in (2.4, 2.85, 3.3))
+        add_rot(p, "jaw", 14.0 * hars * (0.7 if self.w else 1.0) + 4.0 * window(t, 0.3, 1.8, 0.1), 0, 0)
+        add_rot(p, "torso", -2.0 * hars, 0, 0)
+        if self.w:
+            add_rot(p, "jaw", 6.0, 0, 0)
+            g = window(t, 3.0, 3.2, 0.02)
+            add_rot(p, "head", 6.0 * g, -10.0 * g, 10.0 * g)
 
 
 def build_anims(variant):
-    c = Clips(variant)
-    a = f"animation.{'withered_freddy' if variant == 'withered' else 'freddy'}."
-    # key times all land on Blockbench's 24 fps snapping grid
-    make_clip(a + "idle", 4.0, c.idle, 48 if c.w else 16)
-    make_clip(a + "walk", 1.5 if c.w else 1.25, c.walk, 18 if c.w else 15)
-    make_clip(a + "run", 0.75, c.run, 18)
-    make_clip(a + "pose1", 2.0, c.pose1, 24)
-    make_clip(a + "pose2", 2.0, c.pose2, 24)
-    make_clip(a + "performance1", 2.0, c.performance1, 48)
-    make_clip(a + "performance2", 2.0, c.performance2, 48)
-    make_clip(a + "jumpscare1", 1.25, c.jumpscare1, 30, loop="once")
-    make_clip(a + "jumpscare2", 1.5, c.jumpscare2, 36, loop="once")
+    FreddyNight(variant).build("withered_freddy" if variant == "withered" else "freddy")
 
 
 # --------------------------------------------------------------------------
@@ -981,7 +775,7 @@ def spec(variant):
         materials=WITHERED_MATS if variant == "withered" else CLASSIC_MATS,
         build_geometry=lambda: build_geometry(variant),
         build_anims=lambda: build_anims(variant),
-        sources=[os.path.abspath(__file__), variant],
+        sources=[os.path.abspath(__file__), os.path.join(os.path.dirname(os.path.abspath(__file__)), "night.py"), variant],
         spawn_egg=("#6b3a1f", "#1d1d1d") if variant == "withered" else ("#7a3f22", "#d29a66"),
         variant_states={"pose1": 1, "pose2": 2, "performance1": 3, "performance2": 4, "jumpscare1": 5, "jumpscare2": 6},
         arm=dict(palm=((px0 + px1) / 2, (py0 + py1) / 2, 0.0),

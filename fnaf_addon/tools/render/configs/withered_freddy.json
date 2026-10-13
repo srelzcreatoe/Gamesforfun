@@ -143,7 +143,7 @@
   "clips": [
     {
       "name": "idle",
-      "secs": 5
+      "secs": 6
     },
     {
       "name": "walk",
@@ -165,7 +165,7 @@
     },
     {
       "name": "run",
-      "secs": 4,
+      "secs": 3,
       "cam": {
         "az": [
           70,
@@ -219,11 +219,11 @@
     },
     {
       "name": "performance1",
-      "secs": 6
+      "secs": 8
     },
     {
       "name": "performance2",
-      "secs": 6,
+      "secs": 8,
       "cam": {
         "az": [
           70,
@@ -481,7 +481,7 @@
       ],
       [
         "walk",
-        0.375
+        0.4
       ],
       [
         "run",
@@ -497,7 +497,7 @@
       ],
       [
         "performance1",
-        0.25
+        0.5
       ],
       [
         "performance2",

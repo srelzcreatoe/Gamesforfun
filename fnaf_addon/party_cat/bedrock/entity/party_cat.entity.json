@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:party_cat",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/party_cat/party_cat_glow"
+			},
+			"geometry": {
+				"default": "geometry.party_cat"
+			},
+			"animations": {
+				"idle": "animation.party_cat.idle",
+				"walk": "animation.party_cat.walk",
+				"run": "animation.party_cat.run",
+				"pose1": "animation.party_cat.pose1",
+				"pose2": "animation.party_cat.pose2",
+				"performance1": "animation.party_cat.performance1",
+				"performance2": "animation.party_cat.performance2",
+				"jumpscare1": "animation.party_cat.jumpscare1",
+				"jumpscare2": "animation.party_cat.jumpscare2",
+				"controller": "controller.animation.party_cat.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.party_cat"
+			],
+			"spawn_egg": {
+				"base_color": "#c07a2c",
+				"overlay_color": "#a01c22"
+			}
+		}
+	}
+}

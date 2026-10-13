@@ -4,7 +4,7 @@ This is a Blockbench model of Withered Freddy in the **Bedrock Entity** format, 
 
 - 123 cubes and 26 bones
 - a 512×256 texture painted at 3 texels per model pixel
-- 9 animations: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
+- 9 animations in a broken-animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
 ![sheet](preview/withered_freddy_sheet.png)
 
@@ -47,20 +47,22 @@ The reference has no microphone, so the `mic` bone is stored out of sight inside
 
 ## Animations
 
+All nine clips move like a broken animatronic at night. Each part (head, torso, each arm, legs, jaw, ears) moves like its own servo: it jumps, stops dead with a small overshoot, and holds. On top of that come glitchy twitches.
+
 | Animation | Length | Notes |
 | --- | --- | --- |
-| `animation.withered_freddy.idle` | 4.0 s loop | Sagging stance, head tilted, sudden twitches of the head, jaw and arm |
-| `animation.withered_freddy.walk` | 1.5 s loop | A limp: the left leg drags, the body lurches onto it, the jaw flaps |
-| `animation.withered_freddy.run` | 0.75 s loop | A lurching sprint with arms flung forward to grab |
-| `animation.withered_freddy.pose1` | 2.0 s loop | Powered down: slumped, head lolling, jaw hanging wide |
+| `animation.withered_freddy.idle` | 6.0 s loop | Sagging and still, scanning the room in servo jerks, with sudden head and arm twitches and the jaw hanging open |
+| `animation.withered_freddy.walk` | 1.8 s loop | A stiff limp: the left leg drags, the body lurches onto it, the jaw flaps |
+| `animation.withered_freddy.run` | 0.8 s loop | A rigid chase with arms locked out, the head juddering and the jaw chattering |
+| `animation.withered_freddy.pose1` | 2.0 s loop | Powered down: slumped, head lolling, jaw hanging wide, the odd twitch |
 | `animation.withered_freddy.pose2` | 2.0 s loop | Stalking: arms reaching forward with fingers spread, head cocked |
-| `animation.withered_freddy.performance1` | 2.0 s loop | Sings into the mic with a stuttering, uneven beat and glitchy twitches |
-| `animation.withered_freddy.performance2` | 2.0 s loop | Claps along to the beat, head bobbing, jaw chattering |
-| `animation.withered_freddy.jumpscare1` | 1.25 s, plays once | Lunges at the camera with the jaw gaping, arms up, head shaking |
-| `animation.withered_freddy.jumpscare2` | 1.5 s, plays once | Rises from a crouch, arms flung wide, head jerking while the jaw snaps |
+| `animation.withered_freddy.performance1` | 4.0 s loop | The same calm stage song as Classic Freddy, but slower and broken: head tilted, jaw hanging, and a stall and twitch mid-song. The mic slides out of his forearm into his hand. |
+| `animation.withered_freddy.performance2` | 4.0 s loop | A slow, lagging wave, then a broken "har har har" with a head jerk |
+| `animation.withered_freddy.jumpscare1` | 1.25 s, plays once | Lunges at the camera with the jaw gaping, then the violent head shake |
+| `animation.withered_freddy.jumpscare2` | 1.5 s, plays once | Slumped and powered down, then snaps awake with arms flung wide and head jerking |
 
-- The keyframes snap to Blockbench's 24 fps grid and use catmull-rom smoothing.
-- An IK solver keeps the mic at his mouth and brings his hands together for the claps.
+- Keyframes are linear on Blockbench's 24 fps grid, so the holds stay perfectly still.
+- An IK solver keeps the mic at his mouth during performance 1.
 - In every clip, the feet stay on the ground.
 
 ## Using it in a Bedrock addon

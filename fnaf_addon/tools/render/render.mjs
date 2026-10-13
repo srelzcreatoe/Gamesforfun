@@ -19,7 +19,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const [character, mode = 'stills', outArg] = process.argv.slice(2);
 if (!character) throw new Error('usage: node render.mjs <character> video|stills|shots [out]');
 const cfg = JSON.parse(fs.readFileSync(path.join(here, 'configs', `${character}.json`), 'utf8'));
-const modelDir = path.resolve(here, '..', '..', character);
+const modelDir = path.resolve(process.env.MODEL_DIR || path.join(here, '..', '..', character));
 const threeDir = path.resolve(process.env.THREE_DIR || path.join(here, 'node_modules', 'three'));
 const W = +(process.env.W || 1280), H = +(process.env.H || 720), FPS = +(process.env.FPS || 30);
 const prefix = `animation.${character}.`;
@@ -48,7 +48,7 @@ const page = await browser.newPage({ viewport: { width: W, height: H } });
 page.on('console', m => { if (m.type() === 'error') console.error('[page]', m.text()); });
 page.on('pageerror', e => console.error('[page error]', e.message));
 const q = new URLSearchParams({
-  w: W, h: H, title: cfg.title, subtitle: cfg.subtitle || '',
+  w: W, h: H, title: cfg.title, subtitle: cfg.subtitle || '', theme: cfg.theme || 'studio',
   model: `/model/${character}.bbmodel`, emissive: `/model/textures/${character}_emissive.png`,
 });
 await page.goto(`http://localhost:${port}/preview.html?${q}`);

@@ -55,32 +55,85 @@ scene.background = new THREE.Color(BG);
 
 const camera = new THREE.PerspectiveCamera(30, W / H, 1, 2000);
 
-// studio lighting similar to the reference sheet
-scene.add(new THREE.HemisphereLight(0xffffff, 0xa4a4ae, 1.9));
-const key = new THREE.DirectionalLight(0xffffff, 2.1);
-key.position.set(70, 120, -110);
-key.castShadow = true;
-key.shadow.mapSize.set(2048, 2048);
-Object.assign(key.shadow.camera, { left: -110, right: 110, top: 110, bottom: -110, near: 10, far: 500 });
-key.shadow.bias = -0.0005;
-key.shadow.radius = 4;
-scene.add(key);
-const fill = new THREE.DirectionalLight(0xdfe4ff, 0.9);
-fill.position.set(-120, 60, -60);
-scene.add(fill);
-const rim = new THREE.DirectionalLight(0xffffff, 0.7);
-rim.position.set(0, 90, 140);
-scene.add(rim);
+const NIGHT = params.get('theme') === 'night';
+let key;
+if (!NIGHT) {
+  // studio lighting similar to the reference sheet
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xa4a4ae, 1.9));
+  key = new THREE.DirectionalLight(0xffffff, 2.1);
+  key.position.set(70, 120, -110);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  Object.assign(key.shadow.camera, { left: -110, right: 110, top: 110, bottom: -110, near: 10, far: 500 });
+  key.shadow.bias = -0.0005;
+  key.shadow.radius = 4;
+  scene.add(key);
+  const fill = new THREE.DirectionalLight(0xdfe4ff, 0.9);
+  fill.position.set(-120, 60, -60);
+  scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xffffff, 0.7);
+  rim.position.set(0, 90, 140);
+  scene.add(rim);
 
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.ShadowMaterial({ opacity: 0.22 }));
-ground.rotation.x = -Math.PI / 2;
-ground.receiveShadow = true;
-scene.add(ground);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.ShadowMaterial({ opacity: 0.22 }));
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+} else {
+  // night stage like the reference pictures: dark backdrop, red rim light from the
+  // character's right, blue from the left, dim warm key from the front
+  const bgc = document.createElement('canvas');
+  bgc.width = 640; bgc.height = 360;
+  const g = bgc.getContext('2d');
+  g.fillStyle = '#070509'; g.fillRect(0, 0, 640, 360);
+  for (const [x, y, r, c] of [[110, 150, 330, 'rgba(130,12,18,0.55)'], [560, 210, 260, 'rgba(24,30,92,0.38)'], [320, 330, 380, 'rgba(60,8,14,0.35)']]) {
+    const rg = g.createRadialGradient(x, y, 0, x, y, r);
+    rg.addColorStop(0, c); rg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = rg; g.fillRect(0, 0, 640, 360);
+  }
+  for (let i = 0; i < 2600; i++) {
+    g.fillStyle = `rgba(${Math.random() < 0.6 ? '140,20,26' : '10,8,12'},${Math.random() * 0.25})`;
+    g.fillRect(Math.random() * 640, Math.random() * 360, 2, 2);
+  }
+  const bgt = new THREE.CanvasTexture(bgc);
+  bgt.colorSpace = THREE.SRGBColorSpace;
+  scene.background = bgt;
+  scene.add(new THREE.HemisphereLight(0x6a5460, 0x140c12, 1.0));
+  key = new THREE.DirectionalLight(0xfff0e8, 3.2);
+  key.position.set(30, 110, -150);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  Object.assign(key.shadow.camera, { left: -110, right: 110, top: 110, bottom: -110, near: 10, far: 500 });
+  key.shadow.bias = -0.0005;
+  key.shadow.radius = 4;
+  scene.add(key);
+  const red = new THREE.DirectionalLight(0xff2a1c, 1.9);
+  red.position.set(170, 50, 60);
+  scene.add(red);
+  const blue = new THREE.DirectionalLight(0x4c66ff, 1.3);
+  blue.position.set(-170, 60, 80);
+  scene.add(blue);
+  // floor that fades out softly instead of ending in a hard horizon
+  const fc = document.createElement('canvas');
+  fc.width = fc.height = 256;
+  const fg = fc.getContext('2d');
+  const fr = fg.createRadialGradient(128, 128, 20, 128, 128, 128);
+  fr.addColorStop(0, '#ffffff'); fr.addColorStop(0.55, '#7a7a7a'); fr.addColorStop(1, '#000000');
+  fg.fillStyle = fr; fg.fillRect(0, 0, 256, 256);
+  const fade = new THREE.CanvasTexture(fc);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(420, 420),
+    new THREE.MeshLambertMaterial({ color: 0x150f12, transparent: true, alphaMap: fade }));
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
+  for (const id of ['title', 'subtitle', 'label', 'sublabel']) document.getElementById(id).style.color = '#e9e3e6';
+  document.getElementById('rule').style.background = '#e9e3e6';
+}
 
 const composer = new EffectComposer(renderer);
 composer.setSize(W, H);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.55, 0.12, 1.4);
+const bloom = NIGHT ? new UnrealBloomPass(new THREE.Vector2(W, H), 0.45, 0.2, 0.92) : new UnrealBloomPass(new THREE.Vector2(W, H), 0.55, 0.12, 1.4);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
@@ -141,7 +194,7 @@ async function build() {
   }
   map.colorSpace = THREE.SRGBColorSpace;
   emi.colorSpace = THREE.SRGBColorSpace;
-  const mat = new THREE.MeshStandardMaterial({ map, emissiveMap: emi, emissive: 0xffffff, emissiveIntensity: 3.2, roughness: 0.88, metalness: 0.0 });
+  const mat = new THREE.MeshStandardMaterial({ map, emissiveMap: emi, emissive: 0xffffff, emissiveIntensity: NIGHT ? 2.0 : 3.2, roughness: 0.88, metalness: 0.0 });
   const elements = Object.fromEntries(bb.elements.map(e => [e.uuid, e]));
   model = new THREE.Group();
   const addGroup = (g, parent, parentOrigin) => {

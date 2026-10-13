@@ -6,7 +6,7 @@ It includes:
 
 - 101 cubes and 26 bones
 - a 512×256 texture painted at 3 texels per model pixel
-- 9 animations: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
+- 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
 ![sheet](preview/freddy_sheet.png)
 
@@ -45,20 +45,22 @@ root
 
 ## Animations
 
+All nine clips move like an animatronic at night rather than like a person. Each part (head, torso, each arm, legs, jaw, ears) is driven like its own servo: it jumps to a new position, stops dead with a small overshoot, and holds. The head snaps at different moments from the arms.
+
 | Animation | Length | Notes |
 | --- | --- | --- |
-| `animation.freddy.idle` | 4.0 s loop | Breathing, a slow look around, the mic held at his side |
-| `animation.freddy.walk` | 1.25 s loop | Heavy stride with planted feet. The mic arm swings less. |
-| `animation.freddy.run` | 0.75 s loop | High knees, pumping arms, forward lean |
-| `animation.freddy.pose1` | 2.0 s loop | Tips his hat with his left hand and gives a little bow |
+| `animation.freddy.idle` | 6.0 s loop | Stands still and scans the room with servo head turns. The jaw clacks open, an ear twitches, an arm jerks. |
+| `animation.freddy.walk` | 1.6 s loop | Stiff, heavy pendulum steps. The arms move in jerks, and the head stays locked forward except for one snap to the side. |
+| `animation.freddy.run` | 0.8 s loop | A rigid chase: leaning forward, arms locked out reaching, head staring with a servo judder |
+| `animation.freddy.pose1` | 2.0 s loop | Tips his hat with a small bow, in four servo steps |
 | `animation.freddy.pose2` | 2.0 s loop | Points the mic at the crowd, other hand on his hip |
-| `animation.freddy.performance1` | 2.0 s loop | Sings into the mic at 120 BPM. The free arm opens out to the audience, and his foot taps. |
-| `animation.freddy.performance2` | 2.0 s loop | Sings for two beats, then holds the mic out to the crowd and pumps his fist |
-| `animation.freddy.jumpscare1` | 1.25 s, plays once | Lunges at the camera, arms up, jaw wide open, head shaking |
-| `animation.freddy.jumpscare2` | 1.5 s, plays once | Springs up from a crouch, arms flung wide, head jerking while the jaw snaps |
+| `animation.freddy.performance1` | 4.0 s loop | Calm singing, like on the show stage. He holds the mic steady at his mouth, sways gently and turns his head across the audience in slow steps. His free arm opens toward the crowd on the second phrase, and his jaw follows the lyrics. |
+| `animation.freddy.performance2` | 4.0 s loop | Waves hello to the crowd, then does his "har har har" laugh with his head tipped back |
+| `animation.freddy.jumpscare1` | 1.25 s, plays once | Lunges at the camera, then the shaking scream: head shuddering side to side, jaw flapping |
+| `animation.freddy.jumpscare2` | 1.5 s, plays once | Slumped and powered down, then snaps awake with arms flung wide and head jerking |
 
-- The keyframes snap to Blockbench's 24 fps grid and use catmull-rom smoothing.
-- An IK solver keeps the mic at his mouth, or aimed at the crowd. It also puts his hand on the hat brim and on his hip.
+- Keyframes are linear on Blockbench's 24 fps grid, so the holds stay perfectly still.
+- An IK solver keeps the mic at his mouth or aimed at the crowd, and puts his hand on the hat brim and on his hip.
 - In every clip, the feet stay on the ground.
 
 ## Using it in a Bedrock addon

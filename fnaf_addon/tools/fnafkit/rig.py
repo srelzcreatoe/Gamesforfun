@@ -110,7 +110,10 @@ class PaintCtx:
         self.emi = np.zeros(X.shape + (3,), np.float32)
 
     def paint(self, mat, mask=None, mult=1.0):
-        col = material_fill(mat, self.X, self.Y, self.Z, self.rng) * mult
+        if "cell" in MATS[mat]:
+            col = voxel_fill(mat, self) * mult
+        else:
+            col = material_fill(mat, self.X, self.Y, self.Z, self.rng) * mult
         if mask is None:
             self.rgb[...] = col
         else:
@@ -122,6 +125,61 @@ class PaintCtx:
             self.emi[...] = c
         else:
             self.emi[mask] = c
+
+
+def cell_grid(ctx, cell):
+    """Split a face into whole cells of about `cell` model pixels.  Returns per-texel
+    cell indices (cv, cu), the cell counts and edge masks (top, bottom, left, right)."""
+    H, W = ctx.X.shape
+    c = cell * TPU
+    nu, nv = max(1, int(round(W / c))), max(1, int(round(H / c)))
+    iu = (np.arange(W) * nu) // W
+    iv = (np.arange(H) * nv) // H
+    cu, cv = np.meshgrid(iu, iv)
+    left = np.zeros((H, W), bool)
+    left[:, 0] = True
+    left[:, 1:] = cu[:, 1:] != cu[:, :-1]
+    right = np.zeros((H, W), bool)
+    right[:, -1] = True
+    right[:, :-1] = cu[:, :-1] != cu[:, 1:]
+    top = np.zeros((H, W), bool)
+    top[0, :] = True
+    top[1:, :] = cv[1:, :] != cv[:-1, :]
+    bottom = np.zeros((H, W), bool)
+    bottom[-1, :] = True
+    bottom[:-1, :] = cv[:-1, :] != cv[1:, :]
+    return cv, cu, nv, nu, (top, bottom, left, right)
+
+
+def voxel_fill(mat, ctx):
+    """Blocky "every pixel is a little cube" look: one tone per cell (about one model pixel),
+    a lit top/left edge and a shaded bottom/right edge on every cell, optional big patches."""
+    m = MATS[mat]
+    rng = ctx.rng
+    cv, cu, nv, nu, (top, bottom, left, right) = cell_grid(ctx, m["cell"])
+    tones = np.array(m["tones"], np.float32)
+    w = np.array(m["w"], np.float64)
+    pick = rng.choice(len(tones), size=(nv, nu), p=w / w.sum())
+    cells = tones[pick]
+    # cell centres in model space (for position-based patches)
+    rep_v = np.array([np.argmax(cv[:, 0] == j) for j in range(nv)])
+    rep_u = np.array([np.argmax(cu[0, :] == i) for i in range(nu)])
+    PX, PY, PZ = (A[np.ix_(rep_v, rep_u)] for A in (ctx.X, ctx.Y, ctx.Z))
+    for p_scale, thresh, p_tones in m.get("patches", ()):
+        g = sum(hash01(np.floor(PX / (p_scale * k) + 500), np.floor(PY / (p_scale * k) + 500),
+                       np.floor(PZ / (p_scale * k) + 500), 23 + int(k * 10)) for k in (1, 1.7)) / 2
+        hit = g > thresh
+        pt = np.array(p_tones, np.float32)
+        cells[hit] = pt[rng.integers(0, len(pt), size=hit.sum())]
+    for spot_col, prob in m.get("spots", ()):
+        sp = rng.random((nv, nu)) < prob
+        cells[sp] = np.array(spot_col, np.float32)
+    col = cells[cv, cu].copy()
+    b = m.get("bevel", 0.14)
+    col[top | left] *= 1 + b
+    col[bottom | right] *= 1 - b
+    col[(bottom | right) & (top | left)] /= (1 + b) * (1 - b)
+    return col
 
 
 def material_fill(mat, X, Y, Z, rng):

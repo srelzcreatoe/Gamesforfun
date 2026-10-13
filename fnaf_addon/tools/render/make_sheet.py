@@ -57,10 +57,10 @@ def main(character):
     img = {s["file"][:-4]: Image.open(os.path.join(tmp, s["file"])).convert("RGB") for s in shots}
 
     W, H = 1600, 2000
-    bg = (228, 229, 232)
-    ink = (37, 40, 56)
-    soft = (90, 92, 104)
-    panel = (214, 216, 220)
+    if cfg.get("theme") == "night":
+        bg, ink, soft, panel = (14, 10, 13), (234, 228, 231), (150, 140, 146), (26, 19, 23)
+    else:
+        bg, ink, soft, panel = (228, 229, 232), (37, 40, 56), (90, 92, 104), (214, 216, 220)
     sheet = Image.new("RGB", (W, H), bg)
     d = ImageDraw.Draw(sheet)
 
@@ -88,7 +88,7 @@ def main(character):
 
     # front / side / back panel
     px, py, pw, ph = 720, 130, 850, 560
-    d.rectangle((px, py, px + pw, py + ph), fill=panel, outline=(200, 202, 206))
+    d.rectangle((px, py, px + pw, py + ph), fill=panel, outline=soft)
     for i, (k, label) in enumerate((("front", "FRONT VIEW"), ("side", "SIDE VIEW"), ("back", "BACK VIEW"))):
         sheet.paste(crop_center(img[k], 270, 500, 0.5, 0.5), (px + 12 + i * 278, py + 10))
         d.text((px + 12 + i * 278 + 135, py + 520), spaced(label), font=font(14), fill=ink, anchor="ma")

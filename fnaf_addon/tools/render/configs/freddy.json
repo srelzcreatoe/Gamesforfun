@@ -143,7 +143,7 @@
   "clips": [
     {
       "name": "idle",
-      "secs": 5
+      "secs": 6
     },
     {
       "name": "walk",
@@ -165,7 +165,7 @@
     },
     {
       "name": "run",
-      "secs": 4,
+      "secs": 3,
       "cam": {
         "az": [
           70,
@@ -219,11 +219,11 @@
     },
     {
       "name": "performance1",
-      "secs": 6
+      "secs": 8
     },
     {
       "name": "performance2",
-      "secs": 6,
+      "secs": 8,
       "cam": {
         "az": [
           70,
@@ -378,7 +378,7 @@
       },
       "main": {
         "anim": "performance1",
-        "time": 0.25,
+        "time": 0.5,
         "cam": {
           "az": 34,
           "el": 7,
@@ -483,7 +483,7 @@
       ],
       [
         "walk",
-        0.3125
+        0.4
       ],
       [
         "run",
@@ -491,7 +491,7 @@
       ],
       [
         "pose1",
-        0.5
+        1.0
       ],
       [
         "pose2",
@@ -499,7 +499,7 @@
       ],
       [
         "performance1",
-        0.25
+        0.5
       ],
       [
         "performance2",

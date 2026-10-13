@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:rat",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/rat/rat_glow"
+			},
+			"geometry": {
+				"default": "geometry.rat"
+			},
+			"animations": {
+				"idle": "animation.rat.idle",
+				"walk": "animation.rat.walk",
+				"run": "animation.rat.run",
+				"pose1": "animation.rat.pose1",
+				"pose2": "animation.rat.pose2",
+				"performance1": "animation.rat.performance1",
+				"performance2": "animation.rat.performance2",
+				"jumpscare1": "animation.rat.jumpscare1",
+				"jumpscare2": "animation.rat.jumpscare2",
+				"controller": "controller.animation.rat.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.rat"
+			],
+			"spawn_egg": {
+				"base_color": "#4e4a4c",
+				"overlay_color": "#a02024"
+			}
+		}
+	}
+}

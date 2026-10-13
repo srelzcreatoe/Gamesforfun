@@ -12,13 +12,16 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from characters import bonnie, freddy  # noqa: E402
+from characters import bonnie, freddy, trio  # noqa: E402
 from fnafkit import export  # noqa: E402
 
 CHARACTERS = {
     "bonnie": bonnie.SPEC,
     "freddy": freddy.spec("classic"),
     "withered_freddy": freddy.spec("withered"),
+    "spiral_bear": trio.spec("spiral_bear"),
+    "party_cat": trio.spec("party_cat"),
+    "rat": trio.spec("rat"),
 }
 
 

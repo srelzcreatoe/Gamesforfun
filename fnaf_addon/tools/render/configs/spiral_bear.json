@@ -1,0 +1,517 @@
+{
+  "title": "SPIRAL BEAR",
+  "subtitle": "MINECRAFT-STYLE FNAF MODEL",
+  "theme": "night",
+  "views": {
+    "front": {
+      "az": 0,
+      "el": 4,
+      "dist": 205,
+      "target": [
+        0,
+        27,
+        0
+      ],
+      "fov": 28
+    },
+    "side": {
+      "az": 90,
+      "el": 4,
+      "dist": 205,
+      "target": [
+        0,
+        27,
+        0
+      ],
+      "fov": 28
+    },
+    "back": {
+      "az": 180,
+      "el": 4,
+      "dist": 205,
+      "target": [
+        0,
+        27,
+        0
+      ],
+      "fov": 28
+    },
+    "three_quarter": {
+      "az": 28,
+      "el": 8,
+      "dist": 180,
+      "target": [
+        0,
+        29,
+        0
+      ],
+      "fov": 30
+    },
+    "face": {
+      "az": 0,
+      "el": 2,
+      "dist": 66,
+      "target": [
+        0,
+        42,
+        -4
+      ],
+      "fov": 24
+    }
+  },
+  "stills_cam": {
+    "az": 30,
+    "el": 8,
+    "dist": 195,
+    "target": [
+      0,
+      27,
+      0
+    ],
+    "fov": 30
+  },
+  "turnaround": {
+    "secs": 6,
+    "cam": {
+      "az": [
+        28,
+        388
+      ],
+      "el": 8,
+      "dist": 175,
+      "target": [
+        0,
+        29,
+        0
+      ],
+      "fov": 30
+    }
+  },
+  "closeups": [
+    {
+      "clip": "idle",
+      "secs": 3,
+      "label": "FACE DETAIL",
+      "cam": {
+        "az": [
+          18,
+          -18
+        ],
+        "el": 4,
+        "dist": 100,
+        "target": [
+          -7,
+          43,
+          -3
+        ],
+        "fov": 24
+      }
+    },
+    {
+      "clip": "idle",
+      "secs": 3,
+      "label": "EAR & TUFT DETAIL",
+      "cam": {
+        "az": [
+          30,
+          -10
+        ],
+        "el": 14,
+        "dist": 70,
+        "target": [
+          3,
+          50,
+          -1
+        ],
+        "fov": 28
+      }
+    }
+  ],
+  "default_cam": {
+    "az": [
+      40,
+      -10
+    ],
+    "el": 9,
+    "dist": 165,
+    "target": [
+      0,
+      29,
+      0
+    ],
+    "fov": 30
+  },
+  "clips": [
+    {
+      "name": "idle",
+      "secs": 6
+    },
+    {
+      "name": "walk",
+      "secs": 4,
+      "cam": {
+        "az": [
+          55,
+          15
+        ],
+        "el": 8,
+        "dist": 170,
+        "target": [
+          0,
+          28,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "run",
+      "secs": 3,
+      "cam": {
+        "az": [
+          70,
+          30
+        ],
+        "el": 8,
+        "dist": 170,
+        "target": [
+          0,
+          28,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "pose1",
+      "secs": 4,
+      "cam": {
+        "az": [
+          20,
+          -10
+        ],
+        "el": 6,
+        "dist": 165,
+        "target": [
+          0,
+          29,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "pose2",
+      "secs": 4
+    },
+    {
+      "name": "performance1",
+      "secs": 8
+    },
+    {
+      "name": "performance2",
+      "secs": 8,
+      "cam": {
+        "az": [
+          50,
+          10
+        ],
+        "el": 8,
+        "dist": 165,
+        "target": [
+          0,
+          29,
+          -2
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "jumpscare1",
+      "secs": 2.5,
+      "cam": {
+        "az": 0,
+        "el": 0,
+        "dist": 80,
+        "target": [
+          0,
+          38,
+          0
+        ],
+        "fov": 42
+      }
+    },
+    {
+      "name": "jumpscare2",
+      "secs": 2.75,
+      "cam": {
+        "az": 0,
+        "el": 0,
+        "dist": 80,
+        "target": [
+          0,
+          38,
+          0
+        ],
+        "fov": 42
+      }
+    }
+  ],
+  "sheet": {
+    "tagline": [
+      "COME",
+      "OUT",
+      "AND",
+      "PLAY."
+    ],
+    "blurb": [
+      "Something stirs",
+      "when the lights",
+      "go out."
+    ],
+    "corner": [
+      "THE STAGE IS DARK.",
+      "THE BAND IS NOT.",
+      "LISTEN FOR",
+      "THE FOOTSTEPS."
+    ],
+    "side_a": [
+      "EYES",
+      "IN THE",
+      "DARK."
+    ],
+    "side_b": [
+      "DON'T",
+      "LOOK",
+      "AWAY."
+    ],
+    "palette": [
+      [
+        104,
+        44,
+        28
+      ],
+      [
+        64,
+        25,
+        16
+      ],
+      [
+        162,
+        114,
+        88
+      ],
+      [
+        182,
+        132,
+        96
+      ],
+      [
+        118,
+        28,
+        27
+      ],
+      [
+        176,
+        160,
+        146
+      ]
+    ],
+    "shots": {
+      "front": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 0,
+          "el": 3,
+          "dist": 175,
+          "target": [
+            0,
+            27,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "side": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 90,
+          "el": 3,
+          "dist": 175,
+          "target": [
+            0,
+            27,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "back": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 180,
+          "el": 3,
+          "dist": 175,
+          "target": [
+            0,
+            27,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "main": {
+        "anim": "pose1",
+        "time": 0.5,
+        "cam": {
+          "az": 22,
+          "el": 6,
+          "dist": 125,
+          "target": [
+            0,
+            31,
+            -2
+          ],
+          "fov": 34
+        }
+      }
+    },
+    "faces": [
+      {
+        "label": "FACE DETAIL",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 0,
+          "el": 2,
+          "dist": 58,
+          "target": [
+            0,
+            43,
+            -4
+          ],
+          "fov": 24
+        }
+      },
+      {
+        "label": "JUMPSCARE",
+        "anim": "jumpscare1",
+        "time": 0.75,
+        "cam": {
+          "az": 0,
+          "el": 0,
+          "dist": 64,
+          "target": [
+            0,
+            39,
+            -6
+          ],
+          "fov": 40
+        }
+      }
+    ],
+    "details": [
+      {
+        "label": "SPIRAL EAR",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 15,
+          "el": 6,
+          "dist": 28,
+          "target": [
+            7.2,
+            51.8,
+            0.2
+          ],
+          "fov": 30
+        }
+      },
+      {
+        "label": "TUFT DETAIL",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 25,
+          "el": 20,
+          "dist": 32,
+          "target": [
+            2.5,
+            50.5,
+            -2
+          ],
+          "fov": 30
+        }
+      },
+      {
+        "label": "JOINT DETAIL",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 40,
+          "el": 4,
+          "dist": 26,
+          "target": [
+            3.6,
+            14.3,
+            0
+          ],
+          "fov": 30
+        }
+      }
+    ],
+    "strip": [
+      [
+        "idle",
+        0.0
+      ],
+      [
+        "walk",
+        0.4
+      ],
+      [
+        "run",
+        0.2
+      ],
+      [
+        "pose1",
+        0.5
+      ],
+      [
+        "pose2",
+        0.5
+      ],
+      [
+        "performance1",
+        0.5
+      ],
+      [
+        "performance2",
+        1.0
+      ],
+      [
+        "jumpscare1",
+        0.7
+      ],
+      [
+        "jumpscare2",
+        0.9
+      ]
+    ],
+    "strip_cam": {
+      "az": 22,
+      "el": 6,
+      "dist": 160,
+      "target": [
+        0,
+        28,
+        0
+      ],
+      "fov": 30
+    },
+    "strap": "PLAY. PERFORM. JUMPSCARE."
+  }
+}
