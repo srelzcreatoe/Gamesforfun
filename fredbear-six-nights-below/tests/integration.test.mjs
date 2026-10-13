@@ -839,6 +839,63 @@ test('shadow Fredbear: a black silhouette on CAM 01; staring at it costs power a
   await assertCleanLobby();
 });
 
+test('clickable camera map (1.6.2): the monitor opens the map form; a pick switches the feed, LOWER and forced closes take it down', async () => {
+  press('in.lobby.night_2');
+  await mock.tick(2);
+  await goToOfficeAndStart();
+  const { CAMERAS } = await import('../packs/FredbearBP/scripts/data/cameras.js');
+  const { CAM_FORM_MARK } = await import('../packs/FredbearBP/scripts/mc/ui.js');
+  uiMock.pending.length = 0;
+  const isMap = (f) => f.title.startsWith(CAM_FORM_MARK);
+  press('in.office.cams');
+  await until(() => uiMock.pending.length === 1, 20);
+  const form = uiMock.pending[0].form;
+  assert.ok(isMap(form), 'the map form is open');
+  assert.equal(form.buttons.length, CAMERAS.length + 1, 'one button per camera, then LOWER');
+  const live = game.session.devices.cams.cam;
+  assert.equal(form.buttons[CAMERAS.findIndex((c) => c.id === live)], `§a${live.slice(1)}`, 'the live camera is green');
+  // Pick CAM 05: the feed switches and the map opens again on it.
+  uiMock.answer({ canceled: false, selection: 4 });
+  await until(() => game.session.devices.cams.cam === 'C05' && uiMock.pending.length === 1, 20);
+  assert.equal(uiMock.pending[0].form.buttons[4], '§a05');
+  assert.equal(uiMock.pending[0].form.body, CAMERAS[4].label);
+  // LOWER puts the monitor down.
+  uiMock.answer({ canceled: false, selection: CAMERAS.length });
+  await until(() => !game.session.devices.cams.open, 20);
+  await mock.tick(3);
+  assert.equal(uiMock.pending.length, 0, 'no map form left open');
+  // Esc / back (the form closed by the player) also lowers it.
+  await mock.tick(20); // the monitor button's debounce
+  press('in.office.cams');
+  await until(() => uiMock.pending.length === 1, 20);
+  uiMock.answer({ canceled: true, cancelationReason: 'UserClosed' });
+  await until(() => !game.session.devices.cams.open, 20);
+  // Forced down some other way (sneak here; a jumpscare, power out or 6 AM go the same way): the script closes the form.
+  await mock.tick(20);
+  press('in.office.cams');
+  await until(() => uiMock.pending.length === 1, 20);
+  const closed = uiMock.closedAll;
+  mock.sneak(player);
+  await until(() => !game.session.devices.cams.open, 20);
+  await mock.tick(2);
+  assert.equal(uiMock.pending.length, 0);
+  assert.equal(uiMock.closedAll, closed + 1, 'closeAllForms called');
+  // Switched off in Settings: no form, the hotbar and sneak work as before.
+  game.save.settings.camCursor = false;
+  await mock.tick(20);
+  press('in.office.cams');
+  await until(() => game.session.devices.cams.open, 20);
+  await mock.tick(3);
+  assert.equal(uiMock.pending.length, 0);
+  mock.sneak(player);
+  await until(() => !game.session.devices.cams.open, 20);
+  game.save.settings.camCursor = true;
+  commands.get('fb:lobby')();
+  await mock.tick(2);
+  await assertCleanLobby();
+  noMockErrors();
+});
+
 test('night 7: Fredbear alone, then the final choice: burn (and seal) play their endings and are saved', async () => {
   handleDebug(game, 'unlock', '7', undefined, player);
   assert.equal(game.save.unlocked, 7);
@@ -897,17 +954,19 @@ test('nights 8 and 9: night 8 follows the last ending, the camera map HUD, the t
   await mock.tick(4);
   assert.ok(!game.session.devices.cams.open);
   assert.ok(player.titles.some((t) => t.t === '§k§r§k§r§o'), 'map off');
-  // 1.4: the VENT GRATE button opens the iron trapdoors over the ceiling vent and closes them again.
-  assert.match(at(101, 7, 127), /iron_trapdoor.*open_bit"?=false/, 'the grate starts closed');
-  press('in.office.vent_grate');
-  await mock.tick(3);
-  assert.equal(game.session.devices.grate, false);
-  for (const [x, z] of [[101, 127], [102, 128]]) assert.match(at(x, 7, z), /open_bit"?=true/, 'the grate opened');
-  await mock.tick(10);
+  // 1.6.2: the 3x3 grate over the ceiling vent and the floor hatch both start the night open; the VENT GRATE button
+  // closes the grate's iron trapdoors and opens them again.
+  for (const [x, z] of [[99, 127], [100, 128], [101, 129]]) assert.match(at(x, 7, z), /iron_trapdoor.*open_bit"?=true/, 'the grate starts open');
+  for (const [x, z] of [[99, 136], [100, 137]]) assert.match(at(x, -1, z), /iron_trapdoor.*open_bit"?=true/, 'the hatch starts open');
   press('in.office.vent_grate');
   await mock.tick(3);
   assert.equal(game.session.devices.grate, true);
-  assert.match(at(102, 7, 127), /open_bit"?=false/, 'and closed');
+  for (const [x, z] of [[99, 127], [101, 129]]) assert.match(at(x, 7, z), /open_bit"?=false/, 'the grate closed');
+  await mock.tick(10);
+  press('in.office.vent_grate');
+  await mock.tick(3);
+  assert.equal(game.session.devices.grate, false);
+  assert.match(at(100, 7, 128), /open_bit"?=true/, 'and opened again');
   // Valek's staring contest: where the player looks is the gaze, and his head follows the player.
   const s8 = game.session;
   s8.setTick(2400);

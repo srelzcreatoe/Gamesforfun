@@ -209,9 +209,9 @@ too), and his warned relocations may start from any node. Surviving to 6 AM asks
 
 ## The ceiling vent (1.4)
 
-A 2 × 2 hole in the office ceiling (over the desk) under a grate of iron trapdoors in the crawlspace floor
+A 3 × 3 hole in the office ceiling, centred across the office over the desk (1.6.2; it was a 2 × 2 off to the east), under a grate of iron trapdoors in the crawlspace floor
 (`data/visitors.js` `CEILING_VENT`). The **VENT GRATE** button on the back counter (1.6; it was on the desk) opens and closes it (lamp on the back wall
-above it: amber = closed, green = open); it starts every night closed. An open grate costs power like a hall light. CAM 14 looks
+above it: green = open, amber = closed); since 1.6.2 it starts every night open and never costs power. CAM 14 looks
 along the crawlspace at it. Morgrave and Valek are the only ones who use it; they also use both doors, and nothing else.
 
 ## Morgrave — the rabbit who wants to be let in (`ai/morgrave.js`, nights 8 and 9, 1.4)

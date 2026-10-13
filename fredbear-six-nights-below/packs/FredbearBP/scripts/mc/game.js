@@ -93,6 +93,8 @@ export class Game {
     this.guardId = undefined;
     this.timers = Object.create(null);
     this.intro = null;
+    /** @type {{ open: boolean, busy: number, player: any } | null} the clickable camera map form (1.6.2) */
+    this.camForm = null;
     this.maint = null;
     this.tutorial = null;
     this.echo = null;
@@ -190,8 +192,51 @@ export class Game {
       log.error(`tick (${this.state})`, e);
     }
     if (this.tape) this.tickTape(now);
+    // The monitor went down some other way (jumpscare, power out, 6 AM, reset): take the camera map form down too.
+    if (this.camForm && !(this.state === 'NIGHT' && this.session?.devices.cams.open)) this.stopCamForm();
     this.tickCamHum(now);
     this.bus.tick();
+  }
+
+  /**
+   * 1.6.2: the clickable camera map. While the monitor is up the camera map form stays open (it is drawn as
+   * the map in the corner, ui/server_form.json): the menu cursor - mouse, controller stick or touch - picks a
+   * camera, and the form opens again on the new feed. LOWER (or closing the form) puts the monitor down.
+   * Switch it off in Settings to use the hotbar and sneak instead.
+   */
+  startCamForm(g) {
+    if (this.camForm || this.save.settings.camCursor === false || !g || g.id !== this.guard()?.id) return;
+    /** @type {{ open: boolean, busy: number, player: any }} */
+    const form = { open: false, busy: 0, player: g };
+    this.camForm = form;
+    const live = () => this.camForm === form && this.state === 'NIGHT' && !!this.session?.devices.cams.open;
+    const wait = (n) => new Promise((res) => system.runTimeout(() => res(undefined), n));
+    const loop = async () => {
+      while (live()) {
+        form.open = true;
+        const r = await ui.cameraMapForm(g, this.session.snapshot());
+        form.open = false;
+        if (!live()) return;
+        if (!r) break;
+        if (r.kind === 'cam') {
+          this.session.input('cam_select', r.id);
+          await wait(2); // let the switch land so the map shows the new live camera
+        } else if (r.kind === 'dismissed' && r.reason === 'UserBusy' && form.busy++ < 5) {
+          await wait(10); // another screen was in the way
+        } else {
+          this.session.input('cams_close'); // LOWER, Esc or the back button
+          break;
+        }
+      }
+      if (this.camForm === form) this.camForm = null;
+    };
+    loop().catch((e) => log.warn(`camera map form: ${e?.message ?? e}`));
+  }
+
+  stopCamForm() {
+    const form = this.camForm;
+    this.camForm = null;
+    if (form?.open) ui.closeForms(form.player);
   }
 
   /** The camera feed's electrical hum: plays while the monitor is up, stops with it (any close path). */
@@ -662,6 +707,12 @@ export class Game {
     this.maint = null;
     this.timers.phone = { lines: ch ? [ch.text] : this.phoneLines(n), i: 0, next: system.currentTick + 40 };
     for (const id of ['init.policy', 'init.time', 'night.begin', 'sig.stage_lights_off', 'pwr.meter_full', `pwr.charges_${Math.min(4, this.session.strobe.charges)}`, 'env.phone_ring']) this.bus.trigger(id);
+    // 1.6.2: on nights with the hatch installed it starts open (unsealed), so show it open; night.begin draws it shut
+    // (welded on nights 1-3), so this waits until that chain has run.
+    if (this.session.hatchInstalled) { // also in the No Doors challenge: welded open
+      this.bus.fence(2);
+      this.bus.trigger('hatch_open');
+    }
     this.applyGates(n);
     if (n >= 1) runCmd(fogCommand(n));
     if (teleport || !this.inOffice(g)) {
@@ -824,6 +875,7 @@ export class Game {
             // ignore
           }
           this.showCamMap(g, f.cam);
+          this.startCamForm(g);
         } else if (f.open) {
           this.cams.show(f.cam);
           this.showCamMap(g, f.cam);

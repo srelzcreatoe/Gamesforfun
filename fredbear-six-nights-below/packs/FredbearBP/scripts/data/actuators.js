@@ -40,8 +40,8 @@ const SEAL_VENT = BOX(91, -3, 132, 91, -2, 132);
 const SEAL_SHAFT_A = BOX(92, -9, 113, 92, -8, 114);
 const SEAL_SHAFT_B = BOX(99, -9, 112, 101, -7, 112);
 const IND_SEAL = { vent: W(98, 2, 140), shaft: W(99, 2, 140) }; // back wall, over their buttons (1.6)
-// Ceiling vent (1.4): the 2x2 grate in the crawlspace floor over the office (data/visitors.js CEILING_VENT).
-const GRATE = BOX(101, 7, 127, 102, 7, 128);
+// Ceiling vent (1.4): the 3x3 grate in the crawlspace floor over the office (data/visitors.js CEILING_VENT).
+const GRATE = BOX(CEILING_VENT.x1, CEILING_VENT.grateY, CEILING_VENT.z1, CEILING_VENT.x2, CEILING_VENT.grateY, CEILING_VENT.z2);
 const IND_GRATE = W(...CEILING_VENT.lamp);
 const CAKE = W(...PARTY.cake);
 const CANDLES = PARTY.candles.map((c) => W(...c));
@@ -97,7 +97,7 @@ export const MODULES = Object.freeze([
     `setblock ${IND.doorL} verdant_froglight`, `setblock ${IND.doorR} verdant_froglight`, `setblock ${IND.lightL} gray_concrete`,
     `setblock ${IND.lightR} gray_concrete`, `setblock ${IND.hatch} gray_concrete`, `setblock ${IND.breaker} verdant_froglight`,
     `fill ${BOX(96, 4, 126, 105, 4, 126)} verdant_froglight`, `fill ${BOX(97, 5, 126, 102, 5, 126)} gray_concrete`,
-    `fill ${GRATE} ${TRAPDOOR(false)}`, `setblock ${IND_GRATE} ochre_froglight`,
+    `fill ${GRATE} ${TRAPDOOR(true)}`, `setblock ${IND_GRATE} verdant_froglight`, // 1.6.2: the ceiling-vent grate starts open
     SND('fb.night.start', 100, 1, 133),
     // The 1983 birthday cake in the sealed diner: its candles light again, every night.
     `setblock ${CAKE} pink_candle_cake ["lit"=true]`, ...CANDLES.map((c) => `setblock ${c} white_candle ["candles"=3,"lit"=true]`),
@@ -133,9 +133,9 @@ export const MODULES = Object.freeze([
   M('hatch_close', 'D', 'Office hatch sealed', [`fill ${HATCH} ${TRAPDOOR(false)}`, `setblock ${IND.hatch} ochre_froglight`, SND('fb.door.close', 99.5, 0, 136.5, 0.8, 0.8)]),
   M('hatch_open', 'D', 'Office hatch opened', [`fill ${HATCH} ${TRAPDOOR(true)}`, `setblock ${IND.hatch} gray_concrete`, SND('fb.door.open', 99.5, 0, 136.5, 0.8, 0.8)]),
   M('grate_close', 'D', 'Ceiling-vent grate closes (Morgrave knocks on it; he also shuts it behind him)', [
-    `fill ${GRATE} ${TRAPDOOR(false)}`, `setblock ${IND_GRATE} ochre_froglight`, SND('fb.door.close', 101.5, 6, 127.5, 0.7, 1.4),
+    `fill ${GRATE} ${TRAPDOOR(false)}`, `setblock ${IND_GRATE} ochre_froglight`, SND('fb.door.close', 100.5, 6, 128.5, 0.7, 1.4),
   ]),
-  M('grate_open', 'D', 'Ceiling-vent grate opens', [`fill ${GRATE} ${TRAPDOOR(true)}`, `setblock ${IND_GRATE} verdant_froglight`, SND('fb.door.open', 101.5, 6, 127.5, 0.7, 1.3)]),
+  M('grate_open', 'D', 'Ceiling-vent grate opens', [`fill ${GRATE} ${TRAPDOOR(true)}`, `setblock ${IND_GRATE} verdant_froglight`, SND('fb.door.open', 100.5, 6, 128.5, 0.7, 1.3)]),
   M('seal.vent_close', 'D', 'Vent seal: bars across the supply duct (CAM 18)', [
     `fill ${SEAL_VENT} iron_bars`, `setblock ${IND_SEAL.vent} ochre_froglight`, SND('fb.door.close', 91, -2, 132, 0.8, 1.3), SND('fb.door.close', 98, 1, 139, 0.5, 1.3),
   ]),

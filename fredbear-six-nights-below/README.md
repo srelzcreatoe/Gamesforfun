@@ -30,13 +30,13 @@ command-block network from structure files, and runs seven animatronics with exp
 * **Sound:** the owner's recordings for the jumpscares, doors, camera monitor, CCTV hum, laughs, Fredbear's music box and
   Chica in the kitchen, and looping night music with an on/off switch in the Shift Guide.
 * **Office:** the classic guard office (checkered walls, desk fan, Chica's cupcake, drawings, CELEBRATE! poster): two doors, two hall lights, 25 cameras (numbered in walking order) with a physical map and an
-  on-screen FNAF-style camera map, floor hatch, a ceiling vent with a grate, vent and shaft seals, emergency strobe, breaker, reserve lever, tape deck, power meter, hour lamps, warning indicators,
+  on-screen FNAF-style camera map, floor hatch, a ceiling vent with a grate, vent and shaft seals, a clickable camera map (mouse, controller or touch), emergency strobe, breaker, reserve lever, tape deck, power meter, hour lamps, warning indicators,
   captions.
 
 ## Status — read before playing
 
 Everything here was generated and verified **without running Minecraft**: 6 static validators against Mojang's official
-1.26.50 metadata and schemas, 86 automated tests, a balance simulator, and an integration harness that runs the real pack
+1.26.50 metadata and schemas, 87 automated tests, a balance simulator, and an integration harness that runs the real pack
 scripts against a mock of the Script API (full build, self-test, tutorial, a complete six-night campaign through the office
 buttons, night 7 and both endings, nights 8 and 9 and the night 9 ending, the camera map, the tapes, challenges, resets,
 reloads). The map owner played version 1.2 in-game to the end; **nothing added in 1.3.0, 1.3.1, 1.4.0, 1.5.0 or 1.6.x has been tested in-game
@@ -56,9 +56,9 @@ validated here).
 2. New world: **Flat**, **cheats on**, activate **FREDBEAR: Six Nights Below (Behavior)**. Render distance ≥ 11 chunks.
 3. In the world: `/fb:setup`, wait for the title, then clock in at the time clock.
 
-**Updating:** import the new `.mcaddon`, check that both packs show 1.6.1 in the world settings and enter the world, then
-run `/fb:setup` once when the action bar asks (1.6 rebuilds the ground floor and the office; from 1.6.0 no rebuild is
-needed). To open everything at once: `/fb:debug unlock all` (cheats on). Your
+**Updating:** import the new `.mcaddon`, check that both packs show 1.6.2 in the world settings and enter the world, then
+run `/fb:setup` once when the action bar asks (1.6 rebuilt the ground floor and the office; 1.6.2 centres the ceiling
+vent). To open everything at once: `/fb:debug unlock all` (cheats on). Your
 progress is kept; if you already beat night 7, night 8 is open. Camera numbers: see
 [docs/08](docs/08_INSTALL_AND_PLAY.md#updating-from-an-earlier-version).
 

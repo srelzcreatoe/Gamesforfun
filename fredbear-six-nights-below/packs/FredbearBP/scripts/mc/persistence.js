@@ -34,7 +34,7 @@ export function defaultSave() {
     lastEnding: null, // the most recent night 7 ending: decides which night 8 you get
     tapesSeen: false, // the 1987 security tapes played once
     flashbackSeen: false, // night 4 flashback shown once
-    settings: { captions: true, hints: true, deterministic: false, seed: 1983, debugOverlay: false, music: true, holidays: true, camMap: true },
+    settings: { captions: true, hints: true, deterministic: false, seed: 1983, debugOverlay: false, music: true, holidays: true, camMap: true, camCursor: true },
     stats: { deaths: 0, wins: 0 },
   };
 }

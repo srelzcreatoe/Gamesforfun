@@ -77,7 +77,7 @@ export const PHONE = Object.freeze({
   0: [
     'Hey, welcome to training. This is the same office you will use every night.',
     'The red buttons close the DOORS. White ones switch on the HALL LIGHTS so you can see the corners.',
-    'The dark button raises the MONITOR. Scroll the hotbar to change cameras, sneak to put it down.',
+    'The dark button raises the MONITOR. Click a camera on the map to change cameras, LOWER to put it down.',
     'Everything costs POWER. If it hits zero, the doors open and the lights die. Plan for that.',
   ],
   1: [
@@ -241,8 +241,8 @@ export const TUTORIAL_STEPS = Object.freeze([
   { id: 'door_open', text: 'Press it again to OPEN the door. Closed doors drain power.', expect: 'door_l' },
   { id: 'light', text: 'Press the WHITE button to switch on the LEFT HALL LIGHT and look through the window.', expect: 'light_l' },
   { id: 'cams', text: 'Press the dark MONITOR button (or use the Camera Tablet) to open the cameras.', expect: 'cams_open' },
-  { id: 'cam_switch', text: 'Scroll the hotbar (or LB/RB, or tap a hotbar slot) to switch cameras.', expect: 'cam_switch' },
-  { id: 'cams_close', text: 'SNEAK (or press the monitor button again) to put the monitor down.', expect: 'cams_close' },
+  { id: 'cam_switch', text: 'Click or tap another camera number on the map (or scroll the hotbar / LB-RB) to switch cameras.', expect: 'cam_switch' },
+  { id: 'cams_close', text: 'Press LOWER on the map (or Esc / back, or SNEAK) to put the monitor down.', expect: 'cams_close' },
   { id: 'demo', text: 'Bonnie is coming down the WEST HALL. Watch the left corner with the light and CLOSE THE DOOR when he arrives.', expect: 'repel' },
   { id: 'strobe', text: 'Last thing: the orange STROBE button. On later nights it repels Fredbear, but ONLY when his barrier is closed. Press it now.', expect: 'strobe' },
 ]);

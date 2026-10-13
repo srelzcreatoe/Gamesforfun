@@ -156,7 +156,7 @@ Openings: 99 doors, archways and windows. Stairs, ladders and the office hatch:
 | C11 | CAM 11 · EAST SERVICE | E_SERVICE | 152.5 4.6 63.2 | 152.5 0.5 99.5 | ES_N, ES_M, ES_S, EMP | 86 blocks (6 chunks) | - |
 | C12 | CAM 12 · EAST HALL | E_HALL | 113.5 4.6 111.5 | 113.5 0.5 133.5 | EH_M, EH_S | 24 blocks (2 chunks) | - |
 | C13 | CAM 13 · EAST CORNER | E_ALCOVE | 108.5 4.6 127.5 | 107.5 0.8 132.5 | E_DOOR, E_DOOR_B | 9 blocks (1 chunks) | - |
-| C14 | CAM 14 · CEILING VENT | CRAWL_UP | 111.5 9.6 127.5 | 101.5 7.9 127.9 | - | 12 blocks (1 chunks) | - |
+| C14 | CAM 14 · CEILING VENT | CRAWL_UP | 111.5 9.6 128.5 | 100.5 7.9 128.5 | - | 11 blocks (1 chunks) | - |
 | C15 | CAM 15 · WEST CORNER | W_ALCOVE | 91.5 4.6 127.5 | 92.5 0.8 132.5 | W_DOOR | 10 blocks (1 chunks) | - |
 | C16 | CAM 16 · WEST HALL | W_HALL | 87.5 4.6 111.5 | 87.5 0.5 133.5 | WH_M, WH_S | 24 blocks (2 chunks) | - |
 | C17 | CAM 17 · SUPPLY CLOSET | SUPPLY | 82.5 4.5 138.5 | 76.5 0.5 120.5 | SUP | 26 blocks (2 chunks) | - |

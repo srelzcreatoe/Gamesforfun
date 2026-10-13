@@ -19,12 +19,12 @@ The build is resumable: if you leave, run `/fb:setup` again.
 
 ### Updating from an earlier version
 
-1. Import the new `.mcaddon` (version **1.6.1**).
+1. Import the new `.mcaddon` (version **1.6.2**).
 2. In the world's settings, open **Behavior Packs** and make sure **FREDBEAR: Six Nights Below (Behavior)** shows
-   version 1.6.1; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
-   Check **Resource Packs** too: only the 1.6.1 resource pack should be active.
-3. Enter the world. Version 1.6 **rebuilds the whole ground floor and the office** (see *The pizzeria* below), so coming
-   from 1.5 or older the action bar asks you to rebuild (from 1.6.0 no rebuild is needed): run **`/fb:setup`** once and wait for the title. Unlocked nights, secrets, endings and
+   version 1.6.2; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
+   Check **Resource Packs** too: only the 1.6.2 resource pack should be active.
+3. Enter the world. Version 1.6 **rebuilds the whole ground floor and the office** (see *The pizzeria* below), and 1.6.2
+   moves the ceiling vent, so coming from any older version the action bar asks you to rebuild: run **`/fb:setup`** once and wait for the title. Unlocked nights, secrets, endings and
    settings are kept: if you already beat night 7, night 8 is open (Morgrave if your last ending was *seal*, Valek if it
    was *burn*).
 4. **Camera numbers** (neighbouring cameras have neighbouring numbers; 1.6 has 25): CAM 01-03 are the show stage,
@@ -100,11 +100,11 @@ night 4, a short **1983 flashback** plays before the shift (sneak to skip).
 | **DOOR** (red) | closes/opens that door (a slam when it closes, a metal door sound when it opens); a closed door stops Bonnie, Chica and Freddy at that side | 0.18 %/s each |
 | **LIGHT** (white) | lights the corner outside that door for 5 s; look through the window | 0.12 %/s each |
 | **MONITOR** (dark) | raises the camera monitor (your view moves to the selected camera) | 0.06 %/s |
-| **HATCH** (gold, nights 4+) | seals the floor hatch Fredbear can climb through | 0.14 %/s |
+| **HATCH** (gold, nights 4+) | seals the floor hatch Fredbear can climb through; it starts every night open | 0.14 %/s |
 | **STROBE** (orange, nights 4+) | emergency strobe: repels Fredbear **only when the barrier he is at is closed**. Charges: 4 on night 4, 5 on night 5, 6 on nights 6, 7 and 9 | 2 % per shot |
 | **SEAL VENT** (white, back counter) | drops a shutter into the supply duct for 20 s (Bonnie's vent); 15 s to recharge | 3 % per use |
 | **SEAL SHAFT** (gold, back counter, when the hatch is installed) | the same for the crawlspace below the office hatch (Fredbear's way up) | 3 % per use |
-| **VENT GRATE** (gold, back counter since 1.6) | opens / closes the grate of the **ceiling vent** above the desk (lamp on the back wall above it: amber closed, green open). Closed at the start of every night; only Morgrave and Valek use that vent | 0.12 %/s while open |
+| **VENT GRATE** (gold, back counter since 1.6) | opens / closes the 3 × 3 grate of the **ceiling vent**, centred above the desk (lamp on the back wall above it: green open, amber closed). **Open at the start of every night** (1.6.2); only Morgrave and Valek use that vent | — (free) |
 | **RESET BREAKER** | restores the hall lights after Chica trips the breaker (2 s) | 1 % |
 | **PHONE** | replays tonight's phone call | — |
 | **RESERVE** lever (nights 3+) | at 0 % power you have 5 s to pull it for one +8 % top-up | — |
@@ -119,8 +119,14 @@ The action bar shows time, power %, usage bars and captions.
 ### Cameras
 
 * Raise the monitor with the console button, the **Camera Tablet** (hotbar slot 1) or a camera **map button**.
-* Switch: scroll the hotbar / press RB-LB / tap another hotbar slot, or press a map button, or use the Camera Tablet menu.
-* Lower: **sneak** (Shift / right-stick / sneak button), the MONITOR button again, or the tablet menu.
+* **Clickable camera map (1.6.2)**: while the monitor is up, the camera map in the bottom-right corner is a menu. Move the
+  cursor with the **mouse** (or the controller stick, or tap on a phone or tablet) and click a camera number to switch to
+  it; the number of the camera you are on is green. **LOWER** (above the map) or Esc / back puts the monitor down. While
+  the map is open you cannot walk, which is the same as before. Switch it off in **Settings** ("Clickable camera map") to
+  use the controls below instead.
+* Switch (clickable map off): scroll the hotbar / press RB-LB / tap another hotbar slot, or press a map button, or use the
+  Camera Tablet menu.
+* Lower (clickable map off): **sneak** (Shift / right-stick / sneak button), the MONITOR button again, or the tablet menu.
 * The monitor makes its own sounds: a click going up and down, and a low CCTV hum while you watch.
 * **Camera map**: while you watch the cameras, a map of the building sits in the bottom-right corner of the screen, like
   FNAF 1: every camera is a numbered box, the one you are on blinks green, and YOU marks the office. The basement cameras

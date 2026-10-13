@@ -190,6 +190,23 @@ animatronics' homes and the stage actuators are unchanged.
 * Balance: the winding halls keep the right door shut a little longer on nights 5 and 6, so their base drain went from 5
   to 4.8 and 4.7 units per tick (docs/05).
 
+## 1.6.2: the ceiling vent, the open grate and hatch, the clickable camera map
+
+* **Ceiling vent centred** (`CEILING_VENT`): a 3 × 3 grate at x 99-101, z 127-129, centred across the office (x 95-105)
+  above the desk; it was a 2 × 2 at x 101-102. Valek's vent eye points, CAM 14's aim and the grate actuators follow it.
+  **Build version 8**: worlds built with an older version ask for `/fb:setup`.
+* **Open at the start of the night**: `night.begin` now opens the grate (green lamp) and it never costs power; on nights
+  with the hatch installed the game triggers `hatch_open` two ticks after `night.begin` (a bus fence keeps the order), so
+  the hatch is drawn open as it really is (unsealed). Nights 1-3 keep it welded shut.
+* **Clickable camera map** (`mc/ui.js` `cameraMapForm`, `ui/server_form.json` written by `tools/gen_cam_map.py`): while
+  the monitor is up an ActionForm stays open; its title starts with `CAM_FORM_MARK`, and the RP draws such a form as the
+  camera map in the bottom-right corner (1.5 × the HUD map) with one vanilla light button over each camera box (button k
+  = `CAMERAS[k]`, bound by `collection_index`) and LOWER above it. Every other form keeps the vanilla dialog. The menu
+  cursor (mouse), controller focus and touch work as in any menu. A pick sends `cam_select` and reopens the form; LOWER or
+  closing the form sends `cams_close`; when the monitor goes down any other way the script closes the form
+  (`uiManager.closeAllForms`). Settings → "Clickable camera map" switches it off. `tools/validate_assets.mjs` checks the
+  mark, the button indices and that the vanilla dialog is kept.
+
 ## Seasonal decorations
 
 `tools/gen_holidays.mjs` writes `data/holiday_decor.generated.js`: Halloween (jack-o'-lanterns, pumpkins, cobwebs —

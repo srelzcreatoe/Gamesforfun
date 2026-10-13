@@ -147,7 +147,9 @@ test('Morgrave at the ceiling vent: open the grate to let him crawl past; he shu
   const C = CONFIG.characters.morgrave;
   const s = visitSession('morgrave');
   const m = s.anim.morgrave;
-  assert.equal(s.devices.grate, true, 'the grate starts closed');
+  assert.equal(s.devices.grate, false, 'the grate starts open (1.6.2)');
+  assert.equal(act(s, 'vent_grate').reason, 'closed');
+  step(s, CONFIG.devices.doorDebounce + 1);
   s.forceVisit('morgrave', 'V');
   until(s, () => m.state === 'KNOCK', 100);
   const f = act(s, 'vent_grate');
@@ -161,6 +163,7 @@ test('Morgrave at the ceiling vent: open the grate to let him crawl past; he shu
   assert.equal(s.phase, 'RUNNING');
 
   const s2 = visitSession('morgrave', 5);
+  act(s2, 'vent_grate'); // shut it
   s2.forceVisit('morgrave', 'V');
   until(s2, () => s2.phase === 'JUMPSCARE', 100 + C.softKnockTicks + 2 * C.angry(s2.anim.morgrave.aggression) + 10);
   assert.equal(s2.devices.grate, false, 'the grate burst open');
@@ -186,14 +189,17 @@ test('Morgrave never breaks a door while someone else is held at it, and leaves 
 test('the vent grate: a button with a debounce; nobody comes knocking while Fredbear is engaged', () => {
   const s = visitSession('morgrave');
   const fx = [];
+  assert.equal(s.devices.grate, false, 'open at the start of the night (1.6.2)');
+  const p0 = s.drainPerTick();
   s.input('vent_grate');
   fx.push(...s.tick());
-  assert.equal(s.devices.grate, false);
-  assert.ok(fx.some((f) => f.fx === 'actuate' && f.id === 'grate_open'));
+  assert.equal(s.devices.grate, true);
+  assert.ok(fx.some((f) => f.fx === 'actuate' && f.id === 'grate_close'));
+  assert.equal(s.drainPerTick() <= p0 + 1, true, 'the grate costs no power either way');
   assert.equal(act(s, 'vent_grate').reason, 'cooldown');
   step(s, CONFIG.devices.doorDebounce + 1);
-  assert.equal(act(s, 'vent_grate').reason, 'closed');
-  assert.equal(s.snapshot().devices.grate, true);
+  assert.equal(act(s, 'vent_grate').reason, 'opened');
+  assert.equal(s.snapshot().devices.grate, false);
   // While Fredbear is engaged nobody new comes knocking.
   s.anim.fredbear.state = 'TELEGRAPH';
   s.forceVisit('morgrave', 'L');

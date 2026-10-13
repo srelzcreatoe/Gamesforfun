@@ -333,7 +333,7 @@ function stairs(P) {
       }
       P.flush();
     } else if (s.kind === 'ceilvent') {
-      // Morgrave's and Valek's way in (1.4): the office ceiling is cut open under a 2x2 grate in the
+      // Morgrave's and Valek's way in (1.4): the office ceiling is cut open under a 3x3 grate in the
       // crawlspace floor; the grate is opened and closed by the VENT GRATE button (actuators grate_*).
       const V = CEILING_VENT;
       P.fill(V.x1, V.holeY, V.z1, V.x2, V.holeY, V.z2, 'air');

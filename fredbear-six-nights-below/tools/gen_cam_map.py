@@ -28,6 +28,9 @@ ROOT = os.path.dirname(HERE)
 RP = os.path.join(ROOT, "packs", "FredbearRP")
 
 MAP_ON = "§k§r§k§r§l"  # keep in sync with mc/game.js MAP_ON
+FORM_MARK = "§k§r§k§r§m"  # keep in sync with mc/ui.js CAM_FORM_MARK (1.6.2 clickable map)
+FORM_SCALE = 1.5  # the clickable map is drawn 1.5x the HUD map so the buttons are easy to hit
+LOWER_SIZE = (34, 11)  # LOWER button above the map's top-right corner, UI units
 PX = 6  # texture pixels per UI unit
 SCALE = 0.45  # UI units per block
 BOX = (11.0, 6.5)  # camera box size, UI units
@@ -181,7 +184,94 @@ def main():
     with open(os.path.join(RP, "ui", "hud_screen.json"), "w", encoding="utf-8") as fh:
         json.dump(ui, fh, indent=2, ensure_ascii=False)
         fh.write("\n")
-    print(f"camera map: {len(rects)} cameras, {W}x{H} px ({SIZE[0]}x{SIZE[1]} UI units), ui/hud_screen.json")
+    write_server_form([c["id"] for c in cameras], rects)
+    print(f"camera map: {len(rects)} cameras, {W}x{H} px ({SIZE[0]}x{SIZE[1]} UI units), ui/hud_screen.json, ui/server_form.json")
+
+
+def write_server_form(ids, rects):
+    """1.6.2: the clickable camera map (mc/ui.js cameraMapForm).
+
+    An ActionForm whose title starts with FORM_MARK is drawn as the building map in the bottom-right corner
+    instead of the usual dialog: the map image with one real button over each camera box (button k = the
+    form's button k, CAMERAS order) and LOWER above it. Buttons are vanilla light text buttons, so the menu
+    cursor (mouse), controller focus and touch all work. Every other form keeps the vanilla dialog."""
+    k = FORM_SCALE / PX  # texture px -> UI units
+    mw, mh = round(SIZE[0] * FORM_SCALE, 1), round(SIZE[1] * FORM_SCALE, 1)
+    has_mark = f"(not ((#title_text - '{FORM_MARK}') = #title_text))"
+    no_mark = f"((#title_text - '{FORM_MARK}') = #title_text)"
+    controls = [
+        {"fb_cam_form_map_image": {"type": "image", "texture": "textures/ui/fb/cam_map", "size": ["100%", "100%"], "layer": 1}},
+        {"fb_cam_form_live": {
+            "type": "label", "text": "#form_text", "color": [1, 1, 1], "shadow": True, "layer": 3,
+            "anchor_from": "top_left", "anchor_to": "bottom_left", "offset": [1, -2], "size": ["default", 10],
+        }},
+    ]
+    for i, cam in enumerate(ids):
+        x1, y1, x2, y2 = rects[cam]
+        controls.append({f"fb_cam_button_{cam.lower()}@server_form.fb_cam_button": {
+            "collection_index": i,
+            "size": [round((x2 - x1) * k, 2), round((y2 - y1) * k, 2)],
+            "offset": [round(x1 * k, 2), round(y1 * k, 2)],
+        }})
+    controls.append({"fb_cam_button_lower@server_form.fb_cam_button": {
+        "collection_index": len(ids),
+        "size": list(LOWER_SIZE),
+        "offset": [round(mw - LOWER_SIZE[0], 2), -LOWER_SIZE[1] - 1],
+    }})
+    ui = {
+        "namespace": "server_form",
+        # Full screen, so the map can sit in the corner (the vanilla dialogs are centred either way).
+        "main_screen_content": {"size": ["100%", "100%"]},
+        "long_form": {
+            "type": "panel",
+            "size": ["100%", "100%"],
+            "controls": [
+                {"fb_default_long_form@common_dialogs.main_panel_no_buttons": {
+                    # the vanilla long_form, unchanged; shown for every form without the mark
+                    "$title_panel": "common_dialogs.standard_title_label",
+                    "$title_size": ["100% - 15px", 10],
+                    "$title_max_size": ["100% - 15px", 10],
+                    "size": [225, 200],
+                    "$text_name": "#title_text",
+                    "$title_text_binding_type": "none",
+                    "$child_control": "server_form.long_form_panel",
+                    "layer": 2,
+                    "bindings": [{"binding_name": "#title_text"}, {"binding_type": "view", "source_property_name": no_mark, "target_property_name": "#visible"}],
+                }},
+                {"fb_cam_form@server_form.fb_cam_form": {
+                    "bindings": [{"binding_name": "#title_text"}, {"binding_type": "view", "source_property_name": has_mark, "target_property_name": "#visible"}],
+                }},
+            ],
+        },
+        "fb_cam_form": {
+            "type": "panel",
+            "size": ["100%", "100%"],
+            "controls": [{"fb_cam_form_map": {
+                "type": "panel",
+                "size": [mw, mh],
+                "anchor_from": "bottom_right",
+                "anchor_to": "bottom_right",
+                "offset": [-2, -2],
+                "layer": 10,
+                "collection_name": "form_buttons",
+                "controls": controls,
+            }}],
+        },
+        "fb_cam_button@common_buttons.light_text_button": {
+            "$pressed_button_name": "button.form_button_click",
+            "anchor_from": "top_left",
+            "anchor_to": "top_left",
+            "layer": 4,
+            "$button_text": "#form_button_text",
+            "$button_text_binding_type": "collection",
+            "$button_text_grid_collection_name": "form_buttons",
+            "$button_text_max_size": ["100%", "100%"],
+            "bindings": [{"binding_type": "collection_details", "binding_collection_name": "form_buttons"}],
+        },
+    }
+    with open(os.path.join(RP, "ui", "server_form.json"), "w", encoding="utf-8") as fh:
+        json.dump(ui, fh, indent=2, ensure_ascii=False)
+        fh.write("\n")
 
 
 if __name__ == "__main__":

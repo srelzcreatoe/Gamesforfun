@@ -1,0 +1,482 @@
+{
+  "namespace": "server_form",
+  "main_screen_content": {
+    "size": [
+      "100%",
+      "100%"
+    ]
+  },
+  "long_form": {
+    "type": "panel",
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "controls": [
+      {
+        "fb_default_long_form@common_dialogs.main_panel_no_buttons": {
+          "$title_panel": "common_dialogs.standard_title_label",
+          "$title_size": [
+            "100% - 15px",
+            10
+          ],
+          "$title_max_size": [
+            "100% - 15px",
+            10
+          ],
+          "size": [
+            225,
+            200
+          ],
+          "$text_name": "#title_text",
+          "$title_text_binding_type": "none",
+          "$child_control": "server_form.long_form_panel",
+          "layer": 2,
+          "bindings": [
+            {
+              "binding_name": "#title_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#title_text - '§k§r§k§r§m') = #title_text)",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_form@server_form.fb_cam_form": {
+          "bindings": [
+            {
+              "binding_name": "#title_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - '§k§r§k§r§m') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "fb_cam_form": {
+    "type": "panel",
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "controls": [
+      {
+        "fb_cam_form_map": {
+          "type": "panel",
+          "size": [
+            193.5,
+            103.5
+          ],
+          "anchor_from": "bottom_right",
+          "anchor_to": "bottom_right",
+          "offset": [
+            -2,
+            -2
+          ],
+          "layer": 10,
+          "collection_name": "form_buttons",
+          "controls": [
+            {
+              "fb_cam_form_map_image": {
+                "type": "image",
+                "texture": "textures/ui/fb/cam_map",
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "layer": 1
+              }
+            },
+            {
+              "fb_cam_form_live": {
+                "type": "label",
+                "text": "#form_text",
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "shadow": true,
+                "layer": 3,
+                "anchor_from": "top_left",
+                "anchor_to": "bottom_left",
+                "offset": [
+                  1,
+                  -2
+                ],
+                "size": [
+                  "default",
+                  10
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c01@server_form.fb_cam_button": {
+                "collection_index": 0,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  124.25,
+                  7.75
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c02@server_form.fb_cam_button": {
+                "collection_index": 1,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  98.0,
+                  7.75
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c03@server_form.fb_cam_button": {
+                "collection_index": 2,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  79.75,
+                  7.75
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c04@server_form.fb_cam_button": {
+                "collection_index": 3,
+                "size": [
+                  16.5,
+                  10.0
+                ],
+                "offset": [
+                  79.75,
+                  26.5
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c05@server_form.fb_cam_button": {
+                "collection_index": 4,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  98.0,
+                  28.75
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c06@server_form.fb_cam_button": {
+                "collection_index": 5,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  83.75,
+                  46.25
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c07@server_form.fb_cam_button": {
+                "collection_index": 6,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  79.75,
+                  65.75
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c08@server_form.fb_cam_button": {
+                "collection_index": 7,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  114.75,
+                  42.75
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c09@server_form.fb_cam_button": {
+                "collection_index": 8,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  141.75,
+                  42.75
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c10@server_form.fb_cam_button": {
+                "collection_index": 9,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  168.75,
+                  10.5
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c11@server_form.fb_cam_button": {
+                "collection_index": 10,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  166.0,
+                  48.25
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c12@server_form.fb_cam_button": {
+                "collection_index": 11,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  136.25,
+                  63.75
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c13@server_form.fb_cam_button": {
+                "collection_index": 12,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  137.75,
+                  74.5
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c14@server_form.fb_cam_button": {
+                "collection_index": 13,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  125.0,
+                  90.0
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c15@server_form.fb_cam_button": {
+                "collection_index": 14,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  112.0,
+                  74.5
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c16@server_form.fb_cam_button": {
+                "collection_index": 15,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  112.0,
+                  63.75
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c17@server_form.fb_cam_button": {
+                "collection_index": 16,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  95.25,
+                  79.25
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c18@server_form.fb_cam_button": {
+                "collection_index": 17,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  106.75,
+                  90.0
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c19@server_form.fb_cam_button": {
+                "collection_index": 18,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  51.5,
+                  74.75
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c20@server_form.fb_cam_button": {
+                "collection_index": 19,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  46.25,
+                  57.25
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c21@server_form.fb_cam_button": {
+                "collection_index": 20,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  12.5,
+                  77.5
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c22@server_form.fb_cam_button": {
+                "collection_index": 21,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  4.25,
+                  60.0
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c23@server_form.fb_cam_button": {
+                "collection_index": 22,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  12.5,
+                  46.5
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c24@server_form.fb_cam_button": {
+                "collection_index": 23,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  12.5,
+                  27.5
+                ]
+              }
+            },
+            {
+              "fb_cam_button_c25@server_form.fb_cam_button": {
+                "collection_index": 24,
+                "size": [
+                  16.5,
+                  9.75
+                ],
+                "offset": [
+                  8.5,
+                  14.0
+                ]
+              }
+            },
+            {
+              "fb_cam_button_lower@server_form.fb_cam_button": {
+                "collection_index": 25,
+                "size": [
+                  34,
+                  11
+                ],
+                "offset": [
+                  159.5,
+                  -12
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "fb_cam_button@common_buttons.light_text_button": {
+    "$pressed_button_name": "button.form_button_click",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "layer": 4,
+    "$button_text": "#form_button_text",
+    "$button_text_binding_type": "collection",
+    "$button_text_grid_collection_name": "form_buttons",
+    "$button_text_max_size": [
+      "100%",
+      "100%"
+    ],
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "form_buttons"
+      }
+    ]
+  }
+}

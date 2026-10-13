@@ -33,7 +33,7 @@ export const CAMERAS = Object.freeze([
   C('C13', 'CAM 13 · EAST CORNER', 'E_ALCOVE', [108.5, 4.6, 127.5], [107.5, 0.8, 132.5], ['E_DOOR', 'E_DOOR_B']),
   // The crawlspace above the office, looking along it at the ceiling-vent grate (1.4). No route nodes:
   // Morgrave and Valek use fixed spots there (data/visitors.js).
-  C('C14', 'CAM 14 · CEILING VENT', 'CRAWL_UP', [111.5, 9.6, 127.5], [101.5, 7.9, 127.9], []),
+  C('C14', 'CAM 14 · CEILING VENT', 'CRAWL_UP', [111.5, 9.6, 128.5], [100.5, 7.9, 128.5], []),
   C('C15', 'CAM 15 · WEST CORNER', 'W_ALCOVE', [91.5, 4.6, 127.5], [92.5, 0.8, 132.5], ['W_DOOR']),
   C('C16', 'CAM 16 · WEST HALL', 'W_HALL', [87.5, 4.6, 111.5], [87.5, 0.5, 133.5], ['WH_M', 'WH_S']),
   C('C17', 'CAM 17 · SUPPLY CLOSET', 'SUPPLY', [82.5, 4.5, 138.5], [76.5, 0.5, 120.5], ['SUP']),

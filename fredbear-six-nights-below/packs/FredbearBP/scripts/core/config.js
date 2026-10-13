@@ -27,7 +27,6 @@ export const CONFIG = Object.freeze({
     light: 6, // per lit hall light, per tick
     cams: 3, // while the camera monitor is up
     hatch: 7, // while the office hatch is sealed
-    grate: 6, // while the ceiling-vent grate is open (1.4: the cold comes down; leaving it open is not free)
     strobeCost: 2000, // one-shot 2 %
     breakerResetCost: 1000, // one-shot 1 %
     reserveAmount: 8000, // emergency reserve restores 8 %

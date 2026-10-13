@@ -9,8 +9,8 @@
 | **Automated structure tests** (command-block files) | **Completed** — 6 tests passing |
 | **Automated route-guidance tests** (walkable graph vs the voxel model) | **Completed** — 5 tests passing |
 | **Automated holiday-decoration tests** (generated cells vs the build plan) | **Completed** — 3 tests passing |
-| **Automated integration tests** (real pack scripts on a mock `@minecraft/server`) | **Completed** — 31 tests passing |
-| **In-game tests** (Minecraft Bedrock running) | **No systematic pass.** Minecraft is not available in the build environment. The map owner played version 1.1 up to night 6 and version 1.2 to the end, and reported the problems fixed in 1.2.0 and 1.3.0 (table below). **Nothing added in 1.3.0, 1.3.1, 1.4.0, 1.5.0, 1.6.0 or 1.6.1 has been checked in-game yet** (1.3.1: Vibrant Visuals support; 1.4.0: the ceiling vent and its grate, Morgrave's knocking, Valek's staring contest and head lock, the renumbered cameras, the jumpscare-view fix; 1.5.0: the Classic Freddy, Withered Freddy, Midnight Banjo Bonnie and Springbonnie models, the new Chica, Springbonnie's Golden Hour, the workshop; 1.6.0: the rebuilt ground floor and office, the new routes, the 25 cameras; 1.6.1: `/fb:debug unlock all`): the Freddy V6, Bonnie V2, Morgrave and Valek models, Morgrave and Valek themselves, nights 8 and 9, the new cameras, the camera map HUD, the seals, the stare, the withered look, the new sounds, the lore rooms and the tapes. |
+| **Automated integration tests** (real pack scripts on a mock `@minecraft/server`) | **Completed** — 32 tests passing |
+| **In-game tests** (Minecraft Bedrock running) | **No systematic pass.** Minecraft is not available in the build environment. The map owner played version 1.1 up to night 6 and version 1.2 to the end, and reported the problems fixed in 1.2.0 and 1.3.0 (table below). **Nothing added in 1.3.0, 1.3.1, 1.4.0, 1.5.0 or 1.6.x has been checked in-game yet** (1.3.1: Vibrant Visuals support; 1.4.0: the ceiling vent and its grate, Morgrave's knocking, Valek's staring contest and head lock, the renumbered cameras, the jumpscare-view fix; 1.5.0: the Classic Freddy, Withered Freddy, Midnight Banjo Bonnie and Springbonnie models, the new Chica, Springbonnie's Golden Hour, the workshop; 1.6.0: the rebuilt ground floor and office, the new routes, the 25 cameras; 1.6.1: `/fb:debug unlock all`; 1.6.2: the centred vent, the open grate and hatch, the clickable camera map): the Freddy V6, Bonnie V2, Morgrave and Valek models, Morgrave and Valek themselves, nights 8 and 9, the new cameras, the camera map HUD, the seals, the stare, the withered look, the new sounds, the lore rooms and the tapes. |
 | **Manual tests still required** | The checklist at the end of this file |
 
 The integration tests run the real behavior-pack scripts against a headless model of the Script API (`tests/mock/`).
@@ -32,7 +32,7 @@ Run everything with `npm run validate && npm test`.
 | `tools/validate_assets.mjs` | 85 JSON files parse; BP ↔ RP ↔ script entity ids; textures, 8 geometries, 106 animations, every animation controller, render-controller keys resolve; UV boxes inside each texture (Chica 128×64, Freddy 128×128, Fredbear 256×256, Bonnie 512×256, Morgrave and Valek 512×512); every animated bone exists in that entity's own geometry; every `fb:anim` value of each entity has a state in its own controller; scripts only set enum values; the jumpscare framing scale matches each entity's `minecraft:scale`; items → icons; 62 sounds with files; Valek's eye height matches his model and scale; the jumpscare distance table covers every animatronic; every script sound id defined, the music track is in the `music` category; 12 fogs (nights 1-9); the camera map HUD's textures exist, its marker matches the script and every camera has a highlight; Vibrant Visuals: the RP declares `pbr` with a high enough min engine, every entity and item texture has a valid texture set (eye layers fully emissive), volumetric densities in range and cleared for the camera feed; lang names | PASS |
 | `tsc --checkJs` | every Script API call in the 48 script files against `@minecraft/server` 2.10.0 and `server-ui` 2.2.0 declarations | PASS |
 
-## Automated tests (86, all passing)
+## Automated tests (87, all passing)
 
 **Core simulation (`tests/core.test.mjs`, 24):** same seed reproduces a night exactly · all seven nights completable (oracle, 10 seeds each) ·
 every lethal attack preceded by its telegraph and never through a closed barrier · closed door always stops Bonnie · 6 AM boundary ·
@@ -68,7 +68,7 @@ exactly one repeating block · command-block NBT keys, `Version` and block versi
 **Holiday decorations (`tests/holidays.test.mjs`, 3):** the generated cells match the current build plan · for Halloween and for Christmas:
 every cell is air in the built map and the routes, the route guidance and every camera are unaffected with the decorations placed.
 
-**Integration (`tests/integration.test.mjs`, 31):** main.js wiring · structure-id resolution · intro camera tour (sneak skips) · intro breadcrumbs over walkable floor with the distance on the HUD · Shift Guide topic menu with the music switch · `/fb:setup` builds the map and installs 540 command blocks ·
+**Integration (`tests/integration.test.mjs`, 32):** main.js wiring · structure-id resolution · intro camera tour (sneak skips) · intro breadcrumbs over walkable floor with the distance on the HUD · Shift Guide topic menu with the music switch · `/fb:setup` builds the map and installs 540 command blocks ·
 the built world equals the offline voxel model (> 2 million cells) · in-game self-test 9/9 PASS · training shift through the
 physical controls · night start and office controls (blocks change, power drains, spoofed input rejected) · 6 AM win persists unlock ·
 jumpscare → game over → immediate retry (1.4: the player is invisible with an empty hand during the jumpscare and visible again after; the animatronic stands at its measured distance) · maintenance pause/resume · ten randomized play/reset cycles · duplicate and stray puppets removed ·
@@ -77,7 +77,7 @@ through the console buttons, ending and persistent completion · night 4 flashba
 follows the setting) · challenges (locked until night 6, modifiers applied, win saved, lamp lit) · newspaper clippings · holiday decorations
 placed into air only and removed · Shadow Fredbear · night 7 and both final endings · nights 8 and 9: night 8 follows the last ending,
 the camera map title appears with the monitor and matches the HUD file, the VENT GRATE button opens and closes the grate blocks, Valek's gaze follows where the player looks and his head locks on, night 9 with the trio switched off, the night 9 ending, the
-tape deck locked before night 5 and playing after · 1.1 / 1.2 saves unlock nights 7-9 only by survived nights · `/fb:debug unlock all` marks nights 1-9 survived, saves it and lights the time-clock lamps · upgrading a world
+tape deck locked before night 5 and playing after · 1.1 / 1.2 saves unlock nights 7-9 only by survived nights · `/fb:debug unlock all` marks nights 1-9 survived, saves it and lights the time-clock lamps · the clickable camera map: the monitor opens the map form, a pick switches the feed and reopens it, LOWER / Esc lower the monitor, a forced close takes the form down, and with the setting off no form opens · the grate and the hatch start a night open · upgrading a world
 built by an older version (asks for /fb:setup, rebuilds, keeps progress).
 
 **Mock limits for 1.3.0 features:** the mock records the titles the script sends for the camera map and checks they match the
@@ -120,6 +120,8 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 
 | Found by | Problem | Fix |
 |---|---|---|
+| owner request (1.6.2) | The ceiling vent looked lopsided; the vent and the hatch should start open; a mouse cursor for the cameras, working on console and touch too | 3 × 3 vent centred over the desk; grate open and free, hatch drawn open; the camera map is a menu with real buttons (vanilla menu cursor, controller focus, touch) |
+| test (1.6.2) | the night-start module drew the hatch shut on nights 4+ although it was unsealed | the hatch is drawn open after `night.begin` on nights it is installed |
 | owner request (1.6) | Rebuild the whole pizzeria and the office with a new layout (bigger and creepier) | new ground floor (theatre, play place, cove, arcade hall, party wing, dining hall, winding halls), the classic office, 25 cameras, new routes; the office systems, the duct, the hatch and the basement kept their coordinates (docs/07) |
 | map validator (1.6) | the cove's STARLIGHT block letters ran 18 blocks past the cove into the dining hall and blocked a route; a supply-closet crate landed on the duct grate | the cove got a starry backdrop instead; both duct grates are reserved so props never land on them; the ARCADE, PLAY and SMILE letters were checked against the room widths and doorways |
 | in-game self-test in the mock (1.6) | the backstage pressure plate sat on Bonnie's route (the in-game route check counts a plate as blocking) | plate moved off the route |
@@ -161,7 +163,7 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 ## Manual checks still required (Windows Bedrock 1.26.50 recommended)
 
 1. Import `dist/Fredbear_Six_Nights_Below.mcaddon`; create a Flat world with cheats; activate the BP (RP added automatically).
-   For an existing world: check that both packs show 1.6.1, then run `/fb:setup` when asked.
+   For an existing world: check that both packs show 1.6.2, then run `/fb:setup` when asked.
 2. `/fb:setup`: build completes without a *Build report*; time the build and note any lag.
 3. `/fb:debug selftest`: 9 × PASS. In particular *command blocks in place* (structure ids `fb:*` load) and *actuator round trip*.
 4. Walk the map in FREE ROAM: stairs face the right way, doors/windows/props look right, signs readable, no floating or
@@ -211,6 +213,12 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
     VENT GRATE on the back counter work and their lamps above them light; the console map has 25 buttons with the right
     labels and the HUD map matches; a full night: the animatronics walk the new routes without clipping through anything
     (theatre arch, cove, party rooms, the bends) and reach both doors.
+19. **1.6.2**: the ceiling vent sits centred over the desk and Morgrave / Valek still use it; the grate and (nights 4+)
+    the hatch look open when a night starts; **the clickable camera map**: with the mouse, a controller (stick / d-pad)
+    and touch, every camera button switches to the right feed, the live number is green, LOWER and Esc / back lower the
+    monitor, the feed stays visible around the map, the map closes on a jumpscare / power out / 6 AM, and every other
+    menu (Shift Guide, Settings, results) still looks normal. If the map shows as a normal list or the buttons do
+    nothing, switch it off in Settings and report it.
 
 ## Known limitations
 

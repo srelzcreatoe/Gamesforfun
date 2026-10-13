@@ -326,6 +326,33 @@ export function validateAssets() {
     for (const c of CAMERAS) if (!hudText.includes(`fb_cam_map_${c.id.toLowerCase()}`)) err(`camera map: no highlight for ${c.id}`);
   }
 
+  // ------------------------------------------------------------ clickable camera map (1.6.2, tools/gen_cam_map.py)
+  // The form mc/ui.js cameraMapForm shows is drawn by ui/server_form.json: its mark must match, every camera needs a
+  // button whose collection index is that camera's place in CAMERAS (the form's button order), LOWER comes last, and
+  // every other form must still get the vanilla dialog.
+  const sf = docs.get(path.join(RP, 'ui/server_form.json'));
+  if (!sf) err('ui/server_form.json missing (clickable camera map)');
+  else {
+    const sfText = JSON.stringify(sf);
+    const mark = scriptText.match(/export const CAM_FORM_MARK = '([^']+)'/)?.[1];
+    if (!mark || !sfText.includes(mark)) err('clickable camera map: ui.js CAM_FORM_MARK does not match ui/server_form.json');
+    if (sf.namespace !== 'server_form') err('ui/server_form.json: namespace must be server_form');
+    const def = sf.long_form?.controls?.find((c) => Object.keys(c)[0].startsWith('fb_default_long_form@common_dialogs.main_panel_no_buttons'));
+    if (!def || Object.values(def)[0].$child_control !== 'server_form.long_form_panel') err('ui/server_form.json: the vanilla long_form dialog is not kept for other forms');
+    const map = sf.fb_cam_form?.controls?.[0]?.fb_cam_form_map;
+    if (map?.collection_name !== 'form_buttons') err('clickable camera map: the button panel is not bound to form_buttons');
+    const idx = new Map();
+    for (const c of map?.controls ?? []) {
+      const [k, v] = Object.entries(c)[0];
+      if (k.includes('@server_form.fb_cam_button')) idx.set(k.split('@')[0], v.collection_index);
+    }
+    CAMERAS.forEach((c, i) => {
+      if (idx.get(`fb_cam_button_${c.id.toLowerCase()}`) !== i) err(`clickable camera map: ${c.id} button missing or not collection index ${i}`);
+    });
+    if (idx.get('fb_cam_button_lower') !== CAMERAS.length) err(`clickable camera map: LOWER must be collection index ${CAMERAS.length}`);
+    for (const m of sfText.matchAll(/"texture":"(textures\/ui\/[^"]+)"/g)) if (!fs.existsSync(path.join(RP, `${m[1]}.png`))) err(`server_form.json: texture ${m[1]}.png missing`);
+  }
+
   // ------------------------------------------------------------ Vibrant Visuals (PBR)
   // Without the "pbr" capability (min engine 1.21.120+) the game limits graphics to Fancy while the pack is active.
   const rpMan = docs.get(path.join(RP, 'manifest.json'));

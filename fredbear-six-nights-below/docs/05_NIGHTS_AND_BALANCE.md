@@ -62,7 +62,7 @@ Fredbear W3 (barrier jammed open, strobe still works) = 60 ticks; a strobe witho
 
 1.3 behaviours: double trouble (from A ≥ 8, Bonnie or Chica joins whoever holds the right door; a pair needs twice the repel time), Bonnie's teamwork (A ≥ 8, chance 0.4, cooldown 2400: bangs on the left door while Chica sneaks to the right), Chica flanks left from A ≥ 8. 
 
-1.4 visitors (left door, right door, ceiling vent): Morgrave knocks softly for 30 ticks; an open entry lets him walk (crawl) past in 50 ticks, a shut one starts the two angry stages, and he never breaks through while someone else is held at that door (then at least 60 ticks after they leave). He picks the vent with weight 1.2 and a door with 1 + door use / 4 (+2 while it is shut). An open vent grate costs 6 units per tick. Valek's eyes appear at an entry; stare at them and he looks away first after `[60, 100 + 5 * a]` ticks (A = 15: 60-175); a glance away longer than 16 ticks (8 once he is close), or the cameras, makes him step closer (far, near, attack); he turns away in 20 ticks.
+1.4 visitors (left door, right door, ceiling vent): Morgrave knocks softly for 30 ticks; an open entry lets him walk (crawl) past in 50 ticks, a shut one starts the two angry stages, and he never breaks through while someone else is held at that door (then at least 60 ticks after they leave). He picks the vent with weight 1.2 and a door with 1 + door use / 4 (+2 while it is shut). The vent grate starts every night open and costs no power (1.6.2). Valek's eyes appear at an entry; stare at them and he looks away first after `[60, 100 + 5 * a]` ticks (A = 15: 60-175); a glance away longer than 16 ticks (8 once he is close), or the cameras, makes him step closer (far, near, attack); he turns away in 20 ticks.
 
 1.5 Springbonnie (night 6 Golden Hour only): he wakes with the finale (tick 8000), climbs out of the supply-closet grate and hunts the LEFT door like Bonnie (no flank, vent, partner or teamwork) at aggression 16 plus the hourly ramp; his springlock twang at the door is always heard. Fredbear's Golden Hour bonus went from 2 attempts to 1 with a 400-tick cooldown to keep night 6 where it was.
 
@@ -108,8 +108,8 @@ Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). 
 | Player model | N1 | N2 | N3 | N4 | N5 | N6 | N7 | N8 seal | N8 burn | N9 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Oracle (perfect information) (20 seeds) | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% |
-| Human model (skill 1.0) (30 seeds) | 100% | 100% | 100% | 90% | 70% | 33% | 53% | 87% | 50% | 33% |
-| Human model (skill 0.7) (30 seeds) | 100% | 100% | 100% | 90% | 70% | 37% | 47% | 97% | 30% | 7% |
+| Human model (skill 1.0) (30 seeds) | 100% | 100% | 100% | 90% | 70% | 33% | 53% | 90% | 50% | 17% |
+| Human model (skill 0.7) (30 seeds) | 100% | 100% | 100% | 90% | 70% | 37% | 47% | 97% | 30% | 10% |
 | Idle (does nothing) (10 seeds) | 80% | 20% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
 | Wasteful (everything on) (10 seeds) | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
 
@@ -124,9 +124,9 @@ Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). 
 | 5 | 100% | 31.7% | 25.4% | 0 | - | - |
 | 6 | 100% | 25.9% | 21.4% | 0 | - | - |
 | 7 | 100% | 38.1% | 34.9% | 0 | - | - |
-| 8 seal | 100% | 53.9% | 50.2% | 0 | - | - |
+| 8 seal | 100% | 58.8% | 56% | 0 | - | - |
 | 8 burn | 100% | 60.1% | 56.3% | 0 | - | - |
-| 9 | 100% | 48.3% | 45.5% | 0 | - | - |
+| 9 | 100% | 54.2% | 51.3% | 0 | - | - |
 
 ### Human model (skill 1.0)
 
@@ -139,9 +139,9 @@ Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). 
 | 5 | 70% | 2% | 0% | 27 | fredbear 8, chica 1 | 5 AM |
 | 6 | 33% | 1.8% | 0% | 28 | fredbear 18, freddy 1, bonnie 1 | 4.8 AM |
 | 7 | 53% | 23.7% | 19.4% | 0 | fredbear 14 | 3.7 AM |
-| 8 seal | 87% | 19.5% | 11.4% | 0 | morgrave 3, chica 1 | 2.8 AM |
+| 8 seal | 90% | 22.9% | 15.9% | 0 | morgrave 2, bonnie 1 | 3 AM |
 | 8 burn | 50% | 22.5% | 16.2% | 0 | valek 14, chica 1 | 2.7 AM |
-| 9 | 33% | 33.5% | 27.3% | 0 | valek 20 | 2.4 AM |
+| 9 | 17% | 37.8% | 31.7% | 0 | valek 25 | 2.5 AM |
 
 ### Human model (skill 0.7)
 
@@ -154,9 +154,9 @@ Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). 
 | 5 | 70% | 1.6% | 0% | 25 | fredbear 6, bonnie 1, chica 2 | 4 AM |
 | 6 | 37% | 2.7% | 0% | 29 | fredbear 18, bonnie 1 | 4.8 AM |
 | 7 | 47% | 21.7% | 16.9% | 0 | fredbear 16 | 3.8 AM |
-| 8 seal | 97% | 20.2% | 10.8% | 0 | chica 1 | 4 AM |
+| 8 seal | 97% | 22.2% | 13.1% | 0 | chica 1 | 4 AM |
 | 8 burn | 30% | 21.3% | 10.1% | 0 | valek 21 | 2.3 AM |
-| 9 | 7% | 37% | 33.6% | 0 | valek 28 | 1.9 AM |
+| 9 | 10% | 38.7% | 34.9% | 0 | valek 27 | 1.7 AM |
 
 ### Challenge modes
 

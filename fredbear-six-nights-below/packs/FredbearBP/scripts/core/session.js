@@ -8,7 +8,7 @@
 // PHASES: RUNNING | MAINT | POWER_OUT | JUMPSCARE | WON | LOST
 //
 // CEILING VENT (1.4): entry 'V', only Morgrave and Valek use it. The grate is a device like a door
-// (devices.grate, true = closed; closed at the start of every night, no power cost). Morgrave wants it
+// (devices.grate, true = closed). Since 1.6.2 it starts every night OPEN and never costs power. Morgrave wants it
 // OPEN when he knocks; Valek ignores barriers (his counter is the stare: view.gaze, set by the
 // adapter from where the player looks, or by a test bot).
 //
@@ -76,7 +76,7 @@ export class NightSession {
     const P = CONFIG.power;
     this.power = P.start + (this.options.taskBonusPower ? P.taskBonus : 0);
     this.devices = {
-      doorL: false, doorR: false, lightL: false, lightR: false, hatch: false, grate: true,
+      doorL: false, doorR: false, lightL: false, lightR: false, hatch: false, grate: false, // 1.6.2: the grate starts open
       cams: { open: false, cam: 'C01' },
       deb: Object.create(null), lightTimer: { L: 0, R: 0 },
     };
@@ -165,7 +165,7 @@ export class NightSession {
 
   usage() {
     const d = this.devices;
-    const n = (d.doorL ? 1 : 0) + (d.doorR ? 1 : 0) + (d.lightL ? 1 : 0) + (d.lightR ? 1 : 0) + (d.cams.open ? 1 : 0) + (d.hatch ? 1 : 0) + (d.grate ? 0 : 1);
+    const n = (d.doorL ? 1 : 0) + (d.doorR ? 1 : 0) + (d.lightL ? 1 : 0) + (d.lightR ? 1 : 0) + (d.cams.open ? 1 : 0) + (d.hatch ? 1 : 0);
     return Math.min(5, 1 + n);
   }
 
@@ -179,7 +179,6 @@ export class NightSession {
     if (d.lightR) used += P.light;
     if (d.cams.open) used += P.cams;
     if (d.hatch) used += P.hatch;
-    if (!d.grate) used += P.grate;
     return this.baseDrainNow() + used * (this.mods.deviceDrainMult ?? 1);
   }
 

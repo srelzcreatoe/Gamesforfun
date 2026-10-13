@@ -3,8 +3,8 @@
 // change", so a dismissed form never leaves the game in a half state.
 
 import { system } from '@minecraft/server';
-import { ActionFormData, ModalFormData, MessageFormData, FormCancelationReason } from '@minecraft/server-ui';
-import { CAMERAS, CAMERA_MAP_LAYOUT } from '../data/cameras.js';
+import { ActionFormData, ModalFormData, MessageFormData, FormCancelationReason, uiManager } from '@minecraft/server-ui';
+import { CAMERAS, CAMERA_MAP_LAYOUT, CAMERA_BY_ID } from '../data/cameras.js';
 import { SECRETS, TUTORIAL_STEPS, CLIPPINGS, FINAL_CHOICE } from '../data/story.js';
 import { CONFIG } from '../core/config.js';
 import { GUIDE_SECTIONS } from '../data/guide_text.js';
@@ -25,6 +25,42 @@ async function show(player, form, retries = 2) {
     }
   }
   return undefined;
+}
+
+/**
+ * 1.6.2: the clickable camera map. A form whose title starts with this mark is drawn by the RP
+ * (ui/server_form.json, written by tools/gen_cam_map.py) as the building map in the bottom-right
+ * corner: one button per camera in CAMERAS order, then LOWER. The menu cursor (mouse, controller
+ * stick or a tap) picks a camera; the feed stays visible around the map.
+ */
+export const CAM_FORM_MARK = '§k§r§k§r§m';
+
+/** Show the camera map form once. Resolves to { kind: 'cam', id } | { kind: 'close' } | { kind: 'dismissed', reason } | undefined. */
+export async function cameraMapForm(player, snap) {
+  const live = snap.devices.cam;
+  const f = new ActionFormData().title(`${CAM_FORM_MARK}SECURITY CAMERAS`).body(CAMERA_BY_ID[live]?.label ?? '');
+  for (const c of CAMERAS) f.button(`${c.id === live ? '§a' : ''}${c.id.slice(1)}`); // the live camera's number is green
+  f.button('§cLOWER');
+  let r;
+  try {
+    r = await f.show(player);
+  } catch (e) {
+    log.warn(`camera map form failed: ${e?.message ?? e}`);
+    return undefined;
+  }
+  if (r.canceled) return { kind: 'dismissed', reason: r.cancelationReason };
+  if (r.selection === CAMERAS.length) return { kind: 'close' };
+  const c = CAMERAS[r.selection ?? -1];
+  return c ? { kind: 'cam', id: c.id } : undefined;
+}
+
+/** Close whatever form the player has open (the camera map when the monitor is forced down). */
+export function closeForms(player) {
+  try {
+    uiManager.closeAllForms(player);
+  } catch (e) {
+    log.warn(`closeAllForms: ${e?.message ?? e}`);
+  }
 }
 
 /** Camera selection map. Resolves to a camera id, 'close', or undefined. */
@@ -113,11 +149,12 @@ export async function settingsForm(player, settings) {
     .toggle('Developer overlay', { defaultValue: settings.debugOverlay })
     .toggle('Night music (12 AM - 6 AM)', { defaultValue: settings.music !== false })
     .toggle('Holiday decorations (Halloween, Christmas)', { defaultValue: settings.holidays !== false })
-    .toggle('Camera map on screen while watching the cameras', { defaultValue: settings.camMap !== false });
+    .toggle('Camera map on screen while watching the cameras', { defaultValue: settings.camMap !== false })
+    .toggle('Clickable camera map (mouse, controller or touch)', { defaultValue: settings.camCursor !== false });
   const r = await show(player, f);
   if (!r || r.canceled || !r.formValues) return undefined;
-  const [captions, hints, deterministic, seed, debugOverlay, music, holidays, camMap] = r.formValues;
-  return { captions: !!captions, hints: !!hints, deterministic: !!deterministic, seed: Number(seed) || 1983, debugOverlay: !!debugOverlay, music: !!music, holidays: !!holidays, camMap: !!camMap };
+  const [captions, hints, deterministic, seed, debugOverlay, music, holidays, camMap, camCursor] = r.formValues;
+  return { captions: !!captions, hints: !!hints, deterministic: !!deterministic, seed: Number(seed) || 1983, debugOverlay: !!debugOverlay, music: !!music, holidays: !!holidays, camMap: !!camMap, camCursor: !!camCursor };
 }
 
 /** Challenge modes. Resolves to a challenge id or undefined. */

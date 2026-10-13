@@ -4,12 +4,13 @@
 // puppet positions, not route nodes (tools/validate_map.mjs checks them separately).
 // Local coordinates; yaw: Minecraft yaw (atan2(-dx, dz)).
 
-/** The ceiling vent: a 2x2 grate in the crawlspace floor above the office, over a hole in the office ceiling. */
+/** The ceiling vent: a 3x3 grate in the crawlspace floor above the office, over a hole in the office ceiling; centred
+ * across the office (x 99-101 of 95-105) above the desk since 1.6.2 (it was a lopsided 2x2 at x 101-102). */
 export const CEILING_VENT = Object.freeze({
-  x1: 101, z1: 127, x2: 102, z2: 128,
+  x1: 99, z1: 127, x2: 101, z2: 129,
   holeY: 6, // the office ceiling layer, cut open
   grateY: 7, // the crawlspace floor: iron trapdoors (top half, flush with the crawl floor)
-  center: Object.freeze({ x: 102.0, y: 7.9, z: 128.0 }),
+  center: Object.freeze({ x: 100.5, y: 7.9, z: 128.5 }),
   lamp: Object.freeze([100, 2, 140]), // grate indicator on the office's back wall, over the VENT GRATE button (1.6)
 });
 
@@ -43,8 +44,8 @@ export const VALEK_SPOTS = Object.freeze({
     near: Object.freeze({ eye: Object.freeze({ x: 106.7, y: 1.7, z: 132.6 }), yaw: 90 }),
   }),
   V: Object.freeze({
-    far: Object.freeze({ eye: Object.freeze({ x: 102.2, y: 8.6, z: 127.2 }), yaw: 180 }),
-    near: Object.freeze({ eye: Object.freeze({ x: 101.9, y: 6.9, z: 128.1 }), yaw: 180 }),
+    far: Object.freeze({ eye: Object.freeze({ x: 100.6, y: 8.6, z: 127.4 }), yaw: 180 }),
+    near: Object.freeze({ eye: Object.freeze({ x: 100.4, y: 6.9, z: 128.4 }), yaw: 180 }),
   }),
 });
 /** Valek's eye height above his feet in blocks (EYE_HEIGHT x SCALE in mc/game.js; checked by tools/validate_assets.mjs). */
