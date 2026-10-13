@@ -13,7 +13,7 @@
 | `/fb:debug graph` | walk every route polyline in the built world and report blocked samples |
 | `/fb:debug state` | dump game state, bus statistics, heartbeat, puppet counts, session snapshot and the last 8 AI transitions to chat |
 | `/fb:debug puppets` | delete and respawn all puppets |
-| `/fb:debug camtour` | cycle through all 21 camera views (3 s each) |
+| `/fb:debug camtour` | cycle through all 25 camera views (3 s each) |
 | `/fb:debug night <0-9>` | start a night immediately in the office (night 8 follows the last night 7 ending, see `lastending`) |
 | `/fb:debug challenge <id>` | start a challenge in the office (`no_doors`, `fredbear_only`, `double_drain`, `no_cams`) |
 | `/fb:debug ending [seal\|burn]` | play the night 7 ending (the choice form, or straight to one ending) |
