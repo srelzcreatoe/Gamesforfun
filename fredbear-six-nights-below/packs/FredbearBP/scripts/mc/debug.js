@@ -24,7 +24,7 @@ import { CONFIG, LAST_NIGHT } from '../core/config.js';
 
 const HELP = [
   'lobby | overlay | selftest | graph | state | puppets | camtour',
-  'night <0-9> | hour <0-5> | power <pct> | seed <n> | unlock <1-9> | lastending <seal|burn>',
+  'night <0-9> | hour <0-5> | power <pct> | seed <n> | unlock <1-9|all> | lastending <seal|burn>',
   'challenge <no_doors|fredbear_only|double_drain|no_cams> | ending <seal|burn> | ending9 | flashback | tapes | holiday <halloween|christmas|none> | shadow | seal <vent|shaft>',
   'ai <who> <0-20> | place <who> <node> | approach <who> <L|R|H> | visit <morgrave|valek> <L|R|V>',
   'scenario <slice|boundary|power_zero|double|freddy|fredbear_hatch|fredbear_left|blackout|finale>',
@@ -225,6 +225,18 @@ export function handleDebug(game, action, a1, a2, player) {
       storeSave(game.save);
       return say(player, `deterministic seed ${game.save.settings.seed} (next night)`);
     case 'unlock':
+      if (a1 === 'all') {
+        // 1.6.1 (owner item 175): every night survived - nights 1-9 open, the challenges, the 1987 tapes (night 5) and every
+        // newspaper clipping. Secrets, endings and beaten challenges still have to be found or played.
+        game.save.unlocked = LAST_NIGHT;
+        game.save.campaignDone = true;
+        game.save.tutorialDone = true;
+        game.save.completed = Array.from({ length: LAST_NIGHT }, (_, k) => k + 1);
+        storeSave(game.save);
+        for (let n = 1; n <= LAST_NIGHT; n++) game.bus.trigger(`lobby.lamp_${n}`);
+        game.writeNameSign();
+        return say(player, `All nights completed: nights 1-${LAST_NIGHT}, the challenges, the 1987 tapes and every newspaper clipping are open`);
+      }
       game.save.unlocked = Math.max(1, Math.min(LAST_NIGHT, num(a1, 6)));
       if (game.save.unlocked >= 7) game.save.campaignDone = true;
       for (let n = 7; n < game.save.unlocked; n++) if (!game.save.completed.includes(n)) game.save.completed.push(n); // keep the save consistent (loadSave caps unlocks by survived nights)

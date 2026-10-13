@@ -979,6 +979,21 @@ test('saves from 1.1 / 1.2 unlock nights 7-9 only by survived nights', async () 
   world.setDynamicProperty('fb:save', keep);
 });
 
+test('/fb:debug unlock all (item 175): every night survived - nights 1-9, challenges, tapes, clippings', async () => {
+  const { loadSave } = await import('../packs/FredbearBP/scripts/mc/persistence.js');
+  const keep = world.getDynamicProperty('fb:save');
+  handleDebug(game, 'unlock', 'all', undefined, player);
+  const saved = loadSave();
+  assert.equal(saved.unlocked, 9);
+  assert.deepEqual(saved.completed, [1, 2, 3, 4, 5, 6, 7, 8, 9], 'every night survived: the tapes (night 5) and every clipping');
+  assert.equal(saved.campaignDone, true, 'the challenges are open');
+  await until(() => typeAt(184, 3, 114) === 'minecraft:pearlescent_froglight', 40); // night 9 lamp on the time clock
+  assert.equal(typeAt(184, 3, 106), 'minecraft:verdant_froglight', 'night 1 lamp');
+  world.setDynamicProperty('fb:save', keep);
+  game.save = loadSave();
+  noMockErrors();
+});
+
 test('upgrading a world built by an older pack version: asks for /fb:setup, rebuilds, keeps progress', async () => {
   const save = world.getDynamicProperty('fb:save');
   world.setDynamicProperty('fb:build', JSON.stringify({ version: 1, done: true, phase: 9, op: 0 }));

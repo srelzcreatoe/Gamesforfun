@@ -19,12 +19,12 @@ The build is resumable: if you leave, run `/fb:setup` again.
 
 ### Updating from an earlier version
 
-1. Import the new `.mcaddon` (version **1.6.0**).
+1. Import the new `.mcaddon` (version **1.6.1**).
 2. In the world's settings, open **Behavior Packs** and make sure **FREDBEAR: Six Nights Below (Behavior)** shows
-   version 1.6.0; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
-   Check **Resource Packs** too: only the 1.6.0 resource pack should be active.
-3. Enter the world. Version 1.6 **rebuilds the whole ground floor and the office** (see *The pizzeria* below), so the
-   action bar asks you to rebuild: run **`/fb:setup`** once and wait for the title. Unlocked nights, secrets, endings and
+   version 1.6.1; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
+   Check **Resource Packs** too: only the 1.6.1 resource pack should be active.
+3. Enter the world. Version 1.6 **rebuilds the whole ground floor and the office** (see *The pizzeria* below), so coming
+   from 1.5 or older the action bar asks you to rebuild (from 1.6.0 no rebuild is needed): run **`/fb:setup`** once and wait for the title. Unlocked nights, secrets, endings and
    settings are kept: if you already beat night 7, night 8 is open (Morgrave if your last ending was *seal*, Valek if it
    was *burn*).
 4. **Camera numbers** (neighbouring cameras have neighbouring numbers; 1.6 has 25): CAM 01-03 are the show stage,

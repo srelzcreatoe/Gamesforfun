@@ -27,7 +27,8 @@
 | `/fb:debug shadow` | show Shadow Fredbear on the stage now (and at every following hour of this night) |
 | `/fb:debug scenario <name>` | start a repeatable test scenario (seed 4242, see below) |
 | `/fb:debug seed <n>` | deterministic mode with seed *n* for the next nights |
-| `/fb:debug unlock <1-9>` | set the highest unlocked night (7+ also marks the campaign complete, unlocking the challenges, and marks the nights before it survived so the save stays consistent) |
+| `/fb:debug unlock <1-9>` | set the highest unlocked night (7+ also marks the campaign complete, unlocking the challenges, and marks nights 7-8 below it survived so the save stays consistent) |
+| `/fb:debug unlock all` | (1.6.1) **All nights completed**: marks nights 1-9 survived, so every night, the challenges, the 1987 tapes and every newspaper clipping open, and the time-clock lamps light. Secrets, endings and beaten challenges still have to be found or played |
 | `/fb:debug hour <0-5>` / `skip` | jump to an hour / to the next hour |
 | `/fb:debug power <pct>` | set power |
 | `/fb:debug ai <who> <0-20>` | set an animatronic's aggression |

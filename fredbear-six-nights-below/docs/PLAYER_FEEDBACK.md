@@ -19,6 +19,8 @@ The owner then played 1.2.0 to the end and reported items 62-66 (section M).
 **1.5.0** builds items 178 and 184-187 (section V): the new Classic Freddy (with his own Withered Freddy), the Midnight
 Banjo Bonnie, a new Chica built on the same body, Springbonnie as Fredbear's partner, and Valek and Morgrave's workshop.
 
+**1.6.1** adds item 175: `/fb:debug unlock all` ("All nights completed").
+
 **1.6.0** builds item 188 (section W): the whole ground floor and the office rebuilt with a new, bigger and creepier layout
 (the owner's picks: a new layout, "bigger and creepier").
 
@@ -274,7 +276,7 @@ Numbers stay fixed from now on: new items are added at the end.
 
 | # | Item | Status |
 |---|---|---|
-| 175 | A simple command (like `/fb:...`) that marks every night completed and unlocks all the lore and extras too, and says so ("All nights completed"), so the player can see everything | planned |
+| 175 | A simple command (like `/fb:...`) that marks every night completed and unlocks all the lore and extras too, and says so ("All nights completed"), so the player can see everything | done in 1.6.1: `/fb:debug unlock all` (every night survived: all nights, the challenges, the tapes, every clipping; secrets and endings are still found in play) (untested in-game) |
 | 176 | Vibrant Visuals compatible: the map works with Minecraft's Vibrant Visuals graphics mode | done in 1.3.1 (untested in-game) |
 | 177 | A camera inside the hatch shaft itself (CAM 17 only shows the crawlspace end below the office; the climb up to the hatch is a blind spot) | planned |
 | 178 | A completely separate room for Valek and Morgrave that is nightmare fuel (section S) | done in 1.5.0 (untested in-game) |
