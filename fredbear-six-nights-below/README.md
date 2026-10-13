@@ -56,9 +56,9 @@ validated here).
 2. New world: **Flat**, **cheats on**, activate **FREDBEAR: Six Nights Below (Behavior)**. Render distance ≥ 11 chunks.
 3. In the world: `/fb:setup`, wait for the title, then clock in at the time clock.
 
-**Updating:** import the new `.mcaddon`, check that both packs show 1.6.2 in the world settings and enter the world, then
+**Updating:** import the new `.mcaddon`, check that both packs show 1.6.3 in the world settings and enter the world, then
 run `/fb:setup` once when the action bar asks (1.6 rebuilt the ground floor and the office; 1.6.2 centres the ceiling
-vent). To open everything at once: `/fb:debug unlock all` (cheats on). Your
+vent; from 1.6.2 to 1.6.3 no rebuild is needed). To open everything at once: `/fb:debug unlock all` (cheats on). Your
 progress is kept; if you already beat night 7, night 8 is open. Camera numbers: see
 [docs/08](docs/08_INSTALL_AND_PLAY.md#updating-from-an-earlier-version).
 

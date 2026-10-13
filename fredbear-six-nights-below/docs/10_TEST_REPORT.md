@@ -120,6 +120,7 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 
 | Found by | Problem | Fix |
 |---|---|---|
+| player report (in-game screenshot, 1.6.2) | The clickable camera map appeared in the right place, but its buttons showed no numbers and clicking them did not switch cameras | the buttons were placed by hand with `collection_index`, which does not get the server form's button data; 1.6.3 builds them from the vanilla form-button factory (the same collection and length binding every form uses), one button per camera at its box; the asset validator now rejects hand-placed form buttons |
 | owner request (1.6.2) | The ceiling vent looked lopsided; the vent and the hatch should start open; a mouse cursor for the cameras, working on console and touch too | 3 × 3 vent centred over the desk; grate open and free, hatch drawn open; the camera map is a menu with real buttons (vanilla menu cursor, controller focus, touch) |
 | test (1.6.2) | the night-start module drew the hatch shut on nights 4+ although it was unsealed | the hatch is drawn open after `night.begin` on nights it is installed |
 | owner request (1.6) | Rebuild the whole pizzeria and the office with a new layout (bigger and creepier) | new ground floor (theatre, play place, cove, arcade hall, party wing, dining hall, winding halls), the classic office, 25 cameras, new routes; the office systems, the duct, the hatch and the basement kept their coordinates (docs/07) |
@@ -163,7 +164,7 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 ## Manual checks still required (Windows Bedrock 1.26.50 recommended)
 
 1. Import `dist/Fredbear_Six_Nights_Below.mcaddon`; create a Flat world with cheats; activate the BP (RP added automatically).
-   For an existing world: check that both packs show 1.6.2, then run `/fb:setup` when asked.
+   For an existing world: check that both packs show 1.6.3, then run `/fb:setup` when asked.
 2. `/fb:setup`: build completes without a *Build report*; time the build and note any lag.
 3. `/fb:debug selftest`: 9 × PASS. In particular *command blocks in place* (structure ids `fb:*` load) and *actuator round trip*.
 4. Walk the map in FREE ROAM: stairs face the right way, doors/windows/props look right, signs readable, no floating or

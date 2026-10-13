@@ -81,7 +81,6 @@
             -2
           ],
           "layer": 10,
-          "collection_name": "form_buttons",
           "controls": [
             {
               "fb_cam_form_map_image": {
@@ -118,342 +117,780 @@
               }
             },
             {
-              "fb_cam_button_c01@server_form.fb_cam_button": {
-                "collection_index": 0,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  124.25,
-                  7.75
-                ]
-              }
+              "fb_cam_form_buttons@server_form.fb_cam_form_buttons": {}
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "fb_cam_form_buttons": {
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "layer": 4,
+    "factory": {
+      "name": "buttons",
+      "control_ids": {
+        "button": "server_form.fb_cam_item",
+        "label": "@server_form.fb_cam_nothing",
+        "header": "@server_form.fb_cam_nothing",
+        "divider": "@server_form.fb_cam_nothing"
+      }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+  "fb_cam_nothing": {
+    "type": "panel",
+    "size": [
+      0,
+      0
+    ]
+  },
+  "fb_cam_item": {
+    "type": "panel",
+    "size": [
+      "100%",
+      0
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      {
+        "fb_cam_button_c01@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            124.25,
+            7.75
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
             },
             {
-              "fb_cam_button_c02@server_form.fb_cam_button": {
-                "collection_index": 1,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  98.0,
-                  7.75
-                ]
-              }
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
             },
             {
-              "fb_cam_button_c03@server_form.fb_cam_button": {
-                "collection_index": 2,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  79.75,
-                  7.75
-                ]
-              }
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '01') or (#form_button_text = '§a01'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c02@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            98.0,
+            7.75
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
             },
             {
-              "fb_cam_button_c04@server_form.fb_cam_button": {
-                "collection_index": 3,
-                "size": [
-                  16.5,
-                  10.0
-                ],
-                "offset": [
-                  79.75,
-                  26.5
-                ]
-              }
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
             },
             {
-              "fb_cam_button_c05@server_form.fb_cam_button": {
-                "collection_index": 4,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  98.0,
-                  28.75
-                ]
-              }
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '02') or (#form_button_text = '§a02'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c03@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            79.75,
+            7.75
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
             },
             {
-              "fb_cam_button_c06@server_form.fb_cam_button": {
-                "collection_index": 5,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  83.75,
-                  46.25
-                ]
-              }
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
             },
             {
-              "fb_cam_button_c07@server_form.fb_cam_button": {
-                "collection_index": 6,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  79.75,
-                  65.75
-                ]
-              }
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '03') or (#form_button_text = '§a03'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c04@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            10.0
+          ],
+          "offset": [
+            79.75,
+            26.5
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
             },
             {
-              "fb_cam_button_c08@server_form.fb_cam_button": {
-                "collection_index": 7,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  114.75,
-                  42.75
-                ]
-              }
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
             },
             {
-              "fb_cam_button_c09@server_form.fb_cam_button": {
-                "collection_index": 8,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  141.75,
-                  42.75
-                ]
-              }
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '04') or (#form_button_text = '§a04'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c05@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            98.0,
+            28.75
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
             },
             {
-              "fb_cam_button_c10@server_form.fb_cam_button": {
-                "collection_index": 9,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  168.75,
-                  10.5
-                ]
-              }
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
             },
             {
-              "fb_cam_button_c11@server_form.fb_cam_button": {
-                "collection_index": 10,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  166.0,
-                  48.25
-                ]
-              }
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '05') or (#form_button_text = '§a05'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c06@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            83.75,
+            46.25
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
             },
             {
-              "fb_cam_button_c12@server_form.fb_cam_button": {
-                "collection_index": 11,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  136.25,
-                  63.75
-                ]
-              }
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
             },
             {
-              "fb_cam_button_c13@server_form.fb_cam_button": {
-                "collection_index": 12,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  137.75,
-                  74.5
-                ]
-              }
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '06') or (#form_button_text = '§a06'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c07@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            79.75,
+            65.75
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
             },
             {
-              "fb_cam_button_c14@server_form.fb_cam_button": {
-                "collection_index": 13,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  125.0,
-                  90.0
-                ]
-              }
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
             },
             {
-              "fb_cam_button_c15@server_form.fb_cam_button": {
-                "collection_index": 14,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  112.0,
-                  74.5
-                ]
-              }
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '07') or (#form_button_text = '§a07'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c08@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            114.75,
+            42.75
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
             },
             {
-              "fb_cam_button_c16@server_form.fb_cam_button": {
-                "collection_index": 15,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  112.0,
-                  63.75
-                ]
-              }
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
             },
             {
-              "fb_cam_button_c17@server_form.fb_cam_button": {
-                "collection_index": 16,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  95.25,
-                  79.25
-                ]
-              }
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '08') or (#form_button_text = '§a08'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c09@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            141.75,
+            42.75
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
             },
             {
-              "fb_cam_button_c18@server_form.fb_cam_button": {
-                "collection_index": 17,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  106.75,
-                  90.0
-                ]
-              }
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
             },
             {
-              "fb_cam_button_c19@server_form.fb_cam_button": {
-                "collection_index": 18,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  51.5,
-                  74.75
-                ]
-              }
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '09') or (#form_button_text = '§a09'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c10@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            168.75,
+            10.5
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
             },
             {
-              "fb_cam_button_c20@server_form.fb_cam_button": {
-                "collection_index": 19,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  46.25,
-                  57.25
-                ]
-              }
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
             },
             {
-              "fb_cam_button_c21@server_form.fb_cam_button": {
-                "collection_index": 20,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  12.5,
-                  77.5
-                ]
-              }
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '10') or (#form_button_text = '§a10'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c11@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            166.0,
+            48.25
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
             },
             {
-              "fb_cam_button_c22@server_form.fb_cam_button": {
-                "collection_index": 21,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  4.25,
-                  60.0
-                ]
-              }
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
             },
             {
-              "fb_cam_button_c23@server_form.fb_cam_button": {
-                "collection_index": 22,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  12.5,
-                  46.5
-                ]
-              }
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '11') or (#form_button_text = '§a11'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c12@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            136.25,
+            63.75
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
             },
             {
-              "fb_cam_button_c24@server_form.fb_cam_button": {
-                "collection_index": 23,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  12.5,
-                  27.5
-                ]
-              }
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
             },
             {
-              "fb_cam_button_c25@server_form.fb_cam_button": {
-                "collection_index": 24,
-                "size": [
-                  16.5,
-                  9.75
-                ],
-                "offset": [
-                  8.5,
-                  14.0
-                ]
-              }
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '12') or (#form_button_text = '§a12'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c13@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            137.75,
+            74.5
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
             },
             {
-              "fb_cam_button_lower@server_form.fb_cam_button": {
-                "collection_index": 25,
-                "size": [
-                  34,
-                  11
-                ],
-                "offset": [
-                  159.5,
-                  -12
-                ]
-              }
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '13') or (#form_button_text = '§a13'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c14@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            125.0,
+            90.0
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '14') or (#form_button_text = '§a14'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c15@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            112.0,
+            74.5
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '15') or (#form_button_text = '§a15'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c16@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            112.0,
+            63.75
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '16') or (#form_button_text = '§a16'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c17@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            95.25,
+            79.25
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '17') or (#form_button_text = '§a17'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c18@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            106.75,
+            90.0
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '18') or (#form_button_text = '§a18'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c19@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            51.5,
+            74.75
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '19') or (#form_button_text = '§a19'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c20@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            46.25,
+            57.25
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '20') or (#form_button_text = '§a20'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c21@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            12.5,
+            77.5
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '21') or (#form_button_text = '§a21'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c22@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            4.25,
+            60.0
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '22') or (#form_button_text = '§a22'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c23@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            12.5,
+            46.5
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '23') or (#form_button_text = '§a23'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c24@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            12.5,
+            27.5
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '24') or (#form_button_text = '§a24'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_c25@server_form.fb_cam_button": {
+          "size": [
+            16.5,
+            9.75
+          ],
+          "offset": [
+            8.5,
+            14.0
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '25') or (#form_button_text = '§a25'))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "fb_cam_button_lower@server_form.fb_cam_button": {
+          "size": [
+            34,
+            11
+          ],
+          "offset": [
+            159.5,
+            -12
+          ],
+          "bindings": [
+            {
+              "binding_type": "collection_details",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons",
+              "binding_name": "#form_button_text"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text = '§cLOWER'))",
+              "target_property_name": "#visible"
             }
           ]
         }
@@ -472,11 +909,6 @@
       "100%",
       "100%"
     ],
-    "bindings": [
-      {
-        "binding_type": "collection_details",
-        "binding_collection_name": "form_buttons"
-      }
-    ]
+    "$button_font_scale_factor": 0.85
   }
 }

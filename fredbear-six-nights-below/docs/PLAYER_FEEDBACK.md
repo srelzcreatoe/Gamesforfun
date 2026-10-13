@@ -19,6 +19,9 @@ The owner then played 1.2.0 to the end and reported items 62-66 (section M).
 **1.5.0** builds items 178 and 184-187 (section V): the new Classic Freddy (with his own Withered Freddy), the Midnight
 Banjo Bonnie, a new Chica built on the same body, Springbonnie as Fredbear's partner, and Valek and Morgrave's workshop.
 
+**1.6.3** fixes item 193: the clickable camera map's buttons had no numbers and did nothing when clicked (owner's
+screenshot); they are now built the same way as every normal menu button.
+
 **1.6.2** builds items 190-192: the ceiling vent centred over the desk, the vent grate and the hatch open at the start
 of a night (the grate never costs power), and a clickable camera map (mouse cursor, controller, touch).
 
@@ -296,7 +299,8 @@ Numbers stay fixed from now on: new items are added at the end.
 | 189 | Spotty the Dog (in the Springbonnie zip): owner asked for ideas | idea |
 | 190 | The vent on top is uneven: centre it on the office | done in 1.6.2: a 3 × 3 grate centred across the office over the desk (owner's pick: centred across the front) (untested in-game) |
 | 191 | The vent on top and the hatch should start open, not closed | done in 1.6.2; the grate never costs power (owner's pick) (untested in-game) |
-| 192 | Use the cursor (like the inventory cursor) on the cameras; console with the joystick; mobile taps the camera number | done in 1.6.2: the camera map is a menu while the monitor is up (untested in-game) |
+| 192 | Use the cursor (like the inventory cursor) on the cameras; console with the joystick; mobile taps the camera number | done in 1.6.2: the camera map is a menu while the monitor is up; fixed in 1.6.3 (item 193) |
+| 193 | (in-game, 1.6.2) The camera map buttons show no numbers and clicking does not switch the camera | fixed in 1.6.3: buttons built by the vanilla form-button factory (untested in-game) |
 
 ### Every update finishes with
 

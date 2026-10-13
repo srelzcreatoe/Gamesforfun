@@ -326,10 +326,12 @@ export function validateAssets() {
     for (const c of CAMERAS) if (!hudText.includes(`fb_cam_map_${c.id.toLowerCase()}`)) err(`camera map: no highlight for ${c.id}`);
   }
 
-  // ------------------------------------------------------------ clickable camera map (1.6.2, tools/gen_cam_map.py)
-  // The form mc/ui.js cameraMapForm shows is drawn by ui/server_form.json: its mark must match, every camera needs a
-  // button whose collection index is that camera's place in CAMERAS (the form's button order), LOWER comes last, and
-  // every other form must still get the vanilla dialog.
+  // ------------------------------------------------------------ clickable camera map (1.6.2/1.6.3, tools/gen_cam_map.py)
+  // The form mc/ui.js cameraMapForm shows is drawn by ui/server_form.json: its mark must match; the buttons must come from
+  // the vanilla form-button factory (a stack panel over form_buttons with its #collection_length binding - 1.6.2's
+  // hand-placed collection_index buttons got no text and no clicks in-game); every factory item holds one button per
+  // camera, visible only for that camera's text exactly as cameraMapForm writes it, plus LOWER; and every other form
+  // must still get the vanilla dialog.
   const sf = docs.get(path.join(RP, 'ui/server_form.json'));
   if (!sf) err('ui/server_form.json missing (clickable camera map)');
   else {
@@ -339,17 +341,21 @@ export function validateAssets() {
     if (sf.namespace !== 'server_form') err('ui/server_form.json: namespace must be server_form');
     const def = sf.long_form?.controls?.find((c) => Object.keys(c)[0].startsWith('fb_default_long_form@common_dialogs.main_panel_no_buttons'));
     if (!def || Object.values(def)[0].$child_control !== 'server_form.long_form_panel') err('ui/server_form.json: the vanilla long_form dialog is not kept for other forms');
-    const map = sf.fb_cam_form?.controls?.[0]?.fb_cam_form_map;
-    if (map?.collection_name !== 'form_buttons') err('clickable camera map: the button panel is not bound to form_buttons');
-    const idx = new Map();
-    for (const c of map?.controls ?? []) {
-      const [k, v] = Object.entries(c)[0];
-      if (k.includes('@server_form.fb_cam_button')) idx.set(k.split('@')[0], v.collection_index);
+    const fac = sf.fb_cam_form_buttons;
+    if (fac?.type !== 'stack_panel' || fac?.collection_name !== 'form_buttons' || fac?.factory?.control_ids?.button !== 'server_form.fb_cam_item'
+      || !fac?.bindings?.some((x) => x.binding_name === '#form_button_contents' && x.binding_name_override === '#collection_length')) {
+      err('clickable camera map: the buttons do not come from the vanilla form-button factory');
     }
-    CAMERAS.forEach((c, i) => {
-      if (idx.get(`fb_cam_button_${c.id.toLowerCase()}`) !== i) err(`clickable camera map: ${c.id} button missing or not collection index ${i}`);
-    });
-    if (idx.get('fb_cam_button_lower') !== CAMERAS.length) err(`clickable camera map: LOWER must be collection index ${CAMERAS.length}`);
+    if (sfText.includes('collection_index')) err('clickable camera map: hand-placed collection_index buttons do not work with form_buttons');
+    const item = new Map((sf.fb_cam_item?.controls ?? []).map((c) => [Object.keys(c)[0].split('@')[0], Object.values(c)[0]]));
+    const visibleFor = (b) => b?.bindings?.find((x) => x.target_property_name === '#visible')?.source_property_name ?? '';
+    const uiText = fs.readFileSync(path.join(ROOT, 'packs/FredbearBP/scripts/mc/ui.js'), 'utf8');
+    if (!uiText.includes("f.button(`${c.id === live ? '§a' : ''}${c.id.slice(1)}`)") || !uiText.includes("f.button('§cLOWER')")) err('clickable camera map: cameraMapForm button texts changed - update tools/gen_cam_map.py');
+    for (const c of CAMERAS) {
+      const v = visibleFor(item.get(`fb_cam_button_${c.id.toLowerCase()}`));
+      if (!v.includes(`'${c.id.slice(1)}'`) || !v.includes(`'§a${c.id.slice(1)}'`)) err(`clickable camera map: no button for ${c.id}`);
+    }
+    if (!visibleFor(item.get('fb_cam_button_lower')).includes("'§cLOWER'")) err('clickable camera map: no LOWER button');
     for (const m of sfText.matchAll(/"texture":"(textures\/ui\/[^"]+)"/g)) if (!fs.existsSync(path.join(RP, `${m[1]}.png`))) err(`server_form.json: texture ${m[1]}.png missing`);
   }
 

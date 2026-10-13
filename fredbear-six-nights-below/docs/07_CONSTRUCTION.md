@@ -205,7 +205,12 @@ animatronics' homes and the stage actuators are unchanged.
   cursor (mouse), controller focus and touch work as in any menu. A pick sends `cam_select` and reopens the form; LOWER or
   closing the form sends `cams_close`; when the monitor goes down any other way the script closes the form
   (`uiManager.closeAllForms`). Settings → "Clickable camera map" switches it off. `tools/validate_assets.mjs` checks the
-  mark, the button indices and that the vanilla dialog is kept.
+  mark, the buttons and that the vanilla dialog is kept.
+* **1.6.3 fix** (owner's screenshot: no numbers, clicks did nothing): hand-placed buttons with `collection_index` do not
+  get the form's button data. The buttons now come from the vanilla form-button factory (`fb_cam_form_buttons`: a stack
+  panel over `form_buttons` with the `#form_button_contents` → `#collection_length` binding, like the vanilla long form).
+  Each factory item is a zero-height row holding one button per camera at that camera's box, and only the button whose
+  text matches the item's text ("05", or "§a05" for the live camera; "§cLOWER") is visible, so item k draws at camera k.
 
 ## Seasonal decorations
 

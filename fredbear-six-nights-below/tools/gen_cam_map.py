@@ -192,32 +192,44 @@ def write_server_form(ids, rects):
     """1.6.2: the clickable camera map (mc/ui.js cameraMapForm).
 
     An ActionForm whose title starts with FORM_MARK is drawn as the building map in the bottom-right corner
-    instead of the usual dialog: the map image with one real button over each camera box (button k = the
-    form's button k, CAMERAS order) and LOWER above it. Buttons are vanilla light text buttons, so the menu
-    cursor (mouse), controller focus and touch all work. Every other form keeps the vanilla dialog."""
+    instead of the usual dialog. Every other form keeps the vanilla dialog.
+
+    1.6.3: the buttons come from the same factory the vanilla form uses (a stack panel over the "form_buttons"
+    collection with its #collection_length binding), so each button gets its text and its click exactly like
+    a normal form button. (1.6.2 placed the buttons by hand with collection_index: they showed no text and
+    clicks did nothing in-game.) Each factory item is a zero-height row holding one button per camera at that
+    camera's box; only the one whose text matches the item's text ("05", or "§a05" for the live camera) is
+    visible, so item k shows its button at camera k's place. The menu cursor (mouse), controller focus and touch
+    work as in any menu."""
     k = FORM_SCALE / PX  # texture px -> UI units
     mw, mh = round(SIZE[0] * FORM_SCALE, 1), round(SIZE[1] * FORM_SCALE, 1)
     has_mark = f"(not ((#title_text - '{FORM_MARK}') = #title_text))"
     no_mark = f"((#title_text - '{FORM_MARK}') = #title_text)"
-    controls = [
-        {"fb_cam_form_map_image": {"type": "image", "texture": "textures/ui/fb/cam_map", "size": ["100%", "100%"], "layer": 1}},
-        {"fb_cam_form_live": {
-            "type": "label", "text": "#form_text", "color": [1, 1, 1], "shadow": True, "layer": 3,
-            "anchor_from": "top_left", "anchor_to": "bottom_left", "offset": [1, -2], "size": ["default", 10],
-        }},
-    ]
-    for i, cam in enumerate(ids):
+
+    def button(text_codes, size, offset):
+        cond = " or ".join(f"(#form_button_text = '{t}')" for t in text_codes)
+        return {
+            "size": size,
+            "offset": offset,
+            "bindings": [
+                {"binding_type": "collection_details", "binding_collection_name": "form_buttons"},
+                {"binding_type": "collection", "binding_collection_name": "form_buttons", "binding_name": "#form_button_text"},
+                {"binding_type": "view", "source_property_name": f"({cond})", "target_property_name": "#visible"},
+            ],
+        }
+
+    item_controls = []
+    for cam in ids:
         x1, y1, x2, y2 = rects[cam]
-        controls.append({f"fb_cam_button_{cam.lower()}@server_form.fb_cam_button": {
-            "collection_index": i,
-            "size": [round((x2 - x1) * k, 2), round((y2 - y1) * k, 2)],
-            "offset": [round(x1 * k, 2), round(y1 * k, 2)],
-        }})
-    controls.append({"fb_cam_button_lower@server_form.fb_cam_button": {
-        "collection_index": len(ids),
-        "size": list(LOWER_SIZE),
-        "offset": [round(mw - LOWER_SIZE[0], 2), -LOWER_SIZE[1] - 1],
-    }})
+        num = cam[1:]
+        item_controls.append({f"fb_cam_button_{cam.lower()}@server_form.fb_cam_button": button(
+            [num, f"§a{num}"],
+            [round((x2 - x1) * k, 2), round((y2 - y1) * k, 2)],
+            [round(x1 * k, 2), round(y1 * k, 2)],
+        )})
+    item_controls.append({"fb_cam_button_lower@server_form.fb_cam_button": button(
+        ["§cLOWER"], list(LOWER_SIZE), [round(mw - LOWER_SIZE[0], 2), -LOWER_SIZE[1] - 1])})
+
     ui = {
         "namespace": "server_form",
         # Full screen, so the map can sit in the corner (the vanilla dialogs are centred either way).
@@ -253,9 +265,44 @@ def write_server_form(ids, rects):
                 "anchor_to": "bottom_right",
                 "offset": [-2, -2],
                 "layer": 10,
-                "collection_name": "form_buttons",
-                "controls": controls,
+                "controls": [
+                    {"fb_cam_form_map_image": {"type": "image", "texture": "textures/ui/fb/cam_map", "size": ["100%", "100%"], "layer": 1}},
+                    {"fb_cam_form_live": {
+                        "type": "label", "text": "#form_text", "color": [1, 1, 1], "shadow": True, "layer": 3,
+                        "anchor_from": "top_left", "anchor_to": "bottom_left", "offset": [1, -2], "size": ["default", 10],
+                    }},
+                    {"fb_cam_form_buttons@server_form.fb_cam_form_buttons": {}},
+                ],
             }}],
+        },
+        # The vanilla long-form button factory (server_form.long_form_dynamic_buttons_panel), with our item.
+        "fb_cam_form_buttons": {
+            "type": "stack_panel",
+            "orientation": "vertical",
+            "size": ["100%", "100%"],
+            "anchor_from": "top_left",
+            "anchor_to": "top_left",
+            "layer": 4,
+            "factory": {
+                "name": "buttons",
+                "control_ids": {
+                    "button": "server_form.fb_cam_item",
+                    "label": "@server_form.fb_cam_nothing",
+                    "header": "@server_form.fb_cam_nothing",
+                    "divider": "@server_form.fb_cam_nothing",
+                },
+            },
+            "collection_name": "form_buttons",
+            "bindings": [{"binding_name": "#form_button_contents", "binding_name_override": "#collection_length"}],
+        },
+        "fb_cam_nothing": {"type": "panel", "size": [0, 0]},
+        # One factory item: a zero-height row (every item starts at the map's top-left) with a button per camera.
+        "fb_cam_item": {
+            "type": "panel",
+            "size": ["100%", 0],
+            "anchor_from": "top_left",
+            "anchor_to": "top_left",
+            "controls": item_controls,
         },
         "fb_cam_button@common_buttons.light_text_button": {
             "$pressed_button_name": "button.form_button_click",
@@ -266,7 +313,7 @@ def write_server_form(ids, rects):
             "$button_text_binding_type": "collection",
             "$button_text_grid_collection_name": "form_buttons",
             "$button_text_max_size": ["100%", "100%"],
-            "bindings": [{"binding_type": "collection_details", "binding_collection_name": "form_buttons"}],
+            "$button_font_scale_factor": 0.85,  # two digits fit the small boxes
         },
     }
     with open(os.path.join(RP, "ui", "server_form.json"), "w", encoding="utf-8") as fh:
