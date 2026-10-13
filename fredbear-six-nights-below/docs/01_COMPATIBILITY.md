@@ -128,3 +128,10 @@ No part of this project has been run inside Minecraft (see docs/10). Items that 
     slot (the owner saw their own body in the 1.3 jumpscare view); that this hides every part of the player in a free
     camera view (armour, the held item) is unverified. The new framing distances come from the attack
     clips' geometry (offline), not from watching them in-game.
+19. **1.5: the new models.** The Classic Freddy, Midnight Banjo Bonnie, Springbonnie and the built Chica pass every
+    static check and render in the offline preview, but are unverified in-game: their 1024×1024 textures (memory on
+    phones), Bonnie's 1,090 and the Withered Freddy's 2,138 cubes (frame rate with several on screen), Freddy's eye states
+    (relaxed blue eyes, black eyes with white pupils), the banjo appearing only in Bonnie's shows, and Chica's beak, bib and
+    cupcake. Withered Freddy is a different geometry chosen by `fb:variant` through a render controller geometry array
+    (`arrays.geometries`, a documented render controller feature); the classic clips drive it, and bones it lacks (the
+    "active" eyes, the microphone) are simply not animated.

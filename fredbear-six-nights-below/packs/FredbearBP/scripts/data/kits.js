@@ -619,7 +619,7 @@ const KITS = {
   },
   diner(P, room, i) {
     const y = i.y1;
-    // 1983 birthday party, still set (CAM 20). Placed first so nothing else lands on it.
+    // 1983 birthday party, still set (CAM 21). Placed first so nothing else lands on it.
     {
       const [x1, z1, x2, z2] = PARTY.table;
       P.claim('L0', x1 - 1, z1 - 2, x2 - x1 + 3, z2 - z1 + 5);
@@ -655,6 +655,70 @@ const KITS = {
     P.scatter('L0', i, 3, 1, 1, (x, z) => arcadeCabinet(P, x, y, z, false));
     webs(P, room, 24);
     lights(P, room, 1, 9, 'redstone_lamp', { skipChance: 0.6 });
+  },
+  // 1.5 (item 178): Valek and Morgrave's nightmare room. Little chairs in rows face the north wall, which
+  // is covered in scratched eyes; heads hang from hooks; a workbench of faces in progress; Morgrave's
+  // nest of stuffing in the south-west corner; Valek's corner (south-east) is pitch black with painted
+  // eyes, so you never know which pair is his.
+  nightmare(P, room, i) {
+    const y = i.y1;
+    const wallZ = room.box[1];
+    // The wall of eyes (north wall, both faces of the shared crawlspace wall stay intact except the hole).
+    for (let x = i.x1; x <= i.x2; x++) for (let yy = y + 1; yy <= y + 4; yy++) {
+      if (x >= 45 && x <= 48 && yy <= y + 2) continue; // the crawl hole and its frame
+      P.set(x, yy, wallZ, (x * 7 + yy * 3) % 5 === 0 ? 'white_c' : (x * 5 + yy) % 11 === 0 ? 'lgray_c' : 'black_c');
+    }
+    // An old TV between the eyes, showing grey static, on a stand.
+    P.claim('L0', 36, i.z1, 3, 2);
+    P.fill(36, y, i.z1, 38, y, i.z1, 'dark_oak');
+    P.fill(36, y + 1, i.z1, 38, y + 2, i.z1, 'black_c');
+    P.set(37, y + 1, i.z1 + 1, 'gray_sg_pane');
+    P.set(37, y + 2, i.z1 + 1, 'gray_sg_pane');
+    // Rows of little chairs facing the wall of eyes.
+    for (const z of [121, 124, 127]) for (let x = 26; x <= 48; x += 2) {
+      if (!P.isFree('L0', x, z)) continue;
+      P.claim('L0', x, z);
+      P.set(x, y, z, 'dark_oak_stairs+z');
+    }
+    // Endoskeleton heads on hooks.
+    for (let x = 24; x <= 50; x += 4) {
+      const z = 131 + ((x / 4) % 2);
+      P.fill(x, i.ceilY - 2, z, x, i.ceilY - 1, z, 'iron_chain');
+      P.set(x, i.ceilY - 3, z, 'heavy_core');
+    }
+    // The workbench along the south wall: faces in progress.
+    if (P.canPlace('L0', i, 30, i.z2, 8, 1)) {
+      P.claim('L0', 30, i.z2, 8, 1);
+      P.fill(30, y, i.z2, 37, y, i.z2, 'dark_oak');
+      P.set(30, y, i.z2, 'crafting_table');
+      P.set(37, y, i.z2, 'anvil');
+      spareHead(P, 32, y + 1, i.z2, 'yellow_c', 'north');
+      spareHead(P, 34, y + 1, i.z2, 'purple_c', 'north');
+      spareHead(P, 36, y + 1, i.z2, 'brown_c', 'north');
+    }
+    // Torn costume parts.
+    P.scatter('L0', i, 14, 1, 1, (x, z) => P.set(x, y, z, P.rng.pick(['yellow_wool', 'purple_wool', 'brown_wool', 'brown_carpet', 'yellow_carpet', 'purple_carpet'])));
+    // Morgrave's nest of stuffing (south-west corner, around M_HOME).
+    for (let x = i.x1; x <= i.x1 + 6; x++) for (let z = i.z2 - 6; z <= i.z2; z++) {
+      const d = Math.hypot(x - 22.5, z - 135.5);
+      if (d < 1.6 || !P.isFree('L0', x, z)) continue;
+      P.claim('L0', x, z);
+      P.set(x, y, z, d < 3 ? 'white_carpet' : P.rng.pick(['white_wool', 'hay', 'brown_wool', 'white_wool']));
+      if (d > 3.2 && P.rng.chance(0.5)) P.set(x, y + 1, z, P.rng.pick(['white_wool', 'hay']));
+    }
+    // Valek's corner (south-east): pitch black, with painted eyes everywhere.
+    for (let x = 50; x <= i.x2 + 1; x++) for (let z = 130; z <= i.z2 + 1; z++) {
+      const wall = x === i.x2 + 1 || z === i.z2 + 1;
+      if (wall) {
+        for (let yy = y; yy <= i.ceilY - 1; yy++) P.set(x, yy, z, (x * 3 + z * 5 + yy * 7) % 9 === 0 ? 'white_c' : 'black_c');
+      } else {
+        P.set(x, y - 1, z, 'black_c');
+      }
+    }
+    // One dim lamp over the chairs.
+    hanging(P, 37, 124, i.ceilY, 1, 'redstone_lamp');
+    P.set(37, i.ceilY - 2, 126, 'light_4');
+    webs(P, room, 16);
   },
   diner_kitchen(P, room, i) {
     const y = i.y1;
@@ -751,7 +815,7 @@ function officeKit(P, room, i) {
   for (let x = 95; x <= 97; x++) P.fill(x, y, 139, x, y + 2, 139, 'iron_block');
   P.set(105, y, 139, 'iron_block');
   P.set(105, y + 1, 139, 'iron_trapdoor_open');
-  P.set(96, y + 1, 127, 'cake');
+  P.set(96, y + 3, 139, 'cake'); // on the lockers (1.5: the desk corner holds the CAM 19 button)
   posters(P, room, 4, ['glazed_yellow', 'glazed_purple', 'glazed_red']);
   // Seal lamps (north wall, west end): duct seal above, shaft seal below.
   P.set(95, 3, 126, 'ind_off');

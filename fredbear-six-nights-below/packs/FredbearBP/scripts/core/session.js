@@ -42,10 +42,11 @@ import { Freddy } from './ai/freddy.js';
 import { Fredbear } from './ai/fredbear.js';
 import { Morgrave } from './ai/morgrave.js';
 import { Valek } from './ai/valek.js';
+import { Springbonnie } from './ai/springbonnie.js';
 import { CAMERA_ORDER, CAMERA_BY_ID } from '../data/cameras.js';
 import { ENTRY_BARRIER, NODE_BY_ID } from '../data/nodes.js';
 
-export const ORDER = Object.freeze(['fredbear', 'freddy', 'bonnie', 'chica', 'morgrave', 'valek']);
+export const ORDER = Object.freeze(['fredbear', 'freddy', 'bonnie', 'chica', 'morgrave', 'valek', 'springbonnie']);
 const ENTRY_LABEL = Object.freeze({ L: 'LEFT DOOR', R: 'RIGHT DOOR', H: 'HATCH', V: 'CEILING VENT' });
 
 export class NightSession {
@@ -112,6 +113,7 @@ export class NightSession {
       chica: new Chica(this),
       morgrave: new Morgrave(this),
       valek: new Valek(this),
+      springbonnie: new Springbonnie(this),
     };
     this.queue = [];
     // gaze: who the player is looking straight at right now ('valek' or null; the adapter / a bot sets it).

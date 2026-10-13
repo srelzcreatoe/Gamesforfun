@@ -23,12 +23,13 @@ export const PUPPET_TYPES = Object.freeze({
   fredbear: 'fb:fredbear',
   morgrave: 'fb:morgrave',
   valek: 'fb:valek',
+  springbonnie: 'fb:springbonnie',
   echo: 'fb:fredbear_echo',
 });
-export const MAIN = Object.freeze(['freddy', 'bonnie', 'chica', 'fredbear', 'morgrave', 'valek']);
+export const MAIN = Object.freeze(['freddy', 'bonnie', 'chica', 'fredbear', 'morgrave', 'valek', 'springbonnie']);
 const TRIO = new Set(['freddy', 'bonnie', 'chica']);
-const HOME = Object.freeze({ freddy: 'STAGE_F', bonnie: 'STAGE_B', chica: 'STAGE_C', fredbear: 'CHAMBER_F', morgrave: 'M_HOME', valek: 'V_HOME' });
-const ALWAYS_DORMANT = new Set(['fredbear', 'morgrave', 'valek']); // outside a night they stand switched off
+const HOME = Object.freeze({ freddy: 'STAGE_F', bonnie: 'STAGE_B', chica: 'STAGE_C', fredbear: 'CHAMBER_F', morgrave: 'M_HOME', valek: 'V_HOME', springbonnie: 'SB_HOME' });
+const ALWAYS_DORMANT = new Set(['fredbear', 'morgrave', 'valek', 'springbonnie']); // outside a night they stand switched off
 const NO_LOOK = Object.freeze({ yaw: 0, pitch: 0, tilt: 0 });
 
 function homePose(who, anim) {

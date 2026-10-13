@@ -88,16 +88,16 @@ export const CB_STRUCTURES = Object.freeze([
  {
   "id": "fb:in_g_3_3",
   "at": [
-   97,
+   96,
    -51,
    127
   ],
   "size": [
-   8,
+   9,
    1,
    1
   ],
-  "blocks": 8
+  "blocks": 9
  },
  {
   "id": "fb:in_g_5_3",

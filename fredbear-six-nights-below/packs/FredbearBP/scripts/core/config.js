@@ -76,6 +76,16 @@ export const CONFIG = Object.freeze({
       teamworkMinAI: 8, teamworkChance: 0.4, teamworkCooldown: 2400, // bangs on the left door so Chica can sneak right
       retreatNodes: ['PA', 'DIN_W', 'BACK', 'PC'],
     }),
+    // 1.5: Fredbear's partner. Dormant beside him in the chamber; in night 6's Golden Hour he comes up the
+    // supply-closet floor grate (wakeNode) and hunts the LEFT door like Bonnie (no flank, no vent, no partner, no teamwork).
+    springbonnie: Object.freeze({
+      moInterval: 70, home: 'SB_HOME', primary: 'L', wakeNode: 'SUP', // he climbs out of the supply-closet floor grate
+      telegraph: (a) => Math.max(70, 140 - 3 * a),
+      repelTicks: 40, holdMax: 60,
+      recover: (a) => Math.max(160, 360 - 10 * a),
+      flankMinAI: 99, ventMinAI: 99, partnerMinAI: 99, teamworkMinAI: 99,
+      retreatNodes: ['PC', 'DIN_W', 'BACK'],
+    }),
     chica: Object.freeze({
       // 1.3: she reached the office far less often than Bonnie (owner report, docs/04):
       // Bonnie's pace, shorter kitchen stops, closer retreats, and the kitchen only after some retreats.
@@ -161,7 +171,7 @@ export const CONFIG = Object.freeze({
       activation: { freddy: 3200, bonnie: 0, chica: 400, fredbear: 99999 },
       ramp: true, strobeCharges: 0, reserve: false, maxSabotage: 1,
       fredbear: { phase: 0 },
-      events: [{ at: 6400, kind: 'foreshadow', id: 'diner_glimpse', cam: 'C21', node: 'DINER_STAGE', hold: 1600 }],
+      events: [{ at: 6400, kind: 'foreshadow', id: 'diner_glimpse', cam: 'C22', node: 'DINER_STAGE', hold: 1600 }],
     }),
     3: Object.freeze({
       title: 'Night 3 — Generator Trouble', mechanic: 'Maintenance shortcuts, mid-night generator restart, emergency reserve',
@@ -192,10 +202,10 @@ export const CONFIG = Object.freeze({
     }),
     6: Object.freeze({
       title: 'Night 6 — Six Nights Below', mechanic: "Fredbear's Golden Hour and the finale",
-      ai: { freddy: 18, bonnie: 19, chica: 18, fredbear: 20 },
-      activation: { freddy: 0, bonnie: 0, chica: 0, fredbear: 200 },
+      ai: { freddy: 18, bonnie: 19, chica: 18, fredbear: 20, springbonnie: 16 },
+      activation: { freddy: 0, bonnie: 0, chica: 0, fredbear: 200, springbonnie: 8000 }, // Springbonnie: the Golden Hour
       ramp: true, strobeCharges: 6, reserve: true, maxSabotage: 3,
-      fredbear: { phase: 3, entries: ['H', 'L', 'R'], stir: 200, cooldown: 900, maxAttempts: 4, powers: ['disrupt', 'false_cam', 'blackout', 'relocate'], finale: { atHour: 5, extraAttempts: 2, extraCharges: 2, cooldown: 500 } },
+      fredbear: { phase: 3, entries: ['H', 'L', 'R'], stir: 200, cooldown: 900, maxAttempts: 4, powers: ['disrupt', 'false_cam', 'blackout', 'relocate'], finale: { atHour: 5, extraAttempts: 1, extraCharges: 2, cooldown: 400 } }, // 1.5: one extra attempt (was 2): Springbonnie hunts with him now
       events: [{ at: 8000, kind: 'finale' }],
     }),
     7: Object.freeze({

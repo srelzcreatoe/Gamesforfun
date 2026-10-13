@@ -153,7 +153,7 @@ async function nightsAndBalance() {
   L.push('# 05 · Nights, formulas and balance', '', GEN, '');
   L.push('## Night table', '');
   L.push('Aggression (A) is 0-20. Activation = tick at which the character leaves home. Nights ≥ 2 add the hourly ramp ' + `[${CONFIG.hourlyRamp.join(', ')}] (12 AM..5 AM) to every character except Fredbear (cap 20).`, '');
-  L.push('| Night | Title | Freddy | Bonnie | Chica | Fredbear | Morgrave | Valek | Activation F/B/C/G/M/V (ticks) | Strobe | Reserve | Max sabotage | Fredbear phase | Events |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
+  L.push('| Night | Title | Freddy | Bonnie | Chica | Fredbear | Morgrave | Valek | Springbonnie | Activation F/B/C/G/M/V/S (ticks) | Strobe | Reserve | Max sabotage | Fredbear phase | Events |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
   const rows = [];
   for (let n = 0; n <= 9; n++) {
     if (CONFIG.nights[n].variants) for (const [k, v] of Object.entries(CONFIG.nights[n].variants)) rows.push([`${n} (${k})`, nightDef(n, v)]);
@@ -162,8 +162,8 @@ async function nightsAndBalance() {
   for (const [n, d] of rows) {
     const ev = d.events.map((e) => `${e.kind}${e.task ? `:${e.task}` : e.id ? `:${e.id}` : ''}@${e.at}`).join(', ') || '-';
     const fb = d.fredbear.phase ? `${d.fredbear.phase} (entries ${d.fredbear.entries.join('/')}, max ${d.fredbear.maxAttempts} attempts, powers ${d.fredbear.powers.join(', ')}${d.fredbear.omnipresent ? ', everywhere' : ''})` : 'dormant';
-    const act = ['freddy', 'bonnie', 'chica', 'fredbear', 'morgrave', 'valek'].map((w) => (d.activation[w] ?? 99999) >= 99999 ? 'off' : d.activation[w]).join('/');
-    L.push(`| ${n} | ${d.title} | ${d.ai.freddy} | ${d.ai.bonnie} | ${d.ai.chica} | ${d.ai.fredbear} | ${d.ai.morgrave ?? 0} | ${d.ai.valek ?? 0} | ${act} | ${d.strobeCharges} | ${d.reserve ? 'yes' : 'no'} | ${d.maxSabotage} | ${fb} | ${ev} |`);
+    const act = ['freddy', 'bonnie', 'chica', 'fredbear', 'morgrave', 'valek', 'springbonnie'].map((w) => (d.activation[w] ?? 99999) >= 99999 ? 'off' : d.activation[w]).join('/');
+    L.push(`| ${n} | ${d.title} | ${d.ai.freddy} | ${d.ai.bonnie} | ${d.ai.chica} | ${d.ai.fredbear} | ${d.ai.morgrave ?? 0} | ${d.ai.valek ?? 0} | ${d.ai.springbonnie ?? 0} | ${act} | ${d.strobeCharges} | ${d.reserve ? 'yes' : 'no'} | ${d.maxSabotage} | ${fb} | ${ev} |`);
   }
   L.push('', 'Night 0 is the training shift / vertical slice (400 ticks per hour; the tutorial further slows it to 12000 so the clock never ends a lesson). Night 7 unlocks after night 6: only Fredbear hunts, everywhere at once (the trio are switched off in Parts & Service). Night 8 unlocks after night 7 and depends on the last night 7 ending (seal: Morgrave; burn: Valek). Night 9 unlocks after night 8: Fredbear, Morgrave and Valek together, the trio switched off again.', '');
   L.push('## Challenge modes', '');
@@ -193,6 +193,8 @@ async function nightsAndBalance() {
     ['Valek: time to start staring once his eyes appear (far)', C.valek.find],
     ['Valek: ... once he stepped closer (near)', C.valek.findNear],
     ['Valek recovery', C.valek.recover],
+    ['Springbonnie at the left door (night 6 Golden Hour) before attacking', C.springbonnie.telegraph],
+    ['Springbonnie recovery', C.springbonnie.recover],
   ];
   L.push('| Window | Formula | A = 5 | A = 10 | A = 15 | A = 20 |', '|---|---|---|---|---|---|');
   for (const [name, fn] of f) L.push(`| ${name} | \`${fn.toString().replace(/\(a\) => /, '')}\` | ${fn(5)} | ${fn(10)} | ${fn(15)} | ${fn(20)} |`);
@@ -200,6 +202,7 @@ async function nightsAndBalance() {
   L.push(`Fredbear W3 (barrier jammed open, strobe still works) = ${C.fredbear.w3} ticks; a strobe without a closed/jammed barrier only stuns him for ${C.fredbear.stunTicks} ticks. Freddy slips in after ${C.freddy.slipTicks} ticks of camera use with the right door open; Bonnie flanks from A ≥ ${C.bonnie.flankMinAI} and uses the vent from A ≥ ${C.bonnie.ventMinAI}; Chica sabotage chance per opportunity = \`${C.chica.sabotageChance.toString().replace(/\(a\) => /, '')}\` (cooldown ${C.chica.sabotageCooldown}).`, '');
   L.push(`1.3 behaviours: double trouble (from A ≥ ${C.bonnie.partnerMinAI}, Bonnie or Chica joins whoever holds the right door; a pair needs twice the repel time), Bonnie's teamwork (A ≥ ${C.bonnie.teamworkMinAI}, chance ${C.bonnie.teamworkChance}, cooldown ${C.bonnie.teamworkCooldown}: bangs on the left door while Chica sneaks to the right), Chica flanks left from A ≥ ${C.chica.flankMinAI}. `, '');
   L.push(`1.4 visitors (left door, right door, ceiling vent): Morgrave knocks softly for ${C.morgrave.softKnockTicks} ticks; an open entry lets him walk (crawl) past in ${C.morgrave.passTicks} ticks, a shut one starts the two angry stages, and he never breaks through while someone else is held at that door (then at least ${C.morgrave.holdFloor} ticks after they leave). He picks the vent with weight ${C.morgrave.ventWeight} and a door with 1 + door use / 4 (+${C.morgrave.shutBonus} while it is shut). An open vent grate costs ${CONFIG.power.grate} units per tick. Valek's eyes appear at an entry; stare at them and he looks away first after \`${C.valek.hold.toString().replace(/\(a\) => /, '')}\` ticks (A = 15: ${C.valek.hold(15).join('-')}); a glance away longer than ${C.valek.slack} ticks (${C.valek.slackNear} once he is close), or the cameras, makes him step closer (far, near, attack); he turns away in ${C.valek.turnAway} ticks.`, '');
+  L.push(`1.5 Springbonnie (night 6 Golden Hour only): he wakes with the finale (tick ${CONFIG.nights[6].activation.springbonnie}), climbs out of the supply-closet grate and hunts the LEFT door like Bonnie (no flank, vent, partner or teamwork) at aggression ${CONFIG.nights[6].ai.springbonnie} plus the hourly ramp; his springlock twang at the door is always heard. Fredbear's Golden Hour bonus went from 2 attempts to ${CONFIG.nights[6].fredbear.finale.extraAttempts} with a ${CONFIG.nights[6].fredbear.finale.cooldown}-tick cooldown to keep night 6 where it was.`, '');
   L.push(`Director limits: at most ${CONFIG.director.maxConcurrentEntries} entries engaged at once, one attack token, nobody engages beside Fredbear, ${CONFIG.director.blackoutGrace}-tick grace after a blackout and ${CONFIG.director.maintenanceGrace} after maintenance. Adaptation memory is capped: door-use counters 0-10 per entry, noise heat 0-10 (decays every ${CONFIG.director.noiseDecayTicks} ticks), camera focus decays ×${CONFIG.director.camFocusDecay} per tick.`, '');
   L.push(powerMaths());
   L.push('## Simulation results', '');

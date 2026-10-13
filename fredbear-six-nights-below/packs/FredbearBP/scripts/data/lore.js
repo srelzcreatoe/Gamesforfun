@@ -1,7 +1,7 @@
 // Lore set pieces added in 1.3 (positions shared by the build plan, the
 // command-block modules and the script). Local coordinates.
 
-// 153 - the sealed 1983 birthday party in the old diner (CAM 20). The candles
+// 153 - the sealed 1983 birthday party in the old diner (CAM 21). The candles
 // on the cake relight at the start of every night (module night.begin) and go
 // out on every reset (night.end).
 export const PARTY = Object.freeze({
@@ -41,7 +41,7 @@ export const GRAFFITI = Object.freeze(/** @type {[string, number, number, string
 export const TAPE = Object.freeze(/** @type {[string, number, string, string, string | null][]} */ ([
   ['C14', 80, '§7TAPE 3 · OCT 9 1987', '§f02:14 AM · the guard walks the west hall', null],
   ['C10', 80, '§702:31 AM', '§fsomething golden at the end of the east hall', 'EH_N'],
-  ['C21', 70, '§702:47 AM', '§fthe old diner stage is empty', null],
+  ['C22', 70, '§702:47 AM', '§fthe old diner stage is empty', null],
   ['C17', 80, '§702:58 AM', '§fscratching under the office', 'SUB_N'],
   ['C11', 70, '§703:00 AM', '§4the hatch is pulled up from below', null],
   ['C01', 70, '§7TAPE ENDS', '§fThe guard was never found.', null],

@@ -10,10 +10,12 @@
       "textures": {
         "default": "textures/entity/fb/freddy",
         "eyes": "textures/entity/fb/freddy_eyes",
-        "withered": "textures/entity/fb/freddy_withered"
+        "withered": "textures/entity/fb/freddy_withered",
+        "withered_eyes": "textures/entity/fb/freddy_withered_eyes"
       },
       "geometry": {
-        "default": "geometry.fb.freddy"
+        "default": "geometry.fb.freddy",
+        "withered": "geometry.fb.freddy_withered"
       },
       "scripts": {
         "pre_animation": [
@@ -33,22 +35,23 @@
       "animations": {
         "pose_controller": "controller.animation.fb.freddy",
         "look_at": "animation.fb.freddy.look_at",
-        "attack": "animation.fb.freddy.attack",
         "crawl": "animation.fb.freddy.crawl",
         "dormant": "animation.fb.freddy.dormant",
         "idle": "animation.fb.freddy.idle",
-        "perform_groove_once": "animation.fb.freddy.perform_groove_once",
-        "perform_showman": "animation.fb.freddy.perform_showman",
-        "perform_showman_once": "animation.fb.freddy.perform_showman_once",
-        "pose": "animation.fb.freddy.pose",
+        "jumpscare": "animation.fb.freddy.jumpscare",
+        "perform_present_once": "animation.fb.freddy.perform_present_once",
+        "perform_sing": "animation.fb.freddy.perform_sing",
+        "perform_sing_once": "animation.fb.freddy.perform_sing_once",
+        "pose_showman": "animation.fb.freddy.pose_showman",
+        "pose_stare": "animation.fb.freddy.pose_stare",
         "run": "animation.fb.freddy.run",
         "stalk": "animation.fb.freddy.stalk",
         "threat": "animation.fb.freddy.threat",
         "walk": "animation.fb.freddy.walk"
       },
       "render_controllers": [
-        "controller.render.fb.withered",
-        "controller.render.fb.eyes"
+        "controller.render.fb.withered_geo",
+        "controller.render.fb.withered_geo_eyes"
       ]
     }
   }

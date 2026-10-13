@@ -296,8 +296,8 @@ export function validateAssets() {
     }
   }
   const used = new Set([...scriptText.matchAll(/'(fb\.[a-z_]+\.[a-z_0-9]+)'/g)].map((m) => m[1]));
-  for (const who of ['freddy', 'bonnie', 'chica', 'fredbear']) used.add(`fb.step.${who}`); // base.js emitStep: `fb.step.${this.id}` (Morgrave crawls silently, Valek never walks)
-  for (const who of ['freddy', 'bonnie', 'chica', 'fredbear', 'morgrave', 'valek']) used.add(`fb.js.${who}`); // game.js applyFx: `fb.js.${who}` for actuate js.<who>
+  for (const who of ['freddy', 'bonnie', 'chica', 'fredbear', 'springbonnie']) used.add(`fb.step.${who}`); // base.js emitStep: `fb.step.${this.id}` (Morgrave crawls silently, Valek never walks)
+  for (const who of ['freddy', 'bonnie', 'chica', 'fredbear', 'morgrave', 'valek', 'springbonnie']) used.add(`fb.js.${who}`); // game.js applyFx: `fb.js.${who}` for actuate js.<who>
   for (const who of ['freddy', 'fredbear']) used.add(`fb.${who}.musicbox`); // session.beginPowerOutMusic: `fb.${who}.musicbox`
   for (const id of used) if (!(id in sd)) err(`script sound '${id}' not defined in sound_definitions.json`);
   for (const id of Object.keys(sd)) if (!used.has(id) && !fs.readFileSync(path.join(BP, 'scripts/data/actuators.js'), 'utf8').includes(id)) warnings.push(`sound ${id} defined but never played`);

@@ -1,38 +1,38 @@
 #!/usr/bin/env python3
-"""The map owner's animatronic models (art/models_incoming), version 1.3:
+"""The map owner's animatronic models (art/models_incoming).
 
-  freddy    Freddy_V6_Blink_Coverage.zip          6 clips  (replaces the skin-built Freddy)
-  bonnie    Bonnie_V2_Proportions_Fixed_Eyes.zip  8 clips  (replaces the skin-built Bonnie)
-  morgrave  Morgrave_Longer_Torso_Complete.zip    4 clips  (new, nights 8-9)
-  valek     Valek_Reworked_Complete.zip           4 clips  (new, nights 8-9)
+  freddy        Classic_Freddy_Pack.zip        Classic Freddy, 9 clips; his withered look (nights 7-9, the
+                                               challenges) is the pack's own Withered Freddy model (1.5)
+  bonnie        Bonnie_Midnight_Banjo.zip      Bonnie "Midnight Banjo", 8 clips, on the Classic Freddy body (1.5)
+  chica         (built)                        tools/chica_classic.py: the Classic Freddy body as Chica (1.5)
+  springbonnie  Springbonnie_Spotty.zip        Springbonnie, 9 clips: Fredbear's partner (1.5)
+  morgrave      Morgrave_Longer_Torso_Complete.zip   4 clips (1.3, nights 8-9)
+  valek         Valek_Reworked_Complete.zip          4 clips (1.3, nights 8-9)
 
-Fredbear's V6 model is imported by tools/fredbear_v6.py (whose compression and
-pose helpers are reused here). Used by tools/gen_rp.py. The zips are read
-as-is; from each:
+Freddy, Bonnie and Chica share one scale (CLASSIC_SCALE), so their bodies match exactly: Freddy with his hat
+is as tall in the game as the Freddy he replaces. Fredbear's V6 model is imported by tools/fredbear_v6.py
+(whose compression and pose helpers are reused here). Used by tools/gen_rp.py. From each model:
   * geometry   -> identifier geometry.fb.<who>, wider visible bounds
   * texture    -> textures/entity/fb/<who>.png (unchanged)
   * clips      -> animation.fb.<who>.<clip>, keyframes thinned within
-    0.2 degrees / 0.02 units (compress() fails if anything moves more)
+    0.2 degrees / 0.02 units (compress() fails if anything moves more); a model's own jumpscare
+    holds its last frame
 
 Added for the game (the zips have no clip for these states), each built on the
 first frame of the model's idle clip so eye modes and props (Bonnie's banjo)
-stay as idle has them:
+stay as idle has them (Freddy and Chica: with their black "active" eyes, except dormant):
   * crawl    hands and knees (vents, the crawlspace)
   * stalk    the walk at 60 % speed
-  * threat   at a door: leaning in, jaw working
-  * dormant  slumped (Bonnie: her own powered-down pose)
-  * attack   a lunge with the jaw wide open (Freddy, Bonnie; Morgrave and Valek
-             have their own jumpscare clip)
+  * threat   at a door: leaning in, jaw working (Springbonnie has his own)
+  * dormant  slumped
+  * attack   a lunge with the jaw wide open (only for models without their own jumpscare)
   * look_at  additive head turn driven by entity properties fb:look_yaw /
              fb:look_pitch / fb:look_tilt (the unsettling stare at the camera and
              the heads that follow you in Free Roam), eased in Molang
   * eye layer: only the model's own eye texels (bright pupils / irises),
     drawn with the glowing eyes material when fb:eyes is on
-  * withered texture (Freddy, Bonnie; Chica's in gen_rp.py): darker, grimy,
-    with torn patches showing the endoskeleton, used on nights 7-9 and in the
-    challenges (fb:variant 1)
-Bonnie's arm rest rotations are unusual (about [100, 26, -100]), so her added
-clips keep her own arm poses and move the torso, head, jaw and legs only.
+  * withered texture (Bonnie, Chica): darker, grimy, with torn patches showing the endoskeleton,
+    used on nights 7-9 and in the challenges (fb:variant 1)
 """
 import io
 import json
@@ -45,42 +45,84 @@ from PIL import Image
 import fredbear_v6 as V6
 
 LOOK_ANIM = "look_at"
+# Freddy, Bonnie and Chica: one scale, so Freddy with his hat (56.35 units) is 3.16 blocks tall like the
+# Freddy he replaces, and the three bodies match (Bonnie's ears and Chica's feathers stand above).
+CLASSIC_SCALE = 0.897
+CLASSIC_RIG = {"root": "root", "torso": "torso", "head": "head", "jaw": "jaw",
+               "ua": ("right_upper_arm", "left_upper_arm"), "fa": ("right_forearm", "left_forearm"),
+               "th": ("right_thigh", "left_thigh"), "sh": ("right_shin", "left_shin"), "ft": ("right_foot", "left_foot")}
 MODELS = {
     "freddy": {
-        "zip": "Freddy_V6_Blink_Coverage.zip",
-        "geo": "Freddy_V6_Blink_Coverage/freddy_v6.geo.json",
-        "anim": "Freddy_V6_Blink_Coverage/freddy_v6.animation.json",
-        "tex": "Freddy_V6_Blink_Coverage/freddy_v6.texture.png",
-        "height": 3.16,  # in-game height of the old Freddy (37.5 units x 1.35)
-        "rig": {"root": "root", "torso": "chest", "head": "head", "jaw": "jaw",
-                "ua": ("upper_arm_right", "upper_arm_left"), "fa": ("forearm_right", "forearm_left"),
-                "th": ("thigh_right", "thigh_left"), "sh": ("shin_right", "shin_left"), "ft": ("foot_right", "foot_left")},
+        "zip": "Classic_Freddy_Pack.zip",
+        "geo": "Classic_Freddy/classic_freddy.geo.json",
+        "anim": "Classic_Freddy/classic_freddy.animation.json",
+        "tex": "Classic_Freddy/classic_freddy.png",
+        "scale": CLASSIC_SCALE,
+        "rig": CLASSIC_RIG,
         "arms": True,
-        "clips": {"idle": "idle", "look": "idle", "pause": "pose", "walk": "walk", "stalk": "stalk", "retreat": "run",
-                  "crawl": "crawl", "threat": "threat", "dormant": "dormant", "music": "perform_showman"},
-        "performances": ["perform_showman", "perform_groove"],
-        "jumpscares": ["attack"],
-        "eye_bones": ["eyes_dark_right", "eyes_dark_left", "stage_iris_right", "stage_iris_left"],
+        "clips": {"idle": "idle", "look": "pose_stare", "pause": "pose_showman", "walk": "walk", "stalk": "stalk", "retreat": "run",
+                  "crawl": "crawl", "threat": "threat", "dormant": "dormant", "music": "perform_sing"},
+        "performances": ["perform_sing", "perform_present"],
+        "jumpscares": ["jumpscare"],
+        "eye_bones": ["right_eye", "left_eye", "right_eye_active", "left_eye_active"],
         "eye_min": 0.5,
-        "withered": True,
+        "active_eyes": "eyes_active",  # added hunting clips use the black eyes with white pupils
+        "drop": ["eyes_relaxed", "eyes_active", "chase"],
+        # The pack's Withered Freddy: his own geometry and texture, animated by the classic clips.
+        "withered": {"geo": "Withered_Freddy/withered_freddy.geo.json", "tex": "Withered_Freddy/withered_freddy.png",
+                     "eye_bones": ["right_eye", "left_eye"]},
     },
     "bonnie": {
-        "zip": "Bonnie_V2_Proportions_Fixed_Eyes.zip",
-        "geo": "Bonnie_V2_Proportions_Fixed_Eyes/bonnie_v2_proportions_fixed_eyes.geo.json",
-        "anim": "Bonnie_V2_Proportions_Fixed_Eyes/bonnie_v2_proportions_fixed_eyes.animation.json",
-        "tex": "Bonnie_V2_Proportions_Fixed_Eyes/bonnie_v2_proportions_fixed_eyes.png",
-        "height": 3.25,  # in-game height of the old Bonnie with her ears (40 units x 1.3)
+        "zip": "Bonnie_Midnight_Banjo.zip",
+        "geo": "Bonnie_Midnight_Banjo/bonnie.geo.json",
+        "anim": "Bonnie_Midnight_Banjo/bonnie.animation.json",
+        "tex": "Bonnie_Midnight_Banjo/bonnie.texture.png",
+        "scale": CLASSIC_SCALE,
+        "rig": CLASSIC_RIG,
+        "arms": True,
+        "clips": {"idle": "idle", "look": "pose_menacing", "pause": "pose_wave", "walk": "walk", "stalk": "stalk", "retreat": "run",
+                  "crawl": "crawl", "threat": "threat", "dormant": "dormant", "music": "idle"},
+        "performances": ["perform_strum", "perform_show"],
+        "jumpscares": ["jumpscare"],
+        "eye_bones": ["eyes_red", "eyes_performance"],
+        "eye_min": 0.35,
+        "withered": True,
+    },
+    "chica": {
+        "build": "chica",  # tools/chica_classic.py, from the Classic Freddy pack
+        "zip": "Classic_Freddy_Pack.zip",
+        "scale": CLASSIC_SCALE,
+        "rig": CLASSIC_RIG,
+        "arms": True,
+        "clips": {"idle": "idle", "look": "pose_stare", "pause": "pose_showman", "walk": "walk", "stalk": "stalk", "retreat": "run",
+                  "crawl": "crawl", "threat": "threat", "dormant": "dormant", "music": "perform_present"},
+        "performances": ["perform_present", "perform_sing"],
+        "jumpscares": ["jumpscare"],
+        "eye_bones": ["right_eye", "left_eye", "right_eye_active", "left_eye_active"],
+        "eye_min": 0.5,
+        "active_eyes": "eyes_active",
+        "drop": ["eyes_relaxed", "eyes_active", "chase"],
+        "withered": True,
+    },
+    "springbonnie": {
+        "zip": "Springbonnie_Spotty.zip",
+        "geo": "Springbonnie/springbonnie.geo.json",
+        "anim": "Springbonnie/springbonnie.animation.json",
+        "tex": "Springbonnie/springbonnie.png",
+        "height": 3.45,  # Fredbear's partner stands as tall as Fredbear (ears included)
         "rig": {"root": "root", "torso": "torso", "head": "head", "jaw": "jaw",
                 "ua": ("right_upper_arm", "left_upper_arm"), "fa": ("right_forearm", "left_forearm"),
                 "th": ("right_thigh", "left_thigh"), "sh": ("right_shin", "left_shin"), "ft": ("right_foot", "left_foot")},
-        "arms": False,
-        "clips": {"idle": "idle", "look": "pose_watch", "pause": "pose_watch", "walk": "walk", "stalk": "stalk", "retreat": "run",
-                  "crawl": "crawl", "threat": "threat", "dormant": "pose_powered_down", "music": "idle"},
-        "performances": ["perform_rhythm", "perform_solo"],
-        "jumpscares": ["attack"],
-        "eye_bones": ["right_eye_normal", "left_eye_normal", "right_eye_performance", "left_eye_performance"],
-        "eye_min": 0.35,
-        "withered": True,
+        "arms": True,
+        "clips": {"idle": "idle", "look": "pose_watch", "pause": "pose_stage", "walk": "walk", "stalk": "stalk", "retreat": "run",
+                  "crawl": "crawl", "threat": "pose_threat", "dormant": "dormant", "music": "perform_1"},
+        "performances": ["perform_1", "perform_2"],
+        "jumpscares": ["jumpscare"],
+        "eye_bones": ["head"],
+        "eye_min": 0.0,
+        "eye_white": True,  # his pupils: the only near-white texels on his head (the teeth are on the jaw)
+        "eye_y": 56.9,  # the pupils (tiny cubes on the head; the head bone's pivot is at the neck)
+        "withered": False,
     },
     "morgrave": {
         "zip": "Morgrave_Longer_Torso_Complete.zip",
@@ -124,11 +166,23 @@ ANIM_STATES = ["idle", "perform", "walk", "stalk", "crawl", "look", "pause", "th
 
 # --------------------------------------------------------------------------- loading
 def load(zip_path, spec):
+    if spec.get("build") == "chica":
+        import chica_classic
+        return chica_classic.build(zip_path)
     with zipfile.ZipFile(zip_path) as z:
         geo = json.loads(z.read(spec["geo"]))
         anims = json.loads(z.read(spec["anim"]))["animations"]
         tex = Image.open(io.BytesIO(z.read(spec["tex"]))).convert("RGBA")
     return geo, anims, tex
+
+
+def load_withered(zip_path, spec):
+    """(geometry, texture) of a model's own withered version (Freddy), or None."""
+    w = spec.get("withered")
+    if not isinstance(w, dict):
+        return None
+    with zipfile.ZipFile(zip_path) as z:
+        return json.loads(z.read(w["geo"])), Image.open(io.BytesIO(z.read(w["tex"]))).convert("RGBA")
 
 
 def model_height_units(geo):
@@ -137,7 +191,9 @@ def model_height_units(geo):
 
 
 def scale_for(geo, spec):
-    """minecraft:scale that keeps the animatronic as tall in the game as the one it replaces."""
+    """minecraft:scale: a shared scale (Freddy, Bonnie, Chica) or the one that makes the model `height` blocks tall."""
+    if "scale" in spec:
+        return spec["scale"]
     return round(spec["height"] * 16 / model_height_units(geo), 3)
 
 
@@ -147,6 +203,8 @@ def bone(geo, name):
 
 def eye_height(geo, spec):
     """Eye height in blocks before entity scaling (jumpscare framing)."""
+    if "eye_y" in spec:
+        return round(spec["eye_y"] / 16, 3)
     ys = [bone(geo, b)["pivot"][1] for b in spec["eye_bones"] if any(x["name"] == b for x in geo["minecraft:geometry"][0]["bones"])]
     return round(sum(ys) / len(ys) / 16, 3)
 
@@ -288,14 +346,25 @@ def clips(who, geo, raw, spec):
     for name, a in comp.items():
         A[name.rsplit(".", 1)[1]] = a
     base = base_pose(A["idle"])
+    hunt = base
+    if spec.get("active_eyes"):  # the hunting clips get the black eyes with white pupils
+        hunt = {b: dict(ch) for b, ch in base.items()}
+        for b, ch in base_pose(A[spec["active_eyes"]]).items():
+            hunt.setdefault(b, {}).update(ch)
+    for d in spec.get("drop", []):
+        A.pop(d, None)
+    for j in spec["jumpscares"]:
+        if j in A:
+            A[j] = {**A[j], "loop": "hold_on_last_frame"}
     A["stalk"] = {**A["walk"], "anim_time_update": "query.anim_time + query.delta_time * 0.6"}
     A["hurry"] = {**A["walk"], "anim_time_update": "query.anim_time + query.delta_time * 1.4"}
-    A["crawl"] = crawl_clip(geo, spec, base)
-    A["threat"] = threat_clip(spec, base)
+    A["crawl"] = crawl_clip(geo, spec, hunt)
+    if spec["clips"]["threat"] == "threat":
+        A["threat"] = threat_clip(spec, hunt)
     if "dormant" in spec["clips"].values() and "dormant" not in A:
         A["dormant"] = dormant_clip(spec, base)
     if "attack" in spec["jumpscares"]:
-        A["attack"] = attack_clip(spec, base)
+        A["attack"] = attack_clip(spec, hunt)
     for p in spec["performances"]:
         A[f"{p}_once"] = {**A[p], "loop": False}
     A[LOOK_ANIM] = look_at_clip(spec)
@@ -385,7 +454,8 @@ def eye_texture(geo, tex, spec):
                 r, g, b, a = src[x, y]
                 if a < 128:
                     continue
-                if max(r, g, b) / 255.0 >= spec["eye_min"]:
+                lit = min(r, g, b) >= 215 if spec.get("eye_white") else max(r, g, b) / 255.0 >= spec["eye_min"]
+                if lit:
                     k = 255.0 / max(1, max(r, g, b))
                     dst[x, y] = (min(255, int(r * k)), min(255, int(g * k)), min(255, int(b * k)), 255)
                     n += 1

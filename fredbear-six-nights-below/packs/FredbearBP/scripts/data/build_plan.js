@@ -42,6 +42,8 @@ function floorKey(style, x, z, rng) {
       return pick(rng, [['gray_c', 0.08], ['cracked_dt', 0.05], ['lgray_c', 0.05]]) ?? (even ? 'white_c' : 'black_c');
     case 'golden':
       return even ? 'yellow_t' : 'white_t';
+    case 'nightmare': // a stained, faded checkerboard
+      return pick(rng, [['red_t', 0.06], ['brown_t', 0.05], ['cracked_dt', 0.06]]) ?? (even ? 'gray_c' : 'black_c');
     case 'kitchen':
       return pick(rng, [['terracotta', 0.05]]) ?? (even ? 'red_t' : 'white_t');
     case 'tile':
@@ -81,6 +83,11 @@ function wallKey(style, r, a, h, rng) {
       if (r === 1 || r === 2) return (a + r) % 2 === 0 ? 'yellow_c' : 'purple_t';
       if (r === 3) return 'gold';
       return 'yellow_t';
+    case 'nightmare': // old party-room wallpaper gone black, the stripes still showing
+      if (r === 0) return 'black_t';
+      if (r === 1 || r === 2) return pick(rng, [['black_c', 0.35]]) ?? ((a + r) % 2 === 0 ? 'purple_t' : 'gray_t');
+      if (r === 3) return 'black_t';
+      return pick(rng, [['cracked_dt', 0.15], ['black_c', 0.2]]) ?? 'gray_t';
     case 'diner':
       if (r === 0) return 'brown_t';
       if (r === 1) return 'red_c';
@@ -115,6 +122,8 @@ function ceilingKey(style, x, z, rng) {
       return 'deepslate_tiles';
     case 'diner':
       return rng.chance(0.2) ? 'brown_t' : 'terracotta';
+    case 'nightmare':
+      return rng.chance(0.2) ? 'cracked_dt' : 'black_c';
     case 'golden':
       return 'white_t';
     case 'office':
@@ -126,7 +135,7 @@ function ceilingKey(style, x, z, rng) {
   }
 }
 
-const STYLE_ORDER = ['control', 'basement', 'staff', 'kitchen', 'freezer', 'tile', 'party', 'golden', 'diner', 'pizzeria', 'office'];
+const STYLE_ORDER = ['control', 'basement', 'nightmare', 'staff', 'kitchen', 'freezer', 'tile', 'party', 'golden', 'diner', 'pizzeria', 'office'];
 
 // ------------------------------------------------------------------ phases
 function terrain(P) {

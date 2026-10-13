@@ -52,9 +52,10 @@ const CB_INPUT = new Map(INPUTS.map((i) => {
 const RESET_SETTLE = settleTicks('reset.world') + 4;
 const OFFICE_TARGET = 'anchor:officeSeat'; // route-guidance target name (data/guide_graph.generated.js)
 // = minecraft:scale in BP entities (validate_assets checks); the owner's models keep the old in-game heights (tools/owner_models.py).
-const SCALE = Object.freeze({ freddy: 0.992, bonnie: 0.605, chica: 1.3, fredbear: 1.09, morgrave: 0.768, valek: 0.87 });
+const SCALE = Object.freeze({ freddy: 0.897, bonnie: 0.897, chica: 0.897, fredbear: 1.09, morgrave: 0.768, valek: 0.87, springbonnie: 0.717 });
 // Eye height of each model at scale 1 (blocks): the jumpscare camera and the stare look from here.
-const EYE_HEIGHT = Object.freeze({ freddy: 2.604, bonnie: 3.986, chica: 1.55, fredbear: 2.64, morgrave: 3.259, valek: 3.442 });
+const EYE_HEIGHT = Object.freeze({ freddy: 2.989, bonnie: 2.989, chica: 2.989, fredbear: 2.64, morgrave: 3.259, valek: 3.442, springbonnie: 3.556 });
+const SPRING_BESIDE = 3; // blocks east of Fredbear: Springbonnie's place on the 1983 diner stage
 const FREDBEAR_JUMPSCARES = 3; // fb:variant 0-2 picks one of the V6 jumpscares (snap bite, dual lunge, left grab)
 const MUSIC_TRACK = 'fb.night.bgm'; // "Pizza Dinner" (music category: replaces Minecraft's own music while it plays)
 const SHOT = 70; // ticks per cutscene caption
@@ -488,9 +489,9 @@ export class Game {
     if (!g) return;
     /** @type {[string, number][]} [camera, ticks] */
     const shots = [['C01', 60], ['C14', 34], ['C10', 34]];
-    if (n >= 4) shots.push(['C21', 50]);
+    if (n >= 4) shots.push(['C22', 50]);
     if (n >= 7) shots.push(['C03', 40]); // Parts & Service: Valek standing there, and the trio on nights 7 and 9
-    if (n >= 8) shots.push(['C22', 40], ['C16', 30]); // the chamber and the duct
+    if (n >= 8) shots.push(['C23', 40], ['C16', 30]); // the chamber and the duct
     this.tour = { shots, i: 0, next: system.currentTick + 20 };
     this.intro.deadline += shots.reduce((a, s) => a + s[1], 20);
   }
@@ -539,6 +540,8 @@ export class Game {
       g.addEffect('night_vision', 20 * 60, { amplifier: 0, showParticles: false });
       const n = NODE_BY_ID.DINER_STAGE;
       this.puppets.apply('fredbear', { x: n.x, y: n.y, z: n.z, yaw: n.yaw ?? 0, anim: 'perform', eyes: false, hidden: false });
+      // 1983: Fredbear and his partner on the diner stage.
+      this.puppets.apply('springbonnie', { x: n.x + SPRING_BESIDE, y: n.y, z: n.z, yaw: n.yaw ?? 0, anim: 'perform', eyes: false, hidden: false });
       g.camera.setCamera('minecraft:free', { location: Wv(SCENES.dinerStage.from), facingLocation: Wv(SCENES.dinerStage.to) });
     } catch (e) {
       log.warn(`flashback: ${e?.message ?? e}`);
@@ -558,6 +561,7 @@ export class Game {
       if (f.step === FLASHBACK.length - 1) {
         const n = NODE_BY_ID.DINER_STAGE;
         this.puppets.apply('fredbear', { x: n.x, y: n.y, z: n.z, yaw: n.yaw ?? 0, anim: 'threat', eyes: true, hidden: false });
+        this.puppets.apply('springbonnie', { x: n.x + SPRING_BESIDE, y: n.y, z: n.z, yaw: n.yaw ?? 0, anim: 'look', eyes: true, hidden: false });
         g.playSound('fb.fredbear.laugh', { volume: 1.0 });
       }
       g.onScreenDisplay.setTitle(title, { fadeInDuration: 10, stayDuration: SHOT - 20, fadeOutDuration: 10, subtitle: sub });
@@ -1055,15 +1059,18 @@ export class Game {
     if (e.kind === 'nine') return this.tickNightNineEnding(now, g);
     if (now < e.next) return;
     const ch = NODE_BY_ID.CHAMBER_F;
+    const sb = NODE_BY_ID.SB_HOME;
     const shots = [
       () => {
         this.bus.trigger('sig.chamber_open');
         this.puppets.apply('fredbear', { x: ch.x, y: ch.y, z: ch.z, yaw: 0, anim: 'dormant', eyes: true, hidden: false });
-        g.camera.setCamera('minecraft:free', { location: Wv({ x: 34.5, y: -6.5, z: 42.5 }), facingLocation: Wv({ x: ch.x, y: ch.y + 1.5, z: ch.z }) });
+        this.puppets.apply('springbonnie', { x: sb.x, y: sb.y, z: sb.z, yaw: 0, anim: 'dormant', eyes: true, hidden: false });
+        g.camera.setCamera('minecraft:free', { location: Wv({ x: 33.0, y: -6.5, z: 42.5 }), facingLocation: Wv({ x: (ch.x + sb.x) / 2, y: ch.y + 1.5, z: ch.z }) });
         g.onScreenDisplay.setTitle(' ', { fadeInDuration: 10, stayDuration: 110, fadeOutDuration: 10, subtitle: ENDING[0] });
       },
       () => {
         this.puppets.apply('fredbear', { x: ch.x, y: ch.y, z: ch.z, yaw: 0, anim: 'dormant', eyes: false, hidden: false });
+        this.puppets.apply('springbonnie', { x: sb.x, y: sb.y, z: sb.z, yaw: 0, anim: 'dormant', eyes: false, hidden: false });
         g.onScreenDisplay.setTitle(' ', { fadeInDuration: 10, stayDuration: 110, fadeOutDuration: 10, subtitle: ENDING[1] });
       },
       () => {

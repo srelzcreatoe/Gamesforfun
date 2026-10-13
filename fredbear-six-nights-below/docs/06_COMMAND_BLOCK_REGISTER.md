@@ -10,17 +10,17 @@ Coordinates are **world** coordinates (local + (0, -50, 0)).
 
 | | Count |
 |---|---:|
-| Command blocks | **537** |
-| Impulse (needs redstone) | 209 |
+| Command blocks | **538** |
+| Impulse (needs redstone) | 210 |
 | Chain (always active) | 327 |
 | Repeating (always active) | 1 |
 | Actuator modules (control room) | 119 |
-| Physical inputs (buttons / levers / plates) | 90 |
+| Physical inputs (buttons / levers / plates) | 91 |
 | Structure files | 32 |
 
-Per section: A Setup & initialisation: 17 · B Lobby & tutorial: 48 · C Night controls: 68 · D Office doors, lights & hatch: 66 · E Camera controls: 8 · F Power & emergency systems: 80 · G Room triggers (exploration events): 16 · H Animatronic signals: 77 · I Environmental events: 29 · J Jumpscare coordination: 5 · K Win & lose transitions: 15 · L Reset & diagnostics: 18 · Inputs: 90
+Per section: A Setup & initialisation: 17 · B Lobby & tutorial: 48 · C Night controls: 68 · D Office doors, lights & hatch: 66 · E Camera controls: 8 · F Power & emergency systems: 80 · G Room triggers (exploration events): 16 · H Animatronic signals: 77 · I Environmental events: 29 · J Jumpscare coordination: 5 · K Win & lose transitions: 15 · L Reset & diagnostics: 18 · Inputs: 91
 
-### Why 537 and not 150-250
+### Why 538 and not 150-250
 
 The brief suggested roughly 150-250 *useful* blocks. This design ends higher, without padding, for three reasons:
 
@@ -73,7 +73,7 @@ the surrounding build.
 | `fb:cb_row_3` | 23 -59 178 | 150×1×1 | 90 |
 | `fb:cb_row_4` | 23 -59 181 | 111×1×1 | 73 |
 | `fb:in_g_3_4` | 96 -51 128 | 31×1×12 | 30 |
-| `fb:in_g_3_3` | 97 -51 127 | 8×1×1 | 8 |
+| `fb:in_g_3_3` | 96 -51 127 | 9×1×1 | 9 |
 | `fb:in_g_5_3` | 168 -51 98 | 14×1×25 | 17 |
 | `fb:in_g_4_3` | 158 -51 122 | 1×1×1 | 1 |
 | `fb:in_g_5_4` | 166 -51 148 | 1×1×1 | 1 |
@@ -700,14 +700,15 @@ All blocks are unconditional. Facing: E = east (+X, the chain direction), U = up
 | `in.office.seal_shaft#0` | 96 -51 129 | I | NR | 0 | U | `scriptevent fb:input seal_shaft` | Input: SEAL SHAFT (button); button on top of the console block above this CB |
 | `in.office.tapes#0` | 102 -51 139 | I | NR | 0 | U | `scriptevent fb:input tapes` | Input: TAPE DECK 1987 (button); button on top of the console block above this CB |
 | `in.office.vent_grate#0` | 104 -51 127 | I | NR | 0 | U | `scriptevent fb:input vent_grate` | Input: VENT GRATE (button); button on top of the console block above this CB |
-| `in.office.map_c22#0` | 97 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C22` | Input: CAM 22 · FREDBEAR'S CHAMBER (button); button on top of the console block above this CB |
+| `in.office.map_c19#0` | 96 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C19` | Input: CAM 19 · THE WORKSHOP (button); button on top of the console block above this CB |
+| `in.office.map_c23#0` | 97 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C23` | Input: CAM 23 · FREDBEAR'S CHAMBER (button); button on top of the console block above this CB |
 | `in.office.map_c03#0` | 98 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C03` | Input: CAM 03 · PARTS & SERVICE (button); button on top of the console block above this CB |
 | `in.office.map_c02#0` | 99 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C02` | Input: CAM 02 · BACKSTAGE (button); button on top of the console block above this CB |
 | `in.office.map_c01#0` | 100 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C01` | Input: CAM 01 · SHOW STAGE (button); button on top of the console block above this CB |
 | `in.office.map_c06#0` | 101 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C06` | Input: CAM 06 · DINING HALL WEST (button); button on top of the console block above this CB |
 | `in.office.map_c08#0` | 102 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C08` | Input: CAM 08 · KITCHEN (AUDIO ONLY) (button); button on top of the console block above this CB |
 | `in.office.map_c09#0` | 103 -51 127 | I | NR | 0 | U | `scriptevent fb:input cam:C09` | Input: CAM 09 · EAST SERVICE (button); button on top of the console block above this CB |
-| `in.office.map_c20#0` | 97 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C20` | Input: CAM 20 · DINER PARTY ROOM (button); button on top of the console block above this CB |
+| `in.office.map_c21#0` | 97 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C21` | Input: CAM 21 · DINER PARTY ROOM (button); button on top of the console block above this CB |
 | `in.office.map_c04#0` | 98 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C04` | Input: CAM 04 · STARLIGHT COVE (button); button on top of the console block above this CB |
 | `in.office.map_c05#0` | 99 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C05` | Input: CAM 05 · ARCADE (button); button on top of the console block above this CB |
 | `in.office.map_c14#0` | 100 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C14` | Input: CAM 14 · WEST HALL (button); button on top of the console block above this CB |
@@ -715,8 +716,8 @@ All blocks are unconditional. Facing: E = east (+X, the chain direction), U = up
 | `in.office.map_c10#0` | 102 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C10` | Input: CAM 10 · EAST HALL (button); button on top of the console block above this CB |
 | `in.office.map_c18#0` | 103 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C18` | Input: CAM 18 · MAINTENANCE TUNNEL (button); button on top of the console block above this CB |
 | `in.office.map_c16#0` | 104 -51 128 | I | NR | 0 | U | `scriptevent fb:input cam:C16` | Input: CAM 16 · SUPPLY DUCT (button); button on top of the console block above this CB |
-| `in.office.map_c19#0` | 97 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C19` | Input: CAM 19 · DINER KITCHEN (button); button on top of the console block above this CB |
-| `in.office.map_c21#0` | 98 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C21` | Input: CAM 21 · SEALED DINER (button); button on top of the console block above this CB |
+| `in.office.map_c20#0` | 97 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C20` | Input: CAM 20 · DINER KITCHEN (button); button on top of the console block above this CB |
+| `in.office.map_c22#0` | 98 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C22` | Input: CAM 22 · SEALED DINER (button); button on top of the console block above this CB |
 | `in.office.map_c15#0` | 99 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C15` | Input: CAM 15 · SUPPLY CLOSET (button); button on top of the console block above this CB |
 | `in.office.map_c13#0` | 100 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C13` | Input: CAM 13 · WEST CORNER (button); button on top of the console block above this CB |
 | `in.office.map_c11#0` | 102 -51 129 | I | NR | 0 | U | `scriptevent fb:input cam:C11` | Input: CAM 11 · EAST CORNER (button); button on top of the console block above this CB |

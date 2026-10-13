@@ -182,7 +182,7 @@ export const CLIPPINGS = Object.freeze([
 /** Night 4 flashback (shown once, before the first night 4 shift): [title, subtitle] per shot. */
 export const FLASHBACK = Object.freeze([
   ['§61983', "Fredbear's Family Diner"],
-  [' ', 'Every Saturday, the golden bear sang for the children.'],
+  [' ', 'Every Saturday, the golden bear and his rabbit sang for the children.'],
   [' ', 'He knew every name. He never forgot a face.'],
   [' ', 'Then one birthday, the music stopped.'],
   ['§4SOMETHING BELOW', 'has woken up.'],
@@ -198,7 +198,7 @@ export const NIGHT_NINE_ENDING = Object.freeze([
 
 export const ENDING = Object.freeze([
   '6 AM. The music box winds down mid-note.',
-  'Below the office, something golden settles back into the dark of the old diner.',
+  'Below the office, two golden shapes settle back into the dark of the old diner.',
   'You walk out through the front doors. The parking lot lights flicker, then hold.',
   'Behind you, the sign buzzes: FREDBEAR\'S FAMILY PIZZERIA.',
   'Six nights. You made it. He is still below.',

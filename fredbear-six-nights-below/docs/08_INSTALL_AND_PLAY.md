@@ -19,19 +19,19 @@ The build is resumable: if you leave, run `/fb:setup` again.
 
 ### Updating from an earlier version
 
-1. Import the new `.mcaddon` (version **1.4.0**).
+1. Import the new `.mcaddon` (version **1.5.0**).
 2. In the world's settings, open **Behavior Packs** and make sure **FREDBEAR: Six Nights Below (Behavior)** shows
-   version 1.4.0; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
-   Check **Resource Packs** too: only the 1.4.0 resource pack should be active.
-3. Enter the world. Version 1.4 changes the map (the ceiling vent over the office, its grate and the VENT GRATE button,
-   a new camera, renumbered camera buttons), so the action bar asks you to rebuild: run **`/fb:setup`** once and wait for
-   the title. Unlocked nights, secrets, endings and settings are kept: if you already beat night 7, night 8 is open
+   version 1.5.0; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
+   Check **Resource Packs** too: only the 1.5.0 resource pack should be active.
+3. Enter the world. Version 1.5 changes the map (Valek and Morgrave's workshop below the old diner, its camera and a new
+   map button in the desk's north-west corner, Springbonnie's spot in the chamber), so the action bar asks you to rebuild:
+   run **`/fb:setup`** once and wait for the title. Unlocked nights, secrets, endings and settings are kept: if you already beat night 7, night 8 is open
    (Morgrave if your last ending was *seal*, Valek if it was *burn*).
-4. **The cameras have new numbers** (1.4): neighbouring cameras now have neighbouring numbers. CAM 01-05 are the stage,
-   backstage, Parts & Service, Starlight Cove and the arcade; 06-07 the dining hall; 08-09 the kitchen and the east service
-   hall; 10-14 round the office (east hall, east corner, the ceiling vent, west corner, west hall); 15-16 the supply closet
-   and its duct; 17-22 below (office subfloor, maintenance tunnel, diner kitchen, party room, sealed diner, Fredbear's
-   chamber).
+4. **Camera numbers** (neighbouring cameras have neighbouring numbers since 1.4): CAM 01-05 are the stage, backstage,
+   Parts & Service, Starlight Cove and the arcade; 06-07 the dining hall; 08-09 the kitchen and the east service hall;
+   10-14 round the office (east hall, east corner, the ceiling vent, west corner, west hall); 15-16 the supply closet and
+   its duct; 17-23 below (office subfloor, maintenance tunnel, **19 the workshop** (new in 1.5), diner kitchen, party room,
+   sealed diner, Fredbear's chamber).
 
 ## The time clock (lobby)
 
@@ -49,7 +49,7 @@ Also in the time-clock room:
 * **NEWSPAPER BOARD**: press its button to read the clippings. A new one appears for every night you finish.
 * **TAPE DECK 1987** (in the office, on the back wall): once you have survived night 5, it plays the 1987 security tapes
   on the monitor - the night the last guard vanished. Only outside a shift; sneak to stop.
-* Lore to find in Free Roam: the sealed 1983 **birthday room** in the old diner (CAM 20; the candles relight every night),
+* Lore to find in Free Roam: the sealed 1983 **birthday room** in the old diner (CAM 21; the candles relight every night),
   the **wall of names** in Fredbear's chamber (after night 6 there is a new one) and the 1987 **crew graffiti** in the west
   maintenance tunnel.
 * **Decorations**: in late October the pizzeria gets pumpkins, jack-o'-lanterns and cobwebs; in December and early
@@ -105,8 +105,8 @@ The action bar shows time, power %, usage bars and captions.
 * **Camera map**: while you watch the cameras, a map of the building sits in the bottom-right corner of the screen, like
   FNAF 1: every camera is a numbered box, the one you are on blinks green, and YOU marks the office. The basement cameras
   are on the left. Switch it off in Settings if it is in the way.
-* CAM 08 (kitchen) is **audio only**: you hear Chica's clatter through it. CAM 19-22 (the diner kitchen, the party room, the
-  sealed diner and Fredbear's chamber) have no signal before night 4.
+* CAM 08 (kitchen) is **audio only**: you hear Chica's clatter through it. CAM 19-23 (the workshop, the diner kitchen, the
+  party room, the sealed diner and Fredbear's chamber) have no signal before night 4.
 * CAM 17 looks at the subfloor under the office hatch (whoever climbs up passes it), CAM 16 into the supply duct (Bonnie
   crawls through it to the left door) and CAM 12 along the crawlspace above the office at the ceiling-vent grate.
 * **They stare back**: whoever you watch on a feed for a couple of seconds slowly turns to look straight into the lens.
@@ -145,6 +145,10 @@ On touch screens these items show an on-screen interact button (Cameras / Office
   If you keep the barrier closed without strobing he pounds on it: **the first time each night, each door and the hatch
   hold** and he gives up (he bows and leaves). The second time at the same door or hatch he forces it open — you can still
   strobe him in that moment. Nothing holds him in the Golden Hour (night 6, 5 AM).
+* **Springbonnie** (1.5): Fredbear's golden partner, slumped beside him in the chamber (CAM 23). At 5 AM on night 6 (the
+  Golden Hour) he wakes, climbs out of the supply-closet grate and walks the West Hall to the **left door**. A springlock
+  **twang** at the left door means he is there: close it and keep it shut until he backs off. He never comes while
+  Fredbear is at an entry.
   Night 5+: warned teleports (chime + shimmer + static), false camera echoes, short blackouts (doors still work).
   From night 4, when the power runs out it is **Fredbear** who comes to the left door with his music box.
 * **Maintenance** (nights 3 and 5): the clock stops and every animatronic shuts down; follow the green sparkles to the named room

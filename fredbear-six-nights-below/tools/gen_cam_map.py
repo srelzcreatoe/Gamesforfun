@@ -35,7 +35,7 @@ SIZE = (129, 69)  # whole map, UI units
 # Panels: (level, block window x0, z0, x1, z1, UI origin x, y)
 GROUND = ("L1", 16, 12, 184, 152, 50.5, 3.0)
 BELOW = ("L0", 16, 28, 110, 142, 3.0, 9.0)
-BELOW_ROOMS = {"CHAMBER", "DINER", "DINER_KITCHEN", "CRAWL_D", "TUNNEL_W", "TUNNEL_N", "TUNNEL_S", "PUMP", "ARCHIVE", "CRAWL_A", "SUBFLOOR"}
+BELOW_ROOMS = {"CHAMBER", "DINER", "DINER_KITCHEN", "CRAWL_D", "NIGHTMARE", "TUNNEL_W", "TUNNEL_N", "TUNNEL_S", "PUMP", "ARCHIVE", "CRAWL_A", "SUBFLOOR"}
 
 # Box centres in local block coordinates, placed by hand like the FNAF map
 # (next to the room each camera watches, never overlapping; checked below).
@@ -47,9 +47,10 @@ POS = {
     "C13": (82, 123), "C11": (120, 123), "C15": (57, 130), "C16": (74, 146),
     "C12": (101, 146),  # the ceiling vent above the office (1.4)
     # basement
-    "C22": (34, 36), "C21": (40, 56), "C20": (40, 84), "C19": (28, 104), "C18": (90, 100), "C17": (98, 126),
+    "C23": (34, 36), "C22": (40, 56), "C21": (40, 84), "C20": (28, 104), "C18": (90, 100), "C17": (98, 126),
+    "C19": (40, 130),  # the workshop (1.5)
 }
-BASEMENT = {"C18", "C21", "C17", "C22", "C20", "C19"}
+BASEMENT = {"C17", "C18", "C19", "C20", "C21", "C22", "C23"}
 YOU_AT = (101, 133)
 
 WALL = (215, 215, 215, 235)

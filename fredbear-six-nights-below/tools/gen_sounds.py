@@ -334,6 +334,12 @@ def build_sounds():
     for off in (0.0, 0.22, 0.44):
         hard = mix(hard, at(knock(0.2, 120, 22, 1.0), off, 1.0))
     S["morgrave/knock_hard"] = norm(hard) * 0.95
+    # Springbonnie (1.5): his steps, and a springlock twang at the door (a wound spring snapping loose and ringing).
+    S["step/springbonnie"] = step(1.1, 0.95)
+    tw = t_axis(1.6)
+    twang = metal_hit(1.6, [310, 620, 1240, 1930], 3.2, rng, q=60.0)
+    wobble = 0.5 * sine(tw, 310 * (1 + 0.02 * np.sin(2 * np.pi * 7 * tw))) * decay(tw, 2.4)
+    S["springbonnie/twang"] = norm(twang + wobble) * 0.9
     return S
 
 
@@ -362,6 +368,7 @@ META = {
     "js.fredbear": ("hostile", False, None, 1.0), "js.morgrave": ("hostile", False, None, 1.0), "js.valek": ("hostile", False, None, 1.0),
     "morgrave.scrape": ("hostile", True, 48, 1.0), "valek.hum": ("hostile", True, 16, 0.7), "valek.vanish": ("hostile", True, 24, 0.8),
     "morgrave.knock_soft": ("hostile", True, 24, 0.8), "morgrave.knock_hard": ("hostile", True, 32, 1.0),
+    "step.springbonnie": ("hostile", True, 44, 1.0), "springbonnie.twang": ("hostile", True, 32, 1.0), "js.springbonnie": ("hostile", False, None, 1.0),
     "ui.accept": ("ui", False, None, 0.7), "ui.blip": ("ui", False, None, 0.6), "ui.deny": ("ui", False, None, 0.7),
 }
 
@@ -423,7 +430,7 @@ RECORDED_IDS = {
     "night.bgm": ["night/bgm"],
     "fredbear.musicbox": ["fredbear/musicbox"],
     "chica.clatter": [f"chica/clatter_{k}" for k in range(1, 6)],
-    "js.morgrave": ["js/animatronic"], "js.valek": ["js/animatronic"],
+    "js.morgrave": ["js/animatronic"], "js.valek": ["js/animatronic"], "js.springbonnie": ["js/animatronic"],
 }
 
 

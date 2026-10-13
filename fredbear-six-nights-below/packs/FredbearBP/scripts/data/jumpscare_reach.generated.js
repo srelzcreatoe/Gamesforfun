@@ -2,9 +2,10 @@
 // distance: blocks between the player's eyes and the puppet's feet so that, at the closest moment of
 // the attack animation, the face stays >= 0.55 and anything in the line of sight >= 0.3 from the camera.
 export const JUMPSCARE_REACH = Object.freeze({
-  freddy: Object.freeze([{"variant": 0, "clip": "attack", "head": 1.151, "near": 1.907, "distance": 2.21}]),
-  bonnie: Object.freeze([{"variant": 0, "clip": "attack", "head": 1.036, "near": 1.036, "distance": 1.59}]),
-  chica: Object.freeze([{"variant": 0, "clip": "attack", "head": 0.488, "near": 1.001, "distance": 1.3}]),
+  freddy: Object.freeze([{"variant": 0, "clip": "jumpscare", "head": 0.567, "near": 1.475, "distance": 1.78}]),
+  bonnie: Object.freeze([{"variant": 0, "clip": "jumpscare", "head": 0.583, "near": 1.211, "distance": 1.51}]),
+  chica: Object.freeze([{"variant": 0, "clip": "jumpscare", "head": 0.727, "near": 1.475, "distance": 1.78}]),
+  springbonnie: Object.freeze([{"variant": 0, "clip": "jumpscare", "head": 0.431, "near": 0.431, "distance": 0.98}]),
   fredbear: Object.freeze([{"variant": 0, "clip": "jumpscare_snap_bite", "head": 0.8, "near": 1.122, "distance": 1.42}, {"variant": 1, "clip": "jumpscare_dual_lunge", "head": 0.852, "near": 1.528, "distance": 1.83}, {"variant": 2, "clip": "jumpscare_left_grab", "head": 0.769, "near": 1.63, "distance": 1.93}]),
   morgrave: Object.freeze([{"variant": 0, "clip": "jumpscare", "head": 0.888, "near": 0.888, "distance": 1.44}]),
   valek: Object.freeze([{"variant": 0, "clip": "jumpscare", "head": 0.947, "near": 0.947, "distance": 1.5}]),

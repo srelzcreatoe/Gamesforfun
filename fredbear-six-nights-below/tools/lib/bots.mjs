@@ -126,6 +126,9 @@ export function humanBot(seed = 7, skill = 1.0) {
         freddyNear = s.t + 300;
       } else if (/vents/.test(t)) {
         react(s, () => (belief.L = Math.max(belief.L, s.t + 160)));
+      } else if (/springlock twangs at the LEFT/.test(t)) {
+        // Springbonnie (1.5, night 6's Golden Hour): he is at the left door right now.
+        react(s, () => (belief.L = Math.max(belief.L, s.t + 140)));
       } else if (/(groan|breathing) at the (LEFT|RIGHT)/.test(t)) {
         const e = t.includes('LEFT') ? 'L' : 'R';
         react(s, () => (belief[e] = Math.max(belief[e], s.t + 120)));
@@ -237,7 +240,7 @@ export function humanBot(seed = 7, skill = 1.0) {
           belief.R = Math.max(belief.R, s.t + 200);
         }
         camPlan = ['C14', 'C10'];
-        if (rng.chance(0.4)) camPlan.push(s.night >= 4 ? 'C21' : 'C01');
+        if (rng.chance(0.4)) camPlan.push(s.night >= 4 ? 'C22' : 'C01');
         s.input('cams_open', camPlan.shift());
         camUntil = s.t + 30;
       } else if (d.camsOpen && s.t >= camUntil) {

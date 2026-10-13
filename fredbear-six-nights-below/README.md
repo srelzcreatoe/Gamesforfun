@@ -1,21 +1,25 @@
 # FREDBEAR: SIX NIGHTS BELOW
 
 A Five Nights at Freddy's–inspired survival-horror campaign for **Minecraft Bedrock Edition 1.26.50**, built as a
-behavior pack + resource pack. The behavior pack constructs the whole map in your own world, installs a 537-block
-command-block network from structure files, and runs six animatronics with explainable AI on the stable Script API
+behavior pack + resource pack. The behavior pack constructs the whole map in your own world, installs a 538-block
+command-block network from structure files, and runs seven animatronics with explainable AI on the stable Script API
 (`@minecraft/server` 2.10.0, `@minecraft/server-ui` 2.2.0). No experimental features.
 
 * **Location:** an abandoned family entertainment complex, 200 × 200 blocks, three levels (basement, ground, upper floor),
-  62 rooms and spaces, from the parking lot, dining hall and show stage to the sealed original Fredbear's Diner and his hidden chamber.
+  63 rooms and spaces, from the parking lot, dining hall and show stage to the sealed original Fredbear's Diner, his hidden
+  chamber and (1.5) the workshop where Valek and Morgrave wait between nights.
 * **Animatronics:** Freddy (patient stalker), Bonnie (aggressive flanker, vent crawler, bangs on a door so Chica can sneak
   in), Chica (resource pressure, flanks, joins the others at the door) and Fredbear (phased central threat with camera
   disruption, false camera echoes, blackouts, warned relocation, his own power-out, a laugh when he starts hunting and
-  flickering office lamps when he is close; on nights 7 and 9 he is everywhere at once). Nights 8 and 9 add **Morgrave**, the
+  flickering office lamps when he is close; on nights 7 and 9 he is everywhere at once). **Springbonnie** (1.5), Fredbear's
+  partner, sits slumped beside him in the chamber and hunts the left door with him in night 6's Golden Hour. Nights 8 and 9 add **Morgrave**, the
   rabbit who only wants to be let in (he knocks at a door or the ceiling vent: open up and he walks past; keep it shut and
   he breaks in), and **Valek**, the gray bear in the dark (a staring contest: look straight at his eyes until he looks away
-  first; his head follows you around the office). Both changed in 1.4. Freddy (V6), Bonnie (V2), Fredbear (V6), Morgrave and Valek are the
-  owner's models with their own animations plus added crawl / stalk / threat / dormant / look clips; Chica is built from the
-  supplied skin. Watched on camera, they slowly turn to stare into the lens; from night 7 the trio look withered.
+  first; his head follows you around the office). Both changed in 1.4. The Classic Freddy (with his own Withered Freddy model),
+  the Midnight Banjo Bonnie, Springbonnie, Fredbear (V6), Morgrave and Valek are the owner's models with their own
+  animations plus added crawl / stalk / threat / dormant / look clips; since 1.5 Chica is built on the Classic Freddy body
+  (same height and proportions as Freddy and Bonnie) with Freddy's own animations. Watched on camera, they slowly turn to stare
+  into the lens; from night 7 the trio look withered.
 * **Campaign:** training shift, nine nights of 9,600 ticks (8 minutes), mid-night maintenance sections, Night 6 finale and
   ending, **Night 7 — Fredbear's Revenge** with a seal-or-burn final choice, **Night 8** (Morgrave after the seal ending,
   Valek after the burn ending), **Night 9 — Three Below** (Fredbear, Morgrave and Valek together, whatever ending you chose,
@@ -24,19 +28,20 @@ command-block network from structure files, and runs six animatronics with expla
   Halloween and Christmas decorations, persistent unlocks, retry, secrets, free roam.
 * **Sound:** the owner's recordings for the jumpscares, doors, camera monitor, CCTV hum, laughs, Fredbear's music box and
   Chica in the kitchen, and looping night music with an on/off switch in the Shift Guide.
-* **Office:** two doors, two hall lights, 22 cameras (numbered in walking order since 1.4) with a physical map and an
+* **Office:** two doors, two hall lights, 23 cameras (numbered in walking order) with a physical map and an
   on-screen FNAF-style camera map, floor hatch, a ceiling vent with a grate, vent and shaft seals, emergency strobe, breaker, reserve lever, tape deck, power meter, hour lamps, warning indicators,
   captions.
 
 ## Status — read before playing
 
 Everything here was generated and verified **without running Minecraft**: 6 static validators against Mojang's official
-1.26.50 metadata and schemas, 82 automated tests, a balance simulator, and an integration harness that runs the real pack
+1.26.50 metadata and schemas, 85 automated tests, a balance simulator, and an integration harness that runs the real pack
 scripts against a mock of the Script API (full build, self-test, tutorial, a complete six-night campaign through the office
 buttons, night 7 and both endings, nights 8 and 9 and the night 9 ending, the camera map, the tapes, challenges, resets,
-reloads). The map owner played version 1.2 in-game to the end; **nothing added in 1.3.0, 1.3.1 or 1.4.0 has been tested in-game
+reloads). The map owner played version 1.2 in-game to the end; **nothing added in 1.3.0, 1.3.1, 1.4.0 or 1.5.0 has been tested in-game
 yet** (in 1.4: the ceiling vent, Morgrave's knocking, Valek's staring contest and head lock, the camera renumbering and the
-jumpscare-view fix). The remaining in-game checks are listed in
+jumpscare-view fix; in 1.5: the Classic Freddy, Withered Freddy, Midnight Banjo Bonnie and Springbonnie models, the new
+Chica, Springbonnie's Golden Hour and the workshop). The remaining in-game checks are listed in
 [docs/10_TEST_REPORT.md](docs/10_TEST_REPORT.md), and engine behaviour that could not be verified is listed in
 [docs/01_COMPATIBILITY.md](docs/01_COMPATIBILITY.md).
 
@@ -49,9 +54,9 @@ validated here).
 2. New world: **Flat**, **cheats on**, activate **FREDBEAR: Six Nights Below (Behavior)**. Render distance ≥ 11 chunks.
 3. In the world: `/fb:setup`, wait for the title, then clock in at the time clock.
 
-**Updating:** import the new `.mcaddon`, check that both packs show 1.4.0 in the world settings and enter the world, then
-run `/fb:setup` once when the action bar asks (1.4 builds the ceiling vent, its grate and button, and relabels the camera
-buttons). Your progress is kept; if you already beat night 7, night 8 is open. The cameras have new numbers: see
+**Updating:** import the new `.mcaddon`, check that both packs show 1.5.0 in the world settings and enter the world, then
+run `/fb:setup` once when the action bar asks (1.5 builds the workshop, its camera button and Springbonnie's spot). Your
+progress is kept; if you already beat night 7, night 8 is open. Camera numbers: see
 [docs/08](docs/08_INSTALL_AND_PLAY.md#updating-from-an-earlier-version).
 
 **Vibrant Visuals:** supported since 1.3.1 (Settings → Video → Graphics Mode → Vibrant Visuals). Untested in-game; see

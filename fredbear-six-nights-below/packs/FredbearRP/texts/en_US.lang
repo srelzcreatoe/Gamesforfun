@@ -6,6 +6,7 @@ entity.fb:fredbear.name=Fredbear
 entity.fb:fredbear_echo.name=Fredbear (Echo)
 entity.fb:morgrave.name=Morgrave
 entity.fb:valek.name=Valek
+entity.fb:springbonnie.name=Springbonnie
 item.fb:tablet=Camera Tablet
 item.fb:remote=Office Remote
 item.fb:guide=Shift Guide

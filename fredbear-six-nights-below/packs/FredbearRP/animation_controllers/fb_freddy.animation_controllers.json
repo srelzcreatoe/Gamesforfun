@@ -47,7 +47,7 @@
         },
         "look": {
           "animations": [
-            "idle"
+            "pose_stare"
           ],
           "blend_transition": 0.25,
           "transitions": [
@@ -88,7 +88,7 @@
         },
         "pause": {
           "animations": [
-            "pose"
+            "pose_showman"
           ],
           "blend_transition": 0.25,
           "transitions": [
@@ -375,7 +375,7 @@
         },
         "music": {
           "animations": [
-            "perform_showman"
+            "perform_sing"
           ],
           "blend_transition": 0.25,
           "transitions": [
@@ -416,7 +416,7 @@
         },
         "perform_0": {
           "animations": [
-            "perform_showman_once"
+            "perform_sing_once"
           ],
           "blend_transition": 0.25,
           "transitions": [
@@ -460,7 +460,7 @@
         },
         "perform_1": {
           "animations": [
-            "perform_groove_once"
+            "perform_present_once"
           ],
           "blend_transition": 0.25,
           "transitions": [
@@ -504,7 +504,7 @@
         },
         "attack_0": {
           "animations": [
-            "attack"
+            "jumpscare"
           ],
           "blend_transition": 0.05,
           "transitions": [

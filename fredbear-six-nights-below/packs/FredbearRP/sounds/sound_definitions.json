@@ -442,6 +442,16 @@
         }
       ]
     },
+    "fb.js.springbonnie": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/js/animatronic",
+          "is3D": false,
+          "volume": 1.0
+        }
+      ]
+    },
     "fb.js.valek": {
       "category": "hostile",
       "sounds": [
@@ -593,6 +603,18 @@
       "max_distance": 24.0,
       "min_distance": 1.0
     },
+    "fb.springbonnie.twang": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/springbonnie/twang",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 32.0,
+      "min_distance": 1.0
+    },
     "fb.step.bonnie": {
       "category": "hostile",
       "sounds": [
@@ -634,6 +656,18 @@
       "sounds": [
         {
           "name": "sounds/fb/step/freddy",
+          "is3D": true,
+          "volume": 1.0
+        }
+      ],
+      "max_distance": 44.0,
+      "min_distance": 1.0
+    },
+    "fb.step.springbonnie": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fb/step/springbonnie",
           "is3D": true,
           "volume": 1.0
         }

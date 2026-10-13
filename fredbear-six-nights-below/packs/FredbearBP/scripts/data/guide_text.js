@@ -93,7 +93,7 @@ export const GUIDE_SECTIONS = Object.freeze([
       `${H('Reading the feeds')}:\n• Static and a glitch sound: Fredbear is disrupting the cameras for a few seconds.\n• A purple, scan-lined figure: a false ECHO of Fredbear (night 5+). It is not real and cannot hurt you.\n• A pitch-black silhouette on the stage (CAM 01 / CAM 06, rare, night 2+): Shadow Fredbear. Do not stare at it - after ${sec(CONFIG.shadow.stareTicks)} of watching it vanishes and takes ${pct(CONFIG.shadow.drain)} of your power with it.\n• "No signal": that camera is not working yet.\n• CAM 08 Kitchen is audio only: you can hear Chica's pots and pans through it.\n• The low electrical hum is the camera system itself.\n• They stare back: whoever you watch on a feed for a couple of seconds slowly turns to look straight into the lens. It means nothing. Probably.`,
       `${H('11:55 camera tour')}: before each night the cameras show where everyone starts. Sneak to skip it.`,
       `${H('Cameras matter to the animatronics')}: Freddy cannot move while the feed you watch shows him; Bonnie gets restless if you stare at him; Fredbear disrupts the cameras more often while you watch them. The monitor costs ${pctPerSec(P.cams)}.`,
-      'The supply duct (CAM 16) and the subfloor under the office hatch (CAM 17) show Bonnie in the vent and Fredbear climbing toward the hatch. CAM 12 looks along the crawlspace above the office, at the ceiling-vent grate (Morgrave and Valek). The sealed diner has CAM 21, 19, 20 and 21 (from night 4). Blind spots remain - the far end of the vent, the shaft itself, the dark corners: listen for footsteps, clanks and music boxes.',
+      'The supply duct (CAM 16) and the subfloor under the office hatch (CAM 17) show Bonnie in the vent and Fredbear climbing toward the hatch. CAM 12 looks along the crawlspace above the office, at the ceiling-vent grate (Morgrave and Valek). The sealed diner has CAM 22, 19, 20 and 21 (from night 4). Blind spots remain - the far end of the vent, the shaft itself, the dark corners: listen for footsteps, clanks and music boxes.',
     ].join('\n\n'),
   },
   {
@@ -189,13 +189,21 @@ export const GUIDE_SECTIONS = Object.freeze([
       `${H('Power out')} (nights 4-7): his golden eyes appear in the dark left doorway with his music box, then darkness, then he attacks - unless 6 AM comes first. The reserve lever still comes first.`,
       `${H('His powers')} (night 4 only the first):\n• Camera disruption: static on every feed for ${sec(FP.disrupt.duration[1])}-${sec(FP.disrupt.duration[3])}.\n• False camera: a purple ECHO of him appears on a camera where he is not, for ${sec(FP.false_cam.duration[2])}.\n• Blackout: an electrical whine, then the office lights and monitor fail for ${sec(FP.blackout.duration[2])}-${sec(FP.blackout.duration[3])}. Doors still work, and the warning windows (Bonnie, Chica, Freddy at the corner, Fredbear's music box) pause until the lights return.\n• Teleport: a chime, a golden shimmer and static on the destination camera warn you ${sec(C.fredbear.relocateWarn)} before he appears somewhere else.`,
       `${H('Mercy')}: after ${N[4].fredbear.maxAttempts} / ${N[5].fredbear.maxAttempts} / ${N[6].fredbear.maxAttempts} / ${N[7].fredbear.maxAttempts} / ${N[9].fredbear.maxAttempts} attempts (nights 4 / 5 / 6 / 7 / 9; repelled or held) he stays in the diner for the rest of the night.`,
-      `${H('Night 6 - The Golden Hour')}: at 5 AM the other three go back to the stage and Fredbear rises again with ${N[6].fredbear.finale.extraAttempts} more attempts; you get ${N[6].fredbear.finale.extraCharges} extra strobe charges.`,
+      `${H('Night 6 - The Golden Hour')}: at 5 AM the other three go back to the stage, Springbonnie wakes up beside him, and Fredbear rises again with ${N[6].fredbear.finale.extraAttempts} more attempts; you get ${N[6].fredbear.finale.extraCharges} extra strobe charges.`,
+    ].join('\n\n'),
+  },
+  {
+    title: 'Springbonnie',
+    body: [
+      `${H("Fredbear's partner")}. The golden rabbit who sang with Fredbear on the 1983 diner stage. All game long he sits slumped beside Fredbear in the chamber (CAM 23).`,
+      `${H('Night 6 - The Golden Hour')}: at 5 AM his springlocks snap loose. He climbs out of the supply-closet floor grate and walks the West Hall to the LEFT door only (never the vents).`,
+      `${H('At the door')}: a springlock TWANG (always heard, captioned). Close the LEFT door and keep it shut through his ${range(C.springbonnie.telegraph, 5, 20)}; he backs off and comes round again. He waits while Fredbear is at an entry, so you never need the door and the strobe in two places at once.`,
     ].join('\n\n'),
   },
   {
     title: 'Morgrave',
     body: [
-      `${H('The rabbit in the walls')} (night 8 after you SEALED the building, and night 9). Fredbear's partner from the 1983 diner. He only wants to be let in.`,
+      `${H('The rabbit in the walls')} (night 8 after you SEALED the building, and night 9). Walled in with Fredbear below the 1983 diner. He only wants to be let in.`,
       `${H('Where')}: the LEFT door, the RIGHT door or the CEILING VENT above your desk (CAM 12). Nowhere else.`,
       `${H('Three soft knocks')}: that is him (the caption says where). Make sure that door or the vent grate is OPEN and he walks past - or crawls past over the grate - and goes away. If it was already open, you have nothing to do.`,
       `${H('Shut him out')} and the knocks get angrier: knocking, then pounding, each about ${range(C.morgrave.angry, 8, 20)}. Open up during the angry knocks and he still goes past. Stay shut through both and he breaks through.`,

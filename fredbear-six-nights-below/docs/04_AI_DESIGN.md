@@ -108,7 +108,7 @@ Weights: dark nodes ×1.5, nodes no camera covers ×1.3, nodes of the most-watch
 ## Fredbear — the central threat (`ai/fredbear.js`)
 
 Phases by night: **0** foreshadow only (N1-3: a golden figure briefly shown on CAM 04 Starlight Cove, in the sealed
-diner on CAM 21, and in the west hall on CAM 14, each only while the player happens to watch that feed); **1 Stirring** (N4: hatch only, camera disruption); **2 Haunting** (N5: all three entries,
+diner on CAM 22, and in the west hall on CAM 14, each only while the player happens to watch that feed); **1 Stirring** (N4: hatch only, camera disruption); **2 Haunting** (N5: all three entries,
 relocation, false camera events, blackouts); **3 Golden Hour** (N6: shorter cooldowns plus the finale; N7 the same
 phase, alone, with 7 attempts and a 700-tick cooldown). He alone may use
 the diner seal and the chamber wall (gated edges, open from N4).
@@ -116,7 +116,7 @@ the diner seal and the chamber wall (gated edges, open from N4).
 | State | Meaning and exit |
 |---|---|
 | DORMANT | in the chamber until activation |
-| STIR | walks to the diner stage and stands there (`stir` ticks, visible on CAM 21) → PATROL, with his **laugh** |
+| STIR | walks to the diner stage and stands there (`stir` ticks, visible on CAM 22) → PATROL, with his **laugh** |
 | PATROL | chooses an entry (prefers less-defended entries, halves the last one) and hunts there on foot through hidden basement routes, or by RELOCATING |
 | RELOCATING | **warned teleport** between designated golden nodes only: 40 ticks of chime + golden shimmer + static on the destination camera, then he appears there |
 | APPROACH | walks/climbs the last edge into the entry |
@@ -215,12 +215,12 @@ along the crawlspace at it. Morgrave and Valek are the only ones who use it; the
 
 ## Morgrave — the rabbit who wants to be let in (`ai/morgrave.js`, nights 8 and 9, 1.4)
 
-Fredbear's partner from the 1983 diner, walled in with him. He never walks the halls and makes no footsteps: he comes out
+Walled in with Fredbear below the 1983 diner (Springbonnie was Fredbear's stage partner). He never walks the halls and makes no footsteps: he comes out
 of the walls at the **left door**, the **right door** or the **ceiling vent** and knocks. He only wants to be let in.
 
 | From | To | Condition | Timing |
 |---|---|---|---|
-| DORMANT | WALLS | tick ≥ activation, A > 0 | hidden in Fredbear's chamber (`M_HOME`, CAM 22) until then |
+| DORMANT | WALLS | tick ≥ activation, A > 0 | hidden in Fredbear's chamber (`M_HOME`, CAM 23) until then |
 | WALLS | KNOCK | cooldown ends and a visit may start (running, past the grace, no blackout, Fredbear not engaged, not the finale) | picks an entry: the vent with weight 1.2; a door with 1 + door use / 4, + 2 while it is shut; × 0.6 for the last one used |
 | KNOCK | PASS | that entry is **open** when the three soft knocks end | soft knocks 30 ticks, captioned "Three soft knocks — LEFT DOOR / RIGHT DOOR / CEILING VENT" |
 | KNOCK | ANGRY 1 | it is shut | "Knocking — …, louder"; each angry stage `max(50, 120 − 5A)` ticks |

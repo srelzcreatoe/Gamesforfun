@@ -16,6 +16,10 @@ The owner then played 1.2.0 to the end and reported items 62-66 (section M).
 (153, 156, 157, 170) and the owner's last requests (173-174: the Freddy V6 and Bonnie V2 models, and night 9). Item 66
 (out of strobe charges) is still **to decide**: the owner has not picked one of the options in section M.
 
+**1.5.0** builds items 178 and 184-187 (section V): the new Classic Freddy (with his own Withered Freddy), the Midnight
+Banjo Bonnie, a new Chica built on the same body, Springbonnie as Fredbear's partner, and Valek and Morgrave's workshop.
+Item 188 (rebuild the whole pizzeria and the office with a new layout) is next, as its own update.
+
 **1.4.0** builds items 179-183 (section U): the ceiling vent over the office, Morgrave's new mechanic (*Invite him in*), Valek's
 staring contest with his head locked on to the player, the jumpscare view fix and the cameras renumbered in order. Items
 175, 177 and 178 are still planned, item 66 is still to decide. **Camera numbers changed in 1.4**: the sections below were
@@ -271,12 +275,18 @@ Numbers stay fixed from now on: new items are added at the end.
 | 175 | A simple command (like `/fb:...`) that marks every night completed and unlocks all the lore and extras too, and says so ("All nights completed"), so the player can see everything | planned |
 | 176 | Vibrant Visuals compatible: the map works with Minecraft's Vibrant Visuals graphics mode | done in 1.3.1 (untested in-game) |
 | 177 | A camera inside the hatch shaft itself (CAM 17 only shows the crawlspace end below the office; the climb up to the hatch is a blind spot) | planned |
-| 178 | A completely separate room for Valek and Morgrave that is nightmare fuel (section S) | planned |
+| 178 | A completely separate room for Valek and Morgrave that is nightmare fuel (section S) | done in 1.5.0 (untested in-game) |
 | 179 | Morgrave's mechanic is confusing: pick a rework (section S). Owner's pick: **Invite him in**: he knocks softly three times; open the door and he walks past the office, he only wanted to be let in; keep it shut and the knocks get angrier until he breaks through; risky if someone else is at that door (section U) | done in 1.4.0 (untested in-game) |
 | 180 | A vent in the ceiling above the office: the only vent Morgrave and Valek use; they also use both doors (left and right). They no longer use the supply duct, the crawlspace or the hatch (section U) | done in 1.4.0 (untested in-game) |
 | 181 | Valek: **staring contest**. When his eyes appear at a door or the vent, look straight at them and don't look away until he looks away first; look away early, or open the cameras, and he steps closer. His head locks on to you: when you move, his head follows (section U) | done in 1.4.0 (untested in-game) |
 | 182 | Jumpscare view: the animatronic's face sometimes goes through the camera, and the player can see their own body during the jumpscare | done in 1.4.0 (untested in-game) |
 | 183 | Cameras that are close to each other should have numbers in order, not spread around | done in 1.4.0 (untested in-game) |
+| 184 | Replace Freddy with the owner's Classic Freddy (Freddy_Animatronics_Blockbench_Pack.zip) | done in 1.5.0 (untested in-game) |
+| 185 | Replace Bonnie with the owner's Midnight Banjo Bonnie | done in 1.5.0 (untested in-game) |
+| 186 | A new Chica based on the Freddy and Bonnie models and their animations, with the same height and vibe | done in 1.5.0 (untested in-game) |
+| 187 | Springbonnie (Springbonnie_Spotty_Complete.zip): "with Fredbear" - owner's pick: Fredbear's partner (chamber, flashback, endings, night 6 Golden Hour) | done in 1.5.0 (untested in-game) |
+| 188 | Switch up the whole pizzeria and the office: rebuild everything, with a new layout (owner's pick) | planned (1.6) |
+| 189 | Spotty the Dog (in the Springbonnie zip): owner asked for ideas | idea |
 
 ### Every update finishes with
 
@@ -722,3 +732,30 @@ backs off. While you look up you are not watching the doors.
 
 * **Balance:** nights 8 and 9 were retuned to stay hard (docs/05): the trio hunt harder on night 8 (13/14/13 with Valek,
   15/16/15 with Morgrave), Morgrave and Valek are at aggression 20 on night 9.
+
+## V. What 1.5.0 built (items 178, 184-187)
+
+* **Classic Freddy (184):** the owner's Classic Freddy with all his clips (idle, walk, run, the stare, the showman pose,
+  singing and presenting shows, his jumpscare) and his two eye states (blue at rest, black with white pupils when he
+  hunts). On nights 7-9 and in the challenges he is the pack's own **Withered Freddy** model.
+* **Midnight Banjo Bonnie (185):** the owner's Bonnie on the Classic Freddy body, with his banjo shows, wave and menacing
+  poses and his jumpscare; withered suit on nights 7-9.
+* **Chica (186):** built on the Classic Freddy body so she matches the other two exactly: yellow suit, orange beak (with
+  Freddy's teeth) and feet, violet eyes, three feathers, the LET'S EAT!!! bib, and Mr. Cupcake on a plate in the hand
+  where Freddy holds his microphone. She uses Freddy's own animations. Freddy, Bonnie and Chica share one scale.
+* **Springbonnie (187):** Fredbear's partner. He sits slumped beside Fredbear in the chamber (CAM 23), stands with him on
+  the 1983 diner stage in the night 4 flashback and in the night 6 ending, and at 5 AM on night 6 (the Golden Hour) he wakes,
+  climbs out of the supply-closet grate and hunts the left door (a springlock twang; keep the door shut). Fredbear's own
+  Golden Hour bonus went from 2 attempts to 1 so night 6 stays as hard as it was.
+* **The workshop (178):** below the old diner, through a crawl hole in the old crawlspace: a wall of scratched eyes with an
+  old TV, rows of little chairs facing it, heads on hooks, a workbench of faces, Morgrave's nest and Valek's pitch-black
+  corner with painted eyes. Both start every night there, on the new CAM 19 (the basement cameras after it moved up one).
+
+### Spotty the Dog (189): ideas
+
+1. **The mascot nobody remembers**: a broken, slumped Spotty in the workshop, the first thing you see on CAM 19. Pure lore.
+2. **The lost and found**: one night he is gone from the workshop and turns up somewhere new each hour; find him on the
+   cameras before 6 AM for a secret.
+3. **A helper**: in Free Roam he follows you and barks when an animatronic is close.
+4. **The challenge dog**: a new challenge where Spotty replaces Freddy (the patient stalker), faster but louder.
+5. **Night 10**: Spotty and Springbonnie, the two 1983 suits nobody talks about.

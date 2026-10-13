@@ -45,7 +45,7 @@ Four ticking areas of 8 × 8 chunks keep the whole property, the basement and th
 
 Office interior bounds (local): x 95..105.999, z 127..139.999, y -0.5..6.
 
-## Rooms (62)
+## Rooms (63)
 
 Box = outer wall box `[x1, z1, x2, z2]` in local coordinates (walls included).
 
@@ -99,9 +99,10 @@ Box = outer wall box `[x1, z1, x2, z2]` in local coordinates (walls included).
 | BOILER | Boiler & Machinery Hall | L0 | 76, 12, 124, 72 | 76 -59 12 | staff | Boilers, pipes and tanks below the stage and dining hall. |
 | KITCHEN_CELLAR | Kitchen Cellar | L0 | 148, 12, 184, 50 | 148 -59 12 | staff | Cold cellar under the kitchen. |
 | CHAMBER | Fredbear's Chamber | L0 | 16, 28, 52, 44 | 16 -59 28 | secret | Fredbear's dormant node and the campaign ending set. |
-| DINER | Sealed Diner (Fredbear's Family Diner, 1983) | L0 | 16, 44, 64, 96 | 16 -59 44 | secret | The original diner the pizzeria was built over; Fredbear stirring node; CAM 21. |
+| DINER | Sealed Diner (Fredbear's Family Diner, 1983) | L0 | 16, 44, 64, 96 | 16 -59 44 | secret | The original diner the pizzeria was built over; Fredbear stirring node; CAM 22. |
 | DINER_KITCHEN | Diner Back Kitchen | L0 | 16, 96, 40, 112 | 16 -59 96 | secret | Entrance to the old crawlspace. |
 | CRAWL_D | Old Crawlspace | L0 | 36, 112, 92, 116 | 36 -59 112 | secret | Fredbear's hidden route toward the office subfloor. |
+| NIGHTMARE | The Workshop | L0 | 16, 116, 58, 140 | 16 -59 116 | secret | Where Valek and Morgrave wait between nights: torn costumes, heads on hooks, little chairs facing a wall of eyes; CAM 19. |
 | TUNNEL_W | West Maintenance Tunnel | L0 | 64, 72, 70, 110 | 64 -59 72 | staff | Passes the bricked diner entrance. |
 | TUNNEL_N | North Maintenance Tunnel | L0 | 70, 72, 150, 78 | 70 -59 72 | staff | Spine under the dining hall. |
 | TUNNEL_S | South Maintenance Tunnel | L0 | 70, 104, 170, 110 | 70 -59 104 | staff | Spine under the party rooms. |
@@ -114,7 +115,7 @@ Box = outer wall box `[x1, z1, x2, z2]` in local coordinates (walls included).
 | SUBFLOOR | Office Subfloor | L0 | 92, 112, 108, 142 | 92 -59 112 | restricted | Crawlspace below the office leading to the maintenance hatch. |
 | CONTROL | Command-Block Control Room | L0 | 20, 164, 180, 196 | 20 -59 164 | dev | Labelled command-block modules (developer area, under the parking lot). |
 
-Openings: 83 doors, archways and windows. Stairs, ladders and the office hatch:
+Openings: 84 doors, archways and windows. Stairs, ladders and the office hatch:
 
 | ID | Kind | Local position | Direction | From → to standing y |
 |---|---|---|---|---|
@@ -134,7 +135,7 @@ Openings: 83 doors, archways and windows. Stairs, ladders and the office hatch:
 |---|---|---|---|---|---|---|---|
 | C01 | CAM 01 · SHOW STAGE | STAGE | 100.5 5 50.5 | 100.5 1.5 22.5 | STAGE_F, STAGE_B, STAGE_C, STAGE_FRONT | 109 blocks (7 chunks) | - |
 | C02 | CAM 02 · BACKSTAGE | BACKSTAGE | 74.5 4.5 38.5 | 58.5 0.5 15.5 | BACK | 123 blocks (8 chunks) | - |
-| C03 | CAM 03 · PARTS & SERVICE | PARTS | 50.5 5.4 38.5 | 22.5 0.5 14.5 | PARTS, PARTS_F, PARTS_B, PARTS_C, V_HOME | 141 blocks (9 chunks) | - |
+| C03 | CAM 03 · PARTS & SERVICE | PARTS | 50.5 5.4 38.5 | 22.5 0.5 14.5 | PARTS, PARTS_F, PARTS_B, PARTS_C | 141 blocks (9 chunks) | - |
 | C04 | CAM 04 · STARLIGHT COVE | COVE | 50.5 2.8 58.5 | 21.5 1.5 55.5 | COVE_FRONT, COVE_STAGE | 110 blocks (7 chunks) | - |
 | C05 | CAM 05 · ARCADE | ARCADE | 50.5 5.4 102.5 | 24.5 0.5 76.5 | ARCADE | 94 blocks (6 chunks) | - |
 | C06 | CAM 06 · DINING HALL WEST | DINING | 98.5 11 98.5 | 72 0 66 | DIN_NW, DIN_W, DIN_C, DIN_SW, STAGE_B, STAGE_F, STAGE_FRONT | 109 blocks (7 chunks) | - |
@@ -150,17 +151,18 @@ Openings: 83 doors, archways and windows. Stairs, ladders and the office hatch:
 | C16 | CAM 16 · SUPPLY DUCT | VENT | 80.5 -2.5 132.5 | 92.5 -2.5 132.5 | VENT_W | 20 blocks (2 chunks) | - |
 | C17 | CAM 17 · OFFICE SUBFLOOR | SUBFLOOR | 106.5 -6.5 114.5 | 100 -8 135 | SUB_N | 18 blocks (2 chunks) | - |
 | C18 | CAM 18 · MAINTENANCE TUNNEL | TUNNEL_S | 72.5 -4.6 107.5 | 110.5 -9 107 | TS_W, TS_MID | 37 blocks (3 chunks) | - |
-| C19 | CAM 19 · DINER KITCHEN | DINER_KITCHEN | 38.5 -5 110.5 | 20 -9 98 | DINER_KITCHEN | 87 blocks (6 chunks) | no signal before night 4 |
-| C20 | CAM 20 · DINER PARTY ROOM | DINER | 20.5 -4.6 60.5 | 48 -9 88 | DINER_FLOOR, DINER_KITCHEN | 107 blocks (7 chunks) | no signal before night 4 |
-| C21 | CAM 21 · SEALED DINER | DINER | 62.5 -4.6 94.5 | 40.5 -8 50.5 | DINER_STAGE, DINER_FLOOR | 101 blocks (7 chunks) | no signal before night 4 |
-| C22 | CAM 22 · FREDBEAR'S CHAMBER | CHAMBER | 49.5 -4.8 42.5 | 30 -9 35 | CHAMBER_F, M_HOME | 122 blocks (8 chunks) | no signal before night 4 |
+| C19 | CAM 19 · THE WORKSHOP | NIGHTMARE | 37.5 -4.8 117.8 | 37.5 -8.5 135.5 | M_HOME, V_HOME | 78 blocks (5 chunks) | no signal before night 4 |
+| C20 | CAM 20 · DINER KITCHEN | DINER_KITCHEN | 38.5 -5 110.5 | 20 -9 98 | DINER_KITCHEN | 87 blocks (6 chunks) | no signal before night 4 |
+| C21 | CAM 21 · DINER PARTY ROOM | DINER | 20.5 -4.6 60.5 | 48 -9 88 | DINER_FLOOR, DINER_KITCHEN | 107 blocks (7 chunks) | no signal before night 4 |
+| C22 | CAM 22 · SEALED DINER | DINER | 62.5 -4.6 94.5 | 40.5 -8 50.5 | DINER_STAGE, DINER_FLOOR | 101 blocks (7 chunks) | no signal before night 4 |
+| C23 | CAM 23 · FREDBEAR'S CHAMBER | CHAMBER | 49.5 -4.8 42.5 | 30 -9 35 | CHAMBER_F, SB_HOME | 120 blocks (8 chunks) | no signal before night 4 |
 
 **Rendering reach.** Camera views move the player's *view* (`minecraft:free` camera) but not the player, so what a feed can show is limited by what the client has loaded around the player in the office. The farthest point any feed must show is 141 blocks (9 chunks) from the office seat. Ticking areas keep those chunks *simulated* (puppets keep being teleported and synced) but do not by themselves make them *render*; set the render distance to at least 11 chunks (docs/08_INSTALL_AND_PLAY.md). Whether distant feeds render correctly at lower settings has not been verified in-game.
 
 ## AI route graph
 
-54 nodes and 60 edges. Every edge is a polyline of waypoints the puppet follows; tools/validate_map.mjs samples every 0.5 blocks of every polyline against the voxel model (body + head cells must be passable), and the in-game self-test repeats the check against the built world.
-Access letters: B = bonnie, C = chica, F = freddy, G = fredbear, M = morgrave, V = valek. Entries: L → W_DOOR (barrier door_l), R → E_DOOR (barrier door_r), H → H_DOOR (barrier hatch). Fredbear's golden nodes: COVE_STAGE, WH_S, EH_S, DINER_STAGE, CRAWL_MID, SUB_N.
+55 nodes and 60 edges. Every edge is a polyline of waypoints the puppet follows; tools/validate_map.mjs samples every 0.5 blocks of every polyline against the voxel model (body + head cells must be passable), and the in-game self-test repeats the check against the built world.
+Access letters: B = bonnie, C = chica, F = freddy, G = fredbear, M = morgrave, V = valek, B = springbonnie. Entries: L → W_DOOR (barrier door_l), R → E_DOOR (barrier door_r), H → H_DOOR (barrier hatch). Fredbear's golden nodes: COVE_STAGE, WH_S, EH_S, DINER_STAGE, CRAWL_MID, SUB_N.
 
 | Node | Room | Local x y z | Flags | Seen by |
 |---|---|---|---|---|
@@ -174,7 +176,6 @@ Access letters: B = bonnie, C = chica, F = freddy, G = fredbear, M = morgrave, V
 | PARTS_F | PARTS | 30.5 0 17.5 | dark, zone far | C03 |
 | PARTS_B | PARTS | 26.5 0 17.5 | dark, zone far | C03 |
 | PARTS_C | PARTS | 34.5 0 17.5 | dark, zone far | C03 |
-| V_HOME | PARTS | 21.5 0 33.5 | home of valek, dark, zone far | C03 |
 | DIN_NW | DINING | 64.5 0 50.5 | zone mid | C06 |
 | DIN_W | DINING | 62.5 0 84.5 | zone mid | C06 |
 | DIN_C | DINING | 100.5 0 70.5 | zone mid | C06 |
@@ -206,11 +207,13 @@ Access letters: B = bonnie, C = chica, F = freddy, G = fredbear, M = morgrave, V
 | ES_M | E_SERVICE | 152.5 0 81.5 | dark, zone mid | C09 |
 | ES_S | E_SERVICE | 152.5 0 96.5 | dark, zone mid | C09 |
 | RH | RESTROOM_HALL | 162.5 0 83.5 | dark, zone mid | - |
-| CHAMBER_F | CHAMBER | 34.5 -9 36.5 | home of fredbear, dark, zone far | C22 |
-| M_HOME | CHAMBER | 22.5 -9 37.5 | home of morgrave, dark, zone far | C22 |
-| DINER_STAGE | DINER | 40.5 -8 50.5 | golden, dark, zone far | C21 |
-| DINER_FLOOR | DINER | 40.5 -9 70.5 | dark, zone far | C20, C21 |
-| DINER_KITCHEN | DINER_KITCHEN | 28.5 -9 104.5 | dark, zone far | C19, C20 |
+| CHAMBER_F | CHAMBER | 34.5 -9 36.5 | home of fredbear, dark, zone far | C23 |
+| M_HOME | NIGHTMARE | 22.5 -9 135.5 | home of morgrave, dark, zone far | C19 |
+| V_HOME | NIGHTMARE | 53.5 -9 135.5 | home of valek, dark, zone far | C19 |
+| SB_HOME | CHAMBER | 29.5 -9 36.5 | home of springbonnie, dark, zone far | C23 |
+| DINER_STAGE | DINER | 40.5 -8 50.5 | golden, dark, zone far | C22 |
+| DINER_FLOOR | DINER | 40.5 -9 70.5 | dark, zone far | C21, C22 |
+| DINER_KITCHEN | DINER_KITCHEN | 28.5 -9 104.5 | dark, zone far | C20, C21 |
 | CRAWL_MID | CRAWL_D | 64.5 -9 114 | golden, dark, crawl, zone mid | - |
 | CRAWL_END | CRAWL_D | 90.5 -9 114 | dark, crawl, zone near | - |
 | TW_SEAL | TUNNEL_W | 67 -9 85.5 | dark, zone mid | - |
@@ -284,7 +287,7 @@ Access letters: B = bonnie, C = chica, F = freddy, G = fredbear, M = morgrave, V
 
 ## Player route guidance
 
-The green breadcrumb sparkles (introduction, optional tasks, maintenance) follow a walkable waypoint graph generated from the voxel model by `tools/gen_guide.mjs`: 1785 nodes (a 6-block grid in every room, both sides of every doorway, every stairway and the ladder, every control) and 3055 edges, each a straight line a player can walk both ways under the map validator's rules (steps, drops, no squeezing past corners). The game runs Dijkstra from the target and lays sparkles along the next 14 blocks of the real route.
+The green breadcrumb sparkles (introduction, optional tasks, maintenance) follow a walkable waypoint graph generated from the voxel model by `tools/gen_guide.mjs`: 1787 nodes (a 6-block grid in every room, both sides of every doorway, every stairway and the ladder, every control) and 3043 edges, each a straight line a player can walk both ways under the map validator's rules (steps, drops, no squeezing past corners). The game runs Dijkstra from the target and lays sparkles along the next 14 blocks of the real route.
 
 | From | To | Walking distance | Rooms on the way |
 |---|---|---|---|
@@ -301,7 +304,7 @@ The green breadcrumb sparkles (introduction, optional tasks, maintenance) follow
 
 Underground at local y -9 (world -59), x 22..177, in 9 rows at local z 169, 172, 175, 178, 181, 184, 187, 190, 193. Each of the 119 actuator modules is a redstone-block pad, an impulse block and its chain (east-facing). The full block-by-block register is docs/06_COMMAND_BLOCK_REGISTER.md.
 
-## Inputs (90)
+## Inputs (91)
 
 Every physical control sits on a console block; the impulse command block one block below it runs `scriptevent fb:input <action>`. The script accepts an input only if the event comes from the registered block position.
 
@@ -322,14 +325,15 @@ Every physical control sits on a console block; the impulse command block one bl
 | in.office.seal_shaft | `seal_shaft` | button | 96 0 129 | 96 -51 129 | SEAL SHAFT |
 | in.office.tapes | `tapes` | button | 102 0 139 | 102 -51 139 | TAPE DECK 1987 |
 | in.office.vent_grate | `vent_grate` | button | 104 0 127 | 104 -51 127 | VENT GRATE |
-| in.office.map_c22 | `cam:C22` | button | 97 0 127 | 97 -51 127 | CAM 22 · FREDBEAR'S CHAMBER |
+| in.office.map_c19 | `cam:C19` | button | 96 0 127 | 96 -51 127 | CAM 19 · THE WORKSHOP |
+| in.office.map_c23 | `cam:C23` | button | 97 0 127 | 97 -51 127 | CAM 23 · FREDBEAR'S CHAMBER |
 | in.office.map_c03 | `cam:C03` | button | 98 0 127 | 98 -51 127 | CAM 03 · PARTS & SERVICE |
 | in.office.map_c02 | `cam:C02` | button | 99 0 127 | 99 -51 127 | CAM 02 · BACKSTAGE |
 | in.office.map_c01 | `cam:C01` | button | 100 0 127 | 100 -51 127 | CAM 01 · SHOW STAGE |
 | in.office.map_c06 | `cam:C06` | button | 101 0 127 | 101 -51 127 | CAM 06 · DINING HALL WEST |
 | in.office.map_c08 | `cam:C08` | button | 102 0 127 | 102 -51 127 | CAM 08 · KITCHEN (AUDIO ONLY) |
 | in.office.map_c09 | `cam:C09` | button | 103 0 127 | 103 -51 127 | CAM 09 · EAST SERVICE |
-| in.office.map_c20 | `cam:C20` | button | 97 0 128 | 97 -51 128 | CAM 20 · DINER PARTY ROOM |
+| in.office.map_c21 | `cam:C21` | button | 97 0 128 | 97 -51 128 | CAM 21 · DINER PARTY ROOM |
 | in.office.map_c04 | `cam:C04` | button | 98 0 128 | 98 -51 128 | CAM 04 · STARLIGHT COVE |
 | in.office.map_c05 | `cam:C05` | button | 99 0 128 | 99 -51 128 | CAM 05 · ARCADE |
 | in.office.map_c14 | `cam:C14` | button | 100 0 128 | 100 -51 128 | CAM 14 · WEST HALL |
@@ -337,8 +341,8 @@ Every physical control sits on a console block; the impulse command block one bl
 | in.office.map_c10 | `cam:C10` | button | 102 0 128 | 102 -51 128 | CAM 10 · EAST HALL |
 | in.office.map_c18 | `cam:C18` | button | 103 0 128 | 103 -51 128 | CAM 18 · MAINTENANCE TUNNEL |
 | in.office.map_c16 | `cam:C16` | button | 104 0 128 | 104 -51 128 | CAM 16 · SUPPLY DUCT |
-| in.office.map_c19 | `cam:C19` | button | 97 0 129 | 97 -51 129 | CAM 19 · DINER KITCHEN |
-| in.office.map_c21 | `cam:C21` | button | 98 0 129 | 98 -51 129 | CAM 21 · SEALED DINER |
+| in.office.map_c20 | `cam:C20` | button | 97 0 129 | 97 -51 129 | CAM 20 · DINER KITCHEN |
+| in.office.map_c22 | `cam:C22` | button | 98 0 129 | 98 -51 129 | CAM 22 · SEALED DINER |
 | in.office.map_c15 | `cam:C15` | button | 99 0 129 | 99 -51 129 | CAM 15 · SUPPLY CLOSET |
 | in.office.map_c13 | `cam:C13` | button | 100 0 129 | 100 -51 129 | CAM 13 · WEST CORNER |
 | in.office.map_c11 | `cam:C11` | button | 102 0 129 | 102 -51 129 | CAM 11 · EAST CORNER |

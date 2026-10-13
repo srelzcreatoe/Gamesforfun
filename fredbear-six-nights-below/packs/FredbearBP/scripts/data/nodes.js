@@ -37,7 +37,6 @@ export const NODES = Object.freeze([
   N('PARTS_F', 30.5, 0, 17.5, 'PARTS', 'far', { yaw: 0, store: true, dark: true }),
   N('PARTS_B', 26.5, 0, 17.5, 'PARTS', 'far', { yaw: 0, store: true, dark: true }),
   N('PARTS_C', 34.5, 0, 17.5, 'PARTS', 'far', { yaw: 0, store: true, dark: true }),
-  N('V_HOME', 21.5, 0, 33.5, 'PARTS', 'far', { yaw: -90, home: 'valek', store: true, dark: true }),
   // Dining hall
   N('DIN_NW', 64.5, 0, 50.5, 'DINING', 'mid'),
   N('DIN_W', 62.5, 0, 84.5, 'DINING', 'mid'),
@@ -75,7 +74,12 @@ export const NODES = Object.freeze([
   N('RH', 162.5, 0, 83.5, 'RESTROOM_HALL', 'mid', { dark: true }),
   // Basement (Fredbear)
   N('CHAMBER_F', 34.5, -9, 36.5, 'CHAMBER', 'far', { home: 'fredbear', yaw: 0, dark: true }),
-  N('M_HOME', 22.5, -9, 37.5, 'CHAMBER', 'far', { home: 'morgrave', yaw: -90, store: true, dark: true }),
+  // 1.5: Valek and Morgrave start every night in their workshop (item 178): Morgrave in his nest of stuffing,
+  // Valek in the pitch-black corner (CAM 19).
+  N('M_HOME', 22.5, -9, 135.5, 'NIGHTMARE', 'far', { home: 'morgrave', yaw: 180, store: true, dark: true }),
+  N('V_HOME', 53.5, -9, 135.5, 'NIGHTMARE', 'far', { home: 'valek', yaw: 180, store: true, dark: true }),
+  // 1.5: Springbonnie slumped beside Fredbear (he leaves it only in night 6's Golden Hour, ai/springbonnie.js).
+  N('SB_HOME', 29.5, -9, 36.5, 'CHAMBER', 'far', { home: 'springbonnie', yaw: 0, store: true, dark: true }),
   N('DINER_STAGE', 40.5, -8, 50.5, 'DINER', 'far', { golden: true, yaw: 0, dark: true }),
   N('DINER_FLOOR', 40.5, -9, 70.5, 'DINER', 'far', { dark: true }),
   N('DINER_KITCHEN', 28.5, -9, 104.5, 'DINER_KITCHEN', 'far', { dark: true }),
@@ -186,7 +190,7 @@ export const HAUNT_NODES = Object.freeze(NODES.filter((n) => n.haunt).map((n) =>
 export const STORE_NODE = Object.freeze({ freddy: 'PARTS_F', bonnie: 'PARTS_B', chica: 'PARTS_C' });
 
 /** Character -> access letter. */
-export const ACCESS = Object.freeze({ bonnie: 'B', chica: 'C', freddy: 'F', fredbear: 'G', morgrave: 'M', valek: 'V' });
+export const ACCESS = Object.freeze({ bonnie: 'B', chica: 'C', freddy: 'F', fredbear: 'G', morgrave: 'M', valek: 'V', springbonnie: 'B' }); // Springbonnie walks Bonnie's halls
 
 /** Full polyline for an edge, oriented from `from` to the other endpoint. */
 export function edgePolyline(edge, from) {

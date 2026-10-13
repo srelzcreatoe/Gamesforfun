@@ -6,19 +6,19 @@
 
 Aggression (A) is 0-20. Activation = tick at which the character leaves home. Nights ≥ 2 add the hourly ramp [0, 0, 1, 2, 3, 3] (12 AM..5 AM) to every character except Fredbear (cap 20).
 
-| Night | Title | Freddy | Bonnie | Chica | Fredbear | Morgrave | Valek | Activation F/B/C/G/M/V (ticks) | Strobe | Reserve | Max sabotage | Fredbear phase | Events |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0 | Training Shift | 0 | 10 | 0 | 0 | 0 | 0 | off/200/off/off/off/off | 2 | no | 0 | dormant | - |
-| 1 | Night 1 — First Shift | 1 | 3 | 2 | 0 | 0 | 0 | 4800/400/1600/off/off/off | 0 | no | 0 | dormant | foreshadow:cove_glint@4800 |
-| 2 | Night 2 — Kitchen Duty | 4 | 5 | 4 | 0 | 0 | 0 | 3200/0/400/off/off/off | 0 | no | 1 | dormant | foreshadow:diner_glimpse@6400 |
-| 3 | Night 3 — Generator Trouble | 7 | 8 | 7 | 0 | 0 | 0 | 1600/0/0/off/off/off | 0 | yes | 2 | dormant | maintenance:generator@3200, foreshadow:its_me@7200 |
-| 4 | Night 4 — Something Below | 10 | 11 | 10 | 5 | 0 | 0 | 0/0/0/1600/off/off | 4 | yes | 2 | 1 (entries H, max 2 attempts, powers disrupt) | - |
-| 5 | Night 5 — Golden Echoes | 14 | 15 | 14 | 12 | 0 | 0 | 0/0/0/1200/off/off | 5 | yes | 3 | 2 (entries H/L/R, max 3 attempts, powers disrupt, false_cam, blackout, relocate) | maintenance:electrical@4800 |
-| 6 | Night 6 — Six Nights Below | 18 | 19 | 18 | 20 | 0 | 0 | 0/0/0/200/off/off | 6 | yes | 3 | 3 (entries H/L/R, max 4 attempts, powers disrupt, false_cam, blackout, relocate) | finale@8000 |
-| 7 | Night 7 — Fredbear's Revenge | 0 | 0 | 0 | 20 | 0 | 0 | off/off/off/200/off/off | 6 | yes | 0 | 3 (entries H/L/R, max 7 attempts, powers disrupt, false_cam, blackout, relocate, everywhere) | - |
-| 8 (seal) | Night 8 — Walled In | 15 | 16 | 15 | 0 | 15 | 0 | 800/0/0/off/600/off | 0 | yes | 2 | dormant | - |
-| 8 (burn) | Night 8 — Out of the Smoke | 13 | 14 | 13 | 0 | 0 | 15 | 800/0/0/off/off/600 | 0 | yes | 2 | dormant | - |
-| 9 | Night 9 — Three Below | 0 | 0 | 0 | 18 | 20 | 20 | off/off/off/400/200/800 | 6 | yes | 0 | 3 (entries H/L/R, max 5 attempts, powers disrupt, false_cam, blackout, relocate, everywhere) | - |
+| Night | Title | Freddy | Bonnie | Chica | Fredbear | Morgrave | Valek | Springbonnie | Activation F/B/C/G/M/V/S (ticks) | Strobe | Reserve | Max sabotage | Fredbear phase | Events |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | Training Shift | 0 | 10 | 0 | 0 | 0 | 0 | 0 | off/200/off/off/off/off/off | 2 | no | 0 | dormant | - |
+| 1 | Night 1 — First Shift | 1 | 3 | 2 | 0 | 0 | 0 | 0 | 4800/400/1600/off/off/off/off | 0 | no | 0 | dormant | foreshadow:cove_glint@4800 |
+| 2 | Night 2 — Kitchen Duty | 4 | 5 | 4 | 0 | 0 | 0 | 0 | 3200/0/400/off/off/off/off | 0 | no | 1 | dormant | foreshadow:diner_glimpse@6400 |
+| 3 | Night 3 — Generator Trouble | 7 | 8 | 7 | 0 | 0 | 0 | 0 | 1600/0/0/off/off/off/off | 0 | yes | 2 | dormant | maintenance:generator@3200, foreshadow:its_me@7200 |
+| 4 | Night 4 — Something Below | 10 | 11 | 10 | 5 | 0 | 0 | 0 | 0/0/0/1600/off/off/off | 4 | yes | 2 | 1 (entries H, max 2 attempts, powers disrupt) | - |
+| 5 | Night 5 — Golden Echoes | 14 | 15 | 14 | 12 | 0 | 0 | 0 | 0/0/0/1200/off/off/off | 5 | yes | 3 | 2 (entries H/L/R, max 3 attempts, powers disrupt, false_cam, blackout, relocate) | maintenance:electrical@4800 |
+| 6 | Night 6 — Six Nights Below | 18 | 19 | 18 | 20 | 0 | 0 | 16 | 0/0/0/200/off/off/8000 | 6 | yes | 3 | 3 (entries H/L/R, max 4 attempts, powers disrupt, false_cam, blackout, relocate) | finale@8000 |
+| 7 | Night 7 — Fredbear's Revenge | 0 | 0 | 0 | 20 | 0 | 0 | 0 | off/off/off/200/off/off/off | 6 | yes | 0 | 3 (entries H/L/R, max 7 attempts, powers disrupt, false_cam, blackout, relocate, everywhere) | - |
+| 8 (seal) | Night 8 — Walled In | 15 | 16 | 15 | 0 | 15 | 0 | 0 | 800/0/0/off/600/off/off | 0 | yes | 2 | dormant | - |
+| 8 (burn) | Night 8 — Out of the Smoke | 13 | 14 | 13 | 0 | 0 | 15 | 0 | 800/0/0/off/off/600/off | 0 | yes | 2 | dormant | - |
+| 9 | Night 9 — Three Below | 0 | 0 | 0 | 18 | 20 | 20 | 0 | off/off/off/400/200/800/off | 6 | yes | 0 | 3 (entries H/L/R, max 5 attempts, powers disrupt, false_cam, blackout, relocate, everywhere) | - |
 
 Night 0 is the training shift / vertical slice (400 ticks per hour; the tutorial further slows it to 12000 so the clock never ends a lesson). Night 7 unlocks after night 6: only Fredbear hunts, everywhere at once (the trio are switched off in Parts & Service). Night 8 unlocks after night 7 and depends on the last night 7 ending (seal: Morgrave; burn: Valek). Night 9 unlocks after night 8: Fredbear, Morgrave and Valek together, the trio switched off again.
 
@@ -35,7 +35,7 @@ Unlocked after night 6. Each is a full night on a base night with overrides and 
 
 ## Fredbear: doors that hold
 
-When a forcing window (W2) ends and that door or the hatch has not held yet tonight (and it is not the Golden Hour), it holds: Fredbear bows for 40 ticks and vanishes to the diner, which counts as one of his attempts. Otherwise the barrier is jammed open and W3 follows. Strobe charges are his attempts + 2 on nights 4-6 (night 4: 4 for 2, night 5: 5 for 3, night 6: 6 for 4 + 2 for 2 at 5 AM); night 7: 6 charges for 7 attempts and night 9: 6 for 5, with three entries that can each hold once.
+When a forcing window (W2) ends and that door or the hatch has not held yet tonight (and it is not the Golden Hour), it holds: Fredbear bows for 40 ticks and vanishes to the diner, which counts as one of his attempts. Otherwise the barrier is jammed open and W3 follows. Strobe charges are his attempts + 2 on nights 4-6 (night 4: 4 for 2, night 5: 5 for 3, night 6: 6 for 4 + 2 for 1 at 5 AM); night 7: 6 charges for 7 attempts and night 9: 6 for 5, with three entries that can each hold once.
 
 ## Formulas (ticks)
 
@@ -54,6 +54,8 @@ When a forcing window (W2) ends and that door or the hatch has not held yet toni
 | Valek: time to start staring once his eyes appear (far) | `Math.max(60, 140 - 3 * a)` | 125 | 110 | 95 | 80 |
 | Valek: ... once he stepped closer (near) | `Math.max(40, 100 - 2 * a)` | 90 | 80 | 70 | 60 |
 | Valek recovery | `Math.max(180, 520 - 16 * a)` | 440 | 360 | 280 | 200 |
+| Springbonnie at the left door (night 6 Golden Hour) before attacking | `Math.max(70, 140 - 3 * a)` | 125 | 110 | 95 | 80 |
+| Springbonnie recovery | `Math.max(160, 360 - 10 * a)` | 310 | 260 | 210 | 160 |
 
 Movement opportunities: Bonnie every 90 ticks, Chica 70, Freddy 60, Fredbear 60 (Morgrave and Valek do not walk the halls: they come out of the walls / the dark after their recovery). At each opportunity a d20 roll ≤ A moves the character (bounded randomness; seeded mulberry32 so a seed replays exactly).
 Fredbear W3 (barrier jammed open, strobe still works) = 60 ticks; a strobe without a closed/jammed barrier only stuns him for 40 ticks. Freddy slips in after 40 ticks of camera use with the right door open; Bonnie flanks from A ≥ 5 and uses the vent from A ≥ 6; Chica sabotage chance per opportunity = `a / 30` (cooldown 1200).
@@ -103,8 +105,8 @@ Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). 
 | Player model | N1 | N2 | N3 | N4 | N5 | N6 | N7 | N8 seal | N8 burn | N9 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Oracle (perfect information) (20 seeds) | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% |
-| Human model (skill 1.0) (30 seeds) | 100% | 100% | 93% | 93% | 73% | 33% | 53% | 80% | 33% | 33% |
-| Human model (skill 0.7) (30 seeds) | 100% | 100% | 100% | 97% | 87% | 37% | 47% | 80% | 27% | 7% |
+| Human model (skill 1.0) (30 seeds) | 100% | 100% | 93% | 93% | 73% | 40% | 53% | 80% | 33% | 33% |
+| Human model (skill 0.7) (30 seeds) | 100% | 100% | 100% | 97% | 87% | 33% | 47% | 80% | 27% | 7% |
 | Idle (does nothing) (10 seeds) | 80% | 10% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
 | Wasteful (everything on) (10 seeds) | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
 
@@ -117,7 +119,7 @@ Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). 
 | 3 | 100% | 53.3% | 48.1% | 0 | - | - |
 | 4 | 100% | 45.8% | 38.9% | 0 | - | - |
 | 5 | 100% | 28.1% | 21.6% | 0 | - | - |
-| 6 | 100% | 20.5% | 15.9% | 0 | - | - |
+| 6 | 100% | 23.2% | 19.6% | 0 | - | - |
 | 7 | 100% | 38.1% | 34.9% | 0 | - | - |
 | 8 seal | 100% | 53.5% | 47.1% | 0 | - | - |
 | 8 burn | 100% | 58.4% | 53.6% | 0 | - | - |
@@ -132,7 +134,7 @@ Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). 
 | 3 | 93% | 21.7% | 12.3% | 0 | freddy 1, chica 1 | 3 AM |
 | 4 | 93% | 10.1% | 0% | 1 | freddy 2 | 2 AM |
 | 5 | 73% | 2.1% | 0% | 25 | chica 2, fredbear 6 | 4.9 AM |
-| 6 | 33% | 0.9% | 0% | 23 | fredbear 14, chica 4, freddy 1, bonnie 1 | 4.3 AM |
+| 6 | 40% | 1.2% | 0% | 24 | fredbear 12, chica 4, freddy 1, bonnie 1 | 4.2 AM |
 | 7 | 53% | 23.7% | 19.4% | 0 | fredbear 14 | 3.7 AM |
 | 8 seal | 80% | 22.1% | 9% | 0 | freddy 2, chica 2, bonnie 1, morgrave 1 | 2.5 AM |
 | 8 burn | 33% | 26.3% | 16.5% | 0 | bonnie 1, valek 17, chica 2 | 2.9 AM |
@@ -147,7 +149,7 @@ Produced by `node tools/balance_sim.mjs` (seeds 1000+; identical on every run). 
 | 3 | 100% | 21.6% | 1.7% | 0 | - | - |
 | 4 | 97% | 12.4% | 0% | 2 | freddy 1 | 2 AM |
 | 5 | 87% | 2.8% | 0% | 26 | fredbear 3, chica 1 | 5 AM |
-| 6 | 37% | 0.8% | 0% | 28 | fredbear 18, chica 1 | 4.8 AM |
+| 6 | 33% | 2.6% | 0% | 29 | fredbear 19, chica 1 | 4.9 AM |
 | 7 | 47% | 21.7% | 16.9% | 0 | fredbear 16 | 3.8 AM |
 | 8 seal | 80% | 22% | 8.6% | 0 | chica 2, morgrave 1, bonnie 1, freddy 2 | 2.8 AM |
 | 8 burn | 27% | 22.4% | 9.1% | 0 | valek 21, chica 1 | 2 AM |

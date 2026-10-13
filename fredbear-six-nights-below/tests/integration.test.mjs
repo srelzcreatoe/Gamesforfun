@@ -25,8 +25,8 @@ const { allCommandBlocks } = await import('../tools/gen_structures.mjs');
 const { buildVoxel, BOUNDS } = await import('../tools/voxel.mjs');
 const { Rng } = await import('../packs/FredbearBP/scripts/core/rng.js');
 
-const HOME = { freddy: 'STAGE_F', bonnie: 'STAGE_B', chica: 'STAGE_C', fredbear: 'CHAMBER_F', morgrave: 'M_HOME', valek: 'V_HOME' };
-const TYPES = { freddy: 'fb:freddy', bonnie: 'fb:bonnie', chica: 'fb:chica', fredbear: 'fb:fredbear', morgrave: 'fb:morgrave', valek: 'fb:valek' };
+const HOME = { freddy: 'STAGE_F', bonnie: 'STAGE_B', chica: 'STAGE_C', fredbear: 'CHAMBER_F', morgrave: 'M_HOME', valek: 'V_HOME', springbonnie: 'SB_HOME' };
+const TYPES = { freddy: 'fb:freddy', bonnie: 'fb:bonnie', chica: 'fb:chica', fredbear: 'fb:fredbear', morgrave: 'fb:morgrave', valek: 'fb:valek', springbonnie: 'fb:springbonnie' };
 
 let game;
 let player;
@@ -156,7 +156,7 @@ test('/fb:setup builds the whole map, installs every command block and reaches t
   commands.get('fb:setup')({ sourceEntity: player }, false);
   await until(() => game.state === 'LOBBY', 5000, 10);
   assert.equal(mock.commandBlockCount(), allCommandBlocks().length);
-  assert.equal(mock.commandBlockCount(), 537);
+  assert.equal(mock.commandBlockCount(), 538);
   assert.ok(STATE.maxFill <= 32768, `largest single fill ${STATE.maxFill}`);
   assert.equal(uiMock.shown.filter((f) => f.title === 'Build report').length, 0, 'no build warnings');
   await assertCleanLobby();
@@ -360,6 +360,15 @@ test('night 1 from the time clock: intro, office start, controls drive session a
   await mock.tick(4);
   assert.equal(s.devices.cams.open, true);
   assert.equal(s.devices.cams.cam, 'C05');
+  // 1.5: the desk-corner button opens the workshop feed; Springbonnie sits slumped beside Fredbear in the chamber.
+  press('in.office.map_c19');
+  await mock.tick(4);
+  assert.equal(s.devices.cams.cam, 'C19');
+  const sb = puppetsOf(TYPES.springbonnie);
+  assert.equal(sb.length, 1, 'one Springbonnie puppet');
+  const home = W(NODE_BY_ID.SB_HOME.x, NODE_BY_ID.SB_HOME.y, NODE_BY_ID.SB_HOME.z);
+  assert.ok(Math.hypot(sb[0].location.x - home.x, sb[0].location.z - home.z) < 0.6, 'beside Fredbear');
+  assert.equal(sb[0].getProperty('fb:anim'), 'dormant');
   mock.useItem(player, 'fb:tablet'); // tablet while viewing -> camera menu form
   await mock.tick(2);
   assert.ok(uiMock.shown.some((f) => f.title.includes('SECURITY CAMERAS')));

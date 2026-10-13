@@ -198,41 +198,35 @@ def load_clips(who):
 
 
 def main():
-    anims = json.loads((RP / "animations" / "fb_animatronic.animation.json").read_text())["animations"]
-    rest = {"rot": {}, "pos": {}, "scale": {}}
-    hide_prop = pose_from(anims["animation.fb.hide_prop"], 0)
     tile_w, tile_h = 220, 300
-    clips = {who: load_clips(who) for who in ("fredbear", "freddy", "bonnie", "morgrave", "valek")}
+    clips = {who: load_clips(who) for who in ("fredbear", "freddy", "bonnie", "chica", "springbonnie", "morgrave", "valek")}
 
     def clip(who, name, t):
         return pose_from(clips[who][f"animation.fb.{who}.{name}"], t)
 
-    def with_hide(p):  # Chica's cupcake is hidden outside the show
-        return {"rot": p["rot"], "pos": p["pos"], "scale": {**p["scale"], **hide_prop["scale"]}}
-
     # rows: (label, [(tile name, geometry, texture, yaw, pose)])
     rows = []
-    for who, show, extra in (("freddy", "perform_showman", "stalk"), ("bonnie", "perform_solo", "crawl")):
+    for who, show, extra in (("freddy", "perform_sing", "stalk"), ("bonnie", "perform_strum", "crawl"), ("chica", "perform_present", "stalk")):
         rows.append((who, [
             ("front (idle)", who, who, 0, clip(who, "idle", 0)),
             ("three-quarter", who, who, 35, clip(who, "idle", 1.0)),
             (f"show: {show.split('_')[1]}", who, who, 25, clip(who, show, 1.2)),
             (f"{extra} (added)", who, who, 50, clip(who, extra, 0.4)),
-            ("threat (added)", who, who, 20, clip(who, "threat", 0.5)),
+            ("jumpscare", who, who, 20, clip(who, "jumpscare", 0.6)),
         ]))
-    rows.append(("chica", [
-        ("front", "chica", "chica", 0, with_hide(rest)),
-        ("three-quarter", "chica", "chica", 35, with_hide(rest)),
-        ("perform", "chica", "chica", 25, pose_from(anims["animation.fb.perform.chica"], 0.25)),
-        ("threat (jaw open)", "chica", "chica", 20, with_hide(pose_from(anims["animation.fb.threat"], 0.5))),
-        ("attack", "chica", "chica", 25, with_hide(pose_from(anims["animation.fb.attack"], 0.8))),
-    ]))
     rows.append(("withered (night 7+)", [
-        ("freddy", "freddy", "freddy_withered", 20, clip("freddy", "idle", 0)),
+        ("freddy (his own model)", "freddy_withered", "freddy_withered", 20, clip("freddy", "idle", 0)),
         ("bonnie", "bonnie", "bonnie_withered", 20, clip("bonnie", "idle", 0)),
-        ("chica", "chica", "chica_withered", 20, with_hide(rest)),
-        ("bonnie: dormant", "bonnie", "bonnie_withered", 35, clip("bonnie", "pose_powered_down", 0.5)),
-        ("freddy: dormant", "freddy", "freddy_withered", 35, clip("freddy", "dormant", 0.5)),
+        ("chica", "chica", "chica_withered", 20, clip("chica", "idle", 0)),
+        ("bonnie: dormant", "bonnie", "bonnie_withered", 35, clip("bonnie", "dormant", 0.5)),
+        ("freddy: dormant", "freddy_withered", "freddy_withered", 35, clip("freddy", "dormant", 0.5)),
+    ]))
+    rows.append(("springbonnie", [
+        ("front (idle)", "springbonnie", "springbonnie", 0, clip("springbonnie", "idle", 0)),
+        ("three-quarter", "springbonnie", "springbonnie", 35, clip("springbonnie", "idle", 1.0)),
+        ("show", "springbonnie", "springbonnie", 25, clip("springbonnie", "perform_1", 1.5)),
+        ("dormant (chamber)", "springbonnie", "springbonnie", 30, clip("springbonnie", "dormant", 0.5)),
+        ("jumpscare", "springbonnie", "springbonnie", 20, clip("springbonnie", "jumpscare", 0.8)),
     ]))
     for who, extra in (("morgrave", "crawl"), ("valek", "stalk")):
         rows.append((who, [

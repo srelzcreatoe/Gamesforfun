@@ -29,6 +29,7 @@ from PIL import Image
 ZIP_DIR = "Fredbear_V6_NoEyeDots/"
 ROT_TOL = 0.2
 POS_TOL = 0.02
+SCALE_TOL = 0.01  # scale channels (props shown and hidden by scaling them, e.g. Bonnie's banjo)
 
 # Game animation state (fb:anim value) -> V6 clip. 'perform' and 'attack' are controller groups.
 STATE_CLIPS = {
@@ -128,13 +129,13 @@ def compress_channel(channel, tol):
 def compress(anims):
     """Returns (compressed clips, worst error per kind). Fails if the motion changed beyond tolerance."""
     out = {}
-    worst = {"rotation": 0.0, "position": 0.0}
+    worst = {"rotation": 0.0, "position": 0.0, "scale": 0.0}
     for name, a in anims.items():
         bones = {}
         for bone, chans in a["bones"].items():
             nb = {}
             for kind, ch in chans.items():
-                tol = ROT_TOL if kind == "rotation" else POS_TOL
+                tol = ROT_TOL if kind == "rotation" else SCALE_TOL if kind == "scale" else POS_TOL
                 c = compress_channel(ch, tol)
                 if isinstance(ch, dict):
                     for t, _ in _keys(ch):

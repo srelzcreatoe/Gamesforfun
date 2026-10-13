@@ -96,7 +96,7 @@ export class Director {
     if (holder && holder !== who) return false;
     if (this.activeEntryCount(who) >= this.cfg.maxConcurrentEntries) return false;
     if (who !== 'fredbear' && this.fredbearEngaged()) return false;
-    if (s.finale && who !== 'fredbear') return false;
+    if (s.finale && who !== 'fredbear' && who !== 'springbonnie') return false; // the Golden Hour is theirs
     return true;
   }
 

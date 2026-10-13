@@ -30,9 +30,10 @@ STEP = 0.02
 
 # who -> [(variant, animation file, animation id)]
 CLIPS = {
-    "freddy": [(0, "fb_freddy", "animation.fb.freddy.attack")],
-    "bonnie": [(0, "fb_bonnie", "animation.fb.bonnie.attack")],
-    "chica": [(0, "fb_animatronic", "animation.fb.attack")],
+    "freddy": [(0, "fb_freddy", "animation.fb.freddy.jumpscare")],
+    "bonnie": [(0, "fb_bonnie", "animation.fb.bonnie.jumpscare")],
+    "chica": [(0, "fb_chica", "animation.fb.chica.jumpscare")],
+    "springbonnie": [(0, "fb_springbonnie", "animation.fb.springbonnie.jumpscare")],
     "fredbear": [(0, "fb_fredbear", "animation.fb.fredbear.jumpscare_snap_bite"),
                  (1, "fb_fredbear", "animation.fb.fredbear.jumpscare_dual_lunge"),
                  (2, "fb_fredbear", "animation.fb.fredbear.jumpscare_left_grab")],
@@ -100,13 +101,16 @@ def main():
     scale_t, eye_t = game_table("SCALE"), game_table("EYE_HEIGHT")
     out = {}
     for who, clips in CLIPS.items():
-        geo = json.loads((RP / "models" / "entity" / f"fb_{who}.geo.json").read_text())
+        # Every geometry the model can wear in a jumpscare (Freddy's withered model on nights 7-9 too).
+        geos = [json.loads(p.read_text()) for p in sorted((RP / "models" / "entity").glob(f"fb_{who}*.geo.json"))
+                if p.stem in (f"fb_{who}.geo", f"fb_{who}_withered.geo")]
         scale = scale_t[who]
         eye = eye_t[who] * scale
         rows = []
         for variant, file, anim_id in clips:
             anim = json.loads((RP / "animations" / f"{file}.animation.json").read_text())["animations"][anim_id]
-            head, near = measure(who, anim, geo, scale, eye)
+            m = [measure(who, anim, geo, scale, eye) for geo in geos]
+            head, near = max(x[0] for x in m), max(x[1] for x in m)
             dist = round(max(head + HEAD_CLEAR, near + NEAR_CLEAR, 0.9), 2)
             rows.append({"variant": variant, "clip": anim_id.split(".")[-1], "head": head, "near": near, "distance": dist})
         out[who] = rows

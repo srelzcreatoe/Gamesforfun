@@ -1,11 +1,11 @@
 // MORGRAVE - the rabbit in the walls who only wants to be let in (nights 8 and 9, 1.4).
 //
-// Fredbear's partner from the 1983 diner, walled in with him. He never walks the halls: he comes
+// Walled in with Fredbear below the 1983 diner (Springbonnie was Fredbear's stage partner). He never walks the halls: he comes
 // out of the walls at the LEFT door, the RIGHT door or the CEILING VENT above the office
 // (data/visitors.js MORGRAVE_SPOTS) and knocks.
 //
 // STATES
-//   DORMANT  slumped in Fredbear's chamber (M_HOME) until activation.
+//   DORMANT  slumped in his nest in the workshop (M_HOME, CAM 19) until activation.
 //   WALLS    inside the walls (hidden) for a cooldown, then he picks an entry.
 //   KNOCK    three soft knocks (captioned). When they end:
 //              * that entry is OPEN  -> PASS (he only wanted to be let in);

@@ -58,6 +58,67 @@
         }
       ]
     },
+    "controller.render.fb.withered_geo": {
+      "arrays": {
+        "geometries": {
+          "Array.geos": [
+            "Geometry.default",
+            "Geometry.withered"
+          ]
+        },
+        "textures": {
+          "Array.skins": [
+            "Texture.default",
+            "Texture.withered"
+          ]
+        }
+      },
+      "geometry": "Array.geos[variable.fb_variant]",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.skins[variable.fb_variant]"
+      ],
+      "part_visibility": [
+        {
+          "*": "!variable.fb_hidden"
+        }
+      ]
+    },
+    "controller.render.fb.withered_geo_eyes": {
+      "arrays": {
+        "geometries": {
+          "Array.geos": [
+            "Geometry.default",
+            "Geometry.withered"
+          ]
+        },
+        "textures": {
+          "Array.eyes": [
+            "Texture.eyes",
+            "Texture.withered_eyes"
+          ]
+        }
+      },
+      "geometry": "Array.geos[variable.fb_variant]",
+      "materials": [
+        {
+          "*": "Material.eyes"
+        }
+      ],
+      "textures": [
+        "Array.eyes[variable.fb_variant]"
+      ],
+      "ignore_lighting": true,
+      "part_visibility": [
+        {
+          "*": "variable.fb_eyes && !variable.fb_hidden"
+        }
+      ]
+    },
     "controller.render.fb.valek": {
       "geometry": "Geometry.default",
       "materials": [
