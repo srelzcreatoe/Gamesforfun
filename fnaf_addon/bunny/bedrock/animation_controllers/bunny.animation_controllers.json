@@ -1,0 +1,154 @@
+{
+	"format_version": "1.10.0",
+	"animation_controllers": {
+		"controller.animation.bunny.main": {
+			"initial_state": "idle",
+			"states": {
+				"idle": {
+					"animations": [
+						"idle"
+					],
+					"blend_transition": 0.25,
+					"transitions": [
+						{
+							"run": "query.ground_speed > 3.5"
+						},
+						{
+							"walk": "query.ground_speed > 0.3"
+						},
+						{
+							"pose1": "query.mark_variant == 1"
+						},
+						{
+							"pose2": "query.mark_variant == 2"
+						},
+						{
+							"performance1": "query.mark_variant == 3"
+						},
+						{
+							"performance2": "query.mark_variant == 4"
+						},
+						{
+							"jumpscare1": "query.mark_variant == 5"
+						},
+						{
+							"jumpscare2": "query.mark_variant == 6"
+						}
+					]
+				},
+				"walk": {
+					"animations": [
+						"walk"
+					],
+					"blend_transition": 0.25,
+					"transitions": [
+						{
+							"run": "query.ground_speed > 3.5"
+						},
+						{
+							"idle": "!(query.ground_speed > 0.3)"
+						}
+					]
+				},
+				"run": {
+					"animations": [
+						"run"
+					],
+					"blend_transition": 0.2,
+					"transitions": [
+						{
+							"walk": "!(query.ground_speed > 3.5) && query.ground_speed > 0.3"
+						},
+						{
+							"idle": "!(query.ground_speed > 0.3)"
+						}
+					]
+				},
+				"pose1": {
+					"animations": [
+						"pose1"
+					],
+					"blend_transition": 0.3,
+					"transitions": [
+						{
+							"walk": "query.ground_speed > 0.3"
+						},
+						{
+							"idle": "query.mark_variant != 1"
+						}
+					]
+				},
+				"pose2": {
+					"animations": [
+						"pose2"
+					],
+					"blend_transition": 0.3,
+					"transitions": [
+						{
+							"walk": "query.ground_speed > 0.3"
+						},
+						{
+							"idle": "query.mark_variant != 2"
+						}
+					]
+				},
+				"performance1": {
+					"animations": [
+						"performance1"
+					],
+					"blend_transition": 0.3,
+					"transitions": [
+						{
+							"walk": "query.ground_speed > 0.3"
+						},
+						{
+							"idle": "query.mark_variant != 3"
+						}
+					]
+				},
+				"performance2": {
+					"animations": [
+						"performance2"
+					],
+					"blend_transition": 0.3,
+					"transitions": [
+						{
+							"walk": "query.ground_speed > 0.3"
+						},
+						{
+							"idle": "query.mark_variant != 4"
+						}
+					]
+				},
+				"jumpscare1": {
+					"animations": [
+						"jumpscare1"
+					],
+					"blend_transition": 0.3,
+					"transitions": [
+						{
+							"walk": "query.ground_speed > 0.3"
+						},
+						{
+							"idle": "query.mark_variant != 5"
+						}
+					]
+				},
+				"jumpscare2": {
+					"animations": [
+						"jumpscare2"
+					],
+					"blend_transition": 0.3,
+					"transitions": [
+						{
+							"walk": "query.ground_speed > 0.3"
+						},
+						{
+							"idle": "query.mark_variant != 6"
+						}
+					]
+				}
+			}
+		}
+	}
+}

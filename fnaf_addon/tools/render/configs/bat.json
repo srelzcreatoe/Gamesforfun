@@ -1,0 +1,516 @@
+{
+  "title": "BAT",
+  "subtitle": "MINECRAFT-STYLE FNAF MODEL",
+  "theme": "night",
+  "views": {
+    "front": {
+      "az": 0,
+      "el": 4,
+      "dist": 226.0,
+      "target": [
+        0,
+        30.0,
+        0
+      ],
+      "fov": 28
+    },
+    "side": {
+      "az": 90,
+      "el": 4,
+      "dist": 226.0,
+      "target": [
+        0,
+        30.0,
+        0
+      ],
+      "fov": 28
+    },
+    "back": {
+      "az": 180,
+      "el": 4,
+      "dist": 226.0,
+      "target": [
+        0,
+        30.0,
+        0
+      ],
+      "fov": 28
+    },
+    "three_quarter": {
+      "az": 28,
+      "el": 8,
+      "dist": 198,
+      "target": [
+        0,
+        32.0,
+        0
+      ],
+      "fov": 30
+    },
+    "face": {
+      "az": 0,
+      "el": 2,
+      "dist": 66,
+      "target": [
+        0,
+        40,
+        -4
+      ],
+      "fov": 24
+    }
+  },
+  "stills_cam": {
+    "az": 30,
+    "el": 8,
+    "dist": 195,
+    "target": [
+      0,
+      30.0,
+      0
+    ],
+    "fov": 30
+  },
+  "turnaround": {
+    "secs": 6,
+    "cam": {
+      "az": [
+        28,
+        388
+      ],
+      "el": 8,
+      "dist": 193,
+      "target": [
+        0,
+        32.0,
+        0
+      ],
+      "fov": 30
+    }
+  },
+  "closeups": [
+    {
+      "clip": "idle",
+      "secs": 3,
+      "label": "FACE DETAIL",
+      "cam": {
+        "az": [
+          18,
+          -18
+        ],
+        "el": 4,
+        "dist": 100,
+        "target": [
+          -7,
+          41,
+          -3
+        ],
+        "fov": 24
+      }
+    },
+    {
+      "clip": "idle",
+      "secs": 3,
+      "label": "WING DETAIL",
+      "cam": {
+        "az": [
+          140,
+          220
+        ],
+        "el": 10,
+        "dist": 130,
+        "target": [
+          0,
+          36,
+          5
+        ],
+        "fov": 30
+      }
+    }
+  ],
+  "default_cam": {
+    "az": [
+      40,
+      -10
+    ],
+    "el": 9,
+    "dist": 183,
+    "target": [
+      0,
+      32.0,
+      0
+    ],
+    "fov": 30
+  },
+  "clips": [
+    {
+      "name": "idle",
+      "secs": 6
+    },
+    {
+      "name": "walk",
+      "secs": 4,
+      "cam": {
+        "az": [
+          55,
+          15
+        ],
+        "el": 8,
+        "dist": 188,
+        "target": [
+          0,
+          31.0,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "run",
+      "secs": 3,
+      "cam": {
+        "az": [
+          70,
+          30
+        ],
+        "el": 8,
+        "dist": 188,
+        "target": [
+          0,
+          31.0,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "pose1",
+      "secs": 4,
+      "cam": {
+        "az": [
+          20,
+          -10
+        ],
+        "el": 6,
+        "dist": 188,
+        "target": [
+          0,
+          31.0,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "pose2",
+      "secs": 4
+    },
+    {
+      "name": "performance1",
+      "secs": 8
+    },
+    {
+      "name": "performance2",
+      "secs": 8,
+      "cam": {
+        "az": [
+          50,
+          10
+        ],
+        "el": 8,
+        "dist": 188,
+        "target": [
+          0,
+          31.0,
+          -2
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "jumpscare1",
+      "secs": 2.5,
+      "cam": {
+        "az": 0,
+        "el": 0,
+        "dist": 90,
+        "target": [
+          0,
+          40,
+          0
+        ],
+        "fov": 42
+      }
+    },
+    {
+      "name": "jumpscare2",
+      "secs": 2.75,
+      "cam": {
+        "az": 0,
+        "el": 0,
+        "dist": 90,
+        "target": [
+          0,
+          40,
+          0
+        ],
+        "fov": 42
+      }
+    }
+  ],
+  "sheet": {
+    "tagline": [
+      "HANG",
+      "AROUND",
+      "A",
+      "WHILE."
+    ],
+    "blurb": [
+      "You hear the wings",
+      "before you see",
+      "the eyes."
+    ],
+    "corner": [
+      "HE SLEEPS",
+      "ALL DAY.",
+      "HE DOES NOT",
+      "SLEEP AT NIGHT."
+    ],
+    "side_a": [
+      "LOOK",
+      "UP."
+    ],
+    "side_b": [
+      "WINGS",
+      "IN THE",
+      "DARK."
+    ],
+    "palette": [
+      [
+        100,
+        60,
+        108
+      ],
+      [
+        52,
+        28,
+        56
+      ],
+      [
+        84,
+        50,
+        94
+      ],
+      [
+        140,
+        88,
+        122
+      ],
+      [
+        184,
+        146,
+        154
+      ],
+      [
+        162,
+        140,
+        150
+      ]
+    ],
+    "shots": {
+      "front": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 0,
+          "el": 3,
+          "dist": 194.2,
+          "target": [
+            0,
+            30.0,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "side": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 90,
+          "el": 3,
+          "dist": 194.2,
+          "target": [
+            0,
+            30.0,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "back": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 180,
+          "el": 3,
+          "dist": 194.2,
+          "target": [
+            0,
+            30.0,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "main": {
+        "anim": "pose1",
+        "time": 0.5,
+        "cam": {
+          "az": 22,
+          "el": 6,
+          "dist": 143,
+          "target": [
+            0,
+            34.0,
+            -2
+          ],
+          "fov": 34
+        }
+      }
+    },
+    "faces": [
+      {
+        "label": "FACE DETAIL",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 0,
+          "el": 2,
+          "dist": 58,
+          "target": [
+            0,
+            40,
+            -4
+          ],
+          "fov": 24
+        }
+      },
+      {
+        "label": "JUMPSCARE",
+        "anim": "jumpscare1",
+        "time": 0.75,
+        "cam": {
+          "az": 0,
+          "el": 0,
+          "dist": 72.0,
+          "target": [
+            0,
+            40,
+            0
+          ],
+          "fov": 42
+        }
+      }
+    ],
+    "details": [
+      {
+        "label": "WINGS",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 165,
+          "el": 10,
+          "dist": 85,
+          "target": [
+            0,
+            35,
+            4
+          ],
+          "fov": 30
+        }
+      },
+      {
+        "label": "EARS",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 15,
+          "el": 8,
+          "dist": 44,
+          "target": [
+            0,
+            50,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      {
+        "label": "CLAWS",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 30,
+          "el": 6,
+          "dist": 34,
+          "target": [
+            8.5,
+            20,
+            -3
+          ],
+          "fov": 30
+        }
+      }
+    ],
+    "strip": [
+      [
+        "idle",
+        0.0
+      ],
+      [
+        "walk",
+        0.4
+      ],
+      [
+        "run",
+        0.2
+      ],
+      [
+        "pose1",
+        0.5
+      ],
+      [
+        "pose2",
+        0.5
+      ],
+      [
+        "performance1",
+        0.5
+      ],
+      [
+        "performance2",
+        1.0
+      ],
+      [
+        "jumpscare1",
+        0.7
+      ],
+      [
+        "jumpscare2",
+        0.9
+      ]
+    ],
+    "strip_cam": {
+      "az": 22,
+      "el": 6,
+      "dist": 178,
+      "target": [
+        0,
+        31.0,
+        0
+      ],
+      "fov": 30
+    },
+    "strap": "PLAY. PERFORM. JUMPSCARE."
+  }
+}

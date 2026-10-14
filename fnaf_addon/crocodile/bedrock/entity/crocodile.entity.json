@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:crocodile",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/crocodile/crocodile_glow"
+			},
+			"geometry": {
+				"default": "geometry.crocodile"
+			},
+			"animations": {
+				"idle": "animation.crocodile.idle",
+				"walk": "animation.crocodile.walk",
+				"run": "animation.crocodile.run",
+				"pose1": "animation.crocodile.pose1",
+				"pose2": "animation.crocodile.pose2",
+				"performance1": "animation.crocodile.performance1",
+				"performance2": "animation.crocodile.performance2",
+				"jumpscare1": "animation.crocodile.jumpscare1",
+				"jumpscare2": "animation.crocodile.jumpscare2",
+				"controller": "controller.animation.crocodile.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.crocodile"
+			],
+			"spawn_egg": {
+				"base_color": "#5a6e30",
+				"overlay_color": "#9a1c22"
+			}
+		}
+	}
+}

@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:bunny",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/bunny/bunny_glow"
+			},
+			"geometry": {
+				"default": "geometry.bunny"
+			},
+			"animations": {
+				"idle": "animation.bunny.idle",
+				"walk": "animation.bunny.walk",
+				"run": "animation.bunny.run",
+				"pose1": "animation.bunny.pose1",
+				"pose2": "animation.bunny.pose2",
+				"performance1": "animation.bunny.performance1",
+				"performance2": "animation.bunny.performance2",
+				"jumpscare1": "animation.bunny.jumpscare1",
+				"jumpscare2": "animation.bunny.jumpscare2",
+				"controller": "controller.animation.bunny.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.bunny"
+			],
+			"spawn_egg": {
+				"base_color": "#5c3c84",
+				"overlay_color": "#b4a0b4"
+			}
+		}
+	}
+}

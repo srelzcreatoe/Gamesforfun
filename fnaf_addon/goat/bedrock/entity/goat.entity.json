@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:goat",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/goat/goat_glow"
+			},
+			"geometry": {
+				"default": "geometry.goat"
+			},
+			"animations": {
+				"idle": "animation.goat.idle",
+				"walk": "animation.goat.walk",
+				"run": "animation.goat.run",
+				"pose1": "animation.goat.pose1",
+				"pose2": "animation.goat.pose2",
+				"performance1": "animation.goat.performance1",
+				"performance2": "animation.goat.performance2",
+				"jumpscare1": "animation.goat.jumpscare1",
+				"jumpscare2": "animation.goat.jumpscare2",
+				"controller": "controller.animation.goat.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.goat"
+			],
+			"spawn_egg": {
+				"base_color": "#b0907e",
+				"overlay_color": "#8c1e1e"
+			}
+		}
+	}
+}

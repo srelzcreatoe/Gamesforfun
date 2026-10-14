@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:fox",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/fox/fox_glow"
+			},
+			"geometry": {
+				"default": "geometry.fox"
+			},
+			"animations": {
+				"idle": "animation.fox.idle",
+				"walk": "animation.fox.walk",
+				"run": "animation.fox.run",
+				"pose1": "animation.fox.pose1",
+				"pose2": "animation.fox.pose2",
+				"performance1": "animation.fox.performance1",
+				"performance2": "animation.fox.performance2",
+				"jumpscare1": "animation.fox.jumpscare1",
+				"jumpscare2": "animation.fox.jumpscare2",
+				"controller": "controller.animation.fox.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.fox"
+			],
+			"spawn_egg": {
+				"base_color": "#a8302a",
+				"overlay_color": "#d8b8a4"
+			}
+		}
+	}
+}

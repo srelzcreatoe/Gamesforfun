@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:monkey",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/monkey/monkey_glow"
+			},
+			"geometry": {
+				"default": "geometry.monkey"
+			},
+			"animations": {
+				"idle": "animation.monkey.idle",
+				"walk": "animation.monkey.walk",
+				"run": "animation.monkey.run",
+				"pose1": "animation.monkey.pose1",
+				"pose2": "animation.monkey.pose2",
+				"performance1": "animation.monkey.performance1",
+				"performance2": "animation.monkey.performance2",
+				"jumpscare1": "animation.monkey.jumpscare1",
+				"jumpscare2": "animation.monkey.jumpscare2",
+				"controller": "controller.animation.monkey.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.monkey"
+			],
+			"spawn_egg": {
+				"base_color": "#7a3020",
+				"overlay_color": "#c08860"
+			}
+		}
+	}
+}

@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:bat",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/bat/bat_glow"
+			},
+			"geometry": {
+				"default": "geometry.bat"
+			},
+			"animations": {
+				"idle": "animation.bat.idle",
+				"walk": "animation.bat.walk",
+				"run": "animation.bat.run",
+				"pose1": "animation.bat.pose1",
+				"pose2": "animation.bat.pose2",
+				"performance1": "animation.bat.performance1",
+				"performance2": "animation.bat.performance2",
+				"jumpscare1": "animation.bat.jumpscare1",
+				"jumpscare2": "animation.bat.jumpscare2",
+				"controller": "controller.animation.bat.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.bat"
+			],
+			"spawn_egg": {
+				"base_color": "#5a3460",
+				"overlay_color": "#b08aa0"
+			}
+		}
+	}
+}

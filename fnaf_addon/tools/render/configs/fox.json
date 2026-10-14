@@ -1,0 +1,514 @@
+{
+  "title": "FOX",
+  "subtitle": "MINECRAFT-STYLE FNAF MODEL",
+  "theme": "night",
+  "views": {
+    "front": {
+      "az": 0,
+      "el": 4,
+      "dist": 205.0,
+      "target": [
+        0,
+        27.0,
+        0
+      ],
+      "fov": 28
+    },
+    "side": {
+      "az": 90,
+      "el": 4,
+      "dist": 205.0,
+      "target": [
+        0,
+        27.0,
+        0
+      ],
+      "fov": 28
+    },
+    "back": {
+      "az": 180,
+      "el": 4,
+      "dist": 205.0,
+      "target": [
+        0,
+        27.0,
+        0
+      ],
+      "fov": 28
+    },
+    "three_quarter": {
+      "az": 28,
+      "el": 8,
+      "dist": 180,
+      "target": [
+        0,
+        29.0,
+        0
+      ],
+      "fov": 30
+    },
+    "face": {
+      "az": 0,
+      "el": 2,
+      "dist": 66,
+      "target": [
+        0,
+        41,
+        -4
+      ],
+      "fov": 24
+    }
+  },
+  "stills_cam": {
+    "az": 30,
+    "el": 8,
+    "dist": 195,
+    "target": [
+      0,
+      27.0,
+      0
+    ],
+    "fov": 30
+  },
+  "turnaround": {
+    "secs": 6,
+    "cam": {
+      "az": [
+        28,
+        388
+      ],
+      "el": 8,
+      "dist": 175,
+      "target": [
+        0,
+        29.0,
+        0
+      ],
+      "fov": 30
+    }
+  },
+  "closeups": [
+    {
+      "clip": "idle",
+      "secs": 3,
+      "label": "EYE PATCH & SNOUT",
+      "cam": {
+        "az": [
+          18,
+          -18
+        ],
+        "el": 4,
+        "dist": 100,
+        "target": [
+          -7,
+          42,
+          -4
+        ],
+        "fov": 24
+      }
+    },
+    {
+      "clip": "idle",
+      "secs": 3,
+      "label": "HOOK & TAIL",
+      "cam": {
+        "az": [
+          60,
+          140
+        ],
+        "el": 8,
+        "dist": 120,
+        "target": [
+          4,
+          22,
+          2
+        ],
+        "fov": 28
+      }
+    }
+  ],
+  "default_cam": {
+    "az": [
+      40,
+      -10
+    ],
+    "el": 9,
+    "dist": 165,
+    "target": [
+      0,
+      29.0,
+      0
+    ],
+    "fov": 30
+  },
+  "clips": [
+    {
+      "name": "idle",
+      "secs": 6
+    },
+    {
+      "name": "walk",
+      "secs": 4,
+      "cam": {
+        "az": [
+          55,
+          15
+        ],
+        "el": 8,
+        "dist": 170,
+        "target": [
+          0,
+          28.0,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "run",
+      "secs": 3,
+      "cam": {
+        "az": [
+          70,
+          30
+        ],
+        "el": 8,
+        "dist": 170,
+        "target": [
+          0,
+          28.0,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "pose1",
+      "secs": 4,
+      "cam": {
+        "az": [
+          20,
+          -10
+        ],
+        "el": 6,
+        "dist": 170,
+        "target": [
+          0,
+          28.0,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "pose2",
+      "secs": 4
+    },
+    {
+      "name": "performance1",
+      "secs": 8
+    },
+    {
+      "name": "performance2",
+      "secs": 8,
+      "cam": {
+        "az": [
+          50,
+          10
+        ],
+        "el": 8,
+        "dist": 170,
+        "target": [
+          0,
+          28.0,
+          -2
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "jumpscare1",
+      "secs": 2.5,
+      "cam": {
+        "az": 0,
+        "el": 0,
+        "dist": 90,
+        "target": [
+          0,
+          40,
+          0
+        ],
+        "fov": 42
+      }
+    },
+    {
+      "name": "jumpscare2",
+      "secs": 2.75,
+      "cam": {
+        "az": 0,
+        "el": 0,
+        "dist": 90,
+        "target": [
+          0,
+          40,
+          0
+        ],
+        "fov": 42
+      }
+    }
+  ],
+  "sheet": {
+    "tagline": [
+      "YAR",
+      "HAR",
+      "HAR."
+    ],
+    "blurb": [
+      "He was always",
+      "behind the curtain.",
+      "Now he's out."
+    ],
+    "corner": [
+      "PIRATE COVE",
+      "IS CLOSED.",
+      "THE CAPTAIN",
+      "IS NOT."
+    ],
+    "side_a": [
+      "RUN."
+    ],
+    "side_b": [
+      "HOOK,",
+      "LINE,",
+      "SINKER."
+    ],
+    "palette": [
+      [
+        136,
+        34,
+        30
+      ],
+      [
+        110,
+        28,
+        22
+      ],
+      [
+        178,
+        114,
+        84
+      ],
+      [
+        232,
+        204,
+        184
+      ],
+      [
+        94,
+        94,
+        100
+      ],
+      [
+        20,
+        17,
+        16
+      ]
+    ],
+    "shots": {
+      "front": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 0,
+          "el": 3,
+          "dist": 175.0,
+          "target": [
+            0,
+            27.0,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "side": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 90,
+          "el": 3,
+          "dist": 175.0,
+          "target": [
+            0,
+            27.0,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "back": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 180,
+          "el": 3,
+          "dist": 175.0,
+          "target": [
+            0,
+            27.0,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "main": {
+        "anim": "pose1",
+        "time": 0.5,
+        "cam": {
+          "az": 22,
+          "el": 6,
+          "dist": 125,
+          "target": [
+            0,
+            31.0,
+            -2
+          ],
+          "fov": 34
+        }
+      }
+    },
+    "faces": [
+      {
+        "label": "FACE DETAIL",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 0,
+          "el": 2,
+          "dist": 58,
+          "target": [
+            0,
+            41,
+            -4
+          ],
+          "fov": 24
+        }
+      },
+      {
+        "label": "JUMPSCARE",
+        "anim": "jumpscare1",
+        "time": 0.75,
+        "cam": {
+          "az": 0,
+          "el": 0,
+          "dist": 72.0,
+          "target": [
+            0,
+            40,
+            0
+          ],
+          "fov": 42
+        }
+      }
+    ],
+    "details": [
+      {
+        "label": "HOOK",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 25,
+          "el": 6,
+          "dist": 38,
+          "target": [
+            10.5,
+            15,
+            -3
+          ],
+          "fov": 30
+        }
+      },
+      {
+        "label": "EYE PATCH",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 20,
+          "el": 4,
+          "dist": 36,
+          "target": [
+            -2,
+            42,
+            -4
+          ],
+          "fov": 30
+        }
+      },
+      {
+        "label": "BUSHY TAIL",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": -140,
+          "el": 10,
+          "dist": 60,
+          "target": [
+            6,
+            17,
+            8
+          ],
+          "fov": 30
+        }
+      }
+    ],
+    "strip": [
+      [
+        "idle",
+        0.0
+      ],
+      [
+        "walk",
+        0.4
+      ],
+      [
+        "run",
+        0.2
+      ],
+      [
+        "pose1",
+        0.5
+      ],
+      [
+        "pose2",
+        0.5
+      ],
+      [
+        "performance1",
+        0.5
+      ],
+      [
+        "performance2",
+        1.0
+      ],
+      [
+        "jumpscare1",
+        0.7
+      ],
+      [
+        "jumpscare2",
+        0.9
+      ]
+    ],
+    "strip_cam": {
+      "az": 22,
+      "el": 6,
+      "dist": 160,
+      "target": [
+        0,
+        28.0,
+        0
+      ],
+      "fov": 30
+    },
+    "strap": "PLAY. PERFORM. JUMPSCARE."
+  }
+}

@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:bear",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/bear/bear_glow"
+			},
+			"geometry": {
+				"default": "geometry.bear"
+			},
+			"animations": {
+				"idle": "animation.bear.idle",
+				"walk": "animation.bear.walk",
+				"run": "animation.bear.run",
+				"pose1": "animation.bear.pose1",
+				"pose2": "animation.bear.pose2",
+				"performance1": "animation.bear.performance1",
+				"performance2": "animation.bear.performance2",
+				"jumpscare1": "animation.bear.jumpscare1",
+				"jumpscare2": "animation.bear.jumpscare2",
+				"controller": "controller.animation.bear.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.bear"
+			],
+			"spawn_egg": {
+				"base_color": "#6e2e1c",
+				"overlay_color": "#202022"
+			}
+		}
+	}
+}

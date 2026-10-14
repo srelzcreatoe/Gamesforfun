@@ -71,6 +71,10 @@ def default_group(bone):
         return "ears"
     if bone.startswith("tail"):
         return "tail"
+    if "Wing" in bone:
+        return "wings"
+    if "Horn" in bone:
+        return "head"
     if bone.startswith("right") or bone == "mic":
         return "armR"
     if bone.startswith("left"):
