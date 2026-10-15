@@ -26,9 +26,9 @@ import os
 
 import numpy as np
 
-from characters.body import (COMMON, SPIRAL, SPIRAL_MIRROR, bands_painter, build_arms, build_bowtie, build_endo_neck, build_head,
-                             build_legs, build_tail, build_torso, frame_painter, lengthen, p_chrome, p_pupil, socket_painter,
-                             vox)
+from characters.body import (COMMON, ENDO, SPIRAL, SPIRAL_MIRROR, bands_painter, build_arms, build_bowtie, build_endo_neck,
+                             build_head, build_legs, build_tail, build_torso, frame_painter, lengthen, p_chrome, p_pupil,
+                             raise_head, socket_painter, vox)
 from fnafkit import export
 from fnafkit.rig import bone, cube
 
@@ -132,7 +132,7 @@ MATERIALS = {
 
 # the exposed endoskeleton neck: dark steel
 for _m in MATERIALS.values():
-    _m["endo"] = vox((40, 40, 44), (50, 50, 55), (60, 60, 66), bevel=0.2)
+    _m["endo"] = ENDO
 
 # --------------------------------------------------------------------------
 # Measurements (model pixels), each taken from its own picture
@@ -249,11 +249,7 @@ def reshape(d, chest=0.0, depth=0.0, hips=0.0, arm=1.0, leg=1.0):
 def refit(d, neck=1.8, forehead=2.6):
     """Lift the head clear of the chest so the endoskeleton neck shows (a `neck`-high gap under
     the jaw) and keep the forehead to `forehead` px above the eyes."""
-    d = dict(d)
-    lift = d["torso"][1] + neck - d["jaw"][0]
-    for k in ("jaw", "snout", "eyes"):
-        d[k] = tuple(v + lift for v in d[k])
-    d["head_pivot"] += lift
+    d = raise_head(d, neck)
     d["top"] = d["eyes"][1] + forehead
     return d
 

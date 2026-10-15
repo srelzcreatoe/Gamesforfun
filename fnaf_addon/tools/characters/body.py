@@ -282,9 +282,24 @@ def build_neck(D):
     cube("torso", "neck_piston", [-1.8, c1, -1.8], [1.8, D["head_pivot"] + 0.6, 1.8], "chrome", painter=p_chrome)
 
 
+ENDO = vox((40, 40, 44), (50, 50, 55), (60, 60, 66), bevel=0.2)     # dark steel, for build_endo_neck
+
+
+def raise_head(d, neck):
+    """Copy of measurements `d` with the head lifted so a `neck`-high gap opens between the top
+    of the chest and the bottom of the jaw (where build_endo_neck shows)."""
+    d = dict(d)
+    lift = d["torso"][1] + neck - d["jaw"][0]
+    for k in ("jaw", "snout", "eyes"):
+        d[k] = tuple(v + lift for v in d[k])
+    d["head_pivot"] += lift
+    d["top"] += lift
+    return d
+
+
 def build_endo_neck(D):
     """Exposed endoskeleton neck in the gap between chest and head: a dark steel column on a
-    chrome collar, with two thin cables at the front.  Needs an "endo" material."""
+    chrome collar, with two thin cables at the front.  Needs an "endo" material (ENDO)."""
     c1, hp = D["torso"][1], D["head_pivot"]
     cube("torso", "neck_column", [-1.2, c1 - 0.4, -1.0], [1.2, hp + 0.9, 1.4], "endo")
     cube("torso", "neck_collar", [-1.8, c1 - 0.1, -1.6], [1.8, c1 + 0.55, 2.0], "chrome", painter=p_chrome)

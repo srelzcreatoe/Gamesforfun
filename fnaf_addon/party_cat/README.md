@@ -4,7 +4,7 @@ This is a Blockbench model of the golden cat with the party hat from your second
 
 It includes:
 
-- 118 cubes and 32 bones
+- 121 cubes and 32 bones
 - a 1024×512 texture painted at 4 texels per model pixel, in the picture's "every pixel is a little block" style
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
@@ -29,7 +29,8 @@ It includes:
 - **Party hat:** red-and-cream striped, tipped to his right, with a fluffy red pom-pom on top
 - **Collar:** red, with a gold bell under the chin
 - **Tail:** thick and striped, curling out from behind him
-- **Joints:** chrome pistons at the neck, shoulders, elbows, wrists, hips, knees and ankles
+- **Neck:** an exposed endoskeleton neck in the gap under the head: a dark steel column on a chrome collar, with two thin cables at the front, rising out of her red collar
+- **Joints:** chrome pistons at the shoulders, elbows, wrists, hips, knees and ankles
 - **Feet:** big three-toed feet with stepped toes on a light sole
 
 ## Rig
@@ -37,7 +38,7 @@ It includes:
 ```
 root
 ├─ body (pelvis) ─ tail0 ─ tail1 … tail5
-│  └─ torso (chest, belly, collar, neck piston) ─ bell
+│  └─ torso (chest, belly, collar, endoskeleton neck) ─ bell
 │     ├─ head ─ jaw, eyes, rightEar, leftEar, hat
 │     ├─ rightArm ─ rightForearm ─ rightHand ─ rightFingers, rightThumb
 │     └─ leftArm  ─ leftForearm  ─ leftHand  ─ leftFingers, leftThumb
@@ -78,7 +79,7 @@ Copy `bedrock/` into your resource pack:
 
 - **Identifier:** the client entity uses `fnaf:party_cat`. If your addon uses a different namespace, change it to match.
 - **Glowing eyes:** the client entity uses `party_cat_glow.png` with the `entity_emissive_alpha` material, so the eyes glow in-game. Use `party_cat.png` with `entity_alphatest` if you don't want the glow.
-- **Size:** about 3.0 blocks to the top of the head and 3.6 blocks to the pom-pom.
+- **Size:** about 3.2 blocks to the top of the head and 3.8 blocks to the pom-pom.
 - **Movement:** the animation controller plays idle, walk or run based on `query.ground_speed`.
 - **Poses, performances and jumpscares:** these play when the behavior entity's `minecraft:mark_variant` value is set:
 

@@ -13,8 +13,9 @@ import os
 
 import numpy as np
 
-from characters.body import (COMMON, build_arms, build_bowtie, build_head, build_legs, build_neck, build_tail,
-                             build_torso, frame_painter, lengthen, p_bell, p_chrome, p_mic_head, stripes_painter, vox)
+from characters.body import (COMMON, ENDO, build_arms, build_bowtie, build_endo_neck, build_head, build_legs, build_tail,
+                             build_torso, frame_painter, lengthen, p_bell, p_chrome, p_mic_head, raise_head, stripes_painter,
+                             vox)
 from characters.night import NightClips, ease, flip, window
 from fnafkit import export
 from fnafkit.anim import S, TAU, cs, flat_foot, pos, setr, sn, torso_goal
@@ -99,6 +100,11 @@ CH = {
 
 CH["party_cat"] = lengthen(CH["party_cat"], 0.5, 0.5, head_half=7.0)
 CH["rat"] = lengthen(CH["rat"], 0.8, 0.8, head_half=6.2)
+# heads sit on an exposed endoskeleton neck (the cat's shows above her collar)
+CH["party_cat"] = raise_head(CH["party_cat"], neck=2.6)
+CH["rat"] = raise_head(CH["rat"], neck=2.1)
+for _m in MATERIALS.values():
+    _m["endo"] = ENDO
 
 # --------------------------------------------------------------------------
 # Body
@@ -123,7 +129,7 @@ def build_body(name):
         cube("bell", "bell_loop", [-0.45, c1 - 0.9, fz - 1.5], [0.45, c1 - 0.1, fz - 0.7], "gold")
         cube("bell", "bell", [-1.25, c1 - 3.3, fz - 2.3], [1.25, c1 - 0.9, fz - 0.4], "gold", painter=p_bell)
         cube("bell", "bell_rim", [-1.45, c1 - 3.5, fz - 2.5], [1.45, c1 - 3.0, fz - 0.2], "gold")
-    build_neck(D)
+    build_endo_neck(D)
 
     def tongue():
         # tongue hanging out of the left side of the mouth
