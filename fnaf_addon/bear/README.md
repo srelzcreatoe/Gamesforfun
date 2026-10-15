@@ -25,7 +25,7 @@ It includes:
 
 - **Build:** heavy and broad, with thick arms and legs and a deep chest
 - **Fur:** dark brown with darker patches, and a tan pot belly that bulges out
-- **Head:** big, wide and square: small round ears with black inner patches; a big dark grey top hat tipped to his right; glowing eyes under angled brows; a wide tan muzzle with freckles and a big black nose; small teeth
+- **Head:** big, wide and square: small round ears with black inner patches; a big dark grey top hat tipped to his right; glowing eyes under flat, neutral brows; a wide tan muzzle with freckles and a big black nose; small teeth
 - **Chest:** a black bow tie and two black buttons
 - **Neck:** an exposed endoskeleton neck in the gap under the head: a dark steel column on a chrome collar, with two thin cables at the front
 - **Joints:** chrome pistons at the shoulders, elbows, wrists, hips, knees and ankles

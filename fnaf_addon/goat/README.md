@@ -25,7 +25,7 @@ It includes:
 
 - **Build:** tall and thin, with long legs and thin arms
 - **Fur:** beige with darker patches, a lighter belly
-- **Head:** a long, narrow face that narrows again at the top; two dark ram horns that curl round in a spiral from the top corners of his head; floppy ears with pink inner patches hanging out to the sides; glowing eyes under angled brows; a long muzzle with freckles and a black nose; a long jaw with small teeth; a pale beard hanging from his chin
+- **Head:** a long, narrow face that narrows again at the top; two dark ram horns that curl round in a spiral from the top corners of his head; floppy ears with pink inner patches hanging out to the sides; glowing eyes under flat, neutral brows; a long muzzle with freckles and a black nose; a long jaw with small teeth; a pale beard hanging from his chin
 - **Clothes:** a red vest with one button and a black bow tie
 - **Hands and feet:** dark fingertips, and two-toed dark hooves
 - **Neck:** an exposed endoskeleton neck in the gap under the head: a dark steel column on a chrome collar, with two thin cables at the front

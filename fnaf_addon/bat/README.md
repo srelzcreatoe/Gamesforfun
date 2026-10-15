@@ -25,7 +25,7 @@ It includes:
 
 - **Build:** broad shoulders over a narrow waist, short forearms with spread claws
 - **Fur:** purple with darker patches, a pale pink belly
-- **Head:** wide and short, with a flat pug-like face: two huge pointed ears with pink inner patches; the eyes sit high under angled brows; a broad pale muzzle with dark freckles and a big black nose; small teeth
+- **Head:** wide and short, with a flat pug-like face: two huge pointed ears with pink inner patches; the eyes sit high under flat, neutral brows; a broad pale muzzle with dark freckles and a big black nose; small teeth
 - **Wings:** two jointed wings on his back, each with dark finger bones, knuckle knobs and a membrane stretched between them. The outer half of each wing is its own bone, so the wings can fold, flap and spread.
 - **Chest:** a black bow tie and two black buttons
 - **Neck:** an exposed endoskeleton neck in the gap under the head: a dark steel column on a chrome collar, with two thin cables at the front

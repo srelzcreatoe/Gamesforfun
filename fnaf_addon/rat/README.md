@@ -25,7 +25,7 @@ It includes:
 
 - **Build:** narrow chest, long legs with long knee pistons, a big head
 - **Fur:** dark grey with darker patches, and a light grey belly
-- **Head:** huge square ears with dark rims and red inner patches; a small red fez tipped to his right; thin angled brows; dark eye sockets with small white ring-shaped pupils; a light grey muzzle with black freckles; a black nose; whiskers fanning out on both sides; small teeth and a pink tongue hanging out of the left side of his mouth
+- **Head:** huge square ears with dark rims and red inner patches; a small red fez tipped to his right; thin flat brows; dark eye sockets with small white ring-shaped pupils; a light grey muzzle with black freckles; a black nose; whiskers fanning out on both sides; small teeth and a pink tongue hanging out of the left side of his mouth
 - **Chest:** a red bow tie and two black buttons
 - **Microphone:** in his right hand
 - **Tail:** long and pink, out past his left side and curving down toward the floor
