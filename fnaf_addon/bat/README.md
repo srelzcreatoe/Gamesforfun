@@ -4,7 +4,7 @@ This is a Blockbench model of the purple bat with wings from your night-stage pi
 
 It includes:
 
-- 204 cubes and 28 bones
+- 209 cubes and 28 bones
 - a 1024×256 texture painted at 4 texels per model pixel, in the picture's "every pixel is a little block" style
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
@@ -23,12 +23,13 @@ It includes:
 
 ## What's on the model
 
-- **Build:** a small head under huge ears, a wide pelvis band and short forearms with spread claws
+- **Build:** broad shoulders over a narrow waist, short forearms with spread claws
 - **Fur:** purple with darker patches, a pale pink belly
-- **Head:** two huge pointed ears with pink inner patches; angled brows over dark sockets with glowing pupils; a pale muzzle with dark freckles and a black nose; small teeth
+- **Head:** wide and short, with a flat pug-like face: two huge pointed ears with pink inner patches; the eyes sit high under angled brows; a broad pale muzzle with dark freckles and a big black nose; small teeth
 - **Wings:** two jointed wings on his back, each with dark finger bones, knuckle knobs and a membrane stretched between them. The outer half of each wing is its own bone, so the wings can fold, flap and spread.
 - **Chest:** a black bow tie and two black buttons
-- **Joints:** chrome pistons at the neck, shoulders, elbows, wrists, hips, knees and ankles
+- **Neck:** an exposed endoskeleton neck in the gap under the head: a dark steel column on a chrome collar, with two thin cables at the front
+- **Joints:** chrome pistons at the shoulders, elbows, wrists, hips, knees and ankles
 - **Feet:** three-toed feet with stepped toes on a light sole
 
 ## Rig
@@ -36,7 +37,7 @@ It includes:
 ```
 root
 ├─ body (pelvis)
-│  └─ torso (chest, belly, bow tie, buttons, neck piston)
+│  └─ torso (chest, belly, bow tie, buttons, endoskeleton neck)
 │     ├─ head ─ jaw, eyes, rightEar, leftEar
 │     ├─ rightArm ─ rightForearm ─ rightHand ─ rightFingers, rightThumb
 │     ├─ leftArm  ─ leftForearm  ─ leftHand  ─ leftFingers, leftThumb
@@ -77,7 +78,7 @@ Copy `bedrock/` into your resource pack:
 
 - **Identifier:** the client entity uses `fnaf:bat`. If your addon uses a different namespace, change it to match.
 - **Glowing eyes:** the client entity uses `bat_glow.png` with the `entity_emissive_alpha` material, so the eyes glow in-game. Use `bat.png` with `entity_alphatest` if you don't want the glow.
-- **Size:** about 2.9 blocks to the top of the head and 3.4 blocks to the ear tips.
+- **Size:** about 3.0 blocks to the top of the head and 3.5 blocks to the ear tips.
 - **Movement:** the animation controller plays idle, walk or run based on `query.ground_speed`.
 - **Poses, performances and jumpscares:** these play when the behavior entity's `minecraft:mark_variant` value is set:
 

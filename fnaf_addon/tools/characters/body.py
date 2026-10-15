@@ -229,21 +229,22 @@ def build_legs(D, toes="stepped", n_toes=3, toe_mat="fur", tip_mat=None, sole_ma
         bone(foot, shin, [s * lc, (a0 + a1) / 2, 0])
         cube(foot, "ankle_piston", [lc - 1.1, a0, -1.1], [lc + 1.1, a1, 1.1], "chrome", s, painter=p_chrome)
         fc, fh, so = lc + D["foot_off"], D["foot_hw"], D["sole"]
-        cube(foot, "sole", [fc - fh - 0.1, 0, -7.8], [fc + fh + 0.1, so, 3.8], sole_mat, s)
+        fl = D.get("foot_len", 0.0)           # extra toe length for long-footed characters
+        cube(foot, "sole", [fc - fh - 0.1, 0, -7.8 - fl], [fc + fh + 0.1, so, 3.8], sole_mat, s)
         cube(foot, "heel", [fc - fh + 0.5, so, -3.9], [fc + fh - 0.5, D["heel_top"], 3.6], heel_mat, s)
         gap = 0.2
         toe_w = (2 * fh - (n_toes - 1) * gap) / n_toes
         x = fc - fh
         for i in range(n_toes):
             if toes == "hooves":
-                cube(foot, f"hoof{i + 1}", [x, so, -7.6], [x + toe_w, so + 2.2, -3.8], tip_mat, s)
-                cube(foot, f"hoof{i + 1}_top", [x + 0.15, so + 2.2, -6.4], [x + toe_w - 0.15, D["toe_top"], -3.8], toe_mat, s)
+                cube(foot, f"hoof{i + 1}", [x, so, -7.6 - fl], [x + toe_w, so + 2.2, -3.8], tip_mat, s)
+                cube(foot, f"hoof{i + 1}_top", [x + 0.15, so + 2.2, -6.4 - fl], [x + toe_w - 0.15, D["toe_top"], -3.8], toe_mat, s)
             else:
                 # each toe is two stacked blocks, the upper one set back
-                cube(foot, f"toe{i + 1}", [x, so, -7.6], [x + toe_w, so + 1.7, -3.8], toe_mat, s)
-                cube(foot, f"toe{i + 1}_top", [x + 0.15, so + 1.7, -6.9], [x + toe_w - 0.15, D["toe_top"], -3.8], toe_mat, s)
+                cube(foot, f"toe{i + 1}", [x, so, -7.6 - fl], [x + toe_w, so + 1.7, -3.8], toe_mat, s)
+                cube(foot, f"toe{i + 1}_top", [x + 0.15, so + 1.7, -6.9 - fl], [x + toe_w - 0.15, D["toe_top"], -3.8], toe_mat, s)
                 if toes == "claws":
-                    cube(foot, f"claw{i + 1}", [x + 0.3, 0.0, -8.6], [x + toe_w - 0.3, so + 0.9, -7.5], tip_mat, s)
+                    cube(foot, f"claw{i + 1}", [x + 0.3, 0.0, -8.6 - fl], [x + toe_w - 0.3, so + 0.9, -7.5 - fl], tip_mat, s)
             x += toe_w + gap
 
 
@@ -281,17 +282,35 @@ def build_neck(D):
     cube("torso", "neck_piston", [-1.8, c1, -1.8], [1.8, D["head_pivot"] + 0.6, 1.8], "chrome", painter=p_chrome)
 
 
+def build_endo_neck(D):
+    """Exposed endoskeleton neck in the gap between chest and head: a dark steel column on a
+    chrome collar, with two thin cables at the front.  Needs an "endo" material."""
+    c1, hp = D["torso"][1], D["head_pivot"]
+    cube("torso", "neck_column", [-1.2, c1 - 0.4, -1.0], [1.2, hp + 0.9, 1.4], "endo")
+    cube("torso", "neck_collar", [-1.8, c1 - 0.1, -1.6], [1.8, c1 + 0.55, 2.0], "chrome", painter=p_chrome)
+    for s in (1, -1):
+        cube("torso", "neck_cable", [0.75, c1 + 0.5, -1.45], [1.2, hp + 0.6, -1.0], "black", s)
+
+
 def build_head(D, after_jaw=None, pupils=(1, -1), muzzle_mat="muzzle", jaw_rest=-5, face_mat="fur",
-               nose=True, upper_teeth=True, lower_teeth=True):
+               nose=True, upper_teeth=True, lower_teeth=True, crown="box", cheek_puff=0.0):
     """The boxy animatronic face: cranium, eye band with sockets, brows, cheeks, muzzle,
-    nose, mouth with teeth, hinged jaw and glowing pupils."""
+    nose, mouth with teeth, hinged jaw and glowing pupils.
+
+    crown: "box" (flat-topped), "round" (top edges stepped in) or "taper" (narrower top)
+    cheek_puff: how far chubby cheek blocks stick out past the sides of the head"""
     bone("head", "torso", [0, D["head_pivot"], 0])
     H, fz, back, top = D["head_half"], D["face_z"], D["back"], D["top"]
     e0, e1 = D["eyes"]
     sn0, sn1 = D["snout"]
     sx0, sx1 = D["socket"]
     px, py = (sx0 + sx1) / 2, (e0 + e1) / 2
-    cube("head", "cranium", [-H, e1, fz], [H, top, back], face_mat)
+    if crown == "box":
+        cube("head", "cranium", [-H, e1, fz], [H, top, back], face_mat)
+    else:
+        inset, cap = {"round": (0.8, 0.8), "taper": (1.4, 1.1)}[crown]
+        cube("head", "cranium", [-H, e1, fz], [H, top - cap, back], face_mat)
+        cube("head", "crown", [-H + inset, top - cap, fz + 0.4], [H - inset, top, back - 0.5], face_mat)
     cube("head", "eye_band", [-H, e0, fz + 0.6], [H, e1, back], face_mat, painter=socket_painter(px, py))
     cube("head", "nose_bridge", [-sx0, e0, fz], [sx0, e1, fz + 0.6], face_mat)
     for s in (1, -1):
@@ -301,6 +320,9 @@ def build_head(D, after_jaw=None, pupils=(1, -1), muzzle_mat="muzzle", jaw_rest=
              rot=[0, 0, -slant] if slant else None, origin=[(b0 + b1) / 2, e1 + 0.5, fz] if slant else None)
     cube("head", "cheeks", [-H, D["jaw"][1], fz + 0.3], [H, e0, back - 0.2], face_mat)
     sz, mh, seam = D["snout_z"], D["muzzle_hw"], D["seam"]
+    if cheek_puff:
+        for s in (1, -1):
+            cube("head", "cheek_puff", [H - 0.3, sn0 - 0.6, fz - 0.2], [H + cheek_puff, e0 - 0.1, fz + 3.6], face_mat, s)
     if seam:
         for s in (1, -1):
             cube("head", "muzzle", [seam / 2, sn0, sz], [mh, sn1, fz + 0.3], muzzle_mat, s,

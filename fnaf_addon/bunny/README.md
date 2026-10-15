@@ -4,7 +4,7 @@ This is a Blockbench model of the purple bunny with the bent ear from your night
 
 It includes:
 
-- 107 cubes and 26 bones
+- 113 cubes and 26 bones
 - a 1024×256 texture painted at 4 texels per model pixel, in the picture's "every pixel is a little block" style
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
@@ -23,11 +23,12 @@ It includes:
 
 ## What's on the model
 
-- **Build:** slim, with a tall head, tall stepped toes and long fingers
+- **Build:** slim and lanky, with thin limbs, long fingers and long rabbit feet
 - **Fur:** purple with darker patches, a pale lilac belly
-- **Head:** tall ears on chrome joints with pale inner panels. His right ear is folded over at the joint, as in the picture. A pale muzzle with a black nose, two big buck teeth and small teeth beside them; glowing eyes under flat brows
+- **Head:** rounded top edges and chubby cheeks; tall ears on chrome joints with pale inner panels. His right ear is folded over at the joint, as in the picture. A pale muzzle with a black nose, two big buck teeth and small teeth beside them; glowing eyes under flat brows
 - **Chest:** a black bow tie and two black buttons
-- **Joints:** chrome pistons at the neck, shoulders, elbows, wrists, hips, knees and ankles
+- **Neck:** an exposed endoskeleton neck in the gap under the head: a dark steel column on a chrome collar, with two thin cables at the front
+- **Joints:** chrome pistons at the shoulders, elbows, wrists, hips, knees and ankles
 - **Feet:** three-toed feet with tall stepped toes on a light sole
 
 ## Rig
@@ -35,7 +36,7 @@ It includes:
 ```
 root
 ├─ body (pelvis)
-│  └─ torso (chest, belly, bow tie, buttons, neck piston)
+│  └─ torso (chest, belly, bow tie, buttons, endoskeleton neck)
 │     ├─ head ─ jaw, eyes, rightEar ─ rightEarTop, leftEar ─ leftEarTop
 │     ├─ rightArm ─ rightForearm ─ rightHand ─ rightFingers, rightThumb
 │     └─ leftArm  ─ leftForearm  ─ leftHand  ─ leftFingers, leftThumb
@@ -74,7 +75,7 @@ Copy `bedrock/` into your resource pack:
 
 - **Identifier:** the client entity uses `fnaf:bunny`. If your addon uses a different namespace, change it to match.
 - **Glowing eyes:** the client entity uses `bunny_glow.png` with the `entity_emissive_alpha` material, so the eyes glow in-game. Use `bunny.png` with `entity_alphatest` if you don't want the glow.
-- **Size:** about 3.1 blocks to the top of the head and 3.8 blocks to the left ear tip.
+- **Size:** about 3.2 blocks to the top of the head and 3.9 blocks to the left ear tip.
 - **Movement:** the animation controller plays idle, walk or run based on `query.ground_speed`.
 - **Poses, performances and jumpscares:** these play when the behavior entity's `minecraft:mark_variant` value is set:
 

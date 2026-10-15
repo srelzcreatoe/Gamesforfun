@@ -4,7 +4,7 @@ This is a Blockbench model of the dark brown bear with the big top hat from your
 
 It includes:
 
-- 104 cubes and 25 bones
+- 111 cubes and 25 bones
 - a 1024×512 texture painted at 4 texels per model pixel, in the picture's "every pixel is a little block" style
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
@@ -23,11 +23,12 @@ It includes:
 
 ## What's on the model
 
-- **Build:** heavy, with a wide chest, a wide head and long hanging arms
-- **Fur:** dark brown with darker patches, a tan belly
-- **Head:** small round ears with black inner patches; a big dark grey top hat tipped to his right; glowing eyes under angled brows; a tan muzzle with freckles and a black nose; small teeth
+- **Build:** heavy and broad, with thick arms and legs and a deep chest
+- **Fur:** dark brown with darker patches, and a tan pot belly that bulges out
+- **Head:** big, wide and square: small round ears with black inner patches; a big dark grey top hat tipped to his right; glowing eyes under angled brows; a wide tan muzzle with freckles and a big black nose; small teeth
 - **Chest:** a black bow tie and two black buttons
-- **Joints:** chrome pistons at the neck, shoulders, elbows, wrists, hips, knees and ankles
+- **Neck:** an exposed endoskeleton neck in the gap under the head: a dark steel column on a chrome collar, with two thin cables at the front
+- **Joints:** chrome pistons at the shoulders, elbows, wrists, hips, knees and ankles
 - **Feet:** three-toed feet with stepped toes on a light sole
 
 ## Rig
@@ -35,7 +36,7 @@ It includes:
 ```
 root
 ├─ body (pelvis)
-│  └─ torso (chest, belly, bow tie, buttons, neck piston)
+│  └─ torso (chest, belly, pot belly, bow tie, buttons, endoskeleton neck)
 │     ├─ head ─ jaw, eyes, rightEar, leftEar, hat
 │     ├─ rightArm ─ rightForearm ─ rightHand ─ rightFingers, rightThumb
 │     └─ leftArm  ─ leftForearm  ─ leftHand  ─ leftFingers, leftThumb

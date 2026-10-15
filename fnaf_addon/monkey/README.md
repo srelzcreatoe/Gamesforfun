@@ -4,7 +4,7 @@ This is a Blockbench model of the red-brown monkey with the spiral ears from you
 
 It includes:
 
-- 129 cubes and 35 bones
+- 132 cubes and 35 bones
 - a 1024×512 texture painted at 4 texels per model pixel, in the picture's "every pixel is a little block" style
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
@@ -29,7 +29,8 @@ It includes:
 - **Ears:** round monkey ears on the sides of the head, each with the light spiral from the picture
 - **Chest:** a red bow tie and two black buttons
 - **Tail:** long, rising behind him and rolling into a spiral at the tip
-- **Joints:** chrome pistons at the neck, shoulders, elbows, wrists, hips, knees and ankles
+- **Neck:** an exposed endoskeleton neck in the gap under the head: a dark steel column on a chrome collar, with two thin cables at the front
+- **Joints:** chrome pistons at the shoulders, elbows, wrists, hips, knees and ankles
 - **Feet:** three-toed feet with stepped toes on a light sole
 
 ## Rig
@@ -37,7 +38,7 @@ It includes:
 ```
 root
 ├─ body (pelvis) ─ tail0 ─ tail1 … tail10
-│  └─ torso (chest, belly, bow tie, buttons, neck piston)
+│  └─ torso (chest, belly, bow tie, buttons, endoskeleton neck)
 │     ├─ head ─ jaw, eyes, rightEar, leftEar (tuft and brow are part of head)
 │     ├─ rightArm ─ rightForearm ─ rightHand ─ rightFingers, rightThumb
 │     └─ leftArm  ─ leftForearm  ─ leftHand  ─ leftFingers, leftThumb
@@ -78,7 +79,7 @@ Copy `bedrock/` into your resource pack:
 
 - **Identifier:** the client entity uses `fnaf:monkey`. If your addon uses a different namespace, change it to match.
 - **Glowing eyes:** the client entity uses `monkey_glow.png` with the `entity_emissive_alpha` material, so the eyes glow in-game. Use `monkey.png` with `entity_alphatest` if you don't want the glow.
-- **Size:** about 3.1 blocks to the top of the head and 3.3 blocks to the tuft.
+- **Size:** about 3.2 blocks to the top of the head and 3.4 blocks to the tuft.
 - **Movement:** the animation controller plays idle, walk or run based on `query.ground_speed`.
 - **Poses, performances and jumpscares:** these play when the behavior entity's `minecraft:mark_variant` value is set:
 

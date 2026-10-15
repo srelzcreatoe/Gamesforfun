@@ -3,27 +3,32 @@
   monkey      red-brown monkey (the old "spiral_bear"): light face mask, heavy brow ridge,
               deep-set eyes, spiral ears on the sides of the head, wide toothy grin, long
               arms, a scruffy tuft and a curling tail
-  bat         purple bat: huge pointed ears, wings with finger bones, black bow tie
+  bat         purple bat: wide pug-faced head, huge pointed ears, wings with finger bones,
+              broad shoulders over a narrow waist, black bow tie
   crocodile   green crocodile: long toothy snout, small top hat with a red band, red vest,
               clawed feet and a spiked tail
-  fox         red pirate fox: eye patch, hook hand, head and cheek tufts, pointed ears,
-              bushy white-tipped tail
-  bunny       purple bunny: tall ears (one folded at its joint), buck teeth
-  goat        beige goat: curled ram horns, floppy pink-lined ears, beard, red vest,
-              dark hooves and fingertips
-  bear        dark brown bear: big top hat, small black-lined ears
+  fox         red pirate fox: long narrow snout, eye patch, hook hand, head and cheek tufts,
+              pointed ears, narrow chest over wide hips, bushy white-tipped tail
+  bunny       purple bunny: slim and lanky, chubby cheeks, buck teeth, long feet, tall ears
+              (one folded at its joint)
+  goat        beige goat: tall and thin, long narrow face, curled ram horns, floppy
+              pink-lined ears, beard, red vest, dark hooves and fingertips
+  bear        dark brown bear: heavy, with a wide square head, thick limbs, a pot belly,
+              big top hat and small black-lined ears
 
 They share the voxel frame in body.py; everything that makes each one recognisable
-(proportions, heads, props, colours) is set here per character.  Their animations
-are in cast_anims.py.
+(proportions, heads, props, colours) is set here per character, and reshape() pushes each
+build away from the shared one.  Every head sits on an exposed endoskeleton neck (refit()).
+Their animations are in cast_anims.py.
 """
 import math
 import os
 
 import numpy as np
 
-from characters.body import (COMMON, SPIRAL, SPIRAL_MIRROR, bands_painter, build_arms, build_bowtie, build_head, build_legs,
-                             build_neck, build_tail, build_torso, frame_painter, p_chrome, p_pupil, socket_painter, vox)
+from characters.body import (COMMON, SPIRAL, SPIRAL_MIRROR, bands_painter, build_arms, build_bowtie, build_endo_neck, build_head,
+                             build_legs, build_tail, build_torso, frame_painter, lengthen, p_chrome, p_pupil, socket_painter,
+                             vox)
 from fnafkit import export
 from fnafkit.rig import bone, cube
 
@@ -125,6 +130,10 @@ MATERIALS = {
     },
 }
 
+# the exposed endoskeleton neck: dark steel
+for _m in MATERIALS.values():
+    _m["endo"] = vox((40, 40, 44), (50, 50, 55), (60, 60, 66), bevel=0.2)
+
 # --------------------------------------------------------------------------
 # Measurements (model pixels), each taken from its own picture
 # --------------------------------------------------------------------------
@@ -147,10 +156,10 @@ CH = {
         leg_c=3.3, foot_off=0.9, foot_hw=3.9, sole=0.9, toe_top=3.3, heel_top=4.6,
         ankle=(4.6, 6.0), shin=(5.8, 14.6), knee=(14.4, 16.0), thigh=(15.8, 22.8), shin_w=5.8, thigh_w=6.0,
         pelvis=(22.4, 24.8), pelvis_hw=5.9, torso=(24.8, 35.6), half_w=5.2, torso_d=4.0,
-        head_pivot=36.6, head_half=5.6, face_z=-4.8, back=4.6, top=46.6,
-        jaw=(34.4, 36.0), snout=(36.2, 39.0), snout_z=-7.0, muzzle_hw=4.4, seam=0.12, eyes=(39.2, 42.6),
-        socket=(0.7, 4.4), brow=(0.9, 4.0, 0.6, 14), nose=(1.2, 1.1), teeth=(6, 0.7, 0.75), jaw_hw=4.6,
-        freckles=((1.9, 2.0), (3.1, 1.8), (2.4, 1.0)),
+        head_pivot=36.6, head_half=6.2, face_z=-4.8, back=4.6, top=46.6,
+        jaw=(34.4, 36.0), snout=(36.2, 39.0), snout_z=-6.4, muzzle_hw=5.0, seam=0.12, eyes=(39.0, 42.2),
+        socket=(0.8, 4.8), brow=(1.0, 4.4, 0.6, 14), nose=(1.5, 1.2), teeth=(7, 0.7, 0.75), jaw_hw=5.2,
+        freckles=((2.0, 2.0), (3.4, 1.8), (2.6, 1.0), (4.0, 1.1)),
         shoulder=(6.1, 34.4, 8), pad=(5.4, 10.8, 28.8, 35.6, 2.8), elbow_y=28.0, fore=(5.6, 10.6, 22.8, 27.6, 2.6),
         wrist_y=22.3, palm=(6.4, 10.2, 18.8, 22.0, 2.6), finger=(2.2, 1.8),
         belly=(4.0, 0.8, 2.2), buttons=(31.4, 28.8, 0.8)),
@@ -168,10 +177,10 @@ CH = {
         leg_c=3.6, foot_off=0.9, foot_hw=4.0, sole=0.9, toe_top=3.4, heel_top=4.8,
         ankle=(4.6, 6.0), shin=(5.8, 14.0), knee=(13.8, 15.4), thigh=(15.2, 22.4), shin_w=6.2, thigh_w=6.4,
         pelvis=(22.0, 24.8), pelvis_hw=6.1, torso=(24.8, 36.4), half_w=5.6, torso_d=4.2,
-        head_pivot=37.2, head_half=5.8, face_z=-5.0, back=4.8, top=47.4,
-        jaw=(34.8, 36.6), snout=(36.8, 39.8), snout_z=-8.8, muzzle_hw=4.0, seam=0.12, eyes=(40.0, 43.4),
-        socket=(0.8, 4.6), brow=(0.9, 4.2, 0.7, 10), nose=(1.4, 1.3), teeth=(6, 0.75, 0.9), jaw_hw=4.4,
-        freckles=((1.8, 2.2), (2.9, 2.0), (2.3, 1.1), (3.2, 1.0)),
+        head_pivot=37.2, head_half=5.3, face_z=-5.0, back=4.8, top=47.4,
+        jaw=(34.8, 36.6), snout=(36.8, 39.8), snout_z=-11.2, muzzle_hw=3.3, seam=0.12, eyes=(40.0, 43.4),
+        socket=(0.7, 4.2), brow=(0.8, 3.9, 0.7, 10), nose=(1.2, 1.1), teeth=(8, 0.6, 0.9), jaw_hw=3.7,
+        freckles=((1.4, 2.2), (2.4, 2.0), (1.9, 1.1), (2.7, 1.0)),
         shoulder=(6.5, 35.2, 7), pad=(5.8, 11.6, 28.8, 36.0, 3.0), elbow_y=28.0, fore=(6.0, 11.2, 22.0, 27.6, 2.8),
         wrist_y=21.5, palm=(6.8, 10.6, 17.6, 21.2, 2.6), finger=(2.3, 1.8),
         belly=(4.4, 0.6, 1.8), buttons=None),
@@ -180,22 +189,22 @@ CH = {
         leg_c=3.4, foot_off=0.9, foot_hw=4.0, sole=0.9, toe_top=3.8, heel_top=5.0,
         ankle=(4.8, 6.2), shin=(6.0, 14.6), knee=(14.4, 16.0), thigh=(15.8, 22.6), shin_w=6.0, thigh_w=6.2,
         pelvis=(22.2, 24.6), pelvis_hw=5.4, torso=(24.6, 35.4), half_w=5.2, torso_d=4.0,
-        head_pivot=36.4, head_half=5.6, face_z=-4.8, back=4.6, top=49.0,
+        head_pivot=36.4, head_half=5.3, face_z=-4.8, back=4.6, top=49.0,
         jaw=(34.4, 36.2), snout=(36.4, 39.4), snout_z=-7.2, muzzle_hw=4.4, seam=0.12, eyes=(40.2, 43.8),
         socket=(0.8, 4.4), brow=(0.8, 4.2, 0.75, 0), nose=(1.3, 1.1), teeth=(5, 0.85, 0.8), jaw_hw=4.6,
         freckles=(),
         shoulder=(6.0, 34.2, 7), pad=(5.4, 10.8, 28.0, 35.2, 2.8), elbow_y=27.2, fore=(5.6, 10.8, 21.4, 26.8, 2.7),
-        wrist_y=20.8, palm=(6.4, 10.2, 17.0, 20.4, 2.6), finger=(2.6, 2.2),
+        wrist_y=20.8, palm=(6.4, 10.2, 17.0, 20.4, 2.6), finger=(3.2, 2.6),
         belly=(4.0, 0.8, 2.2), buttons=(31.0, 28.4, 0.85)),
     # goat: long narrow face, long legs, vest, hooves
     "goat": dict(
         leg_c=3.4, foot_off=0.8, foot_hw=3.8, sole=0.8, toe_top=3.6, heel_top=5.0,
         ankle=(4.8, 6.2), shin=(6.0, 15.0), knee=(14.8, 16.2), thigh=(16.0, 23.2), shin_w=5.8, thigh_w=6.0,
         pelvis=(22.8, 25.0), pelvis_hw=5.4, torso=(25.0, 37.4), half_w=5.4, torso_d=4.2,
-        head_pivot=38.2, head_half=5.4, face_z=-4.8, back=4.6, top=49.6,
-        jaw=(35.6, 37.4), snout=(37.6, 40.8), snout_z=-8.4, muzzle_hw=4.0, seam=0.0, eyes=(41.0, 44.6),
-        socket=(0.7, 4.4), brow=(0.8, 4.0, 0.8, 14), nose=(1.2, 1.2), teeth=(6, 0.7, 0.8), jaw_hw=4.2,
-        freckles=((1.5, 2.3), (2.6, 2.5), (3.3, 1.6), (1.9, 1.2)),
+        head_pivot=38.2, head_half=4.9, face_z=-4.8, back=4.6, top=49.6,
+        jaw=(34.6, 37.0), snout=(37.2, 40.8), snout_z=-9.6, muzzle_hw=3.4, seam=0.0, eyes=(41.0, 44.6),
+        socket=(0.7, 4.0), brow=(0.7, 3.7, 0.8, 14), nose=(1.1, 1.1), teeth=(5, 0.7, 0.9), jaw_hw=3.6,
+        freckles=((1.3, 2.3), (2.3, 2.6), (2.8, 1.6), (1.6, 1.2)),
         shoulder=(6.2, 36.2, 6), pad=(5.6, 11.2, 29.4, 36.8, 2.9), elbow_y=28.6, fore=(5.8, 11.0, 22.0, 28.0, 2.7),
         wrist_y=21.5, palm=(6.6, 10.4, 17.6, 21.2, 2.6), finger=(2.6, 2.0),
         belly=(3.6, 0.8, 2.4), buttons=None),
@@ -204,14 +213,63 @@ CH = {
         leg_c=3.7, foot_off=0.9, foot_hw=4.3, sole=1.0, toe_top=3.6, heel_top=5.0,
         ankle=(4.8, 6.2), shin=(6.0, 14.4), knee=(14.2, 15.8), thigh=(15.6, 23.2), shin_w=6.6, thigh_w=6.8,
         pelvis=(22.6, 25.2), pelvis_hw=6.0, torso=(25.2, 36.4), half_w=6.0, torso_d=4.6,
-        head_pivot=37.2, head_half=6.8, face_z=-5.4, back=5.4, top=49.4,
-        jaw=(35.6, 37.4), snout=(37.6, 40.6), snout_z=-7.8, muzzle_hw=4.9, seam=0.12, eyes=(40.8, 44.2),
-        socket=(0.9, 5.1), brow=(1.2, 4.6, 0.85, 8), nose=(1.7, 1.4), teeth=(6, 0.85, 0.8), jaw_hw=5.2,
-        freckles=((2.3, 2.3), (3.6, 2.0), (2.9, 1.1)),
+        head_pivot=37.2, head_half=7.4, face_z=-5.4, back=5.8, top=49.4,
+        jaw=(35.6, 37.4), snout=(37.6, 40.6), snout_z=-7.8, muzzle_hw=5.6, seam=0.12, eyes=(40.8, 44.2),
+        socket=(1.0, 5.5), brow=(1.3, 5.0, 0.85, 8), nose=(1.9, 1.5), teeth=(7, 0.85, 0.8), jaw_hw=5.8,
+        freckles=((2.5, 2.3), (4.0, 2.0), (3.2, 1.1), (4.6, 1.2)),
         shoulder=(6.9, 35.4, 6), pad=(6.2, 12.2, 28.6, 36.6, 3.2), elbow_y=27.8, fore=(6.4, 12.0, 21.2, 27.2, 3.0),
         wrist_y=20.6, palm=(7.2, 11.2, 16.6, 20.2, 2.9), finger=(2.6, 2.1),
         belly=(4.6, 1.0, 2.6), buttons=(32.0, 29.2, 0.95)),
 }
+
+
+def reshape(d, chest=0.0, depth=0.0, hips=0.0, arm=1.0, leg=1.0):
+    """Push a build further from the shared frame: chest / depth / hips widen (model px),
+    arm / leg scale the limb thickness.  The arms keep their inner edge against the chest."""
+    d = dict(d)
+    d["half_w"] += chest
+    d["torso_d"] += depth
+    bx, bb, bn = d["belly"]
+    d["belly"] = (bx + 0.8 * chest, bb, bn)
+    x, y, a = d["shoulder"]
+    d["shoulder"] = (x + chest, y, a)
+    x0, x1 = d["pad"][:2]
+    shift = chest + (x1 - x0) * (arm - 1) / 2
+    for k in ("pad", "fore", "palm"):
+        x0, x1, y0, y1, z = d[k]
+        c, hw = (x0 + x1) / 2 + shift, (x1 - x0) / 2 * arm
+        d[k] = (c - hw, c + hw, y0, y1, z * arm)
+    d["pelvis_hw"] += hips
+    d["leg_c"] += 0.6 * hips
+    for k in ("thigh_w", "shin_w", "foot_hw"):
+        d[k] *= leg
+    return d
+
+
+def refit(d, neck=1.8, forehead=2.6):
+    """Lift the head clear of the chest so the endoskeleton neck shows (a `neck`-high gap under
+    the jaw) and keep the forehead to `forehead` px above the eyes."""
+    d = dict(d)
+    lift = d["torso"][1] + neck - d["jaw"][0]
+    for k in ("jaw", "snout", "eyes"):
+        d[k] = tuple(v + lift for v in d[k])
+    d["head_pivot"] += lift
+    d["top"] = d["eyes"][1] + forehead
+    return d
+
+
+CH["monkey"] = refit(CH["monkey"], neck=2.2, forehead=3.2)
+CH["bat"] = refit(reshape(CH["bat"], chest=0.5, hips=-0.6, arm=0.95), neck=2.0, forehead=2.0)
+CH["fox"] = refit(reshape(CH["fox"], chest=-0.4, hips=0.7, arm=0.95, leg=1.06), neck=2.0, forehead=2.4)
+CH["bunny"] = refit(lengthen(reshape(CH["bunny"], chest=-0.5, depth=-0.3, hips=-0.4, arm=0.85, leg=0.88), 0.6, 0.4),
+                    neck=2.1, forehead=2.6)
+CH["bunny"]["foot_len"] = 1.8
+CH["goat"] = refit(lengthen(reshape(CH["goat"], chest=-0.6, depth=-0.4, hips=-0.4, arm=0.85, leg=0.85), 0.9, 0.6),
+                   neck=2.3, forehead=2.4)
+CH["bear"] = refit(reshape(CH["bear"], chest=0.8, depth=0.6, hips=0.6, arm=1.15, leg=1.12), neck=2.0, forehead=2.6)
+# the crocodile's head is built from head_pivot alone (jaw bottom = head_pivot - 0.4, top = head_pivot + 8.2)
+CH["crocodile"]["head_pivot"] = CH["crocodile"]["torso"][1] + 2.0 + 0.4
+CH["crocodile"]["top"] = CH["crocodile"]["head_pivot"] + 8.2
 
 # --------------------------------------------------------------------------
 # Painters
@@ -350,7 +408,7 @@ def build_monkey():
     build_legs(D)
     build_torso(D)
     build_bowtie(D, D["torso"][1] - 0.9, 3.6)
-    build_neck(D)
+    build_endo_neck(D)
 
     # ---- head: big rounded skull, heavy brow ridge, deep sockets in a light face mask ---------
     bone("head", "torso", [0, D["head_pivot"], 0])
@@ -417,7 +475,7 @@ def build_bat():
     build_legs(D)
     build_torso(D)
     build_bowtie(D, D["torso"][1] - 0.5, 3.8, mat="black", painter=None)
-    build_neck(D)
+    build_endo_neck(D)
     build_head(D)
     H, top = D["head_half"], D["top"]
     # huge pointed ears; his right one is cocked outward like the picture
@@ -487,7 +545,7 @@ def build_crocodile():
     for s in (1, -1):
         cube("torso", "lapel", [bx - 0.1, c0 + 1.0, -hd - 0.4], [bx + 0.7, c1 - 0.6, -hd - 0.05], "vest_dark", s)
     build_bowtie(D, c1 - 0.6, 3.9, mat="black", painter=None, z_extra=0.15)
-    build_neck(D)
+    build_endo_neck(D)
 
     # ---- head: low skull, eyes on top, long snout with two rows of teeth ----------------------
     hp = D["head_pivot"]
@@ -564,15 +622,19 @@ def build_fox():
     start(D)
     build_legs(D)
     build_torso(D)
-    build_neck(D)
+    build_endo_neck(D)
     # only his left eye glows: the right one is under the patch
-    build_head(D, pupils=(-1,))
+    build_head(D, pupils=(-1,), crown="round")
     H, fz, top = D["head_half"], D["face_z"], D["top"]
     e0, e1 = D["eyes"]
     sx0, sx1 = D["socket"]
     cube("head", "eye_patch", [sx0 - 0.3, e0 - 0.3, fz - 0.4], [sx1 + 0.3, e1 + 0.3, fz + 0.1], "black")
-    cube("head", "patch_strap", [-H - 0.1, e1 + 0.5, fz - 0.3], [H + 0.1, e1 + 1.1, fz + 0.05], "black",
-         rot=[0, 0, -24], origin=[2.6, e1 + 0.8, fz])
+    # the strap runs up across the forehead to the top edge, then back over the head
+    sy = e1 + 0.8
+    run = (top - sy) / math.tan(math.radians(16))
+    cube("head", "patch_strap", [2.6 - run, sy - 0.3, fz - 0.3], [H + 0.1, sy + 0.3, fz + 0.05], "black",
+         rot=[0, 0, -16], origin=[2.6, sy, fz])
+    cube("head", "patch_strap_top", [2.3 - run, top - 0.05, fz - 0.3], [2.9 - run, top + 0.15, D["back"] + 0.1], "black")
     tri_ear("rightEar", "head", [H - 2.2, top - 0.4, 0.4], [0, 0, -16], 1, H - 2.2, top - 0.8, 5.2, 7.0, 1.2, "tan")
     tri_ear("leftEar", "head", [-(H - 2.2), top - 0.4, 0.4], [0, 0, 20], -1, H - 2.2, top - 0.8, 5.2, 7.0, 1.2, "tan")
     # tuft of thin spikes on top, and cheek tufts
@@ -624,8 +686,8 @@ def build_bunny():
     build_legs(D)
     build_torso(D)
     build_bowtie(D, D["torso"][1] - 0.5, 3.7, mat="black", painter=None)
-    build_neck(D)
-    build_head(D, upper_teeth=False)
+    build_endo_neck(D)
+    build_head(D, upper_teeth=False, crown="round", cheek_puff=0.8)
     H, fz, top = D["head_half"], D["face_z"], D["top"]
     sn0, sz = D["snout"][0], D["snout_z"]
     # buck teeth
@@ -662,7 +724,7 @@ def build_goat():
     cube("torso", "vest_back", [-hw - 0.25, c0 + 0.4, hd], [hw + 0.25, c1 - 0.3, hd + 0.3], "vest")
     cube("torso", "button", [-0.75, c0 + 5.0, -hd - 0.6], [0.75, c0 + 6.5, -hd - 0.25], "black")
     build_bowtie(D, c1 - 0.5, 3.6, mat="black", painter=None, z_extra=0.3)
-    build_neck(D)
+    build_endo_neck(D)
 
     def beard():
         j0, sz = D["jaw"][0], D["snout_z"]
@@ -670,7 +732,7 @@ def build_goat():
             zz = sz + 0.8 + (0.6 if k >= 4 else 0.0)
             cube("jaw", f"beard{k + 1}", [x - 0.3, j0 - ln, zz], [x + 0.3, j0 + 0.1, zz + 0.6], "beard")
 
-    build_head(D, after_jaw=beard, jaw_rest=-8)
+    build_head(D, after_jaw=beard, jaw_rest=-8, crown="taper")
     H, top = D["head_half"], D["top"]
     e1 = D["eyes"][1]
     # curled ram horns (front-facing spirals) from the top corners of the head
@@ -700,9 +762,17 @@ def build_bear():
     D = CH["bear"]
     start(D)
     build_legs(D)
-    build_torso(D)
-    build_bowtie(D, D["torso"][1] - 0.6, 4.0, mat="black", painter=None)
-    build_neck(D)
+    build_torso(dict(D, buttons=None))
+    hd = D["torso_d"]
+    c0, c1 = D["torso"]
+    bx = D["belly"][0]
+    # round pot belly bulging out of the belly panel, one button above it and one on it
+    cube("torso", "belly_bulge", [-bx + 0.9, c0 + 1.8, -hd - 1.0], [bx - 0.9, c1 - 4.8, -hd - 0.2], "tan")
+    cube("torso", "belly_bulge_front", [-bx + 1.9, c0 + 2.8, -hd - 1.6], [bx - 1.9, c1 - 5.8, -hd - 0.9], "tan")
+    cube("torso", "button1", [-0.95, c1 - 4.3, -hd - 0.6], [0.95, c1 - 2.4, -hd - 0.25], "black")
+    cube("torso", "button2", [-0.95, c0 + 3.6, -hd - 1.95], [0.95, c0 + 5.5, -hd - 1.6], "black")
+    build_bowtie(D, c1 - 0.6, 4.4, mat="black", painter=None)
+    build_endo_neck(D)
     build_head(D)
     H, top = D["head_half"], D["top"]
     for s, side in ((1, "right"), (-1, "left")):

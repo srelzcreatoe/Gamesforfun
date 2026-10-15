@@ -4,8 +4,8 @@ This is a Blockbench model of the red pirate fox with the hook and eye patch fro
 
 It includes:
 
-- 125 cubes and 27 bones
-- a 1024×256 texture painted at 4 texels per model pixel, in the picture's "every pixel is a little block" style
+- 134 cubes and 27 bones
+- a 1024×512 texture painted at 4 texels per model pixel, in the picture's "every pixel is a little block" style
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
 ![sheet](preview/fox_sheet.png)
@@ -23,12 +23,13 @@ It includes:
 
 ## What's on the model
 
-- **Build:** wide hips, a long snout and big pointed ears
+- **Build:** a narrow chest over wide hips
 - **Fur:** red with darker patches, a tan belly
-- **Head:** a black eye patch with a strap over his right eye and one glowing eye on the left; tall pointed ears with tan inner patches; tufts of fur on top of the head and on both cheeks; a long tan muzzle with freckles and a black nose; small teeth
+- **Head:** a narrow head with rounded top edges and a long, narrow snout; a black eye patch over his right eye, its strap running up over his head; one glowing eye on the left; tall pointed ears with tan inner patches; tufts of fur on top of the head and on both cheeks; a tan muzzle with freckles and a black nose; a row of small teeth
 - **Hook:** his right hand is a grey cuff and ring with a long shaft that curls into a hook
 - **Tail:** big and bushy, hanging behind him past his right leg and curling out to a pale tip
-- **Joints:** chrome pistons at the neck, shoulders, elbows, wrists, hips, knees and ankles
+- **Neck:** an exposed endoskeleton neck in the gap under the head: a dark steel column on a chrome collar, with two thin cables at the front
+- **Joints:** chrome pistons at the shoulders, elbows, wrists, hips, knees and ankles
 - **Feet:** three-toed feet with stepped toes on a light sole
 
 ## Rig
@@ -36,7 +37,7 @@ It includes:
 ```
 root
 ├─ body (pelvis) ─ tail0 ─ tail1 … tail4
-│  └─ torso (chest, belly, neck piston)
+│  └─ torso (chest, belly, endoskeleton neck)
 │     ├─ head ─ jaw, eyes, rightEar, leftEar (eye patch and tufts are part of head)
 │     ├─ rightArm ─ rightForearm ─ rightHand (the hook)
 │     └─ leftArm  ─ leftForearm  ─ leftHand  ─ leftFingers, leftThumb
@@ -77,7 +78,7 @@ Copy `bedrock/` into your resource pack:
 
 - **Identifier:** the client entity uses `fnaf:fox`. If your addon uses a different namespace, change it to match.
 - **Glowing eyes:** the client entity uses `fox_glow.png` with the `entity_emissive_alpha` material, so the eyes glow in-game. Use `fox.png` with `entity_alphatest` if you don't want the glow.
-- **Size:** about 3.0 blocks to the top of the head and 3.3 blocks to the ear tips.
+- **Size:** about 3.1 blocks to the top of the head and 3.5 blocks to the ear tips.
 - **Movement:** the animation controller plays idle, walk or run based on `query.ground_speed`.
 - **Poses, performances and jumpscares:** these play when the behavior entity's `minecraft:mark_variant` value is set:
 

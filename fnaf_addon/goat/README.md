@@ -4,7 +4,7 @@ This is a Blockbench model of the beige goat with the ram horns, beard and red v
 
 It includes:
 
-- 159 cubes and 26 bones
+- 161 cubes and 26 bones
 - a 1024×256 texture painted at 4 texels per model pixel, in the picture's "every pixel is a little block" style
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
@@ -23,19 +23,20 @@ It includes:
 
 ## What's on the model
 
-- **Build:** a long narrow face and long legs
+- **Build:** tall and thin, with long legs and thin arms
 - **Fur:** beige with darker patches, a lighter belly
-- **Head:** two dark ram horns that curl round in a spiral from the top corners of his head; floppy ears with pink inner patches hanging out to the sides; glowing eyes under angled brows; a long muzzle with freckles and a black nose; small teeth; a pale beard hanging from his chin
+- **Head:** a long, narrow face that narrows again at the top; two dark ram horns that curl round in a spiral from the top corners of his head; floppy ears with pink inner patches hanging out to the sides; glowing eyes under angled brows; a long muzzle with freckles and a black nose; a long jaw with small teeth; a pale beard hanging from his chin
 - **Clothes:** a red vest with one button and a black bow tie
 - **Hands and feet:** dark fingertips, and two-toed dark hooves
-- **Joints:** chrome pistons at the neck, shoulders, elbows, wrists, hips, knees and ankles
+- **Neck:** an exposed endoskeleton neck in the gap under the head: a dark steel column on a chrome collar, with two thin cables at the front
+- **Joints:** chrome pistons at the shoulders, elbows, wrists, hips, knees and ankles
 
 ## Rig
 
 ```
 root
 ├─ body (pelvis)
-│  └─ torso (chest, vest, button, bow tie, neck piston)
+│  └─ torso (chest, vest, button, bow tie, endoskeleton neck)
 │     ├─ head ─ jaw (beard), eyes, rightHorn, leftHorn, rightEar, leftEar
 │     ├─ rightArm ─ rightForearm ─ rightHand ─ rightFingers, rightThumb
 │     └─ leftArm  ─ leftForearm  ─ leftHand  ─ leftFingers, leftThumb
@@ -76,7 +77,7 @@ Copy `bedrock/` into your resource pack:
 
 - **Identifier:** the client entity uses `fnaf:goat`. If your addon uses a different namespace, change it to match.
 - **Glowing eyes:** the client entity uses `goat_glow.png` with the `entity_emissive_alpha` material, so the eyes glow in-game. Use `goat.png` with `entity_alphatest` if you don't want the glow.
-- **Size:** about 3.1 blocks to the top of the head and 3.3 blocks to the horns.
+- **Size:** about 3.3 blocks to the top of the head and 3.6 blocks to the horns.
 - **Movement:** the animation controller plays idle, walk or run based on `query.ground_speed`.
 - **Poses, performances and jumpscares:** these play when the behavior entity's `minecraft:mark_variant` value is set:
 
