@@ -17,6 +17,8 @@ These are Blockbench models in the **Bedrock Entity** format, each built from a 
 | Goat | [`goat/`](goat/README.md) | idle, walk, run, pose 1–2, performance 1–2 (bleating laugh, stomp dance), jumpscare 1–2 |
 | Bear | [`bear/`](bear/README.md) | idle, walk, run, pose 1–2, performance 1–2 (conducting, slow clap), jumpscare 1–2 |
 
+**Ready-to-play add-on:** [`addon/FNAF_Animatronics.mcaddon`](addon/README.md) has all 12 characters in one resource pack + behavior pack, with spawn eggs and events for the poses, performances and jumpscares. See [`addon/README.md`](addon/README.md) for install steps and commands.
+
 Each folder contains:
 
 - `<name>.bbmodel`: open it in Blockbench (**File → Open Model**). The animations are in the Animate tab.
@@ -31,6 +33,7 @@ Every `.bbmodel` was loaded in Blockbench 5.2.2 (web) with no errors. Its *Expor
 
 ```
 tools/
+  pack.py             python3 tools/pack.py  -> addon/FNAF_Animatronics.mcaddon (all characters)
   build.py            python3 tools/build.py [bonnie freddy withered_freddy party_cat rat
                                        monkey bat crocodile fox bunny goat bear]
   fnafkit/            shared code: rig + texture painting (rig.py), keyframes + IK (anim.py),
