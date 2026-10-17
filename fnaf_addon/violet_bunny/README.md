@@ -4,12 +4,13 @@ This is a Blockbench model of Violet Bunny built from your purple bunny picture,
 
 Every part was measured from the picture at one shared scale (26 picture pixels = 1 model pixel), the same scale used for the other two characters from that set. No part is enlarged or shrunk: each keeps the size it has in the picture, and so does the character.
 
-To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 91%. Every colour was matched by rendering the model under plain studio light and sampling it at the same spots as the picture.
+To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 92%, and the inner edges (where the arms meet the chest, the joints, the face) were checked against the picture too. Every colour was matched by rendering the model under a front light like the picture's and sampling it at the same spots.
 
 It includes:
 
-- 252 cubes and 25 bones
-- a 1024×1024 texture painted at 4 texels per model pixel, in flat one-pixel squares of colour with a fine grain, like the picture (no tile or brick edges)
+- 337 cubes and 25 bones
+- a 1024×1024 texture painted at 4 texels per model pixel, in half-pixel squares of colour with a fine grain and scattered dark specks, like the picture (no tile or brick edges)
+- soft light and shadow baked into the texture: every block darkens toward its edges and where it meets the next part, so the model looks rounded and shaded like the picture, in Blockbench and in Minecraft too
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
 ![sheet](preview/violet_bunny_sheet.png)
@@ -27,8 +28,8 @@ It includes:
 
 ## What's on the model
 
-- **Fur:** purple with darker patches, a pale lilac belly
-- **Head:** his right ear stands up, tilted out; the left ear rises a little and then folds down outward at a chrome hinge, as in the picture; both ears have pale inner panels. A lilac face plate around the eyes; dark sockets with red glowing irises; a lilac muzzle with black freckles, split down the middle, and a small black nose; the mouth slightly open over a row of lower teeth
+- **Fur:** purple with small darker specks, a pale lilac belly
+- **Head:** his right ear stands up, tilted out; the left ear rises a little and then folds down outward at a chrome hinge, as in the picture; both ears have pale inner panels. A head that widens gradually from a rounded top, as in the picture; a flat lilac face plate around the eyes with round black sockets and red glowing irises; a lilac muzzle with black freckles, split down the middle, and a small black nose; the mouth slightly open over a row of lower teeth
 - **Chest:** a red bow tie, with two thin dark-red stripes running down the chest on either side of the belly
 - **Hips:** a maroon band around the hips
 - **Hands:** mitten fists: the back of the hand faces forward, the fingers are one chunky grooved block curling in, with chrome pins at the wrists
@@ -107,4 +108,5 @@ These differ:
 
 - The picture shows only the front, so the depths (front to back) are estimated from the widths.
 - The fur is a procedural pattern of little blocks in the picture's colours, not a pixel copy of the picture.
+- Only soft shading is baked into the texture, not the picture's coloured side lights, so the model looks right from every side.
 - The animations are my own, since the reference is a single pose. Pose 1 recreates the pose in the picture.

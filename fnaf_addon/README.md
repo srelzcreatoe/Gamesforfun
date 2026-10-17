@@ -40,7 +40,7 @@ tools/
   build.py            python3 tools/build.py [bonnie freddy withered_freddy party_cat rat
                                        monkey bat crocodile fox bunny goat bear
                                        golden_freddy crimson_freddy violet_bunny]
-  fnafkit/            shared code: rig + texture painting (rig.py), keyframes + IK (anim.py),
+  fnafkit/            shared code: rig, texture painting + baked shading (rig.py), keyframes + IK (anim.py),
                       animatronic servo motion (servo.py), .bbmodel / Bedrock export (export.py)
   characters/         geometry, textures and animations: bonnie.py, freddy.py (both Freddys),
                       body.py (shared voxel frame), trio.py (Party Cat, Rat),

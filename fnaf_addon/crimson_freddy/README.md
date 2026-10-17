@@ -4,12 +4,13 @@ This is a Blockbench model of Crimson Freddy built from your dark-red Freddy pic
 
 Every part was measured from the picture at one shared scale (26 picture pixels = 1 model pixel), the same scale used for the other two characters from that set. No part is enlarged or shrunk: each keeps the size it has in the picture, and so does the character.
 
-To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 91%. Every colour was matched by rendering the model under plain studio light and sampling it at the same spots as the picture.
+To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 91%, and the inner edges (where the arms meet the chest, the joints, the face) were checked against the picture too. Every colour was matched by rendering the model under a front light like the picture's and sampling it at the same spots.
 
 It includes:
 
-- 249 cubes and 25 bones
-- a 1024×1024 texture painted at 4 texels per model pixel, in flat one-pixel squares of colour with a fine grain, like the picture (no tile or brick edges)
+- 325 cubes and 25 bones
+- a 1024×1024 texture painted at 4 texels per model pixel, in half-pixel squares of colour with a fine grain and scattered dark specks, like the picture (no tile or brick edges)
+- soft light and shadow baked into the texture: every block darkens toward its edges and where it meets the next part, so the model looks rounded and shaded like the picture, in Blockbench and in Minecraft too
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
 ![sheet](preview/crimson_freddy_sheet.png)
@@ -27,11 +28,11 @@ It includes:
 
 ## What's on the model
 
-- **Fur:** dark maroon with darker purple-red patches, a pinkish belly
-- **Head:** a dark top hat; big round ears with pink centres on chrome pins; a pink face plate around the eyes; dark sockets with red glowing irises; a wide pink muzzle with black freckles, split down the middle, and a black nose; a row of cream teeth
+- **Fur:** dark crimson with small darker specks, a pinkish belly
+- **Head:** a dark top hat; big round ears with pink centres on chrome pins; a flat pink face plate around the eyes with round black sockets and red glowing irises; a wide pink muzzle with black freckles, split down the middle, and a black nose; a row of cream teeth
 - **Chest:** a black bow tie and two square black buttons
 - **Hands:** big mitten hands: the back of the hand faces forward, the fingers are one chunky grooved block curling in, the thumb is on the inner side
-- **Arms and legs:** rounded shoulder caps beside the jaw; big upper arms hanging close beside a wide chest on dark ball joints; thick rounded thighs and shins on dark knee joints
+- **Arms and legs:** rounded shoulder caps beside the jaw; big upper arms hanging close beside a wide chest on dark ball joints; thick thighs and shins on dark knee joints. Every limb block has its corners cut back in steps, like the picture
 - **Feet:** big three-toed feet on a pale sole
 
 ## Rig
@@ -107,5 +108,6 @@ These differ:
 
 - The picture shows only the front, so the depths (front to back) are estimated from the widths.
 - The fur is a procedural pattern of little blocks in the picture's colours, not a pixel copy of the picture.
+- Only soft shading is baked into the texture, not the picture's coloured side lights, so the model looks right from every side.
 - The white reflections at the bottom of the eye sockets in the picture are lighting, so they are not painted on.
 - The animations are my own, since the reference is a single pose. Pose 1 recreates the pose in the picture.

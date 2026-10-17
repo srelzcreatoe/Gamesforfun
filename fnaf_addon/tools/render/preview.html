@@ -56,8 +56,26 @@ scene.background = new THREE.Color(BG);
 const camera = new THREE.PerspectiveCamera(30, W / H, 1, 2000);
 
 const NIGHT = params.get('theme') === 'night';
+// 'picture': white backdrop and one soft key light from the front, so a front face shows its
+// texture at about its own colour (like Blockbench) and baked shadows stay dark
+const PICTURE = params.get('theme') === 'picture';
 let key;
-if (!NIGHT) {
+if (PICTURE) {
+  scene.background = new THREE.Color(0xffffff);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x666666, 2.0));
+  key = new THREE.DirectionalLight(0xffffff, 2.3);
+  key.position.set(-75, 110, -135);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  Object.assign(key.shadow.camera, { left: -110, right: 110, top: 110, bottom: -110, near: 10, far: 500 });
+  key.shadow.bias = -0.0005;
+  key.shadow.radius = 4;
+  scene.add(key);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.ShadowMaterial({ opacity: 0.2 }));
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+} else if (!NIGHT) {
   // studio lighting similar to the reference sheet
   scene.add(new THREE.HemisphereLight(0xffffff, 0xa4a4ae, 1.9));
   key = new THREE.DirectionalLight(0xffffff, 2.1);
@@ -194,7 +212,9 @@ async function build() {
   }
   map.colorSpace = THREE.SRGBColorSpace;
   emi.colorSpace = THREE.SRGBColorSpace;
-  const mat = new THREE.MeshStandardMaterial({ map, emissiveMap: emi, emissive: 0xffffff, emissiveIntensity: NIGHT ? 2.0 : 3.2, roughness: 0.88, metalness: 0.0 });
+  const mat = PICTURE
+    ? new THREE.MeshLambertMaterial({ map, emissiveMap: emi, emissive: 0xffffff, emissiveIntensity: 3.2 })   // matte, no sheen
+    : new THREE.MeshStandardMaterial({ map, emissiveMap: emi, emissive: 0xffffff, emissiveIntensity: NIGHT ? 2.0 : 3.2, roughness: 0.88, metalness: 0.0 });
   const elements = Object.fromEntries(bb.elements.map(e => [e.uuid, e]));
   model = new THREE.Group();
   const addGroup = (g, parent, parentOrigin) => {

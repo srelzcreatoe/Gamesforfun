@@ -4,12 +4,13 @@ This is a Blockbench model of Golden Freddy built from your Golden Freddy pictur
 
 Every part was measured from the picture at one shared scale (26 picture pixels = 1 model pixel), the same scale used for the other two characters from that set. No part is enlarged or shrunk: each keeps the size it has in the picture, and so does the character.
 
-To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 86%. Every colour was matched by rendering the model under plain studio light and sampling it at the same spots as the picture.
+To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 85%, and the inner edges (where the arms meet the chest, the joints, the face) were checked against the picture too. Every colour was matched by rendering the model under a front light like the picture's and sampling it at the same spots.
 
 It includes:
 
-- 353 cubes and 25 bones
-- a 1024×1024 texture painted at 4 texels per model pixel, in flat one-pixel squares of colour with a fine grain, like the picture (no tile or brick edges)
+- 435 cubes and 25 bones
+- a 1024×1024 texture painted at 4 texels per model pixel, in half-pixel squares of colour with a fine grain and scattered dark specks, like the picture (no tile or brick edges)
+- soft light and shadow baked into the texture: every block darkens toward its edges and where it meets the next part, so the model looks rounded and shaded like the picture, in Blockbench and in Minecraft too
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
 ![sheet](preview/golden_freddy_sheet.png)
@@ -27,11 +28,11 @@ It includes:
 
 ## What's on the model
 
-- **Fur:** golden yellow with dark grimy patches, a lighter tan belly
-- **Head:** a black top hat; round ears with a dark ring and a lighter centre; hollow black eye sockets with tiny dull red-brown irises; lighter brow blocks above the eyes; black wires running down from the eyes over the muzzle; a tan muzzle split down the middle with a big black nose; a row of grey teeth
+- **Fur:** golden orange with small dark specks, a lighter tan belly
+- **Head:** a black top hat; round ears with a dark ring and a lighter centre; big round black eye sockets with tiny dull red-brown irises, each with a white glint; raised brow blocks above the eyes; black wires running down from the eyes over the muzzle; a tan muzzle split down the middle with a big black nose; a row of grey teeth
 - **Chest:** a black bow tie and two round black buttons
 - **Hands:** bare endoskeleton fingers, as in the picture: a furry back of the hand with two wire rods, then three fingers and a thumb, each a chain of golden blocks on black ball joints
-- **Arms and legs:** rounded shoulder caps beside the jaw; the upper arms angle out from dark ball joints and the forearms hang straight down; chunky rounded thighs and shins on dark knee joints
+- **Arms and legs:** rounded shoulder caps beside the jaw; the upper arms angle out from dark ball joints and the forearms hang almost straight down; chunky thighs and shins on dark knee joints. Every limb block has its corners cut back in steps, like the picture
 - **Feet:** big three-toed feet on a dark sole
 
 ## Rig
@@ -107,5 +108,6 @@ These differ:
 
 - The picture shows only the front, so the depths (front to back) are estimated from the widths.
 - The fur is a procedural pattern of little blocks in the picture's colours, not a pixel copy of the picture.
+- Only soft shading is baked into the texture, not the picture's coloured side lights, so the model looks right from every side.
 - The black wires under the eyes are thin straight strips.
 - The animations are my own, since the reference is a single pose. Pose 1 recreates the pose in the picture.

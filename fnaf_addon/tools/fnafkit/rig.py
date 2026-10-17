@@ -290,11 +290,13 @@ def pack_atlas(width=512):
     return width, height
 
 
-def paint_atlas(width, height, seed=1987):
+def paint_atlas(width, height, seed=1987, shading=None):
+    """Paint every face.  With `shading` (see bake_shading) soft light and shadow are baked in."""
     rgb = np.zeros((height, width, 3), np.float32)
     emi = np.zeros((height, width, 3), np.float32)
+    solid = Occupancy() if shading else None
     ci = 0
-    for _, c in all_cubes():
+    for b, c in all_cubes():
         ci += 1
         for fi, face in enumerate(FACES):
             u1, v1, u2, v2 = c.uv[face]
@@ -306,9 +308,148 @@ def paint_atlas(width, height, seed=1987):
                 c.painter(ctx)
             else:
                 ctx.paint(c.faces.get(face, c.mat))
+            if solid is not None:
+                f = bake_shading(solid, b.name, face, X, Y, Z, **shading)
+                k = MATS[c.faces.get(face, c.mat)].get("shade", 1.0)   # a material can take less of it
+                f = 1 - k * (1 - f)
+                lit = ctx.emi.max(axis=-1) > 0          # glowing texels keep their full colour
+                ctx.rgb[~lit] *= f[~lit][:, None]
             rgb[v1:v2, u1:u2] = ctx.rgb
             emi[v1:v2, u1:u2] = ctx.emi
     return np.clip(rgb, 0, 255).astype(np.uint8), np.clip(emi, 0, 255).astype(np.uint8)
+
+
+# --------------------------------------------------------------------------
+# Baked shading: rounded-edge falloff and contact shadows, measured on the rest pose
+# --------------------------------------------------------------------------
+
+FACE_AXES = {  # face -> (normal, tangent 1, tangent 2) in bone space
+    "north": ((0, 0, -1), (1, 0, 0), (0, 1, 0)), "south": ((0, 0, 1), (1, 0, 0), (0, 1, 0)),
+    "east": ((1, 0, 0), (0, 0, 1), (0, 1, 0)), "west": ((-1, 0, 0), (0, 0, 1), (0, 1, 0)),
+    "up": ((0, 1, 0), (1, 0, 0), (0, 0, 1)), "down": ((0, -1, 0), (1, 0, 0), (0, 0, 1)),
+}
+
+
+def family(name):
+    """A bone with its parent, children and siblings: the parts that stay beside it when it moves,
+    so only they cast baked shadows on it (a hand passing a thigh mustn't leave a stain)."""
+    b = BONES[name]
+    fam = {name, *b.children}
+    if b.parent:
+        fam |= {b.parent, *BONES[b.parent].children}
+    return fam
+
+
+class Occupancy:
+    """The rest pose voxelised; each voxel holds a bit mask of the bones whose cubes fill it."""
+
+    def __init__(self, h=0.25, pad=4.0):
+        assert len(BONES) <= 63
+        self.h = h
+        self.mats = world_matrices({})
+        self.bit = {n: np.int64(1) << np.int64(i) for i, n in enumerate(BONES)}
+        boxes = []
+        for b, c in all_cubes():
+            R, t = self.frame(b.name)
+            corners = np.array([[x, y, z] for x in (c.frm[0], c.to[0]) for y in (c.frm[1], c.to[1]) for z in (c.frm[2], c.to[2])])
+            boxes.append((b.name, c, R, t, corners @ R.T + t))
+        allw = np.concatenate([w for *_, w in boxes])
+        self.lo = allw.min(0) - pad
+        shape = np.ceil((allw.max(0) + pad - self.lo) / h).astype(int)
+        self.grid = np.zeros(shape, np.int64)
+        e = 0.1  # thin plates must still land in the grid
+        for name, c, R, t, w in boxes:
+            i0 = np.floor((w.min(0) - e - self.lo) / h).astype(int)
+            i1 = np.ceil((w.max(0) + e - self.lo) / h).astype(int)
+            axes = [self.lo[k] + (np.arange(i0[k], i1[k]) + 0.5) * h for k in range(3)]
+            G = np.stack(np.meshgrid(*axes, indexing="ij"), -1)
+            L = (G - t) @ R                                   # back into bone space
+            inside = np.all((L >= np.array(c.frm) - e) & (L <= np.array(c.to) + e), axis=-1)
+            sub = self.grid[i0[0]:i1[0], i0[1]:i1[1], i0[2]:i1[2]]
+            sub[inside] |= self.bit[name]
+
+    def frame(self, name):
+        """Rotation and offset taking bone-space points to the rest-pose world."""
+        M = self.mats[name]
+        R = M[:3, :3]
+        return R, M[:3, 3] - R @ np.array(BONES[name].pivot)
+
+    def mask(self, names):
+        m = np.int64(0)
+        for n in names:
+            m |= self.bit[n]
+        return m
+
+    def solid(self, P, mask):
+        idx = np.floor((P - self.lo) / self.h).astype(int)
+        ok = np.all((idx >= 0) & (idx < np.array(self.grid.shape)), axis=-1)
+        out = np.zeros(P.shape[:-1], bool)
+        i = idx[ok]
+        out[ok] = (self.grid[i[:, 0], i[:, 1], i[:, 2]] & mask) != 0
+        return out
+
+
+def _hemisphere(n=16):
+    """Fixed, evenly spread directions over a hemisphere (z up): the same for every texel, so the
+    baked light is smooth instead of noisy."""
+    k = np.arange(n) + 0.5
+    z = np.sqrt(1 - k / n * 0.92)                   # leans towards the normal (cosine weighting)
+    r = np.sqrt(1 - z ** 2)
+    a = k * math.pi * (3 - math.sqrt(5))
+    return np.stack([r * np.cos(a), r * np.sin(a), z], -1)
+
+
+HEMI = _hemisphere()
+
+
+def bake_shading(solid, bone_name, face, X, Y, Z, ao=0.6, rim=0.55, reach=2.5, low=0.45, floor=0.3):
+    """Light factor for each texel of one face (1 = untouched).
+
+    rim:   surfaces darken towards their edges, like soft rounded blocks; an edge is wherever
+           the solid under the surface stops within `reach` pixels (a face that carries on into a
+           neighbouring cube keeps its light).  Edges below count as nearer and edges above as
+           further (`low`), as if lit from above.
+    ao:    contact shadow: how much of the space just outside the surface is filled by the bone's
+           family (rays out to `reach` + 0.6 pixels).
+    """
+    R, t = solid.frame(bone_name)
+    n_l, t1_l, t2_l = (np.array(v, float) for v in FACE_AXES[face])
+    n, t1, t2 = R @ n_l, R @ t1_l, R @ t2_l
+    P = np.stack([X, Y, Z], -1) @ R.T + t
+    mask = solid.mask(family(bone_name))
+
+    # rounded-edge falloff: one smooth ramp per edge direction along the face, multiplied together
+    # (corners get both).  A narrow part ramps over a share of its width, so it keeps a lit middle.
+    # Edges below count as nearer and edges above as further.
+    radii = np.linspace(0.25, reach, 9)
+    base = P - n * 0.12
+    rim_f = np.ones(X.shape)
+    for axis in (t1, t2):
+        edges = []
+        for d in (axis, -axis):
+            edge = np.full(X.shape, np.inf)
+            for r in radii[::-1]:
+                edge = np.where(~solid.solid(base + d * r, mask), r, edge)
+            edges.append(edge)
+        span = np.clip(0.45 * (edges[0] + edges[1]), 0.6, reach)
+        for d, edge in zip((axis, -axis), edges):
+            stretch = 1.0 + low * d[1]               # > 1 looking up, < 1 looking down
+            rim_f *= 1 - rim * np.clip(1 - edge * stretch / span, 0, 1) ** 1.5
+
+    # contact shadow
+    steps = (0.3, 0.6, 1.0, 1.5, 2.2, reach + 0.6)
+    occ_sum = np.zeros(X.shape)
+    cw = 0.0
+    for hx, hy, hz in HEMI:
+        d = t1 * hx + t2 * hy + n * hz
+        hit = np.full(X.shape, np.inf)
+        for r in reversed(steps):
+            hit = np.where(solid.solid(P + n * 0.2 + d * r, mask), r, hit)
+        occ_sum += hz * np.clip(1 - hit / (steps[-1] + 0.4), 0, 1)
+        cw += hz
+    occ_v = occ_sum / cw
+
+    return np.clip(rim_f * (1 - ao * occ_v), floor, 1.0)
 
 
 # --------------------------------------------------------------------------

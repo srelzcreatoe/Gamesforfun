@@ -38,6 +38,7 @@ class Character:
     visible_box: tuple = (4, 4.5, 2.25)
     atlas_width: int = 512
     tpu: int = 2                  # texels per model pixel
+    shading: dict = None          # rig.bake_shading settings: bake soft light and shadow into the texture
 
 
 def uid(*parts):
@@ -379,7 +380,7 @@ def build(ch):
     anim.reset(ch.arm)
     ch.build_geometry()
     tex_w, tex_h = rig.pack_atlas(ch.atlas_width)
-    rgb, emi = rig.paint_atlas(tex_w, tex_h)
+    rgb, emi = rig.paint_atlas(tex_w, tex_h, shading=ch.shading)
     build_anims(ch)
 
     mid, root = ch.model_id, ch.out_dir
