@@ -20,7 +20,7 @@ TPU = 2  # texels per model unit
 
 
 class Cube:
-    def __init__(self, name, frm, to, mat, faces=None, painter=None, rot=None, origin=None):
+    def __init__(self, name, frm, to, mat, faces=None, painter=None, rot=None, origin=None, res=None):
         self.name = name
         self.frm = [float(v) for v in frm]
         self.to = [float(v) for v in to]
@@ -31,6 +31,7 @@ class Cube:
         self.rot = rot
         self.origin = origin
         self.uv = {}  # face -> [u1, v1, u2, v2] (filled by the atlas packer)
+        self.res = res  # texels per unit for this cube (None: the character's TPU), for fine detail like eyes
 
 
 class Bone:
@@ -60,7 +61,7 @@ def mx(lo, hi, s):
     return (min(a, b), max(a, b))
 
 
-def cube(bone_name, name, frm, to, mat, s=1, faces=None, painter=None, rot=None, origin=None):
+def cube(bone_name, name, frm, to, mat, s=1, faces=None, painter=None, rot=None, origin=None, res=None):
     x0, x1 = mx(frm[0], to[0], s)
     if s < 0 and faces:
         swap = {"east": "west", "west": "east"}
@@ -69,7 +70,7 @@ def cube(bone_name, name, frm, to, mat, s=1, faces=None, painter=None, rot=None,
         rot = [rot[0], -rot[1], -rot[2]]
     if origin is not None and s < 0:
         origin = [-origin[0], origin[1], origin[2]]
-    c = Cube(name, [x0, frm[1], frm[2]], [x1, to[1], to[2]], mat, faces, painter, rot, origin)
+    c = Cube(name, [x0, frm[1], frm[2]], [x1, to[1], to[2]], mat, faces, painter, rot, origin, res)
     BONES[bone_name].cubes.append(c)
     return c
 
@@ -219,8 +220,8 @@ def face_dims(c, face):
     }[face]
 
 
-def tex_size(v):
-    return max(1, int(round(v * TPU)))
+def tex_size(v, res=None):
+    return max(1, int(round(v * (res or TPU))))
 
 
 def face_points(c, face, W, H):
@@ -262,9 +263,9 @@ def pack_atlas(width=512):
     """Lay each cube out in a box-UV style cross and shelf-pack the crosses."""
     blocks = []
     for _, c in all_cubes():
-        W = tex_size(c.to[0] - c.frm[0])
-        H = tex_size(c.to[1] - c.frm[1])
-        D = tex_size(c.to[2] - c.frm[2])
+        W = tex_size(c.to[0] - c.frm[0], c.res)
+        H = tex_size(c.to[1] - c.frm[1], c.res)
+        D = tex_size(c.to[2] - c.frm[2], c.res)
         blocks.append((c, W, H, D, 2 * D + 2 * W, D + H))
     order = sorted(blocks, key=lambda b: (-b[5], -b[4]))
     x = y = shelf_h = 0

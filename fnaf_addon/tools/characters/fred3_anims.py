@@ -41,17 +41,49 @@ class Fred3Night(NightClips):
         super().__init__(dict(mouth=D["mouth"], mouth_axis=(0, 0.45, 0.9), half_w=D["half_w"], torso=D["torso"],
                               mic=None, jaw_max=22.0, tail=[]))
 
-    # ---- hands: back of the hand faces forward ------------------------------------------
+    # ---- hands: every finger bends at each of its knuckles ------------------------------
+    # how far each joint bends back in a full fist (knuckle, middle, tip), bare metal vs mitten fingers
+    FIST = {"endo": (55.0, 70.0, 60.0), "mitt": (72.0, 88.0, 72.0)}
+    THUMB_FIST = (30.0, 45.0)
+
+    @staticmethod
+    def _bend(k, rest, fist):
+        """Animation rotation for one joint: k = 0 keeps the picture's rest bend, 1 bends it to the
+        fist angle, -1 straightens it (the rest bend is stored as a negative, backward, angle)."""
+        return k * (fist - abs(rest)) if k >= 0 else k * abs(rest)
+
+    def hand(self, p, side, curl=0.0, spread=0.0, thumb=None, fingers=None, add=False):
+        """Pose a whole hand.  curl: 0 = relaxed as in the picture, 1 = fist, -1 = flat; spread fans
+        the fingers out; thumb (default: curl) folds the thumb in over the palm or swings it out;
+        fingers gives each finger its own curl (outermost first).  add=True adds on top."""
+        H = fred3.HANDS[self.name]
+        fist = self.FIST[H["kind"]]
+        s = S[side]
+        op = add_rot if add else setr
+        n = len(H["fingers"])
+        for i, (_, segs) in enumerate(H["fingers"]):
+            k = curl if fingers is None else fingers[i]
+            fan = ((n - 1) / 2 - i) * spread * 9.0          # outer fingers swing outward
+            for j, (_, _, rest) in enumerate(segs):
+                op(p, f"{side}Finger{i + 1}{'abc'[j]}", self._bend(k, rest, fist[j]), 0, s * fan if j == 0 else 0.0)
+        tk = curl if thumb is None else thumb
+        for j, (_, _, rest) in enumerate(H["thumb"][1]):
+            swing = -s * 14.0 * tk if j == 0 else 0.0          # in over the palm (k > 0) or out (k < 0)
+            op(p, f"{side}Thumb{'ab'[j]}", self._bend(tk, rest, self.THUMB_FIST[j]), 0, swing)
+
     def fingers_open(self, p, k, sides=("right", "left")):
         for side in sides:
-            s = S[side]
-            setr(p, f"{side}Fingers", -16.0 * k, 0, s * 8.0 * k)
-            setr(p, f"{side}Thumb", 0, 0, -s * 22.0 * k)
+            self.hand(p, side, curl=-k, spread=k)
 
     def curl(self, p, side, k=1.0):
-        s = S[side]
-        setr(p, f"{side}Fingers", 50.0 * k, 0, -s * 6.0 * k)
-        setr(p, f"{side}Thumb", 8.0 * k, 0, s * 18.0 * k)
+        self.hand(p, side, curl=k)
+
+    def finger_wave(self, p, side, t, period, amp, step=0.07, phase=0.0, thumb_amp=0.0):
+        """One finger after another taps in (a ripple across the hand), added on top."""
+        n = len(fred3.HANDS[self.name]["fingers"])
+        ks = [amp * pulse(t, period, period * 0.45, 0.03, phase=phase + i * step) for i in range(n)][::-1]
+        th = thumb_amp * pulse(t, period, period * 0.45, 0.03, phase=phase + n * step)
+        self.hand(p, side, fingers=ks, thumb=th, add=True)
 
     def legs_gait(self, p, f, stride, bend, toe=6.0, spread=1.0, lift_phase=0.35, k=0.7):
         for side in ("right", "left"):
@@ -111,9 +143,10 @@ class GoldenNight(Fred3Night):
     def idle_post(self, p, t):
         g = window(t, 2.2, 2.32, 0.02) + window(t, 4.9, 5.0, 0.02)       # glitch twitches
         add_rot(p, "head", -10.0 * g, 18.0 * g, -12.0 * g)
-        # one finger joint after another curls, as if testing the metal
+        # one finger after another curls and straightens, as if testing the metal
         for side, t0 in (("right", 1.0), ("left", 3.4)):
-            add_rot(p, f"{side}Fingers", 30.0 * window(t, t0, t0 + 0.5, 0.06), 0, 0)
+            ks = [0.7 * window(t, t0 + 0.18 * i, t0 + 0.18 * i + 0.4, 0.05) for i in range(3)]
+            self.hand(p, side, fingers=ks, thumb=0.0, add=True)
         add_rot(p, "jaw", 8.0 * window(t, 5.3, 5.6, 0.03), 0, 0)
 
     def walk(self, t):
@@ -162,13 +195,13 @@ class GoldenNight(Fred3Night):
         setr(p, "torso", 0.6 * sn(w), 0, 0)
         setr(p, "head", 0.8 * sn(w + 1.0), 0, 0)
         for side in ("right", "left"):
-            self.curl(p, side, 0.06 + 0.04 * sn(w + S[side]))
+            self.curl(p, side, 0.03 * sn(w + S[side]))
         self.stance(p, 0.0)
         meta(p)
         return p
 
     def pose1_post(self, p, t):
-        add_rot(p, "rightFingers", 18.0 * window(t, 1.2, 1.5, 0.05), 0, 0)
+        self.hand(p, "right", curl=0.35 * window(t, 1.2, 1.5, 0.05), add=True)
 
     def pose2(self, t):
         """The slump: sitting on the floor, legs out in front, head hanging to one side."""
@@ -200,9 +233,10 @@ class GoldenNight(Fred3Night):
         setr(p, "torso", 2.0, 8.0 * sway, 1.5 * sway)
         setr(p, "head", 2.0, 18.0 * sway, -8.0 * sway)
         beck = ease(t / 0.8) * (1 - ease((t - 3.2) / 0.6))
-        setr(p, "rightArm", -55.0 * beck, 0, 4.0 * beck)
-        setr(p, "rightForearm", -55.0 * beck, 0, 0)
-        setr(p, "rightHand", -20.0 * beck, 0, 0)
+        # the hand comes up in front of the chest, out to the side, fingers pointing at you
+        setr(p, "rightArm", -38.0 * beck, 0, 10.0 * beck)
+        setr(p, "rightForearm", -42.0 * beck, 0, 0)
+        setr(p, "rightHand", -18.0 * beck, 0, 0)
         setr(p, "leftArm", -2.0, 0, -2.0)
         setr(p, "leftForearm", -6.0, 0, 0)
         self.curl(p, "left", 0.2)
@@ -212,9 +246,10 @@ class GoldenNight(Fred3Night):
 
     def performance1_post(self, p, t):
         add_rot(p, "jaw", song(t, 0.8), 0, 0)
-        # the beckoning fingers curl in, one beat at a time
+        # the beckoning fingers curl in, one after another, on each beat
         on = window(t, 0.9, 3.1, 0.05)
-        add_rot(p, "rightFingers", 55.0 * on * pulse(t, 0.6, 0.3, 0.05), 0, 0)
+        ks = [0.95 * on * pulse(t, 0.6, 0.3, 0.05, phase=0.05 * i) for i in range(3)][::-1]
+        self.hand(p, "right", fingers=ks, thumb=0.0, add=True)
 
     def performance2(self, t):
         """Plays an invisible piano: both hands out in front, the bare metal fingers rippling."""
@@ -233,9 +268,9 @@ class GoldenNight(Fred3Night):
         return p
 
     def performance2_post(self, p, t):
+        # each finger strikes its own key, a ripple across both hands
         for side, ph in (("right", 0.0), ("left", 0.125)):
-            add_rot(p, f"{side}Fingers", 40.0 * pulse(t, 0.25, 0.12, 0.03, phase=ph), 0, 0)
-            add_rot(p, f"{side}Thumb", 20.0 * pulse(t, 0.5, 0.15, 0.03, phase=ph + 0.2), 0, 0)
+            self.finger_wave(p, side, t, 0.5, 0.75, step=0.06, phase=ph, thumb_amp=0.6)
         add_rot(p, "jaw", song(t, 0.5), 0, 0)
 
     def jumpscare1(self, t):
@@ -357,7 +392,7 @@ class CrimsonNight(Fred3Night):
         setr(p, "torso", 0.8 * sn(w), 0, 0)
         setr(p, "head", 0.8 * sn(w + 1.0), 0, 0)
         for side in ("right", "left"):
-            self.curl(p, side, 0.1)
+            self.curl(p, side, 0.0)
         self.stance(p, 0.0)
         meta(p)
         return p
@@ -447,7 +482,7 @@ class CrimsonNight(Fred3Night):
             setr(p, f"{side}Forearm", -20.0 * k - 30.0 * g, 0, 0)
         self.fingers_open(p, k * (1 - g))
         for side in ("right", "left"):
-            add_rot(p, f"{side}Fingers", 50.0 * g, 0, 0)
+            self.hand(p, side, curl=0.9 * g, add=True)
         setr(p, "rightLeg", -28.0 * k, 0, 2.0)
         setr(p, "rightShin", 22.0 * k, 0, 0)
         flat_foot(p, "right")
@@ -558,7 +593,7 @@ class BunnyNight(Fred3Night):
         setr(p, "torso", 0.6 * sn(w), 0, 0)
         setr(p, "head", 0.6 * sn(w + 1.0), 0, 0)
         for side in ("right", "left"):
-            self.curl(p, side, 0.08)
+            self.curl(p, side, 0.0)
         self.stance(p, 0.0)
         self.ear_flop(p, w, 2.0)
         meta(p)

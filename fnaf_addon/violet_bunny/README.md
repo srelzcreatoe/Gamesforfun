@@ -8,8 +8,8 @@ To make it a replica, the model's exact front outline was then laid over the pic
 
 It includes:
 
-- 337 cubes and 25 bones
-- a 1024×1024 texture painted at 4 texels per model pixel, in half-pixel squares of colour with a fine grain and scattered dark specks, like the picture (no tile or brick edges)
+- 430 cubes and 49 bones
+- a 1024×1024 texture painted at 4 texels per model pixel (the eyes at 32, so they keep every detail), in half-pixel squares of colour with a fine grain and scattered dark specks, like the picture (no tile or brick edges)
 - soft light and shadow baked into the texture: every block darkens toward its edges and where it meets the next part, so the model looks rounded and shaded like the picture, in Blockbench and in Minecraft too
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
@@ -29,10 +29,10 @@ It includes:
 ## What's on the model
 
 - **Fur:** purple with small darker specks, a pale lilac belly
-- **Head:** his right ear stands up, tilted out; the left ear rises a little and then folds down outward at a chrome hinge, as in the picture; both ears have pale inner panels. A head that widens gradually from a rounded top, as in the picture; a flat lilac face plate around the eyes with round black sockets and red glowing irises; a lilac muzzle with black freckles, split down the middle, and a small black nose; the mouth slightly open over a row of lower teeth
+- **Head:** his right ear stands up, tilted out; the left ear rises a little and then folds down outward at a chrome hinge, as in the picture; both ears have pale inner panels. A head that widens gradually from a rounded top, as in the picture; a flat lilac face plate around the eyes; round sockets filled by glossy black eyeballs with round red irises (a dark ring, a pupil and a white glint), a pale halo round them and white reflections along the bottom, as in the picture; a lilac muzzle with black freckles, split down the middle, and a small black nose; the mouth slightly open over a row of lower teeth
 - **Chest:** a red bow tie, with two thin dark-red stripes running down the chest on either side of the belly
 - **Hips:** a maroon band around the hips
-- **Hands:** mitten fists: the back of the hand faces forward, the fingers are one chunky grooved block curling in, with chrome pins at the wrists
+- **Hands:** mitten hands laid out from the picture: the back of the hand faces forward, four chunky fingers bend in toward the tips, the thumb reaches down from the inner edge, chrome pins at the wrists. Every finger segment has its own bone, so the fingers bend at every knuckle
 - **Feet:** big three-toed feet on a pale sole
 
 ## Rig
@@ -42,13 +42,13 @@ root
 ├─ body (pelvis, hip band)
 │  └─ torso (chest, belly, bow tie, stripes, neck)
 │     ├─ head ─ jaw, eyes, rightEar, leftEar ─ leftEarTop
-│     ├─ rightArm ─ rightForearm ─ rightHand ─ rightFingers, rightThumb
-│     └─ leftArm  ─ leftForearm  ─ leftHand  ─ leftFingers, leftThumb
+│     ├─ rightArm ─ rightForearm ─ rightHand ─ rightFinger1a ─ 1b ─ 1c (one chain per finger), rightThumba ─ b
+│     └─ leftArm  ─ leftForearm  ─ leftHand  ─ leftFinger1a ─ 1b ─ 1c ..., leftThumba ─ b
 ├─ rightLeg ─ rightShin ─ rightFoot
 └─ leftLeg  ─ leftShin  ─ leftFoot
 ```
 
-The hands hang with the back of the hand facing forward, as in the picture, so in an animation the fingers curl with a positive X rotation of `rightFingers` / `leftFingers`.
+The hands hang with the back of the hand facing forward, as in the picture. Each finger is a chain of three bones (`rightFinger1a`, `rightFinger1b`, `rightFinger1c`, ... the thumb two: `rightThumba`, `rightThumbb`); a positive X rotation bends a joint into a fist.
 
 ## Animations
 

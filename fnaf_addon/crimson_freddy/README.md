@@ -4,12 +4,12 @@ This is a Blockbench model of Crimson Freddy built from your dark-red Freddy pic
 
 Every part was measured from the picture at one shared scale (26 picture pixels = 1 model pixel), the same scale used for the other two characters from that set. No part is enlarged or shrunk: each keeps the size it has in the picture, and so does the character.
 
-To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 91%, and the inner edges (where the arms meet the chest, the joints, the face) were checked against the picture too. Every colour was matched by rendering the model under a front light like the picture's and sampling it at the same spots.
+To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 92%, and the inner edges (where the arms meet the chest, the joints, the face) were checked against the picture too. Every colour was matched by rendering the model under a front light like the picture's and sampling it at the same spots.
 
 It includes:
 
-- 325 cubes and 25 bones
-- a 1024×1024 texture painted at 4 texels per model pixel, in half-pixel squares of colour with a fine grain and scattered dark specks, like the picture (no tile or brick edges)
+- 415 cubes and 49 bones
+- a 1024×1024 texture painted at 4 texels per model pixel (the eyes at 32, so they keep every detail), in half-pixel squares of colour with a fine grain and scattered dark specks, like the picture (no tile or brick edges)
 - soft light and shadow baked into the texture: every block darkens toward its edges and where it meets the next part, so the model looks rounded and shaded like the picture, in Blockbench and in Minecraft too
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
@@ -29,9 +29,9 @@ It includes:
 ## What's on the model
 
 - **Fur:** dark crimson with small darker specks, a pinkish belly
-- **Head:** a dark top hat; big round ears with pink centres on chrome pins; a flat pink face plate around the eyes with round black sockets and red glowing irises; a wide pink muzzle with black freckles, split down the middle, and a black nose; a row of cream teeth
+- **Head:** a dark top hat; big round ears with pink centres on chrome pins; a flat pink face plate around the eyes; round sockets filled by glossy black eyeballs with square pixel-art red irises (a dark ring, a black pupil and a white glint), a dark-red glow round them and white reflections along the bottom, as in the picture; a wide pink muzzle with black freckles, split down the middle, and a black nose; a row of cream teeth
 - **Chest:** a black bow tie and two square black buttons
-- **Hands:** big mitten hands: the back of the hand faces forward, the fingers are one chunky grooved block curling in, the thumb is on the inner side
+- **Hands:** big mitten hands laid out from the picture: the back of the hand faces forward, four chunky fingers bend in toward the tips and the thumb reaches down from the inner edge. Every finger segment has its own bone, so the fingers bend at every knuckle
 - **Arms and legs:** rounded shoulder caps beside the jaw; big upper arms hanging close beside a wide chest on dark ball joints; thick thighs and shins on dark knee joints. Every limb block has its corners cut back in steps, like the picture
 - **Feet:** big three-toed feet on a pale sole
 
@@ -42,13 +42,13 @@ root
 ├─ body (pelvis)
 │  └─ torso (chest, belly, bow tie, buttons, neck)
 │     ├─ head ─ jaw, eyes, rightEar, leftEar, hat
-│     ├─ rightArm ─ rightForearm ─ rightHand ─ rightFingers, rightThumb
-│     └─ leftArm  ─ leftForearm  ─ leftHand  ─ leftFingers, leftThumb
+│     ├─ rightArm ─ rightForearm ─ rightHand ─ rightFinger1a ─ 1b ─ 1c (one chain per finger), rightThumba ─ b
+│     └─ leftArm  ─ leftForearm  ─ leftHand  ─ leftFinger1a ─ 1b ─ 1c ..., leftThumba ─ b
 ├─ rightLeg ─ rightShin ─ rightFoot
 └─ leftLeg  ─ leftShin  ─ leftFoot
 ```
 
-The hands hang with the back of the hand facing forward, as in the picture, so in an animation the fingers curl with a positive X rotation of `rightFingers` / `leftFingers`.
+The hands hang with the back of the hand facing forward, as in the picture. Each finger is a chain of three bones (`rightFinger1a`, `rightFinger1b`, `rightFinger1c`, ... the thumb two: `rightThumba`, `rightThumbb`); a positive X rotation bends a joint into a fist.
 
 ## Animations
 
@@ -109,5 +109,4 @@ These differ:
 - The picture shows only the front, so the depths (front to back) are estimated from the widths.
 - The fur is a procedural pattern of little blocks in the picture's colours, not a pixel copy of the picture.
 - Only soft shading is baked into the texture, not the picture's coloured side lights, so the model looks right from every side.
-- The white reflections at the bottom of the eye sockets in the picture are lighting, so they are not painted on.
 - The animations are my own, since the reference is a single pose. Pose 1 recreates the pose in the picture.
