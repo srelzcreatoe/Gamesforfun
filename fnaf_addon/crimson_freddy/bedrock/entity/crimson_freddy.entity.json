@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:crimson_freddy",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/crimson_freddy/crimson_freddy_glow"
+			},
+			"geometry": {
+				"default": "geometry.crimson_freddy"
+			},
+			"animations": {
+				"idle": "animation.crimson_freddy.idle",
+				"walk": "animation.crimson_freddy.walk",
+				"run": "animation.crimson_freddy.run",
+				"pose1": "animation.crimson_freddy.pose1",
+				"pose2": "animation.crimson_freddy.pose2",
+				"performance1": "animation.crimson_freddy.performance1",
+				"performance2": "animation.crimson_freddy.performance2",
+				"jumpscare1": "animation.crimson_freddy.jumpscare1",
+				"jumpscare2": "animation.crimson_freddy.jumpscare2",
+				"controller": "controller.animation.crimson_freddy.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.crimson_freddy"
+			],
+			"spawn_egg": {
+				"base_color": "#5e1e28",
+				"overlay_color": "#b0827a"
+			}
+		}
+	}
+}

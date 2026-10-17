@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:golden_freddy",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/golden_freddy/golden_freddy_glow"
+			},
+			"geometry": {
+				"default": "geometry.golden_freddy"
+			},
+			"animations": {
+				"idle": "animation.golden_freddy.idle",
+				"walk": "animation.golden_freddy.walk",
+				"run": "animation.golden_freddy.run",
+				"pose1": "animation.golden_freddy.pose1",
+				"pose2": "animation.golden_freddy.pose2",
+				"performance1": "animation.golden_freddy.performance1",
+				"performance2": "animation.golden_freddy.performance2",
+				"jumpscare1": "animation.golden_freddy.jumpscare1",
+				"jumpscare2": "animation.golden_freddy.jumpscare2",
+				"controller": "controller.animation.golden_freddy.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.golden_freddy"
+			],
+			"spawn_egg": {
+				"base_color": "#9a6214",
+				"overlay_color": "#1e1a16"
+			}
+		}
+	}
+}

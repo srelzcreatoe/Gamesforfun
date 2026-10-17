@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:violet_bunny",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/violet_bunny/violet_bunny_glow"
+			},
+			"geometry": {
+				"default": "geometry.violet_bunny"
+			},
+			"animations": {
+				"idle": "animation.violet_bunny.idle",
+				"walk": "animation.violet_bunny.walk",
+				"run": "animation.violet_bunny.run",
+				"pose1": "animation.violet_bunny.pose1",
+				"pose2": "animation.violet_bunny.pose2",
+				"performance1": "animation.violet_bunny.performance1",
+				"performance2": "animation.violet_bunny.performance2",
+				"jumpscare1": "animation.violet_bunny.jumpscare1",
+				"jumpscare2": "animation.violet_bunny.jumpscare2",
+				"controller": "controller.animation.violet_bunny.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.violet_bunny"
+			],
+			"spawn_egg": {
+				"base_color": "#5c2e46",
+				"overlay_color": "#7a1418"
+			}
+		}
+	}
+}

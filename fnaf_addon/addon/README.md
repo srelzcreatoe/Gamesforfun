@@ -1,8 +1,8 @@
 # FNAF Animatronics add-on
 
-`FNAF_Animatronics.mcaddon` holds all 12 characters in one Minecraft Bedrock add-on:
+`FNAF_Animatronics.mcaddon` holds all 15 characters in one Minecraft Bedrock add-on:
 
-Bonnie, Freddy, Withered Freddy, Party Cat, Rat, Monkey, Bat, Crocodile, Fox, Bunny, Goat and Bear.
+Bonnie, Freddy, Withered Freddy, Party Cat, Rat, Monkey, Bat, Crocodile, Fox, Bunny, Goat, Bear, Golden Freddy, Crimson Freddy and Violet Bunny.
 
 It contains two packs:
 
@@ -37,6 +37,9 @@ Each animatronic's id is `fnaf:<name>`:
 | Bunny | `fnaf:bunny` |
 | Goat | `fnaf:goat` |
 | Bear | `fnaf:bear` |
+| Golden Freddy | `fnaf:golden_freddy` |
+| Crimson Freddy | `fnaf:crimson_freddy` |
+| Violet Bunny | `fnaf:violet_bunny` |
 
 ## What they do
 

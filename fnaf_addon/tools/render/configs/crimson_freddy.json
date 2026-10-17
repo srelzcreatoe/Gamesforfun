@@ -1,0 +1,513 @@
+{
+  "title": "CRIMSON FREDDY",
+  "subtitle": "MINECRAFT-STYLE FNAF MODEL",
+  "theme": "night",
+  "views": {
+    "front": {
+      "az": 0,
+      "el": 4,
+      "dist": 218.65,
+      "target": [
+        0,
+        27.95,
+        0
+      ],
+      "fov": 28
+    },
+    "side": {
+      "az": 90,
+      "el": 4,
+      "dist": 218.65,
+      "target": [
+        0,
+        27.95,
+        0
+      ],
+      "fov": 28
+    },
+    "back": {
+      "az": 180,
+      "el": 4,
+      "dist": 218.65,
+      "target": [
+        0,
+        27.95,
+        0
+      ],
+      "fov": 28
+    },
+    "three_quarter": {
+      "az": 28,
+      "el": 8,
+      "dist": 191.7,
+      "target": [
+        0,
+        29.95,
+        0
+      ],
+      "fov": 30
+    },
+    "face": {
+      "az": 0,
+      "el": 2,
+      "dist": 66,
+      "target": [
+        0,
+        43.0,
+        -4
+      ],
+      "fov": 24
+    }
+  },
+  "stills_cam": {
+    "az": 30,
+    "el": 8,
+    "dist": 195,
+    "target": [
+      0,
+      27.95,
+      0
+    ],
+    "fov": 30
+  },
+  "turnaround": {
+    "secs": 6,
+    "cam": {
+      "az": [
+        28,
+        388
+      ],
+      "el": 8,
+      "dist": 189.7,
+      "target": [
+        0,
+        29.95,
+        0
+      ],
+      "fov": 30
+    }
+  },
+  "closeups": [
+    {
+      "clip": "idle",
+      "secs": 3,
+      "label": "FACE DETAIL",
+      "cam": {
+        "az": [
+          18,
+          -18
+        ],
+        "el": 4,
+        "dist": 95,
+        "target": [
+          0,
+          43,
+          -3
+        ],
+        "fov": 24
+      }
+    },
+    {
+      "clip": "idle",
+      "secs": 3,
+      "label": "HANDS",
+      "cam": {
+        "az": [
+          20,
+          60
+        ],
+        "el": 6,
+        "dist": 70,
+        "target": [
+          10,
+          14,
+          -1
+        ],
+        "fov": 28
+      }
+    }
+  ],
+  "default_cam": {
+    "az": [
+      40,
+      -10
+    ],
+    "el": 9,
+    "dist": 179.7,
+    "target": [
+      0,
+      29.95,
+      0
+    ],
+    "fov": 30
+  },
+  "clips": [
+    {
+      "name": "idle",
+      "secs": 6
+    },
+    {
+      "name": "walk",
+      "secs": 4,
+      "cam": {
+        "az": [
+          55,
+          15
+        ],
+        "el": 8,
+        "dist": 183.7,
+        "target": [
+          0,
+          28.95,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "run",
+      "secs": 3,
+      "cam": {
+        "az": [
+          70,
+          30
+        ],
+        "el": 8,
+        "dist": 183.7,
+        "target": [
+          0,
+          28.95,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "pose1",
+      "secs": 4,
+      "cam": {
+        "az": [
+          20,
+          -10
+        ],
+        "el": 6,
+        "dist": 183.7,
+        "target": [
+          0,
+          28.95,
+          0
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "pose2",
+      "secs": 4
+    },
+    {
+      "name": "performance1",
+      "secs": 8
+    },
+    {
+      "name": "performance2",
+      "secs": 8,
+      "cam": {
+        "az": [
+          50,
+          10
+        ],
+        "el": 8,
+        "dist": 183.7,
+        "target": [
+          0,
+          28.95,
+          -2
+        ],
+        "fov": 30
+      }
+    },
+    {
+      "name": "jumpscare1",
+      "secs": 2.5,
+      "cam": {
+        "az": 0,
+        "el": 0,
+        "dist": 92,
+        "target": [
+          0,
+          40.0,
+          0
+        ],
+        "fov": 42
+      }
+    },
+    {
+      "name": "jumpscare2",
+      "secs": 2.75,
+      "cam": {
+        "az": 0,
+        "el": 0,
+        "dist": 92,
+        "target": [
+          0,
+          40.0,
+          0
+        ],
+        "fov": 42
+      }
+    }
+  ],
+  "sheet": {
+    "tagline": [
+      "HE'S",
+      "COMING",
+      "FOR YOU."
+    ],
+    "blurb": [
+      "The red one",
+      "doesn't sing.",
+      "He hunts."
+    ],
+    "corner": [
+      "HEAVY FOOTSTEPS.",
+      "RED EYES.",
+      "THE DOOR",
+      "WON'T HOLD."
+    ],
+    "side_a": [
+      "RUN."
+    ],
+    "side_b": [
+      "NO",
+      "ENCORE."
+    ],
+    "palette": [
+      [
+        98,
+        34,
+        42
+      ],
+      [
+        72,
+        26,
+        34
+      ],
+      [
+        168,
+        122,
+        114
+      ],
+      [
+        178,
+        134,
+        126
+      ],
+      [
+        40,
+        22,
+        30
+      ],
+      [
+        214,
+        24,
+        32
+      ]
+    ],
+    "shots": {
+      "front": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 0,
+          "el": 3,
+          "dist": 190.48,
+          "target": [
+            0,
+            27.95,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "side": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 90,
+          "el": 3,
+          "dist": 190.48,
+          "target": [
+            0,
+            27.95,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "back": {
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 180,
+          "el": 3,
+          "dist": 190.48,
+          "target": [
+            0,
+            27.95,
+            0
+          ],
+          "fov": 30
+        }
+      },
+      "main": {
+        "anim": "pose1",
+        "time": 0.5,
+        "cam": {
+          "az": 22,
+          "el": 6,
+          "dist": 139.7,
+          "target": [
+            0,
+            30.95,
+            -2
+          ],
+          "fov": 34
+        }
+      }
+    },
+    "faces": [
+      {
+        "label": "FACE DETAIL",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 0,
+          "el": 2,
+          "dist": 58,
+          "target": [
+            0,
+            43.0,
+            -4
+          ],
+          "fov": 24
+        }
+      },
+      {
+        "label": "JUMPSCARE",
+        "anim": "jumpscare1",
+        "time": 0.75,
+        "cam": {
+          "az": 0,
+          "el": 0,
+          "dist": 74,
+          "target": [
+            0,
+            40.0,
+            0
+          ],
+          "fov": 42
+        }
+      }
+    ],
+    "details": [
+      {
+        "label": "FACE PLATE",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 0,
+          "el": 2,
+          "dist": 30,
+          "target": [
+            0,
+            43.5,
+            -5
+          ],
+          "fov": 30
+        }
+      },
+      {
+        "label": "BIG HANDS",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 20,
+          "el": 6,
+          "dist": 36,
+          "target": [
+            11.5,
+            13,
+            -1
+          ],
+          "fov": 30
+        }
+      },
+      {
+        "label": "EAR & HAT",
+        "anim": "idle",
+        "time": 0,
+        "cam": {
+          "az": 15,
+          "el": 10,
+          "dist": 40,
+          "target": [
+            2,
+            49,
+            0
+          ],
+          "fov": 30
+        }
+      }
+    ],
+    "strip": [
+      [
+        "idle",
+        0.0
+      ],
+      [
+        "walk",
+        0.4
+      ],
+      [
+        "run",
+        0.2
+      ],
+      [
+        "pose1",
+        0.5
+      ],
+      [
+        "pose2",
+        0.5
+      ],
+      [
+        "performance1",
+        0.5
+      ],
+      [
+        "performance2",
+        1.0
+      ],
+      [
+        "jumpscare1",
+        0.7
+      ],
+      [
+        "jumpscare2",
+        0.9
+      ]
+    ],
+    "strip_cam": {
+      "az": 22,
+      "el": 6,
+      "dist": 173.7,
+      "target": [
+        0,
+        28.95,
+        0
+      ],
+      "fov": 30
+    },
+    "strap": "PLAY. PERFORM. JUMPSCARE."
+  }
+}
