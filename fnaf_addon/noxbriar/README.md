@@ -6,7 +6,7 @@ The picture is from the same series as Golden Freddy, Crimson Freddy and Violet 
 
 It includes:
 
-- 469 cubes and 49 bones
+- 471 cubes and 49 bones
 - a 1024×1024 texture painted at 4 texels per model pixel (the eyes at 32), with soft light and shadow baked in
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
@@ -26,11 +26,11 @@ It includes:
 ## What's on the model
 
 - **Fur:** sooty black-brown with rusty patches; a pale grey belly
-- **Head:** a black top hat; round black ears with a grey centre; a grey-brown plate round the eyes; deep black eye sockets filled by glossy eyeballs with glowing red irises; black tear streaks running from the eyes down over the pale muzzle; a black nose; a row of teeth
-- **Chest:** a purple vest that wraps the whole torso and hangs open over the belly, with a dark trim along each lapel and two pocket flaps; a purple bow tie; two round black buttons on the belly
-- **Hands:** working endoskeleton hands: a furry back of the hand with two tendon rods, four bare fingers and a thumb, each a chain of dark blocks on black ball joints
+- **Head:** a black top hat; round black ears with a grey centre; a grey-brown plate round the eyes; deep black eye sockets filled by glossy eyeballs, as in the picture: a big glowing red iris with a dark red ring and a black pupil, a white glint, a dim red glow in the socket and thin white reflections curving up the outer edge of each socket; black tear streaks running from the eyes down over the pale muzzle; a black nose; a row of teeth
+- **Chest:** a purple vest that wraps the whole torso and hangs open over the belly, with a dark trim along each lapel and two lighter pocket flaps; a purple bow tie; two round black buttons on the belly
+- **Hands:** working endoskeleton hands that hang with the back of the hand facing forward, as in the picture: a furry back of the hand with two tendon rods, four bare fingers and a thumb, each a chain of dark blocks on black ball joints
 - **Arms and legs:** rounded shoulder caps beside the jaw, chunky blocks on black ball joints, with corners stepped back like the picture
-- **Feet:** big three-toed feet on a grey sole
+- **Feet:** big three-toed feet on a grey sole, as wide as in the picture: flush with the inside of each leg and reaching well out past its outer side
 
 ## Rig
 
@@ -45,7 +45,7 @@ root
 └─ leftLeg  ─ leftShin  ─ leftFoot
 ```
 
-Each finger is a chain of three bones, and none of them has a rest rotation, so a positive X rotation bends any joint into a fist.
+The hands hang with the back of the hand facing forward and the thumb on the inner side, as in the picture. Each finger is a chain of three bones, and none of them has a rest rotation, so a positive X rotation bends any joint into a fist.
 
 ## Animations
 
@@ -103,9 +103,8 @@ These match the picture:
 
 These differ:
 
-- I measured the sizes by eye from the picture you attached in chat. The picture isn't saved in the repo, so I couldn't overlay its outline on the model the way I did for the Golden Freddy set. If you add the picture to the repo, I can fit the outline against it.
+- The sizes were measured by eye from the picture you attached in chat, then checked by rendering the model in the picture's exact framing (1024×1536, same scale, same floor line) under a coordinate grid and comparing every part. The picture isn't saved in the repo, so its outline couldn't be overlaid pixel by pixel. If you add the picture to the repo, I can fit the outline against it exactly.
 - The picture shows only the front, so the depths (front to back) are estimated from the widths.
 - The fur is a procedural pattern of small blocks in the picture's colours, not a pixel copy of the picture.
-- The pocket flaps are dark purple on the purple vest, so they're subtle.
 - The animations are my own, since the picture shows a single pose. Pose 1 recreates the pose in the picture.
 - The hands are built to work (fists, pointing, spreading) rather than to copy the picture's hand pose.

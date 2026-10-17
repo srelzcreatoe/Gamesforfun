@@ -23,7 +23,7 @@ import os
 from characters import fred3
 from characters.body import COMMON, ENDO, vox
 from characters.fred3 import Pic, panel_painter, rbox
-from fnafkit import export
+from fnafkit import export, rig
 from fnafkit.rig import bone, cube
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -95,6 +95,7 @@ MATERIALS = {
         "vest": _flat((80, 50, 98), (68, 42, 84), (92, 60, 112), (58, 36, 72), w=[3, 3, 2, 1]),
         "vest_edge": _flat((54, 32, 68), (46, 28, 58), (62, 38, 78)),
         "red": _flat((96, 62, 118), (84, 54, 104), (108, 70, 130)),          # the purple bow tie
+        "pocket": _flat((104, 70, 126), (94, 62, 114), (114, 78, 136)),
         "hat": _flat((30, 27, 26), (38, 34, 32), (24, 21, 20), (46, 41, 38), w=[3, 3, 2, 1]),
         "sole": _flat((112, 108, 106), (98, 94, 92), (124, 120, 118)),
         "teeth": vox((204, 198, 186), (188, 182, 170), (216, 210, 198), cell=0.5, bevel=0.2),
@@ -115,10 +116,14 @@ for _mats in MATERIALS.values():
             _mats[_k]["shade"] = _v
     _mats["eyeball"] = dict(_mats["socket"], shade=0.0)
 
-_RED_EYE = dict(iris=(228, 34, 38), ring=(104, 10, 14), pupil=(18, 4, 6), r_iris=0.32, r_ring=0.06, r_pupil=0.12,
-                halo=(150, 40, 44), r_halo=0.64, halo_a=0.55, glint=(252, 240, 240), glow=(210, 24, 30),
-                reflect=(-98, -20, 0.9), reflect_w=(0.08, 0.3), pixel=None)
-EYES = {n: dict(_RED_EYE) for n in NAMES}
+# The pictures' eyes: a big glowing red iris with a dark red ring and a black pupil, a white glint up
+# and to the picture's right, a dim red glow spreading into the black socket, and thin white
+# reflections curving along the socket's edge (along the bottom, and up the outer side on Noxbriar)
+_RED_EYE = dict(iris=(236, 30, 34), ring=(96, 6, 10), pupil=(14, 2, 4), r_iris=0.44, r_ring=0.08, r_pupil=0.17,
+                halo=(118, 14, 16), r_halo=0.9, halo_a=0.5, glint=(255, 246, 244), glow=(220, 22, 28),
+                reflect=(-104, -28, 0.85), reflect_w=(0.07, 0.24), pixel=None)
+EYES = {"rustgrin": dict(_RED_EYE), "mirehop": dict(_RED_EYE, reflect=(-90, -10, 0.85)),
+        "noxbriar": dict(_RED_EYE, reflect=(-60, 40, 0.9))}
 
 # --------------------------------------------------------------------------
 # Measurements (picture pixels; character's right = left half of the picture).  The keys mean
@@ -138,7 +143,7 @@ BODY = {
                     pelvis_half=176, bow=(582, 540), bow_half=70, bow_mat="black", buttons=(), button_round=False,
                     vest=(102, 9), vest_buttons=((394, 705, 12), (394, 770, 12))),
     "noxbriar": dict(chest=(842, 500), chest_half=180, depth=4.5, belly=(826, 508), belly_half=110, pelvis=(906, 840),
-                     pelvis_half=176, bow=(566, 520), bow_half=80, bow_mat="red", buttons=((612, 18), (664, 18)),
+                     pelvis_half=176, bow=(566, 520), bow_half=80, bow_mat="red", buttons=((598, 18), (648, 18)),
                      button_round=True, vest=(110, 9), pockets=((350, 398, 742, 18),)),
 }
 
@@ -222,6 +227,47 @@ for _table, _ours in ((fred3.P, P), (fred3.BODY, BODY), (fred3.LEGS, LEGS), (fre
 # --------------------------------------------------------------------------
 
 
+def build_legs(name):
+    """fred3's legs, with the feet as wide as in the pictures: flush with the inner side of the shin
+    and reaching well out past its outer side (fred3 centres each foot under its shin)."""
+    pic, L = P[name], LEGS[name]
+    lx = fred3.half_pair(pic, *L["leg_x"])
+    sx = fred3.half_pair(pic, *L["shin_x"])
+    for s, side in ((1, "right"), (-1, "left")):
+        leg, shin, foot = f"{side}Leg", f"{side}Shin", f"{side}Foot"
+        t0, t1 = pic.y(L["thigh"][0]), pic.y(L["thigh"][1])
+        tw = pic.d(L["thigh_half"])
+        bone(leg, "root", [s * lx, t1 - 0.6, 0])
+        cube(leg, "hip_joint", [lx - 1.3, t1 - 1.2, -1.3], [lx + 1.3, t1 + 0.8, 1.3], "endo", s, painter=fred3.p_endo)
+        rbox(leg, "thigh", lx - tw, lx + tw, t0, t1, -tw, tw, "fur", s, r=0.9, steps=3)
+        k0, k1 = pic.y(L["knee"][0]), pic.y(L["knee"][1])
+        kw = pic.d(L["knee_half"])
+        kx = (lx + sx) / 2
+        bone(shin, leg, [s * kx, (k0 + k1) / 2, 0])
+        cube(shin, "knee_joint", [kx - kw, k0 - 0.2, -kw], [kx + kw, k1 + 0.2, kw], "endo", s, painter=fred3.p_endo)
+        s0, s1 = pic.y(L["shin"][0]), pic.y(L["shin"][1])
+        sw = pic.d(L["shin_half"])
+        rbox(shin, "shin", sx - sw, sx + sw, s0, s1, -sw, sw, "fur", s, r=0.95, steps=3)
+        heel = pic.y(L["heel_top"])
+        bone(foot, shin, [s * sx, heel + 0.4, 0])
+        cube(foot, "ankle_joint", [sx - 1.1, heel - 0.4, -1.1], [sx + 1.1, heel + 0.9, 1.1], "endo", s, painter=fred3.p_endo)
+        fo, fi = pic.x(L["foot"][0]), pic.x(L["foot"][1])
+        sole, toe = pic.y(L["sole_top"]), pic.y(L["toe_top"])
+        td = 3.3
+        fz0 = -sw - td + 0.3                     # the toes reach forward from the front of the shin
+        fz1 = sw + 0.4
+        cube(foot, "sole", [fi, 0.0, fz0], [fo, sole, fz1 + 0.2], "sole", s)
+        rbox(foot, "heel", fi + 0.5, fo - 0.5, sole, heel, fz0 + td - 0.6, fz1, "fur", s, r=0.8)
+        gap = 0.18
+        tw_ = (fo - fi - 2 * gap) / 3
+        x = fi
+        for i in range(3):
+            rbox(foot, f"toe{i + 1}", x, x + tw_, sole, toe, fz0 + 0.1, fz0 + td + 0.2, "fur", s, r=0.75)
+            rbox(foot, f"toe{i + 1}_top", x + 0.25, x + tw_ - 0.25, toe - 0.3, toe + 0.8, fz0 + td * 0.55, fz0 + td + 0.4,
+                 "fur", s, r=0.45)
+            x += tw_ + gap
+
+
 def build_body(name):
     """fred3's chest, belly and bow tie, with the chest in vest cloth: the vest wraps the whole torso
     and stays open down the front over the belly, with a darker trim along each lapel."""
@@ -266,7 +312,8 @@ def build_body(name):
     for i, (xo, xi, row, h) in enumerate(B.get("pockets", ())):
         x0, x1, y = pic.x(xi), pic.x(xo), pic.y(row)
         for s in (1, -1):
-            cube("torso", f"pocket_flap{i + 1}", [x0, y - pic.d(h) / 2, fz - 0.4], [x1, y + pic.d(h) / 2, fz + 0.1], "vest_edge", s)
+            cube("torso", f"pocket_flap{i + 1}", [x0, y - pic.d(h) / 2, fz - 0.4], [x1, y + pic.d(h) / 2, fz + 0.1], "pocket", s)
+            cube("torso", f"pocket_line{i + 1}", [x0, y - pic.d(h) / 2 - 0.2, fz - 0.3], [x1, y - pic.d(h) / 2, fz + 0.1], "vest_edge", s)
     return hd, hw, c1
 
 
@@ -325,12 +372,15 @@ def build_hat(name):
 
 def build(name):
     bone("root", None, [0, 0, 0])
-    fred3.build_legs(name)
+    build_legs(name)
     hd, hw, c1 = build_body(name)
     H = HEADS[name]
     hp = P[name].y(H["pivot"])
     cube("torso", "neck", [-1.3, c1 - 1.0, -1.2], [1.3, hp + 1.0, 1.4], "endo", painter=fred3.p_endo)
     PALM[name] = fred3.build_arms(name, hw)
+    # in these pictures the backs of the hands face forward (fred3 turns its palms to the legs)
+    for side in ("right", "left"):
+        rig.BONES[f"{side}Hand"].rot[1] = 0.0
     fred3.build_head(name)
     if H["ears"]["kind"] == "round":
         build_round_ears(name)
@@ -346,7 +396,6 @@ BUILDERS = {n: (lambda n=n: build(n)) for n in NAMES}
 
 def spec(name):
     from characters import vested_anims
-    from fnafkit import rig
 
     # the palm centre comes from the geometry, so build it once up front
     rig.reset(MATERIALS[name], tpu=4)
