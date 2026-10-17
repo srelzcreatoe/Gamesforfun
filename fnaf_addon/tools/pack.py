@@ -1,6 +1,7 @@
 """Bundle every character into one Minecraft Bedrock add-on.
 
     python3 tools/pack.py            # -> fnaf_addon/addon/FNAF_Animatronics.mcaddon
+    python3 tools/pack.py --pack FNAF_Six bonnie freddy ...   # just these, as a separate pack
 
 The resource pack merges each character's bedrock/ folder (geometry, animations, animation and
 render controllers, client entity, textures) and adds names and spawn eggs.  The behavior pack
@@ -28,13 +29,19 @@ MIN_ENGINE = [1, 20, 0]
 NAMES = {"bonnie": "Bonnie", "freddy": "Freddy", "withered_freddy": "Withered Freddy", "party_cat": "Party Cat",
          "rat": "Rat", "monkey": "Monkey", "bat": "Bat", "crocodile": "Crocodile", "fox": "Fox", "bunny": "Bunny",
          "goat": "Goat", "bear": "Bear", "golden_freddy": "Golden Freddy", "crimson_freddy": "Crimson Freddy",
-         "violet_bunny": "Violet Bunny"}
+         "violet_bunny": "Violet Bunny", "rustgrin": "Rustgrin", "mirehop": "Mirehop", "noxbriar": "Noxbriar"}
 # mark_variant value -> clip, as read by every animation controller
 VARIANTS = {1: "pose1", 2: "pose2", 3: "performance1", 4: "performance2", 5: "jumpscare1", 6: "jumpscare2"}
 ICON_FACES = ("fox", "crocodile", "bunny", "bear")      # 2x2 grid on the pack icon
 
 
+DEFAULT_PACK = "FNAF_Animatronics"
+PACK = DEFAULT_PACK          # a separate pack gets its own UUIDs, so both can be installed side by side
+
+
 def pack_uuid(part):
+    if PACK != DEFAULT_PACK:
+        part = f"{PACK}/{part}"
     return str(uuid.uuid5(uuid.NAMESPACE_URL, f"https://github.com/srelzcreatoe/Gamesforfun/fnaf_addon/{part}"))
 
 
@@ -45,8 +52,8 @@ def dump(path, data):
         f.write("\n")
 
 
-def characters():
-    return [n for n in NAMES if os.path.isdir(os.path.join(ROOT, n, "bedrock"))]
+def characters(only=None):
+    return [n for n in NAMES if (not only or n in only) and os.path.isdir(os.path.join(ROOT, n, "bedrock"))]
 
 
 def clip_lengths(name):
@@ -118,9 +125,9 @@ def server_entity(name):
     }
 
 
-def pack_icon(path):
+def pack_icon(path, chars):
     tiles = []
-    for n in ICON_FACES:
+    for n in (ICON_FACES if set(ICON_FACES) <= set(chars) else chars[-4:]):
         sheet = os.path.join(ROOT, n, "preview", f"{n}_sheet.png")
         if os.path.exists(sheet):
             tiles.append(Image.open(sheet).convert("RGB").crop((730, 720, 1010, 1000)).resize((128, 128)))
@@ -143,17 +150,18 @@ def zip_dir(zf, folder, arc_root):
                 zf.writestr(info, f.read())
 
 
-def build(out_dir):
-    chars = characters()
-    rp = os.path.join(out_dir, "FNAF_Animatronics_RP")
-    bp = os.path.join(out_dir, "FNAF_Animatronics_BP")
+def build(out_dir, only=None):
+    chars = characters(only)
+    rp = os.path.join(out_dir, f"{PACK}_RP")
+    bp = os.path.join(out_dir, f"{PACK}_BP")
     for d in (rp, bp):
         shutil.rmtree(d, ignore_errors=True)
         os.makedirs(d)
 
     desc = "Minecraft-style FNAF animatronics: " + ", ".join(NAMES[n] for n in chars)
-    dump(os.path.join(rp, "manifest.json"), manifest("rp", "FNAF Animatronics Resources", desc, ["bp"]))
-    dump(os.path.join(bp, "manifest.json"), manifest("bp", "FNAF Animatronics Behaviors", desc, ["rp"]))
+    title = "FNAF Animatronics" if PACK == DEFAULT_PACK else PACK.replace("_", " ")
+    dump(os.path.join(rp, "manifest.json"), manifest("rp", f"{title} Resources", desc, ["bp"]))
+    dump(os.path.join(bp, "manifest.json"), manifest("bp", f"{title} Behaviors", desc, ["rp"]))
     lang = []
     for n in chars:
         shutil.copytree(os.path.join(ROOT, n, "bedrock"), rp, dirs_exist_ok=True)
@@ -163,13 +171,13 @@ def build(out_dir):
         os.makedirs(os.path.join(d, "texts"), exist_ok=True)
         dump(os.path.join(d, "texts", "languages.json"), ["en_US"])
         with open(os.path.join(d, "texts", "en_US.lang"), "w") as f:
-            f.write("\n".join(lang if d == rp else [f"pack.name=FNAF Animatronics Behaviors"]) + "\n")
-        pack_icon(os.path.join(d, "pack_icon.png"))
+            f.write("\n".join(lang if d == rp else [f"pack.name={title} Behaviors"]) + "\n")
+        pack_icon(os.path.join(d, "pack_icon.png"), chars)
 
-    mcaddon = os.path.join(out_dir, "FNAF_Animatronics.mcaddon")
+    mcaddon = os.path.join(out_dir, f"{PACK}.mcaddon")
     with zipfile.ZipFile(mcaddon, "w", zipfile.ZIP_DEFLATED) as zf:
-        zip_dir(zf, rp, "FNAF_Animatronics_RP")
-        zip_dir(zf, bp, "FNAF_Animatronics_BP")
+        zip_dir(zf, rp, f"{PACK}_RP")
+        zip_dir(zf, bp, f"{PACK}_BP")
     return chars, rp, bp, mcaddon
 
 
@@ -177,8 +185,14 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", default=os.path.join(ROOT, "addon"), help="output folder")
     ap.add_argument("--keep-folders", action="store_true", help="keep the unzipped RP/BP folders next to the .mcaddon")
+    ap.add_argument("--pack", default=DEFAULT_PACK, help="pack name (file names and UUIDs); needed with a character list")
+    ap.add_argument("names", nargs="*", choices=[[]] + list(NAMES), help="characters to include (default: all)")
     args = ap.parse_args()
-    chars, rp, bp, mcaddon = build(args.out)
+    if args.names and args.pack == DEFAULT_PACK:
+        ap.error("a pack with only some characters needs its own --pack name")
+    global PACK
+    PACK = args.pack
+    chars, rp, bp, mcaddon = build(args.out, args.names)
     if not args.keep_folders:
         shutil.rmtree(rp)
         shutil.rmtree(bp)

@@ -1,0 +1,41 @@
+{
+	"format_version": "1.10.0",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "fnaf:mirehop",
+			"materials": {
+				"default": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/entity/mirehop/mirehop_glow"
+			},
+			"geometry": {
+				"default": "geometry.mirehop"
+			},
+			"animations": {
+				"idle": "animation.mirehop.idle",
+				"walk": "animation.mirehop.walk",
+				"run": "animation.mirehop.run",
+				"pose1": "animation.mirehop.pose1",
+				"pose2": "animation.mirehop.pose2",
+				"performance1": "animation.mirehop.performance1",
+				"performance2": "animation.mirehop.performance2",
+				"jumpscare1": "animation.mirehop.jumpscare1",
+				"jumpscare2": "animation.mirehop.jumpscare2",
+				"controller": "controller.animation.mirehop.main"
+			},
+			"scripts": {
+				"animate": [
+					"controller"
+				]
+			},
+			"render_controllers": [
+				"controller.render.mirehop"
+			],
+			"spawn_egg": {
+				"base_color": "#4e6428",
+				"overlay_color": "#46301f"
+			}
+		}
+	}
+}

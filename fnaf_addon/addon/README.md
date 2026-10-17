@@ -11,6 +11,12 @@ It contains two packs:
 
 No experimental toggles are needed.
 
+### FNAF_Six.mcaddon
+
+`FNAF_Six.mcaddon` is a smaller, separate add-on with six characters: Bonnie, Freddy, Withered Freddy, Rustgrin (`fnaf:rustgrin`), Mirehop (`fnaf:mirehop`) and Noxbriar (`fnaf:noxbriar`). Its packs are called **FNAF Six Resources** and **FNAF Six Behaviors**. It installs and works the same way as the full add-on, with the same spawn eggs and events. Its pack ids are its own, so both add-ons can be installed at once. Don't turn both on in the same world, though: both define Bonnie and the two Freddys.
+
+Rebuild it with `python3 tools/pack.py --pack FNAF_Six bonnie freddy withered_freddy rustgrin mirehop noxbriar`.
+
 ## Install
 
 1. Open `FNAF_Animatronics.mcaddon` with Minecraft (double-click it, or share it to Minecraft on phone or console). Both packs are imported.
