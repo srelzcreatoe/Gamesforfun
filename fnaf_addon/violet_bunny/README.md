@@ -4,10 +4,12 @@ This is a Blockbench model of Violet Bunny built from your purple bunny picture,
 
 Every part was measured from the picture at one shared scale (26 picture pixels = 1 model pixel), the same scale used for the other two characters from that set. No part is enlarged or shrunk: each keeps the size it has in the picture, and so does the character.
 
+To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 91%. Every colour was matched by rendering the model under plain studio light and sampling it at the same spots as the picture.
+
 It includes:
 
-- 194 cubes and 25 bones
-- a 1024×512 texture painted at 4 texels per model pixel, in the picture's "every pixel is a little block" style, with rounded block edges like the picture
+- 252 cubes and 25 bones
+- a 1024×1024 texture painted at 4 texels per model pixel, in the picture's "every pixel is a little block" style, with rounded block edges like the picture
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
 ![sheet](preview/violet_bunny_sheet.png)

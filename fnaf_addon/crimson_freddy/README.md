@@ -4,9 +4,11 @@ This is a Blockbench model of Crimson Freddy built from your dark-red Freddy pic
 
 Every part was measured from the picture at one shared scale (26 picture pixels = 1 model pixel), the same scale used for the other two characters from that set. No part is enlarged or shrunk: each keeps the size it has in the picture, and so does the character.
 
+To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 91%. Every colour was matched by rendering the model under plain studio light and sampling it at the same spots as the picture.
+
 It includes:
 
-- 192 cubes and 25 bones
+- 246 cubes and 25 bones
 - a 1024×1024 texture painted at 4 texels per model pixel, in the picture's "every pixel is a little block" style, with rounded block edges like the picture
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
@@ -29,7 +31,7 @@ It includes:
 - **Head:** a dark top hat; big round ears with pink centres on chrome pins; a pink face plate around the eyes; dark sockets with red glowing irises; a wide pink muzzle with black freckles, split down the middle, and a black nose; a row of cream teeth
 - **Chest:** a black bow tie and two square black buttons
 - **Hands:** big mitten hands: the back of the hand faces forward, the fingers are one chunky grooved block curling in, the thumb is on the inner side
-- **Arms and legs:** big shoulder pads hanging beside the chest on exposed joints; thick thighs and shins on dark knee joints
+- **Arms and legs:** rounded shoulder caps beside the jaw; big upper arms hanging close beside a wide chest on dark ball joints; thick rounded thighs and shins on dark knee joints
 - **Feet:** big three-toed feet on a pale sole
 
 ## Rig

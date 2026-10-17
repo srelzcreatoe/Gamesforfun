@@ -49,15 +49,15 @@ class Pic:
 # Colours (sampled from each picture's lit side, brought up to albedo)
 # --------------------------------------------------------------------------
 
-def _fur(tones, w, dark):
-    return vox(*tones, w=w, patches=[(2.4, 0.66, dark)], cell=0.77)
+def _fur(tones, w, dark, cover=0.66):
+    return vox(*tones, w=w, patches=[(2.4, cover, dark)], cell=0.77, bevel=0.2)
 
 
 MATERIALS = {
     "golden_freddy": {
         **COMMON,
         "fur": _fur([(150, 88, 20), (170, 104, 26), (132, 74, 16), (188, 120, 34), (112, 62, 14), (94, 50, 10)],
-                    [3, 3, 3, 2, 2, 1], [(72, 38, 8), (58, 30, 6)]),
+                    [3, 3, 3, 2, 2, 1], [(72, 38, 8), (58, 30, 6), (86, 48, 12)], cover=0.6),
         "fur_dark": vox((86, 46, 10), (72, 38, 8), (100, 56, 12), cell=0.77),
         "brow": vox((196, 132, 42), (182, 120, 36), (208, 144, 50), cell=0.77),
         "belly": vox((196, 140, 58), (180, 124, 46), (212, 158, 72), (164, 110, 40), w=[3, 3, 2, 1], cell=0.77),
@@ -100,6 +100,22 @@ MATERIALS = {
     },
 }
 
+
+# Colour correction measured against the pictures: the studio render of each material, sampled at the
+# same picture points as the reference, scaled per channel to match (see the README).
+CALIBRATION = {
+    "golden_freddy": {"fur": (0.82, 0.75, 0.22), "fur_dark": (0.82, 0.75, 0.22), "ear_ring": (0.82, 0.75, 0.22), "belly": (0.90, 0.84, 0.69), "muzzle": (0.99, 0.91, 0.46), "brow": (0.99, 0.91, 0.46), "hat": (0.48, 0.46, 0.44), "sole": (0.71, 0.68, 0.66)},
+    "crimson_freddy": {"fur": (0.77, 0.67, 0.64), "fur_dark": (0.77, 0.67, 0.64), "belly": (0.83, 0.83, 0.81), "muzzle": (0.88, 0.87, 0.85), "mask": (0.78, 0.72, 0.69), "ear_inner": (0.79, 0.75, 0.71), "hat": (0.47, 0.40, 0.50), "sole": (0.64, 0.59, 0.59)},
+    "violet_bunny": {"fur": (0.78, 0.83, 1.03), "fur_dark": (0.78, 0.83, 1.03), "belly": (0.89, 0.88, 0.85), "muzzle": (1.18, 1.30, 1.26), "mask": (1.17, 1.18, 1.16), "band": (0.52, 0.32, 0.37), "strap": (0.52, 0.32, 0.37), "sole": (0.71, 0.69, 0.69), "red": (0.62, 0.32, 0.32)},
+}
+
+for _n, _cal in CALIBRATION.items():
+    for _mat, _k in _cal.items():
+        _m = MATERIALS[_n][_mat]
+        _m["tones"] = [tuple(int(round(min(255, c * k))) for c, k in zip(t, _k)) for t in _m["tones"]]
+        if _m.get("patches"):
+            _m["patches"] = [(a, b, [tuple(int(round(c * k)) for c, k in zip(t, _k)) for t in ts]) for a, b, ts in _m["patches"]]
+
 # eye colours: iris, rim, glow (None: the eye doesn't glow)
 EYES = {
     "golden_freddy": dict(iris=(92, 36, 28), rim=(152, 128, 122), glow=None, r=0.5),
@@ -115,7 +131,7 @@ EYES = {
 def p_endo(ctx):
     """Dark glossy endoskeleton metal (finger joints, neck, wrist rods)."""
     p_chrome(ctx)
-    ctx.rgb[...] = ctx.rgb * 0.42 + np.array([6, 6, 8], np.float32)
+    ctx.rgb[...] = ctx.rgb * 0.3 + np.array([4, 4, 6], np.float32)
 
 
 def eye_painter(name):
@@ -129,13 +145,16 @@ def eye_painter(name):
             return
         d = np.sqrt((ctx.X - cx) ** 2 + (ctx.Y - cy) ** 2)
         r = e["r"]
-        rim = (d < r) & (d >= r * 0.55)
-        iris = d < r * 0.55
+        # the eye is 4x4 texels: dark 2x2 pupil, a ring of iris texels, rim in the corners
+        rim = (d < r * 1.5) & (d >= 0.42)
+        iris = (d < 0.42) & (d >= 0.2)
+        pupil = d < 0.2
         ctx.rgb[rim] = np.array(e["rim"], np.float32)
         ctx.rgb[iris] = np.array(e["iris"], np.float32)
+        ctx.rgb[pupil] = np.array([20, 6, 8], np.float32)
         if e["glow"]:
-            ctx.glow(e["glow"], iris)
-            ctx.glow(tuple(v * 0.35 for v in e["rim"]), rim)
+            ctx.glow(tuple(v * 0.55 for v in e["glow"]), iris)
+            ctx.glow(tuple(v * 0.2 for v in e["rim"]), rim)
 
     return painter
 
@@ -206,14 +225,19 @@ def freckle_painter(mat, dots):
 # --------------------------------------------------------------------------
 
 
-def rbox(b, name, x0, x1, y0, y1, z0, z1, mat, s=1, r=0.5, painter=None, faces=None):
-    """Box with every edge stepped in by r (three overlapping cubes): the rounded voxel look."""
-    r = min(r, (x1 - x0) / 2.2, (y1 - y0) / 2.2, (z1 - z0) / 2.2)
+def rbox(b, name, x0, x1, y0, y1, z0, z1, mat, s=1, r=0.5, painter=None, faces=None, axes="xyz"):
+    """Box with its edges rounded off in two voxel steps (four overlapping cubes): the chunky,
+    pillowy look of the pictures.  axes="xz" rounds only the vertical edges (for stacked slabs)."""
+    lim = [(x1 - x0) / 2.2, (z1 - z0) / 2.2] + ([(y1 - y0) / 2.2] if "y" in axes else [])
+    r = min([r] + lim)
     if r <= 0.05:
         return [cube(b, name, [x0, y0, z0], [x1, y1, z1], mat, s, painter=painter, faces=faces)]
-    return [cube(b, name, [x0, y0 + r, z0 + r], [x1, y1 - r, z1 - r], mat, s, painter=painter, faces=faces),
-            cube(b, name + "_v", [x0 + r, y0, z0 + r], [x1 - r, y1, z1 - r], mat, s, painter=painter, faces=faces),
-            cube(b, name + "_f", [x0 + r, y0 + r, z0], [x1 - r, y1 - r, z1], mat, s, painter=painter, faces=faces)]
+    h = r / 2
+    ry = r if "y" in axes else 0.0
+    hy = h if "y" in axes else 0.0
+    insets = [(0, ry, r), (r, 0, r), (r, ry, 0), (h, hy, h)] if "y" in axes else [(0, 0, r), (r, 0, 0), (h, 0, h)]
+    return [cube(b, name + ("" if k == 0 else f"_{k}"), [x0 + ix, y0 + iy, z0 + iz], [x1 - ix, y1 - iy, z1 - iz], mat, s,
+                 painter=painter, faces=faces) for k, (ix, iy, iz) in enumerate(insets)]
 
 
 def disc(b, name, cx, cy, w, h, z0, z1, mat, s=1, painter=None):
@@ -236,28 +260,25 @@ P = {"golden_freddy": Pic(548, 1425), "crimson_freddy": Pic(548, 1421), "violet_
 
 # body: chest / belly / pelvis spans, half widths in picture px measured symmetrically
 BODY = {
-    "golden_freddy": dict(chest=(800, 465), chest_half=150, depth=4.4, belly=(790, 530), belly_half=107,
-                          pelvis=(868, 800), pelvis_half=150, bow=(545, 490), bow_half=90, bow_mat="black",
-                          buttons=[(575, 19), (625, 19)], button_round=True),
-    "crimson_freddy": dict(chest=(850, 490), chest_half=152, depth=4.5, belly=(850, 570), belly_half=92,
-                           pelvis=(930, 845), pelvis_half=148, bow=(580, 535), bow_half=80, bow_mat="black",
-                           buttons=[(600, 17.5), (655, 17.5)], button_round=False),
-    "violet_bunny": dict(chest=(855, 545), chest_half=125, depth=3.9, belly=(845, 580), belly_half=80,
-                         pelvis=(915, 850), pelvis_half=125, pelvis_mat="band", bow=(610, 575), bow_half=66, bow_mat="red",
-                         buttons=[], straps=(420, 560, 850)),
+    "golden_freddy": dict(chest=(800, 465), chest_half=175.4, depth=4.4, belly=(790, 530), belly_half=107, pelvis=(868, 800),
+            pelvis_half=177.6, bow=(545, 490), bow_half=90, bow_mat="black", buttons=((575, 19), (625, 19)),
+            button_round=True),
+    "crimson_freddy": dict(chest=(850, 490), chest_half=189.3, depth=4.5, belly=(850, 570), belly_half=92, pelvis=(930, 845),
+            pelvis_half=189.8, bow=(580, 535), bow_half=80, bow_mat="black", buttons=((600, 17.5), (655, 17.5)),
+            button_round=False),
+    "violet_bunny": dict(chest=(855, 545), chest_half=156.4, depth=3.9, belly=(845, 580), belly_half=80, pelvis=(915, 850),
+            pelvis_half=167, pelvis_mat="band", bow=(610, 575), bow_half=66, bow_mat="red", buttons=(), straps=(420,
+            560, 850)),
 }
 
 # legs: leg centre (pair), thigh/knee/shin/heel/toes/sole picture rows, widths and foot span
 LEGS = {
-    "golden_freddy": dict(leg_x=(430, 665), thigh=(1030, 850), thigh_half=75, knee=(1060, 1030), knee_half=30,
-                          shin=(1265, 1060), shin_half=85, heel_top=1265, toe_top=1310, sole_top=1400,
-                          foot=(255, 545)),
-    "crimson_freddy": dict(leg_x=(432, 668), thigh=(1065, 900), thigh_half=77, knee=(1100, 1065), knee_half=31,
-                           shin=(1290, 1100), shin_half=73, heel_top=1290, toe_top=1330, sole_top=1395,
-                           foot=(265, 530)),
-    "violet_bunny": dict(leg_x=(440, 605), thigh=(1080, 905), thigh_half=70, knee=(1110, 1080), knee_half=29,
-                         shin=(1290, 1110), shin_half=77, heel_top=1290, toe_top=1330, sole_top=1400,
-                         foot=(250, 530)),
+    "golden_freddy": dict(leg_x=(442.3, 687.3), thigh=(1030, 850), thigh_half=103.2, knee=(1060, 1030), knee_half=30, shin=(1265,
+            1060), shin_half=82.3, heel_top=1265, toe_top=1310, sole_top=1400, foot=(236.2, 516.9)),
+    "crimson_freddy": dict(leg_x=(407.2, 685.1), thigh=(1065, 900), thigh_half=108.1, knee=(1100, 1065), knee_half=31, shin=(1290,
+            1100), shin_half=83.8, heel_top=1290, toe_top=1330, sole_top=1395, foot=(193.1, 505.9)),
+    "violet_bunny": dict(leg_x=(414.9, 649.7), thigh=(1080, 905), thigh_half=91.4, knee=(1110, 1080), knee_half=29, shin=(1290,
+            1110), shin_half=79.4, heel_top=1290, toe_top=1330, sole_top=1400, foot=(202.8, 492.3)),
 }
 
 # arms: shoulder pivot (picture point), then each segment along its own axis in model px:
@@ -267,63 +288,46 @@ LEGS = {
 #   half   half width / half depth of the block
 #   next   (sideways offset, distance) of the next joint's pivot
 ARMS = {
-    "golden_freddy": dict(shoulder=(290, 470), upper=dict(angle=23, span=(-0.8, 7.6), ox=0.6, half=(2.6, 2.7), next=(0.0, 8.3)),
-                          fore=dict(angle=3, span=(0.65, 6.2), ox=0.2, half=(2.8, 2.7), next=(0.0, 6.8)),
-                          hand=dict(angle=-6, kind="endo")),
-    "crimson_freddy": dict(shoulder=(345, 500), upper=dict(angle=1, span=(-0.45, 7.1), ox=3.27, half=(2.7, 2.7), next=(3.1, 7.5)),
-                           fore=dict(angle=3, span=(0.4, 6.35), ox=1.27, half=(2.6, 2.6), next=(0.96, 6.7)),
-                           hand=dict(angle=0, kind="mitt", ox=-0.58, palm=(0.4, 4.6), half=(2.3, 2.0), fingers=3.4)),
-    "violet_bunny": dict(shoulder=(380, 550), upper=dict(angle=0, span=(-0.2, 6.5), ox=2.9, half=(2.5, 2.5), next=(3.1, 7.0)),
-                         fore=dict(angle=0, span=(0.5, 5.7), ox=0.46, half=(2.6, 2.5), next=(0.3, 6.2)),
-                         hand=dict(angle=0, kind="mitt", ox=-0.1, palm=(0.45, 4.5), half=(2.5, 2.0), fingers=2.9)),
+    "golden_freddy": dict(shoulder=(321.71, 449.96), upper=dict(angle=20.16, span=(-2.8, 7.72), ox=-1.29, half=(2.89, 2.7),
+            next=(-0.19, 8.28)), fore=dict(angle=6.38, span=(0.25, 6.44), ox=-0.89, half=(3, 2.7), next=(1.08, 7.43)),
+            hand=dict(angle=1.43, kind="endo"), cap=(-1.6, 1.4, 2.2, 2.6)),
+    "crimson_freddy": dict(shoulder=(361.09, 480.69), upper=dict(angle=0.87, span=(-0.26, 7.56), ox=2.1, half=(2.62, 2.7),
+            next=(3.28, 7.45)), fore=dict(angle=3.16, span=(0.31, 6.83), ox=0.43, half=(2.92, 2.6), next=(0.75, 7.04)),
+            hand=dict(angle=3.02, kind="mitt", ox=-0.2, palm=(0.4, 4.63), half=(2.82, 2), fingers=4.13), cap=(-1.71,
+            2.89, 2.49, 3.9)),
+    "violet_bunny": dict(shoulder=(375.12, 529), upper=dict(angle=0.81, span=(-0.38, 6.62), ox=2.29, half=(2.6, 2.5), next=(3.31,
+            7.39)), fore=dict(angle=1.91, span=(-0.27, 6.05), ox=0.39, half=(2.7, 2.5), next=(0.69, 6.48)),
+            hand=dict(angle=0.13, kind="mitt", ox=0.07, palm=(0.45, 5.03), half=(2.65, 2), fingers=3.09), cap=(-0.55,
+            3.29, 2.2, 5.79)),
 }
 
 # heads: slabs (bottom row, top row, half width) top-down silhouette; sockets, mask, muzzle, nose,
 # jaw and teeth rows; ears; hat.  Everything in picture px except depths.
 HEADS = {
-    "golden_freddy": dict(
-        pivot=460, front=-5.2, back=5.0,
-        slabs=[(160, 135, 110), (200, 160, 120), (275, 200, 145), (365, 275, 150), (405, 365, 138)],
-        sockets=dict(rows=(305, 225), inner=(535, 565), outer=(455, 645)), pupils=dict(x=(510, 606), row=265),
-        deep=0.8, mask=None, brow=dict(rows=(225, 205), inner=(540, 560), outer=(455, 645), mat="brow"),
-        cheeks=dict(rows=(360, 280), out=(370, 726)),
-        muzzle=dict(rows=(405, 315), half=(445, 650), depth=2.8, freckles=[]),
-        nose=dict(rows=(355, 315), half=(518, 585)),
-        jaw=dict(rows=(460, 425), half=(440, 650), mat="fur"),
-        teeth=dict(rows=(425, 406), span=(488, 622), n=4, w=25),
-        tears=dict(x=[(466, 648), (480, 632)], rows=(385, 305)),
-        ears=dict(kind="round", centre=((395, 707), 150), size=(100, 120), inner=0.8, ring=0.6,
-                  colours=("fur", "ear_ring", "brow")),
-        hat=dict(brim=(135, 100, 450, 638), crown=(100, 6, 478, 605))),
-    "crimson_freddy": dict(
-        pivot=490, front=-5.3, back=5.1,
-        slabs=[(160, 145, 110), (230, 160, 125), (350, 230, 141), (445, 350, 130)],
-        sockets=dict(rows=(330, 255), inner=(545, 580), outer=(465, 655)), pupils=dict(x=(515, 595), row=292),
-        deep=0.8, mask=dict(rows=(335, 220), half=(445, 650)), brow=None,
-        cheeks=dict(rows=(355, 280), out=(390, 705)),
-        muzzle=dict(rows=(445, 345), half=(448, 655), depth=2.9,
-                    freckles=[(468, 405), (482, 395), (474, 420)]),
-        nose=dict(rows=(380, 335), half=(520, 600)),
-        jaw=dict(rows=(500, 475), half=(450, 650), mat="fur"),
-        teeth=dict(rows=(475, 455), span=(485, 630), n=4, w=28),
-        tears=None,
-        ears=dict(kind="round", centre=((362, 742), 172), size=(125, 145), inner=1.4, ring=0.0,
-                  colours=("fur", "ear_inner", "ear_inner"), pin=True),
-        hat=dict(brim=(145, 112, 455, 635), crown=(112, 20, 480, 610))),
-    "violet_bunny": dict(
-        pivot=545, front=-5.0, back=4.8,
-        slabs=[(212, 195, 55), (225, 212, 77), (300, 225, 110), (420, 300, 127), (500, 420, 117)],
-        sockets=dict(rows=(410, 330), inner=(510, 535), outer=(430, 615)), pupils=dict(x=(465, 570), row=352),
-        deep=0.8, mask=dict(rows=(420, 300), half=(425, 620)), brow=None,
-        cheeks=dict(rows=(480, 380), out=(370, 680)),
-        muzzle=dict(rows=(500, 430), half=(420, 630), depth=2.6,
-                    freckles=[(438, 445), (452, 452), (444, 470)]),
-        nose=dict(rows=(445, 420), half=(495, 545)),
-        jaw=dict(rows=(555, 540), half=(430, 630), mat="fur"),
-        teeth=dict(rows=(540, 520), span=(465, 595), n=5, w=24),
-        tears=None,
-        ears=dict(kind="bunny"),
-        hat=None),
+    "golden_freddy": dict(pivot=460, front=-5.2, back=5, slabs=((160, 135, 127.5), (200, 160, 138.3), (275, 200, 142.5), (365, 275,
+            134.7), (405, 365, 151.5)), sockets=dict(rows=(305, 225), inner=(535, 565), outer=(455, 645)),
+            pupils=dict(x=(510, 606), row=265), deep=0.8, mask=None, brow=dict(rows=(225, 205), inner=(540, 560),
+            outer=(455, 645), mat="brow"), cheeks=dict(rows=(360, 249.1), out=(391.8, 718.4)), muzzle=dict(rows=(405,
+            315), half=(445, 650), depth=2.8, freckles=()), nose=dict(rows=(355, 315), half=(518, 585)),
+            jaw=dict(rows=(460, 425), half=(440, 650), mat="fur"), teeth=dict(rows=(425, 406), span=(488, 622), n=4,
+            w=25), tears=dict(x=((466, 648), (480, 632)), rows=(385, 305)), ears=dict(kind="round", centre=((346.4,
+            700.2), 152.9), size=(116.6, 151.7), inner=0.8, ring=0.6, colours=("fur", "ear_ring", "brow")),
+            hat=dict(brim=(125, 97.9, 443.5, 642.6), crown=(100, 6.3, 478.1, 607.5))),
+    "crimson_freddy": dict(pivot=490, front=-5.3, back=5.1, slabs=((160, 145, 107.7), (230, 160, 152.7), (350, 230, 157.3), (445,
+            350, 155.9)), sockets=dict(rows=(330, 255), inner=(545, 580), outer=(465, 655)), pupils=dict(x=(515, 595),
+            row=292), deep=0.8, mask=dict(rows=(335, 220), half=(445, 650)), brow=None, cheeks=dict(rows=(355, 267),
+            out=(357.6, 712.6)), muzzle=dict(rows=(445, 345), half=(448, 655), depth=2.9, freckles=((468, 405), (482,
+            395), (474, 420))), nose=dict(rows=(380, 335), half=(520, 600)), jaw=dict(rows=(500, 475), half=(450, 650),
+            mat="fur"), teeth=dict(rows=(475, 455), span=(485, 630), n=4, w=28), tears=None, ears=dict(kind="round",
+            centre=((357.2, 753.6), 161.9), size=(139.4, 175.6), inner=1.4, ring=0, colours=("fur", "ear_inner",
+            "ear_inner"), pin=True), hat=dict(brim=(118.4, 122.8, 456, 651.5), crown=(112, 18.2, 469.9, 616.3))),
+    "violet_bunny": dict(pivot=545, front=-5, back=4.8, slabs=((212, 195, 55), (225, 212, 77), (300, 225, 110), (420, 300, 161.7),
+            (500, 420, 87.8)), sockets=dict(rows=(410, 330), inner=(510, 535), outer=(430, 615)), pupils=dict(x=(465,
+            570), row=352), deep=0.8, mask=dict(rows=(420, 300), half=(425, 620)), brow=None, cheeks=dict(rows=(480,
+            403.5), out=(360.7, 656.5)), muzzle=dict(rows=(500, 430), half=(420, 630), depth=2.6, freckles=((438, 445),
+            (452, 452), (444, 470))), nose=dict(rows=(445, 420), half=(495, 545)), jaw=dict(rows=(555, 540), half=(430,
+            630), mat="fur"), teeth=dict(rows=(540, 510), span=(465, 595), n=5, w=25), tears=None,
+            ears=dict(kind="bunny"), hat=None),
 }
 
 TITLES = {"golden_freddy": "GOLDEN FREDDY", "crimson_freddy": "CRIMSON FREDDY", "violet_bunny": "VIOLET BUNNY"}
@@ -349,14 +353,14 @@ def build_legs(name):
         tw = pic.d(L["thigh_half"])
         bone(leg, "root", [s * lx, t1 - 0.6, 0])
         cube(leg, "hip_joint", [lx - 1.3, t1 - 1.2, -1.3], [lx + 1.3, t1 + 0.8, 1.3], "endo", s, painter=p_endo)
-        rbox(leg, "thigh", lx - tw, lx + tw, t0, t1, -tw, tw, "fur", s, r=0.55)
+        rbox(leg, "thigh", lx - tw, lx + tw, t0, t1, -tw, tw, "fur", s, r=0.85)
         k0, k1 = pic.y(L["knee"][0]), pic.y(L["knee"][1])
         kw = pic.d(L["knee_half"])
         bone(shin, leg, [s * lx, (k0 + k1) / 2, 0])
         cube(shin, "knee_joint", [lx - kw, k0 - 0.2, -kw], [lx + kw, k1 + 0.2, kw], "endo", s, painter=p_endo)
         s0, s1 = pic.y(L["shin"][0]), pic.y(L["shin"][1])
         sw = pic.d(L["shin_half"])
-        rbox(shin, "shin", lx - sw, lx + sw, s0, s1, -sw, sw, "fur", s, r=0.6)
+        rbox(shin, "shin", lx - sw, lx + sw, s0, s1, -sw, sw, "fur", s, r=0.95)
         heel = pic.y(L["heel_top"])
         bone(foot, shin, [s * lx, heel + 0.4, 0])
         cube(foot, "ankle_joint", [lx - 1.1, heel - 0.4, -1.1], [lx + 1.1, heel + 0.9, 1.1], "endo", s, painter=p_endo)
@@ -364,13 +368,13 @@ def build_legs(name):
         sole, toe = pic.y(L["sole_top"]), pic.y(L["toe_top"])
         fz0, fz1 = -8.8, 3.8
         cube(foot, "sole", [fi, 0.0, fz0], [fo, sole, fz1], "sole", s)
-        rbox(foot, "heel", fi + 0.6, fo - 0.6, sole, heel, -3.6, fz1 - 0.2, "fur", s, r=0.6)
+        rbox(foot, "heel", fi + 0.6, fo - 0.6, sole, heel, -3.6, fz1 - 0.2, "fur", s, r=0.8)
         gap = 0.18
         tw_ = (fo - fi - 2 * gap) / 3
         x = fi
         for i in range(3):
-            rbox(foot, f"toe{i + 1}", x, x + tw_, sole, toe, fz0 + 0.1, -2.6, "fur", s, r=0.5)
-            rbox(foot, f"toe{i + 1}_top", x + 0.25, x + tw_ - 0.25, toe - 0.3, toe + 0.9, fz0 + 1.3, -2.6, "fur", s, r=0.3)
+            rbox(foot, f"toe{i + 1}", x, x + tw_, sole, toe, fz0 + 0.1, -2.6, "fur", s, r=0.75)
+            rbox(foot, f"toe{i + 1}_top", x + 0.25, x + tw_ - 0.25, toe - 0.3, toe + 0.9, fz0 + 1.3, -2.6, "fur", s, r=0.45)
             x += tw_ + gap
 
 
@@ -380,12 +384,12 @@ def build_body(name):
     p0, p1 = pic.y(B["pelvis"][0]), pic.y(B["pelvis"][1])
     ph = pic.d(B["pelvis_half"])
     bone("body", "root", [0, p0 + 0.8, 0])
-    rbox("body", "pelvis", -ph, ph, p0, p1, -hd + 0.15, hd - 0.15, B.get("pelvis_mat", "fur"), r=0.6)
+    rbox("body", "pelvis", -ph, ph, p0, p1, -hd + 0.15, hd - 0.15, B.get("pelvis_mat", "fur"), r=0.8)
     c0, c1 = pic.y(B["chest"][0]), pic.y(B["chest"][1])
     hw = pic.d(B["chest_half"])
     bone("torso", "body", [0, p1, 0])
     cube("torso", "waist", [-hw + 1.0, p1 - 0.6, -hd + 1.0], [hw - 1.0, c0 + 0.4, hd - 1.0], "socket")
-    rbox("torso", "chest", -hw, hw, c0, c1, -hd, hd, "fur", r=0.75)
+    rbox("torso", "chest", -hw, hw, c0, c1, -hd, hd, "fur", r=1.1)
     # belly panel with a rounded top
     b0, b1 = pic.y(B["belly"][0]), pic.y(B["belly"][1])
     bx = pic.d(B["belly_half"])
@@ -423,7 +427,7 @@ def arm_segment(b, s, piv, seg, mat="fur", name="block"):
     a0, a1 = seg["span"]
     hw, hd = seg["half"]
     cx = px + seg["ox"]
-    rbox(b, name, cx - hw, cx + hw, py - a1, py - a0, -hd, hd, mat, s, r=0.55)
+    rbox(b, name, cx - hw, cx + hw, py - a1, py - a0, -hd, hd, mat, s, r=0.85)
 
 
 def build_arms(name, hw):
@@ -438,7 +442,13 @@ def build_arms(name, hw):
         inner = sx + up["ox"] - up["half"][0]
         cube(arm, "shoulder_joint", [min(hw - 0.4, sx - 1.0), sy - 1.1, -1.3], [max(inner + 0.6, sx + 1.0), sy + 0.7, 1.3],
              "endo", s, painter=p_endo)
+        rbox(arm, "shoulder_ball", sx - 1.35, sx + 1.35, sy - 1.35, sy + 1.35, -1.35, 1.35, "endo", s, r=0.6, painter=p_endo)
         arm_segment(arm, s, (sx, sy), up, name="upper_arm")
+        cap = A.get("cap")
+        if cap:
+            # rounded shoulder cap on top of the upper arm, toward the neck (peeks out beside the jaw)
+            cxc, top, cw, ch = sx + cap[0], sy + cap[1], cap[2], cap[3]
+            rbox(arm, "shoulder_cap", cxc - cw, cxc + cw, top - ch, top, -up["half"][1] + 0.3, up["half"][1] - 0.3, "fur", s, r=0.8)
         ex, ey = sx + up["next"][0], sy - up["next"][1]
         bone(fa, arm, [s * ex, ey, 0], [0, 0, s * (fo["angle"] - up["angle"])])
         cube(fa, "elbow_joint", [ex - 1.1, ey - 0.8, -1.1], [ex + 1.1, ey + 0.8, 1.1], "endo", s, painter=p_endo)
@@ -457,7 +467,7 @@ def endo_hand(hand, side, s, wx, wy):
     """Golden Freddy's hand: furry back of the hand (facing forward) with two wire rods, and three
     bare endoskeleton fingers plus a thumb, each a chain of fur blocks on black ball joints."""
     hx = wx - 0.3
-    rbox(hand, "palm", hx - 2.9, hx + 2.9, wy - 3.65, wy - 0.6, -1.25, 1.25, "fur", s, r=0.4)
+    rbox(hand, "palm", hx - 2.9, hx + 2.9, wy - 3.65, wy - 0.6, -1.25, 1.25, "fur", s, r=0.55)
     for k, dx in enumerate((0.35, -0.55)):
         cube(hand, f"wire{k + 1}", [hx + dx - 0.18, wy - 2.6, -1.6], [hx + dx + 0.18, wy - 0.1, -1.2], "endo", s, painter=p_endo)
     fing = f"{side}Fingers"
@@ -471,11 +481,11 @@ def endo_hand(hand, side, s, wx, wy):
             a, b_ = a * ls, b_ * ls
             x = hx + fx + splay * (a / 6.6)
             if kind == "ball":
-                cube(fing, f"f{i + 1}_joint{j // 2 + 1}", [x - 0.48, ky - b_, -0.48], [x + 0.48, ky - a, 0.48], "endo", s,
+                cube(fing, f"f{i + 1}_joint{j // 2 + 1}", [x - 0.52, ky - b_, -0.52], [x + 0.52, ky - a, 0.52], "endo", s,
                      painter=p_endo)
             else:
-                rbox(fing, f"f{i + 1}_seg{j // 2 + 1}", x - 0.62, x + 0.62, ky - b_, ky - a, -0.62, 0.62,
-                     "fur" if j < 5 else "fur_dark", s, r=0.18)
+                rbox(fing, f"f{i + 1}_seg{j // 2 + 1}", x - 0.74, x + 0.74, ky - b_, ky - a, -0.74, 0.74,
+                     "fur" if j < 5 else "fur_dark", s, r=0.28)
     th = f"{side}Thumb"
     tx, ty = hx - 3.85, wy - 1.1
     bone(th, hand, [s * tx, ty, -0.2])
@@ -483,7 +493,7 @@ def endo_hand(hand, side, s, wx, wy):
         if kind == "ball":
             cube(th, f"thumb_joint{j // 2 + 1}", [tx - 0.45, ty - b_, -0.65], [tx + 0.45, ty - a, 0.25], "endo", s, painter=p_endo)
         else:
-            rbox(th, f"thumb_seg{j // 2 + 1}", tx - 0.6, tx + 0.6, ty - b_, ty - a, -0.8, 0.4, "fur", s, r=0.18)
+            rbox(th, f"thumb_seg{j // 2 + 1}", tx - 0.6, tx + 0.6, ty - b_, ty - a, -0.8, 0.4, "fur", s, r=0.28)
     return (hx, wy - 2.1, 0.0)
 
 
@@ -506,21 +516,21 @@ def mitt_hand(hand, side, s, wx, wy, ha):
     hx = wx + ha["ox"]
     p0, p1 = ha["palm"]
     hw, hd = ha["half"]
-    rbox(hand, "palm", hx - hw, hx + hw, wy - p1, wy - p0, -hd, hd, "fur", s, r=0.5)
+    rbox(hand, "palm", hx - hw, hx + hw, wy - p1, wy - p0, -hd, hd, "fur", s, r=0.85)
     fing = f"{side}Fingers"
     ky = wy - p1 + 0.4
     bone(fing, hand, [s * hx, ky, 0.4], [18, 0, -s * 12])
     fl = ha["fingers"]
     gp = groove_painter(4, hx - hw + 0.1, hx + hw - 0.1)
-    rbox(fing, "fingers", hx - hw + 0.1, hx + hw - 0.1, ky - fl * 0.68, ky + 0.3, -hd + 0.05, hd - 0.05, "fur", s, r=0.45,
+    rbox(fing, "fingers", hx - hw + 0.1, hx + hw - 0.1, ky - fl * 0.68, ky + 0.3, -hd + 0.05, hd - 0.05, "fur", s, r=0.9,
          painter=gp)
-    rbox(fing, "finger_tips", hx - hw + 0.25, hx + hw - 0.25, ky - fl, ky - fl * 0.68 + 0.3, -hd + 0.5, hd, "fur", s, r=0.4,
+    rbox(fing, "finger_tips", hx - hw + 0.25, hx + hw - 0.25, ky - fl, ky - fl * 0.68 + 0.3, -hd + 0.5, hd, "fur", s, r=0.7,
          painter=gp)
     th = f"{side}Thumb"
     tx = hx - hw
     ty = wy - p0 - 1.4
     bone(th, hand, [s * tx, ty, -0.3], [0, 0, -s * 18])
-    rbox(th, "thumb", tx - 1.3, tx + 0.4, ty - 2.8, ty + 0.4, -hd + 0.2, 0.8, "fur", s, r=0.4)
+    rbox(th, "thumb", tx - 1.3, tx + 0.4, ty - 2.8, ty + 0.4, -hd + 0.2, 0.8, "fur", s, r=0.65)
     return (hx, wy - (p0 + p1) / 2, 0.0)
 
 
@@ -545,7 +555,7 @@ def build_head(name):
                 continue
             nm = f"head{i + 1}_{part}"
             if part != "eye":
-                rbox("head", nm, -w, w, a, b_, zf, back - (0.4 if top else 0.0), "fur", r=0.55 if top else 0.4)
+                rbox("head", nm, -w, w, a, b_, zf, back - (0.4 if top else 0.0), "fur", r=0.9 if top else 0.75, axes="xyz" if top else "xz")
                 continue
             cube("head", nm, [-w, a, fz + deep], [w, b_, back], "fur",
                  painter=socket_wall(name, [(half_pair(pic, *H["pupils"]["x"]), pic.y(H["pupils"]["row"]))]),
@@ -580,7 +590,7 @@ def build_head(name):
     cw = half_pair(pic, *C["out"])
     w_at = max(pic.d(hpx) for r0, r1, hpx in H["slabs"] if pic.y(r0) <= (c0 + c1) / 2 <= pic.y(r1))
     for s in (1, -1):
-        rbox("head", "cheek", w_at - 0.4, cw, c0, c1, fz + 0.4, fz + 4.6, "fur", s, r=0.45)
+        rbox("head", "cheek", w_at - 0.4, cw, c0, c1, fz + 0.4, fz + 4.6, "fur", s, r=0.7)
     # muzzle (split down the middle), nose, mouth, teeth, jaw
     M = H["muzzle"]
     sn0, sn1 = pic.y(M["rows"][0]), pic.y(M["rows"][1])
@@ -588,17 +598,17 @@ def build_head(name):
     sz = fz - M["depth"]
     dots = [(pic.x(fx), pic.y(fy)) for fx, fy in M["freckles"]]
     for s in (1, -1):
-        rbox("head", "muzzle", 0.07, mh, sn0, sn1, sz, fz + 0.3, "muzzle", s, r=0.45, painter=freckle_painter("muzzle", dots))
+        rbox("head", "muzzle", 0.07, mh, sn0, sn1, sz, fz + 0.3, "muzzle", s, r=0.85, painter=freckle_painter("muzzle", dots))
     N = H["nose"]
     n0, n1 = pic.y(N["rows"][0]), pic.y(N["rows"][1])
     nw = half_pair(pic, *N["half"])
-    rbox("head", "nose", -nw, nw, n0, n1, sz - 0.45, sz + 1.3, "black", r=0.35)
+    rbox("head", "nose", -nw, nw, n0, n1, sz - 0.45, sz + 1.3, "black", r=0.5)
     J = H["jaw"]
     j0, j1 = pic.y(J["rows"][0]), pic.y(J["rows"][1])
     jh = half_pair(pic, *J["half"])
     cube("head", "mouth", [-jh + 0.4, j1 - 0.1, sz + 0.5], [jh - 0.4, sn0, back - 1.0], "socket")
     bone("jaw", "head", [0, j1, 3.0])
-    rbox("jaw", "jaw", -jh, jh, j0, j1, sz + 0.1, 4.2, J["mat"], r=0.4)
+    rbox("jaw", "jaw", -jh, jh, j0, j1, sz + 0.1, 4.2, J["mat"], r=0.65)
     cube("jaw", "mouth_floor", [-jh + 0.6, j1, sz + 0.6], [jh - 0.6, j1 + 0.08, 3.6], "socket")
     T = H["teeth"]
     t0, t1 = pic.y(T["rows"][0]), pic.y(T["rows"][1])
@@ -615,11 +625,11 @@ def build_head(name):
             x = half_pair(pic, *pair)
             for s in (1, -1):
                 on_muzzle = x < mh
-                cube("head", "tear_wire", [x - 0.14, r0, (sz if on_muzzle else fz) - 0.08], [x + 0.14, min(r1, sn1), (sz if on_muzzle else fz) + 0.1],
+                cube("head", "tear_wire", [x - 0.2, r0, (sz if on_muzzle else fz) - 0.08], [x + 0.2, min(r1, sn1), (sz if on_muzzle else fz) + 0.1],
                      "black", s)
                 if on_muzzle:
-                    cube("head", "tear_wire_top", [x - 0.14, sn1 - 0.1, fz - 0.08], [x + 0.14, r1, fz + 0.1], "black", s)
-                    cube("head", "tear_wire_over", [x - 0.14, sn1 - 0.25, sz - 0.08], [x + 0.14, sn1 + 0.05, fz + 0.1], "black", s)
+                    cube("head", "tear_wire_top", [x - 0.2, sn1 - 0.1, fz - 0.08], [x + 0.2, r1, fz + 0.1], "black", s)
+                    cube("head", "tear_wire_over", [x - 0.2, sn1 - 0.25, sz - 0.08], [x + 0.2, sn1 + 0.05, fz + 0.1], "black", s)
     # eyes
     pxm, py = half_pair(pic, *H["pupils"]["x"]), pic.y(H["pupils"]["row"])
     bone("eyes", "head", [0, py, fz + deep])
@@ -645,31 +655,33 @@ def build_round_ears(name):
                  painter=p_chrome)
 
 
+# Violet Bunny's ears in picture px: joints, tips, tilt angles (degrees) and half widths (model px)
+BUNNY_EARS = dict(right_joint=(431.2, 221.9), right_len=195.6, right_angle=-18.2, right_half=2.7,
+                      left_joint=(624.1, 233.5), left_base=103.1, left_angle=35.2, base_half=1.9, fold_angle=108.7,
+                      left_len=178.8, top_half=1.7)
+
+
 def build_bunny_ears(name):
     """Right ear stands up (tilted out); the left one bends at its chrome joint and folds down."""
-    pic = P[name]
-    top = pic.y(195)
-    # right ear: joint at (440, 235), ear from (440, 215) up to (380, 25)
-    jx, jy = pic.x(440), pic.y(235)
-    bone("rightEar", "head", [jx, jy, 0.3], [0, 0, -20])
+    pic, E = P[name], BUNNY_EARS
+    jx, jy = pic.x(E["right_joint"][0]), pic.y(E["right_joint"][1])
+    bone("rightEar", "head", [jx, jy, 0.3], [0, 0, E["right_angle"]])
     cube("rightEar", "ear_joint", [jx - 0.6, jy - 0.4, -0.3], [jx + 0.6, jy + 1.0, 0.9], "chrome", painter=p_chrome)
-    L = math.hypot(440 - 380, 215 - 25) / SCALE
-    rbox("rightEar", "ear", jx - 2.4, jx + 2.4, jy + 0.8, jy + 0.8 + L, -0.55, 0.95, "fur", r=0.4,
+    L, w = E["right_len"] / SCALE, E["right_half"]
+    rbox("rightEar", "ear", jx - w, jx + w, jy + 0.8, jy + 0.8 + L, -0.55, 0.95, "fur", r=0.65,
          painter=panel_painter("ear_inner", "fur", 0.75))
-    # left ear: joint at (605, 225); short base up to (650, 165), then the tip folds down to (780, 290)
-    jx, jy = pic.x(605), pic.y(225)
-    bone("leftEar", "head", [jx, jy, 0.3], [0, 0, 40])
+    jx, jy = pic.x(E["left_joint"][0]), pic.y(E["left_joint"][1])
+    bone("leftEar", "head", [jx, jy, 0.3], [0, 0, E["left_angle"]])
     cube("leftEar", "ear_joint", [jx - 0.6, jy - 0.4, -0.3], [jx + 0.6, jy + 1.0, 0.9], "chrome", painter=p_chrome)
-    Lb = math.hypot(650 - 605, 225 - 165) / SCALE
-    rbox("leftEar", "ear_base", jx - 2.0, jx + 2.0, jy + 0.4, jy + 0.4 + Lb, -0.55, 0.95, "fur", r=0.35,
+    Lb, w = E["left_base"] / SCALE, E["base_half"]
+    rbox("leftEar", "ear_base", jx - w, jx + w, jy + 0.4, jy + 0.4 + Lb, -0.55, 0.95, "fur", r=0.6,
          painter=panel_painter("ear_inner", "fur", 0.7))
     fy = jy + 0.4 + Lb
-    bone("leftEarTop", "leftEar", [jx, fy - 0.3, 0.3], [0, 0, 110])
-    Lt = math.hypot(780 - 650, 290 - 165) / SCALE
+    bone("leftEarTop", "leftEar", [jx, fy - 0.3, 0.3], [0, 0, E["fold_angle"]])
+    Lt, w = E["left_len"] / SCALE, E["top_half"]
     cube("leftEarTop", "ear_hinge", [jx - 0.55, fy - 0.7, -0.25], [jx + 0.55, fy + 0.1, 0.85], "chrome", painter=p_chrome)
-    rbox("leftEarTop", "ear_top", jx - 2.05, jx + 2.05, fy - 0.2, fy - 0.2 + Lt, -0.55, 0.95, "fur", r=0.4,
+    rbox("leftEarTop", "ear_top", jx - w, jx + w, fy - 0.2, fy - 0.2 + Lt, -0.55, 0.95, "fur", r=0.65,
          painter=panel_painter("ear_inner", "fur", 0.75, faces=("south",)))
-    return top
 
 
 def build_hat(name):
@@ -681,8 +693,8 @@ def build_hat(name):
     bone("hat", "head", [hx, yb0, 0.0])
     bw, cw = abs(bx1 - bx0) / 2 / SCALE, abs(cx1 - cx0) / 2 / SCALE
     bxc = pic.x((bx0 + bx1) / 2)
-    rbox("hat", "brim", bxc - bw, bxc + bw, yb0 - 0.2, pic.y(b1), -bw * 0.95, bw * 0.95, "hat", r=0.35)
-    rbox("hat", "crown", hx - cw, hx + cw, pic.y(b1) - 0.1, pic.y(c1), -cw * 0.95, cw * 0.95, "hat", r=0.4)
+    rbox("hat", "brim", bxc - bw, bxc + bw, yb0 - 0.2, pic.y(b1), -bw * 0.95, bw * 0.95, "hat", r=0.55)
+    rbox("hat", "crown", hx - cw, hx + cw, pic.y(b1) - 0.1, pic.y(c1), -cw * 0.95, cw * 0.95, "hat", r=0.75)
 
 
 def build(name):

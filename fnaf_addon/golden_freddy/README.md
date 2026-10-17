@@ -4,9 +4,11 @@ This is a Blockbench model of Golden Freddy built from your Golden Freddy pictur
 
 Every part was measured from the picture at one shared scale (26 picture pixels = 1 model pixel), the same scale used for the other two characters from that set. No part is enlarged or shrunk: each keeps the size it has in the picture, and so does the character.
 
+To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 86%. Every colour was matched by rendering the model under plain studio light and sampling it at the same spots as the picture.
+
 It includes:
 
-- 280 cubes and 25 bones
+- 353 cubes and 25 bones
 - a 1024×1024 texture painted at 4 texels per model pixel, in the picture's "every pixel is a little block" style, with rounded block edges like the picture
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
@@ -29,7 +31,7 @@ It includes:
 - **Head:** a black top hat; round ears with a dark ring and a lighter centre; hollow black eye sockets with tiny dull red-brown irises; lighter brow blocks above the eyes; black wires running down from the eyes over the muzzle; a tan muzzle split down the middle with a big black nose; a row of grey teeth
 - **Chest:** a black bow tie and two round black buttons
 - **Hands:** bare endoskeleton fingers, as in the picture: a furry back of the hand with two wire rods, then three fingers and a thumb, each a chain of golden blocks on black ball joints
-- **Arms and legs:** the arms angle out from the shoulders on exposed joints; chunky thighs and shins on dark knee joints
+- **Arms and legs:** rounded shoulder caps beside the jaw; the upper arms angle out from dark ball joints and the forearms hang straight down; chunky rounded thighs and shins on dark knee joints
 - **Feet:** big three-toed feet on a dark sole
 
 ## Rig
