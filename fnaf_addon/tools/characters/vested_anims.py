@@ -23,6 +23,9 @@ of its nine clips has its own silhouette.
              pose 1: the picture, head tilting slowly; pose 2: looming forward over you
              performance 1: conducts an orchestra; performance 2: a music-box waltz sway
              jumpscare 1: tilts its head... then is in your face; jumpscare 2: arms up, crashing down
+
+Hands: the palm faces the leg with the thumb in front (fred3.py); roll() turns it back, down or
+forward where a clip needs it.
 """
 import math
 
@@ -122,7 +125,7 @@ class RustgrinNight(Fred3Night):
             ph = f + (math.pi if s > 0 else 0.0)
             setr(p, f"{side}Arm", -64.0 + 10.0 * sn(ph), s * 4.0, s * 12.0)
             setr(p, f"{side}Forearm", -20.0, 0, 0)
-            setr(p, f"{side}Hand", 6.0, 0, 0)
+            self.roll(p, side, 90.0)                         # palms down, grabbing
             self.claw(p, side, 0.8 + 0.2 * sn(2 * f))
         meta(p, extra=0.9 * pos(sn(2 * f + 0.9)))
         return p
@@ -155,7 +158,7 @@ class RustgrinNight(Fred3Night):
         setr(p, "head", -6.0 + 1.5 * sn(w), 22.0 * sweep, 6.0 * sweep)
         setr(p, "rightArm", -28.0 * sweep, 0, 4.0 + 66.0 * sweep)
         setr(p, "rightForearm", -12.0 * sweep, 0, 0)
-        setr(p, "rightHand", 0, -40.0 * sweep, 0)
+        self.roll(p, "right", -90.0 * sweep)                  # palm toward the crowd
         self.open_hand(p, "right", 0.2 + 0.7 * sweep)
         setr(p, "leftArm", -24.0, 0, -8.0)
         setr(p, "leftForearm", -76.0, 0, 0)
@@ -183,7 +186,7 @@ class RustgrinNight(Fred3Night):
             s = S[side]
             setr(p, f"{side}Arm", lerp(-20.0, -50.0, chorus), 0, s * lerp(6.0, 58.0, chorus))
             setr(p, f"{side}Forearm", lerp(-50.0, -10.0, chorus), 0, 0)
-            setr(p, f"{side}Hand", 0, -s * 30.0 * chorus, 0)
+            self.roll(p, side, -70.0 * chorus)                # palms open to the audience
             self.hand(p, side, curl=lerp(0.3, -0.6, chorus), spread=chorus)
         self.stance(p, 1.5, 3.0 * bow)
         meta(p)
@@ -231,7 +234,7 @@ class RustgrinNight(Fred3Night):
             s = S[side]
             setr(p, f"{side}Arm", lerp(10.0 * a, -120.0, k), 0, s * lerp(0, 28.0, k))
             setr(p, f"{side}Forearm", lerp(0, -40.0, k), 0, 0)
-            setr(p, f"{side}Hand", lerp(0, -30.0, k), 0, 0)
+            self.roll(p, side, -90.0 * k)                     # claws up at you
             self.claw(p, side, k)
         self.stance(p, 1.5, 8.0 * k)
         meta(p, z=lerp(1.0 * a, -10.0, k))
@@ -254,6 +257,7 @@ class RustgrinNight(Fred3Night):
             s = S[side]
             setr(p, f"{side}Arm", -50.0 * snap, 0, s * 40.0 * snap)
             setr(p, f"{side}Forearm", -20.0 * snap, 0, 0)
+            self.roll(p, side, -90.0 * snap)
             self.hand(p, side, curl=lerp(0.2, -0.8, snap), spread=snap)
         self.stance(p, 1.5, 6.0 * snap)
         meta(p, z=-8.0 * snap)
@@ -355,6 +359,7 @@ class MirehopNight(Fred3Night):
             ph = f + (math.pi if s > 0 else 0.0)
             setr(p, f"{side}Arm", -70.0 + 16.0 * sn(ph), 0, s * 10.0)
             setr(p, f"{side}Forearm", -12.0, 0, 0)
+            self.roll(p, side, 90.0)
             self.claw(p, side, 0.7)
         setr(p, "rightEar", 30.0, 0, 0)
         setr(p, "leftEar", 20.0, 0, 0)
@@ -386,7 +391,7 @@ class MirehopNight(Fred3Night):
         setr(p, "head", 0, 14.0 * lean, -24.0 * lean)
         setr(p, "rightArm", -60.0 * lean, 0, 10.0 * lean)
         setr(p, "rightForearm", -60.0 * lean, 0, 0)
-        setr(p, "rightHand", -20.0 * lean, 0, 0)
+        self.roll(p, "right", -90.0 * lean)                   # palm up, beckoning
         self.point(p, "right")
         setr(p, "leftArm", -6.0, 0, -12.0 * lean)
         setr(p, "leftForearm", -20.0, 0, 0)
@@ -416,12 +421,12 @@ class MirehopNight(Fred3Night):
         setr(p, "head", 6.0 + 10.0 * bob, -10.0 + 12.0 * sn(TAU * t / 4.0), 8.0 * sn(TAU * t / 2.0))
         setr(p, "leftArm", -50.0, 0, -36.0)
         setr(p, "leftForearm", -40.0, 0, 0)
-        setr(p, "leftHand", 0, 30.0, 0)
+        self.roll(p, "left", -90.0)                           # palm up under the neck
         self.hand(p, "left", curl=0.6)
         strum = sn(2 * beat)
         setr(p, "rightArm", -32.0 + 6.0 * strum, 0, 14.0)
         setr(p, "rightForearm", -74.0 + 12.0 * strum, 0, 0)
-        setr(p, "rightHand", 10.0 * strum, 0, 0)
+        self.roll(p, "right", 60.0 + 20.0 * strum)            # strumming
         self.hand(p, "right", curl=0.7)
         self.stance(p, 3.0, 4.0 + 6.0 * bob)
         self.ear_flop(p, beat, 6.0)
@@ -445,7 +450,7 @@ class MirehopNight(Fred3Night):
             s = S[side]
             setr(p, f"{side}Arm", -40.0 - 10.0 * air, 0, s * 10.0)
             setr(p, f"{side}Forearm", -70.0, 0, 0)
-            setr(p, f"{side}Hand", 40.0, 0, 0)
+            self.roll(p, side, 90.0)                          # paws down
             self.hand(p, side, curl=0.5)
         self.stance(p, 1.5, 12.0 * crouch, toe=-12.0 * air)
         self.ear_flop(p, hop - 1.0, 14.0)
@@ -468,7 +473,7 @@ class MirehopNight(Fred3Night):
             s = S[side]
             setr(p, f"{side}Arm", lerp(10.0 * c, -110.0, go), 0, s * lerp(-4.0, 26.0, go))
             setr(p, f"{side}Forearm", lerp(-20.0 * c, -30.0, go), 0, 0)
-            setr(p, f"{side}Hand", -20.0 * go, 0, 0)
+            self.roll(p, side, -90.0 * go)                    # claws up at you
             self.claw(p, side, 0.3 + 0.7 * go)
         setr(p, "rightEar", 30.0 * c - 20.0 * go, 0, 0)
         setr(p, "leftEarTop", 0, 0, -40.0 * c - 60.0 * go)
@@ -494,6 +499,7 @@ class MirehopNight(Fred3Night):
             s = S[side]
             setr(p, f"{side}Arm", lerp(10.0, -100.0, go), 0, s * lerp(-2.0, 30.0, go))
             setr(p, f"{side}Forearm", lerp(-6.0, -24.0, go), 0, 0)
+            self.roll(p, side, 90.0 * go)
             self.hand(p, side, curl=lerp(0.4, 0.3, go), spread=go, thumb=lerp(0.3, -0.5, go))
         setr(p, "leftEarTop", 0, 0, 30.0 * sag)
         setr(p, "rightEar", -20.0 * sag, 0, 20.0 * sag)
@@ -578,7 +584,7 @@ class NoxbriarNight(Fred3Night):
             s = S[side]
             setr(p, f"{side}Arm", 36.0, 0, s * 14.0)
             setr(p, f"{side}Forearm", -6.0, 0, 0)
-            setr(p, f"{side}Hand", 20.0, 0, 0)
+            self.roll(p, side, 90.0)                          # palms back
             self.open_hand(p, side, 0.5)
         meta(p, extra=0.8 * pos(sn(2 * f + 0.9)))
         return p
@@ -610,7 +616,7 @@ class NoxbriarNight(Fred3Night):
             s = S[side]
             setr(p, f"{side}Arm", -40.0 * lean, 0, s * 26.0 * lean)
             setr(p, f"{side}Forearm", -30.0 * lean, 0, 0)
-            setr(p, f"{side}Hand", 10.0 * lean, 0, 0)
+            self.roll(p, side, 90.0 * lean)                   # palms down over you
             self.claw(p, side, 0.2 + 0.6 * lean)
         self.stance(p, 2.0, 4.0 * lean)
         meta(p)
@@ -635,12 +641,12 @@ class NoxbriarNight(Fred3Night):
         setr(p, "head", -6.0 - 6.0 * by, -10.0 * bx, 0)
         setr(p, "rightArm", -60.0 - 22.0 * by, 0, 14.0 + 16.0 * bx)
         setr(p, "rightForearm", -40.0 + 10.0 * by, 0, 0)
-        setr(p, "rightHand", -20.0 * by, 0, 0)
+        self.roll(p, "right", 90.0)                           # palm down on the baton
         self.point(p, "right")
         lift = sn(TAU * t / 4.0)
         setr(p, "leftArm", -70.0 - 20.0 * lift, 0, -30.0)
         setr(p, "leftForearm", -30.0, 0, 0)
-        setr(p, "leftHand", 0, 20.0, 0)
+        self.roll(p, "left", -70.0)                           # palm up to the strings
         self.open_hand(p, "left", 0.4 + 0.3 * lift)
         self.stance(p, 2.0)
         meta(p)
@@ -662,7 +668,7 @@ class NoxbriarNight(Fred3Night):
             s = S[side]
             setr(p, f"{side}Arm", -30.0, 0, s * (40.0 + 10.0 * s * sway))
             setr(p, f"{side}Forearm", -30.0, 0, 0)
-            setr(p, f"{side}Hand", 0, -s * 20.0, 0)
+            self.roll(p, side, -50.0)
             self.hand(p, side, curl=0.1, spread=0.5)
         self.stance(p, 1.5, 2.0 + 2.0 * abs(sway))
         meta(p)
@@ -685,6 +691,7 @@ class NoxbriarNight(Fred3Night):
             s = S[side]
             setr(p, f"{side}Arm", -90.0 * k, 0, s * 30.0 * k)
             setr(p, f"{side}Forearm", -30.0 * k, 0, 0)
+            self.roll(p, side, -90.0 * k)
             self.claw(p, side, k)
         self.stance(p, 1.5, 8.0 * k)
         meta(p, z=-13.0 * k)
@@ -707,6 +714,7 @@ class NoxbriarNight(Fred3Night):
             s = S[side]
             setr(p, f"{side}Arm", lerp(-165.0 * up, -70.0, down), 0, s * lerp(18.0 * up, 12.0, down))
             setr(p, f"{side}Forearm", lerp(-20.0 * up, -10.0, down), 0, 0)
+            self.roll(p, side, 90.0 * down)
             self.claw(p, side, 0.4 + 0.6 * up)
         self.stance(p, 2.0, 12.0 * down)
         meta(p, z=-9.0 * down)
