@@ -558,9 +558,11 @@ def build_arms(name, hw):
 
 
 # Hands, built to work rather than to copy the pictures' poses: the palm hangs straight under the
-# wrist with its back facing forward, the fingers hang straight down in a row from its bottom edge
-# and the thumb sits on its inner edge.  Every finger and thumb segment is its own bone with no rest
-# rotation, so a positive X rotation bends any joint straight back into a fist.  Sizes in model px:
+# wrist facing the leg, the fingers hang straight down in a row from its bottom edge and the thumb
+# sits at its front.  They are laid out below with the back of the hand facing forward and the thumb
+# on the inner edge, and the hand bone turns a quarter to face the leg.  Every finger and thumb
+# segment is its own bone with no rest rotation, so a positive X rotation bends any joint straight
+# into a fist.  Sizes in model px:
 #   palm    width, height, depth
 #   segs    finger segment lengths (knuckle, middle, tip); seg_w / seg_d their width and depth
 #   thumb   thumb segment lengths; thumb_w its width
@@ -609,7 +611,8 @@ def build_hand(name, side, s, parent, wrist, parent_angle):
     Hd = HANDS[name]
     hand = f"{side}Hand"
     wx, wy = wrist
-    bone(hand, parent, [s * wx, wy, 0], [0, 0, -s * parent_angle * (1 - Hd["tilt"])])
+    # turned a quarter about the vertical so the palm faces the leg and the thumb points forward
+    bone(hand, parent, [s * wx, wy, 0], [0, -s * 90.0, -s * parent_angle * (1 - Hd["tilt"])])
     cube(hand, "wrist_joint", [wx - 0.9, wy - 0.7, -0.9], [wx + 0.9, wy + 0.6, 0.9], "endo", s, painter=p_endo)
     pw, ph, pd = Hd["palm"]
     top = wy - 0.45

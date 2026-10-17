@@ -3,37 +3,45 @@ own mechanical style, and each of its nine clips has its own silhouette.
 
   golden_freddy   a broken, haunted suit.  Long dead holds broken by glitch snaps; the head hangs
                   and lolls; the arms hang limp and swing like dead weight.
-                  idle: slumped, the head snapping between tilts, glitch twitches, fingers flexing
+                  idle: slumped; the head hangs, snaps up to stare straight at you and holds,
+                  then creaks over too far; glitch jerks, a power flicker, the jaw creaking open
                   walk: a dragging limp, the left foot scraping the floor
                   run: pitched forward, arms trailing limp behind, fingers splayed
                   pose 1: the picture; pose 2: slumped sitting on the floor
                   performance 1: music-box figurine, turning in ratchet steps, beckoning
                   performance 2: an invisible piano, every finger on its own key
-                  jumpscare 1: "IT'S ME" - only the head snaps up into your face, arms still limp
-                  jumpscare 2: powers down, then jolts upright with both arms flung out wide
+                  jumpscare 1: "IT'S ME" - dead still, then in two frames he is in your face,
+                  jaw wide, glitching, clawed hands coming at you
+                  jumpscare 2: powers down, the head twists round sideways to look at you... then
+                  snaps straight and lunges with both arms over you
   crimson_freddy  a heavy hydraulic brute.  Slow, weighted moves that stop hard with a bounce.
-                  idle: fists on hips, chest pumping, weight rocking, knuckle crack, neck crack
+                  idle: hunched like a stalker, breathing hard, the head panning the room in
+                  servo steps, then locking on you while the fists slowly close and the jaw creaks
                   walk: heavy stomp, shoulders rolling, fists swinging
                   run: a bull charge, head down, fists pumping
                   pose 1: the picture, fists slowly closing; pose 2: boxer stance throwing jabs
                   performance 1: rock song, fist pumping and head banging; performance 2: belly laugh
-                  jumpscare 1: arms swing open and crash shut in a bear hug
-                  jumpscare 2: both fists overhead, slammed down at you
+                  jumpscare 1: drops low, throws his arms wide, then crashes in and shut around
+                  you with a roar
+                  jumpscare 2: rears up with both fists overhead and smashes them down at you
   violet_bunny    jittery and springy.  Quick little servo steps, head tilts, restless ears.
-                  idle: hands fidgeting in front, curious head tilts, ear flicks, bobbing on his toes
+                  idle: a doll's stare - hands clasped, the head clicking further and further over
+                  sideways, then snapping upright; the jaw chatters, the ears twitch
                   walk: a bouncy skip; run: hopping with both feet together
                   pose 1: the picture, head cocking; pose 2: a shy wave
                   performance 1: slap bass; performance 2: side-step dance
-                  jumpscare 1: crouches, then pounces with clawed hands
-                  jumpscare 2: peeks in slowly from the side, then screams
+                  jumpscare 1: crouches with ears pinned, then pounces into your face with claws
+                  jumpscare 2: peeks in slowly with his head tipped right over... then snaps
+                  upright and lunges, screaming
 
-Hands: the back of the hand faces forward and every finger and thumb segment is its own bone with
-no rest rotation, so a positive X rotation bends a joint straight back into a fist.
+Hands: the palm faces the leg with the thumb in front, and every finger and thumb segment is its own
+bone with no rest rotation, so a positive X rotation bends a joint straight into a fist.  roll()
+turns a hand's palm back, down or forward when a clip needs it.
 """
 import math
 
 from characters import fred3
-from characters.night import NightClips, ease, flip, lerp, swing, window
+from characters.night import NightClips, clamp01, ease, flip, lerp, swing, window
 from fnafkit.anim import S, TAU, cs, flat_foot, pos, setp, setr, sn
 from fnafkit.servo import add_rot, meta, stepper
 
@@ -142,6 +150,30 @@ class Fred3Night(NightClips):
         on = 1.0 if t0 <= t <= t1 else 0.0
         add_rot(p, "jaw", -amp * (flip(t, rate) > 0) * on, 0, 0)
 
+    def roll(self, p, side, deg):
+        """Turn a hand's palm away from the leg (added on top): 90 = palm back (palms down with the
+        arm raised in front), -90 = palm forward."""
+        add_rot(p, f"{side}Hand", 0, -S[side] * deg, 0)
+
+    def glitch(self, p, t, times, mag=1.0, dur=0.085):
+        """Two-frame jerks to a wrong angle: a servo misfiring."""
+        for k, t0 in enumerate(times):
+            if t0 <= t < t0 + dur:
+                a = ((k * 37) % 7 - 3) / 3.0
+                b = ((k * 53) % 5 - 2) / 2.0 or 0.6
+                add_rot(p, "head", -14.0 * mag * b, 30.0 * mag * a, -24.0 * mag * b)
+                add_rot(p, "torso", 0, 0, 6.0 * mag * a)
+                add_rot(p, "jaw", 10.0 * mag, 0, 0)
+
+    def lunge_legs(self, p, k, spread=2.0):
+        """The step that throws the body forward at the camera."""
+        setr(p, "rightLeg", -26.0 * k, 0, spread)
+        setr(p, "rightShin", 22.0 * k, 0, 0)
+        flat_foot(p, "right")
+        setr(p, "leftLeg", 16.0 * k, 0, -spread)
+        setr(p, "leftShin", 8.0 * k, 0, 0)
+        flat_foot(p, "left", toe=12.0 * k)
+
 
 # ==========================================================================
 # Golden Freddy: a broken, haunted suit
@@ -157,8 +189,7 @@ class GoldenNight(Fred3Night):
 
     def schedule(self, name, L):
         if name == "idle":
-            return {"head": stepper(1.2, 0.07, 0.2, overshoot=0.12), "torso": stepper(2.0, 0.4),
-                    "armR": stepper(1.5, 0.35, 0.3), "armL": stepper(1.5, 0.35, 1.0), "jaw": stepper(1.5, 0.06, 0.7)}
+            return {"armR": stepper(1.5, 0.35, 0.3), "armL": stepper(1.5, 0.35, 1.0)}     # the head has its own snaps
         if name == "walk":
             return {"head": stepper(L / 2, 0.1, 0.3)}        # the arms swing freely, like dead weight
         if name == "run":
@@ -175,26 +206,34 @@ class GoldenNight(Fred3Night):
         return {}
 
     def idle(self, t):
-        """Slumped forward, head hanging, arms limp; the head snaps between tilts."""
-        w = TAU * t / 6.0
+        """Slumped and limp.  The head hangs... snaps up to stare straight at you and holds...
+        then creaks over sideways much too far, and drops again."""
         p = {}
-        setr(p, "body", 3.0, 0, 1.5 * sn(w))
-        setr(p, "torso", 9.0, 4.0 * sn(w), 2.0 * sn(w + 1.0))
-        setr(p, "head", 12.0 + 8.0 * sn(2 * w), 22.0 * sn(w), 20.0 * sn(w + 0.9))
-        setr(p, "jaw", 7.0 + 5.0 * pos(sn(3 * w)), 0, 0)
+        up = ease((t - 1.4) / 0.08)                          # snaps up to stare
+        over = ease((t - 3.6) / 1.0)                         # creaks over sideways
+        down = ease((t - 5.3) / 0.5)                         # and hangs again
+        stare = up * (1 - down)
+        setr(p, "body", 3.0, 0, 0)
+        setr(p, "torso", 9.0 - 3.0 * stare, 0, 0)
+        setr(p, "head", lerp(26.0, -4.0, stare) + 6.0 * over * (1 - down), lerp(-10.0, 0.0, stare) + 14.0 * over * (1 - down),
+             lerp(24.0, 4.0, stare) - 44.0 * over * (1 - down))
+        setr(p, "jaw", lerp(6.0, 18.0, ease((t - 1.6) / 1.8)) * (1 - window(t, 3.45, 5.4, 0.04)) + 3.0, 0, 0)
         for side in ("right", "left"):
             self.hang(p, side, fwd=6.0, out=-2.0, elbow=-8.0, wrist=6.0)
-            self.hand(p, side, curl=0.3)
+            self.hand(p, side, curl=0.35)
         self.stance(p, 1.0, 3.0)
         meta(p)
         return p
 
     def idle_post(self, p, t):
-        g = window(t, 2.2, 2.3, 0.01) + window(t, 4.9, 4.98, 0.01)       # glitch: a two-frame jerk
-        add_rot(p, "head", -14.0 * g, 26.0 * g, -20.0 * g)
-        add_rot(p, "torso", 0, 0, 5.0 * g)
-        self.finger_flex(p, "right", t, 0.8)
-        self.finger_flex(p, "left", t, 3.3)
+        self.glitch(p, t, (0.9, 2.55, 4.45))
+        sag = window(t, 5.0, 5.2, 0.02)                      # the power flickers: he sags, then catches
+        add_rot(p, "torso", 10.0 * sag, 0, 0)
+        add_rot(p, "head", 14.0 * sag, 0, 0)
+        for side in ("right", "left"):
+            add_rot(p, f"{side}Arm", 6.0 * sag, 0, 0)
+        self.finger_flex(p, "right", t, 0.4, amp=0.7)
+        self.finger_flex(p, "left", t, 3.9, amp=0.7)
 
     def walk(self, t):
         """A dragging limp: the right leg steps, the left drags its toes along the floor."""
@@ -292,6 +331,7 @@ class GoldenNight(Fred3Night):
         setr(p, "rightArm", -40.0 * beck, 0, 12.0 * beck)
         setr(p, "rightForearm", -50.0 * beck, 0, 0)
         setr(p, "rightHand", -24.0 * beck, 0, 0)
+        self.roll(p, "right", -90.0 * beck)                  # palm up, beckoning
         self.hand(p, "right", curl=0.1)
         setr(p, "leftArm", -18.0, 0, -6.0)
         setr(p, "leftForearm", -78.0, 0, 0)               # the left hand rests on the belly
@@ -319,6 +359,7 @@ class GoldenNight(Fred3Night):
             setr(p, f"{side}Arm", -46.0, 0, -s * (14.0 + 7.0 * reach))
             setr(p, f"{side}Forearm", -40.0, 0, 0)
             setr(p, f"{side}Hand", 30.0, 0, 0)
+            self.roll(p, side, 90.0)                         # palms down on the keys
             self.hand(p, side, curl=0.15, spread=0.4)
         self.stance(p, 1.5, 3.0)
         meta(p)
@@ -330,53 +371,65 @@ class GoldenNight(Fred3Night):
         add_rot(p, "jaw", song(t, 0.5), 0, 0)
 
     def jumpscare1(self, t):
-        """IT'S ME: dead still... then only the head snaps up into your face, the arms stay limp."""
+        """IT'S ME: slumped, dead still... then in two frames he is in your face, jaw wide, glitching,
+        and the clawed hands come up at you."""
         p = {}
-        k = ease((t - 0.3) / 0.06)
-        setr(p, "body", 4.0 + 10.0 * k, 0, 0)
-        setr(p, "torso", 10.0 - 4.0 * k, 0, 0)
-        setr(p, "head", lerp(30.0, -38.0, k), 0, lerp(16.0, 0.0, k))
-        setr(p, "jaw", lerp(6.0, 26.0, k), 0, 0)
-        setr(p, "hat", -14.0 * k, 0, 0)
+        k = 1.0 if t >= 0.36 else 0.0                        # no easing: he is just there
+        arms = ease((t - 0.5) / 0.12)
+        setr(p, "body", 4.0 + 12.0 * k, 0, 0)
+        setr(p, "torso", 10.0 - 2.0 * k, 0, 0)
+        setr(p, "head", lerp(30.0, -32.0, k), 0, lerp(20.0, 0.0, k))
+        setr(p, "jaw", lerp(5.0, 32.0, k), 0, 0)
+        setr(p, "hat", -16.0 * k, 0, -8.0 * k)
         for side in ("right", "left"):
-            self.hang(p, side, fwd=4.0 + 10.0 * k, out=-2.0, elbow=-6.0, wrist=6.0)
-            self.hand(p, side, curl=0.3)
-        self.stance(p, 1.0, 3.0)
-        meta(p, z=-12.0 * k)
+            s = S[side]
+            setr(p, f"{side}Arm", lerp(-4.0, -98.0, arms), 0, s * lerp(-2.0, -6.0, arms))
+            setr(p, f"{side}Forearm", lerp(-6.0, -20.0, arms), 0, 0)
+            setr(p, f"{side}Hand", lerp(6.0, -10.0, arms), 0, 0)
+            self.roll(p, side, 90.0 * arms)
+            self.hand(p, side, curl=lerp(0.35, 0.45, arms), spread=arms, thumb=lerp(0.35, -0.5, arms))
+        self.stance(p, 1.0, 3.0 * (1 - k))
+        self.lunge_legs(p, k)
+        meta(p, z=-18.0 * k)
         return p
 
     def jumpscare1_post(self, p, t):
-        self.scream_shake(p, t, 0.38, 1.2, head=10.0, rate=14, body=0.8)
-        g = window(t, 0.15, 0.22, 0.01)
-        add_rot(p, "head", 0, 20.0 * g, -12.0 * g)
+        self.glitch(p, t, (0.18,), mag=0.6)
+        self.scream_shake(p, t, 0.4, 1.25, head=12.0, rate=15, body=2.0)
+        self.jaw_clack(p, t, 0.45, 1.25, amp=9.0, rate=8)
+        self.glitch(p, t, (0.62, 0.84, 1.03), mag=0.8)
 
     def jumpscare2(self, t):
-        """Powers down - head drops, knees buckle - then jolts upright, arms flung out wide."""
+        """Powers down, head dropping... the head twists round sideways to look at you... then snaps
+        straight and he lunges, both arms coming over you."""
         p = {}
-        down = ease(t / 0.45)
-        up = ease((t - 0.6) / 0.07)
-        sag = down * (1 - up)
-        setr(p, "body", 6.0 * sag + 8.0 * up, 0, 0)
-        setr(p, "torso", 18.0 * sag - 6.0 * up, 0, 0)
-        setr(p, "head", 44.0 * sag - 32.0 * up, 0, 26.0 * sag)
-        setr(p, "jaw", 4.0 + 24.0 * up, 0, 0)
-        setr(p, "hat", -10.0 * up, 0, 0)
+        down = ease(t / 0.35)
+        twist = ease((t - 0.45) / 0.45)
+        go = 1.0 if t >= 0.98 else 0.0
+        sag = down * (1 - go)
+        setr(p, "body", 6.0 * sag + 14.0 * go, 0, 0)
+        setr(p, "torso", 16.0 * sag - 4.0 * go, 0, 0)
+        setr(p, "head", lerp(40.0 * down - 24.0 * twist, -30.0, go), lerp(70.0 * twist, 0.0, go), lerp(26.0 * down + 40.0 * twist, 0.0, go))
+        setr(p, "jaw", lerp(4.0 + 6.0 * twist, 33.0, go), 0, 0)
+        setr(p, "hat", -12.0 * go, 0, 0)
+        arms = ease((t - 1.0) / 0.1)
         for side in ("right", "left"):
             s = S[side]
-            setr(p, f"{side}Arm", 8.0 * sag - 8.0 * up, 0, s * (-3.0 * sag + 86.0 * up))
-            setr(p, f"{side}Forearm", -4.0 - 6.0 * up, 0, 0)
-            setr(p, f"{side}Hand", 10.0 * sag, 0, 0)
-            self.hand(p, side, curl=lerp(0.4, -0.8, up), spread=up, thumb=lerp(0.3, -0.8, up))
+            setr(p, f"{side}Arm", lerp(8.0 * sag, -96.0, arms), 0, s * lerp(-3.0, 58.0, arms))
+            setr(p, f"{side}Forearm", lerp(-4.0, -42.0, arms), 0, 0)
+            setr(p, f"{side}Hand", lerp(10.0 * sag, -20.0, arms), 0, 0)
+            self.roll(p, side, 90.0 * arms)
+            self.hand(p, side, curl=lerp(0.4, 0.5, arms), spread=arms, thumb=lerp(0.3, -0.6, arms))
         self.stance(p, 1.5, 10.0 * sag)
-        meta(p, z=-7.0 * up)
+        self.lunge_legs(p, go)
+        meta(p, z=-16.0 * go)
         return p
 
     def jumpscare2_post(self, p, t):
-        g = window(t, 0.82, 0.86, 0.01) + window(t, 1.02, 1.06, 0.01)
-        add_rot(p, "head", 0, 24.0 * g, -18.0 * g)
-        self.scream_shake(p, t, 0.68, 1.6, head=8.0)
-        self.jaw_clack(p, t, 0.7, 1.6, amp=8.0, rate=7)
-
+        self.glitch(p, t, (0.3, 0.7), mag=0.5)
+        self.scream_shake(p, t, 1.02, 1.65, head=11.0, rate=15, body=2.0)
+        self.jaw_clack(p, t, 1.05, 1.65, amp=9.0, rate=8)
+        self.glitch(p, t, (1.2, 1.42), mag=0.8)
 
 # ==========================================================================
 # Crimson Freddy: a heavy hydraulic brute
@@ -393,8 +446,7 @@ class CrimsonNight(Fred3Night):
     def schedule(self, name, L):
         heavy = dict(overshoot=0.1, settle=0.12)
         if name == "idle":
-            return {"head": stepper(1.5, 0.45, 0.3, **heavy), "armR": stepper(1.0, 0.3, **heavy),
-                    "armL": stepper(1.0, 0.3, 0.5, **heavy)}
+            return {"head": stepper(0.75, 0.3, **heavy)}
         if name == "walk":
             return {"head": stepper(L / 2, 0.2, **heavy), "armR": stepper(L / 2, 0.25, L / 4, **heavy),
                     "armL": stepper(L / 2, 0.25, L / 4, **heavy)}
@@ -408,32 +460,30 @@ class CrimsonNight(Fred3Night):
         return {}
 
     def idle(self, t):
-        """Fists on his hips, chest pumping like a bellows, weight rocking, scanning the room."""
-        w = TAU * t / 6.0
+        """Hunched like a stalker, breathing hard.  The head pans the room in heavy servo steps,
+        then locks on you and holds while the fists slowly close and the jaw creaks open."""
         p = {}
         breath = sn(TAU * t / 1.5)
-        rock = sn(TAU * t / 3.0)
-        setr(p, "body", 1.0, 0, 3.5 * rock)
-        setr(p, "torso", 3.0 - 3.0 * breath, 4.0 * sn(w), -2.0 * rock)
-        setr(p, "head", 4.0 + 2.0 * breath, 28.0 * sn(w), -1.5 * rock)
+        lock = ease((t - 2.9) / 0.12) * (1 - ease((t - 5.2) / 0.5))
+        pan = 34.0 * sn(TAU * t / 3.0) if t < 2.9 else 0.0
+        setr(p, "body", 4.0, 0, 0)
+        setr(p, "torso", 12.0 - 2.5 * breath, 0, 0)
+        setr(p, "head", lerp(10.0, -6.0, lock) + 1.5 * breath, lerp(pan, 0.0, lock), 12.0 * lock * ease((t - 3.4) / 1.0))
+        setr(p, "jaw", 3.0 + 14.0 * lock * ease((t - 3.2) / 1.6), 0, 0)
+        grip = ease((t - 0.8) / 1.6) * (1 - ease((t - 5.3) / 0.4))
         for side in ("right", "left"):
             s = S[side]
-            setr(p, f"{side}Arm", 4.0, 0, s * (38.0 + 2.0 * breath))
-            setr(p, f"{side}Forearm", -20.0, 0, -s * 62.0)
-            setr(p, f"{side}Hand", 0, 0, -s * 20.0)
-            self.fist(p, side, 0.9)
-        self.stance(p, 3.0, 2.0)
+            self.hang(p, side, fwd=10.0, out=4.0 + 1.5 * breath, elbow=-16.0)
+            k = 0.3 + 0.7 * ease((t - (0.8 if s > 0 else 1.4)) / 1.4) * (1 - ease((t - 5.3) / 0.4))
+            self.hand(p, side, curl=k, thumb=k)
+        self.stance(p, 3.0, 5.0)
         meta(p)
         return p
 
     def idle_post(self, p, t):
-        rub = window(t, 0.8, 2.4, 0.15)                       # takes one fist off his hip and cracks his knuckles
-        add_rot(p, "rightArm", -36.0 * rub, 0, -30.0 * rub)
-        add_rot(p, "rightForearm", -60.0 * rub, 0, 52.0 * rub)
-        self.hand(p, "right", curl=-0.9 * rub * pulse(t, 0.4, 0.2, 0.04), add=True)
-        crack = window(t, 3.8, 4.05, 0.03)                                   # cracks his neck
-        add_rot(p, "head", 0, 0, 24.0 * crack - 22.0 * window(t, 4.15, 4.4, 0.03))
-        add_rot(p, "jaw", 10.0 * window(t, 5.0, 5.35, 0.04), 0, 0)
+        crack = window(t, 5.45, 5.65, 0.03)                                  # cracks his neck
+        add_rot(p, "head", 0, 0, 22.0 * crack - 20.0 * window(t, 5.72, 5.92, 0.03))
+        self.jaw_clack(p, t, 5.0, 5.2, amp=6.0, rate=10)
 
     def walk(self, t):
         """Heavy stomp: wide steps, the body drops onto each foot, shoulders roll, fists swing."""
@@ -563,53 +613,61 @@ class CrimsonNight(Fred3Night):
             add_rot(p, f"{side}Hand", 14.0 * pulse(t, 0.33, 0.12, 0.03) * laugh, 0, 0)
 
     def jumpscare1(self, t):
-        """A bear hug: the arms swing wide open, then crash shut in front of you."""
+        """Drops low, throws his arms wide... then crashes in and shut around you with a roar."""
         p = {}
-        wide = ease((t - 0.05) / 0.18)
-        shut = ease((t - 0.42) / 0.1)
-        lunge = ease((t - 0.35) / 0.15)
-        setr(p, "body", -4.0 * wide * (1 - lunge) + 18.0 * lunge, 0, 0)
-        setr(p, "torso", -6.0 * wide * (1 - lunge) + 10.0 * lunge, 0, 0)
-        setr(p, "head", -10.0 * wide - 22.0 * lunge, 0, 0)
-        setr(p, "jaw", 12.0 * wide + 14.0 * lunge, 0, 0)
-        setr(p, "hat", -10.0 * lunge, 0, 0)
+        crouch = ease(t / 0.15)
+        wide = ease((t - 0.12) / 0.14)
+        go = ease((t - 0.3) / 0.08)
+        c = crouch * (1 - go)
+        setr(p, "body", 10.0 * c + 20.0 * go, 0, 0)
+        setr(p, "torso", 12.0 * c + 10.0 * go, 0, 0)
+        setr(p, "head", lerp(18.0 * c - 14.0 * wide, -30.0, go), 0, 0)
+        setr(p, "jaw", 16.0 * wide + 18.0 * go, 0, 0)
+        setr(p, "hat", -12.0 * go, 0, 0)
         for side in ("right", "left"):
             s = S[side]
-            setr(p, f"{side}Arm", lerp(-30.0 * wide, -86.0, shut), 0, s * lerp(72.0 * wide, -12.0, shut))
-            setr(p, f"{side}Forearm", lerp(-14.0 * wide, -54.0, shut), 0, 0)
-            k = lerp(-0.6 * wide, 0.9, shut)
-            self.hand(p, side, curl=k, spread=wide * (1 - shut), thumb=k)
-        self.stance(p, 3.0, 6.0 * lunge)
-        setr(p, "rightLeg", -22.0 * lunge, 0, 3.0)
-        setr(p, "rightShin", 20.0 * lunge, 0, 0)
-        flat_foot(p, "right")
-        meta(p, z=-10.0 * lunge)
+            setr(p, f"{side}Arm", lerp(-36.0 * wide, -92.0, go), 0, s * lerp(80.0 * wide, -22.0, go))
+            setr(p, f"{side}Forearm", lerp(-16.0 * wide, -40.0, go), 0, 0)
+            setr(p, f"{side}Hand", 0, 0, 0)
+            self.roll(p, side, 90.0 * go)
+            k = lerp(-0.7 * wide, 0.75, go)
+            self.hand(p, side, curl=k, spread=wide * (1 - go), thumb=k)
+        self.stance(p, 3.0, 16.0 * c)
+        self.lunge_legs(p, go, spread=3.0)
+        meta(p, z=-16.0 * go)
         return p
 
     def jumpscare1_post(self, p, t):
-        self.scream_shake(p, t, 0.55, 1.25, head=6.0, rate=10, body=2.0)
+        self.scream_shake(p, t, 0.38, 1.25, head=8.0, rate=11, body=3.0)
+        self.jaw_clack(p, t, 0.42, 1.25, amp=8.0, rate=7)
+        for side in ("right", "left"):
+            add_rot(p, f"{side}Arm", 3.0 * flip(t, 11) * (0.4 <= t <= 1.25), 0, 0)
 
     def jumpscare2(self, t):
-        """Both fists raised overhead, then slammed down at you with a roar."""
+        """Rears up with both fists overhead... smashes them down at you and roars, fists up by his face."""
         p = {}
-        rise = ease(t / 0.35)
-        slam = ease((t - 0.45) / 0.08)
-        setr(p, "body", -6.0 * rise * (1 - slam) + 24.0 * slam, 0, 0)
-        setr(p, "torso", -8.0 * rise * (1 - slam) + 14.0 * slam, 0, 0)
-        setr(p, "head", -14.0 * rise * (1 - slam) - 20.0 * slam, 0, 0)
-        setr(p, "jaw", 10.0 * rise + 18.0 * slam, 0, 0)
+        rise = ease(t / 0.32)
+        slam = ease((t - 0.4) / 0.07)
+        up = rise * (1 - slam)
+        setr(p, "body", -8.0 * up + 26.0 * slam, 0, 0)
+        setr(p, "torso", -10.0 * up + 16.0 * slam, 0, 0)
+        setr(p, "head", -18.0 * up - 24.0 * slam, 0, 0)
+        setr(p, "jaw", 14.0 * rise + 20.0 * slam, 0, 0)
+        setr(p, "hat", -10.0 * slam, 0, 0)
         for side in ("right", "left"):
             s = S[side]
-            setr(p, f"{side}Arm", lerp(-170.0 * rise, -70.0, slam), 0, -s * 10.0)
-            setr(p, f"{side}Forearm", lerp(-40.0 * rise, -10.0, slam), 0, 0)
+            setr(p, f"{side}Arm", lerp(-172.0 * rise, -88.0, slam), 0, s * lerp(-10.0, 16.0, slam))
+            setr(p, f"{side}Forearm", lerp(-36.0 * rise, -62.0, slam), 0, 0)
+            self.roll(p, side, 90.0)
             self.fist(p, side, 1.0)
-        self.stance(p, 3.0, 4.0 + 10.0 * slam)
-        meta(p, z=-9.0 * slam)
+        self.stance(p, 3.0, 4.0 + 12.0 * slam)
+        self.lunge_legs(p, slam, spread=3.0)
+        meta(p, z=-15.0 * slam)
         return p
 
     def jumpscare2_post(self, p, t):
-        self.scream_shake(p, t, 0.55, 1.4, head=6.0, body=2.5)
-
+        self.scream_shake(p, t, 0.48, 1.4, head=8.0, rate=11, body=3.0)
+        self.jaw_clack(p, t, 0.5, 1.4, amp=8.0, rate=7)
 
 # ==========================================================================
 # Violet Bunny: jittery and springy
@@ -626,8 +684,7 @@ class BunnyNight(Fred3Night):
     def schedule(self, name, L):
         quick = dict(overshoot=0.12, settle=0.06)
         if name == "idle":
-            return {"head": stepper(0.42, 0.06, **quick), "torso": stepper(0.84, 0.1, **quick),
-                    "armR": stepper(0.6, 0.1, **quick), "armL": stepper(0.6, 0.1, 0.3, **quick),
+            return {"head": stepper(0.42, 0.05, **quick), "torso": stepper(0.42, 0.05, **quick),
                     "ears": stepper(0.3, 0.05, **quick)}
         if name == "walk":
             return {"head": stepper(L / 4, 0.05, **quick)}
@@ -643,29 +700,35 @@ class BunnyNight(Fred3Night):
         setr(p, "leftEarTop", 0, 0, amp * sn(phase - 0.5))
 
     def idle(self, t):
-        """Curious: the head cocks one way then the other, ears restless, weight on his toes."""
-        w = TAU * t / 5.0
+        """A doll's stare: hands clasped, the head clicks further and further over sideways while he
+        stares at you... then snaps upright and freezes."""
         p = {}
-        setr(p, "torso", 2.0, 6.0 * sn(w), 2.0 * sn(2 * w))
-        setr(p, "head", 4.0 * sn(3 * w), 18.0 * sn(2 * w + 0.5), 22.0 * sn(3 * w))
+        over = clamp01(t / 2.6) if t < 3.1 else 0.0          # the head servo clicks over (see schedule)
+        setr(p, "torso", 2.0, 0, -4.0 * over)
+        setr(p, "head", 4.0 * over, -6.0 * over, 56.0 * over)
+        setr(p, "jaw", 3.0, 0, 0)
         for side in ("right", "left"):
             s = S[side]
-            # hands together in front of his belly, fidgeting
-            setr(p, f"{side}Arm", -22.0, 0, -s * 10.0)
+            setr(p, f"{side}Arm", -22.0, 0, -s * 10.0)            # hands clasped in front of his belly
             setr(p, f"{side}Forearm", -62.0, 0, 0)
             setr(p, f"{side}Hand", 10.0, 0, -s * 22.0)
-            self.hand(p, side, curl=0.35)
+            self.roll(p, side, 60.0)
+            self.hand(p, side, curl=0.45)
         self.stance(p, 1.0)
-        self.ear_flop(p, 4 * w, 10.0)
-        meta(p, extra=0.25 * pos(sn(4 * w)))           # bobbing on his toes
+        setr(p, "rightEar", 0, 0, 0)
+        setr(p, "leftEar", 0, 0, 0)
+        setr(p, "leftEarTop", 0, 0, -10.0 * over)
+        meta(p)
         return p
 
     def idle_post(self, p, t):
-        for t0 in (0.7, 2.1, 3.6):
-            add_rot(p, "rightEar", 14.0 * window(t, t0, t0 + 0.12, 0.02), 0, 0)
-        add_rot(p, "leftEarTop", 0, 0, 22.0 * window(t, 2.9, 3.2, 0.04))
-        self.finger_ripple(p, "right", t, 0.5, 0.7, step=0.08)          # fingers drumming on each other
-        self.finger_ripple(p, "left", t, 0.5, 0.6, step=0.08, phase=0.25)
+        for t0 in (0.9, 2.3, 4.4):
+            add_rot(p, "rightEar", 16.0 * window(t, t0, t0 + 0.1, 0.02), 0, 0)
+        jitter = 1.0 if 3.9 <= t <= 4.25 else 0.0               # a tiny fast shudder
+        add_rot(p, "head", 0, 4.0 * flip(t, 15) * jitter, 3.0 * flip(t, 15) * jitter)
+        self.jaw_clack(p, t, 3.3, 3.7, amp=-10.0, rate=10)      # teeth chattering
+        self.finger_ripple(p, "right", t, 0.5, 0.5, step=0.08)
+        self.finger_ripple(p, "left", t, 0.5, 0.4, step=0.08, phase=0.25)
 
     def walk(self, t):
         """A bouncy skip: springing off each foot, arms swinging high, ears flapping."""
@@ -733,6 +796,7 @@ class BunnyNight(Fred3Night):
         setr(p, "rightArm", -20.0, 0, 120.0)
         setr(p, "rightForearm", -50.0, 0, 18.0 * sn(2 * w))
         setr(p, "rightHand", 0, 0, 10.0 * sn(2 * w + 0.4))
+        self.roll(p, "right", -90.0)                         # palm toward you
         self.open_hand(p, "right", 0.6)
         setr(p, "leftArm", 30.0, 0, 6.0)
         setr(p, "leftForearm", -70.0, 0, 0)
@@ -800,54 +864,62 @@ class BunnyNight(Fred3Night):
         add_rot(p, "jaw", 12.0 * pulse(t, 0.5, 0.2, 0.03, phase=0.25), 0, 0)
 
     def jumpscare1(self, t):
-        """Crouches low like a spring, ears pinned back... then pounces with clawed hands."""
+        """Crouches low, ears pinned back, staring up... then pounces into your face with claws."""
         p = {}
-        crouch = ease(t / 0.28)
-        go = ease((t - 0.34) / 0.1)
+        crouch = ease(t / 0.26)
+        go = ease((t - 0.3) / 0.07)
         c = crouch * (1 - go)
-        setr(p, "rightEar", 30.0 * c - 12.0 * go, 0, 16.0 * go)
-        setr(p, "leftEar", 20.0 * c, 0, -30.0 * go)
-        setr(p, "leftEarTop", 0, 0, -40.0 * c - 70.0 * go)
-        setr(p, "body", 22.0 * c + 10.0 * go, 0, 0)
+        setr(p, "rightEar", 34.0 * c - 14.0 * go, 0, 18.0 * go)
+        setr(p, "leftEar", 24.0 * c, 0, -34.0 * go)
+        setr(p, "leftEarTop", 0, 0, -44.0 * c - 74.0 * go)
+        setr(p, "body", 24.0 * c + 12.0 * go, 0, 0)
         setr(p, "torso", 14.0 * c + 6.0 * go, 0, 0)
-        setr(p, "head", -10.0 * c - 32.0 * go, 0, 0)
-        setr(p, "jaw", 4.0 * c + 26.0 * go, 0, 0)
+        setr(p, "head", -16.0 * c - 32.0 * go, 0, 0)
+        setr(p, "jaw", 4.0 * c + 33.0 * go, 0, 0)
         for side in ("right", "left"):
             s = S[side]
-            setr(p, f"{side}Arm", 30.0 * c - 110.0 * go, 0, s * (6.0 * c + 22.0 * go))
-            setr(p, f"{side}Forearm", -30.0 * c - 34.0 * go, 0, 0)
-            setr(p, f"{side}Hand", -20.0 * go, 0, 0)
+            setr(p, f"{side}Arm", 34.0 * c - 104.0 * go, 0, s * (6.0 * c + 14.0 * go))
+            setr(p, f"{side}Forearm", -30.0 * c - 26.0 * go, 0, 0)
+            setr(p, f"{side}Hand", -14.0 * go, 0, 0)
+            self.roll(p, side, 90.0 * go)
             self.claw(p, side, 0.4 * c + go)
-        self.stance(p, 2.0, 26.0 * c + 6.0 * go)
-        meta(p, extra=1.2 * go * (1 - ease((t - 0.6) / 0.15)), z=-11.0 * go)
+        self.stance(p, 2.0, 28.0 * c)
+        self.lunge_legs(p, go)
+        meta(p, extra=1.4 * go * (1 - ease((t - 0.55) / 0.15)), z=-18.0 * go)
         return p
 
     def jumpscare1_post(self, p, t):
-        self.scream_shake(p, t, 0.42, 1.15, head=8.0, rate=14)
+        self.scream_shake(p, t, 0.38, 1.15, head=11.0, rate=16, body=2.0)
+        self.jaw_clack(p, t, 0.42, 1.15, amp=9.0, rate=9)
+        self.glitch(p, t, (0.7, 0.95), mag=0.6)
 
     def jumpscare2(self, t):
-        """Peeks in slowly from the side with his head tipped right over... then screams."""
+        """Peeks in slowly with his head tipped right over, hands creeping up beside his face... then
+        snaps upright and lunges, both arms grabbing straight at you, screaming."""
         p = {}
         lean = ease(t / 0.85)
-        b = ease((t - 0.88) / 0.06)
-        setr(p, "body", 6.0 * lean, 0, 10.0 * lean * (1 - b))
-        setr(p, "torso", 12.0 * lean, 0, 8.0 * lean * (1 - b))
-        setr(p, "head", 8.0 * lean - 30.0 * b, 0, 70.0 * lean * (1 - b))
-        setr(p, "jaw", 4.0 * lean + 24.0 * b, 0, 0)
+        go = 1.0 if t >= 0.9 else 0.0
+        setr(p, "body", lerp(6.0 * lean, 14.0, go), 0, 10.0 * lean * (1 - go))
+        setr(p, "torso", lerp(12.0 * lean, 6.0, go), 0, 8.0 * lean * (1 - go))
+        setr(p, "head", lerp(8.0 * lean, -30.0, go), 0, 74.0 * lean * (1 - go))
+        setr(p, "jaw", lerp(2.0 + 6.0 * lean, 33.0, go), 0, 0)
+        arms = ease((t - 0.92) / 0.08)
         for side in ("right", "left"):
             s = S[side]
-            # the hands creep up beside the face, then spring wide
-            setr(p, f"{side}Arm", lerp(-30.0 * lean, -120.0, b), 0, s * lerp(-8.0 * lean, 44.0, b))
-            setr(p, f"{side}Forearm", lerp(-90.0 * lean, -24.0, b), 0, 0)
-            self.hand(p, side, curl=lerp(0.5 * lean, -0.8, b), spread=b, thumb=lerp(0.3, -0.8, b))
+            setr(p, f"{side}Arm", lerp(-30.0 * lean, -84.0, arms), 0, s * lerp(-8.0 * lean, 3.0, arms))
+            setr(p, f"{side}Forearm", lerp(-90.0 * lean, -8.0, arms), 0, 0)
+            self.roll(p, side, 90.0 * arms)
+            self.hand(p, side, curl=lerp(0.5 * lean, 0.65, arms), spread=0.6 * arms, thumb=lerp(0.3, 0.4, arms))
         self.ear_flop(p, 0.0, 0.0)
-        setr(p, "leftEarTop", 0, 0, -60.0 * b)
+        setr(p, "leftEarTop", 0, 0, -70.0 * go)
         self.stance(p, 1.5, 3.0)
-        meta(p, z=-4.0 * lean - 5.0 * b)
+        self.lunge_legs(p, go)
+        meta(p, z=-4.0 * lean * (1 - go) - 17.0 * go)
         return p
 
     def jumpscare2_post(self, p, t):
-        self.scream_shake(p, t, 0.95, 1.5)
-
+        self.scream_shake(p, t, 0.94, 1.55, head=11.0, rate=16, body=2.0)
+        self.jaw_clack(p, t, 0.98, 1.55, amp=9.0, rate=9)
+        self.glitch(p, t, (1.15, 1.35), mag=0.6)
 
 CLIPS = {"golden_freddy": GoldenNight, "crimson_freddy": CrimsonNight, "violet_bunny": BunnyNight}

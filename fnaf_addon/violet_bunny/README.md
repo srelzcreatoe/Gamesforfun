@@ -4,7 +4,7 @@ This is a Blockbench model of Violet Bunny built from your purple bunny picture,
 
 Every part was measured from the picture at one shared scale (26 picture pixels = 1 model pixel), the same scale used for the other two characters from that set. No part is enlarged or shrunk: each keeps the size it has in the picture, and so does the character.
 
-To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 88%, and the inner edges (where the arms meet the chest, the joints, the face) were checked against the picture too. Every colour was matched by rendering the model under a front light like the picture's and sampling it at the same spots.
+To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 86%, and the inner edges (where the arms meet the chest, the joints, the face) were checked against the picture too. Every colour was matched by rendering the model under a front light like the picture's and sampling it at the same spots.
 
 It includes:
 
@@ -32,7 +32,7 @@ It includes:
 - **Head:** his right ear stands up, tilted out; the left ear rises a little and then folds down outward at a chrome hinge, as in the picture; both ears have pale inner panels. A head that widens gradually from a rounded top, as in the picture; a flat lilac face plate around the eyes; round sockets filled by glossy black eyeballs with round red irises (a dark ring, a pupil and a white glint), a pale halo round them and white reflections along the bottom, as in the picture; a lilac muzzle with black freckles, split down the middle, and a small black nose; the mouth slightly open over a row of lower teeth
 - **Chest:** a red bow tie, with two thin dark-red stripes running down the chest on either side of the belly
 - **Hips:** a maroon band around the hips
-- **Hands:** working mitten hands: the back of the hand faces forward, four chunky fingers hang in a row, the thumb sits on the inner edge, chrome pins at the wrists. Every segment has its own bone, so the hands make fists, spread, point and claw
+- **Hands:** working mitten hands: the palm faces the leg, four chunky fingers hang in a row, the thumb sits in front, chrome pins at the wrists. Every segment has its own bone, so the hands make fists, spread, point and claw
 - **Feet:** big three-toed feet on a pale sole, each centred under its leg
 
 ## Rig
@@ -48,7 +48,7 @@ root
 └─ leftLeg  ─ leftShin  ─ leftFoot
 ```
 
-The hands hang with the back of the hand facing forward. Each finger is a chain of three bones (`rightFinger1a`, `rightFinger1b`, `rightFinger1c`, ..., outermost finger first and the index finger last) and the thumb has two (`rightThumba`, `rightThumbb`). None of them has a rest rotation, so a positive X rotation bends any joint straight back into a fist and a Z rotation on the first bone spreads a finger.
+The hands hang with the palm facing the leg and the thumb in front (the hand bone is turned a quarter about Y). Each finger is a chain of three bones (`rightFinger1a`, `rightFinger1b`, `rightFinger1c`, ..., outermost finger first and the index finger last) and the thumb has two (`rightThumba`, `rightThumbb`). None of them has a rest rotation, so a positive X rotation bends any joint straight back into a fist and a Z rotation on the first bone spreads a finger.
 
 ## Animations
 
@@ -56,15 +56,15 @@ All nine clips move like an animatronic at night. Each part is driven like its o
 
 | Animation | Length | Notes |
 | --- | --- | --- |
-| `animation.violet_bunny.idle` | 5.0 s loop | Hands fidgeting together in front of his belly, bobbing on his toes; the head cocks one way then the other in quick little steps, the ears flick |
+| `animation.violet_bunny.idle` | 5.0 s loop | A doll's stare: hands clasped, the head clicking further and further over sideways while he stares at you, then snapping upright; teeth chattering, a shudder, ear twitches |
 | `animation.violet_bunny.walk` | 1.2 s loop | A bouncy skip: springing off each foot, arms swinging high, ears flapping |
 | `animation.violet_bunny.run` | 0.6 s loop | Hopping with both feet pushing off together, arms swinging forward on every hop |
 | `animation.violet_bunny.pose1` | 2.0 s loop | The picture: standing straight; the head cocks to one side, the folded ear bobs |
 | `animation.violet_bunny.pose2` | 2.0 s loop | A shy wave beside his head, the fingers wiggling, the other hand behind his back |
 | `animation.violet_bunny.performance1` | 4.0 s loop | Slap bass: bass held across the hips, the left fingers fretting, the right thumb slapping on the beat, foot tapping |
 | `animation.violet_bunny.performance2` | 4.0 s loop | A side-step dance: stepping side to side, pointing up with one hand and then the other |
-| `animation.violet_bunny.jumpscare1` | 1.2 s, plays once | Crouches low like a spring with his ears pinned back, then pounces with clawed hands |
-| `animation.violet_bunny.jumpscare2` | 1.6 s, plays once | Peeks in slowly from the side with his head tipped right over, hands creeping up beside his face... then screams |
+| `animation.violet_bunny.jumpscare1` | 1.2 s, plays once | Crouches low with his ears pinned back, then pounces into your face with clawed hands, screeching |
+| `animation.violet_bunny.jumpscare2` | 1.6 s, plays once | Peeks in slowly with his head tipped right over, hands creeping up beside his face... then snaps upright and lunges, both arms grabbing straight at you |
 
 ## Using it in a Bedrock addon
 
