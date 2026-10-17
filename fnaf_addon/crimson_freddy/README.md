@@ -4,7 +4,7 @@ This is a Blockbench model of Crimson Freddy built from your dark-red Freddy pic
 
 Every part was measured from the picture at one shared scale (26 picture pixels = 1 model pixel), the same scale used for the other two characters from that set. No part is enlarged or shrunk: each keeps the size it has in the picture, and so does the character.
 
-To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 92%, and the inner edges (where the arms meet the chest, the joints, the face) were checked against the picture too. Every colour was matched by rendering the model under a front light like the picture's and sampling it at the same spots.
+To make it a replica, the model's exact front outline was then laid over the picture's outline, and every limb, the chest, the legs, the ears and the hat were fitted until they lined up. The two outlines now overlap by 88%, and the inner edges (where the arms meet the chest, the joints, the face) were checked against the picture too. Every colour was matched by rendering the model under a front light like the picture's and sampling it at the same spots.
 
 It includes:
 
@@ -31,9 +31,9 @@ It includes:
 - **Fur:** dark crimson with small darker specks, a pinkish belly
 - **Head:** a dark top hat; big round ears with pink centres on chrome pins; a flat pink face plate around the eyes; round sockets filled by glossy black eyeballs with square pixel-art red irises (a dark ring, a black pupil and a white glint), a dark-red glow round them and white reflections along the bottom, as in the picture; a wide pink muzzle with black freckles, split down the middle, and a black nose; a row of cream teeth
 - **Chest:** a black bow tie and two square black buttons
-- **Hands:** big mitten hands laid out from the picture: the back of the hand faces forward, four chunky fingers bend in toward the tips and the thumb reaches down from the inner edge. Every finger segment has its own bone, so the fingers bend at every knuckle
+- **Hands:** big working mitten hands: the back of the hand faces forward, four chunky fingers hang in a row and the thumb sits on the inner edge. Every segment has its own bone, so the hands make fists, spread, point and grab
 - **Arms and legs:** rounded shoulder caps beside the jaw; big upper arms hanging close beside a wide chest on dark ball joints; thick thighs and shins on dark knee joints. Every limb block has its corners cut back in steps, like the picture
-- **Feet:** big three-toed feet on a pale sole
+- **Feet:** big three-toed feet on a pale sole, each centred under its leg
 
 ## Rig
 
@@ -48,22 +48,22 @@ root
 └─ leftLeg  ─ leftShin  ─ leftFoot
 ```
 
-The hands hang with the back of the hand facing forward, as in the picture. Each finger is a chain of three bones (`rightFinger1a`, `rightFinger1b`, `rightFinger1c`, ... the thumb two: `rightThumba`, `rightThumbb`); a positive X rotation bends a joint into a fist.
+The hands hang with the back of the hand facing forward. Each finger is a chain of three bones (`rightFinger1a`, `rightFinger1b`, `rightFinger1c`, ..., outermost finger first and the index finger last) and the thumb has two (`rightThumba`, `rightThumbb`). None of them has a rest rotation, so a positive X rotation bends any joint straight back into a fist and a Z rotation on the first bone spreads a finger.
 
 ## Animations
 
-All nine clips move like an animatronic at night. Each part is driven like its own servo: it jumps to a new position, stops dead with a small overshoot, and holds. Keyframes are linear on Blockbench's 24 fps grid, so the holds stay perfectly still. In every clip, the feet stay on the ground. A heavy brute who breathes, clenches his fists and stomps.
+All nine clips move like an animatronic at night. Each part is driven like its own servo: it jumps to a new position, stops dead with a small overshoot, and holds. Keyframes are linear on Blockbench's 24 fps grid, so the holds stay perfectly still. In every clip, the feet stay on the ground. A heavy hydraulic brute: slow, weighted moves that stop hard with a bounce.
 
 | Animation | Length | Notes |
 | --- | --- | --- |
-| `animation.crimson_freddy.idle` | 6.0 s loop | Heavy breathing, fists clenching and unclenching, head scanning the room, and a neck crack |
-| `animation.crimson_freddy.walk` | 1.7 s loop | Heavy stomping steps; the body drops onto each foot, the shoulders roll and the fists swing |
-| `animation.crimson_freddy.run` | 0.8 s loop | A charge with the head down and the fists pumping |
-| `animation.crimson_freddy.pose1` | 2.0 s loop | The picture: broad and square, arms hanging, hands half closed, staring ahead |
-| `animation.crimson_freddy.pose2` | 2.0 s loop | Boxer stance: fists up in front of his face, bouncing on his feet, throwing a jab |
-| `animation.crimson_freddy.performance1` | 4.0 s loop | A rock song: one fist punching the air on every beat, head banging, jaw singing |
-| `animation.crimson_freddy.performance2` | 4.0 s loop | A belly laugh: head thrown back, shoulders shaking, both hands on his belly |
-| `animation.crimson_freddy.jumpscare1` | 1.25 s, plays once | A roaring lunge: both arms swing up and in to grab you, jaw wide |
+| `animation.crimson_freddy.idle` | 6.0 s loop | Fists on his hips, chest pumping like a bellows, weight rocking from foot to foot, scanning the room; cracks his knuckles and his neck |
+| `animation.crimson_freddy.walk` | 1.6 s loop | Heavy stomp: wide steps, the body drops onto each foot, the shoulders roll and the fists swing |
+| `animation.crimson_freddy.run` | 0.8 s loop | A bull charge: head down, shoulders forward, fists pumping hard |
+| `animation.crimson_freddy.pose1` | 2.5 s loop | The picture: broad and square, arms hanging; the fists slowly close and the head turns |
+| `animation.crimson_freddy.pose2` | 2.0 s loop | Boxer stance: fists up in front of his face, bouncing, throwing a jab and a cross |
+| `animation.crimson_freddy.performance1` | 4.0 s loop | A rock song: one fist punching the air on every beat, the other hand pointing, head banging, a foot stomping |
+| `animation.crimson_freddy.performance2` | 4.0 s loop | A belly laugh: head thrown back, shoulders shaking, both hands patting his belly |
+| `animation.crimson_freddy.jumpscare1` | 1.3 s, plays once | A bear hug: the arms swing wide open, then crash shut in front of you as he lunges |
 | `animation.crimson_freddy.jumpscare2` | 1.5 s, plays once | Raises both fists overhead, then slams them down toward the camera with a roar |
 
 ## Using it in a Bedrock addon
@@ -110,3 +110,4 @@ These differ:
 - The fur is a procedural pattern of little blocks in the picture's colours, not a pixel copy of the picture.
 - Only soft shading is baked into the texture, not the picture's coloured side lights, so the model looks right from every side.
 - The animations are my own, since the reference is a single pose. Pose 1 recreates the pose in the picture.
+- The hands are built to work (fists, pointing, spreading) rather than to copy the picture's hand pose, and the feet sit straight under the legs.

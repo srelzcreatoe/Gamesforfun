@@ -89,7 +89,7 @@
   },
   "closeups": [
     {
-      "clip": "idle",
+      "clip": "pose1",
       "secs": 3,
       "label": "FACE DETAIL",
       "cam": {
@@ -108,7 +108,7 @@
       }
     },
     {
-      "clip": "idle",
+      "clip": "pose1",
       "secs": 3,
       "label": "HANDS",
       "cam": {
@@ -119,8 +119,8 @@
         "el": 6,
         "dist": 46,
         "target": [
-          10.7,
-          18.0,
+          10.4,
+          17.7,
           -1
         ],
         "fov": 28
@@ -315,7 +315,7 @@
     ],
     "shots": {
       "front": {
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 0,
@@ -330,7 +330,7 @@
         }
       },
       "side": {
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 90,
@@ -345,7 +345,7 @@
         }
       },
       "back": {
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 180,
@@ -378,7 +378,7 @@
     "faces": [
       {
         "label": "FACE DETAIL",
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 0,
@@ -412,7 +412,7 @@
     "details": [
       {
         "label": "FACE PLATE",
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 0,
@@ -428,15 +428,15 @@
       },
       {
         "label": "BIG HANDS",
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 20,
           "el": 6,
           "dist": 30,
           "target": [
-            10.7,
-            18.0,
+            10.4,
+            17.7,
             -1
           ],
           "fov": 30
@@ -444,7 +444,7 @@
       },
       {
         "label": "EAR & HAT",
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 15,

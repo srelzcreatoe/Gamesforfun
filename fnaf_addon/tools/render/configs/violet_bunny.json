@@ -89,7 +89,7 @@
   },
   "closeups": [
     {
-      "clip": "idle",
+      "clip": "pose1",
       "secs": 3,
       "label": "FACE DETAIL",
       "cam": {
@@ -108,7 +108,7 @@
       }
     },
     {
-      "clip": "idle",
+      "clip": "pose1",
       "secs": 3,
       "label": "EARS",
       "cam": {
@@ -316,7 +316,7 @@
     ],
     "shots": {
       "front": {
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 0,
@@ -331,7 +331,7 @@
         }
       },
       "side": {
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 90,
@@ -346,7 +346,7 @@
         }
       },
       "back": {
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 180,
@@ -379,7 +379,7 @@
     "faces": [
       {
         "label": "FACE DETAIL",
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 0,
@@ -413,7 +413,7 @@
     "details": [
       {
         "label": "FOLDED EAR",
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": -20,
@@ -429,7 +429,7 @@
       },
       {
         "label": "BOW TIE & STRIPES",
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 10,
@@ -445,15 +445,15 @@
       },
       {
         "label": "FIST",
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 20,
           "el": 6,
           "dist": 30,
           "target": [
-            9.4,
-            16.8,
+            8.8,
+            17.0,
             -1
           ],
           "fov": 30

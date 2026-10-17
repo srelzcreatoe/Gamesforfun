@@ -16,9 +16,9 @@ These are Blockbench models in the **Bedrock Entity** format, each built from a 
 | Bunny | [`bunny/`](bunny/README.md) | idle, walk, run, pose 1–2, performance 1–2 (air guitar, hop dance), jumpscare 1–2 |
 | Goat | [`goat/`](goat/README.md) | idle, walk, run, pose 1–2, performance 1–2 (bleating laugh, stomp dance), jumpscare 1–2 |
 | Bear | [`bear/`](bear/README.md) | idle, walk, run, pose 1–2, performance 1–2 (conducting, slow clap), jumpscare 1–2 |
-| Golden Freddy | [`golden_freddy/`](golden_freddy/README.md) | idle, walk, run, pose 1–2 (slumped sit), performance 1–2 (music box, endo piano), jumpscare 1–2 |
-| Crimson Freddy | [`crimson_freddy/`](crimson_freddy/README.md) | idle, walk, run, pose 1–2 (boxer), performance 1–2 (rock song, belly laugh), jumpscare 1–2 |
-| Violet Bunny | [`violet_bunny/`](violet_bunny/README.md) | idle, walk, run, pose 1–2 (wave), performance 1–2 (slap bass, side-step dance), jumpscare 1–2 |
+| Golden Freddy | [`golden_freddy/`](golden_freddy/README.md) | idle, limping walk, run, pose 1–2 (slumped sit), performance 1–2 (music box, endo piano), jumpscare 1–2 ("IT'S ME", arms flung wide) |
+| Crimson Freddy | [`crimson_freddy/`](crimson_freddy/README.md) | idle, stomping walk, charging run, pose 1–2 (boxer), performance 1–2 (rock song, belly laugh), jumpscare 1–2 (bear hug, fist slam) |
+| Violet Bunny | [`violet_bunny/`](violet_bunny/README.md) | idle, skipping walk, hopping run, pose 1–2 (wave), performance 1–2 (slap bass, side-step dance), jumpscare 1–2 (pounce, peek-in) |
 
 **Ready-to-play add-on:** [`addon/FNAF_Animatronics.mcaddon`](addon/README.md) has all 15 characters in one resource pack + behavior pack, with spawn eggs and events for the poses, performances and jumpscares. See [`addon/README.md`](addon/README.md) for install steps and commands.
 

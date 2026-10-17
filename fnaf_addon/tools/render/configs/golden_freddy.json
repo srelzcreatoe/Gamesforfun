@@ -89,7 +89,7 @@
   },
   "closeups": [
     {
-      "clip": "idle",
+      "clip": "pose1",
       "secs": 3,
       "label": "FACE DETAIL",
       "cam": {
@@ -108,7 +108,7 @@
       }
     },
     {
-      "clip": "idle",
+      "clip": "pose1",
       "secs": 3,
       "label": "ENDOSKELETON HANDS",
       "cam": {
@@ -119,8 +119,8 @@
         "el": 6,
         "dist": 46,
         "target": [
-          12.2,
-          17.4,
+          11.3,
+          18.7,
           -1
         ],
         "fov": 28
@@ -315,7 +315,7 @@
     ],
     "shots": {
       "front": {
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 0,
@@ -330,7 +330,7 @@
         }
       },
       "side": {
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 90,
@@ -345,7 +345,7 @@
         }
       },
       "back": {
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 180,
@@ -378,7 +378,7 @@
     "faces": [
       {
         "label": "FACE DETAIL",
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 0,
@@ -412,15 +412,15 @@
     "details": [
       {
         "label": "ENDO FINGERS",
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 15,
           "el": 6,
           "dist": 30,
           "target": [
-            12.2,
-            17.4,
+            11.3,
+            18.7,
             -1
           ],
           "fov": 30
@@ -428,7 +428,7 @@
       },
       {
         "label": "EYES & WIRES",
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 0,
@@ -444,7 +444,7 @@
       },
       {
         "label": "HAT & EARS",
-        "anim": "idle",
+        "anim": "pose1",
         "time": 0,
         "cam": {
           "az": 15,

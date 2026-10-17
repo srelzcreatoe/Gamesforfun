@@ -22,7 +22,7 @@ import numpy as np
 
 from characters.body import COMMON, ENDO, p_chrome, vox
 from fnafkit import export
-from fnafkit.rig import bone, cube, world_matrices
+from fnafkit.rig import bone, cube
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCALE = 26.0          # picture pixels per model pixel (shared by all three pictures)
@@ -457,7 +457,9 @@ def build_legs(name):
         heel = pic.y(L["heel_top"])
         bone(foot, shin, [s * sx, heel + 0.4, 0])
         cube(foot, "ankle_joint", [sx - 1.1, heel - 0.4, -1.1], [sx + 1.1, heel + 0.9, 1.1], "endo", s, painter=p_endo)
-        fo, fi = pic.x(L["foot"][0]), max(0.15, pic.x(L["foot"][1]))
+        # the foot is centred under its shin (as wide as in the picture, but never past the middle line)
+        fhw = min(abs(pic.x(L["foot"][0]) - pic.x(L["foot"][1])) / 2, sx - 0.3)
+        fi, fo = sx - fhw, sx + fhw
         sole, toe = pic.y(L["sole_top"]), pic.y(L["toe_top"])
         td = L.get("toe_depth", 3.3)
         fz0 = -sw - td + 0.3                     # the toes reach forward from the front of the shin
@@ -549,57 +551,30 @@ def build_arms(name, hw):
         bone(fa, arm, [s * ex, ey, 0], [0, 0, s * (fo["angle"] - up["angle"])])
         cube(fa, "elbow_joint", [ex - 1.1, ey - 0.8, -1.1], [ex + 1.1, ey + 0.8, 1.1], "endo", s, painter=p_endo)
         arm_segment(fa, s, (ex, ey), fo, name="forearm")
-        # the wrist sits where the picture has it: its point in the forearm's own (unrotated) frame
-        wu, wv = HANDS[name]["wrist"]
-        M = world_matrices({}, only=[fa])[fa]
-        q = np.linalg.solve(M, [s * pic.x(wu), pic.y(wv), 0.0, 1.0])
-        wx, wy = s * (q[0] + s * ex), q[1] + ey
-        palm_centre = build_hand(name, side, s, fa, (wx, wy), (pic.x(wu), pic.y(wv)), fo["angle"])
+        # the wrist sits right under the middle of the forearm block, on its axis
+        wx, wy = ex + fo["ox"], ey - fo["span"][1] - 0.5
+        palm_centre = build_hand(name, side, s, fa, (wx, wy), fo["angle"])
     return palm_centre
 
 
-# Hands in picture px, right hand (the left one mirrors it).  The back of the hand faces forward.
-#   wrist   where the forearm's wrist joint sits in the picture
-#   palm    centre, width, height, tilt (degrees, + = outward at the bottom) and depth (model px)
-#   fingers knuckle point, then per segment (tilt in the picture, length in model px, curl back in degrees)
-#   thumb   the same, from its base on the inner side of the palm
-def chain(pts, curls):
-    """Finger joints read off the picture (knuckle, joints..., tip) -> (knuckle, [(tilt, length, curl)])."""
-    segs = []
-    for (u0, v0), (u1, v1), c in zip(pts, pts[1:], curls):
-        segs.append((math.degrees(math.atan2(u0 - u1, v1 - v0)), math.hypot(u1 - u0, v1 - v0) / SCALE, c))
-    return pts[0], segs
-
-
+# Hands, built to work rather than to copy the pictures' poses: the palm hangs straight under the
+# wrist with its back facing forward, the fingers hang straight down in a row from its bottom edge
+# and the thumb sits on its inner edge.  Every finger and thumb segment is its own bone with no rest
+# rotation, so a positive X rotation bends any joint straight back into a fist.  Sizes in model px:
+#   palm    width, height, depth
+#   segs    finger segment lengths (knuckle, middle, tip); seg_w / seg_d their width and depth
+#   thumb   thumb segment lengths; thumb_w its width
+#   tilt    how far the hand continues the forearm's outward tilt (0: it hangs straight down)
 HANDS = {
-    "golden_freddy": dict(kind="endo", wrist=(215, 846), palm=dict(c=(226, 886), w=142, h=78, angle=6.0, depth=2.5),
-                          seg_w=1.6, ball=1.0, fingers=[
-                              chain([(164, 932), (145, 985), (148, 1045), (165, 1105)], (0, -2, -4)),
-                              chain([(195, 933), (186, 995), (195, 1053), (215, 1115)], (0, -2, -4)),
-                              chain([(232, 934), (233, 996), (250, 1050), (275, 1103)], (0, -2, -4))],
-                          thumb=chain([(318, 873), (315, 932), (314, 1010)], (0, -3))),
-    # the mitts are turned a little toward the body (yaw); their fingers bend inward toward the tips
-    "crimson_freddy": dict(kind="mitt", wrist=(265, 850), yaw=10.0, palm=dict(c=(240, 915), w=118, h=105, angle=2.0, depth=2.8),
-                           seg_w=1.15, seg_d=1.35, fingers=[
-                               ((192, 965), [(2, 1.5, -4), (-8, 1.4, -8), (-30, 1.2, -12)]),
-                               ((216, 966), [(0, 1.55, -4), (-10, 1.45, -8), (-32, 1.25, -12)]),
-                               ((244, 966), [(-3, 1.6, -4), (-12, 1.5, -8), (-34, 1.25, -12)]),
-                               ((276, 962), [(-12, 1.6, -4), (-20, 1.5, -8), (-36, 1.25, -12)])],
-                           thumb=chain([(300, 898), (328, 945), (348, 985)], (-6, -10)), thumb_w=1.7),
-    "violet_bunny": dict(kind="mitt", wrist=(275, 893), yaw=10.0, palm=dict(c=(250, 955), w=118, h=111, angle=0.0, depth=2.6),
-                         seg_w=1.1, seg_d=1.3, fingers=[
-                             ((205, 1008), [(2, 1.25, -4), (-8, 1.15, -8), (-30, 1.0, -12)]),
-                             ((231, 1009), [(0, 1.3, -4), (-10, 1.2, -8), (-32, 1.05, -12)]),
-                             ((259, 1009), [(-3, 1.35, -4), (-12, 1.25, -8), (-34, 1.05, -12)]),
-                             ((290, 1005), [(-12, 1.35, -4), (-20, 1.25, -8), (-36, 1.05, -12)])],
-                         thumb=chain([(310, 945), (335, 990), (350, 1022)], (-6, -10)), thumb_w=1.6),
+    "golden_freddy": dict(kind="endo", palm=(5.4, 3.0, 2.4), fingers=3, segs=(2.0, 1.8, 1.6), seg_w=1.45, seg_d=1.45,
+                          ball=0.95, thumb=(1.9, 1.6), thumb_w=1.3, tilt=0.5),
+    "crimson_freddy": dict(kind="mitt", palm=(4.6, 3.8, 2.8), fingers=4, segs=(1.6, 1.4, 1.2), seg_w=1.12, seg_d=1.5,
+                           thumb=(2.0, 1.6), thumb_w=1.5, tilt=0.3),
+    "violet_bunny": dict(kind="mitt", palm=(4.4, 3.8, 2.6), fingers=4, segs=(1.45, 1.3, 1.1), seg_w=1.06, seg_d=1.4,
+                         thumb=(1.8, 1.5), thumb_w=1.4, tilt=0.3),
 }
 FINGER_SEGS = "abc"
-
-
-def rot2(x, y, deg):
-    a = math.radians(deg)
-    return x * math.cos(a) - y * math.sin(a), x * math.sin(a) + y * math.cos(a)
+THUMB_SPLAY = 18.0      # the thumb hangs angled in, away from the palm (degrees)
 
 
 def tip_painter(ctx):
@@ -610,71 +585,55 @@ def tip_painter(ctx):
     ctx.paint("fur_dark", mask=ctx.Y < y0 + (y1 - y0) * 0.4)
 
 
-def finger_chain(name, side, s, parent, root_auth, z, parent_angle, segs, w, d, prefix, endo, ball):
-    """One finger (or thumb): a bone per segment, each pivoting at its joint.  The segment is authored
-    hanging straight down from its pivot; the bone's rest rotation tilts it to the picture's angle and
-    curls it back."""
-    pa = parent_angle
-    px, py = root_auth
-    for j, (ang, L, curl) in enumerate(segs):
+def finger_chain(side, s, parent, x, y, z, lengths, w, d, prefix, endo, ball, rot=None):
+    """One finger (or thumb): a bone per segment, each pivoting at the top of its segment and hanging
+    straight down from it.  rot is the first bone's rest rotation (the thumb's splay)."""
+    for j, L in enumerate(lengths):
         b = f"{prefix}{FINGER_SEGS[j]}"
-        bone(b, parent, [s * px, py, z], [curl, 0, s * (ang - pa)])
-        last = j == len(segs) - 1
+        bone(b, parent, [s * x, y, z], rot if j == 0 and rot else None)
+        last = j == len(lengths) - 1
         if endo:
-            cube(b, "joint", [px - ball / 2, py - ball / 2, z - ball / 2], [px + ball / 2, py + ball / 2, z + ball / 2], "endo", s,
+            cube(b, "joint", [x - ball / 2, y - ball / 2, z - ball / 2], [x + ball / 2, y + ball / 2, z + ball / 2], "endo", s,
                  painter=p_endo)
-            y0, y1 = py - L + (0.0 if last else 0.3), py - 0.3
+            y0, y1 = y - L + (0.0 if last else 0.3), y - 0.3
         else:
-            y0, y1 = py - L + 0.04, py + (0.15 if j == 0 else 0.04)
-        rbox(b, "segment", px - w / 2, px + w / 2, y0, y1, z - d / 2, z + d / 2, "fur", s, r=0.28 if endo else 0.14,
+            y0, y1 = y - L + 0.04, y + 0.06
+        rbox(b, "segment", x - w / 2, x + w / 2, y0, y1, z - d / 2, z + d / 2, "fur", s, r=0.28 if endo else 0.16,
              painter=tip_painter if last else None)
-        parent, pa, py = b, ang, py - L
+        parent, y = b, y - L
 
 
-def build_hand(name, side, s, parent, wrist_auth, wrist_world, parent_angle):
-    """A hand laid out from the picture around the wrist: palm, fingers and thumb, every segment on
-    its own bone so the fingers bend at each knuckle."""
-    pic, Hd = P[name], HANDS[name]
-    wu, wv = Hd["wrist"]
-    Pm = Hd["palm"]
-    A = Pm["angle"]
+def build_hand(name, side, s, parent, wrist, parent_angle):
+    """Palm under the wrist, a row of fingers along its bottom edge (outermost first, the index finger
+    last, next to the thumb) and the thumb on its inner edge."""
+    Hd = HANDS[name]
     hand = f"{side}Hand"
-    wx, wy = wrist_auth
-    yaw = Hd.get("yaw", 0.0)
-    cy_ = math.cos(math.radians(yaw))
-    bone(hand, parent, [s * wx, wy, 0], [0, -s * yaw, s * (A - parent_angle)])
-
-    def auth(pt):
-        """Picture point -> the hand bone's authored frame (right-side coordinates); sideways
-        distances are seen foreshortened when the hand is turned."""
-        dx, dy = rot2(pic.x(pt[0]) - pic.x(wu), pic.y(pt[1]) - pic.y(wv), -A)
-        return wx + dx / cy_, wy + dy
-
+    wx, wy = wrist
+    bone(hand, parent, [s * wx, wy, 0], [0, 0, -s * parent_angle * (1 - Hd["tilt"])])
     cube(hand, "wrist_joint", [wx - 0.9, wy - 0.7, -0.9], [wx + 0.9, wy + 0.6, 0.9], "endo", s, painter=p_endo)
-    cx, cy = auth(Pm["c"])
-    pd = Pm["depth"] / 2
-    # the picture shows the turned palm's front and a sliver of its side
-    pw = (pic.d(Pm["w"]) - Pm["depth"] * math.sin(math.radians(yaw))) / cy_ / 2
-    ph = pic.d(Pm["h"]) / 2
-    rbox(hand, "palm", cx - pw, cx + pw, cy - ph, cy + ph, -pd, pd, "fur", s, r=0.45)
+    pw, ph, pd = Hd["palm"]
+    top = wy - 0.45
+    rbox(hand, "palm", wx - pw / 2, wx + pw / 2, top - ph, top, -pd / 2, pd / 2, "fur", s, r=0.45)
     endo = Hd["kind"] == "endo"
     if endo:
         # two tendon rods running from the wrist over the back of the hand
-        for k, dx in enumerate((-0.25, 0.35)):
-            cube(hand, f"rod{k + 1}", [cx + dx - 0.18, cy + ph - 1.6, -pd - 0.45], [cx + dx + 0.18, wy + 0.4, -pd - 0.05], "endo", s,
-                 painter=p_endo)
+        for k, dx in enumerate((-0.4, 0.45)):
+            cube(hand, f"rod{k + 1}", [wx + dx - 0.18, top - ph + 0.8, -pd / 2 - 0.4], [wx + dx + 0.18, wy + 0.3, -pd / 2],
+                 "endo", s, painter=p_endo)
     else:
         # chrome pins at the wrist, beside the joint
         cube(hand, "wrist_pin", [wx + 1.0, wy - 1.0, -0.35], [wx + 1.45, wy + 0.2, 0.35], "chrome", s, painter=p_chrome)
-    w, d = Hd["seg_w"], Hd.get("seg_d", Hd["seg_w"])
-    for i, (k, segs) in enumerate(Hd["fingers"]):
-        finger_chain(name, side, s, hand, auth(k), 0.0, A, segs, w, d, f"{side}Finger{i + 1}", endo, Hd.get("ball", 0.9))
-    tk, tsegs = Hd["thumb"]
-    tw = Hd.get("thumb_w", w)
-    # the mitts' thumb sits on the palm's inner edge, a little in front
-    finger_chain(name, side, s, hand, auth(tk), -0.3 if endo else -0.5, A, tsegs, tw, min(tw, d), f"{side}Thumb", endo,
-                 Hd.get("ball", 0.9))
-    return (cx, cy, 0.0)
+    n, w, d = Hd["fingers"], Hd["seg_w"], Hd["seg_d"]
+    ky = top - ph + (0.3 if not endo else 0.0)
+    span = pw - w - (0.1 if not endo else 0.3)
+    for i in range(n):
+        x = wx + span / 2 - i * span / (n - 1)
+        finger_chain(side, s, hand, x, ky, 0.0, Hd["segs"], w, d, f"{side}Finger{i + 1}", endo, Hd.get("ball", 0.9))
+    tw = Hd["thumb_w"]
+    tx = wx - pw / 2 - tw / 2 + 0.25
+    finger_chain(side, s, hand, tx, top - ph * 0.35, 0.25, Hd["thumb"], tw, min(tw, d), f"{side}Thumb", endo,
+                 Hd.get("ball", 0.9), rot=[0, 0, -s * THUMB_SPLAY])
+    return (wx, top - ph / 2, 0.0)
 
 
 def build_head(name):
