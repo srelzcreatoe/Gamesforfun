@@ -12,7 +12,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from characters import bonnie, cast, fred3, freddy, trio  # noqa: E402
+from characters import bonnie, cast, fred3, freddy, trio, vested  # noqa: E402
 from fnafkit import export  # noqa: E402
 
 CHARACTERS = {
@@ -23,6 +23,7 @@ CHARACTERS = {
     "rat": trio.spec("rat"),
     **{name: cast.spec(name) for name in cast.BUILDERS},
     **{name: fred3.spec(name) for name in fred3.BUILDERS},
+    **{name: vested.spec(name) for name in vested.BUILDERS},
 }
 
 
