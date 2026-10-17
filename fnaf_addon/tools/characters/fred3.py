@@ -116,6 +116,16 @@ for _n, _cal in CALIBRATION.items():
         if _m.get("patches"):
             _m["patches"] = [(a, b, [tuple(int(round(c * k)) for c, k in zip(t, _k)) for t in ts]) for a, b, ts in _m["patches"]]
 
+# Flat one-pixel cells with fine grain, like the pictures (no bevelled tile edges).  Each material is
+# copied first: the COMMON ones are shared with the other characters.
+for _n, _mats in MATERIALS.items():
+    for _k, _m in list(_mats.items()):
+        if "cell" in _m:
+            _mats[_k] = dict(_m, cell=max(_m["cell"], 1.0) if _m["cell"] >= 0.7 else _m["cell"], bevel=0.0, grain=0.035)
+        elif _k in ("black", "socket"):
+            _mats[_k] = dict(_m, bevel=0.0, grain=0.03)
+MATERIALS["golden_freddy"]["fur"]["spots"] = [((66, 36, 8), 0.07), ((48, 26, 6), 0.03)]
+
 # eye colours: iris, rim, glow (None: the eye doesn't glow)
 EYES = {
     "golden_freddy": dict(iris=(92, 36, 28), rim=(152, 128, 122), glow=None, r=0.5),
@@ -145,10 +155,10 @@ def eye_painter(name):
             return
         d = np.sqrt((ctx.X - cx) ** 2 + (ctx.Y - cy) ** 2)
         r = e["r"]
-        # the eye is 4x4 texels: dark 2x2 pupil, a ring of iris texels, rim in the corners
-        rim = (d < r * 1.5) & (d >= 0.42)
-        iris = (d < 0.42) & (d >= 0.2)
-        pupil = d < 0.2
+        # the eye is 4x4 texels: a 2x2 iris in the middle, a light rim around it, dark corners
+        rim = (d < 0.46) & (d >= 0.2)
+        iris = d < 0.2
+        pupil = np.zeros_like(iris)
         ctx.rgb[rim] = np.array(e["rim"], np.float32)
         ctx.rgb[iris] = np.array(e["iris"], np.float32)
         ctx.rgb[pupil] = np.array([20, 6, 8], np.float32)
@@ -312,7 +322,7 @@ HEADS = {
             jaw=dict(rows=(460, 425), half=(440, 650), mat="fur"), teeth=dict(rows=(425, 406), span=(488, 622), n=4,
             w=25), tears=dict(x=((466, 648), (480, 632)), rows=(385, 305)), ears=dict(kind="round", centre=((346.4,
             700.2), 152.9), size=(116.6, 151.7), inner=0.8, ring=0.6, colours=("fur", "ear_ring", "brow")),
-            hat=dict(brim=(125, 97.9, 443.5, 642.6), crown=(100, 6.3, 478.1, 607.5))),
+            hat=dict(brim=(135, 100, 443.5, 642.6), crown=(100, 6.3, 478.1, 607.5))),
     "crimson_freddy": dict(pivot=490, front=-5.3, back=5.1, slabs=((160, 145, 107.7), (230, 160, 152.7), (350, 230, 157.3), (445,
             350, 155.9)), sockets=dict(rows=(330, 255), inner=(545, 580), outer=(465, 655)), pupils=dict(x=(515, 595),
             row=292), deep=0.8, mask=dict(rows=(335, 220), half=(445, 650)), brow=None, cheeks=dict(rows=(355, 267),
@@ -320,7 +330,7 @@ HEADS = {
             395), (474, 420))), nose=dict(rows=(380, 335), half=(520, 600)), jaw=dict(rows=(500, 475), half=(450, 650),
             mat="fur"), teeth=dict(rows=(475, 455), span=(485, 630), n=4, w=28), tears=None, ears=dict(kind="round",
             centre=((357.2, 753.6), 161.9), size=(139.4, 175.6), inner=1.4, ring=0, colours=("fur", "ear_inner",
-            "ear_inner"), pin=True), hat=dict(brim=(118.4, 122.8, 456, 651.5), crown=(112, 18.2, 469.9, 616.3))),
+            "ear_inner"), pin=True), hat=dict(brim=(145, 112, 456, 651.5), crown=(112, 18.2, 469.9, 616.3))),
     "violet_bunny": dict(pivot=545, front=-5, back=4.8, slabs=((212, 195, 55), (225, 212, 77), (300, 225, 110), (420, 300, 161.7),
             (500, 420, 87.8)), sockets=dict(rows=(410, 330), inner=(510, 535), outer=(430, 615)), pupils=dict(x=(465,
             570), row=352), deep=0.8, mask=dict(rows=(420, 300), half=(425, 620)), brow=None, cheeks=dict(rows=(480,
@@ -693,8 +703,8 @@ def build_hat(name):
     bone("hat", "head", [hx, yb0, 0.0])
     bw, cw = abs(bx1 - bx0) / 2 / SCALE, abs(cx1 - cx0) / 2 / SCALE
     bxc = pic.x((bx0 + bx1) / 2)
-    rbox("hat", "brim", bxc - bw, bxc + bw, yb0 - 0.2, pic.y(b1), -bw * 0.95, bw * 0.95, "hat", r=0.55)
-    rbox("hat", "crown", hx - cw, hx + cw, pic.y(b1) - 0.1, pic.y(c1), -cw * 0.95, cw * 0.95, "hat", r=0.75)
+    rbox("hat", "brim", bxc - bw, bxc + bw, yb0 - 0.2, pic.y(b1), -bw * 0.95, bw * 0.95, "hat", r=0.3)
+    rbox("hat", "crown", hx - cw, hx + cw, pic.y(b1) - 0.1, pic.y(c1), -cw * 0.95, cw * 0.95, "hat", r=0.3)
 
 
 def build(name):

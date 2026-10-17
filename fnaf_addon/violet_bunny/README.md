@@ -9,7 +9,7 @@ To make it a replica, the model's exact front outline was then laid over the pic
 It includes:
 
 - 252 cubes and 25 bones
-- a 1024×1024 texture painted at 4 texels per model pixel, in the picture's "every pixel is a little block" style, with rounded block edges like the picture
+- a 1024×1024 texture painted at 4 texels per model pixel, in flat one-pixel squares of colour with a fine grain, like the picture (no tile or brick edges)
 - 9 animations in an animatronic style: idle, walk, run, pose 1, pose 2, performance 1, performance 2, jumpscare 1 and jumpscare 2
 
 ![sheet](preview/violet_bunny_sheet.png)

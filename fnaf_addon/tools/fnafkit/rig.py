@@ -176,9 +176,14 @@ def voxel_fill(mat, ctx):
         cells[sp] = np.array(spot_col, np.float32)
     col = cells[cv, cu].copy()
     b = m.get("bevel", 0.14)
-    col[top | left] *= 1 + b
-    col[bottom | right] *= 1 - b
-    col[(bottom | right) & (top | left)] /= (1 + b) * (1 - b)
+    if b:
+        col[top | left] *= 1 + b
+        col[bottom | right] *= 1 - b
+        col[(bottom | right) & (top | left)] /= (1 + b) * (1 - b)
+    g = m.get("grain", 0.0)
+    if g:
+        # fine per-texel grain inside each flat cell (a granite-like surface instead of bevelled tiles)
+        col *= np.clip(1 + g * rng.standard_normal(col.shape[:2]), 0.6, 1.4)[..., None]
     return col
 
 
