@@ -113,13 +113,13 @@
       "label": "ENDOSKELETON HANDS",
       "cam": {
         "az": [
-          15,
-          50
+          55,
+          85
         ],
         "el": 6,
-        "dist": 34,
+        "dist": 32,
         "target": [
-          11.0,
+          12,
           17.5,
           -1
         ],
@@ -435,11 +435,11 @@
         "anim": "pose1",
         "time": 0,
         "cam": {
-          "az": 18,
+          "az": 75,
           "el": 6,
-          "dist": 30,
+          "dist": 28,
           "target": [
-            11.0,
+            12,
             17.5,
             -1
           ],
