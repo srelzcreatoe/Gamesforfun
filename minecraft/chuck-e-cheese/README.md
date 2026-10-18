@@ -20,6 +20,17 @@ Bedrock Edition (phone, tablet, Windows) with one command.
 - **Prize counter** with a wall of prizes and a giant teddy bear
 - **Birthday party room** with cakes, balloons and presents
 - **Kitchen** with brick pizza ovens and the PIZZA menu over the order window
+- **Security office** behind the stage, in the back-of-house area. Get there
+  through the hallway next to the stage or the one at the back of the play zone:
+  - two iron doors, left and right. Flip the lever on the red panel next to a
+    door to slam it shut, and flip it again to open it
+  - a light switch by each door that turns on a lamp so you can see who's in
+    the hallway. Look out the windows: a purple bunny waits in one hall and a
+    chicken in the other
+  - a desk with two camera screens, a desk fan and a cupcake
+  - two vents: climb the ladders in the office corners. The left vent comes
+    out on the stage behind the band, the right one in the play zone
+  - a Parts & Service room with spare costumes and an endoskeleton
 
 ## How to install
 
@@ -45,6 +56,10 @@ Bedrock Edition (phone, tablet, Windows) with one command.
 
 Turning on cheats or add-ons switches off achievements for that world (that's
 normal for any add-on).
+
+**Updating:** open the new `ChuckECheese.mcpack` the same way and it replaces
+the old one. If an old world doesn't pick up the update, make a new flat world
+with the pack turned on.
 
 ## Rebuilding
 

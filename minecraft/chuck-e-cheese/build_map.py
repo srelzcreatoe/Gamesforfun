@@ -116,6 +116,24 @@ for _kind, _rgb in (("purpur", (169, 125, 169)), ("dark_oak", (66, 43, 20)),
     for _d, _v in STAIR_DIR.items():
         reg(f"stairs:{_kind}:{_d}", f"minecraft:{_kind}_stairs",
             {"weirdo_direction": _v, "upside_down_bit": False}, _rgb)
+# iron doors (open; a lever keeps them powered): direction 0 east, 2 west
+for _d in (0, 2):
+    for _half in ("lower", "upper"):
+        reg(f"iron_door:{_d}:{_half}", "minecraft:iron_door",
+            {"direction": _d, "door_hinge_bit": False, "open_bit": True, "upper_block_bit": _half == "upper"},
+            (200, 200, 205), "thin")
+# wall levers: lever_direction = the face of the support block it sticks out of
+for _d in ("east", "west"):
+    reg(f"wall_lever:{_d}:on", "minecraft:lever", {"lever_direction": _d, "open_bit": True}, (110, 90, 60), "thin")
+    reg(f"wall_lever:{_d}:off", "minecraft:lever", {"lever_direction": _d, "open_bit": False}, (110, 90, 60),
+        "thin")
+# carved pumpkin faces: direction 0 south, 1 west, 2 north, 3 east
+for _d, _v in {"south": 0, "west": 1, "north": 2, "east": 3}.items():
+    reg(f"pumpkin_face:{_d}", "minecraft:carved_pumpkin", {"direction": _v}, (210, 120, 25))
+reg("redstone_lamp", "minecraft:redstone_lamp", rgb=(130, 80, 50))
+reg("crying_obsidian", "minecraft:crying_obsidian", rgb=(50, 10, 90))
+reg("candle:plain", "minecraft:candle", {"candles": 0, "lit": True}, (230, 220, 200), "thin")
+
 # ladders: facing_direction = side the ladder faces, away from its wall
 for _d, _v in {"north": 2, "south": 3, "west": 4, "east": 5}.items():
     reg(f"ladder:{_d}", "minecraft:ladder", {"facing_direction": _v}, (150, 115, 65), "thin")
@@ -125,7 +143,8 @@ for _d, _v in {"north": 2, "south": 3, "west": 4, "east": 5}.items():
 # voxel grid
 # ---------------------------------------------------------------------------
 
-W, H, D = 64, 36, 72          # x (east), y (up), z (south)
+W, H, D = 64, 36, 72          # x (east), y (up), z (south edge, exclusive)
+ZN = -16                      # north edge: the back-of-house annex sits at negative z
 GY = 2                        # ground / floor block layer
 FY = 3                        # first walkable layer (feet)
 CY = 13                       # ceiling + roof layer
@@ -134,13 +153,13 @@ BZ1 = 51                      # front wall of the building (z); parking lot is s
 
 class Grid:
     def __init__(self):
-        self.cells = ["air"] * (W * H * D)
+        self.cells = ["air"] * (W * H * (D - ZN))
 
     def _i(self, x, y, z):
-        return (y * D + z) * W + x
+        return (y * (D - ZN) + (z - ZN)) * W + x
 
     def inside(self, x, y, z):
-        return 0 <= x < W and 0 <= y < H and 0 <= z < D
+        return 0 <= x < W and 0 <= y < H and ZN <= z < D
 
     def set(self, x, y, z, key):
         if key not in PALETTE:
@@ -253,8 +272,8 @@ MOUSE_LEGEND = {"E": "wool:gray", "P": "wool:pink", "C": "wool:purple", "G": "wo
 # ---------------------------------------------------------------------------
 
 def build_ground():
-    g.fill(0, 0, 0, W - 1, 1, D - 1, "dirt")
-    g.fill(0, GY, 0, W - 1, GY, D - 1, "grass")
+    g.fill(0, 0, ZN, W - 1, 1, D - 1, "dirt")
+    g.fill(0, GY, ZN, W - 1, GY, D - 1, "grass")
     # sidewalk along the front, curb, then asphalt
     g.fill(0, GY, BZ1 + 1, W - 1, GY, BZ1 + 3, "smooth_stone")
     g.fill(0, GY, BZ1 + 4, W - 1, GY, D - 2, "concrete:gray")
@@ -879,6 +898,126 @@ def build_aisle():
         g.set(34, FY + 1, z, "froglight_yellow")
 
 
+# ---- back of house: security office with two doors, and vents ----------------
+#   west hall   x 27..28, z -13..-1   (opens into the dining room)
+#   east hall   x 40..41, z -13..-1   (opens into the play zone)
+#   back hall   x 27..41, z -13..-12
+#   office      x 30..38, z -6..-1    iron doors in its west (x 29) and east (x 39) walls
+#   parts room  x 30..38, z -10..-8
+# Rooms are 4 tall under a ceiling at y 7; the vents run above it at y 8..9.
+
+AX0, AX1, AZ0 = 26, 42, -14    # annex outer walls; its south side is the building's back wall
+ACY = FY + 4                   # annex ceiling
+VY = ACY + 1                   # vent floor level the player walks on inside the ducts
+
+
+def annex_wall(x, y, z):
+    if y <= FY:
+        return "concrete:gray"
+    if y == FY + 1:
+        return "concrete:black" if (x + z) % 2 else "concrete:white"    # checkered stripe
+    return "concrete:light_gray"
+
+
+def vent(path, shell_from, shell_to):
+    """carve a 1 wide, 2 tall duct through the cells in `path` (x, z at VY),
+    and wrap the part between x = shell_from..shell_to (outside the annex) in metal"""
+    for (x, z) in path:
+        g.set(x, VY, z, "air")
+        g.set(x, VY + 1, z, "air")
+    for x in range(min(shell_from, shell_to), max(shell_from, shell_to) + 1):
+        g.set(x, VY - 1, -1, "concrete:light_gray")
+        g.set(x, VY + 2, -1, "concrete:light_gray")
+        g.set(x, VY, -2, "iron_bars" if x % 4 == 0 else "concrete:light_gray")   # grates let light in
+        g.set(x, VY + 1, -2, "concrete:light_gray")
+
+
+def build_office():
+    # solid block from floor to roof, then carve the rooms out of it
+    for z in range(AZ0, 0):
+        for x in range(AX0, AX1 + 1):
+            g.set(x, GY, z, "concrete:black" if (x + z) % 2 else "concrete:gray")
+            for y in range(FY, ACY):
+                g.set(x, y, z, annex_wall(x, y, z))
+            for y in range(ACY, ACY + 4):
+                g.set(x, y, z, "smooth_stone")
+    for (x0, z0, x1, z1) in ((27, -13, 28, -1), (40, -13, 41, -1), (27, -13, 41, -12),
+                             (30, -6, 38, -1), (30, -10, 38, -8)):
+        g.fill(x0, FY, z0, x1, ACY - 1, z1, "air")
+    g.fill(27, FY, 0, 28, FY + 2, 0, "air")        # west hall <- dining room
+    g.fill(40, FY, 0, 41, FY + 2, 0, "air")        # east hall <- play zone
+    g.fill(34, FY, -11, 34, FY + 1, -11, "air")    # parts room door off the back hall
+
+    # the two doors. Each lever sits on a red panel next to its door and keeps
+    # the door powered (open); flip it to slam the door shut. A second lever
+    # turns on the lamp in the wall that lights up the hall outside.
+    for (wall, inside, door_dir, lever_face) in ((29, 30, 0, "east"), (39, 38, 2, "west")):
+        g.set(wall, FY, -3, f"iron_door:{door_dir}:lower")
+        g.set(wall, FY + 1, -3, f"iron_door:{door_dir}:upper")
+        g.set(wall, FY + 1, -4, "concrete:red")
+        g.set(inside, FY + 1, -4, f"wall_lever:{lever_face}:on")
+        g.set(wall, FY + 1, -1, "redstone_lamp")
+        g.set(inside, FY + 1, -1, f"wall_lever:{lever_face}:off")
+        g.fill(wall, FY + 1, -6, wall, FY + 2, -5, "glass_pane")         # window onto the hall
+
+    # desk with the camera monitors, desk fan and a cupcake
+    g.fill(32, FY, -6, 36, FY, -6, "dark_oak_planks")
+    g.set(32, FY + 1, -6, "carpet:white")
+    g.set(33, FY + 1, -6, "froglight_green")
+    g.set(34, FY + 1, -6, "iron_bars")
+    g.set(35, FY + 1, -6, "froglight_green")
+    g.set(36, FY + 1, -6, "candle_cake")
+    g.set(34, FY, -5, "stairs:dark_oak:south")       # the guard's chair, facing the desk
+    g.set(34, ACY - 1, -3, "lantern")
+    for (x, y, color) in ((31, FY + 2, "yellow"), (32, FY + 3, "pink"), (37, FY + 2, "light_blue"),
+                          (36, FY + 3, "lime")):
+        g.set(x, y, -7, f"wool:{color}")              # kids' drawings on the wall
+
+    # animatronics lurking outside the windows: purple bunny (west), chicken (east)
+    g.set(27, FY, -5, "wool:purple")
+    g.set(27, FY + 1, -5, "wool:purple")
+    g.set(27, FY + 2, -5, "pumpkin_face:east")
+    g.set(27, FY + 3, -5, "wool:purple")
+    g.set(41, FY, -5, "wool:orange")
+    g.set(41, FY + 1, -5, "wool:yellow")
+    g.set(41, FY + 2, -5, "pumpkin_face:west")
+    g.set(41, FY + 3, -5, "wool:red")
+
+    # parts & service: spare costumes, an endoskeleton, tools
+    for (x, color) in ((31, "light_gray"), (32, "purple"), (36, "yellow")):
+        g.set(x, FY, -10, f"wool:{color}")
+        g.set(x, FY + 1, -10, "pumpkin_face:south")
+    g.fill(37, FY, -10, 37, FY + 1, -10, "iron_bars")
+    g.set(37, FY + 2, -10, "iron_block")
+    g.set(38, FY, -8, "crafting_table")
+    g.set(30, FY, -8, "candle:white")
+
+    # dim candles keep the halls spooky but too bright for mobs to spawn
+    for z in (-1, -4, -7, -10, -13):
+        g.set(27, FY, z, "candle:plain")
+        g.set(41, FY, z, "candle:plain")
+    for x in (30, 33, 36, 39):
+        g.set(x, FY, -13, "candle:plain")
+
+    # left vent: ladder up from the office, over the west hall, along the back
+    # of the building and out through the curtain onto the stage behind the band
+    vent([(x, -1) for x in range(14, 32)] + [(14, 0), (14, 1)], 13, AX0 - 1)
+    for y in range(FY, VY + 1):
+        g.set(31, y, -1, "ladder:north")
+    g.fill(13, VY, -1, 13, VY + 1, -1, "concrete:light_gray")     # end cap
+    for y in range(FY + 1, VY):
+        g.set(14, y, 2, "ladder:south")
+    # right vent: over the east hall and down into the play zone
+    vent([(x, -1) for x in range(37, 45)] + [(44, 0)], AX1 + 1, 45)
+    for y in range(FY, VY + 1):
+        g.set(37, y, -1, "ladder:north")
+    g.fill(45, VY, -1, 45, VY + 1, -1, "concrete:light_gray")
+    for y in range(FY, VY):
+        g.set(44, y, 1, "ladder:south")
+    for (x, z) in ((15, -1), (20, -1), (25, -1), (29, -1), (40, -1), (44, -1)):
+        g.set(x, VY + 2, z, "crying_obsidian")                     # glowing vent lights
+
+
 def build_all():
     build_ground()
     build_lot()
@@ -893,6 +1032,7 @@ def build_all():
     build_party_room()
     build_prize_counter()
     build_aisle()
+    build_office()
     build_sign()
 
 
@@ -994,8 +1134,9 @@ def mcstructure(x0, z0, sx, sz):
 
 PACK_UUID = "6b0f6d1e-3c1a-4d8e-9f3b-2a7c5e9d1c01"
 MODULE_UUID = "a4e2c7b9-58d3-4f61-8b2e-0c9d7f3a6e02"
+PACK_VERSION = [1, 1, 0]       # bump on every release so Minecraft replaces the old import
 PIECE = 64                      # Bedrock structures stay within 64 x 64 blocks
-ANCHOR = (32, FY, 40)          # grid cell the player stands in when running the function
+ANCHOR = (32, FY, 28)          # grid cell the player stands in when running the function
 VIEW_SPOT = (32, FY, 69)       # where the player is sent afterwards: the parking lot
 
 
@@ -1019,9 +1160,9 @@ def build_pack():
     ]
     ax, ay, az = ANCHOR
     for px in range(0, W, PIECE):
-        for pz in range(0, D, PIECE):
+        for pz in range(ZN, D, PIECE):
             sx, sz = min(PIECE, W - px), min(PIECE, D - pz)
-            name = f"part_{px // PIECE}_{pz // PIECE}"
+            name = f"part_{px // PIECE}_{(pz - ZN) // PIECE}"
             files[f"structures/cec/{name}.mcstructure"] = mcstructure(px, pz, sx, sz)
             commands.append(f"structure load cec:{name} ~{px - ax} ~{-ay} ~{pz - az}")
     vx, vy, vz = VIEW_SPOT
@@ -1038,10 +1179,10 @@ def build_pack():
             "name": "Chuck E. Cheese Map",
             "description": "Fan-made pizza and arcade party place. Run /function chuckecheese",
             "uuid": PACK_UUID,
-            "version": [1, 0, 0],
+            "version": PACK_VERSION,
             "min_engine_version": [1, 20, 0],
         },
-        "modules": [{"type": "data", "uuid": MODULE_UUID, "version": [1, 0, 0]}],
+        "modules": [{"type": "data", "uuid": MODULE_UUID, "version": PACK_VERSION}],
     }
     files["manifest.json"] = json.dumps(manifest, indent=2).encode()
     icon = io.BytesIO()
@@ -1073,6 +1214,8 @@ def render_iso(path, cut=False, scale=7):
     def hidden(x, y, z):
         if not cut:
             return False
+        if z < 0:   # annex: drop its ceiling, vents and roof, and the east wall facing the camera
+            return y >= ACY or (y > FY + 1 and x == AX1)
         in_building = z <= BZ1 + 1
         return in_building and (y >= CY or (y > FY + 1 and (z >= BZ1 or x == W - 1 or x == 0 or z == 0)))
 
@@ -1080,17 +1223,17 @@ def render_iso(path, cut=False, scale=7):
         k = g.get(x, y, z)
         return k != "air" and PALETTE[k][4] == "cube" and not hidden(x, y, z)
 
-    ox = D * a + 20
+    ox = (D - ZN) * a + 20
     oy = H * c + 20
-    img = Image.new("RGB", (int((W + D) * a + 40), int((W + D) * b + H * c + 40)), (24, 28, 40))
+    img = Image.new("RGB", (int((W + D - ZN) * a + 40), int((W + D - ZN) * b + H * c + 40)), (24, 28, 40))
     dr = ImageDraw.Draw(img)
 
     def proj(x, y, z):
-        return (ox + (x - z) * a, oy + (x + z) * b - y * c)
+        return (ox + (x - (z - ZN)) * a, oy + (x + (z - ZN)) * b - y * c)
 
     order = []
     for y in range(H):
-        for z in range(D):
+        for z in range(ZN, D):
             for x in range(W):
                 k = g.get(x, y, z)
                 if k == "air" or hidden(x, y, z):
@@ -1115,16 +1258,20 @@ def render_iso(path, cut=False, scale=7):
 
 def render_plan(path, scale=10):
     """top-down plan: highest block at or below the given layer"""
-    img = Image.new("RGB", (W * scale, D * scale), (0, 0, 0))
+    img = Image.new("RGB", (W * scale, (D - ZN) * scale), (0, 0, 0))
     dr = ImageDraw.Draw(img)
-    for z in range(D):
+    for z in range(ZN, D):
         for x in range(W):
-            ymax = CY - 1 if z <= BZ1 else H - 1
+            if z < 0:
+                ymax = ACY - 1 if AX0 <= x <= AX1 and z >= AZ0 else H - 1
+            else:
+                ymax = CY - 1 if z <= BZ1 else H - 1
             for y in range(ymax, -1, -1):
                 k = g.get(x, y, z)
                 if k != "air":
                     f = 0.55 + 0.45 * (y / (CY - 1))
-                    dr.rectangle([x * scale, z * scale, (x + 1) * scale - 1, (z + 1) * scale - 1],
+                    zz = z - ZN
+                    dr.rectangle([x * scale, zz * scale, (x + 1) * scale - 1, (zz + 1) * scale - 1],
                                  fill=_shade(PALETTE[k][3], min(1.1, f)))
                     break
     img.save(path)
