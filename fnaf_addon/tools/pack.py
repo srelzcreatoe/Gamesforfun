@@ -29,7 +29,8 @@ MIN_ENGINE = [1, 20, 0]
 NAMES = {"bonnie": "Bonnie", "freddy": "Freddy", "withered_freddy": "Withered Freddy", "party_cat": "Party Cat",
          "rat": "Rat", "monkey": "Monkey", "bat": "Bat", "crocodile": "Crocodile", "fox": "Fox", "bunny": "Bunny",
          "goat": "Goat", "bear": "Bear", "golden_freddy": "Golden Freddy", "crimson_freddy": "Crimson Freddy",
-         "violet_bunny": "Violet Bunny", "rustgrin": "Rustgrin", "mirehop": "Mirehop", "noxbriar": "Noxbriar"}
+         "violet_bunny": "Violet Bunny", "rustgrin": "Rustgrin", "mirehop": "Mirehop", "noxbriar": "Noxbriar",
+         "withered_golden_freddy": "Withered Golden Freddy"}
 # mark_variant value -> clip, as read by every animation controller
 VARIANTS = {1: "pose1", 2: "pose2", 3: "performance1", 4: "performance2", 5: "jumpscare1", 6: "jumpscare2"}
 ICON_FACES = ("fox", "crocodile", "bunny", "bear")      # 2x2 grid on the pack icon

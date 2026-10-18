@@ -247,13 +247,19 @@ def build_legs(name):
         cube(shin, "knee_joint", [kx - kw, k0 - 0.2, -kw], [kx + kw, k1 + 0.2, kw], "endo", s, painter=fred3.p_endo)
         s0, s1 = pic.y(L["shin"][0]), pic.y(L["shin"][1])
         sw = pic.d(L["shin_half"])
+        cap = L.get("shin_cap")
+        if cap:
+            # a narrower knee cap block on top of the shin
+            c0, cw = pic.y(cap[0]), pic.d(cap[1])
+            rbox(shin, "shin_cap", sx - cw, sx + cw, c0 - 0.2, s1, -cw, cw, "fur", s, r=0.7, steps=3)
+            s1 = c0
         rbox(shin, "shin", sx - sw, sx + sw, s0, s1, -sw, sw, "fur", s, r=0.95, steps=3)
         heel = pic.y(L["heel_top"])
         bone(foot, shin, [s * sx, heel + 0.4, 0])
         cube(foot, "ankle_joint", [sx - 1.1, heel - 0.4, -1.1], [sx + 1.1, heel + 0.9, 1.1], "endo", s, painter=fred3.p_endo)
         fo, fi = pic.x(L["foot"][0]), pic.x(L["foot"][1])
         sole, toe = pic.y(L["sole_top"]), pic.y(L["toe_top"])
-        td = 3.3
+        td = L.get("toe_depth", 3.3)
         fz0 = -sw - td + 0.3                     # the toes reach forward from the front of the shin
         fz1 = sw + 0.4
         cube(foot, "sole", [fi, 0.0, fz0], [fo, sole, fz1 + 0.2], "sole", s)

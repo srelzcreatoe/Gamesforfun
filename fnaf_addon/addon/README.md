@@ -17,6 +17,12 @@ No experimental toggles are needed.
 
 Rebuild it with `python3 tools/pack.py --pack FNAF_Six bonnie freddy withered_freddy rustgrin mirehop noxbriar`.
 
+### FNAF_Withered_Golden_Freddy.mcaddon
+
+`FNAF_Withered_Golden_Freddy.mcaddon` has Withered Golden Freddy (`fnaf:withered_golden_freddy`) on its own, with the packs **FNAF Withered Golden Freddy Resources** and **FNAF Withered Golden Freddy Behaviors**. It works the same way as the other add-ons and can be turned on alongside `FNAF_Six.mcaddon` in the same world, since they share no characters.
+
+Rebuild it with `python3 tools/pack.py --pack FNAF_Withered_Golden_Freddy withered_golden_freddy`.
+
 ## Install
 
 1. Open `FNAF_Animatronics.mcaddon` with Minecraft (double-click it, or share it to Minecraft on phone or console). Both packs are imported.

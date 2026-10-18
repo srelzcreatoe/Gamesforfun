@@ -22,8 +22,9 @@ These are Blockbench models in the **Bedrock Entity** format, each built from a 
 | Rustgrin | [`rustgrin/`](rustgrin/README.md) | idle, proud march, charging run, pose 1–2 ("ladies and gentlemen"), performance 1–2 (bowing song, soft-shoe), jumpscare 1–2 (claw lunge, grinding head turn) |
 | Mirehop | [`mirehop/`](mirehop/README.md) | idle, sneaking walk, lurching run, pose 1–2 (peek and beckon), performance 1–2 (air guitar, hop dance), jumpscare 1–2 (pounce, dead-then-lunge) |
 | Noxbriar | [`noxbriar/`](noxbriar/README.md) | idle, gliding walk, run, pose 1–2 (looming), performance 1–2 (conducting, music-box waltz), jumpscare 1–2 (head tilt then lunge, arms crash down) |
+| Withered Golden Freddy | [`withered_golden_freddy/`](withered_golden_freddy/README.md) | idle, shuffling walk, lurching run, pose 1–2 (powered down), performance 1–2 (crooner with hat tip, broken jig), jumpscare 1–2 (head lunge, jolt awake) |
 
-**Ready-to-play add-on:** [`addon/FNAF_Animatronics.mcaddon`](addon/README.md) has all 15 characters in one resource pack + behavior pack, with spawn eggs and events for the poses, performances and jumpscares. See [`addon/README.md`](addon/README.md) for install steps and commands. [`addon/FNAF_Six.mcaddon`](addon/README.md) is a smaller, separate add-on with just Bonnie, Freddy, Withered Freddy, Rustgrin, Mirehop and Noxbriar.
+**Ready-to-play add-on:** [`addon/FNAF_Animatronics.mcaddon`](addon/README.md) has all 15 characters in one resource pack + behavior pack, with spawn eggs and events for the poses, performances and jumpscares. See [`addon/README.md`](addon/README.md) for install steps and commands. [`addon/FNAF_Six.mcaddon`](addon/README.md) is a smaller, separate add-on with just Bonnie, Freddy, Withered Freddy, Rustgrin, Mirehop and Noxbriar. [`addon/FNAF_Withered_Golden_Freddy.mcaddon`](addon/README.md) has Withered Golden Freddy on its own.
 
 Each folder contains:
 
@@ -45,7 +46,7 @@ tools/
   build.py            python3 tools/build.py [bonnie freddy withered_freddy party_cat rat
                                        monkey bat crocodile fox bunny goat bear
                                        golden_freddy crimson_freddy violet_bunny
-                                       rustgrin mirehop noxbriar]
+                                       rustgrin mirehop noxbriar withered_golden_freddy]
   fnafkit/            shared code: rig, texture painting + baked shading (rig.py), keyframes + IK (anim.py),
                       animatronic servo motion (servo.py), .bbmodel / Bedrock export (export.py)
   characters/         geometry, textures and animations: bonnie.py, freddy.py (both Freddys),
@@ -53,6 +54,7 @@ tools/
                       cast.py + cast_anims.py (Monkey, Bat, Crocodile, Fox, Bunny, Goat, Bear),
                       fred3.py + fred3_anims.py (Golden Freddy, Crimson Freddy, Violet Bunny),
                       vested.py + vested_anims.py (Rustgrin, Mirehop, Noxbriar, built on fred3's parts),
+                      withered_golden.py + withered_golden_anims.py (Withered Golden Freddy, on the same parts),
                       night.py (shared animatronic clips)
   render/             three.js preview renderer (render.mjs), character sheets (make_sheet.py)
                       and per-character camera/text configs (configs/)
