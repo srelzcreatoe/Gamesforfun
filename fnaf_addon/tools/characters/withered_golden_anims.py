@@ -15,12 +15,14 @@ eye flickers out and back on (its eyeGlow bone drops to scale 0 for a frame or t
   jumpscare 1: only the head lunges at you, jaw wide and the eye flaring, the body left behind
   jumpscare 2: slumped and dark, then it jolts upright and lunges with its arms flung out
 
-Hands: the palm faces the leg with the thumb in front (fred3.py); roll() turns it where a clip
-needs it.
+Hands: as in the front picture, the back of the hand faces forward, turned a little toward the leg
+(withered_golden.HAND_TURN), with the thumb on the inner side; roll() turns it from there (+ turns
+the back of the hand up when the arm is raised in front, - turns the palm up).
 """
 import math
 
 from characters.fred3_anims import Fred3Night, pulse, song, steps
+from characters.withered_golden import HAND_TURN
 from characters.night import ease, flip, lerp, window
 from fnafkit.anim import S, TAU, cs, flat_foot, pos, setp, setr, sets, sn
 from fnafkit.servo import add_rot, meta, stepper
@@ -129,7 +131,7 @@ class WitheredGoldenNight(Fred3Night):
             ph = f + (math.pi if s > 0 else 0.0)
             setr(p, f"{side}Arm", -66.0 + 10.0 * sn(ph), 0, s * 10.0)
             setr(p, f"{side}Forearm", -18.0, 0, 0)
-            self.roll(p, side, 90.0)                        # palms down, reaching
+            self.roll(p, side, HAND_TURN)                   # back of the hand up: palms down, reaching
             self.claw(p, side, 0.7)
         self.eye(p, 1.0)
         meta(p, extra=0.9 * pos(sn(2 * f + 0.9)))
@@ -143,9 +145,9 @@ class WitheredGoldenNight(Fred3Night):
         """The picture: standing square, the mitts curled, the head turned a little to its right."""
         p = {}
         look = window(t, 0.4, 2.4, 0.3)
-        setr(p, "head", 2.0 * look, -8.0 + 10.0 * look, 0)        # upright, turned a little to its left, as in the picture
+        setr(p, "head", 2.0 * look, 8.0 * look, 0)                # facing front, as in the picture, then a slow look aside
         for side in ("right", "left"):
-            self.hand(p, side, curl=0.55)
+            self.hand(p, side, curl=0.36, thumb=0.35)         # fingers half bent, as in the picture
         self.stance(p, 0.0)
         self.eye(p, 1.0)
         meta(p)
@@ -195,7 +197,7 @@ class WitheredGoldenNight(Fred3Night):
         self.hand(p, "left", curl=0.3)
         setr(p, "rightArm", lerp(-30.0 * sweep, -150.0, tip), 0, lerp(8.0 + 50.0 * sweep, 18.0, tip))
         setr(p, "rightForearm", lerp(-10.0 * sweep, -60.0, tip), 0, 0)
-        self.roll(p, "right", -90.0 * sweep)                # palm up to the crowd
+        self.roll(p, "right", -(180.0 - HAND_TURN) * sweep)  # palm up to the crowd
         self.hand(p, "right", curl=lerp(0.4 - 0.6 * sweep, 0.6, tip), spread=0.6 * sweep)
         setr(p, "hat", -10.0 * tip, 0, 10.0 * tip)
         setp(p, "hat", 0, 1.2 * tip, 0)
@@ -276,7 +278,7 @@ class WitheredGoldenNight(Fred3Night):
             s = S[side]
             setr(p, f"{side}Arm", lerp(8.0 * sag, -70.0, go), 0, s * lerp(-2.0, 60.0, up))
             setr(p, f"{side}Forearm", lerp(-4.0, -20.0, go), 0, 0)
-            self.roll(p, side, 90.0 * go)
+            self.roll(p, side, HAND_TURN * go)
             self.claw(p, side, up)
         self.stance(p, 1.5, 8.0 * sag + 6.0 * go)
         self.eye(p, up * (1.0 + 0.4 * go))

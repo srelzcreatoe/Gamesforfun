@@ -263,7 +263,8 @@ def build_legs(name):
         fz0 = -sw - td + 0.3                     # the toes reach forward from the front of the shin
         fz1 = sw + 0.4
         cube(foot, "sole", [fi, 0.0, fz0], [fo, sole, fz1 + 0.2], "sole", s)
-        rbox(foot, "heel", fi + 0.5, fo - 0.5, sole, heel, fz0 + td - 0.6, fz1, "fur", s, r=0.8)
+        hx0, hx1 = (pic.x(L["heel_x"][1]), pic.x(L["heel_x"][0])) if "heel_x" in L else (fi + 0.5, fo - 0.5)
+        rbox(foot, "heel", hx0, hx1, sole, heel, fz0 + td - 0.6, fz1, "fur", s, r=0.8)
         gap = 0.18
         tw_ = (fo - fi - 2 * gap) / 3
         x = fi
