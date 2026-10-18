@@ -28,7 +28,7 @@ It includes:
 - **Fur:** sooty black-brown with rusty patches; a pale grey belly
 - **Head:** a black top hat; round black ears with a grey centre; a grey-brown plate round the eyes; deep black eye sockets filled by glossy eyeballs, as in the picture: a big glowing red iris with a dark red ring and a black pupil, a white glint, a dim red glow in the socket and thin white reflections curving up the outer edge of each socket; black tear streaks running from the eyes down over the pale muzzle; a black nose; a row of teeth
 - **Chest:** a purple vest that wraps the whole torso and hangs open over the belly, with a dark trim along each lapel and two lighter pocket flaps; a purple bow tie; two round black buttons on the belly
-- **Hands:** working endoskeleton hands that hang with the back of the hand facing forward, as in the picture: a furry back of the hand with two tendon rods, four bare fingers and a thumb, each a chain of dark blocks on black ball joints
+- **Hands:** working endoskeleton hands that hang with the palm facing the leg and the thumb in front: a furry back of the hand with two tendon rods, four bare fingers and a thumb, each a chain of dark blocks on black ball joints
 - **Arms and legs:** rounded shoulder caps beside the jaw, chunky blocks on black ball joints, with corners stepped back like the picture
 - **Feet:** big three-toed feet on a grey sole, as wide as in the picture: flush with the inside of each leg and reaching well out past its outer side
 
@@ -45,7 +45,7 @@ root
 └─ leftLeg  ─ leftShin  ─ leftFoot
 ```
 
-The hands hang with the back of the hand facing forward and the thumb on the inner side, as in the picture. Each finger is a chain of three bones, and none of them has a rest rotation, so a positive X rotation bends any joint into a fist.
+The hands hang with the palm facing the leg and the thumb in front. With an arm raised in front they turn palm down or palm up as a clip needs. Each finger is a chain of three bones, and none of them has a rest rotation, so a positive X rotation bends any joint into a fist.
 
 ## Animations
 

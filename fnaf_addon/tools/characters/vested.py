@@ -378,9 +378,6 @@ def build(name):
     hp = P[name].y(H["pivot"])
     cube("torso", "neck", [-1.3, c1 - 1.0, -1.2], [1.3, hp + 1.0, 1.4], "endo", painter=fred3.p_endo)
     PALM[name] = fred3.build_arms(name, hw)
-    # in these pictures the backs of the hands face forward (fred3 turns its palms to the legs)
-    for side in ("right", "left"):
-        rig.BONES[f"{side}Hand"].rot[1] = 0.0
     fred3.build_head(name)
     if H["ears"]["kind"] == "round":
         build_round_ears(name)

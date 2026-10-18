@@ -28,7 +28,7 @@ It includes:
 - **Fur:** rust-flecked grey, with darker patches and a pale grey belly
 - **Head:** a red top hat with a black band; round ears with a dark ring and a pale centre; a lighter plate round the eyes; deep black eye sockets filled by glossy eyeballs, as in the picture: a big glowing red iris with a dark red ring and a black pupil, a white glint, a dim red glow in the socket and thin white reflections along the bottom of each socket; a pale grey muzzle split down the middle, with black freckles and a black nose; a row of cream teeth
 - **Chest:** a red vest that wraps the whole torso and hangs open over the belly, with a dark trim along each lapel and four square black buttons; a red bow tie
-- **Hands:** working endoskeleton hands that hang with the back of the hand facing forward, as in the picture: a furry back of the hand with two tendon rods, four bare fingers and a thumb, each a chain of grey blocks on black ball joints
+- **Hands:** working endoskeleton hands that hang with the palm facing the leg and the thumb in front: a furry back of the hand with two tendon rods, four bare fingers and a thumb, each a chain of grey blocks on black ball joints
 - **Arms and legs:** rounded shoulder caps beside the jaw, chunky blocks on black ball joints, with corners stepped back like the picture
 - **Feet:** big three-toed feet on a dark sole, as wide as in the picture: flush with the inside of each leg and reaching well out past its outer side
 
@@ -45,7 +45,7 @@ root
 └─ leftLeg  ─ leftShin  ─ leftFoot
 ```
 
-The hands hang with the back of the hand facing forward and the thumb on the inner side, as in the picture. Each finger is a chain of three bones, and none of them has a rest rotation, so a positive X rotation bends any joint into a fist.
+The hands hang with the palm facing the leg and the thumb in front. With an arm raised in front they turn palm down or palm up as a clip needs. Each finger is a chain of three bones, and none of them has a rest rotation, so a positive X rotation bends any joint into a fist.
 
 ## Animations
 
