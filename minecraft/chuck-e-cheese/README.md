@@ -1,36 +1,62 @@
 # Chuck E. Cheese map for Minecraft Bedrock
 
-A fan-made Chuck E. Cheese pizza and arcade place you can build in Minecraft
-Bedrock Edition (phone, tablet, Windows) with one command.
+A fan-made Chuck E. Cheese you can build in Minecraft Bedrock Edition (phone,
+tablet, Windows) with one command. The layout mixes what real stores have
+today (dance floor, LED video wall, Trampoline Zone, Kid Check, Ticket Blaster)
+with the classics from older stores and the Roblox fan maps (the full
+animatronic band, backstage, a security office).
 
 ![outside](preview_outside.png)
 ![inside](preview_inside.png)
 
 ## What's inside
 
-- **Parking lot** with parked cars, lamp posts and trees, and a big
-  CHUCK E. CHEESE sign with the mouse on the roof
-- **Showroom** with 15 party tables (pizza on every table) facing the
-  **stage**, where the animatronic band plays: a mouse, a chicken and a purple
-  monster on keyboards
-- **Arcade** with 60 game cabinets (joysticks and buttons), 3 claw machines
-  and 3 skee-ball lanes, under a glowing GAMES sign
-- **Play zone** with a ball pit, three climbing towers with ladders, tubes,
-  and two slides (one drops you into the ball pit)
-- **Prize counter** with a wall of prizes and a giant teddy bear
-- **Birthday party room** with cakes, balloons and presents
-- **Kitchen** with brick pizza ovens and the PIZZA menu over the order window
-- **Security office** behind the stage, in the back-of-house area. Get there
-  through the hallway next to the stage or the one at the back of the play zone:
-  - two iron doors, left and right. Flip the lever on the red panel next to a
-    door to slam it shut, and flip it again to open it
-  - a light switch by each door that turns on a lamp so you can see who's in
-    the hallway. Look out the windows: a purple bunny waits in one hall and a
-    chicken in the other
-  - a desk with two camera screens, a desk fan and a cupcake
-  - two vents: climb the ladders in the office corners. The left vent comes
-    out on the stage behind the band, the right one in the play zone
-  - a Parts & Service room with spare costumes and an endoskeleton
+**Out front**
+- Parking lot with cars, lamp posts, trees and a sign out by the road
+- Big CHUCK E. CHEESE sign with the round mouse logo, glass storefront and awning
+
+**Lobby**
+- Double glass doors, a **welcome wall** with Chuck E.'s face
+- **Kid Check** desk where everyone gets their hand stamped
+- Play Pass kiosks
+
+**Showroom**
+- Stage with the whole band: **Chuck E.** in the middle with his mic,
+  **Jasper** on guitar, **Pasqually** on drums, **Helen Henny** singing on the
+  left side stage and **Mr. Munch** on keyboards on the right
+- Glowing **Circles of Light** behind the band and a colorful lit overhang
+- Light-up **dance floor** and a giant **LED video wall**
+- 15 party tables with pizza, a **salad bar** and a **drink station**
+- Kitchen **order counter** with the PIZZA menu
+
+**Game room**
+- 4 **skee-ball** lanes, 2 **basketball** hoop shoots, the big **prize wheel**
+- 6 sit-down **racing games**, 96 **arcade machines** with joysticks and buttons
+- **Air hockey**, **whac-a-mole**, 3 **claw machines**, kiddie horse rides
+- **Trampoline Zone** with bouncy slime-block trampolines
+- **Play area** with a ball pit, two climbing towers, a tube and two slides
+- **Ticket Blaster** booth, **photo booth** and the **prize counter** with
+  ticket munchers, a wall of prizes and giant teddy bears
+
+**Party rooms**
+- Two birthday rooms with cakes, balloons, presents and a gold **birthday throne**
+
+**Staff only** (through the doors at the back)
+- **Kitchen** with conveyor pizza ovens, a make line, walk-in cooler and dish pit
+- **Backstage**: show control room with monitors, the costume room with Chuck
+  E.'s walk-around costume and a lit dressing mirror, and storage
+- **Restrooms** (boys and girls)
+- **Security office**, through the two hallways next to the GAMES sign:
+  - two iron doors: flip the lever on the red panel to slam a door, flip it
+    again to open it
+  - a light switch by each door to see who's in the hall. A purple bunny and a
+    chicken are waiting outside the windows
+  - desk with camera screens, a fan and a cupcake
+  - two vents (climb the ladders in the office corners): the left one comes
+    out on stage behind Chuck E., the right one drops you onto the trampolines
+  - Parts & Service room with spare costumes and an endoskeleton
+- **Manager's office** with a safe, and the **break room** with lockers and a
+  vending machine
 
 ## How to install
 
@@ -52,14 +78,16 @@ Bedrock Edition (phone, tablet, Windows) with one command.
    ```
 
    The building appears around you and you're sent out to the parking lot,
-   looking at the front door.
+   looking at the front door. It's big (96 x 92 blocks), so the far corners
+   may take a moment to appear.
 
 Turning on cheats or add-ons switches off achievements for that world (that's
 normal for any add-on).
 
 **Updating:** open the new `ChuckECheese.mcpack` the same way and it replaces
-the old one. If an old world doesn't pick up the update, make a new flat world
-with the pack turned on.
+the old one. Then make a new flat world with the pack turned on; the new
+building is much bigger than the old one, so don't build it on top of an old
+copy.
 
 ## Rebuilding
 

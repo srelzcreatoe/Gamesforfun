@@ -138,17 +138,39 @@ reg("candle:plain", "minecraft:candle", {"candles": 0, "lit": True}, (230, 220, 
 for _d, _v in {"north": 2, "south": 3, "west": 4, "east": 5}.items():
     reg(f"ladder:{_d}", "minecraft:ladder", {"facing_direction": _v}, (150, 115, 65), "thin")
 
+reg("hardened_clay", "minecraft:hardened_clay", rgb=(152, 94, 67))
+reg("slime", "minecraft:slime", rgb=(120, 200, 90))
+reg("packed_ice", "minecraft:packed_ice", rgb=(150, 185, 245))
+reg("bookshelf", "minecraft:bookshelf", rgb=(120, 90, 60))
+reg("smooth_quartz", "minecraft:quartz_block", {"chisel_type": "smooth", "pillar_axis": "y"}, (240, 236, 230))
+reg("lantern:stand", "minecraft:lantern", {"hanging": False}, (250, 200, 110), "thin")
+reg("end_rod:west", "minecraft:end_rod", {"facing_direction": 4}, (245, 240, 230), "thin")
+# buttons stuck on the side of a block: facing_direction = the way the button points
+for _d, _v in {"north": 2, "south": 3, "west": 4, "east": 5}.items():
+    reg(f"button:{_d}", "minecraft:stone_button", {"button_pressed_bit": False, "facing_direction": _v},
+        (140, 140, 140), "thin")
+# wooden doors (closed, open them by hand): direction 0 east, 1 south, 2 west, 3 north
+for _d in range(4):
+    for _half in ("lower", "upper"):
+        reg(f"door:{_d}:{_half}", "minecraft:wooden_door",
+            {"direction": _d, "door_hinge_bit": False, "open_bit": False, "upper_block_bit": _half == "upper"},
+            (160, 125, 75), "thin")
+
 
 # ---------------------------------------------------------------------------
 # voxel grid
 # ---------------------------------------------------------------------------
 
-W, H, D = 64, 36, 72          # x (east), y (up), z (south edge, exclusive)
-ZN = -16                      # north edge: the back-of-house annex sits at negative z
+W, H, D = 96, 46, 92          # x (east), y (up), z (south edge, exclusive)
+ZN = 0                        # north edge of the grid
 GY = 2                        # ground / floor block layer
 FY = 3                        # first walkable layer (feet)
-CY = 13                       # ceiling + roof layer
-BZ1 = 51                      # front wall of the building (z); parking lot is south of it
+CY = 13                       # ceiling + roof layer of the building
+BZ1 = 63                      # front wall of the building (z); parking lot is south of it
+BACK = 13                     # wall between the back-of-house strip (z 1..12) and the main floor
+FRONT = 47                    # wall line between the main floor and the front rooms (z 48..62)
+BCY = FY + 4                  # back-of-house ceiling (rooms are 4 tall, vents run above)
+VY = BCY + 1                  # floor level the player walks on inside the vents
 
 
 class Grid:
@@ -177,15 +199,6 @@ class Grid:
             for z in range(min(z0, z1), max(z0, z1) + 1):
                 for x in range(min(x0, x1), max(x0, x1) + 1):
                     self.set(x, y, z, key)
-
-    def fill_fn(self, x0, y0, z0, x1, y1, z1, fn):
-        """fill with fn(x, y, z) -> key or None (leave as is)"""
-        for y in range(min(y0, y1), max(y0, y1) + 1):
-            for z in range(min(z0, z1), max(z0, z1) + 1):
-                for x in range(min(x0, x1), max(x0, x1) + 1):
-                    k = fn(x, y, z)
-                    if k is not None:
-                        self.set(x, y, z, k)
 
 
 g = Grid()
@@ -219,35 +232,44 @@ def text_width(text):
     return sum(len(FONT[ch][0]) for ch in text) + len(text) - 1
 
 
-def draw_text(text, ox, oy, oz, right, key, scale=1):
-    """Draw text in a vertical plane. (ox, oy, oz) is the bottom-left block,
-    `right` the (dx, dz) reading direction, letters grow upward."""
+def draw_text(text, ox, oy, oz, right, key):
+    """Text in a vertical plane. (ox, oy, oz) is the bottom-left block and
+    `right` the (dx, dz) reading direction as seen by the viewer."""
     cursor = 0
     for ch in text:
         glyph = FONT[ch]
-        gw = len(glyph[0])
         for row, line in enumerate(glyph):
             for col, px in enumerate(line):
-                if px != "#":
-                    continue
-                for sy in range(scale):
-                    for sx in range(scale):
-                        u = (cursor + col) * scale + sx
-                        v = (4 - row) * scale + sy
-                        g.set(ox + right[0] * u, oy + v, oz + right[1] * u, key)
-        cursor += gw + 1
+                if px == "#":
+                    u = cursor + col
+                    g.set(ox + right[0] * u, oy + 4 - row, oz + right[1] * u, key)
+        cursor += len(glyph[0]) + 1
 
 
 def draw_art(rows, ox, oy, oz, right, legend):
-    """Pixel art in a vertical plane; rows are top to bottom, '.' = untouched."""
+    """Pixel art in a vertical plane; rows top to bottom, '.' = untouched."""
     hgt = len(rows)
     for r, line in enumerate(rows):
         for c, px in enumerate(line):
-            if px == ".":
-                continue
-            g.set(ox + right[0] * c, oy + (hgt - 1 - r), oz + right[1] * c, legend[px])
+            if px != ".":
+                g.set(ox + right[0] * c, oy + (hgt - 1 - r), oz + right[1] * c, legend[px])
 
 
+def ring_plane(cx, cy, z, r, key_fn, fill=None):
+    """circle in the vertical plane z; key_fn(i) picks the colour of ring cell i"""
+    i = 0
+    for y in range(int(cy - r - 1), int(cy + r + 2)):
+        for x in range(int(cx - r - 1), int(cx + r + 2)):
+            d = math.hypot(x - cx, y - cy)
+            if abs(d - r) <= 0.5:
+                g.set(x, y, z, key_fn(i))
+                i += 1
+            elif fill and d < r - 0.5:
+                g.set(x, y, z, fill)
+
+
+MOUSE_LEGEND = {"E": "wool:gray", "P": "wool:pink", "C": "wool:purple", "G": "wool:light_gray",
+                "W": "wool:white", "K": "wool:black", "N": "wool:black"}
 MOUSE_FACE = [
     ".EEE.......EEE.",
     "EPPPE.....EPPPE",
@@ -263,32 +285,37 @@ MOUSE_FACE = [
     "....GGWWWGG....",
     ".....GGGGG.....",
 ]
-MOUSE_LEGEND = {"E": "wool:gray", "P": "wool:pink", "C": "wool:purple", "G": "wool:light_gray",
-                "W": "wool:white", "K": "wool:black", "N": "wool:black"}
+MOUSE_FACE_SMALL = [
+    "EE.......EE",
+    "EPE.....EPE",
+    "EPECCCCCEPE",
+    ".EGCCCCCGE.",
+    "..GGGGGGG..",
+    "..GWKGKWG..",
+    "..GGGGGGG..",
+    "...GWNWG...",
+    "....WWW....",
+]
 
 
 # ---------------------------------------------------------------------------
-# ground, parking lot, building shell
+# outside: ground, parking lot, building shell, sign
 # ---------------------------------------------------------------------------
 
 def build_ground():
     g.fill(0, 0, ZN, W - 1, 1, D - 1, "dirt")
     g.fill(0, GY, ZN, W - 1, GY, D - 1, "grass")
-    # sidewalk along the front, curb, then asphalt
-    g.fill(0, GY, BZ1 + 1, W - 1, GY, BZ1 + 3, "smooth_stone")
-    g.fill(0, GY, BZ1 + 4, W - 1, GY, D - 2, "concrete:gray")
-    # parking stall lines: two rows of stalls facing a centre drive lane
+    g.fill(0, GY, BZ1 + 1, W - 1, GY, BZ1 + 3, "smooth_stone")        # sidewalk
+    g.fill(0, GY, BZ1 + 4, W - 1, GY, D - 2, "concrete:gray")          # asphalt
     for x in range(2, W - 1, 4):
-        if 26 <= x <= 37:
+        if 42 <= x <= 53:
             continue                      # keep the walkway to the doors clear
-        g.fill(x, GY, BZ1 + 5, x, GY, BZ1 + 9, "concrete:white")
-        g.fill(x, GY, D - 7, x, GY, D - 3, "concrete:white")
-    # painted walkway to the entrance
-    for z in range(BZ1 + 4, D - 1):
-        for x in range(29, 35):
-            if (z + x) % 2 == 0 or x in (29, 34):
+        g.fill(x, GY, BZ1 + 5, x, GY, BZ1 + 10, "concrete:white")
+        g.fill(x, GY, D - 9, x, GY, D - 4, "concrete:white")
+    for z in range(BZ1 + 4, D - 1):       # zebra walkway to the doors
+        for x in range(44, 52):
+            if z % 2 == 0 or x in (44, 51):
                 g.set(x, GY, z, "concrete:white")
-    g.fill(0, GY, D - 1, W - 1, GY, D - 1, "grass")
 
 
 def tree(x, z):
@@ -303,348 +330,304 @@ def tree(x, z):
 
 
 def lamp_post(x, z):
-    for y in range(FY, FY + 4):
-        g.set(x, y, z, "iron_bars")
-    g.set(x, FY + 4, z, "sea_lantern")
+    g.fill(x, FY, z, x, FY + 4, z, "iron_bars")
+    g.set(x, FY + 5, z, "sea_lantern")
 
 
 def car(x, z, color):
-    """little 3x5 car parked facing north, front at z"""
+    """little 3x5 car parked nose-in, front at z"""
     body = f"concrete:{color}"
-    g.fill(x, FY, z, x + 2, FY, z + 4, body)
+    g.fill(x, FY, z, x + 2, FY + 1, z + 4, body)
     for (cx, cz) in ((x, z + 1), (x + 2, z + 1), (x, z + 3), (x + 2, z + 3)):
-        g.set(cx, FY, cz, "concrete:black")          # wheels
-    g.fill(x, FY + 1, z, x + 2, FY + 1, z + 4, body)
+        g.set(cx, FY, cz, "concrete:black")
     g.fill(x, FY + 1, z + 1, x + 2, FY + 1, z + 3, "glass")
     g.fill(x, FY + 2, z + 1, x + 2, FY + 2, z + 3, body)
-    g.set(x, FY + 1, z, "froglight_yellow")           # headlights
+    g.set(x, FY + 1, z, "froglight_yellow")
     g.set(x + 2, FY + 1, z, "froglight_yellow")
-    g.set(x, FY + 1, z + 4, "concrete:red")           # tail lights
+    g.set(x, FY + 1, z + 4, "concrete:red")
     g.set(x + 2, FY + 1, z + 4, "concrete:red")
 
 
 def build_lot():
-    # planters with trees along the sidewalk, skipping the entrance
-    for x in (5, 16, 47, 58):
+    for x in (6, 22, 36, 60, 74, 90):
         g.fill(x - 1, GY, BZ1 + 2, x + 1, GY, BZ1 + 2, "grass")
         tree(x, BZ1 + 2)
-    for x in (12, 24, 40, 52):
-        lamp_post(x, BZ1 + 10)
-    car(3, BZ1 + 5, "red")
-    car(11, BZ1 + 5, "light_blue")
-    car(43, BZ1 + 5, "yellow")
-    car(7, D - 7, "white")
-    car(51, D - 7, "lime")
-    car(55, BZ1 + 5, "purple")
+    for x in (14, 30, 66, 82):
+        lamp_post(x, BZ1 + 12)
+        lamp_post(x, D - 11)
+    for (x, z, c) in ((3, BZ1 + 5, "red"), (15, BZ1 + 5, "light_blue"), (27, BZ1 + 5, "yellow"),
+                      (59, BZ1 + 5, "white"), (71, BZ1 + 5, "purple"), (83, BZ1 + 5, "lime"),
+                      (7, D - 9, "orange"), (35, D - 9, "black"), (63, D - 9, "magenta"),
+                      (79, D - 9, "blue")):
+        car(x, z, c)
+    # pylon sign at the lot entrance
+    g.fill(89, FY, D - 3, 89, FY + 7, D - 3, "smooth_quartz")
+    g.fill(84, FY + 8, D - 3, 94, FY + 17, D - 3, "concrete:purple")
+    draw_art(MOUSE_FACE_SMALL, 84, FY + 9, D - 3, (1, 0), MOUSE_LEGEND)
 
 
-def wall_key(x, y, z):
-    """exterior wall colour bands"""
-    if y <= GY + 2:
-        return "brick"
-    if y == GY + 3:
-        return "concrete:yellow"
+def wall_key(y):
+    if y <= GY + 1:
+        return "concrete:gray"
+    if y == CY - 2:
+        return "concrete:orange"
     if y >= CY - 1:
         return "concrete:purple"
     return "concrete:white"
 
 
 def build_shell():
-    # floor default (zones repaint it), walls, ceiling/roof
     g.fill(1, GY, 1, W - 2, GY, BZ1 - 1, "concrete:white")
     for y in range(GY, CY + 1):
         for x in range(W):
-            g.set(x, y, 0, wall_key(x, y, 0))
-            g.set(x, y, BZ1, wall_key(x, y, BZ1))
+            g.set(x, y, 0, wall_key(y))
+            g.set(x, y, BZ1, wall_key(y))
         for z in range(BZ1 + 1):
-            g.set(0, y, z, wall_key(0, y, z))
-            g.set(W - 1, y, z, wall_key(W - 1, y, z))
+            g.set(0, y, z, wall_key(y))
+            g.set(W - 1, y, z, wall_key(y))
     g.fill(1, CY, 1, W - 2, CY, BZ1 - 1, "concrete:white")
-    # roof parapet + rooftop air conditioners
-    for x in range(W):
-        g.set(x, CY + 1, 0, "concrete:light_gray")
-        g.set(x, CY + 1, BZ1, "concrete:purple")
-    for z in range(BZ1 + 1):
-        g.set(0, CY + 1, z, "concrete:light_gray")
-        g.set(W - 1, CY + 1, z, "concrete:light_gray")
-    for (ax, az) in ((10, 8), (40, 6), (52, 22), (20, 26)):
-        g.fill(ax, CY + 1, az, ax + 2, CY + 2, az + 1, "iron_block")
-        g.set(ax + 1, CY + 2, az, "iron_bars")
+    g.fill(1, CY + 1, 1, W - 2, CY + 1, BZ1 - 1, "smooth_stone")        # roof over the ceilings
+    for y in (CY + 1, CY + 2):
+        for x in range(W):
+            g.set(x, y, 0, "concrete:light_gray")
+            g.set(x, y, BZ1, "concrete:purple")
+        for z in range(BZ1 + 1):
+            g.set(0, y, z, "concrete:light_gray")
+            g.set(W - 1, y, z, "concrete:light_gray")
+    for (ax, az) in ((10, 6), (40, 8), (70, 30), (24, 32), (84, 50)):
+        g.fill(ax, CY + 2, az, ax + 2, CY + 3, az + 1, "iron_block")
+        g.set(ax + 1, CY + 3, az, "iron_bars")
+    # neon stripe wrapping the sides and back
+    for x in range(1, W - 1, 2):
+        g.set(x, CY - 2, 0, "froglight_pink")
+    for z in range(1, BZ1, 2):
+        g.set(0, CY - 2, z, "froglight_pink")
+        g.set(W - 1, CY - 2, z, "froglight_pink")
 
-    # neon stripe that wraps the outside walls
-    for x in range(1, W - 1):
-        if x % 2 == 0:
-            g.set(x, CY - 2, 0, "froglight_pink")
-    for z in range(1, BZ1):
-        if z % 2 == 0:
-            g.set(0, CY - 2, z, "froglight_pink")
-            g.set(W - 1, CY - 2, z, "froglight_pink")
+    # back of house: wall to the main floor, low ceiling, solid attic for the vents
+    g.fill(1, FY, BACK, W - 2, CY - 1, BACK, "concrete:white")
+    g.fill(1, BCY, 1, W - 2, CY - 1, BACK - 1, "smooth_stone")
 
-    # side windows into the dining room
-    for z in (12, 18, 24, 30):
-        g.fill(0, FY + 2, z, 0, FY + 4, z + 2, "glass_pane")
-
-    # brick pilasters on the front
-    for x in (1, 9, 17, 25, 38, 46, 54, 62):
-        g.fill(x, GY, BZ1 + 1, x, CY, BZ1 + 1, "brick")
-        g.set(x, CY + 1, BZ1 + 1, "concrete:yellow")
-
-    # front windows (kitchen + party room)
-    for (x0, x1) in ((3, 7), (11, 15), (19, 23)):
+    # storefront: glass either side of the doors, 4-wide doorway, awning
+    g.fill(41, FY, BZ1, 56, FY + 6, BZ1, "glass_pane")
+    g.fill(46, FY, BZ1, 49, FY + 3, BZ1, "air")
+    g.fill(40, FY + 7, BZ1 + 1, 55, FY + 7, BZ1 + 3, "wool:purple")
+    for x in range(40, 56):
+        g.set(x, FY + 7, BZ1 + 4, "wool:orange" if x % 2 else "wool:purple")
+    for x in (40, 55):
+        g.fill(x, FY, BZ1 + 3, x, FY + 6, BZ1 + 3, "iron_bars")
+    # windows: party rooms, ticket area, dining side wall
+    for (x0, x1) in ((23, 27), (33, 37), (59, 66)):
         g.fill(x0, FY + 2, BZ1, x1, FY + 5, BZ1, "glass_pane")
-
-    # entrance: 4 wide doorway with a glass frame and a purple awning
-    g.fill(30, FY, BZ1, 33, FY + 3, BZ1, "air")
-    g.fill(29, FY, BZ1, 29, FY + 4, BZ1, "glass")
-    g.fill(34, FY, BZ1, 34, FY + 4, BZ1, "glass")
-    g.fill(30, FY + 4, BZ1, 33, FY + 4, BZ1, "glass")
-    g.fill(27, FY + 5, BZ1 + 1, 36, FY + 5, BZ1 + 3, "wool:purple")
-    for x in range(27, 37):
-        g.set(x, FY + 5, BZ1 + 4, "wool:yellow" if x % 2 else "wool:purple")
-    for x in (27, 36):
-        g.fill(x, FY, BZ1 + 3, x, FY + 4, BZ1 + 3, "iron_bars")
-    g.fill(28, FY + 6, BZ1 + 1, 35, FY + 6, BZ1 + 1, "froglight_yellow")
+    for z0 in (33, 39):
+        g.fill(0, FY + 2, z0, 0, FY + 4, z0 + 3, "glass_pane")
 
 
 def build_sign():
-    """CHUCK E. CHEESE banner on the roof edge with the mouse logo on top"""
+    """CHUCK E. CHEESE banner on the roof edge, round mouse logo above it"""
     text = "CHUCK E. CHEESE"
     tw = text_width(text)
     bx0 = (W - (tw + 4)) // 2
     bx1 = bx0 + tw + 3
-    by0, by1 = CY + 1, CY + 9
+    by0, by1 = CY + 1, CY + 8
     for y in range(by0, by1 + 1):
         for x in range(bx0, bx1 + 1):
             edge = y in (by0, by1) or x in (bx0, bx1)
             g.set(x, y, BZ1, "concrete:orange" if edge else "concrete:purple")
-    # supports on the roof behind the banner
     for x in range(bx0, bx1 + 1, 6):
         g.fill(x, CY + 1, BZ1 - 1, x, by1 - 1, BZ1 - 1, "concrete:light_gray")
     draw_text(text, bx0 + 2, by0 + 2, BZ1, (1, 0), "concrete:yellow")
-    # mouse head logo sitting on the banner
-    lx = (W - len(MOUSE_FACE[0])) // 2
-    draw_art(MOUSE_FACE, lx, by1 + 1, BZ1, (1, 0), MOUSE_LEGEND)
-    # lights under the banner's top edge so it glows at night
     for x in range(bx0 + 1, bx1, 3):
         g.set(x, by1, BZ1 - 1, "glowstone")
+    # round logo: purple disc, yellow ring, mouse face
+    cx, cy = W / 2 - 0.5, by1 + 11
+    ring_plane(cx, cy, BZ1, 9.5, lambda i: "concrete:yellow", fill="concrete:purple")
+    draw_art(MOUSE_FACE, int(cx - 7), int(cy - 6), BZ1, (1, 0), MOUSE_LEGEND)
+    g.fill(int(cx) - 1, by1 + 1, BZ1 - 1, int(cx) + 1, int(cy), BZ1 - 1, "concrete:light_gray")
 
 
 # ---------------------------------------------------------------------------
-# interior zones
-#   dining showroom  x 1..29,  z 1..37   (stage on the back wall)
-#   centre aisle     x 30..33, z 1..50   (from the doors to the back)
-#   play zone        x 35..62, z 1..17   (ball pit + tubes + slides)
-#   arcade           x 35..62, z 19..37
-#   kitchen          x 1..20,  z 39..50
-#   party room       x 22..28, z 39..50
-#   prize counter    x 34..62, z 39..50
+# floors and ceilings
+#   back of house  z 1..12 : backstage x1-45, restrooms x47-58, security x59-76,
+#                            manager's office x77-85, break room x87-94
+#   main floor     z 14..46: showroom + dining x1-45, game room x47-94
+#   front rooms    z 48..62: kitchen x1-19, party rooms x21-29 / x31-39,
+#                            lobby x41-56, ticket blaster x58-67, prizes x68-94
 # ---------------------------------------------------------------------------
 
-def arcade_carpet(x, z):
+def showroom_carpet():
     r = rng.random()
-    if r < 0.05:
+    if r < 0.06:
+        return rng.choice(["concrete:yellow", "concrete:magenta", "concrete:lime", "concrete:orange"])
+    return "concrete:purple" if r < 0.35 else "concrete:blue"
+
+
+def arcade_carpet():
+    r = rng.random()
+    if r < 0.06:
         return rng.choice(["concrete:lime", "concrete:yellow", "concrete:magenta", "concrete:light_blue"])
-    if r < 0.30:
-        return "concrete:blue"
-    return "concrete:black"
+    return "concrete:blue" if r < 0.3 else "concrete:black"
 
 
 def build_floors_and_ceilings():
-    for z in range(1, BZ1):
+    for z in range(BACK + 1, BZ1):
         for x in range(1, W - 1):
-            if x <= 29 and z <= 37:
-                key = "concrete:black" if (x + z) % 2 else "concrete:white"     # diner checkerboard
-            elif x <= 20 and z >= 39:
-                key = "concrete:light_gray" if (x + z) % 2 else "concrete:white"  # kitchen tile
-            elif 22 <= x <= 28 and z >= 39:
-                key = "concrete:pink" if (x // 2 + z // 2) % 2 else "concrete:light_blue"  # party room
-            elif x >= 35 and z <= 17:
-                key = ["wool:red", "wool:blue", "wool:yellow", "wool:lime"][(x // 3 + z // 3) % 4]  # padded
+            if z < FRONT:
+                key = showroom_carpet() if x <= 46 else arcade_carpet()
+            elif x <= 19:
+                key = "concrete:light_gray" if (x + z) % 2 else "concrete:white"        # kitchen
+            elif 21 <= x <= 29:
+                key = "concrete:pink" if (x // 2 + z // 2) % 2 else "concrete:purple"   # party 1
+            elif 31 <= x <= 39:
+                key = "concrete:yellow" if (x // 2 + z // 2) % 2 else "concrete:light_blue"  # party 2
+            elif 41 <= x <= 56:
+                edge = x in (41, 56) or z == BZ1 - 1
+                key = "concrete:purple" if edge else "smooth_quartz"                     # lobby
             else:
-                key = arcade_carpet(x, z)
+                key = arcade_carpet()
             g.set(x, GY, z, key)
-            dark = x >= 30 and not (x <= 33 and z >= 39)
-            g.set(x, CY, z, "concrete:black" if dark else "concrete:white")
-    # ceiling light grid
-    for z in range(3, BZ1, 5):
+            g.set(x, CY, z, "concrete:black" if x >= 47 else "concrete:white")
+    for z in range(BACK + 3, BZ1, 5):
         for x in range(3, W - 1, 5):
             g.set(x, CY, z, "sea_lantern")
 
 
-def build_partitions():
-    # kitchen + party room north wall (with the order window), and side walls
-    for x in range(1, 30):
-        for y in range(FY, CY):
-            g.set(x, y, 38, "concrete:purple" if y < FY + 3 else "concrete:white")
-    g.fill(4, FY, 38, 16, FY, 38, "quartz")             # order counter
-    g.fill(4, FY + 1, 38, 16, FY + 2, 38, "air")        # order window
-    g.fill(21, FY, 39, 21, CY - 1, 50, "concrete:white")    # kitchen | party room
-    g.fill(29, FY, 38, 29, CY - 1, 50, "concrete:pink")     # party room | entry aisle
-    g.fill(29, FY, 42, 29, FY + 2, 44, "air")               # party room doorway
-    g.fill(29, FY + 3, 42, 29, FY + 3, 44, "concrete:yellow")
-    # menu board above the order window, readable from the dining room
-    g.fill(1, FY + 3, 38, 20, CY - 1, 38, "concrete:black")
-    draw_text("PIZZA", 20, FY + 4, 38, (-1, 0), "concrete:yellow")
-    # play-zone net between the play area and the arcade, with a gap
-    for x in range(35, W - 1):
-        if 40 <= x <= 42:
-            continue
-        g.set(x, FY, 18, "wool:blue")
-        g.set(x, FY + 1, 18, "pane:light_blue")
-        g.set(x, FY + 2, 18, "pane:light_blue")
-    g.fill(34, FY, 1, 34, FY, 17, "wool:blue")
-    g.fill(34, FY + 1, 1, 34, FY + 2, 17, "pane:light_blue")
-    g.fill(34, FY, 6, 34, FY + 2, 8, "air")             # entrance from the aisle
-
-
-# ---- stage + animatronic band ---------------------------------------------
-
-MOUSE_BOT = {   # front view rows top->bottom, 7 wide; layer 0 = front (faces the crowd)
-    "front": [
-        "EE...EE",
-        "EPCCCPE",
-        ".GGGGG.",
-        ".GKGKG.",
-        ".GWNWG.",
-        "ASSSSSA",
-        ".SSSSS.",
-        "..L.L..",
-        "..F.F..",
-    ],
-    "back": [
-        "EE...EE",
-        "EECCCEE",
-        ".GGGGG.",
-        ".GGGGG.",
-        ".GGGGG.",
-        ".SSSSS.",
-        ".SSSSS.",
-        "..L.L..",
-        "..F.F..",
-    ],
-    "legend": {"E": "wool:light_gray", "P": "wool:pink", "C": "wool:purple", "G": "wool:light_gray",
-               "K": "wool:black", "W": "wool:white", "N": "wool:pink", "A": "wool:light_gray",
-               "S": "wool:purple", "L": "wool:blue", "F": "wool:red"},
-}
-CHICKEN_BOT = {
-    "front": [
-        "..R..",
-        ".WWW.",
-        ".KWK.",
-        ".WYW.",
-        "WPPPW",
-        "WPPPW",
-        ".PPP.",
-        ".O.O.",
-    ],
-    "back": [
-        "..R..",
-        ".WWW.",
-        ".WWW.",
-        ".WWW.",
-        "WWWWW",
-        "WPPPW",
-        ".PPP.",
-        ".O.O.",
-    ],
-    "legend": {"R": "wool:red", "W": "wool:white", "K": "wool:black", "Y": "wool:orange",
-               "P": "wool:pink", "O": "wool:orange"},
-}
-MONSTER_BOT = {
-    "front": [
-        "P.....P",
-        "PPPPPPP",
-        "PWKPKWP",
-        "PPPPPPP",
-        "PRRRRRP",
-        "PPPPPPP",
-        ".PPPPP.",
-        ".G...G.",
-    ],
-    "back": [
-        "P.....P",
-        "PPPPPPP",
-        "PPPPPPP",
-        "PPPPPPP",
-        "PPPPPPP",
-        "PPPPPPP",
-        ".PPPPP.",
-        ".G...G.",
-    ],
-    "legend": {"P": "wool:purple", "W": "wool:white", "K": "wool:black", "R": "wool:red", "G": "wool:lime"},
-}
-
+# ---------------------------------------------------------------------------
+# showroom: Circles-of-Light style stage with the whole band, dance floor,
+# giant LED video wall and the dining room
+# ---------------------------------------------------------------------------
 
 def place_bot(bot, x0, y0, zfront):
     """animatronic facing south; front layer at zfront, back layer behind it"""
     for layer, z in (("back", zfront - 1), ("front", zfront)):
         rows = bot[layer]
-        hgt = len(rows)
         for r, line in enumerate(rows):
             for c, px in enumerate(line):
                 if px != ".":
-                    g.set(x0 + c, y0 + (hgt - 1 - r), z, bot["legend"][px])
+                    g.set(x0 + c, y0 + (len(rows) - 1 - r), z, bot["legend"][px])
+
+
+CHUCK = {   # the mouse: purple cap and shirt, jeans, red sneakers
+    "front": ["EE...EE", "EPCCCPE", ".GGGGG.", ".GKGKG.", ".GWNWG.", "ASSSSSA", ".SSSSS.", "..L.L..",
+              "..F.F.."],
+    "back": ["EE...EE", "EECCCEE", ".GGGGG.", ".GGGGG.", ".GGGGG.", ".SSSSS.", ".SSSSS.", "..L.L..",
+             "..F.F.."],
+    "legend": {"E": "wool:light_gray", "P": "wool:pink", "C": "wool:purple", "G": "wool:light_gray",
+               "K": "wool:black", "W": "wool:white", "N": "wool:pink", "A": "wool:light_gray",
+               "S": "wool:purple", "L": "wool:blue", "F": "wool:red"},
+}
+HELEN = {   # the chicken singer
+    "front": ["..R..", ".WWW.", ".KWK.", ".WYW.", "WPPPW", "WPPPW", ".PPP.", ".O.O."],
+    "back": ["..R..", ".WWW.", ".WWW.", ".WWW.", "WWWWW", "WPPPW", ".PPP.", ".O.O."],
+    "legend": {"R": "wool:red", "W": "wool:white", "K": "wool:black", "Y": "wool:orange",
+               "P": "wool:pink", "O": "wool:orange"},
+}
+MUNCH = {   # the purple monster on keyboards
+    "front": ["P.....P", "PPPPPPP", "PWKPKWP", "PPPPPPP", "PRRRRRP", "PPPPPPP", ".PPPPP.", ".G...G."],
+    "back": ["P.....P", "PPPPPPP", "PPPPPPP", "PPPPPPP", "PPPPPPP", "PPPPPPP", ".PPPPP.", ".G...G."],
+    "legend": {"P": "wool:purple", "W": "wool:white", "K": "wool:black", "R": "wool:red", "G": "wool:lime"},
+}
+JASPER = {  # the hound dog with his cowboy hat and guitar
+    "front": ["..HHH..", ".HHHHH.", "E.TTT.E", "ETKTKTE", "E.TNT.E", ".VVVVV.", "AVGGGVA", "..L.L..",
+              "..F.F.."],
+    "back": ["..HHH..", ".HHHHH.", "E.TTT.E", "ETTTTTE", "E.TTT.E", ".VVVVV.", ".VVVVV.", "..L.L..",
+             "..F.F.."],
+    "legend": {"H": "wool:brown", "E": "wool:brown", "T": "hardened_clay", "K": "wool:black",
+               "N": "wool:black", "V": "wool:red", "A": "hardened_clay", "G": "dark_oak_planks",
+               "L": "wool:blue", "F": "wool:brown"},
+}
+PASQUALLY = {  # the chef on drums
+    "front": [".WWWWW.", ".WWWWW.", ".SSSSS.", ".SKSKS.", "SMMMMMS", ".WRRRW.", "AWWWWWA", ".WWWWW.",
+              "..L.L.."],
+    "back": [".WWWWW.", ".WWWWW.", ".SSSSS.", ".SSSSS.", ".SSSSS.", ".WRRRW.", ".WWWWW.", ".WWWWW.",
+             "..L.L.."],
+    "legend": {"W": "wool:white", "S": "wool:pink", "K": "wool:black", "M": "wool:black", "R": "wool:red",
+               "A": "wool:pink", "L": "wool:black"},
+}
 
 
 def build_stage():
-    sx0, sx1, sz1 = 4, 25, 7
-    g.fill(sx0, FY, 1, sx1, FY, sz1, "dark_oak_planks")         # stage platform (stand at FY+1)
-    g.fill(sx0, FY, sz1, sx1, FY, sz1, "concrete:black")         # front lip
-    for x in range(sx0 + 1, sx1, 3):
-        g.set(x, FY, sz1, "froglight_yellow")                    # footlights
-    for x in range(13, 17):
-        g.set(x, FY, sz1 + 1, "stairs:dark_oak:north")           # steps up
-    # curtains: back drop, side legs, valance
-    g.fill(sx0 - 1, FY, 1, sx1 + 1, CY - 1, 1, "wool:red")
-    g.fill(sx0 - 1, FY, 2, sx0 - 1, CY - 1, 3, "wool:red")
-    g.fill(sx1 + 1, FY, 2, sx1 + 1, CY - 1, 3, "wool:red")
-    g.fill(sx0 - 1, CY - 1, sz1, sx1 + 1, CY - 1, sz1, "wool:red")  # valance
-    # stars on the back drop
-    for (x, y) in ((6, 9), (10, 11), (19, 11), (23, 9), (14, 11), (8, 6), (21, 6)):
-        g.set(x, y, 1, "glowstone")
-    # the band: chicken, mouse (centre), purple monster
-    place_bot(CHICKEN_BOT, 5, FY + 1, 4)
-    place_bot(MOUSE_BOT, 11, FY + 1, 5)
-    place_bot(MONSTER_BOT, 18, FY + 1, 4)
-    g.set(14, FY + 1, 6, "end_rod")                          # microphone stand
-    g.set(14, FY + 2, 6, "end_rod")
-    g.fill(18, FY + 1, 5, 24, FY + 1, 5, "quartz")              # keyboard for the monster
-    for x in range(18, 25, 2):
-        g.set(x, FY + 2, 5, "carpet:black")
-    # speakers
-    for x in (sx0, sx1):
-        g.fill(x, FY + 1, 2, x, FY + 4, 3, "concrete:black")
-        g.set(x, FY + 2, 3, "wool:gray")
-        g.set(x, FY + 4, 3, "wool:gray")
-    # spotlights hanging over the stage
-    for x in (8, 15, 22):
-        g.set(x, CY - 1, sz1 + 2, "lantern")
+    z0 = BACK + 1                                       # stage backs onto the back-of-house wall
+    # main stage (x 12..36) and the two raised side stages
+    g.fill(12, FY, z0, 36, FY, z0 + 7, "dark_oak_planks")
+    g.fill(12, FY, z0 + 7, 36, FY, z0 + 7, "concrete:black")
+    for x in range(13, 36, 3):
+        g.set(x, FY, z0 + 7, "froglight_yellow")         # footlights
+    for x in range(22, 27):
+        g.set(x, FY, z0 + 8, "stairs:dark_oak:north")
+    for (x0, x1) in ((3, 10), (37, 44)):
+        g.fill(x0, FY, z0, x1, FY + 1, z0 + 5, "dark_oak_planks")
+        g.fill(x0, FY + 1, z0 + 5, x1, FY + 1, z0 + 5, "concrete:black")
+    # Circles of Light: a big glowing ring behind Chuck E. and two small ones
+    ring_plane(24, 8, z0, 4.5, lambda i: "froglight_pink" if i % 2 else "froglight_yellow")
+    ring_plane(16.5, 8.5, z0, 2, lambda i: "froglight_green")
+    ring_plane(31.5, 8.5, z0, 2, lambda i: "froglight_green")
+    for x in range(12, 37):                              # colourful lit overhang
+        g.set(x, CY - 1, z0 + 7, ["froglight_pink", "froglight_green", "froglight_yellow"][x % 3])
+    # the band
+    place_bot(JASPER, 13, FY + 1, z0 + 3)
+    place_bot(CHUCK, 21, FY + 1, z0 + 3)
+    place_bot(PASQUALLY, 29, FY + 1, z0 + 3)
+    place_bot(HELEN, 4, FY + 2, z0 + 3)
+    place_bot(MUNCH, 37, FY + 2, z0 + 3)
+    g.fill(24, FY + 1, z0 + 4, 24, FY + 2, z0 + 4, "end_rod")       # Chuck E.'s microphone
+    g.fill(6, FY + 2, z0 + 4, 6, FY + 3, z0 + 4, "end_rod")         # Helen's microphone
+    for x in (30, 32, 34):                                           # Pasqually's drums
+        g.set(x, FY + 1, z0 + 4, "concrete:red")
+        g.set(x, FY + 2, z0 + 4, "carpet:white")
+    g.fill(37, FY + 2, z0 + 4, 43, FY + 2, z0 + 4, "quartz")         # Munch's keyboard
+    for x in range(37, 44, 2):
+        g.set(x, FY + 3, z0 + 4, "carpet:black")
 
 
-# ---- dining tables -----------------------------------------------------------
+def build_dance_floor_and_video_wall():
+    colors = ["magenta", "light_blue", "yellow", "lime"]
+    for z in range(BACK + 10, BACK + 17):
+        for x in range(13, 36):
+            g.set(x, 1, z, "sea_lantern")                                 # lights under the glass
+            g.set(x, GY, z, f"glass:{colors[(x // 2 + z // 2) % 4]}")
+    # giant LED video wall on the west wall, facing the dance floor
+    z0, z1 = BACK + 9, BACK + 23
+    g.fill(1, FY, z0, 1, CY - 1, z1, "concrete:black")
+    g.fill(1, FY + 1, z0 + 1, 1, CY - 1, z1 - 1, "concrete:light_blue")
+    for z in range(z0 + 1, z1):
+        g.set(1, FY + 1, z, ["concrete:magenta", "concrete:yellow", "concrete:lime"][z % 3])
+    draw_art(MOUSE_FACE_SMALL, 1, FY + 1, z1 - 2, (0, -1), MOUSE_LEGEND)
+
 
 def party_table(x0, z, length, cloth):
     for x in range(x0, x0 + length):
         g.set(x, FY, z, "quartz")
-        g.set(x, FY, z - 1, "stairs:purpur:north")      # seat facing south toward the table
-        g.set(x, FY, z + 1, "stairs:purpur:south")      # seat facing north
+        g.set(x, FY, z - 1, "stairs:purpur:north")
+        g.set(x, FY, z + 1, "stairs:purpur:south")
         g.set(x, FY + 1, z, f"carpet:{cloth}")
-    # pizzas (cheese = yellow carpet with pepperoni = red candles are too fiddly, keep it simple)
     for x in range(x0 + 1, x0 + length, 2):
-        g.set(x, FY + 1, z, "carpet:yellow")
+        g.set(x, FY + 1, z, "carpet:yellow")            # pizzas
 
 
 def build_dining():
-    cloths = ["red", "blue", "red", "blue", "red"]
-    for row, z in enumerate((12, 17, 22, 27, 32)):
-        for x0 in (3, 11, 19):
-            party_table(x0, z, 5, cloths[row])
-    # birthday cakes on a few tables
-    for (x, z) in ((5, 17), (13, 27), (21, 12)):
-        g.set(x, FY + 1, z, "candle_cake")
+    for row, z in enumerate((BACK + 19, BACK + 24, BACK + 29)):
+        for x0 in (3, 10, 17, 24, 31):
+            party_table(x0, z, 5, ["red", "blue", "red"][row])
+    # salad bar with a sneeze guard
+    toppings = ["lime", "red", "orange", "yellow", "brown", "white", "lime"]
+    for i, z in enumerate(range(BACK + 18, BACK + 25)):
+        g.fill(39, FY, z, 40, FY, z, "quartz")
+        g.fill(39, FY + 1, z, 40, FY + 1, z, f"carpet:{toppings[i]}")
+    for z in (BACK + 18, BACK + 24):
+        g.fill(39, FY + 1, z, 40, FY + 2, z, "iron_bars")
+    g.fill(39, FY + 3, BACK + 18, 40, FY + 3, BACK + 24, "glass")
+    # drink station
+    g.fill(39, FY, BACK + 27, 40, FY, BACK + 31, "iron_block")
+    g.fill(40, FY + 1, BACK + 28, 40, FY + 2, BACK + 30, "concrete:red")
+    g.set(40, FY + 2, BACK + 29, "froglight_yellow")
+    for z in range(BACK + 28, BACK + 31):
+        g.set(39, FY + 1, z, "button")
 
 
-# ---- arcade ------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# game room, trampoline zone, play structure
+# ---------------------------------------------------------------------------
 
 BODY_COLORS = ["purple", "blue", "red", "black", "lime", "orange", "magenta", "cyan"]
 SCREENS = ["sea_lantern", "froglight_green", "froglight_pink", "froglight_yellow", "glowstone",
@@ -655,12 +638,12 @@ def cabinet(x, zfront, facing, n):
     """arcade cabinet; the player stands one block beyond zfront"""
     zback = zfront - 1 if facing == "south" else zfront + 1
     body = f"concrete:{BODY_COLORS[n % len(BODY_COLORS)]}"
-    g.set(x, FY, zfront, body)                       # control panel
+    g.set(x, FY, zfront, body)
     g.set(x, FY + 1, zfront, "lever" if n % 2 == 0 else "button")
     g.set(x, FY, zback, body)
     g.set(x, FY + 1, zback, SCREENS[n % len(SCREENS)])
     g.set(x, FY + 2, zback, body)
-    g.set(x, FY + 3, zback, f"glass:{BODY_COLORS[(n + 3) % len(BODY_COLORS)]}")   # marquee
+    g.set(x, FY + 3, zback, f"glass:{BODY_COLORS[(n + 3) % len(BODY_COLORS)]}")
 
 
 def claw_machine(x0, z0, color):
@@ -671,43 +654,131 @@ def claw_machine(x0, z0, color):
         g.set(x0 + dx, FY + 1, z0 + dz, prizes[i])
         g.set(x0 + dx, FY + 2, z0 + dz, "air")
         g.set(x0 + dx, FY + 3, z0 + dz, "air")
-    g.set(x0 + 1, FY + 3, z0 + 2, "iron_bars")       # the claw
+    g.set(x0 + 1, FY + 3, z0 + 2, "iron_bars")
     g.fill(x0, FY + 4, z0, x0 + 3, FY + 4, z0 + 3, f"concrete:{color}")
     g.set(x0 + 1, FY + 5, z0 + 1, "glowstone")
 
 
-def skeeball_lane(x):
-    """lane runs north; the player rolls from z = 37"""
-    g.fill(x - 1, FY, 23, x - 1, FY + 1, 36, "concrete:red")      # rails
-    g.fill(x + 1, FY, 23, x + 1, FY + 1, 36, "concrete:red")
-    g.fill(x, FY, 30, x, FY, 36, "stone_slab")                    # rolling lane
-    g.fill(x, FY, 27, x, FY, 29, "smooth_stone")                  # ramp
-    g.fill(x, FY, 24, x, FY + 2, 26, "air")
-    g.set(x, FY, 25, "target")                                    # score rings
-    g.set(x, FY + 1, 24, "target")
-    g.fill(x - 1, FY, 23, x + 1, FY + 4, 23, "concrete:black")    # backboard
-    g.set(x, FY + 3, 23, "glowstone")                              # score light
+def skeeball_lane(x, zb, zp):
+    """lane runs north to the targets at zb; the player rolls from zp"""
+    g.fill(x - 1, FY, zb, x - 1, FY + 1, zp - 1, "concrete:red")
+    g.fill(x + 1, FY, zb, x + 1, FY + 1, zp - 1, "concrete:red")
+    g.fill(x, FY, zb + 7, x, FY, zp - 1, "stone_slab")
+    g.fill(x, FY, zb + 4, x, FY, zb + 6, "smooth_stone")
+    g.fill(x, FY, zb + 1, x, FY + 2, zb + 3, "air")
+    g.set(x, FY, zb + 2, "target")
+    g.set(x, FY + 1, zb + 1, "target")
+    g.fill(x - 1, FY, zb, x + 1, FY + 4, zb, "concrete:black")
+    g.set(x, FY + 3, zb, "glowstone")
 
 
-def build_arcade():
+def hoop_lane(x0, zb, zp):
+    """basketball hoop shoot, 2 wide, net cage, backboard at zb"""
+    for x in (x0 - 1, x0 + 2):
+        g.fill(x, FY, zb, x, FY + 6, zp - 1, "pane:black")
+    g.fill(x0, FY, zb + 3, x0 + 1, FY, zp - 1, "stone_slab")
+    g.fill(x0, FY, zb, x0 + 1, FY + 2, zb, "concrete:black")
+    g.fill(x0, FY + 3, zb, x0 + 1, FY + 5, zb, "concrete:white")
+    g.fill(x0, FY + 4, zb, x0 + 1, FY + 4, zb, "concrete:red")
+    g.fill(x0, FY + 3, zb + 1, x0 + 1, FY + 3, zb + 1, "iron_bars")      # the rim
+    g.fill(x0, FY + 6, zb, x0 + 1, FY + 6, zb, "froglight_pink")         # score lights
+    g.fill(x0, FY, zp - 1, x0 + 1, FY, zp - 1, "concrete:black")         # ball tray
+    g.fill(x0, FY + 1, zp - 1, x0 + 1, FY + 1, zp - 1, "carpet:orange")
+
+
+def bass_wheel(cx, cy, z):
+    """big prize wheel facing south, with a pull lever on a pedestal"""
+    colors = ["wool:red", "wool:yellow", "wool:blue", "wool:lime", "wool:magenta", "wool:orange",
+              "wool:light_blue", "wool:white"]
+    for y in range(cy - 5, cy + 6):
+        for x in range(cx - 5, cx + 6):
+            d = math.hypot(x - cx, y - cy)
+            if d <= 4.5:
+                seg = int((math.atan2(y - cy, x - cx) + math.pi) / (2 * math.pi) * 8) % 8
+                g.set(x, y, z, colors[seg] if d > 0.7 else "gold_block")
+            elif d <= 5.3 and y < CY:
+                g.set(x, y, z, "froglight_yellow")
+    g.set(cx + 6, cy, z + 1, "end_rod:west")                            # the pointer
+    g.fill(cx - 2, FY, z, cx + 2, cy - 5, z, "concrete:black")
+    g.set(cx, FY, z + 3, "iron_block")
+    g.set(cx, FY + 1, z + 3, "lever")
+
+
+def racer(x, z0, n):
+    """sit-down driving game: screen at z0, wheel, seat"""
+    color = f"concrete:{BODY_COLORS[n % len(BODY_COLORS)]}"
+    g.set(x, FY, z0, color)
+    g.set(x, FY + 1, z0, SCREENS[n % len(SCREENS)])
+    g.set(x, FY + 2, z0, color)
+    g.set(x, FY, z0 + 1, "concrete:black")
+    g.set(x, FY + 1, z0 + 1, "lever")
+    g.set(x, FY, z0 + 2, "stairs:quartz:south")
+
+
+def air_hockey(x0, z0):
+    """table running east-west, 5 long and 2 wide"""
+    g.fill(x0, FY, z0, x0 + 4, FY, z0 + 1, "concrete:white")
+    g.fill(x0, FY, z0, x0, FY, z0 + 1, "concrete:blue")
+    g.fill(x0 + 4, FY, z0, x0 + 4, FY, z0 + 1, "concrete:red")
+    g.set(x0 + 2, FY + 1, z0, "button")                                  # the puck
+
+
+def kiddie_horse(x, z):
+    g.set(x, FY, z, "dark_oak_fence")
+    g.set(x, FY + 1, z, "wool:white")
+    g.set(x, FY + 1, z + 1, "wool:white")
+    g.set(x, FY + 2, z, "wool:white")
+    g.set(x, FY + 2, z + 1, "carpet:red")
+
+
+def build_game_room():
+    # signs over the back wall
+    g.fill(62, CY - 5, BACK, 84, CY - 1, BACK, "concrete:black")
+    draw_text("GAMES", 63, CY - 5, BACK, (1, 0), "froglight_pink")
+    # skee-ball (4 lanes) and basketball (2 lanes) along the back
+    for x in (49, 51, 53, 55):
+        skeeball_lane(x, BACK + 4, BACK + 16)
+    hoop_lane(58, BACK + 4, BACK + 14)
+    hoop_lane(62, BACK + 4, BACK + 14)
+    bass_wheel(70, 8, BACK + 5)
+    for i, x in enumerate(range(66, 77, 2)):
+        racer(x, BACK + 12, i)
+    # arcade cabinets: two double rows
     n = 0
-    for (zf_north, zf_south) in ((21, 24), (28, 31)):
-        for x in range(36, 54):
-            if x in (40, 45, 50):
+    for (zn, zs) in ((BACK + 18, BACK + 21), (BACK + 24, BACK + 27)):
+        for x in range(49, 76):
+            if x in (55, 62, 69):
                 continue
-            cabinet(x, zf_north, "north", n)
-            cabinet(x, zf_south, "south", n + 1)
+            cabinet(x, zn, "north", n)
+            cabinet(x, zs, "south", n + 1)
             n += 2
-    for i, x0 in enumerate((36, 42, 48)):
-        claw_machine(x0, 34, ["yellow", "red", "light_blue"][i])
-    for x in (56, 58, 60):
-        skeeball_lane(x)
-    # neon "GAMES" over the arcade, on the play-zone net side, read from the arcade
-    g.fill(40, FY + 4, 18, 62, CY - 2, 18, "concrete:black")
-    draw_text("GAMES", 41, FY + 5, 18, (1, 0), "froglight_pink")
+    # front row: air hockey, whac-a-mole, claws, kiddie rides
+    zr = BACK + 29                                                       # front row
+    air_hockey(49, zr + 1)
+    air_hockey(49, zr + 4)
+    g.fill(55, FY, zr + 2, 56, FY, zr + 3, "concrete:lime")              # whac-a-mole
+    for (x, z) in ((55, zr + 2), (56, zr + 2), (55, zr + 3), (56, zr + 3)):
+        g.set(x, FY + 1, z, "button")
+    g.fill(55, FY, zr + 1, 56, FY + 2, zr + 1, "concrete:black")
+    g.set(55, FY + 2, zr + 1, "froglight_green")
+    for i, x0 in enumerate((58, 63, 68)):
+        claw_machine(x0, zr, ["yellow", "red", "light_blue"][i])
+    kiddie_horse(73, zr + 1)
+    kiddie_horse(75, zr + 1)
 
 
-# ---- play zone: ball pit, tubes and slides -------------------------------------
+def build_trampolines():
+    """Trampoline Zone: slime-block trampolines inside a net"""
+    for z in range(BACK + 1, BACK + 15):
+        for x in range(79, W - 1):
+            pad = (x - 79) % 4 == 3 or (z - BACK - 1) % 4 == 3
+            g.set(x, GY, z, "wool:blue" if pad else "slime")
+    g.fill(78, FY, BACK + 1, 78, FY + 4, BACK + 15, "pane:black")
+    g.fill(78, FY, BACK + 15, W - 2, FY + 4, BACK + 15, "pane:black")
+    g.fill(78, FY, BACK + 11, 78, FY + 2, BACK + 12, "air")             # gate
+    for y in range(FY, FY + 5):                                           # height-check post
+        g.set(77, y, BACK + 10, "concrete:yellow" if y % 2 else "concrete:black")
+
 
 BALL_COLORS = ["wool:red", "wool:yellow", "wool:blue", "wool:lime", "wool:orange", "wool:purple",
                "wool:pink", "wool:light_blue"]
@@ -728,31 +799,15 @@ def tower(x0, z0, post, levels, ladder_at):
                 g.set(x0 + 3, y, z0 + i, "pane:yellow")
     lx, lz, face = ladder_at
     back = {"south": (0, -1), "north": (0, 1), "east": (-1, 0), "west": (1, 0)}[face]
-    top = max(levels)
-    for y in range(FY, top + 1):
+    for y in range(FY, max(levels) + 1):
         g.set(lx, y, lz, f"ladder:{face}")
         g.set(lx + back[0], y, lz + back[1], f"concrete:{post}")
 
 
-def tube_x(x0, x1, z0, floor_y, color):
-    """tube running east-west, 2 wide (z0, z0+1) and 2 tall inside"""
-    for x in range(min(x0, x1), max(x0, x1) + 1):
-        ring = (x % 3 == 0)
-        shell = f"concrete:{color}" if ring else f"glass:{color}"
-        for dz in (-1, 2):
-            for y in range(floor_y, floor_y + 4):
-                g.set(x, y, z0 + dz, shell)
-        for dz in (0, 1):
-            g.set(x, floor_y, z0 + dz, shell)
-            g.set(x, floor_y + 3, z0 + dz, shell)
-            g.set(x, floor_y + 1, z0 + dz, "air")
-            g.set(x, floor_y + 2, z0 + dz, "air")
-
-
 def tube_z(z0, z1, x0, floor_y, color):
+    """tube running north-south, 2 wide (x0, x0+1) and 2 tall inside"""
     for z in range(min(z0, z1), max(z0, z1) + 1):
-        ring = (z % 3 == 0)
-        shell = f"concrete:{color}" if ring else f"glass:{color}"
+        shell = f"concrete:{color}" if z % 3 == 0 else f"glass:{color}"
         for dx in (-1, 2):
             for y in range(floor_y, floor_y + 4):
                 g.set(x0 + dx, y, z, shell)
@@ -769,17 +824,23 @@ def slide_west(x_top, z0, top_y, bottom_y):
     for y in range(top_y, bottom_y - 1, -1):
         for dz in (0, 1):
             g.set(x, y, z0 + dz, "stairs:smooth_sandstone:east")
-        g.set(x, y + 1, z0 - 1, "concrete:yellow")     # side rails
-        g.set(x, y + 1, z0 + 2, "concrete:yellow")
-        g.set(x, y, z0 - 1, "concrete:yellow")
-        g.set(x, y, z0 + 2, "concrete:yellow")
+        for side in (z0 - 1, z0 + 2):
+            g.set(x, y, side, "concrete:yellow")
+            g.set(x, y + 1, side, "concrete:yellow")
         x -= 1
-    return x + 1
 
 
-def build_play_zone():
-    # ball pit: sunk two blocks, full of balls, soft rim around it
-    px0, px1, pz0, pz1 = 37, 47, 3, 14
+def build_play_structure():
+    """SkyTubes-style play area: ball pit, two towers, a tube and two slides"""
+    zo = BACK + 16
+    g.fill(78, FY, zo, 78, FY + 2, FRONT - 1, "pane:light_blue")
+    g.fill(78, FY, FRONT - 1, W - 2, FY + 2, FRONT - 1, "pane:light_blue")
+    g.fill(78, FY, zo + 6, 78, FY + 2, zo + 7, "air")                   # entrance
+    for z in range(zo, FRONT - 1):
+        for x in range(79, W - 1):
+            g.set(x, GY, z, ["wool:red", "wool:blue", "wool:yellow", "wool:lime"][(x // 3 + z // 3) % 4])
+    # ball pit, sunk two blocks
+    px0, px1, pz0, pz1 = 81, 88, zo + 2, FRONT - 4
     for z in range(pz0, pz1 + 1):
         for x in range(px0, px1 + 1):
             g.set(x, 0, z, "wool:blue")
@@ -791,231 +852,406 @@ def build_play_zone():
     for z in range(pz0 - 1, pz1 + 2):
         g.set(px0 - 1, FY, z, "wool:red")
         g.set(px1 + 1, FY, z, "wool:red")
-    g.fill(px0 - 1, FY, 8, px0 - 1, FY, 9, "air")            # step in from the aisle side
-
-    # tower A next to the pit, with the big slide into the balls
-    tower(50, 2, "red", (FY + 3, FY + 6), (51, 4, "south"))
-    g.fill(50, FY + 7, 3, 50, FY + 8, 4, "air")               # slide exit (west side, top level)
-    slide_west(49, 3, FY + 6, GY + 1)
-    # tube A -> B along the top level
-    g.fill(53, FY + 7, 3, 53, FY + 8, 4, "air")
-    tube_x(54, 57, 3, FY + 6, "light_blue")
-    tower(58, 2, "orange", (FY + 3, FY + 6), (59, 4, "south"))
-    g.fill(58, FY + 7, 3, 58, FY + 8, 4, "air")
-    # tube B -> C going south on the lower level
-    g.fill(59, FY + 4, 5, 60, FY + 5, 5, "air")
-    tube_z(6, 9, 59, FY + 3, "lime")
-    tower(58, 10, "purple", (FY + 3,), (60, 11, "south"))
-    g.fill(59, FY + 4, 10, 60, FY + 5, 10, "air")
-    # tower C slide back down to the floor
-    g.fill(58, FY + 4, 11, 58, FY + 5, 12, "air")
-    slide_west(57, 11, FY + 3, FY)
+    g.fill(px0 - 1, FY, zo + 6, px0 - 1, FY, zo + 7, "air")
+    # tower A (north) and tower B (south) joined by a tube on the top level
+    ta, tb = zo + 1, FRONT - 6
+    tower(90, ta, "red", (FY + 3, FY + 6), (92, ta + 1, "south"))
+    tower(90, tb, "orange", (FY + 3, FY + 6), (92, tb + 2, "north"))
+    g.fill(91, FY + 7, ta + 3, 92, FY + 8, ta + 3, "air")
+    g.fill(91, FY + 7, tb, 92, FY + 8, tb, "air")
+    tube_z(ta + 4, tb - 1, 91, FY + 6, "light_blue")
+    # slides: from A's top level into the ball pit, from B's lower level too
+    g.fill(90, FY + 7, ta + 1, 90, FY + 8, ta + 2, "air")
+    slide_west(89, ta + 1, FY + 6, FY)
+    g.fill(90, FY + 4, tb + 1, 90, FY + 5, tb + 2, "air")
+    slide_west(89, tb + 1, FY + 3, FY)
 
 
-# ---- kitchen, party room, prize counter ---------------------------------------
+# ---------------------------------------------------------------------------
+# front rooms: kitchen, party rooms, lobby with Kid Check, ticket blaster,
+# photo booth, prize counter
+# ---------------------------------------------------------------------------
 
-def pizza_oven(x0):
-    g.fill(x0, FY, 48, x0 + 2, FY + 2, 50, "brick")
-    g.set(x0 + 1, FY + 1, 48, "air")                   # oven mouth
-    g.set(x0 + 1, FY + 1, 49, "air")
-    g.set(x0 + 1, FY, 49, "magma")                     # glowing coals
-    g.set(x0 + 1, FY, 48, "magma")
-    g.fill(x0 + 1, FY + 3, 49, x0 + 1, CY - 1, 49, "brick")    # chimney
+def build_front_walls():
+    g.fill(1, FY, FRONT, 40, CY - 1, FRONT, "concrete:white")
+    g.fill(20, FY, FRONT + 1, 20, CY - 1, BZ1 - 1, "concrete:white")
+    g.fill(30, FY, FRONT + 1, 30, CY - 1, BZ1 - 1, "concrete:white")
+    g.fill(40, FY, FRONT + 1, 40, CY - 1, BZ1 - 1, "concrete:purple")
+    g.fill(57, FY, FRONT + 5, 57, CY - 1, BZ1 - 1, "concrete:purple")
+    for x0 in (24, 34):                                                  # party room doorways
+        g.fill(x0, FY, FRONT, x0 + 2, FY + 2, FRONT, "air")
+        g.fill(x0, FY + 3, FRONT, x0 + 2, FY + 3, FRONT, "concrete:yellow")
+
+
+def conveyor_oven(x0, z):
+    g.fill(x0, FY, z, x0 + 6, FY, z + 1, "iron_block")
+    g.fill(x0, FY + 1, z, x0, FY + 1, z + 1, "stone_slab")
+    g.fill(x0 + 6, FY + 1, z, x0 + 6, FY + 1, z + 1, "stone_slab")
+    g.fill(x0 + 1, FY + 1, z, x0 + 5, FY + 2, z + 1, "iron_block")
+    g.fill(x0 + 2, FY + 1, z, x0 + 4, FY + 1, z, "magma")                # glowing belt slot
+    g.fill(x0, FY + 5, z - 1, x0 + 6, FY + 5, z + 1, "iron_block")      # hood
+    g.fill(x0 + 3, FY + 6, z, x0 + 3, CY - 1, z, "iron_bars")
 
 
 def build_kitchen():
-    pizza_oven(3)
-    pizza_oven(9)
-    g.fill(1, FY, 40, 1, FY, 46, "smooth_stone")          # prep counter along the west wall
-    for z in range(40, 47, 2):
-        g.set(1, FY + 1, z, "carpet:yellow")              # pizzas being made
-    g.fill(15, FY, 48, 19, FY, 48, "smooth_stone")
-    g.set(16, FY + 1, 48, "crafting_table")
-    g.fill(19, FY, 40, 20, FY + 2, 40, "iron_block")      # fridge
-    g.fill(6, FY, 43, 14, FY, 44, "smooth_stone")         # middle island
-    for x in range(6, 15, 2):
-        g.set(x, FY + 1, 43, "carpet:orange")
-    g.set(10, FY + 1, 38, "iron_block")                   # cash register on the counter
-    g.set(10, FY + 2, 38, "button")
+    # order counter facing the dining room, with the menu board above
+    g.fill(3, FY, FRONT, 15, FY, FRONT, "quartz")
+    g.fill(3, FY + 1, FRONT, 15, FY + 2, FRONT, "air")
+    for x in (6, 12):
+        g.set(x, FY + 1, FRONT, "iron_block")
+        g.set(x, FY + 2, FRONT, "button")
+    g.fill(1, FY + 3, FRONT, 19, CY - 1, FRONT, "concrete:black")
+    draw_text("PIZZA", 19, FY + 4, FRONT, (-1, 0), "concrete:yellow")
+    g.set(18, FY, FRONT, "door:1:lower")
+    g.set(18, FY + 1, FRONT, "door:1:upper")
+    conveyor_oven(3, BZ1 - 3)
+    conveyor_oven(11, BZ1 - 3)
+    g.fill(6, FY, FRONT + 5, 14, FY, FRONT + 6, "smooth_stone")          # make line
+    for i, x in enumerate(range(6, 15)):
+        g.set(x, FY + 1, FRONT + 5, ["carpet:white", "carpet:red", "carpet:yellow"][i % 3])
+    g.fill(1, FY, FRONT + 8, 5, FY + 4, FRONT + 12, "packed_ice")        # walk-in cooler
+    g.fill(2, FY, FRONT + 9, 4, FY + 3, FRONT + 11, "air")
+    g.fill(5, FY, FRONT + 10, 5, FY + 1, FRONT + 10, "air")
+    for z in (FRONT + 9, FRONT + 11):
+        g.fill(2, FY, z, 2, FY + 2, z, "iron_block")
+    g.fill(16, FY, FRONT + 8, 19, FY, FRONT + 10, "quartz")              # dish pit
+    for z in (FRONT + 8, FRONT + 10):
+        g.set(16, FY + 1, z, "lever")
+    g.fill(1, FY, FRONT + 2, 1, FY + 3, FRONT + 3, "concrete:white")     # pizza box towers
+    g.set(1, FY + 4, FRONT + 2, "carpet:red")
+    g.set(1, FY + 4, FRONT + 3, "carpet:red")
 
 
-def build_party_room():
-    for x in range(23, 28):
-        g.set(x, FY, 44, "quartz")
-        g.set(x, FY, 45, "quartz")
-        g.set(x, FY, 43, "stairs:purpur:north")
-        g.set(x, FY, 46, "stairs:purpur:south")
-        g.set(x, FY + 1, 44, "carpet:pink")
-        g.set(x, FY + 1, 45, "carpet:pink")
-    g.set(25, FY + 1, 44, "candle_cake")
-    g.set(24, FY + 1, 45, "cake")
-    g.set(26, FY + 1, 45, "cake")
-    # balloons near the ceiling, some on strings
+def party_room(x0, x1, theme):
+    zt = FRONT + 7
+    for x in range(x0 + 2, x1):
+        g.fill(x, FY, zt, x, FY, zt + 1, "quartz")
+        g.set(x, FY, zt - 1, "stairs:purpur:north")
+        g.set(x, FY, zt + 2, "stairs:purpur:south")
+        g.fill(x, FY + 1, zt, x, FY + 1, zt + 1, f"carpet:{theme}")
+    g.set(x0 + 3, FY + 1, zt, "candle_cake")
+    g.set(x0 + 5, FY + 1, zt + 1, "cake")
+    # birthday star throne at the head of the table
+    g.set(x0 + 1, FY, zt, "stairs:smooth_sandstone:west")
+    g.fill(x0, FY, zt, x0, FY + 2, zt, "gold_block")
+    g.set(x0, FY + 3, zt, "glowstone")
     balloons = ["wool:red", "wool:yellow", "wool:light_blue", "wool:lime", "wool:pink", "wool:orange"]
-    spots = [(22, 39), (28, 39), (22, 50), (28, 50), (25, 40), (23, 48), (27, 47)]
-    for i, (x, z) in enumerate(spots):
+    for i, (x, z) in enumerate(((x0, FRONT + 1), (x1, FRONT + 1), (x0, BZ1 - 1), (x1, BZ1 - 1),
+                                (x0 + 4, FRONT + 2), (x1 - 1, FRONT + 12))):
         g.set(x, CY - 2, z, balloons[i % len(balloons)])
-        if i % 2 == 0:
-            g.fill(x, CY - 5, z, x, CY - 3, z, "dark_oak_fence")
-    # presents: wool box with a carpet bow
-    for (x, z, box, bow) in ((22, 41, "red", "yellow"), (28, 48, "blue", "pink"), (22, 47, "lime", "red")):
+        g.set(x, CY - 3, z, balloons[(i + 2) % len(balloons)])
+        g.fill(x, FY + 3, z, x, CY - 4, z, "dark_oak_fence")
+    for (x, z, box, bow) in ((x1, FRONT + 4, "red", "yellow"), (x1, FRONT + 5, "blue", "pink"),
+                             (x0, BZ1 - 2, "lime", "red")):
         g.set(x, FY, z, f"wool:{box}")
         g.set(x, FY + 1, z, f"carpet:{bow}")
 
 
+def build_lobby():
+    # vestibule: glass walls and inner doorway
+    g.fill(43, FY, BZ1 - 4, 52, FY + 6, BZ1 - 4, "glass")
+    g.fill(43, FY, BZ1 - 3, 43, FY + 6, BZ1 - 1, "glass")
+    g.fill(52, FY, BZ1 - 3, 52, FY + 6, BZ1 - 1, "glass")
+    g.fill(46, FY, BZ1 - 4, 49, FY + 3, BZ1 - 4, "air")
+    g.fill(43, FY + 7, BZ1 - 4, 52, FY + 7, BZ1 - 1, "concrete:purple")
+    # welcome wall with the mouse, to walk around
+    g.fill(44, FY, FRONT + 2, 54, CY - 1, FRONT + 2, "concrete:purple")
+    draw_art(MOUSE_FACE_SMALL, 44, FY, FRONT + 2, (1, 0), MOUSE_LEGEND)
+    g.fill(44, CY - 1, FRONT + 2, 54, CY - 1, FRONT + 2, "froglight_yellow")
+    # Kid Check desk: everyone gets a matching hand stamp
+    g.fill(55, FY, FRONT + 5, 55, FY, FRONT + 9, "concrete:purple")
+    g.set(55, FY + 1, FRONT + 6, "button")                               # the stamp
+    g.set(55, FY + 1, FRONT + 8, "lantern:stand")
+    g.set(56, FY, FRONT + 7, "stairs:quartz:east")
+    # Play Pass kiosks
+    for z in (FRONT + 6, FRONT + 9):
+        g.set(41, FY, z, "iron_block")
+        g.set(41, FY + 1, z, "sea_lantern")
+        g.set(42, FY + 1, z, "button:east")
+        g.set(41, FY + 2, z, "concrete:orange")
+
+
+def build_ticket_blaster_and_photo_booth():
+    # Ticket Blaster: step in, tickets fly around
+    x0, z0 = 59, FRONT + 6
+    g.fill(x0, FY, z0, x0 + 3, FY + 3, z0 + 3, "glass")
+    g.fill(x0 + 1, FY, z0 + 1, x0 + 2, FY + 3, z0 + 2, "air")
+    g.fill(x0 + 1, FY, z0, x0 + 2, FY + 1, z0, "air")
+    g.fill(x0, FY + 4, z0, x0 + 3, FY + 4, z0 + 3, "concrete:orange")
+    g.fill(x0 + 1, FY + 4, z0 + 1, x0 + 2, FY + 4, z0 + 2, "iron_bars")  # the fan
+    g.set(x0 + 1, FY + 5, z0 + 1, "glowstone")
+    for (dx, dz) in ((1, 1), (2, 2), (2, 1)):
+        g.set(x0 + dx, FY, z0 + dz, "carpet:yellow" if dx == dz else "carpet:orange")
+    # photo booth with a curtain
+    x0 = 63
+    g.fill(x0, FY, z0, x0 + 3, FY + 3, z0 + 3, "concrete:purple")
+    g.fill(x0 + 1, FY, z0 + 1, x0 + 2, FY + 2, z0 + 2, "air")
+    g.fill(x0 + 1, FY, z0, x0 + 1, FY + 1, z0, "air")
+    g.fill(x0 + 2, FY, z0, x0 + 2, FY + 1, z0, "wool:red")
+    g.fill(x0 + 1, FY, z0 + 2, x0 + 2, FY, z0 + 2, "stairs:dark_oak:south")
+    g.set(x0 + 1, FY + 2, z0, "froglight_yellow")
+    g.set(x0 + 2, FY + 2, z0, "froglight_yellow")
+
+
 def build_prize_counter():
-    for x in range(36, 62):
-        g.set(x, FY, 44, "quartz")
-        g.set(x, FY + 1, 44, "glass")
-    g.fill(61, FY, 44, 61, FY + 1, 44, "air")            # staff gap at the east end
-    for x in range(37, 60, 3):
-        g.set(x, FY + 2, 44, ["candle:red", "candle:yellow", "candle:light_blue", "candle:white"][x % 4])
-    # prize wall against the front wall: shelves of plush toys, PRIZES above
-    for x in range(35, 62):
+    for x in range(69, 93):
+        g.set(x, FY, FRONT + 3, "quartz")
+        g.set(x, FY + 1, FRONT + 3, "glass")
+    for x in range(70, 92, 3):
+        g.set(x, FY + 2, FRONT + 3,
+              ["candle:red", "candle:yellow", "candle:light_blue", "candle:white"][x % 4])
+    # ticket munchers in front of the counter
+    for x in (72, 77, 82):
+        g.set(x, FY, FRONT + 1, "iron_block")
+        g.set(x, FY + 1, FRONT + 1, "froglight_green")
+        g.set(x, FY + 1, FRONT, "button:north")
+    # prize wall with PRIZES over it
+    for x in range(68, W - 1):
         for y in range(FY, FY + 4):
-            if y % 2 == 1:
-                g.set(x, y, 50, "oak_planks")
-            else:
-                g.set(x, y, 50, rng.choice(BALL_COLORS + ["sea_lantern", "gold_block"]))
-    g.fill(35, FY + 4, 50, 61, CY - 1, 50, "concrete:purple")
-    draw_text("PRIZES", 60, FY + 5, 50, (-1, 0), "concrete:yellow")
-    # giant teddy bear behind the counter
-    bx, bz = 35, 48
-    g.fill(bx, FY, bz, bx + 2, FY + 1, bz, "wool:brown")       # body
-    g.fill(bx, FY + 2, bz, bx + 2, FY + 4, bz, "wool:brown")   # head
-    g.set(bx, FY + 5, bz, "wool:brown")                        # ears
-    g.set(bx + 2, FY + 5, bz, "wool:brown")
-    g.set(bx, FY + 3, bz - 1, "wool:black")                    # eyes
-    g.set(bx + 2, FY + 3, bz - 1, "wool:black")
-    g.set(bx + 1, FY + 2, bz - 1, "wool:white")                # snout
+            g.set(x, y, BZ1 - 1, "oak_planks" if y % 2 == 1 else
+                  rng.choice(BALL_COLORS + ["sea_lantern", "gold_block"]))
+    g.fill(68, FY + 4, BZ1 - 1, W - 2, CY - 1, BZ1 - 1, "concrete:purple")
+    draw_text("PRIZES", 92, FY + 5, BZ1 - 1, (-1, 0), "concrete:yellow")
+    # giant teddy bears
+    for (bx, color) in ((70, "brown"), (89, "pink")):
+        bz = BZ1 - 3
+        g.fill(bx, FY, bz, bx + 2, FY + 3, bz, f"wool:{color}")
+        g.set(bx, FY + 4, bz, f"wool:{color}")                              # ears
+        g.set(bx + 2, FY + 4, bz, f"wool:{color}")
+        g.set(bx, FY + 3, bz - 1, "wool:black")                             # eyes
+        g.set(bx + 2, FY + 3, bz - 1, "wool:black")
+        g.set(bx + 1, FY + 2, bz - 1, "wool:white")                         # snout
 
 
-def build_aisle():
-    # entry mat + token kiosks either side of the aisle near the doors
-    g.fill(30, GY, 46, 33, GY, 50, "concrete:red")
-    for z in (40, 46):
-        g.set(34, FY, z, "iron_block")
-        g.set(34, FY + 1, z, "froglight_yellow")
+# ---------------------------------------------------------------------------
+# back of house (z 1..12): backstage, restrooms, security office, manager's
+# office, break room. Rooms are 4 tall; vents run in the attic above.
+# ---------------------------------------------------------------------------
+
+def room(x0, z0, x1, z1):
+    g.fill(x0, FY, z0, x1, BCY - 1, z1, "air")
 
 
-# ---- back of house: security office with two doors, and vents ----------------
-#   west hall   x 27..28, z -13..-1   (opens into the dining room)
-#   east hall   x 40..41, z -13..-1   (opens into the play zone)
-#   back hall   x 27..41, z -13..-12
-#   office      x 30..38, z -6..-1    iron doors in its west (x 29) and east (x 39) walls
-#   parts room  x 30..38, z -10..-8
-# Rooms are 4 tall under a ceiling at y 7; the vents run above it at y 8..9.
+def door(x, z, direction):
+    g.set(x, FY, z, f"door:{direction}:lower")
+    g.set(x, FY + 1, z, f"door:{direction}:upper")
 
-AX0, AX1, AZ0 = 26, 42, -14    # annex outer walls; its south side is the building's back wall
-ACY = FY + 4                   # annex ceiling
-VY = ACY + 1                   # vent floor level the player walks on inside the ducts
+
+def ceiling_light(x, z):
+    g.set(x, BCY, z, "sea_lantern")
+
+
+def build_back_of_house_shell():
+    # solid block, rooms carved out below
+    g.fill(1, FY, 1, W - 2, BCY - 1, BACK - 1, "concrete:light_gray")
+    for z in range(1, BACK):
+        for x in range(1, W - 1):
+            g.set(x, GY, z, "concrete:light_gray" if (x + z) % 2 else "concrete:gray")
+
+
+def build_backstage():
+    room(1, 1, 13, 12)                     # storage
+    room(15, 1, 28, 12)                    # costume room
+    room(30, 1, 45, 12)                    # show control room
+    door(14, 10, 0)                        # clear of the dressing mirror
+    door(29, 6, 0)
+    door(45, BACK, 1)                      # staff door from the showroom
+    for (x, z) in ((7, 6), (21, 6), (37, 6)):
+        ceiling_light(x, z)
+    # storage: shelves of boxes and spare parts
+    for x in range(2, 13):
+        g.fill(x, FY, 1, x, FY + 2, 1, "oak_planks" if x % 3 else "iron_block")
+        g.set(x, FY + 3, 1, rng.choice(BALL_COLORS))
+    for (x, z) in ((3, 5), (4, 5), (3, 6), (10, 9), (11, 9)):
+        g.fill(x, FY, z, x, FY + 1, z, "oak_planks")
+    g.set(8, FY, 10, "pumpkin_face:south")                 # spare animatronic heads
+    g.set(9, FY, 10, "pumpkin_face:south")
+    # costume room: Chuck E.'s walk-around costume, dressing mirror, costume rack
+    g.fill(21, FY, 1, 23, FY, 1, "dark_oak_planks")
+    g.set(22, FY + 1, 1, "wool:light_gray")
+    g.set(22, FY + 2, 1, "wool:purple")
+    g.set(21, FY + 2, 1, "wool:light_gray")
+    g.set(23, FY + 2, 1, "wool:light_gray")
+    g.fill(15, FY + 1, 4, 15, FY + 2, 7, "iron_block")      # mirror
+    for z in range(3, 9):
+        g.set(15, FY + 3, z, "glowstone")
+    g.fill(15, FY + 1, 3, 15, FY + 2, 3, "glowstone")
+    g.fill(15, FY + 1, 8, 15, FY + 2, 8, "glowstone")
+    g.fill(17, FY, 4, 17, FY, 7, "stairs:dark_oak:east")
+    g.fill(17, FY + 3, 11, 27, FY + 3, 11, "iron_bars")      # rack
+    for x in range(17, 28, 2):
+        g.fill(x, FY + 1, 11, x, FY + 2, 11, ["wool:purple", "wool:yellow", "wool:light_gray",
+                                               "wool:pink", "wool:brown", "wool:white"][(x - 17) // 2])
+    # show control room: monitors, control desks, show tapes
+    for x in range(31, 45):
+        g.set(x, FY, 1, "iron_block")
+        g.set(x, FY + 1, 1, ["froglight_green", "sea_lantern", "froglight_pink"][x % 3])
+        g.set(x, FY + 2, 1, "concrete:black" if x % 2 else "froglight_green")
+    for x in range(32, 44, 2):
+        g.set(x, FY, 3, "iron_block")
+        g.set(x, FY + 1, 3, "lever" if x % 4 else "button")
+        g.set(x, FY, 4, "stairs:dark_oak:south")
+    g.fill(30, FY, 8, 30, FY + 2, 11, "bookshelf")
+
+
+def build_restrooms():
+    g.fill(53, FY, 1, 53, BCY - 1, 12, "concrete:white")
+    for (x0, x1, color, door_x) in ((47, 52, "light_blue", 49), (54, 58, "pink", 56)):
+        room(x0, 1, x1, 12)
+        for z in range(1, BACK):
+            for x in range(x0, x1 + 1):
+                g.set(x, GY, z, f"concrete:{color}" if (x + z) % 2 else "concrete:white")
+        door(door_x, BACK, 1)
+        g.set(door_x, FY + 3, BACK, f"wool:{color}")                    # boys / girls sign
+        # toilets along the back wall, with stall partitions
+        for x in range(x0, x1 + 1, 2):
+            g.set(x, FY, 1, "stairs:quartz:north")
+            g.set(x, FY + 1, 1, "button:south")
+        for x in range(x0 + 1, x1, 2):
+            g.fill(x, FY, 1, x, FY + 2, 3, "concrete:light_gray")
+        # sinks with mirrors
+        for z in (7, 9):
+            g.set(x0, FY, z, "quartz")
+            g.set(x0, FY + 1, z, "lever")
+            g.set(x0 - 1, FY + 1, z, "iron_block")
+            g.set(x0 - 1, FY + 2, z, "iron_block")
+        ceiling_light((x0 + x1) // 2, 6)
+
+
+# security office: two halls lead to it, each door has a door lever and a light switch
+OX0, OX1 = 63, 72                          # office interior x
+OZ0, OZ1 = 8, 12                           # office interior z
+WEST_HALL, EAST_HALL = 60, 74              # each hall is this x and the next
 
 
 def annex_wall(x, y, z):
     if y <= FY:
         return "concrete:gray"
     if y == FY + 1:
-        return "concrete:black" if (x + z) % 2 else "concrete:white"    # checkered stripe
+        return "concrete:black" if (x + z) % 2 else "concrete:white"   # checkered stripe
     return "concrete:light_gray"
 
 
-def vent(path, shell_from, shell_to):
-    """carve a 1 wide, 2 tall duct through the cells in `path` (x, z at VY),
-    and wrap the part between x = shell_from..shell_to (outside the annex) in metal"""
+def vent(path):
+    """carve a 1 wide, 2 tall duct through the attic"""
     for (x, z) in path:
         g.set(x, VY, z, "air")
         g.set(x, VY + 1, z, "air")
-    for x in range(min(shell_from, shell_to), max(shell_from, shell_to) + 1):
-        g.set(x, VY - 1, -1, "concrete:light_gray")
-        g.set(x, VY + 2, -1, "concrete:light_gray")
-        g.set(x, VY, -2, "iron_bars" if x % 4 == 0 else "concrete:light_gray")   # grates let light in
-        g.set(x, VY + 1, -2, "concrete:light_gray")
 
 
-def build_office():
-    # solid block from floor to roof, then carve the rooms out of it
-    for z in range(AZ0, 0):
-        for x in range(AX0, AX1 + 1):
+def build_security_office():
+    for z in range(1, BACK):
+        for x in range(59, 77):
             g.set(x, GY, z, "concrete:black" if (x + z) % 2 else "concrete:gray")
-            for y in range(FY, ACY):
+            for y in range(FY, BCY):
                 g.set(x, y, z, annex_wall(x, y, z))
-            for y in range(ACY, ACY + 4):
-                g.set(x, y, z, "smooth_stone")
-    for (x0, z0, x1, z1) in ((27, -13, 28, -1), (40, -13, 41, -1), (27, -13, 41, -12),
-                             (30, -6, 38, -1), (30, -10, 38, -8)):
-        g.fill(x0, FY, z0, x1, ACY - 1, z1, "air")
-    g.fill(27, FY, 0, 28, FY + 2, 0, "air")        # west hall <- dining room
-    g.fill(40, FY, 0, 41, FY + 2, 0, "air")        # east hall <- play zone
-    g.fill(34, FY, -11, 34, FY + 1, -11, "air")    # parts room door off the back hall
+    room(WEST_HALL, 1, WEST_HALL + 1, 12)
+    room(EAST_HALL, 1, EAST_HALL + 1, 12)
+    room(WEST_HALL, 1, EAST_HALL + 1, 2)                  # back hall
+    room(OX0, OZ0, OX1, OZ1)                              # office
+    room(OX0, 4, OX1, 6)                                  # parts & service
+    for x in (WEST_HALL, EAST_HALL):
+        g.fill(x, FY, BACK, x + 1, FY + 2, BACK, "air")   # halls open onto the game room
+    g.fill(67, FY, 3, 67, FY + 1, 3, "air")               # parts room door
 
-    # the two doors. Each lever sits on a red panel next to its door and keeps
-    # the door powered (open); flip it to slam the door shut. A second lever
-    # turns on the lamp in the wall that lights up the hall outside.
-    for (wall, inside, door_dir, lever_face) in ((29, 30, 0, "east"), (39, 38, 2, "west")):
-        g.set(wall, FY, -3, f"iron_door:{door_dir}:lower")
-        g.set(wall, FY + 1, -3, f"iron_door:{door_dir}:upper")
-        g.set(wall, FY + 1, -4, "concrete:red")
-        g.set(inside, FY + 1, -4, f"wall_lever:{lever_face}:on")
-        g.set(wall, FY + 1, -1, "redstone_lamp")
-        g.set(inside, FY + 1, -1, f"wall_lever:{lever_face}:off")
-        g.fill(wall, FY + 1, -6, wall, FY + 2, -5, "glass_pane")         # window onto the hall
+    # doors: the lever on the red panel keeps the door powered open; flip it to
+    # slam the door. The other lever lights a lamp so you can see into the hall.
+    dz = OZ0 + 2
+    for (wall, inside, door_dir, face) in ((OX0 - 1, OX0, 0, "east"), (OX1 + 1, OX1, 2, "west")):
+        g.set(wall, FY, dz, f"iron_door:{door_dir}:lower")
+        g.set(wall, FY + 1, dz, f"iron_door:{door_dir}:upper")
+        g.set(wall, FY + 1, dz - 1, "concrete:red")
+        g.set(inside, FY + 1, dz - 1, f"wall_lever:{face}:on")
+        g.set(wall, FY + 1, OZ1, "redstone_lamp")
+        g.set(inside, FY + 1, OZ1, f"wall_lever:{face}:off")
+        g.fill(wall, FY + 1, dz + 1, wall, FY + 2, dz + 1, "glass_pane")
 
     # desk with the camera monitors, desk fan and a cupcake
-    g.fill(32, FY, -6, 36, FY, -6, "dark_oak_planks")
-    g.set(32, FY + 1, -6, "carpet:white")
-    g.set(33, FY + 1, -6, "froglight_green")
-    g.set(34, FY + 1, -6, "iron_bars")
-    g.set(35, FY + 1, -6, "froglight_green")
-    g.set(36, FY + 1, -6, "candle_cake")
-    g.set(34, FY, -5, "stairs:dark_oak:south")       # the guard's chair, facing the desk
-    g.set(34, ACY - 1, -3, "lantern")
-    for (x, y, color) in ((31, FY + 2, "yellow"), (32, FY + 3, "pink"), (37, FY + 2, "light_blue"),
-                          (36, FY + 3, "lime")):
-        g.set(x, y, -7, f"wool:{color}")              # kids' drawings on the wall
+    g.fill(65, FY, OZ0, 70, FY, OZ0, "dark_oak_planks")
+    for x, key in zip(range(65, 71), ("carpet:white", "froglight_green", "iron_bars", "froglight_green",
+                                      "froglight_green", "candle_cake")):
+        g.set(x, FY + 1, OZ0, key)
+    g.set(67, FY, OZ0 + 1, "stairs:dark_oak:south")
+    g.set(67, BCY - 1, OZ0 + 3, "lantern")
+    for (x, y, color) in ((64, FY + 2, "yellow"), (66, FY + 3, "pink"), (69, FY + 3, "light_blue"),
+                          (71, FY + 2, "lime")):
+        g.set(x, y, OZ0 - 1, f"wool:{color}")
 
     # animatronics lurking outside the windows: purple bunny (west), chicken (east)
-    g.set(27, FY, -5, "wool:purple")
-    g.set(27, FY + 1, -5, "wool:purple")
-    g.set(27, FY + 2, -5, "pumpkin_face:east")
-    g.set(27, FY + 3, -5, "wool:purple")
-    g.set(41, FY, -5, "wool:orange")
-    g.set(41, FY + 1, -5, "wool:yellow")
-    g.set(41, FY + 2, -5, "pumpkin_face:west")
-    g.set(41, FY + 3, -5, "wool:red")
+    for (x, body, face, top, legs) in ((WEST_HALL, "wool:purple", "pumpkin_face:east", "wool:purple",
+                                        "wool:purple"),
+                                       (EAST_HALL + 1, "wool:yellow", "pumpkin_face:west", "wool:red",
+                                        "wool:orange")):
+        g.set(x, FY, dz + 1, legs)
+        g.set(x, FY + 1, dz + 1, body)
+        g.set(x, FY + 2, dz + 1, face)
+        g.set(x, FY + 3, dz + 1, top)
 
     # parts & service: spare costumes, an endoskeleton, tools
-    for (x, color) in ((31, "light_gray"), (32, "purple"), (36, "yellow")):
-        g.set(x, FY, -10, f"wool:{color}")
-        g.set(x, FY + 1, -10, "pumpkin_face:south")
-    g.fill(37, FY, -10, 37, FY + 1, -10, "iron_bars")
-    g.set(37, FY + 2, -10, "iron_block")
-    g.set(38, FY, -8, "crafting_table")
-    g.set(30, FY, -8, "candle:white")
+    for (x, color) in ((64, "light_gray"), (65, "purple"), (70, "yellow")):
+        g.set(x, FY, 4, f"wool:{color}")
+        g.set(x, FY + 1, 4, "pumpkin_face:south")
+    g.fill(71, FY, 4, 71, FY + 1, 4, "iron_bars")
+    g.set(71, FY + 2, 4, "iron_block")
+    g.set(72, FY, 6, "crafting_table")
+    g.set(63, FY, 6, "candle:white")
 
     # dim candles keep the halls spooky but too bright for mobs to spawn
-    for z in (-1, -4, -7, -10, -13):
-        g.set(27, FY, z, "candle:plain")
-        g.set(41, FY, z, "candle:plain")
-    for x in (30, 33, 36, 39):
-        g.set(x, FY, -13, "candle:plain")
+    for z in (1, 4, 7, 10):
+        g.set(WEST_HALL, FY, z, "candle:plain")
+        g.set(EAST_HALL + 1, FY, z, "candle:plain")
+    for x in (63, 66, 69, 72):
+        g.set(x, FY, 1, "candle:plain")
 
-    # left vent: ladder up from the office, over the west hall, along the back
-    # of the building and out through the curtain onto the stage behind the band
-    vent([(x, -1) for x in range(14, 32)] + [(14, 0), (14, 1)], 13, AX0 - 1)
+    # left vent: ladder in the office's north-west corner, west through the
+    # attic and out onto the stage behind Chuck E.
+    vent([(x, OZ0) for x in range(24, OX0 + 1)] + [(24, z) for z in range(OZ0 + 1, BACK + 1)])
     for y in range(FY, VY + 1):
-        g.set(31, y, -1, "ladder:north")
-    g.fill(13, VY, -1, 13, VY + 1, -1, "concrete:light_gray")     # end cap
+        g.set(OX0, y, OZ0, "ladder:south")
     for y in range(FY + 1, VY):
-        g.set(14, y, 2, "ladder:south")
-    # right vent: over the east hall and down into the play zone
-    vent([(x, -1) for x in range(37, 45)] + [(44, 0)], AX1 + 1, 45)
+        g.set(24, y, BACK + 1, "ladder:south")
+    # right vent: north-east corner, east and out over the trampolines
+    vent([(x, OZ0) for x in range(OX1, 87)] + [(86, z) for z in range(OZ0 + 1, BACK + 1)])
     for y in range(FY, VY + 1):
-        g.set(37, y, -1, "ladder:north")
-    g.fill(45, VY, -1, 45, VY + 1, -1, "concrete:light_gray")
+        g.set(OX1, y, OZ0, "ladder:south")
     for y in range(FY, VY):
-        g.set(44, y, 1, "ladder:south")
-    for (x, z) in ((15, -1), (20, -1), (25, -1), (29, -1), (40, -1), (44, -1)):
-        g.set(x, VY + 2, z, "crying_obsidian")                     # glowing vent lights
+        g.set(86, y, BACK + 1, "ladder:south")
+    for x in (30, 40, 50, 60, 78, 84):
+        g.set(x, VY + 2, OZ0, "crying_obsidian")           # glowing vent lights
+
+
+def build_manager_and_break_room():
+    room(77, 1, 85, 12)
+    room(87, 1, 94, 12)
+    door(76, 10, 0)                         # from the east hall
+    door(86, 10, 0)                         # manager's office -> break room
+    ceiling_light(81, 6)
+    ceiling_light(90, 6)
+    # manager's office: desk, computer, safe, filing cabinets, notice board
+    g.fill(79, FY, 3, 83, FY, 3, "dark_oak_planks")
+    g.set(81, FY + 1, 3, "sea_lantern")
+    g.set(81, FY, 4, "stairs:dark_oak:south")
+    g.fill(85, FY, 1, 85, FY + 1, 2, "iron_block")                       # safe
+    g.set(85, FY + 2, 1, "lever")
+    for z in (5, 6, 7):
+        g.fill(77, FY, z, 77, FY + 1, z, "iron_block")
+        g.set(78, FY + 1, z, "button:east")
+    g.fill(79, FY + 2, 1, 83, FY + 3, 1, "oak_planks")
+    for x in (79, 81, 83):
+        g.set(x, FY + 3, 1, rng.choice(["wool:yellow", "wool:pink", "wool:light_blue", "wool:white"]))
+    # break room: lockers, table, vending machine, fridge
+    for x in range(87, 95):
+        g.fill(x, FY, 1, x, FY + 1, 1, "iron_block")
+        g.set(x, FY + 1, 2, "button:south")
+    g.fill(89, FY, 6, 91, FY, 7, "quartz")
+    for x in (89, 91):
+        g.set(x, FY, 5, "stairs:dark_oak:north")
+        g.set(x, FY, 8, "stairs:dark_oak:south")
+    g.fill(93, FY, 4, 94, FY + 3, 5, "concrete:black")
+    g.fill(93, FY + 1, 4, 93, FY + 2, 5, "glass")
+    for (y, z, c) in ((FY + 1, 4, "red"), (FY + 1, 5, "yellow"), (FY + 2, 4, "lime"), (FY + 2, 5, "blue")):
+        g.set(94, y, z, f"wool:{c}")
+    g.fill(94, FY, 10, 94, FY + 2, 11, "iron_block")
 
 
 def build_all():
@@ -1023,16 +1259,24 @@ def build_all():
     build_lot()
     build_shell()
     build_floors_and_ceilings()
-    build_partitions()
+    build_back_of_house_shell()
     build_stage()
+    build_dance_floor_and_video_wall()
     build_dining()
-    build_arcade()
-    build_play_zone()
+    build_game_room()
+    build_trampolines()
+    build_play_structure()
+    build_front_walls()
     build_kitchen()
-    build_party_room()
+    party_room(21, 29, "pink")
+    party_room(31, 39, "light_blue")
+    build_lobby()
+    build_ticket_blaster_and_photo_booth()
     build_prize_counter()
-    build_aisle()
-    build_office()
+    build_backstage()
+    build_restrooms()
+    build_security_office()
+    build_manager_and_break_room()
     build_sign()
 
 
@@ -1134,10 +1378,10 @@ def mcstructure(x0, z0, sx, sz):
 
 PACK_UUID = "6b0f6d1e-3c1a-4d8e-9f3b-2a7c5e9d1c01"
 MODULE_UUID = "a4e2c7b9-58d3-4f61-8b2e-0c9d7f3a6e02"
-PACK_VERSION = [1, 1, 0]       # bump on every release so Minecraft replaces the old import
+PACK_VERSION = [2, 0, 0]       # bump on every release so Minecraft replaces the old import
 PIECE = 64                      # Bedrock structures stay within 64 x 64 blocks
-ANCHOR = (32, FY, 28)          # grid cell the player stands in when running the function
-VIEW_SPOT = (32, FY, 69)       # where the player is sent afterwards: the parking lot
+ANCHOR = (46, FY, 45)          # grid cell the player stands in when running the function
+VIEW_SPOT = (48, FY, 88)       # where the player is sent afterwards: the parking lot
 
 
 def pack_icon():
@@ -1214,10 +1458,11 @@ def render_iso(path, cut=False, scale=7):
     def hidden(x, y, z):
         if not cut:
             return False
-        if z < 0:   # annex: drop its ceiling, vents and roof, and the east wall facing the camera
-            return y >= ACY or (y > FY + 1 and x == AX1)
-        in_building = z <= BZ1 + 1
-        return in_building and (y >= CY or (y > FY + 1 and (z >= BZ1 or x == W - 1 or x == 0 or z == 0)))
+        if z > BZ1 + 4:
+            return False
+        if z <= BACK:   # back of house: drop its low ceiling and the attic with the vents
+            return y >= BCY
+        return y >= CY or (y > FY + 1 and (z >= BZ1 or x == W - 1))
 
     def solid(x, y, z):
         k = g.get(x, y, z)
@@ -1262,8 +1507,8 @@ def render_plan(path, scale=10):
     dr = ImageDraw.Draw(img)
     for z in range(ZN, D):
         for x in range(W):
-            if z < 0:
-                ymax = ACY - 1 if AX0 <= x <= AX1 and z >= AZ0 else H - 1
+            if z < BACK:
+                ymax = BCY - 1
             else:
                 ymax = CY - 1 if z <= BZ1 else H - 1
             for y in range(ymax, -1, -1):
