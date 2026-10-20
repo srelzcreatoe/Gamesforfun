@@ -19,6 +19,9 @@ The owner then played 1.2.0 to the end and reported items 62-66 (section M).
 **1.5.0** builds items 178 and 184-187 (section V): the new Classic Freddy (with his own Withered Freddy), the Midnight
 Banjo Bonnie, a new Chica built on the same body, Springbonnie as Fredbear's partner, and Valek and Morgrave's workshop.
 
+**1.6.4** builds item 194 (Freddy's black eyes with white pupils whenever he is active) and fixes item 195 (Freddy
+glided in his idle pose instead of walking after being watched on a camera).
+
 **1.6.3** fixes item 193: the clickable camera map's buttons had no numbers and did nothing when clicked (owner's
 screenshot); they are now built the same way as every normal menu button.
 
@@ -301,6 +304,8 @@ Numbers stay fixed from now on: new items are added at the end.
 | 191 | The vent on top and the hatch should start open, not closed | done in 1.6.2; the grate never costs power (owner's pick) (untested in-game) |
 | 192 | Use the cursor (like the inventory cursor) on the cameras; console with the joystick; mobile taps the camera number | done in 1.6.2: the camera map is a menu while the monitor is up; fixed in 1.6.3 (item 193) |
 | 193 | (in-game, 1.6.2) The camera map buttons show no numbers and clicking does not switch the camera | fixed in 1.6.3: buttons built by the vanilla form-button factory (untested in-game) |
+| 194 | When Freddy stops performing and is active, use his animations with black eyes and white pupils | done in 1.6.4: every active clip has the active eyes (idle, pause and the power-out song got copies with them); shows and dormant keep the blue eyes (untested in-game) |
+| 195 | (in-game) Freddy's walking animation does not work | fixed in 1.6.4: watched mid-walk he froze in idle and then kept that pose while moving; he now walks again as soon as he moves (untested in-game) |
 
 ### Every update finishes with
 

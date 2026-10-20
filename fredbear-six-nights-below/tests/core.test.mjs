@@ -424,6 +424,26 @@ test('Freddy never moves while the current camera shows him', () => {
   assert.equal(s.anim.freddy.move, null);
 });
 
+test('Freddy watched mid-walk freezes in idle, then walks on with his walk clip (1.6.4 fix)', () => {
+  const s = new NightSession({ night: 6, seed: 9 });
+  for (const id of ['bonnie', 'chica', 'fredbear']) s.setAggression(id, 0);
+  const f = s.anim.freddy;
+  s.place('freddy', 'EH_T', 'STALK');
+  assert.ok(f.beginEdgeMove('EH_M', 'stalk'));
+  assert.equal(f.anim, 'stalk');
+  runTicks(s, 3);
+  s.input('cams_open', 'C12'); // CAM 12 shows EH_M: he is watched
+  runTicks(s, 5);
+  const d = f.move.d;
+  assert.equal(f.anim, 'idle', 'frozen in place');
+  runTicks(s, 20);
+  assert.equal(f.move.d, d, 'not moving while watched');
+  s.input('cams_close');
+  runTicks(s, 2);
+  assert.ok(f.move && f.move.d > d, 'walking again');
+  assert.equal(f.anim, 'stalk', 'with his walk clip, not gliding in idle');
+});
+
 test('finale on night 6 withdraws the trio and grants extra strobe charges', () => {
   const s = new NightSession({ night: 6, seed: 3 });
   const charges = s.strobe.charges;

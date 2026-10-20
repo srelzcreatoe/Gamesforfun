@@ -5,7 +5,7 @@
 | Category | Status |
 |---|---|
 | **Static validation** | **Completed** — 6 validators, all passing (below) |
-| **Automated logic tests** (night simulation, AI, power, director) | **Completed** — 24 + 8 (nights 8-9 and the 1.3 AI) tests passing, plus the balance simulator (docs/05) |
+| **Automated logic tests** (night simulation, AI, power, director) | **Completed** — 25 + 8 (nights 8-9 and the 1.3 AI) tests passing, plus the balance simulator (docs/05) |
 | **Automated structure tests** (command-block files) | **Completed** — 6 tests passing |
 | **Automated route-guidance tests** (walkable graph vs the voxel model) | **Completed** — 5 tests passing |
 | **Automated holiday-decoration tests** (generated cells vs the build plan) | **Completed** — 3 tests passing |
@@ -32,9 +32,9 @@ Run everything with `npm run validate && npm test`.
 | `tools/validate_assets.mjs` | 85 JSON files parse; BP ↔ RP ↔ script entity ids; textures, 8 geometries, 106 animations, every animation controller, render-controller keys resolve; UV boxes inside each texture (Chica 128×64, Freddy 128×128, Fredbear 256×256, Bonnie 512×256, Morgrave and Valek 512×512); every animated bone exists in that entity's own geometry; every `fb:anim` value of each entity has a state in its own controller; scripts only set enum values; the jumpscare framing scale matches each entity's `minecraft:scale`; items → icons; 62 sounds with files; Valek's eye height matches his model and scale; the jumpscare distance table covers every animatronic; every script sound id defined, the music track is in the `music` category; 12 fogs (nights 1-9); the camera map HUD's textures exist, its marker matches the script and every camera has a highlight; Vibrant Visuals: the RP declares `pbr` with a high enough min engine, every entity and item texture has a valid texture set (eye layers fully emissive), volumetric densities in range and cleared for the camera feed; lang names | PASS |
 | `tsc --checkJs` | every Script API call in the 48 script files against `@minecraft/server` 2.10.0 and `server-ui` 2.2.0 declarations | PASS |
 
-## Automated tests (87, all passing)
+## Automated tests (88, all passing)
 
-**Core simulation (`tests/core.test.mjs`, 24):** same seed reproduces a night exactly · all seven nights completable (oracle, 10 seeds each) ·
+**Core simulation (`tests/core.test.mjs`, 25):** same seed reproduces a night exactly · Freddy watched mid-walk freezes, then walks on with his walk clip · all seven nights completable (oracle, 10 seeds each) ·
 every lethal attack preceded by its telegraph and never through a closed barrier · closed door always stops Bonnie · 6 AM boundary ·
 power zero (reserve window, Freddy sequence, devices off) · power out just before 6 AM survivable · Fredbear barrier + strobe / stun /
 forced-open · a door or the hatch holds Fredbear once per night (never in the Golden Hour) · Fredbear's laugh at every hunt start
@@ -120,6 +120,9 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 
 | Found by | Problem | Fix |
 |---|---|---|
+| owner request (1.6.4) | Once Freddy stops performing and is active, use his animations with the black eyes and white pupils | idle, the showman pause and the power-out song use copies with the eyes of the pack's `eyes_active` clip; walk, run, stare and jumpscare already had them; shows and the dormant pose keep the blue eyes |
+| player report (in-game, 1.6.3) | Freddy's walking animation did not work | after the player watched him mid-walk (he freezes in his idle pose while a camera shows him) he walked on in that idle pose for the rest of the way; he now picks up his walk clip again the moment he moves (`core.test`: watched mid-walk, then walking with the walk clip) |
+| integration test (1.6.4) | two tests failed once the date reached the Halloween window: the game decorated the test world by itself | the integration tests pin "today" to an ordinary day; the holiday test asks for each season explicitly |
 | player report (in-game screenshot, 1.6.2) | The clickable camera map appeared in the right place, but its buttons showed no numbers and clicking them did not switch cameras | the buttons were placed by hand with `collection_index`, which does not get the server form's button data; 1.6.3 builds them from the vanilla form-button factory (the same collection and length binding every form uses), one button per camera at its box; the asset validator now rejects hand-placed form buttons |
 | owner request (1.6.2) | The ceiling vent looked lopsided; the vent and the hatch should start open; a mouse cursor for the cameras, working on console and touch too | 3 × 3 vent centred over the desk; grate open and free, hatch drawn open; the camera map is a menu with real buttons (vanilla menu cursor, controller focus, touch) |
 | test (1.6.2) | the night-start module drew the hatch shut on nights 4+ although it was unsealed | the hatch is drawn open after `night.begin` on nights it is installed |
@@ -164,7 +167,7 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
 ## Manual checks still required (Windows Bedrock 1.26.50 recommended)
 
 1. Import `dist/Fredbear_Six_Nights_Below.mcaddon`; create a Flat world with cheats; activate the BP (RP added automatically).
-   For an existing world: check that both packs show 1.6.3, then run `/fb:setup` when asked.
+   For an existing world: check that both packs show 1.6.4, then run `/fb:setup` when asked.
 2. `/fb:setup`: build completes without a *Build report*; time the build and note any lag.
 3. `/fb:debug selftest`: 9 × PASS. In particular *command blocks in place* (structure ids `fb:*` load) and *actuator round trip*.
 4. Walk the map in FREE ROAM: stairs face the right way, doors/windows/props look right, signs readable, no floating or
@@ -220,6 +223,10 @@ Status key: **S** verified statically · **L** verified by logic tests/simulatio
     monitor, the feed stays visible around the map, the map closes on a jumpscare / power out / 6 AM, and every other
     menu (Shift Guide, Settings, results) still looks normal. If the map shows as a normal list or the buttons do
     nothing, switch it off in Settings and report it.
+20. **1.6.4**: Freddy's eyes are blue while he performs on the stage and black with white pupils from the moment he
+    leaves it: standing in a hall (CAM 12 / 16), pausing, at the right door, and at the left door after a power out on
+    nights 1-3; they turn blue again when he walks back to the stage for the night 6 finale. Watch him walk on CAM 12,
+    switch away and back: he should be walking (legs moving), never sliding along in a standing pose.
 
 ## Known limitations
 

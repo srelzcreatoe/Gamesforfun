@@ -60,8 +60,13 @@ MODELS = {
         "scale": CLASSIC_SCALE,
         "rig": CLASSIC_RIG,
         "arms": True,
-        "clips": {"idle": "idle", "look": "pose_stare", "pause": "pose_showman", "walk": "walk", "stalk": "stalk", "retreat": "run",
-                  "crawl": "crawl", "threat": "threat", "dormant": "dormant", "music": "perform_sing"},
+        # 1.6.4 (owner): once Freddy stops performing and hunts, every clip shows his black eyes with white pupils. The
+        # pack's walk, run, stare and jumpscare already do; idle (standing on a node), the showman pause and the song at
+        # the door (power out) use *_active copies with the eyes of the pack's eyes_active clip. The stage shows and the
+        # dormant pose keep his relaxed blue eyes.
+        "clips": {"idle": "idle_active", "look": "pose_stare", "pause": "pose_showman_active", "walk": "walk", "stalk": "stalk", "retreat": "run",
+                  "crawl": "crawl", "threat": "threat", "dormant": "dormant", "music": "perform_sing_active"},
+        "active_copies": {"idle_active": "idle", "pose_showman_active": "pose_showman", "perform_sing_active": "perform_sing"},
         "performances": ["perform_sing", "perform_present"],
         "jumpscares": ["jumpscare"],
         "eye_bones": ["right_eye", "left_eye", "right_eye_active", "left_eye_active"],
@@ -351,6 +356,14 @@ def clips(who, geo, raw, spec):
         hunt = {b: dict(ch) for b, ch in base.items()}
         for b, ch in base_pose(A[spec["active_eyes"]]).items():
             hunt.setdefault(b, {}).update(ch)
+        # Copies of relaxed-eyed clips for the active states: the same motion, the eye bones as in the active-eyes clip.
+        eyes = A[spec["active_eyes"]]["bones"]
+        for new, src in spec.get("active_copies", {}).items():
+            bones = {b: dict(ch) for b, ch in A[src]["bones"].items()}
+            for b in spec["eye_bones"]:
+                if b in eyes:
+                    bones[b] = json.loads(json.dumps(eyes[b]))
+            A[new] = {**A[src], "bones": bones}
     for d in spec.get("drop", []):
         A.pop(d, None)
     for j in spec["jumpscares"]:

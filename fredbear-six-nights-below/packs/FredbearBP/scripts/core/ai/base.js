@@ -140,6 +140,7 @@ export class Animatronic {
     this.move = { edge, from: this.node, to, pts, cum, total: cum[cum.length - 1], d: 0, speed: this.speed(kind), mode, kind, passing: !claimed };
     this.prevNode = this.node;
     this.anim = mode === 'crawl' || mode === 'vent' ? 'crawl' : kind === 'stalk' ? 'stalk' : kind === 'retreat' ? 'retreat' : 'walk';
+    this.move.anim = this.anim; // the clip for this edge (Freddy freezes in 'idle' when watched and picks it up again)
     if (mode === 'vent' && NODE_BY_ID[this.prevNode]?.y >= -0.5) this.onVentEnter(to);
     return true;
   }

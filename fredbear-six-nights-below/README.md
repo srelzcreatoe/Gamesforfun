@@ -36,7 +36,7 @@ command-block network from structure files, and runs seven animatronics with exp
 ## Status — read before playing
 
 Everything here was generated and verified **without running Minecraft**: 6 static validators against Mojang's official
-1.26.50 metadata and schemas, 87 automated tests, a balance simulator, and an integration harness that runs the real pack
+1.26.50 metadata and schemas, 88 automated tests, a balance simulator, and an integration harness that runs the real pack
 scripts against a mock of the Script API (full build, self-test, tutorial, a complete six-night campaign through the office
 buttons, night 7 and both endings, nights 8 and 9 and the night 9 ending, the camera map, the tapes, challenges, resets,
 reloads). The map owner played version 1.2 in-game to the end; **nothing added in 1.3.0, 1.3.1, 1.4.0, 1.5.0 or 1.6.x has been tested in-game
@@ -56,9 +56,9 @@ validated here).
 2. New world: **Flat**, **cheats on**, activate **FREDBEAR: Six Nights Below (Behavior)**. Render distance ≥ 11 chunks.
 3. In the world: `/fb:setup`, wait for the title, then clock in at the time clock.
 
-**Updating:** import the new `.mcaddon`, check that both packs show 1.6.3 in the world settings and enter the world, then
+**Updating:** import the new `.mcaddon`, check that both packs show 1.6.4 in the world settings and enter the world, then
 run `/fb:setup` once when the action bar asks (1.6 rebuilt the ground floor and the office; 1.6.2 centres the ceiling
-vent; from 1.6.2 to 1.6.3 no rebuild is needed). To open everything at once: `/fb:debug unlock all` (cheats on). Your
+vent; from 1.6.2 on no rebuild is needed). To open everything at once: `/fb:debug unlock all` (cheats on). Your
 progress is kept; if you already beat night 7, night 8 is open. Camera numbers: see
 [docs/08](docs/08_INSTALL_AND_PLAY.md#updating-from-an-earlier-version).
 

@@ -12,6 +12,19 @@ import assert from 'node:assert/strict';
 
 register('./mock/loader.mjs', import.meta.url);
 
+// The game decorates itself from the device date (Halloween Oct 15 - Nov 2, Christmas Dec 10 - Jan 6). Pin "today"
+// to an ordinary day so the build and the lobby are the same whenever the tests run; the holiday test asks for its
+// seasons explicitly.
+{
+  const RealDate = Date;
+  const PINNED = new RealDate(2026, 6, 4, 12, 0, 0).getTime();
+  globalThis.Date = class extends RealDate {
+    constructor(...args) {
+      super(...(args.length ? args : [PINNED]));
+    }
+  };
+}
+
 const { mock, STATE, world, system, BlockPermutation, executeCommand } = await import('./mock/minecraft-server.mjs');
 const { uiMock } = await import('./mock/minecraft-server-ui.mjs');
 const { Game } = await import('../packs/FredbearBP/scripts/mc/game.js');

@@ -19,10 +19,10 @@ The build is resumable: if you leave, run `/fb:setup` again.
 
 ### Updating from an earlier version
 
-1. Import the new `.mcaddon` (version **1.6.3**).
+1. Import the new `.mcaddon` (version **1.6.4**).
 2. In the world's settings, open **Behavior Packs** and make sure **FREDBEAR: Six Nights Below (Behavior)** shows
-   version 1.6.3; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
-   Check **Resource Packs** too: only the 1.6.3 resource pack should be active.
+   version 1.6.4; if the old one is still listed, deactivate it and activate the new one (its resource pack follows).
+   Check **Resource Packs** too: only the 1.6.4 resource pack should be active.
 3. Enter the world. Version 1.6 **rebuilds the whole ground floor and the office** (see *The pizzeria* below), and 1.6.2
    moves the ceiling vent, so coming from 1.6.1 or older the action bar asks you to rebuild (from 1.6.2 no rebuild is
    needed): run **`/fb:setup`** once and wait for the title. Unlocked nights, secrets, endings and
@@ -166,6 +166,7 @@ On touch screens these items show an on-screen interact button (Cameras / Office
   she is there. She may trip the hall-light breaker: press RESET BREAKER. Doors always work. On hard nights she flanks to the
   left door, and two animatronics can wait at the right door together - **two at one door take twice as long to give up**.
 * **Freddy** (right side): moves only when the camera you are watching does not show him; laughs when he advances.
+  On the stage his eyes are blue; once he is active they turn **black with white pupils** and stay that way (1.6.4).
   Glowing eyes in the right corner: **close the right door**. Never stare at cameras with the right door open while he is
   there. At 0 % power he plays a music box at the left door…
 * **Fredbear** (night 4+): **his laugh** means he has started a hunt. The **office lamps flicker** when he is close, faster

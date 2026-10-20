@@ -212,6 +212,14 @@ animatronics' homes and the stage actuators are unchanged.
   Each factory item is a zero-height row holding one button per camera at that camera's box, and only the button whose
   text matches the item's text ("05", or "§a05" for the live camera; "§cLOWER") is visible, so item k draws at camera k.
 
+## 1.6.4: Freddy's active eyes
+
+The Classic Freddy pack switches his eyes by moving two eye layers (`eyes_relaxed`: blue, `eyes_active`: black with
+white pupils). Its walk, run, stare and jumpscare already use the active eyes, but the game's idle (standing on a node),
+pause (showman pose) and power-out song used relaxed clips. `tools/owner_models.py` now adds `idle_active`,
+`pose_showman_active` and `perform_sing_active` (the same motion, the eye bones from `eyes_active`) and maps the idle,
+pause and music states to them; the stage shows and the dormant pose keep the blue eyes.
+
 ## Seasonal decorations
 
 `tools/gen_holidays.mjs` writes `data/holiday_decor.generated.js`: Halloween (jack-o'-lanterns, pumpkins, cobwebs —

@@ -64,6 +64,9 @@ export class Freddy extends Animatronic {
         this.ignoreTicks++;
       }
     }
+    // 1.6.4 fix: frozen mid-walk he stood in 'idle'; once nobody watches he walks on, so the walk clip comes back
+    // (before, he glided to the next node in his idle pose).
+    if (this.move?.anim && this.anim === 'idle') this.anim = this.move.anim;
     super.tick();
   }
 

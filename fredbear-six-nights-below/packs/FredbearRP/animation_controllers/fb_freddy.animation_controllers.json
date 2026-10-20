@@ -6,7 +6,7 @@
       "states": {
         "idle": {
           "animations": [
-            "idle"
+            "idle_active"
           ],
           "blend_transition": 0.25,
           "transitions": [
@@ -88,7 +88,7 @@
         },
         "pause": {
           "animations": [
-            "pose_showman"
+            "pose_showman_active"
           ],
           "blend_transition": 0.25,
           "transitions": [
@@ -375,7 +375,7 @@
         },
         "music": {
           "animations": [
-            "perform_sing"
+            "perform_sing_active"
           ],
           "blend_transition": 0.25,
           "transitions": [
