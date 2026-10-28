@@ -13,10 +13,10 @@ from scipy.signal import lfilter
 
 from fnar_dsp import (N, PI2, SR, T, ar, bitcrush, bw, click_train, decay, env_pts, eq, fm, formants, gate, hz,
                       ks_string, oversampled, phase, place, pulse, resonators, reverb, saw, sat, servo,
-                      smooth_noise, strike, tvbq, varispeed, voice_src, vowel_track, white, wow_flutter, midi, bq,
-                      norm_peak, fit)
-from recipes_common import (P, door_modes, duct_modes, frame_modes, hit, ir_dining_st, ir_duct, ir_hall, ir_midway,
-                            ir_office, ir_room_st, small_metal, thud, tile_modes, vent_modes, wood_modes, slat_modes)
+                      smooth_noise, strike, tvbq, varispeed, voice_src, vowel_track, white, wow_flutter, midi, fit)
+from recipes_common import (P, door_modes, duct_modes, frame_modes, hit, ir_dining_st, ir_duct, ir_hall,
+                            ir_midway, ir_office, small_metal, thud, tile_modes, vent_modes, wood_modes,
+                            slat_modes)
 from recipes_music import _cal_detune, calliope_note, drum_kit, guitar_chord
 
 

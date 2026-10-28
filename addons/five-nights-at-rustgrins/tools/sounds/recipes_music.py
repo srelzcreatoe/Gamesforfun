@@ -11,13 +11,12 @@ import functools
 
 import numpy as np
 
-from fnar_dsp import (N, PI2, SR, T, additive, ar, band_noise, bq, bw, chord, circ, click_train, comp, decay,
-                      env_pts, eq, formants, gate, hz, interp_read, ks_string, loop_hz, midi, norm_rms, op_lp,
-                      parse_line, periodic_lfo, phase, pink, place, pulse, resonators, reverb, rng, sat, saw,
-                      servo, smooth_noise, strike, tvbq, varispeed, voice_src, voicing, vowel_track, white,
-                      wow_flutter, fit, sine, shaped_noise, rms)
+from fnar_dsp import (N, PI2, SR, T, additive, ar, band_noise, bq, bw, chord, circ, click_train, comp, env_pts,
+                      eq, formants, gate, hz, interp_read, ks_string, loop_hz, midi, parse_line, periodic_lfo,
+                      phase, pink, place, pulse, resonators, reverb, rng, sat, saw, servo, smooth_noise, strike,
+                      tvbq, varispeed, voice_src, voicing, vowel_track, white, wow_flutter, fit, rms)
 from recipes_common import (P, glock, hit, ir_big_st, ir_midway, ir_office, ir_plate_st, ir_stage_st,
-                            plastic_modes, small_metal, thud)
+                            plastic_modes, small_metal)
 
 # =============================================================================
 # compositions (original)

@@ -9,13 +9,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from fnar_dsp import (N, PI2, SR, T, VOWELS, ar, band_noise, bitcrush, bw, circ, click_train, decay, env_pts,
-                      eq, fm, formants, gate, loop_hz, norm_peak, op_lp, pan, periodic_lfo, phase, place,
-                      pulse, resonators, reverb, saw, sat, smooth_noise, strike, tvbq, voice_src, vowel_track,
-                      white, midi, hz, bq)
-from recipes_common import (BRIGHT_BELL, SOFT_BELL, P, bell, creak, door_modes, drip, glock, hit, ir_big_st,
-                            ir_dining_st, ir_duct, ir_office, ir_room_st, phone_line, plastic_modes, slat_modes,
-                            small_metal, thud, vent_modes, wood_modes, duct_modes)
+from fnar_dsp import (N, PI2, SR, T, ar, band_noise, bitcrush, bw, circ, click_train, decay, env_pts, eq, fm,
+                      formants, gate, loop_hz, periodic_lfo, phase, place, pulse, resonators, reverb, saw, sat,
+                      smooth_noise, strike, tvbq, voice_src, vowel_track, white, midi, hz, bq)
+from recipes_common import (SOFT_BELL, P, bell, creak, door_modes, drip, glock, hit, ir_big_st, ir_dining_st,
+                            ir_duct, ir_office, ir_room_st, phone_line, plastic_modes, slat_modes, small_metal,
+                            thud, vent_modes, wood_modes, duct_modes)
 
 
 # =============================================================================
