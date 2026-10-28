@@ -9,6 +9,7 @@
 import { system } from '@minecraft/server';
 import { OFFICE, CABARET, SHOW_TAPE, DAY_LIGHTS } from '../data/layout.js';
 import { CAMERA_BY_ID } from '../data/cameras.js';
+import { NODES } from '../data/nodes.js';
 import { CONFIG } from '../core/config.js';
 import { setLocal, setStateLocal, typeAtLocal, fillLocal, blockAt } from './world_io.js';
 import { log } from './log.js';
@@ -169,18 +170,26 @@ export class Actuators {
     this.clearCamLight();
     const cam = CAMERA_BY_ID[camId];
     if (!cam || cam.audioOnly) return;
+    /** @type {[number, number, number, string][]} */
     const cells = [];
     const [lx, ly, lz] = cam.look;
     const [cx, cy, cz] = cam.loc;
     // a light just below the lens and two along the view direction
     for (const f of [0.15, 0.5, 0.85]) {
-      cells.push([Math.floor(cx + (lx - cx) * f), Math.floor(cy + (ly - cy) * f + (f === 0.15 ? -0.6 : 0.8)), Math.floor(cz + (lz - cz) * f)]);
+      cells.push([Math.floor(cx + (lx - cx) * f), Math.floor(cy + (ly - cy) * f + (f === 0.15 ? -0.6 : 0.8)), Math.floor(cz + (lz - cz) * f), 'light7']);
     }
-    for (const [x, y, z] of cells) {
-      const b = blockAt(x, y, z);
-      if (b && (b.typeId === 'minecraft:air' || b.typeId.startsWith('minecraft:light_block'))) {
-        if (setLocal(x, y, z, 'light7')) this.camLights.push([x, y, z]);
-      }
+    // and one over every spot the camera watches, so whoever stands there shows on the feed
+    for (const id of cam.sees) {
+      const n = NODES[id];
+      if (n) cells.push([Math.floor(n.x), Math.floor(n.y) + (n.crawl ? 1 : 3), Math.floor(n.z), 'light10']);
+    }
+    const done = new Set();
+    for (const [x, y, z, key] of cells) {
+      const k = `${x},${y},${z}`;
+      if (done.has(k)) continue;
+      done.add(k);
+      // only empty cells: a hall light (light block) there is not ours to replace or remove later
+      if (blockAt(x, y, z)?.typeId === 'minecraft:air' && setLocal(x, y, z, key)) this.camLights.push([x, y, z]);
     }
   }
 

@@ -33,19 +33,19 @@ You start in the **Staff Room** at the time clock. Press a button on the wall:
 6), `FREE ROAM` (daytime, the band performs), `GALLERY`, `CLIPPINGS`,
 `SETTINGS`, `ERASE PROGRESS`.
 
-**In the office** (you face the desk):
+**In the office** you sit facing the desk; every control is within arm's reach:
 
 | Control | How |
 |---|---|
-| Left / right steel door | red wall button by each door |
+| Left / right steel door | red wall button beside each window |
 | Left / right hall light | white wall button below it |
 | Ceiling vents | the two white buttons above the desk (labelled) |
-| Cameras | the **Camera Tablet** (slot 1) or click the CRT monitor on the desk - during a shift only |
+| Cameras | use the **Camera Tablet** (in your hand) or click the CRT monitor on the desk |
 | Switch camera | click a camera on the map, or scroll the hotbar |
-| Lower the monitor | sneak, or LOWER on the map |
+| Lower the monitor | LOWER on the map or Esc; without the map: sneak or use the tablet |
 | Rewind the show tape | PLAY SHOW while on CAM 8 |
-| Everything in one menu | the **Office Remote** (slot 2) |
-| Rules and tips | the **Shift Guide** |
+| Everything in one menu | the **Office Remote** (slot 1) |
+| Rules and tips | the **Shift Guide** (slot 9) |
 
 Power drains all night; doors, lights, vents and the monitor drain it faster.
 At 0 % everything opens… and someone comes to sing for you.
@@ -63,9 +63,20 @@ At 0 % everything opens… and someone comes to sing for you.
 
 Stars: beat night 5, night 6, and the Custom Night at 20/20/20/20/20/20.
 
+## If something does not work
+
+* When you join, chat should say *Five Nights at Rustgrin's 1.x.x is running*. If it
+  does not, the behavior pack is not active in this world (world settings → Behavior
+  Packs) or an older copy is: remove both Rustgrin packs from the world, add them again.
+* The cameras, doors and lights only run during a shift (NEW GAME / CONTINUE).
+* A world built by an older version is rebuilt in place automatically when it loads.
+* Problems are reported in chat as `[FNaR] ...` lines. `/fnar:debug status` (cheats on)
+  prints the version, the night, the cameras and where every animatronic is - send that
+  along when reporting a bug.
+
 ## Commands (cheats on)
 
-`/fnar:setup [rebuild]`, `/fnar:lobby`, `/fnar:debug help`.
+`/fnar:setup [rebuild]`, `/fnar:lobby`, `/fnar:debug status`, `/fnar:debug help`.
 
 ## Building from source
 

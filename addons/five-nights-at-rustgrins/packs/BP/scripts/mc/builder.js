@@ -12,12 +12,12 @@
 import { system } from '@minecraft/server';
 import { generatePlan } from '../data/build_plan.js';
 import { PHASES } from '../data/plan.js';
-import { LOT } from '../data/layout.js';
+import { LOT, OFFICE } from '../data/layout.js';
 import { dim, W, origin, fillLocal, listLocal, setLocal, runCmd, checkPalette, typeAtLocal, blockAt } from './world_io.js';
 import { loadBuild, storeBuild } from './persistence.js';
 import { log } from './log.js';
 
-export const BUILD_VERSION = 3;
+export const BUILD_VERSION = 4; // 4: the guard's seat by the desk, door buttons beside it (1.0.2)
 const MAX_FILL = 32768;
 const UNITS_PER_STEP = 6; // small ops per job step
 
@@ -167,12 +167,14 @@ export class Builder {
 
   /** Post-build verification: a few cells that must hold specific blocks. */
   verify() {
+    const B = OFFICE.buttons;
     const checks = [
-      [36, 1, 60, 'fnar:crt_monitor'],
-      [32, 2, 68, 'fnar:door_button'],
-      [40, 1, 68, 'fnar:light_button'],
-      [33, 5, 62, 'fnar:vent_cover'],
-      [36, -1, 66, 'fnar:tile_office'],
+      [OFFICE.monitor.x, OFFICE.monitor.y, OFFICE.monitor.z, 'fnar:crt_monitor'],
+      [OFFICE.phone.x, OFFICE.phone.y, OFFICE.phone.z, 'fnar:desk_phone'],
+      [B.door_l.x, B.door_l.y, B.door_l.z, 'fnar:door_button'],
+      [B.light_r.x, B.light_r.y, B.light_r.z, 'fnar:light_button'],
+      [OFFICE.vents.L.x, OFFICE.vents.L.y, OFFICE.vents.L.z, 'fnar:vent_cover'],
+      [Math.floor(OFFICE.spawn.x), -1, Math.floor(OFFICE.spawn.z), 'fnar:tile_office'],
     ];
     const bad = [];
     for (const [x, y, z, want] of checks) {

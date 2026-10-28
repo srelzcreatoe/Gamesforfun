@@ -5,7 +5,8 @@
 //   2. every route edge (node -> waypoints -> node) keeps the animatronic's body
 //      clear of walls, tables and shelves (ducts: crawl height only);
 //   3. every node stands on a floor with head room;
-//   4. camera lenses and the office spawn are not inside blocks.
+//   4. camera lenses and the office spawn are not inside blocks;
+//   5. every office control is within reach of the guard's seat, in plain sight.
 // Usage: node tools/map/validate_map.mjs   (exit 1 on problems)
 import fs from 'node:fs';
 import path from 'node:path';
@@ -15,7 +16,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const { buildVoxels } = await import('./export_voxels.mjs');
 const { CAMERAS } = await import(path.join(ROOT, 'packs/BP/scripts/data/cameras.js'));
 const { NODES, EDGES, pathBetween } = await import(path.join(ROOT, 'packs/BP/scripts/data/nodes.js'));
-const { OFFICE } = await import(path.join(ROOT, 'packs/BP/scripts/data/layout.js'));
+const { OFFICE, REACH } = await import(path.join(ROOT, 'packs/BP/scripts/data/layout.js'));
 
 const { grid } = buildVoxels();
 const { data, x0, y0, z0, sx, sy, sz, palette } = grid;
@@ -132,5 +133,23 @@ for (const e of EDGES) {
 
 const sp = OFFICE.spawn;
 for (const dy of [0.2, 1.2]) if (blocksBody(nameAt(sp.x, sp.y + dy, sp.z))) report(`office spawn blocked at y+${dy}`);
+
+// 5. every office control can be clicked from the seat (Bedrock's survival / adventure reach is about 5 blocks)
+console.log('reach:');
+const eye = [sp.x, sp.y + 1.62, sp.z];
+const controls = { ...OFFICE.buttons, monitor: OFFICE.monitor, phone: OFFICE.phone };
+for (const [id, b] of Object.entries(controls)) {
+  const d = Math.hypot(b.x + 0.5 - eye[0], b.y + 0.5 - eye[1], b.z + 0.5 - eye[2]);
+  if (d > REACH) report(`${id} is ${d.toFixed(1)} blocks from the seat (reach ${REACH})`);
+  // line of sight up to the control's own cell
+  const to = [b.x + 0.5, b.y + 0.5, b.z + 0.5];
+  const n = Math.ceil(d / 0.05);
+  for (let i = 1; i < n; i++) {
+    const p = eye.map((v, k) => v + (to[k] - v) * (i / n));
+    if (Math.floor(p[0]) === b.x && Math.floor(p[1]) === b.y && Math.floor(p[2]) === b.z) break;
+    const nm = nameAt(...p);
+    if (blocksSight(nm)) { report(`${id}: blocked from the seat by ${nm} at ${p.map(Math.floor)}`); break; }
+  }
+}
 console.log(problems ? `validate_map: ${problems} problem(s)` : 'validate_map: ok');
 process.exit(problems ? 1 : 0);

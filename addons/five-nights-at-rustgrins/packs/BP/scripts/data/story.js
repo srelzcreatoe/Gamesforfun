@@ -85,7 +85,7 @@ export const ENDINGS = Object.freeze({
 
 /** Shift guide topics (lobby item and the remote). */
 export const GUIDE = Object.freeze([
-  ['Controls', 'In the office the walls have a RED door button and a WHITE light button on each side. Right-click / tap them.\nThe CRT monitor on the desk (or the Camera Tablet) raises the monitor. On the cameras: click a camera on the map, scroll the hotbar to step through them, and sneak (or LOWER) to put the monitor down.\nThe Office Remote opens every control in one menu, including the two ceiling VENTS.'],
+  ['Controls', 'In the office the walls have a RED door button and a WHITE light button on each side. Right-click / tap them.\nThe CRT monitor on the desk (or the Camera Tablet) raises the monitor. On the cameras: click a camera on the map, and press LOWER (or Esc) to put the monitor down. Without the map: scroll the hotbar to step through cameras, sneak or use the tablet to lower.\nThe Office Remote opens every control in one menu, including the two ceiling VENTS.'],
   ['Power', 'Power drains all night. Every closed door, lit hall light, closed vent and the raised monitor uses more (see USAGE). At 0 % the doors open, the lights die... and someone comes to sing for you.'],
   ['Mirehop', 'The green rabbit. Comes down the WEST hall to the LEFT door. A guitar twang means he is there. Check with the left light and shut the left door until he leaves.'],
   ['Noxbriar', 'The black bear. Comes down the EAST hall to the RIGHT window. Soft humming means she is there. She is almost invisible on dark cameras - look for her eyes.'],

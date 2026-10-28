@@ -194,16 +194,16 @@ export const SCENES = [
   {
     name: '13_jumpscare', voxels: 'night', caption: 'Jumpscare',
     scene: {
-      camera: { pos: [36.5, 1.62, 66.5], target: [36.5, 1.52, 65.35], fov: 70 }, exposure: 1.1,
-      entities: [{ id: 'fnar:rustgrin', pos: [36.5, 1.62 - 2.05, 65.35], yaw: 0, anim: 'jumpscare', t: 0.22, eyes: true }],
-      extra_lights: [point([36.5, 3.6, 66.2], '#ffd9a0', 4, 8), point([35.6, 1.0, 66.4], '#ff7a5c', 1.2, 4)],
+      camera: { pos: [36.5, 1.62, 63.5], target: [36.5, 1.52, 62.35], fov: 70 }, exposure: 1.1,
+      entities: [{ id: 'fnar:rustgrin', pos: [36.5, 1.62 - 2.05, 62.35], yaw: 0, anim: 'jumpscare', t: 0.22, eyes: true }],
+      extra_lights: [point([36.5, 3.6, 63.2], '#ffd9a0', 4, 8), point([35.6, 1.0, 63.4], '#ff7a5c', 1.2, 4)],
       bloom: { strength: 0.6, radius: 0.5, threshold: 0.85 },
     },
   },
   {
     name: '14_power_out', voxels: 'power_out', caption: 'Power out. Rustgrin sings in the left doorway',
     scene: {
-      camera: { pos: [36.6, 1.62, 66.6], target: [29.9, 1.6, 66.0], fov: 62 }, exposure: 1.5,
+      camera: { pos: [36.6, 1.62, 63.6], target: [29.9, 1.6, 66.0], fov: 62 }, exposure: 1.5,
       entities: [at('rustgrin', 'DOOR_L', 'perform_1', { eyes: true, t: 0.5, eyeIntensity: 20 })],
       extra_lights: [{ type: 'ambient', color: '#1a2238', intensity: 2.6 }, point([31.4, 2.6, 66.0], '#ffb08a', 2.2, 4)],
     },

@@ -69,12 +69,15 @@ export const OPENINGS = Object.freeze([
 ]);
 
 // ---------------------------------------------------------------- the office
-// The guard faces north towards the desk. Left door/window in the west wall,
-// right door/window in the east wall. Door cells are filled with shutter
-// blocks by the game when closed (top row first).
+// The guard sits 3 blocks from the desk, facing north. Left door/window in
+// the west wall, right door/window in the east wall. Door cells are filled
+// with shutter blocks by the game when closed (top row first). Every control
+// is within REACH of the seat (Bedrock's survival/adventure reach is about 5
+// blocks; tools/map/validate_map.mjs checks it).
+export const REACH = 4.6;
 export const OFFICE = Object.freeze({
   box: ROOM_BY_ID.OFFICE.box,
-  spawn: Object.freeze({ x: 36.5, y: 0, z: 66.5, yaw: 180 }), // facing north
+  spawn: Object.freeze({ x: 36.5, y: 0, z: 63.5, yaw: 180 }), // the seat, facing the desk
   bounds: Object.freeze({ x1: 32, z1: 60, x2: 41, z2: 71 }), // the guard is kept inside (x2/z2 exclusive)
   doors: Object.freeze({
     L: Object.freeze({ x: 31, z1: 65, z2: 67, y1: 0, y2: 3 }),
@@ -84,12 +87,12 @@ export const OFFICE = Object.freeze({
     L: Object.freeze({ x: 31, z1: 62, z2: 63, y1: 1, y2: 2 }),
     R: Object.freeze({ x: 41, z1: 62, z2: 63, y1: 1, y2: 2 }),
   }),
-  // Wall buttons (door above, light below) on the wall south of each door.
+  // Wall buttons (door above, light below) between each window and its door, beside the seat.
   buttons: Object.freeze({
-    door_l: Object.freeze({ x: 32, y: 2, z: 68, dir: 'e', kind: 'door_btn' }),
-    light_l: Object.freeze({ x: 32, y: 1, z: 68, dir: 'e', kind: 'light_btn' }),
-    door_r: Object.freeze({ x: 40, y: 2, z: 68, dir: 'w', kind: 'door_btn' }),
-    light_r: Object.freeze({ x: 40, y: 1, z: 68, dir: 'w', kind: 'light_btn' }),
+    door_l: Object.freeze({ x: 32, y: 2, z: 64, dir: 'e', kind: 'door_btn' }),
+    light_l: Object.freeze({ x: 32, y: 1, z: 64, dir: 'e', kind: 'light_btn' }),
+    door_r: Object.freeze({ x: 40, y: 2, z: 64, dir: 'w', kind: 'door_btn' }),
+    light_r: Object.freeze({ x: 40, y: 1, z: 64, dir: 'w', kind: 'light_btn' }),
     // the two ceiling-vent covers: buttons on the wall above the desk, labelled by signs below
     vent_l: Object.freeze({ x: 33, y: 2, z: 60, dir: 's', kind: 'light_btn' }),
     vent_r: Object.freeze({ x: 39, y: 2, z: 60, dir: 's', kind: 'light_btn' }),
@@ -139,7 +142,7 @@ export const CABARET = Object.freeze({
 
 // ---------------------------------------------------------------- the time-clock lobby (staff room)
 export const LOBBY = Object.freeze({
-  spawn: Object.freeze({ x: 8.5, y: 0, z: 59.5, yaw: 180 }), // facing north, towards the terminal wall
+  spawn: Object.freeze({ x: 8.5, y: 0, z: 55.5, yaw: 180 }), // facing north, a few steps from the terminal wall
   terminalWallZ: 52, // buttons hang on the north wall (z = 52 interior row, facing south)
 });
 

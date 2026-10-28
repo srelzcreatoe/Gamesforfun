@@ -77,19 +77,27 @@ push('new_game');
 await waitFor(() => game().state === 'NIGHT', 200, 'night 1 start');
 say(`night 1 started (guard mode ${P.gameMode})`);
 
-// In game a custom block is only clickable when it has a custom component (fnar:control);
-// clicking anything else reaches no script at all.
+// In game a custom block is only clickable when it has a custom component (fnar:control),
+// and only within reach (about 5 blocks in survival / adventure). A click reaches the scripts
+// twice: the interact attempt (a read-only before event) and the component's onPlayerInteract.
+const { OFFICE } = await import(path.join(ROOT, 'packs/BP/scripts/data/layout.js'));
+const GAME_REACH = 5.0;
 const CLICKABLE = new Set(fs.readdirSync(path.join(ROOT, 'packs/BP/blocks')).map((f) => JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/BP/blocks', f), 'utf8'))['minecraft:block'])
   .filter((b) => b.components?.['fnar:control'] || (b.permutations ?? []).some((p) => p.components?.['fnar:control'])).map((b) => b.description.identifier));
-const click = (x, y, z) => {
+/** strict: a click the test relies on (an unreachable or dead block is an error); fuzz clicks just miss. */
+const click = (x, y, z, strict = true) => {
   const b = blockAt(x, y, z);
+  const eye = P.getHeadLocation();
+  const c = { x: b.location.x + 0.5, y: b.location.y + 0.5, z: b.location.z + 0.5 };
+  const d = Math.hypot(eye.x - c.x, eye.y - c.y, eye.z - c.z);
+  if (d > GAME_REACH) { if (strict) mock.errors.push(`clicked ${b.typeId} at ${x},${y},${z} from ${d.toFixed(1)} blocks: out of reach in game`); return; }
+  world.beforeEvents.playerInteractWithBlock.fire({ player: P, block: b, isFirstEvent: true, cancel: false });
   if (!CLICKABLE.has(b.typeId)) { mock.errors.push(`clicked ${b.typeId} at ${x},${y},${z}: not clickable in game (no fnar:control)`); return; }
   components['fnar:control'].onPlayerInteract({ player: P, block: b });
 };
-const clickMonitor = () => click(OFFICE.monitor.x, OFFICE.monitor.y, OFFICE.monitor.z);
+const clickMonitor = (strict = true) => click(OFFICE.monitor.x, OFFICE.monitor.y, OFFICE.monitor.z, strict);
 
 // 3a. the cameras, the way a player first uses them ----------------------------------
-const { OFFICE } = await import(path.join(ROOT, 'packs/BP/scripts/data/layout.js'));
 const { CAMERAS } = await import(path.join(ROOT, 'packs/BP/scripts/data/cameras.js'));
 const MAP_MARK = '§k§r§k§r§m';
 let camScript = null; // replies for the camera map form while this section runs
@@ -101,10 +109,23 @@ answer((f) => camScript !== null && f._title.startsWith(MAP_MARK), () => {
 }, true);
 const cams = () => game().session.devices.cams;
 await steps(5);
+check(P.selectedSlotIndex === 4 && P.inventory[4]?.typeId === 'fnar:tablet', 'the guard starts holding the Camera Tablet');
+// every office control can be clicked from the seat
+for (const [action, b] of Object.entries(OFFICE.buttons)) {
+  const w = Wl(b.x + 0.5, b.y + 0.5, b.z + 0.5);
+  const d = Math.hypot(P.getHeadLocation().x - w.x, P.getHeadLocation().y - w.y, P.getHeadLocation().z - w.z);
+  check(d <= GAME_REACH, `${action} button within reach of the seat (${d.toFixed(1)} blocks)`);
+}
 camScript = ['busy', 'busy'];
 clickMonitor();
 await steps(6);
 check(cams().open && P.cameraState === 'free', 'clicking the CRT monitor raises the cameras');
+check(P.effects.has('night_vision'), 'the camera feed has night vision');
+{
+  const { NODES } = await import(path.join(ROOT, 'packs/BP/scripts/data/nodes.js'));
+  const lit = ['ST_R', 'ST_M', 'ST_N'].filter((id) => /light_block/.test(blockAt(Math.floor(NODES[id].x), NODES[id].y + 3, Math.floor(NODES[id].z)).typeId));
+  check(lit.length === 3, `CAM 1A lights the band on the stage (${lit.length}/3 lit)`);
+}
 check(cams().cam === '1A', `the monitor opens on CAM 1A (got ${cams().cam}; the hotbar reset must not count as a scroll)`);
 await steps(40);
 check(cams().open, 'a busy player (UserBusy) does not lower the monitor');
@@ -123,6 +144,7 @@ held = null;
 if (cams().open) world.afterEvents.playerButtonInput.fire({ player: P, button: 'Sneak', newButtonState: 'Pressed' }); // (only when LOWER was not reachable)
 await steps(8);
 check(!cams().open && P.cameraState === 'default', 'LOWER puts the monitor down and restores the view');
+check(!P.effects.has('night_vision'), 'night vision ends with the camera view');
 world.afterEvents.itemUse.fire({ source: P, itemStack: { typeId: 'fnar:tablet' } });
 await steps(10);
 check(cams().open && P.cameraState === 'free', 'the Camera Tablet raises the cameras');
@@ -132,6 +154,9 @@ await steps(10);
 check(!cams().open && P.cameraState === 'default', 'sneaking lowers the monitor');
 check((mock.closed ?? 0) > closedBefore && game().camForm === null, 'lowering the monitor closes the camera map');
 camScript = null;
+debug('status');
+await steps(2);
+check(/animatronics: (?!none)/.test(P.lastMessage ?? ''), `status lists the animatronics (got: ${P.lastMessage})`);
 say(`cameras ok (camera map shown ${mock.forms.filter((f) => f.title.startsWith(MAP_MARK)).length}x)`);
 
 // 3. a fuzzing guard -------------------------------------------------------------
@@ -143,9 +168,9 @@ const fuzz = (i) => {
   if (i % 37 === 0) world.afterEvents.itemUse.fire({ source: P, itemStack: { typeId: 'fnar:tablet' } });
   if (i % 53 === 0 && s.devices.cams.open) world.afterEvents.playerButtonInput.fire({ player: P, button: 'Sneak', newButtonState: 'Pressed' });
   if (i % 41 === 0 && s.devices.cams.open) world.afterEvents.playerHotbarSelectedSlotChange.fire({ player: P, previousSlotSelected: 4, newSlotSelected: r < 0.5 ? 5 : 3 });
-  if (i % 23 === 0) { const b = buttons[Math.floor(rand() * buttons.length)]; click(b.x, b.y, b.z); }
-  if (i % 97 === 0) clickMonitor();
-  if (i % 131 === 0) click(OFFICE.phone.x, OFFICE.phone.y, OFFICE.phone.z);
+  if (i % 23 === 0) { const b = buttons[Math.floor(rand() * buttons.length)]; click(b.x, b.y, b.z, false); }
+  if (i % 97 === 0) clickMonitor(false);
+  if (i % 131 === 0) click(OFFICE.phone.x, OFFICE.phone.y, OFFICE.phone.z, false);
   if (i % 211 === 0) { answer(titleHas('OFFICE REMOTE'), (f) => ({ canceled: false, selection: Math.floor(rand() * f.buttons.length) })); world.afterEvents.itemUse.fire({ source: P, itemStack: { typeId: 'fnar:remote' } }); }
   if (i % 300 === 0) P.teleport(Wl(10, 0, 10)); // try to leave the office
 };
@@ -208,6 +233,7 @@ say(`power out sequence ok (${mock.sounds.filter((s) => s === 'fnar.rustgrin.son
 const errs = mock.errors.filter((e) => !/^\[FNaR\] (FIVE|ready)/.test(e));
 say(`\nforms shown: ${mock.forms.length}, sounds: ${mock.sounds.length}, commands: ${mock.commands.length}, entities alive: ${mock.entities.size}`);
 say(`missing sound events: ${missingSounds.size ? [...missingSounds].sort().join(', ') : 'none'}`);
+say(`chat: ${mock.chat.length} lines${mock.chat.length ? ` (first: ${mock.chat[0]})` : ''}`);
 const warnCounts = {};
 for (const w of mock.warnings) { const k = w.replace(/[-\d.,@ ]+/g, ' ').slice(0, 90); warnCounts[k] = (warnCounts[k] ?? 0) + 1; }
 say(`warnings: ${mock.warnings.length}`);

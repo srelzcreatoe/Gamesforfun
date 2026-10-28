@@ -4,8 +4,9 @@
 // One live feed at a time: the guard's view moves to the camera with the
 // `minecraft:free` camera preset (Camera.setCamera). While the monitor is up:
 //   * lateral movement and jumping are disabled (sneak stays enabled = lower);
-//   * a camera-feed fog replaces the night fog and soft "IR" light blocks
-//     light what the live camera watches (Actuators.camLight);
+//   * Night Vision makes the dark rooms readable ("night mode" feed, as in
+//     FREDBEAR), a camera-feed fog replaces the night fog and hidden light
+//     blocks light what the live camera watches (Actuators.camLight);
 //   * the feed slowly pans a few blocks around its aim point;
 //   * static / audio-only feeds are covered by a held fade.
 // close() always restores the normal view, effects and input permissions; it
@@ -26,6 +27,7 @@ export const FOG = Object.freeze({
 });
 
 const v3 = (a) => ({ x: a[0], y: a[1], z: a[2] });
+const NV_TICKS = 20 * 60 * 30;
 
 export class CameraView {
   constructor() {
@@ -47,6 +49,11 @@ export class CameraView {
       player.inputPermissions.setPermissionCategory(InputPermissionCategory.Jump, false);
     } catch (e) {
       log.warn(`camera open: ${e?.message ?? e}`);
+    }
+    try {
+      player.addEffect('night_vision', NV_TICKS, { amplifier: 0, showParticles: false });
+    } catch (e) {
+      log.warn(`camera night vision: ${e?.message ?? e}`);
     }
     runCmd(FOG.camPush);
     this.show(camId, true);

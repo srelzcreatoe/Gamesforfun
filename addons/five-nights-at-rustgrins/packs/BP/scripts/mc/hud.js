@@ -48,7 +48,7 @@ export class Hud {
   }
 
   /** Action bar for a running night. */
-  nightBar(snap, now, { captions = true, overlay = null, cover = null } = {}) {
+  nightBar(snap, now, { captions = true, overlay = null, cover = null, hint = null } = {}) {
     const lines = [];
     if (snap.devices.camsOpen) {
       const cam = CAMERA_BY_ID[snap.devices.cam];
@@ -57,6 +57,7 @@ export class Hud {
       else if (cover === 'audio') label = `§6${label} §7(audio only)`;
       lines.push(`§f${label}`);
       if (snap.devices.cam === '8' && snap.tape) lines.push(`§6SHOW TAPE ${snap.tape.pct}%${snap.tape.pct < 30 ? ' §c§lREWIND' : ''}`);
+      if (hint) lines.push(`§8${hint}`);
     } else if (this.message && now < this.messageUntil) {
       lines.push(`§e${this.message}`);
     }

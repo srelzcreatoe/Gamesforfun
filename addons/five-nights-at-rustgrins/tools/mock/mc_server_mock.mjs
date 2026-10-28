@@ -24,10 +24,17 @@ function parseEnums(file) {
   return out;
 }
 const E = parseEnums(DTS);
-export const { GameMode, HudVisibility, HudElement, InputButton, ButtonState, WeatherType, InputPermissionCategory, EasingType, CustomCommandParamType, CustomCommandStatus, CommandPermissionLevel, Direction } = E;
+export const { GameMode, HudVisibility, HudElement, InputButton, ButtonState, WeatherType, InputPermissionCategory, EasingType, CustomCommandParamType, CustomCommandStatus, CommandPermissionLevel, Direction, ItemLockMode } = E;
 
 // ---------------------------------------------------------------- recorded state for assertions
+/** Like the game: inside a before-event handler the world is read-only ("restricted execution"). */
+function rw(what) {
+  if (mock.readOnly) throw new Error(`${what} cannot be called in read-only mode (inside a before event)`);
+}
+
 export const mock = {
+  readOnly: false,
+  chat: [],
   tick: 0,
   errors: [],
   warnings: [],
@@ -130,6 +137,7 @@ function makeBlock(loc) {
       return (mock.blocks.get(k) ?? AIR).type === 'minecraft:air';
     },
     setPermutation(p) {
+    rw('setPermutation');
       mock.blocks.set(k, p);
       mock.setBlocks++;
     },
@@ -163,6 +171,7 @@ class Entity {
   }
 
   teleport(loc, opts) {
+    rw('teleport');
     if (!this.isValid) throw new Error('teleport on removed entity');
     for (const v of [loc.x, loc.y, loc.z]) if (!Number.isFinite(v)) throw new Error(`teleport to non-finite location ${JSON.stringify(loc)}`);
     this.location = { ...loc };
@@ -170,6 +179,7 @@ class Entity {
   }
 
   setProperty(k, v) {
+    rw('setProperty');
     const def = entityProps[this.typeId]?.[k];
     if (!def) throw new Error(`setProperty: ${this.typeId} has no property ${k}`);
     if (def.type === 'enum' && !def.values.includes(v)) throw new Error(`setProperty: ${k}=${v} not in ${def.values}`);
@@ -203,6 +213,7 @@ class Player extends Entity {
     const self = this;
     this.camera = {
       setCamera(preset, opts) {
+    rw('setCamera');
         if (preset !== 'minecraft:free') throw new Error(`unexpected camera preset ${preset}`);
         for (const k of ['location', 'facingLocation']) if (opts?.[k]) for (const v of Object.values(opts[k])) if (!Number.isFinite(v)) throw new Error('camera non-finite');
         self.cameraState = 'free';
@@ -215,8 +226,8 @@ class Player extends Entity {
     };
     this.inputPermissions = { setPermissionCategory(c, v) { self.perms[c] = v; }, isPermissionCategoryEnabled(c) { return self.perms[c] !== false; } };
     this.onScreenDisplay = {
-      setActionBar(t) { self.actionBar = t; },
-      setTitle(t, o) { mock.titles.push([t, o?.subtitle]); },
+      setActionBar(t) { rw('setActionBar'); self.actionBar = t; },
+      setTitle(t, o) { rw('setTitle'); mock.titles.push([t, o?.subtitle]); },
       setHudVisibility() {},
     };
   }
@@ -234,6 +245,7 @@ class Player extends Entity {
   }
 
   playSound(id, o) {
+    rw('playSound');
     checkSound(id);
     mock.sounds.push(id);
     return { stop() {} };
@@ -245,6 +257,7 @@ class Player extends Entity {
     return {
       container: {
         setItem(i, item) {
+    rw('setItem');
           if (item && !itemIds.has(item.typeId) && !item.typeId.startsWith('minecraft:')) throw new Error(`unknown item ${item.typeId}`);
           inv[i] = item;
         },
@@ -264,6 +277,7 @@ class Player extends Entity {
   }
 
   addEffect(e) {
+    rw('addEffect');
     this.effects.add(e);
   }
 
@@ -273,7 +287,9 @@ class Player extends Entity {
   }
 
   sendMessage(m) {
+    rw('sendMessage');
     this.lastMessage = m;
+    mock.chat.push(m);
   }
 
   getHeadLocation() {
@@ -285,6 +301,7 @@ class Player extends Entity {
   }
 
   teleport(loc, opts) {
+    rw('teleport');
     super.teleport(loc, opts);
     if (opts?.rotation) this.rotation = { ...opts.rotation };
   }
@@ -295,6 +312,7 @@ const dimension = {
   id: 'minecraft:overworld',
   getBlock: (loc) => makeBlock(loc),
   setBlockPermutation(loc, p) {
+    rw('setBlockPermutation');
     if (!(p instanceof BlockPermutation)) throw new Error('setBlockPermutation needs a BlockPermutation');
     mock.blocks.set(key(loc), p);
     mock.setBlocks++;
@@ -303,6 +321,7 @@ const dimension = {
     mock.blocks.set(key(loc), BlockPermutation.resolve(t));
   },
   fillBlocks(vol, block, opts) {
+    rw('fillBlocks');
     const p = typeof block === 'string' ? BlockPermutation.resolve(block) : block;
     if (vol.size() > 32768) throw new Error(`fillBlocks volume ${vol.size()} > 32768`);
     const inc = opts?.blockFilter?.includeTypes;
@@ -317,6 +336,7 @@ const dimension = {
     return new ListBlockVolume([]);
   },
   spawnEntity(id, loc) {
+    rw('spawnEntity');
     if (!entityProps[id]) throw new Error(`spawnEntity: unknown entity ${id}`);
     const e = new Entity(id, loc);
     mock.entities.set(e.id, e);
@@ -326,11 +346,13 @@ const dimension = {
     return [...mock.entities.values()].filter((e) => (!q.type || e.typeId === q.type) && (!q.tags || q.tags.every((t) => e.tags.has(t))));
   },
   playSound(id) {
+    rw('playSound');
     checkSound(id);
     mock.sounds.push(id);
     return { stop() {} };
   },
   runCommand(cmd) {
+    rw('runCommand');
     mock.commands.push(cmd);
     return { successCount: 1 };
   },
@@ -339,6 +361,19 @@ const dimension = {
 };
 
 // ---------------------------------------------------------------- events, system, world
+function readOnlySignal() {
+  const s = signal();
+  const fire = s.fire;
+  s.fire = (ev) => {
+    mock.readOnly = true;
+    try {
+      fire(ev);
+    } finally {
+      mock.readOnly = false;
+    }
+  };
+  return s;
+}
 function signal() {
   const subs = [];
   return { subscribe(fn) { subs.push(fn); return fn; }, unsubscribe(fn) { const i = subs.indexOf(fn); if (i >= 0) subs.splice(i, 1); }, fire(ev) { for (const f of subs) f(ev); }, subs };
@@ -379,8 +414,12 @@ const players = [];
 const dyn = new Map();
 export const world = {
   afterEvents: Object.fromEntries(['worldLoad', 'playerSpawn', 'buttonPush', 'itemUse', 'playerInteractWithBlock', 'playerHotbarSelectedSlotChange', 'playerButtonInput', 'playerLeave'].map((n) => [n, signal()])),
-  beforeEvents: {},
+  beforeEvents: { playerInteractWithBlock: readOnlySignal() },
   getDimension: () => dimension,
+  sendMessage(m) {
+    rw('world.sendMessage');
+    mock.chat.push(m);
+  },
   getAllPlayers: () => players.filter((p) => p.isValid),
   getDynamicProperty: (k) => dyn.get(k),
   setDynamicProperty: (k, v) => {

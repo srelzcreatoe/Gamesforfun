@@ -8,7 +8,7 @@
 // file only renders its effects (puppets, doors, lights, sounds, cameras,
 // HUD) and turns player input into session.input(...) calls.
 
-import { system, world, GameMode, ItemStack, HudVisibility, HudElement, InputButton, ButtonState, WeatherType } from '@minecraft/server';
+import { system, world, GameMode, ItemStack, ItemLockMode, HudVisibility, HudElement, InputButton, ButtonState, WeatherType } from '@minecraft/server';
 import { NightSession } from '../core/session.js';
 import { CONFIG, CAST, CAST_NAMES, LAST_NIGHT, CUSTOM_NIGHT } from '../core/config.js';
 import { Rng } from '../core/rng.js';
@@ -28,13 +28,17 @@ import * as ui from './ui.js';
 import { W, Wv, L, origin, refreshOrigin, setOrigin, runCmd, setLocal, typeAtLocal } from './world_io.js';
 import { loadSave, storeSave, storeOrigin, defaultSave, loadBuild } from './persistence.js';
 import { log } from './log.js';
+import { VERSION } from '../data/version.js';
 
 const wait = (ticks) => new Promise((res) => system.runTimeout(() => res(undefined), ticks));
 
 /** Eye height of each model at scale 1 (blocks) - the jumpscare framing and the camera stare use it. */
 const HEAD_Y = Object.freeze({ rustgrin: 2.05, mirehop: 2.05, noxbriar: 2.05, purple_rat: 2.0, cat: 1.95, top_hat_rat: 2.05, rusted: 2.05 });
 const NIGHT_HUD = [HudElement.Health, HudElement.Hunger, HudElement.Armor, HudElement.StatusEffects, HudElement.PaperDoll, HudElement.AirBubbles, HudElement.HorseHealth];
+/** The hand slot during a shift: it holds the Camera Tablet, and hotbar scrolls on the cameras return here. */
 const NEUTRAL_SLOT = 4;
+/** Blocks the guard clicks (they carry the fnar:control custom component). */
+const CONTROL_BLOCKS = new Set(['fnar:door_button', 'fnar:light_button', 'fnar:crt_monitor', 'fnar:desk_phone']);
 const STARE_AFTER = 40;
 const GALLERY = Object.freeze({
   rustgrin: { x: 3.5, y: 1, z: 42.5, yaw: 0 }, mirehop: { x: 8.5, y: 1, z: 42.5, yaw: 0 }, noxbriar: { x: 13.5, y: 1, z: 42.5, yaw: 0 },
@@ -64,6 +68,8 @@ export class Game {
     this.nightLabel = '';
     this.nightOpts = null;
     this.camForm = null;
+    /** last control click { key, tick }: the custom component and the interact event both report one click */
+    this.lastControl = null;
     this.phoneSeq = null;
     this.stare = Object.create(null);
     this.pendingBuild = false;
@@ -85,6 +91,14 @@ export class Game {
     world.afterEvents.playerSpawn.subscribe((ev) => this.onSpawn(ev.player, ev.initialSpawn));
     world.afterEvents.buttonPush.subscribe((ev) => this.onButtonPush(ev));
     world.afterEvents.itemUse.subscribe((ev) => this.onItemUse(ev.source, ev.itemStack));
+    // Second path for the office controls, besides the fnar:control component: the interact
+    // attempt itself. Read-only context, so the click is handled on the next run.
+    world.beforeEvents.playerInteractWithBlock.subscribe((ev) => {
+      if (!ev.isFirstEvent || !CONTROL_BLOCKS.has(ev.block.typeId)) return;
+      const player = ev.player;
+      const block = { typeId: ev.block.typeId, location: { ...ev.block.location } };
+      system.run(() => this.onControl(player, block));
+    });
     world.afterEvents.playerHotbarSelectedSlotChange.subscribe((ev) => this.onSlot(ev.player, ev.previousSlotSelected, ev.newSlotSelected));
     world.afterEvents.playerButtonInput.subscribe((ev) => {
       if (ev.button === InputButton.Sneak && ev.newButtonState === ButtonState.Pressed) this.onSneak(ev.player);
@@ -96,11 +110,54 @@ export class Game {
       this.state = 'LOBBY_PENDING';
       // a world closed mid-night always comes back to the lobby
       system.runTimeout(() => this.enterLobby(), 20);
-    } else if (loadBuild().phase > 0 && origin.set) {
-      // resume an interrupted build
-      system.runTimeout(() => this.setup(false, undefined), 40);
+    } else if (origin.set) {
+      // a pizzeria was placed before: resume an interrupted build, or rebuild one made by an older version in place
+      const outdated = loadBuild().done;
+      system.runTimeout(() => {
+        if (outdated) world.sendMessage(`§8[FNaR] §7Updating the pizzeria for version §f${VERSION}§7 (about a minute)...`);
+        this.setup(false, undefined);
+      }, 40);
     }
     log.info(`ready (built: ${this.builder.isBuilt()}, origin ${origin.set ? `${origin.x},${origin.y},${origin.z}` : 'unset'})`);
+  }
+
+  /** For /fnar:debug status: what a player can paste when something is wrong. */
+  statusLines() {
+    const b = loadBuild();
+    const s = this.session;
+    const lines = [
+      `version ${VERSION}, state ${this.state}, build v${b.version ?? '?'} ${b.done ? 'done' : `phase ${b.phase ?? 0}`}, origin ${origin.set ? `${origin.x} ${origin.y} ${origin.z}` : 'unset'}`,
+    ];
+    const g = this.guard();
+    if (g) {
+      const l = L(g.location);
+      lines.push(`guard at ${l.x.toFixed(1)} ${l.y.toFixed(1)} ${l.z.toFixed(1)} (seat ${OFFICE.spawn.x} ${OFFICE.spawn.y} ${OFFICE.spawn.z}), slot ${g.selectedSlotIndex}`);
+    }
+    if (s) {
+      const d = s.devices;
+      lines.push(`night ${s.night} t${s.t}, power ${s.snapshot().powerPct}%, cams ${d.cams.open ? `up on ${d.cams.cam}` : 'down'}${this.cams.active ? ' (view on)' : ''}${this.camForm ? ' (map open)' : ''}`);
+    }
+    const seen = [];
+    for (const id of [...CAST, 'rusted']) {
+      const e = this.puppets.get(id);
+      if (!e) continue;
+      const l = L(e.location);
+      let hidden = false;
+      try {
+        hidden = !!e.getProperty('fnar:hidden');
+      } catch {
+        // ignore
+      }
+      seen.push(`${id} ${l.x.toFixed(0)},${l.y.toFixed(0)},${l.z.toFixed(0)}${hidden ? ' hidden' : ''}`);
+    }
+    lines.push(`animatronics: ${seen.length ? seen.join(' | ') : 'none in the world'}`);
+    return lines;
+  }
+
+  /** Two seconds into a night every animatronic should stand in the world; say so in chat if not. */
+  checkPuppets() {
+    const missing = CAST.filter((id) => !this.puppets.get(id));
+    if (missing.length) log.warn(`animatronics missing after the night started: ${missing.join(', ')} (see /fnar:debug status)`);
   }
 
   guard() {
@@ -176,8 +233,15 @@ export class Game {
   // ================================================================ players
   /** @param {import('@minecraft/server').Player} player */
   onSpawn(player, initial) {
+    if (initial) {
+      try {
+        player.sendMessage(`§8[FNaR] §7Five Nights at Rustgrin's §f${VERSION}§7 is running.`);
+      } catch {
+        // ignore
+      }
+    }
     if (this.state === 'UNBUILT') {
-      if (!initial || this.pendingBuild) return;
+      if (!initial || this.pendingBuild || origin.set) return; // origin set: start() resumes / updates the build
       this.pendingBuild = true;
       system.runTimeout(async () => {
         const choice = await ui.setupForm(player);
@@ -212,13 +276,21 @@ export class Game {
       const inv = p.getComponent('minecraft:inventory')?.container;
       if (!inv) return;
       inv.clearAll();
+      // tools stay in their slot (cannot be dropped or moved), like FREDBEAR's kit
+      const tool = (id) => {
+        const st = new ItemStack(id, 1);
+        st.lockMode = ItemLockMode.slot;
+        st.keepOnDeath = true;
+        return st;
+      };
       if (kind === 'night') {
-        inv.setItem(0, new ItemStack('fnar:tablet', 1));
-        inv.setItem(1, new ItemStack('fnar:remote', 1));
-        inv.setItem(8, new ItemStack('fnar:guide', 1));
+        // the tablet is in the hand slot, so using it always raises / lowers the monitor
+        inv.setItem(NEUTRAL_SLOT, tool('fnar:tablet'));
+        inv.setItem(0, tool('fnar:remote'));
+        inv.setItem(8, tool('fnar:guide'));
       } else {
-        inv.setItem(0, new ItemStack('fnar:guide', 1));
-        if (kind === 'roam') inv.setItem(1, new ItemStack('fnar:remote', 1));
+        inv.setItem(0, tool('fnar:guide'));
+        if (kind === 'roam') inv.setItem(1, tool('fnar:remote'));
       }
       p.selectedSlotIndex = NEUTRAL_SLOT;
     } catch (e) {
@@ -486,6 +558,7 @@ export class Game {
       return;
     }
     s.tick();
+    if (s.t === 40) this.checkPuppets();
     for (const e of s.drain()) {
       try {
         this.render(e, g);
@@ -502,7 +575,8 @@ export class Game {
     if (now % 4 === 0) {
       const snap = s.snapshot();
       const overlay = this.save.settings.debugOverlay ? `§8${s.debugLine()}` : null;
-      g.onScreenDisplay.setActionBar(this.hud.nightBar(snap, now, { captions: this.save.settings.captions, overlay, cover: this.cams.active ? this.camCover() : null }));
+      const hint = this.cams.active ? (this.camForm ? 'Click a camera on the map - LOWER or Esc puts the monitor down' : 'Scroll the hotbar: next camera - Sneak or use the tablet: lower') : null;
+      g.onScreenDisplay.setActionBar(this.hud.nightBar(snap, now, { captions: this.save.settings.captions, overlay, cover: this.cams.active ? this.camCover() : null, hint }));
     }
     if (this.cams.active && now % 60 === 0) this.showCamMap(g, s.devices.cams.cam);
   }
@@ -806,8 +880,20 @@ export class Game {
    * @param {import('@minecraft/server').Player} player
    */
   onControl(player, block) {
-    if (this.state !== 'NIGHT' || player.id !== this.guardId || !this.session) return;
+    if (this.state !== 'NIGHT' || !this.session) {
+      try {
+        player.onScreenDisplay.setActionBar('§7The office systems only run during a shift - press §fNEW GAME§7 on the time clock wall.');
+      } catch {
+        // ignore
+      }
+      return;
+    }
+    if (player.id !== this.guardId) return;
     const t = block.typeId;
+    const now = system.currentTick;
+    const key = `${t}@${Math.floor(block.location.x)},${Math.floor(block.location.y)},${Math.floor(block.location.z)}`;
+    if (this.lastControl?.key === key && now - this.lastControl.tick <= 4) return; // the same click, reported twice
+    this.lastControl = { key, tick: now };
     if (t === 'fnar:crt_monitor') {
       this.feedback(this.session.input('cams_toggle'));
       return;
@@ -925,7 +1011,10 @@ export class Game {
 
   renderRusted(on) {
     if (on) {
-      this.puppets.spawnAt('rusted', { x: 36.5, y: 0, z: 63.0 }, 0, 'slump');
+      // slumped in the corner in front of the desk, facing the seat
+      const at = { x: 34.2, y: 0, z: 62.3 };
+      const seat = OFFICE.spawn;
+      this.puppets.spawnAt('rusted', at, yawToward(seat.x - at.x, seat.z - at.z), 'slump');
       this.puppets.eyes('rusted', true);
       this.audio.play('fnar.hall.whisper', 'office', this.guard(), { vol: 0.6, pitch: 0.6 });
     } else this.puppets.remove('rusted');

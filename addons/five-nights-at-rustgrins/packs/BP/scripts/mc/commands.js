@@ -8,6 +8,7 @@ import { CAST, CUSTOM_NIGHT } from '../core/config.js';
 import { log } from './log.js';
 
 const HELP = [
+  '/fnar:debug status           version, build, night, cameras and animatronics (paste it when reporting a problem)',
   '/fnar:debug night <1-7>      start a night (7 = custom, all 10)',
   '/fnar:debug win | lose       end the running night',
   '/fnar:debug power <0-100>    set power',
@@ -72,6 +73,9 @@ function debug(g, action, a1, a2, p) {
   switch (action) {
     case 'help':
       return say(p, 'see the command output');
+    case 'status':
+      for (const line of g.statusLines()) say(p, line);
+      return undefined;
     case 'night': {
       const n = Math.max(1, Math.min(CUSTOM_NIGHT, num(a1, 1)));
       const pl = p ?? world.getAllPlayers()[0];
