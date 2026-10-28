@@ -1,0 +1,29 @@
+{
+ "width": 1400,
+ "height": 700,
+ "voxels": "../test_room.json",
+ "packs": [
+  "../fixtures"
+ ],
+ "style": "vibrant",
+ "camera": {
+  "pos": [
+   0.5,
+   67.4,
+   -11.4
+  ],
+  "target": [
+   0.5,
+   60,
+   -11.5
+  ],
+  "fov": 75
+ },
+ "lighting": {
+  "ambient": "#808080"
+ },
+ "fog": {
+  "density": 0
+ },
+ "halo": 0
+}

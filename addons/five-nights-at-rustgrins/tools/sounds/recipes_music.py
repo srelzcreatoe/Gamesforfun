@@ -469,7 +469,6 @@ def show_dry():
     beat = 1.0 / 3.0
     L = N(SHOW_DUR)
     off = 0.05
-    buf = np.zeros(L)
     notes, _ = parse_line(CALLIOPE_TUNE, 3)
     mel = np.zeros(L)
     har = np.zeros(L)
@@ -506,7 +505,6 @@ def show_dry():
     for b, d, m in notes:
         if m is not None and int(b // 3) >= 8:
             place(gl, glock(hz(m + 12), 1.2, r, bright=0.7), off + b * beat, wrap=True)
-    t = T(L)
     steam = band_noise(r, L, 2500, 9000) * (0.7 + 0.3 * periodic_lfo(L, 16, r))
     mix = U(mel) * 1.0 + U(har) * 0.35 + U(oom) * 0.55 + U(pah) * 0.4 + U(drum) * 0.35 + U(gl) * 0.12 \
         + steam * 0.02
@@ -565,7 +563,6 @@ def tophat_fanfare(v, r, n):
 
 
 def tophat_rewind(v, r, n):
-    t = T(n)
     x = show_dry()
     sp = env_pts(n, [(0.0, 0.0), (0.03, -2.0), (0.85, -14.0), (0.93, -15.0)])
     chip = varispeed(x, sp, circular=True, start=N(8.0))

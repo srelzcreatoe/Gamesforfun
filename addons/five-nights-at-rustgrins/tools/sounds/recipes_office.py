@@ -452,7 +452,6 @@ def clock_chime(v, r, n):
 
 
 def _pad_voice(r, f, n, t_on, t_off, att, rel, voices=3, detune=7.0, cutoff=2000.0, wave='saw'):
-    t = T(n)
     s = np.zeros(n)
     for k in range(voices):
         c = detune * (k - (voices - 1) / 2) / max(1, (voices - 1) / 2)

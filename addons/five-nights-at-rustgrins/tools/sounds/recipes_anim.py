@@ -91,7 +91,6 @@ def servo_move(v, r, n):
 
 
 def servo_head(v, r, n):
-    t = T(n)
     sp = env_pts(n, [(0.01, 0), (0.06, 1.0), (0.24, 1.0), (0.3, 0.0)]) ** 1.2
     whine = servo(r, n, sp, base=[700, 860][v], span=[700, 520][v], ratio=0.5, index=1.3, gear=0.25)
     stop = hit(n, 0.302, small_metal('head%d' % v), 0.0002) + 0.5 * hit(n, 0.302, frame_modes('head'), 0.0006)
