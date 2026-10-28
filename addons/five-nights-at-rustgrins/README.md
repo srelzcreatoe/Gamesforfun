@@ -40,7 +40,7 @@ You start in the **Staff Room** at the time clock. Press a button on the wall:
 | Left / right steel door | red wall button by each door |
 | Left / right hall light | white wall button below it |
 | Ceiling vents | the two white buttons above the desk (labelled) |
-| Cameras | the **Camera Tablet** (slot 1) or click the CRT monitor |
+| Cameras | the **Camera Tablet** (slot 1) or click the CRT monitor on the desk - during a shift only |
 | Switch camera | click a camera on the map, or scroll the hotbar |
 | Lower the monitor | sneak, or LOWER on the map |
 | Rewind the show tape | PLAY SHOW while on CAM 8 |

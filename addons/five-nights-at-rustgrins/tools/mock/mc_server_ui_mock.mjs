@@ -15,10 +15,17 @@ class Base {
 
   title(t) { this._title = typeof t === 'string' ? t : JSON.stringify(t); return this; }
   body(t) { this._body = t; return this; }
-  async show(player) {
+  /** Resolves with the driver's answer (mock.formPolicy, may be a promise = a form left open), or UserClosed when closeAllForms runs. */
+  show(player) {
     mock.forms.push({ kind: this.kind, title: this._title, buttons: this.buttons.length, controls: this.controls.length });
-    const r = mock.formPolicy ? await mock.formPolicy(this, player) : { canceled: true, cancelationReason: 'UserClosed' };
-    return r;
+    return new Promise((resolve) => {
+      const entry = {};
+      entry.done = (r) => {
+        if (open.delete(entry)) resolve(r);
+      };
+      open.add(entry);
+      Promise.resolve(mock.formPolicy ? mock.formPolicy(this, player) : { canceled: true, cancelationReason: 'UserClosed' }).then(entry.done);
+    });
   }
 }
 export class ActionFormData extends Base {
@@ -41,4 +48,10 @@ export class ModalFormData extends Base {
   dropdown(label, opts, o) { this.controls.push(['dropdown', label, o?.defaultValueIndex ?? 0]); return this; }
   textField(label, ph, o) { this.controls.push(['text', label, o?.defaultValue ?? '']); return this; }
 }
-export const uiManager = { closeAllForms() { mock.closed = (mock.closed ?? 0) + 1; } };
+const open = new Set();
+export const uiManager = {
+  closeAllForms() {
+    mock.closed = (mock.closed ?? 0) + 1;
+    for (const e of [...open]) e.done({ canceled: true, cancelationReason: 'UserClosed' });
+  },
+};

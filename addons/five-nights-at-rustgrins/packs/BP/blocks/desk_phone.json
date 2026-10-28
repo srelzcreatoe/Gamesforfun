@@ -49,7 +49,8 @@
         "explosion_resistance": 3
       },
       "minecraft:map_color": "#817863",
-      "minecraft:light_dampening": 0
+      "minecraft:light_dampening": 0,
+      "fnar:control": {}
     },
     "permutations": [
       {

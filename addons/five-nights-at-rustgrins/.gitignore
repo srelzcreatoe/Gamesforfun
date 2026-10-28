@@ -3,3 +3,4 @@ tools/.cache/
 *.tmp
 tools/render/test/*.png
 tools/blocks/**/_tmp*
+__pycache__/

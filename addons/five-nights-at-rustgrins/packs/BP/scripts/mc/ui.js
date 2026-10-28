@@ -35,7 +35,10 @@ async function show(player, form, retries = 2) {
  */
 export const CAM_FORM_MARK = '§k§r§k§r§m';
 
-/** Show the camera map once. Resolves to { kind: 'cam', id } | { kind: 'close' } | { kind: 'wind' } | { kind: 'dismissed', reason } | undefined. */
+/**
+ * Show the camera map once. Resolves to { kind: 'cam', id } | { kind: 'close' } | { kind: 'wind' }
+ * | { kind: 'busy' } (another screen was open; show it again) | { kind: 'dismissed', reason } | undefined.
+ */
 /** @param {import('@minecraft/server').Player} player */
 export async function cameraMapForm(player, snap) {
   const live = snap.devices.cam;
@@ -50,7 +53,7 @@ export async function cameraMapForm(player, snap) {
     log.warn(`camera map form failed: ${e?.message ?? e}`);
     return undefined;
   }
-  if (r.canceled) return { kind: 'dismissed', reason: r.cancelationReason };
+  if (r.canceled) return r.cancelationReason === FormCancelationReason.UserBusy ? { kind: 'busy' } : { kind: 'dismissed', reason: r.cancelationReason };
   if (r.selection === CAMERAS.length) return { kind: 'close' };
   if (r.selection === CAMERAS.length + 1) return { kind: 'wind' };
   const c = CAMERAS[r.selection ?? -1];

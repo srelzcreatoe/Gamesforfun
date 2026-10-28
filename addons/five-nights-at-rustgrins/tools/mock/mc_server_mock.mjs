@@ -197,7 +197,7 @@ class Player extends Entity {
     this.gameMode = 'Survival';
     this.effects = new Set();
     this.inventory = new Array(36).fill(undefined);
-    this.selectedSlotIndex = 0;
+    this.slot = 0;
     this.perms = {};
     this.cameraState = 'default';
     const self = this;
@@ -206,6 +206,7 @@ class Player extends Entity {
         if (preset !== 'minecraft:free') throw new Error(`unexpected camera preset ${preset}`);
         for (const k of ['location', 'facingLocation']) if (opts?.[k]) for (const v of Object.values(opts[k])) if (!Number.isFinite(v)) throw new Error('camera non-finite');
         self.cameraState = 'free';
+        if (opts?.location) self.cameraLoc = { ...opts.location };
       },
       fade() {},
       clear() {
@@ -218,6 +219,18 @@ class Player extends Entity {
       setTitle(t, o) { mock.titles.push([t, o?.subtitle]); },
       setHudVisibility() {},
     };
+  }
+
+  get selectedSlotIndex() {
+    return this.slot;
+  }
+
+  /** Like the game, a scripted slot change also reaches playerHotbarSelectedSlotChange (after the current handler). */
+  set selectedSlotIndex(v) {
+    if (!Number.isInteger(v) || v < 0 || v > 8) throw new Error(`selectedSlotIndex ${v}`);
+    const prev = this.slot;
+    this.slot = v;
+    if (prev !== v) queueMicrotask(() => world.afterEvents.playerHotbarSelectedSlotChange.fire({ player: this, previousSlotSelected: prev, newSlotSelected: v }));
   }
 
   playSound(id, o) {

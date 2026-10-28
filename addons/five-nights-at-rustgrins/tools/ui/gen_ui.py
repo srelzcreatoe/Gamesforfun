@@ -137,7 +137,9 @@ rec.save(os.path.join(OUT, 'rec.png'))
 MAP_ON = '§k§r§k§r§l'
 FORM_MARK = '§k§r§k§r§m'
 HUD_W, HUD_H = 140, round(140 * H / W, 2)
-FORM_W, FORM_H = 190, round(190 * H / W, 2)
+# 160 units wide: cameras stay button-sized (about 15 x 9, like FREDBEAR) while the feed keeps
+# most of the screen on small displays.
+FORM_W, FORM_H = 160, round(160 * H / W, 2)
 
 def blink(prefix):
     return {

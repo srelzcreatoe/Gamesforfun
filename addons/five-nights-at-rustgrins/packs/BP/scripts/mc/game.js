@@ -66,8 +66,6 @@ export class Game {
     this.camForm = null;
     this.phoneSeq = null;
     this.stare = Object.create(null);
-    this.ignoreSlot = 0;
-    this.lastSlot = NEUTRAL_SLOT;
     this.pendingBuild = false;
     this.overlay = false;
     this.freeRoamNext = 0;
@@ -87,7 +85,6 @@ export class Game {
     world.afterEvents.playerSpawn.subscribe((ev) => this.onSpawn(ev.player, ev.initialSpawn));
     world.afterEvents.buttonPush.subscribe((ev) => this.onButtonPush(ev));
     world.afterEvents.itemUse.subscribe((ev) => this.onItemUse(ev.source, ev.itemStack));
-    world.afterEvents.playerInteractWithBlock.subscribe((ev) => this.onInteractBlock(ev.player, ev.block, ev.isFirstEvent));
     world.afterEvents.playerHotbarSelectedSlotChange.subscribe((ev) => this.onSlot(ev.player, ev.previousSlotSelected, ev.newSlotSelected));
     world.afterEvents.playerButtonInput.subscribe((ev) => {
       if (ev.button === InputButton.Sneak && ev.newButtonState === ButtonState.Pressed) this.onSneak(ev.player);
@@ -681,7 +678,6 @@ export class Game {
       this.stare = Object.create(null);
       try {
         g.selectedSlotIndex = NEUTRAL_SLOT;
-        this.lastSlot = NEUTRAL_SLOT;
       } catch {
         // ignore
       }
@@ -704,15 +700,22 @@ export class Game {
   /** @param {import('@minecraft/server').Player} g */
   startCamForm(g) {
     if (this.camForm || this.save.settings.camCursor === false) return;
-    const form = { open: true };
+    const form = { open: true, busy: 0 };
     this.camForm = form;
     const live = () => this.camForm === form && this.state === 'NIGHT' && !!this.session?.devices.cams.open;
     const loop = async () => {
-      await wait(2);
+      await wait(4); // let the view land on the camera first
       while (live()) {
         const r = await ui.cameraMapForm(g, this.session.snapshot());
         if (!live()) break;
-        if (!r) break;
+        if (!r) break; // the form could not be shown: the hotbar and sneak still work
+        if (r.kind === 'busy') {
+          // another screen (chat, inventory, pause) was in the way: try again shortly, keep the monitor up
+          if (form.busy++ >= 8) break;
+          await wait(10);
+          continue;
+        }
+        form.busy = 0;
         if (r.kind === 'cam') {
           this.session.input('cam_select', r.id);
           await wait(2);
@@ -744,19 +747,18 @@ export class Game {
   /** @param {import('@minecraft/server').Player} player */
   onSlot(player, prev, next) {
     if (this.state !== 'NIGHT' || player.id !== this.guardId || !this.session?.devices.cams.open) return;
-    if (this.ignoreSlot > 0) {
-      this.ignoreSlot--;
-      return;
-    }
+    // the scripted return to the neutral slot (below, and when the monitor goes up) is not a scroll
+    if (next === NEUTRAL_SLOT) return;
     const d = (next - prev + 9) % 9;
     if (d === 0) return;
     this.session.input(d <= 4 ? 'cam_next' : 'cam_prev');
-    try {
-      this.ignoreSlot = 1;
-      player.selectedSlotIndex = NEUTRAL_SLOT;
-    } catch {
-      this.ignoreSlot = 0;
-    }
+    system.run(() => {
+      try {
+        player.selectedSlotIndex = NEUTRAL_SLOT;
+      } catch {
+        // ignore
+      }
+    });
   }
 
   /** @param {import('@minecraft/server').Player} player */
@@ -788,15 +790,32 @@ export class Game {
       return;
     }
     if (id === 'fnar:tablet') {
-      if (this.state !== 'NIGHT' || player.id !== this.guardId || !this.session) return;
+      if (this.state !== 'NIGHT' || !this.session) {
+        player.onScreenDisplay.setActionBar('§7The cameras only run during a shift - press §fNEW GAME§7 on the time clock wall.');
+        return;
+      }
+      if (player.id !== this.guardId) return;
       this.feedback(this.session.input('cams_toggle'));
     }
   }
 
-  /** A wall button (custom component fnar:control) or the desk props. */
-  /** @param {import('@minecraft/server').Player} player */
+  /**
+   * A block with the fnar:control custom component was clicked: a wall button, the CRT
+   * monitor (raises / lowers the cameras) or the desk phone (mutes the call). Custom blocks
+   * are only clickable in game when they carry such a component.
+   * @param {import('@minecraft/server').Player} player
+   */
   onControl(player, block) {
     if (this.state !== 'NIGHT' || player.id !== this.guardId || !this.session) return;
+    const t = block.typeId;
+    if (t === 'fnar:crt_monitor') {
+      this.feedback(this.session.input('cams_toggle'));
+      return;
+    }
+    if (t === 'fnar:desk_phone') {
+      this.feedback(this.session.input('mute_call'));
+      return;
+    }
     const l = L(block.location);
     for (const [action, b] of Object.entries(OFFICE.buttons)) {
       if (b.x === l.x && b.y === l.y && b.z === l.z) {
@@ -805,14 +824,6 @@ export class Game {
         return;
       }
     }
-  }
-
-  /** @param {import('@minecraft/server').Player} player */
-  onInteractBlock(player, block, first) {
-    if (!first || this.state !== 'NIGHT' || player.id !== this.guardId || !this.session) return;
-    const t = block.typeId;
-    if (t === 'fnar:crt_monitor') this.feedback(this.session.input('cams_toggle'));
-    else if (t === 'fnar:desk_phone') this.feedback(this.session.input('mute_call'));
   }
 
   feedback(res) {

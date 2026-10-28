@@ -276,7 +276,8 @@ def crt_monitor(out):
     blk = block_json('crt_monitor', geometry='geometry.fnar.crt_monitor', materials=mi_off,
                      states={'fnar:on': [False, True]},
                      collision=box(-6, 0, -6, 6, 11, 6), selection=box(-6, 0, -6, 6, 11, 6), map_color='#817863',
-                     perms=[(bs('fnar:on', True), {'minecraft:material_instances': mi_on, 'minecraft:light_emission': 3})])
+                     perms=[(bs('fnar:on', True), {'minecraft:material_instances': mi_on, 'minecraft:light_emission': 3})],
+                     extra={'fnar:control': {}})  # clickable: raises the monitor (Game.onControl)
     out.block('crt_monitor', blk)
     out.light('crt_monitor', '#7ad6c0', 'point_light')
     f = {'focus': [0, 0.35, 0], 'dist': 1.7}
@@ -425,7 +426,8 @@ def desk_phone(out):
                      states={'fnar:ringing': [False, True]},
                      collision=False, selection=box(-5, 0, -4, 5, 4.5, 3), map_color='#817863', destroy=1.0,
                      perms=[(bs('fnar:ringing', True), {'minecraft:material_instances': mi_set('desk_phone_ringing'),
-                                                        'minecraft:light_emission': 2})])
+                                                        'minecraft:light_emission': 2})],
+                     extra={'fnar:control': {}})  # clickable: mutes the call (Game.onControl)
     out.block('desk_phone', blk)
     out.light('desk_phone', '#ff3a2a', 'static_light')
     f = {'focus': [0, 0.12, 0], 'dist': 0.95}
