@@ -1,3 +1,5 @@
 tools/node_modules
 tools/.cache/
 *.tmp
+tools/render/test/*.png
+tools/blocks/**/_tmp*
