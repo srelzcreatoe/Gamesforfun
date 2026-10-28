@@ -25,8 +25,8 @@ ZIP SHA-256: `c2bac9de2be22c0b2167bb13f76ab7f4449c78be2398ceba038db6d3b300a4c9`
 
 ## Particle sheets supplied by the user (chat, 2026-10-08)
 
-Preserved unmodified in `source_assets/supplied_particles/` with `SHA256SUMS.txt`. As with the model, the rights to
-these two images must be confirmed by whoever supplied them before the add-on is distributed.
+Made by the user, who confirmed they own them (2026-10-28). Preserved unmodified in
+`source_assets/supplied_particles/` with `SHA256SUMS.txt`.
 
 | File | SHA-256 | Use |
 |---|---|---|
@@ -95,8 +95,8 @@ these two images must be confirmed by whoever supplied them before the add-on is
 | `TheObserver_RP/textures/particle/observer/glint.png` | original — drawn by tools/make_textures.py | `f01a2640559c0981` |
 | `TheObserver_RP/textures/particle/observer/mote.png` | original — drawn by tools/make_textures.py | `1fbddbcb046d205c` |
 | `TheObserver_RP/textures/particle/observer/smoke.png` | original — drawn by tools/make_textures.py | `53ef19d15ff9afb4` |
-| `TheObserver_RP/textures/particle/observer/vanish.png` | supplied by the user (chat, 2026-10-08) — shapes from source_assets/supplied_particles/vanish_sheet.png copied pixel-for-pixel into a grid (tools/integrate_particle_sheets.py) | `3fe39a53c0fc8df8` |
-| `TheObserver_RP/textures/particle/observer/wisp.png` | supplied by the user (chat, 2026-10-08) — shapes from source_assets/supplied_particles/wisp_sheet.png copied pixel-for-pixel into a grid (tools/integrate_particle_sheets.py) | `d6f06c5e60c01904` |
+| `TheObserver_RP/textures/particle/observer/vanish.png` | made by the user (supplied 2026-10-08) — shapes from source_assets/supplied_particles/vanish_sheet.png copied pixel-for-pixel into a grid (tools/integrate_particle_sheets.py) | `3fe39a53c0fc8df8` |
+| `TheObserver_RP/textures/particle/observer/wisp.png` | made by the user (supplied 2026-10-08) — shapes from source_assets/supplied_particles/wisp_sheet.png copied pixel-for-pixel into a grid (tools/integrate_particle_sheets.py) | `d6f06c5e60c01904` |
 | `TheObserver_BP/pack_icon.png` | derived — crop of supplied dweller_preview.png on a generated background (tools/make_textures.py) | `2529bdac03c514e1` |
 | `TheObserver_RP/animations/the_observer.animation.json` | supplied — hollow_dweller.animation.json, clip names renamed only | `3d684b6f10a5acc8` |
 | `TheObserver_RP/animations/the_observer_supplemental.animation.json` | original — tools/make_supplemental_anims.py (uses supplied bone names) | `52a03bbd72838d33` |
