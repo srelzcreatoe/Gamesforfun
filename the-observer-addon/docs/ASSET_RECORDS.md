@@ -8,7 +8,8 @@ adapted: its contents were only opened to read its credits, then deleted from th
 
 ## Supplied assets (from the request ZIP `Hollow_Dweller_Pack.zip`)
 
-The ZIP contents are preserved unmodified in `source_assets/supplied/` with `SHA256SUMS.txt`.
+Made by the user, who confirmed they own the model, texture and animations (2026-10-28). The ZIP contents are
+preserved unmodified in `source_assets/supplied/` with `SHA256SUMS.txt`.
 
 ZIP SHA-256: `c2bac9de2be22c0b2167bb13f76ab7f4449c78be2398ceba038db6d3b300a4c9`
 

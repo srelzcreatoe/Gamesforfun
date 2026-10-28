@@ -84,7 +84,7 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 ## 3. Marketplace readiness (evidence-based, not a certification)
 | Area | Status | Evidence / gap |
 |---|---|---|
-| Original content | ✅ for everything generated here; ✅ the two particle sheets were made by the user, who owns them; ⚠ the creature model and animations are *supplied* assets — rights and attribution must be confirmed by the supplier. A third-party add-on offered for reuse was not used | [ASSET_RECORDS.md](ASSET_RECORDS.md) |
+| Original content | ✅ for everything generated here; ✅ the creature model, texture, animations and the two particle sheets were made by the user, who owns them. A third-party add-on offered for reuse was not used | [ASSET_RECORDS.md](ASSET_RECORDS.md) |
 | Stable APIs, no experiments | ✅ | manifests; BDS load with zero content-log errors |
 | Namespacing / no vanilla overrides | ✅ | all identifiers `observer:`; no vanilla files replaced |
 | Performance | ✅ server: 20.00 TPS with and without the add-on (see TEST_REPORT §4); ❔ client frame time on low-end devices untested |
