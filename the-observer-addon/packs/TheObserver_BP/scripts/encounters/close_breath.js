@@ -16,6 +16,7 @@ import { sighting, trailAway } from "./common.js";
 
 register({
   id: "close_breath",
+  reactNear: false,
   tier: 3,
   minStage: 3,
   needsBody: true,

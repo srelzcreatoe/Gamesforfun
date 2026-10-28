@@ -119,6 +119,8 @@ export const DEBUG = {
   on: false,
   /** tests: "always" / "never" override the lunge chance ("auto" = normal play) */
   lunge: "auto",
+  /** tests: "always" / "never" override the too-close strike roll ("auto" = normal play) */
+  nearStrike: "auto",
   /** low-volume lifecycle lines (encounter start/end); enabled in dev mode and by the test kit */
   trace: false,
   /** @param {string} msg */

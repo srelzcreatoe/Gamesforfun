@@ -22,6 +22,7 @@ import { DEBUG, safe, V, dimIndex, allPlayers } from "../core/util.js";
 import { ITEMS } from "../core/constants.js";
 import { DISCOVERIES } from "../progression/discoveries.js";
 import * as director from "../director/director.js";
+import * as illusions from "../observer/illusions.js";
 import * as ledger from "../world/ledger.js";
 import * as body from "../observer/body.js";
 import { primaryHaunt, dominantHabit, routeFamiliarity } from "../observer/memory.js";
@@ -102,6 +103,14 @@ export function run(name, args, caller) {
       updateSettings({ dev: args[0] === "on" || args[0] === "true" });
       DEBUG.trace = S().dev;
       return `debug ${S().dev ? "on" : "off"}`;
+    case "illusion": {
+      const p = pick(0);
+      if (!p) return "no player";
+      return illusions.spawnFor(p, { force: true }) ? `shadow placed for ${p.name}` : "no place for a shadow";
+    }
+    case "nearstrike":
+      DEBUG.nearStrike = args[0] === "always" || args[0] === "never" ? args[0] : "auto";
+      return `near strike ${DEBUG.nearStrike}`;
     case "lunge":
       DEBUG.lunge = args[0] === "always" || args[0] === "never" ? args[0] : "auto";
       return `lunge ${DEBUG.lunge}`;

@@ -18,7 +18,7 @@ your light — always deliberately, always reversibly — and watches what you d
 4. Play. Nothing happens for the first 12 minutes on the Standard preset. Details: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md).
 
 ## Status
-Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final integration run passed 193 of 193
+Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final integration run passed 218 of 218
 checks with no content-log or script errors, restart recovery passed, and the server held 20 TPS with and without the
 add-on. The first load in a game client reported three resource-pack errors, which are fixed in this build and now
 caught by a comparison with Mojang's vanilla files. How it looks and sounds in a client still has to be confirmed: see
@@ -31,8 +31,9 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
 * **A horror director**: grace period, five escalating stages, per-player and global cooldowns, quiet periods,
   recovery after deaths, anti-repetition, context-weighted selection, fair multiplayer targeting.
 * **19 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*)
-  and *Closer Each Time* (it only moves while unwatched), a lunge when it is spotted, plus 17 further designed concepts
-  — see [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md).
+  and *Closer Each Time* (it only moves while unwatched), a lunge when it is spotted, a fast, relentless attack once it
+  reaches you, a too-close reaction, and harmless shadows in taiga forests that vanish when looked at, plus 17 further
+  designed concepts — see [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md).
 * **8 environmental manipulation mechanics** (doors, lights, turned objects, Veil obstructions, mimic route changes,
   effigies, temporary openings, animals turning) through a **restoration ledger**: recorded, locked, reload-safe,
   dupe-proof, and the player's own changes always win.

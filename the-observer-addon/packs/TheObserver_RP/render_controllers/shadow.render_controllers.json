@@ -1,0 +1,36 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.observer.shadow": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ]
+    },
+    "controller.render.observer.shadow_eyes": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.eyes"
+        }
+      ],
+      "textures": [
+        "Texture.eyes"
+      ],
+      "ignore_lighting": true,
+      "part_visibility": [
+        {
+          "*": false
+        },
+        {
+          "head": true
+        }
+      ]
+    }
+  }
+}

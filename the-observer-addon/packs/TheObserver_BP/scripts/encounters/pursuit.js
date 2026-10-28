@@ -12,10 +12,11 @@ import { V, safe } from "../core/util.js";
 import { litLightsNear } from "../world/manipulate.js";
 import { findSpot } from "../world/space.js";
 import { context } from "../director/context.js";
-import { sighting } from "./common.js";
+import { sighting, relentless } from "./common.js";
 
 register({
   id: "pursuit",
+  reactNear: false,
   tier: 4,
   minStage: 4,
   needsBody: true,
@@ -24,7 +25,7 @@ register({
   weight(c) {
     if (c.water || c.gliding || c.elevated || c.hp < 0.5) return 0;
     if (!(c.night || c.underground || c.light < 8)) return 0;
-    return 7;
+    return c.underground ? 11 : 7; // caves are where it hunts
   },
   prepare(enc) {
     const p = enc.p;
@@ -100,10 +101,8 @@ register({
         return;
       }
       if (dist <= 2.7) {
-        const r = await body.strike(p);
         sighting(enc, p);
-        enc.result(r === "hit" ? "struck" : "dodged", true);
-        await enc.wait(16);
+        await relentless(enc);
         return;
       }
     }

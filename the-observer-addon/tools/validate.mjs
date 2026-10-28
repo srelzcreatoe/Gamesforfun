@@ -225,6 +225,9 @@ for (const f of walk(path.join(BP, "recipes"))) {
 for (const k of ["entity.observer:the_observer.name", "item.spawn_egg.entity.observer:the_observer.name", "pack.name", "pack.description"]) if (!langKeys.has(k)) fail(`lang key ${k} missing`);
 
 // ---------------------------------------------------------------- 3. IDs used by scripts
+const entityIds = new Set(walk(path.join(BP, "entities")).map((f) => readJSON(f)["minecraft:entity"].description.identifier));
+const clientIds = new Set(walk(path.join(RP, "entity")).map((f) => readJSON(f)["minecraft:client_entity"].description.identifier));
+for (const id of entityIds) if (!clientIds.has(id)) fail(`entity ${id} has no client entity in the resource pack`);
 const src = walk(path.join(BP, "scripts")).filter((f) => f.endsWith(".js")).map((f) => fs.readFileSync(f, "utf8")).join("\n");
 const constants = fs.readFileSync(path.join(BP, "scripts", "core", "constants.js"), "utf8");
 const block = (name) => constants.split(`export const ${name} = {`)[1].split("};")[0];
@@ -236,7 +239,7 @@ for (const m of block("BLOCKS").matchAll(/:\s*"([^"]+)"/g)) if (!blockIds.has(m[
 for (const m of src.matchAll(/"(observer:[a-z_]+)"/g)) {
   const id = m[1];
   if (/^observer:(the_observer|encounter|preset|state|stoop|side|enc|world|player|clock|dark|ledger|probe|dread|dread_soft|vigil)$/.test(id)) continue;
-  if (!itemIds.has(id) && !blockIds.has(id) && !particleIds.has(id) && !fogIds.has(id)) fail(`script references unknown id ${id}`);
+  if (!itemIds.has(id) && !blockIds.has(id) && !particleIds.has(id) && !fogIds.has(id) && !entityIds.has(id)) fail(`script references unknown id ${id}`);
 }
 // entity properties and events used by scripts
 const ent = readJSON(path.join(BP, "entities", "the_observer.json"))["minecraft:entity"];

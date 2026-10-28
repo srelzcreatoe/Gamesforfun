@@ -11,6 +11,8 @@ writes namespaced copies into the resource pack:
   dweller_texture.png            -> RP/textures/entity/observer/the_observer.png (byte copy)
                                  -> RP/textures/entity/observer/the_observer_eyes.png (derived: only the two
                                     white eye cubes' pixels, for the full-brightness eye layer)
+                                 -> RP/textures/entity/observer/the_observer_shadow.png (derived: near-black
+                                    silhouette with white eyes, for the taiga illusions)
 
 Only identifiers change, plus two locators ("eye_1", "eye_2") added to the head bone at the centre of the two eye
 cubes so effects can follow the eyes. The script re-loads the outputs and asserts that every cube, UV and keyframe
@@ -96,6 +98,20 @@ def main():
             y0, y1 = sorted((int(f["uv"][1]), int(f["uv"][1] + f["uv_size"][1])))
             eye_tex.paste(tex.crop((x0, y0, x1, y1)), (x0, y0))
     eye_tex.save(os.path.join(RP, "textures", "entity", "observer", "the_observer_eyes.png"))
+    # the taiga illusion: the same figure as a near-black shadow; only the eyes stay white
+    shadow = Image.new("RGBA", tex.size, (0, 0, 0, 0))
+    sp, tp, ep = shadow.load(), tex.load(), eye_tex.load()
+    for y in range(tex.size[1]):
+        for x in range(tex.size[0]):
+            r, g, b, a = tp[x, y]
+            if a == 0:
+                continue
+            if ep[x, y][3] > 0:
+                sp[x, y] = (r, g, b, a)
+            else:
+                v = 6 + (r + g + b) // 60  # keeps a trace of the folds, 6..18
+                sp[x, y] = (v, v, v + 2, a)
+    shadow.save(os.path.join(RP, "textures", "entity", "observer", "the_observer_shadow.png"))
 
     # ---- verification: integrated data == supplied data (identifiers aside)
     g2 = json.load(open(paths["geo"]))["minecraft:geometry"][0]

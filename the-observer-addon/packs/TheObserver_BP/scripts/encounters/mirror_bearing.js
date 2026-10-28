@@ -27,7 +27,7 @@ register({
     const yaw = p.getRotation().y;
     const spot = findSpot(p, {
       minDist: fb.dist - 2, maxDist: fb.dist + 2, bearings: [fb.bearing], spread: 8, baseYaw: yaw,
-      concealment: "hidden", watchLOSIgnoringView: true, hideFrom: enc.witnesses(), liquidSurface: enc.ctx.water, preferLiquid: enc.ctx.water,
+      concealment: "hidden", watchLOSIgnoringView: true, preferCover: true, hideFrom: enc.witnesses(), liquidSurface: enc.ctx.water, preferLiquid: enc.ctx.water,
       yMode: enc.ctx.underground ? "near" : "surface",
     });
     if (!spot) return false;

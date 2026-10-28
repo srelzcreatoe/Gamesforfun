@@ -34,6 +34,11 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 | Script dynamic-property saves cannot be forced at disconnect | State saves every 5 s and on shutdown; at most the last few seconds of memory updates can be lost |
 
 ### Design boundaries
+* **It can kill.** On Standard and High aggression, once it reaches a player it keeps attacking until they die or drive
+  it off (Witness Lens or a blow). Every strike is telegraphed. Low aggression = one capped strike; "Never attacks" and
+  Peaceful = no damage.
+* Taiga shadows are tied to the biome reported by `Dimension.getBiome` at the player's position (any biome id containing
+  "taiga").
 * Stalking is logical: no body exists between encounters (performance and subtlety). Placement is recomputed from the
   player's position each time, so travel speed does not matter.
 * Gliding players are excluded from most encounters (nothing can keep pace); encounters resume after landing.
@@ -61,6 +66,8 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   `camerashake` command were accepted by the server).
 
 ### Verified only partially
+* Lunge chance and cooldown values, and the too-close strike chance, are random by design; tests force them on to check
+  the behaviour, but the rates themselves are not asserted.
 * Walking away is script-driven (small validated teleport steps with the walk animation state). The server shows it
   covering ~10 blocks in 6 s; whether it reads as natural walking in a client — rather than gliding — is unverified.
 * Disconnect/rejoin: state saving is exercised by every test (player dynamic properties), but a real player leaving and

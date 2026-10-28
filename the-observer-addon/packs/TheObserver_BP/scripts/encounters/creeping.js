@@ -14,10 +14,11 @@ import { SOUNDS } from "../core/constants.js";
 import { V, safe } from "../core/util.js";
 import { aggression } from "../core/settings.js";
 import { standNear } from "../world/space.js";
-import { findSpotLoose, sighting } from "./common.js";
+import { findSpotLoose, sighting, relentless } from "./common.js";
 
 register({
   id: "creeping",
+  reactNear: false,
   tier: 3,
   minStage: 3,
   needsBody: true,
@@ -103,16 +104,7 @@ register({
       if (V.dist(st.loc, p.location) <= 3.4) {
         enc.worldSound(SOUNDS.shriek, { x: st.loc.x, y: st.loc.y + 3, z: st.loc.z }, 1);
         enc.caption("caption.shriek");
-        if (aggression() === 0) {
-          enc.fade(0.1, 1.0, 1.2);
-          await enc.wait(12);
-          body.despawn("caught");
-          return enc.result("caught");
-        }
-        const r = await body.strike(p);
-        enc.result(r === "hit" ? "struck" : "dodged", true);
-        await enc.wait(10);
-        body.despawn("struck");
+        await relentless(enc);
         return;
       }
     }

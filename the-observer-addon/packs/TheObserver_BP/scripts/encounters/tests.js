@@ -10,7 +10,8 @@ import { V, safe } from "../core/util.js";
 import { aggression } from "../core/settings.js";
 import { findSpot, standNear, coverSide } from "../world/space.js";
 import { lineOfSight } from "../world/sight.js";
-import { findSpotLoose, lunge, sighting } from "./common.js";
+import { findSpotLoose, lunge, sighting, relentless } from "./common.js";
+import * as illusions from "../observer/illusions.js";
 
 /** @typedef {{x:number,y:number,z:number}} Vec */
 
@@ -28,6 +29,7 @@ function ahead(p, min, max) {
 register({
   ...TEST,
   id: "test_strike",
+  reactNear: false,
   prepare(enc) {
     const spot = ahead(enc.p, 8, 12);
     if (!spot) return false;
@@ -54,18 +56,7 @@ register({
         if (st) body.moveTo(st.loc, p.getHeadLocation());
       }
       if (d <= 2.7) {
-        if (aggression() === 0) {
-          body.setMode("still");
-          body.setState("stare");
-          enc.fade(0.1, 0.8, 1.0);
-          await enc.wait(12);
-          body.despawn("caught");
-          return enc.result("caught");
-        }
-        const r = await body.strike(p);
-        enc.result(r === "hit" ? "struck" : "dodged", true);
-        await enc.wait(12);
-        body.despawn("struck");
+        await relentless(enc);
         return;
       }
     }
@@ -78,6 +69,7 @@ register({
 register({
   ...TEST,
   id: "test_lunge",
+  reactNear: false,
   prepare(enc) {
     const spot = ahead(enc.p, 18, 26);
     if (!spot) return false;
@@ -121,14 +113,15 @@ register({
   ...TEST,
   id: "test_peek",
   prepare(enc) {
-    const spot = peekSpot(enc.p) ?? findSpot(enc.p, { minDist: 6, maxDist: 16, bearings: [0, 45, -45], spread: 30, concealment: "partial", needLOS: true, yMode: "near", samples: 40 });
+    // only beside real cover; with no trunk or wall corner ahead, it tells you so instead
+    const spot = peekSpot(enc.p);
     if (!spot) return false;
     enc.data.spot = spot;
     return true;
   },
   async run(enc) {
     const spot = enc.data.spot;
-    if (!enc.spawnBody(spot.loc, { state: "peek", stoop: spot.stoop, side: spot.side })) return enc.result("deferred");
+    if (!enc.spawnBody(spot.loc, { state: "peek", stoop: spot.stoop, side: spot.side, autoPeek: true })) return enc.result("deferred");
     for (let t = 0; t < 20 * 10; t += 4) {
       await enc.wait(4);
       enc.updateGaze();
@@ -136,5 +129,39 @@ register({
     }
     safe(() => body.despawn("peek_done"));
     enc.result("shown");
+  },
+});
+
+// ---- Taiga shadow: the illusion, here anywhere (normally only in taiga forests)
+register({
+  ...TEST,
+  id: "test_illusion",
+  needsBody: false,
+  reactNear: false,
+  async run(enc) {
+    const p = enc.p;
+    if (!illusions.spawnFor(p, { force: true })) return enc.result("deferred");
+    await enc.until(() => !illusions.hasShadow(p.id), 20 * 50, 4);
+    enc.result(illusions.lastResult.get(p.id) === "seen" ? "seen" : "faded", illusions.lastResult.get(p.id) === "seen");
+  },
+});
+
+// ---- Getting too close: it stands and watches; walk up to it and it tears apart (or, sometimes, strikes)
+register({
+  ...TEST,
+  id: "test_near",
+  prepare(enc) {
+    const spot = ahead(enc.p, 10, 14);
+    if (!spot) return false;
+    enc.data.spot = spot;
+    return true;
+  },
+  async run(enc) {
+    const spot = enc.data.spot;
+    if (!enc.spawnBody(spot.loc, { state: "stare", stoop: spot.stoop })) return enc.result("deferred");
+    // the director's too-close check ends this the moment a player comes within 4-8 blocks
+    await enc.wait(20 * 30);
+    body.despawn("timeout");
+    enc.result("not_approached");
   },
 });

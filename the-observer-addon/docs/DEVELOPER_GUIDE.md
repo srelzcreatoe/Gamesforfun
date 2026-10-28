@@ -81,7 +81,7 @@ python3 tests/bds/run_bds.py --bds /path/to/bedrock-server --testkit --fresh \
 ```
 
 Scenarios: `load.txt` (packs load cleanly), `proto.txt` (capability probes), `speed.txt` (movement calibration),
-`suite_smoke.txt`, `suite_full.txt` (all 50 test groups), `suite_extra.txt` (a short subset), `restart_a.txt` +
+`suite_smoke.txt`, `suite_full.txt` (all 56 test groups), `suite_extra.txt` (a short subset), `restart_a.txt` +
 `restart_b.txt` (interrupted encounter across a server restart), `tps.txt` (tick rate; run once more with `--no-addon`
 for the baseline). Results and the manual client procedure are in [TEST_REPORT.md](TEST_REPORT.md).
 

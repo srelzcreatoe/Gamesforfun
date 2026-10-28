@@ -24,7 +24,7 @@ features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stag
 | 10 | **Echo Ahead** (`echo_ahead`) | 2 / 3 | moving | 20–32 blocks ahead | dark motes rising + chime at the spot | prediction tell | — | watch the spot / look away then back | it arrives only unwatched (*Echo Ahead*); denied → it shows itself behind you instead |
 | 11 | **The Path Changed** (`unfamiliar_route`) | 2 / 3 | on a route walked ≥ 3 separate times | 8–14 blocks behind (the way back) | the way back is wrong | to make the familiar unfamiliar | M5 mimic blocks, M1 a door on the route, M7 a carved opening (level 3) | dig through / study it | *Wrong Way*; mimic blocks drop nothing; reverts ~2.5 min later |
 | 12 | **Close** (`close_breath`) | 3 / 3 | standing still 6+ s | 2.6–4 blocks behind (8–11 with scares off) | cloth, then a slow exhale | contact without harm | M6 effigy if you never turn (60%) | turn around / don't | it is there, head tilted, then gone (*Close*); otherwise it leans in and leaves an effigy |
-| 13 | **Breathing Room** (`pursuit`) | 4 / 4, aggression ≥ 1 | night/underground/dark, health ≥ 50 % | appears in view 24–34 blocks | rising hum, lights die, fog, 3 s stare | to hunt | M2 lights | sprint / keep it in view / light / water / lens / strike | escape (*Breathing Room*); repelled; one telegraphed strike then it leaves |
+| 13 | **Breathing Room** (`pursuit`) | 4 / 4, aggression ≥ 1 | night/underground/dark (more likely underground), health ≥ 50 % | appears in view 24–34 blocks | rising hum, lights die, fog, 3 s stare | to hunt (runs ~6.4 b/s; keeps attacking once it reaches you) | M2 lights | sprint / keep it in view / light / water / lens / strike | escape (*Breathing Room*); repelled; one telegraphed strike then it leaves |
 | 14 | **At the Window** (`window_watch`) | 2 / 2 | indoors (roof, sky light outside) | outside, framed by a window or opening | a figure at the window | walls do not stop it | — | look / don't | it steps out of the frame (*The Window*); footprints under the window |
 | 15 | **Second Witness** (`second_witness`) | 2 / 2 | ≥ 2 players within 40 blocks | hidden from the target, visible to the other | chime to the witness | to be seen by the wrong person | — | the witness warns the target | both see it (*Second Witness*) |
 | 16 | **While You Slept** (`night_visit`) | 2 / 2 | the player sleeps (event-triggered) | the bed and nearest door | door creak on waking; footprints door → bed | it came in | M1 door, M2 a light, M6 effigy at the foot of the bed | close the door / break the effigy | *While You Slept*; reverts in 5 min |
@@ -32,10 +32,17 @@ features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stag
 | 18 | **The Vigil** (`vigil`) | finale | player-initiated: 12 pages, a Witness Lens, night, near home | the home grounds | chime per round, title cards | to be witnessed | M1, M2, M4 screens; optional global rain | find it and hold it three times | **Witnessed** + The Observer's Eye; or blackout and retry |
 | 19 | **Closer Each Time** (`creeping`) | 3 / 3 | night, darkness or a cave, on open ground | appears in view 20–30 blocks ahead; then wherever it gets to | a low hum, soft fog, glowing eyes, a click each time it has moved | to come for you, but only unseen | — | keep it in view (8 s backs it off), stand in bright light, use the lens, or get 56 blocks away | it is closer every time you look away; if it reaches you: a shriek and the telegraphed strike (aggression "never": only darkness). *Held Gaze* |
 
-**Lunge (shared reaction, stage 3+).** When it is noticed in *The Figure at the Edge* or *Always the Same Place*, it
-may shriek and come at the player in jerks (~14 blocks/s), then tear apart right in front of them. It only strikes on
-High aggression, never at aggression "never", and only within the sudden-scare budget (35 % of sightings on Standard
-scares, 20 % on Rare, never when scares are off).
+**Lunge (shared reaction, stage 2+).** When it is noticed in *The Figure at the Edge*, *Always the Same Place* or *Echo
+Ahead*, it may shriek and come at the player in jerks (~14 blocks/s), then tear apart right in front of them. Chance per
+sighting: 25 % at stage 2; 50 % from stage 3 on Standard scares, 30 % on Rare; never with scares off or aggression
+"never". Its own cooldown: 5 min (Standard scares) / 10 min (Rare). On High aggression it does not stop at a scare: it
+keeps attacking.
+
+**Too close (shared reaction).** Walk up to it (4–8 blocks, varying) and it tears apart after a short random moment —
+or, now and then (stage 2+, ~30 %, at most every 75 s), strikes once first.
+
+**Taiga shadows (ambient, not an encounter).** In taiga biomes only: a harmless shadow of it stares from 32–60 blocks
+among the trees and vanishes the instant it is looked at, with a vanilla cave noise for that player.
 
 **Peeking.** Whenever it stands still beside cover (a trunk, a wall corner, a door frame) relative to the player, it
 leans out from behind it; without cover it stands normally.

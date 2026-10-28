@@ -17,10 +17,11 @@ import { V, safe } from "../core/util.js";
 import { aggression } from "../core/settings.js";
 import { corridorBehind, findSpot } from "../world/space.js";
 import { litLightsNear } from "../world/manipulate.js";
-import { arriveUnseen, sighting, travelDir } from "./common.js";
+import { arriveUnseen, sighting, travelDir, relentless } from "./common.js";
 
 register({
   id: "closed_path",
+  reactNear: false,
   tier: 3,
   minStage: 4,
   needsBody: true,
@@ -83,9 +84,12 @@ register({
       if (!bl) return enc.result("vanished");
       const dist = V.dist(p.location, bl);
       const watched = enc.updateGaze() || body.watchedBy(enc.watchers(), 30);
-      // escape: broke through the seal and got away
+      // escape: broke through the seal and is on the far side of it, away from the Observer
       const broken = enc.released.some((r) => r.kind === "veil" && r.how === "broken");
-      if (broken && dist > startDist + 10) {
+      const fwd = enc.data.dir;
+      // (fwd is horizontal, so the dot product is the signed distance along the tunnel from the seal)
+      const through = broken && V.dot(V.sub(p.location, seal.center), fwd) < -1 && V.dot(V.sub(bl, seal.center), fwd) > 0;
+      if (through || (broken && dist > startDist + 10)) {
         enc.result("escaped", true);
         enc.discover("wrong_way");
         return;
@@ -133,18 +137,8 @@ register({
       body.setMode("approach");
       body.setState("walk");
       if (dist <= 2.6) {
-        if (aggression() === 0) {
-          body.setMode("still");
-          body.setState("stare");
-          enc.sound(SOUNDS.ring, p.getHeadLocation(), 0.6);
-          enc.fade(0.15, 1.2, 1.2);
-          await enc.wait(16);
-          body.despawn("contact");
-          return enc.result("caught");
-        }
-        const r = await body.strike(p);
-        enc.result(r === "hit" ? "struck" : "dodged", true);
-        await enc.wait(10);
+        if (aggression() === 0) enc.sound(SOUNDS.ring, p.getHeadLocation(), 0.6);
+        await relentless(enc);
         return;
       }
     }

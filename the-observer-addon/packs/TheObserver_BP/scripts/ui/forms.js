@@ -143,7 +143,8 @@ export async function openSettings(p) {
     .toggle(tr("observer.set.captions"), { defaultValue: c.captions })
     .slider(tr("observer.set.grace"), 0, 60, { valueStep: 1, defaultValue: c.graceMinutes })
     .toggle(tr("observer.set.world_effects"), { defaultValue: c.worldEffects })
-    .toggle(tr("observer.set.dev"), { defaultValue: c.dev });
+    .toggle(tr("observer.set.dev"), { defaultValue: c.dev })
+    .toggle(tr("observer.set.illusions"), { defaultValue: c.illusions !== false });
   const r = await f.show(p);
   if (r.canceled || !r.formValues) return;
   const v = r.formValues;
@@ -152,6 +153,7 @@ export async function openSettings(p) {
   const patch = {
     enabled: !!v[0], frequency: Number(v[2]) / 100, aggression: Number(v[3]), manipulation: Number(v[4]),
     scares: Number(v[5]), camera: Number(v[6]), captions: !!v[7], graceMinutes: Number(v[8]), worldEffects: !!v[9], dev: !!v[10],
+    illusions: !!v[11],
   };
   // choosing a named preset applies it; otherwise individual values make it "custom"
   if (chosenPreset !== c.preset && chosenPreset !== "custom") {

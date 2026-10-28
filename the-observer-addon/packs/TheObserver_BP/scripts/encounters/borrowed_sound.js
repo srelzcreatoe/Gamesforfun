@@ -15,6 +15,7 @@ import { effigyCell } from "../world/manipulate.js";
 
 register({
   id: "borrowed_sound",
+  reactNear: false, // going to look is the answer here: it handles the approach itself
   tier: 1,
   minStage: 1,
   needsBody: true,

@@ -17,9 +17,10 @@ import { DEBUG } from "./util.js";
  * @property {boolean} worldEffects   allow world-wide weather during the finale
  * @property {boolean} dev            developer tracing and debug overlay
  * @property {string[]} off           encounter types switched off (Config Wheel toggles)
+ * @property {boolean} illusions      shadows in taiga forests that vanish when looked at
  */
 
-/** @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects"|"off">>} */
+/** @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects"|"off"|"illusions">>} */
 export const PRESETS = {
   atmosphere: { frequency: 0.6, aggression: 0, manipulation: 1, scares: 0, camera: 1, graceMinutes: 15 },
   standard: { frequency: 1.0, aggression: 2, manipulation: 2, scares: 2, camera: 2, graceMinutes: 12 },
@@ -28,7 +29,7 @@ export const PRESETS = {
 
 /** @returns {Settings} */
 export function defaults() {
-  return { enabled: true, preset: "standard", ...PRESETS.standard, captions: false, worldEffects: true, dev: false, off: [] };
+  return { enabled: true, preset: "standard", ...PRESETS.standard, captions: false, worldEffects: true, dev: false, off: [], illusions: true };
 }
 
 /** @returns {Settings} */
@@ -38,6 +39,7 @@ export function S() {
     markWorldDirty();
   }
   if (!Array.isArray(W.settings.off)) W.settings.off = []; // worlds saved before the toggles existed
+  if (typeof W.settings.illusions !== "boolean") W.settings.illusions = true;
   return W.settings;
 }
 

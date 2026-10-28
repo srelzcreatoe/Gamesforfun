@@ -11,6 +11,7 @@ import * as memory from "./observer/memory.js";
 import * as director from "./director/director.js";
 import * as items from "./progression/items.js";
 import * as dev from "./dev/commands.js";
+import * as illusions from "./observer/illusions.js";
 import { vigilStatus } from "./ui/forms.js";
 import { openWheel, canConfigure } from "./ui/wheel.js";
 import { give } from "./progression/discoveries.js";
@@ -59,6 +60,7 @@ function init() {
 // ------------------------------------------------------------------ events
 
 ledger.registerEvents();
+illusions.registerEvents();
 memory.registerEvents();
 dev.register();
 body.registerEvents(() => director.activeEncId());
@@ -188,6 +190,7 @@ system.runInterval(() => {
   fastRuns++;
   body.maintain(fastRuns);
   if (fastRuns % 2 === 0) safe(() => ledger.scan(new Set(director.running().map((e) => e.id))));
+  safe(() => director.nearCheck());
 }, 5);
 
 let slowRuns = 0;
@@ -210,6 +213,7 @@ system.runInterval(() => {
     }
   }
   safe(() => director.tick());
+  safe(() => illusions.tick());
   safe(() => ledger.processDue(12));
   if (slowRuns % 2 === 0) {
     safe(() => items.renderMarks());
@@ -234,6 +238,11 @@ system.runInterval(() => {
 system.runInterval(() => {
   if (ready) safe(() => body.tickPuppets());
 }, 10);
+
+// taiga illusions vanish the instant they are looked at
+system.runInterval(() => {
+  if (ready) safe(() => illusions.watch());
+}, 2);
 
 /**
  * Evidence: footprint trails it left are shown to players who come back to the place

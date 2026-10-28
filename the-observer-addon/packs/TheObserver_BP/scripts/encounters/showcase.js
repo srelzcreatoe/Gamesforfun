@@ -11,10 +11,12 @@ import { SOUNDS } from "../core/constants.js";
 import { lunge } from "./common.js";
 
 /** state, ticks shown */
-const STEPS = [["watch", 60], ["stare", 60], ["tilt", 70], ["peek", 60], ["walk", 70], ["run", 50], ["attack", 40], ["recoil", 30], ["stare", 30]];
+// (no "peek": it only peeks from behind real cover — see Test an encounter → Peeking from cover)
+const STEPS = [["watch", 60], ["stare", 60], ["tilt", 70], ["walk", 70], ["run", 50], ["attack", 40], ["recoil", 30], ["stare", 30]];
 
 register({
   id: "showcase",
+  reactNear: false,
   tier: 0,
   minStage: 0,
   needsBody: true,

@@ -82,6 +82,7 @@ Made by the user, who confirmed they own them (2026-10-28). Preserved unmodified
 | `TheObserver_RP/textures/blocks/observer/ward_lantern.png` | original — drawn by tools/make_textures.py | `80ed13cb45faa368` |
 | `TheObserver_RP/textures/entity/observer/the_observer.png` | supplied — byte copy of source_assets/supplied/dweller_texture.png | `dfe172002e070d8c` |
 | `TheObserver_RP/textures/entity/observer/the_observer_eyes.png` | derived — only the two eye cubes' pixels of the supplied texture (tools/integrate_supplied_assets.py) | `f0d4128927c35473` |
+| `TheObserver_RP/textures/entity/observer/the_observer_shadow.png` | derived — near-black silhouette of the user's texture with the white eyes kept (tools/integrate_supplied_assets.py), for the taiga shadows | `b7aa1c618cd306c9` |
 | `TheObserver_RP/textures/items/observer/chalk.png` | original — drawn by tools/make_textures.py | `61c5f11bc4336204` |
 | `TheObserver_RP/textures/items/observer/config_wheel.png` | original — drawn by tools/make_textures.py | `f37c7dd0b7558917` |
 | `TheObserver_RP/textures/items/observer/field_notes.png` | original — drawn by tools/make_textures.py | `870cc046d4176aee` |

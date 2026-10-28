@@ -18,7 +18,7 @@ Minecraft imports both packs. Then:
 3. Play. Nothing happens during the grace period (12 minutes of play on the Standard preset). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from an earlier version:** import the new `.mcaddon` (version 1.0.3). If a world still uses the old copy, open the world's
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.0.4). If a world still uses the old copy, open the world's
 settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.0.1 packs again.
 
 **Existing worlds:** back the world up first, then add the packs as above. The add-on only changes blocks in small,
@@ -35,7 +35,17 @@ still, it will come closer. How you respond matters — most encounters end peac
 
 When you do see it: a four-block figure wrapped in drifting, faintly glowing wisps, its two white eyes burning in the
 dark. It groans to itself when it is near. When it knows you have seen it there is a rattle of clicks and a crack —
-and from the third stage on it may shriek and come straight at you. When it leaves, it tears apart into crimson shreds.
+and from the second stage on it may shriek and come straight at you. When it leaves, it tears apart into crimson shreds.
+
+**It is dangerous.** On Standard and High aggression, once it reaches you it keeps attacking until you are dead or
+you drive it off with the Witness Lens or a blow. Every strike is wound up for about half a second first: step back
+and it misses. It runs faster than you can sprint, so do not try to outrun it — light, water, the lens, a held gaze
+before it reaches you, or a friend watching it are your outs. Walk right up to it and it usually tears apart before
+you can touch it — but now and then it strikes first. On Low aggression it strikes once (never more than 70 % of
+your health while you are above half); on "Never attacks" and on Peaceful it never hurts you.
+
+**In taiga forests** you may see it far off between the trunks, staring. Look straight at it and it is gone —
+and somewhere, the cave answers. Those shadows are harmless (they can be switched off in the settings).
 
 Some useful habits (no spoilers beyond what the game tells you early):
 * If something changed, **put it back** — or look closely at it.
@@ -57,9 +67,9 @@ Players who are not operators only see the status and their own caption setting.
 | **Start it for me now** / **Make something happen soon** | skips the grace period (or the current wait) for you; the first encounter follows within about a minute (Survival or Adventure only) |
 | **Switch The Observer on/off** | master switch; switching off puts back everything it changed |
 | **Presets** | Atmosphere, Standard, Relentless |
-| **All settings** | frequency, aggression, environmental manipulation, sudden scares, camera effects, captions, grace period, world weather, developer tracing |
+| **All settings** | frequency, aggression, environmental manipulation, sudden scares, camera effects, captions, grace period, world weather, developer tracing, taiga shadows |
 | **Encounter toggles** | one switch per encounter type (with the stage it unlocks at); switched-off types are never chosen |
-| **Test an encounter** | starts something on you right now. First the single behaviours (red): **The Strike** (it runs up and makes its attack; damage follows your aggression setting), **The Lunge** (look at it and it comes at you), **Peeking from cover** (beside a trunk or wall corner ahead of you), **The Vigil (practice)** (three rounds, no reward, nothing recorded). Then every encounter. If the place is unsuitable it tells you what that one needs (for example, *The Closed Path* needs a tunnel at least 3 blocks high). Tests never count toward your story |
+| **Test an encounter** | starts something on you right now. First the single behaviours (red): **The Vigil (practice)** (three rounds, no reward, nothing recorded), **The Strike** (it runs up and keeps attacking until you die or drive it off — Low aggression: one strike), **The Lunge** (look at it and it comes at you), **Peeking from cover** (only beside a trunk or wall corner ahead of you; with nothing there it says so), **Taiga shadow** (the illusion, here anywhere), **Getting too close** (walk up to it). Then every encounter. If the place is unsuitable it tells you what that one needs (for example, *The Closed Path* needs a tunnel at least 3 blocks high). Tests never count toward your story |
 | **Undo its changes** | puts back every block it changed and ends whatever it is doing |
 | **Sound captions** | your own caption setting |
 

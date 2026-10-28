@@ -122,6 +122,7 @@ export function coverSide(dim, feet, eye) {
  * @property {"near"|"surface"|"below"} [yMode]
  * @property {boolean} [liquidSurface]
  * @property {boolean} [preferLiquid]   strongly prefer standing on a liquid surface (water encounters)
+ * @property {boolean} [preferCover]    strongly prefer spots with cover on one side (it peeks from behind it)
  * @property {Player[]} [hideFrom]  other players that must not currently see it
  * @property {Player[]} [showTo]    players that must currently be able to see it
  * @property {number} [samples]
@@ -189,10 +190,12 @@ export function findSpot(p, spec) {
     if (spec.showTo && !spec.showTo.every((o) => visibility(o, st.loc, { stooped: st.stoop, fov: 55 }).points > 0)) continue;
     const cover = coverSide(dim, st.loc, eye);
     if (cover.has) score += 3;
+    if (cover.one) score += spec.preferCover ? 10 : 2; // a trunk or wall corner to lean out from
     const light = safe(() => dim.getLightLevel({ x: st.loc.x, y: st.loc.y + 1, z: st.loc.z }), 8) ?? 8;
     score += (15 - light) * 0.25; // prefers darker spots
     if (spec.preferLiquid && st.liquid) score += 8;
-    if (Math.abs(st.loc.y - origin.y) > 8 && spec.yMode !== "below") score -= 2;
+    // stay near the player's own level (a figure far below or above is rarely what an encounter wants)
+    if (spec.yMode !== "below") score -= Math.max(0, Math.abs(st.loc.y - origin.y) - 6) * 0.5;
     score += rand(0, 1.5);
     if (!best || score > best.score) best = { loc: st.loc, stoop: st.stoop, vis: vis.points, side: cover.side, score, liquid: st.liquid };
   }

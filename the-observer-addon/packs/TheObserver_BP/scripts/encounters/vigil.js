@@ -34,6 +34,7 @@ function screenBetween(dim, a, b) {
 
 register({
   id: "vigil",
+  reactNear: false,
   tier: 3,
   minStage: 1,
   needsBody: true,
@@ -47,6 +48,7 @@ register({
 // world-wide weather and no change to the player's story.
 register({
   id: "vigil_practice",
+  reactNear: false,
   tier: 0,
   minStage: 0,
   needsBody: true,

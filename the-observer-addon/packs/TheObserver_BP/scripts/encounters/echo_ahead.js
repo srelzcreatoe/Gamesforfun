@@ -9,7 +9,7 @@ import { SOUNDS, PARTICLES } from "../core/constants.js";
 import { V } from "../core/util.js";
 import { findSpot } from "../world/space.js";
 import { visibility } from "../world/sight.js";
-import { observe, sighting, acknowledge, favouredBearing, travelDir } from "./common.js";
+import { observe, sighting, acknowledge, favouredBearing, travelDir, wantsLunge, lunge } from "./common.js";
 
 register({
   id: "echo_ahead",
@@ -66,6 +66,7 @@ register({
     if (r.noticed || r.approached) {
       sighting(enc, r.by ?? p);
       enc.discover("echo_ahead");
+      if (wantsLunge(enc)) return lunge(enc);
       await acknowledge(enc, 8, 18);
     } else enc.result("missed");
   },

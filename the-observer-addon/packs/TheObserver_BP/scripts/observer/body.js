@@ -11,7 +11,7 @@
 import { world, system, EntityDamageCause } from "@minecraft/server";
 import { OBSERVER_ID, TARGET_TAG, ENTITY_ENC_PROP, PARTICLES, SOUNDS, DANGER } from "../core/constants.js";
 import { V, safe, DEBUG, trace, emit, allPlayers } from "../core/util.js";
-import { S, strikeDamage } from "../core/settings.js";
+import { S, strikeDamage, aggression } from "../core/settings.js";
 import { visibility, lineOfSight, seenByAny } from "../world/sight.js";
 import { standNear, isReplaceable, coverSide } from "../world/space.js";
 
@@ -59,6 +59,13 @@ export const wasLost = (enc) => lostEnc === enc;
  */
 export function spawn(dim, loc, o) {
   despawn("replace");
+  // it only ever peeks from behind something: with nothing beside it, it stands
+  if (o.state === "peek") {
+    const eye = o.target?.isValid ? o.target.getHeadLocation() : o.face;
+    const cover = eye ? coverSide(dim, loc, eye) : undefined;
+    if (!cover || !cover.one) o = { ...o, state: "watch" };
+    else o = { ...o, side: cover.side };
+  }
   const e = safe(() => dim.spawnEntity(OBSERVER_ID, loc, { initialPersistence: false }));
   if (!e) return null;
   safe(() => e.setDynamicProperty(ENTITY_ENC_PROP, o.enc));
@@ -229,10 +236,10 @@ export async function withdraw(watchers, maxTicks = 160) {
 /**
  * Telegraphed strike, synced to the supplied attack clip (strike frame ~0.55-0.65 s).
  * Avoidable: the target can step out of reach during the 0.6 s wind-up.
- * @param {Player} target
+ * @param {Player} target @param {{recover?:number}} [opts] recover: ticks before it can act again
  * @returns {Promise<"hit"|"miss"|"none">}
  */
-export async function strike(target) {
+export async function strike(target, opts = {}) {
   const b = get();
   if (!b) return "none";
   setMode("still");
@@ -254,8 +261,9 @@ export async function strike(target) {
   if (inFront && reach && clear && dmg > 0) {
     const hp = target.getComponent("minecraft:health");
     let amount = dmg;
-    // never one-shot a healthy player: a strike cannot take more than 70% of current health above half health
-    if (hp && hp.currentValue > hp.effectiveMax * 0.5) amount = Math.min(amount, Math.max(1, Math.floor(hp.currentValue * 0.7)));
+    // on Low aggression a strike never takes more than 70% of current health above half health;
+    // on Standard and High it hits at full strength (and keeps attacking — see common.relentless)
+    if (aggression() === 1 && hp && hp.currentValue > hp.effectiveMax * 0.5) amount = Math.min(amount, Math.max(1, Math.floor(hp.currentValue * 0.7)));
     safe(() => target.applyDamage(amount, { cause: EntityDamageCause.entityAttack, damagingEntity: b.e }));
     safe(() => target.applyKnockback({ x: to.x * 0.9, z: to.z * 0.9 }, 0.35));
     safe(() => b.e.dimension.playSound(SOUNDS.strike, tl, { volume: 1 }));
@@ -266,7 +274,7 @@ export async function strike(target) {
   }
   trace(`strike ${result}: front=${inFront} reach=${reach} d=${d.toFixed(2)} dy=${(tl.y - o.y).toFixed(2)} clear=${clear} dmg=${dmg}`);
   emit("strike", { result, inFront, reach, clear, d, dy: tl.y - o.y });
-  await system.waitTicks(13);
+  await system.waitTicks(opts.recover ?? 13);
   if (get()) setState("stare");
   return /** @type {any} */ (result);
 }

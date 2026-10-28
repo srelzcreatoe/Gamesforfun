@@ -111,7 +111,7 @@ register({
     }
     enc.log(`${kind}: ${n} mimic blocks of ${type}, ${changes.length - 1} extra changes`);
     // it watches from the side
-    const spot = findSpot(p, { minDist: 16, maxDist: 26, bearings: [90, -90], spread: 30, concealment: "partial", needLOS: true, hideFrom: enc.witnesses() });
+    const spot = findSpot(p, { minDist: 16, maxDist: 26, bearings: [90, -90], spread: 30, concealment: "partial", needLOS: true, preferCover: true, hideFrom: enc.witnesses() });
     if (spot) enc.spawnBody(spot.loc, { state: "peek", stoop: spot.stoop, side: spot.side });
     let look = 0;
     for (let t = 0; t < 20 * 150; t += 4) {

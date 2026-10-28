@@ -121,9 +121,9 @@ lowers the figure to 2.81 blocks so it fits its 2.9-block collision box.
 ### 4.2 Physical properties (`entities/the_observer.json`)
 * Collision 0.8 × 2.9 (fits 3-high corridors stooped; cannot pass 2-high doors — it opens them to look in instead).
 * Immune to damage, knockback and status effects; not pushable; fire-immune; breathes water.
-* Modes (component groups): **still** (no gravity — it can stand on water and ledges), **approach** (~1.5 b/s),
-  **pursue** (~4.8 b/s: faster than walking 4.3, slower than sprinting 5.6). Speeds were calibrated on the dedicated
-  server (speed ≈ 3.88 × multiplier² b/s for this entity). Walking *away* is script-driven (validated 0.18-block
+* Modes (component groups): **still** (no gravity — it can stand on water and ledges), **approach** (~2.8 b/s, what it
+  does while watched), **pursue** (~6.4 b/s measured: faster than sprinting at 5.6 — it cannot be outrun). Speeds were
+  calibrated on the dedicated server (speed ≈ 3.88 × multiplier² b/s for this entity). Walking *away* is script-driven (validated 0.18-block
   steps at ~1.8 b/s, at most one block up or down, three open blocks overhead): the vanilla `avoid_mob_type` goal in
   the unused `retreat` group did not move it away from players in the capability probe.
 * Head tracking and auto-stoop by headroom.
@@ -138,7 +138,22 @@ lowers the figure to 2.81 blocks so it fits its 2.9-block collision box.
   clicks, `observer.voice`), a pressure swell when it arrives (`observer.presence`), a rattle of clicks and a neck crack
   the moment it is seen (`observer.notice`), a rising distorted shriek when it comes at you (`observer.shriek`), and the
   rip when it vanishes (`observer.vanish`). All synthesized for this project.
-* **Peeking**: whenever it stands still with cover on one side relative to the player, it leans out from behind it.
+* **Peeking**: only ever from behind something. Whenever it stands still with cover on one side relative to the
+  player, it leans out from behind it; with nothing beside it, it never peeks (a requested peek becomes a plain stance),
+  and lookout spots strongly prefer a trunk or wall corner.
+* **Attacks**: every strike is telegraphed (0.6 s wind-up; stepping back makes it miss). On Standard (3 hearts) and High
+  (4.5 hearts) aggression, once it reaches a player it keeps attacking — running them down between strikes — until
+  they are dead or drive it off with the Witness Lens or a blow (40 s limit; it also gives up beyond 64 blocks). Low
+  aggression: a single strike, never more than 70 % of current health above half health. "Never attacks" and Peaceful:
+  no damage, only darkness.
+* **Too close**: walk up to it (the trigger distance varies 4–8 blocks per appearance) and after a short random moment
+  it tears apart before you can touch it — or, now and then (stage 2+, about 30 %, at most every 75 s per player), it
+  steps in and strikes once first. Encounters that bring it close on purpose (the chase, *The Closed Path*, *Closer Each
+  Time*, *Close*, *Out of Step*, the vigil) are exempt.
+* **Taiga shadows** (`observer/illusions.js`): in taiga biomes only, a harmless shadow of it (`observer:shadow`, a
+  near-black silhouette with white eyes) stands 32–60 blocks off among the trees, staring, about every 1–3 minutes
+  (sooner at night). The instant anyone looks straight at it, it is removed — no burst — and that player hears the
+  vanilla cave ambience (`ambient.cave`). Unseen, it fades after 25–45 s. One per player; never in other biomes.
 
 ## 5. Presence and stalking
 
@@ -267,13 +282,14 @@ Additional non-block manipulation: personal fog (`observer:dread`, `dread_soft`,
 |---|---|---|---|
 | 1 | grace ends (12 min standard) | — | distant watch, borrowed sound, turned object, door |
 | 2 | 3 | 2 | extra step, home visit, lights out, bearing, window, second witness, night visit, follow-ups |
-| 3 | 8 | 3 | echo ahead, path changed, close, **closer each time**, the **lunge** when it is noticed |
+| 3 | 8 | 3 | echo ahead, path changed, close, **closer each time** (the **lunge** when it is noticed starts at stage 2) |
 | 4 | 14 | 5 | the closed path, pursuit (aggression ≥ 1) |
 | 5 | 22 | 8 | everything, at its most frequent |
 
-**Pacing**: after each encounter the next is scheduled `rand(150, 320) s ÷ frequency × (1 − 0.04·stage) × mood × (1 + tension/150)`,
+**Pacing**: after each encounter the next is scheduled `rand(110, 240) s ÷ frequency × (1 − 0.04·stage) × mood × (1 + tension/150)`,
 where mood is shorter at night, underground, in darkness and in other dimensions. Every 3–5 encounters a genuine quiet
-period of 6–12 min follows. Tier ≥ 3 encounters add 4–6 min recovery; death adds 5 min recovery and relieves tension.
+period of 4–8 min follows. Tier ≥ 3 encounters add 3–4 min recovery; death adds 5 min recovery and relieves tension.
+The chase is weighted higher underground.
 A global gap (≈ 52 s after body encounters, ≈ 21 s after body-free ones) separates any two starts in the world.
 Tension rises by tier and decays 3/min; high tension steers selection toward subtle encounters.
 

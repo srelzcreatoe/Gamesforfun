@@ -1,7 +1,7 @@
 // @ts-check
 // Shared building blocks for encounter scripts.
 import { V, rand, safe, DEBUG } from "../core/util.js";
-import { ps, markPlayerDirty } from "../core/state.js";
+import { ps, markPlayerDirty, now } from "../core/state.js";
 import { S, aggression } from "../core/settings.js";
 import { SOUNDS } from "../core/constants.js";
 import * as body from "../observer/body.js";
@@ -120,8 +120,75 @@ export async function acknowledge(enc, holdTicks = 14, tiltTicks = 26) {
 export function wantsLunge(enc) {
   if (DEBUG.lunge === "always") return true;
   if (DEBUG.lunge === "never") return false;
-  if (enc.s.stage < 3 || aggression() < 1 || enc.s.witnessed || !enc.canScare()) return false;
-  return Math.random() < (S().scares >= 2 ? 0.35 : 0.2);
+  const sc = S().scares;
+  if (sc === 0 || enc.s.stage < 2 || aggression() < 1 || enc.s.witnessed) return false;
+  // its own cooldown: 5 min on Standard scares, 10 min on Rare
+  if (now() - (enc.s.lungeAt ?? -1e9) < (sc >= 2 ? 300 : 600)) return false;
+  const chance = enc.s.stage >= 3 ? (sc >= 2 ? 0.5 : 0.3) : 0.25;
+  return Math.random() < chance;
+}
+
+/**
+ * It has reached the player and does not stop: telegraphed strike after telegraphed strike (0.6 s
+ * wind-up each, so stepping back still makes it miss), running them down between strikes, until the
+ * player is dead or drives it off with the Witness Lens or a blow. Low aggression strikes once (and is
+ * capped); aggression "never" only stops in front of them and everything goes dark.
+ * @param {Encounter} enc @param {{maxTicks?:number}} [o]
+ * @returns {Promise<string>} outcome
+ */
+export async function relentless(enc, o = {}) {
+  const p = enc.p;
+  const b = body.get();
+  if (!b) return "vanished";
+  enc.data.reacting = true;
+  b.autoPeek = false;
+  if (aggression() === 0) {
+    body.setMode("still");
+    body.setState("stare");
+    enc.fade(0.1, 0.9, 1.1);
+    await enc.wait(12);
+    body.despawn("caught");
+    enc.result("caught");
+    return "caught";
+  }
+  let hits = 0;
+  const end = o.maxTicks ?? 20 * 40;
+  for (let t = 0; t < end; t += 2) {
+    const l = body.loc();
+    if (!l || !p.isValid) return enc.outcome || "vanished";
+    if (enc.data.lensed || enc.data.hit) {
+      enc.data.lensed = enc.data.hit = false;
+      body.setMode("still");
+      body.setState("recoil");
+      await enc.wait(16);
+      body.despawn("repelled");
+      enc.result("repelled", true);
+      return "repelled";
+    }
+    const d = V.dist(l, p.location);
+    if (d > 64) {
+      body.despawn("lost_you");
+      enc.result("escaped", true);
+      return "escaped";
+    }
+    if (d <= 2.8) {
+      const r = await body.strike(p, { recover: 8 });
+      if (r === "hit") hits++;
+      enc.result(hits ? "struck" : "dodged", true);
+      enc.emit("relentless", { hits, result: r });
+      if (aggression() === 1) {
+        await enc.wait(10);
+        body.despawn("struck");
+        return enc.outcome;
+      }
+      continue;
+    }
+    body.setMode("pursue");
+    body.setState("run");
+    await enc.wait(2);
+  }
+  body.despawn("gave_up");
+  return enc.outcome || "gave_up";
 }
 
 /**
@@ -133,7 +200,11 @@ export async function lunge(enc, o = {}) {
   const p = enc.p;
   const b = body.get();
   if (!b) return;
-  if (!o.harmless && !o.test) enc.usedScare();
+  if (!o.harmless && !o.test) {
+    enc.s.lungeAt = now();
+    markPlayerDirty(p);
+  }
+  enc.data.reacting = true;
   b.autoPeek = false;
   b.faceTarget = true;
   body.setState("run");
@@ -148,8 +219,9 @@ export async function lunge(enc, o = {}) {
     const d = V.dist(l, p.location);
     if (d <= 3.2) {
       if (aggression() >= 3 && !o.harmless) {
-        const r = await body.strike(p);
-        enc.result(r === "hit" ? "lunge_hit" : "lunge_dodged", true);
+        // High aggression: the lunge does not stop at a scare
+        await relentless(enc);
+        return;
       } else {
         enc.fade(0.05, 0.2, 0.5);
         enc.result("lunged", true);

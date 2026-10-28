@@ -94,7 +94,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 50 test groups (including setup and a status check) with 193 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 56 test groups (including setup and a status check) with 218 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -113,7 +113,10 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | 7 (1.0.1) | 173 | 0 | all passed: the earlier suite plus the Config Wheel tests (wheel on first join, See it now, encounter toggles) and the carve-direction check |
 | targeted (1.0.2 creature update) | 41 | 0 | new tests for glowing eyes, vanish, auto-peek, lunge, *Closer Each Time* (held and reaching), the extended preview |
 | 8 (1.0.2, first full run) | 190 | 3 | `animals_face_it` 2/4 (always borderline at 3/4: the cows' own AI turned them between updates — animals now stop and are re-aimed every 2 ticks: 4/4 three times in a row); both *Closer Each Time* tests: a second simulated player left over from an earlier test kept watching it, and any player's gaze freezes it (by design) — the tests now move other players out of range. Re-run of those tests after a witness test: 17 / 17 |
-| **final (1.0.2)** | **193** | **0** | all passed, including the creature update (eyes, vanish, peeking, lunge, Closer Each Time) with the animal and test-isolation fixes |
+| 9 (1.0.2) | 193 | 0 | all passed, including the creature update (eyes, vanish, peeking, lunge, Closer Each Time) with the animal and test-isolation fixes |
+| targeted (1.0.4: relentless attack, too close, taiga shadows, peek only from cover) | 55 + 42 + 18 | 4 + 4 + 0 | first passes: the encounter's long internal wait delayed the end of a too-close reaction (waits are now interruptible every 5 ticks); the test world's arena is itself a taiga, so "none outside taiga" was re-tested in a distant frozen-ocean area (this server has no `/fillbiome`); shadows were placed on the real terrain 63 blocks below the sky arena (they now prefer the player's height); a peek check ran where test trees stood ahead; a too-close test stopped short of the varying trigger distance |
+| 10 (1.0.4, first full run) | 212 | 6 | *Borrowed Work* cut short by the too-close reaction, an *Echo Ahead* spot far below the platform, the *Closed Path* escape rule (see §7), and a peek test seen by a leftover second player — all fixed; re-runs 69 / 71 then 12 / 12 |
+| **final (1.0.4)** | **218** | **0** | all passed, including the relentless attack, too-close reaction, taiga shadows and cover-only peeking |
 
 Run 7 (1.0.1): 1080 s, minimum TPS 19.8, 0 errors; after the version bump to 1.0.1, `setup wheel_welcome showcase
 toggles distant_watch status` was re-run: 19 / 19.
@@ -124,7 +127,9 @@ distant_watch status` 30 / 30 (two assertions first failed only because the real
 restorations were counted as "changes" and the player already held the Eye; the assertions now count new changes and
 compare the Eye count before and after). The full suite was not repeated for 1.0.3.
 
-Final run (1.0.2): 1105 s, minimum TPS between tests 19.9, **0 content-log or script errors**.
+Run 9 (1.0.2): 1105 s, minimum TPS 19.9, 0 errors.
+
+Final run (1.0.4): 1060 s, minimum TPS between tests 19.2, **0 content-log or script errors**.
 
 ### 5.2 Final run by area
 
@@ -171,13 +176,19 @@ Final run (1.0.2): 1105 s, minimum TPS between tests 19.9, **0 content-log or sc
 | `pursuit_water_escape` | 3 | — |
 | `closed_path_light` | 7 | — |
 | `bearing_three` | 2 | — |
-| `showcase` | 6 | — |
+| `showcase` | 7 | — |
 | `toggles` | 1 | — |
 | `presence_fx` | 4 | — |
 | `auto_peek` | 3 | — |
 | `lunge` | 4 | — |
 | `creeping_held` | 5 | — |
 | `creeping_reaches` | 3 | — |
+| `test_entries` | 8 | — |
+| `relentless` | 3 | — |
+| `near_vanish` | 3 | — |
+| `near_strike` | 2 | — |
+| `illusion` | 6 | — |
+| `illusion_taiga` | 2 | — |
 | `natural` | 1 | — |
 | `status` | 0 | — |
 
@@ -250,6 +261,15 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
   (`animals_face_it` was 3/4 in every run, 2/4 once) → they are now slowed to a standstill and re-aimed every 2 ticks.
 * The new "notice" sound generator never terminated (its click gaps shrink geometrically and never reach the end
   time) — a tool bug caught while rendering, fixed before anything shipped.
+
+* An encounter waiting in one long `wait()` noticed an abort only when the wait ended (up to 30 s later); waits now
+  check every 5 ticks.
+* With the faster creature, *The Closed Path*'s escape rule ("10 blocks further than at the start") stopped working;
+  the new rule (broke the Veil and is on the far side of the seal from it) first never fired because a normalised
+  vector was compared with a distance — caught by `closed_path_escape`, fixed, re-tested 12 / 12.
+* The new too-close reaction cut *Borrowed Work* short (walking up to the source is that encounter's answer) — it now
+  handles the approach itself; spots far below the player's level are penalised (an *Echo Ahead* spot landed 64
+  blocks below the test platform).
 
 **Found by loading the pack in a game client (reported by the user)**
 * An empty `animations` list in a controller state and object-valued client-entity `sound_effects` (see §1.1).

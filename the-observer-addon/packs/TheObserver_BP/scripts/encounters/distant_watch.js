@@ -43,14 +43,14 @@ register({
       mode = "bearing";
       const fb = favouredBearing(enc);
       spot = findSpotLoose(p, [
-        { minDist: fb.dist + 6, maxDist: fb.dist + 12, bearings: [fb.bearing], spread: 6, concealment: "hidden", watchLOSIgnoringView: true, hideFrom, yMode: c.underground ? "near" : "surface" },
+        { minDist: fb.dist + 6, maxDist: fb.dist + 12, bearings: [fb.bearing], spread: 6, concealment: "hidden", watchLOSIgnoringView: true, hideFrom, preferCover: true, yMode: c.underground ? "near" : "surface" },
       ]);
     }
     if (!spot) {
       const near = c.underground || c.d === 1;
       mode = "ground";
       spot = findSpotLoose(p, [
-        { minDist: near ? 14 : 26, maxDist: near ? 26 : 44, bearings: [70, 100, -70, -100, 125, -125], spread: 15, concealment: "partial", needLOS: true, hideFrom, yMode: near ? "near" : "surface" },
+        { minDist: near ? 14 : 26, maxDist: near ? 26 : 44, bearings: [70, 100, -70, -100, 125, -125], spread: 15, concealment: "partial", needLOS: true, hideFrom, preferCover: true, yMode: near ? "near" : "surface" },
         { minDist: near ? 12 : 22, maxDist: near ? 28 : 46, concealment: "any", needLOS: true, hideFrom, yMode: near ? "near" : "surface" },
       ]);
     }

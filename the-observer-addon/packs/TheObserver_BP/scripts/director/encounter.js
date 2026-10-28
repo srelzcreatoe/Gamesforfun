@@ -25,6 +25,7 @@ import { GazeTracker } from "../world/sight.js";
  * @property {boolean} [benign]     allowed after the ending in attendant mode
  * @property {boolean} [manual]     never chosen by the director (vigil, follow-ups)
  * @property {boolean} [preview]    Config Wheel preview/practice: runs in any game mode, even when switched off; no progress
+ * @property {boolean} [reactNear]  false: walking up to it does not make it vanish/strike (it is meant to be close)
  * @property {boolean} [testOnly]   listed under Config Wheel → Test an encounter only (never chosen by the director)
  * @property {(c:import("./context.js").Ctx, s:any)=>number} weight  0 = not eligible here
  * @property {(e:Encounter)=>Promise<boolean|void>|boolean|void} [prepare]  return false to defer
@@ -90,9 +91,15 @@ export class Encounter {
   }
 
   /** @param {number} ticks */
+  /** Waits in short steps so an abort (player left, too close, struck …) takes effect within 5 ticks. */
   async wait(ticks) {
-    await system.waitTicks(Math.max(1, Math.round(ticks)));
-    this.check();
+    let left = Math.max(1, Math.round(ticks));
+    while (left > 0) {
+      const step = Math.min(5, left);
+      await system.waitTicks(step);
+      left -= step;
+      this.check();
+    }
   }
 
   /**

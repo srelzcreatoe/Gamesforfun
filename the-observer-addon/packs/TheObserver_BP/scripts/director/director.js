@@ -235,15 +235,15 @@ function finish(enc) {
     W.stats.byType[enc.def.id] = (W.stats.byType[enc.def.id] || 0) + 1;
     s.tension = Math.min(100, s.tension + TIER_TENSION[enc.def.tier]);
     const freq = Math.max(0.25, S().frequency);
-    const gap = rand(150, 320) / freq * (1 - 0.04 * s.stage) * moodFactor(enc.ctx) * (1 + s.tension / 150);
+    const gap = rand(110, 240) / freq * (1 - 0.04 * s.stage) * moodFactor(enc.ctx) * (1 + s.tension / 150);
     s.nextAt = t + gap;
     s.sinceQuiet++;
     if (s.sinceQuiet >= Math.floor(rand(3, 6))) {
-      s.quietUntil = t + rand(360, 720) / freq;
+      s.quietUntil = t + rand(240, 480) / freq;
       s.sinceQuiet = 0;
       trace(`${enc.p.isValid ? enc.p.name : enc.pid}: quiet period`);
     }
-    if (enc.def.tier >= 3) s.recoveryUntil = Math.max(s.recoveryUntil, t + rand(240, 360));
+    if (enc.def.tier >= 3) s.recoveryUntil = Math.max(s.recoveryUntil, t + rand(180, 240));
     if (!enc.outcome.startsWith("aborted") && enc.p.isValid) {
       expose(enc.p, TIER_POINTS[enc.def.tier] + (enc.noticed ? 1 : 0) + enc.points);
       noteAttention(enc.p, enc.noticed);
@@ -286,6 +286,63 @@ export function abortAll(reason) {
   for (const e of running()) e.abort(reason);
 }
 
+
+/**
+ * Called every 5 ticks. Walk right up to it and it does not wait for you: after a short, varying moment
+ * it tears apart before you can touch it — or, now and then (stage 2+, aggression above "never", at most
+ * every 75 s per player, about 30 %), it steps in and strikes once first. The distance that sets it off
+ * varies per appearance (4-8 blocks). Encounters that bring it close on purpose opt out (reactNear: false).
+ */
+export function nearCheck() {
+  const enc = active;
+  if (!enc || enc.def.reactNear === false || enc.data.reacting || enc.aborted) return;
+  const b = body.get();
+  if (!b || b.enc !== enc.id || b.mode !== "still" || b.e.dimension.id !== enc.dimId) return;
+  if (system.currentTick - b.spawnedTick < 10) return;
+  if (enc.data.nearDist === undefined) enc.data.nearDist = rand(4, 8);
+  const l = b.e.location;
+  let near, best = enc.data.nearDist;
+  for (const p of allPlayers()) {
+    if (p.dimension.id !== enc.dimId) continue;
+    const d = V.dist(p.location, l);
+    if (d < best) {
+      best = d;
+      near = p;
+    }
+  }
+  if (!near) return;
+  enc.data.reacting = true;
+  reactNear(enc, near, best).catch(() => body.despawn("too_close"));
+}
+
+/** @param {Encounter} enc @param {Player} p @param {number} d */
+async function reactNear(enc, p, d) {
+  const s = ps(p);
+  const gm = safe(() => p.getGameMode());
+  const survival = gm === GameMode.Survival || gm === GameMode.Adventure;
+  const roll = DEBUG.nearStrike === "always" ? true : DEBUG.nearStrike === "never" ? false : Math.random() < 0.3;
+  const strike = survival && aggression() >= 1 && s.stage >= 2 && roll && (DEBUG.nearStrike === "always" || now() - (s.nearStrikeAt ?? -1e9) > 75);
+  emit("near", { enc: enc.id, strike, d });
+  if (strike) {
+    s.nearStrikeAt = now();
+    markPlayerDirty(p);
+    const l = body.loc();
+    if (l) {
+      enc.worldSound("observer.shriek", { x: l.x, y: l.y + 3, z: l.z }, 0.9);
+      const at = V.add(p.location, V.scale(V.flat(V.sub(l, p.location)), 1.8));
+      const g = body.groundNear(enc.dim, at);
+      if (g) body.moveTo(g, p.getHeadLocation());
+    }
+    const r = await body.strike(p, { recover: 6 });
+    enc.result(r === "hit" ? "struck_close" : "dodged_close", true);
+  } else {
+    await system.waitTicks(Math.floor(rand(0, 9)));
+    enc.result("too_close", true);
+  }
+  const b = body.get();
+  if (b && b.enc === enc.id) body.despawn("too_close");
+  enc.abort("too_close");
+}
 
 /** After a reload: an encounter that was running when the world closed is cleaned up. */
 export function recoverInterrupted() {

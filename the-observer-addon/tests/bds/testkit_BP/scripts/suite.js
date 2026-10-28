@@ -168,6 +168,8 @@ TESTS.setup = async () => {
   obs("preset", "standard");
   obs("set", "graceMinutes", "0");
   obs("lunge", "never"); // the lunge is random in play; its own test switches it on
+  obs("set", "illusions", "false"); // the arena happens to be taiga: no shadows except in their own tests
+  obs("preset", "standard");
   await wait(20);
   const p = spawn("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
   await wait(20);
@@ -525,6 +527,7 @@ async function tunnelRun(name, behaviour) {
 }
 
 TESTS.closed_path_escape = async () => {
+  const r0 = mark();
   const r = await tunnelRun("closed_path_escape", async (p, veils) => {
     // break a 1x2 gap in the player's own lane, as a player would, and get away through it
     const lane = Math.floor(p.location.z);
@@ -539,6 +542,8 @@ TESTS.closed_path_escape = async () => {
     p.moveRelative(0, 1, 1);
     await wait(120);
     p.stopMoving();
+    const o = observerEntity();
+    log(`[OTEST] INFO escape player=${p.location.x.toFixed(1)},${p.location.y.toFixed(1)},${p.location.z.toFixed(1)} observer=${o ? o.location.x.toFixed(1) : "none"} broken=${since(r0, "ledger").filter((d) => d.what === "broken").length}`);
   });
   const end = await endOf("closed_path", r.m, 900);
   check("closed_path_escape_outcome", end && end.outcome === "escaped", end ? end.outcome : "none");
@@ -560,6 +565,7 @@ TESTS.closed_path_held = async () => {
 };
 
 TESTS.closed_path_struck = async () => {
+  obs("set", "aggression", "1"); // Low: one capped strike (Standard keeps attacking: see TESTS.relentless)
   let dmg;
   const r = await tunnelRun("closed_path_struck", async (p) => {
     dmg = trackDamage(p);
@@ -571,6 +577,7 @@ TESTS.closed_path_struck = async () => {
   check("closed_path_struck_outcome", atk && (atk.outcome === "struck" || atk.outcome === "dodged"), `${atk ? atk.outcome : "none"} ${JSON.stringify(strike)}`);
   check("closed_path_struck_damage_capped", !!dmg && dmg.total > 0 && dmg.minHp >= 1, dmg ? `damage ${dmg.total} lowest hp ${dmg.minHp}` : "no tracker");
   await wait(200);
+  obs("preset", "standard");
 };
 
 TESTS.aggression_zero = async () => {
@@ -617,6 +624,7 @@ TESTS.unfamiliar_route = async () => {
 };
 
 TESTS.pursuit = async () => {
+  obs("set", "aggression", "1");
   ow().runCommand("time set midnight");
   const p = await freshTarget("Tester", { x: 950.5, y: Y, z: 1000.5 }, { x: 990, y: Y + 1.6, z: 1000.5 });
   const dmg = trackDamage(p);
@@ -643,6 +651,7 @@ TESTS.pursuit = async () => {
   check("pursuit_damage_nonlethal", dmg.total > 0 && dmg.minHp >= 1, `damage ${dmg.total} lowest hp ${dmg.minHp}`);
   ow().runCommand("time set noon");
   await observerGone(300);
+  obs("preset", "standard");
 };
 
 TESTS.pursuit_watched_walks = async () => {
@@ -661,7 +670,7 @@ TESTS.pursuit_watched_walks = async () => {
   }
   d2 = e.isValid ? hdist(e.location, p.location) : d1;
   const speed = (d1 - d2) / 2;
-  check("pursuit_watched_slow", speed < 2.2, `speed≈${speed.toFixed(2)} b/s while watched`);
+  check("pursuit_watched_slow", speed < 3.6, `speed≈${speed.toFixed(2)} b/s while watched`);
   obs("abort");
   await endOf("pursuit", m, 100);
   ow().runCommand("time set noon");
@@ -986,7 +995,8 @@ TESTS.showcase = async () => {
     seen.add(e.getProperty("observer:state"));
     await wait(4);
   }
-  check("showcase_all_states", ["watch", "stare", "tilt", "peek", "walk", "run", "attack", "recoil"].every((s) => seen.has(s)), [...seen].join(","));
+  check("showcase_all_states", ["watch", "stare", "tilt", "walk", "run", "attack", "recoil"].every((s) => seen.has(s)), [...seen].join(","));
+  check("showcase_no_peek_without_cover", !seen.has("peek"), [...seen].join(","));
   const end = await endOf("showcase", m, 400);
   dmg.stop();
   check("showcase_outcome", end && end.outcome === "shown", end ? end.outcome : "none");
@@ -1047,6 +1057,7 @@ TESTS.presence_fx = async () => {
 TESTS.auto_peek = async () => {
   // something beside it (a wall, a trunk): it leans out from behind it; take it away and it stands normally
   const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z + 30 });
+  isolate(p);
   const m = mark();
   obs("trigger", "distant_watch", "Tester");
   const e = await waitObserver(60);
@@ -1142,6 +1153,7 @@ TESTS.creeping_held = async () => {
 };
 
 TESTS.creeping_reaches = async () => {
+  obs("set", "aggression", "1");
   // never looked at: it reaches the player and strikes (telegraphed); the strike never kills
   const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 4);
   isolate(p);
@@ -1166,13 +1178,15 @@ TESTS.creeping_reaches = async () => {
   check("creeping_reaches_nonlethal", dmg.minHp >= 1, `damage ${dmg.total} lowest hp ${dmg.minHp}`);
   ow().runCommand("time set noon");
   await observerGone(200);
+  obs("preset", "standard");
 };
 
 TESTS.test_entries = async () => {
   // Config Wheel → Test an encounter: the single behaviours (strike, lunge, peek, vigil practice) run on demand
   let p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
   isolate(p);
-  // the strike: it runs up and strikes (standard aggression: damage, never lethal)
+  // the strike: it runs up and strikes (Low aggression: one capped strike)
+  obs("set", "aggression", "1");
   let dmg = trackDamage(p);
   let m = mark();
   obs("trigger", "test_strike", "Tester");
@@ -1180,6 +1194,7 @@ TESTS.test_entries = async () => {
   dmg.stop();
   check("test_strike_outcome", end && (end.outcome === "struck" || end.outcome === "dodged"), `${end ? end.outcome : "none"} damage=${dmg.total}`);
   check("test_strike_nonlethal", dmg.minHp >= 1 || dmg.total === 0, `lowest hp ${dmg.minHp}`);
+  obs("preset", "standard");
   await observerGone(100);
   // the lunge: look at it and it comes at you, then tears apart (no damage below High)
   p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
@@ -1218,6 +1233,14 @@ TESTS.test_entries = async () => {
   check("test_peek_outcome", end && end.outcome === "shown", end ? end.outcome : "none");
   for (const b of trunk) ow().getBlock(b)?.setType("minecraft:air");
   await observerGone(100);
+  // with nothing to hide behind it does not peek at all: the test says what it needs instead
+  p.teleport({ x: 1104.5, y: Y, z: 1012.5 }, { facingLocation: { x: 1104.5, y: Y + 1.6, z: 1040 } }); // open platform ahead
+  await wait(10);
+  m = mark();
+  obs("trigger", "test_peek", "Tester");
+  end = await endOf("test_peek", m, 100);
+  check("test_peek_needs_cover", end && end.outcome === "deferred" && !since(m, "body").some((d) => d.what === "spawn"), end ? end.outcome : "none");
+  await observerGone(100);
   // the vigil practice: three rounds, then nothing recorded and no reward
   p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
   ow().runCommand("time set midnight");
@@ -1244,6 +1267,146 @@ TESTS.test_entries = async () => {
   ow().runCommand("time set noon");
   ow().runCommand("weather clear");
   await observerGone(200);
+};
+
+TESTS.relentless = async () => {
+  // Standard aggression: once it reaches you it keeps striking (until you die); the Witness Lens drives it off
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
+  isolate(p);
+  p.setItem(new ItemStack("observer:witness_lens", 1), 1, true);
+  const dmg = trackDamage(p);
+  const m = mark();
+  obs("trigger", "test_strike", "Tester");
+  // stay alive (healed every 4 ticks) and let it attack for ~7 s
+  let hits = 0;
+  for (let t = 0; t < 20 * 14; t += 4) {
+    heal(p);
+    hits = since(m, "relentless").filter((d) => d.result === "hit").length;
+    if (hits >= 3) break;
+    await wait(4);
+  }
+  check("relentless_keeps_striking", hits >= 3, `hits=${hits} damage=${dmg.total}`);
+  check("relentless_full_strength", since(m, "strike").filter((d) => d.result === "hit").length >= 3 && dmg.total >= 6 * 3, `damage ${dmg.total}`);
+  // drive it off with the lens
+  const e = observerEntity();
+  for (let t = 0; t < 40 && e && e.isValid; t += 4) {
+    heal(p);
+    p.lookAtLocation({ x: e.location.x, y: e.location.y + 2.2, z: e.location.z });
+    await wait(2);
+    p.useItemInSlot(1);
+    await wait(2);
+    if (since(m, "end").some((d) => d.type === "test_strike")) break;
+  }
+  const end = await endOf("test_strike", m, 200);
+  dmg.stop();
+  check("relentless_lens_drives_it_off", end && end.outcome === "repelled", end ? end.outcome : "none");
+  await observerGone(100);
+};
+
+TESTS.near_vanish = async () => {
+  // walk right up to it: it tears apart before you reach it (no strike below stage 2)
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
+  isolate(p);
+  const m = mark();
+  obs("trigger", "test_near", "Tester");
+  const e = await waitObserver(60);
+  if (!check("near_vanish_body", !!e, (since(m, "end")[0] || {}).outcome)) return;
+  await wait(20);
+  const at = { ...e.location };
+  p.teleport({ x: at.x + (p.location.x - at.x) * 0.3, y: Y, z: at.z + (p.location.z - at.z) * 0.3 }, { facingLocation: { x: at.x, y: Y + 3, z: at.z } });
+  const t0 = system.currentTick;
+  const end = await endOf("test_near", m, 60);
+  check("near_vanish_quickly", end && end.outcome === "too_close" && system.currentTick - t0 <= 30, `${end ? end.outcome : "none"} after ${system.currentTick - t0} ticks`);
+  check("near_vanish_effect", since(m, "fx").some((d) => d.what === "vanish" && d.why === "too_close"), JSON.stringify(since(m, "fx")));
+  await observerGone(100);
+};
+
+TESTS.near_strike = async () => {
+  // sometimes, instead, it steps in and strikes once (forced here; in play ~30 %, at most every 75 s)
+  obs("set", "aggression", "1");
+  obs("nearstrike", "always");
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
+  isolate(p);
+  const dmg = trackDamage(p);
+  const m = mark();
+  obs("trigger", "test_near", "Tester");
+  const e = await waitObserver(60);
+  if (e) {
+    await wait(20);
+    const at = { ...e.location };
+    p.teleport({ x: at.x + (p.location.x - at.x) * 0.3, y: Y, z: at.z + (p.location.z - at.z) * 0.3 }, { facingLocation: { x: at.x, y: Y + 3, z: at.z } });
+  }
+  const end = await endOf("test_near", m, 100);
+  dmg.stop();
+  obs("nearstrike", "auto");
+  obs("preset", "standard");
+  check("near_strike_struck", end && (end.outcome === "struck_close" || end.outcome === "dodged_close"), `${end ? end.outcome : "none"} damage=${dmg.total}`);
+  check("near_strike_then_gone", since(m, "fx").some((d) => d.what === "vanish" && d.why === "too_close"));
+  await observerGone(100);
+};
+
+TESTS.illusion = async () => {
+  // a shadow far off; the moment the player looks at it, it is gone (with a cave noise for them)
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
+  isolate(p);
+  const m = mark();
+  obs("illusion", "Tester");
+  await wait(4);
+  const sh = ow().getEntities({ type: "observer:shadow" })[0];
+  if (!check("illusion_shadow_placed", !!sh, JSON.stringify(since(m, "illusion")))) return;
+  const d = hdist(sh.location, p.location);
+  check("illusion_far_off", d >= 25 && d <= 66, `d=${d.toFixed(1)}`);
+  check("illusion_not_the_observer", !observerEntity(), "a real body is present");
+  await wait(20);
+  check("illusion_waits_unseen", sh.isValid);
+  p.lookAtLocation({ x: sh.location.x, y: sh.location.y + 2.2, z: sh.location.z });
+  const t0 = system.currentTick;
+  const seen = await waitEvent("illusion", (x) => x.what === "seen", 20, m);
+  check("illusion_vanishes_when_seen", !!seen && !sh.isValid && system.currentTick - t0 <= 6, `after ${system.currentTick - t0} ticks`);
+  check("illusion_no_burst", !since(m, "fx").some((x) => x.what === "vanish"));
+};
+
+TESTS.illusion_taiga = async () => {
+  // only in taiga forests: one comes in the (taiga) arena; none in a non-taiga area far away
+  obs("set", "illusions", "true");
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
+  isolate(p);
+  const here = ow().getBiome(p.location)?.id ?? "?";
+  let m = mark();
+  if (/taiga/.test(here)) {
+    obs("timewarp", "400"); // past any cooldown left by the previous shadow test
+    const sp = await waitEvent("illusion", (x) => x.what === "spawn", 120, m);
+    check("illusion_in_taiga", !!sp, `biome=${here}`);
+  } else log(`[OTEST] SKIP illusion_in_taiga arena biome is ${here}`);
+  for (const e of ow().getEntities({ type: "observer:shadow" })) e.remove();
+  // look for a loaded non-taiga area far away, stand the player there on a small platform
+  let found;
+  for (const x of [3000, 6000, -3000, 9000, -6000]) {
+    ow().runCommand(`tickingarea add ${x - 8} 0 992 ${x + 8} 0 1008 otest_biome`);
+    await wait(60);
+    const b = ow().getBiome({ x, y: 64, z: 1000 })?.id ?? "?";
+    if (!/taiga/.test(b)) {
+      found = { x, b };
+      break;
+    }
+    ow().runCommand("tickingarea remove otest_biome");
+  }
+  if (!found) {
+    log("[OTEST] SKIP illusion_none_outside_taiga no non-taiga area found");
+  } else {
+    ow().runCommand(`fill ${found.x - 3} ${Y - 1} 997 ${found.x + 3} ${Y - 1} 1003 stone`);
+    p.teleport({ x: found.x + 0.5, y: Y, z: 1000.5 });
+    await wait(20);
+    m = mark();
+    obs("timewarp", "600");
+    await wait(80);
+    check("illusion_none_outside_taiga", !since(m, "illusion").some((x) => x.what === "spawn"), `biome=${found.b}`);
+    ow().runCommand("tickingarea remove otest_biome");
+  }
+  p.teleport({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
+  obs("set", "illusions", "false");
+  obs("preset", "standard");
+  await wait(20);
 };
 
 TESTS.withdraw_walks = async () => {

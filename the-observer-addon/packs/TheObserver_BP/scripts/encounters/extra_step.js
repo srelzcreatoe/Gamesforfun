@@ -23,6 +23,7 @@ function groundType(dim, loc) {
 
 register({
   id: "extra_step",
+  reactNear: false,
   tier: 2,
   minStage: 2,
   needsBody: true,

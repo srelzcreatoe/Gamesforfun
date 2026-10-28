@@ -29,7 +29,11 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Wisp aura (user-supplied sprites) | `particles/wisp.json`, aura controller | while shown | glowing wisps head to toe | vanilla-shape check; atlas built pixel-for-pixel | ✅ Static; visual ❔ |
 | Vanish burst (user-supplied sprites) | `particles/vanish.json`, `body.despawn` | every removal | crimson shreds + rip sound | `vanish_effect_on_removal`, `lunge_tore_apart`, `showcase_ends_in_vanish` | 🟡 Server ✅ / visual ❔ |
 | Its own sounds | `sounds.json` ambient, `observer.voice/presence/notice/shriek/vanish` | near it / arrival / seen / lunge / removal | heard in game | validator (files resolve), spectrogram and level check of each new file | 🟡 Static ✅ / audio ❔ |
-| Peeks from cover | `body.maintain` auto-peek, `space.coverSide` | cover on one side | leans out; stands normally without cover | `auto_peek_leans_out`, `auto_peek_stands_without_cover` | ✅ Runtime (lean visual ❔) |
+| Peeks from cover — only from cover | `body.maintain` auto-peek, `body.spawn` (a peek without cover becomes a stance), `space.coverSide`, `preferCover` spot scoring | cover on one side | leans out; never peeks with nothing beside it | `auto_peek_leans_out`, `auto_peek_stands_without_cover`, `test_peek_needs_cover`, `showcase_no_peek_without_cover` | ✅ Runtime (lean visual ❔) |
+| Relentless attack | `common.relentless`, `body.strike` (cap only on Low) | it reaches the player (chase, Closed Path, Closer Each Time, The Strike, High-aggression lunge) | telegraphed strikes until death; Witness Lens / a blow drives it off; Low = one capped strike | `relentless_keeps_striking` (3 hits, 18 damage), `relentless_full_strength`, `relentless_lens_drives_it_off`; Low single strike: `*_struck_*`, `*_nonlethal` | ✅ Runtime |
+| Faster chase | entity `pursue` 1.30, `approach` 0.85 | chase | ~6.4 b/s running, ~2.8 b/s while watched | `pursuit_runs` (6.35 b/s), `pursuit_watched_slow` (2.80 b/s) | ✅ Runtime |
+| Too close | `director.nearCheck` / `reactNear` | a player within 4–8 blocks (varies) | tears apart after a short random moment; sometimes strikes once (stage 2+, ~30 %, ≤ every 75 s) | `near_vanish_quickly` (14 ticks), `near_vanish_effect`, `near_strike_struck`, `near_strike_then_gone` | ✅ Runtime |
+| Taiga shadows | `observer/illusions.js`, `observer:shadow` | in taiga biomes | far-off staring shadow; gone the instant it is looked at, with `ambient.cave` | `illusion_shadow_placed`, `illusion_far_off`, `illusion_vanishes_when_seen` (4 ticks), `illusion_no_burst`, `illusion_in_taiga`, `illusion_none_outside_taiga` (frozen ocean) | 🟡 Server ✅ / visual and sound ❔ |
 | Sounds on animation states | controller `sound_effects` | attack/recoil | wind-up / cloth | validator (effects resolve, string form) | 🟡 Static ✅ / audio ❔ |
 | Client loads the entity files | `RP/entity`, `animation_controllers` | world load in a client | no content-log errors | `tools/check_vanilla_shapes.py` against Mojang's vanilla RP (0 mismatches). The first client load reported 3 errors (object `sound_effects`, empty `animations` list); both fixed | ✅ Static; client re-check ❔ |
 
@@ -78,7 +82,7 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | The Path Changed | `unfamiliar_route.js` | mimic behind, natural look, no dupes, cleared; carve at level 3 + restored | ✅ Runtime |
 | Close | `close_breath.js` | placed behind, faced | ✅ Runtime (unaware branch ⚪) |
 | Closer Each Time | `creeping.js` | frozen while watched, closer when unwatched, stared down, reaches and strikes (non-lethal) | ✅ Runtime |
-| Lunge (on being seen, stage 3+) | `common.lunge` | charges from ~28 to ~3 blocks, tears apart, no damage below High | ✅ Runtime |
+| Lunge (on being seen, stage 2+, own 5/10-min cooldown) | `common.lunge` | charges from ~28 to ~3 blocks, tears apart, no damage below High (High: keeps attacking) | ✅ Runtime (chance/cooldown values not asserted) |
 | Breathing Room (pursuit) | `pursuit.js` | in view, response window, runs, slows when watched, strike, water escape | ✅ Runtime |
 | At the Window | `window_watch.js` | outside the house, noticed | ✅ Runtime |
 | Second Witness | `second_witness.js` | witness sees, both see | ✅ Runtime |
@@ -130,4 +134,4 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Measure | Result | Test |
 |---|---|---|
 | Server tick rate, 180 s walking player, director active (2 encounters ran) | 20.00 mean / 19.99 min TPS — identical to the add-on-free baseline (20.00 / 19.99) | `tps.txt` with and without `--no-addon` |
-| No content-log or script errors during full suite | 0 errors (final run: 193/193 assertions, min 19.9 TPS between tests) | `run_bds.py` summary |
+| No content-log or script errors during full suite | 0 errors (final run: 218/218 assertions, min 19.2 TPS between tests) | `run_bds.py` summary |
