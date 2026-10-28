@@ -1,0 +1,17 @@
+{
+  "name": "fnar-tools",
+  "private": true,
+  "type": "module",
+  "description": "Build, validation and preview tools for Five Nights at Rustgrin's",
+  "dependencies": {
+    "three": "0.169.0",
+    "pngjs": "7.0.0",
+    "@minecraft/server": "2.10.0",
+    "@minecraft/server-ui": "2.2.0",
+    "@minecraft/vanilla-data": "1.26.50",
+    "@minecraft/bedrock-schemas": "1.26.50",
+    "ajv": "^8",
+    "ajv-formats": "^3",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,37 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "fnaf:rustgrin",
+   "materials": {
+    "default": "entity_alphatest"
+   },
+   "textures": {
+    "default": "textures/entity/rustgrin"
+   },
+   "geometry": {
+    "default": "geometry.rustgrin"
+   },
+   "animations": {
+    "idle": "animation.rustgrin.idle",
+    "perform_1": "animation.rustgrin.perform_1",
+    "perform_2": "animation.rustgrin.perform_2",
+    "walk": "animation.rustgrin.walk",
+    "run": "animation.rustgrin.run",
+    "jumpscare": "animation.rustgrin.jumpscare",
+    "pose_1": "animation.rustgrin.pose_1",
+    "pose_2": "animation.rustgrin.pose_2",
+    "move_controller": "controller.animation.rustgrin.move"
+   },
+   "scripts": {
+    "animate": [
+     "move_controller"
+    ]
+   },
+   "render_controllers": [
+    "controller.render.default"
+   ],
+   "enable_attachables": false
+  }
+ }
+}

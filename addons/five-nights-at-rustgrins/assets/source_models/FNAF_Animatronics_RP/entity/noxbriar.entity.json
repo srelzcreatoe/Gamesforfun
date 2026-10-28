@@ -1,0 +1,37 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "fnaf:noxbriar",
+   "materials": {
+    "default": "entity_alphatest"
+   },
+   "textures": {
+    "default": "textures/entity/noxbriar"
+   },
+   "geometry": {
+    "default": "geometry.noxbriar"
+   },
+   "animations": {
+    "idle": "animation.noxbriar.idle",
+    "perform_1": "animation.noxbriar.perform_1",
+    "perform_2": "animation.noxbriar.perform_2",
+    "walk": "animation.noxbriar.walk",
+    "run": "animation.noxbriar.run",
+    "jumpscare": "animation.noxbriar.jumpscare",
+    "pose_1": "animation.noxbriar.pose_1",
+    "pose_2": "animation.noxbriar.pose_2",
+    "move_controller": "controller.animation.noxbriar.move"
+   },
+   "scripts": {
+    "animate": [
+     "move_controller"
+    ]
+   },
+   "render_controllers": [
+    "controller.render.default"
+   ],
+   "enable_attachables": false
+  }
+ }
+}

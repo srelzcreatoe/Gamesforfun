@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "strict": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "typeRoots": [],
+    "types": [],
+    "paths": {
+      "@minecraft/server": ["./node_modules/@minecraft/server/index.d.ts"],
+      "@minecraft/server-ui": ["./node_modules/@minecraft/server-ui/index.d.ts"]
+    }
+  },
+  "include": ["../packs/BP/scripts/**/*.js", "./console.d.ts"]
+}

@@ -1,0 +1,37 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "fnaf:top_hat_rat",
+   "materials": {
+    "default": "entity_alphatest"
+   },
+   "textures": {
+    "default": "textures/entity/top_hat_rat"
+   },
+   "geometry": {
+    "default": "geometry.top_hat_rat"
+   },
+   "animations": {
+    "idle": "animation.top_hat_rat.idle",
+    "perform_1": "animation.top_hat_rat.perform_1",
+    "perform_2": "animation.top_hat_rat.perform_2",
+    "walk": "animation.top_hat_rat.walk",
+    "run": "animation.top_hat_rat.run",
+    "jumpscare": "animation.top_hat_rat.jumpscare",
+    "pose_1": "animation.top_hat_rat.pose_1",
+    "pose_2": "animation.top_hat_rat.pose_2",
+    "move_controller": "controller.animation.top_hat_rat.move"
+   },
+   "scripts": {
+    "animate": [
+     "move_controller"
+    ]
+   },
+   "render_controllers": [
+    "controller.render.default"
+   ],
+   "enable_attachables": false
+  }
+ }
+}

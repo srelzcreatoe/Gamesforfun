@@ -1,0 +1,29 @@
+{
+ "format_version": 2,
+ "header": {
+  "name": "FNAF Animatronics 2 - Purple Rat, Cat, Top-Hat Rat",
+  "description": "Models, textures and animations",
+  "uuid": "f11de83a-d7a4-44aa-a8c8-af185c0560f5",
+  "version": [
+   1,
+   0,
+   3
+  ],
+  "min_engine_version": [
+   1,
+   20,
+   0
+  ]
+ },
+ "modules": [
+  {
+   "type": "resources",
+   "uuid": "ce265ae0-b8e4-4c1a-8fa2-b4b2d557195a",
+   "version": [
+    1,
+    0,
+    3
+   ]
+  }
+ ]
+}

@@ -1,0 +1,29 @@
+{
+ "format_version": 2,
+ "header": {
+  "name": "FNAF Animatronics - Rustgrin, Mirehop, Noxbriar",
+  "description": "Models, textures and animations",
+  "uuid": "f82b0f73-3011-442d-8ac6-1855dcda98b7",
+  "version": [
+   1,
+   0,
+   1
+  ],
+  "min_engine_version": [
+   1,
+   20,
+   0
+  ]
+ },
+ "modules": [
+  {
+   "type": "resources",
+   "uuid": "7113c1de-0f2a-4e54-9986-c7087b75c062",
+   "version": [
+    1,
+    0,
+    1
+   ]
+  }
+ ]
+}
