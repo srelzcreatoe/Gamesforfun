@@ -146,8 +146,9 @@ export class Actuators {
   curtain(stage) {
     const c = CABARET.curtain;
     fillSafe(c.x, c.y1, c.z1, c.x, c.y2, c.z2, 'curtain_purple');
-    if (stage >= 1) fillSafe(c.x, CABARET.gap.y1, CABARET.gap.z, c.x, CABARET.gap.y2, CABARET.gap.z, 'air');
-    if (stage >= 2) fillSafe(c.x, CABARET.gap.y1, CABARET.gap.z - 1, c.x, CABARET.gap.y2, CABARET.gap.z + 1, 'air');
+    const g = CABARET.gap;
+    if (stage >= 1) fillSafe(c.x, g.y1, g.z1, c.x, g.y2, g.z2, 'air');
+    if (stage >= 2) fillSafe(c.x, g.y1, g.z1 - 1, c.x, g.y2, g.z2 + 1, 'air');
     const o = CABARET.outOfOrder;
     for (let z = o.z1; z <= o.z2; z++) {
       const tile = z - o.z1;

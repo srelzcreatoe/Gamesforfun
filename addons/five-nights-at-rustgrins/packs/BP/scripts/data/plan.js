@@ -60,7 +60,8 @@ export class PlanBuilder {
    * viewer's right and downwards.
    */
   picture(name, x, y, z, dir, w, h, variant = null) {
-    const right = { n: [1, 0], s: [-1, 0], e: [0, 1], w: [0, -1] }[dir]; // viewer's right when looking at the front
+    // the viewer's right-hand direction when looking at the front (a picture facing north is seen looking south, ...)
+    const right = { n: [-1, 0], s: [1, 0], e: [0, -1], w: [0, 1] }[dir];
     for (let r = 0; r < h; r++) {
       for (let c = 0; c < w; c++) {
         const tile = variant ?? r * w + c;

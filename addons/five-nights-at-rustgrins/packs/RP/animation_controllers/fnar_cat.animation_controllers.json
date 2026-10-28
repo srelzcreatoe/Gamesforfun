@@ -1,0 +1,502 @@
+{
+ "format_version": "1.10.0",
+ "animation_controllers": {
+  "controller.animation.fnar.cat": {
+   "initial_state": "idle",
+   "states": {
+    "idle": {
+     "animations": [
+      "idle"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      }
+     ]
+    },
+    "perform": {
+     "animations": [
+      "perform"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      }
+     ]
+    },
+    "perform2": {
+     "animations": [
+      "perform2"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      }
+     ]
+    },
+    "stand": {
+     "animations": [
+      "stand"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      }
+     ]
+    },
+    "walk": {
+     "animations": [
+      "walk"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      }
+     ]
+    },
+    "run": {
+     "animations": [
+      "run"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      }
+     ]
+    },
+    "scurry": {
+     "animations": [
+      "scurry"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      }
+     ]
+    },
+    "crawl": {
+     "animations": [
+      "crawl"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      }
+     ]
+    },
+    "peek": {
+     "animations": [
+      "peek"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      }
+     ]
+    },
+    "jumpscare": {
+     "animations": [
+      "jumpscare"
+     ],
+     "blend_transition": 0.05,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      }
+     ]
+    },
+    "slump": {
+     "animations": [
+      "slump"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "pose": "variable.fnar_anim == 'pose'"
+      }
+     ]
+    },
+    "pose": {
+     "animations": [
+      "pose"
+     ],
+     "blend_transition": 0.25,
+     "transitions": [
+      {
+       "idle": "variable.fnar_anim == 'idle'"
+      },
+      {
+       "perform": "variable.fnar_anim == 'perform'"
+      },
+      {
+       "perform2": "variable.fnar_anim == 'perform2'"
+      },
+      {
+       "stand": "variable.fnar_anim == 'stand'"
+      },
+      {
+       "walk": "variable.fnar_anim == 'walk'"
+      },
+      {
+       "run": "variable.fnar_anim == 'run'"
+      },
+      {
+       "scurry": "variable.fnar_anim == 'scurry'"
+      },
+      {
+       "crawl": "variable.fnar_anim == 'crawl'"
+      },
+      {
+       "peek": "variable.fnar_anim == 'peek'"
+      },
+      {
+       "jumpscare": "variable.fnar_anim == 'jumpscare'"
+      },
+      {
+       "slump": "variable.fnar_anim == 'slump'"
+      }
+     ]
+    }
+   }
+  }
+ }
+}

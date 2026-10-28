@@ -46,9 +46,9 @@ export const NODES = Object.freeze(Object.fromEntries([
   // Midway and Kitty's Cabaret
   N('MW_T', 6.5, 1, 21.5, -90, { pose: 'stage' }),
   N('MW_P', 4.5, 1, 19.0, -60, { pose: 'stage' }),
-  N('MW_GRATE', 7.5, 0, 23.8, 0),
+  N('MW_GRATE', 7.5, 1, 23.8, 0),
   N('CAB', 9.5, 1, 33.5, -90, { pose: 'stage' }),
-  N('CAB_PEEK', 13.2, 0, 33.5, -90),
+  N('CAB_PEEK', 13.4, 0, 33.0, -90),
   N('CAB_OUT', 16.2, 0, 33.5, -90),
   // west duct (crawl) - the riser from the Midway grate, then towards the office's left vent
   N('WD_0', 7.5, 7, 25.5, 0, { crawl: true }),
@@ -87,7 +87,7 @@ export const EDGES = Object.freeze([
   E('DIN_W', 'BACK', [[19.5, 0, 14.0], [16.0, 0, 11.0], [13.2, 0, 11.0], [9.0, 0, 9.0]]),
   E('DIN_W', 'DIN_CAB', [[19.5, 0, 28.0]]),
   E('DIN_W', 'DIN_SW', [[22.5, 0, 30.0], [22.5, 0, 34.5]]),
-  E('DIN_W', 'MW_GRATE', [[16.0, 0, 22.5], [12.0, 0, 23.0]]),
+  E('DIN_W', 'MW_GRATE', [[16.0, 0, 22.5], [11.4, 0, 23.0], [10.6, 1, 23.2]]),
   E('DIN_CAB', 'DIN_SW', [[22.5, 0, 34.8]]),
   E('DIN_CAB', 'CAB_OUT', []),
   E('DIN_C', 'DIN_E', [[40.0, 0, 12.5], [48.0, 0, 11.4], [56.0, 0, 12.5]]),
@@ -99,8 +99,8 @@ export const EDGES = Object.freeze([
   E('DIN_E', 'KIT', [[61.0, 0, 10.0], [64.0, 0, 10.0]]),
   E('DIN_E', 'REST', [[61.0, 0, 20.0], [64.5, 0, 20.0]]),
   E('KIT', 'REST', [[64.0, 0, 10.0], [61.0, 0, 10.0], [60.0, 0, 15.0], [61.0, 0, 20.0], [64.5, 0, 20.0]]),
-  E('REST', 'DIN_SE', [[64.5, 0, 20.0], [61.0, 0, 20.0], [59.0, 0, 30.0], [52.0, 0, 35.0]]),
-  E('KIT', 'DIN_SE', [[64.0, 0, 10.0], [61.0, 0, 10.0], [59.0, 0, 18.0], [59.0, 0, 30.0], [52.0, 0, 35.0]]),
+  E('REST', 'DIN_SE', [[64.5, 0, 20.0], [61.0, 0, 20.0], [59.0, 0, 34.5], [52.0, 0, 35.0]]),
+  E('KIT', 'DIN_SE', [[64.0, 0, 10.0], [61.0, 0, 10.0], [59.0, 0, 18.0], [59.0, 0, 34.5], [52.0, 0, 35.0]]),
   // west hall
   E('DIN_SW', 'WH_N', [[27.5, 0, 38.0]]),
   E('WH_N', 'WH_M'), E('WH_M', 'WH_S'),
@@ -119,12 +119,12 @@ export const EDGES = Object.freeze([
   E('EC', 'NOOK', [[44.8, 0, 66.0]]),
   E('EH_S', 'NOOK', [[45.4, 0, 58.0], [45.6, 0, 64.0]]),
   // Midway and the Cabaret
-  E('MW_T', 'DIN_W', [[9.5, 1, 21.5], [11.2, 0, 21.5], [16.0, 0, 22.0]]),
-  E('MW_P', 'MW_GRATE', [[6.0, 1, 21.0], [8.5, 0, 22.5]]),
-  E('CAB', 'CAB_PEEK', [[11.5, 1, 33.5], [12.6, 0, 33.5]]),
+  E('MW_T', 'DIN_W', [[9.5, 1, 21.5], [10.9, 1, 21.5], [11.4, 0, 21.5], [16.0, 0, 22.0]]),
+  E('MW_P', 'MW_GRATE', [[6.0, 1, 21.0], [8.0, 1, 22.8]]),
+  E('CAB', 'CAB_PEEK', [[12.9, 1, 33.5], [13.3, 0, 33.3]]),
   E('CAB_PEEK', 'CAB_OUT'),
   // ducts (crawl). The grate riser is a climb: MW_GRATE -> WD_0 straight up through (7, 5..6, 24).
-  E('MW_GRATE', 'WD_0', [[7.5, 3.0, 24.4], [7.5, 6.0, 24.6]]),
+  E('MW_GRATE', 'WD_0', [[7.5, 3.0, 24.4], [7.5, 6.0, 24.6]]), // climb through the ceiling grate
   E('WD_0', 'WD_1'), E('WD_1', 'WD_2'), E('WD_2', 'WD_3'), E('WD_3', 'WD_4'), E('WD_4', 'WD_5'), E('WD_5', 'WD_END'),
   E('KIT', 'ED_0', [[71.5, 0, 7.0], [71.5, 3.0, 6.6], [71.5, 6.0, 6.6]]),
   E('ED_0', 'ED_1'), E('ED_1', 'ED_2'), E('ED_2', 'ED_3'), E('ED_3', 'ED_4'), E('ED_4', 'ED_5'), E('ED_5', 'ED_END'),

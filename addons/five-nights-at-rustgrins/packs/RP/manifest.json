@@ -1,0 +1,39 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Five Nights at Rustgrin's (Resources)",
+    "description": "Animatronics, the pizzeria blocks (vanilla-style, Vibrant Visuals ready), sounds, camera UI.",
+    "uuid": "f29ca45a-51c9-4089-a965-2e8edb89568f",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      26,
+      50
+    ]
+  },
+  "modules": [
+    {
+      "description": "Resources",
+      "type": "resources",
+      "uuid": "20e930e1-ff15-423d-914e-b5f4f22013fe",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "capabilities": [
+    "pbr"
+  ],
+  "metadata": {
+    "authors": [
+      "Five Nights at Rustgrin's project"
+    ],
+    "license": "Original work; animatronic models supplied by the map owner. Not affiliated with Scott Cawthon or Mojang."
+  }
+}

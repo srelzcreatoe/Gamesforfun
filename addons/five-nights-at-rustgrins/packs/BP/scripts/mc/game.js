@@ -71,6 +71,8 @@ export class Game {
     this.pendingBuild = false;
     this.overlay = false;
     this.freeRoamNext = 0;
+    /** @type {number | undefined} interval that flashes Rustgrin's eyes during the power-out song */
+    this.flashEyes = undefined;
   }
 
   // ================================================================ lifecycle
@@ -522,7 +524,8 @@ export class Game {
   showCamMap(g, camId) {
     if (this.save.settings.camMap === false) return;
     try {
-      g.onScreenDisplay.setTitle(camId ? mapTitle(camId) : MAP_OFF, { fadeInDuration: 0, stayDuration: camId ? 100 : 1, fadeOutDuration: 0, subtitle: camId ? `§f${hourLabel(this.session?.hour ?? 0)}` : undefined });
+      // the title is only formatting codes (invisible); the resource pack draws the map from it
+      g.onScreenDisplay.setTitle(camId ? mapTitle(camId) : MAP_OFF, { fadeInDuration: 0, stayDuration: camId ? 100 : 1, fadeOutDuration: 0 });
     } catch {
       // ignore
     }
@@ -550,11 +553,18 @@ export class Game {
     switch (e.fx) {
       case 'start':
         return;
-      case 'place':
-        this.puppets.spawn(e.who, e.node, POSE_ANIM[e.pose] ?? 'idle');
+      case 'place': {
+        let anim = POSE_ANIM[e.pose] ?? 'idle';
+        if (e.initial) {
+          // at night the band stands still on stage holding its props; the Ringmaster's troupe
+          // keeps performing for as long as the show tape runs
+          const show = s.def.tape && s.chars.top_hat_rat.enabled && (e.who === 'top_hat_rat' || e.who === 'purple_rat');
+          anim = e.who === 'cat' ? 'idle' : show ? 'perform' : 'pose';
+        }
+        this.puppets.spawn(e.who, e.node, anim);
         this.puppets.eyes(e.who, true);
-        if (e.initial && e.who === 'cat') this.puppets.anim('cat', 'idle');
         return;
+      }
       case 'move':
         this.puppets.walk(e.who, e.path, e.dur, POSE_ANIM[e.anim] ?? 'walk', e.yaw);
         delete this.stare[e.who];
@@ -578,6 +588,7 @@ export class Game {
         return;
       case 'vent':
         this.act.vent(e.side, e.closed);
+        this.act.button(e.side === 'L' ? 'vent_l' : 'vent_r', e.closed);
         this.audio.play(e.closed ? 'fnar.vent.close' : 'fnar.vent.open', e.side === 'L' ? 'vent_l' : 'vent_r', g);
         return;
       case 'cams':

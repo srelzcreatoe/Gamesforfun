@@ -1,0 +1,66 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Five Nights at Rustgrin's (Behavior)",
+    "description": "An original FNAF-style night-guard horror map: six animatronics, security cameras, doors, vents and a show that must go on. Requires the matching resource pack.",
+    "uuid": "02b67251-1ef0-43ba-8b73-411d54a1b730",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      26,
+      50
+    ]
+  },
+  "modules": [
+    {
+      "description": "Entities, blocks, items",
+      "type": "data",
+      "uuid": "205a6fbd-72d6-4382-9bb9-abc2ec4f9948",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "description": "Night simulation, cameras, map builder, UI",
+      "type": "script",
+      "language": "javascript",
+      "entry": "scripts/main.js",
+      "uuid": "41b33f8b-b5be-40fb-b9f9-e0e81275309b",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "f29ca45a-51c9-4089-a965-2e8edb89568f",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.10.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "2.2.0"
+    }
+  ],
+  "metadata": {
+    "authors": [
+      "Five Nights at Rustgrin's project"
+    ],
+    "license": "Original work; animatronic models supplied by the map owner. Not affiliated with Scott Cawthon or Mojang."
+  }
+}

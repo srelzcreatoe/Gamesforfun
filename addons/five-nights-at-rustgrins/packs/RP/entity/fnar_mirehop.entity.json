@@ -1,0 +1,53 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "fnar:mirehop",
+   "materials": {
+    "default": "entity_alphatest",
+    "eyes": "creaking_eyes"
+   },
+   "textures": {
+    "default": "textures/entity/fnar/mirehop",
+    "eyes": "textures/entity/fnar/mirehop_eyes"
+   },
+   "geometry": {
+    "default": "geometry.fnar.mirehop"
+   },
+   "scripts": {
+    "pre_animation": [
+     "variable.fnar_anim = query.property('fnar:anim');",
+     "variable.fnar_eyes = query.property('fnar:eyes');",
+     "variable.fnar_hidden = query.property('fnar:hidden');",
+     "variable.fnar_ly = math.lerp(variable.fnar_ly ?? 0, query.property('fnar:look_yaw'), 0.08);",
+     "variable.fnar_lp = math.lerp(variable.fnar_lp ?? 0, query.property('fnar:look_pitch'), 0.08);"
+    ],
+    "animate": [
+     "ctrl",
+     "look"
+    ]
+   },
+   "animations": {
+    "idle": "animation.fnar.mirehop.idle",
+    "perform": "animation.fnar.mirehop.perform_1",
+    "perform2": "animation.fnar.mirehop.perform_2",
+    "stand": "animation.fnar.mirehop.idle",
+    "walk": "animation.fnar.mirehop.walk",
+    "run": "animation.fnar.mirehop.run",
+    "scurry": "animation.fnar.mirehop.run",
+    "crawl": "animation.fnar.mirehop.crawl",
+    "peek": "animation.fnar.mirehop.peek",
+    "jumpscare": "animation.fnar.mirehop.jumpscare",
+    "slump": "animation.fnar.mirehop.pose_2",
+    "pose": "animation.fnar.mirehop.pose_1",
+    "look": "animation.fnar.mirehop.look",
+    "ctrl": "controller.animation.fnar.mirehop"
+   },
+   "render_controllers": [
+    "controller.render.fnar.body",
+    "controller.render.fnar.eyes"
+   ],
+   "enable_attachables": false
+  }
+ }
+}

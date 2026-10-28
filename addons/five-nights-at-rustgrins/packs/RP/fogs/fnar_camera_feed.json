@@ -1,0 +1,48 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:fog_settings": {
+    "description": {
+      "identifier": "fnar:camera_feed"
+    },
+    "distance": {
+      "air": {
+        "fog_start": 18,
+        "fog_end": 90,
+        "fog_color": "#0e1612",
+        "render_distance_type": "fixed"
+      },
+      "weather": {
+        "fog_start": 18,
+        "fog_end": 90,
+        "fog_color": "#0e1612",
+        "render_distance_type": "fixed"
+      }
+    },
+    "volumetric": {
+      "density": {
+        "air": {
+          "max_density": 0.02,
+          "uniform": true
+        },
+        "weather": {
+          "max_density": 0.02,
+          "uniform": true
+        }
+      },
+      "media_coefficients": {
+        "air": {
+          "scattering": [
+            0.02,
+            0.02,
+            0.02
+          ],
+          "absorption": [
+            0.005,
+            0.005,
+            0.005
+          ]
+        }
+      }
+    }
+  }
+}

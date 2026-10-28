@@ -1,0 +1,53 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "fnar:top_hat_rat",
+   "materials": {
+    "default": "entity_alphatest",
+    "eyes": "creaking_eyes"
+   },
+   "textures": {
+    "default": "textures/entity/fnar/top_hat_rat",
+    "eyes": "textures/entity/fnar/top_hat_rat_eyes"
+   },
+   "geometry": {
+    "default": "geometry.fnar.top_hat_rat"
+   },
+   "scripts": {
+    "pre_animation": [
+     "variable.fnar_anim = query.property('fnar:anim');",
+     "variable.fnar_eyes = query.property('fnar:eyes');",
+     "variable.fnar_hidden = query.property('fnar:hidden');",
+     "variable.fnar_ly = math.lerp(variable.fnar_ly ?? 0, query.property('fnar:look_yaw'), 0.08);",
+     "variable.fnar_lp = math.lerp(variable.fnar_lp ?? 0, query.property('fnar:look_pitch'), 0.08);"
+    ],
+    "animate": [
+     "ctrl",
+     "look"
+    ]
+   },
+   "animations": {
+    "idle": "animation.fnar.top_hat_rat.idle",
+    "perform": "animation.fnar.top_hat_rat.perform_1",
+    "perform2": "animation.fnar.top_hat_rat.perform_2",
+    "stand": "animation.fnar.top_hat_rat.idle",
+    "walk": "animation.fnar.top_hat_rat.walk",
+    "run": "animation.fnar.top_hat_rat.run",
+    "scurry": "animation.fnar.top_hat_rat.run",
+    "crawl": "animation.fnar.top_hat_rat.crawl",
+    "peek": "animation.fnar.top_hat_rat.peek",
+    "jumpscare": "animation.fnar.top_hat_rat.jumpscare",
+    "slump": "animation.fnar.top_hat_rat.pose_2",
+    "pose": "animation.fnar.top_hat_rat.pose_1",
+    "look": "animation.fnar.top_hat_rat.look",
+    "ctrl": "controller.animation.fnar.top_hat_rat"
+   },
+   "render_controllers": [
+    "controller.render.fnar.body",
+    "controller.render.fnar.eyes"
+   ],
+   "enable_attachables": false
+  }
+ }
+}

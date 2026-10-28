@@ -12,6 +12,11 @@ import { log } from './mc/log.js';
 /** @type {Game | undefined} */
 let game;
 
+/** The running game (for the Node test harness, tools/mock/run_game.mjs). */
+export function currentGame() {
+  return game;
+}
+
 system.beforeEvents.startup.subscribe((ev) => {
   try {
     registerCommands(ev.customCommandRegistry, () => game);

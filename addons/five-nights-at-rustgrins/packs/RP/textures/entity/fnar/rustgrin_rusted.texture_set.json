@@ -1,0 +1,7 @@
+{
+ "format_version": "1.21.30",
+ "minecraft:texture_set": {
+  "color": "rustgrin_rusted",
+  "metalness_emissive_roughness": "rustgrin_rusted_mer"
+ }
+}

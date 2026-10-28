@@ -145,9 +145,11 @@ function exterior(p) {
   p.setPhase('exterior');
   const rng = p.rng.fork(23);
   const B = BUILDING;
-  // sidewalk ring around the building
-  p.fill(B.x1 - 3, -1, B.z1 - 3, B.x2 + 3, -1, B.z2 + 3, 'sidewalk');
-  p.fill(B.x1 - 1, -1, B.z1 - 1, B.x2 + 1, -1, B.z2 + 1, 'ext_base');
+  // sidewalk ring around the building (outside the exterior skin only - the floors inside are done)
+  p.fill(B.x1 - 3, -1, B.z1 - 3, B.x2 + 3, -1, B.z1 - 2, 'sidewalk');
+  p.fill(B.x1 - 3, -1, B.z2 + 2, B.x2 + 3, -1, B.z2 + 3, 'sidewalk');
+  p.fill(B.x1 - 3, -1, B.z1 - 1, B.x1 - 2, -1, B.z2 + 1, 'sidewalk');
+  p.fill(B.x2 + 2, -1, B.z1 - 1, B.x2 + 3, -1, B.z2 + 1, 'sidewalk');
   // parking lot (east) with bays
   p.fill(85, -1, 0, 109, -1, 68, 'blackstone');
   for (let z = 2; z <= 66; z += 4) {
@@ -159,7 +161,7 @@ function exterior(p) {
   p.fill(110, -1, 0, 110, -1, 68, 'curb');
   // the street
   p.fill(114, -1, LOT.z1, 124, -1, LOT.z2, 'black_c');
-  for (let z = LOT.z1; z <= LOT.z2; z += 6) p.fill(119, -1, z, 119, -1, z + 2, 'paint_yellow');
+  for (let z = LOT.z1; z <= LOT.z2; z += 6) p.fill(119, -1, z, 119, -1, Math.min(LOT.z2, z + 2), 'paint_yellow');
   p.fill(111, -1, LOT.z1, 113, -1, LOT.z2, 'sidewalk');
   p.fill(125, -1, LOT.z1, 127, -1, LOT.z2, 'sidewalk');
   p.fill(110, -1, 30, 113, -1, 38, 'blackstone'); // driveway
@@ -182,7 +184,7 @@ function exterior(p) {
   for (const [z1, z2] of [[28, 29], [37, 40]]) p.fill(B.x2, 1, z1, B.x2 + 1, 2, z2, 'window');
   // big sign board on the facade above the canopy: background + the neon picture (6x2 tiles)
   p.fill(B.x2 + 1, 6, 29, B.x2 + 1, 9, 36, 'blackstone_bricks');
-  p.picture('sign_revue', B.x2 + 2, 9, 30, 'e', 6, 2);
+  p.picture('sign_revue', B.x2 + 2, 9, 35, 'e', 6, 2); // facing east: tiles run north (-z) to the viewer's right
   // roof clutter: AC units and vents
   for (const [x, z] of [[20, 20], [52, 14], [70, 34], [30, 60], [60, 58]]) {
     p.fill(x, B.roofY + 1, z, x + 1, B.roofY + 1, z + 1, 'iron_block');
@@ -282,7 +284,7 @@ function dining(p, rng) {
     p.set(x, y, z, `exit_true_${dir}`);
     p.meta.exits.push({ x, y, z, dir });
   }
-  p.set(59, 0, 23, 'wetsign_w');
+  p.set(61, 0, 27, 'wetsign_w');
   p.set(16, 0, 2, 'trash_e');
   p.set(60, 0, 36, 'trash_w');
   // signs over the Midway arch and the Cabaret mouth (dining side)
@@ -312,7 +314,6 @@ function midway(p, rng) {
 function cabaret(p, rng) {
   const [x1, z1, x2, z2] = CABARET.stage;
   p.fill(x1, 0, z1, x2, 0, z2, 'stage_floor');
-  p.fill(x2 + 1, 0, z1, x2 + 1, 0, z2, 'dark_oak_slab');
   for (const z of [30, 33, 36]) p.set(5, 3, z, 'star_e');
   p.set(5, 0, 29, `balloons_${rng.int(0, 2)}`);
   p.set(11, 4, 33, 'spot_false_w');
@@ -323,9 +324,9 @@ function backstage(p, rng) {
   for (let x = 2; x <= 12; x += 2) p.set(x, 0, 1, 'shelf_s');
   for (let z = 3; z <= 9; z += 2) p.set(1, 0, z, 'shelf_e');
   // workbench with parts
-  p.fill(8, 0, 9, 11, 0, 9, 'blackstone_slab_top');
-  p.set(9, 1, 9, 'anvil');
-  p.set(11, 1, 9, `pizza_1_n`);
+  p.fill(8, 0, 4, 11, 0, 4, 'blackstone_slab_top');
+  p.set(9, 1, 4, 'anvil');
+  p.set(11, 1, 4, 'pizza_1_n');
   p.set(4, 0, 12, 'barrel_n');
   p.set(5, 0, 12, 'barrel_n');
   p.set(4, 1, 12, 'barrel_n');
@@ -555,6 +556,8 @@ function signs(p) {
   p.sign(25, 2, 47, 'e', ['SUPPLY', 'CLOSET']);
   p.sign(63, 2, 11, 'e', ['KITCHEN', 'Staff only']);
   p.sign(32, 2, 69, 'e', ['NIGHT GUARD', 'Doors: red', 'Lights: white', 'Power is finite']);
+  p.sign(33, 1, 60, 's', ['', 'LEFT VENT', '^']);
+  p.sign(39, 1, 60, 's', ['', 'RIGHT VENT', '^']);
 }
 
 /** Generate the full plan. */

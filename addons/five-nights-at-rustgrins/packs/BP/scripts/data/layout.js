@@ -90,6 +90,9 @@ export const OFFICE = Object.freeze({
     light_l: Object.freeze({ x: 32, y: 1, z: 68, dir: 'e', kind: 'light_btn' }),
     door_r: Object.freeze({ x: 40, y: 2, z: 68, dir: 'w', kind: 'door_btn' }),
     light_r: Object.freeze({ x: 40, y: 1, z: 68, dir: 'w', kind: 'light_btn' }),
+    // the two ceiling-vent covers: buttons on the wall above the desk, labelled by signs below
+    vent_l: Object.freeze({ x: 33, y: 2, z: 60, dir: 's', kind: 'light_btn' }),
+    vent_r: Object.freeze({ x: 39, y: 2, z: 60, dir: 's', kind: 'light_btn' }),
   }),
   // Ceiling vents (vent_cover blocks in the ceiling row y = 5).
   vents: Object.freeze({
@@ -129,7 +132,7 @@ export const MIDWAY_RING = Object.freeze({ cx: 6, cz: 21, r: 4, topY: 0 });
 export const SHOW_TAPE = Object.freeze({ x: 10, y: 0, z: 26, dir: 'n' }); // on the floor by the Midway's south wall, facing the room
 export const CABARET = Object.freeze({
   curtain: Object.freeze({ x: 14, y1: 0, y2: 4, z1: 30, z2: 36 }),
-  gap: Object.freeze({ z: 33, y1: 0, y2: 3 }), // cells opened when the Cat peeks
+  gap: Object.freeze({ z1: 32, z2: 33, y1: 0, y2: 3 }), // cells opened when the Cat peeks (wider at stage 2)
   outOfOrder: Object.freeze({ x: 15, y: 2, z1: 33, z2: 34, dir: 'e' }),
   stage: Object.freeze([6, 30, 12, 36]),
 });

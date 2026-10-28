@@ -1,0 +1,41 @@
+{
+ "format_version": "1.10.0",
+ "render_controllers": {
+  "controller.render.fnar.body": {
+   "geometry": "Geometry.default",
+   "materials": [
+    {
+     "*": "Material.default"
+    }
+   ],
+   "textures": [
+    "Texture.default"
+   ],
+   "part_visibility": [
+    {
+     "*": "!variable.fnar_hidden"
+    }
+   ]
+  },
+  "controller.render.fnar.eyes": {
+   "geometry": "Geometry.default",
+   "materials": [
+    {
+     "*": "Material.eyes"
+    }
+   ],
+   "textures": [
+    "Texture.eyes"
+   ],
+   "ignore_lighting": true,
+   "part_visibility": [
+    {
+     "*": false
+    },
+    {
+     "head": "variable.fnar_eyes && !variable.fnar_hidden"
+    }
+   ]
+  }
+ }
+}

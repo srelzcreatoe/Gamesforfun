@@ -1,0 +1,28 @@
+{
+  "format_version": "1.26.30",
+  "minecraft:item": {
+    "description": {
+      "identifier": "fnar:guide",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "textures": {
+          "default": "fnar_guide"
+        }
+      },
+      "minecraft:display_name": {
+        "value": "item.fnar:guide.name"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:interact_button": "Read",
+      "minecraft:cooldown": {
+        "category": "fnar_tools",
+        "duration": 0.25
+      },
+      "minecraft:hand_equipped": false
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "fnar:purple_rat",
+   "materials": {
+    "default": "entity_alphatest",
+    "eyes": "creaking_eyes"
+   },
+   "textures": {
+    "default": "textures/entity/fnar/purple_rat",
+    "eyes": "textures/entity/fnar/purple_rat_eyes"
+   },
+   "geometry": {
+    "default": "geometry.fnar.purple_rat"
+   },
+   "scripts": {
+    "pre_animation": [
+     "variable.fnar_anim = query.property('fnar:anim');",
+     "variable.fnar_eyes = query.property('fnar:eyes');",
+     "variable.fnar_hidden = query.property('fnar:hidden');",
+     "variable.fnar_ly = math.lerp(variable.fnar_ly ?? 0, query.property('fnar:look_yaw'), 0.08);",
+     "variable.fnar_lp = math.lerp(variable.fnar_lp ?? 0, query.property('fnar:look_pitch'), 0.08);"
+    ],
+    "animate": [
+     "ctrl",
+     "look"
+    ]
+   },
+   "animations": {
+    "idle": "animation.fnar.purple_rat.idle",
+    "perform": "animation.fnar.purple_rat.perform_1",
+    "perform2": "animation.fnar.purple_rat.perform_2",
+    "stand": "animation.fnar.purple_rat.idle",
+    "walk": "animation.fnar.purple_rat.walk",
+    "run": "animation.fnar.purple_rat.run",
+    "scurry": "animation.fnar.purple_rat.run",
+    "crawl": "animation.fnar.purple_rat.crawl",
+    "peek": "animation.fnar.purple_rat.peek",
+    "jumpscare": "animation.fnar.purple_rat.jumpscare",
+    "slump": "animation.fnar.purple_rat.pose_2",
+    "pose": "animation.fnar.purple_rat.pose_1",
+    "look": "animation.fnar.purple_rat.look",
+    "ctrl": "controller.animation.fnar.purple_rat"
+   },
+   "render_controllers": [
+    "controller.render.fnar.body",
+    "controller.render.fnar.eyes"
+   ],
+   "enable_attachables": false
+  }
+ }
+}

@@ -1,0 +1,112 @@
+{
+ "format_version": "1.26.50",
+ "minecraft:entity": {
+  "description": {
+   "identifier": "fnar:noxbriar",
+   "is_spawnable": false,
+   "is_summonable": true,
+   "is_experimental": false,
+   "spawn_category": "misc",
+   "properties": {
+    "fnar:anim": {
+     "type": "enum",
+     "values": [
+      "idle",
+      "perform",
+      "perform2",
+      "stand",
+      "walk",
+      "run",
+      "scurry",
+      "crawl",
+      "peek",
+      "jumpscare",
+      "slump",
+      "pose"
+     ],
+     "default": "idle",
+     "client_sync": true
+    },
+    "fnar:eyes": {
+     "type": "bool",
+     "default": false,
+     "client_sync": true
+    },
+    "fnar:hidden": {
+     "type": "bool",
+     "default": false,
+     "client_sync": true
+    },
+    "fnar:look_yaw": {
+     "type": "int",
+     "range": [
+      -90,
+      90
+     ],
+     "default": 0,
+     "client_sync": true
+    },
+    "fnar:look_pitch": {
+     "type": "int",
+     "range": [
+      -45,
+      45
+     ],
+     "default": 0,
+     "client_sync": true
+    },
+    "fnar:variant": {
+     "type": "int",
+     "range": [
+      0,
+      3
+     ],
+     "default": 0,
+     "client_sync": true
+    }
+   }
+  },
+  "components": {
+   "minecraft:type_family": {
+    "family": [
+     "fnar_animatronic",
+     "inanimate"
+    ]
+   },
+   "minecraft:collision_box": {
+    "width": 0.7,
+    "height": 2.6
+   },
+   "minecraft:physics": {
+    "has_gravity": false,
+    "has_collision": false
+   },
+   "minecraft:pushable": {
+    "is_pushable": false,
+    "is_pushable_by_piston": false
+   },
+   "minecraft:damage_sensor": {
+    "triggers": [
+     {
+      "cause": "all",
+      "deals_damage": "no"
+     }
+    ]
+   },
+   "minecraft:health": {
+    "value": 100,
+    "max": 100
+   },
+   "minecraft:knockback_resistance": {
+    "value": 1.0
+   },
+   "minecraft:fire_immune": {},
+   "minecraft:persistent": {},
+   "minecraft:nameable": {
+    "always_show": false,
+    "allow_name_tag_renaming": false
+   }
+  },
+  "events": {}
+ }
+}

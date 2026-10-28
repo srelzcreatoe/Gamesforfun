@@ -1,0 +1,53 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "fnar:noxbriar",
+   "materials": {
+    "default": "entity_alphatest",
+    "eyes": "creaking_eyes"
+   },
+   "textures": {
+    "default": "textures/entity/fnar/noxbriar",
+    "eyes": "textures/entity/fnar/noxbriar_eyes"
+   },
+   "geometry": {
+    "default": "geometry.fnar.noxbriar"
+   },
+   "scripts": {
+    "pre_animation": [
+     "variable.fnar_anim = query.property('fnar:anim');",
+     "variable.fnar_eyes = query.property('fnar:eyes');",
+     "variable.fnar_hidden = query.property('fnar:hidden');",
+     "variable.fnar_ly = math.lerp(variable.fnar_ly ?? 0, query.property('fnar:look_yaw'), 0.08);",
+     "variable.fnar_lp = math.lerp(variable.fnar_lp ?? 0, query.property('fnar:look_pitch'), 0.08);"
+    ],
+    "animate": [
+     "ctrl",
+     "look"
+    ]
+   },
+   "animations": {
+    "idle": "animation.fnar.noxbriar.idle",
+    "perform": "animation.fnar.noxbriar.perform_1",
+    "perform2": "animation.fnar.noxbriar.perform_2",
+    "stand": "animation.fnar.noxbriar.idle",
+    "walk": "animation.fnar.noxbriar.walk",
+    "run": "animation.fnar.noxbriar.run",
+    "scurry": "animation.fnar.noxbriar.run",
+    "crawl": "animation.fnar.noxbriar.crawl",
+    "peek": "animation.fnar.noxbriar.peek",
+    "jumpscare": "animation.fnar.noxbriar.jumpscare",
+    "slump": "animation.fnar.noxbriar.pose_2",
+    "pose": "animation.fnar.noxbriar.pose_1",
+    "look": "animation.fnar.noxbriar.look",
+    "ctrl": "controller.animation.fnar.noxbriar"
+   },
+   "render_controllers": [
+    "controller.render.fnar.body",
+    "controller.render.fnar.eyes"
+   ],
+   "enable_attachables": false
+  }
+ }
+}

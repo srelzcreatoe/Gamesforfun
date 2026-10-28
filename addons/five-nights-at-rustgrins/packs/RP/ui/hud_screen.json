@@ -1,0 +1,480 @@
+{
+ "namespace": "hud",
+ "root_panel": {
+  "modifications": [
+   {
+    "array_name": "controls",
+    "operation": "insert_back",
+    "value": [
+     {
+      "fnar_cam_hud@hud.fnar_cam_hud": {}
+     }
+    ]
+   }
+  ]
+ },
+ "fnar_cam_hud": {
+  "type": "panel",
+  "size": [
+   "100%",
+   "100%"
+  ],
+  "layer": 1,
+  "bindings": [
+   {
+    "binding_name": "#hud_title_text_string",
+    "binding_type": "global"
+   },
+   {
+    "binding_type": "view",
+    "source_property_name": "(not ((#hud_title_text_string - '§k§r§k§r§l') = #hud_title_text_string))",
+    "target_property_name": "#visible"
+   }
+  ],
+  "controls": [
+   {
+    "fnar_cam_frame": {
+     "type": "image",
+     "texture": "textures/ui/fnar/cam_frame",
+     "size": [
+      "100%",
+      "100%"
+     ],
+     "layer": 1,
+     "alpha": 0.95
+    }
+   },
+   {
+    "fnar_cam_rec": {
+     "type": "image",
+     "texture": "textures/ui/fnar/rec",
+     "size": [
+      48,
+      15
+     ],
+     "anchor_from": "top_left",
+     "anchor_to": "top_left",
+     "offset": [
+      14,
+      12
+     ],
+     "layer": 3,
+     "anims": [
+      "@hud.fnar_rec_blink_out"
+     ]
+    }
+   },
+   {
+    "fnar_cam_map": {
+     "type": "panel",
+     "size": [
+      140,
+      125.68
+     ],
+     "anchor_from": "bottom_right",
+     "anchor_to": "bottom_right",
+     "offset": [
+      -4,
+      -4
+     ],
+     "layer": 5,
+     "controls": [
+      {
+       "fnar_cam_map_base": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_map",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 1
+       }
+      },
+      {
+       "fnar_cam_live_00": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_00",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§0')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
+      },
+      {
+       "fnar_cam_live_01": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_01",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§1')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
+      },
+      {
+       "fnar_cam_live_02": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_02",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§2')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
+      },
+      {
+       "fnar_cam_live_03": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_03",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§3')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
+      },
+      {
+       "fnar_cam_live_04": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_04",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§4')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
+      },
+      {
+       "fnar_cam_live_05": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_05",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§5')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
+      },
+      {
+       "fnar_cam_live_06": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_06",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§6')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
+      },
+      {
+       "fnar_cam_live_07": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_07",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§7')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
+      },
+      {
+       "fnar_cam_live_08": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_08",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§8')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
+      },
+      {
+       "fnar_cam_live_09": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_09",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§0§9')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
+      },
+      {
+       "fnar_cam_live_10": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_10",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§0')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
+      },
+      {
+       "fnar_cam_live_11": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_11",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§1')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
+      },
+      {
+       "fnar_cam_live_12": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_12",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§2')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
+      },
+      {
+       "fnar_cam_live_13": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_live_13",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 2,
+        "anims": [
+         "@hud.fnar_cam_blink_out"
+        ],
+        "bindings": [
+         {
+          "binding_name": "#hud_title_text_string",
+          "binding_type": "global"
+         },
+         {
+          "binding_type": "view",
+          "source_property_name": "(#hud_title_text_string = '§k§r§k§r§l§1§3')",
+          "target_property_name": "#visible"
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "fnar_cam_blink_out": {
+  "anim_type": "alpha",
+  "easing": "linear",
+  "duration": 0.45,
+  "from": 1.0,
+  "to": 0.35,
+  "next": "@hud.fnar_cam_blink_in"
+ },
+ "fnar_cam_blink_in": {
+  "anim_type": "alpha",
+  "easing": "linear",
+  "duration": 0.45,
+  "from": 0.35,
+  "to": 1.0,
+  "next": "@hud.fnar_cam_blink_out"
+ },
+ "fnar_rec_blink_out": {
+  "anim_type": "alpha",
+  "easing": "linear",
+  "duration": 0.6,
+  "from": 1.0,
+  "to": 0.0,
+  "next": "@hud.fnar_rec_blink_in"
+ },
+ "fnar_rec_blink_in": {
+  "anim_type": "alpha",
+  "easing": "linear",
+  "duration": 0.6,
+  "from": 0.0,
+  "to": 1.0,
+  "next": "@hud.fnar_rec_blink_out"
+ }
+}

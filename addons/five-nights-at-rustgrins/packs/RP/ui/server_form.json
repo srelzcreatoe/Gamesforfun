@@ -1,0 +1,352 @@
+{
+ "namespace": "server_form",
+ "main_screen_content": {
+  "size": [
+   "100%",
+   "100%"
+  ]
+ },
+ "long_form": {
+  "type": "panel",
+  "size": [
+   "100%",
+   "100%"
+  ],
+  "controls": [
+   {
+    "fnar_default_long_form@common_dialogs.main_panel_no_buttons": {
+     "$title_panel": "common_dialogs.standard_title_label",
+     "$title_size": [
+      "100% - 15px",
+      10
+     ],
+     "$title_max_size": [
+      "100% - 15px",
+      10
+     ],
+     "size": [
+      225,
+      200
+     ],
+     "$text_name": "#title_text",
+     "$title_text_binding_type": "none",
+     "$child_control": "server_form.long_form_panel",
+     "layer": 2,
+     "bindings": [
+      {
+       "binding_name": "#title_text"
+      },
+      {
+       "binding_type": "view",
+       "source_property_name": "((#title_text - '§k§r§k§r§m') = #title_text)",
+       "target_property_name": "#visible"
+      }
+     ]
+    }
+   },
+   {
+    "fnar_cam_form@server_form.fnar_cam_form": {
+     "bindings": [
+      {
+       "binding_name": "#title_text"
+      },
+      {
+       "binding_type": "view",
+       "source_property_name": "(not ((#title_text - '§k§r§k§r§m') = #title_text))",
+       "target_property_name": "#visible"
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "fnar_cam_form": {
+  "type": "panel",
+  "size": [
+   "100%",
+   "100%"
+  ],
+  "controls": [
+   {
+    "fnar_cam_form_map": {
+     "type": "panel",
+     "size": [
+      190,
+      170.57
+     ],
+     "anchor_from": "bottom_right",
+     "anchor_to": "bottom_right",
+     "offset": [
+      -3,
+      -3
+     ],
+     "layer": 10,
+     "collection_name": "form_buttons",
+     "controls": [
+      {
+       "fnar_cam_form_map_image": {
+        "type": "image",
+        "texture": "textures/ui/fnar/cam_map",
+        "size": [
+         "100%",
+         "100%"
+        ],
+        "layer": 1
+       }
+      },
+      {
+       "fnar_cam_form_live": {
+        "type": "label",
+        "text": "#form_text",
+        "color": [
+         1,
+         1,
+         1
+        ],
+        "shadow": true,
+        "layer": 3,
+        "anchor_from": "top_left",
+        "anchor_to": "bottom_left",
+        "offset": [
+         2,
+         -3
+        ],
+        "size": [
+         "default",
+         10
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_00@server_form.fnar_cam_button": {
+        "collection_index": 0,
+        "size": [
+         18.14,
+         10.8
+        ],
+        "offset": [
+         81.61,
+         15.11
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_01@server_form.fnar_cam_button": {
+        "collection_index": 1,
+        "size": [
+         18.14,
+         11.23
+        ],
+        "offset": [
+         107.52,
+         57.0
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_02@server_form.fnar_cam_button": {
+        "collection_index": 2,
+        "size": [
+         18.14,
+         11.23
+        ],
+        "offset": [
+         19.0,
+         74.27
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_03@server_form.fnar_cam_button": {
+        "collection_index": 3,
+        "size": [
+         18.14,
+         10.36
+        ],
+        "offset": [
+         64.34,
+         98.46
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_04@server_form.fnar_cam_button": {
+        "collection_index": 4,
+        "size": [
+         18.14,
+         10.36
+        ],
+        "offset": [
+         60.02,
+         141.64
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_05@server_form.fnar_cam_button": {
+        "collection_index": 5,
+        "size": [
+         18.14,
+         11.23
+        ],
+        "offset": [
+         42.75,
+         108.82
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_06@server_form.fnar_cam_button": {
+        "collection_index": 6,
+        "size": [
+         18.14,
+         10.36
+        ],
+        "offset": [
+         94.57,
+         98.46
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_07@server_form.fnar_cam_button": {
+        "collection_index": 7,
+        "size": [
+         18.14,
+         10.36
+        ],
+        "offset": [
+         96.73,
+         141.64
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_08@server_form.fnar_cam_button": {
+        "collection_index": 8,
+        "size": [
+         18.14,
+         11.23
+        ],
+        "offset": [
+         14.68,
+         18.14
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_09@server_form.fnar_cam_button": {
+        "collection_index": 9,
+        "size": [
+         18.14,
+         10.8
+        ],
+        "offset": [
+         152.86,
+         19.43
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_10@server_form.fnar_cam_button": {
+        "collection_index": 10,
+        "size": [
+         18.14,
+         10.36
+        ],
+        "offset": [
+         152.86,
+         46.64
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_11@server_form.fnar_cam_button": {
+        "collection_index": 11,
+        "size": [
+         18.14,
+         11.23
+        ],
+        "offset": [
+         14.68,
+         48.36
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_12@server_form.fnar_cam_button": {
+        "collection_index": 12,
+        "size": [
+         18.14,
+         10.36
+        ],
+        "offset": [
+         66.5,
+         120.05
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_13@server_form.fnar_cam_button": {
+        "collection_index": 13,
+        "size": [
+         18.14,
+         10.36
+        ],
+        "offset": [
+         88.09,
+         120.05
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_lower@server_form.fnar_cam_button": {
+        "collection_index": 14,
+        "size": [
+         40,
+         12
+        ],
+        "offset": [
+         150,
+         -14
+        ]
+       }
+      },
+      {
+       "fnar_cam_button_show@server_form.fnar_cam_button": {
+        "collection_index": 15,
+        "size": [
+         72,
+         12
+        ],
+        "offset": [
+         74,
+         -14
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "fnar_cam_button@common_buttons.light_text_button": {
+  "$pressed_button_name": "button.form_button_click",
+  "anchor_from": "top_left",
+  "anchor_to": "top_left",
+  "layer": 4,
+  "$button_text": "#form_button_text",
+  "$button_text_binding_type": "collection",
+  "$button_text_grid_collection_name": "form_buttons",
+  "$button_text_max_size": [
+   "100%",
+   "100%"
+  ],
+  "bindings": [
+   {
+    "binding_type": "collection_details",
+    "binding_collection_name": "form_buttons"
+   }
+  ]
+ }
+}

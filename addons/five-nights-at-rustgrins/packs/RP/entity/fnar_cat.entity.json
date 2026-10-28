@@ -1,0 +1,53 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "fnar:cat",
+   "materials": {
+    "default": "entity_alphatest",
+    "eyes": "creaking_eyes"
+   },
+   "textures": {
+    "default": "textures/entity/fnar/cat",
+    "eyes": "textures/entity/fnar/cat_eyes"
+   },
+   "geometry": {
+    "default": "geometry.fnar.cat"
+   },
+   "scripts": {
+    "pre_animation": [
+     "variable.fnar_anim = query.property('fnar:anim');",
+     "variable.fnar_eyes = query.property('fnar:eyes');",
+     "variable.fnar_hidden = query.property('fnar:hidden');",
+     "variable.fnar_ly = math.lerp(variable.fnar_ly ?? 0, query.property('fnar:look_yaw'), 0.08);",
+     "variable.fnar_lp = math.lerp(variable.fnar_lp ?? 0, query.property('fnar:look_pitch'), 0.08);"
+    ],
+    "animate": [
+     "ctrl",
+     "look"
+    ]
+   },
+   "animations": {
+    "idle": "animation.fnar.cat.idle",
+    "perform": "animation.fnar.cat.perform_1",
+    "perform2": "animation.fnar.cat.perform_2",
+    "stand": "animation.fnar.cat.idle",
+    "walk": "animation.fnar.cat.walk",
+    "run": "animation.fnar.cat.run",
+    "scurry": "animation.fnar.cat.run",
+    "crawl": "animation.fnar.cat.crawl",
+    "peek": "animation.fnar.cat.peek",
+    "jumpscare": "animation.fnar.cat.jumpscare",
+    "slump": "animation.fnar.cat.pose_2",
+    "pose": "animation.fnar.cat.pose_1",
+    "look": "animation.fnar.cat.look",
+    "ctrl": "controller.animation.fnar.cat"
+   },
+   "render_controllers": [
+    "controller.render.fnar.body",
+    "controller.render.fnar.eyes"
+   ],
+   "enable_attachables": false
+  }
+ }
+}
