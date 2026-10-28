@@ -306,7 +306,7 @@ def tape_master(x, r, wow=0.003, flutter=0.001, lp=10000, hiss_db=-52, drive=1.5
 # Rustgrin's Theme - music box (power-out song, title, ending)
 # =============================================================================
 def _box_events(theme, chords, tempo, t0=0.0, mel_vel=1.0, acc=True, acc_vel=0.5, jitter=0.0, r=None,
-                bass_oct=3, pah_low=60, pah_high=71):
+                bass_oct=3, pah_low=60, pah_high=71, last_bar_bass_only=False):
     notes, end = parse_line(theme, 3)
     ev = []
     for b, d, m in notes:
@@ -320,6 +320,8 @@ def _box_events(theme, chords, tempo, t0=0.0, mel_vel=1.0, acc=True, acc_vel=0.5
             root, iv = chord(ch, bass_oct)
             tones = voicing(ch, pah_low, pah_high)
             ev.append((t0 + tempo(b), root, acc_vel))
+            if last_bar_bass_only and i == len(chords) - 1:
+                continue
             ev.append((t0 + tempo(b + 1), tones[0], acc_vel * 0.62))
             ev.append((t0 + tempo(b + 1), tones[min(2, len(tones) - 1)], acc_vel * 0.5))
             ev.append((t0 + tempo(b + 2), tones[1], acc_vel * 0.55))
@@ -329,15 +331,16 @@ def _box_events(theme, chords, tempo, t0=0.0, mel_vel=1.0, acc=True, acc_vel=0.5
 
 def rustgrin_song(v, r, n):
     """the power-out song: wound-up music box, slowing as the spring runs down"""
-    tempo = Tempo([(0, 150), (38, 150), (46, 88), (60, 88)], wobble=0.012, wob_period=6.0)
+    tempo = Tempo([(0, 156), (36, 156), (45, 100), (60, 100)], wobble=0.012, wob_period=6.0)
     t0 = 0.32
-    ev = _box_events(RUSTGRIN_THEME, RUSTGRIN_CHORDS, tempo, t0, mel_vel=1.0, acc_vel=0.3, jitter=0.006, r=r)
+    ev = _box_events(RUSTGRIN_THEME, RUSTGRIN_CHORDS, tempo, t0, mel_vel=1.0, acc_vel=0.3, jitter=0.006, r=r,
+                     last_bar_bass_only=True)
     box = render_music_box(ev, n, r, detune=11.0, seed='mb-song', bright=1.0, ring=5.0)
     # mechanism: the governor fan whirs while the cylinder turns, slowing at the end
     t = T(n)
     t_end = t0 + tempo(46)
-    sp = np.clip(1 - (t - t0 - tempo(38)) / (t_end - t0 - tempo(38)), 0, 1) ** 0.6
-    sp = np.where(t < t0 + tempo(38), 1.0, sp) * (t > t0)
+    sp = np.clip(1 - (t - t0 - tempo(36)) / (t_end - t0 - tempo(36)), 0, 1) ** 0.6
+    sp = np.where(t < t0 + tempo(36), 1.0, sp) * (t > t0)
     whir = U(bw(white(r, n), 'bp', (1500, 5000))) * (0.6 + 0.4 * np.sin(PI2 * phase(36 * sp + 4, n))) * sp
     ticks = click_train(r, n, 3.0 + 9 * sp, jitter=0.3, t0=t0, t1=t_end)
     tk = resonators(ticks, small_metal('mbox'))
@@ -346,7 +349,8 @@ def rustgrin_song(v, r, n):
     box = P(box) + 0.012 * whir + 0.05 * P(tk) + 0.3 * P(lever) + 0.25 * P(stop)
     box = eq(box, ('peak', 520, 1.0, 3.0), ('peak', 2600, 1.2, 1.5))
     box = bw(box, 'hp', 160, 2)
-    return reverb(box, ir_office(), wet=0.2)
+    dur = n / SR
+    return reverb(box, ir_office(), wet=0.2) * env_pts(n, [(0, 1), (dur - 0.7, 1), (dur, 0)])
 
 
 def _pad(chords, times, n, r, low_oct=2, mid=(48, 60), cutoff=700.0, att=1.2, rel=1.6, voices=3, detune=8.0,

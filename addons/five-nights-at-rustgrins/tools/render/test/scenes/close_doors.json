@@ -8,29 +8,29 @@
  "time": "night",
  "camera": {
   "pos": [
-   2.5,
+   4.5,
    63.0,
-   -1.5
+   2.5
   ],
   "target": [
    9,
-   62,
-   -2
+   61.8,
+   -0.5
   ],
-  "fov": 75
+  "fov": 70
  },
  "style": "vibrant",
  "extra_lights": [
   {
    "type": "point",
    "pos": [
-    6,
+    6.5,
     64,
-    -2
+    0.5
    ],
    "color": "#fff2e0",
    "intensity": 10,
-   "distance": 16
+   "distance": 14
   }
  ]
 }

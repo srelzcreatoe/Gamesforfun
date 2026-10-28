@@ -236,8 +236,16 @@ def decode(ogg, ch):
         pass
     p = subprocess.run([FFMPEG, '-hide_banner', '-loglevel', 'error', '-i', ogg, '-f', 'f32le', '-acodec',
                         'pcm_f32le', '-ac', str(ch), '-ar', str(SR), '-'], check=True, capture_output=True)
-    y = np.frombuffer(p.stdout, '<f4').astype(float)
-    return y.reshape(-1, ch).T
+    y = np.frombuffer(p.stdout, '<f4').astype(float).reshape(-1, ch).T
+    try:   # the stream length is in the final granule position; pad the dropped tail
+        pr = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'stream=duration_ts', '-of', 'csv=p=0', ogg],
+                            capture_output=True, check=True, text=True)
+        total = int(pr.stdout.strip().split(',')[0])
+        if total > y.shape[1]:
+            y = np.pad(y, ((0, 0), (0, total - y.shape[1])))
+    except (OSError, ValueError, subprocess.CalledProcessError):
+        pass
+    return y
 
 
 def render_file(ev, v, wav_dir=None):

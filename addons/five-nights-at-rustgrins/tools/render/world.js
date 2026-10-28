@@ -694,7 +694,6 @@ window.renderWorld = async (payload) => {
     W = prepareWorld(payload.world);
     computeLight(W);
     meshWorld(W);
-    W.materials = new Map();
     cacheWorlds.set(payload.worldKey, W);
   }
   const o = W.origin;
@@ -740,7 +739,7 @@ window.renderWorld = async (payload) => {
   const mats = new Map();
   await Promise.all([...W.matInfo.entries()].map(async ([k, info]) => mats.set(k, await makeWorldMaterial(info, W, style, U))));
   for (const C of W.chunks) {
-    if (!C.geom) C.geom = C.builder.geometry();
+    if (!C.geom) { C.geom = C.builder.geometry(); C.builder = null; }
     const m = new THREE.Mesh(C.geom, mats.get(C.matKey));
     m.position.set(...C.origin);
     m.castShadow = style !== 'classic' && mats.get(C.matKey).transparent !== true;
@@ -894,7 +893,6 @@ window.renderWorld = async (payload) => {
   } else renderer.render(scene, cam);
   const gl = renderer.getContext();
   { const px = new Uint8Array(4); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); }
-  log(`gpu done ${(now() - t2).toFixed(0)} ms`);
   log(`entities ${ents.length}: ${(t2 - tEnt).toFixed(0)} ms`);
   log(`render ${width}x${height} ${style}: ${(now() - t2).toFixed(0)} ms (draw calls ${renderer.info.render.calls}, tris ${renderer.info.render.triangles})`);
   const t3 = now();

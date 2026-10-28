@@ -10,7 +10,7 @@ import { VoxelBuilder } from './voxels.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../../..');
-const SIZE = [44, 14, 36];
+const SIZE = [44, 14, 40];
 const ORIGIN = [-22, 60, -16];
 const v = new VoxelBuilder(SIZE, ORIGIN);
 const B = (x, y, z, n, s) => v.set(x, y, z, n, s);
@@ -21,9 +21,9 @@ const door = (x, y, z, n, dir, open, hinge) => {
 };
 
 // ---------------------------------------------------------------- shell
-F(0, 0, 0, 43, 0, 35, 'stone');
-F(32, 0, 0, 43, 0, 35, 'grass_block'); // exterior east
-F(0, 0, 28, 31, 0, 35, 'grass_block'); // exterior south
+F(0, 0, 0, 43, 0, 39, 'stone');
+F(32, 0, 0, 43, 0, 39, 'grass_block'); // exterior east
+F(0, 0, 28, 31, 0, 39, 'grass_block'); // exterior south
 F(34, 0, 10, 41, 0, 17, 'smooth_stone'); // path to the door
 for (let x = 1; x <= 30; x++) for (let z = 1; z <= 26; z++) B(x, 0, z, (x + z) % 2 ? 'black_concrete' : 'white_concrete');
 F(16, 0, 1, 30, 0, 12, 'fnartest:tile'); // custom glossy floor (MER + heightmap)
@@ -135,7 +135,9 @@ F(34, 1, 26, 34, 3, 26, 'oak_log', { pillar_axis: 'y' }); F(33, 4, 25, 35, 5, 27
 B(36, 1, 30, 'cobblestone_wall'); B(37, 1, 30, 'cobblestone_wall'); B(38, 1, 30, 'cobblestone_wall');
 B(36, 1, 4, 'barrier'); B(36, 2, 4, 'structure_void');
 
-// ---------------------------------------------------------------- zone E: real fnar:* blocks (if any exist)
+// ---------------------------------------------------------------- zone E: every real fnar:* block (if any exist)
+// Rows on the south lawn (z = 30 / 33 / 36), each block against a backing wall on its south side,
+// facing north, booleans true (lit / on), ints at their minimum; two-block-tall blocks get their upper half.
 const bpDir = path.join(ROOT, 'packs/BP/blocks');
 const real = fs.existsSync(bpDir) ? fs.readdirSync(bpDir).filter((f) => f.endsWith('.json')).sort() : [];
 let placed = 0;
@@ -144,19 +146,26 @@ for (const f of real) {
   try { j = JSON.parse(fs.readFileSync(path.join(bpDir, f), 'utf8')); } catch { continue; }
   const id = j?.['minecraft:block']?.description?.identifier;
   if (!id) continue;
+  const desc = j['minecraft:block'].description;
   const st = {};
-  const traits = j['minecraft:block'].description.traits ?? {};
-  if (traits['minecraft:placement_direction']?.enabled_states?.includes('minecraft:cardinal_direction')) st['minecraft:cardinal_direction'] = 'north';
-  for (const [k, vals] of Object.entries(j['minecraft:block'].description.states ?? {})) {
-    if (Array.isArray(vals)) st[k] = vals.includes(true) ? true : vals[vals.length - 1];
+  if (desc.traits?.['minecraft:placement_direction']?.enabled_states?.includes('minecraft:cardinal_direction')) st['minecraft:cardinal_direction'] = 'north';
+  for (const [k, vals] of Object.entries(desc.states ?? {})) {
+    if (Array.isArray(vals)) st[k] = vals.includes(true) ? true : vals[0];
+    else if (vals?.values) st[k] = vals.values.min ?? 0;
   }
-  // a row along the south exterior, against a backing wall
-  const x = 1 + (placed % 15) * 2, z = 31 + Math.floor(placed / 15) * 0;
-  if (placed >= 15) break;
-  B(x, 1, z + 1, 'polished_andesite'); B(x, 2, z + 1, 'polished_andesite');
-  B(x, 1, z, id, st);
+  const row = Math.floor(placed / 22), col = placed % 22;
+  if (row > 2) break;
+  const x = 1 + col * 2, z = 30 + row * 3;
+  const ceilingType = /ceiling|vent_cover/.test(id);
+  const hanging = /spotlight|hanging_lamp/.test(id);
+  B(x, 1, z + 1, 'polished_andesite'); B(x, 2, z + 1, 'polished_andesite'); B(x, 3, z + 1, 'polished_andesite');
+  if (ceilingType) { B(x, 3, z, id, st); }
+  else if (hanging) { B(x, 3, z, 'polished_andesite'); B(x, 2, z, id, st); }
+  else {
+    B(x, 1, z, id, st);
+    if ('fnar:half' in st) B(x, 2, z, id, { ...st, 'fnar:half': 1 });
+  }
   placed++;
 }
-
 fs.writeFileSync(path.join(HERE, 'test_room.json'), JSON.stringify(v.toJSON()));
 console.log(`test_room.json: ${SIZE.join('x')} origin ${ORIGIN.join(',')}, palette ${v.palette.length}, signs ${v.signs.length}, real fnar blocks placed ${placed}`);
