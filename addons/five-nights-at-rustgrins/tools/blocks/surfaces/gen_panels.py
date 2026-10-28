@@ -329,7 +329,7 @@ def _group_drawing():
                     g[y0 + dy][x0 + dx] = ch
     for x in range(1, 12):
         g[12][x] = 'n'
-        g[13][x] = 'n' if x % 3 else 'o'
+        g[13][x] = 'n'
     for (x, y) in [(13, 8), (12, 9), (13, 9), (14, 9), (13, 10), (12, 11), (14, 11)]:
         g[y][x] = 'k'  # tiny stick-figure guard
     g[2][13], g[2][14], g[3][14] = 'y', 'y', 'y'  # sun
@@ -431,7 +431,7 @@ def _neon(c, text, y, core, glow, dead=(), spacing=3, emit=255):
             c.emit[Y, X] = max(c.emit[Y, X], 70)
     for yy, xx in zip(*np.nonzero(m)):
         if dead_cols[xx]:
-            c.px(x0 + xx, y + yy, '#3a3a40', rough=60, height=200)  # dead glass tube
+            c.px(x0 + xx, y + yy, '#4a4a52', rough=60, height=200)  # dead glass tube
         else:
             c.px(x0 + xx, y + yy, core, emit=emit, rough=50, height=200)
 

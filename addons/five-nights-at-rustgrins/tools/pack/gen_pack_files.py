@@ -165,6 +165,29 @@ def lang():
     write_json(os.path.join(RP, 'texts', 'languages.json'), ['en_US'])
 
 
+SOUND_RULES = [
+    ('cloth', ('carpet_party', 'curtain_', 'tent_stripe', 'plush_rat', 'party_hat', 'bunting', 'balloons', 'poster_', 'drawing', 'desk_clutter', 'plate_set', 'sign_out_of_order')),
+    ('wood', ('stage_floor', 'party_table', 'pizza_box', 'sign_staff', 'stage_star')),
+    ('metal', ('duct_metal', 'door_shutter', 'vent_cover', 'locker', 'trash_can', 'security_camera', 'pa_speaker', 'time_clock', 'crt_monitor', 'desk_fan', 'desk_phone',
+               'show_tape', 'arcade_cabinet', 'stage_speaker', 'guitar_amp', 'door_button', 'light_button', 'ceiling_lamp', 'exit_sign', 'stage_spotlight', 'hanging_lamp',
+               'wall_sconce', 'mop_bucket', 'wet_floor_sign', 'parts_shelf', 'party_chair', 'sign_revue', 'sign_cabaret', 'sign_midway')),
+]
+
+
+def block_sounds():
+    out = {'format_version': [1, 1, 0]}
+    for f in sorted(glob.glob(os.path.join(BP, 'blocks', '*.json'))):
+        ident = json.load(open(f))['minecraft:block']['description']['identifier']
+        name = ident.split(':')[1]
+        sound = 'stone'
+        for snd, keys in SOUND_RULES:
+            if any(name.startswith(k) for k in keys):
+                sound = snd
+                break
+        out[ident] = {'sound': sound}
+    write_json(os.path.join(RP, 'blocks.json'), out)
+
+
 def pack_icons():
     head = os.path.join(ROOT, 'assets', 'portraits', 'rustgrin_head.png')
     size = 256
@@ -197,6 +220,7 @@ def main():
     items()
     fogs()
     lang()
+    block_sounds()
     pack_icons()
     print('pack files written')
 

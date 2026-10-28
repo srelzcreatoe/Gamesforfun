@@ -373,30 +373,23 @@ def desk_fan(out):
 # =============================================================== desk phone
 @prop
 def desk_phone(out):
-    """1980s multi-line office phone: handset front-to-back on the left, stepped keypad console on the right."""
+    """Classic push-button office phone: wedge body with a sloped keypad, handset across the cradle,
+    a red line-light lens on the front (lit while ringing)."""
     g = Geo('desk_phone', 32, 32)
     shell = lambda base=3, grime=0.3: panel(BEIGE, base, amp=0.5, white_amp=0.3, grime=grime)
 
-    def keypad(r):  # up face of the low step: 5 x 3 (x -1..4, z -2.5..0.5 -> rows north..south)
-        r.fill(BEIGE, 2, amp=0.2)
-        for kx in range(3):
-            for kz in range(3):
-                r.px(1 + kx, kz, GREYPLAST, 4 if (kx + kz) % 2 == 0 else 2, h=8)
-        r.px(0, 0, RED, 3)  # hold key
-        r.px(4, 1, GREYPLAST, 3)
+    def keypad(r):  # sloped panel top, 7 x 4 (rows: back..front after the tilt -> row 0 = north edge)
+        r.fill(BLACK, 2, amp=0.2)
+        for kx in (1, 3, 5):
+            for kz in (0, 2):
+                r.px(kx, kz, BEIGE, 6 if kz == 0 else 5, h=8)
+        r.px(3, 3, BEIGE, 4)  # '0' key
+        r.px(6, 3, RED, 3)  # hold key
+        r.rot180()  # read from the front
 
-    def console_top(r):  # up face of the high step: 5 x 3 -> line keys row + speaker
-        shell(3, 0.2)(r)
-        for kx in range(4):
-            r.px(kx, 0, BLACK, 3 if kx % 2 else 4, h=6)
-        for kx in range(0, 4, 2):
-            r.px(kx + 1, 2, BEIGE, 1)
-
-    def step_front(r):  # vertical face between the steps (5 x 1): the red line-light strip
+    def lens(r):
         lit = r.variant == 'ringing'
-        r.fill(BEIGE, 2)
-        for c in range(1, 4):
-            r.px(c, 0, LED_RED if lit else LED_OFF_R, 0)
+        r.fill(LED_RED if lit else LED_OFF_R, 0)
 
     def handset(kind):
         def p(r):
@@ -414,23 +407,23 @@ def desk_phone(out):
             if rr % 2:
                 r.hline(0, rr, r.w, BEIGE, 1)
 
-    g.box('base', (-4, 0, -3), (4, 2, 3), {'north': shell(2, 0.3), 'south': shell(2, 0.4), 'east': Face(shell(3), 'bs'),
-                                          'west': Face(shell(3), 'bs'), 'up': shell(3, 0.2)})
-    g.box('base', (-1, 2, -2.5), (4, 2.75, 0.5), {'up': keypad, 'north': Face(shell(3), 'k1'), 'east': Face(shell(2), 'k2'), 'west': Face(shell(2), 'k2')})
-    g.box('base', (-1, 2, 0.5), (4, 3.5, 3), {'up': console_top, 'north': Face(shell(3), 'c1'), 'south': Face(shell(2), 'c1'),
-                                             'east': Face(shell(2), 'c2'), 'west': Face(shell(2), 'c2')})
-    g.box('base', (-0.5, 2.75, 0.4), (3.5, 3.25, 0.5), {'north': step_front})
-    # handset lying front-to-back on the cradle (earpiece at the back, mouthpiece at the front)
-    for z0 in (-3, 1):
-        g.box('handset', (-4, 2, z0), (-1.5, 3.5, z0 + 2), {'sides': Face(handset('end'), 'hs'), 'up': Face(handset('cup'), 'hu')})
-    g.box('handset', (-3.25, 2.75, -1), (-2.25, 3.75, 1), {'sides': Face(handset('grip'), 'gs'), 'up': Face(handset('grip'), 'gu')})
-    g.box('cord', (-4.75, 0.25, -2.5), (-4, 2.5, -1.75), {'sides': Face(cord, 'cord'), 'ends': Face(cord, 'corde')})
+    g.box('base', (-4, 0, -3.5), (4, 2, 3), {'north': shell(2, 0.3), 'south': shell(2, 0.4), 'east': Face(shell(3), 'bs'),
+                                            'west': Face(shell(3), 'bs'), 'up': shell(3, 0.2)})
+    g.box('base', (-4, 2, -0.5), (4, 3, 3), {'north': Face(shell(3), 'b2n'), 'south': Face(shell(2), 'b2n'), 'east': Face(shell(3), 'b2s'),
+                                            'west': Face(shell(3), 'b2s'), 'up': shell(4, 0.2)})
+    g.box('slope', (-3.5, 2, -3.7), (3.5, 3, -0.5), {'up': keypad, 'north': Face(shell(3), 'sn'), 'east': Face(shell(2), 'se'), 'west': Face(shell(2), 'se')},
+          rotation=(-22.5, 0, 0), pivot=(0, 3, -0.5))
+    g.box('base', (-2, 0.75, -3.75), (2, 1.5, -3.5), {'north': Face(lens, 'lens'), 'ends': Face(lens, 'lens2'), 'sides': Face(lens, 'lens3')})
+    for x0 in (-4, 2):  # earpiece / mouthpiece resting on the cradle
+        g.box('handset', (x0, 3, 0), (x0 + 2, 4.5, 3), {'sides': Face(handset('end'), 'hs'), 'up': Face(handset('cup'), 'hu'), 'down': Face(shell(1), 'hd')})
+    g.box('handset', (-2, 3.5, 1), (2, 4.5, 2), {'sides': Face(handset('grip'), 'gs'), 'up': Face(handset('grip'), 'gu'), 'down': Face(shell(1), 'gd')})
+    g.box('cord', (-4.75, 0.25, 1), (-4, 3.25, 1.75), {'sides': Face(cord, 'cord'), 'ends': Face(cord, 'corde')})
     out.geo(g)
     out.tex('desk_phone', g.paint('idle'))
     out.tex('desk_phone_ringing', g.paint('ringing'))
     blk = block_json('desk_phone', geometry='geometry.fnar.desk_phone', materials=mi_set('desk_phone'),
                      states={'fnar:ringing': [False, True]},
-                     collision=False, selection=box(-5, 0, -3, 5, 4, 3), map_color='#817863', destroy=1.0,
+                     collision=False, selection=box(-5, 0, -4, 5, 4.5, 3), map_color='#817863', destroy=1.0,
                      perms=[(bs('fnar:ringing', True), {'minecraft:material_instances': mi_set('desk_phone_ringing'),
                                                         'minecraft:light_emission': 2})])
     out.block('desk_phone', blk)

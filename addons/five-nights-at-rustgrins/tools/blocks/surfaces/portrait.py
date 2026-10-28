@@ -23,21 +23,12 @@ def srgb_to_lab(rgb):
     return np.stack([L, a, b], -1)
 
 
-# Curated palettes (dark -> light per material). Sampled by eye from the renders.
-PALETTES = {
-    'rustgrin': ['#2a2826', '#3f3d3a', '#55524e', '#6c6863', '#87827b', '#a39d93', '#c8c0b0', '#e0d8c8',
-                 '#4e0f12', '#7a171b', '#a3232a', '#141113'],
-    'mirehop': ['#1d2414', '#2c3a1c', '#3f5326', '#566c31', '#71863f', '#8f9a56', '#b9a77a', '#d6c59a',
-                '#5c1214', '#9c2023', '#141113'],
-    'noxbriar': ['#121114', '#1d1b1f', '#29262b', '#363238', '#4a4048', '#8f7d63', '#b6a183', '#4b2c66',
-                 '#6c4790', '#141113'],
-    'cat': ['#1e1418', '#2e1e24', '#3f2930', '#52363d', '#5e2a28', '#7b3a33', '#c49a8a', '#e2c0b0',
-            '#d78a8a', '#d9cfc2', '#141113'],
-    'top_hat_rat': ['#1f1a20', '#2d262e', '#3d343e', '#4f4550', '#9a8f93', '#c2b9b8', '#e0dbd5', '#d78a90',
-                    '#6a1418', '#9b1f24', '#c8a13a', '#141113'],
-    'purple_rat': ['#2a1c2a', '#3b2739', '#4e344b', '#63435d', '#7d5a76', '#a68fa6', '#cbb8cb', '#e6dbe4',
-                   '#8e1a1e', '#c42a24', '#141113'],
-}
+def palette_for(char):
+    """The sprite palette of a character (sprites.PAL + shared keys) as a hex list."""
+    from sprites import COMMON, PAL
+    keys = dict(COMMON)
+    keys.update(PAL[char])
+    return sorted(set(keys.values()))
 
 
 def load(name):
@@ -117,8 +108,48 @@ def poke(rgb, mask, pts, color):
 
 
 def sprite(name, crop, size, char, **kw):
-    rgb, mask, idx = pixelize(name, crop, size, PALETTES[char], **kw)
+    rgb, mask, idx = pixelize(name, crop, size, palette_for(char), **kw)
     return {'rgb': rgb, 'mask': mask}
+
+
+# render crop -> (hand-finished sprite, sprite character) used for the reference sheet
+REFERENCE = [
+    ('rustgrin_perform', (80, 95, 460, 500), 'rustgrin_bust', 'rustgrin'),
+    ('rustgrin_pose', (90, 95, 470, 500), 'rustgrin_wave', 'rustgrin'),
+    ('mirehop_perform', (70, 90, 445, 560), 'mirehop_small', 'mirehop'),
+    ('noxbriar_idle_front', (90, 92, 420, 520), 'noxbriar_small', 'noxbriar'),
+    ('cat_pose', (52, 90, 459, 520), 'cat_pose', 'cat'),
+    ('top_hat_rat_idle_front', (40, 100, 455, 520), 'top_hat_rat_bust', 'top_hat_rat'),
+    ('purple_rat_perform', (80, 90, 425, 520), 'purple_rat_bust', 'purple_rat'),
+]
+
+
+def reference_sheet(path, scale=8):
+    """Portrait render | automatic downscale + re-palette | hand-finished sprite, per character."""
+    from sprites import sprite as hand
+    rows = []
+    for src, crop, spr, char in REFERENCE:
+        s = hand(spr)
+        h, w = s['mask'].shape
+        auto = sprite(src, crop, (w, h), char)
+        tiles = [np.array(load(src).crop(crop).resize((w * scale, h * scale), Image.LANCZOS))]
+        for t in (auto, s):
+            can = np.zeros((h, w, 4), np.uint8)
+            can[..., :3] = np.clip(t['rgb'], 0, 255).astype(np.uint8)
+            can[..., 3] = t['mask'] * 255
+            tiles.append(np.array(Image.fromarray(can).resize((w * scale, h * scale), Image.NEAREST)))
+        rows.append(tiles)
+    W = max(sum(t.shape[1] + 12 for t in r) for r in rows)
+    H = sum(max(t.shape[0] for t in r) + 12 for r in rows)
+    sheet = Image.new('RGBA', (W, H), (86, 90, 104, 255))
+    y = 0
+    for r in rows:
+        x = 0
+        for t in r:
+            sheet.alpha_composite(Image.fromarray(t), (x, y))
+            x += t.shape[1] + 12
+        y += max(t.shape[0] for t in r) + 12
+    sheet.save(path)
 
 
 def paste(dst_rgb, dst_a, spr, x0, y0, outline_color=None, emit=None):

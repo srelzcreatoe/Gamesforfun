@@ -180,11 +180,29 @@ def finish(ev, x):
     pre_peak = float(np.max(np.abs(x)))
     x = limiter(x, CEILING_DB, circular=ev.loop)
     gr = max(0.0, float(ampdb(pre_peak)) - CEILING_DB)
+    seam = seam_continuity(x) if ev.loop else None
     if ev.loop:
         x = fade_edges(x, LOOP_FADE, LOOP_FADE)
     else:
         x = fade_edges(x, ev.fin, ev.fout)
-    return x, gr
+    return x, gr, seam
+
+
+def seam_continuity(x):
+    """Loop seam test on the finished loop *before* its 5 ms edge fades:
+    wrap the end onto the start and compare the jump across the wrap point
+    and the high-frequency energy around it with the rest of the file.
+    step:  |x[0] - x[-1]| / median |x[n+1] - x[n]|  (~1 = as smooth as anywhere)
+    hf:    HF energy in the 8 ms around the seam / median of all 8 ms windows"""
+    m = x if x.ndim == 1 else x.mean(axis=0)
+    d = np.abs(np.diff(m))
+    w = N(0.004)
+    seam = np.concatenate([m[-w:], m[:w]])
+    k = 2 * w
+    hf = np.sqrt(np.mean(np.diff(m[:len(m) // k * k].reshape(-1, k), axis=1) ** 2, axis=1))
+    return dict(step=round(float(abs(m[0] - m[-1]) / (np.median(d) + 1e-12)), 3),
+                hf=round(float(np.sqrt(np.mean(np.diff(seam) ** 2)) / (np.median(hf) + 1e-12)), 3),
+                hf_p99=round(float(np.percentile(hf, 99) / (np.median(hf) + 1e-12)), 3))
 
 
 def write_wav(path, x):
@@ -227,7 +245,7 @@ def render_file(ev, v, wav_dir=None):
     t0 = time.time()
     r = rng(ev.key, v)
     raw = ev.fn(v, r, N(ev.dur))
-    x, gr = finish(ev, raw)
+    x, gr, seam = finish(ev, raw)
     fname = ev.files()[v]
     out_dir = os.path.join(FNAR_DIR, ev.group)
     os.makedirs(out_dir, exist_ok=True)
@@ -253,7 +271,7 @@ def render_file(ev, v, wav_dir=None):
                 expected=N(ev.dur), peak_db=round(float(ampdb(pk)), 2),
                 rms_db=round(float(ampdb(np.sqrt(np.mean(y ** 2)))), 2), limiter_db=round(gr, 2),
                 trim_db=round(float(ampdb(gain)), 2), secs=round(time.time() - t0, 1),
-                size=os.path.getsize(ogg))
+                size=os.path.getsize(ogg), seam=seam)
 
 
 def _job(args):
@@ -317,6 +335,9 @@ def write_manifest(stats):
             'peaks_db': [s['peak_db'] for s in sorted(by_key[ev.key], key=lambda s: s['file'])]
             if ev.key in by_key else prev.get('peaks_db'),
         }
+        if ev.loop:
+            out['fnar.' + ev.key]['seam_prefade'] = (by_key[ev.key][0]['seam'] if ev.key in by_key
+                                                     else prev.get('seam_prefade'))
     with open(MANIFEST_PATH, 'w', encoding='utf-8') as f:
         json.dump({'sample_rate': SR, 'events': out}, f, indent=1)
         f.write('\n')
@@ -363,6 +384,8 @@ def main():
 
 def _report(s):
     flag = '' if s['samples'] == s['expected'] else f'  LENGTH {s["samples"]}!={s["expected"]}'
+    if s.get('seam'):
+        flag += f'  seam step x{s["seam"]["step"]:.2f} hf x{s["seam"]["hf"]:.2f}'
     print(f'{s["file"]:34s} peak {s["peak_db"]:6.2f}  rms {s["rms_db"]:6.1f}  lim {s["limiter_db"]:4.1f}dB  '
           f'trim {s["trim_db"]:5.2f}  {s["size"] / 1024:6.1f}KB  {s["secs"]:5.1f}s{flag}', flush=True)
 

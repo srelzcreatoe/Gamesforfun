@@ -5,7 +5,7 @@
 //
 // CLI:
 //   node tools/render/fetch_vanilla.mjs                    registry files only (blocks.json, terrain_texture.json, ...)
-//   node tools/render/fetch_vanilla.mjs snap.json [...]    + every texture the snapshots' palettes need
+//   node tools/render/fetch_vanilla.mjs snap.json [...] [--packs dir,dir]   + every texture the snapshots' palettes need
 //   node tools/render/fetch_vanilla.mjs --all              + every texture referenced by blocks.json (slow, ~3k files)
 import fs from 'node:fs';
 import path from 'node:path';
@@ -248,7 +248,8 @@ export async function ensureTextures(rels, { concurrency = 12 } = {}) {
 }
 
 // ------------------------------------------------------------------ CLI
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// (not awaited at top level: blocks.mjs imports this module, so module evaluation must finish first)
+async function main() {
   const args = process.argv.slice(2);
   const reg = await loadVanillaRegistry();
   console.log(`registry: ${Object.keys(reg.blocks).length} blocks, ${Object.keys(reg.terrain).length} terrain textures`);
@@ -260,10 +261,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       for (const x of list) { const p = typeof x === 'string' ? x : x?.path; if (p) rels.push(p); }
     }
   }
-  const snaps = args.filter((a) => !a.startsWith('--'));
+  const pk = args.indexOf('--packs');
+  const packs = pk >= 0 ? args[pk + 1].split(',').map((p) => path.resolve(p)) : [];
+  const snaps = args.filter((a, i) => !a.startsWith('--') && !(pk >= 0 && i === pk + 1));
   if (snaps.length) {
     const { createBlockResolver } = await import('./blocks.mjs');
-    const resolver = await createBlockResolver({});
+    const resolver = await createBlockResolver({ packs });
     for (const s of snaps) {
       const snap = JSON.parse(fs.readFileSync(s, 'utf8'));
       for (const e of snap.palette) resolver.resolve(e);
@@ -274,4 +277,4 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const miss = [...res].filter(([, v]) => !v.color).map(([k]) => k);
   console.log(`textures: ${res.size} ok=${res.size - miss.length}${miss.length ? ' missing: ' + miss.join(', ') : ''}`);
 }
-
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch((e) => { console.error(e); process.exit(1); });

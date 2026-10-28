@@ -564,7 +564,7 @@ def tent_stripe():
 def duct_metal():
     seed = 1707
     r = rng(seed)
-    t = Tex(rough=135, metal=180, height=160)
+    t = Tex(rough=140, metal=170, height=160)
     pal = ramp('#6c7176', '#767b80', '#7f8489', '#888d92', '#92979c', '#9ca1a6')
     # galvanised spangle: blocky voronoi patches
     pts = r.random((7, 2)) * 16
@@ -581,7 +581,7 @@ def duct_metal():
     wn = white(W, H, seed + 1)
     v = 0.45 + 0.35 * (v - 0.5) + 0.2 * (wn - 0.5)
     t.rgb = quant(np.clip(v, 0, .999), pal)
-    t.rough = 120 + 40 * wn
+    t.rough = 130 + 20 * wn
     # seam band at rows 0 and 15 (lap joint), rivets every 4 px
     for x in range(W):
         t.rgb[15, x] = hexc('#4b4f53')
@@ -601,8 +601,8 @@ def duct_metal():
     dust = (wn > 0.82) & (YY > 6)
     dust |= (wn > 0.94)
     t.rgb[dust] = mix(t.rgb[dust], hexc('#6a6255'), 0.3)
-    t.rough[dust] = 200
-    t.metal[dust] = 110
+    t.rough[dust] = 175
+    t.metal[dust] = 135
     # a dull film of dust over the whole sheet: metal reads less mirror-like
     t.rgb = mix(t.rgb, hexc('#5d5a52'), 0.12)
     return t

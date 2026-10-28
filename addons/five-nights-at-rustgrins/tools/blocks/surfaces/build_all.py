@@ -17,6 +17,7 @@ import gen_blocks  # noqa: E402
 import gen_cubes  # noqa: E402
 import gen_lights  # noqa: E402
 import gen_panels  # noqa: E402
+import portrait  # noqa: E402
 from pixlib import ROOT, contact_sheet, load_tex  # noqa: E402
 
 
@@ -43,6 +44,7 @@ def main():
                   tile3=False, cols=5)
     contact_sheet([(n, mer_view(n)) for n in lights], os.path.join(HERE, 'preview_lights_pbr.png'), scale=6,
                   tile3=False, cols=3)
+    portrait.reference_sheet(os.path.join(HERE, 'preview_sprites.png'))
     print(f'section A: {len(blocks)} blocks, {len(texs)} texture sets')
 
 

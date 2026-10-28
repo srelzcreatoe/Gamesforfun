@@ -12,6 +12,9 @@ duration, channels, sample peak, RMS, DC offset and edge levels, and flags:
   ERROR  channel count / length differs from tools/sounds/sound_manifest.json
   ERROR  peak above -1 dBFS (decoded Ogg)
   ERROR  one-shot whose first/last sample is above -54 dBFS and -40 dB re its peak
+  ERROR  loop whose content is discontinuous across the wrap point before the
+         5 ms edge fades (measured by gen_sounds.py, stored in the manifest):
+         step > 6x the median sample-to-sample change, or seam HF burst
   ERROR  loop seam with a click (HF burst above the file's 99th percentile, >4x
          median) or a level jump > 3 dB that is also larger than the file's own
          99th-percentile jump between adjacent 54 ms windows
@@ -243,6 +246,13 @@ def main():
                                   f'(file p99 {seam["jump_p99_db"]:.1f} dB)')
                     flags.append('SEAM-JUMP')
             edge_thr = max(2e-3, 0.01 * 10 ** (st['peak_db'] / 20))   # -54 dBFS or -40 dB re peak
+            pre = info.get('seam_prefade') if loop else None
+            if pre and (pre['step'] > 6.0 or pre['hf'] > max(4.0, pre['hf_p99'])):
+                errors.append(f'{name}: loop content discontinuous at the wrap point before fades '
+                              f'(step x{pre["step"]}, hf x{pre["hf"]})')
+                flags.append('SEAM-PREFADE')
+            if seam is not None and pre:
+                seam['pre_step'], seam['pre_hf'] = pre['step'], pre['hf']
             if not loop and (st['first'] > edge_thr or st['last'] > edge_thr):
                 errors.append(f'{name}: non-zero edge sample (first {st["first"]:.4f}, last {st["last"]:.4f})')
                 flags.append('EDGE')
@@ -267,6 +277,8 @@ def main():
             if seam:
                 note += (f'seamHF x{seam["seam_hf_ratio"]:.2f} jump {seam["seam_level_jump_db"]:.1f}dB'
                          f' (p99 {seam["jump_p99_db"]:.1f}) ')
+                if 'pre_step' in seam:
+                    note += f'pre-fade step x{seam["pre_step"]:.2f} hf x{seam["pre_hf"]:.2f} '
             note += ' '.join(flags)
             print(f'{name:30s} {st["dur"]:7.3f} {st["channels"]:2d} {st["peak_db"]:7.2f} {st["rms_db"]:6.1f}'
                   f' {st["dc"]:7.5f} {st["head_db"]:6.0f} {st["tail_db"]:6.0f} {size / 1024:6.1f}  {note}')

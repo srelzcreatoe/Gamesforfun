@@ -26,7 +26,7 @@ export async function withRenderer(fn, { mounts = {}, page: pageFile = 'page.htm
   const port = server.address().port;
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const page = await browser.newPage();
-  page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log('[page]', m.text()); });
+  page.on('console', (m) => { if ((m.type() === 'error' || m.type() === 'warning') && !/GPU stall due to ReadPixels/.test(m.text())) console.log('[page]', m.text()); });
   page.on('pageerror', (e) => console.log('[pageerror]', e.message));
   await page.goto(`http://127.0.0.1:${port}/${pageFile}`);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });

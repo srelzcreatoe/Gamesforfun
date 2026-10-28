@@ -23,7 +23,7 @@ import { buildShape, shapeKey, bake, DIRS } from '/shapes.js';
 // (torches, end rods) while keeping inverse-square falloff further away.
 THREE.ShaderChunk.lights_pars_begin = THREE.ShaderChunk.lights_pars_begin.replace(
   'float distanceFalloff = 1.0 / max( pow( lightDistance, decayExponent ), 0.01 );',
-  'float distanceFalloff = 1.0 / ( pow( lightDistance, decayExponent ) + 0.75 );');
+  'float distanceFalloff = 1.0 / ( pow( lightDistance, decayExponent ) + 1.0 );');
 
 const logs = [];
 const log = (...a) => logs.push(a.map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).join(' '));
@@ -90,7 +90,11 @@ function prepareWorld(Wp) {
     if (p >= P.length) continue;
     full[i] = pFull[p]; damp[i] = pDamp[p];
     const e = P[p];
-    if (e.emit > 0) emitters.push({ idx: i, level: Math.min(15, e.emit), color: e.lightColor || '#ffe6c8', type: e.lightType || 'static', name: e.name });
+    if (e.emit > 0) {
+      const st = e.states || {};
+      const facing = st['minecraft:cardinal_direction'] ?? ['down', 'up', 'north', 'south', 'west', 'east'][st.facing_direction] ?? st['minecraft:facing_direction'] ?? 'north';
+      emitters.push({ idx: i, level: Math.min(15, e.emit), color: e.lightColor || '#ffe6c8', type: e.lightType || 'static', name: e.name, facing, full: !!e.full });
+    }
   }
   const W = { key: Wp.key, origin: Wp.origin, sx, sy, sz, n, vox, P, full, damp, emitters, textures: Wp.textures, geometries: Wp.geometries, signs: Wp.signs || [] };
   log(`world ${sx}x${sy}x${sz}, palette ${P.length}, emitters ${emitters.length}, decode ${(now() - t0).toFixed(0)} ms`);
@@ -403,7 +407,7 @@ function meshWorld(W) {
 // ------------------------------------------------------------------ materials
 const LIGHT_UNIFORMS = () => ({
   uBlock: { value: 1 }, uSky: { value: new THREE.Color(0, 0, 0) }, uAmb: { value: new THREE.Color(0, 0, 0) },
-  uFaceDim: { value: 0 }, uSpec: { value: 1 }, uGamma: { value: 1 }, uCurve: { value: 1 },
+  uFaceDim: { value: 0 }, uSpec: { value: 1 }, uGamma: { value: 1 }, uCurve: { value: 1 }, uBright: { value: 0.5 },
 });
 function injectLight(mat, U, { classic = false, fdim = true, attr = true } = {}) {
   mat.onBeforeCompile = (sh) => {
@@ -412,7 +416,7 @@ function injectLight(mat, U, { classic = false, fdim = true, attr = true } = {})
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', `#include <common>\nattribute vec3 bl; attribute float sk; varying vec3 vBL; varying float vSK; varying vec3 vWN;`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>\n${attr ? 'vBL = bl; vSK = sk;' : 'vBL = vec3(0.0); vSK = 0.0;'}\nvWN = normalize(mat3(modelMatrix) * normal);`);
-    const pre = `uniform float uBlock; uniform vec3 uSky; uniform vec3 uAmb; uniform float uFaceDim; uniform float uFdimOn; uniform float uSpec; uniform float uGamma; uniform float uCurve;
+    const pre = `uniform float uBlock; uniform vec3 uSky; uniform vec3 uAmb; uniform float uFaceDim; uniform float uFdimOn; uniform float uSpec; uniform float uGamma; uniform float uCurve; uniform float uBright;
 varying vec3 vBL; varying float vSK; varying vec3 vWN;
 float faceShade(vec3 n) { vec3 a = n * n; float up = n.y > 0.0 ? 1.0 : 0.5; return a.x * 0.6 + a.z * 0.8 + a.y * up; }
 vec3 bakedLight() {
@@ -429,7 +433,7 @@ vec3 bakedLight() {
     } else {
       sh.fragmentShader = sh.fragmentShader
         .replace('#include <common>', `#include <common>\n${pre}`)
-        .replace('#include <alphatest_fragment>', `#include <alphatest_fragment>\n{ vec3 bk = max(bakedLight(), vec3(0.0)); diffuseColor.rgb *= pow(bk, vec3(uGamma)); }`);
+        .replace('#include <alphatest_fragment>', `#include <alphatest_fragment>\n{ vec3 bk = clamp(bakedLight(), 0.0, 1.0); bk = mix(bk, 1.0 - pow(1.0 - bk, vec3(4.0)), uBright); diffuseColor.rgb *= pow(bk, vec3(uGamma)); }`);
     }
   };
   mat.customProgramCacheKey = () => (classic ? 'fnar-classic' : 'fnar-vibrant') + (attr ? 'a' : 'n');
@@ -501,16 +505,46 @@ function selectLights(W, cam, S) {
   const camL = [cam.position.x - o[0], cam.position.y - o[1], cam.position.z - o[2]];
   const fwd = new THREE.Vector3(); cam.getWorldDirection(fwd);
   const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+  // spotlight blocks -> real spot lights aimed along the block's facing, tilted down
+  const spots = [];
+  const spotConf = (name) => S.lights.spots?.[name] ?? (/spotlight/i.test(name) ? {} : null);
+  for (const em of W.emitters) {
+    const conf = spotConf(em.name);
+    if (!conf) continue;
+    const F = DIRS[em.facing] ?? DIRS.north;
+    const pitch = (conf.pitch ?? 40) * Math.PI / 180;
+    const dir = new THREE.Vector3(F[0] * Math.cos(pitch), -Math.sin(pitch) + F[1], F[2] * Math.cos(pitch)).normalize();
+    const x = em.idx % W.sx, z = ((em.idx / W.sx) | 0) % W.sz, y = (em.idx / (W.sx * W.sz)) | 0;
+    const p = [x + 0.5 + F[0] * 0.25, y + 0.55, z + 0.5 + F[2] * 0.25];
+    const wp = new THREE.Vector3(p[0] + o[0], p[1] + o[1], p[2] + o[2]);
+    const range = conf.range ?? em.level * 1.3 + 4;
+    // beam length: march until an opaque voxel
+    let len = range;
+    for (let t = 0.6; t < range; t += 0.25) {
+      const q = [p[0] + dir.x * t, p[1] + dir.y * t, p[2] + dir.z * t].map(Math.floor);
+      if (q[0] < 0 || q[1] < 0 || q[2] < 0 || q[0] >= W.sx || q[1] >= W.sy || q[2] >= W.sz) { len = t; break; }
+      if (W.full[q[0] + W.sx * (q[2] + W.sz * q[1])]) { len = t; break; }
+    }
+    const tgt = wp.clone().addScaledVector(dir, Math.max(2, len));
+    const vis = frustum.intersectsSphere(new THREE.Sphere(tgt, 4)) || frustum.intersectsSphere(new THREE.Sphere(wp, 2));
+    if (!vis) continue;
+    spots.push({ ...em, conf, p, wp, dir, len, range, tgt, dist: wp.distanceTo(cam.position) });
+  }
+  spots.sort((a, b) => a.dist - b.dist);
+  spots.splice(S.lights.maxSpots ?? 6);
+  spots.forEach((sp, k) => { sp.shadow = k < (S.lights.spotShadows ?? 3); });
+  const spotIdx = new Set(spots.map((sp) => sp.idx));
   // cluster point-type emitters on a 3-block grid per colour
   const clusters = new Map();
   for (const em of W.emitters) {
+    if (spotIdx.has(em.idx) || spotConf(em.name)) continue;
     if (em.type === 'static' && !S.lights.includeStatic) continue;
     if (em.level < (S.lights.minLevel ?? 6)) continue;
     const p = lightPosition(W, em.idx);
     const key = `${Math.floor(p[0] / 3)},${Math.floor(p[1] / 3)},${Math.floor(p[2] / 3)},${em.color}`;
     let c = clusters.get(key);
-    if (!c) { c = { p: [0, 0, 0], n: 0, level: 0, color: em.color, names: new Set() }; clusters.set(key, c); }
-    c.p[0] += p[0]; c.p[1] += p[1]; c.p[2] += p[2]; c.n++; c.level = Math.max(c.level, em.level); c.names.add(em.name);
+    if (!c) { c = { p: [0, 0, 0], n: 0, level: 0, color: em.color, names: new Set(), full: false }; clusters.set(key, c); }
+    c.p[0] += p[0]; c.p[1] += p[1]; c.p[2] += p[2]; c.n++; c.level = Math.max(c.level, em.level); c.names.add(em.name); c.full ||= em.full;
   }
   const cand = [];
   for (const c of clusters.values()) {
@@ -531,7 +565,7 @@ function selectLights(W, cam, S) {
   const sel = cand.slice(0, max);
   const shadowN = S.lights.shadows ?? 2;
   [...sel].filter((c) => c.los || c.dist < 10).sort((a, b) => b.score - a.score).slice(0, shadowN).forEach((c) => { c.shadow = true; });
-  return { selected: sel, candidates: cand.length };
+  return { selected: sel, candidates: cand.length, spots };
 }
 
 // ------------------------------------------------------------------ entities
@@ -636,9 +670,9 @@ const cacheWorlds = new Map();
 window.hasWorld = (key) => cacheWorlds.has(key);
 
 const STYLE_DEFAULTS = {
-  vibrant: { exposure: 1.0, block: 0.85, curve: 1.6, sky: '#1d2740', skyInt: 0.55, amb: '#020203', faceDim: 0.3, spec: 0.5, lightScale: 1.6, bloom: { strength: 0.55, radius: 0.45, threshold: 0.9 }, fog: { color: '#07080c', density: 0.03 }, emissive: 3.2, normal: 1.0 },
-  classic: { exposure: 1.0, block: 1.0, sky: '#3a4566', skyInt: 1.0, amb: '#0c0c0e', faceDim: 1.0, spec: 0, lightScale: 0, bloom: null, fog: { color: '#0a0b10', density: 0.02 }, gamma: 2.0 },
-  camera_feed: { exposure: 1.5, block: 1.2, curve: 1.2, sky: '#2a3550', skyInt: 0.6, amb: '#262626', faceDim: 0.4, spec: 0.4, lightScale: 0.8, bloom: { strength: 0.35, radius: 0.5, threshold: 0.95 }, fog: { color: '#0d0f0d', density: 0.022 }, emissive: 2.0, normal: 0.8 },
+  vibrant: { exposure: 1.0, block: 0.8, curve: 1.3, sky: '#1d2740', skyInt: 0.55, amb: '#020203', faceDim: 0.3, spec: 0.5, lightScale: 1.0, bloom: { strength: 0.45, radius: 0.45, threshold: 0.9 }, fog: { color: '#07080c', density: 0.03 }, emissive: 2.4, normal: 1.0 },
+  classic: { exposure: 1.0, block: 1.0, sky: '#3a4566', skyInt: 0.8, amb: '#060607', faceDim: 1.0, spec: 0, lightScale: 0, bloom: null, fog: { color: '#0a0b10', density: 0.02 }, gamma: 2.2 },
+  camera_feed: { exposure: 1.5, block: 1.2, curve: 1.2, sky: '#2a3550', skyInt: 0.6, amb: '#262626', faceDim: 0.4, spec: 0.4, lightScale: 0.6, bloom: { strength: 0.35, radius: 0.5, threshold: 0.95 }, fog: { color: '#0d0f0d', density: 0.022 }, emissive: 2.0, normal: 0.8 },
 };
 
 window.renderWorld = async (payload) => {
@@ -648,6 +682,12 @@ window.renderWorld = async (payload) => {
   const style = S0.style ?? 'vibrant';
   const D = STYLE_DEFAULTS[style] ?? STYLE_DEFAULTS.vibrant;
   const S = { ...S0, lights: { ...(S0.lights || {}) } };
+  if (S.time === 'day') { // simple daylight preset: bright sky light + shadowed sun (night is the default)
+    S.lighting = { sky: '#d8e4ff', skyIntensity: 1.0, ambient: '#101214', ...(S.lighting || {}) };
+    S.fog = S.fog === null ? null : { color: '#a9bcd6', density: 0.006, ...(S.fog || {}) };
+    S.background = S.background ?? '#8fb3e8';
+    S.sun = S.sun ?? { dir: [-0.45, -0.8, -0.35], color: '#fff3df', intensity: 2.2 };
+  }
   // ---- world (cached)
   let W = cacheWorlds.get(payload.worldKey);
   if (!W) {
@@ -685,6 +725,7 @@ window.renderWorld = async (payload) => {
   U.uSpec.value = L.spec ?? D.spec;
   U.uGamma.value = D.gamma ?? 1;
   U.uCurve.value = L.curve ?? D.curve ?? 1;
+  U.uBright.value = L.brightness ?? 0.5; // classic: Minecraft brightness/gamma option (0..1)
   U.__emissive = L.emissive ?? D.emissive;
   U.__normal = L.normal ?? D.normal;
   // ---- scene
@@ -742,7 +783,7 @@ window.renderWorld = async (payload) => {
     lightInfo = selectLights(W, cam, S);
     for (const c of lightInfo.selected) {
       const col = new THREE.Color(c.color);
-      const I = lightScale * 7.0 * Math.pow(c.level / 15, 2) * Math.pow(c.n, 0.5);
+      const I = lightScale * (S.lights.intensity ?? 16) * Math.pow(c.level / 15, 2) * Math.pow(c.n, 0.5) * (c.full ? 1.5 : 0.55);
       const pl = new THREE.PointLight(col, I, c.range, 2);
       pl.position.copy(c.wp);
       if (c.shadow) {
@@ -751,6 +792,33 @@ window.renderWorld = async (payload) => {
       }
       scene.add(pl);
     }
+    for (const sp of lightInfo.spots) {
+      const C = sp.conf;
+      const l = new THREE.SpotLight(new THREE.Color(sp.color), lightScale * (C.intensity ?? 90) * Math.pow(sp.level / 15, 2), sp.range, (C.angle ?? 24) * Math.PI / 180, C.penumbra ?? 0.45, 2);
+      l.position.copy(sp.wp); l.target.position.copy(sp.tgt);
+      scene.add(l.target);
+      if (sp.shadow) { l.castShadow = true; l.shadow.mapSize.set(1024, 1024); l.shadow.bias = -0.0015; l.shadow.normalBias = 0.03; l.shadow.camera.near = 0.2; }
+      scene.add(l);
+      // volumetric-looking beam in the haze
+      const beam = S.beams ?? (style === 'classic' ? 0 : 1);
+      if (beam > 0 && fogS) {
+        const len = sp.len, rad = Math.tan((C.angle ?? 24) * Math.PI / 180) * len;
+        const geo = new THREE.ConeGeometry(rad, len, 32, 1, true);
+        geo.translate(0, -len / 2, 0);
+        const mat = new THREE.ShaderMaterial({
+          uniforms: { col: { value: new THREE.Color(sp.color) }, strength: { value: 0.15 * beam * Math.min(2, fogS.density / 0.03) }, len: { value: len } },
+          vertexShader: 'varying float vT; varying vec3 vN; varying vec3 vV; uniform float len; void main(){ vT = -position.y / len; vec4 mv = modelViewMatrix * vec4(position,1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
+          fragmentShader: 'uniform vec3 col; uniform float strength; varying float vT; varying vec3 vN; varying vec3 vV; void main(){ float edge = pow(abs(dot(normalize(vN), normalize(vV))), 2.0); float a = strength * pow(1.0 - clamp(vT,0.0,1.0), 1.8) * edge; gl_FragColor = vec4(col * a, 1.0); }',
+          blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+        });
+        const m = new THREE.Mesh(geo, mat);
+        m.position.copy(sp.wp);
+        m.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), sp.dir);
+        m.renderOrder = 2;
+        scene.add(m);
+      }
+    }
+    if (lightInfo.spots.length) log(`spot lights: ${lightInfo.spots.length} (${lightInfo.spots.map((sp) => sp.name).join(', ')})`);
     log(`real lights: ${lightInfo.selected.length}/${lightInfo.candidates} (shadows ${lightInfo.selected.filter((c) => c.shadow).length}): ` + lightInfo.selected.map((c) => `${[...c.names][0]}@${c.wp.toArray().map((v) => v.toFixed(1)).join(',')}x${c.n}${c.shadow ? '*' : ''}`).join(' '));
   }
   for (const X of S.extra_lights || []) {
@@ -767,6 +835,15 @@ window.renderWorld = async (payload) => {
       l.castShadow = true; l.shadow.mapSize.set(X.shadowMapSize ?? 1024, X.shadowMapSize ?? 1024); l.shadow.bias = -0.002; l.shadow.normalBias = 0.03;
       if (X.type === 'dir') { const c = l.shadow.camera, e = X.shadowExtent ?? 30; c.left = -e; c.right = e; c.top = e; c.bottom = -e; c.near = 0.5; c.far = X.shadowFar ?? 200; c.updateProjectionMatrix(); l.shadow.bias = -0.0005; }
     }
+    scene.add(l);
+  }
+  if (S.sun) {
+    const d = new THREE.Vector3(...(S.sun.dir ?? [-0.45, -0.8, -0.35])).normalize();
+    const c = new THREE.Vector3(o[0] + W.sx / 2, o[1] + W.sy / 2, o[2] + W.sz / 2);
+    const ext = Math.max(W.sx, W.sy, W.sz) * 0.75;
+    const l = new THREE.DirectionalLight(new THREE.Color(S.sun.color ?? '#fff3df'), S.sun.intensity ?? 2.2);
+    l.position.copy(c).addScaledVector(d, -ext * 2); l.target.position.copy(c); scene.add(l.target);
+    if (style !== 'classic') { l.castShadow = true; l.shadow.mapSize.set(2048, 2048); const sc = l.shadow.camera; sc.left = -ext; sc.right = ext; sc.top = ext; sc.bottom = -ext; sc.near = 0.5; sc.far = ext * 4; l.shadow.bias = -0.0006; l.shadow.normalBias = 0.04; }
     scene.add(l);
   }
   // ---- halos (light scattering in the haze)

@@ -77,6 +77,7 @@ fs.mkdirSync(sceneDir, { recursive: true });
 const w = (p) => [p[0] + O[0], p[1] + O[1], p[2] + O[2]];
 fs.writeFileSync(path.join(sceneDir, 'perf_hall.json'), JSON.stringify({
   width: 1920, height: 1080, voxels: path.relative(sceneDir, out), style: 'vibrant',
-  camera: { pos: w([9.5, 6.2, 9.5]), target: w([60, 4, 60]), fov: 75 },
+  camera: { pos: w([22.5, 6.5, 18.5]), target: w([70, 4, 60]), fov: 75 },
+  entities: [{ id: 'fnar:rustgrin', pos: w([30, 4, 26]), yaw: 210, anim: 'idle', t: 0.5 }],
 }, null, 1));
 console.log(`perf world ${SX}x${SY}x${SZ} palette ${v.palette.length} -> ${path.relative(process.cwd(), out)}`);

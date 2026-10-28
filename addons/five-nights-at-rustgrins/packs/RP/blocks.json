@@ -1,0 +1,205 @@
+{
+  "format_version": [
+    1,
+    1,
+    0
+  ],
+  "fnar:arcade_cabinet": {
+    "sound": "metal"
+  },
+  "fnar:balloons": {
+    "sound": "cloth"
+  },
+  "fnar:bunting": {
+    "sound": "cloth"
+  },
+  "fnar:carpet_party": {
+    "sound": "cloth"
+  },
+  "fnar:ceiling_lamp": {
+    "sound": "metal"
+  },
+  "fnar:ceiling_tile": {
+    "sound": "stone"
+  },
+  "fnar:ceiling_tile_stained": {
+    "sound": "stone"
+  },
+  "fnar:cinderblock_painted": {
+    "sound": "stone"
+  },
+  "fnar:crt_monitor": {
+    "sound": "metal"
+  },
+  "fnar:curtain_purple": {
+    "sound": "cloth"
+  },
+  "fnar:curtain_red": {
+    "sound": "cloth"
+  },
+  "fnar:desk_clutter": {
+    "sound": "cloth"
+  },
+  "fnar:desk_fan": {
+    "sound": "metal"
+  },
+  "fnar:desk_phone": {
+    "sound": "metal"
+  },
+  "fnar:door_button": {
+    "sound": "metal"
+  },
+  "fnar:door_shutter": {
+    "sound": "metal"
+  },
+  "fnar:drawing": {
+    "sound": "cloth"
+  },
+  "fnar:duct_metal": {
+    "sound": "metal"
+  },
+  "fnar:exit_sign": {
+    "sound": "metal"
+  },
+  "fnar:guitar_amp": {
+    "sound": "metal"
+  },
+  "fnar:hanging_lamp": {
+    "sound": "metal"
+  },
+  "fnar:light_button": {
+    "sound": "metal"
+  },
+  "fnar:locker": {
+    "sound": "metal"
+  },
+  "fnar:mop_bucket": {
+    "sound": "metal"
+  },
+  "fnar:pa_speaker": {
+    "sound": "metal"
+  },
+  "fnar:parts_shelf": {
+    "sound": "metal"
+  },
+  "fnar:party_chair": {
+    "sound": "metal"
+  },
+  "fnar:party_hat": {
+    "sound": "cloth"
+  },
+  "fnar:party_table": {
+    "sound": "wood"
+  },
+  "fnar:pizza_box": {
+    "sound": "wood"
+  },
+  "fnar:plate_set": {
+    "sound": "cloth"
+  },
+  "fnar:plush_rat": {
+    "sound": "cloth"
+  },
+  "fnar:poster_cabaret": {
+    "sound": "cloth"
+  },
+  "fnar:poster_midway": {
+    "sound": "cloth"
+  },
+  "fnar:poster_missing": {
+    "sound": "cloth"
+  },
+  "fnar:poster_party": {
+    "sound": "cloth"
+  },
+  "fnar:poster_revue": {
+    "sound": "cloth"
+  },
+  "fnar:poster_rules": {
+    "sound": "cloth"
+  },
+  "fnar:security_camera": {
+    "sound": "metal"
+  },
+  "fnar:show_tape": {
+    "sound": "metal"
+  },
+  "fnar:sign_cabaret": {
+    "sound": "metal"
+  },
+  "fnar:sign_midway": {
+    "sound": "metal"
+  },
+  "fnar:sign_out_of_order": {
+    "sound": "cloth"
+  },
+  "fnar:sign_revue": {
+    "sound": "metal"
+  },
+  "fnar:sign_staff": {
+    "sound": "wood"
+  },
+  "fnar:sink": {
+    "sound": "stone"
+  },
+  "fnar:stage_floor": {
+    "sound": "wood"
+  },
+  "fnar:stage_speaker": {
+    "sound": "metal"
+  },
+  "fnar:stage_spotlight": {
+    "sound": "metal"
+  },
+  "fnar:stage_star": {
+    "sound": "wood"
+  },
+  "fnar:tent_stripe": {
+    "sound": "cloth"
+  },
+  "fnar:tile_checker": {
+    "sound": "stone"
+  },
+  "fnar:tile_checker_worn": {
+    "sound": "stone"
+  },
+  "fnar:tile_kitchen": {
+    "sound": "stone"
+  },
+  "fnar:tile_office": {
+    "sound": "stone"
+  },
+  "fnar:time_clock": {
+    "sound": "metal"
+  },
+  "fnar:toilet": {
+    "sound": "stone"
+  },
+  "fnar:trash_can": {
+    "sound": "metal"
+  },
+  "fnar:vent_cover": {
+    "sound": "metal"
+  },
+  "fnar:wall_checker": {
+    "sound": "stone"
+  },
+  "fnar:wall_plaster": {
+    "sound": "stone"
+  },
+  "fnar:wall_plaster_stained": {
+    "sound": "stone"
+  },
+  "fnar:wall_sconce": {
+    "sound": "metal"
+  },
+  "fnar:wall_trim": {
+    "sound": "stone"
+  },
+  "fnar:wallpaper_maroon": {
+    "sound": "stone"
+  },
+  "fnar:wet_floor_sign": {
+    "sound": "metal"
+  }
+}

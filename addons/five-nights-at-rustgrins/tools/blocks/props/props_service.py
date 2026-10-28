@@ -67,11 +67,10 @@ def time_clock(out):
 
     def front(r):  # 7 x 11 body front: (dial is a separate cube on top part) card slot + brand plate
         shell(4, 0.35)(r)
-        r.rect(2, 6, 3, 1, SHADOW, 1)  # card slot
-        r.hline(2, 7, 3, BEIGE, 2)
-        r.px(5, 9, RED, 3)  # IN / OUT indicator
-        r.rect(1, 9, 3, 1, BRASS, 3)  # brand plate
-        r.px(1, 9, BRASS, 5)
+        r.rect(2, 8, 3, 1, BRASS, 3)  # brand plate
+        r.px(2, 8, BRASS, 5)
+        r.px(5, 8, RED, 3)  # IN / OUT indicator
+        r.hline(1, 10, 5, BEIGE, 2)  # base seam
 
     def dial(r):  # 5 x 5 round face showing 3 o'clock (an L of hands reads best at this size)
         r.fill(BEIGE, 4)
@@ -95,8 +94,13 @@ def time_clock(out):
                 r.px(1 % r.w, rr, CREAM_CARD, 0)
             r.px(0, 1, RED, 3)
 
+    def top(r):  # card slot in the top (cards are dropped in from above)
+        shell(5, 0.5)(r)
+        r.rect(1, 2, r.w - 2, 1, SHADOW, 1)
+
     g.box('clock', (-5, 3, 3), (2, 15, 8), {'north': front, 'east': Face(shell(3), 'side'), 'west': Face(shell(3), 'side'),
-                                           'up': shell(5, 0.5), 'down': shell(2)})
+                                           'up': top, 'down': shell(2)})
+    g.box('clock', (-3, 15, 4.75), (0, 16, 5.25), {'north': Face(card, 'pc'), 'south': Face(card, 'pc'), 'sides': Face(card, 'pce'), 'up': Face(card, 'pct')})
     g.box('clock', (-4, 9, 2.5), (1, 14, 3), {'north': dial, 'sides': Face(panel(CHROME, 3, bevel=None), 'ds'), 'ends': Face(panel(CHROME, 3, bevel=None), 'de')})
     g.box('rack', (2, 2, 6.5), (5, 12, 8), {'north': rack, 'east': Face(panel(STEEL, 2), 'rs'), 'west': Face(panel(STEEL, 2), 'rs'),
                                            'up': Face(panel(STEEL, 3), 'ru'), 'down': Face(panel(STEEL, 2), 'ru')})
