@@ -10,6 +10,11 @@ Not affiliated with Scott Cawthon or Mojang. The animatronic models and
 animations were supplied by the map owner; everything else (map, scripts,
 block art, sounds, music, story) is original to this project.
 
+![Preview renders](previews/contact_sheet.jpg)
+
+More in [`previews/`](previews/): renders of the map the add-on builds, made
+offline with the project's own renderer (see *Building from source*).
+
 ## Install
 
 1. Open `dist/FiveNightsAtRustgrins.mcaddon` (double-click on Windows / open
@@ -70,3 +75,7 @@ camera sight lines and routes on the built map, a typecheck against the
 `@minecraft/server` 2.10 typings, a night-balance simulation, and a scripted
 play session against a strict API mock) and writes `dist/*.mcaddon`.
 See `docs/` for the design, block, sound and renderer specs.
+
+`node tools/previews/make_previews.mjs` re-renders `previews/` from the build
+plan (headless Chromium + three.js; camera shots get the in-game camera HUD
+composited on top).

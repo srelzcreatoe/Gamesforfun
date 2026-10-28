@@ -1,5 +1,7 @@
 // Map validator on the exported voxel model (what /fnar:setup builds):
-//   1. every camera sees every node in its `sees` list (ray-cast to the body and head);
+//   1. every camera sees every node in its `sees` list (ray-cast to the body and head,
+//      inside the feed's view: within VIEW.h / VIEW.v degrees of the aim, which fits
+//      Bedrock's default 60 degree FOV on a 4:3 screen);
 //   2. every route edge (node -> waypoints -> node) keeps the animatronic's body
 //      clear of walls, tables and shelves (ducts: crawl height only);
 //   3. every node stands on a floor with head room;
@@ -61,6 +63,22 @@ function rayClear(a, b, step = 0.1) {
 let problems = 0;
 const report = (msg) => { problems++; console.log('  ' + msg); };
 
+const VIEW = { h: 36, v: 27 };
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const norm = (a) => { const l = Math.hypot(...a); return a.map((v) => v / l); };
+/** Is p inside camera c's view? (angles off the aim, in degrees) */
+function inView(c, p) {
+  const f = norm(sub(c.look, c.loc));
+  const r = norm(cross(f, [0, 1, 0]));
+  const u = cross(r, f);
+  const v = sub(p, c.loc);
+  const z = dot(v, f);
+  if (z <= 0) return false;
+  return Math.atan2(Math.abs(dot(v, r)), z) * 180 / Math.PI <= VIEW.h && Math.atan2(Math.abs(dot(v, u)), z) * 180 / Math.PI <= VIEW.v;
+}
+
 console.log('cameras:');
 for (const c of CAMERAS) {
   const lens = nameAt(...c.loc);
@@ -71,6 +89,7 @@ for (const c of CAMERAS) {
     gapOpen = id === 'CAB_PEEK' || id === 'CAB_OUT';
     const res = pts.map((p) => rayClear(c.loc, p));
     if (!res.some((r) => r.ok)) report(`${c.id} cannot see ${id}: blocked by ${res[0].block} at ${res[0].at}`);
+    else if (!pts.some((p, i) => res[i].ok && inView(c, p))) report(`${c.id}: ${id} is outside the camera's view`);
   }
 }
 
