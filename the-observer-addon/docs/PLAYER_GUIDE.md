@@ -18,7 +18,7 @@ Minecraft imports both packs. Then:
 3. Play. Nothing happens during the grace period (12 minutes of play on the Standard preset). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from an earlier version:** import the new `.mcaddon` (version 1.0.2). If a world still uses the old copy, open the world's
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.0.3). If a world still uses the old copy, open the world's
 settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.0.1 packs again.
 
 **Existing worlds:** back the world up first, then add the packs as above. The add-on only changes blocks in small,
@@ -59,7 +59,7 @@ Players who are not operators only see the status and their own caption setting.
 | **Presets** | Atmosphere, Standard, Relentless |
 | **All settings** | frequency, aggression, environmental manipulation, sudden scares, camera effects, captions, grace period, world weather, developer tracing |
 | **Encounter toggles** | one switch per encounter type (with the stage it unlocks at); switched-off types are never chosen |
-| **Test an encounter** | starts any encounter on you right now; if the place is unsuitable it tells you what that encounter needs (for example, *The Closed Path* needs a tunnel at least 3 blocks high) |
+| **Test an encounter** | starts something on you right now. First the single behaviours (red): **The Strike** (it runs up and makes its attack; damage follows your aggression setting), **The Lunge** (look at it and it comes at you), **Peeking from cover** (beside a trunk or wall corner ahead of you), **The Vigil (practice)** (three rounds, no reward, nothing recorded). Then every encounter. If the place is unsuitable it tells you what that one needs (for example, *The Closed Path* needs a tunnel at least 3 blocks high). Tests never count toward your story |
 | **Undo its changes** | puts back every block it changed and ends whatever it is doing |
 | **Sound captions** | your own caption setting |
 

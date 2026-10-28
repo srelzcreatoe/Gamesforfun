@@ -127,13 +127,13 @@ export function wantsLunge(enc) {
 /**
  * The lunge: it shrieks and comes at you in jerks (short unseen-proof hops, ~14 blocks/s), then tears
  * apart right in front of you. On High aggression it strikes instead (still the telegraphed, dodgeable strike).
- * @param {Encounter} enc @param {{harmless?:boolean}} [o] harmless: never strikes, uses no scare budget (preview)
+ * @param {Encounter} enc @param {{harmless?:boolean, test?:boolean}} [o] harmless: never strikes (preview); test: uses no scare budget
  */
 export async function lunge(enc, o = {}) {
   const p = enc.p;
   const b = body.get();
   if (!b) return;
-  if (!o.harmless) enc.usedScare();
+  if (!o.harmless && !o.test) enc.usedScare();
   b.autoPeek = false;
   b.faceTarget = true;
   body.setState("run");

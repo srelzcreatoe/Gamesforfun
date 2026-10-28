@@ -24,7 +24,8 @@ import { GazeTracker } from "../world/sight.js";
  * @property {number} [minAggression]
  * @property {boolean} [benign]     allowed after the ending in attendant mode
  * @property {boolean} [manual]     never chosen by the director (vigil, follow-ups)
- * @property {boolean} [preview]    Config Wheel preview: runs in any game mode, even when switched off; no progress
+ * @property {boolean} [preview]    Config Wheel preview/practice: runs in any game mode, even when switched off; no progress
+ * @property {boolean} [testOnly]   listed under Config Wheel → Test an encounter only (never chosen by the director)
  * @property {(c:import("./context.js").Ctx, s:any)=>number} weight  0 = not eligible here
  * @property {(e:Encounter)=>Promise<boolean|void>|boolean|void} [prepare]  return false to defer
  * @property {(e:Encounter)=>Promise<void>} run

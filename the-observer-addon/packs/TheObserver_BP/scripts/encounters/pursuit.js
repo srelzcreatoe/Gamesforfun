@@ -1,5 +1,5 @@
 // @ts-check
-// E13 "Breathing Room" — escalation. Requires stage 5 and aggression >= 1.
+// E13 "Breathing Room" — escalation. Requires stage 4 and aggression >= 1.
 // Warning: a rising hum, nearby lights dying, dread fog. It appears in view at 24-34 blocks and
 // stares for three seconds (the response window). Then it runs.
 // Rules: watched, it can only walk; light (>= 11) stops it; water stops it; the Witness Lens or a

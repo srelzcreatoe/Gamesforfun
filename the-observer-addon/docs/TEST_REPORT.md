@@ -118,6 +118,12 @@ outcomes, discoveries, block states, entities, items, health and timing.
 Run 7 (1.0.1): 1080 s, minimum TPS 19.8, 0 errors; after the version bump to 1.0.1, `setup wheel_welcome showcase
 toggles distant_watch status` was re-run: 19 / 19.
 
+**1.0.3 (test-only behaviours in the Config Wheel):** `setup test_entries status` 10 / 10; then, because the real
+vigil now shares its code with the practice vigil, `setup wheel_welcome vigil showcase toggles test_entries
+distant_watch status` 30 / 30 (two assertions first failed only because the real vigil ran just before them — its
+restorations were counted as "changes" and the player already held the Eye; the assertions now count new changes and
+compare the Eye count before and after). The full suite was not repeated for 1.0.3.
+
 Final run (1.0.2): 1105 s, minimum TPS between tests 19.9, **0 content-log or script errors**.
 
 ### 5.2 Final run by area

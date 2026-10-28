@@ -40,7 +40,26 @@ register({
   cooldown: 0,
   manual: true,
   weight: () => 1,
-  async run(enc) {
+  run: (enc) => vigil(enc, false),
+});
+
+// Config Wheel → Test an encounter: the same three rounds anywhere, any time, with no reward, no
+// world-wide weather and no change to the player's story.
+register({
+  id: "vigil_practice",
+  tier: 0,
+  minStage: 0,
+  needsBody: true,
+  cooldown: 0,
+  manual: true,
+  preview: true,
+  testOnly: true,
+  weight: () => 0,
+  run: (enc) => vigil(enc, true),
+});
+
+/** @param {import("../director/encounter.js").Encounter} enc @param {boolean} practice */
+async function vigil(enc, practice) {
     const p = enc.p;
     const dim = enc.dim;
     // same threshold as the Field Notes' eligibility check
@@ -48,7 +67,7 @@ register({
     const home = h ? h.center : p.location;
     enc.restoreDelay = 3;
     let rained = false;
-    if (S().worldEffects && enc.dimId === "minecraft:overworld") {
+    if (!practice && S().worldEffects && enc.dimId === "minecraft:overworld") {
       safe(() => dim.setWeather(WeatherType.Rain, 20 * 60 * 4));
       rained = true;
       for (const o of allPlayers()) safe(() => o.sendMessage({ rawtext: [{ translate: "observer.msg.vigil_weather" }] }));
@@ -95,9 +114,11 @@ register({
         enc.fade(0.3, 1.6, 1.5);
         await enc.wait(20);
         body.despawn("vigil_failed");
-        enc.s.vigilTries++;
-        markPlayerDirty(p);
-        safe(() => p.sendMessage({ rawtext: [{ translate: "observer.msg.vigil_failed" }] }));
+        if (!practice) {
+          enc.s.vigilTries++;
+          markPlayerDirty(p);
+        }
+        safe(() => p.sendMessage({ rawtext: [{ translate: practice ? "observer.msg.vigil_practice_failed" : "observer.msg.vigil_failed" }] }));
         enc.result("failed", true);
         if (rained) safe(() => dim.setWeather(WeatherType.Clear, 20 * 60));
         return;
@@ -118,6 +139,11 @@ register({
       await enc.wait(70);
       await body.withdraw([p], 100);
     }
+    if (practice) {
+      safe(() => p.sendMessage({ rawtext: [{ translate: "observer.msg.vigil_practice_done" }] }));
+      enc.result("practice_done", true);
+      return;
+    }
     enc.s.witnessed = true;
     enc.s.endMode = enc.s.endMode || "attendant";
     markPlayerDirty(p);
@@ -127,5 +153,4 @@ register({
     safe(() => p.sendMessage({ rawtext: [{ translate: "observer.msg.witnessed" }] }));
     if (rained) safe(() => dim.setWeather(WeatherType.Clear, 20 * 60 * 5));
     enc.log(`${p.name} witnessed after ${wins} rounds`);
-  },
-});
+}

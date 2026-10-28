@@ -108,6 +108,15 @@ function countBlocks(dim, a, b, type) {
 function itemsNear(dim, loc, r = 6) {
   return dim.getEntities({ type: "minecraft:item", location: loc, maxDistance: r }).length;
 }
+function countItem(p, id) {
+  const inv = p.getComponent("minecraft:inventory").container;
+  let n = 0;
+  for (let i = 0; i < inv.size; i++) {
+    const it = inv.getItem(i);
+    if (it && it.typeId === id) n += it.amount;
+  }
+  return n;
+}
 function hasItem(p, id) {
   const inv = p.getComponent("minecraft:inventory").container;
   for (let i = 0; i < inv.size; i++) if (inv.getItem(i)?.typeId === id) return true;
@@ -982,8 +991,10 @@ TESTS.showcase = async () => {
   dmg.stop();
   check("showcase_outcome", end && end.outcome === "shown", end ? end.outcome : "none");
   check("showcase_ends_in_vanish", since(m, "fx").some((d) => d.what === "vanish"), JSON.stringify(since(m, "fx")));
-  check("showcase_harmless", dmg.total === 0 && since(m, "ledger").length === 0 && since(m, "discovery").length === 0,
-    `damage=${dmg.total} changes=${since(m, "ledger").length} discoveries=${since(m, "discovery").length}`);
+  // new block changes only (restorations of earlier encounters may happen meanwhile)
+  const changes = since(m, "ledger").filter((d) => d.what === "change").length;
+  check("showcase_harmless", dmg.total === 0 && changes === 0 && since(m, "discovery").length === 0,
+    `damage=${dmg.total} changes=${changes} discoveries=${since(m, "discovery").length}`);
   p.setGameMode(GameMode.Survival);
   await observerGone(200);
 };
@@ -1154,6 +1165,84 @@ TESTS.creeping_reaches = async () => {
   check("creeping_reaches_outcome", end && (end.outcome === "struck" || end.outcome === "dodged"), `${end ? end.outcome : "none"} moves=${moves}`);
   check("creeping_reaches_nonlethal", dmg.minHp >= 1, `damage ${dmg.total} lowest hp ${dmg.minHp}`);
   ow().runCommand("time set noon");
+  await observerGone(200);
+};
+
+TESTS.test_entries = async () => {
+  // Config Wheel → Test an encounter: the single behaviours (strike, lunge, peek, vigil practice) run on demand
+  let p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
+  isolate(p);
+  // the strike: it runs up and strikes (standard aggression: damage, never lethal)
+  let dmg = trackDamage(p);
+  let m = mark();
+  obs("trigger", "test_strike", "Tester");
+  let end = await endOf("test_strike", m, 20 * 25);
+  dmg.stop();
+  check("test_strike_outcome", end && (end.outcome === "struck" || end.outcome === "dodged"), `${end ? end.outcome : "none"} damage=${dmg.total}`);
+  check("test_strike_nonlethal", dmg.minHp >= 1 || dmg.total === 0, `lowest hp ${dmg.minHp}`);
+  await observerGone(100);
+  // the lunge: look at it and it comes at you, then tears apart (no damage below High)
+  p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
+  dmg = trackDamage(p);
+  m = mark();
+  obs("trigger", "test_lunge", "Tester");
+  const e = await waitObserver(60);
+  for (let t = 0; t < 20 * 14 && e && e.isValid; t += 2) {
+    p.lookAtLocation({ x: e.location.x, y: e.location.y + 2.2, z: e.location.z });
+    await wait(2);
+  }
+  end = await endOf("test_lunge", m, 200);
+  dmg.stop();
+  check("test_lunge_outcome", end && end.outcome === "lunged" && !!since(m, "lunge")[0] && dmg.total === 0, `${end ? end.outcome : "none"} damage=${dmg.total}`);
+  await observerGone(100);
+  // peeking: beside a trunk in front of the player it leans out
+  p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
+  const trunk = [];
+  for (const h of [0, 1, 2, 3]) {
+    const b = { x: FIELD.x + 1, y: Y + h, z: FIELD.z - 9 };
+    if (ow().getBlock(b)?.isAir) {
+      ow().getBlock(b).setType("minecraft:oak_log");
+      trunk.push(b);
+    }
+  }
+  m = mark();
+  obs("trigger", "test_peek", "Tester");
+  const pe = await waitObserver(60);
+  let peeked = false;
+  for (let t = 0; t < 40 && pe && pe.isValid; t += 4) {
+    if (pe.getProperty("observer:state") === "peek") peeked = true;
+    await wait(4);
+  }
+  check("test_peek_leans_out", peeked, pe ? `state=${pe.isValid ? pe.getProperty("observer:state") : "gone"}` : "no body");
+  end = await endOf("test_peek", m, 300);
+  check("test_peek_outcome", end && end.outcome === "shown", end ? end.outcome : "none");
+  for (const b of trunk) ow().getBlock(b)?.setType("minecraft:air");
+  await observerGone(100);
+  // the vigil practice: three rounds, then nothing recorded and no reward
+  p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
+  ow().runCommand("time set midnight");
+  const eyesBefore = countItem(p, "observer:observers_eye");
+  m = mark();
+  obs("trigger", "vigil_practice", "Tester");
+  let seenId = "";
+  for (let t = 0; t < 20 * 150; t += 4) {
+    const o = observerEntity();
+    if (o && o.isValid) {
+      if (seenId !== o.id) {
+        seenId = o.id;
+        p.teleport({ x: o.location.x + 6, y: o.location.y, z: o.location.z }, { facingLocation: { x: o.location.x, y: o.location.y + 2.2, z: o.location.z } });
+      }
+      p.lookAtLocation({ x: o.location.x, y: o.location.y + 2.2, z: o.location.z });
+    }
+    await wait(4);
+    if (since(m, "end").some((d) => d.type === "vigil_practice")) break;
+  }
+  end = since(m, "end").find((d) => d.type === "vigil_practice");
+  check("vigil_practice_outcome", end && (end.outcome === "practice_done" || end.outcome === "failed"), end ? end.outcome : "none");
+  check("vigil_practice_no_reward", countItem(p, "observer:observers_eye") === eyesBefore && !since(m, "discovery").some((d) => d.id === "witnessed"),
+    `eyes ${eyesBefore} -> ${countItem(p, "observer:observers_eye")}`);
+  ow().runCommand("time set noon");
+  ow().runCommand("weather clear");
   await observerGone(200);
 };
 

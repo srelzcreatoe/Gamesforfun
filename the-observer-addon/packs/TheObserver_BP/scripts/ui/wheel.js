@@ -25,8 +25,10 @@ const raw = (...parts) => ({ rawtext: parts.map((p) => (typeof p === "string" ? 
 /** @param {Player} p @param {import("@minecraft/server").RawMessage} m */
 const say = (p, m) => safe(() => p.sendMessage(m));
 
-/** Encounter types players can switch on and off (not the vigil or the preview). */
+/** Encounter types players can switch on and off (not the vigil, the preview or the test-only behaviours). */
 export const TOGGLEABLE = () => director.REGISTRY.filter((d) => !d.preview && d.id !== "vigil");
+/** Test menu: the single behaviours first (strike, lunge, peeking, vigil practice), then every encounter. */
+export const TESTABLE = () => [...director.REGISTRY.filter((d) => d.testOnly), ...TOGGLEABLE()];
 
 /** Operators — and in a single-player world, the player — may configure everything. @param {Player} p */
 export function canConfigure(p) {
@@ -158,7 +160,7 @@ async function toggles(p) {
 /** Start any encounter on yourself now. @param {Player} p */
 async function testEncounter(p) {
   if (!survivalLike(p)) return say(p, raw(tr("observer.wheel.need_survival")));
-  const defs = TOGGLEABLE();
+  const defs = TESTABLE();
   const f = new ActionFormData().title(tr("observer.wheel.btn_test")).body(tr("observer.wheel.test_body"));
   for (const d of defs) f.button(raw(tr(`observer.enc.${d.id}`), "\n", tr(`observer.enc.${d.id}.where`)));
   const r = await f.show(p);
@@ -166,7 +168,7 @@ async function testEncounter(p) {
   const def = defs[r.selection];
   const s = ps(p);
   // tests run at the encounter's own stage at least, so stage-dependent behaviour is shown
-  if (s.stage < Math.max(1, def.minStage)) {
+  if (!def.testOnly && s.stage < Math.max(1, def.minStage)) {
     s.stage = Math.max(1, def.minStage);
     s.play = Math.max(s.play, S().graceMinutes * 60);
     markPlayerDirty(p);
