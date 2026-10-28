@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "mop_bucket",
+    "metalness_emissive_roughness": "mop_bucket_mer",
+    "heightmap": "mop_bucket_height"
+  }
+}

@@ -1,0 +1,73 @@
+{
+ "width": 1280,
+ "height": 720,
+ "voxels": "../test_room.json",
+ "packs": [
+  "../fixtures"
+ ],
+ "time": "night",
+ "camera": {
+  "pos": [
+   -5,
+   66.8,
+   -1.5
+  ],
+  "target": [
+   3,
+   62,
+   7
+  ],
+  "fov": 78
+ },
+ "style": "camera_feed",
+ "entities": [
+  {
+   "id": "fnar:rustgrin",
+   "pos": [
+    1.5,
+    62,
+    7
+   ],
+   "yaw": 180,
+   "anim": "idle",
+   "t": 0.6,
+   "eyes": true
+  },
+  {
+   "id": "fnar:mirehop",
+   "pos": [
+    -1.5,
+    62,
+    7.5
+   ],
+   "yaw": 200,
+   "anim": "perform_1",
+   "t": 1.2,
+   "eyes": true
+  },
+  {
+   "id": "fnar:noxbriar",
+   "pos": [
+    4.5,
+    62,
+    7.5
+   ],
+   "yaw": 160,
+   "anim": "pose_1",
+   "t": 0.4,
+   "eyes": true
+  },
+  {
+   "id": "fnar:purple_rat",
+   "pos": [
+    -0.5,
+    61,
+    1.1999999999999993
+   ],
+   "yaw": 150,
+   "anim": "idle",
+   "t": 0.3,
+   "eyes": true
+  }
+ ]
+}

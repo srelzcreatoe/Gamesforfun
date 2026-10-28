@@ -1,0 +1,87 @@
+{
+  "format_version": "1.26.50",
+  "minecraft:block": {
+    "description": {
+      "identifier": "fnar:hanging_lamp",
+      "menu_category": {
+        "category": "construction"
+      },
+      "states": {
+        "fnar:lit": [
+          true,
+          false
+        ]
+      }
+    },
+    "components": {
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1
+      },
+      "minecraft:map_color": "#546555",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "fnar_hanging_lamp_on",
+          "render_method": "alpha_test"
+        },
+        "glow": {
+          "texture": "fnar_hanging_lamp_on",
+          "render_method": "alpha_test",
+          "face_dimming": false,
+          "ambient_occlusion": 0
+        }
+      },
+      "minecraft:light_emission": 11,
+      "minecraft:geometry": "geometry.fnar.hanging_lamp",
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -5,
+          4,
+          -5
+        ],
+        "size": [
+          10,
+          12,
+          10
+        ]
+      },
+      "minecraft:light_dampening": 0
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('fnar:lit') == true",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_hanging_lamp_on",
+              "render_method": "alpha_test"
+            },
+            "glow": {
+              "texture": "fnar_hanging_lamp_on",
+              "render_method": "alpha_test",
+              "face_dimming": false,
+              "ambient_occlusion": 0
+            }
+          },
+          "minecraft:light_emission": 11
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:lit') == false",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_hanging_lamp_off",
+              "render_method": "alpha_test"
+            },
+            "glow": {
+              "texture": "fnar_hanging_lamp_off",
+              "render_method": "alpha_test"
+            }
+          },
+          "minecraft:light_emission": 0
+        }
+      }
+    ]
+  }
+}

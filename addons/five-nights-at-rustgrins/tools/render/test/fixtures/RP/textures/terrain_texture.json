@@ -1,0 +1,62 @@
+{
+  "resource_pack_name": "fnartest",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "fnartest_orient_n": {
+      "textures": "textures/blocks/fnartest/orient_n"
+    },
+    "fnartest_orient_s": {
+      "textures": "textures/blocks/fnartest/orient_s"
+    },
+    "fnartest_orient_e": {
+      "textures": "textures/blocks/fnartest/orient_e"
+    },
+    "fnartest_orient_w": {
+      "textures": "textures/blocks/fnartest/orient_w"
+    },
+    "fnartest_orient_u": {
+      "textures": "textures/blocks/fnartest/orient_u"
+    },
+    "fnartest_orient_d": {
+      "textures": "textures/blocks/fnartest/orient_d"
+    },
+    "fnartest_orient_atlas": {
+      "textures": "textures/blocks/fnartest/orient_atlas"
+    },
+    "fnartest_tile": {
+      "textures": "textures/blocks/fnartest/tile"
+    },
+    "fnartest_metal": {
+      "textures": "textures/blocks/fnartest/metal"
+    },
+    "fnartest_lamp_on": {
+      "textures": "textures/blocks/fnartest/lamp_on"
+    },
+    "fnartest_lamp_off": {
+      "textures": "textures/blocks/fnartest/lamp_off"
+    },
+    "fnartest_grate": {
+      "textures": "textures/blocks/fnartest/grate"
+    },
+    "fnartest_glass": {
+      "textures": "textures/blocks/fnartest/glass"
+    },
+    "fnartest_flip": {
+      "textures": "textures/blocks/fnartest/flip"
+    },
+    "fnartest_poster_0": {
+      "textures": "textures/blocks/fnartest/poster_0"
+    },
+    "fnartest_poster_1": {
+      "textures": "textures/blocks/fnartest/poster_1"
+    },
+    "fnartest_poster_2": {
+      "textures": "textures/blocks/fnartest/poster_2"
+    },
+    "fnartest_poster_3": {
+      "textures": "textures/blocks/fnartest/poster_3"
+    }
+  }
+}

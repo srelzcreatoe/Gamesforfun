@@ -1,0 +1,106 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.fnar.exit_sign",
+        "texture_width": 16,
+        "texture_height": 16,
+        "visible_bounds_width": 2,
+        "visible_bounds_height": 2,
+        "visible_bounds_offset": [
+          0,
+          0.5,
+          0
+        ]
+      },
+      "bones": [
+        {
+          "name": "sign",
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -7,
+                9,
+                6
+              ],
+              "size": [
+                14,
+                7,
+                2
+              ],
+              "uv": {
+                "north": {
+                  "uv": [
+                    0,
+                    0
+                  ],
+                  "uv_size": [
+                    14,
+                    7
+                  ],
+                  "material_instance": "glow"
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    7
+                  ],
+                  "uv_size": [
+                    14,
+                    7
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    14,
+                    7
+                  ],
+                  "uv_size": [
+                    2,
+                    7
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    14,
+                    7
+                  ],
+                  "uv_size": [
+                    2,
+                    7
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    0,
+                    14
+                  ],
+                  "uv_size": [
+                    14,
+                    2
+                  ]
+                },
+                "down": {
+                  "uv": [
+                    0,
+                    14
+                  ],
+                  "uv_size": [
+                    14,
+                    2
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

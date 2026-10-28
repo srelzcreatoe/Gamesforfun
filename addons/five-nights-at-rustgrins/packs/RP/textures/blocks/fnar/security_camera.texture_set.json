@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "security_camera",
+    "metalness_emissive_roughness": "security_camera_mer",
+    "heightmap": "security_camera_height"
+  }
+}

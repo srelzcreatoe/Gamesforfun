@@ -1,0 +1,73 @@
+{
+  "format_version": "1.26.50",
+  "minecraft:block": {
+    "description": {
+      "identifier": "fnar:ceiling_lamp",
+      "menu_category": {
+        "category": "construction"
+      },
+      "states": {
+        "fnar:lit": [
+          true,
+          false
+        ]
+      }
+    },
+    "components": {
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1
+      },
+      "minecraft:map_color": "#a3a8ad",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "fnar_ceiling_tile",
+          "render_method": "opaque"
+        },
+        "down": {
+          "texture": "fnar_ceiling_lamp_on",
+          "render_method": "opaque",
+          "face_dimming": false
+        }
+      },
+      "minecraft:light_emission": 13,
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:collision_box": true,
+      "minecraft:selection_box": true
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('fnar:lit') == true",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_ceiling_tile",
+              "render_method": "opaque"
+            },
+            "down": {
+              "texture": "fnar_ceiling_lamp_on",
+              "render_method": "opaque",
+              "face_dimming": false
+            }
+          },
+          "minecraft:light_emission": 13
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:lit') == false",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_ceiling_tile",
+              "render_method": "opaque"
+            },
+            "down": {
+              "texture": "fnar_ceiling_lamp_off",
+              "render_method": "opaque"
+            }
+          },
+          "minecraft:light_emission": 0
+        }
+      }
+    ]
+  }
+}

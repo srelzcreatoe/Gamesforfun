@@ -1,0 +1,15 @@
+{
+  "resource_pack_name": "fnar",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "fnar_tablet": {
+      "textures": "textures/items/fnar/tablet"
+    },
+    "fnar_remote": {
+      "textures": "textures/items/fnar/remote"
+    },
+    "fnar_guide": {
+      "textures": "textures/items/fnar/guide"
+    }
+  }
+}

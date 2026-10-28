@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "curtain_red",
+    "metalness_emissive_roughness": "curtain_red_mer",
+    "heightmap": "curtain_red_height"
+  }
+}

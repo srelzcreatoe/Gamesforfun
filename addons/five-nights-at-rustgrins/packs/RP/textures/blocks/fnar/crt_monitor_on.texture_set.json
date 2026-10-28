@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "crt_monitor_on",
+    "metalness_emissive_roughness": "crt_monitor_on_mer",
+    "heightmap": "crt_monitor_on_height"
+  }
+}

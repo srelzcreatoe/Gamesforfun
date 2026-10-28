@@ -1,0 +1,137 @@
+{
+  "fnar_arcade_cabinet": {
+    "textures": "textures/blocks/fnar/arcade_cabinet"
+  },
+  "fnar_arcade_screen": {
+    "textures": "textures/blocks/fnar/arcade_screen"
+  },
+  "fnar_balloons_0": {
+    "textures": "textures/blocks/fnar/balloons_0"
+  },
+  "fnar_balloons_1": {
+    "textures": "textures/blocks/fnar/balloons_1"
+  },
+  "fnar_balloons_2": {
+    "textures": "textures/blocks/fnar/balloons_2"
+  },
+  "fnar_bunting": {
+    "textures": "textures/blocks/fnar/bunting"
+  },
+  "fnar_crt_monitor": {
+    "textures": "textures/blocks/fnar/crt_monitor"
+  },
+  "fnar_crt_monitor_on": {
+    "textures": "textures/blocks/fnar/crt_monitor_on"
+  },
+  "fnar_desk_clutter": {
+    "textures": "textures/blocks/fnar/desk_clutter"
+  },
+  "fnar_desk_fan": {
+    "textures": "textures/blocks/fnar/desk_fan"
+  },
+  "fnar_desk_phone": {
+    "textures": "textures/blocks/fnar/desk_phone"
+  },
+  "fnar_desk_phone_ringing": {
+    "textures": "textures/blocks/fnar/desk_phone_ringing"
+  },
+  "fnar_door_button": {
+    "textures": "textures/blocks/fnar/door_button"
+  },
+  "fnar_door_button_on": {
+    "textures": "textures/blocks/fnar/door_button_on"
+  },
+  "fnar_fan_blades": {
+    "textures": "textures/blocks/fnar/fan_blades"
+  },
+  "fnar_guitar_amp": {
+    "textures": "textures/blocks/fnar/guitar_amp"
+  },
+  "fnar_light_button": {
+    "textures": "textures/blocks/fnar/light_button"
+  },
+  "fnar_light_button_on": {
+    "textures": "textures/blocks/fnar/light_button_on"
+  },
+  "fnar_locker": {
+    "textures": "textures/blocks/fnar/locker"
+  },
+  "fnar_mop_bucket": {
+    "textures": "textures/blocks/fnar/mop_bucket"
+  },
+  "fnar_pa_speaker": {
+    "textures": "textures/blocks/fnar/pa_speaker"
+  },
+  "fnar_parts_shelf": {
+    "textures": "textures/blocks/fnar/parts_shelf"
+  },
+  "fnar_party_chair": {
+    "textures": "textures/blocks/fnar/party_chair"
+  },
+  "fnar_party_hat_blue": {
+    "textures": "textures/blocks/fnar/party_hat_blue"
+  },
+  "fnar_party_hat_purple": {
+    "textures": "textures/blocks/fnar/party_hat_purple"
+  },
+  "fnar_party_hat_red": {
+    "textures": "textures/blocks/fnar/party_hat_red"
+  },
+  "fnar_party_hat_yellow": {
+    "textures": "textures/blocks/fnar/party_hat_yellow"
+  },
+  "fnar_party_table": {
+    "textures": "textures/blocks/fnar/party_table"
+  },
+  "fnar_pizza_box": {
+    "textures": "textures/blocks/fnar/pizza_box"
+  },
+  "fnar_plate_set": {
+    "textures": "textures/blocks/fnar/plate_set"
+  },
+  "fnar_plush_rat": {
+    "textures": "textures/blocks/fnar/plush_rat"
+  },
+  "fnar_security_camera": {
+    "textures": "textures/blocks/fnar/security_camera"
+  },
+  "fnar_show_tape_0": {
+    "textures": "textures/blocks/fnar/show_tape_0"
+  },
+  "fnar_show_tape_1": {
+    "textures": "textures/blocks/fnar/show_tape_1"
+  },
+  "fnar_show_tape_2": {
+    "textures": "textures/blocks/fnar/show_tape_2"
+  },
+  "fnar_show_tape_3": {
+    "textures": "textures/blocks/fnar/show_tape_3"
+  },
+  "fnar_show_tape_4": {
+    "textures": "textures/blocks/fnar/show_tape_4"
+  },
+  "fnar_sink": {
+    "textures": "textures/blocks/fnar/sink"
+  },
+  "fnar_stage_speaker": {
+    "textures": "textures/blocks/fnar/stage_speaker"
+  },
+  "fnar_stage_star": {
+    "textures": "textures/blocks/fnar/stage_star"
+  },
+  "fnar_time_clock": {
+    "textures": "textures/blocks/fnar/time_clock"
+  },
+  "fnar_toilet": {
+    "textures": "textures/blocks/fnar/toilet"
+  },
+  "fnar_trash_can": {
+    "textures": "textures/blocks/fnar/trash_can"
+  },
+  "fnar_vent_cover": {
+    "textures": "textures/blocks/fnar/vent_cover"
+  },
+  "fnar_wet_floor_sign": {
+    "textures": "textures/blocks/fnar/wet_floor_sign"
+  }
+}

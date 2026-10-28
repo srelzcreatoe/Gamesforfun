@@ -7,7 +7,7 @@
 // building to its night-start state.
 
 import { system } from '@minecraft/server';
-import { OFFICE, CABARET, SHOW_TAPE } from '../data/layout.js';
+import { OFFICE, CABARET, SHOW_TAPE, DAY_LIGHTS } from '../data/layout.js';
 import { CAMERA_BY_ID } from '../data/cameras.js';
 import { CONFIG } from '../core/config.js';
 import { setLocal, setStateLocal, typeAtLocal, fillLocal, blockAt } from './world_io.js';
@@ -194,6 +194,7 @@ export class Actuators {
   // ------------------------------------------------------------ whole-office states
   /** The office as a night starts: doors open, lights off, buttons dark, vents open, monitor on. */
   nightStart() {
+    this.dayLights(false);
     this.doorsInstant(false, false);
     for (const side of ['L', 'R']) {
       this.hallLight(side, false);
@@ -223,8 +224,18 @@ export class Actuators {
     this.clearCamLight();
   }
 
+  /** Invisible fill lights for daytime (placed only into air, removed only where still a light block). */
+  dayLights(on) {
+    for (const [x, y, z, level] of DAY_LIGHTS) {
+      const t = typeAtLocal(x, y, z);
+      if (on && t === 'minecraft:air') setLocal(x, y, z, LIGHT_KEY(level));
+      else if (!on && t?.startsWith('minecraft:light_block')) setLocal(x, y, z, 'air');
+    }
+  }
+
   /** Daytime / free roam: everything lit, curtains open. */
   daytime() {
+    this.dayLights(true);
     this.doorsInstant(false, false);
     this.allLamps(true);
     this.officeLamp(true);
@@ -239,6 +250,7 @@ export class Actuators {
 
   /** Lobby: building dark except the staff room and gallery. */
   lobby() {
+    this.dayLights(false);
     this.doorsInstant(false, false);
     this.allLamps(false);
     for (const l of this.meta.lamps) if (l.room === 'STAFF' || l.room === 'GALLERY') setStateLocal(l.x, l.y, l.z, 'fnar:lit', true);

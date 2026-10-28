@@ -131,7 +131,7 @@ export const CONFIG = Object.freeze({
       rally: 30000, // under 30 % he rallies Purple Rat and the Cat
       rallyBonus: 3,
       recall: 60000, // rewinding above 60 % while he walks sends him back
-      walkSpeed: 0.075, // slow, deliberate - ~25 s to the office
+      walkSpeed: 0.09, // slow, deliberate - about half a minute to the office
       routes: Object.freeze({
         L: Object.freeze(['MW_T', 'DIN_W', 'DIN_SW', 'WH_N', 'WH_M', 'WH_S', 'WC', 'DOOR_L']),
         R: Object.freeze(['MW_T', 'DIN_W', 'DIN_SW', 'DIN_SE', 'EH_N', 'EH_M', 'EH_S', 'EC', 'DOOR_R']),

@@ -1,0 +1,2184 @@
+{
+  "arcade_cabinet": [
+    {
+      "label": "both halves",
+      "parts": [
+        {
+          "states": {
+            "fnar:half": 0,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:half": 1,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        1.0,
+        0
+      ],
+      "dist": 4.0
+    },
+    {
+      "label": "screen + marquee, frame 2",
+      "parts": [
+        {
+          "states": {
+            "fnar:half": 0,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:half": 1,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "frame": 2,
+      "focus": [
+        0,
+        1.55,
+        0
+      ],
+      "dist": 1.9,
+      "dir": [
+        0.2,
+        0.05,
+        -1
+      ]
+    },
+    {
+      "label": "facing west",
+      "parts": [
+        {
+          "states": {
+            "fnar:half": 0,
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:half": 1,
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        1.0,
+        0
+      ],
+      "dist": 4.0
+    }
+  ],
+  "balloons": [
+    {
+      "label": "color 0",
+      "states": {
+        "fnar:color": 0
+      },
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 2.8,
+      "dir": [
+        0.25,
+        0.3,
+        -1
+      ]
+    },
+    {
+      "label": "color 1",
+      "states": {
+        "fnar:color": 1
+      },
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 2.8,
+      "dir": [
+        0.25,
+        0.3,
+        -1
+      ]
+    },
+    {
+      "label": "color 2",
+      "states": {
+        "fnar:color": 2
+      },
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 2.8,
+      "dir": [
+        0.25,
+        0.3,
+        -1
+      ]
+    }
+  ],
+  "bunting": [
+    {
+      "label": "three in a row",
+      "env": "wall",
+      "parts": [
+        {
+          "states": {},
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {},
+          "pos": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {},
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.75,
+        0.3
+      ],
+      "dist": 2.6,
+      "dir": [
+        0.3,
+        0.1,
+        -1
+      ]
+    }
+  ],
+  "crt_monitor": [
+    {
+      "label": "off",
+      "states": {
+        "fnar:on": false
+      },
+      "focus": [
+        0,
+        0.35,
+        0
+      ],
+      "dist": 1.7
+    },
+    {
+      "label": "on",
+      "states": {
+        "fnar:on": true
+      },
+      "focus": [
+        0,
+        0.35,
+        0
+      ],
+      "dist": 1.7
+    },
+    {
+      "label": "on, back (facing west)",
+      "states": {
+        "fnar:on": true,
+        "minecraft:cardinal_direction": "west"
+      },
+      "focus": [
+        0,
+        0.35,
+        0
+      ],
+      "dist": 1.7
+    }
+  ],
+  "desk_clutter": [
+    {
+      "label": "north",
+      "focus": [
+        0,
+        0.05,
+        0
+      ],
+      "dist": 1.3,
+      "dir": [
+        0.5,
+        0.9,
+        -1
+      ]
+    },
+    {
+      "label": "facing west",
+      "states": {
+        "minecraft:cardinal_direction": "west"
+      },
+      "focus": [
+        0,
+        0.05,
+        0
+      ],
+      "dist": 1.3,
+      "dir": [
+        0.5,
+        0.9,
+        -1
+      ]
+    }
+  ],
+  "desk_fan": [
+    {
+      "label": "frame 0",
+      "focus": [
+        0,
+        0.55,
+        0
+      ],
+      "dist": 1.6
+    },
+    {
+      "label": "frame 2 (front)",
+      "frame": 2,
+      "focus": [
+        0,
+        0.65,
+        0
+      ],
+      "dist": 1.3,
+      "dir": [
+        0.25,
+        0.15,
+        -1
+      ]
+    },
+    {
+      "label": "facing east",
+      "states": {
+        "minecraft:cardinal_direction": "east"
+      },
+      "focus": [
+        0,
+        0.55,
+        0
+      ],
+      "dist": 1.6
+    }
+  ],
+  "desk_phone": [
+    {
+      "label": "idle",
+      "states": {
+        "fnar:ringing": false
+      },
+      "focus": [
+        0,
+        0.12,
+        0
+      ],
+      "dist": 0.95
+    },
+    {
+      "label": "ringing",
+      "states": {
+        "fnar:ringing": true
+      },
+      "focus": [
+        0,
+        0.12,
+        0
+      ],
+      "dist": 0.95
+    },
+    {
+      "label": "ringing, facing south",
+      "states": {
+        "fnar:ringing": true,
+        "minecraft:cardinal_direction": "south"
+      },
+      "focus": [
+        0,
+        0.12,
+        0
+      ],
+      "dist": 0.95
+    }
+  ],
+  "door_button": [
+    {
+      "label": "off",
+      "states": {
+        "fnar:on": false
+      },
+      "env": "wall",
+      "focus": [
+        0,
+        0.5,
+        0.3
+      ],
+      "dist": 1.0
+    },
+    {
+      "label": "on",
+      "states": {
+        "fnar:on": true
+      },
+      "env": "wall",
+      "focus": [
+        0,
+        0.5,
+        0.3
+      ],
+      "dist": 1.0
+    },
+    {
+      "label": "on, facing east",
+      "states": {
+        "fnar:on": true,
+        "minecraft:cardinal_direction": "east"
+      },
+      "env": "wall",
+      "focus": [
+        -0.3,
+        0.5,
+        0
+      ],
+      "dist": 1.0,
+      "dir": [
+        1,
+        0.5,
+        -0.4
+      ]
+    },
+    {
+      "label": "pillar N/E/S/W from NE",
+      "env": "pillar",
+      "parts": [
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 3.0,
+      "dir": [
+        1,
+        0.75,
+        -1
+      ]
+    },
+    {
+      "label": "pillar N/E/S/W from SW",
+      "env": "pillar",
+      "parts": [
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 3.0,
+      "dir": [
+        -1,
+        0.75,
+        1
+      ]
+    }
+  ],
+  "guitar_amp": [
+    {
+      "label": "north",
+      "focus": [
+        0,
+        0.32,
+        0
+      ],
+      "dist": 1.6
+    },
+    {
+      "label": "back (facing south)",
+      "states": {
+        "minecraft:cardinal_direction": "south"
+      },
+      "focus": [
+        0,
+        0.32,
+        0
+      ],
+      "dist": 1.6
+    }
+  ],
+  "light_button": [
+    {
+      "label": "off",
+      "states": {
+        "fnar:on": false
+      },
+      "env": "wall",
+      "focus": [
+        0,
+        0.5,
+        0.3
+      ],
+      "dist": 1.0
+    },
+    {
+      "label": "on",
+      "states": {
+        "fnar:on": true
+      },
+      "env": "wall",
+      "focus": [
+        0,
+        0.5,
+        0.3
+      ],
+      "dist": 1.0
+    },
+    {
+      "label": "on, facing east",
+      "states": {
+        "fnar:on": true,
+        "minecraft:cardinal_direction": "east"
+      },
+      "env": "wall",
+      "focus": [
+        -0.3,
+        0.5,
+        0
+      ],
+      "dist": 1.0,
+      "dir": [
+        1,
+        0.5,
+        -0.4
+      ]
+    },
+    {
+      "label": "pillar N/E/S/W from NE",
+      "env": "pillar",
+      "parts": [
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 3.0,
+      "dir": [
+        1,
+        0.75,
+        -1
+      ]
+    },
+    {
+      "label": "pillar N/E/S/W from SW",
+      "env": "pillar",
+      "parts": [
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "fnar:on": true,
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 3.0,
+      "dir": [
+        -1,
+        0.75,
+        1
+      ]
+    }
+  ],
+  "locker": [
+    {
+      "label": "both halves",
+      "parts": [
+        {
+          "states": {
+            "fnar:half": 0,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:half": 1,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        1.0,
+        0
+      ],
+      "dist": 3.8
+    },
+    {
+      "label": "row of two, facing east",
+      "parts": [
+        {
+          "states": {
+            "fnar:half": 0,
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:half": 1,
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:half": 0,
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "fnar:half": 1,
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            0,
+            1,
+            1
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        1.0,
+        0.5
+      ],
+      "dist": 4.5,
+      "dir": [
+        1,
+        0.4,
+        -0.5
+      ]
+    }
+  ],
+  "mop_bucket": [
+    {
+      "label": "north",
+      "focus": [
+        0,
+        0.4,
+        0
+      ],
+      "dist": 1.9
+    },
+    {
+      "label": "facing south",
+      "states": {
+        "minecraft:cardinal_direction": "south"
+      },
+      "focus": [
+        0,
+        0.4,
+        0
+      ],
+      "dist": 1.9
+    }
+  ],
+  "pa_speaker": [
+    {
+      "label": "north",
+      "env": "wall",
+      "focus": [
+        0,
+        0.65,
+        0.05
+      ],
+      "dist": 1.6,
+      "dir": [
+        0.7,
+        0.05,
+        -1
+      ]
+    },
+    {
+      "label": "side",
+      "env": "wall",
+      "focus": [
+        0,
+        0.65,
+        0.1
+      ],
+      "dist": 1.4,
+      "dir": [
+        1,
+        0.2,
+        -0.2
+      ]
+    },
+    {
+      "label": "facing east",
+      "states": {
+        "minecraft:cardinal_direction": "east"
+      },
+      "env": "wall",
+      "focus": [
+        0,
+        0.65,
+        0.05
+      ],
+      "dist": 1.6,
+      "dir": [
+        1,
+        0.2,
+        -0.5
+      ]
+    },
+    {
+      "label": "pillar N/E/S/W from NE",
+      "env": "pillar",
+      "parts": [
+        {
+          "states": {
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 3.6,
+      "dir": [
+        1,
+        0.75,
+        -1
+      ]
+    },
+    {
+      "label": "pillar N/E/S/W from SW",
+      "env": "pillar",
+      "parts": [
+        {
+          "states": {
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 3.6,
+      "dir": [
+        -1,
+        0.75,
+        1
+      ]
+    }
+  ],
+  "parts_shelf": [
+    {
+      "label": "north",
+      "env": "wall",
+      "focus": [
+        0,
+        0.5,
+        0.2
+      ],
+      "dist": 2.5,
+      "dir": [
+        0.45,
+        0.35,
+        -1
+      ]
+    },
+    {
+      "label": "facing east",
+      "env": "wall",
+      "states": {
+        "minecraft:cardinal_direction": "east"
+      },
+      "focus": [
+        -0.2,
+        0.5,
+        0
+      ],
+      "dist": 2.5,
+      "dir": [
+        1,
+        0.35,
+        -0.45
+      ]
+    }
+  ],
+  "party_chair": [
+    {
+      "label": "north",
+      "focus": [
+        0,
+        0.45,
+        0
+      ],
+      "dist": 1.9
+    },
+    {
+      "label": "facing east",
+      "states": {
+        "minecraft:cardinal_direction": "east"
+      },
+      "focus": [
+        0,
+        0.45,
+        0
+      ],
+      "dist": 1.9
+    }
+  ],
+  "party_hat": [
+    {
+      "label": "color 0 red",
+      "states": {
+        "fnar:color": 0
+      },
+      "focus": [
+        0,
+        0.27,
+        0
+      ],
+      "dist": 1.15
+    },
+    {
+      "label": "color 1 blue",
+      "states": {
+        "fnar:color": 1
+      },
+      "focus": [
+        0,
+        0.27,
+        0
+      ],
+      "dist": 1.15
+    },
+    {
+      "label": "color 2 purple",
+      "states": {
+        "fnar:color": 2
+      },
+      "focus": [
+        0,
+        0.27,
+        0
+      ],
+      "dist": 1.15
+    },
+    {
+      "label": "color 3 yellow",
+      "states": {
+        "fnar:color": 3
+      },
+      "focus": [
+        0,
+        0.27,
+        0
+      ],
+      "dist": 1.15
+    }
+  ],
+  "party_table": [
+    {
+      "label": "single",
+      "states": {
+        "fnar:part": 0
+      },
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.4
+    },
+    {
+      "label": "end+middle+end (N-S run)",
+      "parts": [
+        {
+          "states": {
+            "fnar:part": 1,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "fnar:part": 2,
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:part": 1,
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.4,
+        0
+      ],
+      "dist": 3.6
+    },
+    {
+      "label": "end west + end east (E-W run)",
+      "parts": [
+        {
+          "states": {
+            "fnar:part": 1,
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "fnar:part": 1,
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0.5,
+        0.4,
+        0
+      ],
+      "dist": 3.2
+    },
+    {
+      "label": "middle (from below)",
+      "states": {
+        "fnar:part": 2
+      },
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.2,
+      "dir": [
+        0.8,
+        0.12,
+        -1
+      ]
+    }
+  ],
+  "pizza_box": [
+    {
+      "label": "count 1",
+      "states": {
+        "fnar:count": 1
+      },
+      "focus": [
+        0,
+        0.15,
+        0
+      ],
+      "dist": 1.4,
+      "dir": [
+        0.6,
+        0.8,
+        -1
+      ]
+    },
+    {
+      "label": "count 2",
+      "states": {
+        "fnar:count": 2
+      },
+      "focus": [
+        0,
+        0.15,
+        0
+      ],
+      "dist": 1.4,
+      "dir": [
+        0.6,
+        0.8,
+        -1
+      ]
+    },
+    {
+      "label": "count 3",
+      "states": {
+        "fnar:count": 3
+      },
+      "focus": [
+        0,
+        0.15,
+        0
+      ],
+      "dist": 1.4,
+      "dir": [
+        0.6,
+        0.8,
+        -1
+      ]
+    },
+    {
+      "label": "count 3, facing east",
+      "states": {
+        "fnar:count": 3,
+        "minecraft:cardinal_direction": "east"
+      },
+      "focus": [
+        0,
+        0.15,
+        0
+      ],
+      "dist": 1.4,
+      "dir": [
+        0.6,
+        0.8,
+        -1
+      ]
+    }
+  ],
+  "plate_set": [
+    {
+      "label": "top",
+      "focus": [
+        0,
+        0.05,
+        0
+      ],
+      "dist": 1.3,
+      "dir": [
+        0.5,
+        1,
+        -0.8
+      ]
+    }
+  ],
+  "plush_rat": [
+    {
+      "label": "north",
+      "focus": [
+        0,
+        0.28,
+        0
+      ],
+      "dist": 1.0
+    },
+    {
+      "label": "facing east",
+      "states": {
+        "minecraft:cardinal_direction": "east"
+      },
+      "focus": [
+        0,
+        0.28,
+        0
+      ],
+      "dist": 1.0
+    }
+  ],
+  "security_camera": [
+    {
+      "label": "north",
+      "env": "wall",
+      "focus": [
+        0,
+        0.66,
+        0.0
+      ],
+      "dist": 1.3,
+      "dir": [
+        0.7,
+        0.1,
+        -1
+      ]
+    },
+    {
+      "label": "side",
+      "env": "wall",
+      "focus": [
+        0,
+        0.66,
+        0.0
+      ],
+      "dist": 1.3,
+      "dir": [
+        1,
+        0.3,
+        -0.2
+      ]
+    },
+    {
+      "label": "facing west",
+      "states": {
+        "minecraft:cardinal_direction": "west"
+      },
+      "env": "wall",
+      "focus": [
+        0,
+        0.66,
+        0.0
+      ],
+      "dist": 1.3,
+      "dir": [
+        -0.6,
+        0.2,
+        -1
+      ]
+    },
+    {
+      "label": "pillar N/E/S/W from NE",
+      "env": "pillar",
+      "parts": [
+        {
+          "states": {
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 3.6,
+      "dir": [
+        1,
+        0.75,
+        -1
+      ]
+    },
+    {
+      "label": "pillar N/E/S/W from SW",
+      "env": "pillar",
+      "parts": [
+        {
+          "states": {
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 3.6,
+      "dir": [
+        -1,
+        0.75,
+        1
+      ]
+    }
+  ],
+  "show_tape": [
+    {
+      "label": "level 0",
+      "states": {
+        "fnar:level": 0
+      },
+      "focus": [
+        0,
+        0.45,
+        0
+      ],
+      "dist": 1.9
+    },
+    {
+      "label": "level 2",
+      "states": {
+        "fnar:level": 2
+      },
+      "focus": [
+        0,
+        0.45,
+        0
+      ],
+      "dist": 1.9
+    },
+    {
+      "label": "level 4",
+      "states": {
+        "fnar:level": 4
+      },
+      "focus": [
+        0,
+        0.45,
+        0
+      ],
+      "dist": 1.9
+    },
+    {
+      "label": "level 3, facing east",
+      "states": {
+        "fnar:level": 3,
+        "minecraft:cardinal_direction": "east"
+      },
+      "focus": [
+        0,
+        0.45,
+        0
+      ],
+      "dist": 1.9
+    }
+  ],
+  "sink": [
+    {
+      "label": "north (from above)",
+      "env": "wall",
+      "focus": [
+        0,
+        0.72,
+        0.2
+      ],
+      "dist": 1.8,
+      "dir": [
+        0.5,
+        0.7,
+        -1
+      ]
+    },
+    {
+      "label": "north (from below)",
+      "env": "wall",
+      "focus": [
+        0,
+        0.72,
+        0.2
+      ],
+      "dist": 1.8,
+      "dir": [
+        0.6,
+        -0.25,
+        -1
+      ]
+    },
+    {
+      "label": "facing east",
+      "env": "wall",
+      "states": {
+        "minecraft:cardinal_direction": "east"
+      },
+      "focus": [
+        -0.2,
+        0.72,
+        0
+      ],
+      "dist": 1.8,
+      "dir": [
+        1,
+        0.6,
+        -0.5
+      ]
+    },
+    {
+      "label": "pillar N/E/S/W from NE",
+      "env": "pillar",
+      "parts": [
+        {
+          "states": {
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 3.8,
+      "dir": [
+        1,
+        0.75,
+        -1
+      ]
+    },
+    {
+      "label": "pillar N/E/S/W from SW",
+      "env": "pillar",
+      "parts": [
+        {
+          "states": {
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 3.8,
+      "dir": [
+        -1,
+        0.75,
+        1
+      ]
+    }
+  ],
+  "stage_speaker": [
+    {
+      "label": "north",
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.6
+    },
+    {
+      "label": "facing west",
+      "states": {
+        "minecraft:cardinal_direction": "west"
+      },
+      "focus": [
+        0,
+        0.5,
+        0
+      ],
+      "dist": 2.6
+    }
+  ],
+  "stage_star": [
+    {
+      "label": "north",
+      "env": "wall",
+      "focus": [
+        0,
+        0.5,
+        0.4
+      ],
+      "dist": 1.7,
+      "dir": [
+        0.35,
+        0.2,
+        -1
+      ]
+    },
+    {
+      "label": "oblique",
+      "env": "wall",
+      "focus": [
+        0,
+        0.5,
+        0.4
+      ],
+      "dist": 1.6,
+      "dir": [
+        1,
+        0.3,
+        -0.6
+      ]
+    },
+    {
+      "label": "pillar N/E/S/W from NE",
+      "env": "pillar",
+      "parts": [
+        {
+          "states": {
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 3.8,
+      "dir": [
+        1,
+        0.75,
+        -1
+      ]
+    },
+    {
+      "label": "pillar N/E/S/W from SW",
+      "env": "pillar",
+      "parts": [
+        {
+          "states": {
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 3.8,
+      "dir": [
+        -1,
+        0.75,
+        1
+      ]
+    }
+  ],
+  "time_clock": [
+    {
+      "label": "north",
+      "env": "wall",
+      "focus": [
+        0,
+        0.55,
+        0.3
+      ],
+      "dist": 1.5,
+      "dir": [
+        0.4,
+        0.15,
+        -1
+      ]
+    },
+    {
+      "label": "facing west",
+      "states": {
+        "minecraft:cardinal_direction": "west"
+      },
+      "env": "wall",
+      "focus": [
+        -0.3,
+        0.55,
+        0
+      ],
+      "dist": 1.5,
+      "dir": [
+        -1,
+        0.2,
+        -0.5
+      ]
+    },
+    {
+      "label": "pillar N/E/S/W from NE",
+      "env": "pillar",
+      "parts": [
+        {
+          "states": {
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 3.6,
+      "dir": [
+        1,
+        0.75,
+        -1
+      ]
+    },
+    {
+      "label": "pillar N/E/S/W from SW",
+      "env": "pillar",
+      "parts": [
+        {
+          "states": {
+            "minecraft:cardinal_direction": "north"
+          },
+          "pos": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "east"
+          },
+          "pos": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "south"
+          },
+          "pos": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "states": {
+            "minecraft:cardinal_direction": "west"
+          },
+          "pos": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      "focus": [
+        0,
+        0.6,
+        0
+      ],
+      "dist": 3.6,
+      "dir": [
+        -1,
+        0.75,
+        1
+      ]
+    }
+  ],
+  "toilet": [
+    {
+      "label": "north",
+      "env": "wall",
+      "focus": [
+        0,
+        0.4,
+        0.1
+      ],
+      "dist": 2.0,
+      "dir": [
+        0.6,
+        0.6,
+        -1
+      ]
+    },
+    {
+      "label": "facing west",
+      "env": "wall",
+      "states": {
+        "minecraft:cardinal_direction": "west"
+      },
+      "focus": [
+        -0.1,
+        0.4,
+        0
+      ],
+      "dist": 2.0,
+      "dir": [
+        -1,
+        0.6,
+        -0.6
+      ]
+    }
+  ],
+  "trash_can": [
+    {
+      "label": "north",
+      "focus": [
+        0,
+        0.4,
+        0
+      ],
+      "dist": 1.9
+    },
+    {
+      "label": "facing west",
+      "states": {
+        "minecraft:cardinal_direction": "west"
+      },
+      "focus": [
+        0,
+        0.4,
+        0
+      ],
+      "dist": 1.9
+    }
+  ],
+  "vent_cover": [
+    {
+      "label": "open (from below)",
+      "env": "ceiling",
+      "states": {
+        "fnar:closed": false
+      },
+      "camera": {
+        "pos": [
+          0.9,
+          -1.3,
+          -1.25
+        ],
+        "target": [
+          0,
+          0.15,
+          0
+        ]
+      },
+      "keyLight": [
+        -1.5,
+        -3,
+        -2.5
+      ]
+    },
+    {
+      "label": "closed (from below)",
+      "env": "ceiling",
+      "states": {
+        "fnar:closed": true
+      },
+      "camera": {
+        "pos": [
+          0.9,
+          -1.3,
+          -1.25
+        ],
+        "target": [
+          0,
+          0.15,
+          0
+        ]
+      },
+      "keyLight": [
+        -1.5,
+        -3,
+        -2.5
+      ]
+    },
+    {
+      "label": "open (from the duct)",
+      "env": "floor",
+      "states": {
+        "fnar:closed": false
+      },
+      "camera": {
+        "pos": [
+          0.7,
+          1.9,
+          -0.9
+        ],
+        "target": [
+          0,
+          0.1,
+          0
+        ]
+      }
+    }
+  ],
+  "wet_floor_sign": [
+    {
+      "label": "north",
+      "focus": [
+        0,
+        0.4,
+        0
+      ],
+      "dist": 1.6
+    },
+    {
+      "label": "side",
+      "focus": [
+        0,
+        0.4,
+        0
+      ],
+      "dist": 1.6,
+      "dir": [
+        1,
+        0.3,
+        -0.1
+      ]
+    },
+    {
+      "label": "facing east",
+      "states": {
+        "minecraft:cardinal_direction": "east"
+      },
+      "focus": [
+        0,
+        0.4,
+        0
+      ],
+      "dist": 1.6
+    }
+  ]
+}

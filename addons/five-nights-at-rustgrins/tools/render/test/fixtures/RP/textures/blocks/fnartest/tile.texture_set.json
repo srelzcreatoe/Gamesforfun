@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "tile",
+    "metalness_emissive_roughness": "tile_mer",
+    "heightmap": "tile_height"
+  }
+}

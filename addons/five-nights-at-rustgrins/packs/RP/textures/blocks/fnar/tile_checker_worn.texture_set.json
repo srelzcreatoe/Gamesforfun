@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "tile_checker_worn",
+    "metalness_emissive_roughness": "tile_checker_worn_mer",
+    "heightmap": "tile_checker_worn_height"
+  }
+}

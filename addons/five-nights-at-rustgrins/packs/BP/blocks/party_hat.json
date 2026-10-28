@@ -1,0 +1,95 @@
+{
+  "format_version": "1.26.50",
+  "minecraft:block": {
+    "description": {
+      "identifier": "fnar:party_hat",
+      "menu_category": {
+        "category": "construction"
+      },
+      "states": {
+        "fnar:color": {
+          "values": {
+            "min": 0,
+            "max": 3
+          }
+        }
+      }
+    },
+    "components": {
+      "minecraft:geometry": "geometry.fnar.party_hat",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "fnar_party_hat_red",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -2,
+          0,
+          -2
+        ],
+        "size": [
+          4,
+          8.5,
+          4
+        ]
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.3
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 3
+      },
+      "minecraft:map_color": "#731c1b",
+      "minecraft:light_dampening": 0
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('fnar:color') == 0",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_party_hat_red",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:color') == 1",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_party_hat_blue",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:color') == 2",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_party_hat_purple",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:color') == 3",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_party_hat_yellow",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

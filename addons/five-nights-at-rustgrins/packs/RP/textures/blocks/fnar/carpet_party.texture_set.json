@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "carpet_party",
+    "metalness_emissive_roughness": "carpet_party_mer",
+    "heightmap": "carpet_party_height"
+  }
+}

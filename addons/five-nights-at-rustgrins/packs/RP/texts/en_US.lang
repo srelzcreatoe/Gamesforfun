@@ -1,0 +1,34 @@
+## Five Nights at Rustgrin's
+
+entity.fnar:rustgrin.name=Rustgrin
+entity.fnar:mirehop.name=Mirehop
+entity.fnar:noxbriar.name=Noxbriar
+entity.fnar:purple_rat.name=Purple Rat
+entity.fnar:cat.name=The Cat
+entity.fnar:top_hat_rat.name=The Ringmaster
+entity.fnar:rusted.name=Rustgrin?
+item.fnar:tablet.name=Camera Tablet
+item.fnar:remote.name=Office Remote
+item.fnar:guide.name=Shift Guide
+tile.fnar:arcade_cabinet.name=Arcade Cabinet
+tile.fnar:balloons.name=Balloons
+tile.fnar:bunting.name=Bunting
+tile.fnar:crt_monitor.name=Crt Monitor
+tile.fnar:desk_clutter.name=Desk Clutter
+tile.fnar:desk_fan.name=Desk Fan
+tile.fnar:desk_phone.name=Desk Phone
+tile.fnar:door_button.name=Door Button
+tile.fnar:guitar_amp.name=Guitar Amp
+tile.fnar:light_button.name=Light Button
+tile.fnar:party_chair.name=Party Chair
+tile.fnar:party_hat.name=Party Hat
+tile.fnar:party_table.name=Party Table
+tile.fnar:pizza_box.name=Pizza Box
+tile.fnar:plate_set.name=Plate Set
+tile.fnar:plush_rat.name=Plush Rat
+tile.fnar:security_camera.name=Security Camera
+tile.fnar:show_tape.name=Show Tape
+tile.fnar:stage_speaker.name=Stage Speaker
+tile.fnar:stage_star.name=Stage Star
+tile.fnar:vent_cover.name=Vent Cover
+pack.name=Five Nights at Rustgrin's

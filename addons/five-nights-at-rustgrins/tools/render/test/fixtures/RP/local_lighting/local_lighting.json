@@ -1,0 +1,13 @@
+{
+  "format_version": "1.21.120",
+  "minecraft:local_light_settings": {
+    "fnartest:lamp": {
+      "light_color": "#dfe8ff",
+      "light_type": "point"
+    },
+    "fnartest:flip_sign": {
+      "light_color": "#3cff6e",
+      "light_type": "static"
+    }
+  }
+}

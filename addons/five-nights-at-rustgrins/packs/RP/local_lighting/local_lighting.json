@@ -1,0 +1,65 @@
+{
+  "format_version": "1.21.120",
+  "minecraft:local_light_settings": {
+    "fnar:arcade_cabinet": {
+      "light_color": "#c890ff",
+      "light_type": "point_light"
+    },
+    "fnar:crt_monitor": {
+      "light_color": "#7ad6c0",
+      "light_type": "point_light"
+    },
+    "fnar:desk_phone": {
+      "light_color": "#ff3a2a",
+      "light_type": "static_light"
+    },
+    "fnar:door_button": {
+      "light_color": "#ff3a2a",
+      "light_type": "static_light"
+    },
+    "fnar:light_button": {
+      "light_color": "#e8eeff",
+      "light_type": "static_light"
+    },
+    "fnar:show_tape": {
+      "light_color": "#c8ff6a",
+      "light_type": "static_light"
+    },
+    "fnar:stage_star": {
+      "light_color": "#ffd27a",
+      "light_type": "static_light"
+    },
+    "fnar:ceiling_lamp": {
+      "light_color": "#dfe8ff",
+      "light_type": "static_light"
+    },
+    "fnar:exit_sign": {
+      "light_color": "#3cff6e",
+      "light_type": "static_light"
+    },
+    "fnar:wall_sconce": {
+      "light_color": "#ffc98a",
+      "light_type": "point_light"
+    },
+    "fnar:stage_spotlight": {
+      "light_color": "#ffe2b0",
+      "light_type": "point_light"
+    },
+    "fnar:hanging_lamp": {
+      "light_color": "#ffc98a",
+      "light_type": "point_light"
+    },
+    "fnar:sign_revue": {
+      "light_color": "#ff6fb5",
+      "light_type": "static_light"
+    },
+    "fnar:sign_cabaret": {
+      "light_color": "#ffd27a",
+      "light_type": "static_light"
+    },
+    "fnar:sign_midway": {
+      "light_color": "#ffd27a",
+      "light_type": "static_light"
+    }
+  }
+}

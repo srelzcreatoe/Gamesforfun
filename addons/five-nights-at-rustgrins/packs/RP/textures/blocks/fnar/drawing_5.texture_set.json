@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "drawing_5",
+    "metalness_emissive_roughness": "drawing_5_mer",
+    "heightmap": "drawing_5_height"
+  }
+}

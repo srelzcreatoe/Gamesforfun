@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "vent_cover",
+    "metalness_emissive_roughness": "vent_cover_mer",
+    "heightmap": "vent_cover_height"
+  }
+}

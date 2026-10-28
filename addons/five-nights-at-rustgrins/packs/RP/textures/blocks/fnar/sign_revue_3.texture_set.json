@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "sign_revue_3",
+    "metalness_emissive_roughness": "sign_revue_3_mer",
+    "heightmap": "sign_revue_3_height"
+  }
+}

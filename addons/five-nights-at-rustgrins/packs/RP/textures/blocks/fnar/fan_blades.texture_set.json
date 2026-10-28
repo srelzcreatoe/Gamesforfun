@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "fan_blades",
+    "metalness_emissive_roughness": "fan_blades_mer",
+    "heightmap": "fan_blades_height"
+  }
+}

@@ -1,0 +1,269 @@
+{
+  "fnar_tile_checker": {
+    "textures": "textures/blocks/fnar/tile_checker"
+  },
+  "fnar_tile_checker_worn": {
+    "textures": "textures/blocks/fnar/tile_checker_worn"
+  },
+  "fnar_tile_office": {
+    "textures": "textures/blocks/fnar/tile_office"
+  },
+  "fnar_tile_kitchen": {
+    "textures": "textures/blocks/fnar/tile_kitchen"
+  },
+  "fnar_wall_checker": {
+    "textures": "textures/blocks/fnar/wall_checker"
+  },
+  "fnar_wall_plaster": {
+    "textures": "textures/blocks/fnar/wall_plaster"
+  },
+  "fnar_wall_plaster_stained": {
+    "textures": "textures/blocks/fnar/wall_plaster_stained"
+  },
+  "fnar_wallpaper_maroon": {
+    "textures": "textures/blocks/fnar/wallpaper_maroon"
+  },
+  "fnar_wall_trim": {
+    "textures": "textures/blocks/fnar/wall_trim"
+  },
+  "fnar_cinderblock_painted": {
+    "textures": "textures/blocks/fnar/cinderblock_painted"
+  },
+  "fnar_ceiling_tile": {
+    "textures": "textures/blocks/fnar/ceiling_tile"
+  },
+  "fnar_ceiling_tile_stained": {
+    "textures": "textures/blocks/fnar/ceiling_tile_stained"
+  },
+  "fnar_carpet_party": {
+    "textures": "textures/blocks/fnar/carpet_party"
+  },
+  "fnar_curtain_purple": {
+    "textures": "textures/blocks/fnar/curtain_purple"
+  },
+  "fnar_curtain_red": {
+    "textures": "textures/blocks/fnar/curtain_red"
+  },
+  "fnar_tent_stripe": {
+    "textures": "textures/blocks/fnar/tent_stripe"
+  },
+  "fnar_duct_metal": {
+    "textures": "textures/blocks/fnar/duct_metal"
+  },
+  "fnar_stage_floor": {
+    "textures": "textures/blocks/fnar/stage_floor"
+  },
+  "fnar_door_shutter": {
+    "textures": "textures/blocks/fnar/door_shutter"
+  },
+  "fnar_door_shutter_bottom": {
+    "textures": "textures/blocks/fnar/door_shutter_bottom"
+  },
+  "fnar_ceiling_lamp_on": {
+    "textures": "textures/blocks/fnar/ceiling_lamp_on"
+  },
+  "fnar_ceiling_lamp_off": {
+    "textures": "textures/blocks/fnar/ceiling_lamp_off"
+  },
+  "fnar_exit_sign_on": {
+    "textures": "textures/blocks/fnar/exit_sign_on"
+  },
+  "fnar_exit_sign_off": {
+    "textures": "textures/blocks/fnar/exit_sign_off"
+  },
+  "fnar_wall_sconce_on": {
+    "textures": "textures/blocks/fnar/wall_sconce_on"
+  },
+  "fnar_wall_sconce_off": {
+    "textures": "textures/blocks/fnar/wall_sconce_off"
+  },
+  "fnar_stage_spotlight_on": {
+    "textures": "textures/blocks/fnar/stage_spotlight_on"
+  },
+  "fnar_stage_spotlight_off": {
+    "textures": "textures/blocks/fnar/stage_spotlight_off"
+  },
+  "fnar_hanging_lamp_on": {
+    "textures": "textures/blocks/fnar/hanging_lamp_on"
+  },
+  "fnar_hanging_lamp_off": {
+    "textures": "textures/blocks/fnar/hanging_lamp_off"
+  },
+  "fnar_poster_revue_0": {
+    "textures": "textures/blocks/fnar/poster_revue_0"
+  },
+  "fnar_poster_revue_1": {
+    "textures": "textures/blocks/fnar/poster_revue_1"
+  },
+  "fnar_poster_revue_2": {
+    "textures": "textures/blocks/fnar/poster_revue_2"
+  },
+  "fnar_poster_revue_3": {
+    "textures": "textures/blocks/fnar/poster_revue_3"
+  },
+  "fnar_poster_revue_4": {
+    "textures": "textures/blocks/fnar/poster_revue_4"
+  },
+  "fnar_poster_revue_5": {
+    "textures": "textures/blocks/fnar/poster_revue_5"
+  },
+  "fnar_poster_party_0": {
+    "textures": "textures/blocks/fnar/poster_party_0"
+  },
+  "fnar_poster_party_1": {
+    "textures": "textures/blocks/fnar/poster_party_1"
+  },
+  "fnar_poster_party_2": {
+    "textures": "textures/blocks/fnar/poster_party_2"
+  },
+  "fnar_poster_party_3": {
+    "textures": "textures/blocks/fnar/poster_party_3"
+  },
+  "fnar_poster_cabaret_0": {
+    "textures": "textures/blocks/fnar/poster_cabaret_0"
+  },
+  "fnar_poster_cabaret_1": {
+    "textures": "textures/blocks/fnar/poster_cabaret_1"
+  },
+  "fnar_poster_cabaret_2": {
+    "textures": "textures/blocks/fnar/poster_cabaret_2"
+  },
+  "fnar_poster_cabaret_3": {
+    "textures": "textures/blocks/fnar/poster_cabaret_3"
+  },
+  "fnar_poster_cabaret_4": {
+    "textures": "textures/blocks/fnar/poster_cabaret_4"
+  },
+  "fnar_poster_cabaret_5": {
+    "textures": "textures/blocks/fnar/poster_cabaret_5"
+  },
+  "fnar_poster_midway_0": {
+    "textures": "textures/blocks/fnar/poster_midway_0"
+  },
+  "fnar_poster_midway_1": {
+    "textures": "textures/blocks/fnar/poster_midway_1"
+  },
+  "fnar_poster_midway_2": {
+    "textures": "textures/blocks/fnar/poster_midway_2"
+  },
+  "fnar_poster_midway_3": {
+    "textures": "textures/blocks/fnar/poster_midway_3"
+  },
+  "fnar_poster_midway_4": {
+    "textures": "textures/blocks/fnar/poster_midway_4"
+  },
+  "fnar_poster_midway_5": {
+    "textures": "textures/blocks/fnar/poster_midway_5"
+  },
+  "fnar_poster_rules_0": {
+    "textures": "textures/blocks/fnar/poster_rules_0"
+  },
+  "fnar_poster_rules_1": {
+    "textures": "textures/blocks/fnar/poster_rules_1"
+  },
+  "fnar_poster_rules_2": {
+    "textures": "textures/blocks/fnar/poster_rules_2"
+  },
+  "fnar_poster_rules_3": {
+    "textures": "textures/blocks/fnar/poster_rules_3"
+  },
+  "fnar_poster_missing_0": {
+    "textures": "textures/blocks/fnar/poster_missing_0"
+  },
+  "fnar_poster_missing_1": {
+    "textures": "textures/blocks/fnar/poster_missing_1"
+  },
+  "fnar_drawing_0": {
+    "textures": "textures/blocks/fnar/drawing_0"
+  },
+  "fnar_drawing_1": {
+    "textures": "textures/blocks/fnar/drawing_1"
+  },
+  "fnar_drawing_2": {
+    "textures": "textures/blocks/fnar/drawing_2"
+  },
+  "fnar_drawing_3": {
+    "textures": "textures/blocks/fnar/drawing_3"
+  },
+  "fnar_drawing_4": {
+    "textures": "textures/blocks/fnar/drawing_4"
+  },
+  "fnar_drawing_5": {
+    "textures": "textures/blocks/fnar/drawing_5"
+  },
+  "fnar_sign_cabaret_0": {
+    "textures": "textures/blocks/fnar/sign_cabaret_0"
+  },
+  "fnar_sign_cabaret_1": {
+    "textures": "textures/blocks/fnar/sign_cabaret_1"
+  },
+  "fnar_sign_cabaret_2": {
+    "textures": "textures/blocks/fnar/sign_cabaret_2"
+  },
+  "fnar_sign_out_of_order_0": {
+    "textures": "textures/blocks/fnar/sign_out_of_order_0"
+  },
+  "fnar_sign_out_of_order_1": {
+    "textures": "textures/blocks/fnar/sign_out_of_order_1"
+  },
+  "fnar_sign_midway_0": {
+    "textures": "textures/blocks/fnar/sign_midway_0"
+  },
+  "fnar_sign_midway_1": {
+    "textures": "textures/blocks/fnar/sign_midway_1"
+  },
+  "fnar_sign_midway_2": {
+    "textures": "textures/blocks/fnar/sign_midway_2"
+  },
+  "fnar_sign_midway_3": {
+    "textures": "textures/blocks/fnar/sign_midway_3"
+  },
+  "fnar_sign_revue_0": {
+    "textures": "textures/blocks/fnar/sign_revue_0"
+  },
+  "fnar_sign_revue_1": {
+    "textures": "textures/blocks/fnar/sign_revue_1"
+  },
+  "fnar_sign_revue_2": {
+    "textures": "textures/blocks/fnar/sign_revue_2"
+  },
+  "fnar_sign_revue_3": {
+    "textures": "textures/blocks/fnar/sign_revue_3"
+  },
+  "fnar_sign_revue_4": {
+    "textures": "textures/blocks/fnar/sign_revue_4"
+  },
+  "fnar_sign_revue_5": {
+    "textures": "textures/blocks/fnar/sign_revue_5"
+  },
+  "fnar_sign_revue_6": {
+    "textures": "textures/blocks/fnar/sign_revue_6"
+  },
+  "fnar_sign_revue_7": {
+    "textures": "textures/blocks/fnar/sign_revue_7"
+  },
+  "fnar_sign_revue_8": {
+    "textures": "textures/blocks/fnar/sign_revue_8"
+  },
+  "fnar_sign_revue_9": {
+    "textures": "textures/blocks/fnar/sign_revue_9"
+  },
+  "fnar_sign_revue_10": {
+    "textures": "textures/blocks/fnar/sign_revue_10"
+  },
+  "fnar_sign_revue_11": {
+    "textures": "textures/blocks/fnar/sign_revue_11"
+  },
+  "fnar_sign_staff_0": {
+    "textures": "textures/blocks/fnar/sign_staff_0"
+  },
+  "fnar_sign_staff_1": {
+    "textures": "textures/blocks/fnar/sign_staff_1"
+  },
+  "fnar_sign_staff_2": {
+    "textures": "textures/blocks/fnar/sign_staff_2"
+  },
+  "fnar_sign_staff_3": {
+    "textures": "textures/blocks/fnar/sign_staff_3"
+  }
+}

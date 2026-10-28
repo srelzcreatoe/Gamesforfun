@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "exit_sign_on",
+    "metalness_emissive_roughness": "exit_sign_on_mer",
+    "heightmap": "exit_sign_on_height"
+  }
+}

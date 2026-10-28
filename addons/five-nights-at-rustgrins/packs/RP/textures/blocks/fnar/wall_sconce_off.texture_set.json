@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "wall_sconce_off",
+    "metalness_emissive_roughness": "wall_sconce_off_mer",
+    "heightmap": "wall_sconce_off_height"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "format_version": "1.26.50",
+  "minecraft:block": {
+    "description": {
+      "identifier": "fnartest:lamp",
+      "menu_category": {
+        "category": "construction"
+      },
+      "states": {
+        "fnartest:lit": [
+          false,
+          true
+        ]
+      }
+    },
+    "components": {
+      "minecraft:geometry": {
+        "identifier": "geometry.fnartest.lamp",
+        "bone_visibility": {
+          "bulb": "q.block_state('fnartest:lit')"
+        }
+      },
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "fnartest_metal",
+          "render_method": "opaque"
+        },
+        "glow": {
+          "texture": "fnartest_lamp_off",
+          "render_method": "opaque",
+          "face_dimming": false
+        }
+      },
+      "minecraft:light_dampening": 0
+    },
+    "permutations": [
+      {
+        "condition": "query.block_state('fnartest:lit') == true",
+        "components": {
+          "minecraft:light_emission": 13,
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnartest_metal",
+              "render_method": "opaque"
+            },
+            "glow": {
+              "texture": "fnartest_lamp_on",
+              "render_method": "opaque",
+              "face_dimming": false,
+              "ambient_occlusion": false
+            }
+          }
+        }
+      }
+    ]
+  }
+}

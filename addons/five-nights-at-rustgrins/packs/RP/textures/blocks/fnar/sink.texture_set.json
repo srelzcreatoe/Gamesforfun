@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "sink",
+    "metalness_emissive_roughness": "sink_mer",
+    "heightmap": "sink_height"
+  }
+}

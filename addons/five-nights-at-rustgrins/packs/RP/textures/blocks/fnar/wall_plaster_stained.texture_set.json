@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "wall_plaster_stained",
+    "metalness_emissive_roughness": "wall_plaster_stained_mer",
+    "heightmap": "wall_plaster_stained_height"
+  }
+}

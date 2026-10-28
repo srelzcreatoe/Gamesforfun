@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "guitar_amp",
+    "metalness_emissive_roughness": "guitar_amp_mer",
+    "heightmap": "guitar_amp_height"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "bunting",
+    "metalness_emissive_roughness": "bunting_mer",
+    "heightmap": "bunting_height"
+  }
+}

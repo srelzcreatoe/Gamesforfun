@@ -1,0 +1,34 @@
+{
+  "fnar:ceiling_lamp": {
+    "light_color": "#dfe8ff",
+    "light_type": "static_light"
+  },
+  "fnar:exit_sign": {
+    "light_color": "#3cff6e",
+    "light_type": "static_light"
+  },
+  "fnar:wall_sconce": {
+    "light_color": "#ffc98a",
+    "light_type": "point_light"
+  },
+  "fnar:stage_spotlight": {
+    "light_color": "#ffe2b0",
+    "light_type": "point_light"
+  },
+  "fnar:hanging_lamp": {
+    "light_color": "#ffc98a",
+    "light_type": "point_light"
+  },
+  "fnar:sign_revue": {
+    "light_color": "#ff6fb5",
+    "light_type": "static_light"
+  },
+  "fnar:sign_cabaret": {
+    "light_color": "#ffd27a",
+    "light_type": "static_light"
+  },
+  "fnar:sign_midway": {
+    "light_color": "#ffd27a",
+    "light_type": "static_light"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "duct_metal",
+    "metalness_emissive_roughness": "duct_metal_mer",
+    "heightmap": "duct_metal_height"
+  }
+}

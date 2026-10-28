@@ -27,6 +27,12 @@ export class DoorStalker extends Animatronic {
       return;
     }
     if (this.state === 'entering') {
+      // a door slammed during the step in still saves the guard
+      if (s.doorClosed(this.side)) {
+        this.state = 'door';
+        this.holdLeft = this.cfg.hold(this.ai);
+        return;
+      }
       if (s.t >= this.enterAt) {
         this.state = 'inside';
         this.inside = true;

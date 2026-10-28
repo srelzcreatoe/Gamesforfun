@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "stage_speaker",
+    "metalness_emissive_roughness": "stage_speaker_mer",
+    "heightmap": "stage_speaker_height"
+  }
+}

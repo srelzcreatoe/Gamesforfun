@@ -143,4 +143,15 @@ export const LOBBY = Object.freeze({
   terminalWallZ: 52, // buttons hang on the north wall (z = 52 interior row, facing south)
 });
 
+/**
+ * Daytime fill lights (invisible light blocks) for free roam: the tall dining hall,
+ * the stage, the Midway, the Cabaret and the halls. [x, y, z, level]; removed at night.
+ */
+export const DAY_LIGHTS = Object.freeze([
+  ...[18, 26, 34, 42, 50, 58].flatMap((x) => [12, 20, 28, 35].map((z) => Object.freeze([x, 4, z, 13]))),
+  ...[27, 33, 38, 43, 49].map((x) => Object.freeze([x, 5, 6, 14])),
+  Object.freeze([3, 3, 24, 13]), Object.freeze([10, 3, 18, 13]), Object.freeze([9, 3, 31, 12]),
+  Object.freeze([27, 3, 45, 12]), Object.freeze([27, 3, 53, 12]), Object.freeze([45, 3, 45, 12]), Object.freeze([45, 3, 53, 12]),
+]);
+
 export const SPAWN_OUTSIDE = Object.freeze({ x: 96.5, y: 0, z: 33.5, yaw: 90 }); // parking lot, facing the entrance (west)

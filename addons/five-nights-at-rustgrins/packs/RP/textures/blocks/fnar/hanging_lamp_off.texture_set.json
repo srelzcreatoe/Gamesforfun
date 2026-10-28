@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "hanging_lamp_off",
+    "metalness_emissive_roughness": "hanging_lamp_off_mer",
+    "heightmap": "hanging_lamp_off_height"
+  }
+}

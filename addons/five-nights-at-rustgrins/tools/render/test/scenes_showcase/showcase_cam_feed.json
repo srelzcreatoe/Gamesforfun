@@ -1,0 +1,94 @@
+{
+ "width": 1920,
+ "height": 1080,
+ "voxels": "../showcase.json",
+ "time": "night",
+ "camera": {
+  "pos": [
+   139.5,
+   70.3,
+   215.5
+  ],
+  "target": [
+   120,
+   65.5,
+   218
+  ],
+  "fov": 80
+ },
+ "style": "camera_feed",
+ "entities": [
+  {
+   "id": "fnar:rustgrin",
+   "pos": [
+    119.5,
+    66,
+    225
+   ],
+   "yaw": 180,
+   "anim": "idle",
+   "t": 0.6,
+   "eyes": true
+  },
+  {
+   "id": "fnar:mirehop",
+   "pos": [
+    115.5,
+    66,
+    224.5
+   ],
+   "yaw": 195,
+   "anim": "perform_1",
+   "t": 1.2,
+   "eyes": true
+  },
+  {
+   "id": "fnar:noxbriar",
+   "pos": [
+    123.5,
+    66,
+    224.5
+   ],
+   "yaw": 165,
+   "anim": "pose_1",
+   "t": 0.4,
+   "eyes": true
+  },
+  {
+   "id": "fnar:purple_rat",
+   "pos": [
+    111.5,
+    65,
+    217.5
+   ],
+   "yaw": 140,
+   "anim": "idle",
+   "t": 0.3,
+   "eyes": true
+  },
+  {
+   "id": "fnar:cat",
+   "pos": [
+    105.5,
+    65,
+    224.5
+   ],
+   "yaw": 120,
+   "anim": "pose_1",
+   "t": 0.5,
+   "eyes": true
+  },
+  {
+   "id": "fnar:top_hat_rat",
+   "pos": [
+    126.5,
+    65,
+    217.0
+   ],
+   "yaw": 210,
+   "anim": "idle",
+   "t": 0.2,
+   "eyes": true
+  }
+ ]
+}

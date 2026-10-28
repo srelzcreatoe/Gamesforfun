@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "ceiling_tile_stained",
+    "metalness_emissive_roughness": "ceiling_tile_stained_mer",
+    "heightmap": "ceiling_tile_stained_height"
+  }
+}

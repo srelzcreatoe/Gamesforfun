@@ -1,0 +1,61 @@
+{
+  "format_version": "1.26.50",
+  "minecraft:block": {
+    "description": {
+      "identifier": "fnar:door_shutter",
+      "menu_category": {
+        "category": "none"
+      },
+      "states": {
+        "fnar:part": [
+          0,
+          1
+        ]
+      }
+    },
+    "components": {
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "fnar_door_shutter",
+          "render_method": "opaque"
+        },
+        "up": {
+          "texture": "fnar_door_shutter",
+          "render_method": "opaque"
+        },
+        "down": {
+          "texture": "fnar_door_shutter",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:collision_box": true,
+      "minecraft:selection_box": true,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 3
+      },
+      "minecraft:map_color": "#686d72"
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('fnar:part') == 1",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_door_shutter_bottom",
+              "render_method": "opaque"
+            },
+            "up": {
+              "texture": "fnar_door_shutter",
+              "render_method": "opaque"
+            },
+            "down": {
+              "texture": "fnar_door_shutter",
+              "render_method": "opaque"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

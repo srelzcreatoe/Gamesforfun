@@ -96,7 +96,18 @@ const KNOWN = [
   [/render_controllers\//, /\/part_visibility$/, /must be object/],
   [/languages\.json$/, /^$/, /must be object/],
   [/(item|terrain)_texture\.json$/, /\/textures$/, /must be array/],
+  // flipbook_textures.json is an array of entries; the schema describes a single entry.
+  [/flipbook_textures\.json$/, /^$/, /must be object/],
 ];
+// Model Geometry schema types every numeric vector (origin, size, pivot, rotation, uv, uv_size,
+// visible_bounds_offset) as an array of *strings*, which no real geometry (vanilla included)
+// satisfies. Coerce number arrays to strings for models/ files so the structure is still checked.
+const coerce = (rel, data) => {
+  if (!/(^|\/)models\//.test(rel.split(path.sep).join('/'))) return data;
+  const walk = (v) => Array.isArray(v) ? (v.every((x) => typeof x === 'number') ? v.map(String) : v.map(walk))
+    : (v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)])) : v);
+  return walk(data);
+};
 const known = (rel, e) => KNOWN.some(([f, p, m]) => f.test(rel) && p.test(e.instancePath) && m.test(e.message));
 let errors = 0, checked = 0, parsedOnly = 0;
 for (const f of files) {
@@ -108,6 +119,7 @@ for (const f of files) {
   const v = getValidator(rule.url);
   if (!v) { parsedOnly++; continue; }
   checked++;
+  data = coerce(rel, data);
   if (!v(data)) {
     const real = v.errors.filter((e) => !known(rel, e));
     if (!real.length) continue;

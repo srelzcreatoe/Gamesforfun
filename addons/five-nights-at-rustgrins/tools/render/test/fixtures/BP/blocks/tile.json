@@ -1,0 +1,19 @@
+{
+  "format_version": "1.26.50",
+  "minecraft:block": {
+    "description": {
+      "identifier": "fnartest:tile",
+      "menu_category": {
+        "category": "construction"
+      }
+    },
+    "components": {
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "fnartest_tile",
+          "render_method": "opaque"
+        }
+      }
+    }
+  }
+}

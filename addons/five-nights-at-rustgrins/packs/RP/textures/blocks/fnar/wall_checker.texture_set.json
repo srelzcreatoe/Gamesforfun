@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "wall_checker",
+    "metalness_emissive_roughness": "wall_checker_mer",
+    "heightmap": "wall_checker_height"
+  }
+}

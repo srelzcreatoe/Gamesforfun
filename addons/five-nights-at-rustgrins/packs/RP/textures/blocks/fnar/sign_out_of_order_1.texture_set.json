@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "sign_out_of_order_1",
+    "metalness_emissive_roughness": "sign_out_of_order_1_mer",
+    "heightmap": "sign_out_of_order_1_height"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "poster_cabaret_1",
+    "metalness_emissive_roughness": "poster_cabaret_1_mer",
+    "heightmap": "poster_cabaret_1_height"
+  }
+}

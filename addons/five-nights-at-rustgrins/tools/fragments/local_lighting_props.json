@@ -1,0 +1,30 @@
+{
+  "fnar:arcade_cabinet": {
+    "light_color": "#c890ff",
+    "light_type": "point_light"
+  },
+  "fnar:crt_monitor": {
+    "light_color": "#7ad6c0",
+    "light_type": "point_light"
+  },
+  "fnar:desk_phone": {
+    "light_color": "#ff3a2a",
+    "light_type": "static_light"
+  },
+  "fnar:door_button": {
+    "light_color": "#ff3a2a",
+    "light_type": "static_light"
+  },
+  "fnar:light_button": {
+    "light_color": "#e8eeff",
+    "light_type": "static_light"
+  },
+  "fnar:show_tape": {
+    "light_color": "#c8ff6a",
+    "light_type": "static_light"
+  },
+  "fnar:stage_star": {
+    "light_color": "#ffd27a",
+    "light_type": "static_light"
+  }
+}

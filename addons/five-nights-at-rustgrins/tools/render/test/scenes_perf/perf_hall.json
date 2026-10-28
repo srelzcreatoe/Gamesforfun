@@ -1,0 +1,19 @@
+{
+ "width": 1920,
+ "height": 1080,
+ "voxels": "../../../.cache/render/perf_world.json",
+ "style": "vibrant",
+ "camera": {
+  "pos": [
+   -45.5,
+   46.2,
+   -40.5
+  ],
+  "target": [
+   5,
+   44,
+   10
+  ],
+  "fov": 75
+ }
+}

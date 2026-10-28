@@ -1,0 +1,12 @@
+[
+  {
+    "flipbook_texture": "textures/blocks/fnar/arcade_screen",
+    "atlas_tile": "fnar_arcade_screen",
+    "ticks_per_frame": 6
+  },
+  {
+    "flipbook_texture": "textures/blocks/fnar/fan_blades",
+    "atlas_tile": "fnar_fan_blades",
+    "ticks_per_frame": 1
+  }
+]

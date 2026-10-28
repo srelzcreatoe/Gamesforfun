@@ -1,0 +1,7 @@
+[
+  {
+    "flipbook_texture": "textures/blocks/fnartest/flip",
+    "atlas_tile": "fnartest_flip",
+    "ticks_per_frame": 4
+  }
+]

@@ -112,7 +112,7 @@ export class TopHatRat extends Animatronic {
       return;
     }
     if (this.state === 'leaving') {
-      this.pauseUntil = s.t + 30 + s.rng.int(0, 40);
+      this.pauseUntil = s.t + 20 + s.rng.int(0, 20);
       if (node === this.cfg.pointOfNoReturn || node === 'EC') s.emit({ fx: 'ringmaster', state: 'close', side: this.side });
     }
   }

@@ -1,0 +1,36 @@
+{
+ "width": 1280,
+ "height": 720,
+ "voxels": "../test_room.json",
+ "packs": [
+  "../fixtures"
+ ],
+ "time": "night",
+ "camera": {
+  "pos": [
+   5.5,
+   63.0,
+   -10.0
+  ],
+  "target": [
+   6,
+   63.2,
+   -15
+  ],
+  "fov": 60
+ },
+ "style": "vibrant",
+ "extra_lights": [
+  {
+   "type": "point",
+   "pos": [
+    5.5,
+    64,
+    -12
+   ],
+   "color": "#ffffff",
+   "intensity": 8,
+   "distance": 12
+  }
+ ]
+}

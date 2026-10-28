@@ -1,0 +1,699 @@
+{
+  "format_version": "1.20.20",
+  "sound_definitions": {
+    "fnar.amb.office": {
+      "category": "ambient",
+      "min_distance": 1.0,
+      "max_distance": 12.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/amb/office"
+        }
+      ]
+    },
+    "fnar.amb.fan": {
+      "category": "ambient",
+      "min_distance": 1.0,
+      "max_distance": 8.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/amb/fan"
+        }
+      ]
+    },
+    "fnar.amb.building": {
+      "category": "ambient",
+      "sounds": [
+        {
+          "name": "sounds/fnar/amb/building"
+        }
+      ]
+    },
+    "fnar.amb.duct": {
+      "category": "ambient",
+      "min_distance": 1.0,
+      "max_distance": 12.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/amb/duct"
+        }
+      ]
+    },
+    "fnar.amb.light_buzz": {
+      "category": "ambient",
+      "min_distance": 1.0,
+      "max_distance": 12.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/amb/light_buzz"
+        }
+      ]
+    },
+    "fnar.door.close": {
+      "category": "block",
+      "min_distance": 2.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/door/close"
+        }
+      ]
+    },
+    "fnar.door.open": {
+      "category": "block",
+      "min_distance": 2.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/door/open"
+        }
+      ]
+    },
+    "fnar.door.error": {
+      "category": "block",
+      "min_distance": 1.0,
+      "max_distance": 12.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/door/error"
+        }
+      ]
+    },
+    "fnar.light.on": {
+      "category": "block",
+      "min_distance": 1.0,
+      "max_distance": 10.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/light/on"
+        }
+      ]
+    },
+    "fnar.light.off": {
+      "category": "block",
+      "min_distance": 1.0,
+      "max_distance": 10.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/light/off"
+        }
+      ]
+    },
+    "fnar.button.press": {
+      "category": "block",
+      "min_distance": 1.0,
+      "max_distance": 8.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/button/press1"
+        },
+        {
+          "name": "sounds/fnar/button/press2"
+        }
+      ]
+    },
+    "fnar.vent.close": {
+      "category": "block",
+      "min_distance": 2.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/vent/close"
+        }
+      ]
+    },
+    "fnar.vent.open": {
+      "category": "block",
+      "min_distance": 2.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/vent/open"
+        }
+      ]
+    },
+    "fnar.cam.up": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fnar/cam/up"
+        }
+      ]
+    },
+    "fnar.cam.down": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fnar/cam/down"
+        }
+      ]
+    },
+    "fnar.cam.switch": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fnar/cam/switch1"
+        },
+        {
+          "name": "sounds/fnar/cam/switch2"
+        },
+        {
+          "name": "sounds/fnar/cam/switch3"
+        }
+      ]
+    },
+    "fnar.cam.static": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fnar/cam/static"
+        }
+      ]
+    },
+    "fnar.cam.hum": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fnar/cam/hum"
+        }
+      ]
+    },
+    "fnar.cam.glitch": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fnar/cam/glitch"
+        }
+      ]
+    },
+    "fnar.power.out": {
+      "category": "block",
+      "sounds": [
+        {
+          "name": "sounds/fnar/power/out"
+        }
+      ]
+    },
+    "fnar.clock.chime": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fnar/clock/chime"
+        }
+      ]
+    },
+    "fnar.clock.6am": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fnar/clock/6am"
+        }
+      ]
+    },
+    "fnar.phone.ring": {
+      "category": "block",
+      "min_distance": 2.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/phone/ring"
+        }
+      ]
+    },
+    "fnar.phone.pickup": {
+      "category": "block",
+      "min_distance": 1.0,
+      "max_distance": 12.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/phone/pickup"
+        }
+      ]
+    },
+    "fnar.phone.voice": {
+      "category": "block",
+      "min_distance": 2.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/phone/voice1"
+        },
+        {
+          "name": "sounds/fnar/phone/voice2"
+        },
+        {
+          "name": "sounds/fnar/phone/voice3"
+        },
+        {
+          "name": "sounds/fnar/phone/voice4"
+        }
+      ]
+    },
+    "fnar.phone.hangup": {
+      "category": "block",
+      "min_distance": 1.0,
+      "max_distance": 12.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/phone/hangup"
+        }
+      ]
+    },
+    "fnar.step.heavy": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 24.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/step/heavy1"
+        },
+        {
+          "name": "sounds/fnar/step/heavy2"
+        },
+        {
+          "name": "sounds/fnar/step/heavy3"
+        },
+        {
+          "name": "sounds/fnar/step/heavy4"
+        }
+      ]
+    },
+    "fnar.step.light": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 24.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/step/light1"
+        },
+        {
+          "name": "sounds/fnar/step/light2"
+        },
+        {
+          "name": "sounds/fnar/step/light3"
+        },
+        {
+          "name": "sounds/fnar/step/light4"
+        }
+      ]
+    },
+    "fnar.step.scurry": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 20.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/step/scurry1"
+        },
+        {
+          "name": "sounds/fnar/step/scurry2"
+        },
+        {
+          "name": "sounds/fnar/step/scurry3"
+        }
+      ]
+    },
+    "fnar.servo.move": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/servo/move1"
+        },
+        {
+          "name": "sounds/fnar/servo/move2"
+        },
+        {
+          "name": "sounds/fnar/servo/move3"
+        }
+      ]
+    },
+    "fnar.servo.head": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 12.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/servo/head1"
+        },
+        {
+          "name": "sounds/fnar/servo/head2"
+        }
+      ]
+    },
+    "fnar.mirehop.strum": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 24.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/mirehop/strum1"
+        },
+        {
+          "name": "sounds/fnar/mirehop/strum2"
+        },
+        {
+          "name": "sounds/fnar/mirehop/strum3"
+        }
+      ]
+    },
+    "fnar.noxbriar.hum": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/noxbriar/hum1"
+        },
+        {
+          "name": "sounds/fnar/noxbriar/hum2"
+        }
+      ]
+    },
+    "fnar.rustgrin.feedback": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 32.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/rustgrin/feedback1"
+        },
+        {
+          "name": "sounds/fnar/rustgrin/feedback2"
+        }
+      ]
+    },
+    "fnar.rustgrin.laugh": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 20.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/rustgrin/laugh1"
+        },
+        {
+          "name": "sounds/fnar/rustgrin/laugh2"
+        }
+      ]
+    },
+    "fnar.rustgrin.song": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 24.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/rustgrin/song",
+          "stream": true
+        }
+      ]
+    },
+    "fnar.cat.bell": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 24.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/cat/bell1"
+        },
+        {
+          "name": "sounds/fnar/cat/bell2"
+        }
+      ]
+    },
+    "fnar.cat.run": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 32.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/cat/run"
+        }
+      ]
+    },
+    "fnar.cat.bang": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 24.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/cat/bang1"
+        },
+        {
+          "name": "sounds/fnar/cat/bang2"
+        },
+        {
+          "name": "sounds/fnar/cat/bang3"
+        }
+      ]
+    },
+    "fnar.cat.growl": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 12.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/cat/growl"
+        }
+      ]
+    },
+    "fnar.rat.maracas": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 24.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/rat/maracas1"
+        },
+        {
+          "name": "sounds/fnar/rat/maracas2"
+        },
+        {
+          "name": "sounds/fnar/rat/maracas3"
+        }
+      ]
+    },
+    "fnar.rat.squeak": {
+      "category": "hostile",
+      "min_distance": 1.0,
+      "max_distance": 12.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/rat/squeak1"
+        },
+        {
+          "name": "sounds/fnar/rat/squeak2"
+        }
+      ]
+    },
+    "fnar.rat.crawl": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/rat/crawl1"
+        },
+        {
+          "name": "sounds/fnar/rat/crawl2"
+        },
+        {
+          "name": "sounds/fnar/rat/crawl3"
+        }
+      ]
+    },
+    "fnar.rat.bang": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/rat/bang"
+        }
+      ]
+    },
+    "fnar.tophat.cane": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 24.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/tophat/cane"
+        }
+      ]
+    },
+    "fnar.tophat.fanfare": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 32.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/tophat/fanfare"
+        }
+      ]
+    },
+    "fnar.tophat.show": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 24.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/tophat/show"
+        }
+      ]
+    },
+    "fnar.tophat.show_slow": {
+      "category": "hostile",
+      "min_distance": 4.0,
+      "max_distance": 24.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/tophat/show_slow"
+        }
+      ]
+    },
+    "fnar.tophat.rewind": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/tophat/rewind"
+        }
+      ]
+    },
+    "fnar.tophat.tape_out": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 16.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/tophat/tape_out"
+        }
+      ]
+    },
+    "fnar.tophat.laugh": {
+      "category": "hostile",
+      "min_distance": 2.0,
+      "max_distance": 24.0,
+      "sounds": [
+        {
+          "name": "sounds/fnar/tophat/laugh"
+        }
+      ]
+    },
+    "fnar.js.rustgrin": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/js/rustgrin",
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "fnar.js.mirehop": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/js/mirehop",
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "fnar.js.noxbriar": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/js/noxbriar",
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "fnar.js.purple_rat": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/js/purple_rat",
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "fnar.js.cat": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/js/cat",
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "fnar.js.top_hat_rat": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/js/top_hat_rat",
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "fnar.hall.whisper": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/hall/whisper"
+        }
+      ]
+    },
+    "fnar.hall.sting": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/hall/sting"
+        }
+      ]
+    },
+    "fnar.ui.click": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fnar/ui/click"
+        }
+      ]
+    },
+    "fnar.ui.star": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/fnar/ui/star"
+        }
+      ]
+    },
+    "fnar.music.title": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/fnar/music/title",
+          "stream": true
+        }
+      ]
+    },
+    "fnar.music.showtime": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/fnar/music/showtime",
+          "stream": true
+        }
+      ]
+    },
+    "fnar.music.ending": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/fnar/music/ending",
+          "stream": true
+        }
+      ]
+    }
+  }
+}

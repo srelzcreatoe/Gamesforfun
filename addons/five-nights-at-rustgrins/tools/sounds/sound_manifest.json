@@ -1,0 +1,1025 @@
+{
+ "sample_rate": 44100,
+ "events": {
+  "fnar.amb.office": {
+   "files": [
+    "sounds/fnar/amb/office.ogg"
+   ],
+   "duration": 10.0,
+   "channels": 1,
+   "loop": true,
+   "positional": true,
+   "category": "ambient",
+   "max_distance": 12,
+   "note": "",
+   "peaks_db": [
+    -18.37
+   ]
+  },
+  "fnar.amb.fan": {
+   "files": [
+    "sounds/fnar/amb/fan.ogg"
+   ],
+   "duration": 4.0,
+   "channels": 1,
+   "loop": true,
+   "positional": true,
+   "category": "ambient",
+   "max_distance": 8,
+   "note": "",
+   "peaks_db": [
+    -17.51
+   ]
+  },
+  "fnar.amb.building": {
+   "files": [
+    "sounds/fnar/amb/building.ogg"
+   ],
+   "duration": 24.0,
+   "channels": 2,
+   "loop": true,
+   "positional": false,
+   "category": "ambient",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -18.44
+   ]
+  },
+  "fnar.amb.duct": {
+   "files": [
+    "sounds/fnar/amb/duct.ogg"
+   ],
+   "duration": 6.0,
+   "channels": 1,
+   "loop": true,
+   "positional": true,
+   "category": "ambient",
+   "max_distance": 12,
+   "note": "",
+   "peaks_db": [
+    -13.58
+   ]
+  },
+  "fnar.amb.light_buzz": {
+   "files": [
+    "sounds/fnar/amb/light_buzz.ogg"
+   ],
+   "duration": 2.0,
+   "channels": 1,
+   "loop": true,
+   "positional": true,
+   "category": "ambient",
+   "max_distance": 12,
+   "note": "",
+   "peaks_db": [
+    -16.64
+   ]
+  },
+  "fnar.door.close": {
+   "files": [
+    "sounds/fnar/door/close.ogg"
+   ],
+   "duration": 1.2,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "block",
+   "max_distance": 16,
+   "note": "",
+   "peaks_db": [
+    -1.51
+   ]
+  },
+  "fnar.door.open": {
+   "files": [
+    "sounds/fnar/door/open.ogg"
+   ],
+   "duration": 1.4,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "block",
+   "max_distance": 16,
+   "note": "",
+   "peaks_db": [
+    -2.64
+   ]
+  },
+  "fnar.door.error": {
+   "files": [
+    "sounds/fnar/door/error.ogg"
+   ],
+   "duration": 0.5,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "block",
+   "max_distance": 12,
+   "note": "",
+   "peaks_db": [
+    -3.96
+   ]
+  },
+  "fnar.light.on": {
+   "files": [
+    "sounds/fnar/light/on.ogg"
+   ],
+   "duration": 0.3,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "block",
+   "max_distance": 10,
+   "note": "",
+   "peaks_db": [
+    -4.1
+   ]
+  },
+  "fnar.light.off": {
+   "files": [
+    "sounds/fnar/light/off.ogg"
+   ],
+   "duration": 0.2,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "block",
+   "max_distance": 10,
+   "note": "",
+   "peaks_db": [
+    -6.2
+   ]
+  },
+  "fnar.button.press": {
+   "files": [
+    "sounds/fnar/button/press1.ogg",
+    "sounds/fnar/button/press2.ogg"
+   ],
+   "duration": 0.15,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "block",
+   "max_distance": 8,
+   "note": "",
+   "peaks_db": [
+    -6.43,
+    -6.41
+   ]
+  },
+  "fnar.vent.close": {
+   "files": [
+    "sounds/fnar/vent/close.ogg"
+   ],
+   "duration": 0.9,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "block",
+   "max_distance": 16,
+   "note": "",
+   "peaks_db": [
+    -2.32
+   ]
+  },
+  "fnar.vent.open": {
+   "files": [
+    "sounds/fnar/vent/open.ogg"
+   ],
+   "duration": 0.7,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "block",
+   "max_distance": 16,
+   "note": "",
+   "peaks_db": [
+    -3.95
+   ]
+  },
+  "fnar.cam.up": {
+   "files": [
+    "sounds/fnar/cam/up.ogg"
+   ],
+   "duration": 0.5,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "ui",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -4.05
+   ]
+  },
+  "fnar.cam.down": {
+   "files": [
+    "sounds/fnar/cam/down.ogg"
+   ],
+   "duration": 0.4,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "ui",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -4.49
+   ]
+  },
+  "fnar.cam.switch": {
+   "files": [
+    "sounds/fnar/cam/switch1.ogg",
+    "sounds/fnar/cam/switch2.ogg",
+    "sounds/fnar/cam/switch3.ogg"
+   ],
+   "duration": 0.3,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "ui",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -4.94,
+    -5.01,
+    -5.0
+   ]
+  },
+  "fnar.cam.static": {
+   "files": [
+    "sounds/fnar/cam/static.ogg"
+   ],
+   "duration": 1.5,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "ui",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -10.76
+   ]
+  },
+  "fnar.cam.hum": {
+   "files": [
+    "sounds/fnar/cam/hum.ogg"
+   ],
+   "duration": 10.0,
+   "channels": 2,
+   "loop": true,
+   "positional": false,
+   "category": "ui",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -28.1
+   ]
+  },
+  "fnar.cam.glitch": {
+   "files": [
+    "sounds/fnar/cam/glitch.ogg"
+   ],
+   "duration": 0.6,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "ui",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -2.82
+   ]
+  },
+  "fnar.power.out": {
+   "files": [
+    "sounds/fnar/power/out.ogg"
+   ],
+   "duration": 3.0,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "block",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -2.65
+   ]
+  },
+  "fnar.clock.chime": {
+   "files": [
+    "sounds/fnar/clock/chime.ogg"
+   ],
+   "duration": 1.5,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "ui",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -5.05
+   ]
+  },
+  "fnar.clock.6am": {
+   "files": [
+    "sounds/fnar/clock/6am.ogg"
+   ],
+   "duration": 6.0,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "ui",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -1.79
+   ]
+  },
+  "fnar.phone.ring": {
+   "files": [
+    "sounds/fnar/phone/ring.ogg"
+   ],
+   "duration": 4.0,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "block",
+   "max_distance": 16,
+   "note": "",
+   "peaks_db": [
+    -2.48
+   ]
+  },
+  "fnar.phone.pickup": {
+   "files": [
+    "sounds/fnar/phone/pickup.ogg"
+   ],
+   "duration": 0.4,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "block",
+   "max_distance": 12,
+   "note": "",
+   "peaks_db": [
+    -5.52
+   ]
+  },
+  "fnar.phone.voice": {
+   "files": [
+    "sounds/fnar/phone/voice1.ogg",
+    "sounds/fnar/phone/voice2.ogg",
+    "sounds/fnar/phone/voice3.ogg",
+    "sounds/fnar/phone/voice4.ogg"
+   ],
+   "duration": 2.0,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "block",
+   "max_distance": 16,
+   "note": "",
+   "peaks_db": [
+    -10.11,
+    -11.62,
+    -10.71,
+    -10.43
+   ]
+  },
+  "fnar.phone.hangup": {
+   "files": [
+    "sounds/fnar/phone/hangup.ogg"
+   ],
+   "duration": 0.5,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "block",
+   "max_distance": 12,
+   "note": "",
+   "peaks_db": [
+    -5.29
+   ]
+  },
+  "fnar.step.heavy": {
+   "files": [
+    "sounds/fnar/step/heavy1.ogg",
+    "sounds/fnar/step/heavy2.ogg",
+    "sounds/fnar/step/heavy3.ogg",
+    "sounds/fnar/step/heavy4.ogg"
+   ],
+   "duration": 0.35,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 24,
+   "note": "",
+   "peaks_db": [
+    -1.39,
+    -1.41,
+    -1.47,
+    -1.57
+   ]
+  },
+  "fnar.step.light": {
+   "files": [
+    "sounds/fnar/step/light1.ogg",
+    "sounds/fnar/step/light2.ogg",
+    "sounds/fnar/step/light3.ogg",
+    "sounds/fnar/step/light4.ogg"
+   ],
+   "duration": 0.25,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 24,
+   "note": "",
+   "peaks_db": [
+    -3.04,
+    -3.1,
+    -2.88,
+    -3.22
+   ]
+  },
+  "fnar.step.scurry": {
+   "files": [
+    "sounds/fnar/step/scurry1.ogg",
+    "sounds/fnar/step/scurry2.ogg",
+    "sounds/fnar/step/scurry3.ogg"
+   ],
+   "duration": 0.6,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 20,
+   "note": "",
+   "peaks_db": [
+    -3.92,
+    -3.33,
+    -3.0
+   ]
+  },
+  "fnar.servo.move": {
+   "files": [
+    "sounds/fnar/servo/move1.ogg",
+    "sounds/fnar/servo/move2.ogg",
+    "sounds/fnar/servo/move3.ogg"
+   ],
+   "duration": 0.8,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 16,
+   "note": "",
+   "peaks_db": [
+    -2.74,
+    -3.29,
+    -3.08
+   ]
+  },
+  "fnar.servo.head": {
+   "files": [
+    "sounds/fnar/servo/head1.ogg",
+    "sounds/fnar/servo/head2.ogg"
+   ],
+   "duration": 0.4,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 12,
+   "note": "",
+   "peaks_db": [
+    -4.03,
+    -3.97
+   ]
+  },
+  "fnar.mirehop.strum": {
+   "files": [
+    "sounds/fnar/mirehop/strum1.ogg",
+    "sounds/fnar/mirehop/strum2.ogg",
+    "sounds/fnar/mirehop/strum3.ogg"
+   ],
+   "duration": 2.0,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 24,
+   "note": "",
+   "peaks_db": [
+    -1.87,
+    -1.66,
+    -2.06
+   ]
+  },
+  "fnar.noxbriar.hum": {
+   "files": [
+    "sounds/fnar/noxbriar/hum1.ogg",
+    "sounds/fnar/noxbriar/hum2.ogg"
+   ],
+   "duration": 5.0,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 16,
+   "note": "",
+   "peaks_db": [
+    -7.79,
+    -8.49
+   ]
+  },
+  "fnar.rustgrin.feedback": {
+   "files": [
+    "sounds/fnar/rustgrin/feedback1.ogg",
+    "sounds/fnar/rustgrin/feedback2.ogg"
+   ],
+   "duration": 1.5,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 32,
+   "note": "",
+   "peaks_db": [
+    -1.05,
+    -1.48
+   ]
+  },
+  "fnar.rustgrin.laugh": {
+   "files": [
+    "sounds/fnar/rustgrin/laugh1.ogg",
+    "sounds/fnar/rustgrin/laugh2.ogg"
+   ],
+   "duration": 1.6,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 20,
+   "note": "",
+   "peaks_db": [
+    -1.6,
+    -1.48
+   ]
+  },
+  "fnar.rustgrin.song": {
+   "files": [
+    "sounds/fnar/rustgrin/song.ogg"
+   ],
+   "duration": 20.0,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 24,
+   "note": "",
+   "peaks_db": [
+    -2.77
+   ]
+  },
+  "fnar.cat.bell": {
+   "files": [
+    "sounds/fnar/cat/bell1.ogg",
+    "sounds/fnar/cat/bell2.ogg"
+   ],
+   "duration": 1.0,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 24,
+   "note": "",
+   "peaks_db": [
+    -3.34,
+    -2.65
+   ]
+  },
+  "fnar.cat.run": {
+   "files": [
+    "sounds/fnar/cat/run.ogg"
+   ],
+   "duration": 2.0,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 32,
+   "note": "",
+   "peaks_db": [
+    -1.71
+   ]
+  },
+  "fnar.cat.bang": {
+   "files": [
+    "sounds/fnar/cat/bang1.ogg",
+    "sounds/fnar/cat/bang2.ogg",
+    "sounds/fnar/cat/bang3.ogg"
+   ],
+   "duration": 1.5,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 24,
+   "note": "",
+   "peaks_db": [
+    -1.37,
+    -1.49,
+    -1.44
+   ]
+  },
+  "fnar.cat.growl": {
+   "files": [
+    "sounds/fnar/cat/growl.ogg"
+   ],
+   "duration": 1.2,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 12,
+   "note": "",
+   "peaks_db": [
+    -1.93
+   ]
+  },
+  "fnar.rat.maracas": {
+   "files": [
+    "sounds/fnar/rat/maracas1.ogg",
+    "sounds/fnar/rat/maracas2.ogg",
+    "sounds/fnar/rat/maracas3.ogg"
+   ],
+   "duration": 1.5,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 24,
+   "note": "",
+   "peaks_db": [
+    -2.2,
+    -3.0,
+    -2.8
+   ]
+  },
+  "fnar.rat.squeak": {
+   "files": [
+    "sounds/fnar/rat/squeak1.ogg",
+    "sounds/fnar/rat/squeak2.ogg"
+   ],
+   "duration": 0.4,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 12,
+   "note": "",
+   "peaks_db": [
+    -3.38,
+    -2.7
+   ]
+  },
+  "fnar.rat.crawl": {
+   "files": [
+    "sounds/fnar/rat/crawl1.ogg",
+    "sounds/fnar/rat/crawl2.ogg",
+    "sounds/fnar/rat/crawl3.ogg"
+   ],
+   "duration": 1.0,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 16,
+   "note": "",
+   "peaks_db": [
+    -1.88,
+    -1.99,
+    -2.22
+   ]
+  },
+  "fnar.rat.bang": {
+   "files": [
+    "sounds/fnar/rat/bang.ogg"
+   ],
+   "duration": 0.8,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 16,
+   "note": "",
+   "peaks_db": [
+    -1.2
+   ]
+  },
+  "fnar.tophat.cane": {
+   "files": [
+    "sounds/fnar/tophat/cane.ogg"
+   ],
+   "duration": 1.2,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 24,
+   "note": "",
+   "peaks_db": [
+    -2.71
+   ]
+  },
+  "fnar.tophat.fanfare": {
+   "files": [
+    "sounds/fnar/tophat/fanfare.ogg"
+   ],
+   "duration": 3.0,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 32,
+   "note": "",
+   "peaks_db": [
+    -1.66
+   ]
+  },
+  "fnar.tophat.show": {
+   "files": [
+    "sounds/fnar/tophat/show.ogg"
+   ],
+   "duration": 16.0,
+   "channels": 1,
+   "loop": true,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 24,
+   "note": "",
+   "peaks_db": [
+    -4.87
+   ]
+  },
+  "fnar.tophat.show_slow": {
+   "files": [
+    "sounds/fnar/tophat/show_slow.ogg"
+   ],
+   "duration": 22.8571,
+   "channels": 1,
+   "loop": true,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 24,
+   "note": "full tune at 70 % speed -> 22.857 s (16 s / 0.7)",
+   "peaks_db": [
+    -11.04
+   ]
+  },
+  "fnar.tophat.rewind": {
+   "files": [
+    "sounds/fnar/tophat/rewind.ogg"
+   ],
+   "duration": 1.0,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 16,
+   "note": "",
+   "peaks_db": [
+    -3.32
+   ]
+  },
+  "fnar.tophat.tape_out": {
+   "files": [
+    "sounds/fnar/tophat/tape_out.ogg"
+   ],
+   "duration": 2.5,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 16,
+   "note": "",
+   "peaks_db": [
+    -2.01
+   ]
+  },
+  "fnar.tophat.laugh": {
+   "files": [
+    "sounds/fnar/tophat/laugh.ogg"
+   ],
+   "duration": 2.0,
+   "channels": 1,
+   "loop": false,
+   "positional": true,
+   "category": "hostile",
+   "max_distance": 24,
+   "note": "",
+   "peaks_db": [
+    -1.57
+   ]
+  },
+  "fnar.js.rustgrin": {
+   "files": [
+    "sounds/fnar/js/rustgrin.ogg"
+   ],
+   "duration": 1.6,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -1.15
+   ]
+  },
+  "fnar.js.mirehop": {
+   "files": [
+    "sounds/fnar/js/mirehop.ogg"
+   ],
+   "duration": 1.6,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -1.86
+   ]
+  },
+  "fnar.js.noxbriar": {
+   "files": [
+    "sounds/fnar/js/noxbriar.ogg"
+   ],
+   "duration": 1.6,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -1.28
+   ]
+  },
+  "fnar.js.purple_rat": {
+   "files": [
+    "sounds/fnar/js/purple_rat.ogg"
+   ],
+   "duration": 1.6,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -1.37
+   ]
+  },
+  "fnar.js.cat": {
+   "files": [
+    "sounds/fnar/js/cat.ogg"
+   ],
+   "duration": 1.6,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -1.93
+   ]
+  },
+  "fnar.js.top_hat_rat": {
+   "files": [
+    "sounds/fnar/js/top_hat_rat.ogg"
+   ],
+   "duration": 1.6,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -1.21
+   ]
+  },
+  "fnar.hall.whisper": {
+   "files": [
+    "sounds/fnar/hall/whisper.ogg"
+   ],
+   "duration": 2.0,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -4.36
+   ]
+  },
+  "fnar.hall.sting": {
+   "files": [
+    "sounds/fnar/hall/sting.ogg"
+   ],
+   "duration": 1.5,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -1.06
+   ]
+  },
+  "fnar.ui.click": {
+   "files": [
+    "sounds/fnar/ui/click.ogg"
+   ],
+   "duration": 0.1,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "ui",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -6.38
+   ]
+  },
+  "fnar.ui.star": {
+   "files": [
+    "sounds/fnar/ui/star.ogg"
+   ],
+   "duration": 2.0,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "ui",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -2.97
+   ]
+  },
+  "fnar.music.title": {
+   "files": [
+    "sounds/fnar/music/title.ogg"
+   ],
+   "duration": 40.0,
+   "channels": 2,
+   "loop": true,
+   "positional": false,
+   "category": "music",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -5.65
+   ]
+  },
+  "fnar.music.showtime": {
+   "files": [
+    "sounds/fnar/music/showtime.ogg"
+   ],
+   "duration": 48.0,
+   "channels": 2,
+   "loop": true,
+   "positional": false,
+   "category": "music",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -8.77
+   ]
+  },
+  "fnar.music.ending": {
+   "files": [
+    "sounds/fnar/music/ending.ogg"
+   ],
+   "duration": 12.0,
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "music",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -7.22
+   ]
+  }
+ }
+}

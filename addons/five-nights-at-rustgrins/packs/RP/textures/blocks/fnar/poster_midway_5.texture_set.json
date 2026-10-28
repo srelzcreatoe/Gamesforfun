@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "poster_midway_5",
+    "metalness_emissive_roughness": "poster_midway_5_mer",
+    "heightmap": "poster_midway_5_height"
+  }
+}

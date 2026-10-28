@@ -1,0 +1,20 @@
+{
+ "width": 1920,
+ "height": 1080,
+ "voxels": "../showcase.json",
+ "time": "night",
+ "camera": {
+  "pos": [
+   114.5,
+   67.4,
+   209.5
+  ],
+  "target": [
+   114.5,
+   67.5,
+   200
+  ],
+  "fov": 85
+ },
+ "style": "vibrant"
+}

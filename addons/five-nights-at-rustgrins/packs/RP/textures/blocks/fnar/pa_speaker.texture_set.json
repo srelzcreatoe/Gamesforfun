@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "pa_speaker",
+    "metalness_emissive_roughness": "pa_speaker_mer",
+    "heightmap": "pa_speaker_height"
+  }
+}
