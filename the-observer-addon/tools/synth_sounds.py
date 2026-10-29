@@ -467,13 +467,50 @@ def vanish(v):
     return trim(reverb(rip * 1.2 + suck[::-1] * 0.3 + whump * 0.8, 0.8, 0.35))
 
 
+# ----------------------------------------------------------------------------- 1.0.5
+
+def silence():
+    """The world goes quiet: a music track that is almost nothing. A faint, high ringing in the ears
+    rises slowly out of silence and wavers; it loops for as long as the silence lasts."""
+    sec = 30.0
+    n = int(round(SR * sec))
+    tt = np.arange(n) / SR
+    wobble = 1 + 0.004 * np.sin(2 * np.pi * 0.13 * tt)
+    tone = np.sin(2 * np.pi * np.cumsum(7350 * wobble) / SR) + 0.35 * np.sin(2 * np.pi * np.cumsum(7410 * wobble) / SR)
+    air = lp(noise(n), 900) * 0.25
+    swell = np.clip(tt / 8.0, 0, 1) ** 2 * (0.75 + 0.25 * np.sin(2 * np.pi * 0.05 * tt))
+    x = tone * swell * 0.5 + air * swell
+    # fade both ends so the loop restarts without a click
+    return fade(x, 0.5, 1.5)
+
+
+def scrawl(v):
+    """A page written in another hand: a few hard pencil strokes on paper."""
+    x = np.zeros(int(SR * 1.1))
+    pos = 0.05
+    for i in range(4 + v):
+        ln = rng.uniform(0.09, 0.2)
+        n = int(SR * ln)
+        stroke = bp(noise(n), 2600, 6200) * env(n, 0.01, ln * 0.4, ln * 0.3, ln * 0.3, 0.7)
+        stroke *= 1 + 0.6 * np.sin(2 * np.pi * rng.uniform(18, 30) * np.arange(n) / SR)
+        s0 = int(SR * pos)
+        x[s0:s0 + n] += stroke[: len(x) - s0] * rng.uniform(0.6, 1.0)
+        pos += ln + rng.uniform(0.04, 0.12)
+        if pos > 1.0:
+            break
+    return trim(reverb(x, 0.25, 0.15))
+
+
 def main():
     only = set(sys.argv[2].split(",")) if len(sys.argv) > 2 and sys.argv[1] == "--only" else None
     if only:
         made = []
         gens = {"voice": (voice, 3, 0.8), "presence": (presence, 2, 0.8), "notice": (notice, 2, 0.8),
-                "shriek": (shriek, 2, 0.7), "vanish": (vanish, 2, 0.8)}
+                "shriek": (shriek, 2, 0.7), "vanish": (vanish, 2, 0.8), "scrawl": (scrawl, 2, 0.6)}
         for name in only:
+            if name == "silence":
+                made.append(write("silence", silence(), 0.12))
+                continue
             fn, variants, peak = gens[name]
             for v in range(variants):
                 made.append(write(f"{name}{v + 1}", fn(v), peak))
@@ -510,6 +547,9 @@ def main():
                                      ("shriek", shriek, 2, 0.7), ("vanish", vanish, 2, 0.8)):
         for v in range(variants):
             made.append(write(f"{name}{v + 1}", fn(v), peak))
+    made.append(write("silence", silence(), 0.12))
+    for v in range(2):
+        made.append(write(f"scrawl{v + 1}", scrawl(v), 0.6))
     for path, dur in made:
         print(f"{os.path.relpath(path, ROOT)}  {dur:.2f}s  {os.path.getsize(path)} bytes")
 

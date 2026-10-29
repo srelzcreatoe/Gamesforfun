@@ -240,6 +240,25 @@ def config_wheel():
 
 # ----------------------------------------------------------------------------- particles
 
+def flare():
+    """A paper flare: a red tube with a wrapped band and a pale, hot tip."""
+    img = canvas()
+    px = img.load()
+    for i in range(8):
+        x, y = 4 + i, 12 - i
+        for dx, dy in ((0, 0), (1, 0), (0, 1), (1, 1)):
+            shade = 1.0 - (dx + dy) * 0.18
+            band = i in (2, 3)
+            base = (150, 142, 128) if band else (178, 38, 30)
+            px[x + dx, y + dy] = tuple(int(c * shade) for c in base) + (255,)
+    for x, y, c in ((12, 3, (255, 250, 228)), (13, 3, (255, 236, 170)), (12, 2, (255, 214, 120)), (13, 2, (255, 248, 210)),
+                    (14, 1, (255, 200, 110)), (11, 2, (255, 190, 96))):
+        px[x, y] = c + (255,)
+    for x, y in ((3, 13), (4, 14)):
+        px[x, y] = (60, 22, 18, 255)
+    return save(outline(img), "textures", "items", "observer", "flare.png")
+
+
 def soft_dot(size, color, falloff=1.6):
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     px = img.load()
@@ -312,6 +331,7 @@ def pack_icon():
 def main():
     made = [veil(), effigy(), ward_lantern(), field_notes(), chalk(), witness_lens(), vestige(), observers_eye(), ward_item(), config_wheel()]
     made += particles()
+    made.append(flare())  # drawn last: earlier textures use the seeded random generator
     icon = pack_icon()
     icon.save(os.path.join(RP, "pack_icon.png"))
     icon.save(os.path.join(BP, "pack_icon.png"))
@@ -323,7 +343,7 @@ def main():
     json.dump(terrain, open(os.path.join(RP, "textures", "terrain_texture.json"), "w"), indent=2)
     items = {"resource_pack_name": "the_observer", "texture_name": "atlas.items",
              "texture_data": {f"observer_{n}": {"textures": [f"textures/items/observer/{n}"]}
-                              for n in ("field_notes", "chalk", "witness_lens", "vestige", "observers_eye", "ward_lantern", "config_wheel")}}
+                              for n in ("field_notes", "chalk", "witness_lens", "vestige", "observers_eye", "ward_lantern", "config_wheel", "flare")}}
     json.dump(items, open(os.path.join(RP, "textures", "item_texture.json"), "w"), indent=2)
     for m in made:
         print(os.path.relpath(m, ROOT))

@@ -1,0 +1,5 @@
+# 1.0.5 additions: the flare, escape learning, the silence, its pages, signs, inside, borrowed eyes, returns
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup flare flare_mid_attack learning hush pages sign inside borrowed_eyes returns test_entries relentless toggles status
+expect \[OTEST\] SUITE DONE 2400

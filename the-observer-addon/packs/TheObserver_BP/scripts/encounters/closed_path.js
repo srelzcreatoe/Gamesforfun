@@ -10,6 +10,8 @@
 //   * the Witness Lens or a blow makes it recoil
 // If it reaches the player it telegraphs a strike (0.6 s wind-up, avoidable by stepping back).
 // Aggression 0 replaces the strike with contact and a blackout, no damage.
+// It learns (observer/learn.js): used to light it needs more, held longer; used to stares, a stare
+// must be held longer; used to breaking through, the way back is sealed twice over.
 import { register } from "../director/director.js";
 import * as body from "../observer/body.js";
 import { SOUNDS, PARTICLES } from "../core/constants.js";
@@ -18,6 +20,7 @@ import { aggression } from "../core/settings.js";
 import { corridorBehind, findSpot } from "../world/space.js";
 import { litLightsNear } from "../world/manipulate.js";
 import { arriveUnseen, sighting, travelDir, relentless } from "./common.js";
+import * as learn from "../observer/learn.js";
 
 register({
   id: "closed_path",
@@ -65,6 +68,11 @@ register({
     // ---- the way back is sealed
     const n = enc.veil(seal.cells, 120);
     if (n === 0) return enc.result("no_seal");
+    if (learn.adapted(enc.s) === "veil") {
+      // it has learned that you break through: a second seal just beyond the first
+      const second = corridorBehind(p, enc.data.dir, seal.dist + 1, seal.dist + 2);
+      if (second) enc.veil(second.cells.filter((c) => !seal.cells.some((s) => s.x === c.x && s.y === c.y && s.z === c.z)), 120);
+    }
     for (const c of seal.cells) safe(() => p.spawnParticle(PARTICLES.unravel, { x: c.x + 0.5, y: c.y + 0.5, z: c.z + 0.5 }));
     enc.sound(SOUNDS.seal, seal.center, 1, 1, "caption.seal");
     enc.log(`sealed ${n} cells ${seal.dist} behind`);
@@ -76,6 +84,9 @@ register({
 
     // ---- response window, then it closes in while unwatched
     let held = 0, heldStreak = 0, litTicks = 0, recoiled = 0;
+    const lightNeed = 11 + learn.lightBonus(enc);
+    const lightHold = 60 * learn.holdFactor(enc, "light");
+    const gazeHold = 120 * learn.holdFactor(enc, "gaze");
     const startDist = V.dist(p.location, ahead.loc);
     await enc.wait(30);
     for (let t = 0; t < 20 * 45; t += 4) {
@@ -102,8 +113,8 @@ register({
         if (++recoiled >= 1) return enc.result("repelled", true);
       }
       const playerLight = safe(() => dim.getLightLevel(p.getHeadLocation()), 0) ?? 0;
-      litTicks = playerLight >= 11 ? litTicks + 4 : 0;
-      if (litTicks >= 60) {
+      litTicks = playerLight >= lightNeed ? litTicks + 4 : 0;
+      if (litTicks >= lightHold) {
         body.setMode("still");
         body.setState("recoil");
         await enc.wait(16);
@@ -117,7 +128,7 @@ register({
         body.setMode("still");
         body.setState("stare");
         if (held >= 60) enc.discover("held_gaze");
-        if (heldStreak >= 120) {
+        if (heldStreak >= gazeHold) {
           body.setState("recoil");
           await enc.wait(16);
           sighting(enc, enc.gaze.lastWatcher ?? p);
@@ -129,7 +140,7 @@ register({
       // it will not step into light it did not make: test one step toward the player
       const step = V.add(bl, V.scale(V.flat(V.sub(p.location, bl)), 1.5));
       const lightAhead = safe(() => dim.getLightLevel({ x: step.x, y: step.y + 1, z: step.z }), 0) ?? 0;
-      if (lightAhead >= 11) {
+      if (lightAhead >= lightNeed) {
         body.setMode("still");
         body.setState("stare");
         continue;

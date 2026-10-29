@@ -7,6 +7,7 @@ import { SOUNDS } from "../core/constants.js";
 import * as body from "../observer/body.js";
 import { standNear, findSpot } from "../world/space.js";
 import { visibility } from "../world/sight.js";
+import { outrunBonus } from "../observer/learn.js";
 
 /** @typedef {import("../director/encounter.js").Encounter} Encounter */
 /** @typedef {{x:number,y:number,z:number}} Vec */
@@ -153,7 +154,10 @@ export async function relentless(enc, o = {}) {
   }
   let hits = 0;
   const end = o.maxTicks ?? 20 * 40;
+  const loseAt = 64 + outrunBonus(enc);
   for (let t = 0; t < end; t += 2) {
+    // strikes back to back never pass through enc.wait(): check for an abort (flare, player left) here
+    enc.check();
     const l = body.loc();
     if (!l || !p.isValid) return enc.outcome || "vanished";
     if (enc.data.lensed || enc.data.hit) {
@@ -166,7 +170,7 @@ export async function relentless(enc, o = {}) {
       return "repelled";
     }
     const d = V.dist(l, p.location);
-    if (d > 64) {
+    if (d > loseAt) {
       body.despawn("lost_you");
       enc.result("escaped", true);
       return "escaped";

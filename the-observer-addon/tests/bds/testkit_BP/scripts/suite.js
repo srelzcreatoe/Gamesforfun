@@ -1,6 +1,6 @@
 // Integration tests for The Observer, driven by GameTest simulated players on a dedicated server.
 // Every check prints "[OTEST] PASS <name> ..." or "[OTEST] FAIL <name> ...".
-import { world, system, GameMode, ItemStack, Direction, BlockVolume } from "@minecraft/server";
+import { world, system, GameMode, ItemStack, Direction, BlockVolume, BlockPermutation } from "@minecraft/server";
 import * as gt from "@minecraft/server-gametest";
 import { build, resetHouse, Y, FIELD, HOUSE, TUNNEL, NETHER, POOL, PILLAR } from "./arenas.js";
 
@@ -142,6 +142,26 @@ async function observerGone(ticks = 200) {
 /** Move every other player far out of sight (any player's gaze counts for encounters like Closer Each Time). */
 function isolate(p) {
   for (const o of world.getAllPlayers()) if (o && o.id !== p.id) o.teleport({ x: 1112.5, y: Y, z: 966.5 });
+}
+/** For tests at the house: every other player to the far west end of the field, facing away (nobody may see it happen). */
+function isolateFromHouse(p) {
+  for (const o of world.getAllPlayers()) if (o && o.id !== p.id) o.teleport({ x: 903.5, y: Y, z: 1036.5 }, { facingLocation: { x: 880, y: Y + 1.6, z: 1036.5 } });
+}
+/** Diagnostics when a house test finds no spot: the interior column by column (blocks and light at head height). */
+function dumpHouse(tag) {
+  const H = HOUSE;
+  const rows = [];
+  for (let z = H.z0 + 1; z <= H.z1 - 1; z++) {
+    let r = "";
+    for (let x = H.x0 + 1; x <= H.x1 - 1; x++) {
+      const f = ow().getBlock({ x, y: Y, z })?.typeId.replace("minecraft:", "").slice(0, 4) ?? "?";
+      r += `${f}/${ow().getLightLevel({ x: x + 0.5, y: Y + 2.5, z: z + 0.5 })} `;
+    }
+    rows.push(r);
+  }
+  log(`[OTEST] ${tag} house: ${rows.join(" | ")} players: ${world.getAllPlayers().map((o) => `${o.name}@${o.location.x.toFixed(0)},${o.location.z.toFixed(0)}`).join(" ")}`);
+  obs("wards");
+  obs("ledger");
 }
 
 /** Record damage a player takes (health regenerates, so comparing health before/after is unreliable). */
@@ -1013,7 +1033,8 @@ TESTS.toggles = async () => {
   // encounter types switched off on the Config Wheel are never chosen by the director
   const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
   const all = ["creeping", "distant_watch", "extra_step", "home_visit", "closed_path", "borrowed_sound", "turned_object", "door_ajar", "snuffed_lights",
-    "mirror_bearing", "echo_ahead", "unfamiliar_route", "close_breath", "pursuit", "window_watch", "second_witness", "night_visit", "portal_follow"];
+    "mirror_bearing", "echo_ahead", "unfamiliar_route", "close_breath", "pursuit", "window_watch", "second_witness", "night_visit", "portal_follow",
+    "inside", "sign", "borrowed_eyes"];
   obs("set", "off", all.filter((x) => x !== "distant_watch").join(","));
   const m = mark();
   obs("pause", "off");
@@ -1549,6 +1570,412 @@ TESTS.bearing_three = async () => {
   }
   check("bearing_three_catches", caught === 3, `caught=${caught}`);
   check("bearing_three_discovery", discovered(m, "behind_left"));
+};
+
+// ------------------------------------------------------------------ 1.0.5
+const lastEvent = (from, kind, pred = () => true) => events.slice(from).filter((e) => e.kind === kind && pred(e.data)).pop();
+const firstEvent = (from, kind, pred = () => true) => events.slice(from).find((e) => e.kind === kind && pred(e.data));
+const FACE_N = { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 };
+const AT_FIELD = { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 };
+function lightNear(loc, r = 1) {
+  const b = { x: Math.floor(loc.x), y: Math.floor(loc.y), z: Math.floor(loc.z) };
+  for (let dx = -r; dx <= r; dx++) for (let dy = -r; dy <= r; dy++) for (let dz = -r; dz <= r; dz++) {
+    const blk = ow().getBlock({ x: b.x + dx, y: b.y + dy, z: b.z + dz });
+    if (blk && blk.typeId === "minecraft:light_block_15") return blk.location;
+  }
+  return undefined;
+}
+
+TESTS.flare = async () => {
+  // a thrown flare flies, lights where it lands (a real light), drives it off, and burns out
+  const p = await freshTarget("Tester", AT_FIELD, FACE_N, 3);
+  isolate(p);
+  obs("unlearn", "Tester");
+  p.setItem(new ItemStack("observer:flare", 4), 2, true);
+  const m = mark();
+  obs("trigger", "test_flare", "Tester");
+  const e = await waitObserver(60);
+  if (!check("flare_body", !!e, (since(m, "end")[0] || {}).outcome)) return;
+  await wait(10);
+  p.lookAtLocation({ x: e.location.x, y: e.location.y + 3, z: e.location.z });
+  await wait(2);
+  const from = p.location;
+  p.useItemInSlot(2);
+  const thrown = await waitEvent("flare", (d) => d.what === "thrown", 40, m);
+  check("flare_thrown", !!thrown);
+  const lit = await waitEvent("flare", (d) => d.what === "lit", 60, m);
+  check("flare_lights_where_it_lands", !!lit && lit.light, lit ? `light=${lit.light} ${dist(lit, from).toFixed(1)} blocks from the thrower` : "never lit");
+  check("flare_flies", !!lit && dist(lit, from) >= 4, lit ? `${dist(lit, from).toFixed(1)} blocks` : "");
+  check("flare_used_up", countItem(p, "observer:flare") === 3, String(countItem(p, "observer:flare")));
+  const lb = lit ? lightNear(lit) : undefined;
+  check("flare_real_light", !!lb && ow().getLightLevel({ x: lb.x + 0.5, y: lb.y + 0.5, z: lb.z + 0.5 }) >= 14, lb ? `level ${ow().getLightLevel({ x: lb.x + 0.5, y: lb.y + 0.5, z: lb.z + 0.5 })}` : "no light block");
+  const end = await endOf("test_flare", m, 100);
+  check("flare_drives_it_off", end && end.outcome === "flared", end ? end.outcome : "none");
+  check("flare_tears_it_apart", await observerGone(40) && since(m, "fx").some((d) => d.what === "vanish"));
+  const out = await waitEvent("flare", (d) => d.what === "out", 220, m);
+  await wait(4);
+  check("flare_burns_out_light_goes", !!out && (!lit || !lightNear(lit)), out ? "" : "never burnt out");
+  check("flare_entity_removed", ow().getEntities({ type: "observer:flare" }).length === 0);
+};
+
+TESTS.flare_mid_attack = async () => {
+  // it works even mid-attack: a strike already winding up does no damage
+  const p = await freshTarget("Tester", AT_FIELD, FACE_N, 3);
+  isolate(p);
+  obs("unlearn", "Tester");
+  obs("set", "aggression", "2");
+  const m = mark();
+  obs("trigger", "test_strike", "Tester");
+  // wait until it is on the player (the relentless strikes)
+  const st = await waitEvent("strike", () => true, 20 * 15, m);
+  if (!check("flare_attack_reached", !!st)) {
+    obs("preset", "standard");
+    return;
+  }
+  heal(p);
+  const dmg = trackDamage(p);
+  await wait(4); // the next wind-up has begun
+  const m2 = mark();
+  obs("flare", "1", "Tester");
+  const end = await endOf("test_strike", m, 60);
+  await wait(30);
+  dmg.stop();
+  check("flare_mid_attack_ends_it", end && end.outcome === "flared", end ? end.outcome : "none");
+  check("flare_mid_attack_no_damage_after", dmg.total === 0 || !since(m2, "strike").some((d) => d.result === "hit"), `damage after flare ${dmg.total}`);
+  obs("preset", "standard");
+  await observerGone(100);
+};
+
+TESTS.learning = async () => {
+  // it adapts to the way a player escapes, one way at a time, and writes it down
+  const p = await freshTarget("Tester", AT_FIELD, FACE_N, 4);
+  isolate(p);
+  obs("unlearn", "Tester");
+  obs("page", "name", "Tester"); // the player has Field Notes
+  await wait(5);
+  let m = mark();
+  obs("learn", "flare", "2", "Tester");
+  await wait(5);
+  check("learning_needs_three", !since(m, "learn").some((d) => d.what === "adapt"));
+  obs("learn", "flare", "1", "Tester");
+  const ad = await waitEvent("learn", (d) => d.what === "adapt", 20, m);
+  check("learning_adapts_after_three", ad && ad.method === "flare", ad ? ad.method : "none");
+  const pg = await waitEvent("page", (d) => d.key === "learn_flare", 40, m);
+  check("learning_written_in_notes", !!pg, pg ? pg.key : "no page");
+  // the first flare in an encounter only makes it flinch; the second works
+  m = mark();
+  obs("trigger", "test_flare", "Tester");
+  const e = await waitObserver(60);
+  if (e) {
+    await wait(10);
+    obs("flare", "3", "Tester");
+    const sh = await waitEvent("learn", (d) => d.what === "shrug" && d.kind === "flare", 40, m);
+    await wait(20);
+    check("learning_flare_flinch_only", !!sh && !!observerEntity() && !since(m, "end").some((d) => d.type === "test_flare"), sh ? "" : "no shrug");
+    // the flinch put it further back: light the second flare a few blocks short of where it now stands
+    obs("flare", String(Math.max(2, Math.floor(hdist(e.location, p.location) - 4))), "Tester");
+    const end = await endOf("test_flare", m, 80);
+    check("learning_second_flare_works", end && end.outcome === "flared", end ? end.outcome : "none");
+  } else check("learning_flare_body", false);
+  obs("abort");
+  await observerGone(100);
+  // a burning flare drives off anything that arrives near it: let both burn out first
+  for (let t = 0; t < 240 && ow().getEntities({ type: "observer:flare" }).length > 0; t += 10) await wait(10);
+  // one way at a time: leaning on another way switches it, the old one wears off
+  m = mark();
+  obs("learn", "light", "4", "Tester");
+  const ad2 = await waitEvent("learn", (d) => d.what === "adapt", 20, m);
+  check("learning_one_at_a_time", ad2 && ad2.method === "light", ad2 ? ad2.method : "none");
+  // adapted to light: before it comes, it puts out the lights near the player
+  ow().getBlock({ x: FIELD.x + 2, y: Y, z: FIELD.z }).setPermutation(BlockPermutation.resolve("minecraft:torch", { torch_facing_direction: "top" }));
+  ow().runCommand("time set midnight");
+  m = mark();
+  obs("trigger", "creeping", "Tester");
+  const sn = await waitEvent("ledger", (d) => d.what === "change" && d.kind === "light", 60, m);
+  check("learning_light_snuffs_first", !!sn, sn ? `${sn.x},${sn.y},${sn.z}` : "no light put out");
+  // real encounters teach it: a flare ending a real encounter is counted
+  const sp = await waitEvent("body", (d) => d.what === "spawn", 100, m);
+  const e2 = sp ? observerEntity() : undefined;
+  if (e2 && e2.isValid) {
+    await wait(10);
+    // a flare a few blocks short of it (before an 8 s stare would end it another way)
+    if (e2.isValid) obs("flare", String(Math.max(2, Math.floor(hdist(e2.location, p.location) - 4))), "Tester");
+  }
+  const end2 = await endOf("creeping", m, 20 * 15);
+  const note = since(m, "learn").find((d) => d.what === "note");
+  check("learning_counts_real_escapes", end2 && end2.outcome === "flared" && note && note.method === "flare", `${end2 ? end2.outcome : "none"} ${note ? note.method : "no note"}`);
+  // switched off: no adaptation in force
+  obs("set", "learning", "false");
+  m = mark();
+  obs("learn", "water", "5", "Tester");
+  await wait(5);
+  check("learning_switch_off", !since(m, "learn").some((d) => d.what === "adapt"));
+  obs("set", "learning", "true");
+  obs("unlearn", "Tester");
+  obs("abort");
+  ow().runCommand("time set noon");
+  ow().getBlock({ x: FIELD.x + 2, y: Y, z: FIELD.z }).setType("minecraft:air");
+  obs("restore");
+  await observerGone(200);
+};
+
+TESTS.hush = async () => {
+  // stage 4+: before a dangerous encounter the music stops (for that player) and it is quiet 20-30 s
+  const p = await freshTarget("Tester", AT_FIELD, FACE_N, 4);
+  isolate(p);
+  const others = ["distant_watch", "extra_step", "home_visit", "closed_path", "borrowed_sound", "turned_object", "door_ajar", "snuffed_lights",
+    "mirror_bearing", "echo_ahead", "unfamiliar_route", "close_breath", "pursuit", "window_watch", "second_witness", "night_visit", "portal_follow",
+    "inside", "sign", "borrowed_eyes"];
+  obs("set", "off", others.join(","));
+  obs("set", "frequency", "2");
+  obs("hushmode", "real");
+  ow().runCommand("time set midnight");
+  let m = mark();
+  obs("pause", "off");
+  await waitEvent("hush", (d) => d.what === "start", 20 * 60, m);
+  const hs = firstEvent(m, "hush", (d) => d.what === "start");
+  check("hush_before_attack", hs && hs.data.def === "creeping" && !since(m, "start").some((d) => !d.forced), hs ? `${hs.data.def} ${hs.data.seconds.toFixed(0)}s` : "no silence");
+  check("hush_music_call_ok", hs && hs.data.music === true, hs ? String(hs.data.music) : "");
+  const st = await waitEvent("start", (d) => d.type === "creeping" && !d.forced, 20 * 40, m);
+  const stE = firstEvent(m, "start", (d) => d.type === "creeping");
+  const gap = hs && stE ? (stE.tick - hs.tick) / 20 : -1;
+  check("hush_then_it_comes", !!st && gap >= 19 && gap <= 33, `after ${gap.toFixed(1)} s`);
+  obs("pause", "on");
+  obs("abort");
+  const he = await waitEvent("hush", (d) => d.what === "end", 200, m);
+  check("hush_ends_with_encounter", he && he.why === "encounter_over" && he.music === true, he ? `${he.why} music=${he.music}` : "never ended");
+  await observerGone(200);
+  // a false alarm: the silence, then nothing
+  obs("hushmode", "false");
+  obs("timewarp", "1500");
+  obs("skipgrace", "Tester");
+  m = mark();
+  obs("pause", "off");
+  const hs2 = await waitEvent("hush", (d) => d.what === "start", 20 * 60, m);
+  const he2 = await waitEvent("hush", (d) => d.what === "end", 20 * 40, m);
+  obs("pause", "on");
+  check("hush_false_alarm", hs2 && hs2.falseAlarm && he2 && he2.why === "false_alarm" && !since(m, "start").some((d) => !d.forced),
+    he2 ? he2.why : "no end");
+  // switched off: dangerous encounters start without the silence
+  obs("set", "quiet", "false");
+  obs("timewarp", "1500");
+  obs("skipgrace", "Tester");
+  m = mark();
+  obs("pause", "off");
+  const st3 = await waitEvent("start", (d) => !d.forced, 20 * 60, m);
+  obs("pause", "on");
+  check("hush_switch_off", st3 && st3.type === "creeping" && !since(m, "hush").some((d) => d.what === "start"), st3 ? st3.type : "none");
+  obs("abort");
+  obs("set", "quiet", "true");
+  obs("hushmode", "auto");
+  obs("set", "off", "");
+  obs("preset", "standard");
+  ow().runCommand("time set noon");
+  await observerGone(200);
+};
+
+TESTS.pages = async () => {
+  // pages in another hand, built from what it tracked, at most one per in-game day
+  const p = await freshTarget("Tester", AT_FIELD, FACE_N, 2);
+  isolate(p);
+  obs("tally", "mine", "57", "Tester");
+  let m = mark();
+  obs("page", "mine", "Tester");
+  const pg = await waitEvent("page", () => true, 40, m);
+  check("pages_quote_real_numbers", pg && pg.key === "mine" && pg.args[0] === "57", pg ? `${pg.key} ${JSON.stringify(pg.args)}` : "none");
+  // on its own: the first page waits a while, then one per in-game day
+  m = mark();
+  await wait(20 * 22); // the page timer is set on its first look
+  obs("timewarp", "2500");
+  const auto = await waitEvent("page", () => true, 20 * 25, m);
+  check("pages_arrive_on_their_own", !!auto, auto ? auto.key : "none");
+  m = mark();
+  await wait(20 * 22);
+  check("pages_not_more_than_daily", !since(m, "page").length, `${since(m, "page").length} more`);
+  obs("set", "pages", "false");
+  obs("timewarp", "3000");
+  m = mark();
+  await wait(20 * 22);
+  check("pages_switch_off", !since(m, "page").length);
+  obs("set", "pages", "true");
+};
+
+TESTS.sign = async () => {
+  // a sign by the door of the player's home, put up unseen; it drops nothing and goes after 20 minutes
+  obs("restore");
+  resetHouse();
+  const home = HOUSE.center;
+  const p = await freshTarget("Tester", { x: 1066.5, y: Y, z: 1000.5 }, { x: 1020, y: Y + 1.6, z: 1000.5 }, 3);
+  isolateFromHouse(p);
+  obs("sethaunt", String(home.x), String(home.y), String(home.z), "Tester");
+  let m = mark();
+  obs("trigger", "sign", "Tester");
+  const sg = await waitEvent("sign", () => true, 60, m);
+  const end0 = since(m, "end")[0];
+  if (!check("sign_placed", !!sg, end0 ? end0.outcome : "")) return dumpHouse("sign");
+  const at = { x: sg.x, y: sg.y, z: sg.z };
+  const b = ow().getBlock(at);
+  const sc = b?.getComponent("minecraft:sign");
+  const raw = sc ? sc.getRawText() : undefined;
+  check("sign_block_and_text", b?.typeId === "minecraft:standing_sign" && !!raw && /observer\.sign\./.test(JSON.stringify(raw)), `${b?.typeId} ${JSON.stringify(raw)}`);
+  check("sign_waxed", !!sc && sc.isWaxed);
+  check("sign_by_door", Math.abs(sg.x - HOUSE.door.x) <= 3 && Math.abs(sg.z - HOUSE.door.z) <= 3 && sg.anchor === "door", `${sg.x},${sg.z} ${sg.anchor}`);
+  // breaking it drops nothing
+  p.teleport({ x: at.x + 2.5, y: Y, z: at.z + 0.5 }, { facingLocation: { x: at.x + 0.5, y: at.y + 0.5, z: at.z + 0.5 } });
+  await wait(5);
+  const items0 = itemsNear(ow(), at, 4);
+  p.breakBlock({ x: at.x, y: at.y, z: at.z }, Direction.Up);
+  for (let t = 0; t < 120 && ow().getBlock(at)?.typeId !== "minecraft:air"; t += 5) await wait(5);
+  p.stopBreakingBlock?.();
+  await wait(10);
+  check("sign_break_no_drop", ow().getBlock(at)?.typeId === "minecraft:air" && itemsNear(ow(), at, 4) === items0, `${ow().getBlock(at)?.typeId} items ${items0}->${itemsNear(ow(), at, 4)}`);
+  obs("abort");
+  await wait(10);
+  // left alone it goes after 20 minutes
+  p.teleport({ x: 1066.5, y: Y, z: 1000.5 }, { facingLocation: { x: 1020, y: Y + 1.6, z: 1000.5 } });
+  await wait(5);
+  m = mark();
+  obs("trigger", "sign", "Tester");
+  const sg2 = await waitEvent("sign", () => true, 60, m);
+  if (sg2) {
+    obs("abort");
+    await wait(10);
+    const still = ow().getBlock({ x: sg2.x, y: sg2.y, z: sg2.z })?.typeId === "minecraft:standing_sign";
+    obs("timewarp", "1250");
+    let gone = false;
+    for (let t = 0; t < 200 && !gone; t += 10) {
+      await wait(10);
+      gone = ow().getBlock({ x: sg2.x, y: sg2.y, z: sg2.z })?.typeId === "minecraft:air";
+    }
+    check("sign_lasts_then_goes", still && gone, `stayed after the encounter=${still} gone after 20 min=${gone}`);
+  } else check("sign_second_placed", false);
+};
+
+TESTS.inside = async () => {
+  // at home at night, in a dark room: it is standing in the corner behind you
+  obs("restore");
+  resetHouse();
+  const H = HOUSE;
+  // every light out (earlier tests relight the room with torches of their own)
+  ow().runCommand(`fill ${H.x0 + 1} ${Y} ${H.z0 + 1} ${H.x1 - 1} ${Y + 3} ${H.z1 - 1} air replace torch`);
+  // close the windows so no sky light gets in
+  ow().runCommand(`fill ${H.x0 + 3} ${Y + 1} ${H.z0} ${H.x0 + 5} ${Y + 2} ${H.z0} stonebrick`);
+  ow().runCommand(`fill ${H.x0 + 3} ${Y + 1} ${H.z1} ${H.x0 + 5} ${Y + 2} ${H.z1} stonebrick`);
+  ow().runCommand("time set midnight");
+  const p = await freshTarget("Tester", { x: H.x0 + 2.5, y: Y, z: H.center.z }, { x: H.x0 + 2.5, y: Y + 1.6, z: H.z0 - 10 }, 4);
+  isolateFromHouse(p);
+  obs("sethaunt", String(H.center.x), String(H.center.y), String(H.center.z), "Tester");
+  let m = mark();
+  obs("trigger", "inside", "Tester");
+  const e = await waitObserver(60);
+  if (!check("inside_body", !!e, (since(m, "end")[0] || {}).outcome)) {
+    dumpHouse("inside");
+    return cleanupHouse();
+  }
+  const l = e.location;
+  const inHouse = l.x > H.x0 && l.x < H.x1 + 1 && l.z > H.z0 && l.z < H.z1 + 1;
+  const light = ow().getLightLevel({ x: l.x, y: l.y + 2, z: l.z });
+  check("inside_in_the_dark_room", inHouse && light <= 7, `${l.x.toFixed(1)},${l.z.toFixed(1)} light ${light}`);
+  // stared at for 2 s it leaves
+  await lookAtObserverFor(p, 60);
+  let end = await endOf("inside", m, 100);
+  check("inside_leaves_when_stared_at", end && end.outcome === "stared", end ? end.outcome : "none");
+  check("inside_discovery", discovered(m, "it_was_inside"));
+  await observerGone(60);
+  // light the room and it is gone
+  p.teleport({ x: H.x0 + 2.5, y: Y, z: H.center.z }, { facingLocation: { x: H.x0 + 2.5, y: Y + 1.6, z: H.z0 - 10 } });
+  await wait(5);
+  m = mark();
+  obs("trigger", "inside", "Tester");
+  const e2 = await waitObserver(60);
+  if (e2) {
+    const at = { x: Math.floor(e2.location.x), y: Y, z: Math.floor(e2.location.z) };
+    // a torch on the floor right beside it
+    let placed = false;
+    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const c = ow().getBlock({ x: at.x + dx, y: Y, z: at.z + dz });
+      if (!placed && c?.isAir) {
+        c.setPermutation(BlockPermutation.resolve("minecraft:torch", { torch_facing_direction: "top" }));
+        placed = true;
+      }
+    }
+    end = await endOf("inside", m, 100);
+    check("inside_leaves_when_lit", end && end.outcome === "lit_room", end ? end.outcome : "none");
+  } else check("inside_body_2", false);
+  cleanupHouse();
+  await observerGone(60);
+  function cleanupHouse() {
+    ow().runCommand(`fill ${H.x0 + 1} ${Y} ${H.z0 + 1} ${H.x1 - 1} ${Y} ${H.z1 - 1} air replace torch`);
+    ow().runCommand(`fill ${H.x0 + 3} ${Y + 1} ${H.z0} ${H.x0 + 5} ${Y + 2} ${H.z0} glass_pane`);
+    ow().runCommand(`fill ${H.x0 + 3} ${Y + 1} ${H.z1} ${H.x0 + 5} ${Y + 2} ${H.z1} glass_pane`);
+    ow().runCommand("time set noon");
+    resetHouse();
+  }
+};
+
+TESTS.borrowed_eyes = async () => {
+  // a creature ahead stops and follows the player with its head, then walks on
+  const p = await freshTarget("Tester", AT_FIELD, FACE_N, 2);
+  isolate(p);
+  for (const c of ow().getEntities({ type: "minecraft:cow" })) c.remove();
+  const cow = ow().spawnEntity("minecraft:cow", { x: FIELD.x + 0.5, y: Y, z: FIELD.z - 11.5 });
+  await wait(20);
+  const m = mark();
+  obs("trigger", "borrowed_eyes", "Tester");
+  const st = await waitEvent("borrowed", (d) => d.what === "start", 40, m);
+  if (!check("borrowed_host", !!st && st.host === "minecraft:cow", st ? st.host : (since(m, "end")[0] || {}).outcome)) return cow.remove();
+  const p0 = cow.location;
+  // the player steps aside; its head follows
+  p.teleport({ x: FIELD.x + 6.5, y: Y, z: FIELD.z + 0.5 }, { facingLocation: { x: cow.location.x, y: Y + 1, z: cow.location.z } });
+  await wait(30);
+  const want = Math.atan2(-(p.location.x - cow.location.x), p.location.z - cow.location.z) * 180 / Math.PI;
+  let dyaw = Math.abs(((cow.getRotation().y - want) % 360 + 540) % 360 - 180);
+  check("borrowed_follows_with_its_head", dyaw < 30, `off by ${dyaw.toFixed(0)} deg`);
+  check("borrowed_stands_still", hdist(cow.location, p0) < 1.0, `moved ${hdist(cow.location, p0).toFixed(2)}`);
+  const end = await endOf("borrowed_eyes", m, 300);
+  await wait(4);
+  check("borrowed_lets_go", end && cow.isValid && !cow.getEffect("slowness"), end ? end.outcome : "none");
+  cow.remove();
+};
+
+TESTS.returns = async () => {
+  // something thrown away far from home turns up on the doorstep (the same item, not a copy)
+  obs("restore");
+  resetHouse();
+  const H = HOUSE;
+  const p = await freshTarget("Tester", AT_FIELD, FACE_N, 2);
+  isolateFromHouse(p);
+  obs("sethaunt", String(H.center.x), String(H.center.y), String(H.center.z), "Tester");
+  for (const it of ow().getEntities({ type: "minecraft:item", location: AT_FIELD, maxDistance: 12 })) it.remove();
+  p.setItem(new ItemStack("minecraft:stick", 1), 0, true);
+  await wait(5);
+  let m = mark();
+  p.dropSelectedItem();
+  const tr = await waitEvent("returns", (d) => d.what === "tracked", 20, m);
+  check("returns_sees_thrown_item", tr && tr.item === "minecraft:stick", tr ? tr.item : "not tracked");
+  // walk home: inside the house, facing away from the door
+  p.teleport({ x: H.center.x + 2, y: Y, z: H.center.z }, { facingLocation: { x: H.x1 + 5, y: Y + 1.6, z: H.center.z } });
+  await wait(10);
+  obs("timewarp", "60");
+  const rt = await waitEvent("returned", () => true, 20 * 15, m);
+  if (!rt) dumpHouse("returns");
+  check("returns_to_doorstep", rt && rt.door && Math.hypot(rt.x - (H.door.x + 0.5), rt.z - (H.door.z + 0.5)) < 2.5, rt ? `${rt.x.toFixed(1)},${rt.z.toFixed(1)} door=${rt.door}` : "nothing returned");
+  const moved = tr ? world.getEntity(tr.id) : undefined;
+  check("returns_same_item_no_copy", !!moved && moved.isValid && hdist(moved.location, H.door) < 3 && ow().getEntities({ type: "minecraft:item", location: AT_FIELD, maxDistance: 12 }).length === 0,
+    moved ? `${moved.location.x.toFixed(1)},${moved.location.z.toFixed(1)}` : "gone");
+  if (moved?.isValid) moved.remove();
+  // only once per in-game day
+  p.teleport(AT_FIELD, { facingLocation: FACE_N });
+  p.setItem(new ItemStack("minecraft:stick", 1), 0, true);
+  await wait(5);
+  m = mark();
+  p.dropSelectedItem();
+  await wait(10);
+  p.teleport({ x: H.center.x + 2, y: Y, z: H.center.z }, { facingLocation: { x: H.x1 + 5, y: Y + 1.6, z: H.center.z } });
+  obs("timewarp", "60");
+  await wait(20 * 8);
+  check("returns_once_a_day", !since(m, "returned").length);
+  for (const it of ow().getEntities({ type: "minecraft:item", location: AT_FIELD, maxDistance: 12 })) it.remove();
 };
 
 TESTS.status = async () => {

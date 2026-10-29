@@ -9,6 +9,7 @@ import { DISCOVERIES, VIGIL_REQUIREMENT } from "../progression/discoveries.js";
 import { ITEMS } from "../core/constants.js";
 import * as ledger from "../world/ledger.js";
 import { primaryHaunt } from "../observer/memory.js";
+import { adapted } from "../observer/learn.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
 /** @param {string} key @param {...(string|number)} withArgs @returns {import("@minecraft/server").RawMessage} */
@@ -58,12 +59,17 @@ export async function openJournal(p, startVigil) {
   const vs = vigilStatus(p);
   const f = new ActionFormData()
     .title(tr("observer.ui.notes_title"))
-    .body(raw(tr(mood(p)), "\n\n", tr("observer.ui.pages", s.disc.length, DISCOVERIES.length), "\n", tr(vs.ok ? "observer.ui.vigil_ready" : vs.why)));
+    .body(raw(tr(mood(p)), "\n\n", tr("observer.ui.pages", s.disc.length, DISCOVERIES.length), "\n", tr(vs.ok ? "observer.ui.vigil_ready" : vs.why),
+      ...((s.itsUnread ?? 0) > 0 ? ["\n\n", tr("observer.ui.its_unread", s.itsUnread ?? 0)] : [])));
   const actions = [];
   f.button(tr("observer.ui.btn_pages"));
   actions.push(() => openDiscoveries(p));
   f.button(tr("observer.ui.btn_lessons"));
   actions.push(() => openLessons(p));
+  if (s.its?.length) {
+    f.button(tr("observer.ui.btn_its"));
+    actions.push(() => openIts(p));
+  }
   if (vs.ok) {
     f.button(tr("observer.ui.btn_vigil"));
     actions.push(() => startVigil(p));
@@ -106,7 +112,23 @@ async function openLessons(p) {
   const parts = [tr("observer.ui.lessons_intro")];
   for (const id of DISCOVERIES) if (s.disc.includes(id)) parts.push("\n• ", tr(`observer.disc.${id}.lesson`));
   if (s.disc.length === 0) parts.push("\n", tr("observer.ui.lessons_none"));
+  const learned = adapted(s);
+  if (learned) parts.push("\n\n", tr("observer.ui.lessons_learned"), "\n• ", tr(`observer.learn.${learned}`));
   await new ActionFormData().title(tr("observer.ui.btn_lessons")).body(raw(...parts)).button(tr("observer.ui.back")).show(p);
+}
+
+/** Pages in another hand, newest first. @param {Player} p */
+async function openIts(p) {
+  const s = ps(p);
+  /** @type {(string|import("@minecraft/server").RawMessage)[]} */
+  const parts = [tr("observer.ui.its_intro")];
+  for (const pg of [...(s.its ?? [])].reverse()) {
+    const [key, args, , day, variant] = pg;
+    parts.push("\n\n§8", tr("observer.ui.its_day", String(day)), "§r\n", tr(`observer.its.${key}.${variant ?? 1}`, ...(args ?? [])));
+  }
+  s.itsUnread = 0;
+  markPlayerDirty(p);
+  await new ActionFormData().title(tr("observer.ui.btn_its")).body(raw(...parts)).button(tr("observer.ui.back")).show(p);
 }
 
 /** @param {Player} p */
@@ -144,7 +166,11 @@ export async function openSettings(p) {
     .slider(tr("observer.set.grace"), 0, 60, { valueStep: 1, defaultValue: c.graceMinutes })
     .toggle(tr("observer.set.world_effects"), { defaultValue: c.worldEffects })
     .toggle(tr("observer.set.dev"), { defaultValue: c.dev })
-    .toggle(tr("observer.set.illusions"), { defaultValue: c.illusions !== false });
+    .toggle(tr("observer.set.illusions"), { defaultValue: c.illusions !== false })
+    .toggle(tr("observer.set.learning"), { defaultValue: c.learning !== false })
+    .toggle(tr("observer.set.quiet"), { defaultValue: c.quiet !== false })
+    .toggle(tr("observer.set.pages"), { defaultValue: c.pages !== false })
+    .toggle(tr("observer.set.returns"), { defaultValue: c.returns !== false });
   const r = await f.show(p);
   if (r.canceled || !r.formValues) return;
   const v = r.formValues;
@@ -153,7 +179,7 @@ export async function openSettings(p) {
   const patch = {
     enabled: !!v[0], frequency: Number(v[2]) / 100, aggression: Number(v[3]), manipulation: Number(v[4]),
     scares: Number(v[5]), camera: Number(v[6]), captions: !!v[7], graceMinutes: Number(v[8]), worldEffects: !!v[9], dev: !!v[10],
-    illusions: !!v[11],
+    illusions: !!v[11], learning: !!v[12], quiet: !!v[13], pages: !!v[14], returns: !!v[15],
   };
   // choosing a named preset applies it; otherwise individual values make it "custom"
   if (chosenPreset !== c.preset && chosenPreset !== "custom") {

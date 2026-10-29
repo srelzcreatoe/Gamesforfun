@@ -8,9 +8,11 @@
 //   habits   decayed counters of mining/chopping/building/...   -> which sounds it borrows, which tests it favours
 //   lastAct  where each habit last happened                      -> where borrowed sounds come from
 //   attn     how often you notice its cues (0..1, EMA)           -> adapts how obvious cues are
+//   tally    lifetime counts (blocks mined, doors used, nights slept, looks behind, blocks walked)
+//                                                               -> the pages it writes (observer/pages.js)
 import { world, system } from "@minecraft/server";
 import { ps, now, markPlayerDirty } from "../core/state.js";
-import { V, dimIndex, safe } from "../core/util.js";
+import { V, dimIndex, safe, yawDelta } from "../core/util.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
 
@@ -18,7 +20,7 @@ const CRUMB_MAX = 32;
 const HAUNT_MAX = 6;
 const ROUTE_MAX = 96;
 
-/** @type {Map<string, {loc:any, dim:number, t:number, still:number, speed:number, lastCrumb:any, cell:string, sleeping:boolean, sleptAt:number}>} */
+/** @type {Map<string, {loc:any, dim:number, t:number, still:number, speed:number, lastCrumb:any, cell:string, sleeping:boolean, sleptAt:number, yaw?:number}>} */
 const live = new Map();
 
 /** Runtime (non-persistent) movement info for a player. @param {Player} p */
@@ -41,6 +43,11 @@ export function sample(p) {
   const dt = Math.max(1, system.currentTick - m.t) / 20;
   const moved = m.dim === d ? V.hdist(loc, m.loc) : 0;
   m.speed = moved / dt;
+  if (moved > 0 && moved < 40) tallyAdd(s, "walk", moved);
+  // a sharp look behind (more than 150 degrees within a second)
+  const yaw = safe(() => p.getRotation().y, 0) ?? 0;
+  if (m.yaw !== undefined && Math.abs(yawDelta(yaw, m.yaw)) > 150) tallyAdd(s, "turns", 1);
+  m.yaw = yaw;
   m.still = moved < 0.4 ? m.still + dt : 0;
   m.loc = loc;
   m.t = system.currentTick;
@@ -94,7 +101,11 @@ export function sample(p) {
 
   // sleeping transitions (used by the night visit)
   const sleeping = safe(() => p.isSleeping, false);
-  if (sleeping && !m.sleeping) m.sleptAt = system.currentTick;
+  if (sleeping && !m.sleeping) {
+    m.sleptAt = system.currentTick;
+    tallyAdd(s, "sleep", 1);
+    s.lastSleep = safe(() => world.getTimeOfDay(), 13000);
+  }
   m.sleeping = !!sleeping;
 }
 
@@ -108,9 +119,16 @@ export function decay(p) {
   for (const h of s.haunts) h[3] *= 0.995;
 }
 
+/** Lifetime counter. @param {any} s @param {string} k @param {number} n */
+function tallyAdd(s, k, n) {
+  if (!s.tally) s.tally = {};
+  s.tally[k] = Math.round(((s.tally[k] ?? 0) + n) * 10) / 10;
+}
+
 /** @param {Player} p @param {string} habit @param {number} [w] */
 export function noteHabit(p, habit, w = 1) {
   const s = ps(p);
+  tallyAdd(s, habit, 1);
   s.habits[habit] = (s.habits[habit] || 0) + w;
   const l = p.location;
   s.lastAct[habit] = [dimIndex(p.dimension.id), Math.floor(l.x), Math.floor(l.y), Math.floor(l.z), Math.floor(now())];

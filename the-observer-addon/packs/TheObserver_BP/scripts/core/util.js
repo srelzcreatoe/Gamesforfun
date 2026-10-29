@@ -121,6 +121,8 @@ export const DEBUG = {
   lunge: "auto",
   /** tests: "always" / "never" override the too-close strike roll ("auto" = normal play) */
   nearStrike: "auto",
+  /** tests: "real" / "false" decide whether a silence is a false alarm ("auto" = one in four) */
+  hush: "auto",
   /** low-volume lifecycle lines (encounter start/end); enabled in dev mode and by the test kit */
   trace: false,
   /** @param {string} msg */

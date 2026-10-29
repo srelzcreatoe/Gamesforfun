@@ -248,6 +248,8 @@ export class Encounter {
   }
   /** @param {string} outcome @param {boolean} [noticed] */
   result(outcome, noticed = false) {
+    // once aborted with an outcome (a flare, too close, struck away) the code still unwinding cannot overwrite it
+    if (this.aborted && this.outcome) return;
     this.outcome = outcome;
     this.noticed = this.noticed || noticed;
   }

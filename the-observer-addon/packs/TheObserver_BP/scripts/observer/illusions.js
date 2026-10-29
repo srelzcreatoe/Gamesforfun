@@ -75,6 +75,13 @@ function end(id, why, by) {
   } else emit("illusion", { what: why });
 }
 
+/** A flare's glare clears the woods around it. @param {string} dimId @param {{x:number,y:number,z:number}} loc @param {number} r */
+export function dispel(dimId, loc, r) {
+  for (const [id, s] of [...shadows]) {
+    if (s.e.isValid && s.e.dimension.id === dimId && V.dist(s.e.location, loc) <= r) end(id, "faded");
+  }
+}
+
 /** Every 2 ticks: vanish the moment anyone looks straight at it; keep it facing its player. */
 export function watch() {
   if (shadows.size === 0) return;

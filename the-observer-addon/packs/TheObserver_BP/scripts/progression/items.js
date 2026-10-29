@@ -8,6 +8,7 @@
 //   Ward Lantern    it will not stand or change blocks within 12 blocks (protects a build)
 //   Vestige         fragments from effigies and discoveries; crafting material
 //   Observer's Eye  reward for the vigil; opens the "after" choice
+//   Flare           thrown; its glare drives it off (progression/flare.js)
 import { world, system, GameMode } from "@minecraft/server";
 import { ITEMS, BLOCKS, SOUNDS, PARTICLES, OBSERVER_ID, ENTITY_ENC_PROP } from "../core/constants.js";
 import { W, ps, now, markWorldDirty, markPlayerDirty } from "../core/state.js";
@@ -17,6 +18,7 @@ import * as body from "../observer/body.js";
 import { visibility } from "../world/sight.js";
 import { discover, give } from "./discoveries.js";
 import { openJournal, openAfter, showLater } from "../ui/forms.js";
+import { throwFlare } from "./flare.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
 
@@ -80,6 +82,7 @@ function useChalk(p) {
 
 /** Ledger change near a mark -> smudge it and tell the player (always shown: it is the tool's purpose). */
 function smudgeNear(e) {
+  if (e.kind === "flare") return; // a player's own flare, not its doing
   for (const p of allPlayers()) {
     const s = ps(p);
     for (const m of s.marks) {
@@ -185,6 +188,7 @@ export function registerEvents(hooks) {
     else if (id === ITEMS.chalk) useChalk(p);
     else if (id === ITEMS.eye) showLater(() => openAfter(p));
     else if (id === ITEMS.wheel) showLater(() => hooks.openWheel(p));
+    else if (id === ITEMS.flare) throwFlare(p);
   });
 
   ledger.onChange(smudgeNear);

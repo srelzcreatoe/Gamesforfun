@@ -1,0 +1,5 @@
+# The house tests in suite order (1.0.5 regression check for tests sharing the house)
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup door_ajar snuffed_lights window_watch home_visit second_witness night_visit ward chalk manip_off vigil mp_fairness learning sign inside returns status
+expect \[OTEST\] SUITE DONE 2400

@@ -18,9 +18,16 @@ import { DEBUG } from "./util.js";
  * @property {boolean} dev            developer tracing and debug overlay
  * @property {string[]} off           encounter types switched off (Config Wheel toggles)
  * @property {boolean} illusions      shadows in taiga forests that vanish when looked at
+ * @property {boolean} learning       it learns the way a player escapes and adapts to it (one way at a time)
+ * @property {boolean} quiet          stage 4+: the music stops before its dangerous encounters
+ * @property {boolean} pages          pages in another hand turn up in the Field Notes
+ * @property {boolean} returns        items a player threw away turn up on their doorstep
  */
 
-/** @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects"|"off"|"illusions">>} */
+/** On/off settings added after 1.0.0, all on by default (older worlds get them switched on). */
+export const FEATURE_TOGGLES = ["illusions", "learning", "quiet", "pages", "returns"];
+
+/** @type {Record<string, Omit<Settings,"enabled"|"preset"|"captions"|"dev"|"worldEffects"|"off"|"illusions"|"learning"|"quiet"|"pages"|"returns">>} */
 export const PRESETS = {
   atmosphere: { frequency: 0.6, aggression: 0, manipulation: 1, scares: 0, camera: 1, graceMinutes: 15 },
   standard: { frequency: 1.0, aggression: 2, manipulation: 2, scares: 2, camera: 2, graceMinutes: 12 },
@@ -29,7 +36,8 @@ export const PRESETS = {
 
 /** @returns {Settings} */
 export function defaults() {
-  return { enabled: true, preset: "standard", ...PRESETS.standard, captions: false, worldEffects: true, dev: false, off: [], illusions: true };
+  return { enabled: true, preset: "standard", ...PRESETS.standard, captions: false, worldEffects: true, dev: false, off: [],
+    illusions: true, learning: true, quiet: true, pages: true, returns: true };
 }
 
 /** @returns {Settings} */
@@ -39,7 +47,7 @@ export function S() {
     markWorldDirty();
   }
   if (!Array.isArray(W.settings.off)) W.settings.off = []; // worlds saved before the toggles existed
-  if (typeof W.settings.illusions !== "boolean") W.settings.illusions = true;
+  for (const k of FEATURE_TOGGLES) if (typeof W.settings[k] !== "boolean") W.settings[k] = true;
   return W.settings;
 }
 

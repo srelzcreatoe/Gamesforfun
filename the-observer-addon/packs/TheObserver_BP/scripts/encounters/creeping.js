@@ -8,13 +8,17 @@
 //   * the Witness Lens or a blow make it recoil; getting 56 blocks away escapes it
 //   * if it reaches you: a shriek and the telegraphed strike (avoidable by stepping back);
 //     with aggression "never" it only stops in front of you, and everything goes dark
+//   * it learns (observer/learn.js): used to light, it puts the lights out first and needs more;
+//     used to stares, it starts behind you and must be held longer; outrun, it follows further
 import { register } from "../director/director.js";
 import * as body from "../observer/body.js";
 import { SOUNDS } from "../core/constants.js";
 import { V, safe } from "../core/util.js";
 import { aggression } from "../core/settings.js";
 import { standNear } from "../world/space.js";
+import { litLightsNear } from "../world/manipulate.js";
 import { findSpotLoose, sighting, relentless } from "./common.js";
+import * as learn from "../observer/learn.js";
 
 register({
   id: "creeping",
@@ -31,7 +35,9 @@ register({
   prepare(enc) {
     const p = enc.p;
     const yMode = enc.ctx.underground ? "near" : "surface";
+    const behind = learn.adapted(enc.s) === "gaze";
     const spot = findSpotLoose(p, [
+      ...(behind ? [{ minDist: 18, maxDist: 28, bearings: [180, 155, -155], spread: 15, concealment: /** @type {"hidden"} */ ("hidden"), needLOS: true, yMode }] : []),
       { minDist: 20, maxDist: 30, bearings: [0, 25, -25], spread: 15, concealment: "visible", needLOS: true, yMode },
       { minDist: 14, maxDist: 32, concealment: "any", needLOS: true, yMode, samples: 36 },
     ]);
@@ -45,7 +51,18 @@ register({
     const spot = enc.data.spot;
     enc.sound(SOUNDS.hum, p.location, 0.6, 1, "caption.hum");
     enc.fog("soft");
+    if (learn.adapted(enc.s) === "light") {
+      // it has learned that you stand in the light: it puts out what is near you first
+      for (const l of litLightsNear(dim, p.location, 10, 6)) {
+        if (enc.snuff(l, 300)) enc.sound(SOUNDS.snuff, l, 0.6);
+        await enc.wait(4);
+      }
+    }
     await enc.wait(30);
+    const lightNeed = 12 + learn.lightBonus(enc);
+    const lightHold = 60 * learn.holdFactor(enc, "light");
+    const gazeHold = 160 * learn.holdFactor(enc, "gaze");
+    const escapeAt = 56 + learn.outrunBonus(enc);
     if (!enc.spawnBody(spot.loc, { state: "stare", stoop: spot.stoop, autoPeek: false })) return enc.result("deferred");
     let unwatched = 0, heldStreak = 0, lit = 0, moves = 0;
     for (let t = 0; t < 20 * 75; t += 2) {
@@ -53,7 +70,7 @@ register({
       const bl = body.loc();
       if (!bl) return enc.result("vanished");
       const d = V.dist(bl, p.location);
-      if (d > 56) {
+      if (d > escapeAt) {
         body.despawn("left_behind");
         return enc.result("escaped", true);
       }
@@ -64,8 +81,8 @@ register({
         return enc.result("repelled", true);
       }
       const light = safe(() => dim.getLightLevel(p.getHeadLocation()), 0) ?? 0;
-      lit = light >= 12 ? lit + 2 : 0;
-      if (lit >= 60) {
+      lit = light >= lightNeed ? lit + 2 : 0;
+      if (lit >= lightHold) {
         body.setState("recoil");
         await enc.wait(16);
         enc.discover("light_it_doesnt_make");
@@ -77,7 +94,7 @@ register({
         unwatched = 0;
         heldStreak += 2;
         body.setState("stare");
-        if (heldStreak >= 160) {
+        if (heldStreak >= gazeHold) {
           sighting(enc, enc.gaze.lastWatcher ?? p);
           enc.discover("held_gaze");
           body.setState("recoil");

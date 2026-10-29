@@ -184,7 +184,8 @@ export function effigyCell(dim, near, r = 3) {
       const b = safe(() => dim.getBlock(cell));
       const below = b && safe(() => b.below());
       if (b && below && isReplaceable(b) && !below.isAir && !below.isLiquid && !/leaves|slab|stairs|fence|wall|door|glass|pane|carpet|snow_layer/.test(below.typeId)) {
-        if (ledger.at(dimIndex(dim.id), cell) || isWarded(dimIndex(dim.id), cell)) break;
+        // a cell already changed, warded, or with someone standing in it: try another spot
+        if (ledger.at(dimIndex(dim.id), cell) || isWarded(dimIndex(dim.id), cell) || ledger.occupied(dim, cell)) break;
         return cell;
       }
     }

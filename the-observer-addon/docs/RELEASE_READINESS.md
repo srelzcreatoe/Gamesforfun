@@ -11,8 +11,9 @@ The first load in a Windows client (by the user) showed three resource-pack erro
 client-only error is caught before release. The creature's look, animations, sounds and menus still have to be
 confirmed in a client.
 
-Everything that runs on the server — the director, all 19 encounters, the restoration ledger, persistence across a
-restart, multiplayer targeting, dimension travel, items, wards, settings — was exercised on a real Bedrock Dedicated
+Everything that runs on the server — the director, all 22 encounters, the Flare, escape learning, the silence before
+attacks, its pages, signs, returned items, the restoration ledger, persistence across a restart, multiplayer targeting,
+dimension travel, items, wards, settings — was exercised on a real Bedrock Dedicated
 Server 1.26.52.3 with GameTest simulated players (see [TEST_REPORT.md](TEST_REPORT.md)). What a dedicated server cannot
 show — how the model, animations, particles, fog, sounds and forms *look and sound* on a client — has been checked
 statically (official schemas, cross-references, offline forward-kinematics renders of every animation) but **has not
@@ -35,8 +36,18 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 
 ### Design boundaries
 * **It can kill.** On Standard and High aggression, once it reaches a player it keeps attacking until they die or drive
-  it off (Witness Lens or a blow). Every strike is telegraphed. Low aggression = one capped strike; "Never attacks" and
-  Peaceful = no damage.
+  it off (Witness Lens, a blow, or a Flare). Every strike is telegraphed. Low aggression = one capped strike; "Never
+  attacks" and Peaceful = no damage.
+* **The silence uses the music channel.** `Player.playMusic` replaces that player's music with a near-silent track and
+  `stopMusic` hands music back to the game, which resumes its own soundtrack on its usual schedule (so the music may
+  not come back immediately). Other players are unaffected. Ambient sounds are not changed.
+* **It learns one way out at a time.** An adaptation never removes an escape entirely: the first lens/blow/flare in an
+  encounter only makes it flinch, the second works; light and stares still work, they just take more.
+* **Returned items** are only tracked while they exist: an item that despawns (5 minutes), is picked up, or sits in an
+  unloaded chunk is simply forgotten. Thrown items are recognised by where they appear (at chest height right at the
+  player), so an item dropped by some other means very close to a player's chest could occasionally be counted.
+* **Signs** are oak standing signs placed only in empty cells by the bed or a door of the home; on a waterlogged or
+  unusual floor no spot may qualify and the encounter simply does not happen.
 * Taiga shadows are tied to the biome reported by `Dimension.getBiome` at the player's position (any biome id containing
   "taiga").
 * Stalking is logical: no body exists between encounters (performance and subtlety). Placement is recomputed from the
@@ -62,8 +73,11 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   shape by spectrogram) but mix levels, attenuation and the feel of each sound have
   not been auditioned in game. Vanilla sound IDs used for borrowed sounds were taken from a published Bedrock sound
   list and are not verifiable on a server.
-* Forms (Field Notes, settings), action-bar captions, title cards, camera fades and shakes (the fade API and the
-  `camerashake` command were accepted by the server).
+* Forms (Field Notes — including "Pages I didn't write" and what it has learned — settings), action-bar captions, title
+  cards, camera fades and shakes (the fade API and the `camerashake` command were accepted by the server).
+* 1.0.5 visuals and audio: the thrown flare's sprite and glare particle, the hiss and burst, the silence track (the
+  server accepted every `playMusic`/`stopMusic` call), the scrawl sound, the rendered sign text, and how a creature's
+  head pose reads while it follows the player.
 
 ### Verified only partially
 * Lunge chance and cooldown values, and the too-close strike chance, are random by design; tests force them on to check
@@ -74,6 +88,9 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   rejoining was not simulated (simulated players cannot reconnect with the same identity).
 * Pacing rules (quiet periods, recovery, global gap, anti-repetition) run in every test and the natural-director test
   started encounters on its own, but each timing rule was not asserted individually.
+* Escape learning: counting, adapting, one-at-a-time, the written page, the flare flinch and the light snuffing are
+  asserted; the water (shore wait), gaze (from behind), outrun, veil (double seal), lens and hit adaptations use the same
+  code paths but are not driven individually by the suite.
 * *Breathing Room* is verified via the water escape. The other two escape paths — outrunning it by sprinting (48+ blocks
   and out of sight) and outlasting its 35-second limit — are implemented but not driven by the suite (the arena is too
   small for a 48-block lead).
@@ -92,7 +109,7 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 | Area | Status | Evidence / gap |
 |---|---|---|
 | Original content | ✅ for everything generated here; ✅ the creature model, texture, animations and the two particle sheets were made by the user, who owns them. A third-party add-on offered for reuse was not used | [ASSET_RECORDS.md](ASSET_RECORDS.md) |
-| Stable APIs, no experiments | ✅ | manifests; BDS load with zero content-log errors |
+| Stable APIs, no experiments | ✅ | manifests; `noexp.txt`: fresh world, every experiment off (checked in `level.dat` before and after), no test kit — scripts ran, all entities/items/recipes loaded, zero content-log errors |
 | Namespacing / no vanilla overrides | ✅ | all identifiers `observer:`; no vanilla files replaced |
 | Performance | ✅ server: 20.00 TPS with and without the add-on (see TEST_REPORT §4); ❔ client frame time on low-end devices untested |
 | World safety / uninstall | ✅ ledger + restore command; documented removal steps |
@@ -113,8 +130,9 @@ the sounds of your own work and plays them from where you are not. It gets home 
 you to find. It closes the tunnel behind you. It can be understood — and if you pay attention long enough, you can
 finally meet its gaze.
 
-* 19 encounter types, three signature encounters, five escalating stages
+* 22 encounter types, three signature encounters, five escalating stages
+* It learns how you escape, goes quiet before it attacks, and writes pages in your notes from what you did
 * Real, reversible world changes — your builds are protected and your own changes always win
-* 22 discoveries, a Witness Lens, Tally Chalk, Ward Lanterns, and an ending you can reach
+* 23 discoveries, a Witness Lens, Tally Chalk, Ward Lanterns, Flares, and an ending you can reach
 * Works across the Overworld, caves, water, the Nether and the End; multiplayer-aware
 * Atmosphere, Standard and Relentless presets; captions and full control over scares and camera effects

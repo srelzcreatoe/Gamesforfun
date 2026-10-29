@@ -6,6 +6,8 @@
 // 3-5 encounters; recovery after deaths and intense encounters; a global cooldown between any two starts.
 // Multiplayer: one physical Observer. Body encounters go to the eligible player who has waited longest
 // (weighted by stage); body-free encounters may run for other players at the same time.
+// From stage 4 its dangerous encounters are announced by silence first (observer/hush.js), and the way
+// each one ends teaches it something about the player (observer/learn.js).
 import { world, system, GameMode } from "@minecraft/server";
 import { W, ps, now, markWorldDirty, markPlayerDirty } from "../core/state.js";
 import { S, typeOn } from "../core/settings.js";
@@ -18,6 +20,8 @@ import * as ledger from "../world/ledger.js";
 import { manip } from "../world/manipulate.js";
 import { expose } from "../progression/discoveries.js";
 import { noteAttention } from "../observer/memory.js";
+import * as hush from "../observer/hush.js";
+import * as learn from "../observer/learn.js";
 
 /** @typedef {import("./encounter.js").EncounterDef} EncounterDef */
 /** @typedef {import("@minecraft/server").Player} Player */
@@ -69,6 +73,7 @@ function ready(p, t) {
     return false;
   }
   if (s.witnessed && s.endMode === "rest") return false;
+  if (hush.get(p.id)) return false;
   if (t < s.nextAt || t < s.quietUntil || t < s.recoveryUntil) return false;
   if (encounterFor(p.id)) return false;
   return true;
@@ -106,6 +111,7 @@ export function tick() {
     const s = ps(p);
     if (s.tension > 0) s.tension = Math.max(0, s.tension - 0.05);
   }
+  releaseHushes(t);
   if (!S().enabled || control.paused) return;
   if (t < W.globalCooldownUntil) return;
   const candidates = allPlayers().filter((p) => ready(p, t));
@@ -119,14 +125,52 @@ export function tick() {
     if (!c.eligible) continue;
     if (++attempts > 2) break;
     const s = ps(p);
-    const pool = REGISTRY.filter((d) => !(d.needsBody && active));
+    // the one Observer is not given away while another player's silence is waiting for it
+    const pool = REGISTRY.filter((d) => !(d.needsBody && (active || hush.reservedFor(p.id))));
     const def = weightedPick(pool, (d) => eligibleWeight(d, s, c));
     if (!def) {
       s.nextAt = t + 20;
       continue;
     }
+    if (hush.wanted(def, s) && !hush.isSilenced(p.id)) {
+      // the world goes quiet first; the encounter (or nothing) follows in 20-30 s
+      hush.begin(p, def.id, t);
+      W.globalCooldownUntil = t + 10;
+      markWorldDirty();
+      return;
+    }
     start(def, p, c);
     return;
+  }
+}
+
+/** Silences whose wait is over: start what they announced if it still fits, else end quietly. @param {number} t */
+function releaseHushes(t) {
+  for (const p of allPlayers()) {
+    const h = hush.get(p.id);
+    if (!h || t < h.until) continue;
+    hush.release(p.id);
+    const s = ps(p);
+    if (h.falseAlarm || !h.def || !S().enabled || control.paused || p.dimension.id !== h.dimId || encounterFor(p.id)) {
+      hush.end(p, p.id, h.falseAlarm ? "false_alarm" : "nothing");
+      if (!h.test) {
+        s.nextAt = Math.max(s.nextAt, t + rand(60, 120));
+        markPlayerDirty(p);
+      }
+      continue;
+    }
+    const c = context(p);
+    // what it announced, or another of its dangerous encounters that fits where the player is now
+    const first = byId(h.def);
+    const pool = REGISTRY.filter((d) => hush.DANGEROUS.has(d.id) && !(d.needsBody && active));
+    const def = c.eligible ? (first && pool.includes(first) && eligibleWeight(first, s, c) > 0 ? first : weightedPick(pool, (d) => eligibleWeight(d, s, c))) : undefined;
+    const enc = def ? start(def, p, c) : null;
+    if (enc) enc.data.hushed = true;
+    else {
+      hush.end(p, p.id, "nothing");
+      s.nextAt = Math.max(s.nextAt, t + rand(60, 120));
+      markPlayerDirty(p);
+    }
   }
 }
 
@@ -189,7 +233,13 @@ async function cleanup(enc) {
   // any encounter that still owns the body removes it (some body-free encounters borrow it)
   const b = body.get();
   if (b && b.enc === enc.id) {
-    if (enc.aborted) body.despawn(enc.aborted === "struck" ? "unravel" : "abort");
+    if (enc.aborted === "flared") {
+      // the flare's glare: it recoils, then tears apart
+      body.setMode("still");
+      body.setState("recoil");
+      await system.waitTicks(8);
+      if (body.get() === b) body.despawn("flare");
+    } else if (enc.aborted) body.despawn(enc.aborted === "struck" ? "unravel" : "abort");
     else {
       try {
         await body.withdraw(enc.p.isValid ? enc.watchers() : [], 120);
@@ -209,6 +259,8 @@ function finish(enc) {
     W.active = null;
   }
   if (personal.get(enc.pid) === enc) personal.delete(enc.pid);
+  // the silence lasts until its encounter is over
+  if (!hush.get(enc.pid) && hush.isSilenced(enc.pid)) hush.end(enc.p.isValid ? enc.p : undefined, enc.pid, "encounter_over");
   if (enc.def.preview) {
     // a preview from the Config Wheel is not part of the story: no history, pacing or progress
     markWorldDirty();
@@ -218,6 +270,9 @@ function finish(enc) {
   }
   const deferred = enc.outcome === "deferred";
   const di = deferInfo(s);
+  // how the player got away teaches it something
+  const method = learn.methodOf(enc.def.id, enc.outcome, enc.data);
+  if (method && enc.p.isValid) learn.note(enc.p, method);
   if (deferred) {
     // nothing fitted here: free the director for other players at once, back this player off a
     // little more each time (15, 30, 60, 120, 240 s) and don't retry this type for a while
@@ -360,5 +415,6 @@ export function onDeath(p) {
   s.recoveryUntil = now() + 300;
   s.tension = Math.max(0, s.tension - 30);
   abortFor(p.id, "target_died");
+  hush.end(p, p.id, "died");
   markPlayerDirty(p);
 }

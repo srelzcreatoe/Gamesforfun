@@ -314,6 +314,29 @@
           "volume": 1.0
         }
       ]
+    },
+    "observer.silence": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/observer/silence",
+          "volume": 1.0,
+          "stream": true
+        }
+      ]
+    },
+    "observer.scrawl": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/observer/scrawl1",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/observer/scrawl2",
+          "volume": 1.0
+        }
+      ]
     }
   }
 }

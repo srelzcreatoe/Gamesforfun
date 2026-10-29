@@ -5,13 +5,19 @@
 // Peaceful difficulty and the cap that stops a single strike from killing.
 import { register } from "../director/director.js";
 import * as body from "../observer/body.js";
-import { SOUNDS } from "../core/constants.js";
+import { SOUNDS, ITEMS } from "../core/constants.js";
 import { V, safe } from "../core/util.js";
 import { aggression } from "../core/settings.js";
 import { findSpot, standNear, coverSide } from "../world/space.js";
 import { lineOfSight } from "../world/sight.js";
 import { findSpotLoose, lunge, sighting, relentless } from "./common.js";
 import * as illusions from "../observer/illusions.js";
+import * as hush from "../observer/hush.js";
+import * as pages from "../observer/pages.js";
+import * as returns from "../observer/returns.js";
+import { primaryHaunt } from "../observer/memory.js";
+import { now } from "../core/state.js";
+import { give } from "../progression/discoveries.js";
 
 /** @typedef {{x:number,y:number,z:number}} Vec */
 
@@ -163,5 +169,82 @@ register({
     await enc.wait(20 * 30);
     body.despawn("timeout");
     enc.result("not_approached");
+  },
+});
+
+// ---- The Flare: it stands and watches; throw a flare near it (one is handed over if you have none)
+register({
+  ...TEST,
+  id: "test_flare",
+  reactNear: false,
+  prepare(enc) {
+    const spot = ahead(enc.p, 12, 16);
+    if (!spot) return false;
+    enc.data.spot = spot;
+    return true;
+  },
+  async run(enc) {
+    const p = enc.p;
+    const spot = enc.data.spot;
+    const inv = p.getComponent("minecraft:inventory")?.container;
+    let has = false;
+    for (let i = 0; inv && i < inv.size; i++) if (inv.getItem(i)?.typeId === ITEMS.flare) has = true;
+    if (!has) give(p, ITEMS.flare, 1);
+    if (!enc.spawnBody(spot.loc, { state: "stare", stoop: spot.stoop, autoPeek: false })) return enc.result("deferred");
+    // it waits up to 40 s; a burning flare within 16 blocks ends this as "flared"
+    await enc.wait(20 * 40);
+    body.despawn("timeout");
+    enc.result("not_flared");
+  },
+});
+
+// ---- The world goes quiet: 20 s of silence (the music stops, a faint ringing rises), then nothing
+register({
+  ...TEST,
+  id: "test_quiet",
+  needsBody: false,
+  reactNear: false,
+  async run(enc) {
+    const p = enc.p;
+    hush.begin(p, "", now(), { seconds: 20, falseAlarm: true, test: true });
+    await enc.wait(20 * 20);
+    hush.end(p, p.id, "test");
+    enc.result("quiet");
+  },
+});
+
+// ---- A page you didn't write: one turns up in your Field Notes now (from what it has seen you do)
+register({
+  ...TEST,
+  id: "test_page",
+  needsBody: false,
+  reactNear: false,
+  async run(enc) {
+    const p = enc.p;
+    const s = enc.s;
+    if (!s.notesGiven) {
+      s.notesGiven = true;
+      give(p, ITEMS.notes, 1);
+    }
+    const key = pages.write(p);
+    enc.result(key ? `page_${key}` : "nothing", !!key);
+  },
+});
+
+// ---- It returns what you threw away: drop something, walk away, and it is moved to your doorstep
+register({
+  ...TEST,
+  id: "test_returns",
+  needsBody: false,
+  reactNear: false,
+  prepare(enc) {
+    return !!primaryHaunt(enc.p);
+  },
+  async run(enc) {
+    const p = enc.p;
+    const before = returns.tracked(p.id);
+    // up to 60 s to drop an item and walk 10 blocks from it
+    const done = await enc.until(() => returns.tracked(p.id) > before && returns.returnNow(p, { minAway: 10 }), 20 * 60, 10);
+    enc.result(done ? "returned" : "nothing_dropped", done);
   },
 });

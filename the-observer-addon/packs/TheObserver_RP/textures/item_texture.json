@@ -36,6 +36,11 @@
       "textures": [
         "textures/items/observer/config_wheel"
       ]
+    },
+    "observer_flare": {
+      "textures": [
+        "textures/items/observer/flare"
+      ]
     }
   }
 }

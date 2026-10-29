@@ -5,6 +5,8 @@
 // Rules: watched, it can only walk; light (>= 11) stops it; water stops it; the Witness Lens or a
 // blow makes it recoil. It gives up after 35 s, or when the player is 48+ blocks away and out of
 // sight. Reaching the player means one telegraphed, avoidable strike, then it leaves.
+// It learns (observer/learn.js): used to light, it needs brighter light; used to water, it waits at
+// the shore for up to 15 s and comes on if you climb out; outrun, it follows 16 blocks further.
 import { register } from "../director/director.js";
 import * as body from "../observer/body.js";
 import { SOUNDS } from "../core/constants.js";
@@ -13,6 +15,7 @@ import { litLightsNear } from "../world/manipulate.js";
 import { findSpot } from "../world/space.js";
 import { context } from "../director/context.js";
 import { sighting, relentless } from "./common.js";
+import * as learn from "../observer/learn.js";
 
 register({
   id: "pursuit",
@@ -52,12 +55,29 @@ register({
     await enc.wait(60);
     // ---- the chase
     let escapedTicks = 0;
+    const lightBonus = learn.lightBonus(enc);
+    const escapeAt = 48 + learn.outrunBonus(enc);
     for (let t = 0; t < 20 * 35; t += 4) {
       await enc.wait(4);
       const bl = body.loc();
       if (!bl) return;
       const dist = V.dist(p.location, bl);
       const c = t % 20 === 0 ? context(p) : null;
+      if (c && c.water && learn.adapted(enc.s) === "water" && !enc.data.shoreWaited) {
+        // it has learned that you run for the water: it waits at the edge
+        enc.data.shoreWaited = true;
+        enc.emit("learn", { what: "shore" });
+        body.setMode("still");
+        body.setState("stare");
+        const shore = body.groundNear(dim, V.add(p.location, V.scale(V.flat(V.sub(bl, p.location)), Math.min(dist, 5))));
+        if (shore && !body.visibleTo([p])) body.moveTo(shore, p.getHeadLocation());
+        let back = false;
+        for (let w = 0; w < 20 * 15 && !back; w += 10) {
+          await enc.wait(10);
+          back = !context(p).water;
+        }
+        if (back) continue; // out of the water: the chase goes on
+      }
       if (c && c.water) {
         body.setMode("still");
         body.setState("stare");
@@ -78,7 +98,7 @@ register({
       const step = V.add(bl, V.scale(V.flat(V.sub(p.location, bl)), 1.5));
       const lightAt = safe(() => dim.getLightLevel({ x: step.x, y: step.y + 1, z: step.z }), 0) ?? 0;
       const playerLight = safe(() => dim.getLightLevel(p.getHeadLocation()), 0) ?? 0;
-      if (lightAt >= 11 || (playerLight >= 12 && dist < 10)) {
+      if (lightAt >= 11 + lightBonus || (playerLight >= 12 + lightBonus && dist < 10)) {
         body.setMode("still");
         body.setState("recoil");
         await enc.wait(20);
@@ -94,7 +114,7 @@ register({
         body.setMode("pursue");
         body.setState("run");
       }
-      escapedTicks = dist > 48 && !body.visibleTo([p]) ? escapedTicks + 4 : 0;
+      escapedTicks = dist > escapeAt && !body.visibleTo([p]) ? escapedTicks + 4 : 0;
       if (escapedTicks >= 80) {
         enc.result("escaped", true);
         enc.discover("breathing_room");

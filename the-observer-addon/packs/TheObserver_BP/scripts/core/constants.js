@@ -15,6 +15,7 @@ export const ITEMS = {
   eye: "observer:observers_eye",
   ward: "observer:ward_lantern",
   wheel: "observer:config_wheel",
+  flare: "observer:flare",
 };
 
 export const BLOCKS = {
@@ -31,6 +32,7 @@ export const PARTICLES = {
   chalk: "observer:chalk_mark",
   chalkSmudged: "observer:chalk_smudged",
   dust: "observer:dust",
+  flare: "observer:flare",
 };
 
 export const SOUNDS = {
@@ -59,6 +61,8 @@ export const SOUNDS = {
   notice: "observer.notice",
   shriek: "observer.shriek",
   vanish: "observer.vanish",
+  silence: "observer.silence",
+  scrawl: "observer.scrawl",
 };
 
 export const FOGS = { dread: "observer:dread", soft: "observer:dread_soft", vigil: "observer:vigil" };

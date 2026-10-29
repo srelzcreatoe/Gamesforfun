@@ -18,8 +18,9 @@ Minecraft imports both packs. Then:
 3. Play. Nothing happens during the grace period (12 minutes of play on the Standard preset). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from an earlier version:** import the new `.mcaddon` (version 1.0.4). If a world still uses the old copy, open the world's
-settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.0.1 packs again.
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.0.5). If a world still uses the old copy, open the world's
+settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.0.5 packs again. Your
+progress is kept; the new options below start switched on.
 
 **Existing worlds:** back the world up first, then add the packs as above. The add-on only changes blocks in small,
 recorded, reversible ways (see "Your builds are safe" below).
@@ -47,6 +48,20 @@ your health while you are above half); on "Never attacks" and on Peaceful it nev
 **In taiga forests** you may see it far off between the trunks, staring. Look straight at it and it is gone —
 and somewhere, the cave answers. Those shadows are harmless (they can be switched off in the settings).
 
+**It learns.** Each time you get away from it, it remembers how: running for the light, jumping into water, staring
+it down, the Witness Lens, hitting it, outrunning it, breaking through its Veil, or a flare. Use the same way three
+times and it adapts to that one (it puts your lights out first, waits at the shore, comes from behind, shrugs off
+the first lens or flare, seals the way twice, follows further). It only ever adapts to one way at a time, so the
+others still work, and it forgets if you change your habits. Your Field Notes say what it has learned.
+
+**When the music stops** (from the fourth stage), something may be coming: the game's music goes quiet for you alone
+and a faint ringing rises for 20–30 seconds. Usually it comes. Sometimes nothing does.
+
+**Other things you may find:** pages in your Field Notes that you did not write, quoting what you actually did (how
+many blocks you mined, the time you went to sleep, how often you looked behind you); a sign by your bed or door with
+your name on it; something you threw away waiting on your doorstep; an animal or villager that stops and turns its
+head to follow you; and, late at night, the figure already standing in a dark corner of your home.
+
 Some useful habits (no spoilers beyond what the game tells you early):
 * If something changed, **put it back** — or look closely at it.
 * If you hear something you did, from somewhere you are not, **go and look**.
@@ -67,9 +82,9 @@ Players who are not operators only see the status and their own caption setting.
 | **Start it for me now** / **Make something happen soon** | skips the grace period (or the current wait) for you; the first encounter follows within about a minute (Survival or Adventure only) |
 | **Switch The Observer on/off** | master switch; switching off puts back everything it changed |
 | **Presets** | Atmosphere, Standard, Relentless |
-| **All settings** | frequency, aggression, environmental manipulation, sudden scares, camera effects, captions, grace period, world weather, developer tracing, taiga shadows |
+| **All settings** | frequency, aggression, environmental manipulation, sudden scares, camera effects, captions, grace period, world weather, developer tracing, taiga shadows, escape learning, the silence before attacks, pages you didn't write, returned items |
 | **Encounter toggles** | one switch per encounter type (with the stage it unlocks at); switched-off types are never chosen |
-| **Test an encounter** | starts something on you right now. First the single behaviours (red): **The Vigil (practice)** (three rounds, no reward, nothing recorded), **The Strike** (it runs up and keeps attacking until you die or drive it off — Low aggression: one strike), **The Lunge** (look at it and it comes at you), **Peeking from cover** (only beside a trunk or wall corner ahead of you; with nothing there it says so), **Taiga shadow** (the illusion, here anywhere), **Getting too close** (walk up to it). Then every encounter. If the place is unsuitable it tells you what that one needs (for example, *The Closed Path* needs a tunnel at least 3 blocks high). Tests never count toward your story |
+| **Test an encounter** | starts something on you right now. First the single behaviours (red): **The Vigil (practice)** (three rounds, no reward, nothing recorded), **The Strike** (it runs up and keeps attacking until you die or drive it off — Low aggression: one strike), **The Lunge** (look at it and it comes at you), **Peeking from cover** (only beside a trunk or wall corner ahead of you; with nothing there it says so), **Taiga shadow** (the illusion, here anywhere), **Getting too close** (walk up to it), **The Flare** (it stares; throw a flare near it — you get one if you have none), **The world goes quiet** (20 s of silence, then nothing), **A page you didn't write** (one appears in your Field Notes now), **It returns what you threw away** (needs a home it knows: drop something and walk 10 blocks away). Then every encounter. If the place is unsuitable it tells you what that one needs (for example, *The Closed Path* needs a tunnel at least 3 blocks high). Tests never count toward your story |
 | **Undo its changes** | puts back every block it changed and ends whatever it is doing |
 | **Sound captions** | your own caption setting |
 
@@ -84,6 +99,7 @@ Encounters only come for players in **Survival or Adventure**; in Creative it le
 | **Vestige** | each discovery; breaking an Effigy | Crafting material |
 | **Witness Lens** | craft *spyglass + 2 Vestiges + amethyst shard* | Use while looking at it: it recoils and withdraws. With nothing to hold, the lens shows where it has walked and where its effigies are. 20 s cooldown |
 | **Ward Lantern** | craft *lantern + 2 Vestiges* | Place it: within 12 blocks it will not stand or change any block (and puts back anything it already changed there) |
+| **Flare** | craft *glowstone dust + gunpowder + paper* (×8) | Use to throw it. Where it lands it burns for 8 seconds with real, bright light and a hissing glare. While it burns, the Observer within 16 blocks of it recoils and tears apart — even in the middle of an attack (a strike already winding up does no damage). Each flare is used up; once it has learned flares, the first one in an encounter only makes it flinch |
 
 ## Discoveries and the long-term goal
 Every time you notice or answer something, a page is written in your Field Notes and you receive a Vestige. With
@@ -102,7 +118,9 @@ Open with the **Config Wheel**, *Field Notes → Settings*, or `/observer:settin
 
 Individual controls: encounter frequency, aggression (never attacks / low / standard / high), environmental
 manipulation (off / subtle / standard / unsettling), sudden scares (off / rare / standard), camera effects
-(none / fades only / full), default captions, grace period, world-wide weather during the vigil, developer tracing.
+(none / fades only / full), default captions, grace period, world-wide weather during the vigil, developer tracing,
+and on/off switches for the taiga shadows, escape learning, the silence before attacks, pages you didn't write, and
+returned items. The encounter toggles switch off *It's Inside*, *Signs* and *Borrowed Eyes* like any other encounter.
 On **Peaceful** difficulty it never attacks.
 
 ## Accessibility
@@ -119,8 +137,11 @@ its quiet cues (footsteps, breath, chimes) are heard only by the person it is fo
 * It only ever touches doors/trapdoors/gates, torches/lanterns/candles/campfires, a few decorative objects
   (pumpkins, stonecutters, anvils), air (temporary Veil, natural-looking blocks, effigies), and — only on the
   *Unsettling* setting — natural stone/dirt walls.
-* It never touches chests or any container, beds, signs, redstone, portals or anything else.
-* Every change is recorded and reverted later. If you change the block yourself, your change wins.
+* Now and then it leaves a sign by your bed or door — only in an empty spot, never replacing anything.
+* It never touches chests or any container, beds, your own signs, redstone, portals or anything else. It may move an
+  item you threw away (the same item, never a copy).
+* Every change is recorded and reverted later (its signs after 20 minutes). If you change the block yourself, your
+  change wins.
 * Blocks it places drop nothing when broken.
 
 ## Removing the add-on

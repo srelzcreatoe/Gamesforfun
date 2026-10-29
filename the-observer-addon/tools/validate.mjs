@@ -121,6 +121,15 @@ for (const f of walk(path.join(RP, "animation_controllers"))) for (const [k, v] 
 const renderControllers = new Set();
 for (const f of walk(path.join(RP, "render_controllers"))) for (const k of Object.keys(readJSON(f)?.render_controllers ?? {})) renderControllers.add(k);
 
+// Vanilla resources a client entity may use without defining them: exactly the set the vanilla
+// snowball uses (bedrock-samples resource_pack/entity/snowball.entity.json), for the thrown flare.
+const VANILLA_CLIENT = new Set(["geometry.item_sprite", "controller.render.item_sprite", "animation.actor.billboard"]);
+for (const g of VANILLA_CLIENT) {
+  if (g.startsWith("geometry.")) geos.set(g, new Set());
+  else if (g.startsWith("controller.render.")) renderControllers.add(g);
+  else anims.set(g, { bones: {} });
+}
+
 for (const f of walk(path.join(RP, "entity"))) {
   const d = readJSON(f)?.["minecraft:client_entity"]?.description;
   if (!d) continue;
@@ -223,11 +232,31 @@ for (const f of walk(path.join(BP, "recipes"))) {
   if (!itemIds.has(r.result.item) && r.result.item.startsWith("observer:")) fail(`${rel(f)}: unknown result ${r.result.item}`);
 }
 for (const k of ["entity.observer:the_observer.name", "item.spawn_egg.entity.observer:the_observer.name", "pack.name", "pack.description"]) if (!langKeys.has(k)) fail(`lang key ${k} missing`);
+// texts the scripts build from ids: its pages (two variants each), what it learned, sign messages,
+// encounter names / "where" lines, settings, discoveries
+const scriptText = (rp) => fs.readFileSync(path.join(BP, "scripts", ...rp.split("/")), "utf8");
+const pageKeys = [...scriptText("observer/pages.js").split("const TEMPLATES = {")[1].split("\n};")[0].matchAll(/^  (\w+): \(/gm)].map((m) => m[1]);
+const methods = [...scriptText("observer/learn.js").match(/export const METHODS = \[([^\]]+)\]/)[1].matchAll(/"(\w+)"/g)].map((m) => m[1]);
+if (pageKeys.length < 10) fail(`page templates not found in observer/pages.js (${pageKeys.length})`);
+for (const k of [...pageKeys, ...methods.map((m) => `learn_${m}`)]) for (const v of [1, 2]) if (!langKeys.has(`observer.its.${k}.${v}`)) fail(`lang key observer.its.${k}.${v} missing`);
+for (const m of methods) if (!langKeys.has(`observer.learn.${m}`)) fail(`lang key observer.learn.${m} missing`);
+for (const m of scriptText("encounters/sign.js").matchAll(/"(observer\.sign\.\w+)"/g)) if (!langKeys.has(m[1])) fail(`lang key ${m[1]} missing`);
+for (const m of scriptText("progression/discoveries.js").split("export const DISCOVERIES = [")[1].split("];")[0].matchAll(/"(\w+)"/g)) {
+  for (const part of ["title", "text", "lesson"]) if (!langKeys.has(`observer.disc.${m[1]}.${part}`)) fail(`lang key observer.disc.${m[1]}.${part} missing`);
+}
+for (const f of walk(path.join(BP, "scripts", "encounters"))) {
+  for (const m of fs.readFileSync(f, "utf8").matchAll(/^\s+id: "(\w+)",/gm)) {
+    if (m[1] === "showcase" || m[1] === "vigil") continue; // never listed in the Config Wheel menus
+    for (const k of [`observer.enc.${m[1]}`, `observer.enc.${m[1]}.where`]) if (!langKeys.has(k)) fail(`lang key ${k} missing (${rel(f)})`);
+  }
+}
+for (const m of scriptText("ui/forms.js").matchAll(/tr\("(observer\.(?:set|ui)\.[\w.]+)"/g)) if (!langKeys.has(m[1])) fail(`lang key ${m[1]} missing (ui/forms.js)`);
 
 // ---------------------------------------------------------------- 3. IDs used by scripts
 const entityIds = new Set(walk(path.join(BP, "entities")).map((f) => readJSON(f)["minecraft:entity"].description.identifier));
 const clientIds = new Set(walk(path.join(RP, "entity")).map((f) => readJSON(f)["minecraft:client_entity"].description.identifier));
 for (const id of entityIds) if (!clientIds.has(id)) fail(`entity ${id} has no client entity in the resource pack`);
+for (const id of entityIds) if (!langKeys.has(`entity.${id}.name`)) fail(`lang key entity.${id}.name missing`);
 const src = walk(path.join(BP, "scripts")).filter((f) => f.endsWith(".js")).map((f) => fs.readFileSync(f, "utf8")).join("\n");
 const constants = fs.readFileSync(path.join(BP, "scripts", "core", "constants.js"), "utf8");
 const block = (name) => constants.split(`export const ${name} = {`)[1].split("};")[0];

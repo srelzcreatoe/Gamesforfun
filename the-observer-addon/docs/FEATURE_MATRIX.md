@@ -130,8 +130,30 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Personal fog | `encounter.fog` | closed path, pursuit, vigil | `/fog` push/remove | `fog_command` | 🟡 |
 | Dev commands & event channel | `dev/commands.js`, `util.emit` | `/scriptevent observer:*` | responses, events | used by every test | ✅ Runtime |
 
+## 1.0.5: the Flare, escape learning, the silence, its pages, signs, inside, borrowed eyes, returns
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| Flare thrown and lit | `progression/flare.js`, `BP/items/flare.json`, `BP/entities/flare.json`, `RP/entity/flare.entity.json`, `RP/particles/flare.json` | use the item | flies (projectile), lights where it lands with a light block (level 15), one item used up | `flare_thrown`, `flare_flies`, `flare_lights_where_it_lands`, `flare_real_light`, `flare_used_up` | ✅ Runtime (sprite, glare particle and sounds ❔) |
+| Flare drives it off | `flare.tick`, `main.js` `onFlared`, `director.cleanup` | burning flare within 16 blocks of the body | recoil, tears apart, outcome `flared` | `flare_drives_it_off`, `flare_tears_it_apart` | ✅ Runtime |
+| Flare mid-attack | `body.strike` (`repelled`), `common.relentless` (`enc.check()`) | flare during the relentless attack | attack ends, a winding-up strike does no damage | `flare_mid_attack_ends_it`, `flare_mid_attack_no_damage_after` | ✅ Runtime |
+| Flare burns out | `flare.burnOut`, ledger kind `flare` | 8 s after lighting | light block and entity removed | `flare_burns_out_light_goes`, `flare_entity_removed` | ✅ Runtime |
+| Flare recipe | `BP/recipes/flare.json` | crafting table | glowstone dust + gunpowder + paper → 8 | loads without errors (`noexp.txt`, suite) | ✅ Runtime load (crafting UI ❔) |
+| Escape learning | `observer/learn.js`, `director.finish` | a dangerous encounter ends by light/water/gaze/lens/hit/outrun/veil/flare | adapts after 3 uses, one way at a time, wears off; written in the notes | `learning_needs_three`, `learning_adapts_after_three`, `learning_written_in_notes`, `learning_one_at_a_time`, `learning_counts_real_escapes`, `learning_switch_off` | ✅ Runtime |
+| Learned: flare / lens / hit | `learn.shrug`, `main.js` hooks | first repel of that kind in an encounter | only a flinch; the second works | `learning_flare_flinch_only`, `learning_second_flare_works` (lens/hit share the same code path) | ✅ Runtime (flare) / ⚪ (lens, hit) |
+| Learned: light | `creeping.js`, `pursuit.js`, `closed_path.js` | adapted to light | lights near the player put out first; +2 light levels, 1.5× longer | `learning_light_snuffs_first` | ✅ Runtime (thresholds ⚪) |
+| Learned: water / gaze / outrun / veil | `pursuit.js`, `creeping.js`, `closed_path.js`, `common.relentless` | adapted | waits at the shore / comes from behind / follows further / seals twice | — | ⚪ Implemented, not asserted |
+| The world goes quiet | `observer/hush.js`, `director.tick`, `releaseHushes` | stage 4+, director picks pursuit / closed path / creeping | per-player music replaced by a near-silent track for 20–30 s, then the encounter; silence ends with it | `hush_before_attack`, `hush_music_call_ok`, `hush_then_it_comes`, `hush_ends_with_encounter` | ✅ Runtime (what the client hears ❔) |
+| Silence: false alarms, switch | `hush.begin` | one in four / setting off | silence then nothing / no silence | `hush_false_alarm`, `hush_switch_off` | ✅ Runtime |
+| Pages you didn't write | `observer/pages.js`, `memory.js` tallies, `ui/forms.js` | stage 2+, at most one per in-game day | a page quoting real tracked numbers; scrawl sound; Field Notes list | `pages_quote_real_numbers`, `pages_arrive_on_their_own`, `pages_not_more_than_daily`, `pages_switch_off` | ✅ Runtime (form ❔) |
+| Signs | `encounters/sign.js` | stage 3+, near home | waxed standing sign by the door/bed, unseen; no drop when broken; gone after 20 min | `sign_placed`, `sign_block_and_text`, `sign_waxed`, `sign_by_door`, `sign_break_no_drop`, `sign_lasts_then_goes` | ✅ Runtime (rendered text ❔) |
+| It's inside | `encounters/inside.js` | stage 4+, night, at home indoors | in the dark room, out of view; leaves when stared at 2 s or when the room is lit | `inside_body`, `inside_in_the_dark_room`, `inside_leaves_when_stared_at`, `inside_discovery`, `inside_leaves_when_lit` | ✅ Runtime |
+| Borrowed eyes | `encounters/borrowed_eyes.js` | stage 2+, a creature ahead | it stands still and its head follows the player, then lets go | `borrowed_host`, `borrowed_follows_with_its_head`, `borrowed_stands_still`, `borrowed_lets_go` | ✅ Runtime (head pose ❔) |
+| Returns what you threw away | `observer/returns.js` | stage 2+, item dropped far from home, player home | the same item entity moved outside the door, a knock; once per in-game day | `returns_sees_thrown_item`, `returns_to_doorstep`, `returns_same_item_no_copy`, `returns_once_a_day` | ✅ Runtime |
+| New settings | `core/settings.js` `FEATURE_TOGGLES`, `ui/forms.js` | settings form | on by default, older worlds get them on | `learning_switch_off`, `hush_switch_off`, `pages_switch_off` | ✅ Runtime (form ❔) |
+| No experiments | manifests (`@minecraft/server` 2.10.0, `@minecraft/server-ui` 2.2.0), all JSON | fresh world, every experiment off, no test kit | scripts run, entities/items/recipes load, 0 errors | `noexp.txt` with `--require-no-experiments` | ✅ Runtime |
+
 ## Performance
 | Measure | Result | Test |
 |---|---|---|
 | Server tick rate, 180 s walking player, director active (2 encounters ran) | 20.00 mean / 19.99 min TPS — identical to the add-on-free baseline (20.00 / 19.99) | `tps.txt` with and without `--no-addon` |
-| No content-log or script errors during full suite | 0 errors (final run: 218/218 assertions, min 19.2 TPS between tests) | `run_bds.py` summary |
+| No content-log or script errors during full suite | 0 errors (final 1.0.5 run: 269/269 assertions, min 20.0 TPS between tests) | `run_bds.py` summary |

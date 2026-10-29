@@ -18,9 +18,10 @@ your light — always deliberately, always reversibly — and watches what you d
 4. Play. Nothing happens for the first 12 minutes on the Standard preset. Details: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md).
 
 ## Status
-Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final integration run passed 218 of 218
-checks with no content-log or script errors, restart recovery passed, and the server held 20 TPS with and without the
-add-on. The first load in a game client reported three resource-pack errors, which are fixed in this build and now
+Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.0.5 integration run passed 269 of
+269 checks (65 test groups) with no content-log or script errors, restart recovery passed, and the server held 20 TPS
+with and without the add-on. A separate run on a fresh world with every experiment switched off (and no test kit)
+loaded everything with zero errors — no experiments are needed. The first load in a game client reported three resource-pack errors, which are fixed in this build and now
 caught by a comparison with Mojang's vanilla files. How it looks and sounds in a client still has to be confirmed: see
 [docs/TEST_REPORT.md](docs/TEST_REPORT.md) §6 and [docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md).
 
@@ -30,29 +31,36 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   dark, a glowing wisp aura, a crimson vanish burst, and its own voice, arrival, notice, shriek and vanish sounds.
 * **A horror director**: grace period, five escalating stages, per-player and global cooldowns, quiet periods,
   recovery after deaths, anti-repetition, context-weighted selection, fair multiplayer targeting.
-* **19 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*)
-  and *Closer Each Time* (it only moves while unwatched), a lunge when it is spotted, a fast, relentless attack once it
-  reaches you, a too-close reaction, and harmless shadows in taiga forests that vanish when looked at, plus 17 further
-  designed concepts — see [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md).
+* **22 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*)
+  and *Closer Each Time* (it only moves while unwatched), *It's Inside* (the dark corner of your own room), *Signs*
+  (by your bed or door) and *Borrowed Eyes* (a creature that turns its head to follow you); a lunge when it is spotted,
+  a fast, relentless attack once it reaches you, a too-close reaction, and harmless shadows in taiga forests that
+  vanish when looked at, plus 17 further designed concepts — see [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md).
+* **It learns how you escape**: light, water, a stare, the lens, a blow, running, breaking through, a flare — use one
+  three times and it adapts to that one (one at a time, and it wears off). From stage 4 **the world goes quiet** before
+  it attacks: your music stops and a faint ringing rises (sometimes nothing follows). It writes **pages you didn't
+  write** into your Field Notes from what you actually did, and **returns what you threw away** to your doorstep.
 * **8 environmental manipulation mechanics** (doors, lights, turned objects, Veil obstructions, mimic route changes,
   effigies, temporary openings, animals turning) through a **restoration ledger**: recorded, locked, reload-safe,
   dupe-proof, and the player's own changes always win.
 * **Bounded memory** of each player: breadcrumbs, home, familiar routes, habits, a favoured bearing.
-* **Progression**: 22 discoveries written in the Field Notes; Tally Chalk, Witness Lens, Ward Lantern, Vestiges; the
-  Vigil as the long-term goal; three post-ending modes.
+* **Progression**: 23 discoveries written in the Field Notes; Tally Chalk, Witness Lens, Ward Lantern, Vestiges, and
+  the **Flare** (thrown; its glare drives it off within 16 blocks, even mid-attack); the Vigil as the long-term goal;
+  three post-ending modes.
 * **Config Wheel**: one item for status, a harmless *See it now* preview of the creature and all its animations,
   start-now, presets (Atmosphere / Standard / Relentless), every individual setting (frequency, aggression,
-  manipulation, sudden scares, camera effects, captions, grace period), a toggle per encounter type, *Test an
-  encounter*, and *Undo its changes*.
-* **39 original synthesized sounds**, 9 particles (two from user-supplied sprite sheets), 3 fogs, original item and
+  manipulation, sudden scares, camera effects, captions, grace period, and on/off switches for each 1.0.5 feature), a
+  toggle per encounter type, *Test an encounter*, and *Undo its changes*.
+* **42 original synthesized sounds**, 10 particles (two from user-supplied sprite sheets), 3 fogs, original item and
   block art.
+* **No experiments**: stable script APIs only; verified on a fresh world with every experiment toggle off.
 
 ## Documentation
 | Document | Contents |
 |---|---|
 | [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md) | installing, tools, settings, accessibility, multiplayer, removal |
 | [docs/DESIGN.md](docs/DESIGN.md) | identity, rules, systems, manipulation specs, director, signature encounters |
-| [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md) | the encounter library (19 implemented, 17 planned) |
+| [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md) | the encounter library (22 implemented, 17 planned) |
 | [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) | architecture, adding encounters, testing, tuning |
 | [docs/FEATURE_MATRIX.md](docs/FEATURE_MATRIX.md) | feature → files → trigger → expected → test → status |
 | [docs/TEST_REPORT.md](docs/TEST_REPORT.md) | what was tested, how, and the results; manual in-game procedure |

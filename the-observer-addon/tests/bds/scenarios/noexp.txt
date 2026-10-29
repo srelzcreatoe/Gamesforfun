@@ -1,0 +1,24 @@
+# No experiments: a fresh world with every experiment toggle off and no test kit (run without --testkit).
+# The add-on's scripts must load and run on the stable APIs, and every entity, item, block and recipe
+# must load without a content-log error. Afterwards the harness checks level.dat has no experiments.
+wait 5
+cmd scriptevent observer:trace on
+expect trace on 30
+cmd scriptevent observer:status
+expect \[Observer\] no player 20
+cmd tickingarea add circle 0 0 0 2 noexp_area true
+wait 6
+cmd summon observer:the_observer 0 200 0
+cmd summon observer:shadow 2 200 0
+cmd summon observer:flare 4 200 0
+wait 3
+cmd scriptevent observer:debug on
+expect debug on 20
+cmd scriptevent observer:preset relentless
+expect preset relentless 20
+cmd scriptevent observer:preset standard
+expect preset standard 20
+cmd kill @e[type=observer:the_observer]
+cmd kill @e[type=observer:shadow]
+cmd kill @e[type=observer:flare]
+wait 3

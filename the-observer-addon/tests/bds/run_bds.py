@@ -170,6 +170,8 @@ def main():
     ap.add_argument("--gamemode", default="survival")
     ap.add_argument("--difficulty", default="normal")
     ap.add_argument("--no-addon", action="store_true", help="baseline run with only the test kit")
+    ap.add_argument("--require-no-experiments", action="store_true",
+                    help="fail if the world's level.dat has any experiment toggled on (before or after the run)")
     a = ap.parse_args()
 
     bds = os.path.abspath(a.bds)
@@ -201,9 +203,19 @@ def main():
         exp["experiments_ever_used"] = (leveldat.TAG_BYTE, 1)
         exp["saved_with_toggled_experiments"] = (leveldat.TAG_BYTE, 1)
     root["experiments"] = (leveldat.TAG_COMPOUND, exp)
+    exp_failures = []
+
+    def experiments_on(where):
+        _, _, r = leveldat.load(os.path.join(wdir, "level.dat"))
+        e = r.get("experiments", (leveldat.TAG_COMPOUND, {}))[1]
+        on = sorted(k for k, (t, v) in e.items() if t == leveldat.TAG_BYTE and v)
+        print(f"[harness] level.dat experiments {where}: {on or 'none'}")
+        if a.require_no_experiments and on:
+            exp_failures.append(f"experiments on {where}: {', '.join(on)}")
     root["cheatsEnabled"] = (leveldat.TAG_BYTE, 1)
     root["commandsEnabled"] = (leveldat.TAG_BYTE, 1)
     leveldat.save(os.path.join(wdir, "level.dat"), ver, name, root)
+    experiments_on("before the run")
 
     s = Server(bds, a.log)
     failures = []
@@ -237,6 +249,8 @@ def main():
             else:
                 failures.append(f"bad scenario line: {line}")
     s.stop()
+    experiments_on("after the run")
+    failures += exp_failures
 
     errors = []
     for line in s.lines:

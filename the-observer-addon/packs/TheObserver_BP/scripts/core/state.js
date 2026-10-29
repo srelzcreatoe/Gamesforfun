@@ -158,6 +158,16 @@ export function now() {
  * @property {boolean} welcomed    first-join message (and Config Wheel for operators) shown
  * @property {number} lungeAt      clock of its last lunge at this player
  * @property {number} nearStrikeAt clock of its last strike because the player came too close
+ * @property {Record<string,number>} [escapes] how often each way out was used (observer/learn.js)
+ * @property {Record<string,number>} [escapeAt] clock of the last use of each way out
+ * @property {string} [adapt]      the way out it has adapted to ("" = none)
+ * @property {Record<string,number>} [tally] lifetime counts (mined, doors, sleep, turns, walk ...)
+ * @property {number} [lastSleep]  time of day the player last went to sleep
+ * @property {any[]} [its]         pages in another hand [key, args, clock, day, variant]
+ * @property {number} [itsAt]      clock of the next allowed page
+ * @property {number} [itsUnread]
+ * @property {number} [hushAt]     clock of the last silence
+ * @property {number} [returnAt]   clock before which nothing is returned
  * @property {number} [followAt]   pending dimension follow-up (clock)
  * @property {number[]} [followFrom] [dim,x,y,z] where the player left/arrived
  */

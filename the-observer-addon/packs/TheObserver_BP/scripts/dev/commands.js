@@ -29,6 +29,11 @@ import { primaryHaunt, dominantHabit, routeFamiliarity } from "../observer/memor
 import { openSettings, openJournal, showLater } from "../ui/forms.js";
 import { validateWards } from "../progression/items.js";
 import { animalsFace } from "../world/manipulate.js";
+import * as flare from "../progression/flare.js";
+import * as learn from "../observer/learn.js";
+import * as hush from "../observer/hush.js";
+import * as pages from "../observer/pages.js";
+import * as returns from "../observer/returns.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
 
@@ -44,6 +49,7 @@ export function status(p) {
     `§7 memory: haunt ${h ? V.str(h.center) : "-"} habit ${dominantHabit(p) ?? "-"} route ${routeFamiliarity(p)} crumbs ${s.crumbs.length} bearing ${s.bearing || "-"} attn ${s.attn.toFixed(2)}`,
     `§7 world: active ${enc ? `${enc.def.id}#${enc.id}` : "-"} body ${body.exists() ? "yes" : "no"} ledger ${ledger.count()} wards ${W.wards.length} preset ${S().preset}`,
     `§7 recent: ${s.hist.slice(-5).map((x) => `${x[0]}:${x[2]}`).join(" ") || "-"}`,
+    `§7 learned: ${s.adapt || "-"} ${JSON.stringify(s.escapes ?? {})} pages ${s.its?.length ?? 0} quiet ${hush.isSilenced(p.id) ? "yes" : "no"} flares ${flare.active()}`,
   ].join("\n");
 }
 
@@ -108,6 +114,63 @@ export function run(name, args, caller) {
       if (!p) return "no player";
       return illusions.spawnFor(p, { force: true }) ? `shadow placed for ${p.name}` : "no place for a shadow";
     }
+    case "flare": {
+      // flare [dist] [player]: light a flare on the ground this many blocks ahead of the player (default 3)
+      const p = pick(1);
+      if (!p) return "no player";
+      const d = Number(args[0]) || 3;
+      const at = V.add(p.location, V.scale(V.flat(p.getViewDirection()), d));
+      return flare.igniteAt(p, { x: at.x, y: p.location.y + 0.2, z: at.z }) ? `flare lit ${d} blocks ahead of ${p.name}` : "no flare";
+    }
+    case "learn": {
+      // learn <method> [times] [player]: count a way out (tests)
+      const p = pick(2);
+      if (!p || !learn.METHODS.includes(args[0])) return `usage: learn <${learn.METHODS.join("|")}> [times] [player]`;
+      for (let i = 0; i < (Number(args[1]) || 1); i++) learn.note(p, args[0]);
+      return `${p.name}: escapes ${JSON.stringify(ps(p).escapes)} adapt=${ps(p).adapt || "-"}`;
+    }
+    case "unlearn": {
+      const p = pick(0);
+      if (!p) return "no player";
+      ps(p).escapes = {};
+      ps(p).escapeAt = {};
+      ps(p).adapt = "";
+      markPlayerDirty(p);
+      return `${p.name}: escapes cleared`;
+    }
+    case "page": {
+      // page [key] [player]: write one of its pages now
+      const p = pick(1);
+      if (!p) return "no player";
+      ps(p).notesGiven = true;
+      const k = args[0] && args[0] !== "any" ? pages.write(p, { key: args[0] }) : pages.write(p);
+      return k ? `${p.name}: page ${k}` : "no page fits";
+    }
+    case "tally": {
+      // tally <key> <n> [player]
+      const p = pick(2);
+      if (!p) return "no player";
+      const s = ps(p);
+      if (!s.tally) s.tally = {};
+      s.tally[args[0]] = Number(args[1]) || 0;
+      markPlayerDirty(p);
+      return `${p.name}: tally ${JSON.stringify(s.tally)}`;
+    }
+    case "hush": {
+      // hush [seconds] [player]: a false-alarm silence (tests)
+      const p = pick(1);
+      if (!p) return "no player";
+      hush.begin(p, "", now(), { seconds: Number(args[0]) || 10, falseAlarm: true, test: true });
+      return `${p.name}: quiet`;
+    }
+    case "returnnow": {
+      const p = pick(0);
+      if (!p) return "no player";
+      return returns.returnNow(p) ? "returned" : `nothing to return (tracked ${returns.tracked(p.id)})`;
+    }
+    case "hushmode":
+      DEBUG.hush = args[0] === "real" || args[0] === "false" ? args[0] : "auto";
+      return `hush ${DEBUG.hush}`;
     case "nearstrike":
       DEBUG.nearStrike = args[0] === "always" || args[0] === "never" ? args[0] : "auto";
       return `near strike ${DEBUG.nearStrike}`;

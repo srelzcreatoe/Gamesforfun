@@ -94,7 +94,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 56 test groups (including setup and a status check) with 218 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 65 test groups (including setup and a status check) with 269 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -116,7 +116,11 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | 9 (1.0.2) | 193 | 0 | all passed, including the creature update (eyes, vanish, peeking, lunge, Closer Each Time) with the animal and test-isolation fixes |
 | targeted (1.0.4: relentless attack, too close, taiga shadows, peek only from cover) | 55 + 42 + 18 | 4 + 4 + 0 | first passes: the encounter's long internal wait delayed the end of a too-close reaction (waits are now interruptible every 5 ticks); the test world's arena is itself a taiga, so "none outside taiga" was re-tested in a distant frozen-ocean area (this server has no `/fillbiome`); shadows were placed on the real terrain 63 blocks below the sky arena (they now prefer the player's height); a peek check ran where test trees stood ahead; a too-close test stopped short of the varying trigger distance |
 | 10 (1.0.4, first full run) | 212 | 6 | *Borrowed Work* cut short by the too-close reaction, an *Echo Ahead* spot far below the platform, the *Closed Path* escape rule (see §7), and a peek test seen by a leftover second player — all fixed; re-runs 69 / 71 then 12 / 12 |
-| **final (1.0.4)** | **218** | **0** | all passed, including the relentless attack, too-close reaction, taiga shadows and cover-only peeking |
+| final (1.0.4) | 218 | 0 | all passed, including the relentless attack, too-close reaction, taiga shadows and cover-only peeking |
+| targeted (1.0.5: flare, learning, silence, pages, signs, inside, borrowed eyes, returns + regressions) | 57 + 65 | 4 + 1 | flare mid-attack did not end the attack, then its outcome was overwritten; the sign floor check used an API that does not exist; *It's Inside* had no room in a small house; one test lit its flare out of range (all in §7) |
+| 11 (1.0.5, first full run) | 252 | 7 | the old *While You Slept* effigy draw (§7); the new tests run after all the old ones: a second player left parked in view of the test house (the add-on rightly refused to put up a sign or return an item where someone could watch), a torch left burning in the house by an earlier test (so the room was not dark — again correct), a flare still burning when the next test's creature arrived (it was driven off at once — correct), and a flinch that put it out of the next test flare's reach. The tests now clear the house and park other players far away |
+| house sequence (1.0.5, the 15 house tests in suite order) | 60 + 59 | 2 + 4 | the leftover torch, then the escape-count fading bug (§7) |
+| **final (1.0.5)** | **269** | **0** | all passed: the 1.0.4 suite plus the Flare, escape learning, the silence, its pages, signs, *It's Inside*, *Borrowed Eyes* and returned items |
 
 Run 7 (1.0.1): 1080 s, minimum TPS 19.8, 0 errors; after the version bump to 1.0.1, `setup wheel_welcome showcase
 toggles distant_watch status` was re-run: 19 / 19.
@@ -129,7 +133,16 @@ compare the Eye count before and after). The full suite was not repeated for 1.0
 
 Run 9 (1.0.2): 1105 s, minimum TPS 19.9, 0 errors.
 
-Final run (1.0.4): 1060 s, minimum TPS between tests 19.2, **0 content-log or script errors**.
+Final run (1.0.4): 1060 s, minimum TPS between tests 19.2, 0 content-log or script errors.
+
+Final run (1.0.5): 65 test groups, 1449 s, minimum TPS between tests 20.0, **0 content-log or script errors**.
+
+**No experiments (1.0.5):** `noexp.txt` without the test kit on a fresh world, `--require-no-experiments`:
+`level.dat` experiments **none** before and after the run; the add-on's scripts ran on the stable APIs (status, trace,
+debug and preset commands answered); `observer:the_observer`, `observer:shadow` and `observer:flare` were summoned
+and removed; every item, block and recipe loaded; **0 content-log or script errors** (26 s). By contrast, the test kit
+cannot load without the *Beta APIs* experiment (the server says so on the first boot of every `--testkit` world) —
+which is why only test worlds get it.
 
 ### 5.2 Final run by area
 
@@ -189,6 +202,15 @@ Final run (1.0.4): 1060 s, minimum TPS between tests 19.2, **0 content-log or sc
 | `near_strike` | 2 | — |
 | `illusion` | 6 | — |
 | `illusion_taiga` | 2 | — |
+| `flare` | 10 | — |
+| `flare_mid_attack` | 3 | — |
+| `learning` | 9 | — |
+| `hush` | 6 | — |
+| `pages` | 4 | — |
+| `sign` | 6 | — |
+| `inside` | 5 | — |
+| `borrowed_eyes` | 4 | — |
+| `returns` | 4 | — |
 | `natural` | 1 | — |
 | `status` | 0 | — |
 
@@ -227,6 +249,16 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
 8. **Natural play** — `/observer:preset standard`, play 40–60 minutes normally (building, a cave, a night). Expect nothing
    during the 12-minute grace period, then an encounter every few minutes (2.5–5 min apart at stage 1, shorter at night
    and underground), with a longer quiet stretch every 3–5 encounters. Then `/observer:restore` and confirm no Veil/Effigy blocks remain.
+9. **1.0.5 additions** (Config Wheel → Test an encounter, Survival): **The Flare** — throw it near the staring figure:
+   the flare flies like a snowball, burns with a white hissing glare and lights the area, and the figure recoils and
+   tears apart; craft one (glowstone dust + gunpowder + paper → 8). **The world goes quiet** — with music playing, the
+   music stops and a faint high ringing rises; after 20 s your music comes back on the game's schedule. **A page you
+   didn't write** — a scratching sound, a message, then Field Notes → *Pages I didn't write* shows it. Stand still 4–5
+   minutes in a house with a door to make it your home, then test **Signs** (a sign by the door with readable text,
+   facing the door), **It returns what you threw away** (drop an item, walk 10 blocks: a knock, the item outside the
+   door), **It's Inside** at night with the torches out (it is in a dark corner behind you; a torch or a 2 s stare
+   sends it away), and **Borrowed Eyes** facing a cow or villager (it stops and its head follows you). Finally
+   `/scriptevent observer:learn light 3` and check Field Notes → *What I have learned*.
 
 ## 7. Bugs found and fixed
 
@@ -271,6 +303,26 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
   handles the approach itself; spots far below the player's level are penalised (an *Echo Ahead* spot landed 64
   blocks below the test platform).
 
+**Found by the 1.0.5 tests**
+* A Flare thrown mid-attack stopped the damage but not the attack: strikes delivered back to back never passed through
+  `enc.wait()`, so an abort was never noticed and the creature kept winding up (no damage, because of the new
+  `repelled` flag) until the attack timed out. The same loop could keep a stopped encounter alive in other ways (a dead
+  or departed target). The attack loop now checks for an abort before every strike (`flare_mid_attack_ends_it`).
+* After that fix the flare ended the attack but the outcome read "struck": the attack loop recorded its last strike as
+  it unwound, overwriting *flared*, so it would have learned the wrong lesson. An aborted encounter's outcome can no
+  longer be overwritten.
+* *Signs* never found a spot: the floor check used `Block.isSolid`, which does not exist in `@minecraft/server` 2.10.0
+  (the call failed silently inside `safe()`). It now uses the same floor rules as effigies (`sign_placed`).
+* Escape learning could miss its third use: every count faded a little each minute, so three escapes a few minutes
+  apart added up to 2.99 and it never adapted (seen when the learning test ran late in a long sequence). Counts now
+  stay whole while a way out is in use and only fade after 20 minutes unused.
+* *While You Slept* sometimes staged no effigy: the effigy spot is drawn at random within 2 blocks of the bed and was
+  given up when the draw landed on the player's own cell (an old bug; it had passed by chance in every earlier full
+  run). Occupied cells are now skipped and another spot is drawn (`night_visit_staged`).
+* *It's Inside* could not appear in a small room once the player faced the far corner (spots had to be 4.5+ blocks
+  away). Spots may now be 3+ blocks away, and the room-sized too-close distance is always shorter than where it stands,
+  so it never vanishes the moment it arrives (`inside_leaves_when_lit`).
+
 **Found by loading the pack in a game client (reported by the user)**
 * An empty `animations` list in a controller state and object-valued client-entity `sound_effects` (see §1.1).
 * A strike at point-blank range could "miss" because direction is meaningless at 0.4 blocks → in-front test skipped
@@ -306,4 +358,9 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
 * Escapes from the pursuit by out-running it 48+ blocks or by outlasting its 35-second limit (the arena is too small);
   the water escape is tested.
 * The sleep trigger of *While You Slept* (simulated players cannot sleep; the encounter itself is tested).
+* 1.0.5: what the silence sounds like (the server accepted every `playMusic` / `stopMusic` call; whether the game's own
+  music resumes promptly afterwards is up to the client), the flare's sprite, glare and sounds, the rendered sign text,
+  the "Pages I didn't write" and "What I have learned" forms, and the shore-wait, from-behind, outrun, double-seal,
+  lens and blow adaptations individually (they share the asserted code paths: counting, adapting, `shrug`, thresholds).
+* Crafting a Flare in the crafting UI (the recipe loads without errors; the recipe book needs a client).
 * Phones, consoles, low-end devices, and Realms.

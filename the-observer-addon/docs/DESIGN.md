@@ -63,6 +63,8 @@ Stored as JSON in the player's dynamic properties (`core/state.js`), all derived
 | Attentiveness | 0..1 EMA | noticed vs. ignored encounters | context for future tuning; shown in `/observer:status` |
 | Favoured bearing | one angle + distance | assigned on first use | the "always the same place" tell |
 | Encounter history | 12 entries + per-type timestamps | every encounter | anti-repetition, cooldowns |
+| Lifetime tallies | ~12 counters | blocks mined/chopped/dug, lights placed, doors, chests, meals, creatures hurt, nights slept (and the time), sharp looks behind, blocks walked | the pages it writes (1.0.5) |
+| Ways out | 8 decaying counters + the one it adapted to | how each dangerous encounter ended | escape learning (1.0.5) |
 
 "It learns your habits" therefore means, concretely: it borrows the sound of whatever you have done most recently and
 most often, plays it from where you last did it, visits the 16×16 area where you spend the most time, alters routes
@@ -89,7 +91,15 @@ you have walked at least three separate times, and takes your light more often i
 6. **It announces itself.** A chime precedes its arrival at the predicted place; a hum precedes any danger.
 7. **It does not destroy.** All its block changes are recorded and reversible (§8).
 8. **It cannot be killed.** It takes no damage; blows and the Witness Lens make it recoil and withdraw, and enough
-   pressure (3 blows/lens uses) buys a 15-minute withdrawal.
+   pressure (3 blows/lens uses) buys a 15-minute withdrawal. A burning **Flare** within 16 blocks drives it off
+   outright — even mid-attack.
+9. **It learns how you escape (1.0.5).** The way each dangerous encounter ends is counted; after the same way three
+   times it adapts to that one way (light → it snuffs your lights first and needs more; water → it waits at the
+   shore; gaze → it comes from behind and must be stared at longer; lens/hit/flare → the first in an encounter only
+   makes it flinch; outrun → it follows further; veil → a double seal). One adaptation at a time, so there is always a
+   way out; it wears off when the player changes habits. It says what it learned in the Field Notes.
+10. **It announces danger with silence (1.0.5).** From stage 4 its dangerous encounters are preceded by 20–30 s in
+   which the player's music stops and a faint ringing rises; one time in four nothing follows.
 
 ## 4. The body (supplied model integration)
 
@@ -243,10 +253,15 @@ All block changes go through the **ledger** (§8). Intensity is set by the *Envi
 | M5 | **Mimic route** (`placeMimic`) | familiar route made unfamiliar | unfamiliar_route; level ≥ 2 | ≤ 10 cells, 8–14 blocks behind on a route walked ≥ 3 times | natural blocks imitating the surroundings (stone, deepslate, dirt…) placed into air only | — | reverts ~2.5 min after the encounter | the way back is wrong → dig through | shared | mining it is cancelled and the block removed without drops | `unfamiliar_route` test |
 | M6 | **Effigy** (`placeEffigy`) | staged evidence, a calling card | home_visit, close_breath, borrowed_sound, night_visit; level ≥ 1 | 1 per encounter, floor cell near the scene | custom `observer:effigy` block facing the player | — | crumbles after 45 min if unbroken | find it → break it for a Vestige | shared (any player can claim it) | removed on expiry; loot-free, Vestige granted once by script | `home_visit` test |
 | M7 | **Carve** (`carve`) | "is that opening different?" | unfamiliar_route; level 3 only | a 1-wide, 2-high, up to 2-deep opening in a natural wall face beside the path, 4–10 blocks away, out of view (never the floor) | natural blocks → air | — | reverts ~2.5 min after the encounter | a new opening → notice it | shared | restored only if the space is still empty (a player's later block wins) and nobody stands in it | `carve_opening_made`, `carve_restored` |
+| M9 | **Signs** (`encounters/sign.js`, 1.0.5) | "it was here" | sign encounter, stage 3+, level ≥ 1 | 1 sign, an empty floor cell beside the bed or a door of the home, out of everyone's sight | a waxed oak standing sign (`ground_sign_direction` toward the bed/door) with a short text: the player's name, the time they last slept, "I was here"… | — | removed after 20 min; at most every 60 min | find it → read it / break it | shared | breaking it is cancelled and the cell emptied (no drop); Undo removes it | `sign_*` tests |
 | M8 | **Animals turn** (`animalsFace`) | entity interaction tell | distant_watch at stage ≥ 2 (30%) | ≤ 12 passive mobs within 24 blocks | rotation only, for 8 s | — | per encounter | look where they look | shared | nothing to clean | code review (not separately asserted) |
 
 Additional non-block manipulation: personal fog (`observer:dread`, `dread_soft`, `vigil`), camera fades/shakes
-(camera setting), and the vigil's optional world-wide rain (global, announced).
+(camera setting), the vigil's optional world-wide rain (global, announced), per-player music silence (1.0.5),
+**returned items** (1.0.5: an item entity the player threw away is teleported — never copied — to the outside of their
+door), and **borrowed eyes** (1.0.5: one creature is held still with heavy slowness and turned to follow the player
+for 7–11 s, then released). The Flare's light block is the player's own change, recorded in the ledger (kind
+`flare`, owner −1) only so that it is removed when the flare burns out; it never smudges chalk marks.
 
 ## 8. Keeping the world safe (`world/ledger.js`)
 
@@ -329,7 +344,8 @@ All 18 implemented encounters and 17 further concepts are catalogued in [ENCOUNT
   *Tally Chalk* (mark up to 8 spots; a mark smudges and tells you when it changes anything within 4 blocks);
   *Witness Lens* (spyglass + 2 Vestiges + amethyst shard: makes it recoil and withdraw, or reveals its trails and
   effigies when there is nothing to hold; 20 s cooldown); *Ward Lantern* (lantern + 2 Vestiges: it will not stand or
-  change blocks within 12 blocks).
+  change blocks within 12 blocks); *Flare* (glowstone dust + gunpowder + paper → 8: thrown, burns 8 s with real light;
+  drives it off within 16 blocks, even mid-attack; consumed).
 * **The Vigil** (`encounters/vigil.js`) — the achievable long-term objective. With 12 pages and a Witness Lens, at
   night, near the place you return to most, the Field Notes offer to keep the vigil. Three rounds: it rearranges the
   grounds (lights, a door, Veil screens breaking sightlines) and hides; a chime gives the direction; hold it in the lens
@@ -359,16 +375,33 @@ All 18 implemented encounters and 17 further concepts are catalogued in [ENCOUNT
 
 Independent controls (operators, Field Notes → Settings or `/observer:settings`): enabled, frequency 25–200 %,
 aggression 0–3, manipulation 0–3, sudden scares 0–2 (≤ 1 sting per 25/15 min), camera 0–2 (none / fades only / fades +
-shakes), caption default, grace minutes, world-wide weather, developer tracing. Peaceful difficulty forces aggression 0.
-Strike damage is capped: above half health a strike cannot take more than 70 % of current health.
+shakes), caption default, grace minutes, world-wide weather, developer tracing, and (on by default) taiga shadows, escape
+learning, the silence before attacks, pages you didn't write, returned items. Peaceful difficulty forces aggression 0.
+On Low aggression a strike is capped: above half health it cannot take more than 70 % of current health, and it
+strikes once; on Standard and High it keeps attacking (§3.4).
 
 ## 14. Audio
 
-All 39 sound files are original, synthesized by `tools/synth_sounds.py` (no samples) — including its own voice,
+All 42 sound files are original, synthesized by `tools/synth_sounds.py` (no samples) — including its own voice,
 arrival, notice, shriek and vanish sounds: heavy cloth-and-weight footsteps
 (4 variants), the hum (detuned 46/47.3/69.5 Hz drone with a swell), the tell (an inharmonic, tuning-fork-like chime),
 breath (band-passed exhale), cloth rustles, knocks, snuff, wind-up/strike/whiff, the sting (a dissonant swell, cut
 short — not a scream), the seal, the arrival, chalk, the discovery scribble-and-bell, the lens shimmer, effigy crumble,
-the vigil drone with bells, stone scrape, sinking bubbles, and a quiet tinnitus ring. Borrowed sounds and matched
+the vigil drone with bells, stone scrape, sinking bubbles, a quiet tinnitus ring, and (1.0.5) *silence* — a 30 s
+looping music track that is almost nothing, a faint 7.35 kHz ringing that rises out of silence — and *scrawl*, hard
+pencil strokes for a page written in another hand. The Flare uses vanilla sounds (`random.bow` to throw,
+`firework.blast` and `random.fuse` as it lights and hisses, `random.fizz` as it dies). Borrowed sounds and matched
 footsteps intentionally use vanilla sound events (`dig.*`, `step.*`, `random.door_*`, `random.chest*`…), because the
 point is that they are *your* familiar sounds.
+
+## 15. Its own hand: pages, signs, returned things, borrowed eyes, inside (1.0.5)
+
+These make it personal without making it louder. Each is rare by design and can be switched off.
+
+| Feature | Stage | At most | Built from | Off switch |
+|---|---|---|---|---|
+| **Pages you didn't write** (`observer/pages.js`) | 2+ | one per in-game day; never during an encounter | the lifetime tallies, sightings, deaths, home coordinates, what it learned; darker text from stage 4 | setting *Pages you didn't write* |
+| **Signs** (`encounters/sign.js`) | 3+ | every 60 min (3 in-game days) | the player's name, last sleep time, sightings | encounter toggle *Signs* |
+| **It returns what you threw away** (`observer/returns.js`) | 2+ | once per in-game day | an item the player dropped by hand 24+ blocks from home and from themselves, 45 s+ ago | setting *It returns what you threw away* |
+| **Borrowed eyes** (`encounters/borrowed_eyes.js`) | 2+ | every 10 min | a creature 6–24 blocks ahead in view | encounter toggle *Borrowed Eyes* |
+| **It's inside** (`encounters/inside.js`) | 4+ | every 60 min (3 in-game nights) | the darkest spot (light ≤ 7) of the player's own roofed room at night; leaves on light, a 2 s stare, or approach | encounter toggle *It's Inside* |

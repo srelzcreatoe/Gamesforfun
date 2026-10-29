@@ -56,9 +56,12 @@ Made by the user, who confirmed they own them (2026-10-28). Preserved unmodified
 | `TheObserver_RP/sounds/observer/presence1.ogg` | original — synthesized by tools/synth_sounds.py | `dd69ad05946ca09f` |
 | `TheObserver_RP/sounds/observer/presence2.ogg` | original — synthesized by tools/synth_sounds.py | `03b64de34ad46373` |
 | `TheObserver_RP/sounds/observer/ring.ogg` | original — synthesized by tools/synth_sounds.py | `ff2eeaac0253cdaa` |
+| `TheObserver_RP/sounds/observer/scrawl1.ogg` | original — synthesized by tools/synth_sounds.py | `8bdb8613f7b7d5a8` |
+| `TheObserver_RP/sounds/observer/scrawl2.ogg` | original — synthesized by tools/synth_sounds.py | `72cef7508d25c4de` |
 | `TheObserver_RP/sounds/observer/seal.ogg` | original — synthesized by tools/synth_sounds.py | `ccb32fcda6aecd81` |
 | `TheObserver_RP/sounds/observer/shriek1.ogg` | original — synthesized by tools/synth_sounds.py | `3ecbff34de5f20e8` |
 | `TheObserver_RP/sounds/observer/shriek2.ogg` | original — synthesized by tools/synth_sounds.py | `504717baa781dde9` |
+| `TheObserver_RP/sounds/observer/silence.ogg` | original — synthesized by tools/synth_sounds.py (a near-silent looping music track) | `592cf63dbcb8d32c` |
 | `TheObserver_RP/sounds/observer/sink.ogg` | original — synthesized by tools/synth_sounds.py | `6c6e7fea42343da7` |
 | `TheObserver_RP/sounds/observer/snuff.ogg` | original — synthesized by tools/synth_sounds.py | `e83b2133ae9b3786` |
 | `TheObserver_RP/sounds/observer/step1.ogg` | original — synthesized by tools/synth_sounds.py | `63a56e276d623455` |
@@ -86,6 +89,7 @@ Made by the user, who confirmed they own them (2026-10-28). Preserved unmodified
 | `TheObserver_RP/textures/items/observer/chalk.png` | original — drawn by tools/make_textures.py | `61c5f11bc4336204` |
 | `TheObserver_RP/textures/items/observer/config_wheel.png` | original — drawn by tools/make_textures.py | `f37c7dd0b7558917` |
 | `TheObserver_RP/textures/items/observer/field_notes.png` | original — drawn by tools/make_textures.py | `870cc046d4176aee` |
+| `TheObserver_RP/textures/items/observer/flare.png` | original — drawn by tools/make_textures.py (also the thrown flare's sprite) | `9e35e36dc571b6c8` |
 | `TheObserver_RP/textures/items/observer/observers_eye.png` | original — drawn by tools/make_textures.py | `dddd6404d452a15d` |
 | `TheObserver_RP/textures/items/observer/vestige.png` | original — drawn by tools/make_textures.py | `0b3414b3e07abde5` |
 | `TheObserver_RP/textures/items/observer/ward_lantern.png` | original — drawn by tools/make_textures.py | `3d78ffae2fbff70c` |
@@ -110,6 +114,9 @@ Made by the user, who confirmed they own them (2026-10-28). Preserved unmodified
 ## Vanilla references
 
 Matched footsteps and "borrowed" work sounds call vanilla Bedrock sound events by name (`step.*`, `dig.*`, `use.*`,
-`random.door_open/close`, `random.chestopen/closed`, `random.eat`, `random.bow`, `random.wood_click`, `game.player.hurt`).
+`random.door_open/close`, `random.chestopen/closed`, `random.eat`, `random.bow`, `random.wood_click`, `game.player.hurt`);
+the Flare uses `random.bow`, `firework.blast`, `random.fuse` and `random.fizz`; the taiga shadows `ambient.cave`.
+The thrown flare's client entity uses the vanilla `geometry.item_sprite`, `controller.render.item_sprite`,
+`animation.actor.billboard` and `snowball` material by reference, exactly as the vanilla snowball does.
 No vanilla audio files are copied into the packs. Block identifiers used by the scripts were checked against
 `@minecraft/vanilla-data` 1.26.52 (141 identifiers, see `tools/validate.mjs`).

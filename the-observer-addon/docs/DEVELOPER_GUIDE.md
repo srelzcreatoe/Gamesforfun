@@ -7,6 +7,7 @@ the-observer-addon/
 ├── packs/
 │   ├── TheObserver_BP/            behaviour pack (shipped)
 │   │   ├── entities/the_observer.json     body: properties, modes, physics
+│   │   ├── entities/shadow.json  flare.json  taiga shadow; the thrown flare (projectile)
 │   │   ├── blocks/                        veil, effigy, ward_lantern
 │   │   ├── items/  recipes/  loot_tables/
 │   │   └── scripts/                       all game logic (ES modules, @minecraft/server 2.10.0)
@@ -15,7 +16,7 @@ the-observer-addon/
 │       ├── animations/the_observer.animation.json      supplied clips (namespaced copy)
 │       ├── animations/the_observer_supplemental.animation.json   stalk_walk, peek, recoil, stoop, look_at_target
 │       ├── animation_controllers/  entity/  render_controllers/
-│       ├── sounds/ (39 original .ogg + definitions)  particles/  fogs/  textures/  texts/
+│       ├── sounds/ (42 original .ogg + definitions)  particles/  fogs/  textures/  texts/
 ├── source_assets/supplied/        the ZIP's contents, untouched, with SHA256SUMS.txt
 ├── tools/                         asset pipeline, validator, packager, offline renderer
 ├── tests/bds/                     dedicated-server harness + GameTest test kit (dev only)
@@ -36,7 +37,13 @@ the-observer-addon/
 | `world/ledger.js` | recorded, reversible block changes; break/interact/scan handling; persistence |
 | `world/manipulate.js` | the manipulation mechanics M1–M8 |
 | `observer/body.js` | the single physical Observer: spawn, state/mode, facing, stoop, eye-glow flag, auto-peek, strike, withdraw, vanish, strays |
-| `observer/memory.js` | breadcrumbs, haunts, route familiarity, habits, attentiveness |
+| `observer/memory.js` | breadcrumbs, haunts, route familiarity, habits, attentiveness, lifetime tallies |
+| `observer/illusions.js` | taiga shadows (`observer:shadow`), vanish on look |
+| `observer/learn.js` | escape learning: counts ways out, adapts to one, `shrug` / `lightBonus` / `holdFactor` / `outrunBonus` |
+| `observer/hush.js` | the silence before dangerous encounters (per-player music) |
+| `observer/pages.js` | pages in another hand, built from tracked numbers |
+| `observer/returns.js` | items thrown away, returned to the doorstep |
+| `progression/flare.js` | the Flare: throw, light block, glare, burn-out |
 | `director/context.js` | per-player situation snapshot |
 | `director/encounter.js` | the runtime object passed to encounter scripts |
 | `director/director.js` | scheduling, selection, multiplayer fairness, bookkeeping, recovery |
@@ -81,7 +88,9 @@ python3 tests/bds/run_bds.py --bds /path/to/bedrock-server --testkit --fresh \
 ```
 
 Scenarios: `load.txt` (packs load cleanly), `proto.txt` (capability probes), `speed.txt` (movement calibration),
-`suite_smoke.txt`, `suite_full.txt` (all 56 test groups), `suite_extra.txt` (a short subset), `restart_a.txt` +
+`suite_smoke.txt`, `suite_full.txt` (all 65 test groups), `suite_extra.txt` (a short subset), `suite_105.txt` (the
+1.0.5 additions), `house_seq.txt` (every test that uses the arena house, in suite order — they share it), `noexp.txt` (no experiments; run **without** `--testkit` and with `--require-no-experiments`, which
+fails the run if the world's `level.dat` has any experiment on), `restart_a.txt` +
 `restart_b.txt` (interrupted encounter across a server restart), `tps.txt` (tick rate; run once more with `--no-addon`
 for the baseline). Results and the manual client procedure are in [TEST_REPORT.md](TEST_REPORT.md).
 
@@ -89,8 +98,14 @@ The harness patches the **installed test copy** of the BP to import
 `@minecraft/server-gametest` so simulated players are visible to the add-on's script context; the shipped manifest is
 untouched.
 
-With tracing on, the add-on publishes structured events as script events `observer_evt:start|end|discovery|body|ledger|strike|smudge|info`
+With tracing on, the add-on publishes structured events as script events
+`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned`
 that the test kit asserts on. In normal play nothing is emitted.
+
+Test-only dev commands (`/scriptevent observer:<name>`): `flare [dist] [player]` (light a flare ahead),
+`learn <method> [times] [player]`, `unlearn [player]`, `page [key|any] [player]`, `tally <key> <n> [player]`,
+`hush [seconds] [player]` (a false-alarm silence), `hushmode real|false|auto`, `returnnow [player]`, plus the earlier
+`lunge`, `nearstrike`, `illusion`, `timewarp`, `sethaunt`, `set <key> <value>` and `set off a,b,c`.
 
 ## 4. Adding an encounter
 
@@ -160,6 +175,11 @@ Add caption and discovery strings to `packs/TheObserver_RP/texts/en_US.lang`; `n
 | Ward radius, headroom rules | `world/space.js` |
 | Ledger cap | `world/ledger.js` (`MAX_ENTRIES`) |
 | Evidence trail lifetime | `main.js` (`tickTraces`) |
+| Flare radius / burn time | `progression/flare.js` (`RADIUS`, `BURN_TICKS`) |
+| Escape learning threshold and adaptations | `observer/learn.js` (`NEED`, `lightBonus`, `holdFactor`, `outrunBonus`) |
+| Silence length, false-alarm chance, which encounters | `observer/hush.js` (`DANGEROUS`, `FALSE_ALARM`), `begin` |
+| Page spacing and templates | `observer/pages.js` (`GAP`, `TEMPLATES`) |
+| Returned items: age, distance, frequency | `observer/returns.js` (`MIN_AGE`, `MIN_AWAY`), `returnItem` |
 
 ## 7. Persistence formats
 
@@ -183,5 +203,7 @@ Strings are split into 30 000-character chunks (`key`, `key#1`, …). `v` is the
 ## 9. Compatibility
 
 * Target: Minecraft Bedrock 1.26.50+ (`min_engine_version` 1.26.50), tested on Bedrock Dedicated Server 1.26.52.3.
-* Script modules: `@minecraft/server` 2.10.0, `@minecraft/server-ui` 2.2.0 (stable). No experiments required.
+* Script modules: `@minecraft/server` 2.10.0, `@minecraft/server-ui` 2.2.0 (stable). No experiments required:
+  `noexp.txt` loads the add-on on a fresh world with every experiment off and no test kit, and fails on any
+  content-log error or any experiment found in `level.dat`.
 * Namespaces: everything is under `observer:`; the entity is `observer:the_observer`.

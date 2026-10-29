@@ -32,6 +32,7 @@ import { standNear, isReplaceable, coverSide } from "../world/space.js";
  * @property {boolean} dark        eyes glowing (observer:dark)
  * @property {boolean} autoPeek    switch between watch and peek by the cover beside it
  * @property {number} spawnedTick
+ * @property {boolean} [repelled]  driven off (a flare): a strike already winding up does nothing
  */
 
 /** @type {Body|null} */
@@ -246,7 +247,7 @@ export async function strike(target, opts = {}) {
   faceTo(target.getHeadLocation());
   setState("attack");
   await system.waitTicks(12);
-  if (!get() || !target.isValid) return "none";
+  if (!get() || !target.isValid || b.repelled) return "none";
   const o = b.e.location;
   const tl = target.location;
   const fwd = V.fromYaw(b.e.getRotation().y);

@@ -14,7 +14,12 @@ import * as dev from "./dev/commands.js";
 import * as illusions from "./observer/illusions.js";
 import { vigilStatus } from "./ui/forms.js";
 import { openWheel, canConfigure } from "./ui/wheel.js";
-import { give } from "./progression/discoveries.js";
+import { give, discover } from "./progression/discoveries.js";
+import * as flare from "./progression/flare.js";
+import * as learn from "./observer/learn.js";
+import * as hush from "./observer/hush.js";
+import * as pages from "./observer/pages.js";
+import * as returns from "./observer/returns.js";
 
 // encounter library (each file registers itself)
 import "./encounters/distant_watch.js";
@@ -37,6 +42,9 @@ import "./encounters/portal_follow.js";
 import "./encounters/vigil.js";
 import "./encounters/showcase.js";
 import "./encounters/creeping.js";
+import "./encounters/inside.js";
+import "./encounters/sign.js";
+import "./encounters/borrowed_eyes.js";
 import "./encounters/tests.js";
 
 let ready = false;
@@ -62,6 +70,12 @@ function init() {
 ledger.registerEvents();
 illusions.registerEvents();
 memory.registerEvents();
+returns.registerEvents();
+// it writes down what it has learned
+learn.onAdapt((p, method) => {
+  pages.learned(p, method);
+  system.runTimeout(() => safe(() => p.isValid && p.onScreenDisplay.setActionBar({ rawtext: [{ translate: "observer.ui.learned" }] })), 60);
+});
 dev.register();
 body.registerEvents(() => director.activeEncId());
 
@@ -96,17 +110,52 @@ items.registerEvents({
   },
   onLensed: (encId) => {
     const enc = director.running().find((x) => x.id === encId);
-    if (enc) enc.data.lensed = true;
+    if (!enc) return;
+    enc.data.lastRepel = "lens";
+    if (learn.shrug(enc, "lens")) return; // it has learned the lens: this time it only flinches
+    enc.data.lensed = true;
   },
   onBodyHit: (p, encId) => {
     const enc = director.running().find((x) => x.id === encId);
     if (!enc) return;
+    enc.data.lastRepel = "hit";
+    if (learn.shrug(enc, "hit")) return; // it has learned to take a blow: the first one does nothing
     if (enc.def.id === "closed_path" || enc.def.id === "pursuit") enc.data.hit = true;
     else {
       body.setState("recoil");
       enc.result(enc.outcome || "struck_away", true);
       enc.abort("struck");
     }
+  },
+});
+
+// the Flare: its glare drives it off (or, once it has learned flares, makes it flinch back)
+flare.registerEvents({
+  onFlared: (encId, at, owner) => {
+    const b = body.get();
+    if (!b) return;
+    const enc = director.running().find((x) => x.id === encId);
+    if (!enc) {
+      body.despawn("flare");
+      return;
+    }
+    if (learn.shrug(enc, "flare")) {
+      body.setState("recoil");
+      const from = owner?.isValid ? owner.location : at;
+      const g = body.groundNear(enc.dim, V.add(b.e.location, V.scale(V.flat(V.sub(b.e.location, from)), 5)));
+      if (g) body.moveTo(g, enc.p.isValid ? enc.p.getHeadLocation() : undefined);
+      system.runTimeout(() => {
+        if (body.get() === b && b.state === "recoil") body.setState("stare");
+      }, 16);
+      return;
+    }
+    b.repelled = true;
+    body.setMode("still");
+    body.setState("recoil");
+    enc.data.reacting = true;
+    if (owner?.isValid) discover(owner, "light_it_doesnt_make");
+    enc.result("flared", true);
+    enc.abort("flared");
   },
 });
 
@@ -150,6 +199,8 @@ world.beforeEvents.playerLeave.subscribe((ev) => {
   system.run(() => {
     director.abortFor(id, "target_left");
     memory.forget(id);
+    hush.forget(id);
+    returns.forget(id);
     dropPlayer(id);
   });
 });
@@ -214,6 +265,8 @@ system.runInterval(() => {
   }
   safe(() => director.tick());
   safe(() => illusions.tick());
+  if (slowRuns % 5 === 0) safe(() => returns.tick());
+  if (slowRuns % 20 === 0) safe(() => pages.tick(new Set(director.running().map((e) => e.pid))));
   safe(() => ledger.processDue(12));
   if (slowRuns % 2 === 0) {
     safe(() => items.renderMarks());
@@ -230,7 +283,10 @@ system.runInterval(() => {
 
 system.runInterval(() => {
   if (!ready) return;
-  for (const p of allPlayers()) safe(() => memory.decay(p));
+  for (const p of allPlayers()) {
+    safe(() => memory.decay(p));
+    safe(() => learn.decay(p));
+  }
   safe(() => body.sweepStrays(director.activeEncId()));
   safe(() => items.validateWards());
 }, 1200);
@@ -239,9 +295,11 @@ system.runInterval(() => {
   if (ready) safe(() => body.tickPuppets());
 }, 10);
 
-// taiga illusions vanish the instant they are looked at
+// taiga illusions vanish the instant they are looked at; flares fly, burn and glare
 system.runInterval(() => {
-  if (ready) safe(() => illusions.watch());
+  if (!ready) return;
+  safe(() => illusions.watch());
+  safe(() => flare.tick());
 }, 2);
 
 /**
