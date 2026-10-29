@@ -36,5 +36,12 @@ export async function withRenderer(fn, { mounts = {}, page: pageFile = 'page.htm
     fs.writeFileSync(out, Buffer.from(url.split(',')[1], 'base64'));
     return out;
   };
+  /** Contact sheet (page.html only): see window.renderSheet in page.js. */
+  render.sheet = async (sheet, out) => {
+    const url = await page.evaluate(async (S) => { document.body.innerHTML = ''; return window.renderSheet(S); }, sheet);
+    fs.mkdirSync(path.dirname(out), { recursive: true });
+    fs.writeFileSync(out, Buffer.from(url.split(',')[1], 'base64'));
+    return out;
+  };
   try { return await fn(render, page); } finally { await browser.close(); server.close(); }
 }

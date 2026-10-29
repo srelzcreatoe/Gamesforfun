@@ -55,18 +55,41 @@ function entityRoots(root, packs) {
   return roots;
 }
 
+/**
+ * The client entity's render scale, per axis: scripts.scale x scripts.scaleX/scaleY/scaleZ (Bedrock multiplies
+ * them, in the entity's own frame, about its feet). Values are Molang; plain numbers (or numeric strings) are
+ * honoured, anything else counts as 1 with a warning.
+ */
+export function entityScale(d, id = d?.identifier) {
+  const sc = d?.scripts ?? {};
+  const num = (v, key) => {
+    if (v === undefined) return 1;
+    const n = typeof v === 'number' ? v : Number(String(v).trim());
+    if (Number.isFinite(n)) return n;
+    console.warn(`[render] ${id}: scripts.${key} '${v}' is not a constant, rendered as 1`);
+    return 1;
+  };
+  const pick = (axis) => Object.keys(sc).find((k) => k.toLowerCase() === `scale${axis}`);
+  const s = num(sc.scale, 'scale');
+  return ['x', 'y', 'z'].map((a) => { const k = pick(a); return s * (k ? num(sc[k], k) : 1); });
+}
+
 const entityCache = new Map();
-function resolveEntityResources(id, root, packs) {
+export function resolveEntityResources(id, root = ROOT, packs = []) {
   const key = id + '|' + packs.join(',');
   if (entityCache.has(key)) return entityCache.get(key);
   const short = id.includes(':') ? id.split(':')[1] : id;
   const ids = new Set([id, `fnar:${short}`, `fnaf:${short}`]);
+  // the exact identifier wins in any pack; then the fnar:/fnaf: aliases in pack order
   let found = null;
-  for (const R of entityRoots(root, packs)) {
-    for (const f of walk(path.join(R.rp, 'entity'), (p) => p.endsWith('.json'))) {
-      const j = readJ(f);
-      const d = j?.['minecraft:client_entity']?.description;
-      if (d && ids.has(d.identifier)) { found = { R, d, file: f }; break; }
+  for (const want of [new Set([id]), ids]) {
+    for (const R of entityRoots(root, packs)) {
+      for (const f of walk(path.join(R.rp, 'entity'), (p) => p.endsWith('.json'))) {
+        const j = readJ(f);
+        const d = j?.['minecraft:client_entity']?.description;
+        if (d && want.has(d.identifier)) { found = { R, d, file: f }; break; }
+      }
+      if (found) break;
     }
     if (found) break;
   }
@@ -84,7 +107,7 @@ function resolveEntityResources(id, root, packs) {
   if (!texFile) throw new Error(`entity ${id}: texture ${texRel} not found`);
   const eyesRel = Object.entries(d.textures ?? {}).find(([k]) => /eye|glow|emissive/i.test(k))?.[1];
   const animFiles = walk(path.join(R.rp, 'animations'), (p) => p.endsWith('.json'));
-  const res = { id, identifier: d.identifier, rp: R.rp, geoId, geoFile, texFile, texRel, eyesFile: eyesRel ? findImage(path.join(R.rp, eyesRel)) : null, animations: d.animations ?? {}, animFiles };
+  const res = { id, identifier: d.identifier, rp: R.rp, geoId, geoFile, texFile, texRel, eyesFile: eyesRel ? findImage(path.join(R.rp, eyesRel)) : null, animations: d.animations ?? {}, animFiles, scale: entityScale(d) };
   // texture set (MER) for the entity texture
   const setFile = path.join(R.rp, texRel + '.texture_set.json');
   if (fs.existsSync(setFile)) {
@@ -158,7 +181,8 @@ function resolveEntity(spec, root, packs, urlFor) {
     animFile = animName ? all.get(animName) : null;
     if (!animFile) console.warn(`[render_world] entity ${spec.id}: animation '${spec.anim}' not found (have: ${[...all.keys()].filter((k) => k.includes(short)).join(', ')})`);
   }
-  const out = { ...spec, geo: urlFor(res.geoFile), texture: urlFor(res.texFile), anim: animFile ? urlFor(animFile) : null, animName };
+  // spec.scale (scene field) multiplies the client entity's own scaleX/Y/Z
+  const out = { ...spec, geo: urlFor(res.geoFile), texture: urlFor(res.texFile), anim: animFile ? urlFor(animFile) : null, animName, scaleXYZ: res.scale.map((v) => v * (spec.scale ?? 1)) };
   if (res.merFile) {
     const t = processTexture({ file: res.texFile, frames: 1, mers: res.merFile, mersKind: 'mer' });
     if (t.pbrFile) out.pbr = urlFor(t.pbrFile);

@@ -592,7 +592,8 @@ async function buildEntity(E, W, style, U, scene) {
   holder.add(model.root);
   holder.position.set(...E.pos);
   holder.rotation.y = Math.PI - (E.yaw ?? 0) * Math.PI / 180;
-  holder.scale.setScalar(E.scale ?? 1);
+  // the client entity's scaleX/scaleY/scaleZ (already times the scene's `scale`), in the entity's own frame
+  if (E.scaleXYZ) holder.scale.set(...E.scaleXYZ); else holder.scale.setScalar(E.scale ?? 1);
   scene.add(holder);
   holder.updateMatrixWorld(true);
   // per-vertex baked light

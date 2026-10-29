@@ -74,8 +74,8 @@
     ]
    },
    "minecraft:collision_box": {
-    "width": 0.7,
-    "height": 2.6
+    "width": 0.9,
+    "height": 3.25
    },
    "minecraft:physics": {
     "has_gravity": false,

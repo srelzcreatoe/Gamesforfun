@@ -50,7 +50,7 @@ Everything in `docs/RENDERER.md` plus a few optional extras. Coordinates are wor
 | `style` | `vibrant` \| `classic` \| `camera_feed` |
 | `time` | `night` (default) \| `day` (bright sky light + shadowed sun; minimal) |
 | `exposure` | multiplier on the style's exposure (1) |
-| `entities` | `[{ id, pos, yaw, anim, t, eyes, scale, eyeIntensity? }]` - `yaw` 0 = facing south (Minecraft yaw); `anim` = short name (`idle`, `perform_1`/`perform`, `pose_1`/`pose`...) or full `animation.*` id |
+| `entities` | `[{ id, pos, yaw, anim, t, eyes, scale, eyeIntensity? }]` - `yaw` 0 = facing south (Minecraft yaw); `anim` = short name (`idle`, `perform_1`/`perform`, `pose_1`/`pose`...) or full `animation.*` id; `scale` multiplies the client entity's own render scale (below) |
 | `extra_lights` | `[{ type: point\|spot\|dir\|ambient, pos, target, color, intensity, distance, angle, penumbra, decay, shadow, shadowExtent }]` |
 | `fog` | `{ color, density }` (style default `#07080c` / 0.03); `null` disables |
 | `bloom` | `{ strength, radius, threshold }` (vibrant 0.45 / 0.45 / 0.9); `null` disables |
@@ -123,8 +123,37 @@ through `render.mjs` (static server + Chromium with the SwiftShader flags).
   Halo sprites fake light scattering in the exp fog. Entities get the same baked light per vertex.
 * **Entities** - `packs/RP/entity/*.entity.json` (identifier `fnar:<id>`) -> geometry, texture,
   animations, `eyes`/`glow` texture (emissive) and `_mer` texture set; otherwise
-  `assets/source_models/**` (`fnaf:<id>`). Without an eyes texture, bright red pixels inside the
-  `head` bone's UV rectangles become emissive.
+  `assets/source_models/**` (`fnaf:<id>`). An exact identifier match wins over the `fnar:`/`fnaf:`
+  aliases in any pack (so an extra pack can carry e.g. a `fnarbefore:<id>` copy for comparisons).
+  Without an eyes texture, bright red pixels inside the `head` bone's UV rectangles become emissive.
+  The client entity's render scale is honoured like the game does it: `scripts.scale` x
+  `scripts.scaleX/scaleY/scaleZ`, per axis in the entity's own frame, about its feet (constant values;
+  other Molang counts as 1 with a warning). `render_world.mjs` exports `entityScale(description)`.
+
+## Animation contact sheets (`anim_sheet.mjs`)
+
+Grids of an entity's animations (rows: character x animation x pack variant, columns: time x view),
+rendered with the same model code, the client entity's scale, a 1-block floor grid and a 1.8-block
+"player" marker (yellow bar) for size.
+
+```sh
+# pose_1 of two characters, front / right side / 3/4 views, at t = 0 and 1.3 s
+node tools/render/anim_sheet.mjs out.png --ids cat,purple_rat --anims pose_1 --times 0,1.3 --views front,right,q3
+# 8 evenly spaced times per animation, before/after rows against a snapshot of an older RP folder
+node tools/render/anim_sheet.mjs out.png --ids top_hat_rat --anims walk --frac 8 --compare /tmp/old_RP,before
+# two characters side by side in one scene (e.g. the Cat and the Purple Rat on their stage)
+node tools/render/anim_sheet.mjs out.png --pair cat,purple_rat --anims perform_1 --frac 8 --cols 4
+```
+
+Options: `--views` (`front`, `back`, `right`, `left`, `q3` = front-right 3/4, `q3l` = front-left 3/4),
+`--cell WxH`, `--zoom`, `--center` (frame centre height, blocks), `--camUp`, `--cols`, `--exposure`,
+`--noscale` (ignore the client entity scale), `--noref` (no player marker), `--rp` (RP folder, default
+`packs/RP`), `--label`, `--title`, `--spacing` (`--pair`). Module: `renderSheets([spec, ...])`.
+`page.js` also gained `window.renderSheet()` (several cells composed in one canvas), per-axis model
+`scale: [x, y, z]`, inline `animation` objects, `boxes` and an orthographic camera (`camera.ortho`).
+
+Hand / prop clipping and floor checks for the animations themselves live in
+`tools/entities/check_hands.mjs`.
 
 Caches: `tools/.cache/vanilla/` (Mojang files, `missing.json` remembers 404s),
 `tools/.cache/render/` (processed textures, converted pack TGAs, eye masks, perf world).

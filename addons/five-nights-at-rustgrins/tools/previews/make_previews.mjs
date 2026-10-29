@@ -122,11 +122,11 @@ export const SCENES = [
     },
   },
   {
-    name: '06_cam_1c', voxels: 'cab', style: 'camera_feed', caption: "CAM 1C: the Cat peeks out of Kitty's Cabaret",
-    hud: { cam: '1C', lines: ["§fCAM 1C · KITTY'S CABARET", '§7Night 3 §8| §f2 AM §8| §fPOWER 72% §8| §7USAGE §a▮▮§8▯▯▯▯▯'] },
+    name: '06_cam_1c', voxels: 'lit', style: 'camera_feed', caption: "CAM 1C: the Ringmaster watches from his booth",
+    hud: { cam: '1C', lines: ["§fCAM 1C · RINGMASTER'S BOOTH", '§5☎ §dThe Ringmaster§7: §fYou may have noticed me in my booth on CAM 1C.', '§7Night 3 §8| §f2 AM §8| §fPOWER 72% §8| §7USAGE §a▮▮§8▯▯▯▯▯'] },
     scene: {
       camera: camShot('1C', 64), exposure: 1.55,
-      entities: [at('cat', 'CAB_PEEK', 'peek', { eyes: true, t: 0.8 })],
+      entities: [at('top_hat_rat', 'CAB', 'pose_1', { eyes: true, t: 0 })],
       extra_lights: [irLight('1C', 8), point([15.6, 2.6, 33.2], '#e8ffe8', 9, 7)],
     },
   },
@@ -140,11 +140,11 @@ export const SCENES = [
     },
   },
   {
-    name: '08_cam_8', voxels: 'lit', style: 'camera_feed', caption: 'CAM 8: the Ringmaster keeps the show running - rewind his tape',
-    hud: { cam: '8', lines: ['§fCAM 8 · MIDNIGHT MIDWAY', '§6SHOW TAPE 27% §c§lREWIND', '§7Night 5 §8| §f4 AM §8| §ePOWER 31% §8| §7USAGE §e▮▮▮§8▯▯▯▯'] },
+    name: '08_cam_8', voxels: 'lit', style: 'camera_feed', caption: 'CAM 8: the Cat and the Purple Rat dance while the show tape plays - rewind it',
+    hud: { cam: '8', lines: ['§fCAM 8 · MIDNIGHT MIDWAY', '§6SHOW TAPE 27% §c§lREWIND', '§7Night 4 §8| §f3 AM §8| §ePOWER 31% §8| §7USAGE §e▮▮▮§8▯▯▯▯'] },
     scene: {
       camera: camShot('8'), exposure: 1.55,
-      entities: [at('top_hat_rat', 'MW_T', 'perform_1', { t: 0.9, eyes: true }), at('purple_rat', 'MW_P', 'perform_1', { t: 0.5 })],
+      entities: [at('cat', 'MW_T', 'perform_1', { t: 0.9, eyes: true }), at('purple_rat', 'MW_P', 'perform_1', { t: 0.9, eyes: true })],
       extra_lights: [irLight('8', 7), spot([9.5, 4.6, 18.5], [6.2, 1.0, 21.0], { intensity: 110, angle: 34 }), point([6.0, 3.2, 18.0], '#e8ffe8', 6, 7)],
     },
   },
@@ -167,10 +167,10 @@ export const SCENES = [
     },
   },
   {
-    name: '11_midway', voxels: 'lit', caption: 'The Midnight Midway: the Ringmaster and the Purple Rat',
+    name: '11_midway', voxels: 'lit', caption: 'The Midnight Midway ring: the Cat and the Purple Rat share one stage',
     scene: {
       camera: { pos: [12.0, 2.4, 16.6], target: [5.0, 1.8, 21.6], fov: 62 }, exposure: 1.2,
-      entities: [at('top_hat_rat', 'MW_T', 'perform_1', { t: 0.9, yaw: -129 }), at('purple_rat', 'MW_P', 'perform_2', { t: 0.6, yaw: -104 })],
+      entities: [at('cat', 'MW_T', 'perform_1', { t: 0.9, yaw: -129 }), at('purple_rat', 'MW_P', 'perform_1', { t: 0.9, yaw: -104 })],
       extra_lights: [
         spot([9.5, 4.6, 18.0], [6.0, 1.2, 20.6], { color: '#ffd7a8', intensity: 140, angle: 32 }),
         point([6.5, 3.3, 18.2], '#ffe4c4', 7, 8),
@@ -180,10 +180,10 @@ export const SCENES = [
     },
   },
   {
-    name: '12_cabaret', voxels: 'cab2', caption: "Kitty's Cabaret is out of order. Something behind the curtain is not",
+    name: '12_booth', voxels: 'lit', caption: "The Ringmaster's private booth, the old Kitty's Cabaret. He does not move. Not yet",
     scene: {
       camera: { pos: [21.6, 1.75, 35.4], target: [14.2, 1.45, 33.3], fov: 60 }, exposure: 1.15,
-      entities: [at('cat', 'CAB_PEEK', 'peek', { eyes: true, t: 0.8 })],
+      entities: [at('top_hat_rat', 'CAB_PEEK', 'peek', { eyes: true, t: 0.8 })],
       extra_lights: [
         spot([18.5, 5.6, 33.5], [14.5, 1.0, 33.2], { color: '#ffd29a', intensity: 60, angle: 28 }),
         point([15.4, 2.4, 33.3], '#ffcf9a', 4, 5),
@@ -192,10 +192,19 @@ export const SCENES = [
     },
   },
   {
+    name: '18_final_act', voxels: 'night', style: 'camera_feed', caption: 'Night 6, The Final Act: he is coming, and doors will not stop him. SPOTLIGHT',
+    hud: { cam: '2B', lines: ['§fCAM 2B · W. HALL CORNER', '§5[PA] §dThe Ringmaster§7: §fThe corner, Tester. Right outside. Can you see me?', '§8Find the Ringmaster on a camera, then press SPOTLIGHT', '§7The Final Act §8| §f5 AM §8| §ePOWER 24% §8| §7USAGE §e▮▮▮§8▯▯▯▯'] },
+    scene: {
+      camera: camShot('2B', 64), exposure: 1.6,
+      entities: [at('top_hat_rat', 'WC', 'pose_1', { yaw: 180, eyes: true, t: 0 })],
+      extra_lights: [irLight('2B', 8), point([28.4, 3.4, 63.0], '#e8ffe8', 8, 8)],
+    },
+  },
+  {
     name: '13_jumpscare', voxels: 'night', caption: 'Jumpscare',
     scene: {
       camera: { pos: [36.5, 1.62, 63.5], target: [36.5, 1.52, 62.35], fov: 70 }, exposure: 1.1,
-      entities: [{ id: 'fnar:rustgrin', pos: [36.5, 1.62 - 2.05, 62.35], yaw: 0, anim: 'jumpscare', t: 0.22, eyes: true }],
+      entities: [{ id: 'fnar:rustgrin', pos: [36.5, 1.62 - 2.05 * 1.25, 62.35], yaw: 0, anim: 'jumpscare', t: 0.22, eyes: true }],
       extra_lights: [point([36.5, 3.6, 63.2], '#ffd9a0', 4, 8), point([35.6, 1.0, 63.4], '#ff7a5c', 1.2, 4)],
       bloom: { strength: 0.6, radius: 0.5, threshold: 0.85 },
     },
