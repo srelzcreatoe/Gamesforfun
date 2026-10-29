@@ -1,4 +1,5 @@
-// Purple Rat: nervous, twitchy, lives in the crawl ducts. He leaves the
+// Purple Rat: nervous, twitchy, shares the Midway ring with the Cat and lives in the
+// crawl ducts. His boldness follows the troupe's show tape (see show_tape.js). He leaves the
 // Midway through the ceiling grate (west duct -> the office's LEFT vent) or
 // walks through the dining hall to the kitchen grate (east duct -> RIGHT
 // vent). In the ducts every move rattles his maracas (positional, so the
@@ -19,7 +20,7 @@ export class PurpleRat extends Animatronic {
   }
 
   bonus() {
-    return this.s.rally ? CONFIG.characters.top_hat_rat.rallyBonus : 0;
+    return this.s.tape.bonus(); // the troupe grows bolder as their music slows, and when it stops
   }
 
   route() {

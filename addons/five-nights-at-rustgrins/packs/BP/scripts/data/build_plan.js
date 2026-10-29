@@ -101,7 +101,11 @@ function openings(p) {
       if (x1 === BUILDING.x1) x1 = BUILDING.x1 - 1;
     }
     p.fill(x1, y1, z1, x2, y2, z2, 'air');
-    if (o.kind === 'curtain') p.fill(x1, y1, z1, x2, y2, z2, 'curtain_purple');
+    if (o.kind === 'curtain') {
+      // the Ringmaster's booth: the curtains hang parted
+      p.fill(x1, y1, z1, x2, y2, z2, 'curtain_purple');
+      p.fill(x1, CABARET.gap.y1, CABARET.gap.z1, x2, CABARET.gap.y2, CABARET.gap.z2, 'air');
+    }
     if (o.kind === 'iron_door') {
       for (let z = z1; z <= z2; z++) {
         p.set(BUILDING.x1 - 1, 0, z, 'iron_door_e');
@@ -556,6 +560,7 @@ function signs(p) {
   p.sign(25, 2, 47, 'e', ['SUPPLY', 'CLOSET']);
   p.sign(63, 2, 11, 'e', ['KITCHEN', 'Staff only']);
   p.sign(32, 2, 69, 'e', ['NIGHT GUARD', 'Doors: red', 'Lights: white', 'Power is finite']);
+  p.sign(15, 3, 31, 'e', ['PRIVATE BOOTH', 'THE RINGMASTER', '', 'do not disturb']);
   p.sign(33, 1, 60, 's', ['', 'LEFT VENT', '^']);
   p.sign(39, 1, 60, 's', ['', 'RIGHT VENT', '^']);
 }

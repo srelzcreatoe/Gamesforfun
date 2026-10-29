@@ -586,7 +586,7 @@
       "category": "hostile",
       "sounds": [
         {
-          "name": "sounds/fnar/js/rustgrin",
+          "name": "sounds/fnar/js/animatronic",
           "load_on_low_memory": true
         }
       ]
@@ -595,7 +595,7 @@
       "category": "hostile",
       "sounds": [
         {
-          "name": "sounds/fnar/js/mirehop",
+          "name": "sounds/fnar/js/animatronic",
           "load_on_low_memory": true
         }
       ]
@@ -604,7 +604,7 @@
       "category": "hostile",
       "sounds": [
         {
-          "name": "sounds/fnar/js/noxbriar",
+          "name": "sounds/fnar/js/animatronic",
           "load_on_low_memory": true
         }
       ]
@@ -613,7 +613,7 @@
       "category": "hostile",
       "sounds": [
         {
-          "name": "sounds/fnar/js/purple_rat",
+          "name": "sounds/fnar/js/animatronic",
           "load_on_low_memory": true
         }
       ]
@@ -622,7 +622,7 @@
       "category": "hostile",
       "sounds": [
         {
-          "name": "sounds/fnar/js/cat",
+          "name": "sounds/fnar/js/animatronic",
           "load_on_low_memory": true
         }
       ]
@@ -631,8 +631,41 @@
       "category": "hostile",
       "sounds": [
         {
-          "name": "sounds/fnar/js/top_hat_rat",
+          "name": "sounds/fnar/js/animatronic",
           "load_on_low_memory": true
+        }
+      ]
+    },
+    "fnar.js.rusted": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/js/rusted",
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "fnar.final.chime": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/final/chime"
+        }
+      ]
+    },
+    "fnar.final.applause": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/final/applause"
+        }
+      ]
+    },
+    "fnar.final.spot": {
+      "category": "hostile",
+      "sounds": [
+        {
+          "name": "sounds/fnar/final/spot"
         }
       ]
     },
@@ -682,6 +715,15 @@
       "sounds": [
         {
           "name": "sounds/fnar/music/showtime",
+          "stream": true
+        }
+      ]
+    },
+    "fnar.music.bgm": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/fnar/music/bgm",
           "stream": true
         }
       ]

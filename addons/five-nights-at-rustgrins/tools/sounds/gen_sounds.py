@@ -3,7 +3,10 @@
 
 All audio is synthesised here from scratch (numpy/scipy DSP), written as a
 float WAV and encoded to Ogg Vorbis with ffmpeg (-c:a libvorbis -q:a 4).
-Fixed seeds: re-running produces the same files.
+Fixed seeds: re-running produces the same files. The exceptions are the
+recorded tracks in assets/audio (the background music and the two jumpscare
+screams): they are copied as they are when they already meet the rules below,
+otherwise only trimmed in gain and re-encoded at a higher quality.
 
     python3 tools/sounds/gen_sounds.py               # everything
     python3 tools/sounds/gen_sounds.py 'js.*' amb.fan  # only matching events
@@ -40,6 +43,7 @@ sys.path.insert(0, HERE)
 from fnar_dsp import (N, SR, ampdb, bq, dbamp, dc_block, eq, fade_edges, fit, limiter,  # noqa: E402
                       norm_peak, norm_rms, rng)
 import recipes_anim as ra  # noqa: E402
+import recipes_final as rf  # noqa: E402
 import recipes_music as rm  # noqa: E402
 import recipes_office as ro  # noqa: E402
 
@@ -48,6 +52,7 @@ SOUNDS_DIR = os.path.join(ROOT, 'packs', 'RP', 'sounds')
 FNAR_DIR = os.path.join(SOUNDS_DIR, 'fnar')
 DEFS_PATH = os.path.join(SOUNDS_DIR, 'sound_definitions.json')
 MANIFEST_PATH = os.path.join(HERE, 'sound_manifest.json')
+ASSETS_DIR = os.path.join(ROOT, 'assets', 'audio')
 FFMPEG = shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
 
 CEILING_DB = -1.5        # limiter ceiling before encoding
@@ -59,17 +64,42 @@ class Ev:
     """One sound event. fn(v, r, n) renders variant v (0-based) with rng r into n samples."""
 
     def __init__(self, key, fn, dur, variants=1, stereo=False, loop=False, cat='block', dist=None,
-                 level=('peak', -1.5), fin=0.005, fout=0.02, stream=False, low_mem=False, note=''):
+                 level=('peak', -1.5), fin=0.005, fout=0.02, stream=False, low_mem=False, note='',
+                 src=None, out=None):
         self.key, self.fn, self.dur, self.variants = key, fn, dur, variants
         self.stereo, self.loop, self.cat, self.dist = stereo, loop, cat, dist
         self.level, self.fin, self.fout = level, fin, fout
         self.stream, self.low_mem, self.note = stream, low_mem, note
         self.group, self.name = key.split('.', 1)
+        # src: a recorded file in assets/audio; out: its '<group>/<name>' in the pack, which
+        # several events may share (every regular animatronic uses the same scream)
+        self.src, self.out = src, out
+        if src:
+            self.dur = probe_samples(os.path.join(ASSETS_DIR, src)) / SR
 
     def files(self):
+        if self.out:
+            return [self.out.split('/', 1)[1]]
         if self.variants == 1:
             return [self.name]
         return [f'{self.name}{i + 1}' for i in range(self.variants)]
+
+    def paths(self):
+        """pack paths without the extension, relative to sounds/fnar"""
+        if self.out:
+            return [self.out]
+        return [f'{self.group}/{f}' for f in self.files()]
+
+
+def Rec(key, src, out, **kw):
+    """a recorded track from assets/audio (copied, or trimmed in gain if it peaks too high)"""
+    return Ev(key, None, 0.0, stereo=True, src=src, out=out, **kw)
+
+
+def probe_samples(path):
+    pr = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'stream=duration_ts', '-of', 'csv=p=0', path],
+                        capture_output=True, check=True, text=True)
+    return int(pr.stdout.strip().split(',')[0])
 
 
 # Positional sounds carry min/max distance (blocks) and must be mono.
@@ -132,12 +162,18 @@ EVENTS = [
     Ev('tophat.tape_out', rm.tophat_tape_out, 2.5, cat='hostile', dist=(2, 16), level=('peak', -2.0), fin=0.03),
     Ev('tophat.laugh', ra.tophat_laugh, 2.0, cat='hostile', dist=(2, 24), level=('peak', -1.5)),
     # --- jumpscares (stereo, non-positional) ------------------------------------
-    Ev('js.rustgrin', ra.js_rustgrin, 1.6, stereo=True, cat='hostile', level=('rms', -9.0), low_mem=True, fout=0.03),
-    Ev('js.mirehop', ra.js_mirehop, 1.6, stereo=True, cat='hostile', level=('rms', -9.0), low_mem=True, fout=0.03),
-    Ev('js.noxbriar', ra.js_noxbriar, 1.6, stereo=True, cat='hostile', level=('rms', -9.0), low_mem=True, fout=0.03),
-    Ev('js.purple_rat', ra.js_purple_rat, 1.6, stereo=True, cat='hostile', level=('rms', -9.5), low_mem=True, fout=0.03),
-    Ev('js.cat', ra.js_cat, 1.6, stereo=True, cat='hostile', level=('rms', -9.0), low_mem=True, fout=0.03),
-    Ev('js.top_hat_rat', ra.js_top_hat_rat, 1.6, stereo=True, cat='hostile', level=('rms', -9.0), low_mem=True, fout=0.03),
+    # the user's recorded screams: the Rusted one has its own, every other animatronic shares one
+    Rec('js.rustgrin', 'js_animatronic.ogg', 'js/animatronic', cat='hostile', low_mem=True),
+    Rec('js.mirehop', 'js_animatronic.ogg', 'js/animatronic', cat='hostile', low_mem=True),
+    Rec('js.noxbriar', 'js_animatronic.ogg', 'js/animatronic', cat='hostile', low_mem=True),
+    Rec('js.purple_rat', 'js_animatronic.ogg', 'js/animatronic', cat='hostile', low_mem=True),
+    Rec('js.cat', 'js_animatronic.ogg', 'js/animatronic', cat='hostile', low_mem=True),
+    Rec('js.top_hat_rat', 'js_animatronic.ogg', 'js/animatronic', cat='hostile', low_mem=True),
+    Rec('js.rusted', 'js_fredbear.ogg', 'js/rusted', cat='hostile', low_mem=True),
+    # --- the Final Act (night 6) -------------------------------------------------
+    Ev('final.chime', rf.pa_chime, 1.9, stereo=True, cat='hostile', level=('peak', -3.0), fout=0.1),
+    Ev('final.applause', rf.crowd_applause, 4.5, stereo=True, cat='hostile', level=('lufs', -20), fout=0.3),
+    Ev('final.spot', rf.spot_on, 0.9, stereo=True, cat='hostile', level=('peak', -2.0), fout=0.1),
     # --- hallucinations / UI / music ---------------------------------------------
     Ev('hall.whisper', ro.hall_whisper, 2.0, stereo=True, cat='hostile', level=('peak', -4.0)),
     Ev('hall.sting', ro.hall_sting, 1.5, stereo=True, cat='hostile', level=('peak', -1.5), fout=0.15),
@@ -146,6 +182,8 @@ EVENTS = [
     Ev('music.title', rm.music_title, 40.0, stereo=True, loop=True, cat='music', level=('lufs', -20), stream=True),
     Ev('music.showtime', rm.music_showtime, 48.0, stereo=True, loop=True, cat='music', level=('lufs', -17),
        stream=True),
+    # the user's background track, restarted by the script every 180 s while a night runs
+    Rec('music.bgm', 'bgm.ogg', 'music/bgm', cat='music', stream=True),
     Ev('music.ending', rm.music_ending, 12.0, stereo=True, cat='music', level=('lufs', -19), stream=True, fout=0.05),
 ]
 
@@ -248,8 +286,44 @@ def decode(ogg, ch):
     return y
 
 
+def render_recording(ev):
+    """copy a recorded track into the pack; trim its gain and re-encode only if it peaks too high"""
+    t0 = time.time()
+    src = os.path.join(ASSETS_DIR, ev.src)
+    ogg = os.path.join(FNAR_DIR, ev.out + '.ogg')
+    os.makedirs(os.path.dirname(ogg), exist_ok=True)
+    y = decode(src, 2)
+    pk = float(np.max(np.abs(y)))
+    gain = 1.0
+    if pk > dbamp(MAX_PEAK_DB - 0.02):
+        with tempfile.TemporaryDirectory() as td:
+            wav = os.path.join(td, 'a.wav')
+            gain = float(dbamp(MAX_PEAK_DB - 0.15)) / pk
+            for _attempt in range(8):
+                write_wav(wav, y * gain)
+                subprocess.run([FFMPEG, '-hide_banner', '-loglevel', 'error', '-y', '-i', wav, '-map_metadata', '-1',
+                                '-fflags', '+bitexact', '-flags:a', '+bitexact', '-c:a', 'libvorbis', '-q:a', '7',
+                                '-ar', str(SR), ogg], check=True)
+                y2 = decode(ogg, 2)
+                pk2 = float(np.max(np.abs(y2)))
+                if pk2 <= dbamp(MAX_PEAK_DB - 0.02):
+                    break
+                gain *= float(dbamp(MAX_PEAK_DB - 0.15)) / pk2
+            else:
+                raise RuntimeError(f'{ev.key}: could not get Ogg peak under {MAX_PEAK_DB} dBFS')
+            y, pk = y2, pk2
+    else:
+        shutil.copyfile(src, ogg)
+    return dict(key=ev.key, file=ev.out + '.ogg', samples=int(y.shape[-1]), expected=N(ev.dur),
+                peak_db=round(float(ampdb(pk)), 2), rms_db=round(float(ampdb(np.sqrt(np.mean(y ** 2)))), 2),
+                limiter_db=0.0, trim_db=round(float(ampdb(gain)), 2), secs=round(time.time() - t0, 1),
+                size=os.path.getsize(ogg), seam=None)
+
+
 def render_file(ev, v, wav_dir=None):
     """render + master + encode one variant; returns stats dict"""
+    if ev.src:
+        return render_recording(ev)
     t0 = time.time()
     r = rng(ev.key, v)
     raw = ev.fn(v, r, N(ev.dur))
@@ -306,8 +380,8 @@ def write_definitions():
             entry['min_distance'] = float(ev.dist[0])
             entry['max_distance'] = float(ev.dist[1])
         sounds = []
-        for fname in ev.files():
-            s = {'name': f'sounds/fnar/{ev.group}/{fname}'}
+        for path in ev.paths():
+            s = {'name': f'sounds/fnar/{path}'}
             if ev.stream:
                 s['stream'] = True
             if ev.low_mem:
@@ -325,23 +399,25 @@ def write_manifest(stats):
     if os.path.exists(MANIFEST_PATH):
         with open(MANIFEST_PATH, encoding='utf-8') as f:
             man = json.load(f).get('events', {})
-    by_key = {}
+    by_key, by_file = {}, {}
     for s in stats:
         by_key.setdefault(s['key'], []).append(s)
+        by_file[s['file']] = s
     out = {}
     for ev in EVENTS:
         prev = man.get('fnar.' + ev.key, {})
         out['fnar.' + ev.key] = {
-            'files': [f'sounds/fnar/{ev.group}/{f}.ogg' for f in ev.files()],
+            'files': [f'sounds/fnar/{p}.ogg' for p in ev.paths()],
             'duration': round(N(ev.dur) / SR, 4),
+            'source': f'assets/audio/{ev.src}' if ev.src else 'synthesised',
             'channels': 2 if ev.stereo else 1,
             'loop': ev.loop,
             'positional': ev.dist is not None,
             'category': ev.cat,
             'max_distance': ev.dist[1] if ev.dist else None,
             'note': ev.note,
-            'peaks_db': [s['peak_db'] for s in sorted(by_key[ev.key], key=lambda s: s['file'])]
-            if ev.key in by_key else prev.get('peaks_db'),
+            'peaks_db': [by_file[p + '.ogg']['peak_db'] for p in ev.paths()]
+            if all(p + '.ogg' in by_file for p in ev.paths()) else prev.get('peaks_db'),
         }
         if ev.loop:
             out['fnar.' + ev.key]['seam_prefade'] = (by_key[ev.key][0]['seam'] if ev.key in by_key
@@ -369,7 +445,13 @@ def main():
         sys.exit('no events match ' + ' '.join(pats))
     if pats == ['*'] and os.path.isdir(FNAR_DIR):
         shutil.rmtree(FNAR_DIR)          # full rebuild: no stale files
-    jobs = [(ev.key, v, a.wav) for ev in sel for v in range(ev.variants)]
+    jobs, outs = [], set()
+    for ev in sel:
+        for v in range(ev.variants):
+            if ev.out and ev.out in outs:
+                continue
+            outs.add(ev.out)
+            jobs.append((ev.key, v, a.wav))
     # longest first for better packing
     jobs.sort(key=lambda j: -next(e.dur for e in EVENTS if e.key == j[0]))
     t0 = time.time()

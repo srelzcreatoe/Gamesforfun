@@ -213,6 +213,8 @@ def main():
         for s in ev['sounds']:
             name = s['name'] if isinstance(s, dict) else s
             path = os.path.join(RP, name + '.ogg')
+            if os.path.normpath(path) in referenced:
+                continue   # a recording shared by several events is checked once
             referenced.add(os.path.normpath(path))
             if not os.path.exists(path):
                 errors.append(f'{key}: missing {name}.ogg')
@@ -231,7 +233,8 @@ def main():
             if st['peak_db'] > -1.0:
                 errors.append(f'{name}: peak {st["peak_db"]:.2f} dBFS > -1 dBFS')
                 flags.append('PEAK')
-            if st['dc'] > 2e-3:
+            recorded = info.get('source', 'synthesised') != 'synthesised'   # the user's own tracks stay as made
+            if st['dc'] > 2e-3 and not recorded:
                 warns.append(f'{name}: DC offset {st["dc"]:.4f}')
                 flags.append('DC')
             loop = bool(info.get('loop'))
@@ -258,7 +261,7 @@ def main():
                 flags.append('EDGE')
             if ev.get('category') == 'ambient' and st['rms_db'] > -24:
                 warns.append(f'{name}: ambience louder than expected (RMS {st["rms_db"]:.1f})')
-            if key.startswith('fnar.js.') and st['rms_db'] < -12:
+            if key.startswith('fnar.js.') and st['rms_db'] < -12 and not recorded:
                 warns.append(f'{name}: jumpscare RMS only {st["rms_db"]:.1f} dBFS')
             total += size
             rows.append((name.replace('sounds/fnar/', ''), st, size, loop, seam, positional, flags))

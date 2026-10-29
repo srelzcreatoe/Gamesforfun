@@ -6,7 +6,7 @@ const L = (id, x, lines) => Object.freeze({ id, x, z: 52, lines: Object.freeze(l
 export const LOBBY_BUTTONS = Object.freeze([
   L('new_game', 2, ['', 'NEW GAME', 'Night 1']),
   L('continue', 3, ['', 'CONTINUE', '']),
-  L('night6', 4, ['', 'NIGHT 6', '']),
+  L('night6', 4, ['NIGHT 6', 'THE FINAL', 'ACT']),
   L('custom', 5, ['', 'CUSTOM', 'NIGHT']),
   L('free_roam', 7, ['', 'FREE ROAM', 'Daytime']),
   L('gallery', 9, ['', 'GALLERY', '']),

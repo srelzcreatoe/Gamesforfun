@@ -13,19 +13,19 @@ import { NightSession } from '../core/session.js';
 import { CONFIG, CAST, CAST_NAMES, LAST_NIGHT, CUSTOM_NIGHT } from '../core/config.js';
 import { Rng } from '../core/rng.js';
 import { generatePlan } from '../data/build_plan.js';
-import { OFFICE, LOBBY, SPAWN_OUTSIDE } from '../data/layout.js';
+import { OFFICE, LOBBY, SPAWN_OUTSIDE, LOT } from '../data/layout.js';
 import { NODES } from '../data/nodes.js';
 import { CAMERA_BY_ID, CAMERA_ORDER } from '../data/cameras.js';
 import { LOBBY_BUTTON_AT, STAR_SLOTS } from '../data/lobby.js';
-import { PHONE, ENDINGS, TUTORIAL_HINTS } from '../data/story.js';
+import { CALLS, HUNG_UP, TAKEOVER, FINAL, ENDINGS, TUTORIAL_HINTS, KILL_TIPS } from '../data/story.js';
 import { Builder } from './builder.js';
 import { Puppets, yawToward } from './puppets.js';
 import { Actuators } from './actuators.js';
 import { Audio } from './audio.js';
-import { Hud, mapTitle, MAP_OFF, hourLabel } from './hud.js';
+import { Hud, mapTitle, MAP_OFF, hourLabel, spotlightReady } from './hud.js';
 import { CameraView, restorePlayerView, FOG } from './camera_view.js';
 import * as ui from './ui.js';
-import { W, Wv, L, origin, refreshOrigin, setOrigin, runCmd, setLocal, typeAtLocal } from './world_io.js';
+import { W, Wv, L, dim, origin, refreshOrigin, setOrigin, runCmd, setLocal, typeAtLocal } from './world_io.js';
 import { loadSave, storeSave, storeOrigin, defaultSave, loadBuild } from './persistence.js';
 import { log } from './log.js';
 import { VERSION } from '../data/version.js';
@@ -44,11 +44,24 @@ const GALLERY = Object.freeze({
   rustgrin: { x: 3.5, y: 1, z: 42.5, yaw: 0 }, mirehop: { x: 8.5, y: 1, z: 42.5, yaw: 0 }, noxbriar: { x: 13.5, y: 1, z: 42.5, yaw: 0 },
   purple_rat: { x: 3.5, y: 1, z: 48.5, yaw: 180 }, cat: { x: 8.5, y: 1, z: 48.5, yaw: 180 }, top_hat_rat: { x: 13.5, y: 1, z: 48.5, yaw: 180 },
 });
-/** Where the band and the troupe perform in free roam. */
-const SHOW_SPOTS = Object.freeze({ rustgrin: 'ST_R', mirehop: 'ST_M', noxbriar: 'ST_N', top_hat_rat: 'MW_T', purple_rat: 'MW_P', cat: 'CAB' });
+/** Where the band, the troupe and the Ringmaster perform in free roam. */
+const SHOW_SPOTS = Object.freeze({ rustgrin: 'ST_R', mirehop: 'ST_M', noxbriar: 'ST_N', top_hat_rat: 'CAB', purple_rat: 'MW_P', cat: 'MW_T' });
 
 /** Session pose names -> fnar:anim values. */
-const POSE_ANIM = Object.freeze({ idle: 'idle', perform: 'perform', stand: 'stand', peek: 'peek', crawl: 'crawl', walk: 'walk', run: 'run', scurry: 'scurry', slump: 'slump' });
+const POSE_ANIM = Object.freeze({ idle: 'idle', pose: 'pose', perform: 'perform', stand: 'stand', peek: 'peek', crawl: 'crawl', walk: 'walk', run: 'run', scurry: 'scurry', slump: 'slump' });
+/** The user's background track: a music-category loop, so the game's music volume slider applies. */
+const BGM = 'fnar.music.bgm';
+const SIDE_WORD = Object.freeze({ L: 'left', R: 'right' });
+/** Where the Ringmaster may be glimpsed around his booth on nights 3-5 (cosmetic: the session keeps him in the booth). */
+const BOOTH_GLIMPSES = Object.freeze([
+  Object.freeze({ fromNight: 3, node: 'CAB_PEEK', anim: 'peek' }),
+  Object.freeze({ fromNight: 4, node: 'CAB_OUT', anim: 'stand' }),
+]);
+
+/** `{name}`, `{cam}`, `{side}` in story text. */
+function fill(text, vars) {
+  return String(text ?? '').replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined && vars[k] !== null ? String(vars[k]) : m));
+}
 
 export class Game {
   constructor() {
@@ -77,6 +90,16 @@ export class Game {
     this.freeRoamNext = 0;
     /** @type {number | undefined} interval that flashes Rustgrin's eyes during the power-out song */
     this.flashEyes = undefined;
+    /** The Ringmaster's PA (Final Act / Custom Night): lines still to say, and when the next may start. */
+    this.paQueue = [];
+    this.paNext = 0;
+    this.paSpoke = -1000;
+    this.paChimed = false;
+    /** last line index per PA key, so he never says the same line twice in a row */
+    this.paLast = Object.create(null);
+    /** the Ringmaster glimpsed around his booth on nights 3-5: { at, anim, next, seen } */
+    this.booth = null;
+    this.bgmPlaying = false;
   }
 
   // ================================================================ lifecycle
@@ -106,6 +129,8 @@ export class Game {
     world.afterEvents.playerLeave.subscribe(() => {
       if (this.state === 'NIGHT' && !this.guard()) this.endNightAbort();
     });
+    // nothing lives in the pizzeria but the cast: a mob that spawns or is spawned inside the lot is removed
+    world.afterEvents.entitySpawn.subscribe((ev) => this.onEntitySpawn(ev.entity));
     if (this.builder.isBuilt()) {
       this.state = 'LOBBY_PENDING';
       // a world closed mid-night always comes back to the lobby
@@ -214,6 +239,7 @@ export class Game {
       g.doDayLightCycle = false;
       g.doWeatherCycle = false;
       g.doMobSpawning = false;
+      g.doInsomnia = false;
       g.sendCommandFeedback = false;
       g.commandBlockOutput = false;
       g.showDeathMessages = false;
@@ -228,6 +254,80 @@ export class Game {
     } catch {
       // ignore
     }
+  }
+
+  /** Is a world position inside the pizzeria's lot? */
+  inLot(loc) {
+    const l = L(loc);
+    return l.x >= LOT.x1 && l.x < LOT.x2 + 1 && l.z >= LOT.z1 && l.z < LOT.z2 + 1 && l.y >= LOT.baseY - 2 && l.y < LOT.clearTop + 8;
+  }
+
+  /** Remove every mob inside the lot (the game rules stop natural spawning; this clears what was already there). */
+  sweepMobs() {
+    if (!origin.set) return;
+    try {
+      const mobs = dim().getEntities({
+        location: W(LOT.x1, LOT.baseY - 2, LOT.z1),
+        volume: { x: LOT.x2 - LOT.x1 + 1, y: LOT.clearTop - LOT.baseY + 10, z: LOT.z2 - LOT.z1 + 1 },
+        families: ['mob'],
+        excludeTypes: ['minecraft:player'],
+      });
+      for (const e of mobs) if (!e.typeId.startsWith('fnar:')) e.remove();
+    } catch (e) {
+      log.warn(`mob sweep: ${e?.message ?? e}`);
+    }
+  }
+
+  /** @param {import('@minecraft/server').Entity} e */
+  onEntitySpawn(e) {
+    if (!origin.set || this.state === 'UNBUILT') return;
+    try {
+      if (!e?.isValid || e.typeId === 'minecraft:player' || e.typeId.startsWith('fnar:')) return;
+      if (e.matches({ families: ['mob'] }) && this.inLot(e.location)) e.remove();
+    } catch {
+      // gone already
+    }
+  }
+
+  // ================================================================ background music
+  /** @param {import('@minecraft/server').Player} g */
+  startBgm(g) {
+    if (!g) return;
+    if (this.save.settings.bgm === false) {
+      this.stopBgm(); // and no vanilla track either: a shift with the music off is silent
+      return;
+    }
+    try {
+      g.playMusic(BGM, { loop: true, volume: 0.55, fade: 1.5 });
+      this.bgmPlaying = true;
+    } catch (e) {
+      log.warn(`music: ${e?.message ?? e}`);
+    }
+  }
+
+  /** @param {import('@minecraft/server').Player} [g] */
+  stopBgm(g) {
+    if (!this.bgmPlaying && g) return;
+    this.bgmPlaying = false;
+    for (const p of g ? [g] : this.players()) {
+      try {
+        p.stopMusic();
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  /** The Shift Guide's music switch. */
+  toggleBgm(player) {
+    const s = this.save;
+    s.settings.bgm = s.settings.bgm === false;
+    storeSave(s);
+    if (this.state === 'NIGHT' && player.id === this.guardId && !this.session?.powerOut) {
+      if (s.settings.bgm) this.startBgm(player);
+      else this.stopBgm(player);
+    }
+    return s.settings.bgm;
   }
 
   // ================================================================ players
@@ -324,6 +424,8 @@ export class Game {
     this.updateStars();
     for (const p of this.players()) this.toLobbySpot(p);
     this.audio.stopAll();
+    this.stopBgm();
+    this.sweepMobs();
   }
 
   /** @param {import('@minecraft/server').Player} p */
@@ -368,10 +470,10 @@ export class Game {
       case 'continue':
         return this.startNight(p, Math.max(1, Math.min(5, s.next)));
       case 'night6':
-        if (!s.beaten.includes(5)) return ui.messageBox(p, '§lNIGHT 6', 'Survive night 5 first.');
+        if (!s.beaten.includes(5)) return ui.messageBox(p, '§lTHE FINAL ACT', 'Stay until 4 AM on Night 5. The Ringmaster will take it from there.');
         return this.startNight(p, 6);
       case 'custom': {
-        if (!s.beaten.includes(6)) return ui.messageBox(p, '§lCUSTOM NIGHT', 'Survive night 6 first.');
+        if (!s.beaten.includes(6)) return ui.messageBox(p, '§lCUSTOM NIGHT', 'Survive the Final Act first.');
         const ai = await ui.customNightForm(p, s.custom);
         if (!ai) return;
         s.custom = ai;
@@ -426,6 +528,8 @@ export class Game {
     this.audio.loop('show_midway', 'fnar.tophat.show', 'midway', null, 0.7);
     for (const p of this.players()) this.toFreeRoam(p);
     this.freeRoamNext = system.currentTick + 160;
+    this.stopBgm();
+    this.sweepMobs();
   }
 
   /** @param {import('@minecraft/server').Player} p */
@@ -443,6 +547,7 @@ export class Game {
 
   tickFreeRoam(now) {
     this.audio.tick();
+    if (now % 200 === 0) this.sweepMobs();
     if (now >= this.freeRoamNext) {
       this.freeRoamNext = now + 160;
       for (const id of CAST) this.puppets.anim(id, this.rng.chance(0.5) ? 'perform' : 'perform2');
@@ -461,7 +566,7 @@ export class Game {
     this.state = 'NIGHT';
     this.guardId = player.id;
     this.nightOpts = { n, ...opts };
-    this.nightLabel = n === CUSTOM_NIGHT ? 'Custom Night' : `Night ${n}`;
+    this.nightLabel = n === CUSTOM_NIGHT ? 'Custom Night' : n === 6 ? 'The Final Act' : `Night ${n}`;
     const seed = this.save.settings.deterministic ? this.save.settings.seed * 31 + n : undefined;
     this.session = new NightSession(n, { seed, ai: opts.ai });
     this.applyRules();
@@ -477,6 +582,12 @@ export class Game {
     runCmd(FOG.nightPush);
     this.stare = Object.create(null);
     this.phoneSeq = null;
+    this.paQueue = [];
+    this.paNext = 0;
+    this.paSpoke = -1000;
+    this.paChimed = false;
+    this.booth = { at: 'CAB', anim: 'pose', next: system.currentTick + 900 + this.rng.int(0, 900), seen: 0 };
+    this.sweepMobs();
     for (const p of this.players()) {
       if (p.id === this.guardId) continue;
       this.makeSpectator(p);
@@ -488,8 +599,9 @@ export class Game {
       player.teleport(W(s.x, s.y, s.z), { rotation: { x: 0, y: s.yaw } });
       player.onScreenDisplay.setHudVisibility(HudVisibility.Hide, NIGHT_HUD);
       player.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0, holdTime: 1.0, fadeOutTime: 1.5 } });
-      player.onScreenDisplay.setTitle('§f12 AM', { fadeInDuration: 10, stayDuration: 60, fadeOutDuration: 20, subtitle: `§7${this.nightLabel}` });
+      player.onScreenDisplay.setTitle('§f12 AM', { fadeInDuration: 10, stayDuration: 60, fadeOutDuration: 20, subtitle: `${n === 6 ? '§4' : '§7'}${this.nightLabel}` });
       this.giveItems(player, 'night');
+      this.startBgm(player);
     } catch (e) {
       log.warn(`start night: ${e?.message ?? e}`);
     }
@@ -518,8 +630,11 @@ export class Game {
     runCmd(FOG.camPop);
     this.act.clearCamLight();
     this.audio.stopAll();
+    this.stopBgm();
     this.session = null;
     this.phoneSeq = null;
+    this.paQueue = [];
+    this.booth = null;
     for (const p of this.players()) {
       try {
         if (p.getGameMode() === GameMode.Spectator) p.setGameMode(GameMode.Adventure);
@@ -544,6 +659,7 @@ export class Game {
     if (this.state === 'LOBBY') {
       this.audio.tick();
       if (now % 100 === 0) for (const p of this.players()) p.onScreenDisplay.setActionBar('§7Press a button on the §fTIME CLOCK§7 wall to start a shift.');
+      if (now % 200 === 0) this.sweepMobs();
       return;
     }
     if (this.state !== 'NIGHT' && this.state !== 'JUMPSCARE' && this.state !== 'ENDING') return;
@@ -569,13 +685,20 @@ export class Game {
     if (this.state !== 'NIGHT') return;
     this.act.tickFlicker(this.rng);
     this.tickPhone(g, now);
+    this.tickPa(g, now);
+    this.tickBooth(g, now);
     this.tickStare(g);
+    if (now % 200 === 0) this.sweepMobs();
     if (this.cams.active) this.cams.tick(this.camCover());
     if (now % 10 === 0) this.keepInOffice(g);
     if (now % 4 === 0) {
       const snap = s.snapshot();
       const overlay = this.save.settings.debugOverlay ? `§8${s.debugLine()}` : null;
-      const hint = this.cams.active ? (this.camForm ? 'Click a camera on the map - LOWER or Esc puts the monitor down' : 'Scroll the hotbar: next camera - Sneak or use the tablet: lower') : null;
+      let hint = null;
+      if (this.cams.active) {
+        if (spotlightReady(snap)) hint = this.camForm ? 'Find the Ringmaster on a camera, then press SPOTLIGHT' : 'Find the Ringmaster, then use the Office Remote: SPOTLIGHT';
+        else hint = this.camForm ? 'Click a camera on the map - LOWER or Esc puts the monitor down' : 'Scroll the hotbar: next camera - Sneak or use the tablet: lower';
+      }
       g.onScreenDisplay.setActionBar(this.hud.nightBar(snap, now, { captions: this.save.settings.captions, overlay, cover: this.cams.active ? this.camCover() : null, hint }));
     }
     if (this.cams.active && now % 60 === 0) this.showCamMap(g, s.devices.cams.cam);
@@ -624,18 +747,14 @@ export class Game {
     switch (e.fx) {
       case 'start':
         return;
-      case 'place': {
-        let anim = POSE_ANIM[e.pose] ?? 'idle';
-        if (e.initial) {
-          // at night the band stands still on stage holding its props; the Ringmaster's troupe
-          // keeps performing for as long as the show tape runs
-          const show = s.def.tape && s.chars.top_hat_rat.enabled && (e.who === 'top_hat_rat' || e.who === 'purple_rat');
-          anim = e.who === 'cat' ? 'idle' : show ? 'perform' : 'pose';
-        }
-        this.puppets.spawn(e.who, e.node, anim);
+      case 'place':
+        // the session picks the pose: the band posed on its stage, the troupe dancing while its
+        // music plays, the Ringmaster in his booth (conducting on his own night)
+        this.puppets.spawn(e.who, e.node, POSE_ANIM[e.pose] ?? 'idle');
         this.puppets.eyes(e.who, true);
+        delete this.stare[e.who];
+        if (e.who === 'top_hat_rat' && this.booth) Object.assign(this.booth, { at: e.node, anim: POSE_ANIM[e.pose] ?? 'pose' });
         return;
-      }
       case 'move':
         this.puppets.walk(e.who, e.path, e.dur, POSE_ANIM[e.anim] ?? 'walk', e.yaw);
         delete this.stare[e.who];
@@ -698,9 +817,6 @@ export class Game {
           this.act.button(e.side === 'L' ? 'light_l' : 'light_r', false);
         }
         return;
-      case 'curtain':
-        this.act.curtain(e.stage);
-        return;
       case 'tape':
         this.act.tape(e.level);
         return;
@@ -708,23 +824,53 @@ export class Game {
         if (e.stop) this.audio.stop('show');
         else this.audio.loop('show', e.slow ? 'fnar.tophat.show_slow' : 'fnar.tophat.show', 'cam8', null, 0.9);
         return;
-      case 'ringmaster':
-        if (e.state === 'leaving') cap('the music stopped... a cane taps on the tiles');
-        if (e.state === 'close') cap(`cane taps right outside - ${e.side === 'L' ? 'left' : 'right'} side`);
-        if (e.state === 'returning') cap('a fanfare - the show goes on');
+      case 'tape_stop':
+        cap('the show tape ran out - the music has stopped');
         return;
+      case 'pa':
+        return this.paSay(e, g);
+      case 'event':
+        return;
+      case 'act':
+        return this.renderAct(e.act, g);
+      case 'applause':
+        this.audio.play('fnar.final.applause', null, g, { vol: 0.8 });
+        return;
+      case 'spotlight':
+        this.audio.play('fnar.final.spot', null, g, { vol: e.hit ? 1 : 0.6, pitch: e.hit ? 1 : 0.85 });
+        if (e.hit) {
+          try {
+            g.camera.fade({ fadeColor: { red: 1, green: 0.96, blue: 0.82 }, fadeTime: { fadeInTime: 0.04, holdTime: 0.2, fadeOutTime: 0.45 } });
+          } catch {
+            // ignore
+          }
+          cap('the spotlight hits him: he bows and steps back');
+        } else this.hud.setMessage('Nothing there. The spotlight still cost power.', system.currentTick, 50);
+        return;
+      case 'takeover':
+        return void this.takeover(g);
       case 'hour':
         this.audio.play('fnar.clock.chime', null, g, { vol: 0.5 });
         if (!this.cams.active) g.onScreenDisplay.setTitle(' ', { fadeInDuration: 0, stayDuration: 40, fadeOutDuration: 10, subtitle: `§f${hourLabel(e.hour)}` });
         return;
-      case 'phone':
+      case 'phone': {
         if (e.muted) {
+          // hanging up on him mid-call: he remembers tomorrow
+          if (this.phoneSeq) {
+            this.audio.play('fnar.phone.hangup', OFFICE.phone, g, { vol: 0.8 });
+            this.hud.setSpeech('', system.currentTick, 0);
+            this.save.hungUp = true;
+            storeSave(this.save);
+          }
           this.phoneSeq = null;
           this.act.phone(false);
           return;
         }
-        this.phoneSeq = { lines: PHONE[e.night] ?? [], i: -2, next: system.currentTick + 60 };
+        const lines = [...(CALLS[e.night] ?? [])];
+        if (this.save.hungUp && lines.length) lines.unshift(this.rng.pick(HUNG_UP));
+        this.phoneSeq = { lines, i: -2, next: system.currentTick + 60 };
         return;
+      }
       case 'hallucination':
         return this.hallucinate(e.kind, g);
       case 'rusted':
@@ -801,6 +947,11 @@ export class Game {
           await wait(2);
           continue;
         }
+        if (r.kind === 'spotlight') {
+          this.feedback(this.session.input('spotlight'));
+          await wait(2);
+          continue;
+        }
         if (r.kind === 'close' || r.kind === 'dismissed') {
           this.session.input('cams_close');
           break;
@@ -849,7 +1000,7 @@ export class Game {
         ui.confirm(player, '§lFREE ROAM', 'Go back to the time clock?', 'Back').then((ok) => ok && this.enterLobby());
         return;
       }
-      ui.guide(player);
+      ui.guide(player, { bgm: () => this.save.settings.bgm !== false, toggleBgm: () => this.toggleBgm(player) });
       return;
     }
     if (id === 'fnar:remote') {
@@ -917,6 +1068,8 @@ export class Game {
     const now = system.currentTick;
     if (res.reason === 'broken') this.hud.setMessage('It will not respond...', now, 50);
     else if (res.reason === 'power') this.hud.setMessage('No power.', now, 50);
+    else if (res.reason === 'cooldown') this.hud.setMessage('The spotlight is still warming up...', now, 40);
+    else if (res.reason === 'not_cams') this.hud.setMessage('The SPOTLIGHT works through the cameras.', now, 50);
   }
 
   // ---------------------------------------------------------------- phone, stare, hallucinations
@@ -939,13 +1092,136 @@ export class Game {
     if (ph.i >= ph.lines.length) {
       this.audio.play('fnar.phone.hangup', OFFICE.phone, g, { vol: 0.8 });
       this.phoneSeq = null;
+      if (this.save.hungUp) {
+        this.save.hungUp = false; // he got to finish this time
+        storeSave(this.save);
+      }
       return;
     }
-    const line = ph.lines[ph.i++];
-    if (!this.cams.active) this.hud.setMessage(`☎ ${line}`, now, 110);
-    else g.sendMessage(`§7☎ ${line}`);
+    const line = fill(ph.lines[ph.i++], { name: g.name });
+    const ticks = 50 + Math.min(120, Math.round(line.length * 1.4));
+    this.hud.setSpeech(`§5☎ §dThe Ringmaster§7: §f${line}`, now, ticks + 10);
     this.audio.play('fnar.phone.voice', OFFICE.phone, g, { vol: 0.7 });
-    ph.next = now + 50 + Math.min(110, line.length * 1.4);
+    ph.next = now + ticks;
+  }
+
+  // ---------------------------------------------------------------- the Ringmaster's PA
+  /** Pick one of `arr`, never the same one twice in a row for `key`. */
+  pickLine(key, arr) {
+    if (!arr?.length) return '';
+    let i = this.rng.int(0, arr.length - 1);
+    if (arr.length > 1 && i === this.paLast[key]) i = (i + 1) % arr.length;
+    this.paLast[key] = i;
+    return arr[i];
+  }
+
+  /** @param {import('@minecraft/server').Player} g */
+  paSay(e, g) {
+    const F = FINAL;
+    let lines = [];
+    let urgent = false;
+    switch (e.key) {
+      case 'intro':
+        lines = [...F.intro];
+        break;
+      case 'summon':
+        lines = [this.pickLine(`summon_${e.who}`, F.summon[e.who])];
+        urgent = true;
+        break;
+      case 'game':
+        lines = [this.pickLine(`game_${e.game}`, F.games[e.game])];
+        urgent = true;
+        break;
+      case 'step':
+        lines = F.step[e.node] ? [this.pickLine(`step_${e.node}`, F.step[e.node])] : [];
+        urgent = true;
+        break;
+      default:
+        if (Array.isArray(F[e.key])) lines = [this.pickLine(e.key, F[e.key])];
+    }
+    const vars = { name: g.name, cam: e.cam, side: SIDE_WORD[e.side] };
+    lines = lines.filter(Boolean).map((l) => fill(l, vars));
+    if (!lines.length) return;
+    // a new cue matters more than the patter he has not got to yet
+    if (urgent) this.paQueue = [];
+    this.paQueue.push(...lines);
+    if (this.paQueue.length > 4) this.paQueue.splice(0, this.paQueue.length - 4);
+    if (urgent) this.paNext = Math.min(this.paNext, system.currentTick);
+  }
+
+  /** @param {import('@minecraft/server').Player} g */
+  tickPa(g, now) {
+    if (!this.paQueue.length || now < this.paNext) return;
+    if (!this.paChimed && now - this.paSpoke > 60) {
+      // the chime first, as on a real PA
+      this.paChimed = true;
+      this.audio.play('fnar.final.chime', null, g, { vol: 0.7 });
+      this.paNext = now + 26;
+      return;
+    }
+    this.paChimed = false;
+    const line = this.paQueue.shift();
+    const ticks = 40 + Math.min(110, Math.round(line.length * 1.3));
+    this.hud.setSpeech(`§5[PA] §dThe Ringmaster§7: §f${line}`, now, ticks + 10);
+    this.audio.play('fnar.phone.voice', null, g, { vol: 0.45, pitch: 0.92 });
+    this.paSpoke = now + ticks;
+    this.paNext = now + ticks;
+  }
+
+  /** @param {import('@minecraft/server').Player} g */
+  renderAct(n, g) {
+    const a = FINAL.acts[n];
+    if (!a) return;
+    this.audio.play('fnar.tophat.fanfare', null, g, { vol: 0.6 });
+    if (!this.cams.active) {
+      try {
+        g.onScreenDisplay.setTitle(a.card[0], { fadeInDuration: 10, stayDuration: 60, fadeOutDuration: 20, subtitle: a.card[1] });
+      } catch {
+        // ignore
+      }
+    }
+    // the act's announcement follows his welcome (Act I) or cuts in (the queue keeps the newest lines)
+    this.paQueue.push(...a.lines.map((l) => fill(l, { name: g.name })));
+    if (this.paQueue.length > 4) this.paQueue.splice(0, this.paQueue.length - 4);
+  }
+
+  // ---------------------------------------------------------------- the booth (nights 1-5)
+  /**
+   * The Ringmaster never leaves his booth before the Final Act, but on nights 3-5 he is
+   * sometimes caught peering through the curtains or standing just outside them. Watched
+   * for a moment, the feed tears and he is back in place. Purely cosmetic.
+   * @param {import('@minecraft/server').Player} g
+   */
+  tickBooth(g, now) {
+    const s = this.session;
+    const b = this.booth;
+    if (!b || !s || s.chars.top_hat_rat.enabled || s.powerOut) return;
+    const watching = this.cams.active && s.devices.cams.cam === '1C' && !this.camCover();
+    const away = b.at !== 'CAB';
+    if (away && watching) {
+      if (++b.seen < 50) return;
+      // caught: static, and he is back in his booth as if he never moved
+      s.staticOn(['1C'], 14);
+      this.audio.play('fnar.cam.glitch', null, g, { vol: 0.7 });
+      this.puppets.spawn('top_hat_rat', 'CAB', 'pose');
+      this.puppets.eyes('top_hat_rat', true);
+      delete this.stare.top_hat_rat;
+      Object.assign(b, { at: 'CAB', anim: 'pose', seen: 0, next: now + 900 + this.rng.int(0, 900) });
+      return;
+    }
+    b.seen = 0;
+    if (watching || now < b.next) return;
+    const night = s.night === CUSTOM_NIGHT ? 5 : s.night;
+    const options = BOOTH_GLIMPSES.filter((o) => night >= o.fromNight);
+    if (!options.length || away) {
+      b.next = now + 600;
+      return;
+    }
+    const o = this.rng.pick(options);
+    this.puppets.spawn('top_hat_rat', o.node, o.anim);
+    this.puppets.eyes('top_hat_rat', true);
+    delete this.stare.top_hat_rat;
+    Object.assign(b, { at: o.node, anim: o.anim, next: now + 1200 });
   }
 
   /** Animatronics watched on camera long enough turn their head to the lens. */
@@ -955,10 +1231,12 @@ export class Game {
     if (!this.cams.active || this.camCover()) return;
     const cam = CAMERA_BY_ID[s.devices.cams.cam];
     for (const c of Object.values(s.chars)) {
-      if (!c.node || c.walk || !cam.sees.includes(c.node)) continue;
+      // the booth glimpses move the Ringmaster's puppet without moving him in the session
+      const at = c.id === 'top_hat_rat' && this.booth && !c.enabled ? this.booth.at : c.node;
+      if (!at || c.walk || !cam.sees.includes(at)) continue;
       const n = (this.stare[c.id] = (this.stare[c.id] ?? 0) + 1);
       if (n !== STARE_AFTER) continue;
-      const node = NODES[c.node];
+      const node = NODES[at];
       const dx = cam.loc[0] - node.x;
       const dz = cam.loc[2] - node.z;
       const dy = cam.loc[1] - (node.y + (HEAD_Y[c.id] ?? 2));
@@ -1025,6 +1303,8 @@ export class Game {
     if (stage === 'down') {
       this.act.powerOut();
       this.audio.stopAll();
+      this.stopBgm(g);
+      this.paQueue = [];
       this.audio.play('fnar.power.out', null, g);
       runCmd(FOG.nightPop);
       runCmd(FOG.darkPush);
@@ -1056,7 +1336,9 @@ export class Game {
     this.cams.close();
     this.act.clearCamLight();
     this.audio.stopAll();
-    const id = who === 'rusted' ? 'rusted' : who;
+    this.stopBgm(g);
+    this.paQueue = [];
+    const id = who;
     try {
       const eye = g.getHeadLocation();
       const rot = g.getRotation();
@@ -1069,7 +1351,7 @@ export class Game {
       this.puppets.jumpscareAt(id, L(pos), facing);
       g.addEffect('invisibility', 200, { amplifier: 0, showParticles: false });
       g.camera.setCamera('minecraft:free', { location: eye, facingLocation: { x: pos.x, y: eye.y - 0.1, z: pos.z } });
-      g.playSound(`fnar.js.${id === 'rusted' ? 'rustgrin' : id}`, { volume: 1.0 });
+      g.playSound(`fnar.js.${id}`, { volume: 1.0 });
       runCmd(`camerashake add @a[name="${g.name}"] 0.7 1.4 rotational`);
     } catch (e) {
       log.warn(`jumpscare: ${e?.message ?? e}`);
@@ -1088,7 +1370,7 @@ export class Game {
     const res = await ui.resultForm(g, {
       won: false,
       label: this.nightLabel,
-      tip: who === 'rusted' ? 'He was never there. Raise the monitor the moment you see him.' : TUTORIAL_HINTS[Math.min(6, Math.max(1, n))],
+      tip: KILL_TIPS[who] ?? TUTORIAL_HINTS[Math.min(7, Math.max(1, n))],
     });
     this.afterResult(res, g, false);
   }
@@ -1100,6 +1382,8 @@ export class Game {
     this.cams.close();
     this.act.clearCamLight();
     this.audio.stopAll();
+    this.stopBgm(g);
+    this.paQueue = [];
     const n = this.nightOpts.n;
     const s = this.save;
     try {
@@ -1113,13 +1397,11 @@ export class Game {
     if (n >= 1 && n <= LAST_NIGHT) {
       if (!s.beaten.includes(n)) s.beaten.push(n);
       if (n < 5) s.next = Math.max(s.next, n + 1);
-      if (n === 5) {
-        s.stars = Math.max(s.stars, 1);
-        ending = 'week';
-      }
+      if (n === 5) s.stars = Math.max(s.stars, 1);
       if (n === 6) {
+        // the first time: the full finale; after that, a short encore
+        ending = s.stars >= 2 ? 'encore' : 'final_act';
         s.stars = Math.max(s.stars, 2);
-        ending = 'overtime';
       }
     } else if (n === CUSTOM_NIGHT) {
       if (!s.beaten.includes(CUSTOM_NIGHT)) s.beaten.push(CUSTOM_NIGHT);
@@ -1135,9 +1417,9 @@ export class Game {
     if (ending) await this.playEnding(g, ENDINGS[ending]);
     this.puppets.removeAll();
     restorePlayerView(g);
-    const canNext = n < 5 || (n === 5 && s.beaten.includes(5));
+    const canNext = n < 5;
     const nextN = n + 1;
-    const res = await ui.resultForm(g, { won: true, label: this.nightLabel, canNext: canNext && nextN <= LAST_NIGHT, nextLabel: `Night ${nextN}` });
+    const res = await ui.resultForm(g, { won: true, label: this.nightLabel, canNext: canNext && nextN <= LAST_NIGHT, nextLabel: `Night ${nextN}`, body: n === 6 ? 'The curtain falls. The Custom Night is open.' : undefined });
     this.afterResult(res, g, true);
   }
 
@@ -1146,13 +1428,87 @@ export class Game {
     try {
       g.playSound('fnar.music.ending', { volume: 0.9 });
       for (const [title, sub] of ending.lines) {
-        g.onScreenDisplay.setTitle(title, { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 10, subtitle: sub });
+        g.onScreenDisplay.setTitle(fill(title, { name: g.name }), { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 10, subtitle: fill(sub, { name: g.name }) });
         await wait(95);
       }
       g.playSound('fnar.ui.star', { volume: 1 });
     } catch {
       // ignore
     }
+  }
+
+  /**
+   * Night 5, 4 AM: a fake "you won" screen, the Ringmaster tears through it, CAM 1C shows his
+   * booth empty, and the Final Act starts at once.
+   * @param {import('@minecraft/server').Player} g
+   */
+  async takeover(g) {
+    this.state = 'ENDING';
+    if (this.camForm) this.stopCamForm();
+    this.cams.close();
+    this.act.clearCamLight();
+    this.audio.stopAll();
+    this.stopBgm(g);
+    this.paQueue = [];
+    this.phoneSeq = null;
+    // reaching the takeover is surviving the week: night 5 counts and the first star is earned
+    const s = this.save;
+    if (!s.beaten.includes(5)) s.beaten.push(5);
+    s.stars = Math.max(s.stars, 1);
+    storeSave(s);
+    const alive = () => g.isValid && this.state === 'ENDING';
+    const vars = { name: g.name };
+    const title = (t, sub, stay) => g.onScreenDisplay.setTitle(fill(t, vars), { fadeInDuration: 4, stayDuration: stay, fadeOutDuration: 4, subtitle: fill(sub, vars) });
+    try {
+      g.playSound('fnar.clock.6am', { volume: 1 });
+      await wait(30);
+      const credits = g.playSound('fnar.music.ending', { volume: 0.8 });
+      for (const [t, sub] of TAKEOVER.fake) {
+        if (!alive()) return;
+        title(t, sub, 75);
+        await wait(85);
+      }
+      if (!alive()) return;
+      // the screen tears
+      try {
+        credits?.stop();
+      } catch {
+        // already over
+      }
+      g.playSound('fnar.cam.glitch', { volume: 1 });
+      g.playSound('fnar.hall.sting', { volume: 0.9, pitch: 0.7 });
+      g.camera.fade({ fadeColor: { red: 0.45, green: 0, blue: 0.03 }, fadeTime: { fadeInTime: 0.04, holdTime: 0.25, fadeOutTime: 0.4 } });
+      runCmd(`camerashake add @a[name="${g.name}"] 0.35 0.8 rotational`);
+      for (const [t, sub] of TAKEOVER.interrupt) {
+        if (!alive()) return;
+        title(t, sub, 42);
+        g.playSound('fnar.phone.voice', { volume: 0.6, pitch: 0.85 });
+        await wait(52);
+      }
+      if (!alive()) return;
+      g.playSound('fnar.tophat.laugh', { volume: 1 });
+      // CAM 1C: the booth is empty
+      this.puppets.remove('top_hat_rat');
+      this.cams.open(g, '1C');
+      this.act.camLight('1C');
+      this.showCamMap(g, '1C');
+      g.playSound('fnar.cam.up', { volume: 0.8 });
+      await wait(70);
+      if (!alive()) return;
+      g.playSound('fnar.cam.glitch', { volume: 1 });
+      this.cams.close();
+      this.act.clearCamLight();
+      this.showCamMap(g, null);
+      g.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0.2, holdTime: 4.5, fadeOutTime: 1.0 } });
+      await wait(12);
+      g.playSound('fnar.final.chime', { volume: 0.9 });
+      title(TAKEOVER.card[0], TAKEOVER.card[1], 70);
+      await wait(85);
+    } catch (e) {
+      log.warn(`takeover: ${e?.message ?? e}`);
+    }
+    if (!alive()) return;
+    this.startNight(g, 6);
   }
 
   /** @param {import('@minecraft/server').Player} g */

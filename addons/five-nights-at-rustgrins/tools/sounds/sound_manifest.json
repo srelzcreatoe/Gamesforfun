@@ -6,6 +6,7 @@
     "sounds/fnar/amb/office.ogg"
    ],
    "duration": 10.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": true,
    "positional": true,
@@ -26,6 +27,7 @@
     "sounds/fnar/amb/fan.ogg"
    ],
    "duration": 4.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": true,
    "positional": true,
@@ -46,6 +48,7 @@
     "sounds/fnar/amb/building.ogg"
    ],
    "duration": 24.0,
+   "source": "synthesised",
    "channels": 2,
    "loop": true,
    "positional": false,
@@ -66,6 +69,7 @@
     "sounds/fnar/amb/duct.ogg"
    ],
    "duration": 6.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": true,
    "positional": true,
@@ -86,6 +90,7 @@
     "sounds/fnar/amb/light_buzz.ogg"
    ],
    "duration": 2.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": true,
    "positional": true,
@@ -106,6 +111,7 @@
     "sounds/fnar/door/close.ogg"
    ],
    "duration": 1.2,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -121,6 +127,7 @@
     "sounds/fnar/door/open.ogg"
    ],
    "duration": 1.4,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -136,6 +143,7 @@
     "sounds/fnar/door/error.ogg"
    ],
    "duration": 0.5,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -151,6 +159,7 @@
     "sounds/fnar/light/on.ogg"
    ],
    "duration": 0.3,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -166,6 +175,7 @@
     "sounds/fnar/light/off.ogg"
    ],
    "duration": 0.2,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -182,6 +192,7 @@
     "sounds/fnar/button/press2.ogg"
    ],
    "duration": 0.15,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -198,6 +209,7 @@
     "sounds/fnar/vent/close.ogg"
    ],
    "duration": 0.9,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -213,6 +225,7 @@
     "sounds/fnar/vent/open.ogg"
    ],
    "duration": 0.7,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -228,6 +241,7 @@
     "sounds/fnar/cam/up.ogg"
    ],
    "duration": 0.5,
+   "source": "synthesised",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -243,6 +257,7 @@
     "sounds/fnar/cam/down.ogg"
    ],
    "duration": 0.4,
+   "source": "synthesised",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -260,6 +275,7 @@
     "sounds/fnar/cam/switch3.ogg"
    ],
    "duration": 0.3,
+   "source": "synthesised",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -277,6 +293,7 @@
     "sounds/fnar/cam/static.ogg"
    ],
    "duration": 1.5,
+   "source": "synthesised",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -292,6 +309,7 @@
     "sounds/fnar/cam/hum.ogg"
    ],
    "duration": 10.0,
+   "source": "synthesised",
    "channels": 2,
    "loop": true,
    "positional": false,
@@ -312,6 +330,7 @@
     "sounds/fnar/cam/glitch.ogg"
    ],
    "duration": 0.6,
+   "source": "synthesised",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -327,6 +346,7 @@
     "sounds/fnar/power/out.ogg"
    ],
    "duration": 3.0,
+   "source": "synthesised",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -342,6 +362,7 @@
     "sounds/fnar/clock/chime.ogg"
    ],
    "duration": 1.5,
+   "source": "synthesised",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -357,6 +378,7 @@
     "sounds/fnar/clock/6am.ogg"
    ],
    "duration": 6.0,
+   "source": "synthesised",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -372,6 +394,7 @@
     "sounds/fnar/phone/ring.ogg"
    ],
    "duration": 4.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -387,6 +410,7 @@
     "sounds/fnar/phone/pickup.ogg"
    ],
    "duration": 0.4,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -405,6 +429,7 @@
     "sounds/fnar/phone/voice4.ogg"
    ],
    "duration": 2.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -423,6 +448,7 @@
     "sounds/fnar/phone/hangup.ogg"
    ],
    "duration": 0.5,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -441,6 +467,7 @@
     "sounds/fnar/step/heavy4.ogg"
    ],
    "duration": 0.35,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -462,6 +489,7 @@
     "sounds/fnar/step/light4.ogg"
    ],
    "duration": 0.25,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -482,6 +510,7 @@
     "sounds/fnar/step/scurry3.ogg"
    ],
    "duration": 0.6,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -501,6 +530,7 @@
     "sounds/fnar/servo/move3.ogg"
    ],
    "duration": 0.8,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -519,6 +549,7 @@
     "sounds/fnar/servo/head2.ogg"
    ],
    "duration": 0.4,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -537,6 +568,7 @@
     "sounds/fnar/mirehop/strum3.ogg"
    ],
    "duration": 2.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -555,6 +587,7 @@
     "sounds/fnar/noxbriar/hum2.ogg"
    ],
    "duration": 5.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -572,6 +605,7 @@
     "sounds/fnar/rustgrin/feedback2.ogg"
    ],
    "duration": 1.5,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -589,6 +623,7 @@
     "sounds/fnar/rustgrin/laugh2.ogg"
    ],
    "duration": 1.6,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -605,6 +640,7 @@
     "sounds/fnar/rustgrin/song.ogg"
    ],
    "duration": 20.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -621,6 +657,7 @@
     "sounds/fnar/cat/bell2.ogg"
    ],
    "duration": 1.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -637,6 +674,7 @@
     "sounds/fnar/cat/run.ogg"
    ],
    "duration": 2.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -654,6 +692,7 @@
     "sounds/fnar/cat/bang3.ogg"
    ],
    "duration": 1.5,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -671,6 +710,7 @@
     "sounds/fnar/cat/growl.ogg"
    ],
    "duration": 1.2,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -688,6 +728,7 @@
     "sounds/fnar/rat/maracas3.ogg"
    ],
    "duration": 1.5,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -706,6 +747,7 @@
     "sounds/fnar/rat/squeak2.ogg"
    ],
    "duration": 0.4,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -724,6 +766,7 @@
     "sounds/fnar/rat/crawl3.ogg"
    ],
    "duration": 1.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -741,6 +784,7 @@
     "sounds/fnar/rat/bang.ogg"
    ],
    "duration": 0.8,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -756,6 +800,7 @@
     "sounds/fnar/tophat/cane.ogg"
    ],
    "duration": 1.2,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -771,6 +816,7 @@
     "sounds/fnar/tophat/fanfare.ogg"
    ],
    "duration": 3.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -786,6 +832,7 @@
     "sounds/fnar/tophat/show.ogg"
    ],
    "duration": 16.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": true,
    "positional": true,
@@ -806,6 +853,7 @@
     "sounds/fnar/tophat/show_slow.ogg"
    ],
    "duration": 22.8571,
+   "source": "synthesised",
    "channels": 1,
    "loop": true,
    "positional": true,
@@ -826,6 +874,7 @@
     "sounds/fnar/tophat/rewind.ogg"
    ],
    "duration": 1.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -841,6 +890,7 @@
     "sounds/fnar/tophat/tape_out.ogg"
    ],
    "duration": 2.5,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -856,6 +906,7 @@
     "sounds/fnar/tophat/laugh.ogg"
    ],
    "duration": 2.0,
+   "source": "synthesised",
    "channels": 1,
    "loop": false,
    "positional": true,
@@ -868,9 +919,10 @@
   },
   "fnar.js.rustgrin": {
    "files": [
-    "sounds/fnar/js/rustgrin.ogg"
+    "sounds/fnar/js/animatronic.ogg"
    ],
-   "duration": 1.6,
+   "duration": 2.785,
+   "source": "assets/audio/js_animatronic.ogg",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -878,14 +930,15 @@
    "max_distance": null,
    "note": "",
    "peaks_db": [
-    -1.15
+    -1.27
    ]
   },
   "fnar.js.mirehop": {
    "files": [
-    "sounds/fnar/js/mirehop.ogg"
+    "sounds/fnar/js/animatronic.ogg"
    ],
-   "duration": 1.6,
+   "duration": 2.785,
+   "source": "assets/audio/js_animatronic.ogg",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -893,14 +946,15 @@
    "max_distance": null,
    "note": "",
    "peaks_db": [
-    -1.86
+    -1.27
    ]
   },
   "fnar.js.noxbriar": {
    "files": [
-    "sounds/fnar/js/noxbriar.ogg"
+    "sounds/fnar/js/animatronic.ogg"
    ],
-   "duration": 1.6,
+   "duration": 2.785,
+   "source": "assets/audio/js_animatronic.ogg",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -908,14 +962,15 @@
    "max_distance": null,
    "note": "",
    "peaks_db": [
-    -1.28
+    -1.27
    ]
   },
   "fnar.js.purple_rat": {
    "files": [
-    "sounds/fnar/js/purple_rat.ogg"
+    "sounds/fnar/js/animatronic.ogg"
    ],
-   "duration": 1.6,
+   "duration": 2.785,
+   "source": "assets/audio/js_animatronic.ogg",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -923,14 +978,15 @@
    "max_distance": null,
    "note": "",
    "peaks_db": [
-    -1.33
+    -1.27
    ]
   },
   "fnar.js.cat": {
    "files": [
-    "sounds/fnar/js/cat.ogg"
+    "sounds/fnar/js/animatronic.ogg"
    ],
-   "duration": 1.6,
+   "duration": 2.785,
+   "source": "assets/audio/js_animatronic.ogg",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -938,14 +994,15 @@
    "max_distance": null,
    "note": "",
    "peaks_db": [
-    -1.93
+    -1.27
    ]
   },
   "fnar.js.top_hat_rat": {
    "files": [
-    "sounds/fnar/js/top_hat_rat.ogg"
+    "sounds/fnar/js/animatronic.ogg"
    ],
-   "duration": 1.6,
+   "duration": 2.785,
+   "source": "assets/audio/js_animatronic.ogg",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -953,7 +1010,71 @@
    "max_distance": null,
    "note": "",
    "peaks_db": [
-    -1.21
+    -1.27
+   ]
+  },
+  "fnar.js.rusted": {
+   "files": [
+    "sounds/fnar/js/rusted.ogg"
+   ],
+   "duration": 3.2793,
+   "source": "assets/audio/js_fredbear.ogg",
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -1.09
+   ]
+  },
+  "fnar.final.chime": {
+   "files": [
+    "sounds/fnar/final/chime.ogg"
+   ],
+   "duration": 1.9,
+   "source": "synthesised",
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -2.9
+   ]
+  },
+  "fnar.final.applause": {
+   "files": [
+    "sounds/fnar/final/applause.ogg"
+   ],
+   "duration": 4.5,
+   "source": "synthesised",
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -6.53
+   ]
+  },
+  "fnar.final.spot": {
+   "files": [
+    "sounds/fnar/final/spot.ogg"
+   ],
+   "duration": 0.9,
+   "source": "synthesised",
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "hostile",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -2.05
    ]
   },
   "fnar.hall.whisper": {
@@ -961,6 +1082,7 @@
     "sounds/fnar/hall/whisper.ogg"
    ],
    "duration": 2.0,
+   "source": "synthesised",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -976,6 +1098,7 @@
     "sounds/fnar/hall/sting.ogg"
    ],
    "duration": 1.5,
+   "source": "synthesised",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -991,6 +1114,7 @@
     "sounds/fnar/ui/click.ogg"
    ],
    "duration": 0.1,
+   "source": "synthesised",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -1006,6 +1130,7 @@
     "sounds/fnar/ui/star.ogg"
    ],
    "duration": 2.0,
+   "source": "synthesised",
    "channels": 2,
    "loop": false,
    "positional": false,
@@ -1021,6 +1146,7 @@
     "sounds/fnar/music/title.ogg"
    ],
    "duration": 40.0,
+   "source": "synthesised",
    "channels": 2,
    "loop": true,
    "positional": false,
@@ -1041,6 +1167,7 @@
     "sounds/fnar/music/showtime.ogg"
    ],
    "duration": 48.0,
+   "source": "synthesised",
    "channels": 2,
    "loop": true,
    "positional": false,
@@ -1056,11 +1183,28 @@
     "hf_p99": 4.106
    }
   },
+  "fnar.music.bgm": {
+   "files": [
+    "sounds/fnar/music/bgm.ogg"
+   ],
+   "duration": 179.9975,
+   "source": "assets/audio/bgm.ogg",
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "music",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -1.05
+   ]
+  },
   "fnar.music.ending": {
    "files": [
     "sounds/fnar/music/ending.ogg"
    ],
    "duration": 12.0,
+   "source": "synthesised",
    "channels": 2,
    "loop": false,
    "positional": false,

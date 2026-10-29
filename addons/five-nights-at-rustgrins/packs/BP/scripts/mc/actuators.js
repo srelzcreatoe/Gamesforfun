@@ -142,20 +142,13 @@ export class Actuators {
     }
   }
 
-  // ------------------------------------------------------------ the Cabaret curtain
-  /** stage 0 closed, 1 a gap at the peek row, 2-3 the gap stays; 3 adds the OUT OF ORDER sign. */
-  curtain(stage) {
+  // ------------------------------------------------------------ the booth curtains
+  /** The Ringmaster's booth (the old Cabaret): curtains parted, as built. */
+  curtainParted() {
     const c = CABARET.curtain;
     fillSafe(c.x, c.y1, c.z1, c.x, c.y2, c.z2, 'curtain_purple');
     const g = CABARET.gap;
-    if (stage >= 1) fillSafe(c.x, g.y1, g.z1, c.x, g.y2, g.z2, 'air');
-    if (stage >= 2) fillSafe(c.x, g.y1, g.z1 - 1, c.x, g.y2, g.z2 + 1, 'air');
-    const o = CABARET.outOfOrder;
-    for (let z = o.z1; z <= o.z2; z++) {
-      const tile = z - o.z1;
-      if (stage >= 3) setLocal(o.x, o.y, z, `pic:sign_out_of_order:${tile}:${o.dir}`);
-      else if (typeAtLocal(o.x, o.y, z) === 'fnar:sign_out_of_order') setLocal(o.x, o.y, z, 'air');
-    }
+    fillSafe(c.x, g.y1, g.z1, c.x, g.y2, g.z2, 'air');
   }
 
   /** Daytime: the Cabaret curtain fully open. */
@@ -216,7 +209,7 @@ export class Actuators {
     this.officeLamp(true);
     this.spots(null, false);
     this.spots('gallery', false);
-    this.curtain(0);
+    this.curtainParted();
     this.tape(4);
     this.clearCamLight();
   }
@@ -265,7 +258,7 @@ export class Actuators {
     for (const l of this.meta.lamps) if (l.room === 'STAFF' || l.room === 'GALLERY') setStateLocal(l.x, l.y, l.z, 'fnar:lit', true);
     this.spots(null, false);
     this.spots('gallery', true);
-    this.curtain(0);
+    this.curtainParted();
     this.monitor(false);
     this.clearCamLight();
   }

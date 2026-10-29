@@ -24,6 +24,7 @@ function parseEnums(file) {
   return out;
 }
 const E = parseEnums(DTS);
+const GAME_RULES = new Set([...(fs.readFileSync(DTS, 'utf8').match(/export class GameRules \{([\s\S]*?)\n\}/)?.[1] ?? '').matchAll(/^\s+(\w+): (?:boolean|number);/gm)].map((m) => m[1]));
 export const { GameMode, HudVisibility, HudElement, InputButton, ButtonState, WeatherType, InputPermissionCategory, EasingType, CustomCommandParamType, CustomCommandStatus, CommandPermissionLevel, Direction, ItemLockMode } = E;
 
 // ---------------------------------------------------------------- recorded state for assertions
@@ -197,8 +198,18 @@ class Entity {
   }
 
   remove() {
+    rw('remove');
     this.isValid = false;
     mock.entities.delete(this.id);
+  }
+
+  /** Families of the mock's entities: vanilla mobs added by tests carry 'mob'; the cast has none. */
+  matches(q = {}) {
+    const fam = this.families ?? [];
+    if (q.families && !q.families.every((f) => fam.includes(f))) return false;
+    if (q.type && this.typeId !== q.type) return false;
+    if (q.excludeTypes && q.excludeTypes.includes(this.typeId)) return false;
+    return true;
   }
 }
 
@@ -253,6 +264,20 @@ class Player extends Entity {
     checkSound(id);
     mock.sounds.push(id);
     return { stop() {} };
+  }
+
+  playMusic(id, o) {
+    rw('playMusic');
+    checkSound(id);
+    if (soundDefs?.[id] && soundDefs[id].category !== 'music') throw new Error(`playMusic: ${id} is not in the music category`);
+    if (o?.volume !== undefined && !(o.volume >= 0)) throw new Error('playMusic: bad volume');
+    mock.sounds.push(id);
+    this.music = id;
+  }
+
+  stopMusic() {
+    rw('stopMusic');
+    this.music = null;
   }
 
   getComponent(c) {
@@ -348,10 +373,13 @@ const dimension = {
     if (!entityProps[id]) throw new Error(`spawnEntity: unknown entity ${id}`);
     const e = new Entity(id, loc);
     mock.entities.set(e.id, e);
+    queueMicrotask(() => world.afterEvents.entitySpawn.fire({ entity: e, cause: 'Spawned' }));
     return e;
   },
   getEntities(q = {}) {
-    return [...mock.entities.values()].filter((e) => (!q.type || e.typeId === q.type) && (!q.tags || q.tags.every((t) => e.tags.has(t))));
+    if (q.volume && !q.location) throw new Error('getEntities: volume needs a location');
+    const inBox = (e) => !q.volume || (['x', 'y', 'z'].every((k) => e.location[k] >= q.location[k] && e.location[k] < q.location[k] + q.volume[k]));
+    return [...mock.entities.values()].filter((e) => (!q.tags || q.tags.every((t) => e.tags.has(t))) && e.matches(q) && inBox(e));
   },
   playSound(id) {
     rw('playSound');
@@ -421,7 +449,7 @@ export const system = {
 const players = [];
 const dyn = new Map();
 export const world = {
-  afterEvents: Object.fromEntries(['worldLoad', 'playerSpawn', 'buttonPush', 'itemUse', 'playerInteractWithBlock', 'playerHotbarSelectedSlotChange', 'playerButtonInput', 'playerLeave'].map((n) => [n, signal()])),
+  afterEvents: Object.fromEntries(['worldLoad', 'playerSpawn', 'buttonPush', 'itemUse', 'playerInteractWithBlock', 'playerHotbarSelectedSlotChange', 'playerButtonInput', 'playerLeave', 'entitySpawn'].map((n) => [n, signal()])),
   beforeEvents: { playerInteractWithBlock: readOnlySignal() },
   getDimension: () => dimension,
   sendMessage(m) {
@@ -434,7 +462,15 @@ export const world = {
     if (v !== undefined && typeof v === 'string' && v.length > 32767) throw new Error('dynamic property too long');
     dyn.set(k, v);
   },
-  gameRules: {},
+  // only the game rules the real GameRules class has
+  gameRules: new Proxy({}, {
+    set(t, k, v) {
+      if (!GAME_RULES.has(k)) throw new Error(`gameRules.${String(k)} does not exist`);
+      if (typeof v !== 'boolean' && typeof v !== 'number') throw new Error(`gameRules.${String(k)} = ${v}`);
+      t[k] = v;
+      return true;
+    },
+  }),
   setTimeOfDay() {},
 };
 
@@ -447,6 +483,14 @@ export class ItemStack {
 
 // ---------------------------------------------------------------- driver helpers
 export const driver = {
+  /** A vanilla mob appearing in the world (fires entitySpawn like the game). */
+  spawnMob(typeId, loc, { silent = false } = {}) {
+    const e = new Entity(typeId, loc);
+    e.families = ['mob', 'monster'];
+    mock.entities.set(e.id, e);
+    if (!silent) world.afterEvents.entitySpawn.fire({ entity: e, cause: 'Spawned' });
+    return e;
+  },
   addPlayer(name, loc) {
     const p = new Player(name, loc);
     players.push(p);

@@ -1,10 +1,15 @@
-// The Cat (Kitty's Cabaret): FNAF 1 Foxy rules. Curtain stages 0..3 advance
-// on successful opportunities, but never while the monitor is up and not
-// for a random while after it goes down - so checking the cameras often
-// keeps her in. At stage 3 she leaves: she sprints down a hall (west, or from
-// night 4 sometimes east) the moment the guard looks at that hall's camera,
-// or after a while anyway. A shut door makes her bang (power drain grows each
-// time) and slink back to her booth; an open door is the end.
+// The Cat dances on the Midway ring (CAM 8) with the Purple Rat. FNAF 1 Foxy rules,
+// driven by the troupe's show tape:
+//   stage 0 dancing on the ring, 1 stopped and staring at the camera, 2 off the ring
+//   at its edge, 3 gone - about to sprint down a hall.
+// While the music plays at full speed she keeps dancing. When it slows (tape under 30 %)
+// her opportunities advance the stage, but never while the monitor is up and not for a
+// random while after it goes down - so checking the cameras holds her. When the music
+// stops she steps off the ring at once. Rewinding above 60 % calls her back to the ring
+// (before she has run). At stage 3 she sprints down a hall (west, or from night 4
+// sometimes east) the moment the guard looks at that hall's camera, or after a while
+// anyway. A shut door makes her bang (power drain grows each time) and slink back to
+// the ring; an open door is the end.
 
 import { Animatronic } from './base.js';
 import { CONFIG } from '../config.js';
@@ -18,27 +23,42 @@ export class Cat extends Animatronic {
     this.side = 'L';
     this.bangs = 0;
     this.camsWereOpen = false;
+    this.sawStop = false;
   }
 
   bonus() {
-    return this.s.rally ? CONFIG.characters.top_hat_rat.rallyBonus : 0;
+    return this.s.tape.bonus();
+  }
+
+  /** Is the music keeping her on the ring? */
+  dancing() {
+    const tape = this.s.tape;
+    return tape.enabled && !tape.stopped && tape.level >= CONFIG.tape.rally;
   }
 
   setStage(n) {
     this.stage = n;
     const s = this.s;
-    s.emit({ fx: 'curtain', stage: n });
-    if (n === 0) this.placeAt('CAB', 'idle');
-    else if (n === 1) this.placeAt('CAB_PEEK', 'peek');
-    else if (n === 2) this.placeAt('CAB_OUT', 'stand');
+    if (n === 0) this.placeAt('MW_T', this.s.tape.enabled && !this.s.tape.stopped ? 'perform' : 'idle');
+    else if (n === 1) {
+      // she stops dancing and stares at the camera
+      s.emit({ fx: 'pose', who: this.id, node: 'MW_T', pose: 'stand' });
+      s.emit({ fx: 'sound', id: 'fnar.cat.bell', at: this.id, vol: 0.6 });
+    } else if (n === 2) this.placeAt('MW_EDGE', 'stand');
     else if (n === 3) {
-      this.placeAt('DIN_CAB', 'stand');
+      this.placeAt('DIN_W', 'stand');
       s.emit({ fx: 'hide', who: this.id });
       const east = s.night >= this.cfg.eastFromNight && s.rng.chance(this.cfg.eastChance);
       this.side = east ? 'R' : 'L';
       this.waitUntil = s.t + this.cfg.waitAtStage3(this.ai);
     }
-    s.staticOn(['1C'], 25);
+    s.staticOn(['8'], 20);
+  }
+
+  /** The tape was rewound above 60 %: back to the ring, if she has not run yet. */
+  recall() {
+    if (!this.active || this.state === 'run' || this.state === 'inside' || this.stage === 0 || this.stage >= 3) return;
+    this.setStage(0);
   }
 
   tick() {
@@ -56,7 +76,18 @@ export class Cat extends Animatronic {
       if (s.t >= this.killAt) s.kill(this.id);
       return;
     }
+    if (!this.active) return;
+    // the music stopped: she walks off the ring at once
+    if (s.tape.stopped && !this.sawStop) {
+      this.sawStop = true;
+      if (this.stage < 2) this.setStage(2);
+    }
+    if (!s.tape.stopped) this.sawStop = false;
     if (this.stage < 3) {
+      if (this.dancing()) {
+        if (s.t >= this.nextMo) this.nextMo = s.t + this.cfg.mo; // she is busy dancing
+        return;
+      }
       if (open || s.t < this.lockUntil) {
         if (s.t >= this.nextMo) this.nextMo = s.t + this.cfg.mo; // opportunities are lost while watched
         return;

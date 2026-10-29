@@ -44,6 +44,7 @@ class Bot {
   occupant(node) { return Object.values(this.s.chars).find((c) => c.node === node && !c.walk && !c.inside); }
   hear(e) {
     if (this.kind === 'idle') return;
+    if (this.s.final) return this.hearFinal(e);
     const cue = ['at_nook', 'at_vent', 'ringmaster'].includes(e.fx) || (e.fx === 'sound' && ['fnar.cat.run', 'fnar.mirehop.strum', 'fnar.noxbriar.hum', 'fnar.rat.maracas'].includes(e.id));
     if (cue && !this.heard()) return;
     if (e.fx === 'at_nook') { this.rustAtNook = true; this.at(this.react(8, 30), 'want_door_r'); }
@@ -68,21 +69,35 @@ class Bot {
       this.do(a, arg);
     }
     if (this.kind === 'idle') return;
+    if (s.final) return this.finalTick();
+    // Custom Night: the Ringmaster walks - hunt him with the spotlight now and then
+    const rm = s.chars.top_hat_rat;
+    if (rm.enabled && rm.out && s.t >= (this.huntAt ?? 0)) {
+      this.huntAt = s.t + 70 + this.slow * 2;
+      // save the light until he is in a hall
+      const cam = rm.node && !rm.walk && ['2A', '2B', '4A', '4B'].find((c) => CAMERA_BY_ID[c].sees.includes(rm.node));
+      if (cam) {
+        if (!d.cams.open) s.input('cams_open', cam);
+        else s.input('cam_select', cam);
+        this.at(s.t + 8 + this.slow, 'spot');
+        this.busyUntil = s.t + 14;
+        return;
+      }
+    }
     if (s.t < this.busyUntil) return;
     // the routine: cams sweep, then lights, then rest
-    const camsSweep = ['4B', '1C', '8', '2A'];
+    const camsSweep = ['4B', '8', '2A', '4A'];
     if (this.phase === 0) { // raise cams
       if (!d.cams.open) s.input('cams_open', '4B');
       this.sweepIdx = 0; this.phase = 1; this.busyUntil = s.t + 12;
     } else if (this.phase === 1) {
       const cam = camsSweep[this.sweepIdx];
       if (!cam) { this.phase = 2; return; }
-      if (cam === '8' && !(s.chars.top_hat_rat.enabled)) { this.sweepIdx++; return; }
+      if (cam === '8' && !s.tape.enabled) { this.sweepIdx++; return; }
       if (d.cams.cam !== cam) { s.input('cam_select', cam); this.busyUntil = s.t + 6; return; }
       // look
       if (cam === '8') {
-        const th = s.chars.top_hat_rat;
-        if (th.tape < 85000) { s.input('wind'); this.busyUntil = s.t + 9; return; }
+        if (s.tape.level < 85000) { s.input('wind'); this.busyUntil = s.t + 9; return; }
       }
       if (cam === '4B') {
         const r = this.occupant('NOOK');
@@ -115,10 +130,52 @@ class Bot {
       this.phase = 0;
     }
   }
+  // ---- the Final Act: answer every cue, then hunt the Ringmaster with the spotlight
+  hearFinal(e) {
+    const s = this.s;
+    if (e.fx === 'event' && e.kind === 'summon') {
+      this.summonSide = null;
+      if (e.who !== 'cat' && e.who !== 'purple_rat') this.at(this.react(20, 60), `want_${e.guard}_${e.side.toLowerCase()}`);
+    }
+    // the Cat's bells / the Purple Rat's maracas tell which side
+    if (e.fx === 'sound' && (e.id === 'fnar.cat.run' || e.id === 'fnar.cat.bell') && /door_/.test(e.at ?? '') && this.heard()) this.at(this.react(8, 25), `want_door_${e.at.slice(5)}`);
+    if (e.fx === 'sound' && e.id === 'fnar.rat.maracas' && /vent_/.test(e.at ?? '') && this.heard()) this.at(this.react(8, 25), `want_vent_${e.at.slice(5)}`);
+    if (e.fx === 'event' && e.kind === 'none') this.at(this.react(10, 30), 'release_all');
+    if (e.fx === 'event' && e.kind === 'game') this.at(this.react(15, 45), 'game', e);
+    if (e.fx === 'rusted' && e.on) this.at(this.react(8, 30), 'cams_open');
+  }
+  finalTick() {
+    const s = this.s; const d = s.devices; const rm = s.chars.top_hat_rat;
+    const ev = rm.event;
+    if (ev && ev.kind === 'game' && ev.game === 'still') return; // hands off
+    if (s.t < this.busyUntil) return;
+    if (!rm.out) { if (d.cams.open && !(ev && (ev.game === 'cam' || ev.game === 'find'))) s.input('cams_close'); return; }
+    // Act III: sweep the cameras that can see him and light him up
+    const sweep = ['1C', '1B', '2A', '2B', '4A', '4B'];
+    if (!d.cams.open) { s.input('cams_open', sweep[0]); this.busyUntil = s.t + 8; return; }
+    const seen = rm.node && !rm.walk && CAMERA_BY_ID[d.cams.cam].sees.includes(rm.node);
+    if (seen) { s.input('spotlight'); this.busyUntil = s.t + 12 + this.slow; return; }
+    this.sweepI = ((this.sweepI ?? 0) + 1) % sweep.length;
+    s.input('cam_select', sweep[this.sweepI]);
+    this.busyUntil = s.t + 8 + this.slow;
+  }
   catRunning(side) { const c = this.s.chars.cat; return c.state === 'run' && c.side === side; }
   ringmasterNear() { return false; }
-  do(a) {
+  do(a, arg) {
     const s = this.s; const d = s.devices;
+    if (a === 'want_vent_l' && !d.ventL) s.input('vent_l');
+    if (a === 'want_vent_r' && !d.ventR) s.input('vent_r');
+    if (a === 'spot') { s.input('spotlight'); return; }
+    if (a === 'release_all') { if (d.doorL) s.input('door_l'); if (d.doorR) s.input('door_r'); if (d.ventL) s.input('vent_l'); if (d.ventR) s.input('vent_r'); if (d.lightL) s.input('light_l'); if (d.lightR) s.input('light_r'); return; }
+    if (a === 'game') {
+      const g = arg.game;
+      if (g === 'cam' || g === 'find') { if (!d.cams.open) s.input('cams_open', arg.cam); else s.input('cam_select', arg.cam); this.busyUntil = s.t + 30; }
+      if (g === 'doors') { if (!d.doorL) s.input('door_l'); if (!d.doorR) s.input('door_r'); }
+      if (g === 'doors_open') { if (d.doorL) s.input('door_l'); if (d.doorR) s.input('door_r'); }
+      if (g === 'light') s.input(arg.side === 'L' ? 'light_l' : 'light_r');
+      if (g === 'vents') { if (!d.ventL) s.input('vent_l'); if (!d.ventR) s.input('vent_r'); }
+      return;
+    }
     if (a === 'want_door_l' && !d.doorL) s.input('door_l');
     if (a === 'want_door_r' && !d.doorR) s.input('door_r');
     if (a === 'want_door_r' && this.rustAtNook && d.cams.open && d.cams.cam !== '4B') s.input('cam_select', '4B');
@@ -135,12 +192,32 @@ function runNight(night, seed) {
   const s = new NightSession(night, { seed, ai: customAi ?? undefined });
   const bot = new Bot(s, botKind, seed * 31 + 7);
   let ticks = 0;
+  const trace = opt.trace && seed === 1000 + night ? [] : null;
+  if (opt.power) {
+    // account where the power goes: devices per tick vs one-off drains (bangs, spotlights)
+    const acc = (s.powerAcc = { base: 0, door: 0, light: 0, cams: 0, vent: 0, oneoff: 0 });
+    const orig = s.drainPower.bind(s);
+    let inTick = false;
+    const tickOrig = s.tick.bind(s);
+    s.tick = () => { inTick = true; tickOrig(); inTick = false; };
+    s.drainPower = (u) => {
+      const d = s.devices; const P = s.cfg.power;
+      if (u >= 1000) acc.oneoff += u;
+      else { acc.door += (d.doorL ? P.door : 0) + (d.doorR ? P.door : 0); acc.light += (d.lightL ? P.light : 0) + (d.lightR ? P.light : 0); acc.cams += d.cams.open ? P.cams : 0; acc.vent += (d.ventL ? P.vent : 0) + (d.ventR ? P.vent : 0); acc.base += P.base[night] ?? 3; }
+      orig(u);
+    };
+  }
   while (!s.result && ticks < 20000) {
     s.tick();
-    for (const e of s.drain()) bot.hear(e);
+    for (const e of s.drain()) {
+      bot.hear(e);
+      if (trace && ['pa', 'event', 'act', 'spotlight', 'jumpscare', 'power_out', 'door', 'vent', 'hour'].includes(e.fx)) trace.push(`${s.t} h${s.hour} p${Math.round(s.power / 1000)} ${JSON.stringify(e).slice(0, 120)}`);
+    }
     if (!s.result) bot.tick();
     ticks++;
   }
+  if (trace) console.log(trace.slice(-60).join('\n'));
+  if (opt.power && seed === 1000 + night) console.log('power use (%):', Object.fromEntries(Object.entries(s.powerAcc).map(([k, v]) => [k, Math.round(v / 1000)])), 'hour', s.hour);
   return { result: s.result, killer: s.killer, hour: s.hour, power: Math.round(s.power / 1000) };
 }
 
@@ -149,7 +226,7 @@ for (let n = n1; n <= (n2 || n1); n++) {
   let wins = 0; let powerSum = 0; let powerOuts = 0;
   for (let i = 0; i < runs; i++) {
     const r = runNight(n, 1000 + i * 7919 + n);
-    if (r.result === 'win') { wins++; powerSum += r.power; } else killers[r.killer] = (killers[r.killer] ?? 0) + 1;
+    if (r.result === 'win' || r.result === 'takeover') { wins++; powerSum += r.power; } else killers[r.killer] = (killers[r.killer] ?? 0) + 1;
     if (r.power === 0) powerOuts++;
   }
   console.log(`night ${n}${customAi ? ' (custom)' : ''} bot=${botKind}: win ${(100 * wins / runs).toFixed(0)}%  avg power left ${(wins ? powerSum / wins : 0).toFixed(0)}%  power-outs ${powerOuts}  deaths ${JSON.stringify(killers)}`);

@@ -44,10 +44,11 @@ export const NODES = Object.freeze(Object.fromEntries([
   N('DOOR_R', 42.7, 0, 66.0, 90, { door: 'R' }),
   N('NOOK', 45.3, 0, 69.5, 150, { dark: true }),
   // Midway and Kitty's Cabaret
-  N('MW_T', 6.5, 1, 21.5, -90, { pose: 'stage' }),
+  N('MW_T', 6.5, 1, 21.5, -90, { pose: 'stage' }), // the Cat's spot on the Midway ring
+  N('MW_EDGE', 11.6, 0, 22.6, -90), // the Cat, stepped off the ring towards the arch
   N('MW_P', 4.5, 1, 19.0, -60, { pose: 'stage' }),
   N('MW_GRATE', 7.5, 1, 23.8, 0),
-  N('CAB', 9.5, 1, 33.5, -90, { pose: 'stage' }),
+  N('CAB', 9.5, 1, 33.5, -90, { pose: 'stage' }), // the Ringmaster's booth (the old Kitty's Cabaret)
   N('CAB_PEEK', 13.4, 0, 33.0, -90),
   N('CAB_OUT', 16.2, 0, 33.5, -90),
   // west duct (crawl) - the riser from the Midway grate, then towards the office's left vent
@@ -120,6 +121,8 @@ export const EDGES = Object.freeze([
   E('EH_S', 'NOOK', [[45.4, 0, 58.0], [45.6, 0, 64.0]]),
   // Midway and the Cabaret
   E('MW_T', 'DIN_W', [[9.5, 1, 21.5], [10.9, 1, 21.5], [11.4, 0, 21.5], [16.0, 0, 22.0]]),
+  E('MW_T', 'MW_EDGE', [[9.5, 1, 21.5], [10.6, 1, 22.0], [11.2, 0, 22.4]]),
+  E('MW_EDGE', 'DIN_W', [[14.0, 0, 22.6], [16.0, 0, 22.6]]),
   E('MW_P', 'MW_GRATE', [[6.0, 1, 21.0], [8.0, 1, 22.8]]),
   E('CAB', 'CAB_PEEK', [[12.9, 1, 33.5], [13.3, 0, 33.3]]),
   E('CAB_PEEK', 'CAB_OUT'),

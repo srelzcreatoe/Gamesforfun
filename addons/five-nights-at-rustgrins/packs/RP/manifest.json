@@ -2,12 +2,12 @@
   "format_version": 2,
   "header": {
     "name": "Five Nights at Rustgrin's (Resources)",
-    "description": "Animatronics, the pizzeria blocks (vanilla-style, Vibrant Visuals ready), sounds, camera UI.",
+    "description": "The animatronics, a vanilla-style pizzeria with Vibrant Visuals support, original sounds and music, and the security-camera interface.",
     "uuid": "f29ca45a-51c9-4089-a965-2e8edb89568f",
     "version": [
       1,
       0,
-      3
+      4
     ],
     "min_engine_version": [
       1,
@@ -23,7 +23,7 @@
       "version": [
         1,
         0,
-        3
+        4
       ]
     }
   ],

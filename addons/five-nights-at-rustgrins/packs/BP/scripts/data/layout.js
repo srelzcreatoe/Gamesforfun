@@ -60,7 +60,7 @@ export const OPENINGS = Object.freeze([
   O('womens_door', 'RESTROOMS', 'WOMENS', [67, 0, 23, 67, 2, 23], 'door'),
   O('foyer_arch', 'DINING', 'FOYER', [62, 0, 31, 62, 4, 35]),
   O('front_doors', 'FOYER', 'OUTSIDE', [80, 0, 32, 80, 2, 34], 'glass_door'),
-  O('supply_door', 'WEST_HALL', 'SUPPLY', [25, 0, 45, 25, 2, 46], 'door'),
+  O('supply_door', 'WEST_HALL', 'SUPPLY', [25, 0, 45, 25, 3, 46], 'door'), // 4 tall: the animatronics stand ~3.25 blocks
   O('w_corner_link', 'WEST_HALL', 'W_CORNER', [26, 0, 57, 28, 4, 58]),
   O('e_corner_link', 'EAST_HALL', 'E_CORNER', [44, 0, 57, 46, 4, 58]),
   O('parts_door', 'FOYER', 'PARTS', [70, 0, 42, 71, 2, 42], 'door'),
@@ -133,10 +133,11 @@ export const DUCTS = Object.freeze({
 export const STAGE = Object.freeze({ box: Object.freeze([24, 1, 52, 8]), topY: 0 }); // stage blocks at y = 0, performers stand at y = 1
 export const MIDWAY_RING = Object.freeze({ cx: 6, cz: 21, r: 4, topY: 0 });
 export const SHOW_TAPE = Object.freeze({ x: 10, y: 0, z: 26, dir: 'n' }); // on the floor by the Midway's south wall, facing the room
+// Kitty's Cabaret is the Ringmaster's booth now: its curtains are parted for good, so
+// CAM 1C sees him on the little stage (and sees him leave it in the Final Act).
 export const CABARET = Object.freeze({
   curtain: Object.freeze({ x: 14, y1: 0, y2: 4, z1: 30, z2: 36 }),
-  gap: Object.freeze({ z1: 32, z2: 33, y1: 0, y2: 3 }), // cells opened when the Cat peeks (wider at stage 2)
-  outOfOrder: Object.freeze({ x: 15, y: 2, z1: 33, z2: 34, dir: 'e' }),
+  gap: Object.freeze({ z1: 32, z2: 34, y1: 0, y2: 4 }), // the parted curtains
   stage: Object.freeze([6, 30, 12, 36]),
 });
 

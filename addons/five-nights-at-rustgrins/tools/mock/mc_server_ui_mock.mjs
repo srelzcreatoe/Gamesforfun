@@ -17,7 +17,7 @@ class Base {
   body(t) { this._body = t; return this; }
   /** Resolves with the driver's answer (mock.formPolicy, may be a promise = a form left open), or UserClosed when closeAllForms runs. */
   show(player) {
-    mock.forms.push({ kind: this.kind, title: this._title, buttons: this.buttons.length, controls: this.controls.length });
+    mock.forms.push({ kind: this.kind, title: this._title, body: this._body, buttons: this.buttons.length, controls: this.controls.length });
     return new Promise((resolve) => {
       const entry = {};
       entry.done = (r) => {

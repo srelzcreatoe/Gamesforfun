@@ -46,9 +46,8 @@ const blocksBody = (n) => !(SEE_THROUGH.test(n) || (n.startsWith('fnar:') && THI
 // Steps (stairs, slabs, the stage edge) are fine at foot height when a path changes level.
 const isStep = (n) => /(_stairs|_slab|stage_floor|red_terracotta)$/.test(n);
 
-const { CABARET } = await import(path.join(ROOT, 'packs/BP/scripts/data/layout.js'));
-let gapOpen = false;
-const inGap = (p) => gapOpen && Math.floor(p[0]) === CABARET.curtain.x && Math.floor(p[2]) >= CABARET.gap.z1 && Math.floor(p[2]) <= CABARET.gap.z2 && p[1] < CABARET.gap.y2 + 1;
+// (the booth curtains are parted in the built model itself, so no special case is needed)
+const inGap = () => false;
 function rayClear(a, b, step = 0.1) {
   const d = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
   const n = Math.ceil(d / step);
@@ -87,7 +86,6 @@ for (const c of CAMERAS) {
   for (const id of c.sees) {
     const n = NODES[id];
     const pts = [[n.x, n.y + 1.0, n.z], [n.x, n.y + 1.8, n.z], [n.x, n.y + 0.5, n.z]];
-    gapOpen = id === 'CAB_PEEK' || id === 'CAB_OUT';
     const res = pts.map((p) => rayClear(c.loc, p));
     if (!res.some((r) => r.ok)) report(`${c.id} cannot see ${id}: blocked by ${res[0].block} at ${res[0].at}`);
     else if (!pts.some((p, i) => res[i].ok && inView(c, p))) report(`${c.id}: ${id} is outside the camera's view`);
@@ -96,7 +94,7 @@ for (const c of CAMERAS) {
 
 console.log('nodes:');
 for (const n of Object.values(NODES)) {
-  const h = n.crawl ? 1.2 : 2.5;
+  const h = n.crawl ? 1.5 : 3.3; // the animatronics stand about 3.25 blocks tall (render scale 1.25)
   const floor = nameAt(n.x, n.y - 0.5, n.z);
   if (!blocksBody(floor) && !n.crawl) report(`${n.id}: no floor under it (${floor})`);
   for (let dy = 0.1; dy < h; dy += 0.5) {
@@ -119,8 +117,7 @@ for (const e of EDGES) {
     for (let k = 0; k <= n && !bad; k++) {
       const t = k / n;
       const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
-      for (const dy of crawl ? [0.3, 0.9] : [0.3, 1.2, 2.2]) {
-        gapOpen = [e.a, e.b].some((x) => x.startsWith('CAB_'));
+      for (const dy of crawl ? [0.3, 0.9, 1.4] : [0.3, 1.2, 2.2, 3.1]) {
         const nm = inGap([p[0], p[1] + dy, p[2]]) ? 'minecraft:air' : nameAt(p[0], p[1] + dy, p[2]);
         const levelChange = Math.abs(b[1] - a[1]) > 0.5;
         if (dy < 0.5 && levelChange && isStep(nm)) continue;

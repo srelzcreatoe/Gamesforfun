@@ -7,6 +7,7 @@ import { ActionFormData, ModalFormData, MessageFormData, FormCancelationReason, 
 import { CAMERAS, CAMERA_BY_ID } from '../data/cameras.js';
 import { CLIPPINGS, GUIDE } from '../data/story.js';
 import { CONFIG, CAST, CAST_NAMES } from '../core/config.js';
+import { spotlightReady } from './hud.js';
 import { log } from './log.js';
 
 /** @param {import('@minecraft/server').Player} player */
@@ -31,13 +32,15 @@ async function show(player, form, retries = 2) {
  * The clickable camera map. A form whose title starts with this mark is drawn
  * by the resource pack (ui/server_form.json) as the pizzeria map in the
  * bottom-right corner: one button per camera in CAMERAS order, then LOWER,
- * then PLAY SHOW. The feed stays visible around the map.
+ * then the action button: PLAY SHOW on CAM 8, SPOTLIGHT while the Ringmaster
+ * walks. The feed stays visible around the map.
  */
 export const CAM_FORM_MARK = '§k§r§k§r§m';
 
 /**
  * Show the camera map once. Resolves to { kind: 'cam', id } | { kind: 'close' } | { kind: 'wind' }
- * | { kind: 'busy' } (another screen was open; show it again) | { kind: 'dismissed', reason } | undefined.
+ * | { kind: 'spotlight' } | { kind: 'busy' } (another screen was open; show it again)
+ * | { kind: 'dismissed', reason } | undefined.
  */
 /** @param {import('@minecraft/server').Player} player */
 export async function cameraMapForm(player, snap) {
@@ -45,7 +48,9 @@ export async function cameraMapForm(player, snap) {
   const f = new ActionFormData().title(`${CAM_FORM_MARK}SECURITY CAMERAS`).body(CAMERA_BY_ID[live]?.label ?? '');
   for (const c of CAMERAS) f.button(`${c.id === live ? '§a' : ''}${c.id}`);
   f.button('§cLOWER');
-  f.button(live === '8' && snap.tape ? `§6PLAY SHOW ${snap.tape.pct}%` : '§8PLAY SHOW');
+  const action = live === '8' && snap.tape ? 'wind' : spotlightReady(snap) ? 'spotlight' : 'wind';
+  if (action === 'spotlight') f.button('§eSPOTLIGHT');
+  else f.button(live === '8' && snap.tape ? `§6PLAY SHOW ${snap.tape.pct}%` : '§8PLAY SHOW');
   let r;
   try {
     r = await f.show(player);
@@ -55,7 +60,7 @@ export async function cameraMapForm(player, snap) {
   }
   if (r.canceled) return r.cancelationReason === FormCancelationReason.UserBusy ? { kind: 'busy' } : { kind: 'dismissed', reason: r.cancelationReason };
   if (r.selection === CAMERAS.length) return { kind: 'close' };
-  if (r.selection === CAMERAS.length + 1) return { kind: 'wind' };
+  if (r.selection === CAMERAS.length + 1) return { kind: action };
   const c = CAMERAS[r.selection ?? -1];
   return c ? { kind: 'cam', id: c.id } : undefined;
 }
@@ -84,6 +89,7 @@ export async function officeRemote(player, snap) {
     ['cams_toggle', d.camsOpen ? 'LOWER MONITOR' : 'RAISE MONITOR'],
   ];
   if (snap.tape && d.camsOpen && d.cam === '8') items.push(['wind', `§6PLAY SHOW (${snap.tape.pct}%)`]);
+  if (spotlightReady(snap) && d.camsOpen) items.push(['spotlight', '§eSPOTLIGHT (this camera)']);
   items.push(['mute_call', 'MUTE CALL']);
   const f = new ActionFormData().title('§lOFFICE REMOTE').body(`Power ${snap.powerPct}%  ·  usage ${snap.usage}`);
   for (const [, label] of items) f.button(label);
@@ -92,16 +98,31 @@ export async function officeRemote(player, snap) {
   return items[r.selection][0];
 }
 
-/** Shift guide: a topic menu; each topic explains one mechanic. */
-/** @param {import('@minecraft/server').Player} player */
-export async function guide(player) {
+/**
+ * Shift guide: the background-music switch, then a topic menu; each topic explains one mechanic.
+ * @param {import('@minecraft/server').Player} player
+ * @param {{ bgm?: () => boolean, toggleBgm?: () => boolean }} [music]
+ */
+export async function guide(player, music = {}) {
   for (;;) {
     const menu = new ActionFormData().title('§lSHIFT GUIDE').body('Pick a topic.\n§7The night keeps running while this is open.');
+    const hasMusic = !!(music.bgm && music.toggleBgm);
+    if (hasMusic) menu.button(music.bgm() ? 'Background music: §aON' : 'Background music: §cOFF');
     for (const [t] of GUIDE) menu.button(t);
     menu.button('§cClose');
     const r = await show(player, menu);
-    if (!r || r.canceled || r.selection === undefined || r.selection >= GUIDE.length) return;
-    const [title, body] = GUIDE[r.selection];
+    if (!r || r.canceled || r.selection === undefined) return;
+    let sel = r.selection;
+    if (hasMusic) {
+      if (sel === 0) {
+        const on = music.toggleBgm();
+        player.onScreenDisplay.setActionBar(on ? '§7Background music §aon' : '§7Background music §coff');
+        continue;
+      }
+      sel--;
+    }
+    if (sel >= GUIDE.length) return;
+    const [title, body] = GUIDE[sel];
     const page = new ActionFormData().title(`§l${title.toUpperCase()}`).body(body).button('Back').button('Close');
     const r2 = await show(player, page);
     if (!r2 || r2.canceled || r2.selection !== 0) return;
@@ -128,6 +149,7 @@ export async function settingsForm(player, s) {
     .toggle('Captions for important sounds', { defaultValue: s.captions })
     .toggle('Gameplay tips', { defaultValue: s.hints })
     .toggle('Music in the lobby and free roam', { defaultValue: s.music })
+    .toggle('Background music during shifts', { defaultValue: s.bgm !== false })
     .toggle('Camera map on screen while watching the cameras', { defaultValue: s.camMap })
     .toggle('Clickable camera map (mouse, controller or touch)', { defaultValue: s.camCursor })
     .toggle('Developer overlay', { defaultValue: s.debugOverlay })
@@ -135,8 +157,8 @@ export async function settingsForm(player, s) {
     .slider('Seed', 1, 9999, { defaultValue: Math.max(1, Math.min(9999, s.seed)), valueStep: 1 });
   const r = await show(player, f);
   if (!r || r.canceled || !r.formValues) return undefined;
-  const [captions, hints, music, camMap, camCursor, debugOverlay, deterministic, seed] = r.formValues;
-  return { captions: !!captions, hints: !!hints, music: !!music, camMap: !!camMap, camCursor: !!camCursor, debugOverlay: !!debugOverlay, deterministic: !!deterministic, seed: Number(seed) || 1991 };
+  const [captions, hints, music, bgm, camMap, camCursor, debugOverlay, deterministic, seed] = r.formValues;
+  return { captions: !!captions, hints: !!hints, music: !!music, bgm: !!bgm, camMap: !!camMap, camCursor: !!camCursor, debugOverlay: !!debugOverlay, deterministic: !!deterministic, seed: Number(seed) || 1991 };
 }
 
 /** Custom Night: presets or six sliders. Resolves to an AI map or undefined. */
@@ -179,11 +201,11 @@ export async function clippingsForm(player, save) {
 /**
  * Result after a night. Resolves to 'next' | 'retry' | 'lobby'.
  * @param {any} player
- * @param {{ won: boolean, label: string, canNext?: boolean, nextLabel?: string, tip?: string }} o
+ * @param {{ won: boolean, label: string, canNext?: boolean, nextLabel?: string, tip?: string, body?: string }} o
  */
-export async function resultForm(player, { won, label, canNext = false, nextLabel = '', tip = '' }) {
+export async function resultForm(player, { won, label, canNext = false, nextLabel = '', tip = '', body }) {
   const f = new ActionFormData().title(won ? `§l${label.toUpperCase()} COMPLETE` : '§lGAME OVER');
-  f.body(won ? 'You made it to 6 AM.' : `${label}.${tip ? `\n\n§e${tip}` : ''}`);
+  f.body(won ? (body ?? 'You made it to 6 AM.') : `${label}.${tip ? `\n\n§e${tip}` : ''}`);
   const options = [];
   if (won && canNext) {
     f.button(`Continue: ${nextLabel}`);
@@ -216,9 +238,9 @@ export async function galleryInfo(player, id) {
     rustgrin: 'RUSTGRIN - lead singer of the Rusty Revue since 1984. Grey fur, red vest, a microphone he never puts down. Moves only when nobody is watching.',
     mirehop: 'MIREHOP - guitarist. His amp still hums at night. Prefers the west hall.',
     noxbriar: 'NOXBRIAR - backup vocals, the darkest costume in the building. On camera, look for the eyes.',
-    purple_rat: 'PURPLE RAT - maracas. Nervous, twitchy, always in the vents.',
-    cat: "THE CAT - star of Kitty's Cabaret. Fast. Very fast.",
-    top_hat_rat: 'THE RINGMASTER - Marvello\'s Midnight Midway. The show must go on.',
+    purple_rat: 'PURPLE RAT - maracas, from the Midnight Midway. Nervous, twitchy, never far from a vent.',
+    cat: 'THE CAT - the Midway\'s dancer. She shares the ring with the Purple Rat and never misses a beat. Fast. Very fast.',
+    top_hat_rat: 'THE RINGMASTER - he ran the Midnight Midway after its owner vanished, and he has run every show since. He knows your name.',
   };
   await messageBox(player, `§l${CAST_NAMES[id].toUpperCase()}`, lines[id] ?? '');
 }

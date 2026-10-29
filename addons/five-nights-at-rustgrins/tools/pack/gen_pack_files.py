@@ -12,7 +12,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 BP = os.path.join(ROOT, 'packs', 'BP')
 RP = os.path.join(ROOT, 'packs', 'RP')
-VERSION = [1, 0, 3]
+VERSION = [1, 0, 4]
 ENGINE = [1, 26, 50]
 UUID = {
     'bp_header': '02b67251-1ef0-43ba-8b73-411d54a1b730',
@@ -35,7 +35,7 @@ def write_json(path, obj):
 def manifests():
     write_json(os.path.join(BP, 'manifest.json'), {
         'format_version': 2,
-        'header': {'name': f'{TITLE} (Behavior)', 'description': 'An original FNAF-style night-guard horror map: six animatronics, security cameras, doors, vents and a show that must go on. Requires the matching resource pack.', 'uuid': UUID['bp_header'], 'version': VERSION, 'min_engine_version': ENGINE},
+        'header': {'name': f'{TITLE} (Behavior)', 'description': 'Five nights, six animatronics and one Ringmaster who knows your name. An original FNAF-style night-guard horror game: security cameras, doors, vents, a show tape that must keep playing, and a Final Act. No experiments needed. Requires the matching resource pack.', 'uuid': UUID['bp_header'], 'version': VERSION, 'min_engine_version': ENGINE},
         'modules': [
             {'description': 'Entities, blocks, items', 'type': 'data', 'uuid': UUID['bp_data'], 'version': VERSION},
             {'description': 'Night simulation, cameras, map builder, UI', 'type': 'script', 'language': 'javascript', 'entry': 'scripts/main.js', 'uuid': UUID['bp_script'], 'version': VERSION},
@@ -49,7 +49,7 @@ def manifests():
     })
     write_json(os.path.join(RP, 'manifest.json'), {
         'format_version': 2,
-        'header': {'name': f'{TITLE} (Resources)', 'description': 'Animatronics, the pizzeria blocks (vanilla-style, Vibrant Visuals ready), sounds, camera UI.', 'uuid': UUID['rp_header'], 'version': VERSION, 'min_engine_version': ENGINE},
+        'header': {'name': f'{TITLE} (Resources)', 'description': 'The animatronics, a vanilla-style pizzeria with Vibrant Visuals support, original sounds and music, and the security-camera interface.', 'uuid': UUID['rp_header'], 'version': VERSION, 'min_engine_version': ENGINE},
         'modules': [{'description': 'Resources', 'type': 'resources', 'uuid': UUID['rp_res'], 'version': VERSION}],
         'capabilities': ['pbr'],
         'metadata': META,
@@ -141,7 +141,26 @@ def fogs():
     write_json(os.path.join(RP, 'fogs', 'fnar_power_out.json'), fog('fnar:power_out', 0, 7, '#000000', 0.12))
 
 
+# Display names that read better than the id (everything else: the id in title case).
+BLOCK_NAMES = {
+    'carpet_party': 'Party Carpet', 'ceiling_tile_stained': 'Stained Ceiling Tile', 'cinderblock_painted': 'Painted Cinderblock',
+    'crt_monitor': 'CRT Monitor', 'curtain_purple': 'Purple Velvet Curtain', 'curtain_red': 'Red Velvet Curtain',
+    'door_button': 'Door Button', 'door_shutter': 'Steel Door Shutter', 'duct_metal': 'Duct Panel', 'exit_sign': 'EXIT Sign',
+    'pa_speaker': 'PA Speaker', 'plush_rat': 'Purple Rat Plush', 'poster_cabaret': "Kitty's Cabaret Poster",
+    'poster_midway': 'Midnight Midway Poster', 'poster_missing': 'Missing Poster', 'poster_party': 'Party Poster',
+    'poster_revue': 'Rusty Revue Poster', 'poster_rules': 'Staff Rules Poster', 'sign_cabaret': "Kitty's Cabaret Sign",
+    'sign_midway': 'Midnight Midway Sign', 'sign_out_of_order': 'Out of Order Sign', 'sign_revue': "Rustgrin's Pizza Revue Sign",
+    'sign_staff': 'Staff Only Sign', 'show_tape': 'Show Tape Deck', 'stage_star': 'Stage Star', 'tent_stripe': 'Circus Tent Stripes',
+    'tile_checker': 'Checkered Tile', 'tile_checker_worn': 'Worn Checkered Tile', 'tile_kitchen': 'Kitchen Tile',
+    'tile_office': 'Office Floor Tile', 'wall_checker': 'Checkered Wainscot', 'wall_plaster': 'Plaster Wall',
+    'wall_plaster_stained': 'Stained Plaster Wall', 'wall_trim': 'Wall Trim', 'wallpaper_maroon': 'Maroon Wallpaper',
+    'wet_floor_sign': 'Wet Floor Sign',
+}
+
+
 def title(s):
+    if s in BLOCK_NAMES:
+        return BLOCK_NAMES[s]
     return ' '.join(w.capitalize() for w in s.replace('_', ' ').split())
 
 

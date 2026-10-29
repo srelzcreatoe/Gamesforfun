@@ -13,9 +13,11 @@ const HELP = [
   '/fnar:debug win | lose       end the running night',
   '/fnar:debug power <0-100>    set power',
   '/fnar:debug hour <0-5>       jump the clock',
+  '/fnar:debug takeover         night 5: jump to 4 AM (the Ringmaster takes over)',
+  '/fnar:debug act <1-3>        night 6: jump to an act of the Final Act',
   '/fnar:debug ai <who> <0-20>  set one AI level (mirehop noxbriar rustgrin cat purple_rat top_hat_rat)',
   '/fnar:debug tape <0-100>     set the show tape',
-  '/fnar:debug cat <0-3>        set the Cabaret stage',
+  '/fnar:debug cat <0-3>        set the Cat\'s stage on the Midway ring',
   '/fnar:debug overlay          toggle the AI overlay',
   '/fnar:debug roam | lobby     free roam / lobby',
   '/fnar:debug stars <0-3>      set earned stars',
@@ -98,8 +100,18 @@ function debug(g, action, a1, a2, p) {
       if (s && s.chars[a1]) s.chars[a1].baseAi = Math.max(0, Math.min(20, num(a2, 10)));
       return say(p, s ? `${a1} -> ${s.chars[a1]?.baseAi}` : 'no night running');
     case 'tape':
-      if (s) s.chars.top_hat_rat.tape = Math.max(0, Math.min(100, num(a1, 50))) * 1000;
+      if (s) {
+        s.tape.level = Math.max(0, Math.min(100, num(a1, 50))) * 1000;
+        s.tape.stopped = s.tape.level === 0;
+        s.tape.update();
+      }
       return undefined;
+    case 'takeover':
+      if (s && s.night === 5) s.t = s.ticksPerHour * 4 - 1;
+      return say(p, s?.night === 5 ? 'the Ringmaster is coming' : 'only on night 5');
+    case 'act':
+      if (s && s.final) s.t = (Math.max(1, Math.min(3, num(a1, 1))) - 1) * 2 * s.ticksPerHour;
+      return say(p, s?.final ? `act ${num(a1, 1)}` : 'only on night 6');
     case 'cat':
       if (s) s.chars.cat.setStage(Math.max(0, Math.min(3, num(a1, 0))));
       return undefined;

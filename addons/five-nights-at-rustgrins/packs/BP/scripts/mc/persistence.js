@@ -16,7 +16,7 @@ const BUILD = 'fnar:build';
 export const SAVE_VERSION = 1;
 
 export function defaultSettings() {
-  return { captions: true, hints: true, music: true, camMap: true, camCursor: true, debugOverlay: false, deterministic: false, seed: 1991 };
+  return { captions: true, hints: true, music: true, bgm: true, camMap: true, camCursor: true, debugOverlay: false, deterministic: false, seed: 1991 };
 }
 
 export function defaultSave() {
@@ -24,8 +24,9 @@ export function defaultSave() {
     v: SAVE_VERSION,
     next: 1, // the night CONTINUE starts
     beaten: [], // nights survived (1..6) + 7 for any custom night win
-    stars: 0, // 1 = night 5, 2 = night 6, 3 = showstopper
+    stars: 0, // 1 = the week (night 5), 2 = the Final Act, 3 = showstopper
     showstopper: false,
+    hungUp: false, // the guard hung up on the Ringmaster's last call
     custom: { mirehop: 5, noxbriar: 5, rustgrin: 5, cat: 5, purple_rat: 5, top_hat_rat: 5 },
     settings: defaultSettings(),
   };

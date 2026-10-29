@@ -13,6 +13,7 @@ import { Rustgrin } from './ai/rustgrin.js';
 import { Cat } from './ai/cat.js';
 import { PurpleRat } from './ai/purple_rat.js';
 import { TopHatRat } from './ai/top_hat_rat.js';
+import { ShowTape } from './show_tape.js';
 
 const AI_CLASSES = { mirehop: DoorStalker, noxbriar: DoorStalker, rustgrin: Rustgrin, cat: Cat, purple_rat: PurpleRat, top_hat_rat: TopHatRat };
 
@@ -32,9 +33,9 @@ export class NightSession {
     /** @type {number} */
     this.power = CONFIG.power.start;
     this.fx = [];
-    this.result = null; // 'win' | 'lose'
+    this.result = null; // 'win' | 'lose' | 'takeover' (night 5 at 4 AM: the Ringmaster takes the night)
     this.killer = null;
-    this.rally = false;
+    this.inputs = 0; // successful guard actions (the Final Act's "touch nothing" game counts them)
     this.devices = {
       doorL: false, doorR: false, lightL: false, lightR: false, ventL: false, ventR: false,
       cams: { open: false, cam: '1A' },
@@ -46,6 +47,7 @@ export class NightSession {
     this.rusted = null; // { until }
     this.nextHallucination = 400;
     this.phoneMuted = false;
+    this.tape = new ShowTape(this);
     this.chars = {};
     for (const id of CAST) this.chars[id] = new AI_CLASSES[id](this, id);
   }
@@ -184,13 +186,24 @@ export class NightSession {
     return true;
   }
 
+  /** Night 6: the band and the troupe only move on the Ringmaster's cue. */
+  get final() {
+    return !!this.def.final;
+  }
+
   /**
    * Player actions. Returns { ok, reason? } so the UI can give feedback.
    * Actions: door_l, door_r, light_l, light_r, vent_l, vent_r, cams_toggle,
-   * cams_open, cams_close, cam_select(id), cam_next, cam_prev, wind, mute_call.
+   * cams_open, cams_close, cam_select(id), cam_next, cam_prev, wind, spotlight, mute_call.
    */
   input(action, arg) {
     if (this.result) return { ok: false, reason: 'over' };
+    const res = this.doAction(action, arg);
+    if (res?.ok && action !== 'mute_call') this.inputs++;
+    return res;
+  }
+
+  doAction(action, arg) {
     const d = this.devices;
     const dev = CONFIG.devices;
     const dead = (why) => {
@@ -228,7 +241,7 @@ export class NightSession {
         return { ok: true };
       }
       case 'cams_toggle':
-        return this.input(d.cams.open ? 'cams_close' : 'cams_open', arg);
+        return this.doAction(d.cams.open ? 'cams_close' : 'cams_open', arg);
       case 'cams_open':
         if (this.powerOut) return dead('power');
         if (this.debounced('cams', dev.camDebounce)) return { ok: false, reason: 'debounce' };
@@ -251,10 +264,14 @@ export class NightSession {
         return { ok: this.selectCam(CAMERA_ORDER[(i + (action === 'cam_next' ? 1 : n - 1)) % n]) };
       }
       case 'wind': {
+        if (!this.tape.enabled) return { ok: false, reason: 'no_tape' };
         if (!d.cams.open || d.cams.cam !== '8') return { ok: false, reason: 'not_cam8' };
-        const ok = this.chars.top_hat_rat.wind();
+        const ok = this.tape.wind();
         return { ok, reason: ok ? undefined : 'cooldown' };
       }
+      case 'spotlight':
+        if (this.powerOut) return dead('power');
+        return this.chars.top_hat_rat.spotlight();
       case 'mute_call':
         if (this.phoneMuted) return { ok: false };
         this.phoneMuted = true;
@@ -270,16 +287,32 @@ export class NightSession {
     if (this.result) return;
     this.t++;
     if (this.t === 1) {
-      this.emit({ fx: 'start', night: this.night, title: this.def.title });
+      this.emit({ fx: 'start', night: this.night, title: this.def.title, final: this.final });
       if (this.def.phone) this.emit({ fx: 'phone', night: this.def.phone });
-      for (const c of Object.values(this.chars)) this.emit({ fx: 'place', who: c.id, node: c.node, pose: c.id === 'cat' ? 'idle' : 'perform', initial: true, active: c.baseAi > 0 || c.id === 'cat' });
-      if (this.def.tape && this.chars.top_hat_rat.enabled) this.emit({ fx: 'show_music', slow: false });
+      if (this.final) this.emit({ fx: 'pa', key: 'intro' });
+      const music = this.tape.enabled;
+      for (const c of Object.values(this.chars)) {
+        // the band stands posed on its stage, the troupe dances while its music plays,
+        // the Ringmaster waits in his booth (and conducts on his own night)
+        let pose = 'pose';
+        if (c.id === 'cat' || c.id === 'purple_rat') pose = music ? 'perform' : 'pose';
+        if (c.id === 'top_hat_rat') pose = this.final ? 'perform' : 'pose';
+        this.emit({ fx: 'place', who: c.id, node: c.node, pose, initial: true });
+      }
+      if (music) this.emit({ fx: 'show_music', slow: false });
     }
     // clock
     const hour = Math.min(6, Math.floor(this.t / this.ticksPerHour));
     if (hour !== this.hour) {
       this.hour = hour;
       this.emit({ fx: 'hour', hour });
+      if (this.night === 5 && hour >= CONFIG.finale.takeoverHour) {
+        // the fake ending, then the Ringmaster takes the night: the Final Act starts at once
+        this.result = 'takeover';
+        this.closeCams('takeover');
+        this.emit({ fx: 'takeover' });
+        return;
+      }
       if (hour >= 6) {
         this.result = 'win';
         this.closeCams('win');
@@ -304,8 +337,10 @@ export class NightSession {
       this.startPowerOut();
       return;
     }
-    // animatronics
+    // animatronics (on the Final Act only the Ringmaster thinks; he moves the others)
+    this.tape.tick();
     for (const c of Object.values(this.chars)) {
+      if (this.final && c.id !== 'top_hat_rat') continue;
       c.tick();
       if (this.result) return;
     }
@@ -358,7 +393,8 @@ export class NightSession {
   // ------------------------------------------------------------ views
   snapshot() {
     const d = this.devices;
-    const th = this.chars.top_hat_rat;
+    const rm = this.chars.top_hat_rat;
+    const ev = rm.event;
     return {
       night: this.night,
       title: this.def.title,
@@ -367,8 +403,13 @@ export class NightSession {
       powerPct: Math.ceil(this.power / 1000),
       usage: this.usage(),
       devices: { doorL: d.doorL, doorR: d.doorR, lightL: d.lightL, lightR: d.lightR, ventL: d.ventL, ventR: d.ventR, camsOpen: d.cams.open, cam: d.cams.cam, broken: { ...d.broken } },
-      tape: th.enabled ? { pct: Math.round(th.tape / 1000), level: th.tapeLevel(), state: th.state } : null,
+      tape: this.tape.enabled ? { pct: this.tape.pct, level: this.tape.quarter(), stopped: this.tape.stopped } : null,
       catStage: this.chars.cat.stage,
+      final: this.final,
+      act: rm.act,
+      ringmaster: rm.enabled ? { state: rm.state, out: rm.out, node: rm.node } : null,
+      spotlight: rm.enabled && rm.out,
+      event: ev ? { kind: ev.kind, game: ev.game ?? null, who: ev.who ?? null, cam: ev.cam ?? null, side: ev.side ?? null, guard: ev.guard ?? null, left: Math.max(0, Math.ceil((ev.deadline - this.t) / 20)) } : null,
       powerOut: this.powerOut ? this.powerOut.stage : null,
       camStatic: d.cams.open && !this.camWorking(d.cams.cam) && !CAMERA_BY_ID[d.cams.cam]?.audioOnly,
       result: this.result,

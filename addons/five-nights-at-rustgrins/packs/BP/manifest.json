@@ -2,12 +2,12 @@
   "format_version": 2,
   "header": {
     "name": "Five Nights at Rustgrin's (Behavior)",
-    "description": "An original FNAF-style night-guard horror map: six animatronics, security cameras, doors, vents and a show that must go on. Requires the matching resource pack.",
+    "description": "Five nights, six animatronics and one Ringmaster who knows your name. An original FNAF-style night-guard horror game: security cameras, doors, vents, a show tape that must keep playing, and a Final Act. No experiments needed. Requires the matching resource pack.",
     "uuid": "02b67251-1ef0-43ba-8b73-411d54a1b730",
     "version": [
       1,
       0,
-      3
+      4
     ],
     "min_engine_version": [
       1,
@@ -23,7 +23,7 @@
       "version": [
         1,
         0,
-        3
+        4
       ]
     },
     {
@@ -35,7 +35,7 @@
       "version": [
         1,
         0,
-        3
+        4
       ]
     }
   ],
@@ -45,7 +45,7 @@
       "version": [
         1,
         0,
-        3
+        4
       ]
     },
     {

@@ -196,6 +196,10 @@ await waitFor(() => game().state === 'JUMPSCARE', 6000, 'a jumpscare');
 say(`jumpscare by ${game().session?.killer ?? '?'}`);
 await waitFor(() => game().state === 'LOBBY', 600, 'back to the lobby');
 say('back in the lobby after a loss');
+{
+  const over = mock.forms.filter((f) => f.title.includes('GAME OVER')).at(-1);
+  check(/LEFT door/.test(over?.body ?? ''), `the game-over screen explains how Mirehop got in (got: ${over?.body})`);
+}
 // 6. free roam ------------------------------------------------------------------------------
 push('free_roam');
 await waitFor(() => game().state === 'FREE_ROAM', 50, 'free roam');
@@ -204,6 +208,141 @@ answer(titleHas('FREE ROAM'), () => ({ canceled: false, selection: 1 }));
 world.afterEvents.itemUse.fire({ source: P, itemStack: { typeId: 'fnar:guide' } });
 await waitFor(() => game().state === 'LOBBY', 100, 'lobby after free roam');
 say('free roam ok');
+
+// 6b. nothing lives in the pizzeria but the cast --------------------------------------------------
+{
+  const inside = driver.spawnMob('minecraft:zombie', Wl(36.5, 0, 30.5));
+  const outside = driver.spawnMob('minecraft:zombie', Wl(400, 0, 400));
+  const already = driver.spawnMob('minecraft:creeper', Wl(60.5, 0, 40.5), { silent: true }); // there before the build
+  await steps(2);
+  check(!inside.isValid, 'a mob that spawns inside the lot is removed');
+  check(outside.isValid, 'a mob outside the lot is left alone');
+  check(already.isValid, '(test setup) a silent mob stays until the next sweep');
+  outside.remove();
+  check(world.gameRules.doMobSpawning === false, 'natural mob spawning is off');
+  globalThis.__alreadyMob = already;
+}
+
+// 6c. night 1 again: the Ringmaster's call, the background music and its switch --------------------
+answer(titleHas('NEW GAME'), () => ({ canceled: false, selection: 1 }));
+push('new_game');
+await waitFor(() => game().state === 'NIGHT' && game().nightOpts.n === 1, 100, 'night 1 (new game)');
+await steps(3);
+check(!globalThis.__alreadyMob.isValid, 'a mob that was in the lot is swept when a night starts');
+check(P.music === 'fnar.music.bgm', `the background music plays during a shift (got ${P.music})`);
+await waitFor(() => /Ringmaster/.test(P.actionBar ?? '') && /Tester/.test(P.actionBar ?? ''), 500, 'the Ringmaster calling the guard by name');
+say('night 1: the Ringmaster calls the guard by name');
+click(OFFICE.phone.x, OFFICE.phone.y, OFFICE.phone.z);
+await steps(3);
+check(game().save.hungUp === true && game().phoneSeq === null, 'the desk phone hangs up on him');
+answer(titleHas('SHIFT GUIDE'), (f) => ({ canceled: false, selection: 0 }));
+world.afterEvents.itemUse.fire({ source: P, itemStack: { typeId: 'fnar:guide' } });
+await steps(4);
+check(P.music === null && game().save.settings.bgm === false, 'the Shift Guide switches the music off');
+answer(titleHas('SHIFT GUIDE'), (f) => ({ canceled: false, selection: 0 }));
+world.afterEvents.itemUse.fire({ source: P, itemStack: { typeId: 'fnar:guide' } });
+await steps(4);
+check(P.music === 'fnar.music.bgm' && game().save.settings.bgm === true, 'and back on');
+{
+  const { HUNG_UP } = await import(path.join(ROOT, 'packs/BP/scripts/data/story.js'));
+  debug('night', '2');
+  await steps(5);
+  check(HUNG_UP.includes(game().phoneSeq?.lines[0]), 'after a hang-up, the next call starts by mentioning it');
+  const ent = (id) => [...mock.entities.values()].find((e) => e.typeId === `fnar:${id}`);
+  check(ent('cat')?.props['fnar:anim'] === 'perform' && ent('purple_rat')?.props['fnar:anim'] === 'perform', 'night 2: the troupe dances on the Midway ring');
+  check(ent('top_hat_rat')?.props['fnar:anim'] === 'pose', 'the Ringmaster stands posed in his booth');
+  // night 4: he is glimpsed out of place, and snaps back once watched on CAM 1C
+  debug('night', '4');
+  await steps(5);
+  game().booth.next = 0;
+  await steps(3);
+  const away = game().booth.at;
+  check(away === 'CAB_PEEK' || away === 'CAB_OUT', `night 4: the Ringmaster is glimpsed outside his booth (at ${away})`);
+  answer((f) => f._title.startsWith(MAP_MARK), () => new Promise(() => {})); // leave the map open
+  game().session.input('cams_open', '1C');
+  await steps(70);
+  check(game().booth.at === 'CAB' && game().session.chars.top_hat_rat.node === 'CAB', `watched on CAM 1C, he is back in his booth (at ${game().booth.at})`);
+  game().session.input('cams_close');
+  await steps(10);
+}
+
+// 6d. night 5, 4 AM: the takeover -------------------------------------------------------------
+debug('night', '5');
+await steps(5);
+debug('takeover');
+await waitFor(() => game().state === 'ENDING', 60, 'the takeover');
+check(P.music === null, 'the music stops for the takeover');
+await waitFor(() => game().state === 'NIGHT' && game().nightOpts.n === 6, 2000, 'the Final Act after the takeover');
+check(mock.titles.some(([t]) => /THANK YOU FOR PLAYING/.test(t)), 'the fake "thank you for playing" screen is shown');
+check(mock.titles.some(([t]) => /show is not over/.test(t)), 'the Ringmaster interrupts it');
+check(game().save.beaten.includes(5) && game().save.stars >= 1, 'reaching the takeover counts night 5 and earns the first star');
+say('night 5 takeover -> the Final Act');
+
+// 6e. the Final Act --------------------------------------------------------------------------
+{
+  const { CAMS_FOR_NODE } = await import(path.join(ROOT, 'packs/BP/scripts/data/cameras.js'));
+  const s6 = () => game().session;
+  const seen = { cue: false, applause: false };
+  // a guard who does what the Ringmaster says
+  const obey = () => {
+    const s = s6();
+    if (!s || game().state !== 'NIGHT') return;
+    const snap = s.snapshot();
+    const ev = snap.event;
+    const d = s.devices;
+    if (/ -> |[0-9]+s$/.test((P.actionBar ?? '').split('\n').find((l) => /s$/.test(l)) ?? '')) seen.cue = true;
+    const want = { doorL: false, doorR: false, ventL: false, ventR: false };
+    if (ev?.kind === 'summon') {
+      if (ev.guard === 'vent') want.ventL = want.ventR = true;
+      else if (ev.who === 'cat') want.doorL = want.doorR = true;
+      else want[ev.side === 'L' ? 'doorL' : 'doorR'] = true;
+    } else if (ev?.kind === 'game') {
+      if (ev.game === 'still') return;
+      if (ev.game === 'doors') want.doorL = want.doorR = true;
+      if (ev.game === 'vents') want.ventL = want.ventR = true;
+      if (ev.game === 'cam' || ev.game === 'find') {
+        if (!d.cams.open) s.input('cams_open', ev.cam);
+        else if (d.cams.cam !== ev.cam) s.input('cam_select', ev.cam);
+        return;
+      }
+      if (ev.game === 'light') {
+        if (!(ev.side === 'L' ? d.lightL : d.lightR)) s.input(ev.side === 'L' ? 'light_l' : 'light_r');
+        return;
+      }
+    }
+    if (d.cams.open && !(ev?.kind === 'game' && (ev.game === 'cam' || ev.game === 'find'))) s.input('cams_close');
+    for (const [k, act] of [['doorL', 'door_l'], ['doorR', 'door_r'], ['ventL', 'vent_l'], ['ventR', 'vent_r']]) if (d[k] !== want[k]) s.input(act);
+  };
+  await waitFor(() => /\[PA\]/.test(P.actionBar ?? '') && /Tester/.test(P.actionBar ?? ''), 300, 'the PA welcome');
+  check(mock.sounds.includes('fnar.final.chime'), 'the PA chimes before he speaks');
+  await steps(900, obey);
+  check(seen.cue, 'Act I shows the summon cue with its countdown');
+  check(game().state === 'NIGHT', `the Final Act's Act I can be survived by doing as told (state ${game().state}, killer ${s6()?.killer})`);
+  debug('act', '2');
+  const applause = mock.sounds.filter((x) => x === 'fnar.final.applause').length;
+  await steps(1400, obey);
+  check(mock.sounds.filter((x) => x === 'fnar.final.applause').length > applause, 'a game done right gets applause');
+  check(game().state === 'NIGHT', `Act II can be survived by doing as told (state ${game().state}, killer ${s6()?.killer})`);
+  debug('act', '3');
+  await steps(2);
+  const rm = () => s6().chars.top_hat_rat;
+  await waitFor(() => { obey(); const r = rm(); return r.out && !r.walk && (CAMS_FOR_NODE[r.node] ?? []).some((c) => s6().camWorking(c)); }, 3000, 'the Ringmaster out of his booth, on a camera');
+  const idx0 = rm().idx;
+  const camId = CAMS_FOR_NODE[rm().node].find((c) => s6().camWorking(c));
+  const spots = mock.sounds.filter((x) => x === 'fnar.final.spot').length;
+  answer((f) => f._title.startsWith(MAP_MARK) && /SPOTLIGHT/.test(f.buttons.at(-1) ?? ''), (f) => ({ canceled: false, selection: f.buttons.length - 1 }));
+  s6().input('cams_open', camId);
+  await waitFor(() => mock.sounds.filter((x) => x === 'fnar.final.spot').length > spots, 60, 'the SPOTLIGHT from the camera map');
+  await steps(2);
+  check(rm().idx < idx0 || rm().idx === 0, `the SPOTLIGHT drives him back (index ${idx0} -> ${rm().idx} on CAM ${camId})`);
+  say(`final act: summons, games and the spotlight work (CAM ${camId}, ${idx0} -> ${rm().idx})`);
+  s6().input('cams_close');
+  answer(titleHas('COMPLETE'), () => ({ canceled: false, selection: 1 }));
+  debug('win');
+  await waitFor(() => game().state === 'LOBBY', 1500, 'the lobby after the Final Act');
+  check(mock.titles.some(([t]) => /THE END/.test(t)), 'the Final Act ending plays');
+  check(game().save.stars >= 2 && game().save.beaten.includes(6), `the Final Act earns the second star (stars ${game().save.stars})`);
+}
 // 7. custom night: showstopper ---------------------------------------------------------------
 debug('unlock');
 await steps(2);

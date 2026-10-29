@@ -29,12 +29,71 @@ function powerColor(p) {
   return p > 40 ? '§f' : p > 15 ? '§e' : '§c';
 }
 
+/** Can the guard use the SPOTLIGHT now? (Act III of the Final Act, or a Custom Night with the Ringmaster on.) */
+export function spotlightReady(snap) {
+  return !!snap.ringmaster && (!snap.final || snap.act === 3);
+}
+
+/** Word-wrap a line for the action bar; continuation lines keep the text white. */
+export function wrap(text, width = 64) {
+  const out = [];
+  let line = '';
+  let visible = 0;
+  for (const word of String(text).split(' ')) {
+    const len = word.replace(/§./g, '').length;
+    if (line && visible + 1 + len > width) {
+      out.push(line);
+      line = `§f${word}`;
+      visible = len;
+    } else {
+      line = line ? `${line} ${word}` : word;
+      visible += (visible ? 1 : 0) + len;
+    }
+  }
+  if (line) out.push(line);
+  return out;
+}
+
+const PERFORMER = Object.freeze({ mirehop: 'MIREHOP', noxbriar: 'NOXBRIAR', rustgrin: 'RUSTGRIN', cat: 'THE CAT', purple_rat: 'THE PURPLE RAT' });
+
+/** The Final Act's current cue: who is coming where, or what he wants, and the seconds left. */
+export function eventLine(ev) {
+  if (!ev) return null;
+  const left = `${ev.left <= 3 ? '§c§l' : '§f'}${ev.left}s`;
+  if (ev.kind === 'summon') {
+    // the band's halls are known; the Cat and the Purple Rat pick a side - listen for it
+    const known = ev.who !== 'cat' && ev.who !== 'purple_rat';
+    const side = ev.side === 'L' ? 'LEFT' : 'RIGHT';
+    const what = ev.guard === 'vent' ? 'VENT' : 'DOOR';
+    const where = known ? `§e${side} ${what}` : `§e${what} §7(listen: left or right?)`;
+    return `§c${PERFORMER[ev.who] ?? '?'} §7-> ${where}  ${left}`;
+  }
+  const task = {
+    still: 'TOUCH NOTHING',
+    cam: `SHOW HIM CAM ${ev.cam}`,
+    find: 'FIND HIM: CAM 1C',
+    doors: 'CLOSE BOTH DOORS',
+    doors_open: 'OPEN BOTH DOORS',
+    light: `LIGHT THE ${ev.side === 'L' ? 'LEFT' : 'RIGHT'} HALL`,
+    vents: 'SEAL BOTH VENTS',
+  }[ev.game];
+  return task ? `§6${task}  ${left}` : null;
+}
+
 export class Hud {
   constructor() {
     this.caption = null;
     this.captionUntil = 0;
     this.message = null;
     this.messageUntil = 0;
+    this.speech = null;
+    this.speechUntil = 0;
+  }
+
+  /** What the Ringmaster is saying (phone call or PA), shown over the cameras too. */
+  setSpeech(text, now, ticks = 100) {
+    this.speech = text || null;
+    this.speechUntil = now + ticks;
   }
 
   setCaption(text, now, ticks = 60) {
@@ -57,10 +116,12 @@ export class Hud {
       else if (cover === 'audio') label = `§6${label} §7(audio only)`;
       lines.push(`§f${label}`);
       if (snap.devices.cam === '8' && snap.tape) lines.push(`§6SHOW TAPE ${snap.tape.pct}%${snap.tape.pct < 30 ? ' §c§lREWIND' : ''}`);
-      if (hint) lines.push(`§8${hint}`);
-    } else if (this.message && now < this.messageUntil) {
-      lines.push(`§e${this.message}`);
     }
+    const cue = eventLine(snap.event);
+    if (cue) lines.push(cue);
+    if (this.speech && now < this.speechUntil) lines.push(...wrap(this.speech));
+    if (this.message && now < this.messageUntil) lines.push(`§e${this.message}`);
+    else if (snap.devices.camsOpen && hint) lines.push(`§8${hint}`);
     const p = snap.powerPct;
     lines.push(`§7${snap.title} §8| §f${hourLabel(snap.hour)} §8| ${powerColor(p)}POWER ${p}% §8| §7USAGE ${usageBar(snap.usage)}`);
     const warn = [];

@@ -87,17 +87,20 @@ Durations are guides. "loop" = seamless loop; the script restarts it.
 | `fnar.tophat.tape_out` | 2.5 s | tape runs out: music dies, then the reel's loose end flapping |
 | `fnar.tophat.laugh` | 2 s | thin, showman-like mechanical laugh (pitched up, tinny) |
 
-**Jumpscares** (stereo is fine — played at the player, non-positional) — each
-≈1.6 s, loud, harsh: distorted scream/screech built from noise + resonant
-formants + a downward pitch sweep + servo grind. Each has its own colour:
-| event | flavour |
+**Jumpscares** (stereo, played at the player, non-positional) are the map
+owner's own recordings (`assets/audio/`), copied as they are (or only trimmed in
+gain if they peak above -1 dBFS):
+| event | file |
 |---|---|
-| `fnar.js.rustgrin` | deep roar, sub-heavy |
-| `fnar.js.mirehop` | screech with a guitar-string squeal through it |
-| `fnar.js.noxbriar` | choir-like scream, hollow |
-| `fnar.js.purple_rat` | high squeal, frantic rattle |
-| `fnar.js.cat` | hiss into scream |
-| `fnar.js.top_hat_rat` | calliope blast collapsing into a scream |
+| `fnar.js.rustgrin`, `fnar.js.mirehop`, `fnar.js.noxbriar`, `fnar.js.purple_rat`, `fnar.js.cat`, `fnar.js.top_hat_rat` | `js/animatronic.ogg` (2.8 s) |
+| `fnar.js.rusted` | `js/rusted.ogg` (3.3 s, the "fredbear" scream) - only the Rusted one uses it |
+
+**The Final Act**
+| event | stereo | dur | description |
+|---|---|---|---|
+| `fnar.final.chime` | yes | 1.9 s | the Ringmaster's PA: three-note carnival chime through an old ceiling speaker |
+| `fnar.final.applause` | yes | 4.5 s | a small unseen audience clapping (a game done right) |
+| `fnar.final.spot` | yes | 0.9 s | a theatre spotlight striking: relay clunk, arc, hot hum |
 
 **Hallucinations / UI / music**
 | event | stereo | dur | description |
@@ -109,3 +112,4 @@ formants + a downward pitch sweep + servo grind. Each has its own colour:
 | `fnar.music.title` | yes | 40 s loop | lobby theme: slow, eerie — detuned music box over a dark pad, original |
 | `fnar.music.showtime` | yes | 48 s loop | the Rusty Revue's daytime song: cheesy 80s pizzeria band — organ, bass, simple drums, a lead melody (original), slightly warped like an old tape |
 | `fnar.music.ending` | yes | 12 s | ending theme: the music-box melody resolving to major |
+| `fnar.music.bgm` | yes | 180 s, looped by the game | the map owner's background track, played during shifts with `Player.playMusic` (music volume slider; on/off in the Shift Guide) |

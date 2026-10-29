@@ -1,8 +1,11 @@
 # Sounds: how they are made
 
 Every sound in `packs/RP/sounds/fnar/` is synthesised from scratch by the
-scripts in this folder. No samples, no recordings and no borrowed music are used. All
-melodies are original and written out as note lists in `recipes_music.py`.
+scripts in this folder, except three recordings supplied by the map owner in
+`assets/audio/` (the background music and the two jumpscare screams), which are
+copied into the pack as they are. No other samples or borrowed music are used.
+All synthesised melodies are original and written out as note lists in
+`recipes_music.py`.
 The spec is `docs/SOUNDS.md`.
 
 ```
@@ -23,7 +26,8 @@ Vorbis decoding) and Pillow (spectrograms) are optional extras for the checker.
 | `fnar_dsp.py` | DSP toolkit: filters (Butterworth, RBJ biquads, a click-free time-varying biquad), oscillators (polyBLEP, oversampled), noise, modal resonators, Karplus–Strong, formant voice, servo whine, synthetic room IRs + convolution, saturation, wow/flutter, limiter |
 | `recipes_common.py` | shared "materials": room impulse responses and mode sets (steel door, shutter slats, vent hatch, duct, tile, plastic, animatronic frame), bells, creaks, drips, phone-line filter |
 | `recipes_office.py` | ambience, doors/lights/buttons/vents, cameras, power, clock, phone, hallucinations, UI |
-| `recipes_anim.py` | footsteps, servos, Mirehop / Noxbriar / Rustgrin / Cat / Purple Rat / Ringmaster sounds, jumpscares |
+| `recipes_anim.py` | footsteps, servos, Mirehop / Noxbriar / Rustgrin / Cat / Purple Rat / Ringmaster sounds |
+| `recipes_final.py` | the Final Act: PA chime, applause, spotlight |
 | `recipes_music.py` | instruments and the compositions (music box, calliope, 80s band) |
 | `check_sounds.py` | self-check: duration, channels, peak, RMS, DC, edges, loop seams, size, spectrograms |
 | `sound_manifest.json` | generated: exact durations, channels, loop flags, max distance, peaks, pre-fade seam metrics |
@@ -289,12 +293,11 @@ nameN.ogg`, and the definition lists them all, so Minecraft picks one at random.
 | `fnar.tophat.rewind` | 1 | 1 s | mono |  | hostile | 16 |
 | `fnar.tophat.tape_out` | 1 | 2.5 s | mono |  | hostile | 16 |
 | `fnar.tophat.laugh` | 1 | 2 s | mono |  | hostile | 24 |
-| `fnar.js.rustgrin` | 1 | 1.6 s | stereo |  | hostile | - |
-| `fnar.js.mirehop` | 1 | 1.6 s | stereo |  | hostile | - |
-| `fnar.js.noxbriar` | 1 | 1.6 s | stereo |  | hostile | - |
-| `fnar.js.purple_rat` | 1 | 1.6 s | stereo |  | hostile | - |
-| `fnar.js.cat` | 1 | 1.6 s | stereo |  | hostile | - |
-| `fnar.js.top_hat_rat` | 1 | 1.6 s | stereo |  | hostile | - |
+| `fnar.js.rustgrin` `.mirehop` `.noxbriar` `.purple_rat` `.cat` `.top_hat_rat` | 1 (shared `js/animatronic`) | 2.785 s | stereo | recorded | hostile | - |
+| `fnar.js.rusted` | 1 (`js/rusted`) | 3.2793 s | stereo | recorded | hostile | - |
+| `fnar.final.chime` | 1 | 1.9 s | stereo |  | hostile | - |
+| `fnar.final.applause` | 1 | 4.5 s | stereo |  | hostile | - |
+| `fnar.final.spot` | 1 | 0.9 s | stereo |  | hostile | - |
 | `fnar.hall.whisper` | 1 | 2 s | stereo |  | hostile | - |
 | `fnar.hall.sting` | 1 | 1.5 s | stereo |  | hostile | - |
 | `fnar.ui.click` | 1 | 0.1 s | stereo |  | ui | - |
@@ -302,6 +305,7 @@ nameN.ogg`, and the definition lists them all, so Minecraft picks one at random.
 | `fnar.music.title` | 1 | 40 s | stereo | loop | music | - |
 | `fnar.music.showtime` | 1 | 48 s | stereo | loop | music | - |
 | `fnar.music.ending` | 1 | 12 s | stereo |  | music | - |
+| `fnar.music.bgm` | 1 | 179.9975 s | stereo | recorded | music | - |
 
 ### Differences from docs/SOUNDS.md
 

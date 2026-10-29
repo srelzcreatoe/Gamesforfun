@@ -36,7 +36,7 @@ Palette guide (approx.):
 * tiles: off-white `#cfcac0`, black `#1b1b1e`, grout `#5a5650`, grime `#4b4234`
 * walls: blue-grey plaster `#5d6670`, dark trim `#2a2d33`, accent red `#7a1f1f`
 * dining/stage: maroon `#5a1c22`, gold trim `#b08a2e`, stage wood (dark oak)
-* Kitty's Cabaret: purple velvet `#3e1f4f`, gold stars `#d4a93c`
+* the Ringmaster's booth (the old Kitty's Cabaret): purple velvet `#3e1f4f`, gold stars `#d4a93c`
 * Midway (circus): red `#8e1d1d` / cream `#d8cfb5` stripes
 * light colors: fluorescent `#dfe8ff`, warm bulb `#ffc98a`, EXIT green `#3cff6e`
 
@@ -44,24 +44,30 @@ Palette guide (approx.):
 
 **Rustgrin's Pizza Revue** opened on Route 6 in 1984 with the *Rusty Revue*
 band: **Rustgrin** the bear (lead singer), **Mirehop** the rabbit (guitar) and
-**Noxbriar** the bear (backup vocals). In 1987 the owners bought the
-animatronics of *Marvello's Midnight Midway*, a travelling show that had
-closed after "an incident at a matinee": **the Ringmaster** (Top-Hat Rat), his
-nervous partner **Purple Rat** (maracas) and **the Cat** (dancer). The circus
-troupe got its own corner — the Midway — and the Cat got a curtained booth,
-**Kitty's Cabaret**.
+**Noxbriar** the bear (backup vocals). In 1986 Aurelio Marvello, owner of the
+travelling *Midnight Midway*, vanished during a matinee; his animatronic
+**Ringmaster** kept the show running for three days to an empty tent. In 1987
+the pizzeria bought the troupe: the Ringmaster, the nervous **Purple Rat**
+(maracas) and **the Cat** (dancer). The Cat and the Purple Rat share the
+Midway ring; after the show "would not stop" in 1990, the Ringmaster was moved
+into the old Kitty's Cabaret, now his private booth.
 
-Since the Midway troupe arrived, the band moves at night. The Ringmaster's
-show-control tape ("SHOWTIME PROTOCOL") has to keep running or he goes looking
-for an audience. Business is failing, the building is falling apart, and the
-pizzeria closes at the end of the week. The player is the new night guard for
-that final week (Nov 1991). A day manager leaves a phone message each night.
+The player is the night guard for the pizzeria's last week (November 1991). The
+Ringmaster replaced the day manager on the office line: he calls every night,
+calls the guard by name, teaches the job, and grows more possessive of "his"
+show as the auction of lots one through six approaches. Hanging up on him is
+remembered the next night.
 
-Newspaper clippings (one per night survived) tell the history: the grand
-opening (1984), the Midway purchase (1987), health complaints about "the smell
-from the stage", a matinee where a performer "would not stop the show", the
-previous night guard who "left in the middle of a shift", and the closing
-notice. No gore — dread, implication, and things that should not move.
+Night 5 at 4 AM: a fake *6 AM / thank you for playing* screen, torn apart by
+the Ringmaster; CAM 1C shows his booth empty; **Night 6 - The Final Act**
+begins at once. Its three acts are his show (see section 3). Endings: *The
+Final Act* (first clear), *Encore* (replays), *Showstopper* (Custom Night at
+all 20s).
+
+Newspaper clippings (one per night survived) tell the history, from the grand
+opening to the cancelled auction and a ticket stub reading ADMIT ONE - ENCORE.
+No gore: dread, implication, and things that should not move. All writing is
+original and lives in `packs/BP/scripts/data/story.js`.
 
 ## 3. Cast and mechanics
 
@@ -74,9 +80,21 @@ nights 2+.
 | **Mirehop** (green rabbit) | guitarist | LEFT door | hall light + LEFT door | guitar string twangs at the left door; cameras glitch when he moves |
 | **Noxbriar** (black bear) | backup vocals | RIGHT door | hall light + RIGHT door | almost invisible in dark rooms on camera — only her eyes glow; soft humming at the right window |
 | **Rustgrin** (grey bear) | lead singer | RIGHT door, late nights | watch him on camera (he only moves unseen); shut RIGHT door when he is in the E. Hall Corner — he is never visible by the hall light | mic feedback squeal when he moves; at power-out he plays his song at the left doorway |
-| **Cat** (maroon cat) | dancer | sprints down a hall | check Kitty's Cabaret often (she advances while unwatched); when she leaves, shut the door she runs at | curtain stages 0–3, collar-bell jingle from the hall she takes; a shut door makes her bang (power drain grows each time) |
-| **Purple Rat** | maracas | ceiling VENTS (left/right) | listen for maracas in the ducts, watch CAM 9/10, close that VENT COVER while he is at the vent | maraca rattle from the duct side, louder as he nears; twitchy — he can reverse direction |
-| **Top-Hat Rat** | ringmaster | anywhere | keep his **SHOW TAPE** running: on CAM 8 press *PLAY SHOW* to rewind it | calliope music on CAM 8 slows and detunes as the tape runs low; under 30 % he rallies Purple Rat and Cat (+3 AI); at 0 % he leaves the stage, tapping his cane, and doors cannot stop him — rewind the tape above 60 % before he reaches the office |
+| **Cat** (maroon cat) | dancer, Midway ring | sprints down a hall | keep the **show tape** on CAM 8 playing (PLAY SHOW); she dances while it plays, advances while unwatched when it slows, leaves the ring when it stops; shut the door she runs at | stages: dancing, staring at the camera, off the ring, gone; collar-bell jingle from the hall she takes; a shut door makes her bang (power drain grows each time) |
+| **Purple Rat** | maracas, Midway ring | ceiling VENTS (left/right) | listen for maracas in the ducts, watch CAM 9/10, close that VENT COVER while he is at the vent | maraca rattle from the duct side, louder as he nears; bolder when the tape slows (+3) or stops (+7); twitchy — he can reverse direction |
+| **The Ringmaster** (Top-Hat Rat) | host, booth on CAM 1C | night 6 and the Custom Night | nights 1-5: never moves (only glimpsed peering through his curtains); night 6: obey his acts, and SPOTLIGHT him from a camera that sees him | the PA chime before every announcement; his cane on the tiles |
+
+**The Final Act (night 6).** Only the Ringmaster thinks; the others move on
+his cue. Act I (12-2 AM) *Meet the Performers*: one performer at a time is sent
+to a door or vent with a 10-second warning (the HUD shows who and where; the Cat
+and the Purple Rat pick a side you must hear). Act II (2-4 AM) *Audience
+Participation*: Simon-says games against a 10-second timer (touch nothing, show
+CAM X, find him on CAM 1C, close both doors then open them, light a hall, seal
+both vents); a failed game sends a performer at once. Act III (4-6 AM) *The
+Ringmaster*: he walks to the office and doors do not stop him; a SPOTLIGHT from
+a camera that sees him drives him back one spot (3 % power; a miss costs 1.5 %).
+In the Custom Night his AI level sets his walking pace and a SPOTLIGHT sends
+him all the way back to his booth.
 
 **Power:** 100 % at 12 AM. Usage bars (1–6): base + each closed door + each
 lit hall light + monitor up + each closed vent cover. When power hits 0 every
@@ -87,15 +105,16 @@ until 6 AM or be caught.
 
 | Night | Mirehop | Noxbriar | Rustgrin | Cat | Purple Rat | Top-Hat Rat | New |
 |---|---|---|---|---|---|---|---|
-| 1 | 3 | 2 | 0 | 0 | 0 | 0 | doors, lights, cams, power |
-| 2 | 5 | 4 | 0 | 2 | 0 | 0 | Kitty's Cabaret |
-| 3 | 7 | 6 | 1 | 5 | 4 | 0 | vents, Purple Rat |
-| 4 | 9 | 9 | 3 | 7 | 7 | 5 | the show tape |
-| 5 | 12 | 12 | 6 | 10 | 10 | 9 | everyone |
-| 6 | 16 | 15 | 10 | 14 | 14 | 13 | hallucinations |
+| 1 | 3 | 2 | 0 | 0 | 0 | booth | doors, lights, cams, power |
+| 2 | 5 | 4 | 0 | 2 | 0 | booth | the Midway ring and its show tape |
+| 3 | 7 | 6 | 1 | 5 | 4 | booth | vents, Purple Rat, Rustgrin |
+| 4 | 8 | 8 | 3 | 7 | 7 | booth | everyone restless, the Rusted one |
+| 5 | 15 | 15 | 7 | 13 | 13 | booth | until 4 AM: the takeover |
+| 6 | cue | cue | cue | cue | cue | 20 | The Final Act |
 | 7 | custom | custom | custom | custom | custom | custom | Custom Night (0–20 sliders, presets) |
 
-Stars on the time clock: night 5, night 6, Custom Night "20/20/20/20/20/20".
+Stars on the time clock: the end of night 5 (the takeover), the Final Act,
+Custom Night "20/20/20/20/20/20".
 
 Unique extras: hallucination flashes (posters that change, the Ringmaster's
 face over the monitor, "SHOWTIME" text), animatronics turning their heads to
@@ -110,14 +129,15 @@ works — the lot is cleared). Single storey + crawl ducts above the ceilings.
 Local coordinates: +X east, +Z south, floor level y = 0 (floor blocks at
 y = -1). Building ≈ 80 × 70 blocks inside a fenced lot with a parking area.
 
-Rooms: Show Stage + Dining Area (north/center), Backstage (NW), Midway (W,
-Top-Hat Rat + Purple Rat), Kitty's Cabaret (W, curtained), Supply Closet (SW),
+Rooms: Show Stage + Dining Area (north/center), Backstage (NW), Midway (W, the
+Cat + Purple Rat on the ring), the Ringmaster's booth (W, the old Kitty's
+Cabaret, curtains parted), Supply Closet (SW),
 West Hall + W. Hall Corner, Office (south center), East Hall + E. Hall Corner,
 Kitchen (NE), Restrooms (E), Arcade / Prize Corner (E), Staff Room (time clock
 lobby), entrance foyer, crawl ducts West/East (y 5–6) ending in two ceiling
 vents in the office.
 
-Cameras: 1A Show Stage · 1B Dining Area · 1C Kitty's Cabaret · 2A West Hall ·
+Cameras: 1A Show Stage · 1B Dining Area · 1C Ringmaster's Booth · 2A West Hall ·
 2B W. Hall Corner · 3 Supply Closet · 4A East Hall · 4B E. Hall Corner ·
 5 Backstage · 6 Kitchen (audio only) · 7 Restrooms · 8 Midway · 9 West Duct ·
 10 East Duct.
