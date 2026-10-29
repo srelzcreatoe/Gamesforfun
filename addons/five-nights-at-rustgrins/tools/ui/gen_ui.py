@@ -206,7 +206,9 @@ form = {
     'fnar_cam_form': {
         'type': 'panel', 'size': ['100%', '100%'],
         'controls': [{'fnar_cam_form_map': {
-            'type': 'panel', 'size': [FORM_W, FORM_H], 'anchor_from': 'bottom_right', 'anchor_to': 'bottom_right', 'offset': [-3, -3], 'layer': 10,
+            # collection_panel: the only container whose children may pick a collection item by
+            # collection_index at a free position (like the vanilla store's screenshots_grid)
+            'type': 'collection_panel', 'size': [FORM_W, FORM_H], 'anchor_from': 'bottom_right', 'anchor_to': 'bottom_right', 'offset': [-3, -3], 'layer': 10,
             'collection_name': 'form_buttons',
             'controls': [
                 {'fnar_cam_form_map_image': {'type': 'image', 'texture': 'textures/ui/fnar/cam_map', 'size': ['100%', '100%'], 'layer': 1}},

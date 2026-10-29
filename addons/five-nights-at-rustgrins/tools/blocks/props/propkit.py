@@ -687,7 +687,8 @@ def mi_set(tex, extra=None, render='alpha_test'):
 
 def glow(tex, render='alpha_test'):
     """An emissive-looking material instance (no face dimming / AO)."""
-    return {'texture': f'fnar_{tex}', 'render_method': render, 'face_dimming': False, 'ambient_occlusion': False}
+    # ambient_occlusion is a number since block format 1.26.20 (a boolean fails the whole block)
+    return {'texture': f'fnar_{tex}', 'render_method': render, 'face_dimming': False, 'ambient_occlusion': 0.0}
 
 
 def block_json(name, *, geometry, materials, collision, selection, map_color, destroy=1.5, states=None,

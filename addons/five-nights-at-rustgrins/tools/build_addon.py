@@ -59,6 +59,7 @@ def main():
     run('pack files', [py, '-I', 'tools/pack/gen_pack_files.py'])
     run('merge fragments', ['node', 'tools/merge_fragments.mjs'])
     run('JSON schemas', ['node', 'tools/validate_json.mjs', 'packs'])
+    run('game load rules', ['node', 'tools/lint_game_rules.mjs'])
     run('block states (strict)', ['node', 'tools/validate_blocks.mjs', '--strict'])
     run('voxel export', ['node', 'tools/map/export_voxels.mjs'])
     run('map: cameras + routes', ['node', 'tools/map/validate_map.mjs'])

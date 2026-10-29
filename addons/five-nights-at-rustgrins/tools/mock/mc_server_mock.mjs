@@ -28,6 +28,10 @@ export const { GameMode, HudVisibility, HudElement, InputButton, ButtonState, We
 
 // ---------------------------------------------------------------- recorded state for assertions
 /** Like the game: inside a before-event handler the world is read-only ("restricted execution"). */
+/** Like the game: block writes outside the overworld's height range throw. */
+function inHeight(y1, y2) {
+  if (y1 < -64 || y2 > 319) throw new Error(`Dimension.fillBlocks: Requested fill volume height [${y1}, ${y2}] was outside the world height bounds [-64, 320].`);
+}
 function rw(what) {
   if (mock.readOnly) throw new Error(`${what} cannot be called in read-only mode (inside a before event)`);
 }
@@ -311,8 +315,10 @@ class Player extends Entity {
 const dimension = {
   id: 'minecraft:overworld',
   getBlock: (loc) => makeBlock(loc),
+  heightRange: { min: -64, max: 320 },
   setBlockPermutation(loc, p) {
     rw('setBlockPermutation');
+    inHeight(loc.y, loc.y);
     if (!(p instanceof BlockPermutation)) throw new Error('setBlockPermutation needs a BlockPermutation');
     mock.blocks.set(key(loc), p);
     mock.setBlocks++;
@@ -322,6 +328,8 @@ const dimension = {
   },
   fillBlocks(vol, block, opts) {
     rw('fillBlocks');
+    if (vol.from && vol.to) inHeight(Math.min(vol.from.y, vol.to.y), Math.max(vol.from.y, vol.to.y));
+    else if (vol.locs) for (const l of vol.locs) inHeight(l.y, l.y);
     const p = typeof block === 'string' ? BlockPermutation.resolve(block) : block;
     if (vol.size() > 32768) throw new Error(`fillBlocks volume ${vol.size()} > 32768`);
     const inc = opts?.blockFilter?.includeTypes;

@@ -17,7 +17,7 @@ import { dim, W, origin, fillLocal, listLocal, setLocal, runCmd, checkPalette, t
 import { loadBuild, storeBuild } from './persistence.js';
 import { log } from './log.js';
 
-export const BUILD_VERSION = 4; // 4: the guard's seat by the desk, door buttons beside it (1.0.2)
+export const BUILD_VERSION = 5; // 4: the guard's seat by the desk, door buttons beside it (1.0.2); 5: the CRT monitor and arcade cabinets load again (1.0.3)
 const MAX_FILL = 32768;
 const UNITS_PER_STEP = 6; // small ops per job step
 

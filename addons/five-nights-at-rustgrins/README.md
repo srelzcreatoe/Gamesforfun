@@ -70,6 +70,8 @@ Stars: beat night 5, night 6, and the Custom Night at 20/20/20/20/20/20.
   Packs) or an older copy is: remove both Rustgrin packs from the world, add them again.
 * The cameras, doors and lights only run during a shift (NEW GAME / CONTINUE).
 * A world built by an older version is rebuilt in place automatically when it loads.
+* *At least one of your resource or behavior packs failed to load* means a file was rejected:
+  turn on Settings → Creator → Content Log, reload the world and send the log.
 * Problems are reported in chat as `[FNaR] ...` lines. `/fnar:debug status` (cheats on)
   prints the version, the night, the cameras and where every animatronic is - send that
   along when reporting a bug.

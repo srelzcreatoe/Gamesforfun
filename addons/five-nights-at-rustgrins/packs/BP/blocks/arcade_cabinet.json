@@ -34,13 +34,13 @@
           "texture": "fnar_arcade_screen",
           "render_method": "alpha_test",
           "face_dimming": false,
-          "ambient_occlusion": false
+          "ambient_occlusion": 0.0
         },
         "marquee": {
           "texture": "fnar_arcade_cabinet",
           "render_method": "alpha_test",
           "face_dimming": false,
-          "ambient_occlusion": false
+          "ambient_occlusion": 0.0
         }
       },
       "minecraft:collision_box": {

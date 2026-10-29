@@ -203,7 +203,8 @@ def behavior_entity(eid):
                 'minecraft:type_family': {'family': ['fnar_animatronic', 'inanimate']},
                 'minecraft:collision_box': {'width': 0.7, 'height': 2.6},
                 'minecraft:physics': {'has_gravity': False, 'has_collision': False},
-                'minecraft:pushable': {'is_pushable': False, 'is_pushable_by_piston': False},
+                # (no minecraft:pushable: since 1.26.10 it no longer parses and fails the whole entity;
+                #  leaving out its successors pushable_by_entity / pushable_by_block = not pushable)
                 'minecraft:damage_sensor': {'triggers': [{'cause': 'all', 'deals_damage': 'no'}]},
                 'minecraft:health': {'value': 100, 'max': 100},
                 'minecraft:knockback_resistance': {'value': 1.0},

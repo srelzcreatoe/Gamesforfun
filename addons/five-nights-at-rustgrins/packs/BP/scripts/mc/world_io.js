@@ -94,13 +94,34 @@ export function isLoadedLocal(x, y, z) {
 export function fillLocal(x1, y1, z1, x2, y2, z2, key, filter = false) {
   const types = filter === true ? ['minecraft:air'] : Array.isArray(filter) ? filter : null;
   const opts = types ? { blockFilter: { includeTypes: types } } : undefined;
-  dim().fillBlocks(new BlockVolume(W(x1, y1, z1), W(x2, y2, z2)), perm(key), opts);
+  // keep inside the world's height limits (a flat world's pizzeria sits a few blocks above the bottom)
+  const yr = worldY();
+  const a = W(x1, Math.min(y1, y2), z1);
+  const b = W(x2, Math.max(y1, y2), z2);
+  a.y = Math.max(a.y, yr.min);
+  b.y = Math.min(b.y, yr.max);
+  if (a.y > b.y) return;
+  dim().fillBlocks(new BlockVolume(a, b), perm(key), opts);
 }
 
 export function listLocal(key, flat) {
+  const yr = worldY();
   const locs = [];
-  for (let i = 0; i < flat.length; i += 3) locs.push(W(flat[i], flat[i + 1], flat[i + 2]));
-  dim().fillBlocks(new ListBlockVolume(locs), perm(key));
+  for (let i = 0; i < flat.length; i += 3) {
+    const w = W(flat[i], flat[i + 1], flat[i + 2]);
+    if (w.y >= yr.min && w.y <= yr.max) locs.push(w);
+  }
+  if (locs.length) dim().fillBlocks(new ListBlockVolume(locs), perm(key));
+}
+
+/** Lowest and highest world y the build writes (inclusive): the world's height range, minus its bottom (bedrock) layer. */
+export function worldY() {
+  try {
+    const r = dim().heightRange;
+    return { min: r.min + 1, max: r.max - 1 };
+  } catch {
+    return { min: -63, max: 319 };
+  }
 }
 
 export function setLocal(x, y, z, key) {
