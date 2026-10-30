@@ -105,13 +105,13 @@ the packs. Raw logs are in [test_logs/](test_logs/).
 | statue | watched for 3 s: **moved 0 blocks**, pose `statue_reach`, stand-off music and dread fog pushed. Three look-aways: advanced **2.6 / 2.9 / 3.3 blocks**, each time a new pose (`statue_bow`, `statue_sideways`, `statue_bow`), skitter and creak cues. End: input unlocked, fog cleared, music stopped, FOV cleared |
 | commit | stare at agitation 99.8: unfold 2.0 s (tail rigid, jaw 0, music cut), **scream** (jaw 60), windup, then chase. **All 3 torches** near it became burnt-out sticks; **relight** restored `minecraft:torch` |
 | grab | chase into reach, then grab. Input locked (lateral, camera, sneak), slow falling, the "IT HAS YOU" title, the stand-in teleported into its hands every tick (2.35 forward, 1.95 up). **8 Jump presses: struggled free**: input unlocked, knockback, 1 heart, frustrated stagger, chase resumed. Second catch without struggling: **bite**, 12 damage, input unlocked |
-| hide | crouched in light 0 at 17–25 blocks: **never found**. Search, howl, retreat (outcome escaped, flag `hid`) |
+| hide | crouched in light 0 at 17–25 blocks: **never found**. Search for 14 s, then the enraged howl, then retreat (flag `hid`) |
 | escape | sprinting through a 1-block-high hole it cannot fit: chase, then search, then howl, then retreat (escaped), no damage, every effect cleaned |
 | tunnel | 1-wide, 2-high tunnel: crawl posture all the way through; no room to lift, so strikes (3 hits); outcome caught |
 | presence | ran: breath, whisper, fake chat, snuff, door, **glimpse** (echo spawned; seen, looked away, gone), **mimic** (`dig.deepslate` replayed 2.5 s after the break), **footsteps** (5 steps heard after walking 6 blocks: 4 plus the extra one), **behind** (turned, echo plus stinger), **lights out** (every torch around went out). Correctly declined: knock (no wall behind) and peek (no corner) in the open test arena |
 | death | lethal hit: `death_low` (hunched), removed after the clip, outcome killed, effects clean |
 | spawn site | dark roofed cave: light-0 site 29 blocks away in 60 ms (spread over ticks) |
-| perf | three concurrent encounters (stalk, stand-off, chase): **decision tick avg 2.41 ms, p95 5 ms, max 10 ms**, 11.9 raycasts per tick. BDS on a dev container CPU, **not** a client or mobile measurement |
+| perf | three concurrent encounters (stalk, stand-off, chase): **decision tick avg 2.30 ms, p95 5 ms, max 9 ms**, 12.3 raycasts per tick. BDS on a dev container CPU, **not** a client or mobile measurement |
 
 ## 5. Mojang Creator Tools 0.20.0 (`mct validate all`)
 

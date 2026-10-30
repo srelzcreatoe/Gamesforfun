@@ -124,7 +124,7 @@ Full list: [docs/CONFIGURATION.md](docs/CONFIGURATION.md). Operator diagnostics:
   - statue creep, commit sequence, torch snuff and relight;
   - grab, struggle-free and bite, with input locks restored;
   - hiding, escape, tunnel, all presence events, death;
-  - performance: 2.4 ms average per decision tick for three encounters.
+  - performance: 2.3 ms average per decision tick for three encounters.
 - **Not verified:** nothing has been played on a real game client. Animations, sounds,
   fog, music and camera effects have only been checked offline (simulation, spectrograms,
   renders). See [docs/TESTING.md](docs/TESTING.md) and [docs/LIMITATIONS.md](docs/LIMITATIONS.md).

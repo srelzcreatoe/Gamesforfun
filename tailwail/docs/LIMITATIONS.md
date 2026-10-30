@@ -45,7 +45,7 @@
 
 - **One creature.** Depth over breadth: there is no roster of dwellers.
 - No custom structures, biomes or lore buildings.
-- Decision-tick cost was measured only on BDS (2.4 ms average for three encounters, on a
+- Decision-tick cost was measured only on BDS (2.3 ms average for three encounters, on a
   development container CPU). Client rendering cost of the 268-cube model with up to four
   layered clips has not been profiled. The 183-cube mane was not simplified.
 - Sounds are mono, 44.1 kHz Ogg Vorbis (~2.3 MB total). Music streams.

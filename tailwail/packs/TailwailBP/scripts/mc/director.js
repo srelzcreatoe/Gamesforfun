@@ -475,7 +475,9 @@ export class Director {
       const p = ev.player;
       system.runTimeout(() => {
         if (!p.isValid) return;
-        fx.clearAll(p, true); // camera, fog, music, input: always clean after a (re)spawn
+        // joining: unconditional reset (nothing can be left over from a crash or a disconnect
+        // mid-grab); respawning: only what this add-on had applied
+        fx.clearAll(p, ev.initialSpawn);
         if (!ev.initialSpawn) return;
         const prefs = getPrefs(p);
         if (!prefs.guideGiven) {

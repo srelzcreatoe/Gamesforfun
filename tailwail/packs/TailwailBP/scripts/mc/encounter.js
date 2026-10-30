@@ -316,7 +316,9 @@ export class Encounter {
         if (!p) return;
         const a = arg || 0;
         fx.heartbeat(p, 66 + a * 0.95, 0.4 + a * 0.005);
-        const want = Math.round(70 - a * 0.2);
+        // tunnel vision only once it is clearly agitated (the player's own FOV until then)
+        if (a < 25) return;
+        const want = Math.round(72 - (a - 25) * 0.25);
         if (this.fovAt === null || Math.abs(this.fovAt - want) >= 3) {
           this.fovAt = want;
           fx.fov(p, want, 1.4);

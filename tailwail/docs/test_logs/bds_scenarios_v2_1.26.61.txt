@@ -1,310 +1,304 @@
 # TAILWAIL v2.0.0 BDS 1.26.61.1 runtime scenarios (2026-10-30); lines from the server console: [TWDEV] harness, [Tailwail] add-on
-[07:43:21 INFO] Version: 1.26.61.1
-[07:43:21 INFO] Contents of server.properties: {"allow-cheats":"true","allow-inbound-script-debugging":"false","allow-list":"false","allow-outbound-script-debugging":"false","block-network-ids-are-hashes":"true","chat-restriction":"None","client-side-chunk-generation-enabled":"true","compression-algorithm":"zlib","compression-threshold":"1","content-log-console-output-enabled":"true","content-log-file-enabled":"true","content-log-level":"verbose","default-player-permission-level":"member","difficulty":"normal","disable-custom-skins":"false","disable-persona":"false","disable-player-interaction":"false","enable-lan-visibility":"false","force-gamemode":"false","gamemode":"survival","level-name":"twscenarios","level-type":"FLAT","max-players":"10","max-threads":"8","online-mode":"false","persistent-ticking-area-max-chunks":"100","persistent-ticking-area-max-count":"10","player-idle-timeout":"30","player-movement-action-direction-threshold":"0.85","player-position-acceptance-threshold":"0.5","script-debugger-auto-attach":"disabled","server-authoritative-block-breaking-pick-range-scalar":"1.5","server-authoritative-dismount-strict":"false","server-authoritative-entity-attack-range-tolerance":"0.5","server-authoritative-entity-attack-range-validation":"disabled","server-authoritative-entity-attack-request-validation":"disabled","server-authoritative-entity-interactions-strict":"false","server-authoritative-movement-strict":"false","server-build-radius-ratio":"Disabled","server-name":"Dedicated Server","server-port":"19132","server-portv6":"19133","server-udp-ports":"19132","texturepack-required":"false","tick-distance":"4","transient-ticking-area-max-chunks":"300","transport":"nethernet","view-distance":"32"}
-[07:43:24 INFO] Pack Stack - [00] TAILWAIL (Behavior) (id: 842601fd-5d8e-46ad-a432-a35be2bdf477, version: 2.0.0) @ behavior_packs/tw_TailwailBP
-[07:43:25 WARN] [Scripting] [TWDEV] harness loaded
-[07:43:26 INFO] Server started.
-[07:43:26 WARN] [Scripting] [Tailwail] v2.0.0 ready
-[07:43:33 WARN] [Scripting] [TWDEV] === scenario boot
-[07:43:33 WARN] [Scripting] [TWDEV] boot blocks: snuffed torch type true
-[07:43:33 WARN] [Scripting] [TWDEV] command "camera @a fov_clear 0.50 in_out_sine" ok 0
-[07:43:33 WARN] [Scripting] [TWDEV] command "camera @a fov_set 60 0.5 in_out_sine" ok 0
-[07:43:33 WARN] [Scripting] [TWDEV] === done boot
-[07:43:36 WARN] [Scripting] [TWDEV] === scenario statue
-[07:43:36 WARN] [Scripting] [Tailwail] #1 - -> stalk (spawn)
-[07:43:36 WARN] [Scripting] [Tailwail] encounter 1 start setup=statue_hunt slot=a target=Mock
-[07:43:36 WARN] [Scripting] [Tailwail] #1 stalk -> standoff (test)
-[07:43:37 WARN] [Scripting] [TWDEV] statue-watched t 20 state standoff agit 0.5 pos 21.5,-60,10.5 posture hunch pose statue_reach tail 0 jaw 3 dmg 0 inView true
-[07:43:38 WARN] [Scripting] [TWDEV] statue-watched t 40 state standoff agit 1 pos 21.5,-60,10.5 posture tall pose statue_reach tail 0 jaw 3 dmg 0 inView true
-[07:43:39 WARN] [Scripting] [TWDEV] statue-watched t 60 state standoff agit 4.7 pos 21.5,-60,10.5 posture tall pose statue_reach tail 0 jaw 3 dmg 0 inView true
-[07:43:39 WARN] [Scripting] [TWDEV] statue moved while watched 0 music tailwail.music.standoff fog tailwail:dread
-[07:43:40 WARN] [Scripting] [Tailwail] #1 cue skitter
-[07:43:40 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
-[07:43:40 WARN] [Scripting] [Tailwail] #1 cue creak
-[07:43:41 WARN] [Scripting] [TWDEV] statue look-away 0 advanced 2.6 now pose statue_bow dist 13.4 state standoff
-[07:43:41 WARN] [Scripting] [Tailwail] #1 cue skitter
-[07:43:42 WARN] [Scripting] [TWDEV] statue look-away 1 advanced 2.9 now pose statue_sideways dist 10.5 state standoff
-[07:43:43 WARN] [Scripting] [Tailwail] #1 cue skitter
-[07:43:43 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fDon't look away
-[07:43:44 WARN] [Scripting] [Tailwail] #1 cue creak
-[07:43:44 WARN] [Scripting] [TWDEV] statue look-away 2 advanced 3.3 now pose statue_bow dist 7.1 state standoff
-[07:43:45 WARN] [Scripting] [TWDEV] statue-after t 20 state standoff agit 28.2 pos 12.6,-60,10.5 posture tall pose statue_bow tail 0 jaw 3 dmg 0 
-[07:43:46 WARN] [Scripting] [TWDEV] statue-after t 40 state standoff agit 34.6 pos 12.6,-60,10.5 posture tall pose watch_low tail 0 jaw 3 dmg 0 
-[07:43:46 WARN] [Scripting] [Tailwail] encounter 1 end outcome=aborted after 10.0s
-[07:43:46 WARN] [Scripting] [TWDEV] statue cleanup locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
-[07:43:46 WARN] [Scripting] [TWDEV] === done statue
-[07:43:54 WARN] [Scripting] [TWDEV] === scenario commit
-[07:43:54 WARN] [Scripting] [Tailwail] #2 - -> stalk (spawn)
-[07:43:54 WARN] [Scripting] [Tailwail] encounter 2 start setup=statue_hunt slot=a target=Mock
-[07:43:54 WARN] [Scripting] [Tailwail] #2 cue tail_scrape
-[07:43:54 WARN] [Scripting] [Tailwail] #2 stalk -> standoff (test)
-[07:43:54 WARN] [Scripting] [Tailwail] #2 cue click
-[07:43:55 WARN] [Scripting] [TWDEV] commit t 10 state standoff agit 100 pos 18.5,-60,10.5 posture hunch pose statue_bow tail 4 jaw 34 dmg 0 
-[07:43:55 WARN] [Scripting] [Tailwail] #2 commit (stare)
-[07:43:55 WARN] [Scripting] [Tailwail] #2 standoff -> unfold (stare)
-[07:43:55 WARN] [Scripting] [TWDEV] commit t 20 state unfold agit 100 pos 18.5,-60,10.5 posture hunch pose unfold tail 2 jaw 0 dmg 0 
-[07:43:56 WARN] [Scripting] [TWDEV] commit t 30 state unfold agit 100 pos 18.5,-60,10.5 posture tall pose unfold tail 2 jaw 0 dmg 0 
-[07:43:56 WARN] [Scripting] [TWDEV] commit t 40 state unfold agit 100 pos 18.5,-60,10.5 posture tall pose unfold tail 2 jaw 0 dmg 0 
-[07:43:57 WARN] [Scripting] [TWDEV] commit t 50 state unfold agit 100 pos 18.5,-60,10.5 posture tall pose unfold tail 2 jaw 0 dmg 0 
-[07:43:57 WARN] [Scripting] [Tailwail] #2 unfold -> scream (unfolded)
-[07:43:57 WARN] [Scripting] [Tailwail] #2 cue scream
-[07:43:57 WARN] [Scripting] [TWDEV] commit t 60 state scream agit 100 pos 18.5,-60,10.5 posture tall pose scream tail 2 jaw 60 dmg 0 
-[07:43:58 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
-[07:43:58 WARN] [Scripting] [TWDEV] commit t 70 state scream agit 100 pos 18.5,-60,10.5 posture tall pose scream tail 2 jaw 60 dmg 0 
-[07:43:58 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fBut don't stare
-[07:43:58 WARN] [Scripting] [TWDEV] commit t 80 state scream agit 100 pos 18.5,-60,10.5 posture tall pose scream tail 2 jaw 60 dmg 0 
-[07:43:59 WARN] [Scripting] [TWDEV] commit t 90 state scream agit 100 pos 18.5,-60,10.5 posture tall pose scream tail 2 jaw 60 dmg 0 
-[07:43:59 WARN] [Scripting] [Tailwail] #2 scream -> windup (screamed)
-[07:43:59 WARN] [Scripting] [TWDEV] commit t 100 state windup agit 100 pos 18.5,-60,10.5 posture tall pose windup tail 2 jaw 30 dmg 0 
-[07:44:00 WARN] [Scripting] [TWDEV] commit t 110 state windup agit 100 pos 18.5,-60,10.5 posture hunch pose windup tail 2 jaw 30 dmg 0 
-[07:44:00 WARN] [Scripting] [TWDEV] commit torches after scream tailwail:snuffed_torch,tailwail:snuffed_torch,tailwail:snuffed_torch
-[07:44:00 WARN] [Scripting] [TWDEV] relight true -> minecraft:torch
-[07:44:00 WARN] [Scripting] [TWDEV] commit fx calls music tailwail.music.standoff | fog+ tailwail:dread | fov {"fov":50,"easeOptions":{"easeTime":1.4,"easeType":"InOutSine"}} | music-stop | fov {"fov":50,"easeOptions":{"easeTime":0.25,"easeType":"OutCubic"}}
-[07:44:00 WARN] [Scripting] [Tailwail] encounter 2 end outcome=aborted after 5.8s
-[07:44:00 WARN] [Scripting] [TWDEV] commit cleanup locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
-[07:44:00 WARN] [Scripting] [TWDEV] === done commit
-[07:44:03 WARN] [Scripting] [TWDEV] === scenario grab
-[07:44:03 WARN] [Scripting] [Tailwail] #3 - -> stalk (spawn)
-[07:44:03 WARN] [Scripting] [Tailwail] encounter 3 start setup=statue_hunt slot=a target=Mock
-[07:44:03 WARN] [Scripting] [Tailwail] #3 stalk -> chase (test)
-[07:44:03 WARN] [Scripting] [Tailwail] #3 chase begins (test), budget left 26.0s
-[07:44:03 WARN] [Scripting] [Tailwail] #3 chase -> grab (reach)
-[07:44:03 WARN] [Scripting] [Tailwail] #3 cue grab
-[07:44:04 WARN] [Scripting] [TWDEV] grab t 5 state grab agit 0 pos 13,-60,10.5 posture hunch pose grab tail 2 jaw 40 dmg 0 locked true tp 2 at 10.6,-58,10.5
-[07:44:04 WARN] [Scripting] [TWDEV] grab t 10 state grab agit 0 pos 13,-60,10.5 posture hunch pose grab tail 2 jaw 40 dmg 0 locked true tp 7 at 10.6,-58,10.5
-[07:44:04 WARN] [Scripting] [Tailwail] #3 cue hold
-[07:44:04 WARN] [Scripting] [TWDEV] grab t 15 state grab agit 0 pos 13,-60,10.5 posture hunch pose grab tail 2 jaw 40 dmg 0 locked true tp 12 at 10.6,-58,10.5
-[07:44:04 WARN] [Scripting] [TWDEV] grab t 20 state grab agit 0 pos 13,-60,10.5 posture hunch pose hold tail 2 jaw 30 dmg 0 locked true tp 17 at 10.6,-58,10.5
-[07:44:05 WARN] [Scripting] [TWDEV] grab t 25 state grab agit 0 pos 13,-60,10.5 posture hunch pose hold tail 2 jaw 33 dmg 0 locked true tp 22 at 10.6,-58,10.5
-[07:44:05 WARN] [Scripting] [TWDEV] grab t 30 state grab agit 0 pos 13,-60,10.5 posture hunch pose hold tail 2 jaw 35 dmg 0 locked true tp 27 at 10.6,-58,10.5
-[07:44:05 WARN] [Scripting] [TWDEV] grab mash: pressing jump 8 times
-[07:44:05 WARN] [Scripting] [Tailwail] #3 struggled-free
-[07:44:05 WARN] [Scripting] [Tailwail] #3 cue pain
-[07:44:05 WARN] [Scripting] [TWDEV] grab-free t 5 state grab agit 0 pos 13,-60,10.5 posture tall pose frustrated tail 2 jaw 45 dmg 1 locked false tp 28
-[07:44:05 WARN] [Scripting] [TWDEV] grab-free t 10 state grab agit 0 pos 13,-60,10.5 posture tall pose frustrated tail 2 jaw 45 dmg 1 locked false tp 28
-[07:44:06 WARN] [Scripting] [TWDEV] grab-free t 15 state grab agit 0 pos 13,-60,10.5 posture tall pose frustrated tail 2 jaw 45 dmg 1 locked false tp 28
-[07:44:06 WARN] [Scripting] [TWDEV] grab-free t 20 state grab agit 0 pos 13,-60,10.5 posture tall pose frustrated tail 2 jaw 45 dmg 1 locked false tp 28
-[07:44:06 WARN] [Scripting] [TWDEV] grab-free t 25 state grab agit 0 pos 13,-60,10.5 posture tall pose frustrated tail 2 jaw 45 dmg 1 locked false tp 28
-[07:44:06 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fRun
-[07:44:06 WARN] [Scripting] [TWDEV] grab-free t 30 state grab agit 0 pos 13,-60,10.5 posture tall pose frustrated tail 2 jaw 45 dmg 1 locked false tp 28
-[07:44:06 WARN] [Scripting] [Tailwail] #3 grab -> chase (after-grab)
-[07:44:06 WARN] [Scripting] [Tailwail] #3 cue screech
-[07:44:06 WARN] [Scripting] [Tailwail] #3 chase resumed (after-grab), budget left 25.8s
-[07:44:06 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fIt lifts you
-[07:44:07 WARN] [Scripting] [TWDEV] grab-free t 35 state chase agit 0 pos 13,-60,10.5 posture tall pose loco tail 3 jaw 32 dmg 1 locked false tp 28
-[07:44:07 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
-[07:44:07 WARN] [Scripting] [TWDEV] grab-free t 40 state chase agit 0 pos 13,-60,10.5 posture hunch pose loco tail 3 jaw 32 dmg 1 locked false tp 28
-[07:44:07 WARN] [Scripting] [TWDEV] grab-free t 45 state chase agit 0 pos 13,-60,10.5 posture hunch pose loco tail 3 jaw 32 dmg 1 locked false tp 28
-[07:44:07 WARN] [Scripting] [TWDEV] grab-free t 50 state chase agit 0 pos 12.7,-60,10.5 posture hunch pose loco tail 3 jaw 32 dmg 1 locked false tp 28
-[07:44:07 WARN] [Scripting] [TWDEV] grab free result damage [{"tick":780,"n":2,"by":"tailwail:tall_wail"}] calls input 4=false | input 1=false | input 5=false | effect+ slow_falling | title "§4§lIT HAS YOU" | subtitle "§7Mash §fJUMP§7  §8[§c||§8||||||||||§8]" | subtitle "§7Mash §fJUMP§7  §8[§c|||§8|||||||||§8]" | subtitle "§7Mash §fJUMP§7  §8[§c|||||§8|||||||§8]" | subtitle "§7Mash §fJUMP§7  §8[§c|||||||§8|||||§8]" | subtitle "§7Mash §fJUMP§7  §8[§c|||||||||§8|||§8]" | subtitle "§7Mash §fJUMP§7  §8[§c||||||||||§8||§8]" | subtitle "§7Mash §fJUMP§7  §8[§c||||||||||||§8§8]" | input 4=true | input 1=true | input 5=true | title " " | knockback 1.3/0.35 | effect- slow_falling
-[07:44:07 WARN] [Scripting] [Tailwail] #3 chase -> chase (test2)
-[07:44:07 WARN] [Scripting] [Tailwail] #3 chase resumed (test2), budget left 25.0s
-[07:44:07 WARN] [Scripting] [Tailwail] #3 chase -> grab (reach)
-[07:44:07 WARN] [Scripting] [Tailwail] #3 cue grab
-[07:44:08 WARN] [Scripting] [TWDEV] grab-throw t 10 state grab agit 0 pos 12.3,-60,10.5 posture hunch pose grab tail 2 jaw 40 dmg 1 locked true hp 18
-[07:44:08 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fFight it
-[07:44:08 WARN] [Scripting] [Tailwail] #3 cue hold
-[07:44:08 WARN] [Scripting] [TWDEV] grab-throw t 20 state grab agit 0 pos 12.3,-60,10.5 posture tall pose hold tail 2 jaw 30 dmg 1 locked true hp 18
-[07:44:09 WARN] [Scripting] [TWDEV] grab-throw t 30 state grab agit 0 pos 12.3,-60,10.5 posture tall pose hold tail 2 jaw 35 dmg 1 locked true hp 18
-[07:44:09 WARN] [Scripting] [TWDEV] grab-throw t 40 state grab agit 0 pos 12.3,-60,10.5 posture tall pose hold tail 2 jaw 42 dmg 1 locked true hp 18
-[07:44:10 WARN] [Scripting] [TWDEV] grab-throw t 50 state grab agit 0 pos 12.3,-60,10.5 posture tall pose hold tail 2 jaw 46 dmg 1 locked true hp 18
-[07:44:10 WARN] [Scripting] [TWDEV] grab-throw t 60 state grab agit 0 pos 12.3,-60,10.5 posture tall pose hold tail 2 jaw 53 dmg 1 locked true hp 18
-[07:44:11 WARN] [Scripting] [TWDEV] grab-throw t 70 state grab agit 0 pos 12.3,-60,10.5 posture tall pose unhinge tail 2 jaw 58 dmg 1 locked true hp 18
-[07:44:11 WARN] [Scripting] [Tailwail] #3 cue bite
-[07:44:11 WARN] [Scripting] [TWDEV] grab-throw t 80 state grab agit 0 pos 12.3,-60,10.5 posture tall pose unhinge tail 2 jaw 60 dmg 2 locked false hp 6
-[07:44:12 WARN] [Scripting] [TWDEV] grab-throw t 90 state grab agit 0 pos 12.3,-60,10.5 posture tall pose unhinge tail 2 jaw 60 dmg 2 locked false hp 6
-[07:44:12 WARN] [Scripting] [TWDEV] grab throw result damage [{"tick":780,"n":2,"by":"tailwail:tall_wail"},{"tick":904,"n":12,"by":"tailwail:tall_wail"}] locked after false
-[07:44:12 WARN] [Scripting] [Tailwail] encounter 3 end outcome=aborted after 8.6s
-[07:44:12 WARN] [Scripting] [TWDEV] grab cleanup locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
-[07:44:12 WARN] [Scripting] [TWDEV] === done grab
-[07:44:36 INFO] Version: 1.26.61.1
-[07:44:36 INFO] Contents of server.properties: {"allow-cheats":"true","allow-inbound-script-debugging":"false","allow-list":"false","allow-outbound-script-debugging":"false","block-network-ids-are-hashes":"true","chat-restriction":"None","client-side-chunk-generation-enabled":"true","compression-algorithm":"zlib","compression-threshold":"1","content-log-console-output-enabled":"true","content-log-file-enabled":"true","content-log-level":"verbose","default-player-permission-level":"member","difficulty":"normal","disable-custom-skins":"false","disable-persona":"false","disable-player-interaction":"false","enable-lan-visibility":"false","force-gamemode":"false","gamemode":"survival","level-name":"twscenarios","level-type":"FLAT","max-players":"10","max-threads":"8","online-mode":"false","persistent-ticking-area-max-chunks":"100","persistent-ticking-area-max-count":"10","player-idle-timeout":"30","player-movement-action-direction-threshold":"0.85","player-position-acceptance-threshold":"0.5","script-debugger-auto-attach":"disabled","server-authoritative-block-breaking-pick-range-scalar":"1.5","server-authoritative-dismount-strict":"false","server-authoritative-entity-attack-range-tolerance":"0.5","server-authoritative-entity-attack-range-validation":"disabled","server-authoritative-entity-attack-request-validation":"disabled","server-authoritative-entity-interactions-strict":"false","server-authoritative-movement-strict":"false","server-build-radius-ratio":"Disabled","server-name":"Dedicated Server","server-port":"19132","server-portv6":"19133","server-udp-ports":"19132","texturepack-required":"false","tick-distance":"4","transient-ticking-area-max-chunks":"300","transport":"nethernet","view-distance":"32"}
-[07:44:37 INFO] Pack Stack - [00] TAILWAIL (Behavior) (id: 842601fd-5d8e-46ad-a432-a35be2bdf477, version: 2.0.0) @ behavior_packs/tw_TailwailBP
-[07:44:37 WARN] [Scripting] [TWDEV] harness loaded
-[07:44:38 INFO] Server started.
-[07:44:38 WARN] [Scripting] [Tailwail] v2.0.0 ready
-[07:44:45 WARN] [Scripting] [TWDEV] === scenario hide
-[07:44:45 WARN] [Scripting] [Tailwail] #1 - -> stalk (spawn)
-[07:44:45 WARN] [Scripting] [Tailwail] encounter 1 start setup=statue_hunt slot=a target=Mock
-[07:44:45 WARN] [Scripting] [Tailwail] #1 cue tail_scrape
-[07:44:45 WARN] [Scripting] [Tailwail] #1 stalk -> search (test)
-[07:44:45 WARN] [Scripting] [TWDEV] hide light at mock 0
-[07:44:46 WARN] [Scripting] [TWDEV] hide t 20 state search agit 0 pos 7.9,-60,8.6 posture hunch pose loco tail 1 jaw 8 dmg 0 d 22.7
-[07:44:47 WARN] [Scripting] [Tailwail] #1 cue sniff
-[07:44:47 WARN] [Scripting] [TWDEV] hide t 40 state search agit 0 pos 5.1,-60,6.1 posture hunch pose loco tail 1 jaw 8 dmg 0 d 25.8
-[07:44:48 WARN] [Scripting] [TWDEV] hide t 60 state search agit 0 pos 4.8,-60,5.8 posture hunch pose sniff tail 1 jaw 8 dmg 0 d 26.1
-[07:44:49 WARN] [Scripting] [TWDEV] hide t 80 state search agit 0 pos 4.9,-60,5.9 posture hunch pose loco tail 1 jaw 8 dmg 0 d 26
-[07:44:50 WARN] [Scripting] [TWDEV] hide t 100 state search agit 0 pos 7.4,-60,8.3 posture hunch pose loco tail 1 jaw 8 dmg 0 d 23.2
-[07:44:51 WARN] [Scripting] [TWDEV] hide t 120 state search agit 0 pos 11,-60,9.4 posture hunch pose loco tail 1 jaw 8 dmg 0 d 19.5
-[07:44:52 WARN] [Scripting] [Tailwail] #1 cue sniff
-[07:44:52 WARN] [Scripting] [TWDEV] hide t 140 state search agit 0 pos 14.7,-60,9.9 posture hunch pose loco tail 1 jaw 8 dmg 0 d 15.8
-[07:44:53 WARN] [Scripting] [TWDEV] hide t 160 state search agit 0 pos 15.1,-60,10.3 posture hunch pose sniff tail 1 jaw 8 dmg 0 d 15.4
-[07:44:54 WARN] [Scripting] [TWDEV] hide t 180 state search agit 0 pos 15.1,-60,10.3 posture hunch pose loco tail 1 jaw 8 dmg 0 d 15.4
-[07:44:55 WARN] [Scripting] [TWDEV] hide t 200 state search agit 0 pos 13.4,-60,12.6 posture hunch pose loco tail 1 jaw 8 dmg 0 d 17.2
-[07:44:55 WARN] [Scripting] [Tailwail] #1 cue sniff
-[07:44:56 WARN] [Scripting] [TWDEV] hide t 220 state search agit 0 pos 12.5,-60,14.1 posture hunch pose sniff tail 1 jaw 8 dmg 0 d 18.3
-[07:44:57 WARN] [Scripting] [TWDEV] hide t 240 state search agit 0 pos 12.5,-60,14.1 posture hunch pose sniff tail 1 jaw 8 dmg 0 d 18.3
-[07:44:57 WARN] [Scripting] [Tailwail] #1 cue sniff
-[07:44:58 WARN] [Scripting] [TWDEV] hide t 260 state search agit 0 pos 12.5,-60,14.1 posture hunch pose sniff tail 1 jaw 8 dmg 0 d 18.3
-[07:44:59 WARN] [Scripting] [TWDEV] hide t 280 state search agit 0 pos 12.5,-60,14.1 posture hunch pose sniff tail 1 jaw 8 dmg 0 d 18.3
-[07:44:59 WARN] [Scripting] [Tailwail] #1 search -> frustrated (gave-up)
-[07:44:59 WARN] [Scripting] [Tailwail] #1 cue frustrated
-[07:45:00 WARN] [Scripting] [TWDEV] hide t 300 state frustrated agit 0 pos 12.5,-60,14.1 posture tall pose frustrated tail 2 jaw 55 dmg 0 d 18.3
-[07:45:01 WARN] [Scripting] [TWDEV] hide t 320 state frustrated agit 0 pos 12.5,-60,14.1 posture tall pose frustrated tail 2 jaw 55 dmg 0 d 18.3
-[07:45:01 WARN] [Scripting] [Tailwail] #1 frustrated -> retreat (frustrated)
-[07:45:02 WARN] [Scripting] [Tailwail] #1 cue retreat
-[07:45:02 WARN] [Scripting] [TWDEV] hide t 340 state retreat agit 0 pos 11.3,-60,14.4 posture tall pose loco tail 0 jaw 3 dmg 0 d 19.6
-[07:45:02 WARN] [Scripting] [TWDEV] hide outcome escaped state retreat damage 0 flags hid,escaped
-[07:45:02 WARN] [Scripting] [Tailwail] encounter 1 end outcome=aborted after 17.2s
-[07:45:02 WARN] [Scripting] [TWDEV] === done hide
-[07:45:05 WARN] [Scripting] [TWDEV] === scenario escape
-[07:45:05 WARN] [Scripting] [Tailwail] #2 - -> stalk (spawn)
-[07:45:05 WARN] [Scripting] [Tailwail] encounter 2 start setup=statue_hunt slot=a target=Mock
-[07:45:05 WARN] [Scripting] [Tailwail] #2 cue tail_scrape
-[07:45:05 WARN] [Scripting] [Tailwail] #2 stalk -> chase (test)
-[07:45:05 WARN] [Scripting] [Tailwail] #2 chase begins (test), budget left 26.0s
-[07:45:06 WARN] [Scripting] [TWDEV] escape t 20 state chase agit 0 pos 6.9,-60,12.9 posture hunch pose loco tail 3 jaw 32 dmg 0 mock 20.1,-60,20.5
-[07:45:07 WARN] [Scripting] [TWDEV] escape t 40 state chase agit 0 pos 11.8,-60,17.5 posture hunch pose loco tail 3 jaw 32 dmg 0 mock 25.7,-60,20.5
-[07:45:07 WARN] [Scripting] [Tailwail] #2 cue screech
-[07:45:08 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fRun
-[07:45:08 WARN] [Scripting] [TWDEV] escape t 60 state chase agit 0 pos 18.7,-60,17.5 posture hunch pose loco tail 3 jaw 32 dmg 0 mock 31.2,-60,20.5
-[07:45:09 WARN] [Scripting] [TWDEV] escape t 80 state chase agit 0 pos 25.2,-60,18.6 posture hunch pose loco tail 3 jaw 32 dmg 0 mock 36.7,-60,20.5
-[07:45:10 WARN] [Scripting] [TWDEV] escape t 100 state chase agit 0 pos 28.3,-60,19.4 posture hunch pose loco tail 3 jaw 32 dmg 0 mock 42.3,-60,20.5
-[07:45:11 WARN] [Scripting] [TWDEV] escape t 120 state chase agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 3 jaw 32 dmg 0 mock 47.5,-60,21.6
-[07:45:12 WARN] [Scripting] [TWDEV] escape t 140 state chase agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 3 jaw 32 dmg 0 mock 52.4,-60,24.2
-[07:45:13 WARN] [Scripting] [Tailwail] #2 stuck (1)
-[07:45:13 WARN] [Scripting] [Tailwail] #2 recover 1: smaller-posture
-[07:45:13 WARN] [Scripting] [TWDEV] escape t 160 state chase agit 0 pos 29.4,-60,20.6 posture crawl pose loco tail 3 jaw 32 dmg 0 mock 57.4,-60,26.8
-[07:45:14 WARN] [Scripting] [Tailwail] #2 cue screech
-[07:45:14 WARN] [Scripting] [TWDEV] escape t 180 state chase agit 0 pos 29.4,-60,20.6 posture crawl pose loco tail 3 jaw 32 dmg 0 mock 60.5,-60,28.5
-[07:45:14 WARN] [Scripting] [Tailwail] #2 chase -> search (lost-sight)
-[07:45:15 WARN] [Scripting] [TWDEV] escape t 200 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
-[07:45:16 WARN] [Scripting] [TWDEV] escape t 220 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
-[07:45:17 WARN] [Scripting] [TWDEV] escape t 240 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
-[07:45:18 WARN] [Scripting] [TWDEV] escape t 260 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
-[07:45:19 WARN] [Scripting] [TWDEV] escape t 280 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
-[07:45:20 WARN] [Scripting] [TWDEV] escape t 300 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
-[07:45:21 WARN] [Scripting] [TWDEV] escape t 320 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
-[07:45:22 WARN] [Scripting] [TWDEV] escape t 340 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
-[07:45:23 WARN] [Scripting] [TWDEV] escape t 360 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
-[07:45:24 WARN] [Scripting] [TWDEV] escape t 380 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
-[07:45:25 WARN] [Scripting] [TWDEV] escape t 400 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
-[07:45:26 WARN] [Scripting] [TWDEV] escape t 420 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
-[07:45:27 WARN] [Scripting] [TWDEV] escape t 440 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
-[07:45:28 WARN] [Scripting] [TWDEV] escape t 460 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
-[07:45:29 WARN] [Scripting] [Tailwail] #2 search -> frustrated (gave-up)
-[07:45:29 WARN] [Scripting] [Tailwail] #2 cue frustrated
-[07:45:29 WARN] [Scripting] [TWDEV] escape t 480 state frustrated agit 0 pos 29.4,-60,20.6 posture tall pose frustrated tail 2 jaw 55 dmg 0 mock 60.5,-60,28.5
-[07:45:30 WARN] [Scripting] [TWDEV] escape t 500 state frustrated agit 0 pos 29.4,-60,20.6 posture tall pose frustrated tail 2 jaw 55 dmg 0 mock 60.5,-60,28.5
-[07:45:30 WARN] [Scripting] [Tailwail] #2 frustrated -> retreat (frustrated)
-[07:45:31 WARN] [Scripting] [Tailwail] #2 cue retreat
-[07:45:31 WARN] [Scripting] [TWDEV] escape t 520 state retreat agit 0 pos 29.1,-60,20.8 posture tall pose loco tail 0 jaw 3 dmg 0 mock 60.5,-60,28.5
-[07:45:32 WARN] [Scripting] [TWDEV] escape t 540 state retreat agit 0 pos 26.5,-60,23.5 posture tall pose loco tail 0 jaw 3 dmg 0 mock 60.5,-60,28.5
-[07:45:33 WARN] [Scripting] [TWDEV] escape t 560 state retreat agit 0 pos 23.1,-60,25 posture tall pose loco tail 0 jaw 3 dmg 0 mock 60.5,-60,28.5
-[07:45:33 WARN] [Scripting] [Tailwail] encounter 2 end outcome=escaped after 28.6s
-[07:45:34 WARN] [Scripting] [TWDEV] escape t 580 ended outcome escaped state retreat
-[07:45:34 WARN] [Scripting] [TWDEV] escape outcome escaped ended true damage [] locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 1.50 in_out_sine
-[07:45:34 WARN] [Scripting] [TWDEV] === done escape
-[07:45:45 WARN] [Scripting] [TWDEV] === scenario tunnel
-[07:45:45 WARN] [Scripting] [Tailwail] #3 - -> stalk (spawn)
-[07:45:45 WARN] [Scripting] [Tailwail] encounter 3 start setup=statue_hunt slot=a target=Mock
-[07:45:45 WARN] [Scripting] [Tailwail] #3 cue creak
-[07:45:45 WARN] [Scripting] [Tailwail] #3 stalk -> chase (test)
-[07:45:45 WARN] [Scripting] [Tailwail] #3 chase begins (test), budget left 26.0s
-[07:45:46 WARN] [Scripting] [TWDEV] tunnel t 20 state chase agit 0 pos 9.1,-60,10.5 posture hunch pose loco tail 3 jaw 32 dmg 0 x 9.1
-[07:45:47 WARN] [Scripting] [TWDEV] tunnel t 40 state chase agit 0 pos 16,-60,10.5 posture hunch pose loco tail 3 jaw 32 dmg 0 x 16
-[07:45:47 WARN] [Scripting] [Tailwail] #3 cue screech
-[07:45:48 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fRun
-[07:45:48 WARN] [Scripting] [TWDEV] tunnel t 60 state chase agit 0 pos 19.8,-60,10.5 posture crawl pose loco tail 3 jaw 32 dmg 0 x 19.8
-[07:45:48 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
-[07:45:49 WARN] [Scripting] [TWDEV] tunnel t 80 state chase agit 0 pos 26.2,-60,10.5 posture crawl pose loco tail 3 jaw 32 dmg 0 x 26.2
-[07:45:50 WARN] [Scripting] [TWDEV] tunnel t 100 state chase agit 0 pos 33.2,-60,10.5 posture crawl pose loco tail 3 jaw 32 dmg 0 x 33.2
-[07:45:51 WARN] [Scripting] [Tailwail] #3 cue swipe
-[07:45:51 WARN] [Scripting] [TWDEV] tunnel t 120 state chase agit 0 pos 38.4,-60,10.5 posture crawl pose strike tail 3 jaw 32 dmg 0 x 38.4
-[07:45:51 WARN] [Scripting] [Tailwail] #3 strike dealt 7 -> true
-[07:45:51 WARN] [Scripting] [Tailwail] #3 cue impact
-[07:45:51 WARN] [Scripting] [Tailwail] #3 strike landed
-[07:45:52 WARN] [Scripting] [Tailwail] #3 cue screech
-[07:45:52 WARN] [Scripting] [TWDEV] tunnel t 140 state chase agit 0 pos 38.4,-60,10.5 posture crawl pose loco tail 3 jaw 32 dmg 1 x 38.4
-[07:45:53 WARN] [Scripting] [TWDEV] tunnel t 160 state chase agit 0 pos 40.4,-60,10.5 posture crawl pose loco tail 3 jaw 32 dmg 1 x 40.4
-[07:45:53 WARN] [Scripting] [Tailwail] #3 cue swipe
-[07:45:54 WARN] [Scripting] [Tailwail] #3 strike dealt 7 -> true
-[07:45:54 WARN] [Scripting] [Tailwail] #3 cue impact
-[07:45:54 WARN] [Scripting] [Tailwail] #3 strike landed
-[07:45:54 WARN] [Scripting] [TWDEV] tunnel t 180 state chase agit 0 pos 40.4,-60,10.5 posture crawl pose strike tail 3 jaw 32 dmg 2 x 40.4
-[07:45:55 WARN] [Scripting] [TWDEV] tunnel t 200 state chase agit 0 pos 40.4,-60,10.5 posture crawl pose loco tail 3 jaw 32 dmg 2 x 40.4
-[07:45:56 WARN] [Scripting] [Tailwail] #3 cue swipe
-[07:45:56 WARN] [Scripting] [TWDEV] tunnel t 220 state chase agit 0 pos 40.4,-60,10.5 posture crawl pose strike tail 3 jaw 32 dmg 2 x 40.4
-[07:45:56 WARN] [Scripting] [Tailwail] #3 strike dealt 7 -> true
-[07:45:56 WARN] [Scripting] [Tailwail] #3 cue impact
-[07:45:56 WARN] [Scripting] [Tailwail] #3 strike landed
-[07:45:57 WARN] [Scripting] [Tailwail] #3 chase -> retreat (target-dead)
-[07:45:57 WARN] [Scripting] [TWDEV] tunnel t 240 state retreat agit 0 pos 40.9,-60,10.5 posture crawl pose loco tail 0 jaw 3 dmg 3 x 40.9
-[07:45:57 WARN] [Scripting] [Tailwail] #3 cue retreat
-[07:45:58 WARN] [Scripting] [TWDEV] tunnel t 260 state retreat agit 0 pos 44.8,-60,10.5 posture crawl pose loco tail 0 jaw 3 dmg 3 x 44.8
-[07:45:59 WARN] [Scripting] [TWDEV] tunnel t 280 state retreat agit 0 pos 48.7,-60,10.5 posture tall pose loco tail 0 jaw 3 dmg 3 x 48.7
-[07:46:00 WARN] [Scripting] [TWDEV] tunnel t 300 state retreat agit 0 pos 52.6,-60,10.5 posture tall pose loco tail 0 jaw 3 dmg 3 x 52.6
-[07:46:01 WARN] [Scripting] [TWDEV] tunnel t 320 state retreat agit 0 pos 56.4,-60,10.5 posture tall pose loco tail 0 jaw 3 dmg 3 x 56.4
-[07:46:02 WARN] [Scripting] [TWDEV] tunnel t 340 state retreat agit 0 pos 56.8,-60,9.6 posture tall pose loco tail 0 jaw 3 dmg 3 x 56.8
-[07:46:03 WARN] [Scripting] [Tailwail] encounter 3 end outcome=caught after 17.8s
-[07:46:03 WARN] [Scripting] [TWDEV] tunnel t 360 ended outcome caught state retreat
-[07:46:03 WARN] [Scripting] [TWDEV] tunnel reached x (despawned) damage 3 outcome caught
-[07:46:03 WARN] [Scripting] [TWDEV] === done tunnel
-[07:46:07 WARN] [Scripting] [TWDEV] === scenario presence
-[07:46:07 WARN] [Scripting] [TWDEV] presence env {"torch":true,"torches":true,"door":true} torches 4 behind 4
-[07:46:07 WARN] [Scripting] [TWDEV] presence knock ran false sounds  echoes 0
-[07:46:07 WARN] [Scripting] [TWDEV] presence breath ran true sounds tailwail.breath_behind echoes 0
-[07:46:08 WARN] [Scripting] [TWDEV] presence whisper ran true sounds tailwail.whisper echoes 0
-[07:46:08 WARN] [Scripting] [TWDEV] msg §eMock joined the game
-[07:46:08 WARN] [Scripting] [TWDEV] presence fake_chat ran true sounds  echoes 0
-[07:46:08 WARN] [Scripting] [TWDEV] presence snuff ran true sounds  echoes 0
-[07:46:08 WARN] [Scripting] [TWDEV] presence door ran true sounds  echoes 0
-[07:46:08 WARN] [Scripting] [TWDEV] presence glimpse ran true sounds  echoes 1
-[07:46:10 WARN] [Scripting] [TWDEV] presence glimpse: seen then looked away; echo still exists false
-[07:46:10 WARN] [Scripting] [TWDEV] presence peek ran false sounds  echoes 0
-[07:46:10 WARN] [Scripting] [TWDEV] presence mimic ran true sounds  echoes 0
-[07:46:13 WARN] [Scripting] [TWDEV] presence mimic replay dig.deepslate
-[07:46:13 WARN] [Scripting] [TWDEV] presence footsteps ran true sounds  echoes 0
-[07:46:16 WARN] [Scripting] [TWDEV] presence footsteps heard 5 after walking 6 blocks
-[07:46:16 WARN] [Scripting] [TWDEV] presence behind ran true sounds tailwail.breath_behind echoes 0
-[07:46:17 WARN] [Scripting] [TWDEV] presence behind: turned; echoes 1 sounds tailwail.breath_behind,tailwail.stinger,step.stone,step.stone,step.stone,step.stone
-[07:46:17 WARN] [Scripting] [TWDEV] presence lights_out ran true sounds  echoes 1
-[07:46:23 WARN] [Scripting] [TWDEV] presence torches left 0
-[07:46:23 WARN] [Scripting] [TWDEV] === done presence
-[07:46:37 WARN] [Scripting] [TWDEV] === scenario death
-[07:46:37 WARN] [Scripting] [Tailwail] #4 - -> stalk (spawn)
-[07:46:37 WARN] [Scripting] [Tailwail] encounter 4 start setup=statue_hunt slot=a target=Mock
-[07:46:37 WARN] [Scripting] [Tailwail] #4 cue tail_scrape
-[07:46:37 WARN] [Scripting] [Tailwail] #4 stalk -> standoff (test)
-[07:46:37 WARN] [Scripting] [Tailwail] #4 cue skitter
-[07:46:38 WARN] [Scripting] [Tailwail] #4 standoff -> death (killed)
-[07:46:38 WARN] [Scripting] [Tailwail] #4 cue death
-[07:46:38 WARN] [Scripting] [TWDEV] death t 10 state death agit 2 pos 16.5,-60,10.5 posture hunch pose death_low tail 3 jaw 40 dmg 0 
-[07:46:38 WARN] [Scripting] [TWDEV] death t 20 state death agit 2 pos 16.5,-60,10.5 posture hunch pose death_low tail 3 jaw 40 dmg 0 
-[07:46:39 WARN] [Scripting] [TWDEV] death t 30 state death agit 2 pos 16.5,-60,10.5 posture tall pose death_low tail 3 jaw 40 dmg 0 
-[07:46:39 WARN] [Scripting] [TWDEV] death t 40 state death agit 2 pos 16.5,-60,10.5 posture tall pose death_low tail 3 jaw 40 dmg 0 
-[07:46:40 WARN] [Scripting] [Tailwail] encounter 4 end outcome=killed after 3.0s
-[07:46:40 WARN] [Scripting] [TWDEV] death t 50 ended outcome killed state death
-[07:46:40 WARN] [Scripting] [TWDEV] death: entity valid false outcome killed locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
-[07:46:40 WARN] [Scripting] [TWDEV] === done death
-[07:46:45 WARN] [Scripting] [TWDEV] === scenario spawnsite
-[07:46:46 WARN] [Scripting] [TWDEV] spawnsite normal {"x":32.5,"y":-60,"z":28.5,"head":6,"posture":"tall","light":0,"facing":116.56505117707799,"dist":29.068883707497267} reason ok ms 60
-[07:46:46 WARN] [Scripting] [TWDEV] spawnsite behind_you null reason too-bright ms 46
-[07:46:46 WARN] [Scripting] [TWDEV] === done spawnsite
-[07:46:53 WARN] [Scripting] [TWDEV] === scenario perf
-[07:46:53 WARN] [Scripting] [Tailwail] #5 - -> stalk (spawn)
-[07:46:53 WARN] [Scripting] [Tailwail] encounter 5 start setup=statue_hunt slot=a target=Mock
-[07:46:53 WARN] [Scripting] [Tailwail] #6 - -> stalk (spawn)
-[07:46:53 WARN] [Scripting] [Tailwail] encounter 6 start setup=statue_hunt slot=b target=Mock
-[07:46:53 WARN] [Scripting] [Tailwail] #7 - -> stalk (spawn)
-[07:46:53 WARN] [Scripting] [Tailwail] encounter 7 start setup=statue_hunt slot=c target=Mock
-[07:46:53 WARN] [Scripting] [Tailwail] #6 stalk -> standoff (test)
-[07:46:53 WARN] [Scripting] [Tailwail] #7 stalk -> chase (test)
-[07:46:53 WARN] [Scripting] [Tailwail] #7 chase begins (test), budget left 26.0s
-[07:46:56 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fRun
-[07:46:56 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fWalk away
-[07:46:57 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
-[07:47:01 WARN] [Scripting] [TWDEV] perf 3 encounters: decision tick avg 2.41 ms p95 5 ms max 10 ms; raycasts per tick 11.9 (BDS on the dev container CPU; not a client frame-rate measurement)
-[07:47:01 WARN] [Scripting] [Tailwail] encounter 5 end outcome=aborted after 38.0s
-[07:47:01 WARN] [Scripting] [Tailwail] encounter 7 end outcome=aborted after 38.0s
-[07:47:01 WARN] [Scripting] [TWDEV] === done perf
+[08:00:32 INFO] Version: 1.26.61.1
+[08:00:33 INFO] Pack Stack - [00] TAILWAIL (Behavior) (id: 842601fd-5d8e-46ad-a432-a35be2bdf477, version: 2.0.0) @ behavior_packs/tw_TailwailBP
+[08:00:33 WARN] [Scripting] [TWDEV] harness loaded
+[08:00:34 WARN] [Scripting] [Tailwail] v2.0.0 ready
+[08:00:41 WARN] [Scripting] [TWDEV] === scenario boot
+[08:00:41 WARN] [Scripting] [TWDEV] boot blocks: snuffed torch type true
+[08:00:41 WARN] [Scripting] [TWDEV] command "camera @a fov_clear 0.50 in_out_sine" ok 0
+[08:00:41 WARN] [Scripting] [TWDEV] command "camera @a fov_set 60 0.5 in_out_sine" ok 0
+[08:00:41 WARN] [Scripting] [TWDEV] === done boot
+[08:00:44 WARN] [Scripting] [TWDEV] === scenario statue
+[08:00:44 WARN] [Scripting] [Tailwail] #1 - -> stalk (spawn)
+[08:00:44 WARN] [Scripting] [Tailwail] encounter 1 start setup=statue_hunt slot=a target=Mock
+[08:00:44 WARN] [Scripting] [Tailwail] #1 cue tail_scrape
+[08:00:44 WARN] [Scripting] [Tailwail] #1 stalk -> standoff (test)
+[08:00:45 WARN] [Scripting] [TWDEV] statue-watched t 20 state standoff agit 0.5 pos 21.5,-60,10.5 posture hunch pose statue_sideways tail 0 jaw 3 dmg 0 inView true
+[08:00:46 WARN] [Scripting] [TWDEV] statue-watched t 40 state standoff agit 1 pos 21.5,-60,10.5 posture tall pose statue_sideways tail 0 jaw 3 dmg 0 inView true
+[08:00:47 WARN] [Scripting] [TWDEV] statue-watched t 60 state standoff agit 4.7 pos 21.5,-60,10.5 posture tall pose tilt tail 0 jaw 3 dmg 0 inView true
+[08:00:47 WARN] [Scripting] [TWDEV] statue moved while watched 0 music tailwail.music.standoff fog tailwail:dread
+[08:00:47 WARN] [Scripting] [Tailwail] #1 cue skitter
+[08:00:47 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+[08:00:48 WARN] [Scripting] [TWDEV] statue look-away 0 advanced 2.6 now pose statue_bow dist 13.4 state standoff
+[08:00:49 WARN] [Scripting] [Tailwail] #1 cue skitter
+[08:00:50 WARN] [Scripting] [Tailwail] #1 cue creak
+[08:00:50 WARN] [Scripting] [TWDEV] statue look-away 1 advanced 2.9 now pose statue_sideways dist 10.5 state standoff
+[08:00:50 WARN] [Scripting] [Tailwail] #1 cue skitter
+[08:00:51 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fDon't look away
+[08:00:52 WARN] [Scripting] [TWDEV] statue look-away 2 advanced 3.3 now pose statue_reach dist 7.1 state standoff
+[08:00:53 WARN] [Scripting] [TWDEV] statue-after t 20 state standoff agit 25.8 pos 12.6,-60,10.5 posture tall pose statue_reach tail 0 jaw 3 dmg 0 
+[08:00:54 WARN] [Scripting] [TWDEV] statue-after t 40 state standoff agit 31.4 pos 12.6,-60,10.5 posture tall pose statue_reach tail 0 jaw 3 dmg 0 
+[08:00:54 WARN] [Scripting] [Tailwail] encounter 1 end outcome=aborted after 10.0s
+[08:00:54 WARN] [Scripting] [TWDEV] statue cleanup locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
+[08:00:54 WARN] [Scripting] [TWDEV] === done statue
+[08:01:02 WARN] [Scripting] [TWDEV] === scenario commit
+[08:01:02 WARN] [Scripting] [Tailwail] #2 - -> stalk (spawn)
+[08:01:02 WARN] [Scripting] [Tailwail] encounter 2 start setup=statue_hunt slot=a target=Mock
+[08:01:02 WARN] [Scripting] [Tailwail] #2 cue tail_scrape
+[08:01:02 WARN] [Scripting] [Tailwail] #2 stalk -> standoff (test)
+[08:01:02 WARN] [Scripting] [Tailwail] #2 cue click
+[08:01:02 WARN] [Scripting] [Tailwail] #2 commit (stare)
+[08:01:02 WARN] [Scripting] [Tailwail] #2 standoff -> unfold (stare)
+[08:01:02 WARN] [Scripting] [TWDEV] commit t 10 state unfold agit 100 pos 18.5,-60,10.5 posture hunch pose unfold tail 2 jaw 0 dmg 0 
+[08:01:03 WARN] [Scripting] [TWDEV] commit t 20 state unfold agit 100 pos 18.5,-60,10.5 posture hunch pose unfold tail 2 jaw 0 dmg 0 
+[08:01:03 WARN] [Scripting] [TWDEV] commit t 30 state unfold agit 100 pos 18.5,-60,10.5 posture tall pose unfold tail 2 jaw 0 dmg 0 
+[08:01:04 WARN] [Scripting] [TWDEV] commit t 40 state unfold agit 100 pos 18.5,-60,10.5 posture tall pose unfold tail 2 jaw 0 dmg 0 
+[08:01:04 WARN] [Scripting] [TWDEV] commit t 50 state unfold agit 100 pos 18.5,-60,10.5 posture tall pose unfold tail 2 jaw 0 dmg 0 
+[08:01:05 WARN] [Scripting] [Tailwail] #2 unfold -> scream (unfolded)
+[08:01:05 WARN] [Scripting] [Tailwail] #2 cue scream
+[08:01:05 WARN] [Scripting] [TWDEV] commit t 60 state scream agit 100 pos 18.5,-60,10.5 posture tall pose scream tail 2 jaw 60 dmg 0 
+[08:01:05 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+[08:01:05 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fBut don't stare
+[08:01:05 WARN] [Scripting] [TWDEV] commit t 70 state scream agit 100 pos 18.5,-60,10.5 posture tall pose scream tail 2 jaw 60 dmg 0 
+[08:01:06 WARN] [Scripting] [TWDEV] commit t 80 state scream agit 100 pos 18.5,-60,10.5 posture tall pose scream tail 2 jaw 60 dmg 0 
+[08:01:06 WARN] [Scripting] [TWDEV] commit t 90 state scream agit 100 pos 18.5,-60,10.5 posture tall pose scream tail 2 jaw 60 dmg 0 
+[08:01:07 WARN] [Scripting] [Tailwail] #2 scream -> windup (screamed)
+[08:01:07 WARN] [Scripting] [TWDEV] commit t 100 state windup agit 100 pos 18.5,-60,10.5 posture tall pose windup tail 2 jaw 30 dmg 0 
+[08:01:07 WARN] [Scripting] [TWDEV] commit t 110 state windup agit 100 pos 18.5,-60,10.5 posture hunch pose windup tail 2 jaw 30 dmg 0 
+[08:01:07 WARN] [Scripting] [TWDEV] commit torches after scream tailwail:snuffed_torch,tailwail:snuffed_torch,tailwail:snuffed_torch
+[08:01:07 WARN] [Scripting] [TWDEV] relight true -> minecraft:torch
+[08:01:07 WARN] [Scripting] [TWDEV] commit fx calls music tailwail.music.standoff | fog+ tailwail:dread | fov {"fov":53,"easeOptions":{"easeTime":1.4,"easeType":"InOutSine"}} | music-stop | fov {"fov":50,"easeOptions":{"easeTime":0.25,"easeType":"OutCubic"}}
+[08:01:07 WARN] [Scripting] [Tailwail] encounter 2 end outcome=aborted after 5.8s
+[08:01:07 WARN] [Scripting] [TWDEV] commit cleanup locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
+[08:01:07 WARN] [Scripting] [TWDEV] === done commit
+[08:01:11 WARN] [Scripting] [TWDEV] === scenario grab
+[08:01:11 WARN] [Scripting] [Tailwail] #3 - -> stalk (spawn)
+[08:01:11 WARN] [Scripting] [Tailwail] encounter 3 start setup=statue_hunt slot=a target=Mock
+[08:01:11 WARN] [Scripting] [Tailwail] #3 cue tail_scrape
+[08:01:11 WARN] [Scripting] [Tailwail] #3 stalk -> chase (test)
+[08:01:11 WARN] [Scripting] [Tailwail] #3 chase begins (test), budget left 26.0s
+[08:01:11 WARN] [Scripting] [Tailwail] #3 chase -> grab (reach)
+[08:01:11 WARN] [Scripting] [Tailwail] #3 cue grab
+[08:01:11 WARN] [Scripting] [TWDEV] grab t 5 state grab agit 0 pos 13,-60,10.5 posture hunch pose grab tail 2 jaw 40 dmg 0 locked true tp 4 at 10.6,-58,10.5
+[08:01:11 WARN] [Scripting] [TWDEV] grab t 10 state grab agit 0 pos 13,-60,10.5 posture hunch pose grab tail 2 jaw 40 dmg 0 locked true tp 9 at 10.6,-58,10.5
+[08:01:12 WARN] [Scripting] [Tailwail] #3 cue hold
+[08:01:12 WARN] [Scripting] [TWDEV] grab t 15 state grab agit 0 pos 13,-60,10.5 posture hunch pose hold tail 2 jaw 40 dmg 0 locked true tp 14 at 10.6,-58,10.5
+[08:01:12 WARN] [Scripting] [TWDEV] grab t 20 state grab agit 0 pos 13,-60,10.5 posture hunch pose hold tail 2 jaw 30 dmg 0 locked true tp 19 at 10.6,-58,10.5
+[08:01:12 WARN] [Scripting] [TWDEV] grab t 25 state grab agit 0 pos 13,-60,10.5 posture hunch pose hold tail 2 jaw 33 dmg 0 locked true tp 24 at 10.6,-58,10.5
+[08:01:12 WARN] [Scripting] [TWDEV] grab t 30 state grab agit 0 pos 13,-60,10.5 posture tall pose hold tail 2 jaw 37 dmg 0 locked true tp 29 at 10.6,-58,10.5
+[08:01:12 WARN] [Scripting] [TWDEV] grab mash: pressing jump 8 times
+[08:01:13 WARN] [Scripting] [Tailwail] #3 struggled-free
+[08:01:13 WARN] [Scripting] [Tailwail] #3 cue pain
+[08:01:13 WARN] [Scripting] [TWDEV] grab-free t 5 state grab agit 0 pos 13,-60,10.5 posture tall pose frustrated tail 2 jaw 45 dmg 1 locked false tp 32
+[08:01:13 WARN] [Scripting] [TWDEV] grab-free t 10 state grab agit 0 pos 13,-60,10.5 posture tall pose frustrated tail 2 jaw 45 dmg 1 locked false tp 32
+[08:01:13 WARN] [Scripting] [TWDEV] grab-free t 15 state grab agit 0 pos 13,-60,10.5 posture tall pose frustrated tail 2 jaw 45 dmg 1 locked false tp 32
+[08:01:13 WARN] [Scripting] [TWDEV] grab-free t 20 state grab agit 0 pos 13,-60,10.5 posture tall pose frustrated tail 2 jaw 45 dmg 1 locked false tp 32
+[08:01:14 WARN] [Scripting] [TWDEV] grab-free t 25 state grab agit 0 pos 13,-60,10.5 posture tall pose frustrated tail 2 jaw 45 dmg 1 locked false tp 32
+[08:01:14 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+[08:01:14 WARN] [Scripting] [TWDEV] grab-free t 30 state grab agit 0 pos 13,-60,10.5 posture tall pose frustrated tail 2 jaw 45 dmg 1 locked false tp 32
+[08:01:14 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fIt lifts you
+[08:01:14 WARN] [Scripting] [Tailwail] #3 grab -> chase (after-grab)
+[08:01:14 WARN] [Scripting] [Tailwail] #3 cue screech
+[08:01:14 WARN] [Scripting] [Tailwail] #3 chase resumed (after-grab), budget left 25.8s
+[08:01:14 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+[08:01:14 WARN] [Scripting] [TWDEV] grab-free t 35 state chase agit 0 pos 13,-60,10.5 posture tall pose frustrated tail 2 jaw 45 dmg 1 locked false tp 32
+[08:01:14 WARN] [Scripting] [TWDEV] grab-free t 40 state chase agit 0 pos 13,-60,10.5 posture hunch pose loco tail 3 jaw 32 dmg 1 locked false tp 32
+[08:01:15 WARN] [Scripting] [TWDEV] grab-free t 45 state chase agit 0 pos 13,-60,10.5 posture hunch pose loco tail 3 jaw 32 dmg 1 locked false tp 32
+[08:01:15 WARN] [Scripting] [TWDEV] grab-free t 50 state chase agit 0 pos 12.9,-60,10.5 posture hunch pose loco tail 3 jaw 32 dmg 1 locked false tp 32
+[08:01:15 WARN] [Scripting] [TWDEV] grab free result damage [{"tick":780,"n":2,"by":"tailwail:tall_wail"}] calls input 4=false | input 1=false | input 5=false | effect+ slow_falling | title "§4§lIT HAS YOU" | subtitle "§7Mash §fJUMP§7  §8[§c||§8||||||||||§8]" | subtitle "§7Mash §fJUMP§7  §8[§c|||§8|||||||||§8]" | subtitle "§7Mash §fJUMP§7  §8[§c|||||§8|||||||§8]" | subtitle "§7Mash §fJUMP§7  §8[§c|||||||§8|||||§8]" | subtitle "§7Mash §fJUMP§7  §8[§c|||||||||§8|||§8]" | subtitle "§7Mash §fJUMP§7  §8[§c||||||||||§8||§8]" | subtitle "§7Mash §fJUMP§7  §8[§c||||||||||||§8§8]" | input 4=true | input 1=true | input 5=true | title " " | knockback 1.3/0.35 | effect- slow_falling
+[08:01:15 WARN] [Scripting] [Tailwail] #3 chase -> chase (test2)
+[08:01:15 WARN] [Scripting] [Tailwail] #3 chase resumed (test2), budget left 25.2s
+[08:01:15 WARN] [Scripting] [Tailwail] #3 chase -> grab (reach)
+[08:01:15 WARN] [Scripting] [Tailwail] #3 cue grab
+[08:01:15 WARN] [Scripting] [TWDEV] grab-throw t 10 state grab agit 0 pos 12.7,-60,10.5 posture hunch pose grab tail 2 jaw 40 dmg 1 locked true hp 18
+[08:01:16 WARN] [Scripting] [Tailwail] #3 cue hold
+[08:01:16 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fFight it
+[08:01:16 WARN] [Scripting] [TWDEV] grab-throw t 20 state grab agit 0 pos 12.7,-60,10.5 posture hunch pose hold tail 2 jaw 30 dmg 1 locked true hp 18
+[08:01:16 WARN] [Scripting] [TWDEV] grab-throw t 30 state grab agit 0 pos 12.7,-60,10.5 posture tall pose hold tail 2 jaw 37 dmg 1 locked true hp 18
+[08:01:17 WARN] [Scripting] [TWDEV] grab-throw t 40 state grab agit 0 pos 12.7,-60,10.5 posture tall pose hold tail 2 jaw 42 dmg 1 locked true hp 18
+[08:01:17 WARN] [Scripting] [TWDEV] grab-throw t 50 state grab agit 0 pos 12.7,-60,10.5 posture tall pose hold tail 2 jaw 49 dmg 1 locked true hp 18
+[08:01:18 WARN] [Scripting] [TWDEV] grab-throw t 60 state grab agit 0 pos 12.7,-60,10.5 posture tall pose hold tail 2 jaw 53 dmg 1 locked true hp 18
+[08:01:18 WARN] [Scripting] [TWDEV] grab-throw t 70 state grab agit 0 pos 12.7,-60,10.5 posture tall pose unhinge tail 2 jaw 60 dmg 1 locked true hp 18
+[08:01:19 WARN] [Scripting] [Tailwail] #3 cue bite
+[08:01:19 WARN] [Scripting] [TWDEV] grab-throw t 80 state grab agit 0 pos 12.7,-60,10.5 posture tall pose unhinge tail 2 jaw 60 dmg 2 locked false hp 6
+[08:01:19 WARN] [Scripting] [TWDEV] grab-throw t 90 state grab agit 0 pos 12.7,-60,10.5 posture tall pose unhinge tail 2 jaw 60 dmg 2 locked false hp 6
+[08:01:19 WARN] [Scripting] [TWDEV] grab throw result damage [{"tick":780,"n":2,"by":"tailwail:tall_wail"},{"tick":900,"n":12,"by":"tailwail:tall_wail"}] locked after false
+[08:01:19 WARN] [Scripting] [Tailwail] encounter 3 end outcome=aborted after 8.8s
+[08:01:19 WARN] [Scripting] [TWDEV] grab cleanup locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
+[08:01:19 WARN] [Scripting] [TWDEV] === done grab
+[08:01:23 WARN] [Scripting] [TWDEV] === scenario hide
+[08:01:23 WARN] [Scripting] [Tailwail] #4 - -> stalk (spawn)
+[08:01:23 WARN] [Scripting] [Tailwail] encounter 4 start setup=statue_hunt slot=a target=Mock
+[08:01:23 WARN] [Scripting] [Tailwail] #4 cue tail_scrape
+[08:01:23 WARN] [Scripting] [Tailwail] #4 stalk -> search (test)
+[08:01:23 WARN] [Scripting] [TWDEV] hide light at mock 0
+[08:01:24 WARN] [Scripting] [TWDEV] hide t 20 state search agit 0 pos 7,-60,9 posture hunch pose loco tail 1 jaw 8 dmg 0 d 23.5
+[08:01:25 WARN] [Scripting] [Tailwail] #4 cue sniff
+[08:01:25 WARN] [Scripting] [TWDEV] hide t 40 state search agit 0 pos 4.8,-60,6.8 posture hunch pose sniff tail 1 jaw 8 dmg 0 d 26
+[08:01:26 WARN] [Scripting] [TWDEV] hide t 60 state search agit 0 pos 4.8,-60,6.8 posture hunch pose sniff tail 1 jaw 8 dmg 0 d 26
+[08:01:27 WARN] [Scripting] [TWDEV] hide t 80 state search agit 0 pos 5.3,-60,6.6 posture hunch pose loco tail 1 jaw 8 dmg 0 d 25.5
+[08:01:28 WARN] [Scripting] [Tailwail] #4 cue sniff
+[08:01:28 WARN] [Scripting] [TWDEV] hide t 100 state search agit 0 pos 8.9,-60,6 posture hunch pose loco tail 1 jaw 8 dmg 0 d 22
+[08:01:29 WARN] [Scripting] [TWDEV] hide t 120 state search agit 0 pos 9.2,-60,5.8 posture hunch pose sniff tail 1 jaw 8 dmg 0 d 21.8
+[08:01:30 WARN] [Scripting] [TWDEV] hide t 140 state search agit 0 pos 9.1,-60,5.9 posture hunch pose loco tail 1 jaw 8 dmg 0 d 21.9
+[08:01:31 WARN] [Scripting] [TWDEV] hide t 160 state search agit 0 pos 6.7,-60,8.4 posture hunch pose loco tail 1 jaw 8 dmg 0 d 23.9
+[08:01:32 WARN] [Scripting] [Tailwail] #4 cue sniff
+[08:01:32 WARN] [Scripting] [TWDEV] hide t 180 state search agit 0 pos 5.6,-60,11.9 posture hunch pose loco tail 1 jaw 8 dmg 0 d 25
+[08:01:33 WARN] [Scripting] [TWDEV] hide t 200 state search agit 0 pos 5.5,-60,12.1 posture hunch pose sniff tail 1 jaw 8 dmg 0 d 25
+[08:01:34 WARN] [Scripting] [TWDEV] hide t 220 state search agit 0 pos 5.5,-60,12.1 posture hunch pose loco tail 1 jaw 8 dmg 0 d 25
+[08:01:35 WARN] [Scripting] [TWDEV] hide t 240 state search agit 0 pos 7.7,-60,10.3 posture hunch pose loco tail 1 jaw 8 dmg 0 d 22.8
+[08:01:36 WARN] [Scripting] [TWDEV] hide t 260 state search agit 0 pos 10.3,-60,7.5 posture hunch pose loco tail 1 jaw 8 dmg 0 d 20.4
+[08:01:36 WARN] [Scripting] [Tailwail] #4 cue sniff
+[08:01:37 WARN] [Scripting] [TWDEV] hide t 280 state search agit 0 pos 11.1,-60,4.9 posture hunch pose sniff tail 1 jaw 8 dmg 0 d 20.1
+[08:01:38 WARN] [Scripting] [TWDEV] hide t 300 state search agit 0 pos 11.2,-60,4.9 posture hunch pose sniff tail 1 jaw 8 dmg 0 d 20.1
+[08:01:38 WARN] [Scripting] [Tailwail] #4 search -> frustrated (gave-up)
+[08:01:38 WARN] [Scripting] [Tailwail] #4 cue frustrated
+[08:01:39 WARN] [Scripting] [TWDEV] hide t 320 state frustrated agit 0 pos 11.2,-60,4.9 posture tall pose frustrated tail 2 jaw 55 dmg 0 d 20.1
+[08:01:40 WARN] [Scripting] [TWDEV] hide t 340 state frustrated agit 0 pos 11.2,-60,4.9 posture tall pose frustrated tail 2 jaw 55 dmg 0 d 20.1
+[08:01:40 WARN] [Scripting] [TWDEV] hide outcome  state frustrated damage 0 flags hid
+[08:01:40 WARN] [Scripting] [Tailwail] encounter 4 end outcome=aborted after 17.2s
+[08:01:40 WARN] [Scripting] [TWDEV] === done hide
+[08:01:43 WARN] [Scripting] [TWDEV] === scenario escape
+[08:01:43 WARN] [Scripting] [Tailwail] #5 - -> stalk (spawn)
+[08:01:43 WARN] [Scripting] [Tailwail] encounter 5 start setup=statue_hunt slot=a target=Mock
+[08:01:43 WARN] [Scripting] [Tailwail] #5 cue tail_scrape
+[08:01:43 WARN] [Scripting] [Tailwail] #5 stalk -> chase (test)
+[08:01:43 WARN] [Scripting] [Tailwail] #5 chase begins (test), budget left 26.0s
+[08:01:44 WARN] [Scripting] [TWDEV] escape t 20 state chase agit 0 pos 7.1,-60,13.1 posture hunch pose loco tail 3 jaw 32 dmg 0 mock 20.1,-60,20.5
+[08:01:45 WARN] [Scripting] [TWDEV] escape t 40 state chase agit 0 pos 12.2,-60,17.6 posture hunch pose loco tail 3 jaw 32 dmg 0 mock 25.7,-60,20.5
+[08:01:45 WARN] [Scripting] [Tailwail] #5 cue screech
+[08:01:46 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+[08:01:46 WARN] [Scripting] [TWDEV] escape t 60 state chase agit 0 pos 19,-60,17.5 posture hunch pose loco tail 3 jaw 32 dmg 0 mock 31.2,-60,20.5
+[08:01:47 WARN] [Scripting] [TWDEV] escape t 80 state chase agit 0 pos 25.5,-60,18.5 posture hunch pose loco tail 3 jaw 32 dmg 0 mock 36.7,-60,20.5
+[08:01:48 WARN] [Scripting] [TWDEV] escape t 100 state chase agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 3 jaw 32 dmg 0 mock 42.3,-60,20.5
+[08:01:49 WARN] [Scripting] [TWDEV] escape t 120 state chase agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 3 jaw 32 dmg 0 mock 47.5,-60,21.6
+[08:01:50 WARN] [Scripting] [TWDEV] escape t 140 state chase agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 3 jaw 32 dmg 0 mock 52.4,-60,24.2
+[08:01:51 WARN] [Scripting] [Tailwail] #5 stuck (1)
+[08:01:51 WARN] [Scripting] [Tailwail] #5 recover 1: smaller-posture
+[08:01:51 WARN] [Scripting] [TWDEV] escape t 160 state chase agit 0 pos 29.4,-60,20.6 posture crawl pose loco tail 3 jaw 32 dmg 0 mock 57.4,-60,26.8
+[08:01:51 WARN] [Scripting] [Tailwail] #5 cue screech
+[08:01:52 WARN] [Scripting] [TWDEV] escape t 180 state chase agit 0 pos 29.4,-60,20.6 posture crawl pose loco tail 3 jaw 32 dmg 0 mock 60.5,-60,28.5
+[08:01:52 WARN] [Scripting] [Tailwail] #5 chase -> search (lost-sight)
+[08:01:53 WARN] [Scripting] [TWDEV] escape t 200 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
+[08:01:54 WARN] [Scripting] [TWDEV] escape t 220 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
+[08:01:55 WARN] [Scripting] [TWDEV] escape t 240 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
+[08:01:56 WARN] [Scripting] [TWDEV] escape t 260 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
+[08:01:57 WARN] [Scripting] [TWDEV] escape t 280 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
+[08:01:58 WARN] [Scripting] [TWDEV] escape t 300 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
+[08:01:59 WARN] [Scripting] [TWDEV] escape t 320 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
+[08:02:00 WARN] [Scripting] [TWDEV] escape t 340 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
+[08:02:01 WARN] [Scripting] [TWDEV] escape t 360 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
+[08:02:02 WARN] [Scripting] [TWDEV] escape t 380 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
+[08:02:03 WARN] [Scripting] [TWDEV] escape t 400 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
+[08:02:04 WARN] [Scripting] [TWDEV] escape t 420 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
+[08:02:05 WARN] [Scripting] [TWDEV] escape t 440 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
+[08:02:06 WARN] [Scripting] [TWDEV] escape t 460 state search agit 0 pos 29.4,-60,20.6 posture hunch pose loco tail 1 jaw 8 dmg 0 mock 60.5,-60,28.5
+[08:02:06 WARN] [Scripting] [Tailwail] #5 search -> frustrated (gave-up)
+[08:02:06 WARN] [Scripting] [Tailwail] #5 cue frustrated
+[08:02:07 WARN] [Scripting] [TWDEV] escape t 480 state frustrated agit 0 pos 29.4,-60,20.6 posture tall pose frustrated tail 2 jaw 55 dmg 0 mock 60.5,-60,28.5
+[08:02:08 WARN] [Scripting] [TWDEV] escape t 500 state frustrated agit 0 pos 29.4,-60,20.6 posture tall pose frustrated tail 2 jaw 55 dmg 0 mock 60.5,-60,28.5
+[08:02:08 WARN] [Scripting] [Tailwail] #5 frustrated -> retreat (frustrated)
+[08:02:09 WARN] [Scripting] [Tailwail] #5 cue retreat
+[08:02:09 WARN] [Scripting] [TWDEV] escape t 520 state retreat agit 0 pos 28.9,-60,20.5 posture tall pose loco tail 0 jaw 3 dmg 0 mock 60.5,-60,28.5
+[08:02:10 WARN] [Scripting] [TWDEV] escape t 540 state retreat agit 0 pos 25,-60,20.5 posture tall pose loco tail 0 jaw 3 dmg 0 mock 60.5,-60,28.5
+[08:02:11 WARN] [Scripting] [TWDEV] escape t 560 state retreat agit 0 pos 21.2,-60,20.5 posture tall pose loco tail 0 jaw 3 dmg 0 mock 60.5,-60,28.5
+[08:02:11 WARN] [Scripting] [Tailwail] encounter 5 end outcome=escaped after 28.6s
+[08:02:12 WARN] [Scripting] [TWDEV] escape t 580 ended outcome escaped state retreat
+[08:02:12 WARN] [Scripting] [TWDEV] escape outcome escaped ended true damage [] locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 1.50 in_out_sine
+[08:02:12 WARN] [Scripting] [TWDEV] === done escape
+[08:02:23 INFO] Version: 1.26.61.1
+[08:02:24 INFO] Pack Stack - [00] TAILWAIL (Behavior) (id: 842601fd-5d8e-46ad-a432-a35be2bdf477, version: 2.0.0) @ behavior_packs/tw_TailwailBP
+[08:02:24 WARN] [Scripting] [TWDEV] harness loaded
+[08:02:25 WARN] [Scripting] [Tailwail] v2.0.0 ready
+[08:02:32 WARN] [Scripting] [TWDEV] === scenario tunnel
+[08:02:32 WARN] [Scripting] [Tailwail] #1 - -> stalk (spawn)
+[08:02:32 WARN] [Scripting] [Tailwail] encounter 1 start setup=statue_hunt slot=a target=Mock
+[08:02:32 WARN] [Scripting] [Tailwail] #1 cue creak
+[08:02:32 WARN] [Scripting] [Tailwail] #1 stalk -> chase (test)
+[08:02:32 WARN] [Scripting] [Tailwail] #1 chase begins (test), budget left 26.0s
+[08:02:33 WARN] [Scripting] [TWDEV] tunnel t 20 state chase agit 0 pos 7.2,-60,10.5 posture hunch pose loco tail 3 jaw 32 dmg 0 x 7.2
+[08:02:34 WARN] [Scripting] [TWDEV] tunnel t 40 state chase agit 0 pos 14,-60,10.5 posture hunch pose loco tail 3 jaw 32 dmg 0 x 14
+[08:02:34 WARN] [Scripting] [Tailwail] #1 cue screech
+[08:02:35 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+[08:02:35 WARN] [Scripting] [TWDEV] tunnel t 60 state chase agit 0 pos 20.9,-60,10.5 posture crawl pose loco tail 3 jaw 32 dmg 0 x 20.9
+[08:02:35 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+[08:02:36 WARN] [Scripting] [TWDEV] tunnel t 80 state chase agit 0 pos 27.8,-60,10.5 posture crawl pose loco tail 3 jaw 32 dmg 0 x 27.8
+[08:02:37 WARN] [Scripting] [TWDEV] tunnel t 100 state chase agit 0 pos 34.7,-60,10.5 posture crawl pose loco tail 3 jaw 32 dmg 0 x 34.7
+[08:02:37 WARN] [Scripting] [Tailwail] #1 cue swipe
+[08:02:38 WARN] [Scripting] [TWDEV] tunnel t 120 state chase agit 0 pos 38.5,-60,10.5 posture crawl pose strike tail 3 jaw 32 dmg 0 x 38.5
+[08:02:38 WARN] [Scripting] [Tailwail] #1 strike dealt 7 -> true
+[08:02:38 WARN] [Scripting] [Tailwail] #1 cue impact
+[08:02:38 WARN] [Scripting] [Tailwail] #1 strike landed
+[08:02:39 WARN] [Scripting] [TWDEV] tunnel t 140 state chase agit 0 pos 38.8,-60,10.5 posture crawl pose loco tail 3 jaw 32 dmg 1 x 38.8
+[08:02:40 WARN] [Scripting] [Tailwail] #1 cue screech
+[08:02:40 WARN] [Scripting] [Tailwail] #1 cue swipe
+[08:02:40 WARN] [Scripting] [TWDEV] tunnel t 160 state chase agit 0 pos 40.4,-60,10.5 posture crawl pose strike tail 3 jaw 32 dmg 1 x 40.4
+[08:02:40 WARN] [Scripting] [Tailwail] #1 strike dealt 7 -> true
+[08:02:40 WARN] [Scripting] [Tailwail] #1 cue impact
+[08:02:40 WARN] [Scripting] [Tailwail] #1 strike landed
+[08:02:41 WARN] [Scripting] [TWDEV] tunnel t 180 state chase agit 0 pos 40.4,-60,10.5 posture crawl pose loco tail 3 jaw 32 dmg 2 x 40.4
+[08:02:42 WARN] [Scripting] [TWDEV] tunnel t 200 state chase agit 0 pos 40.4,-60,10.5 posture crawl pose loco tail 3 jaw 32 dmg 2 x 40.4
+[08:02:42 WARN] [Scripting] [Tailwail] #1 cue swipe
+[08:02:43 WARN] [Scripting] [TWDEV] tunnel t 220 state chase agit 0 pos 40.4,-60,10.5 posture crawl pose strike tail 3 jaw 32 dmg 2 x 40.4
+[08:02:43 WARN] [Scripting] [Tailwail] #1 strike dealt 7 -> true
+[08:02:43 WARN] [Scripting] [Tailwail] #1 cue impact
+[08:02:43 WARN] [Scripting] [Tailwail] #1 strike landed
+[08:02:43 WARN] [Scripting] [Tailwail] #1 chase -> retreat (target-dead)
+[08:02:44 WARN] [Scripting] [Tailwail] #1 cue retreat
+[08:02:44 WARN] [Scripting] [TWDEV] tunnel t 240 state retreat agit 0 pos 41.7,-60,10.5 posture crawl pose loco tail 0 jaw 3 dmg 3 x 41.7
+[08:02:45 WARN] [Scripting] [TWDEV] tunnel t 260 state retreat agit 0 pos 45.9,-60,10.5 posture tall pose loco tail 0 jaw 3 dmg 3 x 45.9
+[08:02:46 WARN] [Scripting] [TWDEV] tunnel t 280 state retreat agit 0 pos 49.7,-60,10.5 posture tall pose loco tail 0 jaw 3 dmg 3 x 49.7
+[08:02:47 WARN] [Scripting] [TWDEV] tunnel t 300 state retreat agit 0 pos 53.6,-60,10.5 posture tall pose loco tail 0 jaw 3 dmg 3 x 53.6
+[08:02:48 WARN] [Scripting] [TWDEV] tunnel t 320 state retreat agit 0 pos 57.2,-60,9.5 posture tall pose loco tail 0 jaw 3 dmg 3 x 57.2
+[08:02:49 WARN] [Scripting] [TWDEV] tunnel t 340 state retreat agit 0 pos 60.8,-60,8.5 posture tall pose loco tail 0 jaw 3 dmg 3 x 60.8
+[08:02:49 WARN] [Scripting] [Tailwail] encounter 1 end outcome=caught after 17.4s
+[08:02:50 WARN] [Scripting] [TWDEV] tunnel t 360 ended outcome caught state retreat
+[08:02:50 WARN] [Scripting] [TWDEV] tunnel reached x (despawned) damage 3 outcome caught
+[08:02:50 WARN] [Scripting] [TWDEV] === done tunnel
+[08:02:54 WARN] [Scripting] [TWDEV] === scenario presence
+[08:02:54 WARN] [Scripting] [TWDEV] presence env {"torch":true,"torches":true,"door":true} torches 4 behind 4
+[08:02:54 WARN] [Scripting] [TWDEV] presence knock ran false sounds  echoes 0
+[08:02:54 WARN] [Scripting] [TWDEV] presence breath ran true sounds tailwail.breath_behind echoes 0
+[08:02:54 WARN] [Scripting] [TWDEV] presence whisper ran true sounds tailwail.whisper echoes 0
+[08:02:55 WARN] [Scripting] [TWDEV] msg §eMock joined the game
+[08:02:55 WARN] [Scripting] [TWDEV] presence fake_chat ran true sounds  echoes 0
+[08:02:55 WARN] [Scripting] [TWDEV] presence snuff ran true sounds  echoes 0
+[08:02:55 WARN] [Scripting] [TWDEV] presence door ran true sounds  echoes 0
+[08:02:55 WARN] [Scripting] [TWDEV] presence glimpse ran true sounds  echoes 1
+[08:02:56 WARN] [Scripting] [TWDEV] presence glimpse: seen then looked away; echo still exists false
+[08:02:57 WARN] [Scripting] [TWDEV] presence peek ran true sounds  echoes 1
+[08:02:57 WARN] [Scripting] [TWDEV] presence mimic ran true sounds  echoes 1
+[08:02:59 WARN] [Scripting] [TWDEV] presence mimic replay dig.deepslate
+[08:03:00 WARN] [Scripting] [TWDEV] presence footsteps ran true sounds  echoes 1
+[08:03:03 WARN] [Scripting] [TWDEV] presence footsteps heard 5 after walking 6 blocks
+[08:03:03 WARN] [Scripting] [TWDEV] presence behind ran true sounds tailwail.breath_behind echoes 1
+[08:03:03 WARN] [Scripting] [TWDEV] presence behind: turned; echoes 2 sounds tailwail.breath_behind,tailwail.stinger,step.stone,step.stone,step.stone,step.stone
+[08:03:04 WARN] [Scripting] [TWDEV] presence lights_out ran true sounds  echoes 2
+[08:03:10 WARN] [Scripting] [TWDEV] presence torches left 0
+[08:03:10 WARN] [Scripting] [TWDEV] === done presence
+[08:03:24 WARN] [Scripting] [TWDEV] === scenario death
+[08:03:24 WARN] [Scripting] [Tailwail] #2 - -> stalk (spawn)
+[08:03:24 WARN] [Scripting] [Tailwail] encounter 2 start setup=statue_hunt slot=a target=Mock
+[08:03:24 WARN] [Scripting] [Tailwail] #2 cue tail_scrape
+[08:03:24 WARN] [Scripting] [Tailwail] #2 stalk -> standoff (test)
+[08:03:24 WARN] [Scripting] [Tailwail] #2 standoff -> death (killed)
+[08:03:24 WARN] [Scripting] [Tailwail] #2 cue death
+[08:03:25 WARN] [Scripting] [TWDEV] death t 10 state death agit 1 pos 16.5,-60,10.5 posture hunch pose death_low tail 3 jaw 40 dmg 0 
+[08:03:25 WARN] [Scripting] [TWDEV] death t 20 state death agit 1 pos 16.5,-60,10.5 posture hunch pose death_low tail 3 jaw 40 dmg 0 
+[08:03:26 WARN] [Scripting] [TWDEV] death t 30 state death agit 1 pos 16.5,-60,10.5 posture tall pose death_low tail 3 jaw 40 dmg 0 
+[08:03:26 WARN] [Scripting] [TWDEV] death t 40 state death agit 1 pos 16.5,-60,10.5 posture tall pose death_low tail 3 jaw 40 dmg 0 
+[08:03:27 WARN] [Scripting] [Tailwail] encounter 2 end outcome=killed after 3.0s
+[08:03:27 WARN] [Scripting] [TWDEV] death t 50 ended outcome killed state death
+[08:03:27 WARN] [Scripting] [TWDEV] death: entity valid false outcome killed locked=false fog=0 music=null lastFov=-
+[08:03:27 WARN] [Scripting] [TWDEV] === done death
+[08:03:32 WARN] [Scripting] [TWDEV] === scenario spawnsite
+[08:03:32 WARN] [Scripting] [TWDEV] spawnsite normal {"x":32.5,"y":-60,"z":28.5,"head":6,"posture":"tall","light":0,"facing":116.56505117707799,"dist":29.068883707497267} reason ok ms 61
+[08:03:32 WARN] [Scripting] [TWDEV] spawnsite behind_you null reason too-bright ms 47
+[08:03:32 WARN] [Scripting] [TWDEV] === done spawnsite
+[08:03:40 WARN] [Scripting] [TWDEV] === scenario perf
+[08:03:40 WARN] [Scripting] [Tailwail] #3 - -> stalk (spawn)
+[08:03:40 WARN] [Scripting] [Tailwail] encounter 3 start setup=statue_hunt slot=a target=Mock
+[08:03:40 WARN] [Scripting] [Tailwail] #4 - -> stalk (spawn)
+[08:03:40 WARN] [Scripting] [Tailwail] encounter 4 start setup=statue_hunt slot=b target=Mock
+[08:03:40 WARN] [Scripting] [Tailwail] #5 - -> stalk (spawn)
+[08:03:40 WARN] [Scripting] [Tailwail] encounter 5 start setup=statue_hunt slot=c target=Mock
+[08:03:40 WARN] [Scripting] [Tailwail] #4 stalk -> standoff (test)
+[08:03:40 WARN] [Scripting] [Tailwail] #5 stalk -> chase (test)
+[08:03:40 WARN] [Scripting] [Tailwail] #5 chase begins (test), budget left 26.0s
+[08:03:43 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+[08:03:43 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fWalk away
+[08:03:46 WARN] [Scripting] [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+[08:03:48 WARN] [Scripting] [TWDEV] perf 3 encounters: decision tick avg 2.30 ms p95 5 ms max 9 ms; raycasts per tick 12.3 (BDS on the dev container CPU; not a client frame-rate measurement)
+[08:03:48 WARN] [Scripting] [Tailwail] encounter 3 end outcome=aborted after 38.0s
+[08:03:48 WARN] [Scripting] [Tailwail] encounter 5 end outcome=aborted after 38.0s
+[08:03:48 WARN] [Scripting] [TWDEV] === done perf
