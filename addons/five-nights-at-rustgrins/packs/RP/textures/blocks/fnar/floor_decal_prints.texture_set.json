@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "floor_decal_prints",
+    "metalness_emissive_roughness": "floor_decal_prints_mer",
+    "heightmap": "floor_decal_prints_height"
+  }
+}

@@ -460,6 +460,46 @@ def _stain_ceiling(t, wn):
 
 
 # ------------------------------------------------------------------ fabrics
+def ceiling_tile_missing():
+    """Drop ceiling with one tile fallen out (the black plenum shows, a pipe and a cut cable in it) and
+    another cracked and hanging open by a corner."""
+    t = ceiling_tile(True)
+    wn = white(W, H, 1303)
+    # bottom-left tile gone: a dark void between the T-bars
+    for y in range(9, 16):
+        for x in range(1, 8):
+            k = 0.06 + 0.05 * wn[y, x]
+            t.rgb[y, x] = hexc('#0b0a09') * (1 + k)
+            t.height[y, x] = 40
+            t.rough[y, x] = 250
+            t.metal[y, x] = 0
+    # a galvanised pipe crossing the void, and a red cable looping down out of it
+    for x in range(1, 8):
+        t.rgb[11, x] = hexc('#4d5359') if x % 3 else hexc('#60666d')
+        t.rgb[12, x] = hexc('#2b2f34')
+        t.metal[11, x] = t.metal[12, x] = 170
+        t.rough[11, x] = t.rough[12, x] = 140
+        t.height[11, x] = t.height[12, x] = 70
+    for (x, y) in ((5, 13), (5, 14), (4, 15), (3, 14)):
+        t.rgb[y, x] = hexc('#7a1f19')
+        t.height[y, x] = 80
+    # top-right tile cracked through and sagging open along one edge
+    for y in range(1, 8):
+        for x in range(9, 16):
+            if x + y in (16, 17):
+                t.rgb[y, x] = hexc('#2a241b')  # the crack
+                t.height[y, x] = 90
+            elif x + y > 17:
+                t.rgb[y, x] = shade(t.rgb[y, x], 0.72)  # the half that dropped is in shadow
+                t.height[y, x] = 120
+    for x in range(10, 16):
+        t.rgb[1, x] = hexc('#14110d')  # gap above the sagging half
+    # crumbs of tile and dust clinging to the T-bar
+    for (x, y) in ((8, 10), (8, 13), (2, 8), (6, 8)):
+        t.rgb[y, x] = hexc('#b3ad95')
+    return t
+
+
 def carpet_party():
     seed = 1303
     t = Tex(rough=250, height=150)
@@ -717,6 +757,7 @@ ALL = {
     'cinderblock_painted': cinderblock_painted,
     'ceiling_tile': lambda: ceiling_tile(False),
     'ceiling_tile_stained': lambda: ceiling_tile(True),
+    'ceiling_tile_missing': ceiling_tile_missing,
     'carpet_party': carpet_party,
     'curtain_purple': curtain_purple,
     'curtain_red': curtain_red,

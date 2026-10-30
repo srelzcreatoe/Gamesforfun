@@ -37,6 +37,7 @@ CUBES = {
     'cinderblock_painted': ('cinderblock_painted', 2.0),
     'ceiling_tile': ('ceiling_tile', 1.0),
     'ceiling_tile_stained': ('ceiling_tile_stained', 1.0),
+    'ceiling_tile_missing': ('ceiling_tile_missing', 1.0),
     'carpet_party': ('carpet_party', 1.0),
     'curtain_purple': ('curtain_purple', 1.0),
     'curtain_red': ('curtain_red', 1.0),
@@ -50,6 +51,7 @@ PANELS = {
     'poster_revue': 6, 'poster_party': 4, 'poster_cabaret': 6, 'poster_midway': 6, 'poster_rules': 4,
     'poster_missing': 2, 'drawing': 6, 'sign_cabaret': 3, 'sign_out_of_order': 2, 'sign_midway': 4,
     'sign_revue': 12, 'sign_staff': 4,
+    'poster_auction': 6, 'poster_torn': 4, 'lot_tag': 6, 'wall_writing': 16,
 }
 PANEL_LIGHT = {'sign_revue': 7, 'sign_cabaret': 4, 'sign_midway': 4}
 
@@ -62,6 +64,9 @@ LIGHTS = {
     'hanging_lamp': ('hanging_lamp', 11, '#ffc98a', 'point_light', ([-5, 4, -5], [10, 12, 10])),
 }
 FACING_LIGHTS = {'exit_sign', 'wall_sconce', 'stage_spotlight'}
+# the broken troffer: a ceiling lamp nobody fixed; one tube flickers (flipbook), it is never switched by the game
+BROKEN_LAMP = ('ceiling_lamp_broken', 9, '#dfe8ff', 'point_light')
+BROKEN_TICKS = 2
 SIGN_LIGHT_COLORS = {'sign_revue': ('#ff6fb5', 'static_light'), 'sign_cabaret': ('#ffd27a', 'static_light'),
                      'sign_midway': ('#ffd27a', 'static_light')}
 
@@ -178,6 +183,21 @@ def light_blocks():
     return out
 
 
+def broken_lamp_block():
+    name, level, _, _ = BROKEN_LAMP
+    mi = {'*': {'texture': tex_ref('ceiling_tile'), 'render_method': 'opaque'},
+          'down': {'texture': tex_ref(name), 'render_method': 'opaque', 'face_dimming': False}}
+    return {name: block(name, {
+        'minecraft:geometry': 'minecraft:geometry.full_block',
+        'minecraft:material_instances': mi,
+        'minecraft:collision_box': True,
+        'minecraft:selection_box': True,
+        'minecraft:light_emission': level,
+        'minecraft:destructible_by_mining': {'seconds_to_destroy': 1},
+        'minecraft:map_color': map_color('ceiling_tile'),
+    })}
+
+
 def panel_blocks():
     out = {}
     for name, n in PANELS.items():
@@ -232,7 +252,7 @@ def all_textures():
 def section_textures():
     t = []
     t += [tex for tex, _ in CUBES.values()]
-    t += ['door_shutter', 'door_shutter_bottom']
+    t += ['door_shutter', 'door_shutter_bottom', BROKEN_LAMP[0]]
     for name in LIGHTS:
         t += [f'{name}_on', f'{name}_off']
     for name, n in PANELS.items():
@@ -252,6 +272,7 @@ def build():
     blocks.update(cube_blocks())
     blocks.update(light_blocks())
     blocks.update(panel_blocks())
+    blocks.update(broken_lamp_block())
     for name, b in blocks.items():
         write_json(os.path.join(BP_BLOCKS, f'{name}.json'), b)
     write_json(os.path.join(MODELS_DIR, 'wall_panel.geo.json'), wall_panel_geo())
@@ -262,6 +283,11 @@ def build():
     write_json(os.path.join(FRAG, 'terrain_surfaces.json'),
                {tex_ref(t): {'textures': f'textures/blocks/fnar/{t}'} for t in texs})
     lights = {f'fnar:{n}': {'light_color': c, 'light_type': ty} for n, (_, _, c, ty, _) in LIGHTS.items()}
+    lights[f'fnar:{BROKEN_LAMP[0]}'] = {'light_color': BROKEN_LAMP[2], 'light_type': BROKEN_LAMP[3]}
+    from gen_lights import BROKEN_SEQUENCE
+    write_json(os.path.join(FRAG, 'flipbook_surfaces.json'), [{
+        'flipbook_texture': f'textures/blocks/fnar/{BROKEN_LAMP[0]}', 'atlas_tile': tex_ref(BROKEN_LAMP[0]),
+        'ticks_per_frame': BROKEN_TICKS, 'frames': BROKEN_SEQUENCE}])
     for n, (c, ty) in SIGN_LIGHT_COLORS.items():
         lights[f'fnar:{n}'] = {'light_color': c, 'light_type': ty}
     write_json(os.path.join(FRAG, 'local_lighting_surfaces.json'), lights)

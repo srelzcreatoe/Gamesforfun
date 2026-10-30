@@ -17,8 +17,8 @@ export class PlanBuilder {
     this.phase = PHASES[0];
     this.ops = Object.fromEntries(PHASES.map((p) => [p, []]));
     this.pending = new Map();
-    /** Metadata the game needs at runtime (lamps, pictures, ...). */
-    this.meta = { lamps: [], sconces: [], spots: [], hanging: [], cctv: [], exits: [] };
+    /** Metadata the game needs at runtime (lamps, pictures, ...). `fixtures`: lights that are built lit and never switched. */
+    this.meta = { lamps: [], sconces: [], spots: [], hanging: [], cctv: [], exits: [], fixtures: [] };
   }
 
   setPhase(p) {
@@ -57,14 +57,15 @@ export class PlanBuilder {
   /**
    * Picture panel of w x h tiles. (x, y, z) = the TOP-LEFT tile's cell as seen
    * from the front; dir = the direction the picture faces. Tiles run to the
-   * viewer's right and downwards.
+   * viewer's right and downwards. `variant` puts that one tile everywhere; `first`
+   * offsets the tile numbers (blocks that hold several pictures, e.g. wall_writing).
    */
-  picture(name, x, y, z, dir, w, h, variant = null) {
+  picture(name, x, y, z, dir, w, h, variant = null, first = 0) {
     // the viewer's right-hand direction when looking at the front (a picture facing north is seen looking south, ...)
     const right = { n: [-1, 0], s: [1, 0], e: [0, -1], w: [0, 1] }[dir];
     for (let r = 0; r < h; r++) {
       for (let c = 0; c < w; c++) {
-        const tile = variant ?? r * w + c;
+        const tile = variant ?? first + r * w + c;
         this.set(x + right[0] * c, y - r, z + right[1] * c, `pic:${name}:${tile}:${dir}`);
       }
     }

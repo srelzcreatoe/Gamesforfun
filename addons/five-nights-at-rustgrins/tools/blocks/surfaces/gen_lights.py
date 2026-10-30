@@ -357,8 +357,65 @@ def troffer(lit):
     return t
 
 
+# ------------------------------------------------------------------ the broken troffer (flipbook flicker)
+# frame states for the surviving tube: 1 = full, 0.55 = dim, 0 = dark. The other tube is dead for good.
+BROKEN_FRAMES = (1.0, 0.55, 0.0, 0.8)
+# the order the frames play in (2 ticks each): mostly on, with stutters and short blackouts
+BROKEN_SEQUENCE = [0] * 9 + [1, 0, 0, 2, 0] + [0] * 14 + [3, 1, 2, 2, 0, 0, 1] + [0] * 20 + [2, 0, 2, 2, 2, 3, 0] + [0] * 6
+
+
+def troffer_broken(level):
+    """Troffer with a cracked diffuser (one panel gone, the tube bare behind it), one dead tube, one
+    flickering at `level`."""
+    t = troffer(True)
+    wn = white(16, 16, 5102)
+    for y in range(2, 14):
+        for x in range(2, 14):
+            if y in (10, 11, 9, 12):  # the dead lower tube, greyed and dusty
+                c = hexc('#7b7f86' if (x + y) % 2 == 0 else '#6f737a')
+                t.rgb[y, x] = mix(c, hexc('#5f574a'), 0.2 * wn[y, x])
+                t.emit[y, x] = 0
+            elif y in (4, 5, 3, 6):
+                k = level
+                base = t.rgb[y, x] if level > 0 else hexc('#8c9096' if (x + y) % 2 == 0 else '#81858b')
+                t.rgb[y, x] = mix(hexc('#80848a'), base, k) if level > 0 else base
+                t.emit[y, x] = t.emit[y, x] * k
+            else:
+                t.rgb[y, x] = mix(t.rgb[y, x], hexc('#686c72'), 1 - 0.6 * level)
+                t.emit[y, x] = t.emit[y, x] * 0.5 * level
+    # blackened tube ends (the ballast is going) and a missing diffuser panel over the right end
+    for y in (4, 5):
+        for x in (2, 3, 12, 13):
+            t.rgb[y, x] = hexc('#3a3632')
+            t.emit[y, x] = 0
+    for y in range(2, 8):
+        for x in range(10, 14):
+            if x + (7 - y) >= 12:
+                t.rgb[y, x] = hexc('#1c1c1e') if y not in (4, 5) else (hexc('#fbfdff') * level + hexc('#5a5c60') * (1 - level))
+                t.emit[y, x] = 255 * level if y in (4, 5) else 0
+                t.height[y, x] = 100
+    # a long crack across the diffuser
+    for x in range(3, 11):
+        y = 7 + (x // 3) % 2
+        t.rgb[y, x] = hexc('#3a3a3c')
+        t.emit[y, x] = 0
+    return t
+
+
+def broken_lamp_texture():
+    frames = [troffer_broken(v) for v in BROKEN_FRAMES]
+    t = Tex(16, 16 * len(frames))
+    for i, f in enumerate(frames):
+        sl = slice(16 * i, 16 * i + 16)
+        t.rgb[sl], t.a[sl], t.metal[sl], t.emit[sl], t.rough[sl], t.height[sl] = f.rgb, f.a, f.metal, f.emit, f.rough, f.height
+    return t
+
+
 def build():
     out = {}
+    t = broken_lamp_texture()
+    t.save('ceiling_lamp_broken')
+    out['ceiling_lamp_broken'] = t
     for name, fn in MODELS.items():
         m = fn()
         m.save()

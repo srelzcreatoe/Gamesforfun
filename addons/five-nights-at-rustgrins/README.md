@@ -69,7 +69,11 @@ Performers*), makes you play his games against the clock (*Audience
 Participation*), and finally walks to your office himself (*The Ringmaster*).
 Doors do not stop him. Find him on a camera and hit him with the SPOTLIGHT.
 
-The newspaper clippings in the Staff Room fill in the rest.
+The newspaper clippings in the Staff Room fill in the rest, and so does the
+building itself: auction tags on the stage, empty crates in Parts & Service,
+spare heads on the backstage shelves, writing on the hall walls, a birthday
+table where one candle still burns, and the last guard's car in the lot with
+its door open and the headlights on.
 
 ## The cast
 

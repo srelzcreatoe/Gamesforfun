@@ -19,6 +19,15 @@
     "fnar_balloons_2": {
       "textures": "textures/blocks/fnar/balloons_2"
     },
+    "fnar_birthday_cake": {
+      "textures": "textures/blocks/fnar/birthday_cake"
+    },
+    "fnar_birthday_cake_out": {
+      "textures": "textures/blocks/fnar/birthday_cake_out"
+    },
+    "fnar_boarded_planks": {
+      "textures": "textures/blocks/fnar/boarded_planks"
+    },
     "fnar_bunting": {
       "textures": "textures/blocks/fnar/bunting"
     },
@@ -46,11 +55,50 @@
     "fnar_door_button_on": {
       "textures": "textures/blocks/fnar/door_button_on"
     },
+    "fnar_emergency_light": {
+      "textures": "textures/blocks/fnar/emergency_light"
+    },
+    "fnar_emergency_light_on": {
+      "textures": "textures/blocks/fnar/emergency_light_on"
+    },
+    "fnar_endo_parts": {
+      "textures": "textures/blocks/fnar/endo_parts"
+    },
+    "fnar_fallen_chair": {
+      "textures": "textures/blocks/fnar/fallen_chair"
+    },
     "fnar_fan_blades": {
       "textures": "textures/blocks/fnar/fan_blades"
     },
+    "fnar_floor_decal_confetti": {
+      "textures": "textures/blocks/fnar/floor_decal_confetti"
+    },
+    "fnar_floor_decal_debris": {
+      "textures": "textures/blocks/fnar/floor_decal_debris"
+    },
+    "fnar_floor_decal_drag": {
+      "textures": "textures/blocks/fnar/floor_decal_drag"
+    },
+    "fnar_floor_decal_prints": {
+      "textures": "textures/blocks/fnar/floor_decal_prints"
+    },
+    "fnar_floor_decal_prints_faint": {
+      "textures": "textures/blocks/fnar/floor_decal_prints_faint"
+    },
+    "fnar_floor_decal_puddle": {
+      "textures": "textures/blocks/fnar/floor_decal_puddle"
+    },
+    "fnar_floor_decal_tickets": {
+      "textures": "textures/blocks/fnar/floor_decal_tickets"
+    },
+    "fnar_floor_decal_tickets_b": {
+      "textures": "textures/blocks/fnar/floor_decal_tickets_b"
+    },
     "fnar_guitar_amp": {
       "textures": "textures/blocks/fnar/guitar_amp"
+    },
+    "fnar_hanging_wires": {
+      "textures": "textures/blocks/fnar/hanging_wires"
     },
     "fnar_light_button": {
       "textures": "textures/blocks/fnar/light_button"
@@ -118,6 +166,27 @@
     "fnar_sink": {
       "textures": "textures/blocks/fnar/sink"
     },
+    "fnar_slumped_suit_mirehop": {
+      "textures": "textures/blocks/fnar/slumped_suit_mirehop"
+    },
+    "fnar_slumped_suit_rustgrin": {
+      "textures": "textures/blocks/fnar/slumped_suit_rustgrin"
+    },
+    "fnar_spare_head_cat": {
+      "textures": "textures/blocks/fnar/spare_head_cat"
+    },
+    "fnar_spare_head_mirehop": {
+      "textures": "textures/blocks/fnar/spare_head_mirehop"
+    },
+    "fnar_spare_head_noxbriar": {
+      "textures": "textures/blocks/fnar/spare_head_noxbriar"
+    },
+    "fnar_spare_head_purple_rat": {
+      "textures": "textures/blocks/fnar/spare_head_purple_rat"
+    },
+    "fnar_spare_head_rustgrin": {
+      "textures": "textures/blocks/fnar/spare_head_rustgrin"
+    },
     "fnar_stage_speaker": {
       "textures": "textures/blocks/fnar/stage_speaker"
     },
@@ -135,6 +204,9 @@
     },
     "fnar_vent_cover": {
       "textures": "textures/blocks/fnar/vent_cover"
+    },
+    "fnar_walter_things": {
+      "textures": "textures/blocks/fnar/walter_things"
     },
     "fnar_wet_floor_sign": {
       "textures": "textures/blocks/fnar/wet_floor_sign"
@@ -175,6 +247,9 @@
     "fnar_ceiling_tile_stained": {
       "textures": "textures/blocks/fnar/ceiling_tile_stained"
     },
+    "fnar_ceiling_tile_missing": {
+      "textures": "textures/blocks/fnar/ceiling_tile_missing"
+    },
     "fnar_carpet_party": {
       "textures": "textures/blocks/fnar/carpet_party"
     },
@@ -198,6 +273,9 @@
     },
     "fnar_door_shutter_bottom": {
       "textures": "textures/blocks/fnar/door_shutter_bottom"
+    },
+    "fnar_ceiling_lamp_broken": {
+      "textures": "textures/blocks/fnar/ceiling_lamp_broken"
     },
     "fnar_ceiling_lamp_on": {
       "textures": "textures/blocks/fnar/ceiling_lamp_on"
@@ -405,6 +483,102 @@
     },
     "fnar_sign_staff_3": {
       "textures": "textures/blocks/fnar/sign_staff_3"
+    },
+    "fnar_poster_auction_0": {
+      "textures": "textures/blocks/fnar/poster_auction_0"
+    },
+    "fnar_poster_auction_1": {
+      "textures": "textures/blocks/fnar/poster_auction_1"
+    },
+    "fnar_poster_auction_2": {
+      "textures": "textures/blocks/fnar/poster_auction_2"
+    },
+    "fnar_poster_auction_3": {
+      "textures": "textures/blocks/fnar/poster_auction_3"
+    },
+    "fnar_poster_auction_4": {
+      "textures": "textures/blocks/fnar/poster_auction_4"
+    },
+    "fnar_poster_auction_5": {
+      "textures": "textures/blocks/fnar/poster_auction_5"
+    },
+    "fnar_poster_torn_0": {
+      "textures": "textures/blocks/fnar/poster_torn_0"
+    },
+    "fnar_poster_torn_1": {
+      "textures": "textures/blocks/fnar/poster_torn_1"
+    },
+    "fnar_poster_torn_2": {
+      "textures": "textures/blocks/fnar/poster_torn_2"
+    },
+    "fnar_poster_torn_3": {
+      "textures": "textures/blocks/fnar/poster_torn_3"
+    },
+    "fnar_lot_tag_0": {
+      "textures": "textures/blocks/fnar/lot_tag_0"
+    },
+    "fnar_lot_tag_1": {
+      "textures": "textures/blocks/fnar/lot_tag_1"
+    },
+    "fnar_lot_tag_2": {
+      "textures": "textures/blocks/fnar/lot_tag_2"
+    },
+    "fnar_lot_tag_3": {
+      "textures": "textures/blocks/fnar/lot_tag_3"
+    },
+    "fnar_lot_tag_4": {
+      "textures": "textures/blocks/fnar/lot_tag_4"
+    },
+    "fnar_lot_tag_5": {
+      "textures": "textures/blocks/fnar/lot_tag_5"
+    },
+    "fnar_wall_writing_0": {
+      "textures": "textures/blocks/fnar/wall_writing_0"
+    },
+    "fnar_wall_writing_1": {
+      "textures": "textures/blocks/fnar/wall_writing_1"
+    },
+    "fnar_wall_writing_2": {
+      "textures": "textures/blocks/fnar/wall_writing_2"
+    },
+    "fnar_wall_writing_3": {
+      "textures": "textures/blocks/fnar/wall_writing_3"
+    },
+    "fnar_wall_writing_4": {
+      "textures": "textures/blocks/fnar/wall_writing_4"
+    },
+    "fnar_wall_writing_5": {
+      "textures": "textures/blocks/fnar/wall_writing_5"
+    },
+    "fnar_wall_writing_6": {
+      "textures": "textures/blocks/fnar/wall_writing_6"
+    },
+    "fnar_wall_writing_7": {
+      "textures": "textures/blocks/fnar/wall_writing_7"
+    },
+    "fnar_wall_writing_8": {
+      "textures": "textures/blocks/fnar/wall_writing_8"
+    },
+    "fnar_wall_writing_9": {
+      "textures": "textures/blocks/fnar/wall_writing_9"
+    },
+    "fnar_wall_writing_10": {
+      "textures": "textures/blocks/fnar/wall_writing_10"
+    },
+    "fnar_wall_writing_11": {
+      "textures": "textures/blocks/fnar/wall_writing_11"
+    },
+    "fnar_wall_writing_12": {
+      "textures": "textures/blocks/fnar/wall_writing_12"
+    },
+    "fnar_wall_writing_13": {
+      "textures": "textures/blocks/fnar/wall_writing_13"
+    },
+    "fnar_wall_writing_14": {
+      "textures": "textures/blocks/fnar/wall_writing_14"
+    },
+    "fnar_wall_writing_15": {
+      "textures": "textures/blocks/fnar/wall_writing_15"
     }
   }
 }

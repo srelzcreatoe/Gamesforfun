@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "floor_decal_confetti",
+    "metalness_emissive_roughness": "floor_decal_confetti_mer",
+    "heightmap": "floor_decal_confetti_height"
+  }
+}

@@ -542,6 +542,228 @@ def sign_staff(i):
     return c
 
 
+# ------------------------------------------------------------------ the pizzeria's last week (docs/BLOCKS.md C)
+def _mask(text, font='small', scale=1, spacing=1):
+    from font import render
+    m = render(text, font=font, spacing=spacing)
+    if scale > 1:
+        m = np.kron(m, np.ones((scale, scale), bool))
+    return m
+
+
+def _scrawl(c, text, x, y, ink, seed, font='small', scale=1, bold=False, wobble=1, skip=0.06, drips=0, emit=None,
+            rough=None, height=None, spacing=1, slant=0.0):
+    """Hand-written letters: each glyph jitters up/down, a dry marker skips pixels, wet paint drips."""
+    r = rng(seed)
+    cx = x
+    for i, ch in enumerate(text):
+        if ch == ' ':
+            cx += 2 * scale + 1
+            continue
+        m = _mask(ch, font, scale)
+        h, w = m.shape
+        dy = int(r.integers(-wobble, wobble + 1)) if wobble else 0
+        shear = r.uniform(-slant, slant)
+        for yy, xx in zip(*np.nonzero(m)):
+            sx = int(round(xx + shear * (h - yy)))
+            for bx in ((0, 1) if bold else (0,)):
+                if r.random() < skip:
+                    continue
+                c.px(cx + sx + bx, y + dy + yy, ink(r) if callable(ink) else ink, rough=rough, height=height)
+        cx += w + spacing * scale + (1 if bold else 0)
+    for _ in range(drips):  # paint ran down from the bottom of a few strokes
+        dx = int(r.integers(x, cx - 1))
+        cols = [yy for yy in range(c.h) if c.a[yy, dx] and yy > y]
+        if not cols:
+            continue
+        y0 = max(cols)
+        for k in range(int(r.integers(2, 6))):
+            if y0 + 1 + k < c.h:
+                c.px(dx, y0 + 1 + k, ink(r) if callable(ink) else ink, rough=rough, height=height)
+    return cx
+
+
+def _transparent(w, h, rough=230, height=150):
+    c = Canvas(w, h, rough=rough, height=height)
+    c.a[:] = 0
+    return c
+
+
+MARKER = lambda r: mix(hexc('#141214'), hexc('#2a2629'), r.random() * 0.6)
+PAINT = lambda r: mix(hexc('#cfc8b4'), hexc('#e4dfcf'), r.random() * 0.8)  # leftover white stage paint
+
+
+def writing_show():
+    """THE SHOW MUST GO ON, brushed in leftover white stage paint across the west hall plaster (4 x 2 tiles)."""
+    c = _transparent(64, 32, rough=90, height=150)
+    _scrawl(c, 'THE SHOW', 2, 2, PAINT, 5101, scale=2, wobble=1, skip=0.03, drips=5, spacing=1)
+    _scrawl(c, 'MUST GO ON', 8, 18, PAINT, 5104, font='tall', wobble=0, skip=0.0, drips=3, spacing=2)
+    # an underline that trails off
+    for x in range(6, 56):
+        if x < 50 or x % 3:
+            c.px(x, 28 + (1 if x > 30 else 0), PAINT(rng(x)), rough=90)
+    return c
+
+
+def writing_name():
+    """HE KNOWS YOUR NAME, scratched through the paint into the plaster (3 x 2 tiles)."""
+    c = _transparent(48, 32, rough=240, height=110)
+    scratch = lambda r: mix(hexc('#b9b2a2'), hexc('#d8d2c2'), r.random())
+    _scrawl(c, 'HE KNOWS', 4, 4, scratch, 5201, font='tall', wobble=1, skip=0.03, spacing=1, height=100)
+    _scrawl(c, 'YOUR NAME', 3, 18, scratch, 5205, font='tall', wobble=0, skip=0.03, spacing=1, height=100)
+    # stray gouges, as if the hand slipped
+    for (x0, y0, n) in ((38, 27, 7), (1, 14, 4), (32, 2, 5)):
+        for k in range(n):
+            c.px(x0 + k, y0 + (k // 2), '#c8c1b1', height=100)
+    return c
+
+
+def _tally(c, x, y, n, ink, seed, h=6, cross=True):
+    """n strokes in groups of five: four uprights and a stroke across."""
+    r = rng(seed)
+    cx = x
+    while n > 0:
+        k = min(4, n)
+        for i in range(k):
+            top = int(r.integers(0, 2))
+            for yy in range(top, h):
+                if r.random() > 0.06:
+                    c.px(cx + i * 2, y + yy, ink(r) if callable(ink) else ink)
+        n -= k
+        if n > 0 and cross:
+            for i in range(8):  # the fifth stroke, across the group
+                c.px(cx - 1 + i, y + h - 2 - (i * (h - 3)) // 7, ink(r) if callable(ink) else ink)
+            n -= 1
+        cx += 10
+
+
+def writing_tally_chalk():
+    """Chalk tally marks by the guard's seat: someone counted the nights."""
+    c = _transparent(16, 16, rough=245)
+    chalk = lambda r: mix(hexc('#cfcabe'), hexc('#e6e2d6'), r.random())
+    _tally(c, 2, 2, 7, chalk, 5301)
+    _tally(c, 2, 10, 3, chalk, 5302, h=5)
+    return c
+
+
+def writing_tally_scratch():
+    """Dozens of marks scratched into the paint, and then just scratches."""
+    c = _transparent(16, 16, rough=240, height=110)
+    scr = lambda r: mix(hexc('#a9a294'), hexc('#cbc4b4'), r.random())
+    _tally(c, 1, 1, 10, scr, 5401)
+    _tally(c, 1, 9, 5, scr, 5402)
+    r = rng(5403)
+    for k in range(3):  # the rest gave up on counting
+        x0 = 10 + k * 2
+        for yy in range(int(r.integers(5, 7))):
+            c.px(x0 + yy // 3, 9 + yy, scr(r), height=100)
+    a = c.a.copy()
+    for y in range(15, 0, -1):
+        for x in range(16):
+            if a[y - 1, x] and not a[y, x]:
+                c.px(x, y, '#2c2a2a', height=96)
+    return c
+
+
+def poster_auction():
+    """The auction notice: Saturday, lots one through six. Someone has been at it with a marker."""
+    c = Canvas(32, 48, rough=235)
+    c.noise_fill(['#cfc8b6', '#d6cfbd', '#dcd6c5'], 5501, amt=0.5)
+    ink = '#1c1a1c'
+    c.rect(1, 1, 31, 15, '#6e1a1c')
+    c.rect(1, 14, 31, 15, '#4a1012')
+    c.text('PUBLIC', 0, 2, '#e3d8c2', center='c')
+    c.text('AUCTION', 0, 7, GOLD, font='tall', cond_chars=set('AUCTION'), shadow='#2a0808', center='c')
+    c.text('NOV 9', 0, 17, ink, center='c')
+    c.text('LOTS 1-6', 0, 23, '#6e1a1c', center='c')
+    # the lot list: numbers and illegible pixel words
+    r = rng(5502)
+    for i in range(6):
+        y = 29 + i * 3
+        c.px(3, y, ink)
+        c.px(3, y + 1, ink)
+        x = 6
+        end = int(r.integers(20, 29))
+        while x < end:
+            ln = int(r.integers(2, 5))
+            for k in range(ln):
+                if x + k < end:
+                    c.px(x + k, y, '#3b3430')
+            x += ln + 1
+    # someone struck through every lot with a marker
+    for i in range(6):
+        y = 29 + i * 3
+        for x in range(2, 29 - i):
+            if r.random() > 0.08:
+                c.px(x, y + (1 if x > 14 + i else 0), MARKER(r))
+    _border(c, '#b3a88d')
+    c.age(5504, paper='#cfc6b0', fade=0.06, yellow=0.14, stains=2, crease_rows=(23,), torn=(('br', 2),),
+          tape=((2, 0, 4, 1), (26, 0, 4, 1)), dirt=0.1)
+    return c
+
+
+def poster_torn():
+    """The LET'S PARTY! poster, half torn away, Rustgrin's eyes scratched out of it."""
+    c = poster_party()
+    r = rng(5601)
+    # scratch out the eyes (the sprite sits at (6, 8); its eyes are at sprite rows 9-11)
+    for b in (-1, 1, 3):  # three scratches gouged across both eyes
+        for x in range(9, 21):
+            y = int(round(17 + b + (x - 9) * 0.3))
+            c.px(x, y, mix(hexc('#cfc4ac'), hexc('#efe6d2'), r.random()), height=170)
+            c.px(x, y + 1, mix(c.rgb[y + 1, x], hexc('#2a1a14'), 0.6))
+    # tear: everything below a ragged diagonal from the left edge to the bottom is gone
+    edge = []
+    for x in range(32):
+        y = int(18 + x * 0.55 + r.integers(-1, 2))
+        edge.append(y)
+        for yy in range(min(32, y + 1), 32):
+            c.a[yy, x] = 0
+    for x, y in enumerate(edge):  # torn paper fibre is light, the flap above curls (shadow)
+        if 0 <= y < 32 and c.a[y, x]:
+            c.px(x, y, mix(c.rgb[y, x], hexc('#e8dfca'), 0.7))
+        if 1 <= y - 1 < 32 and c.a[y - 1, x] and x > 18:
+            c.px(x, y - 1, mix(c.rgb[y - 1, x], hexc('#1a1410'), 0.35))
+    # leftover tape where the lower half used to be
+    for (tx, ty) in ((1, 30), (27, 31)):
+        if c.a[ty, tx] == 0:
+            c.rect(tx, ty, tx + 4, ty + 1, '#cfc49a', rough=110, height=185)
+    # the top right corner peels away from the wall
+    for i in range(4):
+        for j in range(4 - i):
+            c.px(31 - j, i, mix(hexc('#a89e86'), hexc('#6e6656'), (i + j) / 6))
+    return c
+
+
+def lot_tag(i):
+    """A manila auction tag on a string: LOT and a stencilled number."""
+    c = _transparent(16, 16, rough=230, height=150)
+    card = ['#b39a62', '#bfa66c', '#c8b078']
+    for y in range(2, 16):
+        for x in range(2, 14):
+            c.px(x, y, card[(x * 7 + y * 3 + i) % 3], height=150)
+    c.frame(2, 2, 14, 16, '#8c7646')
+    for (x, y) in ((2, 2), (13, 2)):
+        c.a[y, x] = 0  # clipped corners
+    # reinforced hole and the string looping up to a staple
+    c.px(7, 3, '#5a4a2c'); c.px(8, 3, '#5a4a2c')
+    c.px(6, 3, '#d9c690'); c.px(9, 3, '#d9c690')
+    for (x, y) in ((7, 2), (7, 1), (8, 0)):
+        c.px(x, y, '#cfc6b0', height=160)
+    c.px(9, 0, '#8a8f94', height=170)
+    c.text('LOT', 0, 5, '#2a2420', cond_chars={'L'}, center='c')
+    c.text(str(i + 1), 0, 10, '#7a1c1f', center='c')
+    c.px(7, 15, '#8c7646')
+    c.age(5710 + i, paper='#bfa66c', fade=0.03, yellow=0.06, stains=1, dirt=0.12)
+    return c
+
+
+def wall_writing():
+    """One block, 16 tiles: 0-7 THE SHOW MUST GO ON (4 x 2), 8-13 HE KNOWS YOUR NAME (3 x 2),
+    14 chalk tally marks, 15 scratched tally marks."""
+    return [(writing_show(), 4, 2), (writing_name(), 3, 2), (writing_tally_chalk(), 1, 1), (writing_tally_scratch(), 1, 1)]
+
+
 # ------------------------------------------------------------------ registry
 PANELS = {
     # name: (builder, cols, rows)
@@ -556,10 +778,17 @@ PANELS = {
     'sign_out_of_order': (sign_out_of_order, 2, 1),
     'sign_midway': (sign_midway, 4, 1),
     'sign_revue': (sign_revue, 6, 2),
+    'poster_auction': (poster_auction, 2, 3),
+    'poster_torn': (poster_torn, 2, 2),
 }
 VARIANTS = {
     'drawing': (drawing, 6),
     'sign_staff': (sign_staff, 4),
+    'lot_tag': (lot_tag, 6),
+}
+# several pictures sharing one block: their tiles are numbered one after the other
+COMPOSITE = {
+    'wall_writing': wall_writing,
 }
 
 
@@ -578,6 +807,15 @@ def build(save=True):
         if save:
             for i, c in enumerate(cs):
                 c.tiles(1, 1)[0].save(f'{name}_{i}')
+    for name, fn in COMPOSITE.items():
+        parts = [(c.finish(), cols, rows) for c, cols, rows in fn()]
+        out[name] = ([c for c, _, _ in parts], None, None)
+        if save:
+            i = 0
+            for c, cols, rows in parts:
+                for t in c.tiles(cols, rows):
+                    t.save(f'{name}_{i}')
+                    i += 1
     return out
 
 

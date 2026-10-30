@@ -1,0 +1,195 @@
+{
+  "format_version": "1.26.50",
+  "minecraft:block": {
+    "description": {
+      "identifier": "fnar:floor_decal",
+      "menu_category": {
+        "category": "construction"
+      },
+      "states": {
+        "fnar:kind": {
+          "values": {
+            "min": 0,
+            "max": 7
+          }
+        }
+      },
+      "traits": {
+        "minecraft:placement_direction": {
+          "enabled_states": [
+            "minecraft:cardinal_direction"
+          ],
+          "y_rotation_offset": 180
+        }
+      }
+    },
+    "components": {
+      "minecraft:geometry": "geometry.fnar.floor_decal",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "fnar_floor_decal_tickets",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -8,
+          0,
+          -8
+        ],
+        "size": [
+          16,
+          0.5,
+          16
+        ]
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.2
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 3
+      },
+      "minecraft:map_color": "#5a1a16",
+      "minecraft:light_dampening": 0
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('fnar:kind') == 0",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_floor_decal_tickets",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:kind') == 1",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_floor_decal_tickets_b",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:kind') == 2",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_floor_decal_confetti",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:kind') == 3",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_floor_decal_puddle",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:kind') == 4",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_floor_decal_prints",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:kind') == 5",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_floor_decal_prints_faint",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:kind') == 6",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_floor_decal_debris",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('fnar:kind') == 7",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "fnar_floor_decal_drag",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('minecraft:cardinal_direction') == 'north'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('minecraft:cardinal_direction') == 'west'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('minecraft:cardinal_direction') == 'south'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('minecraft:cardinal_direction') == 'east'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              -90,
+              0
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

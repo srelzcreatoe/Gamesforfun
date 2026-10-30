@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "slumped_suit_rustgrin",
+    "metalness_emissive_roughness": "slumped_suit_rustgrin_mer",
+    "heightmap": "slumped_suit_rustgrin_height"
+  }
+}

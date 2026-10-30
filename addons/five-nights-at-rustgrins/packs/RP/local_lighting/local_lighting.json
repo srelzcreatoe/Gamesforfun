@@ -5,6 +5,10 @@
       "light_color": "#c890ff",
       "light_type": "point_light"
     },
+    "fnar:birthday_cake": {
+      "light_color": "#ffb867",
+      "light_type": "point_light"
+    },
     "fnar:crt_monitor": {
       "light_color": "#7ad6c0",
       "light_type": "point_light"
@@ -17,6 +21,10 @@
       "light_color": "#ff3a2a",
       "light_type": "static_light"
     },
+    "fnar:emergency_light": {
+      "light_color": "#ff2a1a",
+      "light_type": "point_light"
+    },
     "fnar:light_button": {
       "light_color": "#e8eeff",
       "light_type": "static_light"
@@ -28,6 +36,10 @@
     "fnar:stage_star": {
       "light_color": "#ffd27a",
       "light_type": "static_light"
+    },
+    "fnar:walter_things": {
+      "light_color": "#ffe9c0",
+      "light_type": "point_light"
     },
     "fnar:ceiling_lamp": {
       "light_color": "#dfe8ff",
@@ -47,6 +59,10 @@
     },
     "fnar:hanging_lamp": {
       "light_color": "#ffc98a",
+      "light_type": "point_light"
+    },
+    "fnar:ceiling_lamp_broken": {
+      "light_color": "#dfe8ff",
       "light_type": "point_light"
     },
     "fnar:sign_revue": {

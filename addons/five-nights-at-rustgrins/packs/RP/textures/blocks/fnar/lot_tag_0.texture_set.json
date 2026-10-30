@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "lot_tag_0",
+    "metalness_emissive_roughness": "lot_tag_0_mer",
+    "heightmap": "lot_tag_0_height"
+  }
+}

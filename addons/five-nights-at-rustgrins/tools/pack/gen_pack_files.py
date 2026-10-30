@@ -155,6 +155,12 @@ BLOCK_NAMES = {
     'tile_office': 'Office Floor Tile', 'wall_checker': 'Checkered Wainscot', 'wall_plaster': 'Plaster Wall',
     'wall_plaster_stained': 'Stained Plaster Wall', 'wall_trim': 'Wall Trim', 'wallpaper_maroon': 'Maroon Wallpaper',
     'wet_floor_sign': 'Wet Floor Sign',
+    # the last week (docs/BLOCKS.md C)
+    'spare_head': 'Spare Animatronic Head', 'endo_parts': 'Endoskeleton Parts', 'slumped_suit': 'Empty Costume',
+    'birthday_cake': 'Birthday Cake', 'fallen_chair': 'Knocked-Over Party Chair', 'floor_decal': 'Floor Clutter',
+    'hanging_wires': 'Hanging Wires', 'walter_things': "Walter's Things", 'boarded_planks': 'Boarded Planks',
+    'emergency_light': 'Emergency Light', 'ceiling_tile_missing': 'Broken Ceiling Tile', 'ceiling_lamp_broken': 'Flickering Ceiling Lamp',
+    'wall_writing': 'Wall Writing', 'poster_auction': 'Auction Notice', 'poster_torn': 'Torn Party Poster', 'lot_tag': 'Auction Lot Tag',
 }
 
 
@@ -185,11 +191,13 @@ def lang():
 
 
 SOUND_RULES = [
-    ('cloth', ('carpet_party', 'curtain_', 'tent_stripe', 'plush_rat', 'party_hat', 'bunting', 'balloons', 'poster_', 'drawing', 'desk_clutter', 'plate_set', 'sign_out_of_order')),
-    ('wood', ('stage_floor', 'party_table', 'pizza_box', 'sign_staff', 'stage_star')),
+    ('cloth', ('carpet_party', 'curtain_', 'tent_stripe', 'plush_rat', 'party_hat', 'bunting', 'balloons', 'poster_', 'drawing', 'desk_clutter', 'plate_set', 'sign_out_of_order',
+               'spare_head', 'slumped_suit', 'birthday_cake', 'floor_decal', 'lot_tag', 'wall_writing')),
+    ('wood', ('stage_floor', 'party_table', 'pizza_box', 'sign_staff', 'stage_star', 'boarded_planks')),
     ('metal', ('duct_metal', 'door_shutter', 'vent_cover', 'locker', 'trash_can', 'security_camera', 'pa_speaker', 'time_clock', 'crt_monitor', 'desk_fan', 'desk_phone',
                'show_tape', 'arcade_cabinet', 'stage_speaker', 'guitar_amp', 'door_button', 'light_button', 'ceiling_lamp', 'exit_sign', 'stage_spotlight', 'hanging_lamp',
-               'wall_sconce', 'mop_bucket', 'wet_floor_sign', 'parts_shelf', 'party_chair', 'sign_revue', 'sign_cabaret', 'sign_midway')),
+               'wall_sconce', 'mop_bucket', 'wet_floor_sign', 'parts_shelf', 'party_chair', 'sign_revue', 'sign_cabaret', 'sign_midway',
+               'endo_parts', 'fallen_chair', 'hanging_wires', 'walter_things', 'emergency_light')),
 ]
 
 

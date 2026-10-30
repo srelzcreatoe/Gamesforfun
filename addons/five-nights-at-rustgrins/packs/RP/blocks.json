@@ -10,6 +10,12 @@
   "fnar:balloons": {
     "sound": "cloth"
   },
+  "fnar:birthday_cake": {
+    "sound": "cloth"
+  },
+  "fnar:boarded_planks": {
+    "sound": "wood"
+  },
   "fnar:bunting": {
     "sound": "cloth"
   },
@@ -19,7 +25,13 @@
   "fnar:ceiling_lamp": {
     "sound": "metal"
   },
+  "fnar:ceiling_lamp_broken": {
+    "sound": "metal"
+  },
   "fnar:ceiling_tile": {
+    "sound": "stone"
+  },
+  "fnar:ceiling_tile_missing": {
     "sound": "stone"
   },
   "fnar:ceiling_tile_stained": {
@@ -58,8 +70,20 @@
   "fnar:duct_metal": {
     "sound": "metal"
   },
+  "fnar:emergency_light": {
+    "sound": "metal"
+  },
+  "fnar:endo_parts": {
+    "sound": "metal"
+  },
   "fnar:exit_sign": {
     "sound": "metal"
+  },
+  "fnar:fallen_chair": {
+    "sound": "metal"
+  },
+  "fnar:floor_decal": {
+    "sound": "cloth"
   },
   "fnar:guitar_amp": {
     "sound": "metal"
@@ -67,11 +91,17 @@
   "fnar:hanging_lamp": {
     "sound": "metal"
   },
+  "fnar:hanging_wires": {
+    "sound": "metal"
+  },
   "fnar:light_button": {
     "sound": "metal"
   },
   "fnar:locker": {
     "sound": "metal"
+  },
+  "fnar:lot_tag": {
+    "sound": "cloth"
   },
   "fnar:mop_bucket": {
     "sound": "metal"
@@ -100,6 +130,9 @@
   "fnar:plush_rat": {
     "sound": "cloth"
   },
+  "fnar:poster_auction": {
+    "sound": "cloth"
+  },
   "fnar:poster_cabaret": {
     "sound": "cloth"
   },
@@ -116,6 +149,9 @@
     "sound": "cloth"
   },
   "fnar:poster_rules": {
+    "sound": "cloth"
+  },
+  "fnar:poster_torn": {
     "sound": "cloth"
   },
   "fnar:security_camera": {
@@ -141,6 +177,12 @@
   },
   "fnar:sink": {
     "sound": "stone"
+  },
+  "fnar:slumped_suit": {
+    "sound": "cloth"
+  },
+  "fnar:spare_head": {
+    "sound": "cloth"
   },
   "fnar:stage_floor": {
     "sound": "wood"
@@ -196,8 +238,14 @@
   "fnar:wall_trim": {
     "sound": "stone"
   },
+  "fnar:wall_writing": {
+    "sound": "cloth"
+  },
   "fnar:wallpaper_maroon": {
     "sound": "stone"
+  },
+  "fnar:walter_things": {
+    "sound": "metal"
   },
   "fnar:wet_floor_sign": {
     "sound": "metal"

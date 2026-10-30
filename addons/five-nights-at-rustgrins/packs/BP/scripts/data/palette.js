@@ -25,6 +25,8 @@ const faced = (key, name, extra = {}) => Object.fromEntries(['n', 's', 'w', 'e']
 const CARD = { n: 'north', s: 'south', w: 'west', e: 'east' };
 const card = (key, name, extra = {}) => Object.fromEntries(Object.entries(CARD).map(([k, v]) => [`${key}_${k}`, F(name, { 'minecraft:cardinal_direction': v, ...extra })]));
 const cardStates = (key, name, state, values, extra = {}) => Object.fromEntries(values.flatMap((val) => Object.entries(CARD).map(([k, v]) => [`${key}${val === undefined ? '' : `_${val}`}_${k}`, F(name, { 'minecraft:cardinal_direction': v, [state]: val, ...extra })])));
+/** Custom blocks with a facing and a named int state: `${key}_${names[i]}_${dir}` -> state = i. */
+const named = (key, name, state, names, extra = {}) => Object.fromEntries(names.flatMap((nm, i) => Object.entries(CARD).map(([k, v]) => [`${key}_${nm}_${k}`, F(name, { 'minecraft:cardinal_direction': v, [state]: i, ...extra })])));
 // iron trapdoor direction: 0 = east... (only used closed/flat as a vent grate texture on floors and ceilings)
 
 export const PALETTE = Object.freeze({
@@ -134,6 +136,25 @@ export const PALETTE = Object.freeze({
   ...card('toilet', 'toilet'),
   ...card('sink', 'sink'),
   ...cardStates('locker', 'locker', 'fnar:half', [0, 1]),
+
+  // ---------------------------------------------------------------- decay: the pizzeria's last week (docs/BLOCKS.md C)
+  ceiling_missing: F('ceiling_tile_missing'),
+  lamp_broken: F('ceiling_lamp_broken'), // never switched by the game: one tube flickers all night
+  ...named('head', 'spare_head', 'fnar:char', ['rustgrin', 'mirehop', 'noxbriar', 'cat', 'rat']),
+  ...named('endo', 'endo_parts', 'fnar:part', ['skull', 'arm', 'stand']),
+  ...named('suit', 'slumped_suit', 'fnar:char', ['rustgrin', 'mirehop']),
+  ...cardStates('bday', 'birthday_cake', 'fnar:lit', [true, false]),
+  ...card('fallen', 'fallen_chair'),
+  ...named('decal', 'floor_decal', 'fnar:kind', ['tickets', 'tickets_b', 'confetti', 'puddle', 'prints', 'prints_faint', 'debris', 'drag']),
+  ...named('wires', 'hanging_wires', 'fnar:kind', ['bundle', 'box']),
+  ...named('walter', 'walter_things', 'fnar:kind', ['desk', 'flashlight']),
+  ...named('boards', 'boarded_planks', 'fnar:kind', ['across', 'x']),
+  ...cardStates('emerg', 'emergency_light', 'fnar:lit', [true, false]),
+  cobweb: M('web'), stripped_spruce: M('stripped_spruce_log', { pillar_axis: 'y' }),
+  // Walter's car: a faded green 80s sedan in weathered copper
+  headlight: M('ochre_froglight', { pillar_axis: 'y' }), car_body: M('weathered_cut_copper'),
+  car_slab: M('weathered_cut_copper_slab', { 'minecraft:vertical_half': 'bottom' }), car_tail: M('red_stained_glass'),
+  car_door: M('weathered_copper_trapdoor', { direction: 1, open_bit: true, upside_down_bit: false }),
 });
 
 /** Picture panels (docs/BLOCKS.md A): name -> [tiles wide, tiles high]. Keys are generated as `${name}_${tile}_${dir}`. */
@@ -141,9 +162,12 @@ export const PICTURES = Object.freeze({
   poster_revue: [2, 3], poster_party: [2, 2], poster_cabaret: [2, 3], poster_midway: [2, 3], poster_rules: [2, 2],
   poster_missing: [1, 2], drawing: [1, 1], sign_cabaret: [3, 1], sign_out_of_order: [2, 1], sign_midway: [4, 1],
   sign_revue: [6, 2], sign_staff: [1, 1],
+  poster_auction: [2, 3], poster_torn: [2, 2], lot_tag: [1, 1], wall_writing: [4, 2],
 });
-/** Variant counts for 1x1 pictures that use fnar:tile as a variant index. */
-export const PICTURE_VARIANTS = Object.freeze({ drawing: 6, sign_staff: 4 });
+/** Variant counts for 1x1 pictures that use fnar:tile as a variant index (wall_writing: several pictures in one block). */
+export const PICTURE_VARIANTS = Object.freeze({ drawing: 6, sign_staff: 4, lot_tag: 6, wall_writing: 16 });
+/** wall_writing tiles: the first tile of each picture and its size (tiles run row-major from the top-left). */
+export const WRITING = Object.freeze({ show: [0, 4, 2], name: [8, 3, 2], tally: [14, 1, 1], scratches: [15, 1, 1] });
 
 /** Palette entry for one picture tile (built on demand, not stored in PALETTE). */
 export function pictureBlock(name, tile, dir) {

@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "walter_things",
+    "metalness_emissive_roughness": "walter_things_mer",
+    "heightmap": "walter_things_height"
+  }
+}

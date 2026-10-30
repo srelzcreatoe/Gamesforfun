@@ -1,0 +1,32 @@
+{
+  "format_version": "1.26.50",
+  "minecraft:block": {
+    "description": {
+      "identifier": "fnar:ceiling_lamp_broken",
+      "menu_category": {
+        "category": "construction"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "fnar_ceiling_tile",
+          "render_method": "opaque"
+        },
+        "down": {
+          "texture": "fnar_ceiling_lamp_broken",
+          "render_method": "opaque",
+          "face_dimming": false
+        }
+      },
+      "minecraft:collision_box": true,
+      "minecraft:selection_box": true,
+      "minecraft:light_emission": 9,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1
+      },
+      "minecraft:map_color": "#9c9784"
+    }
+  }
+}

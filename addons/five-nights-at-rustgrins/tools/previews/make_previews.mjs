@@ -247,6 +247,39 @@ export const SCENES = [
       ],
     },
   },
+  // ---- the last week: the environment pass (spare heads, the birthday table, Walter's car, the auction crates)
+  {
+    name: '19_cam_5', voxels: 'night', style: 'camera_feed', caption: 'CAM 5: spare heads on every shelf, under the Ringmaster\'s motto',
+    hud: { cam: '5', lines: ['§fCAM 5 · BACKSTAGE', '§7Night 3 §8| §f2 AM §8| §fPOWER 64% §8| §7USAGE §a▮▮§8▯▯▯▯▯'] },
+    scene: {
+      camera: camShot('5', 66), exposure: 1.7,
+      extra_lights: [irLight('5', 9), point([6.5, 3.4, 4.5], '#e8ffe8', 8, 9)],
+    },
+  },
+  {
+    name: '20_birthday_table', voxels: 'lit', caption: 'Nobody cleared the last birthday party. One candle is still burning',
+    scene: {
+      camera: { pos: [51.9, 1.95, 26.6], target: [49, 1.05, 23.6], fov: 56 }, exposure: 1.4,
+      extra_lights: [point([49.2, 1.9, 24.5], '#ffb867', 2.5, 5)],
+    },
+  },
+  {
+    name: '21_walters_car', voxels: 'night', caption: 'Walter\'s car, still in the lot: the door open, the headlights on',
+    scene: {
+      camera: { pos: [100.5, 1.7, 35.5], target: [88, 0.8, 44], fov: 56 }, exposure: 1.4,
+      extra_lights: [
+        { type: 'dir', pos: [150, 70, 110], target: [80, 0, 30], color: '#8193c8', intensity: 0.9, shadow: true, shadowExtent: 70 },
+        { type: 'ambient', color: '#1b2236', intensity: 0.8 },
+      ],
+    },
+  },
+  {
+    name: '22_parts_service', voxels: 'day', caption: 'Parts & Service: six crates for the auction, LOT 1 to LOT 6. All of them empty',
+    scene: {
+      camera: { pos: [69.5, 2.2, 61.0], target: [61, 1.2, 69], fov: 70 }, exposure: 1.1,
+      extra_lights: [{ type: 'ambient', color: '#fff4e0', intensity: 0.8 }, point([64, 3.6, 63], '#ffe7c0', 9, 16), point([56, 3.6, 52], '#ffe7c0', 6, 12)],
+    },
+  },
 ];
 
 async function main() {

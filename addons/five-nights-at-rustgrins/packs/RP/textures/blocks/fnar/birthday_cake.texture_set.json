@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "birthday_cake",
+    "metalness_emissive_roughness": "birthday_cake_mer",
+    "heightmap": "birthday_cake_height"
+  }
+}

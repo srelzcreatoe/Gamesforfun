@@ -71,6 +71,7 @@ def main(argv):
     import props_office  # noqa: F401
     import props_party  # noqa: F401
     import props_service  # noqa: F401
+    import props_decay  # noqa: F401
     names = argv or list(REGISTRY)
     out = Out()
     for n in names:

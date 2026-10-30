@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "ceiling_lamp_broken",
+    "metalness_emissive_roughness": "ceiling_lamp_broken_mer",
+    "heightmap": "ceiling_lamp_broken_height"
+  }
+}

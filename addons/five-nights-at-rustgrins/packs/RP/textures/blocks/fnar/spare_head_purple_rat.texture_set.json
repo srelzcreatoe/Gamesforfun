@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "spare_head_purple_rat",
+    "metalness_emissive_roughness": "spare_head_purple_rat_mer",
+    "heightmap": "spare_head_purple_rat_height"
+  }
+}

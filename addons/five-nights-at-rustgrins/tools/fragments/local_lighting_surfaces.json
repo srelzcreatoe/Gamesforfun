@@ -19,6 +19,10 @@
     "light_color": "#ffc98a",
     "light_type": "point_light"
   },
+  "fnar:ceiling_lamp_broken": {
+    "light_color": "#dfe8ff",
+    "light_type": "point_light"
+  },
   "fnar:sign_revue": {
     "light_color": "#ff6fb5",
     "light_type": "static_light"

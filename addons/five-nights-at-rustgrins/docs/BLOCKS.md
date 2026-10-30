@@ -158,3 +158,33 @@ vanilla art (1 texel ≈ 1 model pixel).
 | `toilet` | 10×12×12 | white ceramic, grimy |
 | `sink` | 12×6×8 wall sink at y 10–16 + pipe | white ceramic, rust stains |
 | `locker` | 2 blocks tall (`fnar:half` 0/1), 14×16×14 | dented grey staff locker |
+
+## C — the last week (environment pass)
+
+Decay props and signage for the pizzeria's last week before the auction
+(November 1991): dread and implication, no gore. Props are built by
+`tools/blocks/props/props_decay.py` (section B conventions), the cubes, the
+flickering lamp and the picture panels by the section A generators
+(`gen_cubes.py`, `gen_lights.py`, `gen_panels.py`, registered in `gen_blocks.py`).
+The build plan places them in `lastWeek()` / `lastWeekOutside()` / `parts()`
+(`packs/BP/scripts/data/build_plan.js`); lights that are built lit and never
+switched by the game are listed in `meta.fixtures`.
+
+| name | states | look |
+|---|---|---|
+| `spare_head` | `fnar:char` 0-4 (Rustgrin, Mirehop, Noxbriar, the Cat, the Purple Rat), facing | a spare costume head at the performers' own head size, in the cast's colours (`sprites.py` palettes): hollow eye sockets, slack jaw, cables out of the neck; Mirehop's has one ear torn to a stub, Rustgrin's has one pupil still faintly lit |
+| `endo_parts` | `fnar:part` 0 skull, 1 forearm and hand, 2 endoskeleton bust on a repair stand; facing | bare endoskeleton parts, staring eyeballs, rust |
+| `slumped_suit` | `fnar:char` 0 grey bear, 1 green rabbit; facing (back against the wall) | an empty costume sitting against the wall, head dropped forward and to one side, black empty sockets, a split seam |
+| `birthday_cake` | `fnar:lit` (light 4, warm point light); facing | the last birthday cake: one slice gone, three dead candles, one knocked over, one still burning |
+| `fallen_chair` | facing | the party chair tipped over on its back |
+| `floor_decal` | `fnar:kind` 0-7: tickets, tickets_b, confetti, puddle (glossy), prints (wet animatronic footprints), prints_faint, debris (fallen ceiling tile), drag (drag marks); facing rotates it | a 0.1 px floor decal, no collision; footprints walk towards the facing |
+| `hanging_wires` | `fnar:kind` 0 cut cable bundle, 1 dangling junction box + insulation; facing | hangs from the top of the cell (place it under the ceiling) |
+| `walter_things` | `fnar:kind` 0 desk set (mug, note, cap, pen), 1 his flashlight on the floor, still on (light 6); facing | the guard who walked out at 3 AM |
+| `boarded_planks` | `fnar:kind` 0 three planks across (one slipped), 1 an X; facing (wall mounted) | weathered grey boards nailed over a window or opening |
+| `emergency_light` | `fnar:lit` (light 6, red point light); facing (wall mounted) | caged red beacon on a bracket |
+| `ceiling_tile_missing` | full cube | drop ceiling with a tile fallen out (black plenum, a pipe, a cable) and one cracked and sagging |
+| `ceiling_lamp_broken` | full cube, light 9 | a troffer nobody fixed: one tube dead, a diffuser panel missing, the other tube flickering (flipbook `frames` sequence, 2 ticks/frame); never switched by the game |
+| `wall_writing` | `fnar:tile` 0-15: 0-7 THE SHOW MUST GO ON (4 x 2, white paint), 8-13 HE KNOWS YOUR NAME (3 x 2, scratched), 14 chalk tally marks, 15 scratched tally marks | picture panel; place with `writing(p, 'show' \| 'name' \| 'tally' \| 'scratches', ...)` (`WRITING` in `palette.js`) |
+| `poster_auction` | 2 x 3 picture | PUBLIC AUCTION, NOV 9, LOTS 1-6, every lot struck through with a marker |
+| `poster_torn` | 2 x 2 picture | the LET'S PARTY! poster, half torn away, Rustgrin's eyes scratched out |
+| `lot_tag` | 1 x 1 x 6 variants (LOT 1 - LOT 6) | manila auction tag on a string |

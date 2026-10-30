@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "slumped_suit_mirehop",
+    "metalness_emissive_roughness": "slumped_suit_mirehop_mer",
+    "heightmap": "slumped_suit_mirehop_height"
+  }
+}
