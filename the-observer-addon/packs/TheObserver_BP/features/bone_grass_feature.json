@@ -1,0 +1,31 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:single_block_feature": {
+    "description": {
+      "identifier": "wmire:bone_grass_feature"
+    },
+    "places_block": [
+      {
+        "block": "wmire:bone_grass",
+        "weight": 7
+      },
+      {
+        "block": "wmire:bone_sprout",
+        "weight": 1
+      }
+    ],
+    "enforce_survivability_rules": false,
+    "enforce_placement_rules": false,
+    "may_replace": [
+      "minecraft:air"
+    ],
+    "may_attach_to": {
+      "bottom": [
+        "wmire:mire_moss",
+        "wmire:mire_soil",
+        "wmire:bone_root",
+        "wmire:weeping_wood"
+      ]
+    }
+  }
+}

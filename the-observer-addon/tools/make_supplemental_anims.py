@@ -9,7 +9,8 @@ stalking behaviour also needs:
   animation.observer.recoil          flinch when witnessed / struck (once, 1.0 s)
   animation.observer.stoop           additive crouch overlay so the 4-block figure fits 3-block spaces
   animation.observer.look_at_target  head tracking (vanilla-style target rotation queries)
-  animation.observer.float_drift     1.0.6: hovering a block up, legs hanging limp, toes down, a slow bob
+  animation.observer.float_drift     1.0.6: hovering a block up, legs hanging limp, toes down, nearly still —
+                                     1.0.7: and cracking: one-frame snaps of the neck, a shoulder, the whole body
   animation.observer.float_surge     1.0.6: rushing forward through the air, leaning in, arms and legs trailing
   animation.observer.climb           1.0.6: climbing a wall face, arms reaching overhead in turn, its head
                                      tipped right back, staring up at whoever it is climbing after
@@ -176,28 +177,67 @@ def _loop(length, step, pose_fn):
     return bones
 
 
+# Twitches of the drift: (start s, hold s, {bone: added rotation}, root drop px). Each snaps in within one
+# 0.05 s frame, holds, and snaps back — cracking joints, the way the girl from The Ring moves.
+DRIFT_TWITCHES = [
+    (0.55, 0.45, {"head": [4, -12, 28]}, 0.0),                                      # neck cracks to the side
+    (1.05, 0.05, {"head": [0, 0, 7]}, 0.0),                                         # ...and an aftershock
+    (1.60, 0.25, {"right_upper_arm": [-14, 0, -10], "right_forearm": [-18, 0, 0], "torso": [0, 4, -3]}, 0.0),  # shoulder hitch
+    (2.30, 0.15, {"torso": [9, 0, 0], "head": [14, 0, 0], "pelvis": [4, 0, 0]}, 1.5),  # the whole body jerks and drops
+    (3.10, 0.60, {"head": [-8, 35, -6]}, 0.0),                                      # the head whips round and holds
+    (3.95, 0.10, {"left_forearm": [-20, 0, 0], "left_hand": [25, 0, 0], "left_thigh": [6, 0, 0]}, 0.0),  # a spasm
+]
+DRIFT_LENGTH = 4.8
+
+
+def _twitch(t):
+    """Summed twitch rotations and root drop at time t (0 outside, 1 during the hold, one-frame snaps)."""
+    rot, drop = {}, 0.0
+    for start, hold, bones, d in DRIFT_TWITCHES:
+        if t < start - 1e-6 or t > start + hold + 0.05 + 1e-6:
+            continue
+        k = 1.0 if t <= start + hold + 1e-6 else 0.0
+        if t < start + 0.05 - 1e-6:
+            k = (t - start) / 0.05
+        for b, v in bones.items():
+            cur = rot.setdefault(b, [0.0, 0.0, 0.0])
+            for n in range(3):
+                cur[n] += v[n] * k
+        drop += d * k
+    return rot, drop
+
+
 def float_drift():
-    """Upright hover: everything hangs from the shoulders; only the bob and a slow sway move it."""
+    """Hovering a block up, nearly still: no sway to speak of, only the slightest bob — and every so often a
+    joint cracks: the neck snaps sideways, a shoulder hitches, the body jerks, the head whips round. Each
+    snap is one frame and holds; a bone-crack sound is keyed to the big ones."""
     def pose(ph):
         s, c = math.sin(ph), math.cos(ph)
-        return {
-            "pelvis": [0, 2 * math.sin(ph / 2), 1.5 * c],
-            "torso": [4 + 1.5 * math.sin(ph + 0.6), 2 * math.sin(ph / 2), 1.2 * c],
-            "head": [7 + 2 * math.sin(ph + 1.2), 0, 3 * math.sin(ph / 2)],
-            "right_upper_arm": [5 + 4 * math.sin(ph + 0.4), 0, -7 - 2 * s],
-            "left_upper_arm": [5 + 4 * math.sin(ph + 1.1), 0, 7 + 2 * s],
-            "right_forearm": [-8 - 4 * math.sin(ph + 0.9), 0, 0], "left_forearm": [-8 - 4 * math.sin(ph + 1.6), 0, 0],
-            "right_hand": [8, 0, 0], "left_hand": [8, 0, 0],
-            # legs dangle: a little sway, knees loose, toes pointing at the ground
-            "right_thigh": [-5 + 4 * math.sin(ph + 0.9), 0, 3], "left_thigh": [-1 + 4 * math.sin(ph + 2.1), 0, -3],
-            "right_shin": [16 + 5 * math.sin(ph + 1.5), 0, 0], "left_shin": [12 + 5 * math.sin(ph + 2.6), 0, 0],
-            "right_foot": [30, 0, 0], "left_foot": [30, 0, 0],
-        }, [0, f"{LIFT} + {1.5 * s:.3f}", 0]
+        t = ph / (2 * math.pi) * DRIFT_LENGTH
+        base = {
+            "pelvis": [0, 0.6 * math.sin(ph / 2), 0.4 * c],
+            "torso": [3 + 0.6 * math.sin(ph + 0.6), 0.8 * math.sin(ph / 2), 0.5 * c],
+            "head": [6, 0, 2],
+            "right_upper_arm": [3 + 1.2 * math.sin(ph + 0.4), 0, -5], "left_upper_arm": [3 + 1.2 * math.sin(ph + 1.1), 0, 5],
+            "right_forearm": [-5, 0, 0], "left_forearm": [-5, 0, 0],
+            "right_hand": [6, 0, 0], "left_hand": [6, 0, 0],
+            # legs hang limp, toes pointing at the ground
+            "right_thigh": [-3 + 1.5 * math.sin(ph + 0.9), 0, 2], "left_thigh": [-1 + 1.5 * math.sin(ph + 2.1), 0, -2],
+            "right_shin": [10 + 2 * math.sin(ph + 1.5), 0, 0], "left_shin": [8 + 2 * math.sin(ph + 2.6), 0, 0],
+            "right_foot": [26, 0, 0], "left_foot": [26, 0, 0],
+        }
+        tw, drop = _twitch(t)
+        for b, v in tw.items():
+            base[b] = [base.get(b, [0, 0, 0])[n] + v[n] for n in range(3)]
+        return base, [0, f"{LIFT} + {0.5 * s - drop:.3f}", 0]
 
-    bones = _loop(2.4, 0.1, pose)
+    bones = _loop(DRIFT_LENGTH, 0.05, pose)
     for b, v in FINGERS.items():
-        bones[b] = {"rotation": {"0.0": [v[0] * 0.5, v[1], v[2]]}}
-    return {"loop": True, "animation_length": 2.4, "bones": bones}
+        # the fingers curl tight for a moment when the body jerks
+        bones[b] = {"rotation": {"0.0": [v[0] * 0.5, v[1], v[2]], "2.3": [v[0] * 0.5, v[1], v[2]],
+                                 "2.35": [v[0] * 2.2, v[1], v[2]], "2.5": [v[0] * 2.2, v[1], v[2]], "2.55": [v[0] * 0.5, v[1], v[2]]}}
+    sounds = {key(st): {"effect": "crack"} for st, _, _, _ in DRIFT_TWITCHES if st not in (1.05, 3.95)}
+    return {"loop": True, "animation_length": DRIFT_LENGTH, "bones": bones, "sound_effects": sounds}
 
 
 def float_surge():

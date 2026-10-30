@@ -1,0 +1,56 @@
+{
+  "format_version": "1.13.0",
+  "minecraft:structure_template_feature": {
+    "description": {
+      "identifier": "wmire:weeping_shrub_3_feature"
+    },
+    "structure_name": "wmire:weeping_shrub_3",
+    "adjustment_radius": 4,
+    "facing_direction": "random",
+    "constraints": {
+      "grounded": {},
+      "unburied": {},
+      "block_intersection": {
+        "block_allowlist": [
+          "minecraft:air",
+          "minecraft:water",
+          "minecraft:flowing_water",
+          "minecraft:stone",
+          "minecraft:dirt",
+          "minecraft:coarse_dirt",
+          "minecraft:dirt_with_roots",
+          "minecraft:podzol",
+          "minecraft:grass_block",
+          "minecraft:gravel",
+          "minecraft:clay",
+          "minecraft:mud",
+          "minecraft:sand",
+          "minecraft:sandstone",
+          "minecraft:moss_block",
+          "minecraft:andesite",
+          "minecraft:diorite",
+          "minecraft:granite",
+          "minecraft:tuff",
+          "minecraft:calcite",
+          "minecraft:coal_ore",
+          "minecraft:iron_ore",
+          "minecraft:copper_ore",
+          "minecraft:gold_ore",
+          "minecraft:lapis_ore",
+          "minecraft:redstone_ore",
+          "minecraft:emerald_ore",
+          "minecraft:short_grass",
+          "minecraft:seagrass",
+          "minecraft:waterlily",
+          "wmire:mire_moss",
+          "wmire:mire_soil",
+          "wmire:mire_silt",
+          "wmire:bone_grass",
+          "wmire:bone_sprout",
+          "wmire:bone_root",
+          "wmire:torn_page"
+        ]
+      }
+    }
+  }
+}

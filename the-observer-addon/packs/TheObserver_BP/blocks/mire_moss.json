@@ -1,0 +1,45 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "wmire:mire_moss",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "wmire_moss_side",
+          "render_method": "opaque"
+        },
+        "up": {
+          "texture": "wmire_moss_top",
+          "render_method": "opaque",
+          "isotropic": true
+        },
+        "down": {
+          "texture": "wmire_soil",
+          "render_method": "opaque",
+          "isotropic": true
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.9,
+        "item_specific_speeds": [
+          {
+            "item": {
+              "tags": "q.any_tag('minecraft:is_shovel')"
+            },
+            "destroy_speed": 0.3
+          }
+        ]
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0.6
+      },
+      "minecraft:map_color": "#24221f"
+    }
+  }
+}

@@ -351,6 +351,24 @@
           "volume": 1.0
         }
       ]
+    },
+    "observer.crack": {
+      "category": "hostile",
+      "max_distance": 24,
+      "sounds": [
+        {
+          "name": "sounds/observer/crack1",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/observer/crack2",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/observer/crack3",
+          "volume": 1.0
+        }
+      ]
     }
   }
 }

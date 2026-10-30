@@ -8,16 +8,19 @@ the-observer-addon/
 │   ├── TheObserver_BP/            behaviour pack (shipped)
 │   │   ├── entities/the_observer.json     body: properties, modes, physics
 │   │   ├── entities/shadow.json  flare.json  taiga shadow; the thrown flare (projectile)
-│   │   ├── blocks/                        veil, effigy, ward_lantern
+│   │   ├── blocks/                        veil, effigy, ward_lantern; the Weeping Mire's 12 wmire: blocks
 │   │   ├── items/  recipes/  loot_tables/
+│   │   ├── biomes/  features/  feature_rules/  worldgen/  structures/wmire/   the Weeping Mire (merged, 1.0.7)
 │   │   └── scripts/                       all game logic (ES modules, @minecraft/server 2.10.0)
 │   └── TheObserver_RP/            resource pack (shipped)
 │       ├── models/entity/the_observer.geo.json         supplied geometry (namespaced copy)
 │       ├── animations/the_observer.animation.json      supplied clips (namespaced copy)
 │       ├── animations/the_observer_supplemental.animation.json   stalk_walk, peek, recoil, stoop, look_at_target
 │       ├── animation_controllers/  entity/  render_controllers/
-│       ├── sounds/ (44 original .ogg + definitions)  particles/  fogs/  textures/  texts/
+│       ├── sounds/ (47 original .ogg + definitions)  particles/  fogs/  textures/  texts/
+│       └── biomes/  atmospherics/  color_grading/  lighting/  water/   the Weeping Mire's look (merged, 1.0.7)
 ├── source_assets/supplied/        the ZIP's contents, untouched, with SHA256SUMS.txt
+├── source_assets/supplied_weeping_mire/   the user's Weeping_Mire_v1.2.6.mcaddon, untouched, with SHA256SUMS.txt
 ├── tools/                         asset pipeline, validator, packager, offline renderer
 ├── tests/bds/                     dedicated-server harness + GameTest test kit (dev only)
 ├── docs/                          this documentation
@@ -44,8 +47,9 @@ the-observer-addon/
 | `observer/climb.js` | climbing after a player who is above it: `needed`, `plan` (cling at an edge / over the top), `after`, `letGo` |
 | `observer/pages.js` | pages in another hand, built from tracked numbers |
 | `observer/returns.js` | items thrown away, returned to the doorstep |
+| `mire/mire.js` | the Weeping Mire (ported from its own script): `inMire`, time spent there, wind and leaves, the torn pages (`afterRead` calls the Observer) |
 | `progression/flare.js` | the Flare: throw, light block, glare, burn-out |
-| `director/context.js` | per-player situation snapshot |
+| `director/context.js` | per-player situation snapshot (`mire`: in its home), `effectiveStage`, `moodFactor` |
 | `director/encounter.js` | the runtime object passed to encounter scripts |
 | `director/director.js` | scheduling, selection, multiplayer fairness, bookkeeping, recovery |
 | `encounters/*.js` | one file per encounter; each calls `register()` |
@@ -75,6 +79,8 @@ python3 tools/synth_sounds.py                 # regenerate all .ogg (needs ffmpe
 python3 tools/make_textures.py                # textures, block models, pack icons
 python3 tools/integrate_particle_sheets.py     # user-supplied vanish/wisp sheets -> particle atlases (pixels unchanged)
 python3 tools/synth_sounds.py --only voice,presence,notice,shriek,vanish   # regenerate selected sounds
+python3 tools/merge_weeping_mire.py           # merge the archived Weeping Mire into the packs (re-runnable)
+python3 tools/merge_weeping_mire.py --check   # every merged Mire file is byte-identical to the archive
 python3 tools/render_model.py GEO TEX out.png --anim FILE NAME TIME --view side --debug-colors
 ```
 
@@ -91,8 +97,10 @@ python3 tests/bds/run_bds.py --bds /path/to/bedrock-server --testkit --fresh \
 ```
 
 Scenarios: `load.txt` (packs load cleanly), `proto.txt` (capability probes), `speed.txt` (movement calibration),
-`suite_smoke.txt`, `suite_full.txt` (all 69 test groups), `suite_extra.txt` (a short subset), `suite_105.txt` (the
-1.0.5 additions), `suite_106.txt` (the floating chase and climbing, with the chase/attack regressions),
+`suite_smoke.txt`, `suite_full.txt` (all test groups), `suite_extra.txt` (a short subset), `suite_105.txt` (the
+1.0.5 additions), `suite_106.txt` (the floating chase and climbing, with the chase/attack regressions), `suite_107.txt` (the
+Weeping Mire: its context, the stage bonus, early grace, its watcher, the torn pages), `mire_locate.txt` (the Mire
+generates and its old watcher is gone; run without `--testkit`, with `--require-no-experiments`),
 `tunnel_repeat.txt` (the Closed Path tests ten times over), `illusion_repeat.txt` (the shadow tests eight times over), `flare_seq.txt` (the flare tests twice back to back), `house_seq.txt` (every test that uses the arena house, in suite order — they share it), `noexp.txt` (no experiments; run **without** `--testkit` and with `--require-no-experiments`, which
 fails the run if the world's `level.dat` has any experiment on), `restart_a.txt` +
 `restart_b.txt` (interrupted encounter across a server restart), `tps.txt` (tick rate; run once more with `--no-addon`
@@ -103,12 +111,14 @@ The harness patches the **installed test copy** of the BP to import
 untouched.
 
 With tracing on, the add-on publishes structured events as script events
-`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned`
+`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned|grace|mire|weights`
 that the test kit asserts on. In normal play nothing is emitted.
 
 Test-only dev commands (`/scriptevent observer:<name>`): `flare [dist] [player]` (light a flare ahead),
 `learn <method> [times] [player]`, `unlearn [player]`, `page [key|any] [player]`, `tally <key> <n> [player]`,
-`hush [seconds] [player]` (a false-alarm silence), `hushmode real|false|auto`, `returnnow [player]`, plus the earlier
+`hush [seconds] [player]` (a false-alarm silence), `hushmode real|false|auto`, `returnnow [player]`,
+`mirepage <0-7|all|clear> [player]` (read a Weeping Mire torn page without the form; a new one always brings it),
+`weights [player]` (what the director would choose from here: context, effective stage, mood, weights), plus the earlier
 `lunge`, `nearstrike`, `illusion`, `timewarp`, `sethaunt`, `set <key> <value>` and `set off a,b,c`.
 
 ## 4. Adding an encounter

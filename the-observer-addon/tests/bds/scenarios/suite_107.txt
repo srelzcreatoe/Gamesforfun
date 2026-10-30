@@ -1,0 +1,6 @@
+# 1.0.7 additions: the Weeping Mire (merged) as its home: context, stage bonus, early grace, the Mire's
+# watcher played by the Observer, torn pages bringing it up behind you
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup mire_home mire_watcher mire_pages status
+expect \[OTEST\] SUITE DONE 2400

@@ -1,0 +1,45 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "wmire:weeping_leaves",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "wmire_leaves",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:light_dampening": 1,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.35,
+        "item_specific_speeds": [
+          {
+            "item": "minecraft:shears",
+            "destroy_speed": 0.05
+          },
+          {
+            "item": {
+              "tags": "q.any_tag('minecraft:is_hoe')"
+            },
+            "destroy_speed": 0.05
+          }
+        ]
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0.2
+      },
+      "minecraft:flammable": {
+        "catch_chance_modifier": 30,
+        "destroy_chance_modifier": 60
+      },
+      "minecraft:map_color": "#121316",
+      "wmire:falling_leaves": {}
+    }
+  }
+}

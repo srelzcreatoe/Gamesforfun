@@ -8,6 +8,7 @@ import { ps } from "../core/state.js";
 import { S } from "../core/settings.js";
 import { safe, rand, emit, trace, DEBUG } from "../core/util.js";
 import { SOUNDS } from "../core/constants.js";
+import { effectiveStage } from "../director/context.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
 
@@ -29,9 +30,9 @@ const pending = new Map();
 /** @type {Set<string>} players whose music is currently replaced by the silence */
 const silenced = new Set();
 
-/** Should this encounter be announced by the silence for this player? @param {{id:string}} def @param {any} s */
-export function wanted(def, s) {
-  return S().quiet !== false && DANGEROUS.has(def.id) && s.stage >= 4;
+/** Should this encounter be announced by the silence for this player? @param {{id:string}} def @param {any} s @param {{mire?:boolean}} [c] */
+export function wanted(def, s, c) {
+  return S().quiet !== false && DANGEROUS.has(def.id) && effectiveStage(s, c) >= 4;
 }
 
 /** @param {string} pid */

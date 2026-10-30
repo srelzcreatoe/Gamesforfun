@@ -2090,6 +2090,189 @@ TESTS.status = async () => {
   await wait(10);
 };
 
+// ------------------------------------------------------------------ 1.0.7: the Weeping Mire, its home
+// Seed 424242: `locate biome wmire:weeping_mire` from spawn finds the Mire at -1760, 63, 928
+// (BDS 1.26.52, scenario mire_locate.txt). The tests stand on its own ground there.
+const MIRE = { x: -1760, z: 928 };
+const MIRE_BIOME = "wmire:weeping_mire";
+let mireStand;
+const NOT_GROUND = /leaves|log|wood|tendril|water|lava/;
+
+/** A dry standing spot in the Mire near MIRE, with room above (found once). */
+async function findMireStand() {
+  if (mireStand) return mireStand;
+  const dim = ow();
+  dim.runCommand(`tickingarea add circle ${MIRE.x} 0 ${MIRE.z} 4 otest_mire true`);
+  for (let i = 0; i < 400 && !dim.isChunkLoaded({ x: MIRE.x, y: 64, z: MIRE.z }); i++) await wait(5);
+  await wait(60);
+  for (let r = 0; r <= 40 && !mireStand; r += 2) {
+    for (let a = 0; a < 360 && !mireStand; a += r ? 20 : 360) {
+      const x = Math.floor(MIRE.x + r * Math.cos((a * Math.PI) / 180)) + 0.5;
+      const z = Math.floor(MIRE.z + r * Math.sin((a * Math.PI) / 180)) + 0.5;
+      const g = dim.getBlockBelow({ x, y: 300, z }, { includePassableBlocks: false, includeLiquidBlocks: true, maxDistance: 300 });
+      if (!g || g.isLiquid || NOT_GROUND.test(g.typeId)) continue;
+      const loc = { x, y: g.location.y + 1, z };
+      if (dim.getBiome(loc)?.id !== MIRE_BIOME) continue;
+      let room = true;
+      for (let dy = 0; dy < 3; dy++) {
+        const b = dim.getBlock({ x, y: loc.y + dy, z });
+        if (!b || !(b.isAir || !b.isSolid) || b.isLiquid) room = false;
+      }
+      if (room) mireStand = { ...loc, ground: g.typeId };
+    }
+  }
+  return mireStand;
+}
+/** Stand the target in the Mire, facing `bearing` degrees (0 = +z). */
+async function mireTarget(stage, bearing = 0) {
+  const st = await findMireStand();
+  if (!st) return undefined;
+  const r = (bearing * Math.PI) / 180;
+  const face = { x: st.x - Math.sin(r) * 30, y: st.y + 1.6, z: st.z + Math.cos(r) * 30 };
+  const p = await freshTarget("Tester", st, face, stage);
+  isolate(p);
+  return p;
+}
+/** Degrees between where the player looks (flat) and the direction to a location. */
+function offView(p, loc) {
+  const v = p.getViewDirection();
+  const a = Math.atan2(v.x, v.z), b = Math.atan2(loc.x - p.location.x, loc.z - p.location.z);
+  let d = Math.abs(((b - a) * 180) / Math.PI) % 360;
+  return d > 180 ? 360 - d : d;
+}
+
+TESTS.mire_home = async () => {
+  const st = await findMireStand();
+  if (!check("mire_biome_generated", !!st, st ? `${st.ground} at ${st.x},${st.y},${st.z}` : `no Mire ground within 40 blocks of ${MIRE.x},${MIRE.z}`)) return;
+  // its home counts as one stage further along, and every gap is shorter
+  ow().runCommand("time set midnight");
+  let p = await mireTarget(3);
+  let m = mark();
+  obs("weights", "Tester");
+  const inside = await waitEvent("weights", (d) => d.player === "Tester", 40, m);
+  check("mire_context", inside && inside.mire === true && inside.eff === 4 && inside.mood < 0.6,
+    inside ? `mire=${inside.mire} stage=${inside.stage} eff=${inside.eff} mood=${inside.mood.toFixed(2)}` : "no reply");
+  check("mire_watcher_eligible_there", inside && inside.weights.mire_watcher > 0, inside ? JSON.stringify(inside.weights) : "");
+  check("mire_stage_bonus", inside && inside.weights.pursuit > 0, inside ? JSON.stringify(inside.weights) : "");
+  p.teleport({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
+  await wait(10);
+  m = mark();
+  obs("weights", "Tester");
+  const outside = await waitEvent("weights", (d) => d.player === "Tester", 40, m);
+  check("mire_only_there", outside && outside.mire === false && outside.eff === 3 && !outside.weights.mire_watcher && !outside.weights.pursuit,
+    outside ? `eff=${outside.eff} ${JSON.stringify(outside.weights)}` : "no reply");
+  ow().runCommand("time set noon");
+  // the grace period ends after 30 s in the Mire, however short the time played
+  p = await mireTarget(0);
+  obs("set", "graceMinutes", "20");
+  obs("reset", "Tester");
+  await wait(5);
+  m = mark();
+  const t0 = system.currentTick;
+  obs("pause", "off");
+  const g = await waitEvent("grace", (d) => d.player === "Tester", 20 * 100, m);
+  obs("pause", "on");
+  obs("abort");
+  obs("set", "graceMinutes", "0");
+  const secs = (system.currentTick - t0) / 20;
+  check("mire_grace_ends_early", g && g.mire === true && secs >= 25 && g.play < 120, g ? `after ${secs.toFixed(0)} s, played ${g.play} s` : "grace never ended");
+  await observerGone(200);
+};
+
+/**
+ * Bring it up (start() sends the trigger / reads the page) until it stands where the player can see it: the Mire is
+ * thick with trees, and as a last resort it stands deep among them. @returns {Promise<{e:any, ev:any, m:number, tries:number}>}
+ */
+async function mireAppearance(start, tries = 4) {
+  let r = { e: undefined, ev: undefined, m: mark(), tries: 0 };
+  for (let i = 1; i <= tries; i++) {
+    const m = mark();
+    start();
+    const e = await waitObserver(100);
+    const ev = since(m, "mire").find((d) => d.what === "watcher");
+    r = { e, ev, m, tries: i };
+    if (!e || !ev || ev.los || i === tries) return r;
+    log(`[OTEST] mire appearance ${i}: deep among the trees (no line of sight), again`);
+    obs("abort");
+    await observerGone(100);
+    // the aborted appearance counts for its cooldown, which a torn page respects
+    obs("reset", "Tester");
+    obs("stage", "1", "Tester");
+    await wait(5);
+  }
+  return r;
+}
+
+TESTS.mire_watcher = async () => {
+  // out among the weeping trees it stands and watches; look at it and it is gone in black mist
+  let p = await mireTarget(1);
+  if (!check("mire_watcher_ground", !!p)) return;
+  let { e, ev, m, tries } = await mireAppearance(() => obs("trigger", "mire_watcher", "Tester"));
+  if (!check("mire_watcher_appears", !!e, `${(since(m, "end")[0] || {}).outcome} tries=${tries}`)) return;
+  const d = hdist(e.location, p.location);
+  check("mire_watcher_distance", d >= 11 && d <= 49, `d=${d.toFixed(1)} why=${ev ? ev.why : "?"} los=${ev ? ev.los : "?"} tries=${tries}`);
+  check("mire_watcher_in_the_mire", ow().getBiome(e.location)?.id === MIRE_BIOME, ow().getBiome(e.location)?.id);
+  check("mire_watcher_state", ["watch", "peek"].includes(e.getProperty("observer:state")), e.getProperty("observer:state"));
+  await lookAtObserverFor(p, 50);
+  // it holds your gaze a moment, then it is gone
+  const end = await endOf("mire_watcher", m, 200);
+  check("mire_watcher_seen", end && end.outcome === "seen_in_the_mire", end ? end.outcome : "no end");
+  check("mire_watcher_mist", since(m, "fx").some((x) => x.what === "vanish" && x.why === "mire"), JSON.stringify(since(m, "fx")));
+  check("mire_discovery_its_home", discovered(m, "its_home"));
+  await observerGone(100);
+  // come within 9 blocks (further than anywhere else: 4-8) and it does not wait
+  p = await mireTarget(1);
+  m = mark();
+  obs("trigger", "mire_watcher", "Tester");
+  e = await waitObserver(100);
+  if (!check("mire_watcher_again", !!e, (since(m, "end")[0] || {}).outcome)) return;
+  await wait(20);
+  const at = { ...e.location };
+  const dir = { x: p.location.x - at.x, z: p.location.z - at.z };
+  const len = Math.hypot(dir.x, dir.z) || 1;
+  const to = { x: at.x + (dir.x / len) * 8.6, y: at.y, z: at.z + (dir.z / len) * 8.6 };
+  // face away so only the distance can set it off
+  p.teleport(to, { facingLocation: { x: to.x + dir.x, y: to.y + 1.6, z: to.z + dir.z } });
+  const t1 = system.currentTick;
+  const end2 = await endOf("mire_watcher", m, 80);
+  check("mire_watcher_too_close_at_9", end2 && end2.outcome === "too_close" && system.currentTick - t1 <= 40,
+    `${end2 ? end2.outcome : "none"} at ${hdist(p.location, at).toFixed(1)} blocks after ${system.currentTick - t1} ticks`);
+  await observerGone(100);
+};
+
+TESTS.mire_pages = async () => {
+  // a torn page may bring it up behind you (forced here; in play one new page in five)
+  let p = await mireTarget(1, 90);
+  if (!check("mire_pages_ground", !!p)) return;
+  let { e, ev, m, tries } = await mireAppearance(() => {
+    obs("mirepage", "clear", "Tester");
+    obs("mirepage", "3", "Tester");
+  });
+  if (!check("mire_page_brings_it", !!e && ev && ev.why === "page", `${JSON.stringify(since(m, "end"))} tries=${tries}`)) return;
+  let d = hdist(e.location, p.location);
+  check("mire_page_behind", offView(p, e.location) >= 110 && d >= 7 && d <= 31, `off view ${offView(p, e.location).toFixed(0)} deg d=${d.toFixed(1)} los=${ev.los}`);
+  await lookAtObserverFor(p, 50);
+  let end = await endOf("mire_watcher", m, 200);
+  check("mire_page_seen", end && end.outcome === "seen_in_the_mire", end ? end.outcome : "no end");
+  await observerGone(100);
+  // the last of the eight always does, right behind you, even straight after the last one
+  obs("abort");
+  await observerGone(100);
+  p.teleport(p.location, { facingLocation: { x: p.location.x + 30, y: p.location.y + 1.6, z: p.location.z } });
+  await wait(5);
+  ({ e, ev, m, tries } = await mireAppearance(() => obs("mirepage", "all", "Tester")));
+  if (!check("mire_all_pages_bring_it", !!e && ev && ev.why === "all_pages", `${JSON.stringify(since(m, "end"))} tries=${tries}`)) return;
+  d = hdist(e.location, p.location);
+  check("mire_all_pages_behind", offView(p, e.location) >= 110 && d >= 7 && d <= 21, `off view ${offView(p, e.location).toFixed(0)} deg d=${d.toFixed(1)} los=${ev.los}`);
+  await lookAtObserverFor(p, 50);
+  end = await endOf("mire_watcher", m, 200);
+  check("mire_all_pages_seen", end && end.outcome === "seen_in_the_mire", end ? end.outcome : "no end");
+  await observerGone(100);
+  obs("mirepage", "clear", "Tester");
+  p.teleport({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
+  await wait(10);
+};
+
 // ------------------------------------------------------------------ tick-rate monitor
 let tpsMin = 99;
 let lastMs = Date.now(), lastTick = system.currentTick;

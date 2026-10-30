@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "mire_moss_side",
+    "metalness_emissive_roughness": "mire_moss_side_mer",
+    "heightmap": "mire_moss_side_height"
+  }
+}

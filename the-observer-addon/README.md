@@ -6,7 +6,8 @@
 The Observer is a tall, mouthless figure (the supplied *Hollow Dweller* model and animations) that studies one player
 at a time. It follows you across the overworld, caves, water, sky bases, the Nether and the End; it imitates your
 footsteps and your habits; it rearranges your home, seals the tunnel behind you, changes your familiar routes and takes
-your light — always deliberately, always reversibly — and watches what you do about it.
+your light — always deliberately, always reversibly — and watches what you do about it. It has a home: the
+**Weeping Mire**, a swamp of weeping trees and bone roots where it watches from between the trunks.
 
 ![animation states](docs/media/animation_states.png)
 
@@ -18,23 +19,32 @@ your light — always deliberately, always reversibly — and watches what you d
 4. Play. Nothing happens for the first 12 minutes on the Standard preset. Details: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md).
 
 ## Status
-Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.0.6 integration run passed 283 of
-283 checks (69 test groups) with no content-log or script errors, restart recovery passed, and the server held 20 TPS
+Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.0.7 integration run passed 306 of
+306 checks (72 test groups) with no content-log or script errors, restart recovery passed, and the server held 20 TPS
 with and without the add-on. A separate run on a fresh world with every experiment switched off (and no test kit)
-loaded everything with zero errors — no experiments are needed. The first load in a game client reported three resource-pack errors, which are fixed in this build and now
+loaded everything with zero errors — no experiments are needed; the same holds for the merged Weeping Mire, which
+generates on a fresh world with every experiment off. The first load in a game client reported three resource-pack errors, which are fixed in this build and now
 caught by a comparison with Mojang's vanilla files. How it looks and sounds in a client still has to be confirmed: see
 [docs/TEST_REPORT.md](docs/TEST_REPORT.md) §6 and [docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md).
 
 ## What's inside
 * **One physical Observer** built on the supplied model: 5 supplied clips + 8 supplemental clips (stalking walk, peek,
-  recoil, stoop crouch for low ceilings, head tracking, and in 1.0.6 two floating clips and a climb), state-driven
+  recoil, stoop crouch for low ceilings, head tracking, and in 1.0.6 two floating clips — the drift twitching and
+  cracking in jerks — and a climb), state-driven
   animation controllers, eyes that glow in the
   dark, a glowing wisp aura, a crimson vanish burst, and its own voice, arrival, notice, shriek and vanish sounds.
 * **A horror director**: grace period, five escalating stages, per-player and global cooldowns, quiet periods,
   recovery after deaths, anti-repetition, context-weighted selection, fair multiplayer targeting.
-* **22 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*)
+* **Its home, the Weeping Mire** (1.0.7): the Weeping Mire biome (your own add-on, merged in unchanged) generates in
+  the overworld — weeping trees and giant weeping trees, bone roots and bone grass, mire moss, silt ponds, abandoned
+  cabins, black fog, wind gusts and falling leaves, and eight torn pages to find. The Mire's watcher is now the Observer
+  itself: it stands among the trees 20–48 blocks off and is gone in black mist when you look at it or come within 9
+  blocks; a torn page may bring it up behind you, and the last of the eight always does. In the Mire it comes sooner
+  and more often: the grace period ends after 30 seconds there, the gaps between encounters are shorter, and it acts as
+  if you were one stage further along.
+* **23 encounter types**, including three signature encounters (*Out of Step*, *Someone Was Home*, *The Closed Path*)
   and *Closer Each Time* (it only moves while unwatched), *It's Inside* (the dark corner of your own room), *Signs*
-  (by your bed or door) and *Borrowed Eyes* (a creature that turns its head to follow you); a lunge when it is spotted,
+  (by your bed or door), *Borrowed Eyes* (a creature that turns its head to follow you) and *In the Mire*; a lunge when it is spotted,
   a fast, relentless attack once it reaches you, a too-close reaction, and harmless shadows in taiga forests that
   vanish when looked at, plus 17 further designed concepts — see [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md).
 * **The floating chase** (1.0.6): in *Breathing Room* it no longer runs — it floats a block off the ground with no
@@ -49,15 +59,15 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   effigies, temporary openings, animals turning) through a **restoration ledger**: recorded, locked, reload-safe,
   dupe-proof, and the player's own changes always win.
 * **Bounded memory** of each player: breadcrumbs, home, familiar routes, habits, a favoured bearing.
-* **Progression**: 23 discoveries written in the Field Notes; Tally Chalk, Witness Lens, Ward Lantern, Vestiges, and
+* **Progression**: 24 discoveries written in the Field Notes; Tally Chalk, Witness Lens, Ward Lantern, Vestiges, and
   the **Flare** (thrown; its glare drives it off within 16 blocks, even mid-attack); the Vigil as the long-term goal;
   three post-ending modes.
 * **Config Wheel**: one item for status, a harmless *See it now* preview of the creature and all its animations,
   start-now, presets (Atmosphere / Standard / Relentless), every individual setting (frequency, aggression,
   manipulation, sudden scares, camera effects, captions, grace period, and on/off switches for each 1.0.5 feature), a
   toggle per encounter type, *Test an encounter*, and *Undo its changes*.
-* **44 original synthesized sounds**, 10 particles (two from user-supplied sprite sheets), 3 fogs, original item and
-  block art.
+* **47 original synthesized sounds**, 10 particles of its own (two from user-supplied sprite sheets), 3 fogs, original
+  item and block art; plus the Weeping Mire's 12 blocks, 5 particles, fog, lighting, colour grading and water.
 * **No experiments**: stable script APIs only; verified on a fresh world with every experiment toggle off.
 
 ## Documentation
@@ -65,7 +75,7 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
 |---|---|
 | [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md) | installing, tools, settings, accessibility, multiplayer, removal |
 | [docs/DESIGN.md](docs/DESIGN.md) | identity, rules, systems, manipulation specs, director, signature encounters |
-| [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md) | the encounter library (22 implemented, 17 planned) |
+| [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md) | the encounter library (23 implemented, 17 planned) |
 | [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) | architecture, adding encounters, testing, tuning |
 | [docs/FEATURE_MATRIX.md](docs/FEATURE_MATRIX.md) | feature → files → trigger → expected → test → status |
 | [docs/TEST_REPORT.md](docs/TEST_REPORT.md) | what was tested, how, and the results; manual in-game procedure |

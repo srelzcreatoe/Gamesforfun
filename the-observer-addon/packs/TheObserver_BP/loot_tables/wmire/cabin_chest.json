@@ -1,0 +1,184 @@
+{
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "set_book_contents",
+              "author": "E. Harlow",
+              "title": "Surveyor's Log",
+              "pages": [
+                "Day 1.\nCrown survey, southern\nwetlands. The map shows\nopen marsh here. The map\nis wrong. The trees are\nblack to the core and they\nweep. No birdsong at all.",
+                "Day 3.\nThe roots are not wood.\nI cut one to check the\ngrain. It is bone. Old,\nyellowed, hard as stone.\nI did not cut another.",
+                "Day 6.\nA figure at the edge of\nthe fog, between two\ntrunks. Tall. Thin. Too\nstill. I raised my glass\nand it was simply gone.\nOnly black smoke, sinking.",
+                "Day 9.\nIt is there whenever I\nam not looking. I have\nstarted to feel it the way\nyou feel a draught.\n\nIt has been closer\neach time.",
+                "Day 11.\nBuilt this shack for\nshelter. Left the chart\non the desk.\n\nIf you are reading this,\ndo not finish my survey.\nThe mire does not want\nto be measured."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "set_book_contents",
+              "author": "Tobias Wren",
+              "title": "Tally",
+              "pages": [
+                "came for the\nblack timber.\nbest price in three\ncounties. nobody said\nwhy.\n\nIIII",
+                "IIII IIII\n\nwind came through again\ntonight. all at once,\nlike the whole forest\nbreathed in. leaves\neverywhere. then nothing.",
+                "IIII IIII IIII\n\nsaw it by the water.\ntwo white lights where\na face should be.\nit did not blink.\nneither did I.",
+                "IIII IIII IIII II\n\nit only moves when you\nlook away. so I stopped\nlooking away.\n\nI have not slept.",
+                "it was gone in a puff\nof black mist when I\nwalked at it. the ground\nwhere it stood was cold\nas a cellar.\n\nI am going home\ntomorrow."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "set_book_contents",
+              "author": "Unknown",
+              "title": "Field Notes",
+              "pages": [
+                "Flora of the mire:\n\n- black weeping tree.\n  no sap. the wood is\n  cold even at noon.\n- pale grass. dry as\n  paper. crumbles.\n- small white stalks\n  shaped like crosses.",
+                "Fauna:\n\nnone.\n\nNo deer, no frogs, no\ninsects. Even the\ncrows turn back at\nthe tree line.",
+                "Water: dark. Still.\nDoes not reflect the\nsky properly. Shows the\ntrees, but not me.\n\nI checked twice.",
+                "Note to self:\nthe roots grip the\nground like hands. They\nwere not like this\nyesterday. They were\nfurther from the hut."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "set_book_contents",
+              "author": "J.",
+              "title": "To Mara",
+              "pages": [
+                "Mara,\n\nI found the cabin you\nwrote about. The door\nwas gone. Your boots\nwere by the stove.\nYour journal was not.",
+                "I keep finding pages.\nNailed nowhere, just\nlying in the moss like\nsomeone dropped them\nfor me to find.\n\nThey are in your hand.",
+                "Every page I pick up,\nthe wind dies down.\nEvery time, the same.\nLike the whole wood is\nholding its breath to\nhear me read.",
+                "I saw you tonight. At\nthe edge of the water.\nYou were too tall.\nYou had no face.\n\nI am sorry, Mara.\nI am coming to find you."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:written_book",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "set_book_contents",
+              "author": "Whoever is left",
+              "title": "Rules",
+              "pages": [
+                "RULES OF THE MIRE\n\n1. Do not stare at it.\n   It notices.\n2. Do not walk toward\n   it. It will not be\n   there, and then it\n   will be behind you.",
+                "3. When the wind stops,\n   stop with it.\n4. Count the trees each\n   morning. If there is\n   one more, leave.\n5. Never take the pages.\n   Read them, put them\n   back.",
+                "6. It cannot hurt you.\n   That is not the same\n   as being safe.\n\n7. If you find all of\n   the pages, it will\n   come to find you."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": {
+        "min": 2,
+        "max": 4
+      },
+      "entries": [
+        {
+          "type": "item",
+          "name": "wmire:torn_page",
+          "weight": 6
+        },
+        {
+          "type": "item",
+          "name": "minecraft:paper",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 1,
+                "max": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:bone",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:string",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:black_candle",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "name": "minecraft:ink_sac",
+          "weight": 4
+        },
+        {
+          "type": "item",
+          "name": "minecraft:feather",
+          "weight": 3
+        },
+        {
+          "type": "item",
+          "name": "minecraft:compass",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}

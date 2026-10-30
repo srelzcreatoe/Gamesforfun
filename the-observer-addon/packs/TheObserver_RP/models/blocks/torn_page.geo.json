@@ -1,0 +1,98 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.wmire.torn_page",
+        "texture_width": 16,
+        "texture_height": 16
+      },
+      "bones": [
+        {
+          "name": "page",
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -6,
+                0,
+                -7
+              ],
+              "size": [
+                12,
+                0.1,
+                14
+              ],
+              "uv": {
+                "up": {
+                  "uv": [
+                    2,
+                    1
+                  ],
+                  "uv_size": [
+                    12,
+                    14
+                  ]
+                },
+                "down": {
+                  "uv": [
+                    2,
+                    1
+                  ],
+                  "uv_size": [
+                    12,
+                    14
+                  ]
+                },
+                "north": {
+                  "uv": [
+                    2,
+                    1
+                  ],
+                  "uv_size": [
+                    12,
+                    1
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    2,
+                    14
+                  ],
+                  "uv_size": [
+                    12,
+                    1
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    2,
+                    1
+                  ],
+                  "uv_size": [
+                    1,
+                    14
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    13,
+                    1
+                  ],
+                  "uv_size": [
+                    1,
+                    14
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

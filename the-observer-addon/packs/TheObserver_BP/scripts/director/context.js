@@ -3,6 +3,7 @@
 import { world, GameMode } from "@minecraft/server";
 import { V, safe, dimIndex } from "../core/util.js";
 import { motion, primaryHaunt, routeFamiliarity } from "../observer/memory.js";
+import { inMire } from "../mire/mire.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
 
@@ -27,7 +28,11 @@ import { motion, primaryHaunt, routeFamiliarity } from "../observer/memory.js";
  * @property {number} hauntDist
  * @property {number} familiarity  distinct visits to the current route cell
  * @property {number} hp           health fraction
+ * @property {boolean} mire        in the Weeping Mire, its home
  */
+
+/** The stage that decides which encounters fit: one more in the Mire, its home. @param {{stage:number}} s @param {{mire?:boolean}} [c] */
+export const effectiveStage = (s, c) => (s.stage >= 1 && c?.mire ? Math.min(5, s.stage + 1) : s.stage);
 
 /** @param {Player} p @returns {Ctx} */
 export function context(p) {
@@ -69,15 +74,17 @@ export function context(p) {
     hauntDist: haunt ? V.hdist(p.location, haunt.center) : Infinity,
     familiarity: routeFamiliarity(p),
     hp,
+    mire: d === 0 && !!safe(() => inMire(p), false),
   };
 }
 
-/** Darkness/danger mood factor used to bias encounter timing (0.6..1.25). */
+/** Darkness/danger mood factor used to bias encounter timing (0.45..1); its home, the Mire, shortens every gap. */
 export function moodFactor(c) {
   let f = 1;
+  if (c.mire) f *= 0.7;
   if (c.night) f *= 0.8;
   if (c.underground) f *= 0.85;
   if (c.light <= 6) f *= 0.9;
   if (c.d !== 0) f *= 0.9;
-  return Math.max(0.6, f);
+  return Math.max(c.mire ? 0.45 : 0.6, f);
 }

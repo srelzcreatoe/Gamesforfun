@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "weeping_bark",
+    "metalness_emissive_roughness": "weeping_bark_mer",
+    "heightmap": "weeping_bark_height"
+  }
+}

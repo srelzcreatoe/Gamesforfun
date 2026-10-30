@@ -1,0 +1,53 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:single_block_feature": {
+    "description": {
+      "identifier": "wmire:pond_deep_feature"
+    },
+    "places_block": "minecraft:water",
+    "enforce_survivability_rules": false,
+    "enforce_placement_rules": false,
+    "may_replace": [
+      "wmire:mire_moss",
+      "wmire:mire_soil",
+      "wmire:mire_silt",
+      "minecraft:dirt",
+      "minecraft:grass_block"
+    ],
+    "may_attach_to": {
+      "min_sides_must_attach": 4,
+      "sides": [
+        "wmire:mire_moss",
+        "wmire:mire_soil",
+        "wmire:mire_silt",
+        "wmire:bone_root",
+        "minecraft:dirt",
+        "minecraft:grass_block",
+        "minecraft:coarse_dirt",
+        "minecraft:mud",
+        "minecraft:clay",
+        "minecraft:gravel",
+        "minecraft:sand",
+        "minecraft:stone",
+        "minecraft:water"
+      ],
+      "top": [
+        "minecraft:water"
+      ],
+      "bottom": [
+        "wmire:mire_moss",
+        "wmire:mire_soil",
+        "wmire:mire_silt",
+        "wmire:bone_root",
+        "minecraft:dirt",
+        "minecraft:grass_block",
+        "minecraft:coarse_dirt",
+        "minecraft:mud",
+        "minecraft:clay",
+        "minecraft:gravel",
+        "minecraft:sand",
+        "minecraft:stone"
+      ]
+    }
+  }
+}

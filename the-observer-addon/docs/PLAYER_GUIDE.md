@@ -15,12 +15,18 @@ Minecraft imports both packs. Then:
    automatically (it is a dependency); if not, also activate **The Observer (Resources)** under *Resource Packs*.
 2. Join the world. A chat message confirms the add-on is running, and the first player (or any operator) receives the
    **Observer Config Wheel**.
-3. Play. Nothing happens during the grace period (12 minutes of play on the Standard preset). To see the creature
+3. Play. Nothing happens during the grace period (12 minutes of play on the Standard preset; half a minute in the
+   Weeping Mire, its home). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from an earlier version:** import the new `.mcaddon` (version 1.0.6). If a world still uses the old copy, open the world's
-settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.0.6 packs again. Your
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.0.7). If a world still uses the old copy, open the world's
+settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.0.7 packs again. Your
 progress is kept; the new options below start switched on.
+
+**The Weeping Mire is part of The Observer now (1.0.7).** If a world also has the stand-alone *Weeping Mire* packs
+active, deactivate them there (both behaviour and resource pack): The Observer brings the same biome, blocks and pages
+with the same names, and two copies would clash. Blocks you already placed from the Mire stay as they are. In an
+existing world the Mire only appears in land you have not explored yet (Minecraft never regenerates terrain).
 
 **Existing worlds:** back the world up first, then add the packs as above. The add-on only changes blocks in small,
 recorded, reversible ways (see "Your builds are safe" below).
@@ -49,6 +55,13 @@ and it misses. It is faster than you can sprint and it climbs, so do not try to 
 flare, a held gaze before it reaches you, or a friend watching it are your outs. Walk right up to it and it usually tears apart before
 you can touch it — but now and then it strikes first. On Low aggression it strikes once (never more than 70 % of
 your health while you are above half); on "Never attacks" and on Peaceful it never hurts you.
+
+**Its home is the Weeping Mire**, a swamp of black-barked weeping trees, bone roots and silt ponds under a black fog,
+where the wind gusts and leaves fall. Out there it stands among the trees and watches you; look at it, or come within
+nine blocks, and it is gone in black mist. Torn pages lie on the ground — eight in all. Reading one sometimes brings it
+up behind you, and the last of the eight always does. In the Mire it does not wait for you to settle in: the grace
+period ends after half a minute there, it comes sooner and more often, and it behaves as if you were one stage further
+along. To find the Mire with cheats on: `/locate biome wmire:weeping_mire`.
 
 **In taiga forests** you may see it far off between the trunks, staring. Look straight at it and it is gone —
 and somewhere, the cave answers. Those shadows are harmless (they can be switched off in the settings).

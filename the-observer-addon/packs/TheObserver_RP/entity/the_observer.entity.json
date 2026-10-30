@@ -47,7 +47,8 @@
       },
       "sound_effects": {
         "windup": "observer.windup",
-        "recoil": "observer.fabric"
+        "recoil": "observer.fabric",
+        "crack": "observer.crack"
       },
       "render_controllers": [
         "controller.render.observer.the_observer",

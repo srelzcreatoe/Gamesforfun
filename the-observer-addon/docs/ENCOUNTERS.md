@@ -8,7 +8,7 @@ Implemented encounters live in `packs/TheObserver_BP/scripts/encounters/` (one f
 the director. Concepts marked *planned* are design-ready but not implemented in 1.0.0 — they are not advertised as
 features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stage at which the director may choose it.
 
-## Implemented (22 mechanically distinct types)
+## Implemented (23 mechanically distinct types)
 
 | # | Encounter (file) | Tier / Stage | Context | Location | Cue | Intention | Manipulation | Player response | Consequence |
 |---|---|---|---|---|---|---|---|---|---|
@@ -34,6 +34,7 @@ features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stag
 | 20 | **It's Inside** (`inside`) | 3 / 4 | at home (within 14 blocks of your main haunt) at night, indoors under a roof | the darkest spot (light ≤ 7) of the same room, 3–10 blocks away, out of your current view | nothing: it arrives silently; its eyes glow | to be found where you feel safe | — | light the room (light 10+ where it stands: a torch, a flare) / stare at it 2 s / walk right up to it (2–4 blocks) | it recoils and tears apart / tilts its head and leaves / tears apart (*It Was Inside*). At most every 60 min (3 in-game nights); never inside a Ward Lantern's radius |
 | 21 | **Signs** (`sign`) | 2 / 3, manipulation ≥ 1 | within 48 blocks of your home | an empty floor cell beside your bed (spawn point) or a door of the home, out of everyone's sight | a standing sign, waxed, its text facing the bed or door: your name, "I was here", "Don't turn around", "Again tomorrow", the time you last slept, "You left the door open", how often you saw it | to show it was there | M9 sign (ledger, drops nothing) | read it / break it | read → noticed; it disappears after 20 minutes. At most every 60 min (3 in-game days) |
 | 22 | **Borrowed Eyes** (`borrowed_eyes`) | 1 / 2 | an animal, villager, trader or zombie/skeleton 6–24 blocks ahead, in view | the creature | it stops what it is doing and its head follows you, wherever you go, for 7–11 s | to watch through something else | none (heavy slowness, rotation only) | look back at it | held 2 s: it holds a moment longer, then walks on as if nothing happened. At most every 10 min |
+| 23 | **In the Mire** (`mire_watcher`) | 1 / 1 | in the Weeping Mire, its home (weight 16 there, 0 anywhere else); also after a torn page | among the weeping trees 20–48 blocks away, peeking from behind a trunk when there is one: where you can see it first, 12–24 blocks if the trees allow nothing further, deep among them as a last resort; after a torn page 16–24 blocks behind you, after the last of the eight 12–14 (closer, from 8, if the trees allow nothing further) | a still figure between the trunks | the Mire's old watcher, now the Observer itself: to be seen at home | — | look at it ~1 s / walk up to it / ignore it | it holds your gaze 1.5–2.5 s, then is gone in black mist with a cave sound (*Its Home*); from stage 2 it may lunge instead; within 9 blocks it does not wait (too close, or a strike); ignored, it fades after 90–180 s |
 
 **Lunge (shared reaction, stage 2+).** When it is noticed in *The Figure at the Edge*, *Always the Same Place* or *Echo
 Ahead*, it may shriek and come at the player in jerks (~14 blocks/s), then tear apart right in front of them. Chance per
@@ -41,8 +42,15 @@ sighting: 25 % at stage 2; 50 % from stage 3 on Standard scares, 30 % on Rare; n
 "never". Its own cooldown: 5 min (Standard scares) / 10 min (Rare). On High aggression it does not stop at a scare: it
 keeps attacking.
 
-**Too close (shared reaction).** Walk up to it (4–8 blocks, varying) and it tears apart after a short random moment —
-or, now and then (stage 2+, ~30 %, at most every 75 s), strikes once first.
+**Too close (shared reaction).** Walk up to it (4–8 blocks, varying; 9 in the Weeping Mire; room-sized in *It's
+Inside*) and it tears apart after a short random moment — or, now and then (stage 2+, ~30 %, at most every 75 s),
+strikes once first.
+
+**Its home: the Weeping Mire (1.0.7).** In the Mire the director treats the player as one stage further along (so the
+chase, *The Closed Path* and *It's Inside* can come from stage 3, and the silence before attacks from stage 3), shortens
+every gap between encounters (mood ×0.7, floor 0.45 instead of 0.6), and ends the grace period after 30 s spent there.
+*In the Mire* is its most likely encounter there. A torn page that is new to the player brings it up behind them one
+time in five; the last of the eight always does, whatever its cooldown.
 
 **Climbing after you (1.0.6, shared).** In the chase, the relentless attack and *Closer Each Time*: when the player
 stands 2.5+ blocks above it within 7 blocks (a pillar, a ledge, a wall top, a ladder, a cliff) it climbs the open face

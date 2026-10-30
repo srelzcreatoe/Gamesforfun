@@ -1,0 +1,21 @@
+{
+  "format_version": "1.21.130",
+  "minecraft:structure_set": {
+    "description": {
+      "identifier": "wmire:abandoned_cabins"
+    },
+    "placement": {
+      "type": "minecraft:random_spread",
+      "salt": 30971155,
+      "spacing": 9,
+      "separation": 3,
+      "spread_type": "linear"
+    },
+    "structures": [
+      {
+        "structure": "wmire:abandoned_cabin",
+        "weight": 1
+      }
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "wmire:weeping_wooden_hoe"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "##",
+      " S",
+      " S"
+    ],
+    "key": {
+      "#": {
+        "item": "wmire:weeping_planks"
+      },
+      "S": {
+        "item": "minecraft:stick"
+      }
+    },
+    "unlock": [
+      {
+        "item": "wmire:weeping_planks"
+      }
+    ],
+    "result": {
+      "item": "minecraft:wooden_hoe",
+      "count": 1
+    }
+  }
+}

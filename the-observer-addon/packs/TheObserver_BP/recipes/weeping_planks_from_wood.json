@@ -1,0 +1,28 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "wmire:weeping_planks_from_wood"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "#"
+    ],
+    "key": {
+      "#": {
+        "item": "wmire:weeping_wood"
+      }
+    },
+    "unlock": [
+      {
+        "item": "wmire:weeping_wood"
+      }
+    ],
+    "result": {
+      "item": "wmire:weeping_planks",
+      "count": 4
+    }
+  }
+}

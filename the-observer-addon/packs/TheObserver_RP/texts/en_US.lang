@@ -414,3 +414,24 @@ observer.enc.test_float=§cThe floating chase§r
 observer.enc.test_float.where=room ahead; it floats at you a block off the ground (surging when you look away, drifting while you watch) and tears apart 3 blocks short; no damage
 observer.enc.test_climb=§cClimbing after you§r
 observer.enc.test_climb.where=stand on something 3+ blocks high (pillar up, a roof, a ledge); it comes from below and climbs up after you, then lets go; no damage
+
+## ---------------------------------------------------------------- 1.0.7: the Weeping Mire, its home
+observer.enc.mire_watcher=In the Mire
+observer.enc.mire_watcher.where=the Weeping Mire, its home: it stands among the weeping trees 20-48 blocks away. Look at it and it is gone in black mist; come within 9 blocks and it does not wait. A torn page may bring it up behind you (the last page always does)
+observer.disc.its_home.title=Its Home
+observer.disc.its_home.text=The trees out there weep. Black bark, roots like bones. It was standing among them as if it had always stood there, not following me, not waiting for me. Living there. When I looked back there was only black mist where it stood, and the ground was cold.
+observer.disc.its_home.lesson=The Weeping Mire is its home. There it comes sooner and more often, and it does not wait for you to settle in. The torn pages are about it.
+
+## ---------------------------------------------------------------- Weeping Mire (merged)
+tile.wmire:mire_moss.name=Mire Moss
+tile.wmire:mire_soil.name=Mire Soil
+tile.wmire:mire_silt.name=Mire Silt
+tile.wmire:weeping_wood.name=Weeping Wood
+tile.wmire:weeping_log.name=Weeping Log
+tile.wmire:weeping_planks.name=Weeping Planks
+tile.wmire:bone_root.name=Bone Root
+tile.wmire:weeping_leaves.name=Weeping Leaves
+tile.wmire:weeping_tendril.name=Weeping Tendril
+tile.wmire:bone_grass.name=Bone Grass
+tile.wmire:bone_sprout.name=Bone Sprout
+tile.wmire:torn_page.name=Torn Page

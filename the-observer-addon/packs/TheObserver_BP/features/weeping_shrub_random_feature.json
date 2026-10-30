@@ -1,0 +1,22 @@
+{
+  "format_version": "1.13.0",
+  "minecraft:weighted_random_feature": {
+    "description": {
+      "identifier": "wmire:weeping_shrub_random_feature"
+    },
+    "features": [
+      [
+        "wmire:weeping_shrub_1_feature",
+        1
+      ],
+      [
+        "wmire:weeping_shrub_2_feature",
+        1
+      ],
+      [
+        "wmire:weeping_shrub_3_feature",
+        1
+      ]
+    ]
+  }
+}

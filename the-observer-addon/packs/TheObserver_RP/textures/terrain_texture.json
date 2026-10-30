@@ -18,6 +18,45 @@
       "textures": [
         "textures/blocks/observer/ward_lantern"
       ]
+    },
+    "wmire_moss_top": {
+      "textures": "textures/blocks/wmire/mire_moss_top"
+    },
+    "wmire_moss_side": {
+      "textures": "textures/blocks/wmire/mire_moss_side"
+    },
+    "wmire_soil": {
+      "textures": "textures/blocks/wmire/mire_soil"
+    },
+    "wmire_silt": {
+      "textures": "textures/blocks/wmire/mire_silt"
+    },
+    "wmire_bark": {
+      "textures": "textures/blocks/wmire/weeping_bark"
+    },
+    "wmire_log_top": {
+      "textures": "textures/blocks/wmire/weeping_log_top"
+    },
+    "wmire_planks": {
+      "textures": "textures/blocks/wmire/weeping_planks"
+    },
+    "wmire_bone_root": {
+      "textures": "textures/blocks/wmire/bone_root"
+    },
+    "wmire_leaves": {
+      "textures": "textures/blocks/wmire/weeping_leaves"
+    },
+    "wmire_tendril": {
+      "textures": "textures/blocks/wmire/weeping_tendril"
+    },
+    "wmire_bone_grass": {
+      "textures": "textures/blocks/wmire/bone_grass"
+    },
+    "wmire_bone_sprout": {
+      "textures": "textures/blocks/wmire/bone_sprout"
+    },
+    "wmire_torn_page": {
+      "textures": "textures/blocks/wmire/torn_page"
     }
   }
 }

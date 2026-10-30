@@ -163,9 +163,20 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Over the top of a plateau | `climb.plan` (edge search), `climb.after` | player back from the edge (a roof) | climbs the nearest face, pulls itself over, comes across | `climb_over_the_top`, `climb_over_reaches_you` | ✅ Runtime |
 | Closer Each Time clings | `encounters/creeping.js` | player up on something, unwatched | next time you look it hangs on the wall below you | — (shares `climb.plan`) | ⚪ Implemented, not asserted |
 | Test entries | `encounters/tests.js` (`test_float`, `test_climb`) | Config Wheel → Test an encounter | harmless floating chase; climbs to you and lets go | `float_entry_surges_and_ends`, `climb_test_outcome` | ✅ Runtime |
+| Crackly drift | `tools/make_supplemental_anims.py` (`float_drift`: calm base, six one-frame twitches), `observer.crack` (3 variants, `tools/synth_sounds.py`) | the chase while watched | nearly still, broken by sudden snaps of the head, a shoulder, the body, a limb, each with a crack | validator, vanilla-shape check, `docs/media/1.0.6/float_drift_crackle.mp4` | 🟡 Static ✅ / client ❔ |
+
+## 1.0.7: the Weeping Mire, its home
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| The Mire generates, no experiments | merged by `tools/merge_weeping_mire.py`: BP `biomes/`, `features/`, `feature_rules/`, `worldgen/`, `structures/wmire/`, 12 `wmire:` blocks; RP biome client data, fog, atmospherics, lighting, colour grading, water, 5 particles, textures; RP capability `pbr` | new terrain | `locate biome wmire:weeping_mire` finds it; its blocks load | `mire_locate.txt` (`--require-no-experiments`), `mire_biome_generated` | ✅ Runtime (look ❔) |
+| Its old watcher is gone | the Mire's `wmire:watcher` entity and spawn rule are not merged | — | no such entity | `mire_locate.txt` (summon is refused) | ✅ Runtime |
+| In the Mire (its watcher) | `encounters/mire_watcher.js` | director in the Mire (weight 16) | stands 20–48 blocks off among the trees (12–24 if the trees allow nothing further); seen → holds the gaze, gone in black mist, *Its Home*; too close at 9 blocks; fades after 90–180 s | `mire_watcher_appears`, `mire_watcher_distance`, `mire_watcher_in_the_mire`, `mire_watcher_seen`, `mire_watcher_mist`, `mire_discovery_its_home`, `mire_watcher_too_close_at_9` | ✅ Runtime |
+| Torn pages bring it | `mire/mire.js` (`afterRead`), `main.js` hook → `director.tryManual` | reading a new page (one in five) / the eighth (always, as soon as it is free) | behind you 16–24 / 12–14 blocks (from 8 in thick trees), *it knows your name* | `mire_page_brings_it`, `mire_page_behind`, `mire_page_seen`, `mire_all_pages_bring_it`, `mire_all_pages_behind`, `mire_all_pages_seen` | ✅ Runtime (form ❔) |
+| More active at home | `director/context.js` (`mire`, `effectiveStage`, `moodFactor`), `director.js` (`ready`, `eligibleWeight`), `hush.wanted` | standing in the Mire | one stage further along; shorter gaps; grace ends after 30 s there | `mire_context`, `mire_watcher_eligible_there`, `mire_stage_bonus`, `mire_only_there`, `mire_grace_ends_early` | ✅ Runtime |
+| Wind, falling leaves, pages | `mire/mire.js` (ported), custom components `wmire:falling_leaves`, `wmire:readable_page` | in the Mire | gusts with leaves and streaks; leaves drift down; a page opens its note | blocks load with their components (`mire_locate.txt`, 0 errors) | 🟡 Runtime load ✅ / look ❔ |
 
 ## Performance
 | Measure | Result | Test |
 |---|---|---|
 | Server tick rate, 180 s walking player, director active (2 encounters ran) | 20.00 mean / 19.99 min TPS — identical to the add-on-free baseline (20.00 / 19.99) | `tps.txt` with and without `--no-addon` |
-| No content-log or script errors during full suite | 0 errors (final 1.0.6 run: 283/283 assertions, min 19.9 TPS between tests) | `run_bds.py` summary |
+| No content-log or script errors during full suite | 0 errors (final 1.0.7 run: 306/306 assertions, 72 test groups, min 19.8 TPS between tests) | `run_bds.py` summary |

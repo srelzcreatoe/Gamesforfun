@@ -7,7 +7,7 @@ here is projected or assumed. Where something could not be tested, it says so (�
 
 | Item | Value |
 |---|---|
-| Server | Bedrock Dedicated Server **1.26.52.3** for Linux (official build), fresh flat test world per run |
+| Server | Bedrock Dedicated Server **1.26.52.3** for Linux (official build), a fresh test world per run (seed 424242, normal world generation) |
 | Script APIs | `@minecraft/server` 2.10.0, `@minecraft/server-ui` 2.2.0 (stable, no experiments) |
 | Test players | GameTest simulated players (`@minecraft/server-gametest` 1.0.0-beta), used **only** by the separate test pack `tests/bds/testkit_BP` |
 | Harness | `tests/bds/run_bds.py`: installs both packs into the world, drives a scenario over the server console, collects `[OTEST]` lines and every content-log/script error |
@@ -94,7 +94,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 69 test groups (including setup and a status check) with 283 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 72 test groups (including setup and a status check) with 306 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -126,6 +126,9 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | 13 (1.0.6) | 277 | 1 | a taiga shadow was placed almost in the centre of the player's view and vanished the instant it appeared (an old intermittent: two of its eight search directions were only 25° off the view). Shadows now always appear 40°+ to the side and never within 35° of where the player looks; the shadow tests then ran 8 times in a row: 53 / 53 |
 | 14 (1.0.6) | 277 | 2 | test ordering only: a flare from the previous test was still burning (they last 8 s) when the learning test began, and it used up the creature's one learned flinch, so the test's own flare drove it off (correct behaviour). The flare tests now wait for every flare to burn out; the three flare tests twice back to back: 47 / 47 |
 | **final (1.0.6)** | **283** | **0** | all passed: the 1.0.5 suite plus the floating chase (surge, drift, the shoreline hover) and climbing (pillar, from the wall during the attack, over the top of a roof) |
+| targeted (1.0.7: the Weeping Mire) | 19 + 22 + 20 + 21 | 5 + 4 + 1 + 1 | runs 1–2: looking at its watcher never counted — under the weeping trees its head reached into the canopy, where it could see out but nobody could see it (placement now checks the line of sight both ways, for every encounter); run 1 also: the last torn page found it still busy and gave up (it now waits up to a minute); run 3: a test retry after an aborted appearance hit its cooldown (test-side); run 4: a torn page found no visible spot 16–24 blocks behind the player in thick trees (it now tries from 8 blocks before falling back), and the test then read the removed entity (test-side) |
+| targeted (1.0.7) | 26 | 0 | all passed |
+| **final (1.0.7)** | **306** | **0** | all passed on the first full run: the 1.0.6 suite (re-run because placement now checks the line of sight both ways) plus the Weeping Mire as its home (context, stage bonus, early grace, its watcher, too close at 9 blocks, the torn pages) |
 
 Run 7 (1.0.1): 1080 s, minimum TPS 19.8, 0 errors; after the version bump to 1.0.1, `setup wheel_welcome showcase
 toggles distant_watch status` was re-run: 19 / 19.
@@ -143,6 +146,16 @@ Final run (1.0.4): 1060 s, minimum TPS between tests 19.2, 0 content-log or scri
 Final run (1.0.5): 65 test groups, 1449 s, minimum TPS between tests 20.0, 0 content-log or script errors.
 
 Final run (1.0.6): 69 test groups, 1274 s, minimum TPS between tests 19.9, **0 content-log or script errors**.
+
+Final run (1.0.7): 72 test groups, 1547 s, minimum TPS between tests 19.8, **0 content-log or script errors**.
+
+**The Weeping Mire with no experiments (1.0.7):** `mire_locate.txt` without the test kit on a fresh world (seed
+424242), `--require-no-experiments`: `level.dat` experiments **none** before and after; `locate biome
+wmire:weeping_mire` found the Mire at -1760, 63, 928 (1989 blocks from spawn); Mire blocks placed and read back
+(`testforblock` found the torn page); `summon wmire:watcher` is refused (the old watcher no longer exists — the one
+expected console error, which the harness ignores by name); **0 content-log or script errors**. `noexp.txt` re-run on
+1.0.7: 0 errors, `level.dat` experiments none. `python3 tools/merge_weeping_mire.py --check`: 132 Weeping Mire files
+checked, 0 differ from the user's archive.
 
 **No experiments (1.0.5):** `noexp.txt` without the test kit on a fresh world, `--require-no-experiments`:
 `level.dat` experiments **none** before and after the run; the add-on's scripts ran on the stable APIs (status, trace,
@@ -274,7 +287,17 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
    at you leaning forward with its arms and legs streaming behind; look at it and it drifts upright and limp; no
    footsteps, a rush of air instead. **Climbing after you**: pillar up 5+ blocks first; it climbs the side of your
    pillar hand over hand, staring up at you, and hangs just below you. Check the hands meet the wall and the body
-   does not sink into it. In a 3-high tunnel, the floating figure should stay inside the ceiling.
+   does not sink into it. In a 3-high tunnel, the floating figure should stay inside the ceiling. While it drifts and
+   you hold its gaze, it should be nearly still and then jerk: its head snapping to a wrong angle and holding there, a
+   shoulder hitching, the whole body dropping and catching, each with a crack.
+11. **1.0.7, the Weeping Mire** — make sure the stand-alone Weeping Mire packs are not active, then on a new world
+   `/locate biome wmire:weeping_mire` and go there. Check the Mire looks as it did in the stand-alone add-on: black
+   fog, its lighting and colour grading, dark water, weeping trees and giant weeping trees, bone roots and grass,
+   silt ponds, cabins; wind gusts with leaves and streaks; leaves falling from the canopy; music silent. The content
+   log must be empty. Read a torn page (use it): the note opens as a form, *Torn Page n/8*. Then
+   `/scriptevent observer:trigger mire_watcher`: the Observer stands among the trees, not inside the canopy; look at it
+   and it holds your gaze, then is gone in black mist with a cave sound. `/scriptevent observer:mirepage all`: the
+   title *it knows your name*, and it is behind you.
 
 ## 7. Bugs found and fixed
 
@@ -318,6 +341,16 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
 * The new too-close reaction cut *Borrowed Work* short (walking up to the source is that encounter's answer) — it now
   handles the approach itself; spots far below the player's level are penalised (an *Echo Ahead* spot landed 64
   blocks below the test platform).
+
+**Found by the 1.0.7 tests**
+* In the Weeping Mire the watcher could be placed where the player could not see it, although placement had
+  checked the line of sight: under the weeping trees its head reached into the leaves, and a ray that starts inside a
+  block does not see that block — so it could see out while nobody could see it, and looking at it never counted.
+  Placement now checks the line both ways for every encounter (`mire_watcher_seen`).
+* A torn page could find no visible spot behind the player in thick trees and fell back to one deep among them; it
+  now tries 8 blocks behind before that (`mire_page_behind`).
+* The last torn page found the Observer still busy with the previous appearance and gave up; it now waits for it to
+  be free, for up to a minute.
 
 **Found by the 1.0.6 tests**
 * *The Closed Path* sometimes found no spot ahead in a narrow tunnel (above, run 12): the search now looks along the

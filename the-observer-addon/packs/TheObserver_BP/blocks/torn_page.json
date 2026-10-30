@@ -1,0 +1,92 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "wmire:torn_page",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "geometry.wmire.torn_page",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "wmire_torn_page",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -6,
+          0,
+          -7
+        ],
+        "size": [
+          12,
+          1,
+          14
+        ]
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0.0
+      },
+      "minecraft:flammable": {
+        "catch_chance_modifier": 60,
+        "destroy_chance_modifier": 100
+      },
+      "minecraft:placement_filter": {
+        "conditions": [
+          {
+            "allowed_faces": [
+              "up"
+            ],
+            "block_filter": [
+              "wmire:mire_moss",
+              "wmire:mire_soil",
+              "wmire:mire_silt",
+              "wmire:bone_root",
+              "wmire:weeping_planks",
+              "wmire:weeping_wood",
+              "wmire:weeping_log",
+              "minecraft:pale_oak_planks",
+              "minecraft:crafting_table",
+              "minecraft:barrel",
+              "minecraft:bookshelf",
+              "minecraft:chest",
+              "minecraft:oak_planks",
+              "minecraft:spruce_planks",
+              "minecraft:birch_planks",
+              "minecraft:dark_oak_planks",
+              "minecraft:mangrove_planks",
+              "minecraft:cherry_planks",
+              "minecraft:grass_block",
+              "minecraft:dirt",
+              "minecraft:coarse_dirt",
+              "minecraft:podzol",
+              "minecraft:mud",
+              "minecraft:moss_block",
+              "minecraft:stone",
+              "minecraft:cobblestone",
+              "minecraft:mossy_cobblestone",
+              "minecraft:deepslate",
+              "minecraft:cobbled_deepslate",
+              "minecraft:deepslate_tiles",
+              "minecraft:stone_bricks",
+              "minecraft:sand",
+              "minecraft:gravel",
+              "minecraft:smooth_stone",
+              "minecraft:bone_block"
+            ]
+          }
+        ]
+      },
+      "minecraft:map_color": "#cfc4a8",
+      "wmire:readable_page": {}
+    }
+  }
+}

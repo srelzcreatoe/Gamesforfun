@@ -14,11 +14,13 @@
 //   /observer:settings                         open the settings form
 //   /observer:journal                          open the Field Notes without the item
 //   /observer:tools [player]                   give the tool set (testing)
+// Script events only: mirepage <0-7|all|clear> [player] (a Weeping Mire torn page, read without the form),
+// weights [player] (what the director would choose from here), like the other test switches in run().
 // Each also works as /scriptevent observer:<name> <args...> (console, command blocks, tests).
 import { world, system, CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, ItemStack } from "@minecraft/server";
 import { ps, W, now, resetPlayer, markPlayerDirty, markWorldDirty, warp } from "../core/state.js";
 import { S, updateSettings, PRESETS } from "../core/settings.js";
-import { DEBUG, safe, V, dimIndex, allPlayers } from "../core/util.js";
+import { DEBUG, safe, V, dimIndex, allPlayers, emit } from "../core/util.js";
 import { ITEMS } from "../core/constants.js";
 import { DISCOVERIES } from "../progression/discoveries.js";
 import * as director from "../director/director.js";
@@ -34,6 +36,8 @@ import * as learn from "../observer/learn.js";
 import * as hush from "../observer/hush.js";
 import * as pages from "../observer/pages.js";
 import * as returns from "../observer/returns.js";
+import * as mire from "../mire/mire.js";
+import { context, effectiveStage, moodFactor } from "../director/context.js";
 
 /** @typedef {import("@minecraft/server").Player} Player */
 
@@ -251,6 +255,31 @@ export function run(name, args, caller) {
     }
     case "ledger": {
       return `ledger ${ledger.count()}: ` + ledger.all().slice(0, 12).map((e) => `${e.kind}@${e.x},${e.y},${e.z}#${e.enc}`).join(" ");
+    }
+    case "mirepage": {
+      // mirepage <0-7|all|clear> [player]: read a Weeping Mire torn page without the form
+      const p = pick(1);
+      if (!p) return "no player";
+      const how = args[0] === "all" || args[0] === "clear" ? args[0] : "page";
+      const idx = how === "page" ? Math.max(0, Math.min(7, parseInt(args[0], 10) || 0)) : 7;
+      const r = mire.readNow(p, idx, how);
+      return `${p.name}: torn pages ${r.found}/8${r.all ? " (all)" : ""}`;
+    }
+    case "weights": {
+      // weights [player]: what the director would choose from here, and why
+      const p = pick(0);
+      if (!p) return "no player";
+      const c = context(p);
+      const s = ps(p);
+      /** @type {Record<string, number>} */
+      const w = {};
+      for (const d of director.REGISTRY) {
+        const x = director.eligibleWeight(d, s, c);
+        if (x > 0) w[d.id] = Math.round(x * 10) / 10;
+      }
+      const eff = effectiveStage(s, c);
+      emit("weights", { player: p.name, mire: c.mire, stage: s.stage, eff, mood: moodFactor(c), weights: w });
+      return `${p.name}: mire ${c.mire} stage ${s.stage} (acts as ${eff}) mood ${moodFactor(c).toFixed(2)} ${JSON.stringify(w)}`;
     }
     case "dump": {
       const p = pick(0);

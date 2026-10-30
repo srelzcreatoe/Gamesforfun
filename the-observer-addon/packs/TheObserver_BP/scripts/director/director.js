@@ -8,12 +8,15 @@
 // (weighted by stage); body-free encounters may run for other players at the same time.
 // From stage 4 its dangerous encounters are announced by silence first (observer/hush.js), and the way
 // each one ends teaches it something about the player (observer/learn.js).
+// The Weeping Mire is its home: there the grace period ends after 30 s, the gaps are shorter and it
+// behaves as if the player were one stage further along.
 import { world, system, GameMode } from "@minecraft/server";
 import { W, ps, now, markWorldDirty, markPlayerDirty } from "../core/state.js";
 import { S, typeOn } from "../core/settings.js";
 import { aggression } from "../core/settings.js";
 import { AbortError, rand, weightedPick, trace, DEBUG, safe, V, emit, allPlayers } from "../core/util.js";
-import { context, moodFactor } from "./context.js";
+import { context, moodFactor, effectiveStage } from "./context.js";
+import * as mire from "../mire/mire.js";
 import { Encounter } from "./encounter.js";
 import * as body from "../observer/body.js";
 import * as ledger from "../world/ledger.js";
@@ -63,11 +66,14 @@ const graceSeconds = () => S().graceMinutes * 60;
 function ready(p, t) {
   const s = ps(p);
   if (s.stage === 0) {
-    if (s.play < graceSeconds()) return false;
+    // its home does not wait for the grace period to run out
+    if (s.play < graceSeconds() && mire.secondsHere(p.id) < 30) return false;
     s.stage = 1;
     s.nextAt = t + rand(30, 120);
     markPlayerDirty(p);
-    trace(`${p.name}: grace period over`);
+    const home = s.play < graceSeconds();
+    trace(`${p.name}: grace period over${home ? " (the Mire)" : ""}`);
+    emit("grace", { player: p.name, mire: home, play: Math.floor(s.play) });
     // the only unprompted hint the add-on ever gives
     system.runTimeout(() => safe(() => p.onScreenDisplay.setActionBar({ rawtext: [{ translate: "observer.ui.onboard" }] })), 20 * 20);
     return false;
@@ -82,7 +88,7 @@ function ready(p, t) {
 /** Weight of an encounter type for this player and context, or 0. */
 export function eligibleWeight(def, s, c) {
   if (def.manual || !typeOn(def.id)) return 0;
-  if (def.minStage > s.stage) return 0;
+  if (def.minStage > effectiveStage(s, c)) return 0;
   if ((def.minManip ?? 0) > manip()) return 0;
   if ((def.minAggression ?? 0) > 0 && (aggression() < def.minAggression || (s.witnessed))) return 0;
   if (s.witnessed && s.endMode === "attendant" && !def.benign) return 0;
@@ -132,7 +138,7 @@ export function tick() {
       s.nextAt = t + 20;
       continue;
     }
-    if (hush.wanted(def, s) && !hush.isSilenced(p.id)) {
+    if (hush.wanted(def, s, c) && !hush.isSilenced(p.id)) {
       // the world goes quiet first; the encounter (or nothing) follows in 20-30 s
       hush.begin(p, def.id, t);
       W.globalCooldownUntil = t + 10;
@@ -312,10 +318,11 @@ function finish(enc) {
 
 /**
  * Start an event-triggered encounter (sleep, dimension change) if the player's state allows it.
- * Unlike the timer path it ignores nextAt, but respects stage, settings, quiet/recovery and cooldown.
- * @param {string} id @param {Player} p
+ * Unlike the timer path it ignores nextAt, but respects stage, settings, quiet/recovery and cooldown
+ * (anyway: also ignores quiet/recovery and the type's cooldown — the last torn page).
+ * @param {string} id @param {Player} p @param {{anyway?:boolean}} [o]
  */
-export function tryManual(id, p) {
+export function tryManual(id, p, o = {}) {
   const def = byId(id);
   if (!def || !S().enabled || !typeOn(id)) return null;
   const s = ps(p);
@@ -326,9 +333,9 @@ export function tryManual(id, p) {
   if (gm !== GameMode.Survival && gm !== GameMode.Adventure) return null;
   if (s.witnessed && s.endMode === "rest") return null;
   if (s.witnessed && s.endMode === "attendant" && !def.benign) return null;
-  if (t < s.quietUntil || t < s.recoveryUntil) return null;
+  if (!o.anyway && (t < s.quietUntil || t < s.recoveryUntil)) return null;
   const last = s.typeLast[def.id];
-  if (last !== undefined && t - last < def.cooldown) return null;
+  if (!o.anyway && last !== undefined && t - last < def.cooldown) return null;
   if ((def.needsBody && active) || encounterFor(p.id)) return null;
   return start(def, p, undefined, false);
 }

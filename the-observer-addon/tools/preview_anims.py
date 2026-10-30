@@ -5,13 +5,17 @@ For each clip, renders frames from three cameras (front, three-quarter, side) si
 writes an animated GIF, plus one still contact sheet of all clips. Used to review new clips before
 they are seen in a client.
 
-Usage: preview_anims.py OUT_DIR CLIP [CLIP ...] [--frames N] [--stoop]
+Usage: preview_anims.py OUT_DIR CLIP [CLIP ...] [--frames N] [--stoop] [--video NAME.mp4 [--seconds S]]
   CLIP = an animation short name from the supplemental file (e.g. float_drift) or supplied:NAME
+  --video also writes one MP4 (30 fps, H.264) with every clip looped for S seconds, back to back (needs ffmpeg)
 """
 import argparse
 import json
 import os
+import shutil
+import subprocess
 import sys
+import tempfile
 
 from PIL import Image, ImageDraw
 
@@ -49,6 +53,8 @@ def main():
     ap.add_argument("clips", nargs="+")
     ap.add_argument("--frames", type=int, default=24)
     ap.add_argument("--stoop", action="store_true")
+    ap.add_argument("--video")
+    ap.add_argument("--seconds", type=float, default=4.0)
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     rm.MOLANG_VARS["q.property('observer:stoop')"] = 1.0 if a.stoop else 0.0
@@ -73,6 +79,28 @@ def main():
     out = os.path.join(a.out, "sheet.png")
     sheet.save(out)
     print(out)
+    if a.video:
+        video(model, a.clips, os.path.join(a.out, a.video), a.seconds)
+
+
+def video(model, clips, out, seconds, fps=30):
+    """Every clip looped for `seconds` at `fps`, one after another, encoded with ffmpeg (H.264, yuv420p)."""
+    tmp = tempfile.mkdtemp(prefix="observer_preview_")
+    try:
+        n = 0
+        for name in clips:
+            anim = load(name)
+            length = float(anim.get("animation_length", 1.0))
+            for i in range(int(seconds * fps)):
+                t = (i / fps) % length
+                img = frame(model, [(anim, t)], f"{name}   (offline preview of the in-game keyframes; floor line = ground, red marks = blocks)")
+                img.save(os.path.join(tmp, f"f{n:05d}.png"))
+                n += 1
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(fps), "-i", os.path.join(tmp, "f%05d.png"),
+                        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", "-movflags", "+faststart", out], check=True)
+        print(out, os.path.getsize(out), "bytes", n, "frames")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 if __name__ == "__main__":

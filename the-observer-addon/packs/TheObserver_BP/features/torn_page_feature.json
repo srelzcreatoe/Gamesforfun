@@ -1,0 +1,22 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:single_block_feature": {
+    "description": {
+      "identifier": "wmire:torn_page_feature"
+    },
+    "places_block": "wmire:torn_page",
+    "enforce_survivability_rules": false,
+    "enforce_placement_rules": false,
+    "may_replace": [
+      "minecraft:air",
+      "wmire:bone_grass"
+    ],
+    "may_attach_to": {
+      "bottom": [
+        "wmire:mire_moss",
+        "wmire:mire_soil",
+        "wmire:bone_root"
+      ]
+    }
+  }
+}

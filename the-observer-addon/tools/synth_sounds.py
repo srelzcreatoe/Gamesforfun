@@ -514,12 +514,29 @@ def drift(v):
     return reverb(x, 0.4, 0.2)
 
 
+def crack(v):
+    """1.0.7: a joint cracking as it twitches — two to four sharp, dry snaps a few hundredths of a second
+    apart, each a bright broadband tick with a short woody resonance and a dull knock under it."""
+    x = np.zeros(int(SR * 0.45))
+    pos = 0.01
+    for i in range(2 + v):
+        n = int(SR * 0.05)
+        tt = np.arange(n) / SR
+        tick = bp(noise(n), 1400 + 300 * i, 6500) * np.exp(-tt / 0.004)
+        ring = np.sin(2 * np.pi * rng.uniform(1700, 2600) * tt) * np.exp(-tt / 0.012) * 0.5
+        knock = np.sin(2 * np.pi * rng.uniform(95, 140) * tt) * np.exp(-tt / 0.02) * 0.6
+        s0 = int(SR * pos)
+        x[s0:s0 + n] += (tick + ring + knock) * rng.uniform(0.6, 1.0)
+        pos += rng.uniform(0.025, 0.07)
+    return trim(reverb(x, 0.15, 0.08))
+
+
 def main():
     only = set(sys.argv[2].split(",")) if len(sys.argv) > 2 and sys.argv[1] == "--only" else None
     if only:
         made = []
         gens = {"voice": (voice, 3, 0.8), "presence": (presence, 2, 0.8), "notice": (notice, 2, 0.8),
-                "shriek": (shriek, 2, 0.7), "vanish": (vanish, 2, 0.8), "scrawl": (scrawl, 2, 0.6), "drift": (drift, 2, 0.7)}
+                "shriek": (shriek, 2, 0.7), "vanish": (vanish, 2, 0.8), "scrawl": (scrawl, 2, 0.6), "drift": (drift, 2, 0.7), "crack": (crack, 3, 0.8)}
         for name in only:
             if name == "silence":
                 made.append(write("silence", silence(), 0.12))
@@ -565,6 +582,8 @@ def main():
         made.append(write(f"scrawl{v + 1}", scrawl(v), 0.6))
     for v in range(2):
         made.append(write(f"drift{v + 1}", drift(v), 0.7))
+    for v in range(3):
+        made.append(write(f"crack{v + 1}", crack(v), 0.8))
     for path, dur in made:
         print(f"{os.path.relpath(path, ROOT)}  {dur:.2f}s  {os.path.getsize(path)} bytes")
 

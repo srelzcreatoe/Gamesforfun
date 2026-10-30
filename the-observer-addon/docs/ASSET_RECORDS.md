@@ -34,6 +34,29 @@ Made by the user, who confirmed they own them (2026-10-28). Preserved unmodified
 | `vanish_sheet.png` (crimson shreds, 100×100) | `aa2d54a40c130716…` | the Observer tearing apart when it vanishes (`observer:vanish`) |
 | `wisp_sheet.png` (grey wisps, 100×100) | `f9fa59f885989d11…` | the glowing aura around its body (`observer:wisp`) |
 
+## The Weeping Mire (supplied by the user, 2026-10-30)
+
+The user's own biome add-on, *Weeping Mire* 1.2.6 (the user confirmed it is theirs, 2026-10-30), merged into The
+Observer in 1.0.7 as the Observer's home. The archive is preserved unmodified in `source_assets/supplied_weeping_mire/`
+with `SHA256SUMS.txt`.
+
+Archive SHA-256: `95af8ed1e68bb6f17e5262bd87d512fad87d50bc1b4f3af7f52c0c064ec7602d` (152 files)
+
+`tools/merge_weeping_mire.py` copies 132 of its files into the packs byte for byte, under their own `wmire:`
+namespace, and `python3 tools/merge_weeping_mire.py --check` verifies that every one still matches the archive:
+
+| Pack | Folders (files) |
+|---|---|
+| behaviour | `biomes/` (1), `blocks/` (12), `features/` (14), `feature_rules/` (8), `worldgen/` (6), `structures/wmire/` (13), `loot_tables/wmire/` (2), `recipes/weeping_*` (11) |
+| resource | `biomes/`, `fogs/`, `atmospherics/`, `color_grading/`, `lighting/`, `water/` (1 each), `particles/` (5), `models/blocks/torn_page` (1), `textures/blocks/wmire/` and `textures/particle/wmire_wind.png` (53) |
+
+Merged into existing files: the Mire's entries in RP `blocks.json` and `textures/terrain_texture.json`, and its block
+names in `texts/en_US.lang` (under *Weeping Mire (merged)*). Its script (`scripts/main.js`) is ported by hand into
+`scripts/mire/mire.js`: wind, falling leaves and the eight torn pages, with the page texts unchanged. Not merged: its
+watcher mob (entity, spawn rule, client entity, model, animation, render controller and textures), whose part the
+Observer now plays, and its manifests, pack icons and pack names. Its black-mist particle uses the vanilla particle
+atlas (`textures/particle/particles`) by reference.
+
 ## Shipped resource files
 
 | File | Provenance | SHA-256 (first 16) |
@@ -43,6 +66,9 @@ Made by the user, who confirmed they own them (2026-10-28). Preserved unmodified
 | `TheObserver_RP/sounds/observer/breath2.ogg` | original — synthesized by tools/synth_sounds.py | `7161ec51f8e7539d` |
 | `TheObserver_RP/sounds/observer/chalk1.ogg` | original — synthesized by tools/synth_sounds.py | `76305aee83f9374b` |
 | `TheObserver_RP/sounds/observer/chalk2.ogg` | original — synthesized by tools/synth_sounds.py | `ad6e6a414d77574c` |
+| `TheObserver_RP/sounds/observer/crack1.ogg` | original — synthesized by tools/synth_sounds.py (1.0.6: the drift's cracks) | `63be4156f6161874` |
+| `TheObserver_RP/sounds/observer/crack2.ogg` | original — synthesized by tools/synth_sounds.py (1.0.6: the drift's cracks) | `7978dc8306d26ee9` |
+| `TheObserver_RP/sounds/observer/crack3.ogg` | original — synthesized by tools/synth_sounds.py (1.0.6: the drift's cracks) | `56e15fb600140766` |
 | `TheObserver_RP/sounds/observer/discovery.ogg` | original — synthesized by tools/synth_sounds.py | `933ac64eeabc93a5` |
 | `TheObserver_RP/sounds/observer/drift1.ogg` | original — synthesized by tools/synth_sounds.py | `649ca24a9e76baf2` |
 | `TheObserver_RP/sounds/observer/drift2.ogg` | original — synthesized by tools/synth_sounds.py | `1fd054360304bb03` |
@@ -107,7 +133,7 @@ Made by the user, who confirmed they own them (2026-10-28). Preserved unmodified
 | `TheObserver_RP/textures/particle/observer/wisp.png` | made by the user (supplied 2026-10-08) — shapes from source_assets/supplied_particles/wisp_sheet.png copied pixel-for-pixel into a grid (tools/integrate_particle_sheets.py) | `d6f06c5e60c01904` |
 | `TheObserver_BP/pack_icon.png` | derived — crop of supplied dweller_preview.png on a generated background (tools/make_textures.py) | `2529bdac03c514e1` |
 | `TheObserver_RP/animations/the_observer.animation.json` | supplied — hollow_dweller.animation.json, clip names renamed only | `3d684b6f10a5acc8` |
-| `TheObserver_RP/animations/the_observer_supplemental.animation.json` | original — tools/make_supplemental_anims.py (uses supplied bone names; 1.0.6 adds float_drift, float_surge, climb) | `18d1ffc603069d60` |
+| `TheObserver_RP/animations/the_observer_supplemental.animation.json` | original — tools/make_supplemental_anims.py (uses supplied bone names; 1.0.6 adds float_drift — calm, broken by one-frame twitches — float_surge, climb) | `9d226e4b049bab52` |
 | `TheObserver_RP/models/blocks/effigy.geo.json` | original — tools/make_textures.py | `e85d1aee3108b4c0` |
 | `TheObserver_RP/models/blocks/ward_lantern.geo.json` | original — tools/make_textures.py | `fa03764ae1ebdcb9` |
 | `TheObserver_RP/models/entity/the_observer.geo.json` | supplied — hollow_dweller.geo.json, identifier renamed and two eye locators added (tools/integrate_supplied_assets.py asserts cubes/UVs unchanged) | `48b77f6164817a47` |

@@ -1,0 +1,8 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:texture_set": {
+    "color": "mire_silt",
+    "metalness_emissive_roughness": "mire_silt_mer",
+    "heightmap": "mire_silt_height"
+  }
+}

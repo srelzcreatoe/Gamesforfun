@@ -43,10 +43,14 @@ TESTKIT = os.path.join(HERE, "testkit_BP")
 ERROR_PATTERNS = [
     re.compile(r"\[Scripting\]\[error\]", re.I),
     re.compile(r"\bERROR\]", re.I),
-    re.compile(r"\[(Json|Molang|Entity|Blocks|Item|Recipes|Actor|Animation|Geometry|Texture|Sounds|Particles)\]\[error\]", re.I),
+    # every content-log category (Json, Molang, Entity, Blocks, Item, Recipes, ... and, since the Weeping Mire
+    # was merged, world generation: biomes, features, feature rules, structures)
+    re.compile(r"\[[A-Za-z ]+\]\[error\]", re.I),
 ]
 IGNORE_ERRORS = [
     re.compile(r"NO LOG FILE"),
+    # mire_locate.txt checks on purpose that the Weeping Mire's old watcher entity no longer exists
+    re.compile(r'Syntax error: Unexpected "wmire:watcher"'),
     re.compile(r"signaling", re.I),
 ]
 

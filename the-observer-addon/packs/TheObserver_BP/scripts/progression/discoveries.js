@@ -13,7 +13,7 @@ export const DISCOVERIES = [
   "the_figure", "out_of_step", "quiet_feet", "someone_was_home", "put_back", "small_likeness",
   "something_facing", "the_door", "lights_out", "light_it_doesnt_make", "held_gaze", "behind_left",
   "borrowed_work", "echo_ahead", "wrong_way", "breathing_room", "second_witness", "while_you_slept",
-  "elsewhere_too", "the_window", "close", "through_the_lens", "it_was_inside",
+  "elsewhere_too", "the_window", "close", "through_the_lens", "it_was_inside", "its_home",
 ];
 export const VIGIL_REQUIREMENT = 12;
 

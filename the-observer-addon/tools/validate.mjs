@@ -42,7 +42,8 @@ for (const f of schemaFiles) {
 // The schema package references common/expression.schema.json but does not ship it; register a permissive stand-in.
 ajv.addSchema({}, pathToFileURL(path.join(SCHEMAS, "schemas", "common", "expression.schema.json")).href);
 // Known defects in @minecraft/bedrock-schemas 1.26.50, recorded rather than hidden. Each is contradicted by
-// vanilla content and by a clean load on Bedrock Dedicated Server 1.26.52 (see docs/TEST_REPORT.md).
+// vanilla content or Microsoft's own documentation, and by a clean load on Bedrock Dedicated Server 1.26.52
+// (see docs/TEST_REPORT.md). The last five are forms the merged Weeping Mire uses.
 const SCHEMA_QUIRKS = [
   [/recipes\/.*must have required property 'minecraft:recipe_brewing_mix'/, "recipe catalog entry points at the brewing-mix schema only"],
   [/languages\.json: schema \/ must be object/, "languages.json is an array of language codes in vanilla packs"],
@@ -50,6 +51,11 @@ const SCHEMA_QUIRKS = [
   [/render_controllers.*part_visibility must be object/, "vanilla render controllers use an array for part_visibility"],
   [/blocks\/.*minecraft:loot must be object/, "schema describes minecraft:loot as a path string but types it as object"],
   [/models\/.*\/(visible_bounds_offset|pivot|origin|size|uv|rotation)\/.* must be string/, "geometry schema types numeric vectors as strings; Blockbench and vanilla models use numbers (the supplied model fails the same way)"],
+  [/features\/.*single_block_feature\/places_block/, "places_block may be a single block name (documented: a block or a weighted list of blocks)"],
+  [/features\/.*weighted_random_feature\/features must be object/, "weighted_random_feature lists its features as [feature, weight] pairs (documented form)"],
+  [/blocks\/.*placement_filter\/conditions\/\d+\/(block_filter|allowed_faces)/, "placement_filter takes lists of block names and faces (documented form)"],
+  [/terrain_texture\.json: schema \/texture_data\/.*\/textures must be array/, "a single terrain texture is a plain string in vanilla terrain_texture.json"],
+  [/biomes\/.*surface_material_adjustments\/adjustments\/\d+\/height_range/, "height_range is a pair of Molang expressions (documented form)"],
 ];
 const quirkHits = [];
 const catalog = JSON.parse(fs.readFileSync(path.join(SCHEMAS, "catalog.json"), "utf8"));
@@ -192,7 +198,8 @@ for (const f of walk(path.join(RP, "particles"))) {
   if (!pe) continue;
   particleIds.add(pe.description.identifier);
   const tex = pe.description.basic_render_parameters.texture;
-  if (!exists(RP, tex + ".png")) fail(`${rel(f)}: texture ${tex}.png missing`);
+  // the vanilla particle atlas (used by 136 particles in bedrock-samples resource_pack/particles)
+  if (tex !== "textures/particle/particles" && !exists(RP, tex + ".png")) fail(`${rel(f)}: texture ${tex}.png missing`);
 }
 const fogIds = new Set(walk(path.join(RP, "fogs")).map((f) => readJSON(f)?.["minecraft:fog_settings"]?.description?.identifier));
 

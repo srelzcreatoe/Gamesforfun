@@ -183,8 +183,10 @@ export function findSpot(p, spec) {
       else score += 6;
     }
     if (spec.needLOS || spec.watchLOSIgnoringView || spec.losTarget) {
-      const los = lineOfSight(dim, head, spec.losTarget ?? eye);
-      if (!los.clear) continue;
+      // both ways: a ray that starts inside a block does not see it, so a head poking into leaves would see
+      // out while nobody could see it (sight.visibility looks from the eye)
+      const to = spec.losTarget ?? eye;
+      if (!lineOfSight(dim, head, to).clear || !lineOfSight(dim, to, head).clear) continue;
     }
     if (spec.hideFrom && spec.hideFrom.some((o) => o.id !== p.id && visibility(o, st.loc, { stooped: st.stoop, fov: 70 }).points > 0)) continue;
     if (spec.showTo && !spec.showTo.every((o) => visibility(o, st.loc, { stooped: st.stoop, fov: 55 }).points > 0)) continue;

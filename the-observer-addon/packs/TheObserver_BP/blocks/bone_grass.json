@@ -1,0 +1,86 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "wmire:bone_grass",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "minecraft:geometry.cross",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "wmire_bone_grass",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -6,
+          0,
+          -6
+        ],
+        "size": [
+          12,
+          13,
+          12
+        ]
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0.0
+      },
+      "minecraft:flammable": {
+        "catch_chance_modifier": 60,
+        "destroy_chance_modifier": 100
+      },
+      "minecraft:placement_filter": {
+        "conditions": [
+          {
+            "allowed_faces": [
+              "up"
+            ],
+            "block_filter": [
+              "wmire:mire_moss",
+              "wmire:mire_soil",
+              "wmire:mire_silt",
+              "wmire:bone_root",
+              "wmire:weeping_wood",
+              "minecraft:grass_block",
+              "minecraft:dirt",
+              "minecraft:coarse_dirt",
+              "minecraft:podzol",
+              "minecraft:mud",
+              "minecraft:moss_block",
+              "minecraft:mycelium",
+              "minecraft:dirt_with_roots"
+            ]
+          }
+        ]
+      },
+      "minecraft:map_color": "#8f8478",
+      "minecraft:random_offset": {
+        "x": {
+          "range": {
+            "min": -0.2,
+            "max": 0.2
+          },
+          "steps": 0
+        },
+        "z": {
+          "range": {
+            "min": -0.2,
+            "max": 0.2
+          },
+          "steps": 0
+        }
+      },
+      "minecraft:replaceable": {}
+    }
+  }
+}

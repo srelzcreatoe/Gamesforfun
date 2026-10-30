@@ -1,0 +1,18 @@
+# The Weeping Mire (merged, 1.0.7) with no experiments: the biome is known to the server and generates
+# (locate finds it), its blocks load, and its old watcher entity no longer exists.
+wait 5
+cmd scriptevent observer:trace on
+expect trace on 30
+cmd locate biome wmire:weeping_mire
+expect (?i)wmire:weeping_mire.*\d+ 120
+cmd tickingarea add circle 0 0 0 2 mire_area true
+wait 6
+cmd setblock 0 120 0 wmire:mire_moss
+cmd setblock 0 121 0 wmire:torn_page
+cmd setblock 1 120 0 wmire:weeping_log
+cmd setblock 1 121 0 wmire:weeping_leaves
+cmd testforblock 0 121 0 wmire:torn_page
+expect (?i)successfully found the block 20
+cmd summon wmire:watcher 3 120 0
+expect (?i)(unknown|invalid|not found|syntax error|No entity|unexpected) 20
+wait 3

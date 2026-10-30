@@ -125,7 +125,7 @@ def main():
         "scripts": {"animate": ["ctrl_state", "ctrl_stoop", "ctrl_aura", "ctrl_eyes"]},
         "particle_effects": {"wisp": "observer:wisp", "eye_glow": "observer:eye_glow"},
         # short name -> sound event, as plain strings (the client rejects {"effect": ...} objects here)
-        "sound_effects": {"windup": "observer.windup", "recoil": "observer.fabric"},
+        "sound_effects": {"windup": "observer.windup", "recoil": "observer.fabric", "crack": "observer.crack"},
         "render_controllers": ["controller.render.observer.the_observer", "controller.render.observer.eyes"],
         "spawn_egg": {"base_color": "#0e0e10", "overlay_color": "#d8d4cf"},
     }}}

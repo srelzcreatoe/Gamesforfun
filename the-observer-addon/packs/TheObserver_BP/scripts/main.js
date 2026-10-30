@@ -20,6 +20,8 @@ import * as learn from "./observer/learn.js";
 import * as hush from "./observer/hush.js";
 import * as pages from "./observer/pages.js";
 import * as returns from "./observer/returns.js";
+import * as mire from "./mire/mire.js";
+import { pending as mirePending } from "./encounters/mire_watcher.js";
 
 // encounter library (each file registers itself)
 import "./encounters/distant_watch.js";
@@ -45,6 +47,7 @@ import "./encounters/creeping.js";
 import "./encounters/inside.js";
 import "./encounters/sign.js";
 import "./encounters/borrowed_eyes.js";
+import "./encounters/mire_watcher.js";
 import "./encounters/tests.js";
 
 let ready = false;
@@ -71,6 +74,24 @@ ledger.registerEvents();
 illusions.registerEvents();
 memory.registerEvents();
 returns.registerEvents();
+// the Weeping Mire, its home: wind, falling leaves and the torn pages. The Mire's old watcher is the
+// Observer now: a torn page may bring it up behind you, and the last of the eight always does.
+mire.register({
+  watcher(p, o) {
+    const go = () => {
+      mirePending.set(p.id, o);
+      if (director.tryManual("mire_watcher", p, { anyway: o.why === "all_pages" })) return true;
+      mirePending.delete(p.id);
+      return false;
+    };
+    if (go() || o.why !== "all_pages") return;
+    // the last page always brings it: if it is busy, as soon as it is free (for up to a minute)
+    let tries = 0;
+    const h = system.runInterval(() => {
+      if (!p.isValid || go() || ++tries >= 30) system.clearRun(h);
+    }, 40);
+  },
+});
 // it writes down what it has learned
 learn.onAdapt((p, method) => {
   pages.learned(p, method);
@@ -201,6 +222,7 @@ world.beforeEvents.playerLeave.subscribe((ev) => {
     memory.forget(id);
     hush.forget(id);
     returns.forget(id);
+    mire.forget(id);
     dropPlayer(id);
   });
 });

@@ -116,7 +116,7 @@ resource pack (only identifiers change; it asserts every bone, cube, UV and keyf
 | `tilt` | `pose` (hold) | supplied | acknowledgement: the crooked head-tilt when it has been seen |
 | `walk` | `stalk_walk` + `look_at_target` | **new** | creeping approach, retreat, walking away |
 | `run` | `running` | supplied | the relentless attack (running you down between strikes), the lunge |
-| `float` | `float_drift` + `look_at_target` | **new (1.0.6)** | the chase while watched: a block off the ground, legs hanging limp, toes down, a slow bob |
+| `float` | `float_drift` + `look_at_target` | **new (1.0.6)** | the chase while watched: a block off the ground, legs hanging limp, toes down, almost still — then broken by sudden one-frame snaps (the head jerking to a wrong angle and holding there, a shoulder hitching, the whole body dropping and catching, a limb spasming), each with a crack (`observer.crack`); 4.8 s loop |
 | `surge` | `float_surge` | **new (1.0.6)** | the chase when unwatched: rushing through the air, pitched forward, arms and legs streaming behind |
 | `climb` | `climb` | **new (1.0.6)** | climbing a wall, pillar or cliff after a player, hand over hand, staring straight up at them |
 | `attack` | `attack` (once) | supplied | telegraphed strike; damage applied at the clip's strike frame (0.6 s) |
@@ -323,7 +323,7 @@ for 7–11 s, then released). The Flare's light block is the player's own change
 | 5 | 22 | 8 | everything, at its most frequent |
 
 **Pacing**: after each encounter the next is scheduled `rand(110, 240) s ÷ frequency × (1 − 0.04·stage) × mood × (1 + tension/150)`,
-where mood is shorter at night, underground, in darkness and in other dimensions. Every 3–5 encounters a genuine quiet
+where mood is shorter at night, underground, in darkness, in other dimensions and in the Weeping Mire (§16). Every 3–5 encounters a genuine quiet
 period of 4–8 min follows. Tier ≥ 3 encounters add 3–4 min recovery; death adds 5 min recovery and relieves tension.
 The chase is weighted higher underground.
 A global gap (≈ 52 s after body encounters, ≈ 21 s after body-free ones) separates any two starts in the world.
@@ -426,3 +426,33 @@ These make it personal without making it louder. Each is rare by design and can 
 | **It returns what you threw away** (`observer/returns.js`) | 2+ | once per in-game day | an item the player dropped by hand 24+ blocks from home and from themselves, 45 s+ ago | setting *It returns what you threw away* |
 | **Borrowed eyes** (`encounters/borrowed_eyes.js`) | 2+ | every 10 min | a creature 6–24 blocks ahead in view | encounter toggle *Borrowed Eyes* |
 | **It's inside** (`encounters/inside.js`) | 4+ | every 60 min (3 in-game nights) | the darkest spot (light ≤ 7) of the player's own roofed room at night; leaves on light, a 2 s stare, or approach | encounter toggle *It's Inside* |
+
+## 16. Its home: the Weeping Mire (1.0.7)
+
+The Weeping Mire is the user's own biome add-on (1.2.6), merged into The Observer by `tools/merge_weeping_mire.py`
+with its world generation, blocks, structures, look and pages unchanged (identifiers keep their `wmire:` namespace, so
+worlds that had the stand-alone Mire keep their blocks). It is the Observer's home.
+
+* **The Mire's watcher is the Observer.** The stand-alone Mire had its own faceless watcher mob (spawn rule every 2–4
+  min, 40 %, 20–48 blocks). That mob is gone; its appearances are the encounter *In the Mire* (`mire_watcher`), with
+  the same rules: it stands still among the trees 20–48 blocks off, peeking from a trunk when it can; looked at for a
+  second it holds the gaze and is gone in black mist (`wmire:black_mist`) with a cave sound; it does not let you come
+  within 9 blocks; ignored, it fades after 90–180 s. Being the Observer, it can also lunge when seen (stage 2+).
+* **Where it stands.** Placement prefers spots the player can actually see (line of sight is checked both ways: its
+  head must not be inside the canopy); in thick trees it comes closer (12–24 blocks; behind the player from 8) before
+  falling back, as the old watcher did, to standing deep among the trees whether or not it can be seen yet.
+* **The torn pages** (`mire/mire.js`, ported from the Mire's script): reading a new page brings it up 16–24 blocks
+  behind the player one time in five; the eighth always does, 12–14 blocks behind, with the title *it knows your name*
+  (this one ignores quiet periods, recovery and the encounter's cooldown, and if the Observer is busy elsewhere it
+  comes as soon as it is free, for up to a minute). Pages found are kept per player in the
+  Mire's own dynamic property, so pages found with the stand-alone Mire still count.
+* **More active there.** `context.mire` (the player's biome is `wmire:weeping_mire`):
+  * the director treats the player as one stage further along when choosing encounters (`effectiveStage`), including
+    the silence before attacks;
+  * mood ×0.7 with a floor of 0.45 (elsewhere 0.6), so every gap is shorter;
+  * the grace period ends after 30 s spent in the Mire without leaving it;
+  * *In the Mire* has weight 16 there (the highest of any encounter) and 0 anywhere else.
+* **Unchanged from the Mire:** wind gusts every 25–55 s with leaves and streaks for players in the Mire, leaves drifting
+  off weeping leaves, its fog, lighting, colour grading and water, and its music volume set to 0 (silence is the Mire's
+  sound).
+
