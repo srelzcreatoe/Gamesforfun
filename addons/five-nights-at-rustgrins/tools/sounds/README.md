@@ -198,24 +198,19 @@ attack and a pin click. Every tine has a fixed detune.
 * `rat.squeak` is a stick-slip pulse wave. `rat.crawl` is oil-can thumps
   (gliding pitch), plus scrapes through the duct mode set.
 
-**Jumpscares (stereo, about -9 to -11 dBFS RMS).** Each one stacks the same layers:
-* an impact (clang, broadband crash, falling sub thud) landing 8 ms in;
-* screaming formant voices with pitch chaos (random wander plus uneven fast
-  vibrato), subharmonics and a downward pitch sweep;
-* a resonant "metal screech" (narrow noise bands sliding down);
-* a servo grind.
+**Jumpscares and the background music** are the map owner's own recordings
+in `assets/audio/` (`Rec(...)` rows in `gen_sounds.py`): they are copied into the
+pack as they are, or only trimmed in gain and re-encoded at a higher quality when
+they peak above -1 dBFS. `js/animatronic.ogg` serves all six regular animatronics,
+`js/rusted.ogg` the Rusted one, and `music/bgm.ogg` loops during shifts.
 
-Everything then goes through 4× oversampled tanh and hard clipping with a
-presence boost, followed by the limiter. The colours:
-
-| event | colour |
-|---|---|
-| `js.rustgrin` | huge low roar, an overtone scream and a sub layer |
-| `js.mirehop` | a guitar pinch-squeal, a pick scrape and a distorted tritone chord crash |
-| `js.noxbriar` | a five-voice dissonant cluster through a comb filter and hall ("hollow choir") |
-| `js.purple_rat` | a high squeal and a frantic 18 Hz maraca rattle |
-| `js.cat` | a hiss bursting into a rising-falling yowl |
-| `js.top_hat_rat` | a dissonant calliope blast whose speed and pitch collapse into the scream |
+**The Final Act** (`recipes_final.py`).
+* `final.chime` is a three-note glockenspiel chime (C6, A5, E6) through a band-limited,
+  slightly overdriven ceiling speaker with a faint mains buzz and hiss.
+* `final.applause` is a few hundred short band-passed noise claps, panned across the
+  stereo field under a swelling and dying envelope, in a room IR.
+* `final.spot` is a relay clunk, an arc of bright noise flickering at 33 Hz and a
+  hot 100/200 Hz hum.
 
 **Hallucinations, UI, showtime.**
 * `hall.whisper` is unvoiced formant noise with sibilants, convolved with a
