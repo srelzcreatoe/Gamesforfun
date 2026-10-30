@@ -36,6 +36,9 @@ const wait = (ticks) => new Promise((res) => system.runTimeout(() => res(undefin
 const HEAD_Y = Object.freeze({ rustgrin: 2.97, mirehop: 2.79, noxbriar: 2.97, purple_rat: 3.01, cat: 3.04, top_hat_rat: 2.97, rusted: 2.97 });
 /** Eye height on the held frame of each jumpscare (the face lunges down): the jumpscare is framed on it. */
 const JUMPSCARE_EYE_Y = Object.freeze({ rustgrin: 2.64, mirehop: 2.44, noxbriar: 2.63, purple_rat: 2.64, cat: 2.65, top_hat_rat: 2.56, rusted: 2.64 });
+/** How far in front of the guard's eye the jumpscare starts: the lunge carries the face 1.33-1.42 blocks forward, so it
+ *  ends about half a block from the lens, filling the screen without cutting through it. */
+const JUMPSCARE_DIST = 1.85;
 const NIGHT_HUD = [HudElement.Health, HudElement.Hunger, HudElement.Armor, HudElement.StatusEffects, HudElement.PaperDoll, HudElement.AirBubbles, HudElement.HorseHealth];
 /** The hand slot during a shift: it holds the Camera Tablet, and hotbar scrolls on the cameras return here. */
 const NEUTRAL_SLOT = 4;
@@ -1347,7 +1350,7 @@ export class Game {
       const rot = g.getRotation();
       const yawRad = (rot.y * Math.PI) / 180;
       const fwd = { x: -Math.sin(yawRad), z: Math.cos(yawRad) };
-      const dist = 1.15;
+      const dist = JUMPSCARE_DIST;
       const head = JUMPSCARE_EYE_Y[id] ?? 2.6;
       const pos = { x: eye.x + fwd.x * dist, y: eye.y - head, z: eye.z + fwd.z * dist };
       const facing = (rot.y + 180) % 360;
