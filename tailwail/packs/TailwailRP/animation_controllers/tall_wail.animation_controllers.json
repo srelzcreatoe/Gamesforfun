@@ -1,0 +1,556 @@
+{
+ "format_version": "1.10.0",
+ "animation_controllers": {
+  "controller.animation.tall_wail.body": {
+   "initial_state": "upright",
+   "states": {
+    "upright": {
+     "animations": [
+      "idle_nt",
+      {
+       "walk_nt": "v.move * v.fast"
+      },
+      {
+       "pace_nt": "v.move * (1.0 - v.fast)"
+      },
+      {
+       "watch_nt": "(q.property('tailwail:state') == 'stalk' || q.property('tailwail:state') == 'standoff') * (1.0 - v.move)"
+      },
+      {
+       "menace_nt": "v.menace_w * (1.0 - v.move)"
+      },
+      {
+       "withdraw": "q.property('tailwail:state') == 'retreat'"
+      }
+     ],
+     "transitions": [
+      {
+       "death": "q.property('tailwail:state') == 'death'"
+      },
+      {
+       "unfold": "q.property('tailwail:state') == 'unfold'"
+      },
+      {
+       "windup": "q.property('tailwail:state') == 'windup'"
+      },
+      {
+       "peek_l": "q.property('tailwail:action') == 'peek_l'"
+      },
+      {
+       "peek_r": "q.property('tailwail:action') == 'peek_r'"
+      },
+      {
+       "drop": "!(q.property('tailwail:posture') == 'tall') || q.property('tailwail:state') == 'chase'"
+      }
+     ],
+     "blend_transition": 0.3
+    },
+    "drop": {
+     "animations": [
+      "drop",
+      "gfix_drop"
+     ],
+     "transitions": [
+      {
+       "death_low": "q.property('tailwail:state') == 'death'"
+      },
+      {
+       "low": "q.all_animations_finished"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "low": {
+     "animations": [
+      {
+       "planted": "1.0 - v.move"
+      },
+      {
+       "gfix_planted": "1.0 - v.move"
+      },
+      {
+       "crawl": "v.move"
+      },
+      {
+       "gfix_crawl": "v.move"
+      }
+     ],
+     "transitions": [
+      {
+       "death_low": "q.property('tailwail:state') == 'death'"
+      },
+      {
+       "unfold_low": "q.property('tailwail:state') == 'unfold'"
+      },
+      {
+       "windup_c": "q.property('tailwail:state') == 'windup'"
+      },
+      {
+       "strike": "q.property('tailwail:action') == 'strike'"
+      },
+      {
+       "ambush": "q.property('tailwail:action') == 'ambush'"
+      },
+      {
+       "stuck": "q.property('tailwail:action') == 'stuck'"
+      },
+      {
+       "tunnel": "q.property('tailwail:posture') == 'crawl'"
+      },
+      {
+       "rise": "q.property('tailwail:posture') == 'tall' && !(q.property('tailwail:state') == 'chase') && !(q.property('tailwail:state') == 'windup') && !(q.property('tailwail:state') == 'unfold')"
+      }
+     ],
+     "blend_transition": 0.3
+    },
+    "rise": {
+     "animations": [
+      "rise",
+      "gfix_rise"
+     ],
+     "transitions": [
+      {
+       "death": "q.property('tailwail:state') == 'death'"
+      },
+      {
+       "upright": "q.all_animations_finished"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "tunnel": {
+     "animations": [
+      {
+       "planted": "1.0 - v.move"
+      },
+      {
+       "tw_tunnel_still": "1.0 - v.move"
+      },
+      {
+       "crawl": "v.move"
+      },
+      {
+       "tw_tunnel_move": "v.move"
+      }
+     ],
+     "transitions": [
+      {
+       "death_low": "q.property('tailwail:state') == 'death'"
+      },
+      {
+       "strike": "q.property('tailwail:action') == 'strike'"
+      },
+      {
+       "low": "!(q.property('tailwail:posture') == 'crawl')"
+      }
+     ],
+     "blend_transition": 0.4
+    },
+    "unfold": {
+     "animations": [
+      "reveal",
+      {
+       "tw_unfold_full": "q.property('tailwail:headroom') >= 7"
+      },
+      {
+       "tw_unfold_mid": "q.property('tailwail:headroom') < 7"
+      }
+     ],
+     "transitions": [
+      {
+       "death": "q.property('tailwail:state') == 'death'"
+      },
+      {
+       "windup": "q.property('tailwail:state') == 'windup'"
+      },
+      {
+       "drop": "q.property('tailwail:state') == 'chase'"
+      },
+      {
+       "upright": "!(q.property('tailwail:state') == 'unfold') && !(q.property('tailwail:state') == 'windup') && !(q.property('tailwail:state') == 'chase')"
+      }
+     ],
+     "blend_transition": 0.3
+    },
+    "unfold_low": {
+     "animations": [
+      "planted",
+      "gfix_planted",
+      "tw_unfold_low"
+     ],
+     "transitions": [
+      {
+       "death_low": "q.property('tailwail:state') == 'death'"
+      },
+      {
+       "windup_c": "q.property('tailwail:state') == 'windup'"
+      },
+      {
+       "low": "!(q.property('tailwail:state') == 'unfold') && !(q.property('tailwail:state') == 'windup')"
+      }
+     ],
+     "blend_transition": 0.3
+    },
+    "windup": {
+     "animations": [
+      "windup",
+      "gfix_windup"
+     ],
+     "transitions": [
+      {
+       "death_low": "q.property('tailwail:state') == 'death'"
+      },
+      {
+       "low": "!(q.property('tailwail:state') == 'windup')"
+      }
+     ],
+     "blend_transition": 0.25
+    },
+    "windup_c": {
+     "animations": [
+      "windup_c",
+      "gfix_windup_c"
+     ],
+     "transitions": [
+      {
+       "death_low": "q.property('tailwail:state') == 'death'"
+      },
+      {
+       "low": "!(q.property('tailwail:state') == 'windup')"
+      }
+     ],
+     "blend_transition": 0.25
+    },
+    "strike": {
+     "animations": [
+      "tw_strike",
+      "gfix_tw_strike"
+     ],
+     "transitions": [
+      {
+       "death_low": "q.property('tailwail:state') == 'death'"
+      },
+      {
+       "tunnel": "(!(q.property('tailwail:action') == 'strike') || q.all_animations_finished) && q.property('tailwail:posture') == 'crawl'"
+      },
+      {
+       "low": "(!(q.property('tailwail:action') == 'strike') || q.all_animations_finished) && !(q.property('tailwail:posture') == 'crawl')"
+      }
+     ],
+     "blend_transition": 0.2
+    },
+    "ambush": {
+     "animations": [
+      "ambush",
+      "gfix_ambush"
+     ],
+     "transitions": [
+      {
+       "death_low": "q.property('tailwail:state') == 'death'"
+      },
+      {
+       "low": "!(q.property('tailwail:action') == 'ambush')"
+      }
+     ],
+     "blend_transition": 0.25
+    },
+    "stuck": {
+     "animations": [
+      "stuck",
+      "gfix_stuck"
+     ],
+     "transitions": [
+      {
+       "death_low": "q.property('tailwail:state') == 'death'"
+      },
+      {
+       "low": "!(q.property('tailwail:action') == 'stuck')"
+      }
+     ],
+     "blend_transition": 0.25
+    },
+    "peek_l": {
+     "animations": [
+      "peek_left",
+      "gfix_peek_left"
+     ],
+     "transitions": [
+      {
+       "death": "q.property('tailwail:state') == 'death'"
+      },
+      {
+       "upright": "!(q.property('tailwail:action') == 'peek_l')"
+      }
+     ],
+     "blend_transition": 0.35
+    },
+    "peek_r": {
+     "animations": [
+      "peek_right",
+      "gfix_peek_right"
+     ],
+     "transitions": [
+      {
+       "death": "q.property('tailwail:state') == 'death'"
+      },
+      {
+       "upright": "!(q.property('tailwail:action') == 'peek_r')"
+      }
+     ],
+     "blend_transition": 0.35
+    },
+    "death": {
+     "animations": [
+      "death",
+      "gfix_death"
+     ],
+     "transitions": [],
+     "blend_transition": 0.2
+    },
+    "death_low": {
+     "animations": [
+      "death_low",
+      "gfix_death_low"
+     ],
+     "transitions": [],
+     "blend_transition": 0.2
+    }
+   }
+  },
+  "controller.animation.tall_wail.tail": {
+   "initial_state": "drag",
+   "states": {
+    "drag": {
+     "animations": [
+      "tw_tail_drag"
+     ],
+     "transitions": [
+      {
+       "twitch": "q.property('tailwail:tail') == 'twitch'"
+      },
+      {
+       "rigid": "q.property('tailwail:tail') == 'rigid'"
+      },
+      {
+       "free": "q.property('tailwail:tail') == 'free'"
+      }
+     ],
+     "blend_transition": 0.35
+    },
+    "twitch": {
+     "animations": [
+      "tw_tail_twitch"
+     ],
+     "transitions": [
+      {
+       "drag": "q.property('tailwail:tail') == 'drag'"
+      },
+      {
+       "rigid": "q.property('tailwail:tail') == 'rigid'"
+      },
+      {
+       "free": "q.property('tailwail:tail') == 'free'"
+      }
+     ],
+     "blend_transition": 0.35
+    },
+    "rigid": {
+     "animations": [
+      "tw_tail_rigid"
+     ],
+     "transitions": [
+      {
+       "drag": "q.property('tailwail:tail') == 'drag'"
+      },
+      {
+       "twitch": "q.property('tailwail:tail') == 'twitch'"
+      },
+      {
+       "free": "q.property('tailwail:tail') == 'free'"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "free": {
+     "animations": [],
+     "transitions": [
+      {
+       "drag": "q.property('tailwail:tail') == 'drag'"
+      },
+      {
+       "twitch": "q.property('tailwail:tail') == 'twitch'"
+      },
+      {
+       "rigid": "q.property('tailwail:tail') == 'rigid'"
+      }
+     ],
+     "blend_transition": 0.35
+    }
+   }
+  },
+  "controller.animation.tall_wail.face": {
+   "initial_state": "base",
+   "states": {
+    "base": {
+     "animations": [
+      "look",
+      "jaw"
+     ],
+     "transitions": [
+      {
+       "click": "q.property('tailwail:voice') == 'click'"
+      },
+      {
+       "wail": "q.property('tailwail:voice') == 'wail'"
+      },
+      {
+       "inhale": "q.property('tailwail:voice') == 'inhale'"
+      },
+      {
+       "listen": "q.property('tailwail:action') == 'listen'"
+      }
+     ],
+     "blend_transition": 0.2
+    },
+    "click": {
+     "animations": [
+      "look",
+      "jaw",
+      "echo"
+     ],
+     "transitions": [
+      {
+       "base": "!(q.property('tailwail:voice') == 'click')"
+      }
+     ],
+     "blend_transition": 0.2
+    },
+    "wail": {
+     "animations": [
+      "look",
+      "jaw",
+      "scream_nt"
+     ],
+     "transitions": [
+      {
+       "base": "!(q.property('tailwail:voice') == 'wail')"
+      }
+     ],
+     "blend_transition": 0.3
+    },
+    "inhale": {
+     "animations": [
+      "look",
+      "jaw",
+      "tw_inhale"
+     ],
+     "transitions": [
+      {
+       "wail": "q.property('tailwail:voice') == 'wail'"
+      },
+      {
+       "base": "!(q.property('tailwail:voice') == 'inhale')"
+      }
+     ],
+     "blend_transition": 0.25
+    },
+    "listen": {
+     "animations": [
+      "look",
+      "jaw",
+      "listen"
+     ],
+     "transitions": [
+      {
+       "click": "q.property('tailwail:voice') == 'click'"
+      },
+      {
+       "base": "!(q.property('tailwail:action') == 'listen')"
+      }
+     ],
+     "blend_transition": 0.4
+    }
+   }
+  },
+  "controller.animation.tall_wail.mimic": {
+   "initial_state": "off",
+   "states": {
+    "off": {
+     "animations": [],
+     "transitions": [
+      {
+       "on": "v.m_on"
+      }
+     ]
+    },
+    "on": {
+     "animations": [
+      {
+       "tw_mimic_crouch": "(1.0 - v.move) * (q.property('tailwail:posture') == 'tall')"
+      },
+      {
+       "tw_mimic_step": "(1.0 - v.move) * (q.property('tailwail:posture') == 'tall')"
+      },
+      {
+       "tw_mimic_shrug": "1.0 - v.move"
+      },
+      "tw_mimic_tilt"
+     ],
+     "transitions": [
+      {
+       "off": "!v.m_on && v.mimic_crouch < 0.02 && v.mimic_step < 0.02 && v.mimic_shrug < 0.02 && math.abs(v.mimic_roll) < 0.5 && math.abs(v.mimic_pitch) < 0.5"
+      }
+     ]
+    }
+   }
+  },
+  "controller.animation.tall_wail.agitation": {
+   "initial_state": "calm",
+   "states": {
+    "calm": {
+     "animations": [],
+     "transitions": [
+      {
+       "twitchy": "q.property('tailwail:agit') == 2 && v.m_on"
+      }
+     ]
+    },
+    "twitchy": {
+     "animations": [
+      "twitch"
+     ],
+     "transitions": [
+      {
+       "calm": "q.property('tailwail:agit') != 2 || !v.m_on"
+      }
+     ],
+     "blend_transition": 0.5
+    }
+   }
+  },
+  "controller.animation.tall_wail.hurt": {
+   "initial_state": "default",
+   "states": {
+    "default": {
+     "animations": [],
+     "transitions": [
+      {
+       "hurt": "q.hurt_time > 0 && !(q.property('tailwail:state') == 'death')"
+      }
+     ]
+    },
+    "hurt": {
+     "animations": [
+      "hurt"
+     ],
+     "transitions": [
+      {
+       "default": "q.all_animations_finished && q.hurt_time <= 0"
+      }
+     ],
+     "blend_transition": 0.1
+    }
+   }
+  }
+ }
+}

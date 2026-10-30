@@ -9,3 +9,6 @@ captures/
 out/
 assets/worlds/
 CubicWorld_Source.zip
+tailwail/build/
+__pycache__/
+*.pyc

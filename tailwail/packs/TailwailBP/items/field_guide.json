@@ -1,0 +1,14 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:item": {
+    "description": {
+      "identifier": "tailwail:field_guide",
+      "menu_category": { "category": "items" }
+    },
+    "components": {
+      "minecraft:icon": "tailwail_field_guide",
+      "minecraft:display_name": { "value": "item.tailwail.field_guide.name" },
+      "minecraft:max_stack_size": 1
+    }
+  }
+}

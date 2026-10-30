@@ -1,0 +1,228 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "tailwail:tall_wail",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "properties": {
+        "tailwail:state": {
+          "type": "enum",
+          "values": ["inactive", "stalk", "standoff", "unfold", "windup", "chase", "search", "retreat", "death"],
+          "default": "inactive",
+          "client_sync": true
+        },
+        "tailwail:posture": {
+          "type": "enum",
+          "values": ["tall", "hunch", "crawl"],
+          "default": "tall",
+          "client_sync": true
+        },
+        "tailwail:headroom": { "type": "int", "range": [0, 8], "default": 8, "client_sync": true },
+        "tailwail:agit": { "type": "int", "range": [0, 3], "default": 1, "client_sync": true },
+        "tailwail:look_yaw": { "type": "int", "range": [-90, 90], "default": 0, "client_sync": true },
+        "tailwail:look_pitch": { "type": "int", "range": [-60, 60], "default": 0, "client_sync": true },
+        "tailwail:mimic": {
+          "type": "enum",
+          "values": ["none", "crouch", "tilt", "step", "shrug"],
+          "default": "none",
+          "client_sync": true
+        },
+        "tailwail:mimic_amt": { "type": "float", "range": [0.0, 2.0], "default": 0.0, "client_sync": true },
+        "tailwail:mimic_pitch": { "type": "int", "range": [-60, 60], "default": 0, "client_sync": true },
+        "tailwail:action": {
+          "type": "enum",
+          "values": ["none", "strike", "peek_l", "peek_r", "listen", "ambush", "stuck"],
+          "default": "none",
+          "client_sync": true
+        },
+        "tailwail:tail": {
+          "type": "enum",
+          "values": ["drag", "twitch", "rigid", "free"],
+          "default": "drag",
+          "client_sync": true
+        },
+        "tailwail:voice": {
+          "type": "enum",
+          "values": ["silent", "breath", "click", "inhale", "wail", "snarl"],
+          "default": "breath",
+          "client_sync": true
+        },
+        "tailwail:fx": { "type": "int", "range": [0, 2], "default": 2, "client_sync": true },
+        "tailwail:managed": { "type": "bool", "default": false, "client_sync": false }
+      }
+    },
+    "component_groups": {
+      "tailwail:posture_tall": {
+        "minecraft:collision_box": { "width": 0.9, "height": 3.9 },
+        "minecraft:custom_hit_test": {
+          "hitboxes": [{ "width": 1.6, "height": 4.0, "pivot": [0.0, 2.0, 0.0] }]
+        }
+      },
+      "tailwail:posture_hunch": {
+        "minecraft:collision_box": { "width": 0.9, "height": 2.8 },
+        "minecraft:custom_hit_test": {
+          "hitboxes": [{ "width": 1.8, "height": 2.9, "pivot": [0.0, 1.45, 0.0] }]
+        }
+      },
+      "tailwail:posture_crawl": {
+        "minecraft:collision_box": { "width": 0.9, "height": 1.8 },
+        "minecraft:custom_hit_test": {
+          "hitboxes": [{ "width": 1.6, "height": 1.9, "pivot": [0.0, 0.95, 0.0] }]
+        }
+      },
+      "tailwail:nav_doors": {
+        "minecraft:navigation.walk": {
+          "can_path_over_water": false,
+          "avoid_water": false,
+          "avoid_damage_blocks": true,
+          "can_path_over_lava": false,
+          "can_open_doors": true,
+          "can_pass_doors": true,
+          "can_break_doors": false,
+          "using_door_annotation": true
+        },
+        "minecraft:annotation.open_door": {}
+      },
+      "tailwail:nav_nodoors": {
+        "minecraft:navigation.walk": {
+          "can_path_over_water": false,
+          "avoid_water": false,
+          "avoid_damage_blocks": true,
+          "can_path_over_lava": false,
+          "can_open_doors": false,
+          "can_pass_doors": false,
+          "can_break_doors": false
+        }
+      },
+      "tailwail:seek_a": {
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "must_reach": false,
+          "reselect_targets": true,
+          "within_radius": 96.0,
+          "scan_interval": 5,
+          "entity_types": [
+            {
+              "filters": { "test": "is_family", "subject": "other", "value": "tailwail_lure_a" },
+              "max_dist": 96,
+              "must_see": false
+            }
+          ]
+        }
+      },
+      "tailwail:seek_b": {
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "must_reach": false,
+          "reselect_targets": true,
+          "within_radius": 96.0,
+          "scan_interval": 5,
+          "entity_types": [
+            {
+              "filters": { "test": "is_family", "subject": "other", "value": "tailwail_lure_b" },
+              "max_dist": 96,
+              "must_see": false
+            }
+          ]
+        }
+      },
+      "tailwail:seek_c": {
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 1,
+          "must_see": false,
+          "must_reach": false,
+          "reselect_targets": true,
+          "within_radius": 96.0,
+          "scan_interval": 5,
+          "entity_types": [
+            {
+              "filters": { "test": "is_family", "subject": "other", "value": "tailwail_lure_c" },
+              "max_dist": 96,
+              "must_see": false
+            }
+          ]
+        }
+      },
+      "tailwail:move": {
+        "minecraft:behavior.melee_box_attack": {
+          "priority": 2,
+          "speed_multiplier": 1.0,
+          "track_target": true,
+          "require_complete_path": false,
+          "melee_fov": 360,
+          "cooldown_time": 1.0,
+          "horizontal_reach": 0.2
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": { "family": ["tailwail", "mob"] },
+      "minecraft:health": { "value": 160, "max": 160 },
+      "minecraft:attack": { "damage": 0 },
+      "minecraft:movement": { "value": 0.3 },
+      "minecraft:movement.basic": {},
+      "minecraft:jump.static": {},
+      "minecraft:follow_range": { "value": 96, "max": 96 },
+      "minecraft:physics": {},
+      "minecraft:pushable": { "is_pushable": false, "is_pushable_by_piston": true },
+      "minecraft:knockback_resistance": { "value": 1.0 },
+      "minecraft:collision_box": { "width": 0.9, "height": 3.9 },
+      "minecraft:behavior.float": { "priority": 0 },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          { "cause": "fall", "deals_damage": "no" },
+          { "cause": "suffocation", "deals_damage": "no" },
+          { "cause": "drowning", "deals_damage": "no" },
+          { "cause": "fly_into_wall", "deals_damage": "no" }
+        ]
+      },
+      "minecraft:despawn": {
+        "despawn_from_distance": { "min_distance": 96, "max_distance": 128 }
+      },
+      "minecraft:conditional_bandwidth_optimization": {}
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": { "component_groups": ["tailwail:posture_tall", "tailwail:nav_doors"] }
+      },
+      "tailwail:posture_tall": {
+        "remove": { "component_groups": ["tailwail:posture_hunch", "tailwail:posture_crawl"] },
+        "add": { "component_groups": ["tailwail:posture_tall"] }
+      },
+      "tailwail:posture_hunch": {
+        "remove": { "component_groups": ["tailwail:posture_tall", "tailwail:posture_crawl"] },
+        "add": { "component_groups": ["tailwail:posture_hunch"] }
+      },
+      "tailwail:posture_crawl": {
+        "remove": { "component_groups": ["tailwail:posture_tall", "tailwail:posture_hunch"] },
+        "add": { "component_groups": ["tailwail:posture_crawl"] }
+      },
+      "tailwail:doors_on": {
+        "remove": { "component_groups": ["tailwail:nav_nodoors"] },
+        "add": { "component_groups": ["tailwail:nav_doors"] }
+      },
+      "tailwail:doors_off": {
+        "remove": { "component_groups": ["tailwail:nav_doors"] },
+        "add": { "component_groups": ["tailwail:nav_nodoors"] }
+      },
+      "tailwail:seek_a": {
+        "remove": { "component_groups": ["tailwail:seek_b", "tailwail:seek_c"] },
+        "add": { "component_groups": ["tailwail:seek_a", "tailwail:move"] }
+      },
+      "tailwail:seek_b": {
+        "remove": { "component_groups": ["tailwail:seek_a", "tailwail:seek_c"] },
+        "add": { "component_groups": ["tailwail:seek_b", "tailwail:move"] }
+      },
+      "tailwail:seek_c": {
+        "remove": { "component_groups": ["tailwail:seek_a", "tailwail:seek_b"] },
+        "add": { "component_groups": ["tailwail:seek_c", "tailwail:move"] }
+      },
+      "tailwail:hold": {
+        "remove": { "component_groups": ["tailwail:seek_a", "tailwail:seek_b", "tailwail:seek_c", "tailwail:move"] }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Tailwail Dev Tests (not for distribution)",
+    "description": "BDS runtime experiments for Tailwail. Never ship.",
+    "uuid": "d176103b-7bfe-4dec-90b4-99471d54c7cc",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 26, 60]
+  },
+  "modules": [
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "a50c58a7-793f-4d2a-9d6b-5676d24e85e8",
+      "entry": "scripts/dev.js",
+      "version": [1, 0, 0]
+    }
+  ],
+  "dependencies": [
+    { "module_name": "@minecraft/server", "version": "2.11.0" }
+  ]
+}
