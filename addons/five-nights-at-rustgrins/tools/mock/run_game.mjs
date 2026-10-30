@@ -194,8 +194,11 @@ debug('hour', '4');
 answer(titleHas('GAME OVER'), () => ({ canceled: false, selection: 1 })); // lobby (no next on loss: retry=0, lobby=1)
 await waitFor(() => game().state === 'JUMPSCARE', 6000, 'a jumpscare');
 say(`jumpscare by ${game().session?.killer ?? '?'}`);
+await steps(2);
+check(P.hudHidden === 'all' && mock.titles.at(-1)?.[0] === '§k§r§k§r§o', `the jumpscare clears the screen: HUD hidden (${P.hudHidden}), title code for the pack to hide the action bar (${JSON.stringify(mock.titles.at(-1)?.[0])})`);
 await waitFor(() => game().state === 'LOBBY', 600, 'back to the lobby');
 say('back in the lobby after a loss');
+check(P.hudHidden === null, 'the HUD comes back after the jumpscare');
 {
   const over = mock.forms.filter((f) => f.title.includes('GAME OVER')).at(-1);
   check(/LEFT door/.test(over?.body ?? ''), `the game-over screen explains how Mirehop got in (got: ${over?.body})`);

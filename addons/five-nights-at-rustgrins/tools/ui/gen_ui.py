@@ -174,6 +174,7 @@ roll.save(os.path.join(OUT, 'cam_fx_roll.png'))
 # ---------------------------------------------------------------- JSON UI
 MAP_ON = '§k§r§k§r§l'
 FX_ON = '§k§r§k§r§n'      # the camera-feed look without the map (Settings: camera map off)
+JS_ON = '§k§r§k§r§o'      # a jumpscare is playing: nothing on screen but the animatronic
 FORM_MARK = '§k§r§k§r§m'
 # A compact map in the corner so the feed keeps most of the screen; the clickable one is a
 # little larger so every camera stays a usable button (about 12 x 7 units).
@@ -220,6 +221,10 @@ hud = {
     },
     'fnar_cam_noise_anim': {'anim_type': 'flip_book', 'initial_uv': [0, 0], 'frame_count': NOISE_FRAMES, 'frame_step': NOISE_H, 'fps': 14},
     'fnar_cam_roll_anim': {'anim_type': 'offset', 'easing': 'linear', 'duration': 7.5, 'from': [0, -80], 'to': [0, 520], 'next': '@hud.fnar_cam_roll_anim'},
+    # vanilla's action bar (merged: only this binding is added) hides while a jumpscare plays
+    'hud_actionbar_text': {
+        'bindings': title_visible(f"((#hud_title_text_string - '{JS_ON}') = #hud_title_text_string)"),
+    },
     **blink('fnar_cam'),
     'fnar_rec_blink_out': {'anim_type': 'alpha', 'easing': 'linear', 'duration': 0.6, 'from': 1.0, 'to': 0.0, 'next': '@hud.fnar_rec_blink_in'},
     'fnar_rec_blink_in': {'anim_type': 'alpha', 'easing': 'linear', 'duration': 0.6, 'from': 0.0, 'to': 1.0, 'next': '@hud.fnar_rec_blink_out'},

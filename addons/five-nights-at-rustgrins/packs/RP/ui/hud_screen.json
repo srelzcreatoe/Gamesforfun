@@ -543,6 +543,19 @@
   ],
   "next": "@hud.fnar_cam_roll_anim"
  },
+ "hud_actionbar_text": {
+  "bindings": [
+   {
+    "binding_name": "#hud_title_text_string",
+    "binding_type": "global"
+   },
+   {
+    "binding_type": "view",
+    "source_property_name": "((#hud_title_text_string - '§k§r§k§r§o') = #hud_title_text_string)",
+    "target_property_name": "#visible"
+   }
+  ]
+ },
  "fnar_cam_blink_out": {
   "anim_type": "alpha",
   "easing": "linear",

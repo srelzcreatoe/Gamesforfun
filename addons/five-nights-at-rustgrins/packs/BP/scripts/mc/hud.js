@@ -14,6 +14,8 @@ export const hourLabel = (h) => HOURS[Math.max(0, Math.min(6, h))];
 export const MAP_ON = '§k§r§k§r§l';
 /** The camera-feed look (grain, scanlines, tint) without the map, when the map is switched off in Settings. */
 export const FX_ON = '§k§r§k§r§n';
+/** A jumpscare is playing: the resource pack hides the action bar (and every camera overlay) while this title is up. */
+export const JS_ON = '§k§r§k§r§o';
 export const MAP_OFF = ' ';
 export function mapTitle(camId) {
   const i = CAMERA_ORDER.indexOf(camId);

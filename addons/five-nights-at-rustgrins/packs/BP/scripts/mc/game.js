@@ -22,7 +22,7 @@ import { Builder } from './builder.js';
 import { Puppets, yawToward } from './puppets.js';
 import { Actuators } from './actuators.js';
 import { Audio } from './audio.js';
-import { Hud, mapTitle, MAP_OFF, FX_ON, hourLabel, spotlightReady } from './hud.js';
+import { Hud, mapTitle, MAP_OFF, FX_ON, JS_ON, hourLabel, spotlightReady } from './hud.js';
 import { CameraView, restorePlayerView, FOG } from './camera_view.js';
 import * as ui from './ui.js';
 import { W, Wv, L, dim, origin, refreshOrigin, setOrigin, runCmd, setLocal, typeAtLocal } from './world_io.js';
@@ -1344,6 +1344,8 @@ export class Game {
     this.audio.stopAll();
     this.stopBgm(g);
     this.paQueue = [];
+    this.hud.setSpeech('', system.currentTick, 0);
+    this.focusOn(g, true);
     const id = who;
     try {
       const eye = g.getHeadLocation();
@@ -1372,6 +1374,7 @@ export class Game {
     this.puppets.removeAll();
     restorePlayerView(g);
     runCmd(FOG.darkPop);
+    this.focusOn(g, false);
     const n = this.nightOpts.n;
     const res = await ui.resultForm(g, {
       won: false,
@@ -1379,6 +1382,25 @@ export class Game {
       tip: KILL_TIPS[who] ?? TUTORIAL_HINTS[Math.min(7, Math.max(1, n))],
     });
     this.afterResult(res, g, false);
+  }
+
+  /**
+   * Nothing on screen but the animatronic: every HUD element, the action bar (hidden by the resource pack
+   * while the JS_ON title is up) and the camera overlays go away; `false` brings them back.
+   * @param {import('@minecraft/server').Player} g
+   */
+  focusOn(g, on) {
+    try {
+      if (on) {
+        g.onScreenDisplay.hideAllExcept([]);
+        g.onScreenDisplay.setTitle(JS_ON, { fadeInDuration: 0, stayDuration: 400, fadeOutDuration: 0 });
+      } else {
+        g.onScreenDisplay.setTitle(MAP_OFF, { fadeInDuration: 0, stayDuration: 1, fadeOutDuration: 0 });
+        g.onScreenDisplay.resetHudElementsVisibility();
+      }
+    } catch (e) {
+      log.warn(`jumpscare focus: ${e?.message ?? e}`);
+    }
   }
 
   /** @param {import('@minecraft/server').Player} g */

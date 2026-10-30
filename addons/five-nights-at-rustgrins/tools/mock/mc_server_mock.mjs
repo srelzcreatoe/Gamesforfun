@@ -244,6 +244,8 @@ class Player extends Entity {
       setActionBar(t) { rw('setActionBar'); self.actionBar = t; },
       setTitle(t, o) { rw('setTitle'); mock.titles.push([t, o?.subtitle]); },
       setHudVisibility() {},
+      hideAllExcept(els = []) { rw('hideAllExcept'); self.hudHidden = els.length === 0 ? 'all' : els; },
+      resetHudElementsVisibility() { rw('resetHudElementsVisibility'); self.hudHidden = null; },
     };
   }
 
