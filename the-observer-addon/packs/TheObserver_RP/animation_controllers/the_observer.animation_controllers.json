@@ -32,6 +32,15 @@
             },
             {
               "hidden": "q.property('observer:state') == 'hidden'"
+            },
+            {
+              "float": "q.property('observer:state') == 'float'"
+            },
+            {
+              "surge": "q.property('observer:state') == 'surge'"
+            },
+            {
+              "climb": "q.property('observer:state') == 'climb'"
             }
           ]
         },
@@ -64,6 +73,15 @@
             },
             {
               "hidden": "q.property('observer:state') == 'hidden'"
+            },
+            {
+              "float": "q.property('observer:state') == 'float'"
+            },
+            {
+              "surge": "q.property('observer:state') == 'surge'"
+            },
+            {
+              "climb": "q.property('observer:state') == 'climb'"
             }
           ],
           "blend_transition": 0.25
@@ -97,6 +115,15 @@
             },
             {
               "hidden": "q.property('observer:state') == 'hidden'"
+            },
+            {
+              "float": "q.property('observer:state') == 'float'"
+            },
+            {
+              "surge": "q.property('observer:state') == 'surge'"
+            },
+            {
+              "climb": "q.property('observer:state') == 'climb'"
             }
           ],
           "blend_transition": 0.25
@@ -129,6 +156,15 @@
             },
             {
               "hidden": "q.property('observer:state') == 'hidden'"
+            },
+            {
+              "float": "q.property('observer:state') == 'float'"
+            },
+            {
+              "surge": "q.property('observer:state') == 'surge'"
+            },
+            {
+              "climb": "q.property('observer:state') == 'climb'"
             }
           ],
           "blend_transition": 0.25
@@ -162,6 +198,15 @@
             },
             {
               "hidden": "q.property('observer:state') == 'hidden'"
+            },
+            {
+              "float": "q.property('observer:state') == 'float'"
+            },
+            {
+              "surge": "q.property('observer:state') == 'surge'"
+            },
+            {
+              "climb": "q.property('observer:state') == 'climb'"
             }
           ],
           "blend_transition": 0.25
@@ -194,6 +239,15 @@
             },
             {
               "hidden": "q.property('observer:state') == 'hidden'"
+            },
+            {
+              "float": "q.property('observer:state') == 'float'"
+            },
+            {
+              "surge": "q.property('observer:state') == 'surge'"
+            },
+            {
+              "climb": "q.property('observer:state') == 'climb'"
             }
           ],
           "blend_transition": 0.2
@@ -226,6 +280,15 @@
             },
             {
               "hidden": "q.property('observer:state') == 'hidden'"
+            },
+            {
+              "float": "q.property('observer:state') == 'float'"
+            },
+            {
+              "surge": "q.property('observer:state') == 'surge'"
+            },
+            {
+              "climb": "q.property('observer:state') == 'climb'"
             }
           ],
           "blend_transition": 0.1,
@@ -264,6 +327,15 @@
             },
             {
               "hidden": "q.property('observer:state') == 'hidden'"
+            },
+            {
+              "float": "q.property('observer:state') == 'float'"
+            },
+            {
+              "surge": "q.property('observer:state') == 'surge'"
+            },
+            {
+              "climb": "q.property('observer:state') == 'climb'"
             }
           ],
           "blend_transition": 0.25
@@ -296,6 +368,15 @@
             },
             {
               "hidden": "q.property('observer:state') == 'hidden'"
+            },
+            {
+              "float": "q.property('observer:state') == 'float'"
+            },
+            {
+              "surge": "q.property('observer:state') == 'surge'"
+            },
+            {
+              "climb": "q.property('observer:state') == 'climb'"
             }
           ],
           "blend_transition": 0.05,
@@ -330,9 +411,142 @@
             },
             {
               "recoil": "q.property('observer:state') == 'recoil'"
+            },
+            {
+              "float": "q.property('observer:state') == 'float'"
+            },
+            {
+              "surge": "q.property('observer:state') == 'surge'"
+            },
+            {
+              "climb": "q.property('observer:state') == 'climb'"
             }
           ],
           "blend_transition": 0.0
+        },
+        "float": {
+          "animations": [
+            "float_drift",
+            "look_at_target"
+          ],
+          "transitions": [
+            {
+              "watch": "q.property('observer:state') == 'watch'"
+            },
+            {
+              "stare": "q.property('observer:state') == 'stare'"
+            },
+            {
+              "tilt": "q.property('observer:state') == 'tilt'"
+            },
+            {
+              "walk": "q.property('observer:state') == 'walk'"
+            },
+            {
+              "run": "q.property('observer:state') == 'run'"
+            },
+            {
+              "attack": "q.property('observer:state') == 'attack'"
+            },
+            {
+              "peek": "q.property('observer:state') == 'peek'"
+            },
+            {
+              "recoil": "q.property('observer:state') == 'recoil'"
+            },
+            {
+              "hidden": "q.property('observer:state') == 'hidden'"
+            },
+            {
+              "surge": "q.property('observer:state') == 'surge'"
+            },
+            {
+              "climb": "q.property('observer:state') == 'climb'"
+            }
+          ],
+          "blend_transition": 0.35
+        },
+        "surge": {
+          "animations": [
+            "float_surge"
+          ],
+          "transitions": [
+            {
+              "watch": "q.property('observer:state') == 'watch'"
+            },
+            {
+              "stare": "q.property('observer:state') == 'stare'"
+            },
+            {
+              "tilt": "q.property('observer:state') == 'tilt'"
+            },
+            {
+              "walk": "q.property('observer:state') == 'walk'"
+            },
+            {
+              "run": "q.property('observer:state') == 'run'"
+            },
+            {
+              "attack": "q.property('observer:state') == 'attack'"
+            },
+            {
+              "peek": "q.property('observer:state') == 'peek'"
+            },
+            {
+              "recoil": "q.property('observer:state') == 'recoil'"
+            },
+            {
+              "hidden": "q.property('observer:state') == 'hidden'"
+            },
+            {
+              "float": "q.property('observer:state') == 'float'"
+            },
+            {
+              "climb": "q.property('observer:state') == 'climb'"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "climb": {
+          "animations": [
+            "climb"
+          ],
+          "transitions": [
+            {
+              "watch": "q.property('observer:state') == 'watch'"
+            },
+            {
+              "stare": "q.property('observer:state') == 'stare'"
+            },
+            {
+              "tilt": "q.property('observer:state') == 'tilt'"
+            },
+            {
+              "walk": "q.property('observer:state') == 'walk'"
+            },
+            {
+              "run": "q.property('observer:state') == 'run'"
+            },
+            {
+              "attack": "q.property('observer:state') == 'attack'"
+            },
+            {
+              "peek": "q.property('observer:state') == 'peek'"
+            },
+            {
+              "recoil": "q.property('observer:state') == 'recoil'"
+            },
+            {
+              "hidden": "q.property('observer:state') == 'hidden'"
+            },
+            {
+              "float": "q.property('observer:state') == 'float'"
+            },
+            {
+              "surge": "q.property('observer:state') == 'surge'"
+            }
+          ],
+          "blend_transition": 0.15
         }
       }
     },

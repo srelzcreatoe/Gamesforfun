@@ -18,16 +18,17 @@ your light — always deliberately, always reversibly — and watches what you d
 4. Play. Nothing happens for the first 12 minutes on the Standard preset. Details: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md).
 
 ## Status
-Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.0.5 integration run passed 269 of
-269 checks (65 test groups) with no content-log or script errors, restart recovery passed, and the server held 20 TPS
+Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.0.6 integration run passed 283 of
+283 checks (69 test groups) with no content-log or script errors, restart recovery passed, and the server held 20 TPS
 with and without the add-on. A separate run on a fresh world with every experiment switched off (and no test kit)
 loaded everything with zero errors — no experiments are needed. The first load in a game client reported three resource-pack errors, which are fixed in this build and now
 caught by a comparison with Mojang's vanilla files. How it looks and sounds in a client still has to be confirmed: see
 [docs/TEST_REPORT.md](docs/TEST_REPORT.md) §6 and [docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md).
 
 ## What's inside
-* **One physical Observer** built on the supplied model: 5 supplied clips + 5 supplemental clips (stalking walk, peek,
-  recoil, stoop crouch for low ceilings, head tracking), state-driven animation controllers, eyes that glow in the
+* **One physical Observer** built on the supplied model: 5 supplied clips + 8 supplemental clips (stalking walk, peek,
+  recoil, stoop crouch for low ceilings, head tracking, and in 1.0.6 two floating clips and a climb), state-driven
+  animation controllers, eyes that glow in the
   dark, a glowing wisp aura, a crimson vanish burst, and its own voice, arrival, notice, shriek and vanish sounds.
 * **A horror director**: grace period, five escalating stages, per-player and global cooldowns, quiet periods,
   recovery after deaths, anti-repetition, context-weighted selection, fair multiplayer targeting.
@@ -36,6 +37,10 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   (by your bed or door) and *Borrowed Eyes* (a creature that turns its head to follow you); a lunge when it is spotted,
   a fast, relentless attack once it reaches you, a too-close reaction, and harmless shadows in taiga forests that
   vanish when looked at, plus 17 further designed concepts — see [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md).
+* **The floating chase** (1.0.6): in *Breathing Room* it no longer runs — it floats a block off the ground with no
+  footsteps, surging at you when you look away and drifting while you watch, and stops at the water's edge to hover
+  there. **It climbs**: get up on a pillar, a ledge, a roof or a ladder and it climbs the wall after you and strikes
+  from it. Previews: [docs/media/1.0.6/](docs/media/1.0.6/).
 * **It learns how you escape**: light, water, a stare, the lens, a blow, running, breaking through, a flare — use one
   three times and it adapts to that one (one at a time, and it wears off). From stage 4 **the world goes quiet** before
   it attacks: your music stops and a faint ringing rises (sometimes nothing follows). It writes **pages you didn't
@@ -51,7 +56,7 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   start-now, presets (Atmosphere / Standard / Relentless), every individual setting (frequency, aggression,
   manipulation, sudden scares, camera effects, captions, grace period, and on/off switches for each 1.0.5 feature), a
   toggle per encounter type, *Test an encounter*, and *Undo its changes*.
-* **42 original synthesized sounds**, 10 particles (two from user-supplied sprite sheets), 3 fogs, original item and
+* **44 original synthesized sounds**, 10 particles (two from user-supplied sprite sheets), 3 fogs, original item and
   block art.
 * **No experiments**: stable script APIs only; verified on a fresh world with every experiment toggle off.
 

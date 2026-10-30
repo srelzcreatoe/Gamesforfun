@@ -17,9 +17,9 @@ import * as body from "../observer/body.js";
 import { SOUNDS, PARTICLES } from "../core/constants.js";
 import { V, safe } from "../core/util.js";
 import { aggression } from "../core/settings.js";
-import { corridorBehind, findSpot } from "../world/space.js";
+import { corridorBehind } from "../world/space.js";
 import { litLightsNear } from "../world/manipulate.js";
-import { arriveUnseen, sighting, travelDir, relentless } from "./common.js";
+import { arriveUnseen, sighting, travelDir, relentless, findSpotLoose } from "./common.js";
 import * as learn from "../observer/learn.js";
 
 register({
@@ -40,8 +40,12 @@ register({
     const dir = travelDir(p);
     const seal = corridorBehind(p, dir);
     if (!seal) return false;
-    const ahead = findSpot(p, { minDist: 12, maxDist: 20, bearings: [0], spread: 22, concealment: "any", needLOS: true, yMode: "near",
-      baseYaw: V.yawTo({ x: 0, y: 0, z: 0 }, dir) });
+    // along the corridor first (a narrow cone: in a 1-2 wide tunnel most of a wide cone is rock), then wider
+    const baseYaw = V.yawTo({ x: 0, y: 0, z: 0 }, dir);
+    const ahead = findSpotLoose(p, [
+      { minDist: 12, maxDist: 20, bearings: [0], spread: 5, concealment: "any", needLOS: true, yMode: "near", baseYaw, samples: 40 },
+      { minDist: 10, maxDist: 20, bearings: [0], spread: 22, concealment: "any", needLOS: true, yMode: "near", baseYaw, samples: 40 },
+    ]);
     if (!ahead) return false;
     enc.data.seal = seal;
     enc.data.ahead = ahead;

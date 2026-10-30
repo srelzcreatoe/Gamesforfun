@@ -63,6 +63,7 @@ export const SOUNDS = {
   vanish: "observer.vanish",
   silence: "observer.silence",
   scrawl: "observer.scrawl",
+  drift: "observer.drift",
 };
 
 export const FOGS = { dread: "observer:dread", soft: "observer:dread_soft", vigil: "observer:vigil" };

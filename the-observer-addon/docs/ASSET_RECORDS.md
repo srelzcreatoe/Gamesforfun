@@ -44,6 +44,8 @@ Made by the user, who confirmed they own them (2026-10-28). Preserved unmodified
 | `TheObserver_RP/sounds/observer/chalk1.ogg` | original — synthesized by tools/synth_sounds.py | `76305aee83f9374b` |
 | `TheObserver_RP/sounds/observer/chalk2.ogg` | original — synthesized by tools/synth_sounds.py | `ad6e6a414d77574c` |
 | `TheObserver_RP/sounds/observer/discovery.ogg` | original — synthesized by tools/synth_sounds.py | `933ac64eeabc93a5` |
+| `TheObserver_RP/sounds/observer/drift1.ogg` | original — synthesized by tools/synth_sounds.py | `649ca24a9e76baf2` |
+| `TheObserver_RP/sounds/observer/drift2.ogg` | original — synthesized by tools/synth_sounds.py | `1fd054360304bb03` |
 | `TheObserver_RP/sounds/observer/effigy_break.ogg` | original — synthesized by tools/synth_sounds.py | `41dc26df692f77fd` |
 | `TheObserver_RP/sounds/observer/fabric1.ogg` | original — synthesized by tools/synth_sounds.py | `f3f3f201a0184bc3` |
 | `TheObserver_RP/sounds/observer/fabric2.ogg` | original — synthesized by tools/synth_sounds.py | `d486525c7fcd4ac9` |
@@ -105,7 +107,7 @@ Made by the user, who confirmed they own them (2026-10-28). Preserved unmodified
 | `TheObserver_RP/textures/particle/observer/wisp.png` | made by the user (supplied 2026-10-08) — shapes from source_assets/supplied_particles/wisp_sheet.png copied pixel-for-pixel into a grid (tools/integrate_particle_sheets.py) | `d6f06c5e60c01904` |
 | `TheObserver_BP/pack_icon.png` | derived — crop of supplied dweller_preview.png on a generated background (tools/make_textures.py) | `2529bdac03c514e1` |
 | `TheObserver_RP/animations/the_observer.animation.json` | supplied — hollow_dweller.animation.json, clip names renamed only | `3d684b6f10a5acc8` |
-| `TheObserver_RP/animations/the_observer_supplemental.animation.json` | original — tools/make_supplemental_anims.py (uses supplied bone names) | `52a03bbd72838d33` |
+| `TheObserver_RP/animations/the_observer_supplemental.animation.json` | original — tools/make_supplemental_anims.py (uses supplied bone names; 1.0.6 adds float_drift, float_surge, climb) | `18d1ffc603069d60` |
 | `TheObserver_RP/models/blocks/effigy.geo.json` | original — tools/make_textures.py | `e85d1aee3108b4c0` |
 | `TheObserver_RP/models/blocks/ward_lantern.geo.json` | original — tools/make_textures.py | `fa03764ae1ebdcb9` |
 | `TheObserver_RP/models/entity/the_observer.geo.json` | supplied — hollow_dweller.geo.json, identifier renamed and two eye locators added (tools/integrate_supplied_assets.py asserts cubes/UVs unchanged) | `48b77f6164817a47` |

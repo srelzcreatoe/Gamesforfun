@@ -12,6 +12,9 @@ State -> animation mapping (q.property('observer:state') is set by the behaviour
   peek    idle (supplied)      + peek (new)          leaning out from cover; side = q.property('observer:side')
   recoil  recoil (new, once)                         flinch when witnessed / struck
   hidden  (no parts rendered)                        momentary vanish without despawning
+  float   float_drift (new)    + look_at_target      1.0.6 chase: hovering a block up, limp, while watched
+  surge   float_surge (new)                          1.0.6 chase: rushing at you through the air
+  climb   climb (new)                                1.0.6: up a wall or pillar after you, head turned back
 
 observer:stoop (bool) layers the additive stoop crouch on top of any state so the
 4-block figure fits 3-block spaces.
@@ -37,9 +40,12 @@ STATES = {
     "peek": ["idle", "peek"],
     "recoil": ["recoil"],
     "hidden": [],
+    "float": ["float_drift", "look_at_target"],
+    "surge": ["float_surge"],
+    "climb": ["climb"],
 }
 STATE_SOUNDS = {"attack": [{"effect": "windup"}], "recoil": [{"effect": "recoil"}]}
-BLEND = {"attack": 0.1, "recoil": 0.05, "hidden": 0.0, "run": 0.2}
+BLEND = {"attack": 0.1, "recoil": 0.05, "hidden": 0.0, "run": 0.2, "float": 0.35, "surge": 0.3, "climb": 0.15}
 
 
 def prop(s):
@@ -108,6 +114,9 @@ def main():
             "recoil": "animation.observer.recoil",
             "stoop": "animation.observer.stoop",
             "look_at_target": "animation.observer.look_at_target",
+            "float_drift": "animation.observer.float_drift",
+            "float_surge": "animation.observer.float_surge",
+            "climb": "animation.observer.climb",
             "ctrl_state": "controller.animation.observer.state",
             "ctrl_stoop": "controller.animation.observer.stoop",
             "ctrl_aura": "controller.animation.observer.aura",

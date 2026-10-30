@@ -152,8 +152,20 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | New settings | `core/settings.js` `FEATURE_TOGGLES`, `ui/forms.js` | settings form | on by default, older worlds get them on | `learning_switch_off`, `hush_switch_off`, `pages_switch_off` | ✅ Runtime (form ❔) |
 | No experiments | manifests (`@minecraft/server` 2.10.0, `@minecraft/server-ui` 2.2.0), all JSON | fresh world, every experiment off, no test kit | scripts run, entities/items/recipes load, 0 errors | `noexp.txt` with `--require-no-experiments` | ✅ Runtime |
 
+## 1.0.6: the floating chase and climbing
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| Two floating clips + climb clip | `tools/make_supplemental_anims.py` (`float_drift`, `float_surge`, `climb`), states `float` / `surge` / `climb` (`tools/make_client_entity.py`, entity enum) | chase / climbing | model lifted 1 block (less under low ceilings), limp drift; forward surge; hand-over-hand climb looking up | validator (bones, controllers), vanilla-shape check, `docs/media/1.0.6/*.gif` offline previews | 🟡 Static ✅ / client ❔ |
+| The chase floats | `encounters/pursuit.js`, `body.setSilent` (`observer:steps_off`) | *Breathing Room* | surges unwatched (~6.2 b/s), drifts watched (~2.6 b/s); no footsteps; drift sound | `pursuit_floats_surging`, `pursuit_runs`, `pursuit_watched_drifts`, `pursuit_watched_slow` | ✅ Runtime (step silencing and sound ❔) |
+| Hovers at the shore | `pursuit.hoverAtShore` | player gets into water | floats to the last dry ground and hovers; escape still counts | `pursuit_hovers_at_shore`, `pursuit_water_escaped` | ✅ Runtime |
+| Climbs to a player on a pillar | `observer/climb.js` (`plan` cling), `common.relentless` | player 2.5+ above within 7 blocks | climbs the open face, hangs 1.5 below them | `climb_starts`, `climb_reaches_the_top`, `climb_animation_state`, `climb_test_outcome` | ✅ Runtime (look ❔) |
+| Strikes from the wall | `relentless` + `climb.after` | pillaring up during the attack | climbs after them and lands the telegraphed strike | `climb_attack_climbs_after_you`, `climb_attack_strikes_from_the_wall` | ✅ Runtime |
+| Over the top of a plateau | `climb.plan` (edge search), `climb.after` | player back from the edge (a roof) | climbs the nearest face, pulls itself over, comes across | `climb_over_the_top`, `climb_over_reaches_you` | ✅ Runtime |
+| Closer Each Time clings | `encounters/creeping.js` | player up on something, unwatched | next time you look it hangs on the wall below you | — (shares `climb.plan`) | ⚪ Implemented, not asserted |
+| Test entries | `encounters/tests.js` (`test_float`, `test_climb`) | Config Wheel → Test an encounter | harmless floating chase; climbs to you and lets go | `float_entry_surges_and_ends`, `climb_test_outcome` | ✅ Runtime |
+
 ## Performance
 | Measure | Result | Test |
 |---|---|---|
 | Server tick rate, 180 s walking player, director active (2 encounters ran) | 20.00 mean / 19.99 min TPS — identical to the add-on-free baseline (20.00 / 19.99) | `tps.txt` with and without `--no-addon` |
-| No content-log or script errors during full suite | 0 errors (final 1.0.5 run: 269/269 assertions, min 20.0 TPS between tests) | `run_bds.py` summary |
+| No content-log or script errors during full suite | 0 errors (final 1.0.6 run: 283/283 assertions, min 19.9 TPS between tests) | `run_bds.py` summary |

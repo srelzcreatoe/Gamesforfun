@@ -9,6 +9,13 @@ stalking behaviour also needs:
   animation.observer.recoil          flinch when witnessed / struck (once, 1.0 s)
   animation.observer.stoop           additive crouch overlay so the 4-block figure fits 3-block spaces
   animation.observer.look_at_target  head tracking (vanilla-style target rotation queries)
+  animation.observer.float_drift     1.0.6: hovering a block up, legs hanging limp, toes down, a slow bob
+  animation.observer.float_surge     1.0.6: rushing forward through the air, leaning in, arms and legs trailing
+  animation.observer.climb           1.0.6: climbing a wall face, arms reaching overhead in turn, its head
+                                     tipped right back, staring up at whoever it is climbing after
+
+The floating clips lift the whole figure 1 block (root position); under a low ceiling
+(q.property('observer:stoop')) the lift drops to nothing so its head stays inside 3-block spaces.
 
 All supplied clips are left untouched. Keyframes use only bones that exist in
 the supplied geometry. Root height for walk/stoop is solved with forward
@@ -152,6 +159,93 @@ def stoop(model):
     return {"loop": True, "animation_length": 1.0, "bones": bones}
 
 
+LIFT = "16 * (1 - q.property('observer:stoop'))"
+
+
+def _loop(length, step, pose_fn):
+    """Sample pose_fn(phase) -> (bone rotations, root position) into keyframes over one loop."""
+    bones = {}
+    n = int(round(length / step))
+    for i in range(n + 1):
+        t = i * step
+        ph = 2 * math.pi * t / length
+        pose, root = pose_fn(ph)
+        for b, v in pose.items():
+            bones.setdefault(b, {}).setdefault("rotation", {})[key(t)] = r(v)
+        bones.setdefault("root", {}).setdefault("position", {})[key(t)] = root
+    return bones
+
+
+def float_drift():
+    """Upright hover: everything hangs from the shoulders; only the bob and a slow sway move it."""
+    def pose(ph):
+        s, c = math.sin(ph), math.cos(ph)
+        return {
+            "pelvis": [0, 2 * math.sin(ph / 2), 1.5 * c],
+            "torso": [4 + 1.5 * math.sin(ph + 0.6), 2 * math.sin(ph / 2), 1.2 * c],
+            "head": [7 + 2 * math.sin(ph + 1.2), 0, 3 * math.sin(ph / 2)],
+            "right_upper_arm": [5 + 4 * math.sin(ph + 0.4), 0, -7 - 2 * s],
+            "left_upper_arm": [5 + 4 * math.sin(ph + 1.1), 0, 7 + 2 * s],
+            "right_forearm": [-8 - 4 * math.sin(ph + 0.9), 0, 0], "left_forearm": [-8 - 4 * math.sin(ph + 1.6), 0, 0],
+            "right_hand": [8, 0, 0], "left_hand": [8, 0, 0],
+            # legs dangle: a little sway, knees loose, toes pointing at the ground
+            "right_thigh": [-5 + 4 * math.sin(ph + 0.9), 0, 3], "left_thigh": [-1 + 4 * math.sin(ph + 2.1), 0, -3],
+            "right_shin": [16 + 5 * math.sin(ph + 1.5), 0, 0], "left_shin": [12 + 5 * math.sin(ph + 2.6), 0, 0],
+            "right_foot": [30, 0, 0], "left_foot": [30, 0, 0],
+        }, [0, f"{LIFT} + {1.5 * s:.3f}", 0]
+
+    bones = _loop(2.4, 0.1, pose)
+    for b, v in FINGERS.items():
+        bones[b] = {"rotation": {"0.0": [v[0] * 0.5, v[1], v[2]]}}
+    return {"loop": True, "animation_length": 2.4, "bones": bones}
+
+
+def float_surge():
+    """Rushing at you through the air: pitched forward from the hips, head up and fixed on you,
+    arms and legs streaming out behind."""
+    def pose(ph):
+        s = math.sin(ph)
+        return {
+            "pelvis": [12, 0, 0],
+            "torso": [36 + 3 * s, 0, 2 * math.sin(ph + 0.7)],
+            "head": [-34 - 2 * s, 0, 0],
+            "right_upper_arm": [58 + 8 * math.sin(ph + 0.3), 0, -12], "left_upper_arm": [58 + 8 * math.sin(ph + 1.2), 0, 12],
+            "right_forearm": [-10 + 6 * math.sin(ph + 0.9), 0, 0], "left_forearm": [-10 + 6 * math.sin(ph + 1.8), 0, 0],
+            "right_hand": [12, 0, 0], "left_hand": [12, 0, 0],
+            "right_thigh": [30 + 6 * math.sin(ph + 0.5), 0, 4], "left_thigh": [26 + 6 * math.sin(ph + 1.9), 0, -4],
+            "right_shin": [34 + 8 * math.sin(ph + 1.1), 0, 0], "left_shin": [30 + 8 * math.sin(ph + 2.5), 0, 0],
+            "right_foot": [38, 0, 0], "left_foot": [38, 0, 0],
+        }, [0, f"{LIFT} + {2 + 1.0 * s:.3f}", 0]
+
+    bones = _loop(1.2, 0.05, pose)
+    for b, v in FINGERS.items():
+        bones[b] = {"rotation": {"0.0": [v[0] * 0.3, v[1], v[2]]}}
+    return {"loop": True, "animation_length": 1.2, "bones": bones}
+
+
+def climb():
+    """Clinging to a wall in front of it and hauling itself up hand over hand, knees drawn up in turn.
+    The head is tipped right back: it stares straight up at whoever it is climbing after."""
+    def pose(ph):
+        s, c = math.sin(ph), math.cos(ph)
+        return {
+            "pelvis": [0, 0, 2 * s],
+            "torso": [12, 4 * s, 3 * s],
+            "head": [-58 + 4 * math.sin(2 * ph), 6 * s, 0],
+            "right_upper_arm": [-150 - 24 * s, 0, -6], "left_upper_arm": [-150 + 24 * s, 0, 6],
+            "right_forearm": [-22 + 22 * c, 0, 0], "left_forearm": [-22 - 22 * c, 0, 0],
+            "right_hand": [-10, 0, 0], "left_hand": [-10, 0, 0],
+            "right_thigh": [-42 - 22 * s, 0, 6], "left_thigh": [-42 + 22 * s, 0, -6],
+            "right_shin": [68 + 22 * s, 0, 0], "left_shin": [68 - 22 * s, 0, 0],
+            "right_foot": [-24, 0, 0], "left_foot": [-24, 0, 0],
+        }, [0, f"{1.5 * math.sin(2 * ph):.3f}", 0]
+
+    bones = _loop(1.0, 0.05, pose)
+    for b, v in FINGERS.items():
+        bones[b] = {"rotation": {"0.0": [v[0] * 1.4, v[1], v[2]]}}
+    return {"loop": True, "animation_length": 1.0, "bones": bones}
+
+
 def look_at_target():
     return {"loop": True, "bones": {"head": {"rotation": ["query.target_x_rotation", "query.target_y_rotation", 0]}}}
 
@@ -164,6 +258,9 @@ def main():
         "animation.observer.recoil": recoil(),
         "animation.observer.stoop": stoop(model),
         "animation.observer.look_at_target": look_at_target(),
+        "animation.observer.float_drift": float_drift(),
+        "animation.observer.float_surge": float_surge(),
+        "animation.observer.climb": climb(),
     }}
     bones = set(model.bones)
     for name, a in data["animations"].items():

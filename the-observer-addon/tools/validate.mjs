@@ -265,8 +265,10 @@ for (const m of block("PARTICLES").matchAll(/:\s*"([^"]+)"/g)) if (!particleIds.
 for (const m of block("FOGS").matchAll(/:\s*"([^"]+)"/g)) if (!fogIds.has(m[1])) fail(`script fog ${m[1]} not defined`);
 for (const m of block("ITEMS").matchAll(/:\s*"([^"]+)"/g)) if (!itemIds.has(m[1])) fail(`script item ${m[1]} not defined`);
 for (const m of block("BLOCKS").matchAll(/:\s*"([^"]+)"/g)) if (!blockIds.has(m[1])) fail(`script block ${m[1]} not defined`);
+const entityEvents = new Set(walk(path.join(BP, "entities")).flatMap((f) => Object.keys(readJSON(f)["minecraft:entity"].events ?? {})));
 for (const m of src.matchAll(/"(observer:[a-z_]+)"/g)) {
   const id = m[1];
+  if (entityEvents.has(id)) continue; // events defined on our entities (e.g. observer:steps_off)
   if (/^observer:(the_observer|encounter|preset|state|stoop|side|enc|world|player|clock|dark|ledger|probe|dread|dread_soft|vigil)$/.test(id)) continue;
   if (!itemIds.has(id) && !blockIds.has(id) && !particleIds.has(id) && !fogIds.has(id) && !entityIds.has(id)) fail(`script references unknown id ${id}`);
 }

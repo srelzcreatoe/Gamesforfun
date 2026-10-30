@@ -17,7 +17,10 @@
             "attack",
             "peek",
             "recoil",
-            "hidden"
+            "hidden",
+            "float",
+            "surge",
+            "climb"
           ],
           "default": "watch",
           "client_sync": true
@@ -178,6 +181,11 @@
       },
       "observer:despawn": {
         "minecraft:instant_despawn": {}
+      },
+      "observer:no_steps": {
+        "minecraft:movement_sound_distance_offset": {
+          "value": 1000
+        }
       }
     },
     "components": {
@@ -330,6 +338,20 @@
         "add": {
           "component_groups": [
             "observer:despawn"
+          ]
+        }
+      },
+      "observer:steps_off": {
+        "add": {
+          "component_groups": [
+            "observer:no_steps"
+          ]
+        }
+      },
+      "observer:steps_on": {
+        "remove": {
+          "component_groups": [
+            "observer:no_steps"
           ]
         }
       }

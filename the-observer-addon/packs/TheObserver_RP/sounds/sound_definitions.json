@@ -337,6 +337,20 @@
           "volume": 1.0
         }
       ]
+    },
+    "observer.drift": {
+      "category": "hostile",
+      "max_distance": 32,
+      "sounds": [
+        {
+          "name": "sounds/observer/drift1",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/observer/drift2",
+          "volume": 1.0
+        }
+      ]
     }
   }
 }

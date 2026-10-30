@@ -8,6 +8,8 @@
 //   * the Witness Lens or a blow make it recoil; getting 56 blocks away escapes it
 //   * if it reaches you: a shriek and the telegraphed strike (avoidable by stepping back);
 //     with aggression "never" it only stops in front of you, and everything goes dark
+//   * climbing up something does not help: the next time you look away it is on the wall just below
+//     you, hanging there (observer/climb.js)
 //   * it learns (observer/learn.js): used to light, it puts the lights out first and needs more;
 //     used to stares, it starts behind you and must be held longer; outrun, it follows further
 import { register } from "../director/director.js";
@@ -19,6 +21,7 @@ import { standNear } from "../world/space.js";
 import { litLightsNear } from "../world/manipulate.js";
 import { findSpotLoose, sighting, relentless } from "./common.js";
 import * as learn from "../observer/learn.js";
+import * as climb from "../observer/climb.js";
 
 register({
   id: "creeping",
@@ -93,7 +96,7 @@ register({
       if (watched) {
         unwatched = 0;
         heldStreak += 2;
-        body.setState("stare");
+        body.setState(body.get()?.clinging ? "climb" : "stare");
         if (heldStreak >= gazeHold) {
           sighting(enc, enc.gaze.lastWatcher ?? p);
           enc.discover("held_gaze");
@@ -109,6 +112,32 @@ register({
       // it moves the moment you look away for half a second, never into light you stand in
       if (unwatched < 10 || lit > 0) continue;
       unwatched = 0;
+      // up a pillar or a ledge: next time you look, it is on the wall just below you
+      if (climb.needed(enc)) {
+        const route = climb.plan(dim, p, bl);
+        if (route && route.cling) {
+          const b = body.get();
+          body.setMode("still");
+          if (b) {
+            b.clinging = b.hung = true;
+            b.autoPeek = false;
+          }
+          body.setState("climb");
+          const at = { x: route.col.x + 0.5, y: route.y, z: route.col.z + 0.5 };
+          body.moveTo(at, p.getHeadLocation());
+          moves++;
+          enc.worldSound(SOUNDS.notice, { x: at.x, y: at.y + 3, z: at.z }, Math.min(1, 0.45 + moves * 0.1));
+          enc.emit("creep", { d: V.dist(at, p.location), moves, clinging: true });
+          enc.emit("climb", { what: "cling", y: at.y });
+          if (V.dist(at, p.location) <= 3.4) {
+            enc.worldSound(SOUNDS.shriek, { x: at.x, y: at.y + 3, z: at.z }, 1);
+            enc.caption("caption.shriek");
+            await relentless(enc);
+            return;
+          }
+          continue;
+        }
+      }
       const step = Math.min(Math.max(d * 0.3, 3), 6);
       const to = V.add(bl, V.scale(V.flat(V.sub(p.location, bl)), Math.min(step, d - 2)));
       const st = standNear(dim, to.x, to.z, to.y);

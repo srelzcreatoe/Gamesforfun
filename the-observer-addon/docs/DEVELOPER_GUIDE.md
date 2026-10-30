@@ -16,7 +16,7 @@ the-observer-addon/
 │       ├── animations/the_observer.animation.json      supplied clips (namespaced copy)
 │       ├── animations/the_observer_supplemental.animation.json   stalk_walk, peek, recoil, stoop, look_at_target
 │       ├── animation_controllers/  entity/  render_controllers/
-│       ├── sounds/ (42 original .ogg + definitions)  particles/  fogs/  textures/  texts/
+│       ├── sounds/ (44 original .ogg + definitions)  particles/  fogs/  textures/  texts/
 ├── source_assets/supplied/        the ZIP's contents, untouched, with SHA256SUMS.txt
 ├── tools/                         asset pipeline, validator, packager, offline renderer
 ├── tests/bds/                     dedicated-server harness + GameTest test kit (dev only)
@@ -41,6 +41,7 @@ the-observer-addon/
 | `observer/illusions.js` | taiga shadows (`observer:shadow`), vanish on look |
 | `observer/learn.js` | escape learning: counts ways out, adapts to one, `shrug` / `lightBonus` / `holdFactor` / `outrunBonus` |
 | `observer/hush.js` | the silence before dangerous encounters (per-player music) |
+| `observer/climb.js` | climbing after a player who is above it: `needed`, `plan` (cling at an edge / over the top), `after`, `letGo` |
 | `observer/pages.js` | pages in another hand, built from tracked numbers |
 | `observer/returns.js` | items thrown away, returned to the doorstep |
 | `progression/flare.js` | the Flare: throw, light block, glare, burn-out |
@@ -65,6 +66,8 @@ python3 tools/check_vanilla_shapes.py --samples <bedrock-samples>/resource_pack
                                  # compare RP JSON value types with Mojang's vanilla files (catches
                                  # client-only load errors the schema package accepts; see its docstring)
 python3 tools/build.py           # validate + typecheck + package into dist/
+python3 tools/preview_anims.py docs/media/1.0.6 float_drift float_surge climb
+                                 # animated GIF previews (front / three-quarter / side) of any clips
 python3 tools/integrate_supplied_assets.py    # re-derive the namespaced supplied assets (asserts identity)
 python3 tools/make_supplemental_anims.py      # regenerate supplemental clips (FK-grounded)
 python3 tools/make_client_entity.py           # client entity, render & animation controllers
@@ -88,8 +91,9 @@ python3 tests/bds/run_bds.py --bds /path/to/bedrock-server --testkit --fresh \
 ```
 
 Scenarios: `load.txt` (packs load cleanly), `proto.txt` (capability probes), `speed.txt` (movement calibration),
-`suite_smoke.txt`, `suite_full.txt` (all 65 test groups), `suite_extra.txt` (a short subset), `suite_105.txt` (the
-1.0.5 additions), `house_seq.txt` (every test that uses the arena house, in suite order — they share it), `noexp.txt` (no experiments; run **without** `--testkit` and with `--require-no-experiments`, which
+`suite_smoke.txt`, `suite_full.txt` (all 69 test groups), `suite_extra.txt` (a short subset), `suite_105.txt` (the
+1.0.5 additions), `suite_106.txt` (the floating chase and climbing, with the chase/attack regressions),
+`tunnel_repeat.txt` (the Closed Path tests ten times over), `illusion_repeat.txt` (the shadow tests eight times over), `flare_seq.txt` (the flare tests twice back to back), `house_seq.txt` (every test that uses the arena house, in suite order — they share it), `noexp.txt` (no experiments; run **without** `--testkit` and with `--require-no-experiments`, which
 fails the run if the world's `level.dat` has any experiment on), `restart_a.txt` +
 `restart_b.txt` (interrupted encounter across a server restart), `tps.txt` (tick rate; run once more with `--no-addon`
 for the baseline). Results and the manual client procedure are in [TEST_REPORT.md](TEST_REPORT.md).
@@ -175,6 +179,7 @@ Add caption and discovery strings to `packs/TheObserver_RP/texts/en_US.lang`; `n
 | Ward radius, headroom rules | `world/space.js` |
 | Ledger cap | `world/ledger.js` (`MAX_ENTRIES`) |
 | Evidence trail lifetime | `main.js` (`tickTraces`) |
+| Floating speed, climbing | `entities/the_observer.json` (pursue/approach speed), `observer/climb.js` (`RISE`, `NEAR`, `SPEED`) |
 | Flare radius / burn time | `progression/flare.js` (`RADIUS`, `BURN_TICKS`) |
 | Escape learning threshold and adaptations | `observer/learn.js` (`NEED`, `lightBonus`, `holdFactor`, `outrunBonus`) |
 | Silence length, false-alarm chance, which encounters | `observer/hush.js` (`DANGEROUS`, `FALSE_ALARM`), `begin` |

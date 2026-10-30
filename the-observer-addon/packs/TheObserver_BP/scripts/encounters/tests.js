@@ -18,6 +18,7 @@ import * as returns from "../observer/returns.js";
 import { primaryHaunt } from "../observer/memory.js";
 import { now } from "../core/state.js";
 import { give } from "../progression/discoveries.js";
+import * as climb from "../observer/climb.js";
 
 /** @typedef {{x:number,y:number,z:number}} Vec */
 
@@ -246,5 +247,97 @@ register({
     // up to 60 s to drop an item and walk 10 blocks from it
     const done = await enc.until(() => returns.tracked(p.id) > before && returns.returnNow(p, { minAway: 10 }), 20 * 60, 10);
     enc.result(done ? "returned" : "nothing_dropped", done);
+  },
+});
+
+// ---- The floating chase: it comes at you through the air (harmless here: it tears apart 3 blocks short)
+register({
+  ...TEST,
+  id: "test_float",
+  reactNear: false,
+  prepare(enc) {
+    const spot = ahead(enc.p, 18, 26);
+    if (!spot) return false;
+    enc.data.spot = spot;
+    return true;
+  },
+  async run(enc) {
+    const p = enc.p;
+    const spot = enc.data.spot;
+    if (!enc.spawnBody(spot.loc, { state: "stare", stoop: spot.stoop, autoPeek: false })) return enc.result("deferred");
+    await enc.wait(30);
+    body.setSilent(true);
+    for (let t = 0; t < 20 * 20; t += 4) {
+      await enc.wait(4);
+      const l = body.loc();
+      if (!l) return enc.result("vanished");
+      if (t % 40 === 0) enc.worldSound(SOUNDS.drift, { x: l.x, y: l.y + 2, z: l.z }, 0.8);
+      // watched: it drifts, upright and limp; unwatched: it surges
+      if (enc.updateGaze() || body.watchedBy(enc.watchers(), 30)) {
+        body.setMode("approach");
+        body.setState("float");
+      } else {
+        body.setMode("pursue");
+        body.setState("surge");
+      }
+      if (V.dist(l, p.location) <= 3.5) {
+        body.setMode("still");
+        body.setState("float");
+        await enc.wait(16);
+        body.despawn("test_float");
+        return enc.result("reached", true);
+      }
+    }
+    body.despawn("timeout");
+    enc.result("no_contact");
+  },
+});
+
+// ---- Climbing: stand on something 3+ blocks high (pillar up); it comes and climbs up after you (harmless)
+register({
+  ...TEST,
+  id: "test_climb",
+  reactNear: false,
+  prepare(enc) {
+    // only when the player is up on something: it starts on the ground below, 8-16 blocks away
+    const p = enc.p;
+    const spot = findSpotLoose(p, [
+      { minDist: 8, maxDist: 14, concealment: "any", needLOS: false, yMode: "below", samples: 48 },
+      { minDist: 6, maxDist: 16, concealment: "any", yMode: "surface", samples: 48 },
+    ]);
+    if (!spot || p.location.y - spot.loc.y < 2.5) return false;
+    enc.data.spot = spot;
+    return true;
+  },
+  async run(enc) {
+    const p = enc.p;
+    const spot = enc.data.spot;
+    if (!enc.spawnBody(spot.loc, { state: "stare", stoop: spot.stoop, autoPeek: false })) return enc.result("deferred");
+    await enc.wait(20);
+    for (let t = 0; t < 20 * 25; t += 2) {
+      await enc.wait(2);
+      const l = body.loc();
+      if (!l) return enc.result("vanished");
+      if (climb.needed(enc) || body.get()?.clinging) {
+        if (await climb.after(enc, { state: "run" })) {
+          const b = body.get();
+          if (b?.hung || V.dist(body.loc() ?? l, p.location) <= 3) {
+            // right below you on the wall: it stares up at you, then lets go and is gone
+            await enc.wait(30);
+            body.despawn("test_climb");
+            return enc.result("climbed", true);
+          }
+          continue;
+        }
+      }
+      if (V.dist(l, p.location) <= 3) {
+        body.despawn("test_climb");
+        return enc.result("reached", true);
+      }
+      body.setMode("pursue");
+      body.setState("run");
+    }
+    body.despawn("timeout");
+    enc.result("no_climb");
   },
 });

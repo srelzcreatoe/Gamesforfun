@@ -94,7 +94,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 65 test groups (including setup and a status check) with 269 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 69 test groups (including setup and a status check) with 283 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -120,7 +120,12 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | targeted (1.0.5: flare, learning, silence, pages, signs, inside, borrowed eyes, returns + regressions) | 57 + 65 | 4 + 1 | flare mid-attack did not end the attack, then its outcome was overwritten; the sign floor check used an API that does not exist; *It's Inside* had no room in a small house; one test lit its flare out of range (all in §7) |
 | 11 (1.0.5, first full run) | 252 | 7 | the old *While You Slept* effigy draw (§7); the new tests run after all the old ones: a second player left parked in view of the test house (the add-on rightly refused to put up a sign or return an item where someone could watch), a torch left burning in the house by an earlier test (so the room was not dark — again correct), a flare still burning when the next test's creature arrived (it was driven off at once — correct), and a flinch that put it out of the next test flare's reach. The tests now clear the house and park other players far away |
 | house sequence (1.0.5, the 15 house tests in suite order) | 60 + 59 | 2 + 4 | the leftover torch, then the escape-count fading bug (§7) |
-| **final (1.0.5)** | **269** | **0** | all passed: the 1.0.4 suite plus the Flare, escape learning, the silence, its pages, signs, *It's Inside*, *Borrowed Eyes* and returned items |
+| final (1.0.5) | 269 | 0 | all passed: the 1.0.4 suite plus the Flare, escape learning, the silence, its pages, signs, *It's Inside*, *Borrowed Eyes* and returned items |
+| targeted (1.0.6: floating chase, climbing + chase/attack regressions) | 47 | 0 | all passed on the first run |
+| 12 (1.0.6, first full run) | 277 | 3 | *The Closed Path* skipped once (deferred): its spot ahead is drawn from a wide random cone, and in the test's 2-wide tunnel most of that cone is rock — about 1 run in 30 found nothing (an old intermittent; in a real 1-wide tunnel it would skip far more often). It now searches along the corridor first; the Closed Path tests then ran 10 times in a row: 84 / 84 |
+| 13 (1.0.6) | 277 | 1 | a taiga shadow was placed almost in the centre of the player's view and vanished the instant it appeared (an old intermittent: two of its eight search directions were only 25° off the view). Shadows now always appear 40°+ to the side and never within 35° of where the player looks; the shadow tests then ran 8 times in a row: 53 / 53 |
+| 14 (1.0.6) | 277 | 2 | test ordering only: a flare from the previous test was still burning (they last 8 s) when the learning test began, and it used up the creature's one learned flinch, so the test's own flare drove it off (correct behaviour). The flare tests now wait for every flare to burn out; the three flare tests twice back to back: 47 / 47 |
+| **final (1.0.6)** | **283** | **0** | all passed: the 1.0.5 suite plus the floating chase (surge, drift, the shoreline hover) and climbing (pillar, from the wall during the attack, over the top of a roof) |
 
 Run 7 (1.0.1): 1080 s, minimum TPS 19.8, 0 errors; after the version bump to 1.0.1, `setup wheel_welcome showcase
 toggles distant_watch status` was re-run: 19 / 19.
@@ -135,7 +140,9 @@ Run 9 (1.0.2): 1105 s, minimum TPS 19.9, 0 errors.
 
 Final run (1.0.4): 1060 s, minimum TPS between tests 19.2, 0 content-log or script errors.
 
-Final run (1.0.5): 65 test groups, 1449 s, minimum TPS between tests 20.0, **0 content-log or script errors**.
+Final run (1.0.5): 65 test groups, 1449 s, minimum TPS between tests 20.0, 0 content-log or script errors.
+
+Final run (1.0.6): 69 test groups, 1274 s, minimum TPS between tests 19.9, **0 content-log or script errors**.
 
 **No experiments (1.0.5):** `noexp.txt` without the test kit on a fresh world, `--require-no-experiments`:
 `level.dat` experiments **none** before and after the run; the add-on's scripts ran on the stable APIs (status, trace,
@@ -169,8 +176,8 @@ which is why only test worlds get it.
 | `closed_path_struck` | 7 | — |
 | `aggression_zero` | 6 | — |
 | `unfamiliar_route` | 7 | — |
-| `pursuit` | 6 | — |
-| `pursuit_watched_walks` | 2 | — |
+| `pursuit` | 7 | — |
+| `pursuit_watched_walks` | 3 | — |
 | `lens` | 3 | — |
 | `second_witness` | 3 | — |
 | `night_visit` | 3 | — |
@@ -186,7 +193,7 @@ which is why only test worlds get it.
 | `withdraw_walks` | 3 | — |
 | `seal_occupied` | 2 | — |
 | `mp_fairness` | 1 | — |
-| `pursuit_water_escape` | 3 | — |
+| `pursuit_water_escape` | 4 | — |
 | `closed_path_light` | 7 | — |
 | `bearing_three` | 2 | — |
 | `showcase` | 7 | — |
@@ -211,6 +218,10 @@ which is why only test worlds get it.
 | `inside` | 5 | — |
 | `borrowed_eyes` | 4 | — |
 | `returns` | 4 | — |
+| `climb_pillar` | 4 | — |
+| `climb_attack` | 3 | — |
+| `climb_over` | 2 | — |
+| `float_test_entry` | 2 | — |
 | `natural` | 1 | — |
 | `status` | 0 | — |
 
@@ -259,6 +270,11 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
    door), **It's Inside** at night with the torches out (it is in a dark corner behind you; a torch or a 2 s stare
    sends it away), and **Borrowed Eyes** facing a cow or villager (it stops and its head follows you). Finally
    `/scriptevent observer:learn light 3` and check Field Notes → *What I have learned*.
+10. **1.0.6** — Test an encounter → **The floating chase**: it rises a block off the ground; look away and it surges
+   at you leaning forward with its arms and legs streaming behind; look at it and it drifts upright and limp; no
+   footsteps, a rush of air instead. **Climbing after you**: pillar up 5+ blocks first; it climbs the side of your
+   pillar hand over hand, staring up at you, and hangs just below you. Check the hands meet the wall and the body
+   does not sink into it. In a 3-high tunnel, the floating figure should stay inside the ceiling.
 
 ## 7. Bugs found and fixed
 
@@ -302,6 +318,12 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
 * The new too-close reaction cut *Borrowed Work* short (walking up to the source is that encounter's answer) — it now
   handles the approach itself; spots far below the player's level are penalised (an *Echo Ahead* spot landed 64
   blocks below the test platform).
+
+**Found by the 1.0.6 tests**
+* *The Closed Path* sometimes found no spot ahead in a narrow tunnel (above, run 12): the search now looks along the
+  corridor in a 5° cone with 40 samples before falling back to the old 22° cone.
+* A taiga shadow could appear in the middle of the view and vanish at once (run 13): shadows now always appear 40°+
+  to the side, never within 35° of where the player is looking.
 
 **Found by the 1.0.5 tests**
 * A Flare thrown mid-attack stopped the damage but not the attack: strikes delivered back to back never passed through

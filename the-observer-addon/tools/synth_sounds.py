@@ -501,12 +501,25 @@ def scrawl(v):
     return trim(reverb(x, 0.25, 0.15))
 
 
+def drift(v):
+    """1.0.6: it floats — no footsteps, only air rushing past a large, light body: band-passed noise whose
+    centre sweeps up and back, a slow swell, and a faint low hum underneath."""
+    sec = 2.4 + 0.3 * v
+    n = int(round(SR * sec))
+    tt = np.arange(n) / SR
+    air = sweep_bp(noise(n), 260 + 60 * v, 1150 + 120 * v)
+    air += 0.6 * sweep_bp(noise(n), 1400, 520)
+    hum = np.sin(2 * np.pi * (52 + 3 * v) * tt) * 0.25
+    x = (air + hum) * env(n, 0.7, 0.3, sec - 1.6, 0.6, 0.85)
+    return reverb(x, 0.4, 0.2)
+
+
 def main():
     only = set(sys.argv[2].split(",")) if len(sys.argv) > 2 and sys.argv[1] == "--only" else None
     if only:
         made = []
         gens = {"voice": (voice, 3, 0.8), "presence": (presence, 2, 0.8), "notice": (notice, 2, 0.8),
-                "shriek": (shriek, 2, 0.7), "vanish": (vanish, 2, 0.8), "scrawl": (scrawl, 2, 0.6)}
+                "shriek": (shriek, 2, 0.7), "vanish": (vanish, 2, 0.8), "scrawl": (scrawl, 2, 0.6), "drift": (drift, 2, 0.7)}
         for name in only:
             if name == "silence":
                 made.append(write("silence", silence(), 0.12))
@@ -550,6 +563,8 @@ def main():
     made.append(write("silence", silence(), 0.12))
     for v in range(2):
         made.append(write(f"scrawl{v + 1}", scrawl(v), 0.6))
+    for v in range(2):
+        made.append(write(f"drift{v + 1}", drift(v), 0.7))
     for path, dur in made:
         print(f"{os.path.relpath(path, ROOT)}  {dur:.2f}s  {os.path.getsize(path)} bytes")
 

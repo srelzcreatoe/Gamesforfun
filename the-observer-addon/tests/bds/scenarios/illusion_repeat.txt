@@ -1,0 +1,5 @@
+# Taiga shadows, repeatedly (one used to be placed in the middle of the view now and then)
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup illusion illusion illusion illusion illusion illusion illusion illusion illusion_taiga status
+expect \[OTEST\] SUITE DONE 1200

@@ -38,6 +38,11 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 * **It can kill.** On Standard and High aggression, once it reaches a player it keeps attacking until they die or drive
   it off (Witness Lens, a blow, or a Flare). Every strike is telegraphed. Low aggression = one capped strike; "Never
   attacks" and Peaceful = no damage.
+* **Climbing** needs an open face: every cell its body passes through must be empty, so it cannot climb under a roof
+  or an overhang, into a sealed tower, or through leaves; then it waits below. It does not climb after a player who
+  is flying (Creative), and it gives up the climb if the player moves more than ~9 blocks away.
+* **Floating is visual.** Its collision box stays on the ground (that is how it keeps pathfinding), so it cannot float
+  over gaps or water, and hitting it works at the height of its body as before.
 * **The silence uses the music channel.** `Player.playMusic` replaces that player's music with a near-silent track and
   `stopMusic` hands music back to the game, which resumes its own soundtrack on its usual schedule (so the music may
   not come back immediately). Other players are unaffected. Ambient sounds are not changed.
@@ -75,6 +80,10 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   list and are not verifiable on a server.
 * Forms (Field Notes — including "Pages I didn't write" and what it has learned — settings), action-bar captions, title
   cards, camera fades and shakes (the fade API and the `camerashake` command were accepted by the server).
+* 1.0.6: how the two floating clips and the climb look in motion (offline previews only), that the footsteps really
+  stop while it floats (`minecraft:movement_sound_distance_offset` is raised to 1000 for that), the drift sound, and
+  how the climb reads against a wall (it is placed at the centre of the column beside the face, so its hands may sit a
+  little short of or into the wall).
 * 1.0.5 visuals and audio: the thrown flare's sprite and glare particle, the hiss and burst, the silence track (the
   server accepted every `playMusic`/`stopMusic` call), the scrawl sound, the rendered sign text, and how a creature's
   head pose reads while it follows the player.

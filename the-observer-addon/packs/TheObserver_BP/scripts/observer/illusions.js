@@ -11,7 +11,7 @@ import { ps, now } from "../core/state.js";
 import { S } from "../core/settings.js";
 import { V, safe, rand, allPlayers, trace, emit } from "../core/util.js";
 import { findSpot } from "../world/space.js";
-import { visibility } from "../world/sight.js";
+import { visibility, viewAngle } from "../world/sight.js";
 
 export const SHADOW_ID = "observer:shadow";
 const TAIGA = /taiga/;
@@ -41,11 +41,15 @@ export const hasShadow = (pid) => [...shadows.values()].some((s) => s.pid === pi
 export function spawnFor(p, o = {}) {
   if (hasShadow(p.id)) return false;
   if (!o.force && !inTaiga(p)) return false;
-  // among the trees at about the player's own height first; the open surface further off as a fallback
-  const bearings = [60, 100, -60, -100, 140, -140, 25, -25];
-  const spot = findSpot(p, { minDist: 32, maxDist: 60, bearings, spread: 20, concealment: "partial", needLOS: true, preferCover: true, yMode: "near", samples: 32 })
-    ?? findSpot(p, { minDist: 32, maxDist: 60, bearings, spread: 20, concealment: "partial", needLOS: true, preferCover: true, yMode: "surface", samples: 32 })
-    ?? findSpot(p, { minDist: 28, maxDist: 64, concealment: "any", needLOS: true, yMode: "near", samples: 40 });
+  // among the trees at about the player's own height first; the open surface further off as a fallback.
+  // Always off to the side (40+ degrees from where they are looking): it is meant to be found by turning
+  // the head, not to appear in the middle of the view and vanish in the same instant.
+  const bearings = [60, 100, -60, -100, 140, -140];
+  const spot = [
+    { minDist: 32, maxDist: 60, bearings, spread: 20, concealment: /** @type {"partial"} */ ("partial"), needLOS: true, preferCover: true, yMode: /** @type {"near"} */ ("near"), samples: 32 },
+    { minDist: 32, maxDist: 60, bearings, spread: 20, concealment: /** @type {"partial"} */ ("partial"), needLOS: true, preferCover: true, yMode: /** @type {"surface"} */ ("surface"), samples: 32 },
+    { minDist: 28, maxDist: 64, bearings: [90, -90, 135, -135, 180], spread: 40, concealment: /** @type {"any"} */ ("any"), needLOS: true, yMode: /** @type {"near"} */ ("near"), samples: 40 },
+  ].map((spec) => findSpot(p, spec)).find((s) => s && viewAngle(p, { x: s.loc.x, y: s.loc.y + 2, z: s.loc.z }) >= 35);
   if (!spot) return false;
   const e = safe(() => p.dimension.spawnEntity(SHADOW_ID, spot.loc, { initialPersistence: false }));
   if (!e) return false;

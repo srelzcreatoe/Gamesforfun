@@ -24,7 +24,7 @@ features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stag
 | 10 | **Echo Ahead** (`echo_ahead`) | 2 / 3 | moving | 20–32 blocks ahead | dark motes rising + chime at the spot | prediction tell | — | watch the spot / look away then back | it arrives only unwatched (*Echo Ahead*); denied → it shows itself behind you instead |
 | 11 | **The Path Changed** (`unfamiliar_route`) | 2 / 3 | on a route walked ≥ 3 separate times | 8–14 blocks behind (the way back) | the way back is wrong | to make the familiar unfamiliar | M5 mimic blocks, M1 a door on the route, M7 a carved opening (level 3) | dig through / study it | *Wrong Way*; mimic blocks drop nothing; reverts ~2.5 min later |
 | 12 | **Close** (`close_breath`) | 3 / 3 | standing still 6+ s | 2.6–4 blocks behind (8–11 with scares off) | cloth, then a slow exhale | contact without harm | M6 effigy if you never turn (60%) | turn around / don't | it is there, head tilted, then gone (*Close*); otherwise it leans in and leaves an effigy |
-| 13 | **Breathing Room** (`pursuit`) | 4 / 4, aggression ≥ 1 | night/underground/dark (more likely underground), health ≥ 50 % | appears in view 24–34 blocks | rising hum, lights die, fog, 3 s stare | to hunt (runs ~6.4 b/s; keeps attacking once it reaches you) | M2 lights | sprint / keep it in view / light / water / lens / strike | escape (*Breathing Room*); repelled; one telegraphed strike then it leaves |
+| 13 | **Breathing Room** (`pursuit`) | 4 / 4, aggression ≥ 1 | night/underground/dark (more likely underground), health ≥ 50 % | appears in view 24–34 blocks | rising hum, lights die, fog, 3 s stare | to hunt: since 1.0.6 it **floats** (surges ~6.2 b/s unwatched, drifts ~2.6 b/s watched, no footsteps, a rush of air) and **climbs** after you; keeps attacking once it reaches you | M2 lights | keep it in view / light / water (it hovers at the shore) / lens / flare / strike; climbing does not help | escape (*Breathing Room*); repelled; the telegraphed strike, from the wall if you climbed |
 | 14 | **At the Window** (`window_watch`) | 2 / 2 | indoors (roof, sky light outside) | outside, framed by a window or opening | a figure at the window | walls do not stop it | — | look / don't | it steps out of the frame (*The Window*); footprints under the window |
 | 15 | **Second Witness** (`second_witness`) | 2 / 2 | ≥ 2 players within 40 blocks | hidden from the target, visible to the other | chime to the witness | to be seen by the wrong person | — | the witness warns the target | both see it (*Second Witness*) |
 | 16 | **While You Slept** (`night_visit`) | 2 / 2 | the player sleeps (event-triggered) | the bed and nearest door | door creak on waking; footprints door → bed | it came in | M1 door, M2 a light, M6 effigy at the foot of the bed | close the door / break the effigy | *While You Slept*; reverts in 5 min |
@@ -43,6 +43,12 @@ keeps attacking.
 
 **Too close (shared reaction).** Walk up to it (4–8 blocks, varying) and it tears apart after a short random moment —
 or, now and then (stage 2+, ~30 %, at most every 75 s), strikes once first.
+
+**Climbing after you (1.0.6, shared).** In the chase, the relentless attack and *Closer Each Time*: when the player
+stands 2.5+ blocks above it within 7 blocks (a pillar, a ledge, a wall top, a ladder, a cliff) it climbs the open face
+beside them (~4 b/s, the `climb` clip, staring up at them). At an edge it hangs 1.5 blocks below them and strikes from
+the wall; further back on a plateau it climbs the nearest face, pulls itself over the top and comes on. A roof, an
+overhang or a sealed tower stops it; if the player comes down or moves off it lets go and drops.
 
 **It learns how you escape (1.0.5).** Every way a dangerous encounter ends is counted per player: light
 (*repelled by light*), water (*escaped into water*), gaze (*stared down / held off*), lens, hit, outrun (*escaped*),
@@ -76,7 +82,7 @@ when it burns out) and a hissing glare. The Observer within 16 blocks of a burni
 (outcome *flared*), even mid-attack: a strike already winding up does no damage. Taiga shadows near it vanish.
 
 **Taiga shadows (ambient, not an encounter).** In taiga biomes only: a harmless shadow of it stares from 32–60 blocks
-among the trees and vanishes the instant it is looked at, with a vanilla cave noise for that player.
+among the trees, always 40°+ off to the side of where you are looking, and vanishes the instant it is looked at, with a vanilla cave noise for that player.
 
 **Peeking.** Whenever it stands still beside cover (a trunk, a wall corner, a door frame) relative to the player, it
 leans out from behind it; without cover it stands normally.

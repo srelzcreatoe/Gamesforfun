@@ -7,7 +7,7 @@
 //   pursue   chase the tagged target (~4.8 b/s: faster than walking, slower than sprinting)
 //   retreat  walk away from players
 // States (client animation, entity property observer:state):
-//   watch stare tilt walk run attack peek recoil hidden
+//   watch stare tilt walk run attack peek recoil hidden float surge climb
 import { world, system, EntityDamageCause } from "@minecraft/server";
 import { OBSERVER_ID, TARGET_TAG, ENTITY_ENC_PROP, PARTICLES, SOUNDS, DANGER } from "../core/constants.js";
 import { V, safe, DEBUG, trace, emit, allPlayers } from "../core/util.js";
@@ -33,6 +33,9 @@ import { standNear, isReplaceable, coverSide } from "../world/space.js";
  * @property {boolean} autoPeek    switch between watch and peek by the cover beside it
  * @property {number} spawnedTick
  * @property {boolean} [repelled]  driven off (a flare): a strike already winding up does nothing
+ * @property {boolean} [clinging]  on a wall, climbing after a player above it (observer/climb.js)
+ * @property {boolean} [hung]      reached the top of its climb and hangs there beside them
+ * @property {boolean} [silent]    floating: no footstep sounds
  */
 
 /** @type {Body|null} */
@@ -106,10 +109,19 @@ export function setSide(side) {
   safe(() => b.e.setProperty("observer:side", side));
 }
 
+/** Floating or climbing: no footsteps (the step sound needs a huge distance between steps). @param {boolean} v */
+export function setSilent(v) {
+  const b = get();
+  if (!b || !!b.silent === v) return;
+  b.silent = v;
+  safe(() => b.e.triggerEvent(v ? "observer:steps_off" : "observer:steps_on"));
+}
+
 /** @param {"still"|"approach"|"pursue"|"retreat"} m */
 export function setMode(m) {
   const b = get();
   if (!b || b.mode === m) return;
+  if (m !== "still") b.clinging = b.hung = false;
   b.mode = m;
   if (b.target && (m === "approach" || m === "pursue")) {
     for (const p of world.getPlayers({ tags: [TARGET_TAG] })) if (p.id !== b.target.id) p.removeTag(TARGET_TAG);
@@ -209,7 +221,9 @@ export async function withdraw(watchers, maxTicks = 160) {
   const dim = b.e.dimension;
   setMode("still");
   b.faceTarget = false;
-  setState("walk");
+  b.clinging = b.hung = false;
+  // a floating body drifts away; otherwise it walks
+  setState(b.silent ? "float" : "walk");
   safe(() => dim.playSound(SOUNDS.fabric, b.e.location, { volume: 0.5 }));
   let pos = b.e.location;
   const near = watchers.filter((p) => p.isValid && p.dimension.id === dim.id);
@@ -225,7 +239,7 @@ export async function withdraw(watchers, maxTicks = 160) {
       pos = st.loc;
       dir = st.dir;
       safe(() => b.e.teleport(pos, { facingLocation: { x: pos.x + dir.x * 4, y: pos.y + 3, z: pos.z + dir.z * 4 } }));
-    } else setState("watch"); // cornered: it waits to be unobserved
+    } else setState(b.silent ? "float" : "watch"); // cornered: it waits to be unobserved
     if (t >= 16 && t % 4 === 0 && !visibleTo(watchers)) {
       despawn("withdrew");
       return;

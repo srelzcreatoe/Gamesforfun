@@ -8,6 +8,7 @@ import * as body from "../observer/body.js";
 import { standNear, findSpot } from "../world/space.js";
 import { visibility } from "../world/sight.js";
 import { outrunBonus } from "../observer/learn.js";
+import * as climb from "../observer/climb.js";
 
 /** @typedef {import("../director/encounter.js").Encounter} Encounter */
 /** @typedef {{x:number,y:number,z:number}} Vec */
@@ -134,7 +135,8 @@ export function wantsLunge(enc) {
  * wind-up each, so stepping back still makes it miss), running them down between strikes, until the
  * player is dead or drives it off with the Witness Lens or a blow. Low aggression strikes once (and is
  * capped); aggression "never" only stops in front of them and everything goes dark.
- * @param {Encounter} enc @param {{maxTicks?:number}} [o]
+ * Going up does not help: on a pillar, a ledge or a ladder it climbs after them (observer/climb.js).
+ * @param {Encounter} enc @param {{maxTicks?:number, float?:boolean}} [o] float: it floats (the chase) instead of running
  * @returns {Promise<string>} outcome
  */
 export async function relentless(enc, o = {}) {
@@ -153,6 +155,7 @@ export async function relentless(enc, o = {}) {
     return "caught";
   }
   let hits = 0;
+  const moving = o.float ? "surge" : "run";
   const end = o.maxTicks ?? 20 * 40;
   const loseAt = 64 + outrunBonus(enc);
   for (let t = 0; t < end; t += 2) {
@@ -187,8 +190,13 @@ export async function relentless(enc, o = {}) {
       }
       continue;
     }
+    // up a pillar, a ledge, a ladder: it climbs after them and strikes from the wall
+    if (climb.needed(enc) || body.get()?.clinging) {
+      if (await climb.after(enc, { state: moving })) continue;
+    }
     body.setMode("pursue");
-    body.setState("run");
+    body.setState(moving);
+    if (o.float) body.setSilent(true);
     await enc.wait(2);
   }
   body.despawn("gave_up");

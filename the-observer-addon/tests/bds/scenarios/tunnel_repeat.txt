@@ -1,0 +1,5 @@
+# The Closed Path, repeatedly (its spot ahead in a 2-wide tunnel used to be missed now and then)
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup closed_path_escape closed_path_held closed_path_struck closed_path_light closed_path_escape closed_path_held closed_path_struck closed_path_escape closed_path_held closed_path_escape status
+expect \[OTEST\] SUITE DONE 2400

@@ -147,6 +147,10 @@ function isolate(p) {
 function isolateFromHouse(p) {
   for (const o of world.getAllPlayers()) if (o && o.id !== p.id) o.teleport({ x: 903.5, y: Y, z: 1036.5 }, { facingLocation: { x: 880, y: Y + 1.6, z: 1036.5 } });
 }
+/** Flares burn for 8 s and drive off anything that comes near: tests start once the last one is out. */
+async function flaresOut() {
+  for (let t = 0; t < 240 && ow().getEntities({ type: "observer:flare" }).length > 0; t += 10) await wait(10);
+}
 /** Diagnostics when a house test finds no spot: the interior column by column (blocks and light at head height). */
 function dumpHouse(tag) {
   const H = HOUSE;
@@ -661,9 +665,12 @@ TESTS.pursuit = async () => {
   p.lookAtLocation({ x: p.location.x - 30, y: Y + 1.6, z: p.location.z });
   await wait(40);
   const d1 = e.isValid ? hdist(e.location, p.location) : 0;
+  const st1 = e.isValid ? e.getProperty("observer:state") : "gone";
   await wait(20);
   const d2 = e.isValid ? hdist(e.location, p.location) : 0;
   check("pursuit_runs", d1 - d2 > 2.5, `speed≈${(d1 - d2).toFixed(2)} b/s`);
+  // 1.0.6: it floats after you — the surge, not the run
+  check("pursuit_floats_surging", st1 === "surge", String(st1));
   const end = await endOf("pursuit", m, 20 * 40);
   dmg.stop();
   const strike = since(m, "strike")[0];
@@ -691,6 +698,7 @@ TESTS.pursuit_watched_walks = async () => {
   d2 = e.isValid ? hdist(e.location, p.location) : d1;
   const speed = (d1 - d2) / 2;
   check("pursuit_watched_slow", speed < 3.6, `speed≈${speed.toFixed(2)} b/s while watched`);
+  check("pursuit_watched_drifts", e.isValid && e.getProperty("observer:state") === "float", e.isValid ? String(e.getProperty("observer:state")) : "gone");
   obs("abort");
   await endOf("pursuit", m, 100);
   ow().runCommand("time set noon");
@@ -1531,6 +1539,10 @@ TESTS.pursuit_water_escape = async () => {
   p.stopMoving();
   const end = await endOf("pursuit", m, 600);
   check("pursuit_water_escaped", end && end.outcome === "escaped_water", end ? end.outcome : "none");
+  // it floats to the water's edge and hovers there (on dry ground, never over the water)
+  const sh = since(m, "shore")[0];
+  const dry = sh && ow().getBlock({ x: sh.x, y: sh.y - 1, z: sh.z });
+  check("pursuit_hovers_at_shore", !!sh && !!dry && !dry.isLiquid && sh.x < POOL.x0 + 1, sh ? `${sh.x.toFixed(1)},${sh.z.toFixed(1)} on ${dry?.typeId}` : "no shore");
   check("pursuit_water_discovery", discovered(m, "breathing_room"));
   p.teleport({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
   ow().runCommand("time set noon");
@@ -1588,6 +1600,7 @@ function lightNear(loc, r = 1) {
 
 TESTS.flare = async () => {
   // a thrown flare flies, lights where it lands (a real light), drives it off, and burns out
+  await flaresOut();
   const p = await freshTarget("Tester", AT_FIELD, FACE_N, 3);
   isolate(p);
   obs("unlearn", "Tester");
@@ -1620,6 +1633,7 @@ TESTS.flare = async () => {
 
 TESTS.flare_mid_attack = async () => {
   // it works even mid-attack: a strike already winding up does no damage
+  await flaresOut();
   const p = await freshTarget("Tester", AT_FIELD, FACE_N, 3);
   isolate(p);
   obs("unlearn", "Tester");
@@ -1648,6 +1662,7 @@ TESTS.flare_mid_attack = async () => {
 
 TESTS.learning = async () => {
   // it adapts to the way a player escapes, one way at a time, and writes it down
+  await flaresOut(); // the previous test's flare would use up the one flinch
   const p = await freshTarget("Tester", AT_FIELD, FACE_N, 4);
   isolate(p);
   obs("unlearn", "Tester");
@@ -1680,7 +1695,7 @@ TESTS.learning = async () => {
   obs("abort");
   await observerGone(100);
   // a burning flare drives off anything that arrives near it: let both burn out first
-  for (let t = 0; t < 240 && ow().getEntities({ type: "observer:flare" }).length > 0; t += 10) await wait(10);
+  await flaresOut();
   // one way at a time: leaning on another way switches it, the old one wears off
   m = mark();
   obs("learn", "light", "4", "Tester");
@@ -1976,6 +1991,98 @@ TESTS.returns = async () => {
   await wait(20 * 8);
   check("returns_once_a_day", !since(m, "returned").length);
   for (const it of ow().getEntities({ type: "minecraft:item", location: AT_FIELD, maxDistance: 12 })) it.remove();
+};
+
+// ------------------------------------------------------------------ 1.0.6: climbing
+const PILLAR_TOP = { x: PILLAR.x + 0.5, y: PILLAR.top, z: PILLAR.z + 0.5 };
+
+TESTS.climb_pillar = async () => {
+  // up on a 20-block pillar: it comes from below, climbs the face and hangs just under the player
+  const p = await freshTarget("Tester", PILLAR_TOP, { x: PILLAR.x + 0.5, y: PILLAR.top + 1.6, z: PILLAR.z - 30 }, 3);
+  isolate(p);
+  await wait(10);
+  const m = mark();
+  obs("trigger", "test_climb", "Tester");
+  const st = await waitEvent("climb", (d) => d.what === "start", 20 * 15, m);
+  if (!check("climb_starts", !!st, (since(m, "end")[0] || {}).outcome)) return;
+  const e = observerEntity();
+  const climbing = e && e.isValid ? e.getProperty("observer:state") : "gone";
+  const cl = await waitEvent("climb", (d) => d.what === "cling", 20 * 10, m);
+  const e2 = observerEntity();
+  check("climb_reaches_the_top", !!cl && !!e2 && e2.location.y >= PILLAR.top - 2.5 && hdist(e2.location, p.location) <= 1.6,
+    e2 ? `y ${e2.location.y.toFixed(1)} (player ${p.location.y.toFixed(1)}) h ${hdist(e2.location, p.location).toFixed(2)}` : "no body");
+  check("climb_animation_state", climbing === "climb", String(climbing));
+  const end = await endOf("test_climb", m, 200);
+  check("climb_test_outcome", end && end.outcome === "climbed", end ? end.outcome : "none");
+  await observerGone(100);
+};
+
+TESTS.climb_attack = async () => {
+  // pillaring up during its attack does not save you: it climbs after you and strikes from the wall
+  obs("set", "aggression", "2");
+  const base = { x: PILLAR.x - 1.5, y: Y, z: PILLAR.z + 0.5 };
+  const p = await freshTarget("Tester", base, { x: PILLAR.x - 30, y: Y + 1.6, z: PILLAR.z + 0.5 }, 3);
+  isolate(p);
+  const m = mark();
+  obs("trigger", "test_strike", "Tester");
+  const s1 = await waitEvent("strike", () => true, 20 * 15, m);
+  if (!check("climb_attack_reached", !!s1)) {
+    obs("preset", "standard");
+    return;
+  }
+  // up the pillar
+  heal(p);
+  p.teleport(PILLAR_TOP, { facingLocation: { x: PILLAR.x - 30, y: PILLAR.top + 1.6, z: PILLAR.z + 0.5 } });
+  const m2 = mark();
+  const dmg = trackDamage(p);
+  const cl = await waitEvent("climb", (d) => d.what === "cling", 20 * 12, m2);
+  const hit = await waitEvent("strike", (d) => d.result === "hit", 20 * 8, m2);
+  dmg.stop();
+  check("climb_attack_climbs_after_you", !!cl, cl ? `hangs at y ${cl.y.toFixed(1)} (player ${PILLAR.top})` : "never climbed");
+  check("climb_attack_strikes_from_the_wall", !!hit && dmg.total > 0, hit ? `damage ${dmg.total}` : "no hit");
+  obs("abort");
+  obs("preset", "standard");
+  p.teleport({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
+  await observerGone(200);
+};
+
+TESTS.climb_over = async () => {
+  // further back from the edge (the middle of the house roof): it climbs the wall and comes over the top
+  obs("restore");
+  resetHouse();
+  const H = HOUSE;
+  const roof = { x: H.center.x, y: Y + 5, z: H.center.z };
+  const p = await freshTarget("Tester", roof, { x: H.center.x + 20, y: Y + 6.6, z: H.center.z }, 3);
+  isolateFromHouse(p);
+  const m = mark();
+  obs("trigger", "test_climb", "Tester");
+  const over = await waitEvent("climb", (d) => d.what === "over", 20 * 20, m);
+  check("climb_over_the_top", !!over && over.y >= Y + 4.9, over ? `onto the roof at ${over.x.toFixed(1)},${over.y.toFixed(1)},${over.z.toFixed(1)}` : (since(m, "end")[0] || {}).outcome);
+  const end = await endOf("test_climb", m, 20 * 20);
+  check("climb_over_reaches_you", end && (end.outcome === "reached" || end.outcome === "climbed"), end ? end.outcome : "none");
+  p.teleport({ x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 });
+  await observerGone(100);
+};
+
+TESTS.float_test_entry = async () => {
+  // Config Wheel → Test an encounter → The floating chase: harmless, ends 3 blocks short
+  const p = await freshTarget("Tester", AT_FIELD, FACE_N, 3);
+  isolate(p);
+  const dmg = trackDamage(p);
+  const m = mark();
+  obs("trigger", "test_float", "Tester");
+  const e = await waitObserver(60);
+  if (!check("float_entry_body", !!e)) return;
+  p.lookAtLocation({ x: p.location.x, y: Y + 1.6, z: p.location.z + 30 }); // look away: it surges
+  let surged = false;
+  for (let t = 0; t < 60 && e.isValid; t += 4) {
+    if (e.getProperty("observer:state") === "surge") surged = true;
+    await wait(4);
+  }
+  const end = await endOf("test_float", m, 20 * 20);
+  dmg.stop();
+  check("float_entry_surges_and_ends", surged && end && end.outcome === "reached" && dmg.total === 0, `${end ? end.outcome : "none"} surged=${surged} damage=${dmg.total}`);
+  await observerGone(100);
 };
 
 TESTS.status = async () => {

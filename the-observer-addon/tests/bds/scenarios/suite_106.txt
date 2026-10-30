@@ -1,0 +1,5 @@
+# 1.0.6 additions: the floating chase, climbing, plus the chase/attack regressions
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup pursuit pursuit_watched_walks pursuit_water_escape climb_pillar climb_attack climb_over float_test_entry creeping_held creeping_reaches relentless test_entries status
+expect \[OTEST\] SUITE DONE 2400

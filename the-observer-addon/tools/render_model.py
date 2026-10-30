@@ -83,6 +83,7 @@ def lerp_keys(channel, t, length, loop):
 
 
 MOLANG_VARS = {"q.property('observer:side')": 1.0, "query.property('observer:side')": 1.0,
+               "q.property('observer:stoop')": 0.0, "query.property('observer:stoop')": 0.0,
                "query.anim_time": 0.0, "q.anim_time": 0.0,
                "query.target_x_rotation": 0.0, "query.target_y_rotation": 0.0,
                "q.target_x_rotation": 0.0, "q.target_y_rotation": 0.0}
@@ -249,7 +250,9 @@ def render(model, anims, out, view="front", size=(360, 520), scale=7.0, label=No
         d.text((16, y - 6), f"{blocks}b", fill=(150, 60, 60))
     if label:
         d.text((8, 6), label, fill=(20, 20, 20))
-    img.save(out)
+    if out:
+        img.save(out)
+    return img
 
 
 def main():
@@ -263,10 +266,12 @@ def main():
     ap.add_argument("--height-report", action="store_true")
     ap.add_argument("--debug-colors", action="store_true")
     ap.add_argument("--side", type=float, default=1.0, help="value for q.property('observer:side')")
+    ap.add_argument("--stoop", type=float, default=0.0, help="value for q.property('observer:stoop') (0 or 1)")
     a = ap.parse_args()
     model = Model(a.geo, a.texture)
     model.debug = a.debug_colors
     MOLANG_VARS["q.property('observer:side')"] = MOLANG_VARS["query.property('observer:side')"] = a.side
+    MOLANG_VARS["q.property('observer:stoop')"] = MOLANG_VARS["query.property('observer:stoop')"] = a.stoop
     anims = []
     for f, n, t in a.anim:
         anims.append((json.load(open(f))["animations"][n], float(t)))
