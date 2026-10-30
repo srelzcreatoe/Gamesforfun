@@ -15,7 +15,7 @@ const C = (id, label, room, loc, look, sees, extra = {}) => Object.freeze({
 export const CAMERAS = Object.freeze([
   C('1A', 'CAM 1A · SHOW STAGE', 'DINING', [38.5, 5.6, 18.5], [38.5, 1.9, 4.5], ['ST_R', 'ST_M', 'ST_N', 'DIN_FRONT']),
   C('1B', 'CAM 1B · DINING AREA', 'DINING', [60.3, 6.15, 36.3], [46.8, 2.4, 25.0], ['DIN_NW', 'DIN_W', 'DIN_C', 'DIN_E', 'DIN_SW', 'DIN_SE', 'DIN_FRONT'], { mount: [60, 6, 37, 'n'] }),
-  C('1C', "CAM 1C · RINGMASTER'S BOOTH", 'DINING', [21.5, 5.0, 33.5], [10.0, 1.9, 33.5], ['CAB', 'CAB_PEEK', 'CAB_OUT']),
+  C('1C', 'CAM 1C · GRAND MARQUEE', 'DINING', [21.5, 5.0, 33.5], [10.0, 1.9, 33.5], ['CAB', 'CAB_PEEK', 'CAB_OUT']),
   C('2A', 'CAM 2A · WEST HALL', 'WEST_HALL', [27.5, 4.35, 40.0], [27.5, 0.0, 52.0], ['WH_N', 'WH_M', 'WH_S'], { mount: [27, 4, 39, 's'] }),
   C('2B', 'CAM 2B · W. HALL CORNER', 'W_CORNER', [29.8, 4.35, 59.0], [27.8, 0.3, 65.5], ['WC', 'DOOR_L'], { mount: [29, 4, 58, 's'] }),
   C('3', 'CAM 3 · SUPPLY CLOSET', 'SUPPLY', [19.6, 4.3, 42.0], [23.5, 0.4, 49.0], ['SUP'], { mount: [19, 4, 41, 's'] }),

@@ -48,7 +48,7 @@ export const NODES = Object.freeze(Object.fromEntries([
   N('MW_EDGE', 11.6, 0, 22.6, -90), // the Cat, stepped off the ring towards the arch
   N('MW_P', 4.5, 1, 19.0, -60, { pose: 'stage' }),
   N('MW_GRATE', 7.5, 1, 23.8, 0),
-  N('CAB', 9.5, 1, 33.5, -90, { pose: 'stage' }), // the Ringmaster's booth (the old Kitty's Cabaret)
+  N('CAB', 9.5, 1, 33.5, -90, { pose: 'stage' }), // the Ringmaster's stage, the Grand Marquee (once Kitty's Cabaret)
   N('CAB_PEEK', 13.4, 0, 33.0, -90),
   N('CAB_OUT', 16.2, 0, 33.5, -90),
   // west duct (crawl) - the riser from the Midway grate, then towards the office's left vent

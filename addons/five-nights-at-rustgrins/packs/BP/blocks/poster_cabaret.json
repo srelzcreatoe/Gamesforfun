@@ -50,7 +50,7 @@
       "minecraft:destructible_by_mining": {
         "seconds_to_destroy": 1
       },
-      "minecraft:map_color": "#7a624a"
+      "minecraft:map_color": "#806341"
     },
     "permutations": [
       {

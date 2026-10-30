@@ -560,7 +560,7 @@ function signs(p) {
   p.sign(25, 2, 47, 'e', ['SUPPLY', 'CLOSET']);
   p.sign(63, 2, 11, 'e', ['KITCHEN', 'Staff only']);
   p.sign(32, 2, 69, 'e', ['NIGHT GUARD', 'Doors: red', 'Lights: white', 'Power is finite']);
-  p.sign(15, 3, 31, 'e', ['PRIVATE BOOTH', 'THE RINGMASTER', '', 'do not disturb']);
+  p.sign(15, 3, 31, 'e', ['THE GRAND', 'MARQUEE', 'private stage', 'do not disturb']);
   p.sign(33, 1, 60, 's', ['', 'LEFT VENT', '^']);
   p.sign(39, 1, 60, 's', ['', 'RIGHT VENT', '^']);
 }

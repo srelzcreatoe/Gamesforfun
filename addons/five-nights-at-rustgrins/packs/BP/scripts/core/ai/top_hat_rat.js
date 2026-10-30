@@ -1,6 +1,6 @@
 // The Ringmaster (Top-Hat Rat).
 //
-//   booth   nights 1-5: he stands in his booth (the old Kitty's Cabaret, CAM 1C) and never
+//   booth   nights 1-5: he stands on his stage, the Grand Marquee (once Kitty's Cabaret, CAM 1C), and never
 //           moves. He calls the office every night instead of the day manager.
 //   final   night 6, the Final Act. The other five are his marionettes and move only on
 //           his cue, in three acts of two hours:

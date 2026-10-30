@@ -27,11 +27,74 @@
    },
    {
     "binding_type": "view",
-    "source_property_name": "(not ((#hud_title_text_string - '§k§r§k§r§l') = #hud_title_text_string))",
+    "source_property_name": "((not ((#hud_title_text_string - '§k§r§k§r§l') = #hud_title_text_string)) or (not ((#hud_title_text_string - '§k§r§k§r§n') = #hud_title_text_string)))",
     "target_property_name": "#visible"
    }
   ],
   "controls": [
+   {
+    "fnar_cam_tint": {
+     "type": "image",
+     "texture": "textures/ui/fnar/px_white",
+     "size": [
+      "100%",
+      "100%"
+     ],
+     "layer": 1,
+     "color": [
+      0.32,
+      0.95,
+      0.48
+     ],
+     "alpha": 0.15
+    }
+   },
+   {
+    "fnar_cam_noise": {
+     "type": "image",
+     "texture": "textures/ui/fnar/cam_fx_noise",
+     "size": [
+      "100%",
+      "100%"
+     ],
+     "layer": 2,
+     "alpha": 0.4,
+     "uv_size": [
+      320,
+      180
+     ],
+     "uv": "@hud.fnar_cam_noise_anim",
+     "disable_anim_fast_forward": true
+    }
+   },
+   {
+    "fnar_cam_scan": {
+     "type": "image",
+     "texture": "textures/ui/fnar/cam_fx_scan",
+     "size": [
+      "100%",
+      "100%"
+     ],
+     "layer": 3,
+     "tiled": true
+    }
+   },
+   {
+    "fnar_cam_roll": {
+     "type": "image",
+     "texture": "textures/ui/fnar/cam_fx_roll",
+     "size": [
+      "100%",
+      70
+     ],
+     "anchor_from": "top_left",
+     "anchor_to": "top_left",
+     "layer": 3,
+     "anims": [
+      "@hud.fnar_cam_roll_anim"
+     ]
+    }
+   },
    {
     "fnar_cam_frame": {
      "type": "image",
@@ -40,7 +103,7 @@
       "100%",
       "100%"
      ],
-     "layer": 1,
+     "layer": 4,
      "alpha": 0.95
     }
    },
@@ -58,7 +121,7 @@
       14,
       12
      ],
-     "layer": 3,
+     "layer": 5,
      "anims": [
       "@hud.fnar_rec_blink_out"
      ]
@@ -68,8 +131,8 @@
     "fnar_cam_map": {
      "type": "panel",
      "size": [
-      140,
-      125.68
+      100,
+      89.77
      ],
      "anchor_from": "bottom_right",
      "anchor_to": "bottom_right",
@@ -77,7 +140,7 @@
       -4,
       -4
      ],
-     "layer": 5,
+     "layer": 6,
      "controls": [
       {
        "fnar_cam_map_base": {
@@ -440,10 +503,45 @@
         ]
        }
       }
+     ],
+     "bindings": [
+      {
+       "binding_name": "#hud_title_text_string",
+       "binding_type": "global"
+      },
+      {
+       "binding_type": "view",
+       "source_property_name": "(not ((#hud_title_text_string - '§k§r§k§r§l') = #hud_title_text_string))",
+       "target_property_name": "#visible"
+      }
      ]
     }
    }
   ]
+ },
+ "fnar_cam_noise_anim": {
+  "anim_type": "flip_book",
+  "initial_uv": [
+   0,
+   0
+  ],
+  "frame_count": 6,
+  "frame_step": 180,
+  "fps": 14
+ },
+ "fnar_cam_roll_anim": {
+  "anim_type": "offset",
+  "easing": "linear",
+  "duration": 7.5,
+  "from": [
+   0,
+   -80
+  ],
+  "to": [
+   0,
+   520
+  ],
+  "next": "@hud.fnar_cam_roll_anim"
  },
  "fnar_cam_blink_out": {
   "anim_type": "alpha",

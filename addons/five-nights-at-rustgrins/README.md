@@ -2,7 +2,7 @@
 
 An original FNAF-style night-guard horror add-on for **Minecraft Bedrock
 1.26.50+**. You are the last night guard of *Rustgrin's Pizza Revue*, a dying
-80s pizzeria with a show stage, a circus ring, a ringmaster's booth and a
+80s pizzeria with a show stage, a circus ring, the Ringmaster's Grand Marquee and a
 crawl-duct system above the ceilings. Five nights. Then the Ringmaster takes
 the sixth for himself. Built with vanilla-style blocks, ready for **Vibrant
 Visuals**, and it runs with every experiment toggle **off**.
@@ -58,7 +58,7 @@ At 0 % everything opens… and someone comes to sing for you.
 
 Every night the office phone rings, and it is not the manager. It is **the
 Ringmaster**, the animatronic showman of *Marvello's Midnight Midway*, calling
-from his private booth on CAM 1C. He knows your name. He teaches you the job,
+from his own stage, the Grand Marquee, on CAM 1C. He knows your name. He teaches you the job,
 night by night, and he has plans for the last night of the show.
 
 On night 5, at 4 AM, the shift ends early. Or so the screen says.
@@ -76,11 +76,11 @@ The newspaper clippings in the Staff Room fill in the rest.
 | | Watch for | Do |
 |---|---|---|
 | **Mirehop** (green rabbit) | West hall, a guitar twang at the left door | left light, shut the left door |
-| **Noxbriar** (black bear) | East hall, humming at the right window; only her eyes show on dark cameras | right light, shut the right door |
+| **Noxbriar** (black bear, the band's girl) | East hall, humming at the right window; only her eyes show on dark cameras | right light, shut the right door |
 | **Rustgrin** (grey bear) | moves only unwatched; mic feedback outside the right door = he is in the corner nook (only CAM 4B sees it) | keep the right door shut while on the cameras |
 | **The Cat** | dances on the Midway ring (CAM 8) while the show tape plays; restless when it slows, gone when it stops | keep the tape playing (PLAY SHOW), check CAM 8 often, shut the door she sprints at |
 | **Purple Rat** | shares the ring with the Cat; maracas in the ceiling ducts (CAM 9 / 10) | close that vent when he is above you |
-| **The Ringmaster** | stands in his booth (CAM 1C) and calls you every night | listen. On night 6, obey him, and keep the SPOTLIGHT ready |
+| **The Ringmaster** | stands on his stage, the Grand Marquee (CAM 1C), and calls you every night | listen. On night 6, obey him, and keep the SPOTLIGHT ready |
 
 Stars: reach the end of night 5, survive the Final Act, and beat the Custom
 Night at 20/20/20/20/20/20.

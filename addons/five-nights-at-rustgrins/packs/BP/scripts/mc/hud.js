@@ -12,6 +12,8 @@ export const hourLabel = (h) => HOURS[Math.max(0, Math.min(6, h))];
  * whose two-digit index follows ("§0§3" = CAMERAS[3]).
  */
 export const MAP_ON = '§k§r§k§r§l';
+/** The camera-feed look (grain, scanlines, tint) without the map, when the map is switched off in Settings. */
+export const FX_ON = '§k§r§k§r§n';
 export const MAP_OFF = ' ';
 export function mapTitle(camId) {
   const i = CAMERA_ORDER.indexOf(camId);

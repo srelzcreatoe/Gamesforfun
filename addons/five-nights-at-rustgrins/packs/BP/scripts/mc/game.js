@@ -22,7 +22,7 @@ import { Builder } from './builder.js';
 import { Puppets, yawToward } from './puppets.js';
 import { Actuators } from './actuators.js';
 import { Audio } from './audio.js';
-import { Hud, mapTitle, MAP_OFF, hourLabel, spotlightReady } from './hud.js';
+import { Hud, mapTitle, MAP_OFF, FX_ON, hourLabel, spotlightReady } from './hud.js';
 import { CameraView, restorePlayerView, FOG } from './camera_view.js';
 import * as ui from './ui.js';
 import { W, Wv, L, dim, origin, refreshOrigin, setOrigin, runCmd, setLocal, typeAtLocal } from './world_io.js';
@@ -717,10 +717,11 @@ export class Game {
 
   /** @param {import('@minecraft/server').Player} g */
   showCamMap(g, camId) {
-    if (this.save.settings.camMap === false) return;
     try {
-      // the title is only formatting codes (invisible); the resource pack draws the map from it
-      g.onScreenDisplay.setTitle(camId ? mapTitle(camId) : MAP_OFF, { fadeInDuration: 0, stayDuration: camId ? 100 : 1, fadeOutDuration: 0 });
+      // the title is only formatting codes (invisible); the resource pack draws the camera-feed
+      // look and the map from it (just the look when the map is switched off in Settings)
+      const code = !camId ? MAP_OFF : this.save.settings.camMap === false ? FX_ON : mapTitle(camId);
+      g.onScreenDisplay.setTitle(code, { fadeInDuration: 0, stayDuration: camId ? 100 : 1, fadeOutDuration: 0 });
     } catch {
       // ignore
     }

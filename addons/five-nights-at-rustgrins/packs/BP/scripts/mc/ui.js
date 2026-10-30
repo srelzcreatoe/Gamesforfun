@@ -237,10 +237,10 @@ export async function galleryInfo(player, id) {
   const lines = {
     rustgrin: 'RUSTGRIN - lead singer of the Rusty Revue since 1984. Grey fur, red vest, a microphone he never puts down. Moves only when nobody is watching.',
     mirehop: 'MIREHOP - guitarist. His amp still hums at night. Prefers the west hall.',
-    noxbriar: 'NOXBRIAR - backup vocals, the darkest costume in the building. On camera, look for the eyes.',
+    noxbriar: 'NOXBRIAR - the Revue\'s backup singer and the only lady in the band. Hers is the darkest costume in the building: on camera, look for her eyes.',
     purple_rat: 'PURPLE RAT - maracas, from the Midnight Midway. Nervous, twitchy, never far from a vent.',
     cat: 'THE CAT - the Midway\'s dancer. She shares the ring with the Purple Rat and never misses a beat. Fast. Very fast.',
-    top_hat_rat: 'THE RINGMASTER - he ran the Midnight Midway after its owner vanished, and he has run every show since. He knows your name.',
+    top_hat_rat: 'THE RINGMASTER - he ran the Midnight Midway after its owner vanished, and he has run every show since from his own stage, the Grand Marquee. He knows your name.',
   };
   await messageBox(player, `§l${CAST_NAMES[id].toUpperCase()}`, lines[id] ?? '');
 }

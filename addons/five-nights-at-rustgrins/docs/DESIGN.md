@@ -36,7 +36,7 @@ Palette guide (approx.):
 * tiles: off-white `#cfcac0`, black `#1b1b1e`, grout `#5a5650`, grime `#4b4234`
 * walls: blue-grey plaster `#5d6670`, dark trim `#2a2d33`, accent red `#7a1f1f`
 * dining/stage: maroon `#5a1c22`, gold trim `#b08a2e`, stage wood (dark oak)
-* the Ringmaster's booth (the old Kitty's Cabaret): purple velvet `#3e1f4f`, gold stars `#d4a93c`
+* the Grand Marquee, the Ringmaster's stage (once Kitty's Cabaret): purple velvet `#3e1f4f`, gold stars `#d4a93c`, crimson marquee board
 * Midway (circus): red `#8e1d1d` / cream `#d8cfb5` stripes
 * light colors: fluorescent `#dfe8ff`, warm bulb `#ffc98a`, EXIT green `#3cff6e`
 
@@ -44,13 +44,13 @@ Palette guide (approx.):
 
 **Rustgrin's Pizza Revue** opened on Route 6 in 1984 with the *Rusty Revue*
 band: **Rustgrin** the bear (lead singer), **Mirehop** the rabbit (guitar) and
-**Noxbriar** the bear (backup vocals). In 1986 Aurelio Marvello, owner of the
+**Noxbriar**, the band's lady bear (backup vocals). In 1986 Aurelio Marvello, owner of the
 travelling *Midnight Midway*, vanished during a matinee; his animatronic
 **Ringmaster** kept the show running for three days to an empty tent. In 1987
 the pizzeria bought the troupe: the Ringmaster, the nervous **Purple Rat**
 (maracas) and **the Cat** (dancer). The Cat and the Purple Rat share the
 Midway ring; after the show "would not stop" in 1990, the Ringmaster was moved
-into the old Kitty's Cabaret, now his private booth.
+into the old Kitty's Cabaret, renamed the Grand Marquee: his own stage.
 
 The player is the night guard for the pizzeria's last week (November 1991). The
 Ringmaster replaced the day manager on the office line: he calls every night,
@@ -59,7 +59,7 @@ show as the auction of lots one through six approaches. Hanging up on him is
 remembered the next night.
 
 Night 5 at 4 AM: a fake *6 AM / thank you for playing* screen, torn apart by
-the Ringmaster; CAM 1C shows his booth empty; **Night 6 - The Final Act**
+the Ringmaster; CAM 1C shows his stage empty; **Night 6 - The Final Act**
 begins at once. Its three acts are his show (see section 3). Endings: *The
 Final Act* (first clear), *Encore* (replays), *Showstopper* (Custom Night at
 all 20s).
@@ -82,7 +82,7 @@ nights 2+.
 | **Rustgrin** (grey bear) | lead singer | RIGHT door, late nights | watch him on camera (he only moves unseen); shut RIGHT door when he is in the E. Hall Corner — he is never visible by the hall light | mic feedback squeal when he moves; at power-out he plays his song at the left doorway |
 | **Cat** (maroon cat) | dancer, Midway ring | sprints down a hall | keep the **show tape** on CAM 8 playing (PLAY SHOW); she dances while it plays, advances while unwatched when it slows, leaves the ring when it stops; shut the door she runs at | stages: dancing, staring at the camera, off the ring, gone; collar-bell jingle from the hall she takes; a shut door makes her bang (power drain grows each time) |
 | **Purple Rat** | maracas, Midway ring | ceiling VENTS (left/right) | listen for maracas in the ducts, watch CAM 9/10, close that VENT COVER while he is at the vent | maraca rattle from the duct side, louder as he nears; bolder when the tape slows (+3) or stops (+7); twitchy — he can reverse direction |
-| **The Ringmaster** (Top-Hat Rat) | host, booth on CAM 1C | night 6 and the Custom Night | nights 1-5: never moves (only glimpsed peering through his curtains); night 6: obey his acts, and SPOTLIGHT him from a camera that sees him | the PA chime before every announcement; his cane on the tiles |
+| **The Ringmaster** (Top-Hat Rat) | host, the Grand Marquee on CAM 1C | night 6 and the Custom Night | nights 1-5: never moves (only glimpsed peering through his curtains); night 6: obey his acts, and SPOTLIGHT him from a camera that sees him | the PA chime before every announcement; his cane on the tiles |
 
 **The Final Act (night 6).** Only the Ringmaster thinks; the others move on
 his cue. Act I (12-2 AM) *Meet the Performers*: one performer at a time is sent
@@ -130,14 +130,14 @@ Local coordinates: +X east, +Z south, floor level y = 0 (floor blocks at
 y = -1). Building ≈ 80 × 70 blocks inside a fenced lot with a parking area.
 
 Rooms: Show Stage + Dining Area (north/center), Backstage (NW), Midway (W, the
-Cat + Purple Rat on the ring), the Ringmaster's booth (W, the old Kitty's
-Cabaret, curtains parted), Supply Closet (SW),
+Cat + Purple Rat on the ring), the Grand Marquee (W, the Ringmaster's stage,
+once Kitty's Cabaret, curtains parted), Supply Closet (SW),
 West Hall + W. Hall Corner, Office (south center), East Hall + E. Hall Corner,
 Kitchen (NE), Restrooms (E), Arcade / Prize Corner (E), Staff Room (time clock
 lobby), entrance foyer, crawl ducts West/East (y 5–6) ending in two ceiling
 vents in the office.
 
-Cameras: 1A Show Stage · 1B Dining Area · 1C Ringmaster's Booth · 2A West Hall ·
+Cameras: 1A Show Stage · 1B Dining Area · 1C Grand Marquee · 2A West Hall ·
 2B W. Hall Corner · 3 Supply Closet · 4A East Hall · 4B E. Hall Corner ·
 5 Backstage · 6 Kitchen (audio only) · 7 Restrooms · 8 Midway · 9 West Duct ·
 10 East Duct.

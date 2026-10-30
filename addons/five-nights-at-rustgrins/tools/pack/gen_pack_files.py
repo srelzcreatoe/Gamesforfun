@@ -12,7 +12,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 BP = os.path.join(ROOT, 'packs', 'BP')
 RP = os.path.join(ROOT, 'packs', 'RP')
-VERSION = [1, 0, 4]
+VERSION = [1, 0, 5]
 ENGINE = [1, 26, 50]
 UUID = {
     'bp_header': '02b67251-1ef0-43ba-8b73-411d54a1b730',
@@ -146,9 +146,9 @@ BLOCK_NAMES = {
     'carpet_party': 'Party Carpet', 'ceiling_tile_stained': 'Stained Ceiling Tile', 'cinderblock_painted': 'Painted Cinderblock',
     'crt_monitor': 'CRT Monitor', 'curtain_purple': 'Purple Velvet Curtain', 'curtain_red': 'Red Velvet Curtain',
     'door_button': 'Door Button', 'door_shutter': 'Steel Door Shutter', 'duct_metal': 'Duct Panel', 'exit_sign': 'EXIT Sign',
-    'pa_speaker': 'PA Speaker', 'plush_rat': 'Purple Rat Plush', 'poster_cabaret': "Kitty's Cabaret Poster",
+    'pa_speaker': 'PA Speaker', 'plush_rat': 'Purple Rat Plush', 'poster_cabaret': 'Grand Marquee Poster',
     'poster_midway': 'Midnight Midway Poster', 'poster_missing': 'Missing Poster', 'poster_party': 'Party Poster',
-    'poster_revue': 'Rusty Revue Poster', 'poster_rules': 'Staff Rules Poster', 'sign_cabaret': "Kitty's Cabaret Sign",
+    'poster_revue': 'Rusty Revue Poster', 'poster_rules': 'Staff Rules Poster', 'sign_cabaret': 'Grand Marquee Sign',
     'sign_midway': 'Midnight Midway Sign', 'sign_out_of_order': 'Out of Order Sign', 'sign_revue': "Rustgrin's Pizza Revue Sign",
     'sign_staff': 'Staff Only Sign', 'show_tape': 'Show Tape Deck', 'stage_star': 'Stage Star', 'tent_stripe': 'Circus Tent Stripes',
     'tile_checker': 'Checkered Tile', 'tile_checker_worn': 'Worn Checkered Tile', 'tile_kitchen': 'Kitchen Tile',

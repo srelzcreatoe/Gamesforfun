@@ -122,8 +122,8 @@ export const SCENES = [
     },
   },
   {
-    name: '06_cam_1c', voxels: 'lit', style: 'camera_feed', caption: "CAM 1C: the Ringmaster watches from his booth",
-    hud: { cam: '1C', lines: ["§fCAM 1C · RINGMASTER'S BOOTH", '§5☎ §dThe Ringmaster§7: §fYou may have noticed me in my booth on CAM 1C.', '§7Night 3 §8| §f2 AM §8| §fPOWER 72% §8| §7USAGE §a▮▮§8▯▯▯▯▯'] },
+    name: '06_cam_1c', voxels: 'lit', style: 'camera_feed', caption: 'CAM 1C: the Ringmaster watches from his stage, the Grand Marquee',
+    hud: { cam: '1C', lines: ['§fCAM 1C · GRAND MARQUEE', '§5☎ §dThe Ringmaster§7: §fYou may have noticed me on CAM 1C, on my own little stage.', '§7Night 3 §8| §f2 AM §8| §fPOWER 72% §8| §7USAGE §a▮▮§8▯▯▯▯▯'] },
     scene: {
       camera: camShot('1C', 64), exposure: 1.55,
       entities: [at('top_hat_rat', 'CAB', 'pose_1', { eyes: true, t: 0 })],
@@ -180,7 +180,7 @@ export const SCENES = [
     },
   },
   {
-    name: '12_booth', voxels: 'lit', caption: "The Ringmaster's private booth, the old Kitty's Cabaret. He does not move. Not yet",
+    name: '12_booth', voxels: 'lit', caption: 'The Grand Marquee, the Ringmaster\'s own stage. He does not move. Not yet',
     scene: {
       camera: { pos: [21.6, 1.75, 35.4], target: [14.2, 1.45, 33.3], fov: 60 }, exposure: 1.15,
       entities: [at('top_hat_rat', 'CAB_PEEK', 'peek', { eyes: true, t: 0.8 })],

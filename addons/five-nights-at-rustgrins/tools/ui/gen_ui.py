@@ -133,13 +133,52 @@ rd.ellipse([2, 4, 14, 16], fill=(230, 30, 30, 255))
 rd.text((19, 10), 'REC', font=ImageFont.truetype(font_path, 13), fill=(240, 240, 240, 255), anchor='lm')
 rec.save(os.path.join(OUT, 'rec.png'))
 
+# ---------------------------------------------------------------- the camera-feed look (overlays while the monitor is up)
+# The game has no post-processing, so the CCTV look is layered on the HUD: a green
+# night-vision tint, animated grain, scanlines, a slow rolling interference band, and the
+# vignette + corner frame above. Deterministic (fixed seed).
+import random
+rng = random.Random(1991)
+Image.new('RGBA', (4, 4), (255, 255, 255, 255)).save(os.path.join(OUT, 'px_white.png'))
+scan = Image.new('RGBA', (8, 3), (0, 0, 0, 0))
+for x in range(8):
+    scan.putpixel((x, 2), (0, 0, 0, 70))
+    scan.putpixel((x, 1), (0, 0, 0, 18))
+scan.save(os.path.join(OUT, 'cam_fx_scan.png'))
+NOISE_W, NOISE_H, NOISE_FRAMES = 320, 180, 6
+noise = Image.new('RGBA', (NOISE_W, NOISE_H * NOISE_FRAMES), (0, 0, 0, 0))
+np_ = noise.load()
+for f in range(NOISE_FRAMES):
+    for y in range(NOISE_H):
+        for x in range(NOISE_W):
+            r = rng.random()
+            if r < 0.22:      # bright grain
+                v = rng.randint(170, 255)
+                np_[x, f * NOISE_H + y] = (v, v, v, rng.randint(20, 60))
+            elif r < 0.40:    # dark grain
+                np_[x, f * NOISE_H + y] = (0, 0, 0, rng.randint(20, 55))
+    # a couple of thin horizontal glitch lines per frame
+    for _ in range(rng.randint(1, 3)):
+        y = rng.randrange(NOISE_H)
+        x0 = rng.randrange(NOISE_W // 2)
+        for x in range(x0, min(NOISE_W, x0 + rng.randint(40, 180))):
+            np_[x, f * NOISE_H + y] = (220, 255, 225, 60)
+noise.save(os.path.join(OUT, 'cam_fx_noise.png'))
+roll = Image.new('RGBA', (4, 64), (0, 0, 0, 0))
+for y in range(64):
+    a = int(34 * math.sin(math.pi * y / 63) ** 2)
+    for x in range(4):
+        roll.putpixel((x, y), (210, 255, 220, a))
+roll.save(os.path.join(OUT, 'cam_fx_roll.png'))
+
 # ---------------------------------------------------------------- JSON UI
 MAP_ON = '§k§r§k§r§l'
+FX_ON = '§k§r§k§r§n'      # the camera-feed look without the map (Settings: camera map off)
 FORM_MARK = '§k§r§k§r§m'
-HUD_W, HUD_H = 140, round(140 * H / W, 2)
-# 160 units wide: cameras stay button-sized (about 15 x 9, like FREDBEAR) while the feed keeps
-# most of the screen on small displays.
-FORM_W, FORM_H = 160, round(160 * H / W, 2)
+# A compact map in the corner so the feed keeps most of the screen; the clickable one is a
+# little larger so every camera stays a usable button (about 12 x 7 units).
+HUD_W, HUD_H = 100, round(100 * H / W, 2)
+FORM_W, FORM_H = 124, round(124 * H / W, 2)
 
 def blink(prefix):
     return {
@@ -151,6 +190,7 @@ def title_visible(expr):
     return [{'binding_name': '#hud_title_text_string', 'binding_type': 'global'}, {'binding_type': 'view', 'source_property_name': expr, 'target_property_name': '#visible'}]
 
 on_expr = f"(not ((#hud_title_text_string - '{MAP_ON}') = #hud_title_text_string))"
+fx_expr = f"({on_expr} or (not ((#hud_title_text_string - '{FX_ON}') = #hud_title_text_string)))"
 hud_map_controls = [{'fnar_cam_map_base': {'type': 'image', 'texture': 'textures/ui/fnar/cam_map', 'size': ['100%', '100%'], 'layer': 1}}]
 for i, c in enumerate(cams):
     code = f'{i:02d}'
@@ -164,13 +204,22 @@ hud = {
     'root_panel': {'modifications': [{'array_name': 'controls', 'operation': 'insert_back', 'value': [{'fnar_cam_hud@hud.fnar_cam_hud': {}}]}]},
     'fnar_cam_hud': {
         'type': 'panel', 'size': ['100%', '100%'], 'layer': 1,
-        'bindings': title_visible(on_expr),
+        'bindings': title_visible(fx_expr),
         'controls': [
-            {'fnar_cam_frame': {'type': 'image', 'texture': 'textures/ui/fnar/cam_frame', 'size': ['100%', '100%'], 'layer': 1, 'alpha': 0.95}},
-            {'fnar_cam_rec': {'type': 'image', 'texture': 'textures/ui/fnar/rec', 'size': [48, 15], 'anchor_from': 'top_left', 'anchor_to': 'top_left', 'offset': [14, 12], 'layer': 3, 'anims': ['@hud.fnar_rec_blink_out']}},
-            {'fnar_cam_map': {'type': 'panel', 'size': [HUD_W, HUD_H], 'anchor_from': 'bottom_right', 'anchor_to': 'bottom_right', 'offset': [-4, -4], 'layer': 5, 'controls': hud_map_controls}},
+            {'fnar_cam_tint': {'type': 'image', 'texture': 'textures/ui/fnar/px_white', 'size': ['100%', '100%'], 'layer': 1, 'color': [0.32, 0.95, 0.48], 'alpha': 0.15}},
+            {'fnar_cam_noise': {'type': 'image', 'texture': 'textures/ui/fnar/cam_fx_noise', 'size': ['100%', '100%'], 'layer': 2, 'alpha': 0.4,
+                                'uv_size': [NOISE_W, NOISE_H], 'uv': '@hud.fnar_cam_noise_anim', 'disable_anim_fast_forward': True}},
+            {'fnar_cam_scan': {'type': 'image', 'texture': 'textures/ui/fnar/cam_fx_scan', 'size': ['100%', '100%'], 'layer': 3, 'tiled': True}},
+            {'fnar_cam_roll': {'type': 'image', 'texture': 'textures/ui/fnar/cam_fx_roll', 'size': ['100%', 70], 'anchor_from': 'top_left', 'anchor_to': 'top_left', 'layer': 3,
+                               'anims': ['@hud.fnar_cam_roll_anim']}},
+            {'fnar_cam_frame': {'type': 'image', 'texture': 'textures/ui/fnar/cam_frame', 'size': ['100%', '100%'], 'layer': 4, 'alpha': 0.95}},
+            {'fnar_cam_rec': {'type': 'image', 'texture': 'textures/ui/fnar/rec', 'size': [48, 15], 'anchor_from': 'top_left', 'anchor_to': 'top_left', 'offset': [14, 12], 'layer': 5, 'anims': ['@hud.fnar_rec_blink_out']}},
+            {'fnar_cam_map': {'type': 'panel', 'size': [HUD_W, HUD_H], 'anchor_from': 'bottom_right', 'anchor_to': 'bottom_right', 'offset': [-4, -4], 'layer': 6, 'controls': hud_map_controls,
+                              'bindings': title_visible(on_expr)}},
         ],
     },
+    'fnar_cam_noise_anim': {'anim_type': 'flip_book', 'initial_uv': [0, 0], 'frame_count': NOISE_FRAMES, 'frame_step': NOISE_H, 'fps': 14},
+    'fnar_cam_roll_anim': {'anim_type': 'offset', 'easing': 'linear', 'duration': 7.5, 'from': [0, -80], 'to': [0, 520], 'next': '@hud.fnar_cam_roll_anim'},
     **blink('fnar_cam'),
     'fnar_rec_blink_out': {'anim_type': 'alpha', 'easing': 'linear', 'duration': 0.6, 'from': 1.0, 'to': 0.0, 'next': '@hud.fnar_rec_blink_in'},
     'fnar_rec_blink_in': {'anim_type': 'alpha', 'easing': 'linear', 'duration': 0.6, 'from': 0.0, 'to': 1.0, 'next': '@hud.fnar_rec_blink_out'},

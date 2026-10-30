@@ -71,8 +71,8 @@
     "fnar_cam_form_map": {
      "type": "collection_panel",
      "size": [
-      160,
-      143.64
+      124,
+      111.32
      ],
      "anchor_from": "bottom_right",
      "anchor_to": "bottom_right",
@@ -121,12 +121,12 @@
        "fnar_cam_button_00@server_form.fnar_cam_button": {
         "collection_index": 0,
         "size": [
-         15.27,
-         9.09
+         11.84,
+         7.05
         ],
         "offset": [
-         68.73,
-         12.73
+         53.26,
+         9.86
         ]
        }
       },
@@ -134,12 +134,12 @@
        "fnar_cam_button_01@server_form.fnar_cam_button": {
         "collection_index": 1,
         "size": [
-         15.27,
-         9.45
+         11.84,
+         7.33
         ],
         "offset": [
-         90.55,
-         48.0
+         70.17,
+         37.2
         ]
        }
       },
@@ -147,12 +147,12 @@
        "fnar_cam_button_02@server_form.fnar_cam_button": {
         "collection_index": 2,
         "size": [
-         15.27,
-         9.45
+         11.84,
+         7.33
         ],
         "offset": [
-         16.0,
-         62.55
+         12.4,
+         48.47
         ]
        }
       },
@@ -160,12 +160,12 @@
        "fnar_cam_button_03@server_form.fnar_cam_button": {
         "collection_index": 3,
         "size": [
-         15.27,
-         8.73
+         11.84,
+         6.76
         ],
         "offset": [
-         54.18,
-         82.91
+         41.99,
+         64.26
         ]
        }
       },
@@ -173,12 +173,12 @@
        "fnar_cam_button_04@server_form.fnar_cam_button": {
         "collection_index": 4,
         "size": [
-         15.27,
-         8.73
+         11.84,
+         6.76
         ],
         "offset": [
-         50.55,
-         119.28
+         39.17,
+         92.44
         ]
        }
       },
@@ -186,12 +186,12 @@
        "fnar_cam_button_05@server_form.fnar_cam_button": {
         "collection_index": 5,
         "size": [
-         15.27,
-         9.45
+         11.84,
+         7.33
         ],
         "offset": [
-         36.0,
-         91.64
+         27.9,
+         71.02
         ]
        }
       },
@@ -199,12 +199,12 @@
        "fnar_cam_button_06@server_form.fnar_cam_button": {
         "collection_index": 6,
         "size": [
-         15.27,
-         8.73
+         11.84,
+         6.76
         ],
         "offset": [
-         79.64,
-         82.91
+         61.72,
+         64.26
         ]
        }
       },
@@ -212,12 +212,12 @@
        "fnar_cam_button_07@server_form.fnar_cam_button": {
         "collection_index": 7,
         "size": [
-         15.27,
-         8.73
+         11.84,
+         6.76
         ],
         "offset": [
-         81.45,
-         119.28
+         63.13,
+         92.44
         ]
        }
       },
@@ -225,12 +225,12 @@
        "fnar_cam_button_08@server_form.fnar_cam_button": {
         "collection_index": 8,
         "size": [
-         15.27,
-         9.45
+         11.84,
+         7.33
         ],
         "offset": [
-         12.36,
-         15.27
+         9.58,
+         11.84
         ]
        }
       },
@@ -238,12 +238,12 @@
        "fnar_cam_button_09@server_form.fnar_cam_button": {
         "collection_index": 9,
         "size": [
-         15.27,
-         9.09
+         11.84,
+         7.05
         ],
         "offset": [
-         128.73,
-         16.36
+         99.76,
+         12.68
         ]
        }
       },
@@ -251,12 +251,12 @@
        "fnar_cam_button_10@server_form.fnar_cam_button": {
         "collection_index": 10,
         "size": [
-         15.27,
-         8.73
+         11.84,
+         6.76
         ],
         "offset": [
-         128.73,
-         39.27
+         99.76,
+         30.44
         ]
        }
       },
@@ -264,12 +264,12 @@
        "fnar_cam_button_11@server_form.fnar_cam_button": {
         "collection_index": 11,
         "size": [
-         15.27,
-         9.45
+         11.84,
+         7.33
         ],
         "offset": [
-         12.36,
-         40.73
+         9.58,
+         31.56
         ]
        }
       },
@@ -277,12 +277,12 @@
        "fnar_cam_button_12@server_form.fnar_cam_button": {
         "collection_index": 12,
         "size": [
-         15.27,
-         8.73
+         11.84,
+         6.76
         ],
         "offset": [
-         56.0,
-         101.09
+         43.4,
+         78.35
         ]
        }
       },
@@ -290,12 +290,12 @@
        "fnar_cam_button_13@server_form.fnar_cam_button": {
         "collection_index": 13,
         "size": [
-         15.27,
-         8.73
+         11.84,
+         6.76
         ],
         "offset": [
-         74.18,
-         101.09
+         57.49,
+         78.35
         ]
        }
       },
@@ -307,7 +307,7 @@
          12
         ],
         "offset": [
-         120,
+         84,
          -14
         ]
        }
@@ -320,7 +320,7 @@
          12
         ],
         "offset": [
-         44,
+         8,
          -14
         ]
        }

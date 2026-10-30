@@ -125,7 +125,7 @@ export const CONFIG = Object.freeze({
       retreatIndex: 2, // after banging on a shut vent he crawls back to this index of his route
     }),
     top_hat_rat: Object.freeze({
-      // The Ringmaster. Nights 1-5: stands in his booth (the old Cabaret) and never moves.
+      // The Ringmaster. Nights 1-5: stands on his stage, the Grand Marquee (CAM 1C), and never moves.
       // Night 6 (the Final Act) is his; in the Custom Night he walks to the office all night.
       start: 'CAB',
       walkSpeed: 0.1,

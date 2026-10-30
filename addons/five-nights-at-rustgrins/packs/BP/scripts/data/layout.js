@@ -25,7 +25,7 @@ const R = (id, name, box, h, style) => Object.freeze({ id, name, box: Object.fre
 export const ROOMS = Object.freeze([
   R('BACKSTAGE', 'Backstage', [1, 1, 13, 13], 5, 'backstage'),
   R('MIDWAY', 'Midnight Midway', [1, 15, 13, 27], 5, 'midway'),
-  R('CABARET', "Kitty's Cabaret", [4, 29, 13, 37], 5, 'cabaret'),
+  R('CABARET', 'The Grand Marquee', [4, 29, 13, 37], 5, 'cabaret'), // the Ringmaster's stage (once Kitty's Cabaret)
   R('DINING', 'Dining Area', [15, 1, 61, 37], 7, 'dining'),
   R('KITCHEN', 'Kitchen', [63, 1, 79, 13], 5, 'kitchen'),
   R('RESTROOMS', 'Restrooms', [63, 15, 66, 25], 5, 'restroom'),
@@ -133,7 +133,7 @@ export const DUCTS = Object.freeze({
 export const STAGE = Object.freeze({ box: Object.freeze([24, 1, 52, 8]), topY: 0 }); // stage blocks at y = 0, performers stand at y = 1
 export const MIDWAY_RING = Object.freeze({ cx: 6, cz: 21, r: 4, topY: 0 });
 export const SHOW_TAPE = Object.freeze({ x: 10, y: 0, z: 26, dir: 'n' }); // on the floor by the Midway's south wall, facing the room
-// Kitty's Cabaret is the Ringmaster's booth now: its curtains are parted for good, so
+// Kitty's Cabaret is the Ringmaster's stage now, the Grand Marquee: its curtains are parted for good, so
 // CAM 1C sees him on the little stage (and sees him leave it in the Final Act).
 export const CABARET = Object.freeze({
   curtain: Object.freeze({ x: 14, y1: 0, y2: 4, z1: 30, z2: 36 }),

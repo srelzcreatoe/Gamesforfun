@@ -83,28 +83,28 @@ def poster_party():
     return c
 
 
-def poster_cabaret():
+def poster_marquee():
+    """The Grand Marquee: the Ringmaster's own stage (it was Kitty's Cabaret before he moved in)."""
     c = Canvas(32, 48, rough=200)
-    # velvet curtain sides and a dark stage with a pink spotlight
-    c.noise_fill(['#160c1d', '#1a0f22', '#1d1126'], 3301)
-    _disc(c, 16, 27, [(14, '#3a1d46'), (11, '#4e2a5c'), (8, '#643a72')])
+    # crimson velvet curtain sides and a dark stage with a warm spotlight
+    c.noise_fill(['#120a0c', '#160c0f', '#1a0f12'], 3301)
+    _disc(c, 16, 27, [(14, '#3a2414'), (11, '#4e3218'), (8, '#66421e')])
     prof = [0.2, 0.45, 0.75, 0.95, 0.7, 0.4]
-    pal = [hexc(h) for h in ('#24102e', '#2f1539', '#3b1b47', '#4a2457', '#582c66')]
+    pal = [hexc(h) for h in ('#2a0a0e', '#3a0e14', '#4a121a', '#5a1820', '#6a1e28')]
     for x in range(6):
         for y in range(48):
             v = prof[x]
             col = pal[int(v * 4.99)]
             c.px(x + 1, y, col)
             c.px(30 - x, y, col)
-    for (x, y) in [(3, 20), (28, 25), (4, 35), (27, 40), (2, 44), (29, 14)]:
+    for (x, y) in [(3, 20), (28, 25), (4, 35), (27, 33), (2, 29), (29, 14)]:
         _star(c, x, y, '#c99a38', small=(x + y) % 2 == 0)
-    c.text("KITTY'S", 0, 2, GOLD, font='tall', cond_chars={'I'}, shadow='#3a1240', outline='#0d0612', center='c')
-    c.text('CABARET', 0, 10, GOLD, font='tall', shadow='#3a1240', outline='#0d0612', center='c')
-    c.sprite('cat_pose', 6, 17, overlays=('cat_paws',), outline='#0d0612')
-    c.rect(1, 35, 31, 47, '#2a1233')
-    c.rect(1, 35, 31, 36, GOLD_D)
-    c.text('NIGHTLY', 0, 36, GOLD, shadow='#0d0612', center='c')
-    c.text('AT 8!', 0, 42, CREAM, shadow='#0d0612', center='c')
+    c.text('GRAND', 0, 2, GOLD, font='tall', shadow='#3a0c10', outline='#0d0608', center='c')
+    c.text('MARQUEE', 0, 10, GOLD, font='tall', cond_chars=set('MUEAR'), shadow='#3a0c10', outline='#0d0608', center='c')
+    c.sprite('top_hat_rat_bust', 7, 17, overlays=('cane',), outline='#0d0608')
+    c.rect(1, 39, 31, 47, '#2a0a0e')
+    c.rect(1, 39, 31, 40, GOLD_D)
+    c.text('NIGHTLY', 0, 41, CREAM, shadow='#0d0608', center='c')
     _border(c, '#bfb397')
     c.age(3302, fade=0.14, stains=2, crease_rows=(23,), torn=(('tl', 2),), tape=((13, 0, 6, 1),))
     return c
@@ -366,22 +366,23 @@ def _bulb(c, x, y, lit=True):
     c.px(x, y, '#fff2c0' if lit else '#6b6250', emit=255 if lit else 0, rough=60, height=210)
 
 
-def sign_cabaret():
+def sign_marquee():
+    """The marquee board over the Ringmaster's stage (dining-room side)."""
     c = Canvas(48, 16, rough=150)
-    c.noise_fill(['#2c1536', '#31183c', '#361b42'], 3801, amt=0.8)
+    c.noise_fill(['#3a0c10', '#420e13', '#4a1016'], 3801, amt=0.8)
     c.frame(0, 0, 48, 16, '#7a5a20', metal=160, rough=110)
     c.frame(1, 1, 47, 15, '#b08a2e', metal=180, rough=90)
-    c.frame(2, 2, 46, 14, '#1a0c20')
+    c.frame(2, 2, 46, 14, '#1a0608')
     for x in range(1, 47, 3):
         _bulb(c, x, 1, lit=(x != 22))
         _bulb(c, x, 14, lit=(x != 31))
     for y in (4, 7, 10):
         _bulb(c, 1, y)
         _bulb(c, 46, y)
-    c.text("KITTY'S", 0, 3, GOLD, shadow='#120814', center='c')
-    c.text('CABARET', 0, 9, '#e7c7e4', shadow='#120814', center='c')
+    c.text('GRAND', 0, 3, GOLD, shadow='#120406', center='c')
+    c.text('MARQUEE', 0, 9, '#f0dcc0', shadow='#120406', center='c')
     # dust and grime on the board
-    c.age(3802, paper='#3a2a33', fade=0.05, yellow=0.03, stains=1, dirt=0.1)
+    c.age(3802, paper='#3a2a2a', fade=0.05, yellow=0.03, stains=1, dirt=0.1)
     return c
 
 
@@ -546,11 +547,12 @@ PANELS = {
     # name: (builder, cols, rows)
     'poster_revue': (poster_revue, 2, 3),
     'poster_party': (poster_party, 2, 2),
-    'poster_cabaret': (poster_cabaret, 2, 3),
+    # the Grand Marquee keeps the block ids it had as Kitty's Cabaret
+    'poster_cabaret': (poster_marquee, 2, 3),
     'poster_midway': (poster_midway, 2, 3),
     'poster_rules': (poster_rules, 2, 2),
     'poster_missing': (poster_missing, 1, 2),
-    'sign_cabaret': (sign_cabaret, 3, 1),
+    'sign_cabaret': (sign_marquee, 3, 1),
     'sign_out_of_order': (sign_out_of_order, 2, 1),
     'sign_midway': (sign_midway, 4, 1),
     'sign_revue': (sign_revue, 6, 2),
