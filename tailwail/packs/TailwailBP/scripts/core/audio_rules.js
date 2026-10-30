@@ -1,44 +1,52 @@
 // Sound cue table and limiter.  Pure: no Minecraft imports.
-// Sound ids map to RP sounds/sound_definitions.json.  Volumes are pre-multiplied by the
-// player's own volume preference at playback time.
+// Sound ids map to RP sounds/sound_definitions.json (all custom, synthesized by
+// tools/gen_audio.py).  Volumes are multiplied by the player's own volume preference.
 
 export const CUES = {
-  breath_far: { sound: "tailwail.breath", volume: 0.55, gap: 10, range: 30, caption: "Slow breathing in the dark" },
-  tail_scrape: { sound: "tailwail.tail_scrape", volume: 0.5, gap: 9, range: 26, caption: "Something drags across stone" },
-  nail_scrape: { sound: "tailwail.nail_scrape", volume: 0.6, gap: 25, range: 28, caption: "Fingernails on rock" },
-  step_soft: { sound: "tailwail.step_soft", volume: 0.35, gap: 0.6, range: 20 },
-  throat_click: { sound: "tailwail.click", volume: 0.7, gap: 2.5, range: 32, caption: "Throat clicking" },
-  inhale: { sound: "tailwail.inhale", volume: 0.85, gap: 6, range: 40, caption: "A deep, sharp inhale" },
-  wail: { sound: "tailwail.wail", volume: 1.0, gap: 20, range: 72, caption: "THE WAIL", once: true },
-  exertion: { sound: "tailwail.exertion", volume: 0.8, gap: 2.0, range: 40 },
-  step_heavy: { sound: "tailwail.step_heavy", volume: 0.75, gap: 0.22, range: 40 },
+  // stalking
+  breath_far: { sound: "tailwail.breath", volume: 0.6, gap: 8, range: 30, caption: "Slow, wet breathing in the dark" },
+  tail_scrape: { sound: "tailwail.tail_scrape", volume: 0.55, gap: 7, range: 26, caption: "Something drags across stone" },
+  knock: { sound: "tailwail.knock", volume: 0.8, gap: 15, range: 30, caption: "Three knocks" },
+  skitter: { sound: "tailwail.skitter", volume: 0.7, gap: 1.2, range: 28, caption: "Fast scrabbling limbs" },
+  creak: { sound: "tailwail.creak", volume: 0.75, gap: 2, range: 26, caption: "Bones creak" },
+  neck_crack: { sound: "tailwail.neck_crack", volume: 0.8, gap: 2.5, range: 28, caption: "A neck cracks, again and again" },
+  jaw_crack: { sound: "tailwail.jaw", volume: 0.85, gap: 3, range: 28, caption: "A jaw unhinges" },
+  click: { sound: "tailwail.click", volume: 0.7, gap: 2.2, range: 32, caption: "Throat clicking" },
+  // commitment
+  inhale: { sound: "tailwail.inhale", volume: 0.9, gap: 5, range: 40, caption: "A long inhale" },
+  scream: { sound: "tailwail.scream", volume: 1.0, gap: 12, range: 80, caption: "THE WAIL" },
+  scream_far: { sound: "tailwail.scream_far", volume: 1.0, gap: 20, range: 120, caption: "A scream, far away" },
+  // pursuit
+  screech: { sound: "tailwail.screech", volume: 0.9, gap: 2.5, range: 48, caption: "Screeching" },
+  step_soft: { sound: "tailwail.step_soft", volume: 0.4, gap: 0.5, range: 20 },
+  step_heavy: { sound: "tailwail.step_heavy", volume: 0.8, gap: 0.2, range: 40 },
+  grab: { sound: "tailwail.grab", volume: 1.0, gap: 1, range: 32, caption: "It has you" },
+  hold: { sound: "tailwail.hold", volume: 1.0, gap: 2, range: 24 },
+  throw: { sound: "tailwail.throw", volume: 0.9, gap: 1, range: 24 },
+  bite: { sound: "tailwail.bite", volume: 1.0, gap: 1, range: 24 },
   swipe: { sound: "tailwail.swipe", volume: 0.85, gap: 0.8, range: 24 },
   impact: { sound: "tailwail.impact", volume: 0.9, gap: 0.8, range: 24 },
-  snarl: { sound: "tailwail.snarl", volume: 0.75, gap: 4, range: 40, caption: "A frustrated snarl" },
-  retreat: { sound: "tailwail.retreat", volume: 0.5, gap: 20, range: 40, caption: "Something withdraws into the dark" },
-  hurt: { sound: "tailwail.hurt", volume: 0.8, gap: 0.4, range: 32 },
-  death: { sound: "tailwail.death", volume: 1.0, gap: 10, range: 64, caption: "Tailwail collapses" },
+  pain: { sound: "tailwail.pain", volume: 0.95, gap: 2, range: 40, caption: "A shriek of pain" },
+  // search / leaving
+  sniff: { sound: "tailwail.sniff", volume: 0.7, gap: 1.5, range: 22, caption: "Sniffing" },
+  frustrated: { sound: "tailwail.frustrated", volume: 0.95, gap: 6, range: 56, caption: "An enraged howl" },
+  retreat: { sound: "tailwail.retreat", volume: 0.5, gap: 15, range: 40, caption: "Something withdraws into the dark" },
+  hurt: { sound: "tailwail.hurt", volume: 0.85, gap: 0.4, range: 32 },
+  death: { sound: "tailwail.death", volume: 1.0, gap: 10, range: 64, caption: "It collapses" },
 };
 
-/** Per-encounter limiter: enforces each cue's minimum gap and one-shot cues. */
+/** Per-encounter limiter: enforces each cue's minimum gap. */
 export function createLimiter() {
-  return { last: {}, onceUsed: {} };
+  return { last: {} };
 }
 
 export function allow(lim, cue, t) {
   const c = CUES[cue];
   if (!c) return false;
-  if (c.once && lim.onceUsed[cue]) return false;
   const last = lim.last[cue];
   if (last !== undefined && t - last < c.gap) return false;
   lim.last[cue] = t;
-  if (c.once) lim.onceUsed[cue] = true;
   return true;
-}
-
-/** Re-arms a one-shot cue for a new, genuine commitment. */
-export function rearm(lim, cue) {
-  delete lim.onceUsed[cue];
 }
 
 /** Per-player rate cap across all encounters (prevents stacking when two are nearby). */

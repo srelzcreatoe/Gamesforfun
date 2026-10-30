@@ -1,170 +1,288 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { makeBrain, run, snap } from "./helpers.mjs";
-import { CLIP, CHASE, STANDOFF } from "../packs/TailwailBP/scripts/config.js";
-import { MAX_STATE_TIME } from "../packs/TailwailBP/scripts/core/brain.js";
+import { makeBrain, run, snap, until } from "./helpers.mjs";
+import { CHASE, CLIP, GRAB, SEARCH, STALK, STANDOFF } from "../packs/TailwailBP/scripts/config.js";
+import { MAX_STATE_TIME, STATES } from "../packs/TailwailBP/scripts/core/brain.js";
+import { BREATH, POSE, TAIL } from "../packs/TailwailBP/scripts/core/ids.js";
+import { makeRng } from "../packs/TailwailBP/scripts/util/rng.js";
 
-const COMMIT_STATES = new Set(["unfold", "windup", "chase"]);
+const watchedAt = (d) => snap({ target: { dist: d, hdist: d, watching: true } });
+const unseenAt = (d) => snap({ target: { dist: d, hdist: d, watching: false, inView: false } });
 
-function commitFromStandoff(brain) {
-  brain.enter("standoff", "test");
-  brain.agit.value = 99.9;
+function standoff(over = {}) {
+  const r = makeBrain("statue_hunt", { veteran: true, ...over });
+  r.brain.enter("standoff", "test");
+  return r;
 }
 
-test("full commitment: unfold then the supplied 3.2 s wind-up, then exactly one wail", () => {
-  const { brain, ctx } = makeBrain();
-  commitFromStandoff(brain);
-  const s = snap({ target: { dist: 10, hdist: 10, watching: true } });
-  run(brain, 0.4, s);
-  assert.equal(brain.state, "unfold");
-  let windupStart = null;
-  let chaseStart = null;
+test("commit sequence: silent unfold, ONE scream, drop to all fours, then the chase", () => {
+  const { brain, ctx } = standoff();
+  brain.agit.value = 99.95;
+  const s = watchedAt(10);
+  const at = {};
   for (let i = 0; i < 60; i++) {
     run(brain, 0.2, s);
-    if (brain.state === "windup" && windupStart === null) windupStart = brain.t;
-    if (brain.state === "chase" && chaseStart === null) chaseStart = brain.t;
+    if (at[brain.state] === undefined) at[brain.state] = brain.t;
   }
-  assert.ok(windupStart !== null && chaseStart !== null);
-  assert.ok(Math.abs(chaseStart - windupStart - CLIP.windup) <= 0.21, `windup lasted ${chaseStart - windupStart}`);
-  assert.equal(ctx.calls.cue.filter((c) => c === "wail").length, 1);
-  assert.equal(ctx.calls.damage, 0, "no damage before pursuit can even reach");
+  for (const k of ["unfold", "scream", "windup", "chase"]) assert.ok(at[k] !== undefined, `reached ${k}`);
+  assert.ok(Math.abs(at.scream - at.unfold - CLIP.unfold) <= 0.21, `unfold lasted ${at.scream - at.unfold}`);
+  assert.ok(Math.abs(at.windup - at.scream - CLIP.scream) <= 0.21, `scream lasted ${at.windup - at.scream}`);
+  assert.ok(Math.abs(at.chase - at.windup - CLIP.windupCut) <= 0.21, `windup lasted ${at.chase - at.windup}`);
+  assert.equal(ctx.calls.cue.filter((c) => c === "scream").length, 1);
+  const order = ["silence", "scream", "chase_on"].map((f) => ctx.calls.fx.indexOf(f));
+  assert.ok(order[0] >= 0 && order[0] < order[1] && order[1] < order[2], `fx order ${ctx.calls.fx.join(",")}`);
+  const unfoldVis = ctx.calls.visuals.filter((v) => v.state === "unfold");
+  assert.ok(unfoldVis.every((v) => v.breath === "none" && v.tail === "rigid"), "it holds its breath while rising");
 });
 
-test("rigid tail appears only during a real commitment", () => {
-  for (const seed of [1, 2, 3, 4, 5]) {
-    const { brain, ctx } = makeBrain("delayed_imitation", { seed });
-    run(brain, 120, (t) => snap({ target: { dist: 8 + (t % 7), hdist: 8, watching: t % 5 < 3, closing: t % 3 < 1 ? 1 : 0 } }));
-    for (const v of ctx.calls.visuals) {
-      if (v.tail === "rigid") assert.ok(COMMIT_STATES.has(v.state), `rigid tail in ${v.state}`);
-    }
-  }
+test("statue rule: it never moves while anyone has it on screen; it creeps when nobody does", () => {
+  const { brain, ctx } = standoff();
+  run(brain, 3, watchedAt(14));
+  // a glance (on screen, not watched) also freezes it
+  run(brain, 2, snap({ target: { dist: 14, hdist: 14, watching: false, inView: true } }));
+  // another player watching freezes it too
+  run(brain, 2, snap({ target: { dist: 14, hdist: 14, inView: false }, anyInView: true, anyWatching: true }));
+  assert.equal(ctx.calls.moveTo.filter((m) => m === "creep").length, 0, "no creep while on screen");
+  const before = brain.so.statue;
+  run(brain, 0.6, unseenAt(14));
+  assert.ok(ctx.calls.moveTo.includes("creep"), "creeps when unwatched");
+  assert.ok(ctx.calls.cue.includes("skitter"));
+  run(brain, 0.2, watchedAt(14));
+  assert.equal(brain.so.creeping, false, "freezes the instant it is seen");
+  assert.notEqual(brain.so.statue, before, "and it is standing differently");
+  const poses = ctx.calls.visuals.slice(-1)[0].pose;
+  assert.ok(poses.startsWith("statue_"), poses);
 });
 
-test("provocation never skips the warning: a hit while stalking gives >= 5 s before damage", () => {
-  const { brain, ctx } = makeBrain();
-  const close = snap({ target: { dist: 2.5, hdist: 2.5, watching: true } });
-  for (let i = 0; i < 6; i++) {
-    brain.onHit(true);
-    run(brain, 0.2, close);
-  }
-  let firstDamage = null;
-  for (let i = 0; i < 80 && firstDamage === null; i++) {
-    run(brain, 0.2, close);
-    if (ctx.calls.damage > 0) firstDamage = brain.t;
-  }
-  assert.ok(firstDamage !== null, "it does eventually attack");
-  assert.ok(firstDamage >= CLIP.unfold + CLIP.windup, `first damage at ${firstDamage}`);
+test("letting it creep too close ends the stand-off", () => {
+  const { brain } = standoff();
+  run(brain, 0.2, snap({ target: { dist: STANDOFF.tooClose - 0.3, hdist: STANDOFF.tooClose - 0.3 } }));
+  assert.equal(brain.state, "unfold");
 });
 
-test("once committed, looking at it does not freeze it", () => {
-  const { brain, ctx } = makeBrain();
-  brain.enter("chase", "test");
-  const before = ctx.calls.moveTo;
-  run(brain, 3, snap({ target: { dist: 15, hdist: 15, watching: true }, anyWatching: true }));
-  assert.ok(ctx.calls.moveTo > before + 5, "keeps moving while watched");
+test("backing away calmly ends it without an attack; hiding does too", () => {
+  const { brain, ctx } = standoff();
+  run(brain, 1, watchedAt(12));
+  run(brain, 1, watchedAt(STANDOFF.calmDistance + 1));
+  assert.equal(brain.state, "retreat");
+  assert.equal(brain.outcome, "calm");
+  assert.equal(ctx.calls.grabStart + ctx.calls.damage, 0);
+  assert.ok(ctx.calls.fx.includes("end"), "mood effects are ended");
+
+  const h = standoff();
+  run(h.brain, STANDOFF.hiddenCalm + 0.6, snap({ target: { dist: 12, hdist: 12, canSee: false, hidden: true } }));
+  assert.equal(h.brain.state, "retreat");
+  assert.ok(h.ctx.calls.flags.includes("hid"));
 });
 
-test("escape after ~8 s out of sight with separation, then search, frustration, retreat and despawn when hidden", () => {
-  const { brain, ctx } = makeBrain();
-  brain.enter("chase", "test");
-  run(brain, 1.2, snap({ target: { dist: 12, hdist: 12 } }));
-  run(brain, CHASE.escapeNoSight + 0.4, snap({ target: { dist: 20, hdist: 20, canSee: false } }));
+test("staring it down long enough makes it commit", () => {
+  const { brain } = standoff();
+  const t = until(brain, (b) => b.state === "unfold", watchedAt(12), 120);
+  assert.equal(brain.state, "unfold");
+  assert.ok(t >= 15 && t <= 60, `stare commit after ${t.toFixed(1)} s`);
+});
+
+test("provocation never skips the warning: a hit gives the full rise and scream before contact", () => {
+  const { brain, ctx } = makeBrain("statue_hunt", { veteran: true });
+  brain.onHit(true, 6);
+  const close = snap({ target: { dist: 2.4, hdist: 2.4, watching: true } });
+  const t = until(brain, () => ctx.calls.grabStart > 0, close, 30);
+  assert.ok(ctx.calls.grabStart > 0, "it does eventually grab");
+  assert.ok(t >= CLIP.unfold + CLIP.scream + CLIP.windupCut - 0.21, `first contact at ${t}`);
+});
+
+function chasing(over = {}) {
+  const r = makeBrain("statue_hunt", { veteran: true, ...over });
+  r.brain.enter("chase", "test");
+  return r;
+}
+const inReach = (grab = {}) => snap({ target: { dist: 2, hdist: 2, watching: true }, grab: { holding: true, presses: 0, needed: 7, ...grab } });
+
+test("grab: lifted, held; mashing jump breaks free and it staggers before chasing again", () => {
+  const { brain, ctx } = chasing();
+  run(brain, 0.2, inReach());
+  assert.equal(brain.state, "grab");
+  assert.equal(ctx.calls.grabStart, 1);
+  run(brain, CLIP.grab + 0.2, inReach());
+  assert.equal(brain.g.phase, "hold");
+  run(brain, 0.2, inReach({ presses: 7 }));
+  assert.deepEqual(ctx.calls.grabEnd, ["free"]);
+  assert.ok(ctx.calls.flags.includes("struggle"));
+  const t = until(brain, (b) => b.state === "chase", inReach({ holding: false }), 10);
+  assert.ok(t >= CLIP.frustrated - 0.21, `stagger ${t}`);
+  assert.equal(ctx.calls.damage, 0, "the brain never damages directly during a grab");
+});
+
+test("grab: no struggle means it throws you; the second catch is a bite and it leaves", () => {
+  const { brain, ctx } = chasing();
+  run(brain, 0.2, inReach());
+  until(brain, () => ctx.calls.grabEnd.length > 0, inReach(), 10);
+  assert.deepEqual(ctx.calls.grabEnd, ["throw"]);
+  until(brain, (b) => b.state === "chase", inReach({ holding: false }), 5);
+  assert.equal(brain.state, "chase");
+  // grab cooldown: no instant re-grab
+  run(brain, 1, inReach({ holding: false }));
+  assert.equal(ctx.calls.grabStart, 1);
+  until(brain, (b) => b.state === "grab", inReach(), 10);
+  until(brain, () => ctx.calls.grabEnd.length > 1, inReach(), 10);
+  assert.deepEqual(ctx.calls.grabEnd, ["throw", "bite"]);
+  until(brain, (b) => b.state === "retreat", inReach({ holding: false }), 5);
+  assert.equal(brain.outcome, "caught");
+});
+
+test("grab refused by the world (no room, already held) falls back to the chase without a release", () => {
+  const { brain, ctx } = chasing({ grabOk: false });
+  run(brain, 1.0, inReach());
+  assert.equal(brain.state, "chase");
+  assert.equal(ctx.calls.grabStart, 1, "cooldown prevents retry spam");
+  assert.equal(ctx.calls.grabEnd.length, 0);
+});
+
+test("a victim lost mid-hold ends the encounter cleanly", () => {
+  const { brain, ctx } = chasing();
+  run(brain, 0.2, inReach());
+  run(brain, 0.8, inReach());
+  run(brain, 0.2, inReach({ holding: false }));
+  assert.equal(brain.state, "retreat");
+  assert.deepEqual(ctx.calls.grabEnd, ["lost"]);
+});
+
+test("no room to lift: plain strikes, which land once and only with reach, sight and facing", () => {
+  const { brain, ctx } = chasing();
+  const s = snap({ target: { dist: 2, hdist: 2 }, reach: { holdClear: false } });
+  run(brain, CLIP.strike + 0.4, s);
+  assert.equal(ctx.calls.damage, 1);
+  assert.equal(ctx.calls.grabStart, 0);
+  const b2 = chasing();
+  run(b2.brain, 3, snap({ target: { dist: 2, hdist: 2 }, reach: { holdClear: false, los: false } }));
+  assert.equal(b2.ctx.calls.damage, 0, "never through walls");
+});
+
+test("escape: out of sight with distance -> search -> enraged howl -> retreat -> gone", () => {
+  const { brain, ctx } = chasing();
+  const lost = snap({ target: { dist: 20, hdist: 20, canSee: false, watching: false, inView: false }, anyLos: false });
+  run(brain, CHASE.escapeNoSight + 0.4, lost);
   assert.equal(brain.state, "search");
-  run(brain, 20, snap({ target: { dist: 25, hdist: 25, canSee: false }, anyWatching: false, anyLos: false }));
-  assert.ok(brain.done, "despawned");
+  until(brain, (b) => b.state === "retreat", lost, 30);
+  assert.equal(brain.outcome, "escaped");
+  assert.ok(ctx.calls.cue.includes("frustrated"));
+  until(brain, (b) => b.done, lost, 20);
   assert.deepEqual(ctx.calls.despawn, ["escaped"]);
 });
 
-test("pursuit budget is finite even if the target stays in sight but out of reach", () => {
-  const { brain } = makeBrain("delayed_imitation", { settings: { pursuitSeconds: 20 } });
-  brain.enter("chase", "test");
-  run(brain, 24, snap({ target: { dist: 9, hdist: 9 } }));
-  assert.ok(["search", "retreat"].includes(brain.state), brain.state);
+test("hiding: a crouched player in the dark is only found when it almost touches them", () => {
+  const { brain } = chasing();
+  run(brain, 0.2, snap({ target: { dist: 12, hdist: 12 } }));
+  brain.enter("search", "test");
+  run(brain, 2, snap({ target: { dist: 6, hdist: 6, canSee: true, hidden: true } }));
+  assert.equal(brain.state, "search", "not found at 6 blocks");
+  run(brain, 0.2, snap({ target: { dist: SEARCH.hiddenDetect - 0.3, hdist: 2.5, canSee: true, hidden: true } }));
+  assert.equal(brain.state, "chase");
 });
 
-test("calm withdrawal ends a stand-off without an attack", () => {
-  const { brain, ctx } = makeBrain();
-  brain.enter("standoff", "test");
-  run(brain, 3, snap({ target: { dist: 11 } }));
-  run(brain, 2, snap({ target: { dist: 21, movingAway: true, closing: -1 } }));
+test("noise pulls the search toward it", () => {
+  const { brain } = chasing();
+  brain.enter("search", "test");
+  run(brain, 0.2, snap({ target: { canSee: false, dist: 12, noise: { pos: { x: 30, y: 0, z: 4 }, t: brain.t + 0.2 } } }));
+  assert.deepEqual(brain.se.points[brain.se.idx], { x: 30, y: 0, z: 4 });
+});
+
+test("stalking: freezes into a pose when watched, moves when not, a held stare starts the stand-off", () => {
+  const { brain, ctx } = makeBrain("statue_hunt", { veteran: true });
+  run(brain, 2, unseenAt(20));
+  assert.ok(ctx.calls.moveTo.includes("stalk"));
+  const moves = ctx.calls.moveTo.length;
+  run(brain, 1, watchedAt(20));
+  assert.equal(ctx.calls.moveTo.length, moves, "no movement while watched");
+  assert.ok(ctx.calls.visuals.slice(-1)[0].pose.startsWith("statue_"));
+  run(brain, STALK.standoffStare, watchedAt(20));
+  assert.equal(brain.state, "standoff");
+});
+
+test("stalking: staying hidden makes it lose track of you", () => {
+  const { brain, ctx } = makeBrain("statue_hunt", { veteran: true });
+  run(brain, STALK.hiddenLoseTrack + 0.4, snap({ target: { dist: 18, hidden: true, canSee: false } }));
   assert.equal(brain.state, "retreat");
-  assert.equal(brain.outcome, "calm");
-  assert.equal(ctx.calls.damage, 0);
+  assert.equal(brain.outcome, "hidden");
+  assert.ok(ctx.calls.flags.includes("hid"));
 });
 
-test("stand-off has a maximum duration that cannot be stalled by staring groups", () => {
-  const { brain } = makeBrain();
-  brain.enter("standoff", "test");
-  // observers watching but agitation kept low (glances with long pauses, far away)
-  run(brain, STANDOFF.durationMax + 2, (t) => snap({ target: { dist: 14, watching: t % 10 < 1 }, anyWatching: true }));
-  assert.notEqual(brain.state, "standoff");
+test("the hunter screams from far away and comes running", () => {
+  const { brain, ctx } = makeBrain("the_hunter", { veteran: true });
+  assert.equal(brain.state, "scream");
+  assert.ok(ctx.calls.cue.includes("scream_far"));
+  until(brain, (b) => b.state === "chase", unseenAt(30), 10);
+  assert.equal(brain.state, "chase");
 });
 
-test("stalking holds still while watched and repositions while unobserved", () => {
-  const { brain, ctx } = makeBrain();
-  run(brain, 4, snap({ target: { dist: 20, watching: true }, anyWatching: true }));
-  assert.equal(ctx.calls.moveTo, 0);
-  run(brain, 4, snap({ target: { dist: 20, watching: false }, anyWatching: false }));
-  assert.ok(ctx.calls.moveTo > 0);
-});
-
-test("delayed copy: a crouch seen during the stand-off is replayed 1-2 s later; nothing is learned unseen", () => {
-  const { brain, ctx } = makeBrain("delayed_imitation", { settings: { imitationChance: 1 } });
-  brain.enter("standoff", "test");
-  run(brain, 1, snap({ target: { dist: 10 } }));
-  const crouchAt = brain.t;
-  let shownAt = null;
-  run(brain, 4, (t) => {
-    const v = ctx.calls.visuals[ctx.calls.visuals.length - 1];
-    if (v && v.mimic === "crouch" && shownAt === null) shownAt = t;
-    return snap({ target: { dist: 10, sneaking: true } });
-  });
-  assert.ok(shownAt !== null);
-  assert.ok(shownAt - crouchAt >= 0.9 && shownAt - crouchAt <= 2.3, `copy after ${(shownAt - crouchAt).toFixed(2)} s`);
-  const b2 = makeBrain("delayed_imitation", { settings: { imitationChance: 1 } });
-  b2.brain.enter("standoff", "test");
-  run(b2.brain, 4, snap({ target: { dist: 10, sneaking: true, canSee: false } }));
-  assert.ok(b2.ctx.calls.visuals.every((v) => v.mimic === "none"), "cannot copy what it cannot see");
-});
-
-test("remembered gesture opens a later encounter before the player performs it", () => {
-  const { brain, ctx } = makeBrain("delayed_imitation", { remembered: { type: "tilt", pitch: -30 } });
-  run(brain, 3, snap({ target: { dist: 20, watching: true }, anyWatching: true }));
-  assert.ok(ctx.calls.visuals.some((v) => v.mimic === "tilt"));
-});
-
-test("target loss always leads to a clean withdrawal", () => {
-  const { brain, ctx } = makeBrain();
-  brain.enter("chase", "test");
-  run(brain, 1, snap({ target: { valid: false, alive: false } }));
-  assert.equal(brain.state, "retreat");
-  run(brain, 8, snap({ target: { valid: false }, anyWatching: false, anyLos: false }));
-  assert.equal(ctx.calls.despawn.length, 1);
-});
-
-test("outcome labels: a kill during pursuit is 'caught', a disconnect is not", () => {
-  const a = makeBrain();
-  a.brain.enter("chase", "test");
-  run(a.brain, 0.4, snap({ target: { valid: true, alive: false } }));
-  assert.equal(a.brain.outcome, "caught");
-  const b = makeBrain();
-  b.brain.enter("chase", "test");
-  run(b.brain, 0.4, snap({ target: { valid: false, alive: false } }));
-  assert.equal(b.brain.outcome, "escaped");
-});
-
-test("every state has a ceiling", () => {
-  for (const st of ["stalk", "standoff", "search"]) {
-    const { brain } = makeBrain();
-    brain.enter(st, "test");
-    run(brain, MAX_STATE_TIME[st] + 2, snap({ target: { dist: 30, watching: true, canSee: false }, anyWatching: true }));
-    assert.notEqual(brain.state, st, `${st} overstayed`);
+test("mirror: a crouch it sees in the stand-off is copied 1-2 s later on the locomotion pose", () => {
+  let found = false;
+  for (let seed = 1; seed < 30 && !found; seed++) {
+    const { brain, ctx } = standoff({ seed });
+    const crouch = snap({ target: { dist: 12, hdist: 12, sneaking: true, watching: true } });
+    run(brain, 4, crouch);
+    const v = ctx.calls.visuals.find((x) => x.mimic === "crouch");
+    if (!v) continue;
+    found = true;
+    assert.equal(v.pose, "loco", "imitation shows on the locomotion pose");
+    const idx = ctx.calls.visuals.indexOf(v);
+    const t = (idx + 1) * 0.2;
+    assert.ok(t >= 0.9 && t <= 2.2, `copied ${t.toFixed(1)} s after the crouch began`);
   }
+  assert.ok(found, "some seed copies the crouch");
 });
 
-test("voluntary withdrawal setup leaves after being noticed, without a stand-off", () => {
-  const { brain } = makeBrain("voluntary_withdrawal");
-  run(brain, 20, snap({ target: { dist: 22, watching: true }, anyWatching: true }));
-  assert.equal(brain.state, "retreat");
-  assert.equal(brain.outcome, "observed");
+test("death during a grab drops the victim", () => {
+  const { brain, ctx } = chasing();
+  run(brain, 0.2, inReach());
+  brain.die();
+  assert.deepEqual(ctx.calls.grabEnd, ["abort"]);
+  until(brain, (b) => b.done, inReach({ holding: false }), 5);
+  assert.deepEqual(ctx.calls.despawn, ["killed"]);
+});
+
+test("target loss always leads to a clean withdrawal; a disconnect is not a kill", () => {
+  const a = chasing();
+  run(a.brain, 0.4, snap({ target: { valid: false } }));
+  assert.equal(a.brain.state, "retreat");
+  assert.equal(a.brain.outcome, "escaped");
+  const b = chasing();
+  run(b.brain, 0.4, snap({ target: { alive: false } }));
+  assert.equal(b.brain.outcome, "caught");
+});
+
+test("fuzz: every state has a ceiling, visuals use real ids, every grab is released", () => {
+  for (let seed = 1; seed <= 25; seed++) {
+    const r = makeRng(seed * 7919);
+    const setups = ["statue_hunt", "corner_peek", "tunnel_crawler", "distant_watcher", "the_rehearsal", "cavern_reveal", "behind_you", "the_hunter"];
+    const { brain, ctx } = makeBrain(r.pick(setups), { seed, veteran: r.chance(0.7), grabOk: r.chance(0.8) });
+    let holding = false;
+    for (let i = 0; i < 1500 && !brain.done; i++) {
+      if (brain.state === "grab" && brain.g && brain.g.holding) holding = r.chance(0.97);
+      else holding = brain.state === "grab";
+      const d = r.range(1.5, 40);
+      const watching = r.chance(0.4);
+      const s = snap({
+        target: {
+          dist: d, hdist: d, watching, inView: watching || r.chance(0.2), canSee: r.chance(0.7), hidden: r.chance(0.1),
+          sneaking: r.chance(0.1), sprinting: r.chance(0.1), closing: r.range(-2, 2), valid: r.chance(0.995), alive: r.chance(0.998),
+        },
+        reach: { holdClear: r.chance(0.7), los: r.chance(0.8) },
+        grab: { holding, presses: r.int(0, 9), needed: 7 },
+      });
+      if (r.chance(0.01)) brain.onHit(r.chance(0.5), 4);
+      brain.update(s, 0.2);
+      assert.ok(STATES.includes(brain.state));
+      assert.ok(brain.stateT <= MAX_STATE_TIME[brain.state] + 0.21, `${brain.state} overstayed (${brain.stateT})`);
+    }
+    for (const v of ctx.calls.visuals) {
+      assert.ok(v.pose in POSE, `pose ${v.pose}`);
+      assert.ok(v.tail in TAIL, `tail ${v.tail}`);
+      assert.ok(v.breath in BREATH, `breath ${v.breath}`);
+      if (v.tail === "rigid") assert.ok(["unfold", "scream", "windup", "grab", "frustrated"].includes(v.state), `rigid tail in ${v.state}`);
+    }
+    const started = ctx.grabOk ? ctx.calls.grabStart : 0;
+    const open = brain.state === "grab" && brain.g && !brain.g.released ? 1 : 0;
+    assert.equal(ctx.calls.grabEnd.length + open, started, `seed ${seed}: grabs ${started}, releases ${ctx.calls.grabEnd.join(",")}`);
+  }
 });

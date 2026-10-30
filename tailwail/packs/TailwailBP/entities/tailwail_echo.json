@@ -1,0 +1,62 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "tailwail:echo",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "properties": {
+        "tailwail:echo_pose": {
+          "type": "int",
+          "range": [
+            0,
+            10
+          ],
+          "default": 0,
+          "client_sync": true
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "tailwail_echo",
+          "inanimate"
+        ]
+      },
+      "minecraft:health": {
+        "value": 1,
+        "max": 1
+      },
+      "minecraft:collision_box": {
+        "width": 0.9,
+        "height": 3.6
+      },
+      "minecraft:physics": {
+        "has_gravity": true,
+        "has_collision": true
+      },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": false
+      },
+      "minecraft:knockback_resistance": {
+        "value": 1.0
+      },
+      "minecraft:damage_sensor": {
+        "triggers": {
+          "cause": "all",
+          "deals_damage": "no"
+        }
+      },
+      "minecraft:fire_immune": {},
+      "minecraft:despawn": {
+        "despawn_from_distance": {
+          "min_distance": 48,
+          "max_distance": 96
+        }
+      },
+      "minecraft:conditional_bandwidth_optimization": {}
+    }
+  }
+}

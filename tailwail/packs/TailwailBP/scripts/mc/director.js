@@ -1,42 +1,44 @@
-// Global coordinator: one decision loop for every encounter, round-robin scheduling,
-// spawning, event wiring and orphan cleanup.  No per-animation timers are created.
-import { Difficulty, EntityDamageCause, GameMode, ItemStack, Player, system, world } from "@minecraft/server";
-import { ENCOUNTER, ENTITY_ID, GUIDE_ITEM_ID, LURE_ID, TICKS } from "../config.js";
+// Global coordinator: one decision loop for every encounter, per-player scheduling and
+// escalation, presence events, spawning, event wiring and orphan cleanup.
+import { ButtonState, Difficulty, GameMode, InputButton, ItemStack, Player, system, world } from "@minecraft/server";
+import { ECHO_ID, ENCOUNTER, ENTITY_ID, GUIDE_ITEM_ID, LURE_ID, SEARCH, TICKS } from "../config.js";
+import { unlock } from "../core/journal.js";
 import { setupWeights } from "../core/memory.js";
-import { eligibility, ensureGrace, onPlayerDeath, pickGroupTarget, rollStart } from "../core/scheduler.js";
-import { SETUPS, SETUP_IDS, pickSetup } from "../core/setups.js";
+import { PRESENCE_EVENTS, pickPresence } from "../core/presence_rules.js";
+import {
+  computeStage, eligibility, encounterBlockers, ensureFirst, onPlayerDeath, onPresence, pickGroupTarget, rollStart, tickEligible,
+} from "../core/scheduler.js";
+import { SETUPS, fitsTerrain, pickSetup, setupsForStage } from "../core/setups.js";
 import { makeRng } from "../util/rng.js";
-import { dist, hdist } from "../util/vec.js";
+import { dist } from "../util/vec.js";
 import { forgetPlayer } from "./audio.js";
+import { sweepEchoes, tickEchoes } from "./echo.js";
 import { Encounter, survivalLike } from "./encounter.js";
+import * as fx from "./fx.js";
+import { onJumpPressed, releaseAll } from "./grab.js";
 import { dlog, errorText, setDebug, warn } from "./log.js";
 import { lightAt } from "./perception.js";
-import { isNightWoodland, spawnSearch } from "./spots.js";
-import { getMemory, getPrefs, getSchedule, getSettings, saveSchedule, setPrefs } from "./store.js";
-import { headroom } from "./terrain.js";
+import { Presence } from "./presence.js";
+import { isNightOutside, spawnSearch } from "./spots.js";
+import { forgetPrefs, getMemory, getPrefs, getSchedule, getSettings, saveSchedule, setPrefs } from "./store.js";
 
 const SLOTS = ["a", "b", "c"];
+const DIMS = ["minecraft:overworld", "minecraft:nether", "minecraft:the_end"];
 
 export class Director {
   constructor() {
     this.encounters = new Map(); // entity id -> Encounter
     this.rng = makeRng();
-    this.rr = 0; // round-robin index for scheduling checks
-    this.nextCheck = new Map(); // player id -> tick
-    this.sinceHurt = new Map(); // player id -> tick of last damage
-    this.pendingSpawn = new Set(); // player ids with a spawn search running
+    this.presence = new Presence(this.rng);
+    this.lastCheck = new Map(); // player id -> tick of last encounter roll
+    this.sinceHurt = new Map(); // player id -> tick of last damage by something else
+    this.pendingSpawn = new Set();
+    this.lastPresence = new Map(); // player id -> last presence id
+    this.sleeping = new Map(); // player id -> sleep start tick
     this.creating = false;
-    this.lastOutcome = new Map();
     this.lastReason = new Map();
-    this.stats = { started: 0, ended: 0, outcomes: {}, rays: 0 };
-  }
-
-  now() {
-    try {
-      return world.getAbsoluteTime();
-    } catch {
-      return system.currentTick;
-    }
+    this.stats = { started: 0, ended: 0, outcomes: {}, presence: {} };
+    this.forcedNext = new Map(); // player id -> setup forced by command
   }
 
   playerById(id) {
@@ -52,14 +54,18 @@ export class Director {
   // ------------------------------------------------------------------ lifecycle
   start() {
     setDebug(getSettings().debugLog);
-    system.runInterval(() => this.tickEncounters(), TICKS.decision);
-    system.runInterval(() => this.tickSchedule(), TICKS.director);
+    system.runInterval(() => this.tickFast(), TICKS.decision);
+    system.runInterval(() => this.tickPlayers(), TICKS.director);
     system.runInterval(() => this.sweep(), TICKS.sweep);
     this.wireEvents();
-    system.runTimeout(() => this.adoptExisting(), 40);
+    system.runTimeout(() => {
+      sweepEchoes();
+      for (const p of world.getAllPlayers()) fx.clearAll(p, true); // nothing can be left over from a crash
+      this.adoptExisting();
+    }, 40);
   }
 
-  tickEncounters() {
+  tickFast() {
     for (const enc of [...this.encounters.values()]) {
       try {
         enc.update();
@@ -72,6 +78,14 @@ export class Director {
         }
       }
     }
+    try {
+      const get = (id) => this.playerById(id);
+      fx.tickHeartbeats(get);
+      this.presence.tick(get);
+      tickEchoes();
+    } catch (e) {
+      warn("fast tick", errorText(e));
+    }
   }
 
   register(enc) {
@@ -83,10 +97,18 @@ export class Director {
     this.encounters.delete(enc.twId);
     this.stats.ended++;
     this.stats.outcomes[outcome] = (this.stats.outcomes[outcome] || 0) + 1;
-    if (enc.targetId) this.lastOutcome.set(enc.targetId, `${enc.setup}:${outcome}`);
   }
 
-  // ------------------------------------------------------------------ scheduling
+  encounterFor(entity) {
+    return this.encounters.get(entity.id);
+  }
+
+  encounterTargeting(playerId) {
+    for (const e of this.encounters.values()) if (e.targetId === playerId) return e;
+    return undefined;
+  }
+
+  // ------------------------------------------------------------------ per player, once a second
   playerSnapshot(p) {
     const tick = system.currentTick;
     let health = 20;
@@ -119,65 +141,124 @@ export class Director {
       riding,
       sleeping: p.isSleeping,
       flying: p.isFlying || p.isGliding,
-      underground: sky <= ENCOUNTER.caveSkyLightMax && head.y < 62,
-      nightWoodland: isNightWoodland(p.dimension, p, world.getTimeOfDay()),
+      underground: sky <= ENCOUNTER.caveSkyLightMax && head.y < 64,
+      nightOutside: isNightOutside(p.dimension, p, world.getTimeOfDay()),
       light: lightAt(p.dimension, head),
     };
   }
 
-  tickSchedule() {
+  tickPlayers() {
     const settings = getSettings();
     const peaceful = world.getDifficulty() === Difficulty.Peaceful;
-    if (peaceful && this.encounters.size) {
+    if ((peaceful || !settings.enabled) && this.encounters.size) {
       for (const e of [...this.encounters.values()]) e.end("aborted", true);
+    }
+    for (const p of world.getAllPlayers()) {
+      try {
+        this.tickPlayer(p, settings, peaceful);
+      } catch (e) {
+        warn("player tick", errorText(e));
+      }
+    }
+  }
+
+  tickPlayer(p, settings, peaceful) {
+    const snap = this.playerSnapshot(p);
+    this.bedCheck(p, snap, settings);
+    const s = ensureFirst(getSchedule(p), settings, this.rng);
+    const el = eligibility(snap, settings, { peaceful });
+    const mine = this.encounterTargeting(p.id);
+    if (!el.ok) {
+      this.lastReason.set(p.id, el.reason);
+      saveSchedule(p, s);
       return;
     }
-    const players = world.getAllPlayers();
-    if (!players.length) return;
-    const p = players[this.rr++ % players.length];
-    const tick = system.currentTick;
-    if ((this.nextCheck.get(p.id) || 0) > tick || this.pendingSpawn.has(p.id)) return;
-    this.nextCheck.set(p.id, tick + ENCOUNTER.checkPeriod * 20);
-    try {
-      this.consider(p, settings, peaceful);
-    } catch (e) {
-      warn("schedule check failed", errorText(e));
+    // waits only count down while something is not already happening to this player
+    if (!mine && !this.pendingSpawn.has(p.id)) tickEligible(s, TICKS.director / 20);
+    s.stage = computeStage(s);
+
+    if (!mine && !this.pendingSpawn.has(p.id)) {
+      const forced = this.forcedNext.get(p.id);
+      const tick = system.currentTick;
+      const activeNear = [...this.encounters.values()].some((e) => e.tw.isValid && e.dim.id === p.dimension.id && dist(e.tw.location, p.location) < 96);
+      const block = forced ? null : encounterBlockers(snap, s, settings, { activeNear, activeCount: this.encounters.size });
+      if (!block && (forced || tick - (this.lastCheck.get(p.id) || 0) >= ENCOUNTER.checkPeriod * 20)) {
+        this.lastCheck.set(p.id, tick);
+        if (forced || rollStart(settings, this.rng)) {
+          this.forcedNext.delete(p.id);
+          saveSchedule(p, s);
+          this.beginSpawn(p, s, settings, forced || null);
+          this.lastReason.set(p.id, "spawning");
+          return;
+        }
+        this.lastReason.set(p.id, "roll");
+      } else {
+        this.lastReason.set(p.id, block || "waiting");
+      }
+      // presence fills the waiting
+      if (s.presWait <= 0 && settings.presence > 0 && !activeNear) this.firePresence(p, s, settings);
     }
-  }
-
-  consider(p, settings, peaceful, forcedSetup) {
-    const now = this.now();
-    const s = ensureGrace(getSchedule(p), now, settings);
     saveSchedule(p, s);
-    const snap = this.playerSnapshot(p);
-    const activeNear = [...this.encounters.values()].some((e) => e.tw.isValid && e.dim.id === p.dimension.id && dist(e.tw.location, p.location) < 96);
-    const el = forcedSetup
-      ? { ok: true, reason: "forced" }
-      : eligibility(snap, s, now, settings, { peaceful, activeNear, activeCount: this.encounters.size });
-    this.lastReason.set(p.id, el.reason);
-    if (!el.ok) return el;
-    if (!forcedSetup && !rollStart(settings, this.rng)) return { ok: false, reason: "roll" };
-    // a group shares one encounter: target the most exposed member
-    const group = world.getAllPlayers().filter((o) => o.dimension.id === p.dimension.id && dist(o.location, p.location) <= ENCOUNTER.groupRadius && survivalLike(o, false));
-    const target = group.length > 1 ? pickGroupTarget(group.map((o) => ({ player: o, light: lightAt(o.dimension, o.getHeadLocation()), lastEncAt: getSchedule(o).lastEnd }))).player : p;
-    this.beginSpawn(target, settings, forcedSetup);
-    return { ok: true, reason: "spawning" };
   }
 
-  beginSpawn(player, settings, forcedSetup) {
+  firePresence(p, s, settings, forcedId) {
+    const env = this.presence.env(p);
+    const id = forcedId || pickPresence(s.stage, s.eligibleS, s.pres, env, settings, this.rng, this.lastPresence.get(p.id) || null);
+    if (!id) {
+      s.presWait = 15; // nothing fits here right now: look again soon
+      return null;
+    }
+    const ok = this.presence.run(id, p, env);
+    dlog(`presence ${id} for ${p.name}: ${ok ? "done" : "not possible"}`);
+    if (ok) {
+      this.lastPresence.set(p.id, id);
+      onPresence(s, id, settings, this.rng);
+      this.stats.presence[id] = (this.stats.presence[id] || 0) + 1;
+      const r = unlock(s.jr, id === "snuff" || id === "lights_out" ? "snuff" : "presence");
+      if (r.added) {
+        s.jr = r.mask;
+        system.runTimeout(() => p.isValid && p.sendMessage(`§8[Torn journal] §7A new page: §f${r.added.title}`), 200);
+      }
+    } else {
+      s.pres[id] = s.eligibleS; // cool that one down and try another soon
+      s.presWait = 10;
+    }
+    return ok ? id : null;
+  }
+
+  /** The bed visit (stage 2+, jumpscares on): it watches you sleep. */
+  bedCheck(p, snap, settings) {
+    if (!snap.sleeping) {
+      this.sleeping.delete(p.id);
+      return;
+    }
+    if (this.sleeping.has(p.id)) return;
+    this.sleeping.set(p.id, system.currentTick);
+    const s = getSchedule(p);
+    if (!settings.enabled || !settings.jumpscares || s.stage < 2 || !snap.survivalLike) return;
+    if (!this.rng.chance(0.35)) return;
+    system.runTimeout(() => {
+      if (p.isValid && p.isSleeping) this.presence.bedVisit(p);
+    }, 50);
+  }
+
+  // ------------------------------------------------------------------ spawning
+  beginSpawn(player, s, settings, forcedSetup) {
     const slot = this.freeSlot();
     if (!slot) return;
     const mem = getMemory(player);
-    // choose the setup first, then search for terrain that suits it
-    const weights = setupWeights(mem, SETUP_IDS);
-    let setup = forcedSetup || this.rng.weighted(weights.filter(([, w]) => w > 0));
-    if (!setup) setup = "delayed_imitation";
+    const allowed = forcedSetup ? [forcedSetup] : setupsForStage(s.stage);
+    const weights = setupWeights(mem, allowed).map(([id, w]) => [id, w * (SETUPS[id] ? SETUPS[id].weight : 1)]);
+    let setup = forcedSetup || this.rng.weighted(weights.filter(([, w]) => w > 0)) || "statue_hunt";
     const def = SETUPS[setup];
     const out = {};
     const dim = player.dimension;
     const players = dim.getPlayers({ location: player.location, maxDistance: 96 });
     this.pendingSpawn.add(player.id);
-    const job = spawnSearch({ dim, player, players, rng: this.rng, band: def.spawnBand, minHead: def.needsHeadroom === 7 ? 3 : def.needsHeadroom, maxHead: def.maxHeadroom, out });
+    const behindOnly = !!def.behind;
+    const job = spawnSearch({
+      dim, player, players, rng: this.rng, band: def.spawnBand, minHead: def.needsHeadroom >= 7 ? 3 : def.needsHeadroom, maxHead: def.maxHeadroom, out, behindOnly,
+    });
     system.runJob((function* (self) {
       try {
         yield* job;
@@ -193,17 +274,15 @@ export class Director {
         self.lastReason.set(player.id, "spawn:" + out.reason);
         return;
       }
-      // full_height_reveal needs a cavern somewhere near; fall back if the site is cramped
-      let chosen = setup;
-      if (def.needsHeadroom > out.result.head && !forcedSetup) {
-        chosen = pickSetup(weights, { headroom: out.result.head }, self.rng) || "delayed_imitation";
+      if (!fitsTerrain(setup, out.result.head) && !forcedSetup) {
+        setup = pickSetup(weights, { headroom: out.result.head }, self.rng) || "statue_hunt";
       }
-      self.spawnAt(player, out.result, chosen, slot, false);
+      self.spawnAt(player, out.result, setup, slot, false, false);
     })(this));
   }
 
-  spawnAt(player, site, setup, slot, manual) {
-    if (!slot || this.encounters.size >= getSettings().maxConcurrent && !manual) return null;
+  spawnAt(player, site, setup, slot, manual, showcase) {
+    if (!slot || (this.encounters.size >= getSettings().maxConcurrent && !manual)) return null;
     const dim = player.dimension;
     this.creating = true;
     let tw;
@@ -215,15 +294,16 @@ export class Director {
     } finally {
       this.creating = false;
     }
-    const posture = SETUPS[setup].posture === "crawl" ? "crawl" : site.posture || "tall";
-    const enc = new Encounter({ director: this, tw, target: player, setup, slot, rng: makeRng((this.rng.next() * 2 ** 32) >>> 0), manual, posture });
+    const def = SETUPS[setup];
+    const posture = def.posture === "crawl" ? "crawl" : site.posture || "tall";
+    const enc = new Encounter({ director: this, tw, target: player, setup, slot, rng: makeRng((this.rng.next() * 2 ** 32) >>> 0), manual, showcase, posture });
     this.register(enc);
     return enc;
   }
 
   // ------------------------------------------------------------------ adoption & sweep
   adoptExisting() {
-    for (const dimId of ["minecraft:overworld", "minecraft:nether", "minecraft:the_end"]) {
+    for (const dimId of DIMS) {
       let dim;
       try {
         dim = world.getDimension(dimId);
@@ -235,29 +315,50 @@ export class Director {
     }
   }
 
-  /** A Tailwail without a live controller (reload, egg, /summon). */
+  /** A Tailwail without a live controller (reload, spawn egg, /summon). */
   adopt(tw, reloaded) {
     if (!tw.isValid || this.encounters.has(tw.id)) return;
     const slot = this.freeSlot();
-    const settings = getSettings();
-    const near = tw.dimension.getPlayers({ location: tw.location, maxDistance: 48 }).filter((p) => survivalLike(p, true));
+    const near = tw.dimension.getPlayers({ location: tw.location, maxDistance: 64 }).filter((p) => survivalLike(p, true));
     near.sort((a, b) => dist(a.location, tw.location) - dist(b.location, tw.location));
-    if (!slot || (!reloaded && this.encounters.size >= Math.max(settings.maxConcurrent, 3))) {
-      for (const p of near.slice(0, 1)) p.sendMessage("§7[Tailwail] Encounter cap reached; the summoned Tailwail was removed.");
+    if (!slot) {
+      for (const p of near.slice(0, 1)) p.sendMessage("§7[Tailwail] Too many at once; that one was removed.");
       tw.remove();
       return;
     }
     if (!near.length) {
-      if (reloaded) tw.remove(); // nobody to haunt: tidy up quietly (no player can see this)
+      if (reloaded) tw.remove(); // nobody to haunt: tidy up quietly
       else {
-        const enc = new Encounter({ director: this, tw, target: null, setup: "voluntary_withdrawal", slot, rng: makeRng(), manual: true, orphan: true });
+        const enc = new Encounter({ director: this, tw, target: null, setup: "statue_hunt", slot, rng: makeRng(), manual: true, orphan: true });
         this.register(enc);
       }
       return;
     }
-    const setup = reloaded ? "voluntary_withdrawal" : "delayed_imitation";
-    const enc = new Encounter({ director: this, tw, target: near[0], setup, slot, rng: makeRng(), manual: !reloaded, orphan: reloaded });
+    if (reloaded) {
+      const enc = new Encounter({ director: this, tw, target: near[0], setup: "statue_hunt", slot, rng: makeRng(), manual: true, orphan: true });
+      this.register(enc);
+      return;
+    }
+    // spawn egg / summon: a showcase that gets to the good part quickly
+    const head = this.headroomAt(tw);
+    const setup = head >= 7 ? "cavern_reveal" : head <= 3 ? "tunnel_crawler" : "statue_hunt";
+    const enc = new Encounter({ director: this, tw, target: near[0], setup, slot, rng: makeRng(), manual: true, showcase: true, posture: head >= 5 ? "tall" : head >= 3 ? "hunch" : "crawl" });
     this.register(enc);
+  }
+
+  headroomAt(entity) {
+    let n = 0;
+    try {
+      const l = entity.location;
+      for (let y = 0; y < 8; y++) {
+        const b = entity.dimension.getBlock({ x: Math.floor(l.x), y: Math.floor(l.y) + y, z: Math.floor(l.z) });
+        if (!b || !(b.isAir || b.typeId === "minecraft:light_block")) break;
+        n++;
+      }
+    } catch {
+      return 3;
+    }
+    return n;
   }
 
   checkLure(l) {
@@ -273,28 +374,28 @@ export class Director {
 
   sweep() {
     try {
-      for (const dimId of ["minecraft:overworld", "minecraft:nether", "minecraft:the_end"]) {
+      for (const dimId of DIMS) {
         const dim = world.getDimension(dimId);
         for (const l of dim.getEntities({ type: LURE_ID })) this.checkLure(l);
         for (const e of dim.getEntities({ type: ENTITY_ID })) if (!this.encounters.has(e.id)) this.adopt(e, true);
       }
-      // forget stale per-player bookkeeping
+      sweepEchoes();
       const ids = new Set(world.getAllPlayers().map((p) => p.id));
-      for (const k of [...this.nextCheck.keys()]) if (!ids.has(k)) this.nextCheck.delete(k);
+      for (const m of [this.lastCheck, this.lastPresence, this.sleeping, this.lastReason]) for (const k of [...m.keys()]) if (!ids.has(k)) m.delete(k);
     } catch (e) {
       warn("sweep", errorText(e));
     }
   }
 
-  encounterFor(entity) {
-    return this.encounters.get(entity.id);
+  // ------------------------------------------------------------------ events
+  noise(player, pos) {
+    const enc = this.encounterTargeting(player.id);
+    if (enc && dist(enc.tw.location, pos) <= SEARCH.noiseRadius) enc.onNoise(pos);
   }
 
-  // ------------------------------------------------------------------ events
   wireEvents() {
-    // lethal damage becomes a scripted death so the full death clip plays; damage taken
-    // is divided by the health multiplier setting.  Before-events are read-only, so the
-    // world change is deferred with system.run.
+    // lethal damage becomes a scripted death so the full death clip plays; damage taken is
+    // divided by the health multiplier setting.  Before-events are read-only: deferred.
     world.beforeEvents.entityHurt.subscribe((ev) => {
       if (ev.hurtEntity.typeId !== ENTITY_ID) return;
       const enc = this.encounters.get(ev.hurtEntity.id);
@@ -321,18 +422,25 @@ export class Director {
       if (hurt.typeId === ENTITY_ID) {
         const enc = this.encounters.get(hurt.id);
         const src = ev.damageSource.damagingEntity;
-        if (enc && src && src.typeId === "minecraft:player") enc.onHit(src);
+        if (enc && src && src.typeId === "minecraft:player") enc.onHit(src, ev.damage);
       } else if (hurt instanceof Player) {
         const src = ev.damageSource.damagingEntity;
-        if (!src || src.typeId !== ENTITY_ID) this.sinceHurt.set(hurt.id, system.currentTick);
+        if (!src || src.typeId !== ENTITY_ID) {
+          this.sinceHurt.set(hurt.id, system.currentTick);
+          this.presence.onAction(hurt, "hurt", "");
+        }
       }
     });
 
     world.afterEvents.entityDie.subscribe((ev) => {
       const d = ev.deadEntity;
-      if (d.typeId === "minecraft:player") {
-        const s = onPlayerDeath(getSchedule(d), this.now(), getSettings());
+      if (d.typeId !== "minecraft:player") return;
+      try {
+        const s = onPlayerDeath(getSchedule(d), getSettings());
         saveSchedule(d, s);
+        fx.clearAll(d);
+      } catch (e) {
+        dlog("death bookkeeping", e);
       }
     }, { entityTypes: ["minecraft:player"] });
 
@@ -349,38 +457,81 @@ export class Director {
       if (!e.isValid) return;
       if (e.typeId === ENTITY_ID && !this.encounters.has(e.id)) system.run(() => this.adopt(e, true));
       else if (e.typeId === LURE_ID) system.run(() => e.isValid && this.checkLure(e));
+      else if (e.typeId === ECHO_ID) system.run(() => sweepEchoes());
     });
 
     world.beforeEvents.playerLeave.subscribe((ev) => {
       const id = ev.player.id;
       system.run(() => {
         forgetPlayer(id);
+        forgetPrefs(id);
+        fx.forget(id);
+        this.presence.forget(id);
         this.sinceHurt.delete(id);
-        // its encounter notices the target is gone on the next tick and withdraws
       });
     });
 
     world.afterEvents.playerSpawn.subscribe((ev) => {
       const p = ev.player;
-      if (!ev.initialSpawn) return;
       system.runTimeout(() => {
         if (!p.isValid) return;
-        const s = ensureGrace(getSchedule(p), this.now(), getSettings());
-        saveSchedule(p, s);
+        fx.clearAll(p, true); // camera, fog, music, input: always clean after a (re)spawn
+        if (!ev.initialSpawn) return;
         const prefs = getPrefs(p);
         if (!prefs.guideGiven) {
           try {
             const inv = p.getComponent("minecraft:inventory").container;
             if (inv.emptySlotsCount > 0) {
-              this.giveGuide(p);
-              prefs.guideGiven = true;
-              setPrefs(p, prefs);
+              inv.addItem(new ItemStack(GUIDE_ITEM_ID, 1));
+              p.sendMessage("§8[Tailwail] §7You found a §ftorn journal§7. Something in the dark has started to rehearse you.");
+              setPrefs(p, { ...prefs, guideGiven: true });
             }
           } catch (e) {
             dlog("guide give", e);
           }
         }
-      }, 60);
+      }, 40);
+    });
+
+    world.afterEvents.playerButtonInput.subscribe((ev) => {
+      if (ev.button === InputButton.Jump && ev.newButtonState === ButtonState.Pressed) onJumpPressed(ev.player);
+    });
+
+    // the sounds you make: mimicry (presence) and noise (encounters follow it)
+    world.afterEvents.playerBreakBlock.subscribe((ev) => {
+      const id = ev.brokenBlockPermutation ? ev.brokenBlockPermutation.type.id : "";
+      this.presence.onAction(ev.player, "break", id);
+      this.noise(ev.player, ev.block.location);
+    });
+    world.afterEvents.playerPlaceBlock.subscribe((ev) => {
+      this.presence.onAction(ev.player, "place", ev.block.typeId);
+      this.noise(ev.player, ev.block.location);
+    });
+    world.afterEvents.playerInteractWithBlock.subscribe((ev) => {
+      if (!ev.isFirstEvent) return;
+      const id = ev.block.typeId;
+      if (id.endsWith("door") || id.endsWith("trapdoor") || id.includes("fence_gate")) {
+        this.presence.onAction(ev.player, "door", id);
+        this.noise(ev.player, ev.block.location);
+      }
+    });
+    world.afterEvents.blockContainerOpened.subscribe((ev) => {
+      const p = ev.openSource && ev.openSource.entity;
+      if (p instanceof Player) {
+        this.presence.onAction(p, "chest", ev.block.typeId);
+        this.noise(p, ev.block.location);
+      }
+    });
+    world.afterEvents.itemCompleteUse.subscribe((ev) => {
+      const id = ev.itemStack.typeId;
+      const drink = id.includes("potion") || id.includes("bottle") || id.includes("bucket");
+      this.presence.onAction(ev.source, drink ? "drink" : "eat", "");
+    });
+    world.afterEvents.itemReleaseUse.subscribe((ev) => {
+      if (ev.itemStack && (ev.itemStack.typeId === "minecraft:bow" || ev.itemStack.typeId === "minecraft:crossbow")) {
+        this.presence.onAction(ev.source, "bow", "");
+        this.noise(ev.source, ev.source.location);
+      }
     });
 
     world.afterEvents.playerGameModeChange.subscribe((ev) => {
@@ -390,27 +541,35 @@ export class Director {
     });
   }
 
-  giveGuide(p) {
-    p.getComponent("minecraft:inventory").container.addItem(new ItemStack(GUIDE_ITEM_ID, 1));
-    p.sendMessage("§8[Tailwail] §7Something in the caves has started rehearsing. Read the §fField Guide§7 (or type §f/tailwail:guide§7).");
-  }
-
-  // ------------------------------------------------------------------ diagnostics
+  // ------------------------------------------------------------------ diagnostics & commands
   status(p) {
-    const lines = [`§6Tailwail ${this.encounters.size} active / cap ${getSettings().maxConcurrent}`];
+    const settings = getSettings();
+    const lines = [`§6Tailwail ${this.encounters.size} active / cap ${settings.maxConcurrent}, preset ${settings.preset}`];
     for (const e of this.encounters.values()) lines.push("§7" + e.describe());
-    const s = getSchedule(p);
-    const wait = Math.max(0, (s.nextAt - this.now()) / 20);
-    lines.push(`§7you: next eligible in ${wait.toFixed(0)}s, last check: ${this.lastReason.get(p.id) || "-"}, last: ${this.lastOutcome.get(p.id) || "-"}`);
-    lines.push(`§7started ${this.stats.started} ended ${this.stats.ended} ${JSON.stringify(this.stats.outcomes)}`);
+    if (p) {
+      const s = getSchedule(p);
+      lines.push(`§7you: stage ${s.stage}, next encounter in ${Math.max(0, s.wait).toFixed(0)}s, next presence in ${Math.max(0, s.presWait).toFixed(0)}s (eligible time only)`);
+      lines.push(`§7last check: ${this.lastReason.get(p.id) || "-"}, last outcome: ${s.lastOutcome || "-"}, encounters ${s.encN}, escapes ${s.escN}, presence ${s.presN}`);
+      lines.push(`§7presence state: ${this.presence.describe(p.id)}`);
+    }
+    lines.push(`§7started ${this.stats.started} ended ${this.stats.ended} ${JSON.stringify(this.stats.outcomes)} presence ${JSON.stringify(this.stats.presence)}`);
     return lines.join("\n");
   }
 
   forceEncounter(p, setup) {
-    if (setup && !SETUPS[setup]) return `unknown setup; one of ${SETUP_IDS.join(", ")}`;
+    if (setup && !SETUPS[setup]) return `unknown setup; one of ${Object.keys(SETUPS).join(", ")}`;
     if (!this.freeSlot()) return "no free slot";
-    this.beginSpawn(p, getSettings(), setup || this.rng.pick(SETUP_IDS));
-    return "spawn search started";
+    if (this.encounterTargeting(p.id)) return "already in an encounter";
+    this.forcedNext.set(p.id, setup || this.rng.pick(setupsForStage(getSchedule(p).stage)));
+    return `spawn search for ${this.forcedNext.get(p.id)} starts within a second (needs a dark spot 7-40 blocks away)`;
+  }
+
+  forcePresence(p, id) {
+    if (!PRESENCE_EVENTS[id]) return `unknown event; one of ${Object.keys(PRESENCE_EVENTS).join(", ")}`;
+    const s = getSchedule(p);
+    const done = this.firePresence(p, s, getSettings(), id);
+    saveSchedule(p, s);
+    return done ? `presence ${id} ran` : `presence ${id} was not possible here`;
   }
 
   endAll(reason) {
@@ -418,15 +577,6 @@ export class Director {
       e.brain.finish(reason);
       e.end(reason, true);
     }
-  }
-
-  hdist(a, b) {
-    return hdist(a, b);
-  }
-
-  headroomAt(p) {
-    return headroom(p.dimension, p.location);
+    releaseAll();
   }
 }
-
-export { EntityDamageCause };

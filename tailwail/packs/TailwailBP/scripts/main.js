@@ -1,15 +1,21 @@
-// Tailwail: The Rehearsal - entry point.
-// Stable modules only: @minecraft/server 2.11.0, @minecraft/server-ui 2.3.0.
+// TAILWAIL - entry point.
+// Stable modules only: @minecraft/server 2.11.0, @minecraft/server-ui 2.3.0.  No experiments.
 import { system, world } from "@minecraft/server";
 import { ADDON_VERSION, GUIDE_ITEM_ID } from "./config.js";
 import { registerCommands, runDebug } from "./mc/commands.js";
 import { Director } from "./mc/director.js";
 import { errorText, warn } from "./mc/log.js";
+import { relightComponent } from "./mc/torches.js";
 import { showGuide } from "./mc/ui.js";
 
 const director = new Director();
 
 system.beforeEvents.startup.subscribe((ev) => {
+  try {
+    ev.blockComponentRegistry.registerCustomComponent("tailwail:relight", relightComponent);
+  } catch (e) {
+    warn("block component registration failed", errorText(e));
+  }
   try {
     registerCommands(ev.customCommandRegistry, director);
   } catch (e) {

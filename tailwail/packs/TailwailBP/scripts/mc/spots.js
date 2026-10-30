@@ -224,7 +224,7 @@ export function* routeCheck(dim, from, to, budget, goalRadius, out) {
 
 /**
  * Spawn-site search (generator for system.runJob).
- * o: {dim, player, players, rng, band:[min,max], minHead, maxHead, out}
+ * o: {dim, player, players, rng, band:[min,max], minHead, maxHead, out, behindOnly}
  * out.result = {x,y,z,head} | null, out.reason = string
  */
 export function* spawnSearch(o) {
@@ -238,7 +238,8 @@ export function* spawnSearch(o) {
   for (let i = 0; i < ENCOUNTER.spawnAttempts; i++) {
     // prefer columns behind or beside the player's facing: never in open view
     const behind = yawTo({ x: 0, z: 0 }, { x: -view.x, z: -view.z });
-    const c = ring(o.rng, pPos, o.band[0], o.band[1], behind, i < 14 ? 100 : 180);
+    const spread = o.behindOnly ? (i < 14 ? 35 : 60) : i < 14 ? 100 : 180;
+    const c = ring(o.rng, pPos, o.band[0], o.band[1], behind, spread);
     if (!o.dim.isChunkLoaded({ x: c.x, y: pPos.y, z: c.z })) {
       out.reason = "unloaded";
       continue;
@@ -246,7 +247,8 @@ export function* spawnSearch(o) {
     const g = findGround(o.dim, c.x, c.z, pPos.y, 6, 8, o.minHead);
     if (!g) continue;
     if (o.maxHead !== undefined && g.head > o.maxHead) continue;
-    if (o.players.some((p) => hdist(p.location, g) < ENCOUNTER.spawnMinPlayerGap)) {
+    const minGap = o.behindOnly ? Math.min(6, o.band[0] - 1) : ENCOUNTER.spawnMinPlayerGap;
+    if (o.players.some((p) => hdist(p.location, g) < minGap)) {
       out.reason = "too-close";
       continue;
     }
@@ -289,16 +291,99 @@ export function* spawnSearch(o) {
   }
 }
 
-/** Woodland surface encounters (optional): a dark, tree-covered spot at night. */
-export function isNightWoodland(dim, player, timeOfDay) {
-  const night = timeOfDay > 13000 && timeOfDay < 23000;
+/** Night surface encounters: outside (open sky above) between dusk and dawn. */
+export function isNightOutside(dim, player, timeOfDay) {
+  const night = timeOfDay > 13200 && timeOfDay < 22800;
   if (!night) return false;
   try {
-    const biome = dim.getBiome(player.location).id;
-    return /forest|taiga|jungle|grove|woodland|swamp/.test(biome);
+    const h = player.getHeadLocation();
+    return dim.getSkyLightLevel({ x: Math.floor(h.x), y: Math.floor(h.y), z: Math.floor(h.z) }) >= 8;
   } catch {
     return false;
   }
+}
+
+// ------------------------------------------------------------------ stand-off creep & presence
+
+/**
+ * Where a creep burst ends: up to `step` blocks toward the target through open space,
+ * never closer than `minDist` to the target.  o: {dim, creaturePos, target, step, minDist}
+ */
+export function findCreepPoint(o) {
+  const tPos = o.target.location;
+  const from = o.creaturePos;
+  const total = hdist(from, tPos);
+  const go = Math.min(o.step, total - o.minDist);
+  if (go < 0.8) return null;
+  const base = yawTo(from, tPos);
+  const chest = { x: from.x, y: from.y + 1.2, z: from.z };
+  for (const off of [0, 22, -22, 45, -45]) {
+    const d = dirFromYaw(base + off);
+    const k = off === 0 ? go : go * 0.8;
+    const g = findGround(o.dim, from.x + d.x * k, from.z + d.z * k, from.y, 2, 3, 2);
+    if (!g) continue;
+    if (hdist(g, tPos) < o.minDist) continue;
+    if (!losClear(o.dim, chest, { x: g.x, y: g.y + 1.2, z: g.z })) continue;
+    return g;
+  }
+  return null;
+}
+
+/** A point `d` blocks behind the player's back (for breath, footsteps, the "behind you"). */
+export function behindPoint(player, d, ground = true) {
+  const view = player.getViewDirection();
+  const l = player.location;
+  const h = Math.hypot(view.x, view.z) || 1;
+  const p = { x: l.x - (view.x / h) * d, y: l.y, z: l.z - (view.z / h) * d };
+  if (!ground) return p;
+  const g = findGround(player.dimension, p.x, p.z, l.y, 2, 3, 2);
+  return g || null;
+}
+
+/** Sound source somewhere behind / beside the player in the dark, `near`..`far` away. */
+export function findSoundSpot(o) {
+  const view = o.player.getViewDirection();
+  const behind = yawTo({ x: 0, z: 0 }, { x: -view.x, z: -view.z });
+  const pPos = o.player.location;
+  let best = null;
+  for (let i = 0; i < 8; i++) {
+    const c = ring(o.rng, pPos, o.near, o.far, behind, 70);
+    const g = findGround(o.dim, c.x, c.z, pPos.y, 4, 5, 2);
+    if (!g) continue;
+    const score = o.rng.range(0, 1) + (15 - lightAt(o.dim, g)) * 0.15;
+    if (!best || score > best.score) best = { ...g, score };
+  }
+  if (best) return best;
+  const c = ring(o.rng, pPos, o.near, o.far, behind, 60);
+  return { x: c.x, y: pPos.y, z: c.z };
+}
+
+/**
+ * A glimpse: dark footing at the EDGE of the player's view (25-55 degrees off centre),
+ * in clear line of sight, so the shape is seen in the corner of the eye.
+ */
+export function findGlimpseSpot(o) {
+  const eye = o.player.getHeadLocation();
+  const view = o.player.getViewDirection();
+  const pPos = o.player.location;
+  const fwd = yawTo({ x: 0, z: 0 }, { x: view.x, z: view.z });
+  let best = null;
+  for (let i = 0; i < 12; i++) {
+    const side = o.rng.chance(0.5) ? 1 : -1;
+    const yaw = fwd + side * o.rng.range(25, 55);
+    const d = o.rng.range(o.near, o.far);
+    const dir = dirFromYaw(yaw);
+    const g = findGround(o.dim, pPos.x + dir.x * d, pPos.z + dir.z * d, pPos.y, 4, 6, o.headroom || 4);
+    if (!g) continue;
+    const posture = postureFor(g.head);
+    const mid = midAt(g, posture);
+    if (!losClear(o.dim, eye, mid) && !losClear(o.dim, eye, eyeAt(g, posture))) continue;
+    const light = lightAt(o.dim, mid);
+    if (light > 7) continue;
+    const score = o.rng.range(0, 1) + (7 - light) * 0.2;
+    if (!best || score > best.score) best = { ...g, score, facing: yawTo(g, pPos) };
+  }
+  return best;
 }
 
 export { norm };

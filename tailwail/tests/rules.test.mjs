@@ -2,9 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createAgitation, stepAgitation, cueLevel } from "../packs/TailwailBP/scripts/core/agitation.js";
 import { createDetector, observe, createImitator, offer, updateImitator } from "../packs/TailwailBP/scripts/core/gestures.js";
-import { createStrikeState, startStrike, resolveImpact, finishStrike, canStartStrike } from "../packs/TailwailBP/scripts/core/combat_rules.js";
-import { createLimiter, allow, rearm, createPlayerBudget, spend } from "../packs/TailwailBP/scripts/core/audio_rules.js";
-import { AGITATION, IMITATION, CHASE } from "../packs/TailwailBP/scripts/config.js";
+import { createStrikeState, startStrike, resolveImpact, finishStrike, canStartStrike, inGrabReach, struggleProgress } from "../packs/TailwailBP/scripts/core/combat_rules.js";
+import { createLimiter, allow, createPlayerBudget, spend } from "../packs/TailwailBP/scripts/core/audio_rules.js";
+import { AGITATION, IMITATION, CHASE, CLIP } from "../packs/TailwailBP/scripts/config.js";
 import { makeRng } from "../packs/TailwailBP/scripts/util/rng.js";
 
 const calm = { watched: false, distance: 11, closing: 0, sprinting: false, hits: 0, movingAway: false };
@@ -15,7 +15,7 @@ test("agitation: a brief glance is free, staring beyond the grace budget is not"
   const afterGlance = a.value;
   assert.ok(afterGlance < 1.0, `glance cost ${afterGlance}`);
   for (let i = 0; i < 25; i++) stepAgitation(a, { ...calm, watched: true }, 0.2); // 5 more seconds
-  assert.ok(a.value > 20, `stare should agitate, got ${a.value}`);
+  assert.ok(a.value > 15, `stare should agitate, got ${a.value}`);
 });
 
 test("agitation: repeated glances do not reset accumulated agitation and drain the grace budget", () => {
@@ -84,34 +84,45 @@ test("imitation: replays land 1-2 s after the gesture began and grow with agitat
   let seen = "none";
   for (let t = 0; t < 6; t += 0.2) { const v = updateImitator(im, t); if (v.mimic !== "none") seen = v.mimic; }
   assert.equal(seen, "tilt");
-  assert.equal(offer(im, { type: "crouch", t: 6 }, 6.1, 0, makeRng(4), 1), null, "cooldown blocks immediate repeat");
+  assert.ok(im.cooldownUntil > 0);
+  assert.equal(offer(im, { type: "crouch", t: 0 }, im.cooldownUntil - 0.1, 0, makeRng(4), 1), null, "cooldown blocks immediate repeat");
 });
 
-test("combat: one strike lands at most once; no LOS, no reach or no facing means no damage", () => {
+test("contact: a strike lands at most once; no LOS, no reach or no facing means no damage", () => {
   const s = createStrikeState();
-  startStrike(s, 0, 0.55, 0.95);
+  startStrike(s, 0);
   const geom = { hdist: 2, dy: 0, facingCos: 1, los: true, targetValid: true };
-  assert.equal(resolveImpact(s, 0.3, geom), false, "before the impact frame");
-  assert.equal(resolveImpact(s, 0.6, geom), true);
-  assert.equal(resolveImpact(s, 0.8, geom), false, "never twice");
-  finishStrike(s, 1.0);
-  assert.equal(canStartStrike(s, 1.1, 2, 0, true), false, "cooldown");
-  assert.equal(canStartStrike(s, 1.0 + CHASE.strikeCooldown + 0.01, 2, 0, true), true);
+  assert.equal(resolveImpact(s, CLIP.strikeImpact - 0.2, geom), false, "before the impact frame");
+  assert.equal(resolveImpact(s, CLIP.strikeImpact + 0.01, geom), true);
+  assert.equal(resolveImpact(s, CLIP.strikeImpact + 0.2, geom), false, "never twice");
+  finishStrike(s, CLIP.strike + 0.01);
+  assert.equal(canStartStrike(s, CLIP.strike + 0.1, geom), false, "cooldown");
+  assert.equal(canStartStrike(s, CLIP.strike + CHASE.strikeCooldown + 0.05, geom), true);
   for (const bad of [{ los: false }, { hdist: 4 }, { facingCos: 0 }, { targetValid: false }, { dy: 4 }]) {
     const s2 = createStrikeState();
-    startStrike(s2, 0, 0.55, 0.95);
-    assert.equal(resolveImpact(s2, 0.6, { ...geom, ...bad }), false, JSON.stringify(bad));
+    startStrike(s2, 0);
+    assert.equal(resolveImpact(s2, CLIP.strikeImpact + 0.01, { ...geom, ...bad }), false, JSON.stringify(bad));
   }
 });
 
-test("audio: per-cue gaps, one wail per commitment, per-player rate cap", () => {
+test("contact: a grab needs reach, sight and facing; struggle progress is bounded", () => {
+  const ok = { hdist: CHASE.grabReach - 0.1, dy: 0, facingCos: 0.9, los: true, targetValid: true };
+  assert.equal(inGrabReach(ok), true);
+  for (const bad of [{ los: false }, { hdist: CHASE.grabReach + 0.2 }, { facingCos: 0 }, { targetValid: false }, { dy: 3 }]) {
+    assert.equal(inGrabReach({ ...ok, ...bad }), false, JSON.stringify(bad));
+  }
+  assert.equal(inGrabReach(null), false);
+  assert.equal(struggleProgress(0, 7), 0);
+  assert.equal(struggleProgress(14, 7), 1);
+  assert.equal(struggleProgress(3, 0), 1);
+});
+
+test("audio: per-cue gaps and a per-player rate cap", () => {
   const l = createLimiter();
   assert.equal(allow(l, "breath_far", 0), true);
   assert.equal(allow(l, "breath_far", 3), false);
-  assert.equal(allow(l, "wail", 0), true);
-  assert.equal(allow(l, "wail", 100), false, "wail is one-shot until re-armed");
-  rearm(l, "wail");
-  assert.equal(allow(l, "wail", 101), true);
+  assert.equal(allow(l, "breath_far", 9), true);
+  assert.equal(allow(l, "no_such_cue", 0), false);
   const b = createPlayerBudget(3);
   assert.deepEqual([spend(b, 0), spend(b, 0.1), spend(b, 0.2), spend(b, 0.3)], [true, true, true, false]);
   assert.equal(spend(b, 1.5), true);

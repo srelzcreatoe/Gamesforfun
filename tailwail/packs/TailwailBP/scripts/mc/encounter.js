@@ -1,19 +1,24 @@
 // One live encounter: owns exactly one Tailwail entity, its lure, its brain and the
 // locked target.  The director holds at most one Encounter per entity id, so damage
 // and state decisions have a single authority.
-import { EntityDamageCause, GameMode, system } from "@minecraft/server";
-import { CHASE, DT, ENCOUNTER, IMITATION, POSTURE } from "../config.js";
+import { EasingType, EntityDamageCause, GameMode, system } from "@minecraft/server";
+import { CHASE, DT, GRAB, IMITATION, SEARCH } from "../config.js";
 import { Brain } from "../core/brain.js";
+import { BREATH, MIMIC, POSE, TAIL } from "../core/ids.js";
+import { unlock } from "../core/journal.js";
 import { endEncounter, recordGesture, recordReaction, rememberedGesture, retreatFactor, stalkFactor } from "../core/memory.js";
 import { onEncounterEnd } from "../core/scheduler.js";
-import { dist, dot, hdist, norm, pitchTo, sub, wrapDeg, yawTo, dirFromYaw } from "../util/vec.js";
+import { dirFromYaw, dist, dot, hdist, norm, pitchTo, sub, wrapDeg, yawTo } from "../util/vec.js";
 import { playCue } from "./audio.js";
-import { applyViewerFx, shake, stopShake } from "./effects.js";
+import * as fx from "./fx.js";
+import { GrabController, grabFor } from "./grab.js";
 import { dlog, errorText, warn } from "./log.js";
 import { Mover } from "./mover.js";
-import { creatureEyes, creatureSees, losClear, playerView } from "./perception.js";
-import { findCover, findObservationSpot, findRetreatSpot, findSearchPoints, findStandoffSpot } from "./spots.js";
+import { creatureEyes, creatureSees, isHiding, lightAt, losClear, playerView } from "./perception.js";
+import { findCover, findCreepPoint, findObservationSpot, findRetreatSpot, findSearchPoints, findStandoffSpot } from "./spots.js";
 import { getMemory, getSchedule, getSettings, saveMemory, saveSchedule } from "./store.js";
+import { isOpen, safeBlock } from "./terrain.js";
+import { findTorches, snuff } from "./torches.js";
 
 let nextId = 1;
 const SURVIVAL_LIKE = new Set([GameMode.Survival, GameMode.Adventure]);
@@ -28,9 +33,11 @@ export function survivalLike(player, allowCreative) {
   }
 }
 
+const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+
 export class Encounter {
   /**
-   * @param {object} o {director, tw, target, setup, slot, rng, manual, orphan}
+   * @param {object} o {director, tw, target, setup, slot, rng, manual, showcase, orphan, posture}
    */
   constructor(o) {
     this.id = nextId++;
@@ -52,15 +59,23 @@ export class Encounter {
     this.prevDist = null;
     this.ended = false;
     this.t = 0;
-    this.started = system.currentTick;
-    this.viewers = new Set();
+    this.affected = new Set();
+    this.grab = null;
+    this.noise = null;
+    this.fovAt = null;
+    this.stepDist = 0;
+    this.lastStepPos = null;
     let remembered = null;
     if (this.memory && !o.orphan) {
       const r = rememberedGesture(this.memory, IMITATION.rememberedMinCount);
-      if (r && this.rng.chance(IMITATION.rememberedChance)) remembered = r;
+      const chance = o.setup === "the_rehearsal" ? 1 : IMITATION.rememberedChance;
+      if (r && this.rng.chance(chance)) remembered = r;
     }
     this.remembered = remembered;
-    this.brain = new Brain({ setup: o.setup, settings: this.settings, memory: this.memory, rng: this.rng, ctx: this.ctx(), remembered });
+    this.mover.setPosture(o.posture || "tall", 0);
+    this.brain = new Brain({
+      setup: o.setup, settings: this.settings, memory: this.memory, rng: this.rng, ctx: this.ctx(), remembered, showcase: !!o.showcase,
+    });
     if (o.orphan) {
       this.brain.finish("aborted");
       this.brain.enter("retreat", "reloaded");
@@ -72,35 +87,36 @@ export class Encounter {
     } catch (e) {
       dlog("init", errorText(e));
     }
-    this.mover.setPosture(o.posture || "tall", 0);
     dlog(`encounter ${this.id} start setup=${this.setup} slot=${this.slot} target=${this.target ? this.target.name : "-"}${remembered ? " remembers " + remembered.type : ""}`);
   }
 
   // ------------------------------------------------------------------ brain adapter
   ctx() {
     const self = this;
-    const tw = () => self.tw;
+    const pos = () => self.tw.location;
     return {
       log: (m) => dlog(`#${self.id} ${m}`),
       cue: (name) => {
         dlog(`#${self.id} cue ${name}`);
         playCue(self.tw, name, self.mover.posture, self.rng);
-        if (name === "wail") self.forPlayersNear(24, (p) => shake(p, 0.18, 0.9));
       },
+      fx: (name, arg) => self.playerFx(name, arg),
       setVisual: (v) => self.applyVisual(v),
       hold: () => self.mover.hold(),
-      moveTo: (pos, speed) => self.mover.moveTo(pos, speed, self.t),
-      faceToward: (pos) => self.mover.faceToward(pos),
+      moveTo: (p, speed) => self.mover.moveTo(p, speed, self.t),
+      faceToward: (p) => self.mover.faceToward(p),
       recover: (n) => {
         const how = self.mover.recover(n, self.t, self.rng);
-        if (n >= 3) self.setProp("tailwail:action", "stuck");
         dlog(`#${self.id} recover ${n}: ${how}`);
       },
-      findObservationSpot: (o) => findObservationSpot({ ...o, rng: self.rng, dim: self.dim, creaturePos: tw().location, target: self.target, players: self.players() }),
-      findStandoffSpot: (min, max, headroom) => findStandoffSpot({ min, max, headroom, rng: self.rng, dim: self.dim, creaturePos: tw().location, target: self.target }),
-      findRetreatSpot: (min, max) => findRetreatSpot({ min, max, rng: self.rng, dim: self.dim, creaturePos: tw().location, facing: tw().getRotation().y, target: self.validTarget() ? self.target : null, players: self.players() }),
+      findObservationSpot: (o) => (self.validTarget() ? findObservationSpot({ ...o, rng: self.rng, dim: self.dim, creaturePos: pos(), target: self.target, players: self.players() }) : null),
+      findStandoffSpot: (min, max, head) => (self.validTarget() ? findStandoffSpot({ min, max, headroom: head, rng: self.rng, dim: self.dim, creaturePos: pos(), target: self.target }) : null),
+      findRetreatSpot: (min, max) => findRetreatSpot({ min, max, rng: self.rng, dim: self.dim, creaturePos: pos(), facing: self.tw.getRotation().y, target: self.validTarget() ? self.target : null, players: self.players() }),
       findSearchPoints: (origin, n, radius) => findSearchPoints({ origin, n, radius, rng: self.rng, dim: self.dim }),
-      findCover: () => (self.validTarget() ? findCover({ rng: self.rng, dim: self.dim, creaturePos: tw().location, target: self.target }) : null),
+      findCover: () => (self.validTarget() ? findCover({ rng: self.rng, dim: self.dim, creaturePos: pos(), target: self.target }) : null),
+      findCreepPoint: (step, minDist) => (self.validTarget() ? findCreepPoint({ dim: self.dim, creaturePos: pos(), target: self.target, step, minDist }) : null),
+      grabStart: () => self.startGrab(),
+      grabEnd: (kind) => self.endGrab(kind),
       dealDamage: () => self.dealDamage(),
       despawn: (outcome) => self.end(outcome, true),
       stalkFactor: () => (self.memory ? stalkFactor(self.memory) : 1),
@@ -108,6 +124,7 @@ export class Encounter {
       recordGesture: (type, pitch) => self.memory && recordGesture(self.memory, type, pitch),
       recordReaction: (kind, amt) => self.memory && recordReaction(self.memory, kind, amt),
       onRemembered: (type) => dlog(`#${self.id} opens with remembered ${type}`),
+      onFlag: (name) => self.onFlag(name),
     };
   }
 
@@ -119,10 +136,6 @@ export class Encounter {
     }
   }
 
-  forPlayersNear(r, fn) {
-    for (const p of this.players()) if (dist(p.location, this.tw.location) <= r) fn(p);
-  }
-
   validTarget() {
     const p = this.target;
     try {
@@ -130,6 +143,11 @@ export class Encounter {
     } catch {
       return false;
     }
+  }
+
+  /** The target made a sound Tailwail can follow (block broken, door, landing, ...). */
+  onNoise(pos) {
+    this.noise = { pos: { x: pos.x, y: pos.y, z: pos.z }, t: this.brain.t };
   }
 
   // ------------------------------------------------------------------ per tick
@@ -149,11 +167,13 @@ export class Encounter {
 
   snapshot() {
     const tw = this.tw;
-    const posture = this.mover.posture;
     const cpos = tw.location;
+    const posture = this.mover.posture;
     const valid = this.validTarget();
-    const tg = { valid, alive: false, dimensionOk: valid, eligible: false, dist: 999, hdist: 999, dy: 0, canSee: false, watching: false,
-      sneaking: false, sprinting: false, pitch: 0, speed: 0, closing: 0, movingAway: false, pos: null };
+    const tg = {
+      valid, alive: false, eligible: false, dist: 999, hdist: 999, dy: 0, canSee: false, watching: false, glance: false, inView: false,
+      los: false, sneaking: false, sprinting: false, pitch: 0, speed: 0, closing: 0, movingAway: false, pos: null, hidden: false, light: 15, noise: null,
+    };
     if (valid) {
       const p = this.target;
       const pl = p.location;
@@ -180,58 +200,70 @@ export class Encounter {
       tg.canSee = tg.dist <= 48 && creatureSees(tw, posture, p, 48);
       const v = playerView(p, tw, posture);
       tg.watching = v.watching;
+      tg.glance = v.glance;
+      tg.inView = v.inView;
       tg.los = v.los;
+      tg.light = lightAt(this.dim, p.getHeadLocation());
+      tg.hidden = isHiding(p, tg.light, tg.dist, SEARCH.hiddenLight, SEARCH.hiddenDetect);
+      if (this.noise && this.brain.t - this.noise.t < 1.5) tg.noise = this.noise;
     }
-    // other observers: they freeze stalking movement but never add agitation
+    // other players freeze the statue just like the target does, but never add agitation
     let anyWatching = tg.watching;
+    let anyInView = tg.inView;
     let anyLos = !!tg.los;
     let nearCreature = 0;
     let checked = 0;
     for (const p of this.players()) {
       if (p.id === this.targetId) continue;
       if (checked++ >= 8) break;
+      if (!survivalLike(p, true)) continue;
       const v = playerView(p, tw, posture);
       if (v.watching) anyWatching = true;
+      if (v.inView) anyInView = true;
       if (v.los) anyLos = true;
       if (dist(p.location, cpos) < 10) nearCreature++;
-      if (!this.viewers.has(p.id)) {
-        this.viewers.add(p.id);
-        applyViewerFx(p, tw);
-      }
-    }
-    if (valid && !this.viewers.has(this.targetId)) {
-      this.viewers.add(this.targetId);
-      applyViewerFx(this.target, tw);
     }
     const posture2 = this.mover.updatePosture(this.t, this.brain.vis.postureCap, this.brain.vis.postureWant);
-    const geom = { hdist: tg.hdist, dy: tg.dy, facingCos: 0, los: false, targetValid: valid && tg.alive && tg.eligible };
-    if (valid && tg.hdist < CHASE.reach + 2) {
+    const reach = { hdist: tg.hdist, dy: tg.dy, facingCos: 0, los: false, targetValid: valid && tg.alive && tg.eligible, holdClear: false };
+    if (valid && tg.hdist < CHASE.grabReach + 2) {
       const fwd = dirFromYaw(tw.getRotation().y);
       const to = norm({ x: tg.pos.x - cpos.x, y: 0, z: tg.pos.z - cpos.z });
-      geom.facingCos = dot(fwd, to);
-      const chest = { x: cpos.x, y: cpos.y + POSTURE[posture2].height * 0.5, z: cpos.z };
-      geom.los = losClear(this.dim, chest, { x: tg.pos.x, y: tg.pos.y + 1.0, z: tg.pos.z });
+      reach.facingCos = dot(fwd, to);
+      const chest = { x: cpos.x, y: cpos.y + 1.4, z: cpos.z };
+      reach.los = losClear(this.dim, chest, { x: tg.pos.x, y: tg.pos.y + 1.0, z: tg.pos.z });
+      reach.holdClear = this.holdClear();
     }
     return {
       target: tg,
       anyWatching,
+      anyInView,
       anyLos,
       others: { nearCreature },
       creature: { pos: cpos, posture: posture2, headroom: this.mover.headHere, atGoal: this.mover.atGoal(), stuck: this.mover.stuck(this.t) },
-      strikeGeom: geom,
+      reach,
+      grab: this.grab ? { holding: this.grab.holding, presses: this.grab.presses, needed: this.grab.needed } : { holding: false, presses: 0, needed: 1 },
     };
+  }
+
+  /** Room to stand up and lift someone: its own headroom plus two open blocks at the hold point. */
+  holdClear() {
+    if (this.mover.headHere < GRAB.needHeadroom) return false;
+    const l = this.tw.location;
+    const f = dirFromYaw(this.tw.getRotation().y);
+    const hp = { x: Math.floor(l.x + f.x * GRAB.holdForward), y: Math.floor(l.y + GRAB.holdUp), z: Math.floor(l.z + f.z * GRAB.holdForward) };
+    return isOpen(safeBlock(this.dim, hp)) && isOpen(safeBlock(this.dim, { x: hp.x, y: hp.y + 1, z: hp.z }));
   }
 
   /** Hand/foot impacts follow distance actually travelled, matching the gait calibration. */
   footsteps() {
     const l = this.tw.location;
-    if (this.lastStepPos) this.stepDist = (this.stepDist || 0) + hdist(l, this.lastStepPos);
+    if (this.lastStepPos) this.stepDist += hdist(l, this.lastStepPos);
     this.lastStepPos = { x: l.x, y: l.y, z: l.z };
-    const chase = this.brain.state === "chase" || this.brain.state === "search";
-    const every = chase ? CHASE.stepEvery / 2 : 2.2; // two contacts per gallop cycle
-    if ((this.stepDist || 0) >= every) {
+    const fast = this.brain.state === "chase" || this.brain.state === "search";
+    const every = fast ? CHASE.stepEvery / 2 : 2.2;
+    if (this.stepDist >= every) {
       this.stepDist = 0;
-      if (chase) playCue(this.tw, "step_heavy", this.mover.posture, this.rng);
+      if (fast) playCue(this.tw, "step_heavy", this.mover.posture, this.rng);
       else if (this.brain.state !== "death") playCue(this.tw, "step_soft", this.mover.posture, this.rng);
     }
   }
@@ -248,15 +280,15 @@ export class Encounter {
   }
 
   applyVisual(v) {
-    this.setProp("tailwail:state", v.state);
-    this.setProp("tailwail:tail", v.tail);
-    this.setProp("tailwail:voice", v.voice);
-    this.setProp("tailwail:agit", v.agit);
-    this.setProp("tailwail:action", v.action);
-    this.setProp("tailwail:mimic", v.mimic);
-    this.setProp("tailwail:mimic_amt", Math.round(Math.max(0, Math.min(2, v.mimicAmt)) * 20) / 20);
-    this.setProp("tailwail:mimic_pitch", Math.round(Math.max(-60, Math.min(60, v.mimicPitch))));
-    this.setProp("tailwail:headroom", Math.max(0, Math.min(8, this.mover.headHere)));
+    this.setProp("tailwail:pose", POSE[v.pose] ?? 0);
+    this.setProp("tailwail:tail", TAIL[v.tail] ?? 0);
+    this.setProp("tailwail:breath", BREATH[v.breath] ?? 1);
+    this.setProp("tailwail:tremor", clamp(v.tremor | 0, 0, 3));
+    this.setProp("tailwail:jaw", clamp(Math.round(v.jaw), 0, 60));
+    this.setProp("tailwail:mimic", MIMIC[v.mimic] ?? 0);
+    this.setProp("tailwail:mimic_amt", Math.round(clamp(v.mimicAmt, 0, 2) * 20) / 20);
+    this.setProp("tailwail:mimic_pitch", clamp(Math.round(v.mimicPitch), -60, 60));
+    this.setProp("tailwail:headroom", clamp(this.mover.headHere, 0, 8));
     let yaw = 0;
     let pitch = 0;
     if (v.look === "target" && this.validTarget()) {
@@ -265,34 +297,186 @@ export class Encounter {
       yaw = wrapDeg(yawTo(eyes, th) - this.tw.getRotation().y);
       pitch = pitchTo(eyes, th);
     }
-    this.setProp("tailwail:look_yaw", Math.round(Math.max(-90, Math.min(90, yaw)) / 3) * 3);
-    this.setProp("tailwail:look_pitch", Math.round(Math.max(-60, Math.min(60, pitch)) / 3) * 3);
+    this.setProp("tailwail:look_yaw", Math.round(clamp(yaw, -178, 178) / 2) * 2);
+    this.setProp("tailwail:look_pitch", Math.round(clamp(pitch, -60, 60) / 3) * 3);
   }
 
-  // ------------------------------------------------------------------ damage (single authority)
+  // ------------------------------------------------------------------ the player's side of it
+  playerFx(name, arg) {
+    const p = this.validTarget() ? this.target : null;
+    switch (name) {
+      case "standoff_on":
+        if (!p) return;
+        this.affected.add(p.id);
+        fx.music(p, "tailwail.music.standoff", 0.85, 2.5);
+        fx.pushFog(p, "tailwail:dread");
+        fx.heartbeat(p, 66, 0.4);
+        return;
+      case "standoff_level": {
+        if (!p) return;
+        const a = arg || 0;
+        fx.heartbeat(p, 66 + a * 0.95, 0.4 + a * 0.005);
+        const want = Math.round(70 - a * 0.2);
+        if (this.fovAt === null || Math.abs(this.fovAt - want) >= 3) {
+          this.fovAt = want;
+          fx.fov(p, want, 1.4);
+        }
+        return;
+      }
+      case "silence":
+        if (!p) return;
+        fx.stopMusic(p);
+        fx.heartbeat(p, 0);
+        return;
+      case "scream": {
+        const at = this.tw.location;
+        for (const pl of this.players()) {
+          const d = dist(pl.location, at);
+          if (d > 40) continue;
+          fx.shake(pl, d < 12 ? 0.7 : d < 24 ? 0.4 : 0.2, 1.6, d < 16);
+          if (d < 18) {
+            try {
+              pl.addEffect("darkness", 70, { amplifier: 0, showParticles: false });
+            } catch {
+              /* cosmetic */
+            }
+          }
+        }
+        if (p) {
+          this.affected.add(p.id);
+          fx.fov(p, 50, 0.25, EasingType.OutCubic);
+          this.fovAt = 50;
+        }
+        if (this.settings.torchSnuff) {
+          const torches = findTorches(this.dim, at, 12, 14);
+          torches.forEach((t, i) => system.runTimeout(() => this.dim.isChunkLoaded(t) && snuff(this.dim, t), 2 + i * 2));
+          if (torches.length && p) this.onFlag("snuff");
+        }
+        return;
+      }
+      case "scream_far":
+        if (!p) return;
+        this.affected.add(p.id);
+        fx.shake(p, 0.1, 1.5);
+        fx.heartbeat(p, 120, 0.6);
+        return;
+      case "chase_on":
+        if (!p) return;
+        this.affected.add(p.id);
+        fx.music(p, "tailwail.music.chase", 1.0, arg && arg.resumed ? 0.8 : 0.2);
+        fx.pushFog(p, "tailwail:dread");
+        fx.heartbeat(p, 168, 0.85);
+        fx.fov(p, 84, 1.0);
+        this.fovAt = 84;
+        return;
+      case "search_on":
+        if (!p) return;
+        fx.music(p, "tailwail.music.standoff", 0.75, 3);
+        fx.heartbeat(p, 128, 0.65);
+        fx.resetFov(p, 1.5);
+        this.fovAt = null;
+        return;
+      case "snuff_near_target": {
+        if (!p) return;
+        const view = p.getViewDirection();
+        const eye = p.getHeadLocation();
+        const list = findTorches(this.dim, p.location, 14, 10).filter((t) => {
+          const c = { x: t.x + 0.5, y: t.y + 0.5, z: t.z + 0.5 };
+          return dist(c, eye) >= 4 && dot(norm(sub(c, eye)), view) < 0.25;
+        });
+        let n = (arg && arg.count) || 1;
+        for (const t of list) {
+          if (n-- <= 0) break;
+          if (snuff(this.dim, t)) this.onFlag("snuff");
+        }
+        return;
+      }
+      case "snuff_path":
+        for (const t of findTorches(this.dim, this.tw.location, 3.5, 4)) snuff(this.dim, t);
+        return;
+      case "end":
+        for (const id of this.affected) {
+          const pl = this.director.playerById(id);
+          if (pl) fx.endMood(pl);
+        }
+        this.fovAt = null;
+        return;
+      default:
+    }
+  }
+
+  onFlag(name) {
+    if (!this.validTarget()) return;
+    const p = this.target;
+    try {
+      const s = getSchedule(p);
+      const r = unlock(s.jr, name);
+      if (r.added) {
+        s.jr = r.mask;
+        saveSchedule(p, s);
+        system.runTimeout(() => p.isValid && p.sendMessage(`§8[Torn journal] §7A new page: §f${r.added.title}`), 60);
+      }
+    } catch (e) {
+      dlog("journal", e);
+    }
+  }
+
+  // ------------------------------------------------------------------ contact (single authority)
+  startGrab() {
+    if (!this.validTarget()) return false;
+    const p = this.target;
+    if (grabFor(p.id)) return false;
+    const g = new GrabController(this.tw, p, this.settings);
+    let ok = false;
+    try {
+      ok = g.start();
+    } catch (e) {
+      warn("grab start", errorText(e));
+      try {
+        g.release("abort");
+      } catch {
+        /* nothing to undo */
+      }
+      ok = false;
+    }
+    if (!ok) return false;
+    this.grab = g;
+    this.affected.add(p.id);
+    return true;
+  }
+
+  endGrab(kind) {
+    const g = this.grab;
+    this.grab = null;
+    if (g) g.release(kind);
+  }
+
   dealDamage() {
     if (!this.validTarget()) return;
     const p = this.target;
-    const amount = this.settings.damageHearts * 2;
     try {
-      const ok = p.applyDamage(amount, { cause: EntityDamageCause.entityAttack, damagingEntity: this.tw });
+      const ok = p.applyDamage(this.settings.strikeDamage, { cause: EntityDamageCause.entityAttack, damagingEntity: this.tw });
       if (ok) {
         const d = norm(sub(p.location, this.tw.location));
-        p.applyKnockback({ x: d.x * 0.9, z: d.z * 0.9 }, 0.3);
-        shake(p, 0.25, 0.35);
+        p.applyKnockback({ x: d.x * 1.1, z: d.z * 1.1 }, 0.35);
+        fx.shake(p, 0.4, 0.35, true);
       }
-      dlog(`#${this.id} strike dealt ${amount} -> ${ok}`);
+      dlog(`#${this.id} strike dealt ${this.settings.strikeDamage} -> ${ok}`);
     } catch (e) {
       warn("damage failed", errorText(e));
     }
   }
 
-  onHit(attacker) {
-    const isTarget = attacker && attacker.id === this.targetId;
+  onHit(attacker, amount) {
+    const isTarget = !!attacker && attacker.id === this.targetId;
+    if (this.grab && this.grab.holding && isTarget) {
+      this.grab.press(2); // fighting back while held counts double
+      return;
+    }
     if (!isTarget && attacker && attacker.typeId === "minecraft:player" && this.brain.canRetarget() && !this.validTarget()) {
       this.retarget(attacker);
     }
-    this.brain.onHit(isTarget);
+    this.brain.onHit(isTarget, amount || 0);
     playCue(this.tw, "hurt", this.mover.posture, this.rng);
   }
 
@@ -311,14 +495,14 @@ export class Encounter {
     if (this.brain.state === "death") return;
     this.brain.die();
     this.mover.hold();
-    this.applyVisual({ ...this.brain.vis, state: "death", mimic: "none", mimicAmt: 0, mimicPitch: 0 });
+    this.applyVisual({ ...this.brain.vis, mimic: "none", mimicAmt: 0, mimicPitch: 0 });
   }
 
   // ------------------------------------------------------------------ cleanup
   end(outcome, removeEntity) {
     if (this.ended) return;
     this.ended = true;
-    const now = this.director.now();
+    if (this.grab) this.endGrab("abort");
     try {
       if (this.memory && this.validTarget()) {
         const notice = this.brain.noticeT >= 0 ? this.brain.noticeT : 0;
@@ -327,20 +511,20 @@ export class Encounter {
       }
       if (this.target && this.target.isValid && !this.manual) {
         const s = getSchedule(this.target);
-        onEncounterEnd(s, now, outcome, this.settings, this.rng);
+        onEncounterEnd(s, outcome, this.settings, this.rng);
         saveSchedule(this.target, s);
       }
     } catch (e) {
       warn("end bookkeeping", errorText(e));
     }
-    this.mover.dispose();
-    for (const id of this.viewers) {
+    for (const id of this.affected) {
       const p = this.director.playerById(id);
-      if (p) stopShake(p);
+      if (p) fx.endMood(p);
     }
+    this.mover.dispose();
     if (removeEntity && this.tw && this.tw.isValid) {
       try {
-        if (outcome === "killed") this.dim.spawnXp(this.tw.location, 40);
+        if (outcome === "killed") this.dim.spawnXp(this.tw.location, 60);
         this.tw.remove();
       } catch (e) {
         dlog("remove", e);
@@ -355,5 +539,3 @@ export class Encounter {
     return `#${this.id} ${this.setup} state=${b.state} t=${b.stateT.toFixed(1)}s agit=${b.agit.value.toFixed(0)} posture=${this.mover.posture} target=${this.target ? this.target.name : "-"} outcome=${b.outcome || "-"}`;
   }
 }
-
-export { ENCOUNTER };

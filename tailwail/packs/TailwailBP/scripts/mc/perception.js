@@ -61,15 +61,20 @@ export function lightAt(dim, pos) {
   }
 }
 
+// A body point this close to the view direction may be on screen for any sane FOV setting
+// (110 degree "Quake Pro" FOV at 16:9 reaches ~69 degrees off centre; 0.3 = ~72.5 degrees).
+const ON_SCREEN_COS = 0.3;
+
 /**
  * How a player sees Tailwail.
- * @returns {{watching:boolean, los:boolean, glance:boolean}}
+ * @returns {{watching:boolean, los:boolean, glance:boolean, inView:boolean}}
  *   watching: clearly looking at it (centre of view, unobstructed, lit enough or close)
  *   glance:   within peripheral view and unobstructed
+ *   inView:   could be anywhere on screen (the statue rule: it never moves while inView)
  *   los:      any body point has an unobstructed ray (regardless of facing)
  */
 export function playerView(player, tw, posture, opts = {}) {
-  const maxDist = opts.maxDist || 56;
+  const maxDist = opts.maxDist || 64;
   const dim = tw.dimension;
   let eye;
   let view;
@@ -77,12 +82,13 @@ export function playerView(player, tw, posture, opts = {}) {
     eye = player.getHeadLocation();
     view = player.getViewDirection();
   } catch {
-    return { watching: false, los: false, glance: false };
+    return { watching: false, los: false, glance: false, inView: false };
   }
   const pts = bodyPoints(tw, posture);
   const light = opts.light ?? lightAt(dim, pts[1]);
   let watching = false;
   let glance = false;
+  let inView = false;
   let los = false;
   for (const p of pts) {
     const d = dist(eye, p);
@@ -90,16 +96,26 @@ export function playerView(player, tw, posture, opts = {}) {
     const c = dot(norm(sub(p, eye)), view);
     const centreCos = d < 8 ? 0.7 : 0.82; // wider when it is right in front of you
     const seenEnough = light >= 3 || d <= 18; // a black shape at 40 blocks in total darkness is not "clearly watched"
-    if (c < 0.5 && los && !opts.needLos) continue;
+    if (c < ON_SCREEN_COS && los && !opts.needLos) continue;
     if (!losClear(dim, eye, p)) continue;
     los = true;
+    if (c >= ON_SCREEN_COS) inView = true;
     if (c >= 0.5) glance = true;
     if (c >= centreCos && seenEnough) {
       watching = true;
       break;
     }
   }
-  return { watching, los, glance };
+  return { watching, los, glance, inView };
+}
+
+/** Whether the player is hiding: crouched, in the dark, and not right next to it. */
+export function isHiding(player, light, distance, hiddenLight, detect) {
+  try {
+    return !!player.isSneaking && light <= hiddenLight && distance > detect;
+  } catch {
+    return false;
+  }
 }
 
 /** Tailwail's own sight of the target: head or torso, unobstructed, within range. */
