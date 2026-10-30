@@ -322,7 +322,12 @@
    "states": {
     "drag": {
      "animations": [
-      "tw_tail_drag"
+      {
+       "tw_tail_drag": "q.property('tailwail:posture') == 'tall'"
+      },
+      {
+       "tw_tail_drag_low": "!(q.property('tailwail:posture') == 'tall')"
+      }
      ],
      "transitions": [
       {
@@ -429,7 +434,9 @@
      "animations": [
       "look",
       "jaw",
-      "scream_nt"
+      {
+       "scream_nt": "q.property('tailwail:fx') >= 1 ? 1.0 : 0.35"
+      }
      ],
      "transitions": [
       {

@@ -14,6 +14,7 @@ import { createAgitation, cueLevel, stepAgitation } from "./agitation.js";
 import { createLimiter, allow, rearm } from "./audio_rules.js";
 import { abortStrike, canStartStrike, createStrikeState, finishStrike, resolveImpact, startStrike } from "./combat_rules.js";
 import { cancelImitation, createDetector, createImitator, observe, offer, schedule, updateImitator } from "./gestures.js";
+import { gestureBias } from "./memory.js";
 import { SETUPS } from "./setups.js";
 
 export const STATES = ["stalk", "standoff", "unfold", "windup", "chase", "search", "retreat", "death"];
@@ -127,8 +128,9 @@ export class Brain {
 
     if (this.state !== "death" && this.state !== "retreat") {
       if (!tg.valid || !tg.alive || !tg.dimensionOk || !tg.eligible || tg.dist > 72) {
-        this.finish(tg.alive === false && this.state === "chase" ? "caught" : this.state === "chase" ? "escaped" : "aborted");
-        this.enter("retreat", !tg.alive ? "target-dead" : "target-lost");
+        const died = tg.valid && tg.alive === false; // a disconnect is not a kill
+        this.finish(died && this.state === "chase" ? "caught" : this.state === "chase" ? "escaped" : "aborted");
+        this.enter("retreat", died ? "target-dead" : "target-lost");
       }
     }
 
@@ -216,7 +218,14 @@ export class Brain {
       peekSide: this.rng.chance(0.5) ? "peek_l" : "peek_r",
     };
     this.vis = { tail: "drag", voice: "breath", agit: 1, action: "none", look: null, postureCap: null,
-      postureWant: this.def.posture === "crawl" ? "crawl" : null };
+      postureWant: this.stalkPosture() };
+  }
+
+  /** Folded while stalking (conceals its height, tail drags); upright setups stand at the edge of sight. */
+  stalkPosture() {
+    if (this.def.posture === "crawl") return "crawl";
+    if (this.setup === "distant_silhouette" || this.setup === "corner_peek") return null;
+    return "hunch";
   }
 
   update_stalk(snap, dt) {
@@ -224,6 +233,9 @@ export class Brain {
     const s = this.s;
     this.vis.look = tg.canSee ? "target" : null;
     this.vis.action = "none";
+    // it unfolds to perform an imitation (the copy must be readable), otherwise stays folded
+    const performing = this.imitator.active || this.imitator.queue.length > 0;
+    if (s.phase !== "approach") this.vis.postureWant = performing && this.def.posture !== "crawl" ? null : this.stalkPosture();
 
     if (this.hits > 0) {
       stepAgitation(this.agit, { watched: false, distance: tg.dist, closing: 0, sprinting: false, hits: this.hits, movingAway: false }, dt, this.settings.agitationScale);
@@ -342,6 +354,7 @@ export class Brain {
       const shrink = Math.min(1, this.stateT / Math.max(1, s.dur));
       const far = STALK.farMax - (STALK.farMax - 16) * shrink;
       const near = this.setup === "distant_silhouette" ? 20 : STALK.nearMin;
+      const prevGoal = s.goal;
       s.goal = this.ctx.findObservationSpot({
         near,
         far: Math.max(near + 4, far),
@@ -349,6 +362,8 @@ export class Brain {
         partial: !!this.def.peeks,
         headroom: this.def.posture === "crawl" ? 2 : 3,
       });
+      if (s.goal && s.goal.side) s.peekSide = s.goal.side;
+      if (s.goal !== prevGoal) this.log(`reposition -> ${s.goal ? `${s.goal.x.toFixed(0)},${s.goal.z.toFixed(0)}` : "none"}`);
       s.nextMove = this.t + this.rng.range(STALK.repositionMin, STALK.repositionMax);
     }
     if (s.goal && !this.reached(s.goal)) {
@@ -407,6 +422,17 @@ export class Brain {
       if (this.agit.value >= STANDOFF.inhaleAbove && !so.inhaled) {
         so.inhaled = true;
         this.cue("inhale");
+      }
+    }
+
+    // rehearsal: in a quiet moment it performs a gesture it learned from this player before
+    if (!this.imitator.active && !this.imitator.queue.length && this.t >= (so.rehearseAt || (so.rehearseAt = this.t + this.rng.range(8, 14)))) {
+      so.rehearseAt = this.t + this.rng.range(10, 18);
+      const learned = this.memory ? gestureBias(this.memory).filter(([g]) => this.memory.gest[g].n > 0) : [];
+      if (learned.length && this.rng.chance(0.5)) {
+        const g = this.rng.weighted(learned);
+        schedule(this.imitator, g, this.t + 0.3, this.agit.value, this.rng, this.memory.gest[g].p);
+        this.log(`rehearses learned ${g}`);
       }
     }
 
@@ -600,9 +626,9 @@ export class Brain {
 
   // ------------------------------------------------------------------ SEARCH
   enter_search() {
-    const origin = this.c && this.c.lastSeen ? this.c.lastSeen : this.snap.creature.pos;
+    const origin = this.c && this.c.lastSeen ? this.c.lastSeen : this.snap ? this.snap.creature.pos : null;
     this.se = {
-      points: this.ctx.findSearchPoints(origin, SEARCH.points, SEARCH.radius),
+      points: origin ? this.ctx.findSearchPoints(origin, SEARCH.points, SEARCH.radius) : [],
       idx: 0,
       listenUntil: 0,
       frustrated: false,

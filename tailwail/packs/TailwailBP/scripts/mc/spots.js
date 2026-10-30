@@ -54,6 +54,7 @@ function observationPass(o, relaxed) {
     const c = ring(o.rng, tPos, o.near, o.far, baseYaw, i < 6 ? 70 : 150);
     const g = findGround(o.dim, c.x, c.z, o.creaturePos.y, 4, 5, o.headroom);
     if (!g) continue;
+    if (hdist(g, o.creaturePos) > 18) continue; // short hops through connected space, not across walls
     const posture = postureFor(g.head);
     const eye = eyeAt(g, posture);
     const mid = midAt(g, posture);
@@ -62,6 +63,8 @@ function observationPass(o, relaxed) {
     let score = o.rng.range(0, 1);
     const light = lightAt(o.dim, mid);
     score += (15 - light) * 0.15;
+    // prefer spots it can see from where it stands: almost always reachable by a short walk
+    if (!losClear(o.dim, { x: o.creaturePos.x, y: o.creaturePos.y + 1.2, z: o.creaturePos.z }, { x: g.x, y: g.y + 1.2, z: g.z })) score -= 1.5;
     if (o.visible) {
       if (!seenEye && !seenMid) continue;
       if (light > 6) score -= 2;

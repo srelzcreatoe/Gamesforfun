@@ -68,7 +68,10 @@ def body():
 
 def tail():
     tails = ["drag", "twitch", "rigid", "free"]
-    anims = {"drag": ["tw_tail_drag"], "twitch": ["tw_tail_twitch"], "rigid": ["tw_tail_rigid"], "free": []}
+    upright = "q.property('tailwail:posture') == 'tall'"
+    # the drag pose is solved separately for the upright and hunched bodies so the tip trails on the floor
+    anims = {"drag": [{"tw_tail_drag": upright}, {"tw_tail_drag_low": "!(%s)" % upright}], "twitch": ["tw_tail_twitch"],
+             "rigid": ["tw_tail_rigid"], "free": []}
     return {"initial_state": "drag",
             "states": {t: st(anims[t], [(o, T(o)) for o in tails if o != t], 0.15 if t == "rigid" else 0.35) for t in tails}}
 
@@ -77,7 +80,8 @@ def face():
     return {"initial_state": "base", "states": {
         "base": st(["look", "jaw"], [("click", V("click")), ("wail", V("wail")), ("inhale", V("inhale")), ("listen", A("listen"))], 0.2),
         "click": st(["look", "jaw", "echo"], [("base", "!(%s)" % V("click"))], 0.2),
-        "wail": st(["look", "jaw", "scream_nt"], [("base", "!(%s)" % V("wail"))], 0.3),
+        # viewers who turned optional effects off see a gentler head shake (per-player property override)
+        "wail": st(["look", "jaw", {"scream_nt": "q.property('tailwail:fx') >= 1 ? 1.0 : 0.35"}], [("base", "!(%s)" % V("wail"))], 0.3),
         "inhale": st(["look", "jaw", "tw_inhale"], [("wail", V("wail")), ("base", "!(%s)" % V("inhale"))], 0.25),
         "listen": st(["look", "jaw", "listen"], [("click", V("click")), ("base", "!(%s)" % A("listen"))], 0.4)}}
 

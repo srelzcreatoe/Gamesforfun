@@ -1,0 +1,6 @@
+Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+Pack Stack - [00] Tailwail: The Rehearsal (Behavior) (id: 842601fd-5d8e-46ad-a432-a35be2bdf477, version: 1.0.0) @ behavior_packs/tw_TailwailBP
+[Scripting] [Tailwail] v1.0.0 ready
+[Scripting] [Tailwail] 0 active
+[Scripting] [Tailwail] 0 active
+[Scripting] [Tailwail] 1 active

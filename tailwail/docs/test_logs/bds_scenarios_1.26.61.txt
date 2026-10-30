@@ -1,0 +1,337 @@
+Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+Pack Stack - [00] Tailwail: The Rehearsal (Behavior) (id: 842601fd-5d8e-46ad-a432-a35be2bdf477, version: 1.0.0) @ behavior_packs/tw_TailwailBP
+[TWDEV] harness loaded
+[Tailwail] v1.0.0 ready
+[TWDEV] === scenario gaze
+[Tailwail] #1 - -> stalk (spawn)
+[Tailwail] encounter 1 start setup=delayed_imitation slot=a target=Mock
+[TWDEV] gaze open-facing {"watching":true,"los":true,"glance":true} creatureSees true
+[TWDEV] gaze open-away {"watching":false,"los":true,"glance":false}
+[TWDEV] gaze wall-facing {"watching":false,"los":false,"glance":false} creatureSees false
+[TWDEV] gaze glass-facing {"watching":true,"los":true,"glance":true} creatureSees true
+[Tailwail] encounter 1 end outcome=aborted after 0.8s
+[TWDEV] === done gaze
+[TWDEV] === scenario commit
+[Tailwail] #2 - -> stalk (spawn)
+[Tailwail] encounter 2 start setup=delayed_imitation slot=a target=Mock
+[Tailwail] #2 reposition -> 22,11
+[Tailwail] #2 cue tail_scrape
+[Tailwail] #2 stalk -> standoff (test)
+[Tailwail] #2 cue throat_click
+[Tailwail] #2 cue inhale
+[TWDEV] commit t 10 state standoff agit 99.7 pos 18.5,-60,10.5 posture hunch tail twitch voice click action none mimic none dmg 0 
+[Tailwail] #2 commit (agitation)
+[Tailwail] #2 standoff -> unfold (agitation)
+[TWDEV] commit t 20 state unfold agit 100 pos 18.5,-60,10.5 posture hunch tail rigid voice silent action none mimic none dmg 0 
+[TWDEV] commit t 30 state unfold agit 100 pos 18.5,-60,10.5 posture hunch tail rigid voice silent action none mimic none dmg 0 
+[TWDEV] commit t 40 state unfold agit 100 pos 18.5,-60,10.5 posture tall tail rigid voice silent action none mimic none dmg 0 
+[TWDEV] commit t 50 state unfold agit 100 pos 18.5,-60,10.5 posture tall tail rigid voice silent action none mimic none dmg 0 
+[TWDEV] commit t 60 state unfold agit 100 pos 18.5,-60,10.5 posture tall tail rigid voice silent action none mimic none dmg 0 
+[Tailwail] #2 unfold -> windup (unfolded)
+[TWDEV] commit t 70 state windup agit 100 pos 18.5,-60,10.5 posture tall tail rigid voice inhale action none mimic none dmg 0 
+[TWDEV] commit t 80 state windup agit 100 pos 18.5,-60,10.5 posture tall tail rigid voice inhale action none mimic none dmg 0 
+[TWDEV] commit t 90 state windup agit 100 pos 18.5,-60,10.5 posture hunch tail rigid voice inhale action none mimic none dmg 0 
+[TWDEV] commit t 100 state windup agit 100 pos 18.5,-60,10.5 posture hunch tail rigid voice inhale action none mimic none dmg 0 
+[TWDEV] commit t 110 state windup agit 100 pos 18.5,-60,10.5 posture hunch tail rigid voice inhale action none mimic none dmg 0 
+[TWDEV] commit t 120 state windup agit 100 pos 18.5,-60,10.5 posture hunch tail rigid voice inhale action none mimic none dmg 0 
+[Tailwail] #2 windup -> chase (windup-complete)
+[Tailwail] #2 cue wail
+[TWDEV] commit t 130 state chase agit 100 pos 18.5,-60,10.5 posture hunch tail rigid voice wail action none mimic none dmg 0 
+[TWDEV] commit t 140 state chase agit 100 pos 18.5,-60,10.5 posture hunch tail rigid voice wail action none mimic none dmg 0 
+[TWDEV] commit t 150 state chase agit 100 pos 18.5,-60,10.5 posture hunch tail free voice wail action none mimic none dmg 0 
+[TWDEV] commit t 160 state chase agit 100 pos 18.5,-60,10.5 posture hunch tail free voice wail action none mimic none dmg 0 
+[Tailwail] #2 cue exertion
+[TWDEV] commit t 170 state chase agit 100 pos 16.5,-60,10.5 posture hunch tail free voice silent action none mimic none dmg 0 
+[Tailwail] #2 cue swipe
+[TWDEV] commit t 180 state chase agit 100 pos 13.1,-60,10.5 posture hunch tail free voice silent action strike mimic none dmg 0 
+[TWDEV] commit t 190 state chase agit 100 pos 12.7,-60,10.5 posture hunch tail free voice silent action strike mimic none dmg 0 
+[Tailwail] #2 strike dealt 7 -> true
+[Tailwail] #2 cue impact
+[Tailwail] #2 strike landed
+[TWDEV] commit t 200 state chase agit 100 pos 12.7,-60,10.5 posture hunch tail free voice silent action none mimic none dmg 1 
+[TWDEV] commit t 210 state chase agit 100 pos 12.5,-60,10.5 posture hunch tail free voice silent action none mimic none dmg 1 
+[TWDEV] commit t 220 state chase agit 100 pos 10.7,-60,10.5 posture hunch tail free voice silent action none mimic none dmg 1 
+[Tailwail] #2 cue exertion
+[Tailwail] #2 cue swipe
+[TWDEV] commit t 230 state chase agit 100 pos 10.6,-60,10.5 posture hunch tail free voice silent action strike mimic none dmg 1 
+[Tailwail] #2 strike dealt 7 -> true
+[Tailwail] #2 cue impact
+[Tailwail] #2 strike landed
+[TWDEV] commit t 240 state chase agit 100 pos 10.6,-60,10.5 posture hunch tail free voice silent action strike mimic none dmg 2 
+[TWDEV] commit t 250 state chase agit 100 pos 10.6,-60,10.5 posture hunch tail free voice silent action none mimic none dmg 2 
+[TWDEV] commit t 260 state chase agit 100 pos 10.6,-60,10.5 posture hunch tail free voice silent action none mimic none dmg 2 
+[TWDEV] commit damage events [{"tick":460,"n":7,"by":"tailwail:tall_wail"},{"tick":504,"n":7,"by":"tailwail:tall_wail"}]
+[Tailwail] encounter 2 end outcome=aborted after 13.2s
+[TWDEV] === done commit
+[TWDEV] === scenario wallstrike
+[Tailwail] #3 - -> stalk (spawn)
+[Tailwail] encounter 3 start setup=delayed_imitation slot=a target=Mock
+[Tailwail] #3 reposition -> 30,8
+[Tailwail] #3 cue tail_scrape
+[Tailwail] #3 stalk -> unfold (test)
+[TWDEV] wall t 20 state unfold agit 0 pos 13.6,-60,10.5 posture hunch tail rigid voice silent action none mimic none dmg 0 
+[TWDEV] wall t 40 state unfold agit 0 pos 13.6,-60,10.5 posture tall tail rigid voice silent action none mimic none dmg 0 
+[Tailwail] #3 unfold -> windup (unfolded)
+[Tailwail] #3 cue inhale
+[TWDEV] wall t 60 state windup agit 0 pos 13.6,-60,10.5 posture tall tail rigid voice inhale action none mimic none dmg 0 
+[TWDEV] wall t 80 state windup agit 0 pos 13.6,-60,10.5 posture hunch tail rigid voice inhale action none mimic none dmg 0 
+[TWDEV] wall t 100 state windup agit 0 pos 13.6,-60,10.5 posture hunch tail rigid voice inhale action none mimic none dmg 0 
+[Tailwail] #3 windup -> chase (windup-complete)
+[Tailwail] #3 cue wail
+[TWDEV] wall t 120 state chase agit 0 pos 13.6,-60,10.5 posture hunch tail rigid voice wail action none mimic none dmg 0 
+[TWDEV] wall t 140 state chase agit 0 pos 13.6,-60,10.5 posture hunch tail free voice wail action none mimic none dmg 0 
+[Tailwail] #3 cue exertion
+[TWDEV] wall t 160 state chase agit 0 pos 13.6,-60,10.5 posture hunch tail free voice silent action none mimic none dmg 0 
+[TWDEV] wall t 180 state chase agit 0 pos 13.6,-60,10.5 posture hunch tail free voice silent action none mimic none dmg 0 
+[Tailwail] #3 stuck (1)
+[Tailwail] #3 recover 1: smaller-posture
+[TWDEV] wall t 200 state chase agit 0 pos 13.6,-60,10.5 posture crawl tail free voice silent action none mimic none dmg 0 
+[TWDEV] wall damage events []
+[Tailwail] encounter 3 end outcome=aborted after 10.2s
+[TWDEV] === done wallstrike
+[TWDEV] === scenario escape
+[Tailwail] #4 - -> stalk (spawn)
+[Tailwail] encounter 4 start setup=delayed_imitation slot=a target=Mock
+[Tailwail] #4 reposition -> -3,24
+[Tailwail] #4 cue tail_scrape
+[Tailwail] #4 stalk -> unfold (test)
+[Tailwail] #4 unfold -> windup (unfolded)
+[Tailwail] #4 cue inhale
+[Tailwail] #4 windup -> chase (windup-complete)
+[Tailwail] #4 cue wail
+[Tailwail] #4 cue exertion
+[TWDEV] escape t 20 state chase agit 0 pos 7.3,-60,13.3 posture hunch tail free voice silent action none mimic none dmg 0 mock 20.1,-60,20.5
+[TWDEV] escape t 40 state chase agit 0 pos 12.5,-60,17.6 posture hunch tail free voice silent action none mimic none dmg 0 mock 25.7,-60,20.5
+[TWDEV] escape t 60 state chase agit 0 pos 19.2,-60,18 posture hunch tail free voice silent action none mimic none dmg 0 mock 31.2,-60,20.5
+[TWDEV] escape t 80 state chase agit 0 pos 25.3,-60,18.6 posture hunch tail free voice silent action none mimic none dmg 0 mock 36.7,-60,20.5
+[Tailwail] #4 cue exertion
+[TWDEV] escape t 100 state chase agit 0 pos 29.5,-60,20.4 posture hunch tail free voice silent action none mimic none dmg 0 mock 42.3,-60,20.5
+[TWDEV] escape t 120 state chase agit 0 pos 29.5,-60,20.4 posture hunch tail free voice silent action none mimic none dmg 0 mock 47.5,-60,21.6
+[Tailwail] #4 cue exertion
+[TWDEV] escape t 140 state chase agit 0 pos 29.5,-60,20.4 posture hunch tail free voice silent action none mimic none dmg 0 mock 52.4,-60,24.2
+[Tailwail] #4 stuck (1)
+[Tailwail] #4 recover 1: smaller-posture
+[TWDEV] escape t 160 state chase agit 0 pos 29.5,-60,20.4 posture hunch tail free voice silent action none mimic none dmg 0 mock 57.4,-60,26.8
+[TWDEV] escape t 180 state chase agit 0 pos 29.5,-60,20.4 posture crawl tail free voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[Tailwail] #4 cue exertion
+[TWDEV] escape t 200 state chase agit 0 pos 29.5,-60,20.4 posture hunch tail free voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[TWDEV] escape t 220 state chase agit 0 pos 29.5,-60,20.4 posture hunch tail free voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[Tailwail] #4 stuck (2)
+[Tailwail] #4 recover 2: sidestep
+[Tailwail] #4 chase -> search (lost-sight)
+[TWDEV] escape t 240 state search agit 0 pos 29.5,-60,20.4 posture hunch tail twitch voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[Tailwail] #4 cue throat_click
+[TWDEV] escape t 260 state search agit 0 pos 29.5,-60,18.4 posture hunch tail twitch voice click action listen mimic none dmg 0 mock 60.5,-60,28.5
+[TWDEV] escape t 280 state search agit 0 pos 29.5,-60,18.3 posture hunch tail twitch voice click action listen mimic none dmg 0 mock 60.5,-60,28.5
+[TWDEV] escape t 300 state search agit 0 pos 29.5,-60,19.6 posture hunch tail twitch voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[TWDEV] escape t 320 state search agit 0 pos 29.5,-60,23.1 posture hunch tail twitch voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[TWDEV] escape t 340 state search agit 0 pos 29.5,-60,23.3 posture hunch tail twitch voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[TWDEV] escape t 360 state search agit 0 pos 29.5,-60,23.3 posture hunch tail twitch voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[TWDEV] escape t 380 state search agit 0 pos 29.5,-60,23.3 posture hunch tail twitch voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[TWDEV] escape t 400 state search agit 0 pos 29.5,-60,23.3 posture hunch tail twitch voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[TWDEV] escape t 420 state search agit 0 pos 29.5,-60,23.3 posture hunch tail twitch voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[Tailwail] #4 cue snarl
+[TWDEV] escape t 440 state search agit 0 pos 29.5,-60,23.3 posture hunch tail twitch voice silent action ambush mimic none dmg 0 mock 60.5,-60,28.5
+[Tailwail] #4 search -> retreat (frustrated)
+[TWDEV] escape t 460 state retreat agit 0 pos 29.5,-60,23.3 posture hunch tail drag voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[Tailwail] #4 cue retreat
+[TWDEV] escape t 480 state retreat agit 0 pos 27.8,-60,23.5 posture tall tail drag voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[TWDEV] escape t 500 state retreat agit 0 pos 24.7,-60,23.5 posture tall tail drag voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[TWDEV] escape t 520 state retreat agit 0 pos 21.8,-60,22.5 posture tall tail drag voice silent action none mimic none dmg 0 mock 60.5,-60,28.5
+[Tailwail] encounter 4 end outcome=escaped after 33.6s
+[TWDEV] escape t 540 ended outcome escaped state retreat
+[TWDEV] escape outcome escaped ended true damage []
+[TWDEV] === done escape
+[TWDEV] === scenario tunnel
+[Tailwail] #5 - -> stalk (spawn)
+[Tailwail] encounter 5 start setup=delayed_imitation slot=a target=Mock
+[Tailwail] #5 stalk -> chase (test)
+[Tailwail] #5 cue wail
+[TWDEV] tunnel t 20 state chase agit 0 pos 6.5,-60,10.5 posture hunch tail free voice wail action none mimic none dmg 0 x 6.5
+[Tailwail] #5 cue exertion
+[TWDEV] tunnel t 40 state chase agit 0 pos 8.1,-60,10.5 posture hunch tail free voice silent action none mimic none dmg 0 x 8.1
+[TWDEV] tunnel t 60 state chase agit 0 pos 15,-60,10.5 posture hunch tail free voice silent action none mimic none dmg 0 x 15
+[TWDEV] tunnel t 80 state chase agit 0 pos 19.4,-60,10.5 posture crawl tail free voice silent action none mimic none dmg 0 x 19.4
+[TWDEV] tunnel t 100 state chase agit 0 pos 23.8,-60,10.5 posture crawl tail free voice silent action none mimic none dmg 0 x 23.8
+[Tailwail] #5 cue exertion
+[TWDEV] tunnel t 120 state chase agit 0 pos 30.7,-60,10.5 posture crawl tail free voice silent action none mimic none dmg 0 x 30.7
+[TWDEV] tunnel t 140 state chase agit 0 pos 37.6,-60,10.5 posture crawl tail free voice silent action none mimic none dmg 0 x 37.6
+[Tailwail] #5 cue swipe
+[Tailwail] #5 strike dealt 7 -> true
+[Tailwail] #5 cue impact
+[Tailwail] #5 strike landed
+[TWDEV] tunnel t 160 state chase agit 0 pos 39.4,-60,10.5 posture crawl tail free voice silent action strike mimic none dmg 1 x 39.4
+[Tailwail] #5 cue exertion
+[TWDEV] tunnel t 180 state chase agit 0 pos 40.2,-60,10.5 posture crawl tail free voice silent action none mimic none dmg 1 x 40.2
+[Tailwail] #5 cue swipe
+[TWDEV] tunnel t 200 state chase agit 0 pos 40.3,-60,10.5 posture crawl tail free voice silent action strike mimic none dmg 1 x 40.3
+[Tailwail] #5 strike dealt 7 -> true
+[Tailwail] #5 cue impact
+[Tailwail] #5 strike landed
+[TWDEV] tunnel t 220 state chase agit 0 pos 40.3,-60,10.5 posture crawl tail free voice silent action none mimic none dmg 2 x 40.3
+[Tailwail] #5 cue exertion
+[Tailwail] #5 cue swipe
+[TWDEV] tunnel t 240 state chase agit 0 pos 40.3,-60,10.5 posture crawl tail free voice silent action strike mimic none dmg 2 x 40.3
+[Tailwail] #5 strike dealt 7 -> true
+[Tailwail] #5 cue impact
+[Tailwail] #5 strike landed
+[Tailwail] #5 chase -> retreat (target-dead)
+[TWDEV] tunnel t 260 state retreat agit 0 pos 40.3,-60,10.5 posture crawl tail drag voice silent action none mimic none dmg 3 x 40.3
+[Tailwail] #5 cue retreat
+[TWDEV] tunnel t 280 state retreat agit 0 pos 42.9,-60,10.5 posture crawl tail drag voice silent action none mimic none dmg 3 x 42.9
+[TWDEV] tunnel t 300 state retreat agit 0 pos 45.5,-60,9.8 posture tall tail drag voice silent action none mimic none dmg 3 x 45.5
+[TWDEV] tunnel t 320 state retreat agit 0 pos 45.5,-60,6.7 posture tall tail drag voice silent action none mimic none dmg 3 x 45.5
+[Tailwail] encounter 5 end outcome=caught after 17.0s
+[TWDEV] tunnel t 340 ended outcome caught state retreat
+[TWDEV] tunnel reached x (despawned) damage 3 outcome caught
+[TWDEV] === done tunnel
+[TWDEV] === scenario stalk
+[Tailwail] #6 - -> stalk (spawn)
+[Tailwail] encounter 6 start setup=delayed_imitation slot=a target=Mock
+[Tailwail] #6 reposition -> 27,4
+[Tailwail] #6 cue tail_scrape
+[TWDEV] light at tailwail 0 watching {"watching":true,"los":true,"glance":true}
+[TWDEV] stalk-watched t 20 state stalk agit 0 pos 27.5,-60,13.5 posture hunch tail drag voice breath action none mimic none dmg 0 watching true
+[TWDEV] stalk-watched t 40 state stalk agit 0 pos 27.5,-60,13.5 posture hunch tail drag voice breath action none mimic none dmg 0 watching true
+[TWDEV] stalk-watched t 60 state stalk agit 0 pos 27.5,-60,13.5 posture hunch tail drag voice breath action none mimic none dmg 0 watching true
+[TWDEV] stalk-watched t 80 state stalk agit 0 pos 27.5,-60,13.5 posture hunch tail drag voice breath action none mimic none dmg 0 watching true
+[TWDEV] stalk-watched t 100 state stalk agit 0 pos 27.5,-60,13.5 posture hunch tail drag voice breath action none mimic none dmg 0 watching true
+[TWDEV] stalk-watched t 120 state stalk agit 0 pos 27.5,-60,13.5 posture hunch tail drag voice breath action none mimic none dmg 0 watching true
+[TWDEV] moved while watched 0
+[Tailwail] #6 reposition -> 22,16
+[TWDEV] stalk-unwatched t 20 state stalk agit 0 pos 27,-60,14 posture hunch tail drag voice breath action none mimic none dmg 0 
+[TWDEV] stalk-unwatched t 40 state stalk agit 0 pos 25.6,-60,14.4 posture hunch tail drag voice breath action none mimic none dmg 0 
+[Tailwail] #6 cue breath_far
+[Tailwail] #6 cue tail_scrape
+[TWDEV] stalk-unwatched t 60 state stalk agit 0 pos 24,-60,14.5 posture hunch tail drag voice breath action none mimic none dmg 0 
+[Tailwail] #6 reposition -> 39,11
+[TWDEV] stalk-unwatched t 80 state stalk agit 0 pos 22.8,-60,15.1 posture hunch tail drag voice breath action none mimic none dmg 0 
+[TWDEV] stalk-unwatched t 100 state stalk agit 0 pos 23.9,-60,14.7 posture hunch tail drag voice breath action none mimic none dmg 0 
+[TWDEV] stalk-unwatched t 120 state stalk agit 0 pos 25.4,-60,14.3 posture hunch tail drag voice breath action none mimic none dmg 0 
+[TWDEV] stalk-unwatched t 140 state stalk agit 0 pos 26.8,-60,13.6 posture hunch tail drag voice breath action none mimic none dmg 0 
+[Tailwail] #6 reposition -> 21,19
+[TWDEV] stalk-unwatched t 160 state stalk agit 0 pos 26.7,-60,14.3 posture hunch tail drag voice breath action none mimic none dmg 0 
+[TWDEV] stalk-unwatched t 180 state stalk agit 0 pos 25.5,-60,15.3 posture hunch tail drag voice breath action none mimic none dmg 0 
+[TWDEV] stalk-unwatched t 200 state stalk agit 0 pos 24,-60,15.5 posture hunch tail drag voice breath action none mimic none dmg 0 
+[TWDEV] moved while unwatched (path length) 14.3
+[Tailwail] encounter 6 end outcome=aborted after 16.4s
+[TWDEV] === done stalk
+[TWDEV] === scenario imitate
+[Tailwail] #7 - -> stalk (spawn)
+[Tailwail] encounter 7 start setup=delayed_imitation slot=a target=Mock
+[Tailwail] #7 reposition -> 32,12
+[Tailwail] #7 cue tail_scrape
+[Tailwail] #7 stalk -> standoff (test)
+[TWDEV] imitate t 5 state standoff agit 0.1 pos 18.5,-60,10.5 posture hunch tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 10 state standoff agit 0.2 pos 18.5,-60,10.5 posture hunch tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 15 state standoff agit 0.5 pos 18.5,-60,10.5 posture hunch tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] mock crouches at 20
+[TWDEV] imitate t 20 state standoff agit 0.6 pos 18.5,-60,10.5 posture hunch tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 25 state standoff agit 0.7 pos 18.5,-60,10.5 posture hunch tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 30 state standoff agit 0.8 pos 18.5,-60,10.5 posture hunch tail drag voice breath action none mimic none dmg 0 amt 0
+[Tailwail] #7 imitate crouch in 0.9s amt 1.00
+[TWDEV] imitate t 35 state standoff agit 2.3 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 40 state standoff agit 3.6 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 45 state standoff agit 4.9 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 50 state standoff agit 6.2 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 55 state standoff agit 8.9 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 60 state standoff agit 10.2 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 amt 1
+[TWDEV] imitate t 65 state standoff agit 11.5 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 amt 1
+[TWDEV] mock stands at 70
+[TWDEV] imitate t 70 state standoff agit 12.8 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 amt 1
+[TWDEV] imitate t 75 state standoff agit 15.5 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 amt 1
+[TWDEV] imitate t 80 state standoff agit 16.8 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 amt 1
+[TWDEV] imitate t 85 state standoff agit 18.1 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 amt 1
+[TWDEV] imitate t 90 state standoff agit 19.4 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 amt 1
+[TWDEV] imitate t 95 state standoff agit 22.1 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 amt 1
+[TWDEV] imitate t 100 state standoff agit 23.4 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 amt 1
+[TWDEV] imitate t 105 state standoff agit 24.7 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 110 state standoff agit 26 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 115 state standoff agit 28.7 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 120 state standoff agit 30 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 125 state standoff agit 31.3 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 130 state standoff agit 32.6 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 135 state standoff agit 35.3 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 140 state standoff agit 36.6 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 145 state standoff agit 37.9 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 150 state standoff agit 39.2 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 amt 0
+[Tailwail] #7 cue throat_click
+[TWDEV] imitate t 155 state standoff agit 41.9 pos 18.5,-60,10.5 posture tall tail twitch voice click action none mimic none dmg 0 amt 0
+[TWDEV] imitate t 160 state standoff agit 43.2 pos 18.5,-60,10.5 posture tall tail twitch voice click action none mimic none dmg 0 amt 0
+[TWDEV] memory {"crouch":{"n":1,"w":0.35,"p":0},"tilt":{"n":0,"w":0,"p":0},"step":{"n":0,"w":0,"p":0}}
+[Tailwail] encounter 7 end outcome=calm after 8.2s
+[Tailwail] #8 - -> stalk (spawn)
+[Tailwail] encounter 8 start setup=delayed_imitation slot=a target=Mock remembers crouch
+[TWDEV] second encounter remembered {"type":"crouch","w":0.8,"pitch":0}
+[TWDEV] remember t 5 state stalk agit 0 pos 18.5,-60,10.5 posture hunch tail drag voice breath action none mimic none dmg 0 
+[TWDEV] remember t 10 state stalk agit 0 pos 18.5,-60,10.5 posture hunch tail drag voice breath action none mimic none dmg 0 
+[Tailwail] #8 remembered gesture crouch
+[Tailwail] #8 opens with remembered crouch
+[TWDEV] remember t 15 state stalk agit 0 pos 18.5,-60,10.5 posture hunch tail drag voice breath action none mimic none dmg 0 
+[TWDEV] remember t 20 state stalk agit 0 pos 18.5,-60,10.5 posture hunch tail drag voice breath action none mimic crouch dmg 0 
+[TWDEV] remember t 25 state stalk agit 0 pos 18.5,-60,10.5 posture hunch tail drag voice breath action none mimic crouch dmg 0 
+[TWDEV] remember t 30 state stalk agit 0 pos 18.5,-60,10.5 posture hunch tail drag voice breath action none mimic crouch dmg 0 
+[TWDEV] remember t 35 state stalk agit 0 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 
+[TWDEV] remember t 40 state stalk agit 0 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 
+[TWDEV] remember t 45 state stalk agit 0 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 
+[TWDEV] remember t 50 state stalk agit 0 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 
+[TWDEV] remember t 55 state stalk agit 0 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 
+[TWDEV] remember t 60 state stalk agit 0 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 
+[TWDEV] remember t 65 state stalk agit 0 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 
+[TWDEV] remember t 70 state stalk agit 0 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 
+[TWDEV] remember t 75 state stalk agit 0 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic crouch dmg 0 
+[TWDEV] remember t 80 state stalk agit 0 pos 18.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 
+[Tailwail] encounter 8 end outcome=aborted after 4.0s
+[TWDEV] === done imitate
+[TWDEV] === scenario calm
+[Tailwail] #9 - -> stalk (spawn)
+[Tailwail] encounter 9 start setup=delayed_imitation slot=a target=Mock
+[Tailwail] #9 reposition -> 24,-6
+[Tailwail] #9 cue tail_scrape
+[Tailwail] #9 stalk -> standoff (test)
+[TWDEV] calm t 20 state standoff agit 0 pos 20.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 d 12
+[TWDEV] calm t 40 state standoff agit 0 pos 20.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 d 14
+[TWDEV] calm t 60 state standoff agit 0 pos 20.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 d 16
+[TWDEV] calm t 80 state standoff agit 0 pos 20.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 d 18
+[TWDEV] calm t 100 state standoff agit 0 pos 20.5,-60,10.5 posture tall tail drag voice breath action none mimic none dmg 0 d 20
+[Tailwail] #9 standoff -> retreat (calm-withdrawal)
+[Tailwail] #9 cue retreat
+[TWDEV] calm t 120 state retreat agit 0 pos 21,-60,11 posture tall tail drag voice silent action none mimic none dmg 0 d 22.5
+[TWDEV] calm t 140 state retreat agit 0 pos 23.2,-60,13.2 posture tall tail drag voice silent action none mimic none dmg 0 d 26.9
+[TWDEV] calm t 160 state retreat agit 0 pos 25.5,-60,15.5 posture tall tail drag voice silent action none mimic none dmg 0 d 29.4
+[TWDEV] calm t 180 state retreat agit 0 pos 27.7,-60,17.7 posture tall tail drag voice silent action none mimic none dmg 0 d 32
+[Tailwail] encounter 9 end outcome=calm after 11.4s
+[TWDEV] calm t 200 ended outcome calm state retreat
+[TWDEV] calm outcome calm damage 0
+[TWDEV] === done calm
+[TWDEV] === scenario death
+[Tailwail] #10 - -> stalk (spawn)
+[Tailwail] encounter 10 start setup=delayed_imitation slot=a target=Mock
+[Tailwail] #10 reposition -> 24,1
+[Tailwail] #10 cue tail_scrape
+[Tailwail] #10 stalk -> death (killed)
+[Tailwail] #10 cue death
+[TWDEV] death t 10 state death agit 0 pos 16.5,-60,10.5 posture hunch tail free voice silent action none mimic none dmg 0 
+[TWDEV] death t 20 state death agit 0 pos 16.5,-60,10.5 posture hunch tail free voice silent action none mimic none dmg 0 
+[TWDEV] death t 30 state death agit 0 pos 16.5,-60,10.5 posture hunch tail free voice silent action none mimic none dmg 0 
+[TWDEV] death t 40 state death agit 0 pos 16.5,-60,10.5 posture hunch tail free voice silent action none mimic none dmg 0 
+[Tailwail] encounter 10 end outcome=killed after 2.6s
+[TWDEV] death t 50 ended outcome killed state death
+[TWDEV] death: entity valid false outcome killed
+[TWDEV] === done death
+[TWDEV] === scenario spawnsite
+[TWDEV] spawnsite result {"x":30.5,"y":-60,"z":27.5,"head":6,"posture":"tall","light":0,"facing":116.56505117707799,"dist":26.832815729997478} reason ok ms 61 light 0
+[TWDEV] === done spawnsite
+[TWDEV] === scenario perf
+[Tailwail] #11 - -> stalk (spawn)
+[Tailwail] encounter 11 start setup=delayed_imitation slot=a target=Mock
+[Tailwail] #12 - -> stalk (spawn)
+[Tailwail] encounter 12 start setup=delayed_imitation slot=b target=Mock
+[Tailwail] #13 - -> stalk (spawn)
+[Tailwail] encounter 13 start setup=delayed_imitation slot=c target=Mock
+[Tailwail] #12 stalk -> standoff (test)
+[Tailwail] #13 stalk -> chase (test)
+[Tailwail] #13 cue wail
+[TWDEV] perf 3 encounters: decision tick avg 1.42 ms p95 3 ms max 7 ms; raycasts per tick 10.5 (BDS on the dev container CPU; not a client frame-rate measurement)
+[Tailwail] encounter 11 end outcome=aborted after 38.0s
+[TWDEV] === done perf

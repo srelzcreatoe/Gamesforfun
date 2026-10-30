@@ -114,6 +114,7 @@
         "tw_mimic_shrug": "animation.tall_wail.tw_mimic_shrug",
         "tw_mimic_tilt": "animation.tall_wail.tw_mimic_tilt",
         "tw_tail_drag": "animation.tall_wail.tw_tail_drag",
+        "tw_tail_drag_low": "animation.tall_wail.tw_tail_drag_low",
         "tw_tail_twitch": "animation.tall_wail.tw_tail_twitch",
         "tw_tail_rigid": "animation.tall_wail.tw_tail_rigid",
         "tw_inhale": "animation.tall_wail.tw_inhale",

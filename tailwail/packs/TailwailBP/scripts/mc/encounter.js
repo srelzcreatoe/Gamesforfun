@@ -142,6 +142,8 @@ export class Encounter {
     this.t += DT;
     const snap = this.snapshot();
     this.brain.update(snap, DT);
+    if (this.ended || !this.tw.isValid) return; // the brain may have despawned it this tick
+    this.footsteps();
     if (this.brain.done && !this.ended) this.end(this.brain.outcome || "observed", true);
   }
 
@@ -218,6 +220,20 @@ export class Encounter {
       creature: { pos: cpos, posture: posture2, headroom: this.mover.headHere, atGoal: this.mover.atGoal(), stuck: this.mover.stuck(this.t) },
       strikeGeom: geom,
     };
+  }
+
+  /** Hand/foot impacts follow distance actually travelled, matching the gait calibration. */
+  footsteps() {
+    const l = this.tw.location;
+    if (this.lastStepPos) this.stepDist = (this.stepDist || 0) + hdist(l, this.lastStepPos);
+    this.lastStepPos = { x: l.x, y: l.y, z: l.z };
+    const chase = this.brain.state === "chase" || this.brain.state === "search";
+    const every = chase ? CHASE.stepEvery / 2 : 2.2; // two contacts per gallop cycle
+    if ((this.stepDist || 0) >= every) {
+      this.stepDist = 0;
+      if (chase) playCue(this.tw, "step_heavy", this.mover.posture, this.rng);
+      else if (this.brain.state !== "death") playCue(this.tw, "step_soft", this.mover.posture, this.rng);
+    }
   }
 
   // ------------------------------------------------------------------ visuals

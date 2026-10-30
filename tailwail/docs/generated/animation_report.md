@@ -19,7 +19,8 @@ gfix_crawl: max correction 1.59 px
 mimic_crouch t=0.5 depth=3.0px thigh=20.0 knee=35.0 foot residual=-0.009
 mimic_crouch t=1.0 depth=6.5px thigh=37.0 knee=63.0 foot residual=-0.019
 mimic_crouch t=1.6 depth=11.0px thigh=58.5 knee=93.0 foot residual=-0.007
-tail_drag rest: lowest tail point y=12.03 px (0 = floor)
+tail_drag upright: tail0 -55 tail1 0 tail2 0 -> lowest 6.33 px, tip 4.5 px behind
+tail_drag hunched: tail0 -80 tail1 20 tail2 5 -> lowest 0.59 px, tip 10.0 px behind
 unfold_full: peak silhouette 53.3 px = 5.00 blocks at scale 1.50
 unfold_mid: peak silhouette 51.3 px = 4.81 blocks at scale 1.50
 unfold_low: peak 35.4 px = 3.32 blocks

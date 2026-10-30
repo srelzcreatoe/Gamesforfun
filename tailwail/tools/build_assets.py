@@ -120,6 +120,7 @@ def delta_to_keys(samples, loop, length, extra=None):
         for bone, chans in delta.items():
             for ch, v in chans.items():
                 bones.setdefault(bone, {}).setdefault(ch, {})[tkey(t)] = vec(v)
+    bones = {b: dict(sorted(bones[b].items())) for b in sorted(bones)}  # deterministic output order
     # collapse channels that never change into a constant
     for bone, chans in bones.items():
         for ch, keys in list(chans.items()):
@@ -239,7 +240,7 @@ def build_mimic_crouch(rig, report):
     # make every key carry every channel (zeros at t=0)
     allch = {(b, ch) for _, d in samples for b, chs in d.items() for ch in chs}
     for _, d in samples:
-        for b, ch in allch:
+        for b, ch in sorted(allch):
             d.setdefault(b, {}).setdefault(ch, [0, 0, 0])
     return delta_to_keys(samples, "hold_on_last_frame", 1.6, {"anim_time_update": "v.mimic_crouch"})
 
@@ -274,17 +275,34 @@ def build_mimic_tilt():
     }}
 
 
-def build_tail_drag(rig, report):
-    # Tail lowered to the floor and dragged; sway reuses the supplied idle tail motion, slowed.
-    base = {"tail0": [-48, 12, 0], "tail1": [30, 30, 0], "tail2": [22, 6, 0], "tail3": [14, 4, 0], "tail4": [8, 0, 0]}
-    pose = rig.pose([], 0.0)
-    for b, v in base.items():
-        pose = add_delta(pose, {b: {"rotation": v}})
-    lo, _ = rig.geo.bounds(pose, ["tail3", "tail4"])
-    report.append("tail_drag rest: lowest tail point y=%.2f px (0 = floor)" % lo[1])
-    sway = {"tail0": ("1.4", "20", "90", "3.5", "0"), "tail1": ("1.4", "20", "60", "4.5", "-35"),
-            "tail2": ("1.4", "20", "30", "5.5", "-70"), "tail3": ("1.4", "20", "0", "6.5", "-105"),
-            "tail4": ("1.4", "20", "-30", "7.5", "-140")}
+def solve_tail_drag(rig, base_layers, t, report, label, target_low=0.6, trail_w=0.15):
+    """Search tail angles so the tail hangs to the floor and trails backward (tip >= 0.3 px up)."""
+    base = rig.pose(base_layers, t)
+    base = add_delta(base, {"root": {"position": [0, -rig.min_y(base), 0]}})  # grounded, as in game
+    best = None
+    for a0 in range(-95, -20, 5):
+        for a1 in range(0, 70, 5):
+            for a2 in range(0, 45, 5):
+                d = {"tail0": {"rotation": [a0, 12, 0]}, "tail1": {"rotation": [a1, 30, 0]}, "tail2": {"rotation": [a2, 6, 0]},
+                     "tail3": {"rotation": [8, 4, 0]}, "tail4": {"rotation": [6, 0, 0]}}
+                pts = rig.geo.bone_points(add_delta(base, d), TAIL)
+                low = min(v[:, 1].min() for v in pts.values())
+                tip = pts["tail4"]
+                trail = tip[:, 2].mean()  # +z = behind the creature
+                err = abs(low - target_low) * 4 + (0 if low >= 0.2 else 50) - trail * trail_w
+                if best is None or err < best[0]:
+                    best = (err, a0, a1, a2, low, trail)
+    _, a0, a1, a2, low, trail = best
+    report.append("tail_drag %s: tail0 %d tail1 %d tail2 %d -> lowest %.2f px, tip %.1f px behind" % (label, a0, a1, a2, low, trail))
+    return {"tail0": [a0, 12, 0], "tail1": [a1, 30, 0], "tail2": [a2, 6, 0], "tail3": [8, 4, 0], "tail4": [6, 0, 0]}
+
+
+def build_tail_drag(rig, report, base_layers, t, label, **kw):
+    # Tail lowered to the floor and dragged; sway reuses the supplied idle tail motion, slowed and damped.
+    base = solve_tail_drag(rig, base_layers, t, report, label, **kw)
+    sway = {"tail0": ("0.6", "20", "90", "2.0", "0"), "tail1": ("0.6", "20", "60", "3.0", "-35"),
+            "tail2": ("0.6", "20", "30", "4.0", "-70"), "tail3": ("0.6", "20", "0", "5.0", "-105"),
+            "tail4": ("0.6", "20", "-30", "6.0", "-140")}
     bones = {}
     for b, v in base.items():
         ax, f, px, ay, py = sway[b]
@@ -474,7 +492,9 @@ def build(check=False):
     new[P + "tw_mimic_shrug"] = build_mimic_shrug()
     new[P + "tw_mimic_tilt"] = build_mimic_tilt()
     # 5. tail states
-    new[P + "tw_tail_drag"] = build_tail_drag(rig, report)
+    # upright, the tail is shorter than the hip height: a low, visibly trailing droop instead of a hidden hang
+    new[P + "tw_tail_drag"] = build_tail_drag(rig, report, [(rig.clip("idle"), 1, 0)], 0.0, "upright", target_low=6.0, trail_w=0.6)
+    new[P + "tw_tail_drag_low"] = build_tail_drag(rig, report, [(rig.clip("planted"), 1, 0)], 0.05, "hunched")
     new[P + "tw_tail_twitch"] = build_tail_twitch()
     new[P + "tw_tail_rigid"] = build_tail_rigid()
     # 6. breathing / voice

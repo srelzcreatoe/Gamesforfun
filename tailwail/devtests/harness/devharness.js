@@ -3,10 +3,11 @@
 // scripted stand-in player, because a dedicated server has no real players.
 import { BlockVolume, EntityDamageCause, GameMode, system, world } from "@minecraft/server";
 import { director } from "./main.js";
-import { creatureSees, playerView } from "./mc/perception.js";
+import { creatureSees, playerView, takeRayCount } from "./mc/perception.js";
 import { spawnSearch } from "./mc/spots.js";
 import { makeRng } from "./util/rng.js";
 import { setDebug } from "./mc/log.js";
+import { IMITATION } from "./config.js";
 
 const log = (...a) => console.warn("[TWDEV] " + a.join(" "));
 const ov = () => world.getDimension("overworld");
@@ -170,8 +171,9 @@ const SCENARIOS = {
   async escape() {
     clearArena();
     // corridor with corners, then a 1-block-high crawlspace Tailwail cannot enter
-    fill({ x: 30, y: Y, z: 0 }, { x: 31, y: Y + 6, z: 30 }, "minecraft:stone");
-    fill({ x: 30, y: Y, z: 20 }, { x: 31, y: Y, z: 20 }, "minecraft:air"); // 1-high hole through the wall
+    // a wall across the whole loaded area, pierced only by a 1-block-high hole
+    fill({ x: 30, y: Y, z: -16 }, { x: 31, y: Y + 9, z: 49 }, "minecraft:stone");
+    fill({ x: 30, y: Y, z: 20 }, { x: 31, y: Y, z: 20 }, "minecraft:air");
     const mock = new MockPlayer({ x: 14.5, y: Y, z: 20.5 });
     const enc = spawnTW(mock, { x: 4.5, y: Y, z: 10.5 });
     await wait(5);
@@ -199,7 +201,7 @@ const SCENARIOS = {
     enc.brain.enter("chase", "test");
     enc.brain.c.lastSeen = { x: 40.5, y: Y, z: 10.5 };
     await timeline(enc, mock, 360, 20, "tunnel", () => "x " + r1(enc.tw.location.x));
-    log("tunnel reached x", r1(enc.tw.location.x), "damage", mock.damage.length);
+    log("tunnel reached x", enc.tw.isValid ? r1(enc.tw.location.x) : "(despawned)", "damage", mock.damage.length, "outcome", enc.brain.outcome);
     if (!enc.ended) enc.end("aborted", true);
     mock.remove();
   },
@@ -222,9 +224,17 @@ const SCENARIOS = {
     await timeline(enc, mock, 120, 20, "stalk-watched", () => "watching " + playerView(mock, enc.tw, enc.mover.posture).watching);
     log("moved while watched", r1(Math.hypot(enc.tw.location.x - start.x, enc.tw.location.z - start.z)));
     mock.yaw += 180;
-    const s2 = enc.tw.location;
+    let path = 0;
+    let last = enc.tw.location;
+    const track = system.runInterval(() => {
+      if (!enc.tw.isValid) return;
+      const l = enc.tw.location;
+      path += Math.hypot(l.x - last.x, l.z - last.z);
+      last = l;
+    }, 5);
     await timeline(enc, mock, 200, 20, "stalk-unwatched");
-    log("moved while unwatched", r1(Math.hypot(enc.tw.location.x - s2.x, enc.tw.location.z - s2.z)));
+    system.clearRun(track);
+    log("moved while unwatched (path length)", r1(path));
     enc.end("aborted", true);
     mock.remove();
   },
@@ -243,7 +253,8 @@ const SCENARIOS = {
     await timeline(enc, mock, 160, 5, "imitate", () => "amt " + enc.tw.getProperty("tailwail:mimic_amt"));
     log("memory", JSON.stringify(enc.memory.gest));
     enc.end("calm", true);
-    // second encounter: remembered gesture opens it
+    // second encounter: remembered gesture opens it (the 60 % in-game chance is forced to 100 % for the test)
+    IMITATION.rememberedChance = 1;
     mock.props.set("tailwail:mem", JSON.stringify({ ...enc.memory, gest: { ...enc.memory.gest, crouch: { n: 3, w: 0.8, p: 0 } } }));
     const enc2 = spawnTW(mock, { x: 18.5, y: Y, z: 10.5 });
     log("second encounter remembered", JSON.stringify(enc2.remembered));
@@ -278,6 +289,35 @@ const SCENARIOS = {
     await timeline(enc, mock, 80, 10, "death");
     log("death: entity valid", enc.tw.isValid, "outcome", enc.brain.outcome);
     mock.remove();
+  },
+
+  async perf() {
+    clearArena();
+    for (const x of [12, 24, 36, 48]) for (const z of [4, 14, 24]) fill({ x, y: Y, z }, { x: x + 1, y: Y + 6, z: z + 1 }, "minecraft:stone");
+    const mocks = [new MockPlayer({ x: 2.5, y: Y, z: 5.5 }), new MockPlayer({ x: 2.5, y: Y, z: 15.5 }), new MockPlayer({ x: 2.5, y: Y, z: 25.5 })];
+    const encs = [spawnTW(mocks[0], { x: 30.5, y: Y, z: 5.5 }), spawnTW(mocks[1], { x: 30.5, y: Y, z: 15.5 }), spawnTW(mocks[2], { x: 30.5, y: Y, z: 25.5 })];
+    encs[1].brain.enter("standoff", "test");
+    encs[2].brain.enter("chase", "test");
+    mocks.forEach((m, i) => m.lookAt(encs[i].tw.location));
+    setDebug(false);
+    await wait(10);
+    const times = [];
+    let rays = 0;
+    takeRayCount();
+    for (let i = 0; i < 150; i++) {
+      const t0 = Date.now();
+      director.tickEncounters();
+      times.push(Date.now() - t0);
+      rays += takeRayCount();
+      await wait(1);
+    }
+    times.sort((a, b) => a - b);
+    const avg = times.reduce((a, b) => a + b, 0) / times.length;
+    log("perf 3 encounters: decision tick avg", avg.toFixed(2), "ms p95", times[Math.floor(times.length * 0.95)], "ms max", times[times.length - 1],
+      "ms; raycasts per tick", (rays / times.length).toFixed(1), "(BDS on the dev container CPU; not a client frame-rate measurement)");
+    setDebug(true);
+    for (const e of encs) if (!e.ended) e.end("aborted", true);
+    mocks.forEach((m) => m.remove());
   },
 
   async spawnsite() {

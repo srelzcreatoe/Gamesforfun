@@ -32,7 +32,7 @@ def camera(yaw_deg, pitch_deg):
     return R
 
 
-def render(geo, tex, pose, view, size=(360, 520), ppu=6.0, origin_y=None, scale=1.0):
+def render(geo, tex, pose, view, size=(360, 520), ppu=6.0, origin_y=None, scale=1.0, guides=True):
     W, H = size
     img = np.zeros((H, W, 3), dtype=np.float32)
     img[:] = (0.13, 0.13, 0.15)
@@ -96,6 +96,8 @@ def render(geo, tex, pose, view, size=(360, 520), ppu=6.0, origin_y=None, scale=
             sub[m] = z[m]
             img[y0:y1 + 1, x0:x1 + 1][m] = px[..., :3][m] * shade
     out = Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8))
+    if not guides:
+        return out
     d = ImageDraw.Draw(out)
     # ground line and block grid (16 model px per block)
     d.line([(0, oy), (W, oy)], fill=(200, 80, 80), width=1)
