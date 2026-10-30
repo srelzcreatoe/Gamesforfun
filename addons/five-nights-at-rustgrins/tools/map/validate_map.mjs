@@ -94,7 +94,7 @@ for (const c of CAMERAS) {
 
 console.log('nodes:');
 for (const n of Object.values(NODES)) {
-  const h = n.crawl ? 1.5 : 3.3; // the animatronics stand about 3.25 blocks tall (render scale 1.25)
+  const h = n.crawl ? 1.7 : 3.75; // the animatronics stand about 3.7 blocks tall and crawl 1.7 high (render scale 1.45)
   const floor = nameAt(n.x, n.y - 0.5, n.z);
   if (!blocksBody(floor) && !n.crawl) report(`${n.id}: no floor under it (${floor})`);
   for (let dy = 0.1; dy < h; dy += 0.5) {
@@ -117,7 +117,7 @@ for (const e of EDGES) {
     for (let k = 0; k <= n && !bad; k++) {
       const t = k / n;
       const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
-      for (const dy of crawl ? [0.3, 0.9, 1.4] : [0.3, 1.2, 2.2, 3.1]) {
+      for (const dy of crawl ? [0.3, 0.9, 1.6] : [0.3, 1.2, 2.2, 3.1, 3.6]) {
         const nm = inGap([p[0], p[1] + dy, p[2]]) ? 'minecraft:air' : nameAt(p[0], p[1] + dy, p[2]);
         const levelChange = Math.abs(b[1] - a[1]) > 0.5;
         if (dy < 0.5 && levelChange && isStep(nm)) continue;

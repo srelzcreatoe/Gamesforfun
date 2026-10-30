@@ -1,7 +1,7 @@
 # Authors the extra animations the night needs on top of the supplied set:
 #   crawl   (Purple Rat in the ducts: on knees and forearms, a slow diagonal crawl; fitted to each
 #            skeleton so knees, forearms and hands rest on the floor and nothing sinks through it, and
-#            low enough for the 2-block ducts at the 1.25 render scale)
+#            low enough for the 2-block ducts at the render scale: build_entities passes the height limit)
 #   peek    (the Cat leaning out between the Cabaret curtains)
 #   look    (additive head turn driven by variables, for "staring at the camera")
 #   slump   alias handled by pose_2 in the controller
@@ -22,7 +22,7 @@ def _r(v):
 
 # ------------------------------------------------------------------ crawl
 CRAWL_LENGTH = 1.2
-CRAWL_MAX_HEIGHT = 19.0   # model px; x1.25 render scale = 1.48 blocks, inside the 2-block ducts
+CRAWL_MAX_HEIGHT = 19.0   # model px (default; build_entities passes the limit for its render scale)
 FLOOR_GAP = 0.15          # px between the resting knees / forearms and the floor
 
 
@@ -64,7 +64,7 @@ def _limb_bones(skel, side, part):
     return [b for b in skel.descendants(roots[part]) if b not in PROPS]
 
 
-def solve_crawl(skel):
+def solve_crawl(skel, max_height=CRAWL_MAX_HEIGHT):
     """Hip height, torso pitch and head pitch so that, at rest in the cycle (t where both limbs of a
     pair are vertical), the knees and the forearms touch the floor and the body stays under the
     height limit. Returns the parameter dict for _crawl_pose."""
@@ -93,7 +93,7 @@ def solve_crawl(skel):
                 hi = P['lean']
     # 3. head: look ahead and a little down, lowered further until the body fits under the limit
     P['head_pitch'] = 25.0
-    while skel.highest(world(), body) > CRAWL_MAX_HEIGHT and P['head_pitch'] < 80:
+    while skel.highest(world(), body) > max_height and P['head_pitch'] < 80:
         P['head_pitch'] += 2.5
     # 4. tail: trailing low behind, raised (tail_1 pitch up) just enough to clear the floor
     tail = [b for b in skel.bones if b.startswith('tail')]
@@ -108,10 +108,10 @@ def solve_crawl(skel):
     return P
 
 
-def crawl_anim(cid=None, skel=None):
+def crawl_anim(cid=None, skel=None, max_height=CRAWL_MAX_HEIGHT):
     T = [round(k * 0.1, 2) for k in range(int(round(CRAWL_LENGTH / 0.1)) + 1)]
     bones = {}
-    P = solve_crawl(skel)
+    P = solve_crawl(skel, max_height)
     for t in T:
         for b, ch in _crawl_pose(skel, t, P).items():
             for c, v in ch.items():

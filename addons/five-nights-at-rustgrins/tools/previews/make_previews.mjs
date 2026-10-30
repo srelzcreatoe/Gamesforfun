@@ -204,7 +204,7 @@ export const SCENES = [
     name: '13_jumpscare', voxels: 'night', caption: 'Jumpscare',
     scene: {
       camera: { pos: [36.5, 1.62, 63.5], target: [36.5, 1.52, 62.35], fov: 70 }, exposure: 1.1,
-      entities: [{ id: 'fnar:rustgrin', pos: [36.5, 1.62 - 2.05 * 1.25, 62.35], yaw: 0, anim: 'jumpscare', t: 0.22, eyes: true }],
+      entities: [{ id: 'fnar:rustgrin', pos: [36.5, 1.62 - 2.64, 62.2], yaw: 0, anim: 'jumpscare', t: 0.8, eyes: true }],
       extra_lights: [point([36.5, 3.6, 63.2], '#ffd9a0', 4, 8), point([35.6, 1.0, 63.4], '#ff7a5c', 1.2, 4)],
       bloom: { strength: 0.6, radius: 0.5, threshold: 0.85 },
     },

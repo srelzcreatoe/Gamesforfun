@@ -32,9 +32,10 @@ import { VERSION } from '../data/version.js';
 
 const wait = (ticks) => new Promise((res) => system.runTimeout(() => res(undefined), ticks));
 
-/** Eye height of each model as rendered (blocks; scale 1 x the 1.25 render scale) - the jumpscare framing and the camera stare use it. */
-const RENDER_SCALE_Y = 1.25;
-const HEAD_Y = Object.freeze(Object.fromEntries(Object.entries({ rustgrin: 2.05, mirehop: 2.05, noxbriar: 2.05, purple_rat: 2.0, cat: 1.95, top_hat_rat: 2.05, rusted: 2.05 }).map(([k, v]) => [k, v * RENDER_SCALE_Y])));
+/** Standing eye height of each animatronic as rendered (blocks, render scale 1.45): the camera stare aims the head with it. */
+const HEAD_Y = Object.freeze({ rustgrin: 2.97, mirehop: 2.79, noxbriar: 2.97, purple_rat: 3.01, cat: 3.04, top_hat_rat: 2.97, rusted: 2.97 });
+/** Eye height on the held frame of each jumpscare (the face lunges down): the jumpscare is framed on it. */
+const JUMPSCARE_EYE_Y = Object.freeze({ rustgrin: 2.64, mirehop: 2.44, noxbriar: 2.63, purple_rat: 2.64, cat: 2.65, top_hat_rat: 2.56, rusted: 2.64 });
 const NIGHT_HUD = [HudElement.Health, HudElement.Hunger, HudElement.Armor, HudElement.StatusEffects, HudElement.PaperDoll, HudElement.AirBubbles, HudElement.HorseHealth];
 /** The hand slot during a shift: it holds the Camera Tablet, and hotbar scrolls on the cameras return here. */
 const NEUTRAL_SLOT = 4;
@@ -1347,7 +1348,7 @@ export class Game {
       const yawRad = (rot.y * Math.PI) / 180;
       const fwd = { x: -Math.sin(yawRad), z: Math.cos(yawRad) };
       const dist = 1.15;
-      const head = HEAD_Y[id] ?? 2;
+      const head = JUMPSCARE_EYE_Y[id] ?? 2.6;
       const pos = { x: eye.x + fwd.x * dist, y: eye.y - head, z: eye.z + fwd.z * dist };
       const facing = (rot.y + 180) % 360;
       this.puppets.jumpscareAt(id, L(pos), facing);

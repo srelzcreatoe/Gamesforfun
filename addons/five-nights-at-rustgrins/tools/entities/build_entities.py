@@ -37,9 +37,13 @@ ANIM_VALUES = list(ANIMS.keys())
 
 # Render size: taller and bulkier than the supplied models without touching the geometry. Bedrock scales
 # the model about the entity's feet, per axis, in the entity's own frame (client entity scripts.scaleX/Y/Z).
-RENDER_SCALE = {'x': 1.3, 'y': 1.25, 'z': 1.3}
-# Collision box to match (supplied models: about 0.7 x 2.6 blocks at scale 1).
-COLLISION = {'width': 0.9, 'height': 3.25}
+RENDER_SCALE = {'x': 1.35, 'y': 1.45, 'z': 1.35}
+# Collision box to match (supplied models: about 0.7 x 2.55 blocks at scale 1 -> ~0.95 x 3.7).
+COLLISION = {'width': 0.95, 'height': 3.8}
+# Culling box of the geometry (generous: the scaled body is ~3.7 blocks tall and ~3.6 blocks long crawling).
+VISIBLE_BOUNDS = {'width': 6, 'height': 6, 'offset': [0, 2.5, 0]}
+# The crawl (ducts are 2 blocks tall inside) stays under this height in game, at the render scale.
+CRAWL_MAX_BLOCKS = 1.65
 
 
 def write_json(path, obj):
@@ -135,17 +139,17 @@ def make_rusted(img):
     return Image.fromarray(res, 'RGBA')
 
 
-def rename_anims(anims, cid, rust_anims=None, geo=None):
+def rename_anims(anims, cid, geo):
     out = {}
     for k, v in anims['animations'].items():
         name = k.split('.')[-1]
         out[f'animation.fnar.{cid}.{name}'] = v
     skel = Skeleton(geo)
-    out[f'animation.fnar.{cid}.crawl'] = crawl_anim(cid, skel)
+    out[f'animation.fnar.{cid}.crawl'] = crawl_anim(cid, skel, max_height=CRAWL_MAX_BLOCKS * 16 / RENDER_SCALE['y'])
     out[f'animation.fnar.{cid}.peek'] = peek_anim(cid, skel)
     out[f'animation.fnar.{cid}.look'] = look_anim()
     # pose / hand corrections (tools/entities/pose_fixes.py)
-    pose_fixes.apply(cid, out, rust_anims if rust_anims is not None else out)
+    pose_fixes.apply(cid, out)
     return out
 
 
@@ -256,18 +260,15 @@ def texture_set(name):
 def main():
     tex_dir = os.path.join(RP, 'textures', 'entity', 'fnar')
     os.makedirs(tex_dir, exist_ok=True)
-    # Rustgrin's renamed animations: the reference stage pose for the others (pose_fixes.py)
-    rust_src = json.load(open(os.path.join(SRC, PACK_OF['rustgrin'], 'animations', 'rustgrin.animation.json')))
-    rust_anims = {f"animation.fnar.rustgrin.{k.split('.')[-1]}": v for k, v in rust_src['animations'].items()}
     for cid, pk in PACK_OF.items():
         src = os.path.join(SRC, pk)
         geo = json.load(open(os.path.join(src, 'models', 'entity', f'{cid}.geo.json')))
         g = geo['minecraft:geometry'][0]
         g['description']['identifier'] = f'geometry.fnar.{cid}'
-        # culling box: room for the scaled-up body (about 3.25 blocks tall, 3.4 long when crawling)
-        g['description']['visible_bounds_width'] = 5
-        g['description']['visible_bounds_height'] = 5
-        g['description']['visible_bounds_offset'] = [0, 2, 0]
+        # culling box: room for the scaled-up body
+        g['description']['visible_bounds_width'] = VISIBLE_BOUNDS['width']
+        g['description']['visible_bounds_height'] = VISIBLE_BOUNDS['height']
+        g['description']['visible_bounds_offset'] = list(VISIBLE_BOUNDS['offset'])
         write_json(os.path.join(RP, 'models', 'entity', f'fnar_{cid}.geo.json'), geo)
         img = Image.open(os.path.join(src, 'textures', 'entity', f'{cid}.png')).convert('RGBA')
         img.save(os.path.join(tex_dir, f'{cid}.png'))
@@ -276,7 +277,7 @@ def main():
         make_mer(img, mask).save(os.path.join(tex_dir, f'{cid}_mer.png'))
         write_json(os.path.join(tex_dir, f'{cid}.texture_set.json'), texture_set(cid))
         anims = json.load(open(os.path.join(src, 'animations', f'{cid}.animation.json')))
-        write_json(os.path.join(RP, 'animations', f'fnar_{cid}.animation.json'), {'format_version': anims.get('format_version', '1.8.0'), 'animations': rename_anims(anims, cid, rust_anims, geo)})
+        write_json(os.path.join(RP, 'animations', f'fnar_{cid}.animation.json'), {'format_version': anims.get('format_version', '1.8.0'), 'animations': rename_anims(anims, cid, geo)})
         write_json(os.path.join(RP, 'animation_controllers', f'fnar_{cid}.animation_controllers.json'), controller(cid))
         write_json(os.path.join(RP, 'entity', f'fnar_{cid}.entity.json'), client_entity(cid, cid, cid, f'{cid}_eyes'))
         write_json(os.path.join(BP, 'entities', f'{cid}.json'), behavior_entity(cid))

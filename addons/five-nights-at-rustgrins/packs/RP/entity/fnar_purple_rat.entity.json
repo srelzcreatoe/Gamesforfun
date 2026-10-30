@@ -15,9 +15,9 @@
     "default": "geometry.fnar.purple_rat"
    },
    "scripts": {
-    "scaleX": "1.3",
-    "scaleY": "1.25",
-    "scaleZ": "1.3",
+    "scaleX": "1.35",
+    "scaleY": "1.45",
+    "scaleZ": "1.35",
     "pre_animation": [
      "variable.fnar_anim = query.property('fnar:anim');",
      "variable.fnar_eyes = query.property('fnar:eyes');",
