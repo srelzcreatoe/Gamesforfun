@@ -17,34 +17,31 @@
    ],
    "scripts": {
     "scale": "1.5",
-    "initialize": [
-     "v.tremor = 0.8; v.jaw = 18.0; v.look_x = 0.0; v.look_y = 0.0;"
-    ],
     "pre_animation": [
-     "v.jaw = 18.0 + 4.0 * math.sin(q.life_time * 120.0);"
+     "v.tremor = 0.8; v.spd = 0.0; v.jaw = 18.0 + 4.0 * math.sin(q.life_time * 120.0);"
     ],
     "animate": [
      "ctrl_echo",
-     "tw2_tremor",
+     "tremor",
      "jaw",
-     "tw_tail_drag"
+     "tail_free"
     ]
    },
    "animations": {
-    "tw2_statue_reach": "animation.tall_wail.tw2_statue_reach",
-    "tw2_statue_arms_up": "animation.tall_wail.tw2_statue_arms_up",
-    "tw2_statue_cover": "animation.tall_wail.tw2_statue_cover",
-    "tw2_statue_bow": "animation.tall_wail.tw2_statue_bow",
-    "tw2_statue_sideways": "animation.tall_wail.tw2_statue_sideways",
-    "tw2_behind": "animation.tall_wail.tw2_behind",
-    "tw2_watch_low": "animation.tall_wail.tw2_watch_low",
-    "tw2_neck": "animation.tall_wail.tw2_neck",
-    "tw2_peek_l": "animation.tall_wail.tw2_peek_l",
-    "tw2_peek_r": "animation.tall_wail.tw2_peek_r",
-    "tw2_tremor": "animation.tall_wail.tw2_tremor",
-    "jaw": "animation.tall_wail.jaw",
-    "tw_tail_drag": "animation.tall_wail.tw_tail_drag",
-    "ctrl_echo": "controller.animation.tall_wail.v2_echo"
+    "reach": "animation.tall_wail.v3.reach",
+    "watch": "animation.tall_wail.v3.watch",
+    "watch_low": "animation.tall_wail.v3.watch_low",
+    "tall": "animation.tall_wail.v3.tall",
+    "peek_l": "animation.tall_wail.v3.peek_l",
+    "peek_r": "animation.tall_wail.v3.peek_r",
+    "behind": "animation.tall_wail.v3.behind",
+    "neck": "animation.tall_wail.v3.neck",
+    "cling": "animation.tall_wail.v3.cling",
+    "huddle": "animation.tall_wail.v3.huddle",
+    "tremor": "animation.tall_wail.v3.tremor",
+    "jaw": "animation.tall_wail.v3.jaw",
+    "tail_free": "animation.tall_wail.v3.tail_free",
+    "ctrl_echo": "controller.animation.tall_wail.v3_echo"
    }
   }
  }

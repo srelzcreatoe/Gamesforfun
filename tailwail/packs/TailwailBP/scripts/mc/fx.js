@@ -11,7 +11,10 @@ import { dlog } from "./log.js";
 import { getPrefs } from "./store.js";
 
 const FOG_TAG = "tailwail";
-const LOCKS = [InputPermissionCategory.LateralMovement, InputPermissionCategory.Camera, InputPermissionCategory.Sneak];
+// Held in its hands: no walking, no turning.  Jump and Sneak stay live: they are the struggle.
+const LOCKS = [InputPermissionCategory.LateralMovement, InputPermissionCategory.Camera];
+// restore also covers Sneak, which older versions locked
+const RESTORE = [...LOCKS, InputPermissionCategory.Sneak];
 
 /** @type {Map<string, {fog:Set<string>, music:string|null, fov:boolean, locked:boolean, beat:{rate:number, next:number, vol:number}|null, title:boolean}>} */
 const live = new Map();
@@ -138,7 +141,7 @@ export function lockInput(player) {
 export function unlockInput(player) {
   const s = live.get(player.id);
   if (s) s.locked = false;
-  for (const c of LOCKS) safe("unlock", () => player.inputPermissions.setPermissionCategory(c, true));
+  for (const c of RESTORE) safe("unlock", () => player.inputPermissions.setPermissionCategory(c, true));
 }
 
 export function title(player, text, subtitle, stay = 1.5, fadeIn = 0, fadeOut = 0.3) {

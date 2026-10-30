@@ -2,18 +2,19 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createAgitation, stepAgitation, cueLevel } from "../packs/TailwailBP/scripts/core/agitation.js";
 import { createDetector, observe, createImitator, offer, updateImitator } from "../packs/TailwailBP/scripts/core/gestures.js";
-import { createStrikeState, startStrike, resolveImpact, finishStrike, canStartStrike, inGrabReach, struggleProgress } from "../packs/TailwailBP/scripts/core/combat_rules.js";
+import { HIT_REACH, chooseAttack, createCooldowns, hitLands, inGrabReach, pickFinisher, spendAttack, struggleProgress, struggleSpec } from "../packs/TailwailBP/scripts/core/combat_rules.js";
 import { createLimiter, allow, createPlayerBudget, spend } from "../packs/TailwailBP/scripts/core/audio_rules.js";
-import { AGITATION, IMITATION, CHASE, CLIP } from "../packs/TailwailBP/scripts/config.js";
+import { AGITATION, IMITATION, CHASE, PRESETS, WORLD_DEFAULTS } from "../packs/TailwailBP/scripts/config.js";
 import { makeRng } from "../packs/TailwailBP/scripts/util/rng.js";
 
 const calm = { watched: false, distance: 11, closing: 0, sprinting: false, hits: 0, movingAway: false };
 
 test("agitation: a brief glance is free, staring beyond the grace budget is not", () => {
   const a = createAgitation();
-  for (let i = 0; i < 6; i++) stepAgitation(a, { ...calm, watched: true }, 0.2); // 1.2 s glance
+  for (let i = 0; i < 4; i++) stepAgitation(a, { ...calm, watched: true }, 0.2); // a short glance
   const afterGlance = a.value;
-  assert.ok(afterGlance < 1.0, `glance cost ${afterGlance}`);
+  // a glance inside the grace budget costs nothing beyond the slow ambient drift
+  assert.ok(afterGlance <= AGITATION.drift * 0.8 + 0.01, `glance cost ${afterGlance}`);
   for (let i = 0; i < 25; i++) stepAgitation(a, { ...calm, watched: true }, 0.2); // 5 more seconds
   assert.ok(a.value > 15, `stare should agitate, got ${a.value}`);
 });
@@ -88,20 +89,53 @@ test("imitation: replays land 1-2 s after the gesture began and grow with agitat
   assert.equal(offer(im, { type: "crouch", t: 0 }, im.cooldownUntil - 0.1, 0, makeRng(4), 1), null, "cooldown blocks immediate repeat");
 });
 
-test("contact: a strike lands at most once; no LOS, no reach or no facing means no damage", () => {
-  const s = createStrikeState();
-  startStrike(s, 0);
+test("contact: every hit needs reach, sight and (for rakes) facing at its impact frame", () => {
   const geom = { hdist: 2, dy: 0, facingCos: 1, los: true, targetValid: true };
-  assert.equal(resolveImpact(s, CLIP.strikeImpact - 0.2, geom), false, "before the impact frame");
-  assert.equal(resolveImpact(s, CLIP.strikeImpact + 0.01, geom), true);
-  assert.equal(resolveImpact(s, CLIP.strikeImpact + 0.2, geom), false, "never twice");
-  finishStrike(s, CLIP.strike + 0.01);
-  assert.equal(canStartStrike(s, CLIP.strike + 0.1, geom), false, "cooldown");
-  assert.equal(canStartStrike(s, CLIP.strike + CHASE.strikeCooldown + 0.05, geom), true);
-  for (const bad of [{ los: false }, { hdist: 4 }, { facingCos: 0 }, { targetValid: false }, { dy: 4 }]) {
-    const s2 = createStrikeState();
-    startStrike(s2, 0);
-    assert.equal(resolveImpact(s2, CLIP.strikeImpact + 0.01, { ...geom, ...bad }), false, JSON.stringify(bad));
+  for (const kind of Object.keys(HIT_REACH)) assert.equal(hitLands(kind, geom), true, kind);
+  for (const bad of [{ los: false }, { hdist: 5 }, { targetValid: false }, { dy: 4 }]) {
+    for (const kind of Object.keys(HIT_REACH)) assert.equal(hitLands(kind, { ...geom, ...bad }), false, kind + JSON.stringify(bad));
+  }
+  assert.equal(hitLands("swipe_r", { ...geom, facingCos: -0.5 }), false, "a rake behind its back misses");
+  assert.equal(hitLands("slam", { ...geom, facingCos: -0.5, hdist: 3.9 }), true, "the slam's shockwave goes all round");
+  assert.equal(hitLands("nothing", geom), false);
+});
+
+test("contact: attack choice follows range, cooldowns, headroom and the grab setting", () => {
+  const rng = makeRng(1);
+  const base = { t: 0, settings: WORLD_DEFAULTS, rng, headroom: 8, canGrab: true, tunnel: false };
+  const g = (over) => ({ hdist: 2.4, dy: 0, facingCos: 1, los: true, targetValid: true, ...over });
+  const seen = new Set();
+  for (let i = 0; i < 400; i++) seen.add(chooseAttack({ ...base, cd: createCooldowns(), geom: g({}) }));
+  for (const k of ["grab", "slam", "combo", "swipe_r", "swipe_l"]) assert.ok(seen.has(k), "close range never picks " + k);
+  assert.ok(!seen.has("pounce"), "no pounce at arm's length");
+  const mid = new Set();
+  for (let i = 0; i < 200; i++) mid.add(chooseAttack({ ...base, cd: createCooldowns(), geom: g({ hdist: 8 }) }));
+  assert.deepEqual([...mid].sort(), [null, "pounce"].sort());
+  for (let i = 0; i < 200; i++) {
+    const k = chooseAttack({ ...base, cd: createCooldowns(), geom: g({}), headroom: 4, tunnel: false, canGrab: false });
+    assert.ok(k !== "slam" && k !== "grab", k);
+    assert.ok(chooseAttack({ ...base, cd: createCooldowns(), geom: g({ hdist: 8 }), tunnel: true }) !== "pounce");
+  }
+  assert.equal(chooseAttack({ ...base, cd: createCooldowns(), geom: g({ los: false }) }), null, "never through walls");
+  const cd = createCooldowns();
+  spendAttack(cd, "pounce", 10, makeRng(2));
+  assert.ok(cd.pounce >= 10 + CHASE.pounceCooldown && cd.swipe > 10, "cooldowns spent");
+});
+
+test("contact: the struggle spec follows the preset; finishers fit the ceiling", () => {
+  const rng = makeRng(5);
+  for (const name of Object.keys(PRESETS)) {
+    const s = { ...WORLD_DEFAULTS, ...PRESETS[name] };
+    for (let i = 0; i < 100; i++) {
+      const sp = struggleSpec(s, rng, i % 3);
+      if (sp.kind !== "alternate") assert.ok(sp.needed >= s.struggleMin && sp.needed <= s.struggleMax, `${name} ${sp.needed}`);
+      if (name === "calm") assert.equal(sp.inescapable, false, "calm is always escapable");
+      if (i % 3 === 0) assert.equal(sp.inescapable, false);
+    }
+  }
+  for (let i = 0; i < 50; i++) {
+    assert.equal(pickFinisher(rng, 4), "bite");
+    assert.ok(["bite", "throw", "smash"].includes(pickFinisher(rng, 8)));
   }
 });
 

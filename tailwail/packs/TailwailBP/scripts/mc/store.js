@@ -8,7 +8,9 @@ import { PLAYER_DEFAULTS, PRESETS, WORLD_DEFAULTS, WORLD_LIMITS } from "../confi
 import { emptyMemory, parseMemory, serializeMemory } from "../core/memory.js";
 import { emptySchedule, parseSchedule, serializeSchedule } from "../core/scheduler.js";
 
-const K = { settings: "tailwail:settings2", prefs: "tailwail:prefs2", mem: "tailwail:mem", sched: "tailwail:sched2" };
+// v3 starts from fresh world settings (v2's slower tuning would carry over otherwise); the
+// player's presentation preferences, memory and schedule keep their keys.
+const K = { settings: "tailwail:settings3", prefs: "tailwail:prefs2", mem: "tailwail:mem", sched: "tailwail:sched2" };
 
 const clampNum = (v, [lo, hi], d) => (Number.isFinite(+v) ? Math.max(lo, Math.min(hi, +v)) : d);
 
@@ -23,10 +25,12 @@ export function sanitizeSettings(raw) {
       else if (k === "preset") s[k] = [...Object.keys(PRESETS), "custom"].includes(raw[k]) ? raw[k] : d;
     }
   }
-  s.v = 2;
+  s.v = 3;
   s.maxConcurrent = Math.round(s.maxConcurrent);
   s.presence = Math.round(s.presence);
-  s.strugglePresses = Math.round(s.strugglePresses);
+  s.breakBlocks = Math.round(s.breakBlocks);
+  s.struggleMin = Math.round(s.struggleMin);
+  s.struggleMax = Math.max(s.struggleMin, Math.round(s.struggleMax));
   if (s.cooldownMax < s.cooldownMin) s.cooldownMax = s.cooldownMin;
   if (s.firstMax < s.firstMin) s.firstMax = s.firstMin;
   return s;

@@ -3,6 +3,8 @@
 //   /tailwail:settings          anyone (world section is operator-only)
 //   /tailwail:debug <op> [arg]  game directors / operators only
 import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, Player, system } from "@minecraft/server";
+import { ACT, SHOT } from "../core/ids.js";
+import { JOURNAL } from "../core/journal.js";
 import { PRESENCE_IDS } from "../core/presence_rules.js";
 import { emptySchedule } from "../core/scheduler.js";
 import { SETUP_IDS } from "../core/setups.js";
@@ -11,7 +13,7 @@ import { setDebug } from "./log.js";
 import { getMemory, getSchedule, getSettings, resetMemory, saveSchedule, saveSettings } from "./store.js";
 import { showGuide, showSettings } from "./ui.js";
 
-const OPS = ["status", "spawn", "presence", "end", "stage", "memory", "resetmemory", "cooldown", "journal", "log", "setups", "restore"];
+const OPS = ["status", "spawn", "presence", "end", "stage", "memory", "resetmemory", "cooldown", "journal", "log", "setups", "restore", "anim"];
 
 export function registerCommands(registry, director) {
   registry.registerEnum("tailwail:debug_op", OPS);
@@ -102,7 +104,7 @@ export function runDebug(director, p, op, arg) {
     case "journal":
       if (p) {
         const s = getSchedule(p);
-        s.jr = (1 << 13) - 1;
+        s.jr = (1 << JOURNAL.length) - 1;
         saveSchedule(p, s);
         say("§7Every journal page unlocked.");
       }
@@ -122,7 +124,63 @@ export function runDebug(director, p, op, arg) {
       if (p) fx.clearAll(p, true);
       say("§7Camera, FOV, fog, music and input restored.");
       break;
+    case "anim":
+      if (!p) return say("anim needs a player");
+      director.rpCheck(p);
+      say("§7" + animShowcase(director, p, arg));
+      break;
     default:
       say("§7Unknown op. " + OPS.join(", "));
   }
+}
+
+/**
+ * /tailwail:debug anim [name]  Spawns a passive Tailwail in front of you and plays every body
+ * state and one-shot in turn (or just the named one), captioned, so you can see that the
+ * resource pack's animations work.  If it stands still in one pose, the resource pack is
+ * not the 3.x one (the chat line above says so too).
+ */
+function animShowcase(director, p, only) {
+  const acts = Object.keys(ACT).filter((a) => a !== "shot" && a !== "death");
+  const shots = Object.keys(SHOT);
+  const list = [];
+  for (const a of acts) if (!only || only === a) list.push({ kind: "act", name: a });
+  for (const s of shots) if (!only || only === s) list.push({ kind: "shot", name: s });
+  if (!list.length) return `unknown clip; acts: ${acts.join(", ")}; one-shots: ${shots.join(", ")}`;
+  const view = p.getViewDirection();
+  const h = Math.hypot(view.x, view.z) || 1;
+  const at = { x: p.location.x + (view.x / h) * 7, y: p.location.y, z: p.location.z + (view.z / h) * 7 };
+  let tw;
+  try {
+    tw = director.spawnShowcaseDummy(p, at);
+  } catch (e) {
+    return "could not spawn: " + e;
+  }
+  if (!tw) return "could not spawn";
+  let i = 0;
+  const next = () => {
+    if (!tw.isValid || !p.isValid) return;
+    if (i >= list.length) {
+      tw.remove();
+      p.onScreenDisplay.setActionBar("§7[Tailwail] showcase done");
+      return;
+    }
+    const it = list[i++];
+    let secs = 3;
+    try {
+      if (it.kind === "act") {
+        tw.setProperty("tailwail:act", ACT[it.name]);
+      } else {
+        tw.setProperty("tailwail:act", SHOT[it.name].partial ? ACT.loco : ACT.shot);
+        tw.playAnimation(SHOT[it.name].anim, { controller: SHOT[it.name].partial ? "tailwail_partial" : "tailwail_shot", blendOutTime: 0.15 });
+        secs = Math.max(1.5, SHOT[it.name].len + 0.8);
+      }
+      p.onScreenDisplay.setActionBar(`§7[${i}/${list.length}] §f${it.kind === "act" ? "state" : "one-shot"}: ${it.name}`);
+    } catch (e) {
+      p.sendMessage("§c" + e);
+    }
+    system.runTimeout(next, Math.round(secs * 20));
+  };
+  system.runTimeout(next, 10);
+  return `showcase: ${list.length} clips, about ${Math.round(list.length * 2.8)} s`;
 }

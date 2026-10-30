@@ -2,7 +2,6 @@
 // (minecraft:navigation.walk + melee_box_attack) toward an invisible, invulnerable lure
 // entity that this module places.  It never teleports Tailwail.
 import { CHASE, LURE_ID, POSTURE, POSTURE_MIN_HOLD } from "../config.js";
-import { POSTURE as POSTURE_ID } from "../core/ids.js";
 import { dirFromYaw, hdist, wrapDeg, yawTo } from "../util/vec.js";
 import { dlog } from "./log.js";
 import { findGround, headroom } from "./terrain.js";
@@ -165,7 +164,6 @@ export class Mover {
     this.postureAt = t;
     try {
       this.tw.triggerEvent("tailwail:posture_" + p);
-      this.tw.setProperty("tailwail:posture", POSTURE_ID[p]);
     } catch (e) {
       dlog("posture", e);
     }

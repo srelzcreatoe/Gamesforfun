@@ -69,11 +69,17 @@ test("setups never repeat back-to-back, respect terrain and unlock with escalati
     endEncounter(m, s, "observed", 5);
     last = s;
   }
-  assert.equal(pickSetup([["cavern_reveal", 1]], { headroom: 3 }, rng), null, "cavern-only setup rejected in a low cave");
+  assert.equal(pickSetup([["the_rehearsal", 1]], { headroom: 3 }, rng), null, "a tall setup is rejected in a low cave");
   assert.equal(pickSetup([["tunnel_crawler", 1]], { headroom: 6 }, rng), null, "tunnel setup needs a low passage");
   assert.ok(!setupsForStage(0).includes("behind_you") && !setupsForStage(0).includes("the_hunter"));
-  assert.ok(setupsForStage(2).includes("behind_you") && !setupsForStage(2).includes("the_hunter"));
-  assert.ok(setupsForStage(3).includes("the_hunter"));
+  assert.ok(!setupsForStage(0).includes("ceiling") && setupsForStage(1).includes("ceiling"));
+  assert.ok(setupsForStage(2).includes("behind_you") && setupsForStage(2).includes("the_hunter"));
+  // caves and the night surface have their own openings; nobody can roll the internal return
+  const cave = setupsForStage(3, "cave");
+  const surface = setupsForStage(3, "surface");
+  assert.ok(cave.includes("ceiling") && !cave.includes("treeline"));
+  assert.ok(surface.includes("treeline") && surface.includes("runner") && !surface.includes("ceiling") && !surface.includes("huddle"));
+  assert.ok(!cave.includes("the_return") && !surface.includes("the_return"));
   for (const id of SETUP_IDS) assert.ok(fitsTerrain(id, SETUPS[id].needsHeadroom), id);
 });
 
@@ -163,10 +169,10 @@ test("presence: mimicry maps actions to real vanilla sounds", () => {
 
 test("journal: each page unlocks once, from its flag", () => {
   let mask = 0;
-  const first = unlock(mask, "creep");
+  const first = unlock(mask, "standoff");
   assert.ok(first.added && first.added.title);
   mask = first.mask;
-  assert.equal(unlock(mask, "creep").added, null);
+  assert.equal(unlock(mask, "standoff").added, null);
   assert.equal(unlock(mask, "not-a-flag").added, null);
   assert.equal(JOURNAL.length <= 30, true, "fits the bitmask");
   assert.equal(journalBit("killed"), JOURNAL.length - 1);

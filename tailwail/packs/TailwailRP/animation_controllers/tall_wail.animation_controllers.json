@@ -1,2743 +1,1738 @@
 {
  "format_version": "1.10.0",
  "animation_controllers": {
-  "controller.animation.tall_wail.v2_body": {
-   "initial_state": "p0",
+  "controller.animation.tall_wail.v3_body": {
+   "initial_state": "a0",
    "states": {
-    "p0": {
+    "a0": {
      "animations": [
       {
-       "tw2_idle_up": "v.w_t * (1.0 - v.move)"
+       "gallop": "v.w_run ?? (math.clamp(q.ground_speed / 1.2, 0.0, 1.0) * math.clamp((q.ground_speed - 3.6) / 1.6, 0.0, 1.0))"
       },
       {
-       "walk_nt": "v.w_t * v.move * v.fast"
+       "walk": "v.w_walk ?? (math.clamp(q.ground_speed / 1.2, 0.0, 1.0) * (1.0 - math.clamp((q.ground_speed - 3.6) / 1.6, 0.0, 1.0)))"
       },
       {
-       "pace_nt": "v.w_t * v.move * (1.0 - v.fast)"
-      },
-      {
-       "tw2_creep": "v.w_t * v.move * (1.0 - v.fast)"
-      },
-      {
-       "tw2_idle_low": "v.w_h * (1.0 - v.move)"
-      },
-      {
-       "crawl": "(v.w_h + v.w_c) * v.move"
-      },
-      {
-       "gfix_crawl": "v.w_h * v.move"
-      },
-      {
-       "tw_tunnel_move": "v.w_c * v.move"
-      },
-      {
-       "planted": "v.w_c * (1.0 - v.move)"
-      },
-      {
-       "tw_tunnel_still": "v.w_c * (1.0 - v.move)"
-      },
-      {
-       "tw2_gfix_tunnel_move": "v.w_c * v.move"
-      },
-      {
-       "tw2_gfix_tunnel_still": "v.w_c * (1.0 - v.move)"
+       "idle": "v.w_idle ?? (1.0 - math.clamp(q.ground_speed / 1.2, 0.0, 1.0))"
       }
      ],
      "transitions": [
       {
-       "p1": "q.property('tailwail:pose') == 1"
+       "a1": "q.property('tailwail:act') == 1"
       },
       {
-       "p2": "q.property('tailwail:pose') == 2"
+       "a2": "q.property('tailwail:act') == 2"
       },
       {
-       "p3": "q.property('tailwail:pose') == 3"
+       "a3": "q.property('tailwail:act') == 3"
       },
       {
-       "p4": "q.property('tailwail:pose') == 4"
+       "a4": "q.property('tailwail:act') == 4"
       },
       {
-       "p5": "q.property('tailwail:pose') == 5"
+       "a5": "q.property('tailwail:act') == 5"
       },
       {
-       "p6": "q.property('tailwail:pose') == 6"
+       "a6": "q.property('tailwail:act') == 6"
       },
       {
-       "p7": "q.property('tailwail:pose') == 7"
+       "a7": "q.property('tailwail:act') == 7"
       },
       {
-       "p8": "q.property('tailwail:pose') == 8"
+       "a8": "q.property('tailwail:act') == 8"
       },
       {
-       "p9": "q.property('tailwail:pose') == 9"
+       "a9": "q.property('tailwail:act') == 9"
       },
       {
-       "p10": "q.property('tailwail:pose') == 10"
+       "a10": "q.property('tailwail:act') == 10"
       },
       {
-       "p11": "q.property('tailwail:pose') == 11"
+       "a11": "q.property('tailwail:act') == 11"
       },
       {
-       "p12": "q.property('tailwail:pose') == 12"
+       "a12": "q.property('tailwail:act') == 12"
       },
       {
-       "p13": "q.property('tailwail:pose') == 13"
+       "a13": "q.property('tailwail:act') == 13"
       },
       {
-       "p14": "q.property('tailwail:pose') == 14"
+       "a14": "q.property('tailwail:act') == 14"
       },
       {
-       "p15": "q.property('tailwail:pose') == 15"
+       "a15": "q.property('tailwail:act') == 15"
       },
       {
-       "p16": "q.property('tailwail:pose') == 16"
+       "a16": "q.property('tailwail:act') == 16"
       },
       {
-       "p17": "q.property('tailwail:pose') == 17"
+       "a17": "q.property('tailwail:act') == 17"
       },
       {
-       "p18": "q.property('tailwail:pose') == 18"
+       "a18": "q.property('tailwail:act') == 18"
       },
       {
-       "p19": "q.property('tailwail:pose') == 19"
+       "a19": "q.property('tailwail:act') == 19"
       },
       {
-       "p20": "q.property('tailwail:pose') == 20"
+       "a20": "q.property('tailwail:act') == 20"
       },
       {
-       "p21": "q.property('tailwail:pose') == 21"
+       "a21": "q.property('tailwail:act') == 21"
       },
       {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.3
-    },
-    "p1": {
-     "animations": [
-      "tw2_watch_low"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.35
-    },
-    "p2": {
-     "animations": [
-      "tw2_tilt"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.3
-    },
-    "p3": {
-     "animations": [
-      "tw2_owl"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
+       "a22": "q.property('tailwail:act') == 22"
       }
      ],
      "blend_transition": 0.15
     },
-    "p4": {
+    "a1": {
      "animations": [
-      "tw2_neck"
-     ],
-     "transitions": [
       {
-       "p0": "q.property('tailwail:pose') == 0"
+       "gallop": "v.w_run ?? (math.clamp(q.ground_speed / 1.2, 0.0, 1.0) * math.clamp((q.ground_speed - 3.6) / 1.6, 0.0, 1.0))"
       },
       {
-       "p1": "q.property('tailwail:pose') == 1"
+       "creep": "v.w_walk ?? (math.clamp(q.ground_speed / 1.2, 0.0, 1.0) * (1.0 - math.clamp((q.ground_speed - 3.6) / 1.6, 0.0, 1.0)))"
       },
       {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
+       "idle_low": "v.w_idle ?? (1.0 - math.clamp(q.ground_speed / 1.2, 0.0, 1.0))"
       }
      ],
-     "blend_transition": 0.3
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
+      },
+      {
+       "a2": "q.property('tailwail:act') == 2"
+      },
+      {
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.15
     },
-    "p5": {
+    "a2": {
      "animations": [
-      "tw2_unhinge"
+      {
+       "tunnel_move": "v.mv ?? math.clamp(q.ground_speed / 1.2, 0.0, 1.0)"
+      },
+      {
+       "tunnel_idle": "1.0 - (v.mv ?? math.clamp(q.ground_speed / 1.2, 0.0, 1.0))"
+      }
      ],
      "transitions": [
       {
-       "p0": "q.property('tailwail:pose') == 0"
+       "a0": "q.property('tailwail:act') == 0"
       },
       {
-       "p1": "q.property('tailwail:pose') == 1"
+       "a1": "q.property('tailwail:act') == 1"
       },
       {
-       "p2": "q.property('tailwail:pose') == 2"
+       "a3": "q.property('tailwail:act') == 3"
       },
       {
-       "p3": "q.property('tailwail:pose') == 3"
+       "a4": "q.property('tailwail:act') == 4"
       },
       {
-       "p4": "q.property('tailwail:pose') == 4"
+       "a5": "q.property('tailwail:act') == 5"
       },
       {
-       "p6": "q.property('tailwail:pose') == 6"
+       "a6": "q.property('tailwail:act') == 6"
       },
       {
-       "p7": "q.property('tailwail:pose') == 7"
+       "a7": "q.property('tailwail:act') == 7"
       },
       {
-       "p8": "q.property('tailwail:pose') == 8"
+       "a8": "q.property('tailwail:act') == 8"
       },
       {
-       "p9": "q.property('tailwail:pose') == 9"
+       "a9": "q.property('tailwail:act') == 9"
       },
       {
-       "p10": "q.property('tailwail:pose') == 10"
+       "a10": "q.property('tailwail:act') == 10"
       },
       {
-       "p11": "q.property('tailwail:pose') == 11"
+       "a11": "q.property('tailwail:act') == 11"
       },
       {
-       "p12": "q.property('tailwail:pose') == 12"
+       "a12": "q.property('tailwail:act') == 12"
       },
       {
-       "p13": "q.property('tailwail:pose') == 13"
+       "a13": "q.property('tailwail:act') == 13"
       },
       {
-       "p14": "q.property('tailwail:pose') == 14"
+       "a14": "q.property('tailwail:act') == 14"
       },
       {
-       "p15": "q.property('tailwail:pose') == 15"
+       "a15": "q.property('tailwail:act') == 15"
       },
       {
-       "p16": "q.property('tailwail:pose') == 16"
+       "a16": "q.property('tailwail:act') == 16"
       },
       {
-       "p17": "q.property('tailwail:pose') == 17"
+       "a17": "q.property('tailwail:act') == 17"
       },
       {
-       "p18": "q.property('tailwail:pose') == 18"
+       "a18": "q.property('tailwail:act') == 18"
       },
       {
-       "p19": "q.property('tailwail:pose') == 19"
+       "a19": "q.property('tailwail:act') == 19"
       },
       {
-       "p20": "q.property('tailwail:pose') == 20"
+       "a20": "q.property('tailwail:act') == 20"
       },
       {
-       "p21": "q.property('tailwail:pose') == 21"
+       "a21": "q.property('tailwail:act') == 21"
       },
       {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
+       "a22": "q.property('tailwail:act') == 22"
       }
      ],
      "blend_transition": 0.2
     },
-    "p6": {
+    "a3": {
      "animations": [
-      "tw2_statue_reach"
+      "watch"
      ],
      "transitions": [
       {
-       "p0": "q.property('tailwail:pose') == 0"
+       "a0": "q.property('tailwail:act') == 0"
       },
       {
-       "p1": "q.property('tailwail:pose') == 1"
+       "a1": "q.property('tailwail:act') == 1"
       },
       {
-       "p2": "q.property('tailwail:pose') == 2"
+       "a2": "q.property('tailwail:act') == 2"
       },
       {
-       "p3": "q.property('tailwail:pose') == 3"
+       "a4": "q.property('tailwail:act') == 4"
       },
       {
-       "p4": "q.property('tailwail:pose') == 4"
+       "a5": "q.property('tailwail:act') == 5"
       },
       {
-       "p5": "q.property('tailwail:pose') == 5"
+       "a6": "q.property('tailwail:act') == 6"
       },
       {
-       "p7": "q.property('tailwail:pose') == 7"
+       "a7": "q.property('tailwail:act') == 7"
       },
       {
-       "p8": "q.property('tailwail:pose') == 8"
+       "a8": "q.property('tailwail:act') == 8"
       },
       {
-       "p9": "q.property('tailwail:pose') == 9"
+       "a9": "q.property('tailwail:act') == 9"
       },
       {
-       "p10": "q.property('tailwail:pose') == 10"
+       "a10": "q.property('tailwail:act') == 10"
       },
       {
-       "p11": "q.property('tailwail:pose') == 11"
+       "a11": "q.property('tailwail:act') == 11"
       },
       {
-       "p12": "q.property('tailwail:pose') == 12"
+       "a12": "q.property('tailwail:act') == 12"
       },
       {
-       "p13": "q.property('tailwail:pose') == 13"
+       "a13": "q.property('tailwail:act') == 13"
       },
       {
-       "p14": "q.property('tailwail:pose') == 14"
+       "a14": "q.property('tailwail:act') == 14"
       },
       {
-       "p15": "q.property('tailwail:pose') == 15"
+       "a15": "q.property('tailwail:act') == 15"
       },
       {
-       "p16": "q.property('tailwail:pose') == 16"
+       "a16": "q.property('tailwail:act') == 16"
       },
       {
-       "p17": "q.property('tailwail:pose') == 17"
+       "a17": "q.property('tailwail:act') == 17"
       },
       {
-       "p18": "q.property('tailwail:pose') == 18"
+       "a18": "q.property('tailwail:act') == 18"
       },
       {
-       "p19": "q.property('tailwail:pose') == 19"
+       "a19": "q.property('tailwail:act') == 19"
       },
       {
-       "p20": "q.property('tailwail:pose') == 20"
+       "a20": "q.property('tailwail:act') == 20"
       },
       {
-       "p21": "q.property('tailwail:pose') == 21"
+       "a21": "q.property('tailwail:act') == 21"
       },
       {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.12
-    },
-    "p7": {
-     "animations": [
-      "tw2_statue_arms_up"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.12
-    },
-    "p8": {
-     "animations": [
-      "tw2_statue_cover"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.12
-    },
-    "p9": {
-     "animations": [
-      "tw2_statue_bow"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.12
-    },
-    "p10": {
-     "animations": [
-      "tw2_statue_sideways"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.12
-    },
-    "p11": {
-     "animations": [
-      "tw2_peek_r"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.25
-    },
-    "p12": {
-     "animations": [
-      "tw2_peek_l"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.25
-    },
-    "p13": {
-     "animations": [
-      "reveal",
-      {
-       "tw_unfold_full": "q.property('tailwail:headroom') >= 7"
-      },
-      {
-       "tw_unfold_mid": "q.property('tailwail:headroom') < 7"
-      }
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.3
-    },
-    "p14": {
-     "animations": [
-      "planted",
-      "gfix_planted",
-      "tw_unfold_low"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.3
-    },
-    "p15": {
-     "animations": [
-      "windup",
-      "gfix_windup"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.25
-    },
-    "p16": {
-     "animations": [
-      "windup_c",
-      "gfix_windup_c"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.25
-    },
-    "p17": {
-     "animations": [
-      "tw2_scream"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
+       "a22": "q.property('tailwail:act') == 22"
       }
      ],
      "blend_transition": 0.15
     },
-    "p18": {
+    "a4": {
      "animations": [
-      "tw_strike",
-      "gfix_tw_strike"
+      "watch_low"
      ],
      "transitions": [
       {
-       "p0": "q.property('tailwail:pose') == 0"
+       "a0": "q.property('tailwail:act') == 0"
       },
       {
-       "p1": "q.property('tailwail:pose') == 1"
+       "a1": "q.property('tailwail:act') == 1"
       },
       {
-       "p2": "q.property('tailwail:pose') == 2"
+       "a2": "q.property('tailwail:act') == 2"
       },
       {
-       "p3": "q.property('tailwail:pose') == 3"
+       "a3": "q.property('tailwail:act') == 3"
       },
       {
-       "p4": "q.property('tailwail:pose') == 4"
+       "a5": "q.property('tailwail:act') == 5"
       },
       {
-       "p5": "q.property('tailwail:pose') == 5"
+       "a6": "q.property('tailwail:act') == 6"
       },
       {
-       "p6": "q.property('tailwail:pose') == 6"
+       "a7": "q.property('tailwail:act') == 7"
       },
       {
-       "p7": "q.property('tailwail:pose') == 7"
+       "a8": "q.property('tailwail:act') == 8"
       },
       {
-       "p8": "q.property('tailwail:pose') == 8"
+       "a9": "q.property('tailwail:act') == 9"
       },
       {
-       "p9": "q.property('tailwail:pose') == 9"
+       "a10": "q.property('tailwail:act') == 10"
       },
       {
-       "p10": "q.property('tailwail:pose') == 10"
+       "a11": "q.property('tailwail:act') == 11"
       },
       {
-       "p11": "q.property('tailwail:pose') == 11"
+       "a12": "q.property('tailwail:act') == 12"
       },
       {
-       "p12": "q.property('tailwail:pose') == 12"
+       "a13": "q.property('tailwail:act') == 13"
       },
       {
-       "p13": "q.property('tailwail:pose') == 13"
+       "a14": "q.property('tailwail:act') == 14"
       },
       {
-       "p14": "q.property('tailwail:pose') == 14"
+       "a15": "q.property('tailwail:act') == 15"
       },
       {
-       "p15": "q.property('tailwail:pose') == 15"
+       "a16": "q.property('tailwail:act') == 16"
       },
       {
-       "p16": "q.property('tailwail:pose') == 16"
+       "a17": "q.property('tailwail:act') == 17"
       },
       {
-       "p17": "q.property('tailwail:pose') == 17"
+       "a18": "q.property('tailwail:act') == 18"
       },
       {
-       "p19": "q.property('tailwail:pose') == 19"
+       "a19": "q.property('tailwail:act') == 19"
       },
       {
-       "p20": "q.property('tailwail:pose') == 20"
+       "a20": "q.property('tailwail:act') == 20"
       },
       {
-       "p21": "q.property('tailwail:pose') == 21"
+       "a21": "q.property('tailwail:act') == 21"
       },
       {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.12
-    },
-    "p19": {
-     "animations": [
-      "tw2_grab"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.1
-    },
-    "p20": {
-     "animations": [
-      "tw2_hold"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
+       "a22": "q.property('tailwail:act') == 22"
       }
      ],
      "blend_transition": 0.15
     },
-    "p21": {
+    "a5": {
      "animations": [
-      "tw2_throw"
+      "tall"
      ],
      "transitions": [
       {
-       "p0": "q.property('tailwail:pose') == 0"
+       "a0": "q.property('tailwail:act') == 0"
       },
       {
-       "p1": "q.property('tailwail:pose') == 1"
+       "a1": "q.property('tailwail:act') == 1"
       },
       {
-       "p2": "q.property('tailwail:pose') == 2"
+       "a2": "q.property('tailwail:act') == 2"
       },
       {
-       "p3": "q.property('tailwail:pose') == 3"
+       "a3": "q.property('tailwail:act') == 3"
       },
       {
-       "p4": "q.property('tailwail:pose') == 4"
+       "a4": "q.property('tailwail:act') == 4"
       },
       {
-       "p5": "q.property('tailwail:pose') == 5"
+       "a6": "q.property('tailwail:act') == 6"
       },
       {
-       "p6": "q.property('tailwail:pose') == 6"
+       "a7": "q.property('tailwail:act') == 7"
       },
       {
-       "p7": "q.property('tailwail:pose') == 7"
+       "a8": "q.property('tailwail:act') == 8"
       },
       {
-       "p8": "q.property('tailwail:pose') == 8"
+       "a9": "q.property('tailwail:act') == 9"
       },
       {
-       "p9": "q.property('tailwail:pose') == 9"
+       "a10": "q.property('tailwail:act') == 10"
       },
       {
-       "p10": "q.property('tailwail:pose') == 10"
+       "a11": "q.property('tailwail:act') == 11"
       },
       {
-       "p11": "q.property('tailwail:pose') == 11"
+       "a12": "q.property('tailwail:act') == 12"
       },
       {
-       "p12": "q.property('tailwail:pose') == 12"
+       "a13": "q.property('tailwail:act') == 13"
       },
       {
-       "p13": "q.property('tailwail:pose') == 13"
+       "a14": "q.property('tailwail:act') == 14"
       },
       {
-       "p14": "q.property('tailwail:pose') == 14"
+       "a15": "q.property('tailwail:act') == 15"
       },
       {
-       "p15": "q.property('tailwail:pose') == 15"
+       "a16": "q.property('tailwail:act') == 16"
       },
       {
-       "p16": "q.property('tailwail:pose') == 16"
+       "a17": "q.property('tailwail:act') == 17"
       },
       {
-       "p17": "q.property('tailwail:pose') == 17"
+       "a18": "q.property('tailwail:act') == 18"
       },
       {
-       "p18": "q.property('tailwail:pose') == 18"
+       "a19": "q.property('tailwail:act') == 19"
       },
       {
-       "p19": "q.property('tailwail:pose') == 19"
+       "a20": "q.property('tailwail:act') == 20"
       },
       {
-       "p20": "q.property('tailwail:pose') == 20"
+       "a21": "q.property('tailwail:act') == 21"
       },
       {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.1
-    },
-    "p22": {
-     "animations": [
-      "tw2_sniff"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.35
-    },
-    "p23": {
-     "animations": [
-      "tw2_frustrated"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
+       "a22": "q.property('tailwail:act') == 22"
       }
      ],
      "blend_transition": 0.2
     },
-    "p24": {
+    "a6": {
      "animations": [
-      "tw2_behind"
+      "peek_l"
      ],
      "transitions": [
       {
-       "p0": "q.property('tailwail:pose') == 0"
+       "a0": "q.property('tailwail:act') == 0"
       },
       {
-       "p1": "q.property('tailwail:pose') == 1"
+       "a1": "q.property('tailwail:act') == 1"
       },
       {
-       "p2": "q.property('tailwail:pose') == 2"
+       "a2": "q.property('tailwail:act') == 2"
       },
       {
-       "p3": "q.property('tailwail:pose') == 3"
+       "a3": "q.property('tailwail:act') == 3"
       },
       {
-       "p4": "q.property('tailwail:pose') == 4"
+       "a4": "q.property('tailwail:act') == 4"
       },
       {
-       "p5": "q.property('tailwail:pose') == 5"
+       "a5": "q.property('tailwail:act') == 5"
       },
       {
-       "p6": "q.property('tailwail:pose') == 6"
+       "a7": "q.property('tailwail:act') == 7"
       },
       {
-       "p7": "q.property('tailwail:pose') == 7"
+       "a8": "q.property('tailwail:act') == 8"
       },
       {
-       "p8": "q.property('tailwail:pose') == 8"
+       "a9": "q.property('tailwail:act') == 9"
       },
       {
-       "p9": "q.property('tailwail:pose') == 9"
+       "a10": "q.property('tailwail:act') == 10"
       },
       {
-       "p10": "q.property('tailwail:pose') == 10"
+       "a11": "q.property('tailwail:act') == 11"
       },
       {
-       "p11": "q.property('tailwail:pose') == 11"
+       "a12": "q.property('tailwail:act') == 12"
       },
       {
-       "p12": "q.property('tailwail:pose') == 12"
+       "a13": "q.property('tailwail:act') == 13"
       },
       {
-       "p13": "q.property('tailwail:pose') == 13"
+       "a14": "q.property('tailwail:act') == 14"
       },
       {
-       "p14": "q.property('tailwail:pose') == 14"
+       "a15": "q.property('tailwail:act') == 15"
       },
       {
-       "p15": "q.property('tailwail:pose') == 15"
+       "a16": "q.property('tailwail:act') == 16"
       },
       {
-       "p16": "q.property('tailwail:pose') == 16"
+       "a17": "q.property('tailwail:act') == 17"
       },
       {
-       "p17": "q.property('tailwail:pose') == 17"
+       "a18": "q.property('tailwail:act') == 18"
       },
       {
-       "p18": "q.property('tailwail:pose') == 18"
+       "a19": "q.property('tailwail:act') == 19"
       },
       {
-       "p19": "q.property('tailwail:pose') == 19"
+       "a20": "q.property('tailwail:act') == 20"
       },
       {
-       "p20": "q.property('tailwail:pose') == 20"
+       "a21": "q.property('tailwail:act') == 21"
       },
       {
-       "p21": "q.property('tailwail:pose') == 21"
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "a7": {
+     "animations": [
+      "peek_r"
+     ],
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
       },
       {
-       "p22": "q.property('tailwail:pose') == 22"
+       "a1": "q.property('tailwail:act') == 1"
       },
       {
-       "p23": "q.property('tailwail:pose') == 23"
+       "a2": "q.property('tailwail:act') == 2"
       },
       {
-       "p25": "q.property('tailwail:pose') == 25"
+       "a3": "q.property('tailwail:act') == 3"
       },
       {
-       "p26": "q.property('tailwail:pose') == 26"
+       "a4": "q.property('tailwail:act') == 4"
       },
       {
-       "p27": "q.property('tailwail:pose') == 27"
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "a8": {
+     "animations": [
+      "cling"
+     ],
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
+      },
+      {
+       "a1": "q.property('tailwail:act') == 1"
+      },
+      {
+       "a2": "q.property('tailwail:act') == 2"
+      },
+      {
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.1
+    },
+    "a9": {
+     "animations": [
+      "climb"
+     ],
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
+      },
+      {
+       "a1": "q.property('tailwail:act') == 1"
+      },
+      {
+       "a2": "q.property('tailwail:act') == 2"
+      },
+      {
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "a10": {
+     "animations": [
+      "hold"
+     ],
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
+      },
+      {
+       "a1": "q.property('tailwail:act') == 1"
+      },
+      {
+       "a2": "q.property('tailwail:act') == 2"
+      },
+      {
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.1
+    },
+    "a11": {
+     "animations": [
+      "sniff"
+     ],
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
+      },
+      {
+       "a1": "q.property('tailwail:act') == 1"
+      },
+      {
+       "a2": "q.property('tailwail:act') == 2"
+      },
+      {
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "a12": {
+     "animations": [
+      "listen"
+     ],
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
+      },
+      {
+       "a1": "q.property('tailwail:act') == 1"
+      },
+      {
+       "a2": "q.property('tailwail:act') == 2"
+      },
+      {
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "a13": {
+     "animations": [
+      "stunned"
+     ],
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
+      },
+      {
+       "a1": "q.property('tailwail:act') == 1"
+      },
+      {
+       "a2": "q.property('tailwail:act') == 2"
+      },
+      {
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "a14": {
+     "animations": [
+      "savor"
+     ],
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
+      },
+      {
+       "a1": "q.property('tailwail:act') == 1"
+      },
+      {
+       "a2": "q.property('tailwail:act') == 2"
+      },
+      {
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "a15": {
+     "animations": [
+      "huddle"
+     ],
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
+      },
+      {
+       "a1": "q.property('tailwail:act') == 1"
+      },
+      {
+       "a2": "q.property('tailwail:act') == 2"
+      },
+      {
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "a16": {
+     "animations": [
+      "bash"
+     ],
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
+      },
+      {
+       "a1": "q.property('tailwail:act') == 1"
+      },
+      {
+       "a2": "q.property('tailwail:act') == 2"
+      },
+      {
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.1
+    },
+    "a17": {
+     "animations": [
+      "reach_in"
+     ],
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
+      },
+      {
+       "a1": "q.property('tailwail:act') == 1"
+      },
+      {
+       "a2": "q.property('tailwail:act') == 2"
+      },
+      {
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "a18": {
+     "animations": [
+      "death"
+     ],
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
+      },
+      {
+       "a1": "q.property('tailwail:act') == 1"
+      },
+      {
+       "a2": "q.property('tailwail:act') == 2"
+      },
+      {
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.2
+    },
+    "a19": {
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
+      },
+      {
+       "a1": "q.property('tailwail:act') == 1"
+      },
+      {
+       "a2": "q.property('tailwail:act') == 2"
+      },
+      {
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
+      }
+     ],
+     "blend_transition": 0.15
+    },
+    "a20": {
+     "animations": [
+      "behind"
+     ],
+     "transitions": [
+      {
+       "a0": "q.property('tailwail:act') == 0"
+      },
+      {
+       "a1": "q.property('tailwail:act') == 1"
+      },
+      {
+       "a2": "q.property('tailwail:act') == 2"
+      },
+      {
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
+      },
+      {
+       "a22": "q.property('tailwail:act') == 22"
       }
      ],
      "blend_transition": 0.08
     },
-    "p25": {
+    "a21": {
      "animations": [
-      "stuck",
-      "gfix_stuck"
+      "neck"
      ],
      "transitions": [
       {
-       "p0": "q.property('tailwail:pose') == 0"
+       "a0": "q.property('tailwail:act') == 0"
       },
       {
-       "p1": "q.property('tailwail:pose') == 1"
+       "a1": "q.property('tailwail:act') == 1"
       },
       {
-       "p2": "q.property('tailwail:pose') == 2"
+       "a2": "q.property('tailwail:act') == 2"
       },
       {
-       "p3": "q.property('tailwail:pose') == 3"
+       "a3": "q.property('tailwail:act') == 3"
       },
       {
-       "p4": "q.property('tailwail:pose') == 4"
+       "a4": "q.property('tailwail:act') == 4"
       },
       {
-       "p5": "q.property('tailwail:pose') == 5"
+       "a5": "q.property('tailwail:act') == 5"
       },
       {
-       "p6": "q.property('tailwail:pose') == 6"
+       "a6": "q.property('tailwail:act') == 6"
       },
       {
-       "p7": "q.property('tailwail:pose') == 7"
+       "a7": "q.property('tailwail:act') == 7"
       },
       {
-       "p8": "q.property('tailwail:pose') == 8"
+       "a8": "q.property('tailwail:act') == 8"
       },
       {
-       "p9": "q.property('tailwail:pose') == 9"
+       "a9": "q.property('tailwail:act') == 9"
       },
       {
-       "p10": "q.property('tailwail:pose') == 10"
+       "a10": "q.property('tailwail:act') == 10"
       },
       {
-       "p11": "q.property('tailwail:pose') == 11"
+       "a11": "q.property('tailwail:act') == 11"
       },
       {
-       "p12": "q.property('tailwail:pose') == 12"
+       "a12": "q.property('tailwail:act') == 12"
       },
       {
-       "p13": "q.property('tailwail:pose') == 13"
+       "a13": "q.property('tailwail:act') == 13"
       },
       {
-       "p14": "q.property('tailwail:pose') == 14"
+       "a14": "q.property('tailwail:act') == 14"
       },
       {
-       "p15": "q.property('tailwail:pose') == 15"
+       "a15": "q.property('tailwail:act') == 15"
       },
       {
-       "p16": "q.property('tailwail:pose') == 16"
+       "a16": "q.property('tailwail:act') == 16"
       },
       {
-       "p17": "q.property('tailwail:pose') == 17"
+       "a17": "q.property('tailwail:act') == 17"
       },
       {
-       "p18": "q.property('tailwail:pose') == 18"
+       "a18": "q.property('tailwail:act') == 18"
       },
       {
-       "p19": "q.property('tailwail:pose') == 19"
+       "a19": "q.property('tailwail:act') == 19"
       },
       {
-       "p20": "q.property('tailwail:pose') == 20"
+       "a20": "q.property('tailwail:act') == 20"
       },
       {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.25
-    },
-    "p26": {
-     "animations": [
-      "death",
-      "gfix_death"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p27": "q.property('tailwail:pose') == 27"
-      }
-     ],
-     "blend_transition": 0.2
-    },
-    "p27": {
-     "animations": [
-      "death_low",
-      "gfix_death_low"
-     ],
-     "transitions": [
-      {
-       "p0": "q.property('tailwail:pose') == 0"
-      },
-      {
-       "p1": "q.property('tailwail:pose') == 1"
-      },
-      {
-       "p2": "q.property('tailwail:pose') == 2"
-      },
-      {
-       "p3": "q.property('tailwail:pose') == 3"
-      },
-      {
-       "p4": "q.property('tailwail:pose') == 4"
-      },
-      {
-       "p5": "q.property('tailwail:pose') == 5"
-      },
-      {
-       "p6": "q.property('tailwail:pose') == 6"
-      },
-      {
-       "p7": "q.property('tailwail:pose') == 7"
-      },
-      {
-       "p8": "q.property('tailwail:pose') == 8"
-      },
-      {
-       "p9": "q.property('tailwail:pose') == 9"
-      },
-      {
-       "p10": "q.property('tailwail:pose') == 10"
-      },
-      {
-       "p11": "q.property('tailwail:pose') == 11"
-      },
-      {
-       "p12": "q.property('tailwail:pose') == 12"
-      },
-      {
-       "p13": "q.property('tailwail:pose') == 13"
-      },
-      {
-       "p14": "q.property('tailwail:pose') == 14"
-      },
-      {
-       "p15": "q.property('tailwail:pose') == 15"
-      },
-      {
-       "p16": "q.property('tailwail:pose') == 16"
-      },
-      {
-       "p17": "q.property('tailwail:pose') == 17"
-      },
-      {
-       "p18": "q.property('tailwail:pose') == 18"
-      },
-      {
-       "p19": "q.property('tailwail:pose') == 19"
-      },
-      {
-       "p20": "q.property('tailwail:pose') == 20"
-      },
-      {
-       "p21": "q.property('tailwail:pose') == 21"
-      },
-      {
-       "p22": "q.property('tailwail:pose') == 22"
-      },
-      {
-       "p23": "q.property('tailwail:pose') == 23"
-      },
-      {
-       "p24": "q.property('tailwail:pose') == 24"
-      },
-      {
-       "p25": "q.property('tailwail:pose') == 25"
-      },
-      {
-       "p26": "q.property('tailwail:pose') == 26"
-      }
-     ],
-     "blend_transition": 0.2
-    }
-   }
-  },
-  "controller.animation.tall_wail.v2_tail": {
-   "initial_state": "drag",
-   "states": {
-    "drag": {
-     "animations": [
-      {
-       "tw_tail_drag": "v.w_t"
-      },
-      {
-       "tw_tail_drag_low": "v.w_h"
-      },
-      {
-       "tw2_tail_tunnel_still": "v.w_c * (1.0 - v.move)"
-      },
-      {
-       "tw2_tail_tunnel_move": "v.w_c * v.move"
-      }
-     ],
-     "transitions": [
-      {
-       "twitch": "q.property('tailwail:tail') == 1"
-      },
-      {
-       "rigid": "q.property('tailwail:tail') == 2"
-      },
-      {
-       "free": "q.property('tailwail:tail') == 3"
-      },
-      {
-       "curl": "q.property('tailwail:tail') == 4"
-      }
-     ],
-     "blend_transition": 0.35
-    },
-    "twitch": {
-     "animations": [
-      {
-       "tw_tail_twitch": "1.0 - v.w_c"
-      },
-      {
-       "tw2_tail_tunnel_still": "v.w_c * (1.0 - v.move)"
-      },
-      {
-       "tw2_tail_tunnel_move": "v.w_c * v.move"
-      }
-     ],
-     "transitions": [
-      {
-       "drag": "q.property('tailwail:tail') == 0"
-      },
-      {
-       "rigid": "q.property('tailwail:tail') == 2"
-      },
-      {
-       "free": "q.property('tailwail:tail') == 3"
-      },
-      {
-       "curl": "q.property('tailwail:tail') == 4"
-      }
-     ],
-     "blend_transition": 0.35
-    },
-    "rigid": {
-     "animations": [
-      {
-       "tw_tail_rigid": "1.0 - v.w_c"
-      },
-      {
-       "tw2_tail_tunnel_still": "v.w_c * (1.0 - v.move)"
-      },
-      {
-       "tw2_tail_tunnel_move": "v.w_c * v.move"
-      }
-     ],
-     "transitions": [
-      {
-       "drag": "q.property('tailwail:tail') == 0"
-      },
-      {
-       "twitch": "q.property('tailwail:tail') == 1"
-      },
-      {
-       "free": "q.property('tailwail:tail') == 3"
-      },
-      {
-       "curl": "q.property('tailwail:tail') == 4"
+       "a22": "q.property('tailwail:act') == 22"
       }
      ],
      "blend_transition": 0.15
     },
-    "free": {
+    "a22": {
      "animations": [
-      {
-       "tw2_tail_tunnel_still": "v.w_c * (1.0 - v.move)"
-      },
-      {
-       "tw2_tail_tunnel_move": "v.w_c * v.move"
-      }
+      "reach"
      ],
      "transitions": [
       {
-       "drag": "q.property('tailwail:tail') == 0"
+       "a0": "q.property('tailwail:act') == 0"
       },
       {
-       "twitch": "q.property('tailwail:tail') == 1"
+       "a1": "q.property('tailwail:act') == 1"
       },
       {
-       "rigid": "q.property('tailwail:tail') == 2"
+       "a2": "q.property('tailwail:act') == 2"
       },
       {
-       "curl": "q.property('tailwail:tail') == 4"
+       "a3": "q.property('tailwail:act') == 3"
+      },
+      {
+       "a4": "q.property('tailwail:act') == 4"
+      },
+      {
+       "a5": "q.property('tailwail:act') == 5"
+      },
+      {
+       "a6": "q.property('tailwail:act') == 6"
+      },
+      {
+       "a7": "q.property('tailwail:act') == 7"
+      },
+      {
+       "a8": "q.property('tailwail:act') == 8"
+      },
+      {
+       "a9": "q.property('tailwail:act') == 9"
+      },
+      {
+       "a10": "q.property('tailwail:act') == 10"
+      },
+      {
+       "a11": "q.property('tailwail:act') == 11"
+      },
+      {
+       "a12": "q.property('tailwail:act') == 12"
+      },
+      {
+       "a13": "q.property('tailwail:act') == 13"
+      },
+      {
+       "a14": "q.property('tailwail:act') == 14"
+      },
+      {
+       "a15": "q.property('tailwail:act') == 15"
+      },
+      {
+       "a16": "q.property('tailwail:act') == 16"
+      },
+      {
+       "a17": "q.property('tailwail:act') == 17"
+      },
+      {
+       "a18": "q.property('tailwail:act') == 18"
+      },
+      {
+       "a19": "q.property('tailwail:act') == 19"
+      },
+      {
+       "a20": "q.property('tailwail:act') == 20"
+      },
+      {
+       "a21": "q.property('tailwail:act') == 21"
       }
      ],
-     "blend_transition": 0.35
-    },
-    "curl": {
-     "animations": [
-      {
-       "tw2_tail_curl": "1.0 - v.w_c"
-      },
-      {
-       "tw2_tail_tunnel_still": "v.w_c * (1.0 - v.move)"
-      },
-      {
-       "tw2_tail_tunnel_move": "v.w_c * v.move"
-      }
-     ],
-     "transitions": [
-      {
-       "drag": "q.property('tailwail:tail') == 0"
-      },
-      {
-       "twitch": "q.property('tailwail:tail') == 1"
-      },
-      {
-       "rigid": "q.property('tailwail:tail') == 2"
-      },
-      {
-       "free": "q.property('tailwail:tail') == 3"
-      }
-     ],
-     "blend_transition": 0.35
+     "blend_transition": 0.15
     }
    }
   },
-  "controller.animation.tall_wail.v2_overlay": {
-   "initial_state": "on",
-   "states": {
-    "on": {
-     "animations": [
-      {
-       "tw2_breath": "v.alive"
-      },
-      {
-       "tw2_tremor": "v.alive"
-      },
-      {
-       "tw2_look": "v.alive"
-      },
-      "jaw"
-     ]
-    }
-   }
-  },
-  "controller.animation.tall_wail.v2_mimic": {
-   "initial_state": "on",
-   "states": {
-    "on": {
-     "animations": [
-      {
-       "tw_mimic_crouch": "v.w_t * (1.0 - v.move)"
-      },
-      {
-       "tw_mimic_step": "v.w_t * (1.0 - v.move)"
-      },
-      {
-       "tw_mimic_shrug": "1.0 - v.move"
-      },
-      "tw2_mimic_tilt"
-     ]
-    }
-   }
-  },
-  "controller.animation.tall_wail.v2_hurt": {
+  "controller.animation.tall_wail.v3_hurt": {
    "initial_state": "default",
    "states": {
     "default": {
-     "animations": [],
      "transitions": [
       {
-       "hurt": "q.hurt_time > 0 && v.alive > 0.5"
+       "hurt": "q.hurt_time > 0 && (v.ov ?? 1.0) > 0.5"
       }
      ]
     },
@@ -2754,12 +1749,12 @@
     }
    }
   },
-  "controller.animation.tall_wail.v2_echo": {
+  "controller.animation.tall_wail.v3_echo": {
    "initial_state": "e0",
    "states": {
     "e0": {
      "animations": [
-      "tw2_statue_reach"
+      "reach"
      ],
      "transitions": [
       {
@@ -2794,7 +1789,7 @@
     },
     "e1": {
      "animations": [
-      "tw2_statue_arms_up"
+      "watch"
      ],
      "transitions": [
       {
@@ -2829,7 +1824,7 @@
     },
     "e2": {
      "animations": [
-      "tw2_statue_cover"
+      "watch_low"
      ],
      "transitions": [
       {
@@ -2864,7 +1859,7 @@
     },
     "e3": {
      "animations": [
-      "tw2_statue_bow"
+      "tall"
      ],
      "transitions": [
       {
@@ -2899,7 +1894,7 @@
     },
     "e4": {
      "animations": [
-      "tw2_statue_sideways"
+      "peek_l"
      ],
      "transitions": [
       {
@@ -2934,7 +1929,7 @@
     },
     "e5": {
      "animations": [
-      "tw2_behind"
+      "peek_r"
      ],
      "transitions": [
       {
@@ -2969,7 +1964,7 @@
     },
     "e6": {
      "animations": [
-      "tw2_watch_low"
+      "behind"
      ],
      "transitions": [
       {
@@ -3004,7 +1999,7 @@
     },
     "e7": {
      "animations": [
-      "tw2_neck"
+      "neck"
      ],
      "transitions": [
       {
@@ -3039,7 +2034,7 @@
     },
     "e8": {
      "animations": [
-      "tw2_peek_l"
+      "cling"
      ],
      "transitions": [
       {
@@ -3074,7 +2069,7 @@
     },
     "e9": {
      "animations": [
-      "tw2_peek_r"
+      "huddle"
      ],
      "transitions": [
       {

@@ -254,8 +254,12 @@ def ev(node, ctx):
     if k == "tern":
         return ev(node[2], ctx) if num(ev(node[1], ctx)) else ev(node[3], ctx)
     if k == "??":
+        # like the game: an unset variable (or an invalid left side) yields the right side
+        left = node[1]
+        if left[0] == "id" and left[1].split(".")[0] in ("v", "t") and left[1] not in ctx.v:
+            return ev(node[2], ctx)
         try:
-            return ev(node[1], ctx)
+            return ev(left, ctx)
         except MolangError:
             return ev(node[2], ctx)
     a = ev(node[1], ctx)

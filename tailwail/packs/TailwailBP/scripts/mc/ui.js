@@ -25,8 +25,11 @@ export function isOperator(p) {
 const HELP = [
   "§lTAILWAIL§r v" + ADDON_VERSION,
   "",
-  "It lives in the dark under the world: caves, mines, ravines, and outside at night.",
-  "It does not start by hunting. It starts by §olistening§r.",
+  "It lives in the dark: caves, mines, ravines, and outside at night.",
+  "It watches you first. Not for long. Then it comes, faster than you can run.",
+  "",
+  "§lIf it grabs you:§r read the prompt. Mash JUMP, mash SNEAK, alternate, or stay still.",
+  "It is different every time.",
   "",
   "§lNo sign of it?§r Spend time underground (or outside at night) in Survival. It gets",
   "worse the longer you play. Never on Peaceful.",
@@ -112,10 +115,14 @@ async function showWorldSettings(player) {
     .toggle("Cave encounters", { defaultValue: s.caveEncounters })
     .toggle("Night encounters outside", { defaultValue: s.surfaceEncounters })
     .toggle("Can open wooden doors", { defaultValue: s.openDoors })
-    .slider("Throw damage (half-hearts)", 1, 20, { defaultValue: s.throwDamage, valueStep: 1 })
+    .dropdown("Breaks through", ["Nothing", "Doors, trapdoors, gates", "Doors and glass"], { defaultValueIndex: s.breakBlocks })
+    .toggle("Climbs walls to reach you", { defaultValue: s.climbing })
+    .toggle("Ceiling and corner ambushes", { defaultValue: s.ambushes })
+    .slider("Rake damage (half-hearts)", 1, 20, { defaultValue: s.swipeDamage, valueStep: 1 })
     .slider("Bite damage (half-hearts)", 1, 30, { defaultValue: s.biteDamage, valueStep: 1 })
-    .slider("Jump presses to break free", 3, 16, { defaultValue: s.strugglePresses, valueStep: 1 })
-    .slider("Pursuit duration (seconds)", 12, 45, { defaultValue: s.pursuitSeconds, valueStep: 1 })
+    .slider("Struggle: fewest presses", 2, 16, { defaultValue: s.struggleMin, valueStep: 1 })
+    .slider("Struggle: most presses", 3, 20, { defaultValue: s.struggleMax, valueStep: 1 })
+    .slider("Seconds out of sight before it loses you", 4, 16, { defaultValue: s.lostSeconds, valueStep: 1 })
     .slider("Max Tailwails in the world at once", 1, 3, { defaultValue: s.maxConcurrent, valueStep: 1 })
     .toggle("Debug logging to content log", { defaultValue: s.debugLog })
     .submitButton("Apply")
@@ -136,12 +143,16 @@ async function showWorldSettings(player) {
     caveEncounters: !!v[8],
     surfaceEncounters: !!v[9],
     openDoors: !!v[10],
-    throwDamage: Number(v[11]),
-    biteDamage: Number(v[12]),
-    strugglePresses: Number(v[13]),
-    pursuitSeconds: Number(v[14]),
-    maxConcurrent: Number(v[15]),
-    debugLog: !!v[16],
+    breakBlocks: Number(v[11]),
+    climbing: !!v[12],
+    ambushes: !!v[13],
+    swipeDamage: Number(v[14]),
+    biteDamage: Number(v[15]),
+    struggleMin: Number(v[16]),
+    struggleMax: Math.max(Number(v[16]), Number(v[17])),
+    lostSeconds: Number(v[18]),
+    maxConcurrent: Number(v[19]),
+    debugLog: !!v[20],
   };
   if (presetName !== "custom" && presetName !== s.preset) next = presetSettings(next, presetName);
   const saved = saveSettings(next);

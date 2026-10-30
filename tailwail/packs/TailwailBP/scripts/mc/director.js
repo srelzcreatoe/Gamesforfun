@@ -1,7 +1,8 @@
 // Global coordinator: one decision loop for every encounter, per-player scheduling and
 // escalation, presence events, spawning, event wiring and orphan cleanup.
 import { ButtonState, Difficulty, GameMode, InputButton, ItemStack, Player, system, world } from "@minecraft/server";
-import { ECHO_ID, ENCOUNTER, ENTITY_ID, GUIDE_ITEM_ID, LURE_ID, SEARCH, TICKS } from "../config.js";
+import { ADDON_VERSION, ECHO_ID, ENCOUNTER, ENTITY_ID, GUIDE_ITEM_ID, LURE_ID, SEARCH, TICKS } from "../config.js";
+import { RP_CHECK_KEY } from "../core/ids.js";
 import { unlock } from "../core/journal.js";
 import { setupWeights } from "../core/memory.js";
 import { PRESENCE_EVENTS, pickPresence } from "../core/presence_rules.js";
@@ -10,12 +11,12 @@ import {
 } from "../core/scheduler.js";
 import { SETUPS, fitsTerrain, pickSetup, setupsForStage } from "../core/setups.js";
 import { makeRng } from "../util/rng.js";
-import { dist } from "../util/vec.js";
+import { dist, yawTo } from "../util/vec.js";
 import { forgetPlayer } from "./audio.js";
 import { sweepEchoes, tickEchoes } from "./echo.js";
 import { Encounter, survivalLike } from "./encounter.js";
 import * as fx from "./fx.js";
-import { onJumpPressed, releaseAll } from "./grab.js";
+import { onStrugglePressed, releaseAll } from "./grab.js";
 import { dlog, errorText, setDebug, warn } from "./log.js";
 import { lightAt } from "./perception.js";
 import { Presence } from "./presence.js";
@@ -39,6 +40,8 @@ export class Director {
     this.lastReason = new Map();
     this.stats = { started: 0, ended: 0, outcomes: {}, presence: {} };
     this.forcedNext = new Map(); // player id -> setup forced by command
+    this.returnAt = new Map(); // player id -> tick it comes back (it only pretended to leave)
+    this.dummies = new Set(); // showcase entities driven by /tailwail:debug anim, never adopted
   }
 
   playerById(id) {
@@ -178,6 +181,11 @@ export class Director {
     s.stage = computeStage(s);
 
     if (!mine && !this.pendingSpawn.has(p.id)) {
+      const back = this.returnAt.get(p.id);
+      if (back !== undefined && system.currentTick >= back) {
+        this.returnAt.delete(p.id);
+        if (!this.forcedNext.has(p.id) && settings.enabled) this.forcedNext.set(p.id, "the_return");
+      }
       const forced = this.forcedNext.get(p.id);
       const tick = system.currentTick;
       const activeNear = [...this.encounters.values()].some((e) => e.tw.isValid && e.dim.id === p.dimension.id && dist(e.tw.location, p.location) < 96);
@@ -247,15 +255,18 @@ export class Director {
     const slot = this.freeSlot();
     if (!slot) return;
     const mem = getMemory(player);
-    const allowed = forcedSetup ? [forcedSetup] : setupsForStage(s.stage);
+    const snap = this.playerSnapshot(player);
+    const where = snap.underground ? "cave" : "surface";
+    let allowed = forcedSetup ? [forcedSetup] : setupsForStage(s.stage, where);
+    if (!settings.ambushes) allowed = allowed.filter((id) => !["cling", "huddle"].includes(SETUPS[id].opener) || id === forcedSetup);
     const weights = setupWeights(mem, allowed).map(([id, w]) => [id, w * (SETUPS[id] ? SETUPS[id].weight : 1)]);
-    let setup = forcedSetup || this.rng.weighted(weights.filter(([, w]) => w > 0)) || "statue_hunt";
+    let setup = forcedSetup || this.rng.weighted(weights.filter(([, w]) => w > 0)) || (where === "cave" ? "stalker" : "treeline");
     const def = SETUPS[setup];
     const out = {};
     const dim = player.dimension;
     const players = dim.getPlayers({ location: player.location, maxDistance: 96 });
     this.pendingSpawn.add(player.id);
-    const behindOnly = !!def.behind;
+    const behindOnly = def.opener === "behind";
     const job = spawnSearch({
       dim, player, players, rng: this.rng, band: def.spawnBand, minHead: def.needsHeadroom >= 7 ? 3 : def.needsHeadroom, maxHead: def.maxHeadroom, out, behindOnly,
     });
@@ -275,13 +286,13 @@ export class Director {
         return;
       }
       if (!fitsTerrain(setup, out.result.head) && !forcedSetup) {
-        setup = pickSetup(weights, { headroom: out.result.head }, self.rng) || "statue_hunt";
+        setup = pickSetup(weights, { headroom: out.result.head }, self.rng) || "stalker";
       }
-      self.spawnAt(player, out.result, setup, slot, false, false);
+      self.spawnAt(player, out.result, setup, slot, false, false, s.stage);
     })(this));
   }
 
-  spawnAt(player, site, setup, slot, manual, showcase) {
+  spawnAt(player, site, setup, slot, manual, showcase, stage = 0) {
     if (!slot || (this.encounters.size >= getSettings().maxConcurrent && !manual)) return null;
     const dim = player.dimension;
     this.creating = true;
@@ -296,7 +307,7 @@ export class Director {
     }
     const def = SETUPS[setup];
     const posture = def.posture === "crawl" ? "crawl" : site.posture || "tall";
-    const enc = new Encounter({ director: this, tw, target: player, setup, slot, rng: makeRng((this.rng.next() * 2 ** 32) >>> 0), manual, showcase, posture });
+    const enc = new Encounter({ director: this, tw, target: player, setup, slot, rng: makeRng((this.rng.next() * 2 ** 32) >>> 0), manual, showcase, posture, stage });
     this.register(enc);
     return enc;
   }
@@ -317,7 +328,7 @@ export class Director {
 
   /** A Tailwail without a live controller (reload, spawn egg, /summon). */
   adopt(tw, reloaded) {
-    if (!tw.isValid || this.encounters.has(tw.id)) return;
+    if (!tw.isValid || this.encounters.has(tw.id) || this.dummies.has(tw.id)) return;
     const slot = this.freeSlot();
     const near = tw.dimension.getPlayers({ location: tw.location, maxDistance: 64 }).filter((p) => survivalLike(p, true));
     near.sort((a, b) => dist(a.location, tw.location) - dist(b.location, tw.location));
@@ -329,20 +340,21 @@ export class Director {
     if (!near.length) {
       if (reloaded) tw.remove(); // nobody to haunt: tidy up quietly
       else {
-        const enc = new Encounter({ director: this, tw, target: null, setup: "statue_hunt", slot, rng: makeRng(), manual: true, orphan: true });
+        const enc = new Encounter({ director: this, tw, target: null, setup: "stalker", slot, rng: makeRng(), manual: true, orphan: true });
         this.register(enc);
       }
       return;
     }
     if (reloaded) {
-      const enc = new Encounter({ director: this, tw, target: near[0], setup: "statue_hunt", slot, rng: makeRng(), manual: true, orphan: true });
+      const enc = new Encounter({ director: this, tw, target: near[0], setup: "stalker", slot, rng: makeRng(), manual: true, orphan: true });
       this.register(enc);
       return;
     }
     // spawn egg / summon: a showcase that gets to the good part quickly
     const head = this.headroomAt(tw);
-    const setup = head >= 7 ? "cavern_reveal" : head <= 3 ? "tunnel_crawler" : "statue_hunt";
-    const enc = new Encounter({ director: this, tw, target: near[0], setup, slot, rng: makeRng(), manual: true, showcase: true, posture: head >= 5 ? "tall" : head >= 3 ? "hunch" : "crawl" });
+    const setup = head <= 2 ? "tunnel_crawler" : "stalker";
+    const stage = getSchedule(near[0]).stage || 0;
+    const enc = new Encounter({ director: this, tw, target: near[0], setup, slot, rng: makeRng(), manual: true, showcase: true, posture: head >= 5 ? "tall" : head >= 3 ? "hunch" : "crawl", stage });
     this.register(enc);
   }
 
@@ -379,9 +391,10 @@ export class Director {
         for (const l of dim.getEntities({ type: LURE_ID })) this.checkLure(l);
         for (const e of dim.getEntities({ type: ENTITY_ID })) if (!this.encounters.has(e.id)) this.adopt(e, true);
       }
+      for (const id of [...this.dummies]) if (!world.getEntity(id)) this.dummies.delete(id);
       sweepEchoes();
       const ids = new Set(world.getAllPlayers().map((p) => p.id));
-      for (const m of [this.lastCheck, this.lastPresence, this.sleeping, this.lastReason]) for (const k of [...m.keys()]) if (!ids.has(k)) m.delete(k);
+      for (const m of [this.lastCheck, this.lastPresence, this.sleeping, this.lastReason, this.returnAt]) for (const k of [...m.keys()]) if (!ids.has(k)) m.delete(k);
     } catch (e) {
       warn("sweep", errorText(e));
     }
@@ -479,6 +492,7 @@ export class Director {
         // mid-grab); respawning: only what this add-on had applied
         fx.clearAll(p, ev.initialSpawn);
         if (!ev.initialSpawn) return;
+        this.rpCheck(p);
         const prefs = getPrefs(p);
         if (!prefs.guideGiven) {
           try {
@@ -496,7 +510,9 @@ export class Director {
     });
 
     world.afterEvents.playerButtonInput.subscribe((ev) => {
-      if (ev.button === InputButton.Jump && ev.newButtonState === ButtonState.Pressed) onJumpPressed(ev.player);
+      if (ev.newButtonState !== ButtonState.Pressed) return;
+      if (ev.button === InputButton.Jump) onStrugglePressed(ev.player, "jump");
+      else if (ev.button === InputButton.Sneak) onStrugglePressed(ev.player, "sneak");
     });
 
     // the sounds you make: mimicry (presence) and noise (encounters follow it)
@@ -543,12 +559,50 @@ export class Director {
     });
   }
 
+  /**
+   * The resource pack can be stale (an older copy applied to the world) while the behavior
+   * pack is new: then nothing animates and the new sounds are silent.  This line is a
+   * translation key that only the 3.x resource pack defines; without it the player sees
+   * the raw key, which itself says what to do.
+   */
+  rpCheck(p) {
+    try {
+      p.sendMessage({ rawtext: [{ text: `§8[Tailwail ${ADDON_VERSION}] ` }, { translate: RP_CHECK_KEY }] });
+    } catch (e) {
+      dlog("rp check", e);
+    }
+  }
+
+  /** A passive Tailwail for the animation showcase: no brain, no adoption. */
+  spawnShowcaseDummy(p, at) {
+    this.creating = true;
+    let tw;
+    try {
+      tw = p.dimension.spawnEntity(ENTITY_ID, at, { initialRotation: yawTo(at, p.location) });
+    } finally {
+      this.creating = false;
+    }
+    if (!tw) return undefined;
+    this.dummies.add(tw.id);
+    tw.setProperty("tailwail:managed", true);
+    return tw;
+  }
+
+  /** It only pretended to leave: it comes back for this player in a while. */
+  scheduleReturn(p) {
+    if (!p || !p.isValid || this.returnAt.has(p.id)) return;
+    const [lo, hi] = SEARCH.returnDelay;
+    this.returnAt.set(p.id, system.currentTick + Math.round(this.rng.range(lo, hi) * 20));
+    dlog(`${p.name}: it will come back`);
+  }
+
   // ------------------------------------------------------------------ diagnostics & commands
   status(p) {
     const settings = getSettings();
     const lines = [`§6Tailwail ${this.encounters.size} active / cap ${settings.maxConcurrent}, preset ${settings.preset}`];
     for (const e of this.encounters.values()) lines.push("§7" + e.describe());
     if (p) {
+      this.rpCheck(p);
       const s = getSchedule(p);
       lines.push(`§7you: stage ${s.stage}, next encounter in ${Math.max(0, s.wait).toFixed(0)}s, next presence in ${Math.max(0, s.presWait).toFixed(0)}s (eligible time only)`);
       lines.push(`§7last check: ${this.lastReason.get(p.id) || "-"}, last outcome: ${s.lastOutcome || "-"}, encounters ${s.encN}, escapes ${s.escN}, presence ${s.presN}`);

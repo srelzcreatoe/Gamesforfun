@@ -2,7 +2,7 @@
 // Every gameplay number lives here so balance changes never require touching logic.
 // Times are seconds unless a name ends in Ticks.  Distances are blocks.
 
-export const ADDON_VERSION = "2.0.0";
+export const ADDON_VERSION = "3.0.0";
 export const NS = "tailwail";
 export const ENTITY_ID = "tailwail:tall_wail";
 export const LURE_ID = "tailwail:lure";
@@ -21,11 +21,12 @@ export const DT = TICKS.decision / 20;
 // Movement attribute values.  Measured on BDS 1.26.61 with the 0.9-wide box:
 // ground speed (blocks/s) ~= 43.2 * value^2  (0.30 -> 3.89 b/s, 0.45 -> 8.74 b/s).
 export const SPEED = {
-  creep: 0.19, // ~1.6 b/s  stalking reposition
-  walk: 0.245, // ~2.6 b/s  approach
-  search: 0.3, // ~3.9 b/s
-  retreat: 0.3, // ~3.9 b/s
-  burst: 0.37, // ~5.9 b/s  the stand-off "it moved while you looked away" burst
+  creep: 0.2, // ~1.7 b/s  slow stalking advance (watched)
+  walk: 0.25, // ~2.7 b/s  approach
+  search: 0.34, // ~5.0 b/s  hunting for you
+  retreat: 0.36, // ~5.6 b/s
+  burst: 0.42, // ~7.6 b/s  repositioning while unseen, crossing your view
+  flee: 0.46, // ~9.1 b/s  wounded, running for its life
 };
 export const speedToBlocksPerSecond = (v) => 43.2 * v * v;
 
@@ -39,49 +40,40 @@ export const POSTURE = {
 export const POSTURE_ORDER = ["crawl", "hunch", "tall"];
 export const POSTURE_MIN_HOLD = 1.5; // seconds between posture growth (hysteresis)
 
-// Durations that must match animation clip lengths in the resource pack
-// (tools/validate.py compares them).
+// One-shot clip lengths and their hit / release times are generated into core/ids.js (SHOT)
+// from the baked clips, so they can never drift from the resource pack.
 export const CLIP = {
-  unfold: 2.0, // animation.tall_wail.reveal (+ tw_unfold_full / tw_unfold_mid)
-  unfoldLow: 1.2, // animation.tall_wail.tw_unfold_low
-  scream: 1.8, // animation.tall_wail.tw2_scream
-  windupCut: 1.0, // the supplied 3.2 s windup is cut once it has dropped onto all fours
-  grab: 0.5, // animation.tall_wail.tw2_grab
-  throw: 0.6, // animation.tall_wail.tw2_throw
-  throwRelease: 0.3, // arm is at full extension here
-  strike: 0.95, // animation.tall_wail.tw_strike (fallback when a grab is impossible)
-  strikeImpact: 0.55,
-  frustrated: 1.6, // animation.tall_wail.tw2_frustrated
-  owl: 1.0, // animation.tall_wail.tw2_owl
-  tilt: 1.4, // animation.tall_wail.tw2_tilt
-  neck: 1.6, // animation.tall_wail.tw2_neck
-  peek: 0.7, // animation.tall_wail.tw2_peek_l / _r
-  statue: 0.25, // animation.tall_wail.tw2_statue_*
-  behind: 0.2, // animation.tall_wail.tw2_behind
-  death: 2.0, // death / death_low
+  death: 2.4, // animation.tall_wail.v3.death (act, holds its last frame)
 };
 
 // Difficulty presets.  Identical rules, different magnitudes.
+// chaseSpeed 0.40 / 0.44 / 0.48 = ~6.9 / ~8.4 / ~10 blocks per second: faster than a sprinting
+// player (5.6) on every preset.  You do not outrun it; you break its line of sight, hide, or fight.
+// lostSeconds: out of sight this long (and lostDistance away) before it loses you.
+// struggle: [min, max] presses for the grab struggle; inescapable: chance a grab cannot be broken.
 export const PRESETS = {
   calm: {
-    cooldownMin: 480, cooldownMax: 780, firstMin: 360, firstMax: 540, postDeathSeconds: 360,
-    presenceScale: 0.7, chaseSpeed: 0.38, pursuitSeconds: 20, agitationScale: 0.8,
-    throwDamage: 4, biteDamage: 8, strikeDamage: 5, strugglePresses: 5, healthMultiplier: 0.8,
+    cooldownMin: 420, cooldownMax: 720, firstMin: 300, firstMax: 480, postDeathSeconds: 360,
+    presenceScale: 0.7, chaseSpeed: 0.4, lostSeconds: 6, agitationScale: 0.8,
+    swipeDamage: 4, slamDamage: 6, pounceDamage: 5, throwDamage: 4, biteDamage: 7, smashDamage: 6,
+    struggleMin: 4, struggleMax: 7, inescapable: 0, healthMultiplier: 0.8, fleeAt: 0.45,
   },
   standard: {
-    cooldownMin: 300, cooldownMax: 480, firstMin: 240, firstMax: 420, postDeathSeconds: 240,
-    presenceScale: 1.0, chaseSpeed: 0.4, pursuitSeconds: 26, agitationScale: 1.0,
-    throwDamage: 6, biteDamage: 12, strikeDamage: 7, strugglePresses: 7, healthMultiplier: 1.0,
+    cooldownMin: 270, cooldownMax: 450, firstMin: 180, firstMax: 330, postDeathSeconds: 240,
+    presenceScale: 1.0, chaseSpeed: 0.44, lostSeconds: 8, agitationScale: 1.0,
+    swipeDamage: 6, slamDamage: 9, pounceDamage: 7, throwDamage: 6, biteDamage: 11, smashDamage: 9,
+    struggleMin: 6, struggleMax: 11, inescapable: 0.12, healthMultiplier: 1.0, fleeAt: 0.35,
   },
   nightmare: {
-    cooldownMin: 180, cooldownMax: 330, firstMin: 150, firstMax: 270, postDeathSeconds: 180,
-    presenceScale: 1.4, chaseSpeed: 0.42, pursuitSeconds: 34, agitationScale: 1.3,
-    throwDamage: 8, biteDamage: 16, strikeDamage: 9, strugglePresses: 10, healthMultiplier: 1.6,
+    cooldownMin: 160, cooldownMax: 300, firstMin: 100, firstMax: 200, postDeathSeconds: 180,
+    presenceScale: 1.4, chaseSpeed: 0.48, lostSeconds: 11, agitationScale: 1.3,
+    swipeDamage: 8, slamDamage: 12, pounceDamage: 9, throwDamage: 8, biteDamage: 15, smashDamage: 12,
+    struggleMin: 9, struggleMax: 15, inescapable: 0.25, healthMultiplier: 1.6, fleeAt: 0.25,
   },
 };
 
 export const WORLD_DEFAULTS = {
-  v: 2,
+  v: 3,
   enabled: true,
   preset: "standard",
   ...PRESETS.standard,
@@ -92,8 +84,11 @@ export const WORLD_DEFAULTS = {
   fakeChat: true, // fake chat lines (only the haunted player sees them)
   torchSnuff: true, // it puts out torches (they can be relit)
   caveEncounters: true,
-  surfaceEncounters: true, // night encounters in dark woods / outside at night
+  surfaceEncounters: true, // night encounters outside, in the dark
   openDoors: true,
+  breakBlocks: 2, // 0 never, 1 smashes doors / trapdoors / gates, 2 also glass
+  climbing: true, // climbs walls to reach you
+  ambushes: true, // ceiling and corner ambushes in caves
   maxConcurrent: 2,
   debugLog: false,
 };
@@ -107,25 +102,33 @@ export const WORLD_LIMITS = {
   firstMax: [60, 2400],
   postDeathSeconds: [60, 1200],
   presenceScale: [0.3, 2],
-  chaseSpeed: [0.36, 0.45],
-  pursuitSeconds: [12, 45],
+  chaseSpeed: [0.36, 0.5],
+  lostSeconds: [4, 16],
   agitationScale: [0.5, 1.8],
+  swipeDamage: [1, 20],
+  slamDamage: [1, 24],
+  pounceDamage: [1, 20],
   throwDamage: [1, 20],
   biteDamage: [1, 30],
-  strikeDamage: [1, 20],
-  strugglePresses: [3, 16],
+  smashDamage: [1, 24],
+  struggleMin: [2, 16],
+  struggleMax: [3, 20],
+  inescapable: [0, 0.5],
   healthMultiplier: [0.5, 2.5],
+  fleeAt: [0, 0.6],
+  breakBlocks: [0, 2],
   maxConcurrent: [1, 3],
 };
 
 export const PLAYER_DEFAULTS = {
-  v: 2,
+  v: 3,
   volume: 1.0, // 0..1 multiplier on every Tailwail sound for this player
   camera: 2, // 0 off, 1 reduced (no shake/FOV punches), 2 full
   music: true,
   fog: true,
   captions: false, // action-bar captions for important cues
   guideGiven: false,
+  rpChecked: "", // last add-on version whose resource-pack check this player was shown
 };
 
 // When and where encounters may start.
@@ -154,123 +157,158 @@ export const STAGE = {
   obsessedAfterEscapes: 2,
 };
 
+// The opening: short "beats" in which it shows itself (watching, peeking, running across
+// your view), each ending with it bolting off, holding your stare, or coming for you.
 export const STALK = {
-  durationMin: 30,
-  durationMax: 60,
-  hardCap: 150,
-  nearMin: 10,
-  farMax: 26,
-  repositionMin: 2.5,
-  repositionMax: 5,
-  noticeTime: 0.4, // continuous gaze that counts as "noticed"
-  standoffStare: 2.0, // noticed + this much staring -> stand-off
-  standoffApproach: 16, // walking toward it inside this distance -> stand-off
-  hiddenLoseTrack: 12, // seconds the target stays hidden before it gives up
-  breathMin: 10,
-  breathMax: 20,
-  knockMin: 18,
-  knockMax: 35,
-  snuffMin: 14,
-  snuffMax: 28,
-  standoffMin: 9,
-  standoffMax: 14,
-  peekHideStare: 1.4,
-  slinkChance: 0.35, // first notice: chance it slinks away instead of holding
+  beatsMin: 1,
+  beatsMax: 3,
+  hardCap: 75, // the whole opening never lasts longer than this
+  nearMin: 12,
+  farMax: 30,
+  watchMin: 2.5, // seconds it holds a spot when nobody looks
+  watchMax: 6,
+  noticeTime: 0.35, // continuous gaze that counts as "noticed"
+  reactDelay: 0.25, // it reacts this fast to being seen
+  approachStandoff: 14, // walking toward it inside this distance -> stand-off
+  hiddenLoseTrack: 10,
+  chargeChance: [0.15, 0.3, 0.45, 0.6], // per stage: being seen makes it charge right away
+  bolt: 0.45, // otherwise: chance it bolts out of sight (else it holds the stare)
+  crossChance: 0.3, // a beat where it sprints across your view instead of watching
 };
 
+// The stand-off: seconds, not minutes.  It creeps at you even while watched now.
 export const STANDOFF = {
-  durationMax: 80,
-  commitAtTimeout: 55,
-  calmDistance: 24,
-  calmAgitation: 60,
-  hiddenCalm: 8, // seconds hidden (or out of sight) that end a calm stand-off
-  tooClose: 4.5, // creeping this close ends the stand-off: it commits
-  creepDelay: 0.3, // unwatched this long -> it moves
-  creepBurst: 3.5, // blocks per burst
-  creepBurstMax: 1.6, // seconds per burst
-  creepCooldown: 0.6,
-  perfMinGap: 3,
-  perfMaxGap: 8,
-  creakChance: 0.6, // freezing into a new pose makes a bone-creak
+  durationMin: 4,
+  durationMax: 10,
+  tooClose: 6, // it commits when this close
+  creepEvery: 1.6, // seconds between creeping advances
+  creepStep: 2.2,
+  turnAwayCharge: 0.8, // looking away this long makes it charge
+  perfMinGap: 1.5,
+  perfMaxGap: 3.5,
 };
 
 export const AGITATION = {
   max: 100,
-  cueTwo: 35, // >= this: twitching tail, heavy breath, distorted imitation
-  cueThree: 65, // >= this: curled tail, frantic breath, tremor, jaw parts
-  grace: 2.0, // seconds of free gaze ("a glance is safe")
+  cueTwo: 30,
+  cueThree: 60,
+  grace: 1.0,
   graceRefill: 0.4,
-  stareRate: 4.0, // per second of staring beyond the grace budget
-  closeDistance: 8,
-  closeRate: 2.2,
-  approachRate: 6.0,
+  stareRate: 9.0,
+  closeDistance: 9,
+  closeRate: 6,
+  approachRate: 10,
   approachSpeed: 0.8,
   approachRange: 16,
   sprintRange: 16,
-  sprintBurst: 14,
-  sprintRate: 5.0,
-  hitBurst: 100, // hitting it ends the stand-off
+  sprintBurst: 20,
+  sprintRate: 8,
+  hitBurst: 100,
   hitCooldown: 0.5,
-  calmDecay: 6.0,
+  calmDecay: 2.0,
   calmRange: 9,
-  drift: 0.5,
+  drift: 2.0,
 };
 
+// The hunt.  Relentless while it can see or hear you; no time budget.
 export const CHASE = {
-  escapeNoSight: 6,
-  escapeDistance: 14,
-  sightRange: 40,
+  lostDistance: 18, // with settings.lostSeconds out of sight
+  sightRange: 48,
+  hardCap: 160, // a single unbroken hunt ends (it "lets you go") after this long
   grabReach: 2.9, // horizontal, from body centre
   grabReachVertical: 2.6,
   grabFacingCos: 0.3,
-  grabCooldown: 3.5,
-  strikeRange: 3.0,
-  strikeCooldown: 1.4,
+  grabCooldown: 9,
+  grabChance: 0.45, // per attack decision in grab range (when grabs are on)
+  swipeRange: 3.3,
+  swipeCooldown: 0.75,
+  comboChance: 0.35,
+  slamRange: 3.6,
+  slamCooldown: 6,
+  slamChance: 0.25,
+  pounceMin: 5,
+  pounceMax: 11,
+  pounceCooldown: 7,
+  pounceChance: 0.55,
+  pounceSpeed: 1.25, // horizontal impulse
+  pounceLift: 0.45,
+  pounceHitRange: 2.6,
+  roarEvery: [10, 18],
   stuckProgress: 0.6,
-  stuckWindow: 3.0,
-  recoveryAttempts: 3,
-  screechMin: 3.5,
-  screechMax: 7,
+  stuckWindow: 2.4,
+  recoveryAttempts: 4,
+  screechMin: 3.0,
+  screechMax: 6,
   snuffEvery: 0.8, // torches along its path
-  stepEvery: 1.62,
+  stepEvery: 1.5,
+  climbMinRise: 2.5, // target this much higher and unreachable -> it climbs
+  climbMaxRise: 14,
+  climbSpeed: 3.2, // blocks per second up the wall
+  bashHits: [3, 5], // door / glass hits before it breaks through
+  reachInTime: [3, 5],
 };
 
 export const GRAB = {
-  hold: 2.6, // seconds held at its face
-  freeStagger: CLIP.frustrated,
+  lunge: 0.5, // lunge_grab clip
+  window: [2.2, 3.4], // seconds you get to struggle (randomised every grab)
+  stillWindow: [2.0, 3.0], // "don't move": stay still this long and it drops you
+  gripShiftChance: 0.3, // halfway through it shifts its grip: the input changes
+  kinds: { jump: 3, sneak: 2, alternate: 2, still: 1 }, // weights of the struggle kinds
   othersDamageToDrop: 10, // damage from other players during a hold that makes it let go
-  throwH: 2.4, // knockback (horizontal) on release
-  throwV: 0.55,
+  throwH: 2.6, // knockback (horizontal) on a throw
+  throwV: 0.6,
   freeDamage: 2,
-  // measured from tw2_hold at 1.5x (tools/client_sim.py composite): both hands meet 2.39 blocks
-  // in front at 3.1 up; the head is 1.73 in front at 3.05 up.  The victim's feet go here:
+  stunned: [1.6, 2.4], // after you tear free
+  savor: [1.0, 1.8], // after it hurts you: it stands over you, then hunts on
+  // measured from the hold clip at 1.5x (tools/client_sim.py composite): the victim's feet go here
   holdForward: 2.35,
   holdUp: 1.95,
   faceForward: 1.73,
   faceUp: 3.05,
-  needHeadroom: 4, // the hold pose stands up; lower ceilings use a strike instead
+  needHeadroom: 4, // the hold pose stands up; lower ceilings use strikes instead
   throwSideDeg: -35, // the throw swings to its right
 };
 
 export const SEARCH = {
-  points: 4,
-  radius: 7,
-  listen: 1.8,
-  maxDuration: 14,
+  points: 5,
+  radius: 8,
+  listen: 1.4,
+  maxDuration: 22,
   hiddenLight: 5, // sneaking at or below this light is hiding
   hiddenDetect: 2.8, // a hidden player is still found inside this distance
-  noiseRadius: 24,
+  noiseRadius: 28,
+  returnChance: 0.45, // it pretends to leave, then comes back running
+  returnDelay: [25, 50],
 };
 
 export const RETREAT = {
   distanceMin: 26,
   distanceMax: 38,
   hideDistance: 20,
-  minBeforeDespawn: 3,
-  maxDuration: 40,
-  hardCap: 90,
+  minBeforeDespawn: 2,
+  maxDuration: 35,
+  hardCap: 80,
   respots: 3,
-  owlChance: 0.65, // walks away with its head turned all the way round, watching you
+  owlChance: 0.5, // walks away with its head turned all the way round, watching you
+};
+
+// Ambushes (caves): hanging from the ceiling, or balled up in a corner facing the wall.
+export const AMBUSH = {
+  clingMinCeiling: 5, // blocks of open air under the ceiling spot
+  clingMaxCeiling: 10,
+  dropRange: 4.5, // horizontal distance at which it lets go
+  lookUpDrop: 1.2, // seconds of being stared at from below before it drops anyway
+  huddleTrigger: 7,
+  huddleStare: 2.0,
+  waitMax: 45, // nobody came: it slips away
+};
+
+// Surface (night) openers.
+export const SURFACE = {
+  nightStart: 13000,
+  nightEnd: 23000,
+  treelineRange: [26, 44],
+  runnerRange: [22, 34],
 };
 
 export const IMITATION = {

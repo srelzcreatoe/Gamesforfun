@@ -1,50 +1,52 @@
-// Tailwail's encounter state machine.  Pure: no Minecraft imports.
+// Tailwail's encounter state machine (v3: the relentless hunter).  Pure: no Minecraft imports.
 //
-//   stalk -> standoff -> unfold -> scream -> windup -> chase <-> grab
-//                                                      chase -> search -> frustrated -> retreat
-//   plus retreat (from anywhere) and death.  Every state has an entry action, update rules,
-//   a hard time ceiling and a cleanup path.
+//   stalk (beats: watch / peek / tall / cross) -> standoff -> engage (scream) -> hunt
+//   hunt <-> attack (swipe, combo, slam, pounce) | grab (struggle -> free | finisher)
+//   attack / finisher -> savor -> hunt      free -> stunned -> hunt      (it never just leaves)
+//   hunt -> climb | bash | reach -> hunt;  hunt -> search -> hunt | leave
+//   ambush (cling / huddle) -> engage;  any -> flee (wounded) | leave | death
 //
+// Every state has an entry action, update rules, a hard time ceiling and a cleanup path.
 // The adapter (mc/encounter.js) builds a perception snapshot each decision tick and
-// implements `ctx` (movement, spot finding, sounds, player effects, the grab, damage,
-// despawn).  Tests drive the same class with a mock ctx (tests/helpers.mjs).
-import {
-  AGITATION, CHASE, CLIP, DT, GRAB, IMITATION, RETREAT, SEARCH, SPEED, STALK, STANDOFF,
-} from "../config.js";
+// implements `ctx`.  Tests drive the same class with a mock ctx (tests/helpers.mjs).
+import { AGITATION, AMBUSH, CHASE, CLIP, DT, GRAB, IMITATION, RETREAT, SEARCH, SPEED, STALK, STANDOFF } from "../config.js";
 import { createAgitation, stepAgitation } from "./agitation.js";
 import { allow, createLimiter } from "./audio_rules.js";
-import {
-  abortStrike, canStartStrike, createStrikeState, finishStrike, inGrabReach, resolveImpact, startStrike,
-} from "./combat_rules.js";
-import { cancelImitation, createDetector, createImitator, observe, offer, schedule, updateImitator } from "./gestures.js";
-import { gestureBias } from "./memory.js";
+import { chooseAttack, createCooldowns, hitLands, pickFinisher, spendAttack, struggleSpec } from "./combat_rules.js";
+import { cancelImitation, createDetector, createImitator, observe, offer, updateImitator } from "./gestures.js";
+import { SHOT } from "./ids.js";
 import { SETUPS } from "./setups.js";
 
-export const STATES = ["stalk", "standoff", "unfold", "scream", "windup", "chase", "grab", "search", "frustrated", "retreat", "death"];
-export const STATUES = ["statue_reach", "statue_arms_up", "statue_cover", "statue_bow", "statue_sideways"];
-const COMMITTED = new Set(["unfold", "scream", "windup", "chase", "grab"]);
+export const STATES = ["stalk", "standoff", "engage", "hunt", "attack", "grab", "savor", "stunned", "search", "climb", "bash",
+  "reach", "ambush", "leave", "flee", "death"];
+const HUNTING = new Set(["engage", "hunt", "attack", "grab", "savor", "stunned", "climb", "bash", "reach", "search"]);
 
 // Hard ceilings per state (seconds).  A state that overstays always resolves somewhere safe.
 export const MAX_STATE_TIME = {
-  stalk: STALK.hardCap,
-  standoff: STANDOFF.durationMax + 10,
-  unfold: CLIP.unfold + 0.6,
-  scream: CLIP.scream + 0.6,
-  windup: CLIP.windupCut + 0.6,
-  chase: 75,
-  grab: CLIP.grab + GRAB.hold + CLIP.frustrated + CLIP.throw + 2.5,
-  search: SEARCH.maxDuration + 4,
-  frustrated: CLIP.frustrated + 0.8,
-  retreat: RETREAT.hardCap,
+  stalk: STALK.hardCap + 5,
+  standoff: STANDOFF.durationMax + 8,
+  engage: SHOT.rise.len + SHOT.scream.len + 1,
+  hunt: CHASE.hardCap + 5,
+  attack: 3,
+  grab: GRAB.lunge + GRAB.window[1] + 0.8 + SHOT.smash.len + 2,
+  savor: GRAB.savor[1] + 1,
+  stunned: GRAB.stunned[1] + 1,
+  search: SEARCH.maxDuration + SHOT.howl.len + 3,
+  climb: 9,
+  bash: 12,
+  reach: CHASE.reachInTime[1] + 1.5,
+  ambush: AMBUSH.waitMax + 4,
+  leave: RETREAT.hardCap,
+  flee: 20,
   death: CLIP.death + 2,
 };
 
-/** Visual levels for an agitation value: tail, breath, tremor, jaw (degrees). */
+/** Look of the creature at an agitation level: tail, breath, tremor, jaw (degrees). */
 export function agitationLook(a) {
-  if (a >= 85) return { tail: "curl", breath: "frantic", tremor: 3, jaw: 34 };
-  if (a >= AGITATION.cueThree) return { tail: "curl", breath: "frantic", tremor: 2, jaw: 22 };
-  if (a >= AGITATION.cueTwo) return { tail: "twitch", breath: "heavy", tremor: 1, jaw: 10 };
-  return { tail: "drag", breath: "calm", tremor: 0, jaw: 3 };
+  if (a >= 85) return { tail: "lash", breath: "frantic", tremor: 3, jaw: 30 };
+  if (a >= AGITATION.cueThree) return { tail: "curl", breath: "frantic", tremor: 2, jaw: 20 };
+  if (a >= AGITATION.cueTwo) return { tail: "lash", breath: "heavy", tremor: 1, jaw: 10 };
+  return { tail: "free", breath: "heavy", tremor: 1, jaw: 6 };
 }
 
 export class Brain {
@@ -57,16 +59,18 @@ export class Brain {
    * @param {object} o.ctx   adapter (see mc/encounter.js)
    * @param {{type:string,pitch:number}|null} o.remembered gesture to open with, if any
    * @param {boolean} [o.showcase] spawned by egg/command: skip the slow parts
+   * @param {number} [o.stage] the target's escalation stage (0..3)
    */
   constructor(o) {
     this.setup = o.setup;
-    this.def = SETUPS[o.setup] || SETUPS.statue_hunt;
+    this.def = SETUPS[o.setup] || SETUPS.stalker;
     this.settings = o.settings;
     this.memory = o.memory;
     this.rng = o.rng;
     this.ctx = o.ctx;
     this.remembered = o.remembered || null;
     this.showcase = !!o.showcase;
+    this.stage = Math.max(0, Math.min(3, o.stage | 0));
     this.t = 0;
     this.state = null;
     this.stateT = 0;
@@ -76,25 +80,32 @@ export class Brain {
     this.detector = createDetector();
     this.imitator = createImitator();
     this.audio = createLimiter();
-    this.strike = createStrikeState();
-    this.vis = { pose: "loco", tail: "drag", breath: "calm", tremor: 0, jaw: 3, look: "none", postureCap: null, postureWant: null };
+    this.cd = createCooldowns();
+    this.vis = { act: "loco", tail: "free", breath: "heavy", tremor: 1, jaw: 6, look: "target", postureCap: null, postureWant: null };
+    this.shot = null;
     this.noticeT = -1;
     this.watchFor = 0;
     this.grabs = 0;
-    this.grabCdUntil = 0;
-    this.pursuit = null;
-    this.chaseResumed = false;
+    this.attacks = 0;
+    this.hitsLanded = 0;
+    this.lastSeen = null;
+    this.sinceSeen = 0;
     this.retargetUsed = false;
     this.history = [];
     this.flags = new Set(); // things that happened (journal / memory hooks read these)
     this.pendingHits = 0;
     this.pendingDamageOthers = 0;
-    this.enter(this.def.hunter ? "scream" : "stalk", "spawn");
+    this.huntStartT = -1;
+    const op = this.def.opener;
+    if (op === "hunt") this.enter("engage", "hunter");
+    else if (op === "cling" || op === "huddle") this.enter("ambush", op);
+    else if (op === "behind") this.enter("ambush", "behind");
+    else this.enter("stalk", "spawn");
   }
 
   // ------------------------------------------------------------------ helpers
   log(msg) {
-    if (this.history.length > 50) this.history.shift();
+    if (this.history.length > 60) this.history.shift();
     this.history.push(`${this.t.toFixed(1)} ${msg}`);
     if (this.ctx.log) this.ctx.log(msg);
   }
@@ -128,24 +139,21 @@ export class Brain {
   }
 
   get committed() {
-    return COMMITTED.has(this.state);
+    return HUNTING.has(this.state);
   }
 
   canRetarget() {
-    return !this.retargetUsed && (this.state === "stalk" || this.state === "standoff");
+    return !this.retargetUsed && (this.state === "stalk" || this.state === "standoff" || this.state === "ambush");
   }
 
   markRetarget() {
     this.retargetUsed = true;
-    this.detector = createDetector();
-    cancelImitation(this.imitator);
   }
 
-  /** Called by the adapter when a player hits Tailwail. */
   onHit(attackerIsTarget, amount = 0) {
     this.pendingHits += 1;
     if (!attackerIsTarget) this.pendingDamageOthers += amount;
-    if (attackerIsTarget) this.memoryReaction("attack", 0.4);
+    if (this.state !== "death" && this.state !== "grab" && this.ctx.play) this.ctx.play("flinch");
   }
 
   memoryReaction(kind, amt) {
@@ -156,28 +164,54 @@ export class Brain {
     if (this.state !== "death") this.enter("death", "killed");
   }
 
-  pickStatue(avoid) {
-    const opts = STATUES.filter((s) => s !== avoid);
-    return this.rng.pick(opts);
-  }
-
-  /** Arrival test against the brain's OWN goal (the mover forgets its goal on hold). */
-  reached(goal, r = 1.6) {
-    if (!goal || !this.snap) return false;
-    const p = this.snap.creature.pos;
-    return Math.hypot(p.x - goal.x, p.z - goal.z) < r && Math.abs(p.y - goal.y) < 2.5;
-  }
-
   despawn() {
     if (this.done) return;
     this.done = true;
-    this.finish("observed");
-    this.ctx.despawn(this.outcome);
+    this.ctx.despawn(this.outcome || "observed");
   }
 
-  retreat(outcome, why) {
+  leave(outcome, why) {
     this.finish(outcome);
-    this.enter("retreat", why);
+    if (this.state !== "leave") this.enter("leave", why);
+  }
+
+  /** Plays a one-shot clip; full-body clips put the body in the neutral "shot" state. */
+  play(name) {
+    const s = SHOT[name];
+    if (!s) return;
+    this.shot = { name, t0: this.t, len: s.len, partial: s.partial, fired: 0 };
+    if (!s.partial) this.vis.act = "shot";
+    if (this.ctx.play) this.ctx.play(name);
+  }
+
+  shotDone() {
+    return !this.shot || this.t - this.shot.t0 >= this.shot.len - 1e-6;
+  }
+
+  shotT() {
+    return this.shot ? this.t - this.shot.t0 : 99;
+  }
+
+  /** Number of this one-shot's hit frames that have been reached and not yet handled. */
+  dueHits() {
+    if (!this.shot) return 0;
+    const hits = SHOT[this.shot.name].hits || [];
+    let n = 0;
+    while (this.shot.fired < hits.length && this.shotT() >= hits[this.shot.fired] - 1e-6) {
+      this.shot.fired += 1;
+      n += 1;
+    }
+    return n;
+  }
+
+  reached(goal, r = 1.6) {
+    const c = this.snap ? this.snap.creature.pos : null;
+    if (!goal || !c) return false;
+    return Math.hypot(goal.x - c.x, goal.z - c.z) < r && Math.abs(goal.y - c.y) < 2.5;
+  }
+
+  locoAct(low) {
+    return low ? "loco_low" : "loco";
   }
 
   // ------------------------------------------------------------------ main update
@@ -190,24 +224,29 @@ export class Brain {
     this.hits = this.pendingHits;
     this.pendingHits = 0;
 
-    if (this.state !== "death" && this.state !== "retreat" && this.state !== "grab") {
-      if (!tg.valid || !tg.alive || !tg.eligible || tg.dist > 72) {
+    if (this.state !== "death" && this.state !== "leave" && this.state !== "grab" && this.state !== "flee") {
+      if (!tg.valid || !tg.alive || !tg.eligible || tg.dist > 80) {
         const died = tg.valid && tg.alive === false; // a disconnect is not a kill
-        const pursuing = this.state === "chase" || this.state === "search";
-        this.finish(died ? (pursuing ? "caught" : "aborted") : pursuing ? "escaped" : "aborted");
-        this.enter("retreat", died ? "target-dead" : "target-lost");
+        this.finish(died ? (this.committed ? "caught" : "aborted") : this.committed ? "escaped" : "aborted");
+        this.enter("leave", died ? "target-dead" : "target-lost");
       }
     }
+    // wounded: it runs for its life (and remembers)
+    const c = snap.creature;
+    if (c.maxHealth && this.state !== "death" && this.state !== "flee" && this.state !== "grab" &&
+        c.health / c.maxHealth <= (this.settings.fleeAt ?? 0.35) && this.settings.fleeAt > 0) {
+      this.finish("wounded");
+      this.enter("flee", "wounded");
+    }
 
-    // learning: only while Tailwail can see the target, and only before commitment
+    // learning: only while it can see the target, and only before it commits
     if ((this.state === "stalk" || this.state === "standoff") && tg.valid && tg.canSee) {
       const g = observe(this.detector, { sneaking: tg.sneaking, pitch: tg.pitch, speed: tg.speed }, this.t);
       if (g) {
         if (this.ctx.recordGesture) this.ctx.recordGesture(g.type, g.pitch || 0);
-        const chance = this.state === "standoff" ? IMITATION.chance : IMITATION.chance * 0.6;
-        const r = offer(this.imitator, g, this.t, this.agit.value, this.rng, chance);
+        const r = offer(this.imitator, g, this.t, this.agit.value, this.rng, IMITATION.chance);
         if (r) {
-          this.log(`imitate ${r.type} in ${(r.at - this.t).toFixed(1)}s amt ${r.amt.toFixed(2)}`);
+          this.log(`imitate ${r.type} in ${(r.at - this.t).toFixed(1)}s`);
           this.flag("mirror");
         }
       }
@@ -216,6 +255,12 @@ export class Brain {
     if (this.noticeT < 0 && this.watchFor >= STALK.noticeTime) {
       this.noticeT = this.t;
       this.flag("noticed");
+    }
+    if (tg.valid && tg.canSee) {
+      this.lastSeen = tg.pos;
+      this.sinceSeen = 0;
+    } else {
+      this.sinceSeen += dt;
     }
 
     this["update_" + this.state](snap, dt);
@@ -226,21 +271,25 @@ export class Brain {
   onOverstay() {
     this.log(`overstay in ${this.state}`);
     switch (this.state) {
-      case "retreat":
+      case "leave":
+      case "flee":
         if (!this.snap.anyInView) this.despawn();
         return;
       case "death":
         return;
-      case "unfold":
-        return this.enter("scream", "overstay");
-      case "scream":
-        return this.enter("windup", "overstay");
-      case "windup":
-        return this.enter("chase", "overstay");
+      case "stalk":
+      case "standoff":
+      case "ambush":
+        return this.enter("engage", "overstay");
       case "grab":
-        return this.retreat("caught", "overstay");
+        return this.afterGrab("overstay");
+      case "hunt":
+        if (this.ctx.scheduleReturn) this.ctx.scheduleReturn();
+        return this.leave("escaped", "hunt-cap");
+      case "search":
+        return this.leave("escaped", "overstay");
       default:
-        return this.retreat(this.state === "chase" || this.state === "search" ? "escaped" : "observed", "overstay");
+        return this.enter("hunt", "overstay");
     }
   }
 
@@ -248,11 +297,11 @@ export class Brain {
     const mimicOk = this.state === "stalk" || this.state === "standoff";
     const im = mimicOk ? updateImitator(this.imitator, this.t) : { mimic: "none", amt: 0, pitch: 0 };
     const v = this.vis;
-    // the client only shows imitation overlays on the locomotion pose
-    const pose = im.mimic !== "none" ? "loco" : v.pose;
+    // imitation shows on the plain standing states only
+    const act = im.mimic !== "none" && (v.act === "watch" || v.act === "tall") ? "loco" : v.act;
     this.ctx.setVisual({
       state: this.state,
-      pose,
+      act,
       tail: v.tail,
       breath: v.breath,
       tremor: v.tremor,
@@ -266,605 +315,473 @@ export class Brain {
     });
   }
 
-  setLook(look) {
-    Object.assign(this.vis, look);
-  }
-
-  // ------------------------------------------------------------------ STALK
+  // ------------------------------------------------------------------ STALK (short beats)
   enter_stalk() {
     const f = this.ctx.stalkFactor ? this.ctx.stalkFactor() : 1;
-    const d = this.def;
+    const extra = this.showcase ? -1 : 0;
     this.s = {
-      dur: this.rng.range(STALK.durationMin, STALK.durationMax) * f * (this.showcase ? 0.3 : 1),
-      nextMove: 0,
-      goal: null,
-      phase: d.watcher ? "watch" : "lurk",
-      frozen: !!d.behind,
-      statue: d.behind ? "behind" : this.pickStatue(),
-      stare: 0,
-      hidden: 0,
-      peeksLeft: d.peeks ? this.rng.int(d.peeks[0], d.peeks[1]) : 0,
-      hidingUntil: 0,
-      peekSide: this.rng.chance(0.5) ? "peek_l" : "peek_r",
-      breathAt: this.rng.range(3, 8),
-      knockAt: this.rng.range(10, 20),
-      snuffAt: this.rng.range(8, 16),
-      watchDur: this.rng.range(8, 16),
-      rememberedDone: !this.remembered,
-      approachDeadline: 0,
-      slinkRolled: false,
+      beats: Math.max(1, Math.round(this.rng.int(STALK.beatsMin, STALK.beatsMax) * f) + extra),
+      done: 0,
+      beat: null,
+      cap: this.showcase ? 25 : STALK.hardCap,
     };
-    const want = d.posture === "crawl" ? "crawl" : d.posture === "tall" ? null : "hunch";
-    this.vis = { pose: d.behind ? "behind" : "loco", tail: "drag", breath: "calm", tremor: 0, jaw: 3, look: "none", postureCap: null, postureWant: want };
-    if (d.behind) this.cue("breath_far");
+    this.vis = { ...this.vis, act: "loco", tail: "free", breath: "heavy", tremor: 1, jaw: 6, look: "target", postureCap: null, postureWant: null };
+    this.startBeat(this.def.firstBeat || null);
+  }
+
+  startBeat(kind) {
+    const s = this.s;
+    const tg = this.snap ? this.snap.target : null;
+    let k = kind;
+    if (!k) {
+      const r = this.rng.next();
+      k = r < STALK.crossChance ? "cross" : r < STALK.crossChance + 0.25 ? "peek" : this.rng.chance(0.35) ? "tall" : "watch";
+    }
+    const near = Math.max(STALK.nearMin, 22 - s.done * 4);
+    let spot = null;
+    if (k === "peek" && this.ctx.findCover) spot = this.ctx.findCover();
+    if (k === "cross" && this.ctx.findCrossPath) {
+      const path = this.ctx.findCrossPath();
+      if (path) {
+        s.beat = { kind: "cross", phase: "run", a: path.a, b: path.b, t0: this.t };
+        if (this.ctx.placeAt) this.ctx.placeAt(path.a, path.b);
+        this.vis.act = "loco";
+        this.log("beat cross");
+        return;
+      }
+      k = "watch";
+    }
+    if (!spot && this.ctx.findObservationSpot) {
+      spot = this.ctx.findObservationSpot({ min: near, max: Math.max(near + 6, STALK.farMax - s.done * 4), visible: true });
+    }
+    s.beat = { kind: k === "peek" && !spot ? "watch" : k, phase: spot ? "move" : "show", spot, t0: this.t, showT: 0, seenT: -1,
+      hold: this.rng.range(STALK.watchMin, STALK.watchMax), side: spot && spot.side ? spot.side : this.rng.chance(0.5) ? "l" : "r" };
+    if (tg && tg.valid && !spot) s.beat.phase = "show";
+    this.log(`beat ${s.beat.kind} (${s.done + 1}/${s.beats})`);
+  }
+
+  nextBeat(why) {
+    const s = this.s;
+    s.done += 1;
+    if (s.done >= s.beats) return this.enter("standoff", why);
+    this.startBeat(null);
   }
 
   update_stalk(snap, dt) {
-    const tg = snap.target;
     const s = this.s;
-    const d = this.def;
-    this.vis.look = tg.canSee ? "target" : "none";
-
-    if (this.hits > 0) return this.commit("provoked");
-
-    // a hidden player (sneaking in the dark, out of reach) is lost after a while
-    s.hidden = tg.hidden ? s.hidden + dt : 0;
-    if (s.hidden >= STALK.hiddenLoseTrack) {
-      this.flag("hid");
-      this.memoryReaction("hide", 0.4);
-      return this.retreat("hidden", "lost-track");
-    }
-
-    // signature: open with a gesture remembered from an earlier encounter
-    if (!s.rememberedDone && tg.watching && this.watchFor >= 0.6) {
-      s.rememberedDone = true;
-      const r = schedule(this.imitator, this.remembered.type, this.t + 0.4, 20, this.rng, this.remembered.pitch);
-      this.log(`remembered gesture ${r.type}`);
-      this.flag("remembered");
-      if (this.ctx.onRemembered) this.ctx.onRemembered(r.type);
-    }
-
-    // ambient cues while nobody is looking
-    if (!snap.anyWatching) {
-      if (this.t >= s.breathAt && tg.dist < 28) {
-        this.cue("breath_far");
-        s.breathAt = this.t + this.rng.range(STALK.breathMin, STALK.breathMax);
-      }
-      if (this.t >= s.knockAt && tg.dist < 20 && !d.watcher) {
-        this.cue("knock");
-        s.knockAt = this.t + this.rng.range(STALK.knockMin, STALK.knockMax);
-      }
-      if (this.t >= s.snuffAt && tg.dist < 24 && this.settings.torchSnuff) {
-        this.fx("snuff_near_target", { count: 1 });
-        s.snuffAt = this.t + this.rng.range(STALK.snuffMin, STALK.snuffMax);
-      }
-    }
-
-    // ---- the distant watcher: stands and watches; leaves when approached or after a while
-    if (s.phase === "watch") {
-      this.vis.postureWant = null;
-      this.vis.pose = "loco";
-      this.ctx.hold();
-      if (tg.canSee) this.ctx.faceToward(tg.pos);
-      const noticed = this.noticeT >= 0;
-      if (tg.dist <= 18 || (noticed && this.t - this.noticeT >= s.watchDur) || this.stateT >= s.dur * 1.6) {
-        return this.retreat("observed", tg.dist <= 18 ? "approached" : "watched-enough");
+    const tg = snap.target;
+    const b = s.beat;
+    if (this.stateT >= s.cap) return this.enter("standoff", "stalk-cap");
+    if (this.hits) return this.enter("engage", "provoked");
+    if (tg.dist < STALK.approachStandoff && this.noticeT >= 0 && tg.closing > 0.8) return this.enter("standoff", "approached");
+    if (b.kind === "cross") {
+      this.vis.act = "loco";
+      this.ctx.moveTo(b.b, SPEED.burst, "cross");
+      if (this.reached(b.b, 2.2) || this.t - b.t0 > 9 || snap.creature.stuck) {
+        if (tg.inView && this.rng.chance(STALK.chargeChance[this.stage] + 0.1)) return this.enter("engage", "cross-charge");
+        return this.nextBeat("crossed");
       }
       return;
     }
-
-    // ---- noticed: it freezes; a held stare (or walking up to it) starts the stand-off
-    if (tg.watching) {
-      s.stare += dt;
-      if (!s.frozen) {
-        s.frozen = true;
-        s.statue = snap.creature.posture === "tall" ? this.pickStatue(s.statue) : "watch_low";
+    if (b.phase === "move") {
+      this.vis.act = "loco";
+      this.vis.look = "target";
+      // it does not care much whether you see it moving now; it just goes there fast
+      this.ctx.moveTo(b.spot, snap.anyInView ? SPEED.walk : SPEED.burst, "stalk");
+      if (this.reached(b.spot, 1.8) || snap.creature.stuck || this.t - b.t0 > 12) {
         this.ctx.hold();
-        this.cue("creak");
+        b.phase = "show";
+        b.showT = this.t;
       }
-      if (s.peeksLeft > 0 && s.stare >= STALK.peekHideStare) {
-        s.peeksLeft -= 1;
-        s.frozen = false;
-        s.stare = 0;
-        s.goal = this.ctx.findCover();
-        s.hidingUntil = this.t + this.rng.range(4, 7);
-        this.cue("skitter");
-        this.log(`peek withdrawn, ${s.peeksLeft} left`);
-        return;
+      return;
+    }
+    if (b.phase === "show") {
+      this.ctx.hold();
+      if (tg.valid) this.ctx.faceToward(tg.pos);
+      this.vis.act = b.kind === "peek" ? (b.side === "l" ? "peek_l" : "peek_r") : b.kind === "tall" && snap.creature.headroom >= 5 ? "tall"
+        : snap.creature.headroom < 4 ? "watch_low" : "watch";
+      if (tg.watching && b.seenT < 0) {
+        b.seenT = this.t;
+        this.cue("click");
       }
-      const first = !this.memory || this.memory.enc === 0;
-      if (s.stare >= STALK.standoffStare || tg.dist <= STALK.standoffApproach) {
-        if (first && !s.slinkRolled && !this.showcase) {
-          s.slinkRolled = true;
-          if (this.rng.chance(STALK.slinkChance)) return this.retreat("observed", "slinks-away");
+      if (b.seenT >= 0 && this.t - b.seenT >= STALK.reactDelay) {
+        const charge = STALK.chargeChance[this.stage] + 0.12 * s.done + (this.showcase ? 0.2 : 0);
+        const r = this.rng.next();
+        if (r < charge) return this.enter("engage", "seen-charge");
+        if (r < charge + (1 - charge) * STALK.bolt && s.done + 1 < s.beats) {
+          b.phase = "bolt";
+          b.boltT = this.t;
+          b.away = this.ctx.findRetreatSpot ? this.ctx.findRetreatSpot(14, 24) : null;
+          this.cue("skitter");
+          this.memoryReaction("stare", 0.2);
+          return;
         }
-        if (d.standoff) return this.enter("standoff", "noticed");
-        return this.retreat("observed", "noticed");
+        return this.enter("standoff", "seen-hold");
       }
-    } else {
-      s.stare = Math.max(0, s.stare - dt * 0.5);
-    }
-
-    // ---- peeking: show a sliver at the corner while in sight
-    if (d.peeks && s.peeksLeft > 0 && this.t >= s.hidingUntil && tg.canSee && tg.dist < 26 && !s.frozen) {
-      this.vis.pose = s.peekSide;
-      this.ctx.hold();
+      if (this.t - b.showT >= b.hold) return this.nextBeat("unnoticed");
       return;
     }
-
-    // ---- anyone could see it: it does not move
-    if (snap.anyInView) {
-      this.ctx.hold();
-      this.vis.pose = s.frozen ? s.statue : "loco";
-      return;
-    }
-    s.frozen = false;
-    this.vis.pose = "loco";
-
-    if (this.t < s.hidingUntil) {
-      if (s.goal && !this.reached(s.goal)) this.ctx.moveTo(s.goal, SPEED.walk, "hide");
-      else this.ctx.hold();
-      return;
-    }
-
-    // ---- approach into the stand-off
-    if (s.phase === "approach") {
-      if (!s.goal || this.stateT > s.approachDeadline) {
-        if (tg.canSee && tg.dist <= STALK.standoffMax + 4 && d.standoff) return this.enter("standoff", "in-view");
-        return this.retreat("observed", "no-standoff-spot");
-      }
-      if (this.reached(s.goal) || (tg.canSee && tg.dist <= STALK.standoffMax)) {
-        if (d.standoff) return this.enter("standoff", "arrived");
-        return this.retreat("observed", "arrived");
-      }
-      this.ctx.moveTo(s.goal, SPEED.walk, "approach");
-      return;
-    }
-    if (this.stateT >= s.dur && (s.peeksLeft <= 0 || this.stateT >= s.dur * 1.5)) {
-      const spot = this.ctx.findStandoffSpot(STALK.standoffMin, STALK.standoffMax, d.reveal ? 3 : 0);
-      if (spot) {
-        s.phase = "approach";
-        s.goal = spot;
-        s.approachDeadline = this.stateT + 25;
-        this.log("approach to stand-off");
-        return;
-      }
-      if (this.stateT >= s.dur * 1.8) return this.retreat("observed", "stalk-expired");
-    }
-
-    // ---- unobserved: reposition through real space, closer as time passes
-    if (this.t >= s.nextMove || this.reached(s.goal)) {
-      const shrink = Math.min(1, this.stateT / Math.max(1, s.dur));
-      const far = STALK.farMax - (STALK.farMax - 14) * shrink;
-      const near = d.behind ? 6 : STALK.nearMin;
-      s.goal = this.ctx.findObservationSpot({
-        near,
-        far: Math.max(near + 4, far),
-        partial: !!d.peeks,
-        headroom: d.posture === "crawl" ? 2 : 3,
-        behind: !!d.behind,
-      });
-      if (s.goal && s.goal.side) s.peekSide = s.goal.side;
-      s.nextMove = this.t + this.rng.range(STALK.repositionMin, STALK.repositionMax);
-    }
-    if (s.goal && !this.reached(s.goal)) {
-      this.ctx.moveTo(s.goal, d.behind ? SPEED.walk : SPEED.creep, "stalk");
-      if (tg.dist < 24) this.cue("tail_scrape");
-    } else {
-      this.ctx.hold();
+    if (b.phase === "bolt") {
+      this.vis.act = "loco";
+      if (b.away) this.ctx.moveTo(b.away, SPEED.burst, "bolt");
+      if (!snap.anyInView && this.t - b.boltT > 1.0) return this.nextBeat("bolted");
+      if (this.t - b.boltT > 5 || !b.away || snap.creature.stuck) return this.nextBeat("bolted");
     }
   }
 
-  // ------------------------------------------------------------------ STANDOFF
+  // ------------------------------------------------------------------ STANDOFF (seconds, not minutes)
   enter_standoff(why) {
-    const reveal = this.def.reveal && this.snap && this.snap.creature.headroom >= 7;
-    const prev = this.vis.pose;
+    const late = this.stage >= 2 ? 0.6 : 1;
     this.so = {
-      maxDur: STANDOFF.durationMax * (this.showcase ? 0.7 : 1),
-      statue: STATUES.includes(prev) || prev === "watch_low" || prev === "behind" ? prev : this.pickStatue(),
-      creeping: false,
-      creepT: 0,
-      creepGoal: null,
+      until: this.rng.range(STANDOFF.durationMin, STANDOFF.durationMax) * late * (this.showcase ? 0.7 : 1),
+      nextCreep: STANDOFF.creepEvery,
       unwatched: 0,
-      nextCreepAt: 0,
-      perf: null,
-      perfUntil: 0,
-      perfAt: this.t + this.rng.range(2.5, 5),
-      lost: 0,
-      revealUntil: reveal ? this.t + CLIP.unfold + 0.5 : 0,
-      rehearseAt: this.t + this.rng.range(6, 11),
-      clickAt: 0,
-      creeps: 0,
+      creep: null,
+      creepT: 0,
+      perfAt: this.rng.range(STANDOFF.perfMinGap, STANDOFF.perfMaxGap),
+      why,
     };
-    // the agitation it already built up while stalking is kept; a provoked entry starts hot
-    if (why === "provoked") this.agit.value = Math.max(this.agit.value, 70);
-    this.vis.look = "target";
-    this.vis.postureWant = this.def.posture === "crawl" ? "crawl" : reveal ? "tall" : null;
-    this.vis.pose = reveal ? "unfold" : this.so.statue;
+    const tall = this.snap && this.snap.creature.headroom >= 5 && this.rng.chance(0.55);
+    this.vis = { ...this.vis, act: tall ? "tall" : "watch_low", look: "target", ...agitationLook(this.agit.value), postureWant: null };
     this.ctx.hold();
-    if (reveal) {
-      this.cue("inhale");
-      this.flag("reveal");
-    }
+    this.cue("growl");
     this.fx("standoff_on");
+    this.flag("standoff");
+    if (this.remembered && this.ctx.onRemembered) {
+      this.ctx.onRemembered(this.remembered.type);
+      this.flag("remembered");
+    }
   }
 
   update_standoff(snap, dt) {
     const tg = snap.target;
     const so = this.so;
-    const r = stepAgitation(this.agit, {
-      watched: tg.watching,
-      distance: tg.dist,
-      closing: tg.closing,
-      sprinting: tg.sprinting,
-      hits: this.hits,
-      movingAway: tg.movingAway,
-    }, dt, this.settings.agitationScale);
-    if (r.reasons.includes("sprint-start")) this.memoryReaction("flee", 0.2);
-    if (tg.watching) this.memoryReaction("stare", 0.02);
-    const a = this.agit.value;
-    this.setLook(agitationLook(a));
-    this.vis.look = "target";
-    this.fx("standoff_level", a);
-    if (a >= AGITATION.cueTwo && this.t >= so.clickAt) {
-      this.cue("click");
-      so.clickAt = this.t + this.rng.range(2.5, 5) * (a > 75 ? 0.6 : 1);
-    }
-
-    // ---- endings
-    if (this.hits > 0) return this.commit("provoked");
-    if (a >= AGITATION.max) return this.commit("stare");
-    if (tg.dist <= STANDOFF.tooClose) return this.commit("too-close");
-    so.lost = !tg.canSee || tg.hidden ? so.lost + dt : 0;
-    if (tg.dist >= STANDOFF.calmDistance && a < STANDOFF.calmAgitation) {
-      this.flag("calm");
-      return this.retreat("calm", "calm-withdrawal");
-    }
-    if (so.lost >= STANDOFF.hiddenCalm && (a < STANDOFF.calmAgitation || so.lost >= STANDOFF.hiddenCalm * 2)) {
-      if (tg.hidden) this.flag("hid");
-      return this.retreat("calm", "lost-sight");
-    }
-    if (this.stateT >= so.maxDur) {
-      if (a >= STANDOFF.commitAtTimeout) return this.commit("timeout");
-      return this.retreat("calm", "standoff-timeout");
-    }
-
-    // ---- the reveal: rising to full height, nothing else happens
-    if (this.t < so.revealUntil) {
-      this.vis.pose = "unfold";
-      this.ctx.hold();
-      return;
-    }
-
-    // ---- rehearsal: in a quiet moment it performs a gesture it learned from this player before
-    if (!this.imitator.active && !this.imitator.queue.length && this.t >= so.rehearseAt && tg.watching) {
-      so.rehearseAt = this.t + this.rng.range(9, 16);
-      const learned = this.memory ? gestureBias(this.memory).filter(([g]) => this.memory.gest[g].n > 0) : [];
-      if (learned.length && this.rng.chance(this.def.rehearsal ? 0.8 : 0.45)) {
-        const g = this.rng.weighted(learned);
-        schedule(this.imitator, g, this.t + 0.3, a, this.rng, this.memory.gest[g].p);
-        this.log(`rehearses learned ${g}`);
-        this.flag("remembered");
+    const r = stepAgitation(this.agit, { watched: tg.watching, distance: tg.dist, closing: tg.closing, sprinting: tg.sprinting,
+      hits: this.hits, movingAway: tg.movingAway }, dt, this.settings.agitationScale || 1);
+    Object.assign(this.vis, agitationLook(this.agit.value));
+    this.fx("standoff_level", this.agit.value);
+    if (this.hits) return this.enter("engage", "provoked");
+    if (tg.dist <= STANDOFF.tooClose) return this.enter("engage", "too-close");
+    so.unwatched = tg.watching || tg.glance ? 0 : so.unwatched + dt;
+    if (so.unwatched >= STANDOFF.turnAwayCharge && this.stateT > 1.0) return this.enter("engage", "turned-away");
+    if (this.agit.value >= AGITATION.max - 0.5) return this.enter("engage", "agitated");
+    if (this.stateT >= so.until) return this.enter("engage", "timeout");
+    // it creeps at you even while you watch it now
+    if (so.creep) {
+      this.vis.act = "loco_low";
+      this.ctx.moveTo(so.creep, SPEED.creep, "creep");
+      if (this.reached(so.creep, 1.2) || this.t - so.creepT > 1.6) {
+        so.creep = null;
+        this.ctx.hold();
+        this.vis.act = this.rng.chance(0.5) ? "watch_low" : snap.creature.headroom >= 5 ? "tall" : "watch";
+        this.cue("creak");
       }
-    }
-
-    // ---- statue creep: it only ever moves while no one has it on screen
-    const inView = snap.anyInView;
-    if (so.creeping) {
-      so.creepT += dt;
-      if (inView || this.reached(so.creepGoal, 1.2) || so.creepT >= STANDOFF.creepBurstMax) {
-        this.stopCreep(inView);
-      } else {
-        this.ctx.moveTo(so.creepGoal, SPEED.burst, "creep");
-        this.vis.pose = "loco";
-        return;
-      }
-    }
-    so.unwatched = inView ? 0 : so.unwatched + dt;
-    if (!inView && so.unwatched >= STANDOFF.creepDelay && this.t >= so.nextCreepAt && tg.dist > STANDOFF.tooClose + 0.5) {
-      const goal = this.ctx.findCreepPoint ? this.ctx.findCreepPoint(STANDOFF.creepBurst, STANDOFF.tooClose - 0.5) : null;
-      if (goal) {
-        so.creeping = true;
-        so.creepT = 0;
-        so.creepGoal = goal;
-        so.creeps += 1;
-        so.perf = null;
-        this.vis.pose = "loco";
-        this.cue("skitter");
-        this.ctx.moveTo(goal, SPEED.burst, "creep");
-        return;
-      }
-      so.nextCreepAt = this.t + 1.0;
-    }
-    this.ctx.hold();
-
-    // ---- performing for its audience
-    if (so.perf && this.t >= so.perfUntil) so.perf = null;
-    if (!so.perf && tg.watching && this.t >= so.perfAt && !this.imitator.active) {
-      const opts = [["tilt", 3], ["watch_low", 1.5]];
-      if (a >= 20) opts.push(["owl", 1.5]);
-      if (a >= 40) opts.push(["neck", 2.5]);
-      if (a >= 60) opts.push(["unhinge", 2.5]);
-      const p = this.rng.weighted(opts);
-      const len = { tilt: CLIP.tilt, watch_low: 0.8, owl: CLIP.owl, neck: CLIP.neck, unhinge: 1.0 }[p];
-      so.perf = p;
-      so.perfUntil = this.t + len + this.rng.range(1.0, 2.5);
-      const gap = STANDOFF.perfMaxGap - (STANDOFF.perfMaxGap - STANDOFF.perfMinGap) * Math.min(1, a / 80);
-      so.perfAt = so.perfUntil + this.rng.range(gap * 0.6, gap);
-      if (p === "neck" || p === "owl") this.cue("neck_crack");
-      if (p === "unhinge") this.cue("jaw_crack");
-    }
-    this.vis.pose = so.perf || so.statue;
-    if (so.perf === "unhinge") this.vis.jaw = 50;
-  }
-
-  stopCreep(caught) {
-    const so = this.so;
-    so.creeping = false;
-    so.nextCreepAt = this.t + STANDOFF.creepCooldown;
-    so.unwatched = 0;
-    so.statue = this.pickStatue(so.statue);
-    so.perf = null;
-    so.perfAt = Math.max(so.perfAt, this.t + 1.5);
-    this.vis.pose = so.statue;
-    this.ctx.hold();
-    if (caught || this.rng.chance(STANDOFF.creakChance)) this.cue("creak");
-    this.flag("creep");
-  }
-
-  commit(why) {
-    cancelImitation(this.imitator);
-    this.log(`commit (${why})`);
-    if (why === "stare") this.flag("stared");
-    if (why === "provoked") this.flag("provoked");
-    this.enter("unfold", why);
-  }
-
-  // ------------------------------------------------------------------ UNFOLD (silent rise)
-  enter_unfold() {
-    const head = this.snap ? this.snap.creature.headroom : 8;
-    this.unfoldLow = head < 6;
-    this.unfoldDur = this.unfoldLow ? CLIP.unfoldLow : CLIP.unfold;
-    this.vis = { ...this.vis, pose: this.unfoldLow ? "unfold_low" : "unfold", tail: "rigid", breath: "none", tremor: 0, jaw: 0, look: "target", postureCap: null, postureWant: this.unfoldLow ? null : "tall" };
-    this.ctx.hold();
-    this.fx("silence");
-  }
-
-  update_unfold(snap) {
-    this.ctx.hold();
-    if (snap.target.valid) this.ctx.faceToward(snap.target.pos);
-    if (this.stateT >= this.unfoldDur) this.enter("scream", "unfolded");
-  }
-
-  // ------------------------------------------------------------------ SCREAM (the wail)
-  enter_scream(why) {
-    this.vis = { ...this.vis, pose: "scream", tail: "rigid", breath: "none", tremor: 2, jaw: 60, look: "target", postureWant: null };
-    this.ctx.hold();
-    if (why === "spawn") {
-      // the hunter: a scream from far away, then it comes
-      this.cue("scream_far");
-      this.fx("scream_far");
     } else {
-      this.cue("scream");
-      this.fx("scream");
+      this.ctx.hold();
+      if (tg.valid) this.ctx.faceToward(tg.pos);
+      if (this.stateT >= so.nextCreep && tg.dist > STANDOFF.tooClose + 1.5 && this.ctx.findCreepPoint) {
+        so.creep = this.ctx.findCreepPoint(STANDOFF.creepStep, STANDOFF.tooClose);
+        so.creepT = this.t;
+        so.nextCreep = this.stateT + STANDOFF.creepEvery * this.rng.range(0.7, 1.3);
+      }
+    }
+    if (this.stateT >= so.perfAt) {
+      so.perfAt = this.stateT + this.rng.range(STANDOFF.perfMinGap, STANDOFF.perfMaxGap);
+      const pick = this.rng.weighted([["click", 3], ["growl", 2], ["breath_close", 1]]);
+      this.cue(pick);
+    }
+    if (r.reasons.includes("sprint-start")) this.memoryReaction("flee", 0.3);
+  }
+
+  exit_standoff() {
+    cancelImitation(this.imitator);
+  }
+
+  // ------------------------------------------------------------------ ENGAGE: the scream
+  enter_engage(why) {
+    this.ctx.hold();
+    const tg = this.snap ? this.snap.target : null;
+    if (tg && tg.valid && this.ctx.faceNow) this.ctx.faceNow(tg.pos);
+    this.vis = { ...this.vis, tail: "rigid", breath: "frantic", tremor: 2, jaw: 0, look: "none", postureWant: null };
+    this.fx("silence");
+    const far = !tg || !tg.valid || tg.dist > 30;
+    // from a crouch it unfolds first (the last warning) - unless it is already mid-hunt
+    const rise = !far && (why === "timeout" || why === "agitated") && this.snap && this.snap.creature.headroom >= 5;
+    this.e = { rise, screamed: false, far, short: why === "regained" || why === "ambush" || why === "stunned" };
+    if (this.e.short) {
+      this.play("roar");
+      this.cue("roar");
+      this.e.screamed = true;
+      this.e.end = SHOT.roar.len;
+    } else if (rise) {
+      this.play("rise");
+      this.cue("inhale");
+    } else {
+      this.startScream();
     }
     this.flag("scream");
   }
 
-  update_scream(snap) {
-    this.ctx.hold();
-    if (snap.target.valid) this.ctx.faceToward(snap.target.pos);
-    if (this.stateT >= CLIP.scream) this.enter("windup", "screamed");
+  startScream() {
+    // the full wail stands it up to ~5 blocks: under a lower ceiling it roars from all fours
+    const low = this.snap && this.snap.creature.headroom < 5;
+    this.play(low ? "roar" : "scream");
+    this.cue(this.e.far ? "scream_far" : "scream");
+    this.e.screamed = true;
+    this.e.screamT = this.t;
+    this.e.end = SHOT.scream.len;
   }
 
-  // ------------------------------------------------------------------ WINDUP (drops onto all fours)
-  enter_windup() {
-    const low = this.snap && this.snap.creature.headroom < 3;
-    this.vis = { ...this.vis, pose: low ? "windup_c" : "windup", tail: "rigid", breath: "frantic", tremor: 1, jaw: 30, look: "target", postureWant: null };
+  update_engage(snap) {
+    const e = this.e;
     this.ctx.hold();
+    if (!e.screamed) {
+      if (this.shotDone()) this.startScream();
+      return;
+    }
+    if (!e.fxDone && this.shotT() >= (SHOT[this.shot.name].peak || 0.4)) {
+      e.fxDone = true;
+      this.fx(e.far ? "scream_far" : "scream", { short: e.short });
+    }
+    if (this.shotDone()) this.enter("hunt", "engaged");
   }
 
-  update_windup(snap) {
-    this.ctx.hold();
-    if (snap.target.valid) this.ctx.faceToward(snap.target.pos);
-    if (this.stateT >= 0.4) this.vis.postureCap = "hunch";
-    if (this.stateT >= CLIP.windupCut) this.enter("chase", "windup-complete");
-  }
-
-  // ------------------------------------------------------------------ CHASE
-  enter_chase(why) {
-    const tg = this.snap ? this.snap.target : null;
-    const resumed = this.chaseResumed;
-    if (!resumed || !this.pursuit) this.pursuit = { used: 0, budget: this.settings.pursuitSeconds };
-    this.c = {
-      sinceSeen: 0,
-      lastSeen: tg && tg.valid ? tg.pos : null,
+  // ------------------------------------------------------------------ HUNT: relentless
+  enter_hunt(why) {
+    if (this.huntStartT < 0) this.huntStartT = this.t;
+    this.h = {
       screechAt: this.rng.range(1.5, 3),
       snuffAt: 0.5,
       stuckTries: 0,
+      roarAt: this.t + this.rng.range(CHASE.roarEvery[0], CHASE.roarEvery[1]),
+      lostFor: 0,
+      hiddenFor: 0,
+      why,
     };
-    this.vis = { ...this.vis, pose: "loco", tail: "free", breath: "frantic", tremor: 1, jaw: 32, look: "target", postureCap: "hunch", postureWant: null };
-    if (resumed) this.cue("screech");
-    this.fx("chase_on", { resumed });
+    this.vis = { ...this.vis, act: "loco", tail: "lash", breath: "frantic", tremor: 1, jaw: 22, look: "target", postureCap: null, postureWant: null };
+    this.fx("chase_on", { resumed: why !== "engaged" });
     this.flag("chase");
-    this.ctx.hold();
-    this.log(`chase ${resumed ? "resumed" : "begins"} (${why}), budget left ${(this.pursuit.budget - this.pursuit.used).toFixed(1)}s`);
+    this.shot = null;
   }
 
-  update_chase(snap, dt) {
+  update_hunt(snap, dt) {
     const tg = snap.target;
-    const c = this.c;
+    const h = this.h;
     const visible = tg.canSee && tg.dist <= CHASE.sightRange && !(tg.hidden && tg.dist > SEARCH.hiddenDetect);
-    if (visible) {
-      c.lastSeen = tg.pos;
-      c.sinceSeen = 0;
-    } else {
-      c.sinceSeen += dt;
-      if (tg.noise && this.t - tg.noise.t < 1.0) c.lastSeen = tg.noise.pos;
-    }
-    this.pursuit.used += dt;
-    if (this.stateT >= c.screechAt) {
+    if (!visible && tg.noise && this.t - tg.noise.t < 1.0) this.lastSeen = tg.noise.pos;
+    h.lostFor = visible ? 0 : h.lostFor + dt;
+    h.hiddenFor = !visible && tg.hidden ? h.hiddenFor + dt : 0;
+    this.vis.act = "loco";
+    if (this.stateT >= h.screechAt) {
       this.cue("screech");
-      c.screechAt = this.stateT + this.rng.range(CHASE.screechMin, CHASE.screechMax);
+      h.screechAt = this.stateT + this.rng.range(CHASE.screechMin, CHASE.screechMax);
     }
-    if (this.stateT >= c.snuffAt && this.settings.torchSnuff) {
+    if (this.stateT >= h.snuffAt && this.settings.torchSnuff) {
       this.fx("snuff_path");
-      c.snuffAt = this.stateT + CHASE.snuffEvery;
+      h.snuffAt = this.stateT + CHASE.snuffEvery;
     }
-
-    // ---- contact
-    const st = this.strike;
-    if (st.active) {
-      this.ctx.hold();
-      if (tg.valid) this.ctx.faceToward(tg.pos);
-      this.vis.pose = "strike";
-      if (resolveImpact(st, this.stateT, snap.reach)) {
-        this.ctx.dealDamage("strike");
-        this.cue("impact");
-        this.log("strike landed");
+    if (this.t - this.huntStartT > CHASE.hardCap) {
+      if (this.ctx.scheduleReturn) this.ctx.scheduleReturn();
+      return this.leave("escaped", "hunt-cap");
+    }
+    // ---- you crawled into a hole it cannot fit: it reaches in after you
+    if (tg.inGap && tg.hdist < 3.2) return this.enter("reach", "gap");
+    // ---- attacks
+    if (visible && tg.alive) {
+      const kind = chooseAttack({
+        t: this.t, geom: snap.reach, settings: this.settings, rng: this.rng, cd: this.cd, headroom: snap.creature.headroom,
+        canGrab: !!this.settings.grab && !!(snap.reach && snap.reach.holdClear), tunnel: snap.creature.posture === "crawl",
+      });
+      if (kind === "grab") return this.enter("grab", "reach");
+      if (kind) return this.enter("attack", kind);
+      // regained sight after losing it: a roar, then on
+      if (h.regainedRoar && tg.dist > 6 && this.t >= this.cd.roar) {
+        h.regainedRoar = false;
+        this.cd.roar = this.t + 8;
+        return this.enter("engage", "regained");
       }
-      if (finishStrike(st, this.stateT)) this.vis.pose = "loco";
-      return;
+    } else if (h.lostFor > 2.5) {
+      h.regainedRoar = true;
     }
-    this.vis.pose = "loco";
-    const grabOk = this.settings.grab && snap.reach && snap.reach.holdClear;
-    if (tg.alive && this.t >= this.grabCdUntil && grabOk && inGrabReach(snap.reach)) return this.enter("grab", "reach");
-    if (tg.alive && !grabOk && this.t >= this.grabCdUntil && canStartStrike(st, this.stateT, snap.reach)) {
-      startStrike(st, this.stateT);
-      this.cue("swipe");
-      this.vis.pose = "strike";
-      this.ctx.hold();
-      return;
-    }
-
-    // ---- escape rules: finite budget, or long enough out of sight with real separation
-    if (c.sinceSeen >= CHASE.escapeNoSight && tg.dist >= CHASE.escapeDistance) return this.enter("search", "lost-sight");
-    if (this.pursuit.used >= this.pursuit.budget) {
-      this.searchReason = "budget";
-      return this.enter("search", "pursuit-budget");
-    }
-    const goal = c.sinceSeen === 0 ? tg.pos : c.lastSeen;
+    // ---- terrain: doors and glass, ledges, holes
+    const blk = snap.creature.blocked;
+    if (blk && this.settings.breakBlocks > 0 && tg.dist < 24) return this.enter("bash", blk);
+    // ---- losing you
+    const lostTime = this.settings.lostSeconds || 8;
+    if (h.lostFor >= lostTime && tg.dist >= CHASE.lostDistance) return this.enter("search", "lost-sight");
+    if (h.hiddenFor >= 3) return this.enter("search", "hidden");
+    const goal = visible ? tg.pos : this.lastSeen;
     if (!goal) return this.enter("search", "no-goal");
-    if (c.sinceSeen > 0 && this.reached(c.lastSeen, 2.0)) return this.enter("search", "reached-last-known");
+    if (!visible && h.lostFor > 1 && this.reached(this.lastSeen, 2.0)) return this.enter("search", "reached-last-known");
     if (snap.creature.stuck) {
-      c.stuckTries += 1;
-      this.log(`stuck (${c.stuckTries})`);
-      if (c.stuckTries > CHASE.recoveryAttempts) return this.enter("search", "stuck");
-      this.ctx.recover(c.stuckTries);
+      // you are up on something it cannot path to: it climbs
+      if (this.settings.climbing && visible && tg.dy >= CHASE.climbMinRise && tg.dy <= CHASE.climbMaxRise && tg.hdist < 10) {
+        return this.enter("climb", "ledge");
+      }
+      h.stuckTries += 1;
+      this.log(`stuck (${h.stuckTries})`);
+      if (h.stuckTries > CHASE.recoveryAttempts) return this.enter("search", "stuck");
+      this.ctx.recover(h.stuckTries);
       return;
     }
-    this.ctx.moveTo(goal, this.settings.chaseSpeed, "chase");
+    if (this.stateT > 2 && h.stuckTries && snap.creature.atGoal) h.stuckTries = 0;
+    this.ctx.moveTo(goal, this.settings.chaseSpeed, "hunt");
   }
 
-  exit_chase() {
-    abortStrike(this.strike, this.stateT);
-  }
-
-  // ------------------------------------------------------------------ GRAB (lift, hold, struggle, throw / bite)
-  enter_grab() {
-    this.grabs += 1;
-    this.g = { phase: "lunge", phaseT: 0, kind: this.grabs >= 2 ? "bite" : "throw", released: false, holding: false };
-    this.pendingDamageOthers = 0;
-    this.vis = { ...this.vis, pose: "grab", tail: "rigid", breath: "frantic", tremor: 1, jaw: 40, look: "target", postureCap: null };
+  // ------------------------------------------------------------------ ATTACK (one-shot with hit frames)
+  enter_attack(kind) {
+    this.attacks += 1;
+    spendAttack(this.cd, kind, this.t, this.rng);
+    this.a = { kind, landed: 0, pounced: false };
     this.ctx.hold();
-    if (!this.ctx.grabStart()) {
+    const tg = this.snap.target;
+    if (tg.valid && this.ctx.faceNow) this.ctx.faceNow(tg.pos);
+    this.vis = { ...this.vis, tail: "rigid", jaw: 0, look: "none" };
+    this.play(kind);
+    this.cue(kind === "slam" ? "slam_windup" : kind === "pounce" ? "pounce" : "swipe");
+  }
+
+  update_attack(snap) {
+    const a = this.a;
+    const tg = snap.target;
+    if (a.kind === "pounce" && !a.pounced && this.shotT() >= (SHOT.pounce.launch || 0.2)) {
+      a.pounced = true;
+      if (tg.valid && this.ctx.pounce) this.ctx.pounce(tg.pos);
+    } else if (a.kind !== "pounce") {
+      this.ctx.hold();
+    }
+    const n = this.dueHits();
+    for (let i = 0; i < n; i++) {
+      const lands = hitLands(a.kind, snap.reach);
+      if (lands) {
+        a.landed += 1;
+        this.hitsLanded += 1;
+        this.ctx.dealDamage(a.kind);
+        this.cue(a.kind === "slam" ? "slam" : "impact");
+        this.flag("hit");
+      } else if (a.kind === "slam") {
+        this.cue("slam");
+        this.fx("slam_shock");
+      }
+    }
+    if (this.shotDone()) {
+      if (!tg.alive) return this.leave("caught", "killed-target");
+      // pinned under a pounce: sometimes it picks you straight up
+      if (a.kind === "pounce" && a.landed && this.settings.grab && snap.reach && snap.reach.holdClear && this.rng.chance(0.35) &&
+          this.t >= this.cd.grab) {
+        return this.enter("grab", "pinned");
+      }
+      if (a.landed && (a.kind === "slam" || a.kind === "pounce" || this.rng.chance(0.25))) return this.enter("savor", a.kind);
+      return this.enter("hunt", "after-" + a.kind);
+    }
+  }
+
+  // ------------------------------------------------------------------ GRAB (struggle, then free or a finisher)
+  enter_grab(why) {
+    spendAttack(this.cd, "grab", this.t, this.rng);
+    const spec = struggleSpec(this.settings, this.rng, this.grabs);
+    this.grabs += 1;
+    this.g = { phase: "lunge", phaseT: this.t, spec, released: false, holding: false, finisher: null, why };
+    this.pendingDamageOthers = 0;
+    this.vis = { ...this.vis, tail: "rigid", breath: "frantic", tremor: 1, jaw: 30, look: "none", postureCap: null };
+    this.ctx.hold();
+    const tg = this.snap.target;
+    if (tg.valid && this.ctx.faceNow) this.ctx.faceNow(tg.pos);
+    if (!this.ctx.grabStart(spec)) {
       this.log("grab refused by adapter");
-      this.grabCdUntil = this.t + 1.5;
-      this.chaseResumed = true;
+      this.cd.grab = this.t + 1.5;
       this.g = null;
-      return this.enter("chase", "grab-refused");
+      return this.enter("hunt", "grab-refused");
     }
     this.g.holding = true;
+    this.play("lunge_grab");
     this.cue("grab");
     this.flag("grabbed");
+    this.log(`grab: ${spec.kind} x${spec.needed} in ${spec.window.toFixed(1)}s${spec.inescapable ? " (inescapable)" : ""}${spec.shiftAt ? " shift->" + spec.shiftTo : ""}`);
   }
 
   setGrabPhase(p) {
     this.g.phase = p;
-    this.g.phaseT = this.stateT;
+    this.g.phaseT = this.t;
   }
 
   update_grab(snap) {
     const g = this.g;
     if (!g) return;
-    const since = this.stateT - g.phaseT;
+    const since = this.t - g.phaseT;
     this.ctx.hold();
-    const gs = snap.grab || { holding: false, presses: 0, needed: 1 };
+    const gs = snap.grab || { holding: false };
     if (g.holding && !gs.holding && (g.phase === "lunge" || g.phase === "hold")) {
       // the victim is gone (died, left, changed dimension)
       g.holding = false;
       g.released = true;
       this.ctx.grabEnd("lost");
       this.log("grab lost its victim");
-      return this.retreat(snap.target.valid && !snap.target.alive ? "caught" : "aborted", "victim-gone");
+      return this.leave(snap.target.valid && !snap.target.alive ? "caught" : "aborted", "victim-gone");
     }
     if (g.phase === "lunge") {
-      this.vis.pose = "grab";
-      if (since >= CLIP.grab) {
+      if (since >= GRAB.lunge) {
         this.setGrabPhase("hold");
-        this.vis.pose = "hold";
+        this.vis.act = "hold";
         this.cue("hold");
+        if (this.ctx.grabStruggle) this.ctx.grabStruggle();
       }
       return;
     }
     if (g.phase === "hold") {
-      this.vis.pose = "hold";
-      this.vis.jaw = Math.round(28 + 30 * Math.min(1, since / GRAB.hold));
-      if (gs.presses >= gs.needed || this.pendingDamageOthers >= GRAB.othersDamageToDrop) {
-        this.log(gs.presses >= gs.needed ? "struggled-free" : "dropped");
+      this.vis.act = "hold";
+      this.vis.jaw = Math.round(24 + 30 * Math.min(1, since / g.spec.window));
+      if (gs.success || this.pendingDamageOthers >= GRAB.othersDamageToDrop) {
+        this.log(gs.success ? "struggled-free" : "dropped");
         g.holding = false;
         g.released = true;
         this.ctx.grabEnd("free");
         this.cue("pain");
         this.flag("struggle");
-        this.setGrabPhase("free");
-        this.vis.pose = "frustrated";
-        this.vis.jaw = 45;
-        return;
+        this.memoryReaction("attack", 0.3);
+        return this.enter("stunned", "struggled-free");
       }
-      if (since >= GRAB.hold) {
-        this.setGrabPhase(g.kind);
-        this.vis.pose = g.kind === "bite" ? "unhinge" : "throw";
+      if (gs.calm) {
+        // "don't move" honoured: it sniffs you, loses interest for a moment and lets go
+        g.holding = false;
+        g.released = true;
+        this.ctx.grabEnd("drop");
+        this.flag("still");
+        return this.enter("savor", "dropped-still");
+      }
+      if (gs.failed || since >= g.spec.window + 1.0) {
+        const fin = pickFinisher(this.rng, snap.creature.headroom);
+        g.finisher = fin;
+        this.setGrabPhase("finisher");
+        this.play(fin);
+        this.cue(fin === "bite" ? "bite_windup" : "roar");
       }
       return;
     }
-    if (g.phase === "throw") {
-      this.vis.pose = "throw";
-      if (!g.released && since >= CLIP.throwRelease) {
+    if (g.phase === "finisher") {
+      const s = SHOT[g.finisher];
+      const at = s.release ?? (s.hits ? s.hits[0] : 0.4);
+      if (!g.released && since >= at) {
         g.released = true;
         g.holding = false;
-        this.ctx.grabEnd("throw");
-        this.cue("throw");
+        this.ctx.grabEnd(g.finisher);
+        this.cue(g.finisher === "bite" ? "bite" : g.finisher === "smash" ? "slam" : "throw");
+        this.hitsLanded += 1;
       }
-      if (since >= CLIP.throw + 0.5) this.afterGrab();
-      return;
-    }
-    if (g.phase === "bite") {
-      this.vis.pose = "unhinge";
-      this.vis.jaw = 60;
-      if (!g.released && since >= 0.35) {
-        g.released = true;
-        g.holding = false;
-        this.ctx.grabEnd("bite");
-        this.cue("bite");
+      if (this.shotDone()) {
+        if (!snap.target.alive) return this.leave("caught", "killed-target");
+        return this.enter("savor", g.finisher);
       }
-      if (since >= 1.3) this.retreat("caught", "bitten"); // it got what it came for
-      return;
-    }
-    if (g.phase === "free") {
-      this.vis.pose = "frustrated";
-      if (since >= GRAB.freeStagger) this.afterGrab();
     }
   }
 
-  afterGrab() {
-    const tg = this.snap.target;
-    this.grabCdUntil = this.t + CHASE.grabCooldown;
-    if (!tg.valid || !tg.alive) return this.retreat("caught", "after-grab");
-    const left = this.pursuit ? this.pursuit.budget - this.pursuit.used : 0;
-    if (left < 3) return this.enter("search", "after-grab");
-    this.chaseResumed = true;
-    this.enter("chase", "after-grab");
+  afterGrab(why) {
+    if (this.g && this.g.holding && !this.g.released) {
+      this.g.released = true;
+      this.g.holding = false;
+      this.ctx.grabEnd("abort");
+    }
+    this.enter("hunt", why);
   }
 
   exit_grab() {
@@ -875,127 +792,297 @@ export class Brain {
     }
   }
 
+  // ------------------------------------------------------------------ SAVOR / STUNNED: a beat, then it hunts on
+  enter_savor(why) {
+    this.sv = { until: this.rng.range(GRAB.savor[0], GRAB.savor[1]), why };
+    this.vis = { ...this.vis, act: "savor", tail: "curl", breath: "heavy", tremor: 0, jaw: 10, look: "target" };
+    this.ctx.hold();
+    this.cue("growl");
+  }
+
+  update_savor(snap) {
+    this.ctx.hold();
+    if (snap.target.valid) this.ctx.faceToward(snap.target.pos);
+    if (!snap.target.alive) return this.leave("caught", "killed-target");
+    if (this.stateT >= this.sv.until) {
+      this.cue("screech");
+      return this.enter("hunt", "savored");
+    }
+  }
+
+  enter_stunned() {
+    this.st = { until: this.rng.range(GRAB.stunned[0], GRAB.stunned[1]) };
+    this.vis = { ...this.vis, act: "stunned", tail: "lash", breath: "frantic", tremor: 2, jaw: 26, look: "none" };
+    this.ctx.hold();
+  }
+
+  update_stunned() {
+    this.ctx.hold();
+    if (this.stateT >= this.st.until) return this.enter("engage", "stunned");
+  }
+
+  // ------------------------------------------------------------------ CLIMB / BASH / REACH
+  enter_climb() {
+    this.vis = { ...this.vis, act: "climb", tail: "free", look: "target" };
+    this.ctx.hold();
+    const goal = this.snap.target.pos;
+    this.cl = { ok: !!(this.ctx.climbStart && this.ctx.climbStart(goal)) };
+    if (this.cl.ok) {
+      this.cue("climb");
+      this.flag("climb");
+    }
+  }
+
+  update_climb(snap) {
+    if (!this.cl.ok) return this.enter("search", "cannot-climb");
+    if (!snap.creature.climbing) {
+      this.cue("screech");
+      return this.enter("hunt", "climbed");
+    }
+    if (this.stateT > 8) {
+      if (this.ctx.climbAbort) this.ctx.climbAbort();
+      return this.enter("search", "climb-timeout");
+    }
+  }
+
+  exit_climb() {
+    if (this.snap && this.snap.creature.climbing && this.ctx.climbAbort) this.ctx.climbAbort();
+  }
+
+  enter_bash(blk) {
+    this.ctx.hold();
+    this.bh = { ok: !!(this.ctx.bashStart && this.ctx.bashStart()), kind: blk };
+    this.vis = { ...this.vis, act: this.bh.ok ? "bash" : "loco", tail: "lash", jaw: 30, look: "none" };
+    if (this.bh.ok) this.flag("bash");
+  }
+
+  update_bash(snap) {
+    if (!this.bh.ok) return this.enter("hunt", "bash-refused");
+    this.ctx.hold();
+    if (!snap.creature.bashing) {
+      this.cue("roar");
+      return this.enter("hunt", "broke-through");
+    }
+  }
+
+  exit_bash() {
+    if (this.ctx.bashStop) this.ctx.bashStop();
+  }
+
+  enter_reach() {
+    this.ctx.hold();
+    const tg = this.snap.target;
+    if (tg.valid && this.ctx.faceNow) this.ctx.faceNow(tg.pos);
+    this.rc = { until: this.rng.range(CHASE.reachInTime[0], CHASE.reachInTime[1]), nextHit: 0.9 };
+    this.vis = { ...this.vis, act: "reach_in", tail: "lash", jaw: 26, look: "target" };
+    this.cue("growl");
+    this.flag("reach");
+  }
+
+  update_reach(snap) {
+    this.ctx.hold();
+    if (this.stateT >= this.rc.nextHit) {
+      this.rc.nextHit = this.stateT + this.rng.range(0.7, 1.2);
+      this.cue("scrape");
+      if (hitLands("reach", snap.reach)) this.ctx.dealDamage("reach");
+    }
+    if (!snap.target.inGap && snap.target.canSee && snap.target.hdist > 3.5) return this.enter("hunt", "out-of-the-hole");
+    if (this.stateT >= this.rc.until) return this.enter("search", "gave-up-reaching");
+  }
+
   // ------------------------------------------------------------------ SEARCH (sniffing, listening)
   enter_search(why) {
-    const origin = this.c && this.c.lastSeen ? this.c.lastSeen : this.snap ? this.snap.creature.pos : null;
-    this.se = {
-      points: origin ? this.ctx.findSearchPoints(origin, SEARCH.points, SEARCH.radius) : [],
-      idx: 0,
-      listenUntil: 0,
-      why,
-    };
-    this.vis = { ...this.vis, pose: "loco", tail: "twitch", breath: "heavy", tremor: 1, jaw: 8, look: "none", postureCap: "hunch", postureWant: null };
+    const origin = this.lastSeen || (this.snap ? this.snap.creature.pos : null);
+    const pts = origin && this.ctx.findSearchPoints ? this.ctx.findSearchPoints(origin, SEARCH.points, SEARCH.radius) : [];
+    this.se = { pts, i: 0, phase: "go", phaseT: this.t, why, howled: false };
+    this.vis = { ...this.vis, act: "loco", tail: "free", breath: "heavy", tremor: 1, jaw: 8, look: "none" };
     this.fx("search_on");
+    this.cue("sniff");
+    this.flag("lost");
   }
 
   update_search(snap) {
     const tg = snap.target;
     const se = this.se;
-    const left = this.pursuit ? this.pursuit.budget - this.pursuit.used : 0;
-    const seen = tg.canSee && tg.dist <= CHASE.sightRange && (!tg.hidden || tg.dist <= SEARCH.hiddenDetect);
-    if (seen && this.searchReason !== "budget" && left > 3) {
-      this.chaseResumed = true;
-      return this.enter("chase", tg.hidden ? "found-hiding" : "reacquired");
-    }
-    if (tg.noise && this.t - tg.noise.t < 1.0 && tg.dist <= SEARCH.noiseRadius) {
-      const cur = se.points[se.idx];
-      if (!cur || Math.hypot(cur.x - tg.noise.pos.x, cur.z - tg.noise.pos.z) > 3) {
-        se.points.splice(se.idx, 0, tg.noise.pos);
-        se.listenUntil = 0;
-        this.log("heard something");
-      }
-    }
-    if (this.t < se.listenUntil) {
+    const visible = tg.canSee && tg.dist <= CHASE.sightRange && !(tg.hidden && tg.dist > SEARCH.hiddenDetect);
+    if (se.phase === "howl") {
       this.ctx.hold();
-      this.vis.pose = "sniff";
-      return;
-    }
-    this.vis.pose = "loco";
-    const pt = se.points[se.idx];
-    if (!pt || this.stateT >= SEARCH.maxDuration) {
-      if (tg.hidden) {
-        this.flag("hid");
-        this.memoryReaction("hide", 0.4);
+      if (this.shotDone()) {
+        if (this.ctx.scheduleReturn && this.rng.chance(SEARCH.returnChance)) this.ctx.scheduleReturn();
+        return this.leave(this.se.why === "hidden" ? "hid" : "escaped", "gave-up");
       }
-      return this.enter("frustrated", "gave-up");
-    }
-    if (this.reached(pt)) {
-      se.idx += 1;
-      se.listenUntil = this.t + SEARCH.listen;
-      this.cue("sniff");
       return;
     }
-    this.ctx.moveTo(pt, SPEED.search, "search");
-  }
-
-  // ------------------------------------------------------------------ FRUSTRATED (rears up and howls)
-  enter_frustrated() {
-    this.vis = { ...this.vis, pose: "frustrated", tail: "rigid", breath: "frantic", tremor: 2, jaw: 55, look: "none", postureCap: null };
-    this.ctx.hold();
-    this.cue("frustrated");
-  }
-
-  update_frustrated() {
-    this.ctx.hold();
-    if (this.stateT >= CLIP.frustrated) {
-      this.flag("escaped");
-      this.retreat("escaped", "frustrated");
+    if (visible && tg.alive) {
+      this.cue("screech");
+      return this.enter("engage", "regained");
+    }
+    if (tg.inGap && tg.hdist < 3.2) return this.enter("reach", "found-in-gap");
+    if (tg.noise && this.t - tg.noise.t < 1.2) {
+      this.lastSeen = tg.noise.pos;
+      se.pts = [tg.noise.pos];
+      se.i = 0;
+      se.phase = "go";
+      se.phaseT = this.t;
+      this.flag("noise");
+      this.cue("click");
+    }
+    if (this.stateT >= SEARCH.maxDuration || (!se.pts.length && this.stateT > 4)) {
+      se.phase = "howl";
+      this.vis.act = "shot";
+      this.play("howl");
+      this.cue("howl");
+      return;
+    }
+    const goal = se.pts[se.i % Math.max(1, se.pts.length)];
+    if (se.phase === "go") {
+      this.vis.act = "loco";
+      if (!goal) return;
+      this.ctx.moveTo(goal, SPEED.search, "search");
+      if (this.reached(goal, 1.8) || snap.creature.stuck || this.t - se.phaseT > 7) {
+        se.phase = this.rng.chance(0.5) ? "sniff" : "listen";
+        se.phaseT = this.t;
+        this.ctx.hold();
+        this.cue(se.phase === "sniff" ? "sniff" : "click");
+      }
+    } else {
+      this.ctx.hold();
+      this.vis.act = se.phase;
+      if (this.t - se.phaseT >= SEARCH.listen * (se.phase === "sniff" ? 1.6 : 1)) {
+        se.i += 1;
+        se.phase = "go";
+        se.phaseT = this.t;
+      }
     }
   }
 
-  // ------------------------------------------------------------------ RETREAT
-  enter_retreat() {
-    cancelImitation(this.imitator);
-    const f = this.ctx.retreatFactor ? this.ctx.retreatFactor() : 1;
-    const tgValid = !!(this.snap && this.snap.target.valid && this.snap.target.alive);
-    this.re = {
-      goal: this.ctx.findRetreatSpot(RETREAT.distanceMin * f, RETREAT.distanceMax * f),
-      respots: 0,
-      soundDone: false,
-      owl: tgValid && this.rng.chance(RETREAT.owlChance),
-    };
-    this.vis = { ...this.vis, pose: "loco", tail: "drag", breath: "calm", tremor: 0, jaw: 3, look: this.re.owl ? "target" : "none", postureCap: null, postureWant: null };
-    this.fx("end");
+  // ------------------------------------------------------------------ AMBUSH (ceiling / corner / behind you)
+  enter_ambush(kind) {
+    this.am = { kind, ok: false, stare: 0, triggered: false };
+    this.vis = { ...this.vis, tail: "free", breath: "calm", tremor: 0, jaw: 4, look: "target" };
+    if (kind === "cling") {
+      this.am.ok = !!(this.ctx.cling && this.ctx.cling());
+      this.vis.act = "cling";
+      this.vis.postureWant = "crawl";
+    } else if (kind === "huddle") {
+      this.am.ok = !!(this.ctx.huddle && this.ctx.huddle());
+      this.vis.act = "huddle";
+      this.vis.look = "none";
+    } else {
+      this.am.ok = true;
+      this.vis.act = "watch_low";
+      this.cue("breath_close");
+    }
+    if (!this.am.ok) {
+      this.log(`ambush ${kind} has no spot: stalking instead`);
+      return this.enter("stalk", "no-ambush-spot");
+    }
+    this.flag(kind === "cling" ? "ceiling" : kind === "huddle" ? "huddle" : "behind");
   }
 
-  update_retreat(snap) {
-    const re = this.re;
-    if (!re.soundDone && this.stateT > 0.6) {
-      re.soundDone = true;
-      this.cue("retreat");
-    }
+  update_ambush(snap, dt) {
     const tg = snap.target;
-    // walking away with its head turned all the way round to keep watching you
-    this.vis.look = re.owl && tg.valid && tg.canSee ? "target" : "none";
-    const far = !tg.valid || tg.dist >= RETREAT.hideDistance;
-    if (!snap.anyInView && this.stateT >= RETREAT.minBeforeDespawn && (far || !snap.anyLos)) return this.despawn();
-    if (re.goal && this.reached(re.goal) && re.respots < RETREAT.respots) {
-      re.respots += 1;
-      re.goal = this.ctx.findRetreatSpot(RETREAT.distanceMin, RETREAT.distanceMax * 1.3);
+    const am = this.am;
+    if (am.triggered) {
+      if (this.shotDone()) {
+        if (am.kind === "cling") this.cue("thud");
+        return this.enter("engage", "ambush");
+      }
+      return;
     }
-    if (re.goal && !this.reached(re.goal)) this.ctx.moveTo(re.goal, SPEED.retreat, "retreat");
+    this.ctx.hold();
+    am.stare = tg.watching ? am.stare + dt : 0;
+    const go = (why) => {
+      am.triggered = true;
+      this.log("ambush triggers: " + why);
+      if (am.kind === "cling") {
+        if (this.ctx.drop) this.ctx.drop();
+        this.play("drop");
+        this.cue("scream_close");
+      } else if (am.kind === "huddle") {
+        if (tg.valid && this.ctx.faceNow) this.ctx.faceNow(tg.pos);
+        this.play("turn");
+        this.cue("scream_close");
+      } else {
+        this.play("roar");
+        this.cue("scream_close");
+      }
+    };
+    if (this.hits) return go("hit");
+    if (am.kind === "cling") {
+      if (tg.valid && tg.hdist <= AMBUSH.dropRange) return go("underneath");
+      if (am.stare >= AMBUSH.lookUpDrop && tg.dist < 14) return go("seen");
+    } else if (am.kind === "huddle") {
+      if (tg.dist <= AMBUSH.huddleTrigger) return go("close");
+      if (am.stare >= AMBUSH.huddleStare && tg.dist < 16) return go("stared");
+    } else if (tg.watching || tg.dist < 3 || this.stateT > 6) {
+      return go("turned-around");
+    }
+    if (this.stateT >= AMBUSH.waitMax) {
+      if (am.kind === "cling" && this.ctx.drop) this.ctx.drop();
+      return this.leave("observed", "nobody-came");
+    }
+  }
+
+  // ------------------------------------------------------------------ LEAVE / FLEE
+  enter_leave(why) {
+    const f = this.ctx.retreatFactor ? this.ctx.retreatFactor() : 1;
+    const dmin = (RETREAT.distanceMin * f) | 0;
+    this.lv = { spot: this.ctx.findRetreatSpot ? this.ctx.findRetreatSpot(dmin, RETREAT.distanceMax) : null, respots: 0, why,
+      owl: this.rng.chance(RETREAT.owlChance) && why !== "target-dead" };
+    this.vis = { ...this.vis, act: "loco", tail: "free", breath: "heavy", tremor: 0, jaw: 4, look: this.lv.owl ? "back" : "none",
+      postureCap: null, postureWant: null };
+    this.fx("end");
+    this.shot = null;
+  }
+
+  update_leave(snap) {
+    const lv = this.lv;
+    if (this.stateT > RETREAT.minBeforeDespawn && !snap.anyInView) return this.despawn();
+    if (!lv.spot || snap.creature.stuck) {
+      if (lv.respots++ < RETREAT.respots && this.ctx.findRetreatSpot) lv.spot = this.ctx.findRetreatSpot(RETREAT.hideDistance, RETREAT.distanceMax);
+      if (!lv.spot) {
+        this.ctx.hold();
+        if (this.stateT > RETREAT.maxDuration) this.despawn();
+        return;
+      }
+    }
+    this.ctx.moveTo(lv.spot, SPEED.retreat, "leave");
+    if (this.reached(lv.spot, 2.0)) {
+      this.ctx.hold();
+      if (!snap.anyInView || this.stateT > RETREAT.maxDuration) this.despawn();
+    }
+  }
+
+  enter_flee() {
+    this.fl = { spot: this.ctx.findRetreatSpot ? this.ctx.findRetreatSpot(24, 40) : null };
+    this.vis = { ...this.vis, act: "loco", tail: "rigid", breath: "frantic", tremor: 2, jaw: 40, look: "none" };
+    this.cue("scream_pain");
+    this.fx("end");
+    this.flag("wounded");
+    this.memoryReaction("attack", 0.6);
+    this.shot = null;
+  }
+
+  update_flee(snap) {
+    if (this.stateT > 1.5 && !snap.anyInView) return this.despawn();
+    if (this.fl.spot) this.ctx.moveTo(this.fl.spot, SPEED.flee, "flee");
     else this.ctx.hold();
-    if (this.stateT >= RETREAT.maxDuration && !snap.anyInView) this.despawn();
+    if (this.stateT > 12) this.despawn();
   }
 
   // ------------------------------------------------------------------ DEATH
   enter_death() {
-    cancelImitation(this.imitator);
-    abortStrike(this.strike, this.t);
     this.finish("killed");
-    const low = !!(this.snap && this.snap.creature.posture !== "tall");
-    this.vis = { ...this.vis, pose: low ? "death_low" : "death", tail: "free", breath: "none", tremor: 0, jaw: 40, look: "none" };
+    this.vis = { ...this.vis, act: "death", tail: "free", breath: "none", tremor: 0, jaw: 50, look: "none", postureWant: null };
+    this.ctx.hold();
     this.cue("death");
     this.fx("end");
     this.flag("killed");
-    this.ctx.hold();
+    this.shot = null;
   }
 
   update_death() {
-    this.ctx.hold();
-    if (this.stateT >= CLIP.death + 0.4 && !this.done) {
-      this.done = true;
-      this.ctx.despawn("killed");
-    }
+    if (this.stateT >= CLIP.death + 1.2) this.despawn();
   }
 }

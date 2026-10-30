@@ -10,15 +10,22 @@ Static checks
   * every animated bone exists in the geometry; one-shot clips used by script-held states
     either loop or hold their last frame (a plain loop:false clip would snap to bind pose).
 
+  * v3 robustness rule: outside pre_animation every variable read has a `??` fallback, so a
+    failed pre-animation script degrades to sensible values instead of zero weights.
+
 Dynamic checks (frame simulation at 60 fps, emulating controller semantics: one
 transition per controller per frame, first true transition wins, animations restart on
-state entry)
-  * every body pose is reachable from every other pose within one frame and exits on the
-    next property change; a 600-step random pose schedule never desynchronises;
-  * all blend weights and variables stay finite and inside [0, 1.05];
-  * the hurt flinch returns to its idle state;
-  * composite poses (body + all overlays) are grounded: lowest point within tolerance of
-    the floor for standing/hunched/crawling states, and peak heights are reported.
+state entry; weighted `animate` entries are evaluated every frame)
+  * every body act is reachable from every other act within one frame and exits on the
+    next property change; a 600-step random schedule never desynchronises;
+  * all blend weights and variables stay finite and inside [0, 1.05]; the gait and tail
+    weights sum to 1 and pick idle / walk / gallop by speed;
+  * FAILURE MODES: with pre_animation not running at all, and with no property ever set,
+    the default state still idles, walks and gallops (so the creature is never frozen);
+  * the hurt flinch returns to its idle state and never plays during death;
+  * gaits are distance-driven: the clip phase wraps exactly once per measured stride;
+  * composite poses (body + all overlays, and every one-shot over the neutral state) are
+    grounded: lowest point within tolerance of the floor, tunnel poses under 2 blocks.
 
 Usage: python3 -I tools/client_sim.py [--report docs/generated/client_sim_report.md] [--quick]
 """
@@ -252,6 +259,12 @@ def static_checks(pack):
                 for s in stmts if isinstance(stmts, list) else [stmts]:
                     reads |= parse_or_err(s, "%s timeline %s" % (full, t))
                     writes |= statements_writes(s)
+        for expr in non_pre_exprs(pack, d, used_anims):
+            for m in re.finditer(r"\bv(?:ariable)?\.([a-z_0-9]+)", expr):
+                tail = expr[m.end():]
+                if not re.match(r"\s*\?\?", tail):
+                    err("%s: variable v.%s is read without a ?? fallback in %r" % (where, m.group(1), expr[:80]))
+                    break
         unread_writes = writes - reads
         queries = {r for r in reads if r.startswith("q.")}
         for q in sorted(queries - KNOWN_QUERIES):
@@ -268,6 +281,34 @@ def static_checks(pack):
             "variables": len(variables), "queries": sorted(queries), "bones_animated": len(anim_bones),
         }
     return summary
+
+
+def non_pre_exprs(pack, d, used_anims):
+    """Every Molang string evaluated outside pre_animation: animate weights, controller
+    weights and transitions, animation channels and anim_time_update."""
+    out = []
+    amap = d.get("animations", {})
+    for entry in d.get("scripts", {}).get("animate", []):
+        if isinstance(entry, dict):
+            out.append(next(iter(entry.values())))
+    for full in set(amap.values()):
+        ctl = pack.ctrls.get(full)
+        if not ctl:
+            continue
+        for st in ctl.get("states", {}).values():
+            for entry in st.get("animations", []):
+                if isinstance(entry, dict):
+                    out.append(next(iter(entry.values())))
+            for tr in st.get("transitions", []):
+                out.append(next(iter(tr.values())))
+    for full in used_anims:
+        a = pack.anims.get(full, {})
+        if "anim_time_update" in a:
+            out.append(a["anim_time_update"])
+        for chans in a.get("bones", {}).values():
+            for val in chans.values():
+                out.extend(iter_channel_exprs(val))
+    return [e for e in out if isinstance(e, str)]
 
 
 def iter_channel_exprs(val):
@@ -305,8 +346,9 @@ def loop_policy(pack, body_ctrl, amap):
 # Frame simulation
 # ---------------------------------------------------------------------------------------
 class ClientSim:
-    def __init__(self, pack, ident, fps=60):
+    def __init__(self, pack, ident, fps=60, skip_pre=False):
         self.pack = pack
+        self.skip_pre = skip_pre
         self.d = pack.clients[ident]
         self.amap = self.d["animations"]
         server = pack.servers[ident]
@@ -322,6 +364,7 @@ class ClientSim:
         self.hurt_time = 0.0
         self.ctx = molang.Context(variables={}, queries=self.queries())
         self.ctrls = []
+        self.direct = []  # weighted animate entries that are plain clips: (name, weight expr or None)
         for entry in self.d["scripts"].get("animate", []):
             name = entry if isinstance(entry, str) else next(iter(entry))
             full = self.amap[name]
@@ -329,6 +372,8 @@ class ClientSim:
                 c = pack.ctrls[full]
                 self.ctrls.append({"name": name, "id": full, "c": c, "state": c.get("initial_state", "default"),
                                    "entered": 0.0, "prev": None, "prev_entered": 0.0, "changed_at": -99.0})
+            else:
+                self.direct.append((name, None if isinstance(entry, str) else entry[name]))
         for line in self.d["scripts"].get("initialize", []):
             molang.run(line, self.ctx)
 
@@ -375,8 +420,9 @@ class ClientSim:
         self.dist += self.speed * self.dt
         q = self.ctx.q
         self.ctx.q = self._frozen_queries()
-        for line in self.d["scripts"].get("pre_animation", []):
-            molang.run(line, self.ctx)
+        if not self.skip_pre:
+            for line in self.d["scripts"].get("pre_animation", []):
+                molang.run(line, self.ctx)
         for c in self.ctrls:
             self._current = c
             st = c["c"]["states"][c["state"]]
@@ -416,7 +462,12 @@ class ClientSim:
                 else:
                     (n, expr), = entry.items()
                     out.append((c["name"], c["state"], n, float(molang.num(molang.run(expr, self.ctx)))))
+        for n, expr in self.direct:
+            out.append(("animate", "-", n, 1.0 if expr is None else float(molang.num(molang.run(expr, self.ctx)))))
         return out
+
+    def weight_of(self, name):
+        return sum(w for _, _, n, w in self.weights() if n == name)
 
     def state(self, ctrl_name):
         for c in self.ctrls:
@@ -436,49 +487,51 @@ class ClientSim:
             self.step()
 
 
+def _acts():
+    import gen_client_v3 as g
+    return g
+
+
 def dynamic_checks(pack, quick=False):
+    g = _acts()
     out = {}
     ident = "tailwail:tall_wail"
     sim = ClientSim(pack, ident)
-    body = sim.ctrls[0]
-    states = body["c"]["states"]
-    pose_states = sorted((s for s in states if re.match(r"^p\d+$", s)), key=lambda s: int(s[1:]))
+    acts = [a[0] for a in g.ACTS]
+    ACT = "tailwail:act"
     rng = random.Random(7)
-    # 1. every pose reachable from every pose in one frame
+    # 1. every act reachable from every act in one frame
     hops = 0
-    for a in pose_states:
-        for b in pose_states:
+    for a in acts:
+        for b in acts:
             if a == b:
                 continue
-            sim.props["tailwail:pose"] = int(a[1:])
+            sim.props[ACT] = a
             sim.step()
-            if sim.state("ctrl_body") != a:
-                err("pose %s not entered within one frame" % a)
-            sim.props["tailwail:pose"] = int(b[1:])
+            if sim.state("ctrl_body") != "a%d" % a:
+                err("act %d not entered within one frame" % a)
+            sim.props[ACT] = b
             sim.step()
-            if sim.state("ctrl_body") != b:
-                err("pose %s -> %s did not transition within one frame" % (a, b))
+            if sim.state("ctrl_body") != "a%d" % b:
+                err("act %d -> %d did not transition within one frame" % (a, b))
             hops += 1
-    out["pose_hops_checked"] = hops
-    # 2. random schedule with dwell times, ground speed and posture changes
+    out["act_hops_checked"] = hops
+    # 2. random schedule
     desync = 0
-    lo, hi = sim.props_decl["tailwail:pose"].get("range", [0, 40])
     steps = 150 if quick else 600
     max_w = 0.0
     for i in range(steps):
-        p = int(rng.choice(pose_states)[1:])
-        sim.props["tailwail:pose"] = p
-        sim.props["tailwail:posture"] = rng.choice([0, 0, 1, 2])
+        a = rng.choice(acts)
+        sim.props[ACT] = a
         sim.props["tailwail:tail"] = rng.randrange(0, 5)
         sim.props["tailwail:breath"] = rng.randrange(0, 4)
         sim.props["tailwail:tremor"] = rng.randrange(0, 4)
-        sim.props["tailwail:jaw"] = rng.choice([0, 2, 12, 35, 60])
+        sim.props["tailwail:jaw"] = rng.choice([0, 4, 12, 35, 60])
         sim.props["tailwail:look_yaw"] = rng.randrange(-180, 181)
         sim.props["tailwail:look_pitch"] = rng.randrange(-60, 61)
         sim.props["tailwail:mimic"] = rng.randrange(0, 5)
         sim.props["tailwail:mimic_amt"] = rng.random() * 2
-        sim.props["tailwail:headroom"] = rng.randrange(0, 9)
-        sim.speed = rng.choice([0.0, 0.0, 0.8, 1.6, 3.9, 6.9])
+        sim.speed = rng.choice([0.0, 0.0, 1.6, 2.6, 3.9, 6.9, 8.4, 10.0])
         dwell = rng.randrange(1, 40)
         for _ in range(dwell):
             sim.step()
@@ -486,27 +539,49 @@ def dynamic_checks(pack, quick=False):
                 if not math.isfinite(w) or w < -1e-6 or w > 1.05:
                     err("weight out of range: %s/%s %s = %.3f" % (ctl, st, n, w))
                 max_w = max(max_w, w)
-        if sim.state("ctrl_body") != "p%d" % p:
+        if sim.state("ctrl_body") != "a%d" % a:
             desync += 1
-        if sim.state("ctrl_tail") not in ("drag", "twitch", "rigid", "free", "curl"):
-            err("tail controller in unexpected state %s" % sim.state("ctrl_tail"))
     if desync:
-        err("body controller desynchronised from tailwail:pose %d times in the random schedule" % desync)
+        err("body controller desynchronised from tailwail:act %d times in the random schedule" % desync)
     out["random_steps"] = steps
     out["max_weight"] = round(max_w, 3)
-    # posture weights sum to 1 in steady state
-    sim.props["tailwail:pose"] = 0
-    for pt in (0, 1, 2):
-        sim.props["tailwail:posture"] = pt
-        sim.run(3.0)
-        s = sim.ctx.v["v.w_t"] + sim.ctx.v["v.w_h"] + sim.ctx.v["v.w_c"]
-        if abs(s - 1.0) > 0.02:
-            err("posture weights do not sum to 1 for posture %d (%.3f)" % (pt, s))
-        dom = ["v.w_t", "v.w_h", "v.w_c"][pt]
-        if sim.ctx.v[dom] < 0.97:
-            err("posture %d weight only reaches %.2f after 3 s" % (pt, sim.ctx.v[dom]))
-    # 3. hurt flinch returns
-    sim.props["tailwail:pose"] = 0
+    # 3. gait selection and sums (default act, settled speed)
+    gaits = {}
+    for spd, want in ((0.0, "idle"), (2.6, "walk"), (8.4, "gallop")):
+        for skip in (False, True):
+            s2 = ClientSim(pack, ident, skip_pre=skip)
+            s2.speed = spd
+            s2.run(2.0)
+            ws = {n: s2.weight_of(n) for n in ("idle", "walk", "gallop")}
+            tot = sum(ws.values())
+            if abs(tot - 1.0) > 0.02:
+                err("loco weights sum to %.3f at %.1f m/s (pre_animation %s)" % (tot, spd, "skipped" if skip else "on"))
+            if ws[want] < 0.97:
+                err("at %.1f m/s %s weighs only %.2f (pre_animation %s)" % (spd, want, ws[want], "skipped" if skip else "on"))
+            gaits["%s%s" % (want, "/no-pre" if skip else "")] = round(ws[want], 3)
+    out["gait_weights"] = gaits
+    # 4. failure mode: no pre_animation at all -> overlays still on, nothing reads as zero weight
+    s3 = ClientSim(pack, ident, skip_pre=True)
+    s3.run(1.0)
+    for n in ("breath", "tremor", "look", "jaw", "tail_free"):
+        if s3.weight_of(n) < 0.99:
+            err("with pre_animation failing, overlay %s weighs %.2f" % (n, s3.weight_of(n)))
+    out["failure_mode_overlays"] = "ok"
+    # 5. tail weights follow the tail property; the tunnel crawl forces the floor-solved tail
+    for tail in range(5):
+        sim.props[ACT] = g.ACT_ID["loco"]
+        sim.props["tailwail:tail"] = tail
+        sim.run(2.0)
+        tw = [sim.weight_of(n) for n in ("tail_free", "tail_lash", "tail_curl", "tail_rigid", "tail_tunnel")]
+        if abs(sum(tw) - 1.0) > 0.02 or tw[tail] < 0.97:
+            err("tail weights %s for tail mode %d" % ([round(x, 2) for x in tw], tail))
+    sim.props[ACT] = g.ACT_ID["loco_tunnel"]
+    sim.props["tailwail:tail"] = 1
+    sim.run(2.0)
+    if sim.weight_of("tail_tunnel") < 0.97:
+        err("tunnel crawl does not hand the tail to tail_tunnel")
+    # 6. hurt flinch returns; no flinch while dead
+    sim.props[ACT] = g.ACT_ID["loco"]
     sim.hurt_time = 10
     sim.run(0.2)
     if sim.state("ctrl_hurt") != "hurt":
@@ -515,8 +590,7 @@ def dynamic_checks(pack, quick=False):
     sim.run(1.0)
     if sim.state("ctrl_hurt") != "default":
         err("hurt controller did not return to default after the flinch")
-    # dead creatures do not flinch
-    sim.props["tailwail:pose"] = 26
+    sim.props[ACT] = g.ACT_ID["death"]
     sim.run(0.2)
     sim.hurt_time = 10
     sim.run(0.2)
@@ -524,24 +598,30 @@ def dynamic_checks(pack, quick=False):
         err("hurt flinch plays during death")
     sim.hurt_time = 0
     sim.run(1.0)
-    # 4. stride sync: v.walk advances 360 per stride length at gallop
-    sim.props["tailwail:pose"] = 0
-    sim.props["tailwail:posture"] = 0
-    sim.speed = 6.9
-    sim.run(2.0)
-    w0 = sim.ctx.v["v.walk"]
-    d0 = sim.dist
-    acc = 0.0
-    prev = w0
-    for _ in range(120):
-        sim.step()
-        dw = (sim.ctx.v["v.walk"] - prev) % 360.0
-        acc += dw
-        prev = sim.ctx.v["v.walk"]
-    stride = (sim.dist - d0) / (acc / 360.0) if acc else 0
-    out["gallop_stride_blocks"] = round(stride, 2)
-    if not 2.6 <= stride <= 3.2:
-        err("gallop stride %.2f blocks, expected ~2.89" % stride)
+    # 7. distance-driven gaits: phase wraps once per stride
+    strides = {}
+    for gname in ("gallop", "walk", "creep", "tunnel_move"):
+        a = pack.anims[sim.amap[gname]]
+        expr = a.get("anim_time_update", "")
+        m = re.search(r"math\.mod\(q\.modified_distance_moved, ([0-9.]+)\)", expr)
+        if not m:
+            err("gait %s is not distance-driven (anim_time_update %r)" % (gname, expr))
+            continue
+        stride = float(m.group(1))
+        wraps, prev = 0, None
+        for i in range(400):
+            dist = stride * 3.0 * i / 400.0
+            ctx = molang.Context(variables={}, queries={"q.modified_distance_moved": dist})
+            ph = float(molang.num(molang.run(expr, ctx)))
+            if not 0.0 <= ph <= 1.0:
+                err("gait %s phase %.3f out of [0, 1]" % (gname, ph))
+            if prev is not None and ph < prev - 0.5:
+                wraps += 1
+            prev = ph
+        if wraps not in (2, 3):
+            err("gait %s phase wrapped %d times over 3 strides" % (gname, wraps))
+        strides[gname] = stride
+    out["strides_blocks"] = strides
     out["final_states"] = {c["name"]: c["state"] for c in sim.ctrls}
     return out
 
@@ -587,8 +667,11 @@ def composite(pack, sim, t_anim=None):
             full = sim.amap[name]
             data = pack.anims[full]
             anim = _anim_cache(full, data)
-            c = next(c for c in sim.ctrls if c["name"] == ctl)
-            local = sim.time - c["entered"]
+            if ctl == "animate":
+                local = sim.time
+            else:
+                c = next(c for c in sim.ctrls if c["name"] == ctl)
+                local = sim.time - c["entered"]
             if anim.anim_time_update:
                 local = shim.compile(anim.anim_time_update)(dict(env, **{"q.anim_time": local}))
             if anim.loop is False and anim.length > 0 and local > anim.length and not anim.anim_time_update:
@@ -622,60 +705,123 @@ def _anim_cache(full, data):
     return _ANIM[full]
 
 
+# acts that are not standing on the floor by design
+AIRBORNE = {"cling", "climb", "death"}
+TUNNEL = {"loco_tunnel", "reach_in"}
+
+
 def grounding(pack, quick=False):
+    g = _acts()
     ident = "tailwail:tall_wail"
     d = pack.clients[ident]
-    geo_path = pack.geo[d["geometry"]["default"]][0]
-    geo = bm.Geometry(geo_path)
-    scale = float(d["scripts"].get("scale", "1"))
-    k = scale / 16.0
-    import gen_client_v2 as g
-    pose_names = {pid: name for pid, name, _, _ in g.POSES}
+    geo = bm.Geometry(pack.geo[d["geometry"]["default"]][0])
+    k = float(d["scripts"].get("scale", "1")) / 16.0
     rows = []
     cases = []
-    for pid, name in sorted(pose_names.items()):
-        if name == "loco":
-            for pt, pname in ((0, "tall"), (1, "hunch"), (2, "crawl")):
-                for spd, sname in ((0.0, "idle"), (1.2, "creep"), (6.9, "run")):
-                    cases.append(("loco/%s/%s" % (pname, sname), 0, pt, spd))
-        else:
-            cases.append((name, pid, 0 if name not in ("unfold_low", "windup_c", "death_low") else 1, 0.0))
+    for aid, name, _, _ in g.ACTS:
+        if name in ("loco", "loco_low", "loco_tunnel"):
+            for spd, sname in ((0.0, "still"), (2.6, "walk"), (8.4, "run")):
+                if name == "loco_tunnel" and spd > 3:
+                    continue
+                cases.append(("%s/%s" % (name, sname), aid, spd))
+        elif name != "shot":
+            cases.append((name, aid, 0.0))
     if quick:
         cases = cases[::3]
-    for label, pid, pt, spd in cases:
+    for label, aid, spd in cases:
         sim = ClientSim(pack, ident, fps=30)
-        sim.props["tailwail:posture"] = pt
-        sim.props["tailwail:headroom"] = 8
         sim.speed = spd
-        sim.run(3.0)
-        sim.props["tailwail:pose"] = pid
+        sim.props["tailwail:act"] = aid
+        sim.props["tailwail:look_yaw"] = 40
+        sim.props["tailwail:breath"] = 3
+        sim.props["tailwail:tremor"] = 3
+        sim.props["tailwail:jaw"] = 30
+        sim.run(1.0)
         lows, highs = [], []
         for _ in range(8):
-            sim.run(0.25)
+            sim.run(0.37)
             pose = composite(pack, sim)
             pts = geo.bone_points(pose)
-            ys = [p[:, 1].min() for p in pts.values()]
-            hs = [p[:, 1].max() for p in pts.values()]
-            lows.append(min(ys) * k)
-            highs.append(max(hs) * k)
+            lows.append(min(p[:, 1].min() for b, p in pts.items() if not b.startswith("tail")) * k)
+            highs.append(max(p[:, 1].max() for b, p in pts.items() if not b.startswith("tail")) * k)
         rows.append((label, min(lows), max(lows), max(highs)))
+        base = label.split("/")[0]
+        if base not in AIRBORNE:
+            if max(lows) < -0.3:
+                err("%s sinks %.2f blocks into the floor" % (label, max(lows)))
+            if min(lows) > 0.25:
+                err("%s floats %.2f blocks above the floor" % (label, min(lows)))
+        if base in TUNNEL and max(highs) > 2.0:
+            err("%s reaches %.2f blocks: does not fit a 2-high tunnel" % (label, max(highs)))
+    return rows
+
+
+def shots_grounding(pack, quick=False):
+    """Each one-shot as the script plays it: over the neutral 'shot' state (full clips) or over
+    the galloping default state (partial clips), with every overlay on."""
+    g = _acts()
+    import anim_v3
+    ident = "tailwail:tall_wail"
+    d = pack.clients[ident]
+    geo = bm.Geometry(pack.geo[d["geometry"]["default"]][0])
+    k = float(d["scripts"].get("scale", "1")) / 16.0
+    rows = []
+    for name in anim_v3.SHOTS:
+        full = anim_v3.V3 + name
+        if full not in pack.anims:
+            err("one-shot %s missing from the animation files" % full)
+            continue
+        data = pack.anims[full]
+        if data.get("loop", False) is not False:
+            err("one-shot %s must be loop:false (playAnimation ends it on finish)" % name)
+        partial = name in anim_v3.PARTIAL_SHOTS
+        sim = ClientSim(pack, ident, fps=30)
+        sim.props["tailwail:act"] = g.ACT_ID["loco"] if partial else g.ACT_ID["shot"]
+        sim.speed = 0.0
+        sim.run(1.0)
+        anim = _anim_cache(full, data)
+        lows, highs = [], []
+        n = 6 if quick else 12
+        for i in range(n + 1):
+            t = anim.length * i / n
+            base = composite(pack, sim)
+            shim = _MolangShim()
+            old = bm.MOLANG
+            bm.MOLANG = shim
+            try:
+                extra = anim.sample(t, {"q.life_time": t})
+            finally:
+                bm.MOLANG = old
+            for bone, chans in extra.items():
+                dst = base.setdefault(bone, {})
+                for ch, v in chans.items():
+                    dst[ch] = dst.get(ch, 0.0) + v
+            pts = geo.bone_points(base)
+            lows.append(min(p[:, 1].min() for b, p in pts.items() if not b.startswith("tail")) * k)
+            highs.append(max(p[:, 1].max() for b, p in pts.items() if not b.startswith("tail")) * k)
+        rows.append(("shot:" + name, min(lows), max(lows), max(highs)))
+        if name != "drop" and min(lows) < -0.35:
+            err("one-shot %s sinks %.2f blocks into the floor" % (name, min(lows)))
     return rows
 
 
 def tail_sweep(pack, quick=False):
-    """Every tail state in every posture: the tail never sinks into the floor, and in the
-    tunnel crawl it stays under a 2-block ceiling."""
+    """Every tail mode in every locomotion state: the tail never sinks into the floor, and in
+    the tunnel crawl it stays under a 2-block ceiling."""
+    g = _acts()
     ident = "tailwail:tall_wail"
     d = pack.clients[ident]
     geo = bm.Geometry(pack.geo[d["geometry"]["default"]][0])
     k = float(d["scripts"].get("scale", "1")) / 16.0
     tails = [b for b in geo.order if b.startswith("tail")]
     rows = []
-    for pt in (0, 1, 2):
+    for act in ("loco", "loco_low", "loco_tunnel"):
         for tail in range(5):
-            for spd in ((0.0, 6.9) if not quick else (0.0,)):
+            for spd in ((0.0, 2.6, 8.4) if not quick else (0.0,)):
+                if act == "loco_tunnel" and spd > 3:
+                    continue
                 sim = ClientSim(pack, ident, fps=30)
-                sim.props["tailwail:posture"] = pt
+                sim.props["tailwail:act"] = g.ACT_ID[act]
                 sim.props["tailwail:tail"] = tail
                 sim.speed = spd
                 lo, hi = 9.0, -9.0
@@ -684,11 +830,11 @@ def tail_sweep(pack, quick=False):
                     pts = geo.bone_points(composite(pack, sim), tails)
                     lo = min(lo, min(p[:, 1].min() for p in pts.values()) * k)
                     hi = max(hi, max(p[:, 1].max() for p in pts.values()) * k)
-                rows.append((pt, tail, spd, lo, hi))
+                rows.append((act, tail, spd, lo, hi))
                 if lo < -0.12:
-                    err("tail sinks %.2f blocks into the floor (posture %d, tail %d, speed %.1f)" % (lo, pt, tail, spd))
-                if pt == 2 and hi > 2.0:
-                    err("tail reaches %.2f blocks in the tunnel crawl (posture 2, tail %d)" % (hi, tail))
+                    err("tail sinks %.2f blocks into the floor (%s, tail %d, speed %.1f)" % (lo, act, tail, spd))
+                if act == "loco_tunnel" and hi > 2.0:
+                    err("tail reaches %.2f blocks in the tunnel crawl (tail %d)" % (hi, tail))
     return rows
 
 
@@ -706,13 +852,8 @@ def main():
     loop_policy(pack, tw["animations"][body_short], tw["animations"])
     dyn = dynamic_checks(pack, quick=args.quick) if not errors else {}
     rows = grounding(pack, quick=args.quick) if not errors and not args.no_ground else []
+    rows += shots_grounding(pack, quick=args.quick) if not errors and not args.no_ground else []
     trows = tail_sweep(pack, quick=args.quick) if not errors and not args.no_ground else []
-    for label, lo_min, lo_max, hi in rows:
-        floating = lo_min > 0.2
-        sinking = lo_max < -0.25
-        dead = label.startswith("death")
-        if (floating or sinking) and not dead:
-            err("%s: lowest point %.2f..%.2f blocks (should touch y=0)" % (label, lo_min, lo_max))
     lines = ["# Client simulation report", "",
              "Generated by `tools/client_sim.py`. Static wiring checks, a 60 fps controller simulation and",
              "composite-pose grounding (body + every overlay, 1.5x scale, blocks).", ""]
@@ -736,12 +877,12 @@ def main():
             lines.append("| %s | %.2f .. %.2f | %.2f |" % (label, lo_min, lo_max, hi))
         lines.append("")
     if trows:
-        lines.append("## Tail (every tail state x posture: lowest / highest tail point, blocks)")
+        lines.append("## Tail (every tail mode x locomotion state: lowest / highest tail point, blocks)")
         lines.append("")
-        lines.append("| posture | tail | speed | lowest | highest |")
+        lines.append("| state | tail | speed | lowest | highest |")
         lines.append("|---|---|---|---|---|")
-        for pt, tail, spd, lo, hi in trows:
-            lines.append("| %d | %d | %.1f | %.2f | %.2f |" % (pt, tail, spd, lo, hi))
+        for act, tail, spd, lo, hi in trows:
+            lines.append("| %s | %d | %.1f | %.2f | %.2f |" % (act, tail, spd, lo, hi))
         lines.append("")
     lines.append("## Result")
     lines.append("")

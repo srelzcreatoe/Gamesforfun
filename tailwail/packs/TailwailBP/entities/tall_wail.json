@@ -6,20 +6,11 @@
       "is_spawnable": true,
       "is_summonable": true,
       "properties": {
-        "tailwail:pose": {
+        "tailwail:act": {
           "type": "int",
           "range": [
             0,
             40
-          ],
-          "default": 0,
-          "client_sync": true
-        },
-        "tailwail:posture": {
-          "type": "int",
-          "range": [
-            0,
-            2
           ],
           "default": 0,
           "client_sync": true
@@ -57,7 +48,7 @@
             0,
             60
           ],
-          "default": 2,
+          "default": 4,
           "client_sync": true
         },
         "tailwail:look_yaw": {
@@ -103,24 +94,6 @@
             60
           ],
           "default": 0,
-          "client_sync": true
-        },
-        "tailwail:headroom": {
-          "type": "int",
-          "range": [
-            0,
-            8
-          ],
-          "default": 8,
-          "client_sync": true
-        },
-        "tailwail:fx": {
-          "type": "int",
-          "range": [
-            0,
-            2
-          ],
-          "default": 2,
           "client_sync": true
         },
         "tailwail:managed": {
@@ -284,6 +257,18 @@
           "cooldown_time": 1.0,
           "horizontal_reach": 0.2
         }
+      },
+      "tailwail:grounded": {
+        "minecraft:physics": {
+          "has_gravity": true,
+          "has_collision": true
+        }
+      },
+      "tailwail:float": {
+        "minecraft:physics": {
+          "has_gravity": false,
+          "has_collision": true
+        }
       }
     },
     "components": {
@@ -309,7 +294,6 @@
         "value": 96,
         "max": 96
       },
-      "minecraft:physics": {},
       "minecraft:pushable": {
         "is_pushable": false,
         "is_pushable_by_piston": true
@@ -356,8 +340,9 @@
       "minecraft:entity_spawned": {
         "add": {
           "component_groups": [
-            "tailwail:posture_tall",
-            "tailwail:nav_doors"
+            "tailwail:grounded",
+            "tailwail:nav_doors",
+            "tailwail:posture_tall"
           ]
         }
       },
@@ -473,6 +458,30 @@
             "tailwail:seek_b",
             "tailwail:seek_c",
             "tailwail:move"
+          ]
+        }
+      },
+      "tailwail:float_on": {
+        "remove": {
+          "component_groups": [
+            "tailwail:grounded"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "tailwail:float"
+          ]
+        }
+      },
+      "tailwail:float_off": {
+        "remove": {
+          "component_groups": [
+            "tailwail:float"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "tailwail:grounded"
           ]
         }
       }
