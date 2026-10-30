@@ -31,7 +31,7 @@ export const ACT = Object.freeze({
 export const TAIL = Object.freeze({ free: 0, lash: 1, curl: 2, rigid: 3, tunnel: 4 });
 export const BREATH = Object.freeze({ none: 0, calm: 1, heavy: 2, frantic: 3 });
 export const MIMIC = Object.freeze({ none: 0, crouch: 1, tilt: 2, step: 3, shrug: 4 });
-export const ECHO_POSE = Object.freeze({ reach: 0, watch: 1, watch_low: 2, tall: 3, peek_l: 4, peek_r: 5, behind: 6, neck: 7, cling: 8, huddle: 9 });
+export const ECHO_POSE = Object.freeze({ reach: 0, watch: 1, watch_low: 2, tall: 3, peek_l: 4, peek_r: 5, behind: 6, neck: 7, cling: 8, huddle: 9, gallop: 10 });
 /** Blocks between the entity origin and the ceiling while it clings upside down. */
 export const CLING_HEIGHT = 2.60;
 /** One-shot clips played with Entity.playAnimation (times in seconds). */

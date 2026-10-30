@@ -2,7 +2,7 @@
 // All searches are bounded (fixed candidate counts, capped flood fill) and only read
 // loaded chunks.  Nothing here moves an entity.
 import { ENCOUNTER, POSTURE } from "../config.js";
-import { dirFromYaw, dist, hdist, norm, sub, yawTo } from "../util/vec.js";
+import { dirFromYaw, dist, dot, hdist, norm, sub, yawTo } from "../util/vec.js";
 import { lightAt, losClear } from "./perception.js";
 import { findGround, isFloor, isOpen, safeBlock } from "./terrain.js";
 
@@ -233,7 +233,6 @@ export function* spawnSearch(o) {
   out.reason = "no-candidate";
   const pPos = o.player.location;
   const view = o.player.getViewDirection();
-  const eyes = playerEyes(o.players);
   const tried = [];
   for (let i = 0; i < ENCOUNTER.spawnAttempts; i++) {
     // prefer columns behind or beside the player's facing: never in open view
@@ -260,8 +259,21 @@ export function* spawnSearch(o) {
       out.reason = "too-bright";
       continue;
     }
+    // nobody may see it appear: no point of it inside any player's view cone with a clear line.
+    // (Behind you with a clear line is allowed: on open plains at night nothing else is hidden.)
     const pts = [eyeAt(g, posture), midAt(g, posture), { x: g.x, y: g.y + 0.5, z: g.z }];
-    if (eyes.some((e) => pts.some((p) => losClear(o.dim, e, p)))) {
+    const seen = o.players.some((pl) => {
+      let e;
+      let v;
+      try {
+        e = pl.getHeadLocation();
+        v = pl.getViewDirection();
+      } catch {
+        return false;
+      }
+      return pts.some((p) => dot(norm(sub(p, e)), v) > 0.2 && losClear(o.dim, e, p));
+    });
+    if (seen) {
       out.reason = "in-view";
       continue;
     }

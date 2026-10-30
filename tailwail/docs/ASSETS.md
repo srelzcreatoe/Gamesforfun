@@ -34,37 +34,39 @@ drops back; `reveal` rises to the tallest supplied pose (48.4 px) with arms spre
 | reveal end (tallest supplied) | 48.4 px | 4.5 blocks |
 | unfold full (new, arms raised) | 53.3 px | **5.0 blocks (≈ 16.4 ft)** |
 | planted / hunched / gallop | 31.1–31.8 px | 2.9–3.0 blocks |
-| tunnel crawl (new, with v2 ground fix) | 21.4 px | 1.9-2.0 blocks |
-| v2 statues / scream / throw peaks | | 4.2-5.2 / 4.8 / 5.6 blocks |
+| v3 tunnel crawl (with every overlay) | ≤ 20.8 px | ≤ 1.97 blocks |
+| v3 gallop | | 3.0-3.75 blocks |
+| v3 `tall` / scream / slam / throw peaks | | 4.8 / 5.0 / 5.7 / 5.5 blocks |
 
 The export does **not** render at sixteen feet (2.8 blocks ≈ 9 ft at rest). Scale 1.5 was
 chosen so the full unfold reaches ≈ 16 ft while the folded rest (4.2 blocks) and the
 hunched pursuit (≈ 2.9 blocks) still fit ordinary cave passages. Collision (0.9 wide):
 tall 3.9, hunched 2.8, crawl 1.8 high; custom hit boxes match the visible body.
-Ground contact: the bind pose's feet touch y = 0 exactly; low-stance clips float 0.6 px
-(corrected by `gfix_*`); `reveal` floats up to 0.9 px at its end (corrected).
+Ground contact: the bind pose's feet touch y = 0 exactly. Every v3 clip is grounded frame
+by frame (feet, or feet and hands) by `tools/anim_v3.py`; `client_sim.py` checks every
+state and one-shot with all overlays on.
 
 ## Changes made to working copies
 
 | Asset | Change | Reason |
 |---|---|---|
 | geometry copy (`packs/TailwailRP/models/entity/tall_wail.geo.json`) | only `visible_bounds_width/height/offset` → 8 / 7.5 / (0, 3.5, 0) | the 1.5× scale plus raised arms (≈ 6 blocks) and forward reach would otherwise be culled at screen edges |
-| animation file copy | **none** (byte-identical) | new work lives in a second file |
+| supplied animation file | **not shipped** in v3 | `tools/anim_v3.py` reads it from the archive and re-bakes the clips it reuses (walk, crawl, the planted crouch) into the single v3 file |
 | texture copy | **none** (byte-identical) | |
 | identifiers | kept: `geometry.tall_wail`, `animation.tall_wail.*`; entity id `tailwail:tall_wail` | public name Tailwail, original identifiers preserved |
 | mane | not simplified (183 of 268 cubes are mane strands) | no profiling evidence that it matters; see [LIMITATIONS.md](LIMITATIONS.md) |
 
-New clips are listed in [ANIMATION_AUDIO.md](ANIMATION_AUDIO.md). None alters a supplied
-clip in place: derived clips have new names (`*_nt`, `tw_*`, `gfix_*`, `tw2_*`).
+Every v3 clip is listed in [ANIMATION_AUDIO.md](ANIMATION_AUDIO.md); all have new names
+(`animation.tall_wail.v3.*`). The v1 rehearsal and v2 clip files are no longer shipped.
 
 ## Generated assets (original to this project)
 
 | Asset | Tool | Notes |
 |---|---|---|
-| 31 v2 clips (`animations/tall_wail.v2.animation.json`) | `tools/anim_studio.py` | pose algebra over the supplied rig, baked at 12-24 fps, every frame grounded by a solver; tunnel tail/shin fixes solved per crawl phase |
-| client entities, 6 controllers, `core/ids.js`, entity properties | `tools/gen_client_v2.py` | single source of truth for pose ids shared by scripts and Molang |
-| derived legacy clips (`*_nt`, `tw_*`, `gfix_*`) | `tools/build_assets.py` | unchanged from v1 (gait, unfold, tunnel squash, tail, imitation overlays) |
-| 69 Ogg Vorbis sound files + 2 music loops, `sound_definitions.json` | `tools/gen_audio_v2.py` | synthesized from oscillators/noise with fixed seeds; no samples |
+| every clip: 4 gaits, 22 body states, 17 one-shots, overlays and tail modes (`animations/tall_wail.v3.animation.json`) | `tools/anim_v3.py` (pose algebra in `tools/pose_lib.py`) | baked at 12-30 fps, every frame grounded; gait strides measured from foot travel; gallop body bob solved numerically; tunnel tail solved against the floor |
+| client entities, 3 controllers, `core/ids.js` (acts, one-shot table, resource-pack check key), entity properties | `tools/gen_client_v3.py` | single source of truth shared by scripts and Molang |
+| model and texture copies | `tools/build_assets.py` | geometry bounds widened; texture byte-identical |
+| 95 Ogg Vorbis sound files + 2 music loops, `sound_definitions.json` | `tools/gen_audio_v2.py` | synthesized from oscillators/noise with fixed seeds, loudness-normalised; no samples |
 | burnt-out torch block (behavior + geometry + 16 x 16 texture + loot), dread fog, snuff-smoke particle, lang | `tools/gen_assets_v2.py` | |
 | `pack_icon.png`, spawn egg and journal icons | `tools/gen_icons.py` | |
 | `docs/images/pose_board.png` | `tools/pose_board.py` | offline render through the simulated controllers |

@@ -34,9 +34,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.environ.get("TAILWAIL_ROOT") or os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import bedrock_model as bm  # noqa: E402
-from anim_studio import (  # noqa: E402
-    FEET, HANDS, FINGERS_L, FINGERS_R, POS, R, TAIL, bump, ease_in, ease_io, ease_out, fingers, jerk, lerp, merge,
-    mirror_arm, scale, seg, to_np,
+from pose_lib import (  # noqa: E402
+    FEET, FINGERS_L, FINGERS_R, HANDS, POS, R, TAIL, bump, ease_in, ease_io, ease_out, fingers, jerk, lerp, merge,
+    mirror_arm, scale, seg, solve_tail, to_np,
 )
 
 RP = os.path.join(ROOT, "packs", "TailwailRP")
@@ -1063,7 +1063,6 @@ def tail_clips():
 
 def tail_tunnel(rig):
     """Floor-solved tail for the 2-high tunnel crawl (would otherwise sink into the floor)."""
-    from anim_studio import _solve_tail
     L = 4.0
     body = None
 
@@ -1074,7 +1073,7 @@ def tail_tunnel(rig):
             body = merge(c, to_np(_tunnel_squash(0.0)))
             y = rig.min_y(body, FEET + HANDS)
             body = merge(body, POS(root=(0, -y, 0)))
-        return _solve_tail(rig, body, 9 * math.sin(t / L * TAU), floor_px=1.0)
+        return solve_tail(rig, body, 9 * math.sin(t / L * TAU), floor_px=1.0)
 
     clip, st, _ = bake(rig, fn, L, 4, True, ground=None, keep_tail=True)
     return clip, st, None
@@ -1116,6 +1115,11 @@ def build_all(rig, only=None):
             clip, st = res[0], res[1]
             out[V3 + name] = clip
             stats[name] = st
+    if V3 + "gallop" in out:
+        # the hallucination's gallop: same clip, driven by time (the echo is teleported along its path)
+        gt = dict(out[V3 + "gallop"])
+        gt["anim_time_update"] = "math.mod(q.life_time * 2.8, 1.0)"
+        out[V3 + "gallop_t"] = gt
     if not only or "tail_tunnel" in only:
         clip, st, _ = tail_tunnel(rig)
         out[V3 + "tail_tunnel"] = clip

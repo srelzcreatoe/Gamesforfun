@@ -3,8 +3,7 @@
 
   python3 -I tools/gen_icons.py
 
-pack_icon.png (both packs): a three-quarter render of the integrated model in its
-unfold pose.  Item icons (16x16): the spawn egg and the field guide, painted from the
+pack_icon.png (both packs): a three-quarter render of the integrated model mid-scream.  Item icons (16x16): the spawn egg and the field guide, painted from the
 creature texture's skull-face pixels.
 """
 import os
@@ -17,7 +16,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import bedrock_model as bm  # noqa: E402
+import client_sim  # noqa: E402
 from render_preview import render  # noqa: E402
+
+bm.MOLANG = client_sim._MolangShim()  # the strict evaluator understands ?? (the v3 overlays use it)
 
 RP = os.path.join(ROOT, "packs", "TailwailRP")
 BP = os.path.join(ROOT, "packs", "TailwailBP")
@@ -25,12 +27,11 @@ BP = os.path.join(ROOT, "packs", "TailwailBP")
 
 def pack_icon():
     geo = bm.Geometry(os.path.join(RP, "models/entity/tall_wail.geo.json"))
-    anims = bm.load_animations(os.path.join(RP, "animations/tall_wail.animation.json"))
-    anims.update(bm.load_animations(os.path.join(RP, "animations/tall_wail.rehearsal.animation.json")))
+    anims = bm.load_animations(os.path.join(RP, "animations/tall_wail.v3.animation.json"))
     tex = Image.open(os.path.join(RP, "textures/entity/tall_wail/tall_wail.png")).convert("RGBA")
-    layers = [(anims["animation.tall_wail.reveal"], 1, 0), (anims["animation.tall_wail.tw_unfold_mid"], 1, 0),
-              (anims["animation.tall_wail.tw_tail_rigid"], 1, 0)]
-    pose = bm.pose_from(anims, layers, 2.0, {"q.life_time": 2.0})
+    # the scream at full extension, tail rigid
+    layers = [(anims["animation.tall_wail.v3.scream"], 1, 0), (anims["animation.tall_wail.v3.tail_rigid"], 1, 0)]
+    pose = bm.pose_from(anims, layers, 1.0, {"q.life_time": 1.0})
     im = render(geo, tex, pose, "three", size=(512, 512), ppu=7.4, origin_y=490, guides=False).convert("RGB")
     a = np.asarray(im).astype(float)
     bg = (a[..., 0] == a[0, 0, 0]) & (a[..., 1] == a[0, 0, 1]) & (a[..., 2] == a[0, 0, 2])

@@ -55,23 +55,24 @@ or performance.
 6. In-game settings (difficulty, scare toggles) from an inventory item.
 7. Pacing with relief periods.
 
-## Comparison: competitor strength -> Tailwail v2 response -> observable acceptance test
+## Comparison: competitor strength -> Tailwail v3 response -> observable acceptance test
 
 Not a claim that Tailwail is better than any of these products: no side-by-side play
-comparison has been done. "The Goatman" (named by the requester) was not reviewed in this
-pass: no listing data was gathered for it.
+comparison has been done. "The Goatman" (named by the requester) was not reviewed: no
+listing data was gathered for it.
 
-| Dimension | Genre strength (source) | Tailwail v2 response | Acceptance test (status) |
+| Dimension | Genre strength (source) | Tailwail v3 response | Acceptance test (status) |
 |---|---|---|---|
-| Doubt before the first sighting | footsteps that stop when you stop, knocking, gargles (S1, S2) | 12 presence events from the first minute underground: footsteps that stop a beat late and take one more step, your own sounds repeated from the dark (real vanilla ids), knocks, breath behind you, whispers, torches going out, doors, glimpses that vanish once seen, peeks, fake join message, bed visits | BDS: footsteps 5 steps over 6 blocks; mimic replayed `dig.deepslate` 2.5 s after the break; glimpse removed after being seen then looked away from (verified) |
-| Gradual escalation | watch -> bolder -> chase (S1, S2) | four stages (unease, watched, hunted, obsessed) gate events and openings; encounters: stalk -> stand-off -> unfold -> scream -> chase | unit-tested ladder; `/tailwail:debug status` shows stage (verified) |
-| A mechanic you can play against | stand-off phases (S6) | **statue rule** (moves only while nobody has it on screen) vs **stare cost** (agitation): look away and it closes in, stare and it commits | BDS: 0 blocks moved while watched, 2.6-3.3 blocks per look-away with a new pose each time (verified) |
-| Fear you can read | fear meter UI (S2) | no UI meter: tail drag/twitch/curl, breathing, tremor, clicks, jaw, heartbeat rate and FOV narrowing all track agitation | client sim: properties drive overlays; in-client feel not yet checked |
-| The big moment | instant kills (S2), fast chases (S1) | silent rise to ~5 blocks -> 1.8 s scream (shake, darkness, all nearby torches out) -> drop to all fours -> chase above sprint speed | BDS: sequence and torch snuffing verified; never skipped on provocation (unit-tested) |
-| Being caught | instant kill (S2) | **grab**: lifted to its face, view locked, mash Jump to tear free; else thrown, second time bitten; friends can make it drop you | BDS: struggle free with 8 presses, throw/bite damage, input always restored (verified) |
-| Tunnels and doors are not safe | (S1, S6) | tall -> hunch -> belly crawl in 2-high tunnels; opens wooden doors; cannot fit 1-high gaps | BDS tunnel scenario (verified) |
-| Escape and hiding | climbing out (S1) | break line of sight with distance -> search; crouch in darkness to hide; noise gives you away | BDS: hidden player never found; escape through a 1-high gap (verified) |
-| Light | torch-extinguish (Cave Dweller changelog, S6) | torches snuffed by presence, by the scream and along its chase path; relightable burnt-out sticks | BDS: snuff + relight verified |
-| "Learning" | advertised, unverified internals (S6) | bounded per-player memory of observed gestures and reactions; it opens encounters with your own gesture | unit + v1 BDS verification of the remembered opener |
-| Settings | difficulty + scare toggles (S3) | 3 presets + custom, haunting level, grab, jumpscares, fake chat, torch snuffing; per-player camera/music/fog/captions | form fields type-checked; in-client not yet checked |
-| Atmosphere | VFX / fog / music (S3, S6) | per-player dread fog, stand-off drone, chase score, heartbeat, all original and synthesized | spectrogram review; in-client listening not yet done |
+| Doubt before the first sighting | footsteps that stop when you stop, knocking, gargles (S1, S2) | 18 presence events from the first minute: footsteps that stop a beat late and take one more step, heavy running steps that stop right behind you, your own sounds repeated, knocks and scraping in the walls, breath, whispers, torches going out, doors opening or being hammered, glimpses, the runner, a face at the window, distant screams, fake join message, bed visits | BDS: all 18 exercised; running steps (9 steps then breath), runner moved 9 blocks/s, glimpse vanished once seen (verified) |
+| Gradual escalation, then a fast chase | watch -> bolder -> chase; "frighteningly fast across open ground" (S1) | four stages; encounter: seconds of watching / peeking / running across view, a seconds-long stand-off, the scream, then a hunt **faster than a sprinting player** | BDS: hunt measured at 8.4 blocks/s (Standard) (verified) |
+| A mechanic you can play against | stand-off phases (S6) | the stand-off is short: it creeps at you even while watched and charges the moment you turn your back | BDS: crept while watched; charged 0.8 s after the turn (verified) |
+| Being caught | instant kill (S2) | grab with a struggle that changes every time (jump / sneak / alternate / don't move, random counts and windows, grip shifts, rare unbreakable); fail: bite, throw or smash; then it hunts on | BDS: tore free from a jump prompt; failed an alternate prompt, was bitten, then attacked again (verified) |
+| It keeps coming | tight tunnels do not slow it (S1) | no time budget while it can see you; savours each hit for 1-2 s and hunts on; crawls 2-high tunnels; climbs walls; smashes doors and glass; reaches into holes; sometimes pretends to leave and returns | BDS: still hunting after hits; climbed a 5-block pillar; broke a door; tunnel crawl (verified) |
+| Ambushes | "new ambush tactics" (Cave Dweller changelog, S6) | spread on cave ceilings like a spider (drops when you pass under or stare); a heap in a corner that turns round; crouched behind you | BDS: clung 4.4 blocks up with gravity off, dropped and hunted (verified) |
+| Surface threat | night stalking (S2) | night-surface openings: standing tall at the treeline, the runner; surface haunting | BDS: treeline encounter to hunt in 12.8 s at night (verified) |
+| Escape and hiding | climbing out (S1) | break line of sight with distance, crouch in the dark, holes it cannot fit; noise gives you away | BDS: hidden player never found; escape through a 1-high gap (verified) |
+| Fear you can read | fear meter UI (S2) | no UI meter: tail, breathing, tremor, clicks, jaw, heartbeat rate and FOV narrowing | client sim: properties drive overlays; in-client feel not yet checked |
+| Light | torch-extinguish (S6) | torches snuffed by presence, by the scream and along its path; relightable | BDS: snuff + relight verified |
+| "Learning" | advertised, unverified internals (S6) | bounded per-player memory of gestures and reactions; it opens encounters with your own gesture and biases its openings by how you react | unit tests (verified offline) |
+| Settings | difficulty + scare toggles (S3) | 3 presets + custom; haunting level, grab, jumpscares, fake chat, torches, breaking blocks, climbing, ambushes, struggle range; per-player camera / music / fog / captions | form fields type-checked; in-client not yet checked |
+| Atmosphere | VFX / fog / music (S3, S6) | per-player dread fog, stand-off drone, chase score, heartbeat; 43 original synthesized sound events, loudness-normalised | spectrogram and loudness review; in-client listening not yet done |

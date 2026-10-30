@@ -3,8 +3,8 @@
  "sound_definitions": {
   "tailwail.breath": {
    "category": "hostile",
-   "min_distance": 4,
-   "max_distance": 32,
+   "min_distance": 8,
+   "max_distance": 40,
    "sounds": [
     {
      "name": "sounds/tailwail/breath_1",
@@ -26,8 +26,8 @@
   },
   "tailwail.breath_behind": {
    "category": "hostile",
-   "min_distance": 1,
-   "max_distance": 8,
+   "min_distance": 2,
+   "max_distance": 10,
    "sounds": [
     {
      "name": "sounds/tailwail/breath_behind_1",
@@ -44,8 +44,8 @@
   },
   "tailwail.tail_scrape": {
    "category": "hostile",
-   "min_distance": 2,
-   "max_distance": 28,
+   "min_distance": 6,
+   "max_distance": 34,
    "sounds": [
     {
      "name": "sounds/tailwail/tail_scrape_1",
@@ -62,8 +62,8 @@
   },
   "tailwail.knock": {
    "category": "hostile",
-   "min_distance": 3,
-   "max_distance": 28,
+   "min_distance": 8,
+   "max_distance": 36,
    "sounds": [
     {
      "name": "sounds/tailwail/knock_1",
@@ -80,8 +80,8 @@
   },
   "tailwail.skitter": {
    "category": "hostile",
-   "min_distance": 3,
-   "max_distance": 28,
+   "min_distance": 8,
+   "max_distance": 40,
    "sounds": [
     {
      "name": "sounds/tailwail/skitter_1",
@@ -103,8 +103,8 @@
   },
   "tailwail.creak": {
    "category": "hostile",
-   "min_distance": 3,
-   "max_distance": 26,
+   "min_distance": 8,
+   "max_distance": 34,
    "sounds": [
     {
      "name": "sounds/tailwail/creak_1",
@@ -126,8 +126,8 @@
   },
   "tailwail.neck_crack": {
    "category": "hostile",
-   "min_distance": 3,
-   "max_distance": 28,
+   "min_distance": 8,
+   "max_distance": 34,
    "sounds": [
     {
      "name": "sounds/tailwail/neck_crack_1",
@@ -144,8 +144,8 @@
   },
   "tailwail.jaw": {
    "category": "hostile",
-   "min_distance": 3,
-   "max_distance": 28,
+   "min_distance": 8,
+   "max_distance": 34,
    "sounds": [
     {
      "name": "sounds/tailwail/jaw_1",
@@ -162,8 +162,8 @@
   },
   "tailwail.click": {
    "category": "hostile",
-   "min_distance": 3,
-   "max_distance": 32,
+   "min_distance": 8,
+   "max_distance": 40,
    "sounds": [
     {
      "name": "sounds/tailwail/click_1",
@@ -185,8 +185,8 @@
   },
   "tailwail.inhale": {
    "category": "hostile",
-   "min_distance": 4,
-   "max_distance": 40,
+   "min_distance": 10,
+   "max_distance": 48,
    "sounds": [
     {
      "name": "sounds/tailwail/inhale_1",
@@ -203,8 +203,8 @@
   },
   "tailwail.scream": {
    "category": "hostile",
-   "min_distance": 8,
-   "max_distance": 96,
+   "min_distance": 28,
+   "max_distance": 128,
    "sounds": [
     {
      "name": "sounds/tailwail/scream_1",
@@ -221,8 +221,8 @@
   },
   "tailwail.scream_far": {
    "category": "hostile",
-   "min_distance": 16,
-   "max_distance": 128,
+   "min_distance": 48,
+   "max_distance": 160,
    "sounds": [
     {
      "name": "sounds/tailwail/scream_far_1",
@@ -234,8 +234,8 @@
   },
   "tailwail.screech": {
    "category": "hostile",
-   "min_distance": 6,
-   "max_distance": 56,
+   "min_distance": 16,
+   "max_distance": 72,
    "sounds": [
     {
      "name": "sounds/tailwail/screech_1",
@@ -262,8 +262,8 @@
   },
   "tailwail.step_soft": {
    "category": "hostile",
-   "min_distance": 2,
-   "max_distance": 18,
+   "min_distance": 5,
+   "max_distance": 24,
    "sounds": [
     {
      "name": "sounds/tailwail/step_soft_1",
@@ -285,8 +285,8 @@
   },
   "tailwail.step_heavy": {
    "category": "hostile",
-   "min_distance": 4,
-   "max_distance": 40,
+   "min_distance": 12,
+   "max_distance": 56,
    "sounds": [
     {
      "name": "sounds/tailwail/step_heavy_1",
@@ -313,8 +313,8 @@
   },
   "tailwail.grab": {
    "category": "hostile",
-   "min_distance": 3,
-   "max_distance": 32,
+   "min_distance": 8,
+   "max_distance": 40,
    "sounds": [
     {
      "name": "sounds/tailwail/grab_1",
@@ -331,8 +331,8 @@
   },
   "tailwail.hold": {
    "category": "hostile",
-   "min_distance": 2,
-   "max_distance": 24,
+   "min_distance": 6,
+   "max_distance": 28,
    "sounds": [
     {
      "name": "sounds/tailwail/hold_1",
@@ -349,8 +349,8 @@
   },
   "tailwail.throw": {
    "category": "hostile",
-   "min_distance": 2,
-   "max_distance": 24,
+   "min_distance": 6,
+   "max_distance": 28,
    "sounds": [
     {
      "name": "sounds/tailwail/throw_1",
@@ -367,8 +367,8 @@
   },
   "tailwail.bite": {
    "category": "hostile",
-   "min_distance": 2,
-   "max_distance": 24,
+   "min_distance": 6,
+   "max_distance": 28,
    "sounds": [
     {
      "name": "sounds/tailwail/bite_1",
@@ -385,8 +385,8 @@
   },
   "tailwail.swipe": {
    "category": "hostile",
-   "min_distance": 2,
-   "max_distance": 24,
+   "min_distance": 8,
+   "max_distance": 32,
    "sounds": [
     {
      "name": "sounds/tailwail/swipe_1",
@@ -403,8 +403,8 @@
   },
   "tailwail.impact": {
    "category": "hostile",
-   "min_distance": 2,
-   "max_distance": 24,
+   "min_distance": 8,
+   "max_distance": 32,
    "sounds": [
     {
      "name": "sounds/tailwail/impact_1",
@@ -421,8 +421,8 @@
   },
   "tailwail.pain": {
    "category": "hostile",
-   "min_distance": 4,
-   "max_distance": 40,
+   "min_distance": 10,
+   "max_distance": 48,
    "sounds": [
     {
      "name": "sounds/tailwail/pain_1",
@@ -439,8 +439,8 @@
   },
   "tailwail.sniff": {
    "category": "hostile",
-   "min_distance": 2,
-   "max_distance": 22,
+   "min_distance": 6,
+   "max_distance": 28,
    "sounds": [
     {
      "name": "sounds/tailwail/sniff_1",
@@ -462,8 +462,8 @@
   },
   "tailwail.frustrated": {
    "category": "hostile",
-   "min_distance": 6,
-   "max_distance": 64,
+   "min_distance": 16,
+   "max_distance": 72,
    "sounds": [
     {
      "name": "sounds/tailwail/frustrated_1",
@@ -480,8 +480,8 @@
   },
   "tailwail.retreat": {
    "category": "hostile",
-   "min_distance": 4,
-   "max_distance": 40,
+   "min_distance": 8,
+   "max_distance": 44,
    "sounds": [
     {
      "name": "sounds/tailwail/retreat_1",
@@ -498,8 +498,8 @@
   },
   "tailwail.hurt": {
    "category": "hostile",
-   "min_distance": 3,
-   "max_distance": 32,
+   "min_distance": 8,
+   "max_distance": 36,
    "sounds": [
     {
      "name": "sounds/tailwail/hurt_1",
@@ -521,8 +521,8 @@
   },
   "tailwail.death": {
    "category": "hostile",
-   "min_distance": 6,
-   "max_distance": 64,
+   "min_distance": 16,
+   "max_distance": 72,
    "sounds": [
     {
      "name": "sounds/tailwail/death_1",
@@ -583,6 +583,223 @@
      "load_on_low_memory": true
     }
    ]
+  },
+  "tailwail.roar": {
+   "category": "hostile",
+   "min_distance": 20,
+   "max_distance": 96,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/roar_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/roar_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/roar_3",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.roar"
+  },
+  "tailwail.growl": {
+   "category": "hostile",
+   "min_distance": 10,
+   "max_distance": 44,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/growl_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/growl_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/growl_3",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.growl"
+  },
+  "tailwail.grunt": {
+   "category": "hostile",
+   "min_distance": 8,
+   "max_distance": 36,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/grunt_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/grunt_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ]
+  },
+  "tailwail.slam": {
+   "category": "hostile",
+   "min_distance": 18,
+   "max_distance": 64,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/slam_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/slam_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.slam"
+  },
+  "tailwail.pounce": {
+   "category": "hostile",
+   "min_distance": 12,
+   "max_distance": 48,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/pounce_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/pounce_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.pounce"
+  },
+  "tailwail.shriek": {
+   "category": "hostile",
+   "min_distance": 24,
+   "max_distance": 80,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/shriek_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/shriek_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.shriek"
+  },
+  "tailwail.scream_pain": {
+   "category": "hostile",
+   "min_distance": 20,
+   "max_distance": 80,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/scream_pain_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/scream_pain_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.scream_pain"
+  },
+  "tailwail.climb": {
+   "category": "hostile",
+   "min_distance": 10,
+   "max_distance": 40,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/climb_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/climb_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.climb"
+  },
+  "tailwail.scrape": {
+   "category": "hostile",
+   "min_distance": 4,
+   "max_distance": 24,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/scrape_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/scrape_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/scrape_3",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.scrape"
+  },
+  "tailwail.thud": {
+   "category": "hostile",
+   "min_distance": 12,
+   "max_distance": 48,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/thud_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/thud_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.thud"
+  },
+  "tailwail.door_bang": {
+   "category": "hostile",
+   "min_distance": 14,
+   "max_distance": 60,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/door_bang_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/door_bang_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/door_bang_3",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.door_bang"
   },
   "tailwail.music.standoff": {
    "category": "music",

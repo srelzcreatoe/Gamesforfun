@@ -84,7 +84,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     },
     "a1": {
      "animations": [
@@ -166,7 +166,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     },
     "a2": {
      "animations": [
@@ -245,7 +245,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.2
+     "blend_transition": 0.12
     },
     "a3": {
      "animations": [
@@ -319,7 +319,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     },
     "a4": {
      "animations": [
@@ -393,7 +393,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     },
     "a5": {
      "animations": [
@@ -467,7 +467,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.2
+     "blend_transition": 0.1
     },
     "a6": {
      "animations": [
@@ -541,7 +541,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     },
     "a7": {
      "animations": [
@@ -615,7 +615,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     },
     "a8": {
      "animations": [
@@ -763,7 +763,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     },
     "a10": {
      "animations": [
@@ -911,7 +911,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     },
     "a12": {
      "animations": [
@@ -985,7 +985,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     },
     "a13": {
      "animations": [
@@ -1059,7 +1059,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     },
     "a14": {
      "animations": [
@@ -1133,7 +1133,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     },
     "a15": {
      "animations": [
@@ -1207,7 +1207,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     },
     "a16": {
      "animations": [
@@ -1355,7 +1355,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     },
     "a18": {
      "animations": [
@@ -1500,7 +1500,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.12
     },
     "a20": {
      "animations": [
@@ -1574,7 +1574,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.08
+     "blend_transition": 0.1
     },
     "a21": {
      "animations": [
@@ -1648,7 +1648,7 @@
        "a22": "q.property('tailwail:act') == 22"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     },
     "a22": {
      "animations": [
@@ -1722,7 +1722,7 @@
        "a21": "q.property('tailwail:act') == 21"
       }
      ],
-     "blend_transition": 0.15
+     "blend_transition": 0.1
     }
    }
   },
@@ -1783,6 +1783,9 @@
       },
       {
        "e9": "q.property('tailwail:echo_pose') == 9"
+      },
+      {
+       "e10": "q.property('tailwail:echo_pose') == 10"
       }
      ],
      "blend_transition": 0.0
@@ -1818,6 +1821,9 @@
       },
       {
        "e9": "q.property('tailwail:echo_pose') == 9"
+      },
+      {
+       "e10": "q.property('tailwail:echo_pose') == 10"
       }
      ],
      "blend_transition": 0.0
@@ -1853,6 +1859,9 @@
       },
       {
        "e9": "q.property('tailwail:echo_pose') == 9"
+      },
+      {
+       "e10": "q.property('tailwail:echo_pose') == 10"
       }
      ],
      "blend_transition": 0.0
@@ -1888,6 +1897,9 @@
       },
       {
        "e9": "q.property('tailwail:echo_pose') == 9"
+      },
+      {
+       "e10": "q.property('tailwail:echo_pose') == 10"
       }
      ],
      "blend_transition": 0.0
@@ -1923,6 +1935,9 @@
       },
       {
        "e9": "q.property('tailwail:echo_pose') == 9"
+      },
+      {
+       "e10": "q.property('tailwail:echo_pose') == 10"
       }
      ],
      "blend_transition": 0.0
@@ -1958,6 +1973,9 @@
       },
       {
        "e9": "q.property('tailwail:echo_pose') == 9"
+      },
+      {
+       "e10": "q.property('tailwail:echo_pose') == 10"
       }
      ],
      "blend_transition": 0.0
@@ -1993,6 +2011,9 @@
       },
       {
        "e9": "q.property('tailwail:echo_pose') == 9"
+      },
+      {
+       "e10": "q.property('tailwail:echo_pose') == 10"
       }
      ],
      "blend_transition": 0.0
@@ -2028,6 +2049,9 @@
       },
       {
        "e9": "q.property('tailwail:echo_pose') == 9"
+      },
+      {
+       "e10": "q.property('tailwail:echo_pose') == 10"
       }
      ],
      "blend_transition": 0.0
@@ -2063,6 +2087,9 @@
       },
       {
        "e9": "q.property('tailwail:echo_pose') == 9"
+      },
+      {
+       "e10": "q.property('tailwail:echo_pose') == 10"
       }
      ],
      "blend_transition": 0.0
@@ -2098,6 +2125,47 @@
       },
       {
        "e8": "q.property('tailwail:echo_pose') == 8"
+      },
+      {
+       "e10": "q.property('tailwail:echo_pose') == 10"
+      }
+     ],
+     "blend_transition": 0.0
+    },
+    "e10": {
+     "animations": [
+      "gallop_t"
+     ],
+     "transitions": [
+      {
+       "e0": "q.property('tailwail:echo_pose') == 0"
+      },
+      {
+       "e1": "q.property('tailwail:echo_pose') == 1"
+      },
+      {
+       "e2": "q.property('tailwail:echo_pose') == 2"
+      },
+      {
+       "e3": "q.property('tailwail:echo_pose') == 3"
+      },
+      {
+       "e4": "q.property('tailwail:echo_pose') == 4"
+      },
+      {
+       "e5": "q.property('tailwail:echo_pose') == 5"
+      },
+      {
+       "e6": "q.property('tailwail:echo_pose') == 6"
+      },
+      {
+       "e7": "q.property('tailwail:echo_pose') == 7"
+      },
+      {
+       "e8": "q.property('tailwail:echo_pose') == 8"
+      },
+      {
+       "e9": "q.property('tailwail:echo_pose') == 9"
       }
      ],
      "blend_transition": 0.0

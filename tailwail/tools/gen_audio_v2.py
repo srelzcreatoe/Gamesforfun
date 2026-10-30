@@ -551,7 +551,7 @@ def s_screech(rng):
 
 def s_step_soft(rng):
     x = thump(rng, rng.uniform(85, 110), 55, 0.16, 0.25) * 0.8 + grains(N(0.16), rng, 120, 0.004, 1500, 6000, 0.002) * 0.15
-    return finish(reverb(x, 0.2, 1.2, 0.5), -10)
+    return finish(reverb(x, 0.2, 1.2, 0.5), -6, drive=1.4)
 
 
 def s_step_heavy(rng):
@@ -559,7 +559,7 @@ def s_step_heavy(rng):
     slap = bandpass(white(N(0.05), rng), 500, 3500) * np.exp(-np.arange(N(0.05)) / (0.008 * SR))
     place(x, slap * 0.6, 0.0)
     place(x, grains(N(0.25), rng, 160, 0.004, 1200, 7000, 0.002) * 0.25, 0.02)
-    return finish(reverb(x, 0.22, 1.6, 0.45), -3, drive=1.8)
+    return finish(reverb(x, 0.22, 1.6, 0.45), -1, drive=2.2)
 
 
 def s_grab(rng):
@@ -605,7 +605,7 @@ def s_bite(rng):
 
 
 def s_swipe(rng):
-    return finish(reverb(whoosh(rng, 0.45, 300, 3200), 0.15, 1.0, 0.6), -3)
+    return finish(reverb(whoosh(rng, 0.45, 300, 3200), 0.15, 1.0, 0.6), -1, drive=1.5)
 
 
 def s_impact(rng):
@@ -720,6 +720,130 @@ def s_heartbeat(rng):
 
 
 # =========================================================================== music (stream, looping)
+# =========================================================================== v3 designs
+def s_roar(rng):
+    """Mid-hunt roar: a short, huge, two-throated bellow with a tearing top."""
+    dur = rng.uniform(1.15, 1.4)
+    n = N(dur)
+    main = voice(dur, [(0, 95), (0.15, 150), (0.6, 140), (1, 85)], [(0, "o"), (0.2, "a"), (0.8, "a"), (1, "o")], rng,
+                 tract=0.7, tilt=0.9, rough=1.7, breath=0.35, jitter=0.03, shimmer=0.2, vib=(0.03, 6.0), sub=0.5, bright=1.1,
+                 amp_pts=[(0, 0), (0.07, 1), (0.75, 0.85), (1, 0)])
+    top = voice(dur, [(0, 260), (0.2, 420), (1, 240)], [(0, "a"), (0.6, "ae"), (1, "a")], rng, tract=1.05, tilt=0.9, rough=1.2,
+                breath=0.3, jitter=0.03, amp_pts=[(0, 0), (0.12, 0.7), (0.7, 0.5), (1, 0)])
+    hiss = bandpass(colored(n, rng, 0.0), 1800, 8000) * curve(n, [(0, 0), (0.08, 0.6), (0.7, 0.4), (1, 0)])
+    x = sat(main + 0.6 * top + 0.4 * hiss, 2.6)
+    return finish(reverb(x, 0.25, 2.2, 0.5), -0.3, drive=1.6)
+
+
+def s_growl(rng):
+    """A low, wet growl that rises and falls like a purr gone wrong."""
+    dur = rng.uniform(1.4, 2.0)
+    n = N(dur)
+    x = voice(dur, [(0, 52), (0.5, 66), (1, 50)], [(0, "o"), (0.5, "u"), (1, "o")], rng, tract=0.55, tilt=1.0, rough=1.8,
+              breath=0.45, jitter=0.04, shimmer=0.3, sub=0.6, amp_pts=[(0, 0), (0.15, 1), (0.8, 0.9), (1, 0)])
+    trem = 0.65 + 0.35 * np.sin(2 * np.pi * rng.uniform(5.5, 8.0) * tax(n) + wobble(n, rng, 3) * 2)
+    x = x * trem + bubbles(n, rng, 10, 180, 600) * 0.25
+    return finish(reverb(sat(x, 2.2), 0.2, 1.6, 0.5), -0.5, drive=2.0)
+
+
+def s_grunt(rng):
+    dur = rng.uniform(0.45, 0.6)
+    x = voice(dur, [(0, 120), (0.3, 105), (1, 80)], [(0, "u"), (0.4, "a"), (1, "er")], rng, tract=0.65, rough=1.3, breath=0.5,
+              sub=0.4, amp_pts=[(0, 0), (0.1, 1), (1, 0)])
+    return finish(reverb(sat(x, 2.0), 0.15, 1.2, 0.5), -1, drive=1.6)
+
+
+def s_slam(rng):
+    """Both fists into the ground: a sub boom, cracking stone, rubble raining down."""
+    x = np.zeros(N(1.4))
+    place(x, thump(rng, 62, 30, 0.7, 1.0) * 1.2, 0.0)
+    place(x, thump(rng, 80, 38, 0.45, 0.8) * 0.8, 0.025)
+    for i in range(3):
+        place(x, crack(rng, rng.uniform(1.5, 2.5)) * 0.7, 0.01 + 0.012 * i)
+    rub = grains(N(1.2), rng, 90, 0.008, 400, 5000, 0.004, accel=lambda u: max(0.05, 1 - u))
+    place(x, rub * 0.5, 0.05)
+    return finish(reverb(sat(x, 1.8), 0.3, 2.4, 0.45), -0.3, drive=1.4)
+
+
+def s_pounce(rng):
+    """The leap: a snarl that tears upward and a rush of air."""
+    dur = 0.75
+    sn = voice(dur, [(0, 140), (0.4, 320), (1, 260)], [(0, "a"), (0.5, "ae"), (1, "a")], rng, tract=0.9, tilt=0.95, rough=1.5,
+               breath=0.4, jitter=0.03, amp_pts=[(0, 0), (0.1, 1), (0.7, 0.8), (1, 0)])
+    x = np.zeros(N(1.0))
+    place(x, sat(sn, 2.4), 0.0)
+    place(x, whoosh(rng, 0.55, 220, 2400) * 1.2, 0.12)
+    return finish(reverb(x, 0.2, 1.6, 0.5), -0.5, drive=1.5)
+
+
+def s_shriek(rng):
+    """The scream right on top of you: higher, harsher, almost no room on it."""
+    dur = rng.uniform(1.4, 1.7)
+    v = [(0, "a"), (0.3, "ae"), (0.8, "i"), (1, "ae")]
+    x = scream_core(rng, dur, rng.uniform(300, 340), rng.uniform(720, 820), rng.uniform(520, 600), v, 1.2, 1.4)
+    return finish(sat(x, 1.6), -0.2, drive=1.3)
+
+
+def s_scream_pain(rng):
+    """Wounded: a scream that breaks into sobbing gasps as it runs."""
+    dur = rng.uniform(2.0, 2.4)
+    x = scream_core(rng, dur, 420, rng.uniform(640, 700), 220, [(0, "a"), (0.4, "i"), (0.7, "er"), (1, "u")], 1.1, 1.5)
+    n = len(x)
+    gate = np.ones(n)
+    for k in range(rng.integers(3, 6)):
+        c = rng.uniform(0.45, 0.95)
+        w = rng.uniform(0.02, 0.05)
+        gate *= 1 - 0.85 * np.exp(-((np.linspace(0, 1, n) - c) / w) ** 2)
+    return finish(x * gate, -0.5, drive=1.3)
+
+
+def s_climb(rng):
+    """Claws hauling it up stone: scrabbling bursts, grit falling."""
+    x = np.zeros(N(1.3))
+    t = 0.02
+    while t < 1.15:
+        burst = grains(N(0.12), rng, 260, 0.004, 1800, 9000, 0.0015)
+        place(x, burst * rng.uniform(0.6, 1.0), t)
+        place(x, thump(rng, 120, 70, 0.1, 0.6) * 0.35, t)
+        t += rng.uniform(0.17, 0.26)
+    grit = grains(N(1.2), rng, 40, 0.006, 900, 6000, 0.003) * 0.35
+    place(x, grit, 0.1)
+    return finish(reverb(x, 0.2, 1.2, 0.6), -1, drive=1.8)
+
+
+def s_scrape(rng):
+    """One long claw dragged through rock."""
+    dur = rng.uniform(0.7, 1.0)
+    n = N(dur)
+    nz = colored(n, rng, 0.1)
+    c = curve(n, [(0, 1600), (0.5, 2600), (1, 1900)], True)
+    y = stft_filter(nz, lambda tt, f: 1 / (1 + ((f - np.interp(tt, np.linspace(0, dur, n), c)) / 400) ** 2))
+    stick = 0.55 + 0.45 * np.abs(np.sin(2 * np.pi * 23 * tax(n) + wobble(n, rng, 6) * 3))
+    x = y * stick * curve(n, [(0, 0), (0.1, 1), (0.85, 0.8), (1, 0)])
+    x += grains(n, rng, 70, 0.003, 2500, 9000, 0.0015) * 0.4
+    return finish(reverb(x, 0.25, 1.4, 0.6), -1, drive=1.6)
+
+
+def s_thud(rng):
+    """It lands: a heavy body hitting the floor, then grit."""
+    x = np.zeros(N(0.9))
+    place(x, thump(rng, 70, 34, 0.5, 0.9) * 1.1, 0.0)
+    place(x, thump(rng, 95, 50, 0.25, 0.5) * 0.6, 0.04)
+    place(x, grains(N(0.6), rng, 60, 0.006, 500, 5000, 0.003) * 0.4, 0.03)
+    return finish(reverb(sat(x, 1.6), 0.2, 1.6, 0.5), -0.5, drive=1.3)
+
+
+def s_door_bang(rng):
+    """A fist on a wooden door: a boom, the planks ringing, the frame rattling."""
+    n = N(0.7)
+    x = thump(rng, rng.uniform(100, 125), 60, 0.4, 1.0)
+    x = np.pad(x, (0, max(0, n - len(x))))[:n]
+    for f, d in ((rng.uniform(170, 200), 0.09), (rng.uniform(320, 380), 0.06), (rng.uniform(580, 680), 0.04)):
+        x += resonator(n, f, d, phase=rng.uniform(0, 6)) * 0.45
+    x += grains(n, rng, 80, 0.004, 1200, 6000, 0.002) * curve(n, [(0, 1), (0.3, 0.3), (1, 0)]) * 0.25
+    return finish(reverb(sat(x, 1.7), 0.25, 1.4, 0.55), -0.3, drive=1.4)
+
+
 def loop_crossfade(x, length, xf):
     """Makes x[:length] loop seamlessly by crossfading its head with the material after `length`."""
     L, X = N(length), N(xf)
@@ -824,41 +948,83 @@ def m_chase(rng):
 # =========================================================================== registry & output
 # name: (fn, variants, category, min_distance, max_distance, subtitle)
 DESIGNS = {
-    "breath": (s_breath, 3, "hostile", 4, 32, "Slow, wet breathing"),
-    "breath_behind": (s_breath_behind, 2, "hostile", 1, 8, "Breathing right behind you"),
-    "tail_scrape": (s_tail_scrape, 2, "hostile", 2, 28, "Something drags across stone"),
-    "knock": (s_knock, 2, "hostile", 3, 28, "Three knocks"),
-    "skitter": (s_skitter, 3, "hostile", 3, 28, "Fast scrabbling limbs"),
-    "creak": (s_creak, 3, "hostile", 3, 26, "Bones creak"),
-    "neck_crack": (s_neck_crack, 2, "hostile", 3, 28, "A neck cracks"),
-    "jaw": (s_jaw, 2, "hostile", 3, 28, "A jaw unhinges"),
-    "click": (s_click, 3, "hostile", 3, 32, "Throat clicking"),
-    "inhale": (s_inhale, 2, "hostile", 4, 40, "A long inhale"),
-    "scream": (s_scream, 2, "hostile", 8, 96, "THE WAIL"),
-    "scream_far": (s_scream_far, 1, "hostile", 16, 128, "A scream, far away"),
-    "screech": (s_screech, 4, "hostile", 6, 56, "Screeching"),
-    "step_soft": (s_step_soft, 3, "hostile", 2, 18, "Soft footsteps"),
-    "step_heavy": (s_step_heavy, 4, "hostile", 4, 40, "Hands pound the ground"),
-    "grab": (s_grab, 2, "hostile", 3, 32, "It has you"),
-    "hold": (s_hold, 2, "hostile", 2, 24, "A wet growl, inches away"),
-    "throw": (s_throw, 2, "hostile", 2, 24, "Thrown"),
-    "bite": (s_bite, 2, "hostile", 2, 24, "Teeth"),
-    "swipe": (s_swipe, 2, "hostile", 2, 24, "Something swings"),
-    "impact": (s_impact, 2, "hostile", 2, 24, "A crushing blow"),
-    "pain": (s_pain, 2, "hostile", 4, 40, "A shriek of pain"),
-    "sniff": (s_sniff, 3, "hostile", 2, 22, "Sniffing"),
-    "frustrated": (s_frustrated, 2, "hostile", 6, 64, "An enraged howl"),
-    "retreat": (s_retreat, 2, "hostile", 4, 40, "Something withdraws"),
-    "hurt": (s_hurt, 3, "hostile", 3, 32, "It hurts"),
-    "death": (s_death, 1, "hostile", 6, 64, "It collapses"),
+    # name: (function, variants, category, min_distance, max_distance, subtitle)
+    "breath": (s_breath, 3, "hostile", 8, 40, "Slow, wet breathing"),
+    "breath_behind": (s_breath_behind, 2, "hostile", 2, 10, "Breathing right behind you"),
+    "tail_scrape": (s_tail_scrape, 2, "hostile", 6, 34, "Something drags across stone"),
+    "knock": (s_knock, 2, "hostile", 8, 36, "Three knocks"),
+    "skitter": (s_skitter, 3, "hostile", 8, 40, "Fast scrabbling limbs"),
+    "creak": (s_creak, 3, "hostile", 8, 34, "Bones creak"),
+    "neck_crack": (s_neck_crack, 2, "hostile", 8, 34, "A neck cracks"),
+    "jaw": (s_jaw, 2, "hostile", 8, 34, "A jaw unhinges"),
+    "click": (s_click, 3, "hostile", 8, 40, "Throat clicking"),
+    "inhale": (s_inhale, 2, "hostile", 10, 48, "A long inhale"),
+    "scream": (s_scream, 2, "hostile", 28, 128, "THE WAIL"),
+    "scream_far": (s_scream_far, 1, "hostile", 48, 160, "A scream, far away"),
+    "screech": (s_screech, 4, "hostile", 16, 72, "Screeching"),
+    "step_soft": (s_step_soft, 3, "hostile", 5, 24, "Soft footsteps"),
+    "step_heavy": (s_step_heavy, 4, "hostile", 12, 56, "Hands pound the ground"),
+    "grab": (s_grab, 2, "hostile", 8, 40, "It has you"),
+    "hold": (s_hold, 2, "hostile", 6, 28, "A wet growl, inches away"),
+    "throw": (s_throw, 2, "hostile", 6, 28, "Thrown"),
+    "bite": (s_bite, 2, "hostile", 6, 28, "Teeth"),
+    "swipe": (s_swipe, 2, "hostile", 8, 32, "Claws rake the air"),
+    "impact": (s_impact, 2, "hostile", 8, 32, "A crushing blow"),
+    "pain": (s_pain, 2, "hostile", 10, 48, "A shriek of pain"),
+    "sniff": (s_sniff, 3, "hostile", 6, 28, "Sniffing"),
+    "frustrated": (s_frustrated, 2, "hostile", 16, 72, "An enraged howl"),
+    "retreat": (s_retreat, 2, "hostile", 8, 44, "Something withdraws"),
+    "hurt": (s_hurt, 3, "hostile", 8, 36, "It hurts"),
+    "death": (s_death, 1, "hostile", 16, 72, "It collapses"),
     "whisper": (s_whisper, 3, "hostile", 1, 6, "Whispering"),
     "stinger": (s_stinger, 2, "hostile", 2, 16, None),
     "heartbeat": (s_heartbeat, 1, "hostile", 1, 4, None),
+    # v3
+    "roar": (s_roar, 3, "hostile", 20, 96, "A roar"),
+    "growl": (s_growl, 3, "hostile", 10, 44, "A low growl"),
+    "grunt": (s_grunt, 2, "hostile", 8, 36, None),
+    "slam": (s_slam, 2, "hostile", 18, 64, "The ground shakes"),
+    "pounce": (s_pounce, 2, "hostile", 12, 48, "It leaps"),
+    "shriek": (s_shriek, 2, "hostile", 24, 80, "A shriek, right on top of you"),
+    "scream_pain": (s_scream_pain, 2, "hostile", 20, 80, "It screams and runs"),
+    "climb": (s_climb, 2, "hostile", 10, 40, "Claws on stone, climbing"),
+    "scrape": (s_scrape, 3, "hostile", 4, 24, "Claws scraping in the stone"),
+    "thud": (s_thud, 2, "hostile", 12, 48, "Something heavy lands"),
+    "door_bang": (s_door_bang, 3, "hostile", 14, 60, "Something hammers the door"),
 }
 MUSIC = {
     "music.standoff": m_standoff,
     "music.chase": m_chase,
 }
+
+
+# Loudness targets (dBFS RMS of the loudest 400 ms) applied after each design: v3 feedback was
+# that the creature was hard to hear, so every cue is brought up to a level that reads in game.
+LOUD = {
+    "scream": -6, "shriek": -5, "roar": -6, "slam": -6, "scream_pain": -6, "door_bang": -6, "scream_far": -10,
+    "screech": -8, "growl": -8, "swipe": -8, "impact": -8, "pounce": -8, "thud": -8, "grab": -8, "bite": -8, "throw": -9,
+    "step_heavy": -8, "hurt": -9, "pain": -8, "frustrated": -8, "death": -8, "hold": -8, "grunt": -8, "stinger": -8,
+    "click": -11, "skitter": -10, "creak": -11, "neck_crack": -11, "jaw": -11, "inhale": -11, "breath": -11, "sniff": -11,
+    "knock": -9, "tail_scrape": -11, "scrape": -9, "climb": -9, "retreat": -12, "step_soft": -12,
+    "breath_behind": -11, "whisper": -13,
+}
+
+
+def loudness(x, target_db, ceiling_db=-0.3):
+    """Gain to a loudest-400 ms RMS target, then a soft limiter so peaks stay under the ceiling."""
+    win = N(0.4)
+    if len(x) > win:
+        lw = 10 * np.log10(np.max(np.convolve(x * x, np.ones(win) / win, "valid")) + 1e-12)
+    else:
+        lw = 10 * np.log10(np.mean(x * x) + 1e-12)
+    y = x * 10 ** ((target_db - lw) / 20)
+    ceil = 10 ** (ceiling_db / 20)
+    over = np.abs(y) > ceil * 0.7
+    if np.any(over):  # tanh knee above 70 % of the ceiling
+        k = ceil * 0.7
+        a = np.abs(y[over]) - k
+        y[over] = np.sign(y[over]) * (k + (ceil - k) * np.tanh(a / (ceil - k)))
+    return y
 
 
 def write_wav(path, x):
@@ -903,6 +1069,8 @@ def main():
                 if not only or name in only:
                     rng = np.random.default_rng(7000 + 97 * i + v)
                     x = fn(rng)
+                    if name in LOUD:
+                        x = loudness(x, LOUD[name])
                     wav = encode(x, ogg, tmp)
                     if keep:
                         os.replace(wav, os.path.join(keep, fname + ".wav"))

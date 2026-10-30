@@ -11,7 +11,7 @@ export const SNUFFED_TORCH_ID = "tailwail:snuffed_torch";
 export const GUIDE_ITEM_ID = "tailwail:field_guide";
 
 export const TICKS = {
-  decision: 4, // brain update period (5 Hz)
+  decision: 2, // brain update period (10 Hz: hits land on the clip's impact frame)
   director: 20, // scheduler / presence housekeeping period
   presence: 4, // footstep echo / mimicry follow-up period
   sweep: 200, // orphan sweep period
@@ -339,7 +339,7 @@ export const MEMORY = {
 
 // Presence: what happens BETWEEN encounters.  Intervals (s) per stage, scaled by settings.
 export const PRESENCE = {
-  interval: [[100, 170], [70, 130], [50, 100], [40, 80]],
+  interval: [[70, 120], [50, 95], [35, 75], [28, 60]],
   minGapAfterEncounter: 45,
   footstepFollow: [8, 14], // seconds a footstep echo lasts
   footstepBehind: [9, 15], // blocks behind the player

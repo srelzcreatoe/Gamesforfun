@@ -7,19 +7,19 @@ import { BlockPermutation, BlockVolume, EntityDamageCause, GameMode, system, wor
 import { director } from "./main.js";
 import { creatureSees, playerView, takeRayCount } from "./mc/perception.js";
 import { spawnSearch } from "./mc/spots.js";
-import { onJumpPressed } from "./mc/grab.js";
+import { onStrugglePressed } from "./mc/grab.js";
 import { findTorches, relight } from "./mc/torches.js";
 import { echoCount } from "./mc/echo.js";
 import { makeRng } from "./util/rng.js";
 import { setDebug } from "./mc/log.js";
-import { POSE } from "./core/ids.js";
+import { ACT, RP_CHECK_KEY, SHOT } from "./core/ids.js";
 import { emptySchedule } from "./core/scheduler.js";
 
 const log = (...a) => console.warn("[TWDEV] " + a.join(" "));
 const ov = () => world.getDimension("overworld");
 const r1 = (v) => Math.round(v * 10) / 10;
 const fmt = (p) => `${r1(p.x)},${r1(p.y)},${r1(p.z)}`;
-const POSE_NAME = Object.fromEntries(Object.entries(POSE).map(([k, v]) => [v, k]));
+const ACT_NAME = Object.fromEntries(Object.entries(ACT).map(([k, v]) => [v, k]));
 const Y = -60;
 
 function fill(a, b, block) {
@@ -113,11 +113,11 @@ class MockPlayer {
   locked() { return [...this.locks.values()].some((on) => on === false); }
 }
 
-function spawnTW(mock, at, setup = "statue_hunt", posture = "tall") {
-  return director.spawnAt(mock, { ...at, posture, facing: 90 }, setup, director.freeSlot(), true);
+function spawnTW(mock, at, setup = "stalker", posture = "tall", stage = 2) {
+  return director.spawnAt(mock, { ...at, posture, facing: 90 }, setup, director.freeSlot(), true, false, stage);
 }
 
-const poseOf = (tw) => POSE_NAME[tw.getProperty("tailwail:pose")];
+const actOf = (tw) => ACT_NAME[tw.getProperty("tailwail:act")];
 
 function timeline(enc, mock, ticks, every, label, extra) {
   const t0 = system.currentTick;
@@ -130,8 +130,8 @@ function timeline(enc, mock, ticks, every, label, extra) {
         system.clearRun(h);
         return res();
       }
-      log(label, "t", t, "state", enc.brain.state, "agit", r1(enc.brain.agit.value), "pos", fmt(tw.location), "posture", enc.mover.posture,
-        "pose", poseOf(tw), "tail", tw.getProperty("tailwail:tail"), "jaw", tw.getProperty("tailwail:jaw"), "dmg", mock.damage.length, extra ? extra() : "");
+      log(label, "t", t, "state", enc.brain.state, "pos", fmt(tw.location), "posture", enc.mover.posture,
+        "act", actOf(tw), "tail", tw.getProperty("tailwail:tail"), "jaw", tw.getProperty("tailwail:jaw"), "dmg", mock.damage.length, extra ? extra() : "");
       if (t >= ticks) { system.clearRun(h); res(); }
     }, every);
   });
@@ -168,32 +168,59 @@ const SCENARIOS = {
         log("command", JSON.stringify(cmd), "threw", String(e).slice(0, 160));
       }
     }
+    log("boot", "rp check key", RP_CHECK_KEY, "one-shots", Object.keys(SHOT).length);
+    // the v3 calls a real creature relies on: one-shot playback, float on/off, act property
+    clearArena();
+    // a brainless dummy (the same path /tailwail:debug anim uses), so nothing else moves it
+    const tw = director.spawnShowcaseDummy({ dimension: ov(), location: { x: 4.5, y: Y, z: 10.5 } }, { x: 10.5, y: Y, z: 10.5 });
+    await wait(5);
+    for (const name of ["scream", "swipe_r", "flinch"]) {
+      try {
+        tw.playAnimation(SHOT[name].anim, { controller: SHOT[name].partial ? "tailwail_partial" : "tailwail_shot", blendOutTime: 0.15 });
+        log("playAnimation", name, "ok");
+      } catch (e) {
+        log("playAnimation", name, "threw", String(e).slice(0, 160));
+      }
+    }
+    try {
+      tw.triggerEvent("tailwail:float_on");
+      const y0 = tw.location.y;
+      tw.teleport({ x: 10.5, y: Y + 4, z: 10.5 });
+      await wait(20);
+      log("float_on: held at", r1(tw.location.y - Y), "blocks (was", r1(y0 - Y), ")");
+      tw.triggerEvent("tailwail:float_off");
+      await wait(30);
+      log("float_off: fell to", r1(tw.location.y - Y), "blocks");
+      tw.setProperty("tailwail:act", ACT.cling);
+      log("act property set to cling ->", actOf(tw));
+    } catch (e) {
+      log("float/act threw", String(e).slice(0, 160));
+    }
+    if (tw.isValid) tw.remove();
   },
 
-  async statue() {
+  async standoff() {
     clearArena(true);
     const mock = new MockPlayer({ x: 5.5, y: Y, z: 10.5 });
-    const enc = spawnTW(mock, { x: 21.5, y: Y, z: 10.5 });
+    const enc = spawnTW(mock, { x: 19.5, y: Y, z: 10.5 });
     await wait(5);
     enc.brain.enter("standoff", "test");
-    mock.lookAt({ x: 21.5, y: Y + 3, z: 10.5 });
+    mock.lookAt({ x: 19.5, y: Y + 3, z: 10.5 });
     const p0 = enc.tw.location;
-    await timeline(enc, mock, 60, 20, "statue-watched", () => "inView " + playerView(mock, enc.tw, enc.mover.posture).inView);
+    await timeline(enc, mock, 60, 10, "standoff-watched");
     const moved = Math.hypot(enc.tw.location.x - p0.x, enc.tw.location.z - p0.z);
-    log("statue moved while watched", r1(moved), "music", mock.music, "fog", mock.fog.join(","));
-    for (let k = 0; k < 3; k++) {
-      mock.yaw += 180; // look away
-      const before = enc.tw.location;
-      await wait(26);
-      mock.yaw -= 180; // look back
-      await wait(6);
-      const after = enc.tw.location;
-      log("statue look-away", k, "advanced", r1(Math.hypot(after.x - before.x, after.z - before.z)), "now pose", poseOf(enc.tw), "dist",
-        r1(Math.hypot(after.x - mock.location.x, after.z - mock.location.z)), "state", enc.brain.state);
-    }
-    await timeline(enc, mock, 40, 20, "statue-after");
+    log("standoff: advanced", r1(moved), "blocks in 3 s while WATCHED; music", mock.music, "fog", mock.fog.join(","));
+    mock.yaw += 180; // turn your back
+    const t0 = system.currentTick;
+    await new Promise((res) => {
+      const h = system.runInterval(() => {
+        if (enc.ended || enc.brain.state !== "standoff" || system.currentTick - t0 > 80) { system.clearRun(h); res(); }
+      }, 1);
+    });
+    log("standoff: turned away -> state", enc.brain.state, "after", system.currentTick - t0, "ticks");
+    await timeline(enc, mock, 60, 10, "standoff-engage");
     enc.end("aborted", true);
-    log("statue cleanup", cleanState(mock));
+    log("standoff cleanup", cleanState(mock));
     mock.remove();
   },
 
@@ -203,10 +230,9 @@ const SCENARIOS = {
     for (const [x, z] of [[18, 8], [19, 13], [16, 11]]) ov().getBlock({ x, y: Y, z }).setPermutation(BlockPermutation.resolve("minecraft:torch", { torch_facing_direction: "top" }));
     const enc = spawnTW(mock, { x: 18.5, y: Y, z: 10.5 });
     await wait(5);
-    enc.brain.enter("standoff", "test");
-    enc.brain.agit.value = 99.8;
+    enc.brain.enter("engage", "test");
     mock.lookAt({ x: 18.5, y: Y + 3, z: 10.5 });
-    await timeline(enc, mock, 110, 10, "commit");
+    await timeline(enc, mock, 60, 10, "commit");
     const snuffed = [[18, 8], [19, 13], [16, 11]].map(([x, z]) => ov().getBlock({ x, y: Y, z }).typeId);
     log("commit torches after scream", snuffed.join(","));
     const b = ov().getBlock({ x: 18, y: Y, z: 8 });
@@ -217,39 +243,178 @@ const SCENARIOS = {
     mock.remove();
   },
 
+  async hunt() {
+    clearArena();
+    const mock = new MockPlayer({ x: 50.5, y: Y, z: 10.5 });
+    mock.hp = 1000; // a stand-in that does not die, to see what it does after it hurts you
+    const enc = spawnTW(mock, { x: 4.5, y: Y, z: 10.5 }, "the_hunter", "hunch");
+    await wait(2);
+    let t0 = -1;
+    let x0 = 0;
+    const speeds = [];
+    await new Promise((res) => {
+      const h = system.runInterval(() => {
+        const st = enc.brain.state;
+        if (st === "hunt" && t0 < 0) {
+          t0 = system.currentTick;
+          x0 = enc.tw.location.x;
+        }
+        if (t0 >= 0 && st === "hunt") speeds.push([system.currentTick - t0, enc.tw.location.x - x0]);
+        if (enc.ended || mock.damage.length >= 3 || system.currentTick - (t0 < 0 ? system.currentTick : t0) > 400) { system.clearRun(h); res(); }
+      }, 2);
+    });
+    const run = speeds.filter(([t]) => t >= 20 && t <= 80);
+    if (run.length > 2) {
+      const [ta, xa] = run[0];
+      const [tb, xb] = run[run.length - 1];
+      log("hunt: ground speed", r1(((xb - xa) / (tb - ta)) * 20), "blocks/s (sprinting player: 5.6)");
+    }
+    log("hunt: damage events", JSON.stringify(mock.damage), "states seen", enc.brain.history.slice(-12).join(" / "));
+    await timeline(enc, mock, 160, 20, "hunt-after-hits");
+    log("hunt: still hunting after hits?", !enc.ended && ["hunt", "attack", "savor", "grab", "engage", "stunned"].includes(enc.brain.state), "outcome", enc.brain.outcome);
+    if (!enc.ended) enc.end("aborted", true);
+    log("hunt cleanup", cleanState(mock));
+    mock.remove();
+  },
+
   async grab() {
     clearArena();
     const mock = new MockPlayer({ x: 10.5, y: Y, z: 10.5 });
-    const enc = spawnTW(mock, { x: 13.0, y: Y, z: 10.5 });
-    await wait(5);
+    const enc = spawnTW(mock, { x: 12.8, y: Y, z: 10.5 }, "the_hunter");
+    await wait(45); // past the scream
     enc.tw.setRotation({ x: 0, y: 90 });
-    enc.brain.enter("chase", "test");
     mock.lookAt(enc.tw.location);
-    await timeline(enc, mock, 30, 5, "grab", () => `locked ${mock.locked()} tp ${mock.teleports} at ${fmt(mock.location)}`);
-    log("grab mash: pressing jump 8 times");
-    for (let i = 0; i < 8; i++) onJumpPressed(mock);
-    await timeline(enc, mock, 50, 5, "grab-free", () => `locked ${mock.locked()} tp ${mock.teleports}`);
-    log("grab free result", "damage", JSON.stringify(mock.damage), "calls", mock.calls.filter((c) => /input|knockback|effect|title/.test(c)).join(" | "));
-    // second catch, no struggle: thrown
-    mock.moveTo({ x: enc.tw.location.x - 2.2, y: Y, z: enc.tw.location.z });
-    enc.brain.grabCdUntil = 0;
-    enc.brain.chaseResumed = true;
-    enc.brain.enter("chase", "test2");
-    await timeline(enc, mock, 90, 10, "grab-throw", () => `locked ${mock.locked()} hp ${mock.hp}`);
-    log("grab throw result", "damage", JSON.stringify(mock.damage), "locked after", mock.locked());
+    enc.brain.grabs = 0;
+    enc.brain.enter("grab", "test");
+    if (!enc.grab) {
+      log("grab refused", enc.brain.state);
+    } else {
+      const spec = enc.grab.spec;
+      log("grab 1 spec", JSON.stringify(spec));
+      await wait(14); // lunge
+      log("grab 1 holding", enc.grab && enc.grab.holding, "locked", mock.locked(), "tp", mock.teleports);
+      // answer whatever it asks
+      const kind = () => enc.grab ? enc.grab.kind : "jump";
+      for (let i = 0; i < 30 && enc.grab && !enc.grab.success && enc.brain.state === "grab"; i++) {
+        const k = kind();
+        if (k === "still") break;
+        onStrugglePressed(mock, k === "alternate" ? (i % 2 ? "sneak" : "jump") : k);
+        await wait(2);
+      }
+      await timeline(enc, mock, 60, 10, "grab-1-after", () => `locked ${mock.locked()}`);
+      log("grab 1 result", "damage", JSON.stringify(mock.damage), "calls", mock.calls.filter((c) => /input|knockback|effect|title/.test(c)).slice(-8).join(" | "));
+    }
+    // second grab: do nothing at all -> a finisher, then it must keep hunting
+    mock.moveTo({ x: enc.tw.location.x - 2.3, y: Y, z: enc.tw.location.z });
+    enc.tw.setRotation({ x: 0, y: 90 });
+    enc.brain.cd.grab = 0;
+    enc.brain.enter("grab", "test2");
+    if (enc.grab) log("grab 2 spec", JSON.stringify(enc.grab.spec));
+    await timeline(enc, mock, 140, 10, "grab-2", () => `locked ${mock.locked()} hp ${mock.hp}`);
+    log("grab 2 result", "damage", JSON.stringify(mock.damage), "locked after", mock.locked(), "state now", enc.brain.state,
+      "still hunting", ["hunt", "attack", "savor", "grab", "engage", "stunned", "search"].includes(enc.brain.state));
     if (!enc.ended) enc.end("aborted", true);
     log("grab cleanup", cleanState(mock));
+    mock.remove();
+  },
+
+  async ceiling() {
+    clearArena();
+    fill({ x: -5, y: Y + 7, z: -5 }, { x: 75, y: Y + 7, z: 35 }, "minecraft:stone");
+    await wait(40); // let the light under the new ceiling settle (the ambush wants a dark ceiling)
+    const mock = new MockPlayer({ x: 40.5, y: Y, z: 15.5 });
+    mock.yaw = -90; // looking toward +x
+    const enc = spawnTW(mock, { x: 60.5, y: Y, z: 15.5 }, "ceiling", "crawl");
+    await wait(10);
+    log("ceiling: state", enc.brain.state, "act", actOf(enc.tw), "at", fmt(enc.tw.location), "floating", enc.floating);
+    await wait(40);
+    log("ceiling: after 2 s still at", fmt(enc.tw.location));
+    const at = enc.tw.location;
+    mock.yaw = 90; // look away and walk under it
+    await walk(mock, [{ x: at.x, y: Y, z: at.z - 0.5 }], 4.0);
+    await timeline(enc, mock, 80, 10, "ceiling-drop", () => "y " + r1(enc.tw.location.y - Y) + " floating " + enc.floating);
+    if (!enc.ended) enc.end("aborted", true);
+    log("ceiling cleanup", cleanState(mock));
+    mock.remove();
+  },
+
+  async climb() {
+    clearArena();
+    fill({ x: 20, y: Y, z: 9 }, { x: 21, y: Y + 4, z: 12 }, "minecraft:stone"); // a 5-high pillar block
+    const mock = new MockPlayer({ x: 20.5, y: Y + 5, z: 10.5 });
+    const enc = spawnTW(mock, { x: 8.5, y: Y, z: 10.5 }, "the_hunter", "hunch");
+    await wait(5);
+    await timeline(enc, mock, 260, 10, "climb", () => "y " + r1(enc.tw.location.y - Y) + " x " + r1(enc.tw.location.x));
+    log("climb: reached height", enc.tw.isValid ? r1(enc.tw.location.y - Y) : "-", "flags", [...enc.brain.flags].join(","), "damage", mock.damage.length);
+    if (!enc.ended) enc.end("aborted", true);
+    mock.remove();
+  },
+
+  async door() {
+    clearArena();
+    // a sealed room with one wooden door between it and you
+    fill({ x: 24, y: Y, z: 4 }, { x: 24, y: Y + 4, z: 16 }, "minecraft:stone");
+    fill({ x: 24, y: Y, z: 4 }, { x: 34, y: Y + 4, z: 4 }, "minecraft:stone");
+    fill({ x: 24, y: Y, z: 16 }, { x: 34, y: Y + 4, z: 16 }, "minecraft:stone");
+    fill({ x: 34, y: Y, z: 4 }, { x: 34, y: Y + 4, z: 16 }, "minecraft:stone");
+    fill({ x: 24, y: Y + 4, z: 4 }, { x: 34, y: Y + 4, z: 16 }, "minecraft:stone");
+    fill({ x: 24, y: Y, z: 10 }, { x: 24, y: Y + 1, z: 10 }, "minecraft:air");
+    try {
+      ov().runCommand(`setblock 24 ${Y} 10 wooden_door ["direction"=0]`);
+    } catch (e) {
+      log("door setblock", String(e).slice(0, 120));
+    }
+    const mock = new MockPlayer({ x: 28.5, y: Y, z: 10.5 });
+    const enc = spawnTW(mock, { x: 12.5, y: Y, z: 10.5 }, "the_hunter", "hunch");
+    enc.tw.triggerEvent("tailwail:doors_off");
+    await wait(5);
+    await timeline(enc, mock, 300, 10, "door", () => "door " + ov().getBlock({ x: 24, y: Y, z: 10 }).typeId);
+    log("door: block now", ov().getBlock({ x: 24, y: Y, z: 10 }).typeId, "flags", [...enc.brain.flags].join(","));
+    if (!enc.ended) enc.end("aborted", true);
+    mock.remove();
+  },
+
+  async surface() {
+    clearArena();
+    world.setTimeOfDay(6000);
+    await wait(10);
+    const probe = { x: 30, y: Y, z: 10 };
+    log("surface light at noon: total", ov().getLightLevel(probe), "sky", ov().getSkyLightLevel(probe));
+    world.setTimeOfDay(18000);
+    await wait(10);
+    log("surface light at midnight: total", ov().getLightLevel(probe), "sky", ov().getSkyLightLevel(probe));
+    {
+      // the real spawn search for a surface opening, at night, in the open
+      const m0 = new MockPlayer({ x: 5.5, y: Y, z: 10.5 });
+      m0.yaw = -90;
+      const out = {};
+      await new Promise((res) => system.runJob((function* () {
+        yield* spawnSearch({ dim: ov(), player: m0, players: [m0], rng: makeRng(3), band: [26, 44], minHead: 5, out, behindOnly: false });
+        log("surface spawn search at night:", JSON.stringify(out.result), "reason", out.reason);
+        res();
+      })()));
+      m0.remove();
+    }
+    const mock = new MockPlayer({ x: 5.5, y: Y, z: 10.5 });
+    mock.yaw = -90;
+    const enc = spawnTW(mock, { x: 40.5, y: Y, z: 10.5 }, "treeline", "tall", 0);
+    await wait(5);
+    mock.lookAt({ x: 40.5, y: Y + 3, z: 10.5 });
+    await timeline(enc, mock, 500, 20, "surface", () => "d " + r1(Math.hypot(mock.location.x - enc.tw.location.x, mock.location.z - enc.tw.location.z)));
+    log("surface: reached state", enc.brain.state, "history", enc.brain.history.slice(-8).join(" / "));
+    if (!enc.ended) enc.end("aborted", true);
+    world.setTimeOfDay(6000);
     mock.remove();
   },
 
   async hide() {
     clearArena(true);
     const mock = new MockPlayer({ x: 30.5, y: Y, z: 10.5 });
+    mock.isSneaking = true; // already hidden when it arrives: it never saw where you are
+    mock.yaw = -90;
     const enc = spawnTW(mock, { x: 8.5, y: Y, z: 10.5 });
     await wait(5);
     enc.brain.enter("search", "test");
-    mock.isSneaking = true;
-    mock.yaw = -90;
     log("hide light at mock", ov().getLightLevel({ x: 30, y: Y + 1, z: 10 }));
     await timeline(enc, mock, 340, 20, "hide", () => "d " + r1(Math.hypot(mock.location.x - enc.tw.location.x, mock.location.z - enc.tw.location.z)));
     log("hide outcome", enc.brain.outcome, "state", enc.brain.state, "damage", mock.damage.length, "flags", [...enc.brain.flags].join(","));
@@ -261,11 +426,13 @@ const SCENARIOS = {
     clearArena();
     fill({ x: 30, y: Y, z: -5 }, { x: 31, y: Y + 9, z: 35 }, "minecraft:stone");
     fill({ x: 30, y: Y, z: 20 }, { x: 31, y: Y, z: 20 }, "minecraft:air");
-    const mock = new MockPlayer({ x: 14.5, y: Y, z: 20.5 });
+    // a head start: it is faster than a sprinting player, so you must already be near the gap
+    const mock = new MockPlayer({ x: 24.5, y: Y, z: 20.5 });
     const enc = spawnTW(mock, { x: 4.5, y: Y, z: 10.5 });
     await wait(5);
-    enc.brain.enter("chase", "test");
-    const run = walk(mock, [{ x: 29.5, y: Y, z: 20.5 }, { x: 32.5, y: Y, z: 20.5 }, { x: 45.5, y: Y, z: 20.5 }, { x: 60.5, y: Y, z: 28.5 }], 5.6);
+    enc.brain.enter("hunt", "test");
+    const run = walk(mock, [{ x: 29.5, y: Y, z: 20.5 }, { x: 32.5, y: Y, z: 20.5 }, { x: 45.5, y: Y, z: 20.5 }, { x: 60.5, y: Y, z: 28.5 }], 5.6)
+      .then(() => { mock.isSneaking = true; }); // then hide in the dark beyond the wall
     mock.yaw = -90;
     await Promise.all([run, timeline(enc, mock, 700, 20, "escape", () => "mock " + fmt(mock.location))]);
     log("escape outcome", enc.brain.outcome, "ended", enc.ended, "damage", JSON.stringify(mock.damage), cleanState(mock));
@@ -281,8 +448,8 @@ const SCENARIOS = {
     mock.yaw = 90;
     const enc = spawnTW(mock, { x: 6.5, y: Y, z: 10.5 });
     await wait(5);
-    enc.brain.enter("chase", "test");
-    enc.brain.c.lastSeen = { x: 40.5, y: Y, z: 10.5 };
+    enc.brain.enter("hunt", "test");
+    enc.brain.lastSeen = { x: 40.5, y: Y, z: 10.5 };
     await timeline(enc, mock, 360, 20, "tunnel", () => "x " + r1(enc.tw.location.x));
     log("tunnel reached x", enc.tw.isValid ? r1(enc.tw.location.x) : "(despawned)", "damage", mock.damage.length, "outcome", enc.brain.outcome);
     if (!enc.ended) enc.end("aborted", true);
@@ -306,8 +473,14 @@ const SCENARIOS = {
     mock.props.set("tailwail:sched2", JSON.stringify(s));
     const env = director.presence.env(mock);
     log("presence env", JSON.stringify({ torch: env.torch, torches: env.torches, door: env.door }), "torches", env._torches.length, "behind", env._behind.length);
-    for (const id of ["knock", "breath", "whisper", "fake_chat", "snuff", "door", "glimpse", "peek", "mimic", "footsteps", "behind", "lights_out"]) {
+    // a window pane ahead along the arena's long axis (the face-at-the-window test)
+    fill({ x: 30, y: Y, z: 9 }, { x: 30, y: Y + 2, z: 12 }, "minecraft:glass_pane");
+    const LONG = new Set(["glimpse", "peek", "runner", "window"]); // need room in front: face +x down the arena
+    for (const id of ["knock", "breath", "whisper", "fake_chat", "snuff", "door", "glimpse", "peek", "mimic", "footsteps", "behind", "lights_out",
+      "scrape", "run_steps", "distant_scream", "runner", "door_bang", "window"]) {
       mock.sounds = [];
+      if (LONG.has(id)) mock.yaw = -90;
+      if (id === "scrape") mock.moveTo({ x: 16.5, y: Y, z: 10.5 }); // beside the wall
       const ok = director.presence.run(id, mock, director.presence.env(mock));
       log("presence", id, "ran", ok, "sounds", mock.sounds.join(","), "echoes", echoCount());
       if (id === "mimic") {
@@ -338,7 +511,25 @@ const SCENARIOS = {
           log("presence glimpse: seen then looked away; echo still exists", e.isValid);
         }
       }
+      if (LONG.has(id)) mock.yaw = 0;
+      if (id === "scrape") mock.moveTo({ x: 20.5, y: Y, z: 10.5 });
       if (id === "lights_out") await wait(120);
+      if (id === "run_steps") {
+        await wait(60);
+        log("presence run_steps: heavy steps heard", mock.sounds.filter((x) => x === "tailwail.step_heavy").length);
+      }
+      if (id === "runner" && ok) {
+        await wait(5);
+        const e = ov().getEntities({ type: "tailwail:echo" })[0];
+        const a = e && e.location;
+        await wait(20);
+        log("presence runner moved", a && e.isValid ? r1(Math.hypot(e.location.x - a.x, e.location.z - a.z)) : "(gone)", "blocks in 1 s");
+        await wait(60);
+      }
+      if (id === "door_bang") {
+        await wait(80);
+        log("presence door_bang: bangs heard", mock.sounds.filter((x) => x === "tailwail.door_bang").length);
+      }
       await wait(4);
     }
     log("presence torches left", findTorches(ov(), mock.location, 16).length);
@@ -364,7 +555,7 @@ const SCENARIOS = {
     const ms = [new MockPlayer({ x: 2.5, y: Y, z: 5.5 }), new MockPlayer({ x: 2.5, y: Y, z: 15.5 }), new MockPlayer({ x: 2.5, y: Y, z: 25.5 })];
     const encs = [spawnTW(ms[0], { x: 30.5, y: Y, z: 5.5 }), spawnTW(ms[1], { x: 30.5, y: Y, z: 15.5 }), spawnTW(ms[2], { x: 30.5, y: Y, z: 25.5 })];
     encs[1].brain.enter("standoff", "test");
-    encs[2].brain.enter("chase", "test");
+    encs[2].brain.enter("hunt", "test");
     ms.forEach((m, i) => m.lookAt(encs[i].tw.location));
     setDebug(false);
     await wait(10);

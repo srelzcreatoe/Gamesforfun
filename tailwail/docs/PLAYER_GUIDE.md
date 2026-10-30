@@ -7,13 +7,13 @@ This document is everything at once.
 
 - Survival or Adventure. Never on Peaceful. Overworld only.
 - **Underground** (sky light ≤ 3 at your head) or **outside at night** (operators can turn
-  either off).
+  either off). Caves and the night surface have different openings.
 - Waits only count down while you are in such a place, so standing in a sunny field
   doesn't bring it closer and quitting the game doesn't skip anything.
-- **First haunting** after about 25–55 s of eligible time. **First encounter** after about
-  4–7 minutes (Standard).
-- After an encounter it leaves you alone for 5–8 minutes. The haunting resumes about
-  45 s after an encounter ends.
+- **First haunting** after well under a minute of eligible time. **First encounter** after
+  about 3–5.5 minutes (Standard).
+- After an encounter it leaves you alone for 4.5–7.5 minutes, unless it only *pretended* to
+  leave (see "It comes back").
 - It waits while you are badly hurt (< 3 hearts), fighting something else, sleeping,
   riding, flying or swimming.
 - Dying gives you 4 minutes of peace (Standard).
@@ -22,10 +22,10 @@ This document is everything at once.
 
 | Stage | Reached by | What changes |
 |---|---|---|
-| 0, Unease | start | footsteps that follow you, your sounds repeated, knocks |
-| 1, Watched | 3 hauntings or 6 eligible minutes | glimpses, peeks, breathing behind you, torches going out, doors; the *rehearsal* and *cavern reveal* openings |
-| 2, Hunted | after your first encounter | whispers of your name, lights going out one by one, "behind you", fake join message, bed visits; it can be standing behind you when you turn |
-| 3, Obsessed | 4 encounters or 2 escapes | everything more often; the *hunter*: a scream far away, then it comes running |
+| 0, Unease | start | footsteps that follow you, your sounds repeated, knocks, claws scraping in the rock; it watches you from the dark, peeks, runs across your view |
+| 1, Watched | 3 hauntings or 6 eligible minutes | glimpses, breathing behind you, torches going out, doors, heavy running steps behind you, distant screams, the runner, hammering on your door; it waits on the **ceiling** or balled up in a **corner** |
+| 2, Hunted | after your first encounter | whispers of your name, lights going out one by one, "behind you", the face at the window, fake join message, bed visits; it can be crouched right behind you; *the hunter*: no warning at all |
+| 3, Obsessed | 4 encounters or 2 escapes | everything more often, and it charges sooner when you see it |
 
 ## The haunting (between encounters)
 
@@ -34,111 +34,148 @@ All of it is aimed at one player and is harmless.
 | Event | What you notice |
 |---|---|
 | Footsteps | steps on the right surface, 9–15 blocks behind you, in time with yours; they stop a beat after you stop, then take one more |
+| Running steps | heavy steps coming up behind you, fast, and stopping right behind your back. Then breathing |
 | Mimicry | the next sound you make (breaking or placing a block, a door, a chest, eating, drinking, a bow, getting hurt) is repeated from the dark 1–2 s later |
-| Knock | three knocks on a wall behind you; the third comes late |
+| Knock / scrape | three knocks on a wall behind you; or claws dragging through the stone beside you |
 | Breath | wet breathing right behind your head |
 | Whisper | a whisper at your ear, and your name spelled out in the action bar |
-| Torch | one torch behind you goes out |
-| Lights out | the torches around you go out one by one, the farthest first, ending in a breath |
-| Door | a wooden door near you opens or closes by itself |
+| Distant scream | a scream, very far away |
+| Torch / lights out | a torch behind you goes out; or the torches around you go out one by one, ending in a breath |
+| Door / door bang | a wooden door near you opens by itself; or something hammers on it from the other side |
 | Glimpse | a tall shape at the edge of your view. Look straight at it and it is still there. Look away and back, and it is gone |
+| The runner | something huge gallops across the dark in front of you and is gone |
 | Peek | a head and a hand around a corner, gone once you have seen it and looked away |
+| The window | a face at your window, gone the moment you look away again |
 | Behind you | breathing behind you. Turn around within ~2 s and it is right there for half a second |
 | Fake chat | "&lt;your name&gt; joined the game" |
 | Bed visit | while you sleep it stands at the foot of your bed, craning over you |
 
 ## The encounter
 
-**Stalking.** It spawns out of sight in the dark, 14–30 blocks away, and creeps between
-hiding spots, closing in. Cues: slow wet breathing, a tail dragging over stone, knocks, a
-torch near you going out. When you see it, **it freezes** into a held pose. Some openings
-only peek around corners and hide when stared at. A distant watcher just stands at the edge
-of the light and leaves if you approach. Very rarely on a first meeting, it slinks off the
-moment it is noticed.
+### 1. It shows itself (seconds, not minutes)
 
-**The stand-off** starts if you hold your gaze on it (~2 s) or walk up to it (≤ 16 blocks).
+It opens with one to three short **beats**, each in a different place:
+- **watching** you from the edge of the dark, twitching, its head cocked too far;
+- standing at **full height** at the treeline (outside) or across a cavern;
+- **peeking** around a corner, tapping the edge with its fingers;
+- **running across** your view on all fours.
 
-- **It only moves while nobody has it on screen.** Turn away for a moment: skittering. Turn
-  back and it is 3–4 blocks closer, standing in a different pose, bones creaking. Other
-  players' eyes count too.
-- **A stare costs you.** A glance (about 2 s) is free. After that, agitation climbs, and so
-  do getting close, walking at it, sprinting near it and hitting it. You can read it:
+When you spot it, it reacts within a quarter of a second. It may:
+- **charge** you right then (likelier at higher stages and in later beats);
+- **bolt** out of sight on all fours, and reappear somewhere else, closer;
+- **hold your stare**, which starts the stand-off.
 
-  | Agitation | Tail | Breath | Body |
-  |---|---|---|---|
-  | calm | drags on the ground | slow | still |
-  | uneasy (35+) | twitches | heavy | throat clicks, head tilts |
-  | angry (65+) | curls up over its back | frantic | trembling, jaw hanging, neck stretching toward you, head turning all the way round |
-  | about to go (85+) | curled | frantic | the jaw opens wide, the clicking never stops |
-- **It mirrors you.** Crouch, look up or down, or stop dead after running, and 1–2 s
-  later it does the same, slower and deeper. Wrong. The angrier it is, the more distorted the
-  copy. It also replays gestures it remembers from earlier encounters.
-- **Your senses close in:** a droning score, a dark fog, a heartbeat that speeds up with its
-  anger, and a field of view that slowly narrows.
+Openings that skip this:
+- **The ceiling** (caves): it hangs flat on the ceiling like a spider, its face rolled the
+  right way up. When you pass underneath, or stare up at it, it lets go, lands in front of
+  you and roars.
+- **The heap** (caves): a mound of rock and hair in a dark corner. Come close, or stare at
+  it, and it whips round.
+- **Behind you**: it is crouched right behind you when you turn around.
+- **The hunter**: a scream from somewhere out there, then it comes running.
 
-**Ways the stand-off ends**
+### 2. The stand-off (4–10 seconds)
 
-| You | It |
+It rises to its full height or crouches to pounce. Its tail lashes, its breathing gets
+heavier, its jaw drops, the dread fog closes in, the stand-off music drones, your heartbeat
+speeds up and your view narrows.
+- It **creeps toward you even while you watch it**.
+- **Turn your back for less than a second and it charges.**
+- Getting within ~6 blocks, hitting it, or staring until it snaps: it charges.
+- It copies your crouch, head tilt and stop-start a second late.
+
+### 3. The scream
+
+Silence. If it was crouched it unfolds to its full height first (the last warning). Then
+it **screams**:
+- your screen shakes and darkness pulses;
+- every torch around it goes out;
+- it drops onto all fours.
+
+Under a low ceiling it roars from all fours instead.
+
+### 4. The hunt
+
+**It is faster than you**: 8.4 blocks/s on Standard (a sprinting player does 5.6). You
+cannot outrun it in the open. While it can see or hear you, there is no time limit.
+- It gallops on all fours, squeezes through 2-high tunnels on its belly and puts out
+  torches as it passes. Every hand and foot shakes the ground.
+- **Attacks**, never the same order twice:
+  - a **rake** with either arm (throws you sideways);
+  - a **two-handed combo**;
+  - an **overhead slam** that shakes everyone nearby;
+  - a **pounce** from 5–11 blocks away that pins and slows you, and sometimes turns into
+    a grab;
+  - the **grab** (below).
+- After it hurts you it stands over you for a second or two (sniffing, shrieking). **Then
+  it hunts on.** It does not get bored and leave.
+- **Doors and glass** between you and it get hammered until they break (setting).
+- Pillar up a ledge and it **climbs the wall** after you (setting).
+- Crawl into a hole too low for it and it **reaches in** after you with one long arm. It
+  gives up after a few seconds and goes looking for another way.
+- Lose it for a few seconds and it **roars** when it finds you again.
+
+### 5. The grab
+
+It lifts you to its face and holds you there. You cannot walk or turn. **Read the prompt:
+the way out is different every time.**
+
+| Prompt | What to do |
 |---|---|
-| back off to ~24 blocks while it is still calm | lets you go (it walks away) |
-| break sight and stay hidden for ~8 s while it is calm | loses interest |
-| stare until its agitation maxes out | **commits** |
-| look away and let it creep within ~4.5 blocks | **commits** |
-| hit it | **commits** |
-| nothing for ~80 s | leaves if calm, commits if angry |
+| Mash **JUMP** | press Jump as fast as you can |
+| Mash **SNEAK** | press Sneak as fast as you can |
+| **Alternate** JUMP + SNEAK | only switching between them counts |
+| **Don't. Move.** | press nothing at all. Pressing anything makes it bite |
 
-**The commitment** cannot be interrupted. The music cuts to silence. It rises to its full
-height (about 5 blocks in a tall cavern; less in a low one), holding its breath, for 2 s.
-Then **the wail**: 1.8 s of screaming. Your screen shakes, darkness pulses over you, your
-view punches in, and every torch around it goes out. It drops onto all fours (1 s), and the
-chase begins.
+- The number of presses and the time you get change every grab.
+- Halfway through, **it can shift its grip**: the prompt changes and you have to switch.
+- Hitting it while held counts double (but it is not "staying still").
+- Sometimes there is **no way out** (never on Calm, never on the first grab).
 
-**The chase**
-- About 6.9 blocks/s on Standard. You sprint at about 5.6, so in the open you lose.
-- It squeezes through 2-high tunnels on its belly, opens wooden doors (operators can turn
-  this off) and puts out torches it passes.
-- It cannot fit through a 1-block-high gap, cannot open iron doors and never breaks blocks.
-- It screeches, and the chase music and your heartbeat are loud.
-- Its pursuit is finite: about 26 s per commitment on Standard.
+Outcomes:
+- **You tear free**: it drops you, reels with a hand at its face for a couple of seconds,
+  roars, and comes again. Run.
+- **You stay still** when told to: it sniffs you for a long moment and lets you fall.
+- **You fail**: it **bites** you, **throws** you, or **smashes** you into the ground (the
+  last two need a high ceiling). Then it savours it, and hunts on.
 
-**The grab.** If it reaches you with room to stand up (≥ 4 blocks of headroom), it lifts you
-to its face and holds you there for 2.6 s. You can't walk, turn or crouch.
-- **Mash Jump** (7 presses on Standard) and you tear free: it drops you (1 heart), shrieks
-  and staggers for 1.6 s. Run.
-- **Hitting it** while held counts double. **Other players** can make it drop you by
-  hitting it hard enough.
-- **If you don't break free:** the first time it **throws** you (3 hearts plus knockback).
-  The second time in the same encounter it **bites** (6 hearts) and then leaves, satisfied.
-- In low tunnels where it cannot stand up, it strikes instead (3.5 hearts, never through a
-  wall).
+### 6. Losing it
 
-**Losing it.** Out of its sight for about 6 s with ≥ 14 blocks between you, and it starts
-searching. It sniffs at the places it last saw you and listens. Noise pulls it toward you:
-breaking or placing blocks, doors, chests, bows. **Crouching in the dark** (light ≤ 5)
-hides you unless it practically touches you (< 3 blocks). When it gives up, it rears up
-and howls, then leaves. Sometimes it keeps its head turned all the way round to watch you
-as it goes.
+- Break line of sight and stay out of it: after 8 s out of sight (Standard) **and** 18+
+  blocks away it starts searching. Corners, water, 1-block gaps, doors you then block off.
+- **Crouch in the dark** (light ≤ 5 at your head) out of its sight: it loses you within
+  ~3 s, unless it is right on top of you (2.8 blocks).
+- While it searches it sniffs and listens. Breaking blocks, doors and bows give you away.
+- If it finds you, it roars and the hunt is back on.
+- When it gives up it rears up and howls, then leaves. Sometimes it walks away with its
+  head turned all the way round, still watching you.
+
+### 7. It comes back
+
+When it gives up searching, or after a very long hunt, it sometimes only **pretends** to
+leave. 25–50 seconds later it comes back for you, already running.
+
+### 8. Fighting it
+
+- It has 160 health on Standard (a diamond sword does 7 per hit); it is tougher on
+  Nightmare and softer on Calm.
+- Below about a third of its health it **screams and runs**, and it remembers.
+- Killed, it collapses, twitching. It drops experience. "I don't think it was the only one."
 
 ## Torches
 
-Snuffed torches become burnt-out sticks (*Burnt-out Torch*). Use flint and steel, a fire
-charge or a torch on one to relight it. Breaking one returns the original torch, soul torch
-or copper torch.
+Torches it puts out stay out as a **burnt-out stick**. Relight it with flint and steel, a
+fire charge or another torch. Breaking it gives the torch back.
 
-## It can die
+## It remembers you
 
-It has 160 health (×0.8 Calm, ×1.6 Nightmare). Each hit you land during a stand-off
-commits it. When it dies it collapses with a long dying wail and drops experience. There
-will be another.
+It records your habits (crouching, head tilts, stop-start, whether you flee, hide, stare or
+fight) and uses them: it opens later encounters by copying something you did before.
 
-## Settings and troubleshooting
+## Survival tips
 
-- Each player: volume, camera effects (off / reduced / full), music, fog, captions, and
-  "forget me" (resets its memory of you, your stage and your journal).
-- Operators: see [CONFIGURATION.md](CONFIGURATION.md).
-- **Nothing happens?** `/tailwail:debug status` (operators) shows your stage and what it is
-  waiting for.
-- **Something is stuck?** `/tailwail:debug restore` resets your camera, FOV, fog, music and
-  controls. `/tailwail:debug end` removes every Tailwail.
-- **No sound?** Check your Tailwail volume in Settings, then the game's *Hostile Creatures*
-  and *Music* sliders.
+- A glance is safe. Turning your back is not.
+- Keep a hole you can crawl into nearby. It will reach in; back away from the opening.
+- Do not count on height or doors.
+- Every hit makes it flinch. Hit it while it reels after you tear free, or run.
+- Read the grab prompt before you press anything.

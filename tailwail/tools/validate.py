@@ -133,7 +133,7 @@ def check_scripts(tsc_types):
 
 KNOWN_IDS = {
     # dynamic properties, commands, components, fog / particle / block ids, setups
-    "tailwail:settings2", "tailwail:prefs2", "tailwail:mem", "tailwail:sched2", "tailwail:enc", "tailwail:owner",
+    "tailwail:settings3", "tailwail:prefs2", "tailwail:mem", "tailwail:sched2", "tailwail:enc", "tailwail:owner",
     "tailwail:debug", "tailwail:debug_op", "tailwail:journal", "tailwail:settings", "tailwail:relight",
     "tailwail:dread", "tailwail:snuff_smoke", "tailwail:snuffed_torch", "tailwail:facing", "tailwail:kind",
     "tailwail:tall_wail", "tailwail:lure", "tailwail:echo", "tailwail:field_guide",
@@ -167,7 +167,7 @@ def check_entities():
     src = all_script_text()
     for m in re.findall(r'triggerEvent\("([^"]+)"(?:\s*\+\s*[^)]+)?\)', src):
         if m.endswith("_"):
-            if not any(m + s in events for s in ("a", "b", "c", "tall", "hunch", "crawl")):
+            if not any(m + s in events for s in ("a", "b", "c", "tall", "hunch", "crawl", "on", "off")):
                 err("triggerEvent prefix %s matches no event" % m)
         elif m not in events:
             err("script triggers unknown event %s" % m)
@@ -190,7 +190,8 @@ def check_client():
         err("client simulation failed:\n" + (r.stdout + r.stderr)[-2500:])
     else:
         dyn = [ln for ln in r.stdout.splitlines() if "dynamic:" in ln]
-        notes.append("client_sim: wiring, Molang, 756 pose hops, random schedules, grounding, tail sweep: 0 errors " + (dyn[0].strip()[:90] if dyn else ""))
+        notes.append("client_sim: wiring, Molang, ?? fallbacks, 506 act hops, failure modes, random schedules, grounding of every"
+                     " state and one-shot, tail sweep: 0 errors " + (dyn[0].strip()[:90] if dyn else ""))
 
 
 def anims():
@@ -201,22 +202,38 @@ def anims():
 
 
 def check_clip_lengths():
+    """config.js CLIP and the generated one-shot table (core/ids.js SHOT) agree with the clips."""
     a = anims()
     cfg = open(os.path.join(BP, "scripts", "config.js"), encoding="utf-8").read()
     block = cfg[cfg.index("export const CLIP"):]
     block = block[: block.index("};")]
-    want = {"unfold": "reveal", "unfoldLow": "tw_unfold_low", "scream": "tw2_scream", "grab": "tw2_grab", "throw": "tw2_throw",
-            "strike": "tw_strike", "frustrated": "tw2_frustrated", "owl": "tw2_owl", "tilt": "tw2_tilt", "neck": "tw2_neck",
-            "peek": "tw2_peek_l", "statue": "tw2_statue_reach", "behind": "tw2_behind", "death": "death"}
-    for key, clip in want.items():
-        m = re.search(r"\b%s:\s*([0-9.]+)" % key, block)
-        length = a["animation.tall_wail." + clip]["animation_length"]
-        if not m or abs(float(m.group(1)) - length) > 1e-6:
-            err("CLIP.%s (%s) does not match %s length %s" % (key, m and m.group(1), clip, length))
-    m = re.search(r"\bwindupCut:\s*([0-9.]+)", block)
-    if not m or float(m.group(1)) > a["animation.tall_wail.windup"]["animation_length"]:
-        err("CLIP.windupCut must be inside the supplied windup clip")
-    notes.append("%d clip durations in config.js agree with the animation files" % (len(want) + 1))
+    m = re.search(r"\bdeath:\s*([0-9.]+)", block)
+    death = a.get("animation.tall_wail.v3.death", {}).get("animation_length")
+    if not m or death is None or abs(float(m.group(1)) - death) > 1e-6:
+        err("CLIP.death (%s) does not match animation.tall_wail.v3.death (%s)" % (m and m.group(1), death))
+    ids = open(os.path.join(BP, "scripts", "core", "ids.js"), encoding="utf-8").read()
+    shots = re.findall(r'^  (\w+): Object.freeze\((\{.*\})\),$', ids, re.M)
+    if not shots:
+        err("core/ids.js has no SHOT table")
+    for name, js in shots:
+        d = json.loads(js)
+        clip = a.get(d["anim"])
+        if clip is None:
+            err("one-shot %s plays missing clip %s" % (name, d["anim"]))
+            continue
+        if abs(clip["animation_length"] - d["len"]) > 1e-6:
+            err("one-shot %s length %s != clip %s" % (name, d["len"], clip["animation_length"]))
+        if clip.get("loop", False) is not False:
+            err("one-shot %s clip must not loop" % name)
+        for key in ("hits", "release", "close", "launch", "peak", "land"):
+            for t in (d.get(key) if isinstance(d.get(key), list) else [d.get(key)] if key in d else []):
+                if not 0 <= t <= d["len"]:
+                    err("one-shot %s %s time %s outside the clip" % (name, key, t))
+    src = all_script_text()
+    for name in set(re.findall(r'play\("([a-z_]+)"\)', src)):
+        if name not in dict(shots):
+            err("script plays unknown one-shot %s" % name)
+    notes.append("CLIP.death and %d one-shot clips (lengths, hit/release frames) agree with the animation file" % len(shots))
 
 
 VANILLA_SOUND_RE = re.compile(r'"((?:random|fire|dig|use|step|game|mob|ambient)\.[a-z_.]+)"')
@@ -305,11 +322,18 @@ def check_echo():
     ids = open(os.path.join(BP, "scripts", "core", "ids.js"), encoding="utf-8").read()
     poses = re.findall(r"(\w+): \d+", re.search(r"ECHO_POSE = Object.freeze\(\{([^}]+)\}", ids).group(1))
     ce = load(os.path.join(RP, "entity", "tailwail_echo.entity.json"))["minecraft:client_entity"]["description"]
-    for p in poses:
-        if "tw2_" + p not in ce["animations"]:
-            err("echo pose %s has no clip in the echo client entity" % p)
+    ctl = load(os.path.join(RP, "animation_controllers", "tall_wail.animation_controllers.json"))["animation_controllers"][
+        "controller.animation.tall_wail.v3_echo"]
+    for i, p in enumerate(poses):
+        st = ctl["states"].get("e%d" % i)
+        if not st or not st.get("animations"):
+            err("echo pose %s has no controller state" % p)
+            continue
+        clip = st["animations"][0]
+        if clip not in ce["animations"]:
+            err("echo pose %s plays %s, missing from the echo client entity" % (p, clip))
     src = all_script_text()
-    for p in set(re.findall(r'spawnEcho\([^)]*?"([a-z_]+)"', src)):
+    for p in set(re.findall(r'spawnEcho\([^)]*?"([a-z_]+)"', src)) | set(re.findall(r'"(peek_[lr])"', src)):
         if p not in poses:
             err("script spawns echo pose %s that has no id" % p)
     notes.append("echo: %d poses mapped to clips" % len(poses))
@@ -328,8 +352,9 @@ def check_items_and_text():
     if ce["spawn_egg"]["texture"] not in it:
         err("spawn egg texture not in item_texture.json")
     lang = open(os.path.join(RP, "texts", "en_US.lang"), encoding="utf-8").read()
+    rp_check = re.search(r'RP_CHECK_KEY = "([^"]+)"', open(os.path.join(BP, "scripts", "core", "ids.js"), encoding="utf-8").read())
     for key in ("entity.tailwail:tall_wail.name", "item.spawn_egg.entity.tailwail:tall_wail.name", item["minecraft:display_name"]["value"],
-                "tile.tailwail:snuffed_torch.name", "pack.name", "pack.description"):
+                "tile.tailwail:snuffed_torch.name", "pack.name", "pack.description", rp_check.group(1) if rp_check else "RP_CHECK_KEY"):
         if key + "=" not in lang:
             err("missing lang key " + key)
     for base in (BP, RP):
@@ -352,13 +377,14 @@ def check_generated(fast):
     tmp = tempfile.mkdtemp(prefix="twcheck_")
     try:
         shutil.copytree(os.path.join(ROOT, "packs"), os.path.join(tmp, "packs"))
+        shutil.copytree(os.path.join(ROOT, "source_assets"), os.path.join(tmp, "source_assets"))  # anim_v3 reads the archive
         os.makedirs(os.path.join(tmp, "docs", "generated"), exist_ok=True)
         for f in ("subtitles.json",):
             src = os.path.join(ROOT, "docs", "generated", f)
             if os.path.exists(src):
                 shutil.copy(src, os.path.join(tmp, "docs", "generated", f))
         env = dict(os.environ, TAILWAIL_ROOT=tmp)
-        gens = ["gen_assets_v2.py", "gen_client_v2.py"] + ([] if fast else ["anim_studio.py"])
+        gens = ([] if fast else ["anim_v3.py"]) + ["gen_client_v3.py", "gen_assets_v2.py"]
         for g in gens:
             r = subprocess.run([sys.executable, "-I", os.path.join(HERE, g)], capture_output=True, text=True, env=env)
             if r.returncode:
@@ -377,7 +403,10 @@ def check_generated(fast):
         shutil.rmtree(tmp, ignore_errors=True)
     r = subprocess.run([sys.executable, "-I", os.path.join(HERE, "build_assets.py"), "--check"], capture_output=True, text=True)
     if r.returncode:
-        err("legacy derived clips out of date: " + (r.stderr or r.stdout).strip()[-400:])
+        err("model / texture copies out of date: " + (r.stderr or r.stdout).strip()[-400:])
+    stale = [f for f in os.listdir(os.path.join(RP, "animations")) if f != "tall_wail.v3.animation.json"]
+    for f in stale:
+        err("resource pack ships a stale animation file: " + f)
     sha = hashlib.sha256(open(os.path.join(ROOT, "source_assets", "original", "TallWail_Blockbench_v3.zip"), "rb").read()).hexdigest()
     if sha != ORIGINAL_SHA:
         err("original archive changed")

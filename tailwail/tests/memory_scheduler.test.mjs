@@ -131,7 +131,7 @@ test("escalation: unease -> watched -> hunted -> obsessed, never back down", () 
 test("presence: stage gating, cooldowns, needs, settings and no back-to-back repeats", () => {
   const S = { ...WORLD_DEFAULTS };
   const rng = makeRng(11);
-  const allEnv = { wall: true, torch: true, torches: true, door: true };
+  const allEnv = { wall: true, torch: true, torches: true, door: true, window: true };
   for (let i = 0; i < 300; i++) {
     const id = pickPresence(0, 1000, {}, allEnv, S, rng);
     assert.equal(PRESENCE_EVENTS[id].stage, 0, id);
@@ -140,12 +140,12 @@ test("presence: stage gating, cooldowns, needs, settings and no back-to-back rep
   for (let i = 0; i < 2000; i++) seen.add(pickPresence(3, 5000, {}, allEnv, S, rng));
   for (const id of PRESENCE_IDS) assert.ok(seen.has(id), `stage 3 can reach ${id}`);
   // cooldown
-  const last = { footsteps: 990, mimic: 990, knock: 990 };
+  const last = { footsteps: 990, mimic: 990, knock: 990, scrape: 990 };
   assert.equal(pickPresence(0, 1000, last, allEnv, S, rng), null, "everything on cooldown");
   // needs + settings
   for (let i = 0; i < 300; i++) {
     const id = pickPresence(3, 5000, {}, { wall: true }, { ...S, jumpscares: false, fakeChat: false }, rng);
-    assert.ok(!["snuff", "lights_out", "door", "behind", "fake_chat"].includes(id), id);
+    assert.ok(!["snuff", "lights_out", "door", "door_bang", "window", "behind", "fake_chat"].includes(id), id);
   }
   for (let i = 0; i < 100; i++) assert.notEqual(pickPresence(0, 1000, {}, allEnv, S, rng, "mimic"), "mimic");
   // pacing scales with the presence level

@@ -3,11 +3,11 @@
 // hole too low for it.  Everything is bounded: fixed scan sizes, and every controller
 // ends itself (done / aborted) within a few seconds.
 import { system } from "@minecraft/server";
-import { AMBUSH, CHASE, POSTURE } from "../config.js";
+import { AMBUSH, CHASE } from "../config.js";
 import { CLING_HEIGHT } from "../core/ids.js";
-import { dirFromYaw, hdist, norm, sub, yawTo } from "../util/vec.js";
+import { dirFromYaw, norm, sub, yawTo } from "../util/vec.js";
 import { dlog } from "./log.js";
-import { lightAt, losClear, playerView } from "./perception.js";
+import { lightAt, losClear } from "./perception.js";
 import { findGround, headroom, isFloor, isOpen, safeBlock } from "./terrain.js";
 
 const DOOR_RE = /(_door|_trapdoor|fence_gate)$/;
@@ -20,6 +20,16 @@ export function breakableKind(id, level) {
   if (DOOR_RE.test(id)) return "door";
   if (level >= 2 && GLASS_RE.test(id)) return "glass";
   return null;
+}
+
+function viewCos(player, pos) {
+  try {
+    const to = norm(sub(pos, player.getHeadLocation()));
+    const v = player.getViewDirection();
+    return to.x * v.x + to.y * v.y + to.z * v.z;
+  } catch {
+    return 0;
+  }
 }
 
 function hidden(player, pos) {
@@ -51,9 +61,10 @@ export function findCeilingSpot(o) {
     if (h < AMBUSH.clingMinCeiling || h > AMBUSH.clingMaxCeiling) continue; // open sky or too low
     const ceil = g.y + h; // first solid block above
     const anchor = { x: g.x, y: ceil - CLING_HEIGHT, z: g.z };
-    if (!hidden(p, { x: anchor.x, y: anchor.y + 0.5, z: anchor.z })) continue;
     const light = lightAt(o.dim, { x: g.x, y: ceil - 1, z: g.z });
     if (light > 9) continue;
+    // out of view, or up in the dark where a shape on the ceiling is easy to miss
+    if (light > 4 && !hidden(p, { x: anchor.x, y: anchor.y + 0.5, z: anchor.z })) continue;
     const score = o.rng.range(0, 1) + (9 - light) * 0.1 + (i < 12 ? 1 : 0);
     if (!best || score > best.score) best = { ...anchor, floorY: g.y, score };
   }
@@ -101,14 +112,20 @@ export function findCrossPath(o) {
     const c = dirFromYaw(fwd + o.rng.range(-20, 20));
     const mid = { x: pl.x + c.x * d, z: pl.z + c.z * d };
     const side = dirFromYaw(fwd + 90 * (o.rng.chance(0.5) ? 1 : -1));
-    const half = o.rng.range(10, 15);
+    const half = o.rng.range(16, 22); // it starts and ends outside the view: it comes out of the dark and is gone
     const a = findGround(o.dim, mid.x + side.x * half, mid.z + side.z * half, pl.y, 5, 8, 3);
     const b = findGround(o.dim, mid.x - side.x * half, mid.z - side.z * half, pl.y, 5, 8, 3);
     if (!a || !b || Math.abs(a.y - b.y) > 4) continue;
+    // it must come out of the dark: one end hidden, or at least well off the centre of the view
+    const offCentre = (q) => hidden(p, q) || viewCos(p, q) < 0.7;
+    if (!offCentre({ x: a.x, y: a.y + 1.5, z: a.z }) && !offCentre({ x: b.x, y: b.y + 1.5, z: b.z })) continue;
     const m = findGround(o.dim, mid.x, mid.z, pl.y, 5, 8, 3);
     if (!m) continue;
     if (!losClear(o.dim, p.getHeadLocation(), { x: m.x, y: m.y + 1.5, z: m.z })) continue;
-    return { a, b };
+    // start from the end the player can see least
+    const ca = viewCos(p, { x: a.x, y: a.y + 1.5, z: a.z }) - (hidden(p, { x: a.x, y: a.y + 1.5, z: a.z }) ? 2 : 0);
+    const cb = viewCos(p, { x: b.x, y: b.y + 1.5, z: b.z }) - (hidden(p, { x: b.x, y: b.y + 1.5, z: b.z }) ? 2 : 0);
+    return ca <= cb ? { a, b } : { a: b, b: a };
   }
   return null;
 }
@@ -281,10 +298,3 @@ export class ClimbController {
     this.finish();
   }
 }
-
-/** True when the player can see the given point (in front and unobstructed). */
-export function seenBy(player, pos) {
-  return !hidden(player, pos);
-}
-
-export { POSTURE, playerView, hdist };

@@ -77,7 +77,9 @@ ACT_ID = {n: i for i, n, _, _ in ACTS}
 TAILS = {"free": 0, "lash": 1, "curl": 2, "rigid": 3, "tunnel": 4}
 BREATH = {"none": 0, "calm": 1, "heavy": 2, "frantic": 3}
 MIMICS = {"none": 0, "crouch": 1, "tilt": 2, "step": 3, "shrug": 4}
-ECHO_POSES = ["reach", "watch", "watch_low", "tall", "peek_l", "peek_r", "behind", "neck", "cling", "huddle"]
+ECHO_POSES = ["reach", "watch", "watch_low", "tall", "peek_l", "peek_r", "behind", "neck", "cling", "huddle", "gallop"]
+# echo poses whose clip differs from the pose name (the echo is teleported, so its gallop runs on time)
+ECHO_CLIP = {"gallop": "gallop_t"}
 OVERLAYS = ["breath", "tremor", "look", "look_inv", "jaw", "mimic_crouch", "mimic_tilt", "mimic_shrug", "hurt",
             "tail_free", "tail_lash", "tail_curl", "tail_rigid", "tail_tunnel"]
 
@@ -95,7 +97,7 @@ PROPS = {
     "tailwail:managed": {"type": "bool", "default": False, "client_sync": False},
 }
 ECHO_PROPS = {
-    "tailwail:echo_pose": {"type": "int", "range": [0, 10], "default": 0, "client_sync": True},
+    "tailwail:echo_pose": {"type": "int", "range": [0, 15], "default": 0, "client_sync": True},
 }
 
 
@@ -224,9 +226,9 @@ def echo_entity():
     states = {}
     for i, name in enumerate(ECHO_POSES):
         trans = [("e%d" % j, "%s == %d" % (E, j)) for j in range(len(ECHO_POSES)) if j != i]
-        states["e%d" % i] = st([name], trans, 0.0)
+        states["e%d" % i] = st([ECHO_CLIP.get(name, name)], trans, 0.0)
     ctrl = {"initial_state": "e0", "states": states}
-    anims = {n: A + n for n in ECHO_POSES}
+    anims = {ECHO_CLIP.get(n, n): A + ECHO_CLIP.get(n, n) for n in ECHO_POSES}
     anims.update({"tremor": A + "tremor", "jaw": A + "jaw", "tail_free": A + "tail_free",
                   "ctrl_echo": "controller.animation.tall_wail.v3_echo"})
     ce = {"format_version": "1.10.0", "minecraft:client_entity": {"description": {
@@ -286,7 +288,7 @@ def patch_props(path, props):
 def main():
     clips = json.load(open(ANIM))["animations"]
     shots = shot_table(clips)
-    missing = [c for c in body_clips() | set(OVERLAYS) | set(ECHO_POSES) if A + c not in clips]
+    missing = [c for c in body_clips() | set(OVERLAYS) | {ECHO_CLIP.get(n, n) for n in ECHO_POSES} if A + c not in clips]
     if missing:
         raise SystemExit("clips missing from %s: %s (run tools/anim_v3.py first)" % (ANIM, missing))
     ce = client_entity(shots)

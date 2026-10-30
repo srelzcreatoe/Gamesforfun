@@ -256,7 +256,8 @@ export class Brain {
       this.noticeT = this.t;
       this.flag("noticed");
     }
-    if (tg.valid && tg.canSee) {
+    // a player crouched in the dark beyond arm's reach is not "seen", even with a clear line
+    if (tg.valid && tg.canSee && !(tg.hidden && tg.dist > SEARCH.hiddenDetect)) {
       this.lastSeen = tg.pos;
       this.sinceSeen = 0;
     } else {
@@ -398,7 +399,7 @@ export class Brain {
     if (b.phase === "show") {
       this.ctx.hold();
       if (tg.valid) this.ctx.faceToward(tg.pos);
-      this.vis.act = b.kind === "peek" ? (b.side === "l" ? "peek_l" : "peek_r") : b.kind === "tall" && snap.creature.headroom >= 5 ? "tall"
+      this.vis.act = b.kind === "peek" ? (String(b.side).endsWith("l") ? "peek_l" : "peek_r") : b.kind === "tall" && snap.creature.headroom >= 5 ? "tall"
         : snap.creature.headroom < 4 ? "watch_low" : "watch";
       if (tg.watching && b.seenT < 0) {
         b.seenT = this.t;
@@ -549,6 +550,9 @@ export class Brain {
   // ------------------------------------------------------------------ HUNT: relentless
   enter_hunt(why) {
     if (this.huntStartT < 0) this.huntStartT = this.t;
+    // it starts every hunt knowing where you are (it heard you, or it has your smell)
+    const tg0 = this.snap ? this.snap.target : null;
+    if (!this.lastSeen && tg0 && tg0.valid && tg0.pos) this.lastSeen = tg0.pos;
     this.h = {
       screechAt: this.rng.range(1.5, 3),
       snuffAt: 0.5,
@@ -606,6 +610,10 @@ export class Brain {
     // ---- terrain: doors and glass, ledges, holes
     const blk = snap.creature.blocked;
     if (blk && this.settings.breakBlocks > 0 && tg.dist < 24) return this.enter("bash", blk);
+    // ---- you are up on something right above it: it climbs (path-stuck never fires this close)
+    const above = visible && tg.dy >= CHASE.climbMinRise && tg.dy <= CHASE.climbMaxRise && tg.hdist < 4.5;
+    h.belowFor = above ? (h.belowFor || 0) + dt : 0;
+    if (above && this.settings.climbing && h.belowFor >= 1.2) return this.enter("climb", "below-you");
     // ---- losing you
     const lostTime = this.settings.lostSeconds || 8;
     if (h.lostFor >= lostTime && tg.dist >= CHASE.lostDistance) return this.enter("search", "lost-sight");

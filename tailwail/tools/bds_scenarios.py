@@ -18,8 +18,8 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SCENARIOS = {  # name -> seconds to wait
-    "boot": 3, "statue": 18, "commit": 9, "grab": 12, "hide": 20, "escape": 40, "tunnel": 22, "presence": 30,
-    "death": 8, "spawnsite": 8, "perf": 14,
+    "boot": 6, "standoff": 12, "commit": 6, "hunt": 30, "grab": 22, "ceiling": 14, "climb": 16, "door": 18, "surface": 30,
+    "hide": 20, "escape": 40, "tunnel": 22, "presence": 62, "death": 8, "spawnsite": 8, "perf": 14,
 }
 
 

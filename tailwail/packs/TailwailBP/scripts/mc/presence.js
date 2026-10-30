@@ -3,7 +3,8 @@
 import { BlockTypes, BlockVolume, system } from "@minecraft/server";
 import { PRESENCE } from "../config.js";
 import { mimicSoundFor } from "../core/presence_rules.js";
-import { dirFromYaw, dist, dot, hdist, norm, sub, yawTo } from "../util/vec.js";
+import { dirFromYaw, dist, dot, hdist, lerp, norm, sub, yawTo } from "../util/vec.js";
+import { findCrossPath } from "./actions.js";
 import { playFor } from "./audio.js";
 import { removeEcho, spawnEcho } from "./echo.js";
 import * as fx from "./fx.js";
@@ -18,6 +19,11 @@ const DOORS = ["minecraft:wooden_door", "minecraft:spruce_door", "minecraft:birc
   "minecraft:warped_door", "minecraft:pale_oak_door"];
 let doorTypes = null;
 const liveDoors = () => (doorTypes = doorTypes || DOORS.filter((d) => !!BlockTypes.get(d)));
+const GLASS = ["minecraft:glass", "minecraft:glass_pane", "minecraft:tinted_glass", ...["white", "orange", "magenta", "light_blue", "yellow",
+  "lime", "pink", "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black"].flatMap((c) => [`minecraft:${c}_stained_glass`,
+  `minecraft:${c}_stained_glass_pane`])];
+let glassTypes = null;
+const liveGlass = () => (glassTypes = glassTypes || GLASS.filter((g) => !!BlockTypes.get(g)));
 
 const viewYaw = (p) => {
   const v = p.getViewDirection();
@@ -55,14 +61,39 @@ export class Presence {
   env(player) {
     const torches = findTorches(player.dimension, player.location, 16, 10);
     const behindTorches = torches.filter((t) => viewCos(player, { x: t.x + 0.5, y: t.y + 0.5, z: t.z + 0.5 }) < 0.2 && dist(t, player.location) >= PRESENCE.snuffRange[0]);
+    const windows = this.findWindows(player, 10);
     return {
       torch: behindTorches.length > 0,
       torches: torches.length >= 3,
       door: this.findDoors(player, PRESENCE.doorRange).length > 0,
+      window: windows.length > 0,
       wall: true,
       _torches: torches,
       _behind: behindTorches,
+      _windows: windows,
     };
+  }
+
+  /** Glass in front of the player with a clear line to it (a window it can look through). */
+  findWindows(player, r) {
+    const c = player.location;
+    const eye = player.getHeadLocation();
+    const out = [];
+    try {
+      const vol = new BlockVolume({ x: Math.floor(c.x) - r, y: Math.floor(c.y) - 1, z: Math.floor(c.z) - r }, { x: Math.floor(c.x) + r, y: Math.floor(c.y) + 3, z: Math.floor(c.z) + r });
+      for (const loc of player.dimension.getBlocks(vol, { includeTypes: liveGlass() }, false).getBlockLocationIterator()) {
+        const ctr = { x: loc.x + 0.5, y: loc.y + 0.5, z: loc.z + 0.5 };
+        const d = hdist(ctr, c);
+        if (d < 3 || d > r) continue;
+        if (viewCos(player, ctr) < 0.35) continue;
+        if (!losClear(player.dimension, eye, ctr)) continue;
+        out.push(ctr);
+        if (out.length >= 6) break;
+      }
+    } catch (e) {
+      dlog("findWindows", e);
+    }
+    return out;
   }
 
   findDoors(player, r) {
@@ -218,7 +249,7 @@ export class Presence {
   ev_glimpse(player) {
     const spot = findGlimpseSpot({ player, dim: player.dimension, rng: this.rng, near: PRESENCE.glimpseRange[0], far: PRESENCE.glimpseRange[1], headroom: 4 });
     if (!spot) return false;
-    const pose = spot.head >= 5 ? this.rng.pick(["statue_reach", "statue_arms_up", "statue_sideways", "watch_low", "neck"]) : "watch_low";
+    const pose = spot.head >= 5 ? this.rng.pick(["reach", "tall", "tall", "watch", "neck"]) : "watch_low";
     return !!spawnEcho(player.dimension, spot, spot.facing, pose, PRESENCE.glimpseLife + 6, this.watcher(player, 12));
   }
 
@@ -238,6 +269,128 @@ export class Presence {
     this.behind.set(player.id, { until: system.currentTick + Math.round(PRESENCE.behindWindow * 20), yaw0: viewYaw(player), pos });
     this.ev_breath(player);
     return true;
+  }
+
+  // ------------------------------------------------------------------ v3 events
+  /** Claws scraping somewhere inside the rock beside you. */
+  ev_scrape(player) {
+    const dim = player.dimension;
+    const h = player.getHeadLocation();
+    const base = viewYaw(player) + this.rng.range(60, 300);
+    const d = dirFromYaw(base);
+    for (let k = 2; k <= 6; k++) {
+      const p = { x: Math.floor(h.x + d.x * k), y: Math.floor(h.y - 0.5), z: Math.floor(h.z + d.z * k) };
+      const b = safeBlock(dim, p);
+      if (b && !isOpen(b)) {
+        const at = { x: p.x + 0.5, y: p.y + 0.5, z: p.z + 0.5 };
+        playFor(player, "tailwail.scrape", at, 1.0, this.rng.range(0.8, 0.95), "Claws scraping inside the stone");
+        this.later(this.rng.range(25, 45), () => player.isValid && playFor(player, "tailwail.scrape", at, 0.9, this.rng.range(0.7, 0.85)));
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Heavy running steps coming up fast from behind... and stopping right behind you. */
+  ev_run_steps(player) {
+    const n = 9;
+    for (let i = 0; i < n; i++) {
+      const d = 22 - i * 2.4;
+      this.later(i * 4.5, () => {
+        if (!player.isValid) return;
+        const p = behindPoint(player, Math.max(1.2, d), false);
+        playFor(player, "tailwail.step_heavy", { x: p.x, y: player.location.y + 0.5, z: p.z }, 1.0, this.rng.range(0.8, 0.95));
+      });
+    }
+    this.later(n * 4.5 + 10, () => {
+      if (!player.isValid) return;
+      this.ev_breath(player);
+      fx.shake(player, 0.12, 0.4);
+    });
+    return true;
+  }
+
+  /** A scream, very far away. */
+  ev_distant_scream(player) {
+    const spot = findSoundSpot({ player, dim: player.dimension, rng: this.rng, near: 36, far: 56 });
+    playFor(player, "tailwail.scream_far", { x: spot.x, y: spot.y + 3, z: spot.z }, 1.0, this.rng.range(0.92, 1.05), "A scream, far away");
+    this.later(30, () => player.isValid && fx.shake(player, 0.08, 1.2));
+    return true;
+  }
+
+  /** Something huge gallops across the dark in front of you, then is gone. */
+  ev_runner(player) {
+    const path = findCrossPath({ rng: this.rng, dim: player.dimension, player });
+    if (!path) return false;
+    const e = spawnEcho(player.dimension, path.a, yawTo(path.a, path.b), "gallop", 6, null);
+    if (!e) return false;
+    const total = hdist(path.a, path.b);
+    const steps = Math.max(8, Math.round(total / 0.45)); // ~9 blocks per second
+    let i = 0;
+    const id = system.runInterval(() => {
+      if (!e.isValid || i >= steps || !player.isValid) {
+        system.clearRun(id);
+        removeEcho(e);
+        return;
+      }
+      i += 1;
+      const p = lerp(path.a, path.b, i / steps);
+      try {
+        e.teleport(p, { facingLocation: { x: path.b.x, y: p.y + 1.5, z: path.b.z } });
+      } catch {
+        i = steps;
+      }
+      if (i % 3 === 0) playFor(player, "tailwail.step_heavy", p, 0.9, this.rng.range(0.8, 0.95));
+    }, 1);
+    return true;
+  }
+
+  /** Something hammers on a door near you. */
+  ev_door_bang(player) {
+    const doors = this.findDoors(player, PRESENCE.doorRange);
+    if (!doors.length) return false;
+    doors.sort((a, b) => dist(a, player.location) - dist(b, player.location));
+    const d = doors[0];
+    const at = { x: d.x + 0.5, y: d.y + 1, z: d.z + 0.5 };
+    const hits = this.rng.int(3, 6);
+    let t = 0;
+    for (let i = 0; i < hits; i++) {
+      t += this.rng.range(8, 13);
+      this.later(t, () => {
+        if (!player.isValid) return;
+        playFor(player, "tailwail.door_bang", at, 1.0, this.rng.range(0.85, 1.0), "Something hammers on the door");
+        playFor(player, "mob.zombie.wood", at, 0.8, 0.7);
+        fx.shake(player, dist(at, player.location) < 6 ? 0.2 : 0.08, 0.2);
+      });
+    }
+    return true;
+  }
+
+  /** A face at the window: gone the moment you look away again. */
+  ev_window(player, env) {
+    const list = env._windows || this.findWindows(player, 10);
+    for (const g of list) {
+      const eye = player.getHeadLocation();
+      const dir = norm({ x: g.x - eye.x, y: 0, z: g.z - eye.z });
+      const outside = { x: g.x + dir.x * 1.7, y: g.y, z: g.z + dir.z * 1.7 };
+      const ground = safeBlock(player.dimension, { x: Math.floor(outside.x), y: Math.floor(outside.y) - 2, z: Math.floor(outside.z) });
+      let y = Math.floor(outside.y) - 1;
+      if (ground && isOpen(ground)) y -= 1;
+      const pos = { x: Math.floor(outside.x) + 0.5, y, z: Math.floor(outside.z) + 0.5 };
+      if (headroom(player.dimension, pos) < 3) continue;
+      const watch = this.watcher(player, 2.5);
+      let stung = false;
+      const e = spawnEcho(player.dimension, pos, yawTo(pos, player.location), this.rng.pick(["neck", "watch"]), 12, (ent) => {
+        if (!stung && player.isValid && viewCos(player, { x: ent.location.x, y: ent.location.y + 2.6, z: ent.location.z }) > 0.85) {
+          stung = true;
+          playFor(player, "tailwail.stinger", player.getHeadLocation(), 1.0, 1.0);
+          fx.shake(player, 0.3, 0.3, true);
+        }
+        return watch(ent);
+      });
+      if (e) return true;
+    }
+    return false;
   }
 
   /** The bed visit: while you sleep, it stands at the foot of your bed and watches. */

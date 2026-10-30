@@ -13,6 +13,7 @@
 """
 import json
 import os
+import sys
 
 from PIL import Image
 
@@ -167,9 +168,16 @@ def patch_render_controllers():
     write(p, d)
 
 
+VERSION = (3, 0, 0)
+VS = "%d.%d.%d" % VERSION
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from gen_client_v3 import RP_CHECK  # noqa: E402
+
 RP_LANG_STATIC = [
-    "pack.name=TAILWAIL (Resources)",
-    "pack.description=It lives in the dark under the world. It listens. It rehearses you. Models, animations and sounds.",
+    "pack.name=TAILWAIL %s (Resources)" % VS,
+    "pack.description=Tailwail %s: models, animations and sounds. Must be the same version as TAILWAIL %s (Behavior)." % (VS, VS),
+    # the behavior pack prints this key on join: raw text = this resource pack is missing or out of date
+    "%s=§aResource pack %s active: animations and sounds loaded." % (RP_CHECK, VS),
     "entity.tailwail:tall_wail.name=Tailwail",
     "entity.tailwail:echo.name=...",
     "entity.tailwail:lure.name=Tailwail Trail",
@@ -179,8 +187,8 @@ RP_LANG_STATIC = [
     "tile.tailwail:snuffed_torch.name=Burnt-out Torch",
 ]
 BP_LANG = [
-    "pack.name=TAILWAIL (Behavior)",
-    "pack.description=It lives in the dark under the world. It listens. It rehearses you. No experiments required.",
+    "pack.name=TAILWAIL %s (Behavior)" % VS,
+    "pack.description=Tailwail %s: the dweller that hunts. No experiments required. Apply TAILWAIL %s (Resources) too." % (VS, VS),
 ]
 
 
@@ -198,12 +206,12 @@ def patch_manifests():
     for pack in (RP, BP):
         p = os.path.join(pack, "manifest.json")
         d = json.load(open(p))
-        d["header"]["version"] = [2, 0, 0]
+        d["header"]["version"] = list(VERSION)
         for m in d["modules"]:
-            m["version"] = [2, 0, 0]
+            m["version"] = list(VERSION)
         for dep in d.get("dependencies", []):
             if "uuid" in dep:
-                dep["version"] = [2, 0, 0]
+                dep["version"] = list(VERSION)
         d["metadata"]["authors"] = ["Tailwail"]
         write(p, d)
 
@@ -225,7 +233,7 @@ def main():
     patch_render_controllers()
     write_lang()
     patch_manifests()
-    print("v2 assets written")
+    print("assets written (v%s)" % VS)
 
 
 if __name__ == "__main__":

@@ -34,9 +34,13 @@ code would need re-verification before lowering either number.
 ## Stable members the design relies on (all present in 2.11.0 typings, type-checked)
 
 Encounter and world: `world.beforeEvents.entityHurt` (scripted death, health multiplier) ·
-`Entity.setProperty/getProperty` (client-synced int properties) · `Entity.triggerEvent` ·
-`Entity.teleport` (with `facingLocation`) · `Entity.applyDamage / applyKnockback / addEffect /
-removeEffect` · `Dimension.getBlockFromRay` · `Dimension.getLightLevel / getSkyLightLevel` ·
+`Entity.setProperty/getProperty` (client-synced int properties) · `Entity.triggerEvent`
+(including the `tailwail:float_on/off` gravity groups) · **`Entity.playAnimation`** (every
+one-shot: attacks, scream, drop, howl; options `controller`, `blendOutTime`) ·
+**`Entity.applyImpulse`** (the pounce) · `Entity.teleport` (with `facingLocation` /
+`rotation`: climbing, ceiling placement) · `Entity.setRotation` · `Entity.applyDamage /
+applyKnockback / addEffect / removeEffect` · `Dimension.getBlockFromRay` (sight, doors and
+glass in its path) · `Dimension.getLightLevel / getSkyLightLevel` ·
 `Dimension.getBlocks(BlockVolume, {includeTypes})` (torch and door queries) ·
 `Dimension.spawnEntity` (`initialRotation`) · `Dimension.spawnParticle` · `Dimension.playSound` ·
 `BlockPermutation.resolve / getState / withState`, `BlockTypes.get` · `system.runJob` ·
@@ -46,17 +50,20 @@ removeEffect` · `Dimension.getBlockFromRay` · `Dimension.getLightLevel / getSk
 Player effects: `Player.camera.addShake / setFov / fade / stopShaking` ·
 `Player.fogSettings.push / remove` (tagged fog stack) · `Player.playMusic / stopMusic`
 (per-player music) · `Player.playSound` (per-player, positional) ·
-`Player.inputPermissions.setPermissionCategory` (LateralMovement, Camera, Sneak during the
-grab) · `Player.onScreenDisplay.setTitle / updateSubtitle / setActionBar` ·
-`world.afterEvents.playerButtonInput` (Jump presses for the struggle) ·
+`Player.inputPermissions.setPermissionCategory` (LateralMovement and Camera during the
+grab; Sneak is only ever restored) · `Player.onScreenDisplay.setTitle / updateSubtitle /
+setActionBar` · `Player.sendMessage` with `rawtext` / `translate` (the resource-pack check) ·
+`world.afterEvents.playerButtonInput` (Jump and Sneak presses for the struggle) ·
 `world.afterEvents.playerBreakBlock / playerPlaceBlock / playerInteractWithBlock /
 blockContainerOpened / itemCompleteUse / itemReleaseUse` (mimicry and noise) ·
 `@minecraft/server-ui` `ActionFormData` / `ModalFormData`.
 
-Commands run from script (no cheats required for script-issued commands): only
-`camera @s fov_clear <time> in_out_sine`, documented as
-`/camera <players> fov_clear [fovEaseTime] [fovEaseType]`; its syntax was confirmed on
-BDS 1.26.61.1.
+Commands run from script (no cheats required for script-issued commands):
+- `camera @s fov_clear <time> in_out_sine`, documented as
+  `/camera <players> fov_clear [fovEaseTime] [fovEaseType]`; its syntax was confirmed on
+  BDS 1.26.61.1;
+- `setblock <x> <y> <z> air destroy` when it breaks through a door or window (drops the
+  block and plays its break effects like a player breaking it); exercised on BDS 1.26.61.1.
 
 Block format: `format_version 1.21.90` with the custom component listed directly in
 `components` (custom components v2), loaded by BDS 1.26.61.1 without content-log errors.

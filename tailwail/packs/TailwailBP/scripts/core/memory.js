@@ -123,9 +123,10 @@ export function setupWeights(m, setups) {
     let w = 1;
     if (idx >= 0) w *= 0.25 + 0.75 * (1 - (idx + 1) / (m.recent.length + 1));
     if (m.last && m.last.setup === s) w = 0; // never back-to-back
-    // players who stare it down see more distant work; players who flee see more corner peeks
-    if (s === "distant_silhouette") w *= 1 + 0.5 * m.react.stare;
-    if (s === "corner_peek") w *= 1 + 0.5 * m.react.flee;
+    // players who stare it down get more of the openings that make staring useless;
+    // players who flee get more corner peeks and ambushes
+    if (s === "treeline" || s === "behind_you") w *= 1 + 0.5 * m.react.stare;
+    if (s === "corner_peek" || s === "ceiling" || s === "huddle") w *= 1 + 0.5 * m.react.flee;
     return [s, w];
   });
 }
