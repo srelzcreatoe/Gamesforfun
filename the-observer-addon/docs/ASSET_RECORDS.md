@@ -42,8 +42,10 @@ with `SHA256SUMS.txt`.
 
 Archive SHA-256: `95af8ed1e68bb6f17e5262bd87d512fad87d50bc1b4f3af7f52c0c064ec7602d` (152 files)
 
-`tools/merge_weeping_mire.py` copies 132 of its files into the packs byte for byte, under their own `wmire:`
-namespace, and `python3 tools/merge_weeping_mire.py --check` verifies that every one still matches the archive:
+`tools/merge_weeping_mire.py` copies 132 of its files into the packs, under their own `wmire:` namespace: 131 byte
+for byte, and the biome definition with one rule tuned (1.0.8, so the Mire generates near the player: its
+`replace_biomes` amount, noise frequency and target list; nothing else in it changes). `python3
+tools/merge_weeping_mire.py --check` verifies every one against the archive (the biome as tuned):
 
 | Pack | Folders (files) |
 |---|---|
@@ -133,7 +135,7 @@ atlas (`textures/particle/particles`) by reference.
 | `TheObserver_RP/textures/particle/observer/wisp.png` | made by the user (supplied 2026-10-08) — shapes from source_assets/supplied_particles/wisp_sheet.png copied pixel-for-pixel into a grid (tools/integrate_particle_sheets.py) | `d6f06c5e60c01904` |
 | `TheObserver_BP/pack_icon.png` | derived — crop of supplied dweller_preview.png on a generated background (tools/make_textures.py) | `2529bdac03c514e1` |
 | `TheObserver_RP/animations/the_observer.animation.json` | supplied — hollow_dweller.animation.json, clip names renamed only | `3d684b6f10a5acc8` |
-| `TheObserver_RP/animations/the_observer_supplemental.animation.json` | original — tools/make_supplemental_anims.py (uses supplied bone names; 1.0.6 adds float_drift — calm, broken by one-frame twitches — float_surge, climb) | `9d226e4b049bab52` |
+| `TheObserver_RP/animations/the_observer_supplemental.animation.json` | original — tools/make_supplemental_anims.py (uses supplied bone names; 1.0.6 adds float_drift — calm, broken by one-frame twitches — float_surge, climb; 1.0.8 float_hang) | `227cb33cc91a9c80` |
 | `TheObserver_RP/models/blocks/effigy.geo.json` | original — tools/make_textures.py | `e85d1aee3108b4c0` |
 | `TheObserver_RP/models/blocks/ward_lantern.geo.json` | original — tools/make_textures.py | `fa03764ae1ebdcb9` |
 | `TheObserver_RP/models/entity/the_observer.geo.json` | supplied — hollow_dweller.geo.json, identifier renamed and two eye locators added (tools/integrate_supplied_assets.py asserts cubes/UVs unchanged) | `48b77f6164817a47` |

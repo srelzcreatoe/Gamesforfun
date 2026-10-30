@@ -7,7 +7,7 @@ State -> animation mapping (q.property('observer:state') is set by the behaviour
   stare   staring (supplied)   + look_at_target      rigid gaze, abrupt head turns (contact)
   tilt    pose (supplied)                            crooked head-tilt hold (acknowledgement)
   walk    stalk_walk (new)     + look_at_target      slow approach / repositioning / retreat
-  run     running (supplied)                         pursuit
+  run     running (supplied)                         unused since 1.0.8: every run, chase and attack floats
   attack  attack (supplied, once)                    telegraphed overhead strike
   peek    idle (supplied)      + peek (new)          leaning out from cover; side = q.property('observer:side')
   recoil  recoil (new, once)                         flinch when witnessed / struck
@@ -18,6 +18,10 @@ State -> animation mapping (q.property('observer:state') is set by the behaviour
 
 observer:stoop (bool) layers the additive stoop crouch on top of any state so the
 4-block figure fits 3-block spaces.
+
+observer:afloat (bool, 1.0.8) is set while it floats (the chase, every attack, the lunge): any state that is
+not itself a floating clip (attack, recoil, stare ...) gets float_hang layered on, so it strikes and flinches
+in mid-air with its legs hanging instead of dropping to the ground.
 
 Presence effects (client side, so they follow the body exactly):
   * aura   while it is shown: glowing wisps (supplied wisp sprites) around it from head to toe
@@ -64,6 +68,17 @@ def state_controller():
     return {"initial_state": "default", "states": states}
 
 
+FLOATING = ("float", "surge", "climb", "hidden")
+AFLOAT = "q.property('observer:afloat') && " + " && ".join(f"q.property('observer:state') != '{s}'" for s in FLOATING)
+
+
+def afloat_controller():
+    return {"initial_state": "default", "states": {
+        "default": {"transitions": [{"hanging": AFLOAT}], "blend_transition": 0.25},
+        "hanging": {"animations": ["float_hang"], "transitions": [{"default": f"!({AFLOAT})"}], "blend_transition": 0.25},
+    }}
+
+
 def stoop_controller():
     return {"initial_state": "default", "states": {
         "default": {"transitions": [{"stooped": "q.property('observer:stoop')"}], "blend_transition": 0.4},
@@ -95,6 +110,7 @@ def main():
     ac = {"format_version": "1.10.0", "animation_controllers": {
         "controller.animation.observer.state": state_controller(),
         "controller.animation.observer.stoop": stoop_controller(),
+        "controller.animation.observer.afloat": afloat_controller(),
         "controller.animation.observer.aura": aura_controller(),
         "controller.animation.observer.eyes": eyes_controller(),
     }}
@@ -117,12 +133,14 @@ def main():
             "float_drift": "animation.observer.float_drift",
             "float_surge": "animation.observer.float_surge",
             "climb": "animation.observer.climb",
+            "float_hang": "animation.observer.float_hang",
             "ctrl_state": "controller.animation.observer.state",
             "ctrl_stoop": "controller.animation.observer.stoop",
+            "ctrl_afloat": "controller.animation.observer.afloat",
             "ctrl_aura": "controller.animation.observer.aura",
             "ctrl_eyes": "controller.animation.observer.eyes",
         },
-        "scripts": {"animate": ["ctrl_state", "ctrl_stoop", "ctrl_aura", "ctrl_eyes"]},
+        "scripts": {"animate": ["ctrl_state", "ctrl_stoop", "ctrl_afloat", "ctrl_aura", "ctrl_eyes"]},
         "particle_effects": {"wisp": "observer:wisp", "eye_glow": "observer:eye_glow"},
         # short name -> sound event, as plain strings (the client rejects {"effect": ...} objects here)
         "sound_effects": {"windup": "observer.windup", "recoil": "observer.fabric", "crack": "observer.crack"},

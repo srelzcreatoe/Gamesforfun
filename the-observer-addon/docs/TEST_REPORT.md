@@ -94,7 +94,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 72 test groups (including setup and a status check) with 306 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 73 test groups (including setup and a status check) with 319 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -128,7 +128,9 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | **final (1.0.6)** | **283** | **0** | all passed: the 1.0.5 suite plus the floating chase (surge, drift, the shoreline hover) and climbing (pillar, from the wall during the attack, over the top of a roof) |
 | targeted (1.0.7: the Weeping Mire) | 19 + 22 + 20 + 21 | 5 + 4 + 1 + 1 | runs 1–2: looking at its watcher never counted — under the weeping trees its head reached into the canopy, where it could see out but nobody could see it (placement now checks the line of sight both ways, for every encounter); run 1 also: the last torn page found it still busy and gave up (it now waits up to a minute); run 3: a test retry after an aborted appearance hit its cooldown (test-side); run 4: a torn page found no visible spot 16–24 blocks behind the player in thick trees (it now tries from 8 blocks before falling back), and the test then read the removed entity (test-side) |
 | targeted (1.0.7) | 26 | 0 | all passed |
+| targeted (1.0.8: every attack floats; the Mire near spawn, never where you start) | 94 + 99 + 93 + 98 | 4 + 1 + 2 + 1 | run 1: the first biome tuning also took the taigas, and the test arena (a taiga) became Mire, which the new setup check caught (the field then counted as its home, so two Mire checks that compare "there" with "elsewhere" failed too) — the taigas were left out; the test could not write back a fresh world's unset spawn (test-side). Runs 2–4: the taiga-shadow test ran before any other shadow test, so the "first minute in the woods is quiet" clock had not started when it skipped time (test-side: it now waits for it); and the first-spawn guard's "no spawn point of their own" condition was wrong — every player has one — so it was dropped. Every float assertion (approach, lunge, strike and recoil in mid-air) passed in every run |
 | **final (1.0.7)** | **306** | **0** | all passed on the first full run: the 1.0.6 suite (re-run because placement now checks the line of sight both ways) plus the Weeping Mire as its home (context, stage bonus, early grace, its watcher, too close at 9 blocks, the torn pages) |
+| **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
 
 Run 7 (1.0.1): 1080 s, minimum TPS 19.8, 0 errors; after the version bump to 1.0.1, `setup wheel_welcome showcase
 toggles distant_watch status` was re-run: 19 / 19.
@@ -149,6 +151,10 @@ Final run (1.0.6): 69 test groups, 1274 s, minimum TPS between tests 19.9, **0 c
 
 Final run (1.0.7): 72 test groups, 1547 s, minimum TPS between tests 19.8, **0 content-log or script errors**.
 
+Final run (1.0.8): 73 test groups, 1572 s, minimum TPS between tests 19.6, **0 content-log or script errors**.
+`noexp.txt` and `mire_locate.txt` re-run on 1.0.8: `level.dat` experiments none, 0 errors; the nearest Weeping Mire
+to 0,0 on seed 424242 is now at 32, 95, -32 ("45 blocks", the first square `locate` samples).
+
 **The Weeping Mire with no experiments (1.0.7):** `mire_locate.txt` without the test kit on a fresh world (seed
 424242), `--require-no-experiments`: `level.dat` experiments **none** before and after; `locate biome
 wmire:weeping_mire` found the Mire at -1760, 63, 928 (1989 blocks from spawn); Mire blocks placed and read back
@@ -168,7 +174,7 @@ which is why only test worlds get it.
 
 | Test group | Assertions passed | Failed |
 |---|---|---|
-| `setup` | 3 | — |
+| `setup` | 4 | — |
 | `wheel_welcome` | 1 | — |
 | `distant_watch` | 9 | — |
 | `unnoticed_trace` | 3 | — |
@@ -209,17 +215,17 @@ which is why only test worlds get it.
 | `pursuit_water_escape` | 4 | — |
 | `closed_path_light` | 7 | — |
 | `bearing_three` | 2 | — |
-| `showcase` | 7 | — |
+| `showcase` | 8 | — |
 | `toggles` | 1 | — |
 | `presence_fx` | 4 | — |
 | `auto_peek` | 3 | — |
-| `lunge` | 4 | — |
+| `lunge` | 5 | — |
 | `creeping_held` | 5 | — |
 | `creeping_reaches` | 3 | — |
 | `test_entries` | 8 | — |
-| `relentless` | 3 | — |
+| `relentless` | 5 | — |
 | `near_vanish` | 3 | — |
-| `near_strike` | 2 | — |
+| `near_strike` | 3 | — |
 | `illusion` | 6 | — |
 | `illusion_taiga` | 2 | — |
 | `flare` | 10 | — |
@@ -235,6 +241,10 @@ which is why only test worlds get it.
 | `climb_attack` | 3 | — |
 | `climb_over` | 2 | — |
 | `float_test_entry` | 2 | — |
+| `mire_home` | 6 | — |
+| `mire_watcher` | 10 | — |
+| `mire_pages` | 7 | — |
+| `mire_spawn` | 7 | — |
 | `natural` | 1 | — |
 | `status` | 0 | — |
 
@@ -244,6 +254,27 @@ Scenarios `restart_a.txt` then `restart_b.txt` on the same world (re-run after t
 a *Closed Path* is started, the Veil seal placed and the Observer present and watched — then the server is stopped
 mid-encounter (A: 5/5 pass). After restart (B: 2/2 pass): **0 stray Observer bodies** once the chunk loaded, and the
 interrupted encounter's Veil cells were **restored** (0 Veil blocks left) within 30 s.
+
+### 5.4 Where the Weeping Mire generates (1.0.8)
+
+`locate biome wmire:weeping_mire` from the server console (origin 0,0) on fresh worlds, no experiments, one world per
+seed. "45" is the first square `locate` samples (±32, ±32): the Mire is right there. Seeds 1 and 8080 have deep ocean
+at 0,0, so the game's land spawn is elsewhere and these two distances overstate it.
+
+| Setting (`replace_biomes`) | 424242 | 1 | 31337 | 90210 | 2026 | 5150 | 777 | 8080 |
+|---|---|---|---|---|---|---|---|---|
+| as merged in 1.0.7 (amount 0.25, noise 0.4) | 1989 | 1696 | 1586 | 2266 | 1221 | 1496 | 289 | 595 |
+| amount 0.25, noise 1.0 | 996 | 647 | 559 | 2266 | 1810 | — | — | — |
+| amount 0.4, noise 1.0 | 950 | 635 | 497 | 481 | 417 | — | — | — |
+| amount 0.4, noise 2.0 | 417 | 595 | 481 | 45 | 45 | — | — | — |
+| amount 0.3 or 0.35, noise 2.0, more targets (with taigas) | 417 | 559 | 364 | 289 | 226 | 684–725 | 101 | 595 |
+| amount 0.4, noise 2.0, more targets (with taigas) | 45 | 595 | 243 | 45 | 45 | 45 | 101 | 544 |
+| amount 0.4, noise 3.0, more targets (with taigas) | 45 | 635 | 243 | 45 | 135 | 45 | 101 | 544 |
+| **shipped: amount 0.4, noise 2.0, more targets (no taigas)** | **45** | **595** | **243** | **45** | **45** | **45** | **101** | **544** |
+
+Taking the taigas as well made no difference to these distances but put the test arena (a taiga) inside the Mire,
+so the taigas are left alone (they keep the taiga shadows). With the shipped setting, `setup_arena_not_in_the_mire`
+and `illusion_in_taiga` confirm the arena is still a taiga, and the test Mire is at 32, 95, -32 (seed 424242).
 
 ## 6. Manual in-game test procedure (client)
 
@@ -298,6 +329,10 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
    `/scriptevent observer:trigger mire_watcher`: the Observer stands among the trees, not inside the canopy; look at it
    and it holds your gaze, then is gone in black mist with a cave sound. `/scriptevent observer:mirepage all`: the
    title *it knows your name*, and it is behind you.
+12. **1.0.8** — Test an encounter → **The Strike**: it comes at you a block off the ground (no footsteps, a rush of
+   air), and the wind-up and the strike happen in mid-air with its legs hanging, never touching down; drive it off with
+   the lens: the recoil is in mid-air too. **See it now** shows the same. On a few new worlds, check you never start
+   inside the Mire and that it is in sight or a short walk away.
 
 ## 7. Bugs found and fixed
 
@@ -341,6 +376,14 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
 * The new too-close reaction cut *Borrowed Work* short (walking up to the source is that encounter's answer) — it now
   handles the approach itself; spots far below the player's level are penalised (an *Echo Ahead* spot landed 64
   blocks below the test platform).
+
+**Found by the 1.0.8 tests**
+* The first biome tuning made the Mire take taigas too, and the test arena — a taiga — became Mire; the new
+  `setup_arena_not_in_the_mire` check caught it. Taking the taigas made no difference to how close the Mire is to
+  spawn (§5.4), so they are left alone.
+* A new world's spawn is unset (y 32767): the game picks the spot itself, which may be away from 0,0 when 0,0 is
+  ocean. The first-spawn guard now treats any first spawn as "at the world spawn" while it is unset, instead of
+  requiring it to be within 48 blocks of 0,0.
 
 **Found by the 1.0.7 tests**
 * In the Weeping Mire the watcher could be placed where the player could not see it, although placement had
@@ -418,4 +461,7 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
   the "Pages I didn't write" and "What I have learned" forms, and the shore-wait, from-behind, outrun, double-seal,
   lens and blow adaptations individually (they share the asserted code paths: counting, adapting, `shrug`, thresholds).
 * Crafting a Flare in the crafting UI (the recipe loads without errors; the recipe book needs a client).
+* 1.0.8: how the strike and recoil look in mid-air (the server shows the `observer:afloat` property set on every
+  strike in the tests; the look is an offline preview), and a real client's first spawn in a new world whose spawn is
+  inside the Mire (the move is tested with simulated players; a real join goes through the same `playerSpawn` event).
 * Phones, consoles, low-end devices, and Realms.

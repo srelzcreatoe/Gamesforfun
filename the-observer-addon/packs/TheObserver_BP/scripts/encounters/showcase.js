@@ -1,6 +1,6 @@
 // @ts-check
 // Config Wheel "See it now": a preview, not part of the story. The Observer appears a few blocks in
-// front of the player and shows each of its animation states, named on the action bar, then lunges
+// front of the player and shows each of its animation states, named on the action bar, then floats
 // at the player and tears apart (the vanish effect). Works in any game mode and even while The
 // Observer is switched off; it never hurts anyone, changes no blocks and gives no progress.
 import { register } from "../director/director.js";
@@ -12,7 +12,8 @@ import { lunge } from "./common.js";
 
 /** state, ticks shown */
 // (no "peek": it only peeks from behind real cover — see Test an encounter → Peeking from cover)
-const STEPS = [["watch", 60], ["stare", 60], ["tilt", 70], ["walk", 70], ["run", 50], ["attack", 40], ["recoil", 30], ["stare", 30]];
+// From "float" on it is afloat: it drifts, surges, strikes, flinches and stares in mid-air (it never runs).
+const STEPS = [["watch", 60], ["stare", 60], ["tilt", 70], ["walk", 70], ["float", 70], ["surge", 50], ["attack", 40], ["recoil", 30], ["stare", 30]];
 
 register({
   id: "showcase",
@@ -38,6 +39,7 @@ register({
     const spot = enc.data.spot;
     if (!enc.spawnBody(spot.loc, { state: "watch", stoop: spot.stoop, side: spot.side, autoPeek: false })) return enc.result("deferred");
     for (const [state, ticks] of STEPS) {
+      if (state === "float") body.setSilent(true);
       body.setState(/** @type {string} */ (state));
       safe(() => p.onScreenDisplay.setActionBar({ rawtext: [{ translate: `observer.ui.showcase.${state}` }] }));
       if (state === "attack") {

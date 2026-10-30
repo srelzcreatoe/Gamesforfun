@@ -81,6 +81,8 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   list and are not verifiable on a server.
 * Forms (Field Notes — including "Pages I didn't write" and what it has learned — settings), action-bar captions, title
   cards, camera fades and shakes (the fade API and the `camerashake` command were accepted by the server).
+* 1.0.8: how the strike and recoil read in mid-air (the supplied attack clip with `float_hang` layered under it;
+  offline preview only), and what a new world feels like with the Mire beside the spawn.
 * 1.0.7, the Weeping Mire: how the biome looks with The Observer's resource pack (fog, lighting, colour grading,
   water and the `pbr` capability it needs, its block textures and texture sets), the wind and falling-leaf particles,
   the torn-page form and the *it knows your name* title. The server generates the biome and loads every Mire block
@@ -118,6 +120,8 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 | Walking away looks like gliding in a client | low–medium | step length/rate are two constants in `body.withdraw`; the walk clip plays from the state property |
 | Observer clips into foliage on hills | low | spot search rejects leaves as ground, needs ≥ 3 blocks headroom |
 | A world also has the stand-alone Weeping Mire packs active | medium | both define the same `wmire:` biome, blocks and pages: the Player Guide says to deactivate the stand-alone packs; identifiers are kept so placed Mire blocks survive |
+| The Mire is now common (1.0.8: 40 % of plains, forests, swamps, rivers, meadows, savannas and jungles) | medium | the user asked for it near the player; one function (`tune_biome` in `tools/merge_weeping_mire.py`) sets amount, patch size and targets; taigas are left alone |
+| A new player is moved on arrival | low | only on their first spawn, only at the world spawn, only if it is inside the Mire; they land facing it, a few blocks outside its edge |
 | The Mire's look depends on `pbr` | low–medium | the RP declares the `pbr` capability the Mire's texture sets and lighting use; to be confirmed in a client (§1) |
 | Players dislike base intrusion | — | Ward Lantern, manipulation levels, `/observer:restore`, Atmosphere preset |
 | Pack removed without restoring | low | documented; Veil/Effigy would remain as unknown blocks |

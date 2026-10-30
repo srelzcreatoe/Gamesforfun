@@ -175,8 +175,16 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | More active at home | `director/context.js` (`mire`, `effectiveStage`, `moodFactor`), `director.js` (`ready`, `eligibleWeight`), `hush.wanted` | standing in the Mire | one stage further along; shorter gaps; grace ends after 30 s there | `mire_context`, `mire_watcher_eligible_there`, `mire_stage_bonus`, `mire_only_there`, `mire_grace_ends_early` | ✅ Runtime |
 | Wind, falling leaves, pages | `mire/mire.js` (ported), custom components `wmire:falling_leaves`, `wmire:readable_page` | in the Mire | gusts with leaves and streaks; leaves drift down; a page opens its note | blocks load with their components (`mire_locate.txt`, 0 errors) | 🟡 Runtime load ✅ / look ❔ |
 
+## 1.0.8: it never runs; the Mire near the player
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| Every attack floats at you | `body.surge()` in `common.relentless`, `common.lunge`, `director.reactNear`, `tests.js`; `climb.after` default | the relentless attack (any encounter), the lunge, the too-close strike | `surge` (never `run`), silent steps, rush of air every 2 s | `relentless_floats_at_you`, `lunge_floats_at_you`, `showcase_all_states` | ✅ Runtime (look ❔) |
+| Strikes and recoils in mid-air | `observer:afloat` (BP property, set by `body.setSilent`), `float_hang` overlay (`tools/make_supplemental_anims.py`), afloat controller (`tools/make_client_entity.py`) | any state while afloat that is not a floating clip | the supplied attack clip a block up with the legs hanging; recoil and stares likewise | `relentless_strikes_in_mid_air`, `near_strike_from_mid_air`, `showcase_strike_in_mid_air`; `docs/media/1.0.8/floating_attack.mp4` | ✅ Runtime (property) / client ❔ |
+| The Mire near the player | `tools/merge_weeping_mire.py` `tune_biome` (amount 0.4, noise 2.0, more target biomes) | new terrain | nearest Mire to 0,0: 45–595 blocks over 8 seeds (was 290–2270) | `locate` sweep (TEST_REPORT §5.2), `mire_biome_generated` | ✅ Runtime |
+| Never where you start | `mire/mire.js` `firstSpawn` | a new player's first spawn, at the world spawn, inside the Mire | moved to dry ground ≥ 6 blocks outside its edge, facing it; world spawn moved too; anyone arriving elsewhere is left alone | `mire_spawn_moved_out`, `mire_spawn_outside_now`, `mire_spawn_near_it`, `mire_spawn_faces_it`, `mire_spawn_world_spawn_moved`, `mire_spawn_elsewhere_left_alone` | ✅ Runtime |
+
 ## Performance
 | Measure | Result | Test |
 |---|---|---|
 | Server tick rate, 180 s walking player, director active (2 encounters ran) | 20.00 mean / 19.99 min TPS — identical to the add-on-free baseline (20.00 / 19.99) | `tps.txt` with and without `--no-addon` |
-| No content-log or script errors during full suite | 0 errors (final 1.0.7 run: 306/306 assertions, 72 test groups, min 19.8 TPS between tests) | `run_bds.py` summary |
+| No content-log or script errors during full suite | 0 errors (final 1.0.8 run: 319/319 assertions, 73 test groups, min 19.6 TPS between tests) | `run_bds.py` summary |

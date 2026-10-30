@@ -19,14 +19,15 @@ Minecraft imports both packs. Then:
    Weeping Mire, its home). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from an earlier version:** import the new `.mcaddon` (version 1.0.7). If a world still uses the old copy, open the world's
-settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.0.7 packs again. Your
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.0.8). If a world still uses the old copy, open the world's
+settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.0.8 packs again. Your
 progress is kept; the new options below start switched on.
 
 **The Weeping Mire is part of The Observer now (1.0.7).** If a world also has the stand-alone *Weeping Mire* packs
 active, deactivate them there (both behaviour and resource pack): The Observer brings the same biome, blocks and pages
 with the same names, and two copies would clash. Blocks you already placed from the Mire stay as they are. In an
-existing world the Mire only appears in land you have not explored yet (Minecraft never regenerates terrain).
+existing world the Mire only appears in land you have not explored yet (Minecraft never regenerates terrain), so the
+Mire near spawn (1.0.8) is for new worlds.
 
 **Existing worlds:** back the world up first, then add the packs as above. The add-on only changes blocks in small,
 recorded, reversible ways (see "Your builds are safe" below).
@@ -44,8 +45,10 @@ When you do see it: a four-block figure wrapped in drifting, faintly glowing wis
 dark. It groans to itself when it is near. When it knows you have seen it there is a rattle of clicks and a crack —
 and from the second stage on it may shriek and come straight at you. When it leaves, it tears apart into crimson shreds.
 
-**When it hunts you** (the chase, from the fourth stage) it does not run. It floats a block off the ground, with no
-footsteps — only a rush of air — surging at you when you look away and drifting, limp, while you watch it. **Climbing
+**It never runs.** Whenever it comes for you — the chase, a lunge when you spot it, the attack once it reaches you,
+the strike when you walk up to it — it floats a block off the ground, with no footsteps, only a rush of air, and
+strikes from the air with its legs hanging limp. **When it hunts you** (the chase, from the fourth stage) it surges
+at you when you look away and drifts, limp, while you watch it. **Climbing
 will not save you:** get up on a pillar, a ledge, a roof or a ladder and it climbs the wall after you and strikes
 from there. **Water still does:** it will not cross it; it floats to the water's edge and hovers there, watching.
 
@@ -57,7 +60,9 @@ you can touch it — but now and then it strikes first. On Low aggression it str
 your health while you are above half); on "Never attacks" and on Peaceful it never hurts you.
 
 **Its home is the Weeping Mire**, a swamp of black-barked weeping trees, bone roots and silt ponds under a black fog,
-where the wind gusts and leaves fall. Out there it stands among the trees and watches you; look at it, or come within
+where the wind gusts and leaves fall. It is never far from where a new world starts — often right beside it — but you
+never start inside it: if the world's spawn falls in the Mire, you arrive just outside its edge, looking into it (and
+the world spawn moves there too). Out there it stands among the trees and watches you; look at it, or come within
 nine blocks, and it is gone in black mist. Torn pages lie on the ground — eight in all. Reading one sometimes brings it
 up behind you, and the last of the eight always does. In the Mire it does not wait for you to settle in: the grace
 period ends after half a minute there, it comes sooner and more often, and it behaves as if you were one stage further
@@ -96,13 +101,13 @@ Players who are not operators only see the status and their own caption setting.
 | Button | What it does |
 |---|---|
 | status (top) | on/off and preset, your stage or how long until it begins, whether something may happen soon, how many changed blocks are waiting to be put back; warns you if your game mode keeps it away |
-| **See it now** | a harmless preview: it appears a few blocks in front of you and shows each animation (watching, staring, head tilt, peeking, stalking walk, running, strike wind-up with its shriek, recoil), named on screen, then lunges at you and tears apart. Glowing wisps surround it; at night its eyes glow. Works in Creative, never hurts, changes nothing and does not count toward the story |
+| **See it now** | a harmless preview: it appears a few blocks in front of you and shows each animation (watching, staring, head tilt, stalking walk, drifting, floating at you, strike wind-up in mid-air with its shriek, recoil in mid-air), named on screen, then floats at you and tears apart. Glowing wisps surround it; at night its eyes glow. Works in Creative, never hurts, changes nothing and does not count toward the story |
 | **Start it for me now** / **Make something happen soon** | skips the grace period (or the current wait) for you; the first encounter follows within about a minute (Survival or Adventure only) |
 | **Switch The Observer on/off** | master switch; switching off puts back everything it changed |
 | **Presets** | Atmosphere, Standard, Relentless |
 | **All settings** | frequency, aggression, environmental manipulation, sudden scares, camera effects, captions, grace period, world weather, developer tracing, taiga shadows, escape learning, the silence before attacks, pages you didn't write, returned items |
 | **Encounter toggles** | one switch per encounter type (with the stage it unlocks at); switched-off types are never chosen |
-| **Test an encounter** | starts something on you right now. First the single behaviours (red): **The Vigil (practice)** (three rounds, no reward, nothing recorded), **The Strike** (it runs up and keeps attacking until you die or drive it off — Low aggression: one strike), **The Lunge** (look at it and it comes at you), **Peeking from cover** (only beside a trunk or wall corner ahead of you; with nothing there it says so), **Taiga shadow** (the illusion, here anywhere), **Getting too close** (walk up to it), **The Flare** (it stares; throw a flare near it — you get one if you have none), **The world goes quiet** (20 s of silence, then nothing), **A page you didn't write** (one appears in your Field Notes now), **It returns what you threw away** (needs a home it knows: drop something and walk 10 blocks away), **The floating chase** (it floats at you and tears apart 3 blocks short), **Climbing after you** (stand on something 3+ blocks high: it climbs up to you, then lets go). Then every encounter. If the place is unsuitable it tells you what that one needs (for example, *The Closed Path* needs a tunnel at least 3 blocks high). Tests never count toward your story |
+| **Test an encounter** | starts something on you right now. First the single behaviours (red): **The Vigil (practice)** (three rounds, no reward, nothing recorded), **The Strike** (it floats at you and keeps attacking from the air until you die or drive it off — Low aggression: one strike), **The Lunge** (look at it and it comes at you), **Peeking from cover** (only beside a trunk or wall corner ahead of you; with nothing there it says so), **Taiga shadow** (the illusion, here anywhere), **Getting too close** (walk up to it), **The Flare** (it stares; throw a flare near it — you get one if you have none), **The world goes quiet** (20 s of silence, then nothing), **A page you didn't write** (one appears in your Field Notes now), **It returns what you threw away** (needs a home it knows: drop something and walk 10 blocks away), **The floating chase** (it floats at you and tears apart 3 blocks short), **Climbing after you** (stand on something 3+ blocks high: it climbs up to you, then lets go). Then every encounter. If the place is unsuitable it tells you what that one needs (for example, *The Closed Path* needs a tunnel at least 3 blocks high). Tests never count toward your story |
 | **Undo its changes** | puts back every block it changed and ends whatever it is doing |
 | **Sound captions** | your own caption setting |
 

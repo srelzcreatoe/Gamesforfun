@@ -6,7 +6,9 @@ writes an animated GIF, plus one still contact sheet of all clips. Used to revie
 they are seen in a client.
 
 Usage: preview_anims.py OUT_DIR CLIP [CLIP ...] [--frames N] [--stoop] [--video NAME.mp4 [--seconds S]]
-  CLIP = an animation short name from the supplemental file (e.g. float_drift) or supplied:NAME
+  CLIP = an animation short name from the supplemental file (e.g. float_drift) or supplied:NAME; layers are
+         joined with "+" and play together as the client layers them (e.g. supplied:attack+float_hang: the
+         strike in mid-air); the first layer sets the length
   --video also writes one MP4 (30 fps, H.264) with every clip looped for S seconds, back to back (needs ffmpeg)
 """
 import argparse
@@ -38,6 +40,20 @@ def load(name):
     return json.load(open(SUPP))["animations"][f"animation.observer.{name}"]
 
 
+def layers(name):
+    """[(animation, length)] for a CLIP, one per "+" layer."""
+    return [(a, float(a.get("animation_length", 1.0))) for a in (load(n) for n in name.split("+"))]
+
+
+def at(lay, t):
+    """Each layer at time t: looping layers wrap, the others hold their last frame."""
+    return [(a, t % ln if a.get("loop") is True else min(t, ln)) for a, ln in lay]
+
+
+def fname(name):
+    return name.replace("supplied:", "").replace("+", "_with_")
+
+
 def frame(model, anims, title):
     panels = [rm.render(model, anims, None, view=v, size=SIZE, scale=SCALE, label=v.replace("_", "-")) for v in VIEWS]
     img = Image.new("RGB", (SIZE[0] * len(panels), SIZE[1] + 28), (245, 245, 245))
@@ -61,13 +77,13 @@ def main():
     model = rm.Model(GEO, TEX)
     stills = []
     for name in a.clips:
-        anim = load(name)
-        length = float(anim.get("animation_length", 1.0))
+        lay = layers(name)
+        length = lay[0][1]
         frames = []
         for i in range(a.frames):
             t = length * i / a.frames
-            frames.append(frame(model, [(anim, t)], f"{name}   t = {t:.2f} s / {length:.2f} s   (offline preview; floor line = ground)"))
-        out = os.path.join(a.out, f"{name}.gif")
+            frames.append(frame(model, at(lay, t), f"{name}   t = {t:.2f} s / {length:.2f} s   (offline preview; floor line = ground)"))
+        out = os.path.join(a.out, f"{fname(name)}.gif")
         frames[0].save(out, save_all=True, append_images=frames[1:], duration=int(1000 * length / a.frames), loop=0)
         stills.append(frames[a.frames // 4])
         print(out, os.path.getsize(out), "bytes")
@@ -89,11 +105,11 @@ def video(model, clips, out, seconds, fps=30):
     try:
         n = 0
         for name in clips:
-            anim = load(name)
-            length = float(anim.get("animation_length", 1.0))
+            lay = layers(name)
+            length = lay[0][1]
             for i in range(int(seconds * fps)):
                 t = (i / fps) % length
-                img = frame(model, [(anim, t)], f"{name}   (offline preview of the in-game keyframes; floor line = ground, red marks = blocks)")
+                img = frame(model, at(lay, t), f"{name}   (offline preview of the in-game keyframes; floor line = ground, red marks = blocks)")
                 img.save(os.path.join(tmp, f"f{n:05d}.png"))
                 n += 1
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(fps), "-i", os.path.join(tmp, "f%05d.png"),

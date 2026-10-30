@@ -83,10 +83,17 @@
               "minecraft:swampland",
               "minecraft:swampland_mutated",
               "minecraft:mangrove_swamp",
-              "minecraft:river"
+              "minecraft:river",
+              "minecraft:meadow",
+              "minecraft:pale_garden",
+              "minecraft:cherry_grove",
+              "minecraft:savanna",
+              "minecraft:savanna_mutated",
+              "minecraft:jungle_edge",
+              "minecraft:jungle"
             ],
-            "amount": 0.25,
-            "noise_frequency_scale": 0.4
+            "amount": 0.4,
+            "noise_frequency_scale": 2.0
           }
         ]
       },

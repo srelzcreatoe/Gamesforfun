@@ -13,6 +13,10 @@ under its own `wmire:` namespace, except:
 
 Files with the same name in both packs are merged: RP blocks.json, textures/terrain_texture.json,
 texts/en_US.lang. The RP manifest gets the "pbr" capability the Mire's textures and lighting need.
+
+One file is tuned (1.0.8), so the Mire generates near the player: the biome's replace_biomes rule
+(see tune_biome). Everything else in the biome is unchanged, and the player is never started inside it
+(scripts/mire/mire.js moves a first spawn in the Mire just outside it).
 Re-running is safe: it rewrites the merged files from the archive.
 
 Usage: python3 tools/merge_weeping_mire.py           merge
@@ -40,12 +44,31 @@ SKIP = {
     "Weeping Mire RP/textures/entity/wmire/watcher_mer.png",
     "Weeping Mire RP/manifest.json", "Weeping Mire RP/pack_icon.png", "Weeping Mire RP/texts/languages.json",
 }
+BIOME = "Weeping Mire BP/biomes/weeping_mire.biome.json"
+# the Mire also takes over these (the original replaces plains, forests, swamps and rivers): meadows, the pale
+# garden, cherry groves, savannas and jungles, so wherever a world starts it is not far away. Not the taigas:
+# they keep their own shadows (observer/illusions.js), and taking them made no difference to the distances
+MORE_TARGETS = ["minecraft:meadow", "minecraft:pale_garden", "minecraft:cherry_grove", "minecraft:savanna",
+                "minecraft:savanna_mutated", "minecraft:jungle_edge", "minecraft:jungle"]
+
+
+def tune_biome(data):
+    """Near the player: 40 % of each target biome instead of 25 %, in patches about half the size (twice the
+    noise frequency), over more kinds of land. Measured on BDS 1.26.52 over 8 seeds with `locate` from 0,0
+    (docs/TEST_REPORT.md): from 290-2270 blocks (6 of 8 over 1200) to 45-595, half of them right there."""
+    rule = data["minecraft:biome"]["components"]["minecraft:replace_biomes"]["replacements"][0]
+    rule["amount"] = 0.4
+    rule["noise_frequency_scale"] = 2.0
+    rule["targets"] = rule["targets"] + [t for t in MORE_TARGETS if t not in rule["targets"]]
+    return data
+
+
 MERGE = {"Weeping Mire RP/blocks.json", "Weeping Mire RP/textures/terrain_texture.json", "Weeping Mire RP/texts/en_US.lang"}
 LANG_DROP = ("entity.wmire:watcher", "item.spawn_egg.entity.wmire:watcher", "pack.name", "pack.description")
 
 
 def check():
-    """Every file the merge copies must be in the packs, byte for byte."""
+    """Every file the merge copies must be in the packs, byte for byte (the biome: as tuned by tune_biome)."""
     bad, n = [], 0
     with zipfile.ZipFile(SRC) as z:
         for rel in sorted(z.namelist()):
@@ -54,7 +77,12 @@ def check():
             side, sub = rel.split("/", 1)
             dest = os.path.join(BP if side.endswith("BP") else RP, sub)
             n += 1
-            if not os.path.exists(dest) or open(dest, "rb").read() != z.read(rel):
+            if not os.path.exists(dest):
+                bad.append(sub)
+            elif rel == BIOME:
+                if json.load(open(dest)) != tune_biome(json.loads(z.read(rel))):
+                    bad.append(sub)
+            elif open(dest, "rb").read() != z.read(rel):
                 bad.append(sub)
     print(f"{n} Weeping Mire files checked, {len(bad)} differ" + "".join(f"\n  {b}" for b in bad))
     return 1 if bad else 0
@@ -81,7 +109,11 @@ def main():
                 dest_root = BP if side.endswith("BP") else RP
                 dest = os.path.join(dest_root, sub)
                 os.makedirs(os.path.dirname(dest), exist_ok=True)
-                shutil.copyfile(full, dest)
+                if rel == BIOME:
+                    json.dump(tune_biome(json.load(open(full))), open(dest, "w"), indent=2)
+                    open(dest, "a").write("\n")
+                else:
+                    shutil.copyfile(full, dest)
                 copied += 1
         # RP blocks.json and the terrain atlas: add the Mire's entries to ours
         for rel, key in (("blocks.json", None), ("textures/terrain_texture.json", "texture_data")):

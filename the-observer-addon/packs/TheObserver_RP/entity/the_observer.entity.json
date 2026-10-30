@@ -28,8 +28,10 @@
         "float_drift": "animation.observer.float_drift",
         "float_surge": "animation.observer.float_surge",
         "climb": "animation.observer.climb",
+        "float_hang": "animation.observer.float_hang",
         "ctrl_state": "controller.animation.observer.state",
         "ctrl_stoop": "controller.animation.observer.stoop",
+        "ctrl_afloat": "controller.animation.observer.afloat",
         "ctrl_aura": "controller.animation.observer.aura",
         "ctrl_eyes": "controller.animation.observer.eyes"
       },
@@ -37,6 +39,7 @@
         "animate": [
           "ctrl_state",
           "ctrl_stoop",
+          "ctrl_afloat",
           "ctrl_aura",
           "ctrl_eyes"
         ]

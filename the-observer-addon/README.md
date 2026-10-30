@@ -19,8 +19,8 @@ your light — always deliberately, always reversibly — and watches what you d
 4. Play. Nothing happens for the first 12 minutes on the Standard preset. Details: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md).
 
 ## Status
-Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.0.7 integration run passed 306 of
-306 checks (72 test groups) with no content-log or script errors, restart recovery passed, and the server held 20 TPS
+Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.0.8 integration run passed 319 of
+319 checks (73 test groups) with no content-log or script errors, restart recovery passed, and the server held 20 TPS
 with and without the add-on. A separate run on a fresh world with every experiment switched off (and no test kit)
 loaded everything with zero errors — no experiments are needed; the same holds for the merged Weeping Mire, which
 generates on a fresh world with every experiment off. The first load in a game client reported three resource-pack errors, which are fixed in this build and now
@@ -28,15 +28,16 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
 [docs/TEST_REPORT.md](docs/TEST_REPORT.md) §6 and [docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md).
 
 ## What's inside
-* **One physical Observer** built on the supplied model: 5 supplied clips + 8 supplemental clips (stalking walk, peek,
+* **One physical Observer** built on the supplied model: 5 supplied clips + 9 supplemental clips (stalking walk, peek,
   recoil, stoop crouch for low ceilings, head tracking, and in 1.0.6 two floating clips — the drift twitching and
-  cracking in jerks — and a climb), state-driven
+  cracking in jerks — and a climb; in 1.0.8 a hanging overlay so it strikes and recoils in mid-air), state-driven
   animation controllers, eyes that glow in the
   dark, a glowing wisp aura, a crimson vanish burst, and its own voice, arrival, notice, shriek and vanish sounds.
 * **A horror director**: grace period, five escalating stages, per-player and global cooldowns, quiet periods,
   recovery after deaths, anti-repetition, context-weighted selection, fair multiplayer targeting.
-* **Its home, the Weeping Mire** (1.0.7): the Weeping Mire biome (your own add-on, merged in unchanged) generates in
-  the overworld — weeping trees and giant weeping trees, bone roots and bone grass, mire moss, silt ponds, abandoned
+* **Its home, the Weeping Mire** (1.0.7): the Weeping Mire biome (your own add-on, merged in) generates near where
+  you start — often right beside the world spawn (1.0.8) — but you never start inside it: a first spawn in the Mire
+  is moved just outside it, facing it. Weeping trees and giant weeping trees, bone roots and bone grass, mire moss, silt ponds, abandoned
   cabins, black fog, wind gusts and falling leaves, and eight torn pages to find. The Mire's watcher is now the Observer
   itself: it stands among the trees 20–48 blocks off and is gone in black mist when you look at it or come within 9
   blocks; a torn page may bring it up behind you, and the last of the eight always does. In the Mire it comes sooner
@@ -47,10 +48,11 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   (by your bed or door), *Borrowed Eyes* (a creature that turns its head to follow you) and *In the Mire*; a lunge when it is spotted,
   a fast, relentless attack once it reaches you, a too-close reaction, and harmless shadows in taiga forests that
   vanish when looked at, plus 17 further designed concepts — see [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md).
-* **The floating chase** (1.0.6): in *Breathing Room* it no longer runs — it floats a block off the ground with no
-  footsteps, surging at you when you look away and drifting while you watch, and stops at the water's edge to hover
-  there. **It climbs**: get up on a pillar, a ledge, a roof or a ladder and it climbs the wall after you and strikes
-  from it. Previews: [docs/media/1.0.6/](docs/media/1.0.6/).
+* **It never runs** (1.0.6–1.0.8): the chase, the lunge, the attack once it reaches you and the strike when you walk
+  up to it all float — a block off the ground, no footsteps, only a rush of air — and it strikes from the air with its
+  legs hanging. In *Breathing Room* it surges at you when you look away, drifts while you watch, and stops at the
+  water's edge to hover there. **It climbs**: get up on a pillar, a ledge, a roof or a ladder and it climbs the wall
+  after you and strikes from it. Previews: [docs/media/1.0.6/](docs/media/1.0.6/), [docs/media/1.0.8/](docs/media/1.0.8/).
 * **It learns how you escape**: light, water, a stare, the lens, a blow, running, breaking through, a flare — use one
   three times and it adapts to that one (one at a time, and it wears off). From stage 4 **the world goes quiet** before
   it attacks: your music stops and a faint ringing rises (sometimes nothing follows). It writes **pages you didn't

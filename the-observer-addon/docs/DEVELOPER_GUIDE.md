@@ -47,7 +47,7 @@ the-observer-addon/
 | `observer/climb.js` | climbing after a player who is above it: `needed`, `plan` (cling at an edge / over the top), `after`, `letGo` |
 | `observer/pages.js` | pages in another hand, built from tracked numbers |
 | `observer/returns.js` | items thrown away, returned to the doorstep |
-| `mire/mire.js` | the Weeping Mire (ported from its own script): `inMire`, time spent there, wind and leaves, the torn pages (`afterRead` calls the Observer) |
+| `mire/mire.js` | the Weeping Mire (ported from its own script): `inMire`, time spent there, wind and leaves, the torn pages (`afterRead` calls the Observer), and a first spawn inside it moved just outside (`firstSpawn`) |
 | `progression/flare.js` | the Flare: throw, light block, glare, burn-out |
 | `director/context.js` | per-player situation snapshot (`mire`: in its home), `effectiveStage`, `moodFactor` |
 | `director/encounter.js` | the runtime object passed to encounter scripts |
@@ -72,6 +72,8 @@ python3 tools/check_vanilla_shapes.py --samples <bedrock-samples>/resource_pack
 python3 tools/build.py           # validate + typecheck + package into dist/
 python3 tools/preview_anims.py docs/media/1.0.6 float_drift float_surge climb
                                  # animated GIF previews (front / three-quarter / side) of any clips
+python3 tools/preview_anims.py docs/media/1.0.8 float_surge "supplied:attack+float_hang" --video floating_attack.mp4
+                                 # "+" layers clips as the client does (the strike in mid-air); --video writes an MP4
 python3 tools/integrate_supplied_assets.py    # re-derive the namespaced supplied assets (asserts identity)
 python3 tools/make_supplemental_anims.py      # regenerate supplemental clips (FK-grounded)
 python3 tools/make_client_entity.py           # client entity, render & animation controllers
@@ -80,7 +82,8 @@ python3 tools/make_textures.py                # textures, block models, pack ico
 python3 tools/integrate_particle_sheets.py     # user-supplied vanish/wisp sheets -> particle atlases (pixels unchanged)
 python3 tools/synth_sounds.py --only voice,presence,notice,shriek,vanish   # regenerate selected sounds
 python3 tools/merge_weeping_mire.py           # merge the archived Weeping Mire into the packs (re-runnable)
-python3 tools/merge_weeping_mire.py --check   # every merged Mire file is byte-identical to the archive
+python3 tools/merge_weeping_mire.py --check   # every merged Mire file matches the archive (byte for byte; the
+                                              # biome as tuned by tune_biome, so it generates near the player)
 python3 tools/render_model.py GEO TEX out.png --anim FILE NAME TIME --view side --debug-colors
 ```
 
@@ -99,7 +102,8 @@ python3 tests/bds/run_bds.py --bds /path/to/bedrock-server --testkit --fresh \
 Scenarios: `load.txt` (packs load cleanly), `proto.txt` (capability probes), `speed.txt` (movement calibration),
 `suite_smoke.txt`, `suite_full.txt` (all test groups), `suite_extra.txt` (a short subset), `suite_105.txt` (the
 1.0.5 additions), `suite_106.txt` (the floating chase and climbing, with the chase/attack regressions), `suite_107.txt` (the
-Weeping Mire: its context, the stage bonus, early grace, its watcher, the torn pages), `mire_locate.txt` (the Mire
+Weeping Mire: its context, the stage bonus, early grace, its watcher, the torn pages), `suite_108.txt` (every attack
+floats; the Mire never where you start; with the chase/attack/climb and Mire regressions), `mire_locate.txt` (the Mire
 generates and its old watcher is gone; run without `--testkit`, with `--require-no-experiments`),
 `tunnel_repeat.txt` (the Closed Path tests ten times over), `illusion_repeat.txt` (the shadow tests eight times over), `flare_seq.txt` (the flare tests twice back to back), `house_seq.txt` (every test that uses the arena house, in suite order — they share it), `noexp.txt` (no experiments; run **without** `--testkit` and with `--require-no-experiments`, which
 fails the run if the world's `level.dat` has any experiment on), `restart_a.txt` +
@@ -111,7 +115,7 @@ The harness patches the **installed test copy** of the BP to import
 untouched.
 
 With tracing on, the add-on publishes structured events as script events
-`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned|grace|mire|weights`
+`observer_evt:start|end|discovery|body|ledger|strike|smudge|fx|lunge|creep|relentless|near|illusion|flare|learn|hush|page|sign|borrowed|returns|returned|grace|mire|weights|mire_spawn`
 that the test kit asserts on. In normal play nothing is emitted.
 
 Test-only dev commands (`/scriptevent observer:<name>`): `flare [dist] [player]` (light a flare ahead),

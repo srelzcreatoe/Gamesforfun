@@ -136,7 +136,9 @@ export function wantsLunge(enc) {
  * player is dead or drives it off with the Witness Lens or a blow. Low aggression strikes once (and is
  * capped); aggression "never" only stops in front of them and everything goes dark.
  * Going up does not help: on a pillar, a ledge or a ladder it climbs after them (observer/climb.js).
- * @param {Encounter} enc @param {{maxTicks?:number, float?:boolean}} [o] float: it floats (the chase) instead of running
+ * It does not run: it floats at them a block off the ground (surging, silent but for a rush of air) and
+ * strikes from the air.
+ * @param {Encounter} enc @param {{maxTicks?:number}} [o]
  * @returns {Promise<string>} outcome
  */
 export async function relentless(enc, o = {}) {
@@ -145,6 +147,7 @@ export async function relentless(enc, o = {}) {
   if (!b) return "vanished";
   enc.data.reacting = true;
   b.autoPeek = false;
+  body.setSilent(true);
   if (aggression() === 0) {
     body.setMode("still");
     body.setState("stare");
@@ -155,7 +158,6 @@ export async function relentless(enc, o = {}) {
     return "caught";
   }
   let hits = 0;
-  const moving = o.float ? "surge" : "run";
   const end = o.maxTicks ?? 20 * 40;
   const loseAt = 64 + outrunBonus(enc);
   for (let t = 0; t < end; t += 2) {
@@ -192,11 +194,12 @@ export async function relentless(enc, o = {}) {
     }
     // up a pillar, a ledge, a ladder: it climbs after them and strikes from the wall
     if (climb.needed(enc) || body.get()?.clinging) {
-      if (await climb.after(enc, { state: moving })) continue;
+      if (await climb.after(enc, { state: "surge" })) continue;
     }
     body.setMode("pursue");
-    body.setState(moving);
-    if (o.float) body.setSilent(true);
+    body.surge();
+    // no footsteps: only the rush of air as it comes
+    if (t % 40 === 0) enc.worldSound(SOUNDS.drift, { x: l.x, y: l.y + 2, z: l.z }, 0.8);
     await enc.wait(2);
   }
   body.despawn("gave_up");
@@ -204,8 +207,8 @@ export async function relentless(enc, o = {}) {
 }
 
 /**
- * The lunge: it shrieks and comes at you in jerks (short unseen-proof hops, ~14 blocks/s), then tears
- * apart right in front of you. On High aggression it strikes instead (still the telegraphed, dodgeable strike).
+ * The lunge: it shrieks and comes at you through the air in jerks (short unseen-proof hops, ~14 blocks/s,
+ * floating a block up), then tears apart right in front of you. On High aggression it strikes instead (still the telegraphed, dodgeable strike).
  * @param {Encounter} enc @param {{harmless?:boolean, test?:boolean}} [o] harmless: never strikes (preview); test: uses no scare budget
  */
 export async function lunge(enc, o = {}) {
@@ -219,7 +222,7 @@ export async function lunge(enc, o = {}) {
   enc.data.reacting = true;
   b.autoPeek = false;
   b.faceTarget = true;
-  body.setState("run");
+  body.surge();
   enc.worldSound(SOUNDS.shriek, { x: b.e.location.x, y: b.e.location.y + 3, z: b.e.location.z }, 1);
   enc.caption("caption.shriek");
   enc.shake(0.25, 0.6);

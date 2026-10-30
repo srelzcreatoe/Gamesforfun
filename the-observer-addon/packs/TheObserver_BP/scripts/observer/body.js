@@ -7,7 +7,8 @@
 //   pursue   chase the tagged target (~4.8 b/s: faster than walking, slower than sprinting)
 //   retreat  walk away from players
 // States (client animation, entity property observer:state):
-//   watch stare tilt walk run attack peek recoil hidden float surge climb
+//   watch stare tilt walk run attack peek recoil hidden float surge climb   ("run" is unused since 1.0.8:
+//   every run, chase and attack floats)
 import { world, system, EntityDamageCause } from "@minecraft/server";
 import { OBSERVER_ID, TARGET_TAG, ENTITY_ENC_PROP, PARTICLES, SOUNDS, DANGER } from "../core/constants.js";
 import { V, safe, DEBUG, trace, emit, allPlayers } from "../core/util.js";
@@ -109,12 +110,23 @@ export function setSide(side) {
   safe(() => b.e.setProperty("observer:side", side));
 }
 
-/** Floating or climbing: no footsteps (the step sound needs a huge distance between steps). @param {boolean} v */
+/**
+ * Floating or climbing: no footsteps (the step sound needs a huge distance between steps), and afloat on
+ * the client, so a strike, a recoil or a stare in between stays in mid-air with its legs hanging.
+ * @param {boolean} v
+ */
 export function setSilent(v) {
   const b = get();
   if (!b || !!b.silent === v) return;
   b.silent = v;
   safe(() => b.e.triggerEvent(v ? "observer:steps_off" : "observer:steps_on"));
+  safe(() => b.e.setProperty("observer:afloat", v));
+}
+
+/** Rise and come at someone through the air: afloat, silent, the surge clip. */
+export function surge() {
+  setSilent(true);
+  setState("surge");
 }
 
 /** @param {"still"|"approach"|"pursue"|"retreat"} m */

@@ -1,4 +1,4 @@
-# The Weeping Mire (merged, 1.0.7) with no experiments: the biome is known to the server and generates
+# The Weeping Mire (merged 1.0.7, near spawn since 1.0.8) with no experiments: the biome is known and generates
 # (locate finds it), its blocks load, and its old watcher entity no longer exists.
 wait 5
 cmd scriptevent observer:trace on

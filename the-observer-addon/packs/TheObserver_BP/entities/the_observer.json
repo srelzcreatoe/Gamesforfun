@@ -30,6 +30,11 @@
           "default": false,
           "client_sync": true
         },
+        "observer:afloat": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        },
         "observer:side": {
           "type": "int",
           "range": [

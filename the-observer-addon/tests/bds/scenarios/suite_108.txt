@@ -1,0 +1,6 @@
+# 1.0.8: every run, chase and attack floats (approach, lunge, near strike, the strike itself in mid-air), and the
+# Weeping Mire near spawn but never where you start; with the chase/attack/climb and Mire regressions
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup showcase lunge relentless near_vanish near_strike pursuit pursuit_watched_walks closed_path_struck creeping_reaches climb_pillar climb_attack climb_over float_test_entry test_entries illusion_taiga mire_home mire_watcher mire_pages mire_spawn status
+expect \[OTEST\] SUITE DONE 3000

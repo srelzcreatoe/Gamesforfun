@@ -151,7 +151,7 @@ export async function after(enc, o = {}) {
   body.moveTo(top, p.getHeadLocation());
   b.clinging = false;
   b.hung = false;
-  body.setState(o.state ?? "run");
+  body.setState(o.state ?? "surge");
   enc.emit("climb", { what: "over", x: top.x, y: top.y, z: top.z });
   return true;
 }

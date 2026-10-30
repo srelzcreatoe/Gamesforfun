@@ -50,7 +50,7 @@ register({
     await enc.wait(30);
     enc.worldSound(SOUNDS.shriek, { x: spot.loc.x, y: spot.loc.y + 3, z: spot.loc.z }, 0.9);
     body.setMode("pursue");
-    body.setState("run");
+    body.surge();
     for (let t = 0; t < 20 * 15; t += 2) {
       await enc.wait(2);
       const l = body.loc();
@@ -319,7 +319,7 @@ register({
       const l = body.loc();
       if (!l) return enc.result("vanished");
       if (climb.needed(enc) || body.get()?.clinging) {
-        if (await climb.after(enc, { state: "run" })) {
+        if (await climb.after(enc, { state: "surge" })) {
           const b = body.get();
           if (b?.hung || V.dist(body.loc() ?? l, p.location) <= 3) {
             // right below you on the wall: it stares up at you, then lets go and is gone
@@ -335,7 +335,7 @@ register({
         return enc.result("reached", true);
       }
       body.setMode("pursue");
-      body.setState("run");
+      body.surge();
     }
     body.despawn("timeout");
     enc.result("no_climb");

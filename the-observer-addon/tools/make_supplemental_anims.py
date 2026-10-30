@@ -14,6 +14,9 @@ stalking behaviour also needs:
   animation.observer.float_surge     1.0.6: rushing forward through the air, leaning in, arms and legs trailing
   animation.observer.climb           1.0.6: climbing a wall face, arms reaching overhead in turn, its head
                                      tipped right back, staring up at whoever it is climbing after
+  animation.observer.float_hang      1.0.8: overlay for any other state while it is afloat (its strike, its
+                                     recoil, a stare in mid-air): lifted a block, legs hanging limp, a slow bob.
+                                     Legs and root only, so the supplied attack clip plays unchanged above it
 
 The floating clips lift the whole figure 1 block (root position); under a low ceiling
 (q.property('observer:stoop')) the lift drops to nothing so its head stays inside 3-block spaces.
@@ -286,6 +289,21 @@ def climb():
     return {"loop": True, "animation_length": 1.0, "bones": bones}
 
 
+def float_hang():
+    """While it is afloat and doing something else — striking, recoiling, staring — it stays up: lifted a
+    block, legs hanging limp with the toes down, the slightest bob. Only legs and root, so it layers under
+    the supplied attack clip (upper body only) without touching it."""
+    def pose(ph):
+        s = math.sin(ph)
+        return {
+            "right_thigh": [-3 + 1.5 * math.sin(ph + 0.9), 0, 2], "left_thigh": [-1 + 1.5 * math.sin(ph + 2.1), 0, -2],
+            "right_shin": [10 + 2 * math.sin(ph + 1.5), 0, 0], "left_shin": [8 + 2 * math.sin(ph + 2.6), 0, 0],
+            "right_foot": [26, 0, 0], "left_foot": [26, 0, 0],
+        }, [0, f"{LIFT} + {0.5 * s:.3f}", 0]
+
+    return {"loop": True, "animation_length": 2.4, "bones": _loop(2.4, 0.1, pose)}
+
+
 def look_at_target():
     return {"loop": True, "bones": {"head": {"rotation": ["query.target_x_rotation", "query.target_y_rotation", 0]}}}
 
@@ -301,6 +319,7 @@ def main():
         "animation.observer.float_drift": float_drift(),
         "animation.observer.float_surge": float_surge(),
         "animation.observer.climb": climb(),
+        "animation.observer.float_hang": float_hang(),
     }}
     bones = set(model.bones)
     for name, a in data["animations"].items():

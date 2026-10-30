@@ -2,5 +2,5 @@
 # watcher played by the Observer, torn pages bringing it up behind you
 expect \[OTEST\] testkit loaded 90
 wait 2
-cmd scriptevent otest:suite setup mire_home mire_watcher mire_pages status
+cmd scriptevent otest:suite setup mire_home mire_watcher mire_pages mire_spawn status
 expect \[OTEST\] SUITE DONE 2400

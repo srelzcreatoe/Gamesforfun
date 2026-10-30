@@ -132,7 +132,7 @@ register({
           const nl = body.loc();
           if (nl && V.dist(nl, p.location) <= 2.8) {
             sighting(enc, p);
-            await relentless(enc, { float: true });
+            await relentless(enc);
             return;
           }
           continue;
@@ -169,7 +169,7 @@ register({
       }
       if (dist <= 2.7) {
         sighting(enc, p);
-        await relentless(enc, { float: true });
+        await relentless(enc);
         return;
       }
     }

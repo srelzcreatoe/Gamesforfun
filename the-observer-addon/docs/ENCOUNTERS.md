@@ -37,14 +37,21 @@ features. "Tier" is intensity (1 subtle … 4 peak); "Stage" is the minimum stag
 | 23 | **In the Mire** (`mire_watcher`) | 1 / 1 | in the Weeping Mire, its home (weight 16 there, 0 anywhere else); also after a torn page | among the weeping trees 20–48 blocks away, peeking from behind a trunk when there is one: where you can see it first, 12–24 blocks if the trees allow nothing further, deep among them as a last resort; after a torn page 16–24 blocks behind you, after the last of the eight 12–14 (closer, from 8, if the trees allow nothing further) | a still figure between the trunks | the Mire's old watcher, now the Observer itself: to be seen at home | — | look at it ~1 s / walk up to it / ignore it | it holds your gaze 1.5–2.5 s, then is gone in black mist with a cave sound (*Its Home*); from stage 2 it may lunge instead; within 9 blocks it does not wait (too close, or a strike); ignored, it fades after 90–180 s |
 
 **Lunge (shared reaction, stage 2+).** When it is noticed in *The Figure at the Edge*, *Always the Same Place* or *Echo
-Ahead*, it may shriek and come at the player in jerks (~14 blocks/s), then tear apart right in front of them. Chance per
+Ahead*, it may shriek and come at the player through the air in jerks (~14 blocks/s, floating a block up), then tear
+apart right in front of them. Chance per
 sighting: 25 % at stage 2; 50 % from stage 3 on Standard scares, 30 % on Rare; never with scares off or aggression
 "never". Its own cooldown: 5 min (Standard scares) / 10 min (Rare). On High aggression it does not stop at a scare: it
 keeps attacking.
 
 **Too close (shared reaction).** Walk up to it (4–8 blocks, varying; 9 in the Weeping Mire; room-sized in *It's
 Inside*) and it tears apart after a short random moment — or, now and then (stage 2+, ~30 %, at most every 75 s),
-strikes once first.
+rises and strikes once first, from the air.
+
+**It never runs (1.0.8, shared).** Every time it comes at someone — the chase, the lunge, the relentless attack (from
+*The Closed Path*, *Closer Each Time*, *Breathing Room* and the test strike), the too-close strike — it floats: a
+block off the ground (`surge`), no footsteps, a rush of air every 2 s, and the strike, the recoil and the stares in
+between stay in mid-air with the legs hanging limp (`observer:afloat` + the `float_hang` overlay). It still walks
+when it is only stalking or leaving.
 
 **Its home: the Weeping Mire (1.0.7).** In the Mire the director treats the player as one stage further along (so the
 chase, *The Closed Path* and *It's Inside* can come from stage 3, and the silence before attacks from stage 3), shortens

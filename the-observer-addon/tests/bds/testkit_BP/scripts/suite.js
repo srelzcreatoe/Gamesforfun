@@ -200,6 +200,9 @@ TESTS.setup = async () => {
   check("setup_player_spawned", !!p && p.isValid);
   check("setup_house_door", ow().getBlock(HOUSE.door)?.typeId === "minecraft:wooden_door");
   check("setup_tunnel_air", ow().getBlock({ x: 931, y: TUNNEL.y, z: 1086 })?.isAir);
+  // the arena must not be in the Weeping Mire (its home changes how often and how hard it comes)
+  const mireAt = [FIELD, HOUSE.center, { x: 930, y: TUNNEL.y, z: 1085 }, POOL.center].filter((l) => ow().getBiome(l)?.id === "wmire:weeping_mire");
+  check("setup_arena_not_in_the_mire", mireAt.length === 0, JSON.stringify(mireAt));
 };
 
 TESTS.wheel_welcome = async () => {
@@ -1000,6 +1003,19 @@ TESTS.carve = async () => {
   await observerGone(200);
 };
 
+/** What the body looks like over time: states seen, and whether each strike was in mid-air (1.0.8: it floats). */
+function poseLog() {
+  const log = { states: new Set(), attackAfloat: 0, attackGrounded: 0 };
+  log.sample = (e = observerEntity()) => {
+    if (!e || !e.isValid) return;
+    const st = e.getProperty("observer:state");
+    log.states.add(st);
+    if (st === "attack") e.getProperty("observer:afloat") ? log.attackAfloat++ : log.attackGrounded++;
+  };
+  log.str = () => `states=${[...log.states].join(",")} strikes afloat=${log.attackAfloat} grounded=${log.attackGrounded}`;
+  return log;
+}
+
 TESTS.showcase = async () => {
   // Config Wheel "See it now": works in creative, shows every state in front of the player, harmless
   const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 });
@@ -1018,12 +1034,14 @@ TESTS.showcase = async () => {
   const to = { x: e.location.x - p.location.x, z: e.location.z - p.location.z };
   const ang = (Math.acos((v.x * to.x + v.z * to.z) / (Math.hypot(v.x, v.z) * Math.hypot(to.x, to.z))) * 180) / Math.PI;
   check("showcase_in_front", d >= 3.5 && d <= 13 && ang < 60, `d=${d.toFixed(1)} angle=${ang.toFixed(0)}`);
-  const seen = new Set();
+  const pose = poseLog();
+  const seen = pose.states;
   for (let t = 0; t < 20 * 32 && e.isValid; t += 4) {
-    seen.add(e.getProperty("observer:state"));
+    pose.sample(e);
     await wait(4);
   }
-  check("showcase_all_states", ["watch", "stare", "tilt", "walk", "run", "attack", "recoil"].every((s) => seen.has(s)), [...seen].join(","));
+  check("showcase_all_states", ["watch", "stare", "tilt", "walk", "float", "surge", "attack", "recoil"].every((s) => seen.has(s)) && !seen.has("run"), [...seen].join(","));
+  check("showcase_strike_in_mid_air", pose.attackAfloat > 0 && pose.attackGrounded === 0, pose.str());
   check("showcase_no_peek_without_cover", !seen.has("peek"), [...seen].join(","));
   const end = await endOf("showcase", m, 400);
   dmg.stop();
@@ -1140,11 +1158,14 @@ TESTS.lunge = async () => {
   }
   const d0 = hdist(e.location, p.location);
   let minD = d0;
+  const pose = poseLog();
   for (let t = 0; t < 20 * 12 && e.isValid; t += 2) {
     p.lookAtLocation({ x: e.location.x, y: e.location.y + 2.2, z: e.location.z });
     minD = Math.min(minD, hdist(e.location, p.location));
+    pose.sample(e);
     await wait(2);
   }
+  check("lunge_floats_at_you", pose.states.has("surge") && !pose.states.has("run"), pose.str());
   const end = await endOf("distant_watch", m, 200);
   dmg.stop();
   obs("lunge", "never");
@@ -1308,13 +1329,17 @@ TESTS.relentless = async () => {
   obs("trigger", "test_strike", "Tester");
   // stay alive (healed every 4 ticks) and let it attack for ~7 s
   let hits = 0;
-  for (let t = 0; t < 20 * 14; t += 4) {
-    heal(p);
+  const pose = poseLog();
+  for (let t = 0; t < 20 * 14; t += 2) {
+    if (t % 4 === 0) heal(p);
+    pose.sample();
     hits = since(m, "relentless").filter((d) => d.result === "hit").length;
     if (hits >= 3) break;
-    await wait(4);
+    await wait(2);
   }
   check("relentless_keeps_striking", hits >= 3, `hits=${hits} damage=${dmg.total}`);
+  check("relentless_floats_at_you", pose.states.has("surge") && !pose.states.has("run"), pose.str());
+  check("relentless_strikes_in_mid_air", pose.attackAfloat > 0 && pose.attackGrounded === 0, pose.str());
   check("relentless_full_strength", since(m, "strike").filter((d) => d.result === "hit").length >= 3 && dmg.total >= 6 * 3, `damage ${dmg.total}`);
   // drive it off with the lens
   const e = observerEntity();
@@ -1365,8 +1390,14 @@ TESTS.near_strike = async () => {
     const at = { ...e.location };
     p.teleport({ x: at.x + (p.location.x - at.x) * 0.3, y: Y, z: at.z + (p.location.z - at.z) * 0.3 }, { facingLocation: { x: at.x, y: Y + 3, z: at.z } });
   }
+  const pose = poseLog();
+  for (let t = 0; t < 100 && !since(m, "end").some((d) => d.type === "test_near"); t += 2) {
+    pose.sample();
+    await wait(2);
+  }
   const end = await endOf("test_near", m, 100);
   dmg.stop();
+  check("near_strike_from_mid_air", pose.attackAfloat > 0 && pose.attackGrounded === 0, pose.str());
   obs("nearstrike", "auto");
   obs("preset", "standard");
   check("near_strike_struck", end && (end.outcome === "struck_close" || end.outcome === "dodged_close"), `${end ? end.outcome : "none"} damage=${dmg.total}`);
@@ -1403,8 +1434,11 @@ TESTS.illusion_taiga = async () => {
   const here = ow().getBiome(p.location)?.id ?? "?";
   let m = mark();
   if (/taiga/.test(here)) {
-    obs("timewarp", "400"); // past any cooldown left by the previous shadow test
-    const sp = await waitEvent("illusion", (x) => x.what === "spawn", 120, m);
+    // the first minute or so in the woods is quiet: let that clock start (one shadow tick), then skip past it
+    await wait(30);
+    obs("timewarp", "400"); // past it, and past any cooldown left by the previous shadow test
+    // when a spot search finds nothing it tries again 15 s later: allow one retry
+    const sp = await waitEvent("illusion", (x) => x.what === "spawn", 20 * 20, m);
     check("illusion_in_taiga", !!sp, `biome=${here}`);
   } else log(`[OTEST] SKIP illusion_in_taiga arena biome is ${here}`);
   for (const e of ow().getEntities({ type: "observer:shadow" })) e.remove();
@@ -2091,9 +2125,9 @@ TESTS.status = async () => {
 };
 
 // ------------------------------------------------------------------ 1.0.7: the Weeping Mire, its home
-// Seed 424242: `locate biome wmire:weeping_mire` from spawn finds the Mire at -1760, 63, 928
-// (BDS 1.26.52, scenario mire_locate.txt). The tests stand on its own ground there.
-const MIRE = { x: -1760, z: 928 };
+// Seed 424242: `locate biome wmire:weeping_mire` from spawn finds the Mire at 32, 95, -32 (1.0.8: it
+// generates near spawn; BDS 1.26.52, scenario mire_locate.txt). The tests stand on its own ground there.
+const MIRE = { x: 32, z: -32 };
 const MIRE_BIOME = "wmire:weeping_mire";
 let mireStand;
 const NOT_GROUND = /leaves|log|wood|tendril|water|lava/;
@@ -2116,7 +2150,7 @@ async function findMireStand() {
       let room = true;
       for (let dy = 0; dy < 3; dy++) {
         const b = dim.getBlock({ x, y: loc.y + dy, z });
-        if (!b || !(b.isAir || !b.isSolid) || b.isLiquid) room = false;
+        if (!b || !(b.isAir || /grass|fern|flower|bush|sprout|torn_page|vine/.test(b.typeId))) room = false;
       }
       if (room) mireStand = { ...loc, ground: g.typeId };
     }
@@ -2238,6 +2272,39 @@ TESTS.mire_watcher = async () => {
   check("mire_watcher_too_close_at_9", end2 && end2.outcome === "too_close" && system.currentTick - t1 <= 40,
     `${end2 ? end2.outcome : "none"} at ${hdist(p.location, at).toFixed(1)} blocks after ${system.currentTick - t1} ticks`);
   await observerGone(100);
+};
+
+TESTS.mire_spawn = async () => {
+  // you never start in the Mire: a first spawn inside it (at the world spawn) is moved just outside, facing it,
+  // and the world spawn with it; somebody arriving there any other way is left alone
+  const st = await findMireStand();
+  if (!check("mire_spawn_ground", !!st)) return;
+  const orig = world.getDefaultSpawnLocation();
+  // the world spawn somewhere else: this one is only passing through
+  world.setDefaultSpawnLocation({ x: FIELD.x, y: Y, z: FIELD.z });
+  let m = mark();
+  const visitor = gt.spawnSimulatedPlayer({ dimension: ow(), x: st.x, y: st.y, z: st.z }, "Visitor", GameMode.Survival);
+  const ev1 = await waitEvent("mire_spawn", (d) => d.player === "Visitor", 20 * 20, m);
+  check("mire_spawn_elsewhere_left_alone", ev1 && ev1.inside === true && ev1.atSpawn === false && ev1.moved === false, JSON.stringify(ev1 ?? {}));
+  visitor.disconnect();
+  world.setDefaultSpawnLocation({ x: Math.floor(st.x), y: st.y, z: Math.floor(st.z) });
+  m = mark();
+  const p = gt.spawnSimulatedPlayer({ dimension: ow(), x: st.x, y: st.y, z: st.z }, "Newcomer", GameMode.Survival);
+  const ev = await waitEvent("mire_spawn", (d) => d.player === "Newcomer", 20 * 30, m);
+  if (check("mire_spawn_moved_out", ev && ev.moved === true, JSON.stringify(ev ?? {}))) {
+    await wait(5);
+    const here = ow().getBiome(p.location)?.id;
+    check("mire_spawn_outside_now", here !== MIRE_BIOME, `${here} d=${ev.d.toFixed(0)}`);
+    check("mire_spawn_near_it", ev.d <= 170, `d=${ev.d.toFixed(0)}`);
+    check("mire_spawn_faces_it", offView(p, st) <= 45, `${offView(p, st).toFixed(0)} deg off`);
+    const ws = world.getDefaultSpawnLocation();
+    const wsBiome = ow().getBiome({ x: ws.x + 0.5, y: ws.y, z: ws.z + 0.5 })?.id;
+    check("mire_spawn_world_spawn_moved", Math.hypot(ws.x - st.x, ws.z - st.z) > 4 && wsBiome !== MIRE_BIOME, `${JSON.stringify(ws)} ${wsBiome}`);
+  }
+  p.disconnect();
+  // a fresh world's spawn is unset (y 32767) and cannot be written back; leave the moved one then
+  if (orig.y < 32000) world.setDefaultSpawnLocation(orig);
+  await wait(10);
 };
 
 TESTS.mire_pages = async () => {

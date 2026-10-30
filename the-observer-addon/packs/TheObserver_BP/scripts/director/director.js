@@ -352,7 +352,7 @@ export function abortAll(reason) {
 /**
  * Called every 5 ticks. Walk right up to it and it does not wait for you: after a short, varying moment
  * it tears apart before you can touch it — or, now and then (stage 2+, aggression above "never", at most
- * every 75 s per player, about 30 %), it steps in and strikes once first. The distance that sets it off
+ * every 75 s per player, about 30 %), it rises, comes at you through the air and strikes once first. The distance that sets it off
  * varies per appearance (4-8 blocks). Encounters that bring it close on purpose opt out (reactNear: false).
  */
 export function nearCheck() {
@@ -389,6 +389,8 @@ async function reactNear(enc, p, d) {
     s.nearStrikeAt = now();
     markPlayerDirty(p);
     const l = body.loc();
+    // it does not step in: it rises and comes at you through the air
+    body.surge();
     if (l) {
       enc.worldSound("observer.shriek", { x: l.x, y: l.y + 3, z: l.z }, 0.9);
       const at = V.add(p.location, V.scale(V.flat(V.sub(l, p.location)), 1.8));

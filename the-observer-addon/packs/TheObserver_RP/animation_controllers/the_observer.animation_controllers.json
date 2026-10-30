@@ -574,6 +574,30 @@
         }
       }
     },
+    "controller.animation.observer.afloat": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "transitions": [
+            {
+              "hanging": "q.property('observer:afloat') && q.property('observer:state') != 'float' && q.property('observer:state') != 'surge' && q.property('observer:state') != 'climb' && q.property('observer:state') != 'hidden'"
+            }
+          ],
+          "blend_transition": 0.25
+        },
+        "hanging": {
+          "animations": [
+            "float_hang"
+          ],
+          "transitions": [
+            {
+              "default": "!(q.property('observer:afloat') && q.property('observer:state') != 'float' && q.property('observer:state') != 'surge' && q.property('observer:state') != 'climb' && q.property('observer:state') != 'hidden')"
+            }
+          ],
+          "blend_transition": 0.25
+        }
+      }
+    },
     "controller.animation.observer.aura": {
       "initial_state": "default",
       "states": {
