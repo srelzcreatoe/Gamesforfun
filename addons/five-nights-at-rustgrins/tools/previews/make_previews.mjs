@@ -170,7 +170,7 @@ export const SCENES = [
     name: '11_midway', voxels: 'lit', caption: 'The Midnight Midway ring: the Cat and the Purple Rat share one stage',
     scene: {
       camera: { pos: [12.0, 2.4, 16.6], target: [5.0, 1.8, 21.6], fov: 62 }, exposure: 1.2,
-      entities: [at('cat', 'MW_T', 'perform_1', { t: 0.9, yaw: -129 }), at('purple_rat', 'MW_P', 'perform_1', { t: 0.9, yaw: -104 })],
+      entities: [at('cat', 'MW_T', 'perform_1', { t: 0.9 }), at('purple_rat', 'MW_P', 'perform_1', { t: 0.9 })],
       extra_lights: [
         spot([9.5, 4.6, 18.0], [6.0, 1.2, 20.6], { color: '#ffd7a8', intensity: 140, angle: 32 }),
         point([6.5, 3.3, 18.2], '#ffe4c4', 7, 8),
@@ -243,7 +243,7 @@ export const SCENES = [
       sun: { dir: [-0.35, -0.85, -0.4], color: '#fff1dc', intensity: 2.2 },
       entities: [
         at('rustgrin', 'ST_R', 'pose_1'), at('mirehop', 'ST_M', 'pose_1'), at('noxbriar', 'ST_N', 'pose_1'),
-        at('top_hat_rat', 'MW_T', 'perform_1'), at('purple_rat', 'MW_P', 'perform_1'), at('cat', 'CAB', 'idle'),
+        at('cat', 'MW_T', 'perform_1'), at('purple_rat', 'MW_P', 'perform_1'), at('top_hat_rat', 'CAB', 'pose_1'),
       ],
     },
   },
