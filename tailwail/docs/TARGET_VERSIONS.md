@@ -31,20 +31,35 @@ code would need re-verification before lowering either number.
    component-group events, items, recipe) produced no content-log errors at log level
    *verbose*. One performance warning (`scan_interval` < 10) was fixed.
 
-## Stable members the design relies on (all present in 2.11.0 typings)
+## Stable members the design relies on (all present in 2.11.0 typings, type-checked)
 
-`world.beforeEvents.entityHurt` (cancel/modify damage → scripted death, health multiplier) ·
-`Entity.setProperty/getProperty` (client-synced entity properties) · `Entity.triggerEvent`
-(collision/posture component groups) · `Dimension.getBlockFromRay` (line of sight) ·
-`Dimension.getLightLevel / getSkyLightLevel` (real light, not an approximation) ·
-`Dimension.isChunkLoaded` · `Player.getViewDirection / getHeadLocation / isSneaking /
-isSprinting / getRotation / getGameMode` · `Player.playSound` with per-player volume ·
-`Player.setPropertyOverrideForEntity` (per-viewer effect intensity) ·
-`EntityMovementComponent.setCurrentValue` (speed) · `Entity.applyDamage / applyKnockback` ·
-`system.runJob` (spawn search spread over ticks) · `system.beforeEvents.startup →
-customCommandRegistry` (slash commands) · `world.getAbsoluteTime` (persistent cooldowns) ·
-dynamic properties (settings, memory) · `@minecraft/server-ui` `ActionFormData` /
-`ModalFormData` (2.x option-object signatures).
+Encounter and world: `world.beforeEvents.entityHurt` (scripted death, health multiplier) ·
+`Entity.setProperty/getProperty` (client-synced int properties) · `Entity.triggerEvent` ·
+`Entity.teleport` (with `facingLocation`) · `Entity.applyDamage / applyKnockback / addEffect /
+removeEffect` · `Dimension.getBlockFromRay` · `Dimension.getLightLevel / getSkyLightLevel` ·
+`Dimension.getBlocks(BlockVolume, {includeTypes})` (torch and door queries) ·
+`Dimension.spawnEntity` (`initialRotation`) · `Dimension.spawnParticle` · `Dimension.playSound` ·
+`BlockPermutation.resolve / getState / withState`, `BlockTypes.get` · `system.runJob` ·
+`system.beforeEvents.startup` -> `customCommandRegistry` and
+`blockComponentRegistry.registerCustomComponent` (`onPlayerInteract`) · dynamic properties.
+
+Player effects: `Player.camera.addShake / setFov / fade / stopShaking` ·
+`Player.fogSettings.push / remove` (tagged fog stack) · `Player.playMusic / stopMusic`
+(per-player music) · `Player.playSound` (per-player, positional) ·
+`Player.inputPermissions.setPermissionCategory` (LateralMovement, Camera, Sneak during the
+grab) · `Player.onScreenDisplay.setTitle / updateSubtitle / setActionBar` ·
+`world.afterEvents.playerButtonInput` (Jump presses for the struggle) ·
+`world.afterEvents.playerBreakBlock / playerPlaceBlock / playerInteractWithBlock /
+blockContainerOpened / itemCompleteUse / itemReleaseUse` (mimicry and noise) ·
+`@minecraft/server-ui` `ActionFormData` / `ModalFormData`.
+
+Commands run from script (no cheats required for script-issued commands): only
+`camera @s fov_clear <time> in_out_sine`, documented as
+`/camera <players> fov_clear [fovEaseTime] [fovEaseType]`; its syntax was confirmed on
+BDS 1.26.61.1.
+
+Block format: `format_version 1.21.90` with the custom component listed directly in
+`components` (custom components v2), loaded by BDS 1.26.61.1 without content-log errors.
 
 ## Deliberately not used
 

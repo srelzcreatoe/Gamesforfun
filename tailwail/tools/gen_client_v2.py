@@ -20,7 +20,7 @@ Design rules that keep the client robust:
 import json
 import os
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.environ.get("TAILWAIL_ROOT") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RP = os.path.join(ROOT, "packs", "TailwailRP")
 BP = os.path.join(ROOT, "packs", "TailwailBP")
 A = "animation.tall_wail."

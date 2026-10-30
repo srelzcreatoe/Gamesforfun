@@ -4,30 +4,61 @@
     "name": "pack.name",
     "description": "pack.description",
     "uuid": "842601fd-5d8e-46ad-a432-a35be2bdf477",
-    "version": [1, 0, 0],
-    "min_engine_version": [1, 26, 60]
+    "version": [
+      2,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      26,
+      60
+    ]
   },
   "modules": [
     {
       "type": "data",
       "uuid": "c90e7b78-2ea3-49ac-8fdc-6a65af5cb19c",
-      "version": [1, 0, 0]
+      "version": [
+        2,
+        0,
+        0
+      ]
     },
     {
       "type": "script",
       "language": "javascript",
       "uuid": "5c83aca9-8ce4-444d-a959-3c8dcd1677d0",
       "entry": "scripts/main.js",
-      "version": [1, 0, 0]
+      "version": [
+        2,
+        0,
+        0
+      ]
     }
   ],
   "dependencies": [
-    { "uuid": "fa7f3f3e-5fed-48ef-822e-06340047434a", "version": [1, 0, 0] },
-    { "module_name": "@minecraft/server", "version": "2.11.0" },
-    { "module_name": "@minecraft/server-ui", "version": "2.3.0" }
+    {
+      "uuid": "fa7f3f3e-5fed-48ef-822e-06340047434a",
+      "version": [
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.11.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "2.3.0"
+    }
   ],
   "metadata": {
-    "authors": ["Tailwail: The Rehearsal team"],
+    "authors": [
+      "Tailwail"
+    ],
     "product_type": "addon"
   }
 }

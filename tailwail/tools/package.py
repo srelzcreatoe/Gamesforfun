@@ -4,9 +4,9 @@
   python3 -I tools/package.py            # validate, then write dist/*.mcaddon and *.mcpack
 
 Outputs (deterministic: sorted entries, fixed timestamps):
-  dist/Tailwail_The_Rehearsal_<ver>.mcaddon   both packs, double-click to import
-  dist/Tailwail_The_Rehearsal_BP_<ver>.mcpack
-  dist/Tailwail_The_Rehearsal_RP_<ver>.mcpack
+  dist/Tailwail_<ver>.mcaddon   both packs, double-click to import
+  dist/Tailwail_BP_<ver>.mcpack
+  dist/Tailwail_RP_<ver>.mcpack
   dist/SHA256SUMS.txt
 """
 import hashlib
@@ -52,7 +52,10 @@ def main():
     ver = ".".join(map(str, json.load(open(os.path.join(PACKS["TailwailBP"], "manifest.json")))["header"]["version"]))
     dist = os.path.join(ROOT, "dist")
     os.makedirs(dist, exist_ok=True)
-    name = "Tailwail_The_Rehearsal"
+    name = "Tailwail"
+    for old in os.listdir(dist):
+        if old.endswith((".mcaddon", ".mcpack")):
+            os.remove(os.path.join(dist, old))
     addon = []
     for pack, folder in PACKS.items():
         entries = [(os.path.relpath(f, folder).replace(os.sep, "/"), f) for f in files_of(folder)]

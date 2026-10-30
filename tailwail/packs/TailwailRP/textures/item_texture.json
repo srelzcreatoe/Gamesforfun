@@ -2,7 +2,15 @@
   "resource_pack_name": "tailwail",
   "texture_name": "atlas.items",
   "texture_data": {
-    "tailwail_field_guide": { "textures": "textures/items/tailwail_field_guide" },
-    "tailwail_spawn_egg": { "textures": "textures/items/tailwail_spawn_egg" }
+    "tailwail_field_guide": {
+      "textures": [
+        "textures/items/tailwail_field_guide"
+      ]
+    },
+    "tailwail_spawn_egg": {
+      "textures": [
+        "textures/items/tailwail_spawn_egg"
+      ]
+    }
   }
 }

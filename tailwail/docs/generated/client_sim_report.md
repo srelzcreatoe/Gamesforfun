@@ -10,47 +10,86 @@ composite-pose grounding (body + every overlay, 1.5x scale, blocks).
 
 ## Dynamic
 * pose_hops_checked: 756
-* random_steps: 150
+* random_steps: 600
 * max_weight: 1.0
 * gallop_stride_blocks: 2.89
-* final_states: {'ctrl_body': 'p0', 'ctrl_tail': 'rigid', 'ctrl_overlay': 'on', 'ctrl_mimic': 'on', 'ctrl_hurt': 'default'}
+* final_states: {'ctrl_body': 'p0', 'ctrl_tail': 'twitch', 'ctrl_overlay': 'on', 'ctrl_mimic': 'on', 'ctrl_hurt': 'default'}
 
 ## Grounding (lowest point min..max over 2 s, peak height)
 
 | state | lowest (blocks) | peak (blocks) |
 |---|---|---|
 | loco/tall/idle | -0.00 .. -0.00 | 4.37 |
+| loco/tall/creep | -0.00 .. 0.01 | 4.21 |
+| loco/tall/run | -0.02 .. 0.01 | 4.26 |
 | loco/hunch/idle | -0.12 .. 0.11 | 3.24 |
+| loco/hunch/creep | -0.09 .. 0.06 | 3.01 |
+| loco/hunch/run | -0.06 .. 0.02 | 2.99 |
 | loco/crawl/idle | -0.05 .. -0.05 | 1.88 |
+| loco/crawl/creep | -0.06 .. -0.03 | 1.93 |
+| loco/crawl/run | -0.05 .. -0.04 | 2.01 |
 | watch_low | -0.05 .. -0.00 | 3.43 |
+| tilt | -0.00 .. -0.00 | 4.33 |
+| owl | -0.00 .. -0.00 | 4.42 |
 | neck | -0.00 .. -0.00 | 4.50 |
+| unhinge | -0.00 .. -0.00 | 4.62 |
+| statue_reach | -0.00 .. -0.00 | 4.16 |
 | statue_arms_up | -0.00 .. -0.00 | 5.18 |
+| statue_cover | -0.00 .. -0.00 | 4.25 |
+| statue_bow | -0.00 .. -0.00 | 3.51 |
 | statue_sideways | -0.00 .. -0.00 | 4.62 |
+| peek_r | -0.00 .. 0.00 | 4.05 |
+| peek_l | -0.00 .. 0.00 | 4.06 |
 | unfold | -0.00 .. 0.04 | 5.02 |
+| unfold_low | -0.06 .. -0.06 | 3.36 |
+| windup | -0.07 .. -0.00 | 3.53 |
 | windup_c | -0.11 .. -0.00 | 2.97 |
+| scream | -0.00 .. -0.00 | 4.80 |
+| strike | -0.12 .. -0.00 | 2.99 |
 | grab | -0.00 .. -0.00 | 3.99 |
+| hold | -0.00 .. -0.00 | 3.99 |
+| throw | -0.00 .. -0.00 | 5.55 |
 | sniff | -0.13 .. 0.16 | 3.07 |
+| frustrated | -0.04 .. 0.08 | 4.18 |
+| behind | -0.00 .. -0.00 | 3.74 |
 | stuck | -0.00 .. -0.00 | 3.19 |
+| death | -0.00 .. 0.00 | 3.87 |
+| death_low | -0.00 .. 0.00 | 2.98 |
 
 ## Tail (every tail state x posture: lowest / highest tail point, blocks)
 
 | posture | tail | speed | lowest | highest |
 |---|---|---|---|---|
 | 0 | 0 | 0.0 | 0.52 | 2.15 |
+| 0 | 0 | 6.9 | 0.37 | 2.16 |
 | 0 | 1 | 0.0 | 1.53 | 2.21 |
+| 0 | 1 | 6.9 | 1.45 | 2.22 |
 | 0 | 2 | 0.0 | 2.05 | 2.28 |
+| 0 | 2 | 6.9 | 1.88 | 2.31 |
 | 0 | 3 | 0.0 | 1.45 | 2.21 |
+| 0 | 3 | 6.9 | 1.26 | 2.22 |
 | 0 | 4 | 0.0 | 2.05 | 3.54 |
+| 0 | 4 | 6.9 | 1.88 | 3.54 |
 | 1 | 0 | 0.0 | 0.13 | 1.74 |
+| 1 | 0 | 6.9 | -0.03 | 1.59 |
 | 1 | 1 | 0.0 | 1.42 | 2.10 |
+| 1 | 1 | 6.9 | 1.29 | 2.08 |
 | 1 | 2 | 0.0 | 1.43 | 2.72 |
+| 1 | 2 | 6.9 | 1.29 | 2.69 |
 | 1 | 3 | 0.0 | 1.29 | 1.81 |
+| 1 | 3 | 6.9 | 1.06 | 1.65 |
 | 1 | 4 | 0.0 | 1.44 | 2.93 |
+| 1 | 4 | 6.9 | 1.31 | 2.87 |
 | 2 | 0 | 0.0 | 0.06 | 0.79 |
+| 2 | 0 | 6.9 | 0.03 | 0.84 |
 | 2 | 1 | 0.0 | 0.07 | 0.80 |
+| 2 | 1 | 6.9 | 0.03 | 0.85 |
 | 2 | 2 | 0.0 | 0.07 | 0.80 |
+| 2 | 2 | 6.9 | 0.03 | 0.85 |
 | 2 | 3 | 0.0 | 0.07 | 0.79 |
+| 2 | 3 | 6.9 | 0.03 | 0.85 |
 | 2 | 4 | 0.0 | 0.08 | 0.80 |
+| 2 | 4 | 6.9 | 0.03 | 0.86 |
 
 ## Result
 

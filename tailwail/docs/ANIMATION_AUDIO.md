@@ -1,99 +1,119 @@
-# Animation and audio map
+# Animation and audio
 
-The server never plays animations directly. It sets **client-synced entity properties**;
-six animation controllers on the client turn them into clips. Because properties are part
-of the entity's synced state, a client that walks into range mid-encounter immediately
-gets the correct state. Generators: `tools/build_assets.py` (clips) and
-`tools/gen_controllers.py` (controllers).
+## Why v1 looked broken, and what changed
 
-## Properties (server → client)
+v1 drove most behaviour from held clips. A stalking Tailwail that was being watched stood
+frozen in a hunch with no breathing, and the supplied idle only moves ±1–5°. In play
+this read as "the animations aren't working". v2 is built so the creature is never
+visually dead:
 
-| Property | Values | Driven by |
+- **Always-on overlays** in their own single-state controller: breathing, a fine tremor,
+  head tracking and the jaw. They run on top of every pose, so even a frozen statue
+  breathes, shudders and turns its head to follow you.
+- **31 new baked clips** (`tools/anim_studio.py`): statues, performances, scream, grab,
+  hold, throw, sniff, frustrated and others. Every one is grounded by a solver so the
+  feet or knuckles touch y = 0.
+- **A hub controller keyed on one int property** (`tailwail:pose`). Every state can reach
+  every other in one frame and exits only on a property change, never on "animation
+  finished". It cannot get stuck.
+- **Offline proof** (`tools/client_sim.py`). A strict Molang evaluator simulates the
+  controllers frame by frame and composites body plus overlays to check grounding.
+
+## Synced entity properties (all int unless noted, all `client_sync`)
+
+| Property | Range | Meaning |
 |---|---|---|
-| `tailwail:state` | inactive, stalk, standoff, unfold, windup, chase, search, retreat, death | brain state |
-| `tailwail:posture` | tall, hunch, crawl | posture controller (also switches the collision group) |
-| `tailwail:headroom` | 0–8 | measured clear blocks above it (chooses the unfold variant) |
-| `tailwail:agit` | 1 calm, 2 agitated, 3 committed | agitation cue level |
-| `tailwail:tail` | drag, twitch, rigid, free | brain (rigid only during a real commitment) |
-| `tailwail:voice` | silent, breath, click, inhale, wail, snarl | set together with the matching sound |
-| `tailwail:mimic`, `mimic_amt`, `mimic_pitch` | none/crouch/tilt/step/shrug, 0–2, −60..60 | imitation replay |
-| `tailwail:action` | none, strike, peek_l, peek_r, listen, ambush, stuck | one-shot actions (strike is cleared between strikes, so it always restarts) |
-| `tailwail:look_yaw`, `look_pitch` | −90..90, −60..60 (3° steps) | head tracking toward the locked target, relative to the body |
-| `tailwail:fx` | 0–2 | **per viewer** via `setPropertyOverrideForEntity` (that player's effects preference) |
+| `tailwail:pose` | 0–40 | the body state (table below) |
+| `tailwail:posture` | 0–2 | tall / hunch / crawl (blends locomotion and tail) |
+| `tailwail:tail` | 0–4 | drag / twitch / rigid / free / curl |
+| `tailwail:breath` | 0–3 | none / calm / heavy / frantic (amplitude and rate) |
+| `tailwail:tremor` | 0–3 | shudder strength |
+| `tailwail:jaw` | 0–60 | jaw opening in degrees (wet chatter above 30) |
+| `tailwail:look_yaw` / `look_pitch` | ±180 / ±60 | head tracking target (owl-wide yaw) |
+| `tailwail:mimic`, `mimic_amt` (float), `mimic_pitch` | | delayed imitation overlay |
+| `tailwail:headroom` | 0–8 | chooses the full or mid-height unfold |
+| `tailwail:echo_pose` (echo entity) | 0–10 | hallucination pose |
 
-## Controllers and bone ownership
+## Body poses (`core/ids.js`, generated)
 
-| Controller | Owns | States → clips |
+| id | pose | clips |
 |---|---|---|
-| body | root, hips, spine, legs, arms, fingers (base pose and locomotion) | `upright`: idle_nt + walk_nt/pace_nt by speed + watch_nt (stalk/stand-off, still) + menace_nt (agitated) + withdraw (retreat) · `drop`/`rise` (0.5 s transitions) · `low`: planted ↔ crawl gallop by speed · `tunnel`: planted/crawl + tw_tunnel_still/move · `unfold`: reveal + tw_unfold_full (headroom ≥ 7) or tw_unfold_mid · `unfold_low`: planted + tw_unfold_low · `windup` / `windup_c` · `strike`: tw_strike · `ambush` · `stuck` · `peek_l`/`peek_r` · `death` / `death_low` — every keyframed supplied clip plays with its `gfix_*` grounding overlay |
-| tail | tail0–tail4 (expression) | `drag`: tw_tail_drag (upright) / tw_tail_drag_low (hunched) · `twitch`: tw_tail_twitch · `rigid`: tw_tail_rigid · `free`: none (body clips' own tail motion, e.g. gallop sway). Body clips that had procedural tail sway use tail-free copies (`*_nt`); keyframed body clips only contribute a static droop |
-| face | head/neck tracking + jaw | `look` + `jaw` always · `click`: + echo · `wail`: + scream_nt (dampened for viewers with effects off) · `inhale`: + tw_inhale · `listen`: + listen |
-| mimic | additive imitation overlays | tw_mimic_crouch / tw_mimic_step (upright only, weighted by 1 − movement), tw_mimic_shrug, tw_mimic_tilt — active in stalk and stand-off; variables ease out before the state switches off |
-| agitation | additive twitch | `twitch` (supplied, 4.4 s) while agitation level 2 |
-| hurt | additive flinch | `hurt` while `q.hurt_time > 0`, exits only after it finished and the hurt timer is 0 (no replay loop) |
+| 0 | loco | posture-weighted blend: upright idle / creep walk / gallop, hunched idle / crawl, tunnel crawl (+ solved ground fixes) |
+| 1 | watch_low | crouched, neck craned, head cocked |
+| 2 | tilt | head rolls 48° |
+| 3 | owl | head turns ~172° in stutter steps |
+| 4 | neck | neck stretches toward you |
+| 5 | unhinge | jaw drops to 58°, head shaking |
+| 6–10 | statue_reach, statue_arms_up, statue_cover, statue_bow, statue_sideways | frozen poses (0.25 s ease in, then held) |
+| 11–12 | peek_r / peek_l | head and hand around a corner |
+| 13 | unfold | supplied `reveal` + full / mid unfold (by headroom) |
+| 14 | unfold_low | low-ceiling rise |
+| 15–16 | windup / windup_c | supplied wind-up (cut at 1.0 s) |
+| 17 | scream | arch back, arms wide, lunge forward screaming, shake |
+| 18 | strike | swipe (when there is no room to lift) |
+| 19–21 | grab, hold, throw | lift you, hold you shaking at its face, throw |
+| 22 | sniff | searching |
+| 23 | frustrated | rears up and howls |
+| 24 | behind | standing over you |
+| 25 | stuck | supplied |
+| 26–27 | death / death_low | supplied |
 
-Held clips (`hold_on_last_frame`) can never strand the body: every body state that holds
-exits on a property change, and the one looping-by-design clip that should be bounded
-(`scream`) only plays while `voice == wail` (≈ 1.8 s per commitment).
+Controllers (`animation_controllers/tall_wail.animation_controllers.json`, generated by
+`tools/gen_client_v2.py`):
+- **body:** 28 states, fully connected;
+- **tail:** 5 states, each handing over to the floor-solved tunnel tail in the crawl
+  posture;
+- **overlay:** one state with breath, tremor, look and jaw;
+- **mimic:** one state;
+- **hurt:** a flinch that cannot play during death;
+- **echo:** 10 states for the hallucination entity.
 
-## Molang variables (all initialised in `initialize`, updated every frame in `pre_animation`)
+Pre-animation Molang derives:
+- the gait drivers from distance actually moved: `v.walk` in degrees per stride (2.17
+  blocks at a pace, 2.89 at a gallop) and `v.crawl` (1.62 blocks per cycle), so feet
+  don't slide;
+- smoothed posture weights;
+- breath amplitude and phase;
+- tremor, jaw chatter and head look;
+- the imitation overlays.
 
-| Variable | Units / range | Derived from the supplied math | Update |
-|---|---|---|---|
-| `v.walk` | gait phase, **degrees**, wrapped 0–360 | `math.sin(v.walk)`, `+180` for the opposite leg, `v.walk*2` for the bob → one stride = 360° | += distance moved × 360 / stride; stride 2.17 blocks (pace) … 2.89 (walk), measured from foot contact in the clips |
-| `v.move` | 0–1 | scales the root bob (`-0.9*v.move`) → a normalised intensity, also used as the gait blend weight | eased toward ground speed / 1.6 b/s |
-| `v.crawl` | 0–1 (anim time of the 1.0 s gallop) | `anim_time_update` | += distance / 1.62 blocks per cycle (hand stance travel measured) → limited sliding |
-| `v.climb_t` | 0 | `anim_time_update` of `climb` | held at 0: climbing is not used (no stable collision-aware support) |
-| `v.look_x`, `v.look_y` | degrees, pitch ±45, yaw ±80 | clip clamps `look_x*0.6` to ±14 and saturates `abs(look_y)/80` | eased toward the server's look properties |
-| `v.jaw` | degrees added to the 12° rest, −2..40 | `rotation x = v.jaw`, drop `0.1*max(v.jaw,0)` | from voice: breath 0–4, click 3, inhale 12, snarl 18, wind-up ≥ 16, wail 31–37, death 22 |
-| `v.mimic_*` | crouch 0–1.6, step 0–0.5, shrug 0–1.5, roll/pitch degrees | new | eased (≈ 0.45 s) toward the replay targets |
+Simulator results (`docs/generated/client_sim_report.md`):
+- 0 errors;
+- the lowest point of every state is within ±0.13 blocks of the floor;
+- peaks: idle 4.4, full unfold 5.0, scream 4.8, throw 5.6, crawl ≤ 2.0 blocks;
+- the tail never sinks below −0.12 or rises above 2.0 blocks in the tunnel crawl.
 
-## New and derived clips (`tall_wail.rehearsal.animation.json`)
+## Sound palette (all original, synthesized by `tools/gen_audio_v2.py`)
 
-| Clip | Purpose | How it was made |
+No samples and no third-party audio. The generator builds:
+- a band-limited glottal source with jitter, shimmer and period-doubling roughness;
+- time-varying formant filtering (STFT, morphing vowels);
+- aspiration noise, granular crackle, damped resonators and bubble chirps;
+- a stone-cave convolution reverb with frequency-dependent decay;
+- soft saturation and per-cue soft-clip compression.
+
+Every sound is deterministic per seed and reviewed as spectrograms.
+
+| Event | Variants | Design |
 |---|---|---|
-| `idle_nt`, `walk_nt`, `pace_nt`, `watch_nt`, `menace_nt`, `scream_nt` | supplied procedural clips minus tail bones | copied, tail channels removed (tail controller owns tail expression) |
-| `gfix_*` (14 clips) | keep feet/hands on the floor | root offset solved per sample from the supplied clip (max 0.6–1.9 px) |
-| `tw_strike` | readable melee | supplied `strike` re-timed: impact moved 0.35 → 0.55 s, length 0.95 s |
-| `tw_mimic_crouch` | delayed / exaggerated crouch | knee/thigh angles solved so feet stay planted (residual < 0.02 px) at depths 3, 6.5, 11 px |
-| `tw_mimic_step`, `tw_mimic_shrug`, `tw_mimic_tilt` | stop-start freeze mid-step, hiked shoulders, head pitch + quizzical roll | new keyframes / Molang |
-| `tw_tail_drag`, `tw_tail_drag_low`, `tw_tail_twitch`, `tw_tail_rigid` | the three tail readings | drag angles solved per posture (hunched tip rests 0.6 px above the floor); sway reuses the supplied idle tail expressions |
-| `tw_inhale` | agitated inhale | new |
-| `tw_unfold_full`, `tw_unfold_mid`, `tw_unfold_low` | the unfolding, as tall as the space allows | layered on the supplied `reveal` (2.0 s) / `planted`; grounding solved; peak 5.0 / 4.8 / 3.3 blocks |
-| `tw_tunnel_still`, `tw_tunnel_move` | 2-block passages | constrained pose search over the gallop cycle: max 1.81 blocks high |
+| `breath` | 3 | long wet inhale, a beat, a growling exhale, cave reverb |
+| `breath_behind` | 2 | dry and close: inhale, raspy exhale, a wet catch |
+| `tail_scrape`, `skitter`, `knock` | 2/3/2 | friction grains; fast nail taps and scuffs; three knocks with the third late |
+| `creak`, `neck_crack`, `jaw` | 3/2/2 | stick-slip bone creak ending in a crack; an accelerating crack series; dislocation crack, wet stretch and groan |
+| `click`, `inhale` | 3/2 | accelerating throat clicks over a hum; a rising inhale with a vocal-fry rattle, cut short |
+| `scream` | 2 | **the wail**: two detuned throats with irregular vibrato, a sub-growl, a breath hiss, a metallic ring layer, saturation, 2.8 s cave tail |
+| `scream_far`, `screech`, `pain` | 1/4/2 | the wail at distance (low-passed, 4.5 s tail); short chase shrieks; a shriek of pain |
+| `step_soft`, `step_heavy` | 3/4 | soft thuds; palm slaps with debris |
+| `grab`, `hold`, `throw`, `bite` | 2 each | whoosh, impact, snarl; wet rumbling growl and gurgles inches away; grunt and whoosh; crunching cracks and squelch |
+| `swipe`, `impact`, `hurt` | 2/2/3 | |
+| `sniff`, `frustrated`, `retreat`, `death` | 3/2/2/1 | sniff bursts; enraged howl; receding moan; long descending dying wail, gurgle, collapse |
+| `whisper` | 3 | whispered gibberish (formant syllables and consonant bursts) with a second whisperer 45 ms behind |
+| `stinger` | 2 | jumpscare hit: boom, dissonant saw cluster, shriek |
+| `heartbeat` | 1 | lub-dub (driven at 66–168 bpm by the effects manager) |
+| `music.standoff` | 48 s loop | beating A/B♭ drone with a moving filter, breathing pad, groaning bowed metal, far shimmer, distant knocks |
+| `music.chase` | 32 s loop | 150 bpm war drums, a minor-second bass ostinato, tremolo string clusters, metallic hits, falling stabs |
 
-Supplied clips not used in gameplay: `climb` (no physical wall climbing), `pounce` and
-`lunge` (no physics-backed leap; kept for future work), `vanish_pose` (identical to
-`planted`). `idle`, `walk`, `pace`, `watch`, `menace`, `scream` are used through their
-tail-free copies; all others are used directly.
-
-## Sound palette
-
-All sounds are original, synthesised by `tools/gen_audio.py` (fixed seeds), Ogg Vorbis
-mono 44.1 kHz, 36 files / 577 KB. Played per player at the creature's head position with
-that player's volume; distance attenuation from `sound_definitions.json`.
-
-| Cue | Sound id (variants) | When | Min gap | Range |
-|---|---|---|---|---|
-| distant breath | `tailwail.breath` (3) | stalking, every 14–26 s within 26 blocks | 10 s | 30 |
-| tail scrape | `tailwail.tail_scrape` (3) | stalking movement; peek withdrawal | 9 s | 26 |
-| nail scrape | `tailwail.nail_scrape` (2) | corner-peek / low-tunnel setups, unobserved, every 30–55 s | 25 s | 28 |
-| throat click | `tailwail.click` (3) | agitation level 2 bursts; search listening | 2.5 s | 32 |
-| agitated inhale | `tailwail.inhale` (2) | agitation > 75 (once), reveal setup, start of wind-up | 6 s | 40 |
-| **full wail** | `tailwail.wail` (2) | end of the wind-up — once per real commitment | one-shot | 72 |
-| exertion | `tailwail.exertion` (3) | during pursuit | 2 s | 40 |
-| heavy hands | `tailwail.step_heavy` (4) | every half gallop cycle travelled in pursuit/search | 0.22 s | 40 |
-| soft steps | `tailwail.step_soft` (3) | every 2.2 blocks while stalking/retreating | 0.6 s | 20 |
-| swipe / impact | `tailwail.swipe` / `tailwail.impact` (2+2) | strike start / strike landed | 0.8 s | 24 |
-| snarl | `tailwail.snarl` (2) | frustrated search end, reacquire, hit while retreating | 4 s | 40 |
-| retreat | `tailwail.retreat` (2) | start of every withdrawal | 20 s | 40 |
-| hurt / death | `tailwail.hurt` (2) / `tailwail.death` (1) | damage taken / scripted death | 0.4 / 10 s | 32 / 64 |
-
-Per player at most 3 Tailwail sounds per second across all encounters. Levels: the wail
-peaks at −0.7 dBFS; breath, scrapes and clicks sit around −27 to −33 dBFS RMS so silence
-and quiet cues dominate. Silence is a state: unfold is silent by design, and stalking
-cues are spaced so mining can continue between them.
-
-**Status:** functional and original, but not release-polished — see
-[LIMITATIONS.md](LIMITATIONS.md). They were checked by level/clipping measurement and
-spectrograms only; no human listening test has been done yet.
+Music uses `category: music`, `stream: true` and plays per player (`Player.playMusic`).
+Mimicry and footsteps reuse vanilla ids (`dig.*`, `use.*`, `step.*`, `random.door_open`,
+`random.chestopen`, `random.eat`, `game.player.hurt`…), so the copy sounds exactly like
+the player's own action. All 30 vanilla ids were checked against the 1.26.60 vanilla pack.

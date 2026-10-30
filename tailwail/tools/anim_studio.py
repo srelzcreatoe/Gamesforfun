@@ -23,7 +23,7 @@ import sys
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
+ROOT = os.environ.get("TAILWAIL_ROOT") or os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import bedrock_model as bm  # noqa: E402
 

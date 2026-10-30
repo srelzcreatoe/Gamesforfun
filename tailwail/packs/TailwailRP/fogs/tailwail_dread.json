@@ -1,0 +1,34 @@
+{
+  "format_version": "1.16.100",
+  "minecraft:fog_settings": {
+    "description": {
+      "identifier": "tailwail:dread"
+    },
+    "distance": {
+      "air": {
+        "fog_start": 3.0,
+        "fog_end": 26.0,
+        "fog_color": "#060508",
+        "render_distance_type": "fixed"
+      },
+      "weather": {
+        "fog_start": 3.0,
+        "fog_end": 26.0,
+        "fog_color": "#060508",
+        "render_distance_type": "fixed"
+      },
+      "water": {
+        "fog_start": 0.0,
+        "fog_end": 9.0,
+        "fog_color": "#05060a",
+        "render_distance_type": "fixed"
+      },
+      "lava": {
+        "fog_start": 0.0,
+        "fog_end": 0.64,
+        "fog_color": "#991a00",
+        "render_distance_type": "fixed"
+      }
+    }
+  }
+}

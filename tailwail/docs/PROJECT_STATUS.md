@@ -1,39 +1,26 @@
-# Project status (2026-10-30)
+# Project status
 
-## Done
-* Milestone 1 — asset audit (facts re-verified, every clip rendered and measured), version
-  selection (Bedrock 1.26.60 / BDS 1.26.61.1, `@minecraft/server` 2.11.0, `-ui` 2.3.0),
-  competitive baseline.
-* Milestone 2 — playable creature: BP/RP, 1.5× scale, collision/hit profiles, lure
-  navigation, spawn egg, lang, icons.
-* Milestone 3 — full encounter loop: stalk → stand-off → unfold → 3.2 s wind-up → wail →
-  chase → search → retreat; death; single damage authority; posture/tunnels; escape rules.
-* Milestone 4 — memory and variety: per-player bounded memory, delayed imitation,
-  remembered-gesture opener, rehearsal of learned gestures, six setups, scheduler.
-* Milestone 5 — polish: 30+ derived/new clips with solved grounding, tail states,
-  synthesised sound palette (36 files), field guide, settings forms, presets, captions,
-  per-viewer effects.
-* Milestone 6 — validator (0 errors), 29 unit tests (pass), BDS runtime scenarios
-  (see [TESTING.md](TESTING.md)), packaging (`dist/`), documentation.
+**v2.0.0: complete rebuild after v1 feedback** ("underwhelming", "the animations aren't
+working").
 
-## Key decisions
-* Server-driven entity properties + client controllers (state survives late joiners).
-* Navigation via a script-placed lure and the engine pathfinder; never teleport the creature.
-* Chase gait = supplied `crawl` knuckle-gallop; commitment = new unfold layered on
-  `reveal`, then the untouched 3.2 s `windup`.
-* No 1×1 pursuit (documented escape rule); two-high tunnels supported.
-* Synthesised audio as the shipped v1 palette, flagged for a sound-design pass.
+| Area | v2 state |
+|---|---|
+| Client | 31 new baked clips, a hub controller on int properties, always-on breathing / tremor / look / jaw overlays, solved ground fixes for the tunnel crawl. Proven by `client_sim.py`: 0 errors |
+| Encounter | stalk, stand-off (statue creep, mirror, performances, agitation readout), silent unfold, scream, windup, chase, grab and struggle (throw, bite), search (sniff, noise, hiding), frustrated howl, owl-turn retreat, death |
+| Haunting | 12 presence events plus the bed visit, 4 escalation stages, eligible-time pacing |
+| World | burnt-out torch block (relightable, returns the torch), hallucination entity, dread fog, snuff smoke |
+| Audio | 30 synthesized sound events (69 files) + 2 streamed music loops, all original |
+| UX | Torn Journal (13 unlockable pages), settings (3 presets plus custom; per-player camera, music, fog and captions), operator diagnostics, `/tailwail:debug restore` |
+| Verification | validator 14/14, unit tests 40/40, BDS scenarios (statue, commit, grab, hide, escape, tunnel, presence, death, spawn site, perf), mct 0 errors |
 
-## Pending (needs a client, devices or people)
-* In-client visual/audio verification and the manual test plan in TESTING.md §4.
-* Device performance measurement (mobile included) and mane profiling.
-* Playtests with the rubric; tuning from observations.
+## Next actions (need a game client)
 
-## Next concrete action
-Import `dist/Tailwail_The_Rehearsal_1.0.0.mcaddon` into Minecraft 1.26.60+ on a test
-device, create a Survival world with experiments off, run TESTING.md §4 steps 1–3 with
-`/tailwail:debug log on`, and record content-log output and any visual problems.
-
-## Rebuild / verify
-`python3 -I tools/package.py` (validates first). `node --test tests/*.test.mjs`.
-`python3 tools/bds_scenarios.py --server <scratch BDS>` for runtime scenarios.
+1. Play through [TESTING.md §6](TESTING.md). Above all, listen to every sound and watch the
+   stand-off and the grab on a real screen.
+2. Tune loudness, fog density, FOV amounts and agitation rate from that session.
+3. Profile client frame time with 1–2 creatures on a mid-range phone.
+4. Run a playtest with people who have not read the guide, scored on the rubric:
+   - did they discover the statue rule;
+   - did they read the agitation signs;
+   - did they escape at least once;
+   - was it still scary after three encounters.

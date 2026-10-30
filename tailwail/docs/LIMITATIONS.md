@@ -1,69 +1,58 @@
-# Known limitations and outstanding polish
+# Known limitations
 
-Honest list, ordered by impact. Nothing here requires experiments to fix.
+## Not verified in a real game client
 
-## Not yet verified in a game client
+- **No client test has been done.** Everything visual and audible was verified offline:
+  - the controller and Molang simulator plus grounding solver;
+  - software renders of the composite poses;
+  - spectrogram and loudness review of every sound;
+  - Mojang Creator Tools schema validation.
 
-* **No Minecraft client was available.** Rendering, client animation controllers, Molang
-  evaluation, sound playback, forms, the field guide item, captions and camera shake have
-  only been checked statically (validator, renders from the repo's own evaluator) — not
-  seen in game. The behavior pack, scripts and server-side gameplay were exercised on
-  Bedrock Dedicated Server 1.26.61.1 with a scripted stand-in player
-  ([TESTING.md](TESTING.md)). First in-client session should follow the manual plan there.
-* **No real players / devices / playtesters yet.** No frame rates, mobile performance,
-  multiplayer sight-line behaviour or scare ratings have been measured. Server-side script
-  cost was measured on BDS only (≈ 1.6 ms per decision tick for three encounters on a
-  2.1 GHz Xeon).
-* The repo's preview renderer approximates Bedrock's transform conventions (Blockbench
-  codec: X mirrored, Euler Z·Y·X). Side-face texture orientation and any rotation-order
-  edge cases may differ slightly in game.
+  Gameplay was verified on a dedicated server with a stand-in player. Things that can only
+  be judged in a client:
+  - whether the poses read as scary at game distances and lighting;
+  - the actual loudness of each sound against vanilla;
+  - how strong the fog, FOV and shake feel;
+  - music looping;
+  - whether teleport-every-tick during the grab looks smooth or jittery on the victim's
+    screen.
+- **Nobody has listened to the sounds** on speakers or headphones. They were designed and
+  checked numerically (spectra, envelopes, peak and RMS). Some may need level or tone
+  tweaks after a listen (`tools/gen_audio_v2.py` makes each a one-line change).
+- **Camera FOV reset** uses `/camera @s fov_clear` (documented syntax; it parses on BDS)
+  because the script API does not document how to clear a scripted FOV. If it ever fails
+  on a client, players can set Camera effects to *Reduced* (no FOV changes), or run
+  `/tailwail:debug restore`.
 
-## Design limitations (deliberate, documented)
+## Behaviour
 
-* **1 × 1 passages are not followed.** The collision crawl profile is 1.8 high; no pose
-  of this rig fits one block (torso + mane ≈ 1.1 blocks thick at 1.5×). Two-block-high
-  tunnels, including one-wide ones, are followed (verified in BDS). One-high gaps are
-  therefore a learnable escape route.
-* **Limb clipping in one-wide tunnels.** Collision is 0.9 wide, but the flattened crawl's
-  elbows and knees span ≈ 3.4 blocks; in a one-wide tunnel the limbs pass into the walls
-  (hidden from the player inside the tunnel, visible from outside).
-* **No wall climbing, leaping or pounce.** The supplied `climb` and `pounce` clips have no
-  collision-aware stable movement behind them; adding them would risk unfair or broken
-  pursuit. Essential pursuit does not need them.
-* **Doors:** wooden doors only (engine door annotation); trapdoors, gates and iron doors
-  stop it. Hosts can disable door opening.
-* **Block solidity heuristic.** The stable API has no `isSolid`; walkable space uses an
-  explicit passable-block list (`mc/terrain.js`). Exotic or future blocks may be
-  misclassified for spawn/spot finding (navigation itself is the engine's).
-* **Observation spots** are chosen from 10 sampled candidates per reposition; in very open
-  or very cramped caves it may hold still longer than ideal (it never moves into plain sight).
-* **Night woodland encounters** reuse the cave logic with a biome check; spawning still
-  requires light ≤ 7, so they mostly occur under dense canopy. Off by default, less tested.
-* **Manual spawns** (egg, `/summon`) may target Creative players for showcases; damage
-  does not apply to them.
-* **Camera shake** (optional "Full" effect) is issued with the `camerashake` command from
-  script and is wrapped so that, if a world or platform rejects it, the effect simply does
-  not happen; it was not observed in a client.
-* **Peaceful** removes every Tailwail, including ones placed with a spawn egg.
-* **Health/toughness** is a damage divisor (stable API cannot change max health at runtime).
-* **Memory** is lost for a player who disconnects mid-encounter (it is saved at the end of
-  an encounter, which cannot write to an offline player).
-* **Field-guide hand-out** happens once per player on first join if a slot is free;
-  otherwise use the recipe or `/tailwail:guide`.
+- The "on screen" test uses a generous ~72° cone with line of sight to three body points.
+  With an extreme FOV, or the creature filling the edge of the screen, it is possible to
+  see a sliver of it move.
+- Navigation is the engine's own pathfinder toward an invisible lure. It can still lose
+  time on complex terrain: stuck detection, sidestep recovery and a give-up into search
+  exist, but caves with drops, scaffolding or water may look clumsy.
+- Hiding is based on block light at your head and crouching. Dynamic light from a held
+  torch does not exist in Bedrock, so holding a torch does not give you away by itself.
+- Presence events pick positions from loaded terrain with bounded searches. In very open
+  or very cramped places some events find no valid spot and are skipped (the knock needs
+  a wall behind you; the peek needs a corner).
+- A grab needs about 4 blocks of headroom. In low tunnels it strikes instead.
+- The fake chat line only goes to the haunted player, but on servers with chat logging it
+  is a real message to that player.
 
-## Outstanding polish
+## Content and performance
 
-1. **Audio:** the synthesised palette is functional and original but should get a sound
-   designer's pass (recorded/processed vocal layers for the wail and snarl, more breath
-   variants, proper room tone) after listening tests on headphones and phone speakers.
-2. **In-client animation review:** blend times, the tunnel crawl and unfold poses, mimic
-   overlay amplitudes and head-tracking smoothing need tuning by eye in game.
-3. **Playtests** with the rubric in [TESTING.md](TESTING.md) to tune agitation rates,
-   pursuit budget, chase speed and cooldowns (current values come from design reasoning and
-   BDS timing runs, not from player data).
-4. **Mane profiling:** 183 of 268 cubes are mane strands. Do not simplify without device
-   profiling; if mobile frame cost proves high, merge strand pairs symmetric about the
-   neck first (preserves the silhouette).
-5. **Localization:** only `en_US` text exists.
-6. Optional future features once verified: physics-backed lunge using the supplied
-   `lunge`/`pounce` clips with a valid landing check and a telegraph.
+- **One creature.** Depth over breadth: there is no roster of dwellers.
+- No custom structures, biomes or lore buildings.
+- Decision-tick cost was measured only on BDS (2.4 ms average for three encounters, on a
+  development container CPU). Client rendering cost of the 268-cube model with up to four
+  layered clips has not been profiled. The 183-cube mane was not simplified.
+- Sounds are mono, 44.1 kHz Ogg Vorbis (~2.3 MB total). Music streams.
+
+## Compatibility
+
+- Needs Bedrock 1.26.60+ (stable script modules 2.11.0 / 2.3.0). On older clients the packs
+  will not load.
+- Other add-ons that also use `player.playMusic`, fog stacks or input permissions can
+  interfere during an encounter. Tailwail only removes fog entries carrying its own tag.

@@ -1,27 +1,47 @@
 {
- "format_version": "1.8.0",
- "render_controllers": {
-  "controller.render.tall_wail": {
-   "geometry": "Geometry.default",
-   "materials": [
-    {
-     "*": "Material.default"
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.tall_wail": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ],
+      "uv_anim": {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0
+        ]
+      }
+    },
+    "controller.render.tailwail_lure": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ],
+      "uv_anim": {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0
+        ]
+      }
     }
-   ],
-   "textures": [
-    "Texture.default"
-   ]
-  },
-  "controller.render.tailwail_lure": {
-   "geometry": "Geometry.default",
-   "materials": [
-    {
-     "*": "Material.default"
-    }
-   ],
-   "textures": [
-    "Texture.default"
-   ]
   }
- }
 }

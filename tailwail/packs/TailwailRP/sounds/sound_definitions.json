@@ -3,9 +3,8 @@
  "sound_definitions": {
   "tailwail.breath": {
    "category": "hostile",
-   "min_distance": 2,
-   "max_distance": 30,
-   "subtitle": "subtitles.tailwail.breath",
+   "min_distance": 4,
+   "max_distance": 32,
    "sounds": [
     {
      "name": "sounds/tailwail/breath_1",
@@ -22,13 +21,149 @@
      "volume": 1.0,
      "load_on_low_memory": true
     }
-   ]
+   ],
+   "subtitle": "subtitles.tailwail.breath"
+  },
+  "tailwail.breath_behind": {
+   "category": "hostile",
+   "min_distance": 1,
+   "max_distance": 8,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/breath_behind_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/breath_behind_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.breath_behind"
+  },
+  "tailwail.tail_scrape": {
+   "category": "hostile",
+   "min_distance": 2,
+   "max_distance": 28,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/tail_scrape_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/tail_scrape_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.tail_scrape"
+  },
+  "tailwail.knock": {
+   "category": "hostile",
+   "min_distance": 3,
+   "max_distance": 28,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/knock_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/knock_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.knock"
+  },
+  "tailwail.skitter": {
+   "category": "hostile",
+   "min_distance": 3,
+   "max_distance": 28,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/skitter_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/skitter_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/skitter_3",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.skitter"
+  },
+  "tailwail.creak": {
+   "category": "hostile",
+   "min_distance": 3,
+   "max_distance": 26,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/creak_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/creak_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/creak_3",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.creak"
+  },
+  "tailwail.neck_crack": {
+   "category": "hostile",
+   "min_distance": 3,
+   "max_distance": 28,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/neck_crack_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/neck_crack_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.neck_crack"
+  },
+  "tailwail.jaw": {
+   "category": "hostile",
+   "min_distance": 3,
+   "max_distance": 28,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/jaw_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/jaw_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.jaw"
   },
   "tailwail.click": {
    "category": "hostile",
    "min_distance": 3,
    "max_distance": 32,
-   "subtitle": "subtitles.tailwail.click",
    "sounds": [
     {
      "name": "sounds/tailwail/click_1",
@@ -45,85 +180,13 @@
      "volume": 1.0,
      "load_on_low_memory": true
     }
-   ]
-  },
-  "tailwail.death": {
-   "category": "hostile",
-   "min_distance": 8,
-   "max_distance": 64,
-   "subtitle": "subtitles.tailwail.death",
-   "sounds": [
-    {
-     "name": "sounds/tailwail/death_1",
-     "volume": 1.0,
-     "load_on_low_memory": true
-    }
-   ]
-  },
-  "tailwail.exertion": {
-   "category": "hostile",
-   "min_distance": 4,
-   "max_distance": 40,
-   "subtitle": "subtitles.tailwail.exertion",
-   "sounds": [
-    {
-     "name": "sounds/tailwail/exertion_1",
-     "volume": 1.0,
-     "load_on_low_memory": true
-    },
-    {
-     "name": "sounds/tailwail/exertion_2",
-     "volume": 1.0,
-     "load_on_low_memory": true
-    },
-    {
-     "name": "sounds/tailwail/exertion_3",
-     "volume": 1.0,
-     "load_on_low_memory": true
-    }
-   ]
-  },
-  "tailwail.hurt": {
-   "category": "hostile",
-   "min_distance": 3,
-   "max_distance": 32,
-   "subtitle": "subtitles.tailwail.hurt",
-   "sounds": [
-    {
-     "name": "sounds/tailwail/hurt_1",
-     "volume": 1.0,
-     "load_on_low_memory": true
-    },
-    {
-     "name": "sounds/tailwail/hurt_2",
-     "volume": 1.0,
-     "load_on_low_memory": true
-    }
-   ]
-  },
-  "tailwail.impact": {
-   "category": "hostile",
-   "min_distance": 2,
-   "max_distance": 24,
-   "subtitle": "subtitles.tailwail.impact",
-   "sounds": [
-    {
-     "name": "sounds/tailwail/impact_1",
-     "volume": 1.0,
-     "load_on_low_memory": true
-    },
-    {
-     "name": "sounds/tailwail/impact_2",
-     "volume": 1.0,
-     "load_on_low_memory": true
-    }
-   ]
+   ],
+   "subtitle": "subtitles.tailwail.click"
   },
   "tailwail.inhale": {
    "category": "hostile",
    "min_distance": 4,
    "max_distance": 40,
-   "subtitle": "subtitles.tailwail.inhale",
    "sounds": [
     {
      "name": "sounds/tailwail/inhale_1",
@@ -135,67 +198,95 @@
      "volume": 1.0,
      "load_on_low_memory": true
     }
-   ]
+   ],
+   "subtitle": "subtitles.tailwail.inhale"
   },
-  "tailwail.nail_scrape": {
+  "tailwail.scream": {
+   "category": "hostile",
+   "min_distance": 8,
+   "max_distance": 96,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/scream_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/scream_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.scream"
+  },
+  "tailwail.scream_far": {
+   "category": "hostile",
+   "min_distance": 16,
+   "max_distance": 128,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/scream_far_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.scream_far"
+  },
+  "tailwail.screech": {
+   "category": "hostile",
+   "min_distance": 6,
+   "max_distance": 56,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/screech_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/screech_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/screech_3",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/screech_4",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.screech"
+  },
+  "tailwail.step_soft": {
    "category": "hostile",
    "min_distance": 2,
-   "max_distance": 28,
-   "subtitle": "subtitles.tailwail.nail_scrape",
+   "max_distance": 18,
    "sounds": [
     {
-     "name": "sounds/tailwail/nail_scrape_1",
+     "name": "sounds/tailwail/step_soft_1",
      "volume": 1.0,
      "load_on_low_memory": true
     },
     {
-     "name": "sounds/tailwail/nail_scrape_2",
-     "volume": 1.0,
-     "load_on_low_memory": true
-    }
-   ]
-  },
-  "tailwail.retreat": {
-   "category": "hostile",
-   "min_distance": 4,
-   "max_distance": 40,
-   "subtitle": "subtitles.tailwail.retreat",
-   "sounds": [
-    {
-     "name": "sounds/tailwail/retreat_1",
+     "name": "sounds/tailwail/step_soft_2",
      "volume": 1.0,
      "load_on_low_memory": true
     },
     {
-     "name": "sounds/tailwail/retreat_2",
+     "name": "sounds/tailwail/step_soft_3",
      "volume": 1.0,
      "load_on_low_memory": true
     }
-   ]
-  },
-  "tailwail.snarl": {
-   "category": "hostile",
-   "min_distance": 4,
-   "max_distance": 40,
-   "subtitle": "subtitles.tailwail.snarl",
-   "sounds": [
-    {
-     "name": "sounds/tailwail/snarl_1",
-     "volume": 1.0,
-     "load_on_low_memory": true
-    },
-    {
-     "name": "sounds/tailwail/snarl_2",
-     "volume": 1.0,
-     "load_on_low_memory": true
-    }
-   ]
+   ],
+   "subtitle": "subtitles.tailwail.step_soft"
   },
   "tailwail.step_heavy": {
    "category": "hostile",
    "min_distance": 4,
    "max_distance": 40,
-   "subtitle": "subtitles.tailwail.step_heavy",
    "sounds": [
     {
      "name": "sounds/tailwail/step_heavy_1",
@@ -217,36 +308,85 @@
      "volume": 1.0,
      "load_on_low_memory": true
     }
-   ]
+   ],
+   "subtitle": "subtitles.tailwail.step_heavy"
   },
-  "tailwail.step_soft": {
+  "tailwail.grab": {
    "category": "hostile",
-   "min_distance": 1,
-   "max_distance": 20,
-   "subtitle": "subtitles.tailwail.step_soft",
+   "min_distance": 3,
+   "max_distance": 32,
    "sounds": [
     {
-     "name": "sounds/tailwail/step_soft_1",
+     "name": "sounds/tailwail/grab_1",
      "volume": 1.0,
      "load_on_low_memory": true
     },
     {
-     "name": "sounds/tailwail/step_soft_2",
-     "volume": 1.0,
-     "load_on_low_memory": true
-    },
-    {
-     "name": "sounds/tailwail/step_soft_3",
+     "name": "sounds/tailwail/grab_2",
      "volume": 1.0,
      "load_on_low_memory": true
     }
-   ]
+   ],
+   "subtitle": "subtitles.tailwail.grab"
+  },
+  "tailwail.hold": {
+   "category": "hostile",
+   "min_distance": 2,
+   "max_distance": 24,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/hold_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/hold_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.hold"
+  },
+  "tailwail.throw": {
+   "category": "hostile",
+   "min_distance": 2,
+   "max_distance": 24,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/throw_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/throw_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.throw"
+  },
+  "tailwail.bite": {
+   "category": "hostile",
+   "min_distance": 2,
+   "max_distance": 24,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/bite_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/bite_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.bite"
   },
   "tailwail.swipe": {
    "category": "hostile",
    "min_distance": 2,
    "max_distance": 24,
-   "subtitle": "subtitles.tailwail.swipe",
    "sounds": [
     {
      "name": "sounds/tailwail/swipe_1",
@@ -258,46 +398,209 @@
      "volume": 1.0,
      "load_on_low_memory": true
     }
-   ]
+   ],
+   "subtitle": "subtitles.tailwail.swipe"
   },
-  "tailwail.tail_scrape": {
+  "tailwail.impact": {
    "category": "hostile",
    "min_distance": 2,
-   "max_distance": 26,
-   "subtitle": "subtitles.tailwail.tail_scrape",
+   "max_distance": 24,
    "sounds": [
     {
-     "name": "sounds/tailwail/tail_scrape_1",
+     "name": "sounds/tailwail/impact_1",
      "volume": 1.0,
      "load_on_low_memory": true
     },
     {
-     "name": "sounds/tailwail/tail_scrape_2",
+     "name": "sounds/tailwail/impact_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.impact"
+  },
+  "tailwail.pain": {
+   "category": "hostile",
+   "min_distance": 4,
+   "max_distance": 40,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/pain_1",
      "volume": 1.0,
      "load_on_low_memory": true
     },
     {
-     "name": "sounds/tailwail/tail_scrape_3",
+     "name": "sounds/tailwail/pain_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.pain"
+  },
+  "tailwail.sniff": {
+   "category": "hostile",
+   "min_distance": 2,
+   "max_distance": 22,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/sniff_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/sniff_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/sniff_3",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.sniff"
+  },
+  "tailwail.frustrated": {
+   "category": "hostile",
+   "min_distance": 6,
+   "max_distance": 64,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/frustrated_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/frustrated_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.frustrated"
+  },
+  "tailwail.retreat": {
+   "category": "hostile",
+   "min_distance": 4,
+   "max_distance": 40,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/retreat_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/retreat_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.retreat"
+  },
+  "tailwail.hurt": {
+   "category": "hostile",
+   "min_distance": 3,
+   "max_distance": 32,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/hurt_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/hurt_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/hurt_3",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.hurt"
+  },
+  "tailwail.death": {
+   "category": "hostile",
+   "min_distance": 6,
+   "max_distance": 64,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/death_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.death"
+  },
+  "tailwail.whisper": {
+   "category": "hostile",
+   "min_distance": 1,
+   "max_distance": 6,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/whisper_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/whisper_2",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/whisper_3",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    }
+   ],
+   "subtitle": "subtitles.tailwail.whisper"
+  },
+  "tailwail.stinger": {
+   "category": "hostile",
+   "min_distance": 2,
+   "max_distance": 16,
+   "sounds": [
+    {
+     "name": "sounds/tailwail/stinger_1",
+     "volume": 1.0,
+     "load_on_low_memory": true
+    },
+    {
+     "name": "sounds/tailwail/stinger_2",
      "volume": 1.0,
      "load_on_low_memory": true
     }
    ]
   },
-  "tailwail.wail": {
+  "tailwail.heartbeat": {
    "category": "hostile",
-   "min_distance": 8,
-   "max_distance": 72,
-   "subtitle": "subtitles.tailwail.wail",
+   "min_distance": 1,
+   "max_distance": 4,
    "sounds": [
     {
-     "name": "sounds/tailwail/wail_1",
+     "name": "sounds/tailwail/heartbeat_1",
      "volume": 1.0,
      "load_on_low_memory": true
-    },
+    }
+   ]
+  },
+  "tailwail.music.standoff": {
+   "category": "music",
+   "sounds": [
     {
-     "name": "sounds/tailwail/wail_2",
-     "volume": 1.0,
-     "load_on_low_memory": true
+     "name": "sounds/tailwail/music_standoff",
+     "stream": true,
+     "volume": 0.9
+    }
+   ]
+  },
+  "tailwail.music.chase": {
+   "category": "music",
+   "sounds": [
+    {
+     "name": "sounds/tailwail/music_chase",
+     "stream": true,
+     "volume": 0.9
     }
    ]
   }
