@@ -25,7 +25,10 @@ export function sanitizeSettings(raw) {
       else if (k === "preset") s[k] = [...Object.keys(PRESETS), "custom"].includes(raw[k]) ? raw[k] : d;
     }
   }
-  s.v = 3;
+  // 3.1: preset worlds saved by 3.0 move to the Cave Dweller's chase speed (custom keeps its slider)
+  if (raw && typeof raw === "object" && (Number(raw.v) || 0) < 4 && PRESETS[s.preset]) s.chaseSpeed = PRESETS[s.preset].chaseSpeed;
+  s.v = 4;
+  s.grab = false; // parked feature (config.js WORLD_DEFAULTS)
   s.maxConcurrent = Math.round(s.maxConcurrent);
   s.presence = Math.round(s.presence);
   s.breakBlocks = Math.round(s.breakBlocks);

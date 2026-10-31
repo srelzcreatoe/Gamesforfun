@@ -7,7 +7,7 @@ import { Brain } from "../packs/TailwailBP/scripts/core/brain.js";
 export function mockCtx(opts = {}) {
   const calls = {
     cue: [], fx: [], moveTo: [], hold: 0, damage: [], despawn: [], visuals: [], recover: 0, grabStart: [], grabEnd: [], flags: [],
-    play: [], pounce: 0, placeAt: 0, drop: 0, climbStart: 0, bashStart: 0, returns: 0, struggle: 0,
+    play: [], pounce: 0, placeAt: 0, drop: 0, climbStart: 0, bashStart: 0, returns: 0, struggle: 0, steps: [],
   };
   const ctx = {
     calls,
@@ -35,6 +35,10 @@ export function mockCtx(opts = {}) {
     findSearchPoints: (o) => [{ x: o.x + 2, y: 0, z: o.z }, { x: o.x - 2, y: 0, z: o.z }],
     findCover: () => ({ x: 22, y: 0, z: 5, side: "l" }),
     findCreepPoint: () => (ctx.creepOk ? { x: 6, y: 0, z: 0 } : null),
+    findStepPoint: (deg, step) => {
+      calls.steps.push(deg);
+      return ctx.creepOk ? { x: 10 - Math.cos((deg * Math.PI) / 180) * step, y: 0, z: Math.sin((deg * Math.PI) / 180) * step } : null;
+    },
     findCrossPath: () => (ctx.crossOk ? { a: { x: 20, y: 0, z: -12 }, b: { x: 20, y: 0, z: 12 } } : null),
     placeAt: () => calls.placeAt++,
     cling: () => ctx.clingOk,
@@ -68,7 +72,7 @@ export function snap(over = {}) {
   const target = {
     valid: true, alive: true, eligible: true, pos: { x: 0, y: 0, z: 0 }, dist: 10, hdist: 10, dy: 0,
     canSee: true, watching: false, glance: false, inView: false, los: true, sneaking: false, sprinting: false, pitch: 0, speed: 0,
-    closing: 0, movingAway: false, hidden: false, light: 4, noise: null, inGap: false,
+    closing: 0, movingAway: false, hidden: false, light: 4, noise: null, inGap: false, aggro: null,
     ...(over.target || {}),
   };
   if (target.watching && over.target && over.target.inView === undefined) target.inView = true;

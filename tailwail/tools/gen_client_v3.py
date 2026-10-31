@@ -32,9 +32,9 @@ RP = os.path.join(ROOT, "packs", "TailwailRP")
 BP = os.path.join(ROOT, "packs", "TailwailBP")
 ANIM = os.path.join(RP, "animations", "tall_wail.v3.animation.json")
 A = "animation.tall_wail.v3."
-VERSION = "3.0.0"
+VERSION = "3.1.0"
 # Raw text players see if the v3 resource pack is NOT active (the lang file translates it when it is).
-RP_CHECK = "TAILWAIL_RESOURCE_PACK_3.0.0_IS_NOT_ACTIVE-re-apply_TAILWAIL_Resources_to_this_world"
+RP_CHECK = "TAILWAIL_RESOURCE_PACK_3.1.0_IS_NOT_ACTIVE-re-apply_TAILWAIL_Resources_to_this_world"
 
 Q = lambda p: "q.property('%s')" % p  # noqa: E731
 ACT_Q = Q("tailwail:act")
@@ -72,6 +72,8 @@ ACTS = [
     (20, "behind", ["behind"], 0.1),
     (21, "neck", ["neck"], 0.1),
     (22, "reach", ["reach"], 0.1),
+    # crushed flat through a 1-high gap (root scale baked into the clip, so it is used alone)
+    (23, "loco_squeeze", ["squeeze"], 0.15),
 ]
 ACT_ID = {n: i for i, n, _, _ in ACTS}
 TAILS = {"free": 0, "lash": 1, "curl": 2, "rigid": 3, "tunnel": 4}
@@ -114,6 +116,7 @@ def st(anims, trans, blend):
 # ------------------------------------------------------------------ client entity
 def pre_animation():
     death, cling, tunnel, reach_in = ACT_ID["death"], ACT_ID["cling"], ACT_ID["loco_tunnel"], ACT_ID["reach_in"]
+    squeeze = ACT_ID["loco_squeeze"]
     mim = "(v.act == %d || v.act == %d || v.act == %d)" % (ACT_ID["loco"], ACT_ID["watch"], ACT_ID["tall"])
 
     def smooth(var, target, k, default="0.0"):
@@ -140,8 +143,8 @@ def pre_animation():
         # jaw: target plus a wet quiver when wide open
         "v.jaw_t = math.clamp(%s, 0.0, 60.0);" % Q("tailwail:jaw"),
         smooth("jaw", "v.jaw_t + (v.jaw_t > 30.0 ? 3.0 * math.sin(q.life_time * 900.0) : 0.0)", "v.k9", "4.0"),
-        # tail mode cross-fade (tunnel crawl and reach-in force the floor-solved tail)
-        "v.tm = (v.act == %d || v.act == %d) ? 4 : %s;" % (tunnel, reach_in, Q("tailwail:tail")),
+        # tail mode cross-fade (tunnel crawl, squeeze and reach-in force the floor-solved tail)
+        "v.tm = (v.act == %d || v.act == %d || v.act == %d) ? 4 : %s;" % (tunnel, reach_in, squeeze, Q("tailwail:tail")),
     ]
     for i in range(5):
         pre.append(smooth("tw%d" % i, "v.tm == %d ? 1.0 : 0.0" % i, "v.k4", "1.0" if i == 0 else "0.0"))

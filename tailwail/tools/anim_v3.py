@@ -226,6 +226,13 @@ def gait_extra(stride):
 
 
 # ------------------------------------------------------------------ GAITS (loop over phase 0..1, distance driven)
+# Blocks per gallop cycle.  3.6: at the 7.8 blocks/s chase that is ~2.2 bounds a second, slower
+# and heavier than v3's 3.0 at 8.4 (2.8 a second).
+GALLOP_STRIDE = 3.6
+# The hallucination runner moves at the chase speed; its time-driven gallop matches the stride.
+ECHO_RUN_SPEED = 7.8
+
+
 def gait_gallop(rig):
     """Transverse gallop on knuckles and feet: the charge."""
     base = st_gallop()
@@ -256,7 +263,7 @@ def gait_gallop(rig):
     clip, st, samples = bake(rig, fn, 1.0, 24, True, ground="limbs",
                              post=lambda p: (0, 2.2 * max(0.0, math.cos(TAU * p)) ** 2, 0))
     stride = round(max(stride_of(rig, samples, "foot_r"), stride_of(rig, samples, "foot_l")) * 2.0, 2)
-    stride = max(stride, 3.0)
+    stride = max(stride, GALLOP_STRIDE)
     clip.update(gait_extra(stride))
     st["stride"] = stride
     return clip, st
@@ -325,6 +332,28 @@ def gait_tunnel(rig):
     clip, st, samples = bake(rig, fn, 1.0, 24, True, ground="limbs", floor=False)
     stride = round(max(stride_of(rig, samples, "foot_r"), stride_of(rig, samples, "foot_l")) * 2.0, 2)
     stride = min(max(stride, 1.0), 2.4)
+    clip.update(gait_extra(stride))
+    st["stride"] = stride
+    return clip, st
+
+
+# The squeeze: through a 1-high gap its whole body is crushed flat (root scale) over the
+# belly-crawl, limbs splayed, head rolled sideways.  The collision box is 0.9 high.
+SQUEEZE_SCALE = (1.16, 0.5, 1.08)
+
+
+def gait_squeeze(rig):
+    """Forcing itself through a 1-high gap: the belly-crawl crushed flat, heaving in pulses."""
+    def fn(p):
+        a = TAU * p
+        c = strip(rig.supplied("crawl", 0.0, {"v.crawl": p}), TAILSET)
+        pulse = 0.04 * math.sin(2 * a)  # it heaves: the squash breathes as it drags itself along
+        squash = {"root": {"scale": np.array([SQUEEZE_SCALE[0] - pulse, SQUEEZE_SCALE[1] + 0.5 * pulse, SQUEEZE_SCALE[2]])}}
+        return merge(c, _tunnel_squash(p), R(head=(4, 6 * math.sin(a), 14 + 6 * math.sin(a))), ripple(p, 1.0, 10, base=8), squash)
+
+    clip, st, samples = bake(rig, fn, 1.0, 24, True, ground="limbs", floor=False)
+    stride = round(max(stride_of(rig, samples, "foot_r"), stride_of(rig, samples, "foot_l")) * 2.0, 2)
+    stride = min(max(stride, 0.8), 1.6)
     clip.update(gait_extra(stride))
     st["stride"] = stride
     return clip, st
@@ -1080,7 +1109,7 @@ def tail_tunnel(rig):
 
 
 # ------------------------------------------------------------------ registry
-GAITS = {"gallop": gait_gallop, "walk": gait_walk, "creep": gait_creep, "tunnel_move": gait_tunnel}
+GAITS = {"gallop": gait_gallop, "walk": gait_walk, "creep": gait_creep, "tunnel_move": gait_tunnel, "squeeze": gait_squeeze}
 ACTS = {
     "idle": idle_prowl, "idle_low": idle_low, "tunnel_idle": idle_tunnel, "watch": act_watch, "watch_low": act_watch_low,
     "tall": act_tall, "peek_l": lambda r: act_peek(r, "l"), "peek_r": lambda r: act_peek(r, "r"), "cling": act_cling,
@@ -1118,7 +1147,7 @@ def build_all(rig, only=None):
     if V3 + "gallop" in out:
         # the hallucination's gallop: same clip, driven by time (the echo is teleported along its path)
         gt = dict(out[V3 + "gallop"])
-        gt["anim_time_update"] = "math.mod(q.life_time * 2.8, 1.0)"
+        gt["anim_time_update"] = "math.mod(q.life_time * %.3f, 1.0)" % (ECHO_RUN_SPEED / GALLOP_STRIDE)
         out[V3 + "gallop_t"] = gt
     if not only or "tail_tunnel" in only:
         clip, st, _ = tail_tunnel(rig)

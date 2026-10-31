@@ -1,7 +1,7 @@
 // Navigation through real space.  Tailwail walks with the engine's own pathfinder
 // (minecraft:navigation.walk + melee_box_attack) toward an invisible, invulnerable lure
 // entity that this module places.  It never teleports Tailwail.
-import { CHASE, LURE_ID, POSTURE, POSTURE_MIN_HOLD } from "../config.js";
+import { CHASE, LURE_ID, POSTURE, POSTURE_MIN_HOLD, POSTURE_ORDER, SPEED } from "../config.js";
 import { dirFromYaw, hdist, wrapDeg, yawTo } from "../util/vec.js";
 import { dlog } from "./log.js";
 import { findGround, headroom } from "./terrain.js";
@@ -53,7 +53,8 @@ export class Mover {
     if (hdist(ll, target) > 0.4 || Math.abs(ll.y - target.y) > 0.6) {
       lure.teleport({ x: target.x, y: target.y, z: target.z });
     }
-    this.setSpeed(speed);
+    // crushed flat in a 1-high gap it drags itself along slowly, whatever the hurry
+    this.setSpeed(this.posture === "squeeze" ? Math.min(speed, SPEED.squeeze) : speed);
     if (!this.seeking) {
       this.tw.triggerEvent("tailwail:seek_" + this.slot);
       this.seeking = true;
@@ -137,18 +138,19 @@ export class Mover {
         const d = dirFromYaw(yaw);
         const p = { x: l.x + d.x * k, y: l.y, z: l.z + d.z * k };
         const h = Math.max(headroom(dim, p), headroom(dim, { ...p, y: p.y + 1 }), headroom(dim, { ...p, y: p.y - 1 }));
-        // a solid column (h < 2) is not a passage: the path goes around it, so it says nothing about ceilings
-        if (h >= 2) ahead = Math.min(ahead, h);
+        // a solid column (h = 0) is not a passage: the path goes around it, so it says nothing about
+        // ceilings.  h = 1 is a 1-high gap: it squeezes through.
+        if (h >= 1) ahead = Math.min(ahead, h);
       }
     }
     const room = Math.min(this.headHere, ahead);
-    const order = ["crawl", "hunch", "tall"];
-    let best = "crawl";
+    const order = POSTURE_ORDER;
+    let best = "squeeze";
     for (const p of order) if (room >= POSTURE[p].clearance) best = p;
     if (cap && order.indexOf(best) > order.indexOf(cap)) best = cap;
     if (want && order.indexOf(want) < order.indexOf(best)) best = want; // brain may ask to stay folded
     if (want === "tall" && best !== "tall" && this.headHere >= POSTURE.tall.clearance && (!cap || cap === "tall")) best = "tall";
-    if (this.forceSmaller && best !== "crawl") {
+    if (this.forceSmaller && best !== "squeeze") {
       best = order[Math.max(0, order.indexOf(this.posture) - 1)];
       this.forceSmaller = false;
     }

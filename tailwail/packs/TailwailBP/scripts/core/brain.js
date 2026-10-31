@@ -96,6 +96,7 @@ export class Brain {
     this.pendingHits = 0;
     this.pendingDamageOthers = 0;
     this.huntStartT = -1;
+    this.squeezeUntil = -1;
     const op = this.def.opener;
     if (op === "hunt") this.enter("engage", "hunter");
     else if (op === "cling" || op === "huddle") this.enter("ambush", op);
@@ -373,7 +374,7 @@ export class Brain {
     const tg = snap.target;
     const b = s.beat;
     if (this.stateT >= s.cap) return this.enter("standoff", "stalk-cap");
-    if (this.hits) return this.enter("engage", "provoked");
+    if (this.hits || tg.aggro) return this.enter("engage", "provoked");
     if (tg.dist < STALK.approachStandoff && this.noticeT >= 0 && tg.closing > 0.8) return this.enter("standoff", "approached");
     if (b.kind === "cross") {
       this.vis.act = "loco";
@@ -430,15 +431,26 @@ export class Brain {
     }
   }
 
-  // ------------------------------------------------------------------ STANDOFF (seconds, not minutes)
+  // ------------------------------------------------------------------ STANDOFF: observation (seconds, not minutes)
+  // It watches you and makes up its mind.  It stands idle; it approaches slowly; or it tests
+  // you (a bluff charge that stops dead, a sidestep, backing off to see if you follow, its neck
+  // craning toward you) and reads how you react.  Staring at it too long, shooting at it,
+  // hitting it, coming too close or turning your back sets it off.  Otherwise, after each
+  // mode, it may simply decide to attack.
   enter_standoff(why) {
     const late = this.stage >= 2 ? 0.6 : 1;
     this.so = {
       until: this.rng.range(STANDOFF.durationMin, STANDOFF.durationMax) * late * (this.showcase ? 0.7 : 1),
-      nextCreep: STANDOFF.creepEvery,
       unwatched: 0,
-      creep: null,
-      creepT: 0,
+      stare: 0,
+      stareLimit: this.rng.range(STANDOFF.stareLimit[0], STANDOFF.stareLimit[1]) * (this.stage >= 3 ? 0.75 : 1),
+      mode: null,
+      modeT: 0,
+      modeLen: 0,
+      modes: 0,
+      goal: null,
+      goalT: 0,
+      test: null,
       perfAt: this.rng.range(STANDOFF.perfMinGap, STANDOFF.perfMaxGap),
       why,
     };
@@ -452,6 +464,97 @@ export class Brain {
       this.ctx.onRemembered(this.remembered.type);
       this.flag("remembered");
     }
+    this.startMode(this.rng.chance(0.55) ? "idle" : "approach");
+  }
+
+  /** Next observation mode: "idle", "approach" or "test". */
+  startMode(mode) {
+    const so = this.so;
+    const tg = this.snap ? this.snap.target : null;
+    const head = this.snap ? this.snap.creature.headroom : 5;
+    const room = tg && tg.valid ? tg.dist - STANDOFF.tooClose : 99;
+    let m = mode;
+    if (m === "approach" && room < 2.5) m = "test";
+    so.mode = m;
+    so.modeT = this.t;
+    so.modes += 1;
+    so.goal = null;
+    so.goalT = this.t;
+    so.test = null;
+    if (m === "idle") {
+      so.modeLen = this.rng.range(STANDOFF.idle[0], STANDOFF.idle[1]);
+      this.ctx.hold();
+      this.vis.act = this.rng.weighted([[head >= 5 ? "tall" : "watch", 3], [head < 4 ? "watch_low" : "watch", 2], ["listen", 1]]);
+    } else if (m === "approach") {
+      so.modeLen = this.rng.range(STANDOFF.approach[0], STANDOFF.approach[1]);
+      this.vis.act = "loco_low";
+      this.cue("creak");
+    } else {
+      const kinds = [["sidestep", 2], ["withdraw", 2], ["crane", 2]];
+      if (room > 3) kinds.push(["feint", 4]);
+      let kind = this.rng.weighted(kinds);
+      const step = (deg, len, min) => (this.ctx.findStepPoint ? this.ctx.findStepPoint(deg, len, min) : null);
+      let goal = null;
+      if (kind === "feint") goal = step(0, this.rng.range(STANDOFF.feintStep[0], STANDOFF.feintStep[1]), STANDOFF.tooClose + 0.8);
+      else if (kind === "sidestep") goal = step(this.rng.chance(0.5) ? 90 : -90, this.rng.range(STANDOFF.sidestep[0], STANDOFF.sidestep[1]), STANDOFF.tooClose + 1);
+      else if (kind === "withdraw") goal = step(180, this.rng.range(STANDOFF.withdraw[0], STANDOFF.withdraw[1]), 0);
+      if (kind !== "crane" && !goal) kind = "crane";
+      so.test = { kind, phase: kind === "crane" ? "show" : "go", phaseT: this.t, goal, react: null };
+      so.modeLen = 99; // a test ends when its reaction has been read
+      if (kind === "feint") {
+        this.vis.act = "loco";
+        this.vis.jaw = 30;
+        this.cue("growl");
+      } else if (kind === "crane") {
+        this.vis.act = "neck";
+        this.cue("click");
+      } else {
+        this.vis.act = "loco_low";
+      }
+    }
+    this.log(`observe: ${m}${so.test ? " (" + so.test.kind + ")" : ""}`);
+  }
+
+  /** A mode is over: maybe it decides to attack, otherwise it picks another. */
+  endMode(bonus = 0) {
+    const so = this.so;
+    const p = Math.min(STANDOFF.decideMax,
+      STANDOFF.decideBase + (this.agit.value / AGITATION.max) * 0.5 + this.stage * 0.05 + (so.modes - 1) * 0.07 + bonus);
+    if (so.modes >= 2 && this.rng.chance(p)) return this.enter("engage", "decided");
+    const opts = [["idle", 2], ["approach", 3], ["test", 3]].filter(([m]) => m !== so.mode);
+    this.startMode(this.rng.weighted(opts));
+  }
+
+  /** While a test runs: did you run, come at it, or hold your ground? */
+  readReaction(tg) {
+    const t = this.so.test;
+    if (!t.react) t.react = { fled: 0, advanced: 0 };
+    if (tg.movingAway && (tg.sprinting || tg.speed > 3.5)) t.react.fled += 1;
+    if (tg.closing > 0.8) t.react.advanced += 1;
+  }
+
+  /** The test is over: how you reacted changes its mind. */
+  judgeReaction() {
+    const r = this.so.test.react || { fled: 0, advanced: 0 };
+    let bonus = 0;
+    if (r.fled >= 2) {
+      // prey runs: that is what it wanted to see
+      this.agit.value = Math.min(AGITATION.max, this.agit.value + 30);
+      this.memoryReaction("flee", 0.3);
+      bonus = 0.25;
+      this.log("reaction: you ran");
+    } else if (r.advanced >= 2) {
+      this.agit.value = Math.min(AGITATION.max, this.agit.value + 20);
+      this.memoryReaction("approach", 0.3);
+      bonus = 0.1;
+      this.log("reaction: you came at it");
+    } else {
+      // you held your ground: it is not sure yet
+      this.agit.value = Math.max(0, this.agit.value - 10);
+      this.memoryReaction("stare", 0.2);
+      this.log("reaction: you held still");
+    }
+    return this.endMode(bonus);
   }
 
   update_standoff(snap, dt) {
@@ -461,37 +564,84 @@ export class Brain {
       hits: this.hits, movingAway: tg.movingAway }, dt, this.settings.agitationScale || 1);
     Object.assign(this.vis, agitationLook(this.agit.value));
     this.fx("standoff_level", this.agit.value);
+    // what sets it off
     if (this.hits) return this.enter("engage", "provoked");
+    if (tg.aggro) return this.enter("engage", "provoked");
     if (tg.dist <= STANDOFF.tooClose) return this.enter("engage", "too-close");
     so.unwatched = tg.watching || tg.glance ? 0 : so.unwatched + dt;
     if (so.unwatched >= STANDOFF.turnAwayCharge && this.stateT > 1.0) return this.enter("engage", "turned-away");
+    so.stare = tg.watching ? so.stare + dt : Math.max(0, so.stare - dt);
+    if (so.stare >= so.stareLimit) return this.enter("engage", "stared");
     if (this.agit.value >= AGITATION.max - 0.5) return this.enter("engage", "agitated");
     if (this.stateT >= so.until) return this.enter("engage", "timeout");
-    // it creeps at you even while you watch it now
-    if (so.creep) {
-      this.vis.act = "loco_low";
-      this.ctx.moveTo(so.creep, SPEED.creep, "creep");
-      if (this.reached(so.creep, 1.2) || this.t - so.creepT > 1.6) {
-        so.creep = null;
-        this.ctx.hold();
-        this.vis.act = this.rng.chance(0.5) ? "watch_low" : snap.creature.headroom >= 5 ? "tall" : "watch";
-        this.cue("creak");
-      }
-    } else {
-      this.ctx.hold();
-      if (tg.valid) this.ctx.faceToward(tg.pos);
-      if (this.stateT >= so.nextCreep && tg.dist > STANDOFF.tooClose + 1.5 && this.ctx.findCreepPoint) {
-        so.creep = this.ctx.findCreepPoint(STANDOFF.creepStep, STANDOFF.tooClose);
-        so.creepT = this.t;
-        so.nextCreep = this.stateT + STANDOFF.creepEvery * this.rng.range(0.7, 1.3);
-      }
-    }
+    if (r.reasons.includes("sprint-start")) this.memoryReaction("flee", 0.3);
     if (this.stateT >= so.perfAt) {
       so.perfAt = this.stateT + this.rng.range(STANDOFF.perfMinGap, STANDOFF.perfMaxGap);
-      const pick = this.rng.weighted([["click", 3], ["growl", 2], ["breath_close", 1]]);
-      this.cue(pick);
+      this.cue(this.rng.weighted([["click", 3], ["growl", 2], ["breath_close", 1]]));
     }
-    if (r.reasons.includes("sprint-start")) this.memoryReaction("flee", 0.3);
+    const since = this.t - so.modeT;
+    if (so.mode === "idle") {
+      this.ctx.hold();
+      if (tg.valid) this.ctx.faceToward(tg.pos);
+      if (since >= so.modeLen) return this.endMode();
+      return;
+    }
+    if (so.mode === "approach") {
+      // slowly, even while you watch it
+      if (!so.goal || this.reached(so.goal, 1.2) || this.t - so.goalT > 1.6) {
+        so.goal = this.ctx.findCreepPoint ? this.ctx.findCreepPoint(STANDOFF.approachStep, STANDOFF.tooClose + 1) : null;
+        so.goalT = this.t;
+        if (so.goal) this.cue("creak");
+      }
+      if (so.goal) {
+        this.vis.act = "loco_low";
+        this.ctx.moveTo(so.goal, SPEED.creep, "creep");
+      } else {
+        this.ctx.hold();
+        if (tg.valid) this.ctx.faceToward(tg.pos);
+        this.vis.act = snap.creature.headroom < 4 ? "watch_low" : "watch";
+      }
+      if (since >= so.modeLen || tg.dist <= STANDOFF.tooClose + 1.5) return this.endMode();
+      return;
+    }
+    // ---- test
+    const t = so.test;
+    const tSince = this.t - t.phaseT;
+    if (t.phase === "go") {
+      const speed = t.kind === "feint" ? this.settings.chaseSpeed : SPEED.walk;
+      this.ctx.moveTo(t.goal, speed, t.kind);
+      const done = this.reached(t.goal, t.kind === "feint" ? 1.4 : 1.2) || snap.creature.stuck ||
+        tSince > (t.kind === "feint" ? STANDOFF.feintTime : 2.6);
+      if (done) {
+        // it stops dead and stares: what will you do?
+        this.ctx.hold();
+        if (tg.valid && this.ctx.faceNow) this.ctx.faceNow(tg.pos);
+        this.vis.act = t.kind === "feint" ? "watch_low" : snap.creature.headroom >= 5 && this.rng.chance(0.4) ? "tall" : "watch";
+        this.cue(t.kind === "feint" ? "click" : "breath_close");
+        t.phase = "react";
+        t.phaseT = this.t;
+        t.window = this.rng.range(STANDOFF.reactWindow[0], STANDOFF.reactWindow[1]);
+      }
+      return;
+    }
+    if (t.phase === "show") {
+      // the crane: its neck stretches toward you
+      this.ctx.hold();
+      if (tg.valid) this.ctx.faceToward(tg.pos);
+      if (tSince >= STANDOFF.craneTime) {
+        this.vis.act = snap.creature.headroom < 4 ? "watch_low" : "watch";
+        t.phase = "react";
+        t.phaseT = this.t;
+        t.window = this.rng.range(STANDOFF.reactWindow[0], STANDOFF.reactWindow[1]);
+      } else {
+        this.readReaction(tg);
+      }
+      return;
+    }
+    this.ctx.hold();
+    if (tg.valid) this.ctx.faceToward(tg.pos);
+    this.readReaction(tg);
+    if (tSince >= t.window) return this.judgeReaction();
   }
 
   exit_standoff() {
@@ -508,7 +658,8 @@ export class Brain {
     const far = !tg || !tg.valid || tg.dist > 30;
     // from a crouch it unfolds first (the last warning) - unless it is already mid-hunt
     const rise = !far && (why === "timeout" || why === "agitated") && this.snap && this.snap.creature.headroom >= 5;
-    this.e = { rise, screamed: false, far, short: why === "regained" || why === "ambush" || why === "stunned" };
+    // provoked (shot at, hit): no long scream, a roar and it is already coming
+    this.e = { rise, screamed: false, far, short: why === "regained" || why === "ambush" || why === "stunned" || why === "provoked" };
     if (this.e.short) {
       this.play("roar");
       this.cue("roar");
@@ -588,13 +739,14 @@ export class Brain {
       if (this.ctx.scheduleReturn) this.ctx.scheduleReturn();
       return this.leave("escaped", "hunt-cap");
     }
-    // ---- you crawled into a hole it cannot fit: it reaches in after you
-    if (tg.inGap && tg.hdist < 3.2) return this.enter("reach", "gap");
+    // ---- you crawled into a low hole: an arm comes in first, then the rest of it
+    if (tg.inGap && tg.hdist < 3.2 && this.t >= this.cd.reach) return this.enter("reach", "gap");
+    this.vis.postureWant = this.t < this.squeezeUntil ? "squeeze" : null;
     // ---- attacks
     if (visible && tg.alive) {
       const kind = chooseAttack({
         t: this.t, geom: snap.reach, settings: this.settings, rng: this.rng, cd: this.cd, headroom: snap.creature.headroom,
-        canGrab: !!this.settings.grab && !!(snap.reach && snap.reach.holdClear), tunnel: snap.creature.posture === "crawl",
+        canGrab: !!this.settings.grab && !!(snap.reach && snap.reach.holdClear), tunnel: snap.creature.posture === "crawl" || snap.creature.posture === "squeeze",
       });
       if (kind === "grab") return this.enter("grab", "reach");
       if (kind) return this.enter("attack", kind);
@@ -639,7 +791,7 @@ export class Brain {
   // ------------------------------------------------------------------ ATTACK (one-shot with hit frames)
   enter_attack(kind) {
     this.attacks += 1;
-    spendAttack(this.cd, kind, this.t, this.rng);
+    spendAttack(this.cd, kind, this.t);
     this.a = { kind, landed: 0, pounced: false };
     this.ctx.hold();
     const tg = this.snap.target;
@@ -679,14 +831,15 @@ export class Brain {
           this.t >= this.cd.grab) {
         return this.enter("grab", "pinned");
       }
-      if (a.landed && (a.kind === "slam" || a.kind === "pounce" || this.rng.chance(0.25))) return this.enter("savor", a.kind);
+      // big hits: it stands over you a moment.  Rakes: straight on, one a second.
+      if (a.landed && (a.kind === "slam" || a.kind === "pounce")) return this.enter("savor", a.kind);
       return this.enter("hunt", "after-" + a.kind);
     }
   }
 
   // ------------------------------------------------------------------ GRAB (struggle, then free or a finisher)
   enter_grab(why) {
-    spendAttack(this.cd, "grab", this.t, this.rng);
+    spendAttack(this.cd, "grab", this.t);
     const spec = struggleSpec(this.settings, this.rng, this.grabs);
     this.grabs += 1;
     this.g = { phase: "lunge", phaseT: this.t, spec, released: false, holding: false, finisher: null, why };
@@ -895,7 +1048,14 @@ export class Brain {
       if (hitLands("reach", snap.reach)) this.ctx.dealDamage("reach");
     }
     if (!snap.target.inGap && snap.target.canSee && snap.target.hdist > 3.5) return this.enter("hunt", "out-of-the-hole");
-    if (this.stateT >= this.rc.until) return this.enter("search", "gave-up-reaching");
+    if (this.stateT >= this.rc.until) {
+      // it presses itself flat and squeezes in after you
+      this.cd.reach = this.t + CHASE.squeezeIn;
+      this.squeezeUntil = this.t + CHASE.squeezeIn;
+      this.cue("creak");
+      this.flag("squeeze");
+      return this.enter("hunt", "squeeze-in");
+    }
   }
 
   // ------------------------------------------------------------------ SEARCH (sniffing, listening)
@@ -903,7 +1063,8 @@ export class Brain {
     const origin = this.lastSeen || (this.snap ? this.snap.creature.pos : null);
     const pts = origin && this.ctx.findSearchPoints ? this.ctx.findSearchPoints(origin, SEARCH.points, SEARCH.radius) : [];
     this.se = { pts, i: 0, phase: "go", phaseT: this.t, why, howled: false };
-    this.vis = { ...this.vis, act: "loco", tail: "free", breath: "heavy", tremor: 1, jaw: 8, look: "none" };
+    this.vis = { ...this.vis, act: "loco", tail: "free", breath: "heavy", tremor: 1, jaw: 8, look: "none", postureWant: null };
+    this.squeezeUntil = -1; // it searches at whatever size the space allows
     this.fx("search_on");
     this.cue("sniff");
     this.flag("lost");
@@ -925,7 +1086,13 @@ export class Brain {
       this.cue("screech");
       return this.enter("engage", "regained");
     }
-    if (tg.inGap && tg.hdist < 3.2) return this.enter("reach", "found-in-gap");
+    // shooting at it from your hiding place gives you away
+    if (tg.aggro && tg.pos) {
+      this.lastSeen = tg.pos;
+      this.cue("screech");
+      return this.enter("engage", "regained");
+    }
+    if (tg.inGap && tg.hdist < 3.2 && this.t >= this.cd.reach) return this.enter("reach", "found-in-gap");
     if (tg.noise && this.t - tg.noise.t < 1.2) {
       this.lastSeen = tg.noise.pos;
       se.pts = [tg.noise.pos];
@@ -1017,6 +1184,7 @@ export class Brain {
       }
     };
     if (this.hits) return go("hit");
+    if (tg.aggro) return go("shot-at");
     if (am.kind === "cling") {
       if (tg.valid && tg.hdist <= AMBUSH.dropRange) return go("underneath");
       if (am.stare >= AMBUSH.lookUpDrop && tg.dist < 14) return go("seen");
@@ -1064,7 +1232,7 @@ export class Brain {
 
   enter_flee() {
     this.fl = { spot: this.ctx.findRetreatSpot ? this.ctx.findRetreatSpot(24, 40) : null };
-    this.vis = { ...this.vis, act: "loco", tail: "rigid", breath: "frantic", tremor: 2, jaw: 40, look: "none" };
+    this.vis = { ...this.vis, act: "loco", tail: "rigid", breath: "frantic", tremor: 2, jaw: 40, look: "none", postureWant: null };
     this.cue("scream_pain");
     this.fx("end");
     this.flag("wounded");

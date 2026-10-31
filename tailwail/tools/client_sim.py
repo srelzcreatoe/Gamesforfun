@@ -531,7 +531,7 @@ def dynamic_checks(pack, quick=False):
         sim.props["tailwail:look_pitch"] = rng.randrange(-60, 61)
         sim.props["tailwail:mimic"] = rng.randrange(0, 5)
         sim.props["tailwail:mimic_amt"] = rng.random() * 2
-        sim.speed = rng.choice([0.0, 0.0, 1.6, 2.6, 3.9, 6.9, 8.4, 10.0])
+        sim.speed = rng.choice([0.0, 0.0, 1.6, 2.6, 3.9, 6.9, 7.8, 10.0])
         dwell = rng.randrange(1, 40)
         for _ in range(dwell):
             sim.step()
@@ -547,7 +547,7 @@ def dynamic_checks(pack, quick=False):
     out["max_weight"] = round(max_w, 3)
     # 3. gait selection and sums (default act, settled speed)
     gaits = {}
-    for spd, want in ((0.0, "idle"), (2.6, "walk"), (8.4, "gallop")):
+    for spd, want in ((0.0, "idle"), (2.6, "walk"), (7.8, "gallop")):
         for skip in (False, True):
             s2 = ClientSim(pack, ident, skip_pre=skip)
             s2.speed = spd
@@ -600,7 +600,7 @@ def dynamic_checks(pack, quick=False):
     sim.run(1.0)
     # 7. distance-driven gaits: phase wraps once per stride
     strides = {}
-    for gname in ("gallop", "walk", "creep", "tunnel_move"):
+    for gname in ("gallop", "walk", "creep", "tunnel_move", "squeeze"):
         a = pack.anims[sim.amap[gname]]
         expr = a.get("anim_time_update", "")
         m = re.search(r"math\.mod\(q\.modified_distance_moved, ([0-9.]+)\)", expr)
@@ -708,6 +708,8 @@ def _anim_cache(full, data):
 # acts that are not standing on the floor by design
 AIRBORNE = {"cling", "climb", "death"}
 TUNNEL = {"loco_tunnel", "reach_in"}
+SQUEEZE = {"loco_squeeze"}  # through a 1-high gap
+SQUEEZE_MAX = 1.15  # blocks, every overlay on (the collision box is 0.9)
 
 
 def grounding(pack, quick=False):
@@ -720,9 +722,12 @@ def grounding(pack, quick=False):
     cases = []
     for aid, name, _, _ in g.ACTS:
         if name in ("loco", "loco_low", "loco_tunnel"):
-            for spd, sname in ((0.0, "still"), (2.6, "walk"), (8.4, "run")):
+            for spd, sname in ((0.0, "still"), (2.6, "walk"), (7.8, "run")):
                 if name == "loco_tunnel" and spd > 3:
                     continue
+                cases.append(("%s/%s" % (name, sname), aid, spd))
+        elif name == "loco_squeeze":
+            for spd, sname in ((0.0, "still"), (1.7, "crawl")):
                 cases.append(("%s/%s" % (name, sname), aid, spd))
         elif name != "shot":
             cases.append((name, aid, 0.0))
@@ -753,6 +758,8 @@ def grounding(pack, quick=False):
                 err("%s floats %.2f blocks above the floor" % (label, min(lows)))
         if base in TUNNEL and max(highs) > 2.0:
             err("%s reaches %.2f blocks: does not fit a 2-high tunnel" % (label, max(highs)))
+        if base in SQUEEZE and max(highs) > SQUEEZE_MAX:
+            err("%s reaches %.2f blocks: does not fit a 1-high gap" % (label, max(highs)))
     return rows
 
 
@@ -815,10 +822,10 @@ def tail_sweep(pack, quick=False):
     k = float(d["scripts"].get("scale", "1")) / 16.0
     tails = [b for b in geo.order if b.startswith("tail")]
     rows = []
-    for act in ("loco", "loco_low", "loco_tunnel"):
+    for act in ("loco", "loco_low", "loco_tunnel", "loco_squeeze"):
         for tail in range(5):
-            for spd in ((0.0, 2.6, 8.4) if not quick else (0.0,)):
-                if act == "loco_tunnel" and spd > 3:
+            for spd in ((0.0, 2.6, 7.8) if not quick else (0.0,)):
+                if act in ("loco_tunnel", "loco_squeeze") and spd > 3:
                     continue
                 sim = ClientSim(pack, ident, fps=30)
                 sim.props["tailwail:act"] = g.ACT_ID[act]
@@ -835,6 +842,8 @@ def tail_sweep(pack, quick=False):
                     err("tail sinks %.2f blocks into the floor (%s, tail %d, speed %.1f)" % (lo, act, tail, spd))
                 if act == "loco_tunnel" and hi > 2.0:
                     err("tail reaches %.2f blocks in the tunnel crawl (tail %d)" % (hi, tail))
+                if act == "loco_squeeze" and hi > SQUEEZE_MAX:
+                    err("tail reaches %.2f blocks in the squeeze (tail %d)" % (hi, tail))
     return rows
 
 

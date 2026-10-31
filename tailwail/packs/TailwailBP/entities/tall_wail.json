@@ -161,6 +161,25 @@
           ]
         }
       },
+      "tailwail:posture_squeeze": {
+        "minecraft:collision_box": {
+          "width": 0.9,
+          "height": 0.9
+        },
+        "minecraft:custom_hit_test": {
+          "hitboxes": [
+            {
+              "width": 1.8,
+              "height": 1.0,
+              "pivot": [
+                0.0,
+                0.5,
+                0.0
+              ]
+            }
+          ]
+        }
+      },
       "tailwail:nav_doors": {
         "minecraft:navigation.walk": {
           "can_path_over_water": false,
@@ -350,7 +369,8 @@
         "remove": {
           "component_groups": [
             "tailwail:posture_hunch",
-            "tailwail:posture_crawl"
+            "tailwail:posture_crawl",
+            "tailwail:posture_squeeze"
           ]
         },
         "add": {
@@ -363,7 +383,8 @@
         "remove": {
           "component_groups": [
             "tailwail:posture_tall",
-            "tailwail:posture_crawl"
+            "tailwail:posture_crawl",
+            "tailwail:posture_squeeze"
           ]
         },
         "add": {
@@ -376,12 +397,27 @@
         "remove": {
           "component_groups": [
             "tailwail:posture_tall",
-            "tailwail:posture_hunch"
+            "tailwail:posture_hunch",
+            "tailwail:posture_squeeze"
           ]
         },
         "add": {
           "component_groups": [
             "tailwail:posture_crawl"
+          ]
+        }
+      },
+      "tailwail:posture_squeeze": {
+        "remove": {
+          "component_groups": [
+            "tailwail:posture_tall",
+            "tailwail:posture_hunch",
+            "tailwail:posture_crawl"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "tailwail:posture_squeeze"
           ]
         }
       },

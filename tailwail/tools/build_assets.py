@@ -5,7 +5,7 @@
 
 Inputs : source_assets/original/TallWail_Blockbench_v3.zip (never modified)
 Outputs: packs/TailwailRP/models/entity/tall_wail.geo.json        (copy; culling bounds widened)
-         packs/TailwailRP/textures/entity/tall_wail/tall_wail.png  (byte-identical copy)
+         packs/TailwailRP/textures/entity/tall_wail/tall_wail.png  (copy; pupils painted out)
 
 The supplied animation file is NOT shipped: tools/anim_v3.py reads it straight from the
 archive and re-bakes what it reuses into the single v3 animation file.  --check fails
@@ -13,9 +13,12 @@ if the committed outputs differ from what this script would write (tools/validat
 """
 import argparse
 import hashlib
+import io
 import json
 import os
 import zipfile
+
+from PIL import Image
 
 ROOT = os.environ.get("TAILWAIL_ROOT") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ZIP = os.path.join(ROOT, "source_assets", "original", "TallWail_Blockbench_v3.zip")
@@ -27,6 +30,21 @@ EXPECTED_SHA = {
     "tall_wail.animation.json": "e903f5e905ea3c834abe7900a0953ce48ca1c6dc10f26eda97ea34fceebb5604",
     "tall_wail.png": "a23e2443f5124bc177d25c98bdcb4e49422f165b12f97b3dd4688d1ce033a0e7",
 }
+
+# The two pale pupil pixels on the black face (head front, uv 5,22 and 19,22).  Painted with
+# the face colour around them: the eyes are empty black sockets.
+PUPILS = [(5, 22), (19, 22)]
+
+
+def paint_out_pupils(png):
+    im = Image.open(io.BytesIO(png)).convert("RGBA")
+    px = im.load()
+    for x, y in PUPILS:
+        n = [px[x - 1, y], px[x + 1, y], px[x, y - 1], px[x, y + 1]]
+        px[x, y] = tuple(sum(c[i] for c in n) // len(n) for i in range(3)) + (255,)
+    out = io.BytesIO()
+    im.save(out, format="PNG", optimize=False)
+    return out.getvalue()
 
 
 def build(check=False):
@@ -44,7 +62,7 @@ def build(check=False):
     d["visible_bounds_height"] = 7.5
     d["visible_bounds_offset"] = [0, 3.5, 0]
     outputs[OUT_GEO] = (json.dumps(geo, indent=1) + "\n").encode()
-    outputs[OUT_TEX] = raw["tall_wail.png"]
+    outputs[OUT_TEX] = paint_out_pupils(raw["tall_wail.png"])
     bad = []
     for path, data in outputs.items():
         if check:
@@ -56,7 +74,7 @@ def build(check=False):
                 fh.write(data)
     if check and bad:
         raise SystemExit("outdated copies: %s (run tools/build_assets.py)" % ", ".join(bad))
-    print("model and texture %s" % ("match the archive" if check else "copied"))
+    print("model and texture %s" % ("match the archive (+ pupils painted out)" if check else "copied"))
 
 
 if __name__ == "__main__":

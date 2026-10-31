@@ -200,27 +200,103 @@ const SCENARIOS = {
   },
 
   async standoff() {
+    // 1) kept at the edge of your view (a glance, never a stare): it observes
     clearArena(true);
-    const mock = new MockPlayer({ x: 5.5, y: Y, z: 10.5 });
-    const enc = spawnTW(mock, { x: 19.5, y: Y, z: 10.5 });
+    let mock = new MockPlayer({ x: 5.5, y: Y, z: 10.5 });
+    let enc = spawnTW(mock, { x: 21.5, y: Y, z: 10.5 });
     await wait(5);
     enc.brain.enter("standoff", "test");
-    mock.lookAt({ x: 19.5, y: Y + 3, z: 10.5 });
+    mock.lookAt({ x: 21.5, y: Y + 2, z: 10.5 });
+    mock.yaw += 45; // 45 degrees off: in view, not watched
     const p0 = enc.tw.location;
-    await timeline(enc, mock, 60, 10, "standoff-watched");
+    await timeline(enc, mock, 160, 20, "observe-glance");
     const moved = Math.hypot(enc.tw.location.x - p0.x, enc.tw.location.z - p0.z);
-    log("standoff: advanced", r1(moved), "blocks in 3 s while WATCHED; music", mock.music, "fog", mock.fog.join(","));
-    mock.yaw += 180; // turn your back
-    const t0 = system.currentTick;
+    log("observe: modes", enc.brain.history.filter((h) => /observe:|reaction:/.test(h)).join(" / "));
+    log("observe: moved", r1(moved), "blocks; state", enc.brain.state, "music", mock.music, "fog", mock.fog.join(","));
+    if (!enc.ended) enc.end("aborted", true);
+    mock.remove();
+    // 2) stared at, straight on: it is set off within seconds
+    clearArena(true);
+    mock = new MockPlayer({ x: 5.5, y: Y, z: 10.5 });
+    enc = spawnTW(mock, { x: 21.5, y: Y, z: 10.5 });
+    await wait(5);
+    enc.brain.enter("standoff", "test");
+    let t0 = system.currentTick;
+    await new Promise((res) => {
+      const h = system.runInterval(() => {
+        if (enc.tw.isValid) mock.lookAt({ x: enc.tw.location.x, y: enc.tw.location.y + 2, z: enc.tw.location.z });
+        if (enc.ended || enc.brain.state !== "standoff" || system.currentTick - t0 > 260) { system.clearRun(h); res(); }
+      }, 1);
+    });
+    log("stare: state", enc.brain.state, "after", system.currentTick - t0, "ticks;", enc.brain.history.filter((h) => /-> engage/.test(h)).join(""));
+    if (!enc.ended) enc.end("aborted", true);
+    mock.remove();
+    // 3) turn your back
+    clearArena(true);
+    mock = new MockPlayer({ x: 5.5, y: Y, z: 10.5 });
+    enc = spawnTW(mock, { x: 21.5, y: Y, z: 10.5 });
+    await wait(5);
+    enc.brain.enter("standoff", "test");
+    mock.lookAt({ x: 21.5, y: Y + 2, z: 10.5 });
+    await wait(30);
+    mock.yaw += 180;
+    t0 = system.currentTick;
     await new Promise((res) => {
       const h = system.runInterval(() => {
         if (enc.ended || enc.brain.state !== "standoff" || system.currentTick - t0 > 80) { system.clearRun(h); res(); }
       }, 1);
     });
     log("standoff: turned away -> state", enc.brain.state, "after", system.currentTick - t0, "ticks");
-    await timeline(enc, mock, 60, 10, "standoff-engage");
+    await timeline(enc, mock, 40, 10, "standoff-engage");
     enc.end("aborted", true);
     log("standoff cleanup", cleanState(mock));
+    mock.remove();
+    // 4) shot at: a player's arrow aimed at it (the real aim test, fed a stand-in arrow: BDS has no
+    //    player to own a real one), and a real arrow entity through the spawn event
+    clearArena(true);
+    mock = new MockPlayer({ x: 5.5, y: Y, z: 10.5 });
+    enc = spawnTW(mock, { x: 21.5, y: Y, z: 10.5 });
+    await wait(5);
+    enc.brain.enter("standoff", "test");
+    mock.lookAt({ x: 21.5, y: Y + 2, z: 10.5 });
+    mock.yaw += 45;
+    await wait(20);
+    const head = mock.getHeadLocation();
+    const aim = { x: 21.5 - head.x, y: Y + 1.6 - head.y, z: 10.5 - head.z };
+    const n = Math.hypot(aim.x, aim.y, aim.z);
+    const wide = { x: aim.x / n * 3, y: aim.y / n * 3 + 0.0, z: aim.z / n * 3 + 1.5 }; // way off to the side
+    const fakeArrow = (v) => ({ isValid: true, location: head, dimension: ov(), getVelocity: () => v,
+      getComponent: (id) => (id === "minecraft:projectile" ? { owner: { typeId: "minecraft:player" } } : undefined) });
+    director.checkShot(fakeArrow(wide));
+    await wait(3);
+    log("shot: a wide miss -> state", enc.brain.state);
+    const plays = [];
+    const play0 = enc.playShot.bind(enc);
+    enc.playShot = (name) => { plays.push(name); play0(name); };
+    t0 = system.currentTick;
+    director.checkShot(fakeArrow({ x: aim.x / n * 3, y: aim.y / n * 3, z: aim.z / n * 3 }));
+    await new Promise((res) => {
+      const h = system.runInterval(() => {
+        if (enc.ended || enc.brain.state === "hunt" || system.currentTick - t0 > 80) { system.clearRun(h); res(); }
+      }, 1);
+    });
+    log("shot: aimed at it -> hunting after", system.currentTick - t0, "ticks;", enc.brain.history.filter((h) => /engage/.test(h)).join(" / "),
+      "one-shots played", plays.join(","));
+    await timeline(enc, mock, 30, 10, "shot-hunt");
+    if (!enc.ended) enc.end("aborted", true);
+    // a real (ownerless) arrow through the spawn event, fired well clear of everything
+    enc = spawnTW(mock, { x: 21.5, y: Y, z: 10.5 });
+    await wait(5);
+    enc.brain.enter("standoff", "test");
+    try {
+      const real = ov().spawnEntity("minecraft:arrow", { x: 12.5, y: Y + 6, z: 25.5 });
+      real.getComponent("minecraft:projectile").shoot({ x: 0, y: 1.5, z: 1 });
+      await wait(4);
+      log("shot: a real arrow with no player owner -> state", enc.brain.state, "(ignored)");
+    } catch (e) {
+      log("shot: real arrow threw", String(e).slice(0, 160));
+    }
+    if (!enc.ended) enc.end("aborted", true);
     mock.remove();
   },
 
@@ -423,19 +499,56 @@ const SCENARIOS = {
   },
 
   async escape() {
+    // it squeezes through 1-high gaps now: you get through, then you SEAL the gap behind you,
+    // and hide crouched in the dark
     clearArena();
     fill({ x: 30, y: Y, z: -5 }, { x: 31, y: Y + 9, z: 35 }, "minecraft:stone");
     fill({ x: 30, y: Y, z: 20 }, { x: 31, y: Y, z: 20 }, "minecraft:air");
-    // a head start: it is faster than a sprinting player, so you must already be near the gap
     const mock = new MockPlayer({ x: 24.5, y: Y, z: 20.5 });
     const enc = spawnTW(mock, { x: 4.5, y: Y, z: 10.5 });
     await wait(5);
     enc.brain.enter("hunt", "test");
-    const run = walk(mock, [{ x: 29.5, y: Y, z: 20.5 }, { x: 32.5, y: Y, z: 20.5 }, { x: 45.5, y: Y, z: 20.5 }, { x: 60.5, y: Y, z: 28.5 }], 5.6)
-      .then(() => { mock.isSneaking = true; }); // then hide in the dark beyond the wall
+    const run = walk(mock, [{ x: 29.5, y: Y, z: 20.5 }, { x: 32.5, y: Y, z: 20.5 }], 5.6)
+      .then(() => { fill({ x: 30, y: Y, z: 20 }, { x: 31, y: Y, z: 20 }, "minecraft:cobblestone"); log("escape: gap sealed"); })
+      .then(() => walk(mock, [{ x: 45.5, y: Y, z: 20.5 }, { x: 60.5, y: Y, z: 28.5 }], 5.6))
+      .then(() => { mock.isSneaking = true; });
     mock.yaw = -90;
     await Promise.all([run, timeline(enc, mock, 700, 20, "escape", () => "mock " + fmt(mock.location))]);
     log("escape outcome", enc.brain.outcome, "ended", enc.ended, "damage", JSON.stringify(mock.damage), cleanState(mock));
+    if (!enc.ended) enc.end("aborted", true);
+    mock.remove();
+  },
+
+  async squeeze() {
+    // a 1-wide, 1-high tunnel 12 blocks long through a solid wall, you on the far side
+    clearArena();
+    fill({ x: 24, y: Y, z: -5 }, { x: 35, y: Y + 9, z: 35 }, "minecraft:stone");
+    fill({ x: 24, y: Y, z: 15 }, { x: 35, y: Y, z: 15 }, "minecraft:air");
+    const mock = new MockPlayer({ x: 40.5, y: Y, z: 15.5 });
+    mock.hp = 1000;
+    mock.yaw = 90;
+    const enc = spawnTW(mock, { x: 8.5, y: Y, z: 15.5 });
+    await wait(5);
+    enc.brain.enter("hunt", "test");
+    enc.brain.lastSeen = { x: 40.5, y: Y, z: 15.5 };
+    const seen = new Set();
+    let inside = 0;
+    let deepest = 0;
+    const t0 = system.currentTick;
+    await new Promise((res) => {
+      const h = system.runInterval(() => {
+        if (enc.ended || !enc.tw.isValid) { system.clearRun(h); return res(); }
+        const x = enc.tw.location.x;
+        seen.add(enc.mover.posture + "/" + actOf(enc.tw));
+        if (x > 24 && x < 36) inside++;
+        deepest = Math.max(deepest, x);
+        if (mock.damage.length >= 2 || system.currentTick - t0 > 600) { system.clearRun(h); res(); }
+      }, 2);
+    });
+    log("squeeze: postures/acts seen", [...seen].join(","), "ticks inside the 1-high tunnel", inside * 2, "furthest x", r1(deepest),
+      "through after", system.currentTick - t0, "ticks; damage", JSON.stringify(mock.damage));
+    log("squeeze: states", enc.brain.history.slice(-10).join(" / "));
+    await timeline(enc, mock, 60, 20, "squeeze-after");
     if (!enc.ended) enc.end("aborted", true);
     mock.remove();
   },
@@ -476,7 +589,7 @@ const SCENARIOS = {
     // a window pane ahead along the arena's long axis (the face-at-the-window test)
     fill({ x: 30, y: Y, z: 9 }, { x: 30, y: Y + 2, z: 12 }, "minecraft:glass_pane");
     const LONG = new Set(["glimpse", "peek", "runner", "window"]); // need room in front: face +x down the arena
-    for (const id of ["knock", "breath", "whisper", "fake_chat", "snuff", "door", "glimpse", "peek", "mimic", "footsteps", "behind", "lights_out",
+    for (const id of ["knock", "breath", "whisper", "snuff", "door", "glimpse", "peek", "mimic", "footsteps", "behind", "lights_out",
       "scrape", "run_steps", "distant_scream", "runner", "door_bang", "window"]) {
       mock.sounds = [];
       if (LONG.has(id)) mock.yaw = -90;

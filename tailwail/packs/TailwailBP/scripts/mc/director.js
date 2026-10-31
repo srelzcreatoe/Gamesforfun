@@ -11,7 +11,7 @@ import {
 } from "../core/scheduler.js";
 import { SETUPS, fitsTerrain, pickSetup, setupsForStage } from "../core/setups.js";
 import { makeRng } from "../util/rng.js";
-import { dist, yawTo } from "../util/vec.js";
+import { dist, hdist, yawTo } from "../util/vec.js";
 import { forgetPlayer } from "./audio.js";
 import { sweepEchoes, tickEchoes } from "./echo.js";
 import { Encounter, survivalLike } from "./encounter.js";
@@ -25,6 +25,10 @@ import { forgetPrefs, getMemory, getPrefs, getSchedule, getSettings, saveSchedul
 
 const SLOTS = ["a", "b", "c"];
 const DIMS = ["minecraft:overworld", "minecraft:nether", "minecraft:the_end"];
+// things a player can shoot or throw at it: an aggressive move during the stand-off
+const PROJECTILES = new Set(["minecraft:arrow", "minecraft:snowball", "minecraft:egg", "minecraft:ender_pearl",
+  "minecraft:thrown_trident", "minecraft:splash_potion", "minecraft:lingering_potion", "minecraft:xp_bottle",
+  "minecraft:wind_charge_projectile", "minecraft:fireworks_rocket"]);
 
 export class Director {
   constructor() {
@@ -401,6 +405,53 @@ export class Director {
   }
 
   // ------------------------------------------------------------------ events
+  /** A player's projectile flying at (or close past) a Tailwail: aim line within 3 blocks of its body. */
+  checkShot(e) {
+    let owner;
+    let p0;
+    let v;
+    let dimId;
+    try {
+      if (!e.isValid) return;
+      owner = e.getComponent("minecraft:projectile")?.owner;
+      p0 = e.location;
+      v = e.getVelocity();
+      dimId = e.dimension.id;
+    } catch {
+      return;
+    }
+    if (!owner || owner.typeId !== "minecraft:player") return;
+    const sp = Math.hypot(v.x, v.y, v.z);
+    if (sp < 0.05) return;
+    for (const enc of this.encounters.values()) {
+      try {
+        if (!enc.tw || !enc.tw.isValid || enc.tw.dimension.id !== dimId) continue;
+        const c = enc.tw.location;
+        const rel = { x: c.x - p0.x, y: c.y + 1.2 - p0.y, z: c.z - p0.z };
+        const along = (rel.x * v.x + rel.y * v.y + rel.z * v.z) / sp;
+        if (along < -1 || along > 64) continue;
+        const miss = Math.hypot(rel.x - (v.x / sp) * along, rel.y - (v.y / sp) * along, rel.z - (v.z / sp) * along);
+        if (miss <= 3.0) enc.onAggression("shot");
+      } catch {
+        /* entity gone */
+      }
+    }
+  }
+
+  /** A player's projectile landed next to (or on) a Tailwail. */
+  projectileLanded(source, at, dimId, hitEntity) {
+    if (!source || source.typeId !== "minecraft:player" || !this.encounters.size) return;
+    for (const enc of this.encounters.values()) {
+      try {
+        if (!enc.tw || !enc.tw.isValid || enc.tw.dimension.id !== dimId) continue;
+        const c = enc.tw.location;
+        if ((hitEntity && hitEntity.id === enc.twId) || (hdist(c, at) <= 4 && Math.abs(at.y - c.y - 1.5) <= 4)) enc.onAggression("shot");
+      } catch {
+        /* entity gone */
+      }
+    }
+  }
+
   noise(player, pos) {
     const enc = this.encounterTargeting(player.id);
     if (enc && dist(enc.tw.location, pos) <= SEARCH.noiseRadius) enc.onNoise(pos);
@@ -459,10 +510,29 @@ export class Director {
 
     world.afterEvents.entitySpawn.subscribe((ev) => {
       const e = ev.entity;
-      if (this.creating || !e.isValid || e.typeId !== ENTITY_ID) return;
+      if (!e.isValid) return;
+      if (PROJECTILES.has(e.typeId)) {
+        // its velocity is set after the spawn: read the aim line a tick later
+        if (this.encounters.size) system.run(() => this.checkShot(e));
+        return;
+      }
+      if (this.creating || e.typeId !== ENTITY_ID) return;
       system.run(() => {
         if (e.isValid && !this.encounters.has(e.id)) this.adopt(e, false);
       });
+    });
+
+    world.afterEvents.projectileHitBlock.subscribe((ev) => {
+      this.projectileLanded(ev.source, ev.location, ev.dimension.id, null);
+    });
+    world.afterEvents.projectileHitEntity.subscribe((ev) => {
+      let hit = null;
+      try {
+        hit = ev.getEntityHit().entity || null;
+      } catch {
+        hit = null;
+      }
+      this.projectileLanded(ev.source, ev.location, ev.dimension.id, hit);
     });
 
     world.afterEvents.entityLoad.subscribe((ev) => {

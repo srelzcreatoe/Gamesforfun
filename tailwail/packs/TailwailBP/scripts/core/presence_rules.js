@@ -16,7 +16,6 @@ export const PRESENCE_EVENTS = {
   whisper: { stage: 2, weight: 1.6, cooldown: 240, caption: "Your name, whispered" },
   lights_out: { stage: 2, weight: 1.1, cooldown: 420, needs: "torches", setting: "torchSnuff", caption: "The torches go out, one by one" },
   behind: { stage: 2, weight: 1.1, cooldown: 420, setting: "jumpscares", caption: "Don't turn around" },
-  fake_chat: { stage: 2, weight: 0.5, cooldown: 1200, setting: "fakeChat", caption: "Someone joined" },
   // v3
   scrape: { stage: 0, weight: 1.3, cooldown: 150, needs: "wall", caption: "Claws scraping inside the stone" },
   run_steps: { stage: 1, weight: 1.8, cooldown: 220, caption: "Something runs at you from behind, and stops" },

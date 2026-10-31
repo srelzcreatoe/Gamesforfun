@@ -174,11 +174,6 @@ export class Presence {
     return true;
   }
 
-  ev_fake_chat(player) {
-    player.sendMessage(`§e${player.name} joined the game`);
-    return true;
-  }
-
   ev_snuff(player, env) {
     const list = env._behind || [];
     if (!list.length) return false;
@@ -325,7 +320,7 @@ export class Presence {
     const e = spawnEcho(player.dimension, path.a, yawTo(path.a, path.b), "gallop", 6, null);
     if (!e) return false;
     const total = hdist(path.a, path.b);
-    const steps = Math.max(8, Math.round(total / 0.45)); // ~9 blocks per second
+    const steps = Math.max(8, Math.round(total / 0.39)); // ~7.8 blocks per second: its chase speed
     let i = 0;
     const id = system.runInterval(() => {
       if (!e.isValid || i >= steps || !player.isValid) {

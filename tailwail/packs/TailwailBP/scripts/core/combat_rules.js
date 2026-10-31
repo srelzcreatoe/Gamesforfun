@@ -28,7 +28,7 @@ export function hitLands(kind, geom) {
 }
 
 export function createCooldowns() {
-  return { swipe: 0, slam: 0, pounce: 0, grab: 0, roar: 0 };
+  return { swipe: 0, slam: 0, pounce: 0, grab: 0, roar: 0, reach: 0 };
 }
 
 /**
@@ -43,7 +43,7 @@ export function chooseAttack(o) {
   const cd = o.cd;
   const vOk = Math.abs(g.dy) <= CHASE.grabReachVertical;
   const facing = g.facingCos >= 0.2;
-  if (vOk && facing && o.canGrab && t >= cd.grab && inGrabReach(g) && o.rng.chance(CHASE.grabChance)) return "grab";
+  if (vOk && facing && o.canGrab && !o.tunnel && t >= cd.grab && inGrabReach(g) && o.rng.chance(CHASE.grabChance)) return "grab";
   if (vOk && !o.tunnel && o.headroom >= 6 && t >= cd.slam && g.hdist <= CHASE.slamRange && o.rng.chance(CHASE.slamChance)) return "slam";
   if (vOk && facing && t >= cd.swipe && g.hdist <= CHASE.swipeRange) {
     if (o.rng.chance(CHASE.comboChance)) return "combo";
@@ -55,12 +55,12 @@ export function chooseAttack(o) {
 }
 
 /** Puts the attack on cooldown (seconds from t). */
-export function spendAttack(cd, kind, t, rng) {
+export function spendAttack(cd, kind, t) {
   if (kind === "grab") cd.grab = t + CHASE.grabCooldown;
   else if (kind === "slam") cd.slam = t + CHASE.slamCooldown;
   else if (kind === "pounce") cd.pounce = t + CHASE.pounceCooldown;
-  // every attack also delays the next rake a little, so it never machine-guns
-  cd.swipe = Math.max(cd.swipe, t + CHASE.swipeCooldown + (rng ? rng.range(0, 0.5) : 0.25));
+  // one attack a second (the Cave Dweller's 20-tick melee rhythm), whatever the attack was
+  cd.swipe = Math.max(cd.swipe, t + CHASE.attackInterval);
 }
 
 /**

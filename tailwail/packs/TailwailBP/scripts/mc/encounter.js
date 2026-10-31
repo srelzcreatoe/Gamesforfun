@@ -16,7 +16,7 @@ import { GrabController, grabFor } from "./grab.js";
 import { dlog, errorText, warn } from "./log.js";
 import { Mover } from "./mover.js";
 import { creatureEyes, creatureSees, isHiding, lightAt, losClear, playerView } from "./perception.js";
-import { findCover, findCreepPoint, findObservationSpot, findRetreatSpot, findSearchPoints, findStandoffSpot } from "./spots.js";
+import { findCover, findCreepPoint, findObservationSpot, findRetreatSpot, findSearchPoints, findStandoffSpot, findStepPoint } from "./spots.js";
 import { getMemory, getSchedule, getSettings, saveMemory, saveSchedule } from "./store.js";
 import { isOpen, safeBlock } from "./terrain.js";
 import { findTorches, snuff } from "./torches.js";
@@ -25,6 +25,8 @@ let nextId = 1;
 const SURVIVAL_LIKE = new Set([GameMode.Survival, GameMode.Adventure]);
 // acts that would put its head through a tunnel ceiling: shown as the tunnel crawl instead
 const TUNNEL_SAFE = new Set(["loco_tunnel", "cling", "climb", "reach_in", "death", "shot", "bash"]);
+// in a 1-high gap everything is the flattened squeeze (attacks play over it)
+const SQUEEZE_SAFE = new Set(["loco_squeeze", "cling", "climb", "death"]);
 
 export function survivalLike(player, allowCreative) {
   try {
@@ -68,6 +70,7 @@ export class Encounter {
     this.bash = null;
     this.floating = false;
     this.noise = null;
+    this.aggro = null;
     this.fovAt = null;
     this.stepDist = 0;
     this.lastStepPos = null;
@@ -128,6 +131,7 @@ export class Encounter {
       findSearchPoints: (origin, n, radius) => findSearchPoints({ origin, n, radius, rng: self.rng, dim: self.dim }),
       findCover: () => (tgt() ? findCover({ rng: self.rng, dim: self.dim, creaturePos: pos(), target: self.target }) : null),
       findCreepPoint: (step, minDist) => (tgt() ? findCreepPoint({ dim: self.dim, creaturePos: pos(), target: self.target, step, minDist }) : null),
+      findStepPoint: (deg, step, minDist) => (tgt() ? findStepPoint({ dim: self.dim, creaturePos: pos(), target: self.target, deg, step, minDist }) : null),
       findCrossPath: () => (tgt() ? findCrossPath({ rng: self.rng, dim: self.dim, player: self.target }) : null),
       placeAt: (p, facing) => self.placeAt(p, facing),
       cling: () => self.startCling(),
@@ -172,6 +176,12 @@ export class Encounter {
     }
   }
 
+  /** Someone shot or threw something at it (or close past it): an aggressive move. */
+  onAggression(kind) {
+    this.aggro = kind;
+    dlog(`#${this.id} aggression: ${kind}`);
+  }
+
   /** The target made a sound Tailwail can follow (block broken, door, landing, ...). */
   onNoise(pos) {
     this.noise = { pos: { x: pos.x, y: pos.y, z: pos.z }, t: this.brain.t };
@@ -201,7 +211,7 @@ export class Encounter {
     const tg = {
       valid, alive: false, eligible: false, dist: 999, hdist: 999, dy: 0, canSee: false, watching: false, glance: false, inView: false,
       los: false, sneaking: false, sprinting: false, pitch: 0, speed: 0, closing: 0, movingAway: false, pos: null, hidden: false, light: 15,
-      noise: null, inGap: false,
+      noise: null, inGap: false, aggro: null,
     };
     if (valid) {
       const p = this.target;
@@ -235,6 +245,8 @@ export class Encounter {
       tg.light = lightAt(this.dim, p.getHeadLocation());
       tg.hidden = isHiding(p, tg.light, tg.dist, SEARCH.hiddenLight, SEARCH.hiddenDetect);
       if (this.noise && this.brain.t - this.noise.t < 1.5) tg.noise = this.noise;
+      tg.aggro = this.aggro; // consumed once
+      this.aggro = null;
       if ((state === "hunt" || state === "search" || state === "reach") && tg.hdist < 4) tg.inGap = inLowGap(p);
     }
     // other players count for "is it being looked at" (never for agitation)
@@ -336,7 +348,8 @@ export class Encounter {
   applyVisual(v) {
     let act = v.act;
     const posture = this.mover.posture;
-    if (posture === "crawl" && !TUNNEL_SAFE.has(act) && !this.floating) act = "loco_tunnel";
+    if (posture === "squeeze" && !SQUEEZE_SAFE.has(act) && !this.floating) act = "loco_squeeze";
+    else if (posture === "crawl" && !TUNNEL_SAFE.has(act) && !this.floating) act = "loco_tunnel";
     else if (act === "tall" && this.mover.headHere < 5) act = "watch";
     else if ((act === "watch" || act === "hold" || act === "stunned" || act === "savor") && this.mover.headHere < 4) act = "watch_low";
     this.setProp("tailwail:act", ACT[act] ?? 0);
@@ -354,7 +367,7 @@ export class Encounter {
       const th = this.target.getHeadLocation();
       yaw = wrapDeg(yawTo(eyes, th) - this.tw.getRotation().y);
       pitch = pitchTo(eyes, th);
-      if (act === "loco_tunnel") pitch = clamp(pitch, -10, 20); // no looking up through the ceiling
+      if (act === "loco_tunnel" || act === "loco_squeeze") pitch = clamp(pitch, -10, 20); // no looking up through the ceiling
     } else if (v.look === "back") {
       yaw = 175; // walking away with its head turned all the way round
     }

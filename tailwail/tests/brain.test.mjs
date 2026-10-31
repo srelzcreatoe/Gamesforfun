@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { MAX_STATE_TIME, STATES } from "../packs/TailwailBP/scripts/core/brain.js";
 import { ACT, SHOT } from "../packs/TailwailBP/scripts/core/ids.js";
-import { CHASE, GRAB, SEARCH, STALK, STANDOFF } from "../packs/TailwailBP/scripts/config.js";
+import { CHASE, GRAB, PRESETS, SEARCH, STALK, STANDOFF, WORLD_DEFAULTS } from "../packs/TailwailBP/scripts/config.js";
 import { hunting, makeBrain, run, snap, until } from "./helpers.mjs";
 
 const lastVis = (ctx) => ctx.calls.visuals[ctx.calls.visuals.length - 1];
@@ -36,6 +36,115 @@ test("stand-off: it creeps at you even while watched, and turning your back make
   const t = until(brain, (b) => b.state !== "standoff", snap({ target: { dist: 16, hdist: 16, watching: false } }), 5);
   assert.equal(brain.state, "engage");
   assert.ok(t <= STANDOFF.turnAwayCharge + 0.25, `charged after ${t}s`);
+});
+
+test("observation: it stands idle, approaches slowly, and tests you (bluff charge, sidestep, backing off, neck crane)", () => {
+  const modes = new Set();
+  const tests = new Set();
+  for (let seed = 1; seed <= 40; seed++) {
+    const { brain, ctx } = makeBrain("stalker", { seed });
+    brain.enter("standoff", "test");
+    // kept at the edge of your view: never "stared at", never "turned away from"
+    const s = snap({ target: { dist: 18, hdist: 18, watching: false, glance: true, inView: true } });
+    let feint = false;
+    for (let i = 0; i < 140 && brain.state === "standoff"; i++) {
+      brain.update(s, 0.1);
+      if (brain.so && brain.so.mode) modes.add(brain.so.mode);
+      if (brain.so && brain.so.test) tests.add(brain.so.test.kind);
+      if (brain.so && brain.so.test && brain.so.test.kind === "feint" && brain.so.test.phase !== "go") feint = true;
+    }
+    if (feint) assert.ok(ctx.calls.moveTo.some((m) => m.why === "feint" && m.speed === WORLD_DEFAULTS.chaseSpeed),
+      "the bluff charge runs at full speed");
+  }
+  for (const m of ["idle", "approach", "test"]) assert.ok(modes.has(m), `never ${m}: ${[...modes]}`);
+  for (const k of ["feint", "sidestep", "withdraw", "crane"]) assert.ok(tests.has(k), `never tested with ${k}: ${[...tests]}`);
+});
+
+test("observation: staring at it too long sets it off; a glance does not", () => {
+  for (let seed = 1; seed <= 10; seed++) {
+    const { brain } = makeBrain("stalker", { seed });
+    brain.enter("standoff", "test");
+    const t = until(brain, (b) => b.state !== "standoff", snap({ target: { dist: 18, hdist: 18, watching: true } }), 20);
+    assert.equal(brain.state, "engage", `seed ${seed}`);
+    assert.ok(t <= STANDOFF.stareLimit[1] + 0.3, `stared ${t.toFixed(1)}s`);
+    assert.ok(brain.history.some((h) => / \((stared|agitated|decided)\)/.test(h)), brain.history.slice(-3).join(" | "));
+    const g = makeBrain("stalker", { seed }).brain;
+    g.enter("standoff", "test");
+    run(g, STANDOFF.stareLimit[1] + 0.5, snap({ target: { dist: 18, hdist: 18, watching: false, glance: true, inView: true } }));
+    assert.ok(!g.history.some((h) => h.includes("(stared)")), "a glance is not a stare");
+  }
+});
+
+test("observation: shooting at it provokes it at once (a roar, not the long scream), then it sprints at you", () => {
+  for (const setup of ["stalker", "treeline"]) {
+    const { brain, ctx } = makeBrain(setup, { seed: 4 });
+    brain.enter("standoff", "test");
+    run(brain, 0.5, snap({ target: { dist: 20, hdist: 20, glance: true } }));
+    run(brain, 0.1, snap({ target: { dist: 20, hdist: 20, glance: true, aggro: "shot" } }));
+    assert.equal(brain.state, "engage");
+    assert.ok(ctx.calls.play.includes("roar") && !ctx.calls.play.includes("scream"), ctx.calls.play.join());
+    until(brain, (b) => b.state === "hunt", snap({ target: { dist: 20, hdist: 20 } }), 3);
+    assert.equal(brain.state, "hunt");
+    run(brain, 0.3, snap({ target: { dist: 20, hdist: 20 } }));
+    assert.equal(ctx.calls.moveTo[ctx.calls.moveTo.length - 1].speed, WORLD_DEFAULTS.chaseSpeed);
+  }
+  // shot at while it is still stalking, or waiting on the ceiling
+  const st = makeBrain("stalker", { seed: 2 }).brain;
+  run(st, 0.3, snap({ target: { dist: 22, hdist: 22, aggro: "shot" } }));
+  assert.equal(st.state, "engage");
+  const am = makeBrain("ceiling", { seed: 2, stage: 1 }).brain;
+  run(am, 0.3, snap({ target: { dist: 12, hdist: 12, aggro: "shot" } }));
+  assert.ok(am.am.triggered, "the ceiling ambush drops when shot at");
+});
+
+test("observation: running from its test makes it likelier to come; holding still calms it", () => {
+  let ran = 0;
+  let held = 0;
+  for (let seed = 1; seed <= 30; seed++) {
+    const a = makeBrain("stalker", { seed }).brain;
+    a.enter("standoff", "test");
+    a.so.modes = 3;
+    a.so.test = { kind: "feint", react: { fled: 4, advanced: 0 } };
+    const before = a.agit.value;
+    a.judgeReaction();
+    assert.ok(a.agit.value >= Math.min(100, before + 29) || a.state === "engage");
+    if (a.state === "engage") ran++;
+    const b = makeBrain("stalker", { seed }).brain;
+    b.enter("standoff", "test");
+    b.so.modes = 3;
+    b.so.test = { kind: "feint", react: { fled: 0, advanced: 0 } };
+    b.judgeReaction();
+    if (b.state === "engage") held++;
+  }
+  assert.ok(ran > held, `ran ${ran} vs held ${held}`);
+});
+
+test("the grab and its mash struggle are parked: default settings never grab", () => {
+  assert.equal(WORLD_DEFAULTS.grab, false);
+  for (let seed = 1; seed <= 20; seed++) {
+    const { brain, ctx } = hunting({ seed });
+    run(brain, 12, snap({ target: { dist: 2.4, hdist: 2.4 } }));
+    assert.equal(ctx.calls.grabStart.length, 0, `seed ${seed} grabbed`);
+    assert.ok(!ctx.calls.play.includes("lunge_grab"));
+  }
+});
+
+test("Cave Dweller pace: 7.8 blocks/s on every preset, one attack a second at arm's length", () => {
+  for (const p of Object.values(PRESETS)) assert.equal(p.chaseSpeed, 0.425);
+  assert.ok(Math.abs(43.2 * 0.425 * 0.425 - 7.8) < 0.05);
+  for (let seed = 1; seed <= 10; seed++) {
+    const { brain, ctx } = hunting({ seed, settings: { slamChance: 0 } });
+    const starts = [];
+    let prev = null;
+    for (let i = 0; i < 100; i++) {
+      brain.update(snap({ target: { dist: 2.4, hdist: 2.4 }, creature: { headroom: 4 } }), 0.1);
+      if (brain.state === "attack" && prev !== "attack") starts.push(brain.t);
+      prev = brain.state;
+    }
+    assert.ok(starts.length >= 8, `seed ${seed}: only ${starts.length} attacks in 10 s`);
+    for (let i = 1; i < starts.length; i++) assert.ok(starts[i] - starts[i - 1] >= CHASE.attackInterval - 0.05, "never faster than once a second");
+    assert.ok(ctx.calls.damage.length >= 8);
+  }
 });
 
 test("stand-off: too close commits; a hit commits", () => {
@@ -242,7 +351,7 @@ test("corner ambush: the heap turns round when you come close", () => {
   assert.equal(brain.state, "hunt");
 });
 
-test("terrain: it climbs to a ledge, smashes a door, reaches into a hole", () => {
+test("terrain: it climbs to a ledge, smashes a door, reaches into a hole and then squeezes in after you", () => {
   let { brain, ctx } = hunting({ seed: 3 });
   run(brain, 0.1, snap({ target: { dist: 6, hdist: 4, dy: 5 }, reach: { los: false }, creature: { stuck: true } }));
   assert.equal(brain.state, "climb");
@@ -264,10 +373,30 @@ test("terrain: it climbs to a ledge, smashes a door, reaches into a hole", () =>
   ({ brain, ctx } = hunting({ seed: 3 }));
   run(brain, 0.2, snap({ target: { dist: 2.5, hdist: 2.5, inGap: true }, reach: { hdist: 2.2, facingCos: 1 } }));
   assert.equal(brain.state, "reach");
-  run(brain, 2, snap({ target: { dist: 2.5, hdist: 2.2, inGap: true, canSee: false }, reach: { hdist: 2.2, dy: 0, facingCos: 1 } }));
+  run(brain, 1.5, snap({ target: { dist: 2.5, hdist: 2.2, inGap: true, canSee: false }, reach: { hdist: 2.2, dy: 0, facingCos: 1 } }));
   assert.ok(ctx.calls.damage.includes("reach"));
   until(brain, (b) => b.state !== "reach", snap({ target: { dist: 2.5, hdist: 2.2, inGap: true, canSee: false } }), 8);
-  assert.equal(brain.state, "search");
+  assert.equal(brain.state, "hunt", "it squeezes in after you");
+  run(brain, 0.3, snap({ target: { dist: 2.5, hdist: 2.2, inGap: true }, creature: { posture: "squeeze", headroom: 1 } }));
+  assert.equal(lastVis(ctx).postureWant, "squeeze", "it asks for the flattened posture");
+  assert.notEqual(brain.state, "reach", "no second reach right away");
+  assert.ok(ctx.calls.moveTo.length > 0 || brain.state === "attack");
+  brain.enter("search", "test");
+  run(brain, 0.3, snap({ target: { dist: 30, hdist: 30, canSee: false } }));
+  assert.equal(lastVis(ctx).postureWant, null, "it does not search flattened");
+});
+
+test("squeezed flat in a 1-high gap: no pounces, no slams, no grabs, but it still rakes", () => {
+  for (let seed = 1; seed <= 20; seed++) {
+    const { brain } = hunting({ seed, settings: { grab: true } });
+    const seen = new Set();
+    for (let i = 0; i < 80; i++) {
+      brain.update(snap({ target: { dist: 2.4, hdist: 2.4 }, creature: { posture: "squeeze", headroom: 1 } }), 0.1);
+      if (brain.state === "attack") seen.add(brain.a.kind);
+      assert.notEqual(brain.state, "grab");
+    }
+    assert.ok(!seen.has("pounce") && !seen.has("slam"), [...seen].join());
+  }
 });
 
 test("headroom: under a low ceiling the scream becomes a roar", () => {

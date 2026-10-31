@@ -6,15 +6,15 @@ composite-pose grounding (body + every overlay, 1.5x scale, blocks).
 ## Static
 * `tailwail:echo`: 15 animation refs, 14 clips used, 1 controllers, 3 variables, 43 bones animated; queries: q.ground_speed, q.life_time, q.property
 * `tailwail:lure`: 0 animation refs, 0 clips used, 0 controllers, 0 variables, 0 bones animated; queries: 
-* `tailwail:tall_wail`: 59 animation refs, 40 clips used, 2 controllers, 36 variables, 51 bones animated; queries: q.all_animations_finished, q.delta_time, q.ground_speed, q.hurt_time, q.life_time, q.modified_distance_moved, q.property
+* `tailwail:tall_wail`: 60 animation refs, 41 clips used, 2 controllers, 36 variables, 51 bones animated; queries: q.all_animations_finished, q.delta_time, q.ground_speed, q.hurt_time, q.life_time, q.modified_distance_moved, q.property
 
 ## Dynamic
-* act_hops_checked: 506
+* act_hops_checked: 552
 * random_steps: 600
 * max_weight: 1.0
 * gait_weights: {'idle': 1.0, 'idle/no-pre': 1.0, 'walk': 1.0, 'walk/no-pre': 1.0, 'gallop': 1.0, 'gallop/no-pre': 1.0}
 * failure_mode_overlays: ok
-* strides_blocks: {'gallop': 3.0, 'walk': 2.94, 'creep': 1.85, 'tunnel_move': 1.0}
+* strides_blocks: {'gallop': 3.6, 'walk': 2.94, 'creep': 1.85, 'tunnel_move': 1.0, 'squeeze': 0.85}
 * final_states: {'ctrl_body': 'a18', 'ctrl_hurt': 'default'}
 
 ## Grounding (lowest point min..max over 2 s, peak height)
@@ -23,10 +23,10 @@ composite-pose grounding (body + every overlay, 1.5x scale, blocks).
 |---|---|---|
 | loco/still | -0.00 .. 0.00 | 4.45 |
 | loco/walk | -0.00 .. 0.00 | 4.34 |
-| loco/run | 0.04 .. 0.24 | 4.01 |
+| loco/run | -0.00 .. 0.19 | 3.92 |
 | loco_low/still | -0.33 .. 0.25 | 3.48 |
 | loco_low/walk | -0.37 .. 0.22 | 3.48 |
-| loco_low/run | 0.04 .. 0.24 | 4.01 |
+| loco_low/run | -0.00 .. 0.19 | 3.92 |
 | loco_tunnel/still | -0.41 .. -0.16 | 1.97 |
 | loco_tunnel/walk | -0.48 .. -0.00 | 1.95 |
 | watch | -0.00 .. -0.00 | 4.61 |
@@ -48,6 +48,8 @@ composite-pose grounding (body + every overlay, 1.5x scale, blocks).
 | behind | -0.11 .. -0.00 | 4.05 |
 | neck | -0.00 .. -0.00 | 4.76 |
 | reach | -0.00 .. -0.00 | 4.35 |
+| loco_squeeze/still | -0.18 .. -0.03 | 1.03 |
+| loco_squeeze/crawl | -0.27 .. -0.01 | 0.94 |
 | shot:scream | -0.00 .. 0.00 | 5.01 |
 | shot:roar | 0.00 .. 0.04 | 4.05 |
 | shot:swipe_r | 0.00 .. 0.04 | 4.01 |
@@ -72,34 +74,34 @@ composite-pose grounding (body + every overlay, 1.5x scale, blocks).
 |---|---|---|---|---|
 | loco | 0 | 0.0 | 1.11 | 2.22 |
 | loco | 0 | 2.6 | 1.16 | 2.21 |
-| loco | 0 | 8.4 | 1.63 | 2.78 |
+| loco | 0 | 7.8 | 1.68 | 2.94 |
 | loco | 1 | 0.0 | 1.67 | 2.22 |
 | loco | 1 | 2.6 | 1.53 | 2.21 |
-| loco | 1 | 8.4 | 1.51 | 2.47 |
+| loco | 1 | 7.8 | 1.49 | 2.47 |
 | loco | 2 | 0.0 | 2.05 | 3.55 |
 | loco | 2 | 2.6 | 1.89 | 3.49 |
-| loco | 2 | 8.4 | 1.64 | 3.50 |
+| loco | 2 | 7.8 | 1.69 | 3.63 |
 | loco | 3 | 0.0 | 2.05 | 2.53 |
 | loco | 3 | 2.6 | 1.89 | 2.51 |
-| loco | 3 | 8.4 | 1.63 | 2.98 |
+| loco | 3 | 7.8 | 1.68 | 2.99 |
 | loco | 4 | 0.0 | 1.49 | 2.20 |
 | loco | 4 | 2.6 | 1.37 | 2.18 |
-| loco | 4 | 8.4 | 1.35 | 2.26 |
+| loco | 4 | 7.8 | 1.38 | 2.20 |
 | loco_low | 0 | 0.0 | 0.92 | 1.84 |
 | loco_low | 0 | 2.6 | 1.19 | 1.74 |
-| loco_low | 0 | 8.4 | 1.63 | 2.78 |
+| loco_low | 0 | 7.8 | 1.68 | 2.94 |
 | loco_low | 1 | 0.0 | 1.15 | 1.93 |
 | loco_low | 1 | 2.6 | 1.19 | 1.94 |
-| loco_low | 1 | 8.4 | 1.51 | 2.47 |
+| loco_low | 1 | 7.8 | 1.49 | 2.47 |
 | loco_low | 2 | 0.0 | 1.43 | 3.14 |
 | loco_low | 2 | 2.6 | 1.35 | 3.03 |
-| loco_low | 2 | 8.4 | 1.64 | 3.50 |
+| loco_low | 2 | 7.8 | 1.69 | 3.63 |
 | loco_low | 3 | 0.0 | 1.42 | 2.58 |
 | loco_low | 3 | 2.6 | 1.35 | 2.54 |
-| loco_low | 3 | 8.4 | 1.63 | 2.98 |
+| loco_low | 3 | 7.8 | 1.68 | 2.99 |
 | loco_low | 4 | 0.0 | 1.15 | 1.83 |
 | loco_low | 4 | 2.6 | 1.05 | 1.72 |
-| loco_low | 4 | 8.4 | 1.35 | 2.26 |
+| loco_low | 4 | 7.8 | 1.38 | 2.20 |
 | loco_tunnel | 0 | 0.0 | 0.08 | 0.56 |
 | loco_tunnel | 0 | 2.6 | 0.04 | 0.65 |
 | loco_tunnel | 1 | 0.0 | 0.08 | 0.56 |
@@ -110,6 +112,16 @@ composite-pose grounding (body + every overlay, 1.5x scale, blocks).
 | loco_tunnel | 3 | 2.6 | 0.04 | 0.65 |
 | loco_tunnel | 4 | 0.0 | 0.08 | 0.56 |
 | loco_tunnel | 4 | 2.6 | 0.04 | 0.65 |
+| loco_squeeze | 0 | 0.0 | 0.14 | 0.36 |
+| loco_squeeze | 0 | 2.6 | 0.02 | 0.32 |
+| loco_squeeze | 1 | 0.0 | 0.14 | 0.36 |
+| loco_squeeze | 1 | 2.6 | 0.02 | 0.32 |
+| loco_squeeze | 2 | 0.0 | 0.14 | 0.36 |
+| loco_squeeze | 2 | 2.6 | 0.02 | 0.32 |
+| loco_squeeze | 3 | 0.0 | 0.14 | 0.36 |
+| loco_squeeze | 3 | 2.6 | 0.02 | 0.32 |
+| loco_squeeze | 4 | 0.0 | 0.14 | 0.36 |
+| loco_squeeze | 4 | 2.6 | 0.02 | 0.32 |
 
 ## Result
 

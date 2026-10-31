@@ -18,7 +18,8 @@
     screen);
   - the actual loudness of each sound against vanilla;
   - how strong the fog, FOV and shake feel; music looping;
-  - whether teleport-every-tick during the grab and the climb looks smooth or jittery.
+  - whether teleport-every-tick during the climb looks smooth or jittery;
+  - how the squeeze (the whole body scaled flat) looks in a real 1-block gap.
 - **A stale resource pack** (an older copy applied to the world) makes the creature look
   frozen and its new sounds silent. v3 cannot fix that from the behavior pack, but it
   *reports* it: the join message is a translation key only the 3.x resource pack defines.
@@ -32,9 +33,23 @@
 
 ## Behaviour
 
-- It is **faster than a sprinting player** on every preset (6.9 / 8.4 / 10 blocks/s). In
-  open terrain it will catch you; escaping means breaking line of sight, hiding in the
-  dark, holes it cannot fit, or winning the struggle. Calm is the gentler preset.
+- It is **faster than a sprinting player** on every preset: the Cave Dweller's chase speed,
+  7.8 blocks/s (Custom can change it). The value comes from Gargin's mod as found in a
+  public port of its code (movement speed 0.5 × chase modifier 0.85); it was not measured
+  in the original mod. In open terrain it will catch you; escaping means breaking line of
+  sight, sealing gaps behind you, or hiding in the dark. Calm is the gentler preset (less
+  damage, slower escalation), not a slower creature.
+- **Aggressive moves** are detected from projectiles a player shoots or throws: the flight
+  line one tick after launch (a straight line, so a long, high lob can be missed), where
+  it lands, and direct hits. Drawing a bow or swinging at the air does not count. A real
+  player's arrow has not been tested (BDS has no players); the aim test ran on BDS with a
+  stand-in arrow, and a real ownerless arrow was correctly ignored.
+- **Squeezing.** It fits 1-high gaps (collision 0.9 high), but its model is still wider than
+  one block: limbs clip into the walls, and attacks made while squeezed play over the
+  flattened body. It chooses the squeeze from the headroom along the straight line to its
+  goal, so a low overhang on that line can make it flatten for a moment where it did not
+  need to. Gaps narrower than one block, or entered through a partial block, may still
+  stop it; then it searches.
 - The "on screen" test uses a generous ~72° cone with line of sight to three body points.
 - It never appears where you are looking: a spawn site is rejected if any point of it is
   within about 78° of a player's view direction with a clear line. It must also be dark
@@ -57,10 +72,8 @@
   In very open or very cramped places some are skipped (the knock and scrape need a wall;
   the peek needs a corner; the ceiling needs 5-10 blocks of air under a ceiling; the
   window needs glass in front of you).
-- A grab needs about 4 blocks of headroom. In low tunnels it rakes instead. The throw and
-  the smash finishers need 6.
-- The fake chat line only goes to the haunted player, but on servers with chat logging it
-  is a real message to that player.
+- The grab and its mash struggle are parked: the code is kept and unit-tested, but it never
+  happens in game.
 
 ## Content and performance
 

@@ -24,7 +24,7 @@ This document is everything at once.
 |---|---|---|
 | 0, Unease | start | footsteps that follow you, your sounds repeated, knocks, claws scraping in the rock; it watches you from the dark, peeks, runs across your view |
 | 1, Watched | 3 hauntings or 6 eligible minutes | glimpses, breathing behind you, torches going out, doors, heavy running steps behind you, distant screams, the runner, hammering on your door; it waits on the **ceiling** or balled up in a **corner** |
-| 2, Hunted | after your first encounter | whispers of your name, lights going out one by one, "behind you", the face at the window, fake join message, bed visits; it can be crouched right behind you; *the hunter*: no warning at all |
+| 2, Hunted | after your first encounter | whispers of your name, lights going out one by one, "behind you", the face at the window, bed visits; it can be crouched right behind you; *the hunter*: no warning at all |
 | 3, Obsessed | 4 encounters or 2 escapes | everything more often, and it charges sooner when you see it |
 
 ## The haunting (between encounters)
@@ -47,7 +47,6 @@ All of it is aimed at one player and is harmless.
 | Peek | a head and a hand around a corner, gone once you have seen it and looked away |
 | The window | a face at your window, gone the moment you look away again |
 | Behind you | breathing behind you. Turn around within ~2 s and it is right there for half a second |
-| Fake chat | "&lt;your name&gt; joined the game" |
 | Bed visit | while you sleep it stands at the foot of your bed, craning over you |
 
 ## The encounter
@@ -65,24 +64,47 @@ When you spot it, it reacts within a quarter of a second. It may:
 - **bolt** out of sight on all fours, and reappear somewhere else, closer;
 - **hold your stare**, which starts the stand-off.
 
+Shooting at it, throwing something at it or hitting it while it is still watching you from
+afar provokes it at once (see below).
+
 Openings that skip this:
 - **The ceiling** (caves): it hangs flat on the ceiling like a spider, its face rolled the
   right way up. When you pass underneath, or stare up at it, it lets go, lands in front of
   you and roars.
 - **The heap** (caves): a mound of rock and hair in a dark corner. Come close, or stare at
   it, and it whips round.
+- Shooting at the ceiling-hanger or the heap sets them off too.
 - **Behind you**: it is crouched right behind you when you turn around.
 - **The hunter**: a scream from somewhere out there, then it comes running.
 
-### 2. The stand-off (4–10 seconds)
+### 2. The stand-off: it observes you (6–13 seconds)
 
-It rises to its full height or crouches to pounce. Its tail lashes, its breathing gets
-heavier, its jaw drops, the dread fog closes in, the stand-off music drones, your heartbeat
-speeds up and your view narrows.
-- It **creeps toward you even while you watch it**.
-- **Turn your back for less than a second and it charges.**
-- Getting within ~6 blocks, hitting it, or staring until it snaps: it charges.
-- It copies your crouch, head tilt and stop-start a second late.
+It watches you and makes up its mind. Its tail lashes, its breathing gets heavier, its jaw
+drops, the dread fog closes in, the stand-off music drones, your heartbeat speeds up and
+your view narrows. It switches between three things:
+- **It stands idle**, at full height or crouched, watching, its head tilting.
+- **It approaches slowly**, even while you watch it.
+- **It tests your reactions**, then reads what you do:
+  - a **bluff charge**: it runs at you at full speed and stops dead a few blocks short;
+  - a **sidestep** to one side, to see if you keep it in view;
+  - **backing off** a few steps, to see if you follow;
+  - its **neck craning** toward you.
+
+  If you **run**, it learns you are prey and gets much likelier to attack. If you **come at
+  it**, it gets angrier. If you **hold your ground**, it calms a little and keeps watching.
+
+What sets it off (it attacks at once):
+- **Staring at it too long**: looking straight at it for 5–9 seconds (a glance, with it at
+  the edge of your view, does not count).
+- **Aggressive moves**: shooting an arrow at it, throwing a snowball, egg, trident or potion
+  at it (a hit or a near miss), or hitting it.
+- Getting within about 6 blocks.
+- **Turning your back** for less than a second.
+- Sprinting at it or around it winds it up fast.
+
+Otherwise, after each thing it does, it may simply **decide** to attack, and the longer the
+stand-off lasts, the likelier that gets. It also copies your crouch, head tilt and
+stop-start a second late.
 
 ### 3. The scream
 
@@ -92,75 +114,58 @@ it **screams**:
 - every torch around it goes out;
 - it drops onto all fours.
 
-Under a low ceiling it roars from all fours instead.
+Under a low ceiling it roars from all fours instead. **If you provoked it** (shot at it, hit
+it) there is no scream: one roar, and it is already sprinting at you.
 
 ### 4. The hunt
 
-**It is faster than you**: 8.4 blocks/s on Standard (a sprinting player does 5.6). You
-cannot outrun it in the open. While it can see or hear you, there is no time limit.
-- It gallops on all fours, squeezes through 2-high tunnels on its belly and puts out
-  torches as it passes. Every hand and foot shakes the ground.
-- **Attacks**, never the same order twice:
+**It is faster than you**: 7.8 blocks/s, the Cave Dweller's chase speed (a sprinting player
+does 5.6). You cannot outrun it in the open. While it can see or hear you, there is no time
+limit.
+- It gallops on all fours in long, heavy bounds, every hand and foot shaking the ground, and
+  puts out torches as it passes.
+- **It goes where you go:**
+  - through 2-high tunnels on its belly;
+  - through **1-block gaps**, crushed flat (it drags itself through slowly, about 1.7
+    blocks/s);
+  - crawl into a low hole and an arm comes in after you first; a couple of seconds later
+    it forces the rest of its body in;
+  - up walls when you pillar up (setting);
+  - through doors and glass between you and it, hammered until they break (setting).
+- **Attacks**, never the same order twice, **one every second** while you are in reach (the
+  Cave Dweller's rhythm):
   - a **rake** with either arm (throws you sideways);
   - a **two-handed combo**;
   - an **overhead slam** that shakes everyone nearby;
-  - a **pounce** from 5–11 blocks away that pins and slows you, and sometimes turns into
-    a grab;
-  - the **grab** (below).
-- After it hurts you it stands over you for a second or two (sniffing, shrieking). **Then
-  it hunts on.** It does not get bored and leave.
-- **Doors and glass** between you and it get hammered until they break (setting).
-- Pillar up a ledge and it **climbs the wall** after you (setting).
-- Crawl into a hole too low for it and it **reaches in** after you with one long arm. It
-  gives up after a few seconds and goes looking for another way.
+  - a **pounce** from 5–11 blocks away that pins and slows you.
+- After a slam or a pounce it stands over you for a second or two (sniffing, shrieking).
+  **Then it hunts on.** It does not get bored and leave.
 - Lose it for a few seconds and it **roars** when it finds you again.
 
-### 5. The grab
-
-It lifts you to its face and holds you there. You cannot walk or turn. **Read the prompt:
-the way out is different every time.**
-
-| Prompt | What to do |
-|---|---|
-| Mash **JUMP** | press Jump as fast as you can |
-| Mash **SNEAK** | press Sneak as fast as you can |
-| **Alternate** JUMP + SNEAK | only switching between them counts |
-| **Don't. Move.** | press nothing at all. Pressing anything makes it bite |
-
-- The number of presses and the time you get change every grab.
-- Halfway through, **it can shift its grip**: the prompt changes and you have to switch.
-- Hitting it while held counts double (but it is not "staying still").
-- Sometimes there is **no way out** (never on Calm, never on the first grab).
-
-Outcomes:
-- **You tear free**: it drops you, reels with a hand at its face for a couple of seconds,
-  roars, and comes again. Run.
-- **You stay still** when told to: it sniffs you for a long moment and lets you fall.
-- **You fail**: it **bites** you, **throws** you, or **smashes** you into the ground (the
-  last two need a high ceiling). Then it savours it, and hunts on.
-
-### 6. Losing it
+### 5. Losing it
 
 - Break line of sight and stay out of it: after 8 s out of sight (Standard) **and** 18+
-  blocks away it starts searching. Corners, water, 1-block gaps, doors you then block off.
+  blocks away it starts searching. Corners, water, gaps and doors you **block off behind
+  you** (an open gap does not stop it).
 - **Crouch in the dark** (light ≤ 5 at your head) out of its sight: it loses you within
   ~3 s, unless it is right on top of you (2.8 blocks).
-- While it searches it sniffs and listens. Breaking blocks, doors and bows give you away.
+- While it searches it sniffs and listens. Breaking blocks, doors and bows give you away,
+  and shooting at it from your hiding place tells it exactly where you are.
 - If it finds you, it roars and the hunt is back on.
 - When it gives up it rears up and howls, then leaves. Sometimes it walks away with its
   head turned all the way round, still watching you.
 
-### 7. It comes back
+### 6. It comes back
 
 When it gives up searching, or after a very long hunt, it sometimes only **pretends** to
 leave. 25–50 seconds later it comes back for you, already running.
 
-### 8. Fighting it
+### 7. Fighting it
 
 - It has 160 health on Standard (a diamond sword does 7 per hit); it is tougher on
   Nightmare and softer on Calm.
 - Below about a third of its health it **screams and runs**, and it remembers.
-- Killed, it collapses, twitching. It drops experience. "I don't think it was the only one."
+- Killed, it collapses, twitching. "I don't think it was the only one."
 
 ## Torches
 
@@ -174,8 +179,9 @@ fight) and uses them: it opens later encounters by copying something you did bef
 
 ## Survival tips
 
-- A glance is safe. Turning your back is not.
-- Keep a hole you can crawl into nearby. It will reach in; back away from the opening.
+- A glance is safe. A long stare is not. Turning your back is not.
+- When it tests you, hold your ground. Running is what it is waiting for.
+- Do not shoot at it unless you are ready for what comes next.
+- Holes do not save you: crawl through and **seal the gap behind you**.
 - Do not count on height or doors.
-- Every hit makes it flinch. Hit it while it reels after you tear free, or run.
-- Read the grab prompt before you press anything.
+- Every hit makes it flinch.

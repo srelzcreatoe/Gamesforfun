@@ -39,14 +39,18 @@ Three layers:
 ### Gaits (distance-driven)
 
 `anim_time_update: math.mod(q.modified_distance_moved, S) / S`, with the stride S measured
-from the foot travel of the baked clip, so feet do not skate.
+from the foot travel of the baked clip, so feet do not skate. The gallop is the exception:
+it is a bounding gait whose feet touch the ground only briefly, and its cycle length is set
+by hand. 3.1 lengthened it from 3.0 to 3.6 blocks, so at the 7.8 blocks/s chase it bounds
+~2.2 times a second instead of 2.8: slower, heavier strides.
 
 | Gait | Used | Stride (blocks) |
 |---|---|---|
-| `gallop` | any loco state above ~4 m/s: the charge on knuckles and feet (transverse gallop, spine flexing, jaw flapping) | 3.0 |
+| `gallop` | any loco state above ~4 m/s: the charge on knuckles and feet (transverse gallop, spine flexing, jaw flapping) | 3.6 |
 | `walk` | `loco` 1–4 m/s: long hunched steps, rolling shoulders, head locked forward (supplied walk + new upper body) | 2.9 |
 | `creep` | `loco_low` 1–4 m/s: low knuckle crawl, head fixed on you (supplied crawl) | 1.9 |
 | `tunnel_move` | `loco_tunnel`: belly crawl that fits a 2-high tunnel (< 2 blocks with every overlay) | 1.0 |
+| `squeeze` | `loco_squeeze`: the belly crawl with the whole body crushed flat (root scale 1.16 / 0.5 / 1.08, pulsing as it heaves), head rolled sideways; fits a 1-high gap (≤ 1.03 blocks with every overlay) | 0.85 |
 
 The body bob of the gallop was solved numerically (limb base angles chosen so the
 lowest support point varies by ~0.2 blocks).
@@ -56,20 +60,21 @@ lowest support point varies by ~0.2 blocks).
 | Act | What you see |
 |---|---|
 | `loco` / `loco_low` / `loco_tunnel` | idle (heavy breathing, scanning head with bird-like snaps, a full-body shudder) / folded idle (fingers drumming the rock) / tunnel idle; plus the gaits above |
+| `loco_squeeze` | crushed flat in a 1-high gap (the `squeeze` clip alone, so its scale is exact); attacks play over it |
 | `watch` | weight forward, head jutting at you, slowly tilting past natural, then snapping back |
 | `watch_low` | crouched like a cat before the pounce: rump swaying, head dead still |
 | `tall` | unfolded to full height (~4.8 blocks), looming, head tipped down at you, rocking |
 | `peek_l`, `peek_r` | leaning out from cover, fingers tapping the edge, head cocked the wrong way |
 | `cling` | upside down on the ceiling like a spider, face rolled the right way up, re-gripping |
 | `climb` | hauling itself up a wall hand over hand |
-| `hold` | holding you at its face, shaking you, head tilting to inspect, jaw working |
+| `hold` | (parked grab) holding you at its face, shaking you, head tilting to inspect, jaw working |
 | `sniff`, `listen` | searching: face to the ground with hard sniffs / frozen, three sharp head turns |
-| `stunned` | reeling after you tear free, a hand clawing at its own face |
+| `stunned` | (parked grab) reeling after you tear free, a hand clawing at its own face |
 | `savor` | standing over you, sniffing, a shudder, then craning up to shriek |
 | `huddle` | balled up in a corner like a heap of rock and hair, back heaving |
 | `bash` | hammering a door with both fists in turn |
 | `reach_in` | pressed flat to a hole, one long arm groping inside |
-| `behind`, `neck`, `reach` | hallucination poses (also used by the echo entity) |
+| `behind`, `neck`, `reach` | hallucination poses (also used by the echo entity); `neck` is also the stand-off's neck-crane test |
 | `death` | collapses forward, limbs twitching |
 | `shot` | neutral: a one-shot clip is playing |
 
@@ -84,8 +89,8 @@ lowest support point varies by ~0.2 blocks).
 | `combo` | 1.0 s | hits at 0.28 and 0.62 |
 | `slam` | 1.05 s | rears up with both fists overhead; hit at 0.52 |
 | `pounce` | 1.0 s | launch at 0.22 (the script applies the impulse), landing hit at 0.6 |
-| `lunge_grab` | 0.5 s | hands close at 0.4; ends in the hold pose |
-| `throw`, `smash`, `bite` | 0.75 / 1.0 / 0.95 s | release at 0.3 / 0.5, bite at 0.38 |
+| `lunge_grab` | 0.5 s | (parked grab) hands close at 0.4; ends in the hold pose |
+| `throw`, `smash`, `bite` | 0.75 / 1.0 / 0.95 s | (parked grab) release at 0.3 / 0.5, bite at 0.38 |
 | `drop` | 0.8 s | lets go of the ceiling, flips upright, lands in a crouch |
 | `turn` | 0.55 s | whips round from the huddle |
 | `howl` | 1.8 s | gives up: rears, beats the ground, howls |
@@ -120,8 +125,8 @@ event are in the resource pack's lang file.
 | `inhale`, `scream`, `scream_far`, `roar`, `shriek` | the commitment, regained sight, ambushes |
 | `step_heavy` | every gallop stride (it shakes the ground) |
 | `swipe`, `impact`, `grunt`, `slam`, `pounce`, `thud` | attacks |
-| `grab`, `hold`, `bite`, `throw`, `pain` | the grab |
-| `climb`, `scrape`, `door_bang` | climbing, reaching into holes, smashing doors |
+| `grab`, `hold`, `bite`, `throw`, `pain` | the parked grab (unused in game) |
+| `climb`, `scrape`, `door_bang` | climbing, reaching into holes, smashing doors; `creak` as it squeezes in |
 | `sniff`, `frustrated` (howl), `retreat`, `scream_pain`, `hurt`, `death` | searching, leaving, fleeing, fighting |
 | `knock`, `whisper`, `stinger`, `heartbeat` | the haunting and the player's heartbeat |
 | `music.standoff`, `music.chase` | per-player music (category music, streamed) |

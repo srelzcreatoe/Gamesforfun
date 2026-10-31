@@ -35,13 +35,14 @@ drops back; `reveal` rises to the tallest supplied pose (48.4 px) with arms spre
 | unfold full (new, arms raised) | 53.3 px | **5.0 blocks (≈ 16.4 ft)** |
 | planted / hunched / gallop | 31.1–31.8 px | 2.9–3.0 blocks |
 | v3 tunnel crawl (with every overlay) | ≤ 20.8 px | ≤ 1.97 blocks |
+| 3.1 squeeze (crushed flat, with every overlay) | | ≤ 1.03 blocks |
 | v3 gallop | | 3.0-3.75 blocks |
 | v3 `tall` / scream / slam / throw peaks | | 4.8 / 5.0 / 5.7 / 5.5 blocks |
 
 The export does **not** render at sixteen feet (2.8 blocks ≈ 9 ft at rest). Scale 1.5 was
 chosen so the full unfold reaches ≈ 16 ft while the folded rest (4.2 blocks) and the
 hunched pursuit (≈ 2.9 blocks) still fit ordinary cave passages. Collision (0.9 wide):
-tall 3.9, hunched 2.8, crawl 1.8 high; custom hit boxes match the visible body.
+tall 3.9, hunched 2.8, crawl 1.8, squeeze 0.9 high; custom hit boxes match the visible body.
 Ground contact: the bind pose's feet touch y = 0 exactly. Every v3 clip is grounded frame
 by frame (feet, or feet and hands) by `tools/anim_v3.py`; `client_sim.py` checks every
 state and one-shot with all overlays on.
@@ -52,7 +53,7 @@ state and one-shot with all overlays on.
 |---|---|---|
 | geometry copy (`packs/TailwailRP/models/entity/tall_wail.geo.json`) | only `visible_bounds_width/height/offset` → 8 / 7.5 / (0, 3.5, 0) | the 1.5× scale plus raised arms (≈ 6 blocks) and forward reach would otherwise be culled at screen edges |
 | supplied animation file | **not shipped** in v3 | `tools/anim_v3.py` reads it from the archive and re-bakes the clips it reuses (walk, crawl, the planted crouch) into the single v3 file |
-| texture copy | **none** (byte-identical) | |
+| texture copy | **two pixels** (uv 5,22 and 19,22 on the head's front face): the pale grey pupils (150, 146, 140, alpha 175) are painted with the black face colour around them (3, 2, 2); every other pixel is identical | 3.1: "remove the white pupils from his eyes": the eyes are empty black sockets |
 | identifiers | kept: `geometry.tall_wail`, `animation.tall_wail.*`; entity id `tailwail:tall_wail` | public name Tailwail, original identifiers preserved |
 | mane | not simplified (183 of 268 cubes are mane strands) | no profiling evidence that it matters; see [LIMITATIONS.md](LIMITATIONS.md) |
 
@@ -63,9 +64,9 @@ Every v3 clip is listed in [ANIMATION_AUDIO.md](ANIMATION_AUDIO.md); all have ne
 
 | Asset | Tool | Notes |
 |---|---|---|
-| every clip: 4 gaits, 22 body states, 17 one-shots, overlays and tail modes (`animations/tall_wail.v3.animation.json`) | `tools/anim_v3.py` (pose algebra in `tools/pose_lib.py`) | baked at 12-30 fps, every frame grounded; gait strides measured from foot travel; gallop body bob solved numerically; tunnel tail solved against the floor |
+| every clip: 5 gaits, 23 body states, 17 one-shots, overlays and tail modes (`animations/tall_wail.v3.animation.json`) | `tools/anim_v3.py` (pose algebra in `tools/pose_lib.py`) | baked at 12-30 fps, every frame grounded (the squeeze with its root scale applied); gait strides measured from foot travel; gallop body bob solved numerically; tunnel tail solved against the floor |
 | client entities, 3 controllers, `core/ids.js` (acts, one-shot table, resource-pack check key), entity properties | `tools/gen_client_v3.py` | single source of truth shared by scripts and Molang |
-| model and texture copies | `tools/build_assets.py` | geometry bounds widened; texture byte-identical |
+| model and texture copies | `tools/build_assets.py` | geometry bounds widened; texture: the two pupil pixels painted out (checked: no other pixel differs) |
 | 95 Ogg Vorbis sound files + 2 music loops, `sound_definitions.json` | `tools/gen_audio_v2.py` | synthesized from oscillators/noise with fixed seeds, loudness-normalised; no samples |
 | burnt-out torch block (behavior + geometry + 16 x 16 texture + loot), dread fog, snuff-smoke particle, lang | `tools/gen_assets_v2.py` | |
 | `pack_icon.png`, spawn egg and journal icons | `tools/gen_icons.py` | |

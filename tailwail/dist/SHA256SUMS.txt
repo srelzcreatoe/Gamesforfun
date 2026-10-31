@@ -1,3 +1,3 @@
-dd5e10e72dcf92b6aace21d1ff37387cc56d9fa17b9ef5a12d3bd454e33c77dd  Tailwail_3.0.0.mcaddon  (3361434 bytes)
-6b94778b181b4adee12bae9344505e68d582c725800a18f6cdd2e6e72c5f6e79  Tailwail_BP_3.0.0.mcpack  (131291 bytes)
-cc44a3b16c6d737dca0008310bc588215f7d20c4152d0c8a7a67c6e2e02a693b  Tailwail_RP_3.0.0.mcpack  (3226535 bytes)
+326db83e466e502f8f7a59d87d0724f9f5be4dd65c6ee339f53a55f7761b78b4  Tailwail_3.1.0.mcaddon  (3371161 bytes)
+1edc854544831d1515e45a54401ee5dcacba04a42bc7703e1bea5020ba7dfecb  Tailwail_BP_3.1.0.mcpack  (135135 bytes)
+8aa063223ac63cb494b7746df3a7e4cd5007c33133410576dfd461aea23e41bf  Tailwail_RP_3.1.0.mcpack  (3232418 bytes)

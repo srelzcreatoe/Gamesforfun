@@ -51,9 +51,12 @@ Player effects: `Player.camera.addShake / setFov / fade / stopShaking` ·
 `Player.fogSettings.push / remove` (tagged fog stack) · `Player.playMusic / stopMusic`
 (per-player music) · `Player.playSound` (per-player, positional) ·
 `Player.inputPermissions.setPermissionCategory` (LateralMovement and Camera during the
-grab; Sneak is only ever restored) · `Player.onScreenDisplay.setTitle / updateSubtitle /
+parked grab; Sneak is only ever restored) · `Player.onScreenDisplay.setTitle / updateSubtitle /
 setActionBar` · `Player.sendMessage` with `rawtext` / `translate` (the resource-pack check) ·
-`world.afterEvents.playerButtonInput` (Jump and Sneak presses for the struggle) ·
+`world.afterEvents.playerButtonInput` (Jump and Sneak presses for the parked struggle) ·
+`world.afterEvents.entitySpawn` + `EntityProjectileComponent.owner` + `Entity.getVelocity`
+and `world.afterEvents.projectileHitBlock / projectileHitEntity` (3.1: shots at it provoke
+it; all stable in 2.11.0, type-checked) ·
 `world.afterEvents.playerBreakBlock / playerPlaceBlock / playerInteractWithBlock /
 blockContainerOpened / itemCompleteUse / itemReleaseUse` (mimicry and noise) ·
 `@minecraft/server-ui` `ActionFormData` / `ModalFormData`.

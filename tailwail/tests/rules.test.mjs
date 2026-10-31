@@ -118,7 +118,7 @@ test("contact: attack choice follows range, cooldowns, headroom and the grab set
   }
   assert.equal(chooseAttack({ ...base, cd: createCooldowns(), geom: g({ los: false }) }), null, "never through walls");
   const cd = createCooldowns();
-  spendAttack(cd, "pounce", 10, makeRng(2));
+  spendAttack(cd, "pounce", 10);
   assert.ok(cd.pounce >= 10 + CHASE.pounceCooldown && cd.swipe > 10, "cooldowns spent");
 });
 

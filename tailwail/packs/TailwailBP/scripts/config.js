@@ -2,7 +2,7 @@
 // Every gameplay number lives here so balance changes never require touching logic.
 // Times are seconds unless a name ends in Ticks.  Distances are blocks.
 
-export const ADDON_VERSION = "3.0.0";
+export const ADDON_VERSION = "3.1.0";
 export const NS = "tailwail";
 export const ENTITY_ID = "tailwail:tall_wail";
 export const LURE_ID = "tailwail:lure";
@@ -27,6 +27,7 @@ export const SPEED = {
   retreat: 0.36, // ~5.6 b/s
   burst: 0.42, // ~7.6 b/s  repositioning while unseen, crossing your view
   flee: 0.46, // ~9.1 b/s  wounded, running for its life
+  squeeze: 0.2, // ~1.7 b/s  forcing itself through a 1-high gap (any faster speed is capped to this)
 };
 export const speedToBlocksPerSecond = (v) => 43.2 * v * v;
 
@@ -36,8 +37,9 @@ export const POSTURE = {
   tall: { height: 3.9, clearance: 5, eye: 3.5 },
   hunch: { height: 2.8, clearance: 3, eye: 2.3 },
   crawl: { height: 1.8, clearance: 2, eye: 1.2 },
+  squeeze: { height: 0.9, clearance: 1, eye: 0.6 }, // crushed flat through 1-high gaps
 };
-export const POSTURE_ORDER = ["crawl", "hunch", "tall"];
+export const POSTURE_ORDER = ["squeeze", "crawl", "hunch", "tall"];
 export const POSTURE_MIN_HOLD = 1.5; // seconds between posture growth (hysteresis)
 
 // One-shot clip lengths and their hit / release times are generated into core/ids.js (SHOT)
@@ -47,41 +49,44 @@ export const CLIP = {
 };
 
 // Difficulty presets.  Identical rules, different magnitudes.
-// chaseSpeed 0.40 / 0.44 / 0.48 = ~6.9 / ~8.4 / ~10 blocks per second: faster than a sprinting
-// player (5.6) on every preset.  You do not outrun it; you break its line of sight, hide, or fight.
+// chaseSpeed 0.425 on every preset: the Cave Dweller's chase (Gargin's mod: movement speed 0.5 x
+// chase speed modifier 0.85; mobs move ~43 * value^2 blocks/s in both editions) = ~7.8 blocks/s,
+// faster than a sprinting player (5.6).  You do not outrun it; you break its line of sight, hide, or fight.
 // lostSeconds: out of sight this long (and lostDistance away) before it loses you.
 // struggle: [min, max] presses for the grab struggle; inescapable: chance a grab cannot be broken.
 export const PRESETS = {
   calm: {
     cooldownMin: 420, cooldownMax: 720, firstMin: 300, firstMax: 480, postDeathSeconds: 360,
-    presenceScale: 0.7, chaseSpeed: 0.4, lostSeconds: 6, agitationScale: 0.8,
+    presenceScale: 0.7, chaseSpeed: 0.425, lostSeconds: 6, agitationScale: 0.8,
     swipeDamage: 4, slamDamage: 6, pounceDamage: 5, throwDamage: 4, biteDamage: 7, smashDamage: 6,
     struggleMin: 4, struggleMax: 7, inescapable: 0, healthMultiplier: 0.8, fleeAt: 0.45,
   },
   standard: {
     cooldownMin: 270, cooldownMax: 450, firstMin: 180, firstMax: 330, postDeathSeconds: 240,
-    presenceScale: 1.0, chaseSpeed: 0.44, lostSeconds: 8, agitationScale: 1.0,
+    presenceScale: 1.0, chaseSpeed: 0.425, lostSeconds: 8, agitationScale: 1.0,
     swipeDamage: 6, slamDamage: 9, pounceDamage: 7, throwDamage: 6, biteDamage: 11, smashDamage: 9,
     struggleMin: 6, struggleMax: 11, inescapable: 0.12, healthMultiplier: 1.0, fleeAt: 0.35,
   },
   nightmare: {
     cooldownMin: 160, cooldownMax: 300, firstMin: 100, firstMax: 200, postDeathSeconds: 180,
-    presenceScale: 1.4, chaseSpeed: 0.48, lostSeconds: 11, agitationScale: 1.3,
+    presenceScale: 1.4, chaseSpeed: 0.425, lostSeconds: 11, agitationScale: 1.3,
     swipeDamage: 8, slamDamage: 12, pounceDamage: 9, throwDamage: 8, biteDamage: 15, smashDamage: 12,
     struggleMin: 9, struggleMax: 15, inescapable: 0.25, healthMultiplier: 1.6, fleeAt: 0.25,
   },
 };
 
 export const WORLD_DEFAULTS = {
-  v: 3,
+  v: 4,
   enabled: true,
   preset: "standard",
   ...PRESETS.standard,
   frequency: 1.0, // multiplier on the per-check encounter chance
   presence: 2, // 0 off, 1 rare, 2 normal, 3 constant
-  grab: true, // the grab / struggle sequence (off: plain strikes)
+  // The grab and its mash-to-escape struggle are parked: the code (mc/grab.js, the brain's grab
+  // state, core/combat_rules.js struggleSpec) is kept and tested for reuse, but no setting turns it
+  // on in game (mc/store.js forces this off).
+  grab: false,
   jumpscares: true, // "behind you", bed visit
-  fakeChat: true, // fake chat lines (only the haunted player sees them)
   torchSnuff: true, // it puts out torches (they can be relit)
   caveEncounters: true,
   surfaceEncounters: true, // night encounters outside, in the dark
@@ -177,13 +182,24 @@ export const STALK = {
 };
 
 // The stand-off: seconds, not minutes.  It creeps at you even while watched now.
+// The stand-off is an observation: it stands idle, approaches slowly, or tests how you react.
 export const STANDOFF = {
-  durationMin: 4,
-  durationMax: 10,
+  durationMin: 6,
+  durationMax: 13,
   tooClose: 6, // it commits when this close
-  creepEvery: 1.6, // seconds between creeping advances
-  creepStep: 2.2,
   turnAwayCharge: 0.8, // looking away this long makes it charge
+  stareLimit: [5, 9], // staring straight at it this long (a glance does not count) sets it off
+  idle: [1.5, 3.2], // seconds of each observation mode
+  approach: [2.0, 3.6],
+  approachStep: 2.4, // blocks per slow advance
+  feintStep: [3.0, 4.5], // the bluff charge: this far at full speed, then it stops dead
+  feintTime: 0.9,
+  sidestep: [2.5, 4.0],
+  withdraw: [2.5, 3.5],
+  craneTime: 1.4,
+  reactWindow: [1.2, 1.8], // how long it reads your reaction to a test
+  decideBase: 0.12, // after each mode: chance it simply decides to attack (+ agitation, stage, time)
+  decideMax: 0.85,
   perfMinGap: 1.5,
   perfMaxGap: 3.5,
 };
@@ -221,7 +237,7 @@ export const CHASE = {
   grabCooldown: 9,
   grabChance: 0.45, // per attack decision in grab range (when grabs are on)
   swipeRange: 3.3,
-  swipeCooldown: 0.75,
+  attackInterval: 1.0, // the Cave Dweller's melee rhythm: one attack a second while you are in reach
   comboChance: 0.35,
   slamRange: 3.6,
   slamCooldown: 6,
@@ -245,7 +261,8 @@ export const CHASE = {
   climbMaxRise: 14,
   climbSpeed: 3.2, // blocks per second up the wall
   bashHits: [3, 5], // door / glass hits before it breaks through
-  reachInTime: [3, 5],
+  reachInTime: [1.6, 2.6], // an arm into your hole first; then it squeezes its whole body in after you
+  squeezeIn: 10, // seconds it stays crushed flat to follow you through the gap
 };
 
 export const GRAB = {

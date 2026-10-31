@@ -28,8 +28,7 @@ const HELP = [
   "It lives in the dark: caves, mines, ravines, and outside at night.",
   "It watches you first. Not for long. Then it comes, faster than you can run.",
   "",
-  "§lIf it grabs you:§r read the prompt. Mash JUMP, mash SNEAK, alternate, or stay still.",
-  "It is different every time.",
+  "§lWhile it watches you:§r don't stare too long, don't shoot at it, don't turn your back.",
   "",
   "§lNo sign of it?§r Spend time underground (or outside at night) in Survival. It gets",
   "worse the longer you play. Never on Peaceful.",
@@ -43,7 +42,8 @@ export async function showGuide(player) {
   for (;;) {
     const s = getSchedule(player);
     const f = new ActionFormData().title("Torn Journal").body("§7The handwriting gets worse toward the end.");
-    const pages = JOURNAL.map((p, i) => ({ p, open: (s.jr & (1 << i)) !== 0 }));
+    // pages of parked features (the grab) are not shown; the bit layout stays the same
+    const pages = JOURNAL.map((p, i) => ({ p, open: (s.jr & (1 << i)) !== 0 })).filter(({ p }) => !p.parked);
     for (const { p, open } of pages) f.button(open ? p.title : "§8(torn out)");
     f.button("§lSettings");
     f.button("Help");
@@ -108,9 +108,7 @@ async function showWorldSettings(player) {
     .dropdown("Difficulty (Custom keeps the sliders below)", ["Calm", "Standard", "Nightmare", "Custom"], { defaultValueIndex: Math.max(0, presets.indexOf(s.preset)) })
     .slider("Encounter frequency (%)", 25, 200, { defaultValue: Math.round(s.frequency * 100), valueStep: 25 })
     .dropdown("Haunting between encounters", ["Off", "Rare", "Normal", "Constant"], { defaultValueIndex: s.presence })
-    .toggle("Grab and struggle (off: plain strikes)", { defaultValue: s.grab })
     .toggle("Jumpscares (behind you, bed visits)", { defaultValue: s.jumpscares })
-    .toggle("Fake chat messages (only the haunted player sees them)", { defaultValue: s.fakeChat })
     .toggle("It puts out torches (they can be relit)", { defaultValue: s.torchSnuff })
     .toggle("Cave encounters", { defaultValue: s.caveEncounters })
     .toggle("Night encounters outside", { defaultValue: s.surfaceEncounters })
@@ -119,9 +117,6 @@ async function showWorldSettings(player) {
     .toggle("Climbs walls to reach you", { defaultValue: s.climbing })
     .toggle("Ceiling and corner ambushes", { defaultValue: s.ambushes })
     .slider("Rake damage (half-hearts)", 1, 20, { defaultValue: s.swipeDamage, valueStep: 1 })
-    .slider("Bite damage (half-hearts)", 1, 30, { defaultValue: s.biteDamage, valueStep: 1 })
-    .slider("Struggle: fewest presses", 2, 16, { defaultValue: s.struggleMin, valueStep: 1 })
-    .slider("Struggle: most presses", 3, 20, { defaultValue: s.struggleMax, valueStep: 1 })
     .slider("Seconds out of sight before it loses you", 4, 16, { defaultValue: s.lostSeconds, valueStep: 1 })
     .slider("Max Tailwails in the world at once", 1, 3, { defaultValue: s.maxConcurrent, valueStep: 1 })
     .toggle("Debug logging to content log", { defaultValue: s.debugLog })
@@ -136,23 +131,18 @@ async function showWorldSettings(player) {
     preset: presetName,
     frequency: Number(v[2]) / 100,
     presence: Number(v[3]),
-    grab: !!v[4],
-    jumpscares: !!v[5],
-    fakeChat: !!v[6],
-    torchSnuff: !!v[7],
-    caveEncounters: !!v[8],
-    surfaceEncounters: !!v[9],
-    openDoors: !!v[10],
-    breakBlocks: Number(v[11]),
-    climbing: !!v[12],
-    ambushes: !!v[13],
-    swipeDamage: Number(v[14]),
-    biteDamage: Number(v[15]),
-    struggleMin: Number(v[16]),
-    struggleMax: Math.max(Number(v[16]), Number(v[17])),
-    lostSeconds: Number(v[18]),
-    maxConcurrent: Number(v[19]),
-    debugLog: !!v[20],
+    jumpscares: !!v[4],
+    torchSnuff: !!v[5],
+    caveEncounters: !!v[6],
+    surfaceEncounters: !!v[7],
+    openDoors: !!v[8],
+    breakBlocks: Number(v[9]),
+    climbing: !!v[10],
+    ambushes: !!v[11],
+    swipeDamage: Number(v[12]),
+    lostSeconds: Number(v[13]),
+    maxConcurrent: Number(v[14]),
+    debugLog: !!v[15],
   };
   if (presetName !== "custom" && presetName !== s.preset) next = presetSettings(next, presetName);
   const saved = saveSettings(next);

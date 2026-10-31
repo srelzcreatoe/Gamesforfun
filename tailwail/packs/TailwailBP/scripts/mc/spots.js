@@ -341,6 +341,29 @@ export function findCreepPoint(o) {
   return null;
 }
 
+/**
+ * Where a short move ends, `deg` off the line toward the target (0 toward it, 180 away,
+ * +-90 sideways), up to `step` blocks through open space and never closer than `minDist`
+ * to the target.  The stand-off's tests use it.  o: {dim, creaturePos, target, deg, step, minDist}
+ */
+export function findStepPoint(o) {
+  const tPos = o.target.location;
+  const from = o.creaturePos;
+  const base = yawTo(from, tPos) + o.deg;
+  const chest = { x: from.x, y: from.y + 1.2, z: from.z };
+  for (const off of [0, 20, -20, 40, -40]) {
+    const d = dirFromYaw(base + off);
+    for (const k of [o.step, o.step * 0.7]) {
+      const g = findGround(o.dim, from.x + d.x * k, from.z + d.z * k, from.y, 2, 3, 2);
+      if (!g) continue;
+      if (hdist(g, tPos) < o.minDist) continue;
+      if (!losClear(o.dim, chest, { x: g.x, y: g.y + 1.2, z: g.z })) continue;
+      return g;
+    }
+  }
+  return null;
+}
+
 /** A point `d` blocks behind the player's back (for breath, footsteps, the "behind you"). */
 export function behindPoint(player, d, ground = true) {
   const view = player.getViewDirection();

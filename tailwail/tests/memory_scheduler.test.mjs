@@ -144,8 +144,8 @@ test("presence: stage gating, cooldowns, needs, settings and no back-to-back rep
   assert.equal(pickPresence(0, 1000, last, allEnv, S, rng), null, "everything on cooldown");
   // needs + settings
   for (let i = 0; i < 300; i++) {
-    const id = pickPresence(3, 5000, {}, { wall: true }, { ...S, jumpscares: false, fakeChat: false }, rng);
-    assert.ok(!["snuff", "lights_out", "door", "door_bang", "window", "behind", "fake_chat"].includes(id), id);
+    const id = pickPresence(3, 5000, {}, { wall: true }, { ...S, jumpscares: false }, rng);
+    assert.ok(!["snuff", "lights_out", "door", "door_bang", "window", "behind"].includes(id), id);
   }
   for (let i = 0; i < 100; i++) assert.notEqual(pickPresence(0, 1000, {}, allEnv, S, rng, "mimic"), "mimic");
   // pacing scales with the presence level

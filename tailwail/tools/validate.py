@@ -190,8 +190,9 @@ def check_client():
         err("client simulation failed:\n" + (r.stdout + r.stderr)[-2500:])
     else:
         dyn = [ln for ln in r.stdout.splitlines() if "dynamic:" in ln]
-        notes.append("client_sim: wiring, Molang, ?? fallbacks, 506 act hops, failure modes, random schedules, grounding of every"
-                     " state and one-shot, tail sweep: 0 errors " + (dyn[0].strip()[:90] if dyn else ""))
+        hops = re.search(r'"act_hops_checked": (\d+)', dyn[0]) if dyn else None
+        notes.append("client_sim: wiring, Molang, ?? fallbacks, %s act hops, failure modes, random schedules, grounding of every"
+                     " state and one-shot, tail sweep: 0 errors" % (hops.group(1) if hops else "?"))
 
 
 def anims():

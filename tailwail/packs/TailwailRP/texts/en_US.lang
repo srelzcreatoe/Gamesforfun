@@ -1,6 +1,6 @@
-pack.name=TAILWAIL 3.0.0 (Resources)
-pack.description=Tailwail 3.0.0: models, animations and sounds. Must be the same version as TAILWAIL 3.0.0 (Behavior).
-TAILWAIL_RESOURCE_PACK_3.0.0_IS_NOT_ACTIVE-re-apply_TAILWAIL_Resources_to_this_world=§aResource pack 3.0.0 active: animations and sounds loaded.
+pack.name=TAILWAIL 3.1.0 (Resources)
+pack.description=Tailwail 3.1.0: models, animations and sounds. Must be the same version as TAILWAIL 3.1.0 (Behavior).
+TAILWAIL_RESOURCE_PACK_3.1.0_IS_NOT_ACTIVE-re-apply_TAILWAIL_Resources_to_this_world=§aResource pack 3.1.0 active: animations and sounds loaded.
 entity.tailwail:tall_wail.name=Tailwail
 entity.tailwail:echo.name=...
 entity.tailwail:lure.name=Tailwail Trail
