@@ -36,7 +36,8 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   dark, a glowing wisp aura, a crimson vanish burst, and its own voice, arrival, notice, shriek and vanish sounds.
 * **A horror director**: grace period, five escalating stages, per-player and global cooldowns, quiet periods,
   recovery after deaths, anti-repetition, context-weighted selection, fair multiplayer targeting.
-* **Its home, the Weeping Mire** (1.0.7): the Weeping Mire biome (your own add-on, merged in) generates near where
+* **Its home, the Weeping Mire** (1.0.7; in 1.1.0 its wood burns as fuel and smelts into charcoal like any log,
+  and Bone Root crafts into bone meal): the Weeping Mire biome (your own add-on, merged in) generates near where
   you start — often right beside the world spawn (1.0.8) — but you never start inside it: a first spawn in the Mire
   is moved just outside it, facing it. Weeping trees and giant weeping trees, bone roots and bone grass, mire moss, silt ponds, abandoned
   cabins, black fog, wind gusts and falling leaves, and eight torn pages to find. The Mire's watcher is now the Observer
@@ -49,6 +50,19 @@ caught by a comparison with Mojang's vanilla files. How it looks and sounds in a
   (by your bed or door), *Borrowed Eyes* (a creature that turns its head to follow you) and *In the Mire*; a lunge when it is spotted,
   a fast, relentless attack once it reaches you, a too-close reaction, and harmless shadows in taiga forests that
   vanish when looked at, plus 17 further designed concepts — see [docs/ENCOUNTERS.md](docs/ENCOUNTERS.md).
+* **It knows you** (1.1.0): everything you do that it sees is remembered, and every repetition teaches it more —
+  stare it down and it snaps sooner; look away and it closes in further each time; run at it and it stands its
+  ground; shoot it and it keeps its distance behind cover; outrun it and the chase starts closer; never notice it and
+  it comes closer and lets you hear it. It learns where you spend your time (caves, home, the road), when, how much
+  light you put down, and which of its tricks get a reaction out of you — and chooses accordingly. Your Field Notes
+  say what it knows. **Run at it** and it decides on the spot: attack, or be gone before you arrive and wait for a
+  better moment — night, a cave, you hurt — and come back at once, and worse.
+* **Its presence, felt** (1.1.0): while it is around, your music stops completely, and fades back in once it is gone.
+  When it is near — seen or not — you hear your own heartbeat, faster the closer and angrier it is, and when it is
+  close and meaning harm the view trembles on the beat (lightly; it follows the camera-effects setting).
+* **It hides behind trees** (1.1.0): it finds real trunks and stands behind them, its body hidden, looking round the
+  edge at you with a hand on the bark and its head following you. Look straight at it and it ducks back; look away
+  and it looks round again — from the other side, once it learns where you look.
 * **Stalking, the standoff, and the attack** (1.0.9): it arrives silently and stays perfectly still — on the
   ground, on a high ledge above you, or hanging upside down from a cave ceiling. Spot it, or walk toward it, and the
   standoff begins: it watches, tests you (a crack of the neck, a tilt of the head, one slow step while you look),

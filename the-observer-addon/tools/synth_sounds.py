@@ -531,12 +531,28 @@ def crack(v):
     return trim(reverb(x, 0.15, 0.08))
 
 
+def heartbeat(v):
+    """1.1.0: the player's own heart — a low "lub-dub": two soft, deep thumps (a falling sine with a muffled knock),
+    the second weaker, 0.16-0.19 s after the first. Played to that player alone, faster as it comes nearer."""
+    x = np.zeros(int(SR * 0.6))
+    for i, (at, amp) in enumerate(((0.01, 1.0), (0.17 + 0.02 * v, 0.62))):
+        n = int(SR * 0.16)
+        tt = np.arange(n) / SR
+        f = 58 - 20 * tt / 0.16 + 4 * v
+        thump = np.sin(2 * np.pi * np.cumsum(f) / SR) * (1 - np.exp(-tt / 0.004)) * np.exp(-tt / 0.055)
+        knock = lp(noise(n), 180) * np.exp(-tt / 0.02) * 0.35
+        s0 = int(SR * at)
+        x[s0:s0 + n] += (thump + knock) * amp
+    return trim(x)
+
+
 def main():
     only = set(sys.argv[2].split(",")) if len(sys.argv) > 2 and sys.argv[1] == "--only" else None
     if only:
         made = []
         gens = {"voice": (voice, 3, 0.8), "presence": (presence, 2, 0.8), "notice": (notice, 2, 0.8),
-                "shriek": (shriek, 2, 0.7), "vanish": (vanish, 2, 0.8), "scrawl": (scrawl, 2, 0.6), "drift": (drift, 2, 0.7), "crack": (crack, 3, 0.8)}
+                "shriek": (shriek, 2, 0.7), "vanish": (vanish, 2, 0.8), "scrawl": (scrawl, 2, 0.6), "drift": (drift, 2, 0.7), "crack": (crack, 3, 0.8),
+                "heartbeat": (heartbeat, 2, 0.9)}
         for name in only:
             if name == "silence":
                 made.append(write("silence", silence(), 0.12))
@@ -584,6 +600,8 @@ def main():
         made.append(write(f"drift{v + 1}", drift(v), 0.7))
     for v in range(3):
         made.append(write(f"crack{v + 1}", crack(v), 0.8))
+    for v in range(2):
+        made.append(write(f"heartbeat{v + 1}", heartbeat(v), 0.9))
     for path, dur in made:
         print(f"{os.path.relpath(path, ROOT)}  {dur:.2f}s  {os.path.getsize(path)} bytes")
 

@@ -196,6 +196,17 @@ Test sources: `tests/bds/testkit_BP/scripts/suite.js` (integration suite), `prot
 | Breaks glass and leaves | `squeeze.traverse` → `ledger.change` (NODROP) | glass in the way, manipulation ≥ 2 | breaks in; restored afterwards, no drops | `squeeze_glass_breaks_in`, `squeeze_glass_reaches_you`, `squeeze_glass_put_back`, `squeeze_glass_no_drops` | ✅ Runtime |
 | Opens doors | `squeeze.traverse` → `enc.toggle` | a closed door, manipulation ≥ 1 | opens it, crawls through the doorway; closed again afterwards | `squeeze_door_opens_it`, `squeeze_door_reaches_you`, `squeeze_door_closed_again` | ✅ Runtime |
 
+## 1.1.0: it knows you; its presence, felt; it hides behind trees
+| Feature | Implementation | Trigger | Expected result | Test | Status |
+|---|---|---|---|---|---|
+| Music cut while it is around | `hush.presence`, `main.isAround` | an encounter for you, or its body within 64 blocks | music replaced by silence; fades back in once it is gone | `music_cut_while_around`, `music_back_when_gone` | ✅ Runtime (calls accepted; what the client plays ❔) |
+| Heartbeat and tremor | `observer/dread.js`, `observer.heartbeat` (2 variants) | its presence | beats quicken to 120+ bpm when it is on you; tremor ≤ 0.05; settles when it is gone; off switch | `heartbeat_heard`, `heartbeat_quickens`, `heartbeat_tremor_light`, `heartbeat_settles_when_gone`, `heartbeat_switch_off` | ✅ Runtime (sound ❔) |
+| Running at it | `director.nearCheck` → `reactCharge`, `observer/charge.js` | sprinting at it while it watches | attack (rage), or vanish and ambush | `charge_detected`, `charge_attacks`, `charge_strikes`, `charge_vanishes`, `charge_ambush_set` | ✅ Runtime |
+| The ambush | `director.ready` / `eligibleWeight` / `start` | the moment favours it | it comes back at once, heavier encounters weighted up | `charge_ambush_armed_at_night`, `charge_ambush_sprung` | ✅ Runtime |
+| It knows you | `observer/profile.js` (+ standoff, placements, charge, pursuit, director weights, Field Notes) | everything the player does | adapts more with each repetition | `charge_learned_stands_its_ground`, `profile_home_brings_it_home`, `profile_shot_at_keeps_its_distance` | ✅ Runtime (Field Notes text ❔) |
+| Hides behind trees, looks round | `space.hideSpot`, `body.peekaboo`, rebuilt `peek` clip + `look_at_target`, gaze on the peek point | trees in reach | body hidden behind the trunk; ducks when looked at; looks round again; switches sides | `peek_tree_found`, `peek_tree_body_behind_the_trunk`, `peek_tree_looks_round`, `peek_tree_ducks_when_seen`, `peek_tree_looks_round_again`, `peek_tree_switches_sides` | ✅ Runtime (look ❔) |
+| Mire wood as fuel; bone meal | `items/wmire_weeping_{log,wood,planks}.json`, `recipes/wmire_bone_meal_from_bone_root.json` | a furnace; a crafting table | burns like wood; logs → charcoal; bone root → 3 bone meal | `mire_planks_burn`, `mire_wood_burns`, `mire_log_burns_into_charcoal` (recipe: loads, 0 errors) | ✅ Runtime (icons, crafting UI ❔) |
+
 ## Performance
 | Measure | Result | Test |
 |---|---|---|

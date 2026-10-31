@@ -4,9 +4,11 @@
 // in its place, for 20-30 seconds. Then it comes — or, about one time in four, nothing does, so the
 // silence alone never tells you for certain. The silence lasts until the encounter is over.
 // Music is per player (Player.playMusic / stopMusic), so nobody else on a server is affected.
+// And whenever it is around (1.1.0) — one of its encounters running for you, or its body within 64 blocks —
+// your music is cut completely; once it has been gone a few seconds, the game's music fades back in.
 import { ps } from "../core/state.js";
 import { S } from "../core/settings.js";
-import { safe, rand, emit, trace, DEBUG } from "../core/util.js";
+import { safe, rand, emit, trace, DEBUG, allPlayers } from "../core/util.js";
 import { SOUNDS } from "../core/constants.js";
 import { effectiveStage } from "../director/context.js";
 
@@ -71,20 +73,51 @@ export function release(pid) {
   pending.delete(pid);
 }
 
-/** End the silence and give the player their music back. @param {Player|undefined} p @param {string} pid @param {string} why */
+/** The game's own music for where the player is, faded back in. */
+const MUSIC = { "minecraft:overworld": "music.game", "minecraft:nether": "music.game.nether", "minecraft:the_end": "music.game.end" };
+
+/** End the silence and give the player their music back, fading in. @param {Player|undefined} p @param {string} pid @param {string} why */
 export function end(p, pid, why) {
   pending.delete(pid);
+  around.delete(pid);
   if (!silenced.has(pid)) return;
   silenced.delete(pid);
   const music = p && p.isValid ? !!safe(() => {
-    p.stopMusic();
+    const track = MUSIC[p.dimension.id];
+    if (track) p.playMusic(track, { fade: 4, loop: false, volume: 1 });
+    else p.stopMusic();
     return true;
   }, false) : false;
   emit("hush", { what: "end", player: p?.name ?? pid, why, music });
 }
 
+/** @type {Map<string, number>} player id -> clock when it was last around them */
+const around = new Map();
+
+/**
+ * Every second: while it is around a player their music is cut; when it has been gone 3 s, the music fades back.
+ * A silence before an attack (begin) keeps its own timing. @param {number} t clock @param {(p:Player)=>boolean} isAround
+ */
+export function presence(t, isAround) {
+  const on = S().quiet !== false && S().enabled;
+  for (const p of allPlayers()) {
+    if (on && isAround(p)) {
+      if (!around.has(p.id) && !silenced.has(p.id)) emit("hush", { what: "presence", player: p.name, music: silence(p) });
+      around.set(p.id, t);
+      continue;
+    }
+    const last = around.get(p.id);
+    if (last === undefined || (on && t - last < 3)) continue;
+    around.delete(p.id);
+    if (!pending.has(p.id)) end(p, p.id, "gone");
+  }
+}
+/** Is the music cut for this player because it is around? @param {string} pid */
+export const isAroundFor = (pid) => around.has(pid);
+
 /** Player left the world. @param {string} pid */
 export function forget(pid) {
   pending.delete(pid);
   silenced.delete(pid);
+  around.delete(pid);
 }

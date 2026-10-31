@@ -81,6 +81,9 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
   list and are not verifiable on a server.
 * Forms (Field Notes — including "Pages I didn't write" and what it has learned — settings), action-bar captions, title
   cards, camera fades and shakes (the fade API and the `camerashake` command were accepted by the server).
+* 1.1.0: the heartbeat's sound and mix, the tremor's feel, the game's music fading back in (`music.game*` event
+  names; the server accepted every `playMusic` call), the rebuilt peek round a trunk (offline previews only), the Mire
+  wood items drawn as their blocks (`block_placer` instead of an icon) and Bone Root's recipe in the crafting UI.
 * 1.0.9: the hang and crawl clips (offline previews only; the crawling body is four blocks long and may clip
   corners), the standoff's sounds (neck cracks, clicks) and the rage's screeches, and how breaking glass and opening
   doors read to a player.
@@ -126,6 +129,8 @@ is a separate project (see §3). Nothing has been published, submitted, or appro
 | The Mire is now common (1.0.8: 40 % of plains, forests, swamps, rivers, meadows, savannas and jungles) | medium | the user asked for it near the player; one function (`tune_biome` in `tools/merge_weeping_mire.py`) sets amount, patch size and targets; taigas are left alone |
 | It breaks into houses (glass, leaves) and opens doors | medium | only while it is coming for someone and stuck; ledger changes, put back afterwards with nothing dropped; never inside a Ward Lantern's radius; manipulation "subtle" allows doors only, "off" neither |
 | The rage is too hard to survive | medium | only when provoked (a long stare, a shot, a blow) and from stage 2; ~8 b/s; light, water, the lens, a flare and a blow still work; aggression settings and Peaceful apply |
+| The heartbeat or tremor is too much | low–medium | tremor at most 0.05 (half on reduced camera effects, none on "none"), only when it is close and meaning harm; the heartbeat has its own off switch |
+| It feels unfair once it has learned a player | medium | every adaptation is bounded (weights ×0.5–2.2, distances ±10 blocks, chances +0.35 at most), fades with time, and "It learns how you escape" off turns all of it off |
 | A new player is moved on arrival | low | only on their first spawn, only at the world spawn, only if it is inside the Mire; they land facing it, a few blocks outside its edge |
 | The Mire's look depends on `pbr` | low–medium | the RP declares the `pbr` capability the Mire's texture sets and lighting use; to be confirmed in a client (§1) |
 | Players dislike base intrusion | — | Ward Lantern, manipulation levels, `/observer:restore`, Atmosphere preset |

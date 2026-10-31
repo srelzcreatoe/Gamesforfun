@@ -2893,8 +2893,22 @@
   },
   "animation.observer.peek": {
    "loop": "hold_on_last_frame",
-   "animation_length": 0.6,
+   "animation_length": 0.4,
    "bones": {
+    "root": {
+     "position": {
+      "0.0": [
+       0,
+       0,
+       0
+      ],
+      "0.4": [
+       "2.0 * q.property('observer:side')",
+       0,
+       0
+      ]
+     }
+    },
     "pelvis": {
      "rotation": {
       "0.0": [
@@ -2902,15 +2916,15 @@
        0,
        0
       ],
-      "0.25": [
+      "0.2": [
        "0.00",
        "0.00 * q.property('observer:side')",
-       "3.00 * q.property('observer:side')"
+       "2.80 * q.property('observer:side')"
       ],
-      "0.6": [
+      "0.4": [
        "0.00",
        "0.00 * q.property('observer:side')",
-       "5.00 * q.property('observer:side')"
+       "4.00 * q.property('observer:side')"
       ]
      }
     },
@@ -2921,15 +2935,15 @@
        0,
        0
       ],
-      "0.25": [
+      "0.2": [
        "4.20",
-       "4.80 * q.property('observer:side')",
-       "10.20 * q.property('observer:side')"
+       "2.10 * q.property('observer:side')",
+       "18.90 * q.property('observer:side')"
       ],
-      "0.6": [
-       "7.00",
-       "8.00 * q.property('observer:side')",
-       "17.00 * q.property('observer:side')"
+      "0.4": [
+       "6.00",
+       "3.00 * q.property('observer:side')",
+       "27.00 * q.property('observer:side')"
       ]
      }
     },
@@ -2940,15 +2954,15 @@
        0,
        0
       ],
-      "0.25": [
-       "3.60",
-       "8.40 * q.property('observer:side')",
-       "10.80 * q.property('observer:side')"
+      "0.2": [
+       "2.80",
+       "-2.80 * q.property('observer:side')",
+       "4.20 * q.property('observer:side')"
       ],
-      "0.6": [
-       "6.00",
-       "14.00 * q.property('observer:side')",
-       "18.00 * q.property('observer:side')"
+      "0.4": [
+       "4.00",
+       "-4.00 * q.property('observer:side')",
+       "6.00 * q.property('observer:side')"
       ]
      }
     },
@@ -2959,8 +2973,36 @@
        0,
        0
       ],
-      "0.6": [
-       -6,
+      "0.4": [
+       "-25 - 61 * (0.5 + 0.5 * 1 * q.property('observer:side'))",
+       0,
+       "1 * (6 - 76 * (0.5 + 0.5 * 1 * q.property('observer:side')))"
+      ]
+     }
+    },
+    "right_forearm": {
+     "rotation": {
+      "0.0": [
+       0,
+       0,
+       0
+      ],
+      "0.4": [
+       "-30 - 32 * (0.5 + 0.5 * 1 * q.property('observer:side'))",
+       0,
+       0
+      ]
+     }
+    },
+    "right_hand": {
+     "rotation": {
+      "0.0": [
+       0,
+       0,
+       0
+      ],
+      "0.4": [
+       "-10 + 20 * (0.5 + 0.5 * 1 * q.property('observer:side'))",
        0,
        0
       ]
@@ -2973,24 +3015,10 @@
        0,
        0
       ],
-      "0.6": [
-       -6,
+      "0.4": [
+       "-25 - 61 * (0.5 + 0.5 * -1 * q.property('observer:side'))",
        0,
-       0
-      ]
-     }
-    },
-    "right_forearm": {
-     "rotation": {
-      "0.0": [
-       0,
-       0,
-       0
-      ],
-      "0.6": [
-       -10,
-       0,
-       0
+       "-1 * (6 - 76 * (0.5 + 0.5 * -1 * q.property('observer:side')))"
       ]
      }
     },
@@ -3001,8 +3029,22 @@
        0,
        0
       ],
-      "0.6": [
-       -10,
+      "0.4": [
+       "-30 - 32 * (0.5 + 0.5 * -1 * q.property('observer:side'))",
+       0,
+       0
+      ]
+     }
+    },
+    "left_hand": {
+     "rotation": {
+      "0.0": [
+       0,
+       0,
+       0
+      ],
+      "0.4": [
+       "-10 + 20 * (0.5 + 0.5 * -1 * q.property('observer:side'))",
        0,
        0
       ]
@@ -3011,7 +3053,7 @@
     "right_finger_0": {
      "rotation": {
       "0.0": [
-       3.8,
+       6.08,
        0,
        0
       ]
@@ -3020,7 +3062,7 @@
     "right_finger_0_tip": {
      "rotation": {
       "0.0": [
-       6.8,
+       10.88,
        0,
        0
       ]
@@ -3029,7 +3071,7 @@
     "right_finger_1": {
      "rotation": {
       "0.0": [
-       3.8,
+       6.08,
        0,
        0
       ]
@@ -3038,7 +3080,7 @@
     "right_finger_1_tip": {
      "rotation": {
       "0.0": [
-       6.8,
+       10.88,
        0,
        0
       ]
@@ -3047,7 +3089,7 @@
     "right_finger_2": {
      "rotation": {
       "0.0": [
-       3.8,
+       6.08,
        0,
        0
       ]
@@ -3056,7 +3098,7 @@
     "right_finger_2_tip": {
      "rotation": {
       "0.0": [
-       6.8,
+       10.88,
        0,
        0
       ]
@@ -3065,7 +3107,7 @@
     "right_finger_3": {
      "rotation": {
       "0.0": [
-       3.8,
+       6.08,
        0,
        0
       ]
@@ -3074,7 +3116,7 @@
     "right_finger_3_tip": {
      "rotation": {
       "0.0": [
-       6.8,
+       10.88,
        0,
        0
       ]
@@ -3083,7 +3125,7 @@
     "right_thumb": {
      "rotation": {
       "0.0": [
-       6,
+       9.600000000000001,
        0,
        -5
       ]
@@ -3092,7 +3134,7 @@
     "right_thumb_tip": {
      "rotation": {
       "0.0": [
-       9,
+       14.4,
        0,
        0
       ]
@@ -3101,7 +3143,7 @@
     "left_finger_0": {
      "rotation": {
       "0.0": [
-       4.2,
+       6.720000000000001,
        0,
        0
       ]
@@ -3110,7 +3152,7 @@
     "left_finger_0_tip": {
      "rotation": {
       "0.0": [
-       7.2,
+       11.520000000000001,
        0,
        0
       ]
@@ -3119,7 +3161,7 @@
     "left_finger_1": {
      "rotation": {
       "0.0": [
-       4.2,
+       6.720000000000001,
        0,
        0
       ]
@@ -3128,7 +3170,7 @@
     "left_finger_1_tip": {
      "rotation": {
       "0.0": [
-       7.2,
+       11.520000000000001,
        0,
        0
       ]
@@ -3137,7 +3179,7 @@
     "left_finger_2": {
      "rotation": {
       "0.0": [
-       4.2,
+       6.720000000000001,
        0,
        0
       ]
@@ -3146,7 +3188,7 @@
     "left_finger_2_tip": {
      "rotation": {
       "0.0": [
-       7.2,
+       11.520000000000001,
        0,
        0
       ]
@@ -3155,7 +3197,7 @@
     "left_finger_3": {
      "rotation": {
       "0.0": [
-       4.2,
+       6.720000000000001,
        0,
        0
       ]
@@ -3164,7 +3206,7 @@
     "left_finger_3_tip": {
      "rotation": {
       "0.0": [
-       7.2,
+       11.520000000000001,
        0,
        0
       ]
@@ -3173,7 +3215,7 @@
     "left_thumb": {
      "rotation": {
       "0.0": [
-       6,
+       9.600000000000001,
        0,
        5
       ]
@@ -3182,7 +3224,7 @@
     "left_thumb_tip": {
      "rotation": {
       "0.0": [
-       9,
+       14.4,
        0,
        0
       ]

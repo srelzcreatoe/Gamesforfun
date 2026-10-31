@@ -10,6 +10,8 @@
 // each one ends teaches it something about the player (observer/learn.js).
 // The Weeping Mire is its home: there the grace period ends after 30 s, the gaps are shorter and it
 // behaves as if the player were one stage further along.
+// It knows each player (observer/profile.js): where they spend their time, how they react, what has worked on
+// them — and chooses accordingly. Run at it and it decides on the spot (observer/charge.js).
 import { world, system, GameMode } from "@minecraft/server";
 import { W, ps, now, markWorldDirty, markPlayerDirty } from "../core/state.js";
 import { S, typeOn } from "../core/settings.js";
@@ -25,6 +27,9 @@ import { expose } from "../progression/discoveries.js";
 import { noteAttention } from "../observer/memory.js";
 import * as hush from "../observer/hush.js";
 import * as learn from "../observer/learn.js";
+import * as profile from "../observer/profile.js";
+import * as charge from "../observer/charge.js";
+import { relentless } from "../encounters/common.js";
 
 /** @typedef {import("./encounter.js").EncounterDef} EncounterDef */
 /** @typedef {import("@minecraft/server").Player} Player */
@@ -80,6 +85,17 @@ function ready(p, t) {
   }
   if (s.witnessed && s.endMode === "rest") return false;
   if (hush.get(p.id)) return false;
+  // it vanished rather than be reached: when the moment favours it, it comes back at once
+  if (s.ambush) {
+    if (t > s.ambush.until) delete s.ambush;
+    else if (!s.ambush.armed && t >= s.ambush.at + 30 && charge.favours(context(p))) {
+      s.ambush.armed = true;
+      s.nextAt = Math.min(s.nextAt, t + rand(5, 15));
+      s.quietUntil = Math.min(s.quietUntil, t);
+      markPlayerDirty(p);
+      emit("ambush", { what: "armed", player: p.name });
+    }
+  }
   if (t < s.nextAt || t < s.quietUntil || t < s.recoveryUntil) return false;
   if (encounterFor(p.id)) return false;
   return true;
@@ -104,6 +120,10 @@ export function eligibleWeight(def, s, c) {
   // tension fit: when tension is high prefer subtle encounters, when low allow heavier ones
   if (s.tension > 60 && def.tier >= 3) w *= 0.3;
   if (s.tension < 25 && def.tier >= 3) w *= 1.3;
+  // what it knows about this player: where they are, when, what has worked on them
+  w *= profile.weightFactor(s, def.id);
+  // an ambush: its heavier encounters
+  if (s.ambush?.armed) w *= def.tier >= 3 ? 3 : def.tier >= 2 ? 1.5 : 0.5;
   return w;
 }
 
@@ -209,6 +229,11 @@ export function start(def, p, c, force = false) {
     W.active = { enc: id, type: def.id, target: p.id, started: t };
   } else personal.set(p.id, enc);
   if (!def.preview) W.globalCooldownUntil = t + GLOBAL_GAP * (def.needsBody ? 1.5 : 0.6);
+  if (enc.s.ambush?.armed && def.tier >= 2 && !force) {
+    emit("ambush", { what: "sprung", player: p.name, type: def.id });
+    delete enc.s.ambush;
+    markPlayerDirty(p);
+  }
   markWorldDirty();
   trace(`START enc=${id} type=${def.id} target=${p.name} stage=${enc.s.stage}`);
   emit("start", { enc: id, type: def.id, target: p.name, stage: enc.s.stage, forced: force });
@@ -229,6 +254,8 @@ async function run(enc) {
       console.warn(`[Observer] encounter ${enc.def.id} error: ${e} ${e && e.stack ? e.stack : ""}`);
     }
   } finally {
+    // a reaction of its (a strike when walked up to, an attack when charged) plays out first
+    if (enc.data.reaction) await enc.data.reaction.catch(() => {});
     await cleanup(enc);
     finish(enc);
   }
@@ -280,6 +307,9 @@ function finish(enc) {
   // how the player got away teaches it something
   const method = learn.methodOf(enc.def.id, enc.outcome, enc.data);
   if (method && enc.p.isValid) learn.note(enc.p, method);
+  if (method === "outrun" && enc.p.isValid) profile.note(enc.p, "flee");
+  // and whether this encounter got a reaction out of them at all
+  if (!deferred && !enc.aborted && enc.p.isValid) profile.outcome(enc.p, enc.def.id, enc.noticed);
   if (deferred) {
     // nothing fitted here: free the director for other players at once, back this player off a
     // little more each time (15, 30, 60, 120, 240 s) and don't retry this type for a while
@@ -364,6 +394,21 @@ export function nearCheck() {
   if (system.currentTick - b.spawnedTick < 10) return;
   if (enc.data.nearDist === undefined) enc.data.nearDist = rand(4, 8);
   const l = b.e.location;
+  // running straight at it while it watches: it decides, before they get there
+  /** @type {Map<string, {d:number, n:number}>} */
+  const track = enc.data.chargeTrack ?? (enc.data.chargeTrack = new Map());
+  for (const p of allPlayers()) {
+    if (p.dimension.id !== enc.dimId) continue;
+    const d = V.dist(p.location, l);
+    const prev = track.get(p.id);
+    const n = prev && prev.d - d >= 1.15 ? prev.n + 1 : 0; // 1.15+ blocks closer every 5 ticks: 4.6+ b/s, faster than a walk
+    track.set(p.id, { d, n });
+    if (n >= 2 && d <= 32 && d > enc.data.nearDist + 1 && body.watchedBy([p], 30)) {
+      enc.data.reacting = true;
+      enc.data.reaction = reactCharge(enc, p, d).catch(() => body.despawn("charged"));
+      return;
+    }
+  }
   let near, best = enc.data.nearDist;
   for (const p of allPlayers()) {
     if (p.dimension.id !== enc.dimId) continue;
@@ -375,7 +420,32 @@ export function nearCheck() {
   }
   if (!near) return;
   enc.data.reacting = true;
-  reactNear(enc, near, best).catch(() => body.despawn("too_close"));
+  enc.data.reaction = reactNear(enc, near, best).catch(() => body.despawn("too_close"));
+}
+
+/**
+ * Charged. It attacks (a rage: observer/charge.js decides from the moment and from this player), or it is gone
+ * before they arrive and waits for a better moment (an ambush).
+ * @param {Encounter} enc @param {Player} p @param {number} d
+ */
+async function reactCharge(enc, p, d) {
+  const dec = charge.decide(enc, p);
+  profile.note(p, "charge");
+  emit("charge", { enc: enc.id, player: p.name, attack: dec.attack, score: dec.score, why: dec.why, d: Math.round(d * 10) / 10 });
+  if (dec.attack) {
+    enc.result("charged", true);
+    const l = body.loc();
+    if (l) enc.worldSound("observer.crack", { x: l.x, y: l.y + 3, z: l.z }, 1);
+    body.setState("stare");
+    await system.waitTicks(4);
+    await relentless(enc, { rage: true });
+  } else {
+    enc.result("charge_vanished", true);
+    const b = body.get();
+    if (b && b.enc === enc.id) body.despawn("charged");
+    charge.setAmbush(p);
+  }
+  enc.abort("charged");
 }
 
 /** @param {Encounter} enc @param {Player} p @param {number} d */

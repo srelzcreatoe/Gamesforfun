@@ -55,15 +55,17 @@ export function bodyPoints(feet, stooped = false) {
 /**
  * How visible a body standing at feet is to a player.
  * @param {Player} p @param {Vec} feet
- * @param {{stooped?:boolean, fov?:number, ignoreView?:boolean, maxDist?:number}} [o]
+ * @param {{stooped?:boolean, fov?:number, ignoreView?:boolean, maxDist?:number, points?:Vec[]}} [o]
+ *   points: look at these instead of the body's feet, chest and head (its head, peeking round a trunk)
  * @returns {{points:number, angle:number, dist:number, through:number}}
  *   points = 0..3 body points both inside the view cone (unless ignoreView) and unobstructed.
  */
 export function visibility(p, feet, o = {}) {
   const eye = p.getHeadLocation();
-  const pts = bodyPoints(feet, o.stooped);
-  const angle = V.angle(p.getViewDirection(), V.sub(pts[1], eye));
-  const dist = V.dist(eye, pts[1]);
+  const pts = o.points ?? bodyPoints(feet, o.stooped);
+  const centre = o.points ? pts[0] : pts[1];
+  const angle = V.angle(p.getViewDirection(), V.sub(centre, eye));
+  const dist = V.dist(eye, centre);
   if (o.maxDist && dist > o.maxDist) return { points: 0, angle, dist, through: 0 };
   const fov = o.fov ?? 62;
   let points = 0;
@@ -89,8 +91,9 @@ export function isWatching(p, feet, stooped = false, focusDeg = 24) {
  * Could any of these players see a body at feet right now?
  * @param {Player[]} players @param {Vec} feet @param {boolean} [stooped]
  */
-export function seenByAny(players, feet, stooped = false) {
-  return players.some((p) => visibility(p, feet, { stooped, fov: 68, maxDist: 160 }).points > 0);
+export function seenByAny(players, feet, stooped = false, points = undefined) {
+  return players.some((p) => visibility(p, feet, { stooped, fov: 68, maxDist: 160 }).points > 0
+    || (!!points && visibility(p, feet, { fov: 68, maxDist: 160, points }).points > 0));
 }
 
 /**
@@ -110,13 +113,15 @@ export class GazeTracker {
 
   /**
    * @param {Player[]} watchers @param {Vec} feet @param {boolean} stooped @param {number} tick
+   * @param {Vec[]} [extra] also these points (its head, peeking round a trunk while its body is hidden)
    * @returns {boolean} focused this update
    */
-  update(watchers, feet, stooped, tick) {
+  update(watchers, feet, stooped, tick, extra) {
     let focused = false;
     let visible = false;
     for (const p of watchers) {
-      const v = visibility(p, feet, { stooped, fov: 66, maxDist: 160 });
+      let v = visibility(p, feet, { stooped, fov: 66, maxDist: 160 });
+      if (v.points === 0 && extra) v = visibility(p, feet, { fov: 66, maxDist: 160, points: extra });
       if (v.points === 0) continue;
       visible = true;
       if (v.angle < 26) {

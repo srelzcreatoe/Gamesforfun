@@ -156,6 +156,9 @@ export function now() {
  * @property {number} deaths
  * @property {boolean} [captions] per-player caption preference (undefined = world default)
  * @property {boolean} welcomed    first-join message (and Config Wheel for operators) shown
+ * @property {Record<string, number>} [profile]   what it has seen this player do, decaying counts (observer/profile.js)
+ * @property {Record<string, number>} [effect]    per encounter type: how often it got a reaction (0..1)
+ * @property {{at:number, until:number, armed?:boolean}} [ambush]  it vanished rather than be reached, and waits
  * @property {number} lungeAt      clock of its last lunge at this player
  * @property {number} nearStrikeAt clock of its last strike because the player came too close
  * @property {Record<string,number>} [escapes] how often each way out was used (observer/learn.js)

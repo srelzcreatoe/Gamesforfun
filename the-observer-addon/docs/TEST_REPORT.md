@@ -131,6 +131,8 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | targeted (1.0.7) | 26 | 0 | all passed |
 | targeted (1.0.8: every attack floats; the Mire near spawn, never where you start) | 94 + 99 + 93 + 98 | 4 + 1 + 2 + 1 | run 1: the first biome tuning also took the taigas, and the test arena (a taiga) became Mire, which the new setup check caught (the field then counted as its home, so two Mire checks that compare "there" with "elsewhere" failed too) — the taigas were left out; the test could not write back a fresh world's unset spawn (test-side). Runs 2–4: the taiga-shadow test ran before any other shadow test, so the "first minute in the woods is quiet" clock had not started when it skipped time (test-side: it now waits for it); and the first-spawn guard's "no spawn point of their own" condition was wrong — every player has one — so it was dropped. Every float assertion (approach, lunge, strike and recoil in mid-air) passed in every run |
 | **final (1.0.7)** | **306** | **0** | all passed on the first full run: the 1.0.6 suite (re-run because placement now checks the line of sight both ways) plus the Weeping Mire as its home (context, stage bonus, early grace, its watcher, too close at 9 blocks, the torn pages) |
+| targeted (1.1.0: the music, the heartbeat, charging at it, the profile, hiding behind trees, Mire fuel + regressions) | 86 + 40 + 79 | 3 + 2 + 0 | run 1: the first auto-peek check failed once (a cover-side ambiguity in the test: the spot it chose already had cover on the other side), the tree peek never switched sides (the test encounter ended after 10 s, before it could) and the learned-charge check got no reading (the body stood beyond the 32-block charge range); run 2: two test-side problems (the learned habit set before the test's own player reset was wiped; a "stands without cover" check where a real tree remained) |
+| full (1.1.0, first) | 370 | 5 | a real bug: hanging from a ceiling under 14 blocks away counted as "walked up to" at once, so it went straight into the standoff and was gone (now it has to be approached: closer than it first stood, less 4); and three test sensitivities in the busier full-suite state (a Witness Lens left in hand lowered the charge score to its floor — the "armed" rule working; a weight compared against an encounter not eligible while standing still; the open-ground placement at stage 3 sometimes the favoured bearing instead) — all re-run: 79 / 79 |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -354,6 +356,14 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
    with one 1-block hole, `Test an encounter → The Strike`: it crawls in flat and stands up inside; with glass walls
    it breaks in (the glass comes back); with a door it opens it. When any encounter ends it simply vanishes where it
    stood.
+14. **1.1.0** — With music playing, trigger any encounter: the music stops, and fades back a few seconds after it is
+   gone. Stand near it, then let it come for you (Test an encounter → The Strike): a heartbeat, quickening, and a light
+   tremor when it is on you (none with camera effects off). Stand in a field with trees, Test an encounter → Peeking
+   from cover: it is behind a trunk, only its head, a shoulder and a hand showing, its head following you; look at it
+   and it ducks, look away and it looks round again — after two catches on the other side. Sprint at a distant figure
+   (`/scriptevent observer:charge auto`, stage 3): it either comes for you or is gone; if gone, at night it comes back
+   soon. Put Mire planks in a furnace as fuel, and craft Bone Root into bone meal. Field Notes → Lessons → "It knows me"
+   after staring it down a few times.
 
 ## 7. Bugs found and fixed
 
@@ -397,6 +407,16 @@ A dedicated server cannot render, play audio, or show forms. Before distribution
 * The new too-close reaction cut *Borrowed Work* short (walking up to the source is that encounter's answer) — it now
   handles the approach itself; spots far below the player's level are penalised (an *Echo Ahead* spot landed 64
   blocks below the test platform).
+
+**Found by the 1.1.0 tests**
+* Hanging from a ceiling closer than 14 blocks, it was "approached" the instant it appeared and went straight into
+  the standoff: approaching now means coming closer than it first stood, less 4 blocks (`stalk_hang_stays_put`).
+* The tree peekaboo ran only once a second (it sat after the maintenance loop's every-fourth-run return), so it was
+  slow to duck; it runs every 5 ticks now.
+* The first peek lean put a hand in front of its face and left its chest out past the trunk; the clip was refitted
+  with the offline renderer (head about a block out, the body behind the trunk, the hand on the bark).
+* Test-side: the "Peeking from cover" wheel test still waited 15 s for its end, but behind a tree it now plays
+  peekaboo for up to 20 s; it waits 23 s now (`test_peek_outcome`).
 
 **Found by the 1.0.9 tests**
 * Through a gap or a doorway it struck from the opening, still lying flat, and missed: it now comes all the way in

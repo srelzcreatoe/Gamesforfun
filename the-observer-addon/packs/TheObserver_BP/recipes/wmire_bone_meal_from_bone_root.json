@@ -1,0 +1,25 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "wmire:bone_meal_from_bone_root"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "unlock": [
+      {
+        "item": "wmire:bone_root"
+      }
+    ],
+    "ingredients": [
+      {
+        "item": "wmire:bone_root"
+      }
+    ],
+    "result": {
+      "item": "minecraft:bone_meal",
+      "count": 3
+    }
+  }
+}

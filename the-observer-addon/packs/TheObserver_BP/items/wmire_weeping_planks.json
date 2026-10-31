@@ -1,0 +1,28 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "wmire:weeping_planks",
+      "menu_category": {
+        "category": "construction"
+      }
+    },
+    "components": {
+      "minecraft:block_placer": {
+        "block": "wmire:weeping_planks",
+        "replace_block_item": true
+      },
+      "minecraft:fuel": {
+        "duration": 15
+      },
+      "minecraft:tags": {
+        "tags": [
+          "minecraft:planks"
+        ]
+      },
+      "minecraft:display_name": {
+        "value": "tile.wmire:weeping_planks.name"
+      }
+    }
+  }
+}

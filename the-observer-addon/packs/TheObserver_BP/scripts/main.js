@@ -9,6 +9,7 @@ import * as ledger from "./world/ledger.js";
 import * as body from "./observer/body.js";
 import * as memory from "./observer/memory.js";
 import * as director from "./director/director.js";
+import { context } from "./director/context.js";
 import * as items from "./progression/items.js";
 import * as dev from "./dev/commands.js";
 import * as illusions from "./observer/illusions.js";
@@ -20,6 +21,8 @@ import * as learn from "./observer/learn.js";
 import * as hush from "./observer/hush.js";
 import * as pages from "./observer/pages.js";
 import * as returns from "./observer/returns.js";
+import * as profile from "./observer/profile.js";
+import * as dread from "./observer/dread.js";
 import * as mire from "./mire/mire.js";
 import { pending as mirePending } from "./encounters/mire_watcher.js";
 
@@ -74,6 +77,7 @@ ledger.registerEvents();
 illusions.registerEvents();
 memory.registerEvents();
 returns.registerEvents();
+profile.registerEvents();
 // the Weeping Mire, its home: wind, falling leaves and the torn pages. The Mire's old watcher is the
 // Observer now: a torn page may bring it up behind you, and the last of the eight always does.
 mire.register({
@@ -139,6 +143,7 @@ items.registerEvents({
   onBodyHit: (p, encId) => {
     const enc = director.running().find((x) => x.id === encId);
     if (!enc) return;
+    profile.note(p, "attack", enc.data.standoff ? 1 : 0.5);
     // in a standoff a blow is an attack, and it answers it
     if (enc.data.standoff) {
       enc.data.provoked = "hit";
@@ -156,7 +161,9 @@ items.registerEvents({
   // shot at (an arrow, a trident, a snowball): it does not hurt it, but in a standoff it is a provocation
   onBodyShot: (p, encId) => {
     const enc = director.running().find((x) => x.id === encId);
-    if (enc && enc.data.standoff) enc.data.provoked = "shot";
+    if (!enc) return;
+    if (enc.data.standoff) enc.data.provoked = "shot";
+    else profile.note(p, "attack", 0.5);
   },
 });
 
@@ -233,6 +240,7 @@ world.beforeEvents.playerLeave.subscribe((ev) => {
     hush.forget(id);
     returns.forget(id);
     mire.forget(id);
+    dread.forget(id);
     dropPlayer(id);
   });
 });
@@ -264,6 +272,13 @@ system.beforeEvents.shutdown.subscribe(() => {
 });
 
 // ------------------------------------------------------------------ loops
+
+/** Is it around this player: an encounter of theirs running, or its body within 64 blocks? @param {import("@minecraft/server").Player} p */
+function isAround(p) {
+  if (director.encounterFor(p.id)) return true;
+  const b = body.get();
+  return !!b && b.e.dimension.id === p.dimension.id && V.dist(b.e.location, p.location) <= 64;
+}
 
 // Loops count their own runs: `system.currentTick % n` inside an interval only works if the
 // interval happens to start on a multiple of n, which depends on load timing.
@@ -297,6 +312,8 @@ system.runInterval(() => {
   }
   safe(() => director.tick());
   safe(() => illusions.tick());
+  // while it is around you, your music is cut; when it is gone, it fades back
+  safe(() => hush.presence(now(), isAround));
   if (slowRuns % 5 === 0) safe(() => returns.tick());
   if (slowRuns % 20 === 0) safe(() => pages.tick(new Set(director.running().map((e) => e.pid))));
   safe(() => ledger.processDue(12));
@@ -318,6 +335,8 @@ system.runInterval(() => {
   for (const p of allPlayers()) {
     safe(() => memory.decay(p));
     safe(() => learn.decay(p));
+    // where they are and when: it is getting to know them
+    safe(() => profile.sample(p, context(p)));
   }
   safe(() => body.sweepStrays(director.activeEncId()));
   safe(() => items.validateWards());
@@ -326,6 +345,11 @@ system.runInterval(() => {
 system.runInterval(() => {
   if (ready) safe(() => body.tickPuppets());
 }, 10);
+
+// its presence, felt: a heartbeat only the player hears, and a light tremor when it is close and meaning harm
+system.runInterval(() => {
+  if (ready) safe(() => dread.tick((pid) => director.encounterFor(pid)));
+}, 2);
 
 // taiga illusions vanish the instant they are looked at; flares fly, burn and glare
 system.runInterval(() => {

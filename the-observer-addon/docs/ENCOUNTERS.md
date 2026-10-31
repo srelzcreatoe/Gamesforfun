@@ -61,6 +61,32 @@ and bamboo (broken, manipulation ≥ 2, never inside a Ward Lantern's radius). D
 changes: put back afterwards, nothing dropped. Where the way is lower than three blocks it crawls (`crawl`, a
 collision box a block high); it stands up again inside before it strikes.
 
+**Hiding behind trees (1.1.0, shared).** *The Figure at the Edge* (45 % above ground when a trunk is in reach),
+*In the Mire* (weeping trees first) and the test *Peeking from cover* use `space.hideSpot`: every log, wood and stem
+within reach is found in one block query; it stands straight behind a trunk at least three logs high, where the
+trunk hides its chest from the player, on a side where its leaning head (a block out at head height) is in sight both
+ways. It looks round the edge (`peek`, with `look_at_target`); looked at for ~0.7 s it ducks back (`watch`, hidden) for
+1.5–3.5 s and until the player stops looking at the tree; caught twice on one side, it looks round the other.
+Wall-corner peeks now lean away from the wall (the lean used to go into it).
+
+**Running at it (1.1.0, shared).** Sprinting straight at it (4.6+ b/s closing for 0.5 s, within 32 blocks, while
+looking at it) during any still body encounter: `observer/charge.js` decides. From stage 2 (effective) and aggression
+≥ 1 the chance to attack starts at 30 % and moves with the moment — dark +20 %, bright −20 %, the player hurt +15 %,
+alone +10 % / with company −15 %, a Witness Lens or Flare in hand −35 %, its anger up to +25 %, and up to +35 % as it
+learns this player charges (`profile` habit). Attack: a neck crack, then the rage. Otherwise it is gone at once and
+sets an ambush: within 30 min, the first time the moment favours it (night, light ≤ 7, underground or the player
+below half health), at least 30 s later, the next encounter comes within 5–15 s, quiet periods cut short, with tier
+3+ encounters weighted ×3 (tier 2 ×1.5, tier 1 ×0.5).
+
+**It knows you (1.1.0, shared).** `observer/profile.js` counts what the player does (each repetition strengthens a
+habit, 1 − e^(−n/3); a tenth fades every 2.5 h of play): *stare* (provoked by a stare) → anger ×(1 + 0.6 h); *look away*
+(left it until it was gone) → creep steps ×(1 + 0.8 h); *charge* → attack chance +0.35 h; *attack* (shot or hit it)
+→ distant placement +10 h blocks; *flee* (outran it) → the chase starts 8 h blocks closer; *ignore* (encounters
+unnoticed) → distant placement −8 h blocks and, past 0.5, an audible arrival. Each minute it samples where the
+player is (caves / home / surface) and whether it is night, and counts lights placed; the director weighs each
+encounter by place (×0.8–1.7), night (×1–1.5), lights (*Lights Out* ×1–2) and how well that encounter has worked on
+this player before (×0.6–1.4), all within ×0.5–2.2.
+
 **It vanishes (1.0.9, shared).** When an encounter is over it no longer walks away: it holds where it is for a
 breath and is gone, torn apart where it stood.
 

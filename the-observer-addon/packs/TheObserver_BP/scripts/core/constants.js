@@ -64,6 +64,8 @@ export const SOUNDS = {
   silence: "observer.silence",
   scrawl: "observer.scrawl",
   drift: "observer.drift",
+  heartbeat: "observer.heartbeat",
+  crack: "observer.crack",
 };
 
 export const FOGS = { dread: "observer:dread", soft: "observer:dread_soft", vigil: "observer:vigil" };
@@ -163,3 +165,14 @@ export const BORROWED = {
   eat: { sounds: ["random.eat"], beat: [4, 5], reps: [5, 8], caption: "caption.borrowed.eat" },
   fight: { sounds: ["game.player.hurt", "random.bow"], beat: [10, 18], reps: [3, 5], caption: "caption.borrowed.fight" },
 };
+
+/** Tree trunks it hides behind (1.1.0): every log, wood, stem and hyphae, stripped or not (vanilla ids, checked). */
+export const TRUNKS = new Set([
+  ...["acacia", "birch", "cherry", "dark_oak", "jungle", "mangrove", "oak", "pale_oak", "poplar", "spruce"].flatMap((w) =>
+    [`minecraft:${w}_log`, `minecraft:${w}_wood`, `minecraft:stripped_${w}_log`, `minecraft:stripped_${w}_wood`]),
+  ...["crimson", "warped"].flatMap((w) => [`minecraft:${w}_stem`, `minecraft:${w}_hyphae`, `minecraft:stripped_${w}_stem`, `minecraft:stripped_${w}_hyphae`]),
+  "minecraft:mushroom_stem",
+]);
+/** ...and the Weeping Mire's (its own add-on's blocks, not vanilla). */
+export const MIRE_TRUNKS = ["wmire:weeping_log", "wmire:weeping_wood"];
+

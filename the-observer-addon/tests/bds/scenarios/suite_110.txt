@@ -1,0 +1,6 @@
+# 1.1.0: the music cut while it is around; its heartbeat; charging at it (attack, or vanish and ambush); what it
+# learns of you; hiding behind a tree and looking round it; Mire wood as fuel; with regressions
+expect \[OTEST\] testkit loaded 90
+wait 2
+cmd scriptevent otest:suite setup presence_music heartbeat charge profile peek_tree mire_fuel test_entries auto_peek distant_watch standoff hush lunge relentless mire_watcher status
+expect \[OTEST\] SUITE DONE 3600

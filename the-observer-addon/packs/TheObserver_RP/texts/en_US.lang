@@ -301,7 +301,7 @@ observer.enc.test_strike.where=anywhere with room ahead; it runs at you and keep
 observer.enc.test_lunge=§cThe Lunge§r
 observer.enc.test_lunge.where=anywhere with room ahead; look at it and it comes at you (on High aggression it keeps attacking)
 observer.enc.test_peek=§cPeeking from cover§r
-observer.enc.test_peek.where=a tree trunk or wall corner within 14 blocks ahead of you
+observer.enc.test_peek.where=a tree within 20 blocks (it hides behind the trunk and looks round it; look straight at it and it ducks), or a wall corner ahead
 observer.enc.vigil_practice=§cThe Vigil (practice)§r
 observer.enc.vigil_practice.where=anywhere, any time; three rounds of finding it, no reward and no change to your story
 observer.msg.vigil_practice_done=§7Practice vigil complete. (No reward, nothing recorded.)
@@ -406,7 +406,7 @@ observer.enc.test_returns=§cIt returns what you threw away§r
 observer.enc.test_returns.where=needs a home it knows; drop an item and walk 10 blocks away: it is moved to your doorstep with a knock
 
 observer.set.learning=It learns how you escape (adapts to one way at a time)
-observer.set.quiet=The world goes quiet before its attacks (stage 4+)
+observer.set.quiet=The music stops while it is around (and before its attacks)
 observer.set.pages=Pages you didn't write appear in your Field Notes
 observer.set.returns=It returns what you threw away
 
@@ -422,6 +422,21 @@ observer.enc.mire_watcher.where=the Weeping Mire, its home: it stands among the 
 observer.disc.its_home.title=Its Home
 observer.disc.its_home.text=The trees out there weep. Black bark, roots like bones. It was standing among them as if it had always stood there, not following me, not waiting for me. Living there. When I looked back there was only black mist where it stood, and the ground was cold.
 observer.disc.its_home.lesson=The Weeping Mire is its home. There it comes sooner and more often, and it does not wait for you to settle in. The torn pages are about it.
+
+## ---------------------------------------------------------------- 1.1.0: it knows you; its presence, felt
+observer.set.heartbeat=Heartbeat (and a light tremor) when it is near
+observer.ui.profile_known=It knows me:
+observer.profile.stare=I stare it down. It does not wait as long for me any more before it snaps.
+observer.profile.look_away=I look away. Each time I look back it has come further.
+observer.profile.charge=I run at it. It stands its ground now more often than it runs.
+observer.profile.attack=I have shot at it, hit it. It keeps its distance, behind cover.
+observer.profile.flee=I outrun it. It starts closer now.
+observer.profile.ignore=I do not notice it. It comes closer to be noticed, and lets me hear it arrive.
+observer.profile.lights=I light everything. It puts my lights out more often.
+observer.profile.caves=I spend my time underground. It hunts me there.
+observer.profile.home=I spend my time at home. It comes to my home.
+observer.profile.surface=I travel. It meets me on the way.
+observer.profile.night=I am out at night. It knows.
 
 ## ---------------------------------------------------------------- Weeping Mire (merged)
 tile.wmire:mire_moss.name=Mire Moss

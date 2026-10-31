@@ -21,6 +21,7 @@ import { sighting, relentless } from "./common.js";
 import * as learn from "../observer/learn.js";
 import * as climb from "../observer/climb.js";
 import * as squeeze from "../observer/squeeze.js";
+import { habit } from "../observer/profile.js";
 
 /**
  * It floats to the last dry ground between it and the player in the water, and hovers there.
@@ -67,7 +68,9 @@ register({
   },
   prepare(enc) {
     const p = enc.p;
-    const spot = findSpot(p, { minDist: 24, maxDist: 34, bearings: [0, 30, -30], spread: 20, concealment: "visible", needLOS: true,
+    // it learned this player outruns it: it starts closer
+    const close = Math.round(8 * habit(enc.s, "flee"));
+    const spot = findSpot(p, { minDist: 24 - close, maxDist: 34 - close, bearings: [0, 30, -30], spread: 20, concealment: "visible", needLOS: true,
       yMode: enc.ctx.underground ? "near" : "surface" });
     if (!spot) return false;
     enc.data.spot = spot;

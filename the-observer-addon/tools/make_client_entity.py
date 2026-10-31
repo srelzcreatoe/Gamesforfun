@@ -9,7 +9,8 @@ State -> animation mapping (q.property('observer:state') is set by the behaviour
   walk    stalk_walk (new)     + look_at_target      slow approach / repositioning / retreat
   run     running (supplied)                         unused since 1.0.8: every run, chase and attack floats
   attack  attack (supplied, once)                    telegraphed overhead strike
-  peek    idle (supplied)      + peek (new)          leaning out from cover; side = q.property('observer:side')
+  peek    idle (supplied)      + peek (new)          looking round a trunk or a corner, its head following you
+                               + look_at_target      (1.1.0); side = q.property('observer:side')
   recoil  recoil (new, once)                         flinch when witnessed / struck
   hidden  (no parts rendered)                        momentary vanish without despawning
   float   float_drift (new)    + look_at_target      1.0.6 chase: hovering a block up, limp, while watched
@@ -43,7 +44,7 @@ STATES = {
     "walk": ["stalk_walk", "look_at_target"],
     "run": ["running"],
     "attack": ["attack"],
-    "peek": ["idle", "peek"],
+    "peek": ["idle", "peek", "look_at_target"],
     "recoil": ["recoil"],
     "hidden": [],
     "float": ["float_drift", "look_at_target"],

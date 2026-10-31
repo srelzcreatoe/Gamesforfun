@@ -343,7 +343,8 @@
         "peek": {
           "animations": [
             "idle",
-            "peek"
+            "peek",
+            "look_at_target"
           ],
           "transitions": [
             {

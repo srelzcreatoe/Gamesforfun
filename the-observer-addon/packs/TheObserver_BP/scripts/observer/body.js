@@ -40,6 +40,8 @@ import { standNear, coverSide } from "../world/space.js";
  * @property {boolean} [hung]      reached the top of its climb and hangs there beside them
  * @property {boolean} [silent]    floating: no footstep sounds
  * @property {boolean} [crawling]  flat on its front with a collision box a block high (observer/squeeze.js)
+ * @property {{trunk:Vec, side:number, peek:Vec, alt?:{loc:Vec, side:number, peek:Vec}, seen:number, duckUntil:number,
+ *             caught:Record<string, number>}} [hide]  behind a tree, looking round it (space.hideSpot)
  */
 
 /** @type {Body|null} */
@@ -62,13 +64,14 @@ export const wasLost = (enc) => lostEnc === enc;
 /**
  * Spawn the Observer for an encounter.
  * @param {import("@minecraft/server").Dimension} dim @param {Vec} loc
- * @param {{enc:number, target?:Player, state?:string, stoop?:boolean, side?:number, face?:Vec, silent?:boolean, autoPeek?:boolean}} o
+ * @param {{enc:number, target?:Player, state?:string, stoop?:boolean, side?:number, face?:Vec, silent?:boolean, autoPeek?:boolean,
+ *          hide?:{trunk:Vec, side:number, peek:Vec, alt?:{loc:Vec, side:number, peek:Vec}}}} o  hide: behind a tree (space.hideSpot)
  * @returns {Body|null}
  */
 export function spawn(dim, loc, o) {
   despawn("replace");
-  // it only ever peeks from behind something: with nothing beside it, it stands
-  if (o.state === "peek") {
+  // it only ever peeks from behind something: with nothing beside it, it stands (behind a tree it knows its side)
+  if (o.state === "peek" && !o.hide) {
     const eye = o.target?.isValid ? o.target.getHeadLocation() : o.face;
     const cover = eye ? coverSide(dim, loc, eye) : undefined;
     if (!cover || !cover.one) o = { ...o, state: "watch" };
@@ -78,7 +81,8 @@ export function spawn(dim, loc, o) {
   if (!e) return null;
   safe(() => e.setDynamicProperty(ENTITY_ENC_PROP, o.enc));
   body = { e, enc: o.enc, state: "watch", mode: "still", stoop: false, side: 1, target: o.target, faceTarget: true, spawnedTick: system.currentTick,
-    dark: false, autoPeek: o.autoPeek ?? true };
+    dark: false, autoPeek: o.autoPeek ?? true,
+    hide: o.hide ? { ...o.hide, seen: 0, duckUntil: 0, caught: { "1": 0, "-1": 0 } } : undefined };
   // pressure in the ears: it has arrived (quieter when it arrives unseen behind someone)
   if (!o.silent) safe(() => dim.playSound(SOUNDS.presence, loc, { volume: 0.75 }));
   setState(o.state ?? "watch");
@@ -175,18 +179,27 @@ export function moveTo(loc, face) {
 
 export const loc = () => get()?.e.location;
 
+/** Where its head is while it looks round a trunk (its body hidden behind it), else undefined. */
+export function peekPoint() {
+  const b = get();
+  return b && b.hide && b.state === "peek" ? b.hide.peek : undefined;
+}
+
 /** Is the body currently being looked at by any of these players? */
 export function watchedBy(players, fov = 26) {
   const b = get();
   if (!b) return false;
-  return players.some((p) => p.isValid && p.dimension.id === b.e.dimension.id && visibility(p, b.e.location, { stooped: b.stoop, fov }).points > 0);
+  const pk = peekPoint();
+  return players.some((p) => p.isValid && p.dimension.id === b.e.dimension.id && (visibility(p, b.e.location, { stooped: b.stoop, fov }).points > 0
+    || (!!pk && visibility(p, b.e.location, { fov, points: [pk] }).points > 0)));
 }
 
 /** Visible at all (in frame) to any of these players. */
 export function visibleTo(players) {
   const b = get();
   if (!b) return false;
-  return seenByAny(players.filter((p) => p.isValid && p.dimension.id === b.e.dimension.id), b.e.location, b.stoop);
+  const pk = peekPoint();
+  return seenByAny(players.filter((p) => p.isValid && p.dimension.id === b.e.dimension.id), b.e.location, b.stoop, pk ? [pk] : undefined);
 }
 
 /** Remove the body. @param {string} why */
@@ -286,6 +299,9 @@ export function maintain(run) {
   const ceil = safe(() => e.dimension.getBlockAbove({ x: l.x, y: l.y + 0.1, z: l.z }, { includePassableBlocks: false, includeLiquidBlocks: true, maxDistance: 5 }));
   // (hanging upside down or crawling it has its own shape)
   setStoop(b.state !== "hang" && b.state !== "crawl" && !!ceil && ceil.location.y - Math.floor(l.y) < 5);
+  // behind a tree: it looks round the trunk at you; look straight at it and it ducks back behind it, and waits
+  // until you look away to look round again — after being caught twice on one side, from the other side
+  if (b.hide && b.mode === "still" && (b.state === "watch" || b.state === "peek") && b.target?.isValid && b.target.dimension.id === e.dimension.id) peekaboo(b, b.target);
   if (run % 4 !== 0) return;
   // eyes glow (client layer + glow at the eye locators) at night or in darkness
   const head = { x: l.x, y: l.y + (b.stoop ? 2.45 : 3.62), z: l.z };
@@ -293,14 +309,56 @@ export function maintain(run) {
   const tod = safe(() => world.getTimeOfDay(), 6000) ?? 6000;
   const night = e.dimension.id === "minecraft:overworld" && tod > 12800 && tod < 23200;
   setDark(night || light <= 7);
-  // it peeks out from behind whatever stands beside it (a trunk, a wall corner, a door frame)
-  if (b.mode === "still" && b.autoPeek && (b.state === "watch" || b.state === "peek") && b.target?.isValid && b.target.dimension.id === e.dimension.id) {
+  // it peeks out from behind whatever stands beside it (a wall corner, a door frame), leaning away from it
+  if (!b.hide && b.mode === "still" && b.autoPeek && (b.state === "watch" || b.state === "peek") && b.target?.isValid && b.target.dimension.id === e.dimension.id) {
     const cover = coverSide(e.dimension, l, b.target.getHeadLocation());
     if (cover.one) {
       setSide(cover.side);
       setState("peek");
     } else if (b.state === "peek") setState("watch");
   }
+}
+
+/** Is this player looking (nearly) straight at a point they can see? @param {Player} p @param {Vec} pt @param {number} deg */
+function looksAt(p, pt, deg) {
+  const eye = p.getHeadLocation();
+  return V.angle(p.getViewDirection(), V.sub(pt, eye)) < deg && lineOfSight(p.dimension, eye, pt).clear;
+}
+
+/** Every 5 ticks while it hides behind a tree. @param {Body} b @param {Player} p */
+function peekaboo(b, p) {
+  const h = /** @type {NonNullable<Body["hide"]>} */ (b.hide);
+  const tick = system.currentTick;
+  if (b.state === "peek") {
+    faceTo(p.getHeadLocation());
+    if (!looksAt(p, h.peek, 14)) {
+      h.seen = Math.max(0, h.seen - 5);
+      return;
+    }
+    // looked at for a moment (long enough to be sure it was seen): it ducks back behind the trunk
+    h.seen += 5;
+    if (h.seen < 14) return;
+    h.seen = 0;
+    h.caught[String(h.side)] = (h.caught[String(h.side)] ?? 0) + 1;
+    h.duckUntil = tick + 30 + Math.floor(Math.random() * 40);
+    setState("watch");
+    emit("peek", { what: "duck", side: h.side, caught: h.caught[String(h.side)] });
+    return;
+  }
+  // hidden: it waits while you watch the tree, and looks round again once you look away
+  if (tick < h.duckUntil || looksAt(p, { x: h.trunk.x, y: h.trunk.y + 2, z: h.trunk.z }, 25)) return;
+  if (h.alt && (h.caught[String(h.side)] ?? 0) >= 2 && (h.caught[String(h.alt.side)] ?? 0) < 2) {
+    // it learned where you look for it: the other side of the trunk
+    const was = { loc: b.e.location, side: h.side, peek: h.peek };
+    moveTo(h.alt.loc, p.getHeadLocation());
+    h.side = h.alt.side;
+    h.peek = h.alt.peek;
+    h.alt = { loc: { x: was.loc.x, y: was.loc.y, z: was.loc.z }, side: was.side, peek: was.peek };
+    emit("peek", { what: "switch", side: h.side });
+  }
+  setSide(h.side);
+  setState("peek");
+  emit("peek", { what: "peek", side: h.side });
 }
 
 /** @param {boolean} v */

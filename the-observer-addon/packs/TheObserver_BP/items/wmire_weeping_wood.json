@@ -1,0 +1,29 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "wmire:weeping_wood",
+      "menu_category": {
+        "category": "nature"
+      }
+    },
+    "components": {
+      "minecraft:block_placer": {
+        "block": "wmire:weeping_wood",
+        "replace_block_item": true
+      },
+      "minecraft:fuel": {
+        "duration": 15
+      },
+      "minecraft:tags": {
+        "tags": [
+          "minecraft:logs",
+          "minecraft:logs_that_burn"
+        ]
+      },
+      "minecraft:display_name": {
+        "value": "tile.wmire:weeping_wood.name"
+      }
+    }
+  }
+}

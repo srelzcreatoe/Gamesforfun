@@ -113,23 +113,35 @@ def stalk_walk(model):
 
 
 def peek():
+    """Hiding behind a tree trunk (or a wall corner) and looking round it: the hips shift and the waist bends
+    toward the open side so the head clears the trunk's edge (about 0.9 blocks out at head height), the head held
+    level and turned to the player (look_at_target is layered on top), the hand on that side gripping the trunk's
+    edge beside its face and the other resting on the trunk lower down. side = q.property('observer:side')
+    (+1 / -1): which way it leans. Linear in side, so one clip serves both."""
     side = "q.property('observer:side')"
 
-    def ease(v):
-        return {"0.0": [0, 0, 0], "0.25": [f"{v[0] * 0.6:.2f}", f"{v[1] * 0.6:.2f} * {side}", f"{v[2] * 0.6:.2f} * {side}"],
-                "0.6": [f"{v[0]:.2f}", f"{v[1]:.2f} * {side}", f"{v[2]:.2f} * {side}"]}
+    def ease(v, n=0):
+        """[x, y, z] reached by 0.4 s and held; y and z follow the side (n: which channels do not)."""
+        mk = lambda k: [f"{v[0] * k:.2f}", f"{v[1] * k:.2f} * {side}", f"{v[2] * k:.2f} * {side}"]
+        return {"0.0": [0, 0, 0], "0.2": mk(0.7), "0.4": mk(1.0)}
 
     bones = {
-        "pelvis": {"rotation": ease([0, 0, 5])},
-        "torso": {"rotation": ease([7, 8, 17])},
-        "head": {"rotation": ease([6, 14, 18])},
-        "right_upper_arm": {"rotation": {"0.0": [0, 0, 0], "0.6": [-6, 0, 0]}},
-        "left_upper_arm": {"rotation": {"0.0": [0, 0, 0], "0.6": [-6, 0, 0]}},
-        "right_forearm": {"rotation": {"0.0": [0, 0, 0], "0.6": [-10, 0, 0]}},
-        "left_forearm": {"rotation": {"0.0": [0, 0, 0], "0.6": [-10, 0, 0]}},
+        "root": {"position": {"0.0": [0, 0, 0], "0.4": [f"2.0 * {side}", 0, 0]}},
+        "pelvis": {"rotation": ease([0, 0, 4])},
+        "torso": {"rotation": ease([6, 3, 27])},
+        "head": {"rotation": ease([4, -4, 6])},
     }
-    bones.update({b: {"rotation": {"0.0": v}} for b, v in FINGERS.items()})
-    return {"loop": "hold_on_last_frame", "animation_length": 0.6, "bones": bones}
+    # the arm on the side it leans to grips the trunk's edge by its face; the other rests on the trunk lower down.
+    # Model +x is its right, and side +1 leans it to +x (measured with tools/render_model.py), so with side +1 the
+    # right arm is the gripping one.
+    for name, sgn in (("right", 1), ("left", -1)):
+        g = f"(0.5 + 0.5 * {sgn} * {side})"  # 1 for the gripping arm, 0 for the other
+        bones[f"{name}_upper_arm"] = {"rotation": {"0.0": [0, 0, 0], "0.4": [f"-25 - 61 * {g}", 0, f"{sgn} * (6 - 76 * {g})"]}}
+        bones[f"{name}_forearm"] = {"rotation": {"0.0": [0, 0, 0], "0.4": [f"-30 - 32 * {g}", 0, 0]}}
+        bones[f"{name}_hand"] = {"rotation": {"0.0": [0, 0, 0], "0.4": [f"-10 + 20 * {g}", 0, 0]}}
+    # fingers curled round the bark
+    bones.update({b: {"rotation": {"0.0": [v[0] * 1.6, v[1], v[2]]}} for b, v in FINGERS.items()})
+    return {"loop": "hold_on_last_frame", "animation_length": 0.4, "bones": bones}
 
 
 def recoil():

@@ -126,8 +126,10 @@ export const DEBUG = {
   /** tests: "off" = after being seen it only stares a moment (the old ending); "short" = a 6 s standoff that
    *  ends as soon as it is looked away from for 2 s; "auto" = normal play */
   standoff: "auto",
-  /** tests: "hang" / "ledge" / "ground" force where a distant watch stands ("auto" = chosen by place and chance) */
+  /** tests: "hang" / "ledge" / "tree" / "ground" force where a distant watch stands ("auto" = chosen by place and chance) */
   stalk: "auto",
+  /** tests: "attack" / "vanish" decide what it does when it is charged ("auto" = it weighs the moment) */
+  charge: "auto",
   /** low-volume lifecycle lines (encounter start/end); enabled in dev mode and by the test kit */
   trace: false,
   /** @param {string} msg */

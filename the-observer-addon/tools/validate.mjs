@@ -228,7 +228,10 @@ for (const f of walk(path.join(BP, "items"))) {
   itemIds.add(it.description.identifier);
   const icon = it.components["minecraft:icon"];
   const key = typeof icon === "string" ? icon : icon?.textures?.default ?? icon?.texture;
-  if (!itemTex[key]) fail(`${rel(f)}: icon ${key} not in item_texture.json`);
+  // a block placer draws the block it places as its icon (Mojang: "can be used instead of minecraft:icon")
+  if (!icon && it.components["minecraft:block_placer"]) {
+    if (it.components["minecraft:block_placer"].replace_block_item && it.components["minecraft:block_placer"].block !== it.description.identifier) fail(`${rel(f)}: replace_block_item needs the block's own identifier`);
+  } else if (!itemTex[key]) fail(`${rel(f)}: icon ${key} not in item_texture.json`);
   const dn = it.components["minecraft:display_name"]?.value;
   if (dn && !langKeys.has(dn)) fail(`${rel(f)}: display name ${dn} missing from lang`);
 }
@@ -295,7 +298,7 @@ try {
   // constants.js has no runtime imports, so Node can load it directly
   const C = await import(pathToFileURL(path.join(BP, "scripts", "core", "constants.js")).href);
   let n = 0;
-  for (const name of ["DOORS", "TRAPDOORS", "GATES", "REMOVABLE_LIGHTS", "CANDLES", "CAMPFIRES", "TURNABLE", "NATURAL", "DANGER"]) {
+  for (const name of ["DOORS", "TRAPDOORS", "GATES", "REMOVABLE_LIGHTS", "CANDLES", "CAMPFIRES", "TURNABLE", "NATURAL", "DANGER", "TRUNKS"]) {
     for (const id of C[name]) {
       n++;
       if (!vanilla.has(id)) fail(`${name}: ${id} is not a vanilla block id (vanilla-data 1.26.52)`);

@@ -9,8 +9,10 @@
 import { register } from "../director/director.js";
 import * as body from "../observer/body.js";
 import { animalsFace } from "../world/manipulate.js";
+import { hideSpot } from "../world/space.js";
 import { observe, sighting, favouredBearing, bearingHit, trailAway, findSpotLoose, sink, wantsLunge, lunge, standoff, hangSpot } from "./common.js";
 import { V, chance, rand, DEBUG } from "../core/util.js";
+import { habit } from "../observer/profile.js";
 
 register({
   id: "distant_watch",
@@ -32,9 +34,9 @@ register({
     const forced = DEBUG.stalk;
     let spot;
     let mode = "ground";
-    if (forced === "hang" || forced === "ledge") {
+    if (forced === "hang" || forced === "ledge" || forced === "tree") {
       // tests: a given place
-      spot = forced === "hang" ? hangSpot(p) : ledgeSpot(p, hideFrom);
+      spot = forced === "hang" ? hangSpot(p) : forced === "ledge" ? ledgeSpot(p, hideFrom) : hideSpot(p, { minDist: 12, maxDist: 32 });
       if (!spot) return false;
       mode = forced;
     } else if (c.water) {
@@ -51,6 +53,9 @@ register({
     } else if (forced === "auto" && c.underground && chance(0.35) && (spot = hangSpot(p))) {
       // stalking from the cave ceiling, upside down
       mode = "hang";
+    } else if (forced === "auto" && !c.underground && chance(0.45) && (spot = hideSpot(p, { minDist: 14, maxDist: 32 }))) {
+      // behind a tree, looking round it
+      mode = "tree";
     } else if (forced === "auto" && chance(0.25) && (spot = ledgeSpot(p, hideFrom))) {
       // on a high ledge above you
       mode = "ledge";
@@ -64,9 +69,12 @@ register({
     if (!spot) {
       const near = c.underground || c.d === 1;
       mode = "ground";
+      // what it has learned: a player who shoots it, it keeps its distance from; one who never notices it, it comes
+      // closer to
+      const shift = Math.round(10 * habit(enc.s, "attack") - 8 * habit(enc.s, "ignore"));
       spot = findSpotLoose(p, [
-        { minDist: near ? 14 : 26, maxDist: near ? 26 : 44, bearings: [70, 100, -70, -100, 125, -125], spread: 15, concealment: "partial", needLOS: true, hideFrom, preferCover: true, yMode: near ? "near" : "surface" },
-        { minDist: near ? 12 : 22, maxDist: near ? 28 : 46, concealment: "any", needLOS: true, hideFrom, yMode: near ? "near" : "surface" },
+        { minDist: (near ? 14 : 26) + shift, maxDist: (near ? 26 : 44) + shift, bearings: [70, 100, -70, -100, 125, -125], spread: 15, concealment: "partial", needLOS: true, hideFrom, preferCover: true, yMode: near ? "near" : "surface" },
+        { minDist: (near ? 12 : 22) + shift, maxDist: (near ? 28 : 46) + shift, concealment: "any", needLOS: true, hideFrom, yMode: near ? "near" : "surface" },
       ]);
     }
     if (!spot) return false;
@@ -77,13 +85,16 @@ register({
   async run(enc) {
     const { spot, mode } = enc.data;
     const peek = mode !== "hang" && (spot.vis === 1 || spot.vis === 2);
-    // it arrives silently
+    // it arrives silently — unless this player never notices it: then it lets itself be heard
     const state = mode === "hang" ? "hang" : peek ? "peek" : "watch";
-    if (!enc.spawnBody(spot.loc, { state, stoop: spot.stoop, side: spot.side, silent: true, autoPeek: mode !== "hang" })) return enc.result("deferred");
+    const heard = habit(enc.s, "ignore") >= 0.5;
+    if (!enc.spawnBody(spot.loc, { state, stoop: spot.stoop, side: spot.side, silent: !heard, autoPeek: mode !== "hang", hide: spot.hide })) return enc.result("deferred");
     enc.emit("stalk", { mode, x: spot.loc.x, y: spot.loc.y, z: spot.loc.z, rise: spot.loc.y - enc.p.location.y, ceiling: spot.ceiling });
     enc.log(`mode=${mode} dist=${V.dist(spot.loc, enc.p.location).toFixed(1)} vis=${spot.vis}`);
     if (enc.s.stage >= 2 && chance(0.3)) animalsFace(enc.dim, enc.p.location, spot.loc, 24, 160);
-    const r = await observe(enc, { maxTicks: 45 * 20, noticeTicks: 18, approachDist: mode === "water" ? 20 : 14 });
+    // walked toward it: closer than 14 blocks (20 on water) — and closer than it first stood, less 4
+    const startD = V.dist(spot.loc, enc.p.location);
+    const r = await observe(enc, { maxTicks: 45 * 20, noticeTicks: 18, approachDist: Math.min(mode === "water" ? 20 : 14, startD - 4) });
     if (r.noticed) {
       sighting(enc, r.by ?? enc.p);
       if (mode === "bearing") bearingHit(enc);

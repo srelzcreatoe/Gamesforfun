@@ -9,6 +9,8 @@ Usage: preview_anims.py OUT_DIR CLIP [CLIP ...] [--frames N] [--stoop] [--raise 
   CLIP = an animation short name from the supplemental file (e.g. float_drift) or supplied:NAME; layers are
          joined with "+" and play together as the client layers them (e.g. supplied:attack+float_hang: the
          strike in mid-air); the first layer sets the length
+  --side   q.property('observer:side') for the peek (+1 / -1)
+  --trunk  draw a tree trunk where it hides behind one (space.hideSpot), for the peek
   --raise draws the figure that many blocks higher (the hang: its origin is in mid-air under a cave ceiling, its
           arms dangle below it)
   --video also writes one MP4 (30 fps, H.264) with every clip looped for S seconds, back to back (needs ffmpeg)
@@ -59,8 +61,11 @@ def fname(name):
     return name.replace("supplied:", "").replace("+", "_with_")
 
 
+BOXES = []
+
+
 def frame(model, anims, title):
-    panels = [rm.render(model, anims, None, view=v, size=SIZE, scale=SCALE, label=v.replace("_", "-")) for v in VIEWS]
+    panels = [rm.render(model, anims, None, view=v, size=SIZE, scale=SCALE, label=v.replace("_", "-"), boxes=BOXES) for v in VIEWS]
     img = Image.new("RGB", (SIZE[0] * len(panels), SIZE[1] + 28), (245, 245, 245))
     for i, p in enumerate(panels):
         img.paste(p, (i * SIZE[0], 28))
@@ -77,7 +82,14 @@ def main():
     ap.add_argument("--video")
     ap.add_argument("--seconds", type=float, default=4.0)
     ap.add_argument("--raise", dest="raise_", type=float, default=0.0)
+    ap.add_argument("--side", type=float, default=1.0)
+    ap.add_argument("--trunk", action="store_true")
     a = ap.parse_args()
+    if a.trunk:
+        # an oak trunk four logs high where hideSpot puts it: a block in front of it, a touch toward the lean
+        x0 = 0.06 * 16 * a.side - 8
+        BOXES.append(([x0, 0, -24.8], [x0 + 16, 64, -8.8], (92, 70, 44)))
+    rm.MOLANG_VARS["q.property('observer:side')"] = a.side
     RAISE["bones"]["root"]["position"] = [0, 16 * a.raise_, 0]
     os.makedirs(a.out, exist_ok=True)
     rm.MOLANG_VARS["q.property('observer:stoop')"] = 1.0 if a.stoop else 0.0

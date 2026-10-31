@@ -369,6 +369,20 @@
           "volume": 1.0
         }
       ]
+    },
+    "observer.heartbeat": {
+      "category": "player",
+      "max_distance": 8,
+      "sounds": [
+        {
+          "name": "sounds/observer/heartbeat1",
+          "volume": 1.0
+        },
+        {
+          "name": "sounds/observer/heartbeat2",
+          "volume": 1.0
+        }
+      ]
     }
   }
 }

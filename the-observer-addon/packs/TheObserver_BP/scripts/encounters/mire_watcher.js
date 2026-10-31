@@ -12,6 +12,7 @@ import { register } from "../director/director.js";
 import * as body from "../observer/body.js";
 import { V, safe, rand, allPlayers } from "../core/util.js";
 import { visibility } from "../world/sight.js";
+import { hideSpot } from "../world/space.js";
 import { findSpotLoose, sighting, wantsLunge, lunge, standoff } from "./common.js";
 
 /** Placement asked for by a torn page (player id -> options), read once by prepare. */
@@ -55,7 +56,7 @@ register({
         { minDist: 8, maxDist: o.minDist, bearings: [180, 140, -140], spread: 35, concealment: "hidden", watchLOSIgnoringView: true, yMode, samples: 48 },
         { minDist: o.minDist, maxDist: o.maxDist + 6, bearings: [180, 140, -140], spread: 30, concealment: "hidden", yMode, samples: 40 },
       ])
-      : findSpotLoose(p, [
+      : hideSpot(p, { minDist: 16, maxDist: 40 }) ?? findSpotLoose(p, [
         { minDist: 20, maxDist: 48, concealment: "partial", needLOS: true, preferCover: true, yMode, samples: 48 },
         { minDist: 20, maxDist: 48, concealment: "any", needLOS: true, yMode: surface, samples: 48 },
         { minDist: 12, maxDist: 24, concealment: "partial", needLOS: true, preferCover: true, yMode, samples: 48 },
@@ -72,9 +73,9 @@ register({
     const spot = enc.data.spot;
     // walk within 9 blocks of it and it is gone
     enc.data.nearDist = 9;
-    // among the trees it peeks from behind a trunk when there is one
+    // among the weeping trees it hides behind a trunk and looks round it at you, when there is one
     const peek = enc.data.why === "ambient" && (spot.vis === 1 || spot.vis === 2);
-    if (!enc.spawnBody(spot.loc, { state: peek ? "peek" : "watch", stoop: spot.stoop, side: spot.side })) return enc.result("deferred");
+    if (!enc.spawnBody(spot.loc, { state: peek ? "peek" : "watch", stoop: spot.stoop, side: spot.side, hide: spot.hide })) return enc.result("deferred");
     enc.emit("mire", { what: "watcher", why: enc.data.why, los: enc.data.los });
     const life = Math.floor(rand(90, 180) * 20);
     for (let t = 0; t < life; t += 4) {

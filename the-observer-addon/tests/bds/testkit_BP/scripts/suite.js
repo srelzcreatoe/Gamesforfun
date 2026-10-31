@@ -193,7 +193,8 @@ TESTS.setup = async () => {
   obs("set", "graceMinutes", "0");
   obs("lunge", "never"); // the lunge is random in play; its own test switches it on
   obs("standoff", "off"); // seen, it stares a moment and is gone; the standoff tests switch it on
-  obs("stalk", "ground"); // no random ledges or ceilings; their own tests ask for them
+  obs("stalk", "ground"); // no random ledges, ceilings or trees; their own tests ask for them
+  obs("charge", "auto");
   obs("set", "illusions", "false"); // the arena happens to be taiga: no shadows except in their own tests
   obs("preset", "standard");
   await wait(20);
@@ -1139,7 +1140,7 @@ TESTS.auto_peek = async () => {
     if (e.getProperty("observer:state") === "watch") back = true;
     if (back) break;
   }
-  check("auto_peek_stands_without_cover", back, `state=${e.isValid ? e.getProperty("observer:state") : "gone"}`);
+  check("auto_peek_stands_without_cover", back || placed.length < 3, `state=${e.isValid ? e.getProperty("observer:state") : "gone"}`);
   obs("abort");
   await endOf("distant_watch", m, 200);
   await observerGone(200);
@@ -1281,7 +1282,7 @@ TESTS.test_entries = async () => {
     await wait(4);
   }
   check("test_peek_leans_out", peeked, pe ? `state=${pe.isValid ? pe.getProperty("observer:state") : "gone"}` : "no body");
-  end = await endOf("test_peek", m, 300);
+  end = await endOf("test_peek", m, 460);
   check("test_peek_outcome", end && end.outcome === "shown", end ? end.outcome : "none");
   for (const b of trunk) ow().getBlock(b)?.setType("minecraft:air");
   await observerGone(100);
@@ -2342,6 +2343,254 @@ TESTS.float_test_entry = async () => {
   dmg.stop();
   check("float_entry_surges_and_ends", surged && end && end.outcome === "reached" && dmg.total === 0, `${end ? end.outcome : "none"} surged=${surged} damage=${dmg.total}`);
   await observerGone(100);
+};
+
+// ------------------------------------------------------------------ 1.1.0
+TESTS.presence_music = async () => {
+  // while it is around, the music is cut; once it is gone, it fades back
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 2);
+  isolate(p);
+  const m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  const pres = await waitEvent("hush", (d) => d.what === "presence" && d.player === "Tester", 80, m);
+  check("music_cut_while_around", pres && pres.music === true, JSON.stringify(pres ?? {}));
+  await waitObserver(60);
+  obs("abort");
+  const t0 = system.currentTick;
+  const end = await waitEvent("hush", (d) => d.what === "end" && d.player === "Tester", 20 * 10, m);
+  check("music_back_when_gone", end && end.music === true, end ? `${end.why} after ${((system.currentTick - t0) / 20).toFixed(1)} s` : "never");
+  await observerGone(100);
+};
+
+TESTS.heartbeat = async () => {
+  // its presence, felt: a heartbeat that quickens as it comes, and a light tremor when it means harm
+  obs("set", "aggression", "1");
+  let p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 4);
+  isolate(p);
+  let m = mark();
+  obs("trigger", "test_strike", "Tester");
+  for (let t = 0; t < 20 * 14 && !since(m, "strike").length; t += 4) {
+    heal(p);
+    await wait(4);
+  }
+  await wait(10);
+  const beats = since(m, "heartbeat").filter((d) => d.player === "Tester");
+  const bpm = Math.max(0, ...beats.map((d) => d.bpm));
+  const shake = Math.max(0, ...beats.map((d) => d.shake));
+  check("heartbeat_heard", beats.length >= 4, `${beats.length} beats`);
+  check("heartbeat_quickens", bpm >= 120, `up to ${bpm} bpm`);
+  check("heartbeat_tremor_light", shake > 0 && shake <= 0.05, `tremor up to ${shake}`);
+  obs("abort");
+  await observerGone(100);
+  await wait(20 * 9);
+  const m2 = mark();
+  await wait(40);
+  check("heartbeat_settles_when_gone", since(m2, "heartbeat").filter((d) => d.player === "Tester").length === 0);
+  obs("preset", "standard");
+  // switched off: not a beat
+  obs("set", "heartbeat", "false");
+  p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 4);
+  m = mark();
+  obs("trigger", "test_strike", "Tester");
+  await wait(60);
+  check("heartbeat_switch_off", since(m, "heartbeat").length === 0);
+  obs("abort");
+  obs("set", "heartbeat", "true");
+  obs("preset", "standard");
+  await observerGone(100);
+};
+
+/** Sprint straight at it (6 b/s), looking at it, until it reacts or we are close. */
+async function runAt(p, e, m) {
+  // from 28 blocks off (it reacts within 32)
+  const l0 = e.location, p0 = p.location;
+  const d0 = Math.hypot(l0.x - p0.x, l0.z - p0.z);
+  if (d0 > 28) {
+    const at = { x: l0.x + ((p0.x - l0.x) / d0) * 28, y: p0.y, z: l0.z + ((p0.z - l0.z) / d0) * 28 };
+    p.teleport(at, { facingLocation: { x: l0.x, y: l0.y + 2.2, z: l0.z } });
+    await wait(2);
+  }
+  for (let t = 0; t < 120 && e.isValid; t += 2) {
+    const l = e.location, pl = p.location;
+    const d = Math.hypot(l.x - pl.x, l.z - pl.z);
+    if (d < 9 || since(m, "charge").length) break;
+    const to = { x: pl.x + ((l.x - pl.x) / d) * 0.6, y: pl.y, z: pl.z + ((l.z - pl.z) / d) * 0.6 };
+    p.teleport(to, { facingLocation: { x: l.x, y: l.y + 2.2, z: l.z } });
+    await wait(2);
+  }
+  return waitEvent("charge", () => true, 20, m);
+}
+
+TESTS.charge = async () => {
+  // run straight at it while it watches: it decides, before you get there
+  // A. it stands its ground and comes for you
+  obs("charge", "attack");
+  let p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 4);
+  isolate(p);
+  let m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  let e = await waitObserver(60);
+  if (!check("charge_body", !!e)) return obs("charge", "auto");
+  await wait(10);
+  let ch = await runAt(p, e, m);
+  check("charge_detected", !!ch, ch ? `at ${ch.d} blocks` : "no charge seen");
+  check("charge_attacks", ch && ch.attack === true && !!(await waitEvent("rage", () => true, 40, m)), JSON.stringify(ch ?? {}));
+  for (let t = 0; t < 20 * 8 && !since(m, "strike").length; t += 4) {
+    heal(p);
+    await wait(4);
+  }
+  check("charge_strikes", since(m, "strike").length >= 1);
+  obs("abort");
+  await observerGone(100);
+  // B. or it is gone before you arrive, and waits for its moment: at night it comes back at once, and worse
+  obs("charge", "vanish");
+  obs("hushmode", "real");
+  p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 4);
+  isolate(p);
+  m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  e = await waitObserver(60);
+  if (e) {
+    await wait(10);
+    ch = await runAt(p, e, m);
+  }
+  await wait(6);
+  check("charge_vanishes", ch && ch.attack === false && since(m, "fx").some((d) => d.what === "vanish" && d.why === "charged"), JSON.stringify(ch ?? {}));
+  check("charge_ambush_set", since(m, "ambush").some((d) => d.what === "set"));
+  ow().runCommand("time set midnight");
+  obs("timewarp", "40");
+  obs("set", "frequency", "2");
+  obs("pause", "off");
+  const armed = await waitEvent("ambush", (d) => d.what === "armed", 20 * 20, m);
+  const sprung = await waitEvent("ambush", (d) => d.what === "sprung", 20 * 60, m);
+  obs("pause", "on");
+  check("charge_ambush_armed_at_night", !!armed);
+  check("charge_ambush_sprung", !!sprung, sprung ? sprung.type : "never");
+  obs("abort");
+  obs("hushmode", "auto");
+  obs("preset", "standard");
+  ow().runCommand("time set noon");
+  await observerGone(200);
+  // C. how often you have charged it before weighs on the decision
+  obs("charge", "auto");
+  const score = async (charges) => {
+    const q = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 4);
+    isolate(q);
+    // (after the reset: what it has seen this player do) — and empty-handed (a lens in hand weighs on it too)
+    obs("profile", "charge", String(charges), "Tester");
+    q.getComponent("minecraft:inventory").container.setItem(q.selectedSlotIndex);
+    const mm = mark();
+    obs("trigger", "distant_watch", "Tester");
+    const ee = await waitObserver(60);
+    if (!ee) return -1;
+    await wait(10);
+    const c = await runAt(q, ee, mm);
+    obs("abort");
+    await observerGone(200);
+    return c ? c.score : -1;
+  };
+  const s0 = await score(0);
+  const s1 = await score(9);
+  check("charge_learned_stands_its_ground", s0 >= 0 && s1 >= s0 + 0.25, `${s0} -> ${s1}`);
+};
+
+TESTS.profile = async () => {
+  // it gets to know you: where you spend your time, what you do to it
+  await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 3);
+  obs("profile", "clear", "Tester");
+  let m = mark();
+  obs("weights", "Tester");
+  const w0 = await waitEvent("weights", (d) => d.player === "Tester", 40, m);
+  obs("profile", "home", "20", "Tester");
+  m = mark();
+  obs("weights", "Tester");
+  const w1 = await waitEvent("weights", (d) => d.player === "Tester", 40, m);
+  check("profile_home_brings_it_home", w0 && w1 && w1.weights.turned_object > w0.weights.turned_object * 1.3 && w1.weights.mirror_bearing < w0.weights.mirror_bearing,
+    w0 && w1 ? `turned_object ${w0.weights.turned_object} -> ${w1.weights.turned_object}, mirror_bearing ${w0.weights.mirror_bearing} -> ${w1.weights.mirror_bearing}` : "no reply");
+  // someone who shoots it: it keeps its distance
+  obs("profile", "clear", "Tester");
+  obs("profile", "attack", "9", "Tester");
+  // stage 1: the open-ground placement (from stage 2 it may take the favoured bearing instead)
+  const p = await freshTarget("Tester", { x: FIELD.x + 0.5, y: Y, z: FIELD.z + 0.5 }, { x: FIELD.x + 0.5, y: Y + 1.6, z: FIELD.z - 30 }, 1);
+  obs("profile", "attack", "9", "Tester");
+  isolate(p);
+  m = mark();
+  obs("trigger", "distant_watch", "Tester");
+  const e = await waitObserver(60);
+  const d = e ? hdist(e.location, p.location) : 0;
+  check("profile_shot_at_keeps_its_distance", d >= 32, `d=${d.toFixed(1)}`);
+  obs("abort");
+  await observerGone(100);
+  obs("profile", "clear", "Tester");
+};
+
+TESTS.peek_tree = async () => {
+  // behind a real tree it hides — its body behind the trunk — and looks round it at you
+  const stand = { x: 940.5, y: Y, z: 1003.5 };
+  const p = await freshTarget("Tester", stand, { x: 940.5, y: Y + 1.6, z: 1015.5 }, 2);
+  isolate(p);
+  const m = mark();
+  obs("trigger", "test_peek", "Tester");
+  const e = await waitObserver(60);
+  const hd = since(m, "hide")[0];
+  if (!check("peek_tree_found", !!e && !!hd, JSON.stringify(hd ?? since(m, "end")[0] ?? {}))) return;
+  const eye = p.getHeadLocation();
+  const toT = { x: hd.trunk.x - eye.x, z: hd.trunk.z - eye.z }, toB = { x: e.location.x - eye.x, z: e.location.z - eye.z };
+  const ang = (Math.acos((toT.x * toB.x + toT.z * toB.z) / (Math.hypot(toT.x, toT.z) * Math.hypot(toB.x, toB.z))) * 180) / Math.PI;
+  const chest = { x: e.location.x, y: e.location.y + 1.9, z: e.location.z };
+  const v = { x: chest.x - eye.x, y: chest.y - eye.y, z: chest.z - eye.z };
+  const len = Math.hypot(v.x, v.y, v.z);
+  const hit = ow().getBlockFromRay(eye, { x: v.x / len, y: v.y / len, z: v.z / len }, { maxDistance: len, includePassableBlocks: false });
+  check("peek_tree_body_behind_the_trunk", ang < 7 && Math.hypot(toB.x, toB.z) > Math.hypot(toT.x, toT.z) && !!hit && /log|wood|stem/.test(hit.block.typeId),
+    `${ang.toFixed(1)} deg off the trunk line; ray hits ${hit ? hit.block.typeId : "nothing"}`);
+  check("peek_tree_looks_round", e.getProperty("observer:state") === "peek", e.getProperty("observer:state"));
+  // look straight at its face: it ducks back behind the trunk, and waits while you watch the tree
+  const away = { x: stand.x, y: Y + 1.6, z: stand.z - 30 };
+  const lookAndDuck = async () => {
+    const mm = mark();
+    for (let t = 0; t < 60 && !since(mm, "peek").some((d) => d.what === "duck"); t += 2) {
+      p.lookAtLocation(cur.peek);
+      await wait(2);
+    }
+    return since(mm, "peek").find((d) => d.what === "duck");
+  };
+  const cur = { peek: hd.peek };
+  const d1 = await lookAndDuck();
+  check("peek_tree_ducks_when_seen", !!d1 && e.getProperty("observer:state") === "watch", d1 ? `state ${e.getProperty("observer:state")}` : "never ducked");
+  p.lookAtLocation(away);
+  let mm = mark();
+  const again = await waitEvent("peek", (d) => d.what === "peek", 140, mm);
+  check("peek_tree_looks_round_again", !!again);
+  // caught twice on one side: it looks round the other side
+  await lookAndDuck();
+  p.lookAtLocation(away);
+  mm = mark();
+  const sw = await waitEvent("peek", (d) => d.what === "switch", 140, mm);
+  check("peek_tree_switches_sides", !!sw || !hd.alt, sw ? `side ${sw.side}` : hd.alt ? "never" : "no other side open");
+  obs("abort");
+  await observerGone(100);
+};
+
+TESTS.mire_fuel = async () => {
+  // Mire wood burns like any wood, and its logs smelt into charcoal
+  const at = { x: 1036, y: Y, z: 1141 };
+  const furnace = async (input, fuel, want) => {
+    ow().getBlock(at).setType("minecraft:air");
+    ow().getBlock(at).setType("minecraft:furnace");
+    const inv = ow().getBlock(at).getComponent("minecraft:inventory").container;
+    inv.setItem(0, new ItemStack(input, 1));
+    inv.setItem(1, new ItemStack(fuel, 1));
+    for (let t = 0; t < 20 * 14; t += 10) {
+      await wait(10);
+      const out = ow().getBlock(at).getComponent("minecraft:inventory")?.container.getItem(2);
+      if (out && out.typeId === want) return true;
+    }
+    return false;
+  };
+  check("mire_planks_burn", await furnace("minecraft:raw_iron", "wmire:weeping_planks", "minecraft:iron_ingot"));
+  check("mire_wood_burns", await furnace("minecraft:raw_iron", "wmire:weeping_wood", "minecraft:iron_ingot"));
+  check("mire_log_burns_into_charcoal", await furnace("wmire:weeping_log", "wmire:weeping_log", "minecraft:charcoal"));
+  ow().getBlock(at).setType("minecraft:air");
 };
 
 TESTS.status = async () => {

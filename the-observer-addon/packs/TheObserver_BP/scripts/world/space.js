@@ -3,7 +3,8 @@
 // rejects unloaded chunks, solid/dangerous blocks, insufficient headroom, warded
 // areas and (optionally) liquid surfaces. findSpot() samples candidates around a
 // player and scores them by concealment, cover and distance.
-import { DANGER } from "../core/constants.js";
+import { BlockVolume } from "@minecraft/server";
+import { DANGER, TRUNKS, MIRE_TRUNKS } from "../core/constants.js";
 import { V, safe, dimIndex, rand, yawDelta } from "../core/util.js";
 import { W } from "../core/state.js";
 import { visibility, lineOfSight, bodyPoints } from "./sight.js";
@@ -104,8 +105,10 @@ export function coverSide(dim, feet, eye) {
     return false;
   };
   const left = solidAt(side), right = solidAt(V.scale(side, -1));
-  if (left && !right) return { side: -1, has: true, one: true };
-  if (right && !left) return { side: 1, has: true, one: true };
+  // side is the peek clip's lean: +1 leans toward -side, so it leans out away from the cover (1.1.0: it used to be
+  // the other way round, leaning into the cover)
+  if (left && !right) return { side: 1, has: true, one: true };
+  if (right && !left) return { side: -1, has: true, one: true };
   return { side: 1, has: left && right, one: false };
 }
 
@@ -254,6 +257,91 @@ export function corridorBehind(p, travelDir, minD = 3, maxD = 7) {
     }
     if (!enclosed || cells.length === 0 || cells.length > 10) continue;
     if (!best || cells.length < best.cells.length) best = { cells, center: c, dist: d };
+  }
+  return best;
+}
+
+/** Tree trunks (and the Weeping Mire's): what it hides behind. */
+const TRUNK_IDS = [...TRUNKS, ...MIRE_TRUNKS];
+const TRUNK_SET = new Set(TRUNK_IDS);
+const LOOK_THROUGH = /^minecraft:(air|short_grass|tall_grass|fern|large_fern|vine|.+_leaves)$|^wmire:(weeping_leaves|weeping_tendril)$/;
+
+/**
+ * Hiding behind a tree (1.1.0): a trunk at least three logs high, some 8-28 blocks off, and the spot straight behind
+ * it as the player sees it — where the trunk hides its body — with a side it can look round: its head, leaning about
+ * a block out at head height, in sight both ways. The other side too, if it is open (it switches sides when it keeps
+ * being caught on one). side follows the peek clip (+1 leans toward -sideVec; see coverSide).
+ * @param {Player} p @param {{minDist?:number, maxDist?:number, samples?:number}} [o]
+ * @returns {{loc:Vec, stoop:boolean, vis:number, side:number, score:number, liquid:boolean, hide:{trunk:Vec, side:number, peek:Vec, alt?:{loc:Vec, side:number, peek:Vec}}}|undefined}
+ */
+export function hideSpot(p, o = {}) {
+  const dim = p.dimension;
+  const eye = p.getHeadLocation();
+  const base = p.location;
+  const min = o.minDist ?? 8, max = o.maxDist ?? 28;
+  const isTrunk = (x, y, z) => TRUNK_SET.has(safe(() => dim.getBlock({ x, y, z })?.typeId, "") ?? "");
+  // every trunk within reach at about the player's height, in one query
+  const bx = Math.floor(base.x), by = Math.floor(base.y), bz = Math.floor(base.z);
+  /** @type {Map<number, {x:number, z:number, d:number}>} */
+  const cols = new Map();
+  const found = safe(() => dim.getBlocks(new BlockVolume({ x: bx - max, y: by - 1, z: bz - max }, { x: bx + max, y: by + 4, z: bz + max }), { includeTypes: TRUNK_IDS }, true));
+  if (found) {
+    for (const l of found.getBlockLocationIterator()) {
+      const k = l.x * 100003 + l.z;
+      if (cols.has(k)) continue;
+      const d = Math.hypot(l.x + 0.5 - base.x, l.z + 0.5 - base.z);
+      if (d >= min && d <= max) cols.set(k, { x: l.x, z: l.z, d });
+    }
+  }
+  const list = [...cols.values()].sort(() => Math.random() - 0.5).slice(0, o.samples ?? 40);
+  let best;
+  for (const { x, z, d } of list) {
+    let ty;
+    for (const dy of [1, 2, 0, 3, -1, 4]) if (isTrunk(x, Math.floor(base.y) + dy, z)) {
+      ty = Math.floor(base.y) + dy;
+      break;
+    }
+    if (ty === undefined) continue;
+    let bottom = ty, top = ty;
+    while (bottom > ty - 6 && isTrunk(x, bottom - 1, z)) bottom--;
+    while (top < ty + 8 && isTrunk(x, top + 1, z)) top++;
+    if (top - bottom + 1 < 3) continue;
+    const trunk = { x: x + 0.5, y: bottom, z: z + 0.5 };
+    const u = V.flat(V.sub(trunk, eye));
+    // straight behind it (one block more behind a thick trunk)
+    let st;
+    for (const k of [1.05, 2.05]) {
+      const hx = trunk.x + u.x * k, hz = trunk.z + u.z * k;
+      const s = standAt(dim, hx, hz, bottom + 2.5, 4);
+      if (!s || s.liquid || Math.abs(s.loc.y - bottom) > 1.1 || isTrunk(Math.floor(hx), Math.floor(s.loc.y) + 1, Math.floor(hz))) continue;
+      st = s;
+      break;
+    }
+    if (!st) continue;
+    // hidden there: the trunk stands between the player and its chest
+    if (lineOfSight(dim, eye, { x: st.loc.x, y: st.loc.y + 1.9, z: st.loc.z }).clear) continue;
+    const toEye = V.flat(V.sub(eye, st.loc));
+    const sideVec = { x: -toEye.z, y: 0, z: toEye.x };
+    const sides = [];
+    for (const s of [1, -1]) {
+      const lean = V.scale(sideVec, -s);
+      const head = { x: st.loc.x + lean.x * 1.0, y: st.loc.y + (st.stoop ? 2.5 : 3.4), z: st.loc.z + lean.z * 1.0 };
+      const cell = safe(() => dim.getBlock(head));
+      if (cell && !LOOK_THROUGH.test(cell.typeId)) continue;
+      if (!lineOfSight(dim, eye, head).clear || !lineOfSight(dim, head, eye).clear) continue;
+      // standing a touch away from the side it looks round, so its body stays behind the trunk and only its head,
+      // a shoulder and the hand on the bark come round the edge
+      const nudge = V.scale(sideVec, s * 0.06);
+      sides.push({ loc: { x: st.loc.x + nudge.x, y: st.loc.y, z: st.loc.z + nudge.z }, side: s, peek: head });
+    }
+    if (!sides.length) continue;
+    if (Math.random() < 0.5) sides.reverse();
+    const light = safe(() => dim.getLightLevel({ x: st.loc.x, y: st.loc.y + 1, z: st.loc.z }), 8) ?? 8;
+    const score = (15 - light) * 0.2 - Math.abs(d - (min + max) / 2) * 0.05 + rand(0, 1);
+    if (!best || score > best.score) {
+      best = { loc: sides[0].loc, stoop: st.stoop, vis: 1, side: sides[0].side, score, liquid: false,
+        hide: { trunk, side: sides[0].side, peek: sides[0].peek, alt: sides[1] } };
+    }
   }
   return best;
 }

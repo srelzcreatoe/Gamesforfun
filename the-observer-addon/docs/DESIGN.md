@@ -503,3 +503,29 @@ Three phases, in the user's design, built into the encounters that show it from 
 * **Exits.** It never walks away any more (`body.vanish`): when an encounter is over it holds a breath and is gone,
   torn apart where it stood.
 
+## 18. It knows you; its presence, felt (1.1.0)
+
+* **The music** (`hush.presence`, every second): while one of its encounters runs for a player, or its body is within
+  64 blocks of them, their music is replaced by a silent track; 3 s after it is gone the game's own music for their
+  dimension (`music.game`, `music.game.nether`, `music.game.end`) fades back in over 4 s. Per player; part of the
+  "The music stops while it is around" setting.
+* **The heartbeat** (`observer/dread.js`, every 2 ticks): a dread level per player — its body within 48 blocks
+  (more when unseen), any encounter of theirs (0.3+), a standoff (0.35 + anger/160), a dangerous encounter or an attack
+  (0.85), a pending silence (0.4) — rising quickly and settling slowly. From 0.18 a heartbeat only that player hears,
+  58–150 bpm; from 0.55 a positional camera shake on each beat of at most 0.025 (reduced) or 0.05 (full camera
+  effects), none with camera effects off. Setting "Heartbeat" (on).
+* **Running at it** (`observer/charge.js`, detected in `director.nearCheck`): attack (rage) or vanish and ambush; see
+  ENCOUNTERS.md.
+* **It knows you** (`observer/profile.js`): habits and per-encounter effectiveness, applied in the standoff, the
+  placements, the charge decision and the director's weights; shown in the Field Notes (*Lessons → It knows me*). All
+  of it is off with "It learns how you escape" off.
+* **Hiding behind trees** (`space.hideSpot`, `body.peekaboo`): see ENCOUNTERS.md. It stands straight behind the
+  trunk, a touch away from the side it looks round, so the trunk covers its body and only its head, a shoulder and
+  the hand on the bark come round the edge. The peek clip was rebuilt (hips shifted and waist bent so the head clears
+  the trunk, head held level and turned to the player, the near
+  hand gripping the trunk's edge beside its face, the other on the bark), and the gaze now counts its peeking head
+  (`sight.visibility` `points`), so it can be noticed while its body is hidden.
+* **The Weeping Mire's wood as fuel**: items with the blocks' own identifiers and `minecraft:block_placer`
+  `replace_block_item` (the block is still drawn as the icon) carry `minecraft:fuel` (15 s, like a log) and the vanilla
+  `minecraft:logs` / `minecraft:logs_that_burn` / `minecraft:planks` tags; Bone Root → 3 bone meal (shapeless).
+

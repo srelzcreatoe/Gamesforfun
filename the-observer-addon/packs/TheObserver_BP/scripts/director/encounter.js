@@ -227,7 +227,8 @@ export class Encounter {
     const l = body.loc();
     if (!l) return false;
     const b = body.get();
-    return this.gaze.update(players, l, !!b?.stoop, system.currentTick);
+    const pk = body.peekPoint();
+    return this.gaze.update(players, l, !!b?.stoop, system.currentTick, pk ? [pk] : undefined);
   }
 
   // ------------------------------------------------------------ manipulation (ledger-tagged with this encounter)

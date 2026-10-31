@@ -11,6 +11,7 @@ import { effectiveStage } from "../director/context.js";
 import { outrunBonus } from "../observer/learn.js";
 import * as climb from "../observer/climb.js";
 import * as squeeze from "../observer/squeeze.js";
+import * as profile from "../observer/profile.js";
 
 /** @typedef {import("../director/encounter.js").Encounter} Encounter */
 /** @typedef {{x:number,y:number,z:number}} Vec */
@@ -319,6 +320,7 @@ export function travelDir(p) {
 export async function standoff(enc, o = {}) {
   const p = enc.p;
   const gone = (why) => {
+    if (why === "looked_away") profile.note(p, "look_away");
     enc.emit("standoff", { what: "gone", why, anger: Math.round(enc.data.anger ?? 0) });
     if (o.gone) o.gone(why);
     else body.despawn("standoff");
@@ -332,6 +334,15 @@ export async function standoff(enc, o = {}) {
     return "gone";
   }
   const short = DEBUG.standoff === "short";
+  if (enc.data.reacting) {
+    // already charged at or walked up to: that reaction has it
+    await enc.until(() => !body.loc(), 200, 4);
+    return "gone";
+  }
+  // what it has learned of this player: someone who stares it down angers it sooner; someone who looks away, it
+  // closes on faster
+  const stareH = profile.habit(enc.s, "stare");
+  const awayH = profile.habit(enc.s, "look_away");
   enc.data.standoff = true;
   enc.data.anger = 0;
   enc.emit("standoff", { what: "start" });
@@ -357,7 +368,7 @@ export async function standoff(enc, o = {}) {
         away = 0;
         held += 4;
         // the longer and the closer the stare, the angrier it gets
-        enc.data.anger += (380 / Math.max(8, d)) * 0.2 * stageF;
+        enc.data.anger += (380 / Math.max(8, d)) * 0.2 * stageF * (1 + 0.6 * stareH);
         if (held % 60 === 0 && Math.random() < 0.6) await test(enc, d > keep + 3);
         else if (enc.data.anger > 55 && held % 20 === 0) {
           enc.worldSound("observer.crack", { x: l.x, y: l.y + 3, z: l.z }, 0.7);
@@ -371,7 +382,7 @@ export async function standoff(enc, o = {}) {
         if (short ? away >= 40 : t >= 120 && away >= 60 && Math.random() < 0.08) return gone("looked_away");
         // every time you look away, it is a little closer
         if (o.creep !== false && away % 20 === 0 && d > keep + 1.5 && !body.visibleTo(enc.watchers())) {
-          if (await creep(enc, l, d - keep)) creeps++;
+          if (await creep(enc, l, d - keep, 1 + 0.8 * awayH)) creeps++;
         }
       }
       if (enc.data.anger >= 100) {
@@ -391,7 +402,7 @@ export async function standoff(enc, o = {}) {
 async function test(enc, mayStep) {
   const l = body.loc();
   if (!l) return;
-  const r = Math.random();
+  const r = body.get()?.hide ? 0 : Math.random();
   if (r < 0.35) {
     enc.worldSound("observer.crack", { x: l.x, y: l.y + 3, z: l.z }, 0.8);
     enc.emit("standoff", { what: "test", how: "crack" });
@@ -415,8 +426,8 @@ async function test(enc, mayStep) {
   }
 }
 
-/** While unwatched: a little closer, 2-3.5 blocks (and down off a ceiling first). @returns {Promise<boolean>} */
-async function creep(enc, l, room) {
+/** While unwatched: a little closer, 2-3.5 blocks (more for a player it knows looks away; down off a ceiling first). @returns {Promise<boolean>} */
+async function creep(enc, l, room, bold = 1) {
   const p = enc.p;
   const b = body.get();
   if (!b) return false;
@@ -429,8 +440,10 @@ async function creep(enc, l, room) {
     enc.emit("standoff", { what: "creep", from: "ceiling" });
     return true;
   }
-  const stepLen = Math.min(room, rand(2, 3.5));
+  const stepLen = Math.min(room, rand(2, 3.5) * bold);
   if (stepLen < 1) return false;
+  // out from behind its tree
+  b.hide = undefined;
   const to = V.add(l, V.scale(V.flat(V.sub(p.location, l)), stepLen));
   const st = standNear(enc.dim, to.x, to.z, l.y);
   if (!st || V.dist(st.loc, l) < 1) return false;
@@ -450,6 +463,7 @@ async function creep(enc, l, room) {
 export async function provoke(enc) {
   const why = enc.data.provoked || "stare";
   enc.data.provoked = why;
+  profile.note(enc.p, why === "stare" ? "stare" : "attack");
   enc.emit("standoff", { what: "provoked", why });
   enc.result("provoked", true);
   const l = body.loc();

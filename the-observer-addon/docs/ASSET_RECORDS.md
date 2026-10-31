@@ -56,7 +56,9 @@ Merged into existing files: the Mire's entries in RP `blocks.json` and `textures
 names in `texts/en_US.lang` (under *Weeping Mire (merged)*). Its script (`scripts/main.js`) is ported by hand into
 `scripts/mire/mire.js`: wind, falling leaves and the eight torn pages, with the page texts unchanged. Not merged: its
 watcher mob (entity, spawn rule, client entity, model, animation, render controller and textures), whose part the
-Observer now plays, and its manifests, pack icons and pack names. Its black-mist particle uses the vanilla particle
+Observer now plays, and its manifests, pack icons and pack names. Added for the Mire (1.1.0, original): items
+`items/wmire_weeping_{log,wood,planks}.json` (the blocks as fuel, drawn as their blocks) and the recipe
+`recipes/wmire_bone_meal_from_bone_root.json`. Its black-mist particle uses the vanilla particle
 atlas (`textures/particle/particles`) by reference.
 
 ## Shipped resource files
@@ -78,6 +80,8 @@ atlas (`textures/particle/particles`) by reference.
 | `TheObserver_RP/sounds/observer/fabric1.ogg` | original — synthesized by tools/synth_sounds.py | `f3f3f201a0184bc3` |
 | `TheObserver_RP/sounds/observer/fabric2.ogg` | original — synthesized by tools/synth_sounds.py | `d486525c7fcd4ac9` |
 | `TheObserver_RP/sounds/observer/fabric3.ogg` | original — synthesized by tools/synth_sounds.py | `e69972ae68a613a6` |
+| `TheObserver_RP/sounds/observer/heartbeat1.ogg` | original — synthesized by tools/synth_sounds.py (1.1.0: the player's own heartbeat) | `e80c61cf35caa43b` |
+| `TheObserver_RP/sounds/observer/heartbeat2.ogg` | original — synthesized by tools/synth_sounds.py (1.1.0: the player's own heartbeat) | `520b19dd99b108e7` |
 | `TheObserver_RP/sounds/observer/hum.ogg` | original — synthesized by tools/synth_sounds.py | `2bdd47e2bd5a2358` |
 | `TheObserver_RP/sounds/observer/knock.ogg` | original — synthesized by tools/synth_sounds.py | `0de61b0c5460ac2a` |
 | `TheObserver_RP/sounds/observer/lens.ogg` | original — synthesized by tools/synth_sounds.py | `2074db49d4bd8e16` |
@@ -135,7 +139,7 @@ atlas (`textures/particle/particles`) by reference.
 | `TheObserver_RP/textures/particle/observer/wisp.png` | made by the user (supplied 2026-10-08) — shapes from source_assets/supplied_particles/wisp_sheet.png copied pixel-for-pixel into a grid (tools/integrate_particle_sheets.py) | `d6f06c5e60c01904` |
 | `TheObserver_BP/pack_icon.png` | derived — crop of supplied dweller_preview.png on a generated background (tools/make_textures.py) | `2529bdac03c514e1` |
 | `TheObserver_RP/animations/the_observer.animation.json` | supplied — hollow_dweller.animation.json, clip names renamed only | `3d684b6f10a5acc8` |
-| `TheObserver_RP/animations/the_observer_supplemental.animation.json` | original — tools/make_supplemental_anims.py (uses supplied bone names; 1.0.6 adds float_drift — calm, broken by one-frame twitches — float_surge, climb; 1.0.8 float_hang; 1.0.9 hang, crawl) | `b08af152fcf6f316` |
+| `TheObserver_RP/animations/the_observer_supplemental.animation.json` | original — tools/make_supplemental_anims.py (uses supplied bone names; 1.0.6 adds float_drift — calm, broken by one-frame twitches — float_surge, climb; 1.0.8 float_hang; 1.0.9 hang, crawl; 1.1.0 a new peek round a trunk) | `95e220083183e66e` |
 | `TheObserver_RP/models/blocks/effigy.geo.json` | original — tools/make_textures.py | `e85d1aee3108b4c0` |
 | `TheObserver_RP/models/blocks/ward_lantern.geo.json` | original — tools/make_textures.py | `fa03764ae1ebdcb9` |
 | `TheObserver_RP/models/entity/the_observer.geo.json` | supplied — hollow_dweller.geo.json, identifier renamed and two eye locators added (tools/integrate_supplied_assets.py asserts cubes/UVs unchanged) | `48b77f6164817a47` |

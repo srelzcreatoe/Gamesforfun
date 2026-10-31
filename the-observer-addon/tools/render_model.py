@@ -218,7 +218,17 @@ VIEWS = {
 }
 
 
-def render(model, anims, out, view="front", size=(360, 520), scale=7.0, label=None):
+def box_faces(lo, hi, col):
+    """The six faces of an axis-aligned box (model pixels), e.g. a tree trunk in front of it."""
+    lo, hi = np.array(lo, dtype=float), np.array(hi, dtype=float)
+    c = lambda i, j, k: np.array([(lo, hi)[i][0], (lo, hi)[j][1], (lo, hi)[k][2]])
+    quads = [[(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)], [(0, 0, 1), (1, 0, 1), (1, 1, 1), (0, 1, 1)],
+             [(1, 0, 0), (1, 0, 1), (1, 1, 1), (1, 1, 0)], [(0, 0, 0), (0, 0, 1), (0, 1, 1), (0, 1, 0)],
+             [(0, 1, 0), (1, 1, 0), (1, 1, 1), (0, 1, 1)], [(0, 0, 0), (1, 0, 0), (1, 0, 1), (0, 0, 1)]]
+    return [(np.array([c(*q) for q in quad]), np.array(col, dtype=float)) for quad in quads]
+
+
+def render(model, anims, out, view="front", size=(360, 520), scale=7.0, label=None, boxes=()):
     img = Image.new("RGB", size, (232, 232, 232))
     d = ImageDraw.Draw(img)
     yaw = math.radians(VIEWS[view])
@@ -227,7 +237,8 @@ def render(model, anims, out, view="front", size=(360, 520), scale=7.0, label=No
     light = np.array([0.4, 0.7, -0.6])
     light /= np.linalg.norm(light)
     polys = []
-    for pts, col in model.faces(anims):
+    props = [f for b in boxes for f in box_faces(*b)]
+    for pts, col in model.faces(anims) + props:
         p = (R @ pts.T).T
         n = np.cross(p[1] - p[0], p[3] - p[0])
         if np.linalg.norm(n) < 1e-9:

@@ -19,8 +19,8 @@ Minecraft imports both packs. Then:
    Weeping Mire, its home). To see the creature
    straight away, use the Config Wheel → **See it now**, or **Start it for me now** to skip the wait.
 
-**Updating from an earlier version:** import the new `.mcaddon` (version 1.0.9). If a world still uses the old copy, open the world's
-settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.0.9 packs again. Your
+**Updating from an earlier version:** import the new `.mcaddon` (version 1.1.0). If a world still uses the old copy, open the world's
+settings → *Behavior Packs* and *Resource Packs*, deactivate The Observer, then activate the 1.1.0 packs again. Your
 progress is kept; the new options below start switched on.
 
 **The Weeping Mire is part of The Observer now (1.0.7).** If a world also has the stand-alone *Weeping Mire* packs
@@ -44,6 +44,27 @@ still, it will come closer. How you respond matters — most encounters end peac
 When you do see it: a four-block figure wrapped in drifting, faintly glowing wisps, its two white eyes burning in the
 dark. It groans to itself when it is near. When it knows you have seen it there is a rattle of clicks and a crack —
 and from the second stage on it may shriek and come straight at you. When it leaves, it tears apart into crimson shreds.
+
+**When it is near.** Your music stops while it is around, and comes back, fading in, once it has gone. And you will
+hear your own heart: slow when it is barely there, racing when it is on you — even when you cannot see it. When it is
+close and means you harm, your view trembles with each beat (gently; "Camera effects" set to reduced halves it and
+"none" turns it off; the heartbeat itself can be switched off in the settings).
+
+**It hides behind trees.** Look along a line of trees and you may find it behind a trunk, only its head and a hand on
+the bark showing, its face turned to follow you. Look straight at it and it ducks back out of sight; it waits while
+you stare at the tree, and looks round again when you look away — from the other side, if it keeps getting caught on
+one.
+
+**Do not run at it.** If you sprint straight at it while it is watching, it decides before you get there. In the
+dark, when you are hurt, when you are alone, when it is already angry — and the more often you have tried this — it
+comes for you. Otherwise it is gone before you arrive, and it waits for its moment: the next time things favour it (at
+night, in a cave, when you are badly hurt) it comes back at once, with something worse.
+
+**It gets to know you.** Everything you do that it can see, it remembers, and each time it learns a little more:
+stare it down and it snaps sooner; look away and it comes further each time; shoot it and it keeps its distance behind
+cover; outrun it and the chase starts closer; never notice it and it comes closer and lets you hear it arrive. It
+learns where you spend your time and when, how much light you put down, and which of its tricks work on you. Field
+Notes → *Lessons* tells you what it knows about you. (Switch "It learns how you escape" off and it learns nothing.)
 
 **When you spot it.** It arrives without a sound and stands perfectly still — out in the open, on a ledge high above
 you, or, in caves, hanging upside down from the ceiling. It will not come for you while it is only watching. But once
@@ -80,6 +101,9 @@ it is already coming for you — in the chase or the sealed tunnel; while it is 
 sets it off.) Walk right up to it and it usually tears apart before
 you can touch it — but now and then it strikes first. On Low aggression it strikes once (never more than 70 % of
 your health while you are above half); on "Never attacks" and on Peaceful it never hurts you.
+
+**The Mire's wood** (logs, wood and planks) burns in a furnace like any other, its logs smelt into charcoal, and
+**Bone Root** crafts into three bone meal.
 
 **Its home is the Weeping Mire**, a swamp of black-barked weeping trees, bone roots and silt ponds under a black fog,
 where the wind gusts and leaves fall. It is never far from where a new world starts — often right beside it — but you
@@ -129,7 +153,7 @@ Players who are not operators only see the status and their own caption setting.
 | **Presets** | Atmosphere, Standard, Relentless |
 | **All settings** | frequency, aggression, environmental manipulation, sudden scares, camera effects, captions, grace period, world weather, developer tracing, taiga shadows, escape learning, the silence before attacks, pages you didn't write, returned items |
 | **Encounter toggles** | one switch per encounter type (with the stage it unlocks at); switched-off types are never chosen |
-| **Test an encounter** | starts something on you right now. First the single behaviours (red): **The Vigil (practice)** (three rounds, no reward, nothing recorded), **The Strike** (it floats at you and keeps attacking from the air until you die or drive it off — Low aggression: one strike), **The Lunge** (look at it and it comes at you), **Peeking from cover** (only beside a trunk or wall corner ahead of you; with nothing there it says so), **Taiga shadow** (the illusion, here anywhere), **Getting too close** (walk up to it), **The Flare** (it stares; throw a flare near it — you get one if you have none), **The world goes quiet** (20 s of silence, then nothing), **A page you didn't write** (one appears in your Field Notes now), **It returns what you threw away** (needs a home it knows: drop something and walk 10 blocks away), **The floating chase** (it floats at you and tears apart 3 blocks short), **Climbing after you** (stand on something 3+ blocks high: it climbs up to you, then lets go). Then every encounter. If the place is unsuitable it tells you what that one needs (for example, *The Closed Path* needs a tunnel at least 3 blocks high). Tests never count toward your story |
+| **Test an encounter** | starts something on you right now. First the single behaviours (red): **The Vigil (practice)** (three rounds, no reward, nothing recorded), **The Strike** (it floats at you and keeps attacking from the air until you die or drive it off — Low aggression: one strike), **The Lunge** (look at it and it comes at you), **Peeking from cover** (behind a tree within 20 blocks, or beside a wall corner ahead; with neither it says so), **Taiga shadow** (the illusion, here anywhere), **Getting too close** (walk up to it), **The Flare** (it stares; throw a flare near it — you get one if you have none), **The world goes quiet** (20 s of silence, then nothing), **A page you didn't write** (one appears in your Field Notes now), **It returns what you threw away** (needs a home it knows: drop something and walk 10 blocks away), **The floating chase** (it floats at you and tears apart 3 blocks short), **Climbing after you** (stand on something 3+ blocks high: it climbs up to you, then lets go). Then every encounter. If the place is unsuitable it tells you what that one needs (for example, *The Closed Path* needs a tunnel at least 3 blocks high). Tests never count toward your story |
 | **Undo its changes** | puts back every block it changed and ends whatever it is doing |
 | **Sound captions** | your own caption setting |
 

@@ -8,7 +8,7 @@ import * as body from "../observer/body.js";
 import { SOUNDS, ITEMS } from "../core/constants.js";
 import { V, safe } from "../core/util.js";
 import { aggression } from "../core/settings.js";
-import { findSpot, standNear, coverSide } from "../world/space.js";
+import { findSpot, standNear, coverSide, hideSpot } from "../world/space.js";
 import { lineOfSight } from "../world/sight.js";
 import { findSpotLoose, lunge, sighting, relentless } from "./common.js";
 import * as illusions from "../observer/illusions.js";
@@ -128,19 +128,28 @@ register({
   ...TEST,
   id: "test_peek",
   prepare(enc) {
-    // only beside real cover; with no trunk or wall corner ahead, it tells you so instead
-    const spot = peekSpot(enc.p);
+    // behind a real tree first (1.1.0), else beside a wall corner; with neither ahead, it tells you so instead
+    const spot = hideSpot(enc.p, { minDist: 5, maxDist: 20 }) ?? peekSpot(enc.p);
     if (!spot) return false;
     enc.data.spot = spot;
     return true;
   },
   async run(enc) {
     const spot = enc.data.spot;
-    if (!enc.spawnBody(spot.loc, { state: "peek", stoop: spot.stoop, side: spot.side, autoPeek: true })) return enc.result("deferred");
-    for (let t = 0; t < 20 * 10; t += 4) {
+    if (!enc.spawnBody(spot.loc, { state: "peek", stoop: spot.stoop, side: spot.side, autoPeek: true, hide: spot.hide })) return enc.result("deferred");
+    if (spot.hide) enc.emit("hide", { trunk: spot.hide.trunk, side: spot.side, peek: spot.hide.peek, x: spot.loc.x, y: spot.loc.y, z: spot.loc.z, alt: !!spot.hide.alt });
+    // behind a tree it plays it out: caught three times, or kept ducked for 6 s by a player staring at the tree, it
+    // slips away; beside a wall corner, looked at for 3 s
+    let ducked = 0;
+    for (let t = 0; t < 20 * 20; t += 4) {
       await enc.wait(4);
       enc.updateGaze();
-      if (enc.gaze.seenTicks >= 60) break; // looked at for 3 s: it slips away
+      const b = body.get();
+      const h = b?.hide;
+      if (h) {
+        ducked = b?.state === "watch" ? ducked + 4 : 0;
+        if ((h.caught["1"] ?? 0) + (h.caught["-1"] ?? 0) >= 3 || ducked >= 120) break;
+      } else if (enc.gaze.seenTicks >= 60) break;
     }
     safe(() => body.despawn("peek_done"));
     enc.result("shown");
