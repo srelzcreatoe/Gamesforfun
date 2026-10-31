@@ -174,6 +174,9 @@ EVENTS = [
     Ev('final.chime', rf.pa_chime, 1.9, stereo=True, cat='hostile', level=('peak', -3.0), fout=0.1),
     Ev('final.applause', rf.crowd_applause, 4.5, stereo=True, cat='hostile', level=('lufs', -20), fout=0.3),
     Ev('final.spot', rf.spot_on, 0.9, stereo=True, cat='hostile', level=('peak', -2.0), fout=0.1),
+    # --- storms on nights 5 and 6 -------------------------------------------------
+    Ev('storm.thunder', rf.storm_thunder, 6.0, variants=3, stereo=True, cat='weather', level=('peak', -1.5), fout=0.4),
+    Ev('storm.rain', rf.storm_rain, 12.0, stereo=True, loop=True, cat='weather', level=('lufs', -30)),
     # --- hallucinations / UI / music ---------------------------------------------
     Ev('hall.whisper', ro.hall_whisper, 2.0, stereo=True, cat='hostile', level=('peak', -4.0)),
     Ev('hall.sting', ro.hall_sting, 1.5, stereo=True, cat='hostile', level=('peak', -1.5), fout=0.15),

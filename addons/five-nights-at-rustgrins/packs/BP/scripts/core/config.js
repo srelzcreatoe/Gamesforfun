@@ -9,6 +9,8 @@
 export const TPS = 20;
 export const LAST_NIGHT = 6;
 export const CUSTOM_NIGHT = 7;
+/** The secret night after the Final Act: the Rusted one takes Rustgrin's place. */
+export const ENCORE_NIGHT = 8;
 export const CAST = Object.freeze(['mirehop', 'noxbriar', 'rustgrin', 'cat', 'purple_rat', 'top_hat_rat']);
 export const CAST_NAMES = Object.freeze({
   mirehop: 'Mirehop', noxbriar: 'Noxbriar', rustgrin: 'Rustgrin', cat: 'the Cat', purple_rat: 'Purple Rat', top_hat_rat: 'the Ringmaster',
@@ -20,7 +22,7 @@ export const CONFIG = Object.freeze({
   power: Object.freeze({
     start: 100000,
     // passive drain per tick by night (FNAF-style: later nights drain faster even when idle)
-    base: Object.freeze({ 0: 2, 1: 2, 2: 2.6, 3: 3, 4: 3.3, 5: 4.0, 6: 2.6, 7: 2.0 }),
+    base: Object.freeze({ 0: 2, 1: 2, 2: 2.6, 3: 3, 4: 3.3, 5: 4.0, 6: 2.6, 7: 2.0, 8: 2.6 }),
     door: 7, // per closed door, per tick (one door shut for an hour = 11.2 %)
     light: 5, // per lit hall light
     cams: 3, // monitor up
@@ -189,6 +191,9 @@ export const CONFIG = Object.freeze({
     // The Final Act: the Ringmaster runs the night; the others are his marionettes (they only move on his cue).
     6: Object.freeze({ title: 'The Final Act', ai: { mirehop: 0, noxbriar: 0, rustgrin: 0, cat: 0, purple_rat: 0, top_hat_rat: 20 }, activation: {}, ramp: false, phone: 0, tape: false, final: true, hallucinations: 0.006 }),
     7: Object.freeze({ title: 'Custom Night', ai: { mirehop: 5, noxbriar: 5, rustgrin: 5, cat: 5, purple_rat: 5, top_hat_rat: 5 }, activation: { top_hat_rat: 1200 }, ramp: false, phone: 0, tape: true, hallucinations: 0.004 }),
+    // Encore: Rustgrin's place is taken by the Rusted one (same rules, worse company), and the
+    // "he was never there" visits come far more often.
+    8: Object.freeze({ title: 'Encore', ai: { mirehop: 9, noxbriar: 9, rustgrin: 8, cat: 8, purple_rat: 8, top_hat_rat: 0 }, activation: { purple_rat: 600 }, ramp: true, phone: 0, tape: true, hallucinations: 0.012, encore: true, rustedChance: 6 }),
   }),
 
   // Custom Night presets (all 0..20).
@@ -204,7 +209,23 @@ export const CONFIG = Object.freeze({
   // Rare "Rusted Rustgrin" event: when the monitor goes down there is this chance (nights >= 2)
   // that a slumped, rusted Rustgrin sits in the office. Raise the monitor within `window` ticks.
   rusted: Object.freeze({ chance: 0.0008, window: 50, fromNight: 3 }),
+
+  // Cheats and challenges (Extras), applied to any night as `mods`.
+  mods: Object.freeze({
+    fast: 0.5, // fast nights: hours this much shorter
+    doorJam: 2, // door power multiplier
+    tapeRot: 2, // show tape drain multiplier
+  }),
 });
+
+/** Extras > Challenges: a fixed night (Custom Night rules) with one twist; beating it earns a trophy. */
+export const CHALLENGES = Object.freeze([
+  Object.freeze({ id: 'lights_out', title: 'Lights Out', text: 'The hall lights are broken. Listen for them.', mods: Object.freeze({ lightsOut: true }) }),
+  Object.freeze({ id: 'tape_rot', title: 'Tape Rot', text: 'The show tape winds down twice as fast.', mods: Object.freeze({ tapeRot: true }) }),
+  Object.freeze({ id: 'door_jam', title: 'Door Jam', text: 'The doors use twice the power.', mods: Object.freeze({ doorJam: true }) }),
+  Object.freeze({ id: 'blind', title: 'Blind Spot', text: 'No camera map. Scroll through the cameras with the hotbar.', mods: Object.freeze({}), blind: true }),
+]);
+export const CHALLENGE_AI = Object.freeze({ mirehop: 10, noxbriar: 10, rustgrin: 6, cat: 10, purple_rat: 10, top_hat_rat: 0 });
 
 /** Effective night definition with optional overrides (custom night / debug). */
 export function nightDef(n, overrides = {}) {

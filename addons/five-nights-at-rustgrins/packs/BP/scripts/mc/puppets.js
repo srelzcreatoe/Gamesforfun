@@ -30,6 +30,13 @@ export class Puppets {
     /** @type {Record<string, { path: number[][], cum: number[], len: number, dur: number, t: number, yaw: number }>} */
     this.walks = {};
     this.props = {}; // last set property values (avoid redundant network traffic)
+    /** id -> the model it wears tonight (the Encore: Rustgrin's part is played by the Rusted one) */
+    this.skin = {};
+  }
+
+  /** Entity type for a puppet id, honouring tonight's skins. */
+  typeOf(id) {
+    return ENTITY_ID[this.skin[id] ?? id];
   }
 
   get(id) {
@@ -37,7 +44,8 @@ export class Puppets {
     if (e?.isValid) return e;
     // re-acquire an existing puppet (world reload) or spawn a new one
     try {
-      const found = dim().getEntities({ type: ENTITY_ID[id], tags: [TAG] });
+      // each puppet carries its id as a tag too: two puppets may share a model (the Encore)
+      const found = dim().getEntities({ type: this.typeOf(id), tags: [TAG, `${TAG}_${id}`] });
       if (found.length) {
         for (const extra of found.slice(1)) extra.remove();
         this.ents[id] = found[0];
@@ -55,8 +63,9 @@ export class Puppets {
     let e = this.get(id);
     try {
       if (!e) {
-        e = dim().spawnEntity(ENTITY_ID[id], W(local.x, local.y, local.z));
+        e = dim().spawnEntity(this.typeOf(id), W(local.x, local.y, local.z));
         e.addTag(TAG);
+        e.addTag(`${TAG}_${id}`);
         this.ents[id] = e;
         this.props[id] = {};
       }
@@ -95,8 +104,9 @@ export class Puppets {
     if (!n) return undefined;
     try {
       if (!e) {
-        e = dim().spawnEntity(ENTITY_ID[id], W(n.x, n.y, n.z));
+        e = dim().spawnEntity(this.typeOf(id), W(n.x, n.y, n.z));
         e.addTag(TAG);
+        e.addTag(`${TAG}_${id}`);
         this.ents[id] = e;
         this.props[id] = {};
       }

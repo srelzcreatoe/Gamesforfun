@@ -27,6 +27,10 @@ export function defaultSave() {
     stars: 0, // 1 = the week (night 5), 2 = the Final Act, 3 = showstopper
     showstopper: false,
     hungUp: false, // the guard hung up on the Ringmaster's last call
+    seenJs: [], // jumpscares seen (Extras > Jumpscares)
+    endings: [], // endings seen
+    trophies: [], // challenges beaten
+    cheats: { fast: false, infinitePower: false, radar: false, noRusted: false },
     custom: { mirehop: 5, noxbriar: 5, rustgrin: 5, cat: 5, purple_rat: 5, top_hat_rat: 5 },
     settings: defaultSettings(),
   };
@@ -59,6 +63,10 @@ export function loadSave() {
     ...s,
     beaten: Array.isArray(s.beaten) ? s.beaten.filter((n) => Number.isInteger(n)) : [],
     custom: { ...d.custom, ...(s.custom || {}) },
+    cheats: { ...d.cheats, ...(s.cheats || {}) },
+    seenJs: Array.isArray(s.seenJs) ? s.seenJs : [],
+    endings: Array.isArray(s.endings) ? s.endings : [],
+    trophies: Array.isArray(s.trophies) ? s.trophies : [],
     settings: { ...d.settings, ...(s.settings || {}) },
   };
 }

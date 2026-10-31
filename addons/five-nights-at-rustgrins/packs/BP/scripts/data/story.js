@@ -197,6 +197,15 @@ export const ENDINGS = Object.freeze({
       ['§6ENCORE', 'The show goes on.'],
     ]),
   }),
+  curtain_call: Object.freeze({
+    title: 'CURTAIN CALL',
+    lines: Object.freeze([
+      ['§f6 AM', 'The Rusted one sits down on the edge of the stage... and stops.'],
+      [' ', 'Inside the old suit there is nothing. There never was.'],
+      [' ', '"Thank you for staying, {name}. Everyone else left at intermission."'],
+      ['§6CURTAIN CALL', 'The show is finally over.'],
+    ]),
+  }),
   showstopper: Object.freeze({
     title: 'SHOWSTOPPER',
     lines: Object.freeze([
@@ -221,6 +230,10 @@ export const GUIDE = Object.freeze([
   ['The Ringmaster', 'He stands on his own stage, the Grand Marquee (CAM 1C, once Kitty\'s Cabaret), and calls the office every night. He does not move. Not yet.'],
   ['The Final Act', 'Night 6 belongs to the Ringmaster. ACT I: he sends one performer at a time with a 10-second warning, so shut the right door or vent in time. ACT II: do what he asks before his timer runs out. ACT III: he walks to your office and no door stops him. Find him on a camera and press SPOTLIGHT to drive him back a step.'],
   ['Custom Night', 'After the Final Act: set each animatronic from 0 to 20. With the Ringmaster above 0, he walks to your office all night long; keep the SPOTLIGHT ready. Beat all six at 20 for the third star.'],
+  ['Free Roam', 'The pizzeria by day. A live show starts every few minutes (watch the countdown), and the animatronics talk to you when you walk up and look at them. Use the Time Card to clock in: the guests leave, the lights go out, and the night shift begins.'],
+  ['Storms', 'Nights 5 and 6 come with a storm. Thunder can hide the sounds you listen for, every flash of lightning lights the halls for a moment, and each strike makes the power flicker.'],
+  ['Co-op', 'Anyone else in the world during a shift becomes the camera operator: they wait in the Staff Room with a Camera Tablet, watch the cameras on their own, and press WARN GUARD to tell the guard which camera to check. Their cameras cost no power.'],
+  ['Extras', 'The EXTRAS button on the time clock wall: replay the jumpscares you have seen, pose the cast in the Gallery, play every track in the Sound Test, and (later) cheats and challenges with trophies. Cheats switch off stars and trophies for that night.'],
 ]);
 
 /** Shown at the start of a night (hints on) and on the game-over screen. */
@@ -243,6 +256,13 @@ export const KILL_TIPS = Object.freeze({
   purple_rat: 'The Purple Rat dropped through a vent. Seal the vent his maracas are rattling above.',
   top_hat_rat: 'Doors do not stop the Ringmaster. Find him on the cameras and press SPOTLIGHT.',
   rusted: 'He was never there. Raise the monitor the moment you see him.',
+  encore: 'The Rusted one plays Rustgrin\'s part: he moves only when nobody is watching. Keep the right door shut while you are on the cameras.',
+});
+
+/** The secret Encore night: offered by the Rusted one in the Gallery once the Final Act is beaten. */
+export const ENCORE = Object.freeze({
+  offer: Object.freeze(['§4ENCORE?', 'The old suit lifts its head. "One more show, {name}. Just for you."']),
+  card: Object.freeze(['§4ENCORE', '§7One more show']),
 });
 
 /** Free Roam: what each animatronic says when a guest walks up to it (daytime, between shows). */

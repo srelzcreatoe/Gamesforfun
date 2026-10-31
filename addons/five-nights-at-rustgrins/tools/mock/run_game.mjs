@@ -379,6 +379,63 @@ say('night 5 takeover -> the Final Act');
   check(mock.titles.some(([t]) => /THE END/.test(t)), 'the Final Act ending plays');
   check(game().save.stars >= 2 && game().save.beaten.includes(6), `the Final Act earns the second star (stars ${game().save.stars})`);
 }
+// 6f. storms, co-op, Extras, challenges and the Encore -----------------------------------------
+{
+  // night 5 storms: thunder, the halls flash, the power dips
+  debug('night', '5');
+  await steps(5);
+  check(mock.sounds.includes('fnar.storm.rain'), 'night 5 has rain on the roof');
+  const pw = game().session.power;
+  game().storm.next = mock.tick + 1;
+  await steps(3);
+  check(mock.sounds.includes('fnar.storm.thunder') && game().session.power < pw, 'thunder rolls and the power flickers');
+  // a second player during the shift is the camera operator
+  const Q = driver.addPlayer('Buddy', { x: 0.5, y: -60, z: 0.5 });
+  world.afterEvents.playerSpawn.fire({ player: Q, initialSpawn: true });
+  await steps(15);
+  check(game().ops.has(Q.id) && Q.inventory[4]?.typeId === 'fnar:tablet' && Q.gameMode === 'Adventure', 'a second player becomes the camera operator with a tablet');
+  answer((f) => f._title.startsWith(MAP_MARK) && /WARN GUARD/.test(f.buttons.at(-1) ?? ''), (f) => ({ canceled: false, selection: f.buttons.length - 1 }));
+  world.afterEvents.itemUse.fire({ source: Q, itemStack: { typeId: 'fnar:tablet' } });
+  let opView = false;
+  await waitFor(() => { opView ||= Q.cameraState === 'free'; return (P.lastMessage ?? '').includes('[Operator] Buddy'); }, 40, 'the operator warning the guard');
+  check(opView && !game().session.devices.cams.open, "the operator's cameras are their own (the guard's monitor stays down)");
+  debug('lobby');
+  await steps(5);
+  check(Q.cameraState === 'default', "the operator's view is restored after the shift");
+  Q.isValid = false;
+  // Extras: the Sound Test, then a challenge
+  game().save.beaten = [1, 2, 3, 4, 5];
+  answer(titleHas('EXTRAS'), (f) => ({ canceled: false, selection: f.buttons.findIndex((b) => b.startsWith('Sound Test')) }));
+  answer(titleHas('SOUND TEST'), (f) => ({ canceled: false, selection: 1 }));
+  answer(titleHas('EXTRAS'), (f) => ({ canceled: false, selection: f.buttons.findIndex((b) => b.startsWith('Challenges')) }));
+  answer(titleHas('CHALLENGES'), () => ({ canceled: false, selection: 0 }));
+  answer(titleHas('LIGHTS OUT'), () => ({ canceled: false, selection: 1 }));
+  push('extras');
+  await waitFor(() => game().state === 'NIGHT', 200, 'the Lights Out challenge');
+  check(mock.sounds.includes('fnar.music.showtime') && game().nightLabel === 'Challenge: Lights Out', `the Sound Test plays and the challenge starts (${game().nightLabel})`);
+  check(game().session.input('light_l').reason === 'lights_out', 'Lights Out: the hall lights do not work');
+  answer(titleHas('COMPLETE'), () => ({ canceled: false, selection: 1 }));
+  debug('win');
+  await waitFor(() => game().state === 'LOBBY', 600, 'the lobby after the challenge');
+  check(game().save.trophies.includes('lights_out'), 'beating a challenge earns its trophy');
+  // the Encore: after the Final Act the Rusted one waits in the Gallery
+  game().save.beaten = [1, 2, 3, 4, 5, 6];
+  game().enterLobby();
+  await steps(3);
+  const rusted = [...mock.entities.values()].find((e) => e.typeId === 'fnar:rusted');
+  check(!!rusted, 'the Rusted one waits in the Gallery after the Final Act');
+  answer(titleHas('ENCORE'), () => ({ canceled: false, selection: 1 }));
+  P.teleport({ x: rusted.location.x + 2.5, y: rusted.location.y, z: rusted.location.z }, { rotation: { x: 10, y: 90 } });
+  await waitFor(() => game().state === 'NIGHT' && game().nightOpts.n === 8, 60, 'the Encore night');
+  await steps(5);
+  check([...mock.entities.values()].some((e) => e.typeId === 'fnar:rusted' && e.tags.has('fnar_puppet_rustgrin')), "in the Encore the Rusted one plays Rustgrin's part");
+  answer(titleHas('COMPLETE'), () => ({ canceled: false, selection: 1 }));
+  debug('win');
+  await waitFor(() => game().state === 'LOBBY', 1200, 'the lobby after the Encore');
+  check(game().save.endings.includes('curtain_call') && mock.titles.some(([t]) => /CURTAIN CALL/.test(t)), 'the Encore ends with Curtain Call');
+  say('storms, co-op, Extras, a challenge and the Encore ok');
+}
+
 // 7. custom night: showstopper ---------------------------------------------------------------
 debug('unlock');
 await steps(2);

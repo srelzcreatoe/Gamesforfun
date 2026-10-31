@@ -43,17 +43,17 @@ export const CAM_FORM_MARK = '§k§r§k§r§m';
  * | { kind: 'dismissed', reason } | undefined.
  */
 /** @param {import('@minecraft/server').Player} player */
-export async function cameraMapForm(player, snap, body = '') {
+export async function cameraMapForm(player, snap, body = '', { operator = false } = {}) {
   const live = snap.devices.cam;
-  const action = live === '8' && snap.tape ? 'wind' : spotlightReady(snap) ? 'spotlight' : 'wind';
+  const action = operator ? 'ping' : live === '8' && snap.tape ? 'wind' : spotlightReady(snap) ? 'spotlight' : 'wind';
   // The resource pack reads only the title (live camera + which action label to show) and the body
   // (the status lines); the buttons are invisible hit areas over the printed map.
   const idx = String(Math.max(0, CAMERAS.findIndex((c) => c.id === live))).padStart(2, '0');
-  const code = action === 'spotlight' ? 's' : live === '8' && snap.tape ? 'w' : 'x';
+  const code = action === 'ping' ? 'p' : action === 'spotlight' ? 's' : live === '8' && snap.tape ? 'w' : 'x';
   const f = new ActionFormData().title(`${CAM_FORM_MARK}§${idx[0]}§${idx[1]}§${code}`).body(body || (CAMERA_BY_ID[live]?.label ?? ''));
   for (const c of CAMERAS) f.button(c.id);
   f.button('LOWER');
-  f.button(action === 'spotlight' ? 'SPOTLIGHT' : 'PLAY SHOW');
+  f.button(action === 'ping' ? 'WARN GUARD' : action === 'spotlight' ? 'SPOTLIGHT' : 'PLAY SHOW');
   let r;
   try {
     r = await f.show(player);
@@ -244,6 +244,35 @@ export async function timeCardForm(player, save) {
   const r = await show(player, f);
   if (!r || r.canceled || r.selection === undefined || r.selection >= items.length) return undefined;
   return items[r.selection][0];
+}
+
+/**
+ * A simple list: resolves to the chosen value or undefined.
+ * @param {import('@minecraft/server').Player} player
+ * @param {[string, string][]} options [value, label]
+ */
+export async function pickForm(player, title, body, options, close = '§cBack') {
+  const f = new ActionFormData().title(title).body(body);
+  for (const [, label] of options) f.button(label);
+  f.button(close);
+  const r = await show(player, f);
+  if (!r || r.canceled || r.selection === undefined || r.selection >= options.length) return undefined;
+  return options[r.selection][0];
+}
+
+/** Extras > Cheats. Resolves to the new cheat set or undefined. */
+/** @param {import('@minecraft/server').Player} player */
+export async function cheatsForm(player, c) {
+  const f = new ModalFormData()
+    .title('§lCHEATS')
+    .toggle('Fast nights (hours are half as long)', { defaultValue: !!c.fast })
+    .toggle('Infinite power', { defaultValue: !!c.infinitePower })
+    .toggle('Radar (where everyone is, on the status line)', { defaultValue: !!c.radar })
+    .toggle('No visits from the Rusted one', { defaultValue: !!c.noRusted });
+  const r = await show(player, f);
+  if (!r || r.canceled || !r.formValues) return undefined;
+  const [fast, infinitePower, radar, noRusted] = r.formValues;
+  return { fast: !!fast, infinitePower: !!infinitePower, radar: !!radar, noRusted: !!noRusted };
 }
 
 /** First join on a world without the map. Resolves to 'build' | 'later'. */

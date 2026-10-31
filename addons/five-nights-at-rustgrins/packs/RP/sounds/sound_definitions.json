@@ -669,6 +669,28 @@
         }
       ]
     },
+    "fnar.storm.thunder": {
+      "category": "weather",
+      "sounds": [
+        {
+          "name": "sounds/fnar/storm/thunder1"
+        },
+        {
+          "name": "sounds/fnar/storm/thunder2"
+        },
+        {
+          "name": "sounds/fnar/storm/thunder3"
+        }
+      ]
+    },
+    "fnar.storm.rain": {
+      "category": "weather",
+      "sounds": [
+        {
+          "name": "sounds/fnar/storm/rain"
+        }
+      ]
+    },
     "fnar.hall.whisper": {
       "category": "hostile",
       "sounds": [

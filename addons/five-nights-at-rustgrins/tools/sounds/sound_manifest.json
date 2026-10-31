@@ -1077,6 +1077,47 @@
     -2.05
    ]
   },
+  "fnar.storm.thunder": {
+   "files": [
+    "sounds/fnar/storm/thunder1.ogg",
+    "sounds/fnar/storm/thunder2.ogg",
+    "sounds/fnar/storm/thunder3.ogg"
+   ],
+   "duration": 6.0,
+   "source": "synthesised",
+   "channels": 2,
+   "loop": false,
+   "positional": false,
+   "category": "weather",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -1.54,
+    -1.64,
+    -1.61
+   ]
+  },
+  "fnar.storm.rain": {
+   "files": [
+    "sounds/fnar/storm/rain.ogg"
+   ],
+   "duration": 12.0,
+   "source": "synthesised",
+   "channels": 2,
+   "loop": true,
+   "positional": false,
+   "category": "weather",
+   "max_distance": null,
+   "note": "",
+   "peaks_db": [
+    -18.39
+   ],
+   "seam_prefade": {
+    "step": 2.458,
+    "hf": 1.017,
+    "hf_p99": 1.507
+   }
+  },
   "fnar.hall.whisper": {
    "files": [
     "sounds/fnar/hall/whisper.ogg"

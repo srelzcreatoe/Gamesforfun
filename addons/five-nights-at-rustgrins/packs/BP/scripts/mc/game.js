@@ -10,14 +10,14 @@
 
 import { system, world, GameMode, ItemStack, ItemLockMode, HudVisibility, HudElement, InputButton, ButtonState, WeatherType } from '@minecraft/server';
 import { NightSession } from '../core/session.js';
-import { CONFIG, CAST, CAST_NAMES, LAST_NIGHT, CUSTOM_NIGHT } from '../core/config.js';
+import { CONFIG, CAST, CAST_NAMES, LAST_NIGHT, CUSTOM_NIGHT, ENCORE_NIGHT, CHALLENGES, CHALLENGE_AI } from '../core/config.js';
 import { Rng } from '../core/rng.js';
 import { generatePlan } from '../data/build_plan.js';
-import { OFFICE, LOBBY, SPAWN_OUTSIDE, LOT } from '../data/layout.js';
+import { OFFICE, LOBBY, SPAWN_OUTSIDE, LOT, ROOM_BY_ID } from '../data/layout.js';
 import { NODES } from '../data/nodes.js';
-import { CAMERA_BY_ID, CAMERA_ORDER } from '../data/cameras.js';
+import { CAMERA_BY_ID, CAMERA_ORDER, CAMS_FOR_NODE } from '../data/cameras.js';
 import { LOBBY_BUTTON_AT, STAR_SLOTS } from '../data/lobby.js';
-import { CALLS, HUNG_UP, TAKEOVER, FINAL, ENDINGS, TUTORIAL_HINTS, KILL_TIPS, DAY_TALK, CREEPY_TALK, SHOW_PA, CLOSING_PA } from '../data/story.js';
+import { CALLS, HUNG_UP, TAKEOVER, FINAL, ENDINGS, TUTORIAL_HINTS, KILL_TIPS, DAY_TALK, CREEPY_TALK, SHOW_PA, CLOSING_PA, ENCORE } from '../data/story.js';
 import { Builder } from './builder.js';
 import { Puppets, yawToward } from './puppets.js';
 import { Actuators } from './actuators.js';
@@ -56,6 +56,16 @@ const SHOW_SPOTS = Object.freeze({ rustgrin: 'ST_R', mirehop: 'ST_M', noxbriar: 
 const POSE_ANIM = Object.freeze({ idle: 'idle', pose: 'pose', perform: 'perform', stand: 'stand', peek: 'peek', crawl: 'crawl', walk: 'walk', run: 'run', scurry: 'scurry', slump: 'slump' });
 /** Free Roam schedule (ticks): a live show every few minutes, announced on the PA. */
 const SHOW = Object.freeze({ firstIn: 500, every: 2800, announce: 400, length: 960, bow: 70, stare: 90, adEvery: 1300 });
+/** Where the Rusted one waits in the Gallery once the Final Act is beaten (the way into the Encore). */
+const ENCORE_SPOT = Object.freeze({ x: 1.8, y: 0, z: 45.5, yaw: -90 });
+/** Storms on these nights: rain on the roof, thunder, lightning through the halls, power flickers. */
+const STORM_NIGHTS = Object.freeze([5, 6, 8]);
+/** Extras > Sound Test (music: played as a music track, so the music volume slider applies). */
+const SOUND_TEST = Object.freeze([
+  { label: 'Title theme', id: 'fnar.music.title' }, { label: "The band's song", id: 'fnar.music.showtime' }, { label: "The Midway's waltz", id: 'fnar.tophat.show' },
+  { label: "Rustgrin's music box", id: 'fnar.rustgrin.song' }, { label: 'Ending', id: 'fnar.music.ending' }, { label: 'Background music', id: 'fnar.music.bgm', music: true },
+  { label: 'The PA chime', id: 'fnar.final.chime' }, { label: 'A jumpscare', id: 'fnar.js.mirehop' }, { label: "The Rusted one's scream", id: 'fnar.js.rusted' }, { label: 'Thunder', id: 'fnar.storm.thunder' },
+]);
 /** Each character's "voice" when it talks to a guest in Free Roam. */
 const VOICE = Object.freeze({
   rustgrin: 'fnar.rustgrin.laugh', mirehop: 'fnar.mirehop.strum', noxbriar: 'fnar.noxbriar.hum',
@@ -91,6 +101,7 @@ export class Game {
     this.session = null;
     this.guardId = null;
     this.nightLabel = '';
+    /** @type {{ n: number, ai?: Record<string, number>, challenge?: string, mods?: Record<string, boolean>, cheats?: boolean } | null} */
     this.nightOpts = null;
     this.camForm = null;
     /** last control click { key, tick }: the custom component and the interact event both report one click */
@@ -101,6 +112,13 @@ export class Game {
     this.overlay = false;
     /** Free Roam state (shows, talking); null outside Free Roam */
     this.roam = null;
+    /** co-op camera operators during a night: player id -> { view, cam, form } */
+    this.ops = new Map();
+    /** tonight's storm: { next } or null */
+    this.storm = null;
+    /** the Sound Test's playing sound, so Stop can stop it */
+    this.soundTestInst = null;
+    this.encoreAsked = 0;
     /** @type {number | undefined} interval that flashes Rustgrin's eyes during the power-out song */
     this.flashEyes = undefined;
     /** The Ringmaster's PA (Final Act / Custom Night): lines still to say, and when the next may start. */
@@ -366,11 +384,87 @@ export class Game {
       return;
     }
     if (this.state === 'NIGHT') {
-      if (player.id !== this.guardId) this.makeSpectator(player);
+      if (player.id !== this.guardId) system.runTimeout(() => this.makeOperator(player), 10);
       return;
     }
     if (this.state === 'LOBBY' || this.state === 'LOBBY_PENDING') system.runTimeout(() => this.toLobbySpot(player), 10);
     if (this.state === 'FREE_ROAM') system.runTimeout(() => this.toFreeRoam(player), 10);
+  }
+
+  /**
+   * Co-op: another player during a shift is the camera operator. They wait in the Staff Room with a
+   * tablet, watch the cameras on their own (no power) and can warn the guard.
+   * @param {import('@minecraft/server').Player} p
+   */
+  makeOperator(p) {
+    try {
+      p.setGameMode(GameMode.Adventure);
+      p.teleport(W(LOBBY.spawn.x, LOBBY.spawn.y, LOBBY.spawn.z), { rotation: { x: 0, y: LOBBY.spawn.yaw } });
+      const inv = p.getComponent('minecraft:inventory')?.container;
+      if (inv) {
+        inv.clearAll();
+        const st = new ItemStack('fnar:tablet', 1);
+        st.lockMode = ItemLockMode.slot;
+        inv.setItem(NEUTRAL_SLOT, st);
+        p.selectedSlotIndex = NEUTRAL_SLOT;
+      }
+      p.sendMessage('§b[FNaR] You are the camera operator. §7Use the tablet to watch the cameras, and press §bWARN GUARD§7 to tell the guard where to look.');
+      this.ops.set(p.id, { view: new CameraView(), cam: '1A', form: null });
+    } catch (e) {
+      log.warn(`operator: ${e?.message ?? e}`);
+    }
+  }
+
+  /** @param {import('@minecraft/server').Player} p */
+  operatorToggle(p) {
+    const op = this.ops.get(p.id);
+    if (!op || this.state !== 'NIGHT') return;
+    if (op.view.active) {
+      op.form = null;
+      ui.closeForms(p);
+      op.view.close();
+      restorePlayerView(p);
+      return;
+    }
+    op.view.open(p, op.cam);
+    const form = { open: true };
+    op.form = form;
+    const live = () => op.form === form && this.state === 'NIGHT' && op.view.active && p.isValid;
+    const loop = async () => {
+      await wait(4);
+      while (live()) {
+        const snap = this.session.snapshot();
+        const cam = CAMERA_BY_ID[op.cam];
+        const body = `§b${cam?.label ?? ''}\n§7Camera operator §8| §f${hourLabel(snap.hour)} §8| §7guard's power §f${snap.powerPct}%`;
+        const r = await ui.cameraMapForm(p, { ...snap, devices: { ...snap.devices, cam: op.cam } }, body, { operator: true });
+        if (!live()) break;
+        if (!r || r.kind === 'busy') {
+          await wait(10);
+          continue;
+        }
+        if (r.kind === 'cam') {
+          op.cam = r.id;
+          op.view.show(r.id);
+          continue;
+        }
+        if (r.kind === 'ping') {
+          const g = this.guard();
+          if (g) {
+            this.audio.play('fnar.cam.glitch', null, g, { vol: 0.5, pitch: 1.4 });
+            this.hud.setMessage(`Operator ${p.name}: check ${cam?.label?.split(' · ')[0] ?? 'the cameras'}!`, system.currentTick, 70);
+            g.sendMessage(`§b[Operator] ${p.name}: §fcheck ${cam?.label ?? 'the cameras'}!`);
+          }
+          continue;
+        }
+        break; // LOWER or closed
+      }
+      if (op.form === form) {
+        op.form = null;
+        op.view.close();
+        restorePlayerView(p);
+      }
+    };
+    loop().catch((e) => log.warn(`operator map: ${e?.message ?? e}`));
   }
 
   /** @param {import('@minecraft/server').Player} p */
@@ -437,11 +531,191 @@ export class Game {
       this.puppets.anim(id, 'pose');
       this.puppets.eyes(id, false);
     }
+    // once the Final Act is beaten, the Rusted one waits in a corner of the Gallery
+    if (this.save.beaten.includes(6)) {
+      this.puppets.spawnAt('rusted', ENCORE_SPOT, ENCORE_SPOT.yaw, 'slump');
+      this.puppets.eyes('rusted', false);
+    }
     this.updateStars();
     for (const p of this.players()) this.toLobbySpot(p);
     this.audio.stopAll();
     this.stopBgm();
     this.sweepMobs();
+  }
+
+  /** The Gallery: look at the Rusted one up close and he offers the Encore. */
+  tickEncoreOffer(now) {
+    if (!this.save.beaten.includes(6) || now < this.encoreAsked) return;
+    const pos = this.puppets.positionOf('rusted');
+    if (!pos) return;
+    for (const p of this.players()) {
+      let view;
+      let eye;
+      try {
+        view = p.getViewDirection();
+        eye = p.getHeadLocation();
+      } catch {
+        continue;
+      }
+      const v = { x: pos.x - eye.x, y: pos.y + 1.2 - eye.y, z: pos.z - eye.z };
+      const d = Math.hypot(v.x, v.y, v.z);
+      if (Math.hypot(v.x, v.z) > 3.5 || (v.x * view.x + v.y * view.y + v.z * view.z) / d < 0.8) continue;
+      this.encoreAsked = now + 400;
+      this.puppets.eyes('rusted', true);
+      const e = this.puppets.get('rusted');
+      if (e) this.headToward('rusted', e, pos, eye);
+      this.audio.play('fnar.hall.whisper', null, p, { vol: 0.8, pitch: 0.7 });
+      void ui.confirm(p, ENCORE.offer[0], fill(ENCORE.offer[1], { name: p.name }), '§4Clock in', 'Walk away').then((ok) => {
+        if (ok && this.state === 'LOBBY') this.startNight(p, ENCORE_NIGHT);
+        else if (this.state === 'LOBBY') {
+          this.puppets.eyes('rusted', false);
+          this.puppets.look('rusted', 0, 0);
+        }
+      });
+      return;
+    }
+  }
+
+  // ================================================================ extras
+  /** @param {import('@minecraft/server').Player} p */
+  async extras(p) {
+    const s = this.save;
+    for (;;) {
+      if (this.state !== 'LOBBY') return;
+      const seen = s.seenJs.length;
+      const trophies = this.trophies();
+      const a = await ui.pickForm(p, '§lEXTRAS', 'Everything you have unlocked so far.', [
+        ['jumpscares', `Jumpscares §7(${seen}/7)`],
+        ['cast', 'The Cast'],
+        ['sound', 'Sound Test'],
+        ['cheats', s.beaten.includes(6) ? `Cheats${Object.values(s.cheats).some(Boolean) ? ' §c(on)' : ''}` : '§8Cheats §7(beat the Final Act)'],
+        ['challenges', s.beaten.includes(5) ? 'Challenges' : '§8Challenges §7(reach the end of Night 5)'],
+        ['trophies', `Trophies §7(${trophies.filter((t) => t[1]).length}/${trophies.length})`],
+      ], '§cClose');
+      if (!a) return;
+      if (a === 'jumpscares') {
+        if (!seen) {
+          await ui.messageBox(p, '§lJUMPSCARES', 'Nothing to see yet. Every animatronic that catches you shows up here.');
+          continue;
+        }
+        const ids = [...CAST, 'rusted'].filter((id) => s.seenJs.includes(id));
+        const id = await ui.pickForm(p, '§lJUMPSCARES', 'Pick one. Brace yourself.', ids.map((x) => [x, x === 'rusted' ? 'The Rusted one' : CAST_NAMES[x].replace(/^the /, 'The ')]));
+        if (id) return void this.previewJumpscare(p, id);
+        continue;
+      }
+      if (a === 'cast') {
+        const id = await ui.pickForm(p, '§lTHE CAST', 'Pick a performer, then a pose. They stand in the Gallery behind you.', CAST.map((x) => [x, CAST_NAMES[x].replace(/^the /, 'The ')]));
+        if (!id) continue;
+        await ui.galleryInfo(p, id);
+        const pose = await ui.pickForm(p, `§l${CAST_NAMES[id].toUpperCase()}`, 'Make them...', [['pose', 'Stand on stage'], ['perform', 'Perform'], ['perform2', 'Perform (2)'], ['wave', 'Wave'], ['bow', 'Take a bow'], ['walk', 'Walk'], ['crawl', 'Crawl'], ['peek', 'Peek']]);
+        if (pose) {
+          this.puppets.anim(id, pose);
+          const g = GALLERY[id];
+          try {
+            p.teleport(W(g.x, 0, g.z + (g.yaw === 0 ? 6 : -6)), { facingLocation: W(g.x, 2.5, g.z) });
+          } catch {
+            // ignore
+          }
+        }
+        return;
+      }
+      if (a === 'sound') {
+        /** @type {[string, string][]} */
+        const tracks = SOUND_TEST.map((t, i) => [String(i), t.label]);
+        const pick = await ui.pickForm(p, '§lSOUND TEST', 'Every track and a few of the worse sounds.', [...tracks, ['stop', '§cStop']]);
+        if (!pick) continue;
+        this.stopSoundTest(p);
+        if (pick !== 'stop') {
+          const t = SOUND_TEST[Number(pick)];
+          try {
+            if (t.music) p.playMusic(t.id, { loop: false, volume: 0.8 });
+            else this.soundTestInst = p.playSound(t.id, { volume: 0.9 });
+          } catch (e) {
+            log.warn(`sound test: ${e?.message ?? e}`);
+          }
+        }
+        continue;
+      }
+      if (a === 'cheats') {
+        if (!s.beaten.includes(6)) continue;
+        const c = await ui.cheatsForm(p, s.cheats);
+        if (c) {
+          s.cheats = c;
+          storeSave(s);
+          if (Object.values(c).some(Boolean)) p.sendMessage('§e[FNaR] Cheats on: nights still count, but no stars or trophies while they are on.');
+        }
+        continue;
+      }
+      if (a === 'challenges') {
+        if (!s.beaten.includes(5)) continue;
+        const id = await ui.pickForm(p, '§lCHALLENGES', 'A full night with a twist. Beat it for a trophy.', CHALLENGES.map((c) => [c.id, `${s.trophies.includes(c.id) ? '§a✔ ' : ''}${c.title}`]));
+        const c = CHALLENGES.find((x) => x.id === id);
+        if (!c) continue;
+        if (await ui.confirm(p, `§l${c.title.toUpperCase()}`, c.text, 'Clock in')) return void this.startNight(p, CUSTOM_NIGHT, { ai: { ...CHALLENGE_AI }, challenge: c.id, mods: { ...c.mods } });
+        continue;
+      }
+      if (a === 'trophies') {
+        await ui.messageBox(p, '§lTROPHIES', trophies.map(([t, ok]) => `${ok ? '§a✔' : '§8✖'} §f${t}`).join('\n'));
+      }
+    }
+  }
+
+  /** [title, earned] for the Trophies page. */
+  trophies() {
+    const s = this.save;
+    return [
+      ['The week: reach the end of Night 5', s.beaten.includes(5)],
+      ['The Final Act', s.endings.includes('final_act') || s.beaten.includes(6)],
+      ['Showstopper: 20/20/20/20/20/20', !!s.showstopper],
+      ['Curtain Call: survive the Encore', s.endings.includes('curtain_call')],
+      ['Seen every jumpscare', s.seenJs.length >= 7],
+      ...CHALLENGES.map((c) => [`Challenge: ${c.title}`, s.trophies.includes(c.id)]),
+    ];
+  }
+
+  /** @param {import('@minecraft/server').Player} p */
+  stopSoundTest(p) {
+    try {
+      this.soundTestInst?.stop();
+    } catch {
+      // already over
+    }
+    this.soundTestInst = null;
+    try {
+      p.stopMusic();
+    } catch {
+      // ignore
+    }
+  }
+
+  /** Extras > Jumpscares: replay one in the Staff Room. */
+  /** @param {import('@minecraft/server').Player} p */
+  async previewJumpscare(p, id) {
+    this.state = 'EXTRAS';
+    this.focusOn(p, true);
+    const pid = id === 'rusted' ? 'rusted' : id;
+    try {
+      const eye = p.getHeadLocation();
+      const rot = p.getRotation();
+      const yawRad = (rot.y * Math.PI) / 180;
+      const fwd = { x: -Math.sin(yawRad), z: Math.cos(yawRad) };
+      const pos = { x: eye.x + fwd.x * JUMPSCARE_DIST, y: eye.y - (JUMPSCARE_EYE_Y[pid] ?? 2.6), z: eye.z + fwd.z * JUMPSCARE_DIST };
+      this.puppets.jumpscareAt(pid, L(pos), (rot.y + 180) % 360);
+      p.camera.setCamera('minecraft:free', { location: eye, facingLocation: { x: pos.x, y: eye.y - 0.1, z: pos.z } });
+      p.playSound(`fnar.js.${pid}`, { volume: 1.0 });
+    } catch (e) {
+      log.warn(`jumpscare preview: ${e?.message ?? e}`);
+    }
+    await wait(34);
+    try {
+      p.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0.1, holdTime: 0.6, fadeOutTime: 0.6 } });
+    } catch {
+      // ignore
+    }
+    await wait(10);
+    restorePlayerView(p);
+    this.focusOn(p, false);
+    this.enterLobby();
   }
 
   /** @param {import('@minecraft/server').Player} p */
@@ -510,6 +784,8 @@ export class Game {
         if (!n.music) this.audio.stopAll();
         return undefined;
       }
+      case 'extras':
+        return this.extras(p);
       case 'erase':
         if (await ui.confirm(p, '§lERASE PROGRESS', 'Erase every night, star and setting? This cannot be undone.', '§cErase')) {
           this.save = defaultSave();
@@ -806,16 +1082,25 @@ export class Game {
   /**
    * @param {any} player the guard
    * @param {number} n night (1..6, 7 = custom)
-   * @param {{ ai?: Record<string, number> }} [opts]
+   * @param {{ ai?: Record<string, number>, challenge?: string, mods?: Record<string, boolean> }} [opts]
    */
   startNight(player, n, opts = {}) {
     this.stopNight();
     this.state = 'NIGHT';
     this.guardId = player.id;
-    this.nightOpts = { n, ...opts };
-    this.nightLabel = n === CUSTOM_NIGHT ? 'Custom Night' : n === 6 ? 'The Final Act' : `Night ${n}`;
+    this.nightOpts = { n, ...opts, cheats: false };
+    const challenge = CHALLENGES.find((c) => c.id === opts.challenge);
+    this.nightLabel = challenge ? `Challenge: ${challenge.title}` : n === CUSTOM_NIGHT ? 'Custom Night' : n === 6 ? 'The Final Act' : n === ENCORE_NIGHT ? 'Encore' : `Night ${n}`;
     const seed = this.save.settings.deterministic ? this.save.settings.seed * 31 + n : undefined;
-    this.session = new NightSession(n, { seed, ai: opts.ai });
+    // cheats (Extras) apply to every night while they are on; a challenge brings its own twist
+    const c = this.save.cheats;
+    const mods = { ...(opts.mods || {}), ...(c.fast ? { fast: true } : {}), ...(c.infinitePower ? { infinitePower: true } : {}), ...(c.noRusted ? { noRusted: true } : {}) };
+    this.nightOpts.cheats = Object.values(c).some(Boolean);
+    this.session = new NightSession(n, { seed, ai: opts.ai, mods });
+    // tonight's skins: in the Encore the Rusted one plays Rustgrin's part
+    this.puppets.removeAll();
+    this.puppets.skin = n === ENCORE_NIGHT ? { rustgrin: 'rusted' } : {};
+    this.storm = STORM_NIGHTS.includes(n) ? { next: system.currentTick + 400 + this.rng.int(0, 600) } : null;
     this.applyRules();
     try {
       world.setTimeOfDay(18000);
@@ -835,9 +1120,10 @@ export class Game {
     this.paChimed = false;
     this.booth = { at: 'CAB', anim: 'pose', next: system.currentTick + 900 + this.rng.int(0, 900), seen: 0 };
     this.sweepMobs();
+    this.ops.clear();
     for (const p of this.players()) {
       if (p.id === this.guardId) continue;
-      this.makeSpectator(p);
+      this.makeOperator(p);
     }
     try {
       restorePlayerView(player);
@@ -846,7 +1132,8 @@ export class Game {
       player.teleport(W(s.x, s.y, s.z), { rotation: { x: 0, y: s.yaw } });
       player.onScreenDisplay.setHudVisibility(HudVisibility.Hide, NIGHT_HUD);
       player.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0, holdTime: 1.0, fadeOutTime: 1.5 } });
-      player.onScreenDisplay.setTitle('§f12 AM', { fadeInDuration: 10, stayDuration: 60, fadeOutDuration: 20, subtitle: `${n === 6 ? '§4' : '§7'}${this.nightLabel}` });
+      if (n === ENCORE_NIGHT) player.onScreenDisplay.setTitle(ENCORE.card[0], { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 20, subtitle: ENCORE.card[1] });
+      else player.onScreenDisplay.setTitle('§f12 AM', { fadeInDuration: 10, stayDuration: 60, fadeOutDuration: 20, subtitle: `${n === 6 ? '§4' : '§7'}${this.nightLabel}` });
       this.giveItems(player, 'night');
       this.startBgm(player);
     } catch (e) {
@@ -857,7 +1144,8 @@ export class Game {
     this.audio.loop('office', 'fnar.amb.office', 'office', null, 0.6);
     this.audio.loop('fan', 'fnar.amb.fan', 'desk', null, 0.5);
     this.audio.loop('building', 'fnar.amb.building', null, player, 0.5);
-    log.info(`start ${this.nightLabel}${opts.ai ? ` ${JSON.stringify(opts.ai)}` : ''}`);
+    if (this.storm) this.audio.loop('rain', 'fnar.storm.rain', null, player, 0.7);
+    log.info(`start ${this.nightLabel}${opts.ai ? ` ${JSON.stringify(opts.ai)}` : ''}${Object.keys(mods).length ? ` mods ${Object.keys(mods).join(',')}` : ''}`);
   }
 
   /** Tear down a night's world state (no result shown). */
@@ -882,6 +1170,17 @@ export class Game {
     this.phoneSeq = null;
     this.paQueue = [];
     this.booth = null;
+    this.storm = null;
+    for (const [id, op] of this.ops) {
+      const p = this.players().find((x) => x.id === id);
+      op.form = null;
+      op.view.close();
+      if (p) {
+        ui.closeForms(p);
+        restorePlayerView(p);
+      }
+    }
+    this.ops.clear();
     for (const p of this.players()) {
       try {
         if (p.getGameMode() === GameMode.Spectator) p.setGameMode(GameMode.Adventure);
@@ -912,6 +1211,11 @@ export class Game {
       this.audio.tick();
       if (now % 100 === 0) for (const p of this.players()) p.onScreenDisplay.setActionBar('§7Press a button on the §fTIME CLOCK§7 wall to start a shift.');
       if (now % 200 === 0) this.sweepMobs();
+      if (now % 10 === 0) this.tickEncoreOffer(now);
+      return;
+    }
+    if (this.state === 'EXTRAS') {
+      this.puppets.tick();
       return;
     }
     if (this.state !== 'NIGHT' && this.state !== 'JUMPSCARE' && this.state !== 'ENDING') return;
@@ -936,6 +1240,8 @@ export class Game {
     }
     if (this.state !== 'NIGHT') return;
     this.act.tickFlicker(this.rng);
+    this.tickStorm(g, now);
+    for (const op of this.ops.values()) if (op.view.active) op.view.tick(null);
     this.tickPhone(g, now);
     this.tickPa(g, now);
     this.tickBooth(g, now);
@@ -945,7 +1251,7 @@ export class Game {
     if (now % 10 === 0) this.keepInOffice(g);
     if (now % 4 === 0) {
       const snap = s.snapshot();
-      const overlay = this.save.settings.debugOverlay ? `§8${s.debugLine()}` : null;
+      const overlay = this.save.settings.debugOverlay ? `§8${s.debugLine()}` : this.save.cheats.radar ? this.radarLine() : null;
       let hint = null;
       if (this.cams.active) {
         if (spotlightReady(snap)) hint = this.camForm ? 'Find the Ringmaster on a camera, then press SPOTLIGHT' : 'Find the Ringmaster, then use the Office Remote: SPOTLIGHT';
@@ -979,7 +1285,8 @@ export class Game {
     try {
       // the title is only formatting codes (invisible); the resource pack draws the camera-feed
       // look and the map from it (just the look when the map is switched off in Settings)
-      const code = !camId ? MAP_OFF : this.save.settings.camMap === false ? FX_ON : mapTitle(camId);
+      const noMap = this.save.settings.camMap === false || this.nightOpts?.challenge === 'blind';
+      const code = !camId ? MAP_OFF : noMap ? FX_ON : mapTitle(camId);
       g.onScreenDisplay.setTitle(code, { fadeInDuration: 0, stayDuration: camId ? 100 : 1, fadeOutDuration: 0 });
     } catch {
       // ignore
@@ -1194,7 +1501,7 @@ export class Game {
   // ---------------------------------------------------------------- the clickable camera map
   /** @param {import('@minecraft/server').Player} g */
   startCamForm(g) {
-    if (this.camForm || this.save.settings.camCursor === false) return;
+    if (this.camForm || this.save.settings.camCursor === false || this.nightOpts?.challenge === 'blind') return;
     const form = { open: true, busy: 0 };
     this.camForm = form;
     const live = () => this.camForm === form && this.state === 'NIGHT' && !!this.session?.devices.cams.open;
@@ -1294,6 +1601,10 @@ export class Game {
       ui.officeRemote(player, this.session.snapshot()).then((a) => {
         if (a && this.session && this.state === 'NIGHT') this.feedback(this.session.input(a));
       });
+      return;
+    }
+    if (id === 'fnar:tablet' && this.state === 'NIGHT' && this.ops.has(player.id)) {
+      this.operatorToggle(player);
       return;
     }
     if (id === 'fnar:tablet') {
@@ -1467,6 +1778,50 @@ export class Game {
     if (this.paQueue.length > 4) this.paQueue.splice(0, this.paQueue.length - 4);
   }
 
+  // ---------------------------------------------------------------- storms
+  /**
+   * Nights 5, 6 and the Encore: thunder rolls, lightning lights both halls for a moment (a glimpse of
+   * whoever is there), the office lamp stutters, the power dips and a camera feed tears.
+   * @param {import('@minecraft/server').Player} g
+   */
+  tickStorm(g, now) {
+    const st = this.storm;
+    const s = this.session;
+    if (!st || !s || now < st.next) return;
+    st.next = now + 500 + this.rng.int(0, 700);
+    if (s.powerOut) return;
+    this.audio.play('fnar.storm.thunder', null, g, { vol: 0.9 + this.rng.next() * 0.1 });
+    const d = s.devices;
+    this.act.hallLight('L', true);
+    this.act.hallLight('R', true);
+    this.act.officeLamp(false);
+    s.drainPower(500);
+    if (d.cams.open) s.staticOn([d.cams.cam], 16);
+    system.runTimeout(() => {
+      if (this.session !== s || this.state !== 'NIGHT') return;
+      this.act.hallLight('L', s.devices.lightL);
+      this.act.hallLight('R', s.devices.lightR);
+    }, 5);
+    system.runTimeout(() => {
+      if (this.session === s && this.state === 'NIGHT' && !s.powerOut) this.act.officeLamp(true);
+    }, 3 + this.rng.int(0, 6));
+    if (this.save.settings.captions) this.hud.setCaption('thunder - the lights flicker', now, 60);
+  }
+
+  /** The Radar cheat: where everyone is, as camera numbers. */
+  radarLine() {
+    const s = this.session;
+    if (!s) return null;
+    const parts = [];
+    for (const c of Object.values(s.chars)) {
+      if (!c.active || !c.node) continue;
+      const cam = CAMS_FOR_NODE[c.node]?.[0];
+      const name = (this.puppets.skin[c.id] === 'rusted' ? 'Rusted' : CAST_NAMES[c.id].replace(/^the /, '')).split(' ')[0];
+      parts.push(`${name} §f${cam ? `CAM ${cam}` : c.walk ? '...' : c.node}`);
+    }
+    return parts.length ? `§bRADAR §7${parts.join(' §8| §7')}` : null;
+  }
+
   // ---------------------------------------------------------------- the booth (nights 1-5)
   /**
    * The Ringmaster never leaves his booth before the Final Act, but on nights 3-5 he is
@@ -1623,19 +1978,24 @@ export class Game {
     this.hud.setSpeech('', system.currentTick, 0);
     this.focusOn(g, true);
     const id = who;
+    const look = this.puppets.skin[who] ?? who; // the model (and scream) actually on stage tonight
+    if (!this.save.seenJs.includes(look)) {
+      this.save.seenJs.push(look);
+      storeSave(this.save);
+    }
     try {
       const eye = g.getHeadLocation();
       const rot = g.getRotation();
       const yawRad = (rot.y * Math.PI) / 180;
       const fwd = { x: -Math.sin(yawRad), z: Math.cos(yawRad) };
       const dist = JUMPSCARE_DIST;
-      const head = JUMPSCARE_EYE_Y[id] ?? 2.6;
+      const head = JUMPSCARE_EYE_Y[look] ?? 2.6;
       const pos = { x: eye.x + fwd.x * dist, y: eye.y - head, z: eye.z + fwd.z * dist };
       const facing = (rot.y + 180) % 360;
       this.puppets.jumpscareAt(id, L(pos), facing);
       g.addEffect('invisibility', 200, { amplifier: 0, showParticles: false });
       g.camera.setCamera('minecraft:free', { location: eye, facingLocation: { x: pos.x, y: eye.y - 0.1, z: pos.z } });
-      g.playSound(`fnar.js.${id}`, { volume: 1.0 });
+      g.playSound(`fnar.js.${look}`, { volume: 1.0 });
       runCmd(`camerashake add @a[name="${g.name}"] 0.7 1.4 rotational`);
     } catch (e) {
       log.warn(`jumpscare: ${e?.message ?? e}`);
@@ -1655,7 +2015,7 @@ export class Game {
     const res = await ui.resultForm(g, {
       won: false,
       label: this.nightLabel,
-      tip: KILL_TIPS[who] ?? TUTORIAL_HINTS[Math.min(7, Math.max(1, n))],
+      tip: (n === ENCORE_NIGHT && who === 'rustgrin' ? KILL_TIPS.encore : KILL_TIPS[who]) ?? TUTORIAL_HINTS[Math.min(7, Math.max(1, n))],
     });
     this.afterResult(res, g, false);
   }
@@ -1696,26 +2056,33 @@ export class Game {
     } catch {
       // ignore
     }
-    // progress
+    // progress (cheats keep the nights counting but award no stars or trophies)
+    const cheats = !!this.nightOpts.cheats;
     let ending = null;
     if (n >= 1 && n <= LAST_NIGHT) {
       if (!s.beaten.includes(n)) s.beaten.push(n);
       if (n < 5) s.next = Math.max(s.next, n + 1);
-      if (n === 5) s.stars = Math.max(s.stars, 1);
+      if (n === 5 && !cheats) s.stars = Math.max(s.stars, 1);
       if (n === 6) {
         // the first time: the full finale; after that, a short encore
-        ending = s.stars >= 2 ? 'encore' : 'final_act';
-        s.stars = Math.max(s.stars, 2);
+        ending = s.stars >= 2 || s.endings.includes('final_act') ? 'encore' : 'final_act';
+        if (!cheats) s.stars = Math.max(s.stars, 2);
       }
+    } else if (n === CUSTOM_NIGHT && this.nightOpts.challenge) {
+      if (!cheats && !s.trophies.includes(this.nightOpts.challenge)) s.trophies.push(this.nightOpts.challenge);
     } else if (n === CUSTOM_NIGHT) {
       if (!s.beaten.includes(CUSTOM_NIGHT)) s.beaten.push(CUSTOM_NIGHT);
       const ai = this.nightOpts.ai ?? {};
-      if (CAST.every((id) => (ai[id] ?? 0) >= 20)) {
+      if (!cheats && CAST.every((id) => (ai[id] ?? 0) >= 20)) {
         s.stars = 3;
         s.showstopper = true;
         ending = 'showstopper';
       }
+    } else if (n === ENCORE_NIGHT) {
+      if (!s.beaten.includes(ENCORE_NIGHT)) s.beaten.push(ENCORE_NIGHT);
+      ending = 'curtain_call';
     }
+    if (ending && !s.endings.includes(ending)) s.endings.push(ending);
     storeSave(s);
     await wait(100);
     if (ending) await this.playEnding(g, ENDINGS[ending]);
@@ -1723,7 +2090,8 @@ export class Game {
     restorePlayerView(g);
     const canNext = n < 5;
     const nextN = n + 1;
-    const res = await ui.resultForm(g, { won: true, label: this.nightLabel, canNext: canNext && nextN <= LAST_NIGHT, nextLabel: `Night ${nextN}`, body: n === 6 ? 'The curtain falls. The Custom Night is open.' : undefined });
+    const body = n === 6 ? 'The curtain falls. The Custom Night is open.' : this.nightOpts.challenge ? `Challenge beaten${cheats ? ' (cheats on: no trophy)' : ': trophy earned'}.` : cheats ? 'You made it to 6 AM. (Cheats on: no stars.)' : undefined;
+    const res = await ui.resultForm(g, { won: true, label: this.nightLabel, canNext: canNext && nextN <= LAST_NIGHT, nextLabel: `Night ${nextN}`, body });
     this.afterResult(res, g, true);
   }
 
@@ -1819,7 +2187,7 @@ export class Game {
   afterResult(res, g, won) {
     const n = this.nightOpts.n;
     if (res === 'next' && won) this.startNight(g, n + 1);
-    else if (res === 'retry') this.startNight(g, n, { ai: this.nightOpts.ai });
+    else if (res === 'retry') this.startNight(g, n, { ai: this.nightOpts.ai, challenge: this.nightOpts.challenge, mods: this.nightOpts.mods });
     else this.enterLobby();
   }
 

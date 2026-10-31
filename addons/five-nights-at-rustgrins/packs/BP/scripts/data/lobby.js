@@ -12,6 +12,7 @@ export const LOBBY_BUTTONS = Object.freeze([
   L('gallery', 9, ['', 'GALLERY', '']),
   L('clippings', 10, ['', 'CLIPPINGS', '']),
   L('settings', 11, ['', 'SETTINGS', '']),
+  L('extras', 12, ['', 'EXTRAS', '']),
   L('erase', 13, ['', 'ERASE', 'PROGRESS']),
 ]);
 export const LOBBY_BUTTON_AT = Object.freeze(Object.fromEntries(LOBBY_BUTTONS.map((b) => [`${b.x},1,${b.z}`, b.id])));

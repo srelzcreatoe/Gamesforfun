@@ -179,7 +179,7 @@ MAP_ON = '§k§r§k§r§l'
 FX_ON = '§k§r§k§r§n'      # the camera-feed look without the map (Settings: camera map off)
 JS_ON = '§k§r§k§r§o'      # a jumpscare is playing: nothing on screen but the animatronic
 FORM_MARK = '§k§r§k§r§m'
-ACTIONS = {'w': 'PLAY SHOW', 's': 'SPOTLIGHT', 'x': 'PLAY SHOW'}  # form action codes (x = nothing to do here)
+ACTIONS = {'w': 'PLAY SHOW', 's': 'SPOTLIGHT', 'x': 'PLAY SHOW', 'p': 'WARN GUARD'}  # form action codes (x = nothing to do here, p = co-op operator)
 HUD_W, HUD_H = 112, round(112 * H / W, 2)
 # The clickable map is a little larger so every camera stays a comfortable button (about 15 x 9 units).
 FORM_W, FORM_H = 150, round(150 * H / W, 2)
@@ -271,6 +271,8 @@ action_labels = [
     {f'label_w': {'type': 'label', 'text': 'PLAY SHOW', 'color': [1.0, 0.8, 0.3], 'shadow': True, 'layer': 3, 'font_scale_factor': 0.9, 'bindings': [{'binding_name': '#title_text'}, {'binding_type': 'view', 'source_property_name': f"(not ((#title_text - '§w') = #title_text))", 'target_property_name': '#visible'}]}},
     {f'label_s': {'type': 'label', 'text': 'SPOTLIGHT', 'color': [1.0, 1.0, 0.55], 'shadow': True, 'layer': 3, 'font_scale_factor': 0.9, 'bindings': [{'binding_name': '#title_text'}, {'binding_type': 'view', 'source_property_name': f"(not ((#title_text - '§s') = #title_text))", 'target_property_name': '#visible'}]}},
     {f'label_x': {'type': 'label', 'text': 'PLAY SHOW', 'color': [0.45, 0.47, 0.45], 'shadow': True, 'layer': 3, 'font_scale_factor': 0.9, 'bindings': [{'binding_name': '#title_text'}, {'binding_type': 'view', 'source_property_name': f"(not ((#title_text - '§x') = #title_text))", 'target_property_name': '#visible'}]}},
+    # co-op: the camera operator's map warns the guard instead
+    {f'label_p': {'type': 'label', 'text': 'WARN GUARD', 'color': [0.5, 0.85, 1.0], 'shadow': True, 'layer': 3, 'font_scale_factor': 0.9, 'bindings': [{'binding_name': '#title_text'}, {'binding_type': 'view', 'source_property_name': f"(not ((#title_text - '§p') = #title_text))", 'target_property_name': '#visible'}]}},
 ]
 
 def top_button(name, index, size, offset, labels):

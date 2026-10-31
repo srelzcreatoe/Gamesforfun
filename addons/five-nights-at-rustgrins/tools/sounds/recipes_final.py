@@ -58,3 +58,41 @@ def spot_on(v, r, n):
     hum = (np.sin(PI2 * 100 * t) + 0.4 * np.sin(PI2 * 200 * t + 1.0)) * ar(n, 0.02, 0.6, 0.03)
     s = 0.95 * P(clunk) + 0.35 * P(arc) + 0.25 * P(hum)
     return np.stack([s, s])
+
+
+# ----------------------------------------------------------------------------- storms (nights 5-6)
+def storm_thunder(v, r, n):
+    """Thunder heard from inside the building: a sharp crack (variants differ in distance),
+    then a long low roll with rumbling bursts, muffled by the walls."""
+    dur = n / SR
+    t = T(n)
+    near = (0.9, 0.55, 0.3)[v % 3]               # 0 = close strike, 2 = far away
+    crack_at = 0.05 + 0.25 * (v % 3)
+    crack = band_noise(r, n, 300, 4500) * ar(n, 0.002, 0.35, crack_at) * near
+    roll = np.zeros(n)
+    k = crack_at + 0.08
+    while k < dur - 0.8:
+        a = r.uniform(0.35, 1.0) * (1 - (k / dur) ** 1.5)
+        m = int(r.uniform(0.25, 0.9) * SR)
+        burst = bw(white(r, m), 'lp', r.uniform(90, 220), 2) * ar(m, r.uniform(0.04, 0.15), r.uniform(0.4, 1.2))
+        place(roll, burst * a, k)
+        k += r.uniform(0.12, 0.45)
+    rumble = bw(white(r, n), 'lp', 70, 2) * env_pts(n, [(0, 0), (crack_at + 0.1, 1), (dur * 0.6, 0.6), (dur, 0)])
+    s = P(crack) * 0.8 + P(roll) + 0.6 * P(rumble)
+    s = bw(s, 'lp', 1800 + 2500 * near, 2)          # the walls take the top off
+    st = np.stack([s, np.roll(s, int(0.011 * SR))])
+    return reverb(st, ir_room_st(), wet=0.4)
+
+
+def storm_rain(v, r, n):
+    """Rain on the roof and the windows, heard inside: a dull hiss, drips and gusts (seamless loop)."""
+    t = T(n)
+    from fnar_dsp import periodic_lfo
+    hiss = band_noise(r, n, 250, 2600, slope=-3)
+    gust = 0.75 + 0.25 * periodic_lfo(n, 3, r, harmonics=2)
+    out = np.stack([hiss * gust, np.roll(hiss, n // 3) * gust]) * 0.6
+    for _ in range(int(9 * n / SR)):
+        m = int(0.03 * SR)
+        drip = band_noise(r, m, 1500, 5000) * decay(m, 0.02)
+        place(out, drip * r.uniform(0.15, 0.5), r.uniform(0, n / SR), p=r.uniform(-0.8, 0.8), wrap=True)
+    return out

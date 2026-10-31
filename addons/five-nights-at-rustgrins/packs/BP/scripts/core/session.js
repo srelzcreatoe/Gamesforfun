@@ -20,11 +20,14 @@ const AI_CLASSES = { mirehop: DoorStalker, noxbriar: DoorStalker, rustgrin: Rust
 export class NightSession {
   /**
    * @param {number} night 0..7
-   * @param {{ seed?: number, ai?: Record<string, number>, ticksPerHour?: number, label?: string }} [opts]
+   * @param {{ seed?: number, ai?: Record<string, number>, ticksPerHour?: number, label?: string, mods?: Record<string, boolean> }} [opts]
    */
   constructor(night, opts = {}) {
     this.night = night;
-    this.def = nightDef(night, { ai: opts.ai, ticksPerHour: opts.ticksPerHour });
+    /** cheats / challenges: fast, infinitePower, noRusted, lightsOut, tapeRot, doorJam */
+    this.mods = { ...(opts.mods || {}) };
+    const base = nightDef(night, { ai: opts.ai, ticksPerHour: opts.ticksPerHour });
+    this.def = this.mods.fast ? { ...base, ticksPerHour: Math.round(base.ticksPerHour * CONFIG.mods.fast) } : base;
     this.cfg = CONFIG;
     this.rng = new Rng(opts.seed ?? ((Date.now() ^ (night * 7919)) >>> 0));
     this.t = 0;
@@ -96,6 +99,7 @@ export class NightSession {
   }
 
   drainPower(units) {
+    if (this.mods.infinitePower) return;
     this.power = Math.max(0, this.power - units);
   }
 
@@ -172,7 +176,7 @@ export class NightSession {
     if (!c.open) return;
     c.open = false;
     this.emit({ fx: 'cams', open: false, cam: c.cam, reason });
-    if (reason === 'close' && !this.result && !this.powerOut && this.night >= CONFIG.rusted.fromNight && !this.rusted && this.rng.chance(CONFIG.rusted.chance)) {
+    if (reason === 'close' && !this.result && !this.powerOut && !this.mods.noRusted && this.night >= CONFIG.rusted.fromNight && !this.rusted && this.rng.chance(CONFIG.rusted.chance * (this.def.rustedChance ?? 1))) {
       this.rusted = { until: this.t + CONFIG.rusted.window };
       this.emit({ fx: 'rusted', on: true });
     }
@@ -224,6 +228,7 @@ export class NightSession {
       case 'light_r': {
         const side = action === 'light_l' ? 'L' : 'R';
         if (this.powerOut) return dead('power');
+        if (this.mods.lightsOut) return dead('lights_out');
         if (d.broken[side]) return dead('broken');
         if (this.debounced(action, dev.lightDebounce)) return { ok: false, reason: 'debounce' };
         const on = !(side === 'L' ? d.lightL : d.lightR);
@@ -331,7 +336,8 @@ export class NightSession {
     const whole = Math.floor(base);
     const frac = base - whole;
     let drain = whole + (frac > 0 && (this.t % Math.round(1 / frac)) === 0 ? 1 : 0);
-    drain += (d.doorL ? p.door : 0) + (d.doorR ? p.door : 0) + (d.lightL ? p.light : 0) + (d.lightR ? p.light : 0) + (d.cams.open ? p.cams : 0) + (d.ventL ? p.vent : 0) + (d.ventR ? p.vent : 0);
+    const door = p.door * (this.mods.doorJam ? CONFIG.mods.doorJam : 1);
+    drain += (d.doorL ? door : 0) + (d.doorR ? door : 0) + (d.lightL ? p.light : 0) + (d.lightR ? p.light : 0) + (d.cams.open ? p.cams : 0) + (d.ventL ? p.vent : 0) + (d.ventR ? p.vent : 0);
     this.drainPower(drain);
     if (this.power <= 0) {
       this.startPowerOut();

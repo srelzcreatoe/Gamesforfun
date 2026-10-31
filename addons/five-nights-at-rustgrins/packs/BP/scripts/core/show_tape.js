@@ -63,7 +63,7 @@ export class ShowTape {
     const s = this.s;
     const troupe = Math.max(s.chars.cat?.active ? s.chars.cat.ai : 0, s.chars.purple_rat?.active ? s.chars.purple_rat.ai : 0);
     if (!this.stopped && troupe > 0) {
-      const drain = Math.max(this.cfg.minDrain, Math.round((this.cfg.drainAt20 * troupe) / 20));
+      const drain = Math.max(this.cfg.minDrain, Math.round((this.cfg.drainAt20 * troupe) / 20)) * (s.mods?.tapeRot ? CONFIG.mods.tapeRot : 1);
       this.level = Math.max(0, this.level - drain);
       if (this.level === 0) {
         this.stopped = true;
