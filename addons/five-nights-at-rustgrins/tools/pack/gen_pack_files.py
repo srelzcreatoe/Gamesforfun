@@ -60,6 +60,7 @@ ITEMS = {
     'tablet': ('Camera Tablet', 'Cameras'),
     'remote': ('Office Remote', 'Remote'),
     'guide': ('Shift Guide', 'Read'),
+    'time_card': ('Time Card', 'Clock In'),
 }
 
 
@@ -84,6 +85,18 @@ def item_icon(kind):
         for (x, y, c) in [(6, 3, (200, 40, 40)), (9, 3, (200, 40, 40)), (6, 5, (225, 225, 210)), (9, 5, (225, 225, 210)), (6, 8, (90, 140, 210)), (9, 8, (90, 140, 210)), (7, 11, (220, 170, 40)), (8, 11, (220, 170, 40))]:
             d.point((x, y), fill=c + (255,))
             d.point((x + 0, y + 1), fill=tuple(int(v * 0.6) for v in c) + (255,))
+    elif kind == 'time_card':
+        # a punch card: cream stock, printed rows, a red time stamp and the punch hole
+        d.rectangle([3, 1, 12, 14], fill=(226, 214, 182, 255))
+        d.rectangle([3, 1, 12, 1], fill=(244, 236, 214, 255))
+        d.rectangle([12, 1, 12, 14], fill=(176, 164, 136, 255))
+        d.rectangle([3, 14, 12, 14], fill=(160, 148, 120, 255))
+        d.rectangle([4, 2, 11, 3], fill=(150, 40, 40, 255))
+        for y in (6, 8, 10, 12):
+            d.line([(5, y), (10, y)], fill=(140, 130, 108, 255))
+        d.point((7, 8), fill=(200, 40, 40, 255))
+        d.point((8, 8), fill=(200, 40, 40, 255))
+        d.point((9, 5), fill=(40, 34, 30, 255))
     else:  # guide
         d.rectangle([2, 2, 13, 14], fill=(110, 30, 34, 255))
         d.rectangle([2, 2, 3, 14], fill=(74, 18, 22, 255))

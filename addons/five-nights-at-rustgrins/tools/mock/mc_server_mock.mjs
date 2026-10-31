@@ -331,6 +331,12 @@ class Player extends Entity {
     return { ...this.rotation };
   }
 
+  getViewDirection() {
+    const yaw = (this.rotation.y * Math.PI) / 180;
+    const pitch = (this.rotation.x * Math.PI) / 180;
+    return { x: -Math.sin(yaw) * Math.cos(pitch), y: -Math.sin(pitch), z: Math.cos(yaw) * Math.cos(pitch) };
+  }
+
   teleport(loc, opts) {
     rw('teleport');
     super.teleport(loc, opts);

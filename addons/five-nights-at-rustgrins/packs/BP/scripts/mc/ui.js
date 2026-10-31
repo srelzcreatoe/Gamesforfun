@@ -223,6 +223,29 @@ export async function resultForm(player, { won, label, canNext = false, nextLabe
   return options[r.selection];
 }
 
+/**
+ * The Time Card (Free Roam): clock in for the night shift. Resolves to 'continue' | 'new' | 'final' |
+ * 'custom' | 'lobby' | undefined.
+ * @param {import('@minecraft/server').Player} player
+ */
+export async function timeCardForm(player, save) {
+  const items = [];
+  const next = Math.max(1, Math.min(5, save.next));
+  items.push(['continue', save.beaten.length ? `Clock in: Night ${next}` : 'Clock in: Night 1']);
+  if (save.beaten.length) items.push(['new', 'Start over from Night 1']);
+  if (save.beaten.includes(5)) items.push(['final', '§4Clock in: The Final Act']);
+  if (save.beaten.includes(6)) items.push(['custom', 'Clock in: Custom Night']);
+  items.push(['lobby', 'Back to the time clock']);
+  const f = new ActionFormData()
+    .title('§lTIME CARD')
+    .body("Rustgrin's closes at midnight. When you clock in, the lights go out, the guests go home... and the night shift begins.");
+  for (const [, label] of items) f.button(label);
+  f.button('§cNot yet');
+  const r = await show(player, f);
+  if (!r || r.canceled || r.selection === undefined || r.selection >= items.length) return undefined;
+  return items[r.selection][0];
+}
+
 /** First join on a world without the map. Resolves to 'build' | 'later'. */
 /** @param {import('@minecraft/server').Player} player */
 export async function setupForm(player) {

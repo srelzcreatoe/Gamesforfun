@@ -244,3 +244,68 @@ export const KILL_TIPS = Object.freeze({
   top_hat_rat: 'Doors do not stop the Ringmaster. Find him on the cameras and press SPOTLIGHT.',
   rusted: 'He was never there. Raise the monitor the moment you see him.',
 });
+
+/** Free Roam: what each animatronic says when a guest walks up to it (daytime, between shows). */
+export const DAY_TALK = Object.freeze({
+  rustgrin: Object.freeze([
+    'Welcome, welcome! Grab a slice and a seat, the next show starts soon!',
+    "I'm Rustgrin! I sing, I dance, and I never, ever forget a face.",
+    "Ten thousand shows, pal. I counted every single one.",
+    'Clap along at the next show, okay? We love it when you clap.',
+  ]),
+  mirehop: Object.freeze([
+    'Wanna hear a riff? ...Aw, my amp is unplugged. Catch me at the show!',
+    "Mirehop's the name, guitar's the game!",
+    "Between you and me? Rustgrin can't carry a tune in a bucket.",
+  ]),
+  noxbriar: Object.freeze([
+    "Hello, sweetheart. Stay for the show? I'll sing just for you.",
+    "Oh, I do love a full house. It gets so quiet in here at night.",
+    "Do you like my bow? I polish it every single night.",
+  ]),
+  cat: Object.freeze([
+    'Watch my feet at the next show! Nobody dances like the Cat.',
+    "Ring-a-ling! That's my bell. You'll always know when I'm coming.",
+    'Wanna dance? No? Your loss, kid.',
+  ]),
+  purple_rat: Object.freeze([
+    'Shake, shake, shake! These maracas never miss a beat!',
+    'Psst... the ducts are the fastest way to get anywhere. Shh!',
+    "Hi! Hi! Sorry, I'm a little twitchy. Too much pizza!",
+  ]),
+  top_hat_rat: Object.freeze([
+    'Welcome to the greatest show on Route 6! Enjoy yourself... while you can.',
+    'Ah, a new face. I do so love new faces.',
+    'Step right up! Every guest is a star at the Grand Marquee.',
+  ]),
+});
+
+/** About one line in eight is one of these instead. */
+export const CREEPY_TALK = Object.freeze({
+  rustgrin: Object.freeze(['You came back. They always come back.', 'Stay after closing, {name}. We have a special show just for you.']),
+  mirehop: Object.freeze(['I tuned my guitar to your heartbeat. Listen. ...It is getting faster.']),
+  noxbriar: Object.freeze(["I'll see you tonight, sweetheart. I'll be the one at your window."]),
+  cat: Object.freeze(['Twenty-three steps from the stage to your office door. I can do it in four.']),
+  purple_rat: Object.freeze(['I know which vent is right over your desk. Hee hee!']),
+  top_hat_rat: Object.freeze(['{name}. Yes, I know your name. Midnight, {name}. Do not be late.']),
+});
+
+/** The Ringmaster on the PA during Free Roam. */
+export const SHOW_PA = Object.freeze({
+  soon: Object.freeze(['Showtime in thirty seconds! Find a seat, everyone!', 'The Rusty Revue takes the stage in thirty seconds!']),
+  start: Object.freeze(["Ladies and gentlemen, boys and girls... it's SHOWTIME!", 'Lights down, please! The show begins!']),
+  end: Object.freeze(["Let's hear it for the Rusty Revue! The next show is only minutes away.", 'Bravo! Thank you, thank you. Do stay for the next show.']),
+  ads: Object.freeze([
+    "Don't forget the Prize Corner! Every ticket counts!",
+    "Birthday parties every weekend at Rustgrin's! Ask any member of staff.",
+    'Arcade tokens are half price until noon!',
+    'Please keep your hands away from the performers. They bite. ...That was a joke.',
+    'Would the owner of the green sedan in the lot please... never mind.',
+  ]),
+});
+
+/** Closing time: the last guests leave, the lights go out room by room, the night shift begins. */
+export const CLOSING_PA = Object.freeze([
+  "Rustgrin's Pizza Revue is now closed. Thank you for visiting!",
+  '{name}, please report to the office. Your shift begins at midnight.',
+]);

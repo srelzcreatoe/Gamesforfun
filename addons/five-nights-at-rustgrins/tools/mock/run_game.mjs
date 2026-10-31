@@ -206,11 +206,39 @@ check(P.hudHidden === null, 'the HUD comes back after the jumpscare');
 // 6. free roam ------------------------------------------------------------------------------
 push('free_roam');
 await waitFor(() => game().state === 'FREE_ROAM', 50, 'free roam');
-await steps(400);
-answer(titleHas('FREE ROAM'), () => ({ canceled: false, selection: 1 }));
-world.afterEvents.itemUse.fire({ source: P, itemStack: { typeId: 'fnar:guide' } });
+check(P.inventory[4]?.typeId === 'fnar:time_card', 'Free Roam hands out the Time Card');
+{
+  // a live show: announced, performed with music, a bow, then every head turns to the guest
+  const r = game().roam;
+  r.nextShow = mock.tick + 30;
+  await waitFor(() => game().roam.phase === 'show', 60, 'the show to start');
+  await steps(3);
+  check(mock.sounds.includes('fnar.music.showtime'), 'the show plays the band music');
+  r.at = mock.tick + 5;
+  await waitFor(() => game().roam.phase === 'stare', 200, 'the curtain call');
+  await waitFor(() => game().roam.phase === 'idle', 200, 'the show to end');
+  // walk up to Rustgrin and look at him: he talks
+  const rg = [...mock.entities.values()].find((e) => e.typeId === 'fnar:rustgrin');
+  P.teleport({ x: rg.location.x, y: rg.location.y, z: rg.location.z + 3 }, { rotation: { x: -20, y: 180 } });
+  await steps(20);
+  check(/Rustgrin§7: /.test(P.actionBar ?? ''), `walking up to Rustgrin, he talks (${(P.actionBar ?? '').split('\n')[0]})`);
+}
+answer(titleHas('TIME CARD'), (f) => ({ canceled: false, selection: f.buttons.findIndex((b) => /time clock/.test(b)) }));
+world.afterEvents.itemUse.fire({ source: P, itemStack: { typeId: 'fnar:time_card' } });
 await waitFor(() => game().state === 'LOBBY', 100, 'lobby after free roam');
-say('free roam ok');
+say('free roam ok: a live show, a talking animatronic, the Time Card');
+
+// 6a. closing time: from Free Roam, the Time Card clocks in for the night
+push('free_roam');
+await waitFor(() => game().state === 'FREE_ROAM', 50, 'free roam again');
+answer(titleHas('TIME CARD'), () => ({ canceled: false, selection: 0 }));
+world.afterEvents.itemUse.fire({ source: P, itemStack: { typeId: 'fnar:time_card' } });
+await waitFor(() => game().state === 'CLOSING', 40, 'closing time');
+await waitFor(() => game().state === 'NIGHT', 900, 'the night after closing time');
+check(mock.sounds.includes('fnar.tophat.tape_out'), 'closing time cuts the music');
+say(`closing time -> ${game().nightLabel}`);
+debug('lobby');
+await steps(5);
 
 // 6b. nothing lives in the pizzeria but the cast --------------------------------------------------
 {

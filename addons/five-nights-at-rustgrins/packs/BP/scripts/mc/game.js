@@ -17,7 +17,7 @@ import { OFFICE, LOBBY, SPAWN_OUTSIDE, LOT } from '../data/layout.js';
 import { NODES } from '../data/nodes.js';
 import { CAMERA_BY_ID, CAMERA_ORDER } from '../data/cameras.js';
 import { LOBBY_BUTTON_AT, STAR_SLOTS } from '../data/lobby.js';
-import { CALLS, HUNG_UP, TAKEOVER, FINAL, ENDINGS, TUTORIAL_HINTS, KILL_TIPS } from '../data/story.js';
+import { CALLS, HUNG_UP, TAKEOVER, FINAL, ENDINGS, TUTORIAL_HINTS, KILL_TIPS, DAY_TALK, CREEPY_TALK, SHOW_PA, CLOSING_PA } from '../data/story.js';
 import { Builder } from './builder.js';
 import { Puppets, yawToward } from './puppets.js';
 import { Actuators } from './actuators.js';
@@ -54,6 +54,13 @@ const SHOW_SPOTS = Object.freeze({ rustgrin: 'ST_R', mirehop: 'ST_M', noxbriar: 
 
 /** Session pose names -> fnar:anim values. */
 const POSE_ANIM = Object.freeze({ idle: 'idle', pose: 'pose', perform: 'perform', stand: 'stand', peek: 'peek', crawl: 'crawl', walk: 'walk', run: 'run', scurry: 'scurry', slump: 'slump' });
+/** Free Roam schedule (ticks): a live show every few minutes, announced on the PA. */
+const SHOW = Object.freeze({ firstIn: 500, every: 2800, announce: 400, length: 960, bow: 70, stare: 90, adEvery: 1300 });
+/** Each character's "voice" when it talks to a guest in Free Roam. */
+const VOICE = Object.freeze({
+  rustgrin: 'fnar.rustgrin.laugh', mirehop: 'fnar.mirehop.strum', noxbriar: 'fnar.noxbriar.hum',
+  cat: 'fnar.cat.bell', purple_rat: 'fnar.rat.squeak', top_hat_rat: 'fnar.tophat.laugh',
+});
 /** The user's background track: a music-category loop, so the game's music volume slider applies. */
 const BGM = 'fnar.music.bgm';
 const SIDE_WORD = Object.freeze({ L: 'left', R: 'right' });
@@ -92,7 +99,8 @@ export class Game {
     this.stare = Object.create(null);
     this.pendingBuild = false;
     this.overlay = false;
-    this.freeRoamNext = 0;
+    /** Free Roam state (shows, talking); null outside Free Roam */
+    this.roam = null;
     /** @type {number | undefined} interval that flashes Rustgrin's eyes during the power-out song */
     this.flashEyes = undefined;
     /** The Ringmaster's PA (Final Act / Custom Night): lines still to say, and when the next may start. */
@@ -394,9 +402,11 @@ export class Game {
         inv.setItem(NEUTRAL_SLOT, tool('fnar:tablet'));
         inv.setItem(0, tool('fnar:remote'));
         inv.setItem(8, tool('fnar:guide'));
+      } else if (kind === 'roam') {
+        inv.setItem(NEUTRAL_SLOT, tool('fnar:time_card'));
+        inv.setItem(0, tool('fnar:guide'));
       } else {
         inv.setItem(0, tool('fnar:guide'));
-        if (kind === 'roam') inv.setItem(1, tool('fnar:remote'));
       }
       p.selectedSlotIndex = NEUTRAL_SLOT;
     } catch (e) {
@@ -526,14 +536,14 @@ export class Game {
     this.act.daytime();
     this.puppets.removeAll();
     for (const id of CAST) {
-      this.puppets.spawn(id, SHOW_SPOTS[id], 'perform');
+      this.puppets.spawn(id, SHOW_SPOTS[id], 'pose');
       this.puppets.eyes(id, false);
     }
     this.audio.stopAll();
-    this.audio.loop('show_band', 'fnar.music.showtime', 'stage', null, 1.0);
-    this.audio.loop('show_midway', 'fnar.tophat.show', 'midway', null, 0.7);
+    const now = system.currentTick;
+    /** Free Roam: the show schedule and who has talked to whom (cooldowns by tick). */
+    this.roam = { phase: 'idle', at: 0, nextShow: now + SHOW.firstIn, announced: false, nextAd: now + 260, talkCd: Object.create(null), sayUntil: Object.create(null), say: Object.create(null), lastLine: Object.create(null) };
     for (const p of this.players()) this.toFreeRoam(p);
-    this.freeRoamNext = system.currentTick + 160;
     this.stopBgm();
     this.sweepMobs();
   }
@@ -544,21 +554,252 @@ export class Game {
       restorePlayerView(p);
       p.setGameMode(GameMode.Adventure);
       p.teleport(W(SPAWN_OUTSIDE.x, SPAWN_OUTSIDE.y, SPAWN_OUTSIDE.z), { rotation: { x: 0, y: SPAWN_OUTSIDE.yaw } });
-      p.onScreenDisplay.setTitle('§eSHOWTIME!', { fadeInDuration: 10, stayDuration: 50, fadeOutDuration: 20, subtitle: "§fFree roam - Rustgrin's Pizza Revue is open" });
+      p.onScreenDisplay.setHudVisibility(HudVisibility.Reset);
+      p.onScreenDisplay.setTitle('§eNOW OPEN', { fadeInDuration: 10, stayDuration: 50, fadeOutDuration: 20, subtitle: "§fRustgrin's Pizza Revue - shows all day" });
       this.giveItems(p, 'roam');
     } catch (e) {
       log.warn(`free roam: ${e?.message ?? e}`);
     }
   }
 
+  /** The Ringmaster on the PA in Free Roam: a chime, then the line on everyone's screen. */
+  roamPa(line) {
+    for (const p of this.players()) {
+      this.audio.play('fnar.final.chime', null, p, { vol: 0.55 });
+      this.roamSay(p, `§5[PA] §dThe Ringmaster§7: §f${fill(line, { name: p.name })}`, 110);
+    }
+  }
+
+  roamSay(p, text, ticks) {
+    const r = this.roam;
+    if (!r) return;
+    r.say[p.id] = text;
+    r.sayUntil[p.id] = system.currentTick + ticks;
+  }
+
   tickFreeRoam(now) {
     this.audio.tick();
     if (now % 200 === 0) this.sweepMobs();
-    if (now >= this.freeRoamNext) {
-      this.freeRoamNext = now + 160;
-      for (const id of CAST) this.puppets.anim(id, this.rng.chance(0.5) ? 'perform' : 'perform2');
+    const r = this.roam;
+    if (!r) return;
+    switch (r.phase) {
+      case 'idle':
+        if (!r.announced && now >= r.nextShow - SHOW.announce) {
+          r.announced = true;
+          this.roamPa(this.pickLine('show_soon', SHOW_PA.soon));
+        }
+        if (now >= r.nextShow) this.startShow(now);
+        else if (now >= r.nextAd) {
+          r.nextAd = now + SHOW.adEvery + this.rng.int(0, 600);
+          if (now < r.nextShow - SHOW.announce - 200) this.roamPa(this.pickLine('show_ads', SHOW_PA.ads));
+        }
+        if (now % 8 === 0) this.tickTalk(now);
+        break;
+      case 'show':
+        // the band trades moves every few seconds, the troupe dances, the Ringmaster conducts
+        if (now % 120 === 0) for (const id of CAST) this.puppets.anim(id, this.rng.chance(0.5) ? 'perform' : 'perform2');
+        if (now >= r.at) {
+          r.phase = 'bow';
+          r.at = now + SHOW.bow;
+          this.audio.stop('show_band');
+          this.audio.stop('show_midway');
+          for (const id of CAST) this.puppets.anim(id, 'bow');
+          for (const p of this.players()) this.audio.play('fnar.final.applause', null, p, { vol: 0.7 });
+          this.roamPa(this.pickLine('show_end', SHOW_PA.end));
+        }
+        break;
+      case 'bow':
+        if (now >= r.at) {
+          // the curtain call ends... and every head turns to the nearest guest
+          r.phase = 'stare';
+          r.at = now + SHOW.stare;
+          for (const id of CAST) {
+            this.puppets.anim(id, 'pose');
+            this.lookAtNearest(id);
+          }
+        }
+        break;
+      case 'stare':
+        if (now >= r.at) {
+          r.phase = 'idle';
+          r.nextShow = now + SHOW.every;
+          r.announced = false;
+          for (const id of CAST) this.puppets.look(id, 0, 0);
+          this.act.lampGroup('dining', true);
+        }
+        break;
+      default:
+        break;
     }
-    if (now % 40 === 0) for (const p of this.players()) p.onScreenDisplay.setActionBar('§7Free roam §8| §fOffice Remote: back to the time clock');
+    if (now % 10 === 0) {
+      for (const p of this.players()) {
+        const say = now < (r.sayUntil[p.id] ?? 0) ? r.say[p.id] : null;
+        const status = r.phase === 'idle' ? `§7Next show in §f${Math.max(0, Math.ceil((r.nextShow - now) / 20))}s` : '§6§lSHOWTIME';
+        p.onScreenDisplay.setActionBar([say, `${status} §8| §fTime Card§7: clock in for the night §8| §fShift Guide§7: rules`].filter(Boolean).join('\n'));
+      }
+    }
+  }
+
+  startShow(now) {
+    const r = this.roam;
+    r.phase = 'show';
+    r.at = now + SHOW.length;
+    // house lights down, stage lights up
+    this.act.lampGroup('dining', false);
+    this.act.spots('stage', true);
+    this.act.spots('cabaret', true);
+    for (const id of CAST) {
+      this.puppets.look(id, 0, 0);
+      this.puppets.anim(id, 'perform');
+    }
+    this.audio.loop('show_band', 'fnar.music.showtime', 'stage', null, 1.0);
+    this.audio.loop('show_midway', 'fnar.tophat.show', 'midway', null, 0.7);
+    this.roamPa(this.pickLine('show_start', SHOW_PA.start));
+  }
+
+  /** Turn an animatronic's head to the nearest player (Free Roam). */
+  lookAtNearest(id) {
+    const pos = this.puppets.positionOf(id);
+    const e = this.puppets.get(id);
+    if (!pos || !e) return;
+    let best = null;
+    let bd = 1e9;
+    for (const p of this.players()) {
+      const d = Math.hypot(p.location.x - pos.x, p.location.z - pos.z);
+      if (d < bd) {
+        bd = d;
+        best = p;
+      }
+    }
+    if (!best || bd > 40) return;
+    this.headToward(id, e, pos, best.getHeadLocation());
+  }
+
+  headToward(id, e, pos, target) {
+    let bodyYaw = 0;
+    try {
+      bodyYaw = e.getRotation().y;
+    } catch {
+      return;
+    }
+    const dx = target.x - pos.x;
+    const dz = target.z - pos.z;
+    let rel = yawToward(dx, dz) - bodyYaw;
+    while (rel > 180) rel -= 360;
+    while (rel < -180) rel += 360;
+    const dy = target.y - (pos.y + (HEAD_Y[id] ?? 3));
+    const pitch = (-Math.atan2(dy, Math.hypot(dx, dz)) * 180) / Math.PI;
+    this.puppets.look(id, rel, pitch);
+  }
+
+  /** Free Roam: walk up to an animatronic and look at it, and it waves and talks to you. */
+  tickTalk(now) {
+    const r = this.roam;
+    for (const p of this.players()) {
+      if (now < (r.talkCd[p.id] ?? 0)) continue;
+      let view;
+      let eye;
+      try {
+        view = p.getViewDirection();
+        eye = p.getHeadLocation();
+      } catch {
+        continue;
+      }
+      for (const id of CAST) {
+        if (now < (r.talkCd[id] ?? 0)) continue;
+        const pos = this.puppets.positionOf(id);
+        const e = this.puppets.get(id);
+        if (!pos || !e) continue;
+        const chest = { x: pos.x, y: pos.y + (HEAD_Y[id] ?? 3) * 0.7, z: pos.z };
+        const v = { x: chest.x - eye.x, y: chest.y - eye.y, z: chest.z - eye.z };
+        const d = Math.hypot(v.x, v.y, v.z);
+        if (Math.hypot(v.x, v.z) > 5.5 || d < 0.5) continue;
+        if ((v.x * view.x + v.y * view.y + v.z * view.z) / d < 0.82) continue;
+        // it talks
+        r.talkCd[id] = now + 160;
+        r.talkCd[p.id] = now + 70;
+        const creepy = this.rng.chance(0.12);
+        const line = fill(creepy ? this.pickLine(`creepy_${id}`, CREEPY_TALK[id]) : this.pickLine(`talk_${id}`, DAY_TALK[id]), { name: p.name });
+        this.puppets.anim(id, creepy ? 'pose' : 'wave');
+        this.headToward(id, e, pos, eye);
+        this.audio.play(VOICE[id], L(pos), p, { vol: 0.8 });
+        this.roamSay(p, `${creepy ? '§c' : '§e'}${CAST_NAMES[id].replace(/^the /, 'The ')}§7: §f${line}`, 100);
+        system.runTimeout(() => {
+          if (this.state !== 'FREE_ROAM' || this.roam !== r || r.phase !== 'idle') return;
+          this.puppets.anim(id, 'pose');
+          this.puppets.look(id, 0, 0);
+        }, creepy ? 80 : 50);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Closing time: the music dies mid-song, every animatronic stops and turns to the guard, the PA
+   * says goodnight and the lights go out room by room. Then the shift starts.
+   * @param {import('@minecraft/server').Player} p
+   */
+  async closingTime(p, start) {
+    if (this.state !== 'FREE_ROAM') return start();
+    this.state = 'CLOSING';
+    const alive = () => p.isValid && this.state === 'CLOSING';
+    this.audio.stopAll();
+    try {
+      this.audio.play('fnar.tophat.tape_out', 'stage', p, { vol: 1 });
+      for (const id of CAST) {
+        this.puppets.anim(id, 'pose');
+        const pos = this.puppets.positionOf(id);
+        const e = this.puppets.get(id);
+        if (pos && e) this.headToward(id, e, pos, p.getHeadLocation());
+      }
+      await wait(40);
+      for (const line of CLOSING_PA) {
+        if (!alive()) return;
+        this.audio.play('fnar.final.chime', null, p, { vol: 0.6 });
+        p.onScreenDisplay.setActionBar(`§5[PA] §dThe Ringmaster§7: §f${fill(line, { name: p.name })}`);
+        await wait(70);
+      }
+      // the lights go out, room by room
+      const groups = [...new Set(this.act.meta.lamps.map((l) => l.group))].filter((g) => g !== 'office' && g !== 'staff');
+      for (const g of groups) {
+        if (!alive()) return;
+        this.act.lampGroup(g, false);
+        this.audio.play('fnar.light.off', null, p, { vol: 0.5, pitch: 0.8 });
+        await wait(9);
+      }
+      this.act.spots(null, false);
+      this.act.dayLights(false);
+      this.act.allLamps(false);
+      for (const id of CAST) this.puppets.eyes(id, true);
+      await wait(30);
+      p.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 1.0, holdTime: 1.5, fadeOutTime: 1.0 } });
+      await wait(25);
+    } catch (e) {
+      log.warn(`closing time: ${e?.message ?? e}`);
+    }
+    if (!p.isValid || this.state !== 'CLOSING') return undefined;
+    return start();
+  }
+
+  /** The Time Card (Free Roam): clock in for a night, or go back to the time clock. */
+  async useTimeCard(p) {
+    const s = this.save;
+    const a = await ui.timeCardForm(p, s);
+    if (!a || this.state !== 'FREE_ROAM') return;
+    if (a === 'lobby') return void this.enterLobby();
+    if (a === 'custom') {
+      const ai = await ui.customNightForm(p, s.custom);
+      if (!ai || this.state !== 'FREE_ROAM') return;
+      s.custom = ai;
+      storeSave(s);
+      return void this.closingTime(p, () => this.startNight(p, CUSTOM_NIGHT, { ai }));
+    }
+    const n = a === 'final' ? 6 : a === 'new' ? 1 : Math.max(1, Math.min(5, s.next));
+    if (a === 'new') {
+      s.next = 1;
+      storeSave(s);
+    }
+    return void this.closingTime(p, () => this.startNight(p, n));
   }
 
   // ================================================================ nights
@@ -660,6 +901,11 @@ export class Game {
     if (this.state === 'FREE_ROAM') {
       this.puppets.tick();
       this.tickFreeRoam(now);
+      return;
+    }
+    if (this.state === 'CLOSING') {
+      this.puppets.tick();
+      this.audio.tick();
       return;
     }
     if (this.state === 'LOBBY') {
@@ -1031,11 +1277,11 @@ export class Game {
   onItemUse(player, item) {
     if (!item) return;
     const id = item.typeId;
+    if (id === 'fnar:time_card') {
+      if (this.state === 'FREE_ROAM') void this.useTimeCard(player);
+      return;
+    }
     if (id === 'fnar:guide') {
-      if (this.state === 'FREE_ROAM') {
-        ui.confirm(player, '§lFREE ROAM', 'Go back to the time clock?', 'Back').then((ok) => ok && this.enterLobby());
-        return;
-      }
       ui.guide(player, { bgm: () => this.save.settings.bgm !== false, toggleBgm: () => this.toggleBgm(player) });
       return;
     }

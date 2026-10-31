@@ -10,6 +10,7 @@ entity.fnar:rusted.name=Rustgrin?
 item.fnar:tablet.name=Camera Tablet
 item.fnar:remote.name=Office Remote
 item.fnar:guide.name=Shift Guide
+item.fnar:time_card.name=Time Card
 tile.fnar:arcade_cabinet.name=Arcade Cabinet
 tile.fnar:balloons.name=Balloons
 tile.fnar:birthday_cake.name=Birthday Cake

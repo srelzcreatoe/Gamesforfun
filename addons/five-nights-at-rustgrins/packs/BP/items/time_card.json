@@ -1,0 +1,28 @@
+{
+  "format_version": "1.26.30",
+  "minecraft:item": {
+    "description": {
+      "identifier": "fnar:time_card",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "textures": {
+          "default": "fnar_time_card"
+        }
+      },
+      "minecraft:display_name": {
+        "value": "item.fnar:time_card.name"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:interact_button": "Clock In",
+      "minecraft:cooldown": {
+        "category": "fnar_tools",
+        "duration": 0.25
+      },
+      "minecraft:hand_equipped": false
+    }
+  }
+}

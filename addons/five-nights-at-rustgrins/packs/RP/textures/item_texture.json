@@ -10,6 +10,9 @@
     },
     "fnar_guide": {
       "textures": "textures/items/fnar/guide"
+    },
+    "fnar_time_card": {
+      "textures": "textures/items/fnar/time_card"
     }
   }
 }
