@@ -32,8 +32,23 @@ offline with the project's own renderer (see *Building from source*).
 
 You start in the **Staff Room** at the time clock. Press a button on the wall:
 `NEW GAME`, `CONTINUE`, `THE FINAL ACT` (night 6, once you have reached it),
-`CUSTOM NIGHT` (after the Final Act), `FREE ROAM` (daytime, everyone performs),
-`GALLERY`, `CLIPPINGS`, `SETTINGS`, `ERASE PROGRESS`.
+`CUSTOM NIGHT` (after the Final Act), `FREE ROAM` (the pizzeria by day),
+`GALLERY`, `CLIPPINGS`, `SETTINGS`, `EXTRAS`, `ERASE PROGRESS`.
+
+**Free Roam** is the pizzeria open for business: a live show every few minutes
+(the band on the Show Stage, the Cat and the Purple Rat on the Midway ring, the
+Ringmaster conducting from the Grand Marquee, announced on the PA), and the
+animatronics talk to you when you walk up and look at them. The **Time Card**
+clocks you in: the music dies, the lights go out room by room, and the night
+shift begins.
+
+**Extras:** replay the jumpscares you have seen, pose the cast, a Sound Test,
+cheats (after the Final Act) and four challenges with trophies (after Night 5).
+Something waits in the Gallery once the Final Act is beaten.
+
+**Co-op:** anyone else in the world during a shift is the camera operator: they
+watch the cameras from the Staff Room and press WARN GUARD to tell the guard
+where to look.
 
 **In the office** you sit facing the desk; every control is within arm's reach:
 
@@ -50,6 +65,7 @@ You start in the **Staff Room** at the time clock. Press a button on the wall:
 | Hang up on the Ringmaster's call | click the desk phone |
 | Everything in one menu | the **Office Remote** (slot 1) |
 | Rules, tips, background music on/off | the **Shift Guide** (slot 9) |
+| Clock in from Free Roam | the **Time Card** |
 
 Power drains all night; doors, lights, vents and the monitor drain it faster.
 At 0 % everything opens… and someone comes to sing for you.
