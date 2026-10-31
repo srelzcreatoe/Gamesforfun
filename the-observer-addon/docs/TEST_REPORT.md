@@ -95,7 +95,7 @@ Every integration run also records the minimum TPS seen between tests; see §5. 
 
 ## 5. Integration suite
 
-`tests/bds/testkit_BP/scripts/suite.js` — 79 test groups (including setup and a status check) with 348 assertions, run in one session
+`tests/bds/testkit_BP/scripts/suite.js` — 85 test groups (including setup and a status check) with 375 assertions, run in one session
 (`scenarios/suite_full.txt`). Each group resets the target player's state, triggers or waits for an encounter, plays the
 part of the player (looking, turning, sneaking, walking, breaking blocks, placing torches, using items) and asserts on
 outcomes, discoveries, block states, entities, items, health and timing.
@@ -133,6 +133,8 @@ outcomes, discoveries, block states, entities, items, health and timing.
 | **final (1.0.7)** | **306** | **0** | all passed on the first full run: the 1.0.6 suite (re-run because placement now checks the line of sight both ways) plus the Weeping Mire as its home (context, stage bonus, early grace, its watcher, too close at 9 blocks, the torn pages) |
 | targeted (1.1.0: the music, the heartbeat, charging at it, the profile, hiding behind trees, Mire fuel + regressions) | 86 + 40 + 79 | 3 + 2 + 0 | run 1: the first auto-peek check failed once (a cover-side ambiguity in the test: the spot it chose already had cover on the other side), the tree peek never switched sides (the test encounter ended after 10 s, before it could) and the learned-charge check got no reading (the body stood beyond the 32-block charge range); run 2: two test-side problems (the learned habit set before the test's own player reset was wiped; a "stands without cover" check where a real tree remained) |
 | full (1.1.0, first) | 370 | 5 | a real bug: hanging from a ceiling under 14 blocks away counted as "walked up to" at once, so it went straight into the standoff and was gone (now it has to be approached: closer than it first stood, less 4); and three test sensitivities in the busier full-suite state (a Witness Lens left in hand lowered the charge score to its floor — the "armed" rule working; a weight compared against an encounter not eligible while standing still; the open-ground placement at stage 3 sometimes the favoured bearing instead) — all re-run: 79 / 79 |
+| full (1.1.0, second) | 374 | 1 | test-side: the "Peeking from cover" wheel test waited 15 s for its end, but behind a tree the peekaboo now runs up to 20 s; it waits 23 s now (re-run on its own: 18 / 18) |
+| **final (1.1.0)** | **375** | **0** | all passed: the 1.0.9 suite plus the music cut while it is around and back after it has gone, the heartbeat and its tremor (none with camera effects off), charging at it (it attacks; it vanishes and sets an ambush that springs when the moment favours it; the decision weighs the light, health, company, what is held and what it has learned), the profile (habits learned with each repetition, where and when you play, light placed, encounters that get a reaction), hiding behind a real tree (body behind the trunk, looks round, ducks when seen, switches sides) and Mire wood burning in a furnace |
 | targeted (1.0.9: vanish in place, stalking from ledges and ceilings, the standoff, through gaps, glass and doors) | 81 + 84 | 2 + 0 | run 1: the ledge test found no ledge (the flat test field has none worth the name: a stone ridge was added) and the new cages broke the "peek needs cover" test (they stood on its open stretch; the cages and ridge moved to a yard of their own); also seen in passing: it struck from the gap or doorway still lying flat (it now stands up inside first) and the rage was too fast (11 b/s → ~8) |
 | **final (1.0.9)** | **348** | **0** | all passed on the first full run: the 1.0.8 suite plus vanishing in place, the standoff (creeping, a stare or an arrow provoking the rage, gone when left alone), hanging from a cave ceiling, a high ledge, and the three cages |
 | **final (1.0.8)** | **319** | **0** | all passed on the first full run: every attack floats (approach, lunge, too-close strike, the strike and recoil in mid-air), the arena checked to be outside the Mire, and the first-spawn guard; then, after the guard was limited to players new to the world, `setup illusion_taiga mire_spawn status` again: 13 / 13 |
@@ -159,6 +161,10 @@ Final run (1.0.7): 72 test groups, 1547 s, minimum TPS between tests 19.8, **0 c
 Final run (1.0.8): 73 test groups, 1572 s, minimum TPS between tests 19.6, **0 content-log or script errors**.
 
 Final run (1.0.9): 79 test groups, 1526 s, minimum TPS between tests 19.5, **0 content-log or script errors**.
+
+Final run (1.1.0): 85 test groups, 1496 s, minimum TPS between tests 19.8, **0 content-log or script errors**.
+
+`noexp.txt` and `mire_locate.txt` re-run on 1.1.0: `level.dat` experiments none, 0 errors.
 `noexp.txt` and `mire_locate.txt` re-run on 1.0.9: `level.dat` experiments none, 0 errors.
 `noexp.txt` and `mire_locate.txt` re-run on 1.0.8: `level.dat` experiments none, 0 errors; the nearest Weeping Mire
 to 0,0 on seed 424242 is now at 32, 95, -32 ("45 blocks", the first square `locate` samples).
@@ -259,6 +265,12 @@ which is why only test worlds get it.
 | `mire_watcher` | 10 | — |
 | `mire_pages` | 7 | — |
 | `mire_spawn` | 7 | — |
+| `presence_music` | 2 | — |
+| `heartbeat` | 5 | — |
+| `charge` | 9 | — |
+| `profile` | 2 | — |
+| `peek_tree` | 6 | — |
+| `mire_fuel` | 3 | — |
 | `natural` | 1 | — |
 | `status` | 0 | — |
 

@@ -19,8 +19,8 @@ your light — always deliberately, always reversibly — and watches what you d
 4. Play. Nothing happens for the first 12 minutes on the Standard preset. Details: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md).
 
 ## Status
-Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.0.9 integration run passed 348 of
-348 checks (79 test groups) with no content-log or script errors, restart recovery passed, and the server held 20 TPS
+Server-side behaviour is verified on Bedrock Dedicated Server 1.26.52.3: the final 1.1.0 integration run passed 375 of
+375 checks (85 test groups) with no content-log or script errors, restart recovery passed, and the server held 20 TPS
 with and without the add-on. A separate run on a fresh world with every experiment switched off (and no test kit)
 loaded everything with zero errors — no experiments are needed; the same holds for the merged Weeping Mire, which
 generates on a fresh world with every experiment off. The first load in a game client reported three resource-pack errors, which are fixed in this build and now
