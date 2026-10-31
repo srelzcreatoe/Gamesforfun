@@ -245,6 +245,7 @@ export class Game {
       g.doWeatherCycle = false;
       g.doMobSpawning = false;
       g.doInsomnia = false;
+      g.showCoordinates = false;
       g.sendCommandFeedback = false;
       g.commandBlockOutput = false;
       g.showDeathMessages = false;
@@ -704,7 +705,15 @@ export class Game {
         if (spotlightReady(snap)) hint = this.camForm ? 'Find the Ringmaster on a camera, then press SPOTLIGHT' : 'Find the Ringmaster, then use the Office Remote: SPOTLIGHT';
         else hint = this.camForm ? 'Click a camera on the map - LOWER or Esc puts the monitor down' : 'Scroll the hotbar: next camera - Sneak or use the tablet: lower';
       }
-      g.onScreenDisplay.setActionBar(this.hud.nightBar(snap, now, { captions: this.save.settings.captions, overlay, cover: this.cams.active ? this.camCover() : null, hint }));
+      const bar = this.hud.nightBar(snap, now, { captions: this.save.settings.captions, overlay, cover: this.cams.active ? this.camCover() : null, hint });
+      this.lastBar = bar;
+      g.onScreenDisplay.setActionBar(bar);
+      // the clickable map hides the HUD, so it shows the same lines itself: re-show it when they change
+      const form = this.camForm;
+      if (form && form.shownAt && !form.refresh && bar !== form.shownBody && now - form.shownAt >= 30) {
+        form.refresh = true;
+        ui.closeForms(g);
+      }
     }
     if (this.cams.active && now % 60 === 0) this.showCamMap(g, s.devices.cams.cam);
   }
@@ -895,6 +904,12 @@ export class Game {
   /** @param {import('@minecraft/server').Player} g */
   renderCams(e, g) {
     if (e.open && !this.cams.active) {
+      // nothing but the feed: no hotbar, item names or controller hints over the camera
+      try {
+        g.onScreenDisplay.hideAllExcept([]);
+      } catch {
+        // ignore
+      }
       this.cams.open(g, e.cam);
       this.act.camLight(e.cam);
       this.audio.play('fnar.cam.up', null, g, { vol: 0.8 });
@@ -919,6 +934,14 @@ export class Game {
       if (e.reason === 'close' || e.reason === 'power') this.audio.play('fnar.cam.down', null, g, { vol: 0.8 });
       this.showCamMap(g, null);
       if (this.camForm) this.stopCamForm();
+      if (e.reason !== 'jumpscare') {
+        try {
+          g.onScreenDisplay.resetHudElementsVisibility();
+          g.onScreenDisplay.setHudVisibility(HudVisibility.Hide, NIGHT_HUD);
+        } catch {
+          // ignore
+        }
+      }
     }
   }
 
@@ -932,8 +955,15 @@ export class Game {
     const loop = async () => {
       await wait(4); // let the view land on the camera first
       while (live()) {
-        const r = await ui.cameraMapForm(g, this.session.snapshot());
+        form.shownBody = this.lastBar ?? '';
+        form.shownAt = system.currentTick;
+        const r = await ui.cameraMapForm(g, this.session.snapshot(), form.shownBody);
         if (!live()) break;
+        if (form.refresh) {
+          // closed by us to show fresh status lines, not by the player
+          form.refresh = false;
+          continue;
+        }
         if (!r) break; // the form could not be shown: the hotbar and sneak still work
         if (r.kind === 'busy') {
           // another screen (chat, inventory, pause) was in the way: try again shortly, keep the monitor up

@@ -43,14 +43,17 @@ export const CAM_FORM_MARK = '§k§r§k§r§m';
  * | { kind: 'dismissed', reason } | undefined.
  */
 /** @param {import('@minecraft/server').Player} player */
-export async function cameraMapForm(player, snap) {
+export async function cameraMapForm(player, snap, body = '') {
   const live = snap.devices.cam;
-  const f = new ActionFormData().title(`${CAM_FORM_MARK}SECURITY CAMERAS`).body(CAMERA_BY_ID[live]?.label ?? '');
-  for (const c of CAMERAS) f.button(`${c.id === live ? '§a' : ''}${c.id}`);
-  f.button('§cLOWER');
   const action = live === '8' && snap.tape ? 'wind' : spotlightReady(snap) ? 'spotlight' : 'wind';
-  if (action === 'spotlight') f.button('§eSPOTLIGHT');
-  else f.button(live === '8' && snap.tape ? `§6PLAY SHOW ${snap.tape.pct}%` : '§8PLAY SHOW');
+  // The resource pack reads only the title (live camera + which action label to show) and the body
+  // (the status lines); the buttons are invisible hit areas over the printed map.
+  const idx = String(Math.max(0, CAMERAS.findIndex((c) => c.id === live))).padStart(2, '0');
+  const code = action === 'spotlight' ? 's' : live === '8' && snap.tape ? 'w' : 'x';
+  const f = new ActionFormData().title(`${CAM_FORM_MARK}§${idx[0]}§${idx[1]}§${code}`).body(body || (CAMERA_BY_ID[live]?.label ?? ''));
+  for (const c of CAMERAS) f.button(c.id);
+  f.button('LOWER');
+  f.button(action === 'spotlight' ? 'SPOTLIGHT' : 'PLAY SHOW');
   let r;
   try {
     r = await f.show(player);

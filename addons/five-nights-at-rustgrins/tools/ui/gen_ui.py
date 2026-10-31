@@ -26,7 +26,7 @@ console.log(JSON.stringify({ rooms: L.ROOMS, ducts: L.DUCTS, office: L.OFFICE, c
 ''', ROOT]).decode())
 
 # ---------------------------------------------------------------- map geometry
-S = 5                     # pixels per block
+S = 8                     # pixels per block (the map is drawn large, then shown at ~150 UI units)
 X0, Z0, X1, Z1 = -2, -2, 82, 73
 MARGIN = 10
 W = (X1 - X0) * S + 2 * MARGIN
@@ -50,11 +50,11 @@ BOXC = (64, 70, 66, 255)
 TEXT = (235, 240, 232, 255)
 LIVE = (96, 196, 92, 255)
 font_path = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
-font = ImageFont.truetype(font_path, 15)
-font_small = ImageFont.truetype(font_path, 11)
+font = ImageFont.truetype(font_path, 24)
+font_cam = ImageFont.truetype(font_path, 27)   # camera numbers: readable even on the small corner map
 
 def rounded_bg(d):
-    d.rounded_rectangle([0, 0, W - 1, H - 1], radius=10, fill=BG, outline=(70, 76, 72, 255), width=2)
+    d.rounded_rectangle([0, 0, W - 1, H - 1], radius=16, fill=BG, outline=(70, 76, 72, 255), width=3)
 
 def draw_rooms(d):
     for r in data['rooms']:
@@ -62,7 +62,7 @@ def draw_rooms(d):
         a = px(x1, z1)
         b = px(x2 + 1, z2 + 1)
         fill = (40, 44, 42, 255) if r['id'] not in ('OFFICE',) else (60, 58, 40, 255)
-        d.rectangle([a[0], a[1], b[0] - 1, b[1] - 1], fill=fill, outline=LINE, width=2)
+        d.rectangle([a[0], a[1], b[0] - 1, b[1] - 1], fill=fill, outline=LINE, width=3)
     # ducts as dashed lines
     for duct in data['ducts'].values():
         for (x1, y1, z1, x2, y2, z2) in duct['boxes']:
@@ -76,7 +76,7 @@ def draw_rooms(d):
                 if i % 2:
                     continue
                 t0, t1 = i / n, min(1, (i + 1) / n)
-                d.line([(a[0] + (b[0] - a[0]) * t0, a[1] + (b[1] - a[1]) * t0), (a[0] + (b[0] - a[0]) * t1, a[1] + (b[1] - a[1]) * t1)], fill=DIM, width=2)
+                d.line([(a[0] + (b[0] - a[0]) * t0, a[1] + (b[1] - a[1]) * t0), (a[0] + (b[0] - a[0]) * t1, a[1] + (b[1] - a[1]) * t1)], fill=DIM, width=3)
     # office marker
     ox, oz = px(36.5, 66)
     d.text((ox, oz), 'YOU', font=font, fill=(255, 230, 120, 255), anchor='mm')
@@ -87,10 +87,10 @@ def cam_rect(cid):
     b = px(cx + BOX[0] / 2, cz + BOX[1] / 2)
     return [round(a[0]), round(a[1]), round(b[0]), round(b[1])]
 
-def draw_cam(d, cid, fill, text):
+def draw_cam(d, cid, fill, text, outline=(10, 12, 11, 255)):
     r = cam_rect(cid)
-    d.rectangle(r, fill=fill, outline=LINE, width=2)
-    d.text(((r[0] + r[2]) / 2, (r[1] + r[3]) / 2), f'CAM {cid}', font=font_small if len(cid) > 1 else font_small, fill=text, anchor='mm')
+    d.rectangle(r, fill=fill, outline=LINE, width=3)
+    d.text(((r[0] + r[2]) / 2, (r[1] + r[3]) / 2 + 1), cid, font=font_cam, fill=text, anchor='mm', stroke_width=3, stroke_fill=outline)
 
 base = Image.new('RGBA', (W, H), (0, 0, 0, 0))
 d = ImageDraw.Draw(base)
@@ -101,7 +101,7 @@ for c in cams:
 base.save(os.path.join(OUT, 'cam_map.png'))
 for i, c in enumerate(cams):
     ov = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-    draw_cam(ImageDraw.Draw(ov), c['id'], LIVE, (12, 24, 10, 255))
+    draw_cam(ImageDraw.Draw(ov), c['id'], LIVE, (255, 255, 255, 255), outline=(16, 60, 14, 255))
     ov.save(os.path.join(OUT, f'cam_live_{i:02d}.png'))
 
 # ---------------------------------------------------------------- CCTV frame + REC
@@ -172,34 +172,62 @@ for y in range(64):
 roll.save(os.path.join(OUT, 'cam_fx_roll.png'))
 
 # ---------------------------------------------------------------- JSON UI
+# Title codes (formatting codes only, so nothing shows): the scripts set the HUD title to
+# MAP_ON + camera code while the monitor is up, FX_ON with the map switched off, JS_ON during
+# a jumpscare. The clickable map form's title is FORM_MARK + camera code + action code.
 MAP_ON = '§k§r§k§r§l'
 FX_ON = '§k§r§k§r§n'      # the camera-feed look without the map (Settings: camera map off)
 JS_ON = '§k§r§k§r§o'      # a jumpscare is playing: nothing on screen but the animatronic
 FORM_MARK = '§k§r§k§r§m'
-# A compact map in the corner so the feed keeps most of the screen; the clickable one is a
-# little larger so every camera stays a usable button (about 12 x 7 units).
-HUD_W, HUD_H = 100, round(100 * H / W, 2)
-FORM_W, FORM_H = 124, round(124 * H / W, 2)
+ACTIONS = {'w': 'PLAY SHOW', 's': 'SPOTLIGHT', 'x': 'PLAY SHOW'}  # form action codes (x = nothing to do here)
+HUD_W, HUD_H = 112, round(112 * H / W, 2)
+# The clickable map is a little larger so every camera stays a comfortable button (about 15 x 9 units).
+FORM_W, FORM_H = 150, round(150 * H / W, 2)
 
-def blink(prefix):
+def cam_code(i):
+    s2 = f'{i:02d}'
+    return f'§{s2[0]}§{s2[1]}'
+
+def contains(binding, text):
+    return f"(not (({binding} - '{text}') = {binding}))"
+
+def img(texture, **kw):
+    # keep_ratio false: overlays stretch to the whole screen (a square texture would otherwise stay square)
+    return {'type': 'image', 'texture': texture, 'size': ['100%', '100%'], 'keep_ratio': False, **kw}
+
+def fx_controls(ns):
+    """The camera-feed look: green tint, animated grain, scanlines, a rolling band, the vignette frame and REC."""
+    return [
+        {'fnar_cam_tint': img('textures/ui/fnar/px_white', layer=1, color=[0.32, 0.95, 0.48], alpha=0.15)},
+        {'fnar_cam_noise': img('textures/ui/fnar/cam_fx_noise', layer=2, alpha=0.4, uv_size=[NOISE_W, NOISE_H], uv=f'@{ns}.fnar_cam_noise_anim', disable_anim_fast_forward=True)},
+        {'fnar_cam_scan': img('textures/ui/fnar/cam_fx_scan', layer=3, tiled=True)},
+        {'fnar_cam_roll': img('textures/ui/fnar/cam_fx_roll', layer=3, size=['100%', 70], anchor_from='top_left', anchor_to='top_left', anims=[f'@{ns}.fnar_cam_roll_anim'])},
+        {'fnar_cam_frame': img('textures/ui/fnar/cam_frame', layer=4, alpha=0.95)},
+        {'fnar_cam_rec': {'type': 'image', 'texture': 'textures/ui/fnar/rec', 'size': [48, 15], 'keep_ratio': False, 'anchor_from': 'top_left', 'anchor_to': 'top_left', 'offset': [14, 12], 'layer': 5, 'anims': [f'@{ns}.fnar_rec_blink_out']}},
+    ]
+
+def fx_anims(ns):
     return {
-        f'{prefix}_blink_out': {'anim_type': 'alpha', 'easing': 'linear', 'duration': 0.45, 'from': 1.0, 'to': 0.35, 'next': f'@hud.{prefix}_blink_in'},
-        f'{prefix}_blink_in': {'anim_type': 'alpha', 'easing': 'linear', 'duration': 0.45, 'from': 0.35, 'to': 1.0, 'next': f'@hud.{prefix}_blink_out'},
+        'fnar_cam_noise_anim': {'anim_type': 'flip_book', 'initial_uv': [0, 0], 'frame_count': NOISE_FRAMES, 'frame_step': NOISE_H, 'fps': 14},
+        'fnar_cam_roll_anim': {'anim_type': 'offset', 'easing': 'linear', 'duration': 7.5, 'from': [0, -80], 'to': [0, 520], 'next': f'@{ns}.fnar_cam_roll_anim'},
+        'fnar_rec_blink_out': {'anim_type': 'alpha', 'easing': 'linear', 'duration': 0.6, 'from': 1.0, 'to': 0.0, 'next': f'@{ns}.fnar_rec_blink_in'},
+        'fnar_rec_blink_in': {'anim_type': 'alpha', 'easing': 'linear', 'duration': 0.6, 'from': 0.0, 'to': 1.0, 'next': f'@{ns}.fnar_rec_blink_out'},
+        'fnar_cam_blink_out': {'anim_type': 'alpha', 'easing': 'linear', 'duration': 0.45, 'from': 1.0, 'to': 0.35, 'next': f'@{ns}.fnar_cam_blink_in'},
+        'fnar_cam_blink_in': {'anim_type': 'alpha', 'easing': 'linear', 'duration': 0.45, 'from': 0.35, 'to': 1.0, 'next': f'@{ns}.fnar_cam_blink_out'},
     }
 
+# ---------------------------------------------------------------- the HUD (monitor up, no form open)
 def title_visible(expr):
     return [{'binding_name': '#hud_title_text_string', 'binding_type': 'global'}, {'binding_type': 'view', 'source_property_name': expr, 'target_property_name': '#visible'}]
 
-on_expr = f"(not ((#hud_title_text_string - '{MAP_ON}') = #hud_title_text_string))"
-fx_expr = f"({on_expr} or (not ((#hud_title_text_string - '{FX_ON}') = #hud_title_text_string)))"
-hud_map_controls = [{'fnar_cam_map_base': {'type': 'image', 'texture': 'textures/ui/fnar/cam_map', 'size': ['100%', '100%'], 'layer': 1}}]
+on_expr = contains('#hud_title_text_string', MAP_ON)
+fx_expr = f"({on_expr} or {contains('#hud_title_text_string', FX_ON)})"
+hud_map_controls = [{'fnar_cam_map_base': img('textures/ui/fnar/cam_map', layer=1)}]
 for i, c in enumerate(cams):
     code = f'{i:02d}'
-    hud_map_controls.append({f'fnar_cam_live_{code}': {
-        'type': 'image', 'texture': f'textures/ui/fnar/cam_live_{code}', 'size': ['100%', '100%'], 'layer': 2,
-        'anims': ['@hud.fnar_cam_blink_out'],
-        'bindings': title_visible(f"(#hud_title_text_string = '{MAP_ON}§{code[0]}§{code[1]}')"),
-    }})
+    hud_map_controls.append({f'fnar_cam_live_{code}': img(
+        f'textures/ui/fnar/cam_live_{code}', layer=2, anims=['@hud.fnar_cam_blink_out'],
+        bindings=title_visible(f"(#hud_title_text_string = '{MAP_ON}{cam_code(i)}')"))})
 hud = {
     'namespace': 'hud',
     'root_panel': {'modifications': [{'array_name': 'controls', 'operation': 'insert_back', 'value': [{'fnar_cam_hud@hud.fnar_cam_hud': {}}]}]},
@@ -207,39 +235,63 @@ hud = {
         'type': 'panel', 'size': ['100%', '100%'], 'layer': 1,
         'bindings': title_visible(fx_expr),
         'controls': [
-            {'fnar_cam_tint': {'type': 'image', 'texture': 'textures/ui/fnar/px_white', 'size': ['100%', '100%'], 'layer': 1, 'color': [0.32, 0.95, 0.48], 'alpha': 0.15}},
-            {'fnar_cam_noise': {'type': 'image', 'texture': 'textures/ui/fnar/cam_fx_noise', 'size': ['100%', '100%'], 'layer': 2, 'alpha': 0.4,
-                                'uv_size': [NOISE_W, NOISE_H], 'uv': '@hud.fnar_cam_noise_anim', 'disable_anim_fast_forward': True}},
-            {'fnar_cam_scan': {'type': 'image', 'texture': 'textures/ui/fnar/cam_fx_scan', 'size': ['100%', '100%'], 'layer': 3, 'tiled': True}},
-            {'fnar_cam_roll': {'type': 'image', 'texture': 'textures/ui/fnar/cam_fx_roll', 'size': ['100%', 70], 'anchor_from': 'top_left', 'anchor_to': 'top_left', 'layer': 3,
-                               'anims': ['@hud.fnar_cam_roll_anim']}},
-            {'fnar_cam_frame': {'type': 'image', 'texture': 'textures/ui/fnar/cam_frame', 'size': ['100%', '100%'], 'layer': 4, 'alpha': 0.95}},
-            {'fnar_cam_rec': {'type': 'image', 'texture': 'textures/ui/fnar/rec', 'size': [48, 15], 'anchor_from': 'top_left', 'anchor_to': 'top_left', 'offset': [14, 12], 'layer': 5, 'anims': ['@hud.fnar_rec_blink_out']}},
+            *fx_controls('hud'),
             {'fnar_cam_map': {'type': 'panel', 'size': [HUD_W, HUD_H], 'anchor_from': 'bottom_right', 'anchor_to': 'bottom_right', 'offset': [-4, -4], 'layer': 6, 'controls': hud_map_controls,
                               'bindings': title_visible(on_expr)}},
         ],
     },
-    'fnar_cam_noise_anim': {'anim_type': 'flip_book', 'initial_uv': [0, 0], 'frame_count': NOISE_FRAMES, 'frame_step': NOISE_H, 'fps': 14},
-    'fnar_cam_roll_anim': {'anim_type': 'offset', 'easing': 'linear', 'duration': 7.5, 'from': [0, -80], 'to': [0, 520], 'next': '@hud.fnar_cam_roll_anim'},
+    **fx_anims('hud'),
     # vanilla's action bar (merged: only this binding is added) hides while a jumpscare plays
     'hud_actionbar_text': {
         'bindings': title_visible(f"((#hud_title_text_string - '{JS_ON}') = #hud_title_text_string)"),
     },
-    **blink('fnar_cam'),
-    'fnar_rec_blink_out': {'anim_type': 'alpha', 'easing': 'linear', 'duration': 0.6, 'from': 1.0, 'to': 0.0, 'next': '@hud.fnar_rec_blink_in'},
-    'fnar_rec_blink_in': {'anim_type': 'alpha', 'easing': 'linear', 'duration': 0.6, 'from': 0.0, 'to': 1.0, 'next': '@hud.fnar_rec_blink_out'},
 }
 
+# ---------------------------------------------------------------- the clickable camera map (a server form)
+# The HUD is not drawn while a form screen is open, so the form carries everything itself: the
+# camera-feed look, the status lines (the form body, refreshed by the scripts) and the map.
+# Only the form's title and body are read (global bindings); the buttons are invisible hit areas
+# over the printed map, so nothing depends on per-button text.
 def scale_rect(r):
     sx, sy = FORM_W / W, FORM_H / H
     return [round(r[0] * sx, 2), round(r[1] * sy, 2), round((r[2] - r[0]) * sx, 2), round((r[3] - r[1]) * sy, 2)]
 
-form_buttons = []
+def title_has(text):
+    return [{'binding_name': '#title_text'}, {'binding_type': 'view', 'source_property_name': contains('#title_text', text), 'target_property_name': '#visible'}]
+
+form_controls = [{'fnar_cam_form_map_image': img('textures/ui/fnar/cam_map', layer=1)}]
 for i, c in enumerate(cams):
+    form_controls.append({f'fnar_cam_form_live_{i:02d}': img(f'textures/ui/fnar/cam_live_{i:02d}', layer=2, anims=['@server_form.fnar_cam_blink_out'],
+                                                              bindings=title_has(f'{FORM_MARK}{cam_code(i)}'))})
     x, y, w, h = scale_rect(cam_rect(c['id']))
-    form_buttons.append({f"fnar_cam_button_{i:02d}@server_form.fnar_cam_button": {'collection_index': i, 'size': [w, h], 'offset': [x, y]}})
-form_buttons.append({'fnar_cam_button_lower@server_form.fnar_cam_button': {'collection_index': len(cams), 'size': [40, 12], 'offset': [FORM_W - 40, -14]}})
-form_buttons.append({'fnar_cam_button_show@server_form.fnar_cam_button': {'collection_index': len(cams) + 1, 'size': [72, 12], 'offset': [FORM_W - 116, -14]}})
+    form_controls.append({f'fnar_cam_button_{i:02d}@server_form.fnar_hit_button': {'collection_index': i, 'size': [w, h], 'offset': [x, y]}})
+
+# the action label depends on the action code (the last code of the title)
+action_labels = [
+    {f'label_w': {'type': 'label', 'text': 'PLAY SHOW', 'color': [1.0, 0.8, 0.3], 'shadow': True, 'layer': 3, 'font_scale_factor': 0.9, 'bindings': [{'binding_name': '#title_text'}, {'binding_type': 'view', 'source_property_name': f"(not ((#title_text - '§w') = #title_text))", 'target_property_name': '#visible'}]}},
+    {f'label_s': {'type': 'label', 'text': 'SPOTLIGHT', 'color': [1.0, 1.0, 0.55], 'shadow': True, 'layer': 3, 'font_scale_factor': 0.9, 'bindings': [{'binding_name': '#title_text'}, {'binding_type': 'view', 'source_property_name': f"(not ((#title_text - '§s') = #title_text))", 'target_property_name': '#visible'}]}},
+    {f'label_x': {'type': 'label', 'text': 'PLAY SHOW', 'color': [0.45, 0.47, 0.45], 'shadow': True, 'layer': 3, 'font_scale_factor': 0.9, 'bindings': [{'binding_name': '#title_text'}, {'binding_type': 'view', 'source_property_name': f"(not ((#title_text - '§x') = #title_text))", 'target_property_name': '#visible'}]}},
+]
+
+def top_button(name, index, size, offset, labels):
+    """LOWER / the action button above the map: a dark plate with fixed labels (no per-button text binding)."""
+    def state(color, alpha):
+        return {'type': 'panel', 'controls': [{'plate': img('textures/ui/fnar/px_white', layer=1, color=color, alpha=alpha)}] + labels}
+    return {f'{name}@common.button': {
+        '$pressed_button_name': 'button.form_button_click', 'layer': 4,
+        'collection_index': index, 'size': size, 'offset': offset, 'anchor_from': 'top_left', 'anchor_to': 'top_left',
+        'controls': [
+            {'default': state([0.05, 0.06, 0.05], 0.85)},
+            {'hover': state([0.16, 0.24, 0.16], 0.92)},
+            {'pressed': state([0.25, 0.4, 0.25], 0.95)},
+        ],
+        'bindings': [{'binding_type': 'collection_details', 'binding_collection_name': 'form_buttons'}],
+    }}
+
+form_controls.append(top_button('fnar_cam_button_lower', len(cams), [44, 13], [FORM_W - 44, -15],
+                                [{'label_lower': {'type': 'label', 'text': 'LOWER', 'color': [1.0, 0.45, 0.45], 'shadow': True, 'layer': 3, 'font_scale_factor': 0.9}}]))
+form_controls.append(top_button('fnar_cam_button_action', len(cams) + 1, [80, 13], [FORM_W - 128, -15], action_labels))
+
 not_mark = f"((#title_text - '{FORM_MARK}') = #title_text)"
 form = {
     'namespace': 'server_form',
@@ -259,22 +311,30 @@ form = {
     },
     'fnar_cam_form': {
         'type': 'panel', 'size': ['100%', '100%'],
-        'controls': [{'fnar_cam_form_map': {
-            # collection_panel: the only container whose children may pick a collection item by
-            # collection_index at a free position (like the vanilla store's screenshots_grid)
-            'type': 'collection_panel', 'size': [FORM_W, FORM_H], 'anchor_from': 'bottom_right', 'anchor_to': 'bottom_right', 'offset': [-3, -3], 'layer': 10,
-            'collection_name': 'form_buttons',
-            'controls': [
-                {'fnar_cam_form_map_image': {'type': 'image', 'texture': 'textures/ui/fnar/cam_map', 'size': ['100%', '100%'], 'layer': 1}},
-                {'fnar_cam_form_live': {'type': 'label', 'text': '#form_text', 'color': [1, 1, 1], 'shadow': True, 'layer': 3, 'anchor_from': 'top_left', 'anchor_to': 'bottom_left', 'offset': [2, -3], 'size': ['default', 10]}},
-                *form_buttons,
-            ],
-        }}],
+        'controls': [
+            *fx_controls('server_form'),
+            # the status lines (camera, show tape, the Ringmaster, power): the form body
+            {'fnar_cam_status': {'type': 'panel', 'size': ['70%', '100%c'], 'anchor_from': 'bottom_middle', 'anchor_to': 'bottom_middle', 'offset': [0, -10], 'layer': 8,
+                                 'controls': [{'fnar_cam_status_text': {'type': 'label', 'text': '#form_text', 'size': ['100%', 'default'], 'color': [1, 1, 1], 'shadow': True,
+                                                                         'text_alignment': 'center', 'anchor_from': 'bottom_middle', 'anchor_to': 'bottom_middle', 'layer': 8}}]}},
+            {'fnar_cam_form_map': {
+                # collection_panel: the only container whose children may pick a collection item by
+                # collection_index at a free position (like the vanilla store's screenshots_grid)
+                'type': 'collection_panel', 'size': [FORM_W, FORM_H], 'anchor_from': 'bottom_right', 'anchor_to': 'bottom_right', 'offset': [-3, -3], 'layer': 10,
+                'collection_name': 'form_buttons',
+                'controls': form_controls,
+            }},
+        ],
     },
-    'fnar_cam_button@common_buttons.light_text_button': {
+    **fx_anims('server_form'),
+    # an invisible hit area over a camera on the printed map: a soft highlight on hover / press
+    'fnar_hit_button@common.button': {
         '$pressed_button_name': 'button.form_button_click', 'anchor_from': 'top_left', 'anchor_to': 'top_left', 'layer': 4,
-        '$button_text': '#form_button_text', '$button_text_binding_type': 'collection', '$button_text_grid_collection_name': 'form_buttons',
-        '$button_text_max_size': ['100%', '100%'],
+        'controls': [
+            {'default': {'type': 'panel'}},
+            {'hover': img('textures/ui/fnar/px_white', color=[0.75, 1.0, 0.75], alpha=0.35)},
+            {'pressed': img('textures/ui/fnar/px_white', color=[0.75, 1.0, 0.75], alpha=0.6)},
+        ],
         'bindings': [{'binding_type': 'collection_details', 'binding_collection_name': 'form_buttons'}],
     },
 }
