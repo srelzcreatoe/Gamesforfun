@@ -1,0 +1,1089 @@
+# Tailwail 3.2.0 on Bedrock Dedicated Server 1.26.61.1 (no experiments), tools/bds_scenarios.py + devtests/harness/devharness.js.
+# Condensed: harness lines ([TWDEV]) and the add-on's own log lines. Run 1: every scenario. In run 1 the stalker's random first
+# 'cross' beat teleported the creature before two tests began (stand-off shot test, escape): a harness bug, fixed (spawnTW puts it back).
+# Run 2: the stand-off and the escape, twice each, after that fix.
+
+######## run 1 (every scenario)
+03:26:59 [TWDEV] harness loaded
+03:27:00 [Tailwail] v3.2.0 ready
+03:27:07 [TWDEV] === scenario boot
+03:27:07 [TWDEV] boot blocks: snuffed torch type true
+03:27:07 [TWDEV] command "camera @a fov_clear 0.50 in_out_sine" ok 0
+03:27:07 [TWDEV] command "camera @a fov_set 60 0.5 in_out_sine" ok 0
+03:27:07 [TWDEV] boot rp check key TAILWAIL_RESOURCE_PACK_3.2.0_IS_NOT_ACTIVE-re-apply_TAILWAIL_Resources_to_this_world one-shots 17
+03:27:07 [TWDEV] playAnimation scream ok
+03:27:07 [TWDEV] playAnimation swipe_r ok
+03:27:07 [TWDEV] playAnimation flinch ok
+03:27:08 [TWDEV] float_on: held at 4 blocks (was 0 )
+03:27:10 [TWDEV] float_off: fell to 0 blocks
+03:27:10 [TWDEV] act property set to cling -> loco
+03:27:10 [TWDEV] === done boot
+03:27:13 [TWDEV] === scenario standoff
+03:27:13 [Tailwail] #1 - -> stalk (spawn)
+03:27:13 [Tailwail] #1 beat watch (1/2)
+03:27:13 [Tailwail] encounter 1 start setup=stalker slot=a target=Mock
+03:27:13 [Tailwail] #1 stalk -> standoff (test)
+03:27:13 [Tailwail] #1 cue growl
+03:27:13 [Tailwail] #1 observe: idle
+03:27:14 [TWDEV] observe-glance t 20 state standoff pos 21.5,-60,10.5 posture tall act tall tail 0 jaw 6 dmg 0 
+03:27:15 [Tailwail] #1 cue creak
+03:27:15 [Tailwail] #1 observe: approach
+03:27:15 [TWDEV] observe-glance t 40 state standoff pos 21.5,-60,10.5 posture tall act loco_low tail 0 jaw 6 dmg 0 
+03:27:16 [TWDEV] msg §8[Torn journal] §7A new page: §fDon't turn your back
+03:27:16 [TWDEV] observe-glance t 60 state standoff pos 20.5,-60,10.5 posture tall act loco_low tail 0 jaw 6 dmg 0 
+03:27:16 [Tailwail] #1 cue growl
+03:27:17 [TWDEV] observe-glance t 80 state standoff pos 18.8,-60,10.5 posture tall act loco_low tail 0 jaw 6 dmg 0 
+03:27:17 [Tailwail] #1 cue creak
+03:27:18 [Tailwail] #1 observe: test (feint)
+03:27:18 [TWDEV] observe-glance t 100 state standoff pos 16.9,-60,10.5 posture tall act loco tail 1 jaw 10 dmg 0 
+03:27:18 [Tailwail] #1 cue click
+03:27:19 [Tailwail] #1 standoff -> engage (timeout)
+03:27:19 [Tailwail] #1 cue inhale
+03:27:19 [TWDEV] observe-glance t 120 state engage pos 15.2,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:27:20 [Tailwail] #1 cue scream
+03:27:20 [TWDEV] observe-glance t 140 state engage pos 15.2,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:27:21 [TWDEV] observe-glance t 160 state engage pos 15.2,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:27:21 [TWDEV] observe: modes 0.3 observe: idle / 1.9 observe: approach / 5.0 observe: test (feint)
+03:27:21 [TWDEV] observe: moved 6.3 blocks; state engage music  fog tailwail:dread
+03:27:21 [Tailwail] encounter 1 end outcome=aborted after 8.3s
+03:27:21 [Tailwail] #2 - -> stalk (spawn)
+03:27:21 [Tailwail] #2 beat tall (1/1)
+03:27:21 [Tailwail] encounter 2 start setup=stalker slot=a target=Mock
+03:27:21 [Tailwail] #2 stalk -> standoff (test)
+03:27:21 [Tailwail] #2 cue growl
+03:27:21 [Tailwail] #2 cue creak
+03:27:21 [Tailwail] #2 observe: approach
+03:27:24 [Tailwail] #2 cue creak
+03:27:24 [TWDEV] msg §8[Torn journal] §7A new page: §fDon't turn your back
+03:27:25 [Tailwail] #2 observe: idle
+03:27:25 [Tailwail] #2 cue click
+03:27:25 [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+03:27:28 [Tailwail] #2 standoff -> engage (decided)
+03:27:28 [Tailwail] #2 cue scream
+03:27:28 [TWDEV] stare: state engage after 123 ticks; 6.4 standoff -> engage (decided)
+03:27:28 [Tailwail] encounter 2 end outcome=aborted after 6.4s
+03:27:28 [Tailwail] #3 - -> stalk (spawn)
+03:27:28 [Tailwail] #3 beat tall (1/1)
+03:27:28 [Tailwail] encounter 3 start setup=stalker slot=a target=Mock
+03:27:28 [Tailwail] #3 stalk -> standoff (test)
+03:27:28 [Tailwail] #3 cue growl
+03:27:28 [Tailwail] #3 cue creak
+03:27:28 [Tailwail] #3 observe: approach
+03:27:30 [Tailwail] #3 cue click
+03:27:30 [Tailwail] #3 standoff -> engage (turned-away)
+03:27:30 [Tailwail] #3 cue scream
+03:27:30 [TWDEV] standoff: turned away -> state engage after 17 ticks
+03:27:31 [TWDEV] standoff-engage t 10 state engage pos 18.6,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:27:31 [TWDEV] msg §8[Torn journal] §7A new page: §fDon't turn your back
+03:27:31 [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+03:27:31 [TWDEV] standoff-engage t 20 state engage pos 18.6,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:27:32 [TWDEV] standoff-engage t 30 state engage pos 18.6,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:27:32 [Tailwail] #3 engage -> hunt (engaged)
+03:27:32 [TWDEV] standoff-engage t 40 state hunt pos 18.6,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 
+03:27:32 [Tailwail] encounter 3 end outcome=aborted after 4.6s
+03:27:32 [TWDEV] standoff cleanup locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
+03:27:32 [Tailwail] #4 - -> stalk (spawn)
+03:27:32 [Tailwail] #4 beat cross
+03:27:32 [Tailwail] encounter 4 start setup=stalker slot=a target=Mock
+03:27:32 [Tailwail] #4 stalk -> standoff (test)
+03:27:32 [Tailwail] #4 cue growl
+03:27:32 [Tailwail] #4 observe: idle
+03:27:34 [TWDEV] shot: a wide miss -> state standoff
+03:27:35 [TWDEV] msg §8[Torn journal] §7A new page: §fDon't turn your back
+03:27:36 [Tailwail] #4 cue click
+03:27:36 [Tailwail] #4 observe: test (crane)
+03:27:36 [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+03:27:37 [Tailwail] #4 cue growl
+03:27:38 [TWDEV] shot: aimed at it -> hunting after 81 ticks;  one-shots played 
+03:27:38 [TWDEV] shot-hunt t 10 state standoff pos 32.5,-60,34.5 posture tall act watch tail 1 jaw 10 dmg 0 
+03:27:39 [Tailwail] #4 reaction: you held still
+03:27:39 [Tailwail] #4 standoff -> engage (decided)
+03:27:39 [Tailwail] #4 cue scream_far
+03:27:39 [TWDEV] shot-hunt t 20 state engage pos 32.5,-60,34.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:27:39 [TWDEV] shot-hunt t 30 state engage pos 32.5,-60,34.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:27:39 [Tailwail] encounter 4 end outcome=aborted after 6.9s
+03:27:39 [Tailwail] #5 - -> stalk (spawn)
+03:27:39 [Tailwail] #5 beat watch (1/4)
+03:27:39 [Tailwail] encounter 5 start setup=stalker slot=a target=Mock
+03:27:39 [Tailwail] #5 stalk -> standoff (test)
+03:27:39 [Tailwail] #5 cue growl
+03:27:39 [Tailwail] #5 observe: idle
+03:27:40 [TWDEV] shot: a real arrow with no player owner -> state standoff (ignored)
+03:27:40 [Tailwail] encounter 5 end outcome=aborted after 0.5s
+03:27:40 [TWDEV] === done standoff
+03:28:05 [TWDEV] === scenario commit
+03:28:05 [Tailwail] #6 - -> stalk (spawn)
+03:28:05 [Tailwail] #6 beat watch (1/1)
+03:28:05 [Tailwail] encounter 6 start setup=stalker slot=a target=Mock
+03:28:05 [Tailwail] #6 stalk -> engage (test)
+03:28:05 [Tailwail] #6 cue scream
+03:28:06 [TWDEV] commit t 10 state engage pos 18.5,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:28:06 [TWDEV] commit t 20 state engage pos 18.5,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:28:07 [TWDEV] commit t 30 state engage pos 18.5,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:28:07 [Tailwail] #6 engage -> hunt (engaged)
+03:28:07 [TWDEV] commit t 40 state hunt pos 18.5,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 
+03:28:07 [Tailwail] #6 hunt -> attack (pounce)
+03:28:07 [Tailwail] #6 cue pounce
+03:28:08 [TWDEV] commit t 50 state attack pos 18.5,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:28:08 [TWDEV] commit t 60 state attack pos 12.1,-59.9,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:28:08 [TWDEV] commit torches after scream tailwail:snuffed_torch,tailwail:snuffed_torch,tailwail:snuffed_torch
+03:28:08 [TWDEV] relight true -> minecraft:torch
+03:28:08 [TWDEV] commit fx calls music-stop | fov {"fov":48,"easeOptions":{"easeTime":0.2,"easeType":"OutCubic"}} | music tailwail.music.chase | fog+ tailwail:dread | fov {"fov":86,"easeOptions":{"easeTime":0.7,"easeType":"InOutSine"}}
+03:28:08 [Tailwail] encounter 6 end outcome=aborted after 3.3s
+03:28:08 [TWDEV] commit cleanup locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
+03:28:08 [TWDEV] === done commit
+03:28:11 [TWDEV] === scenario hunt
+03:28:11 [Tailwail] #7 - -> engage (hunter)
+03:28:11 [Tailwail] #7 cue scream_far
+03:28:11 [Tailwail] encounter 7 start setup=the_hunter slot=a target=Mock
+03:28:13 [Tailwail] #7 engage -> hunt (engaged)
+03:28:15 [Tailwail] #7 cue screech
+03:28:16 [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+03:28:18 [Tailwail] #7 hunt -> attack (pounce)
+03:28:18 [Tailwail] #7 cue pounce
+03:28:19 [Tailwail] #7 attack -> hunt (after-pounce)
+03:28:20 [Tailwail] #7 hunt -> attack (slam)
+03:28:20 [Tailwail] #7 cue slam_windup
+03:28:20 [Tailwail] #7 slam dealt 9 -> true
+03:28:20 [Tailwail] #7 cue slam
+03:28:21 [Tailwail] #7 attack -> savor (slam)
+03:28:21 [Tailwail] #7 cue growl
+03:28:22 [Tailwail] #7 cue screech
+03:28:22 [Tailwail] #7 savor -> hunt (savored)
+03:28:22 [Tailwail] #7 hunt -> attack (combo)
+03:28:22 [Tailwail] #7 cue swipe
+03:28:23 [Tailwail] #7 combo dealt 6 -> true
+03:28:23 [Tailwail] #7 cue impact
+03:28:23 [Tailwail] #7 combo dealt 6 -> true
+03:28:23 [Tailwail] #7 cue impact
+03:28:23 [TWDEV] hunt: ground speed 7.7 blocks/s (sprinting player: 5.6)
+03:28:23 [TWDEV] hunt: damage events [{"tick":1604,"n":9,"by":"tailwail:tall_wail"},{"tick":1652,"n":6,"by":"tailwail:tall_wail"},{"tick":1660,"n":6,"by":"tailwail:tall_wail"}] states seen 0.0 - -> engage (hunter) / 1.9 engage -> hunt (engaged) / 7.5 hunt -> attack (pounce) / 8.5 attack -> hunt (after-pounce) / 8.6 hunt -> attack (slam) / 9.7 attack -> savor (slam) / 11.2 savor -> hunt (savored) / 11.3 hunt -> attack (combo)
+03:28:23 [Tailwail] #7 attack -> hunt (after-combo)
+03:28:23 [Tailwail] #7 hunt -> attack (swipe_l)
+03:28:23 [Tailwail] #7 cue swipe
+03:28:24 [Tailwail] #7 swipe_l dealt 6 -> true
+03:28:24 [Tailwail] #7 cue impact
+03:28:24 [TWDEV] hunt-after-hits t 20 state attack pos 48.2,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 4 
+03:28:24 [Tailwail] #7 attack -> hunt (after-swipe_l)
+03:28:24 [Tailwail] #7 hunt -> attack (swipe_l)
+03:28:24 [Tailwail] #7 cue swipe
+03:28:25 [Tailwail] #7 swipe_l dealt 6 -> true
+03:28:25 [Tailwail] #7 cue impact
+03:28:25 [TWDEV] hunt-after-hits t 40 state attack pos 48.5,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 5 
+03:28:25 [Tailwail] #7 attack -> hunt (after-swipe_l)
+03:28:26 [Tailwail] #7 hunt -> attack (swipe_l)
+03:28:26 [Tailwail] #7 cue swipe
+03:28:26 [Tailwail] #7 swipe_l dealt 6 -> true
+03:28:26 [Tailwail] #7 cue impact
+03:28:26 [TWDEV] hunt-after-hits t 60 state attack pos 48.9,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 6 
+03:28:26 [Tailwail] #7 attack -> hunt (after-swipe_l)
+03:28:27 [Tailwail] #7 hunt -> attack (swipe_r)
+03:28:27 [Tailwail] #7 cue swipe
+03:28:27 [Tailwail] #7 swipe_r dealt 6 -> true
+03:28:27 [Tailwail] #7 cue impact
+03:28:27 [TWDEV] hunt-after-hits t 80 state attack pos 49.2,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 7 
+03:28:27 [Tailwail] #7 attack -> hunt (after-swipe_r)
+03:28:27 [Tailwail] #7 hunt -> attack (slam)
+03:28:27 [Tailwail] #7 cue slam_windup
+03:28:28 [TWDEV] hunt-after-hits t 100 state attack pos 49.3,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 7 
+03:28:28 [Tailwail] #7 slam dealt 9 -> true
+03:28:28 [Tailwail] #7 cue slam
+03:28:29 [Tailwail] #7 attack -> savor (slam)
+03:28:29 [Tailwail] #7 cue growl
+03:28:29 [TWDEV] hunt-after-hits t 120 state savor pos 49.3,-60,10.5 posture tall act savor tail 2 jaw 10 dmg 8 
+03:28:30 [Tailwail] #7 cue screech
+03:28:30 [Tailwail] #7 savor -> hunt (savored)
+03:28:30 [Tailwail] #7 hunt -> attack (swipe_l)
+03:28:30 [Tailwail] #7 cue swipe
+03:28:30 [TWDEV] hunt-after-hits t 140 state attack pos 49.3,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 8 
+03:28:30 [Tailwail] #7 swipe_l dealt 6 -> true
+03:28:30 [Tailwail] #7 cue impact
+03:28:30 [Tailwail] #7 attack -> hunt (after-swipe_l)
+03:28:31 [Tailwail] #7 hunt -> attack (swipe_l)
+03:28:31 [Tailwail] #7 cue swipe
+03:28:31 [TWDEV] hunt-after-hits t 160 state attack pos 49.4,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 9 
+03:28:31 [TWDEV] hunt: still hunting after hits? true outcome 
+03:28:31 [Tailwail] encounter 7 end outcome=aborted after 20.0s
+03:28:31 [TWDEV] hunt cleanup locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
+03:28:31 [TWDEV] === done hunt
+03:28:41 [TWDEV] === scenario grab
+03:28:41 [Tailwail] #8 - -> engage (hunter)
+03:28:41 [Tailwail] #8 cue scream_far
+03:28:41 [Tailwail] encounter 8 start setup=the_hunter slot=a target=Mock
+03:28:43 [Tailwail] #8 engage -> hunt (engaged)
+03:28:43 [Tailwail] #8 hunt -> attack (swipe_l)
+03:28:43 [Tailwail] #8 cue swipe
+03:28:43 [Tailwail] #8 swipe_l dealt 6 -> true
+03:28:43 [Tailwail] #8 cue impact
+03:28:43 [Tailwail] #8 attack -> grab (test)
+03:28:43 [Tailwail] #8 cue grab
+03:28:43 [Tailwail] #8 grab: alternate x6 in 3.2s
+03:28:43 [TWDEV] grab 1 spec {"kind":"alternate","needed":6,"window":3.2006229809485376,"shiftAt":null,"shiftTo":null,"inescapable":false}
+03:28:44 [Tailwail] #8 cue hold
+03:28:44 [TWDEV] grab 1 holding true locked true tp 15
+03:28:45 [Tailwail] #8 struggled-free
+03:28:45 [Tailwail] #8 cue pain
+03:28:45 [Tailwail] #8 grab -> stunned (struggled-free)
+03:28:45 [TWDEV] grab-1-after t 10 state stunned pos 12.8,-60,10.5 posture tall act stunned tail 1 jaw 26 dmg 2 locked false
+03:28:46 [TWDEV] grab-1-after t 20 state stunned pos 12.8,-60,10.5 posture tall act stunned tail 1 jaw 26 dmg 2 locked false
+03:28:46 [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+03:28:46 [TWDEV] grab-1-after t 30 state stunned pos 12.8,-60,10.5 posture tall act stunned tail 1 jaw 26 dmg 2 locked false
+03:28:46 [Tailwail] #8 stunned -> engage (stunned)
+03:28:46 [Tailwail] #8 cue roar
+03:28:46 [TWDEV] msg §8[Torn journal] §7A new page: §fIt lifts you
+03:28:47 [TWDEV] grab-1-after t 40 state engage pos 12.8,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 2 locked false
+03:28:47 [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+03:28:47 [TWDEV] grab-1-after t 50 state engage pos 12.8,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 2 locked false
+03:28:47 [Tailwail] #8 engage -> hunt (engaged)
+03:28:47 [Tailwail] #8 hunt -> attack (slam)
+03:28:47 [Tailwail] #8 cue slam_windup
+03:28:48 [TWDEV] msg §8[Torn journal] §7A new page: §fFight it
+03:28:48 [TWDEV] grab-1-after t 60 state attack pos 12.8,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 2 locked false
+03:28:48 [TWDEV] grab 1 result damage [{"tick":2066,"n":6,"by":"tailwail:tall_wail"},{"tick":2092,"n":2,"by":"tailwail:tall_wail"}] calls subtitle "§7Alternate §fJUMP §7+ §fSNEAK  §8[§c||||||||||§8||§8]" | subtitle "§7Alternate §fJUMP §7+ §fSNEAK  §8[§c||||||||||||§8§8]" | input 4=true | input 1=true | input 5=true | title " " | knockback 1.4/0.38 | effect- slow_falling
+03:28:48 [Tailwail] #8 attack -> grab (test2)
+03:28:48 [Tailwail] #8 cue grab
+03:28:48 [Tailwail] #8 grab: alternate x6 in 2.5s
+03:28:48 [TWDEV] grab 2 spec {"kind":"alternate","needed":6,"window":2.4746727096848193,"shiftAt":null,"shiftTo":null,"inescapable":false}
+03:28:48 [TWDEV] grab-2 t 10 state grab pos 12.8,-60,10.5 posture tall act shot tail 3 jaw 30 dmg 2 locked true hp 12
+03:28:48 [Tailwail] #8 cue hold
+03:28:49 [TWDEV] grab-2 t 20 state grab pos 12.8,-60,10.5 posture tall act hold tail 3 jaw 28 dmg 2 locked true hp 12
+03:28:49 [TWDEV] grab-2 t 30 state grab pos 12.8,-60,10.5 posture tall act hold tail 3 jaw 34 dmg 2 locked true hp 12
+03:28:50 [TWDEV] grab-2 t 40 state grab pos 12.8,-60,10.5 posture tall act hold tail 3 jaw 40 dmg 2 locked true hp 12
+03:28:50 [TWDEV] grab-2 t 50 state grab pos 12.8,-60,10.5 posture tall act hold tail 3 jaw 46 dmg 2 locked true hp 12
+03:28:51 [TWDEV] grab-2 t 60 state grab pos 12.8,-60,10.5 posture tall act hold tail 3 jaw 52 dmg 2 locked true hp 12
+03:28:51 [Tailwail] #8 cue roar
+03:28:51 [TWDEV] grab-2 t 70 state grab pos 12.8,-60,10.5 posture tall act shot tail 3 jaw 54 dmg 2 locked true hp 12
+03:28:51 [Tailwail] #8 cue slam
+03:28:52 [TWDEV] grab-2 t 80 state grab pos 12.8,-60,10.5 posture tall act shot tail 3 jaw 54 dmg 3 locked false hp 3
+03:28:52 [Tailwail] #8 grab -> savor (smash)
+03:28:52 [Tailwail] #8 cue growl
+03:28:52 [TWDEV] grab-2 t 90 state savor pos 12.8,-60,10.5 posture tall act savor tail 2 jaw 10 dmg 3 locked false hp 3
+03:28:53 [TWDEV] grab-2 t 100 state savor pos 12.8,-60,10.5 posture tall act savor tail 2 jaw 10 dmg 3 locked false hp 3
+03:28:53 [TWDEV] grab-2 t 110 state savor pos 12.8,-60,10.5 posture tall act savor tail 2 jaw 10 dmg 3 locked false hp 3
+03:28:53 [Tailwail] #8 cue screech
+03:28:53 [Tailwail] #8 savor -> hunt (savored)
+03:28:53 [Tailwail] #8 hunt -> attack (swipe_r)
+03:28:53 [Tailwail] #8 cue swipe
+03:28:54 [Tailwail] #8 swipe_r dealt 6 -> true
+03:28:54 [Tailwail] #8 cue impact
+03:28:54 [TWDEV] grab-2 t 120 state attack pos 12.8,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 4 locked false hp -3
+03:28:54 [Tailwail] #8 attack -> leave (target-dead)
+03:28:54 [TWDEV] grab-2 t 130 state leave pos 12.8,-60,10.4 posture tall act loco tail 0 jaw 4 dmg 4 locked false hp -3
+03:28:55 [TWDEV] grab-2 t 140 state leave pos 14.2,-60,8.9 posture tall act loco tail 0 jaw 4 dmg 4 locked false hp -3
+03:28:55 [TWDEV] grab 2 result damage [{"tick":2066,"n":6,"by":"tailwail:tall_wail"},{"tick":2092,"n":2,"by":"tailwail:tall_wail"},{"tick":2226,"n":9,"by":"tailwail:tall_wail"},{"tick":2272,"n":6,"by":"tailwail:tall_wail"}] locked after false state now leave still hunting false
+03:28:55 [Tailwail] encounter 8 end outcome=aborted after 13.6s
+03:28:55 [TWDEV] grab cleanup locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
+03:28:55 [TWDEV] === done grab
+03:29:03 [TWDEV] === scenario ceiling
+03:29:05 [Tailwail] #9 - -> ambush (cling)
+03:29:05 [Tailwail] #9 clings to the ceiling at 57.5 -55.6 18.5
+03:29:05 [Tailwail] encounter 9 start setup=ceiling slot=a target=Mock
+03:29:06 [TWDEV] ceiling: state ambush act cling at 57.5,-58.3,18.5 floating true
+03:29:07 [TWDEV] ceiling: after 2 s still at 57.5,-60,18.5
+03:29:08 [TWDEV] msg §8[Torn journal] §7A new page: §fLook up
+03:29:08 [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+03:29:11 [Tailwail] #9 ambush triggers: underneath
+03:29:11 [Tailwail] #9 cue scream_close
+03:29:12 [Tailwail] #9 cue thud
+03:29:12 [Tailwail] #9 ambush -> engage (ambush)
+03:29:12 [Tailwail] #9 cue roar
+03:29:12 [TWDEV] ceiling-drop t 10 state engage pos 57.5,-60,18.5 posture tall act shot tail 3 jaw 0 dmg 0 y 0 floating false
+03:29:13 [Tailwail] #9 engage -> hunt (engaged)
+03:29:13 [Tailwail] #9 hunt -> attack (combo)
+03:29:13 [Tailwail] #9 cue swipe
+03:29:13 [TWDEV] ceiling-drop t 20 state attack pos 57.5,-60,18.5 posture tall act shot tail 3 jaw 0 dmg 0 y 0 floating false
+03:29:13 [Tailwail] #9 combo dealt 6 -> true
+03:29:13 [Tailwail] #9 cue impact
+03:29:13 [TWDEV] ceiling-drop t 30 state attack pos 57.5,-60,18.5 posture tall act shot tail 3 jaw 0 dmg 1 y 0 floating false
+03:29:13 [Tailwail] #9 combo dealt 6 -> true
+03:29:13 [Tailwail] #9 cue impact
+03:29:14 [Tailwail] #9 attack -> hunt (after-combo)
+03:29:14 [Tailwail] #9 hunt -> attack (slam)
+03:29:14 [Tailwail] #9 cue slam_windup
+03:29:14 [TWDEV] ceiling-drop t 40 state attack pos 57.5,-60,18.5 posture tall act loco tail 1 jaw 22 dmg 2 y 0 floating false
+03:29:14 [TWDEV] ceiling-drop t 50 state attack pos 57.5,-60,18.5 posture tall act shot tail 3 jaw 0 dmg 2 y 0 floating false
+03:29:14 [Tailwail] #9 slam dealt 9 -> true
+03:29:14 [Tailwail] #9 cue slam
+03:29:15 [Tailwail] #9 attack -> leave (target-dead)
+03:29:15 [TWDEV] ceiling-drop t 60 state leave pos 57.5,-60,18.5 posture tall act loco tail 0 jaw 4 dmg 3 y 0 floating false
+03:29:15 [TWDEV] ceiling-drop t 70 state leave pos 56.2,-60,17.2 posture tall act loco tail 0 jaw 4 dmg 3 y 0 floating false
+03:29:16 [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+03:29:16 [TWDEV] ceiling-drop t 80 state leave pos 54.2,-60,15.2 posture tall act loco tail 0 jaw 4 dmg 3 y 0 floating false
+03:29:16 [Tailwail] encounter 9 end outcome=aborted after 10.9s
+03:29:16 [TWDEV] ceiling cleanup locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
+03:29:16 [TWDEV] === done ceiling
+03:29:17 [TWDEV] === scenario climb
+03:29:17 [Tailwail] #10 - -> engage (hunter)
+03:29:17 [Tailwail] #10 cue scream_far
+03:29:17 [Tailwail] encounter 10 start setup=the_hunter slot=a target=Mock
+03:29:18 [TWDEV] climb t 10 state engage pos 8.5,-60,10.5 posture hunch act shot tail 3 jaw 0 dmg 0 y 0 x 8.5
+03:29:18 [TWDEV] climb t 20 state engage pos 8.5,-60,10.5 posture hunch act shot tail 3 jaw 0 dmg 0 y 0 x 8.5
+03:29:19 [TWDEV] climb t 30 state engage pos 8.5,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 y 0 x 8.5
+03:29:19 [Tailwail] #10 engage -> hunt (engaged)
+03:29:19 [TWDEV] climb t 40 state hunt pos 8.6,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 y 0 x 8.6
+03:29:20 [TWDEV] climb t 50 state hunt pos 11.5,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 y 0 x 11.5
+03:29:20 [TWDEV] climb t 60 state hunt pos 15.4,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 y 0 x 15.4
+03:29:21 [Tailwail] #10 cue screech
+03:29:21 [TWDEV] climb t 70 state hunt pos 19.1,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 y 0 x 19.1
+03:29:21 [TWDEV] climb t 80 state hunt pos 19.5,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 y 0 x 19.5
+03:29:21 [Tailwail] #10 hunt -> climb (below-you)
+03:29:21 [Tailwail] #10 cue climb
+03:29:22 [TWDEV] climb t 90 state climb pos 19.5,-59.2,10.5 posture tall act climb tail 0 jaw 22 dmg 0 y 0.8 x 19.5
+03:29:22 [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+03:29:22 [TWDEV] climb t 100 state climb pos 19.5,-57.6,10.5 posture tall act climb tail 0 jaw 22 dmg 0 y 2.4 x 19.5
+03:29:23 [TWDEV] climb t 110 state climb pos 19.5,-56,10.5 posture tall act climb tail 0 jaw 22 dmg 0 y 4 x 19.5
+03:29:23 [Tailwail] #10 cue screech
+03:29:23 [Tailwail] #10 climb -> hunt (climbed)
+03:29:23 [TWDEV] climb t 120 state hunt pos 20.5,-55,10.5 posture tall act loco tail 1 jaw 22 dmg 0 y 5 x 20.5
+03:29:24 [Tailwail] #10 hunt -> attack (slam)
+03:29:24 [Tailwail] #10 cue slam_windup
+03:29:24 [TWDEV] climb t 130 state attack pos 20.5,-55,10.5 posture tall act shot tail 3 jaw 0 dmg 0 y 5 x 20.5
+03:29:24 [Tailwail] #10 slam dealt 9 -> true
+03:29:24 [Tailwail] #10 cue slam
+03:29:24 [TWDEV] climb t 140 state attack pos 20.5,-55,10.5 posture tall act shot tail 3 jaw 0 dmg 1 y 5 x 20.5
+03:29:24 [TWDEV] msg §8[Torn journal] §7A new page: §fHeight won't save you
+03:29:25 [Tailwail] #10 attack -> savor (slam)
+03:29:25 [Tailwail] #10 cue growl
+03:29:25 [TWDEV] climb t 150 state savor pos 20.5,-55,10.5 posture tall act savor tail 2 jaw 10 dmg 1 y 5 x 20.5
+03:29:25 [TWDEV] climb t 160 state savor pos 20.5,-55,10.5 posture tall act savor tail 2 jaw 10 dmg 1 y 5 x 20.5
+03:29:26 [TWDEV] climb t 170 state savor pos 20.5,-55,10.5 posture tall act savor tail 2 jaw 10 dmg 1 y 5 x 20.5
+03:29:26 [Tailwail] #10 cue screech
+03:29:26 [Tailwail] #10 savor -> hunt (savored)
+03:29:26 [TWDEV] climb t 180 state hunt pos 20.5,-55,10.5 posture tall act loco tail 1 jaw 22 dmg 1 y 5 x 20.5
+03:29:27 [TWDEV] climb t 190 state hunt pos 20.5,-55,10.5 posture tall act loco tail 1 jaw 22 dmg 1 y 5 x 20.5
+03:29:27 [TWDEV] climb t 200 state hunt pos 20.5,-55,10.5 posture tall act loco tail 1 jaw 22 dmg 1 y 5 x 20.5
+03:29:28 [TWDEV] climb t 210 state hunt pos 20.5,-55,10.5 posture tall act loco tail 1 jaw 22 dmg 1 y 5 x 20.5
+03:29:28 [TWDEV] climb t 220 state hunt pos 20.5,-55,10.5 posture tall act loco tail 1 jaw 22 dmg 1 y 5 x 20.5
+03:29:29 [TWDEV] climb t 230 state hunt pos 20.5,-55,10.5 posture tall act loco tail 1 jaw 22 dmg 1 y 5 x 20.5
+03:29:29 [TWDEV] climb t 240 state hunt pos 20.5,-55,10.5 posture tall act loco tail 1 jaw 22 dmg 1 y 5 x 20.5
+03:29:30 [Tailwail] #10 hunt -> attack (slam)
+03:29:30 [Tailwail] #10 cue slam_windup
+03:29:30 [TWDEV] climb t 250 state attack pos 20.5,-55,10.5 posture tall act shot tail 3 jaw 0 dmg 1 y 5 x 20.5
+03:29:30 [Tailwail] #10 slam dealt 9 -> true
+03:29:30 [Tailwail] #10 cue slam
+03:29:30 [TWDEV] climb t 260 state attack pos 20.5,-55,10.5 posture tall act shot tail 3 jaw 0 dmg 2 y 5 x 20.5
+03:29:30 [TWDEV] climb: reached height 5 flags scream,chase,climb,hit damage 2
+03:29:30 [Tailwail] encounter 10 end outcome=aborted after 13.3s
+03:29:30 [TWDEV] === done climb
+03:29:33 [TWDEV] === scenario door
+03:29:33 [Tailwail] #11 - -> engage (hunter)
+03:29:33 [Tailwail] #11 cue scream_far
+03:29:33 [Tailwail] encounter 11 start setup=the_hunter slot=a target=Mock
+03:29:34 [TWDEV] door t 10 state engage pos 12.5,-60,10.5 posture hunch act shot tail 3 jaw 0 dmg 0 door minecraft:wooden_door
+03:29:34 [TWDEV] door t 20 state engage pos 12.5,-60,10.5 posture hunch act shot tail 3 jaw 0 dmg 0 door minecraft:wooden_door
+03:29:35 [TWDEV] door t 30 state engage pos 12.5,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 door minecraft:wooden_door
+03:29:35 [Tailwail] #11 engage -> hunt (engaged)
+03:29:35 [TWDEV] door t 40 state hunt pos 12.5,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 door minecraft:wooden_door
+03:29:36 [TWDEV] door t 50 state hunt pos 13,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 door minecraft:wooden_door
+03:29:36 [TWDEV] door t 60 state hunt pos 16.6,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 door minecraft:wooden_door
+03:29:37 [TWDEV] door t 70 state hunt pos 20.5,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 door minecraft:wooden_door
+03:29:37 [Tailwail] #11 cue screech
+03:29:37 [TWDEV] door t 80 state hunt pos 23.5,-60,10.5 posture hunch act loco tail 1 jaw 22 dmg 0 door minecraft:wooden_door
+03:29:37 [Tailwail] #11 hunt -> bash (door)
+03:29:38 [TWDEV] door t 90 state bash pos 23.5,-60,10.5 posture hunch act bash tail 1 jaw 30 dmg 0 door minecraft:wooden_door
+03:29:38 [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+03:29:38 [TWDEV] door t 100 state bash pos 23.5,-60,10.5 posture hunch act bash tail 1 jaw 30 dmg 0 door minecraft:wooden_door
+03:29:39 [TWDEV] door t 110 state bash pos 23.5,-60,10.5 posture tall act bash tail 1 jaw 30 dmg 0 door minecraft:wooden_door
+03:29:39 [Tailwail] #11 cue roar
+03:29:39 [Tailwail] #11 bash -> hunt (broke-through)
+03:29:39 [TWDEV] door t 120 state hunt pos 23.5,-60,10.5 posture tall act bash tail 1 jaw 30 dmg 0 door minecraft:air
+03:29:40 [TWDEV] door t 130 state hunt pos 23.7,-60,10.5 posture crawl act loco_tunnel tail 1 jaw 22 dmg 0 door minecraft:air
+03:29:40 [Tailwail] #11 hunt -> attack (combo)
+03:29:40 [Tailwail] #11 cue swipe
+03:29:40 [TWDEV] door t 140 state attack pos 26.3,-60,10.5 posture crawl act shot tail 3 jaw 0 dmg 0 door minecraft:air
+03:29:40 [Tailwail] #11 combo dealt 6 -> true
+03:29:40 [Tailwail] #11 cue impact
+03:29:41 [TWDEV] door t 150 state attack pos 26.6,-60,10.5 posture crawl act shot tail 3 jaw 0 dmg 1 door minecraft:air
+03:29:41 [Tailwail] #11 combo dealt 6 -> true
+03:29:41 [Tailwail] #11 cue impact
+03:29:41 [Tailwail] #11 attack -> hunt (after-combo)
+03:29:41 [Tailwail] #11 hunt -> attack (swipe_l)
+03:29:41 [Tailwail] #11 cue swipe
+03:29:41 [TWDEV] door t 160 state attack pos 26.6,-60,10.5 posture hunch act loco tail 1 jaw 22 dmg 2 door minecraft:air
+03:29:42 [Tailwail] #11 swipe_l dealt 6 -> true
+03:29:42 [Tailwail] #11 cue impact
+03:29:42 [TWDEV] door t 170 state attack pos 26.6,-60,10.5 posture hunch act shot tail 3 jaw 0 dmg 3 door minecraft:air
+03:29:42 [Tailwail] #11 attack -> hunt (after-swipe_l)
+03:29:42 [TWDEV] msg §8[Torn journal] §7A new page: §fDoors don't stop it
+03:29:42 [TWDEV] door t 180 state hunt pos 26.6,-60,10.5 posture hunch act loco tail 1 jaw 22 dmg 3 door minecraft:air
+03:29:42 [Tailwail] #11 hunt -> attack (combo)
+03:29:42 [Tailwail] #11 cue swipe
+03:29:43 [Tailwail] #11 combo dealt 6 -> true
+03:29:43 [Tailwail] #11 cue impact
+03:29:43 [Tailwail] #11 attack -> leave (target-dead)
+03:29:43 [TWDEV] door t 190 state leave pos 26.9,-60,10.5 posture hunch act shot tail 3 jaw 0 dmg 4 door minecraft:air
+03:29:43 [TWDEV] door t 200 state leave pos 26.7,-60,11 posture hunch act loco tail 0 jaw 4 dmg 4 door minecraft:air
+03:29:44 [TWDEV] door t 210 state leave pos 27.3,-60,13.4 posture hunch act loco tail 0 jaw 4 dmg 4 door minecraft:air
+03:29:44 [TWDEV] door t 220 state leave pos 29.4,-60,15.3 posture hunch act loco tail 0 jaw 4 dmg 4 door minecraft:air
+03:29:45 [TWDEV] door t 230 state leave pos 31.3,-60,15.5 posture hunch act loco tail 0 jaw 4 dmg 4 door minecraft:air
+03:29:45 [TWDEV] door t 240 state leave pos 31.4,-60,15.5 posture hunch act loco tail 0 jaw 4 dmg 4 door minecraft:air
+03:29:46 [TWDEV] door t 250 state leave pos 31.4,-60,15.5 posture hunch act loco tail 0 jaw 4 dmg 4 door minecraft:air
+03:29:46 [TWDEV] door t 260 state leave pos 31.4,-60,15.5 posture hunch act loco tail 0 jaw 4 dmg 4 door minecraft:air
+03:29:47 [TWDEV] door t 270 state leave pos 31.4,-60,15.5 posture hunch act loco tail 0 jaw 4 dmg 4 door minecraft:air
+03:29:47 [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+03:29:47 [TWDEV] door t 280 state leave pos 31.5,-60,15.5 posture hunch act loco tail 0 jaw 4 dmg 4 door minecraft:air
+03:29:48 [TWDEV] door t 290 state leave pos 33.2,-60,15.5 posture hunch act loco tail 0 jaw 4 dmg 4 door minecraft:air
+03:29:48 [TWDEV] door t 300 state leave pos 33.3,-60,15.5 posture hunch act loco tail 0 jaw 4 dmg 4 door minecraft:air
+03:29:48 [TWDEV] door: block now minecraft:air flags scream,chase,bash,hit,noticed
+03:29:48 [Tailwail] encounter 11 end outcome=aborted after 15.3s
+03:29:48 [TWDEV] === done door
+03:29:51 [TWDEV] === scenario surface
+03:29:51 [TWDEV] surface light at noon: total 15 sky 15
+03:29:52 [TWDEV] surface light at midnight: total 4 sky 4
+03:29:52 [TWDEV] surface spawn search at night: {"x":-13.5,"y":-60,"z":-8.5,"head":8,"posture":"tall","light":4,"facing":-45,"dist":26.870057685088806} reason ok
+03:29:52 [Tailwail] #12 - -> stalk (spawn)
+03:29:52 [Tailwail] #12 beat tall (1/2)
+03:29:52 [Tailwail] encounter 12 start setup=treeline slot=a target=Mock
+03:29:52 [Tailwail] #12 cue click
+03:29:52 [Tailwail] #12 stalk -> standoff (seen-hold)
+03:29:52 [Tailwail] #12 cue growl
+03:29:52 [Tailwail] #12 cue creak
+03:29:52 [Tailwail] #12 observe: approach
+03:29:53 [TWDEV] surface t 20 state standoff pos 39.9,-60,10.5 posture tall act loco_low tail 0 jaw 6 dmg 0 d 34.4
+03:29:54 [TWDEV] surface t 40 state standoff pos 38.3,-60,10.5 posture tall act loco_low tail 0 jaw 6 dmg 0 d 32.8
+03:29:55 [Tailwail] #12 observe: idle
+03:29:55 [TWDEV] surface t 60 state standoff pos 38,-60,10.5 posture tall act tall tail 0 jaw 6 dmg 0 d 32.5
+03:29:55 [Tailwail] #12 cue click
+03:29:55 [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+03:29:55 [TWDEV] msg §8[Torn journal] §7A new page: §fDon't turn your back
+03:29:56 [Tailwail] #12 observe: test (crane)
+03:29:56 [TWDEV] surface t 80 state standoff pos 38,-60,10.5 posture tall act neck tail 1 jaw 10 dmg 0 d 32.5
+03:29:57 [TWDEV] surface t 100 state standoff pos 38,-60,10.5 posture tall act neck tail 1 jaw 10 dmg 0 d 32.5
+03:29:58 [TWDEV] surface t 120 state standoff pos 38,-60,10.5 posture tall act watch tail 1 jaw 10 dmg 0 d 32.5
+03:29:58 [Tailwail] #12 cue growl
+03:29:59 [Tailwail] #12 reaction: you held still
+03:29:59 [Tailwail] #12 observe: idle
+03:29:59 [TWDEV] surface t 140 state standoff pos 38,-60,10.5 posture tall act watch tail 1 jaw 10 dmg 0 d 32.5
+03:30:00 [TWDEV] surface t 160 state standoff pos 38,-60,10.5 posture tall act watch tail 2 jaw 20 dmg 0 d 32.5
+03:30:01 [Tailwail] #12 standoff -> engage (stared)
+03:30:01 [Tailwail] #12 cue scream_far
+03:30:01 [TWDEV] surface t 180 state engage pos 38,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 d 32.5
+03:30:02 [TWDEV] surface t 200 state engage pos 38,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 d 32.5
+03:30:03 [Tailwail] #12 engage -> hunt (engaged)
+03:30:03 [TWDEV] surface t 220 state hunt pos 38,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 d 32.5
+03:30:04 [TWDEV] surface t 240 state hunt pos 33.1,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 d 27.6
+03:30:05 [Tailwail] #12 cue screech
+03:30:05 [TWDEV] surface t 260 state hunt pos 25.3,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 d 19.8
+03:30:06 [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+03:30:06 [TWDEV] surface t 280 state hunt pos 17.5,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 d 12
+03:30:07 [Tailwail] #12 hunt -> attack (pounce)
+03:30:07 [Tailwail] #12 cue pounce
+03:30:07 [TWDEV] surface t 300 state attack pos 9.1,-59.6,10.5 posture tall act shot tail 3 jaw 0 dmg 0 d 3.6
+03:30:08 [Tailwail] #12 attack -> hunt (after-pounce)
+03:30:08 [Tailwail] #12 hunt -> attack (combo)
+03:30:08 [Tailwail] #12 cue swipe
+03:30:08 [Tailwail] #12 combo dealt 6 -> true
+03:30:08 [Tailwail] #12 cue impact
+03:30:08 [TWDEV] surface t 320 state attack pos 7.8,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 1 d 2.3
+03:30:08 [Tailwail] #12 combo dealt 6 -> true
+03:30:08 [Tailwail] #12 cue impact
+03:30:09 [Tailwail] #12 attack -> hunt (after-combo)
+03:30:09 [Tailwail] #12 hunt -> attack (slam)
+03:30:09 [Tailwail] #12 cue slam_windup
+03:30:09 [TWDEV] surface t 340 state attack pos 7.8,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 2 d 2.3
+03:30:09 [Tailwail] #12 slam dealt 9 -> true
+03:30:09 [Tailwail] #12 cue slam
+03:30:09 [Tailwail] #12 attack -> leave (target-dead)
+03:30:10 [TWDEV] surface t 360 state leave pos 9.4,-60,12.4 posture tall act loco tail 0 jaw 4 dmg 3 d 4.3
+03:30:11 [TWDEV] surface t 380 state leave pos 13.3,-60,16.3 posture tall act loco tail 0 jaw 4 dmg 3 d 9.7
+03:30:12 [TWDEV] surface t 400 state leave pos 17.3,-60,20.3 posture tall act loco tail 0 jaw 4 dmg 3 d 15.3
+03:30:13 [TWDEV] surface t 420 state leave pos 21.2,-60,24.2 posture tall act loco tail 0 jaw 4 dmg 3 d 20.9
+03:30:14 [TWDEV] surface t 440 state leave pos 25.5,-60,27.5 posture tall act loco tail 0 jaw 4 dmg 3 d 26.3
+03:30:15 [TWDEV] surface t 460 state leave pos 30.5,-60,29.3 posture tall act loco tail 0 jaw 4 dmg 3 d 31.3
+03:30:16 [TWDEV] surface t 480 state leave pos 33.3,-60,30.2 posture tall act loco tail 0 jaw 4 dmg 3 d 34.1
+03:30:17 [TWDEV] surface t 500 state leave pos 33.3,-60,30.2 posture tall act loco tail 0 jaw 4 dmg 3 d 34.1
+03:30:17 [TWDEV] surface: reached state leave history 9.3 standoff -> engage (stared) / 11.2 engage -> hunt (engaged) / 14.6 hunt -> attack (pounce) / 15.6 attack -> hunt (after-pounce) / 15.7 hunt -> attack (combo) / 16.7 attack -> hunt (after-combo) / 16.8 hunt -> attack (slam) / 17.5 attack -> leave (target-dead)
+03:30:17 [Tailwail] encounter 12 end outcome=aborted after 25.3s
+03:30:17 [TWDEV] === done surface
+03:30:21 [TWDEV] === scenario hide
+03:30:21 [Tailwail] #13 - -> stalk (spawn)
+03:30:21 [Tailwail] #13 beat watch (1/3)
+03:30:21 [Tailwail] encounter 13 start setup=stalker slot=a target=Mock
+03:30:21 [Tailwail] #13 stalk -> search (test)
+03:30:21 [Tailwail] #13 cue sniff
+03:30:21 [TWDEV] hide light at mock 0
+03:30:22 [TWDEV] hide t 20 state search pos 8.5,-60,12.5 posture tall act loco tail 0 jaw 8 dmg 0 d 22.1
+03:30:23 [TWDEV] hide t 40 state search pos 8.5,-60,12.7 posture tall act sniff tail 0 jaw 8 dmg 0 d 22.1
+03:30:24 [TWDEV] hide t 60 state search pos 8.5,-60,12.7 posture tall act sniff tail 0 jaw 8 dmg 0 d 22.1
+03:30:25 [TWDEV] hide t 80 state search pos 9.9,-60,12.5 posture tall act loco tail 0 jaw 8 dmg 0 d 20.7
+03:30:26 [Tailwail] #13 cue sniff
+03:30:26 [TWDEV] hide t 100 state search pos 13.4,-60,12.5 posture tall act sniff tail 0 jaw 8 dmg 0 d 17.2
+03:30:27 [TWDEV] hide t 120 state search pos 13.4,-60,12.5 posture tall act sniff tail 0 jaw 8 dmg 0 d 17.2
+03:30:28 [TWDEV] hide t 140 state search pos 13.4,-60,12.5 posture tall act sniff tail 0 jaw 8 dmg 0 d 17.2
+03:30:29 [TWDEV] hide t 160 state search pos 13.5,-60,9.6 posture tall act loco tail 0 jaw 8 dmg 0 d 17
+03:30:29 [Tailwail] #13 cue sniff
+03:30:30 [TWDEV] hide t 180 state search pos 13.9,-60,8.2 posture tall act sniff tail 0 jaw 8 dmg 0 d 16.7
+03:30:31 [TWDEV] hide t 200 state search pos 13.9,-60,8.2 posture tall act sniff tail 0 jaw 8 dmg 0 d 16.7
+03:30:32 [TWDEV] hide t 220 state search pos 13.7,-60,8.2 posture tall act loco tail 0 jaw 8 dmg 0 d 17
+03:30:33 [TWDEV] hide t 240 state search pos 9.1,-60,8.5 posture tall act loco tail 0 jaw 8 dmg 0 d 21.5
+03:30:34 [Tailwail] #13 cue sniff
+03:30:34 [TWDEV] hide t 260 state search pos 4.3,-60,8.2 posture tall act loco tail 0 jaw 8 dmg 0 d 26.3
+03:30:35 [TWDEV] hide t 280 state search pos 4.1,-60,8.1 posture tall act sniff tail 0 jaw 8 dmg 0 d 26.5
+03:30:36 [TWDEV] hide t 300 state search pos 4.1,-60,8.1 posture tall act sniff tail 0 jaw 8 dmg 0 d 26.5
+03:30:37 [Tailwail] #13 cue sniff
+03:30:37 [TWDEV] hide t 320 state search pos 4.1,-60,8.1 posture tall act sniff tail 0 jaw 8 dmg 0 d 26.5
+03:30:38 [TWDEV] hide t 340 state search pos 4.1,-60,8.1 posture tall act sniff tail 0 jaw 8 dmg 0 d 26.5
+03:30:38 [TWDEV] hide outcome  state search damage 0 flags lost
+03:30:38 [Tailwail] encounter 13 end outcome=aborted after 17.3s
+03:30:38 [TWDEV] === done hide
+03:30:41 [TWDEV] === scenario escape
+03:30:41 [Tailwail] #14 - -> stalk (spawn)
+03:30:41 [Tailwail] #14 beat cross
+03:30:41 [Tailwail] encounter 14 start setup=stalker slot=a target=Mock
+03:30:41 [Tailwail] #14 stalk -> hunt (test)
+03:30:42 [TWDEV] escape t 20 state hunt pos 43.4,-60,42.5 posture tall act loco tail 1 jaw 22 dmg 0 mock 30.1,-60,20.5
+03:30:43 [TWDEV] escape: gap sealed
+03:30:43 [TWDEV] escape t 40 state hunt pos 38.4,-60,36.7 posture tall act loco tail 1 jaw 22 dmg 0 mock 35,-60,20.5
+03:30:43 [Tailwail] #14 cue screech
+03:30:44 [Tailwail] #14 hunt -> attack (pounce)
+03:30:44 [Tailwail] #14 cue pounce
+03:30:44 [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+03:30:44 [TWDEV] escape t 60 state attack pos 38.5,-60,29.8 posture tall act loco tail 1 jaw 22 dmg 0 mock 40.6,-60,20.5
+03:30:45 [Tailwail] #14 attack -> hunt (after-pounce)
+03:30:45 [TWDEV] escape t 80 state hunt pos 41.3,-60,22.7 posture tall act shot tail 3 jaw 0 dmg 0 mock 46,-60,20.8
+03:30:46 [TWDEV] escape t 100 state hunt pos 45.1,-60,22.5 posture tall act loco tail 1 jaw 22 dmg 0 mock 50.9,-60,23.4
+03:30:47 [TWDEV] escape t 120 state hunt pos 52.3,-60,24.3 posture tall act loco tail 1 jaw 22 dmg 0 mock 55.9,-60,26
+03:30:48 [Tailwail] #14 cue screech
+03:30:48 [Tailwail] #14 hunt -> attack (swipe_r)
+03:30:48 [Tailwail] #14 cue swipe
+03:30:48 [TWDEV] escape t 140 state attack pos 58.3,-60,26.6 posture tall act loco tail 1 jaw 22 dmg 0 mock 60.5,-60,28.5
+03:30:49 [Tailwail] #14 swipe_r dealt 6 -> true
+03:30:49 [Tailwail] #14 cue impact
+03:30:49 [Tailwail] #14 attack -> hunt (after-swipe_r)
+03:30:49 [TWDEV] escape t 160 state hunt pos 59,-60,26.9 posture tall act loco tail 1 jaw 22 dmg 1 mock 60.5,-60,28.5
+03:30:49 [Tailwail] #14 hunt -> attack (swipe_l)
+03:30:49 [Tailwail] #14 cue swipe
+03:30:50 [Tailwail] #14 swipe_l dealt 6 -> true
+03:30:50 [Tailwail] #14 cue impact
+03:30:50 [Tailwail] #14 attack -> hunt (after-swipe_l)
+03:30:50 [TWDEV] escape t 180 state hunt pos 58.9,-60,27.2 posture tall act loco tail 1 jaw 22 dmg 2 mock 60.5,-60,28.5
+03:30:50 [Tailwail] #14 hunt -> attack (slam)
+03:30:50 [Tailwail] #14 cue slam_windup
+03:30:51 [Tailwail] #14 slam dealt 9 -> true
+03:30:51 [Tailwail] #14 cue slam
+03:30:51 [Tailwail] #14 attack -> leave (target-dead)
+03:30:51 [TWDEV] escape t 200 state leave pos 58.9,-60,27.2 posture tall act loco tail 0 jaw 4 dmg 3 mock 60.5,-60,28.5
+03:30:52 [TWDEV] escape t 220 state leave pos 55.7,-60,30.3 posture tall act loco tail 0 jaw 4 dmg 3 mock 60.5,-60,28.5
+03:30:53 [Tailwail] encounter 14 end outcome=caught after 12.1s
+03:30:53 [TWDEV] escape t 240 ended outcome caught state leave
+03:30:53 [TWDEV] escape outcome caught ended true damage [{"tick":4572,"n":6,"by":"tailwail:tall_wail"},{"tick":4596,"n":6,"by":"tailwail:tall_wail"},{"tick":4620,"n":9,"by":"tailwail:tall_wail"}] locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
+03:30:53 [TWDEV] === done escape
+03:31:21 [TWDEV] === scenario squeeze
+03:31:21 [Tailwail] #15 - -> stalk (spawn)
+03:31:21 [Tailwail] #15 beat tall (1/1)
+03:31:21 [Tailwail] encounter 15 start setup=stalker slot=a target=Mock
+03:31:21 [Tailwail] #15 stalk -> hunt (test)
+03:31:24 [Tailwail] #15 hunt -> engage (regained)
+03:31:24 [Tailwail] #15 cue roar
+03:31:24 [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+03:31:25 [Tailwail] #15 engage -> hunt (engaged)
+03:31:27 [Tailwail] #15 cue screech
+03:31:31 [Tailwail] #15 cue screech
+03:31:33 [Tailwail] #15 hunt -> attack (swipe_r)
+03:31:33 [Tailwail] #15 cue swipe
+03:31:34 [Tailwail] #15 swipe_r dealt 6 -> true
+03:31:34 [Tailwail] #15 cue impact
+03:31:34 [Tailwail] #15 attack -> hunt (after-swipe_r)
+03:31:34 [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+03:31:34 [Tailwail] #15 hunt -> attack (slam)
+03:31:34 [Tailwail] #15 cue slam_windup
+03:31:35 [Tailwail] #15 slam dealt 9 -> true
+03:31:35 [Tailwail] #15 cue slam
+03:31:35 [TWDEV] squeeze: postures/acts seen tall/loco,squeeze/loco_squeeze,tall/shot ticks inside the 1-high tunnel 140 furthest x 38.5 through after 278 ticks; damage [{"tick":5474,"n":6,"by":"tailwail:tall_wail"},{"tick":5502,"n":9,"by":"tailwail:tall_wail"}]
+03:31:35 [TWDEV] squeeze: states 0.0 - -> stalk (spawn) / 0.0 beat tall (1/1) / 0.2 stalk -> hunt (test) / 2.9 hunt -> engage (regained) / 4.0 engage -> hunt (engaged) / 12.4 hunt -> attack (swipe_r) / 13.1 attack -> hunt (after-swipe_r) / 13.5 hunt -> attack (slam)
+03:31:36 [Tailwail] #15 attack -> savor (slam)
+03:31:36 [Tailwail] #15 cue growl
+03:31:36 [TWDEV] squeeze-after t 20 state savor pos 38.5,-60,15.5 posture tall act savor tail 2 jaw 10 dmg 2 
+03:31:37 [Tailwail] #15 cue screech
+03:31:37 [Tailwail] #15 savor -> hunt (savored)
+03:31:37 [TWDEV] squeeze-after t 40 state hunt pos 38.5,-60,15.5 posture tall act loco tail 1 jaw 22 dmg 2 
+03:31:37 [Tailwail] #15 hunt -> attack (swipe_r)
+03:31:37 [Tailwail] #15 cue swipe
+03:31:37 [Tailwail] #15 swipe_r dealt 6 -> true
+03:31:37 [Tailwail] #15 cue impact
+03:31:38 [Tailwail] #15 attack -> hunt (after-swipe_r)
+03:31:38 [TWDEV] squeeze-after t 60 state hunt pos 38.5,-60,15.5 posture tall act loco tail 1 jaw 22 dmg 3 
+03:31:38 [Tailwail] encounter 15 end outcome=aborted after 17.1s
+03:31:38 [TWDEV] === done squeeze
+03:31:55 [TWDEV] === scenario tunnel
+03:31:55 [Tailwail] #16 - -> stalk (spawn)
+03:31:55 [Tailwail] #16 beat watch (1/3)
+03:31:55 [Tailwail] encounter 16 start setup=stalker slot=a target=Mock
+03:31:55 [Tailwail] #16 cue click
+03:31:55 [Tailwail] #16 stalk -> hunt (test)
+03:31:56 [TWDEV] tunnel t 20 state hunt pos 9.5,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 x 9.5
+03:31:57 [Tailwail] #16 cue screech
+03:31:57 [TWDEV] tunnel t 40 state hunt pos 17.3,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 x 17.3
+03:31:58 [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+03:31:58 [TWDEV] tunnel t 60 state hunt pos 25.1,-60,10.5 posture crawl act loco_tunnel tail 1 jaw 22 dmg 0 x 25.1
+03:31:58 [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+03:31:59 [TWDEV] tunnel t 80 state hunt pos 32.9,-60,10.5 posture crawl act loco_tunnel tail 1 jaw 22 dmg 0 x 32.9
+03:32:00 [Tailwail] #16 hunt -> attack (combo)
+03:32:00 [Tailwail] #16 cue swipe
+03:32:00 [Tailwail] #16 combo dealt 6 -> true
+03:32:00 [Tailwail] #16 cue impact
+03:32:00 [TWDEV] tunnel t 100 state attack pos 38.4,-60,10.5 posture crawl act shot tail 3 jaw 0 dmg 1 x 38.4
+03:32:01 [Tailwail] #16 combo dealt 6 -> true
+03:32:01 [Tailwail] #16 cue impact
+03:32:01 [Tailwail] #16 attack -> hunt (after-combo)
+03:32:01 [Tailwail] #16 hunt -> attack (combo)
+03:32:01 [Tailwail] #16 cue swipe
+03:32:01 [Tailwail] #16 combo dealt 6 -> true
+03:32:01 [Tailwail] #16 cue impact
+03:32:01 [TWDEV] tunnel t 120 state attack pos 38.4,-60,10.5 posture crawl act shot tail 3 jaw 0 dmg 3 x 38.4
+03:32:02 [Tailwail] #16 combo dealt 6 -> true
+03:32:02 [Tailwail] #16 cue impact
+03:32:02 [Tailwail] #16 attack -> leave (target-dead)
+03:32:02 [TWDEV] tunnel t 140 state leave pos 37.8,-60,10.5 posture crawl act loco_tunnel tail 0 jaw 4 dmg 4 x 37.8
+03:32:03 [TWDEV] tunnel t 160 state leave pos 32.4,-60,10.5 posture crawl act loco_tunnel tail 0 jaw 4 dmg 4 x 32.4
+03:32:04 [TWDEV] tunnel t 180 state leave pos 26.8,-60,10.5 posture crawl act loco_tunnel tail 0 jaw 4 dmg 4 x 26.8
+03:32:05 [TWDEV] tunnel t 200 state leave pos 24.5,-60,10.5 posture crawl act loco_tunnel tail 0 jaw 4 dmg 4 x 24.5
+03:32:06 [TWDEV] tunnel t 220 state leave pos 24.5,-60,10.5 posture crawl act loco_tunnel tail 0 jaw 4 dmg 4 x 24.5
+03:32:07 [TWDEV] tunnel t 240 state leave pos 24.5,-60,10.5 posture crawl act loco_tunnel tail 0 jaw 4 dmg 4 x 24.5
+03:32:08 [TWDEV] tunnel t 260 state leave pos 24.5,-60,10.5 posture crawl act loco_tunnel tail 0 jaw 4 dmg 4 x 24.5
+03:32:09 [TWDEV] tunnel t 280 state leave pos 24.5,-60,10.5 posture crawl act loco_tunnel tail 0 jaw 4 dmg 4 x 24.5
+03:32:10 [TWDEV] tunnel t 300 state leave pos 24.5,-60,10.5 posture crawl act loco_tunnel tail 0 jaw 4 dmg 4 x 24.5
+03:32:11 [TWDEV] tunnel t 320 state leave pos 24.5,-60,10.5 posture crawl act loco_tunnel tail 0 jaw 4 dmg 4 x 24.5
+03:32:12 [TWDEV] tunnel t 340 state leave pos 24.5,-60,10.5 posture crawl act loco_tunnel tail 0 jaw 4 dmg 4 x 24.5
+03:32:13 [TWDEV] tunnel t 360 state leave pos 24.5,-60,10.5 posture crawl act loco_tunnel tail 0 jaw 4 dmg 4 x 24.5
+03:32:13 [TWDEV] tunnel reached x 24.5 damage 4 outcome caught
+03:32:13 [Tailwail] encounter 16 end outcome=aborted after 18.3s
+03:32:13 [TWDEV] === done tunnel
+03:32:17 [TWDEV] === scenario presence
+03:32:17 [TWDEV] presence env {"torch":true,"torches":true,"door":true} torches 4 behind 4
+03:32:17 [TWDEV] presence knock ran false sounds  echoes 0
+03:32:17 [TWDEV] presence breath ran true sounds tailwail.breath_behind echoes 0
+03:32:18 [TWDEV] presence whisper ran true sounds tailwail.whisper echoes 0
+03:32:18 [TWDEV] presence snuff ran true sounds  echoes 0
+03:32:18 [TWDEV] presence door ran true sounds  echoes 0
+03:32:18 [TWDEV] presence glimpse ran true sounds  echoes 1
+03:32:19 [TWDEV] presence glimpse: seen then looked away; echo still exists false
+03:32:20 [TWDEV] presence peek ran false sounds  echoes 0
+03:32:20 [TWDEV] presence mimic ran true sounds  echoes 0
+03:32:22 [TWDEV] presence mimic replay dig.deepslate
+03:32:23 [TWDEV] presence footsteps ran true sounds  echoes 0
+03:32:26 [TWDEV] presence footsteps heard 4 after walking 6 blocks
+03:32:26 [TWDEV] presence behind ran true sounds tailwail.breath_behind echoes 0
+03:32:26 [TWDEV] presence behind: turned; echoes 1 sounds tailwail.breath_behind,tailwail.stinger,step.stone,step.stone,step.stone,step.stone
+03:32:27 [TWDEV] presence lights_out ran true sounds  echoes 1
+03:32:33 [TWDEV] presence scrape ran true sounds tailwail.scrape echoes 0
+03:32:33 [TWDEV] presence run_steps ran true sounds  echoes 0
+03:32:36 [TWDEV] presence run_steps: heavy steps heard 9
+03:32:36 [TWDEV] presence distant_scream ran true sounds tailwail.scream_far echoes 0
+03:32:37 [TWDEV] presence runner ran true sounds  echoes 1
+03:32:38 [TWDEV] presence runner moved 7.8 blocks in 1 s
+03:32:41 [TWDEV] presence door_bang ran true sounds  echoes 1
+03:32:45 [TWDEV] presence door_bang: bangs heard 6
+03:32:45 [TWDEV] presence window ran true sounds  echoes 1
+03:32:45 [TWDEV] presence torches left 0
+03:32:45 [TWDEV] === done presence
+03:33:19 [TWDEV] === scenario death
+03:33:19 [Tailwail] #17 - -> stalk (spawn)
+03:33:19 [Tailwail] #17 beat cross
+03:33:19 [Tailwail] encounter 17 start setup=stalker slot=a target=Mock
+03:33:19 [Tailwail] #17 stalk -> standoff (test)
+03:33:19 [Tailwail] #17 cue growl
+03:33:19 [Tailwail] #17 cue creak
+03:33:19 [Tailwail] #17 observe: approach
+03:33:20 [Tailwail] #17 standoff -> death (killed)
+03:33:20 [Tailwail] #17 cue death
+03:33:20 [TWDEV] death t 10 state death pos 34.4,-60,31.5 posture tall act death tail 0 jaw 50 dmg 0 
+03:33:20 [TWDEV] death t 20 state death pos 34.4,-60,31.5 posture tall act death tail 0 jaw 50 dmg 0 
+03:33:21 [TWDEV] death t 30 state death pos 34.4,-60,31.5 posture tall act death tail 0 jaw 50 dmg 0 
+03:33:21 [TWDEV] death t 40 state death pos 34.4,-60,31.5 posture tall act death tail 0 jaw 50 dmg 0 
+03:33:22 [TWDEV] death t 50 state death pos 34.4,-60,31.5 posture tall act death tail 0 jaw 50 dmg 0 
+03:33:22 [TWDEV] msg §8[Torn journal] §7A new page: §fDon't turn your back
+03:33:22 [TWDEV] death t 60 state death pos 34.4,-60,31.5 posture tall act death tail 0 jaw 50 dmg 0 
+03:33:23 [TWDEV] msg §8[Torn journal] §7A new page: §fIt can bleed
+03:33:23 [TWDEV] death t 70 state death pos 34.4,-60,31.5 posture tall act death tail 0 jaw 50 dmg 0 
+03:33:23 [Tailwail] encounter 17 end outcome=killed after 4.2s
+03:33:23 [TWDEV] death t 80 ended outcome killed state death
+03:33:23 [TWDEV] death: entity valid false outcome killed locked=false fog=0 music=null lastFov=-
+03:33:23 [TWDEV] === done death
+03:33:27 [TWDEV] === scenario spawnsite
+03:33:28 [TWDEV] spawnsite normal {"x":32.5,"y":-60,"z":28.5,"head":6,"posture":"tall","light":0,"facing":116.56505117707799,"dist":29.068883707497267} reason ok ms 60
+03:33:28 [TWDEV] spawnsite behind_you {"x":0.5,"y":-60,"z":19.5,"head":6,"posture":"tall","light":0,"facing":-123.69006752597979,"dist":7.211102550927978} reason ok ms 41
+03:33:28 [TWDEV] === done spawnsite
+03:33:35 [TWDEV] === scenario perf
+03:33:35 [Tailwail] #18 - -> stalk (spawn)
+03:33:35 [Tailwail] #18 beat cross
+03:33:35 [Tailwail] encounter 18 start setup=stalker slot=a target=Mock
+03:33:35 [Tailwail] #18 stalk -> hunt (test)
+03:33:38 [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+03:33:41 [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+03:33:43 [TWDEV] perf 1 encounter (the cap): decision tick avg 1.10 ms p95 2 ms max 6 ms; raycasts per tick 4.6 (BDS on the dev container CPU; not a client frame-rate measurement)
+03:33:43 [Tailwail] encounter 18 end outcome=aborted after 23.0s
+03:33:43 [TWDEV] === done perf
+03:33:49 [TWDEV] === scenario cap
+03:33:49 [Tailwail] #19 - -> stalk (spawn)
+03:33:49 [Tailwail] #19 beat tall (1/2)
+03:33:49 [Tailwail] encounter 19 start setup=stalker slot=a target=Mock
+03:33:49 [TWDEV] cap: three spawn requests -> spawned,refused,refused ; Tailwails in the world 1
+03:33:49 [Tailwail] encounter 19 end outcome=aborted after 0.3s
+03:33:49 [Tailwail] #20 - -> stalk (spawn)
+03:33:49 [Tailwail] #20 beat watch (1/3)
+03:33:49 [Tailwail] #20 stalk -> leave (reloaded)
+03:33:49 [Tailwail] encounter 20 start setup=stalker slot=a target=-
+03:33:50 [TWDEV] cap: egg while one exists -> old ended true ; new adopted true ; Tailwails in the world 1
+03:33:50 [TWDEV] cap: hallucination while a real one exists -> refused ; echoes 0
+03:33:50 [Tailwail] encounter 20 end outcome=aborted after 1.0s
+03:33:50 [TWDEV] cap: with none out -> hallucination spawned ; a second one at the same time refused
+03:33:53 [TWDEV] cap: Tailwails left 0 echoes left 0
+03:33:53 [TWDEV] === done cap
+03:33:57 [TWDEV] === scenario signs
+03:33:59 [Tailwail] #21 - -> stalk (spawn)
+03:33:59 [Tailwail] #21 beat tall (1/1)
+03:33:59 [Tailwail] encounter 21 start setup=stalker slot=a target=Mock
+03:33:59 [Tailwail] #21 stalk -> hunt (test)
+03:34:02 [Tailwail] #21 cue screech
+03:34:02 [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+03:34:04 [Tailwail] #21 hunt -> attack (pounce)
+03:34:04 [Tailwail] #21 cue pounce
+03:34:05 [Tailwail] #21 attack -> hunt (after-pounce)
+03:34:05 [Tailwail] #21 hunt -> attack (swipe_r)
+03:34:05 [Tailwail] #21 cue swipe
+03:34:06 [Tailwail] #21 swipe_r dealt 6 -> true
+03:34:06 [Tailwail] #21 cue impact
+03:34:06 [Tailwail] #21 attack -> hunt (after-swipe_r)
+03:34:06 [Tailwail] #21 hunt -> attack (swipe_r)
+03:34:06 [Tailwail] #21 cue swipe
+03:34:07 [Tailwail] #21 swipe_r dealt 6 -> true
+03:34:07 [Tailwail] #21 cue impact
+03:34:07 [TWDEV] signs: claw marks after an 8 s hunt down a cave corridor: 5 54,-58,13 33,-58,11 40,-59,11 26,-59,13 ; states {"tailwail:facing":"south","tailwail:variant":2}
+03:34:07 [Tailwail] encounter 21 end outcome=aborted after 8.0s
+03:34:07 [TWDEV] signs: clawMarkNear beside a wall -> 10,-58,11
+03:34:07 [TWDEV] signs: bed blocks after setblock 33,-60,23{"occupied_bit":false,"head_piece_bit":true,"direction":0} | 33,-60,22{"occupied_bit":false,"head_piece_bit":false,"direction":0}
+03:34:07 [TWDEV] signs: 7 escapes -> 7 strokes; 31,-59,23 count 5 facing west | 31,-59,22 count 2 facing west
+03:34:07 [TWDEV] signs: tickPlayer (away, owes 1) -> carved 1
+03:34:07 [TWDEV] signs: chest before 0:breadx5,1:iron_ingotx3,2:coalx9
+03:34:07 [TWDEV] signs: bed before 33,-60,23 head true dir 0 | 33,-60,22 head false dir 0
+03:34:07 [Tailwail] it moved a torch at 32 -60 24
+03:34:07 [TWDEV] signs: move torch -> torch 32,-60,24
+03:34:07 [Tailwail] it moved a barrel at 35 -60 25
+03:34:07 [TWDEV] signs: move barrel -> barrel 35,-60,25
+03:34:07 [Tailwail] it moved a chest at 35 -60 21
+03:34:07 [TWDEV] signs: move chest -> chest 35,-60,21
+03:34:07 [Tailwail] it moved a bed at 33 -60 23
+03:34:07 [TWDEV] signs: move bed -> bed 33,-60,23
+03:34:07 [TWDEV] signs: torch now 32,-60,24 (was 31,-60,21)
+03:34:07 [TWDEV] signs: barrel open_bit true
+03:34:07 [TWDEV] signs: chest after 1:iron_ingotx3,9:breadx5,18:coalx9
+03:34:07 [TWDEV] signs: bed after 33,-60,23 head false dir 2 | 33,-60,22 head true dir 2
+03:34:07 [Tailwail] its nest is at 28 -60 31
+03:34:07 [TWDEV] signs: nest {"di":0,"x":28,"y":-60,"z":31,"chest":{"x":26,"y":-60,"z":29}}
+03:34:07 [TWDEV] signs: nest blocks {"chest":1,"snuffed_torch":4,"bone_block":4,"skeleton_skull":1,"black_carpet":11,"brown_carpet":4,"web":1,"claw_marks":5}
+03:34:09 [Tailwail] it carried 3 of your things to its nest
+03:34:11 [TWDEV] signs: nest chest after your death 11:cooked_beefx6,13:diamondx3,15:iron_swordx1 ; items still on the ground 1
+03:34:11 [TWDEV] signs: journal pages from tickPlayer -
+03:34:11 [TWDEV] === done signs
+
+######## run 2 (stand-off, escape, stand-off, escape)
+03:35:44 [TWDEV] harness loaded
+03:35:45 [Tailwail] v3.2.0 ready
+03:35:52 [TWDEV] === scenario standoff
+03:35:52 [Tailwail] #1 - -> stalk (spawn)
+03:35:52 [Tailwail] #1 beat watch (1/1)
+03:35:52 [Tailwail] encounter 1 start setup=stalker slot=a target=Mock
+03:35:52 [Tailwail] #1 stalk -> standoff (test)
+03:35:52 [Tailwail] #1 cue growl
+03:35:52 [Tailwail] #1 observe: idle
+03:35:53 [TWDEV] observe-glance t 20 state standoff pos 21.5,-60,10.5 posture tall act watch tail 0 jaw 6 dmg 0 
+03:35:54 [Tailwail] #1 cue click
+03:35:54 [Tailwail] #1 cue creak
+03:35:54 [Tailwail] #1 observe: approach
+03:35:54 [TWDEV] observe-glance t 40 state standoff pos 21.5,-60,10.5 posture tall act watch tail 0 jaw 6 dmg 0 
+03:35:55 [TWDEV] msg §8[Torn journal] §7A new page: §fDon't turn your back
+03:35:55 [TWDEV] observe-glance t 60 state standoff pos 21.3,-60,10.5 posture tall act loco_low tail 0 jaw 6 dmg 0 
+03:35:56 [Tailwail] #1 cue creak
+03:35:56 [TWDEV] observe-glance t 80 state standoff pos 19.5,-60,10.5 posture tall act loco_low tail 0 jaw 6 dmg 0 
+03:35:56 [Tailwail] #1 standoff -> engage (timeout)
+03:35:56 [Tailwail] #1 cue inhale
+03:35:57 [TWDEV] observe-glance t 100 state engage pos 18.8,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:35:57 [Tailwail] #1 cue scream
+03:35:58 [TWDEV] observe-glance t 120 state engage pos 18.8,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:35:59 [TWDEV] observe-glance t 140 state engage pos 18.8,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:35:59 [Tailwail] #1 engage -> hunt (engaged)
+03:36:00 [TWDEV] observe-glance t 160 state hunt pos 17.4,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 
+03:36:00 [TWDEV] observe: modes 0.3 observe: idle / 2.3 observe: approach
+03:36:00 [TWDEV] observe: moved 4.1 blocks; state hunt music tailwail.music.chase fog tailwail:dread
+03:36:00 [Tailwail] encounter 1 end outcome=aborted after 8.3s
+03:36:00 [Tailwail] #2 - -> stalk (spawn)
+03:36:00 [Tailwail] #2 beat cross
+03:36:00 [Tailwail] encounter 2 start setup=stalker slot=a target=Mock
+03:36:00 [TWDEV] (spawnTW: the opening beat had moved it; put back at 21.5,-60,10.5)
+03:36:00 [Tailwail] #2 stalk -> standoff (test)
+03:36:00 [Tailwail] #2 cue growl
+03:36:00 [Tailwail] #2 observe: idle
+03:36:03 [Tailwail] #2 cue breath_close
+03:36:03 [Tailwail] #2 cue creak
+03:36:03 [Tailwail] #2 observe: approach
+03:36:03 [TWDEV] msg §8[Torn journal] §7A new page: §fDon't turn your back
+03:36:04 [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+03:36:04 [Tailwail] #2 cue growl
+03:36:05 [Tailwail] #2 standoff -> engage (timeout)
+03:36:05 [Tailwail] #2 cue inhale
+03:36:05 [TWDEV] stare: state engage after 87 ticks; 4.6 standoff -> engage (timeout)
+03:36:05 [Tailwail] encounter 2 end outcome=aborted after 4.6s
+03:36:05 [Tailwail] #3 - -> stalk (spawn)
+03:36:05 [Tailwail] #3 beat tall (1/1)
+03:36:05 [Tailwail] encounter 3 start setup=stalker slot=a target=Mock
+03:36:05 [Tailwail] #3 stalk -> standoff (test)
+03:36:05 [Tailwail] #3 cue growl
+03:36:05 [Tailwail] #3 cue creak
+03:36:05 [Tailwail] #3 observe: approach
+03:36:07 [Tailwail] #3 standoff -> engage (turned-away)
+03:36:07 [Tailwail] #3 cue scream
+03:36:07 [TWDEV] standoff: turned away -> state engage after 17 ticks
+03:36:08 [TWDEV] standoff-engage t 10 state engage pos 18.5,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:36:08 [TWDEV] msg §8[Torn journal] §7A new page: §fDon't turn your back
+03:36:08 [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+03:36:08 [TWDEV] standoff-engage t 20 state engage pos 18.5,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:36:09 [TWDEV] standoff-engage t 30 state engage pos 18.5,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:36:09 [Tailwail] #3 engage -> hunt (engaged)
+03:36:09 [TWDEV] standoff-engage t 40 state hunt pos 18.5,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 
+03:36:09 [Tailwail] encounter 3 end outcome=aborted after 4.6s
+03:36:09 [TWDEV] standoff cleanup locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
+03:36:09 [Tailwail] #4 - -> stalk (spawn)
+03:36:09 [Tailwail] #4 beat watch (1/3)
+03:36:09 [Tailwail] encounter 4 start setup=stalker slot=a target=Mock
+03:36:09 [Tailwail] #4 stalk -> standoff (test)
+03:36:09 [Tailwail] #4 cue growl
+03:36:09 [Tailwail] #4 observe: idle
+03:36:11 [TWDEV] shot: a wide miss -> state standoff
+03:36:11 [Tailwail] #4 aggression: shot
+03:36:11 [Tailwail] #4 standoff -> engage (provoked)
+03:36:11 [Tailwail] #4 cue roar
+03:36:12 [Tailwail] #4 engage -> hunt (engaged)
+03:36:12 [TWDEV] shot: aimed at it -> hunting after 24 ticks; 1.5 standoff -> engage (provoked) / 2.6 engage -> hunt (engaged) one-shots played roar
+03:36:12 [TWDEV] shot-hunt t 10 state hunt pos 21.4,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 
+03:36:12 [TWDEV] msg §8[Torn journal] §7A new page: §fDon't turn your back
+03:36:13 [TWDEV] shot-hunt t 20 state hunt pos 18.5,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 
+03:36:13 [Tailwail] #4 hunt -> attack (pounce)
+03:36:13 [Tailwail] #4 cue pounce
+03:36:13 [TWDEV] shot-hunt t 30 state attack pos 14.8,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:36:13 [Tailwail] encounter 4 end outcome=aborted after 4.1s
+03:36:13 [Tailwail] #5 - -> stalk (spawn)
+03:36:13 [Tailwail] #5 beat cross
+03:36:13 [Tailwail] encounter 5 start setup=stalker slot=a target=Mock
+03:36:13 [TWDEV] (spawnTW: the opening beat had moved it; put back at 21.5,-60,10.5)
+03:36:13 [Tailwail] #5 stalk -> standoff (test)
+03:36:13 [Tailwail] #5 cue growl
+03:36:13 [Tailwail] #5 cue creak
+03:36:13 [Tailwail] #5 observe: approach
+03:36:14 [TWDEV] shot: a real arrow with no player owner -> state standoff (ignored)
+03:36:14 [Tailwail] encounter 5 end outcome=aborted after 0.4s
+03:36:14 [TWDEV] === done standoff
+03:36:44 [TWDEV] === scenario escape
+03:36:44 [Tailwail] #6 - -> stalk (spawn)
+03:36:44 [Tailwail] #6 beat watch (1/2)
+03:36:44 [Tailwail] encounter 6 start setup=stalker slot=a target=Mock
+03:36:44 [Tailwail] #6 stalk -> hunt (test)
+03:36:45 [TWDEV] escape t 20 state hunt pos 6.9,-60,12.9 posture tall act loco tail 1 jaw 22 dmg 0 mock 30.1,-60,20.5
+03:36:45 [TWDEV] escape: gap sealed
+03:36:46 [TWDEV] escape t 40 state hunt pos 13.3,-60,15.1 posture tall act loco tail 1 jaw 22 dmg 0 mock 35,-60,20.5
+03:36:46 [Tailwail] #6 cue screech
+03:36:47 [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+03:36:47 [TWDEV] escape t 60 state hunt pos 20.8,-60,15.8 posture tall act loco tail 1 jaw 22 dmg 0 mock 40.6,-60,20.5
+03:36:48 [TWDEV] escape t 80 state hunt pos 27.8,-60,17.8 posture tall act loco tail 1 jaw 22 dmg 0 mock 46,-60,20.8
+03:36:49 [TWDEV] escape t 100 state hunt pos 29.6,-60,20.4 posture tall act loco tail 1 jaw 22 dmg 0 mock 50.9,-60,23.4
+03:36:50 [Tailwail] #6 cue screech
+03:36:50 [TWDEV] escape t 120 state hunt pos 29.6,-60,20.4 posture tall act loco tail 1 jaw 22 dmg 0 mock 55.9,-60,26
+03:36:51 [Tailwail] #6 stuck (1)
+03:36:51 [Tailwail] #6 recover 1: smaller-posture
+03:36:51 [TWDEV] escape t 140 state hunt pos 29.5,-60,20.4 posture hunch act loco tail 1 jaw 22 dmg 0 mock 60.5,-60,28.5
+03:36:52 [TWDEV] escape t 160 state hunt pos 29.5,-60,20.4 posture hunch act loco tail 1 jaw 22 dmg 0 mock 60.5,-60,28.5
+03:36:53 [TWDEV] escape t 180 state hunt pos 29.5,-60,20.4 posture tall act loco tail 1 jaw 22 dmg 0 mock 60.5,-60,28.5
+03:36:53 [Tailwail] #6 cue screech
+03:36:53 [Tailwail] #6 stuck (2)
+03:36:53 [Tailwail] #6 recover 2: sidestep
+03:36:54 [TWDEV] escape t 200 state hunt pos 29.5,-60,20.4 posture tall act loco tail 1 jaw 22 dmg 0 mock 60.5,-60,28.5
+03:36:54 [Tailwail] #6 hunt -> search (lost-sight)
+03:36:54 [Tailwail] #6 cue sniff
+03:36:55 [TWDEV] escape t 220 state search pos 29.5,-60,22.1 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:36:56 [TWDEV] escape t 240 state search pos 29.5,-60,23.3 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:36:57 [Tailwail] #6 cue sniff
+03:36:57 [TWDEV] escape t 260 state search pos 29.5,-60,23.3 posture tall act sniff tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:36:58 [TWDEV] escape t 280 state search pos 29.5,-60,23.3 posture tall act sniff tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:36:59 [TWDEV] escape t 300 state search pos 29.5,-60,23.3 posture tall act sniff tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:00 [TWDEV] escape t 320 state search pos 29.5,-60,24.3 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:01 [TWDEV] escape t 340 state search pos 29.5,-60,24.3 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:02 [Tailwail] #6 cue sniff
+03:37:02 [TWDEV] escape t 360 state search pos 29.5,-60,24.3 posture tall act sniff tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:03 [TWDEV] escape t 380 state search pos 29.5,-60,24.3 posture tall act sniff tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:04 [TWDEV] escape t 400 state search pos 29.5,-60,24.3 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:05 [TWDEV] escape t 420 state search pos 29.5,-60,21.2 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:06 [TWDEV] escape t 440 state search pos 29.5,-60,20.7 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:07 [TWDEV] escape t 460 state search pos 29.5,-60,20.7 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:07 [Tailwail] #6 cue click
+03:37:08 [TWDEV] escape t 480 state search pos 29.5,-60,20.7 posture tall act listen tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:09 [TWDEV] escape t 500 state search pos 29.5,-60,20.6 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:10 [TWDEV] escape t 520 state search pos 29.5,-60,17.7 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:11 [TWDEV] escape t 540 state search pos 29.5,-60,17.7 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:11 [Tailwail] #6 cue click
+03:37:12 [TWDEV] escape t 560 state search pos 29.5,-60,17.7 posture tall act listen tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:13 [TWDEV] escape t 580 state search pos 29.4,-60,17.8 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:13 [Tailwail] #6 cue click
+03:37:14 [TWDEV] escape t 600 state search pos 27.7,-60,19.3 posture tall act listen tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:15 [TWDEV] escape t 620 state search pos 27.7,-60,19.3 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:16 [TWDEV] escape t 640 state search pos 29.5,-60,21.9 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:16 [Tailwail] #6 cue howl
+03:37:17 [TWDEV] escape t 660 state search pos 29.5,-60,23.2 posture tall act shot tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:37:18 [Tailwail] Mock: it will come back
+03:37:18 [Tailwail] #6 search -> leave (gave-up)
+03:37:18 [TWDEV] escape t 680 state leave pos 29.5,-60,23.2 posture tall act loco tail 0 jaw 4 dmg 0 mock 60.5,-60,28.5
+03:37:19 [TWDEV] escape t 700 state leave pos 29.5,-60,20.2 posture tall act loco tail 0 jaw 4 dmg 0 mock 60.5,-60,28.5
+03:37:19 [TWDEV] escape outcome escaped ended false damage [] locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 1.20 in_out_sine
+03:37:19 [Tailwail] encounter 6 end outcome=aborted after 35.2s
+03:37:19 [TWDEV] === done escape
+03:37:24 [TWDEV] === scenario standoff
+03:37:24 [Tailwail] #7 - -> stalk (spawn)
+03:37:24 [Tailwail] #7 beat watch (1/1)
+03:37:24 [Tailwail] encounter 7 start setup=stalker slot=a target=Mock
+03:37:24 [Tailwail] #7 stalk -> standoff (test)
+03:37:24 [Tailwail] #7 cue growl
+03:37:24 [Tailwail] #7 observe: idle
+03:37:25 [TWDEV] observe-glance t 20 state standoff pos 21.5,-60,10.5 posture tall act tall tail 0 jaw 6 dmg 0 
+03:37:26 [TWDEV] observe-glance t 40 state standoff pos 21.5,-60,10.5 posture tall act tall tail 0 jaw 6 dmg 0 
+03:37:26 [Tailwail] #7 cue breath_close
+03:37:26 [Tailwail] #7 cue creak
+03:37:26 [Tailwail] #7 observe: approach
+03:37:27 [TWDEV] msg §8[Torn journal] §7A new page: §fDon't turn your back
+03:37:27 [TWDEV] observe-glance t 60 state standoff pos 21.3,-60,10.5 posture tall act loco_low tail 0 jaw 6 dmg 0 
+03:37:28 [TWDEV] observe-glance t 80 state standoff pos 19.6,-60,10.5 posture tall act loco_low tail 0 jaw 6 dmg 0 
+03:37:28 [Tailwail] #7 cue click
+03:37:29 [Tailwail] #7 cue creak
+03:37:29 [TWDEV] observe-glance t 100 state standoff pos 17.9,-60,10.5 posture tall act loco_low tail 0 jaw 6 dmg 0 
+03:37:30 [Tailwail] #7 standoff -> engage (decided)
+03:37:30 [Tailwail] #7 cue scream
+03:37:30 [TWDEV] observe-glance t 120 state engage pos 16.8,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:37:31 [TWDEV] observe-glance t 140 state engage pos 16.8,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:37:31 [Tailwail] #7 engage -> hunt (engaged)
+03:37:32 [Tailwail] #7 hunt -> attack (pounce)
+03:37:32 [Tailwail] #7 cue pounce
+03:37:32 [TWDEV] observe-glance t 160 state attack pos 16.2,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:37:32 [TWDEV] observe: modes 0.2 observe: idle / 2.5 observe: approach
+03:37:32 [TWDEV] observe: moved 5.3 blocks; state attack music tailwail.music.chase fog tailwail:dread
+03:37:32 [Tailwail] encounter 7 end outcome=aborted after 8.2s
+03:37:32 [Tailwail] #8 - -> stalk (spawn)
+03:37:32 [Tailwail] #8 beat watch (1/2)
+03:37:32 [Tailwail] encounter 8 start setup=stalker slot=a target=Mock
+03:37:32 [Tailwail] #8 stalk -> standoff (test)
+03:37:32 [Tailwail] #8 cue growl
+03:37:32 [Tailwail] #8 cue creak
+03:37:32 [Tailwail] #8 observe: approach
+03:37:34 [Tailwail] #8 cue creak
+03:37:35 [Tailwail] #8 observe: test (feint)
+03:37:35 [Tailwail] #8 cue breath_close
+03:37:35 [Tailwail] #8 cue click
+03:37:35 [TWDEV] msg §8[Torn journal] §7A new page: §fDon't turn your back
+03:37:36 [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+03:37:37 [Tailwail] #8 standoff -> engage (timeout)
+03:37:37 [Tailwail] #8 cue inhale
+03:37:37 [TWDEV] stare: state engage after 92 ticks; 4.9 standoff -> engage (timeout)
+03:37:37 [Tailwail] encounter 8 end outcome=aborted after 4.9s
+03:37:37 [Tailwail] #9 - -> stalk (spawn)
+03:37:37 [Tailwail] #9 beat cross
+03:37:37 [Tailwail] encounter 9 start setup=stalker slot=a target=Mock
+03:37:37 [TWDEV] (spawnTW: the opening beat had moved it; put back at 21.5,-60,10.5)
+03:37:37 [Tailwail] #9 stalk -> standoff (test)
+03:37:37 [Tailwail] #9 cue growl
+03:37:37 [Tailwail] #9 observe: idle
+03:37:39 [Tailwail] #9 cue click
+03:37:39 [Tailwail] #9 standoff -> engage (turned-away)
+03:37:39 [Tailwail] #9 cue scream
+03:37:39 [TWDEV] standoff: turned away -> state engage after 17 ticks
+03:37:40 [TWDEV] standoff-engage t 10 state engage pos 21.5,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:37:40 [TWDEV] msg §8[Torn journal] §7A new page: §fDon't turn your back
+03:37:40 [TWDEV] msg §8[Torn journal] §7A new page: §fThe shape
+03:37:40 [TWDEV] standoff-engage t 20 state engage pos 21.5,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:37:41 [TWDEV] standoff-engage t 30 state engage pos 21.5,-60,10.5 posture tall act shot tail 3 jaw 0 dmg 0 
+03:37:41 [Tailwail] #9 engage -> hunt (engaged)
+03:37:41 [TWDEV] standoff-engage t 40 state hunt pos 21.5,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 
+03:37:41 [Tailwail] encounter 9 end outcome=aborted after 4.6s
+03:37:41 [TWDEV] standoff cleanup locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 0.80 in_out_sine
+03:37:41 [Tailwail] #10 - -> stalk (spawn)
+03:37:41 [Tailwail] #10 beat watch (1/1)
+03:37:41 [Tailwail] encounter 10 start setup=stalker slot=a target=Mock
+03:37:42 [Tailwail] #10 stalk -> standoff (test)
+03:37:42 [Tailwail] #10 cue growl
+03:37:42 [Tailwail] #10 observe: idle
+03:37:43 [TWDEV] shot: a wide miss -> state standoff
+03:37:43 [Tailwail] #10 aggression: shot
+03:37:43 [Tailwail] #10 standoff -> engage (provoked)
+03:37:43 [Tailwail] #10 cue roar
+03:37:44 [Tailwail] #10 engage -> hunt (engaged)
+03:37:44 [TWDEV] shot: aimed at it -> hunting after 24 ticks; 1.5 standoff -> engage (provoked) / 2.6 engage -> hunt (engaged) one-shots played roar
+03:37:45 [TWDEV] shot-hunt t 10 state hunt pos 21.5,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 
+03:37:45 [TWDEV] msg §8[Torn journal] §7A new page: §fDon't turn your back
+03:37:45 [TWDEV] shot-hunt t 20 state hunt pos 20.7,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 
+03:37:46 [TWDEV] shot-hunt t 30 state hunt pos 17,-60,10.5 posture tall act loco tail 1 jaw 22 dmg 0 
+03:37:46 [Tailwail] encounter 10 end outcome=aborted after 4.1s
+03:37:46 [Tailwail] #11 - -> stalk (spawn)
+03:37:46 [Tailwail] #11 beat watch (1/3)
+03:37:46 [Tailwail] encounter 11 start setup=stalker slot=a target=Mock
+03:37:46 [Tailwail] #11 stalk -> standoff (test)
+03:37:46 [Tailwail] #11 cue growl
+03:37:46 [Tailwail] #11 observe: idle
+03:37:46 [TWDEV] shot: a real arrow with no player owner -> state standoff (ignored)
+03:37:46 [Tailwail] encounter 11 end outcome=aborted after 0.4s
+03:37:46 [TWDEV] === done standoff
+03:38:16 [TWDEV] === scenario escape
+03:38:16 [Tailwail] #12 - -> stalk (spawn)
+03:38:16 [Tailwail] #12 beat watch (1/1)
+03:38:16 [Tailwail] encounter 12 start setup=stalker slot=a target=Mock
+03:38:16 [Tailwail] #12 stalk -> hunt (test)
+03:38:17 [TWDEV] escape t 20 state hunt pos 6.1,-60,12.1 posture tall act loco tail 1 jaw 22 dmg 0 mock 30.1,-60,20.5
+03:38:17 [TWDEV] escape: gap sealed
+03:38:18 [Tailwail] #12 cue screech
+03:38:18 [TWDEV] escape t 40 state hunt pos 12.6,-60,14.6 posture tall act loco tail 1 jaw 22 dmg 0 mock 35,-60,20.5
+03:38:19 [TWDEV] msg §8[Torn journal] §7A new page: §fRun
+03:38:19 [TWDEV] escape t 60 state hunt pos 19.8,-60,15.6 posture tall act loco tail 1 jaw 22 dmg 0 mock 40.6,-60,20.5
+03:38:20 [TWDEV] escape t 80 state hunt pos 26.7,-60,17.5 posture tall act loco tail 1 jaw 22 dmg 0 mock 46,-60,20.8
+03:38:21 [TWDEV] escape t 100 state hunt pos 29.5,-60,20.4 posture tall act loco tail 1 jaw 22 dmg 0 mock 50.9,-60,23.4
+03:38:22 [TWDEV] escape t 120 state hunt pos 29.5,-60,20.4 posture tall act loco tail 1 jaw 22 dmg 0 mock 55.9,-60,26
+03:38:23 [TWDEV] escape t 140 state hunt pos 29.5,-60,20.4 posture tall act loco tail 1 jaw 22 dmg 0 mock 60.5,-60,28.5
+03:38:23 [Tailwail] #12 stuck (1)
+03:38:23 [Tailwail] #12 recover 1: smaller-posture
+03:38:24 [Tailwail] #12 cue screech
+03:38:24 [TWDEV] escape t 160 state hunt pos 29.5,-60,20.4 posture hunch act loco tail 1 jaw 22 dmg 0 mock 60.5,-60,28.5
+03:38:25 [TWDEV] escape t 180 state hunt pos 29.5,-60,20.4 posture tall act loco tail 1 jaw 22 dmg 0 mock 60.5,-60,28.5
+03:38:26 [Tailwail] #12 stuck (2)
+03:38:26 [Tailwail] #12 recover 2: sidestep
+03:38:26 [TWDEV] escape t 200 state hunt pos 29.5,-60,20.4 posture tall act loco tail 1 jaw 22 dmg 0 mock 60.5,-60,28.5
+03:38:26 [Tailwail] #12 hunt -> search (lost-sight)
+03:38:26 [Tailwail] #12 cue sniff
+03:38:27 [TWDEV] escape t 220 state search pos 29.5,-60,17.7 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:28 [TWDEV] escape t 240 state search pos 29.5,-60,17.8 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:29 [Tailwail] #12 cue click
+03:38:29 [TWDEV] escape t 260 state search pos 29.5,-60,21.2 posture tall act listen tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:30 [TWDEV] escape t 280 state search pos 29.5,-60,21.2 posture tall act listen tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:31 [Tailwail] #12 cue click
+03:38:31 [TWDEV] escape t 300 state search pos 29.5,-60,22.1 posture tall act listen tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:32 [TWDEV] escape t 320 state search pos 29.5,-60,22.1 posture tall act listen tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:33 [TWDEV] escape t 340 state search pos 29.5,-60,22.1 posture tall act listen tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:34 [TWDEV] escape t 360 state search pos 29.5,-60,22.2 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:35 [TWDEV] escape t 380 state search pos 29.5,-60,24.3 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:36 [TWDEV] escape t 400 state search pos 29.5,-60,24.3 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:36 [Tailwail] #12 cue sniff
+03:38:37 [TWDEV] escape t 420 state search pos 29.5,-60,24.3 posture tall act sniff tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:38 [TWDEV] escape t 440 state search pos 29.5,-60,24.3 posture tall act sniff tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:39 [TWDEV] escape t 460 state search pos 29.5,-60,24.2 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:40 [TWDEV] escape t 480 state search pos 29.5,-60,19.7 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:41 [TWDEV] escape t 500 state search pos 29.5,-60,16.7 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:42 [TWDEV] escape t 520 state search pos 29.5,-60,16.7 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:42 [Tailwail] #12 cue click
+03:38:43 [TWDEV] escape t 540 state search pos 29.5,-60,16.7 posture tall act listen tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:44 [TWDEV] escape t 560 state search pos 29.5,-60,16.7 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:45 [TWDEV] escape t 580 state search pos 29.5,-60,19.8 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:46 [TWDEV] escape t 600 state search pos 29.5,-60,21.3 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:47 [TWDEV] escape t 620 state search pos 29.5,-60,21.3 posture tall act loco tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:47 [Tailwail] #12 cue click
+03:38:48 [TWDEV] escape t 640 state search pos 29.5,-60,21.3 posture tall act listen tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:48 [Tailwail] #12 cue howl
+03:38:49 [TWDEV] escape t 660 state search pos 29.5,-60,21.3 posture tall act shot tail 0 jaw 8 dmg 0 mock 60.5,-60,28.5
+03:38:50 [Tailwail] #12 search -> leave (gave-up)
+03:38:50 [TWDEV] escape t 680 state leave pos 29.5,-60,21.3 posture tall act loco tail 0 jaw 4 dmg 0 mock 60.5,-60,28.5
+03:38:51 [TWDEV] escape t 700 state leave pos 29.5,-60,24.3 posture tall act loco tail 0 jaw 4 dmg 0 mock 60.5,-60,28.5
+03:38:51 [TWDEV] escape outcome escaped ended false damage [] locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 1.20 in_out_sine
+03:38:51 [Tailwail] encounter 12 end outcome=aborted after 35.2s
+03:38:51 [TWDEV] === done escape

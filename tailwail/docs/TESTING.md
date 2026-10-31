@@ -114,37 +114,44 @@ runs scenarios on a fresh flat world. BDS has no real players, so the harness dr
 real code with a **stand-in player**: an armor stand that implements the Player members the
 code calls and **records every player-only call** (camera, FOV, fog, music, input
 permissions, titles, sounds, teleports). Condensed logs:
-[test_logs/bds_scenarios_v3.1_1.26.61.txt](test_logs/bds_scenarios_v3.1_1.26.61.txt) (run 1:
-every scenario; run 2: the stand-off twice, after fixing a harness bug that spoiled run 1's
-shot test). The content log showed no errors or warnings from the packs.
+[test_logs/bds_scenarios_v3.2_1.26.61.txt](test_logs/bds_scenarios_v3.2_1.26.61.txt) (run 1:
+every scenario; run 2: the stand-off and the escape twice each, after fixing a harness bug
+that spoiled them in run 1: the stalker's random first "cross" beat had teleported the
+creature before those tests began). The content log showed no errors or warnings from the
+packs.
 
-| Scenario | Observed (3.1.0) |
+| Scenario | Observed (3.2.0) |
 |---|---|
-| boot | `[Tailwail] v3.1.0 ready`; `playAnimation` of the scream, a rake and the flinch: ok; `tailwail:float_on` held it 4 blocks up, `float_off` dropped it to the floor; `camera … fov_clear / fov_set` parse |
-| stand-off (observation) | kept at the edge of the view (a glance): it **approached, backed off to test, read "you held still"** (run 1); approached then stood idle (run 2); idle then backed off (run 2), then it decided / timed out and hunted. Turned its back: **engage after 17 ticks (0.85 s)**, three times. Stared at straight on: engaged after 4.0-6.2 s (by its own decision or the stand-off's limit; at stage 2 the stand-off is short, so the 5-9 s stare limit did not get the chance: the unit tests cover it) |
-| shot at it | a stand-in arrow (a real player's projectile cannot exist on BDS) through the real aim test: **a wide miss was ignored; a shot aimed at it provoked it at once: one roar (no scream), hunting 24 ticks (1.2 s) later**, twice. A real arrow with no player owner, through the real spawn event: ignored, no errors |
-| commit | scream: **all 3 torches** became burnt-out sticks, relight restored `minecraft:torch`; chase music, fog, FOV punch |
-| hunt | the hunter: scream from far away, then the hunt at **7.8 blocks/s** (measured; the Cave Dweller's 0.5 × 0.85; a sprinting player does 5.6); pounce, rakes: 3 hits; **still hunting after the hits** |
-| squeeze | you behind a solid wall with a 1-wide, 1-high, 12-block tunnel: it went `squeeze` posture / `loco_squeeze` act, **dragged itself through (≈ 7 s inside), came out at the far end** and attacked (slam 9, then a rake every second) |
-| escape | through a 1-high gap, **sealed behind you**, then crouched in the dark: it searched, howled and left: **escaped, 0 damage**, every effect cleaned |
-| ceiling | clung under the ceiling with gravity off (`cling` act), dropped as you came, savoured, hunted |
-| climb | you on a 5-high pillar: it **climbed to the top** and attacked |
-| door | you in a sealed room behind a wooden door: it **hammered the door until it broke** and came in |
-| surface | light at the open surface: 15 at noon, **4 at midnight**. The real spawn search at night on open flat ground: a site **27 blocks behind the player** (light 4). `treeline`: stood tall, stand-off, decided, scream, hunt; pounce, rake, slam, savour |
-| hide | crouched in light 0, never seen: it searched and **never found you** (0 damage) |
-| tunnel | 1-wide, 2-high tunnel: belly-crawl all the way through, then rakes |
-| presence | breath, whisper, snuff, door, glimpse (seen, looked away, gone), mimic (`dig.deepslate` replayed), footsteps (5 steps over 6 blocks), behind (turned: echo + stinger), lights out, running steps (9 heavy steps), distant scream, **runner (7.8 blocks in 1 s)**, door bang (3 bangs), window. Knock, peek and scrape declined in this arena layout (they need the right wall / corner; scrape and peek ran in earlier runs) |
-| grab (parked) | the parked grab code still works when entered directly: a jump prompt with a grip shift was broken, input unlocked; an alternate prompt left alone ended in a finisher. Never reachable in game |
+| boot | `[Tailwail] v3.2.0 ready`; `playAnimation` of the scream, a rake and the flinch: ok; `tailwail:float_on` held it 4 blocks up, `float_off` dropped it; `camera … fov_clear / fov_set` parse |
+| **cap (one Tailwail)** | three spawn requests at once: **one spawned, two refused**, 1 Tailwail in the world. A spawn egg while one was out: **the old one ended, the new one adopted**, still 1. A hallucination while a real one was out: **refused**; with none out: one spawned, a second at the same time refused |
+| stand-off (observation) | at the edge of the view: idle, approach, a bluff charge (run 1); idle then approach (run 2, twice), then it decided or timed out. Turned its back: **engage after 17 ticks (0.85 s)**, every time. Stared at: engaged after 4.3-6.2 s (its decision or the stand-off's limit: at stage 2 the stand-off is short; the stare limit itself is unit-tested) |
+| shot at it | stand-in arrow through the real aim test (BDS has no player to own a real one): **a wide miss ignored; a shot aimed at it provoked it at once: one roar, hunting 24 ticks (1.2 s) later** (run 2, twice). A real arrow with no player owner through the real spawn event: ignored |
+| commit | scream: **all 3 torches** became burnt-out sticks; relight restored the torch |
+| hunt | **7.7 blocks/s** measured (the Cave Dweller's 0.5 × 0.85 ≈ 7.8; a sprinting player does 5.6); still hunting after the hits |
+| squeeze | a 12-block 1-high tunnel: `squeeze` / `loco_squeeze`, ≈ 7 s inside, out the far end, then rake and slam |
+| escape | through a 1-high gap, **sealed behind you**, crouched in the dark: **escaped, 0 damage** (run 2, twice), every effect cleaned |
+| **signs: claw marks** | a real 8 s hunt down a 3-wide cave corridor: **5 claw-mark blocks** on the corridor walls (another run: 1 and 3: it is random), each on an air cell facing a wall; `clawMarkNear` beside a wall: placed |
+| **signs: tallies** | a bed placed by `setblock` (both halves); 7 escapes → **7 strokes: a full group of five and a group of two side by side on the house wall at head height**, facing the wall; the per-second path (away from the bed, owing one) carved one |
+| **signs: things moved** | torch: **moved from 31,21 to 32,24, inside the same room**; barrel: **`open_bit` true**; chest: **bread, iron and coal moved to other slots, nothing lost**; bed: **both halves swapped and turned 180° (direction 0 → 2), still a bed** |
+| **signs: the nest** | built in the dark 16-40 blocks away: **a chest, 4 burnt-out torches in a row, 4 bone blocks (one heap), a skull, 15 carpets (black and brown), a cobweb, 5 claw marks**; 4 stacks dropped "where you died": **3 carried into the nest chest in slots 11, 13, 15** (centred, evenly spaced), 1 left on the ground |
+| ceiling | clung under the ceiling with gravity off, dropped as you came, hunted |
+| climb | you on a 5-high pillar: it climbed to the top and attacked |
+| door | it hammered a wooden door until it broke and came in |
+| surface | light 15 at noon, 4 at midnight; the real spawn search at night: 27 blocks behind you (light 4); `treeline`: stand-off, **stared → engage**, scream, pounce, combo, slam |
+| hide | crouched in light 0: it searched and never found you (0 damage) |
+| tunnel | 2-high tunnel: belly-crawl through, then rakes |
+| presence | every event ran or declined for want of a wall/corner as before; scrape ran; the runner 7.8 blocks in 1 s; glimpse, behind, window: one hallucination at a time |
+| grab (parked) | the parked grab code still runs when entered directly. Never reachable in game |
 | death | lethal hit: death clip, removed after it, outcome killed |
-| spawn site | dark roofed cave: light-0 site 29 blocks away in 61 ms; the "behind you" site 7 blocks behind the player in 40 ms |
-| perf | three concurrent encounters at 10 decisions/s: **decision tick avg 2.29 ms, p95 4 ms, max 5 ms**, 18 raycasts per tick. BDS on a dev container CPU, **not** a client or mobile measurement |
+| spawn site | dark roofed cave: site 29 blocks away in 60 ms; "behind you" site 7 blocks behind in 41 ms |
+| perf | **one encounter (the cap) at 10 decisions/s: decision tick avg 1.10 ms, p95 2 ms, max 6 ms**, 4.6 raycasts per tick. BDS on a dev container CPU, **not** a client or mobile measurement |
 
-## 5. Mojang Creator Tools 0.20.0 (`mct validate all --if dist/Tailwail_3.1.0.mcaddon`)
+## 5. Mojang Creator Tools 0.20.0 (`mct validate all --if dist/Tailwail_3.2.0.mcaddon`)
 
 0 errors. Two warnings remain, both false positives: the recipe uses vanilla `minecraft:book`
 and `minecraft:bone`, which are "not found in this pack". The remaining recommendations
 are only "newer format_version available" notes. Log:
-[test_logs/mct_validate_v3.csv](test_logs/mct_validate_v3.csv) (re-run on 3.1.0).
+[test_logs/mct_validate_v3.csv](test_logs/mct_validate_v3.csv) (re-run on 3.2.0).
 
 ## 6. In-game (client) verification: **not done**
 

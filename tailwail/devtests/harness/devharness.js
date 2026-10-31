@@ -117,7 +117,14 @@ class MockPlayer {
 }
 
 function spawnTW(mock, at, setup = "stalker", posture = "tall", stage = 2) {
-  return director.spawnAt(mock, { ...at, posture, facing: 90 }, setup, director.freeSlot(), true, false, stage);
+  const enc = director.spawnAt(mock, { ...at, posture, facing: 90 }, setup, director.freeSlot(), true, false, stage);
+  // a stalker's random first "cross" beat teleports it to a crossing path at once: put it back
+  // where the scenario wants it (scenarios that test the stalk itself let it run on from here)
+  if (enc && enc.tw.isValid && Math.hypot(enc.tw.location.x - at.x, enc.tw.location.z - at.z) > 1) {
+    enc.tw.teleport({ x: at.x, y: at.y, z: at.z });
+    log("(spawnTW: the opening beat had moved it; put back at", fmt(at) + ")");
+  }
+  return enc;
 }
 
 const actOf = (tw) => ACT_NAME[tw.getProperty("tailwail:act")];
@@ -265,7 +272,8 @@ const SCENARIOS = {
     mock.yaw += 45;
     await wait(20);
     const head = mock.getHeadLocation();
-    const aim = { x: 21.5 - head.x, y: Y + 1.6 - head.y, z: 10.5 - head.z };
+    const tl = enc.tw.location; // aim at where it actually is (the stand-off moves it)
+    const aim = { x: tl.x - head.x, y: tl.y + 1.6 - head.y, z: tl.z - head.z };
     const n = Math.hypot(aim.x, aim.y, aim.z);
     const wide = { x: aim.x / n * 3, y: aim.y / n * 3 + 0.0, z: aim.z / n * 3 + 1.5 }; // way off to the side
     const fakeArrow = (v) => ({ isValid: true, location: head, dimension: ov(), getVelocity: () => v,
