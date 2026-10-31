@@ -2,7 +2,7 @@
 // Every gameplay number lives here so balance changes never require touching logic.
 // Times are seconds unless a name ends in Ticks.  Distances are blocks.
 
-export const ADDON_VERSION = "3.2.0";
+export const ADDON_VERSION = "3.2.1";
 export const NS = "tailwail";
 export const ENTITY_ID = "tailwail:tall_wail";
 export const LURE_ID = "tailwail:lure";

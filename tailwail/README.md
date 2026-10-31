@@ -15,27 +15,27 @@ cheats needed to play.
 
 | | |
 |---|---|
-| Version | **3.2.0** |
+| Version | **3.2.1** |
 | Game | Bedrock **1.26.60** or newer (manifest `min_engine_version [1, 26, 60]`); runtime-tested on Bedrock Dedicated Server **1.26.61.1** |
 | Script modules | `@minecraft/server` **2.11.0**, `@minecraft/server-ui` **2.3.0** (both stable) |
-| Download | [`dist/Tailwail_3.2.0.mcaddon`](dist/) (+ separate `.mcpack`s and `SHA256SUMS.txt`) |
+| Download | [`dist/Tailwail_3.2.1.mcaddon`](dist/) (+ separate `.mcpack`s and `SHA256SUMS.txt`) |
 | Ids | creature `tailwail:tall_wail` · spawn egg "Tailwail Spawn Egg" · journal `tailwail:field_guide` |
 
 ![Key states and attacks: offline renders of the shipped model and clips through the real controllers (not in-game screenshots)](docs/images/pose_board.png)
 
 ## Install (and upgrading from 1.x / 2.x / 3.x)
 
-1. Open `Tailwail_3.2.0.mcaddon` on the device that runs Minecraft (it imports both packs).
-2. World settings → **Behavior Packs** → activate **TAILWAIL 3.2.0 (Behavior)**, and check
-   that **TAILWAIL 3.2.0 (Resources)** is active under Resource Packs. Leave every
+1. Open `Tailwail_3.2.1.mcaddon` on the device that runs Minecraft (it imports both packs).
+2. World settings → **Behavior Packs** → activate **TAILWAIL 3.2.1 (Behavior)**, and check
+   that **TAILWAIL 3.2.1 (Resources)** is active under Resource Packs. Leave every
    experiment off.
-3. When you join, the chat shows **"Resource pack 3.2.0 active: animations and sounds
+3. When you join, the chat shows **"Resource pack 3.2.1 active: animations and sounds
    loaded."** If it shows
-   `TAILWAIL_RESOURCE_PACK_3.2.0_IS_NOT_ACTIVE-re-apply_TAILWAIL_Resources_to_this_world`
+   `TAILWAIL_RESOURCE_PACK_3.2.1_IS_NOT_ACTIVE-re-apply_TAILWAIL_Resources_to_this_world`
    instead, the world is still using an old copy of the resource pack: nothing will
    animate and the new sounds will be silent. Remove both TAILWAIL packs from the world,
    (on phones, also delete the old ones under Settings → Storage), re-import the
-   .mcaddon and apply both 3.2.0 packs again.
+   .mcaddon and apply both 3.2.1 packs again.
 4. Play in Survival. Go underground, or stay outside at night.
 
 **Want to see it right away?** Use the spawn egg somewhere dark. An egg Tailwail gets to
@@ -92,7 +92,9 @@ time, and it uses them.
   torches in a row, claw marks, and a chest. If it kills you, some of what you dropped ends
   up in that chest, laid out neatly.
 
-**Only one Tailwail exists in the world at a time**, whatever the number of players.
+**Only one Tailwail exists in the world at a time**, whatever the number of players: never
+two real ones, and never a hallucination of it while the real one is out (a hallucination
+on screen vanishes the moment the real one appears).
 
 Full rules: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md) (spoilers).
 

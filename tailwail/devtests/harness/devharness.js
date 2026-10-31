@@ -723,6 +723,17 @@ const SCENARIOS = {
     log("cap: with none out -> hallucination", echo2 ? "spawned" : "refused", "; a second one at the same time", echo3 ? "SPAWNED (wrong)" : "refused");
     await wait(50);
     log("cap: Tailwails left", count(), "echoes left", echoCount());
+    // a hallucination on screen when the real one appears: it vanishes first
+    const pre = spawnEcho(ov(), { x: 20.5, y: Y, z: 30.5 }, 0, "watch", 30, null);
+    const real = spawnTW(ms[0], { x: 30.5, y: Y, z: 5.5 });
+    await wait(2);
+    log("cap: hallucination showing, then a real spawn -> real", real ? "spawned" : "refused", "; hallucinations left", echoCount(),
+      ov().getEntities({ type: "tailwail:echo" }).length, "; bodies in the world", count() + ov().getEntities({ type: "tailwail:echo" }).length, "(pre-echo", pre ? "was up" : "never spawned", ")");
+    director.endAll("aborted");
+    // a spawn search in progress also keeps hallucinations away
+    director.pendingSpawn.add("test");
+    log("cap: during a spawn search -> hallucination", spawnEcho(ov(), { x: 20.5, y: Y, z: 30.5 }, 0, "watch", 2, null) ? "SPAWNED (wrong)" : "refused");
+    director.pendingSpawn.delete("test");
     ms.forEach((m) => m.remove());
   },
 

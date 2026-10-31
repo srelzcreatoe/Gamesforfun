@@ -13,7 +13,7 @@ import { SETUPS, fitsTerrain, pickSetup, setupsForStage } from "../core/setups.j
 import { makeRng } from "../util/rng.js";
 import { dist, hdist, yawTo } from "../util/vec.js";
 import { forgetPlayer } from "./audio.js";
-import { sweepEchoes, tickEchoes } from "./echo.js";
+import { removeAllEchoes, setRealGate, sweepEchoes, tickEchoes } from "./echo.js";
 import { Encounter, survivalLike } from "./encounter.js";
 import * as fx from "./fx.js";
 import { onStrugglePressed, releaseAll } from "./grab.js";
@@ -49,6 +49,8 @@ export class Director {
     this.forcedNext = new Map(); // player id -> setup forced by command
     this.returnAt = new Map(); // player id -> tick it comes back (it only pretended to leave)
     this.dummies = new Set(); // showcase entities driven by /tailwail:debug anim, never adopted
+    // only one Tailwail body is ever in the world: hallucinations wait while the real one is out
+    setRealGate(() => this.encounters.size + this.dummies.size + this.pendingSpawn.size > 0);
   }
 
   playerById(id) {
@@ -353,6 +355,7 @@ export class Director {
   spawnAt(player, site, setup, slot, manual, showcase, stage = 0) {
     if (!slot || this.encounters.size + this.dummies.size >= MAX_TAILWAILS) return null;
     const dim = player.dimension;
+    removeAllEchoes(); // never a hallucination and the real one at the same time
     this.creating = true;
     let tw;
     try {
@@ -391,6 +394,7 @@ export class Director {
     // found on reload is removed
     if (!reloaded && !this.freeSlot()) this.clearTheWorld("aborted");
     const slot = this.freeSlot();
+    if (slot) removeAllEchoes(); // this one stays: no hallucination beside it
     const near = tw.dimension.getPlayers({ location: tw.location, maxDistance: 64 }).filter((p) => survivalLike(p, true));
     near.sort((a, b) => dist(a.location, tw.location) - dist(b.location, tw.location));
     if (!slot) {
@@ -715,6 +719,7 @@ export class Director {
   /** A passive Tailwail for the animation showcase: no brain, no adoption.  It replaces any live one. */
   spawnShowcaseDummy(p, at) {
     this.clearTheWorld("aborted");
+    removeAllEchoes();
     this.creating = true;
     let tw;
     try {

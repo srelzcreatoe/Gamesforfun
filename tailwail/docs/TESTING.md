@@ -8,7 +8,7 @@ or player feedback that did not happen.
 Result on the shipped build: **14 check groups, 0 errors**.
 
 - All pack JSON files parse (strictly: no NaN, no duplicate keys).
-- Manifests: format 2, v3.2.0, unique UUIDs, BP⇄RP dependency, engine `[1,26,60]`,
+- Manifests: format 2, v3.2.1, unique UUIDs, BP⇄RP dependency, engine `[1,26,60]`,
   modules pinned to stable `@minecraft/server 2.11.0` / `@minecraft/server-ui 2.3.0`, no
   capabilities, no beta or preview modules.
 - Every import resolves; `node --check` passes on all 32 scripts; **all scripts
@@ -120,10 +120,10 @@ that spoiled them in run 1: the stalker's random first "cross" beat had teleport
 creature before those tests began). The content log showed no errors or warnings from the
 packs.
 
-| Scenario | Observed (3.2.0) |
+| Scenario | Observed (3.2.0; the cap and presence re-run on 3.2.1) |
 |---|---|
 | boot | `[Tailwail] v3.2.0 ready`; `playAnimation` of the scream, a rake and the flinch: ok; `tailwail:float_on` held it 4 blocks up, `float_off` dropped it; `camera … fov_clear / fov_set` parse |
-| **cap (one Tailwail)** | three spawn requests at once: **one spawned, two refused**, 1 Tailwail in the world. A spawn egg while one was out: **the old one ended, the new one adopted**, still 1. A hallucination while a real one was out: **refused**; with none out: one spawned, a second at the same time refused |
+| **cap (one Tailwail)** | three spawn requests at once: **one spawned, two refused**, 1 Tailwail in the world. A spawn egg while one was out: **the old one ended, the new one adopted**, still 1. A hallucination while a real one was out: **refused**; with none out: one spawned, a second at the same time refused. 3.2.1: **a hallucination on screen, then a real spawn: the hallucination was removed first, 1 body in the world**; during a spawn search: hallucination refused |
 | stand-off (observation) | at the edge of the view: idle, approach, a bluff charge (run 1); idle then approach (run 2, twice), then it decided or timed out. Turned its back: **engage after 17 ticks (0.85 s)**, every time. Stared at: engaged after 4.3-6.2 s (its decision or the stand-off's limit: at stage 2 the stand-off is short; the stare limit itself is unit-tested) |
 | shot at it | stand-in arrow through the real aim test (BDS has no player to own a real one): **a wide miss ignored; a shot aimed at it provoked it at once: one roar, hunting 24 ticks (1.2 s) later** (run 2, twice). A real arrow with no player owner through the real spawn event: ignored |
 | commit | scream: **all 3 torches** became burnt-out sticks; relight restored the torch |
@@ -146,12 +146,12 @@ packs.
 | spawn site | dark roofed cave: site 29 blocks away in 60 ms; "behind you" site 7 blocks behind in 41 ms |
 | perf | **one encounter (the cap) at 10 decisions/s: decision tick avg 1.10 ms, p95 2 ms, max 6 ms**, 4.6 raycasts per tick. BDS on a dev container CPU, **not** a client or mobile measurement |
 
-## 5. Mojang Creator Tools 0.20.0 (`mct validate all --if dist/Tailwail_3.2.0.mcaddon`)
+## 5. Mojang Creator Tools 0.20.0 (`mct validate all --if dist/Tailwail_3.2.1.mcaddon`)
 
 0 errors. Two warnings remain, both false positives: the recipe uses vanilla `minecraft:book`
 and `minecraft:bone`, which are "not found in this pack". The remaining recommendations
 are only "newer format_version available" notes. Log:
-[test_logs/mct_validate_v3.csv](test_logs/mct_validate_v3.csv) (re-run on 3.2.0).
+[test_logs/mct_validate_v3.csv](test_logs/mct_validate_v3.csv) (re-run on 3.2.1).
 
 ## 6. In-game (client) verification: **not done**
 
@@ -159,8 +159,8 @@ No game client was available, so nothing has been seen or heard in game. Checkli
 the first session (fresh Survival world, experiments off, both packs on,
 `/tailwail:debug log on`):
 
-1. On join the chat must say **"Resource pack 3.2.0 active"**. If it shows the raw
-   `TAILWAIL_RESOURCE_PACK_3.2.0_IS_NOT_ACTIVE…` key, re-apply the resource pack first.
+1. On join the chat must say **"Resource pack 3.2.1 active"**. If it shows the raw
+   `TAILWAIL_RESOURCE_PACK_3.2.1_IS_NOT_ACTIVE…` key, re-apply the resource pack first.
 2. `/tailwail:debug anim`: every state and one-shot plays in turn on a harmless copy. Check
    that nothing stands still, feet on the floor, the gallop reads as a heavy charge, the
    squeeze lies flat, and the eyes are empty black sockets.

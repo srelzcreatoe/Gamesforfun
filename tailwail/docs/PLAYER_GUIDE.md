@@ -193,9 +193,11 @@ These stay in your world. You can break any of them (claw and tally marks drop n
 
 ## Only one
 
-Only one Tailwail exists in the world at a time, however many players there are. A spawn
-egg (or `/summon`) replaces the one that is out, and the hallucinations never show a second
-one while the real one is about.
+Only one Tailwail body exists in the world at a time, however many players there are. A
+spawn egg (or `/summon`) replaces the one that is out. Its hallucinations (the glimpse, the
+peek, the runner, the face at the window, the one behind you, the bed visit) never appear
+while the real one is out anywhere, or about to appear, and a hallucination still on screen
+vanishes the instant the real one appears. Only one hallucination is ever shown at once.
 
 ## Torches
 

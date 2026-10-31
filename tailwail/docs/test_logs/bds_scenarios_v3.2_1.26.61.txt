@@ -1087,3 +1087,58 @@
 03:38:51 [TWDEV] escape outcome escaped ended false damage [] locked=false fog=0 music=null lastFov=cmd camera @s fov_clear 1.20 in_out_sine
 03:38:51 [Tailwail] encounter 12 end outcome=aborted after 35.2s
 03:38:51 [TWDEV] === done escape
+
+######## run 3 (3.2.1: cap and presence, after the hallucination rule)
+03:42:09 [TWDEV] harness loaded
+03:42:10 [Tailwail] v3.2.0 ready
+03:42:17 [TWDEV] === scenario cap
+03:42:17 [Tailwail] #1 - -> stalk (spawn)
+03:42:17 [Tailwail] #1 beat watch (1/2)
+03:42:17 [Tailwail] encounter 1 start setup=stalker slot=a target=Mock
+03:42:17 [TWDEV] cap: three spawn requests -> spawned,refused,refused ; Tailwails in the world 1
+03:42:17 [Tailwail] encounter 1 end outcome=aborted after 0.3s
+03:42:17 [Tailwail] #2 - -> stalk (spawn)
+03:42:17 [Tailwail] #2 beat watch (1/2)
+03:42:17 [Tailwail] #2 stalk -> leave (reloaded)
+03:42:17 [Tailwail] encounter 2 start setup=stalker slot=a target=-
+03:42:18 [TWDEV] cap: egg while one exists -> old ended true ; new adopted true ; Tailwails in the world 1
+03:42:18 [TWDEV] cap: hallucination while a real one exists -> refused ; echoes 0
+03:42:18 [Tailwail] encounter 2 end outcome=aborted after 1.0s
+03:42:18 [TWDEV] cap: with none out -> hallucination spawned ; a second one at the same time refused
+03:42:21 [TWDEV] cap: Tailwails left 0 echoes left 0
+03:42:21 [Tailwail] #3 - -> stalk (spawn)
+03:42:21 [Tailwail] #3 beat cross
+03:42:21 [Tailwail] encounter 3 start setup=stalker slot=a target=Mock
+03:42:21 [TWDEV] (spawnTW: the opening beat had moved it; put back at 30.5,-60,5.5)
+03:42:21 [TWDEV] cap: hallucination showing, then a real spawn -> real spawned ; hallucinations left 0 0 ; bodies in the world 1 (pre-echo was up )
+03:42:21 [Tailwail] encounter 3 end outcome=aborted after 0.1s
+03:42:21 [TWDEV] cap: during a spawn search -> hallucination refused
+03:42:21 [TWDEV] === done cap
+03:42:25 [TWDEV] === scenario presence
+03:42:25 [TWDEV] presence env {"torch":true,"torches":true,"door":true} torches 4 behind 4
+03:42:25 [TWDEV] presence knock ran false sounds  echoes 0
+03:42:25 [TWDEV] presence breath ran true sounds tailwail.breath_behind echoes 0
+03:42:26 [TWDEV] presence whisper ran true sounds tailwail.whisper echoes 0
+03:42:26 [TWDEV] presence snuff ran true sounds  echoes 0
+03:42:26 [TWDEV] presence door ran true sounds  echoes 0
+03:42:26 [TWDEV] presence glimpse ran true sounds  echoes 1
+03:42:27 [TWDEV] presence glimpse: seen then looked away; echo still exists false
+03:42:28 [TWDEV] presence peek ran true sounds  echoes 1
+03:42:28 [TWDEV] presence mimic ran true sounds  echoes 1
+03:42:30 [TWDEV] presence mimic replay dig.deepslate
+03:42:31 [TWDEV] presence footsteps ran true sounds  echoes 1
+03:42:34 [TWDEV] presence footsteps heard 4 after walking 6 blocks
+03:42:34 [TWDEV] presence behind ran true sounds tailwail.breath_behind echoes 1
+03:42:34 [TWDEV] presence behind: turned; echoes 1 sounds tailwail.breath_behind,step.stone,step.stone,step.stone,step.stone
+03:42:35 [TWDEV] presence lights_out ran true sounds  echoes 1
+03:42:41 [TWDEV] presence scrape ran false sounds  echoes 1
+03:42:41 [TWDEV] presence run_steps ran true sounds  echoes 1
+03:42:44 [TWDEV] presence run_steps: heavy steps heard 9
+03:42:44 [TWDEV] presence distant_scream ran true sounds tailwail.scream_far echoes 0
+03:42:44 [TWDEV] presence runner ran true sounds  echoes 1
+03:42:46 [TWDEV] presence runner moved 7.8 blocks in 1 s
+03:42:49 [TWDEV] presence door_bang ran true sounds  echoes 1
+03:42:53 [TWDEV] presence door_bang: bangs heard 4
+03:42:53 [TWDEV] presence window ran true sounds  echoes 1
+03:42:53 [TWDEV] presence torches left 0
+03:42:53 [TWDEV] === done presence

@@ -8,13 +8,32 @@ import { dlog } from "./log.js";
 
 /** @type {Map<string, {e: import("@minecraft/server").Entity, until: number, onTick?: Function}>} */
 const live = new Map();
+const DIM_IDS = ["minecraft:overworld", "minecraft:nether", "minecraft:the_end"];
+let realGate = () => false; // set by the director: is a real Tailwail out, or about to be?
+
+/** The director tells the echoes when a real Tailwail is out or being spawned. */
+export function setRealGate(fn) {
+  realGate = fn;
+}
+
+/** Is any real Tailwail body in the world (any dimension)? */
+function realOneExists() {
+  for (const id of DIM_IDS) {
+    try {
+      if (world.getDimension(id).getEntities({ type: ENTITY_ID }).length > 0) return true;
+    } catch {
+      /* dimension unavailable */
+    }
+  }
+  return false;
+}
 
 export function spawnEcho(dim, pos, yaw, pose, lifeSeconds, onTick) {
-  // only one Tailwail may be seen at a time: no hallucination while another one, or the real
-  // one, is in the world
+  // only ONE Tailwail may ever be seen: no hallucination while another hallucination, or the
+  // real one (anywhere, or about to spawn), exists
   if (live.size > 0) return null;
   try {
-    if (dim.getEntities({ type: ENTITY_ID }).length > 0) return null;
+    if (realGate() || realOneExists()) return null;
   } catch {
     return null;
   }
@@ -73,4 +92,16 @@ export function sweepEchoes() {
 
 export function echoCount() {
   return live.size;
+}
+
+/** A real Tailwail is appearing: every hallucination vanishes first, so there is only ever one. */
+export function removeAllEchoes() {
+  for (const rec of [...live.values()]) removeEcho(rec.e);
+  for (const id of DIM_IDS) {
+    try {
+      for (const e of world.getDimension(id).getEntities({ type: ECHO_ID })) e.remove();
+    } catch {
+      /* dimension unavailable */
+    }
+  }
 }

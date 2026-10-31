@@ -266,7 +266,7 @@ def patch_render_controllers():
     write(p, d)
 
 
-VERSION = (3, 2, 0)
+VERSION = (3, 2, 1)
 VS = "%d.%d.%d" % VERSION
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_client_v3 import RP_CHECK  # noqa: E402

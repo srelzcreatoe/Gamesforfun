@@ -226,8 +226,10 @@ on where you are: caves (`stalker`, `corner_peek`, `tunnel_crawler`, `ceiling`,
 - **Only one Tailwail exists in the world at a time** (3.2; no setting). The director's slot
   check counts live encounters and showcase copies; a spawn egg, `/summon`, `debug spawn` or
   `debug anim` ends the one that is out first; an extra one found on world load is removed;
-  hallucinations (echoes) are refused while a real one is loaded, and only one echo exists
-  at a time.
+  hallucinations (echoes) are refused while a real one exists in any dimension, is being
+  searched a spawn for, or a showcase copy is out (`echo.setRealGate`), every hallucination
+  is removed the moment a real one spawns or is adopted (`removeAllEchoes`), and only one
+  echo exists at a time. So the world never holds two Tailwail bodies.
 - A group within 24 blocks shares one encounter, targeting the player in the most
   darkness.
 - Only the target's behaviour raises stand-off agitation. A bystander's hit can retarget

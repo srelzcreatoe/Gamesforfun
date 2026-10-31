@@ -1,6 +1,9 @@
 # Project status
 
-Current version: **3.2.0**.
+Current version: **3.2.1** (after "one Tailwail should exist, just 1, not 2": besides the
+cap on real ones, a hallucination can no longer be on screen together with the real one;
+it is removed the moment the real one appears, and none start while one is out or about
+to spawn).
 
 **v3.2.0** (after "add the claw marks, the tally marks, moving my things and its nest, but
 only one can be present in the world at a time", the "one" being the creature):
@@ -55,7 +58,7 @@ through tunnels", "get rid of the mash feature but save it"):
 
 ## Next actions (need a game client)
 
-1. First thing in a client: join and read the chat line. It must say "Resource pack 3.2.0
+1. First thing in a client: join and read the chat line. It must say "Resource pack 3.2.1
    active". Then run `/tailwail:debug anim` and watch every clip (including the squeeze).
 2. Play through [TESTING.md §6](TESTING.md). Above all, watch the gallop, the stand-off's
    tests, the attacks and the squeeze on a real screen, shoot a real arrow at it, look at
