@@ -2,7 +2,7 @@
 // (tailwail:echo, no AI, no collision, cannot be hurt) that exists only for a moment:
 // at the edge of your vision, at the foot of your bed, right behind you.
 import { system, world } from "@minecraft/server";
-import { ECHO_ID } from "../config.js";
+import { ECHO_ID, ENTITY_ID } from "../config.js";
 import { ECHO_POSE } from "../core/ids.js";
 import { dlog } from "./log.js";
 
@@ -10,6 +10,14 @@ import { dlog } from "./log.js";
 const live = new Map();
 
 export function spawnEcho(dim, pos, yaw, pose, lifeSeconds, onTick) {
+  // only one Tailwail may be seen at a time: no hallucination while another one, or the real
+  // one, is in the world
+  if (live.size > 0) return null;
+  try {
+    if (dim.getEntities({ type: ENTITY_ID }).length > 0) return null;
+  } catch {
+    return null;
+  }
   let e;
   try {
     e = dim.spawnEntity(ECHO_ID, { x: pos.x, y: pos.y, z: pos.z }, { initialRotation: yaw });

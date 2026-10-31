@@ -2,7 +2,7 @@
 // Every gameplay number lives here so balance changes never require touching logic.
 // Times are seconds unless a name ends in Ticks.  Distances are blocks.
 
-export const ADDON_VERSION = "3.1.0";
+export const ADDON_VERSION = "3.2.0";
 export const NS = "tailwail";
 export const ENTITY_ID = "tailwail:tall_wail";
 export const LURE_ID = "tailwail:lure";
@@ -88,13 +88,14 @@ export const WORLD_DEFAULTS = {
   grab: false,
   jumpscares: true, // "behind you", bed visit
   torchSnuff: true, // it puts out torches (they can be relit)
+  signs: true, // 3.2: it leaves signs: claw marks, tallies by your bed, your things moved, its nest
   caveEncounters: true,
   surfaceEncounters: true, // night encounters outside, in the dark
   openDoors: true,
   breakBlocks: 2, // 0 never, 1 smashes doors / trapdoors / gates, 2 also glass
   climbing: true, // climbs walls to reach you
   ambushes: true, // ceiling and corner ambushes in caves
-  maxConcurrent: 2,
+  maxConcurrent: 1, // only one Tailwail in the world at a time (fixed: no setting)
   debugLog: false,
 };
 
@@ -122,7 +123,7 @@ export const WORLD_LIMITS = {
   healthMultiplier: [0.5, 2.5],
   fleeAt: [0, 0.6],
   breakBlocks: [0, 2],
-  maxConcurrent: [1, 3],
+  maxConcurrent: [1, 1],
 };
 
 export const PLAYER_DEFAULTS = {
@@ -183,6 +184,26 @@ export const STALK = {
 
 // The stand-off: seconds, not minutes.  It creeps at you even while watched now.
 // The stand-off is an observation: it stands idle, approaches slowly, or tests how you react.
+// 3.2: what it leaves behind (mc/signs.js, core/signs_rules.js)
+export const SIGNS = {
+  clawEvery: 7, // blocks it travels underground between chances to gouge the rock
+  clawChance: 0.55,
+  clawPerEncounter: 10,
+  clawMax: 64, // the world keeps its newest marks; older ones are scrubbed as new ones appear
+  awayMin: 12, // it only touches your base while you are this far from your bed...
+  awayMax: 90, // ...and close enough for the base to be loaded, and not looking at the spot
+  baseRadius: 7, // blocks around your bed it searches
+  tallyGap: 30, // seconds between strokes when it owes several
+  moveEvery: [900, 1800], // eligible seconds between disturbances at your base
+  nestRange: 160, // it builds a new nest when the last one is farther than this from where it hunted
+  nestDistance: [16, 40], // from where the encounter ended
+  nestTries: 48,
+  nestClaws: 6,
+  lootStacks: 3, // stacks of what you drop when it kills you that it carries to its nest
+  lootRadius: 6,
+  discover: 7, // close enough to have seen a sign (journal pages)
+};
+
 export const STANDOFF = {
   durationMin: 6,
   durationMax: 13,

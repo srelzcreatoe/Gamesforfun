@@ -5,6 +5,7 @@ import { ActionFormData, ModalFormData } from "@minecraft/server-ui";
 import { ADDON_VERSION, PRESETS } from "../config.js";
 import { JOURNAL } from "../core/journal.js";
 import { setDebug } from "./log.js";
+import { forgetSigns } from "./signs.js";
 import { getPrefs, getSchedule, getSettings, presetSettings, resetMemory, saveSettings, setPrefs } from "./store.js";
 
 export function isOperator(p) {
@@ -93,6 +94,7 @@ async function showPrefs(player) {
   setPrefs(player, { ...p, volume: Number(vol) / 100, camera: Number(cam), music: !!mus, fog: !!fog, captions: !!cap });
   if (erase) {
     resetMemory(player);
+    forgetSigns(player);
     player.sendMessage("§7[Tailwail] It has forgotten you. For now.");
   }
   player.sendMessage("§7[Tailwail] Presentation saved.");
@@ -110,6 +112,7 @@ async function showWorldSettings(player) {
     .dropdown("Haunting between encounters", ["Off", "Rare", "Normal", "Constant"], { defaultValueIndex: s.presence })
     .toggle("Jumpscares (behind you, bed visits)", { defaultValue: s.jumpscares })
     .toggle("It puts out torches (they can be relit)", { defaultValue: s.torchSnuff })
+    .toggle("It leaves signs: claw marks, tallies by your bed, your things moved, its nest", { defaultValue: s.signs })
     .toggle("Cave encounters", { defaultValue: s.caveEncounters })
     .toggle("Night encounters outside", { defaultValue: s.surfaceEncounters })
     .toggle("Can open wooden doors", { defaultValue: s.openDoors })
@@ -118,7 +121,6 @@ async function showWorldSettings(player) {
     .toggle("Ceiling and corner ambushes", { defaultValue: s.ambushes })
     .slider("Rake damage (half-hearts)", 1, 20, { defaultValue: s.swipeDamage, valueStep: 1 })
     .slider("Seconds out of sight before it loses you", 4, 16, { defaultValue: s.lostSeconds, valueStep: 1 })
-    .slider("Max Tailwails in the world at once", 1, 3, { defaultValue: s.maxConcurrent, valueStep: 1 })
     .toggle("Debug logging to content log", { defaultValue: s.debugLog })
     .submitButton("Apply")
     .show(player);
@@ -133,15 +135,15 @@ async function showWorldSettings(player) {
     presence: Number(v[3]),
     jumpscares: !!v[4],
     torchSnuff: !!v[5],
-    caveEncounters: !!v[6],
-    surfaceEncounters: !!v[7],
-    openDoors: !!v[8],
-    breakBlocks: Number(v[9]),
-    climbing: !!v[10],
-    ambushes: !!v[11],
-    swipeDamage: Number(v[12]),
-    lostSeconds: Number(v[13]),
-    maxConcurrent: Number(v[14]),
+    signs: !!v[6],
+    caveEncounters: !!v[7],
+    surfaceEncounters: !!v[8],
+    openDoors: !!v[9],
+    breakBlocks: Number(v[10]),
+    climbing: !!v[11],
+    ambushes: !!v[12],
+    swipeDamage: Number(v[13]),
+    lostSeconds: Number(v[14]),
     debugLog: !!v[15],
   };
   if (presetName !== "custom" && presetName !== s.preset) next = presetSettings(next, presetName);

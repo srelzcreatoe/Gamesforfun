@@ -8,7 +8,7 @@ or player feedback that did not happen.
 Result on the shipped build: **14 check groups, 0 errors**.
 
 - All pack JSON files parse (strictly: no NaN, no duplicate keys).
-- Manifests: format 2, v3.1.0, unique UUIDs, BP⇄RP dependency, engine `[1,26,60]`,
+- Manifests: format 2, v3.2.0, unique UUIDs, BP⇄RP dependency, engine `[1,26,60]`,
   modules pinned to stable `@minecraft/server 2.11.0` / `@minecraft/server-ui 2.3.0`, no
   capabilities, no beta or preview modules.
 - Every import resolves; `node --check` passes on all 32 scripts; **all scripts
@@ -24,9 +24,11 @@ Result on the shipped build: **14 check groups, 0 errors**.
     is defined;
   - music is `category: music` and streamed;
   - **all 33 vanilla sound ids** the scripts use exist in the 1.26.60 vanilla pack.
-- Block, fog and particle: geometry, terrain texture and loot tables resolve; the custom
-  component is registered by script; the block states match `torches.js`; every fog and
-  particle id used by script exists.
+- Blocks (the burnt-out torch, claw marks, tally marks), fog and particle: every block's
+  geometry, terrain textures, loot table, display-name lang entry and sound entry resolve;
+  every permutation condition names a real state value; the custom component is registered
+  by script; the torch states match `torches.js`; every fog and particle id used by script
+  exists; every block id and state the scripts use is defined.
 - Echo: all 11 hallucination poses map to clips.
 - Items, icons and lang keys present, including the resource-pack check key.
 - No experiments, beta modules or holiday features are referenced.
@@ -67,7 +69,7 @@ animations restart on entry, weighted `animate` entries evaluated every frame. R
 
 ## 3. Unit tests: `node --test tests/*.test.mjs`
 
-Result: **51/51 pass** (Node 22).
+Result: **59/59 pass** (Node 22).
 
 - **Brain (30 tests)**: the hunter opening; "quick to action" (20 seeds of a stalker opening
   reach the hunt within the caps); **the observation** (40 seeds: idle, approach and all
@@ -85,6 +87,14 @@ Result: **51/51 pass** (Node 22).
   and corner ambushes; the low-ceiling roar; death; target loss; a 25-seed fuzz over every
   setup. The parked grab's code paths keep their tests (struggle variety, finishers,
   release paths) with the grab enabled explicitly.
+- **Signs and the cap (8 tests, 3.2):** the cap is fixed at one; claw marks only
+  underground, spaced by travel and capped per encounter; the world keeps the newest 64
+  and scrubs the oldest; one tally stroke per escape in groups of five; disturbances only
+  from what exists, never the same twice running when there is a choice; chest swaps stay
+  in range; carried items laid out in neat slots (centred middle row, then the top row);
+  the nest layout over 25 random cave floors (one chest, burnt torches in a straight row,
+  bones, a skull, carpets, webs, claw marks facing real walls, never two things on a cell,
+  never on a closed cell); the four new journal pages.
 - **Rules (11 tests):** agitation, gestures, imitation, hit reach for every attack, attack
   choice by range / cooldown / headroom / setting, grab reach, struggle spec per preset,
   finishers, audio limits.
@@ -142,8 +152,8 @@ No game client was available, so nothing has been seen or heard in game. Checkli
 the first session (fresh Survival world, experiments off, both packs on,
 `/tailwail:debug log on`):
 
-1. On join the chat must say **"Resource pack 3.1.0 active"**. If it shows the raw
-   `TAILWAIL_RESOURCE_PACK_3.1.0_IS_NOT_ACTIVE…` key, re-apply the resource pack first.
+1. On join the chat must say **"Resource pack 3.2.0 active"**. If it shows the raw
+   `TAILWAIL_RESOURCE_PACK_3.2.0_IS_NOT_ACTIVE…` key, re-apply the resource pack first.
 2. `/tailwail:debug anim`: every state and one-shot plays in turn on a harmless copy. Check
    that nothing stands still, feet on the floor, the gallop reads as a heavy charge, the
    squeeze lies flat, and the eyes are empty black sockets.
@@ -162,6 +172,11 @@ the first session (fresh Survival world, experiments off, both packs on,
 9. Escape: break line of sight, seal the gap behind you, crouch in the dark; it searches,
    howls, maybe returns.
 10. Presence: `/tailwail:debug presence <event>` for each one.
+10a. Signs: `/tailwail:debug signs claws` next to a wall (the marks must lie flat on the
+    wall, on the right face); sleep in a bed, walk 20+ blocks away, then
+    `/tailwail:debug signs tally` and `move_torch` / `move_chest` / `move_barrel` /
+    `move_bed`, and go back and look; `/tailwail:debug signs nest` in a big dark cave and
+    find it. Spawn a second egg while one is out: only one must remain.
 11. Cleanup: die mid-hunt, disconnect mid-hunt then rejoin: controls, FOV, fog and music
     must be normal; `/tailwail:debug restore`.
 12. Listen to every sound: `/playsound tailwail.<event> @s`.

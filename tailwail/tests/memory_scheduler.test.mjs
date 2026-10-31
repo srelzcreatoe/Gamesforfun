@@ -175,7 +175,9 @@ test("journal: each page unlocks once, from its flag", () => {
   assert.equal(unlock(mask, "standoff").added, null);
   assert.equal(unlock(mask, "not-a-flag").added, null);
   assert.equal(JOURNAL.length <= 30, true, "fits the bitmask");
-  assert.equal(journalBit("killed"), JOURNAL.length - 1);
+  // pages are only ever appended, so saved journals keep their bits: 3.2's four come after "killed"
+  assert.equal(journalBit("killed"), 16);
+  assert.equal(journalBit("nest"), JOURNAL.length - 1);
 });
 
 test("scheduler: eligibility and encounter blockers report a reason", () => {

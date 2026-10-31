@@ -69,6 +69,7 @@ Every v3 clip is listed in [ANIMATION_AUDIO.md](ANIMATION_AUDIO.md); all have ne
 | model and texture copies | `tools/build_assets.py` | geometry bounds widened; texture: the two pupil pixels painted out (checked: no other pixel differs) |
 | 95 Ogg Vorbis sound files + 2 music loops, `sound_definitions.json` | `tools/gen_audio_v2.py` | synthesized from oscillators/noise with fixed seeds, loudness-normalised; no samples |
 | burnt-out torch block (behavior + geometry + 16 x 16 texture + loot), dread fog, snuff-smoke particle, lang | `tools/gen_assets_v2.py` | |
+| 3.2 wall decals: `tailwail:claw_marks` (3 gouge patterns) and `tailwail:tally` (1-5 strokes, the fifth crossing the four), a shared flat-plane geometry (`geometry.tailwail_decal`), eight 16 x 16 textures (dark core, pale dust edge, transparent elsewhere), an empty loot table | `tools/gen_assets_v2.py` | drawn procedurally; no samples |
 | `pack_icon.png`, spawn egg and journal icons | `tools/gen_icons.py` | |
 | `docs/images/pose_board.png` | `tools/pose_board.py` | offline render through the simulated controllers |
 

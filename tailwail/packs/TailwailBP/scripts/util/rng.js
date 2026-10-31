@@ -14,6 +14,15 @@ export function makeRng(seed = (Date.now() ^ 0x9e3779b9) >>> 0) {
     int: (lo, hi) => lo + Math.floor(next() * (hi - lo + 1)),
     chance: (p) => next() < p,
     pick: (arr) => arr[Math.floor(next() * arr.length)],
+    /** A shuffled copy (Fisher-Yates). */
+    shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(next() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    },
     weighted(items) {
       // items: [[value, weight], ...]
       const total = items.reduce((a, [, w]) => a + Math.max(0, w), 0);

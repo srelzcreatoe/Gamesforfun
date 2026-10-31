@@ -15,27 +15,27 @@ cheats needed to play.
 
 | | |
 |---|---|
-| Version | **3.1.0** |
+| Version | **3.2.0** |
 | Game | Bedrock **1.26.60** or newer (manifest `min_engine_version [1, 26, 60]`); runtime-tested on Bedrock Dedicated Server **1.26.61.1** |
 | Script modules | `@minecraft/server` **2.11.0**, `@minecraft/server-ui` **2.3.0** (both stable) |
-| Download | [`dist/Tailwail_3.1.0.mcaddon`](dist/) (+ separate `.mcpack`s and `SHA256SUMS.txt`) |
+| Download | [`dist/Tailwail_3.2.0.mcaddon`](dist/) (+ separate `.mcpack`s and `SHA256SUMS.txt`) |
 | Ids | creature `tailwail:tall_wail` · spawn egg "Tailwail Spawn Egg" · journal `tailwail:field_guide` |
 
 ![Key states and attacks: offline renders of the shipped model and clips through the real controllers (not in-game screenshots)](docs/images/pose_board.png)
 
-## Install (and upgrading from 1.x / 2.x / 3.0)
+## Install (and upgrading from 1.x / 2.x / 3.x)
 
-1. Open `Tailwail_3.1.0.mcaddon` on the device that runs Minecraft (it imports both packs).
-2. World settings → **Behavior Packs** → activate **TAILWAIL 3.1.0 (Behavior)**, and check
-   that **TAILWAIL 3.1.0 (Resources)** is active under Resource Packs. Leave every
+1. Open `Tailwail_3.2.0.mcaddon` on the device that runs Minecraft (it imports both packs).
+2. World settings → **Behavior Packs** → activate **TAILWAIL 3.2.0 (Behavior)**, and check
+   that **TAILWAIL 3.2.0 (Resources)** is active under Resource Packs. Leave every
    experiment off.
-3. When you join, the chat shows **"Resource pack 3.1.0 active: animations and sounds
+3. When you join, the chat shows **"Resource pack 3.2.0 active: animations and sounds
    loaded."** If it shows
-   `TAILWAIL_RESOURCE_PACK_3.1.0_IS_NOT_ACTIVE-re-apply_TAILWAIL_Resources_to_this_world`
+   `TAILWAIL_RESOURCE_PACK_3.2.0_IS_NOT_ACTIVE-re-apply_TAILWAIL_Resources_to_this_world`
    instead, the world is still using an old copy of the resource pack: nothing will
    animate and the new sounds will be silent. Remove both TAILWAIL packs from the world,
    (on phones, also delete the old ones under Settings → Storage), re-import the
-   .mcaddon and apply both 3.1.0 packs again.
+   .mcaddon and apply both 3.2.0 packs again.
 4. Play in Survival. Go underground, or stay outside at night.
 
 **Want to see it right away?** Use the spawn egg somewhere dark. An egg Tailwail gets to
@@ -83,6 +83,17 @@ through four stages the more you play.
 steel, a fire charge or another torch. **It remembers you**: your habits, what you did last
 time, and it uses them.
 
+**What it leaves behind.**
+- **Claw marks** gouged into cave walls where it has been, and where you heard it scraping.
+- **Tally marks** by your bed: one stroke for every time you got away from it.
+- **Your things, moved** while you were out: a torch put up somewhere else, a chest
+  rearranged, a barrel left open, your bed turned round. Nothing is taken.
+- **Its nest**, deep in the caves near where it hunted you: bones, matted hair, burnt-out
+  torches in a row, claw marks, and a chest. If it kills you, some of what you dropped ends
+  up in that chest, laid out neatly.
+
+**Only one Tailwail exists in the world at a time**, whatever the number of players.
+
 Full rules: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md) (spoilers).
 
 ## Settings
@@ -91,12 +102,12 @@ The journal's **Settings** page (or `/tailwail:settings`) has two sections.
 - **Per player:** volume, camera effects (off / reduced / full), music, fog, captions,
   forget-me.
 - **Operators:** difficulty (Calm / Standard / Nightmare / Custom), encounter frequency,
-  haunting level, jumpscares, torch snuffing, cave and night encounters, doors, what it
-  breaks through (nothing / doors / doors and glass), climbing, ambushes, rake damage, how
-  long until it loses you, and max creatures.
+  haunting level, jumpscares, torch snuffing, the signs it leaves, cave and night
+  encounters, doors, what it breaks through (nothing / doors / doors and glass), climbing,
+  ambushes, rake damage, and how long until it loses you.
 
 Full list: [docs/CONFIGURATION.md](docs/CONFIGURATION.md). Operator diagnostics:
-`/tailwail:debug status | anim [clip] | spawn [setup] | presence [event] | stage <0-3> | end | restore`.
+`/tailwail:debug status | anim [clip] | spawn [setup] | presence [event] | signs <what> | stage <0-3> | end | restore`.
 
 ## What has been verified (and what has not)
 
@@ -109,11 +120,12 @@ Full list: [docs/CONFIGURATION.md](docs/CONFIGURATION.md). Operator diagnostics:
   controllers at 60 fps: every act-to-act transition, random schedules, the failure mode
   where the pre-animation script does not run at all, grounding of every state and every
   one-shot, tunnel and 1-block-gap fit. 0 errors.
-- **Unit tests:** 51/51 (`node --test tests/*.test.mjs`).
+- **Unit tests:** 59/59 (`node --test tests/*.test.mjs`).
 - **Runtime on BDS 1.26.61.1** with a scripted stand-in player: see
   [docs/TESTING.md](docs/TESTING.md) (the observation stand-off, provocation, hunt speed,
-  attacks, the 1-block squeeze, ambushes, climbing, door smashing, night-surface
-  encounter, haunting events, cleanup, performance).
+  attacks, the 1-block squeeze, the one-creature cap, every sign it leaves, ambushes,
+  climbing, door smashing, night-surface encounter, haunting events, cleanup,
+  performance).
 - **Not verified:** nothing has been played on a real game client. Animations, sounds,
   fog, music and camera effects have only been checked offline (simulation, spectrograms,
   renders). See [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
@@ -161,5 +173,6 @@ python3 -I tools/package.py
 
 In order: copy the model and texture from the supplied archive (the texture with its two
 pale pupils painted out); bake every clip; write the
-client entity, controllers and script ids; synthesize every sound; write the block, fog,
-particle, lang and manifest files. `package.py` validates, then writes `dist/`.
+client entity, controllers and script ids; synthesize every sound; write the blocks (the
+burnt-out torch, claw marks, tally marks), fog, particle, lang and manifest files.
+`package.py` validates, then writes `dist/`.

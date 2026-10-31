@@ -1,6 +1,18 @@
 # Project status
 
-Current version: **3.1.0** (its changes are in the second table).
+Current version: **3.2.0**.
+
+**v3.2.0** (after "add the claw marks, the tally marks, moving my things and its nest, but
+only one can be present in the world at a time", the "one" being the creature):
+
+| Request | 3.2 answer |
+|---|---|
+| Claw marks showing where it has been | decal blocks gouged into cave walls as it moves underground (a few per encounter) and where you heard it scraping; the world keeps the newest 64 |
+| Tally marks near your base | one stroke per escape on a wall by your bed, in groups of five, carved while you are away and nobody is looking |
+| It moves your things | a torch moved within the same room, a chest rearranged, a barrel left open, your bed turned round; while you are away, out of sight, nothing taken |
+| Its nest | built in the dark near where a cave encounter ended: bones, skulls, matted hair, burnt-out torches in a row, cobwebs, claw marks, a chest; if it kills you, up to 3 stacks of what you dropped go into that chest, laid out neatly |
+| Only one Tailwail at a time | the cap is fixed at 1 (setting removed); eggs, `/summon` and debug spawns replace the one that is out; no hallucination alongside a real one |
+| (also) | a setting to turn the signs off, four journal pages, `/tailwail:debug signs` |
 
 **v3.0.0: the hunter.** Rebuilt after v2 feedback: "underwhelming", "the animations aren't
 working, he's very still", "after the grab he just did damage and scurried off... then
@@ -36,18 +48,18 @@ through tunnels", "get rid of the mash feature but save it"):
 | Client | 5 distance-driven gaits, 23 body states (all loop except death), 17 one-shots, 14 overlays; one body controller + hurt + echo. `client_sim.py`: 0 errors |
 | Encounter | stalk beats, observation stand-off, scream (or a roar when provoked), relentless hunt, 4 attacks at the Cave Dweller's rhythm, savor, search, return, flee, death, ambushes, climb, bash, reach-in then squeeze |
 | Haunting | 17 presence events plus the bed visit, 4 escalation stages, eligible-time pacing |
-| World | burnt-out torch block, hallucination entity, dread fog, snuff smoke |
+| World | burnt-out torch block, claw-mark and tally-mark blocks, the nest, hallucination entity, dread fog, snuff smoke |
 | Audio | 43 synthesized sound events (95 files, loudness-normalised) + 2 streamed music loops |
-| UX | Torn Journal (14 pages shown), settings (3 presets plus custom; breaking blocks, climbing, ambushes), operator diagnostics |
-| Verification | validator 14/14, unit tests 51/51, BDS scenarios, mct |
+| UX | Torn Journal (18 pages shown), settings (3 presets plus custom; breaking blocks, climbing, ambushes, signs), operator diagnostics |
+| Verification | validator 14/14, unit tests 59/59, BDS scenarios, mct |
 
 ## Next actions (need a game client)
 
-1. First thing in a client: join and read the chat line. It must say "Resource pack 3.1.0
+1. First thing in a client: join and read the chat line. It must say "Resource pack 3.2.0
    active". Then run `/tailwail:debug anim` and watch every clip (including the squeeze).
 2. Play through [TESTING.md §6](TESTING.md). Above all, watch the gallop, the stand-off's
-   tests, the attacks and the squeeze on a real screen, shoot a real arrow at it, and
-   listen to every sound.
+   tests, the attacks and the squeeze on a real screen, shoot a real arrow at it, look at
+   the claw and tally marks on real walls, find a nest, and listen to every sound.
 3. Tune damage, stand-off timing and loudness from that session.
 4. Profile client frame time with 1-2 creatures on a mid-range phone.
 5. Playtest with people who have not read the guide: did they escape at least once, did

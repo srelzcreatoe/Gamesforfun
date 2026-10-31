@@ -54,6 +54,11 @@ Player effects: `Player.camera.addShake / setFov / fade / stopShaking` ·
 parked grab; Sneak is only ever restored) · `Player.onScreenDisplay.setTitle / updateSubtitle /
 setActionBar` · `Player.sendMessage` with `rawtext` / `translate` (the resource-pack check) ·
 `world.afterEvents.playerButtonInput` (Jump and Sneak presses for the parked struggle) ·
+`Player.getSpawnPoint` (your base), `world.structureManager.createFromWorld / place (rotation
+Rotate180) / delete` (turning a bed round), `Container.swapItems / setItem / getItem`,
+`EntityItemComponent.itemStack`, `BlockPermutation.withState` (a barrel's `open_bit`) and
+custom blocks with `minecraft:replaceable` (3.2 signs; all stable in 2.11.0, type-checked
+and exercised on BDS) ·
 `world.afterEvents.entitySpawn` + `EntityProjectileComponent.owner` + `Entity.getVelocity`
 and `world.afterEvents.projectileHitBlock / projectileHitEntity` (3.1: shots at it provoke
 it; all stable in 2.11.0, type-checked) ·

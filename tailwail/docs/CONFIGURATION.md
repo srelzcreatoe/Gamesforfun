@@ -46,6 +46,7 @@ values (struggle presses, inescapable chance, throw / bite / smash damage), unus
 | Haunting between encounters | Normal | Off / Rare (×1.8 spacing) / Normal / Constant (×0.55 spacing) |
 | Jumpscares | on | "behind you", bed visits, the face at the window |
 | It puts out torches | on | snuffed torches can always be relit; breaking one returns the torch |
+| It leaves signs | on | claw marks in caves, tally marks by your bed, your things moved while you are away, its nest (and what it carries there when it kills you). Off: none of these are made; ones already made stay |
 | Cave encounters | on | underground (sky light ≤ 3) |
 | Night encounters outside | on | outside after dusk, in the dark |
 | Can open wooden doors | on | |
@@ -54,7 +55,6 @@ values (struggle presses, inescapable chance, throw / bite / smash damage), unus
 | Ceiling and corner ambushes | on | cave openings where it waits on the ceiling or balled up in a corner |
 | Rake damage | 6 HP | |
 | Seconds out of sight before it loses you | 8 | it also has to be 18+ blocks away |
-| Max Tailwails in the world | 2 | 1–3; nearby players share one encounter |
 | Debug logging | off | content log lines prefixed `[Tailwail]` |
 
 ## Presentation (each player)
@@ -66,7 +66,7 @@ values (struggle presses, inescapable chance, throw / bite / smash damage), unus
 | Music during encounters | on | stand-off drone, chase score |
 | Dread fog during encounters | on | |
 | Captions | off | action-bar captions for important sounds |
-| Forget me | — | erases its memory of you, your escalation stage and your journal |
+| Forget me | — | erases its memory of you, your escalation stage, your journal and its tally of your escapes |
 
 ## Commands
 
@@ -74,6 +74,7 @@ values (struggle presses, inescapable chance, throw / bite / smash damage), unus
 |---|---|---|
 | `/tailwail:journal` | anyone | opens the Torn Journal |
 | `/tailwail:settings` | anyone | settings (world section for operators) |
+| `/tailwail:debug signs <what>` | operators | 3.2 signs on demand: `claws` (marks beside you), `nest` (build one near you now; needs a dark, roomy cave floor 16-40 blocks away, out of sight), `tally` (a stroke on a wall by your bed, out of sight), `move` / `move_torch` / `move_barrel` / `move_chest` / `move_bed` (at your bed, out of sight) |
 | `/tailwail:debug status` | operators | active encounters (state, grabs, hits, posture), your stage, waits, last outcome, why nothing started; also prints the resource-pack check line |
 | `/tailwail:debug anim [clip]` | operators | **animation showcase**: a passive Tailwail appears in front of you and plays every body state and every one-shot (or just the one you name), captioned. If it stands still, the resource pack is not the 3.x one |
 | `/tailwail:debug spawn [setup]` | operators | start an encounter for you now (needs a dark spot nearby). Caves: `stalker`, `corner_peek`, `tunnel_crawler`, `ceiling`, `huddle`. Anywhere: `the_rehearsal`, `behind_you`, `the_hunter`. Surface: `treeline`, `runner` |
@@ -89,3 +90,5 @@ values (struggle presses, inescapable chance, throw / bite / smash damage), unus
 
 The spawn egg and `/summon tailwail:tall_wail` create a **showcase** encounter for the
 nearest player: a short opening that gets to the hunt quickly. It works in Creative too.
+**Only one Tailwail exists at a time**: a new one from an egg, `/summon`, `debug spawn` or
+`debug anim` replaces the one that is out (it is removed cleanly).

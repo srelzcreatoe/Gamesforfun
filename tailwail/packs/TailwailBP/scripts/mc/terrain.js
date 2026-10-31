@@ -14,7 +14,8 @@ const PASSABLE = new Set([
   "minecraft:small_dripleaf_block", "minecraft:seagrass", "minecraft:brown_mushroom", "minecraft:red_mushroom",
   "minecraft:crimson_roots", "minecraft:warped_roots", "minecraft:nether_sprouts", "minecraft:structure_void",
   "minecraft:leaf_litter", "minecraft:wildflowers", "minecraft:bush", "minecraft:firefly_bush", "minecraft:short_dry_grass",
-  "minecraft:tall_dry_grass", "minecraft:resin_clump",
+  "minecraft:tall_dry_grass", "minecraft:resin_clump", "minecraft:web",
+  "tailwail:claw_marks", "tailwail:tally", // its own wall decals take no space
 ]);
 const PASSABLE_RE = [/_button$/, /_pressure_plate$/, /_carpet$/, /_sign$/, /_banner$/, /_sapling$/, /_torch$/,
   /^minecraft:(dandelion|poppy|blue_orchid|allium|azure_bluet|.*_tulip|oxeye_daisy|cornflower|lily_of_the_valley|wither_rose|torchflower|pitcher_plant|sunflower|lilac|rose_bush|peony|open_eyeblossom|closed_eyeblossom)$/];

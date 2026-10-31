@@ -16,6 +16,7 @@ import { GrabController, grabFor } from "./grab.js";
 import { dlog, errorText, warn } from "./log.js";
 import { Mover } from "./mover.js";
 import { creatureEyes, creatureSees, isHiding, lightAt, losClear, playerView } from "./perception.js";
+import { ClawTrail } from "./signs.js";
 import { findCover, findCreepPoint, findObservationSpot, findRetreatSpot, findSearchPoints, findStandoffSpot, findStepPoint } from "./spots.js";
 import { getMemory, getSchedule, getSettings, saveMemory, saveSchedule } from "./store.js";
 import { isOpen, safeBlock } from "./terrain.js";
@@ -71,6 +72,7 @@ export class Encounter {
     this.floating = false;
     this.noise = null;
     this.aggro = null;
+    this.claws = new ClawTrail(this.rng); // 3.2: it gouges the rock as it moves through caves
     this.fovAt = null;
     this.stepDist = 0;
     this.lastStepPos = null;
@@ -199,6 +201,13 @@ export class Encounter {
     this.brain.update(snap, DT);
     if (this.ended || !this.tw.isValid) return; // the brain may have despawned it this tick
     this.footsteps();
+    if (this.settings.signs && (!this.floating || (this.climb && this.climb.active))) {
+      try {
+        this.claws.step(this.tw, this.dim);
+      } catch (e) {
+        dlog("claw marks", e);
+      }
+    }
     if (this.brain.done && !this.ended) this.end(this.brain.outcome || "observed", true);
   }
 
@@ -746,6 +755,12 @@ export class Encounter {
       if (p) fx.endMood(p);
     }
     this.mover.dispose();
+    let lastPos = null;
+    try {
+      if (this.tw && this.tw.isValid) lastPos = { ...this.tw.location };
+    } catch {
+      lastPos = null;
+    }
     if (removeEntity && this.tw && this.tw.isValid) {
       try {
         if (outcome === "killed") this.dim.spawnXp(this.tw.location, 80);
@@ -755,6 +770,7 @@ export class Encounter {
       }
     }
     this.director.unregister(this, outcome);
+    if (lastPos && this.director.afterEncounter) this.director.afterEncounter(this, outcome, lastPos);
     dlog(`encounter ${this.id} end outcome=${outcome} after ${this.t.toFixed(1)}s`);
   }
 

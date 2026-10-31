@@ -20,10 +20,12 @@ import { onStrugglePressed, releaseAll } from "./grab.js";
 import { dlog, errorText, setDebug, warn } from "./log.js";
 import { lightAt } from "./perception.js";
 import { Presence } from "./presence.js";
+import { Signs } from "./signs.js";
 import { isNightOutside, spawnSearch } from "./spots.js";
 import { forgetPrefs, getMemory, getPrefs, getSchedule, getSettings, saveSchedule, setPrefs } from "./store.js";
 
 const SLOTS = ["a", "b", "c"];
+const MAX_TAILWAILS = 1; // only one Tailwail may be present in the world at a time
 const DIMS = ["minecraft:overworld", "minecraft:nether", "minecraft:the_end"];
 // things a player can shoot or throw at it: an aggressive move during the stand-off
 const PROJECTILES = new Set(["minecraft:arrow", "minecraft:snowball", "minecraft:egg", "minecraft:ender_pearl",
@@ -35,6 +37,7 @@ export class Director {
     this.encounters = new Map(); // entity id -> Encounter
     this.rng = makeRng();
     this.presence = new Presence(this.rng);
+    this.signs = new Signs(this.rng); // 3.2: claw marks, tallies, your things moved, its nest
     this.lastCheck = new Map(); // player id -> tick of last encounter roll
     this.sinceHurt = new Map(); // player id -> tick of last damage by something else
     this.pendingSpawn = new Set();
@@ -53,9 +56,31 @@ export class Director {
     return undefined;
   }
 
+  /** A lure slot, or undefined when a Tailwail (or a showcase copy) is already in the world: only one at a time. */
   freeSlot() {
+    if (this.encounters.size + this.dummies.size >= MAX_TAILWAILS) return undefined;
     const used = new Set([...this.encounters.values()].map((e) => e.slot));
     return SLOTS.find((s) => !used.has(s));
+  }
+
+  /** Ends every live encounter (the creature leaves cleanly) and removes showcase copies. */
+  clearTheWorld(outcome = "aborted") {
+    for (const e of [...this.encounters.values()]) {
+      try {
+        e.end(outcome, true);
+      } catch {
+        this.encounters.delete(e.twId);
+      }
+    }
+    for (const id of [...this.dummies]) {
+      try {
+        const d = world.getEntity(id);
+        if (d && d.isValid) d.remove();
+      } catch {
+        /* gone */
+      }
+      this.dummies.delete(id);
+    }
   }
 
   // ------------------------------------------------------------------ lifecycle
@@ -173,6 +198,14 @@ export class Director {
     const snap = this.playerSnapshot(p);
     this.bedCheck(p, snap, settings);
     const s = ensureFirst(getSchedule(p), settings, this.rng);
+    // the signs it leaves work whether or not you are somewhere it can come for you right now
+    if (settings.enabled && !peaceful && snap.survivalLike) {
+      try {
+        this.signs.tickPlayer(p, s, settings, (flag) => this.unlockPage(p, s, flag));
+      } catch (e) {
+        warn("signs", errorText(e));
+      }
+    }
     const el = eligibility(snap, settings, { peaceful });
     const mine = this.encounterTargeting(p.id);
     if (!el.ok) {
@@ -211,6 +244,27 @@ export class Director {
       if (s.presWait <= 0 && settings.presence > 0 && !activeNear) this.firePresence(p, s, settings);
     }
     saveSchedule(p, s);
+  }
+
+  /** Opens a journal page (saved with the schedule by the caller) and says so a moment later. */
+  unlockPage(p, s, flag) {
+    const r = unlock(s.jr, flag);
+    if (!r.added) return;
+    s.jr = r.mask;
+    system.runTimeout(() => p.isValid && p.sendMessage(`§8[Torn journal] §7A new page: §f${r.added.title}`), 60);
+  }
+
+  /** An encounter ended: after a cave encounter it has a nest somewhere near. */
+  afterEncounter(enc, outcome, pos) {
+    const settings = getSettings();
+    if (!settings.signs || outcome === "aborted") return;
+    try {
+      const under = pos.y < 64 && enc.dim.getSkyLightLevel({ x: Math.floor(pos.x), y: Math.floor(pos.y) + 1, z: Math.floor(pos.z) }) <= 3;
+      if (!under) return;
+      this.signs.ensureNest(enc.dim, pos, enc.dim.getPlayers({ location: pos, maxDistance: 96 }));
+    } catch (e) {
+      dlog("nest", e);
+    }
   }
 
   firePresence(p, s, settings, forcedId) {
@@ -297,7 +351,7 @@ export class Director {
   }
 
   spawnAt(player, site, setup, slot, manual, showcase, stage = 0) {
-    if (!slot || (this.encounters.size >= getSettings().maxConcurrent && !manual)) return null;
+    if (!slot || this.encounters.size + this.dummies.size >= MAX_TAILWAILS) return null;
     const dim = player.dimension;
     this.creating = true;
     let tw;
@@ -333,11 +387,14 @@ export class Director {
   /** A Tailwail without a live controller (reload, spawn egg, /summon). */
   adopt(tw, reloaded) {
     if (!tw.isValid || this.encounters.has(tw.id) || this.dummies.has(tw.id)) return;
+    // only one in the world: a new one from an egg or /summon replaces the old one; an extra one
+    // found on reload is removed
+    if (!reloaded && !this.freeSlot()) this.clearTheWorld("aborted");
     const slot = this.freeSlot();
     const near = tw.dimension.getPlayers({ location: tw.location, maxDistance: 64 }).filter((p) => survivalLike(p, true));
     near.sort((a, b) => dist(a.location, tw.location) - dist(b.location, tw.location));
     if (!slot) {
-      for (const p of near.slice(0, 1)) p.sendMessage("§7[Tailwail] Too many at once; that one was removed.");
+      dlog("an extra Tailwail was removed: only one may be in the world");
       tw.remove();
       return;
     }
@@ -500,6 +557,18 @@ export class Director {
       const d = ev.deadEntity;
       if (d.typeId !== "minecraft:player") return;
       try {
+        // killed by it, or killed while it hunted you: it carries some of your things to its nest
+        const settings = getSettings();
+        const by = ev.damageSource && ev.damageSource.damagingEntity;
+        const enc = this.encounterTargeting(d.id);
+        if (settings.signs && ((by && by.typeId === ENTITY_ID) || (enc && enc.brain.committed))) {
+          const at = { ...d.location };
+          this.signs.takeDrops(d.dimension, at, d.dimension.getPlayers({ location: at, maxDistance: 96 }));
+        }
+      } catch (e) {
+        dlog("drops", e);
+      }
+      try {
         const s = onPlayerDeath(getSchedule(d), getSettings());
         saveSchedule(d, s);
         fx.clearAll(d);
@@ -643,8 +712,9 @@ export class Director {
     }
   }
 
-  /** A passive Tailwail for the animation showcase: no brain, no adoption. */
+  /** A passive Tailwail for the animation showcase: no brain, no adoption.  It replaces any live one. */
   spawnShowcaseDummy(p, at) {
+    this.clearTheWorld("aborted");
     this.creating = true;
     let tw;
     try {
@@ -669,7 +739,7 @@ export class Director {
   // ------------------------------------------------------------------ diagnostics & commands
   status(p) {
     const settings = getSettings();
-    const lines = [`§6Tailwail ${this.encounters.size} active / cap ${settings.maxConcurrent}, preset ${settings.preset}`];
+    const lines = [`§6Tailwail ${this.encounters.size} active (only one at a time), preset ${settings.preset}`];
     for (const e of this.encounters.values()) lines.push("§7" + e.describe());
     if (p) {
       this.rpCheck(p);
@@ -684,8 +754,8 @@ export class Director {
 
   forceEncounter(p, setup) {
     if (setup && !SETUPS[setup]) return `unknown setup; one of ${Object.keys(SETUPS).join(", ")}`;
-    if (!this.freeSlot()) return "no free slot";
     if (this.encounterTargeting(p.id)) return "already in an encounter";
+    if (!this.freeSlot()) this.clearTheWorld("aborted"); // only one in the world: the forced one replaces it
     this.forcedNext.set(p.id, setup || this.rng.pick(setupsForStage(getSchedule(p).stage)));
     return `spawn search for ${this.forcedNext.get(p.id)} starts within a second (needs a dark spot 7-40 blocks away)`;
   }

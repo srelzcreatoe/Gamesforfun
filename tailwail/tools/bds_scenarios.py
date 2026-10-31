@@ -20,6 +20,7 @@ ROOT = os.path.dirname(HERE)
 SCENARIOS = {  # name -> seconds to wait
     "boot": 6, "standoff": 52, "commit": 6, "hunt": 30, "grab": 22, "ceiling": 14, "climb": 16, "door": 18, "surface": 30,
     "hide": 20, "escape": 40, "squeeze": 34, "tunnel": 22, "presence": 62, "death": 8, "spawnsite": 8, "perf": 14,
+    "cap": 8, "signs": 40,
 }
 
 

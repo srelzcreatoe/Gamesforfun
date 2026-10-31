@@ -137,7 +137,19 @@ KNOWN_IDS = {
     "tailwail:debug", "tailwail:debug_op", "tailwail:journal", "tailwail:settings", "tailwail:relight",
     "tailwail:dread", "tailwail:snuff_smoke", "tailwail:snuffed_torch", "tailwail:facing", "tailwail:kind",
     "tailwail:tall_wail", "tailwail:lure", "tailwail:echo", "tailwail:field_guide",
+    "tailwail:signs",  # 3.2 dynamic property (world and player)
+    "tailwail:bed_turn",  # 3.2 in-memory structure used to turn a bed round (deleted after use)
 }
+
+
+def block_ids():
+    """Every custom block identifier and block state name defined by the behavior pack."""
+    out = set()
+    for p in glob.glob(os.path.join(BP, "blocks", "*.json")):
+        d = load(p)["minecraft:block"]["description"]
+        out.add(d["identifier"])
+        out.update(d.get("states", {}))
+    return out
 
 
 def check_entities():
@@ -167,15 +179,16 @@ def check_entities():
     src = all_script_text()
     for m in re.findall(r'triggerEvent\("([^"]+)"(?:\s*\+\s*[^)]+)?\)', src):
         if m.endswith("_"):
-            if not any(m + s in events for s in ("a", "b", "c", "tall", "hunch", "crawl", "on", "off")):
+            if not any(m + s in events for s in ("a", "b", "c", "tall", "hunch", "crawl", "squeeze", "on", "off")):
                 err("triggerEvent prefix %s matches no event" % m)
         elif m not in events:
             err("script triggers unknown event %s" % m)
     for name in set(re.findall(r'(?:setProp|setProperty|getProperty)\("(tailwail:[a-z_]+)"', src)):
         if name not in props:
             err("script reads/sets unknown property %s" % name)
+    blocks = block_ids()
     for name in set(re.findall(r'"(tailwail:[a-z_0-9]+)"', src)):
-        if name in props or name in events or name in KNOWN_IDS:
+        if name in props or name in events or name in KNOWN_IDS or name in blocks:
             continue
         if name in ("tailwail:seek_", "tailwail:slot_", "tailwail:posture_"):
             continue
@@ -284,25 +297,42 @@ def check_blocks_fog_particles():
     for p in glob.glob(os.path.join(RP, "models", "blocks", "*.json")):
         for g in load(p)["minecraft:geometry"]:
             geos.add(g["description"]["identifier"])
-    comps = [blk["components"]] + [p["components"] for p in blk.get("permutations", [])]
     terrain = load(os.path.join(RP, "textures", "terrain_texture.json"))["texture_data"]
-    for c in comps:
-        g = c.get("minecraft:geometry")
-        if g and g not in geos:
-            err("block geometry %s missing" % g)
-        for mi in c.get("minecraft:material_instances", {}).values():
-            if mi["texture"] not in terrain:
-                err("block texture key %s not in terrain_texture.json" % mi["texture"])
-        loot = c.get("minecraft:loot")
-        if loot and not os.path.isfile(os.path.join(BP, loot)):
-            err("loot table missing " + loot)
+    rp_blocks = load(os.path.join(RP, "blocks.json"))
+    lang = open(os.path.join(RP, "texts", "en_US.lang"), encoding="utf-8").read()
+    nperm = 0
+    for path in sorted(glob.glob(os.path.join(BP, "blocks", "*.json"))):
+        b = load(path)["minecraft:block"]
+        ident = b["description"]["identifier"]
+        nperm += len(b.get("permutations", []))
+        if ident not in rp_blocks:
+            err("block %s has no sound entry in blocks.json" % ident)
+        comps = [b["components"]] + [p["components"] for p in b.get("permutations", [])]
+        for c in comps:
+            g = c.get("minecraft:geometry")
+            if g and g not in geos:
+                err("%s: block geometry %s missing" % (ident, g))
+            for mi in c.get("minecraft:material_instances", {}).values():
+                if mi["texture"] not in terrain:
+                    err("%s: block texture key %s not in terrain_texture.json" % (ident, mi["texture"]))
+            loot = c.get("minecraft:loot")
+            if loot and not os.path.isfile(os.path.join(BP, loot)):
+                err("%s: loot table missing %s" % (ident, loot))
+            name = c.get("minecraft:display_name")
+            if name and (name + "=") not in lang:
+                err("%s: display name %s has no lang entry" % (ident, name))
+        for p in b.get("permutations", []):
+            for st in re.findall(r"q\.block_state\('([^']+)'\) == '?([^' )]+)'?", p["condition"]):
+                vals = [str(v) for v in b["description"]["states"].get(st[0], [])]
+                if st[1] not in vals:
+                    err("%s: permutation condition on unknown state value %s=%s" % (ident, st[0], st[1]))
+        for comp in [k for k in b["components"] if not k.startswith("minecraft:")]:
+            if 'registerCustomComponent("%s"' % comp not in src:
+                err("custom component %s is not registered by the scripts" % comp)
     for v in terrain.values():
         for t in v["textures"] if isinstance(v["textures"], list) else [v["textures"]]:
             if not os.path.isfile(os.path.join(RP, t + ".png")):
                 err("terrain texture missing " + t)
-    for comp in [k for k in blk["components"] if not k.startswith("minecraft:")]:
-        if 'registerCustomComponent("%s"' % comp not in src:
-            err("custom component %s is not registered by the scripts" % comp)
     states = blk["description"]["states"]
     torches = open(os.path.join(BP, "scripts", "mc", "torches.js"), encoding="utf-8").read()
     facings = re.search(r"const FACINGS = \[([^\]]+)\]", torches).group(1)
@@ -316,7 +346,8 @@ def check_blocks_fog_particles():
     for pid in set(re.findall(r'spawnParticle\("([^"]+)"', src)):
         if pid.startswith("tailwail:") and pid not in parts:
             err("script spawns unknown particle " + pid)
-    notes.append("block (%d permutations), %d fog(s), %d particle(s): every reference resolves" % (len(blk.get("permutations", [])), len(fogs), len(parts)))
+    notes.append("%d blocks (%d permutations), %d fog(s), %d particle(s): every reference resolves" % (
+        len(glob.glob(os.path.join(BP, "blocks", "*.json"))), nperm, len(fogs), len(parts)))
 
 
 def check_echo():

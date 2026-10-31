@@ -19,6 +19,10 @@ export const JOURNAL = [
   { flag: "wounded", title: "It can be hurt", text: "I hit it enough times and it ran, screaming. It will come back. It will remember." },
   { flag: "remembered", title: "It remembers", text: "It did the thing I did last time. Before I did it. It remembers." },
   { flag: "killed", title: "It can bleed", text: "It went down. I don't think it was the only one." },
+  { flag: "claws", title: "Claw marks", text: "Gouges in the stone at shoulder height, four fingers wide, dust still in them. I know which way it went." },
+  { flag: "tally", title: "It's counting", text: "Scratches on the wall by my bed. One more every time I get away. I didn't make them." },
+  { flag: "moved", title: "It was here", text: "Things in my house aren't where I left them. Nothing is missing. It was just here, while I was gone." },
+  { flag: "nest", title: "Its nest", text: "Bones. Hair matted into the floor. Burnt-out torches in a row, like trophies. And in the chest, my things, laid out neatly." },
 ];
 
 export function journalBit(flag) {

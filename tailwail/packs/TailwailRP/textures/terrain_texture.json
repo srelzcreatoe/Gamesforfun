@@ -8,6 +8,46 @@
       "textures": [
         "textures/blocks/tailwail_snuffed_torch"
       ]
+    },
+    "tailwail_claw_marks_0": {
+      "textures": [
+        "textures/blocks/tailwail_claw_marks_0"
+      ]
+    },
+    "tailwail_claw_marks_1": {
+      "textures": [
+        "textures/blocks/tailwail_claw_marks_1"
+      ]
+    },
+    "tailwail_claw_marks_2": {
+      "textures": [
+        "textures/blocks/tailwail_claw_marks_2"
+      ]
+    },
+    "tailwail_tally_1": {
+      "textures": [
+        "textures/blocks/tailwail_tally_1"
+      ]
+    },
+    "tailwail_tally_2": {
+      "textures": [
+        "textures/blocks/tailwail_tally_2"
+      ]
+    },
+    "tailwail_tally_3": {
+      "textures": [
+        "textures/blocks/tailwail_tally_3"
+      ]
+    },
+    "tailwail_tally_4": {
+      "textures": [
+        "textures/blocks/tailwail_tally_4"
+      ]
+    },
+    "tailwail_tally_5": {
+      "textures": [
+        "textures/blocks/tailwail_tally_5"
+      ]
     }
   }
 }

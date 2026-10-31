@@ -1,0 +1,176 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:block": {
+    "description": {
+      "identifier": "tailwail:tally",
+      "menu_category": {
+        "category": "none",
+        "is_hidden_in_commands": false
+      },
+      "states": {
+        "tailwail:facing": [
+          "north",
+          "west",
+          "south",
+          "east"
+        ],
+        "tailwail:count": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    "components": {
+      "minecraft:geometry": "geometry.tailwail_decal",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "tailwail_tally_1",
+          "render_method": "alpha_test",
+          "ambient_occlusion": false,
+          "face_dimming": true
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -8,
+          0,
+          -8
+        ],
+        "size": [
+          16,
+          16,
+          1
+        ]
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0
+      },
+      "minecraft:replaceable": {},
+      "minecraft:loot": "loot_tables/blocks/tailwail_nothing.json",
+      "minecraft:display_name": "tile.tailwail:tally.name"
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('tailwail:facing') == 'north'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('tailwail:facing') == 'west'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('tailwail:facing') == 'south'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('tailwail:facing') == 'east'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              -90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('tailwail:count') == 1",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "tailwail_tally_1",
+              "render_method": "alpha_test",
+              "ambient_occlusion": false,
+              "face_dimming": true
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('tailwail:count') == 2",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "tailwail_tally_2",
+              "render_method": "alpha_test",
+              "ambient_occlusion": false,
+              "face_dimming": true
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('tailwail:count') == 3",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "tailwail_tally_3",
+              "render_method": "alpha_test",
+              "ambient_occlusion": false,
+              "face_dimming": true
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('tailwail:count') == 4",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "tailwail_tally_4",
+              "render_method": "alpha_test",
+              "ambient_occlusion": false,
+              "face_dimming": true
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('tailwail:count') == 5",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "tailwail_tally_5",
+              "render_method": "alpha_test",
+              "ambient_occlusion": false,
+              "face_dimming": true
+            }
+          }
+        }
+      }
+    ]
+  }
+}

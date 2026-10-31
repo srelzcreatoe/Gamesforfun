@@ -3,13 +3,14 @@
 // effects code with a scripted stand-in player, because a dedicated server has no real
 // players.  The stand-in records every player-only call (camera, fog, music, input
 // permissions, titles, sounds, teleports) so cleanup can be verified.
-import { BlockPermutation, BlockVolume, EntityDamageCause, GameMode, system, world } from "@minecraft/server";
+import { BlockPermutation, BlockVolume, EntityDamageCause, GameMode, ItemStack, system, world } from "@minecraft/server";
 import { director } from "./main.js";
 import { creatureSees, playerView, takeRayCount } from "./mc/perception.js";
 import { spawnSearch } from "./mc/spots.js";
 import { onStrugglePressed } from "./mc/grab.js";
 import { findTorches, relight } from "./mc/torches.js";
-import { echoCount } from "./mc/echo.js";
+import { echoCount, spawnEcho } from "./mc/echo.js";
+import { clawMarkNear } from "./mc/signs.js";
 import { makeRng } from "./util/rng.js";
 import { setDebug } from "./mc/log.js";
 import { ACT, RP_CHECK_KEY, SHOT } from "./core/ids.js";
@@ -64,6 +65,7 @@ class MockPlayer {
     this.music = null;
     this.teleports = 0;
     this.props = new Map();
+    this.spawn = null; // bed / spawn point (3.2 signs)
     const rec = (what) => (...a) => this.calls.push(what + (a.length ? " " + JSON.stringify(a[0]).slice(0, 80) : ""));
     this.camera = { isValid: true, addShake: rec("shake"), setFov: rec("fov"), fade: rec("fade"), stopShaking: rec("stopShaking"), clear: rec("camclear") };
     this.fogSettings = {
@@ -95,6 +97,7 @@ class MockPlayer {
     return undefined;
   }
   getGameMode() { return GameMode.Survival; }
+  getSpawnPoint() { return this.spawn ? { dimension: this.dimension, ...this.spawn } : undefined; }
   applyDamage(n, o) { this.hp -= n; this.damage.push({ tick: system.currentTick, n, by: o && o.damagingEntity && o.damagingEntity.typeId }); return true; }
   applyKnockback(h, v) { this.calls.push(`knockback ${r1(Math.hypot(h.x, h.z))}/${v}`); }
   addEffect(id) { this.calls.push("effect+ " + id); }
@@ -665,11 +668,10 @@ const SCENARIOS = {
   async perf() {
     clearArena(true);
     for (const x of [12, 24, 36, 48]) for (const z of [4, 14, 24]) fill({ x, y: Y, z }, { x: x + 1, y: Y + 6, z: z + 1 }, "minecraft:stone");
-    const ms = [new MockPlayer({ x: 2.5, y: Y, z: 5.5 }), new MockPlayer({ x: 2.5, y: Y, z: 15.5 }), new MockPlayer({ x: 2.5, y: Y, z: 25.5 })];
-    const encs = [spawnTW(ms[0], { x: 30.5, y: Y, z: 5.5 }), spawnTW(ms[1], { x: 30.5, y: Y, z: 15.5 }), spawnTW(ms[2], { x: 30.5, y: Y, z: 25.5 })];
-    encs[1].brain.enter("standoff", "test");
-    encs[2].brain.enter("hunt", "test");
-    ms.forEach((m, i) => m.lookAt(encs[i].tw.location));
+    const mock = new MockPlayer({ x: 2.5, y: Y, z: 15.5 });
+    const enc = spawnTW(mock, { x: 30.5, y: Y, z: 15.5 });
+    enc.brain.enter("hunt", "test");
+    mock.lookAt(enc.tw.location);
     setDebug(false);
     await wait(10);
     const times = [];
@@ -684,11 +686,149 @@ const SCENARIOS = {
     }
     times.sort((a, b) => a - b);
     const avg = times.reduce((a, b) => a + b, 0) / times.length;
-    log("perf 3 encounters: decision tick avg", avg.toFixed(2), "ms p95", times[Math.floor(times.length * 0.95)], "ms max", times[times.length - 1],
+    log("perf 1 encounter (the cap): decision tick avg", avg.toFixed(2), "ms p95", times[Math.floor(times.length * 0.95)], "ms max", times[times.length - 1],
       "ms; raycasts per tick", (rays / times.length).toFixed(1), "(BDS on the dev container CPU; not a client frame-rate measurement)");
     setDebug(true);
-    for (const e of encs) if (!e.ended) e.end("aborted", true);
+    if (!enc.ended) enc.end("aborted", true);
+    mock.remove();
+  },
+
+  async cap() {
+    clearArena(true);
+    const ms = [new MockPlayer({ x: 2.5, y: Y, z: 5.5 }), new MockPlayer({ x: 2.5, y: Y, z: 15.5 }), new MockPlayer({ x: 2.5, y: Y, z: 25.5 })];
+    const encs = [spawnTW(ms[0], { x: 30.5, y: Y, z: 5.5 }), spawnTW(ms[1], { x: 30.5, y: Y, z: 15.5 }), spawnTW(ms[2], { x: 30.5, y: Y, z: 25.5 })];
+    await wait(5);
+    const count = () => ov().getEntities({ type: "tailwail:tall_wail" }).length;
+    log("cap: three spawn requests ->", encs.map((e) => (e ? "spawned" : "refused")).join(","), "; Tailwails in the world", count());
+    const first = encs.find((e) => e);
+    // a spawn egg / summon while one is out: the new one replaces it
+    const egg = ov().spawnEntity("tailwail:tall_wail", { x: 40.5, y: Y, z: 15.5 });
+    await wait(20);
+    log("cap: egg while one exists -> old ended", first ? first.ended : "-", "; new adopted", director.encounters.has(egg.id), "; Tailwails in the world", count());
+    // no hallucination while a real one is out
+    const echo = spawnEcho(ov(), { x: 20.5, y: Y, z: 30.5 }, 0, "watch", 2, null);
+    log("cap: hallucination while a real one exists ->", echo ? "SPAWNED (wrong)" : "refused", "; echoes", echoCount());
+    director.endAll("aborted");
+    await wait(5);
+    const echo2 = spawnEcho(ov(), { x: 20.5, y: Y, z: 30.5 }, 0, "watch", 2, null);
+    const echo3 = spawnEcho(ov(), { x: 22.5, y: Y, z: 30.5 }, 0, "watch", 2, null);
+    log("cap: with none out -> hallucination", echo2 ? "spawned" : "refused", "; a second one at the same time", echo3 ? "SPAWNED (wrong)" : "refused");
+    await wait(50);
+    log("cap: Tailwails left", count(), "echoes left", echoCount());
     ms.forEach((m) => m.remove());
+  },
+
+  async signs() {
+    // a sealed, dark cave room so nothing has sky light, plus a little house with a bed
+    clearArena(true);
+    fill({ x: -5, y: Y, z: -5 }, { x: 75, y: Y + 7, z: -5 }, "minecraft:stone");
+    fill({ x: -5, y: Y, z: 35 }, { x: 75, y: Y + 7, z: 35 }, "minecraft:stone");
+    fill({ x: -5, y: Y, z: -5 }, { x: -5, y: Y + 7, z: 35 }, "minecraft:stone");
+    fill({ x: 75, y: Y, z: -5 }, { x: 75, y: Y + 7, z: 35 }, "minecraft:stone");
+    await wait(40);
+    const dim = ov();
+    const blocksOf = (types, a, b) => {
+      try {
+        return [...dim.getBlocks(new BlockVolume(a, b), { includeTypes: types }, true).getBlockLocationIterator()];
+      } catch (e) {
+        log("getBlocks threw", String(e).slice(0, 120));
+        return [];
+      }
+    };
+    const ALL = [{ x: -4, y: Y - 1, z: -4 }, { x: 74, y: Y + 7, z: 34 }];
+    // 1) claw marks along a real hunt down a 3-wide corridor
+    fill({ x: 10, y: Y, z: 10 }, { x: 60, y: Y + 6, z: 10 }, "minecraft:stone");
+    fill({ x: 10, y: Y, z: 14 }, { x: 60, y: Y + 6, z: 14 }, "minecraft:stone");
+    let mock = new MockPlayer({ x: 58.5, y: Y, z: 12.5 });
+    mock.hp = 1000;
+    let enc = spawnTW(mock, { x: 12.5, y: Y, z: 12.5 });
+    enc.brain.enter("hunt", "test");
+    await wait(160);
+    const claws = blocksOf(["tailwail:claw_marks"], ALL[0], ALL[1]);
+    log("signs: claw marks after an 8 s hunt down a cave corridor:", claws.length, claws.slice(0, 4).map(fmt).join(" "),
+      "; states", claws.length ? JSON.stringify(dim.getBlock(claws[0]).permutation.getAllStates()) : "-");
+    if (!enc.ended) enc.end("aborted", true);
+    mock.remove();
+    log("signs: clawMarkNear beside a wall ->", (() => { const c = clawMarkNear(dim, { x: 11.5, y: Y, z: 11.5 }, makeRng(4)); return c ? fmt(c) : "none"; })());
+    // 2) tallies by the bed, while you are away
+    fill({ x: 30, y: Y, z: 20 }, { x: 36, y: Y + 3, z: 20 }, "minecraft:planks");
+    fill({ x: 30, y: Y, z: 26 }, { x: 36, y: Y + 3, z: 26 }, "minecraft:planks");
+    fill({ x: 30, y: Y, z: 20 }, { x: 30, y: Y + 3, z: 26 }, "minecraft:planks");
+    fill({ x: 36, y: Y, z: 20 }, { x: 36, y: Y + 3, z: 26 }, "minecraft:planks");
+    fill({ x: 30, y: Y + 3, z: 20 }, { x: 36, y: Y + 3, z: 26 }, "minecraft:planks");
+    try {
+      dim.runCommand(`setblock 33 ${Y} 23 bed ["direction"=0,"head_piece_bit"=false]`);
+    } catch (e) {
+      log("bed setblock threw", String(e).slice(0, 120));
+    }
+    await wait(2);
+    const beds = blocksOf(["minecraft:bed"], { x: 31, y: Y, z: 21 }, { x: 35, y: Y, z: 25 });
+    log("signs: bed blocks after setblock", beds.map((b) => fmt(b) + JSON.stringify(dim.getBlock(b).permutation.getAllStates())).join(" | "));
+    mock = new MockPlayer({ x: 60.5, y: Y, z: 30.5 });
+    mock.yaw = -90; // looking away, 30 blocks off
+    mock.spawn = { x: 33, y: Y, z: 23 };
+    const base = { x: 33, y: Y, z: 23 };
+    const st = { carved: 0, tally: null, moveAt: null, last: null, moved: null };
+    let made = 0;
+    for (let i = 0; i < 7; i++) if (director.signs.carveTally(dim, base, st, [mock])) made++;
+    const tallies = blocksOf(["tailwail:tally"], { x: 29, y: Y - 1, z: 19 }, { x: 37, y: Y + 3, z: 27 });
+    log("signs: 7 escapes ->", made, "strokes;", tallies.map((t) => fmt(t) + " count " + dim.getBlock(t).permutation.getState("tailwail:count") +
+      " facing " + dim.getBlock(t).permutation.getState("tailwail:facing")).join(" | "));
+    // the per-second path, with a schedule that owes one more
+    const sched = { escN: 8, eligibleS: 5000, stage: 2 };
+    const pages = [];
+    mock.props.set("tailwail:signs", JSON.stringify(st));
+    director.signs.tickPlayer(mock, sched, { signs: true }, (f) => pages.push(f));
+    log("signs: tickPlayer (away, owes 1) -> carved", JSON.parse(mock.props.get("tailwail:signs")).carved);
+    // 3) your things, moved: put a torch, a barrel and a chest in the house
+    dim.getBlock({ x: 31, y: Y, z: 21 }).setPermutation(BlockPermutation.resolve("minecraft:torch", { torch_facing_direction: "top" }));
+    dim.getBlock({ x: 35, y: Y, z: 25 }).setPermutation(BlockPermutation.resolve("minecraft:barrel", { facing_direction: 1, open_bit: false }));
+    dim.getBlock({ x: 35, y: Y, z: 21 }).setPermutation(BlockPermutation.resolve("minecraft:chest"));
+    await wait(2);
+    const con = dim.getBlock({ x: 35, y: Y, z: 21 }).getComponent("minecraft:inventory").container;
+    con.setItem(0, new ItemStack("minecraft:bread", 5));
+    con.setItem(1, new ItemStack("minecraft:iron_ingot", 3));
+    con.setItem(2, new ItemStack("minecraft:coal", 9));
+    const slotsOf = () => { const o = []; for (let i = 0; i < con.size; i++) { const it = con.getItem(i); if (it) o.push(i + ":" + it.typeId.replace("minecraft:", "") + "x" + it.amount); } return o.join(","); };
+    log("signs: chest before", slotsOf());
+    const bedState = () => blocksOf(["minecraft:bed"], { x: 31, y: Y, z: 21 }, { x: 35, y: Y, z: 25 }).map((b) => fmt(b) + " head " +
+      dim.getBlock(b).permutation.getState("head_piece_bit") + " dir " + dim.getBlock(b).permutation.getState("direction")).join(" | ");
+    log("signs: bed before", bedState());
+    for (const k of ["torch", "barrel", "chest", "bed"]) {
+      const s2 = { last: null };
+      const got = director.signs.disturb(dim, base, s2, [mock], k);
+      log("signs: move", k, "->", got, s2.moved ? fmt(s2.moved) : "");
+    }
+    log("signs: torch now", blocksOf(["minecraft:torch"], { x: 28, y: Y - 1, z: 18 }, { x: 38, y: Y + 2, z: 28 }).map(fmt).join(" "), "(was 31,-60,21)");
+    log("signs: barrel open_bit", dim.getBlock({ x: 35, y: Y, z: 25 }).permutation.getState("open_bit"));
+    log("signs: chest after", slotsOf());
+    log("signs: bed after", bedState());
+    // 4) its nest, deep in the dark room, and what it takes from you when it kills you
+    mock.moveTo({ x: 5.5, y: Y, z: 30.5 });
+    mock.yaw = 180;
+    let nest = null;
+    director.signs.ensureNest(dim, { x: 50, y: Y, z: 25 }, [mock], (n) => { nest = n; }, 0);
+    for (let i = 0; i < 40 && !nest && director.signs.building; i++) await wait(5);
+    log("signs: nest", nest ? JSON.stringify(nest) : "none");
+    if (nest) {
+      const a = { x: nest.x - 3, y: nest.y - 1, z: nest.z - 3 };
+      const b = { x: nest.x + 3, y: nest.y + 2, z: nest.z + 3 };
+      const tally = {};
+      for (const t of ["minecraft:chest", "tailwail:snuffed_torch", "minecraft:bone_block", "minecraft:skeleton_skull", "minecraft:black_carpet",
+        "minecraft:brown_carpet", "minecraft:web", "tailwail:claw_marks"]) tally[t.split(":")[1]] = blocksOf([t], a, b).length;
+      log("signs: nest blocks", JSON.stringify(tally));
+      const at = { x: nest.x + 8.5, y: Y + 0.5, z: nest.z + 0.5 };
+      for (const [id, n] of [["minecraft:diamond", 3], ["minecraft:iron_sword", 1], ["minecraft:cooked_beef", 6], ["minecraft:torch", 12]]) dim.spawnItem(new ItemStack(id, n), at);
+      await wait(5);
+      director.signs.takeDrops(dim, at, [mock]);
+      await wait(60);
+      const nc = dim.getBlock(nest.chest).getComponent("minecraft:inventory").container;
+      const inChest = [];
+      for (let i = 0; i < nc.size; i++) { const it = nc.getItem(i); if (it) inChest.push(i + ":" + it.typeId.replace("minecraft:", "") + "x" + it.amount); }
+      log("signs: nest chest after your death", inChest.join(","), "; items still on the ground", dim.getEntities({ type: "minecraft:item", location: at, maxDistance: 6 }).length);
+    }
+    log("signs: journal pages from tickPlayer", pages.join(",") || "-");
+    mock.remove();
   },
 
   async spawnsite() {

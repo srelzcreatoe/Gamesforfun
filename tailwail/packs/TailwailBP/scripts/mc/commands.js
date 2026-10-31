@@ -10,10 +10,11 @@ import { emptySchedule } from "../core/scheduler.js";
 import { SETUP_IDS } from "../core/setups.js";
 import * as fx from "./fx.js";
 import { setDebug } from "./log.js";
+import { baseOf, clawMarkNear, forgetSigns } from "./signs.js";
 import { getMemory, getSchedule, getSettings, resetMemory, saveSchedule, saveSettings } from "./store.js";
 import { showGuide, showSettings } from "./ui.js";
 
-const OPS = ["status", "spawn", "presence", "end", "stage", "memory", "resetmemory", "cooldown", "journal", "log", "setups", "restore", "anim"];
+const OPS = ["status", "spawn", "presence", "end", "stage", "memory", "resetmemory", "cooldown", "journal", "log", "setups", "restore", "anim", "signs"];
 
 export function registerCommands(registry, director) {
   registry.registerEnum("tailwail:debug_op", OPS);
@@ -60,6 +61,33 @@ export function registerCommands(registry, director) {
   );
 }
 
+/**
+ * 3.2 signs, on demand: claws (marks beside you), nest (build one near you now), tally (one
+ * stroke near your bed, out of sight), move_torch | move_barrel | move_chest | move_bed (at your
+ * bed, out of sight; plain "move" picks one).
+ */
+function debugSigns(director, p, arg) {
+  const [what, kind] = arg.split(/[ _]/); // "move bed" or move_bed
+  const sg = director.signs;
+  const players = p.dimension.getPlayers({ location: p.location, maxDistance: 128 });
+  if (what === "claws") return clawMarkNear(p.dimension, p.location, director.rng) ? "claw marks made beside you" : "no wall beside you";
+  if (what === "nest") {
+    sg.ensureNest(p.dimension, p.location, players, (n) => p.isValid && p.sendMessage(n ? `§7[Tailwail] nest at ${n.x} ${n.y} ${n.z}` : "§7[Tailwail] no room for a nest near here (needs a dark, roomy cave floor 16-40 blocks away, out of sight)"), 0);
+    return "looking for a nest site...";
+  }
+  const base = baseOf(p);
+  if (!base) return "you have no bed (spawn point) in this dimension";
+  if (what === "tally") {
+    const st = { carved: 0, tally: null };
+    return sg.carveTally(p.dimension, base, st, players) ? `a stroke at ${st.tally.x} ${st.tally.y} ${st.tally.z}` : "no out-of-sight wall near your bed";
+  }
+  if (what === "move") {
+    const k = sg.disturb(p.dimension, base, { last: null }, players, kind || null);
+    return k ? `it moved your ${k}` : "nothing it could move out of sight (is the bed occupied, or in view?)";
+  }
+  return "signs claws | nest | tally | move | move_torch | move_barrel | move_chest | move_bed";
+}
+
 export function runDebug(director, p, op, arg) {
   const say = (m) => (p ? p.sendMessage(m) : console.warn("[Tailwail] " + m.replace(/§./g, "")));
   switch (op) {
@@ -91,8 +119,11 @@ export function runDebug(director, p, op, arg) {
       if (p) say("§7" + JSON.stringify(getMemory(p)) + "\n" + JSON.stringify(getSchedule(p)));
       break;
     case "resetmemory":
-      if (p) resetMemory(p);
-      say("§7Memory, stage and journal reset.");
+      if (p) {
+        resetMemory(p);
+        forgetSigns(p);
+      }
+      say("§7Memory, stage, journal and tally reset.");
       break;
     case "cooldown":
       if (p) {
@@ -128,6 +159,10 @@ export function runDebug(director, p, op, arg) {
       if (!p) return say("anim needs a player");
       director.rpCheck(p);
       say("§7" + animShowcase(director, p, arg));
+      break;
+    case "signs":
+      if (!p) return say("signs needs a player");
+      say("§7" + debugSigns(director, p, arg || ""));
       break;
     default:
       say("§7Unknown op. " + OPS.join(", "));

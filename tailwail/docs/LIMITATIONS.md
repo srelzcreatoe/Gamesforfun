@@ -74,6 +74,22 @@
   window needs glass in front of you).
 - The grab and its mash struggle are parked: the code is kept and unit-tested, but it never
   happens in game.
+- **Only one Tailwail at a time.** With several players far apart, only one of them can be
+  in an encounter at any moment; the others get the haunting in between.
+- **Signs at your base** need a bed (a spawn point) in the dimension you are in, and only
+  happen while you are 12-90 blocks from it: close enough for it to be loaded, far enough
+  that you are not there. If you never leave or never come back within that range, they
+  wait. Moving things uses vanilla block states and containers; a modded or unusual block
+  near your bed is left alone.
+- **The nest** needs a dark, roomy cave floor 16-40 blocks from where the encounter ended;
+  in cramped or lit caves there may be no room, and then there is no nest that time. It
+  places blocks only into air, so in a narrow spot it can be sparse.
+- **Carried drops**: up to 3 stacks, and only when it kills you (or you die while it hunts
+  you) with a nest close enough to be loaded or room to build one. With `keepInventory` on,
+  there is nothing to take.
+- **Not seen in a client**: the claw and tally decals' orientation on each wall face uses the
+  same rotation table as the burnt-out torch (north 0°, west 90°, south 180°, east −90°),
+  and their look was checked only as textures.
 
 ## Content and performance
 

@@ -165,7 +165,37 @@ leave. 25–50 seconds later it comes back for you, already running.
 - It has 160 health on Standard (a diamond sword does 7 per hit); it is tougher on
   Nightmare and softer on Calm.
 - Below about a third of its health it **screams and runs**, and it remembers.
-- Killed, it collapses, twitching. "I don't think it was the only one."
+- Killed, it collapses, twitching, and drops experience. "I don't think it was the only one."
+
+## What it leaves behind
+
+These stay in your world. You can break any of them (claw and tally marks drop nothing).
+- **Claw marks**: as it moves through caves it gouges the walls beside it, a few times per
+  encounter, and the stone is gouged where you heard claws scraping. The world keeps its 64
+  newest marks; older ones fade away as new ones appear.
+- **Tally marks**: one stroke on a wall by your bed for every time you got away from it,
+  in groups of five. It only carves them while you are away from home (12-90 blocks from
+  your bed) and nobody is looking at that wall.
+- **Your things, moved** (from stage 1, every 15-30 eligible minutes, same rules: only
+  while you are away and nobody can see): a torch taken down and put up a few blocks away
+  in the same room, a chest's contents rearranged, a barrel left open, or your bed turned
+  round. Nothing is taken or broken.
+- **Its nest**: after a cave encounter it has a nest somewhere in the dark 16-40 blocks
+  from where it was: bones (one heap), a skull or two, black and brown matted hair over
+  the floor, burnt-out torches lined up in a row, cobwebs and claw marks on the walls, and
+  a chest. It only builds on empty floor; it never replaces a block.
+- **What it takes**: if it kills you (or you die while it is hunting you), it carries up to
+  three stacks of what you dropped to the nest chest, laid out neatly in the middle row.
+  The rest stays where you died.
+- You need a bed (a spawn point) for tallies and moved things; without one, it has no home
+  of yours to visit.
+- Finding each of these opens a page in the journal.
+
+## Only one
+
+Only one Tailwail exists in the world at a time, however many players there are. A spawn
+egg (or `/summon`) replaces the one that is out, and the hallucinations never show a second
+one while the real one is about.
 
 ## Torches
 

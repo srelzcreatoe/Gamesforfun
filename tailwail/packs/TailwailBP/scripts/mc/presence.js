@@ -10,8 +10,10 @@ import { removeEcho, spawnEcho } from "./echo.js";
 import * as fx from "./fx.js";
 import { dlog } from "./log.js";
 import { lightAt, losClear } from "./perception.js";
+import { clawMarkNear } from "./signs.js";
 import { behindPoint, findGlimpseSpot, findObservationSpot, findSoundSpot } from "./spots.js";
 import { headroom, isOpen, safeBlock } from "./terrain.js";
+import { getSettings } from "./store.js";
 import { findTorches, snuff } from "./torches.js";
 
 const DOORS = ["minecraft:wooden_door", "minecraft:spruce_door", "minecraft:birch_door", "minecraft:jungle_door", "minecraft:acacia_door",
@@ -280,6 +282,8 @@ export class Presence {
         const at = { x: p.x + 0.5, y: p.y + 0.5, z: p.z + 0.5 };
         playFor(player, "tailwail.scrape", at, 1.0, this.rng.range(0.8, 0.95), "Claws scraping inside the stone");
         this.later(this.rng.range(25, 45), () => player.isValid && playFor(player, "tailwail.scrape", at, 0.9, this.rng.range(0.7, 0.85)));
+        // 3.2: and when you go and look, the stone there is gouged
+        if (getSettings().signs) clawMarkNear(dim, { x: p.x + 0.5 - d.x, y: p.y - 1, z: p.z + 0.5 - d.z }, this.rng);
         return true;
       }
     }

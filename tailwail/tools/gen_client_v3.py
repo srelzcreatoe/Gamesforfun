@@ -32,9 +32,9 @@ RP = os.path.join(ROOT, "packs", "TailwailRP")
 BP = os.path.join(ROOT, "packs", "TailwailBP")
 ANIM = os.path.join(RP, "animations", "tall_wail.v3.animation.json")
 A = "animation.tall_wail.v3."
-VERSION = "3.1.0"
+VERSION = "3.2.0"
 # Raw text players see if the v3 resource pack is NOT active (the lang file translates it when it is).
-RP_CHECK = "TAILWAIL_RESOURCE_PACK_3.1.0_IS_NOT_ACTIVE-re-apply_TAILWAIL_Resources_to_this_world"
+RP_CHECK = "TAILWAIL_RESOURCE_PACK_3.2.0_IS_NOT_ACTIVE-re-apply_TAILWAIL_Resources_to_this_world"
 
 Q = lambda p: "q.property('%s')" % p  # noqa: E731
 ACT_Q = Q("tailwail:act")

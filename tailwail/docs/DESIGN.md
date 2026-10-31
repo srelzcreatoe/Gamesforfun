@@ -41,6 +41,7 @@ scripts/
     setups.js          the 11 encounter openings (cave / surface / anywhere)
     audio_rules.js     sound cue table + limiters
     journal.js         journal pages and unlock flags
+    signs_rules.js     3.2: claw-mark pacing, tallies, which thing to move, neat chest slots, nest layout
     ids.js             GENERATED: act ids, one-shot table, resource-pack check key
   mc/     (adapters)
     director.js        per-player scheduling, presence, spawning, returns, events, sweep
@@ -48,6 +49,7 @@ scripts/
     actions.js         ceiling / corner ambush spots, runner path, climbing, door & glass
                        smashing, "is the player in a low hole"
     presence.js        the haunting events
+    signs.js           3.2: claw marks, tallies by your bed, your things moved, the nest, carried drops
     grab.js            PARKED (kept for reuse, never started in game): lift / hold / varied
                        mash struggle / release with guaranteed unlock
     fx.js              player effects manager (music, fog, FOV, shake, heartbeat, input, titles)
@@ -158,6 +160,52 @@ between you is a wooden door, trapdoor or gate (or glass, with the setting), it 
 every 0.45 s (the `bash` act); after 3–5 hits it breaks it (`setblock … air destroy`, both
 halves of a door). Iron doors are never broken.
 
+## What it leaves behind (3.2)
+
+`mc/signs.js` (rules in `core/signs_rules.js`, tuning in `config.js SIGNS`), switched by the
+*It leaves signs* setting. Blocks are only ever placed into **air** cells; nothing a player
+built is replaced or broken.
+
+- **Claw marks** (`tailwail:claw_marks`: a flat decal against one face of an air cell; 4
+  facings × 3 patterns; no collision, replaceable, breaks instantly, drops nothing). Each
+  encounter's `ClawTrail` measures how far the creature moves while it is underground (sky
+  light ≤ 3 at its head, below y 64): after every 7 blocks, a 55 % chance to gouge a wall
+  beside it (its own column or a neighbouring one, 1-2 blocks up), at most 10 per encounter.
+  The scrape haunting leaves a mark where the sound came from. The world remembers the 64
+  newest marks (`tailwail:signs` world property); pushing a 65th scrubs the oldest if its
+  chunk is loaded.
+- **A wall** is a plain solid block: furniture, doors, fences, slabs, stairs, glass, beds,
+  chests and the like do not count, so marks never go on your bed or your chest.
+- **Your base** is your spawn point (`Player.getSpawnPoint`), in your current dimension.
+  Tallies and disturbances only happen while you are 12-90 blocks from it (so it is loaded
+  but you are not there), nobody is within 12 blocks of it, and the exact spot is out of
+  every player's view (outside a ~75° cone or behind a wall).
+- **Tallies** (`tailwail:tally`, counts 1-5): strokes owed = your escapes − strokes already
+  carved (per-player `tailwail:signs` property). One stroke at most every 30 s. The first
+  block goes on the nearest wall to your bed at head height (1-2 blocks above it); a full
+  group of five starts a new block beside it on the same wall.
+- **Disturbances** (stage 1+, every 900-1800 eligible seconds): one of a torch moved 2-3
+  blocks to a floor spot in the same room (clear line from the old spot), a chest's slots
+  swapped 3-6 times (nothing removed), a barrel's `open_bit` set, or the bed turned round:
+  both halves copied into an in-memory structure and placed back rotated 180° (bed colour
+  and both halves kept; never while someone is in it or within 6 blocks). Never the same
+  kind twice running when there is a choice.
+- **The nest**: when a cave encounter ends (not aborted) and the last nest is farther than
+  160 blocks, a job looks for a site 16-40 blocks from where the creature was: a floor with
+  no sky light, light ≤ 4, at least 12 open floor cells in a 5×5, out of every player's
+  sight and 12+ blocks from them, preferring nooks with walls. `nestLayout` places a chest
+  at the edge (against a wall if it can), 3-4 burnt-out torches in a straight row, three
+  bone blocks around the rim (one heaped two high), one or two skeleton skulls, black and
+  brown carpets over the rest of the floor, two cobwebs and up to six claw marks on the
+  walls.
+- **Carried drops**: when a player dies to it, or dies while it is hunting them, 1.5 s
+  later it takes up to 3 random item stacks within 6 blocks of the death spot into the nest
+  chest (a nest within 64 blocks whose chest is loaded, or a new one), centred and evenly
+  spaced in the middle row (`neatSlots`). An item entity is removed only after its stack
+  is in the chest.
+- **Journal**: four pages (claw marks, the tally, something moved, the nest) open when you
+  come within a few blocks of each.
+
 ## Presence and escalation
 
 The director ticks every player once a second. Two waits count down **only in eligible
@@ -175,7 +223,11 @@ on where you are: caves (`stalker`, `corner_peek`, `tunnel_crawler`, `ceiling`,
 
 ## Multiplayer
 
-- One authority per creature (the Encounter that owns it); at most 3 at once, default 2.
+- **Only one Tailwail exists in the world at a time** (3.2; no setting). The director's slot
+  check counts live encounters and showcase copies; a spawn egg, `/summon`, `debug spawn` or
+  `debug anim` ends the one that is out first; an extra one found on world load is removed;
+  hallucinations (echoes) are refused while a real one is loaded, and only one echo exists
+  at a time.
 - A group within 24 blocks shares one encounter, targeting the player in the most
   darkness.
 - Only the target's behaviour raises stand-off agitation. A bystander's hit can retarget

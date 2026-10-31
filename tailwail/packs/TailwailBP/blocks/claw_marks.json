@@ -1,0 +1,148 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:block": {
+    "description": {
+      "identifier": "tailwail:claw_marks",
+      "menu_category": {
+        "category": "none",
+        "is_hidden_in_commands": false
+      },
+      "states": {
+        "tailwail:facing": [
+          "north",
+          "west",
+          "south",
+          "east"
+        ],
+        "tailwail:variant": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "components": {
+      "minecraft:geometry": "geometry.tailwail_decal",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "tailwail_claw_marks_0",
+          "render_method": "alpha_test",
+          "ambient_occlusion": false,
+          "face_dimming": true
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -8,
+          0,
+          -8
+        ],
+        "size": [
+          16,
+          16,
+          1
+        ]
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 0
+      },
+      "minecraft:replaceable": {},
+      "minecraft:loot": "loot_tables/blocks/tailwail_nothing.json",
+      "minecraft:display_name": "tile.tailwail:claw_marks.name"
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('tailwail:facing') == 'north'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('tailwail:facing') == 'west'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('tailwail:facing') == 'south'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              180,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('tailwail:facing') == 'east'",
+        "components": {
+          "minecraft:transformation": {
+            "rotation": [
+              0,
+              -90,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('tailwail:variant') == 0",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "tailwail_claw_marks_0",
+              "render_method": "alpha_test",
+              "ambient_occlusion": false,
+              "face_dimming": true
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('tailwail:variant') == 1",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "tailwail_claw_marks_1",
+              "render_method": "alpha_test",
+              "ambient_occlusion": false,
+              "face_dimming": true
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('tailwail:variant') == 2",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "tailwail_claw_marks_2",
+              "render_method": "alpha_test",
+              "ambient_occlusion": false,
+              "face_dimming": true
+            }
+          }
+        }
+      }
+    ]
+  }
+}

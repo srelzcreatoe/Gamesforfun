@@ -5,6 +5,9 @@
   BP loot_tables/blocks/*.json            breaking it gives the torch back
   RP models/blocks/tailwail_snuffed_torch.geo.json   standing + wall stick
   RP textures/blocks/tailwail_snuffed_torch.png      16x16 charred stick
+  BP blocks/claw_marks.json, tally.json    3.2: wall decals it leaves (claw gouges; tally strokes 1-5)
+  RP models/blocks/tailwail_decal.geo.json a flat plane against one face of the cell
+  RP textures/blocks/tailwail_claw_marks_*.png, tailwail_tally_*.png
   RP textures/terrain_texture.json, blocks.json
   RP fogs/tailwail_dread.json             the encounter fog (pushed per player by script)
   RP particles/snuff_smoke.json           the wisp when a torch goes out
@@ -112,6 +115,101 @@ def block():
     }}
 
 
+# ------------------------------------------------------------------ 3.2 wall decals
+DECAL_FACINGS = {"north": 0, "west": 90, "south": 180, "east": -90}  # side of the cell the wall is on
+CLAW_VARIANTS = 3
+TALLY_COUNTS = [1, 2, 3, 4, 5]
+
+
+def decal_geometry():
+    return {"format_version": "1.12.0", "minecraft:geometry": [{
+        "description": {"identifier": "geometry.tailwail_decal", "texture_width": 16, "texture_height": 16,
+                        "visible_bounds_width": 2, "visible_bounds_height": 2, "visible_bounds_offset": [0, 0.5, 0]},
+        # a plane a hair off the north face, facing into the cell
+        "bones": [{"name": "decal", "pivot": [0, 0, 0],
+                   "cubes": [{"origin": [-8, 0, -7.9], "size": [16, 16, 0], "uv": {"south": {"uv": [0, 0], "uv_size": [16, 16]}}}]}],
+    }]}
+
+
+def _gouge(px, pts, core, edge):
+    """A carved stroke: a dark core with pale stone dust along its left side."""
+    for x, y in pts:
+        if 0 <= x - 1 < 16 and 0 <= y < 16 and px[x - 1, y][3] == 0:
+            px[x - 1, y] = edge
+    for x, y in pts:
+        if 0 <= x < 16 and 0 <= y < 16:
+            px[x, y] = core
+
+
+def _line(x0, y0, x1, y1):
+    n = max(abs(x1 - x0), abs(y1 - y0))
+    return [(round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n)) for i in range(n + 1)]
+
+
+CORE = (22, 16, 12, 240)
+EDGE = (168, 160, 148, 160)
+
+
+def claw_texture(path, variant):
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    px = img.load()
+    # three or four claws dragged down the rock, spaced like fingers, each a different length
+    sets = [
+        [(2, 1, 5, 14), (6, 0, 9, 15), (10, 1, 13, 13)],
+        [(1, 2, 3, 13), (5, 0, 8, 14), (9, 1, 12, 15), (13, 3, 15, 11)],
+        [(3, 3, 5, 15), (7, 1, 10, 15), (11, 0, 14, 12)],
+    ][variant]
+    for x0, y0, x1, y1 in sets:
+        _gouge(px, _line(x0, y0, x1, y1), CORE, EDGE)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    img.save(path)
+
+
+def tally_texture(path, count):
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    px = img.load()
+    for i in range(min(count, 4)):
+        x = 4 + 3 * i
+        _gouge(px, _line(x, 3, x, 12), CORE, EDGE)
+    if count >= 5:
+        for x, y in _line(1, 11, 15, 5):  # the fifth stroke crosses the four
+            px[x, y] = CORE
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    img.save(path)
+
+
+def decal_block(ident, state, values, texture_of, name_key):
+    perms = []
+    for f, rot in DECAL_FACINGS.items():
+        perms.append({"condition": "q.block_state('tailwail:facing') == '%s'" % f,
+                      "components": {"minecraft:transformation": {"rotation": [0, rot, 0]}}})
+    for v in values:
+        perms.append({"condition": "q.block_state('%s') == %d" % (state, v), "components": {
+            "minecraft:material_instances": {"*": {"texture": texture_of(v), "render_method": "alpha_test",
+                                                   "ambient_occlusion": False, "face_dimming": True}}}})
+    return {"format_version": "1.21.90", "minecraft:block": {
+        "description": {
+            "identifier": ident,
+            "menu_category": {"category": "none", "is_hidden_in_commands": False},
+            "states": {"tailwail:facing": list(DECAL_FACINGS), state: values},
+        },
+        "components": {
+            "minecraft:geometry": "geometry.tailwail_decal",
+            "minecraft:material_instances": {"*": {"texture": texture_of(values[0]), "render_method": "alpha_test",
+                                                   "ambient_occlusion": False, "face_dimming": True}},
+            "minecraft:collision_box": False,
+            "minecraft:selection_box": {"origin": [-8, 0, -8], "size": [16, 16, 1]},
+            "minecraft:light_dampening": 0,
+            "minecraft:destructible_by_mining": {"seconds_to_destroy": 0},
+            "minecraft:destructible_by_explosion": {"explosion_resistance": 0},
+            "minecraft:replaceable": {},
+            "minecraft:loot": "loot_tables/blocks/tailwail_nothing.json",
+            "minecraft:display_name": name_key,
+        },
+        "permutations": perms,
+    }}
+
+
 def loot(item):
     return {"pools": [{"rolls": 1, "entries": [{"type": "item", "name": item, "weight": 1}]}]}
 
@@ -168,7 +266,7 @@ def patch_render_controllers():
     write(p, d)
 
 
-VERSION = (3, 1, 0)
+VERSION = (3, 2, 0)
 VS = "%d.%d.%d" % VERSION
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_client_v3 import RP_CHECK  # noqa: E402
@@ -185,6 +283,8 @@ RP_LANG_STATIC = [
     "item.tailwail:field_guide.name=Torn Journal",
     "item.tailwail.field_guide.name=Torn Journal",
     "tile.tailwail:snuffed_torch.name=Burnt-out Torch",
+    "tile.tailwail:claw_marks.name=Claw Marks",
+    "tile.tailwail:tally.name=Tally Marks",
 ]
 BP_LANG = [
     "pack.name=TAILWAIL %s (Behavior)" % VS,
@@ -223,10 +323,27 @@ def main():
         write(os.path.join(BP, "loot_tables", "blocks", "tailwail_snuffed_%s.json" % item.split(":")[1]), loot(item))
     write(os.path.join(RP, "models", "blocks", "tailwail_snuffed_torch.geo.json"), geometry())
     texture(os.path.join(RP, "textures", "blocks", "tailwail_snuffed_torch.png"))
+    terrain = {"tailwail_snuffed_torch": {"textures": ["textures/blocks/tailwail_snuffed_torch"]}}
+    # 3.2: the marks it leaves
+    claw_tex = lambda v: "tailwail_claw_marks_%d" % v  # noqa: E731
+    tally_tex = lambda v: "tailwail_tally_%d" % v  # noqa: E731
+    write(os.path.join(BP, "blocks", "claw_marks.json"),
+          decal_block("tailwail:claw_marks", "tailwail:variant", list(range(CLAW_VARIANTS)), claw_tex, "tile.tailwail:claw_marks.name"))
+    write(os.path.join(BP, "blocks", "tally.json"),
+          decal_block("tailwail:tally", "tailwail:count", TALLY_COUNTS, tally_tex, "tile.tailwail:tally.name"))
+    write(os.path.join(BP, "loot_tables", "blocks", "tailwail_nothing.json"), {"pools": []})
+    write(os.path.join(RP, "models", "blocks", "tailwail_decal.geo.json"), decal_geometry())
+    for v in range(CLAW_VARIANTS):
+        claw_texture(os.path.join(RP, "textures", "blocks", claw_tex(v) + ".png"), v)
+        terrain[claw_tex(v)] = {"textures": ["textures/blocks/" + claw_tex(v)]}
+    for c in TALLY_COUNTS:
+        tally_texture(os.path.join(RP, "textures", "blocks", tally_tex(c) + ".png"), c)
+        terrain[tally_tex(c)] = {"textures": ["textures/blocks/" + tally_tex(c)]}
     write(os.path.join(RP, "textures", "terrain_texture.json"), {
         "resource_pack_name": "tailwail", "texture_name": "atlas.terrain", "padding": 8, "num_mip_levels": 4,
-        "texture_data": {"tailwail_snuffed_torch": {"textures": ["textures/blocks/tailwail_snuffed_torch"]}}})
-    write(os.path.join(RP, "blocks.json"), {"format_version": [1, 1, 0], BLOCK_ID: {"sound": "wood"}})
+        "texture_data": terrain})
+    write(os.path.join(RP, "blocks.json"), {"format_version": [1, 1, 0], BLOCK_ID: {"sound": "wood"},
+                                            "tailwail:claw_marks": {"sound": "stone"}, "tailwail:tally": {"sound": "stone"}})
     write(os.path.join(RP, "fogs", "tailwail_dread.json"), fog())
     write(os.path.join(RP, "particles", "snuff_smoke.json"), particle())
     patch_item_textures()

@@ -6,5 +6,11 @@
   ],
   "tailwail:snuffed_torch": {
     "sound": "wood"
+  },
+  "tailwail:claw_marks": {
+    "sound": "stone"
+  },
+  "tailwail:tally": {
+    "sound": "stone"
   }
 }
